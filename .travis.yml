@@ -12,7 +12,7 @@ script:
 # maven deploy process (builds lucee and deploys to sonatype)
  - mvn -f loader/pom.xml clean deploy --settings travis-settings.xml #target/travis/settings.xml
 
-############ increment maven version (not working) ########### 
+############ increment maven version (not working) ###########
 # - mvn --batch-mode -f loader/pom.xml release:update-versions
 # - git config --global user.email "${GIT_EMAIL}"
 # - git config --global user.name "${GIT_USERNAME}"
