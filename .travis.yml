@@ -6,11 +6,11 @@ language: java
 
 # copy the settings.xml for maven from the "travis" branch
 before_install: 
- - "git clone -b travis `git config --get remote.origin.url` target/travis"
+# - "git clone -b travis `git config --get remote.origin.url` target/travis"
 
 script: 
 # maven deploy process (builds lucee and deploys to sonatype)
- - mvn -f loader/pom.xml clean deploy --settings target/travis/settings.xml
+ - mvn -f loader/pom.xml clean deploy --settings travis-settings.xml #target/travis/settings.xml
 
 ############ increment maven version (not working) ############ 
 # - mvn --batch-mode -f loader/pom.xml release:update-versions
