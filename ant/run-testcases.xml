@@ -17,17 +17,18 @@
 <script language="CFML">
 <![CDATA[
 
+request.WEBADMINPASSWORD="webweb";
+
 NL="
 ";
 try {
-	
 	// set a password for the admin
 		try {
 		    admin 
 				action="updatePassword"
 				type="web"
 				oldPassword=""
-				newPassword="webweb";
+				newPassword="#request.WEBADMINPASSWORD#";
 		}
 		catch(e){}// may exist from previous execution
 
@@ -46,7 +47,7 @@ try {
 
 	// set the testbox mapping
  	
-		mapping 
+		application 
 			action="update" 
 			componentpaths = "#[{archive:"/test/testbox-2.1.0.lar"}]#";
 	
