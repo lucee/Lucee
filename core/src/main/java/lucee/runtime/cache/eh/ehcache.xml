@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xsi:noNamespaceSchemaLocation="ehcache.xsd">
+	<diskStore path="{disk-store-path}"/>
+    <cacheManagerEventListenerFactory class="" properties=""/>
+    <cacheManagerPeerProviderFactory class="net.sf.ehcache.distribution.RMICacheManagerPeerProviderFactory" properties="peerDiscovery=automatic,                         multicastGroupAddress=230.0.0.1, multicastGroupPort=4446, timeToLive=1" propertySeparator=","/>
+    <cacheManagerPeerListenerFactory class="net.sf.ehcache.distribution.RMICacheManagerPeerListenerFactory"/>
+</ehcache>

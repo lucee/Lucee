@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Main-Class: lucee.runtime.instrumentation.ExternalAgent
+Premain-Class: lucee.runtime.instrumentation.ExternalAgent
+Agent-Class: lucee.runtime.instrumentation.ExternalAgent
+Can-Redefine-Classes: true
+Can-Retransform-Classes: true

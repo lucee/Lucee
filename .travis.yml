@@ -1,0 +1,37 @@
+language: java
+
+#os:
+#  - linux
+#  - osx
+
+# copy the settings.xml for maven from the "travis" branch
+before_install: 
+ - "git clone -b travis `git config --get remote.origin.url` target/travis"
+
+script: 
+# maven deploy process (builds lucee and deploys to sonatype)
+ - mvn -f loader/pom.xml clean deploy --settings target/travis/settings.xml
+
+############ increment maven version (not working) ############ 
+# - mvn --batch-mode -f loader/pom.xml release:update-versions
+# - git config --global user.email "${GIT_EMAIL}"
+# - git config --global user.name "${GIT_USERNAME}"
+# - git config --global user.password "${GIT_PASSWORD}"
+# - git add -f loader/pom.xml # add the updated pom
+# - git commit -m "update maven version"
+# - git remote -v
+# - git remote set-url origin https://github.com/lucee/Lucee.git
+# - git push origin master
+
+#deploy:
+#	skip_cleanup: true
+
+notifications:
+  slack: luceeserver:ZTfbu4bVSLFmakRcLInrNZIT
+  email:
+    - michael@lucee.org
+
+after_success:
+# - version=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version | egrep -v '^\[|Downloading:' | tr -d ' \n')
+- curl "http://stable.lucee.org/rest/update/provider/buildLatest"
+#- git commit -a -m "Committed by Travis-CI build number: $TRAVIS_JOB_ID"

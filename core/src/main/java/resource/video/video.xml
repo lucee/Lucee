@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?><video  ffmpeg="">
+
+<profiles>
+	<profile label="1080p,full-hdtv" width="1920" height="1080" aspect-ratio="16:9" scan-mode="p"/>
+	<profile label="1080p25,1080p/25" width="1920" height="1080" aspect-ratio="16:9" scan-mode="p" framerate="25"/>
+	<profile label="1080p30,1080p/30" width="1920" height="1080" aspect-ratio="16:9" scan-mode="p" framerate="30"/>
+	<profile label="1080p50,1080p/50" width="1920" height="1080" aspect-ratio="16:9" scan-mode="p" framerate="50"/>
+	<profile label="1080p60,1080p/60" width="1920" height="1080" aspect-ratio="16:9" scan-mode="p" framerate="60"/>
+	
+	<profile label="1080i" width="1920" height="1080" aspect-ratio="16:9" scan-mode="i"/>
+	<profile label="1080i50,1080i/25" width="1920" height="1080" aspect-ratio="16:9" scan-mode="i" framerate="25"/>
+	<profile label="1080i60,1080i/30" width="1920" height="1080" aspect-ratio="16:9" scan-mode="i" framerate="30"/>
+	<profile label="1080i100,1080i/50" width="1920" height="1080" aspect-ratio="16:9" scan-mode="i" framerate="50"/>
+	<profile label="1080i120,1080i/60" width="1920" height="1080" aspect-ratio="16:9" scan-mode="i" framerate="60"/>
+	
+	<profile label="720p" width="1280" height="720" aspect-ratio="16:9" scan-mode="p"/>
+	<profile label="720p25,720p/25" width="1280" height="720" aspect-ratio="16:9" scan-mode="p" framerate="25"/>
+	<profile label="720p30,720p/30" width="1280" height="720" aspect-ratio="16:9" scan-mode="p" framerate="30"/>
+	<profile label="720p50,720p/50" width="1280" height="720" aspect-ratio="16:9" scan-mode="p" framerate="50"/>
+	<profile label="720p60,720p/60" width="1280" height="720" aspect-ratio="16:9" scan-mode="p" framerate="60"/>
+	
+	<profile label="720i" width="1280" height="720" aspect-ratio="16:9" scan-mode="p"/>
+	<profile label="720i50,720i/25" width="1280" height="720" aspect-ratio="16:9" scan-mode="i" framerate="25"/>
+	<profile label="720i60,720i/30" width="1280" height="720" aspect-ratio="16:9" scan-mode="i" framerate="30"/>
+	<profile label="720i100,720i/50" width="1280" height="720" aspect-ratio="16:9" scan-mode="i" framerate="50"/>
+	<profile label="720i120,720i/60" width="1280" height="720" aspect-ratio="16:9" scan-mode="i" framerate="60"/>
+	
+	<profile label="576i,sdtv,pal,dvd-pal" width="720" height="576" aspect-ratio="4:3" scan-mode="i" framerate="25"/>
+	<profile label="480i,ntsc,dvd-ntsc" width="720" height="480" aspect-ratio="4:3" scan-mode="i" framerate="29.97"/>
+	
+	<profile label="appletv,atv" width="1280" height="720" video-codec="h264" video-bitrate="1.5mb" audio-bitrate="320kb" audio-codec="aac" audio-samplerate="48kHz" aspect-ratio="16:9" scan-mode="i" framerate="24"/>
+	<profile label="ipod-touch,iphone" width="480" height="270" video-codec="h264" video-bitrate="1.5mb" audio-bitrate="320kb" audio-codec="aac" audio-samplerate="48kHz" aspect-ratio="16:9" scan-mode="i" framerate="30"/>
+	<profile label="ipod-nano" width="320" height="240" video-codec="h264" audio-codec="aac"  video-bitrate="1.5mb" audio-bitrate="320kb" audio-samplerate="48kHz"  framerate="30" aspect-ratio="4:3" scan-mode="i"/>
+	<profile label="ipod,ipod-classic,ipod-g5" width="320" height="240" video-codec="h264" audio-codec="aac"  video-bitrate="1.5mb" audio-bitrate="320kb" audio-samplerate="48kHz"  framerate="30" aspect-ratio="4:3" scan-mode="i"/>
+	
+	<profile label="zune" width="320" height="240" scan-mode="i" video-codec="h264" audio-codec="aac" video-bitrate="1.5mb" audio-bitrate="320kb" audio-samplerate="48kHz"  framerate="25"/>
+	<profile label="psp" width="368" height="208" aspect-ratio="16:9" scan-mode="i" framerate="29.97"/>
+
+	<profile label="internet,youtube" width="320" height="240" scan-mode="i" framerate="15"  audio-samplerate="44.1kHz" video-bitrate="314kb"/>
+	
+	<profile label="divx" video-codec="mpeg4:divx" audio-codec="mp3"/>
+	<profile label="xvid" video-codec="mpeg4:xvid" audio-codec="mp3"/>
+		
+		
+	
+</profiles>
+
+</video>

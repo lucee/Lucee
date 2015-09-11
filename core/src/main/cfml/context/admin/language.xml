@@ -1,0 +1,1471 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<languages>
+
+	<language key="de">
+		<custom key="application.allowurlrequesttimeout">Request timeout via URL</custom>
+	
+		<custom key="application.allowurlrequesttimeoutdesc">Angabe des Parameters [RequestTimeout] in der URL berücksichtigen (Verhalten wie CFML 5, 7 &amp; 8)</custom>
+		<custom key="application.listener">Application Listener</custom>
+		<custom key="application.listenerdescription">Legt fest, wie Request verarbeitet und welche Templates einbezogen werden sollen.</custom>
+		<custom key="application.listenermode">Mode</custom>
+		<custom key="application.listenermode_curr">Aktuell</custom>
+	
+		<custom key="application.listenermode_curr2root">Aktuell bis Root (CFML Default)</custom>
+		<custom key="application.listenermode_root">Root (Wurzelverzeichnis)</custom>
+		<custom key="application.listenermodedescription">Definiert wo nach den Dateien 'Application.cfc/application.cfm' gesucht werden soll. Beim Typ 'none' ist diese Einstellung ohne Bedeutung.</custom>
+		<custom key="application.listenermodedescription_curr">Sucht nur im aktuellen Verzeichnis nach der Datei 'Application.cfc/Application.cfm'.</custom>
+		<custom key="application.listenermodedescription_curr2root">Sucht nach der Datei 'Application.cfc/Application.cfm' vom aktuellen Verzeichnis aus zurück bis zum Webroot Verzeichnis.</custom>
+		<custom key="application.listenermodedescription_root">Sucht nur im Webroot Verzeichnis nach der Datei 'Application.cfc/Application.cfm'.</custom>
+	
+		<custom key="application.listenertype">Type</custom>
+		<custom key="application.listenertype_classic">Klassisch (CFML &lt; 7)</custom>
+		<custom key="application.listenertype_mixed">Gemischt (CFML &gt;= 7)</custom>
+		<custom key="application.listenertype_modern">Modern</custom>
+		<custom key="application.listenertype_none">Kein</custom>
+	
+		<custom key="application.listenertypedescription">Wählen Sie welche Art von Listener verwendet werden soll</custom>
+		<custom key="application.listenertypedescription_classic">Klassisches Handling. Lucee sucht nur nach der Datei 'Application.cfm' und der entsprechenden Datei 'onRequestEnd.cfm'</custom>
+		<custom key="application.listenertypedescription_mixed">Gemischtes Handling. Lucee sucht sowohl nach der Datei 'Application.cfm/onRequestEnd.cfm' wie auch nach der Datei 'Application.cfc'</custom>
+		<custom key="application.listenertypedescription_modern">Modernes Handling. Lucee sucht nur nach der Datei 'Application.cfc'</custom>
+		<custom key="application.listenertypedescription_none">Bei einem Request wird ausschliesslich die entsprechende Datei aufgerufen</custom>
+		<custom key="application.missingscriptprotect">Bitte geben Sie einen Wert für das Script-Protect ein</custom>
+	
+		<custom key="application.requesttimeout">Request Timeout</custom>
+		<custom key="application.requesttimeoutdescription">Legt die Zeit fest, wie lange Lucee auf die Beendigung eines Requests warten soll. Das heisst, dass die Ausführung des Requests beim Überschreiten dieser Zeit abgebrochen wird. Diese Verhaltensweise kann von dem Tag CFSetting übersteuert werden.</custom>
+		<custom key="application.scriptprotect">Script-Protect</custom>
+		<custom key="application.scriptprotectall">Script-Protect überprüft alle Scopes ob die Daten von ausserhalb kommen (cgi, cookie, form, url)</custom>
+		<custom key="application.scriptprotectcustom">Definieren Sie individuell welche Scopes geprüft werden sollen und welche nicht</custom>
+		<custom key="application.scriptprotectdescription">Durch die Konfiguration von Script-Protect schützen Sie ihr System vor 'Cross-Site Scripting'</custom>
+	
+		<custom key="application.scriptprotectnone">Script-Protect ist nicht aktiv</custom>
+		<custom key="application.server">Definert Applikationseinstellungen, die als Standardwert für alle Webs gelten.</custom>
+		<custom key="application.web">Hier können Sie verschiedene Standardeinstellungen für den Applikations Kontext erfassen. Diese Einstellungen können von dem Tag CFApplication oder der Application.cfc übersteuert werden.</custom>
+		<custom key="buttons.addarchive">dem Mapping zuweisen</custom>
+		<custom key="buttons.cancel">abbrechen</custom>
+		<custom key="buttons.change">ändern</custom>
+	
+		<custom key="buttons.compileall">kompilieren</custom>
+		<custom key="buttons.create">neu</custom>
+		<custom key="buttons.delete">löschen</custom>
+		<custom key="buttons.downloadarchive">downloaden</custom>
+		<custom key="buttons.execute">ausführen</custom>
+		<custom key="buttons.filter">filter</custom>
+	
+		<custom key="buttons.install">installieren</custom>
+		<custom key="buttons.ok">OK</custom>
+		<custom key="buttons.optimize">optimieren</custom>
+		<custom key="buttons.purge">leeren</custom>
+		<custom key="buttons.repair">reparieren</custom>
+		<custom key="buttons.reset">zurücksetzen</custom>
+	
+		<custom key="buttons.save">speichern</custom>
+		<custom key="buttons.search">suchen</custom>
+		<custom key="buttons.setting">einstellung</custom>
+		<custom key="buttons.submit">senden</custom>
+		<custom key="buttons.uninstall">deinstallieren</custom>
+		<custom key="buttons.update">aktualisieren</custom>
+	
+		<custom key="buttons.verify">überprüfen</custom>
+		<custom key="cfx.cfxtags">Java CFX Tags</custom>
+		<custom key="cfx.class">Klasse</custom>
+		<custom key="cfx.missingclassvalue">Bitte geben Sie einen Wert für die Klasse an. (Zeile </custom>
+		<custom key="cfx.name">Name</custom>
+		<custom key="cfx.noaccess">Kein Zugriff auf die CFX Funktionalität</custom>
+	
+		<custom key="charset.missingresourcecharset">Bitte geben Sie einen Wert für das Ressource Charset ein</custom>
+		<custom key="charset.missingtemplatecharset">Bitte geben Sie einen Wert für das Template Charset ein</custom>
+		<custom key="charset.missingwebcharset">Bitte geben Sie einen Wert für das Web Charset ein</custom>
+		<custom key="charset.resourcecharset">Ressourcen Charset</custom>
+		<custom key="charset.resourcecharsetdescription">Charset das verwendet wird um die diversen Ressourcen (Files, Zip, Ftp usw.) einzulesen oder zu beschreiben</custom>
+		<custom key="charset.server">Hier definieren Sie das Charset (Zeichensatz) das für verschiedene Einsatzwecke verwendet werden soll</custom>
+	
+		<custom key="charset.templatecharset">Template Charset</custom>
+		<custom key="charset.templatecharsetdescription">Charset das verwendet wird um die verschiedenen Templates (.cfm und .cfc Files) einzulesen</custom>
+		<custom key="charset.web">Hier definieren Sie das Charset (Zeichensatz) das für verschiedene Einsatzwecke verwendet werden soll</custom>
+		<custom key="charset.webcharset">Web Charset</custom>
+		<custom key="charset.webcharsetdescription">Charset das als standardmässiger charset des Output Streams, zum Einlesen von form, url und cgi Scope und zum Schreiben und Lesen des Headers verwendet wird</custom>
+		<custom key="components.basecomponent">Basis/Root Komponente</custom>
+	
+		<custom key="components.basecomponentdescription">Jede Komponente die nicht explizit eine andere Komponente erbt (Attribut 'extends') erbt diese Komponente, d.h. das jede Komponente diese Komponente direkt oder indirekt erbt.</custom>
+		<custom key="components.basecomponentmissing">Bitte geben Sie einen Wert für die Basis/Root Komponente ein.</custom>
+		<custom key="components.component">Komponente</custom>
+		<custom key="components.componentdumptemplate">Komponetenausgabe Template (dump)</custom>
+		<custom key="components.componentdumptemplatedescription">Wenn Sie ein Komponente direkt über den Browser aufrufen, wird dieses Template für die Darstellung verwendet. (Beispiel: http://www.lucee.org/ch/lucee/common/Example.cfc)</custom>
+		<custom key="components.componentdumptemplatemissing">Bitte geben Sie einen Eintrag für das 'dump' Template an.</custom>
+	
+		<custom key="components.datamemberaccesstype">Zugriffsbeschränkung für Daten Mitglieder einer CFC</custom>
+		<custom key="components.datamemberaccesstypedescription">Definiert wie die Variablen des 'this' Scopes (Data Members) ausserhalb einer CFC angesprochen werden können. Eine strenge Objektorientierung würde verlangen, dass ein solcher Zugriff von Aussen gar nicht erst möglich wäre (access=private).</custom>
+		<custom key="components.dmatpackage">package</custom>
+		<custom key="components.dmatprivate">private</custom>
+		<custom key="components.dmatpublic">public (CFML Standard)</custom>
+		<custom key="components.dmatremote">remote</custom>
+	
+		<custom key="components.server">Definert Komponenteneinstellungen, die als Standartwert für alle Webs gelten.</custom>
+		<custom key="components.triggerdatamember">Magic functions</custom>
+		<custom key="components.triggerdatamemberdescription">Wenn eine Eigenschaft einer Komponente fehlt (oder geschützt ist), prüft Lucee weiter ob ein passender &quot;getter&quot; oder &quot;setter&quot; verfügbar ist.
+		Beispiel: &quot;myComponent.properyName&quot;, wenn die Komponente 'myComponent' keine zugreifbare Eigenschaft mit dem Namen 'propertyName' hat,
+		sucht Lucee nach einer entsprechenden CFC-Funktion (Methode) mit dem Namen &quot;getPropertyName&quot;. Für Schreiboperationen auf eine solche Eigenschaft wird nach einer Methode &quot;setPropertyName&quot; in der Komponente gesucht.</custom>
+	
+		<custom key="components.useshadow">Allow Variable Scope</custom>
+		<custom key="components.useshadowdescription">Definiert, ob eine Komponente einen eigenständigen &quot;Variables&quot; Scope parallel zum &quot;this&quot; Scope hat (CFML Standard) oder nicht. Wenn nicht, dann werden alle nicht spezifizierten Variablen in den &quot;this&quot; scope geschrieben.</custom>
+		<custom key="components.web">Definiert wie Komopenten von Lucee verarbeitet werden.</custom>
+	
+		<custom key="customtags.archive">Archiv</custom>
+		<custom key="customtags.archivemissing">Bitte geben Sie einen Wert für den Archivnamen an. (Zeile </custom>
+		<custom key="customtags.customtagdeepsearch">Untergeordnete Verzeichnisse einbeziehen</custom>
+		<custom key="customtags.customtagdeepsearchdesc">Untergeordnete Verzeichnisse nach Customtags durchsuchen (für Archive nicht unterstützt)</custom>
+		<custom key="customtags.customtaglocalsearch">Lokales Verzeichnis einbeziehen</custom>
+		<custom key="customtags.customtaglocalsearchdesc">Lokales Verzeichnisse aus welchen der Customtag aufgerufen wird, nach dem Customtag durchsuchen</custom>
+	
+		<custom key="customtags.customtagmappings">Resourcen</custom>
+		<custom key="customtags.customtagsetting">Einstellungen</custom>
+		<custom key="customtags.physical">Ressource</custom>
+		<custom key="customtags.physicalmissing">Bitte geben Sie einen Wert für die Ressource an. (Zeile </custom>
+		<custom key="customtags.primary">Primär</custom>
+		<custom key="customtags.trusted">Trusted</custom>
+	
+		<custom key="debug.debugtemplate">Debugging Template</custom>
+		<custom key="debug.debugtemplatedescription">Dieses Template wird für die Ausgabe der Debuginformationen</custom>
+		<custom key="debug.debugtemplatemissing">Bitte geben Sie einen Wert für das Debugging Template an.</custom>
+		<custom key="debug.enabledebugging">Debug Informationen anzeigen</custom>
+		<custom key="debug.enabledescription">Falls eingeschaltet, erstellt Lucee eine Debuggingausgabe für den aktuellen Request</custom>
+		<custom key="debug.logmemoryusage">Memoryverbrauch loggen.</custom>
+	
+		<custom key="debug.logmemoryusagedescription">Definiert ob der Memoryverbrauch des Systems geloggt werden soll oder nicht</custom>
+		<custom key="debug.memorylogger">Memory Logger</custom>
+		<custom key="debug.memoryloggerdescripiton">Datei in welchem der Memoryverbrauch geloggt wird</custom>
+		<custom key="debug.timezone">Bitte geben Sie einen Wert für die Zeitzone an.</custom>
+		<custom key="doc.arg._type">Typ</custom>
+		<custom key="doc.arg.description">Beschreibung</custom>
+	
+		<custom key="doc.arg.max">Lediglich die Anzahl der Argumente ist auf {max} beschränkt.</custom>
+		<custom key="doc.arg.min">Sie muss jedoch mindestens {min} Argument(e) haben.</custom>
+		<custom key="doc.arg.minmax">Sie muss mindestens {min} Argument(e) haben jedoch maximal {max}.</custom>
+		<custom key="doc.arg.name">Name</custom>
+		<custom key="doc.arg.required">Required</custom>
+		<custom key="doc.arg.type.dynamic">Für diese Funktion gibt es keine Beschränkung hinsichtlich der Argumente, die verwendet werden dürfen.</custom>
+	
+		<custom key="doc.arg.type.fixed">Die Argumente für diese Funktion sind fest vorgegeben. Ausser den nachfolgenden Argumenten dürfen keine weiteren verwendet werden.</custom>
+		<custom key="doc.arg.zero">Diese Funktion hat keine Argumente</custom>
+		<custom key="doc.argtitle">Argumente</custom>
+		<custom key="doc.attr._type">Typ</custom>
+		<custom key="doc.attr.description">Beschreibung</custom>
+		<custom key="doc.attr.max">Lediglich die Anzahl der Attribute ist auf {max} beschränkt.</custom>
+	
+		<custom key="doc.attr.min">Es muss mindestens {min} Attribut(e) haben.</custom>
+		<custom key="doc.attr.minmax">Es muss mindestens {min} Attribut(e), jedoch maximal {max.} haben</custom>
+		<custom key="doc.attr.name">Name</custom>
+		<custom key="doc.attr.required">Required</custom>
+		<custom key="doc.attr.type.dynamic">Für dieses Tag gibt es keine Beschränkung was für Attribute verwendet werden dürfen.</custom>
+		<custom key="doc.attr.type.fixed">Die Attribute für dieses Tag sind fest vorgegeben. Ausser den nachfolgend angegebenen Attributen dürfen keine weiteren verwendet werden.</custom>
+	
+		<custom key="doc.attr.type.mixed">Dieses Tag hat eine feste Definition von Attributen (siehe nachfolgend), darüber hinaus erlaubt das Tag jedoch weitere frei definierbare Attribute zu verwenden.</custom>
+		<custom key="doc.attr.type.noname">Dieses Tag erlaubt einzig ein Attribut Wert (keinen Namen).</custom>
+		<custom key="doc.attr.zero">Dieses Tag hat keine Attribute</custom>
+		<custom key="doc.attrdesc">Attribute, die durch für das Tag unterstützt sind.</custom>
+		<custom key="doc.attrtitle">Attribute</custom>
+		<custom key="doc.body.free">Dieses Tag darf einen Body haben, muss aber nicht.</custom>
+	
+		<custom key="doc.body.prohibited">Dieses Tag darf keinen Body haben.</custom>
+		<custom key="doc.body.required">Dieses Tag muss einen Body haben.</custom>
+		<custom key="doc.bodytitle">Body</custom>
+		<custom key="err.descr">Geben Sie ein individuelles Error-Template an.</custom>
+		<custom key="err.errorstatuscode">Status Code</custom>
+		<custom key="err.errorstatuscodedescription">Soll im Fehlerfall ein abweichender Statuscode zurückgegeben werden oder soll 200 beibehalten werden</custom>
+	
+		<custom key="err.errortemplate.404">Missing Template Error (404)</custom>
+		<custom key="err.errortemplate.500">General Error Template (500)</custom>
+		<custom key="err.errortemplatedescription.404">Template das beim fehlen eines template verwendet wird. Diese Einstellung kann über den Tag CFError übersteuert werden.</custom>
+		<custom key="err.errortemplatedescription.500">Template das in einem Fehlerfall verwendet werden soll. Diese Einstellung kann über den Tag CFError übersteuert werden.</custom>
+		<custom key="general.day">Tag</custom>
+		<custom key="general.days">Tage</custom>
+	
+		<custom key="general.hour">Stunde</custom>
+		<custom key="general.hourerror">Der Wert des Feldes Stunde muss einen positiven Wert enthalten (Wert &gt; 0)</custom>
+		<custom key="general.hours">Stunden</custom>
+		<custom key="general.minute">Minute</custom>
+		<custom key="general.minuteerror">Der Wert des Feldes Minute muss einen positiven Wert enthalten (Wert &gt; 0)</custom>
+	
+		<custom key="general.minutes">Minuten</custom>
+		<custom key="general.month">Monat</custom>
+		<custom key="general.no">Nein</custom>
+		<custom key="general.second">Sekunde</custom>
+		<custom key="general.seconderror">Der Wert des Feldes Sekunde muss einen positiven Wert enthalten (Wert &gt; 0)</custom>
+	
+		<custom key="general.seconds">Sekunden</custom>
+		<custom key="general.year">Jahr</custom>
+		<custom key="general.yes">Ja</custom>
+		<custom key="locale">german (standard)</custom>
+		<custom key="login.changepassword">Passwort ändern</custom>
+		<custom key="login.changepassworddescription">Passwort für diesen Administrator ändern.</custom>
+	
+		<custom key="login.defaultpassword">Standard Passwort setzen</custom>
+		<custom key="login.defaultpassworddescription">Legen Sie das Standard Passwort für alle Web Administratoren fest.</custom>
+		<custom key="login.newpassword">Neues Passwort</custom>
+		<custom key="login.newpassworddescription">Das neue Passwort für den Administrator.</custom>
+		<custom key="login.newpasswordmissing">Bitte geben Sie einen Wert für das neue Passwort an</custom>
+		<custom key="login.newtooshort">Das neue Passwort ist zu kurz. Die länge des Passworts muss mindestens 6 Zeichen betragen.</custom>
+	
+		<custom key="login.oldpassword">Altes Password</custom>
+		<custom key="login.oldpassworddescription">Das alte, zu ändernde Passwort.</custom>
+		<custom key="login.oldpasswordmissing">Bitte geben Sie einen Wert für das alte Passwort an</custom>
+		<custom key="login.oldtooshort">Das alte Passwort ist zu kurz. Die länge des Passworts muss mindestens 6 Zeichen betragen.</custom>
+		<custom key="login.password">Passwort</custom>
+		<custom key="login.passwordmissing">Bitte geben Sie ein Passwort ein</custom>
+	
+		<custom key="login.resetwebpw">Passwort zurücksetzen</custom>
+		<custom key="login.resetwebpwdescription">Passwort für das gewählt Web zurücksetzen</custom>
+		<custom key="login.retypenewpassword">Geben Sie das neue Passwort erneut ein</custom>
+		<custom key="login.retypenewpasswordmissing">Bitte geben Sie das neue Passwort erneut ein</custom>
+		<custom key="login.retypepassword">Geben Sie das Passwort erneut ein</custom>
+		<custom key="login.retypepasswordmissing">Bitte geben Sie das Passwort nochmals ein</custom>
+	
+		<custom key="login.unequalpasswords">Das neue Passwort und dessen Wiederholung sind nicht identisch.</custom>
+		<custom key="login.web">Web</custom>
+		<custom key="mail.defaultencoding">Standard Encoding</custom>
+		<custom key="mail.defaultencodingdescription"></custom>
+		<custom key="mail.level">Log Level</custom>
+		<custom key="mail.logfile">Log Datei</custom>
+	
+		<custom key="mail.logfilemissing">Bitte geben Sie einen Wert für die Log Datei an.</custom>
+		<custom key="mail.mailservers">Mail Server</custom>
+		<custom key="mail.mailserversdescription">Sie können mehrere Mailsserver definieren. Wenn Sie eine Mail absenden, versucht Lucee die Mail der Reihe nach über einen der angegebenen Mailserver zu versenden.</custom>
+		<custom key="mail.missingencoding">Bitte geben Sie einen Wert für das Standard Encoding ein</custom>
+		<custom key="mail.password">Passwort</custom>
+		<custom key="mail.passwordmissing">Bitte geben Sie einen Wert für das entsprechende Passwort an. (Zeile </custom>
+	
+		<custom key="mail.port">Port</custom>
+		<custom key="mail.porterrorfirst">Bitte geben Sie einen Wert für den Port (Zeile </custom>
+		<custom key="mail.porterrorlast">) vom Typ Nummer an.</custom>
+		<custom key="mail.server">Server (SMTP)</custom>
+		<custom key="mail.servermissing">Bitte geben Sie einen Wert für den Mailserver an. (Zeile </custom>
+		<custom key="mail.settings">Mail Einstellungen</custom>
+	
+		<custom key="mail.spoolenabled">Spooler an</custom>
+		<custom key="mail.spoolinterval">Spool Intervall</custom>
+		<custom key="mail.timeout">Timeout</custom>
+		<custom key="mail.username">Benutzername</custom>
+		<custom key="mail.usernamemissing">Bitte geben Sie einen Wert für den Benutzernamen an. (Zeile </custom>
+		<custom key="mappings.archive">Archiv</custom>
+	
+		<custom key="mappings.archivedesc">Erstellen Sie aus einem Mapping ein Lucee Archive (ra)</custom>
+		<custom key="mappings.archivehead">Archiv</custom>
+		<custom key="mappings.archiveheaddescription">Name der Archivdatei (ra oder ras)  (Absolut oder relativ zum Webroot).</custom>
+		<custom key="mappings.archivemissing">Bitte geben Sie einen Wert für den Archivnamen an. (Zeile </custom>
+		<custom key="mappings.archivesecure">Sicher</custom>
+		<custom key="mappings.archivesecuredesc">Source Dateien aus dem Archiv ausschliessen. Die Source Dateien werden nur für die Ausgabe von Codeprints bei Fehlern verwendet.</custom>
+	
+		<custom key="mappings.archivetitle">Archiv erstellen</custom>
+		<custom key="mappings.compiledesc">Kompilieren Sie alle cfm und cfc-Dateien innerhalb des Mappings</custom>
+		<custom key="mappings.compilestoponerror">Bei Fehler stoppen</custom>
+		<custom key="mappings.compilestoponerrordesc">Legt fest, ob bei einem Fehler die weitere Kompilierung gestoppt werden soll</custom>
+		<custom key="mappings.compiletitle">kompilieren</custom>
+		<custom key="mappings.editdesc">Hier können Sie ein einzelnes Mapping bearbeiten oder aus einem bestehenden Mapping ein Lucee Archiv erstellen.</custom>
+	
+		<custom key="mappings.introtext">Bitte beachten Sie, dass nur Seiten, die von Lucee verarbeitet werden diese Mappings kennen (cfm, cfml, cfc). Wenn Sie auch Dateien, die nicht von Lucee verarbeitet werden verwenden möchten, müssen Sie virtuelle Mappings auf Ihrem Applikationsserver erstellen.</custom>
+		<custom key="mappings.physical">Ressource</custom>
+		<custom key="mappings.physicalhead">Ressource</custom>
+		<custom key="mappings.physicalheaddescription">Pfad der zu mappenden Ressource (Absolut oder relativ zum Webroot).</custom>
+		<custom key="mappings.physicalmissing">Bitte geben Sie einen Wert für die Ressource an. (Zeile </custom>
+		<custom key="mappings.primaryhead">Primär</custom>
+	
+		<custom key="mappings.primaryheaddescription">Legt fest, wo cfm-Dateien vorrangig gesucht werden.</custom>
+		<custom key="mappings.topleveldesc"></custom>
+		<custom key="mappings.toplevelhead">Top Level</custom>
+		<custom key="mappings.trustedhead">Trusted</custom>
+		<custom key="mappings.trustedheaddescription"></custom>
+		<custom key="mappings.virtualhead">Virtuell</custom>
+		<custom key="overview.bugreport">Fehlerreport</custom>
+	
+		<custom key="overview.bugreportmail">bugs@lucee.ch</custom>
+		<custom key="overview.cfcompatibility">Kompatibel zu ColdFusion&amp;reg; Version</custom>
+		<custom key="overview.contact">Kontakt</custom>
+		<custom key="overview.contactinfo">Info</custom>
+		<custom key="overview.contextcount">Anzahl Kontexte</custom>
+		<custom key="overview.datetime">Lucee Datum/Zeit</custom>
+	
+		<custom key="overview.featurerequest">Feature Anfragen</custom>
+		<custom key="overview.featurerequestmail">features@lucee.ch</custom>
+		<custom key="overview.info">Info</custom>
+		<custom key="overview.infomail">info@lucee.ch</custom>
+		<custom key="overview.installedfls">Installierte Funktions&lt;br&gt;Bibliotheken</custom>
+	
+		<custom key="overview.installedtls">Installierte Tag&lt;br&gt;Bibliotheken</custom>
+		<custom key="overview.introdesc.server">Der Server Administrator ermöglicht Ihnen Updates und Patches für Ihre Lucee Edition vorzunehmen und die Engine per Mauklick neu zu starten. Zusätzlich können Sie in der Develop und Enterprise Edition die einzelnen Webkontexte vorkonfigurieren und diverse Beschränkungen und Konfigurationen individuell pro Webkontext einrichten.</custom>
+		<custom key="overview.introdesc.web">Lucee, die CFML engine. Schnell, preiswert und einfach zu bedienen. Mit Lucee haben sie sich für den performanten und qualitativ hochwertigen Weg von CFML entschieden. Passen Sie Ihren Webkontext nach Ihren Bedürfnissen und Wünschen an. Dafür steht Ihnen hier der Web Administrator zur Verfügung.</custom>
+		<custom key="overview.licence">Erhältliche Editionen</custom>
+		<custom key="overview.licencecommunity">Community</custom>
+	
+		<custom key="overview.licencecommunitydesc">Lucee Community ist für den einfachen Einsatz gedacht. Bis auf wenige Einschränkungen bietet die Community Version den vollen Sprachumfang von Lucee und dies völlig umsonst.</custom>
+		<custom key="overview.licencedesc">Lucee ist in vier verschiedenen Editionen verfügbar, zugeschnitten für die verschiedenen Einsatzgebiete und Bugets.</custom>
+		<custom key="overview.licencedevelop">Develop</custom>
+		<custom key="overview.licencedevelopdesc">Die Develop Version ist eine Version, welche die Entwickler addressiert, also gedacht ist um damit CFML Applikation zu erstellen. Diese Version darf jedoch nicht produktiv eingesetzt werden.</custom>
+		<custom key="overview.licencedevelopmore">mehr</custom>
+		<custom key="overview.licenceenterprise">Enterprise</custom>
+	
+		<custom key="overview.licenceenterprisedesc">Die Enterprise Version von Lucee ist die grösste und umfassenste Version, gedacht um in einem grösseren Umfeld einzusetzen.</custom>
+		<custom key="overview.licenceprofessional">Professional</custom>
+		<custom key="overview.licenceprofessionaldesc">Die Professional Version bietet den vollen Sprachumfang von Lucee, es muss also auf keine Feature verzichtet werden. Mit der Professional Version können mehrere Webs auf einem Server betrieben werden, die Anzahl Webs wird jedoch durch den Lizenspreis eingeschränkt.</custom>
+		<custom key="overview.os">Betriebssystem</custom>
+		<custom key="overview.purchase">Hol Dir Deine Lucee Lizenz</custom>
+		<custom key="overview.releasedate">Release Datum</custom>
+	
+		<custom key="overview.sales">Verkauf</custom>
+		<custom key="overview.salesmail">sales@lucee.ch</custom>
+		<custom key="overview.serialnumber">Seriennummer</custom>
+		<custom key="overview.serialnumberdescription">Seriennummer für Lucee</custom>
+		<custom key="overview.servertime">Server Datum/Zeit (mm/dd/yyyy HH:mm:ss): </custom>
+		<custom key="overview.used">verwendet</custom>
+	
+		<custom key="overview.version">Version</custom>
+		<custom key="proxy.disable">Proxy nicht verwenden</custom>
+		<custom key="proxy.enable">Proxy verwenden</custom>
+		<custom key="proxy.enableproxy">Proxy verwenden</custom>
+		<custom key="proxy.enableproxydescription">URL eines Proxy Server im Stil 'http://myproxyserver.org/'</custom>
+		<custom key="proxy.missingport">Bitte geben Sie einen Wert für den Proxy Port an</custom>
+	
+		<custom key="proxy.password">Passwort</custom>
+		<custom key="proxy.passworddescription">Passwort für den Proxy</custom>
+		<custom key="proxy.port">Port</custom>
+		<custom key="proxy.portdescription">Port für den Proxy Server (Vorgabe:80)</custom>
+		<custom key="proxy.server">Server</custom>
+		<custom key="proxy.serverdescription">URL eines Proxy Server im Stil 'http://myproxyserver.org/'</custom>
+	
+		<custom key="proxy.settings">Proxy Einstellungen</custom>
+		<custom key="proxy.username">Benutzername</custom>
+		<custom key="proxy.usernamedescription">Benutzername für den Proxy</custom>
+		<custom key="proxy.web">Definieren Sie einen Proxy, welcher an diversen Stellen (cfhttp, cfftp, cfmail ...) in Lucee Verwendung findet</custom>
+		<custom key="regional.defaultencoding">Standard Encoding</custom>
+		<custom key="regional.defaultencodingdescription"></custom>
+	
+		<custom key="regional.locale">Locale</custom>
+		<custom key="regional.localedescription">Definiert die Standard-'Locale', die innerhalb einer Web-Instanz verwendet werden soll.</custom>
+		<custom key="regional.missingencoding">Please enter a value for the default encoding</custom>
+		<custom key="regional.other"> --- andere --- </custom>
+		<custom key="regional.server">Hier können Sie regionale Einstellungen vornehmen, die Vorgabe für alle Web-Instanzen sind. Auf die aktuelle Instanz haben diese Werte keinen Einfluss.</custom>
+		<custom key="regional.serverprop">Server Einstellung</custom>
+	
+		<custom key="regional.timeserver">Time server (NTP)</custom>
+		<custom key="regional.timeserverdescription">Time server der die aktuelle Zeit zürück gibt. Falls gesetzt, wird in Lucee diese Zeit anstelle der lokalen Server-Zeit verwendet (Beispiel: swisstime.ethz.ch, time.nist.gov).</custom>
+		<custom key="regional.timeservermissing">Bitte wählen Sie einen Wert für die Zeitzone aus.</custom>
+		<custom key="regional.timezone">Zeitzone</custom>
+		<custom key="regional.timezonedescription">Definiert die gewünschte Zeitzone für Lucee. Diese Einstellung ändert die Zeit für den Kontext der Webs.&lt;br&gt;</custom>
+		<custom key="regional.web">Lucee lässt Sie Ihre eigenen individuellen Locale-, Zeitzonen- und Zeitservereinstellungen vorzunehmen.</custom>
+	
+		<custom key="remote.adminaccess">Admin Access</custom>
+		<custom key="remote.adminaccessdesc">Definiert den Zugang zum Remote Client, dessen Password und Security Key, die Security key kann innerhalb des Remote Client bezogen werden</custom>
+		<custom key="remote.adminpassword.server">Passwort für den remote Server Administrator</custom>
+		<custom key="remote.adminpassword.web">Passwort für den Remote Web Administrator</custom>
+		<custom key="remote.adminpassworddesc.server">Passwort für den Zugriff auf den Remote Lucee Server Administrator</custom>
+		<custom key="remote.adminpassworddesc.web">Passwort für den Zugriff auf den Remote Lucee Web Administrator</custom>
+	
+		<custom key="remote.connection">Verbindung</custom>
+		<custom key="remote.connectiondesc">Verbindung zum Remote Client, komplette URL (inkl. Port) und HTTP Access</custom>
+		<custom key="remote.desc">Definiert Clients, mit welchen die Einstellungen dieses Administrators, synchronisiert werden sollen</custom>
+		<custom key="remote.detail.create">Remote Client erstellen</custom>
+		<custom key="remote.detail.createdesc"></custom>
+		<custom key="remote.detail.update">Remote Client updaten</custom>
+	
+		<custom key="remote.detail.updatedesc"></custom>
+		<custom key="remote.downloadarchive">Bei &quot;&lt;Buttons.downloadArchive&gt;&quot; wird der Download des Archivs auf dem Remote Client ignoriert, das Archiv wird jedoch angelegt. In diesem Fall empfiehlt es sich den Remote Client nicht einzubeziehen.</custom>
+		<custom key="remote.label">Bezeichnung</custom>
+		<custom key="remote.labelmissing">Die Bezeichnung für den Remote Client fehlt</custom>
+		<custom key="remote.listclients">Liste der Clients</custom>
+	
+		<custom key="remote.newclient">Neuen Remote Client erstellen</custom>
+		<custom key="remote.ot.action">Aktion</custom>
+		<custom key="remote.ot.detaildesc.green">Es wurde bereits &lt;tries&gt; mal versucht diesen Task auszuführen. &lt;triesleft&gt; Versuche stehen noch aus</custom>
+		<custom key="remote.ot.detaildesc.red">Dieser Task konnte trotz &lt;tries&gt; Versuchen nicht korrekt ausgeführt werden</custom>
+	
+		<custom key="remote.ot.error">Fehlermeldungen</custom>
+		<custom key="remote.ot.exetime">Ausführungszeit</custom>
+		<custom key="remote.ot.fromto">1-100 von &lt;recordcount&gt; offenen Tasks</custom>
+		<custom key="remote.ot.lastexecution">Letzte Ausführung</custom>
+		<custom key="remote.ot.name">Name</custom>
+	
+		<custom key="remote.ot.nextexecution">Next execution</custom>
+		<custom key="remote.ot.nextexecutioninminutes">Nächste Ausführung in Minuten</custom>
+		<custom key="remote.ot.noot">Zur Zeit gibt es keine offenen Tasks</custom>
+		<custom key="remote.ot.overviewdesc">Liste der fehlgeschlagenen Tasks. Die hier grün aufgelisteten werden nochmals ausgeführt. Die rot gelisteten Tasks konnten nicht ausgeführt werden.</custom>
+		<custom key="remote.ot.state">Status</custom>
+		<custom key="remote.ot.tries">Anzahl Versuche</custom>
+	
+		<custom key="remote.ot.triesleft">Anzahl verbleibender Versuche</custom>
+		<custom key="remote.ot.type">Typ</custom>
+		<custom key="remote.ot.url">URL</custom>
+		<custom key="remote.passwordmissing">Das Administrator Passwort für den Remote Client fehlt</custom>
+		<custom key="remote.proxy">Proxy Settings</custom>
+		<custom key="remote.proxydesc">Proxy Settings welche für die Verbindung verwendet werden sollen</custom>
+	
+		<custom key="remote.proxypassword">Passwort</custom>
+		<custom key="remote.proxyport">Port</custom>
+		<custom key="remote.proxyportdesc">Proxy Server Port</custom>
+		<custom key="remote.proxyserver">Server</custom>
+		<custom key="remote.proxyserverdesc">Proxy Server (Host)</custom>
+		<custom key="remote.proxyusername">Username</custom>
+	
+		<custom key="remote.securitykey">Sicherheitsschlüssel</custom>
+		<custom key="remote.securitykeydesc">Geben Sie hier den Schlüssel des Remote Clients an. Sie finden ihn unter Remote-Scherheitsschlüssel im Administrator des Remote Clients</custom>
+		<custom key="remote.securitykeymissing">Der Sicherheitsschlüssel  für den Remote Client fehlt</custom>
+		<custom key="remote.securitykeytitledesc">Falls dieser Web Administrator von einem anderen Server aus synchronisiert werden soll, müssen sie den unten angegebenen Schlüssel bei der Definition der Remote Client Verbindung angeben.</custom>
+		<custom key="remote.serverpassword">Passwort</custom>
+		<custom key="remote.serverpassworddesc">Http Access Auhtentication Passwort</custom>
+	
+		<custom key="remote.serverusername">Username</custom>
+		<custom key="remote.serverusernamedesc">Http Access Auhtentication Username</custom>
+		<custom key="remote.sync.desc">Definieren sie, mit welchen Clients die hier gemachten Einstellungen synchronisiert werden sollen</custom>
+		<custom key="remote.sync.title">Remote Client Synchronisation</custom>
+		<custom key="remote.url">URL</custom>
+		<custom key="remote.urlmissing">Die Remote Client URL fehlt</custom>
+	
+		<custom key="remote.urlpath">Pfad</custom>
+		<custom key="remote.urlpathdesc">Pfad zur Admin.cfc (Beispiel: /lucee/admin.cfc?wsdl)</custom>
+		<custom key="remote.urlpathmissing">Der Pfad zur Admin.cfc fehlt</custom>
+		<custom key="remote.urlserver">Server</custom>
+		<custom key="remote.urlserverdesc">Remote Client Server (Beispiel: http://lucee.ch)</custom>
+		<custom key="remote.urlservermissing">Remote Client Server</custom>
+	
+		<custom key="remote.usage.cluster">Cluster Scope</custom>
+		<custom key="remote.usage.desc">Definiert für was alles der Remote Client verwendet werden soll</custom>
+		<custom key="remote.usage.sync">Admin Synchronisation</custom>
+		<custom key="remote.usage.title">Verwendung</custom>
+		<custom key="schedule.createtask">Scheduled Task erstellen</custom>
+		<custom key="schedule.currentdatetime">Aktuelle Datum/Zeit dieses Lucee Kontexts: (mm/dd/yyyy hh:mm tt)</custom>
+	
+		<custom key="schedule.daily">täglich</custom>
+		<custom key="schedule.description">Hier können Sie Scheduled Tasks hinzufügen, bearbeiten oder löschen.</custom>
+		<custom key="schedule.detail">Definierte Scheduled Tasks</custom>
+		<custom key="schedule.detaildescription">Die rot gekennzeichneten Tasks sind abgelaufen und starten nicht mehr.</custom>
+		<custom key="schedule.enddate">Enddatum</custom>
+		<custom key="schedule.endsat">Endet am</custom>
+	
+		<custom key="schedule.endtime">Endzeit</custom>
+		<custom key="schedule.every">Alle</custom>
+		<custom key="schedule.executeat">Ausführen</custom>
+		<custom key="schedule.executiondate">Ausführung Datum/Zeit</custom>
+		<custom key="schedule.executiontime">Ausführungszeit</custom>
+		<custom key="schedule.file">Datei</custom>
+	
+		<custom key="schedule.filedescription">Datei in der die Ausgabe gespeichert werden soll.</custom>
+		<custom key="schedule.interval">Intervall</custom>
+		<custom key="schedule.intervaldesc">Intervall in dem der Task ausgeführt wird.</custom>
+		<custom key="schedule.intervaltype">Intervall Typ</custom>
+		<custom key="schedule.intervaltypedesc">Ausführungsintervall des neuen Tasks</custom>
+		<custom key="schedule.monthly">monatlich</custom>
+	
+		<custom key="schedule.name">Name</custom>
+		<custom key="schedule.namedescedit">URL, die vom Task ausgeführt werden soll.</custom>
+		<custom key="schedule.namedescription">Name des neuen Tasks (dieser Name muss eindeutig sein).</custom>
+		<custom key="schedule.namemissing">Bitte geben Sie einen Wert für den Namen des Tasks an.</custom>
+		<custom key="schedule.once">einmalig</custom>
+		<custom key="schedule.output">Ausgabe</custom>
+	
+		<custom key="schedule.password">Passwort</custom>
+		<custom key="schedule.passworddescription">Passwort, um auf die geschützte URL zuzugreifen.</custom>
+		<custom key="schedule.port">Port</custom>
+		<custom key="schedule.portdescription">Port der aufzurufenden URL (HTTP Standard: 80)</custom>
+		<custom key="schedule.proxy">Proxy Einstellungen</custom>
+		<custom key="schedule.proxypassword">Passwort, um auf den geschützten Proxy zuzugreifen.</custom>
+	
+		<custom key="schedule.proxyport">Port des Proxys</custom>
+		<custom key="schedule.proxyusername">Username, um auf den geschützten Proxy zuzugreifen.</custom>
+		<custom key="schedule.publish">Speichern</custom>
+		<custom key="schedule.resolve_url">URL auflösen</custom>
+		<custom key="schedule.resolvedescription">Wandelt relative URLs in absolute um</custom>
+		<custom key="schedule.server">Server</custom>
+	
+		<custom key="schedule.startdate">Startdatum</custom>
+		<custom key="schedule.startsat">Begint am</custom>
+		<custom key="schedule.starttime">Startzeit</custom>
+		<custom key="schedule.storeresponse">Legt fest, ob die Ausgabe in einer Datei gespeichert werden soll oder nicht.</custom>
+		<custom key="schedule.timeout">Timeout</custom>
+		<custom key="schedule.timeoutdescription">Timeout in Sekunden. Definiert wie lange der Task auf eine Antwort von der aufgerufenen URL warten soll.</custom>
+	
+		<custom key="schedule.url">URL</custom>
+		<custom key="schedule.urldescription">URL des neuen Tasks.</custom>
+		<custom key="schedule.urlmissing">Bitte geben Sie einen Wert für die URL des Tasks an.</custom>
+		<custom key="schedule.username">Username</custom>
+		<custom key="schedule.usernamedescription">Username, um auf die geschützte URL zuzugreifen.</custom>
+		<custom key="schedule.weekly">wöchentlich</custom>
+	
+		<custom key="scopes.applicationtimeout">Application Timeout</custom>
+		<custom key="scopes.applicationtimeoutdescription">Legt die Zeit fest, wie lange Lucee für inaktive Applikationen den Application-Scope erhält. Diese Verhaltensweise kann von dem Tag CFApplication übersteuert werden.</custom>
+		<custom key="scopes.cascadetoresultset">Resultsets durchsuchen</custom>
+		<custom key="scopes.cascadetoresultsetdescription">Wenn eine Variable keinen vorangestellten Scope hat (Beispiel: #myVar# anstelle von #variables.myVar#), kann Lucee (nach dem CFML Standard) auch verfügbare Query-Resultsets durchsuchen.</custom>
+		<custom key="scopes.cascading">Cascading</custom>
+		<custom key="scopes.cascadingdescription">Abhängig von dieser Einstellung durchsucht Lucee gewisse Scopes, um eine im CFML-Code aufgerufene Variable zu finden. Dieses passiert jedoch nur, wenn die Variable ohne vorangestellten Scope aufgerufen wird. (Beispiel: #myVar# anstelle von #variables.myVar#)&lt;br&gt;- strict: durchsucht nur den Variables Scope&lt;br&gt;- small:	durchsucht die Scopes: Variables, Cgi, Url und Form&lt;br&gt;- standard (CFML Standard):	durchsucht die Scopes: Variables, Cgi, Url, Form und Cookie</custom>
+	
+		<custom key="scopes.clientcookies">Client Cookies</custom>
+		<custom key="scopes.clientcookiesdescription">Client Cookies ein oder ausschalten. Diese Verhaltensweise kann von dem Tag CFApplication übersteuert werden.</custom>
+		<custom key="scopes.clientmanagement">Client Management</custom>
+		<custom key="scopes.clientmanagementdescription">Standardmässig kann Client Management eingeschaltet werden. Diese Verhaltensweise kann von dem Tag CFApplication übersteuert werden.</custom>
+		<custom key="scopes.domaincookies">Domain Cookies</custom>
+		<custom key="scopes.domaincookiesdescription">Domain Cookies ein oder ausschalten. Diese Verhaltensweise kann von dem Tag CFApplication übersteuert werden.</custom>
+	
+		<custom key="scopes.localmode">Local Scope Modus</custom>
+		<custom key="scopes.localmodealways">Always</custom>
+		<custom key="scopes.localmodedesc">Definiert wie der Lokal Scope innerhalb einer UDF von einer Variable ohne Scope angesprochen wird.&lt;br&gt;
+	- always: der Lokal Scope wird immer verwendet&lt;br&gt;
+	- update (CFML Standard): der Lokal Scope wird nur verwendet, wenn der entsprechende Key darin bereits existiert.</custom>
+		<custom key="scopes.localmodeupdate">Update (CFML Standard)</custom>
+	
+		<custom key="scopes.mergeurlform">Url und Form kombinieren</custom>
+		<custom key="scopes.mergeurlformdescription">Mit dieser Einstellung kann festgelegt werden, ob Lucee den Url und Form Scope zu einem einzigen Scope zusammenfasst oder nicht. Beim CFML Standard findet diese Zusammenfassung nicht statt.</custom>
+		<custom key="scopes.server">Definert Scopeeneinstellungen, die als Standardwert für alle Webs gelten sollen.</custom>
+		<custom key="scopes.sessionmanagement">Session Management</custom>
+		<custom key="scopes.sessionmanagementdescription">Standardmässig kann Session Management eingeschaltet werden. Diese Verhaltensweise kann von dem Tag CFApplication übersteuert werden.</custom>
+		<custom key="scopes.sessiontimeout">Session Timeout</custom>
+	
+		<custom key="scopes.sessiontimeoutdescription">Legt die Zeit fest, wie lange Lucee für inaktive Sessions den Session-Scope erhält. Diese Verhaltensweise kann von dem Tag CFApplication übersteuert werden.</custom>
+		<custom key="scopes.sessiontype">Session Typ</custom>
+		<custom key="scopes.sessiontype_application">Application</custom>
+		<custom key="scopes.sessiontype_jee">JEE</custom>
+		<custom key="scopes.sessiontypedescription">JEE Sessions erlauben es Lucee Sessions über einen JEE Server-Cluster zu verteilen. Wenn Sie diese Einstellung ändern verlieren Sie die aktuelle Session und müssen sich erneut einloggen.</custom>
+		<custom key="scopes.small">small</custom>
+	
+		<custom key="scopes.standard">standard (CFML Default)</custom>
+		<custom key="scopes.strict">strict</custom>
+		<custom key="scopes.timeoutdaysvalue">Der Wert Tage für </custom>
+		<custom key="scopes.timeoutendvalue">den Timeout muss ein ganzzahlige Wert sein.</custom>
+		<custom key="scopes.timeouthoursvalue">Der Wert Stunden für </custom>
+		<custom key="scopes.timeoutminutesvalue">Der Wert Minuten für </custom>
+	
+		<custom key="scopes.timeoutsecondsvalue">Der Wert Sekunden für </custom>
+		<custom key="scopes.web">Hier können Sie festlegen, wie Lucee Scopes abarbeitet.</custom>
+		<custom key="search.collection">Collection</custom>
+		<custom key="search.collections">Collections</custom>
+		<custom key="search.createcol">Collection erstellen</custom>
+		<custom key="search.description">Hier können Sie Search Collections verwalten, erstellen, indexieren und löschen. Standardmässig verwendet Lucee LUCENE als Suchengine.</custom>
+	
+		<custom key="search.directorypath">Verzeichnispfad</custom>
+		<custom key="search.directorypathmissing">Bitte geben Sie einen Wert für den zu indexierenden Pfad an.</custom>
+		<custom key="search.external">Extern</custom>
+		<custom key="search.fileextensions">Dateierweiterungen</custom>
+		<custom key="search.fileextensionsmissing">Bitte geben Sie einen Wert für Erweiterungen die indexiert werden sollen an.</custom>
+		<custom key="search.indexsubdirs">Unterverzeichnisse einschliessen</custom>
+	
+		<custom key="search.language">Sprache</custom>
+		<custom key="search.last_update">Letzte Aktualisierung</custom>
+		<custom key="search.mapped">Mapped</custom>
+		<custom key="search.missing_name">Bitte geben Sie einen Wert für den Namen der Collection an.</custom>
+		<custom key="search.missing_path">Bitte geben Sie einen gültigen Wert für den Pfad der Collection an.</custom>
+		<custom key="search.name">Name</custom>
+	
+		<custom key="search.noresult">Kein Resultat für Ihre Anfrage</custom>
+		<custom key="search.online">Online</custom>
+		<custom key="search.path">Pfad</custom>
+		<custom key="search.pathaction">Hinzufügen/Aktualisieren des Pfadindex</custom>
+		<custom key="search.result">Resultate {startrow} - {endrow} von {recordcount} Resultaten gesucht in {recordssearched} Records</custom>
+		<custom key="search.resultofthesearch">Ergebnisse der Suche</custom>
+	
+		<custom key="search.searchterm">Suchbegriff eingeben</custom>
+		<custom key="search.searchtermmissing">Bitte geben Sie einen Suchbegriff ein.</custom>
+		<custom key="search.searchthecollection">Collection durchsuchen</custom>
+		<custom key="search.url">URL</custom>
+		<custom key="security.accessread">Lesezugriff</custom>
+		<custom key="security.accessreaddesc">definiert den Lesezugriff</custom>
+	
+		<custom key="security.accesswrite">Schreibzugriff</custom>
+		<custom key="security.accesswritedesc">definiert den Schreibzugriff</custom>
+		<custom key="security.cfmlenvironment">CFML Umgebung</custom>
+		<custom key="security.cfmlenvironmentdescription">Einstellungen die festlegen wie Lucee Code mit dem Hostsystem interagiert.</custom>
+		<custom key="security.cfx">CFX</custom>
+		<custom key="security.cfxdescription">Die Einstellungen für die CFX Tags können geändert werden. Im 'Server Administrator' global definierte Tags können auch verwendet werden.</custom>
+	
+		<custom key="security.cfxtags">CFX tags</custom>
+		<custom key="security.cfxtagsdescription">Mit Hilfe von CFX Tags können Java Klassen geladen werden, die ev. volles Zugriffsrecht auf das Hostsystem gewähren.</custom>
+		<custom key="security.customtag">Custom Tags</custom>
+		<custom key="security.customtagdescription">Custom tags können 'Web Administrator' hinzugefügt, gelöscht und geändert werden.</custom>
+		<custom key="security.datasource">Datasource</custom>
+		<custom key="security.datasourcedescription">Definiert wieviele Datenquellen im 'Web Administrator' hinzugefügt, gelöscht und geändert werden können.</custom>
+	
+		<custom key="security.datasourcetextes.-1">unbeschränkt</custom>
+		<custom key="security.debugging">Debugging</custom>
+		<custom key="security.debuggingdescription">Die Einstellungen für Debugging können im 'Web Administrator' geändert werden.</custom>
+		<custom key="security.desc">Definieren Sie die Zugriffsrechte für die verschiedenen Web Kontexte (webapps). Unter dem Reiter 'Allgemein' legen Sie die Standardrechte für alle Web Kontexte fest. Individuelle Einstellungen können Sie für jedes einzelne Web im Reiter 'Individuell' definieren.</custom>
+		<custom key="security.file">Dateizugriff</custom>
+		<custom key="security.fileall">all</custom>
+	
+		<custom key="security.filedescription">Legt fest, wie Lucee mit dem lokalen Dateisystem in einer Instanz interagieren kann.&lt;br&gt;- none: erlaubt keinen Zugriff auf das lokale Dateisystem&lt;br&gt;- local: erlaubt nur Dateizugriffe innerhalb des Webrootverzeichnisses&lt;br&gt;- all: erlaubt vollen Dateizugriff auf das Hostsystem.&lt;br&gt;</custom>
+		<custom key="security.filelocal">local</custom>
+		<custom key="security.filenone">none</custom>
+		<custom key="security.functions">Tags &amp; Funktionen</custom>
+	
+		<custom key="security.functionsdescription">Tags and Funktionen, die ein potentielles Sicherheitsrisiko für das Hostsystem darstellen.</custom>
+		<custom key="security.general">Allgemeiner Zugriff</custom>
+		<custom key="security.generaldesc">Definiert den allgemeinen Zugriff auf den Administrator und das Tad cfadmin</custom>
+		<custom key="security.javaaccess">Direkter Java Zugriff</custom>
+		<custom key="security.javaaccessdescription">Erlaubt den Zugriff auf Java Methoden und Eigenschaften aus Lucee Code (Beispiel: stringValue.substring(2,5)). Wenn Sie direkten Java Zugrif zulassen, kann dies ein potentielles Sicherheitsrisiko darstellen.</custom>
+		<custom key="security.mail">Mail</custom>
+	
+		<custom key="security.maildescription">Die Maileinstellungen  können im 'Web Administrator' geändert werden.</custom>
+		<custom key="security.mapping">Mappings</custom>
+		<custom key="security.mappingdescription">Mappings können 'Web Administrator' hinzugefügt, gelöscht und geändert werden.</custom>
+		<custom key="security.remote">Remote</custom>
+		<custom key="security.remotedescription">Es wird erlaubt das der User seine Einstellungen mit einem anderen lucee synchronisiern kann</custom>
+		<custom key="security.scheduledtask">Scheduled Task</custom>
+	
+		<custom key="security.scheduledtaskdescription">Die Einstellungen für Scheduled Task können im 'Web Administrator' geändert werden.</custom>
+		<custom key="security.search">Suche</custom>
+		<custom key="security.searchdescription">Die Einstellungen für Suche können im 'Web Administrator' geändert werden.</custom>
+		<custom key="security.settings">Einstellungen (Region, Komponenten, Scope)</custom>
+		<custom key="security.settingsdescription">Die Einstellungen Region, Komponenten und Scope können im 'Web Administrator' geändert werden.</custom>
+		<custom key="security.specialdesc">Definieren Sie hier Sicherheitseinstellungen für einzelne Web Kontexte (webapps).</custom>
+	
+		<custom key="security.speclisthost">Hostname</custom>
+		<custom key="security.speclistnewtitle">Neuen Web Kontext erstellen</custom>
+		<custom key="security.speclistpath">Pfad</custom>
+		<custom key="security.speclisttext">Web Kontexte für die es bereits einen spezifische Einstellung gibt. Sie können diese Kontexte anpassen oder löschen.</custom>
+		<custom key="security.speclisttitle">Spzifische Web Kontexte</custom>
+		<custom key="security.speclistwebcontext">Web Kontext</custom>
+	
+		<custom key="security.tabgeneral">Allgemein</custom>
+		<custom key="security.tabspecial">Individuell</custom>
+		<custom key="security.tagexecute">Tag CFExecute</custom>
+		<custom key="security.tagexecutedescription">Dieser Tag kann verwendet werden um Prozesse auf dem lokalen Hostsystem auszuführen.</custom>
+		<custom key="security.tagimport">Tag CFImport</custom>
+		<custom key="security.tagimportdescription">Dieser Tag kann verwendet werden um JSP und Lucee Tag Bibliotheken zu importieren.</custom>
+	
+		<custom key="security.tagobject">Tag CFObject / &lt;br&gt;Funktion createObject</custom>
+		<custom key="security.tagobjectdescription">Mit dem Tag CFObject und der Funktion createObject können Java Objekte geladen werden. Wenn Sie diese Option ausschalten, können Sie nur noch Objekte des Typs 'component' erstellen.</custom>
+		<custom key="security.tagregistry">Tag CFRegistry</custom>
+		<custom key="security.tagregistrydescription">Mit dem Tag CFRegistry haben Sie vollen Zugriff auf die Registry des Hostsystems.</custom>
+		<custom key="security.title">Standard Zugriffsrechte</custom>
+	
+		<custom key="security.titledescription">Hier können Sie die Zugriffsrechte festlegen, die für alle Instanzen verwendet werden sollen. Falls zugelassen, können diese Einstellungen in den lokalen 'Web Administratoren' überschrieben werden.</custom>
+		<custom key="security.webadministrator">Web Administrator</custom>
+		<custom key="security.webadministratordescription">Hier können Sie die Zugriffsrechte für die Einstellungen festlegen, die in den 'Web Administratoren' überschrieben werden können.</custom>
+		<custom key="services.update.desc">
+	Sie können Lucee auf eine neue Version patchen, also bekannte Fehler ausbügeln 
+	und Optimierungen innerhalb ihrer Version einspielen.</custom>
+		<custom key="services.update.exe">Update ausführen</custom>
+		<custom key="services.update.exedesc">Spielen Sie die aktuellsten Pacthes für Ihre Version ein. Nach einem erfolgten Update, müssen Sie sich neu in den Administrator einloggen.</custom>
+	
+		<custom key="services.update.exerun">Update ausführen</custom>
+		<custom key="services.update.infotitle">Info</custom>
+		<custom key="services.update.location">URL</custom>
+		<custom key="services.update.locdesc">Definieren Sie die URL von der ein Lucee Update bezogen werden kann, typischerweise 'http://www.lucee.ch'</custom>
+		<custom key="services.update.noupdate">Für Ihre Version {current} steht kein Patch zur Verfügung</custom>
+		<custom key="services.update.remove">Updates entfernen</custom>
+	
+		<custom key="services.update.removedesc">Entfernen Sie alle nach der Grundinstallation nachträglich installierten Updates.</custom>
+		<custom key="services.update.removerun">Updates entfernen</custom>
+		<custom key="services.update.restart">Lucee neu starten</custom>
+		<custom key="services.update.restartdesc">Hier können Sie Lucee neu starten. Nach erfolgtem Restart werden bestehende Sitzungen entfernt. Sie müssen sich in den Administrator erneut einloggen.</custom>
+		<custom key="services.update.setdesc">Definieren Sie wie und wo Ihre Lucee Version ihre Patches bezieht. Damit die eine Änderung dieser Einstellung aktiv wird, ist ein Neustart von Lucee erforderlich.</custom>
+		<custom key="services.update.settitle">Einstellungen</custom>
+	
+		<custom key="services.update.type">Typ</custom>
+		<custom key="services.update.type_auto">Automatisch</custom>
+		<custom key="services.update.type_manually">Manuell</custom>
+		<custom key="services.update.typedesc">Definieren Sie hier wie Lucee gepatcht werden soll, 'Automatisch' steht dafür, dass Lucee automatisch, täglich nach updates sucht. 'Manuell' bedeutet, dass ein Update nur manuell ausgeführt werden kann.</custom>
+		<custom key="services.update.update">Für Ihre Version steht ein Patch zur Verfügung, Sie haben die Version {current} installiert, die aktuell verfügbare Version ist {available}</custom>
+		<custom key="setting.server">Kontrolle der Ausgabe von Lucee</custom>
+	
+		<custom key="setting.showversion">Lucee Version ausgeben</custom>
+		<custom key="setting.showversiondescription">Lucee Version im Response Header zurückgeben</custom>
+		<custom key="setting.web">Kontrolle der Ausgabe von Lucee</custom>
+		<custom key="setting.whitespace">Whitespace management</custom>
+		<custom key="setting.whitespacedescription">Unterdrückt alle Whitespace (Leerzeichen, Tabs und Zeilenumbrüche), die in der Ausgabe einem Whitespace folgen</custom>
+		<custom key="settings.datasourcedescriptioncreate">Neue Datenquelle erstellen</custom>
+	
+		<custom key="settings.datasourcedescriptionupdate">Datenquelle aktualisieren</custom>
+		<custom key="settings.datasourcemodify">Neue Datenquelle erstellen</custom>
+		<custom key="settings.datasourcesettings">Einstellungen</custom>
+		<custom key="settings.dballowed">Erlaubte Operationen</custom>
+		<custom key="settings.dbblob">Blob</custom>
+		<custom key="settings.dbblobdesc">Erlaubt das einbeziehen von BLOBs</custom>
+	
+		<custom key="settings.dbcheck">Check</custom>
+		<custom key="settings.dbclob">Clob</custom>
+		<custom key="settings.dbclobdesc">Erlaubt das einbeziehen von CLOBs</custom>
+		<custom key="settings.dbconnlimit">Verbindungslimitierung (max)</custom>
+		<custom key="settings.dbconnlimitdesc">Beschränkt die Anzahl Verbindungen die zur Datenbank aufgebaut werden.</custom>
+		<custom key="settings.dbconnlimitinf">- inf -</custom>
+	
+		<custom key="settings.dbconntimeout">Verbindungs Timeout (in Minuten)</custom>
+		<custom key="settings.dbconntimeoutdesc">Definiert wie lange eine stehende Verbindung aufrechterhalten wird, bevor Sie beendet wird.</custom>
+		<custom key="settings.dbdatabase">Datenbank</custom>
+		<custom key="settings.dbdatabasedesc">Name der Datenbank, welche verbunden werden soll.</custom>
+		<custom key="settings.dbhost">Host/Server</custom>
+		<custom key="settings.dbhostdesc">Host Name wo die Datenbank liegt</custom>
+	
+		<custom key="settings.dbpass">Passwort</custom>
+		<custom key="settings.dbpassdesc">Passwort für den Zugriff auf die Datenbank</custom>
+		<custom key="settings.dbport">Port</custom>
+		<custom key="settings.dbportdesc">Der Port der Datenbank die angesprochen werden soll.</custom>
+		<custom key="settings.dbuser">Benutzername</custom>
+		<custom key="settings.dbuserdesc">Benutzername für den Zugriff auf die Datenbank</custom>
+	
+		<custom key="settings.listdatasources">Vorhandene Datenquellen</custom>
+		<custom key="settings.name">Name</custom>
+		<custom key="settings.namemissing">Bitte geben Sie einen Namen für die Datenquelle ein.</custom>
+		<custom key="settings.preservesinglequotes">Single Quotes erhalten</custom>
+		<custom key="settings.preservesinglequotesdescription">Erhält die einfachen Anführungszeichen (') in den SQL-Statements, die im Tag CFQuery definiert werden.</custom>
+		<custom key="settings.readonlydatasources">Readonly Datenquellen</custom>
+	
+		<custom key="settings.readonlydatasourcesdescription">Readonly Datenquellen werden im 'Server Administrator' für alle Web Instanzen erstellt und können im 'Web Administrator' nicht geändert werden.</custom>
+		<custom key="settings.type">Typ</custom>
+		<custom key="video.provider">Provider</custom>
+		<custom key="video.providerdesc">URL eines Provider der die benötigten Komponenten (FFMpeg Binaries) anbietet.</custom>
+		<custom key="video.providermissing">Fehlende Provider Definition</custom>
+		<custom key="video.server.installed">Die benötigten Video Komponenten sind auf Ihrem System installiert.</custom>
+	
+		<custom key="video.server.installedbut1">Video Komponenten sind zwar installiert, jedoch können sie nicht korrekt ausgeführt werden:</custom>
+		<custom key="video.server.installedbut2">Wir empfehlen Ihnen eine manuelle Installation vorzunehmen.</custom>
+		<custom key="video.server.installednotdesc">Da für das Tag cfvideo/cfvideoplayer betriebssystemspezifische Video Komponenten benötigt werden, sind diese nicht mit Lucee gebundelt. Dies würde den Umfang der Software unnötig vergrössern. Zudem dürfen gewisse enthaltene Codecs nicht vertrieben werden. Die Verwendung derer ist jedoch uneingeschränkt, weshalb sie diese nachladen können. Sie können diese Komponenten direkt vom Provider laden oder hier per Formular hochladen.</custom>
+		<custom key="video.server.installednotuploaddesc">Video Komponenten (ffmpeg.zip) werden direkt über Formular hochgeladen und in Lucee kopiert (keine Installation). Als Quelle dient z.B. {provider}</custom>
+		<custom key="video.server.installednotuploadtitle">Video Komponenten über Upload</custom>
+		<custom key="video.server.installednoturldesc">Video Komponenten werden direkt vom Remote Server geladen und in Lucee kopiert (keine Installation).</custom>
+	
+		<custom key="video.server.installednoturltitle">Video Komponenten über URL</custom>
+		<custom key="video.server.mandesc">Eine Manuelle Installation wird wie folgt vorgenommen: Navigieren Sie zur Adresse {provider} und laden sie dort die ffmpeg.zip für Ihr Betriebssystem ({OS-Name}) herunter. Kopieren Sie diese Datei (nicht entpacken) in das Verzeichnis {directory}. Falls Sie für Ihr Betriebssystem keinen Download finden, kontaktieren Sie uns.</custom>
+		<custom key="video.server.mantitle">Manuelle Installation</custom>
+		<custom key="video.upload">Upload</custom>
+		<custom key="video.uploaddesc">Video Komponenten (ffmpeg.zip)</custom>
+		<custom key="video.uploadmissing">Fehlende Upload Definition</custom>
+	
+		<custom key="video.web.installed">Video Komponenten sind auf Ihrem System installiert.</custom>
+		<custom key="video.web.installedbut">Video Komponenten sind zwar installiert, jedoch können sie nicht korrekt ausgeführt werden. Wechseln Sie in den Lucee Server Administrator, um dies zu reparieren:</custom>
+		<custom key="video.web.installednot">Video Komponenten sind nicht auf Ihrem System installiert. Um diese zu installieren wechseln sie in den Lucee Server Administrator.</custom>
+	
+	</language>
+
+
+
+
+
+
+	
+	<language key="en">
+		<custom key="application.allowurlrequesttimeout">Request timeout in URL</custom>
+	
+		<custom key="application.allowurlrequesttimeoutdesc">When the URL parameter [RequestTimeout] is passed in the URL obey it (behaviour like CFML 5, 7 &amp; 8)</custom>
+		<custom key="application.listener">Application listener</custom>
+		<custom key="application.listenerdescription">Sets how requests are handled and which templates are invoked by default.</custom>
+		<custom key="application.listenermode">Mode</custom>
+		<custom key="application.listenermode_curr">Current</custom>
+	
+		<custom key="application.listenermode_curr2root">Current tp root (CFML default)</custom>
+		<custom key="application.listenermode_root">Root</custom>
+		<custom key="application.listenermodedescription">Defines where Lucee looks for the files &quot;Application.cfc/Application.cfm&quot;. In case of type &quot;none&quot; this setting is meaningless.</custom>
+		<custom key="application.listenermodedescription_curr">Looks for the file &quot;Application.cfc/Application.cfm&quot; only in the current template directory .</custom>
+	
+		<custom key="application.listenermodedescription_curr2root">Looks for the file &quot;Application.cfc/Application.cfm&quot; from the current up to the webroot directory.</custom>
+		<custom key="application.listenermodedescription_root">Looks for the file &quot;Application.cfc/Application.cfm&quot; only in the webroot .</custom>
+		<custom key="application.listenertype">Type</custom>
+		<custom key="application.listenertype_classic">Classical (CFML &amp;lt; 7)</custom>
+	
+		<custom key="application.listenertype_mixed">Mixed (CFML &amp;gt;= 7)</custom>
+		<custom key="application.listenertype_modern">Modern</custom>
+		<custom key="application.listenertype_none">None</custom>
+		<custom key="application.listenertypedescription">Please select the type of the listener</custom>
+		<custom key="application.listenertypedescription_classic">Classic handling. Lucee looks for the file &quot;Application.cfm&quot; and a coresponding file &quot;OnRequestEnd.cfm&quot;</custom>
+	
+		<custom key="application.listenertypedescription_mixed">Mixed handling. Lucee looks for a file &quot;Application.cfm/OnRequestEnd.cfm&quot; as well as for the file &quot;Application.cfc&quot;</custom>
+		<custom key="application.listenertypedescription_modern">Modern handling. Lucee only looks for the file &quot;Application.cfc&quot;</custom>
+		<custom key="application.listenertypedescription_none">When a request is called no other initialization template will be invoked by Lucee</custom>
+		<custom key="application.missingscriptprotect">Please select a value for script-protect</custom>
+	
+		<custom key="application.requesttimeout">Request timeout</custom>
+		<custom key="application.requesttimeoutdescription">Sets the amount of time Lucee will wait for a request to finish before a request timeout will be raised. This means that the execution of the request will be stopped. This behaviour can be overridden by the tag cfsetting.</custom>
+		<custom key="application.scriptprotect">Script-protect</custom>
+		<custom key="application.scriptprotectall">Script-protect checks in all scopes for external data (cgi,cookie,form,url)</custom>
+		<custom key="application.scriptprotectcustom">You can define the scopes to be checked individually</custom>
+		<custom key="application.scriptprotectdescription">The configuration of Script protect, secures your system from &quot;cross-site scripting&quot;</custom>
+	
+		<custom key="application.scriptprotectnone">Script-protect is not active</custom>
+		<custom key="application.server">Defines application settings that represent the default values for all webs</custom>
+		<custom key="application.web">Here you can define several default settings for the application context. These settings can be overridden with the tag cfapplication or the Application.cfc.</custom>
+		<custom key="buttons.addarchive">assign archive to mapping</custom>
+		<custom key="buttons.cancel">cancel</custom>
+		<custom key="buttons.change">change</custom>
+	
+		<custom key="buttons.compileall">compile</custom>
+		<custom key="buttons.create">create</custom>
+		<custom key="buttons.delete">delete</custom>
+		<custom key="buttons.downloadarchive">download archive</custom>
+		<custom key="buttons.execute">execute</custom>
+		<custom key="buttons.filter">filter</custom>
+	
+		<custom key="buttons.install">install</custom>
+		<custom key="buttons.ok">OK</custom>
+		<custom key="buttons.optimize">optimize</custom>
+		<custom key="buttons.purge">purge</custom>
+		<custom key="buttons.repair">repair</custom>
+		<custom key="buttons.reset">reset</custom>
+	
+		<custom key="buttons.save">save</custom>
+		<custom key="buttons.search">search</custom>
+		<custom key="buttons.setting">setting</custom>
+		<custom key="buttons.submit">submit</custom>
+		<custom key="buttons.uninstall">uninstall</custom>
+		<custom key="buttons.update">update</custom>
+	
+		<custom key="buttons.verify">verify</custom>
+		<custom key="cfx.cfxtags">Java CFX tags</custom>
+		<custom key="cfx.class">Class</custom>
+		<custom key="cfx.missingclassvalue">Please enter a value for the class (row </custom>
+		<custom key="cfx.name">Name</custom>
+		<custom key="cfx.noaccess">No access to CFX functionality</custom>
+	
+		<custom key="charset.missingresourcecharset">Please specify a resource charset</custom>
+		<custom key="charset.missingtemplatecharset">Please specify a template charset</custom>
+		<custom key="charset.missingwebcharset">please specify a web charset</custom>
+		<custom key="charset.resourcecharset">Resource charset</custom>
+		<custom key="charset.resourcecharsetdescription">Default character set for reading from/writing to various resources</custom>
+		<custom key="charset.server">Specify the default server character set</custom>
+	
+		<custom key="charset.templatecharset">Template charset</custom>
+		<custom key="charset.templatecharsetdescription">Default character set for templates (*.cfm and *.cfc files)</custom>
+		<custom key="charset.web">Specify the default server character set</custom>
+		<custom key="charset.webcharset">Web charset</custom>
+		<custom key="charset.webcharsetdescription">Default character set for output streams, form-, url-, and cgi scope variables and reading/writing the header</custom>
+		<custom key="components.basecomponent">Base/Root Component</custom>
+	
+		<custom key="components.basecomponentdescription">Every component that does not explicitly extend another component (attribute &quot;extends&quot;) will by default extend this component. This means that every component extends this base component in some way.</custom>
+		<custom key="components.basecomponentmissing">Please enter a value for the base/root component</custom>
+		<custom key="components.component">Component</custom>
+		<custom key="components.componentdumptemplate">Component &quot;dump&quot; template</custom>
+	
+		<custom key="components.componentdumptemplatedescription">If you call a component directly this template will be invoked to dump the component. (Example: http://www.lucee.ch/ch/lucee/common/Example.cfc)</custom>
+		<custom key="components.componentdumptemplatemissing">Please enter a value for the &quot;dump&quot; template</custom>
+		<custom key="components.datamemberaccesstype">Data member access type</custom>
+		<custom key="components.datamemberaccesstypedescription">Define the accessor for the data-members of a component. This defines how variables of the &quot;this&quot; scope of a component can be accessed from outside of the component.</custom>
+	
+		<custom key="components.dmatpackage">package</custom>
+		<custom key="components.dmatprivate">private</custom>
+		<custom key="components.dmatpublic">public (CFML standard)</custom>
+		<custom key="components.dmatremote">remote</custom>
+		<custom key="components.server">Define the component settings that will be used as a &lt;strong&gt;default&lt;/strong&gt; for all webs.</custom>
+	
+		<custom key="components.triggerdatamember">Magic functions</custom>
+		<custom key="components.triggerdatamemberdescription">If there is no accessible data member (property, element of the this scope) inside a component, Lucee searches for available matching &amp;quot;getters&amp;quot; or &amp;quot;setters&amp;quot; for the requested property.
+		The following example should clarify this behaviour. &amp;quot;somevar = myComponent.properyName&amp;quot;. If &amp;quot;myComponent&amp;quot; has no accessible data member named &amp;quot;propertyName&amp;quot;,
+		Lucee searches for a function member (method) named &amp;quot;getPropertyName&amp;quot;.</custom>
+	
+		<custom key="components.useshadow">Variables scope</custom>
+		<custom key="components.useshadowdescription">Defines whether a component has an independent variables scope parallel to the &amp;quot;this&amp;quot; scope (CFML standard) or not.</custom>
+		<custom key="components.web">Defines how components will be handled by Lucee.</custom>
+		<custom key="customtags.archive">Archive</custom>
+		<custom key="customtags.archivemissing">Please enter a value for the archive name (row </custom>
+	
+		<custom key="customtags.customtagdeepsearch">Search subdirectories</custom>
+		<custom key="customtags.customtagdeepsearchdesc">Search for custom tags in subdirectories (not supported for archives)</custom>
+		<custom key="customtags.customtaglocalsearch">Search local</custom>
+		<custom key="customtags.customtaglocalsearchdesc">Search in the caller directory for the custom tag</custom>
+		<custom key="customtags.customtagmappings">Resources</custom>
+		<custom key="customtags.customtagsetting">Settings</custom>
+	
+		<custom key="customtags.physical">Resource</custom>
+		<custom key="customtags.physicalmissing">Please enter a value for the resource (row </custom>
+		<custom key="customtags.primary">Primary</custom>
+		<custom key="customtags.trusted">Trusted</custom>
+		<custom key="debug.debugtemplate">Debug template</custom>
+		<custom key="debug.debugtemplatedescription">This template is used for formatting the debugging output</custom>
+	
+		<custom key="debug.debugtemplatemissing">Please enter a value for the debug template</custom>
+		<custom key="debug.enabledebugging">Enable debugging</custom>
+		<custom key="debug.enabledescription">Enable or disable the debugging output</custom>
+		<custom key="debug.logmemoryusage">Log memory usage</custom>
+		<custom key="debug.logmemoryusagedescription">Sets whether the memory usage should be logged</custom>
+		<custom key="debug.memorylogger">Memory logger</custom>
+	
+		<custom key="debug.memoryloggerdescripiton">File the memory usage will be stored to</custom>
+		<custom key="debug.timezone">Please enter a value for the timezone</custom>
+		<custom key="doc.arg._type">Type</custom>
+		<custom key="doc.arg.description">Description</custom>
+		<custom key="doc.arg.max">Only the number of arguments is rerstricted to {max}.</custom>
+		<custom key="doc.arg.min">It must have at least {min} arguments.</custom>
+	
+		<custom key="doc.arg.minmax">It must have at least {min} arguments but a maximum of {max}.</custom>
+		<custom key="doc.arg.name">Name</custom>
+		<custom key="doc.arg.required">Required</custom>
+		<custom key="doc.arg.type.dynamic">There is no restriction for this function regarding its arguments.</custom>
+		<custom key="doc.arg.type.fixed">The arguments for this function are set. You can not use other arguments except the following ones.</custom>
+		<custom key="doc.arg.zero">This function has no arguments</custom>
+	
+		<custom key="doc.argtitle">Arguments</custom>
+		<custom key="doc.attr._type">Type</custom>
+		<custom key="doc.attr.description">Description</custom>
+		<custom key="doc.attr.max">Only the number of attributes is restricted to {max}.</custom>
+		<custom key="doc.attr.min">This tag must have at keast {min} attributes.</custom>
+		<custom key="doc.attr.minmax">This tag must have at least {min} attributes but the most {max}.</custom>
+	
+		<custom key="doc.attr.name">Name</custom>
+		<custom key="doc.attr.required">Required</custom>
+		<custom key="doc.attr.type.dynamic">There is no restriction for attributes for this tag.</custom>
+		<custom key="doc.attr.type.fixed">The attributes for this tag are fixed. Except for the following attributes no other attributes are allowed.</custom>
+		<custom key="doc.attr.type.mixed">This tag has a fixed definition of attributes (see below). In addition it allowes to use any additional attribute.</custom>
+		<custom key="doc.attr.type.noname">This tag only allows one attribute value (no name).</custom>
+	
+		<custom key="doc.attr.zero">This tag has no attributes</custom>
+		<custom key="doc.attrdesc">Attributes, supported by the tag.</custom>
+		<custom key="doc.attrtitle">Attributes</custom>
+		<custom key="doc.body.free">This tag may have a body.</custom>
+		<custom key="doc.body.prohibited">This tag can't have a body.</custom>
+		<custom key="doc.body.required">This tag must have a body.</custom>
+	
+		<custom key="doc.bodytitle">Body</custom>
+		<custom key="err.descr">Please enter an individual error template.</custom>
+		<custom key="err.errorstatuscode">Status code</custom>
+		<custom key="err.errorstatuscodedescription">In case of an exception should an other status code be used or would it still be 200</custom>
+		<custom key="err.errortemplate.404">Missing Template Error (404)</custom>
+		<custom key="err.errortemplate.500">General Error Template (500)</custom>
+	
+		<custom key="err.errortemplatedescription.404">Template that will be invoked in case of a missing error. This setting can be overridden by the tag CFError.</custom>
+		<custom key="err.errortemplatedescription.500">Template that will be invoked in case of an error. This setting can be overridden by the tag CFError.</custom>
+		<custom key="general.day">Day</custom>
+		<custom key="general.days">Days</custom>
+		<custom key="general.hour">Hour</custom>
+		<custom key="general.hourerror">The field &quot;hour&quot; must contain a positive integer</custom>
+	
+		<custom key="general.hours">Hours</custom>
+		<custom key="general.minute">Minute</custom>
+		<custom key="general.minuteerror">The field &quot;minute&quot; must contain a positive integer</custom>
+		<custom key="general.minutes">Minutes</custom>
+		<custom key="general.month">Month</custom>
+	
+		<custom key="general.no">No</custom>
+		<custom key="general.second">Second</custom>
+		<custom key="general.seconderror">The field &quot;second&quot; must contain a positive integer</custom>
+		<custom key="general.seconds">Seconds</custom>
+		<custom key="general.year">Year</custom>
+	
+		<custom key="general.yes">Yes</custom>
+		<custom key="locale">english (united kingdom)</custom>
+		<custom key="login.changepassword">Change password</custom>
+		<custom key="login.changepassworddescription">Change the password for this administrator</custom>
+		<custom key="login.defaultpassword">Set default password</custom>
+		<custom key="login.defaultpassworddescription">Set the default password for all web administrators</custom>
+	
+		<custom key="login.newpassword">New password</custom>
+		<custom key="login.newpassworddescription">The new password for the administrator</custom>
+		<custom key="login.newpasswordmissing">Please enter a value for the new password</custom>
+		<custom key="login.newtooshort">The new password is to short, its length must be at least 6 characters</custom>
+		<custom key="login.oldpassword">Old password</custom>
+		<custom key="login.oldpassworddescription">The old password to change</custom>
+	
+		<custom key="login.oldpasswordmissing">Please enter a value for the old password</custom>
+		<custom key="login.oldtooshort">The old password is to short, its length must be at least 6 characters</custom>
+		<custom key="login.password">Password</custom>
+		<custom key="login.passwordmissing">Please enter a value for the field password</custom>
+		<custom key="login.resetwebpw">Reset Password</custom>
+		<custom key="login.resetwebpwdescription">reset the Password of the selected Web</custom>
+	
+		<custom key="login.retypenewpassword">Reenter the new password</custom>
+		<custom key="login.retypenewpasswordmissing">Please reenter the new password</custom>
+		<custom key="login.retypepassword">Retype new password</custom>
+		<custom key="login.retypepasswordmissing">Please reenter the password</custom>
+		<custom key="login.unequalpasswords">The new password and the reentered password are not the same</custom>
+		<custom key="login.web">Web</custom>
+	
+		<custom key="mail.defaultencoding">Default encoding</custom>
+		<custom key="mail.defaultencodingdescription"></custom>
+		<custom key="mail.level">Log level</custom>
+		<custom key="mail.logfile">Log file</custom>
+		<custom key="mail.logfilemissing">Missing value for mail log file</custom>
+		<custom key="mail.mailservers">Mail servers</custom>
+	
+		<custom key="mail.mailserversdescription">You can define more than one mail server. When sending a mail, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</custom>
+		<custom key="mail.missingencoding">Please enter a value for the default encoding</custom>
+		<custom key="mail.password">Password</custom>
+		<custom key="mail.passwordmissing">Please enter a value for the corresponding password (row </custom>
+		<custom key="mail.port">Port</custom>
+		<custom key="mail.porterrorfirst">Please enter a value for the port (row </custom>
+	
+		<custom key="mail.porterrorlast">) of type number</custom>
+		<custom key="mail.server">Server (SMTP)</custom>
+		<custom key="mail.servermissing">Please enter a value for the mailserver (row </custom>
+		<custom key="mail.settings">Mail settings</custom>
+		<custom key="mail.spoolenabled">Spool enable</custom>
+		<custom key="mail.spoolinterval">Spool interval</custom>
+	
+		<custom key="mail.timeout">Timeout</custom>
+		<custom key="mail.username">Username</custom>
+		<custom key="mail.usernamemissing">Please enter a value for the username (row </custom>
+		<custom key="mappings.archive">Archive</custom>
+		<custom key="mappings.archivedesc">Generate a Lucee archive (ra) from an existing mapping</custom>
+		<custom key="mappings.archivehead">Archive</custom>
+	
+		<custom key="mappings.archiveheaddescription">Name of the archive file (ra or ras), (absolute or relative to the webroot)</custom>
+		<custom key="mappings.archivemissing">Please enter a value for the archive name (row </custom>
+		<custom key="mappings.archivesecure">Secured</custom>
+		<custom key="mappings.archivesecuredesc">Exclude source files from archive. Source files are only used for codeprints in case of an error</custom>
+		<custom key="mappings.archivetitle">create archive</custom>
+		<custom key="mappings.compiledesc">Compile all cfm and cfc files inside the mapping</custom>
+	
+		<custom key="mappings.compilestoponerror">Stop on error</custom>
+		<custom key="mappings.compilestoponerrordesc">Sets whether the compile process should be aborted on errors</custom>
+		<custom key="mappings.compiletitle">compile</custom>
+		<custom key="mappings.editdesc">Here you can edit a certain mapping or create a Lucee archive out of an existing one.</custom>
+		<custom key="mappings.introtext">Please note, that only pages processed by Lucee are aware of these mappings (cfm, cfml, cfc). If you want to use files not processed by Lucee for these special mapping directories, you have to add virtual mappings to these directories to your application server.</custom>
+		<custom key="mappings.physical">Resource</custom>
+	
+		<custom key="mappings.physicalhead">Resource</custom>
+		<custom key="mappings.physicalheaddescription">Path of the resource to map (absolute or relative to the webroot)</custom>
+		<custom key="mappings.physicalmissing">Please enter a value for the resource (row </custom>
+		<custom key="mappings.primaryhead">Primary</custom>
+		<custom key="mappings.primaryheaddescription">Sets where Lucee-files will first be searched</custom>
+		<custom key="mappings.topleveldesc"></custom>
+	
+		<custom key="mappings.toplevelhead">Top Level</custom>
+		<custom key="mappings.trustedhead">Trusted</custom>
+		<custom key="mappings.trustedheaddescription"></custom>
+		<custom key="mappings.virtualhead">Virtual</custom>
+		<custom key="overview.bugreport">Bug report</custom>
+		<custom key="overview.bugreportmail">bugs@lucee.ch</custom>
+	
+		<custom key="overview.cfcompatibility">ColdFusion&amp;reg; compatibilty version</custom>
+		<custom key="overview.contact">Contact</custom>
+		<custom key="overview.contactinfo">Info</custom>
+		<custom key="overview.contextcount">Context count</custom>
+		<custom key="overview.datetime">Lucee date/time</custom>
+		<custom key="overview.featurerequest">Feature request</custom>
+	
+		<custom key="overview.featurerequestmail">features@lucee.ch</custom>
+		<custom key="overview.info">Info</custom>
+		<custom key="overview.infomail">info@lucee.ch</custom>
+		<custom key="overview.installedfls">Installed function&lt;br/&gt; libraries</custom>
+		<custom key="overview.installedtls">Installed tag&lt;br/&gt; libraries</custom>
+	
+		<custom key="overview.introdesc.server">The server administrator allows you to install updates and patches for your Lucee edition and to restart the engine on mouseclick. If you have the Develop or Enterprise edition you can preconfigure new web contexts and define restrictions and configurations per web context individually.</custom>
+		<custom key="overview.introdesc.web">Lucee, the CFML engine. Fast, inexpensive and easy to use. By choosing Lucee you decided to go the performant and high quality way of CFML. Set up your local web context according to your needs and wishes. For this purpose you can use this Lucee web administrator.</custom>
+		<custom key="overview.licence">Available Editions</custom>
+		<custom key="overview.licencecommunity">Community</custom>
+		<custom key="overview.licencecommunitydesc">Lucee Community is intended to be used by low budget business applicants. Except for some few limitations the Community Version offers the entire language range of Lucee.</custom>
+		<custom key="overview.licencedesc">Lucee is available in four different editions , adapted to the different areas of application and budgets.</custom>
+	
+		<custom key="overview.licencedevelop">Develop</custom>
+		<custom key="overview.licencedevelopdesc">The Develop Version is a version, addressing those users who are most likely to apply it in order for assembling CFML appliction . The version though is prohibited to be used commercially.</custom>
+		<custom key="overview.licencedevelopmore">more</custom>
+		<custom key="overview.licenceenterprise">Enterprise</custom>
+		<custom key="overview.licenceenterprisedesc">The Enterprise Version of Lucee is the biggest and most comprehensive version intended to be used in a larger context.</custom>
+		<custom key="overview.licenceprofessional">Professional</custom>
+	
+		<custom key="overview.licenceprofessionaldesc">The Professional Version offers the full language range of Lucee, no restriction to the use of any feature has to be expected. With the Professional Version several webs can be used on one server, the number of webs however is limited by the licence price.</custom>
+		<custom key="overview.os">OS</custom>
+		<custom key="overview.purchase">Purchase your Lucee license</custom>
+		<custom key="overview.releasedate">Release date</custom>
+		<custom key="overview.sales">Sales</custom>
+		<custom key="overview.salesmail">sales@lucee.ch</custom>
+	
+		<custom key="overview.serialnumber">Serial number</custom>
+		<custom key="overview.serialnumberdescription">Serial number for Lucee</custom>
+		<custom key="overview.servertime">Server date/time (mm/dd/yyyy HH:mm:ss): </custom>
+		<custom key="overview.used">currently in use</custom>
+		<custom key="overview.version">Version</custom>
+		<custom key="proxy.disable">Do not use proxy</custom>
+	
+		<custom key="proxy.enable">Use proxy</custom>
+		<custom key="proxy.missingport">Please enter a value for the proxy port</custom>
+		<custom key="proxy.password">Password</custom>
+		<custom key="proxy.passworddescription">Password for the proxy</custom>
+		<custom key="proxy.port">Port</custom>
+		<custom key="proxy.portdescription">Port for the proxy server (default:80)</custom>
+	
+		<custom key="proxy.server">Server</custom>
+		<custom key="proxy.serverdescription">URL of a proxy server eg.&quot;http://myproxyserver.org/&quot;</custom>
+		<custom key="proxy.settings">Proxy settings</custom>
+		<custom key="proxy.username">Username</custom>
+		<custom key="proxy.usernamedescription">Username for the proxy</custom>
+		<custom key="proxy.web">Define a global proxy, that will be used in several tags by default (cfhttp,cfftp,cfmail ...)</custom>
+	
+		<custom key="regional.defaultencoding">Default encoding</custom>
+		<custom key="regional.defaultencodingdescription"></custom>
+		<custom key="regional.locale">Locale</custom>
+		<custom key="regional.localedescription">Define the desired time locale for Lucee, this will change the default locale for the context of the web.</custom>
+		<custom key="regional.missingencoding">Please enter a value for the default encoding</custom>
+		<custom key="regional.other"> --- other --- </custom>
+	
+		<custom key="regional.server">Here you can define regional settings that will be used as a &lt;strong&gt;default&lt;/strong&gt; for all webs. This settings have no direct effect on the current instance.</custom>
+		<custom key="regional.serverprop">Server properties</custom>
+		<custom key="regional.timeserver">Time server (NTP)</custom>
+		<custom key="regional.timeserverdescription">Time server that returns the current time. If set, this time will be used within Lucee instead of the local server time. (Example: swisstime.ethz.ch, time.nist.gov)&lt;br/&gt;</custom>
+	
+		<custom key="regional.timeservermissing">Please define a value for the field timezone</custom>
+		<custom key="regional.timezone">Time zone</custom>
+		<custom key="regional.timezonedescription">Define the desired time zone for Lucee, this will also change the time for the context of the web.&lt;br/&gt;</custom>
+		<custom key="regional.web">Lucee lets you set your own individual locale, timezone and timeserver.</custom>
+		<custom key="remote.adminaccess">Admin Access</custom>
+		<custom key="remote.adminaccessdesc">Define Access to Remote Client, the Password and the Security Key, the Security key is provided by the Remote Client itself</custom>
+	
+		<custom key="remote.adminpassword.server">Password for the remote Server Administrator</custom>
+		<custom key="remote.adminpassword.web">Password for the remote Web Administrator</custom>
+		<custom key="remote.adminpassworddesc.server">Password für the access to the remote Lucee Server Administrator</custom>
+		<custom key="remote.adminpassworddesc.web">Password für the access to the remote Lucee Web Administrator</custom>
+		<custom key="remote.connection">Connection</custom>
+		<custom key="remote.connectiondesc">Connection to the Remote Client, URL (with Port) and HTTP Access</custom>
+	
+		<custom key="remote.desc">Here you can define clients, which will synchronize their settings with the ones of the current administrator</custom>
+		<custom key="remote.detail.create">Create Remote Client</custom>
+		<custom key="remote.detail.createdesc"></custom>
+		<custom key="remote.detail.update">Update Remote Client</custom>
+		<custom key="remote.detail.updatedesc"></custom>
+		<custom key="remote.downloadarchive">When calling &quot;&lt;Buttons.downloadArchive&gt;&quot;, the archive on the remote client will be created but the download ignored, In this case you shouln't include remote synchronization.</custom>
+	
+		<custom key="remote.label">Label</custom>
+		<custom key="remote.labelmissing">The label for the remote client is missing</custom>
+		<custom key="remote.listclients">List of the clients</custom>
+		<custom key="remote.newclient">Create new remote client</custom>
+		<custom key="remote.ot.action">Action</custom>
+		<custom key="remote.ot.detaildesc.green">This task has been executed &lt;tries&gt; times. There are &lt;triesleft&gt; tries left</custom>
+	
+		<custom key="remote.ot.detaildesc.red">Even after &lt;tries&gt; tries, this task couln't be executed properly</custom>
+		<custom key="remote.ot.error">Error messages</custom>
+		<custom key="remote.ot.exetime">Execution time</custom>
+		<custom key="remote.ot.fromto">1-100 of &lt;recordcount&gt; open tasks</custom>
+	
+		<custom key="remote.ot.lastexecution">Last execution</custom>
+		<custom key="remote.ot.name">Name</custom>
+		<custom key="remote.ot.nextexecution">Next execution</custom>
+		<custom key="remote.ot.nextexecutioninminutes">Next execution in minutes</custom>
+		<custom key="remote.ot.noot">There are currently no open tasks</custom>
+		<custom key="remote.ot.overviewdesc">List of failed tasks. The tasks listed in green will be reexecuted. The ones in red have failed all attempts of executuion and wont be executed again.</custom>
+	
+		<custom key="remote.ot.state">State</custom>
+		<custom key="remote.ot.tries">Number of tries</custom>
+		<custom key="remote.ot.triesleft">Number of remaining tries</custom>
+		<custom key="remote.ot.type">Type</custom>
+		<custom key="remote.ot.url">URL</custom>
+		<custom key="remote.passwordmissing">The Administrator password for the remote client is missing</custom>
+	
+		<custom key="remote.proxy">Proxy Settings</custom>
+		<custom key="remote.proxydesc">Proxy Settings should be used for connection</custom>
+		<custom key="remote.proxypassword">Password</custom>
+		<custom key="remote.proxyport">Port</custom>
+		<custom key="remote.proxyportdesc">Proxy Server Port</custom>
+		<custom key="remote.proxyserver">Server</custom>
+	
+		<custom key="remote.proxyserverdesc">Proxy Server (Host)</custom>
+		<custom key="remote.proxyusername">Username</custom>
+		<custom key="remote.securitykey">Security Key</custom>
+		<custom key="remote.securitykeydesc">Please enter the key of the remote clients. You can find it under Remote security key in the administrator of the remote clients</custom>
+		<custom key="remote.securitykeymissing">The security key for the remote client is missing</custom>
+		<custom key="remote.securitykeytitledesc">In case this Web Administrator is to be synchronized by another server, you have to enter the security key below in the distant definition of the remote client.</custom>
+	
+		<custom key="remote.serverpassword">Password</custom>
+		<custom key="remote.serverpassworddesc">Http Access Auhtentication</custom>
+		<custom key="remote.serverusername">Username</custom>
+		<custom key="remote.serverusernamedesc">Http Access Auhtentication</custom>
+		<custom key="remote.sync.desc">Define the clients that will be synchronized with the current administrator.</custom>
+		<custom key="remote.sync.title">Remote Client synchronization</custom>
+	
+		<custom key="remote.url">URL</custom>
+		<custom key="remote.urlmissing">The remote client URL is missing</custom>
+		<custom key="remote.urlpath">Path</custom>
+		<custom key="remote.urlpathdesc">Path to Admin.cfc (example: /lucee/admin.cfc?wsdl)</custom>
+		<custom key="remote.urlpathmissing">the path to the Admin.cfc is missing</custom>
+		<custom key="remote.urlserver">Server</custom>
+	
+		<custom key="remote.urlserverdesc">Remote Client Server (Beispiel: http://lucee.ch)</custom>
+		<custom key="remote.urlservermissing">Remote Client Server</custom>
+		<custom key="remote.usage.cluster">Cluster Scope</custom>
+		<custom key="remote.usage.desc">Define for what the Remote Client is used</custom>
+		<custom key="remote.usage.sync">Admin Synchronisation</custom>
+		<custom key="remote.usage.title">Usage</custom>
+	
+		<custom key="schedule.createtask">Create scheduled task</custom>
+		<custom key="schedule.currentdatetime">Current date/time of this Lucee context is: (mm/dd/yyyy hh:mm tt)</custom>
+		<custom key="schedule.daily">daily</custom>
+		<custom key="schedule.description">Here you can add, modify, run and delete scheduled tasks&lt;br/&gt;&lt;br/&gt;</custom>
+		<custom key="schedule.detail">Defined scheduled tasks</custom>
+	
+		<custom key="schedule.detaildescription">The tasks displayed in red have expired and will no longer start.</custom>
+		<custom key="schedule.enddate">End date</custom>
+		<custom key="schedule.endsat">Ends at</custom>
+		<custom key="schedule.endtime">End time</custom>
+		<custom key="schedule.every">every</custom>
+		<custom key="schedule.executeat">Execute at</custom>
+	
+		<custom key="schedule.executiondate">Execution date/time</custom>
+		<custom key="schedule.executiontime">Execution time</custom>
+		<custom key="schedule.file">File</custom>
+		<custom key="schedule.filedescription">File the output is stored to</custom>
+		<custom key="schedule.interval">Interval</custom>
+		<custom key="schedule.intervaldesc">Interval in that the task will be executed</custom>
+	
+		<custom key="schedule.intervaltype">Interval type</custom>
+		<custom key="schedule.intervaltypedesc">Execution interval of the new task</custom>
+		<custom key="schedule.monthly">monthly</custom>
+		<custom key="schedule.name">Name</custom>
+		<custom key="schedule.namedescedit">URL that will be invoked by the task</custom>
+		<custom key="schedule.namedescription">Name of the new task (this name must be unique)</custom>
+	
+		<custom key="schedule.namemissing">Please enter a value for the name of the task</custom>
+		<custom key="schedule.once">once</custom>
+		<custom key="schedule.output">Output</custom>
+		<custom key="schedule.password">Password</custom>
+		<custom key="schedule.passworddescription">Password to access the URL protected by authentication</custom>
+		<custom key="schedule.port">Port</custom>
+	
+		<custom key="schedule.portdescription">Port of the URL to call (HTTP Default: 80)</custom>
+		<custom key="schedule.proxy">Proxy settings</custom>
+		<custom key="schedule.proxypassword">Password to access the proxy protected by authentication</custom>
+		<custom key="schedule.proxyport">Port of the proxy</custom>
+		<custom key="schedule.proxyusername">Username to access the proxy protected by authentication</custom>
+		<custom key="schedule.publish">Publish</custom>
+	
+		<custom key="schedule.resolve_url">Resolve URL</custom>
+		<custom key="schedule.resolvedescription">Translate relative URLs into absolute</custom>
+		<custom key="schedule.server">Server</custom>
+		<custom key="schedule.startdate">Start date</custom>
+		<custom key="schedule.startsat">Starts at</custom>
+		<custom key="schedule.starttime">Start time</custom>
+	
+		<custom key="schedule.storeresponse">Sets, whether the response of server will be stored in a file or not</custom>
+		<custom key="schedule.timeout">Timeout</custom>
+		<custom key="schedule.timeoutdescription">Timeout in seconds. Defines how long a task will wait for the response of the server called by the URL</custom>
+		<custom key="schedule.url">URL</custom>
+		<custom key="schedule.urldescription">URL of the new task</custom>
+		<custom key="schedule.urlmissing">Please enter a value for the URL of the task</custom>
+	
+		<custom key="schedule.username">Username</custom>
+		<custom key="schedule.usernamedescription">Username to access the URL protected by authentication</custom>
+		<custom key="schedule.weekly">weekly</custom>
+		<custom key="scopes.applicationtimeout">Application timeout</custom>
+		<custom key="scopes.applicationtimeoutdescription">Sets the amount of time Lucee will keep the application scope alive. This behaviour can be overridden by the tag cfapplication.</custom>
+		<custom key="scopes.cascadetoresultset">Search resultsets</custom>
+	
+		<custom key="scopes.cascadetoresultsetdescription">When a variable has no scope defined (Example: #myVar# instead of #variables.myVar#), Lucee will also search available resultsets (CFML&amp;nbsp;Standard) or not</custom>
+		<custom key="scopes.cascading">Cascading</custom>
+		<custom key="scopes.cascadingdescription">Depending on this setting Lucee scans certain scopes to find a variable called from the CFML source. This will only happen, when the variable is called without a scope. (Example: #myVar# instead of #variables.myVar#)&lt;br/&gt;- strict: scans only the variables scope&lt;br/&gt;- small: scans the scopes variables,cgi,url,form&lt;br/&gt;- standard (CFML Standard): scans the scopes variables,cgi,url,form,cookie</custom>
+		<custom key="scopes.clientcookies">Client cookies</custom>
+	
+		<custom key="scopes.clientcookiesdescription">Enable or disable client cookies. This behaviour can be overridden by the tag cfapplication.</custom>
+		<custom key="scopes.clientmanagement">Client management</custom>
+		<custom key="scopes.clientmanagementdescription">By default client management can be enabled. This behaviour can be overridden by the tag cfapplication.</custom>
+		<custom key="scopes.domaincookies">Domain cookies</custom>
+		<custom key="scopes.domaincookiesdescription">Enable or disable domain cookies. This behaviour can be overridden by the tag cfapplication.</custom>
+		<custom key="scopes.localmode">Local scope mode</custom>
+	
+		<custom key="scopes.localmodealways">always</custom>
+		<custom key="scopes.localmodedesc">Defines how the local scope of a function is invoked when a variable with no scope definition is used.&lt;br&gt;
+	- always: the local scope is always invoked&lt;br&gt;
+	- update (CFML standard): the local scope is only invoked when the key already exists in it</custom>
+		<custom key="scopes.localmodeupdate">update (CFML standard)</custom>
+		<custom key="scopes.mergeurlform">Merge URL and form</custom>
+	
+		<custom key="scopes.mergeurlformdescription">This setting defines if the scopes URL and form will be merged together or not. CFML Default is false.</custom>
+		<custom key="scopes.server">Here you can define the scope settings that will be used as &lt;strong&gt;default&lt;/strong&gt; for all webs.&lt;br/&gt;</custom>
+		<custom key="scopes.sessionmanagement">Session management</custom>
+		<custom key="scopes.sessionmanagementdescription">By default session management can be enabled. This behaviour can be overridden by the tag cfapplication.</custom>
+	
+		<custom key="scopes.sessiontimeout">Session timeout</custom>
+		<custom key="scopes.sessiontimeoutdescription">Sets the amount of time Lucee will keep the session scope alive. This behaviour can be overridden by the tag cfapplication.</custom>
+		<custom key="scopes.sessiontype">Session type</custom>
+		<custom key="scopes.sessiontype_application">Application</custom>
+		<custom key="scopes.sessiontype_jee">JEE</custom>
+		<custom key="scopes.sessiontypedescription">JEE Sessions allow to make sessions over a cluster. when you change this setting you will lose your current session and you must make a new login</custom>
+	
+		<custom key="scopes.small">small</custom>
+		<custom key="scopes.standard">standard (CFML Default)</custom>
+		<custom key="scopes.strict">strict</custom>
+		<custom key="scopes.timeoutdaysvalue">Value days for </custom>
+		<custom key="scopes.timeoutendvalue">timeout must have a Integer Value</custom>
+		<custom key="scopes.timeouthoursvalue">Value hours for </custom>
+	
+		<custom key="scopes.timeoutminutesvalue">Value minutes for </custom>
+		<custom key="scopes.timeoutsecondsvalue">Value seconds for </custom>
+		<custom key="scopes.web">Here you can define the settings for how Lucee handles scopes.</custom>
+		<custom key="search.collection">Collection</custom>
+		<custom key="search.collections">Collections</custom>
+		<custom key="search.createcol">Create collection</custom>
+	
+		<custom key="search.description">Here you can manage, create, populate and delete search collections. By default, lucee uses Apache Lucene as the search engine.&lt;br/&gt;&lt;br/&gt;</custom>
+		<custom key="search.directorypath">Directory path</custom>
+		<custom key="search.directorypathmissing">Please enter a path to be indexed</custom>
+		<custom key="search.external">External</custom>
+		<custom key="search.fileextensions">File extensions</custom>
+	
+		<custom key="search.fileextensionsmissing">Please enter the file extensions to be indexed</custom>
+		<custom key="search.indexsubdirs">Index subdirectories</custom>
+		<custom key="search.language">Language</custom>
+		<custom key="search.last_update">Last update</custom>
+		<custom key="search.mapped">Mapped</custom>
+		<custom key="search.missing_name">Please enter a name for the collection</custom>
+	
+		<custom key="search.missing_path">Please enter a valid path for the collection</custom>
+		<custom key="search.name">Name</custom>
+		<custom key="search.noresult">No Result for your criteria</custom>
+		<custom key="search.online">Online</custom>
+		<custom key="search.path">Path</custom>
+		<custom key="search.pathaction">Add/Update path index</custom>
+	
+		<custom key="search.result">Results {startrow} - {endrow} of about {recordcount} searched in {recordssearched} Records</custom>
+		<custom key="search.resultofthesearch">Results of the search</custom>
+		<custom key="search.searchterm">Enter the searchterm</custom>
+		<custom key="search.searchtermmissing">Please enter a searchterm</custom>
+		<custom key="search.searchthecollection">Search the collection</custom>
+		<custom key="search.url">URL</custom>
+	
+		<custom key="security.accessread">Access Read</custom>
+		<custom key="security.accessreaddesc">define the access for reading data</custom>
+		<custom key="security.accesswrite">Access Write</custom>
+		<custom key="security.accesswritedesc">define the access for writing data</custom>
+		<custom key="security.cfmlenvironment">CFML Enviroment</custom>
+		<custom key="security.cfmlenvironmentdescription">Settings that have an effect on how Lucee code interacts with the host enviroment</custom>
+	
+		<custom key="security.cfx">CFX</custom>
+		<custom key="security.cfxdescription">The settings for the cfx tags can be changed. The globally defined CFX tags defined in the &quot;server administrator&quot; can be used as well.</custom>
+		<custom key="security.cfxtags">CFX tags</custom>
+		<custom key="security.cfxtagsdescription">With CFX tags one can load Java classes which might have full access to the local hosts system. This might be a potential security risk to the hosts system</custom>
+		<custom key="security.customtag">Custom Tag</custom>
+	
+		<custom key="security.customtagdescription">The custom tag settings can be changed in the &quot;web administrator&quot;</custom>
+		<custom key="security.datasource">Datasource</custom>
+		<custom key="security.datasourcedescription">Defines how many datasources can be added in the &quot;web administrator&quot;.</custom>
+		<custom key="security.datasourcetextes.-1">unlimited</custom>
+		<custom key="security.debugging">Debugging</custom>
+	
+		<custom key="security.debuggingdescription">The debugging settings can be changed in the &quot;web administrator&quot;</custom>
+		<custom key="security.desc">Define the access rights for the different web contextes (webapps). Under the &quot;general&quot; tab you define default rights for all web contexts that do not have a speficic definition in the &quot;individual&quot; tab.</custom>
+		<custom key="security.file">File access</custom>
+		<custom key="security.fileall">all</custom>
+	
+		<custom key="security.filedescription">Defines how Lucee can interact with the local filesystem in a web context.&lt;br/&gt;- none: allows no access to the filesystem at all&lt;br/&gt;- local: allows only access to the filesystem within the webroot&lt;br/&gt;- all: allows full file access on the hosts filesystem&lt;br/&gt;</custom>
+		<custom key="security.filelocal">local</custom>
+		<custom key="security.filenone">none</custom>
+		<custom key="security.functions">Tags &amp;amp; Functions</custom>
+	
+		<custom key="security.functionsdescription">Tags and Functions that might be a potential risk to the hosts system</custom>
+		<custom key="security.general">General Access</custom>
+		<custom key="security.generaldesc">Define the General Access for administrator and tag cfadmin</custom>
+		<custom key="security.javaaccess">Direct Java access</custom>
+		<custom key="security.javaaccessdescription">Allows access to Java methods and properties from the Lucee code (Example: stringValue.substring(2,5)). Allowing access to Java methods and properties might be a potential security risk</custom>
+		<custom key="security.mail">Mail</custom>
+	
+		<custom key="security.maildescription">The mail settings can be changed in the &quot;web administrator&quot;</custom>
+		<custom key="security.mapping">Mapping</custom>
+		<custom key="security.mappingdescription">Allows adding, removing and updating of mappings in the &quot;web administrator&quot;.</custom>
+		<custom key="security.remote">Remote</custom>
+		<custom key="security.remotedescription">Es wird erlaubt das der User seine Einstellungen mit einem anderen lucee synchronisiern kann</custom>
+	
+		<custom key="security.scheduledtask">Scheduled task</custom>
+		<custom key="security.scheduledtaskdescription">The scheduled task settings can be changed in the &quot;web administrator&quot;</custom>
+		<custom key="security.search">Search</custom>
+		<custom key="security.searchdescription">The search settings can be changed in the &quot;web administrator&quot;</custom>
+		<custom key="security.settings">Settings (regional, component, scope)</custom>
+	
+		<custom key="security.settingsdescription">The settings (regional,component and scope) can be changed in the &quot;web administrator&quot;</custom>
+		<custom key="security.specialdesc">Define the security settings for a specific web context (webapps).</custom>
+		<custom key="security.speclisthost">Host name</custom>
+		<custom key="security.speclistnewtitle">create new web context</custom>
+		<custom key="security.speclistpath">Path</custom>
+		<custom key="security.speclisttext">Security settings for a specific web context. You can edit or delete these contexts.</custom>
+	
+		<custom key="security.speclisttitle">specific web context</custom>
+		<custom key="security.speclistwebcontext">Web context</custom>
+		<custom key="security.tabgeneral">General</custom>
+		<custom key="security.tabspecial">Individual</custom>
+		<custom key="security.tagexecute">Tag CFExecute</custom>
+		<custom key="security.tagexecutedescription">This tag is used to execute a process on the local hosts system</custom>
+	
+		<custom key="security.tagimport">Tag CFImport</custom>
+		<custom key="security.tagimportdescription">This tag can be used to import JSP and Lucee tag libraries</custom>
+		<custom key="security.tagobject">Tag CFObject / &lt;br/&gt;function CreateObject</custom>
+		<custom key="security.tagobjectdescription">With the tag CFObject and the function CreateObject you can load Java objects. If disabled, you only can create objects of type &quot;component&quot;</custom>
+		<custom key="security.tagregistry">Tag CFRegistry</custom>
+	
+		<custom key="security.tagregistrydescription">With the tag CFRegistry you have full access to the registry of the local hosts system</custom>
+		<custom key="security.title">Default access rights</custom>
+		<custom key="security.titledescription">Here you can define the access rights that will be used as a default for all web contexts. If allowed, you can overwrite some of the settings in the corresponding &quot;web administrator&quot;.</custom>
+		<custom key="security.webadministrator">Web administrator</custom>
+		<custom key="security.webadministratordescription">Here you can define the access rights for the settings that can be overridden in the &quot;web administrator&quot;.</custom>
+	
+		<custom key="services.update.desc">You can patch Lucee in order to receive the latest bugfixes and improved version.</custom>
+		<custom key="services.update.exe">Execute update</custom>
+		<custom key="services.update.exedesc">Apply the latest patch for your version. After the update has been installed Lucee will be restarted, all sessions will be cleared and you have to login again.</custom>
+		<custom key="services.update.exerun">execute update</custom>
+		<custom key="services.update.infotitle">Info</custom>
+		<custom key="services.update.location">URL</custom>
+	
+		<custom key="services.update.locdesc">Define the URL where Lucee gets its updates. Typically &quot;http://www.lucee.ch&quot;</custom>
+		<custom key="services.update.noupdate">For your version {current} is no patch available</custom>
+		<custom key="services.update.remove">Remove updates</custom>
+		<custom key="services.update.removedesc">Remove all installed updates.</custom>
+		<custom key="services.update.removerun">Remove updates</custom>
+		<custom key="services.update.restart">Restart Lucee</custom>
+	
+		<custom key="services.update.restartdesc">Restart the Lucee engine. All sessions will be cleared and you will have to login again.</custom>
+		<custom key="services.update.setdesc">Define where Lucee gets its patches. You have to restart Lucee after the update in order for the changes to take effect.</custom>
+		<custom key="services.update.settitle">Properties</custom>
+		<custom key="services.update.type">Type</custom>
+		<custom key="services.update.type_auto">Automatic</custom>
+		<custom key="services.update.type_manually">Manual</custom>
+	
+		<custom key="services.update.typedesc">Define how Lucee will be patched. &quot;Automatic&quot; means that Lucee searches automatically for updates once a day. &quot;Manual&quot; means that you can update Lucee only manually here.</custom>
+		<custom key="services.update.update">A patch {available} is available for your current version {current}.</custom>
+		<custom key="setting.server">Lucee output control</custom>
+		<custom key="setting.showversion">Output Lucee version</custom>
+	
+		<custom key="setting.showversiondescription">Return the Lucee version in the response header</custom>
+		<custom key="setting.web">Lucee output control</custom>
+		<custom key="setting.whitespace">Whitespace management</custom>
+		<custom key="setting.whitespacedescription">Removes all white spaces in the output that follow a white space</custom>
+		<custom key="settings.datasourcedescriptioncreate">Create new datasource connection</custom>
+		<custom key="settings.datasourcedescriptionupdate">Update datasource connection</custom>
+	
+		<custom key="settings.datasourcemodify">Create new datasource</custom>
+		<custom key="settings.datasourcesettings">Settings</custom>
+		<custom key="settings.dballowed">Allowed operations</custom>
+		<custom key="settings.dbblob">Blob</custom>
+		<custom key="settings.dbblobdesc">Enable binary large object retrieval (&lt;abbr title=&quot;binary large object&quot;&gt;BLOB&lt;/abbr&gt;)</custom>
+	
+		<custom key="settings.dbcheck">Check</custom>
+		<custom key="settings.dbclob">Clob</custom>
+		<custom key="settings.dbclobdesc">Enable long text retrieval (&lt;abbr title=&quot;character large object&quot;&gt;CLOB&lt;/abbr&gt;)</custom>
+		<custom key="settings.dbconnlimit">Connection limit (max)</custom>
+	
+		<custom key="settings.dbconnlimitdesc">Restricts the maximum number of connections at one time</custom>
+		<custom key="settings.dbconnlimitinf">- inf -</custom>
+		<custom key="settings.dbconntimeout">Connection timeout (in minutes)</custom>
+		<custom key="settings.dbconntimeoutdesc">Define a time in minutes for how long a connection is kept alive before it will be closed</custom>
+		<custom key="settings.dbdatabase">Database</custom>
+		<custom key="settings.dbdatabasedesc">Name of the database to connect</custom>
+	
+		<custom key="settings.dbhost">Host/Server</custom>
+		<custom key="settings.dbhostdesc">Host name where the database server is located</custom>
+		<custom key="settings.dbpass">Password</custom>
+		<custom key="settings.dbpassdesc">The password for the database</custom>
+		<custom key="settings.dbport">Port</custom>
+		<custom key="settings.dbportdesc">The port to connect the database</custom>
+	
+		<custom key="settings.dbuser">Username</custom>
+		<custom key="settings.dbuserdesc">The username for the database</custom>
+		<custom key="settings.listdatasources">Datasources</custom>
+		<custom key="settings.name">Name</custom>
+		<custom key="settings.namemissing">Please enter a name for the datasource</custom>
+		<custom key="settings.preservesinglequotes">Preserve single quotes</custom>
+	
+		<custom key="settings.preservesinglequotesdescription">Preserve single quotes (&quot;) in the SQL defined with the tag cfquery</custom>
+		<custom key="settings.readonlydatasources">Readonly datasources</custom>
+		<custom key="settings.readonlydatasourcesdescription">Readonly datasources are generated within the &quot;server administrator&quot; for all web instances and can not be modified by the &quot;web administrator&quot;.</custom>
+		<custom key="settings.type">Type</custom>
+	
+		<custom key="video.provider">Provider</custom>
+		<custom key="video.providerdesc">URL of a provider offering the necessary (FFMpeg binaries) components.</custom>
+		<custom key="video.providermissing">Missing provider definition</custom>
+		<custom key="video.server.installed">The necessary video components are already installed on your system.</custom>
+		<custom key="video.server.installedbut1">The video components are installed but they can not be executed properly:</custom>
+		<custom key="video.server.installedbut2">A manual installation is recommended.</custom>
+	
+		<custom key="video.server.installednotdesc">For the tag cfvideo/cfvideoplayer OS specific video components are required. They are not bundled with Lucee because the size of the software would increase a lot and because some codecs may not be redistributed, although their use is not prohibited. Therefore you can download these components directly from a provider and upload them with the form below.</custom>
+		<custom key="video.server.installednotuploaddesc">The video components (ffmpeg.zip) are uploaded directly over the form and copied into Lucee (no installation). As a source you can use e.g. {provider}</custom>
+		<custom key="video.server.installednotuploadtitle">Video components by upload</custom>
+		<custom key="video.server.installednoturldesc">The video componenten are downloaded automatically from the remote server and copied into Lucee (no installation).</custom>
+		<custom key="video.server.installednoturltitle">Download video components by an URL</custom>
+		<custom key="video.server.mandesc">A manuelle installation can be made like follows: Open the url {provider} and download the corresponding file ffmpeg.zip for your operating system ({OS-Name}). Then copy this file (do not unzip it) into the directory {directory}. If you can not find a file for your operating system, just contact us.</custom>
+	
+		<custom key="video.server.mantitle">Manual installation</custom>
+		<custom key="video.upload">Upload</custom>
+		<custom key="video.uploaddesc">Video components (ffmpeg.zip)</custom>
+		<custom key="video.uploadmissing">Missing upload definition</custom>
+		<custom key="video.web.installed">The video components are installed on your system.</custom>
+		<custom key="video.web.installedbut">The video components are installed but they can not be executed properly.Just switch to the Lucee Server Administrator, in order to repair it:</custom>
+	
+		<custom key="video.web.installednot">The video components are not installed on your system. In order to install them just switch to the Lucee Server Administrator.</custom>
+	
+	</language>
+</languages>
+

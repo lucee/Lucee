@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="susi" basedir="${rootDir}" name="LuceeCore" ><!-- TODO maybe there is a better way for this -->
+  <description>
+        Build Lucee Core
+  </description>
+  
+
+  <property name="build.compiler" value="extJavac"/>
+  <property name="agent" value="lucee.runtime.instrumentation.ExternalAgent"/>
+  <property name="bundleName" value="Lucee Core"/>
+  <property name="bundleSymbolicName" value="lucee.core"/>
+  <property name="testboxURL" value="http://downloads.ortussolutions.com/ortussolutions/testbox/2.1.0/testbox-2.1.0.zip"/>
+  
+  <tstamp>
+      <format property="NOW" pattern="yyyy/MM/dd HH:mm:ss z" locale="en,GB"/>
+  </tstamp>
+
+  <scriptdef name="unwrap" language="javascript">
+     <attribute name="text" />
+     <attribute name="property" />
+     <![CDATA[
+      var text = attributes.get("text");
+      text=text.trim();
+      if(text.startsWith('"') && text.endsWith('"')) {
+        text=text.substring(1,text.length()-1);
+      }
+      project.setProperty(attributes.get("property"), text);
+     ]]>
+  </scriptdef>
+
+  <scriptdef name="updatedate" language="javascript">
+     <attribute name="text" />
+     <attribute name="date" />
+     <attribute name="property" />
+     <![CDATA[
+      var text = attributes.get("text");
+      var date = attributes.get("date");
+      
+      var index=text.indexOf("lucee.core.release.date");
+      if(index!=-1) {
+        var start=text.indexOf('"',index);
+        var end=text.indexOf('"',start+1);
+        if(start!=-1 && end!=-1) {
+          text=text.substring(0,start+1)+date+text.substring(end);
+        }
+      }
+
+      project.setProperty(attributes.get("property"), text);
+     ]]>
+  </scriptdef>
+  <scriptdef name="currentTime" language="javascript">
+     <attribute name="property" />
+     <![CDATA[
+      project.setProperty(attributes.get("property"), new Date().getTime());
+     ]]>
+  </scriptdef>
+
+
+  <target name="init">
+
+    <property name="srcLoader" location="${rootDir}/loader/src/main/java"/>
+    <property name="srcCore" location="${rootDir}/core/src/main/java"/>
+    <property name="trgLoader" location="${rootDir}/loader/target"/>
+    <property name="trgCore" location="${rootDir}/core/target"/>
+    <property name="srcCFML" location="${rootDir}/core/src/main/cfml"/>
+    <property name="srcInst" location="${rootDir}/instrumentation/src/main/java"/> 
+    <property name="ant" location="${rootDir}/ant"/>
+    <property name="test" location="${rootDir}/test"/>
+    <property name="temp" location="${rootDir}/temp"/>
+    <property name="loader" location="${temp}/loader"/>
+    <property name="core" location="${temp}/core"/>
+    <property file="${rootDir}/build.properties"/>
+
+    <echo message="${version}"/>
+    <echo message="${name}"/>
+    <echo message="${name.explanation}"/>
+    <echo message="${rootDir}"/>
+                    
+    
+    <!-- Create the time stamp -->
+    <tstamp/>
+    
+    <delete dir="${temp}"/>
+    
+    <!-- Create the  directory structure needed -->
+    <mkdir dir="${core}"/>
+    <mkdir dir="${loader}"/>
+    <mkdir dir="${temp}/agent"/>
+
+  </target>
+
+  
+  <target name="copyDeployFiles" depends="init" description="copy files from source/cfml to source/java/core/src/resource">
+    <copy todir="${srcCore}/resource/context/">
+      <fileset dir="${srcCFML}/context/">
+        <include name="*.cfm"/>
+        <include name="*.cfc"/>
+        <include name="*.lucee"/>
+        <include name="*.xml"/>
+      </fileset>
+    </copy>
+
+    <copy todir="${srcCore}/resource/context/admin/resources/language/">
+      <fileset dir="${srcCFML}/context/admin/resources/language/">
+        <include name="*.cfm"/>
+        <include name="*.cfc"/>
+        <include name="*.lucee"/>
+        <include name="*.xml"/>
+      </fileset>
+    </copy>
+
+    <copy todir="${srcCore}/resource/context/gateway">
+      <fileset dir="${srcCFML}/context/gateway">
+        <include name="*.cfm"/>
+        <include name="*.cfc"/>
+        <include name="*.lucee"/>
+        <include name="*.xml"/>
+      </fileset>
+    </copy>
+
+    <copy todir="${srcCore}/resource/context/templates/error">
+      <fileset dir="${srcCFML}/context/templates/error">
+        <include name="*.cfm"/>
+        <include name="*.cfc"/>
+        <include name="*.lucee"/>
+        <include name="*.xml"/>
+      </fileset>
+    </copy>
+
+    <copy todir="${srcCore}/resource/context/admin/plugin">
+      <fileset dir="${srcCFML}/context/admin/plugin">
+        <include name="**/*.cfm"/>
+        <include name="**/*.cfc"/>
+        <include name="**/*.lucee"/>
+        <include name="**/*.xml"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="agent" depends="copyDeployFiles" description="create external-agent  jar used as backup when dynamic agent fails" >
+
+    <!-- compie the source -->
+    <javac 
+      srcdir="${srcInst}" 
+      target="1.7" 
+      destdir="${temp}/agent"
+      debug="true" debuglevel="lines,vars,source" classpath="${dependencies}">
+    </javac>
+
+    <!-- create the manifest file -->
+    <jar 
+        basedir="${temp}/agent" 
+        jarfile="${core}/resource/lib/lucee-external-agent.jar" 
+        manifest="${srcInst}/META-INF/MANIFEST.MF"/> 
+    
+
+  </target>
+
+  <target name="_loader" depends="agent" description="compile the source" >
+    <!-- compie the source -->
+    <javac 
+      srcdir="${srcLoader}" 
+      target="1.7" 
+      destdir="${temp}/loader"
+      debug="true" debuglevel="lines,vars,source" classpath="${dependencies}">
+    </javac>
+    
+    <!-- copy all non java files -->
+    <copy todir="${temp}/loader">
+      <fileset dir="${srcLoader}">
+        <exclude name="**/*.java"/>
+        <exclude name=".*"/>
+      </fileset>
+    </copy>
+
+
+    <!-- set lucee/version file -->
+    <currentTime property="ct" />
+    <echo file="${temp}/loader/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
+
+
+  </target>
+
+
+  <target name="_core" depends="_loader" description="compile the source" >
+    
+    <!-- set the loader as classpath -->
+    <path id="classpath">
+      <pathelement location="${temp}/loader" />
+      <pathelement path="${dependencies}"/>
+    </path>
+
+    <!-- <pathconvert property="classpathProp" refid="classpath"/> -->
+   
+    <!-- compile the core -->
+    <javac 
+      srcdir="${srcCore}" 
+      target="1.7" 
+      destdir="${core}"
+      debug="true" debuglevel="lines,vars,source">
+       <classpath refid="classpath" />
+    </javac>
+
+    <!-- copy all non java files -->
+    <copy todir="${core}">
+      <fileset dir="${srcCore}">
+        <exclude name="**/*.java"/>
+        <exclude name=".*"/>
+      </fileset>
+    </copy>
+
+    <!-- set date in default properties -->
+    <loadfile property="defprop"
+      srcFile="${core}/default.properties"/>
+    <updatedate text="${defprop}" date="${NOW}" property="moddefprop" />
+    <echo file="${core}/default.properties" message="${moddefprop}"/>
+
+    <!-- create the manifest file -->
+    <manifest file="${core}/META-INF/MANIFEST.MF" mode="update">
+      <attribute name="Bundle-Version" value="${version}"/>
+      <attribute name="Bundle-Name" value="${bundleName}"/>
+      <attribute name="Bundle-SymbolicName" value="${bundleSymbolicName}"/>
+      <attribute name="Bundle-ManifestVersion" value="2"/>
+      <attribute name="Built-Date" value="${NOW}"/>
+      <attribute name="State" value="${state}"/>
+      <attribute name="Minor-Name" value="${name}"/>
+      <attribute name="Minor-Name-Explanation" value="${name.explanation}"/>
+    </manifest>
+  </target>
+
+
+  <target name="buildJars" depends="_core" description="generate temporary jars used to generate the archive" >
+    
+    <!-- generates a jar from the core 
+          this jars are only 
+    -->
+    <jar 
+        basedir="${core}" 
+        jarfile="${temp}/loader/core/core.lco" 
+        manifest="${core}/META-INF/MANIFEST.MF"/> 
+
+
+    <!-- genrates the jar from the loader -->
+    <jar 
+      basedir="${temp}/loader" 
+      jarfile="${temp}/lucee.jar" 
+      manifest="${srcLoader}/META-INF/MANIFEST.MF"/>
+
+  </target>
+
+
+
+  <target name="__build" depends="buildJars">
+
+    <!-- first we copy the jars in place otherwise, Lucee downloads them  -->
+    <copy todir="${temp}/archive/base/lucee-server/bundles" flatten="true">
+      <path>
+        <pathelement path="${dependencies}"/>
+      </path>
+    </copy>
+
+    <!-- now we need to get the testbox source -->
+    <get src="${testboxURL}" dest="${temp}/testbox.zip"/>
+    <unzip src="${temp}/testbox.zip" dest="${temp}/testbox"/>
+    <delete dir="${temp}/testbox.zip"/>
+
+
+    <!-- build the lucee-context.lar -->
+    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="false" errorproperty="exc">
+      <classpath path="${java.class.path}">
+          <pathelement location="${temp}/lucee.jar"/>
+          <pathelement path="${runtime_classpath}"/>
+      </classpath>
+
+      <arg value="-f"/>
+      <arg value="${ant}/build-create-archive.xml"/>
+
+      <jvmarg value="-Dsrc=${srcCFML}/context"/>
+      <jvmarg value="-Dtemp=${temp}/archive"/>
+      <jvmarg value="-Dtestbox=${temp}/testbox/testbox"/>
+      <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
+      <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
+
+    </java>
+    <echo>${exc}</echo>
+
+
+
+    <!-- execute CFML testcases -->
+    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc2">
+      <classpath path="${java.class.path}">
+          <pathelement location="${temp}/lucee.jar"/>
+          <pathelement path="${runtime_classpath}"/>
+      </classpath>
+
+      <arg value="-f"/>
+      <arg value="${ant}/run-testcases.xml"/>
+
+      <jvmarg value="-Dtest=${test}"/>
+      <jvmarg value="-Dtemp=${temp}"/>
+      <jvmarg value="-DtestboxArchive=${temp}/archive/testbox.lar"/>
+
+      <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
+      <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
+    </java>
+    <echo>${exc2}</echo>
+
+
+
+<!-- now we have to build the lucee.jar again, this time with the lar files -->
+    <!-- copy the lucee lar -->
+    <copy file="${temp}/archive/lucee-context.lar" tofile="${core}/resource/context/lucee-context.lar"/>
+    <copy file="${temp}/archive/lucee-admin.lar" tofile="${core}/resource/context/lucee-admin.lar"/> 
+    <copy file="${temp}/archive/lucee-doc.lar" tofile="${core}/resource/context/lucee-doc.lar"/> 
+    
+
+
+  </target>
+
+
+  <target name="buildCore" depends="__build">
+
+    <!-- copy all the source to the classes folder -->
+    <copy todir="${outputDir}">
+      <fileset dir="${core}">
+        <exclude name=".*"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="buildLoader" depends="__build" description="generate the loader jar" >  
+    <!-- create the luce core -->
+    <jar 
+        basedir="${core}" 
+        jarfile="${trgLoader}/${version}.lco" 
+        manifest="${core}/META-INF/MANIFEST.MF"/>
+
+    <!-- copy to core to the classes folder -->
+    <copy 
+        file="${trgLoader}/${version}.lco" 
+        tofile="${outputDir}/core/core.lco"/>
+
+    <!-- version -->
+    <currentTime property="ct" />
+    <echo file="${outputDir}/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
+
+    
+    <delete dir="${temp}"/>
+  </target>
+  <target name="buildLoaderAnt" depends="__build" description="generate the loader jar" >  
+    
+    <!-- create core -->
+    <jar 
+        basedir="${core}" 
+        jarfile="${temp}/loader/core/core.lco" 
+        manifest="${core}/META-INF/MANIFEST.MF"/> 
+
+    <!-- copy to core to the target folder -->
+    <copy 
+        file="${temp}/loader/core/core.lco" 
+        tofile="${trgLoader}/${version}.lco"/>
+
+    <!-- version -->
+    <currentTime property="ct" />
+    <echo file="${temp}/loader/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
+
+
+    <!-- genrates the jar from the loader -->
+    <jar 
+      basedir="${temp}/loader" 
+      jarfile="${trgLoader}/lucee-${version}.jar" 
+      manifest="${srcLoader}/META-INF/MANIFEST.MF"/>
+
+
+    <delete dir="${temp}"/>
+
+  </target>
+
+</project>

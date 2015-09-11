@@ -1,0 +1,195 @@
+<!--
+
+   This is the DTD defining the Cold Fusion Language 1.0 Tag Library
+   descriptor (.tld) (XML) file format/syntax.
+  -->
+<!ELEMENT taglib (tlib-version, cfml-version, short-name, uri?, display-name?, description?, name-space, name-space-separator?, el, tag+)>
+<!--
+Describes this version (number) of the taglibrary (dewey decimal)
+
+#PCDATA ::= [0-9]*{ "."[0-9] }0..3
+-->
+<!ELEMENT tlib-version (#PCDATA)>
+<!--
+Describes the CFML version (number) this taglibrary requires in
+order to function (dewey decimal)
+
+The default is 1.0
+
+#PCDATA ::= [0-9]*{ "."[0-9] }0..3
+-->
+<!ELEMENT cfml-version (#PCDATA)>
+<!--
+Defines a short (default) short-name to be used for tags and
+variable names used/created by this tag library.  Do not use
+white space, and do not start with digits or underscore.
+
+#PCDATA ::= NMTOKEN
+-->
+<!ELEMENT short-name (#PCDATA)>
+<!--
+Defines a public URI that uniquely identifies this version of
+the taglibrary.  Leave it empty if it does not apply.
+-->
+<!ELEMENT uri (#PCDATA)>
+<!--
+Defines an arbitrary text string descirbing the tag library
+-->
+<!ELEMENT display-name (#PCDATA)>
+<!--
+Defines an arbitrary text string descirbing the tag library
+-->
+<!ELEMENT description (#PCDATA)>
+<!--
+defines namespaces of the taglib
+-->
+<!ELEMENT name-space (#PCDATA)>
+<!--
+defines optional a other name space separator as the [:] 
+for example for ColdFusion the Namespace seperator is a empty String
+-->
+<!ELEMENT name-space-separator (#PCDATA)>
+<!--
+Expression Language Transformer
+-->
+<!ELEMENT el (el-class)>
+<!--
+Defines the subclass of Lucee.transfomer.cfml.expression.ExprTransfomer (Java) that implements
+the expression language of this Tag Library (required)
+-->
+<!ELEMENT el-class (#PCDATA)>
+<!--
+The tag defines a unique tag in this tag library. 
+-->
+<!ELEMENT tag (name, appendix?, tag-class, tte-class?, tdbt-class?, body-content?, body-rtexprvalue?, display-name?, description?, attribute-type?, attribute-min?, attribute-max?, attribute*)>
+<!--
+definition if name of tag has a append name
+
+#PCDATA ::= yes | no
+-->
+<!ELEMENT appendix (#PCDATA)>
+<!--
+Defines the subclass of Lucee.tag.Tag (PHP) that implements
+the request time semantics for this tag. (required)
+
+#PCDATA ::= fully qualified Java Like class name
+-->
+<!ELEMENT tag-class (#PCDATA)>
+<!--
+Tag Translation Time Evaluator
+		You can check and evaluate the dom Element representation of a Tag
+
+Defines the subclass of Lucee.transfomer.tag.Evaluator (Java).
+
+#PCDATA ::= fully qualified class name
+-->
+<!ELEMENT tte-class (#PCDATA)>
+<!--
+Tag dependet Body Transformer
+		Define a class to parse the body, diffrent from CFML Transformer
+
+Defines the subclass of Lucee.transfomer.tag.TagDependetBodyTransformer (Java).
+
+#PCDATA ::= fully qualified class name
+-->
+<!ELEMENT tdbt-class (#PCDATA)>
+<!--
+Provides a hint as to the content of the body of this tag. Primarily
+intended for use by page composition tools.
+
+There are currently three values specified:
+
+empty             The body must be empty
+
+free              The tags can have a body but dont must
+
+must			  the tag must have a content
+
+tagdependent	  the tag must have a body and the body will be parsed by a TagDependetBodyTransformer
+The default (if not defined) is must
+
+#PCDATA ::= empty | free | must | tagdependent
+
+-->
+<!ELEMENT body-content (#PCDATA)>
+<!-- 
+	When true EL Parser while also parse Body Content
+	#PCDATA ::=  true|false
+	Default: false
+-->
+<!ELEMENT body-rtexprvalue (#PCDATA)>
+<!--
+The attribute tag defines an attribute for the nesting tag
+-->
+<!-- 
+	Attribute Type  
+		fix: 		Standart JSP Functionality
+		
+		dynamic:	attribute Names or not fix everything is allowed
+					
+		noname:		only one attribute without a name definition
+					for Example <cf:if  test EQ 1>
+					when this is enabled attributes in this tag 
+					will be ignored
+		fulldynamic:	attribute name can be a dynamic value
+	Default: fix
+-->
+<!ELEMENT attribute-type (#PCDATA)>
+<!-- 
+Minimal length of attributes
+ -->
+<!ELEMENT attribute-min (#PCDATA)>
+<!-- 
+Maximum length of attributes
+ -->
+<!ELEMENT attribute-max (#PCDATA)>
+<!--
+The attribute tag defines an attribute for the nesting tag
+
+An attribute definition is composed of:
+
+- the attributes name (required)
+
+- if the attribute is required or optional (optional)
+
+- if the attributes value may be dynamically calculated at runtime
+  by a scriptlet expression (optional)
+
+- the type of the attributes value (optional)
+
+- an informal description of the meaning of the attribute (optional)
+-->
+<!ELEMENT attribute ( type?,name, required?, rtexprvalue?, description?)>
+<!--
+Defines the canonical name of a tag or attribute being defined
+
+#PCDATA ::= NMTOKEN
+-->
+<!ELEMENT name (#PCDATA)>
+<!--
+Defines if the nesting attribute is required or optional.
+
+#PCDATA ::= true | false | yes | no
+
+If not present then the default is "false", i.e the attribute
+is optional.
+-->
+<!ELEMENT required (#PCDATA)>
+<!--
+Defines if the nesting attribute can have scriptlet expressions as
+a value, i.e the value of the attribute may be dynamically calculated
+at request time, as opposed to a static value determined at translation
+time.
+
+#PCDATA ::= true | false | yes | no
+
+If not present then the default is "true", i.e the attribute
+has a static value
+-->
+<!ELEMENT rtexprvalue (#PCDATA)>
+<!--
+type of the attribute (query, struct, string, number, datetime, boolean)
+
+#PCDATA ::= NMTOKEN
+-->
+<!ELEMENT type (#PCDATA)>

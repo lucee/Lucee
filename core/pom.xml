@@ -1,0 +1,1036 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!--<parent>
+    <groupId>org.lucee</groupId>
+    <artifactId>parent</artifactId>
+    <version>5.0.0.22</version>
+  </parent> -->
+
+
+  <groupId>org.lucee</groupId>
+  <artifactId>core</artifactId>
+  <version>5.0.0.22</version>
+  <packaging>lco</packaging>
+
+  <name>Lucee Core Build</name>
+  <description>Building the Lucee Core File</description>
+  <url>http://maven.lucee.org/core/</url>
+
+  <licenses>
+    <license>
+     <name>The GNU Lesser General Public License, Version 2.1</name>
+     <url>http://www.gnu.org/licenses/lgpl-2.1.txt</url>
+     <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>micstriit</id>
+      <name>Michael Offner</name>
+      <email>michael@lucee.org</email>
+      <organization>Lucee Association Switzerland</organization>
+      <organizationUrl>http://lucee.org</organizationUrl>
+      <roles>
+        <role>Project-Administrator</role>
+        <role>Developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+  </developers>
+   
+
+   
+
+  <build>
+      <plugins>
+        <!-- publish to central maven -->
+        <plugin>
+          <groupId>org.sonatype.plugins</groupId>
+          <artifactId>nexus-staging-maven-plugin</artifactId>
+          <version>1.6.3</version>
+          <extensions>true</extensions>
+          <configuration>
+            <serverId>ossrh</serverId>
+            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+          </configuration>
+        </plugin>
+
+        <!-- GPG sign -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>1.5</version>
+          <executions>
+            <execution>
+              <id>sign-artifacts</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>sign</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
+        <!-- -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5</version>
+          <configuration>
+            <autoVersionSubmodules>true</autoVersionSubmodules>
+            <useReleaseProfile>false</useReleaseProfile>
+            <releaseProfiles>release</releaseProfiles>
+            <goals>deploy</goals>
+          </configuration>
+        </plugin> 
+
+
+        <!--  -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+<!--
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>attach-javadocs</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            <configuration>  
+                <additionalparam>-Xdoclint:none</additionalparam>
+                <additionnalDependencies>
+                  <additionnalDependency>
+                   <groupId>org.lucee</groupId>
+                   <artifactId>lucee</artifactId>
+                   <version>5.0.0.22</version>
+                  </additionnalDependency>
+                </additionnalDependencies>
+            </configuration>
+            </execution>
+          </executions>
+        </plugin> -->
+
+
+
+
+      <!-- plugin to build Lucee Core Files (.lco) -->
+         <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.8</version>
+            <executions>
+              <execution>
+                <id>ant-magic</id>
+                <phase>validate</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <tasks>
+                    <!-- get dependencies -->
+                    <dependencyfilesets prefix="mydeps."/>
+                    <path id="maven-ant-tasks.classpath" >
+                      <fileset refid="mydeps.org.apache.maven:maven-ant-tasks:jar"/>
+                    </path>
+                    <pathconvert property="dependencies" refid="mydeps.maven.project.dependencies"/>
+                    
+                    <property name="version" value="${project.version}"/>
+                        
+                    <!-- <property name="compile_classpath" refid="maven.compile.classpath"/> -->
+                    <property name="runtime_classpath" refid="maven.runtime.classpath"/>
+                            
+                    <property name="outputDir" value="${project.build.outputDirectory}"/>
+                    <!-- <property name="sourceDir" value="${project.build.sourceDirectory}"/> -->
+                    <property name="baseDir" value="${basedir}"/>
+                    <dirname file="${baseDir}" property="rootDir" />
+
+                    <ant antfile="../ant/build-core.xml" target="buildCore"/>
+                  </tasks>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+
+
+         <!-- creates the .lco file, this plugin extends the jar plugin from maven-->
+        <plugin>
+          
+          <groupId>org.lucee</groupId>
+          <artifactId>lco-plugin</artifactId>
+          <version>1.02-SNAPSHOT</version>
+<!--
+           TODO problem s that implementation ignores the manifest definition
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>2.6</version> -->
+
+          <!--declare that this plugin contributes the component extensions-->
+          <configuration>
+            <excludes>
+              <exclude>.*</exclude>
+            </excludes>
+            <archive>
+              <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+            </archive>       
+          </configuration>
+
+
+          <extensions>true</extensions>
+        </plugin>
+         
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+           <artifactId>maven-compiler-plugin</artifactId>
+           <version>3.3</version>
+           <configuration>
+             <source>1.7</source>
+             <target>1.7</target>
+              <excludes>
+                  <exclude>**/*.java</exclude>
+                </excludes>
+           </configuration>
+
+      </plugin>
+
+
+
+      </plugins>
+      <pluginManagement>
+      	<plugins>
+      		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+      		<plugin>
+      			<groupId>org.eclipse.m2e</groupId>
+      			<artifactId>lifecycle-mapping</artifactId>
+      			<version>1.0.0</version>
+      			<configuration>
+      				<lifecycleMappingMetadata>
+      					<pluginExecutions>
+      						<pluginExecution>
+      							<pluginExecutionFilter>
+      								<groupId>
+      									org.apache.maven.plugins
+      								</groupId>
+      								<artifactId>
+      									maven-antrun-plugin
+      								</artifactId>
+      								<versionRange>
+      									[1.8,)
+      								</versionRange>
+      								<goals>
+      									<goal>run</goal>
+      								</goals>
+      							</pluginExecutionFilter>
+      							<action>
+      								<ignore></ignore>
+      							</action>
+      						</pluginExecution>
+      					</pluginExecutions>
+      				</lifecycleMappingMetadata>
+      			</configuration>
+      		</plugin>
+      	</plugins>
+      </pluginManagement>
+  </build>
+
+
+
+
+	<dependencies>
+	   
+    
+	     <dependency>
+         <scope>compile</scope>
+         <groupId>org.apache.felix</groupId>
+         <artifactId>org.apache.felix.framework</artifactId>
+         <version>4.2.1</version>
+      </dependency>
+      <dependency>
+         <groupId>javax.servlet</groupId>
+         <artifactId>javax.servlet-api</artifactId>
+         <version>3.1.0</version>
+      </dependency>
+      <dependency>
+         <groupId>javax.servlet.jsp</groupId>
+         <artifactId>jsp-api</artifactId>
+         <version>2.2</version>
+      </dependency>
+      <dependency>
+         <groupId>javax.el</groupId>
+         <artifactId>javax.el-api</artifactId>
+         <version>3.0.0</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.ant</groupId>
+          <artifactId>ant</artifactId>
+          <version>1.9.5</version>
+       </dependency>
+
+<!-- org.apache.sanselan - 0.97.incubator 
+	Bundle-SymbolicName: org.apache.sanselan.sanselan
+	Bundle-Version: 0.97.0.incubator
+-->
+	<dependency>
+		<groupId>org.apache.sanselan</groupId>
+		<artifactId>sanselan</artifactId>
+		<version>0.97-incubator</version>
+	</dependency>
+
+
+<!-- org.apache.commons.codec - 1.10 
+	Bundle-SymbolicName: org.apache.commons.codec
+	Bundle-Version: 1.10.0
+
+	<dependency>
+  		<groupId>commons-codec</groupId>
+  		<artifactId>commons-codec</artifactId>
+  		<version>1.10</version>
+	</dependency>-->
+   <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>codec</artifactId>
+      <version>1.6.0</version>
+   </dependency>
+
+
+
+
+<!-- org.apache.commons.collections 
+	Bundle-SymbolicName: org.apache.commons.collections
+	Bundle-Version: 3.2.1
+
+	<dependency>
+		<groupId>commons-collections</groupId>
+		<artifactId>commons-collections</artifactId>
+		<version>3.2.1</version>
+	</dependency> -->
+
+<!-- org.apache.commons.collections 4
+  Bundle-SymbolicName: org.apache.commons.collections4
+  Bundle-Version: 4.0.0
+-->
+  <dependency>
+  <groupId>org.apache.commons</groupId>
+  <artifactId>commons-collections4</artifactId>
+  <version>4.0</version>
+  </dependency>
+
+<!-- org.apache.commons.compress - 1.9.0
+	Bundle-SymbolicName: org.apache.commons.compress
+	Bundle-Version: 1.9.0
+-->
+	<dependency>
+		<groupId>org.apache.commons</groupId>
+		<artifactId>commons-compress</artifactId>
+		<version>1.9</version>
+	</dependency>
+      
+<!-- org.apache.commons.discovery - 0.5
+	Bundle-SymbolicName: org.apache.commons.discovery
+	Bundle-Version: 0.5
+-->
+	<dependency>
+		<groupId>commons-discovery</groupId>
+		<artifactId>commons-discovery</artifactId>
+		<version>0.5</version>
+	</dependency>
+
+<!-- org.apache.commons.email - 1.4 
+	Bundle-SymbolicName: org.apache.commons.email
+	Bundle-Version: 1.4.0
+-->
+	<dependency>
+		<groupId>org.apache.commons</groupId>
+		<artifactId>commons-email</artifactId>
+		<version>1.2</version>
+	</dependency>
+
+<!-- org.apache.commons.fileupload
+	Bundle-SymbolicName: org.apache.commons.fileupload
+	Bundle-Version: 1.3.1
+
+	<dependency>
+		<groupId>commons-fileupload</groupId>
+		<artifactId>commons-fileupload</artifactId>
+		<version>1.3.1</version>
+	</dependency>-->
+  <dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>fileupload</artifactId>
+    <version>1.2.1</version>
+  </dependency>
+
+<!-- org.apache.commons.httpclient - 3.0.1 
+	Bundle-SymbolicName: org.lucee.commons-httpclient
+	Bundle-Version: 3.1
+-->
+	<dependency>
+		<groupId>org.lucee</groupId>
+		<artifactId>commons-httpclient</artifactId>
+		<version>3.1</version>
+	</dependency>
+
+<!-- org.apache.commons.io - 2.4 
+	Bundle-SymbolicName: org.apache.commons.io
+	Bundle-Version: 2.4.0
+-->
+	<dependency>
+		<groupId>commons-io</groupId>
+		<artifactId>commons-io</artifactId>
+		<version>2.4</version>
+	</dependency>
+
+<!-- org.apache.commons.lang 
+	Bundle-SymbolicName: org.apache.commons.lang
+	Bundle-Version: 2.6.0 -->
+
+	<dependency>
+		<groupId>commons-lang</groupId>
+		<artifactId>commons-lang</artifactId>
+		<version>2.6</version>
+	</dependency>
+
+<!-- org.apache.commons.lang 3
+  Bundle-SymbolicName: org.apache.commons.lang3
+  Bundle-Version: 3.4.0
+
+<dependency>
+  <groupId>org.apache.commons</groupId>
+  <artifactId>commons-lang3</artifactId>
+  <version>3.4</version>
+</dependency>-->
+
+
+<!-- org.apache.commons.logging.adapters - 1.2 
+	Bundle-SymbolicName: org.apache.commons.logging
+	Bundle-Version: 1.2.0
+-->
+	<dependency>
+		<groupId>org.apache.commons.logging</groupId>
+		<artifactId>adapters</artifactId>
+		<version>1.1.1</version>
+	</dependency>
+
+<!-- org.apache.commons.logging.api - 1.1.1 -->
+      <dependency>
+         <groupId>org.apache.commons.logging</groupId>
+         <artifactId>api</artifactId>
+         <type>jar</type>
+         <version>1.1.1</version>
+      </dependency>
+
+<!-- org.apache.commons.logging - 1.1.1 -->
+      <dependency>
+         <groupId>org.apache.commons</groupId>
+         <artifactId>logging</artifactId>
+         <type>jar</type>
+         <version>1.1.1</version>
+      </dependency>
+
+<!-- org.apache.commons.net - 3.3
+	Bundle-SymbolicName: org.apache.commons.net
+	Bundle-Version: 3.3.0
+-->
+	<dependency>
+		<groupId>commons-net</groupId>
+		<artifactId>commons-net</artifactId>
+		<version>3.3</version>
+	</dependency>
+
+<!-- org.apache.oro - 2.0.8 -->
+      <dependency>
+         <groupId>org.apache</groupId>
+         <artifactId>oro</artifactId>
+         <type>jar</type>
+         <version>2.0.8</version>
+      </dependency>
+
+<!-- log4j - 1.2.17 
+	Bundle-SymbolicName: log4j
+	Bundle-Version: 1.2.17
+-->
+	<dependency>
+		<groupId>log4j</groupId>
+		<artifactId>log4j</artifactId>
+		<version>1.2.17</version>
+	</dependency>
+
+<!-- apache.poi.ooxml.schemas - 3.8.0 -->
+      <dependency>
+         <groupId>apache.poi.ooxml</groupId>
+         <artifactId>schemas</artifactId>
+         <type>jar</type>
+         <version>3.8.0</version>
+      </dependency>
+<!-- org.apache.poi.ooxml - 3.8.0 -->
+      <dependency>
+         <groupId>org.apache.poi</groupId>
+         <artifactId>ooxml</artifactId>
+         <type>jar</type>
+         <version>3.8.0</version>
+      </dependency>
+<!-- apache.poi.tm.extractors - 3.8.0 -->
+      <dependency>
+         <groupId>apache.poi.tm</groupId>
+         <artifactId>extractors</artifactId>
+         <type>jar</type>
+         <version>3.8.0</version>
+      </dependency>
+<!-- org.apache.poi - 3.8.0 -->
+      <dependency>
+         <groupId>org.apache</groupId>
+         <artifactId>poi</artifactId>
+         <type>jar</type>
+         <version>3.8.0</version>
+      </dependency>
+<!-- apache.ws.axis.ant - 1.4.0 -->
+      <dependency>
+         <groupId>apache.ws.axis</groupId>
+         <artifactId>ant</artifactId>
+         <type>jar</type>
+         <version>1.4.0</version>
+      </dependency>
+<!-- apache.ws.axis - 1.4.0.L004 -->
+      <dependency>
+         <groupId>apache.ws</groupId>
+         <artifactId>axis</artifactId>
+         <type>jar</type>
+         <version>1.4.0.L004</version>
+      </dependency>
+<!-- apache.xml.xalan - 2.7.1 -->
+      <dependency>
+         <groupId>apache.xml</groupId>
+         <artifactId>xalan</artifactId>
+         <type>jar</type>
+         <version>2.7.1</version>
+      </dependency>
+<!-- apache.xml.xerces - 2.11.0 -->
+      <dependency>
+         <groupId>apache.xml</groupId>
+         <artifactId>xerces</artifactId>
+         <type>jar</type>
+         <version>2.11.0</version>
+      </dependency>
+<!-- backport.util.concurrent - 2.2.0 -->
+      <dependency>
+         <groupId>backport.util</groupId>
+         <artifactId>concurrent</artifactId>
+         <type>jar</type>
+         <version>2.2.0</version>
+      </dependency>
+<!-- bcprov.jdk14 - 1.36.0 -->
+      <dependency>
+         <groupId>bcprov</groupId>
+         <artifactId>jdk14</artifactId>
+         <type>jar</type>
+         <version>1.36.0</version>
+      </dependency>
+
+<!-- concurrent - 1.3.3 -->
+      <dependency>
+         <groupId>edu.oswego.cs.gee</groupId>
+         <artifactId>concurrent</artifactId>
+         <type>jar</type>
+         <version>1.3.3</version>
+      </dependency>
+      
+<!-- ehcache - 2.10.0
+	Bundle-SymbolicName: net.sf.ehcache
+	Bundle-Version: 2.10.0
+-->
+	<dependency>
+		<groupId>net.sf.ehcache</groupId>
+		<artifactId>ehcache</artifactId>
+		<version>2.10.0</version>
+	</dependency>
+
+      
+<!-- ESAPI - 2.1.0 -->
+      <dependency>
+         <groupId>ESAPI</groupId>
+         <artifactId>ESAPI</artifactId>
+         <type>jar</type>
+         <version>2.1.0</version>
+      </dependency>
+
+<!-- flex.messaging.common - 3.3.0.22497 -->
+      <dependency>
+         <groupId>flex.messaging</groupId>
+         <artifactId>common</artifactId>
+         <type>jar</type>
+         <version>3.3.0.22497</version>
+      </dependency>
+<!-- flex.messaging.core - 3.3.0.22497 -->
+      <dependency>
+         <groupId>flex.messaging</groupId>
+         <artifactId>core</artifactId>
+         <type>jar</type>
+         <version>3.3.0.22497</version>
+      </dependency>
+<!-- flex.messaging.opt - 3.3.0.22497 -->
+      <dependency>
+         <groupId>flex.messaging</groupId>
+         <artifactId>opt</artifactId>
+         <type>jar</type>
+         <version>3.3.0.22497</version>
+      </dependency>
+<!-- flex.messaging.proxy - 3.3.0.22497 -->
+      <dependency>
+         <groupId>flex.messaging</groupId>
+         <artifactId>proxy</artifactId>
+         <type>jar</type>
+         <version>3.3.0.22497</version>
+      </dependency>
+<!-- flex.messaging.remoting - 3.3.0.22497 -->
+      <dependency>
+         <groupId>flex.messaging</groupId>
+         <artifactId>remoting</artifactId>
+         <type>jar</type>
+         <version>3.3.0.22497</version>
+      </dependency>
+<!-- fusiondebug.api.server - 1.0.20 -->
+      <dependency>
+         <groupId>fusiondebug.api</groupId>
+         <artifactId>server</artifactId>
+         <type>jar</type>
+         <version>1.0.20</version>
+      </dependency>
+<!-- apache.http.components.client -->
+      <dependency>
+         <groupId>apache.http.components</groupId>
+         <artifactId>client</artifactId>
+         <type>jar</type>
+         <version>4.5.0.0001L</version>
+      </dependency>
+
+<!-- apache.http.components.core - 4.4.1 -->
+      <dependency>
+         <groupId>apache.http.components</groupId>
+         <artifactId>core</artifactId>
+         <type>jar</type>
+         <version>4.4.1</version>
+      </dependency>
+<!-- apache.http.components.mime -->
+      <dependency>
+         <groupId>apache.http.components</groupId>
+         <artifactId>mime</artifactId>
+         <type>jar</type>
+         <version>4.5.0</version>
+      </dependency>
+<!-- hsqldb - 1.8.0 -->
+      <dependency>
+         <groupId>hsqldb</groupId>
+         <artifactId>hsqldb</artifactId>
+         <type>jar</type>
+         <version>1.8.0</version>
+      </dependency>
+<!-- icepdf.core - 3.1.0.3 -->
+      <dependency>
+         <groupId>icepdf</groupId>
+         <artifactId>core</artifactId>
+         <type>jar</type>
+         <version>3.1.0.3</version>
+      </dependency>
+<!-- jacob - 1.16.1 -->
+      <dependency>
+         <groupId>jacob</groupId>
+         <artifactId>jacob</artifactId>
+         <type>jar</type>
+         <version>1.16.1</version>
+      </dependency>
+<!-- javaparser - 1.0.8 -->
+      <dependency>
+         <groupId>javaparser</groupId>
+         <artifactId>javaparser</artifactId>
+         <type>jar</type>
+         <version>1.0.8</version>
+      </dependency>
+<!-- javasysmon - 0.3.3 -->
+      <dependency>
+         <groupId>javasysmon</groupId>
+         <artifactId>javasysmon</artifactId>
+         <type>jar</type>
+         <version>0.3.3</version>
+      </dependency>
+
+<!-- jcifs - 1.3.17 -->
+      <dependency>
+         <groupId>org.samba</groupId>
+         <artifactId>jcifs</artifactId>
+         <type>jar</type>
+         <version>1.3.17</version>
+      </dependency>
+<!-- jcommon - 1.0.10 -->
+      <dependency>
+         <groupId>jcommon</groupId>
+         <artifactId>jcommon</artifactId>
+         <type>jar</type>
+         <version>1.0.10</version>
+      </dependency>
+<!-- jencrypt - 1.4.2.04 -->
+      <dependency>
+         <groupId>jencrypt</groupId>
+         <artifactId>jencrypt</artifactId>
+         <type>jar</type>
+         <version>1.4.2.04</version>
+      </dependency>
+<!-- jffmpeg - 1.4.2.09 -->
+      <dependency>
+         <groupId>jffmpeg</groupId>
+         <artifactId>jffmpeg</artifactId>
+         <type>jar</type>
+         <version>1.4.2.09</version>
+      </dependency>
+<!-- jfreechart.patch - 1.0.12 -->
+      <dependency>
+         <groupId>jfreechart</groupId>
+         <artifactId>patch</artifactId>
+         <type>jar</type>
+         <version>1.0.12</version>
+      </dependency>
+<!-- jfreechart - 1.0.12 -->
+      <dependency>
+         <groupId>jfreechart</groupId>
+         <artifactId>jfreechart</artifactId>
+         <type>jar</type>
+         <version>1.0.12</version>
+      </dependency>
+<!-- jmimemagic - 0.1.2 -->
+      <dependency>
+         <groupId>net.sourceforge</groupId>
+         <artifactId>jmimemagic</artifactId>
+         <type>jar</type>
+         <version>0.1.2</version>
+      </dependency>
+<!-- org.joda.time - 2.1.0 -->
+      <dependency>
+         <groupId>org.joda</groupId>
+         <artifactId>time</artifactId>
+         <type>jar</type>
+         <version>2.1.0</version>
+      </dependency>
+<!-- jpedal.gpl - 3.51.12 -->
+      <dependency>
+         <groupId>jpedal</groupId>
+         <artifactId>gpl</artifactId>
+         <type>jar</type>
+         <version>3.51.12</version>
+      </dependency>
+<!-- junit - 3.8.1 -->
+      <dependency>
+         <groupId>junit</groupId>
+         <artifactId>junit</artifactId>
+         <type>jar</type>
+         <version>3.8.1</version>
+      </dependency>
+<!-- lowagie.itext - 2.1.2.1 -->
+      <dependency>
+         <groupId>lowagie</groupId>
+         <artifactId>itext</artifactId>
+         <type>jar</type>
+         <version>2.1.2.1</version>
+      </dependency>
+<!-- metadata.extractor - 2.6.4 -->
+      <dependency>
+         <groupId>metadata</groupId>
+         <artifactId>extractor</artifactId>
+         <type>jar</type>
+         <version>2.6.4</version>
+      </dependency>
+
+<!-- org.objectweb.asm.all - 4.2 
+	Bundle-SymbolicName: org.objectweb.asm.all
+	Bundle-Version: 4.2
+-->
+<dependency>
+	<groupId>org.ow2.asm</groupId>
+	<artifactId>asm-all</artifactId>
+	<version>4.2</version>
+</dependency>
+
+<!-- ojdbc14 - 0.0.0 -->
+      <dependency>
+         <groupId>ojdbc14</groupId>
+         <artifactId>ojdbc14</artifactId>
+         <type>jar</type>
+         <version>0.0.0</version>
+      </dependency>
+
+<!-- openamf.astranslator - 1.5.8 -->
+      <dependency>
+         <groupId>openamf</groupId>
+         <artifactId>astranslator</artifactId>
+         <type>jar</type>
+         <version>1.5.8</version>
+      </dependency>
+<!-- openamf - 1.5.8 -->
+      <dependency>
+         <groupId>openamf</groupId>
+         <artifactId>openamf</artifactId>
+         <type>jar</type>
+         <version>1.5.8</version>
+      </dependency>
+<!-- PDFBox - 1.8.9 
+	Bundle-SymbolicName: org.apache.pdfbox
+	Bundle-Version: 1.8.9
+-->
+	<dependency>
+		<groupId>org.apache.pdfbox</groupId>
+		<artifactId>pdfbox</artifactId>
+		<version>1.8.9</version>
+	</dependency>
+
+
+<!-- FontBox
+	Bundle-SymbolicName: org.apache.pdfbox.fontbox
+	Bundle-Version: 1.8.9
+-->
+	<dependency>
+		<groupId>org.apache.pdfbox</groupId>
+		<artifactId>fontbox</artifactId>
+		<version>1.8.9</version>
+	</dependency>
+
+<!-- JempBox
+	Bundle-SymbolicName: org.apache.pdfbox.jempbox
+	Bundle-Version: 1.8.9
+-->
+	<dependency>
+		<groupId>org.apache.pdfbox</groupId>
+		<artifactId>jempbox</artifactId>
+		<version>1.8.9</version>
+	</dependency>
+	
+<!-- PDFRenderer - 1.0.5 -->
+      <dependency>
+         <groupId>PDFRenderer</groupId>
+         <artifactId>PDFRenderer</artifactId>
+         <type>jar</type>
+         <version>1.0.5</version>
+      </dependency>
+<!-- resolver - 1.2.0 -->
+      <dependency>
+         <groupId>resolver</groupId>
+         <artifactId>resolver</artifactId>
+         <type>jar</type>
+         <version>1.2.0</version>
+      </dependency>
+<!-- serializer - 2.7.1 -->
+      <dependency>
+         <groupId>serializer</groupId>
+         <artifactId>serializer</artifactId>
+         <type>jar</type>
+         <version>2.7.1</version>
+      </dependency>
+
+<!-- slf4j.api - 1.6.4
+	Bundle-SymbolicName: slf4j.api
+	Bundle-Version: 1.7.12
+-->
+<dependency>
+	<groupId>org.slf4j</groupId>
+	<artifactId>slf4j-api</artifactId>
+	<version>1.7.12</version>
+</dependency>
+
+<!-- slf4j.nop - 1.7.12
+	Bundle-SymbolicName: slf4j.nop
+	Bundle-Version: 1.7.12
+-->
+<dependency>
+	<groupId>org.slf4j</groupId>
+	<artifactId>slf4j-nop</artifactId>
+	<version>1.7.12</version>
+</dependency>
+
+<!-- ss.css2 - 0.9.4 -->
+      <dependency>
+         <groupId>ss</groupId>
+         <artifactId>css2</artifactId>
+         <type>jar</type>
+         <version>0.9.4</version>
+      </dependency>
+<!-- stax.api - 1.0.1 -->
+      <dependency>
+         <groupId>stax</groupId>
+         <artifactId>api</artifactId>
+         <type>jar</type>
+         <version>1.0.1</version>
+      </dependency>
+<!-- sun.activation - 1.1.0 -->
+      <dependency>
+         <groupId>sun</groupId>
+         <artifactId>activation</artifactId>
+         <type>jar</type>
+         <version>1.1.0</version>
+      </dependency>
+<!-- sun.jai.codec - 1.1.2 -->
+      <dependency>
+         <groupId>sun.jai</groupId>
+         <artifactId>codec</artifactId>
+         <type>jar</type>
+         <version>1.1.2</version>
+      </dependency>
+<!-- sun.jai.core - 1.2.1 -->
+      <dependency>
+         <groupId>sun.jai</groupId>
+         <artifactId>core</artifactId>
+         <type>jar</type>
+         <version>1.2.1</version>
+      </dependency>
+<!-- sun.jndi.ldap - 1.2.4 -->
+      <dependency>
+         <groupId>sun.jndi</groupId>
+         <artifactId>ldap</artifactId>
+         <type>jar</type>
+         <version>1.2.4</version>
+      </dependency>
+<!-- sun.jndi.ldapbp - 1.2.4 -->
+      <dependency>
+         <groupId>sun.jndi</groupId>
+         <artifactId>ldapbp</artifactId>
+         <type>jar</type>
+         <version>1.2.4</version>
+      </dependency>
+<!-- sun.jndi.ldapsec - 1.2.4 -->
+      <dependency>
+         <groupId>sun.jndi</groupId>
+         <artifactId>ldapsec</artifactId>
+         <type>jar</type>
+         <version>1.2.4</version>
+      </dependency>
+<!-- sun.jndi.providerutil - 1.2.4 -->
+      <dependency>
+         <groupId>sun.jndi</groupId>
+         <artifactId>providerutil</artifactId>
+         <type>jar</type>
+         <version>1.2.4</version>
+      </dependency>
+<!-- sun.mail - 1.3.3.01 -->
+      <dependency>
+         <groupId>sun</groupId>
+         <artifactId>mail</artifactId>
+         <type>jar</type>
+         <version>1.3.3.01</version>
+      </dependency>
+<!-- sun.security.jaas - 1.2.4 -->
+      <dependency>
+         <groupId>sun.security</groupId>
+         <artifactId>jaas</artifactId>
+         <type>jar</type>
+         <version>1.2.4</version>
+      </dependency>
+<!-- sun.xml.jaxrpc - 1.2.1 -->
+      <dependency>
+         <groupId>sun.xml</groupId>
+         <artifactId>jaxrpc</artifactId>
+         <type>jar</type>
+         <version>1.2.1</version>
+      </dependency>
+<!-- sun.xml.wsdl4j - 1.5.1 -->
+      <dependency>
+         <groupId>sun.xml</groupId>
+         <artifactId>wsdl4j</artifactId>
+         <type>jar</type>
+         <version>1.5.1</version>
+      </dependency>
+<!-- sun.xml.saaj - 1.2.1 -->
+      <dependency>
+         <groupId>sun.xml</groupId>
+         <artifactId>saaj</artifactId>
+         <type>jar</type>
+         <version>1.2.1</version>
+      </dependency>
+<!-- tagsoup - 1.2.1 -->
+      <dependency>
+         <groupId>tagsoup</groupId>
+         <artifactId>tagsoup</artifactId>
+         <type>jar</type>
+         <version>1.2.1</version>
+      </dependency>
+<!-- w3c.dom - 1.1.0 -->
+      <dependency>
+         <groupId>w3c</groupId>
+         <artifactId>dom</artifactId>
+         <type>jar</type>
+         <version>1.1.0</version>
+      </dependency>
+<!-- xdb - 1.0.0 -->
+      <dependency>
+         <groupId>xdb</groupId>
+         <artifactId>xdb</artifactId>
+         <type>jar</type>
+         <version>1.0.0</version>
+      </dependency>
+<!-- xml.apis - 1.3.2 -->
+      <dependency>
+         <groupId>xml</groupId>
+         <artifactId>apis</artifactId>
+         <type>jar</type>
+         <version>1.3.2</version>
+      </dependency>
+<!-- xmlbeans - 2.3.0.r540734 -->
+      <dependency>
+         <groupId>xmlbeans</groupId>
+         <artifactId>xmlbeans</artifactId>
+         <type>jar</type>
+         <version>2.3.0.r540734</version>
+      </dependency>
+<!-- xmlparserv2 - 1.2.2 -->
+      <dependency>
+         <groupId>xmlparserv2</groupId>
+         <artifactId>xmlparserv2</artifactId>
+         <type>jar</type>
+         <version>1.2.2</version>
+      </dependency>
+   </dependencies>
+
+
+
+   <repositories>
+      <repository>
+         <id>repo</id>
+         <url>https://raw.githubusercontent.com/lucee/mvn/master/releases</url>
+      </repository>
+      <repository>
+        <id>snapi</id>
+        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      </repository>
+   </repositories>
+
+  <scm>
+    <url>https://github.com/lucee/Lucee</url>
+    <connection>scm:git:git://github.com/lucee/Lucee.git</connection>
+    <developerConnection>scm:git:git@github.com:lucee/Lucee.git</developerConnection>
+    <tag>Plugin to create Lucee Core files.</tag>
+  </scm>
+
+  <distributionManagement>
+    <repository>
+    <id>ossrh</id>
+    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+  </repository>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+</project>

@@ -1,0 +1,1 @@
+<cflocation url="#request.self#?action=debugging.templates" addtoken="no">

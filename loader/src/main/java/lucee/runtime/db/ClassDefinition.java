@@ -1,0 +1,51 @@
+/**
+ * Copyright (c) 2015, Lucee Assosication Switzerland. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either 
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public 
+ * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
+package lucee.runtime.db;
+
+import lucee.commons.lang.ClassException;
+
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
+
+public interface ClassDefinition<T> {
+
+	public Class<T> getClazz() throws ClassException, BundleException;
+
+	public Class<T> getClazz(Class<T> defaultValue);
+
+	public boolean hasClass();
+
+	public boolean isBundle();
+
+	public boolean hasVersion();
+
+	public boolean isClassNameEqualTo(String otherClassName);
+
+	public boolean isClassNameEqualTo(String otherClassName, boolean ignoreCase);
+
+	public String getClassName();
+
+	public String getName();
+
+	public Version getVersion();
+
+	public String getVersionAsString();
+
+	public String getId();
+
+}

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="core" basedir="." name="Lucee" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+
+  <property name="version" value="5.0.0.73-SNAPSHOT"/>
+
+  <path id="maven-ant-tasks.classpath" path="../ant/lib/maven-ant-tasks-2.1.3.jar" />
+  <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
+           uri="antlib:org.apache.maven.artifact.ant"
+           classpathref="maven-ant-tasks.classpath" />
+
+  <import file="../ant/build-core.xml"/>
+  
+  <target name="setEnv">
+      <artifact:pom id="pom" file="pom.xml" />
+      
+      <!-- dependecies -->
+      <artifact:dependencies filesetId="mydeps" pomRefId="pom" />
+      <pathconvert property="dependencies" refid="mydeps"/>
+
+      
+      <property name="runtime_classpath" value="${java.class.path}:${dependencies}"/>
+      <property name="outputDir" location="target/classes"/>
+      <property name="target" location="target"/>
+      <property name="baseDir" location=".."/>
+      <property name="rootDir" location=".."/>
+
+      <delete dir="${target}"/>
+      <mkdir dir="${outputDir}"/>
+  </target>
+    
+  <target name="core" depends="setEnv,buildLoaderAnt" description="build only Lucee itself">
+      <delete dir="${outputDir}"/>
+  </target>
+  
+</project>

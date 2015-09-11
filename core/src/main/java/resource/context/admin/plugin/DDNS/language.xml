@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<languages>
+	<language key="de">
+		<title>Dynamic DNS</title>
+		<description>
+			Verbinden Sie Lucee mit dem Dynamic DNS Service DNSExchanges.
+			Registrieren Sie sich dazu unter {link} und tragen Sie die ID, welche Sie erhalten in das Feld unterhalb ein.
+		</description>
+		<custom key="id">ID</custom>
+		<custom key="commentId">Geben Sie hier die ID ein, welche Sie nach der Anmeldung auf {link} erhalten haben.</custom>
+		<custom key="btnSubmit">Speichern</custom>
+		<custom key="btnCancel">Abbrechen</custom>
+		<custom key="messageId">Das Feld ID enthält keinen Wert</custom>
+		<custom key="onOff">Einschalten</custom>
+		<custom key="commentOnOff">Schalten Sie hiermit den Dienst ein oder aus.</custom>
+		
+		<custom key="proxy">Proxy</custom>
+		<custom key="proxyserver">Server</custom>
+		<custom key="proxyport">Port</custom>
+		<custom key="proxyuser">Benutzername</custom>
+		<custom key="proxypassword">Passwort</custom>
+	</language>
+	<language key="en">
+		<title>Dynamic DNS</title>
+		<description>
+			Connect with Lucee to the Dynamic DNS DNSExchange.
+			For that register at {link} and ad the ID to the Filed Below.
+		</description>
+		<custom key="id">ID</custom>
+		<custom key="commentId">Please define your ID here, from your registration at {link}.</custom>
+		<custom key="btnSubmit">Save</custom>
+		<custom key="btnCancel">Cancel</custom>
+		<custom key="messageId">The Field ID has no value</custom>
+		<custom key="onOff">Enable</custom>
+		<custom key="commentOnOff">Enale or disable the service with this checkbox.</custom>
+		
+		<custom key="proxy">Proxy</custom>
+		<custom key="proxyserver">Server</custom>
+		<custom key="proxyport">Port</custom>
+		<custom key="proxyuser">Username</custom>
+		<custom key="proxypassword">Password</custom>
+	</language>
+</languages>

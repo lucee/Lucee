@@ -1,0 +1,74 @@
+<!--
+
+   This is the DTD defining the Cold Fusion Language 1.0 Function Library
+   descriptor (.fld) (XML) file format/syntax.
+  -->
+<!ELEMENT func-lib (flib-version, short-name, uri?, display-name?, description?, function+)>
+<!--
+Describes this version (number) of the functionlibrary (dewey decimal)
+
+#PCDATA ::= [0-9]*{ "."[0-9] }0..3
+-->
+<!ELEMENT flib-version (#PCDATA)>
+<!--
+Defines a short (default) short-name to be used for function and
+variable names used/created by this function library.  Do not use
+white space, and do not start with digits or underscore.
+
+#PCDATA ::= NMTOKEN
+-->
+<!ELEMENT short-name (#PCDATA)>
+<!--
+Defines a public URI that uniquely identifies this version of
+the taglibrary.  Leave it empty if it does not apply.
+-->
+<!ELEMENT uri (#PCDATA)>
+<!--
+Defines an arbitrary text string descirbing the tag library
+-->
+<!ELEMENT display-name (#PCDATA)>
+<!--
+Defines an arbitrary text string descirbing the tag library
+-->
+<!ELEMENT description (#PCDATA)>
+<!--
+The tag defines a unique function in this function library. 
+-->
+<!ELEMENT function (name, class, description?, argument*, return)>
+<!--
+Defines the canonical name of a function or argument being defined
+
+#PCDATA ::= NMTOKEN
+-->
+<!ELEMENT name (#PCDATA)>
+<!--
+Defines the subclass of Lucee.func.Function (PHP) that implements
+the request time semantics for this tag. (required)
+
+#PCDATA ::= fully qualified Java Like class name
+-->
+<!ELEMENT class (#PCDATA)>
+<!--
+The argument tag defines an arument for the nesting function
+-->
+<!ELEMENT argument (name, type?, required?)>
+<!--
+type of the attribute (query, struct, string, number, datetime, boolean)
+
+#PCDATA ::= NMTOKEN
+-->
+<!ELEMENT type (#PCDATA)>
+<!--
+Defines if the nesting argument is required or optional.
+
+#PCDATA ::= true | false | yes | no
+
+If not present then the default is "false", i.e the attribute
+is optional.
+-->
+<!ELEMENT required (#PCDATA)>
+
+<!--
+Defines return type of a function
+-->
+<!ELEMENT return (type)>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<service id="remoting-service" 
+    class="flex.messaging.services.RemotingService">
+    <adapters>
+        <adapter-definition id="cf-object" class="lucee.runtime.net.flex.LuceeAdapter" default="true"/>
+        <adapter-definition id="java-object" class="flex.messaging.services.remoting.adapters.JavaAdapter"/>
+    </adapters>
+	
+    <default-channels>
+        <channel ref="my-cfamf"/>
+        <channel ref="classic-cfamf"/>
+    </default-channels>
+
+    <destination id="ColdFusion">
+        <!--channels>
+            <channel ref="my-cfamf"/>
+        </channels-->
+        <properties>
+            <source>*</source>
+        </properties>
+    </destination>
+</service>
