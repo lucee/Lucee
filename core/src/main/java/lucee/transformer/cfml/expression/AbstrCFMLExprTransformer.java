@@ -1611,15 +1611,15 @@ public abstract class AbstrCFMLExprTransformer {
 				return local;
 			}
 		}
+		else if (idStr.equals("VARIABLES"))		return data.factory.createVariable(Scope.SCOPE_VARIABLES,line,data.srcCode.getPosition());
+		else if (idStr.equals("REQUEST"))		return data.factory.createVariable(Scope.SCOPE_REQUEST,line,data.srcCode.getPosition());
 		
 		if(data.settings.ignoreScopes)return null;
 		
 		
 		if (idStr.equals("CGI")) 				return data.factory.createVariable(Scope.SCOPE_CGI,line,data.srcCode.getPosition());
-		else if (idStr.equals("REQUEST"))		return data.factory.createVariable(Scope.SCOPE_REQUEST,line,data.srcCode.getPosition());
 		else if (idStr.equals("SESSION"))		return data.factory.createVariable(Scope.SCOPE_SESSION,line,data.srcCode.getPosition());
 		else if (idStr.equals("APPLICATION"))	return data.factory.createVariable(Scope.SCOPE_APPLICATION,line,data.srcCode.getPosition());
-		else if (idStr.equals("VARIABLES"))		return data.factory.createVariable(Scope.SCOPE_VARIABLES,line,data.srcCode.getPosition());
 		else if (idStr.equals("FORM")) 			return data.factory.createVariable(Scope.SCOPE_FORM,line,data.srcCode.getPosition());
 		else if (idStr.equals("URL"))			return data.factory.createVariable(Scope.SCOPE_URL,line,data.srcCode.getPosition());
 		else if (idStr.equals("SERVER")) 		return data.factory.createVariable(Scope.SCOPE_SERVER,line,data.srcCode.getPosition());

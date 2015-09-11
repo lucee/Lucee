@@ -534,6 +534,13 @@ public final class VariableInterpreter {
 			else if('l'==c) {
 				if("local".equals(type))				return Scope.SCOPE_LOCAL;// LLL
 			}
+
+			else if('r'==c) {
+				if("request".equals(type))			return Scope.SCOPE_REQUEST;
+			}
+			else if('v'==c) {
+				if("variables".equals(type))		return Scope.SCOPE_VARIABLES;
+			}
 			return Scope.SCOPE_UNDEFINED;
 		}
 		
