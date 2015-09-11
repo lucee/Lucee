@@ -23,11 +23,18 @@ package lucee.runtime.functions.system;
 
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageSource;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.net.http.ReqRspUtil;
 
 public final class GetBaseTemplatePath implements Function {
 	public static String call(PageContext pc ) throws PageException {
-	    return ResourceUtil.getResource(pc, pc.getBasePageSource()).getAbsolutePath();
+		
+		PageSource base = pc.getBasePageSource();
+		if(base==null) throw new ApplicationException("current context does not have a template it is based on");
+		//if(ps==null) return ResourceUtil.getCanonicalResourceEL(ResourceUtil.toResourceExisting(pc.getConfig(), ReqRspUtil.getRootPath(pc.getServletContext()))).getAbsolutePath();
+        return ResourceUtil.getResource(pc,base).getAbsolutePath();
 	}
 }

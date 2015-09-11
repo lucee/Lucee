@@ -36,6 +36,7 @@ import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.type.util.ArrayUtil;
 
 public final class ExpandPath implements Function {
@@ -103,7 +104,11 @@ public final class ExpandPath implements Function {
         res=pc.getConfig().getResource(relPath);
         if(res.isAbsolute()) return toReturnValue(relPath,res);
         
-        res=ResourceUtil.getResource(pc,pc.getBasePageSource());
+        PageSource ps = pc.getBasePageSource();
+        res=ps==null?
+        		ResourceUtil.getCanonicalResourceEL(ResourceUtil.toResourceExisting(pc.getConfig(), ReqRspUtil.getRootPath(pc.getServletContext()))):
+        		ResourceUtil.getResource(pc,ps);
+
         if(!res.isDirectory())res=res.getParentResource();
         res = res.getRealResource(relPath);
         return toReturnValue(relPath,res);
