@@ -206,14 +206,14 @@ public final class CFMLTransformer {
 			SourceCode original = sc; 
 			
 			// try inside a cfscript
-			String text="<"+scriptTag.getFullName()+">"+original.getText()+"</"+scriptTag.getFullName()+">";
+			String text="<"+scriptTag.getFullName()+">"+original.getText()+"\n</"+scriptTag.getFullName()+">";
 			sc=new PageSourceCode(ps,text,charset,writeLog);
 			
 			try {
 				while(true){
 					if(sc==null){
 						sc=new PageSourceCode(ps,charset,writeLog);
-						text="<"+scriptTag.getFullName()+">"+sc.getText()+"</"+scriptTag.getFullName()+">";
+						text="<"+scriptTag.getFullName()+">"+sc.getText()+"\n</"+scriptTag.getFullName()+">";
 						sc=new PageSourceCode(ps,text,charset,writeLog);
 					}
 					try {
