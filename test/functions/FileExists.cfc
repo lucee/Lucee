@@ -20,25 +20,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	
 	public function setUp() localmode="true"{}
 
-	function testFileExists(){
-		
+
+	function testExistingFile(){
 		assertEquals(true,"#FileExists(GetCurrentTemplatePath())#");
-		assertEquals(true,"#FileExists(ucase(GetCurrentTemplatePath()))#");
 		assertEquals(true,"#directoryExists(GetDirectoryFromPath(GetCurrentTemplatePath()))#");
-		
+	}
+
+	function testNotExistingFile(){
 		assertEquals(false,"#FileExists(GetDirectoryFromPath(GetCurrentTemplatePath())&"noneExisting.txt")#");
+	}
+
+	function testNotFile(){
 		assertEquals(false,"#FileExists(GetDirectoryFromPath(GetCurrentTemplatePath()))#");
-		
+		assertEquals(false,"#directoryExists(GetCurrentTemplatePath())#");
+	}
+
+	function testRelPath(){
 		path=structNew();
 		path.abs=GetCurrentTemplatePath();
 		path.real=ListLast(path.abs,"/\");
-
-
-		assertEquals(true,"#fileExists(path.abs)#");
-		assertEquals(true,"#fileExists(path.real)#");
 		assertEquals(false,"#evaluate('fileExists(path.real,false)')#");
 		assertEquals(true,"#evaluate('fileExists(path.real,true)')#");
-		
-		//assertEquals(2,find("PNG",CharsetEncode(binary,"utf-8")));
 	}
 }
