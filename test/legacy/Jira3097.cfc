@@ -15,53 +15,56 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+ ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
 	
-	variables.suffix="Query";
+	<cffunction name="testBlobClob">
+		<cfquery>
+		INSERT INTO T3097(blobi,clobi)
+		VALUES(
+			<cfqueryparam cfsqltype="cf_sql_blob" value="#"abc".getBytes()#"> 
+			,<cfqueryparam cfsqltype="cf_sql_clob" value="abc"> 
+		)
+		</cfquery>
+
+
+		<cfquery name="local.qry">
+			select * from T3097
+		</cfquery>
+
+
+		<cfset assertEquals("abc",toString(qry.blobi))>
+		<cfset assertEquals("abc",qry.clobi)>
+	</cffunction>
+<cfscript>
 
 	public function beforeTests(){
 		defineDatasource();
 
 		try{
 			query {
-				echo("drop TABLE T"&suffix);
+				echo("drop TABLE T3097");
 			}
 		}
 		catch(local.e){}
 		
 		
 		query  {
-			echo("CREATE TABLE T"&suffix&" (");
-			echo("id int NOT NULL,");
-			echo("i int,");		
-			echo("dec DECIMAL");		
-			echo(") ");
+			echo("CREATE TABLE T3097 (");
+			echo("blobi BLOB,");
+			echo("clobi TEXT");		
+			echo(");");
 		}
+
 	}
 
 	private string function defineDatasource(){
 		application action="update" 
 			datasource="#{
 	  		class: 'org.h2.Driver'
-			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/update;MODE=MySQL'
+			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/jira3097;MODE=MySQL'
 		}#";
 	}
 
-	public void function testCachedWithinColumns() {
-		query name="local.qry" cachedwithin="#createTimespan(0,0,0,1)#" {
-			echo("select * from T"&suffix);
-		} 
-		var columnList1=qry.columnlist;
-		queryAddColumn(qry,"susi");
-
-		query name="local.qry" cachedwithin="#createTimespan(0,0,0,1)#" {
-			echo("select * from T"&suffix);
-		} 
-		var columnList2=qry.columnlist;
-		assertEquals(columnList1,columnList2);
-		queryAddColumn(qry,"susi2");
-
-	}
-} 
 </cfscript>
+
+</cfcomponent>
