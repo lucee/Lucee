@@ -21,14 +21,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	public function setUp() localmode="true"{}
 
 	function testFileExists(){
-		systemOutput("path.abs:"&ucase(GetCurrentTemplatePath()),true,true);
-
+		
 		assertEquals(true,"#FileExists(GetCurrentTemplatePath())#");
 		assertEquals(true,"#FileExists(ucase(GetCurrentTemplatePath()))#");
-
-		assertEquals(false,"#FileExists(GetDirectoryFromPath(GetCurrentTemplatePath()))#");
 		assertEquals(true,"#directoryExists(GetDirectoryFromPath(GetCurrentTemplatePath()))#");
-
+		
+		assertEquals(false,"#FileExists(GetDirectoryFromPath(GetCurrentTemplatePath())&"noneExisting.txt")#");
+		assertEquals(false,"#FileExists(GetDirectoryFromPath(GetCurrentTemplatePath()))#");
+		
 		path=structNew();
 		path.abs=GetCurrentTemplatePath();
 		path.real=ListLast(path.abs,"/\");
