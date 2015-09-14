@@ -4576,7 +4576,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
      * 
      */
     private void doGetScope() throws PageException {
-        String sessionType=config.getSessionType()==Config.SESSION_TYPE_JEE?"j2ee":"cfml";
+        String sessionType=AppListenerUtil.toSessionType(config.getSessionType(),"application");
         String localMode=AppListenerUtil.toLocalMode(config.getLocalMode(),"classic");
         
         

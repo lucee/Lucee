@@ -71,6 +71,18 @@
     <property name="core" location="${temp}/core"/>
     <property file="${rootDir}/build.properties"/>
 
+    <echo>
+   __                     
+  / / _   _  ___ ___  ___ 
+ / / | | | |/ __/ _ \/ _ \
+/ /__| |_| | (_|  __/  __/
+\____/\__,_|\___\___|\___|
+
+==========================
+LUCEE BUILD PROCESS
+==========================                   
+    </echo>
+
     <echo message="${version}"/>
     <echo message="${name}"/>
     <echo message="${name.explanation}"/>

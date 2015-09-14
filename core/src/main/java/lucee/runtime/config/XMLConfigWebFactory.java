@@ -3452,7 +3452,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		// Session-Type
 		String strSessionType = getAttr(scope,"session-type");
 		if (hasAccess && !StringUtil.isEmpty(strSessionType)) {
-			config.setSessionType(strSessionType);
+			config.setSessionType(AppListenerUtil.toSessionType(strSessionType,hasCS?configServer.getSessionType():Config.SESSION_TYPE_APPLICATION));
 		}
 		else if (hasCS)
 			config.setSessionType(configServer.getSessionType());

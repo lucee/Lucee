@@ -407,30 +407,32 @@ public final class AppListenerUtil {
 		throw new ApplicationException("invalid localMode definition ["+strMode+"] for tag application, valid values are [classic,modern,true,false]");
 	}
 
+	public static String toSessionType(short type, String defaultValue) {
+		if(type==Config.SESSION_TYPE_APPLICATION) return "application";
+		if(type==Config.SESSION_TYPE_JEE) return "jee";
+		return defaultValue;
+	}
 	public static short toSessionType(String str, short defaultValue) {
 		if(!StringUtil.isEmpty(str,true)){
 			str=str.trim().toLowerCase();
 			if("cfml".equals(str)) return Config.SESSION_TYPE_APPLICATION;
 			if("j2ee".equals(str)) return Config.SESSION_TYPE_JEE;
+			
 			if("cfm".equals(str)) return Config.SESSION_TYPE_APPLICATION;
+			if("application".equals(str)) return Config.SESSION_TYPE_APPLICATION;
 			if("jee".equals(str)) return Config.SESSION_TYPE_JEE;
 			if("j".equals(str)) return Config.SESSION_TYPE_JEE;
-			if("c".equals(str)) return Config.SESSION_TYPE_JEE;
+			if("c".equals(str)) return Config.SESSION_TYPE_APPLICATION;
 		}
 		return defaultValue;
 	}
 
 	public static short toSessionType(String str) throws ApplicationException {
-		if(!StringUtil.isEmpty(str,true)){
-			str=str.trim().toLowerCase();
-			if("cfml".equals(str)) return Config.SESSION_TYPE_APPLICATION;
-			if("j2ee".equals(str)) return Config.SESSION_TYPE_JEE;
-			if("cfm".equals(str)) return Config.SESSION_TYPE_APPLICATION;
-			if("jee".equals(str)) return Config.SESSION_TYPE_JEE;
-			if("j".equals(str)) return Config.SESSION_TYPE_JEE;
-			if("c".equals(str)) return Config.SESSION_TYPE_JEE;
-		}
-		throw new ApplicationException("invalid sessionType definition ["+str+"] for tag application, valid values are [cfml,j2ee]");
+		short undefined=(short)-1;
+		short type=toSessionType(str,undefined);
+		if(type!=undefined) return type;
+		
+		throw new ApplicationException("invalid sessionType definition ["+str+"] for tag application, valid values are [application,jee]");
 	}
 	
 	public static Properties toS3(Struct sct) {

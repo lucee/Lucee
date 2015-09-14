@@ -1860,15 +1860,6 @@ public abstract class ConfigImpl implements Config {
     protected void setSessionType(short sessionType) {
         this.sessionType = sessionType;
     }
-    /**
-     * @param type The sessionType to set.
-     */
-    protected void setSessionType(String type) {
-        type=type.toLowerCase().trim();
-        if(type.startsWith("cfm")) setSessionType(SESSION_TYPE_APPLICATION);
-        else if(type.startsWith("j")) setSessionType(SESSION_TYPE_JEE);
-        else setSessionType(SESSION_TYPE_APPLICATION);
-    }
 
     @Override
     public abstract String getUpdateType() ;
