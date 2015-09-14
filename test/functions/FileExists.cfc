@@ -30,6 +30,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		path.abs=GetCurrentTemplatePath();
 		path.real=ListLast(path.abs,"/\");
 
+		systemOutput("path.abs:"&path.abs,true,true);
+		systemOutput("path.real:"&path.real,true,true);
 
 		assertEquals(true,"#fileExists(path.abs)#");
 		assertEquals(true,"#fileExists(path.real)#");
