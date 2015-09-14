@@ -315,6 +315,9 @@ LUCEE BUILD PROCESS
 
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
+      <!-- hsqldb -->
+      <jvmarg value="-Dlucee-extensions=6DD4728A-AB0C-4F67-9DCE1A91A8ACD114;"/>
+
     </java>
     <echo>${exc2}</echo>
 
