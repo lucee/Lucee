@@ -43,8 +43,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	private string function defineDatasource(){
 		application action="update" 
 			datasource="#{
-	  		class: 'org.hsqldb.jdbcDriver'
-			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
+	  		class: 'org.h2.Driver'
+			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/update;MODE=MySQL'
 		}#";
 	}
 
