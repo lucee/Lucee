@@ -10,6 +10,14 @@
 
   <import file="../ant/build-core.xml"/>
   
+
+  <target name="withTestcases">
+    <property name="testcases" value="true"/>
+  </target>
+  <target name="withoutTestcases">
+    <property name="testcases" value="false"/>
+  </target>
+
   <target name="setEnv">
       <artifact:pom id="pom" file="pom.xml" />
       
@@ -28,7 +36,14 @@
       <mkdir dir="${outputDir}"/>
   </target>
     
-  <target name="core" depends="setEnv,buildLoaderAnt" description="build only Lucee itself">
+  <target name="core" depends="withTestcases,setEnv,buildLoaderAnt" description="build only Lucee itself">
+
+      <delete dir="${outputDir}"/>
+  </target>
+
+
+  <target name="fast" depends="withoutTestcases,setEnv,buildLoaderAnt" description="build only Lucee itself">
+
       <delete dir="${outputDir}"/>
   </target>
   

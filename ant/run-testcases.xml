@@ -16,7 +16,7 @@
 	
 <script language="CFML">
 <![CDATA[
-
+if(execute) {
 request.WEBADMINPASSWORD="webweb";
 
 NL="
@@ -89,6 +89,7 @@ try {
 		echo("-------------------------------------------------------"&NL);
 		rethrow;
 	}
+}
  ]]>
   </script>
 

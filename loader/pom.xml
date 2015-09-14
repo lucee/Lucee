@@ -185,6 +185,10 @@
                     <property name="runtime_classpath" refid="maven.runtime.classpath" />
                         
                     <property name="outputDir" value="${project.build.outputDirectory}" />
+                    <property name="testcases" value="true" />
+
+
+
                     <!-- <property name="sourceDir" value="${project.build.sourceDirectory}" /> -->
                     <property name="baseDir" value="${basedir}" />
                     <dirname file="${baseDir}" property="rootDir" />

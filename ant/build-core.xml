@@ -311,6 +311,7 @@ LUCEE BUILD PROCESS
       <jvmarg value="-Dtest=${test}"/>
       <jvmarg value="-Dtemp=${temp}"/>
       <jvmarg value="-DtestboxArchive=${temp}/archive/testbox.lar"/>
+      <jvmarg value="-Dexecute=${testcases}"/>
 
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
