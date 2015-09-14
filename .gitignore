@@ -1,6 +1,7 @@
 db.log
 db.properties
 db.script
+*.db
 temp
 **/.DS_Store
 **/.svn/
