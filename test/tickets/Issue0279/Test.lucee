@@ -1,0 +1,5 @@
+component {
+	function test(arg1){
+		return arg1;
+	}
+}
