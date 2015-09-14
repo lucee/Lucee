@@ -47,6 +47,6 @@ public final class DirectoryExists implements Function {
 		}
 		 
 	    pc.getConfig().getSecurityManager().checkFileLocation(file);
-	    return file.isDirectory() && file.exists();
+	    return file.isDirectory();
 	}
 }

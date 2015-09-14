@@ -35,6 +35,6 @@ public class FileExists {
 		Resource res=Caster.toResource(pc,obj, false,Caster.toBooleanValue(oAllowRealPath));
 		if(res==null) return false;
         pc.getConfig().getSecurityManager().checkFileLocation(res);
-        return res.isFile() && res.exists();
+        return res.isFile();
 	}
 }
