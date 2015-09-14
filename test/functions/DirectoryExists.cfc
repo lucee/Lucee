@@ -21,35 +21,32 @@
 	<cffunction name="afterTests"></cffunction>
 	<cffunction name="setUp"></cffunction>
 	--->
-	<cffunction name="testDirectoryExists" localMode="modern">
+	<cffunction name="testRelpath" localMode="modern">
+		<cfscript>
 
-<!--- begin old test code --->
-<cfset valueEquals(left="#DirectoryExists("/Users")#", right="#true#")>
-<cfset valueEquals(left="#DirectoryExists("/users")#", right="#true#")>
-<cfset valueEquals(left="#DirectoryExists("/Users/susi")#", right="#false#")>
-<cfset valueEquals(left="#DirectoryExists("/Users/peter/temp")#", right="#false#")>
-
-<cfset path=structNew()>
-<cfset path.abs=GetDirectoryFromPath(GetCurrentTemplatePath())>
-<cfset path.real="../"& ListLast(path.abs,"/\")>
-
-<cfset valueEquals(left="#directoryExists(path.abs)#", right="true")>
-
-<cfset valueEquals(left="#directoryExists(path.real)#", right="true")>
-
-<cfif server.ColdFusion.ProductName EQ "Lucee">
-    <cfset valueEquals(left="#evaluate('directoryExists(path.real,false)')#", right="false")>
-    <cfset valueEquals(left="#evaluate('directoryExists(path.real,true)')#", right="true")>
-</cfif>
-<!--- end old test code --->
-	
-		
-		<!--- <cfset assertEquals("","")> --->
+			local.path={};
+			path.abs=GetDirectoryFromPath(GetCurrentTemplatePath());
+			path.real="../"& ListLast(path.abs,"/\");
+			assertEquals(false,evaluate('directoryExists(path.real,false)'));
+			assertEquals(true,evaluate('directoryExists(path.real,true)'));
+		</cfscript>
 	</cffunction>
 	
-	<cffunction access="private" name="valueEquals">
-		<cfargument name="left">
-		<cfargument name="right">
-		<cfset assertEquals(arguments.right,arguments.left)>
+	<cffunction name="testExistingDirectory" localMode="modern">
+		<cfscript>
+			local.path={};
+			path.abs=GetDirectoryFromPath(GetCurrentTemplatePath());
+			path.real="../"& ListLast(path.abs,"/\");
+
+			assertEquals(true,directoryExists(path.abs));
+			assertEquals(true,directoryExists(path.real));
+		</cfscript>
 	</cffunction>
+
+	<cffunction name="testDirectoryNotExists" localMode="modern">
+		<cfscript>
+			assertEquals(false,DirectoryExists("/does/not/exist/"));
+		</cfscript>
+	</cffunction>
+	
 </cfcomponent>
