@@ -39,6 +39,7 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.LinkedList;
@@ -46,12 +47,12 @@ import java.util.zip.ZipFile;
 
 import javax.mail.Transport;
 
+import org.apache.tika.Tika;
+
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLEncoder;
 import lucee.runtime.exp.PageException;
-import net.sf.jmimemagic.Magic;
-import net.sf.jmimemagic.MagicMatch;
 
 import com.lowagie.text.Document;
 
@@ -992,15 +993,11 @@ public static String toString(Resource file, String charset) throws IOException 
     	
     	PrintStream out = System.out;
         try {
-        	System.setOut(new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM));
-            MagicMatch match = Magic.getMagicMatch(barr);
-            return match.getMimeType();
+        	Tika tika = new Tika();
+        	return tika.detect(barr);
         } 
         catch (Throwable t) {
 			return defaultValue;
-        }
-        finally {
-        	System.setOut(out);
         }
     }
     

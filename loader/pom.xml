@@ -311,6 +311,13 @@
           <version>1.9.5</version>
        </dependency>
 
+<dependency>
+  <groupId>org.apache.tika</groupId>
+  <artifactId>tika-core</artifactId>
+  <version>1.10</version>
+</dependency>
+
+
 <!-- org.apache.sanselan - 0.97.incubator 
 	Bundle-SymbolicName: org.apache.sanselan.sanselan
 	Bundle-Version: 0.97.0.incubator
@@ -742,13 +749,13 @@
          <type>jar</type>
          <version>1.0.12</version>
       </dependency>
-<!-- jmimemagic - 0.1.2 -->
+<!-- jmimemagic
       <dependency>
          <groupId>net.sourceforge</groupId>
          <artifactId>jmimemagic</artifactId>
          <type>jar</type>
          <version>0.1.2</version>
-      </dependency>
+      </dependency> -->
 <!-- org.joda.time - 2.1.0 -->
       <dependency>
          <groupId>org.joda</groupId>
