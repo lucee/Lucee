@@ -244,9 +244,9 @@ public abstract class CFMLEngineFactorySupport {
 		}
 		// ClassLoaderDir
         if(path.startsWith("{classloader")) {
-            if(path.startsWith("}",12)) path=new File(getClassLoadeDirectory(),path.substring(13)).toString();
-            else if(path.startsWith("-dir}",12)) path=new File(getClassLoadeDirectory(),path.substring(17)).toString();
-            else if(path.startsWith("-directory}",12)) path=new File(getClassLoadeDirectory(),path.substring(23)).toString();
+            if(path.startsWith("}",12)) path=new File(getClassLoaderDirectory(),path.substring(13)).toString();
+            else if(path.startsWith("-dir}",12)) path=new File(getClassLoaderDirectory(),path.substring(17)).toString();
+            else if(path.startsWith("-directory}",12)) path=new File(getClassLoaderDirectory(),path.substring(23)).toString();
         }
         
 		return path;
@@ -264,7 +264,7 @@ public abstract class CFMLEngineFactorySupport {
 		return homeFile;
 	}
 
-    public static File getClassLoadeDirectory(){
+    public static File getClassLoaderDirectory(){
     	return CFMLEngineFactory.getClassLoaderRoot(TP.class.getClassLoader());
     }
 
