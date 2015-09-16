@@ -384,12 +384,25 @@ public final class CFMLEngineImpl implements CFMLEngine {
         
         ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
         Resource root = frp.getResource(ReqRspUtil.getRootPath(sc));
-        Resource configDir=ResourceUtil.createResource(root.getRealResource(strConfig), FileUtil.LEVEL_PARENT_FILE,FileUtil.TYPE_DIR);
+        Resource res;
+        Resource configDir=ResourceUtil.createResource(res=root.getRealResource(strConfig), FileUtil.LEVEL_PARENT_FILE,FileUtil.TYPE_DIR);
         
         if(configDir==null) {
-            configDir=ResourceUtil.createResource(frp.getResource(strConfig), FileUtil.LEVEL_GRAND_PARENT_FILE,FileUtil.TYPE_DIR);
+            configDir=ResourceUtil.createResource(res=frp.getResource(strConfig), FileUtil.LEVEL_GRAND_PARENT_FILE,FileUtil.TYPE_DIR);
         }
-        if(configDir==null) throw new PageServletException(new ApplicationException("path ["+strConfig+"] is invalid"));
+
+        if(configDir==null && !isCustomSetting.toBooleanValue()) {
+        	try {
+				res.createDirectory(true);
+				configDir=res;
+			}
+        	catch (IOException e) {
+				throw new PageServletException(Caster.toPageException(e));
+			}
+        }
+        if(configDir==null) {
+        	throw new PageServletException(new ApplicationException("path ["+strConfig+"] is invalid"));
+        }
         
         if(!configDir.exists() || ResourceUtil.isEmptyDirectory(configDir, null)){
         	Resource railoRoot;
