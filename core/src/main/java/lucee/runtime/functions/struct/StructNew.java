@@ -43,6 +43,7 @@ public final class StructNew extends BIF {
     public static int toType(String type) throws ApplicationException {
     	type=type.toLowerCase();
     	if(type.equals("linked")) return Struct.TYPE_LINKED;
+    	else if(type.equals("ordered")) return Struct.TYPE_LINKED;
     	else if(type.equals("weaked")) return Struct.TYPE_WEAKED;
     	else if(type.equals("weak")) return Struct.TYPE_WEAKED;
         else if(type.equals("syncronized")) return Struct.TYPE_SYNC;
