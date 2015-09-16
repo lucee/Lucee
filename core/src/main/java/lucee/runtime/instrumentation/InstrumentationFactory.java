@@ -27,9 +27,11 @@ import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.net.URLDecoder;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -37,6 +39,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.type.file.FileResource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.Charset;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
@@ -80,7 +83,6 @@ public class InstrumentationFactory {
             	Thread.currentThread().setContextClassLoader(ClassLoader.getSystemClassLoader());
                 try{
                 	
-	                log.info("Instrumentation","looking for tools.jar");
 	                JavaVendor vendor = JavaVendor.getCurrentVendor();
 	                Resource toolsJar = null;
 	                // When running on IBM, the attach api classes are packaged in vm.jar which is a part
@@ -109,8 +111,9 @@ public class InstrumentationFactory {
 	                if (agentPath == null) {
 	                    return null;
 	                }
-	                log.info("Instrumentation","load agent (path:"+agentPath+")");
+	                log.info("Instrumentation","try to load agent (path:"+agentPath+")");
 	                loadAgent(config,log, agentPath, vmClass);
+	                //log.info("Instrumentation","agent loaded (path:"+agentPath+")");
 	                
                 }
                 catch(IOException ioe){
@@ -181,15 +184,20 @@ public class InstrumentationFactory {
 	private static Resource createAgentJar(Log log,Config c) throws IOException {
     	Resource trg = getDeployDirectory(c).getRealResource("lucee-external-agent.jar");
     	
-		if(!trg.exists()) {
-        	log.info("Instrumentation", "create "+trg);
+		if(!trg.exists() || trg.length()==0) {
+			log.info("Instrumentation", "create "+trg);
 			InputStream jar = InfoImpl.class.getResourceAsStream("/resource/lib/lucee-external-agent.jar");
-			IOUtil.copy(jar, trg,true);
+			if(jar==null) {
+				throw new IOException("could not load jar [/resource/lib/lucee-external-agent.jar]");
+			}
 			
+			IOUtil.copy(jar, trg,true);
 		}
 		return trg;
 	}
     
+	
+	
     
 
 	/* *
@@ -321,7 +329,7 @@ public class InstrumentationFactory {
      *         If tools.jar cannot be found, null.
      */
     private static Resource findToolsJar(Config config,Log log, RefBoolean useOurOwn) {
-    	log.info("Instrumentation","looking for the tools.jar");
+    	log.info("Instrumentation","looking for tools.jar");
         String javaHome = System.getProperty("java.home");
         Resource javaHomeFile = ResourcesImpl.getFileResourceProvider().getResource(javaHome);
         
@@ -330,14 +338,14 @@ public class InstrumentationFactory {
         	useOurOwn.setValue(false);
             return toolsJarFile;
         }
-        log.info("Instrumentation",_name + ".findToolsJar() -- couldn't find default " + toolsJarFile.getAbsolutePath());
+        log.info("Instrumentation","couldn't find tools.jar at: " + toolsJarFile.getAbsolutePath());
         
         // If we're on an IBM SDK, then remove /jre off of java.home and try again.
         if (javaHomeFile.getAbsolutePath().endsWith(SEP + "jre")) {
             javaHomeFile = javaHomeFile.getParentResource();
             toolsJarFile = javaHomeFile.getRealResource( "lib" + SEP + "tools.jar");
             if (!toolsJarFile.exists()) {
-                log.info("Instrumentation",_name + ".findToolsJar() -- for IBM SDK couldn't find " + toolsJarFile.getAbsolutePath());
+                log.info("Instrumentation","for IBM SDK couldn't find " + toolsJarFile.getAbsolutePath());
             }
             else {
             	useOurOwn.setValue(false);
@@ -350,7 +358,7 @@ public class InstrumentationFactory {
                 javaHomeFile = javaHomeFile.getParentResource();
                 toolsJarFile = javaHomeFile.getRealResource("Classes" + SEP + "classes.jar");
                 if (!toolsJarFile.exists()) {
-                    log.info("Instrumentation",_name + ".findToolsJar() -- for Mac OS couldn't find " + toolsJarFile.getAbsolutePath());
+                    log.info("Instrumentation","for Mac OS couldn't find " + toolsJarFile.getAbsolutePath());
                 }
                 else {
                 	useOurOwn.setValue(false);
@@ -369,10 +377,10 @@ public class InstrumentationFactory {
 		}
 
         if (!toolsJarFile.exists()) {
-        	log.info("Instrumentation",_name + ".findToolsJar() -- could not be created " + toolsJarFile.getAbsolutePath());
+        	log.info("Instrumentation","could not be created " + toolsJarFile.getAbsolutePath());
             return null;
         } 
-        log.info("Instrumentation",_name + ".findToolsJar() -- found " + toolsJarFile.getAbsolutePath());
+        log.info("Instrumentation","found " + toolsJarFile.getAbsolutePath());
         return toolsJarFile;
         
     }
