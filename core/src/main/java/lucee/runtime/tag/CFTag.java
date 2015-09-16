@@ -483,7 +483,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 
 	private static TagLibTag getAttributeRequirments(Component cfc, boolean runtime) {
 		Struct meta=null;
-		Member mem = cfc.getMember(Component.ACCESS_PRIVATE, KeyConstants._metadata,true,false);
+		Member mem = cfc!=null?cfc.getMember(Component.ACCESS_PRIVATE, KeyConstants._metadata,true,false):null;
     	if(mem!=null)meta = Caster.toStruct(mem.getValue(),null,false);
 		if(meta==null) return null;
     	
@@ -630,7 +630,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 	}
     
     private void _doCFCFinally() {
-		if(cfc.contains(pageContext, ON_FINALLY)){
+		if(cfc!=null && cfc.contains(pageContext, ON_FINALLY)){
 			try {
 				cfc.call(pageContext, ON_FINALLY, ArrayUtil.OBJECT_EMPTY);
 			} 
