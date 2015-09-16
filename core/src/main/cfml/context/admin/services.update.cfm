@@ -157,26 +157,21 @@ hasUpdate=structKeyExists(updateData,"available");
 						<cfif hasAccess>
 							<cfset isCustom=true>
 							<ul class="radiolist" id="updatelocations">
+								<!--- Release --->
 								<li>
 									<label>
-										<input type="radio" class="radio" name="location" value="http://stable.lucee.org"<cfif update.location EQ 'http://stable.lucee.org'> <cfset isCustom=false>checked="checked"</cfif> />
-										<b>#stText.services.update.location_www#</b>
+										<input type="radio" class="radio" name="location" value="http://release.lucee.org"<cfif update.location EQ 'http://release.lucee.org'> <cfset isCustom=false>checked="checked"</cfif> />
+										<b>#stText.services.update.location_release#</b>
 									</label>
-									<div class="comment">#stText.services.update.location_wwwdesc#</div>
+									<div class="comment">#stText.services.update.location_releaseDesc#</div>
 								</li>
+								<!--- Snapshot --->
 								<li>
 									<label>
-										<input type="radio" class="radio" name="location" value="http://preview.lucee.org"<cfif update.location EQ 'http://preview.lucee.org'> <cfset isCustom=false>checked="checked"</cfif> />
-										<b>#stText.services.update.location_preview#</b>
+										<input type="radio" class="radio" name="location" value="http://snapshot.lucee.org"<cfif update.location EQ 'http://snapshot.lucee.org'> <cfset isCustom=false>checked="checked"</cfif> />
+										<b>#stText.services.update.location_snapshot#</b>
 									</label>
-									<div class="comment">#stText.services.update.location_previewdesc#</div>
-								</li>
-								<li>
-									<label>
-										<input type="radio" class="radio" name="location" value="http://dev.lucee.org"<cfif update.location EQ 'http://dev.lucee.org'> <cfset isCustom=false>checked="checked"</cfif> />
-										<b>#stText.services.update.location_dev#</b>
-									</label>
-									<div class="comment">#stText.services.update.location_devdesc#</div>
+									<div class="comment">#stText.services.update.location_snapshotDesc#</div>
 								</li>
 								<li>
 									<label>
@@ -261,7 +256,7 @@ For testing
 		</div>
 		<div style="overflow:auto;height:200px;border-style:solid;border-width:1px;padding:10px">
 <pre><cfloop list="#listSort(structKeyList(updateData.changelog),'textnocase')#" item="key"><!--- 
-			---><cfif findNoCase("LDEV",key)><a target="_blank" href="http://issues.lucee.org/browse/#key#">###key#</a><cfelse><a target="_blank" href="https://bitbucket.org/lucee/lucee/issue/#key#">###key#</a></cfif> - #updateData.changelog[key]#
+			---><cfif findNoCase("LDEV",key)><a target="_blank" href="http://issues.lucee.org/browse/#key#">#key#</a><cfelse><a target="_blank" href="https://bitbucket.org/lucee/lucee/issue/#key#">###key#</a></cfif> - #updateData.changelog[key]#
 </cfloop></pre></div>
 		#jira#
 	<cfelse>

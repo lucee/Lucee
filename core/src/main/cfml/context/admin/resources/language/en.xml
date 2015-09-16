@@ -1253,14 +1253,12 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.orm.sqlscript">SQL Script</data>
 	<data key="settings.orm.sqlscriptDesc">Path to the SQL script file that gets executed after ORM is initialized. This applies if dbcreate is set to dropcreate. This must be the absolute file path or the path relative to the application.The SQL script file lets you populate the tables before the application is accessed. This setting can be overwritten in Application.cfc as follows [this.ormsettings.sqlscript='...']</data>
 	<data key="services.update.provider">Update Provider</data>
-	<data key="services.update.location_www">Stable releases</data>
-	<data key="services.update.location_wwwDesc">Dieser Update Provider (stable.lucee.org) gibt nur stabile Versionen zurück, welche ausführlich getestet wurden, diese Quelle sollte für produktive Systeme verwendet werden.</data>
-	<data key="services.update.location_preview">Preview releases</data>
-	<data key="services.update.location_previewDesc">Dieser Update Provider (preview.lucee.org) gibt vorab Versionen zurück, dabei handelt es sich um Versionen die zwar getestet wurden aber noch nicht die Reife einer stable release besitzen, diese Quelle sollte nur bedingt für produktive Systeme verwendet werden.</data>
-	<data key="services.update.location_dev">Develop releases (Bleeding Edge)</data>
-	<data key="services.update.location_devDesc">Dieser Update Provider (dev.lucee.org) gibt ""Bleeding Edge"" Versionen zurück, dabei handelt es sich um Versionen die wenig bis gar nicht getestet wurden, diese Quelle sollte nicht für produktive Systeme verwendet werden.</data>
-	<data key="services.update.location_custom">Custom</data>
-	<data key="services.update.location_customDesc">Hier können Sie ihren eigenen Update Provider definieren, dies ist eine URL in der Form ""http://my.domainname.org""</data>
+	
+	<data key="services.update.location_snapshot">Snapshots</data>
+	<data key="services.update.location_snapshotDesc">Snapshots are generated automatically with every push to the repository, when all bundled test cases pass successfully. Snapshots are NOT recommended for production environments.</data>
+	<data key="services.update.location_release">Releases</data>
+	<data key="services.update.location_releaseDesc">Releases are heavily tested and are recommended for production environments.</data>
+	
 	<data key="services.update.provider">Update Provider</data>
 	<data key="services.update.location_www">Stable releases</data>
 	<data key="services.update.location_wwwDesc">This Update Provider (stable.lucee.org ) returns only stable versions. The versions found here are deeply tested. This source is recommended for production environments.</data>
