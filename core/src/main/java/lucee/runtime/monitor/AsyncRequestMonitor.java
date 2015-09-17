@@ -23,6 +23,7 @@ import java.util.Map;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.lang.PageContextThread;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigServer;
@@ -76,21 +77,20 @@ public class AsyncRequestMonitor implements RequestMonitor {
 		new _Log(monitor,pc,error,logEnabled).start();
 	}
 
-	static class _Log extends Thread {
+	static class _Log extends PageContextThread {
 		private RequestMonitor monitor;
-		private PageContext pc;
 		private boolean error;
 		private boolean logEnabled;
 
 		public _Log(RequestMonitor monitor, PageContext pc, boolean error, boolean logEnabled) {
+			super(pc);
 			this.monitor=monitor;
-			this.pc=pc;
 			this.error=error;
 			this.logEnabled=logEnabled;
 		}
 
 		@Override
-		public void run(){
+		public void run(PageContext pc){
 			try{
 				ThreadLocalPageContext.register(pc);
 				try {

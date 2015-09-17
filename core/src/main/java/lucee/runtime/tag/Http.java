@@ -40,6 +40,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.PageContextThread;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.ContentType;
 import lucee.commons.net.HTTPUtil;
@@ -50,6 +51,7 @@ import lucee.commons.net.http.httpclient4.HTTPEngine4Impl;
 import lucee.commons.net.http.httpclient4.HTTPPatchFactory;
 import lucee.commons.net.http.httpclient4.HTTPResponse4Impl;
 import lucee.commons.net.http.httpclient4.ResourceBody;
+import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
@@ -1020,7 +1022,7 @@ public final class Http extends BodyTagImpl {
     	
 /////////////////////////////////////////// EXECUTE /////////////////////////////////////////////////
 		client = builder.build();
-		Executor4 e = new Executor4(this,client,httpContext,req,redirect);
+		Executor4 e = new Executor4(pageContext,this,client,httpContext,req,redirect);
 		HTTPResponse4Impl rsp=null;
 		
 		if(timeout==null || timeout.getMillis()<=0){
@@ -1995,7 +1997,7 @@ public final class Http extends BodyTagImpl {
 	
 }
 
-class Executor4 extends Thread {
+class Executor4 extends PageContextThread {
 	
 	 final Http http;
 	 private final CloseableHttpClient client;
@@ -2007,7 +2009,8 @@ class Executor4 extends Thread {
 	private HttpRequestBase req;
 	private HttpContext context;
 
-	public Executor4(Http http,CloseableHttpClient client, HttpContext context, HttpRequestBase req, boolean redirect) {
+	public Executor4(PageContext pc,Http http,CloseableHttpClient client, HttpContext context, HttpRequestBase req, boolean redirect) {
+		super(pc);
 		this.http=http;
 		this.client=client;
 		this.context=context;
@@ -2016,7 +2019,7 @@ class Executor4 extends Thread {
 	}
 	
 	@Override
-	public void run(){
+	public void run(PageContext pc) {
 		try {
 			response=execute(context);
 			done=true;
