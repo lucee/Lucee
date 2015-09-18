@@ -2886,8 +2886,18 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	@Override
-	public long getExecutionTime() {
+	public int getExecutionTime() {
 		return (int)executionTime;
+	}
+	
+	@Override
+	public long getExecutionTimeLong() {
+		return executionTime;
+	}
+
+	@Override
+	public void setExecutionTime(int executionTime) {
+		this.executionTime = executionTime;
 	}
 
 	@Override
