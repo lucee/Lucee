@@ -35,12 +35,14 @@ import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.CFMLFactory;
+import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.CreationImpl;
@@ -143,9 +145,13 @@ public class PageContextUtil {
 		ThreadLocalPageContext.register(null);
 	}
 
-	public static TimeSpan remainingTime(PageContext pc) {
+	public static TimeSpan remainingTime(PageContext pc, boolean throwWhenAlreadyTimeout) throws RequestTimeoutException {
 		long ms = pc.getRequestTimeout()-(System.currentTimeMillis()-pc.getStartTime());
 		if(ms>0) return TimeSpanImpl.fromMillis(ms);
+
+		if(throwWhenAlreadyTimeout)
+			throw CFMLFactoryImpl.createRequestTimeoutException(pc);
+		
 		return TimeSpanImpl.fromMillis(0);
 	}
 }

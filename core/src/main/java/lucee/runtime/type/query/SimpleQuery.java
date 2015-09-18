@@ -165,7 +165,7 @@ public class SimpleQuery implements Query, ResultSet, Objects {
 	private void setAttributes(Statement stat,int maxrow, int fetchsize,TimeSpan timeout) throws SQLException {
 		if(maxrow>-1) stat.setMaxRows(maxrow);
         if(fetchsize>0)stat.setFetchSize(fetchsize);
-        if(timeout!=null && timeout.getSeconds()>0)
+        if(timeout!=null && ((int)timeout.getSeconds())>0)
         	DataSourceUtil.setQueryTimeoutSilent(stat,(int)timeout.getSeconds());
 	}
 	private void setItems(PageContext pc,TimeZone tz,PreparedStatement preStat, SQLItem[] items) throws DatabaseException, PageException, SQLException {
