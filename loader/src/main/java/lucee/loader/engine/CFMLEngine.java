@@ -177,7 +177,7 @@ public interface CFMLEngine {
 	 * @deprecated use instead getInfo()
 	 */
 	@Deprecated
-	public String getState();
+	//public String getState();
 
 	/**
 	 * @return returns how this engine will be updated (auto, manuell)

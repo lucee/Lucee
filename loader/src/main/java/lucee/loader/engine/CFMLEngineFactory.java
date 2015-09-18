@@ -85,6 +85,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	public static final Version VERSION_ZERO = new Version(0, 0, 0, "0");
 	private static final String UPDATE_LOCATION = "http://stable.lucee.org"; // MUST from server.xml
 
+
 	private static CFMLEngineFactory factory;
 	//private static  CFMLEngineWrapper engineListener;
 	private static CFMLEngineWrapper singelton;
@@ -275,12 +276,12 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				else if (patche.lastModified() < coreCreated)
 					patche.delete();
 				else if (lucee == null
-						|| isNewerThan(
+						|| Util.isNewerThan(
 								toVersion(patche.getName(), VERSION_ZERO),
 								toVersion(lucee.getName(), VERSION_ZERO)))
 					lucee = patche;
 		if (lucee != null
-				&& isNewerThan(coreVersion,
+				&& Util.isNewerThan(coreVersion,
 						toVersion(lucee.getName(), VERSION_ZERO)))
 			lucee = null;
 
@@ -696,7 +697,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		CFMLEngineFactorySupport.removeQuotes(strAvailableVersion, true); // not necessary but does not hurt
 
 		if (strAvailableVersion.length() == 0
-				|| !isNewerThan(toVersion(strAvailableVersion, VERSION_ZERO),
+				|| !Util.isNewerThan(toVersion(strAvailableVersion, VERSION_ZERO),
 						version)) {
 			log(Logger.LOG_DEBUG, "There is no newer Version available");
 			return null;
@@ -946,7 +947,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		File patch = null;
 		for (final File patche : patches)
 			if (patch == null
-					|| isNewerThan(toVersion(patche.getName(), VERSION_ZERO),
+					|| Util.isNewerThan(toVersion(patche.getName(), VERSION_ZERO),
 							toVersion(patch.getName(), VERSION_ZERO)))
 				patch = patche;
 		if (patch != null && !patch.delete())
@@ -1269,17 +1270,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			file = file.getParentFile();
 
 		return file;
-	}
-
-	/**
-	 * check left value against right value
-	 * 
-	 * @param left
-	 * @param right
-	 * @return returns if right is newer than left
-	 */
-	private boolean isNewerThan(final Version left, final Version right) {
-		return left.compareTo(right) > 0;
 	}
 
 	/**

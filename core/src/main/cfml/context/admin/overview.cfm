@@ -265,7 +265,7 @@ Error Output --->
 						</cfif>
 						<tr>
 							<th scope="row">#stText.Overview.Version#</th>
-							<td>Lucee #server.lucee.version# #server.lucee.state#</td>
+							<td>Lucee #server.lucee.version#</td>
 						</tr>
 						<cfif StructKeyExists(server.lucee,'versionName')>
 							<tr>

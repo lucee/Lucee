@@ -832,10 +832,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return ZipUtilImpl.getInstance();
 	}
 
-	@Override
-	public String getState() {
+	/*public String getState() {
 		return info.getStateAsString();
-	}
+	}*/
 
 	public void allowRequestTimeout(boolean allowRequestTimeout) {
 		this.allowRequestTimeout=allowRequestTimeout;

@@ -209,7 +209,7 @@ public class HTTPClient implements Objects, Iteratorable {
 
 	private String createUserAgent(PageContext pc) {
 		Info i = CFMLEngineFactory.getInstance().getInfo();
-		return Constants.NAME+" "+i.getVersion()+" "+i.getStateAsString();
+		return Constants.NAME+" "+i.getVersion();
 	}
 
 	@Override
