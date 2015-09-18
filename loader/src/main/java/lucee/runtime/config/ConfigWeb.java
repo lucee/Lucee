@@ -19,6 +19,9 @@
 package lucee.runtime.config;
 
 import javax.servlet.ServletConfig;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.jsp.JspWriter;
 
 import lucee.commons.io.res.Resource;
 import lucee.runtime.CFMLFactory;
@@ -65,5 +68,9 @@ public interface ConfigWeb extends Config, ServletConfig {
 	public SearchEngine getSearchEngine(PageContext pc) throws PageException;
 
 	public boolean getSuppressWSBeforeArg();
+	
+
+	public JspWriter getWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp);
+	
 
 }

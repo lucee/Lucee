@@ -41,6 +41,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -671,7 +675,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 		if (id == null && singelton != null)
 			id = singelton.getIdentification();
-
+		
+		// only happens when the code runs from the debug project
+		if(version==null) version=getInstance().getInfo().getVersion();
+		
 		final URL infoUrl = new URL(updateProvider,
 				"/rest/update/provider/update-for/" + version.toString()
 						+ (id != null ? id.toQueryString() : ""));
@@ -705,24 +712,132 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 								.toQueryString() : "")));
 
 		final URL updateUrl = new URL(updateProvider,
-				"/rest/update/provider/download/" + version.toString()
-						+ (id != null ? id.toQueryString() : ""));
-
+				"/rest/update/provider/download/" + strAvailableVersion
+						+ (id != null ? id.toQueryString() : "")
+						+ (id == null ? "?" : "&")+"allowRedirect=true"
+				);
 		log(Logger.LOG_DEBUG, "download update from " + updateUrl);
-
 		System.out.println(updateUrl);
+		
+		
+		// local resource
 		final File patchDir = getPatchDirectory();
 		final File newLucee = new File(patchDir, strAvailableVersion + (".lco"));
-
-		if (newLucee.createNewFile())
-			copy((InputStream) updateUrl.getContent(), new FileOutputStream(
-					newLucee));
+		////
+		
+		
+		
+		int code;
+		HttpURLConnection conn;
+		try {
+			conn = (HttpURLConnection) updateUrl.openConnection();
+			conn.setRequestMethod("GET");
+			conn.connect();
+			code = conn.getResponseCode();
+		} catch (final UnknownHostException e) {
+			log(e);
+			throw e;
+		}
+		
+		// the update provider is not providing a download for this
+		if (code != 200) {
+			
+			// the update provider can also provide a different (final) location for this
+			if(code==302) {
+				String location = conn.getHeaderField("Location");
+				// just in case we check invalid names
+				if(location==null)location = conn.getHeaderField("location");
+				if(location==null)location = conn.getHeaderField("LOCATION");
+				System.out.println("download redirected:" + location); // MUST remove
+				log(Logger.LOG_DEBUG, "download redirected to " + updateUrl);
+				
+				
+				conn.disconnect();
+				URL url = new URL(location);
+				try {
+					conn = (HttpURLConnection) url.openConnection();
+					conn.setRequestMethod("GET");
+					conn.connect();
+					code = conn.getResponseCode();
+				} catch (final UnknownHostException e) {
+					log(e);
+					throw e;
+				}
+			}
+			
+			// no download available!
+			if(code != 200){
+				final String msg = "Lucee is not able do download the core for version ["
+					+ version.toString() + "] from " + updateUrl
+					+ ", please donwload it manually and copy to [" + patchDir + "]";
+				log(Logger.LOG_ERROR, msg);
+				conn.disconnect();
+				throw new IOException(msg);
+			}
+		}
+		
+		// copy it to local directory
+		if (newLucee.createNewFile()) {
+			copy((InputStream) conn.getContent(), new FileOutputStream(newLucee));
+			conn.disconnect();
+			
+			// when it is a loader extract the core from it
+			File tmp = extractCoreIfLoader(newLucee);
+			if(tmp!=null) {
+				System.out.println("extract core from loader"); // MUST remove
+				log(Logger.LOG_DEBUG, "extract core from loader");
+				
+				newLucee.delete();
+				tmp.renameTo(newLucee);
+				tmp.delete();
+				System.out.println("exist?"+newLucee.exists()); // MUST remove
+				
+			}
+		}
 		else {
+			conn.disconnect();
 			log(Logger.LOG_DEBUG,
 					"File for new Version already exists, won't copy new one");
 			return null;
 		}
 		return newLucee;
+	}
+
+	public static File extractCoreIfLoader(File file) {
+		try {
+			return _extractCoreIfLoader(file);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	public static File _extractCoreIfLoader(File file) throws IOException {
+		JarFile jf = new JarFile(file);
+		try{
+			// is it a lucee loader ?
+			String value = jf.getManifest().getMainAttributes().getValue("Main-Class");
+			if(Util.isEmpty(value) || !value.equals("lucee.runtime.script.Main")) return null;
+			
+			// get the core file;
+			JarEntry je = jf.getJarEntry("core/core.lco");
+			if(je==null) return null;
+			
+			InputStream is = jf.getInputStream(je);
+			File trg = File.createTempFile("lucee", ".lco");
+			OutputStream os=new FileOutputStream(trg);
+			try{
+				Util.copy(is, os);
+			}
+			finally {
+				Util.closeEL(is);
+				Util.closeEL(os);
+			}
+			
+			return trg;
+		}
+		finally {
+			jf.close();
+		}
 	}
 
 	public URL getUpdateLocation() throws MalformedURLException {

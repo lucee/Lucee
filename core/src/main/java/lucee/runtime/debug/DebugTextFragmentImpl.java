@@ -16,32 +16,39 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.runtime.listener;
+package lucee.runtime.debug;
 
-import lucee.runtime.PageContext;
-import lucee.runtime.exp.PageException;
+import lucee.commons.io.SystemUtil.TemplateLine;
 
-public abstract class AppListenerSupport implements ApplicationListener {
+public class DebugTextFragmentImpl implements DebugTextFragment {
+	private final String text;
+	private final String template;
+	private final int line;
 	
-	@Override
-	public boolean hasOnApplicationStart(){
-		return false;
+	public DebugTextFragmentImpl(String text, String template, int line){
+		this.text=text;
+		this.template=template;
+		this.line=line;
 	}
-	
-	@Override
-	public boolean hasOnSessionStart(PageContext pc){
-		return false;
+
+	public DebugTextFragmentImpl(String text, TemplateLine tl) {
+		this.text=text;
+		this.template=tl.template;
+		this.line=tl.line;
 	}
 
 	@Override
-	public void onServerStart() throws PageException {
+	public String getText() {
+		return text;
 	}
 
 	@Override
-	public void onServerEnd() throws PageException {
+	public String getTemplate() {
+		return template;
 	}
 
 	@Override
-	public void onTimeout(PageContext pc) {
+	public int getLine() {
+		return line;
 	}
 }

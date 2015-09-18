@@ -1028,13 +1028,13 @@ public final class PageContextImpl extends PageContext {
 		return includePathList.size()+1;
 	}
 	
-	/**
-	 * @return the current template PageSource
-	 */
+	@Override
 	public PageSource getCurrentPageSource() {
 		if(pathList.isEmpty()) return null;
 		return pathList.getLast();
 	}
+	
+	@Override
 	public PageSource getCurrentPageSource(PageSource defaultvalue) {
 		if(pathList.isEmpty()) return defaultvalue;
 		return pathList.getLast();
@@ -2885,14 +2885,13 @@ public final class PageContextImpl extends PageContext {
 		this.thread=thread;
 	}
 
-	// FUTURE add as long
 	@Override
-	public int getExecutionTime() {
+	public long getExecutionTime() {
 		return (int)executionTime;
 	}
 
 	@Override
-	public void setExecutionTime(int executionTime) {
+	public void setExecutionTime(long executionTime) {
 		this.executionTime = executionTime;
 	}
 

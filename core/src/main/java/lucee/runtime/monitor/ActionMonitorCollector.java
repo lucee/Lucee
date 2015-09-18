@@ -28,5 +28,5 @@ public interface ActionMonitorCollector {
 	public void addMonitor(ConfigServer cs, ActionMonitor monitor, String name, boolean log) throws IOException;
 	public void log(PageContext pc, String type, String label, long executionTime, Object data);
 	public void log(ConfigWeb config, String type, String label, long executionTime, Object data);
-	public ActionMonitor getActionMonitor(String name); // FUTURE return ActionMonitor
+	public ActionMonitor getActionMonitor(String name); 
 }

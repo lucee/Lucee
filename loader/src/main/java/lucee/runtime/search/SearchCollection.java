@@ -162,10 +162,31 @@ public interface SearchCollection extends Serializable {
 	 */
 	public abstract IndexResult indexCustom(String id, QueryColumn title,
 			QueryColumn keyColumn, QueryColumn[] bodyColumns,
-			String language,// FUTURE,QueryColumn urlpath, 
-			QueryColumn custom1, QueryColumn custom2, QueryColumn custom3,
-			QueryColumn custom4) throws SearchException;
+			String language, 
+			QueryColumn custom1, QueryColumn custom2, QueryColumn custom3,QueryColumn custom4) throws SearchException;
 
+
+	/**
+	 * updates a collection with a custom
+	 * 
+	 * @param id
+	 * @param title Title for the Index
+	 * @param keyColumn Key Column
+	 * @param bodyColumns Body Column Array
+	 * @param language Language for index
+	 * @param urlpath 
+	 * @param custom1
+	 * @param custom2
+	 * @param custom3
+	 * @param custom4
+	 * @throws SearchException
+	 FUTURE add
+	public abstract IndexResult indexCustom(String id, QueryColumn title,
+			QueryColumn keyColumn, QueryColumn[] bodyColumns,
+			String language,QueryColumn urlpath, 
+			QueryColumn custom1, QueryColumn custom2, QueryColumn custom3,QueryColumn custom4) throws SearchException;
+*/
+	
 	/**
 	 * @return Returns the language.
 	 */

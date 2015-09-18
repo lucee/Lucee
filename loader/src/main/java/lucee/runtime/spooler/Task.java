@@ -21,7 +21,6 @@ package lucee.runtime.spooler;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
 
-// FUTURE add to public interface
 public interface Task {
 	
 	public Object execute(Config config) throws PageException;

@@ -353,7 +353,6 @@ public final class Search extends TagImpl {
 		    	
 	    		while(it.hasNext()) {
 	    			key=(String) it.next();
-	    			// FUTURE add SuggestionItem as interface to public interface
 	    			
 	    			// the problem is a conflict between the SuggestionItem version from core and extension
 	    			obj=s.get(key);

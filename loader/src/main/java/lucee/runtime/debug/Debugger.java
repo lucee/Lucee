@@ -36,6 +36,9 @@ import lucee.runtime.type.Struct;
  */
 public interface Debugger {
 
+    
+    public void init(Config config);
+    
 	/**
 	 * reset the debug object
 	 */
@@ -145,7 +148,7 @@ public interface Debugger {
 	 * @param src
 	 * @param time
 	 * @deprecated use instead
-	 *             <code>addQuery(Query query,String datasource,String name,SQL sql, int recordcount, PageSource src,long time)</code>
+	 * @see  #addQuery(Query, String, String, SQL, int, PageSource, long)
 	 */
 	@Deprecated
 	public void addQuery(Query query, String datasource, String name, SQL sql,
@@ -181,4 +184,8 @@ public interface Debugger {
 	 * @return a Map organized by category/data-column/data-value
 	 */
 	public Map<String, Map<String, List<String>>> getGenericData();
+
+    public DebugDump addDump(PageSource ps,String dump);
+
+    public void setOutputLog(DebugOutputLog outputLog);
 }

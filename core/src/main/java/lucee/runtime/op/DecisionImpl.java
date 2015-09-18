@@ -19,6 +19,7 @@
 package lucee.runtime.op;
 
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -243,6 +244,41 @@ public final class DecisionImpl implements lucee.runtime.util.Decision {
 	@Override
 	public boolean isCastableToStruct(Object o) {
 		return Decision.isCastableToStruct(o);
+	}
+
+	@Override
+	public boolean isClosure(Object o) {
+		return Decision.isClosure(o);
+	}
+
+	@Override
+	public boolean isLambda(Object o) {
+		return Decision.isLambda(o);
+	}
+
+	@Override
+	public boolean isCreditCard(Object o) {
+		return Decision.isCreditCard(o);
+	}
+
+	@Override
+	public boolean isEmpty(Object o) {
+		return Decision.isEmpty(o);
+	}
+
+	@Override
+	public boolean isGUid(Object o) {
+		return Decision.isGUId(o);
+	}
+
+	@Override
+	public boolean is(String type, Object o) throws ExpressionException {
+		return Decision.isValid(type,o);
+	}
+
+	@Override
+	public boolean isFunction(Object o) {
+		return Decision.isFunction(o);
 	}
 
 }

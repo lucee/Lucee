@@ -632,9 +632,14 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 
 	/**
 	 * @return the current template PageSource
+	 * @deprecated use instead {@link #getCurrentPageSource(PageSource)}
 	 */
-	public abstract PageSource getCurrentPageSource(); // FUTURE deprecated
-	// FUTURE public abstract PageSource getCurrentPageSource(PageSource defaultValue);
+	public abstract PageSource getCurrentPageSource(); 
+	
+	/**
+	 * @return the current template PageSource
+	 */
+	public abstract PageSource getCurrentPageSource(PageSource defaultValue);
 
 	/**
 	 * @return the current template PageSource
@@ -670,12 +675,12 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	/**
 	 * @return Returns the executionTime.
 	 */
-	public abstract int getExecutionTime();
+	public abstract long getExecutionTime();
 
 	/**
 	 * @param executionTime The executionTime to set.
 	 */
-	public abstract void setExecutionTime(int executionTime);
+	public abstract void setExecutionTime(long executionTime);
 
 	/**
 	 * @return Returns the remoteUser.

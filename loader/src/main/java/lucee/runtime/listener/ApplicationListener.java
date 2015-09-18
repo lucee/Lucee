@@ -33,13 +33,12 @@ public interface ApplicationListener {
 	public static final int MODE_CURRENT = 1;
 	public static final int MODE_ROOT = 2;
 	public static final int MODE_CURRENT_OR_ROOT = 4;
-
+	
 	public static final int TYPE_NONE = 0;
 	public static final int TYPE_CLASSIC = 1;
 	public static final int TYPE_MODERN = 2;
 	public static final int TYPE_MIXED = 4;
 
-	// FUTURE public static final int MODE_CURRENT_OR_ROOT=4;
 	public static final String CFC_EXTENSION = "cfc";
 
 	public void setMode(int mode);
@@ -50,12 +49,6 @@ public interface ApplicationListener {
 	 * @return the type
 	 */
 	public String getType();
-
-	/**
-	 * @param type the type to set
-	 */
-	//FUTURE remove method
-	public void setType(String type);
 
 	/**
 	 * this method will be called the application self

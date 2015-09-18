@@ -117,19 +117,20 @@ public interface Undefined extends Scope {
 	 * @param key key to get
 	 * @return matching value or null
 	 * @deprecated use instead
-	 *             <code>{@link #getCascading(lucee.runtime.type.Collection.Key)}</code>
+	 * @see #getCascading(lucee.runtime.type.Collection.Key, Object)
 	 */
 	@Deprecated
-	public abstract Object getCascading(String key);
-
+	public abstract Object getCascading(Collection.Key key);
+	
 	/**
 	 * gets a key from all cascaded scopes, but not from variables scope
 	 * 
 	 * @param key key to get
 	 * @return matching value or null
 	 */
-	public abstract Object getCascading(Collection.Key key);
-
+	public Object getCascading(Collection.Key key, Object defaultValue);
+	
+	
 	/**
 	 * change the variable scope
 	 * 

@@ -142,7 +142,7 @@ public class ResourceUtilImpl implements lucee.runtime.util.ResourceUtil {
 
 	@Override
 	public boolean isEmptyDirectory(Resource res) {
-		return ResourceUtil.isEmptyDirectory(res,null); // FUTURE add to interface with filter
+		return ResourceUtil.isEmptyDirectory(res,null);
 	}
 
 	@Override

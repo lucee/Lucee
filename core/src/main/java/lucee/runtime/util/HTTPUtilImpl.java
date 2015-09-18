@@ -96,9 +96,6 @@ public class HTTPUtilImpl implements HTTPUtil {
 		return HTTPEngine.get(url, username, password, timeout,true, charset, useragent, ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword), headers);
 	}
 
-	/**
-	 * @see lucee.runtime.util.HTTPUtil#put(java.net.URL, java.lang.String, java.lang.String, int, java.lang.String, java.lang.String, java.lang.String, int, java.lang.String, java.lang.String, lucee.commons.net.http.Header[], java.lang.Object)
-	 */
 	@Override
 	public HTTPResponse put(URL url, String username, String password,
 			int timeout, String charset, String useragent, String proxyserver,
@@ -107,7 +104,7 @@ public class HTTPUtilImpl implements HTTPUtil {
 		return put(url, username, proxypassword, timeout, null, charset, useragent, proxyserver, proxyport, proxyuser, proxypassword, headers, body);
 	}
 	
-	// FUTURE add to interface
+	@Override
 	public HTTPResponse put(URL url, String username, String password,
 			int timeout, String mimetype, String charset, String useragent, String proxyserver,
 			int proxyport, String proxyuser, String proxypassword,

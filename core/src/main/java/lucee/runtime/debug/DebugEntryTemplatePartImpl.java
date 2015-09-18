@@ -60,15 +60,18 @@ public class DebugEntryTemplatePartImpl extends DebugEntrySupport implements Deb
         return path+":"+startPos+" - "+endPos;
     }
 
-    public int getStartLine() {
+	@Override
+	public int getStartLine() {
         return startLine;
     }
 
-    public int getEndLine() {
+	@Override
+	public int getEndLine() {
         return endLine;
     }
 
-    public String getSnippet() {
+	@Override
+	public String getSnippet() {
         return snippet;
     }
 }

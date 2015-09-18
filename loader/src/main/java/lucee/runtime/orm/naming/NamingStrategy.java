@@ -17,7 +17,6 @@
  */
 package lucee.runtime.orm.naming;
 
-//FUTURE add to loader
 public interface NamingStrategy {
 
 	/**

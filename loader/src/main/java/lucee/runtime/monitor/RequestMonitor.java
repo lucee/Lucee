@@ -37,7 +37,5 @@ public interface RequestMonitor extends Monitor {
 	 * @return
 	 * @throws PageException
 	 */
-	public Query getData(ConfigWeb config, Map<String, Object> arguments)
-			throws PageException;
-	// FUTURE public Query getData(ConfigWeb config,Map<String,Object> arguments) throws PageException; // for all contexts
+	public Query getData(ConfigWeb config, Map<String, Object> arguments) throws PageException;
 }

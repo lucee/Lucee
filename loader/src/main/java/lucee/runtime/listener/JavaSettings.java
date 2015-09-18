@@ -28,6 +28,8 @@ public interface JavaSettings {
 	 * @return resource pathes
 	 */
 	public Resource[] getResources();
+	
+	public Resource[] getResourcesTranslated();
 
 	/**
 	 * Indicates whether to load the classes from the default lib directory.

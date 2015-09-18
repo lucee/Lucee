@@ -49,8 +49,7 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
 public class StructImpl extends StructSupport {
 	private static final long serialVersionUID = 1421746759512286393L;
 
-	public static final int TYPE_UNDEFINED = -1;// FUTURE add to interface Struct 
-
+	
 	private MapPro<Collection.Key,Object> map;
 	
 	/**

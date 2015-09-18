@@ -28,6 +28,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.jsp.JspWriter;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.FileUtil;
@@ -487,13 +488,18 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		}
 		
 		public CFMLWriter getCFMLWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
-			// FUTURE  move interface CFMLWriter to Loader and load dynaicly from lucee-web.xml
-	        if(writerType==CFML_WRITER_WS)
+			if(writerType==CFML_WRITER_WS)
 	            return new CFMLWriterWS		(pc,req,rsp,-1,false,closeConnection(),isShowVersion(),contentLength());
 	        else if(writerType==CFML_WRITER_REFULAR) 
 	            return new CFMLWriterImpl			(pc,req,rsp,-1,false,closeConnection(),isShowVersion(),contentLength());
 	        else
 	            return new CFMLWriterWSPref	(pc,req,rsp,-1,false,closeConnection(),isShowVersion(),contentLength());
+	    }
+		
+
+		@Override
+		public JspWriter getWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
+			return getCFMLWriter(pc, req, rsp);
 	    }
 
 		

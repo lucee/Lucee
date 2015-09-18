@@ -66,28 +66,8 @@ public final class QueryStackImpl implements QueryStack {
 	public boolean isEmpty() {
 		return start==queries.length;
 	}
-
-	@Override
-	public Object getDataFromACollection(String key) {
-		throw new PageRuntimeException(new DeprecatedException("this method is no longer supported, use instead getDataFromACollection(PageContext pc,Key key, Object defaultValue)"));
-	}
 	
 	@Override
-	public Object getDataFromACollection(PageContext pc,String key) {
-		throw new PageRuntimeException(new DeprecatedException("this method is no longer supported, use instead getDataFromACollection(PageContext pc,Key key, Object defaultValue)"));
-	}
-
-	@Override
-	public Object getDataFromACollection(Key key) {
-		throw new PageRuntimeException(new DeprecatedException("this method is no longer supported, use instead getDataFromACollection(PageContext pc,Key key, Object defaultValue)"));
-	}
-	
-	@Override
-	public Object getDataFromACollection(PageContext pc,Key key) {
-		throw new PageRuntimeException(new DeprecatedException("this method is no longer supported, use instead getDataFromACollection(PageContext pc,Key key, Object defaultValue)"));
-	}
-	
-	// FUTURE add to interface and set above to deprecated
 	public Object getDataFromACollection(PageContext pc,Key key, Object defaultValue) {
 		//Object rtn;
 		QueryColumn col;
@@ -99,11 +79,6 @@ public final class QueryStackImpl implements QueryStack {
 			//if(rtn!=Null.NULL) return rtn;
 		}
 		return defaultValue;
-	}
-
-	@Override
-	public QueryColumn getColumnFromACollection(String key) {
-		return getColumnFromACollection(KeyImpl.init(key));
 	}
 
 	@Override

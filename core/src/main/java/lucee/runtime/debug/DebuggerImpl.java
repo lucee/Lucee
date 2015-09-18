@@ -832,9 +832,9 @@ public final class DebuggerImpl implements Debugger {
 		
         if(len>0) {
 	        	for(int i=0;i<fragments.length;i++) {
-	        		qryOutputLog.setAtEL(KeyConstants._line,i+1,fragments[i].line);
-	        		qryOutputLog.setAtEL(KeyConstants._template,i+1,fragments[i].template);
-	        		qryOutputLog.setAtEL(KeyConstants._text,i+1,fragments[i].text);  
+	        		qryOutputLog.setAtEL(KeyConstants._line,i+1,fragments[i].getLine());
+	        		qryOutputLog.setAtEL(KeyConstants._template,i+1,fragments[i].getTemplate());
+	        		qryOutputLog.setAtEL(KeyConstants._text,i+1,fragments[i].getText());  
 	        	}
         }
         return qryOutputLog;
