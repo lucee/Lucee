@@ -94,7 +94,7 @@ import lucee.runtime.db.DataSourceImpl;
 import lucee.runtime.db.DataSourceManager;
 import lucee.runtime.db.DatasourceConnectionImpl;
 import lucee.runtime.db.JDBCDriver;
-import lucee.runtime.debug.DebuggerPro;
+import lucee.runtime.debug.Debugger;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ExecutionLogFactory;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -360,7 +360,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 
 	private void doAddDump() throws ApplicationException {
-		DebuggerPro debugger=(DebuggerPro) pageContext.getDebugger();
+		Debugger debugger=pageContext.getDebugger();
 		PageSource ps = pageContext.getCurrentTemplatePageSource();
 		if(ps!=null)debugger.addDump(ps, getString("admin",action,"dump",true));
 	}

@@ -37,6 +37,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.UDFCasterException;
 import lucee.runtime.functions.decision.IsValid;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Collection.Key;
@@ -45,6 +46,8 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.UDFUtil;
 
 public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
+
+	private static final long serialVersionUID = 285652503901488683L;
 
 	private static final Collection.Key MIN_LENGTH = KeyImpl.intern("minLength");
 	private static final Collection.Key MAX_LENGTH = KeyImpl.intern("maxLength");
@@ -329,5 +332,9 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 	public PageSource getPageSource() {
 		return this.properties._pageSource;
 	}
-	
+
+	@Override
+	public boolean getBufferOutput(PageContext pc) {
+		return pc.getApplicationContext().getBufferOutput();
+	}
 }

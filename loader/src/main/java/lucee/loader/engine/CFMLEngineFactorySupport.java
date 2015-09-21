@@ -118,45 +118,6 @@ public abstract class CFMLEngineFactorySupport {
 		}
 	}
 
-	/**
-	 * @param version
-	 * @return string representation of the version
-	 */
-	public static String toStringVersion(int version) {
-
-		final StringBuffer sb = new StringBuffer();
-
-		// Major
-		int tmp = (version / 10000000); // FUTURE 10000000
-		version -= tmp * 10000000; // FUTURE 10000000
-		sb.append(String.valueOf(tmp));
-		sb.append(".");
-
-		// Minor
-		tmp = (version / 100000); // FUTURE 100000
-		version -= tmp * 100000; // FUTURE 100000
-		sb.append(len(String.valueOf(tmp), 2));
-		sb.append(".");
-
-		// releases
-		tmp = (version / 1000); // FUTURE 1000
-		version -= tmp * 1000; // FUTURE 1000
-		sb.append(len(String.valueOf(tmp), 2));
-		sb.append(".");
-
-		// patches
-		sb.append(len(String.valueOf(version), 3));
-
-		return sb.toString();
-
-	}
-
-	private static Object len(String str, final int i) {
-		while (str.length() < i)
-			str = "0" + str;
-		return str;
-	}
-
 	public static String removeQuotes(String str, final boolean trim) {
 		if (str == null)
 			return str;
@@ -244,9 +205,9 @@ public abstract class CFMLEngineFactorySupport {
 		}
 		// ClassLoaderDir
         if(path.startsWith("{classloader")) {
-            if(path.startsWith("}",12)) path=new File(getClassLoadeDirectory(),path.substring(13)).toString();
-            else if(path.startsWith("-dir}",12)) path=new File(getClassLoadeDirectory(),path.substring(17)).toString();
-            else if(path.startsWith("-directory}",12)) path=new File(getClassLoadeDirectory(),path.substring(23)).toString();
+            if(path.startsWith("}",12)) path=new File(getClassLoaderDirectory(),path.substring(13)).toString();
+            else if(path.startsWith("-dir}",12)) path=new File(getClassLoaderDirectory(),path.substring(17)).toString();
+            else if(path.startsWith("-directory}",12)) path=new File(getClassLoaderDirectory(),path.substring(23)).toString();
         }
         
 		return path;
@@ -264,7 +225,7 @@ public abstract class CFMLEngineFactorySupport {
 		return homeFile;
 	}
 
-    public static File getClassLoadeDirectory(){
+    public static File getClassLoaderDirectory(){
     	return CFMLEngineFactory.getClassLoaderRoot(TP.class.getClassLoader());
     }
 

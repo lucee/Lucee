@@ -35,7 +35,7 @@ public interface UDF extends Function, Dumpable, Member, Cloneable {
 	public static final int RETURN_FORMAT_WDDX = 0;
 	public static final int RETURN_FORMAT_JSON = 1;
 	public static final int RETURN_FORMAT_PLAIN = 2;
-	public static final int RETURN_FORMAT_SERIALIZE = 3; // FUTURE change to RETURN_FORMAT_CFML
+	public static final int RETURN_FORMAT_SERIALIZE = 3;
 	public static final int RETURN_FORMAT_XML = 4;
 	public static final int RETURN_FORMAT_JAVA = 5;
 
@@ -86,9 +86,17 @@ public interface UDF extends Function, Dumpable, Member, Cloneable {
 	 * @return Returns the returnType.
 	 */
 	public int getReturnType();
+	
+	public boolean getBufferOutput(PageContext pc);
 
-	public int getReturnFormat(); // FUTURE mark as deprecated
-	// FUTURE public abstract int getReturnFormat(int defaultFormat);
+	/**
+	 * 
+	 * @deprecated use instead
+	 * @see #getReturnFormat(int)
+	 */
+	public int getReturnFormat();
+	
+	public int getReturnFormat(int defaultFormat);
 
 	/**
 	 * returns null when not defined
@@ -189,7 +197,6 @@ public interface UDF extends Function, Dumpable, Member, Cloneable {
 			Collection.Key calledName, Object[] args, boolean doIncludePath)
 			throws PageException;
 
-	public abstract int getReturnFormat(int defaultFormat);
 
 	/**
 	 * unique identifier for the function

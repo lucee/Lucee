@@ -160,7 +160,7 @@ public final class PDFDocument {
 	
 	public PDFDocument(){
 		Info info = CFMLEngineFactory.getInstance().getInfo();
-		userAgent= Constants.NAME+" "+info.getVersion()+" "+info.getStateAsString();
+		userAgent= Constants.NAME+" "+info.getVersion();
 		
 	}
 	

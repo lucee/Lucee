@@ -296,7 +296,7 @@ public class StatementProxy implements StatementPro {
 
 	@Override
 	public void setQueryTimeout(int seconds) throws SQLException {
-		stat.setQueryTimeout(seconds);
+		if(seconds>0)stat.setQueryTimeout(seconds);
 	}
 
 	// used only with java 7, do not set @Override

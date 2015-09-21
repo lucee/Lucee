@@ -26,6 +26,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.jsp.JspWriter;
+
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -697,13 +701,31 @@ public interface Config {
 	 * @param onlyTopLevel checks only toplevel mappings
 	 * @param useSpecialMappings invoke special mappings like "mapping-tag" or
 	 *            "mapping-customtag"
-	 * @param useDefaultMapping also invoke the always existing default mapping
-	 *            "/"
+	 * @param useDefaultMapping also invoke the always existing default mapping "/"
+	 * @deprecated use instead 
+	 * @see #getPageSources(PageContext, Mapping[],String, boolean, boolean,boolean, boolean)
 	 */
 	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings,
 			String realPath, boolean onlyTopLevel, boolean useSpecialMappings,
-			boolean useDefaultMapping); // FUTURE add boolean useComponentMappings
+			boolean useDefaultMapping);
 
+
+	/**
+	 * get all PageSources that match the given criteria
+	 * 
+	 * @param pc current PageContext
+	 * @param mappings per application mappings
+	 * @param realPath path to get PageSource for
+	 * @param onlyTopLevel checks only toplevel mappings
+	 * @param useSpecialMappings invoke special mappings like "mapping-tag" or "mapping-customtag"
+	 * @param useDefaultMapping also invoke the always existing default mapping "/"
+	 * @param useComponentMappings also invoke component mappings
+	 */
+	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings,
+			String realPath, boolean onlyTopLevel, boolean useSpecialMappings,
+			boolean useDefaultMapping, boolean useComponentMappings);
+
+	
 	/**
 	 * get Resource of the first Mapping that match the given criteria
 	 * 

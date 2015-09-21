@@ -24,14 +24,14 @@ import lucee.commons.cli.CommandResult;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.PageContextThread;
 import lucee.runtime.PageContext;
 
 /**
  * 
  */
-public final class _Execute extends Thread {
+public final class _Execute extends PageContextThread {
 
-    private PageContext pc;
     private Resource outputfile;
     private Resource errorFile;
     private String variable;
@@ -55,7 +55,7 @@ public final class _Execute extends Thread {
      * @param terminateOnTimeout 
      */
     public _Execute(PageContext pageContext, Object monitor, String command, Resource outputfile, String variable, Resource errorFile, String errorVariable) {
-         this.pc=pageContext; 
+         super(pageContext); 
          this.monitor=monitor;
          this.command=command;
          this.outputfile=outputfile;
@@ -67,12 +67,12 @@ public final class _Execute extends Thread {
     }
     
     @Override
-    public void run() {
+    public void run(PageContext pc) {
         try {
-            _run();
+            _run(pc);
         } catch (Exception e) {}
     }
-     void _run() {
+     void _run(PageContext pc) {
     	//synchronized(monitor){
 			try {
 

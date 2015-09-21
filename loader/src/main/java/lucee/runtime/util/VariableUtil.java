@@ -36,9 +36,23 @@ public interface VariableUtil {
 	 * @param coll Collection to check
 	 * @param key to get from Collection
 	 * @return value or null
+	 * @deprecated use instead
+	 * @see #getCollection(PageContext, Object, lucee.runtime.type.Collection.Key, Object)
 	 */
 	public abstract Object getCollection(PageContext pc, Object coll,
 			String key, Object defaultValue);
+	
+	/**
+	 * return a property from the given Object, when property doesn't exists
+	 * return null
+	 * 
+	 * @param pc
+	 * @param coll Collection to check
+	 * @param key to get from Collection
+	 * @return value or null
+	 */
+	public Object getCollection(PageContext pc, Object coll, 
+			Collection.Key key, Object defaultValue);
 
 	/**
 	 * return a property from the given Object, when property doesn't exists

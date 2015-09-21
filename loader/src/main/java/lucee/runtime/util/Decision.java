@@ -27,9 +27,6 @@ import lucee.runtime.type.Collection.Key;
  */
 public interface Decision {
 
-	// FUTURE add function isJson and others we support in the core
-	// FUTURE add function is(String type, Object value)
-
 	public boolean isAnyType(String type);
 
 	/**
@@ -165,8 +162,6 @@ public interface Decision {
 	 */
 	public boolean isUserDefinedFunction(Object object);
 
-	// FUTURE add isClosure and isFunction, set function above to deprecated
-
 	/**
 	 * tests if year is a leap year
 	 * 
@@ -280,5 +275,22 @@ public interface Decision {
 	public boolean isCastableToString(Object o);
 
 	public boolean isCastableToStruct(Object o);
+	
+	public boolean isClosure(Object o);
+	public boolean isLambda(Object o);
+	public boolean isFunction(Object o);
+	
+	public boolean isCreditCard(Object o);
+	public boolean isEmpty(Object o);
+	public boolean isGUid(Object o);
+	
+	/**
+	 * 
+	 * @param type
+	 * @param o
+	 * @return
+	 * @throws PageException when type is unknown
+	 */
+	public boolean is(String type,Object o) throws PageException;
 
 }

@@ -20,12 +20,13 @@ package lucee.runtime.spooler;
 
 import java.io.Serializable;
 
+import org.apache.tools.ant.TaskContainer;
+
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
 
-// FUTURE extend interface task
 public interface SpoolerTask extends Serializable {
 
 	public String getId();

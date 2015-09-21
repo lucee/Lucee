@@ -20,8 +20,6 @@ package lucee.runtime.debug;
 
 import java.io.Serializable;
 
-// FUTURE move to loader
-
 public interface DebugDump extends Serializable {
 
 	/**

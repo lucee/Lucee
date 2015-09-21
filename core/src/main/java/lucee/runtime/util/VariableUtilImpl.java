@@ -67,7 +67,8 @@ public final class VariableUtilImpl implements VariableUtil {
         return get(pc,coll,key,defaultValue);
     }
     
-    public Object getCollection(PageContext pc, Object coll, Collection.Key key, Object defaultValue) {// FUTURE add to interface
+    @Override
+	public Object getCollection(PageContext pc, Object coll, Collection.Key key, Object defaultValue) {
         if(coll instanceof Query) {
         	QueryColumn qc = ((Query)coll).getColumn(key,null);
         	if(qc==null) return defaultValue;

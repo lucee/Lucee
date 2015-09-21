@@ -66,7 +66,7 @@ public final class HTTPConnectionData {
 
 	private static String defaultUserAgent() {
 		Info info = CFMLEngineFactory.getInstance().getInfo();
-		return Constants.NAME+" "+info.getVersion()+" "+info.getStateAsString();
+		return Constants.NAME+" "+info.getVersion();
 	}
 
 

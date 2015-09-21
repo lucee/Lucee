@@ -172,8 +172,6 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable,
 
 	public Collection duplicate(boolean deepCopy);
 
-	// FUTURE ? public Collection duplicate(boolean deepCopy, Map<Object,Object> done);
-
 	/**
 	 * contains this key
 	 * 

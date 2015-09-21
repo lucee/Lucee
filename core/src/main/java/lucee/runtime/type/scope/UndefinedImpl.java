@@ -473,19 +473,12 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
         return defaultValue;
     }
     
-    
-    @Override
-    public Object getCascading(String strKey) {
-        return getCascading(KeyImpl.init(strKey));
-    }
-
-
 	@Override
 	public Object getCascading(Collection.Key key) {
         throw new RuntimeException("this method is no longer supported, use getCascading(Collection.Key key, Object defaultValue) instead");
 	}
 	
-	// FUTURE add to interface and set above to deprecated
+	@Override
 	public Object getCascading(Collection.Key key, Object defaultValue) {
         Object rtn;
           

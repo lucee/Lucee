@@ -68,10 +68,20 @@ public interface HTTPUtil {
 			int proxyport, String proxyuser, String proxypassword,
 			Header[] headers) throws IOException;
 
+	/**
+	 * 
+	 * @deprecated use instead
+	 * @see #put(URL, String, String, int, String, String, String, String, int, String, String, Header[], Object)
+	 */
 	public HTTPResponse put(URL url, String username, String password,
 			int timeout, String charset, String useragent, String proxyserver,
 			int proxyport, String proxyuser, String proxypassword,
 			Header[] headers, Object body) throws IOException;
+	
+	public HTTPResponse put(URL url, String username, String password,
+			int timeout, String mimetype, String charset, String useragent, String proxyserver,
+			int proxyport, String proxyuser, String proxypassword,
+			Header[] headers, Object body) throws IOException ;
 
 	public HTTPResponse delete(URL url, String username, String password,
 			int timeout, String charset, String useragent, String proxyserver,
@@ -82,19 +92,31 @@ public interface HTTPUtil {
 			int timeout, String charset, String useragent, String proxyserver,
 			int proxyport, String proxyuser, String proxypassword,
 			Header[] headers) throws IOException;
-
-	//public RequestEntity toRequestEntity(Object value) throws PageException;
-
+	
+	
+	
 	/**
 	 * cast a string to a url
 	 * 
-	 * @param strUrl string represent a url
+	 * @param strUrl
+	 * @param port
 	 * @return url from string
 	 * @throws MalformedURLException
+	 * @deprecated use instead 
+	 * @see #toURL(String, int, boolean)
+	 * 
 	 */
 	public URL toURL(String strUrl, int port) throws MalformedURLException; // FUTURE deprecated use method <code>toURL(String strUrl, int port, boolean encodeIfNecessary)</code> instead
 
-	// FUTURE public URL toURL(String strUrl, int port, boolean encodeIfNecessary) throws MalformedURLException;
+	/**
+	 * 
+	 * @param strUrl
+	 * @param port
+	 * @param encodeIfNecessary
+	 * @return URL generated
+	 * @throws MalformedURLException
+	 */
+	public URL toURL(String strUrl, int port, boolean encodeIfNecessary) throws MalformedURLException;
 
 	/**
 	 * cast a string to a url

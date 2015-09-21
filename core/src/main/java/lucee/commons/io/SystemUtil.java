@@ -20,6 +20,7 @@ package lucee.commons.io;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.lang.management.ManagementFactory;
@@ -58,6 +59,7 @@ import lucee.loader.TP;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.InfoImpl;
@@ -453,7 +455,7 @@ public final class SystemUtil {
     }
     
     
-    public static Resource getClassLoadeDirectory(){
+    public static Resource getClassLoaderDirectory(){
     	return ResourceUtil.toResource(CFMLEngineFactory.getClassLoaderRoot(TP.class.getClassLoader()));
     }
 
@@ -1142,6 +1144,39 @@ public final class SystemUtil {
             return "";
         }
     }
+	public static InputStream getResourceAsStream(Bundle bundle, String path) {
+		// check the bundle for the resource
+		InputStream is;
+		if(bundle!=null) {
+    		try {
+    			is = bundle.getEntry(path).openStream();
+    			if(is!=null) return is;
+    		}catch (Throwable t) {}
+		}
+		
+		// try from core classloader
+		ClassLoader cl = PageSourceImpl.class.getClassLoader();
+		try{
+			is = cl.getResourceAsStream(path);
+			if(is!=null) return is;
+		}catch (Throwable t) {}
+
+		// try from loader classloader
+		cl = PageSource.class.getClassLoader();
+		try{
+			is = cl.getResourceAsStream(path);
+			if(is!=null) return is;
+		}catch (Throwable t) {}
+
+		// try from loader classloader
+		cl = ClassLoader.getSystemClassLoader();
+		try{
+			is = cl.getResourceAsStream(path);
+			if(is!=null) return is;
+		}catch (Throwable t) {}
+		
+    return null;
+}
 }
 
 class StopThread extends Thread {
@@ -1181,4 +1216,5 @@ class StopThread extends Thread {
 		
 		if(count>10 && log!=null) LogUtil.log(log, Log.LEVEL_ERROR, "", "could not stop the thread, giving up", thread.getStackTrace());
 	}
+	
 }

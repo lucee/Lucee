@@ -238,6 +238,12 @@ public class TOUDF extends TOObjects implements UDF {
 		return udf.duplicate();
 	}
 
+	@Override
+	public boolean getBufferOutput(PageContext pc) {
+		log(pc);
+		return udf.getBufferOutput(pc);
+	}
+
 
 	@Override
 	public Component getOwnerComponent() {

@@ -248,10 +248,9 @@ public class CFMLEngineWrapper implements CFMLEngine {
 		return engine.getStringUtil();
 	}
 
-	@Override
-	public String getState() {
+	/*public String getState() {
 		return engine.getInfo().getStateAsString();
-	}
+	}*/
 
 	/**
 	 * this interface is new to this class and not offically part of Lucee 3.x,

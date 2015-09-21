@@ -147,7 +147,7 @@ public final class ServerImpl extends ScopeSupport implements Server,SharedScope
 			lucee.setEL(KeyConstants._version,info.getVersion().toString());
 			lucee.setEL(VERSION_NAME,info.getVersionName());
 			lucee.setEL(VERSION_NAME_EXPLANATION,info.getVersionNameExplanation());
-			lucee.setEL(KeyConstants._state,info.getStateAsString());
+			//lucee.setEL(KeyConstants._state,info.getStateAsString());
 			lucee.setEL(RELEASE_DATE,new DateTimeImpl(info.getRealeaseTime(),false));
 			lucee.setEL(LOADER_VERSION,Caster.toDouble(SystemUtil.getLoaderVersion()));
 			lucee.setEL(LOADER_PATH, ClassUtil.getSourcePathForClass("lucee.loader.servlet.CFMLServlet", ""));

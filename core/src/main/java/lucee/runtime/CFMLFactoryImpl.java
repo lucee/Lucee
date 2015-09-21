@@ -535,4 +535,8 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		if(luceeExtensions==null) _initExtensions();
 		return luceeExtensions.iterator();
 	}
+
+	public static RequestTimeoutException createRequestTimeoutException(PageContext pc) {
+		return new RequestTimeoutException(pc.getThread(),"request ("+getPath(pc)+":"+pc.getId()+") has run into a timeout ("+(pc.getRequestTimeout()/1000)+" seconds) and has been stopped.");
+	}
 }

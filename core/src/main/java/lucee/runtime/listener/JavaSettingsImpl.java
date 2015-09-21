@@ -56,7 +56,7 @@ public class JavaSettingsImpl implements JavaSettings {
 		return resources;
 	}
 	
-	// FUTURE add to interface
+	@Override
 	public Resource[] getResourcesTranslated() {
 		if(resourcesTranslated==null) {
 			List<Resource> list=new ArrayList<Resource>();

@@ -40,6 +40,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.PageContextThread;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.ContentType;
 import lucee.commons.net.HTTPUtil;
@@ -50,6 +51,7 @@ import lucee.commons.net.http.httpclient4.HTTPEngine4Impl;
 import lucee.commons.net.http.httpclient4.HTTPPatchFactory;
 import lucee.commons.net.http.httpclient4.HTTPResponse4Impl;
 import lucee.commons.net.http.httpclient4.ResourceBody;
+import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
@@ -979,10 +981,9 @@ public final class Http extends BodyTagImpl {
     				req.setHeader("User-Agent",this.useragent);
 
     	// set timeout
-    			if(this.timeout==null || this.timeout.getSeconds()<=0) { // not set
-    				this.timeout=PageContextUtil.remainingTime(pageContext);
-    				if(this.timeout.getSeconds()<=0)
-    					throw new RequestTimeoutException("request timeout occured!");
+    			TimeSpan remaining = PageContextUtil.remainingTime(pageContext,true);
+    			if(this.timeout==null || ((int)this.timeout.getSeconds())<=0 || timeout.getSeconds()>remaining.getSeconds()) { // not set
+    				this.timeout=remaining;
         		}
     			setTimeout(builder,this.timeout);
 
@@ -1027,7 +1028,7 @@ public final class Http extends BodyTagImpl {
 
 /////////////////////////////////////////// EXECUTE /////////////////////////////////////////////////
 		client = builder.build();
-		Executor4 e = new Executor4(this,client,httpContext,req,redirect);
+		Executor4 e = new Executor4(pageContext,this,client,httpContext,req,redirect);
 		HTTPResponse4Impl rsp=null;
 
 		if(timeout==null || timeout.getMillis()<=0){
@@ -2006,18 +2007,21 @@ public final class Http extends BodyTagImpl {
 
 	public static void setTimeout(HttpClientBuilder builder, TimeSpan timeout) {
 		if(timeout==null || timeout.getMillis()<=0) return;
-
-		builder.setConnectionTimeToLive(timeout.getMillis(), TimeUnit.MILLISECONDS);
+		
+		int ms=(int)timeout.getMillis();
+		if(ms<0)ms=Integer.MAX_VALUE;
+		
+		//builder.setConnectionTimeToLive(ms, TimeUnit.MILLISECONDS);
     	SocketConfig sc=SocketConfig.custom()
-    			.setSoTimeout((int)timeout.getMillis())
+    			.setSoTimeout(ms)
     			.build();
     	builder.setDefaultSocketConfig(sc);
 	}
 
 }
 
-class Executor4 extends Thread {
-
+class Executor4 extends PageContextThread {
+	
 	 final Http http;
 	 private final CloseableHttpClient client;
 	 final boolean redirect;
@@ -2028,7 +2032,8 @@ class Executor4 extends Thread {
 	private HttpRequestBase req;
 	private HttpContext context;
 
-	public Executor4(Http http,CloseableHttpClient client, HttpContext context, HttpRequestBase req, boolean redirect) {
+	public Executor4(PageContext pc,Http http,CloseableHttpClient client, HttpContext context, HttpRequestBase req, boolean redirect) {
+		super(pc);
 		this.http=http;
 		this.client=client;
 		this.context=context;
@@ -2037,7 +2042,7 @@ class Executor4 extends Thread {
 	}
 
 	@Override
-	public void run(){
+	public void run(PageContext pc) {
 		try {
 			response=execute(context);
 			done=true;

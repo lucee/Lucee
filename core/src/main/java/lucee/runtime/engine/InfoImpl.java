@@ -55,17 +55,12 @@ public final class InfoImpl implements Info {
     private DateTime releaseDate;
     private String versionName;
 	private String versionNameExplanation;
-    private int state;
-    //private int major;
-    //private int minor;
-    //private int releases;
-    //private int patches;
     private final long releaseTime;
     private Version version;
 	private String level;
-    private final String strState;
-    //private final int intVersion;
-    //private final int fullVersion;
+    
+	//private int state;
+    //private final String strState;
     
 
     public InfoImpl() {
@@ -77,14 +72,12 @@ public final class InfoImpl implements Info {
     	try{
     		Attributes mf = getManifest(bundle).getMainAttributes();
     		
-    		
-    		//Properties prop = getDefaultProperties(bundle);
     		versionName=mf.getValue("Minor-Name"); 
     		if(versionName==null)throw new RuntimeException("missing Minor-Name");
     		
     		versionNameExplanation=mf.getValue("Minor-Name-Explanation");
     		releaseDate=DateCaster.toDateAdvanced(mf.getValue("Built-Date"), TimeZoneConstants.EUROPE_ZURICH);
-    		state=toIntState(mf.getValue("State"));
+    		//state=toIntState(mf.getValue("State"));
     		level="os";
     		version=OSGiUtil.toVersion(mf.getValue("Bundle-Version"));
     	} 
@@ -94,9 +87,7 @@ public final class InfoImpl implements Info {
 		}
     	
     	releaseTime=releaseDate.getTime();
-    	strState=toStringState(state);
-        // intVersion=(major*1000000)+(minor*10000)+(releases*100)+patches;
-        // fullVersion=intVersion+state;
+    	//strState=toStringState(state);
     }
 
 	public static Properties getDefaultProperties(Bundle bundle) {
@@ -285,41 +276,41 @@ public final class InfoImpl implements Info {
 
     /**
      * @return returns the state
-     */
+     
     @Override
 	public int getStateAsInt() {
         return state;
-    }
+    }*/
 
     /**
      * @return returns the state
-     */
+     
     @Override
 	public String getStateAsString() {
         return strState;
-    }
+    }*/
     
 
-    /**
+    /* *
      * @return returns the state
-     */
+     
     public static String toStringState(int state) {
         if(state==STATE_FINAL) return "final";
         else if(state==STATE_BETA) return "beta";
         else if(state==STATE_RC) return "rc";
         else return "alpha";
-    }
+    }*/
     
-    /**
+    /* *
      * @return returns the state
-     */
+    
     public int toIntState(String state) {
     	state=state.trim().toLowerCase();
     	if("final".equals(state)) return STATE_FINAL;
     	else if("beta".equals(state)) return STATE_BETA;
     	else if("rc".equals(state)) return STATE_RC;
         else return STATE_ALPHA;
-    }
+    } */
 
 	@Override
 	public String getVersionName() {
@@ -331,48 +322,9 @@ public final class InfoImpl implements Info {
 		return versionNameExplanation;
 	}
 	
-	
-	/**
-     * cast a lucee string version to a int version
-     * @param version
-     * @return int version
-     */
-    public static int toInVersion(String version) {
-        
-        int	rIndex = version.lastIndexOf(".lco");
-        
-        if(rIndex!=-1) {
-            version=version.substring(0,rIndex);
-        }
-        
-        //1.0.0.090
-        int beginIndex=0;
-        
-        //Major
-        int endIndex=version.indexOf('.',beginIndex);
-        int intVersion=0;
-        intVersion+=Integer.parseInt(version.substring(beginIndex,endIndex))*1000000; // FUTURE 10000000
-
-        // Minor
-        beginIndex=endIndex+1;
-        endIndex=version.indexOf('.',beginIndex);
-        intVersion+=Integer.parseInt(version.substring(beginIndex,endIndex))*10000; // FUTURE 100000
-
-        // releases
-        beginIndex=endIndex+1;
-        endIndex=version.indexOf('.',beginIndex);
-        intVersion+=Integer.parseInt(version.substring(beginIndex,endIndex))*100; // FUTURE 1000
-        
-        // patches
-        beginIndex=endIndex+1;
-        intVersion+=Integer.parseInt(version.substring(beginIndex));
-        
-        return intVersion;
-    }
-
 	@Override
 	public long getFullVersionInfo() {
-		return KeyImpl.createHash64(getVersion().toString())+state;
+		return KeyImpl.createHash64(getVersion().toString());//+state;
 	}
 
 	@Override

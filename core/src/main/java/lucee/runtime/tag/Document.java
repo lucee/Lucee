@@ -653,7 +653,7 @@ public final class Document extends BodyTagImpl {
 			PdfReader reader = new PdfReader(pdf);
 			com.lowagie.text.Document document = new com.lowagie.text.Document(reader.getPageSize(1));
 			Info info = CFMLEngineFactory.getInstance().getInfo();
-			document.addCreator(Constants.NAME+" "+info.getVersion().toString()+" "+info.getStateAsString());
+			document.addCreator(Constants.NAME+" "+info.getVersion().toString());
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			PdfCopy copy = new PdfCopy(document,baos);
 			//PdfWriter writer = PdfWriter.getInstance(document, pdfOut);

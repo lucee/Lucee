@@ -22,6 +22,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
+import lucee.runtime.type.Collection.Key;
 
 /**
  * Query Stack
@@ -50,47 +51,9 @@ public interface QueryStack {
 	 * 
 	 * @param key column name of the value to get
 	 * @return value
-	 * @deprecated use instead
-	 *             <code>{@link #getDataFromACollection(PageContext,String)}</code>
-	 */
-	@Deprecated
-	public abstract Object getDataFromACollection(String key);
-
-	/**
-	 * loop over all Queries and return value at first ocurrence
 	 * 
-	 * @param key column name of the value to get
-	 * @return value
 	 */
-	public abstract Object getDataFromACollection(PageContext pc, String key);
-
-	/**
-	 * loop over all Queries and return value at first ocurrence
-	 * 
-	 * @param key column name of the value to get
-	 * @return value
-	 * @deprecated use instead
-	 *             <code>{@link #getDataFromACollection(PageContext,Collection.Key)}</code>
-	 */
-	@Deprecated
-	public abstract Object getDataFromACollection(Collection.Key key);
-
-	/**
-	 * loop over all Queries and return value at first ocurrence
-	 * 
-	 * @param key column name of the value to get
-	 * @return value
-	 */
-	public abstract Object getDataFromACollection(PageContext pc,
-			Collection.Key key);
-
-	/**
-	 * loop over all Queries and return value as QueryColumn at first ocurrence
-	 * 
-	 * @param key column name of the value to get
-	 * @return value
-	 */
-	public abstract QueryColumn getColumnFromACollection(String key);
+	public Object getDataFromACollection(PageContext pc, Key key, Object defaultValue);
 
 	/**
 	 * loop over all Queries and return value as QueryColumn at first ocurrence

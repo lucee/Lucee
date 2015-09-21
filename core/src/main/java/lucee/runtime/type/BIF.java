@@ -44,6 +44,7 @@ import lucee.runtime.interpreter.ref.cast.Casting;
 import lucee.runtime.interpreter.ref.func.BIFCall;
 import lucee.runtime.interpreter.ref.literal.LFunctionValue;
 import lucee.runtime.interpreter.ref.literal.LString;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;
@@ -334,6 +335,11 @@ public class BIF extends MemberSupport implements UDFPlus {
 	public PageSource getPageSource() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public boolean getBufferOutput(PageContext pc) {
+		return pc.getApplicationContext().getBufferOutput();
 	}
 
 

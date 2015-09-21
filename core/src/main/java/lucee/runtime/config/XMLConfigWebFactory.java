@@ -1698,7 +1698,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			layoutArgs=StringUtil.trim(getAttr(child,"layout-arguments"),"");
 			
 			
-			level=Log4jUtil.toLevel(StringUtil.trim(getAttr(child,"level"),""),Level.ERROR);
+			String strLevel=getAttr(child,"level");
+			if(StringUtil.isEmpty(strLevel,true))strLevel=getAttr(child,"log-level");
+			level=Log4jUtil.toLevel(StringUtil.trim(strLevel,""),Level.ERROR);
 			readOnly=Caster.toBooleanValue(getAttr(child,"read-only"),false);
 			// ignore when no appender/name is defined
 			if(cdAppender.hasClass() && !StringUtil.isEmpty(name)) {
@@ -2897,7 +2899,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			if (update != null) {
 				cs.setUpdateType(getAttr(update,"type"));
-				cs.setUpdateLocation(getAttr(update,"location"), null);
+				
+				String location = getAttr(update,"location");
+				if(location!=null) {
+					location=location.trim();
+					if("http://dev.lucee.org".equals(location)) location="http://snapshot.lucee.org";
+					if("http://preview.lucee.org".equals(location)) location="http://snapshot.lucee.org";
+					if("http://www.lucee.org".equals(location)) location="http://release.lucee.org";
+					if("http://stable.lucee.org".equals(location)) location="http://release.lucee.org";
+				}
+				cs.setUpdateLocation(location, null);
 			}
 		}
 	}

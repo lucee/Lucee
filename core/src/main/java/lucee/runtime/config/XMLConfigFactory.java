@@ -45,7 +45,7 @@ public abstract class XMLConfigFactory {
 		try {
 			
 			Resource version = contextDir.getRealResource("version");
-			String v = info.getVersion() + "-" + info.getStateAsString() + "-" + info.getRealeaseTime();
+			String v = info.getVersion() + "-" + info.getRealeaseTime();
 			if (!version.exists()) {
 				if (!readonly) {
 					version.createNewFile();
