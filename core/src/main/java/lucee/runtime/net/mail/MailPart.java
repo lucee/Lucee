@@ -44,7 +44,7 @@ public final class MailPart implements Externalizable {
 	private int wraptext=-1;
 
 	/** The character encoding in which the part text is encoded */
-	private transient Charset charset;
+	private Charset charset;
 
     private String body;
 	private String type;
