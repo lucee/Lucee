@@ -607,7 +607,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
     	
     	
     	try {
-			if(cfc.contains(pageContext, ON_ERROR)){
+			if(cfc!=null && cfc.contains(pageContext, ON_ERROR)){
 	        	PageException pe = Caster.toPageException(t);
 	        	//Object rtn=cfc.call(pageContext, ON_ERROR, new Object[]{pe.getCatchBlock(pageContext),source});
 	    		

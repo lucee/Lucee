@@ -58,8 +58,13 @@ component {
 		if(not structKeyExists(attrib,'var') and structKeyExists(attrib,'eval')) {
 			if(not len(attrib.label))
 				attrib['label'] = attrib.eval;
-
-			attrib['var'] = evaluate(attrib.eval, arguments.caller);
+			// eval not supported when caller has "Handle unquoted tag attribute values as strings." disabled
+			try {
+				attrib['var'] = evaluate(attrib.eval, arguments.caller);
+			}
+			catch(local.e){
+				throw "attribute ""eval"" cannot be evaluated because it is not a string, the attribute ""eval"" is not supported for the Lucee dialect.";
+			}
 		}
 
 		// context
