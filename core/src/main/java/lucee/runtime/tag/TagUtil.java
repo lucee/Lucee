@@ -154,6 +154,7 @@ public class TagUtil {
 				setter.invoke(tag);
 			} 
 			catch (Exception _e) {
+				if(!(value==null && _e instanceof IllegalArgumentException)) // TODO full null support should allow null, because of that i only suppress in case of an exception
 				throw Caster.toPageException(_e);
 			}
 		}
