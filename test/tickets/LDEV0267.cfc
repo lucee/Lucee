@@ -21,9 +21,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
     public void function testNoArg(){
     	writeLog(file="MyLog", text="test log entry")
-        
-        assertEquals(true,isExecuted);
-        assertEquals("",c);
     }
 
 }
