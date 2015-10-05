@@ -18,9 +18,13 @@
  **/
 package lucee.runtime.net.mail;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.nio.charset.Charset;
 
+import lucee.commons.io.CharsetUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
@@ -29,11 +33,10 @@ import lucee.runtime.type.util.ListUtil;
 /**
  * 
  */
-public final class MailPart implements Serializable {
-    @Override
-    public String toString() {
-        return "lucee.runtime.mail.MailPart(wraptext:"+wraptext+";type:"+type+";charset:"+charset+";body:"+body+";)";
-    }
+public final class MailPart implements Externalizable {
+    
+	private static final String NULL = "<<null>>";
+
 	/** IThe MIME media type of the part */
     private boolean isHTML;
 	
@@ -41,20 +44,53 @@ public final class MailPart implements Serializable {
 	private int wraptext=-1;
 
 	/** The character encoding in which the part text is encoded */
-	private Charset charset;
+	private transient Charset charset;
 
     private String body;
 	private String type;
+	
 
+	
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeBoolean(isHTML);
+		out.writeInt(wraptext);
+		writeString(out,charset.name());
+		writeString(out,body);
+		writeString(out,type);
+	}
+
+
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException,ClassNotFoundException {
+		isHTML=in.readBoolean();
+		wraptext=in.readInt();
+		charset=CharsetUtil.toCharset(readString(in));
+		body=readString(in);
+		type=readString(in);
+	}
+	
+
+	public static void writeString(ObjectOutput out, String str) throws IOException {
+		if(str==null) out.writeObject(NULL) ;
+		else out.writeObject(str);
+	}
+	public static String readString(ObjectInput in) throws ClassNotFoundException, IOException {
+		String str = (String) in.readObject();
+		if(str.equals(NULL))return null;
+		return str;
+	}
+	
     /**
      * 
      */
     public void clear() {
     	isHTML=false;
-    	type=null;
         wraptext=-1;
         charset=null;
         body="null";
+    	type=null;
     }	
     
     
@@ -62,7 +98,7 @@ public final class MailPart implements Serializable {
     /**
      * 
      */
-    public MailPart() {
+    public MailPart() {//needed for deserialize
     }
 
     /**
@@ -187,4 +223,11 @@ public final class MailPart implements Serializable {
 		return sub.substring(0,index) + ls + wrapLine(sub.substring(index+1)+rest);
 		
 	}
+	
+	@Override
+    public String toString() {
+        return "lucee.runtime.mail.MailPart(wraptext:"+wraptext+";type:"+type+";charset:"+charset+";body:"+body+";)";
+    }
+	
+
 }
