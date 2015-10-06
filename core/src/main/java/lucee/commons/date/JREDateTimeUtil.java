@@ -237,12 +237,6 @@ public class JREDateTimeUtil extends DateTimeUtil {
 		c.setTimeZone(tz);
 		return c;
 	}
-	
-	
-	/*public  static Calendar newInstance(Locale l) {
-		Calendar c=Calendar.getInstance(l);
-		return c;
-	}*/
 
 	static void toString(StringBuilder sb,int i, int amount) {
 		String str = Caster.toString(i);
