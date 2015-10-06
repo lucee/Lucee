@@ -139,7 +139,6 @@ millisecond:"ms"
 			#server.coldfusion.productname#
 			<cfif StructKeyExists(server.lucee,'versionName')>(<a href="#server.lucee.versionNameExplanation#" target="_blank">#server.lucee.versionName#</a>)</cfif>
 			#ucFirst(server.coldfusion.productlevel)# 
-			#uCase(server.lucee.state)#
 			#server.lucee.version#
 			(CFML Version #server.ColdFusion.ProductVersion#)
 			</td>

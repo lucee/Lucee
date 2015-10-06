@@ -16,7 +16,7 @@
  */ 
 component {
 
-
+	setting showdebugOutput=false;
 	this.name = "__LUCEE_STATIC_RESOURCE" & ( left( CGI.CF_TEMPLATE_PATH, 6 ) == "zip://" ? "_ARC" : "" );
 
 

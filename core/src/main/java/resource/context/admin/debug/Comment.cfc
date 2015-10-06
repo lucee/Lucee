@@ -75,7 +75,6 @@ component extends="Debug" {
 				echo('('&server.lucee.versionName&')');
 			
 			echo(" "&ucFirst(server.coldfusion.productlevel));
-			echo(" "&uCase(server.lucee.state));
 			echo(" "&server.lucee.version);
 			echo(' (CFML Version '&server.ColdFusion.ProductVersion&')');
 			echo(NL);
