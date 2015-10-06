@@ -75,22 +75,20 @@ public final class Static extends EvaluatorSupport {
 		ASMUtil.remove(tag);
 		
 		
-		StaticBody sb=getScriptBody(body);
+		StaticBody sb=getStaticBody(body);
 		ASMUtil.addStatements(sb,children);
-		body.addStatement(sb);
-		
-		
 	}
 
-	static StaticBody getScriptBody(Body body) {
+	static StaticBody getStaticBody(Body body) {
 		Iterator<Statement> it = body.getStatements().iterator();
 		Statement s;
 		while(it.hasNext()){
 			s=it.next();
 			if(s instanceof StaticBody) return (StaticBody) s;
 		}
-		
-		return new StaticBody(body.getFactory());
+		StaticBody sb = new StaticBody(body.getFactory());
+		body.addStatement(sb);
+		return sb;
 	}
 
 }

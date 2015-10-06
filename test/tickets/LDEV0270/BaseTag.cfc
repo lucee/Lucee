@@ -1,0 +1,1 @@
+<cfcomponent><cfstatic>-static-base-constructor-</cfstatic></cfcomponent>

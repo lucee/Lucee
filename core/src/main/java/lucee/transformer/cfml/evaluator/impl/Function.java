@@ -149,9 +149,8 @@ public final class Function extends EvaluatorSupport {
 			ASMUtil.remove(tag);
 			
 			Body body=(Body) tag.getParent();
-			StaticBody sb=Static.getScriptBody(body);
+			StaticBody sb=Static.getStaticBody(body);
 			sb.addStatement(tag);
-			body.addStatement(sb);
 		}
 	}
 	
