@@ -171,7 +171,7 @@
 		<cfset mimetypes={png:'png',gif:'gif',jpg:'jpeg'}>
 	
 		<cfif len(src) ==0>
-			<cfset ext="gif"><!--- using tp.gif in that case --->
+			<cfset ext="gif">
 		<cfelse>
 		    <cfset ext=listLast(src,'.')>
 		    <cfif ext==src>
