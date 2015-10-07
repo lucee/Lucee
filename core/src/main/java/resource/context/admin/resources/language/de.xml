@@ -18,7 +18,8 @@
 	<data key="services.update.exedesc">Spielen Sie die aktuellsten Pacthes für Ihre Version ein. Nach einem erfolgten Update, müssen Sie sich neu in den Administrator einloggen.</data>
 	<data key="services.update.update">Für Ihre Version steht ein Patch zur Verfügung, Sie haben die Version {current} installiert, die aktuell verfügbare Version ist {available}</data>
 	<data key="services.update.infotitle">Info</data>
-	<data key="services.update.restartdesc">Hier können Sie Lucee neu starten. Nach erfolgtem Restart werden bestehende Sitzungen entfernt. Sie müssen sich in den Administrator erneut einloggen.</data>
+	<data key="services.update.restartdesc">Hier können Sie Lucee neu starten.</data>
+	<data key="services.update.restartOKDesc">Lucee erfolgreich neu gestartet.</data>
 	<data key="services.update.exe">Update ausführen</data>
 	<data key="services.update.jira">Für Details besuchen Sie unser {a}Bug Tracking System{/a}</data>
 	<data key="services.update.removedesc">Entfernen Sie alle nach der Grundinstallation nachträglich installierten Patches order nur den Letzten.</data>

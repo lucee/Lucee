@@ -4,6 +4,7 @@
 <cfset error.message="">
 <cfset error.detail="">
 
+<!---
 <cftry>
 <cfswitch expression="#url.action2#">
 	<cfcase value="restart">
@@ -13,6 +14,7 @@
 			password="#session["password"&request.adminType]#"
 			
 			remoteClients="#request.getRemoteClients()#">
+
 	</cfcase>
 </cfswitch>
 	<cfcatch><cfrethrow>
@@ -21,6 +23,7 @@
 		<cfset error.detail=cfcatch.Detail>
 	</cfcatch>
 </cftry>
+--->
 
 <!--- 
 Redirtect to entry --->
@@ -32,36 +35,66 @@ Redirtect to entry --->
 Error Output --->
 <cfset printError(error)>
 
+<cfoutput>
+
+<script type="text/javascript">
+	var submitted = false;
+	function restart(field) {
+		field.disabled = true;
+		submitted = true;
+		url='restart.cfm?#session.urltoken#&adminType=#request.admintype#';
+		$(document).ready(function(){
+			//createWaitBlockUI("restart in progress ...");
+			$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
+			disableBlockUI=true;
+			
+
+	 		$.get(url, function(response) {
+	      		//window.location=('#request.self#?action=#url.action#');
+	 			//http://localhost:8080/context/admin/server.cfm?action=services.restart
+	 			field.disabled = false;
+	 			//$.unblockUI();
+	      		if((response+"").trim()=="")
+					$('##updateInfoDesc').html("<p>#stText.services.update.restartOKDesc#</p>");
+				else
+					window.location=('#request.self#?action=#url.action#'); //$('##updateInfoDesc').html(response);
+
+	 		});
+		});
+	}
+
+
+	</script>
+			
+
+
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<div id="updateInfoDesc" style="text-align: center;">
+<p>#stText.services.update.restartDesc#</p>
+</div>
+<div style="text-align: center;">
+
+</cfoutput>	
+
 <!--- 
 restart --->
 <cfoutput>
 <table class="tbl" width="740">
-<tr>
-	<td colspan="2">#stText.services.update.restartDesc#</td>
-</tr>
-<tr>
-	<td colspan="2"><cfmodule template="tp.cfm"  width="1" height="1"></td>
-</tr>
-
-
-<script type="text/javascript" language="JavaScript"><!--
-var submitted = false;
-function submitTheForm(field) {
-	if(submitted == true) { return; }
-	field.form.submit();
-	//field.value = "in progress";
-	field.disabled = true;
-	submitted = true;
-}
-//--></script>
-
-<cfform onerror="customError" action="#go(url.action,"restart")#" method="post">
+<form method="post">
 <cfmodule template="remoteclients.cfm" colspan="2">
 <tr>
-	<td colspan="2">
-		<input type="button" class="button submit" name="mainAction" value="#stText.services.update.restart#" onclick="submitTheForm(this)">
+	<td colspan="2"> 
+		<input type="button" class="button submit" name="mainAction" value="#stText.services.update.restart#" onclick="restart(this)">
 	</td>
 </tr>
-</cfform>
+</form>
 </table>
+</div>
 </cfoutput>

@@ -20,7 +20,8 @@
 	<data key="services.update.exedesc">Apply the latest patch for your version. After the update has been installed Lucee will be restarted, all sessions will be cleared and you have to login again.</data>
 	<data key="services.update.update">A patch {available} is available for your current version {current}.</data>
 	<data key="services.update.infotitle">Info</data>
-	<data key="services.update.restartdesc">Restart the Lucee engine. All sessions will be cleared and you will have to login again.</data>
+	<data key="services.update.restartdesc">Restart the Lucee engine.</data>
+	<data key="services.update.restartOKDesc">Lucee sucessfull restarted.</data>
 	<data key="services.update.exe">Execute update</data>
 	<data key="services.update.jira">For details go to our {a}Bug Tracking System{/a}</data>
 	<data key="services.update.removedesc">Remove all installed patches or only latest.</data>
