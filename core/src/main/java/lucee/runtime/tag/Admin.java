@@ -879,7 +879,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     }
     
     private void doRestart() throws PageException {
-        admin.restart(password);
+    	admin.restart(password);
         adminSync.broadcast(attributes, config);
     }
     

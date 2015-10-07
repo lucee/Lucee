@@ -27,6 +27,17 @@ public class RetireOutputStreamFactory {
 	
 	static List<RetireOutputStream> list=new ArrayList<RetireOutputStream>();
 	private static RetireThread thread;
+	private static boolean close=false;
+	
+	/**
+	 * close existing threads and stops opening new onces
+	 */
+	public static void close(){
+		if(thread!=null && thread.isAlive()) {
+			thread.close=true;
+		}
+	}
+	
 	
 	static void startThread(long timeout) {
 		if(timeout<1000) timeout=1000;
@@ -41,8 +52,9 @@ public class RetireOutputStreamFactory {
 	}
 
 	static class RetireThread extends Thread {
-		
+
 		public long sleepTime;
+		public boolean close=false;
 		
 		public RetireThread(long sleepTime){
 			this.sleepTime=sleepTime;
@@ -53,15 +65,17 @@ public class RetireOutputStreamFactory {
 		public void run(){
 			//print.e("start thread");
 			while(true){
+				boolean _close=close;
 				try{
 					if(list.size()==0) break;
 					SystemUtil.wait(this,sleepTime);
 					//SystemUtil.sleep(sleepTime);
 					RetireOutputStream[] arr = list.toArray(new RetireOutputStream[list.size()]); // not using iterator to avoid ConcurrentModificationException
 					for(int i=0;i<arr.length;i++){
-						arr[i].retire();
+						if(_close) arr[i].retireNow();
+						else arr[i].retire();
 					}
-					
+					if(_close) break;
 				}
 				catch(Throwable t){t.printStackTrace();}
 			}

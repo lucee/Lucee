@@ -67,6 +67,7 @@ public final class Controler extends Thread {
     private final RefBoolean run;
 	//private ScheduleThread scheduleThread;
 	private final ConfigServer configServer;
+	private final ShutdownHook shutdownHook; 
 
 	/**
 	 * @param contextes
@@ -79,11 +80,8 @@ public final class Controler extends Thread {
         this.run=run;
         this.configServer=configServer;
         
-        Runtime.getRuntime().addShutdownHook(new ShutdownHook(configServer));
-        
-        // Register Memory Notification Listener
-        //MemoryControler.init(configServer);
-        
+        shutdownHook=new ShutdownHook(configServer);
+        Runtime.getRuntime().addShutdownHook(shutdownHook);
 	}
 	
 	private static class ControlerThread extends Thread {
@@ -443,6 +441,11 @@ public final class Controler extends Thread {
         for(int i=0;i<pools.length;i++) {
         	pools[i].clear();
         }
+    }
+    
+    public void close() {
+    	Runtime.getRuntime().removeShutdownHook(shutdownHook);
+    	shutdownHook.run();
     }
 
     /*private void doLogMemoryUsage(ConfigWeb config) {

@@ -68,7 +68,7 @@ public class RetireOutputStream extends OutputStream {
 		
 		return true;
 	}
-	private boolean retireNow() throws IOException{
+	public boolean retireNow() throws IOException{
 		if(os==null)return false;
 		append=true;
 		close();

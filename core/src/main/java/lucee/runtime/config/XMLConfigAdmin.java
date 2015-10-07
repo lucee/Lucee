@@ -56,6 +56,7 @@ import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.type.s3.S3ResourceProvider;
 import lucee.commons.io.res.util.FileWrapper;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.io.retirement.RetireOutputStreamFactory;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
@@ -77,6 +78,8 @@ import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.engine.CFMLEngineImpl;
+import lucee.runtime.engine.Controler;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -3630,10 +3633,9 @@ public final class XMLConfigAdmin {
     public void runUpdate(Password password) throws PageException {
     	checkWriteAccess();
     	ConfigServerImpl cs=(ConfigServerImpl) ConfigImpl.getConfigServer(config,password);
-    	
-    	
-        CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
-        synchronized(factory){
+    	CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
+        
+    	synchronized(factory){
 	        try {
 	            factory.update(cs.getPassword(),cs.getIdentification());
 	        } 
@@ -3704,7 +3706,8 @@ public final class XMLConfigAdmin {
     	checkWriteAccess();
     	ConfigServerImpl cs=(ConfigServerImpl) ConfigImpl.getConfigServer(config,password);
     	CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
-        synchronized(factory){
+        
+    	synchronized(factory){
 	        try {
 	            factory.restart(cs.getPassword());
 	        } 
