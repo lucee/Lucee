@@ -37,6 +37,7 @@ import javax.net.ssl.SSLContext;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.TemporaryStream;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.Entity;
@@ -45,6 +46,7 @@ import lucee.commons.net.http.httpclient4.entity.ByteArrayHttpEntity;
 import lucee.commons.net.http.httpclient4.entity.EmptyHttpEntity;
 import lucee.commons.net.http.httpclient4.entity.ResourceHttpEntity;
 import lucee.commons.net.http.httpclient4.entity.TemporaryStreamHttpEntity;
+import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -333,14 +335,14 @@ public class HTTPEngine4Impl {
         }
 	}
 
-    public static void setClientSSL(HttpClientBuilder builder, String clientCert, String clientCertPassword) {
+    public static void setClientSSL(PageContext pc, HttpClientBuilder builder, String clientCert, String clientCertPassword) {
         if(!StringUtil.isEmpty(clientCert,true)) {
             if(clientCertPassword==null)clientCertPassword="";
             try {
-
-                File ksFile = new File(clientCert);
+            	Resource ks = ResourceUtil.toResourceExisting(pc, clientCert, pc.getConfig().allowRealPath());
+                pc.getConfig().getSecurityManager().checkFileLocation(ks);
                 KeyStore clientStore = KeyStore.getInstance("PKCS12");
-                clientStore.load(new FileInputStream(ksFile), clientCertPassword.toCharArray());
+                clientStore.load(ks.getInputStream(), clientCertPassword.toCharArray());
 
                 KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
                 kmf.init(clientStore, clientCertPassword.toCharArray());

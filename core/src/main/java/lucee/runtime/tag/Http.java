@@ -352,6 +352,8 @@ public final class Http extends BodyTagImpl {
         preauth=true;
         encoded=true;
         compression=true;
+        clientCert=null;
+        clientCertPassword=null;
 	}
 
 	/**
@@ -670,7 +672,7 @@ public final class Http extends BodyTagImpl {
 
 		// clientCert
 		if(this.clientCert!=null) {
-			HTTPEngine4Impl.setClientSSL(builder, this.clientCert, this.clientCertPassword);
+			HTTPEngine4Impl.setClientSSL(pageContext,builder, this.clientCert, this.clientCertPassword);
 		}
 
     	ConfigWeb cw = pageContext.getConfig();
@@ -1865,14 +1867,14 @@ public final class Http extends BodyTagImpl {
  	/**
 	 * @param clientCert the clientCert to set
 	 */
-	public void setClientCert(String clientCert) {
+	public void setClientcert(String clientCert) {
 		this.clientCert = clientCert;
 	}
 
 	/**
 	 * @param clientCertPassword the clientCertPassword to set
 	 */
-	public void setClientCertPassword(String clientCertPassword) {
+	public void setClientcertpassword(String clientCertPassword) {
 		this.clientCertPassword = clientCertPassword;
 	}
 
