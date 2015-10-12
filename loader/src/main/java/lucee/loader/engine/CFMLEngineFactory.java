@@ -346,8 +346,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (singelton == null)
 			singelton = new CFMLEngineWrapper(engine);
 		else if (!singelton.isIdentical(engine)) {
-			engine.reset();
-			singelton.setEngine(engine);
+			singelton.setEngine(engine); // reset of the old is made before
 		} else {
 			//new RuntimeException("useless call").printStackTrace();
 		}
@@ -533,10 +532,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * @throws ServletException
 	 */
 	private synchronized boolean _restart() throws ServletException {
-		//engine.reset();
+		if(singelton!=null)
+			singelton.reset();
+		
 		initEngine();
-		//registerInstance(engine); they all have only the reference to the wrapper and the wrapper does not change
-		//callListeners(engine);
 		System.gc();
 		return true;
 	}
@@ -550,16 +549,14 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 */
 	private boolean _update(final Identification id) throws IOException,
 			ServletException {
+		
+		if(singelton!=null)
+			singelton.reset();
+		
 		final File newLucee = downloadCore(id);
 		if (newLucee == null)
 			return false;
 
-		/* happens in setEngine
-		 try {
-			singelton.reset();
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}*/
 
 		final Version v = null;
 		try {
@@ -692,10 +689,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				"receive available update version from update provider ("
 						+ strAvailableVersion + ") ");
 
-		strAvailableVersion = CFMLEngineFactorySupport.removeQuotes(
-				strAvailableVersion, true);
-		CFMLEngineFactorySupport.removeQuotes(strAvailableVersion, true); // not necessary but does not hurt
-
+		strAvailableVersion = CFMLEngineFactorySupport.removeQuotes(strAvailableVersion, true);
+							  
 		if (strAvailableVersion.length() == 0
 				|| !Util.isNewerThan(toVersion(strAvailableVersion, VERSION_ZERO),
 						version)) {
@@ -707,10 +702,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				"Found a newer Version \n - current Version "
 						+ version.toString()
 						+ "\n - available Version "
-						+ strAvailableVersion
-						+ ("/rest/update/provider/download/"
-								+ version.toString() + (id != null ? id
-								.toQueryString() : "")));
+						+ strAvailableVersion);
 
 		final URL updateUrl = new URL(updateProvider,
 				"/rest/update/provider/download/" + strAvailableVersion
@@ -1044,6 +1036,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			return luceeServerRoot;
 
 		File lbd = getDirectoryByProp("lucee.base.dir"); // directory defined by the caller
+		if(lbd==null) lbd = getDirectoryByEnv("lucee.base.dir"); // directory defined by the caller
+		
 		File root=lbd;
 		// get the root directory
 		if (root == null)
@@ -1220,7 +1214,16 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	private File getDirectoryByProp(final String name) {
-		final String value = System.getProperty(name);
+		return _getDirectoryBy(System.getProperty(name));
+	}
+
+
+	private File getDirectoryByEnv(final String name) {
+		return _getDirectoryBy(System.getenv(name));
+	}
+	
+
+	private File _getDirectoryBy(final String value) {
 		if (Util.isEmpty(value, true))
 			return null;
 

@@ -62,6 +62,7 @@ import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.res.util.ResourceUtilImpl;
+import lucee.commons.io.retirement.RetireOutputStreamFactory;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
@@ -169,6 +170,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private ScriptEngineFactory cfmlTagEngine;
 	private ScriptEngineFactory luceeScriptEngine;
 	private ScriptEngineFactory luceeTagEngine;
+	private Controler controler;
     
     //private static CFMLEngineImpl engine=new CFMLEngineImpl();
 
@@ -228,10 +230,11 @@ public final class CFMLEngineImpl implements CFMLEngine {
     	
         // start the controler
         SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT),"Start CFML Controller");
-        Controler controler = new Controler(cs,initContextes,5*1000,controlerState);
+        controler = new Controler(cs,initContextes,5*1000,controlerState);
         controler.setDaemon(true);
         controler.setPriority(Thread.MIN_PRIORITY);
         controler.start();
+        
         
         // install extension defined
         String extensionIds=System.getProperty("lucee-extensions");
@@ -708,6 +711,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
     @Override
     public void reset(String configId) {
         
+    	getControler().close();
+		RetireOutputStreamFactory.close();
+    	
         CFMLFactoryImpl cfmlFactory;
         //ScopeContext scopeContext;
         try {
@@ -1050,5 +1056,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	public Instrumentation getInstrumentation() {
 		return InstrumentationFactory.getInstrumentation(ThreadLocalPageContext.getConfig());
 	}
-
+	
+	public Controler getControler() {
+		return controler;
+	}
 }
