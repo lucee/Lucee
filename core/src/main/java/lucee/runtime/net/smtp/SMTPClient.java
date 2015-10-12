@@ -147,6 +147,9 @@ public final class SMTPClient implements Serializable  {
 	private ArrayList<MailPart> parts;
 
 	private TimeZone timeZone;
+	private long lifeTimespan=100*60*5;
+	private long idleTimespan=100*60*1;
+
 	
 	
 	public static String getNow(TimeZone tz){
@@ -181,7 +184,7 @@ public final class SMTPClient implements Serializable  {
 	}
 
 	
-	public static ServerImpl toServerImpl(String server,int port, String usr,String pwd) throws MailException {
+	public static ServerImpl toServerImpl(String server,int port, String usr,String pwd, long lifeTimespan, long idleTimespan) throws MailException {
 		int index;
 		
 		// username/password
@@ -208,13 +211,21 @@ public final class SMTPClient implements Serializable  {
 		}
 		
 		
-		ServerImpl srv = ServerImpl.getInstance(server, port, usr, pwd, false, false);
+		ServerImpl srv = ServerImpl.getInstance(server, port, usr, pwd, lifeTimespan,idleTimespan, false, false);
 		return srv;
 	}
 	
 	public void setHost(String host) throws PageException {
 		if(!StringUtil.isEmpty(host,true))this.host = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(host, ','));
 	} 
+		
+	public void setLifeTimespan(long life) {
+		this.lifeTimespan = life;
+	}
+	
+	public void setIdleTimespan(long idle) {
+		this.idleTimespan = idle;
+	}
 
 	/**
 	 * @param password the password to set
@@ -362,8 +373,8 @@ public final class SMTPClient implements Serializable  {
 		}
 	}
 	
-	
-	private MimeMessageAndSession createMimeMessage(lucee.runtime.config.Config config,String hostName, int port, String username, String password,
+	private MimeMessageAndSession createMimeMessage(lucee.runtime.config.Config config,String hostName, int port, 
+			String username, String password,long lifeTimesan, long idleTimespan,
 			boolean tls,boolean ssl, boolean newConnection) throws MessagingException {
 		
 	      Properties props = (Properties) System.getProperties().clone();
@@ -404,8 +415,8 @@ public final class SMTPClient implements Serializable  {
 	    	  props.remove("password");
 	      }
 	      
-	      SessionAndTransport sat = newConnection?new SessionAndTransport(hash(props), props, auth):
-	    		  SMTPConnectionPool.getSessionAndTransport(props,hash(props),auth);
+	      SessionAndTransport sat = newConnection?new SessionAndTransport(hash(props), props, auth,lifeTimesan,idleTimespan):
+	    		  SMTPConnectionPool.getSessionAndTransport(props,hash(props),auth,lifeTimesan,idleTimespan);
 	      
 	// Contacts
 		SMTPMessage msg = new SMTPMessage(sat.session);
@@ -685,7 +696,7 @@ public final class SMTPClient implements Serializable  {
         			pwd=password;
         		}
         		
-        		nServers[i]=toServerImpl(host[i],prt,usr,pwd);
+        		nServers[i]=toServerImpl(host[i],prt,usr,pwd,lifeTimespan,idleTimespan);
 				if(ssl==SSL_YES) nServers[i].setSSL(true);
         		if(tls==TLS_YES) nServers[i].setTLS(true);
         			
@@ -725,7 +736,8 @@ public final class SMTPClient implements Serializable  {
 			boolean recyleConnection=((ServerImpl)server).reuseConnections();
 			{//synchronized(LOCK) {
 				try {
-					msgSess = createMimeMessage(config,server.getHostName(),server.getPort(),_username,_password,_tls,_ssl,!recyleConnection);
+					msgSess = createMimeMessage(config,server.getHostName(),server.getPort(),_username,_password,
+							((ServerImpl)server).getLifeTimeSpan(),((ServerImpl)server).getIdleTimeSpan(),_tls,_ssl,!recyleConnection);
 				} catch (MessagingException e) {
 					// listener
 					listener(config,server,log,e,System.nanoTime()-start);

@@ -422,27 +422,37 @@
 	<data key="application.listenertypedescription_classic">Classic handling. Lucee looks for the file &quot;Application.cfm&quot; and a coresponding file &quot;OnRequestEnd.cfm&quot;</data>
 	<data key="application.listenermodedescription_curr">Looks for the file &quot;Application.cfc/Application.cfm&quot; only in the current template directory .</data>
 	<data key="application.allowurlrequesttimeout">Request timeout in URL</data>
-	<data key="mail.passwordmissing">Please enter a value for the corresponding password (row </data>
+	<data key="mail.passwordmissing">Please enter a value for the corresponding password.</data>
 	<data key="mail.level">Log level</data>
 	<data key="mail.password">Password</data>
-	<data key="mail.servermissing">Please enter a value for the mailserver (row </data>
+	<data key="mail.passwordDesc">Password of the mail server.</data>
+	<data key="mail.servermissing">Please enter a value for the mailserver.</data>
 	<data key="mail.username">Username</data>
+	<data key="mail.usernameDesc">Username of the mail server.</data>
 	<data key="mail.logfilemissing">Missing value for mail log file</data>
 	<data key="mail.defaultencoding">Default encoding</data>
-	<data key="mail.porterrorfirst">Please enter a value for the port (row </data>
+	<data key="mail.porterrorfirst">Please enter a value for the port.</data>
 	<data key="mail.timeout">Timeout</data>
 	<data key="mail.port">Port</data>
+	<data key="mail.portDesc">Port of the mail server (for example 587).</data>
 	<data key="mail.missingencoding">Please enter a value for the default encoding</data>
 	<data key="mail.logfile">Log file</data>
-	<data key="mail.mailservers">Mail servers</data>
+	<data key="mail.mailservers">Mail server connections</data>
 	<data key="mail.defaultencodingdescription">This is the default encoding used</data>
 	<data key="mail.spoolinterval">Spool interval</data>
 	<data key="mail.server">Server (SMTP)</data>
+	<data key="mail.serverDesc">Mail server host name (for example smtp.gmail.com).</data>
 	<data key="mail.porterrorlast">) of type number</data>
 	<data key="mail.spoolenabled">Spool enable</data>
 	<data key="mail.settings">Mail settings</data>
-	<data key="mail.mailserversdescription">You can define more than one mail server. When sending an email, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</data>
-	<data key="mail.usernamemissing">Please enter a value for the username (row </data>
+	<data key="mail.mailserversdescription">You can define more than one mail server connection. When sending an email, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</data>
+	<data key="mail.createnewMailServerConn">New connection</data>
+	<data key="mail.createnewMailServerConnDesc">Create a new mail server connection.</data>
+	<data key="mail.editMailServerConn">Edit connection</data>
+	<data key="mail.editMailServerConnDesc">Edit an existing mail server connection.</data>
+	<data key="mail.hostNamemissing">Please enter a value for the host name</data>
+	<data key="mail.usernamemissing">Please enter a value for the username</data>
+
 	<data key="general.yes">Yes</data>
 	<data key="general.second">Second</data>
 	<data key="general.hourerror">The field &quot;hour&quot; must contain a positive integer</data>
@@ -1293,7 +1303,14 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="setting.noAccess">no access to change settings</data>
 	
 	<data key="mail.tls">TLS</data>
+	<data key="mail.tlsDesc">Enable Transport Layer Security.</data>
 	<data key="mail.ssl">SSL</data>
+	<data key="mail.sslDesc">Enable secure connections via SSL.</data>
+	<data key="mail.life">Life Timeout</data>
+	<data key="mail.lifeDesc">Overall timeout for the connections established to the mail server.</data>
+	<data key="mail.idle">Idle Timeout</data>
+	<data key="mail.idleDesc">Idle timeout for the connections established to the mail server.</data>
+
 	<data key="overview.servletContainer">Servlet Container</data>
 	<data key="overview.luceeID">Lucee Server ID</data>
 </language>

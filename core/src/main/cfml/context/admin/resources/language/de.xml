@@ -406,27 +406,37 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="application.listenermodedescription_curr">Sucht nur im aktuellen Verzeichnis nach der Datei &apos;Application.cfc/Application.cfm&apos;.</data>
 	<data key="application.listenertypedescription_classic">Klassisches Handling. Lucee sucht nur nach der Datei &apos;Application.cfm&apos; und der entsprechenden Datei &apos;onRequestEnd.cfm&apos;</data>
 	<data key="application.allowurlrequesttimeout">Request timeout via URL</data>
-	<data key="mail.passwordmissing">Bitte geben Sie einen Wert für das entsprechende Passwort an. (Zeile </data>
+	<data key="mail.passwordmissing">Bitte geben Sie einen Wert für das entsprechende Passwort an.</data>
 	<data key="mail.level">Log Level</data>
 	<data key="mail.password">Passwort</data>
-	<data key="mail.servermissing">Bitte geben Sie einen Wert für den Mailserver an. (Zeile </data>
+	<data key="mail.passwordDesc">Passwort des Mail Servers</data>
+	<data key="mail.servermissing">Bitte geben Sie einen Wert für den Mailserver an.</data>
 	<data key="mail.username">Benutzername</data>
+	<data key="mail.usernameDesc">Benutzername für den Mail Server.</data>
 	<data key="mail.logfilemissing">Bitte geben Sie einen Wert für die Log Datei an.</data>
 	<data key="mail.defaultencoding">Standard Encoding</data>
-	<data key="mail.porterrorfirst">Bitte geben Sie einen Wert für den Port (Zeile </data>
+	<data key="mail.porterrorfirst">Bitte geben Sie einen Wert für den Port.</data>
 	<data key="mail.timeout">Timeout</data>
 	<data key="mail.port">Port</data>
+	<data key="mail.port">Port des Mail Servers (z.B. 587)</data>
 	<data key="mail.missingencoding">Bitte geben Sie einen Wert für das Standard Encoding ein</data>
 	<data key="mail.logfile">Log Datei</data>
-	<data key="mail.mailservers">Mail Server</data>
+	<data key="mail.mailservers">Mail Server Verbindungen</data>
 	<data key="mail.defaultencodingdescription">Standardencoding</data>
 	<data key="mail.spoolinterval">Spool Intervall</data>
 	<data key="mail.server">Server (SMTP)</data>
+	<data key="mail.serverDesc">Mail server host name (z.B. smtp.gmail.com)</data>
 	<data key="mail.porterrorlast">) vom Typ Nummer an.</data>
 	<data key="mail.spoolenabled">Spooler an</data>
-	<data key="mail.mailserversdescription">Sie können mehrere Mailsserver definieren. Wenn Sie eine Mail absenden, versucht Lucee die Mail der Reihe nach über einen der angegebenen Mailserver zu versenden.</data>
+	<data key="mail.mailserversdescription">Sie können mehrere Mailsserververbindungen definieren. Wenn Sie eine Mail absenden, versucht Lucee die Mail der Reihe nach über einen der angegebenen Mailserver zu versenden.</data>
 	<data key="mail.settings">Mail Einstellungen</data>
-	<data key="mail.usernamemissing">Bitte geben Sie einen Wert für den Benutzernamen an. (Zeile </data>
+	<data key="mail.createnewMailServerConn">Neue Mailserververbindung</data>
+	<data key="mail.createnewMailServerConnDesc">Erstelle eine neue Mailserververbindung.</data>
+	<data key="mail.editMailServerConn">Mailserververbindung editieren</data>
+	<data key="mail.editMailServerConnDesc">Editiere eine bestehende Mailserververbindung.</data>
+	<data key="mail.hostnamemissing">Bitte geben Sie einen Wert für den Host an.</data>
+	<data key="mail.usernamemissing">Bitte geben Sie einen Wert für den Benutzernamen an.</data>
+
 	<data key="general.yes">Ja</data>
 	<data key="general.second">Sekunde</data>
 	<data key="general.hourerror">Der Wert des Feldes Stunde muss einen positiven Wert enthalten (Wert &gt; 0)</data>
@@ -1130,4 +1140,15 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="help.logout">Ausloggen</data>
 	<data key="help.video.languageHelpNotAvailable">Das Hilfe Video ist in Deutsch nicht verfügbar. Stattdessen wird das englische Video verwendet.</data>
 	<data key="help.html.languageHelpNotAvailable">Die HTML Hilfe ist in Deutsch nicht verfügbar. Stattdessen wird die englische HTML Hilfe verwendet.</data>
+
+	<data key="mail.tls">TLS</data>
+	<data key="mail.tlsDesc">"Transport Layer Security" einschalten.</data>
+	<data key="mail.ssl">SSL</data>
+	<data key="mail.sslDesc">Sichere Verbindung verwenden.</data>
+
+	<data key="mail.life">Life Timespan</data>
+	<data key="mail.lifeDesc">Gesamtlebensdauer der Verbindungen die zum Mail Server erstellt werden.</data>
+	<data key="mail.idle">Idle Timespan</data>
+	<data key="mail.idleDesc">Timeout bei inaktivität der Verbindung zum Mail Server.</data>
+
 </language>

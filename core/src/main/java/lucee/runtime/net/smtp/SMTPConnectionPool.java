@@ -34,11 +34,10 @@ import javax.mail.Transport;
 
 public class SMTPConnectionPool {
 
-	private static final long MAX_AGE = 5*60*1000;
 	private static Map<String,Stack<SessionAndTransport>> sessions=new HashMap<String, Stack<SessionAndTransport>>();
 	
 
-	public static SessionAndTransport getSessionAndTransport(Properties props, String key, Authenticator auth) throws MessagingException{
+	public static SessionAndTransport getSessionAndTransport(Properties props, String key, Authenticator auth, long lifeTimespan, long idleTimespan) throws MessagingException{
 		
 	   // Session
 		SessionAndTransport sat=null;
@@ -47,14 +46,22 @@ public class SMTPConnectionPool {
 		
 		// when sat still valid return it
 		if(sat!=null)	{
-			if(sat.lastAccess+MAX_AGE>System.currentTimeMillis()) {
+	         if(isValid(sat,lifeTimespan,idleTimespan)) {
 				return sat.touch();
 			}
 			disconnect(sat.transport);
 		}
 		
-		return new SessionAndTransport(key, props, auth);
+		return new SessionAndTransport(key, props, auth,lifeTimespan,idleTimespan);
 	}
+	
+	private static boolean isValid(SessionAndTransport sat, long lifeTimespan, long idleTimespan) {
+		
+		return (idleTimespan<=0 || sat.lastAccess+idleTimespan>System.currentTimeMillis()) 
+				&& 
+				(lifeTimespan<=0 || sat.created+lifeTimespan>System.currentTimeMillis());
+	}
+
 
 
 	public static void releaseSessionAndTransport(SessionAndTransport sat) {
@@ -103,7 +110,8 @@ public class SMTPConnectionPool {
 	private static void closeSessions(Stack<SessionAndTransport> oldStack,Stack<SessionAndTransport> newStack) {
 		SessionAndTransport sat;
 		while((sat=pop(oldStack))!=null){
-			if(sat.lastAccess+MAX_AGE<System.currentTimeMillis()) {
+			if(!isValid(sat, sat.lifeTimespan, sat.idleTimespan)) {
+
 				disconnect(sat.transport);
 			}
 			else
@@ -160,11 +168,18 @@ public class SMTPConnectionPool {
 		public final Transport transport;
 		public final String key;
 		private long lastAccess;
+		public final long created;
+		public final long lifeTimespan;
+		public final long idleTimespan;
+
 		
-		SessionAndTransport(String key, Properties props,Authenticator auth) throws NoSuchProviderException {
+		SessionAndTransport(String key, Properties props,Authenticator auth, long lifeTimespan, long idleTimespan) throws NoSuchProviderException {
 			this.key=key;
 			this.session=createSession(key, props, auth);
 			this.transport=session.getTransport("smtp");
+			this.created=System.currentTimeMillis();
+			this.lifeTimespan=lifeTimespan;
+			this.idleTimespan=idleTimespan;
 			touch();
 		}
 

@@ -2417,7 +2417,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
                 getString("admin",action,"dbpassword"),
                 Caster.toIntValue(getString("admin",action,"port")),
                 getBoolV("tls", false),
-                getBoolV("ssl", false)
+                getBoolV("ssl", false),
+                toTimeout(getObject("life",null),1000*60*5),
+                toTimeout(getObject("idle",null),1000*60*5)
+
         );
         store();
         adminSync.broadcast(attributes, config);
@@ -2478,7 +2481,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         
 
         Server[] servers = config.getMailServers();
-        lucee.runtime.type.Query qry=new QueryImpl(new String[]{"hostname","password","username","port","authentication","readonly","tls","ssl"},servers.length,"query");
+        lucee.runtime.type.Query qry=new QueryImpl(new String[]{"hostname","password","username","port","authentication","readonly","tls","ssl","life","idle"},servers.length,"query");
         
         
         for(int i=0;i<servers.length;i++) {
@@ -2494,6 +2497,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
             	ServerImpl si = (ServerImpl)s;
 	            qry.setAt("ssl",row,Caster.toBoolean(si.isSSL()));
 	            qry.setAt("tls",row,Caster.toBoolean(si.isTLS()));
+	            qry.setAt("life",row,(si.getLifeTimeSpan()/1000));
+	            qry.setAt("idle",row,(si.getIdleTimeSpan()/1000));
             }
         }
         pageContext.setVariable(getString("admin",action,"returnVariable"),qry);
@@ -5402,6 +5407,17 @@ public final class Admin extends TagImpl implements DynamicAttributes {
             throw new ApplicationException("Attribute ["+attributeName+"] for tag ["+tagName+"] is required if attribute action has the value ["+actionName+"]");
         return value;
     }
+    
+    private long toTimeout(Object timeout, long defaultValue ) throws PageException {
+    	if(timeout instanceof TimeSpan)
+			return ((TimeSpan) timeout).getMillis();
+		// seconds
+		int i = Caster.toIntValue(timeout);
+		if(i<0)
+			throw new ApplicationException("invalid value ["+i+"], value must be a positive integer greater or equal than 0");
+		return i*1000;
+	}
+
 
     private boolean getBoolV(String attributeName, boolean defaultValue) {
         Object value=attributes.get(attributeName,null);

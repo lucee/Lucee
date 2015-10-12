@@ -3758,6 +3758,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							Caster.toIntValue(getAttr(el,"port"), 25), 
 							getAttr(el,"username"),
 							ConfigWebUtil.decrypt(getAttr(el,"password")), 
+							toLong(el.getAttribute("life"), 1000*60*5),
+							toLong(el.getAttribute("idle"), 1000*60*1),
 							toBoolean(getAttr(el,"tls"), false), 
 							toBoolean(getAttr(el,"ssl"), false), 
 							toBoolean(getAttr(el,"reuse-connection"), true));
@@ -4787,6 +4789,18 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		catch (PageException e) {
 			return defaultValue;
 		}
+	}
+	
+
+
+	public static long toLong(String value, long defaultValue) {
+
+		if (value == null || value.trim().length() == 0)
+			return defaultValue;
+		long longValue = Caster.toLongValue(value.trim(), Long.MIN_VALUE);
+		if (longValue == Long.MIN_VALUE)
+			return defaultValue;
+		return longValue;
 	}
 
 	/**

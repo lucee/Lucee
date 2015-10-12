@@ -88,9 +88,10 @@ public final class SMTPVerifier{
         
         Transport transport = session.getTransport("smtp");                
         if(hasAuth)transport.connect( host , username ,password );                
-        else transport.connect( );                
+        else transport.connect( );    
+        boolean rtn=transport.isConnected();
         transport.close();
-        
-        return true;
+        return rtn;
+
     }
 }

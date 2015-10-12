@@ -36,17 +36,11 @@ public final class ServerImpl implements Server {
 	private boolean tls;
 	private boolean ssl;
 	private final boolean reuse;
-	//private static Pattern[] patterns=new Pattern[3];
-    
-	//[user:password@]server[:port],[
-	/*static {
-		patterns[0]=Pattern.compile("^([^:\\s)]+)\\s*:\\s*([^@\\s)]+)\\s*@\\s*([^:\\s)]+)\\s*:\\s*(.+)$");
-		patterns[1]=Pattern.compile("^([^:\\s)]+)\\s*:\\s*([^@\\s)]+)\\s*@\\s*(.+)$");
-		patterns[2]=Pattern.compile("^([^:\\s)]+)\\s*:\\s*(.+)$");
-		
-	}*/
+	private final long life;
+	private final long idle;
+
 	
-	public static ServerImpl getInstance(String host, int defaultPort,String defaultUsername,String defaultPassword, boolean defaultTls, boolean defaultSsl) throws MailException {
+	public static ServerImpl getInstance(String host, int defaultPort,String defaultUsername,String defaultPassword, long defaultLifeTimespan, long defaultIdleTimespan, boolean defaultTls, boolean defaultSsl) throws MailException {
 		
 		String userpass,user=defaultUsername,pass=defaultPassword,tmp;
 		int port=defaultPort;
@@ -83,7 +77,7 @@ public final class ServerImpl implements Server {
 		else host=host.trim();
 
 			
-		return new ServerImpl(host,port,user,pass,defaultTls,defaultSsl,true);
+		return new ServerImpl(host,port,user,pass,defaultLifeTimespan, defaultIdleTimespan, defaultTls,defaultSsl,true);
 	}
 	
 
@@ -92,10 +86,12 @@ public final class ServerImpl implements Server {
 		this.port=port;
 	}*/
 	
-	public ServerImpl(String hostName,int port,String username,String password, boolean tls, boolean ssl, boolean reuseConnections) {
+	public ServerImpl(String hostName,int port,String username,String password, long lifeTimespan, long idleTimespan, boolean tls, boolean ssl, boolean reuseConnections) {
 		this.hostName=hostName;
 		this.username=username;
 		this.password=password;
+		this.life=lifeTimespan;
+		this.idle=idleTimespan;
 		this.port=port;
 		this.tls=tls;
 		this.ssl=ssl;
@@ -134,7 +130,7 @@ public final class ServerImpl implements Server {
 
     @Override
     public Server cloneReadOnly() {
-        ServerImpl s = new ServerImpl(hostName, port,username, password,tls,ssl,reuse);
+        ServerImpl s = new ServerImpl(hostName, port,username, password,life,idle,tls,ssl,reuse);
         s.readOnly=true;
         return s;
     }
@@ -165,6 +161,13 @@ public final class ServerImpl implements Server {
 
 	public void setTLS(boolean tls) {
 		this.tls=tls;
+	}
+
+	public long getLifeTimeSpan() {
+		return life;
+	}
+	public long getIdleTimeSpan() {
+		return idle;
 	}
 
 

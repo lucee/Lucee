@@ -495,7 +495,7 @@ public final class XMLConfigAdmin {
 	 * @param tls 
      * @throws PageException 
      */
-    public void updateMailServer(String hostName,String username,String password, int port, boolean tls, boolean ssl) throws PageException {
+    public void updateMailServer(String hostName,String username,String password, int port, boolean tls, boolean ssl,long lifeTimeSpan, long idleTimeSpan) throws PageException {
     	checkWriteAccess();
     	boolean hasAccess=ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_MAIL);
         if(!hasAccess)
@@ -518,28 +518,29 @@ public final class XMLConfigAdmin {
         Element[] children = XMLConfigWebFactory.getChildren(mail,"server");
       	
         // Update
+        Element server=null;
         for(int i=0;i<children.length;i++) {
       	    Element el=children[i];
       	    String smtp=el.getAttribute("smtp");
   			if(smtp!=null && smtp.equalsIgnoreCase(hostName)) {
-	      		el.setAttribute("username",username);
-	      		el.setAttribute("password",ConfigWebUtil.encrypt(password));
-	      		el.setAttribute("port",Caster.toString(port));
-	      		el.setAttribute("tls",Caster.toString(tls));
-	      		el.setAttribute("ssl",Caster.toString(ssl));
-	      		return ;
+	      		server=el;
+	      		break;
   			}
       	}
         
         // Insert
-      	Element server = doc.createElement("server");
+      	if(server==null) {
+      		server = doc.createElement("server");
+      		mail.appendChild(XMLCaster.toRawNode(server));
+      	}
       	server.setAttribute("smtp",hostName);
       	server.setAttribute("username",username);
       	server.setAttribute("password",ConfigWebUtil.encrypt(password));
       	server.setAttribute("port",Caster.toString(port));
       	server.setAttribute("tls",Caster.toString(tls));
       	server.setAttribute("ssl",Caster.toString(ssl));
-      	mail.appendChild(XMLCaster.toRawNode(server));
+      	server.setAttribute("life",Caster.toString(lifeTimeSpan));
+      	server.setAttribute("idle",Caster.toString(idleTimeSpan));
       	
     }
 
