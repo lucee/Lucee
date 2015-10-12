@@ -59,8 +59,9 @@ import lucee.runtime.config.XMLConfigAdmin;
 public final class Controler extends Thread {
 
 	private static final long TIMEOUT = 50*1000;
+	
 	private int interval;
-	private long lastMinuteInterval=System.currentTimeMillis();
+	private long lastMinuteInterval=System.currentTimeMillis()-(1000*59); // first after a second
 	private long lastHourInterval=System.currentTimeMillis();
 	
     private final Map contextes;
