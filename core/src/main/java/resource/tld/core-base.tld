@@ -62,7 +62,7 @@
 		<description>Tag for the Lucee web/server administrator</description>
 		<attribute-type>dynamic</attribute-type>
 	</tag>
-	
+
 	<!-- Associate -->
 	<tag>
 		<name>associate</name>
@@ -126,8 +126,8 @@
 			<description>used to a address a specific loop instead of the nearest one.</description>
 		</attribute>
 	</tag>
-	
-	
+
+
 	<!-- Retry -->
 	<tag>
 		<name>retry</name>
@@ -143,7 +143,7 @@
 		<description>used to jump from a catch block, back to the beginning of the try block.</description>
 		<attribute-type>fixed</attribute-type>
 	</tag>
-	
+
 	<!-- Cache -->
 	<tag>
 		<name>cache</name>
@@ -540,7 +540,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<description>Type of catch, default:Any</description>
 		</attribute>
 	</tag>
-	
+
 	<!-- Collection -->
 	<tag>
 		<name>collection</name>
@@ -571,7 +571,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>create,repair,delete,optimize,list,map,categorylist</values>	
+			<values>create,repair,delete,optimize,list,map,categorylist</values>
 			<default-value>list</default-value>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -771,7 +771,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<description>Used within a cfloop tag. Returns processing to the top of a loop.</description>
 		<attribute-type>noname</attribute-type>
-		
+
 		<attribute>
 			<type>string</type>
 			<name>label</name>
@@ -1203,7 +1203,7 @@ Example:
 	   		</description>
 		</attribute>
 	</tag>
-	
+
 	<!-- Document -->
 	<tag>
 		<name>document</name>
@@ -1523,10 +1523,10 @@ Determines if the contents of the cfdocumentitem tag body has to be evaluated at
 - false (default): evaluates the contents of the cfdocumentitem tag body immediately.
 			</description>
 		</attribute>
-		
-		
-		
-		
+
+
+
+
 	</tag>
 	<!-- DocumentSection -->
 	<tag>
@@ -1635,7 +1635,7 @@ Determines if the contents of the cfdocumentitem tag body has to be evaluated at
 
 
 	</tag>
-	
+
 	<!-- Else -->
 	<tag>
 		<name>else</name>
@@ -2082,7 +2082,7 @@ If omitted, the file's attributes are maintained.</description>
    if set to false (default), expects all parent directories to exist, true will generate necessary directories
    </description>
 		</attribute>
-		
+
 		<attribute>
 			<type>string</type>
 			<name>file</name>
@@ -2112,7 +2112,7 @@ If omitted, the file's attributes are maintained.</description>
 		<description>
 possible values are:
 String "request": If original content was created within the current request, cached content data isused.
-a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data isused. 
+a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data isused.
 
 To use cached data, the tag must be called with the exact same arguments. Only used by action "read" and "readbinary"</description>
     	</attribute>
@@ -2164,7 +2164,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		the count.</description>
 		</attribute>
 	</tag>
-	
+
 	<!-- Forward -->
 	<tag>
 		<name>forward</name>
@@ -2382,7 +2382,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<description>Name of the result value (default:cfftp)</description>
 		</attribute>
 	</tag>
-	
+
 	<!-- Graph -->
 	<tag>
 		<name>graph</name>
@@ -3820,7 +3820,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>preauth</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>if set to true (default), Lucee sends the basic authentication (username password) always (Preemptive Basic Authentication), 
+			<description>if set to true (default), Lucee sends the basic authentication (username password) always (Preemptive Basic Authentication),
 			if set to false the authentication is only send when the server ask for it (status code 401).</description>
 		</attribute>
 		<attribute>
@@ -4015,6 +4015,20 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>The domain to authenticate within. this attribute is only used when authenication type is "NTLM"</description>
 		</attribute>
+ 		<attribute>
+			<type>string</type>
+			<name>clientCert</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>The full path to a PKCS12 format file that contains the client certificate for the request.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>clientCertPassword</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Password used to decrypt the client certificate.</description>
+		</attribute>
 		<attribute>
 			<type>object</type>
 			<name>cachedWithin</name>
@@ -4023,7 +4037,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<description>
 possible values are:
 String "request": If original content was created within the current request, cached content data isused.
-a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data isused. 
+a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data isused.
 
 To use cached data, the tag must be called with the exact same arguments.</description>
     	</attribute>
@@ -4055,18 +4069,18 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<rtexprvalue>true</rtexprvalue>
 			<values>body,CGI,cookie,file,form,formfield,header,URL,XML</values>
 			<description>valid values are:
-- header: specifies an HTTP header. 
+- header: specifies an HTTP header.
 - CGI: specifies an HTTP header. encodes the value depending on the attribute "encoded
 - body: specifies the body of the HTTP request.
 - XML: identifies the request as having a content-type of text/xml. Specifies that the value attribute contains the body of the HTTP request. Used to send XML to the destination URL.
-- file: tells Lucee to send the contents of the specified file. 
+- file: tells Lucee to send the contents of the specified file.
 - URL: specifies a URL query string name-value pair to append to the cfhttp url attribute.
-- form,formField: specifies a form field to send. 
-- cookie: specifies a cookie to send as an HTTP header. 
-			
-			
-			
-			
+- form,formField: specifies a form field to send.
+- cookie: specifies a cookie to send as an HTTP header.
+
+
+
+
 			</description>
 		</attribute>
 		<attribute>
@@ -4538,8 +4552,8 @@ both functions must have the same attributes; otherwise
 			<script-support>required</script-support>
 			<description>A logical path to an existing page.</description>
 		</attribute>
-		
-		
+
+
 		<attribute>
 			<type>object</type>
 			<name>cachedWithin</name>
@@ -4548,7 +4562,7 @@ both functions must have the same attributes; otherwise
 			<description>
 possible values are:
 String "request": If original content was created within the current request, cached content data isused.
-a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data isused. 
+a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data isused.
 
 To use cached data, the function must be called with the exact same arguments.
 		</description>
@@ -5373,7 +5387,7 @@ Permits searching collections by title or displaying a separate title from the k
 			the following is the log type (level) in decreasing order of severity:
 - fatal: Severe errors that cause premature termination.
 - error: Other runtime errors or unexpected conditions.
-- warn,warning: Use of deprecated APIs, poor use of API, 'almost' errors, other runtime situations that are undesirable or unexpected, but not necessarily "wrong". 
+- warn,warning: Use of deprecated APIs, poor use of API, 'almost' errors, other runtime situations that are undesirable or unexpected, but not necessarily "wrong".
 - info,information (default): Interesting runtime events.
 - debug: Detailed information on the flow through the system.
 - trace:Most detailed information.
@@ -5485,7 +5499,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<rtexprvalue>true</rtexprvalue>
 			<description> Last row of query that is included in the loop. You cannot use this attribute together with the attribute maxRows.</description>
 		</attribute>
-		
+
 		<attribute>
 			<type>number</type>
 			<name>maxRows</name>
@@ -5493,7 +5507,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies the maximum number of rows to display in the output section. You cannot use this attribute together with the attribute endrow.</description>
 		</attribute>
-		
+
 		<attribute>
 			<type>string</type>
 			<name>list</name>
@@ -5522,7 +5536,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<rtexprvalue>true</rtexprvalue>
 			<description>Collection to loop over</description>
 		</attribute>
-		
+
 		<attribute>
 			<type>struct</type>
 			<name>struct</name>
@@ -5530,7 +5544,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<rtexprvalue>true</rtexprvalue>
 			<description>struct to loop over</description>
 		</attribute>
-		
+
 		<attribute>
 			<type>string</type>
 			<name>item</name>
@@ -5589,7 +5603,7 @@ Lucee uses the number of characters in the file.</description>
 		"Customer_ID." The group attribute, which is case sensitive, eliminates adjacent duplicates when the
 		data is sorted by the specified field. See the Usage section for exceptions.</description>
 		</attribute>
-		
+
 		<attribute>
 			<type>boolean</type>
 			<name>groupCaseSensitive</name>
@@ -5601,8 +5615,8 @@ Lucee uses the number of characters in the file.</description>
 		by a case-insensitive SQL query, set the groupCaseSensitive attribute to NO to keep the recordset
 		intact.</description>
 		</attribute>
-		
-		
+
+
 		<attribute>
 			<type>string</type>
 			<name>label</name>
@@ -5611,8 +5625,8 @@ Lucee uses the number of characters in the file.</description>
 		    <status>implemented</status>
 			<description>used to a address this loop from a "break" or "continue" statement (instead of the nearest one).</description>
 		</attribute>
-		
-		
+
+
 		<attribute>
 			<type>numeric</type>
 			<name>times</name>
@@ -5621,7 +5635,7 @@ Lucee uses the number of characters in the file.</description>
 		    <status>implemented</status>
 			<description>used for a simple loop that is looping n times</description>
 		</attribute>
-		
+
 	</tag>
 	<!-- Mail -->
 	<tag>
@@ -6074,7 +6088,7 @@ Lucee uses the number of characters in the file.</description>
 			<description>name for variables for action size</description>
 		</attribute>
 	</tag>
-	
+
 	<!-- Param -->
 	<tag>
 		<name>Param</name>
@@ -6127,7 +6141,7 @@ Lucee uses the number of characters in the file.</description>
 - variableName: a string formatted according to variable naming conventions
 - xml: XML objects and XML strings
 - zipcode: U.S., 5- or 9-digit format ZIP codes
-			
+
 </description>
 		</attribute>
 		<attribute>
@@ -6686,8 +6700,8 @@ sct.dotNotation --> keyname: "dotNotation"
 sct["bracketNotation"] --> keyname: "bracketNotation"
 			</description>
 		</attribute>
-		
-		
+
+
 	</tag>
 
 	<!-- pageEncoding -->
@@ -6760,7 +6774,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<rtexprvalue>true</rtexprvalue>
 			<description>Corresponds to the actual value that Lucee passes to the stored procedure.</description>
 		</attribute>
-		
+
 		<attribute>
 			<type>string</type>
 			<name>sqltype</name>
@@ -7194,7 +7208,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		<description>
 possible values are:
 String "request": If original query was created within the current request, cached query data isused.
-a timespan (created with function CreateTimeSpan): If original query date falls within the time span, cached query data isused. 
+a timespan (created with function CreateTimeSpan): If original query date falls within the time span, cached query data isused.
 
 To use cached data, the current query must use the same SQL statement, data source, query name, user name, and password.</description>
     </attribute>
@@ -7287,7 +7301,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
 		</attribute>
-		
+
 		<attribute>
 			<type>numeric</type>
 			<name>nestingLevel</name>
@@ -7297,8 +7311,8 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description>the level for the current pagesource</description>
 		</attribute>
-		
-		
+
+
 	</tag>
 	<!-- QueryParam -->
 	<tag>
@@ -7381,7 +7395,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 	also specify the list attribute.</description>
 		</attribute>
 	</tag>
-	
+
 	<!-- LuceeConfiguration -->
 	<tag>
 		<name>LuceeConfiguration</name>
@@ -7393,7 +7407,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 		<attribute-type>dynamic</attribute-type>
 		<description>Protects Lucee-web.xml from LFI</description>
 	</tag>
-	
+
 	<!-- Report -->
 	<tag>
 		<name>Report</name>
@@ -7864,7 +7878,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<description>if set to true, the scheduled task get deleted when there is no possible future execution.</description>
 		</attribute>
 	</tag>
-	
+
 	<!-- Search -->
 	<tag>
 		<name>Search</name>
@@ -8109,8 +8123,8 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<description>Expressed in milli seconds.</description>
 		</attribute>
 	</tag>
-	
-	
+
+
 	<!-- Static -->
 	<tag>
 		<name>Static</name>
@@ -8127,7 +8141,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 		<description>defines a static constructor within components</description>
 		<attribute-type>fixed</attribute-type>
 	</tag>
-	
+
 	<!-- Stopwatch -->
 	<tag>
 		<name>Stopwatch</name>
@@ -8242,7 +8256,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description>This is the age of which the query data can be</description>
 		</attribute>
-    
+
 		<attribute>
 			<type>object</type>
 			<name>cachedWithin</name>
@@ -8251,12 +8265,12 @@ To use cached data, the current query must use the same SQL statement, data sour
 		<description>
 possible values are:
 String "request": If original query was created within the current request, cached query data isused.
-a timespan (created with function CreateTimeSpan): If original query date falls within the time span, cached query data isused. 
+a timespan (created with function CreateTimeSpan): If original query date falls within the time span, cached query data isused.
 
 To use cached data, the current query must use the same SQL statement, data source, query name, user name, and password.</description>
     </attribute>
-    
-    
+
+
 		<attribute>
 			<type>string</type>
 			<name>cachename</name>
@@ -8315,7 +8329,7 @@ The action to take, one of the following values:
 or until the period specified in the timeout attribute passes, before continuing processing.
 If you don't specify a timeout and thread you are joining to doesn't finish, the current thread also cannot finish processing.
 - run: Creates a thread and starts it processing.
-- sleep: Suspends the current threads processing for the time specified by the duration attribute. 
+- sleep: Suspends the current threads processing for the time specified by the duration attribute.
 This action is useful if one thread must wait for another thread to do processing without joining the threads.
 - terminate: Stops processing of the thread specified in the name attribute.
 If you terminate a thread, the thread scope includes an ERROR metadata structure with information about the termination.</description>
@@ -8465,8 +8479,8 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<rtexprvalue>true</rtexprvalue>
 			<description>entry context level</description>
 		</attribute>
-		
-		
+
+
 	</tag>
 	<!-- Timer -->
 	<tag>
@@ -8547,7 +8561,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<description>ODBC lock type.</description>
 		</attribute>
 	</tag>
-	
+
 	<!-- Trace -->
 	<tag>
 		<name>Trace</name>
@@ -9769,12 +9783,12 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
             as specified by the cfzip parent tag. (optional, default=yes)</description>
     </attribute>
 	</tag>
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 	<!-- Form -->
 	<tag>
 		<name>form</name>
@@ -11230,6 +11244,6 @@ Valid only for cfinput type="text".</description>
 
 
 
-	
-	
+
+
 </taglib>
