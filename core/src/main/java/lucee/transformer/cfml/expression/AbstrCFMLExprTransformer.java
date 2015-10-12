@@ -152,7 +152,7 @@ public abstract class AbstrCFMLExprTransformer {
 	private static final short DYNAMIC=1;
 	private static FunctionLibFunction GET_STATIC_SCOPE = null;
 	private static FunctionLibFunction JSON_ARRAY = null;
-	private static FunctionLibFunction JSON_STRUCT = null;
+	protected static FunctionLibFunction JSON_STRUCT = null;
 
 	public static final short CTX_OTHER = TagLibTagScript.CTX_OTHER;
 	public static final short CTX_NONE = TagLibTagScript.CTX_NONE;
@@ -1253,10 +1253,8 @@ public abstract class AbstrCFMLExprTransformer {
 		var.setEnd(data.srcCode.getPosition());
 		return var;
 	}
-	
 
-	
-	private Expression json(ExprData data,FunctionLibFunction flf, char start, char end) throws TemplateException {
+	protected Expression json(ExprData data,FunctionLibFunction flf, char start, char end) throws TemplateException {
 		if(!data.srcCode.forwardIfCurrent(start))return null;
 		
 		Position line = data.srcCode.getPosition();

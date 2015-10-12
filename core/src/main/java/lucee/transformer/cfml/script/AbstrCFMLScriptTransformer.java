@@ -1787,8 +1787,18 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		if(attr!=null){
 			attrType = attr.getScriptSupport();
 			char c = data.srcCode.getCurrent();
-			if(ATTR_TYPE_REQUIRED==attrType || ((!data.srcCode.isCurrent(';') && !data.srcCode.isCurrent('{')) && ATTR_TYPE_OPTIONAL==attrType)) {
-				attrValue =attributeValue(data, tlt.getScript().getRtexpr());
+			if(ATTR_TYPE_REQUIRED==attrType || (!data.srcCode.isCurrent(';') && ATTR_TYPE_OPTIONAL==attrType)) {
+				if(data.srcCode.isCurrent('{')) {// this can be only a json string
+					int p=data.srcCode.getPos();
+					try{
+						attrValue=isSimpleValue(attr.getType())?null:json(data,JSON_STRUCT,'{','}');
+					}
+					catch(Throwable t){
+						data.srcCode.setPos(p);
+					}
+				}
+				else attrValue =attributeValue(data, tlt.getScript().getRtexpr());
+				
 				if(attrValue!=null && isOperator(c)) {
 					data.srcCode.setPos(pos);
 					return null;
@@ -1821,6 +1831,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		tag.setEnd(data.srcCode.getPosition());
 		eval(tlt,data,tag);
 		return tag;
+	}
+	
+	private boolean isSimpleValue(String type) {
+		return type.equalsIgnoreCase("string") || type.equalsIgnoreCase("boolean") || type.equalsIgnoreCase("number") || type.equalsIgnoreCase("numeric");
 	}
 
 	private boolean isOperator(char c) {
