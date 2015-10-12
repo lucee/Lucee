@@ -372,8 +372,6 @@ public class BundleLoader {
 		if (bundle == null)
 			return;
 
-		log(Log.LEVEL_INFO, "remove bundle:" + bundle.getSymbolicName());
-
 		// wait for starting
 		int sleept = 0;
 		while (bundle.getState() == Bundle.STARTING) {
@@ -407,9 +405,5 @@ public class BundleLoader {
 
 		if (bundle.getState() != Bundle.UNINSTALLED)
 			bundle.uninstall();
-	}
-
-	private static void log(final int level, final String msg) {
-		System.out.println(msg);
 	}
 }
