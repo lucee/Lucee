@@ -292,7 +292,7 @@ LUCEE BUILD PROCESS
       <jvmarg value="-Dtestbox=${temp}/testbox/testbox"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
-
+      <jvmarg value="-Dlucee.enable.dialect=true"/>
     </java>
     <echo>${exc}</echo>
 
@@ -317,7 +317,7 @@ LUCEE BUILD PROCESS
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
       <!-- hsqldb:6DD4728A-AB0C-4F67-9DCE1A91A8ACD114,h2 -->
       <jvmarg value="-Dlucee-extensions=465E1E35-2425-4F4E-8B3FAB638BD7280A;"/>
-
+      <jvmarg value="-Dlucee.enable.dialect=true"/>
     </java>
     <echo>${exc2}</echo>
 
