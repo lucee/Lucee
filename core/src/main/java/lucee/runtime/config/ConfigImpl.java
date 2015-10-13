@@ -3561,4 +3561,12 @@ public abstract class ConfigImpl implements Config {
 		if(!dir.exists())dir.mkdirs();
 		return dir;
 	}
+
+	private boolean allowLuceeDialect=false;
+	public boolean allowLuceeDialect() {
+		return allowLuceeDialect;
+	}
+	public void setAllowLuceeDialect(boolean allowLuceeDialect) {
+		this. allowLuceeDialect=allowLuceeDialect;
+	}
 }

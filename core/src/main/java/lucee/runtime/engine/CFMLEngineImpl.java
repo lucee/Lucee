@@ -79,8 +79,10 @@ import lucee.loader.util.Util;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
@@ -272,7 +274,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
      */
     public static synchronized CFMLEngine getInstance(CFMLEngineFactory factory,BundleCollection bc) {
     	if(engine==null) {
-    		if(SystemUtil.getLoaderVersion()<5.1)
+    		if(SystemUtil.getLoaderVersion()<5.2)
     			throw new RuntimeException("You need to update your lucee.jar to run this version, you can download the latest jar from http://download.lucee.org.");
     			
     		engine=new CFMLEngineImpl(factory,bc);
@@ -554,6 +556,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
     public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
     	CFMLFactory factory=getCFMLFactory(servlet.getServletConfig(), req);
     	
+    	// is Lucee dialect enabled?
+    	if(!((ConfigImpl)factory.getConfig()).allowLuceeDialect()){
+    		try {
+				PageContextImpl.notSupported();
+			} catch (ApplicationException e) {
+				throw new PageServletException(e);
+			}
+    	}
         PageContext pc = factory.getLuceePageContext(servlet,req,rsp,null,false,-1,false,true,-1,true,false);
         ThreadQueue queue = factory.getConfig().getThreadQueue();
         queue.enter(pc);

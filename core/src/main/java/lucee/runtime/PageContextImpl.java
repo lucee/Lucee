@@ -114,6 +114,7 @@ import lucee.runtime.exp.NoLongerSupported;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.exp.PageServletException;
 import lucee.runtime.functions.dynamicEvaluation.Serialize;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
@@ -871,13 +872,13 @@ public final class PageContextImpl extends PageContext {
 			long time=System.nanoTime();
 			
 			Page currentPage = PageSourceImpl.loadPage(this, sources);
+			notSupported(config,currentPage.getPageSource());
 			if(runOnce && includeOnce.contains(currentPage.getPageSource())) return;
 			DebugEntryTemplate debugEntry=debugger.getEntry(this,currentPage.getPageSource());
 			try {
 				addPageSource(currentPage.getPageSource(),true);
 				debugEntry.updateFileLoadTime((System.nanoTime()-time));
 				exeTime=System.nanoTime();
-
 				currentPage.call(this);
 			}
 			catch(Throwable t){
@@ -904,6 +905,7 @@ public final class PageContextImpl extends PageContext {
 	// no debug
 		else {
 			Page currentPage = PageSourceImpl.loadPage(this, sources);
+			notSupported(config,currentPage.getPageSource());
 			if(runOnce && includeOnce.contains(currentPage.getPageSource())) return;
 			try {
 				addPageSource(currentPage.getPageSource(),true);
@@ -924,6 +926,15 @@ public final class PageContextImpl extends PageContext {
 				removeLastPageSource(true);
 			}	
 		}
+	}
+
+	public static void notSupported(Config config,PageSource ps) throws ApplicationException {
+		if(ps.getDialect()==CFMLEngine.DIALECT_LUCEE && config instanceof ConfigImpl && !((ConfigImpl)config).allowLuceeDialect())
+			notSupported();
+	}
+	public static void notSupported() throws ApplicationException {
+		throw new ApplicationException(
+				"The Lucee dialect is disabled, to enable the dialect set the environment variable or system property \"lucee.enable.dialect\" to \"true\" or set the attribute \"allow-lucee-dialect\" to \"true\" with the \"compiler\" tag inside the lucee-server.xml."); 
 	}
 
 	@Override

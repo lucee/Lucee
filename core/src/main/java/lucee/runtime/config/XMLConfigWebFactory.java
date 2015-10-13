@@ -46,6 +46,7 @@ import java.util.UUID;
 import javax.servlet.ServletConfig;
 
 import lucee.aprint;
+import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.digest.HashUtil;
@@ -85,6 +86,7 @@ import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.cfx.customtag.CFXTagClass;
 import lucee.runtime.cfx.customtag.CPPCFXTagClass;
 import lucee.runtime.cfx.customtag.JavaCFXTagClass;
+import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.config.ajax.AjaxFactory;
 import lucee.runtime.config.component.ComponentFactory;
@@ -4599,6 +4601,18 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			config.setExternalizeStringGTE(configServer.getExternalizeStringGTE());
 		}
 		
+		// allow-lucee-dialect
+		if(!hasCS) {
+			str = getAttr(compiler,"allow-lucee-dialect");
+			if(str==null || !Decision.isBoolean(str)) str=getSystemPropOrEnvVar("lucee.enable.dialect",null);
+			if (str!=null && Decision.isBoolean(str)) {
+				config.setAllowLuceeDialect(Caster.toBooleanValue(str,false));
+			}
+		}
+		else {
+			config.setAllowLuceeDialect(configServer.allowLuceeDialect());
+		}
+		
 		// Handle Unquoted Attribute Values As String
 		if (mode == ConfigImpl.MODE_STRICT) {
 			config.setHandleUnQuotedAttrValueAsString(false);
@@ -4613,6 +4627,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 		}
 		
+	}
+
+	private static String getSystemPropOrEnvVar(String name, String defaultValue) {
+		// env
+		String value=System.getenv(name);
+		if(!StringUtil.isEmpty(value)) return value;
+		// prop
+		value=System.getProperty(name);
+		if(!StringUtil.isEmpty(value)) return value;
+		
+		return defaultValue;
 	}
 
 	/**

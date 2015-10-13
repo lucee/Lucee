@@ -44,6 +44,7 @@ import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.debug.DebugEntryTemplate;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -99,7 +100,7 @@ public class ComponentLoader {
     	// first try for the current dialect
     	Object obj= _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, returnType,currP, dialect, isExtendedComponent);
     	// then we try the opposite dialect
-    	if(obj==null) {
+    	if(obj==null && ((ConfigImpl)pc.getConfig()).allowLuceeDialect()) { // only when the lucee dialect is enabled we have to check the opposite
     		obj= _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, returnType,currP, dialect==CFMLEngine.DIALECT_CFML?CFMLEngine.DIALECT_LUCEE:CFMLEngine.DIALECT_CFML, isExtendedComponent);
     	}
 
@@ -111,6 +112,9 @@ public class ComponentLoader {
     private static Object _search(PageContext pc,PageSource loadingLocation,String rawPath, Boolean searchLocal, 
     		Boolean searchRoot, boolean executeConstr, short returnType, Page currP, int dialect, boolean isExtendedComponent) throws PageException  {
     	ConfigImpl config=(ConfigImpl) pc.getConfig();
+    	
+    	if(dialect==CFMLEngine.DIALECT_LUCEE && !config.allowLuceeDialect())PageContextImpl.notSupported();
+    	
     	boolean doCache=config.useComponentPathCache();
     	String sub=null;
     	if(returnType!=RETURN_TYPE_PAGE && rawPath.indexOf(':')!=-1) {
