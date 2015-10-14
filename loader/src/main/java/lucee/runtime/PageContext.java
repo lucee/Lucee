@@ -672,25 +672,12 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 */
 	public abstract Debugger getDebugger();
 
-	/**
-	 * @return Returns the executionTime.
-	 * @deprecated use instead
-	 * @see #getExecutionTimeLong()
-	 */
-	public abstract int getExecutionTime();
 	
 	/**
 	 * 
 	 * @return Returns the executionTime.
 	 */
-	public abstract long getExecutionTimeLong();
-
-	/**
-	 * @param executionTime The executionTime to set.
-	 * @deprecated use instead
-	 * @see #setExecutionTime(long)
-	 */
-	public abstract void setExecutionTime(int executionTime);
+	public abstract long getExecutionTime();
 
 	/**
 	 * @param executionTime The executionTime to set.

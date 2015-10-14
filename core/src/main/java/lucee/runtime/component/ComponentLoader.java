@@ -424,7 +424,7 @@ public class ComponentLoader {
             DebugEntryTemplate debugEntry=pc.getDebugger().getEntry(pc,ps);
             pc.addPageSource(ps,true);
             
-            int currTime=pc.getExecutionTime();
+            long currTime=pc.getExecutionTime();
             long exeTime=0;
             long time=System.currentTimeMillis();
             try {
@@ -433,8 +433,8 @@ public class ComponentLoader {
                 return ps.loadPage(pc,forceReload);
             }
             finally {
-                int diff= ((int)(System.currentTimeMillis()-exeTime)-(pc.getExecutionTime()-currTime));
-                pc.setExecutionTime(pc.getExecutionTime()+(int)(System.currentTimeMillis()-time));
+                long diff= ((System.currentTimeMillis()-exeTime)-(pc.getExecutionTime()-currTime));
+                pc.setExecutionTime(pc.getExecutionTime()+(System.currentTimeMillis()-time));
                 debugEntry.updateExeTime(diff);
                 pc.removeLastPageSource(true);
             }
@@ -455,7 +455,7 @@ public class ComponentLoader {
             DebugEntryTemplate debugEntry=pc.getDebugger().getEntry(pc,page.getPageSource());
             pc.addPageSource(page.getPageSource(),true);
             
-            int currTime=pc.getExecutionTime();
+            long currTime=pc.getExecutionTime();
             long exeTime=0;
             long time=System.nanoTime();
             try {
@@ -467,8 +467,8 @@ public class ComponentLoader {
             }
             finally {
             	if(rtn!=null)rtn.setLoaded(true);
-            	int diff= ((int)(System.nanoTime()-exeTime)-(pc.getExecutionTime()-currTime));
-                pc.setExecutionTime(pc.getExecutionTime()+(int)(System.nanoTime()-time));
+            	long diff= ((System.nanoTime()-exeTime)-(pc.getExecutionTime()-currTime));
+                pc.setExecutionTime(pc.getExecutionTime()+(System.nanoTime()-time));
                 debugEntry.updateExeTime(diff);
                 pc.removeLastPageSource(true);
             }
@@ -495,7 +495,7 @@ public class ComponentLoader {
             DebugEntryTemplate debugEntry=pc.getDebugger().getEntry(pc,ps);
             pc.addPageSource(ps,true);
             
-            int currTime=pc.getExecutionTime();
+            long currTime=pc.getExecutionTime();
             long exeTime=0;
             long time=System.nanoTime();
             try {
@@ -505,8 +505,8 @@ public class ComponentLoader {
             	rtn=initInterface(pc,page,callPath,isRealPath);
             }
             finally {
-                int diff= ((int)(System.nanoTime()-exeTime)-(pc.getExecutionTime()-currTime));
-                pc.setExecutionTime(pc.getExecutionTime()+(int)(System.nanoTime()-time));
+                long diff= ((System.nanoTime()-exeTime)-(pc.getExecutionTime()-currTime));
+                pc.setExecutionTime(pc.getExecutionTime()+(System.nanoTime()-time));
                 debugEntry.updateExeTime(diff);
                 pc.removeLastPageSource(true);
             }

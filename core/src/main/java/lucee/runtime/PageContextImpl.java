@@ -2897,18 +2897,8 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	@Override
-	public int getExecutionTime() {
-		return (int)executionTime;
-	}
-	
-	@Override
-	public long getExecutionTimeLong() {
+	public long getExecutionTime() {
 		return executionTime;
-	}
-
-	@Override
-	public void setExecutionTime(int executionTime) {
-		this.executionTime = executionTime;
 	}
 
 	@Override

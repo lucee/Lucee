@@ -274,7 +274,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
      */
     public static synchronized CFMLEngine getInstance(CFMLEngineFactory factory,BundleCollection bc) {
     	if(engine==null) {
-    		if(SystemUtil.getLoaderVersion()<5.2)
+    		if(SystemUtil.getLoaderVersion()<5.3)
     			throw new RuntimeException("You need to update your lucee.jar to run this version, you can download the latest jar from http://download.lucee.org.");
     			
     		engine=new CFMLEngineImpl(factory,bc);

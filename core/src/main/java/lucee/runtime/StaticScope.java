@@ -304,7 +304,7 @@ public class StaticScope extends StructSupport implements Variables,Objects {
 		// debug yes
 		if(pc.getConfig().debug()) {
 		    DebugEntryTemplate debugEntry=pc.getDebugger().getEntry(pc,cp.getPageSource(),udf.getFunctionName());//new DebugEntry(src,udf.getFunctionName());
-			int currTime=pc.getExecutionTime();
+			long currTime=pc.getExecutionTime();
 			long time=System.nanoTime();
 			
 			// sync yes
@@ -317,7 +317,7 @@ public class StaticScope extends StructSupport implements Variables,Objects {
 					}		
 					finally {
 						c.afterStaticConstructor(pc, parent);
-						int diff= ((int)(System.nanoTime()-time)-(pc.getExecutionTime()-currTime));
+						long diff= ((System.nanoTime()-time)-(pc.getExecutionTime()-currTime));
 						pc.setExecutionTime(pc.getExecutionTime()+diff);
 						debugEntry.updateExeTime(diff);	
 					}	
@@ -333,7 +333,7 @@ public class StaticScope extends StructSupport implements Variables,Objects {
 				}		
 				finally {
 					c.afterStaticConstructor(pc, parent);
-					int diff= ((int)(System.nanoTime()-time)-(pc.getExecutionTime()-currTime));
+					long diff= ((System.nanoTime()-time)-(pc.getExecutionTime()-currTime));
 					pc.setExecutionTime(pc.getExecutionTime()+diff);
 					debugEntry.updateExeTime(diff);	
 				}	
