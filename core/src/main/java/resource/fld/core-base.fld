@@ -4905,6 +4905,56 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
+	<!-- GeneratePBKDFKey -->
+	<function>
+		<name>GeneratePBKDFKey</name>
+		<class>lucee.runtime.functions.other.GeneratePBKDFKey</class>
+		<description>Implementation of Password-Based Key-Derivation Function (PBKDF).</description>
+		<argument>
+			<name>algorithm</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>
+Hashing algorithm used for generating key
+Example Values:
+- PBKDF2WithHmacSHA1
+- PBKDF2WithSHA1
+- PBKDF2WithSHA224
+- PBKDF2WithSHA256
+- PBKDF2WithSHA384
+- PBKDF2WithSHA512
+			</description>
+    	</argument>
+		<argument>
+			<name>passphrase</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Passphrase used for the key. KEEP THIS SECRET.</description>
+    	</argument>
+		<argument>
+			<name>salt</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>A random salt.</description>
+    	</argument>
+		<argument>
+			<name>iterations</name>
+			<type>numeric</type>
+			<required>No</required>
+			<default>4096</default>
+			<description>The number of PBKDEF iterations to perform. A minimum recommended value is 1000.</description>
+    	</argument>
+		<argument>
+			<name>keySize</name>
+			<type>numeric</type>
+			<required>No</required>
+			<default>128</default>
+			<description>The length in bytes of the key to generate.</description>
+    	</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
 	<!-- getAuthUser -->
 	<function>
 		<name>getAuthUser</name>
