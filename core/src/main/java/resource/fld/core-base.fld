@@ -2380,32 +2380,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
-	
-	<!-- ObjectNew -->
-	<function>
-		<name>ObjectNew</name>
-		<class>lucee.runtime.functions.other.CreateComponent</class>
-		<description>loads a component, in differents to "CreateObject("component",...)" this function always is calling the "init" method of the component (if there is any).</description>
-		<argument>
-			<name>componentName</name>
-			<alias>cfc,cfcName,component</alias>
-			<type>string</type>
-			<required>Yes</required>
-			<description>component name</description>
-	    </argument>
-		<argument>
-			<name>arguments</name>
-			<alias>args,attributes</alias>
-			<type>any</type>
-			<required>no</required>
-			<description>arguments as struct or array</description>
-	    </argument>
-		<return>
-			<type>component</type>
-		</return>
-	</function>
-	
-	
 	<!-- CreateDynamicProxy -->
 	<function>
 		<name>CreateDynamicProxy</name>
@@ -2475,44 +2449,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>any</type>
 		</return>
 	</function>
-	<!-- JavaNew -->
-	<function>
-		<name>JavaNew</name>
-		<class>lucee.runtime.functions.other.JavaProxy</class>
-		<description>create a Java Proxy object (not a object instance)</description>
-		
-		<argument>
-			<name>classname</name>
-			<type>string</type>
-			<required>yes</required>
-			<description>java class to load</description>
-		</argument>
-		<argument>
-			<name>nameOrPath</name>
-			<alias>path,name</alias>
-			<type>object</type>
-			<required>No</required>
-			<description>
-			OSGi "Bundle-SymbolicName" or paths to libaries:
-			- Name: Bundle-SymbolicName, for exampple "com.example.acme"
-			- Paths: paths used to load the defined class, this can be a string containing a list of multiple paths or a array of with multiple string paths (directories containing class files or jar files)
-			</description>
-		</argument>
-		<argument>
-			<name>versionOrDelimiter</name>
-			<alias>version,delimiter</alias>
-			<type>string</type>
-			<required>No</required>
-			<description>
-				When with argument "nameOrPath" a "Bundle-SymbolicName" was set, this argument takes a "Bundle-Version" otherwise a possible delimiter for the given string list from argument "nameOrPath".
-				
-			</description>
-		</argument>
-		<return>
-			<type>any</type>
-		</return>
-	</function>
-
+	
 	<!-- createTime -->
 	<function>
 		<name>createTime</name>

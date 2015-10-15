@@ -180,7 +180,7 @@ you can use tag cfadmin instead. we will add support for this function in a futu
 	<!-- createObject -->
 	<function>
 		<name>createObject</name>
-		<status>deprecated</status>
+		<!-- <status>deprecated</status> -->
 		<class>lucee.runtime.functions.other.CreateObject</class>
 		<description>
 		this function is deprecated, do the following instead.
@@ -206,6 +206,7 @@ you can use tag cfadmin instead. we will add support for this function in a futu
     </argument>
 		<argument>
 			<name>classname</name>
+			<alias>component,class</alias>
 			<type>string</type>
 			<required>no</required>
 		<description>
@@ -218,24 +219,27 @@ the usage of this argument depend on type defined with argument "type":
     </argument>
 		<argument>
 			<name>context</name>
+			<alias>bundleName,name,webservice</alias>
 			<type>object</type>
 			<required>No</required>
 		<description>
 the usage of this argument depend on type defined with argument "type":
 - com: not used (ignored)
-- java: classpath used to load the defined class, this can be a list of multiple paths (directories containing class files or jar files)
+- java: "classpath" or "bundleName" used to load the defined class, 
+this can be a list of multiple paths (directories containing class files or jar files) as string list or array or a name of an OSGi bundle (Lucee can download OSGi bundles automatically if necessary)
 - webservice: a struct containing the following optional keys (username,password,proxyServer,proxyPort,proxyUser,proxyPassword) 
 - component: not used (ignored)
 </description>
     </argument>
 		<argument>
-			<name>arg4</name>
+			<name>delimiterOrVersion</name>
+			<alias>delimiter,version,bundleVersion</alias>
 			<type>object</type>
 			<required>No</required>
 		<description>
 the usage of this argument depend on type defined with argument "type":
 - com: not used (ignored)
-- java: delimiter used for the classpath (default comma)
+- java: delimiter used for the classpath (default comma) or bundle version when the previous argument was a bundle name
 - webservice: not used (ignored)
 - component: not used (ignored)</description>
     </argument>

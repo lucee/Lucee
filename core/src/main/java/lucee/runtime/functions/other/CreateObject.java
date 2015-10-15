@@ -145,8 +145,10 @@ public final class CreateObject implements Function {
     }
 	
 	 
-    public static Object doJava(PageContext pc, String className, Object paths, String delimiter) throws PageException {
-        if(pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS)==SecurityManager.VALUE_YES) {
+    public static Object doJava(PageContext pc, String className, Object pathsOrBundleName, String delimiterOrBundleVersion) throws PageException {
+        return JavaProxy.call(pc, className,pathsOrBundleName,delimiterOrBundleVersion);
+    	
+    	/*if(pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS)==SecurityManager.VALUE_YES) {
         	PageContextImpl pci = (PageContextImpl)pc;
         	java.util.List<Resource> resources=new ArrayList<Resource>();
         	
@@ -154,22 +156,22 @@ public final class CreateObject implements Function {
         	//java.util.List<Resource> resources=getJavaSettings(pc);
         	
         	// load resources
-	        if (paths instanceof String) {
+	        if (pathsOrBundleName instanceof String) {
 
-		        String strp = ((String)paths).trim();
+		        String strp = ((String)pathsOrBundleName).trim();
 		        if(!strp.isEmpty()) {
 
-			        if(StringUtil.isEmpty(delimiter))delimiter=",";
-			        String[] arrPaths = ListUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty( strp, delimiter ) ));
+			        if(StringUtil.isEmpty(delimiterOrBundleVersion))delimiterOrBundleVersion=",";
+			        String[] arrPaths = ListUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty( strp, delimiterOrBundleVersion ) ));
 
 			        for(int i=0;i<arrPaths.length;i++) {
 				        resources.add(ResourceUtil.toResourceExisting(pc,arrPaths[i]));
 			        }
 		        }
 	        }
-	        else if (Decision.isArray( paths )) {
+	        else if (Decision.isArray( pathsOrBundleName )) {
 
-				Array arrp = Caster.toArray(paths);
+				Array arrp = Caster.toArray(pathsOrBundleName);
 		        Iterator it = arrp.valueIterator();
 		        while (it.hasNext()) {
 			        resources.add(ResourceUtil.toResourceExisting(pc, Caster.toString( it.next() )));
@@ -203,6 +205,7 @@ public final class CreateObject implements Function {
 			}
         }
         throw new SecurityException("Can't create Java object ["+className+"]: direct Java access is denied by the Security Manager");
+        */
 	} 
     
     /*public static java.util.List<Resource> getJavaSettings(PageContext pc) {

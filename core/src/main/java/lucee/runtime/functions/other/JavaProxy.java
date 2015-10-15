@@ -49,6 +49,7 @@ public final class JavaProxy implements Function {
 		return call(pc, className, pathOrName, null);
 	}
 	public static Object call(PageContext pc , String className, Object pathOrName, String delimiterOrVersion) throws PageException {
+		checkAccess(pc);
 		return new JavaObject((pc).getVariableUtil(),loadClass(pc, className, pathOrName, delimiterOrVersion));
 	}
 	public static Class<?> loadClass(PageContext pc , String className, Object pathOrName, String delimiterOrVersion) throws PageException {
@@ -71,59 +72,58 @@ public final class JavaProxy implements Function {
 			
 			
 			// path
-			String[] arrPaths = ListUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty( str, delimiterOrVersion) ));
+			if(StringUtil.isEmpty(delimiterOrVersion))delimiterOrVersion=",";
+	        String[] arrPaths = ListUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty( str, delimiterOrVersion) ));
 			return loadClassByPath(pc, className, arrPaths);
 		}
 		return loadClassByPath(pc, className, ListUtil.toStringArray(Caster.toArray(pathOrName)));
 	}
 	
 	private static Class<?> loadClassByPath(PageContext pc , String className, String[] paths) throws PageException {
-		checkAccess(pc);
+		PageContextImpl pci = (PageContextImpl)pc;
+		java.util.List<Resource> resources=new ArrayList<Resource>();
 		
-		if(pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS)==SecurityManager.VALUE_YES) {
-			PageContextImpl pci = (PageContextImpl)pc;
-			java.util.List<Resource> resources=new ArrayList<Resource>();
-
-			if(paths!=null && paths.length>0){
-				// load resources
-				for(int i=0;i<paths.length;i++){
-					resources.add(ResourceUtil.toResourceExisting(pc,paths[i]));
-				}
-				//throw new FunctionException(pc, "JavaProxy", 2, "path", "argument path has to be a array of strings or a single string, where every string is defining a path");
-        	}
-        	
-        	// load class
-        	try	{
-        		ClassLoader cl = resources.size()==0?null:pci.getClassLoader(resources.toArray(new Resource[resources.size()]));
-        		Class clazz=null;
-        		try{
-    				clazz = ClassUtil.loadClass(cl,className);
-    			}
-    			catch(ClassException ce) {
-    				// try java.lang if no package definition
-    				if(className.indexOf('.')==-1) {
-    					try{
-    	    				clazz = ClassUtil.loadClass(cl,"java.lang."+className);
-    	    			}
-    	    			catch(ClassException e) {
-    	    				throw ce;
-    	    			}
-    				}
-				    else throw ce;
-    			}
-    			
-        		return clazz;
-	        } 
-			catch (Exception e) {
-				throw Caster.toPageException(e);
+		if(paths!=null && paths.length>0){
+			// load resources
+			for(int i=0;i<paths.length;i++){
+				resources.add(ResourceUtil.toResourceExisting(pc,paths[i]));
 			}
-        }
-        throw new SecurityException("Can't create Java object ["+className+"]: direct Java access is denied by the Security Manager");
+			//throw new FunctionException(pc, "JavaProxy", 2, "path", "argument path has to be a array of strings or a single string, where every string is defining a path");
+    	}
+    	
+    	// load class
+    	try	{
+    		ClassLoader cl = resources.size()==0?null:pci.getClassLoader(resources.toArray(new Resource[resources.size()]));
+    		Class clazz=null;
+    		try{
+				clazz = ClassUtil.loadClass(cl,className);
+			}
+			catch(ClassException ce) {
+				// try java.lang if no package definition
+				if(className.indexOf('.')==-1) {
+					try{
+	    				clazz = ClassUtil.loadClass(cl,"java.lang."+className);
+	    			}
+	    			catch(ClassException e) {
+	    				throw ce;
+	    			}
+				}
+			    else throw ce;
+			}
+			
+    		return clazz;
+        } 
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
 
 	private static void checkAccess(PageContext pc) throws SecurityException {
+		if(pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS)==SecurityManager.VALUE_NO)
+	        throw new SecurityException("Can't create Java object, direct Java access is denied by the Security Manager");
+		
         if(pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_TAG_OBJECT)==SecurityManager.VALUE_NO) 
-			throw new SecurityException("Can't access function [createProxy]","Access is denied by the Security Manager");
+			throw new SecurityException("Can't access function, access is denied by the Security Manager");
     }
 }
