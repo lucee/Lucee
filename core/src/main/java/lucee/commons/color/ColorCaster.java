@@ -121,6 +121,7 @@ public final class ColorCaster {
 			break;
 			case 'd':
 				if("darkgray".equals(strColor)) 	return Color.DARK_GRAY;
+				if("darkgrey".equals(strColor)) 	return Color.DARK_GRAY;
 				if("darkblue".equals(strColor)) 	return new Color(0x00,0x00,0x8B); 
 				if("darkcyan".equals(strColor)) 	return new Color(0x00,0x8B,0x8B); 
 				if("darkgoldenrod".equals(strColor))return new Color(0xB8,0x86,0x0B); 
@@ -135,6 +136,7 @@ public final class ColorCaster {
 				if("darkseagreen".equals(strColor)) return new Color(0x8F,0xBC,0x8F); 
 				if("darkslateblue".equals(strColor))return new Color(0x2F,0x4F,0x4F); 
 				if("darkslategray".equals(strColor))return new Color(0x48,0x3D,0x8B); 
+				if("darkslategrey".equals(strColor))return new Color(0x48,0x3D,0x8B); 
 				if("darkturquoise".equals(strColor))return new Color(0x00,0xCE,0xD1); 
 				if("darkviolet".equals(strColor)) 	return new Color(0x94,0x00,0xD3); 
 				if("deeppink".equals(strColor)) 	return new Color(0xFF,0x14,0x93); 
@@ -150,6 +152,7 @@ public final class ColorCaster {
 			break;
 			case 'g':
 				if("gray".equals(strColor)) 		return Color.GRAY;
+				if("grey".equals(strColor)) 		return Color.GRAY;
 				if("green".equals(strColor)) 		return Color.GREEN;
 				if("gainsboro".equals(strColor)) 	return new Color(0xDC,0xDC,0xDC); 
 				if("ghostwhite".equals(strColor)) 	return new Color(0xF8,0xF8,0xFF); 
@@ -172,6 +175,7 @@ public final class ColorCaster {
 			break;
 			case 'l':
 				if("lightgray".equals(strColor)) 	return Color.lightGray; 
+				if("lightgrey".equals(strColor)) 	return Color.lightGray; 
 				if("lime".equals(strColor)) 		return new Color(0,0xFF,0);
 				if("lavender".equals(strColor)) 	return new Color(0xE6,0xE6,0xFA); 
 				if("lavenderblush".equals(strColor))return new Color(0xFF,0xF0,0xF5); 
@@ -188,6 +192,7 @@ public final class ColorCaster {
 				if("lightseagreen".equals(strColor))return new Color(0x20,0xB2,0xAA); 
 				if("lightskyblue".equals(strColor)) return new Color(0x87,0xCE,0xFA); 
 				if("lightslategray".equals(strColor))return new Color(0x77,0x88,0x99);
+				if("lightslategrey".equals(strColor))return new Color(0x77,0x88,0x99);
 				if("lightsteelblue".equals(strColor))return new Color(0xB0,0xC4,0xDE); 
 				if("lightyellow".equals(strColor)) 	return new Color(0xFF,0xFF,0xE0); 
 				if("limegreen".equals(strColor)) 	return new Color(0x32,0xCD,0x32);
@@ -253,6 +258,7 @@ public final class ColorCaster {
 				if("skyblue".equals(strColor)) return new Color(0x87,0xCE,0xEB);
 				if("slateblue".equals(strColor)) return new Color(0x6A,0x5A,0xCD);
 				if("slategray".equals(strColor)) return new Color(0x70,0x80,0x90); 
+				if("slategrey".equals(strColor)) return new Color(0x70,0x80,0x90); 
 				if("snow".equals(strColor)) return new Color(0xFF,0xFA,0xFA);
 				if("springgreen".equals(strColor)) return new Color(0x00,0xFF,0x7F); 
 				if("steelblue".equals(strColor)) return new Color(0x46,0x82,0xB4);
