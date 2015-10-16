@@ -1147,10 +1147,6 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 
 	public abstract Object getCachedWithin(int type);
 
-	public abstract int getAccess();
-
-	public abstract int getModifier();
-
 	/**
 	 * 
 	 * @return get the dialect for the current template

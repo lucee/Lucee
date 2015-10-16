@@ -38,12 +38,6 @@ import org.objectweb.asm.commons.Method;
 
 public class Assign extends ExpressionBase {
 
-
-//  java.lang.Object set(String,Object)
-    /*private final static Method METHOD_SCOPE_SET = new Method("set",
-			Types.OBJECT,
-			new Type[]{Types.STRING,Types.OBJECT});*/
-    
 //  java.lang.Object set(String,Object)
     private final static Method METHOD_SCOPE_SET_KEY = new Method("set",
 			Types.OBJECT,
@@ -64,22 +58,6 @@ public class Assign extends ExpressionBase {
     private final static Method SET_KEY = new Method("set",
 			Types.OBJECT,
 			new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT});
-    
-    //Object set (Object,String,Object)
-    /*private final static Method SET = new Method("set",
-			Types.OBJECT,
-			new Type[]{Types.OBJECT,Types.STRING,Types.OBJECT});*/
-
-    // Object getFunction (Object,String,Object[])
-    /*private final static Method GET_FUNCTION = new Method("getFunction",
-			Types.OBJECT,
-			new Type[]{Types.OBJECT,Types.STRING,Types.OBJECT_ARRAY});*/
-    
-    // Object getFunctionWithNamedValues (Object,String,Object[])
-    /*private final static Method GET_FUNCTION_WITH_NAMED_ARGS = new Method("getFunctionWithNamedValues",
-			Types.OBJECT,
-			new Type[]{Types.OBJECT,Types.STRING,Types.OBJECT_ARRAY});*/
-	
 
     // Object getFunction (Object,String,Object[])
     private final static Method GET_FUNCTION_KEY = new Method("getFunction",
@@ -90,10 +68,10 @@ public class Assign extends ExpressionBase {
     private final static Method GET_FUNCTION_WITH_NAMED_ARGS_KEY = new Method("getFunctionWithNamedValues",
 			Types.OBJECT,
 			new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT_ARRAY});
-    
-    private final static Method SET_MODIFIER2 = new Method("setModifier",
+
+	private static final Method DATA_MEMBER_INIT = new Method("<init>",
 			Types.VOID,
-			new Type[]{Types.INT_VALUE,Types.INT_VALUE});
+			new Type[]{Types.INT_VALUE,Types.INT_VALUE,Types.OBJECT});
     
 	private final Variable variable;
 	private final Expression value;
@@ -117,36 +95,7 @@ public class Assign extends ExpressionBase {
 
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-		GeneratorAdapter ga = bc.getAdapter();
-		
-		// set Access
-		if(access>-1 || modifier>0) {
-			ga.loadArg(0);
-			ga.checkCast(Types.PAGE_CONTEXT_IMPL);
-			ga.push(access);
-			ga.push(modifier);
-			ga.invokeVirtual(Types.PAGE_CONTEXT_IMPL, SET_MODIFIER2);
-		}
-		
-		Type rtn = _writeOut(bc,ga, mode);
-		
-		// reset access
-		if(access>-1 || modifier>0) {
-			ga.loadArg(0);
-			ga.checkCast(Types.PAGE_CONTEXT_IMPL);
-			ga.push(-1);
-			ga.push(0);
-			ga.invokeVirtual(Types.PAGE_CONTEXT_IMPL, SET_MODIFIER2);
-		}
-		
-		
-		
-		return rtn;
-	}
-	private Type _writeOut(BytecodeContext bc, GeneratorAdapter adapter, int mode) throws TransformerException {
-		
-		
-		
+		GeneratorAdapter adapter = bc.getAdapter();
 		
 		int count=variable.getCount();
         // count 0
@@ -178,7 +127,7 @@ public class Assign extends ExpressionBase {
 				//((DataMember)member).getName().writeOut(bc, MODE_REF);
     			getFactory().registerKey(bc, ((DataMember)member).getName(),false);
 				
-    			if(last)value.writeOut(bc, MODE_REF);
+    			if(last)writeValue(bc);
     			adapter.invokeVirtual(Types.PAGE_CONTEXT,last?SET_KEY:TOUCH_KEY);
     			rtn=Types.OBJECT;
 			}
@@ -195,6 +144,23 @@ public class Assign extends ExpressionBase {
     	}
     	return rtn;
 	}
+
+	private void writeValue(BytecodeContext bc) throws TransformerException {
+		// set Access
+		if((access>-1 || modifier>0)) {
+			GeneratorAdapter ga = bc.getAdapter();
+			ga.newInstance(Types.DATA_MEMBER);
+			ga.dup();
+			ga.push(access);
+			ga.push(modifier);
+			value.writeOut(bc, MODE_REF);
+			ga.invokeConstructor(Types.DATA_MEMBER, DATA_MEMBER_INIT);
+		}
+		else 
+			value.writeOut(bc, MODE_REF);
+		
+	}
+
 
 	private Type _writeOutFirst(BytecodeContext bc, Member member, int mode, boolean last, boolean doOnlyScope) throws TransformerException {
 		
@@ -230,7 +196,7 @@ public class Assign extends ExpressionBase {
 		if(last) {
 			TypeScope.invokeScope(adapter, variable.getScope());
 			getFactory().registerKey(bc, member.getName(),false);
-			value.writeOut(bc, MODE_REF);
+			writeValue(bc);
 			adapter.invokeInterface(TypeScope.SCOPES[variable.getScope()],METHOD_SCOPE_SET_KEY);
 			
 		}
@@ -251,14 +217,14 @@ public class Assign extends ExpressionBase {
 		if(variable.getScope()==Scope.SCOPE_ARGUMENTS) {
 			adapter.loadArg(0);
 			TypeScope.invokeScope(adapter, Scope.SCOPE_ARGUMENTS);
-			value.writeOut(bc, MODE_REF);
+			writeValue(bc);
 			adapter.invokeInterface(TypeScope.SCOPE_ARGUMENT,SET_ARGUMENT);
 		}
 		else {
 			adapter.loadArg(0);
 			TypeScope.invokeScope(adapter, Scope.SCOPE_UNDEFINED);
 			getFactory().registerKey(bc,bc.getFactory().createLitString(ScopeFactory.toStringScope(variable.getScope(),"undefined")),false);
-			value.writeOut(bc, MODE_REF);
+			writeValue(bc);
 			adapter.invokeInterface(TypeScope.SCOPES[Scope.SCOPE_UNDEFINED],METHOD_SCOPE_SET_KEY);
 		}
 		

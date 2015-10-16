@@ -263,6 +263,7 @@ public final class Types {
 	public static final Type IDENTIFICATION = Type.getType(Identification.class);
 	public static final Type TAG_UTIL = Type.getType(TagUtil.class);
 	public static final Type BIF = Type.getType(lucee.runtime.ext.function.BIF.class);
+	public static final Type DATA_MEMBER = Type.getType(lucee.runtime.component.DataMember.class);
 	
 	 
 

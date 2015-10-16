@@ -161,7 +161,7 @@ public class StaticScope extends StructSupport implements Variables,Objects {
 			if(m.getModifier()==Member.MODIFIER_FINAL) 
 				throw new ExpressionException("Cannot update key ["+key+"] in static scope from component ["+cp.getComponentName()+"], that member is set to final");
 			
-			return _set(pc, key, value);
+			return _set(pc,m, key, value);
 		}
 		
 		// if not the parent
@@ -170,14 +170,15 @@ public class StaticScope extends StructSupport implements Variables,Objects {
 		return null;
 	}
 
-	private Member _set(PageContext pc, Key key, Object value) throws ExpressionException {
+	private Member _set(PageContext pc, Member existing, Key key, Object value) throws ExpressionException {
 		if(value instanceof Member) return cp._static.put(key, (Member)value);
 		
-		// todo update existing data member
-		if(!c.isAccessible(ThreadLocalPageContext.get(pc), pc.getAccess()>-1?pc.getAccess():dataMemberDefaultAccess))
+		// check if user has access
+		if(!c.isAccessible(pc, existing!=null?existing.getAccess():dataMemberDefaultAccess))
 			throw new ExpressionException("Component from type ["+cp.getComponentName()+"] has no accessible static Member with name ["+key+"]");
 		
-		return cp._static.put(key,new DataMember(pc.getAccess()>-1?pc.getAccess():dataMemberDefaultAccess,pc.getModifier(),value));
+		// set
+		return cp._static.put(key,new DataMember(existing!=null?existing.getAccess():dataMemberDefaultAccess,existing!=null?existing.getModifier():Member.MODIFIER_NONE,value));
 	}
 
 
@@ -192,7 +193,7 @@ public class StaticScope extends StructSupport implements Variables,Objects {
 		Member m = _setIfExists(pc,key, value);
 		if(m!=null) return m.getValue();
 		// if not exists set to current
-		m= _set(pc, key, value);
+		m= _set(pc,null, key, value);
 		if(m!=null) return m.getValue();
 		return null;
 	}

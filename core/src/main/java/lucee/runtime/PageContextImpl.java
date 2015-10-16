@@ -426,13 +426,11 @@ public final class PageContextImpl extends PageContext {
 			 boolean autoFlush,
 			 boolean isChild, boolean ignoreScopes) {
 		this.ignoreScopes=ignoreScopes;
-		access=-1;
-		modifier=0;
+
 		requestId=counter++;
 		ReqRspUtil.setContentType(rsp,"text/html; charset="+config.getWebCharset().name());
 		this.isChild=isChild;
 		
-		//rsp.setHeader("Connection", "close");
 		applicationContext=defaultApplicationContext;
 		
 		startTime=System.currentTimeMillis();
@@ -3003,8 +3001,6 @@ public final class PageContextImpl extends PageContext {
 	public String[] getThreadScopeNames() {
 		if(threads==null)return new String[0];
 		return CollectionUtil.keysAsString(threads);
-		//Set ks = threads.keySet();
-		//return (String[]) ks.toArray(new String[ks.size()]);
 	}
 	
 	@Override
@@ -3092,13 +3088,6 @@ public final class PageContextImpl extends PageContext {
 
 	private Stack<ActiveQuery> activeQueries=new Stack<ActiveQuery>();
 	private Stack<ActiveLock> activeLocks=new Stack<ActiveLock>();
-
-	private int access=-1;
-	private int modifier=0;
-	
-	
-
-
 
 	public boolean isTrusted(Page page) {
 		if(page==null)return false;
@@ -3292,20 +3281,6 @@ public final class PageContextImpl extends PageContext {
 	public void registerLazyStatement(Statement s) {
 		if(lazyStats==null)lazyStats=new ArrayList<Statement>();
 		lazyStats.add(s);
-	}
-
-	public void setModifier(int access,int modifier) {
-		this.access=access;
-		this.modifier=modifier;
-	}
-
-	@Override
-	public int getAccess() {
-		return this.access;
-	}
-	@Override
-	public int getModifier() {
-		return this.modifier;
 	}
 
 	@Override

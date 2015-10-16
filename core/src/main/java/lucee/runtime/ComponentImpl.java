@@ -423,8 +423,14 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	    
 	    // invoke static constructor
 	    if(!componentPage._static.isInit()) {
-	    	componentPage.staticConstructor(pageContext,this);
-	    	componentPage._static.setInit(true);
+	    	componentPage._static.setInit(true);// this needs to happen before the call
+	    	try {
+	    		componentPage.staticConstructor(pageContext,this);
+	    	}
+	    	catch(Throwable t){
+	    		componentPage._static.setInit(false);
+	    		throw Caster.toPageException(t);
+	    	}
 	    }
 	}
     
@@ -945,6 +951,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
      * @return returns if is private
      */
     private boolean isPrivate(PageContext pc) {
+    	pc=ThreadLocalPageContext.get(pc);
     	if(pc==null) return true;
     	Component ac = pc.getActiveComponent();
     	
@@ -957,7 +964,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
      * @return returns if is package
      */
     private boolean isPackage(PageContext pc) {
-        Component ac = pc.getActiveComponent();
+    	pc=ThreadLocalPageContext.get(pc);
+    	if(pc==null) return true;
+    	Component ac = pc.getActiveComponent();
         if(ac!=null) {
             if(ac==this) return true;
             ComponentImpl aci = ((ComponentImpl)ac);
@@ -1618,21 +1627,24 @@ public final class ComponentImpl extends StructSupport implements Externalizable
      * @throws ExpressionException 
      */
     private synchronized Object _set(PageContext pc,Collection.Key key, Object value) throws ExpressionException {
-    	if(value instanceof UDFPlus) {
-        	UDFPlus udf = (UDFPlus)((UDFPlus)value).duplicate();
-        	//udf.isComponentMember(true);///+++
-        	udf.setOwnerComponent(this);
-        	if(udf.getAccess()>Component.ACCESS_PUBLIC)
-        		udf.setAccess(Component.ACCESS_PUBLIC);
-        	_data.put(key,udf);
-        	_udfs.put(key,udf);
-        	hasInjectedFunctions=true;
-        }
+    	if(value instanceof Member) {
+    		if(value instanceof UDFPlus) {
+            	UDFPlus udf = (UDFPlus)((UDFPlus)value).duplicate();
+            	//udf.isComponentMember(true);///+++
+            	udf.setOwnerComponent(this);
+            	if(udf.getAccess()>Component.ACCESS_PUBLIC)
+            		udf.setAccess(Component.ACCESS_PUBLIC);
+            	_data.put(key,udf);
+            	_udfs.put(key,udf);
+            	hasInjectedFunctions=true;
+            }
+    		else _data.put(key,(Member)value);
+    	}
         else {
-        	
-        	if(loaded && !isAccessible(ThreadLocalPageContext.get(pc), pc.getAccess()>-1?pc.getAccess():dataMemberDefaultAccess))
+        	Member existing = _data.get(key);
+        	if(loaded && !isAccessible(pc, existing!=null?existing.getAccess():dataMemberDefaultAccess))
         		throw new ExpressionException("Component ["+getCallName()+"] has no accessible Member with name ["+key+"]","enable [trigger data member] in admininistrator to also invoke getters and setters");
-            _data.put(key,new DataMember(pc.getAccess()>-1?pc.getAccess():dataMemberDefaultAccess,pc.getModifier(),value));
+            _data.put(key,new DataMember(existing!=null?existing.getAccess():dataMemberDefaultAccess,existing!=null?existing.getModifier():Member.MODIFIER_NONE,value));
         }
         return value;
     }
