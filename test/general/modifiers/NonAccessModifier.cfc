@@ -1,0 +1,5 @@
+component {
+	final function test() {
+		
+	}
+}

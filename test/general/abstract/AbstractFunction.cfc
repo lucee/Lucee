@@ -1,0 +1,2 @@
+component extends="Abs" {
+}

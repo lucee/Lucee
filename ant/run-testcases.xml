@@ -53,9 +53,50 @@ try {
 	
  		// load testbox
  		silent {
-	 		tb=new testbox.system.TestBox(directory={ mapping="/test", recurse=true},reporter:"console");
+	 		tb=new testbox.system.TestBox(directory={ mapping="/test", recurse=true, filter=function(path){
+	 		
+//	 		echo(arguments.path&"
+//");
+			var name=listLast(arguments.path,"\/");
+	 		
+	 		// get parent
+	 		var p=getDirectoryFromPath(arguments.path);
+	 		p=left(p,p.len()-1);
+	 		p=listTrim(p,"\/");
+	 		
+	 		// get grand parent
+	 		var pp=getDirectoryFromPath(p);
+	 		pp=left(pp,pp.len()-1);
+	 		pp=listTrim(pp,"\/");
+	 		
+	 		// only testcases in sub directory of "test" are allowed
+	 		var _test=listTrim(test,"\/");
+	 		return (_test==pp || _test==p) && left(name,1)!="_";
+
+	 		}},reporter:"console");
 	 		// execute
-	 		report=tb.run();
+	 		report=tb.run(callbacksX:{
+
+	 			onBundleStart=function( target, testResults ) {
+
+	 			},
+				onBundleEnd=function( target, testResults ) {
+
+				},
+				onSuiteStart=function( target, testResults, suite ) {
+
+				},
+				onSuiteEnd=function( target, testResults, suite ) {
+
+				},
+				onSpecStart=function( target, testResults, suite, spec ) {
+
+				},
+				SpecEnd=function( target, testResults, suite, spec ) {
+					dump(arguments);
+				}
+
+	 		}); 
 	 		// get the result
 	 		result=tb.getResult();
  		}

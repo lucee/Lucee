@@ -9,7 +9,7 @@
   <property name="agent" value="lucee.runtime.instrumentation.ExternalAgent"/>
   <property name="bundleName" value="Lucee Core"/>
   <property name="bundleSymbolicName" value="lucee.core"/>
-  <property name="testboxURL" value="http://downloads.ortussolutions.com/ortussolutions/testbox/2.1.0/testbox-2.1.0.zip"/>
+  <property name="testboxURL" value="http://downloads.ortussolutions.com/ortussolutions/testbox/2.2.0/testbox-2.2.0.zip"/>
   <!-- http://www.coldbox.org/download/testbox -->
   <tstamp>
       <format property="NOW" pattern="yyyy/MM/dd HH:mm:ss z" locale="en,GB"/>
