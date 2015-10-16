@@ -75,7 +75,7 @@ try {
 
 	 		}},reporter:"console");
 	 		// execute
-	 		report=tb.run(callbacksX:{
+	 		report=tb.run(callbacks:{
 
 	 			onBundleStart=function( target, testResults ) {
 
