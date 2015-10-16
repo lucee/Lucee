@@ -41,15 +41,20 @@ public final class MissingIncludeException extends PageExceptionImpl {
      */
     public MissingIncludeException(PageSource pageSource) {
         super(createMessage(pageSource),"missinginclude");
+        setDetail(pageSource);
         this.pageSource=pageSource;
         
     }
     public MissingIncludeException(PageSource pageSource,String msg) {
         super(msg,"missinginclude");
+        setDetail(pageSource);
         this.pageSource=pageSource;
         
     }
 
+	private void setDetail(PageSource ps) {
+		setAdditional(KeyImpl.init("Mapping"),ps.getMapping().getVirtual());
+	}
 	/**
 	 * @return the pageSource
 	 */
@@ -59,8 +64,8 @@ public final class MissingIncludeException extends PageExceptionImpl {
 
 	private static String createMessage(PageSource pageSource) {
 		String dsp=pageSource.getDisplayPath();
-		if(dsp==null) return "Page "+pageSource.getRealpath()+" not found";
-		return "Page "+pageSource.getRealpath()+" ["+dsp+"] not found";
+		if(dsp==null) return "Page "+pageSource.getRealpathWithVirtual()+" not found";
+		return "Page "+pageSource.getRealpathWithVirtual()+" ["+dsp+"] not found";
 	}
 
 	@Override
