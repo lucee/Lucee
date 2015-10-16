@@ -19,14 +19,27 @@
 package lucee.runtime.functions.owasp;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
-public class EncodeForXML implements Function  {
+public class EncodeForXML extends BIF {
 
 	private static final long serialVersionUID = 5444473809538999699L;
 
+	public static String call(PageContext pc , String item, boolean canonicalize) throws PageException  {
+		return ESAPIEncode.encode(item, ESAPIEncode.ENC_XML,canonicalize);
+	}
+	
 	public static String call(PageContext pc , String item) throws PageException  {
-		return ESAPIEncode.encode(item, ESAPIEncode.ENC_XML);
+		return call(pc, item, false);
+	}
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length==1) return call(pc,Caster.toString(args[0]));
+		if(args.length==2) return call(pc,Caster.toString(args[0]),Caster.toBooleanValue(args[1]));
+		throw new FunctionException(pc, "EncodeForXML", 1, 2, args.length);
 	}
 }

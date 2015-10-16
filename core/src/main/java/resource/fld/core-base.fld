@@ -3517,6 +3517,7 @@ dec: descending (z to a) sort order.
 		<name>ESAPIEncode</name>
 		<class>lucee.runtime.functions.owasp.ESAPIEncode</class>
 		<keywords>ESAPI,CSS,DN,HTML,JavaScript,ldap,URL,VBScript,XML</keywords>
+		<status>deprecated</status>
 		<description>Encodes the given string for safe output to stop Cross Site Scripting attacks.</description>
 		<argument>
 			<name>encodeFor</name>
@@ -3542,6 +3543,13 @@ dec: descending (z to a) sort order.
 			<required>Yes</required>
 			<description>string to encode</description>
 	    </argument>
+    	<argument>
+			<name>canonicalize</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
+    	</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -3549,6 +3557,263 @@ dec: descending (z to a) sort order.
 
 
 	
+	<!-- encodeForHTML -->
+	<function>
+		<name>encodeForHTML</name>
+		<class>lucee.runtime.functions.owasp.EncodeForHTML</class>
+		<keywords>encode,ESAPI,HTML</keywords>
+		<description>Encodes the given string for safe output in HTML to stop Cross Site Scripting attacks.</description>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>string to encode</description>
+    	</argument>
+    	<argument>
+			<name>canonicalize</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
+    	</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	
+	<!-- encodeForHTMLAttribute -->
+	<function>
+		<name>encodeForHTMLAttribute</name>
+		<class>lucee.runtime.functions.owasp.EncodeForHTMLAttribute</class>
+		<keywords>ESAPI,HTML</keywords>
+		<description>Encodes the given string for safe output in HTML to stop Cross Site Scripting attacks.</description>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>string to encode</description>
+    	</argument>
+    	<argument>
+			<name>canonicalize</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
+    	</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>	
+	
+	<!-- encodeForCSS -->
+	<function>
+		<name>encodeForCSS</name>
+		<class>lucee.runtime.functions.owasp.EncodeForCSS</class>
+		<keywords>ESAPI,CSS</keywords>
+		<description>Encodes the given string for safe output in CSS to stop Cross Site Scripting attacks.</description>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>string to encode</description>
+    	</argument>
+    	<argument>
+			<name>canonicalize</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
+    	</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	
+	<!-- encodeForJavaScript -->
+	<function>
+		<name>encodeForJavaScript</name>
+		<class>lucee.runtime.functions.owasp.EncodeForJavaScript</class>
+		<keywords>ESAPI,javascript</keywords>
+		<description>Encodes the given string for safe output in JavaScript to stop Cross Site Scripting attacks.</description>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>string to encode</description>
+    	</argument>
+    	<argument>
+			<name>canonicalize</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
+    	</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	
+	<!-- encodeForXML -->
+	<function>
+		<name>encodeForXML</name>
+		<class>lucee.runtime.functions.owasp.EncodeForXML</class>
+		<keywords>ESAPI,XML</keywords>
+		<description>Encodes the given string for safe output in XML to stop Cross Site Scripting attacks.</description>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>string to encode</description>
+    	</argument>
+    	<argument>
+			<name>canonicalize</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
+    	</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	<!-- encodeForXMLAttribute -->
+	<function>
+		<name>encodeForXMLAttribute</name>
+		<class>lucee.runtime.functions.owasp.EncodeForXMLAttribute</class>
+		<keywords>ESAPI,XML</keywords>
+		<description>Encodes the given string for safe output in XMLAttribute to stop Cross Site Scripting attacks.</description>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>string to encode</description>
+    	</argument>
+    	<argument>
+			<name>canonicalize</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
+    	</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	<!-- encodeForURL -->	
+	<function>
+		<name>encodeForURL</name>
+		<class>lucee.runtime.functions.owasp.EncodeForURL</class>
+		<keywords>ESAPI,URL</keywords>
+		<description>Encodes the given string for safe output in a URL.</description>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>string to encode</description>
+    	</argument>
+    	<argument>
+			<name>canonicalize</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
+    	</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	
+	
+	<!-- encodeForLDAP -->	
+	<function>
+		<name>encodeForLDAP</name>
+		<class>lucee.runtime.functions.owasp.EncodeForLDAP</class>
+		<keywords>ESAPI,ldap</keywords>
+		<description>Encodes the given string for safe output in LDAP queries.</description>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>string to encode</description>
+   	 	</argument>
+    	<argument>
+			<name>canonicalize</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
+    	</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	
+	<!-- encodeForDN -->	
+	<function>
+		<name>encodeForDN</name>
+		<class>lucee.runtime.functions.owasp.EncodeForDN</class>
+		<keywords>ESAPI,DN</keywords>
+		<description>Encodes the given string for safe output in LDAP Distinguished Names.</description>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>string to encode</description>
+    	</argument>
+    	<argument>
+			<name>canonicalize</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
+    	</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	
+	<!-- encodeForXPath -->	
+	<function>
+		<name>encodeForXPath</name>
+		<class>lucee.runtime.functions.owasp.EncodeForXPath</class>
+		<keywords>ESAPI,XML</keywords>
+		<description>Encodes the given string for safe use in an XPath Query.</description>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>string to encode</description>
+    	</argument>
+    	<argument>
+			<name>canonicalize</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
+    	</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	
+	
+	<!-- decodeFromURL -->	
+	<function>
+		<name>decodeFromURL</name>
+		<class>lucee.runtime.functions.owasp.DecodeFromURL</class>
+		<keywords>ESAPI,URL</keywords>
+		<description>Decodes a string that has been encoded in the URL using the encodeForURL.
+		this function is deprecated, use function ESAPIDecode('url',...) instead.</description>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+		<description>string to encode</description>
+    </argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
 	
 	
 	<!-- encrypt -->

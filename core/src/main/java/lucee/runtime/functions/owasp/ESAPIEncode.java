@@ -53,22 +53,25 @@ public class ESAPIEncode implements Function {
 	public static final short ENC_XPATH=14;
 	
 	
-	public static String encode(String item, short encFor) throws PageException  {
+	public static String encode(String item, short encFor, boolean canonicalize) throws PageException  {
+		
+		if(StringUtil.isEmpty(item)) return item;
 		
 		PrintStream out = System.out;
 		try {
-			 System.setOut(new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM));
+			 
+			
+			System.setOut(new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM));
 			 Encoder encoder = ESAPI.encoder();
+			 if(canonicalize)item=encoder.canonicalize(item, false);
+			 
 			 switch(encFor){
-			 //case ENC_CSS:return encoder.encodeForBase64(item);
 			 case ENC_CSS:return encoder.encodeForCSS(item);
 			 case ENC_DN:return encoder.encodeForDN(item);
 			 case ENC_HTML:return encoder.encodeForHTML(item);
 			 case ENC_HTML_ATTR:return encoder.encodeForHTMLAttribute(item);
 			 case ENC_JAVA_SCRIPT:return encoder.encodeForJavaScript(item);
 			 case ENC_LDAP:return encoder.encodeForLDAP(item);
-			 //case ENC_CSS:return encoder.encodeForOS(arg0, arg1)(item);
-			 //case ENC_CSS:return encoder.encodeForSQL(arg0, arg1)CSS(item);
 			 case ENC_URL:return encoder.encodeForURL(item);
 			 case ENC_VB_SCRIPT:return encoder.encodeForVBScript(item);
 			 case ENC_XML:return encoder.encodeForXML(item);
@@ -84,8 +87,12 @@ public class ESAPIEncode implements Function {
 			 System.setOut(out);
 		}
 	}
-	
+
 	public static String call(PageContext pc , String strEncodeFor, String value) throws PageException{
+		return call(pc, strEncodeFor, value, false);
+	}
+	
+	public static String call(PageContext pc , String strEncodeFor, String value, boolean canonicalize) throws PageException{
 		short encFor;
 		strEncodeFor=StringUtil.emptyIfNull(strEncodeFor).trim().toLowerCase();
 		//if("base64".equals(strEncodeFor)) encFor=ENC_BASE64;
@@ -127,7 +134,7 @@ public class ESAPIEncode implements Function {
 		else 
 			throw new FunctionException(pc, "ESAPIEncode", 1, "encodeFor", "value ["+strEncodeFor+"] is invalid, valid values are " +
 					"[css,dn,html,html_attr,javascript,ldap,vbscript,xml,xml_attr,xpath]");
-		return encode(value, encFor);
+		return encode(value, encFor,canonicalize);
 	}
 
 	public static String canonicalize(String input, boolean restrictMultiple, boolean restrictMixed) {
