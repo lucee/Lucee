@@ -347,7 +347,7 @@ public class HTTPEngine4Impl {
                 KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
                 kmf.init(clientStore, clientCertPassword.toCharArray());
 
-                SSLContext sslContext = SSLContext.getInstance("TLS");
+                SSLContext sslContext = SSLContext.getInstance("SSL");
                 sslContext.init(kmf.getKeyManagers(), null, null);//new SecureRandom()
 
                 // Allow TLSv1 protocol only

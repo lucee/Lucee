@@ -76,7 +76,7 @@ public class CertificateInstaller {
 			IOUtil.closeEL(in);
 		}
 
-		context = SSLContext.getInstance("TLS");
+		context = SSLContext.getInstance("SSL");
 		tmf =
 		    TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 		tmf.init(ks);
