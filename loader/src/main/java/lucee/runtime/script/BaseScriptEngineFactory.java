@@ -35,8 +35,9 @@ public abstract class BaseScriptEngineFactory implements ScriptEngineFactory {
 
 	private final ScriptEngineFactory factory;
 
-	public BaseScriptEngineFactory(final boolean tag, final int dialect)
-			throws ServletException {
+	public BaseScriptEngineFactory(final boolean tag, final int dialect) throws ServletException {
+		try {
+			
 		System.setProperty("lucee.cli.call", "true");
 
 		// returns null when not used within Lucee
@@ -63,6 +64,16 @@ public abstract class BaseScriptEngineFactory implements ScriptEngineFactory {
 		factory = tag ? CFMLEngineFactory.getInstance().getTagEngineFactory(
 				dialect) : CFMLEngineFactory.getInstance()
 				.getScriptEngineFactory(dialect);
+
+		}
+		catch(ServletException se) {
+			se.printStackTrace();
+			throw se;
+		}
+		catch(RuntimeException re) {
+			re.printStackTrace();
+			throw re;
+		}
 	}
 
 	@Override
