@@ -187,7 +187,7 @@ public final class Http extends BodyTagImpl {
 	private static final Key HTTP_VERSION = KeyImpl.intern("http_version");
 
 
-	private static final Key FILE_CONTENT = KeyImpl.intern("filecontent");
+	private static final Key FILE_CONTENT = KeyConstants._filecontent;
 	private static final Key EXPLANATION = KeyImpl.intern("explanation");
 	private static final Key RESPONSEHEADER = KeyImpl.intern("responseheader");
 	private static final Key SET_COOKIE = KeyImpl.intern("set-cookie");
