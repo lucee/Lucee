@@ -9939,6 +9939,17 @@ The following things are considered to be empty:
 			<type>boolean</type>
 		</return>
 	</function>
+	
+	<!-- isInThread -->
+	<function>
+		<name>isInThread</name>
+		<class>lucee.runtime.functions.thread.IsInThread</class>
+		<keywords>thread,system</keywords>
+		<description>Determines whether the executing code is inside a cfthread or not.</description>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
 
 	<!-- IsImage -->
 	<function>

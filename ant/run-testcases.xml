@@ -90,10 +90,10 @@ try {
 
 				},
 				onSpecStart=function( target, testResults, suite, spec ) {
-
+					echo( '-------------------- Running #spec.name# -------------------' & chr( 10 ) );
 				},
-				SpecEnd=function( target, testResults, suite, spec ) {
-					dump(arguments);
+				onSpecEnd=function( target, testResults, suite, spec ) {
+					
 				}
 
 	 		}); 
