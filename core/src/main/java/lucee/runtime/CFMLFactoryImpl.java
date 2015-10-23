@@ -481,6 +481,15 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		if(cfmlExtensions.contains(ext.toLowerCase())) return CFMLEngine.DIALECT_CFML;
 		return CFMLEngine.DIALECT_LUCEE;
 	}
+	
+	// FUTURE add to loader
+	public int toDialect(String ext, int defaultValue) {
+		if(ext==null) return defaultValue;
+		if(cfmlExtensions==null) _initExtensions();
+		if(cfmlExtensions.contains(ext=ext.toLowerCase())) return CFMLEngine.DIALECT_CFML;
+		if(luceeExtensions.contains(ext)) return CFMLEngine.DIALECT_LUCEE;
+		return defaultValue;
+	}
 
 
 	
