@@ -46,7 +46,7 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 	private static final Object NULL=new Object();
 
 	public UDFRemoveProperty(Component component,Property prop)  {
-		super(component,"remove"+StringUtil.ucFirst(PropertyFactory.getSingularName(prop)),getFunctionArgument(prop),CFTypes.TYPE_BOOLEAN,"wddx");
+		super(component,"remove"+StringUtil.ucFirst(PropertyFactory.getSingularName(prop)),getFunctionArgument(prop),CFTypes.TYPE_BOOLEAN);
 		this.prop=prop;
 		this.propName=KeyImpl.getInstance(prop.getName());
 	} 
@@ -55,10 +55,10 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 		String t = PropertyFactory.getType(prop);
 		
 		if("struct".equalsIgnoreCase(t)){
-			FunctionArgumentImpl key = new FunctionArgumentImpl(KeyConstants._key,"string",CFTypes.TYPE_STRING,true);
+			FunctionArgument key = new FunctionArgumentLight(KeyConstants._key,"string",CFTypes.TYPE_STRING,true);
 			return new FunctionArgument[]{key};
 		}
-		FunctionArgumentImpl value = new FunctionArgumentImpl(KeyImpl.init(PropertyFactory.getSingularName(prop)),"any",CFTypes.TYPE_ANY,true);
+		FunctionArgument value = new FunctionArgumentLight(KeyImpl.init(PropertyFactory.getSingularName(prop)),"any",CFTypes.TYPE_ANY,true);
 		return new FunctionArgument[]{value};
 	}
 	

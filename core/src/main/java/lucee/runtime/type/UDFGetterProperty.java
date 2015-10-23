@@ -28,12 +28,14 @@ import lucee.runtime.type.Collection.Key;
 
 public final class UDFGetterProperty extends UDFGSProperty {
 
+	private static final FunctionArgument[] EMPTY = new FunctionArgument[0];
+	
 	private final Property prop;
 	//private ComponentScope scope;
 	private final Key propName;
 
 	public UDFGetterProperty(Component component,Property prop)  {
-		super(component,"get"+StringUtil.ucFirst(prop.getName()),new FunctionArgument[0],CFTypes.TYPE_STRING,"wddx");
+		super(component,"get"+StringUtil.ucFirst(prop.getName()),EMPTY,CFTypes.TYPE_STRING);
 		this.prop=prop;
 		this.propName=KeyImpl.getInstance(prop.getName());
 		

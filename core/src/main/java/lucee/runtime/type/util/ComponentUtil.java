@@ -63,7 +63,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
-import lucee.runtime.type.UDFPropertiesImpl;
+import lucee.runtime.type.UDFPropertiesBase;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.ConstrBytecodeContext;
 import lucee.transformer.bytecode.util.ASMProperty;
@@ -741,41 +741,41 @@ public final class ComponentUtil {
 		}
 		return sct;
 	}
-	public static Struct getMetaData(PageContext pc,UDFPropertiesImpl udf) throws PageException {
+	public static Struct getMetaData(PageContext pc,UDFPropertiesBase udf) throws PageException {
 		StructImpl func=new StructImpl();
         pc=ThreadLocalPageContext.get(pc);
 		// TODO func.set("roles", value);
         // TODO func.set("userMetadata", value); neo unterstuetzt irgendwelche a
         // meta data
-        Struct meta = udf.meta;
+        Struct meta = udf.getMeta();
         if(meta!=null) StructUtil.copy(meta, func, true);
         
         func.setEL(KeyConstants._closure, Boolean.FALSE);
 		
 		func.set(KeyConstants._access,ComponentUtil.toStringAccess(udf.getAccess()));
-        String hint=udf.hint;
+        String hint=udf.getHint();
         if(!StringUtil.isEmpty(hint))func.set(KeyConstants._hint,hint);
-        String displayname=udf.displayName;
+        String displayname=udf.getDisplayName();
         if(!StringUtil.isEmpty(displayname))func.set(KeyConstants._displayname,displayname);
-        func.set(KeyConstants._name,udf.functionName);
-        func.set(KeyConstants._output,Caster.toBoolean(udf.output));
-        func.set(KeyConstants._returntype, udf.strReturnType);
-        func.set("modifier", udf.modifier==Component.MODIFIER_NONE?"":ComponentUtil.toModifier(udf.modifier, ""));
-        func.set(KeyConstants._description, udf.description);
-        if(udf.localMode!=null)func.set("localMode", AppListenerUtil.toLocalMode(udf.localMode.intValue(), ""));
+        func.set(KeyConstants._name,udf.getFunctionName());
+        func.set(KeyConstants._output,Caster.toBoolean(udf.getOutput()));
+        func.set(KeyConstants._returntype, udf.getReturnTypeAsString());
+        func.set("modifier", udf.getModifier()==Component.MODIFIER_NONE?"":ComponentUtil.toModifier(udf.getModifier(), ""));
+        func.set(KeyConstants._description, udf.getDescription());
+        if(udf.getLocalMode()!=null)func.set("localMode", AppListenerUtil.toLocalMode(udf.getLocalMode().intValue(), ""));
         
-        if(udf._pageSource!=null)
-        	func.set(KeyConstants._owner, udf._pageSource.getDisplayPath());
+        if(udf.getPageSource()!=null)
+        	func.set(KeyConstants._owner, udf.getPageSource().getDisplayPath());
         
 	    	   
-	    int format = udf.returnFormat;
+	    int format = udf.getReturnFormat();
         if(format<0 || format==UDF.RETURN_FORMAT_WDDX)			func.set(KeyConstants._returnFormat, "wddx");
         else if(format==UDF.RETURN_FORMAT_PLAIN)	func.set(KeyConstants._returnFormat, "plain");
         else if(format==UDF.RETURN_FORMAT_JSON)	func.set(KeyConstants._returnFormat, "json");
         else if(format==UDF.RETURN_FORMAT_SERIALIZE)func.set(KeyConstants._returnFormat, "cfml");
         
         
-        FunctionArgument[] args =  udf.arguments;
+        FunctionArgument[] args =  udf.getFunctionArguments();
         Array params=new ArrayImpl();
         //Object defaultValue;
         Struct m;
@@ -794,7 +794,7 @@ public final class ComponentUtil {
             }
             else if(defType==FunctionArgument.DEFAULT_TYPE_LITERAL){
             	Page p=udf.getPage(pc);
-        		param.set(KeyConstants._default, p.udfDefaultValue(pc,udf.index,y,null));
+        		param.set(KeyConstants._default, p.udfDefaultValue(pc,udf.getIndex(),y,null));
             }
             
             hint=args[y].getHint();

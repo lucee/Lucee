@@ -39,11 +39,12 @@ import lucee.runtime.engine.ThreadLocalPageSource;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.UDFUtil;
 
-public final class UDFPropertiesImpl implements UDFProperties {
+public final class UDFPropertiesImpl extends UDFPropertiesBase {
 	private static final long serialVersionUID = 8679484452640746605L; // do not change
 
 	
@@ -289,28 +290,106 @@ public final class UDFPropertiesImpl implements UDFProperties {
 		out.writeInt(localMode==null?-1:localMode.intValue());
 	}
 
-	public Page getPage(PageContext pc) throws PageException {
-		
-		// MUST no page source
-		if(_pageSource!=null)return ComponentUtil.getPage(pc,_pageSource);
-		if(page!=null)return page;
-		throw new ApplicationException("missing Page Source");
+
+	@Override
+	public String getFunctionName() {
+		return functionName;
 	}
 
-	public String id() {
-		if(id==null) {
-			// MUST no page source
-			if(_pageSource!=null) {
-				id=_pageSource.getDisplayPath()+":"+index;
-			}
-			else if(page!=null) {
-				// MUST id for Page
-				id=page.hashCode()+":"+index;
-			}
-		}
-		return id;
+	@Override
+	public boolean getOutput() {
+		return output;
 	}
 
+	@Override
+	public Boolean getBufferOutput() {
+		return bufferOutput;
+	}
+
+	@Override
+	public int getReturnType() {
+		return returnType;
+	}
+
+	@Override
+	public String getReturnTypeAsString() {
+		return strReturnType;
+	}
+
+	@Override
+	public String getDescription() {
+		return description;
+	}
+
+	@Override
+	public int getReturnFormat() {
+		return returnFormat;
+	}
+
+	@Override
+	public String getReturnFormatAsString() {
+		return strReturnFormat;
+	}
+
+	@Override
+	public int getIndex() {
+		return index;
+	}
+
+	@Override
+	public PageSource getPageSource() {
+		return _pageSource;
+	}
+
+	@Override
+	public Object getCachedWithin() {
+		return cachedWithin;
+	}
+
+	@Override
+	public Boolean getSecureJson() {
+		return secureJson;
+	}
+
+	@Override
+	public Boolean getVerifyClient() {
+		return verifyClient;
+	}
+
+	@Override
+	public FunctionArgument[] getFunctionArguments() {
+		return arguments;
+	}
+
+	@Override
+	public String getDisplayName() {
+		return displayName;
+	}
+
+	@Override
+	public String getHint() {
+		return hint;
+	}
+
+	@Override
+	public Struct getMeta() {
+		return meta;
+	}
+
+	@Override
+	public Integer getLocalMode() {
+		return localMode;
+	}
+
+	@Override
+	public Set<Key> getArgumentsSet() {
+		return argumentsSet;
+	}
+
+	@Override
+	protected Page getPage() {
+		return page;
+	}
 
 
 

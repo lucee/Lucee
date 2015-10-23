@@ -45,7 +45,7 @@ public final class UDFHasProperty extends UDFGSProperty {
 	//private static final String NULL="sdsdsdfsfsfjkln fsdfsa";
 
 	public UDFHasProperty(Component component,Property prop)  {
-		super(component,"has"+StringUtil.ucFirst(PropertyFactory.getSingularName(prop)),getFunctionArgument(prop),CFTypes.TYPE_BOOLEAN,"wddx");
+		super(component,"has"+StringUtil.ucFirst(PropertyFactory.getSingularName(prop)),getFunctionArgument(prop),CFTypes.TYPE_BOOLEAN);
 		this.prop=prop;
 		this.propName=KeyImpl.getInstance(prop.getName());
 	} 
@@ -54,10 +54,10 @@ public final class UDFHasProperty extends UDFGSProperty {
 		String t = PropertyFactory.getType(prop);
 		
 		if("struct".equalsIgnoreCase(t)){
-			FunctionArgument key = new FunctionArgumentImpl(KeyConstants._key,"string",CFTypes.TYPE_STRING,false);
+			FunctionArgument key = new FunctionArgumentLight(KeyConstants._key,"string",CFTypes.TYPE_STRING,false);
 			return new FunctionArgument[]{key};
 		}
-		FunctionArgument value = new FunctionArgumentImpl(KeyImpl.init(PropertyFactory.getSingularName(prop)),"any",CFTypes.TYPE_ANY,false);
+		FunctionArgument value = new FunctionArgumentLight(KeyImpl.init(PropertyFactory.getSingularName(prop)),"any",CFTypes.TYPE_ANY,false);
 		return new FunctionArgument[]{value};
 	}
 	

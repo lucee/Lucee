@@ -89,7 +89,7 @@ import lucee.runtime.type.UDFGSProperty;
 import lucee.runtime.type.UDFImpl;
 import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.UDFProperties;
-import lucee.runtime.type.UDFPropertiesImpl;
+import lucee.runtime.type.UDFPropertiesBase;
 import lucee.runtime.type.cfc.ComponentEntryIterator;
 import lucee.runtime.type.cfc.ComponentValueIterator;
 import lucee.runtime.type.comparator.ArrayOfStructComparator;
@@ -1588,7 +1588,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
     	if(page!=null && page.udfs!=null){
     		for(int i=0;i<page.udfs.length;i++){
     			if(page.udfs[i].getAccess()>access) continue;
-        		arr.append(ComponentUtil.getMetaData(pc,(UDFPropertiesImpl) page.udfs[i]));
+        		arr.append(ComponentUtil.getMetaData(pc,(UDFPropertiesBase) page.udfs[i]));
     		}
     	}
     	

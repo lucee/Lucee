@@ -37,6 +37,7 @@ public final class FunctionArgumentLight implements FunctionArgument,Externaliza
 	private Collection.Key name;
 	private short type;
 	private String strType;
+	private boolean required;
 	
 
 	
@@ -60,6 +61,13 @@ public final class FunctionArgumentLight implements FunctionArgument,Externaliza
 		this.type=type;
 	}
 
+	public FunctionArgumentLight(Collection.Key name,String strType,short type, boolean required) {
+		this.name=name;
+		this.strType=strType;
+		this.type=type;
+		this.required=required;
+	}
+
 	/**
 	 * @return the defaultType
 	 */
@@ -76,7 +84,7 @@ public final class FunctionArgumentLight implements FunctionArgument,Externaliza
 
 	@Override
 	public boolean isRequired() {
-		return false;
+		return required;
 	}
 
 	@Override

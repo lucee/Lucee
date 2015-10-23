@@ -140,7 +140,7 @@ public class Closure extends UDFImpl {
 		setAccess(in.readInt());
 		
 		// properties
-		properties=(UDFPropertiesImpl) in.readObject();
+		properties=(UDFPropertiesBase) in.readObject();
 	}
 
 

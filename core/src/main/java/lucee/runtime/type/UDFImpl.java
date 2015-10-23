@@ -67,7 +67,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 	private static final long serialVersionUID = -7288148349256615519L; // do not change
 	
 	protected Component ownerComponent;
-	protected UDFPropertiesImpl properties;
+	protected UDFPropertiesBase properties;
     
 	/**
 	 * DO NOT USE THIS CONSTRUCTOR!
@@ -80,7 +80,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 	public UDFImpl(UDFProperties properties) {
 		super(properties.getAccess(),properties.getModifier());
 		
-		this.properties= (UDFPropertiesImpl) properties;
+		this.properties= (UDFPropertiesBase) properties;
 	}
 
 	public UDF duplicate(Component cfc) {
@@ -102,7 +102,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 
 	@Override
 	public Object implementation(PageContext pageContext) throws Throwable {
-		return properties.getPage(pageContext).udfCall(pageContext,this,properties.index);
+		return properties.getPage(pageContext).udfCall(pageContext,this,properties.getIndex());
 	}
 
 	private final Object castToAndClone(PageContext pc,FunctionArgument arg,Object value, int index) throws PageException {
@@ -226,11 +226,12 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 
 
     private boolean hasCachedWithin(PageContext pc) {
-    	return this.properties.cachedWithin!=null || pc.getCachedWithin(Config.CACHEDWITHIN_FUNCTION)!=null;
+    	return this.properties.getCachedWithin()!=null || pc.getCachedWithin(Config.CACHEDWITHIN_FUNCTION)!=null;
     	// Maybe better 	return !StringUtil.isEmpty(this.properties.cachedWithin) || !StringUtil.isEmpty(pc.getCachedWithin(Config.CACHEDWITHIN_FUNCTION));
 	}
     private Object getCachedWithin(PageContext pc) {
-		if(this.properties.cachedWithin!=null) return this.properties.cachedWithin;
+		if(this.properties.getCachedWithin()!=null) 
+			return this.properties.getCachedWithin();
     	return pc.getCachedWithin(Config.CACHEDWITHIN_FUNCTION);
 	}
     
@@ -281,7 +282,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
     	//print.out(count++);
     	PageContextImpl pci=(PageContextImpl) pc;
     	Argument newArgs= pci.getScopeFactory().getArgumentInstance();
-        newArgs.setFunctionArgumentNames(properties.argumentsSet);
+        newArgs.setFunctionArgumentNames(properties.getArgumentsSet());
         LocalImpl newLocal=pci.getScopeFactory().getLocalInstance();
         
 		Undefined 	undefined=pc.undefinedScope();
@@ -294,14 +295,14 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 		
 		int oldCheckArgs=undefined.setMode(
 				pc.getCurrentTemplateDialect()==CFMLEngine.DIALECT_CFML?
-				(properties.localMode==null?pc.getApplicationContext().getLocalMode():properties.localMode.intValue()):
+				(properties.getLocalMode()==null?pc.getApplicationContext().getLocalMode():properties.getLocalMode().intValue()):
 				Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS
 		);
 		
 		PageSource ps=null;
 		PageSource psInc=null;
 		try {
-			ps = properties._pageSource;
+			ps = properties.getPageSource();
 			if(doIncludePath)psInc = ps;
 			if(doIncludePath && getOwnerComponent()!=null) {
 				psInc=ComponentUtil.getPageSource(getOwnerComponent());
@@ -354,9 +355,9 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 	        
 	        
 	        
-	        if(properties.returnType==CFTypes.TYPE_ANY || !((PageContextImpl)pc).getTypeChecking()) return returnValue;
-	        else if(Decision.isCastableTo(properties.strReturnType,returnValue,false,false,-1)) return returnValue;
-	        else throw new UDFCasterException(this,properties.strReturnType,returnValue);
+	        if(properties.getReturnType()==CFTypes.TYPE_ANY || !((PageContextImpl)pc).getTypeChecking()) return returnValue;
+	        else if(Decision.isCastableTo(properties.getReturnTypeAsString(),returnValue,false,false,-1)) return returnValue;
+	        else throw new UDFCasterException(this,properties.getReturnTypeAsString(),returnValue);
 			//REALCAST return Caster.castTo(pageContext,returnType,returnValue,false);
 //////////////////////////////////////////
 			
@@ -379,12 +380,12 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 	
 	@Override
 	public String getDisplayName() {
-		return properties.displayName;
+		return properties.getDisplayName();
 	}
 	
 	@Override
 	public String getHint() {
-		return properties.hint;
+		return properties.getHint();
 	}
 
 	/*@Override
@@ -394,11 +395,11 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 
 	@Override
 	public String getSource() {
-        return properties._pageSource!=null?properties._pageSource.getDisplayPath():"";
+        return properties.getPageSource()!=null?properties.getPageSource().getDisplayPath():"";
     }
 
 	public Struct getMeta() {
-		return properties.meta;
+		return properties.getMeta();
 	}
 	
 	@Override
@@ -431,18 +432,19 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 	
 	@Override
 	public String toString() {
-		StringBuffer sb=new StringBuffer(properties.functionName);
+		StringBuffer sb=new StringBuffer(properties.getFunctionName());
 		sb.append("(");
 		int optCount=0;
-		for(int i=0;i<properties.arguments.length;i++) {
+		FunctionArgument[] args = properties.getFunctionArguments();
+		for(int i=0;i<args.length;i++) {
 			if(i>0)sb.append(", ");
-			if(!properties.arguments[i].isRequired()){
+			if(!args[i].isRequired()){
 				sb.append("[");
 				optCount++;
 			}
-			sb.append(properties.arguments[i].getTypeAsString());
+			sb.append(args[i].getTypeAsString());
 			sb.append(" ");
-			sb.append(properties.arguments[i].getName());
+			sb.append(args[i].getName());
 		}
 		for(int i=0;i<optCount;i++){
 			sb.append("]");
@@ -453,12 +455,12 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 
 	@Override
 	public Boolean getSecureJson() {
-		return properties.secureJson;
+		return properties.getSecureJson();
 	}
 
 	@Override
 	public Boolean getVerifyClient() {
-		return properties.verifyClient;
+		return properties.getVerifyClient();
 	}
 	
 	@Override
@@ -468,7 +470,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 
 	@Override
 	public FunctionArgument[] getFunctionArguments() {
-        return properties.arguments;
+        return properties.getFunctionArguments();
     }
 	
 	@Override
@@ -478,61 +480,61 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
     
     @Override
 	public Object getDefaultValue(PageContext pc,int index, Object defaultValue) throws PageException {
-    	return properties.getPage(pc).udfDefaultValue(pc,properties.index,index,defaultValue);
+    	return properties.getPage(pc).udfDefaultValue(pc,properties.getIndex(),index,defaultValue);
     }
     
     // public abstract Object getDefaultValue(PageContext pc,int index) throws PageException;
 
     @Override
 	public String getFunctionName() {
-		return properties.functionName;
+		return properties.getFunctionName();
 	}
 
 	@Override
 	public boolean getOutput() {
-		return properties.output;
+		return properties.getOutput();
 	}
 	
 	public Boolean getBufferOutput() {
-		return properties.bufferOutput;
+		return properties.getBufferOutput();
 	}
 	
 	@Override
 	public boolean getBufferOutput(PageContext pc) {
-		if(properties.bufferOutput!=null)
-			return properties.bufferOutput.booleanValue();
+		if(properties.getBufferOutput()!=null)
+			return properties.getBufferOutput().booleanValue();
 		return ((ApplicationContextSupport)pc.getApplicationContext()).getBufferOutput();
 	}
 
 	@Override
 	public int getReturnType() {
-		return properties.returnType;
+		return properties.getReturnType();
 	}
 	
 	@Override
 	public String getReturnTypeAsString() {
-		return properties.strReturnType;
+		return properties.getReturnTypeAsString();
 	}
 	
 	@Override
 	public String getDescription() {
-		return properties.description;
+		return properties.getDescription();
 	}
 	
 	@Override
 	public int getReturnFormat() {
-		if(properties.returnFormat<0) return UDF.RETURN_FORMAT_WDDX;
-		return properties.returnFormat;
+		if(properties.getReturnFormat()<0) return UDF.RETURN_FORMAT_WDDX;
+		return properties.getReturnFormat();
 	}
 	
 	@Override
 	public int getReturnFormat(int defaultValue) {
-		if(properties.returnFormat<0) return defaultValue;
-		return properties.returnFormat;
+		if(properties.getReturnFormat()<0) return defaultValue;
+		return properties.getReturnFormat();
 	}
 	
 	public final String getReturnFormatAsString() {
-		return properties.strReturnFormat;
+		return properties.getReturnFormatAsString();
 	}
 	
 	@Override
@@ -541,7 +543,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 		setAccess(in.readInt());
 		
 		// properties
-		properties=(UDFPropertiesImpl) in.readObject();
+		properties=(UDFPropertiesBase) in.readObject();
 	}
 
 	@Override
@@ -591,7 +593,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 
 	@Override
 	public int getIndex(){
-		return properties.index;
+		return properties.getIndex();
 	}
 	
 	@Override
@@ -601,7 +603,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 
 	@Override
 	public PageSource getPageSource() {
-		return this.properties._pageSource;
+		return this.properties.getPageSource();
 	}
 	
 }

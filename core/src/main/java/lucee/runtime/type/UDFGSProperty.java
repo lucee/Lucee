@@ -55,72 +55,34 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 	protected final FunctionArgument[] arguments;
 	protected final String name;
 	protected Component component;
-	private UDFPropertiesImpl properties;
+	private UDFPropertiesBase properties;
 	private String id;
 
-	public UDFGSProperty(Component component,String name,FunctionArgument[] arguments,short rtnType,String rtnFormat) {
+	public UDFGSProperty(Component component,String name,FunctionArgument[] arguments,short rtnType) {
 		super(Component.ACCESS_PUBLIC);
 		properties=UDFProperties(null,
 				component.getPageSource(),
 				arguments,
-				-1,
 				name,
-				rtnType,
-				rtnFormat,
-				false,
-				true,
-				Component.ACCESS_PUBLIC,
-				"",
-				"",
-				"",
-				Boolean.FALSE,
-				Boolean.FALSE,
-				0L,
-				null,
-				null
-				
+				rtnType
 		);
 		
 		this.name=name;
 		this.arguments=arguments;
 		this.component=component;
 	}
-
-	private static UDFPropertiesImpl UDFProperties(Page page,PageSource pageSource,
+	
+	private static UDFPropertiesBase UDFProperties(
+			Page page,
+			PageSource pageSource,
 	        FunctionArgument[] arguments,
-			int index,
-	        String functionName, 
-	        short returnType, 
-	        String strReturnFormat, 
-	        boolean output, 
-	        Boolean bufferOutput, 
-	        int access, 
-	        String displayName, 
-	        String description, 
-	        String hint, 
-	        Boolean secureJson,
-	        Boolean verifyClient,
-	        long cachedWithin,
-	        Integer localMode,
-	        StructImpl meta) {
-			return new UDFPropertiesImpl(page, pageSource,
+			String functionName, 
+	        short returnType) {
+			return new UDFPropertiesLight(page, 
+					pageSource,
 			        arguments,
-					 index,
-			         functionName, 
-			         returnType, 
-			         strReturnFormat, 
-			         output,
-			         access, 
-			         bufferOutput,
-			         displayName, 
-			         description, 
-			         hint, 
-			         secureJson,
-			         verifyClient,
-			         cachedWithin,
-			         localMode,
-			         Component.MODIFIER_NONE,
-			         meta);
+					 functionName, 
+			         returnType);
 	}
 
 	@Override
@@ -330,7 +292,7 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
 	@Override
 	public PageSource getPageSource() {
-		return this.properties._pageSource;
+		return this.properties.getPageSource();
 	}
 
 	@Override

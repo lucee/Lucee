@@ -22,6 +22,7 @@ import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.tag.udf.UDFArgConverter;
 import lucee.runtime.component.Property;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -43,13 +44,12 @@ public final class UDFSetterProperty extends UDFGSProperty {
 
 	public UDFSetterProperty(Component component,Property prop) throws PageException {
 		super(component,"set"+StringUtil.ucFirst(prop.getName()),new FunctionArgument[]{
-			new FunctionArgumentImpl(
+			new FunctionArgumentLight(
 					KeyImpl.init(prop.getName()),
 					prop.getType(),
 					CFTypes.toShortStrict(prop.getType(),CFTypes.TYPE_UNKNOW),
 					true)
-		},CFTypes.TYPE_ANY,"wddx");
-		
+		},CFTypes.TYPE_ANY);
 		
 		this.prop=prop; 
 		this.propName=KeyImpl.getInstance(prop.getName());

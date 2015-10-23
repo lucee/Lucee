@@ -44,16 +44,16 @@ public final class UDFAddProperty extends UDFGSProperty {
 	private static final Object NULL=new Object();
 
 	public UDFAddProperty(Component component,Property prop)  {
-		super(component,"add"+StringUtil.ucFirst(PropertyFactory.getSingularName(prop)),getFunctionArgument(prop),CFTypes.TYPE_ANY,"wddx");
+		super(component,"add"+StringUtil.ucFirst(PropertyFactory.getSingularName(prop)),getFunctionArgument(prop),CFTypes.TYPE_ANY);
 		this.prop=prop;
 		this.propName=KeyImpl.getInstance(prop.getName());
 	} 
 
 	private static FunctionArgument[] getFunctionArgument(Property prop) {
 		String t = PropertyFactory.getType(prop);
-		FunctionArgument value = new FunctionArgumentImpl(KeyImpl.init(PropertyFactory.getSingularName(prop)),"any",CFTypes.TYPE_ANY,true);
+		FunctionArgument value = new FunctionArgumentLight(KeyImpl.init(PropertyFactory.getSingularName(prop)),"any",CFTypes.TYPE_ANY,true);
 		if("struct".equalsIgnoreCase(t)){
-			FunctionArgument key = new FunctionArgumentImpl(KeyConstants._key,"string",CFTypes.TYPE_STRING,true);
+			FunctionArgument key = new FunctionArgumentLight(KeyConstants._key,"string",CFTypes.TYPE_STRING,true);
 			return new FunctionArgument[]{key,value};
 		}
 		return new FunctionArgument[]{value};
