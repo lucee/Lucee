@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import lucee.print;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
@@ -476,12 +477,15 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					
 					// get the rest with default values
 					FunctionLibFunctionArg flfa;
+					VT def;
 					for(int i=argTypes.length;i<tmp.length;i++){
 						flfa = _args.get(i-1);
 						tmp[i]=Types.toType(flfa.getTypeAsString());
-						getDefaultValue(bc.getFactory(),flfa).value.writeOut(
-								bc, 
-								Types.isPrimitiveType(tmp[i])?MODE_VALUE:MODE_REF);
+						def = getDefaultValue(bc.getFactory(),flfa);
+						
+						if(def.value!=null)def.value.writeOut(bc, Types.isPrimitiveType(tmp[i])?MODE_VALUE:MODE_REF);
+						else ASMConstants.NULL(bc.getAdapter());
+						
 					}
 					argTypes=tmp;
 				}
