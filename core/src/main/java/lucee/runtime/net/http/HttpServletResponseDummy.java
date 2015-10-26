@@ -23,7 +23,9 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
@@ -32,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.lang.Pair;
 import lucee.commons.net.URLEncoder;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTimeImpl;
 
 
@@ -253,6 +256,39 @@ public final class HttpServletResponseDummy implements HttpServletResponse,Seria
 	public Pair<String,Object>[] getHeaders() {
 		return headers;
 	}
+	
+
+
+	@Override
+	public Collection<String> getHeaderNames() {
+		Set<String> names=new HashSet<String>();
+		for(int i=0;i<headers.length;i++){
+			names.add(headers[i].getName());
+		}
+		return names;
+	}
+
+	@Override
+	public Collection<String> getHeaders(String name) {
+		String value = getHeader(name);
+		if(value==null) return null;
+		Set<String> values=new HashSet<String>();
+		values.add(value);
+		return values;
+	}
+	
+	@Override
+	public String getHeader(String name) {
+		for(int i=0;i<headers.length;i++){
+			if(headers[i].getName().equals(name)) {
+				return Caster.toString(headers[i].getValue(),null);
+			}	
+		}
+		return null;
+	}
+	
+	
+	
 
 	/* *
 	 * @return the outputData
@@ -284,19 +320,5 @@ public final class HttpServletResponseDummy implements HttpServletResponse,Seria
 		ReqRspUtil.setContentLength(this, length);
 	}
 
-	@Override
-	public String getHeader(String arg0) {
-		throw new RuntimeException("not supported!");
-	}
-
-	@Override
-	public Collection<String> getHeaderNames() {
-		throw new RuntimeException("not supported!");
-	}
-
-	@Override
-	public Collection<String> getHeaders(String arg0) {
-		throw new RuntimeException("not supported!");
-	}
 	
 }

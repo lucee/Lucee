@@ -79,7 +79,7 @@ public final class CreatePageContext implements Function {
 				castValuesToString(attributes),true,-1);
 	}
 
-	private static Struct castValuesToString(Struct sct) throws PageException {
+	public static Struct castValuesToString(Struct sct) throws PageException {
 		Key[] keys = CollectionUtil.keys(sct);
 		for(int i=0;i<keys.length;i++){
 			sct.set(keys[i], Caster.toString(sct.get(keys[i])));
@@ -87,7 +87,8 @@ public final class CreatePageContext implements Function {
 		return sct;
 	}
 
-	private static Pair<String,Object>[] toPair(Struct sct, boolean doStringCast) throws PageException {
+	public static Pair<String,Object>[] toPair(Struct sct, boolean doStringCast) throws PageException {
+		if(sct==null) return new Pair[0];
 		Iterator<Entry<Key, Object>> it = sct.entryIterator();
 		Entry<Key, Object> e;
 		Object value;
@@ -101,7 +102,8 @@ public final class CreatePageContext implements Function {
 		return pairs.toArray(new Pair[pairs.size()]);
 	}
 
-	private static Cookie[] toCookies(Struct sct) throws PageException {
+	public static Cookie[] toCookies(Struct sct) throws PageException {
+		if(sct==null) return new Cookie[0];
 		Iterator<Entry<Key, Object>> it = sct.entryIterator();
 		Entry<Key, Object> e;
 		List<Cookie> cookies=new ArrayList<Cookie>();

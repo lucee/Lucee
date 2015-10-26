@@ -10154,6 +10154,60 @@ The following things are considered to be empty:
 			<type>number</type>
 		</return>
 	</function>
+	
+	
+	<!-- InternalRequest -->
+	<function>
+		<name>_InternalRequest</name>
+		<class>lucee.runtime.functions.system.InternalRequest</class>
+		<description>Makes a request to the CFML Engine internally.</description>
+		<status>hidden</status>
+		<argument>
+			<name>template</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Template path (script name) for the request (example:/test/index.cfm).</description>
+    	</argument>
+		<argument>
+			<name>method</name>
+			<type>string</type>
+			<required>no</required>
+			<default>get</default>
+			<description>method of the request (GET,POST,PUT,DELETE ...)</description>
+    	</argument>
+		<argument>
+			<name>urls</name>
+			<alias>url</alias>
+			<type>struct</type>
+			<required>no</required>
+			<description>URL scope passed to the request (query string).</description>
+    	</argument>
+		<argument>
+			<name>forms</name>
+			<alias>form</alias>
+			<type>struct</type>
+			<required>no</required>
+			<description>FORM scope passed to the request.</description>
+    	</argument>
+		<argument>
+			<name>cookies</name>
+			<alias>cookie</alias>
+			<type>struct</type>
+			<required>no</required>
+			<description>Cookie scope passed to the request</description>
+    	</argument>
+		<argument>
+			<name>headers</name>
+			<alias>header</alias>
+			<type>struct</type>
+			<required>no</required>
+			<description>Request header entries passed to the request</description>
+    	</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
 	<!-- isArray -->
 	<function>
 		<name>isArray</name>
