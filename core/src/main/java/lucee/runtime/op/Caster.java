@@ -2454,6 +2454,9 @@ public final class Caster {
         else if(o instanceof List) {
             return new ArrayImpl(((List) o).toArray());
         }
+        else if(o instanceof Set) {
+            return new ArrayImpl(((Set) o).toArray());
+        }
         else if(o instanceof XMLStruct) {
             Array arr = new ArrayImpl();
             arr.appendEL(o);
