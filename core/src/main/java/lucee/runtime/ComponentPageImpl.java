@@ -964,7 +964,7 @@ public abstract class ComponentPageImpl extends ComponentPage {
 	private Charset getCharset(PageContext pc) {
 		HttpServletResponse rsp = pc.getHttpServletResponse();
         Charset cs = ReqRspUtil.getCharacterEncoding(pc,rsp);
-        if(cs==null)cs=((PageContextImpl)pc).getWebCharset();
+        if(cs==null)cs=pc.getWebCharset();
         return cs;
 	}
 

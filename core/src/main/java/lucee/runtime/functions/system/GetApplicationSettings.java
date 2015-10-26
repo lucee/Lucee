@@ -90,7 +90,7 @@ public class GetApplicationSettings {
 		sct.setEL("scopeCascading",ConfigWebUtil.toScopeCascading(ac.getScopeCascading(),null));
 		
 		Struct cs=new StructImpl();
-		cs.setEL("web",((PageContextImpl)pc).getWebCharset().name());
+		cs.setEL("web",pc.getWebCharset().name());
 		cs.setEL("resource",((PageContextImpl)pc).getResourceCharset().name());
 		sct.setEL("charset", cs);
 		

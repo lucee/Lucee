@@ -80,7 +80,7 @@ public abstract class HTTPResponseSupport implements HTTPResponse {
 		if(!StringUtil.isEmpty(charset)) return charset;
 		
 		PageContext pc = ThreadLocalPageContext.get();
-		if(pc!=null) return ((PageContextImpl)pc).getWebCharset().name();
+		if(pc!=null) return pc.getWebCharset().name();
 		return "ISO-8859-1";
 	}
 

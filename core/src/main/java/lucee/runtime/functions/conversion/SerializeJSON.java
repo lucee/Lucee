@@ -38,13 +38,13 @@ public final class SerializeJSON implements Function {
 	private static final long serialVersionUID = -4632952919389635891L;
 
 	public static String call(PageContext pc, Object var) throws PageException {
-		return _call(pc, var, false, ((PageContextImpl)pc).getWebCharset());
+		return _call(pc, var, false, pc.getWebCharset());
 	}
 	public static String call(PageContext pc, Object var,boolean serializeQueryByColumns) throws PageException {
-		return _call(pc, var, serializeQueryByColumns, ((PageContextImpl)pc).getWebCharset());
+		return _call(pc, var, serializeQueryByColumns, pc.getWebCharset());
 	}
 	public static String call(PageContext pc, Object var,boolean serializeQueryByColumns, String strCharset) throws PageException {
-		Charset cs=StringUtil.isEmpty(strCharset)?((PageContextImpl)pc).getWebCharset():CharsetUtil.toCharset(strCharset);
+		Charset cs=StringUtil.isEmpty(strCharset)?pc.getWebCharset():CharsetUtil.toCharset(strCharset);
 		return _call(pc, var, serializeQueryByColumns, cs);
 	}
 	private static String _call(PageContext pc, Object var,boolean serializeQueryByColumns, Charset charset) throws PageException {

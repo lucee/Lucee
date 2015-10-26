@@ -42,7 +42,7 @@ public final class ToBinary implements Function {
 		if(!StringUtil.isEmpty(charset)) {
 			charset=charset.trim().toLowerCase();
 			Charset cs;
-			if("web".equalsIgnoreCase(charset))cs=((PageContextImpl)pc).getWebCharset();
+			if("web".equalsIgnoreCase(charset))cs=pc.getWebCharset();
 			if("resource".equalsIgnoreCase(charset))cs=((PageContextImpl)pc).getResourceCharset();
 			else cs=CharsetUtil.toCharset(charset);
 				

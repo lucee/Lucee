@@ -50,7 +50,7 @@ public class HMAC implements Function {
 		// charset
 		Charset cs;
         if(StringUtil.isEmpty(charset,true))
-            cs=((PageContextImpl)pc).getWebCharset();
+            cs=pc.getWebCharset();
         else
         	cs = CharsetUtil.toCharset(charset);
 

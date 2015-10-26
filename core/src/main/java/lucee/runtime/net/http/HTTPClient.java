@@ -271,7 +271,7 @@ public class HTTPClient implements Objects, Iteratorable {
 		String str;
 		try {
 			if(UDF.RETURN_FORMAT_JSON==argumentsCollectionFormat)	{
-				Charset cs = ((PageContextImpl)pc).getWebCharset();
+				Charset cs = pc.getWebCharset();
 				str = new JSONConverter(true,cs).serialize(pc,args,false);
 				formfields.put("argumentCollectionFormat", "json");
 			}

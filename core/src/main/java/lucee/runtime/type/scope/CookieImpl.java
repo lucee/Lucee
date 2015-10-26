@@ -298,7 +298,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie,ScriptProte
 	@Override
 	public void initialize(PageContext pc) {
 		Config config = ThreadLocalPageContext.getConfig(pc);
-		charset = ((PageContextImpl)pc).getWebCharset().name();
+		charset = pc.getWebCharset().name();
 		if(scriptProtected==ScriptProtected.UNDEFINED) {
 			scriptProtected=((pc.getApplicationContext().getScriptProtect()&ApplicationContext.SCRIPT_PROTECT_COOKIE)>0)?
 					ScriptProtected.YES:ScriptProtected.NO;
@@ -307,7 +307,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie,ScriptProte
 		
 		HttpServletRequest req = pc. getHttpServletRequest();
 		this.rsp=pc. getHttpServletResponse();
-		javax.servlet.http.Cookie[] cookies=ReqRspUtil.getCookies(req,((PageContextImpl)pc).getWebCharset());
+		javax.servlet.http.Cookie[] cookies=ReqRspUtil.getCookies(req,pc.getWebCharset());
 		for(int i=0;i<cookies.length;i++) {
 			set(config,cookies[i]);
 		}

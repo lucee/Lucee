@@ -78,14 +78,14 @@ public abstract class SpoolerTaskHTTPCall extends SpoolerTaskSupport {
 		params.put("method",methodName);
 		params.put("returnFormat","json");
 		try {
-			Charset cs = ((PageContextImpl)pc).getWebCharset();
+			Charset cs = pc.getWebCharset();
 			params.put("argumentCollection",new JSONConverter(true,cs).serialize(pc, args, false));
 		
 		
 			HTTPResponse res = HTTPEngine4Impl.post(
 				HTTPUtil.toURL(url,true), 
 				client.getServerUsername(), 
-				client.getServerPassword(), -1L, true, ((PageContextImpl)pc).getWebCharset().name(), Constants.NAME+" Remote Invocation", client.getProxyData(), null,params);
+				client.getServerPassword(), -1L, true, pc.getWebCharset().name(), Constants.NAME+" Remote Invocation", client.getProxyData(), null,params);
 		
 			return new JSONExpressionInterpreter().interpret(pc, res.getContentAsString());
 			

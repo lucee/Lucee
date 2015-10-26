@@ -30,7 +30,7 @@ public final class URLSessionFormat implements Function {
 	private static final long serialVersionUID = 1486918425114400713L;
 
 	public static String call(PageContext pc, String strUrl) {
-        Cookie[] cookies = ReqRspUtil.getCookies(pc.getHttpServletRequest(),((PageContextImpl)pc).getWebCharset());
+        Cookie[] cookies = ReqRspUtil.getCookies(pc.getHttpServletRequest(),pc.getWebCharset());
         
         if(!pc.getApplicationContext().isSetClientCookies() || cookies==null) {
             int indexQ=strUrl.indexOf('?');

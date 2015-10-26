@@ -106,7 +106,7 @@ public final class FormImpl extends ScopeSupport implements Form,ScriptProtected
 
 	@Override
 	public void initialize(PageContext pc) {
-		if(encoding==null)encoding=((PageContextImpl)pc).getWebCharset().name();
+		if(encoding==null)encoding=pc.getWebCharset().name();
 		
 		if(scriptProtected==ScriptProtected.UNDEFINED) {
 			scriptProtected=((pc.getApplicationContext().getScriptProtect()&ApplicationContext.SCRIPT_PROTECT_FORM)>0)?

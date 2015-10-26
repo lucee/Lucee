@@ -194,7 +194,7 @@ public final class ReqRspUtil {
 	}
 
 	public static String getHeaderIgnoreCase(PageContext pc, String name,String defaultValue) {
-		String charset = ((PageContextImpl)pc).getWebCharset().name();
+		String charset = pc.getWebCharset().name();
 		HttpServletRequest req = pc.getHttpServletRequest();
 		Enumeration e = req.getHeaderNames();
 		String keyDecoded,key;
@@ -208,7 +208,7 @@ public final class ReqRspUtil {
 	}
 
 	public static List<String> getHeadersIgnoreCase(PageContext pc, String name) {
-		String charset = ((PageContextImpl)pc).getWebCharset().name();
+		String charset = pc.getWebCharset().name();
 		HttpServletRequest req = pc.getHttpServletRequest();
 		Enumeration e = req.getHeaderNames();
 		List<String> rtn=new ArrayList<String>();
@@ -581,7 +581,7 @@ public final class ReqRspUtil {
 		}
 		
 		pc=ThreadLocalPageContext.get(pc);
-		if(pc!=null) return ((PageContextImpl)pc).getWebCharset();
+		if(pc!=null) return pc.getWebCharset();
 		Config config = ThreadLocalPageContext.getConfig(pc);
 		return config.getWebCharset();
 	}

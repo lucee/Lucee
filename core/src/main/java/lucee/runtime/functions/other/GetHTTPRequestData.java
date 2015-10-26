@@ -44,7 +44,7 @@ public final class GetHTTPRequestData implements Function {
 		Struct sct=new StructImpl();
 		Struct headers=new StructImpl();
 		HttpServletRequest req = pc.getHttpServletRequest();
-		String charset = ((PageContextImpl)pc).getWebCharset().name();
+		String charset = pc.getWebCharset().name();
 		// headers
 		Enumeration e = req.getHeaderNames();
 		while(e.hasMoreElements()) {
