@@ -91,9 +91,6 @@ public final class ResourceUtil {
      */
     public static final short LEVEL_GRAND_PARENT_FILE=2;
     
-    
-    private static boolean isUnix=SystemUtil.isUnix();
-    
     private static final HashMap<String, String> EXT_MT=new HashMap<String, String>();
     static {
     	EXT_MT.put("ai","application/postscript");
@@ -373,7 +370,7 @@ public final class ResourceUtil {
      */
     public static Resource toExactResource(Resource res) {
         res=getCanonicalResourceEL(res);
-        if(isUnix) {
+        if(res.getResourceProvider().isCaseSensitive()) {
             if(res.exists()) return res;
             return _check(res);
             
