@@ -18,6 +18,8 @@
  **/
 package lucee.commons.io.log;
 
+import java.io.PrintStream;
+
 import lucee.commons.io.log.log4j.LogAdapter;
 import lucee.commons.lang.ExceptionUtil;
 
@@ -37,8 +39,17 @@ public final class LogUtil {
 		else {
 			String em = ExceptionUtil.getMessage(t);
 			String est = ExceptionUtil.getStacktrace(t, false);
-			if(msg.equals(em)) log.log(level, logName, em+";"+est);
-			else log.log(level, logName, msg+";"+em+";"+est);
+			if(msg.equals(em)) msg=em+";"+est;
+			else msg+=";"+em+";"+est;
+			
+			if(log!=null) {
+				log.log(level, logName,msg);
+			}
+			else {
+				PrintStream ps=(level>=Log.LEVEL_WARN)?System.err:System.out;
+				ps.println(logName+";"+msg);
+			}
+
 		}
 	}
 
