@@ -29,6 +29,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.cache.tag.CacheHandlerCollection;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.lock.LockManager;
+import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.search.SearchEngine;
 
 /**
@@ -72,5 +73,5 @@ public interface ConfigWeb extends Config, ServletConfig {
 
 	public JspWriter getWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp);
 	
-
+	public AMFEngine getAMFEngine();
 }

@@ -369,6 +369,7 @@ public class ComponentLoader {
 		return _loadComponent(pc, toCIPage(ps.loadPage(pc,false),callPath), callPath, isRealPath,false,executeConstr);
 	}
 	
+	// do not change, method is used in flex extension
 	public static ComponentImpl loadComponent(PageContext pc,Page page, String callPath, boolean isRealPath, boolean silent,boolean isExtendedComponent, boolean executeConstr) throws PageException  {
 		CIPage cip = toCIPage(page, callPath);
 		if(silent) {

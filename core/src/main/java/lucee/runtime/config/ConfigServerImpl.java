@@ -684,6 +684,10 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	private IdentificationServer id;
 
 	private String libHash;
+
+	private String amfEngineClassName;
+
+	private Map<String, String> amfEngineArgs;
 	
 	protected void setFullNullSupport(boolean fullNullSupport) {
 		this.fullNullSupport=fullNullSupport;
@@ -791,5 +795,16 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		Resource dir = getConfigDir().getRealResource("extensions/available");
 		if(!dir.exists())dir.mkdirs();
 		return dir;   
+	}
+
+	protected void setAMFEngine(String className, Map<String, String> args) {
+		amfEngineClassName=className;
+		amfEngineArgs=args;
+	}
+	public String getAMFEngineClassName()  {
+		return amfEngineClassName;
+	}
+	public Map<String, String> getAMFEngineArgs()  {
+		return amfEngineArgs;
 	}
 }

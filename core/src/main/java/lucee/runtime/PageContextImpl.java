@@ -773,11 +773,11 @@ public final class PageContextImpl extends PageContext {
 		return PageSourceImpl.best(config.getPageSources(this,applicationContext.getMappings(),realPath,false,useSpecialMappings,true));
 	}
 	
-	public PageSource[] getPageSources(String realPath) {
+	public PageSource[] getPageSources(String realPath) { // to not change, this is used in the flex extension
 		return config.getPageSources(this,applicationContext.getMappings(),realPath,false,useSpecialMappings,true);
 	}
 	
-	public PageSource getPageSourceExisting(String realPath) {
+	public PageSource getPageSourceExisting(String realPath) { // do not change, this method is used in flex extension
 		return config.getPageSourceExisting(this,applicationContext.getMappings(),realPath,false,useSpecialMappings,true,false);
 	}
 

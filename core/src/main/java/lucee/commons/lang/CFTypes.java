@@ -91,7 +91,7 @@ public final class CFTypes {
     /**
      * Field <code>TYPE_VOID</code>
      */
-    public static final short TYPE_VOID=15;
+    public static final short TYPE_VOID=15;// do never change this is hardcoded in flex extension
     
     /**
      * Field <code>TYPE_XML</code>

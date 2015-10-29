@@ -156,9 +156,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
     private static Map<String,CFMLFactory> contextes=MapFactory.<String,CFMLFactory>getConcurrentMap();
     private ConfigServerImpl configServer=null;
     private static CFMLEngineImpl engine=null;
-    //private ServletConfig config;
     private CFMLEngineFactory factory;
-    private AMFEngine amfEngine=null;
     private final RefBoolean controlerState=new RefBooleanImpl(true);
 	private boolean allowRequestTimeout=true;
 	private Monitor monitor;
@@ -274,7 +272,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
      */
     public static synchronized CFMLEngine getInstance(CFMLEngineFactory factory,BundleCollection bc) {
     	if(engine==null) {
-    		if(SystemUtil.getLoaderVersion()<5.3)
+    		if(SystemUtil.getLoaderVersion()<5.4)
     			throw new RuntimeException("You need to update your lucee.jar to run this version, you can download the latest jar from http://download.lucee.org.");
     			
     		engine=new CFMLEngineImpl(factory,bc);
@@ -709,8 +707,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
     @Override
 	public void serviceAMF(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
     	req=new HTTPServletRequestWrap(req);
-    	if(amfEngine==null) amfEngine=new AMFEngine();
-		amfEngine.service(servlet,req,rsp);
+    	getCFMLFactory(servlet.getServletConfig(), req)
+    		.getConfig().getAMFEngine().service(servlet,new HTTPServletRequestWrap(req),rsp);
     }
 
     @Override

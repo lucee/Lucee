@@ -246,7 +246,7 @@ public final class HttpServletResponseDummy implements HttpServletResponse,Seria
 	/**
 	 * @return the cookies
 	 */
-	public Cookie[] getCookies() {
+	public Cookie[] getCookies() { // do not chnage this is used in flex extension
 		return cookies;
 	}
 

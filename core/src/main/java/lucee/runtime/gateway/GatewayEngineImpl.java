@@ -425,7 +425,6 @@ public class GatewayEngineImpl implements GatewayEngine {
 				null, 
 				attrs,register,Long.MAX_VALUE);
 		
-		//pc.setRequestTimeout(999999999999999999L); 
 		pc.setGatewayContext(true);
 		if(arguments!=null)attrs.setEL(KeyConstants._argumentCollection, arguments);
 		attrs.setEL("client", "lucee-gateway-1-0");

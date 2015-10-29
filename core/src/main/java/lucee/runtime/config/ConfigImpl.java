@@ -103,8 +103,6 @@ import lucee.runtime.functions.system.ContractPath;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
-import lucee.runtime.net.amf.AMFCaster;
-import lucee.runtime.net.amf.CFMLProxy;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.ntp.NtpClient;
 import lucee.runtime.net.proxy.ProxyData;
@@ -141,8 +139,8 @@ import lucee.transformer.library.tag.TagLibException;
 import lucee.transformer.library.tag.TagLibFactory;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
-
 import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
+
 import org.apache.commons.collections4.map.ReferenceMap;
 import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
@@ -173,9 +171,6 @@ public abstract class ConfigImpl implements Config {
 	
 	private static final Extension[] EXTENSIONS_EMPTY = new Extension[0];
 	
-	public static final int AMF_CONFIG_TYPE_XML = 1;
-	public static final int AMF_CONFIG_TYPE_MANUAL = 2;
-
 	public static final int MODE_CUSTOM = 1;
 	public static final int MODE_STRICT = 2;
 	
@@ -394,9 +389,6 @@ public abstract class ConfigImpl implements Config {
 	
 	//private Resource tagDirectory;
 	protected MappingImpl functionMapping;
-	private Map amfCasterArguments;
-	private Class<? extends AMFCaster> amfCasterClass;
-	private AMFCaster amfCaster;
 	private short inspectTemplate=INSPECT_ONCE;
 	private boolean typeChecking=true;
 	private String serial="";
@@ -413,7 +405,6 @@ public abstract class ConfigImpl implements Config {
 	private boolean componentRootSearch=true;
 	private boolean useComponentPathCache=true;
 	private boolean useCTPathCache=true;
-	private int amfConfigType=AMF_CONFIG_TYPE_XML;
 	private lucee.runtime.rest.Mapping[] restMappings;
 	
 	protected int writerType=CFML_WRITER_REFULAR;
@@ -2742,48 +2733,6 @@ public abstract class ConfigImpl implements Config {
 			this.scriptMapping= new MappingImpl(this,"/mapping-script/",physical.getAbsolutePath(),null,ConfigImpl.INSPECT_NEVER,true,true,true,true,false,true,null,-1,-1);
 		}
 		return scriptMapping;
-	}
-
-	public void setAMFCaster(String strCaster, Map args) {
-
-		amfCasterArguments=args;
-		amfCasterClass=CFMLProxy.toAMFCasterClass(this, strCaster);
-	}
-	
-	
-	public void setAMFCaster(Class clazz, Map args) {
-		amfCasterArguments=args;
-        amfCasterClass=clazz;
-	}
-	
-	public void setAMFConfigType(String strDeploy) {
-		if(!StringUtil.isEmpty(strDeploy)){
-			if("xml".equalsIgnoreCase(strDeploy))amfConfigType=AMF_CONFIG_TYPE_XML;
-			else if("manual".equalsIgnoreCase(strDeploy))amfConfigType=AMF_CONFIG_TYPE_MANUAL;
-		}
-	}
-	public void setAMFConfigType(int amfDeploy) {
-		this.amfConfigType=amfDeploy;
-	}
-	public int getAMFConfigType() {
-		return amfConfigType;
-	}
-
-	public AMFCaster getAMFCaster() {
-		return amfCaster;
-	}
-	
-	public void setAMFCaster(AMFCaster amfCaster) {
-		this.amfCaster=amfCaster;
-	}
-	
-	public Class getAMFCasterClass() {
-		if(amfCasterClass==null)amfCasterClass=CFMLProxy.toAMFCasterClass(this, "classic");
-		return amfCasterClass;
-	}
-	public Map getAMFCasterArguments() {
-		if(amfCasterArguments==null) amfCasterArguments=new HashMap();
-		return amfCasterArguments;
 	}
 
 	public String getDefaultDataSource() {

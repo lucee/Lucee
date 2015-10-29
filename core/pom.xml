@@ -554,12 +554,18 @@
          <version>1.36.0</version>
       </dependency>
 
-<!-- concurrent - 1.3.3 -->
+<!-- concurrent - 1.3.3
       <dependency>
          <groupId>edu.oswego.cs.gee</groupId>
          <artifactId>concurrent</artifactId>
          <type>jar</type>
          <version>1.3.3</version>
+      </dependency> -->
+       <dependency>
+         <groupId>org.lucee</groupId>
+         <artifactId>oswego-concurrent</artifactId>
+         <type>jar</type>
+         <version>1.3.4</version>
       </dependency>
       
 <!-- ehcache - 2.10.0
@@ -581,41 +587,6 @@
          <version>2.1.0</version>
       </dependency>
 
-<!-- flex.messaging.common - 3.3.0.22497 -->
-      <dependency>
-         <groupId>flex.messaging</groupId>
-         <artifactId>common</artifactId>
-         <type>jar</type>
-         <version>3.3.0.22497</version>
-      </dependency>
-<!-- flex.messaging.core - 3.3.0.22497 -->
-      <dependency>
-         <groupId>flex.messaging</groupId>
-         <artifactId>core</artifactId>
-         <type>jar</type>
-         <version>3.3.0.22497</version>
-      </dependency>
-<!-- flex.messaging.opt - 3.3.0.22497 -->
-      <dependency>
-         <groupId>flex.messaging</groupId>
-         <artifactId>opt</artifactId>
-         <type>jar</type>
-         <version>3.3.0.22497</version>
-      </dependency>
-<!-- flex.messaging.proxy - 3.3.0.22497 -->
-      <dependency>
-         <groupId>flex.messaging</groupId>
-         <artifactId>proxy</artifactId>
-         <type>jar</type>
-         <version>3.3.0.22497</version>
-      </dependency>
-<!-- flex.messaging.remoting - 3.3.0.22497 -->
-      <dependency>
-         <groupId>flex.messaging</groupId>
-         <artifactId>remoting</artifactId>
-         <type>jar</type>
-         <version>3.3.0.22497</version>
-      </dependency>
 <!-- fusiondebug.api.server - 1.0.20 -->
       <dependency>
          <groupId>fusiondebug.api</groupId>
@@ -645,7 +616,11 @@
          <type>jar</type>
          <version>4.5.0</version>
       </dependency>
-<!-- hsqldb - 1.8.0 -->
+<!-- 
+  Bundle-SymbolicName: org.lucee.hsqldb
+  Bundle-Version: 1.8.0
+  source: mvn
+-->
       <dependency>
          <groupId>hsqldb</groupId>
          <artifactId>hsqldb</artifactId>
@@ -784,20 +759,6 @@
          <version>0.0.0</version>
       </dependency>
 
-<!-- openamf.astranslator - 1.5.8 -->
-      <dependency>
-         <groupId>openamf</groupId>
-         <artifactId>astranslator</artifactId>
-         <type>jar</type>
-         <version>1.5.8</version>
-      </dependency>
-<!-- openamf - 1.5.8 -->
-      <dependency>
-         <groupId>openamf</groupId>
-         <artifactId>openamf</artifactId>
-         <type>jar</type>
-         <version>1.5.8</version>
-      </dependency>
 <!-- PDFBox - 1.8.9 
 	Bundle-SymbolicName: org.apache.pdfbox
 	Bundle-Version: 1.8.9

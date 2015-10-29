@@ -65,6 +65,8 @@ import lucee.runtime.monitor.ActionMonitor;
 import lucee.runtime.monitor.ActionMonitorCollector;
 import lucee.runtime.monitor.IntervallMonitor;
 import lucee.runtime.monitor.RequestMonitor;
+import lucee.runtime.net.amf.AMFEngine;
+import lucee.runtime.net.amf.AMFEngineDummy;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
@@ -305,7 +307,8 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 	    
 	    
 		private TagHandlerPool tagHandlerPool=new TagHandlerPool(this);
-		private SearchEngine searchEngine; 
+		private SearchEngine searchEngine;
+		private AMFEngine amfEngine; 
 		
 
 		// FYI used by Extensions, do not remove
@@ -616,4 +619,16 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		public Resource getLocalExtensionProviderDirectory() {
 			return configServer.getLocalExtensionProviderDirectory();
 		}
+		
+		protected void setAMFEngine(AMFEngine engine) {
+			amfEngine=engine;
+		}
+
+		@Override
+		public AMFEngine getAMFEngine() {
+			if(amfEngine==null) return AMFEngineDummy.getInstance();
+			return amfEngine;
+		}
+		
+		
 }

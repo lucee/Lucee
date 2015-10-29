@@ -136,6 +136,7 @@ import lucee.runtime.monitor.IntervallMonitorWrap;
 import lucee.runtime.monitor.Monitor;
 import lucee.runtime.monitor.RequestMonitor;
 import lucee.runtime.monitor.RequestMonitorWrap;
+import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
@@ -1312,31 +1313,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			// print.o(dir);
 			ComponentFactory.deploy(dir, doNew);
 		}
-
-		// flex
-		if (!isEventGatewayContext && servletConfig != null && config.getAMFConfigType() == ConfigImpl.AMF_CONFIG_TYPE_XML) {
-			String strPath = servletConfig.getServletContext().getRealPath("/WEB-INF");
-			Resource webInf = ResourcesImpl.getFileResourceProvider().getResource(strPath);
-
-			Resource flex = webInf.getRealResource("flex");
-			if (!flex.exists())
-				flex.mkdirs();
-
-			Resource f = flex.getRealResource("messaging-config.xml");
-			if (!f.exists() || doNew)
-				createFileFromResourceEL("/resource/flex/messaging-config.xml", f);
-			f = flex.getRealResource("proxy-config.xml");
-			if (!f.exists() || doNew)
-				createFileFromResourceEL("/resource/flex/proxy-config.xml", f);
-			f = flex.getRealResource("remoting-config.xml");
-			if (!f.exists() || doNew)
-				createFileFromResourceEL("/resource/flex/remoting-config.xml", f);
-			f = flex.getRealResource("services-config.xml");
-			if (!f.exists() || doNew)
-				createFileFromResourceEL("/resource/flex/services-config.xml", f);
-
-		}
-
 	}
 
 
@@ -1637,37 +1613,46 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		config.setRestMappings(mappings.values().toArray(new lucee.runtime.rest.Mapping[mappings.size()]));
 	}
 
-	private static void loadFlex(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
+	private static void loadFlex(ConfigServerImpl configServer, ConfigImpl config, Document doc) throws IOException {
 
 		Element el = getChildByName(doc.getDocumentElement(), "flex");
 		if (configServer != null)
 			;
 
-		// deploy
-		String strConfig = getAttr(el,"configuration");
-		if (!StringUtil.isEmpty(strConfig))
-			config.setAMFConfigType(strConfig);
-		else if (configServer != null)
-			config.setAMFConfigType(configServer.getAMFConfigType());
+		// engine - we init a engine for every context, but only the server context defines the eggine class
+		if(config instanceof ConfigServerImpl) { // only server context
+			// arguments
+			String strArgs = getAttr(el,"arguments");
+			Map<String, String> args = toArguments(strArgs, false);
 
-		// caster we do not update this, because this only exists for backward compatibility
-		// ClassDefinition cdCaster = getClassDefinition(el, "caster-", config.getIdentification());
-		String strCaster = getAttr(el,"caster");
-		if (StringUtil.isEmpty(strCaster)) {
-			strCaster = getAttr(el,"caster-class");
+			String strEngine = getAttr(el,"engine");
+			if (!StringUtil.isEmpty(strEngine))
+				((ConfigServerImpl)config).setAMFEngine(strEngine,args);
 		}
 		
-		// arguments
-		String strArgs = getAttr(el,"caster-arguments");
-		if (StringUtil.isEmpty(strArgs))
-			strArgs = getAttr(el,"caster-class-arguments");
-		toArguments(strArgs, false);
-
-		if (!StringUtil.isEmpty(strCaster))
-			config.setAMFCaster(strCaster, toArguments(strArgs, false));
-		else if (configServer != null)
-			config.setAMFCaster(config.getAMFCasterClass(), config.getAMFCasterArguments());
-
+		else { // only web contexts
+			AMFEngine engine = toAMFEngine(config, configServer.getAMFEngineClassName(), null);
+			if(engine!=null) {
+				engine.init((ConfigWeb)config, configServer.getAMFEngineArgs());
+				((ConfigWebImpl)config).setAMFEngine(engine);
+			};
+		}
+		
+		
+	}
+	private static AMFEngine toAMFEngine(Config config,String className, AMFEngine defaultValue) {
+		Log log=config.getLog("application");
+        try{
+			Class clazz = ClassUtil.loadClass(className);
+			Object obj = clazz.newInstance();
+        	if((obj instanceof AMFEngine)) return (AMFEngine) obj;
+        	
+        	log.error("Flex","object ["+Caster.toClassName(obj)+"] must implement the interface "+AMFEngine.class.getName());
+        }
+        catch(Exception e){
+        	log.error("Flex", e);
+        }
+        return defaultValue;
 	}
 	
 	private static void loadLoggers(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean isReload) {
