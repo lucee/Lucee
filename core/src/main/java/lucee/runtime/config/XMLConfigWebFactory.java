@@ -1616,9 +1616,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	private static void loadFlex(ConfigServerImpl configServer, ConfigImpl config, Document doc) throws IOException {
 
 		Element el = getChildByName(doc.getDocumentElement(), "flex");
-		if (configServer != null)
-			;
-
+		
 		// engine - we init a engine for every context, but only the server context defines the eggine class
 		if(config instanceof ConfigServerImpl) { // only server context
 			// arguments
@@ -1629,16 +1627,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			if (!StringUtil.isEmpty(strEngine))
 				((ConfigServerImpl)config).setAMFEngine(strEngine,args);
 		}
-		
-		else { // only web contexts
+		else if(configServer!=null &&!StringUtil.isEmpty(configServer.getAMFEngineClassName())) { // only web contexts
 			AMFEngine engine = toAMFEngine(config, configServer.getAMFEngineClassName(), null);
 			if(engine!=null) {
 				engine.init((ConfigWeb)config, configServer.getAMFEngineArgs());
 				((ConfigWebImpl)config).setAMFEngine(engine);
 			};
 		}
-		
-		
 	}
 	private static AMFEngine toAMFEngine(Config config,String className, AMFEngine defaultValue) {
 		Log log=config.getLog("application");
