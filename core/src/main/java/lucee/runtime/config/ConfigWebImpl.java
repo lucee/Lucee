@@ -18,6 +18,8 @@
  */
 package lucee.runtime.config;
 
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
@@ -83,8 +85,6 @@ import lucee.runtime.writer.CFMLWriterWSPref;
 import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.BundleException;
 import org.xml.sax.SAXException;
-
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
 
 /**
  * Web Context

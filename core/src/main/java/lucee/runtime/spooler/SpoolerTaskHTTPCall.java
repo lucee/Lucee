@@ -28,7 +28,6 @@ import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.httpclient4.HTTPEngine4Impl;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.RemoteClient;

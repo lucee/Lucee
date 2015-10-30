@@ -36,7 +36,6 @@ import lucee.commons.lang.ByteNameValuePair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLItem;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;

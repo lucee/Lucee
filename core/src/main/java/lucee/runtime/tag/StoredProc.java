@@ -34,7 +34,6 @@ import javax.servlet.jsp.JspException;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -46,7 +45,6 @@ import lucee.runtime.cache.tag.query.StoredProcCacheItem;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.db.CFTypes;
 import lucee.runtime.db.DataSource;

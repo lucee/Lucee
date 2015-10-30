@@ -22,7 +22,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import lucee.commons.lang.SystemOut;
-import lucee.runtime.PageContext;
 
 class DCStack {
 

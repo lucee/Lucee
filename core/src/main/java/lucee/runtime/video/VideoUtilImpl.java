@@ -18,9 +18,9 @@
  */
 package lucee.runtime.video;
 
-import java.util.Map;
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
 
-import org.apache.commons.collections4.map.ReferenceMap;
+import java.util.Map;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.file.FileResource;
@@ -36,7 +36,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.string.Hash;
 import lucee.runtime.op.Caster;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
+import org.apache.commons.collections4.map.ReferenceMap;
 
 public class VideoUtilImpl implements VideoUtil {
 

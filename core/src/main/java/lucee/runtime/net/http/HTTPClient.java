@@ -40,7 +40,6 @@ import lucee.commons.net.http.Header;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;

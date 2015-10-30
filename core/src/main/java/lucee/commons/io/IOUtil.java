@@ -39,7 +39,6 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.LinkedList;
@@ -47,12 +46,12 @@ import java.util.zip.ZipFile;
 
 import javax.mail.Transport;
 
-import org.apache.tika.Tika;
-
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLEncoder;
 import lucee.runtime.exp.PageException;
+
+import org.apache.tika.Tika;
 
 import com.lowagie.text.Document;
 

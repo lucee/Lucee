@@ -22,7 +22,6 @@
 package lucee.runtime.functions.dateTime;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.dt.DateTime;

@@ -46,13 +46,13 @@ import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.DeployHandler;
+import lucee.runtime.config.XMLConfigAdmin;
 import lucee.runtime.lock.LockManagerImpl;
 import lucee.runtime.net.smtp.SMTPConnectionPool;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.scope.ScopeContext;
-import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.scope.storage.StorageScopeFile;
-import lucee.runtime.config.XMLConfigAdmin;
+import lucee.runtime.type.util.ArrayUtil;
 /**
  * own thread how check the main thread and his data 
  */

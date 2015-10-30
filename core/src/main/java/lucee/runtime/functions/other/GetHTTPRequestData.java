@@ -26,7 +26,6 @@ import java.util.Enumeration;
 import javax.servlet.http.HttpServletRequest;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.net.http.ReqRspUtil;

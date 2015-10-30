@@ -18,6 +18,8 @@
  */
 package lucee.runtime.net.smtp;
 
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
+
 import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -47,8 +49,6 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimePart;
-
-import org.apache.commons.collections4.map.ReferenceMap;
 
 import lucee.commons.activation.ResourceDataSource;
 import lucee.commons.digest.MD5;
@@ -83,7 +83,8 @@ import lucee.runtime.spooler.mail.MailSpoolerTask;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
+import org.apache.commons.collections4.map.ReferenceMap;
+
 import com.sun.mail.smtp.SMTPMessage;
 
 public final class SMTPClient implements Serializable  {

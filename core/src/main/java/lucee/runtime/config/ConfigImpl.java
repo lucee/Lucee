@@ -19,6 +19,7 @@
 package lucee.runtime.config;
 
 import static lucee.runtime.db.DatasourceManagerImpl.QOQ_DATASOURCE_NAME;
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -139,7 +140,6 @@ import lucee.transformer.library.tag.TagLibException;
 import lucee.transformer.library.tag.TagLibFactory;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
 
 import org.apache.commons.collections4.map.ReferenceMap;
 import org.apache.log4j.Layout;

@@ -27,8 +27,6 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.apache.commons.collections4.map.ReferenceMap;
-
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -38,6 +36,8 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.runtime.type.util.ArrayUtil;
+
+import org.apache.commons.collections4.map.ReferenceMap;
 
 
 /**

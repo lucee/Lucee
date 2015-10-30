@@ -46,7 +46,6 @@ import java.util.UUID;
 import javax.servlet.ServletConfig;
 
 import lucee.aprint;
-import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.digest.HashUtil;
@@ -86,7 +85,6 @@ import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.cfx.customtag.CFXTagClass;
 import lucee.runtime.cfx.customtag.CPPCFXTagClass;
 import lucee.runtime.cfx.customtag.JavaCFXTagClass;
-import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.config.ajax.AjaxFactory;
 import lucee.runtime.config.component.ComponentFactory;

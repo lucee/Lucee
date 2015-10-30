@@ -22,7 +22,6 @@ import java.io.UnsupportedEncodingException;
 
 import lucee.commons.net.URLItem;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;

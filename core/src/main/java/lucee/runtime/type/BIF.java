@@ -44,7 +44,6 @@ import lucee.runtime.interpreter.ref.cast.Casting;
 import lucee.runtime.interpreter.ref.func.BIFCall;
 import lucee.runtime.interpreter.ref.literal.LFunctionValue;
 import lucee.runtime.interpreter.ref.literal.LString;
-import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;

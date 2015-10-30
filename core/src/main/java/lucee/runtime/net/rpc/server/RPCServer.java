@@ -40,7 +40,6 @@ import javax.xml.soap.MimeHeaders;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
@@ -63,7 +62,6 @@ import org.apache.axis.Message;
 import org.apache.axis.MessageContext;
 import org.apache.axis.SimpleChain;
 import org.apache.axis.SimpleTargetedChain;
-import org.apache.axis.components.logger.LogFactory;
 import org.apache.axis.management.ServiceAdmin;
 import org.apache.axis.security.servlet.ServletSecurityProvider;
 import org.apache.axis.server.AxisServer;
@@ -749,12 +747,10 @@ public final class RPCServer{
                         
                         String handlerClassName = (String) this.transport.getOption(queryHandler);
                         if("org.apache.axis.transport.http.QSWSDLHandler".equals(handlerClassName)){
-                        	print.e("direct:"+handlerClassName);
                         	QSWSDLHandler handler=new QSWSDLHandler();
                         	handler.invoke(msgContext);
                         }
                         else {
-                        	print.e("reflection:"+handlerClassName);
                         	// Invoke the plugin.
                         	Class plugin=ClassUtil.loadClass((String)this.transport.getOption(queryHandler));
                         	Method pluginMethod = plugin.getDeclaredMethod("invoke", new Class[] {msgContext.getClass()});

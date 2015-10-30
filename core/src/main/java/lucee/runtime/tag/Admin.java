@@ -179,8 +179,6 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
-import coldfusion.sql.QueryTable;
-
 /**
  * 
  */

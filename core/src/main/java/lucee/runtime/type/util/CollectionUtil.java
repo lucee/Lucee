@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Set;
 
 import lucee.runtime.op.Operator;
-import lucee.runtime.spooler.Task;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;

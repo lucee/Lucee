@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.TimeZone;
 
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -50,7 +49,6 @@ import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
 import lucee.runtime.functions.displayFormatting.DecimalFormat;
 import lucee.runtime.listener.AppListenerUtil;

@@ -47,7 +47,6 @@ import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.URLDecoder;
 import lucee.commons.net.URLEncoder;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.converter.WDDXConverter;

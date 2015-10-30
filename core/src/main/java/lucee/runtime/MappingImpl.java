@@ -18,6 +18,8 @@
  */
 package lucee.runtime;
 
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.instrument.UnmodifiableClassException;
@@ -43,8 +45,6 @@ import lucee.runtime.type.util.ArrayUtil;
 import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
 
 /**  
  * Mapping class

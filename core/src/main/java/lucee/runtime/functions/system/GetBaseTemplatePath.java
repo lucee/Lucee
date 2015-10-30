@@ -27,7 +27,6 @@ import lucee.runtime.PageSource;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.net.http.ReqRspUtil;
 
 public final class GetBaseTemplatePath implements Function {
 	public static String call(PageContext pc ) throws PageException {

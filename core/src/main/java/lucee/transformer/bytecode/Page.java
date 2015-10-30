@@ -40,7 +40,6 @@ import lucee.runtime.component.ImportDefintionImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.Constants;
 import lucee.runtime.type.KeyImpl;
-import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;

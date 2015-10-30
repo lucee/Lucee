@@ -18,7 +18,6 @@
  **/
 package lucee.runtime.crypt;
 
-import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
@@ -30,7 +29,6 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import lucee.print;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.coder.Coder;
 import lucee.runtime.exp.PageException;
@@ -75,10 +73,6 @@ public class Cryptor {
 			throw pe;
 		}
     }
-    
-    public static void main(String[] args) throws PageException {
-		print.e(encrypt("dsadsd", "abcdabcdabcdabcdabcdabcdabcdabcdabcd", "RC4", null, 1, null,"UTF-8"));
-	}
     
     private static byte[] _crypt( byte[] input, String key, String algorithm, byte[] ivOrSalt, int iterations, boolean doDecrypt ) throws PageException {
 

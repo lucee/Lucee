@@ -20,7 +20,6 @@ package lucee.runtime.functions.file;
 
 import java.io.IOException;
 
-import lucee.print;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;

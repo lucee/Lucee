@@ -18,12 +18,12 @@
  */
 package lucee.runtime;
 
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.apache.commons.collections4.map.ReferenceMap;
 
 import lucee.commons.collection.LongKeyList;
 import lucee.commons.lang.SystemOut;
@@ -37,7 +37,7 @@ import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.util.ArrayUtil;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
+import org.apache.commons.collections4.map.ReferenceMap;
 
 
 /**

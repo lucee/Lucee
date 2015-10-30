@@ -22,34 +22,22 @@
  */
 package lucee.runtime.functions.other;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
-import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.ClassException;
-import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.com.COMObject;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionNotSupported;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.java.JavaObject;
 import lucee.runtime.net.http.HTTPClient;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.net.rpc.client.WSClient;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Decision;
 import lucee.runtime.security.SecurityManager;
-import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.util.ListUtil;
 
 public final class CreateObject implements Function {
 	public static Object call(PageContext pc , String cfcName) throws PageException {

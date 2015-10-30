@@ -18,11 +18,11 @@
  **/
 package lucee.runtime.reflection.storage;
 
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
+
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.commons.collections4.map.ReferenceMap;
 
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -30,7 +30,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
+import org.apache.commons.collections4.map.ReferenceMap;
 /**
  * Method Storage Class
  */

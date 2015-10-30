@@ -29,19 +29,15 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.ExternalizableUtil;
 import lucee.runtime.Component;
 import lucee.runtime.Page;
-import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.engine.ThreadLocalPageSource;
-import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.dt.TimeSpanImpl;
-import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.UDFUtil;
 
 public final class UDFPropertiesImpl extends UDFPropertiesBase {

@@ -1,8 +1,5 @@
 package lucee.runtime.type;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.util.Set;
 
 import lucee.runtime.Page;

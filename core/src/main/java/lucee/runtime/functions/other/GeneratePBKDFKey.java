@@ -21,16 +21,12 @@ package lucee.runtime.functions.other;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
-import lucee.print;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Coder;
-import lucee.runtime.crypt.CFMXCompat;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
@@ -77,20 +73,6 @@ public class GeneratePBKDFKey extends BIF {
 	      throw Caster.toPageException(ikse);
 	    }
 	  }
-	
-	public static void main(String[] args) throws Exception {
-		/*for (Object obj : java.security.Security.getAlgorithms("Cipher")) {
-			  System.out.println(obj);
-			}
-		*/
-		
-		SecretKeyFactory pbeSkf = SecretKeyFactory.getInstance("PBKDF2WithSHA256", "JsafeJCE");
-
-		print.e(call(null, 					 "PBKDF2WithHmacSHA1" , "SSSS" , "salt"));
-		
-		
-		// 
-	}
 	
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {

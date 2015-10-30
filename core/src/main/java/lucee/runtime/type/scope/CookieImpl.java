@@ -30,7 +30,6 @@ import javax.servlet.http.HttpServletResponse;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;

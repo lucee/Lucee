@@ -20,11 +20,8 @@ package lucee.runtime.util;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
-import lucee.runtime.exp.DeprecatedException;
-import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 

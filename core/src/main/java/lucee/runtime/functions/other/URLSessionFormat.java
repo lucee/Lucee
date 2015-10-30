@@ -21,7 +21,6 @@ package lucee.runtime.functions.other;
 import javax.servlet.http.Cookie;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.net.http.ReqRspUtil;
 
