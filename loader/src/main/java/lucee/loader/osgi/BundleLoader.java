@@ -18,8 +18,12 @@
 package lucee.loader.osgi;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -32,6 +36,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import lucee.commons.io.log.Log;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -186,8 +191,12 @@ public class BundleLoader {
 			// load Required/Available Bundles
 			final Map<String, String> requiredBundles = readRequireBundle(rb); // Require-Bundle
 			final Map<String, String> requiredBundleFragments = readRequireBundle(rbf); // Require-Bundle-Fragment
-			final Map<String, File> availableBundles = loadAvailableBundles(jarDirectory);
-
+			Map<String, File> availableBundles = loadAvailableBundles(jarDirectory);
+			
+			// deploys bundled bundles to bundle directory
+			if(deployBundledBundles(jarDirectory, availableBundles))
+				availableBundles = loadAvailableBundles(jarDirectory);
+			
 			// Add Required Bundles
 			Entry<String, String> e;
 			File f;
@@ -249,40 +258,96 @@ public class BundleLoader {
 			final File jarDirectory) {
 		final Map<String, File> rtn = new HashMap<String, File>();
 		final File[] jars = jarDirectory.listFiles();
-		JarFile jf = null;
-		String symbolicName, version;
-		Attributes attrs;
 		for (int i = 0; i < jars.length; i++) {
 			if (!jars[i].isFile() || !jars[i].getName().endsWith(".jar"))
 				continue;
 			try {
-				jf = new JarFile(jars[i]);
-				attrs = jf.getManifest().getMainAttributes();
-				symbolicName = attrs.getValue("Bundle-SymbolicName");
-				version = attrs.getValue("Bundle-Version");
-				if (Util.isEmpty(symbolicName))
-					throw new IOException(
-							"OSGi bundle ["
-									+ jars[i]
-									+ "] is invalid, {Lucee-Core}META-INF/MANIFEST.MF does not contain a \"Bundle-SymbolicName\"");
-				if (Util.isEmpty(version))
-					throw new IOException(
-							"OSGi bundle ["
-									+ jars[i]
-									+ "] is invalid, {Lucee-Core}META-INF/MANIFEST.MF does not contain a \"Bundle-Version\"");
-
-				rtn.put(symbolicName + "|" + version, jars[i]);
-			} catch (final Throwable t) {
-			} finally {
-				if (jf != null)
-					try {
-						jf.close();
-					} catch (final IOException e) {
-					}
+				rtn.put(loadBundleInfo(jars[i]), jars[i]);
+			} 
+			catch (final Throwable t) {
 			}
 		}
 		return rtn;
+	}
+	
+	private static String loadBundleInfo(final File jar) throws IOException {
+		JarFile jf = new JarFile(jar);
+		try {
+			Attributes attrs = jf.getManifest().getMainAttributes();
+			String symbolicName = attrs.getValue("Bundle-SymbolicName");
+			String version = attrs.getValue("Bundle-Version");
+			if (Util.isEmpty(symbolicName))
+				throw new IOException("OSGi bundle ["+jar+"] is invalid, {Lucee-Core}META-INF/MANIFEST.MF does not contain a \"Bundle-SymbolicName\"");
+			if (Util.isEmpty(version))
+				throw new IOException("OSGi bundle ["+jar+"] is invalid, {Lucee-Core}META-INF/MANIFEST.MF does not contain a \"Bundle-Version\"");
 
+			return symbolicName + "|" + version;
+		} 
+		finally {
+			Util.closeEL(jf);
+		}
+	}
+	
+	private static boolean deployBundledBundles(File bundleDirectory, Map<String, File> availableBundles) {
+		
+		String sub="bundles/";
+		
+		ZipEntry entry;
+		List<URL> reources=new ArrayList<URL>();
+		boolean deployed=false;
+		ZipInputStream zis = null;
+		try {
+			CodeSource src = CFMLEngineFactory.class.getProtectionDomain().getCodeSource();
+			if (src == null) return false;
+			URL loc = src.getLocation();
+			
+			
+			zis=new ZipInputStream(loc.openStream());
+			String path,name,bundleInfo;
+			int index,i;
+			File trg,temp;
+			while ((entry = zis.getNextEntry())!= null) {
+				path = entry.getName();
+				if(path.startsWith(sub) && path.endsWith(".jar")) { // ignore non jara files or file from elsewhere
+					index=path.lastIndexOf('/')+1;
+					if(index==sub.length()) { // ignore sub directories
+						name=path.substring(index);
+						trg=new File(bundleDirectory,name);
+						// first let's check if we have that file in bundle directory with exact that name
+						if(!trg.isFile()) {
+							
+							temp=null;
+							try {
+								temp=File.createTempFile("bundle", ".jar");
+								Util.copy(zis, new FileOutputStream(temp),false,true);
+								bundleInfo=loadBundleInfo(temp);
+								if(bundleInfo!=null && !availableBundles.containsKey(bundleInfo)) {
+									i=bundleInfo.indexOf('|');
+									if(i!=-1) {
+										String bn = bundleInfo.substring(0, i);
+										String bv = bundleInfo.substring(i+1);
+										temp.renameTo(trg);
+										System.out.println("adding bundle ["+bn+"] in version ["+bv+"] to ["+trg+"]"); // TODO log this
+										deployed=true;
+									}
+								}
+							}
+							finally {
+								if(temp!=null && temp.exists())temp.delete();
+							}
+						}
+					}
+				}
+				zis.closeEntry();
+			} 
+		}
+		catch(Throwable t){
+			t.printStackTrace();// TODO log this
+		}
+		finally {
+			Util.closeEL(zis);
+		}
+		return deployed;
 	}
 
 	private static Map<String, String> readRequireBundle(final String rb)
