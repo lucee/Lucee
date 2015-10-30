@@ -1619,30 +1619,35 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		
 		// engine - we init a engine for every context, but only the server context defines the eggine class
 		if(config instanceof ConfigServerImpl) { // only server context
+			
 			// arguments
-			String strArgs = getAttr(el,"arguments");
-			Map<String, String> args = toArguments(strArgs, false);
-
-			String strEngine = getAttr(el,"engine");
-			if (!StringUtil.isEmpty(strEngine))
-				((ConfigServerImpl)config).setAMFEngine(strEngine,args);
+			Map<String, String> args = new HashMap<String, String>();
+			String _caster = getAttr(el,"caster");
+			if(_caster!=null) args.put("caster", _caster);
+			String _config = getAttr(el,"configuration");
+			if(_config!=null) args.put("configuration", _config);
+			
+			ClassDefinition<AMFEngine> cd = getClassDefinition(el, "", config.getIdentification());
+			if (cd.hasClass())
+				((ConfigServerImpl)config).setAMFEngine(cd,args);
 		}
-		else if(configServer!=null &&!StringUtil.isEmpty(configServer.getAMFEngineClassName())) { // only web contexts
-			AMFEngine engine = toAMFEngine(config, configServer.getAMFEngineClassName(), null);
+		else if(configServer!=null && configServer.getAMFEngineClassDefinition()!=null && configServer.getAMFEngineClassDefinition().hasClass()) { // only web contexts
+			AMFEngine engine = toAMFEngine(config, configServer.getAMFEngineClassDefinition(), null);
 			if(engine!=null) {
 				engine.init((ConfigWeb)config, configServer.getAMFEngineArgs());
 				((ConfigWebImpl)config).setAMFEngine(engine);
 			};
 		}
 	}
-	private static AMFEngine toAMFEngine(Config config,String className, AMFEngine defaultValue) {
+	private static AMFEngine toAMFEngine(Config config,ClassDefinition<AMFEngine> cd, AMFEngine defaultValue) {
 		Log log=config.getLog("application");
         try{
-			Class clazz = ClassUtil.loadClass(className);
-			Object obj = clazz.newInstance();
-        	if((obj instanceof AMFEngine)) return (AMFEngine) obj;
-        	
-        	log.error("Flex","object ["+Caster.toClassName(obj)+"] must implement the interface "+AMFEngine.class.getName());
+			Class<AMFEngine> clazz = cd.getClazz(null);
+			if(clazz!=null){
+				Object obj=clazz.newInstance();
+				if((obj instanceof AMFEngine)) return (AMFEngine) obj;
+				log.error("Flex","object ["+Caster.toClassName(obj)+"] must implement the interface "+AMFEngine.class.getName());
+			}
         }
         catch(Exception e){
         	log.error("Flex", e);

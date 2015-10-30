@@ -99,6 +99,7 @@ import lucee.runtime.gateway.GatewayEntryImpl;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.monitor.Monitor;
+import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.net.ntp.NtpClient;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -1852,10 +1853,22 @@ public final class XMLConfigAdmin {
     	admin._store();
     	if(reload)admin._reload();
 	}
-	
+
 	private void _removeSearchEngine() {
     	Element orm=_getRootElement("search");
     	removeClass(orm, "engine-");
+    }
+
+	private void _removeAMFEngine() {
+    	Element flex=_getRootElement("flex");
+    	removeClass(flex, "");
+    	flex.removeAttribute("configuration");
+    	flex.removeAttribute("caster");
+    	
+    	// old arguments
+    	flex.removeAttribute("config");
+    	flex.removeAttribute("caster-class");
+    	flex.removeAttribute("caster-class-arguments");
     }
 	
 	/*public static void updateSearchEngine(ConfigImpl config, ClassDefinition cd, boolean reload) throws IOException, SAXException, PageException, BundleException {
@@ -1874,6 +1887,17 @@ public final class XMLConfigAdmin {
 	private void _updateSearchEngine(ClassDefinition cd) throws PageException {
     	Element orm=_getRootElement("search");
     	setClass(orm,SearchEngine.class,"engine-",cd);
+    }
+	
+	private void _updateAMFEngine(ClassDefinition cd, String caster, String config) throws PageException {
+    	Element flex=_getRootElement("flex");
+    	setClass(flex,AMFEngine.class,"",cd); 
+    	if(caster!=null)flex.setAttribute("caster", caster);
+    	if(config!=null)flex.setAttribute("configuration", config);
+    	// old arguments
+    	flex.removeAttribute("config");
+    	flex.removeAttribute("caster-class");
+    	flex.removeAttribute("caster-class-arguments");
     }
 	
 	public void removeSearchEngine() throws SecurityException {
@@ -4586,6 +4610,22 @@ public final class XMLConfigAdmin {
 					logger.info("extension", "update cache handler ["+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
 			}
+
+			// update AMF
+			if(!ArrayUtil.isEmpty(rhext.getAMFs())) {
+				Iterator<Map<String, String>> itl = rhext.getAMFs().iterator();
+				Map<String, String> map;
+				while(itl.hasNext()){
+					map = itl.next();
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					if(cd.hasClass()) {	
+						_updateAMFEngine(cd,map.get("caster"),map.get("configuration"));
+						reload=true;
+					}
+					logger.info("extension", "update AMF engine ["+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
+				}
+			}
+			
 			// update Search
 			if(!ArrayUtil.isEmpty(rhext.getSearchs())) {
 				Iterator<Map<String, String>> itl = rhext.getSearchs().iterator();
@@ -4762,6 +4802,21 @@ public final class XMLConfigAdmin {
 					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
 					if(cd.hasClass()) {
 						_removeSearchEngine();
+						//reload=true;
+					}
+					logger.info("extension", "remove search engine ["+cd+"] from extension ["+rhe.getName()+":"+rhe.getVersion()+"]");
+				}
+			}
+			
+			// remove AMF
+			if(!ArrayUtil.isEmpty(rhe.getAMFs())) {
+				Iterator<Map<String, String>> itl = rhe.getAMFs().iterator();
+				Map<String, String> map;
+				while(itl.hasNext()){
+					map = itl.next();
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					if(cd.hasClass()) {
+						_removeAMFEngine();
 						//reload=true;
 					}
 					logger.info("extension", "remove search engine ["+cd+"] from extension ["+rhe.getName()+":"+rhe.getVersion()+"]");

@@ -363,21 +363,6 @@ Path placeholders:
 	<update 
 		location="http://stable.lucee.org" 
 		type="manual"/>
-	<!--
-	flex:
-		
-		configuration: xml|manual (default: xml)
-			xml:		deploy default configuration for the MessageBrokerServlet as xml to th WEB-INF directory
-			manual:		the configuration is up to the user, lucee does nothing
-			
-		caster-class: shortcut (modern,classic) or AMFCaster class.
-		- classic (default): Build in AMFCaster follows the implementation of other engines.
-		- modern: Build in AMFCaster based on classic AMFCaster improved in functionality.  
-		- <class-name>: full class path of class implemeting interface AMFCaster (http://www.lucee.org/javadoc/lucee/runtime/net/amf/AMFCaster.html)
-		caster-class-arguments: init arguments provided to the AMFCaster init method, use "CSS" syntax.
-	-->
-	<flex 
-		configuration="manual"/>
 		
 <!--
 LOGGING

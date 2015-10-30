@@ -42,6 +42,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
@@ -131,6 +132,7 @@ public class RHExtension implements Serializable {
 	private final List<Map<String, String>> orms;
 	private final List<Map<String, String>> monitors;
 	private final List<Map<String, String>> searchs;
+	private final List<Map<String, String>> amfs;
 	private final List<Map<String, String>> jdbcs;
 	private final List<Map<String, String>> mappings;
 	
@@ -186,6 +188,7 @@ public class RHExtension implements Serializable {
 		List<Map<String,String>> orms=null;
 		List<Map<String,String>> monitors=null;
 		List<Map<String,String>> searchs=null;
+		List<Map<String,String>> amfs=null;
 		List<Map<String,String>> jdbcs=null;
 		List<Map<String,String>> eventGateways=null;
 		List<Map<String,String>> mappings=null;
@@ -232,8 +235,8 @@ public class RHExtension implements Serializable {
 		//int minCoreVersion=InfoImpl.toIntVersion(str,0);
 		Version minCoreVersion = OSGiUtil.toVersion(str, null);
 		
-		if(minCoreVersion!=null && minCoreVersion.compareTo(info.getVersion())>0) {
-			throw new ApplicationException("The Extension ["+ext+"] cannot be loaded, "+Constants.NAME+" Version must be at least ["+str+"].");
+		if(minCoreVersion!=null && Util.isNewerThan(minCoreVersion,info.getVersion())) {
+			throw new ApplicationException("The Extension ["+ext+"] cannot be loaded, "+Constants.NAME+" Version must be at least ["+minCoreVersion.toString()+"], version is ["+info.getVersion().toString()+"].");
 		}
 		
 		// loader version
@@ -247,6 +250,12 @@ public class RHExtension implements Serializable {
 		str = unwrap(attr.getValue("start-bundles"));
 		startBundles=Caster.toBooleanValue(str,true);
 					
+
+		// amf
+		str=unwrap(attr.getValue("amf"));
+		if(!StringUtil.isEmpty(str,true)) {
+			amfs = toSettings(logger,str);
+		}
 		
 		// search
 		str=unwrap(attr.getValue("search"));
@@ -392,6 +401,7 @@ public class RHExtension implements Serializable {
 		this.orms=orms==null?new ArrayList<Map<String, String>>():orms;
 		this.monitors=monitors==null?new ArrayList<Map<String, String>>():monitors;
 		this.searchs=searchs==null?new ArrayList<Map<String, String>>():searchs;
+		this.amfs=amfs==null?new ArrayList<Map<String, String>>():amfs;
 		this.jdbcs=jdbcs==null?new ArrayList<Map<String, String>>():jdbcs;
 		this.mappings=mappings==null?new ArrayList<Map<String, String>>():mappings;
 		
@@ -664,27 +674,17 @@ public class RHExtension implements Serializable {
 			Object res = DeserializeJSON.call(null, str);
 			// only a single row
 			if(!Decision.isArray(res) && Decision.isStruct(res)) {
-				ArrayList<Object> al = new ArrayList<>();
-				al.add(Caster.toMap(res));
+				List<Map<String,String>> list = new ArrayList<>();
+				_toSetting(list, Caster.toMap(res));
+				return list;
 			}
 			// multiple rows
 			if(Decision.isArray(res)) {
-				Map tmpMap;
-				Iterator<Entry> itMap;
-				Entry e;
-				Map<String,String> map;
 				List tmpList=Caster.toList(res);
+				Iterator it = tmpList.iterator();
 				List<Map<String,String>> list=new ArrayList<>();
-				Iterator itList = tmpList.iterator();
-				while(itList.hasNext()){
-					tmpMap = Caster.toMap(itList.next());
-					itMap = tmpMap.entrySet().iterator();
-					map=new HashMap<>();
-					while(itMap.hasNext()){
-						e=itMap.next();
-						map.put(Caster.toString(e.getKey()), Caster.toString(e.getValue()));
-					}
-					list.add(map);
+				while(it.hasNext()) {
+					_toSetting(list,Caster.toMap(it.next()));
 				}
 				return list;
 			}
@@ -696,6 +696,17 @@ public class RHExtension implements Serializable {
 		
 		return null;
 	}
+	private static void _toSetting(List<Map<String, String>> list, Map src) throws PageException {
+		Entry e;
+		Iterator<Entry> it = src.entrySet().iterator();
+		Map<String,String> map=new HashMap<String,String>();
+		while(it.hasNext()){
+			e = it.next();
+			map.put(Caster.toString(e.getKey()), Caster.toString(e.getValue()));
+		}
+		list.add(map);
+	}
+
 	private static boolean startsWith(String path,String type, String name) {
 		return StringUtil.startsWithIgnoreCase(path, name+"/") || StringUtil.startsWithIgnoreCase(path, type+"/"+name+"/");
 	}
@@ -801,6 +812,9 @@ public class RHExtension implements Serializable {
 
 	public List<Map<String, String>> getSearchs() {
 		return searchs;
+	}
+	public List<Map<String, String>> getAMFs() {
+		return amfs;
 	}
 
 	public List<Map<String, String>> getJdbcs() {

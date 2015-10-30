@@ -52,6 +52,7 @@ import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
+import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadQueue;
 import lucee.runtime.exp.ApplicationException;
@@ -61,6 +62,7 @@ import lucee.runtime.monitor.ActionMonitor;
 import lucee.runtime.monitor.ActionMonitorCollector;
 import lucee.runtime.monitor.IntervallMonitor;
 import lucee.runtime.monitor.RequestMonitor;
+import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
@@ -685,7 +687,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
 	private String libHash;
 
-	private String amfEngineClassName;
+	private ClassDefinition<AMFEngine> amfEngineCD;
 
 	private Map<String, String> amfEngineArgs;
 	
@@ -797,13 +799,15 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		return dir;   
 	}
 
-	protected void setAMFEngine(String className, Map<String, String> args) {
-		amfEngineClassName=className;
+	protected void setAMFEngine(ClassDefinition<AMFEngine> cd, Map<String, String> args) {
+		amfEngineCD=cd;
 		amfEngineArgs=args;
 	}
-	public String getAMFEngineClassName()  {
-		return amfEngineClassName;
+	
+	public ClassDefinition<AMFEngine> getAMFEngineClassDefinition()  {
+		return amfEngineCD;
 	}
+	
 	public Map<String, String> getAMFEngineArgs()  {
 		return amfEngineArgs;
 	}
