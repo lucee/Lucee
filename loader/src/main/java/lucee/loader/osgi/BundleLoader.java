@@ -191,11 +191,10 @@ public class BundleLoader {
 			// load Required/Available Bundles
 			final Map<String, String> requiredBundles = readRequireBundle(rb); // Require-Bundle
 			final Map<String, String> requiredBundleFragments = readRequireBundle(rbf); // Require-Bundle-Fragment
-			Map<String, File> availableBundles = loadAvailableBundles(jarDirectory);
+			final Map<String, File> availableBundles = loadAvailableBundles(jarDirectory);
 			
 			// deploys bundled bundles to bundle directory
-			if(deployBundledBundles(jarDirectory, availableBundles))
-				availableBundles = loadAvailableBundles(jarDirectory);
+			//deployBundledBundles(jarDirectory, availableBundles);
 			
 			// Add Required Bundles
 			Entry<String, String> e;
@@ -270,7 +269,7 @@ public class BundleLoader {
 		return rtn;
 	}
 	
-	private static String loadBundleInfo(final File jar) throws IOException {
+	public static String loadBundleInfo(final File jar) throws IOException {
 		JarFile jf = new JarFile(jar);
 		try {
 			Attributes attrs = jf.getManifest().getMainAttributes();
@@ -288,17 +287,15 @@ public class BundleLoader {
 		}
 	}
 	
-	private static boolean deployBundledBundles(File bundleDirectory, Map<String, File> availableBundles) {
+	/*private static void deployBundledBundles(File bundleDirectory, Map<String, File> availableBundles) {
 		
 		String sub="bundles/";
 		
 		ZipEntry entry;
-		List<URL> reources=new ArrayList<URL>();
-		boolean deployed=false;
 		ZipInputStream zis = null;
 		try {
 			CodeSource src = CFMLEngineFactory.class.getProtectionDomain().getCodeSource();
-			if (src == null) return false;
+			if (src == null) return;
 			URL loc = src.getLocation();
 			
 			
@@ -328,7 +325,7 @@ public class BundleLoader {
 										String bv = bundleInfo.substring(i+1);
 										temp.renameTo(trg);
 										System.out.println("adding bundle ["+bn+"] in version ["+bv+"] to ["+trg+"]"); // TODO log this
-										deployed=true;
+										availableBundles.put(bundleInfo, trg);
 									}
 								}
 							}
@@ -347,8 +344,7 @@ public class BundleLoader {
 		finally {
 			Util.closeEL(zis);
 		}
-		return deployed;
-	}
+	}*/
 
 	private static Map<String, String> readRequireBundle(final String rb)
 			throws IOException {

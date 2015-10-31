@@ -34,6 +34,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
+import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -45,6 +46,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -589,8 +591,15 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	public File downloadBundle(final String symbolicName,
 			final String symbolicVersion, Identification id) throws IOException {
+		
 		final File jarDir = getBundleDirectory();
-		final File jar = new File(jarDir, symbolicName.replace('.', '-') + "-"
+		
+		// before we download we check if we have it bundled
+		File jar = deployBundledBundle(jarDir,symbolicName,symbolicVersion);
+		if(jar!=null && jar.isFile()) return jar;
+		
+		
+		jar = new File(jarDir, symbolicName.replace('.', '-') + "-"
 				+ symbolicVersion.replace('.', '-') + (".jar"));
 
 		final URL updateProvider = getUpdateLocation();
@@ -666,6 +675,61 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		else {
 			throw new IOException("File ["+jar.getName()+"] already exists, won't copy new one");
 		}*/
+	}
+	
+	private File deployBundledBundle(File bundleDirectory, String symbolicName, String symbolicVersion) {
+		
+		String sub="bundles/";
+		String nameAndVersion=symbolicName+"|"+symbolicVersion;
+		
+		ZipEntry entry;
+		ZipInputStream zis = null;
+		try {
+			CodeSource src = CFMLEngineFactory.class.getProtectionDomain().getCodeSource();
+			if (src == null) return null;
+			URL loc = src.getLocation();
+			
+			
+			zis=new ZipInputStream(loc.openStream());
+			String path,name,bundleInfo;
+			int index,i;
+			File temp;
+			while ((entry = zis.getNextEntry())!= null) {
+				path = entry.getName();
+				if(path.startsWith(sub) && path.endsWith(".jar")) { // ignore non jara files or file from elsewhere
+					index=path.lastIndexOf('/')+1;
+					if(index==sub.length()) { // ignore sub directories
+						name=path.substring(index);
+						temp=null;
+						try {
+							temp=File.createTempFile("bundle", ".jar");
+							Util.copy(zis, new FileOutputStream(temp),false,true);
+							bundleInfo=BundleLoader.loadBundleInfo(temp);
+							if(bundleInfo!=null && nameAndVersion.equals(bundleInfo)) {
+									File trg=new File(bundleDirectory,name);
+									temp.renameTo(trg);
+									System.out.println("adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
+									log(Logger.LOG_DEBUG, "adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
+
+									return trg;
+							}
+						}
+						finally {
+							if(temp!=null && temp.exists())temp.delete();
+						}
+						
+					}
+				}
+				zis.closeEntry();
+			} 
+		}
+		catch(Throwable t){
+			t.printStackTrace();// TODO log this
+		}
+		finally {
+			Util.closeEL(zis);
+		}
+		return null;
 	}
 
 	private File downloadCore(Identification id) throws IOException {
