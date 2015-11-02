@@ -76,7 +76,7 @@
       var version = attributes.get("version").trim();
       
       var needle = ' ';
-      var regex = new RegExp(needle,'g');
+      //var regex = new RegExp(needle,'g');
       var repl = '-';
       
       // removes quotes
@@ -93,12 +93,11 @@
       }
 
       // version
-      version=version.replace(regex,repl).toLowerCase();
       if(version.startsWith('"') && version.endsWith('"')) {
         version=version.substring(1,version.length()-1).trim();
       }
 
-      name=name.replace(regex,repl).toLowerCase();
+      name=name.replace(" ","-").toLowerCase();
 
       project.setProperty(attributes.get("property"), name+"-"+version+".lex");
      ]]>
