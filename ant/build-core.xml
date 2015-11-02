@@ -10,7 +10,9 @@
   <property name="bundleName" value="Lucee Core"/>
   <property name="bundleSymbolicName" value="lucee.core"/>
   
-  <property name="testboxURL" value="http://downloads.ortussolutions.com/ortussolutions/testbox/2.2.0/testbox-2.2.0.zip"/>
+  <property name="testboxVersion" value="2.2.0"/>
+  <property name="testboxURL" 
+    value="http://downloads.ortussolutions.com/ortussolutions/testbox/${testboxVersion}/testbox-${testboxVersion}.zip"/>
   <property name="extURL" value="http://extension.lucee.org/rest/extension/provider/full/"/>
   
   <property name="extLucene" value="EFDEB172-F52E-4D84-9CD1A1F561B3DFC8"/>
@@ -90,7 +92,7 @@
       while((start=name.indexOf('('))!=-1) {
         end=name.indexOf(')',start+1);
         if(end==-1) break;
-        name=name.substring(0,start)+name.substring(end+1).trim();
+        name=(name.substring(0,start) + name.substring(end+1)).trim();
       }
 
       // version
@@ -98,7 +100,13 @@
         version=version.substring(1,version.length()-1).trim();
       }
 
+      name=name.trim();
       name=name.replace(" ","-").toLowerCase();
+      name=name.replace(" ","-"); // TODO make better but not with regex some ant version will fail
+      name=name.replace(" ","-");
+      name=name.replace(" ","-");
+      name=name.replace(" ","-");
+      name=name.replace(" ","-");
 
       project.setProperty(attributes.get("property"), name+"-"+version+".lex");
      ]]>
@@ -109,6 +117,7 @@
 
     <property name="srcLoader" location="${rootDir}/loader/src/main/java"/>
     <property name="srcCore" location="${rootDir}/core/src/main/java"/>
+    <property name="cache" location="${rootDir}/cache"/>
     <property name="trgLoader" location="${rootDir}/loader/target"/>
     <property name="trgCore" location="${rootDir}/core/target"/>
     <property name="srcCFML" location="${rootDir}/core/src/main/cfml"/>
@@ -120,7 +129,8 @@
     <property name="core" location="${temp}/core"/>
     <property file="${rootDir}/build.properties"/>
 
-    <echo>
+<echo>
+
    __                     
   / / _   _  ___ ___  ___ 
  / / | | | |/ __/ _ \/ _ \
@@ -147,11 +157,113 @@ LUCEE BUILD PROCESS
     <mkdir dir="${core}"/>
     <mkdir dir="${loader}"/>
     <mkdir dir="${temp}/agent"/>
+    <mkdir dir="${cache}"/>
 
   </target>
 
+
+
+    <macrodef name="loadmf">
+        <attribute name="jar"/>
+        <attribute name="prefix" default=""/>
+        <sequential>
+            <loadproperties>
+                <!-- Load the manifest entries -->
+                <zipentry zipfile="@{jar}" name="META-INF/MANIFEST.MF"/>
+                <!-- Add the prefix -->
+                <filterchain>
+                    <prefixlines prefix="@{prefix}"/>
+                </filterchain>
+            </loadproperties>
+        </sequential>
+    </macrodef>
+
+  <target name="check-cache">
+      <!-- download file necessary -->
+
+    <available file="${cache}/testbox-${testboxVersion}.zip" property="testbox.present"/>
+
+    <available file="${cache}/${extMySQL}.lex" property="mysql.present"/>
+    <available file="${cache}/${extMSSQL}.lex" property="mssql.present"/>
+    <available file="${cache}/${extPostgreSQL}.lex" property="postgre.present"/>
+    <available file="${cache}/${extJDTsSQL}.lex" property="jdts.present"/>
+  </target>
+
+
+  <target name="check-mysql" depends="check-cache" unless="mysql.present">
+      <get src="${extURL}${extMySQL}" dest="${cache}/${extMySQL}.lex"/>
+  </target> 
+  <target name="check-mssql" depends="check-cache" unless="mssql.present">
+      <get src="${extURL}${extMSSQL}" dest="${cache}/${extMSSQL}.lex"/>
+  </target> 
+  <target name="check-postgre" depends="check-cache" unless="postgre.present">
+      <get src="${extURL}${extPostgreSQL}" dest="${cache}/${extPostgreSQL}.lex"/>
+  </target> 
+  <target name="check-jdts" depends="check-cache" unless="jdts.present">
+      <get src="${extURL}${extJDTsSQL}" dest="${cache}/${extJDTsSQL}.lex"/>
+  </target>
+  <target name="check-testbox" depends="check-cache" unless="testbox.present">
+      <get src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
+  </target> 
+
+  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-testbox">
+    
+    <mkdir dir="${temp}/loader/extensions/"/>
+
+    <!-- add extension MySQL -->
+    <loadmf jar="${cache}/${extMySQL}.lex" prefix="ext_mysql."/>
+    <toFileName name="${ext_mysql.name}" version="${ext_mysql.version}" property="ext_mysql.filename"/>
+    <copy 
+      file="${cache}/${extMySQL}.lex" 
+      todir="${temp}/loader/extensions/"/>
+    <move 
+      file="${temp}/loader/extensions/${extMySQL}.lex" 
+      tofile="${temp}/loader/extensions/${ext_mysql.filename}"/>
+    <echo>add:${temp}/loader/extensions/${ext_mysql.filename}</echo>
+
+
+    <!-- add extension MSSQL -->
+    <loadmf jar="${cache}/${extMSSQL}.lex" prefix="ext_mssql."/>
+    <toFileName name="${ext_mssql.name}" version="${ext_mssql.version}" property="ext_mssql.filename"/>
+    <copy 
+      file="${cache}/${extMSSQL}.lex" 
+      todir="${temp}/loader/extensions/"/>
+    <move 
+      file="${temp}/loader/extensions/${extMSSQL}.lex" 
+      tofile="${temp}/loader/extensions/${ext_mssql.filename}"/>
+    <echo>add:${temp}/loader/extensions/${ext_mssql.filename}</echo>
+
+    <!-- add extension Postgre -->
+    <loadmf jar="${cache}/${extPostgreSQL}.lex" prefix="ext_postgre."/>
+    <toFileName name="${ext_postgre.name}" version="${ext_postgre.version}" property="ext_postgre.filename"/>
+    <copy 
+      file="${cache}/${extPostgreSQL}.lex" 
+      todir="${temp}/loader/extensions/"/>
+    <move 
+      file="${temp}/loader/extensions/${extPostgreSQL}.lex" 
+      tofile="${temp}/loader/extensions/${ext_postgre.filename}"/>
+    <echo>add:${temp}/loader/extensions/${ext_postgre.filename}</echo>
+
+    <!-- add extension JDTS -->
+    <loadmf jar="${cache}/${extJDTsSQL}.lex" prefix="ext_jdts."/>
+    <toFileName name="${ext_jdts.name}" version="${ext_jdts.version}" property="ext_jdts.filename"/>
+    <copy 
+      file="${cache}/${extJDTsSQL}.lex" 
+      todir="${temp}/loader/extensions/"/>
+    <move 
+      file="${temp}/loader/extensions/${extJDTsSQL}.lex" 
+      tofile="${temp}/loader/extensions/${ext_jdts.filename}"/>
+    <echo>add:${temp}/loader/extensions/${ext_jdts.filename}</echo>
+
+    <!-- testbox -->
+    <copy 
+      file="${cache}/testbox-${testboxVersion}.zip" 
+      todir="${temp}"/>
+
+  </target> 
+
   
-  <target name="copyDeployFiles" depends="init" description="copy files from source/cfml to source/java/core/src/resource">
+  <target name="copyDeployFiles" depends="init,check" description="copy files from source/cfml to source/java/core/src/resource">
     <copy todir="${srcCore}/resource/context/">
       <fileset dir="${srcCFML}/context/">
         <include name="*.cfm"/>
@@ -233,77 +345,6 @@ LUCEE BUILD PROCESS
         <exclude name=".*"/>
       </fileset>
     </copy>
-
-    <macrodef name="loadmf">
-        <attribute name="jar"/>
-        <attribute name="prefix" default=""/>
-        <sequential>
-            <loadproperties>
-                <!-- Load the manifest entries -->
-                <zipentry zipfile="@{jar}" name="META-INF/MANIFEST.MF"/>
-                <!-- Add the prefix -->
-                <filterchain>
-                    <prefixlines prefix="@{prefix}"/>
-                </filterchain>
-            </loadproperties>
-        </sequential>
-    </macrodef>
-
-
-
-
-    
-    <mkdir dir="${temp}/loader/extensions/"/>
-
-    <!-- add extension Search (Lucene)
-    <get src="${extURL}${extLucene}" dest="${temp}/loader/extensions/${extLucene}.lex"/>
-    <loadmf jar="${temp}/loader/extensions/${extLucene}.lex" prefix="ext_lucene."/>
-    <toFileName name="${ext_lucene.name}" version="${ext_lucene.version}" property="ext_lucene.filename"/>
-    <move 
-      file="${temp}/loader/extensions/${extLucene}.lex" 
-      tofile="${temp}/loader/extensions/${ext_lucene.filename}"/> -->
-
-    <!-- add extension ORM (Hibernate)
-    <get src="${extURL}${extHibernate}" dest="${temp}/loader/extensions/${extHibernate}.lex"/>
-    <loadmf jar="${temp}/loader/extensions/${extHibernate}.lex" prefix="ext_orm."/>
-    <toFileName name="${ext_orm.name}" version="${ext_orm.version}" property="ext_orm.filename"/>
-    <move 
-      file="${temp}/loader/extensions/${extHibernate}.lex" 
-      tofile="${temp}/loader/extensions/${ext_orm.filename}"/> -->
-
-    <!-- add extension MySQL -->
-    <get src="${extURL}${extMySQL}" dest="${temp}/loader/extensions/${extMySQL}.lex"/>
-    <loadmf jar="${temp}/loader/extensions/${extMySQL}.lex" prefix="ext_mysql."/>
-    <toFileName name="${ext_mysql.name}" version="${ext_mysql.version}" property="ext_mysql.filename"/>
-    <move 
-      file="${temp}/loader/extensions/${extMySQL}.lex" 
-      tofile="${temp}/loader/extensions/${ext_mysql.filename}"/>
-    <echo>filename:${temp}/loader/extensions/${ext_mysql.filename}</echo>
-
-    <!-- add extension MSSQL -->
-    <get src="${extURL}${extMSSQL}" dest="${temp}/loader/extensions/${extMSSQL}.lex"/>
-    <loadmf jar="${temp}/loader/extensions/${extMSSQL}.lex" prefix="ext_mysql."/>
-    <toFileName name="${ext_mysql.name}" version="${ext_mysql.version}" property="ext_mysql.filename"/>
-    <move 
-      file="${temp}/loader/extensions/${extMSSQL}.lex" 
-      tofile="${temp}/loader/extensions/${ext_mysql.filename}"/>
-
-    <!-- add extension Postgre -->
-    <get src="${extURL}${extPostgreSQL}" dest="${temp}/loader/extensions/${extPostgreSQL}.lex"/>
-    <loadmf jar="${temp}/loader/extensions/${extPostgreSQL}.lex" prefix="ext_postgre."/>
-    <toFileName name="${ext_postgre.name}" version="${ext_postgre.version}" property="ext_postgre.filename"/>
-    <move 
-      file="${temp}/loader/extensions/${extPostgreSQL}.lex" 
-      tofile="${temp}/loader/extensions/${ext_postgre.filename}"/>
-
-    <!-- add extension JDTS -->
-    <get src="${extURL}${extJDTsSQL}" dest="${temp}/loader/extensions/${extJDTsSQL}.lex"/>
-    <loadmf jar="${temp}/loader/extensions/${extJDTsSQL}.lex" prefix="ext_jdts."/>
-    <toFileName name="${ext_jdts.name}" version="${ext_jdts.version}" property="ext_jdts.filename"/>
-    <move 
-      file="${temp}/loader/extensions/${extJDTsSQL}.lex" 
-      tofile="${temp}/loader/extensions/${ext_jdts.filename}"/>
-
 
     <!-- set lucee/version file -->
     <currentTime property="ct" />
@@ -391,9 +432,8 @@ LUCEE BUILD PROCESS
     </copy>
 
     <!-- now we need to get the testbox source -->
-    <get src="${testboxURL}" dest="${temp}/testbox.zip"/>
-    <unzip src="${temp}/testbox.zip" dest="${temp}/testbox"/>
-    <delete dir="${temp}/testbox.zip"/>
+    <unzip src="${temp}/testbox-${testboxVersion}.zip" dest="${temp}/testbox"/>
+    <delete dir="${temp}/testbox-${testboxVersion}.zip"/>
 
 
     <!-- build the lucee-context.lar -->
