@@ -278,6 +278,7 @@ LUCEE BUILD PROCESS
     <move 
       file="${temp}/loader/extensions/${extMySQL}.lex" 
       tofile="${temp}/loader/extensions/${ext_mysql.filename}"/>
+    <echo>filename:${temp}/loader/extensions/${ext_mysql.filename}</echo>
 
     <!-- add extension MSSQL -->
     <get src="${extURL}${extMSSQL}" dest="${temp}/loader/extensions/${extMSSQL}.lex"/>
