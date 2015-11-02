@@ -92,8 +92,20 @@ try {
 				onSpecStart=function( target, testResults, suite, spec ) {
 
 				},
-				SpecEnd=function( target, testResults, suite, spec ) {
-					dump(arguments);
+				onSpecEnd=function( target, result, suite, spec ) {
+
+					/*echo("============================================================="&NL);
+		 			echo("Total Duration #result.getTotalDuration()# ms"&NL);
+		 			if((result.getTotalFail()+result.getTotalError())>0) {
+		 				echo("Shit happens!");
+
+			 			echo("->[Pass: #result.getTotalPass()#]"&NL);
+			 			echo("->[Failures: #result.getTotalFail()#]"&NL);
+			 			echo("->[Errors: #result.getTotalError()#]"&NL);
+			 			echo("->[Skipped: #result.getTotalSkipped()#]"&NL);
+		 			}
+
+					echo(serialize(spec));*/
 				}
 
 	 		}); 

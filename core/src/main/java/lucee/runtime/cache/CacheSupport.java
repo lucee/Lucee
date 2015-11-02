@@ -212,6 +212,7 @@ public abstract class CacheSupport implements CachePro {
 	} 
 	
 	protected static boolean valid(CacheEntry entry) {
+		if(entry==null)return false;
 		long now = System.currentTimeMillis();
 		if(entry.liveTimeSpan()>0 && entry.liveTimeSpan()+entry.lastModified().getTime()<now){
 			return false;

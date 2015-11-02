@@ -12,3 +12,4 @@ target
 target/*
 *.lock
 *.DS_Store
+/cache

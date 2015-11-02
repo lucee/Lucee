@@ -210,7 +210,7 @@ LUCEE BUILD PROCESS
     
     <mkdir dir="${temp}/loader/extensions/"/>
 
-    <!-- add extension MySQL -->
+    <!-- add extension MySQL
     <loadmf jar="${cache}/${extMySQL}.lex" prefix="ext_mysql."/>
     <toFileName name="${ext_mysql.name}" version="${ext_mysql.version}" property="ext_mysql.filename"/>
     <copy 
@@ -220,40 +220,7 @@ LUCEE BUILD PROCESS
       file="${temp}/loader/extensions/${extMySQL}.lex" 
       tofile="${temp}/loader/extensions/${ext_mysql.filename}"/>
     <echo>add:${temp}/loader/extensions/${ext_mysql.filename}</echo>
-
-
-    <!-- add extension MSSQL -->
-    <loadmf jar="${cache}/${extMSSQL}.lex" prefix="ext_mssql."/>
-    <toFileName name="${ext_mssql.name}" version="${ext_mssql.version}" property="ext_mssql.filename"/>
-    <copy 
-      file="${cache}/${extMSSQL}.lex" 
-      todir="${temp}/loader/extensions/"/>
-    <move 
-      file="${temp}/loader/extensions/${extMSSQL}.lex" 
-      tofile="${temp}/loader/extensions/${ext_mssql.filename}"/>
-    <echo>add:${temp}/loader/extensions/${ext_mssql.filename}</echo>
-
-    <!-- add extension Postgre -->
-    <loadmf jar="${cache}/${extPostgreSQL}.lex" prefix="ext_postgre."/>
-    <toFileName name="${ext_postgre.name}" version="${ext_postgre.version}" property="ext_postgre.filename"/>
-    <copy 
-      file="${cache}/${extPostgreSQL}.lex" 
-      todir="${temp}/loader/extensions/"/>
-    <move 
-      file="${temp}/loader/extensions/${extPostgreSQL}.lex" 
-      tofile="${temp}/loader/extensions/${ext_postgre.filename}"/>
-    <echo>add:${temp}/loader/extensions/${ext_postgre.filename}</echo>
-
-    <!-- add extension JDTS -->
-    <loadmf jar="${cache}/${extJDTsSQL}.lex" prefix="ext_jdts."/>
-    <toFileName name="${ext_jdts.name}" version="${ext_jdts.version}" property="ext_jdts.filename"/>
-    <copy 
-      file="${cache}/${extJDTsSQL}.lex" 
-      todir="${temp}/loader/extensions/"/>
-    <move 
-      file="${temp}/loader/extensions/${extJDTsSQL}.lex" 
-      tofile="${temp}/loader/extensions/${ext_jdts.filename}"/>
-    <echo>add:${temp}/loader/extensions/${ext_jdts.filename}</echo>
+ -->
 
     <!-- testbox -->
     <copy 
@@ -502,7 +469,58 @@ LUCEE BUILD PROCESS
     </copy>
   </target>
 
-  <target name="buildLoader" depends="__build" description="generate the loader jar" >  
+  <target name="addExtensions">
+    <mkdir dir="${outputDir}/extensions/"/>
+
+    <!-- add extension MySQL -->
+    <loadmf jar="${cache}/${extMySQL}.lex" prefix="ext_mysql."/>
+    <toFileName name="${ext_mysql.name}" version="${ext_mysql.version}" property="ext_mysql.filename"/>
+    <copy 
+      file="${cache}/${extMySQL}.lex" 
+      todir="${outputDir}/extensions/"/>
+    <move 
+      file="${outputDir}/extensions/${extMySQL}.lex" 
+      tofile="${outputDir}/extensions/${ext_mysql.filename}"/>
+    <echo>add:${outputDir}/extensions/${ext_mysql.filename}</echo>
+
+    <!-- add extension MSSQL -->
+    <loadmf jar="${cache}/${extMSSQL}.lex" prefix="ext_mssql."/>
+    <toFileName name="${ext_mssql.name}" version="${ext_mssql.version}" property="ext_mssql.filename"/>
+    <copy 
+      file="${cache}/${extMSSQL}.lex" 
+      todir="${outputDir}/extensions/"/>
+    <move 
+      file="${outputDir}/extensions/${extMSSQL}.lex" 
+      tofile="${outputDir}/extensions/${ext_mssql.filename}"/>
+    <echo>add:${outputDir}/extensions/${ext_mssql.filename}</echo>
+
+    <!-- add extension Postgre -->
+    <loadmf jar="${cache}/${extPostgreSQL}.lex" prefix="ext_postgre."/>
+    <toFileName name="${ext_postgre.name}" version="${ext_postgre.version}" property="ext_postgre.filename"/>
+    <copy 
+      file="${cache}/${extPostgreSQL}.lex" 
+      todir="${outputDir}/extensions/"/>
+    <move 
+      file="${outputDir}/extensions/${extPostgreSQL}.lex" 
+      tofile="${outputDir}/extensions/${ext_postgre.filename}"/>
+    <echo>add:${outputDir}/extensions/${ext_postgre.filename}</echo>
+
+    <!-- add extension JDTS -->
+    <loadmf jar="${cache}/${extJDTsSQL}.lex" prefix="ext_jdts."/>
+    <toFileName name="${ext_jdts.name}" version="${ext_jdts.version}" property="ext_jdts.filename"/>
+    <copy 
+      file="${cache}/${extJDTsSQL}.lex" 
+      todir="${outputDir}/extensions/"/>
+    <move 
+      file="${outputDir}/extensions/${extJDTsSQL}.lex" 
+      tofile="${outputDir}/extensions/${ext_jdts.filename}"/>
+    <echo>add:${outputDir}/extensions/${ext_jdts.filename}</echo>
+
+
+
+  </target>
+
+  <target name="buildLoader" depends="__build,addExtensions" description="generate the loader jar" >  
     <!-- create the luce core -->
     <jar 
         basedir="${core}" 
@@ -521,7 +539,7 @@ LUCEE BUILD PROCESS
     
     <delete dir="${temp}"/>
   </target>
-  <target name="buildLoaderAnt" depends="__build" description="generate the loader jar" >  
+  <target name="buildLoaderAnt" depends="__build,addExtensions" description="generate the loader jar" >  
     
     <!-- create core -->
     <jar 
@@ -534,6 +552,8 @@ LUCEE BUILD PROCESS
         file="${temp}/loader/core/core.lco" 
         tofile="${trgLoader}/${version}.lco"/>
 
+
+    
     <!-- version -->
     <currentTime property="ct" />
     <echo file="${temp}/loader/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
