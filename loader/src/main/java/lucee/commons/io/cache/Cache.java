@@ -28,7 +28,8 @@ public interface Cache {
 
 	/**
 	 * initialize the cache
-	 * 
+	 * @param config Lucee configuration
+	 * @param cacheName name of the cache
 	 * @param arguments configuration arguments
 	 * @throws IOException
 	 */
@@ -58,8 +59,8 @@ public interface Cache {
 	/**
 	 * return cache entry that match the key or the defaultValue when entry does
 	 * not exist
-	 * 
 	 * @param key key of the cache entry to get
+	 * @param defaultValue returned in case there is no entry or the cache fails to reach it
 	 * @return cache entry
 	 */
 	public CacheEntry getCacheEntry(String key, CacheEntry defaultValue);

@@ -48,7 +48,6 @@ public interface AMFEngine {
      * @param req 
      * @param rsp 
      *
-     * @throws ServletException
      * @throws IOException
      */
     public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws IOException;
