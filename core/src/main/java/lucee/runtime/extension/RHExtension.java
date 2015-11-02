@@ -824,5 +824,20 @@ public class RHExtension implements Serializable {
 	public Resource getExtensionFile() {
 		return extensionFile;
 	}
+	
+	@Override
+	public boolean equals(Object objOther) {
+		if(objOther == this) return true;
+		if(!(objOther instanceof RHExtension)) return false;
+		
+		RHExtension other=(RHExtension) objOther;
+
+		if(!id.equals(other.id)) return false;
+		if(!name.equals(other.name)) return false;
+		if(!version.equals(other.version)) return false;
+		if(trial!=other.trial) return false;
+		
+		return true;
+	}
 
 }

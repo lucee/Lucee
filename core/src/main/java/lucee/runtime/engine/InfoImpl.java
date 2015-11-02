@@ -27,6 +27,7 @@ import java.util.jar.Manifest;
 import lucee.Info;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.io.IOUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.exp.PageRuntimeException;
@@ -58,6 +59,7 @@ public final class InfoImpl implements Info {
     private final long releaseTime;
     private Version version;
 	private String level;
+	private String[] requiredExtension;
     
 	//private int state;
     //private final String strState;
@@ -80,6 +82,10 @@ public final class InfoImpl implements Info {
     		//state=toIntState(mf.getValue("State"));
     		level="os";
     		version=OSGiUtil.toVersion(mf.getValue("Bundle-Version"));
+    		
+    		String str=mf.getValue("Require-Extension");
+    		if(StringUtil.isEmpty(str,true)) requiredExtension=new String[0];
+    		else requiredExtension = ListUtil.trimItems(ListUtil.listToStringArray(str, ','));
     	} 
     	catch (Throwable t) {
     		t.printStackTrace();
@@ -271,6 +277,11 @@ public final class InfoImpl implements Info {
     @Override
 	public Version getVersion() {
         return version;
+    }
+
+
+	public String[] getRequireExtension() {
+        return requiredExtension;
     }
 
 

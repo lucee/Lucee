@@ -21,6 +21,7 @@ package lucee.runtime.engine;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -29,12 +30,16 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.Properties;
 import java.util.TimeZone;
 
@@ -74,6 +79,7 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.engine.CFMLEngineFactorySupport;
 import lucee.loader.engine.CFMLEngineWrapper;
 import lucee.loader.osgi.BundleCollection;
+import lucee.loader.osgi.BundleLoader;
 import lucee.loader.util.Util;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
@@ -86,6 +92,7 @@ import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
@@ -94,6 +101,7 @@ import lucee.runtime.config.XMLConfigWebFactory;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageServletException;
+import lucee.runtime.extension.RHExtension;
 import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.runtime.jsr223.ScriptEngineFactoryImpl;
 import lucee.runtime.net.http.HTTPServletRequestWrap;
@@ -139,6 +147,7 @@ import lucee.runtime.video.VideoUtil;
 import lucee.runtime.video.VideoUtilImpl;
 
 import org.apache.felix.framework.Felix;
+import org.apache.felix.framework.Logger;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 
@@ -233,27 +242,100 @@ public final class CFMLEngineImpl implements CFMLEngine {
         controler.setPriority(Thread.MIN_PRIORITY);
         controler.start();
         
+        // copy bundled extension to local extension directory (if never done before)
+        deployBundledExtension(cs);
+        
+        // required extensions
+        Set<String> requireExtensions = lucee.runtime.type.util.ListUtil.toSet(info.getRequireExtension());
+        
         
         // install extension defined
         String extensionIds=System.getProperty("lucee-extensions");
         if(!StringUtil.isEmpty(extensionIds,true)) {
-        	Log log = cs.getLog("deploy", true);
         	String[] ids = lucee.runtime.type.util.ListUtil.listToStringArray(extensionIds, ';');
-        	String id;
         	for(int i=0;i<ids.length;i++){
-        		id=ids[i].trim();
-        		if(StringUtil.isEmpty(id,true)) continue;
-        		DeployHandler.deployExtension(cs, id,log);
+        		requireExtensions.add(ids[i].trim());
         	}
         }
         
-        //print.e(System.getProperties());
-        
+        if(requireExtensions.size()>0) {
+        	Log log = cs.getLog("deploy", true);
+        	Iterator<String> it = requireExtensions.iterator();
+        	String id;
+        	while(it.hasNext()){
+        		id=it.next();
+        		if(StringUtil.isEmpty(id,true)) continue;
+        		DeployHandler.deployExtension(cs, id.trim(),log);
+        	}
+        }
 
         touchMonitor(cs);  
         this.uptime=System.currentTimeMillis();
         //this.config=config; 
     }
+
+	private void deployBundledExtension(ConfigServerImpl cs) {
+		Resource dir = cs.getLocalExtensionProviderDirectory();
+		List<RHExtension> existing = DeployHandler.getLocalExtensions(cs);
+		String sub="extensions/";
+		
+		ZipEntry entry;
+		ZipInputStream zis = null;
+		try {
+			CodeSource src = CFMLEngineFactory.class.getProtectionDomain().getCodeSource();
+			if (src == null) return;
+			URL loc = src.getLocation();
+			
+			
+			zis=new ZipInputStream(loc.openStream());
+			String path,name;
+			int index;
+			Resource temp;
+			RHExtension rhe;
+			Iterator<RHExtension> it;
+			RHExtension exist;
+			while ((entry = zis.getNextEntry())!= null) {
+				path = entry.getName();
+				if(path.startsWith(sub) && path.endsWith(".lex")) { // ignore non lex files or file from else where
+					index=path.lastIndexOf('/')+1;
+					if(index==sub.length()) { // ignore sub directories
+						name=path.substring(index);
+						temp=null;
+						try {
+							temp=SystemUtil.getTempFile("lex", true);
+							Util.copy(zis, temp.getOutputStream(),false,true);
+							rhe = new RHExtension(cs, temp, false);
+							boolean alreadyExists=false;
+							it = existing.iterator();
+							while(it.hasNext()){
+								exist = it.next();
+								if(exist.equals(rhe)) {
+									alreadyExists=true;
+									break;
+								}
+							}
+							if(!alreadyExists) {
+								temp.moveTo(dir.getRealResource(name));
+							}
+							
+						}
+						finally {
+							if(temp!=null && temp.exists())temp.delete();
+						}
+						
+					}
+				}
+				zis.closeEntry();
+			} 
+		}
+		catch(Throwable t){
+			t.printStackTrace();// TODO log this
+		}
+		finally {
+			Util.closeEL(zis);
+		}
+		return;
+	}
 
 	public void touchMonitor(ConfigServerImpl cs) {
 		if(monitor!=null && monitor.isAlive()) return; 

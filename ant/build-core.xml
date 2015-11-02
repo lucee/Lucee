@@ -9,7 +9,19 @@
   <property name="agent" value="lucee.runtime.instrumentation.ExternalAgent"/>
   <property name="bundleName" value="Lucee Core"/>
   <property name="bundleSymbolicName" value="lucee.core"/>
+  
   <property name="testboxURL" value="http://downloads.ortussolutions.com/ortussolutions/testbox/2.2.0/testbox-2.2.0.zip"/>
+  <property name="extURL" value="http://extension.lucee.org/rest/extension/provider/full/"/>
+  
+  <property name="extLucene" value="EFDEB172-F52E-4D84-9CD1A1F561B3DFC8"/>
+  <property name="extHibernate" value="FAD1E8CB-4F45-4184-86359145767C29DE"/>
+  <property name="extMySQL" value="7E673D15-D87C-41A6-8B5F1956528C605F"/>
+  <property name="extMSSQL" value="99A4EF8D-F2FD-40C8-8FB8C2E67A4EEEB6"/>
+  <property name="extPostgreSQL" value="671B01B8-B3B3-42B9-AC055A356BED5281"/>
+  <property name="extJDTsSQL" value="2BCD080F-4E1E-48F5-BEFE794232A21AF6"/>
+
+  <property name="extH2" value="465E1E35-2425-4F4E-8B3FAB638BD7280A"/>
+  
   <!-- http://www.coldbox.org/download/testbox -->
   <tstamp>
       <format property="NOW" pattern="yyyy/MM/dd HH:mm:ss z" locale="en,GB"/>
@@ -52,6 +64,43 @@
      <attribute name="property" />
      <![CDATA[
       project.setProperty(attributes.get("property"), new Date().getTime());
+     ]]>
+  </scriptdef>
+
+  <scriptdef name="toFileName" language="javascript">
+     <attribute name="name" />
+     <attribute name="version" />
+     <attribute name="property" />
+     <![CDATA[
+      var name = attributes.get("name").trim();
+      var version = attributes.get("version").trim();
+      
+      var needle = ' ';
+      var regex = new RegExp(needle,'g');
+      var repl = '-';
+      
+      // removes quotes
+      if(name.startsWith('"') && name.endsWith('"')) {
+        name=name.substring(1,name.length()-1).trim();
+      }
+
+      // remove brackets
+      var start,end;
+      while((start=name.indexOf('('))!=-1) {
+        end=name.indexOf(')',start+1);
+        if(end==-1) break;
+        name=name.substring(0,start)+name.substring(end+1).trim();
+      }
+
+      // version
+      version=version.replace(regex,repl).toLowerCase();
+      if(version.startsWith('"') && version.endsWith('"')) {
+        version=version.substring(1,version.length()-1).trim();
+      }
+
+      name=name.replace(regex,repl).toLowerCase();
+
+      project.setProperty(attributes.get("property"), name+"-"+version+".lex");
      ]]>
   </scriptdef>
 
@@ -185,6 +234,75 @@ LUCEE BUILD PROCESS
       </fileset>
     </copy>
 
+    <macrodef name="loadmf">
+        <attribute name="jar"/>
+        <attribute name="prefix" default=""/>
+        <sequential>
+            <loadproperties>
+                <!-- Load the manifest entries -->
+                <zipentry zipfile="@{jar}" name="META-INF/MANIFEST.MF"/>
+                <!-- Add the prefix -->
+                <filterchain>
+                    <prefixlines prefix="@{prefix}"/>
+                </filterchain>
+            </loadproperties>
+        </sequential>
+    </macrodef>
+
+
+
+
+    
+    <mkdir dir="${temp}/loader/extensions/"/>
+
+    <!-- add extension Search (Lucene) -->
+    <get src="${extURL}${extLucene}" dest="${temp}/loader/extensions/${extLucene}.lex"/>
+    <loadmf jar="${temp}/loader/extensions/${extLucene}.lex" prefix="ext_lucene."/>
+    <toFileName name="${ext_lucene.name}" version="${ext_lucene.version}" property="ext_lucene.filename"/>
+    <move 
+      file="${temp}/loader/extensions/${extLucene}.lex" 
+      tofile="${temp}/loader/extensions/${ext_lucene.filename}"/>
+
+    <!-- add extension ORM (Hibernate) -->
+    <get src="${extURL}${extHibernate}" dest="${temp}/loader/extensions/${extHibernate}.lex"/>
+    <loadmf jar="${temp}/loader/extensions/${extHibernate}.lex" prefix="ext_orm."/>
+    <toFileName name="${ext_orm.name}" version="${ext_orm.version}" property="ext_orm.filename"/>
+    <move 
+      file="${temp}/loader/extensions/${extHibernate}.lex" 
+      tofile="${temp}/loader/extensions/${ext_orm.filename}"/>
+
+    <!-- add extension MySQL -->
+    <get src="${extURL}${extMySQL}" dest="${temp}/loader/extensions/${extMySQL}.lex"/>
+    <loadmf jar="${temp}/loader/extensions/${extMySQL}.lex" prefix="ext_mysql."/>
+    <toFileName name="${ext_mysql.name}" version="${ext_mysql.version}" property="ext_mysql.filename"/>
+    <move 
+      file="${temp}/loader/extensions/${extMySQL}.lex" 
+      tofile="${temp}/loader/extensions/${ext_mysql.filename}"/>
+
+    <!-- add extension MSSQL -->
+    <get src="${extURL}${extMSSQL}" dest="${temp}/loader/extensions/${extMSSQL}.lex"/>
+    <loadmf jar="${temp}/loader/extensions/${extMSSQL}.lex" prefix="ext_mysql."/>
+    <toFileName name="${ext_mysql.name}" version="${ext_mysql.version}" property="ext_mysql.filename"/>
+    <move 
+      file="${temp}/loader/extensions/${extMSSQL}.lex" 
+      tofile="${temp}/loader/extensions/${ext_mysql.filename}"/>
+
+    <!-- add extension Postgre -->
+    <get src="${extURL}${extPostgreSQL}" dest="${temp}/loader/extensions/${extPostgreSQL}.lex"/>
+    <loadmf jar="${temp}/loader/extensions/${extPostgreSQL}.lex" prefix="ext_postgre."/>
+    <toFileName name="${ext_postgre.name}" version="${ext_postgre.version}" property="ext_postgre.filename"/>
+    <move 
+      file="${temp}/loader/extensions/${extPostgreSQL}.lex" 
+      tofile="${temp}/loader/extensions/${ext_postgre.filename}"/>
+
+    <!-- add extension JDTS -->
+    <get src="${extURL}${extJDTsSQL}" dest="${temp}/loader/extensions/${extJDTsSQL}.lex"/>
+    <loadmf jar="${temp}/loader/extensions/${extJDTsSQL}.lex" prefix="ext_jdts."/>
+    <toFileName name="${ext_jdts.name}" version="${ext_jdts.version}" property="ext_jdts.filename"/>
+    <move 
+      file="${temp}/loader/extensions/${extJDTsSQL}.lex" 
+      tofile="${temp}/loader/extensions/${ext_jdts.filename}"/>
+
 
     <!-- set lucee/version file -->
     <currentTime property="ct" />
@@ -315,8 +433,7 @@ LUCEE BUILD PROCESS
 
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
-      <!-- hsqldb:6DD4728A-AB0C-4F67-9DCE1A91A8ACD114,h2 -->
-      <jvmarg value="-Dlucee-extensions=465E1E35-2425-4F4E-8B3FAB638BD7280A;"/>
+      <jvmarg value="-Dlucee-extensions=${extH2};"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
     </java>
     <echo>${exc2}</echo>
