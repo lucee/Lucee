@@ -692,7 +692,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			
 			zis=new ZipInputStream(loc.openStream());
 			String path,name,bundleInfo;
-			int index,i;
+			int index;
 			File temp;
 			while ((entry = zis.getNextEntry())!= null) {
 				path = entry.getName();
