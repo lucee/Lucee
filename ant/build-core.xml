@@ -15,6 +15,7 @@
   
   <property name="extLucene" value="EFDEB172-F52E-4D84-9CD1A1F561B3DFC8"/>
   <property name="extHibernate" value="FAD1E8CB-4F45-4184-86359145767C29DE"/>
+
   <property name="extMySQL" value="7E673D15-D87C-41A6-8B5F1956528C605F"/>
   <property name="extMSSQL" value="99A4EF8D-F2FD-40C8-8FB8C2E67A4EEEB6"/>
   <property name="extPostgreSQL" value="671B01B8-B3B3-42B9-AC055A356BED5281"/>
@@ -254,21 +255,21 @@ LUCEE BUILD PROCESS
     
     <mkdir dir="${temp}/loader/extensions/"/>
 
-    <!-- add extension Search (Lucene) -->
+    <!-- add extension Search (Lucene)
     <get src="${extURL}${extLucene}" dest="${temp}/loader/extensions/${extLucene}.lex"/>
     <loadmf jar="${temp}/loader/extensions/${extLucene}.lex" prefix="ext_lucene."/>
     <toFileName name="${ext_lucene.name}" version="${ext_lucene.version}" property="ext_lucene.filename"/>
     <move 
       file="${temp}/loader/extensions/${extLucene}.lex" 
-      tofile="${temp}/loader/extensions/${ext_lucene.filename}"/>
+      tofile="${temp}/loader/extensions/${ext_lucene.filename}"/> -->
 
-    <!-- add extension ORM (Hibernate) -->
+    <!-- add extension ORM (Hibernate)
     <get src="${extURL}${extHibernate}" dest="${temp}/loader/extensions/${extHibernate}.lex"/>
     <loadmf jar="${temp}/loader/extensions/${extHibernate}.lex" prefix="ext_orm."/>
     <toFileName name="${ext_orm.name}" version="${ext_orm.version}" property="ext_orm.filename"/>
     <move 
       file="${temp}/loader/extensions/${extHibernate}.lex" 
-      tofile="${temp}/loader/extensions/${ext_orm.filename}"/>
+      tofile="${temp}/loader/extensions/${ext_orm.filename}"/> -->
 
     <!-- add extension MySQL -->
     <get src="${extURL}${extMySQL}" dest="${temp}/loader/extensions/${extMySQL}.lex"/>
