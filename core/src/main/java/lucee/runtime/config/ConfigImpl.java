@@ -687,7 +687,12 @@ public abstract class ConfigImpl implements Config {
 
     @Override
     public Resource getTempDirectory() {
-    	if(tempDirectory==null) return SystemUtil.getTempDirectory();
+    	if(tempDirectory==null) {
+    		Resource tmp = SystemUtil.getTempDirectory();
+    		if(!tmp.exists()) tmp.mkdirs();
+    		return tmp;
+    	}
+    	if(!tempDirectory.exists()) tempDirectory.mkdirs();
         return tempDirectory;
     }
     
