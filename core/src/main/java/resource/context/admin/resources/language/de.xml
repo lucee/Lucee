@@ -7,7 +7,7 @@
 	<data key="general.dialect.lucee">Lucee Dialekt</data>
 	<data key="general.dialect.cfmlDesc">Die folgendenen Einstellungen spezifisch für den CFML Dialekt. Diese Einstellungen haben keinen Einfluss auf den Lucee Dialekt.</data>
 	
-	<data key="services.update.locdesc">Definieren Sie die URL von der ein Lucee Update bezogen werden kann, typischerweise &apos;http://stable.lucee.org&apos;</data>
+	<data key="services.update.locdesc">Definieren Sie die URL von der ein Lucee Update bezogen werden kann, typischerweise &apos;http://release.lucee.org&apos;</data>
 	<data key="services.update.type_manually">Manuell</data>
 	<data key="services.update.location">URL</data>
 	<data key="services.update.settitle">Einstellungen</data>

@@ -85,7 +85,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	// set to false to disable patch loading, for example in major alpha releases
 	private static final boolean PATCH_ENABLED = true;
 	public static final Version VERSION_ZERO = new Version(0, 0, 0, "0");
-	private static final String UPDATE_LOCATION = "http://stable.lucee.org"; // MUST from server.xml
+	private static final String UPDATE_LOCATION = "http://release.lucee.org"; // MUST from server.xml
 
 
 	private static CFMLEngineFactory factory;
@@ -678,6 +678,9 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 	
 	private File deployBundledBundle(File bundleDirectory, String symbolicName, String symbolicVersion) {
+
+		System.out.println("----------------------------------------------------------------------------");
+		System.out.println("deploy bundle ["+symbolicName+"] in version ["+symbolicVersion+"]");
 		
 		String sub="bundles/";
 		String nameAndVersion=symbolicName+"|"+symbolicVersion;
@@ -700,12 +703,16 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					index=path.lastIndexOf('/')+1;
 					if(index==sub.length()) { // ignore sub directories
 						name=path.substring(index);
+						System.out.println("- "+name);
+						
 						temp=null;
 						try {
 							temp=File.createTempFile("bundle", ".jar");
 							Util.copy(zis, new FileOutputStream(temp),false,true);
 							bundleInfo=BundleLoader.loadBundleInfo(temp);
+							System.out.println("-- "+bundleInfo+"=="+nameAndVersion);
 							if(bundleInfo!=null && nameAndVersion.equals(bundleInfo)) {
+								System.out.println("-- yes");
 									File trg=new File(bundleDirectory,name);
 									temp.renameTo(trg);
 									System.out.println("adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
@@ -1235,9 +1242,9 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					str = str.replace("/railo-context", "/lucee");
 					str = str.replace("railo-server-context", "lucee-server");
 					str = str.replace("http://www.getrailo.org",
-							"http://stable.lucee.org");
+							"http://release.lucee.org");
 					str = str.replace("http://www.getrailo.com",
-							"http://stable.lucee.org");
+							"http://release.lucee.org");
 
 					final ByteArrayInputStream bais = new ByteArrayInputStream(
 							str.getBytes());

@@ -1272,7 +1272,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	
 	<data key="services.update.provider">Update Provider</data>
 	<data key="services.update.location_www">Stable releases</data>
-	<data key="services.update.location_wwwDesc">This Update Provider (stable.lucee.org ) returns only stable versions. The versions found here are deeply tested. This source is recommended for production environments.</data>
+	<data key="services.update.location_wwwDesc">This Update Provider (release.lucee.org ) returns only stable versions. The versions found here are deeply tested. This source is recommended for production environments.</data>
 	<data key="services.update.location_preview">Preview releases</data>
 	<data key="services.update.location_previewDesc">This Update Provider (preview.lucee.org) returns public preview versions. Versions are tested, but not as deeply as stable releases. This source could be used for production environments. Please use caution.</data>
 	<data key="services.update.location_dev">Development releases (Bleeding Edge)</data>
