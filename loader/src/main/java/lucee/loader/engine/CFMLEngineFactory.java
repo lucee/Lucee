@@ -678,7 +678,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 	
 	private File deployBundledBundle(File bundleDirectory, String symbolicName, String symbolicVersion) {
-
 		System.out.println("----------------------------------------------------------------------------");
 		System.out.println("deploy bundle ["+symbolicName+"] in version ["+symbolicVersion+"]");
 		
@@ -689,8 +688,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		ZipInputStream zis = null;
 		try {
 			CodeSource src = CFMLEngineFactory.class.getProtectionDomain().getCodeSource();
+			System.out.println("src:"+src);
+			
 			if (src == null) return null;
 			URL loc = src.getLocation();
+			System.out.println("loc:"+loc);
 			
 			
 			zis=new ZipInputStream(loc.openStream());
