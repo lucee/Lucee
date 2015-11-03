@@ -701,6 +701,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			File temp;
 			while ((entry = zis.getNextEntry())!= null) {
 				path = entry.getName();
+				System.out.println("path:"+path);
 				if(path.startsWith(sub) && path.endsWith(".jar")) { // ignore non jara files or file from elsewhere
 					index=path.lastIndexOf('/')+1;
 					if(index==sub.length()) { // ignore sub directories
