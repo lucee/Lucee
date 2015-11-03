@@ -23,6 +23,12 @@
   <property name="extPostgreSQL" value="671B01B8-B3B3-42B9-AC055A356BED5281"/>
   <property name="extJDTsSQL" value="2BCD080F-4E1E-48F5-BEFE794232A21AF6"/>
 
+  <property name="extAdmin" value="CED6227E-0F49-6367-A68D21AACA6B07E8"/>
+  <property name="extDoc" value="D46D49C3-EB85-8D97-30BEC2F38561E985"/>
+
+
+
+
   <property name="extH2" value="465E1E35-2425-4F4E-8B3FAB638BD7280A"/>
   
   <!-- http://www.coldbox.org/download/testbox -->
@@ -187,6 +193,9 @@ LUCEE BUILD PROCESS
     <available file="${cache}/${extMSSQL}.lex" property="mssql.present"/>
     <available file="${cache}/${extPostgreSQL}.lex" property="postgre.present"/>
     <available file="${cache}/${extJDTsSQL}.lex" property="jdts.present"/>
+
+    <available file="${cache}/${extAdmin}.lex" property="admin.present"/>
+    <available file="${cache}/${extDoc}.lex" property="doc.present"/>
   </target>
 
 
@@ -202,25 +211,19 @@ LUCEE BUILD PROCESS
   <target name="check-jdts" depends="check-cache" unless="jdts.present">
       <get src="${extURL}${extJDTsSQL}" dest="${cache}/${extJDTsSQL}.lex"/>
   </target>
+  <target name="check-admin" depends="check-cache" unless="admin.present">
+      <get src="${extURL}${extAdmin}" dest="${cache}/${extAdmin}.lex"/>
+  </target>
+  <target name="check-doc" depends="check-cache" unless="doc.present">
+      <get src="${extURL}${extDoc}" dest="${cache}/${extDoc}.lex"/>
+  </target>
   <target name="check-testbox" depends="check-cache" unless="testbox.present">
       <get src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
   </target> 
 
-  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-testbox">
+  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-admin,check-doc,check-testbox">
     
     <mkdir dir="${temp}/loader/extensions/"/>
-
-    <!-- add extension MySQL
-    <loadmf jar="${cache}/${extMySQL}.lex" prefix="ext_mysql."/>
-    <toFileName name="${ext_mysql.name}" version="${ext_mysql.version}" property="ext_mysql.filename"/>
-    <copy 
-      file="${cache}/${extMySQL}.lex" 
-      todir="${temp}/loader/extensions/"/>
-    <move 
-      file="${temp}/loader/extensions/${extMySQL}.lex" 
-      tofile="${temp}/loader/extensions/${ext_mysql.filename}"/>
-    <echo>add:${temp}/loader/extensions/${ext_mysql.filename}</echo>
- -->
 
     <!-- testbox -->
     <copy 
@@ -516,6 +519,27 @@ LUCEE BUILD PROCESS
       tofile="${outputDir}/extensions/${ext_jdts.filename}"/>
     <echo>add:${outputDir}/extensions/${ext_jdts.filename}</echo>
 
+    <!-- add extension Admin -->
+    <loadmf jar="${cache}/${extAdmin}.lex" prefix="ext_admin."/>
+    <toFileName name="${ext_admin.name}" version="${ext_admin.version}" property="ext_admin.filename"/>
+    <copy 
+      file="${cache}/${extAdmin}.lex" 
+      todir="${outputDir}/extensions/"/>
+    <move 
+      file="${outputDir}/extensions/${extAdmin}.lex" 
+      tofile="${outputDir}/extensions/${ext_admin.filename}"/>
+    <echo>add:${outputDir}/extensions/${ext_admin.filename}</echo>
+
+    <!-- add extension Doc -->
+    <loadmf jar="${cache}/${extDoc}.lex" prefix="ext_doc."/>
+    <toFileName name="${ext_doc.name}" version="${ext_doc.version}" property="ext_doc.filename"/>
+    <copy 
+      file="${cache}/${extDoc}.lex" 
+      todir="${outputDir}/extensions/"/>
+    <move 
+      file="${outputDir}/extensions/${extDoc}.lex" 
+      tofile="${outputDir}/extensions/${ext_doc.filename}"/>
+    <echo>add:${outputDir}/extensions/${ext_doc.filename}</echo>
 
 
   </target>
