@@ -21,7 +21,6 @@ package lucee.runtime.monitor;
 import java.io.IOException;
 import java.util.Map;
 
-import lucee.runtime.config.ConfigServer;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Query;
 

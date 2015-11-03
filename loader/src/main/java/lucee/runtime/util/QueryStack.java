@@ -20,9 +20,9 @@ package lucee.runtime.util;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
-import lucee.runtime.type.Collection.Key;
 
 /**
  * Query Stack

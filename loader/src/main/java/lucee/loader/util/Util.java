@@ -34,11 +34,11 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.zip.ZipFile;
 
-import org.osgi.framework.Version;
-
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.exp.PageException;
+
+import org.osgi.framework.Version;
 
 /**
  * Util class for different little jobs

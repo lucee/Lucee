@@ -20,8 +20,6 @@ package lucee.runtime.spooler;
 
 import java.io.Serializable;
 
-import org.apache.tools.ant.TaskContainer;
-
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Array;

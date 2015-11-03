@@ -42,7 +42,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
@@ -678,9 +677,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 	
 	private File deployBundledBundle(File bundleDirectory, String symbolicName, String symbolicVersion) {
-		System.out.println("----------------------------------------------------------------------------");
-		System.out.println("deploy bundle ["+symbolicName+"] in version ["+symbolicVersion+"]");
-		
 		String sub="bundles/";
 		String nameAndVersion=symbolicName+"|"+symbolicVersion;
 		
@@ -688,12 +684,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		ZipInputStream zis = null;
 		try {
 			CodeSource src = CFMLEngineFactory.class.getProtectionDomain().getCodeSource();
-			System.out.println("src:"+src);
-			
 			if (src == null) return null;
 			URL loc = src.getLocation();
-			System.out.println("loc:"+loc);
-			
 			
 			zis=new ZipInputStream(loc.openStream());
 			String path,name,bundleInfo;
@@ -707,22 +699,18 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					index=path.lastIndexOf('/')+1;
 					if(index==sub.length()) { // ignore sub directories
 						name=path.substring(index);
-						System.out.println("- "+name);
-						
 						temp=null;
 						try {
 							temp=File.createTempFile("bundle", ".jar");
 							Util.copy(zis, new FileOutputStream(temp),false,true);
 							bundleInfo=BundleLoader.loadBundleInfo(temp);
-							System.out.println("-- "+bundleInfo+"=="+nameAndVersion);
 							if(bundleInfo!=null && nameAndVersion.equals(bundleInfo)) {
-								System.out.println("-- yes");
-									File trg=new File(bundleDirectory,name);
-									temp.renameTo(trg);
-									System.out.println("adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
-									log(Logger.LOG_DEBUG, "adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
+								File trg=new File(bundleDirectory,name);
+								temp.renameTo(trg);
+								System.out.println("adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
+								log(Logger.LOG_DEBUG, "adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
 
-									return trg;
+								return trg;
 							}
 						}
 						finally {

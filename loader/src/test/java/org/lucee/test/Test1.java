@@ -1,6 +1,5 @@
 package org.lucee.test;
 
-import junit.framework.Assert;
 import org.junit.Test;
 
 public class Test1 {

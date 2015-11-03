@@ -24,9 +24,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.gateway.GatewayEngine;
 
 
 /**
