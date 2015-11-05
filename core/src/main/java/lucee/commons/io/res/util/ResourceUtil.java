@@ -1075,6 +1075,26 @@ public final class ResourceUtil {
 		}
 	}
 	
+
+	public static ContentType getContentType(Resource resource, ContentType defaultValue) {
+		if(resource instanceof HTTPResource) {
+			try {
+				return ((HTTPResource)resource).getContentType();
+			} catch (IOException e) {}
+		}
+		InputStream is=null;
+		try {
+			is = resource.getInputStream();
+			return new ContentTypeImpl(is);
+		}
+		catch(IOException e) {
+			return defaultValue;
+		}
+		finally {
+			IOUtil.closeEL(is);
+		}
+	}
+	
 	public static void moveTo(Resource src, Resource dest, boolean useResourceMethod) throws IOException {
 		ResourceUtil.checkMoveToOK(src, dest);
 		

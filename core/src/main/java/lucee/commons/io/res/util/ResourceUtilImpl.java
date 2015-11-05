@@ -259,6 +259,10 @@ public class ResourceUtilImpl implements lucee.runtime.util.ResourceUtil {
 	public lucee.commons.io.res.ContentType getContentType(Resource res) {
 		return ResourceUtil.getContentType(res);
 	}
+	
+	public lucee.commons.io.res.ContentType getContentType(Resource res, lucee.commons.io.res.ContentType defaultValue) {
+		return ResourceUtil.getContentType(res,defaultValue);
+	}
 
 	@Override
 	public Resource toResourceExistingParent(PageContext pc,
