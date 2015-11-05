@@ -24,10 +24,13 @@ import java.util.Map;
 import javax.servlet.jsp.tagext.BodyTag;
 import javax.servlet.jsp.tagext.IterationTag;
 
+import lucee.commons.lang.ClassException;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.exp.Abort;
+import lucee.runtime.reflection.Reflector;
 import lucee.runtime.tag.MissingAttribute;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.util.PageContextUtil;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.cast.CastOther;
@@ -50,10 +53,12 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
+import org.osgi.framework.BundleException;
 
 public final class TagHelper {
 	private static final Type MISSING_ATTRIBUTE = Type.getType(MissingAttribute.class);
 	private static final Type MISSING_ATTRIBUTE_ARRAY = Type.getType(MissingAttribute[].class);
+	private static final Type BODY_TAG = Type.getType(BodyTag.class);
 	private static final Type TAG=Type.getType(javax.servlet.jsp.tagext.Tag.class);
 	private static final Type TAG_UTIL=Type.getType(lucee.runtime.tag.TagUtil.class);
 	
@@ -63,11 +68,13 @@ public final class TagHelper {
 	
 	// Tag use(String)
 	private static final Method USE3= new Method("use",TAG,new Type[]{Types.STRING,Types.STRING,Types.INT_VALUE});
-	private static final Method USE5= new Method("use",TAG,new Type[]{
-			Types.STRING,Types.STRING,Types.STRING,Types.STRING,Types.INT_VALUE});
+	private static final Method USE5= new Method("use",TAG,new Type[]{Types.STRING,Types.STRING,Types.STRING,Types.STRING,Types.INT_VALUE});
+
+	// void setAppendix(String appendix)
+	private static final Method SET_APPENDIX1 = new Method("setAppendix",Type.VOID_TYPE,new Type[]{Types.STRING});
 	
 	// void setAppendix(String appendix)
-	private static final Method SET_APPENDIX = new Method("setAppendix",Type.VOID_TYPE,new Type[]{Types.STRING});
+	private static final Method SET_APPENDIX2 = new Method("setAppendix",Type.VOID_TYPE,new Type[]{Types.TAG,Types.STRING});
 	
 	// void setDynamicAttribute(String uri, String name, Object value)
 	private static final Method SET_DYNAMIC_ATTRIBUTE = new Method(
@@ -80,17 +87,28 @@ public final class TagHelper {
 			"setAttribute",
 			Type.VOID_TYPE,
 			new Type[]{Types.PAGE_CONTEXT,TAG,Types.STRING,Types.OBJECT});
-	
-	private static final Method SET_META_DATA = new Method(
+
+	private static final Method SET_META_DATA2 = new Method(
 			"setMetaData",
 			Type.VOID_TYPE,
 			new Type[]{Types.STRING,Types.OBJECT});
+	
+	private static final Method SET_META_DATA3 = new Method(
+			"setMetaData",
+			Type.VOID_TYPE,
+			new Type[]{Types.TAG,Types.STRING,Types.OBJECT});
 
 	// void hasBody(boolean hasBody)
-	private static final Method HAS_BODY = new Method(
+	private static final Method HAS_BODY1 = new Method(
 			"hasBody",
 			Type.VOID_TYPE,
 			new Type[]{Types.BOOLEAN_VALUE});
+	
+	// void hasBody(boolean hasBody)
+	private static final Method HAS_BODY2 = new Method(
+			"hasBody",
+			Type.VOID_TYPE,
+			new Type[]{Types.TAG,Types.BOOLEAN_VALUE});
 
 	// int doStartTag()
 	private static final Method DO_START_TAG = new Method(
@@ -106,8 +124,7 @@ public final class TagHelper {
 
 	private static final Type ABORT = Type.getType(Abort.class);
 	//private static final Type EXPRESSION_EXCEPTION = Type.getType(ExpressionException.class);
-	private static final Type BODY_TAG = Type.getType(BodyTag.class);
-
+	
 	// ExpressionException newInstance(int)
 	private static final Method NEW_INSTANCE =  new Method(
 			"newInstance",
@@ -172,6 +189,8 @@ public final class TagHelper {
 	 * @param bc
 	 * @param doReuse
 	 * @throws TransformerException
+	 * @throws BundleException 
+	 * @throws ClassException 
 	 */
 	public static void writeOut(Tag tag, BytecodeContext bc, boolean doReuse, final FlowControlFinal fcf) throws TransformerException {
 		final GeneratorAdapter adapter = bc.getAdapter();
@@ -180,7 +199,19 @@ public final class TagHelper {
 		final ClassDefinition cd = tlt.getTagClassDefinition();
 		final boolean fromBundle=cd.getName()!=null;
 		
-		final Type currType=fromBundle?TAG:getTagType(tag);
+		final Type currType;
+		if(fromBundle) {
+			try {
+				if(Reflector.isInstaneOf(cd.getClazz(), BodyTag.class)) currType=BODY_TAG;
+				else currType=TAG;
+			}
+			catch (Exception e) {
+				if(e instanceof TransformerException) throw (TransformerException)e;
+				throw new TransformerException(e, tag.getStart());
+			}
+		}
+		else currType=getTagType(tag);
+		
 		final int currLocal=adapter.newLocal(currType);
 		Label tagBegin=new Label();
 		Label tagEnd=new Label();
@@ -205,7 +236,7 @@ public final class TagHelper {
 		adapter.push(tlt.getFullName());
 		adapter.push(tlt.getAttributeType());
 		adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, fromBundle?USE5:USE3);
-		if(!fromBundle)adapter.checkCast(currType);
+		if(currType!=TAG)adapter.checkCast(currType);
 		adapter.storeLocal(currLocal);
 	
 	TryFinallyVisitor outerTcfv=new TryFinallyVisitor(new OnFinally() {
@@ -230,7 +261,10 @@ public final class TagHelper {
 		if(tlt.hasAppendix()) {
 			adapter.loadLocal(currLocal);
 			adapter.push(tag.getAppendix());
-			ASMUtil.invoke(fromBundle?ASMUtil.INTERFACE:ASMUtil.VIRTUAL,adapter,currType,SET_APPENDIX);
+			if(fromBundle) // PageContextUtil.setAppendix(tag,appendix)
+				ASMUtil.invoke(ASMUtil.STATIC,adapter,Types.TAG_UTIL,SET_APPENDIX2);
+			else // tag.setAppendix(appendix)
+				ASMUtil.invoke(ASMUtil.VIRTUAL,adapter,currType,SET_APPENDIX1);			
 		}
 	
 	// hasBody
@@ -238,9 +272,11 @@ public final class TagHelper {
 		if(tlt.isBodyFree() && tlt.hasBodyMethodExists()) {
 			adapter.loadLocal(currLocal);
 			adapter.push(hasBody);
-
-			ASMUtil.invoke(fromBundle?ASMUtil.INTERFACE:ASMUtil.VIRTUAL,adapter,currType,HAS_BODY);
-			//adapter.invokeVirtual(currType, HAS_BODY);
+			
+			if(fromBundle) // PageContextUtil.setAppendix(tag,appendix)
+				ASMUtil.invoke(ASMUtil.STATIC,adapter,Types.TAG_UTIL,HAS_BODY2);
+			else // tag.setAppendix(appendix)
+				ASMUtil.invoke(ASMUtil.VIRTUAL,adapter,currType,HAS_BODY1);	
 		}
 
 		// default attributes (get overwritten by attributeCollection because of that set before)
@@ -255,7 +291,7 @@ public final class TagHelper {
 				// TagUtil.setAttributeCollection(Tag, Struct)
 				adapter.loadArg(0);
 				adapter.loadLocal(currLocal);
-				adapter.cast(currType, TAG);
+				if(currType!=TAG)adapter.cast(currType, TAG);
 				
 				///
 				TagLibTagAttr[] missings = tag.getMissingAttributes();
@@ -301,8 +337,11 @@ public final class TagHelper {
 					adapter.loadLocal(currLocal);
 					adapter.push(attr.getName());
 					attr.getValue().writeOut(bc, Expression.MODE_REF);
-					ASMUtil.invoke(fromBundle?ASMUtil.INTERFACE:ASMUtil.VIRTUAL,adapter,currType,SET_META_DATA);
-					//adapter.invokeVirtual(currType, SET_META_DATA);
+					
+					if(fromBundle) 
+						ASMUtil.invoke(ASMUtil.STATIC,adapter,Types.TAG_UTIL,SET_META_DATA3);
+					else 
+						ASMUtil.invoke(ASMUtil.VIRTUAL,adapter,currType,SET_META_DATA2);	
 			}
 		}
 
@@ -437,7 +476,7 @@ public final class TagHelper {
 				//adapter.push(attr.getName());
 				bc.getFactory().registerKey(bc, bc.getFactory().createLitString(attr.getName()),false);
 				attr.getValue().writeOut(bc, Expression.MODE_REF);
-				ASMUtil.invoke(interf?ASMUtil.INTERFACE:ASMUtil.VIRTUAL,adapter,currType,SET_DYNAMIC_ATTRIBUTE);
+				ASMUtil.invoke(interf?ASMUtil.INTERFACE:ASMUtil.VIRTUAL,adapter,interf?Types.DYNAMIC_ATTRIBUTES:currType,SET_DYNAMIC_ATTRIBUTE);
 				//adapter.invokeVirtual(currType, SET_DYNAMIC_ATTRIBUTE);
 			}
 			else {
