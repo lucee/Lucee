@@ -33,7 +33,7 @@ public abstract class CFMLWriter extends JspWriter {
 
 	public abstract OutputStream getResponseStream() throws IOException;
 	
-	public abstract void setClosed(boolean b) ;
+	public abstract void setClosed(boolean closed) ; // do not change used in pdf extension
 
 	public abstract void setBufferConfig(int interval, boolean b) throws IOException ;
 
