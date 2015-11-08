@@ -440,7 +440,7 @@ Error Output --->
 
 					<!--- Jira --->
 					<h3>
-						<a href="https://luceeserver.atlassian.net/" target="_blank">#stText.Overview.issueTracker#</a>
+						<a href="http://issues.lucee.org/" target="_blank">#stText.Overview.issueTracker#</a>
 					</h3>
 					<div class="comment">#stText.Overview.issueTrackerDesc#</div>
 

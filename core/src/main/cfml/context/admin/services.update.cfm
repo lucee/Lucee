@@ -247,7 +247,7 @@ For testing
 		<cfscript>
 			// Jira
 			jira=stText.services.update.jira;
-			jira=replace(jira,'{a}','<a href="https://luceeserver.atlassian.net/" target="_blank">');
+			jira=replace(jira,'{a}','<a href="http://issues.lucee.org/" target="_blank">');
 			jira=replace(jira,'{/a}','</a>');
 		</cfscript>
 		<h2>#stText.services.update.infoTitle#</h2>
