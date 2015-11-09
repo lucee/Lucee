@@ -445,7 +445,7 @@ LUCEE BUILD PROCESS
 
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
-      <jvmarg value="-Dlucee-extensions=${extH2};${extPDF};"/>
+      <jvmarg value="-Dlucee-extensions=${extH2};${extPDF};${extHibernate};"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
     </java>
     <echo>${exc2}</echo>
