@@ -10030,42 +10030,6 @@ The following things are considered to be empty:
 			<type>boolean</type>
 		</return>
 	</function>
-	
-	
-	
-	<!-- IsPDFFile -->
-	<function>
-		<name>IsPDFFile</name>
-		<class>lucee.runtime.functions.decision.IsPDFFile</class>
-		<status>unimplemeted</status>
-		<keywords>decision,pdf</keywords>
-		<description>Verifies whether a PDF file is valid.</description>
-		<argument>
-			<name>path</name>
-			<type>string</type>
-			<required>Yes</required>
-		<description>Pathname to a PDF file. The pathname can be absolute or relative to the CFM page and must be enclosed in quotation marks.</description>
-    </argument>
-		<return>
-			<type>boolean</type>
-		</return>
-	</function>
-	<!-- IsPDFObject -->
-	<function>
-		<name>IsPDFObject</name>
-		<class>lucee.runtime.functions.decision.IsPDFObject</class>
-		<keywords>decision,pdf</keywords>
-		<description>Determines whether a value is a PDF object.</description>
-		<argument>
-			<name>value</name>
-			<type>any</type>
-			<required>Yes</required>
-		<description>A value, typically the PDF object stored as a variable name.</description>
-    </argument>
-		<return>
-			<type>boolean</type>
-		</return>
-	</function>
 	<!-- IsZipFile -->
 	<function>
 		<name>IsZipFile</name>

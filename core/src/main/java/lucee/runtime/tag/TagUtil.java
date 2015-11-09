@@ -59,10 +59,13 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
 
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.Method;
 import org.osgi.framework.BundleException;
 
 public class TagUtil {
@@ -333,7 +336,6 @@ public class TagUtil {
 	 * @throws BundleException 
 	 * @throws ClassException 
 	 */
-	
 	public static Object invokeBIF(PageContext pc, Object[] args, String className, String bundleName, String bundleVersion) throws PageException {
 		try {
 			Class<?> clazz = ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, pc.getConfig().getIdentification());

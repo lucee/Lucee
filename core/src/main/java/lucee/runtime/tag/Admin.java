@@ -223,25 +223,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private static final short MAPPING_REGULAR = 1;
 	private static final short MAPPING_CT = 2;
 	private static final short MAPPING_CFC = 4;
-	
-	
-	
-	/*
-	others:
-	PDFRenderer.jar
-	?
-	xmlparserv2.jar
-	
-	not needed:
-	slf4j-simple.jar
-	xdb.jar
-	
-	
-	
-	*/
-	
-	
-	
+
     private Struct attributes=new StructImpl();
     private String action=null;
     private short type;

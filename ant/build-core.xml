@@ -25,6 +25,7 @@
 
   <property name="extAdmin" value="CED6227E-0F49-6367-A68D21AACA6B07E8"/>
   <property name="extDoc" value="D46D49C3-EB85-8D97-30BEC2F38561E985"/>
+  <property name="extPDF" value="66E312DD-D083-27C0-64189D16753FD6F0"/>
 
 
 
@@ -444,7 +445,7 @@ LUCEE BUILD PROCESS
 
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
-      <jvmarg value="-Dlucee-extensions=${extH2};"/>
+      <jvmarg value="-Dlucee-extensions=${extH2};${extPDF};"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
     </java>
     <echo>${exc2}</echo>

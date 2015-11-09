@@ -52,8 +52,7 @@ import lucee.commons.net.URLEncoder;
 import lucee.runtime.exp.PageException;
 
 import org.apache.tika.Tika;
-
-import com.lowagie.text.Document;
+import org.w3c.dom.Document;
 
 /**
  * I/O Util 
@@ -461,17 +460,7 @@ public final class IOUtil {
          } 
          catch (Throwable e) {}
      }
-     
-     
-     public static void closeEL(Document doc) {
-           try {
-               if(doc!=null)doc.close();
-         } 
-         catch (Throwable e) {}
-     }
-     
-     
-     
+
      /**
      * call close method from any Object with a close method.
      * @param obj

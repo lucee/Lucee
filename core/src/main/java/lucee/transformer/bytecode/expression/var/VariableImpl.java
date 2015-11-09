@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import lucee.print;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
@@ -400,12 +401,12 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		adapter.loadArg(0);
 		// class
 		ClassDefinition bifCD = bif.getClassDefinition();
-		Class clazz;
+		Class clazz=null;
 		try {
 			clazz = bifCD.getClazz();
 		} 
 		catch (Exception e) {
-			throw new TransformerException(e,line);
+			//throw new TransformerException(e,line);
 		}
 		Type rtnType=Types.toType(bif.getReturnType());
 		if(rtnType==Types.VOID)rtnType=Types.STRING;
@@ -492,12 +493,12 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			}
 			
 		}
-		// Arg Type DYN
+		// Arg Type DYN or bundle based
 		else	{
 			argTypes=new Type[2];
 			argTypes[0]=Types.PAGE_CONTEXT;
 			argTypes[1]=Types.OBJECT_ARRAY;
-			ExpressionUtil.writeOutExpressionArray(bc, Types.OBJECT, args);	
+			ExpressionUtil.writeOutExpressionArray(bc, Types.OBJECT, args);
 		}
 		// only class
 		if(!bifCD.isBundle()) {
@@ -506,11 +507,16 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		// bundle
 		else {
 			//in that case we need 3 addional args 
-			adapter.push(bifCD.getClassName());// className
-			adapter.push(bifCD.getName());// bundle name
-			adapter.push(bifCD.getVersionAsString());// bundle version
+			// className
+			if(bifCD.getClassName()!=null)adapter.push(bifCD.getClassName());
+			else ASMConstants.NULL(adapter);
+			if(bifCD.getName()!=null)adapter.push(bifCD.getName());// bundle name
+			else ASMConstants.NULL(adapter);
+			if(bifCD.getVersionAsString()!=null)adapter.push(bifCD.getVersionAsString());// bundle version
+			else ASMConstants.NULL(adapter);
 			
 			adapter.invokeStatic(Types.TAG_UTIL,INVOKE_BIF);
+			rtnType=Types.OBJECT;
 		}
 		
 		if(mode==MODE_REF || !last) {

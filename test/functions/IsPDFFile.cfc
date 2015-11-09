@@ -1,6 +1,6 @@
-/**
+<!--- 
  *
- * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
+ * Copyright (c) 2015, Lucee Assosication Switzerland. All rights reserved.*
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,27 +15,11 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- **/
-/**
- * Implements the CFML Function isdate
- */
-package lucee.runtime.functions.decision;
-
-import lucee.runtime.PageContext;
-import lucee.runtime.ext.function.Function;
-import lucee.runtime.text.pdf.PDFUtil;
-
-public final class IsPDFObject implements Function {
-	public static boolean call(PageContext pc , Object value) {
-		try {
-			PDFUtil.toPdfReader(pc,value,null);
-		} 
-		catch (Exception e) {
-			return false;
-		}
-		return true;
-	}
+ ---><cfscript>
+component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
-	
-	
-}
+	public void function testIsPDFFile() localmode="true"{
+		assertTrue(isPDFFile("./assets/simple.pdf"));
+	} 
+} 
+</cfscript>
