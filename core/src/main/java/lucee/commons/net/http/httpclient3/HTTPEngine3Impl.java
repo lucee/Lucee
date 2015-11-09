@@ -297,9 +297,17 @@ public final class HTTPEngine3Impl {
 			return new ByteArrayRequestEntity(Caster.toBinary(value));
 		}
 		else {
-			return new StringRequestEntity(Caster.toString(value));
+			String str = Caster.toString(value);
+			if(str.startsWith("<empty:") && str.endsWith(">")) {
+				String contentType=str.substring(7, str.length()-1);
+				return new EmptyRequestEntity(contentType);
+			}
+				
+			
+			return new StringRequestEntity(str);
 		}
     }
+	
 
 	public static Header header(String name, String value) {
 		return new HeaderImpl(name, value);

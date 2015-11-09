@@ -407,7 +407,12 @@ public class HTTPEngine4Impl {
 				return new ByteArrayEntity(Caster.toBinary(value));
 			}
 			else {
-				return new StringEntity(Caster.toString(value),mimetype,charset);
+				String str = Caster.toString(value);
+				if(str.startsWith("<empty:") && str.endsWith(">")) {
+					String contentType=str.substring(7, str.length()-1);
+					return new EmptyHttpEntity(contentType);
+				}
+				return new StringEntity(str,mimetype,charset);
 			}
     	}
     	catch(Exception e){
