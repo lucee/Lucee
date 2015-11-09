@@ -8,7 +8,7 @@
 	<data key="general.dialect.cfml">Dialect CFML</data>
 	<data key="general.dialect.lucee">Dialect Lucee</data>
 	<data key="general.dialect.cfmlDesc">The following settings are specific to the CFML dialect. This settings have no influence on the Lucee dialect.</data>
-	
+
 	<data key="services.update.type_manually">Manual</data>
 	<data key="services.update.locdesc">Define the URL where Lucee gets its updates. Typically &quot;http://www.lucee.ch&quot;</data>
 	<data key="services.update.location">URL</data>
@@ -46,14 +46,14 @@
 	<data key="services.certificate.subject">Subject</data>
 	<data key="services.certificate.issuer">Issuer</data>
 	<data key="services.certificate.noCert">There is no Certificate available from this host.</data>
-	
+
 	<data key="mappings.addNonCFMLFiles">Add Non CFML Templates</data>
 	<data key="mappings.addNonCFMLFilesDesc">Add all Non CFML Source Templates as well (.js,.css,.gif,.png ...).</data>
 	<data key="mappings.addCFMLFiles">Add CFML Templates</data>
 	<data key="mappings.addCFMLFilesDesc">Add all CFML Source Templates as well (.cfm,.cfc,.cfml).</data>
 	<data key="mappings.addCFCFiles">Add Component Templates</data>
 	<data key="mappings.addCFCFilesDesc">Add all Component Source Templates as well (.cfc).</data>
-	
+
 <data key="mappings.topleveldesc">Make this mapping web-accessible (i.e., accessible via a browser or remote HTTP call)</data>
 	<data key="mappings.archiveheaddescription">Name of the archive file (ra or ras), (absolute or relative to the webroot)</data>
 	<data key="mappings.primaryheaddescription">Sets where Lucee-files will first be searched</data>
@@ -88,7 +88,7 @@
 	<data key="customtags.trusted">Trusted</data>
 	<data key="customtags.customTagPathCache">Cache</data>
 	<data key="customtags.customTagPathCacheDesc">component path is cached and not resolved again</data>
-	
+
 	<data key="customtags.customtaglocalsearch">Search local</data>
 	<data key="customtags.mode.standard">CFML standard</data>
 	<data key="customtags.mode.mixed">Mixed</data>
@@ -367,7 +367,7 @@
 	<data key="remote.to">to</data>
 	<data key="remote.previous">previous</data>
 	<data key="remote.next">next</data>
-	
+
 	<data key="application.web">Here you can define several default settings for the application context. These settings can be overridden with the tag cfapplication or the Application.cfc.</data>
 	<data key="application.scriptprotectcustom">You can define the scopes to be checked individually</data>
 	<data key="application.listener">Application listener</data>
@@ -377,7 +377,7 @@
 	<data key="application.allowurlrequesttimeoutdesc">When the URL parameter [RequestTimeout] is passed in the URL obey it</data>
 	<data key="application.listenermodedescription_curr2root">Looks for the file &quot;Application.cfc/Application.cfm&quot; from the current up to the webroot directory.</data>
 	<data key="application.listenermodedescription_currorroot">Looks for the file &quot;Application.cfc/Application.cfm&quot; in the current directory and in the webroot directory.</data>
-	
+
 	<data key="application.requesttimeout">Request timeout</data>
 	<data key="application.listenertypedescription_none">When a request is called no other initialization template will be invoked by Lucee</data>
 	<data key="application.scriptprotectnone">Script-protect is not active</data>
@@ -386,7 +386,7 @@
 	<data key="application.listenertype_none">None</data>
 	<data key="application.listenermode">Mode</data>
 	<data key="application.listenermode_root">Root</data>
-	
+
 
 	<data key="application.RequestTimeoutTime">Time</data>
 	<data key="application.RequestTimeoutDesc">Defines how Lucee handles long running request.</data>
@@ -575,8 +575,8 @@
 	<data key="login.rememberMeEnableDesc">Allow "Remember&amp;nbsp;Me" functionality, so a new logging is not necessary when the user session was terminated.</data>
 	<data key="login.delay">Delay</data>
 	<data key="login.delayDesc">Sets the delay between login attempts. This is a global setting for all user requests.</data>
-	
-	
+
+
 	<data key="login.changepassword">Change password</data>
 	<data key="login.d">one Day</data>
 	<data key="login.changepassworddescription">Change the password for this administrator</data>
@@ -609,7 +609,7 @@
 	<data key="searchlng.turkish">Turkish</data>
 	<data key="debug.logmemoryusage">Log memory usage</data>
 	<data key="debug.memoryloggerdescripiton">File the memory usage will be stored to</data>
-	<data key="debug.enabledescription">If set to "yes" Lucee logs the debug information you have selected below. 
+	<data key="debug.enabledescription">If set to "yes" Lucee logs the debug information you have selected below.
 you can see the log result at the end of every request, if a debug template is defined or under Debug/Logs in this administrator.</data>
 	<data key="debug.debugtemplatemissing">Please enter a value for the debug template</data>
 	<data key="debug.debugtemplatedescription">This template is used for formatting the debugging output</data>
@@ -652,10 +652,10 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="scopes.sessionmanagementdescription">By default session management can be enabled. This behaviour can be overridden by the tag cfapplication.</data>
 	<data key="scopes.clientcookiesdescription">Enable or disable client cookies. This behaviour can be overridden by the tag cfapplication.</data>
 	<data key="scopes.sessiontimeout">Session timeout</data>
-	
+
 	<data key="scopes.localmodeClassic">Classic (CFML Default)</data>
 	<data key="scopes.localmodeModern">Modern</data>
-	
+
 	<data key="scopes.localmodedesc">Defines how the local scope of a function is invoked when a variable with no scope definition is used.</data>
 
 	<data key="scopes.localmodeModernDesc">the local scope is always invoked</data>
@@ -681,7 +681,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="scopes.standard">standard (CFML Default)</data>
 	<data key="scopes.domaincookiesdescription">Enable or disable domain cookies. This behaviour can be overridden by the tag cfapplication.</data>
 	<data key="scopes.applicationtimeout">Application timeout</data>
-	
+
 	<data key="Scopes.cgiReadOnly">CGI read only</data>
 	<data key="Scopes.cgiReadOnlyDesc">Defines whether the CGI Scope is read only or not.</data>
 	<data key="Scopes.cgiReadOnlyTrue">Read Only (CFML Default)</data>
@@ -715,7 +715,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 
 	<data key="setting.dotNotationUpperCase">Convert to upper case (CFML Default)</data>
 	<data key="setting.dotNotationOriginalCase">Keep original case</data>
-	
+
 	<data key="setting.suppressWSBeforeArg">Suppress whitespace before cfargument</data>
 
 	<data key="setting.suppressWSBeforeArgDesc">if set, Lucee suppress whitespace defined between the "cffunction" starting tag  and the last "cfargument" tag.
@@ -737,14 +737,14 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="setting.cachedesc">Different Cache and Performance settings to improve overall performance</data>
 	<data key="setting.componentcache">Component path Cache</data>
 	<data key="setting.ctcache">Custom tag path Cache</data>
-	
+
 	<data key="setting.inspecttemplateneverShort">Never</data>
 	<data key="setting.inspecttemplatenever">Never ( Best Performance )</data>
 	<data key="setting.showversion">Output Lucee version</data>
 	<data key="setting.showversiondescription">Return the Lucee version in the response header</data>
 	<data key="setting.allowCompression">Compression</data>
 	<data key="setting.allowCompressionDescription">Enable compression (GZip) for the Lucee Response stream for text-based responses when supported by the client (Web Browser)</data>
-	
+
 	<data key="setting.cfmlWriterReg">No whitespace management</data>
 	<data key="setting.cfmlWriterWS">Simple whitespace management - every whitespace character that follows whitespace is removed</data>
 	<data key="setting.cfmlWriterWSPref">Smart whitespace management - every whitespace character that follows a whitespace is removed, but whitespace inside the tags: &amp;lt;code&amp;gt;, &amp;lt;pre&amp;gt; and &amp;lt;textarea&amp;gt; is kept</data>
@@ -767,10 +767,10 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="setting.whitespacedescription">Removes all white spaces in the output that follow a white space</data>
 	<data key="setting.whitespace">Whitespace management</data>
 	<data key="setting.templatecacheclearcount">Clear Page Pool Cache</data>
-	
+
 	<data key="setting.componentcacheclear">Clear Component Paths Cache</data>
 	<data key="setting.ctcacheclear">Clear Custom Tag Paths Cache</data>
-	
+
 	<data key="locale">english (united kingdom)</data>
 	<data key="proxy.portdescription">Port for the proxy server (default:80)</data>
 	<data key="proxy.port">Port</data>
@@ -945,7 +945,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="settings.dbhostdesc">Host name where the database server is located</data>
 	<data key="settings.dbuser">Username</data>
 	<data key="settings.preservesinglequotes">Preserve single quotes</data>
-	
+
 	<data key="settings.dbValidate">Validate</data>
 	<data key="settings.dbValidateDesc">Validate the connection before use (only works with JDBC 4.0 Drivers)</data>
 	<data key="settings.dbconnlimit">Connection limit (max)</data>
@@ -959,42 +959,42 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="settings.dbport">Port</data>
 	<data key="settings.preservesinglequotesdescription">Preserve single quotes (&quot;) in the SQL defined with the tag cfquery</data>
 	<data key="settings.dbconntimeout">Connection timeout (in minutes)</data>
-	
+
 	<data key="settings.dbMetaCacheTimeout">Caching Meta Data</data>
 	<data key="settings.dbMetaCacheTimeoutDesc">define how long Stored Procedures Meta Data are strored in cache</data>
 	<data key="settings.minutes">minute(s)</data>
 	<data key="settings.hours">hour(s)</data>
 	<data key="settings.days">day(s)</data>
 	<data key="settings.flushCache">flush cache</data>
-	
+
 	<data key="settings.datasourcemodify">Create new datasource</data>
 	<data key="settings.verifyconnection">Verify connection</data>
 	<data key="settings.appcfc">Application.cfc</data>
 	<data key="settings.appcfcdesc">You can also set this in the Application.cfc as follows</data>
 	<data key="settings.codetip">You can do this in your code yourself as follows</data>
 <data key="settings.tip">Coding tip (Click me)</data>
-	
+
 	<data key="settings.appcfcSomedesc">Some of this settings can be done in the Application.cfc as well</data>
 	<data key="settings.namemissing">Please enter a name for the datasource</data>
 	<data key="settings.dbclob">Clob</data>
 	<data key="settings.dbdatabasedesc">Name of the database to connect</data>
 	<data key="settings.dbuserdesc">The username for the database</data>
 	<data key="settings.datasourcedescriptionupdate">Update datasource connection</data>
-	
+
 	<data key="settings.dbdriverselectorchoose">Choose a Database Driver</data>
-	
+
 	<data key="settings.dbtimezone">Timezone</data>
-	
+
 	<data key="settings.dbtimezoneDesc">
 When you define a date as a string (not with cfqueryparam) inside cfquery, there is normally no timezone information with it and the date string is based on the locale timezone. Therefore the database will interpret this date string based on it's own timezone.
 If the timezone of your Lucee instance and your database is different, this can lead to problems. Because of that Lucee now allows you to define a timezone for a specific datasource defintion. Be aware that you should only define a specific timezone, if you are a 100% sure that this timezone is used on the database server and it is different from the timezone of the Lucee instance. This setting can be overwritten by the cfquery attribute "timezone".</data>
 	<data key="settings.dbtimezoneSame">Same as Lucee Instance</data>
-	
+
 	<data key="settings.dbblobdesc">Enable binary large object retrieval (&lt;abbr title=&quot;binary large object&quot;&gt;BLOB&lt;/abbr&gt;)</data>
 	<data key="settings.dbclobdesc">Enable long text retrieval (&lt;abbr title=&quot;character large object&quot;&gt;CLOB&lt;/abbr&gt;)</data>
 	<data key="settings.exportAppCFC">Export Application.cfc</data>
 	<data key="settings.exportAppCFCDesc">Export the settings of this Web Context as Application.cfc Template, of course this includes only settings possible in Application.cfc.</data>
-	
+
 
 	<data key="settings.dbpass">Password</data>
 	<data key="settings.listdatasourcesdescweb"></data>
@@ -1031,8 +1031,10 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="cfx.keepAlive">Keep Alive</data>
 	<data key="overview.installedtls">Installed tag&lt;br/&gt; libraries</data>
 	<data key="overview.bugreport">Bug report</data>
+	<data key="overview.Docs">Documentation</data>
+	<data key="overview.DocsDesc">If you have any questions about Lucee please take a look at the documentation in the first instance.</data>
 	<data key="overview.issuetracker">Issue Tracker</data>
-	<data key="overview.issuetrackerDesc">If you think you've found a bug, please take the time to report it via our bug tracking system (JIRA on the JBoss community site).</data>
+	<data key="overview.issuetrackerDesc">If you think you've found a bug, please take the time to report it via our bug tracking system.</data>
 	<data key="overview.book">Book (Lucee 3 Beginner's Guide)</data>
 	<data key="overview.bookDesc">A complete guide to developing an application with Lucee from start to finish.</data>
 	<data key="overview.datetime">Lucee date/time</data>
@@ -1053,15 +1055,15 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.blogDesc"> The latest news from Lucee is always posted on our blog.</data>
 	<data key="overview.mailinglist">Mailing list</data>
 	<data key="overview.mailinglistDesc">The mailing list is the focus of our community support program - help for users by users. </data>
-	
-	
-	
+
+
+
 	<data key="overview.professional">Professional Support</data>
 	<data key="overview.professionalDesc">For many organizations and individuals, the security of a formal paid support contract is a necessity and we're pleased to offer four standard packages as well as the flexibility to create a custom package should your needs go beyond our standard offerings.</data>
-	
-	
-	
-	
+
+
+
+
 	<data key="overview.licencedevelopdesc">The Develop Version is a version, addressing those users who are most likely to apply it in order for assembling CFML application . The version though is prohibited to be used commercially.</data>
 	<data key="overview.releasedate">Release date</data>
 	<data key="overview.contexts.webroot">Webroot</data>
@@ -1212,7 +1214,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.cache.defaulttypeFileDesc">This cache connection is used for caching the results of the tag file</data>
 	<data key="settings.cache.defaulttypeWebservice">Webservice (SOAP,REST,HTTP)</data>
 	<data key="settings.cache.defaulttypeWebserviceDesc">This cache connection is used for caching the results of webservice calls (SOAP, REST ot HTTP).</data>
-	
+
 	<data key="settings.cache.defaultDesc">Define the default cache connection for tempates (cfcache) and object (cacheGet, cachePut ...), this connection is used when no cache name is explicit defined</data>
 	<data key="settings.cache.Default">Default</data>
 	<data key="settings.cache.DefaultTitle">Default cache connection</data>
@@ -1264,12 +1266,12 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.orm.sqlscript">SQL Script</data>
 	<data key="settings.orm.sqlscriptDesc">Path to the SQL script file that gets executed after ORM is initialized. This applies if dbcreate is set to dropcreate. This must be the absolute file path or the path relative to the application.The SQL script file lets you populate the tables before the application is accessed. This setting can be overwritten in Application.cfc as follows [this.ormsettings.sqlscript='...']</data>
 	<data key="services.update.provider">Update Provider</data>
-	
+
 	<data key="services.update.location_snapshot">Snapshots</data>
 	<data key="services.update.location_snapshotDesc">Snapshots are generated automatically with every push to the repository, when all bundled test cases pass successfully. Snapshots are NOT recommended for production environments.</data>
 	<data key="services.update.location_release">Releases</data>
 	<data key="services.update.location_releaseDesc">Releases are heavily tested and are recommended for production environments.</data>
-	
+
 	<data key="services.update.provider">Update Provider</data>
 	<data key="services.update.location_www">Stable releases</data>
 	<data key="services.update.location_wwwDesc">This Update Provider (release.lucee.org ) returns only stable versions. The versions found here are deeply tested. This source is recommended for production environments.</data>
@@ -1287,7 +1289,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.gateway.startupModeAutomatic">Automatic</data>
 	<data key="settings.gateway.startupModeManual">Manual</data>
 	<data key="settings.gateway.startupModeDisabled">Disabled</data>
-	
+
 	<data key="setting.general.web">Hier sehen Sie eine Übersicht alle Settings welche Einfluss auf das Verhalten von Lucee haben, sie können diese nach vordefinierten kriterien anpassen</data>
 	<data key="setting.general.compatibility">Compatibility</data>
 	<data key="setting.general.compatibilityDesc">Mit diesem Wert werden alle Settings so gesetzt, dass sie möglichst dem CFML2009 Standard entsprechen und mit Implementationen anderer Hersteller kombatibel sind.</data>
@@ -1301,7 +1303,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="setting.general.datasource">Datasource</data>
 	<data key="setting.general.customtag">Custom Tag</data>
 	<data key="setting.noAccess">no access to change settings</data>
-	
+
 	<data key="mail.tls">TLS</data>
 	<data key="mail.tlsDesc">Enable Transport Layer Security.</data>
 	<data key="mail.ssl">SSL</data>

@@ -1,18 +1,18 @@
-<!--- 
+<!---
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  ---><cfif request.admintype EQ "web"><cflocation url="#request.self#" addtoken="no"></cfif>
 
 <cfparam name="url.action2" default="none">
@@ -26,27 +26,27 @@
     	<cfif not len(form.location)>
         	<cfset form.location=form.locationCustom>
         </cfif>
-        
-		<cfadmin 
+
+		<cfadmin
 			action="UpdateUpdate"
 			type="#request.adminType#"
 			password="#session["password"&request.adminType]#"
-			
+
 			updateType="#form.type#"
 			updateLocation="#form.location#"
 			remoteClients="#request.getRemoteClients()#">
 	</cfcase>
 	<cfcase value="run">
 		<cfsetting requesttimeout="10000">
-		<cfadmin 
+		<cfadmin
 			action="runUpdate"
 			type="#request.adminType#"
 			password="#session["password"&request.adminType]#"
 			remoteClients="#request.getRemoteClients()#">
 	</cfcase>
-	
+
 	<cfcase value="remove">
-		<cfadmin 
+		<cfadmin
 			action="removeUpdate"
             onlyLatest="#StructKeyExists(form,'latest')#"
 			type="#request.adminType#"
@@ -60,25 +60,25 @@
 	</cfcatch>
 </cftry>
 
-<!--- 
+<!---
 Redirtect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "">
 	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 </cfif>
 
-<!--- 
+<!---
 Error Output --->
 <cfset printError(error)>
 
 
-<cfadmin 
+<cfadmin
 			action="listPatches"
 			returnvariable="patches"
             type="#request.adminType#"
             password="#session["password"&request.adminType]#">
-            
-<!---- 
-<cfadmin 
+
+<!----
+<cfadmin
 			action="needNewJars"
 			returnvariable="needNewJars"
             type="#request.adminType#"
@@ -93,15 +93,15 @@ stText.services.update.serverFailed="server {url} failed to return a valid respo
 
 	struct function getAvailableVersion() localmode="true"{
 		try{
-			
-			admin 
+
+			admin
 				action="getAPIKey"
 				type="#request.adminType#"
 				password="#session["password"&request.adminType]#"
 				returnVariable="apiKey";
 
-			http 
-			url="#update.location##restBasePath#info/#server.lucee.version#" 
+			http
+			url="#update.location##restBasePath#info/#server.lucee.version#"
 			method="get" resolveurl="no" result="local.http" {
 				if(!isNull(apiKey))httpparam type="header" name="ioid" value="#apikey#";
 
@@ -126,7 +126,7 @@ stText.services.update.serverFailed="server {url} failed to return a valid respo
 	}
 
 // get info for the update location
-admin 
+admin
 	action="getUpdate"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
@@ -144,7 +144,7 @@ hasUpdate=structKeyExists(updateData,"available");
 
 <cfoutput>
 	<div class="pageintro">#stText.services.update.desc#</div>
-	
+
 	<!--- Settings --->
 	<h2>#stText.services.update.setTitle#</h2>
 	<div class="itemintro">#stText.services.update.setDesc#</div>
@@ -180,7 +180,7 @@ hasUpdate=structKeyExists(updateData,"available");
 									</label>
 									<input id="customtextinput" type="text" class="text" name="locationCustom" size="40" value="<cfif isCustom>#update.location#</cfif>">
 									<div class="comment">#stText.services.update.location_customDesc#</div>
-									
+
 									<cfsavecontent variable="headText">
 										<script type="text/javascript">
 											function sp_clicked()
@@ -233,21 +233,21 @@ hasUpdate=structKeyExists(updateData,"available");
 		</table>
 	</cfform>
 
-	<!--- 
+	<!---
 For testing
 <cfset updatedata.changeLog={
 	"331":"cached query not disconnect from life query",
 	"LDEV-327":"add frontend for request Queue"
 
 	}>--->
-	
-	<!--- 
+
+	<!---
 	Info --->
 	<cfif hasUpdate>
 		<cfscript>
 			// Jira
 			jira=stText.services.update.jira;
-			jira=replace(jira,'{a}','<a href="https://issues.lucee.org" target="_blank">');
+			jira=replace(jira,'{a}','<a href="http://issues.lucee.org/" target="_blank">');
 			jira=replace(jira,'{/a}','</a>');
 		</cfscript>
 		<h2>#stText.services.update.infoTitle#</h2>
@@ -255,7 +255,7 @@ For testing
 			#updatedata.message#
 		</div>
 		<div style="overflow:auto;height:200px;border-style:solid;border-width:1px;padding:10px">
-<pre><cfloop list="#listSort(structKeyList(updateData.changelog),'textnocase')#" item="key"><!--- 
+<pre><cfloop list="#listSort(structKeyList(updateData.changelog),'textnocase')#" item="key"><!---
 			---><cfif findNoCase("LDEV",key)><a target="_blank" href="http://issues.lucee.org/browse/#key#">#key#</a><cfelse><a target="_blank" href="https://bitbucket.org/lucee/lucee/issue/#key#">###key#</a></cfif> - #updateData.changelog[key]#
 </cfloop></pre></div>
 		#jira#
@@ -263,8 +263,8 @@ For testing
 		<h2>#stText.services.update.infoTitle#</h2>
 		<div class="text">#updateData.message#</div>
 	</cfif>
-	
-	
+
+
 	<cfif hasUpdate>
 		<!--- run update --->
 		<h2>#stText.services.update.exe#</h2>
@@ -301,7 +301,7 @@ For testing
 			</table>
 		</cfform>
 	</cfif>
-	
+
 	<!--- remove update --->
 	<cfset size=arrayLen(patches)>
 	<cfif size>
