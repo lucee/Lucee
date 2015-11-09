@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+<!--
+source:/Users/mic/Projects/Lucee/Lucee5/test/tickets/LDEV0338_2/PageMapping.cfc
+compilation-time:{ts '2015-11-09 23:36:38'}
+datasource:__default__
+-->
+<class entity-name="PageMapping" lazy="true" node="test.tickets.LDEV0338_2.PageMapping" table="Page_PageUrl">
+<id name="Page" type="string">
+<column name="Page"/>
+</id>
+<property name="IsDeleted" type="boolean">
+<column name="IsDeleted"/>
+</property>
+<property name="Created" type="timestamp">
+<column name="Created"/>
+</property>
+<property name="LastModified" type="timestamp">
+<column name="LastModified"/>
+</property>
+</class>
+</hibernate-mapping>

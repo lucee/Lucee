@@ -56,11 +56,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"   {
         local.curr=getDirectoryFromPath(getCurrentTemplatePath());
         mappings["/susi"]=curr;
         application action="update" mappings=mappings;
-        
+        try {
+            assertEquals(curr,ExpandPath("\susi/"));
+            assertEquals(curr,ExpandPath("/susi/"));
+        }
+        finally {
+            // remove mapping /susi
+            local.mappings=GetApplicationSettings().mappings
+            structDelete(local.mappings,"/susi",false);
+            application action="update" mappings=mappings;
+        }
 
-
-        assertEquals(curr,ExpandPath("\susi/"));
-        assertEquals(curr,ExpandPath("/susi/"));
     }
         
 }

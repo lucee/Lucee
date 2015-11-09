@@ -42,7 +42,7 @@ public class InternalRequest implements Function {
 
 	public static final Key FILECONTENT_BYNARY = KeyImpl._const("filecontent_binary");
 
-	public static Struct call(PageContext pc, String template, String method, Struct urls,Struct forms, Struct cookies, Struct headers) throws PageException {
+	public static Struct call(final PageContext pc, String template, String method, Struct urls,Struct forms, Struct cookies, Struct headers) throws PageException {
 		// charset
 		Charset reqCharset=pc.getWebCharset();
 		
@@ -115,7 +115,7 @@ public class InternalRequest implements Function {
 				isText = HTTPUtil.isTextMimeType(ct.getMimeType());
 				if(ct.getCharset()!=null) charset=CharsetUtil.toCharset(ct.getCharset(),null);
 			}
-			releasePageContext(pc,_pc);
+			releasePageContext(_pc,pc);
 			
 		}
 		Struct rst=new StructImpl();
