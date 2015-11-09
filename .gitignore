@@ -12,4 +12,5 @@ target
 target/*
 *.lock
 *.DS_Store
+*.cfc.hbm.xml
 /cache
