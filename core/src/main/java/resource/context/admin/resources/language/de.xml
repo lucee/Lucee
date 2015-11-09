@@ -2,11 +2,11 @@
 <language key="de" label="Deutsch">
 	<data key="admin.search.label">Durchsuche den Lucee Administrator</data>
 	<data key="admin.search.desc">Suche nach Keywords im Lucee Administrator</data>
-	
+
 	<data key="general.dialect.cfml">CFML Dialekt</data>
 	<data key="general.dialect.lucee">Lucee Dialekt</data>
 	<data key="general.dialect.cfmlDesc">Die folgendenen Einstellungen spezifisch für den CFML Dialekt. Diese Einstellungen haben keinen Einfluss auf den Lucee Dialekt.</data>
-	
+
 	<data key="services.update.locdesc">Definieren Sie die URL von der ein Lucee Update bezogen werden kann, typischerweise &apos;http://release.lucee.org&apos;</data>
 	<data key="services.update.type_manually">Manuell</data>
 	<data key="services.update.location">URL</data>
@@ -26,14 +26,14 @@
 	<data key="services.update.noupdate">Für Ihre Version {current} steht kein Patch zur Verfügung</data>
 	<data key="services.update.restart">Lucee neu starten</data>
 	<data key="services.update.desc">
-Sie können Lucee auf eine neue Version patchen, also bekannte Fehler ausbügeln 
+Sie können Lucee auf eine neue Version patchen, also bekannte Fehler ausbügeln
 und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="services.update.removelatest">Letzten Patch {version} entfernen</data>
 	<data key="services.update.setdesc">Definieren Sie wie und wo Ihre Lucee Version ihre Patches bezieht. Damit die eine Änderung dieser Einstellung aktiv wird, ist ein Neustart von Lucee erforderlich.</data>
 	<data key="services.update.exerun">Update ausführen</data>
 	<data key="services.update.remove">Installierte Patches entfernen</data>
 	<data key="services.update.typedesc">Definieren Sie hier wie Lucee gepatcht werden soll, &apos;Automatisch&apos; steht dafür, dass Lucee automatisch, täglich nach updates sucht. &apos;Manuell&apos; bedeutet, dass ein Update nur manuell ausgeführt werden kann.</data>
-	
+
 		<data key="services.update.lib">Update JAR's</data>
 	<data key="services.update.libDesc">Ihre JAR's sind nicht mehr aktuell. Um Ihre JAR's auf den aktuellsten stand zu bringen, klicken sie bitte auf den folgenden Button. Das funktioniert unter Umständen nicht, wenn sie keine saubere Internetverbindung haben. Falls dies fehlschlägt holen Sie sich die aktiuellen JAR's von unserer Webseite und frischen Sie dies manuell auf. Dieses Update benötigt ein restart der kompletten Servlet Engine.</data>
 	<data key="services.certificate.desc">Liste SSL Zertifikate für einen bestimmten Host oder installiere diese.</data>
@@ -55,7 +55,7 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="mappings.addCFMLFilesDesc">Füge alle CFML Source Templates hinzu (.cfm,.cfc,.cfml).</data>
 	<data key="mappings.addCFCFiles">Füge Component Source Templates hinzu</data>
 	<data key="mappings.addCFCFilesDesc">Füge alle Component Source Templates hinzu (.cfc).</data>
-	
+
 	<data key="mappings.topleveldesc">Macht dieses Mapping zugreifbar übers Web (Zugreifbar über Browser oder andere HTTP Zugriffe)</data>
 	<data key="mappings.archiveheaddescription">Name der Archivdatei (ra oder ras)  (Absolut oder relativ zum Webroot).</data>
 	<data key="mappings.primaryheaddescription">Legt fest, wo cfm-Dateien vorrangig gesucht werden.</data>
@@ -91,12 +91,12 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="customtags.customTagPathCacheDesc">Customtag Pfade werden gecached und nicht wieder geprüft</data>
 	<data key="settings.codetip">Dies kann im Code wiefolgt gemacht werden</data>
 	<data key="settings.tip">Programmiertipp (Klick mich)</data>
-	
+
 	<data key="settings.appcfc">Application.cfc</data>
 	<data key="settings.appcfcdesc">Dies kann auch im Application.cfc wiefolgt konfiguriert werden</data>
 	<data key="settings.appcfcSomedesc">Einige dieser Settings können auch im Application.cfc vorgenommen werden</data>
-	
-	
+
+
 	<data key="customtags.mode.standard">CFML standard</data>
 	<data key="customtags.mode.mixed">Mixed</data>
 	<data key="customtags.mode.modern">Modern</data>
@@ -372,7 +372,7 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="application.listenertype_none">Kein</data>
 	<data key="application.listenermode">Mode</data>
 	<data key="application.listenermode_root">Root (Wurzelverzeichnis)</data>
-	
+
 	<data key="application.RequestTimeoutTime">Zeit</data>
 	<data key="application.RequestTimeoutDesc">Definiert wie Lucee lang laufende Requests umgeht.</data>
 	<data key="application.AllowURLRequestTimeout">URL</data>
@@ -390,7 +390,7 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="application.requesttimeout">Request timeout</data>
 	<data key="application.requesttimeoutdescription">Legt die Zeit fest, wie lange Lucee auf die Beendigung eines Requests warten soll. Das heisst, dass die Ausführung des Requests beim Überschreiten dieser Zeit abgebrochen wird. Diese Verhaltensweise kann von dem Tag CFSetting übersteuert werden.</data>
 	<data key="request.description">Einstellungen welche die Ausführung eines Request beeinflussen.</data>
-	
+
 <data key="application.scriptprotectdescription">Durch die Konfiguration von Script-Protect schützen Sie ihr System vor &apos;Cross-Site Scripting&apos;</data>
 	<data key="application.listenertypedescription_mixed">Gemischtes Handling. Lucee sucht sowohl nach der Datei &apos;Application.cfm/onRequestEnd.cfm&apos; wie auch nach der Datei &apos;Application.cfc&apos;</data>
 	<data key="application.scriptprotectall">Script-Protect überprüft alle Scopes ob die Daten von ausserhalb kommen (cgi, cookie, form, url)</data>
@@ -559,7 +559,7 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="login.rememberMeEnableDesc">"Eingeloggt bleiben" Funktion anbieten, so dass nicht nach Ablauf der Session neu eingeloggt werden muss.</data>
 	<data key="login.delay">Verzögerung</data>
 	<data key="login.delayDesc">Die Verzögerungszeit zwischen Loginversuchen. Diese Einstellung gilt für alle Benutzer.</data>
-	
+
 	<data key="login.changepassword">Passwort ändern</data>
 	<data key="login.d">einen Tag</data>
 	<data key="login.changepassworddescription">Passwort für diesen Administrator ändern.</data>
@@ -617,7 +617,7 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
 	<data key="debug.settings.implicitAccess">Implicit variable Access</data>
 	<data key="debug.settings.implicitAccessDesc">Select this option to log all accesses to scopes, queries and threads that happens implicit (cascaded).</data>
 	<data key="general.enabled">Enabled</data>
-	
+
 	<data key="compiler.nullSupport">Null Support</data>
 	<data key="compiler.nullSupportOnlyServer">Diese Einstellung ist nur im Lucee Server Administrator möglich.</data>
 	<data key="compiler.nullSupportDesc">Definiert wie Lucee null unterstützt.</data>
@@ -626,16 +626,16 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
 	<data key="compiler.nullSupportPartial">Partial Support (CFML Default)</data>
 	<data key="compiler.nullSupportPartialDesc">Lucee has only a partial null support.</data>
 
-	
+
 	<data key="setting.compiler">Lucee Compiler Einstellungen, dies beeinflusst wie der Lucee Compiler den Source Code übersetzt. Das ändern dieser Einstellungen löscht alle existierenden Class Files.</data>
 	<data key="setting.dotNotation">Dot Notation</data>
-	
-	
+
+
 	<data key="setting.dotNotationUpperCaseDesc">Konvertiert Struct Keys definiert mit "Dot Notation" als grossgeschrieben (CFML Standard).
 Beispiel:
 sct.dotNotation --> keyname: "DOTNOTATION"
 sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
-	
+
 <data key="setting.dotNotationOriginalCaseDesc">Belässt Struct Keys definiert mit "Dot Notation" wie sie sind (wie "Bracked Notation").
 
 Beispiel:
@@ -671,7 +671,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="setting.cfmlWriterReg">Kein white space management</data>
 	<data key="setting.cfmlWriterWS">Einfaches white space management, jeder white space welcher einem white space folgt witd ignoriert</data>
 	<data key="setting.cfmlWriterWSPref">Schlaues whitespace management, analog zu einfachem whitespace management, aber ignoriert zusätzlich white spaces in den folgenden Tags: code, pre and textarea</data>
-						
+
 	<data key="setting.componentcache">Komponentenpfad Cache</data>
 	<data key="setting.ctcache">Custom Tag Pfad Cache</data>
 	<data key="setting.inspecttemplateneverShort">Nie</data>
@@ -690,7 +690,7 @@ When checked, any requested found to currently reside in the template cache will
 	<data key="setting.inspecttemplateonceShort">Einmal</data>
 	<data key="setting.inspecttemplateonce">Einmal ( Gut )</data>
 	<data key="setting.inspecttemplateoncedesc">
-When checked, any requested files will be inspected only once for potential updates within a request. For sites where templates are not expected to reflect updates within the same request, this minimizes file system overhead. 
+When checked, any requested files will be inspected only once for potential updates within a request. For sites where templates are not expected to reflect updates within the same request, this minimizes file system overhead.
 </data>
 	<data key="setting.whitespace">Whitespace management</data>
 	<data key="setting.whitespacedescription">Unterdrückt alle Whitespace (Leerzeichen, Tabs und Zeilenumbrüche), die in der Ausgabe einem Whitespace folgen</data>
@@ -709,10 +709,10 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="scopes.cascadingdescription">Abhängig von dieser Einstellung durchsucht Lucee gewisse Scopes, um eine im CFML-Code aufgerufene Variable zu finden. Dieses passiert jedoch nur, wenn die Variable ohne vorangestellten Scope aufgerufen wird. (Beispiel: #myVar# anstelle von #variables.myVar#)&lt;br&gt;- strict: durchsucht nur den Variables Scope&lt;br&gt;- small:	durchsucht die Scopes: Variables, Url und Form&lt;br&gt;- standard (CFML Standard):	durchsucht die Scopes: Variables, Cgi, Url, Form und Cookie</data>
 	<data key="scopes.sessiontypedescription">JEE Sessions erlauben es Lucee Sessions über einen JEE Server-Cluster zu verteilen. Wenn Sie diese Einstellung ändern verlieren Sie die aktuelle Session und müssen sich erneut einloggen.</data>
 	<data key="scopes.web">Hier können Sie festlegen, wie Lucee Scopes abarbeitet.</data>
-	
+
 	<data key="scopes.localmodeClassic">Classic (CFML standard)</data>
 	<data key="scopes.localmodeModern">Modern</data>
-	
+
 	<data key="scopes.localmodedesc">Definiert wie der Lokal Scope innerhalb einer UDF von einer Variable ohne Scope angesprochen wird.</data>
 
 	<data key="scopes.localmodeModernDesc">der Lokal Scope wird immer verwendet</data>
@@ -722,7 +722,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="scopes.sessionmanagementdescription">Standardmässig kann Session Management eingeschaltet werden. Diese Verhaltensweise kann von dem Tag CFApplication übersteuert werden.</data>
 	<data key="scopes.clientcookiesdescription">Client Cookies ein oder ausschalten. Diese Verhaltensweise kann von dem Tag CFApplication übersteuert werden.</data>
 	<data key="scopes.sessiontimeout">Session Timeout</data>
-	
+
 	<data key="scopes.mergeurlform">Url und Form kombinieren</data>
 	<data key="scopes.cascading">Cascading</data>
 	<data key="scopes.cascadetoresultset">Resultsets durchsuchen</data>
@@ -749,7 +749,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="Scopes.cgiReadOnlyTrueDesc">Der CGI Scope is schreibgeschützt und kann nicht geändert werden.</data>
 	<data key="Scopes.cgiReadOnlyFalse">Beschreibbar</data>
 	<data key="Scopes.cgiReadOnlyFalseDesc">Der CGI Scope kann beschrieben werden, wie jeder andere Scope auch.</data>
-	
+
 	<data key="locale">german (standard)</data>
 	<data key="proxy.portdescription">Port für den Proxy Server (Vorgabe:80)</data>
 	<data key="proxy.port">Port</data>
@@ -893,10 +893,10 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="schedule.executiondesconce">Dieser Task wird nur einmal zu einer bestimmten Zeit ausgeführt.</data>
 	<data key="schedule.usernamedescription">Username, um auf eine geschützte URL zuzugreifen.</data>
 	<data key="schedule.startdatedesc">Definert den Tag an welchem der Task zu ersten mal ausgeführt werden soll.</data>
-	
+
 	<data key="settings.exportAppCFC">Export Application.cfc</data>
 	<data key="settings.exportAppCFCDesc">Einstellungen dieses Web Context als Application.cfc Template exportieren, natürlich beinhaltet dies nur Einstellungen welche im Application.cfc möglich sind.</data>
-	
+
 
 	<data key="settings.datasourcesettings">Einstellungen</data>
 	<data key="settings.datasource.databaseName">Datenbank (Name/Version)</data>
@@ -914,18 +914,18 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="settings.dbuser">Benutzername</data>
 	<data key="settings.preservesinglequotes">Single Quotes erhalten</data>
 	<data key="settings.dbconnlimit">Verbindungslimitierung (max)</data>
-	
+
 	<data key="settings.dbMetaCacheTimeout">Caching Meta Data</data>
 	<data key="settings.dbMetaCacheTimeoutDesc">definiert wielange Stored Procedures Meta Data gecached werden</data>
 	<data key="settings.minutes">Minute(n)</data>
 	<data key="settings.hours">Stunden(n)</data>
 	<data key="settings.days">Tag(e)</data>
 	<data key="settings.flushCache">cache leeren</data>
-	
-	
+
+
     <data key="Settings.cache.storage">Storage</data>
 	<data key="Settings.cache.storageDesc">Erlauben diesen Cache als Storage für den Client/Session Scope zu verwenden.</data>
-	
+
 	<data key="settings.cache.noDriver">Es ist kein Cache Treiber verfügbar</data>
 	<data key="settings.cache.title">Cache</data>
 	<data key="settings.cache.description">Verwalten des Cache</data>
@@ -954,7 +954,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="settings.cache.defaulttypeFileDesc">Diese Cache Connection wird für für das cachen von File Zugriffen verwendet.</data>
 	<data key="settings.cache.defaulttypeWebservice">Webservice (SOAP,REST,HTTP)</data>
 	<data key="settings.cache.defaulttypeWebserviceDesc">Diese Cache Connection wird für für das cachen von SOAP,REST und HTTP Webservices verwendet.</data>
-	
+
 	<data key="settings.cache.defaultDesc">Define the default cache connection for tempates (cfcache) and object (cacheGet, cachePut ...), this connection is used when no cache name is explicit defined</data>
 	<data key="settings.cache.Default">Default</data>
 	<data key="settings.cache.DefaultTitle">Default cache connection</data>
@@ -964,9 +964,9 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="settings.cache.titleReadOnly">Readonly cache connections</data>
 	<data key="settings.cache.descReadOnly">Readonly cache connections are generated within the ""server administrator"" for all web instances and can not be modified by the ""web administrator"".</data>
 	<data key="settings.cache.Buttons.default">als default Wert</data>
-	
-	
-	
+
+
+
 	<data key="settings.dbValidate">Validate</data>
 	<data key="settings.dbValidateDesc">Validiert Verbindung bevor sie verwendet wird (funktioniert nur mit JDBC 4.0 Treibern)</data>
 	<data key="settings.dbconntimeoutdesc">Definiert wie lange eine stehende Verbindung aufrechterhalten wird, bevor Sie beendet wird.</data>
@@ -986,7 +986,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="settings.dbdatabasedesc">Name der Datenbank, welche verbunden werden soll.</data>
 	<data key="settings.dbuserdesc">Benutzername für den Zugriff auf die Datenbank</data>
 	<data key="settings.datasourcedescriptionupdate">Datenquelle aktualisieren</data>
-	
+
 	<data key="settings.dbtimezone">Zeitzone</data>
 	<data key="settings.dbtimezoneDesc">Wenn Sie ein Datum als String definieren, also nicht mit cfqueryparam, enthält dies normalerweise keine Zeitzoneninformation und basiert auf der lokalen Zeit. Die Datenbak interpretiert dann dieses Datum basierent auf seiner eigenen Zeitzone. Wenn sich nun die Zeitzone der Datenbank und von Lucee unterscheidet, kann dies zu Problemen führen. Lucee erlaubt es hier, dass Sie für eine Datasource eine spezifische Zeitzone definieren können, um diese Problem zu umgehen. Definieren Sie nur eine spezifische Zeitzone wenn Sie sicher sind, dass diese Zeitzone in der Database auch verwendet wird! Dieses setting wird durch das Attribute "timezone" des Tag query überschrieben.</data>
 	<data key="settings.dbtimezoneSame">Gleiche wie in Lucee Instanz</data>
@@ -1065,8 +1065,10 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="doc.chooseFunction">Choose a function</data>
 	<data key="overview.installedtls">Installierte Tag Bibliotheken</data>
 	<data key="overview.bugreport">Fehlerreport</data>
+	<data key="overview.Docs">Documentation</data>
+	<data key="overview.DocsDesc">If you have any questions about Lucee please take a look at the documentation in the first instance.</data>
 	<data key="overview.issuetracker">Issue Tracker</data>
-	<data key="overview.issuetrackerDesc">If you think you've found a bug, please take the time to report it via our bug tracking system (JIRA on the JBoss community site).</data>
+	<data key="overview.issuetrackerDesc">If you think you've found a bug, please take the time to report it via our bug tracking system.</data>
 	<data key="overview.book">Book (Lucee 3 Beginner's Guide)</data>
 	<data key="overview.bookDesc">A complete guide to developing an application with Lucee from start to finish.</data>
 	<data key="overview.datetime">Lucee Datum/Zeit</data>

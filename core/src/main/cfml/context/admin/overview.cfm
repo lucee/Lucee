@@ -1,4 +1,4 @@
-<!--- 
+<!---
 Defaults --->
 <cfset error.message="">
 <cfset error.detail="">
@@ -17,14 +17,14 @@ Defaults --->
 		<cfcase value="#stText.Buttons.Update#">
 			<cfset data.label=toArrayFromForm("label")>
 			<cfset data.hash=toArrayFromForm("hash")>
-            
+
 			<cfloop index="idx" from="1" to="#arrayLen(data.label)#">
 				<cfif len(trim(data.label[idx]))>
-                	<cfadmin 
+                	<cfadmin
                     action="updateLabel"
                     type="#request.adminType#"
                     password="#session["password"&request.adminType]#"
-                    
+
                     label="#data.label[idx]#"
                     hash="#data.hash[idx]#">
                  </cfif>
@@ -32,7 +32,7 @@ Defaults --->
 		</cfcase>
 	<!--- UPDATE API Key --->
 		<cfcase value="#stText.Buttons.OK#">
-			<cfadmin 
+			<cfadmin
                     action="updateApiKey"
                     type="#request.adminType#"
                     password="#session["password"&request.adminType]#"
@@ -40,19 +40,19 @@ Defaults --->
 		</cfcase>
 	</cfswitch>
 	<cfcatch>
-	
+
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
 	</cfcatch>
 </cftry>
 
-<!--- 
+<!---
 Redirtect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "" and form.mainAction NEQ "none">
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
 
-<!--- 
+<!---
 Error Output --->
 <cfset printError(error)>
 
@@ -90,7 +90,7 @@ Error Output --->
     	<cfset var used=evaluate(ValueList(arguments.usage.used,'+'))>
     	<cfset var max=evaluate(ValueList(arguments.usage.max,'+'))>
     	<cfset var init=evaluate(ValueList(arguments.usage.init,'+'))>
-        
+
 		<cfset var qry=QueryNew(arguments.usage.columnlist)>
 		<cfset QueryAddRow(qry)>
         <cfset QuerySetCell(qry,"type",arguments.usage.type)>
@@ -98,14 +98,14 @@ Error Output --->
         <cfset QuerySetCell(qry,"init",init,qry.recordcount)>
         <cfset QuerySetCell(qry,"max",max,qry.recordcount)>
         <cfset QuerySetCell(qry,"used",used,qry.recordcount)>
-        
+
         <cfset arguments.usage=qry>
 		<cfset var ret = "" />
 		<cfsavecontent variable="ret"><cfoutput>
    			<b>#pool[usage.type]#</b>
 			<cfloop query="usage">
        			<cfset local._used=int(width/arguments.usage.max*arguments.usage.used)>
-        		<cfset local._free=width-_used> 
+        		<cfset local._free=width-_used>
 				<cfset local.pused=int(100/arguments.usage.max*arguments.usage.used)>
        			<cfset local.pfree=100-pused>
         		<div class="percentagebar tooltipMe" title="#pfree#% available (#round((usage.max-usage.used)/1024/1024)#mb), #pused#% in use (#round(usage.used/1024/1024)#mb)"><!---
@@ -131,57 +131,57 @@ Error Output --->
 		#stText.Overview.introdesc[request.adminType]#
 	</div>
 
-	<cfadmin 
+	<cfadmin
 		action="getInfo"
 		type="#request.adminType#"
 		password="#session["password"&request.adminType]#"
 		returnVariable="info">
-		
-	<cfadmin 
+
+	<cfadmin
 		action="getAPIKey"
 		type="#request.adminType#"
 		password="#session["password"&request.adminType]#"
 		returnVariable="apiKey">
-		
-<cfadmin 
+
+<cfadmin
 	action="getCompilerSettings"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="compiler">
-	
 
-<cfadmin 
+
+<cfadmin
 	action="getScope"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="scope">
-	
-<cfadmin 
+
+<cfadmin
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	action="getPerformanceSettings"
 	returnVariable="performance">
 
-<cfadmin 
+<cfadmin
 	action="getContexts"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="contexts">
-	
+
 	<cfif request.adminType EQ "server">
 		<cfset names=StructKeyArray(info.servlets)>
 		<cfif !ArrayContainsNoCase(names,"Rest")>
 			<div class="warning nofocus">
 				The REST Servlet is not configured in your enviroment!
 			</div>
-		</cfif>	
+		</cfif>
 	</cfif>
 
 
 	<table>
 		<tr>
 			<td valign="top" width="65%">
-				
+
 				<h2>#stText.overview.langPerf#</h2>
 				<table class="maintbl">
 					<tbody>
@@ -217,14 +217,14 @@ Error Output --->
 								<th scope="row">#stText.setting.suppressWSBeforeArg#</th>
 								<td <cfif !compiler.suppressWSBeforeArg>style="color:##cc0000"</cfif>>#yesNoFormat(compiler.suppressWSBeforeArg)#</td>
 							</tr> --->
-							
+
 							<tr>
 								<th scope="row">#stText.Scopes.LocalMode#</th>
 								<td <cfif scope.localMode EQ "classic">style="color:##cc0000"</cfif>>
 									<cfif scope.localMode EQ "modern">#stText.Scopes.LocalModeModern#<cfelse>#stText.Scopes.LocalModeClassic#</cfif>
 								</td>
 							</tr>
-							
+
 					</tbody>
 				</table>
 				<cfset stText.io.title="Lucee IO">
@@ -233,7 +233,7 @@ Error Output --->
 				<cfset stText.io.idDesc="To interact with LuceeIO, you need a Lucee.ID, you can get this ID from <a target=""top"" href=""http://beta.lucee.io/index.cfm/account"">here</a>">
 				<!---<h2>#stText.io.title#</h2>
 				#stText.io.desc#
-				
+
 				<table class="maintbl">
 					<tbody>
 						<!--- has api key --->
@@ -246,10 +246,10 @@ Error Output --->
 								</cfform>
 							</tr>
 						</cfif>
-						
+
 					</tbody>
 				</table>--->
-				
+
 				<h2>#stText.Overview.Info#</h2>
 				<table class="maintbl">
 					<tbody>
@@ -295,18 +295,18 @@ Error Output --->
 								<th scope="row">#stText.Overview.webroot#</th>
 								<td>#info.root#</td>
 							</tr>
-		
-							<cfadmin 
+
+							<cfadmin
 								action="getTLDs"
 								type="#request.adminType#"
 								password="#session["password"&request.adminType]#"
 								returnVariable="tlds">
-							<cfadmin 
+							<cfadmin
 								action="getFLDs"
 								type="#request.adminType#"
 								password="#session["password"&request.adminType]#"
 								returnVariable="flds">
-		
+
 							<cfif isQuery(tlds)>
 								<cfset tlds=listToArray(valueList(tlds.displayname))>
 							</cfif>
@@ -314,7 +314,7 @@ Error Output --->
 								<cfset flds=listToArray(valueList(flds.displayname))>
 							</cfif>
 						</cfif>
-		
+
 						<tr>
 							<th scope="row">#stText.Overview.OS#</th>
 							<td>#server.OS.Name# (#server.OS.Version#)<cfif structKeyExists(server.os,"archModel")> #server.os.archModel#bit</cfif></td>
@@ -335,7 +335,7 @@ Error Output --->
 							<th scope="row">#stText.overview.luceeID#</th>
 							<td>#getLuceeId().server.id#</td>
 						</tr>
-						
+
 						<tr>
 							<th scope="row">#stText.overview.luceeID#</th>
 							<td>#getLuceeId().server.ioid#</td>
@@ -358,21 +358,21 @@ Error Output --->
 									</cfloop>
 								</td>
 							</tr>
-							
+
 							<tr>
 								<th scope="row">#stText.Overview.DateTime#</th>
 								<td>
 									#lsdateFormat(now())#
 									#lstimeFormat(now())#
-								</td> 
+								</td>
 							</tr>
 							<tr>
 								<th scope="row">#stText.Overview.ServerTime#</th>
 								<td>
-									
+
 									#lsdateFormat(date:now(),timezone:"jvm")#
 									#lstimeFormat(time:now(),timezone:"jvm")#
-								</td> 
+								</td>
 							</tr>
 						</cfif>
 						<tr>
@@ -380,14 +380,14 @@ Error Output --->
 							<td>
 								<!--- <cfset serverNow=createObject('java','java.util.Date')> --->
 								#server.java.version# (#server.java.vendor#)<cfif structKeyExists(server.java,"archModel")> #server.java.archModel#bit</cfif>
-							</td> 
+							</td>
 						</tr>
 						<cfif StructKeyExists(server.os,"archModel") and StructKeyExists(server.java,"archModel")>
 							<tr>
 								<th scope="row">Architecture</th>
 								<td>
 									<cfif server.os.archModel NEQ server.os.archModel>OS #server.os.archModel#bit/JRE #server.java.archModel#bit<cfelse>#server.os.archModel#bit</cfif>
-								</td> 
+								</td>
 							</tr>
 						</cfif>
 					</tbody>
@@ -418,46 +418,52 @@ Error Output --->
 						#memoryInfo#
 						<cfcatch></cfcatch>
 					</cftry>
-	
+
 					<!--- Professional --->
 					<h3>
 						<a href="http://lucee.org/support.html" target="_blank">#stText.Overview.Professional#</a>
 					</h3>
 					<div class="comment">#stText.Overview.ProfessionalDesc#</div>
-					
+
+					<!--- Docs --->
+					<h3>
+						<a href="http://docs.lucee.org" target="_blank">#stText.Overview.Docs#</a>
+					</h3>
+					<div class="comment">#stText.Overview.DocsDesc#</div>
+
 					<!--- Mailing list --->
 					<h3>
 						<a href="http://groups.google.com/group/lucee" target="_blank">#stText.Overview.Mailinglist#</a>
 					</h3>
 					<div class="comment">#stText.Overview.MailinglistDesc#</div>
-					
-					
+
+
 					<!--- Jira --->
 					<h3>
-						<a href="https://bitbucket.org/lucee/lucee/issues" target="_blank">#stText.Overview.issueTracker#</a>
+						<a href="http://issues.lucee.org/" target="_blank">#stText.Overview.issueTracker#</a>
 					</h3>
 					<div class="comment">#stText.Overview.issueTrackerDesc#</div>
-					
+
 					<!--- Blog --->
 					<h3>
 						<a href="http://blog.lucee.org/" target="_blank">#stText.Overview.blog#</a>
 					</h3>
 					<div class="comment">#stText.Overview.blogDesc#</div>
-					
-					
-					
+
+
+
 					<!--- Twitter --->
 					<h3>
 						<a href="https://twitter.com/##!/lucee_server" target="_blank">#stText.Overview.twitter#</a>
 					</h3>
 					<div class="comment">#stText.Overview.twitterDesc#</div>
-				
+
 			</td>
 		</tr>
 	</table>
-	
+
 	<cfif request.admintype EQ "server">
-		
+
 		<h2>#stText.Overview.contexts.title#</h2>
 		<div class="itemintro">
 			You can label your web contexts here, so they are more clearly distinguishable for use with extensions etc.
