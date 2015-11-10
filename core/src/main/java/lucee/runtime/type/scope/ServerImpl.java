@@ -20,6 +20,8 @@ package lucee.runtime.type.scope;
 
 import java.io.File;
 
+import org.osgi.framework.Version;
+
 import lucee.Info;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ClassUtil;
@@ -147,7 +149,7 @@ public final class ServerImpl extends ScopeSupport implements Server,SharedScope
 			lucee.setEL(KeyConstants._version,info.getVersion().toString());
 			lucee.setEL(VERSION_NAME,info.getVersionName());
 			lucee.setEL(VERSION_NAME_EXPLANATION,info.getVersionNameExplanation());
-			//lucee.setEL(KeyConstants._state,info.getStateAsString());
+			lucee.setEL(KeyConstants._state,getStateAsString(info.getVersion()));
 			lucee.setEL(RELEASE_DATE,new DateTimeImpl(info.getRealeaseTime(),false));
 			lucee.setEL(LOADER_VERSION,Caster.toDouble(SystemUtil.getLoaderVersion()));
 			lucee.setEL(LOADER_PATH, ClassUtil.getSourcePathForClass("lucee.loader.servlet.CFMLServlet", ""));
@@ -207,6 +209,14 @@ public final class ServerImpl extends ScopeSupport implements Server,SharedScope
 	    
 	}
 
+	private static String getStateAsString(Version version) {
+		String q = version.getQualifier();
+		int index=q.indexOf('-');
+		if(index==-1) return "stable";
+		return q.substring(index+1);
+	}
+	
+	
 	@Override
 	public Object set(Collection.Key key, Object value) throws PageException {
 		if(isReadOnlyKey(key))
