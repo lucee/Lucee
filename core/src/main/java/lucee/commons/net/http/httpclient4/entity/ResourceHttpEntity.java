@@ -26,6 +26,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 
 import org.apache.http.entity.AbstractHttpEntity;
+import org.apache.http.entity.ContentType;
 
 /**
  * A RequestEntity that represents a Resource.
@@ -33,13 +34,13 @@ import org.apache.http.entity.AbstractHttpEntity;
 public class ResourceHttpEntity extends AbstractHttpEntity implements Entity4 {
 
     final Resource res;
-	private String strContentType;
+	private ContentType ct;
     
-    public ResourceHttpEntity(final Resource res, final String contentType) {
+    public ResourceHttpEntity(final Resource res, final ContentType contentType) {
     	super();
         this.res = res;
-        setContentType(contentType);
-        strContentType = contentType;
+        if(contentType!=null)setContentType(contentType.toString());
+        ct = contentType;
     }
    
     @Override
@@ -74,6 +75,6 @@ public class ResourceHttpEntity extends AbstractHttpEntity implements Entity4 {
 
 	@Override
 	public String contentType() {
-		return strContentType;
+		return ct!=null?ct.toString():null;
 	}
 }

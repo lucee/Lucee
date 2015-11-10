@@ -268,7 +268,7 @@ public final class S3 implements S3Constants {
 		
 		
 		
-		HTTPResponse method = HTTPEngine3Impl.put(new URL(strUrl), null, null, -1,MAX_REDIRECT, null, 
+		HTTPResponse method = HTTPEngine3Impl.put(new URL(strUrl), null, null, -1,MAX_REDIRECT, null,null, 
 				Constants.NAME, null,headers,re);
 		if(method.getStatusCode()!=200){
 			new ErrorFactory(method.getContentAsStream());
@@ -407,7 +407,7 @@ public final class S3 implements S3Constants {
 		
 		
 		
-		HTTPResponse method = HTTPEngine3Impl.put(new URL(strUrl), null, null, -1,MAX_REDIRECT, null, 
+		HTTPResponse method = HTTPEngine3Impl.put(new URL(strUrl), null, null, -1,MAX_REDIRECT, null,null, 
 				Constants.NAME, null,headers,re);
 		if(method.getStatusCode()!=200){
 			new ErrorFactory(method.getContentAsStream());

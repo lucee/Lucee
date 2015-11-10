@@ -19,25 +19,31 @@
 package lucee.commons.net.http.httpclient4.entity;
 
 import lucee.commons.lang.StringUtil;
+import lucee.commons.net.HTTPUtil;
 
 import org.apache.http.Header;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
 
 public class ByteArrayHttpEntity extends ByteArrayEntity implements Entity4 {
  
 	
-	private String strContentType;
+	private ContentType ct;
 	private int contentLength;
 
-	public ByteArrayHttpEntity(byte[] barr, String contentType) {
+	public ByteArrayHttpEntity(byte[] barr, ContentType contentType) {
 		super(barr);
 		contentLength=barr==null?0:barr.length;
 		
-		if(StringUtil.isEmpty(contentType,true)) {
+		if(ct==null) {
 			Header h = getContentType();
-			if(h!=null) strContentType=h.getValue();
+			if(h!=null) {
+				lucee.commons.lang.mimetype.ContentType tmp = HTTPUtil.toContentType(h.getValue(), null);
+				if(tmp!=null)
+					ct=ContentType.create(tmp.getMimeType(),tmp.getCharset());
+			}
 		}
-		else this.strContentType=contentType;
+		else this.ct=contentType;
 	}
 
 	@Override
@@ -47,7 +53,7 @@ public class ByteArrayHttpEntity extends ByteArrayEntity implements Entity4 {
 
 	@Override
 	public String contentType() {
-		return strContentType;
+		return ct!=null?ct.toString():null;
 	}
 
 }

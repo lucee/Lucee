@@ -20,6 +20,7 @@ package lucee.commons.net.http.httpclient4;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.KeyStore;
 import java.util.ArrayList;
@@ -38,7 +39,9 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.Entity;
+import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
+import lucee.commons.net.http.httpclient3.entity.EmptyRequestEntity;
 import lucee.commons.net.http.httpclient4.entity.ByteArrayHttpEntity;
 import lucee.commons.net.http.httpclient4.entity.EmptyHttpEntity;
 import lucee.commons.net.http.httpclient4.entity.ResourceHttpEntity;
@@ -56,6 +59,10 @@ import lucee.runtime.tag.Http;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.util.CollectionUtil;
 
+import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
+import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
+import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -77,6 +84,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
@@ -399,41 +407,57 @@ public class HTTPEngine4Impl {
 	 */
 	private static HttpEntity toHttpEntity(Object value, String mimetype, String charset) throws IOException {
 		if(value instanceof HttpEntity) return (HttpEntity) value;
+		
+		// content type
+		ContentType ct=HTTPEngine.toContentType(mimetype, charset);
+		
     	try{
-	    	if(value instanceof InputStream) {
+    		if(value instanceof TemporaryStream) {
+	    		if(ct!=null)
+		    		return new TemporaryStreamHttpEntity((TemporaryStream)value,ct);
+	    		return new TemporaryStreamHttpEntity((TemporaryStream)value,null);
+			}
+    		else if(value instanceof InputStream) {
+	    		if(ct!=null)
+		    		return new ByteArrayEntity(IOUtil.toBytes((InputStream)value),ct);
 	    		return new ByteArrayEntity(IOUtil.toBytes((InputStream)value));
 			}
 			else if(Decision.isCastableToBinary(value,false)){
-				return new ByteArrayEntity(Caster.toBinary(value));
+				if(ct!=null)
+					return new ByteArrayEntity(Caster.toBinary(value),ct);
+			    return new ByteArrayEntity(Caster.toBinary(value));
 			}
 			else {
+				if(ct==null)
+					ct=ContentType.APPLICATION_OCTET_STREAM;
+				
 				String str = Caster.toString(value);
-				if(str.startsWith("<empty:") && str.endsWith(">")) {
-					String contentType=str.substring(7, str.length()-1);
-					return new EmptyHttpEntity(contentType);
+				if(str.equals("<empty>")) {
+					return new EmptyHttpEntity(ct);
 				}
-				return new StringEntity(str,mimetype,charset);
+				return new StringEntity(str,ct);
 			}
     	}
     	catch(Exception e){
     		throw ExceptionUtil.toIOException(e);
     	}
     }
+	
 
 
-	public static Entity getEmptyEntity(String contentType) {
+	public static Entity getEmptyEntity(ContentType contentType) {
 		return new EmptyHttpEntity(contentType);
 	}
 
-	public static Entity getByteArrayEntity(byte[] barr, String contentType) {
+	public static Entity getByteArrayEntity(byte[] barr, ContentType contentType) {
 		return new ByteArrayHttpEntity(barr,contentType);
 	}
 
-	public static Entity getTemporaryStreamEntity(TemporaryStream ts,String contentType) {
+	public static Entity getTemporaryStreamEntity(TemporaryStream ts,ContentType contentType) {
 		return new TemporaryStreamHttpEntity(ts,contentType);
 	}
 
-	public static Entity getResourceEntity(Resource res, String contentType) {
+	public static Entity getResourceEntity(Resource res, ContentType contentType) {
 		return new ResourceHttpEntity(res,contentType);
 	}
 

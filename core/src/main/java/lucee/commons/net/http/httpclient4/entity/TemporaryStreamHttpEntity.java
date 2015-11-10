@@ -26,17 +26,18 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.TemporaryStream;
 
 import org.apache.http.entity.AbstractHttpEntity;
+import org.apache.http.entity.ContentType;
 
 
 public class TemporaryStreamHttpEntity extends AbstractHttpEntity implements Entity4 {
 
 	private final TemporaryStream ts;
-	private String ct;
+	private ContentType ct;
 
-	public TemporaryStreamHttpEntity(TemporaryStream ts,String contentType) {
+	public TemporaryStreamHttpEntity(TemporaryStream ts,ContentType contentType) {
 		this.ts=ts;
-		setContentType(contentType);
 		this.ct=contentType;
+		setContentType(ct!=null?ct.toString():null);
 	}
 	
 	@Override
@@ -71,6 +72,6 @@ public class TemporaryStreamHttpEntity extends AbstractHttpEntity implements Ent
 
 	@Override
 	public String contentType() {
-		return ct;
+		return ct!=null?ct.toString():null;
 	}
 }

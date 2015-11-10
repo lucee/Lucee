@@ -24,8 +24,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.http.entity.ContentType;
+
 import lucee.commons.io.TemporaryStream;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.httpclient3.HTTPEngine3Impl;
 import lucee.commons.net.http.httpclient4.HTTPEngine4Impl;
 import lucee.commons.net.http.httpclient4.HeaderImpl;
@@ -102,7 +105,7 @@ public class HTTPEngine {
 	public static HTTPResponse put(URL url, String username, String password, int timeout, boolean followRedirect,
 		String mimetype,String charset, String useragent,ProxyData proxy, Header[] headers, Object body) throws IOException {
 		if(use4) return HTTPEngine4Impl.put(url, username, password, timeout, followRedirect, mimetype,charset, useragent, proxy, headers,body);     
-		return HTTPEngine3Impl.put(url, username, password, timeout, followRedirect?MAX_REDIRECT:0, charset, useragent, proxy, headers,body);     
+		return HTTPEngine3Impl.put(url, username, password, timeout, followRedirect?MAX_REDIRECT:0, mimetype,charset, useragent, proxy, headers,body);     
 	}
     
     public static HTTPResponse delete(URL url, String username, String password, int timeout, boolean followRedirect,
@@ -116,24 +119,28 @@ public class HTTPEngine {
 		return HTTPEngine3Impl.header(name, value);
 	}
 
-	public static Entity getEmptyEntity(String contentType) {
-		if(use4) return HTTPEngine4Impl.getEmptyEntity(contentType);
-		return HTTPEngine3Impl.getEmptyEntity(contentType);
+	public static Entity getEmptyEntity(String mimetype, String charset) {
+		ContentType ct=toContentType(mimetype,charset);
+		if(use4) return HTTPEngine4Impl.getEmptyEntity(ct);
+		return HTTPEngine3Impl.getEmptyEntity(ct==null?null:ct.toString());
 	}
 	
-	public static Entity getByteArrayEntity(byte[] barr, String contentType) {
-		if(use4) return HTTPEngine4Impl.getByteArrayEntity(barr,contentType);
-		return HTTPEngine3Impl.getByteArrayEntity(barr,contentType);
+	public static Entity getByteArrayEntity(byte[] barr, String mimetype, String charset) {
+		ContentType ct=toContentType(mimetype,charset);
+		if(use4) return HTTPEngine4Impl.getByteArrayEntity(barr,ct);
+		return HTTPEngine3Impl.getByteArrayEntity(barr,ct==null?null:ct.toString());
 	}
 	
-	public static Entity getTemporaryStreamEntity(TemporaryStream ts, String contentType) {
-		if(use4) return HTTPEngine4Impl.getTemporaryStreamEntity(ts,contentType);
-		return HTTPEngine3Impl.getTemporaryStreamEntity(ts,contentType);
+	public static Entity getTemporaryStreamEntity(TemporaryStream ts, String mimetype, String charset) {
+		ContentType ct=toContentType(mimetype,charset);
+		if(use4) return HTTPEngine4Impl.getTemporaryStreamEntity(ts,ct);
+		return HTTPEngine3Impl.getTemporaryStreamEntity(ts,ct==null?null:ct.toString());
 	}
 	
-	public static Entity getResourceEntity(Resource res, String contentType) {
-		if(use4) return HTTPEngine4Impl.getResourceEntity(res,contentType);
-		return HTTPEngine3Impl.getResourceEntity(res,contentType);
+	public static Entity getResourceEntity(Resource res, String mimetype, String charset) {
+		ContentType ct=toContentType(mimetype,charset);
+		if(use4) return HTTPEngine4Impl.getResourceEntity(res,ct);
+		return HTTPEngine3Impl.getResourceEntity(res,ct==null?null:ct.toString());
 	}
 	
     private static Header[] toHeaders(Map<String, String> headers) {
@@ -149,5 +156,14 @@ public class HTTPEngine {
     	return rtn;
 	}
 	
-	
+
+	public static ContentType toContentType(String mimetype, String charset) {
+		ContentType ct=null;
+    	if(!StringUtil.isEmpty(mimetype,true)) {
+    		if(!StringUtil.isEmpty(charset,true)) ct=ContentType.create(mimetype.trim(),charset.trim());
+    		else ct=ContentType.create(mimetype.trim());
+    	}
+    	return ct;
+	}
+
 }

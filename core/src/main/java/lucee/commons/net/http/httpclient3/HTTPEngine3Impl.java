@@ -20,6 +20,7 @@ package lucee.commons.net.http.httpclient3;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
@@ -62,6 +63,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.http.entity.ContentType;
 
 /**
  * 
@@ -72,32 +74,32 @@ public final class HTTPEngine3Impl {
     
     public static HTTPResponse get(URL url, String username, String password, long timeout, int maxRedirect,
         String charset, String useragent,ProxyData proxy, Header[] headers) throws IOException {
-    	return _invoke(new GetMethod(url.toExternalForm()), url, username, password, timeout,maxRedirect, charset, useragent, proxy, headers,null,null);
+    	return _invoke(new GetMethod(url.toExternalForm()), url, username, password, timeout,maxRedirect, null,charset, useragent, proxy, headers,null,null);
     }
     
     public static HTTPResponse head(URL url, String username, String password, int timeout, int maxRedirect,
         String charset, String useragent,ProxyData proxy, Header[] headers) throws IOException {
-		return _invoke(new HeadMethod(url.toExternalForm()), url, username, password, timeout,maxRedirect, charset, useragent, proxy, headers,null,null);
+		return _invoke(new HeadMethod(url.toExternalForm()), url, username, password, timeout,maxRedirect, null, charset, useragent, proxy, headers,null,null);
 	}
     
     public static HTTPResponse post(URL url, String username, String password, long timeout, int maxRedirect,
         String charset, String useragent, ProxyData proxy, Header[] headers, Map<String,String> params) throws IOException {
-    	return _invoke(new PostMethod(url.toExternalForm()), url, username, password, timeout,maxRedirect, charset, useragent, proxy, headers,params,null);
+    	return _invoke(new PostMethod(url.toExternalForm()), url, username, password, timeout,maxRedirect, null,charset, useragent, proxy, headers,params,null);
     }
     
 	public static HTTPResponse put(URL url, String username, String password, int timeout, int maxRedirect,
-        String charset, String useragent,ProxyData proxy, Header[] headers, Object body) throws IOException {
-		return _invoke(new PutMethod(url.toExternalForm()), url, username, password, timeout,maxRedirect, charset, useragent, proxy, headers,null,body);     
+        String mimetype, String charset, String useragent,ProxyData proxy, Header[] headers, Object body) throws IOException {
+		return _invoke(new PutMethod(url.toExternalForm()), url, username, password, timeout,maxRedirect, mimetype,charset, useragent, proxy, headers,null,body);     
 	}
     
     public static HTTPResponse delete(URL url, String username, String password, int timeout, int maxRedirect,
         String charset, String useragent,ProxyData proxy, Header[] headers) throws IOException {
-    	return _invoke(new DeleteMethod(url.toExternalForm()), url, username, password, timeout,maxRedirect, charset, useragent, proxy, headers,null,null);
+    	return _invoke(new DeleteMethod(url.toExternalForm()), url, username, password, timeout,maxRedirect, null, charset, useragent, proxy, headers,null,null);
 	}
     
 
 	private static HTTPResponse _invoke(HttpMethod httpMethod, URL url, String username, String password, long timeout, int maxRedirect,
-            String charset, String useragent, ProxyData proxy, Header[] headers, Map<String,String> params, Object body) throws IOException {
+            String mimetype, String charset, String useragent, ProxyData proxy, Header[] headers, Map<String,String> params, Object body) throws IOException {
 
         HttpClient client = new HttpClient();
         HostConfiguration config = client.getHostConfiguration();
@@ -110,7 +112,7 @@ public final class HTTPEngine3Impl {
         setParams(httpMethod,params);
         setCredentials(client,httpMethod,username,password);  
         setProxy(config,state,proxy);
-        if(body!=null && httpMethod instanceof EntityEnclosingMethod)setBody((EntityEnclosingMethod)httpMethod,body);
+        if(body!=null && httpMethod instanceof EntityEnclosingMethod)setBody((EntityEnclosingMethod)httpMethod,body,mimetype,charset);
         return new HTTPResponse3Impl(execute(client,httpMethod,maxRedirect),url);
     }
 
@@ -226,10 +228,10 @@ public final class HTTPEngine3Impl {
 
     
 
-    private static void setBody(EntityEnclosingMethod httpMethod, Object body) throws IOException {
+    private static void setBody(EntityEnclosingMethod httpMethod, Object body, String mimetype,String charset) throws IOException {
         if(body!=null)
 			try {
-				httpMethod.setRequestEntity(toRequestEntity(body));
+				httpMethod.setRequestEntity(toRequestEntity(body,mimetype,charset));
 			} catch (PageException e) {
 				throw ExceptionUtil.toIOException(e);
 			}
@@ -287,24 +289,34 @@ public final class HTTPEngine3Impl {
     	}
 	}
 
-	private static RequestEntity toRequestEntity(Object value) throws PageException {
+	private static RequestEntity toRequestEntity(Object value, String mimetype, String charset) throws PageException {
     	if(value instanceof RequestEntity) return (RequestEntity) value;
     	
-    	else if(value instanceof InputStream) {
-			return new InputStreamRequestEntity((InputStream)value,"application/octet-stream");
+    	ContentType ct=HTTPEngine.toContentType(mimetype, charset);
+    	
+    	if(value instanceof InputStream) {
+    		if(ct==null) ct=ContentType.APPLICATION_OCTET_STREAM;
+			return new InputStreamRequestEntity((InputStream)value,ct.toString());
 		}
 		else if(Decision.isCastableToBinary(value,false)){
-			return new ByteArrayRequestEntity(Caster.toBinary(value));
+			if(ct==null)
+				return new ByteArrayRequestEntity(Caster.toBinary(value));
+			return new ByteArrayRequestEntity(Caster.toBinary(value),ct.toString());
 		}
 		else {
+			if(ct==null)
+				ct=ContentType.APPLICATION_OCTET_STREAM;
 			String str = Caster.toString(value);
-			if(str.startsWith("<empty:") && str.endsWith(">")) {
-				String contentType=str.substring(7, str.length()-1);
-				return new EmptyRequestEntity(contentType);
+			if(str.equals("<empty>")) {
+				//String contentType=str.substring(7, str.length()-1);
+				return new EmptyRequestEntity(ct.toString());
 			}
-				
-			
-			return new StringRequestEntity(str);
+			try {
+				return new StringRequestEntity(str,ct.getMimeType(),ct.getCharset()==null?null:ct.getCharset().name());
+			}
+			catch(UnsupportedEncodingException e) {
+				throw Caster.toPageException(e);
+			}
 		}
     }
 	

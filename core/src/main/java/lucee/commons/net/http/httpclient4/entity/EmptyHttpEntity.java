@@ -24,21 +24,22 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.apache.http.entity.AbstractHttpEntity;
+import org.apache.http.entity.ContentType;
 
 public class EmptyHttpEntity extends AbstractHttpEntity implements Entity4 {
 
 	
 	
-	private String strContentType;
+	private ContentType ct;
 
 	/**
 	 * Constructor of the class
 	 * @param contentType
 	 */
-	public EmptyHttpEntity(String contentType) {
+	public EmptyHttpEntity(ContentType contentType) {
 		super();
-		setContentType(contentType);
-		strContentType=contentType;
+		this.ct=contentType;
+		setContentType(ct!=null?ct.toString():null);
 	}
 	
 	@Override
@@ -73,7 +74,7 @@ public class EmptyHttpEntity extends AbstractHttpEntity implements Entity4 {
 
 	@Override
 	public String contentType() {
-		return strContentType;
+		return ct!=null?ct.toString():null;
 	}
 
 }
