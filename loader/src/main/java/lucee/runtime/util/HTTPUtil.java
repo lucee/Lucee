@@ -82,7 +82,7 @@ public interface HTTPUtil {
 			int timeout, String mimetype, String charset, String useragent, String proxyserver,
 			int proxyport, String proxyuser, String proxypassword,
 			Header[] headers, Object body) throws IOException ;
-
+	
 	public HTTPResponse delete(URL url, String username, String password,
 			int timeout, String charset, String useragent, String proxyserver,
 			int proxyport, String proxyuser, String proxypassword,
@@ -161,4 +161,6 @@ public interface HTTPUtil {
 	 * @return
 	 */
 	public URL removeUnecessaryPort(URL url);
+
+	Header createHeader(String name, String value);
 }

@@ -146,5 +146,10 @@ public class HTTPUtilImpl implements HTTPUtil {
 		return new lucee.commons.net.HTTPUtil().removeUnecessaryPort(url);
 	}
 
+	@Override
+	public Header createHeader(String name, String value) {
+		return HTTPEngine.header(name, value);
+	}
+
 
 }

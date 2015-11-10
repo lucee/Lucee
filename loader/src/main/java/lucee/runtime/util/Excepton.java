@@ -18,6 +18,8 @@
  */
 package lucee.runtime.util;
 
+import java.io.IOException;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.db.SQL;
@@ -318,5 +320,7 @@ public interface Excepton {
 
 	public PageException createFunctionException(PageContext pc,
 			String functionName, int min, int max, int actual);
+
+	public IOException toIOException(Throwable t);
 
 }

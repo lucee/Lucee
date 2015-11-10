@@ -163,4 +163,6 @@ public interface IO {
 	public void copy(InputStream is, Resource out, boolean closeIS)
 			throws IOException;
 
+	public OutputStream createTemporaryStream();
+
 }

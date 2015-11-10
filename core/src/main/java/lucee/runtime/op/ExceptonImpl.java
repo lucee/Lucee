@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.op;
 
+import java.io.IOException;
+
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
@@ -238,7 +240,9 @@ public final class ExceptonImpl implements Excepton {
 	public RuntimeException createPageRuntimeException(PageException pe) {
 		return new PageRuntimeException(pe);
 	}
-    
-	
 
+	@Override
+	public IOException toIOException(Throwable t) {
+		return ExceptionUtil.toIOException(t);
+	}
 }

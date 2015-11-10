@@ -27,6 +27,7 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.TemporaryStream;
 import lucee.commons.io.res.Resource;
 import lucee.runtime.util.IO;
 
@@ -142,5 +143,10 @@ public class IOImpl implements IO {
 	@Override
 	public void copy(InputStream is, Resource out, boolean closeIS) throws IOException {
 		IOUtil.copy(is, out, closeIS);
+	}
+
+	@Override
+	public OutputStream createTemporaryStream() {
+		return new TemporaryStream();
 	}
 }
