@@ -129,6 +129,7 @@ public class RHExtension implements Serializable {
 	private final List<Map<String, String>> orms;
 	private final List<Map<String, String>> monitors;
 	private final List<Map<String, String>> searchs;
+	private final List<Map<String, String>> resources;
 	private final List<Map<String, String>> amfs;
 	private final List<Map<String, String>> jdbcs;
 	private final List<Map<String, String>> mappings;
@@ -185,6 +186,7 @@ public class RHExtension implements Serializable {
 		List<Map<String,String>> orms=null;
 		List<Map<String,String>> monitors=null;
 		List<Map<String,String>> searchs=null;
+		List<Map<String,String>> resources=null;
 		List<Map<String,String>> amfs=null;
 		List<Map<String,String>> jdbcs=null;
 		List<Map<String,String>> eventGateways=null;
@@ -254,6 +256,12 @@ public class RHExtension implements Serializable {
 			amfs = toSettings(logger,str);
 		}
 		
+		// resource
+		str=unwrap(attr.getValue("resource"));
+		if(!StringUtil.isEmpty(str,true)) {
+			resources = toSettings(logger,str);
+		}
+
 		// search
 		str=unwrap(attr.getValue("search"));
 		if(!StringUtil.isEmpty(str,true)) {
@@ -398,6 +406,7 @@ public class RHExtension implements Serializable {
 		this.orms=orms==null?new ArrayList<Map<String, String>>():orms;
 		this.monitors=monitors==null?new ArrayList<Map<String, String>>():monitors;
 		this.searchs=searchs==null?new ArrayList<Map<String, String>>():searchs;
+		this.resources=resources==null?new ArrayList<Map<String, String>>():resources;
 		this.amfs=amfs==null?new ArrayList<Map<String, String>>():amfs;
 		this.jdbcs=jdbcs==null?new ArrayList<Map<String, String>>():jdbcs;
 		this.mappings=mappings==null?new ArrayList<Map<String, String>>():mappings;
@@ -809,6 +818,9 @@ public class RHExtension implements Serializable {
 
 	public List<Map<String, String>> getSearchs() {
 		return searchs;
+	}
+	public List<Map<String, String>> getResources() {
+		return resources;
 	}
 	public List<Map<String, String>> getAMFs() {
 		return amfs;

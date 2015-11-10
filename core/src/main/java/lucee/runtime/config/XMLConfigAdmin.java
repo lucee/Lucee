@@ -99,6 +99,7 @@ import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.net.ntp.NtpClient;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.orm.ORMEngine;
@@ -120,6 +121,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Cluster;
 import lucee.runtime.type.scope.ClusterNotSupported;
@@ -2108,12 +2110,19 @@ public final class XMLConfigAdmin {
         	parent.setAttribute("default-webservice", name);
         }
     }
-	
+
     public void removeResourceProvider(ClassDefinition cd) throws PageException {
     	checkWriteAccess();
     	SecurityManager sm = config.getSecurityManager();
     	short access = sm.getAccess(SecurityManager.TYPE_FILE);
     	boolean hasAccess=access==SecurityManager.VALUE_YES;
+    	
+    	if(!hasAccess)
+            throw new SecurityException("no access to remove resource provider");
+        
+    	_removeResourceProvider(cd);
+    }
+    public void _removeResourceProvider(ClassDefinition cd) throws PageException {
     	
     	String className;
 		try {
@@ -2122,9 +2131,6 @@ public final class XMLConfigAdmin {
 			throw Caster.toPageException(e);
 		} 
     	
-    	if(!hasAccess)
-            throw new SecurityException("no access to remove resources");
-        
         Element parent=_getRootElement("resources");
         
         // remove
@@ -2137,21 +2143,28 @@ public final class XMLConfigAdmin {
   			}
       	}
 	}	
-    
+
     public void updateResourceProvider(String scheme, ClassDefinition cd,Struct arguments) throws PageException {
     	updateResourceProvider(scheme, cd, toStringCSSStyle(arguments));
     }
+    
+    public void _updateResourceProvider(String scheme, ClassDefinition cd,Struct arguments) throws PageException {
+    	_updateResourceProvider(scheme, cd, toStringCSSStyle(arguments));
+    }
 
-	public void updateResourceProvider(String scheme, ClassDefinition cd,String arguments) throws PageException {
+    public void updateResourceProvider(String scheme, ClassDefinition cd,String arguments) throws PageException {
     	checkWriteAccess();
     	SecurityManager sm = config.getSecurityManager();
     	short access = sm.getAccess(SecurityManager.TYPE_FILE);
     	boolean hasAccess=access==SecurityManager.VALUE_YES;
     	
-    	
     	if(!hasAccess)
             throw new SecurityException("no access to update resources");
-        
+        _updateResourceProvider(scheme, cd, arguments);
+    }
+    
+	public void _updateResourceProvider(String scheme, ClassDefinition cd,String arguments) throws PageException {
+    	
         // check parameters
     	if(StringUtil.isEmpty(scheme))throw new ExpressionException("scheme can't be a empty value");
     	
@@ -4636,6 +4649,25 @@ public final class XMLConfigAdmin {
 					logger.info("extension", "update search engine ["+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
 			}
+
+			// update Resource
+			if(!ArrayUtil.isEmpty(rhext.getResources())) {
+				Iterator<Map<String, String>> itl = rhext.getResources().iterator();
+				Map<String, String> map;
+				while(itl.hasNext()){
+					map = itl.next();
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					String scheme = map.get("scheme");
+					if(cd.hasClass() && !StringUtil.isEmpty(scheme)) {
+						Struct args=new StructImpl();
+						copyButIgnoreClassDef(map,args);
+						args.remove("scheme");
+						_updateResourceProvider(scheme, cd, args);
+						reload=true;
+					}
+					logger.info("extension", "update resource provider ["+scheme+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
+				}
+			}
 			
 			// update orm
 			if(!ArrayUtil.isEmpty(rhext.getOrms())) {
@@ -4736,6 +4768,25 @@ public final class XMLConfigAdmin {
 	}
 	
 	
+	private void copyButIgnoreClassDef(Map<String, String> src, Struct trg) {
+		Iterator<Entry<String, String>> it = src.entrySet().iterator();
+		Entry<String, String> e;
+		String name;
+		while(it.hasNext()){
+			e = it.next();
+			name=e.getKey();
+			if("class".equals(name) ||
+					"bundle-name".equals(name) ||
+					"bundlename".equals(name) ||
+					"bundleName".equals(name) ||
+					"bundle-version".equals(name) ||
+					"bundleversion".equals(name) ||
+					"bundleVersion".equals(name)	)continue;
+			trg.setEL(name, e.getValue());
+		}
+	}
+
+
 	private void removeRHExtension(Config config, RHExtension rhe) throws PageException{
 		ConfigImpl ci=((ConfigImpl)config);
 		Log logger = ci.getLog("deploy");
@@ -4801,6 +4852,20 @@ public final class XMLConfigAdmin {
 						//reload=true;
 					}
 					logger.info("extension", "remove search engine ["+cd+"] from extension ["+rhe.getName()+":"+rhe.getVersion()+"]");
+				}
+			}
+			
+			// remove Search
+			if(!ArrayUtil.isEmpty(rhe.getResources())) {
+				Iterator<Map<String, String>> itl = rhe.getResources().iterator();
+				Map<String, String> map;
+				while(itl.hasNext()){
+					map = itl.next();
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					if(cd.hasClass()) {
+						_removeResourceProvider(cd);
+					}
+					logger.info("extension", "remove resource provider engine ["+cd+"] from extension ["+rhe.getName()+":"+rhe.getVersion()+"]");
 				}
 			}
 			
