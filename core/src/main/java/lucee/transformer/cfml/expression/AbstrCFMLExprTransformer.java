@@ -1340,14 +1340,26 @@ public abstract class AbstrCFMLExprTransformer {
 	}
 
 	private Expression subDynamic(ExprData data,Expression expr, boolean tryStatic, boolean isStaticChild) throws TemplateException {
-
+		
 	    String name=null;
 	    Invoker invoker=null;
 		// Loop over nested Variables
 		while (data.srcCode.isValidIndex()) {
 			ExprString nameProp = null,namePropUC = null;
+			// []
+			if (data.srcCode.forwardIfCurrent('[')) {
+				isStaticChild=false;
+				// get Next Var
+				nameProp = structElement(data);
+				namePropUC=nameProp;
+				// Valid Syntax ???
+				if (!data.srcCode.forwardIfCurrent(']'))
+					throw new TemplateException(
+						data.srcCode,
+						"Invalid Syntax Closing []] not found");
+			}
 			// .
-			if (isStaticChild ||data.srcCode.forwardIfCurrent('.')) {
+			else if (isStaticChild ||data.srcCode.forwardIfCurrent('.')) {
 				isStaticChild=false;
 				// Extract next Var String
                 comments(data);
@@ -1358,18 +1370,6 @@ public abstract class AbstrCFMLExprTransformer {
                 comments(data);
 				nameProp=Identifier.toIdentifier(data.factory,name,line,data.srcCode.getPosition());
 				namePropUC=Identifier.toIdentifier(data.factory,name,data.settings.dotNotationUpper?Identifier.CASE_UPPER:Identifier.CASE_ORIGNAL,line,data.srcCode.getPosition());
-			}
-			// []
-			else if (data.srcCode.forwardIfCurrent('[')) {
-				
-				// get Next Var
-				nameProp = structElement(data);
-				namePropUC=nameProp;
-				// Valid Syntax ???
-				if (!data.srcCode.forwardIfCurrent(']'))
-					throw new TemplateException(
-						data.srcCode,
-						"Invalid Syntax Closing []] not found");
 			}
 			/* / :
 			else if (data.cfml.forwardIfCurrent(':')) {

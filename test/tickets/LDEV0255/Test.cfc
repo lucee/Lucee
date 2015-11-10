@@ -1,0 +1,5 @@
+component {
+	static {
+		f = () -> true;
+	}
+}
