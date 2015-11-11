@@ -27,9 +27,6 @@
   <property name="extDoc" value="D46D49C3-EB85-8D97-30BEC2F38561E985"/>
   <property name="extPDF" value="66E312DD-D083-27C0-64189D16753FD6F0"/>
 
-
-
-
   <property name="extH2" value="465E1E35-2425-4F4E-8B3FAB638BD7280A"/>
   
   <!-- http://www.coldbox.org/download/testbox -->
@@ -70,6 +67,29 @@
       project.setProperty(attributes.get("property"), text);
      ]]>
   </scriptdef>
+
+  <scriptdef name="felix" language="javascript">
+     <attribute name="property" />
+     <attribute name="dependencies" />
+     <attribute name="separator" />
+     <![CDATA[
+      var dep = attributes.get("dependencies");
+      var sep = attributes.get("separator");
+      var arr=dep.split(sep);
+      
+      var rtn="";
+      for(var i=0;i<arr.length;i++){
+        if(arr[i].indexOf("felix")!=-1) {
+          rtn=arr[i];
+          break;
+        } 
+      }
+
+      var res=arr[0];
+      project.setProperty(attributes.get("property"), rtn);
+     ]]>
+  </scriptdef>
+  
   <scriptdef name="currentTime" language="javascript">
      <attribute name="property" />
      <![CDATA[
@@ -119,7 +139,6 @@
      ]]>
   </scriptdef>
 
-
   <target name="init">
 
     <property name="srcLoader" location="${rootDir}/loader/src/main/java"/>
@@ -137,7 +156,6 @@
     <property file="${rootDir}/build.properties"/>
 
 <echo>
-
    __                     
   / / _   _  ___ ___  ___ 
  / / | | | |/ __/ _ \/ _ \
@@ -457,8 +475,6 @@ LUCEE BUILD PROCESS
     <copy file="${temp}/archive/lucee-context.lar" tofile="${core}/resource/context/lucee-context.lar"/>
     <copy file="${temp}/archive/lucee-admin.lar" tofile="${core}/resource/context/lucee-admin.lar"/> 
     <copy file="${temp}/archive/lucee-doc.lar" tofile="${core}/resource/context/lucee-doc.lar"/> 
-    
-
 
   </target>
 
@@ -473,79 +489,119 @@ LUCEE BUILD PROCESS
     </copy>
   </target>
 
+  <target name="addFelix">
+    <!-- get the path for the felix jar TODO this impl could be better -->
+    <felix property="felix" separator="${path.separator}" dependencies="${dependencies}"/>
+    
+    <!-- unzip the content to target -->
+    <unzip src="${felix}" dest="${goal}">
+        <!-- <patternset>
+            <exclude name="**/MANIFEST.MF"/>
+        </patternset> -->
+    </unzip>
+
+
+    <!-- Manifest need merging -->
+    <loadproperties 
+      srcFile="${srcLoader}/META-INF/MANIFEST.MF"
+      prefix="mani.core."/>
+    <manifest file="${goal}/META-INF/MANIFEST.MF" mode="update">
+      <attribute name="Premain-Class" value="${mani.core.Premain-Class}"/>
+      <attribute name="Agent-Class" value="${mani.core.Agent-Class}"/>
+      <attribute name="Can-Redefine-Classes" value="${mani.core.Can-Redefine-Classes}"/>
+      <attribute name="Can-Retransform-Classes" value="${mani.core.Can-Retransform-Classes}"/>
+      <attribute name="Main-Class" value="${mani.core.Main-Class}"/>
+      <attribute name="Bundle-Description" value="${mani.core.Bundle-Description}"/>
+      <attribute name="Bundle-DocURL" value="${mani.core.Bundle-DocURL}"/>
+      <attribute name="Bundle-License" value="${mani.core.Bundle-License}"/>
+      <attribute name="Bundle-Vendor" value="${mani.core.Bundle-Vendor}"/>
+
+      <attribute name="Built-By" value="Lucee build process"/>
+      <attribute name="Created-By" value="Lucee build process"/>
+
+    </manifest>
+    <!-- TODO load dyn -->
+  </target>
+
+
   <target name="addExtensions">
-    <mkdir dir="${outputDir}/extensions/"/>
+    <mkdir dir="${goal}/extensions/"/>
 
     <!-- add extension MySQL -->
     <loadmf jar="${cache}/${extMySQL}.lex" prefix="ext_mysql."/>
     <toFileName name="${ext_mysql.name}" version="${ext_mysql.version}" property="ext_mysql.filename"/>
     <copy 
       file="${cache}/${extMySQL}.lex" 
-      todir="${outputDir}/extensions/"/>
+      todir="${goal}/extensions/"/>
     <move 
-      file="${outputDir}/extensions/${extMySQL}.lex" 
-      tofile="${outputDir}/extensions/${ext_mysql.filename}"/>
-    <echo>add:${outputDir}/extensions/${ext_mysql.filename}</echo>
+      file="${goal}/extensions/${extMySQL}.lex" 
+      tofile="${goal}/extensions/${ext_mysql.filename}"/>
+    <echo>add:${goal}/extensions/${ext_mysql.filename}</echo>
 
     <!-- add extension MSSQL -->
     <loadmf jar="${cache}/${extMSSQL}.lex" prefix="ext_mssql."/>
     <toFileName name="${ext_mssql.name}" version="${ext_mssql.version}" property="ext_mssql.filename"/>
     <copy 
       file="${cache}/${extMSSQL}.lex" 
-      todir="${outputDir}/extensions/"/>
+      todir="${goal}/extensions/"/>
     <move 
-      file="${outputDir}/extensions/${extMSSQL}.lex" 
-      tofile="${outputDir}/extensions/${ext_mssql.filename}"/>
-    <echo>add:${outputDir}/extensions/${ext_mssql.filename}</echo>
+      file="${goal}/extensions/${extMSSQL}.lex" 
+      tofile="${goal}/extensions/${ext_mssql.filename}"/>
+    <echo>add:${goal}/extensions/${ext_mssql.filename}</echo>
 
     <!-- add extension Postgre -->
     <loadmf jar="${cache}/${extPostgreSQL}.lex" prefix="ext_postgre."/>
     <toFileName name="${ext_postgre.name}" version="${ext_postgre.version}" property="ext_postgre.filename"/>
     <copy 
       file="${cache}/${extPostgreSQL}.lex" 
-      todir="${outputDir}/extensions/"/>
+      todir="${goal}/extensions/"/>
     <move 
-      file="${outputDir}/extensions/${extPostgreSQL}.lex" 
-      tofile="${outputDir}/extensions/${ext_postgre.filename}"/>
-    <echo>add:${outputDir}/extensions/${ext_postgre.filename}</echo>
+      file="${goal}/extensions/${extPostgreSQL}.lex" 
+      tofile="${goal}/extensions/${ext_postgre.filename}"/>
+    <echo>add:${goal}/extensions/${ext_postgre.filename}</echo>
 
     <!-- add extension JDTS -->
     <loadmf jar="${cache}/${extJDTsSQL}.lex" prefix="ext_jdts."/>
     <toFileName name="${ext_jdts.name}" version="${ext_jdts.version}" property="ext_jdts.filename"/>
     <copy 
       file="${cache}/${extJDTsSQL}.lex" 
-      todir="${outputDir}/extensions/"/>
+      todir="${goal}/extensions/"/>
     <move 
-      file="${outputDir}/extensions/${extJDTsSQL}.lex" 
-      tofile="${outputDir}/extensions/${ext_jdts.filename}"/>
-    <echo>add:${outputDir}/extensions/${ext_jdts.filename}</echo>
+      file="${goal}/extensions/${extJDTsSQL}.lex" 
+      tofile="${goal}/extensions/${ext_jdts.filename}"/>
+    <echo>add:${goal}/extensions/${ext_jdts.filename}</echo>
 
     <!-- add extension Admin -->
     <loadmf jar="${cache}/${extAdmin}.lex" prefix="ext_admin."/>
     <toFileName name="${ext_admin.name}" version="${ext_admin.version}" property="ext_admin.filename"/>
     <copy 
       file="${cache}/${extAdmin}.lex" 
-      todir="${outputDir}/extensions/"/>
+      todir="${goal}/extensions/"/>
     <move 
-      file="${outputDir}/extensions/${extAdmin}.lex" 
-      tofile="${outputDir}/extensions/${ext_admin.filename}"/>
-    <echo>add:${outputDir}/extensions/${ext_admin.filename}</echo>
+      file="${goal}/extensions/${extAdmin}.lex" 
+      tofile="${goal}/extensions/${ext_admin.filename}"/>
+    <echo>add:${goal}/extensions/${ext_admin.filename}</echo>
 
     <!-- add extension Doc -->
     <loadmf jar="${cache}/${extDoc}.lex" prefix="ext_doc."/>
     <toFileName name="${ext_doc.name}" version="${ext_doc.version}" property="ext_doc.filename"/>
     <copy 
       file="${cache}/${extDoc}.lex" 
-      todir="${outputDir}/extensions/"/>
+      todir="${goal}/extensions/"/>
     <move 
-      file="${outputDir}/extensions/${extDoc}.lex" 
-      tofile="${outputDir}/extensions/${ext_doc.filename}"/>
-    <echo>add:${outputDir}/extensions/${ext_doc.filename}</echo>
+      file="${goal}/extensions/${extDoc}.lex" 
+      tofile="${goal}/extensions/${ext_doc.filename}"/>
+    <echo>add:${goal}/extensions/${ext_doc.filename}</echo>
 
 
   </target>
 
-  <target name="buildLoader" depends="__build,addExtensions" description="generate the loader jar" >  
+
+  <target name="setMvnEnv" description="set the variable right for ant">
+    <property name="goal" location="${outputDir}"/>
+  </target>
+
+  <target name="buildLoaderMaven" depends="__build,setMvnEnv,addExtensions,addFelix" description="generate the loader jar" >  
     <!-- create the luce core -->
     <jar 
         basedir="${core}" 
@@ -564,7 +620,17 @@ LUCEE BUILD PROCESS
     
     <delete dir="${temp}"/>
   </target>
-  <target name="buildLoaderAnt" depends="__build,addExtensions" description="generate the loader jar" >  
+
+
+  <target name="setAntEnv" description="set the variable right for ant">
+    <echo>before:${goal}</echo>
+    <property name="goal" location="${temp}/loader"/>
+<echo>after:${goal}</echo>
+    
+
+  </target>
+
+  <target name="buildLoaderAnt" depends="__build,setAntEnv,addExtensions,addFelix" description="generate the loader jar" >  
     
     <!-- create core -->
     <jar 
@@ -588,7 +654,7 @@ LUCEE BUILD PROCESS
     <jar 
       basedir="${temp}/loader" 
       jarfile="${trgLoader}/lucee-${version}.jar" 
-      manifest="${srcLoader}/META-INF/MANIFEST.MF"/>
+      manifest="${goal}/META-INF/MANIFEST.MF"/>
 
 
     <delete dir="${temp}"/>

@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.111-SNAPSHOT</version>
+  <version>5.0.0.112-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -193,7 +193,7 @@
                     <property name="baseDir" value="${basedir}" />
                     <dirname file="${baseDir}" property="rootDir" />
 
-                    <ant antfile="../ant/build-core.xml" target="buildLoader" />                    
+                    <ant antfile="../ant/build-core.xml" target="buildLoaderMaven" />                    
 
 
                   </tasks>
