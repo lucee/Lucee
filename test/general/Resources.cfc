@@ -179,7 +179,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		    file action="move" source="#d#" destination="#sdsf#";
 		    
 		    directory directory="#dir#" action="list" name="children" recurse="yes";
-		    assertEquals("test1,test4.txt",
+		    assertEquals("test1,test4.txtXX",
 			  		valueList(children.name));
 	    }
 	    finally {
@@ -248,6 +248,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testLocalFilesystem(){
 		test("file",getDirectoryFromPath(getCurrentTemplatePath()));
+	}
+
+	public void function testZip(){
+		
+		var file=getDirectoryFromPath(getCurrentTemplatePath())&"zip-"&getTickCount()&".zip";
+		try {
+			//first we create a zip we can use then as a filesystem
+			zip action="zip" file=file  {
+				zipparam source=getCurrentTemplatePath();
+			}
+
+			// now we use that zip
+			test("zip",file);
+		}
+		// now we delete that zip again
+		finally {
+			fileDelete(file);
+		}
 	}
 
 
