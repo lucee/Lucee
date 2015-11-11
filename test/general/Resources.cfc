@@ -243,8 +243,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testRam(){
-		test("ram://");
+		test("ram","ram://");
 	}
+
+	public void function testLocalFilesystem(){
+		test("file",getDirectoryFromPath(getCurrentTemplatePath()));
+	}
+
 
 } 
 
