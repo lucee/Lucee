@@ -179,7 +179,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		    file action="move" source="#d#" destination="#sdsf#";
 		    
 		    directory directory="#dir#" action="list" name="children" recurse="yes";
-		    assertEquals("test1,test4.txtXX",
+		    assertEquals("test1,test4.txt",
 			  		valueList(children.name));
 	    }
 	    finally {
