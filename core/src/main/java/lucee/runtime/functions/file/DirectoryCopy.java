@@ -19,7 +19,6 @@
 package lucee.runtime.functions.file;
 
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.type.s3.S3Constants;
 import lucee.commons.io.res.util.ResourceAndResourceNameFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.res.util.UDFFilter;
@@ -48,7 +47,7 @@ public class DirectoryCopy implements Function {
 	public static String call(PageContext pc , String source, String destination,boolean recurse, Object filter,boolean createPath) throws PageException {
 		Resource src = ResourceUtil.toResourceNotExisting(pc ,source);
 		ResourceAndResourceNameFilter fi = filter==null?null:UDFFilter.createResourceAndResourceNameFilter(filter);
-		Directory.actionCopy(pc, src, destination, null,createPath, null, S3Constants.STORAGE_UNKNOW, fi, recurse, Directory.NAMECONFLICT_DEFAULT);
+		Directory.actionCopy(pc, src, destination, null,createPath, null, null, fi, recurse, Directory.NAMECONFLICT_DEFAULT);
 		return null;
 	}
 	

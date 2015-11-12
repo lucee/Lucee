@@ -37,8 +37,6 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.ModeUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.type.s3.S3;
-import lucee.commons.io.res.type.s3.S3Resource;
 import lucee.commons.io.res.util.ModeObjectWrap;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
@@ -56,7 +54,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.functions.list.ListFirst;
 import lucee.runtime.functions.list.ListLast;
-import lucee.runtime.functions.s3.StoreSetACL;
 import lucee.runtime.img.ImageUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -478,7 +475,7 @@ public final class FileTag extends BodyTagImpl {
 		catch(Throwable t) {t.printStackTrace();
 			throw new ApplicationException(t.getMessage());
 		}
-		setACL(destination,acl);
+		setACL(pageContext,destination,acl);
 		setMode(destination,mode);
         setAttributes(destination,attributes);
 	}
@@ -541,37 +538,16 @@ public final class FileTag extends BodyTagImpl {
             ae.setStackTrace(e.getStackTrace());
             throw ae;
 		}
-		setACL(destination,acl);
+		setACL(pageContext,destination,acl);
 		setMode(destination,mode);
         setAttributes(destination,attributes);
 	}
 
-	private static void setACL(Resource res,Object acl) throws PageException {
+	private static void setACL(PageContext pc,Resource res,Object acl) throws PageException {
 		String scheme = res.getResourceProvider().getScheme();
-		
 		if("s3".equalsIgnoreCase(scheme)){
-			S3Resource s3r=(S3Resource) res;
-			
-			if(acl!=null){
-				try {
-					// old way
-					if(Decision.isString(acl)) {
-						s3r.setACL(S3.toIntACL(Caster.toString(acl)));
-					}
-					// new way
-					else {
-						StoreSetACL.invoke(s3r, acl);
-					}
-				} catch (IOException e) {
-					throw Caster.toPageException(e);
-				}
-			}
-			
+			Directory.setS3Attrs(pc, res, acl, null);
 		}
-		// set acl for s3 resource
-		/*if(res instanceof S3Resource) {
-			((S3Resource)res).setACL(acl);
-		}*/
 	}
 
 	private static Resource makeUnique(Resource res) {
@@ -593,7 +569,7 @@ public final class FileTag extends BodyTagImpl {
 	 */
 	private void actionDelete() throws PageException {
 		checkFile(false,false,false,false);
-		setACL(file,acl);
+		setACL(pageContext,file,acl);
 		try {
 			if(!file.delete()) throw new ApplicationException("can't delete file ["+file+"]");
 		}
@@ -695,7 +671,7 @@ public final class FileTag extends BodyTagImpl {
             
             throw new ApplicationException("can't write file "+file.getAbsolutePath(),e.getMessage());
         }
-        setACL(file,acl);
+        setACL(pageContext,file,acl);
         setMode(file,mode);
         setAttributes(file,attributes);
     }
@@ -715,7 +691,7 @@ public final class FileTag extends BodyTagImpl {
             throw new ApplicationException("can't touch file "+file.getAbsolutePath(),e.getMessage());
         }
         
-        setACL(file,acl);
+        setACL(pageContext,file,acl);
         setMode(file,mode);
         setAttributes(file,attributes);
     }
@@ -746,7 +722,7 @@ public final class FileTag extends BodyTagImpl {
         catch (IOException e) {
             throw new ApplicationException("can't write file",e.getMessage());
         }
-        setACL(file,acl);
+        setACL(pageContext,file,acl);
 		setMode(file,mode);
         setAttributes(file,attributes);
 	}
@@ -988,7 +964,7 @@ public final class FileTag extends BodyTagImpl {
 			cffile.set("filewassaved",Boolean.TRUE);
 			
 
-			setACL(destination,acl);
+			setACL(pageContext,destination,acl);
 			setMode(destination,mode);
 	        setAttributes(destination, attributes);
 	        return cffile;

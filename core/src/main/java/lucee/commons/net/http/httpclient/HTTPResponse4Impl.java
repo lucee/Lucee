@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.commons.net.http.httpclient4;
+package lucee.commons.net.http.httpclient;
 
 import java.io.IOException;
 import java.io.InputStream;

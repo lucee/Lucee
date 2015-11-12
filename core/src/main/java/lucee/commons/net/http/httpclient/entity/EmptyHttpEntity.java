@@ -16,52 +16,51 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.commons.net.http.httpclient4.entity;
+package lucee.commons.net.http.httpclient.entity;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import lucee.commons.io.IOUtil;
-import lucee.commons.io.res.Resource;
-
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.ContentType;
 
-/**
- * A RequestEntity that represents a Resource.
- */
-public class ResourceHttpEntity extends AbstractHttpEntity implements Entity4 {
+public class EmptyHttpEntity extends AbstractHttpEntity implements Entity4 {
 
-    final Resource res;
+	
+	
 	private ContentType ct;
-    
-    public ResourceHttpEntity(final Resource res, final ContentType contentType) {
-    	super();
-        this.res = res;
-        if(contentType!=null)setContentType(contentType.toString());
-        ct = contentType;
-    }
-   
-    @Override
-    public long getContentLength() {
-        return this.res.length();
-    }
 
-    @Override
-    public boolean isRepeatable() {
-        return true;
-    }
-    
-    @Override
-    public InputStream getContent() throws IOException {
-    	return res.getInputStream();
-    }
+	/**
+	 * Constructor of the class
+	 * @param contentType
+	 */
+	public EmptyHttpEntity(ContentType contentType) {
+		super();
+		this.ct=contentType;
+		setContentType(ct!=null?ct.toString():null);
+	}
+	
+	@Override
+	public long getContentLength() {
+		return 0;
+	}
 
-    @Override
-    public void writeTo(final OutputStream out) throws IOException {
-       IOUtil.copy(res.getInputStream(), out,true,false);
-    }
+	@Override
+	public boolean isRepeatable() {
+		return true;
+	}
+
+	@Override
+	public void writeTo(OutputStream os) {
+		// do nothing
+	}
+
+	@Override
+	public InputStream getContent() throws IOException, IllegalStateException {
+		return new ByteArrayInputStream(new byte[0]);
+	}
 
 	@Override
 	public boolean isStreaming() {
@@ -77,4 +76,5 @@ public class ResourceHttpEntity extends AbstractHttpEntity implements Entity4 {
 	public String contentType() {
 		return ct!=null?ct.toString():null;
 	}
+
 }

@@ -274,9 +274,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if(!isNull(server.system.environment.S3_ACCESS_ID) && !isNull(server.system.environment.S3_SECRET_KEY)) {
 			acessId=server.system.environment.S3_ACCESS_ID;
 			secretKey=server.system.environment.S3_SECRET_KEY;
+		}
+		// getting the credetials from the system variables
+		else if(!isNull(server.system.properties.S3_ACCESS_ID) && !isNull(server.system.properties.S3_SECRET_KEY)) {
+			acessId=server.system.properties.S3_ACCESS_ID;
+			secretKey=server.system.properties.S3_SECRET_KEY;
+		}
+
+
+		if(!isNull(acessId)) {
 			test("s3","s3://#acessId#:#secretKey#@s3.amazonaws.com/");
 		}
-		else
+		else 
 			fail("cannot execute the testcases for s3, because there are no credetials set in the environment variables, you need to set ""S3_ACCESS_ID"" and ""S3_SECRET_KEY"" in the enviroment variables to execute this testcases ");
 
 	}

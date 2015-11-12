@@ -16,30 +16,34 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.runtime.functions.s3;
+package lucee.commons.net.http.httpclient;
 
-import lucee.runtime.PageContext;
-import lucee.runtime.exp.PageException;
-import lucee.runtime.op.Caster;
-import lucee.runtime.type.Struct;
+import org.apache.http.Header;
 
-public class StoreSetMetaData extends S3Function {
-	
-	public static String call(PageContext pc , String url, Struct metadata) throws PageException {
-		try {
-			return _call(pc, url,metadata);
-		} catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
+public class HeaderWrap implements lucee.commons.net.http.Header {
+	public final Header header;
+
+	public HeaderWrap(Header header){
+		this.header=header;
 	}
 
-	public static String _call(PageContext pc , String url, Struct metadata) {
-		//S3Resource res=toS3Resource(pc,url,"StoreGetMetaData");
-		
-		return null;
+	@Override
+	public String getName() {
+		return header.getName();
+	}
+
+	@Override
+	public String getValue() {
+		return header.getValue();
 	}
 	
-
+	@Override
+	public String toString(){
+		return header.toString();
+	}
 	
-	
+	@Override
+	public boolean equals(Object obj){
+		return header.equals(obj);
+	}
 }

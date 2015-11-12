@@ -2099,7 +2099,6 @@ public abstract class ConfigImpl implements Config {
 	}
 	
 	protected void addResourceProvider(String strProviderScheme, ClassDefinition cd, Map arguments) throws ClassException, BundleException {
-		// old buld in S3
 		Object o=ClassUtil.loadInstance(cd.getClazz());
 		
 		if(o instanceof ResourceProvider) {

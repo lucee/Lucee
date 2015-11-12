@@ -19,7 +19,6 @@
 package lucee.runtime.functions.file;
 
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.type.s3.S3Constants;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
@@ -32,7 +31,7 @@ public class DirectoryRename {
 	}
 	public static String call(PageContext pc , String oldPath,String newPath, boolean createPath) throws PageException {
 		Resource dir=ResourceUtil.toResourceNotExisting(pc, oldPath);
-		Directory.actionRename(pc, dir, newPath, null,createPath, S3Constants.ACL_PUBLIC_READ, S3Constants.STORAGE_UNKNOW);
+		Directory.actionRename(pc, dir, newPath, null,createPath, "public-read", null);
 		return null;
 	}
 }

@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  **/
-package lucee.commons.net.http.httpclient4;
+package lucee.commons.net.http.httpclient;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,11 +41,10 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.Entity;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
-import lucee.commons.net.http.httpclient3.entity.EmptyRequestEntity;
-import lucee.commons.net.http.httpclient4.entity.ByteArrayHttpEntity;
-import lucee.commons.net.http.httpclient4.entity.EmptyHttpEntity;
-import lucee.commons.net.http.httpclient4.entity.ResourceHttpEntity;
-import lucee.commons.net.http.httpclient4.entity.TemporaryStreamHttpEntity;
+import lucee.commons.net.http.httpclient.entity.ByteArrayHttpEntity;
+import lucee.commons.net.http.httpclient.entity.EmptyHttpEntity;
+import lucee.commons.net.http.httpclient.entity.ResourceHttpEntity;
+import lucee.commons.net.http.httpclient.entity.TemporaryStreamHttpEntity;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -59,10 +58,6 @@ import lucee.runtime.tag.Http;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.util.CollectionUtil;
 
-import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
-import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
-import org.apache.commons.httpclient.methods.RequestEntity;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;

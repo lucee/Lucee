@@ -1491,15 +1491,6 @@ public final class XMLConfigAdmin {
         	}
         }
         
-        
-        // FUTURE remove this part in upcoming versions
-        // add s3 when not
-        Element el=doc.createElement("resource-provider");
-        el.setAttribute("scheme", "s3");
-        el.setAttribute("class", S3ResourceProvider.class.getName());
-        el.setAttribute("arguments", "lock-timeout:10000;");
-        resources.appendChild(el);
-        
         return true;
 	}
 

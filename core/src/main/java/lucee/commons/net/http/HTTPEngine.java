@@ -29,15 +29,14 @@ import org.apache.http.entity.ContentType;
 import lucee.commons.io.TemporaryStream;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.net.http.httpclient3.HTTPEngine3Impl;
-import lucee.commons.net.http.httpclient4.HTTPEngine4Impl;
-import lucee.commons.net.http.httpclient4.HeaderImpl;
+import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
+import lucee.commons.net.http.httpclient.HeaderImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.type.util.CollectionUtil;
 
 public class HTTPEngine {
 	
-	private static final boolean use4=true;
+	//private static final boolean use4=true;
 
     /**
      * Field <code>ACTION_POST</code>
@@ -75,72 +74,84 @@ public class HTTPEngine {
 
 	
 	public static HTTPResponse get(URL url) throws IOException { 
-        if(use4) return HTTPEngine4Impl.get(url, null, null, -1,true, null, null, null, null);
-		return HTTPEngine3Impl.get(url, null, null, -1,MAX_REDIRECT, null, null, null, null);
+        //if(use4) 
+        	return HTTPEngine4Impl.get(url, null, null, -1,true, null, null, null, null);
+		//return HTTPEngine3Impl.get(url, null, null, -1,MAX_REDIRECT, null, null, null, null);
     }
     
     public static HTTPResponse post(URL url) throws IOException {
-    	if(use4) return HTTPEngine4Impl.post(url, null, null, -1,true, null, null, null, null);
-    	return HTTPEngine3Impl.post(url, null, null, -1,MAX_REDIRECT, null, null, null, null,null);
+    	//if(use4) 
+    		return HTTPEngine4Impl.post(url, null, null, -1,true, null, null, null, null);
+    	//return HTTPEngine3Impl.post(url, null, null, -1,MAX_REDIRECT, null, null, null, null,null);
     }
 	
 	public static HTTPResponse get(URL url, String username, String password, long timeout, boolean followRedirect,
 	        String charset, String useragent,ProxyData proxy, Header[] headers) throws IOException { 
-		if(use4) return HTTPEngine4Impl.get(url, username, password, timeout, followRedirect, charset, useragent, proxy, headers);
-		return HTTPEngine3Impl.get(url, username, password, timeout, followRedirect?MAX_REDIRECT:0, charset, useragent, proxy, headers);
+		//if(use4) 
+			return HTTPEngine4Impl.get(url, username, password, timeout, followRedirect, charset, useragent, proxy, headers);
+		//return HTTPEngine3Impl.get(url, username, password, timeout, followRedirect?MAX_REDIRECT:0, charset, useragent, proxy, headers);
     }
 
 	public static HTTPResponse post(URL url, String username, String password, long timeout, boolean followRedirect,
             String charset, String useragent, ProxyData proxy, Map<String,String> headers, Map<String,String> params) throws IOException {
-        	if(use4) return HTTPEngine4Impl.post(url, username, password, timeout, followRedirect, charset, useragent, proxy, toHeaders(headers),params);
-        	return HTTPEngine3Impl.post(url, username, password, timeout, followRedirect?MAX_REDIRECT:0, charset, useragent, proxy, toHeaders(headers),params);
+        	//if(use4) 
+        		return HTTPEngine4Impl.post(url, username, password, timeout, followRedirect, charset, useragent, proxy, toHeaders(headers),params);
+        	//return HTTPEngine3Impl.post(url, username, password, timeout, followRedirect?MAX_REDIRECT:0, charset, useragent, proxy, toHeaders(headers),params);
         }
     
     public static HTTPResponse head(URL url, String username, String password, int timeout, boolean followRedirect,
         String charset, String useragent,ProxyData proxy, Header[] headers) throws IOException {
-    	if(use4) return HTTPEngine4Impl.head(url, username, password, timeout, followRedirect, charset, useragent, proxy, headers);
-    	return HTTPEngine3Impl.head(url, username, password, timeout, followRedirect?MAX_REDIRECT:0, charset, useragent, proxy, headers);
+    	//if(use4) 
+    		return HTTPEngine4Impl.head(url, username, password, timeout, followRedirect, charset, useragent, proxy, headers);
+    	//return HTTPEngine3Impl.head(url, username, password, timeout, followRedirect?MAX_REDIRECT:0, charset, useragent, proxy, headers);
 	}
     
 	public static HTTPResponse put(URL url, String username, String password, int timeout, boolean followRedirect,
 		String mimetype,String charset, String useragent,ProxyData proxy, Header[] headers, Object body) throws IOException {
-		if(use4) return HTTPEngine4Impl.put(url, username, password, timeout, followRedirect, mimetype,charset, useragent, proxy, headers,body);     
-		return HTTPEngine3Impl.put(url, username, password, timeout, followRedirect?MAX_REDIRECT:0, mimetype,charset, useragent, proxy, headers,body);     
+		//if(use4) 
+			return HTTPEngine4Impl.put(url, username, password, timeout, followRedirect, mimetype,charset, useragent, proxy, headers,body);     
+		//return HTTPEngine3Impl.put(url, username, password, timeout, followRedirect?MAX_REDIRECT:0, mimetype,charset, useragent, proxy, headers,body);     
 	}
     
     public static HTTPResponse delete(URL url, String username, String password, int timeout, boolean followRedirect,
         String charset, String useragent,ProxyData proxy, Header[] headers) throws IOException {
-    	if(use4) return HTTPEngine4Impl.delete(url, username, password, timeout, followRedirect, charset, useragent, proxy, headers);
-    	return HTTPEngine3Impl.delete(url, username, password, timeout, followRedirect?MAX_REDIRECT:0, charset, useragent, proxy, headers);
+    	//if(use4) 
+    		return HTTPEngine4Impl.delete(url, username, password, timeout, followRedirect, charset, useragent, proxy, headers);
+    	//return HTTPEngine3Impl.delete(url, username, password, timeout, followRedirect?MAX_REDIRECT:0, charset, useragent, proxy, headers);
 	}
 
 	public static Header header(String name, String value) {
-		if(use4) return HTTPEngine4Impl.header(name, value);
-		return HTTPEngine3Impl.header(name, value);
+		//if(use4) 
+			return HTTPEngine4Impl.header(name, value);
+		//return HTTPEngine3Impl.header(name, value);
 	}
 
 	public static Entity getEmptyEntity(String mimetype, String charset) {
 		ContentType ct=toContentType(mimetype,charset);
-		if(use4) return HTTPEngine4Impl.getEmptyEntity(ct);
-		return HTTPEngine3Impl.getEmptyEntity(ct==null?null:ct.toString());
+		//if(use4) 
+			return HTTPEngine4Impl.getEmptyEntity(ct);
+		//return HTTPEngine3Impl.getEmptyEntity(ct==null?null:ct.toString());
 	}
 	
 	public static Entity getByteArrayEntity(byte[] barr, String mimetype, String charset) {
 		ContentType ct=toContentType(mimetype,charset);
-		if(use4) return HTTPEngine4Impl.getByteArrayEntity(barr,ct);
-		return HTTPEngine3Impl.getByteArrayEntity(barr,ct==null?null:ct.toString());
+		//if(use4) 
+			return HTTPEngine4Impl.getByteArrayEntity(barr,ct);
+		//return HTTPEngine3Impl.getByteArrayEntity(barr,ct==null?null:ct.toString());
 	}
 	
 	public static Entity getTemporaryStreamEntity(TemporaryStream ts, String mimetype, String charset) {
 		ContentType ct=toContentType(mimetype,charset);
-		if(use4) return HTTPEngine4Impl.getTemporaryStreamEntity(ts,ct);
-		return HTTPEngine3Impl.getTemporaryStreamEntity(ts,ct==null?null:ct.toString());
+		//if(use4) 
+			return HTTPEngine4Impl.getTemporaryStreamEntity(ts,ct);
+		//return HTTPEngine3Impl.getTemporaryStreamEntity(ts,ct==null?null:ct.toString());
 	}
 	
 	public static Entity getResourceEntity(Resource res, String mimetype, String charset) {
 		ContentType ct=toContentType(mimetype,charset);
-		if(use4) return HTTPEngine4Impl.getResourceEntity(res,ct);
-		return HTTPEngine3Impl.getResourceEntity(res,ct==null?null:ct.toString());
+		//if(use4) 
+			return HTTPEngine4Impl.getResourceEntity(res,ct);
+		//return HTTPEngine3Impl.getResourceEntity(res,ct==null?null:ct.toString());
 	}
 	
     private static Header[] toHeaders(Map<String, String> headers) {

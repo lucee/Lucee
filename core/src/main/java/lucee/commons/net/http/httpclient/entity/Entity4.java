@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.commons.net.http.httpclient4.entity;
+package lucee.commons.net.http.httpclient.entity;
 
 import lucee.commons.net.http.Entity;
 

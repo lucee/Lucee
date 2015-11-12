@@ -16,53 +16,44 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.commons.net.http.httpclient3.entity;
+package lucee.commons.net.http.httpclient.entity;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import lucee.commons.lang.StringUtil;
+import lucee.commons.net.HTTPUtil;
 
-import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.http.Header;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
 
-
-public class EmptyRequestEntity implements RequestEntity,Entity3 {
-
-	private final String contentType;
+public class ByteArrayHttpEntity extends ByteArrayEntity implements Entity4 {
+ 
 	
-	/**
-	 * Constructor of the class
-	 * @param contentType
-	 */
-	public EmptyRequestEntity(String contentType) {
-		this.contentType=contentType;
-	}
-	
-	@Override
-	public long getContentLength() {
-		return 0;
+	private ContentType ct;
+	private int contentLength;
+
+	public ByteArrayHttpEntity(byte[] barr, ContentType contentType) {
+		super(barr);
+		contentLength=barr==null?0:barr.length;
+		
+		if(ct==null) {
+			Header h = getContentType();
+			if(h!=null) {
+				lucee.commons.lang.mimetype.ContentType tmp = HTTPUtil.toContentType(h.getValue(), null);
+				if(tmp!=null)
+					ct=ContentType.create(tmp.getMimeType(),tmp.getCharset());
+			}
+		}
+		else this.ct=contentType;
 	}
 
-	@Override
-	public String getContentType() {
-		return contentType;
-	}
-
-	@Override
-	public boolean isRepeatable() {
-		return true;
-	}
-
-	@Override
-	public void writeRequest(OutputStream os) throws IOException {
-		// do nothing
-	}
-	
 	@Override
 	public long contentLength() {
-		return getContentLength();
+		return contentLength;
 	}
 
 	@Override
 	public String contentType() {
-		return getContentType();
+		return ct!=null?ct.toString():null;
 	}
+
 }

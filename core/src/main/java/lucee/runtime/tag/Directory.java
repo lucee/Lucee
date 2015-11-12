@@ -38,23 +38,21 @@ import lucee.commons.io.res.filter.OrResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.type.file.FileResource;
-import lucee.commons.io.res.type.s3.S3;
-import lucee.commons.io.res.type.s3.S3Constants;
-import lucee.commons.io.res.type.s3.S3Exception;
-import lucee.commons.io.res.type.s3.S3Resource;
 import lucee.commons.io.res.util.ModeObjectWrap;
 import lucee.commons.io.res.util.ResourceAndResourceNameFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.res.util.UDFFilter;
 import lucee.commons.io.res.util.WildcardPatternFilter;
 import lucee.commons.lang.StringUtil;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.tag.TagImpl;
-import lucee.runtime.functions.s3.StoreSetACL;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.reflection.Reflector;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.tag.util.FileUtil;
 import lucee.runtime.type.Array;
@@ -135,7 +133,7 @@ public final class Directory extends TagImpl  {
 	private int listInfo=LIST_INFO_QUERY_ALL;
 	//private int acl=S3Constants.ACL_UNKNOW;
 	private Object acl=null;
-	private int storage=S3Constants.STORAGE_UNKNOW;
+	private String storage=null;
 	private String destination; 
 
 	private int nameconflict = NAMECONFLICT_DEFAULT;
@@ -147,7 +145,7 @@ public final class Directory extends TagImpl  {
 	public void release()	{
 		super.release();
 		acl=null;
-		storage=S3Constants.STORAGE_UNKNOW;
+		storage=null;
 
 
 		type=TYPE_ALL;
@@ -210,15 +208,6 @@ public final class Directory extends TagImpl  {
 	**/
 	public void setAcl(String acl) throws ApplicationException	{
 		this.acl=acl;
-		/*acl=acl.trim().toLowerCase();
-				
-		if("private".equals(acl)) 					this.acl=S3Constants.ACL_PRIVATE;
-		else if("public-read".equals(acl)) 			this.acl=S3Constants.ACL_PRIVATE;
-		else if("public-read-write".equals(acl))	this.acl=S3Constants.ACL_PUBLIC_READ_WRITE;
-		else if("authenticated-read".equals(acl))	this.acl=S3Constants.ACL_AUTH_READ;
-		
-		else throw new ApplicationException("invalid value for attribute acl ["+acl+"]",
-				"valid values are [private,public-read,public-read-write,authenticated-read]");*/
 	}
 	
 	public void setAcl(Object acl) 	{
@@ -235,14 +224,37 @@ public final class Directory extends TagImpl  {
 	 * @throws PageException 
 	**/
 	public void setStorage(String storage) throws PageException	{
-		try {
-			this.storage=S3.toIntStorage(storage);
-		} catch (S3Exception e) {
-			throw Caster.toPageException(e);
-		}
+		this.storage=improveStorage(storage);
 	}
 	public void setStorelocation(String storage) throws PageException	{
 		setStorage(storage);
+	}
+	
+	public static String improveStorage(String storage) throws ApplicationException {
+		storage=improveStorage(storage, null);
+		if(storage!=null) return storage;
+		
+		throw new ApplicationException("invalid storage value, valid values are [eu,us,us-west]");
+	}
+	
+	public static String improveStorage(String storage, String defaultValue) {
+		storage=storage.toLowerCase().trim();
+		if("us".equals(storage)) return "us";
+		if("usa".equals(storage)) return "us";
+		if("u.s.".equals(storage)) return "us";
+		if("u.s.a.".equals(storage)) return "us";
+		if("united states of america".equals(storage)) return "us";
+		
+		if("eu".equals(storage)) return "eu";
+		if("europe.".equals(storage)) return "eu";
+		if("european union.".equals(storage)) return "eu";
+		if("euro.".equals(storage)) return "eu";
+		if("e.u.".equals(storage)) return "eu";
+		
+		if("us-west".equals(storage)) return "us-west";
+		if("usa-west".equals(storage)) return "us-west";
+		
+		return defaultValue;
 	}
 	
 	
@@ -578,7 +590,7 @@ public final class Directory extends TagImpl  {
 	 * create a directory
 	 * @throws PageException 
 	 */
-    public static void actionCreate(PageContext pc,Resource directory,String serverPassword, boolean createPath, int mode, Object acl, int storage, int nameConflict) throws PageException {
+    public static void actionCreate(PageContext pc,Resource directory,String serverPassword, boolean createPath, int mode, Object acl, String storage, int nameConflict) throws PageException {
 
     	SecurityManager securityManager = pc.getConfig().getSecurityManager();
 	    securityManager.checkFileLocation(pc.getConfig(),directory,serverPassword);
@@ -601,7 +613,7 @@ public final class Directory extends TagImpl  {
 		}
 		
 		// set S3 stuff
-		setS3Attrs(directory,acl,storage);
+		setS3Attrs(pc,directory,acl,storage);
 	    
 		// Set Mode
 		if(mode!=-1) {
@@ -614,31 +626,52 @@ public final class Directory extends TagImpl  {
 		}
 	}
 	
-	private static void setS3Attrs(Resource res,Object acl,int storage) throws PageException {
+	public static void setS3Attrs(PageContext pc, Resource res,Object acl,String storage) throws PageException {
 		String scheme = res.getResourceProvider().getScheme();
 		
 		if("s3".equalsIgnoreCase(scheme)){
-			S3Resource s3r=(S3Resource) res;
-			if(acl!=null){
+			// ACL
+			if(acl!=null) {
 				try {
 					// old way
 					if(Decision.isString(acl)) {
-						if(Decision.isInteger(acl)) s3r.setACL(Caster.toIntValue(acl));
-						else s3r.setACL(S3.toIntACL(Caster.toString(acl)));
+						Reflector.callMethod(res, "setACL", new Object[]{improveACL(Caster.toString(acl))});
 					}
 					// new way
 					else {
-						StoreSetACL.invoke(s3r, acl);
+						BIF bif = CFMLEngineFactory.getInstance().getClassUtil().loadBIF(pc, "StoreSetACL");
+						bif.invoke(pc, new Object[]{res.getAbsolutePath(),acl});
 					}
-				} catch (IOException e) {
+				}
+				catch (Exception e) {
 					throw Caster.toPageException(e);
 				}
 			}
-			
-			if(storage!=S3Constants.STORAGE_UNKNOW) s3r.setStorage(storage);
+			// STORAGE
+			if(storage!=null) {
+				Reflector.callMethod(res, "setStorage", new Object[]{storage});
+			}
 		}
 	}
-
+	
+	public static String improveACL(String acl) throws ApplicationException {
+		acl=acl.toLowerCase().trim();
+		if("public-read".equals(acl)) return "public-read";
+		if("publicread".equals(acl)) return "public-read";
+		if("public_read".equals(acl)) return "public-read";
+		
+		if("public-read-write".equals(acl)) return "public-read-write";
+		if("publicreadwrite".equals(acl)) return "public-read-write";
+		if("public_read_write".equals(acl)) return "public-read-write";
+		
+		if("private".equals(acl)) return "private";
+		
+		if("authenticated-read".equals(acl)) return "authenticated-read";
+		if("authenticated_read".equals(acl)) return "authenticated-read";
+		if("authenticatedread".equals(acl)) return "authenticated-read";
+		
+		throw new ApplicationException("invalid acl value, valid values are [public-read, private, public-read-write, authenticated-read]");
+	}
 
 
 	/**
@@ -675,7 +708,7 @@ public final class Directory extends TagImpl  {
 	 * rename a directory to a new Name
 	 * @throws PageException 
 	 */
-	public static  void actionRename(PageContext pc,Resource directory,String strNewdirectory,String serverPassword, boolean createPath, Object acl,int storage) throws PageException {
+	public static  void actionRename(PageContext pc,Resource directory,String strNewdirectory,String serverPassword, boolean createPath, Object acl,String storage) throws PageException {
 		// check directory
 		SecurityManager securityManager = pc.getConfig().getSecurityManager();
 	    securityManager.checkFileLocation(pc.getConfig(),directory,serverPassword);
@@ -709,12 +742,12 @@ public final class Directory extends TagImpl  {
 		}
 		
 		// set S3 stuff
-		setS3Attrs(directory,acl,storage);
+		setS3Attrs(pc,directory,acl,storage);
 	    
 	}
 	
 	
-	public static  void actionCopy(PageContext pc,Resource directory,String strDestination,String serverPassword,boolean createPath, Object acl,int storage, final ResourceFilter filter, boolean recurse, int nameconflict) throws PageException {
+	public static  void actionCopy(PageContext pc,Resource directory,String strDestination,String serverPassword,boolean createPath, Object acl,String storage, final ResourceFilter filter, boolean recurse, int nameconflict) throws PageException {
 		// check directory
 		SecurityManager securityManager = pc.getConfig().getSecurityManager();
 	    securityManager.checkFileLocation(pc.getConfig(),directory,serverPassword);
@@ -778,7 +811,7 @@ public final class Directory extends TagImpl  {
 		}
 		
 		// set S3 stuff
-		setS3Attrs(directory,acl,storage);
+		setS3Attrs(pc,directory,acl,storage);
 	    
 	}
 

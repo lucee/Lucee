@@ -26,7 +26,7 @@ import java.util.Map;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.http.HTTPResponse;
-import lucee.commons.net.http.httpclient4.HTTPEngine4Impl;
+import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.Constants;

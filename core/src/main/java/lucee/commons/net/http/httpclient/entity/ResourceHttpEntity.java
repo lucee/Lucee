@@ -16,47 +16,58 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.commons.net.http.httpclient3.entity;
+package lucee.commons.net.http.httpclient.entity;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 
-import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.http.entity.AbstractHttpEntity;
+import org.apache.http.entity.ContentType;
 
 /**
  * A RequestEntity that represents a Resource.
  */
-public class ResourceRequestEntity implements RequestEntity, Entity3 {
+public class ResourceHttpEntity extends AbstractHttpEntity implements Entity4 {
 
     final Resource res;
-    final String contentType;
+	private ContentType ct;
     
-    public ResourceRequestEntity(final Resource res, final String contentType) {
+    public ResourceHttpEntity(final Resource res, final ContentType contentType) {
+    	super();
         this.res = res;
-        this.contentType = contentType;
+        if(contentType!=null)setContentType(contentType.toString());
+        ct = contentType;
     }
+   
     @Override
-	public long getContentLength() {
+    public long getContentLength() {
         return this.res.length();
     }
 
     @Override
-	public String getContentType() {
-        return this.contentType;
-    }
-
-    @Override
-	public boolean isRepeatable() {
+    public boolean isRepeatable() {
         return true;
     }
+    
+    @Override
+    public InputStream getContent() throws IOException {
+    	return res.getInputStream();
+    }
 
     @Override
-	public void writeRequest(final OutputStream out) throws IOException {
+    public void writeTo(final OutputStream out) throws IOException {
        IOUtil.copy(res.getInputStream(), out,true,false);
-    }  
+    }
+
+	@Override
+	public boolean isStreaming() {
+		return false;
+	}
+
 	@Override
 	public long contentLength() {
 		return getContentLength();
@@ -64,7 +75,6 @@ public class ResourceRequestEntity implements RequestEntity, Entity3 {
 
 	@Override
 	public String contentType() {
-		return getContentType();
-	}  
-    
+		return ct!=null?ct.toString():null;
+	}
 }

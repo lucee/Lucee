@@ -37,7 +37,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
-import lucee.commons.net.http.httpclient3.HeaderImpl;
+import lucee.commons.net.http.httpclient.HeaderImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;

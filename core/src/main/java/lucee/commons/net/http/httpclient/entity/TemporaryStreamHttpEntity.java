@@ -16,50 +16,48 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.commons.net.http.httpclient4.entity;
+package lucee.commons.net.http.httpclient.entity;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import lucee.commons.io.IOUtil;
+import lucee.commons.io.TemporaryStream;
+
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.ContentType;
 
-public class EmptyHttpEntity extends AbstractHttpEntity implements Entity4 {
 
-	
-	
+public class TemporaryStreamHttpEntity extends AbstractHttpEntity implements Entity4 {
+
+	private final TemporaryStream ts;
 	private ContentType ct;
 
-	/**
-	 * Constructor of the class
-	 * @param contentType
-	 */
-	public EmptyHttpEntity(ContentType contentType) {
-		super();
+	public TemporaryStreamHttpEntity(TemporaryStream ts,ContentType contentType) {
+		this.ts=ts;
 		this.ct=contentType;
 		setContentType(ct!=null?ct.toString():null);
 	}
 	
 	@Override
 	public long getContentLength() {
-		return 0;
+		return ts.length();
 	}
 
 	@Override
 	public boolean isRepeatable() {
-		return true;
+		return false;
 	}
 
 	@Override
-	public void writeTo(OutputStream os) {
-		// do nothing
+	public void writeTo(OutputStream os) throws IOException {
+		IOUtil.copy(ts.getInputStream(), os,true,false);
 	}
 
 	@Override
 	public InputStream getContent() throws IOException, IllegalStateException {
-		return new ByteArrayInputStream(new byte[0]);
+		return ts.getInputStream();
 	}
 
 	@Override
@@ -76,5 +74,4 @@ public class EmptyHttpEntity extends AbstractHttpEntity implements Entity4 {
 	public String contentType() {
 		return ct!=null?ct.toString():null;
 	}
-
 }

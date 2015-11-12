@@ -13920,63 +13920,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
-	<!-- StoreAddACL -->
-	<function>
-		<name>StoreAddACL</name>
-		<class>lucee.runtime.functions.s3.StoreAddACL</class>
-		<description>Adds ACL to existing ACL for object or bucket.</description>
-		<argument>
-			<name>url</name>
-			<type>string</type>
-			<required>Yes</required>
-			<description>Amazon S3 URL</description>
-	    </argument>
-		<argument>
-			<name>aclObject</name>
-			<type>object</type>
-			<required>Yes</required>
-			<description>an array of struct where each struct represents an ACL grant</description>
-	    </argument>
-		<return>
-			<type>void</type>
-		</return>
-	</function>
-	<!-- StoreGetACL -->
-	<function>
-		<name>StoreGetACL</name>
-		<class>lucee.runtime.functions.s3.StoreGetACL</class>
-		<description>returns an array of struct where each struct represents an ACL grant</description>
-		<argument>
-			<name>url</name>
-			<type>string</type>
-				<required>Yes</required>
-			<description>Amazon S3 URL</description>
-	    </argument>
-		<return>
-			<type>Object</type>
-		</return>
-	</function>
-	<!-- StoreSetACL -->
-	<function>
-		<name>StoreSetACL</name>
-		<class>lucee.runtime.functions.s3.StoreSetACL</class>
-		<description>Sets the ACL for object or bucket.</description>
-		<argument>
-			<name>url</name>
-			<type>string</type>
-			<required>Yes</required>
-			<description>Amazon S3 URL</description>
-	    </argument>
-		<argument>
-			<name>aclObject</name>
-			<type>object</type>
-			<required>Yes</required>
-			<description>an array of struct where each struct represents an ACL grant</description>
-	    </argument>
-		<return>
-			<type>void</type>
-		</return>
-	</function>
 	<!-- _jsonStruct -->
 	<function>
 		<name>_jsonStruct</name>

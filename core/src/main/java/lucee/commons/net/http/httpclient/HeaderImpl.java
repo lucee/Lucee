@@ -16,34 +16,13 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.commons.net.http.httpclient4;
+package lucee.commons.net.http.httpclient;
 
-import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 
-public class HeaderWrap implements lucee.commons.net.http.Header {
-	public final Header header;
-
-	public HeaderWrap(Header header){
-		this.header=header;
-	}
-
-	@Override
-	public String getName() {
-		return header.getName();
-	}
-
-	@Override
-	public String getValue() {
-		return header.getValue();
-	}
+public class HeaderImpl extends BasicHeader implements lucee.commons.net.http.Header {
 	
-	@Override
-	public String toString(){
-		return header.toString();
-	}
-	
-	@Override
-	public boolean equals(Object obj){
-		return header.equals(obj);
+	public HeaderImpl(String name,String value){
+		super(name,value);
 	}
 }
