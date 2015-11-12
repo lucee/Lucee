@@ -51,6 +51,8 @@ import lucee.runtime.type.util.ListIteratorImpl;
 public class ArrayImpl extends ArraySupport {
 	
 	private static final long serialVersionUID = -6187994169003839005L;
+
+    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 	
 	private Object[] arr;
 	private int dimension=1;
@@ -247,15 +249,27 @@ public class ArrayImpl extends ArraySupport {
 	 */
 	private void enlargeCapacity(int key) {
 		int diff=offCount-offset;
-		int newSize = Math.max(arr.length, key + offset + diff + 1);
-		if(newSize>arr.length) {
-
-			Object[] narr = new Object[newSize];
-			arr = ArrayUtil.mergeNativeArrays(narr, arr, diff, true);
-
-			offset+=diff;
+		int minCapacity = Math.max(arr.length, key + offset + diff + 1);
+		
+		if(minCapacity>arr.length) {
+			int oldCapacity = arr.length;
+	        int newCapacity = oldCapacity + (oldCapacity >> 1);
+	        if (newCapacity - minCapacity < 0)
+	            newCapacity = minCapacity;
+	        if (newCapacity - MAX_ARRAY_SIZE > 0)
+	            newCapacity = hugeCapacity(minCapacity);
+	        // minCapacity is usually close to size, so this is a win:
+	        arr = Arrays.copyOf(arr, newCapacity);
 		}
 	}
+	
+	 private static int hugeCapacity(int minCapacity) {
+        if (minCapacity < 0) // overflow
+            throw new OutOfMemoryError();
+        return (minCapacity > MAX_ARRAY_SIZE) ?
+            Integer.MAX_VALUE :
+            MAX_ARRAY_SIZE;
+    }
 	
 	/**
 	 * !!! all methods that use this method must be sync

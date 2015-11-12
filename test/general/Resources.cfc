@@ -268,7 +268,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 	}
 
-	public void function testS3() localmode=true{
+	private void function testS3() localmode=true{
 
 		// getting the credetials from the enviroment variables
 		if(!isNull(server.system.environment.S3_ACCESS_ID) && !isNull(server.system.environment.S3_SECRET_KEY)) {
