@@ -309,12 +309,12 @@ private function testResourceListening(res) localMode=true {
 
     // all
     children=res.list();
-    assertEqual("s,ss,sss.txt",listSort(arrayToList(children),"textnoCase"));
+    assertEquals("s,ss,sss.txt",listSort(arrayToList(children),"textnoCase"));
 
     // filter
     filter=createObject("java","lucee.commons.io.res.filter.ExtensionResourceFilter").init("txt",false);
     children=res.list(filter);
-    assertEqual("sss.txt",listSort(arrayToList(children),"textnoCase"));
+    assertEquals("sss.txt",listSort(arrayToList(children),"textnoCase"));
 }
 
 private function testResourceIS(res) localMode=true {
@@ -370,15 +370,15 @@ private function testResourceGetter(res) localMode=true {
     dd=res.getRealResource("dir/test.txt");
     
     // Name
-    assertEqual("original.txt",f.getName());
-    assertEqual("dir",d.getName());
-    assertEqual("dir2",d2.getName());
+    assertEquals("original.txt",f.getName());
+    assertEquals("dir",d.getName());
+    assertEquals("dir2",d2.getName());
 
     // parent
-    assertEqual("dir",dd.getParentResource().getName());
+    assertEquals("dir",dd.getParentResource().getName());
 
     // getRealPath
-    assertEqual(res.toString()&"/dir/test.txt",dd.toString());
+    assertEquals(res.toString()&"/dir/test.txt",dd.toString());
 
 }
 
@@ -389,15 +389,15 @@ private function testResourceReadWrite(res) localMode=true {
     
     IOUtil.write(f, "Susi Sorglos", nullValue(), false);
     res=IOUtil.toString(f,nullValue());
-    assertEqual("Susi Sorglos",res);
+    assertEquals("Susi Sorglos",res);
 
     IOUtil.write(f, "Susi Sorglos", nullValue(), false);
     res=IOUtil.toString(f,nullValue());
-    assertEqual("Susi Sorglos",res);
+    assertEquals("Susi Sorglos",res);
 
     IOUtil.write(f, " foehnte Ihr Haar", nullValue(), true);
     res=IOUtil.toString(f,nullValue());
-    assertEqual("Susi Sorglos foehnte Ihr Haar",res);
+    assertEquals("Susi Sorglos foehnte Ihr Haar",res);
 }
 
 private function testResourceProvider(string path) localmode=true {
