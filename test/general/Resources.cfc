@@ -216,6 +216,253 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 
+
+private function testResourceDirectoryCreateDelete(res) localMode=true {
+    sss=res.getRealResource("s/ss");
+
+    // must fail 
+    try{
+        sss.createDirectory(false); 
+        fail=false;
+    }
+    catch(e){fail=true;}
+    assertTrue(fail);
+
+    // must work
+    sss.createDirectory(true);
+
+    assertTrue(sss.exists());
+    assertTrue(sss.getParentResource().exists());
+
+    s=sss.getParentresource();
+
+    // must fail dir with kids
+    try{
+        s.remove(false); 
+        fail=false;
+    }
+    catch(e){fail=true;}
+    assertTrue(s.exists());
+    assertTrue(fail);
+
+    s.remove(true);
+    assertFalse(s.exists());
+
+    // must fail 
+    try{ 
+        s.remove(true);// delete
+       fail=false;
+    }
+    catch(e){fail=true;}
+    assertTrue(fail);
+    
+    assertFalse(sss.exists());
+
+
+    d=res.getRealResource("notExist");
+    try{
+        d.remove(false); 
+        fail=false;
+    }
+    catch(e){fail=true;}
+    assertTrue(fail);
+}
+
+private function testResourceFileCreateDelete(res) localMode=true {
+    
+    sss=res.getRealResource("s/ss.txt");
+
+    // must fail 
+    try{
+        sss.createFile(false); 
+        fail=false;
+    }
+    catch(e){fail=true;}
+    assertTrue(fail);
+
+    // must work
+    sss.createFile(true);
+    assertTrue(sss.exists());
+
+    s=sss.getParentresource();
+
+    // must fail 
+    try{
+        s.remove(false); 
+        fail=false;
+    }
+    catch(e){fail=true;}
+    assertTrue(fail);
+
+    s.remove(true);
+    assertFalse(sss.exists());
+
+}
+
+private function testResourceListening(res) localMode=true {
+    s=res.getRealResource("s/ss.txt");
+    s.createFile(true); 
+    ss=res.getRealResource("ss/");
+    ss.createDirectory(true);
+    sss=res.getRealResource("sss.txt");
+    sss.createFile(true); 
+
+    // all
+    children=res.list();
+    assertEqual("s,ss,sss.txt",listSort(arrayToList(children),"textnoCase"));
+
+    // filter
+    filter=createObject("java","lucee.commons.io.res.filter.ExtensionResourceFilter").init("txt",false);
+    children=res.list(filter);
+    assertEqual("sss.txt",listSort(arrayToList(children),"textnoCase"));
+}
+
+private function testResourceIS(res) localMode=true {
+    
+    // must be a existing dir
+    assertTrue(res.exists());
+    assertTrue(res.isDirectory());
+    assertFalse(res.isFile());
+
+    s=res.getRealResource("s/ss.txt");
+    assertFalse(s.exists());
+    assertFalse(s.isDirectory());
+    assertFalse(s.isFile());
+
+    s=res.getRealResource("ss/");
+    assertFalse(s.exists());
+    assertFalse(s.isDirectory());
+    assertFalse(s.isFile());
+}
+
+
+private function testResourceMoveCopy(res) localMode=true {
+    o=res.getRealResource("original.txt");
+    o.createFile(true); 
+    assertTrue(o.exists());
+
+    // copy
+    c=res.getRealResource("copy.txt");
+    assertFalse(c.exists());
+    o.copyTo(c,false);
+    assertTrue(o.exists());
+    assertTrue(c.exists());
+
+    c=res.getRealResource("copy2.txt");
+    assertFalse(c.exists());
+    c.copyFrom(o,false);
+    assertTrue(o.exists());
+    assertTrue(c.exists());
+
+    // move
+    m=res.getRealResource("move.txt");
+    assertFalse(m.exists());
+    o.moveTo(m);
+    assertFalse(o.exists());
+    assertTrue(m.exists());
+
+}
+
+private function testResourceGetter(res) localMode=true {
+    f=res.getRealResource("original.txt");
+    d=res.getRealResource("dir/");
+    d2=res.getRealResource("dir2")
+    dd=res.getRealResource("dir/test.txt");
+    
+    // Name
+    assertEqual("original.txt",f.getName());
+    assertEqual("dir",d.getName());
+    assertEqual("dir2",d2.getName());
+
+    // parent
+    assertEqual("dir",dd.getParentResource().getName());
+
+    // getRealPath
+    assertEqual(res.toString()&"/dir/test.txt",dd.toString());
+
+}
+
+private function testResourceReadWrite(res) localMode=true {
+    f=res.getRealResource("original.txt");
+    
+    IOUtil=createObject("java","lucee.commons.io.IOUtil");
+    
+    IOUtil.write(f, "Susi Sorglos", nullValue(), false);
+    res=IOUtil.toString(f,nullValue());
+    assertEqual("Susi Sorglos",res);
+
+    IOUtil.write(f, "Susi Sorglos", nullValue(), false);
+    res=IOUtil.toString(f,nullValue());
+    assertEqual("Susi Sorglos",res);
+
+    IOUtil.write(f, " foehnte Ihr Haar", nullValue(), true);
+    res=IOUtil.toString(f,nullValue());
+    assertEqual("Susi Sorglos foehnte Ihr Haar",res);
+}
+
+private function testResourceProvider(string path) localmode=true {
+    // first we ceate a resource object
+    res=createObject('java','lucee.commons.io.res.util.ResourceUtil').toResourceNotExisting(getPageContext(), path);
+
+    // delete when exists
+    if(res.exists()) res.remove(true);
+    
+    // test create/delete directory
+    try {
+        res.createDirectory(true); 
+        testResourceDirectoryCreateDelete(res);
+    }
+    finally {if(res.exists()) res.remove(true);} 
+    
+    // test create/delete file
+    try {
+        res.createDirectory(true); 
+        testResourceFileCreateDelete(res);
+    }
+    finally {if(res.exists()) res.remove(true);} 
+    
+    // test listening
+    try {
+        res.createDirectory(true); 
+        testResourceListening(res);
+    }
+    finally {if(res.exists()) res.remove(true);} 
+
+    // test "is"
+    try {
+        res.createDirectory(true); 
+        testResourceIS(res);
+    }
+    finally {if(res.exists()) res.remove(true);} 
+
+    // test move and copy
+    try {
+        res.createDirectory(true); 
+        testResourceMoveCopy(res);
+    }
+    finally {if(res.exists()) res.remove(true);} 
+
+    // test Getter
+    try {
+        res.createDirectory(true); 
+        testResourceGetter(res);
+    }
+    finally {if(res.exists()) res.remove(true);} 
+
+    // test read/write
+    try {
+        res.createDirectory(true); 
+        testResourceReadWrite(res);
+    }
+    finally {if(res.exists()) res.remove(true);} 
+
+    
+}
+
+
+
+
+
 	private void function test(string label,string root){
 		var start=getTickCount();
 		var dir=arguments.root&"testResource/";
@@ -234,6 +481,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		    fileAMove(arguments.label,dir);
 		    fileAReadAppend(arguments.label,dir);
 		    fileAReadBinary(arguments.label,dir);
+		    testResourceProvider(dir&"testcaseRes");
 		}
 		finally {
 			directory directory="#dir#" action="delete" recurse="yes";
@@ -272,21 +520,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		// getting the credetials from the enviroment variables
 		if(!isNull(server.system.environment.S3_ACCESS_ID) && !isNull(server.system.environment.S3_SECRET_KEY)) {
-			acessId=server.system.environment.S3_ACCESS_ID;
-			secretKey=server.system.environment.S3_SECRET_KEY;
+			s3.accessKeyId=server.system.environment.S3_ACCESS_ID;
+			s3.awsSecretKey=server.system.environment.S3_SECRET_KEY;
 		}
 		// getting the credetials from the system variables
 		else if(!isNull(server.system.properties.S3_ACCESS_ID) && !isNull(server.system.properties.S3_SECRET_KEY)) {
-			acessId=server.system.properties.S3_ACCESS_ID;
-			secretKey=server.system.properties.S3_SECRET_KEY;
+			s3.accessKeyId=server.system.properties.S3_ACCESS_ID;
+			s3.awsSecretKey=server.system.properties.S3_SECRET_KEY;
 		}
 
 
-		if(!isNull(acessId)) {
-			test("s3","s3://#acessId#:#secretKey#@s3.amazonaws.com/");
+		if(!isNull(s3.accessKeyId)) {
+			application action="update" s3=s3; 
+
+			test("s3","s3:///");
 		}
-		else 
-			fail("cannot execute the testcases for s3, because there are no credetials set in the environment variables, you need to set ""S3_ACCESS_ID"" and ""S3_SECRET_KEY"" in the enviroment variables to execute this testcases ");
+		// TODO report somwhow that this was not executed else fail("cannot execute the testcases for s3, because there are no credetials set in the environment variables, you need to set ""S3_ACCESS_ID"" and ""S3_SECRET_KEY"" in the enviroment variables to execute this testcases ");
 
 	}
 

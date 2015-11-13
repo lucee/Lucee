@@ -592,7 +592,7 @@
          <groupId>apache.http.components</groupId>
          <artifactId>client</artifactId>
          <type>jar</type>
-         <version>4.5.0.0001L</version>
+         <version>4.5.0.0002L</version>
       </dependency>
 
 <!-- apache.http.components.core - 4.4.1 -->

@@ -2953,14 +2953,14 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	
 	
     private void doRemoveResourceProvider() throws PageException {
-    	ClassDefinition cd = new ClassDefinitionImpl(
+    	/*ClassDefinition cd = new ClassDefinitionImpl(
     			getString("admin",action,"class")
     			, getString("bundleName",null)
     			,getString("bundleVersion",null),
-    			config.getIdentification());
+    			config.getIdentification());*/
     	
         
-        admin.removeResourceProvider(cd);
+        admin.removeResourceProvider(getString("admin",action,"scheme"));
         
         store();
         adminSync.broadcast(attributes, config);

@@ -474,8 +474,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			String strProviderScheme;
 			ClassDefinition httpClass = null;
 			Map httpArgs = null;
-			boolean hasHTTPs = false, hasS3 = false;
-			ClassDefinition s3Class = new ClassDefinitionImpl(S3ResourceProvider.class);;
+			boolean hasHTTPs = false;
 			for (int i = 0; i < providers.length; i++) {
 				prov=getClassDefinition(providers[i], "",config.getIdentification());
 				strProviderCFC = getAttr(providers[i],"component");
@@ -499,8 +498,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					}
 					else if (strProviderScheme.equalsIgnoreCase("https"))
 						hasHTTPs = true;
-					else if (strProviderScheme.equalsIgnoreCase("s3"))
-						hasS3 = true;
 				}
 
 				// cfc
@@ -518,7 +515,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				config.addResourceProvider("https", httpClass, httpArgs);
 			}
 			// adding s3 when not exist
-			if (!hasS3 && config instanceof ConfigServer) {
+			
+			// we make sure we have the default on server level
+			if (!hasCS && !config.hasResourceProvider("s3")) {
+				ClassDefinition s3Class = new ClassDefinitionImpl(S3ResourceProvider.class);;
 				config.addResourceProvider("s3", s3Class, toArguments("lock-timeout:10000;", false));
 			}
 		}
@@ -529,7 +529,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		String cn = getAttr(el,prefix+"class");
 		String bn = getAttr(el,prefix+"bundle-name");
 		String bv = getAttr(el,prefix+"bundle-version");
-
+		
 		// proxy jar libary no longer provided, so if still this class name is used ....
 		if("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cn)) {
 			cn="com.microsoft.sqlserver.jdbc.SQLServerDriver";

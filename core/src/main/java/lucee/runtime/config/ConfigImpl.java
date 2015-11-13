@@ -2138,6 +2138,15 @@ public abstract class ConfigImpl implements Config {
 	public ResourceProvider[] getResourceProviders() {
 		return resources.getResourceProviders();
 	}
+	
+
+	public boolean hasResourceProvider(String scheme) {
+		ResourceProvider[] providers = resources.getResourceProviders();
+		for(int i=0;i<providers.length;i++){
+			if(providers[i].getScheme().equalsIgnoreCase(scheme)) return true;
+		}
+		return false;
+	}
 
 	protected void setResourceProviders(ResourceProvider[] resourceProviders) {
 		for(int i=0;i<resourceProviders.length;i++) {

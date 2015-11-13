@@ -50,6 +50,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
+import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
@@ -2102,7 +2103,7 @@ public final class XMLConfigAdmin {
         }
     }
 
-    public void removeResourceProvider(ClassDefinition cd) throws PageException {
+    public void removeResourceProvider(String scheme) throws PageException {
     	checkWriteAccess();
     	SecurityManager sm = config.getSecurityManager();
     	short access = sm.getAccess(SecurityManager.TYPE_FILE);
@@ -2111,24 +2112,17 @@ public final class XMLConfigAdmin {
     	if(!hasAccess)
             throw new SecurityException("no access to remove resource provider");
         
-    	_removeResourceProvider(cd);
+    	_removeResourceProvider(scheme);
     }
-    public void _removeResourceProvider(ClassDefinition cd) throws PageException {
+    public void _removeResourceProvider(String scheme) throws PageException {
     	
-    	String className;
-		try {
-			className = cd.getClazz().getName();
-		} catch (Exception e) {
-			throw Caster.toPageException(e);
-		} 
-    	
-        Element parent=_getRootElement("resources");
+    	Element parent=_getRootElement("resources");
         
         // remove
         Element[] children = XMLConfigWebFactory.getChildren(parent,"resource-provider");
       	for(int i=0;i<children.length;i++) {
-      	    String cn=children[i].getAttribute("class");
-      	    if(cn.equalsIgnoreCase(className)) {
+      	    String elScheme=children[i].getAttribute("scheme");
+      	    if(elScheme.equalsIgnoreCase(scheme)) {
       	    	parent.removeChild(children[i]);                
 	      		break;
   			}
@@ -2164,8 +2158,9 @@ public final class XMLConfigAdmin {
         // Update
         Element[] children = XMLConfigWebFactory.getChildren(parent,"resource-provider");
       	for(int i=0;i<children.length;i++) {
-      	    String cn=children[i].getAttribute("class");
-      	    if(cn.equalsIgnoreCase(cd.getClassName())) {
+      	    //String cn=children[i].getAttribute("class");
+      	    String elScheme=children[i].getAttribute("scheme");
+      	    if(elScheme.equalsIgnoreCase(scheme)) {
 	      		Element el=children[i];
 	      		setClass(el, null, "", cd);
 	      		el.setAttribute("scheme",scheme);
@@ -4853,8 +4848,9 @@ public final class XMLConfigAdmin {
 				while(itl.hasNext()){
 					map = itl.next();
 					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					String scheme=map.get("scheme");
 					if(cd.hasClass()) {
-						_removeResourceProvider(cd);
+						_removeResourceProvider(scheme);
 					}
 					logger.info("extension", "remove resource provider engine ["+cd+"] from extension ["+rhe.getName()+":"+rhe.getVersion()+"]");
 				}
