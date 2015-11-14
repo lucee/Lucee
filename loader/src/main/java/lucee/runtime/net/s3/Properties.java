@@ -42,7 +42,7 @@ public interface Properties {
 	/**
 	 * @return the defaultLocation
 	 */
-	public int getDefaultLocation();
+	public String getDefaultLocation();
 
 	/**
 	 * @param defaultLocation the defaultLocation to set
