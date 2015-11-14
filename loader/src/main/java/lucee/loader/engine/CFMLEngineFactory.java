@@ -712,6 +712,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 								Pack200Util.pack2Jar(temp, temp2);
 								temp.delete();
 								temp=temp2;
+								name=name.substring(0,name.length()-".pack.gz".length());
 							}
 							
 							bundleInfo=BundleLoader.loadBundleInfo(temp);
