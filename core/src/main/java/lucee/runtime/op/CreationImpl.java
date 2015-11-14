@@ -46,6 +46,8 @@ import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.commons.lang.types.RefLong;
 import lucee.commons.lang.types.RefLongImpl;
+import lucee.commons.lang.types.RefString;
+import lucee.commons.lang.types.RefStringImpl;
 import lucee.commons.lock.KeyLock;
 import lucee.commons.lock.KeyLockImpl;
 import lucee.loader.engine.CFMLEngine;
@@ -364,6 +366,13 @@ public final class CreationImpl implements Creation,Serializable {
 	@Override
 	public RefDouble createRefDouble(long d) {
 		return new RefDoubleImpl(d);
+	}
+	
+
+
+	@Override
+	public RefString createRefString(String value) {
+		return new RefStringImpl(value);
 	}
 
 	@Override

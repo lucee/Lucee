@@ -34,6 +34,7 @@ import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefDouble;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefLong;
+import lucee.commons.lang.types.RefString;
 import lucee.commons.lock.KeyLock;
 import lucee.runtime.Component;
 import lucee.runtime.Mapping;
@@ -360,5 +361,7 @@ public interface Creation {
 	public abstract DateTime now();
 
 	public abstract <K> KeyLock<K> createKeyLock();
+
+	public abstract RefString createRefString(String value);
 
 }
