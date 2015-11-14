@@ -37,6 +37,7 @@ import java.net.UnknownHostException;
 import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -719,7 +720,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 							if(bundleInfo!=null && nameAndVersion.equals(bundleInfo)) {
 								File trg=new File(bundleDirectory,name);
 								temp.renameTo(trg);
-								System.out.println("adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
+								printDate("adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
 								log(Logger.LOG_DEBUG, "adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
 
 								return trg;
@@ -741,6 +742,16 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			Util.closeEL(zis);
 		}
 		return null;
+	}
+
+	private void printDate(String value) {
+		long millis=System.currentTimeMillis();
+    	System.out.println(
+    			new Date(millis)
+    			+"-"
+    			+(millis-(millis/1000*1000))
+    			+" "+value);
+	    
 	}
 
 	private File downloadCore(Identification id) throws IOException {
