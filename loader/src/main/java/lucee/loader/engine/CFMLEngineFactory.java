@@ -63,6 +63,7 @@ import lucee.loader.util.Util;
 import lucee.loader.util.ZipUtil;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
+import lucee.runtime.util.Pack200Util;
 
 import org.apache.felix.framework.Felix;
 import org.apache.felix.framework.Logger;
@@ -691,18 +692,28 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			String path,name,bundleInfo;
 			int index;
 			File temp;
+			boolean isPack200;
 			while ((entry = zis.getNextEntry())!= null) {
+				temp=null;
 				path = entry.getName().replace('\\', '/');
 				if(path.startsWith("/")) path=path.substring(1); // some zip path start with "/" some not
-				
-				if(path.startsWith(sub) && path.endsWith(".jar")) { // ignore non jara files or file from elsewhere
+				isPack200=false;
+				if(path.startsWith(sub) && (path.endsWith(".jar") || (isPack200=path.endsWith(".jar.pack.gz")))) { // ignore non jar files or file from elsewhere
 					index=path.lastIndexOf('/')+1;
 					if(index==sub.length()) { // ignore sub directories
 						name=path.substring(index);
 						temp=null;
 						try {
-							temp=File.createTempFile("bundle", ".jar");
+							temp=File.createTempFile("bundle", ".tmp");
 							Util.copy(zis, new FileOutputStream(temp),false,true);
+							
+							if(isPack200) {
+								File temp2 = File.createTempFile("bundle", ".tmp2");
+								Pack200Util.pack2Jar(temp, temp2);
+								temp.delete();
+								temp=temp2;
+							}
+							
 							bundleInfo=BundleLoader.loadBundleInfo(temp);
 							if(bundleInfo!=null && nameAndVersion.equals(bundleInfo)) {
 								File trg=new File(bundleDirectory,name);

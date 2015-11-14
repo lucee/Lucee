@@ -15,7 +15,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  */
-package lucee.commons.io.compress;
+package lucee.runtime.util;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.jar.JarInputStream;
@@ -34,11 +35,9 @@ import java.util.jar.Pack200.Unpacker;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import lucee.commons.io.DevNullOutputStream;
-import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
-import lucee.commons.io.res.ResourcesImpl;
+import lucee.loader.util.Util;
 
 
 public class Pack200Util {
@@ -101,8 +100,8 @@ public class Pack200Util {
 		}
 		finally{
 			
-			if(closeIS)IOUtil.closeEL(is);
-			if(closeOS)IOUtil.closeEL(jos);
+			if(closeIS)Util.closeEL(is);
+			if(closeOS)Util.closeEL(jos);
 		}
 	}
 	
@@ -134,15 +133,40 @@ public class Pack200Util {
 		
 		PrintStream err = System.err;
 		try{
-			System.setErr(new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM));
+			System.setErr(new PrintStream(new DevNullOutputStream()));
 			jis = new JarInputStream(is);
 			packer.pack(jis, os);
 		}
 		finally{
 			System.setErr(err);
-			if(closeIS)IOUtil.closeEL(jis);
-			if(closeOS)IOUtil.closeEL(os);
+			if(closeIS)Util.closeEL(jis);
+			if(closeOS)Util.closeEL(os);
 		}
+	}
+	
+	public final static class DevNullOutputStream extends OutputStream implements Serializable {
+		
+		
+		/**
+		 * Constructor of the class
+		 */
+		private DevNullOutputStream() {}
+		
+	    @Override
+	    public void close(){}
+
+	    @Override
+	    public void flush() {}
+
+	    @Override
+	    public void write(byte[] b, int off, int len) {}
+
+	    @Override
+	    public void write(byte[] b) {}
+
+	    @Override
+	    public void write(int b) {}
+
 	}
 	
 }
