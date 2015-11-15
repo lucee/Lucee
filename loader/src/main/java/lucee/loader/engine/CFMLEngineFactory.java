@@ -687,9 +687,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		boolean isPack200=false;
 		
 		// first we look for a exact match
-		InputStream is = getClass().getResourceAsStream("/bundles/"+osgiFileName);
+		InputStream is = getClass().getResourceAsStream("bundles/"+osgiFileName);
+		if(is==null) is = getClass().getResourceAsStream("/bundles/"+osgiFileName);
 		if(is==null) {
-			is = getClass().getResourceAsStream("/bundles/"+osgiFileName+pack20Ext);
+			is = getClass().getResourceAsStream("bundles/"+osgiFileName+pack20Ext);
+			if(is==null)is = getClass().getResourceAsStream("/bundles/"+osgiFileName+pack20Ext);
 			isPack200=true;
 		}
 		if(is!=null) {
