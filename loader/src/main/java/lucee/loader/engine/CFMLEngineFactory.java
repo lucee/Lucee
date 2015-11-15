@@ -683,7 +683,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		String sub="bundles/";
 		String nameAndVersion=symbolicName+"|"+symbolicVersion;
 		String osgiFileName=symbolicName+"-"+symbolicVersion+".jar";
-		String pack20Ext=".jar.pack.gz";
+		String pack20Ext=".pack.gz";
 		boolean isPack200=false;
 		
 		// first we look for a exact match
