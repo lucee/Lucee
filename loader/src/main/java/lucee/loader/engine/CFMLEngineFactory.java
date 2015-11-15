@@ -18,6 +18,7 @@
  */
 package lucee.loader.engine;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -681,8 +682,50 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	private File deployBundledBundle(File bundleDirectory, String symbolicName, String symbolicVersion) {
 		String sub="bundles/";
 		String nameAndVersion=symbolicName+"|"+symbolicVersion;
+		String osgiFileName=symbolicName+"-"+symbolicVersion+".jar";
+		String pack20Ext=".jar.pack.gz";
+		boolean isPack200=false;
 		
+		// first we look for a exact match
+		InputStream is = getClass().getResourceAsStream("/bundles/"+osgiFileName);
+		if(is==null) {
+			is = getClass().getResourceAsStream("/bundles/"+osgiFileName+pack20Ext);
+			isPack200=true;
+		}
+		if(is!=null) {
+			File temp=null;
+			try {
+				// copy to temp file
+				temp=File.createTempFile("bundle", ".tmp");
+				Util.copy(new BufferedInputStream(is), new FileOutputStream(temp),true,true);
+				
+				if(isPack200) {
+					File temp2 = File.createTempFile("bundle", ".tmp2");
+					Pack200Util.pack2Jar(temp, temp2);
+					temp.delete();
+					temp=temp2;
+				}
+				
+				// adding bundle
+				File trg=new File(bundleDirectory,osgiFileName);
+				temp.renameTo(trg);
+				printDate("adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
+				log(Logger.LOG_DEBUG, "adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
+
+				return trg;
+				
+				
+			}
+			catch(IOException ioe){}
+			finally {
+				if(temp!=null && temp.exists())temp.delete();
+			}
+		}
+		
+		
+		// now we search the current jar as a external zip what is slow (we do not support pack200 in this case)
 		ZipEntry entry;
+		File temp;
 		ZipInputStream zis = null;
 		try {
 			CodeSource src = CFMLEngineFactory.class.getProtectionDomain().getCodeSource();
@@ -692,14 +735,12 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			zis=new ZipInputStream(loc.openStream());
 			String path,name,bundleInfo;
 			int index;
-			File temp;
-			boolean isPack200;
 			while ((entry = zis.getNextEntry())!= null) {
 				temp=null;
 				path = entry.getName().replace('\\', '/');
 				if(path.startsWith("/")) path=path.substring(1); // some zip path start with "/" some not
 				isPack200=false;
-				if(path.startsWith(sub) && (path.endsWith(".jar") || (isPack200=path.endsWith(".jar.pack.gz")))) { // ignore non jar files or file from elsewhere
+				if(path.startsWith(sub) && (path.endsWith(".jar") /*|| (isPack200=path.endsWith(".jar.pack.gz"))*/)) { // ignore non jar files or file from elsewhere
 					index=path.lastIndexOf('/')+1;
 					if(index==sub.length()) { // ignore sub directories
 						name=path.substring(index);
@@ -708,19 +749,19 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 							temp=File.createTempFile("bundle", ".tmp");
 							Util.copy(zis, new FileOutputStream(temp),false,true);
 							
-							if(isPack200) {
+							/*if(isPack200) {
 								File temp2 = File.createTempFile("bundle", ".tmp2");
 								Pack200Util.pack2Jar(temp, temp2);
 								temp.delete();
 								temp=temp2;
 								name=name.substring(0,name.length()-".pack.gz".length());
-							}
+							}*/
 							
 							bundleInfo=BundleLoader.loadBundleInfo(temp);
 							if(bundleInfo!=null && nameAndVersion.equals(bundleInfo)) {
 								File trg=new File(bundleDirectory,name);
 								temp.renameTo(trg);
-								printDate("adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
+								printDate("adding bundle [ "+symbolicName+" ] in version [ "+symbolicVersion+" ] to [ "+trg+" ]");
 								log(Logger.LOG_DEBUG, "adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
 
 								return trg;
