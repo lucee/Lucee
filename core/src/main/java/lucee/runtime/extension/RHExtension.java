@@ -233,7 +233,6 @@ public class RHExtension implements Serializable {
 		str=unwrap(attr.getValue("lucee-core-version"));
 		//int minCoreVersion=InfoImpl.toIntVersion(str,0);
 		Version minCoreVersion = OSGiUtil.toVersion(str, null);
-		
 		if(minCoreVersion!=null && Util.isNewerThan(minCoreVersion,info.getVersion())) {
 			throw new ApplicationException("The Extension ["+ext+"] cannot be loaded, "+Constants.NAME+" Version must be at least ["+minCoreVersion.toString()+"], version is ["+info.getVersion().toString()+"].");
 		}
@@ -639,11 +638,28 @@ public class RHExtension implements Serializable {
 	}
 	
 	private static String unwrap(String value) {
-		if(value==null) return "";
-		String res = unwrap(value,'"');
-		if(res!=null) return res; // was double quote
+		char startDoubleQuote=(char)8220;// “
+		char endDoubleQuote=(char)8221;// ”
 		
-		return unwrap(value,'\''); // try single quote unwrap, when there is no double quote.
+		if(StringUtil.isEmpty(value,true)) return "";
+		value=value.trim();
+		
+		String res = unwrap(value,'"');
+		if(res.length()<value.length()) return res;
+		
+		res = unwrap(value,'\''); 
+		if(res.length()<value.length()) return res;
+		
+		boolean changed=false;
+		if(value.charAt(0)==startDoubleQuote) {
+			value='"'+value.substring(1);
+			changed=true; 
+		}
+		if(value.charAt(value.length()-1)==endDoubleQuote) {
+			value=value.substring(0,value.length()-1)+'"';
+			changed=true; 
+		}
+		return changed?unwrap(value,'"'):value;
 	}
 	
 	private static String unwrap(String value, char del) {
