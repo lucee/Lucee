@@ -476,37 +476,42 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			Map httpArgs = null;
 			boolean hasHTTPs = false;
 			for (int i = 0; i < providers.length; i++) {
-				prov=getClassDefinition(providers[i], "",config.getIdentification());
-				strProviderCFC = getAttr(providers[i],"component");
-				if(StringUtil.isEmpty(strProviderCFC))
-					strProviderCFC = getAttr(providers[i],"class");
-				
-				// ignore S3 extension
-				if ("lucee.extension.io.resource.type.s3.S3ResourceProvider".equals(prov.getClassName()))
-					prov=new ClassDefinitionImpl(S3ResourceProvider.class);
-
-				strProviderScheme = getAttr(providers[i],"scheme");
-				// class
-				if (prov.hasClass() && !StringUtil.isEmpty(strProviderScheme)) {
-					strProviderScheme = strProviderScheme.trim().toLowerCase();
-					config.addResourceProvider(strProviderScheme, prov, toArguments(getAttr(providers[i],"arguments"), true));
-
-					// patch for user not having
-					if (strProviderScheme.equalsIgnoreCase("http")) {
-						httpClass = prov;
-						httpArgs = toArguments(getAttr(providers[i],"arguments"), true);
+				try {
+					prov=getClassDefinition(providers[i], "",config.getIdentification());
+					strProviderCFC = getAttr(providers[i],"component");
+					if(StringUtil.isEmpty(strProviderCFC))
+						strProviderCFC = getAttr(providers[i],"class");
+					
+					// ignore S3 extension
+					if ("lucee.extension.io.resource.type.s3.S3ResourceProvider".equals(prov.getClassName()))
+						prov=new ClassDefinitionImpl(S3ResourceProvider.class);
+	
+					strProviderScheme = getAttr(providers[i],"scheme");
+					// class
+					if (prov.hasClass() && !StringUtil.isEmpty(strProviderScheme)) {
+						strProviderScheme = strProviderScheme.trim().toLowerCase();
+						config.addResourceProvider(strProviderScheme, prov, toArguments(getAttr(providers[i],"arguments"), true));
+	
+						// patch for user not having
+						if (strProviderScheme.equalsIgnoreCase("http")) {
+							httpClass = prov;
+							httpArgs = toArguments(getAttr(providers[i],"arguments"), true);
+						}
+						else if (strProviderScheme.equalsIgnoreCase("https"))
+							hasHTTPs = true;
 					}
-					else if (strProviderScheme.equalsIgnoreCase("https"))
-						hasHTTPs = true;
+	
+					// cfc
+					else if (!StringUtil.isEmpty(strProviderCFC) && !StringUtil.isEmpty(strProviderScheme)) {
+						strProviderCFC = strProviderCFC.trim();
+						strProviderScheme = strProviderScheme.trim().toLowerCase();
+						Map<String, String> args = toArguments(getAttr(providers[i],"arguments"), true);
+						args.put("component", strProviderCFC);
+						config.addResourceProvider(strProviderScheme, CFMLResourceProvider.class, args);
+					}
 				}
-
-				// cfc
-				else if (!StringUtil.isEmpty(strProviderCFC) && !StringUtil.isEmpty(strProviderScheme)) {
-					strProviderCFC = strProviderCFC.trim();
-					strProviderScheme = strProviderScheme.trim().toLowerCase();
-					Map<String, String> args = toArguments(getAttr(providers[i],"arguments"), true);
-					args.put("component", strProviderCFC);
-					config.addResourceProvider(strProviderScheme, CFMLResourceProvider.class, args);
+				catch(Throwable t){ // TODO log the exception
+					t.printStackTrace();
 				}
 			}
 
