@@ -1,7 +1,6 @@
 package lucee.runtime.script;
 
 import java.io.PrintStream;
-import java.nio.charset.Charset;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -12,8 +11,7 @@ public class Main {
 
 	private static final String USAGE = "Usage: script [-options]\n\n"
 			+ "Where options include:\n" + "-l  language\n" + "-e  code\n";
-	private static final Charset UTF8 = Charset.forName("UTF-8");
-
+	
 	public static void main(final String args[]) throws Exception {
 
 		String lang = "CFML";
