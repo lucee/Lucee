@@ -560,8 +560,8 @@ public final class Application extends TagImpl {
 		if(localMode!=-1) 						ac.setLocalMode(localMode);
 		if(locale!=null) 						ac.setLocale(locale);
 		if(timeZone!=null) 						ac.setTimeZone(timeZone);
-		if(webCharset!=null) 					ac.setWebCharset(webCharset==null?null:webCharset.toCharset());
-		if(resourceCharset!=null) 				ac.setResourceCharset(resourceCharset==null?null:resourceCharset.toCharset());
+		if(webCharset!=null) 					ac.setWebCharset(webCharset.toCharset());
+		if(resourceCharset!=null) 				ac.setResourceCharset(resourceCharset.toCharset());
 		if(sessionType!=-1) 					ac.setSessionType(sessionType);
 		if(wsType!=-1) 							ac.setWSType(wsType);
 		if(triggerDataMember!=null) 			ac.setTriggerComponentDataMember(triggerDataMember.booleanValue());

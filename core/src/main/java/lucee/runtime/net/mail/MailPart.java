@@ -124,7 +124,7 @@ public final class MailPart implements Externalizable {
      * @return Returns the charset.
      */
     public Charset getCharset() {
-        return charset.toCharset();
+        return CharsetUtil.toCharset(charset);
     }
     public CharSet getCharSet() {
         return charset;

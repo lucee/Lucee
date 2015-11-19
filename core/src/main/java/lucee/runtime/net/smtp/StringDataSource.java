@@ -26,6 +26,7 @@ import java.nio.charset.Charset;
 
 import javax.activation.DataSource;
 
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.CharSet;
 
 import org.apache.commons.lang.WordUtils;
@@ -49,7 +50,7 @@ public final class StringDataSource implements DataSource {
 
 	@Override
 	public InputStream getInputStream() throws IOException {
-		return new ByteArrayInputStream(text.getBytes(charset.toCharset()));
+		return new ByteArrayInputStream(text.getBytes(CharsetUtil.toCharset(charset)));
 	}
 
 	@Override
