@@ -18,7 +18,14 @@
  **/
 package lucee.commons.io;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.StandardCharsets;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -46,13 +53,13 @@ public class CharsetUtil {
 
 	public static Charset toCharset(String charset) {
 		if(StringUtil.isEmpty(charset,true)) return null;
-		return Charset.forName(charset.trim());
+		return new CSExternalible(charset.trim());
 	}
 
 	public static Charset toCharset(String charset,Charset defaultValue) {
 		if(StringUtil.isEmpty(charset)) return defaultValue;
 		try{
-			return Charset.forName(charset);
+			return new CSExternalible(charset);
 		}
 		catch(Throwable t){
 			return defaultValue;
@@ -67,5 +74,46 @@ public class CharsetUtil {
 		
 		return CharsetUtil.ISO88591;
 	}
+	
+	static class CSExternalible extends Charset implements Externalizable {
+		
+		private transient Charset charset;
 
+		public CSExternalible(Charset charset) {
+			super(charset.name(), new String[0]);
+			this.charset=charset;
+		}
+		
+		public CSExternalible(String charset) {
+			super(charset, new String[0]);
+			this.charset=Charset.forName(charset);
+		}
+		
+		
+		
+		@Override
+		public boolean contains(Charset cs) {
+			return charset.contains(cs);
+		}
+
+		@Override
+		public CharsetDecoder newDecoder() {
+			return charset.newDecoder();
+		}
+
+		@Override
+		public CharsetEncoder newEncoder() {
+			return charset.newEncoder();
+		}
+
+		@Override
+		public void writeExternal(ObjectOutput out) throws IOException {
+			out.writeUTF(charset.name());
+		}
+
+		@Override
+		public void readExternal(ObjectInput in) throws IOException,ClassNotFoundException {
+			this.charset=Charset.forName(in.readUTF());
+		}
+	}
 }

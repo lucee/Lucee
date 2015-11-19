@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbFile;
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.Resources;
@@ -39,7 +40,7 @@ public class SMBResourceProvider implements ResourceProvider{
 	private String scheme="smb";
 	private Map<String,String> args;
 	private final static String ENCRYPTED_PREFIX = "$smb-enc$";
-	private final static Charset UTF8 = Charset.forName("UTF-8");
+	private final static Charset UTF8 = CharsetUtil.UTF8;
 	private final ResourceLockImpl lock=new ResourceLockImpl(10000,false);
 	private final static Base32 Base32DecEnc = new Base32();
 	@Override
