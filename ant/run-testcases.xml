@@ -49,7 +49,7 @@ try {
  	
 		application 
 			action="update" 
-			componentpaths = "#[{archive:"/test/testbox-2.1.0.lar"}]#";
+			componentpaths = "#[{archive:testboxArchive}]#"; 
 	
  		// load testbox
  		silent {
