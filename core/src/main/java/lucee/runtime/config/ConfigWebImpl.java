@@ -145,28 +145,6 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
     	baseComponentPageLucee=null;
     }
     
-    /* *
-     * Constructor of the class, used for configserver dummy instance
-     * @param factory
-     * @param configServer
-     * @param configx
-     * @param configDir
-     * @param configFile
-     * /
-    protected ConfigWebImpl(CFMLFactoryImpl factory,ConfigServerImpl configServer, Resource configDir, Resource configFile,Resource rootDir) {
-    	super(factory,configDir, configFile,configServer.getTLDs(),configServer.getFLDs());
-    	this.configServer=configServer;
-        factory.setConfig(this);
-    	
-        this.rootDir=rootDir;
-        
-        // Fix for tomcat
-        if(this.rootDir.getName().equals(".") || this.rootDir.getName().equals(".."))
-        	this.rootDir=this.rootDir.getParentResource();
-    }*/
-    
-    
-
     @Override
     public String getServletName() {
         return config.getServletName();
