@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import lucee.commons.collection.MapFactory;
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -629,7 +630,7 @@ public final class ClassUtil {
 		try {
 
 			String result = clazz.getProtectionDomain().getCodeSource().getLocation().getPath();
-			result = URLDecoder.decode(result, Charset.UTF8);
+			result = URLDecoder.decode(result, CharsetUtil.UTF8.name());
 			result = SystemUtil.fixWindowsPath(result);
 			return result;
 		}

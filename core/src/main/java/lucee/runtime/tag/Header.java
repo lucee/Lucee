@@ -23,6 +23,7 @@ import java.nio.charset.Charset;
 import javax.servlet.http.HttpServletResponse;
 
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.lang.CharSet;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
@@ -52,7 +53,7 @@ public final class Header extends TagImpl {
 	
 	private boolean hasStatucCode;
 
-    private Charset charset;
+    private CharSet charset;
     
 	@Override
 	public void release()	{
@@ -104,7 +105,7 @@ public final class Header extends TagImpl {
      * @param charset The charset to set.
      */
     public void setCharset(String charset) {
-        this.charset = CharsetUtil.toCharset(charset);
+        this.charset = CharsetUtil.toCharSet(charset);
     }
 
 
@@ -118,11 +119,11 @@ public final class Header extends TagImpl {
 		// set name value
 		if(name != null) {
             if(charset==null && name.equalsIgnoreCase("content-disposition")) {
-                    charset=((PageContextImpl)pageContext).getWebCharset();
+                    charset=CharsetUtil.toCharSet(((PageContextImpl)pageContext).getWebCharset());
             }
             if(charset!=null) {
-                name = new String(name.getBytes(charset), CharsetUtil.ISO88591);
-                value = new String(value.getBytes(charset), CharsetUtil.ISO88591);
+                name = new String(name.getBytes(CharsetUtil.toCharset(charset)), CharsetUtil.ISO88591);
+                value = new String(value.getBytes(CharsetUtil.toCharset(charset)), CharsetUtil.ISO88591);
             }
             else {
                 name = new String(name.getBytes(), CharsetUtil.ISO88591);

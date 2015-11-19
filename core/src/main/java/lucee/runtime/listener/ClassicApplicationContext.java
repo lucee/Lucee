@@ -24,7 +24,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.CharSet;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
@@ -84,8 +86,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private int localMode;
 	private Locale locale; 
 	private TimeZone timeZone; 
-	private Charset webCharset; 
-	private Charset resourceCharset;
+	private CharSet webCharset; 
+	private CharSet resourceCharset;
 	private short sessionType;
     private boolean sessionCluster;
     private boolean clientCluster;
@@ -133,8 +135,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
         this.timeZone=config.getTimeZone();
         this.scopeCascading=config.getScopeCascadingType();
 
-        this.webCharset=((ConfigImpl)config).getWebCharset();
-        this.resourceCharset=((ConfigImpl)config).getResourceCharset();
+        this.webCharset=((ConfigImpl)config).getWebCharSet();
+        this.resourceCharset=((ConfigImpl)config).getResourceCharSet();
         this.bufferOutput=((ConfigImpl)config).getBufferOutput();
         suppressRemoteComponentContent=((ConfigImpl)config).isSuppressContent();
         this.sessionType=config.getSessionType();
@@ -528,11 +530,17 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	
 	@Override
 	public Charset getWebCharset() {
+		return CharsetUtil.toCharset(webCharset);
+	}
+	public CharSet getWebCharSet() {
 		return webCharset;
 	}
 	
 	@Override
 	public Charset getResourceCharset() {
+		return CharsetUtil.toCharset(resourceCharset);
+	}
+	public CharSet getResourceCharSet() {
 		return resourceCharset;
 	}
 
@@ -556,12 +564,12 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	
 	@Override
 	public void setWebCharset(Charset webCharset) {
-		this.webCharset= webCharset;
+		this.webCharset= CharsetUtil.toCharSet(webCharset);
 	}
 	
 	@Override
 	public void setResourceCharset(Charset resourceCharset) {
-		this.resourceCharset = resourceCharset;
+		this.resourceCharset = CharsetUtil.toCharSet(resourceCharset);
 	}
 
 

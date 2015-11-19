@@ -25,6 +25,7 @@ import java.util.TimeZone;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.CharSet;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageSource;
@@ -89,8 +90,8 @@ public final class Application extends TagImpl {
 	private int localMode=-1;
 	private Locale locale;
 	private TimeZone timeZone;
-	private Charset webCharset;
-	private Charset resourceCharset;
+	private CharSet webCharset;
+	private CharSet resourceCharset;
 	private short sessionType=-1;
 	private short wsType=-1;
 	private boolean sessionCluster;
@@ -250,13 +251,13 @@ public final class Application extends TagImpl {
 	
 	public void setWebcharset(String charset) {
 		if(StringUtil.isEmpty(charset)) return;
-		webCharset = CharsetUtil.toCharset(charset);
+		webCharset = CharsetUtil.toCharSet(charset);
 		
 	}
 	
 	public void setResourcecharset(String charset) {
 		if(StringUtil.isEmpty(charset)) return;
-		resourceCharset = CharsetUtil.toCharset(charset);
+		resourceCharset = CharsetUtil.toCharSet(charset);
 		
 	}
 	
@@ -559,8 +560,8 @@ public final class Application extends TagImpl {
 		if(localMode!=-1) 						ac.setLocalMode(localMode);
 		if(locale!=null) 						ac.setLocale(locale);
 		if(timeZone!=null) 						ac.setTimeZone(timeZone);
-		if(webCharset!=null) 					ac.setWebCharset(webCharset);
-		if(resourceCharset!=null) 				ac.setResourceCharset(resourceCharset);
+		if(webCharset!=null) 					ac.setWebCharset(webCharset==null?null:webCharset.toCharset());
+		if(resourceCharset!=null) 				ac.setResourceCharset(resourceCharset==null?null:resourceCharset.toCharset());
 		if(sessionType!=-1) 					ac.setSessionType(sessionType);
 		if(wsType!=-1) 							ac.setWSType(wsType);
 		if(triggerDataMember!=null) 			ac.setTriggerComponentDataMember(triggerDataMember.booleanValue());

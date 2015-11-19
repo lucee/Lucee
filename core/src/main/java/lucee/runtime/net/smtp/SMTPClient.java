@@ -58,6 +58,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
@@ -115,15 +116,15 @@ public final class SMTPClient implements Serializable  {
 	private int timeout=-1;
 	
 	private String plainText;
-	private Charset plainTextCharset;
+	private CharSet plainTextCharset;
 	
 	private String htmlText;
-	private Charset htmlTextCharset;
+	private CharSet htmlTextCharset;
 
 	private Attachment[] attachmentz;
 
 	private String[] host;
-	private Charset charset=CharsetUtil.UTF8;
+	private CharSet charset=CharSet.UTF8;
 	private InternetAddress from;
 	private InternetAddress[] tos;
 	private InternetAddress[] bccs;
@@ -181,6 +182,9 @@ public final class SMTPClient implements Serializable  {
 	 * @param charset the charset to set
 	 */
 	public void setCharset(Charset charset) {
+		this.charset = CharsetUtil.toCharSet(charset);
+	}
+	public void setCharSet(CharSet charset) {
 		this.charset = charset;
 	}
 
@@ -551,12 +555,12 @@ public final class SMTPClient implements Serializable  {
 	    }
 	}
 
-	private void checkAddress(InternetAddress[] ias,Charset charset) { // DIFF 23
+	private void checkAddress(InternetAddress[] ias,CharSet charset) { // DIFF 23
 		for(int i=0;i<ias.length;i++) {
 			checkAddress(ias[i], charset);
 		}
 	}
-	private void checkAddress(InternetAddress ia,Charset charset) { // DIFF 23
+	private void checkAddress(InternetAddress ia,CharSet charset) { // DIFF 23
 		try {
 			if(!StringUtil.isEmpty(ia.getPersonal())) {
 				String personal = MailUtil.encode(ia.getPersonal(), charset.name());
@@ -580,7 +584,7 @@ public final class SMTPClient implements Serializable  {
 	 */
 	public void setPlainText(String plainText, Charset plainTextCharset) {
 		this.plainText=plainText;
-		this.plainTextCharset=plainTextCharset;
+		this.plainTextCharset=CharsetUtil.toCharSet(plainTextCharset);
 	}
 	
 	/**
@@ -607,7 +611,7 @@ public final class SMTPClient implements Serializable  {
 	 */
 	public void setHTMLText(String htmlText, Charset htmlTextCharset) {
 		this.htmlText=htmlText;
-		this.htmlTextCharset=htmlTextCharset;
+		this.htmlTextCharset=CharsetUtil.toCharSet(htmlTextCharset);
 	}
 	
 	public void addAttachment(URL url) {
@@ -878,7 +882,7 @@ public final class SMTPClient implements Serializable  {
 	
 	private BodyPart toMimeBodyPart(MailPart part) throws MessagingException {
 		MimeBodyPart mbp = new MimeBodyPart();
-		mbp.setDataHandler(new DataHandler(new StringDataSource(part.getBody(),part.getType() ,part.getCharset(),980)));
+		mbp.setDataHandler(new DataHandler(new StringDataSource(part.getBody(),part.getType() ,CharsetUtil.toCharSet(part.getCharset()),980)));
 		//mbp.setHeader("Content-Transfer-Encoding", "7bit");
 		//mbp.setHeader("Content-Type", TEXT_PLAIN+"; charset="+plainTextCharset);
 		return mbp;

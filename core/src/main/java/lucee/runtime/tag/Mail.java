@@ -23,9 +23,11 @@ import java.nio.charset.Charset;
 
 import javax.mail.internet.InternetAddress;
 
+import lucee.print;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.CharSet;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -74,7 +76,7 @@ public final class Mail extends BodyTagImpl {
 	private SMTPClient smtp=new SMTPClient();
 	private lucee.runtime.net.mail.MailPart part=null;//new lucee.runtime.mail.MailPart("UTF-8");
 
-	private Charset charset;
+	private CharSet charset;
 
 	private int priority;
 	private boolean remove;
@@ -366,7 +368,7 @@ public final class Mail extends BodyTagImpl {
 	 * @param charset The charset to set.
 	 */
 	public void setCharset(Charset charset) {
-		this.charset=charset;
+		this.charset=CharsetUtil.toCharSet(charset);
 	}
 
 	/** set the value group
@@ -505,7 +507,7 @@ public final class Mail extends BodyTagImpl {
 
     @Override
 	public int doStartTag() throws ApplicationException	{
-		if(isEmpty(smtp.getTos()) && isEmpty(smtp.getCcs()) && isEmpty(smtp.getBccs())) 
+    	if(isEmpty(smtp.getTos()) && isEmpty(smtp.getCcs()) && isEmpty(smtp.getBccs())) 
 			throw new ApplicationException("One of the following attribtues must be defined [to, cc, bcc]");
 			
 		return EVAL_BODY_BUFFERED;
@@ -585,8 +587,8 @@ public final class Mail extends BodyTagImpl {
 	 * @return the charset
 	 */
 	public Charset getCharset() {
-		if(charset==null)charset=pageContext.getConfig().getMailDefaultCharset();
-		return charset;
+		if(charset==null)charset=CharsetUtil.toCharSet(pageContext.getConfig().getMailDefaultCharset());
+		return CharsetUtil.toCharset(charset);
 	}
 
 

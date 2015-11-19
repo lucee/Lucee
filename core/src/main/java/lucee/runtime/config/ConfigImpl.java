@@ -21,6 +21,7 @@ package lucee.runtime.config;
 import static lucee.runtime.db.DatasourceManagerImpl.QOQ_DATASOURCE_NAME;
 import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
@@ -55,6 +56,7 @@ import lucee.commons.io.res.type.compress.CompressResource;
 import lucee.commons.io.res.type.compress.CompressResourceProvider;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -306,11 +308,11 @@ public abstract class ConfigImpl implements Config {
 
     private short compileType=RECOMPILE_NEVER;
     
-    private Charset resourceCharset=SystemUtil.getCharset();
-    private Charset templateCharset=SystemUtil.getCharset();
-    private Charset webCharset=CharsetUtil.UTF8;
+    private CharSet resourceCharset=SystemUtil.getCharSet();
+    private CharSet templateCharset=SystemUtil.getCharSet();
+    private CharSet webCharset=CharSet.UTF8;
 
-	private Charset mailDefaultCharset = CharsetUtil.UTF8;
+	private CharSet mailDefaultCharset = CharSet.UTF8;
 	
 	private Resource tldFile;
 	private Resource fldFile;
@@ -1955,6 +1957,9 @@ public abstract class ConfigImpl implements Config {
 	
 	@Override
 	public Charset getTemplateCharset() {
+		return CharsetUtil.toCharset(templateCharset);
+	}
+	public CharSet getTemplateCharSet() {
 		return templateCharset;
 	}
 	
@@ -1963,14 +1968,17 @@ public abstract class ConfigImpl implements Config {
 	 * @param templateCharset
 	 */
 	protected void setTemplateCharset(String templateCharset) {
-		this.templateCharset = CharsetUtil.toCharset(templateCharset, this.templateCharset);
+		this.templateCharset = CharsetUtil.toCharSet(templateCharset, this.templateCharset);
 	}
 	protected void setTemplateCharset(Charset templateCharset) {
-		this.templateCharset = templateCharset;
+		this.templateCharset = CharsetUtil.toCharSet(templateCharset);
 	}
 
 	@Override
 	public Charset getWebCharset() {
+		return CharsetUtil.toCharset(webCharset);
+	}
+	public CharSet getWebCharSet() {
 		return webCharset;
 	}
 	
@@ -1979,14 +1987,18 @@ public abstract class ConfigImpl implements Config {
 	 * @param resourceCharset
 	 */
 	protected void setResourceCharset(String resourceCharset) {
-		this.resourceCharset = CharsetUtil.toCharset(resourceCharset, this.resourceCharset);
+		this.resourceCharset = CharsetUtil.toCharSet(resourceCharset, this.resourceCharset);
 	}
 	protected void setResourceCharset(Charset resourceCharset) {
-		this.resourceCharset = resourceCharset;
+		this.resourceCharset = CharsetUtil.toCharSet(resourceCharset);
 	}
 
 	@Override
 	public Charset getResourceCharset() {
+		return CharsetUtil.toCharset(resourceCharset);
+	}
+	
+	public CharSet getResourceCharSet() {
 		return resourceCharset;
 	}
 	
@@ -1995,10 +2007,10 @@ public abstract class ConfigImpl implements Config {
 	 * @param webCharset
 	 */
 	protected void setWebCharset(String webCharset) {
-		this.webCharset = CharsetUtil.toCharset(webCharset, this.webCharset);
+		this.webCharset = CharsetUtil.toCharSet(webCharset, this.webCharset);
 	}
 	protected void setWebCharset(Charset webCharset) {
-		this.webCharset = webCharset;
+		this.webCharset = CharsetUtil.toCharSet(webCharset);
 	}
 
 	public SecurityManager getSecurityManager() {
@@ -2044,6 +2056,9 @@ public abstract class ConfigImpl implements Config {
 	 * @return the mailDefaultCharset
 	 */
 	public Charset getMailDefaultCharset() {
+		return mailDefaultCharset.toCharset();
+	}
+	public CharSet getMailDefaultCharSet() {
 		return mailDefaultCharset;
 	}
 
@@ -2051,10 +2066,10 @@ public abstract class ConfigImpl implements Config {
 	 * @param mailDefaultEncoding the mailDefaultCharset to set
 	 */
 	protected void setMailDefaultEncoding(String mailDefaultCharset) {
-		this.mailDefaultCharset = CharsetUtil.toCharset(mailDefaultCharset,this.mailDefaultCharset);
+		this.mailDefaultCharset = CharsetUtil.toCharSet(mailDefaultCharset,this.mailDefaultCharset);
 	}
 	protected void setMailDefaultEncoding(Charset mailDefaultCharset) {
-		this.mailDefaultCharset = mailDefaultCharset;
+		this.mailDefaultCharset = CharsetUtil.toCharSet(mailDefaultCharset);
 	}
 
 	protected void setDefaultResourceProvider(Class defaultProviderClass, Map arguments) throws ClassException {
@@ -3518,10 +3533,29 @@ public abstract class ConfigImpl implements Config {
 		this.cgiScopeReadonly = cgiScopeReadonly;
 	}
 
+	private Resource deployDir;
 	public Resource getDeployDirectory() {
-		Resource dir = getConfigDir().getRealResource("deploy");
-		if(!dir.exists())dir.mkdirs();
-		return dir;
+		if(deployDir==null) {
+			// config web
+			if(this instanceof ConfigWeb) {
+				deployDir = getConfigDir().getRealResource("deploy");
+				if(!deployDir.exists())deployDir.mkdirs();
+			}
+			// config server
+			else {
+				try {
+					File file = new File(ConfigWebUtil.getEngine(this).getCFMLEngineFactory().getResourceRoot(),"deploy");
+					if(!file.exists()) file.mkdirs();
+					deployDir=ResourcesImpl.getFileResourceProvider()
+						.getResource(file.getAbsolutePath());
+				}
+				catch(IOException ioe) {
+					deployDir = getConfigDir().getRealResource("deploy");
+					if(!deployDir.exists())deployDir.mkdirs();
+				}
+			}
+		}
+		return deployDir;
 	}
 
 	private boolean allowLuceeDialect=false;

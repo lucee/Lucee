@@ -32,6 +32,7 @@ import lucee.commons.io.log.log4j.LogAdapter;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.retirement.RetireListener;
 import lucee.commons.io.retirement.RetireOutputStream;
+import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -73,7 +74,7 @@ public final class Log extends TagImpl {
 
 	/** Specifies whether to log the application name if one has been specified in a application tag. */
 	private boolean application;
-	private Charset charset=null;
+	private CharSet charset=null;
 
 	private boolean async;
 	
@@ -251,19 +252,19 @@ public final class Log extends TagImpl {
 		return SKIP_BODY;
 	}
 
-	private static lucee.commons.io.log.Log getFileLog(PageContext pc, String file, Charset charset, boolean async) throws PageException {
-		LogAdapter log= FileLogPool.instance.get(file,charset);
+	private static lucee.commons.io.log.Log getFileLog(PageContext pc, String file, CharSet charset, boolean async) throws PageException {
+		LogAdapter log= FileLogPool.instance.get(file,CharsetUtil.toCharset(charset));
 		if(log!=null) return log;
 		
 		Config config=pc.getConfig();
-		if(charset==null) charset=((PageContextImpl)pc).getResourceCharset();
+		if(charset==null) charset=CharsetUtil.toCharSet(((PageContextImpl)pc).getResourceCharset());
     	Resource logDir=config.getConfigDir().getRealResource("logs");
         
     	if(!logDir.exists())logDir.mkdirs();
         try {
         	Resource res = logDir.getRealResource(file);
-        	log=new LogAdapter(Log4jUtil.getResourceLog(config,res,charset , "cflog."+FileLogPool.toKey(file,charset), Level.TRACE,5,new Listener(FileLogPool.instance,file,charset),async));
-            FileLogPool.instance.put(file,charset,log);
+        	log=new LogAdapter(Log4jUtil.getResourceLog(config,res,CharsetUtil.toCharset(charset) , "cflog."+FileLogPool.toKey(file,CharsetUtil.toCharset(charset)), Level.TRACE,5,new Listener(FileLogPool.instance,file,charset),async));
+            FileLogPool.instance.put(file,CharsetUtil.toCharset(charset),log);
         } 
         catch (IOException e) {
             throw Caster.toPageException(e);
@@ -276,7 +277,7 @@ public final class Log extends TagImpl {
 	 */
 	public void setCharset(String charset) {
 		if(StringUtil.isEmpty(charset,true)) return;
-	    this.charset = CharsetUtil.toCharset(charset);
+	    this.charset = CharsetUtil.toCharSet(charset);
 	}
 	
 	private static class FileLogPool {
@@ -307,9 +308,9 @@ public final class Log extends TagImpl {
 		
 		private FileLogPool pool;
 		private String file;
-		private Charset charset;
+		private CharSet charset;
 
-		public Listener(FileLogPool pool, String file, Charset charset){
+		public Listener(FileLogPool pool, String file, CharSet charset){
 			this.pool=pool;
 			this.file=file;
 			this.charset=charset;
@@ -317,7 +318,7 @@ public final class Log extends TagImpl {
 		
 		@Override
 		public void retire(RetireOutputStream os) {
-			pool.retire(file,charset);
+			pool.retire(file,CharsetUtil.toCharset(charset));
 		}
 	}
 }

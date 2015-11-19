@@ -39,6 +39,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ModeObjectWrap;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.CharSet;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.runtime.PageContext;
@@ -117,7 +118,7 @@ public final class FileTag extends BodyTagImpl {
 	private String filefield;
 
 	/** Character set name for the file contents. */
-	private Charset charset=null;
+	private CharSet charset=null;
 
 	/** Yes: appends newline character to text written to file */
 	private boolean addnewline=true;
@@ -275,7 +276,7 @@ public final class FileTag extends BodyTagImpl {
 	**/
 	public void setCharset(String charset)	{
 		if(StringUtil.isEmpty(charset)) return;
-		this.charset=CharsetUtil.toCharset(charset.trim());
+		this.charset=CharsetUtil.toCharSet(charset.trim());
 	}
 	
 	/** set the value acl
@@ -365,7 +366,7 @@ public final class FileTag extends BodyTagImpl {
 	@Override
 	public int doStartTag() throws PageException	{
 		
-		if(charset==null) charset=((PageContextImpl)pageContext).getResourceCharset();
+		if(charset==null) charset=CharsetUtil.toCharSet(((PageContextImpl)pageContext).getResourceCharset());
 
 		securityManager = pageContext.getConfig().getSecurityManager();
 		
@@ -612,7 +613,7 @@ public final class FileTag extends BodyTagImpl {
 		
 		try {
 			long start = System.nanoTime();
-            Object data=binary?IOUtil.toBytes(file):IOUtil.toString(file,charset);
+            Object data=binary?IOUtil.toBytes(file):IOUtil.toString(file,CharsetUtil.toCharset(charset));
 			pageContext.setVariable(variable,data);
             
             if(cachedWithin!=null) {
@@ -660,7 +661,7 @@ public final class FileTag extends BodyTagImpl {
         		if(fixnewline)content=doFixNewLine(content);
         		if(addnewline) content+=SystemUtil.getOSSpecificLineSeparator();
         		
-                IOUtil.write(file,content,charset,false);
+                IOUtil.write(file,content,CharsetUtil.toCharset(charset),false);
         		
         	}    
         } 
@@ -713,7 +714,7 @@ public final class FileTag extends BodyTagImpl {
             String content=Caster.toString(output);
             if(fixnewline)content=doFixNewLine(content);
     		if(addnewline) content+=SystemUtil.getOSSpecificLineSeparator();
-            IOUtil.write(file,content,charset,true);
+            IOUtil.write(file,content,CharsetUtil.toCharset(charset),true);
         	
         } 
 		catch (UnsupportedEncodingException e) {

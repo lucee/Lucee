@@ -26,7 +26,10 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.SortedMap;
 
+import lucee.commons.lang.CharSet;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
@@ -53,17 +56,42 @@ public class CharsetUtil {
 
 	public static Charset toCharset(String charset) {
 		if(StringUtil.isEmpty(charset,true)) return null;
-		return new CSExternalible(charset.trim());
+		return Charset.forName(charset.trim());
 	}
 
 	public static Charset toCharset(String charset,Charset defaultValue) {
 		if(StringUtil.isEmpty(charset)) return defaultValue;
 		try{
-			return new CSExternalible(charset);
+			return Charset.forName(charset);
 		}
 		catch(Throwable t){
 			return defaultValue;
 		}
+	}
+
+	public static CharSet toCharSet(String charset) {
+		if(StringUtil.isEmpty(charset,true)) return null;
+		return new CharSet(Charset.forName(charset.trim()));
+	}
+	
+	public static CharSet toCharSet(String charset,CharSet defaultValue) {
+		if(StringUtil.isEmpty(charset)) return defaultValue;
+		try{
+			return new CharSet(Charset.forName(charset));
+		}
+		catch(Throwable t){
+			return defaultValue;
+		}
+	}
+	
+
+	public static CharSet toCharSet(Charset charset) {
+		if(charset==null) return null;
+		return new CharSet(charset);
+	}
+	public static Charset toCharset(CharSet charset) {
+		if(charset==null) return null;
+		return charset.toCharset();
 	}
 
 	public static Charset getWebCharset() {
@@ -75,45 +103,21 @@ public class CharsetUtil {
 		return CharsetUtil.ISO88591;
 	}
 	
-	static class CSExternalible extends Charset implements Externalizable {
-		
-		private transient Charset charset;
 
-		public CSExternalible(Charset charset) {
-			super(charset.name(), new String[0]);
-			this.charset=charset;
-		}
-		
-		public CSExternalible(String charset) {
-			super(charset, new String[0]);
-			this.charset=Charset.forName(charset);
-		}
-		
-		
-		
-		@Override
-		public boolean contains(Charset cs) {
-			return charset.contains(cs);
-		}
-
-		@Override
-		public CharsetDecoder newDecoder() {
-			return charset.newDecoder();
-		}
-
-		@Override
-		public CharsetEncoder newEncoder() {
-			return charset.newEncoder();
-		}
-
-		@Override
-		public void writeExternal(ObjectOutput out) throws IOException {
-			out.writeUTF(charset.name());
-		}
-
-		@Override
-		public void readExternal(ObjectInput in) throws IOException,ClassNotFoundException {
-			this.charset=Charset.forName(in.readUTF());
-		}
+	public static String[] getAvailableCharsets() {
+		 SortedMap<String, Charset> map = java.nio.charset.Charset.availableCharsets();
+		 String[] keys = map.keySet().toArray(new String[map.size()]);
+		 Arrays.sort(keys);
+		 return keys;
 	}
+	
+	/**
+	 * is given charset supported or not
+	 * @param charset
+	 * @return
+	 */
+	public static boolean isSupported(String charset) {
+		return java.nio.charset.Charset.isSupported(charset);
+	}
+	
 }

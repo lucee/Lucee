@@ -52,6 +52,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassLoaderHelper;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
@@ -136,7 +137,7 @@ public final class SystemUtil {
     private static Resource tempFile;
     private static Resource homeFile;
     private static Resource[] classPathes;
-    private static Charset charset;
+    private static CharSet charset;
     private static String lineSeparator=System.getProperty("line.separator","\n");
     private static MemoryPoolMXBean permGenSpaceBean;
 
@@ -160,9 +161,9 @@ public final class SystemUtil {
 		if(strCharset==null || strCharset.equalsIgnoreCase("MacRoman"))
 			strCharset="cp1252";
 
-		if(strCharset.equalsIgnoreCase("utf-8")) charset=CharsetUtil.UTF8;
-		else if(strCharset.equalsIgnoreCase("iso-8859-1")) charset=CharsetUtil.ISO88591;
-		else charset=CharsetUtil.toCharset(strCharset,null);
+		if(strCharset.equalsIgnoreCase("utf-8")) charset=CharSet.UTF8;
+		else if(strCharset.equalsIgnoreCase("iso-8859-1")) charset=CharSet.ISO88591;
+		else charset=CharsetUtil.toCharSet(strCharset,null);
 		
 		// Perm Gen
 		permGenSpaceBean=getPermGenSpaceBean();
@@ -635,14 +636,17 @@ public final class SystemUtil {
     }
 
     public static Charset getCharset() {
+    	return CharsetUtil.toCharset(charset);
+    }
+    public static CharSet getCharSet() {
     	return charset;
     }
 
 	public static void setCharset(String charset) {
-		SystemUtil.charset = CharsetUtil.toCharset(charset);
+		SystemUtil.charset = CharsetUtil.toCharSet(charset);
 	}
 	public static void setCharset(Charset charset) {
-		SystemUtil.charset = charset;
+		SystemUtil.charset = CharsetUtil.toCharSet(charset);
 	}
 
 	public static String getOSSpecificLineSeparator() {

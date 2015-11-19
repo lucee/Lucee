@@ -26,15 +26,17 @@ import java.nio.charset.Charset;
 
 import javax.activation.DataSource;
 
+import lucee.commons.lang.CharSet;
+
 import org.apache.commons.lang.WordUtils;
 
 public final class StringDataSource implements DataSource {
 
 	private String text;
 	private String ct;
-	private Charset charset;
+	private CharSet charset;
 
-	public StringDataSource(String text, String ct, Charset charset, int maxLineLength) {
+	public StringDataSource(String text, String ct, CharSet charset, int maxLineLength) {
 		this.text=WordUtils.wrap(text, maxLineLength);
 		this.ct=ct;
 		this.charset=charset;
@@ -47,7 +49,7 @@ public final class StringDataSource implements DataSource {
 
 	@Override
 	public InputStream getInputStream() throws IOException {
-		return new ByteArrayInputStream(text.getBytes(charset));
+		return new ByteArrayInputStream(text.getBytes(charset.toCharset()));
 	}
 
 	@Override

@@ -31,6 +31,7 @@ import java.util.TimeZone;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.CharSet;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.runtime.Component;
@@ -201,9 +202,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initLocale;
 	private TimeZone timeZone;
 	private boolean initTimeZone;
-	private Charset webCharset;
+	private CharSet webCharset;
 	private boolean initWebCharset;
-	private Charset resourceCharset;
+	private CharSet resourceCharset;
 	private boolean initResourceCharset;
 	private boolean initCGIScopeReadonly;
 	
@@ -230,8 +231,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
         this.localMode=config.getLocalMode();
         this.locale=config.getLocale();
         this.timeZone=config.getTimeZone();
-        this.webCharset=config.getWebCharset();
-        this.resourceCharset=config.getResourceCharset();
+        this.webCharset=ci.getWebCharSet();
+        this.resourceCharset=ci.getResourceCharSet();
         this.bufferOutput=ci.getBufferOutput();
         suppressContent=ci.isSuppressContent();
         this.sessionType=config.getSessionType();
@@ -790,28 +791,35 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public Charset getWebCharset() {
 		if(!initWebCharset)initCharset();
+		return CharsetUtil.toCharset(webCharset);
+	}
+	
+	public CharSet getWebCharSet() {
+		if(!initWebCharset)initCharset();
 		return webCharset;
-		
 	}
 	
 	@Override
 	public Charset getResourceCharset() {
 		if(!initResourceCharset)initCharset();
+		return CharsetUtil.toCharset(resourceCharset);
+	}
+	public CharSet getResourceCharSet() {
+		if(!initResourceCharset)initCharset();
 		return resourceCharset;
-		
 	}
 	
 	/**
 	 * @return  webcharset if it was defined, otherwise null
 	 */
-	private Charset initCharset() {
+	private CharSet initCharset() {
 		Object o = get(component,KeyConstants._charset,null);
 		if(o!=null){
 			Struct sct = Caster.toStruct(o,null);
 			if(sct!=null) {
-				Charset web = CharsetUtil.toCharset(Caster.toString(sct.get(KeyConstants._web,null),null),null);
+				CharSet web = CharsetUtil.toCharSet(Caster.toString(sct.get(KeyConstants._web,null),null),null);
 				if(!initWebCharset && web!=null) webCharset=web;
-				Charset res = CharsetUtil.toCharset(Caster.toString(sct.get(KeyConstants._resource,null),null),null);
+				CharSet res = CharsetUtil.toCharSet(Caster.toString(sct.get(KeyConstants._resource,null),null),null);
 				if(!initResourceCharset && res!=null) resourceCharset=res;
 				
 				initWebCharset=true;
@@ -1083,13 +1091,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setWebCharset(Charset webCharset) {
 		initWebCharset=true;
-		this.webCharset=webCharset;
+		this.webCharset=CharsetUtil.toCharSet(webCharset);
 	}
 	
 	@Override
 	public void setResourceCharset(Charset resourceCharset) {
 		initResourceCharset=true;
-		this.resourceCharset=resourceCharset;
+		this.resourceCharset=CharsetUtil.toCharSet(resourceCharset);
 	}
 	
 	

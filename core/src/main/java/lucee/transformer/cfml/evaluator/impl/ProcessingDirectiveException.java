@@ -20,19 +20,21 @@ package lucee.transformer.cfml.evaluator.impl;
 
 import java.nio.charset.Charset;
 
+import lucee.commons.io.CharsetUtil;
+import lucee.commons.lang.CharSet;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.util.PageSourceCode;
 import lucee.transformer.util.SourceCode;
 
 public final class ProcessingDirectiveException extends TemplateException {
 
-	private Charset charset;
+	private CharSet charset;
 	private Boolean writeLog;
 	private Boolean dotNotationUpperCase;
 
 	public ProcessingDirectiveException(SourceCode cfml, Charset charset,Boolean dotNotationUpperCase, Boolean writeLog) {
 		super(cfml, createMessage(cfml,charset,writeLog));
-		this.charset=charset;
+		this.charset=CharsetUtil.toCharSet(charset);
 		this.writeLog=writeLog;
 		this.dotNotationUpperCase=dotNotationUpperCase;
 	}
@@ -49,7 +51,7 @@ public final class ProcessingDirectiveException extends TemplateException {
 	}
 
 	public Charset getCharset() {
-		return charset;
+		return CharsetUtil.toCharset(charset);
 	}
 
 	public Boolean getDotNotationUpperCase() {

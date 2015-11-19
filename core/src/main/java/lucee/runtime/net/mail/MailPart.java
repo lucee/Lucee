@@ -25,6 +25,7 @@ import java.io.ObjectOutput;
 import java.nio.charset.Charset;
 
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.lang.CharSet;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
@@ -44,7 +45,7 @@ public final class MailPart implements Externalizable {
 	private int wraptext=-1;
 
 	/** The character encoding in which the part text is encoded */
-	private Charset charset;
+	private CharSet charset;
 
     private String body;
 	private String type;
@@ -66,7 +67,7 @@ public final class MailPart implements Externalizable {
 	public void readExternal(ObjectInput in) throws IOException,ClassNotFoundException {
 		isHTML=in.readBoolean();
 		wraptext=in.readInt();
-		charset=CharsetUtil.toCharset(readString(in));
+		charset=CharsetUtil.toCharSet(readString(in));
 		body=readString(in);
 		type=readString(in);
 	}
@@ -105,7 +106,7 @@ public final class MailPart implements Externalizable {
      * @param charset
      */
     public MailPart(Charset charset) {
-        this.charset = charset;
+        this.charset = CharsetUtil.toCharSet(charset);
     }
     /**
      * @return Returns the body.
@@ -123,13 +124,19 @@ public final class MailPart implements Externalizable {
      * @return Returns the charset.
      */
     public Charset getCharset() {
+        return charset.toCharset();
+    }
+    public CharSet getCharSet() {
         return charset;
     }
     /**
      * @param charset The charset to set.
      */
     public void setCharset(Charset charset) {
-        this.charset = charset;
+        this.charset = CharsetUtil.toCharSet(charset);
+    }
+    public void setCharSet(CharSet charSet) {
+        this.charset = charSet;
     }
     /**
      * @return Returns the isHTML.
