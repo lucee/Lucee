@@ -169,6 +169,7 @@ import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+import lucee.runtime.util.PageContextUtil;
 import lucee.runtime.video.VideoExecuter;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
@@ -1334,7 +1335,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		// dot notation upper case
 		_getDotNotationUpperCase(sb,config.getMappings());
-		_getDotNotationUpperCase(sb,config.getMappings());
 		_getDotNotationUpperCase(sb,config.getCustomTagMappings());
 		_getDotNotationUpperCase(sb,config.getComponentMappings());
 		_getDotNotationUpperCase(sb,config.getFunctionMapping());
@@ -1394,7 +1394,28 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			// change Compile type
 			if (hasChanged) {
 				try {
+					// first we delete the physical classes
 					config.getClassDirectory().remove(true);
+					
+					// now we force the pagepools to flush
+					flushPageSourcePool(config.getMappings());
+					flushPageSourcePool(config.getCustomTagMappings());
+					flushPageSourcePool(config.getComponentMappings());
+					flushPageSourcePool(config.getFunctionMapping());
+					flushPageSourcePool(config.getTagMapping());
+					flushPageSourcePool(config.getTagMapping());
+					
+					if(config instanceof ConfigWeb) {
+						flushPageSourcePool(((ConfigWebImpl)config).getApplicationMapping());
+					}
+					/*else {
+						ConfigWeb[] webs = ((ConfigServerImpl)config).getConfigWebs();
+						for(int i=0;i<webs.length;i++){
+							flushPageSourcePool(((ConfigWebImpl)webs[i]).getApplicationMapping());
+						}
+					}*/
+					
+					
 				}
 				catch (IOException e) {
 					e.printStackTrace(config.getErrWriter());
@@ -1405,6 +1426,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			((ConfigServerImpl)config).setLibHash(HashUtil.create64BitHashAsString(sb.toString()));
 		}
 
+	}
+
+	private static void flushPageSourcePool(Mapping... mappings) {
+		for(int i=0;i<mappings.length;i++){
+			if(mappings[i] instanceof MappingImpl)
+				((MappingImpl)mappings[i]).flush(); // FUTURE make "flush" part of the interface
+		}
 	}
 
 	private static void _getDotNotationUpperCase(StringBuilder sb, Mapping... mappings) {
@@ -2632,7 +2660,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			Resource trg = config.getConfigDir().getRealResource("context/");
 			copyContextFiles(src, trg);
 		}
-
 		Resource configDir = config.getConfigDir();
 
 		boolean hasCS = configServer != null;
@@ -2725,7 +2752,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			config.setFLDs(ConfigImpl.duplicate(new FunctionLib[]{cs.cfmlCoreFLDs},false),CFMLEngine.DIALECT_CFML);
 			config.setFLDs(ConfigImpl.duplicate(new FunctionLib[]{cs.luceeCoreFLDs},false),CFMLEngine.DIALECT_LUCEE);
 		}
-				
 
 		// FLDs
 		if (strFLDDirectory != null) {

@@ -39,6 +39,7 @@ import lucee.runtime.config.Identification;
 import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.transformer.library.function.FunctionLibFactory;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -481,10 +482,10 @@ public final class TagLibFactory extends DefaultHandler {
 	public static TagLib loadFromFile(Resource res,Identification id) throws TagLibException	{
         
 		// Read in XML
-	    TagLib lib=TagLibFactory.getHashLib(ResourceUtil.getCanonicalPathEL(res));
+	    TagLib lib=TagLibFactory.getHashLib(FunctionLibFactory.id(res));
 		if(lib==null)	{
 		    lib=new TagLibFactory(DEFAULT_SAX_PARSER,null,res,id).getLib();
-			TagLibFactory.hashLib.put(ResourceUtil.getCanonicalPathEL(res),lib);
+			TagLibFactory.hashLib.put(FunctionLibFactory.id(res),lib);
 		}
 		lib.setSource(res.toString());
 		return lib;

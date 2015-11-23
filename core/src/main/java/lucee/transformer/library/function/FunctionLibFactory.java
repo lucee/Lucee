@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -29,6 +30,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import lucee.commons.digest.Hash;
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
@@ -40,6 +43,7 @@ import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.library.tag.TagLibFactory;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -383,14 +387,31 @@ public final class FunctionLibFactory extends DefaultHandler {
 	 */
 	public static FunctionLib loadFromFile(Resource res,Identification id) throws FunctionLibException	{
 		// Read in XML
-		FunctionLib lib=FunctionLibFactory.hashLib.get(ResourceUtil.getCanonicalPathEL(res));//getHashLib(file.getAbsolutePath());
+		FunctionLib lib=FunctionLibFactory.hashLib.get(id(res));//getHashLib(file.getAbsolutePath());
 		if(lib==null)	{
 			lib=new FunctionLibFactory(DEFAULT_SAX_PARSER,null,res,id).getLib();
-			FunctionLibFactory.hashLib.put(ResourceUtil.getCanonicalPathEL(res),lib);
+			FunctionLibFactory.hashLib.put(id(res),lib);
 		}
 		lib.setSource(res.toString());
 		
 		return lib;
+	}
+	
+
+	/**
+	 * does not involve the content to create an id, value returned is based on metadata of the file (lastmodified,size)
+	 * @param res
+	 * @return
+	 * @throws NoSuchAlgorithmException 
+	 */
+	public static String id(Resource res) {
+		String str=ResourceUtil.getCanonicalPathEL(res)+"|"+res.length()+"|"+res.lastModified();
+		try{
+			return Hash.md5(str);
+		}
+		catch(NoSuchAlgorithmException e){
+			return Caster.toString(HashUtil.create64BitHash(str));
+		}
 	}
 	
 	/**

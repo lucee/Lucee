@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Map;
 
 import javax.servlet.ServletConfig;
@@ -315,6 +316,10 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 			}
 			
 			return m;
+		}
+		
+		public Mapping[] getApplicationMapping() {
+			return applicationMappings.values().toArray(new Mapping[applicationMappings.size()]);
 		}
 
 		@Override

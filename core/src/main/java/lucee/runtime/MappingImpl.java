@@ -514,4 +514,8 @@ public final class MappingImpl implements Mapping {
 	public int getListenerType() {
 		return listenerType;
 	}
+
+	public void flush() {
+		getPageSourcePool().clear();
+	}
 }
