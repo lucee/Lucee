@@ -1,6 +1,7 @@
 /**
  *
  * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
+ * Copyright (c) 2015, Lucee Assosication Switzerland
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -172,7 +173,7 @@ public final class FunctionLib implements Lib {
     }
     
     public String getHash() {
-    	StringBuffer sb=new StringBuffer();
+    	StringBuilder sb=new StringBuilder();
     	Iterator<FunctionLibFunction> it = functions.values().iterator();
     	while(it.hasNext()) {
     		sb.append((it.next()).getHash()+"\n");
