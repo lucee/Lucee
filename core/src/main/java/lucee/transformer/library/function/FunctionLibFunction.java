@@ -285,15 +285,15 @@ public final class FunctionLibFunction {
 		sb.append(this.getArgMin());
 		sb.append(this.getArgType());
 		sb.append(this.getArgTypeAsString());
-		sb.append(getFunctionClassDefinition());
+		sb.append(getFunctionClassDefinition().toString());
 		sb.append(tteCD);
 		sb.append(this.getName());
 		sb.append(this.getReturnTypeAsString());
-		
-		Iterator it = this.getArg().iterator();
+
+		Iterator<FunctionLibFunctionArg> it = this.getArg().iterator();
 		FunctionLibFunctionArg arg;
 		while(it.hasNext()){
-			arg=(FunctionLibFunctionArg) it.next();
+			arg=it.next();
 			sb.append(arg.getHash());
 		}
 		
