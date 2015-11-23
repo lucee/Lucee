@@ -22,10 +22,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import lucee.commons.digest.Hash;
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.ContentType;
@@ -50,6 +53,7 @@ import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 
@@ -1501,6 +1505,11 @@ public final class ResourceUtil {
 		int index=filename.lastIndexOf('.');
 		if(index==-1) return defaultValue;
 		return filename.substring(0,index);
+	}
+	
+
+	public static String checksum(Resource res) throws NoSuchAlgorithmException, IOException {
+		return Hash.md5(res);
 	}
 
 }

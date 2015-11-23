@@ -4409,6 +4409,24 @@ EntitySave(entity, [forceinsert])</description>
 		</return>
 	</function>
 	
+	
+	<!-- FileInfo -->
+	<function>
+		<name>FileInfo</name>
+		<class>lucee.runtime.functions.file.FileInfo</class>
+		<description>returns detailed info about the given file.</description>
+		<argument>
+			<name>file</name>
+			<alias>resource</alias>
+			<type>string</type>
+			<required>Yes</required>
+			<description>file path</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
 	<!-- FileGetMimeType -->
 	<function>
 		<name>FileGetMimeType</name>

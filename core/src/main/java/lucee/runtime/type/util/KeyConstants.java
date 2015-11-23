@@ -916,6 +916,7 @@ public class KeyConstants {
 	public static final Key _environment = KeyImpl._const("environment");
 	public static final Key _system = KeyImpl._const("system");
 	public static final Key _filecontent = KeyImpl._const("filecontent");
+	public static final Key _checksum = KeyImpl._const("checksum");
 	
 	private static MapPro<String,Key> _____keys;
 	

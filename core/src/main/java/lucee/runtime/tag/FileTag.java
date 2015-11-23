@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
+import lucee.commons.digest.Hash;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.ModeUtil;
@@ -58,6 +59,7 @@ import lucee.runtime.functions.list.ListLast;
 import lucee.runtime.img.ImageUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.security.SecurityManager;
 import lucee.runtime.tag.util.FileUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -569,7 +571,8 @@ public final class FileTag extends BodyTagImpl {
 	 * @throws PageException 
 	 */
 	private void actionDelete() throws PageException {
-		checkFile(false,false,false,false);
+		checkFile(pageContext, securityManager, file, serverPassword,
+				false,false,false,false);
 		setACL(pageContext,file,acl);
 		try {
 			if(!file.delete()) throw new ApplicationException("can't delete file ["+file+"]");
@@ -587,7 +590,7 @@ public final class FileTag extends BodyTagImpl {
 		
 		if(variable==null)
 			throw new ApplicationException("attribute variable is not defined for tag file");
-		checkFile(false,false,true,false);
+		checkFile(pageContext, securityManager, file, serverPassword,false,false,true,false);
 		boolean hasCached=cachedWithin!=null;
 		
 		// CACHE
@@ -641,7 +644,7 @@ public final class FileTag extends BodyTagImpl {
     private void actionWrite() throws PageException {
         if(output==null)
             throw new ApplicationException("attribute output is not defined for tag file");
-        checkFile(createPath,true,false,true);
+        checkFile(pageContext, securityManager, file, serverPassword,createPath,true,false,true);
         
         try {
         	if(output instanceof InputStream)	{
@@ -682,7 +685,7 @@ public final class FileTag extends BodyTagImpl {
      * @throws PageException
      */
     private void actionTouch() throws PageException {
-        checkFile(createPath,true,true,true);
+        checkFile(pageContext, securityManager, file, serverPassword,createPath,true,true,true);
         
         try {
             ResourceUtil.touch(file);
@@ -706,7 +709,7 @@ public final class FileTag extends BodyTagImpl {
 	private void actionAppend() throws PageException {
 		if(output==null)
 			throw new ApplicationException("attribute output is not defined for tag file");
-		checkFile(createPath,true,false,true);
+		checkFile(pageContext, securityManager, file, serverPassword,createPath,true,false,true);
 		
         try {
 
@@ -738,22 +741,32 @@ public final class FileTag extends BodyTagImpl {
 	 * @throws PageException
 	 */
 	private void actionInfo() throws PageException {
-		
 		if(variable==null)
 			throw new ApplicationException("attribute variable is not defined for tag file");
-		checkFile(false,false,false,false);
+		pageContext.setVariable(variable,getInfo(pageContext, file, serverPassword));
+		
+	}
+	public static Struct getInfo(PageContext pc, Resource file, String serverPassword) throws PageException {
+		SecurityManager sm = pc.getConfig().getSecurityManager();
+		checkFile(pc, sm, file, serverPassword,
+				false,false,false,false);
 		
 		Struct sct =new StructImpl();
-		pageContext.setVariable(variable,sct);
 		
 		// fill data to query
 		sct.setEL(KeyConstants._name,file.getName());
 		sct.setEL(KeyConstants._size,Long.valueOf(file.length()));
 		sct.setEL(KeyConstants._type,file.isDirectory()?"Dir":"File");
-		sct.setEL("dateLastModified",new DateTimeImpl(pageContext,file.lastModified(),false));
+		sct.setEL("dateLastModified",new DateTimeImpl(pc,file.lastModified(),false));
 		sct.setEL("attributes",getFileAttribute(file));
 		if(SystemUtil.isUnix())sct.setEL(KeyConstants._mode,new ModeObjectWrap(file));
         
+		try {
+			sct.setEL(KeyConstants._checksum,Hash.md5(file));
+		}
+		catch(Throwable t) {}
+		
+		
 		try { 		
 			BufferedImage bi = ImageUtil.toBufferedImage(file, null);
             if(bi!=null) {
@@ -764,6 +777,7 @@ public final class FileTag extends BodyTagImpl {
             }
         } 
 		catch (Throwable t) {}
+		return sct;
 	}
 
 	private static String getFileAttribute(Resource file){
@@ -1106,11 +1120,12 @@ public final class FileTag extends BodyTagImpl {
 	}
 	
 
-	private void checkFile(boolean createParent, boolean create, boolean canRead, boolean canWrite) throws PageException {
+	private static void checkFile(PageContext pc, SecurityManager sm, Resource file, String serverPassword,
+			boolean createParent, boolean create, boolean canRead, boolean canWrite) throws PageException {
 		if(file==null)
 			throw new ApplicationException("attribute file is not defined for tag file");
 
-		securityManager.checkFileLocation(pageContext.getConfig(),file,serverPassword);
+		sm.checkFileLocation(pc.getConfig(),file,serverPassword);
 		if(!file.exists()) {
 			if(create) {
 				Resource parent=file.getParentResource();

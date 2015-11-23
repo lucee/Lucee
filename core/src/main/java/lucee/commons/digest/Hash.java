@@ -18,11 +18,18 @@
  **/
 package lucee.commons.digest;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import org.apache.commons.codec.digest.DigestUtils;
+
+import lucee.print;
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.IOUtil;
+import lucee.commons.io.res.Resource;
 
 public class Hash {
 	
@@ -41,6 +48,17 @@ public class Hash {
 	// MD5
 	public static String md5(byte[] data) throws NoSuchAlgorithmException {
 		return hash(data, ALGORITHM_MD5,ENCODING_HEX);
+	}
+	
+	// MD5
+	public static String md5(Resource res) throws NoSuchAlgorithmException, IOException {
+		InputStream is = res.getInputStream();
+		try {
+			return DigestUtils.md5Hex(is);
+		}
+		finally {
+			IOUtil.closeEL(is);
+		}
 	}
 	
 	public static String md5(String str) throws NoSuchAlgorithmException {
