@@ -3016,7 +3016,11 @@ public final class XMLConfigAdmin {
             try {
                 new NtpClient(timeServer).getOffset();
             } catch (IOException e) {
-                throw new ExpressionException("invalid timeserver (NTP) ["+timeServer+"] ");
+            	try {
+                    new NtpClient(timeServer).getOffset();
+                } catch (IOException ee) {
+                	throw Caster.toPageException(ee);
+                }
             }
        }
         
