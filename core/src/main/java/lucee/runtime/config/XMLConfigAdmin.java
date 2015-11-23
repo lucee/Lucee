@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -3736,6 +3737,23 @@ public final class XMLConfigAdmin {
 	        }
         }
     }
+    
+    public void restart(ConfigServerImpl cs) throws PageException {
+    	CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
+        
+    	synchronized(factory){
+	        try {
+	        	Method m = factory.getClass().getDeclaredMethod("_restart", new Class[0]);
+	        	if(m==null) throw new ApplicationException("cannot restart Lucee.");
+	        	m.setAccessible(true);
+	        	m.invoke(factory, new Object[0]);
+	        } 
+	        catch (Exception e) {
+	            throw Caster.toPageException(e);
+	        }
+        }
+    }
+
 
 	public void updateWebCharset(String charset) throws PageException {
     	checkWriteAccess();
@@ -4365,6 +4383,30 @@ public final class XMLConfigAdmin {
 		}
 	}
 	
+
+	public static void updateCore(ConfigServerImpl config, Resource core, boolean reload) throws PageException {
+		try {
+			// get patches directory
+			CFMLEngine engine = ConfigWebUtil.getEngine(config);
+			File f=engine.getCFMLEngineFactory().getResourceRoot();
+	    	Resource res = ResourcesImpl.getFileResourceProvider().getResource(f.getAbsolutePath());
+	    	Resource pd = res.getRealResource("patches");
+	        if(!pd.exists())pd.mkdirs();
+	    	Resource pf = pd.getRealResource(core.getName());
+	        
+	        // move to patches directory
+	        core.moveTo(pf);
+	        core=pf;
+			// 
+			XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
+	    	admin.restart(config);
+		}
+		catch(Throwable t){
+			DeployHandler.moveToFailedFolder(config.getDeployDirectory(),core);
+			throw Caster.toPageException(t);
+		}
+	}
+	
 	public void updateArchive(Config config,Resource archive) throws PageException {
 		Log logger = ((ConfigImpl)config).getLog("deploy");
 		String type=null,virtual=null,name=null;
@@ -4452,8 +4494,8 @@ public final class XMLConfigAdmin {
 		try{
 		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
     	admin.updateRHExtension(config,ext);
-    	admin._store();
-    	if(reload)admin._reload();
+    	// TODO necessary? admin._store();
+    	// TODO necessary? if(reload)admin._reload();
 		}
 		catch(Throwable t){
 			throw Caster.toPageException(t);
@@ -4478,22 +4520,19 @@ public final class XMLConfigAdmin {
 	public void updateRHExtension(Config config, RHExtension rhext) throws PageException{
 		ConfigImpl ci=(ConfigImpl) config;
 		Log logger =ci.getLog("deploy");
-		
 		String type=ci instanceof ConfigWeb?"web":"server";
-		
-		
 		
 		// load the extension
 		
 		// INSTALL
 		try{
 			
-			boolean clearTags=false,clearFunction=false;
+			//boolean clearTags=false,clearFunction=false;
 			boolean reload=false;
 			
 			// store to xml
 			BundleDefinition[] existing = _updateExtension(ci, rhext);
-			_storeAndReload();
+			// _storeAndReload();
 			// this must happen after "store"
 			cleanBundles(ci,existing);// clean after populating the new ones
 			// ConfigWebAdmin.updateRHExtension(ci,rhext);
@@ -4509,12 +4548,14 @@ public final class XMLConfigAdmin {
 				// flds
 				if(!entry.isDirectory() && startsWith(path,type,"flds") && StringUtil.endsWithIgnoreCase(path, ".fld")) {
 					logger.log(Log.LEVEL_INFO,"extension","deploy fld "+fileName);
-        			updateFLD(zis, fileName,false);
+					updateFLD(zis, fileName,false);
+        			reload=true;
 				}
 				// tlds
 				if(!entry.isDirectory() && startsWith(path,type,"tlds") && StringUtil.endsWithIgnoreCase(path, ".tld")) {
 					logger.log(Log.LEVEL_INFO,"extension","deploy tld "+fileName);
-        			updateTLD(zis, fileName,false); 
+        			updateTLD(zis, fileName,false);
+        			reload=true;
 				}
 				
 				// tags
@@ -4522,7 +4563,8 @@ public final class XMLConfigAdmin {
 					String sub = subFolder(entry);
 					logger.log(Log.LEVEL_INFO,"extension","deploy tag "+sub);
         			updateTag(zis, sub,false); 
-        			clearTags=true;
+        			//clearTags=true;
+        			reload=true;
 				}
 
 				// functions
@@ -4530,7 +4572,8 @@ public final class XMLConfigAdmin {
 					String sub = subFolder(entry);
 					logger.log(Log.LEVEL_INFO,"extension","deploy function "+sub);
         			updateFunction(zis, sub,false); 
-        			clearFunction=true;
+        			//clearFunction=true;
+        			reload=true;
 				}
 				
 				// mappings

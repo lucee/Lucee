@@ -49,7 +49,7 @@ import lucee.runtime.type.util.KeyConstants;
 
 public class DeployHandler {
 
-	private static final ResourceFilter ALL_EXT = new ExtensionResourceFilter(new String[]{".lex",".lar"});
+	private static final ResourceFilter ALL_EXT = new ExtensionResourceFilter(new String[]{".lex",".lar",".lco"});
 	//private static final ResourceFilter ARCHIVE_EXT = new ExtensionResourceFilter(new String[]{".ra",".ras"});
 
 	/**
@@ -75,10 +75,14 @@ public class DeployHandler {
 						//deployArchive(config,child,true);
 						XMLConfigAdmin.updateArchive((ConfigImpl) config, child,true);
 					}
-					
+
 					// Lucee Extensions
 					else if("lex".equalsIgnoreCase(ext))
 						XMLConfigAdmin.updateRHExtension((ConfigImpl) config, child,true);
+					
+					// Lucee Extensions
+					else if(config instanceof ConfigServer && "lco".equalsIgnoreCase(ext))
+						XMLConfigAdmin.updateCore((ConfigServerImpl) config, child,true);
 				}
 				catch (Throwable t) {
 					Log log = config.getLog("deploy");
