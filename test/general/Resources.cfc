@@ -3,7 +3,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	//public function beforeTests(){}
 	
 	//public function afterTests(){}
-	
+
 	//public function setUp(){}
 
 	private void function directoryCreateDelete(string label,string dir){
@@ -11,7 +11,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var subsub=sub&"test2/";
 	    
 		// before doing anything it should not exist
-	    assertFalse(directoryExists(sub));
+		assertFalse(directoryExists(sub));
 	    assertFalse(directoryExists(subsub));
 	    
 	    // create the dirs
@@ -91,7 +91,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		    file action="write" file="#sdsdsf#" output="" addnewline="no" fixnewline="no";
 		    
 		    directory directory="#dir#" action="list" name="children" recurse="no";
-		    
 		    assertEquals(2,children.recordcount);
 		    assertEquals("test1,test2.txt",	listSort(valueList(children.name),'textnocase'));
 		    assertEquals("0,0",				listSort(valueList(children.size),'textnocase'));
@@ -104,8 +103,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		    assertEquals(1,children.recordcount);
 	    }
 	    finally {
-	    	directory directory="#sd#" action="delete" recurse="yes";
-	    	file action="delete" file="#sf#";
+	    	if(directoryExists(sd))directory directory="#sd#" action="delete" recurse="yes";
+	    	if(fileExists(sf))file action="delete" file="#sf#";
+
 	    }
 	}
 
@@ -128,7 +128,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		    directory directory="#dir#" action="list" name="children" recurse="yes";
 		    assertEquals("test1,test2.txt,test3,test4.txt,test5.txt",
 		  		listSort(valueList(children.name),'textnocase'));
-		    
+
 		    directory directory="#sdsd#" action="rename" newdirectory="#sdsdNew#";
 		    directory directory="#sd#" action="rename" newdirectory="#sdNew#";
 		    
@@ -137,8 +137,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		  		ListSort( valueList(children.name),'text'));
 	    }
 	    finally {
-		    directory directory="#sdNew#" action="delete" recurse="yes";
-		    file action="delete" file="#sf#";
+
+
+
+		    if(directoryExists(sdNew))directory directory="#sdNew#" action="delete" recurse="yes";
+		    if(fileExists(sf)){
+		    	file action="delete" file="#sf#";
+		    }
 		}
 	}
 
@@ -159,9 +164,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			  		ListSort(valueList(children.name),'text'));
 	    }
 	    finally {
-	    	directory directory="#sd#" action="delete" recurse="yes";
-		    file action="delete" file="#s#";
-		    file action="delete" file="#d#";
+	    	if(directoryExists(sd))directory directory="#sd#" action="delete" recurse="yes";
+		    if(fileExists(s))file action="delete" file="#s#";
+		    if(fileExists(d))file action="delete" file="#d#";
 	    }
 	}
 
@@ -183,7 +188,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			  		valueList(children.name));
 	    }
 	    finally {
-	    	directory directory="#sd#" action="delete" recurse="yes";
+	    	if(directoryExists(sd))directory directory="#sd#" action="delete" recurse="yes";
 	    }
 	}
 
@@ -197,7 +202,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		    assertEquals("WriteAppend",content);
 	    }
 	    finally {
-	    	file action="delete" file="#s#";
+	    	if(fileExists(s))file action="delete" file="#s#";
 	    }
 	}
 
@@ -211,7 +216,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		    assertEquals("U3VzaQ==",ToBase64(content));
 	    }
 	    finally {
-	    	file action="delete" file="#s#";
+	    	if(fileExists(s))file action="delete" file="#s#";
 	    }
 	}
 
@@ -315,6 +320,11 @@ private function testResourceListening(res) localMode=true {
     filter=createObject("java","lucee.commons.io.res.filter.ExtensionResourceFilter").init("txt",false);
     children=res.list(filter);
     assertEquals("sss.txt",listSort(arrayToList(children),"textnoCase"));
+}
+
+private function toResource(string path) localMode=true {
+    var res=createObject('java','lucee.commons.io.res.util.ResourceUtil').toResourceNotExisting(getPageContext(), path);
+    return res;
 }
 
 private function testResourceIS(res) localMode=true {
@@ -482,12 +492,28 @@ private function testResourceProvider(string path) localmode=true {
 		    fileAReadAppend(arguments.label,dir);
 		    fileAReadBinary(arguments.label,dir);
 		    testResourceProvider(dir&"testcaseRes");
+		    
 		}
 		finally {
 			directory directory="#dir#" action="delete" recurse="yes";
 		}   
 		assertFalse(DirectoryExists(dir));
 
+	}
+
+	private struct function getCredencials() {
+		// getting the credetials from the enviroment variables
+		var s3={};
+		if(!isNull(server.system.environment.S3_ACCESS_ID) && !isNull(server.system.environment.S3_SECRET_KEY)) {
+			s3.accessKeyId=server.system.environment.S3_ACCESS_ID;
+			s3.awsSecretKey=server.system.environment.S3_SECRET_KEY;
+		}
+		// getting the credetials from the system variables
+		else if(!isNull(server.system.properties.S3_ACCESS_ID) && !isNull(server.system.properties.S3_SECRET_KEY)) {
+			s3.accessKeyId=server.system.properties.S3_ACCESS_ID;
+			s3.awsSecretKey=server.system.properties.S3_SECRET_KEY;
+		}
+		return s3;
 	}
 
 	public void function testRam(){
@@ -499,7 +525,6 @@ private function testResourceProvider(string path) localmode=true {
 	}
 
 	public void function testZip(){
-		
 		var file=getDirectoryFromPath(getCurrentTemplatePath())&"zip-"&getTickCount()&".zip";
 		try {
 			//first we create a zip we can use then as a filesystem
@@ -516,30 +541,13 @@ private function testResourceProvider(string path) localmode=true {
 		}
 	}
 
-	private void function testS3() localmode=true{
-
-		// getting the credetials from the enviroment variables
-		if(!isNull(server.system.environment.S3_ACCESS_ID) && !isNull(server.system.environment.S3_SECRET_KEY)) {
-			s3.accessKeyId=server.system.environment.S3_ACCESS_ID;
-			s3.awsSecretKey=server.system.environment.S3_SECRET_KEY;
-		}
-		// getting the credetials from the system variables
-		else if(!isNull(server.system.properties.S3_ACCESS_ID) && !isNull(server.system.properties.S3_SECRET_KEY)) {
-			s3.accessKeyId=server.system.properties.S3_ACCESS_ID;
-			s3.awsSecretKey=server.system.properties.S3_SECRET_KEY;
-		}
-
-
+	public void function testS3() localmode=true{
+		var s3=getCredencials();
 		if(!isNull(s3.accessKeyId)) {
 			application action="update" s3=s3; 
-
 			test("s3","s3:///");
 		}
-		// TODO report somwhow that this was not executed else fail("cannot execute the testcases for s3, because there are no credetials set in the environment variables, you need to set ""S3_ACCESS_ID"" and ""S3_SECRET_KEY"" in the enviroment variables to execute this testcases ");
-
 	}
-
-
 } 
 
 
