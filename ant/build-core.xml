@@ -36,6 +36,17 @@
       <format property="NOW" pattern="yyyy/MM/dd HH:mm:ss z" locale="en,GB"/>
   </tstamp>
 
+  <macrodef name="echots">
+    <attribute name="message"/>
+    <sequential>
+      <local name="timestamp" />
+      <tstamp>
+        <format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
+      </tstamp>
+      <echo message="---------- ${timestamp} - @{message} ----------" />
+    </sequential>
+  </macrodef>
+
   <scriptdef name="unwrap" language="javascript">
      <attribute name="text" />
      <attribute name="property" />
@@ -169,10 +180,10 @@ LUCEE BUILD PROCESS
 ==========================                   
     </echo>
 
-    <echo message="${version}"/>
-    <echo message="${name}"/>
-    <echo message="${name.explanation}"/>
-    <echo message="${rootDir}"/>
+    <echots message="${version}"/>
+    <echots message="${name}"/>
+    <echots message="${name.explanation}"/>
+    <echots message="${rootDir}"/>
                     
     
     <!-- Create the time stamp -->
@@ -187,6 +198,7 @@ LUCEE BUILD PROCESS
     <mkdir dir="${cache}"/>
 
   </target>
+
 
 
 
@@ -255,6 +267,7 @@ LUCEE BUILD PROCESS
 
   
   <target name="copyDeployFiles" depends="init,check" description="copy files from source/cfml to source/java/core/src/resource">
+    <echots message="copy files from source/cfml to source/java/core/src/resource"/>
     <copy todir="${srcCore}/resource/context/">
       <fileset dir="${srcCFML}/context/">
         <include name="*.cfm"/>
@@ -302,7 +315,8 @@ LUCEE BUILD PROCESS
   </target>
 
   <target name="agent" depends="copyDeployFiles" description="create external-agent  jar used as backup when dynamic agent fails" >
-
+    <echots message="create external-agent.jar used as backup when dynamic agent fails"/>
+    
     <!-- compie the source -->
     <javac 
       srcdir="${srcInst}" 
@@ -321,6 +335,7 @@ LUCEE BUILD PROCESS
   </target>
 
   <target name="_loader" depends="agent" description="compile the source" >
+    <echots message="compile loader"/>
     <!-- compie the source -->
     <javac 
       srcdir="${srcLoader}" 
@@ -347,6 +362,7 @@ LUCEE BUILD PROCESS
 
   <target name="_core" depends="_loader" description="compile the source" >
     
+    <echots message="compile core"/>
     <!-- set the loader as classpath -->
     <path id="classpath">
       <pathelement location="${temp}/loader" />
@@ -394,6 +410,7 @@ LUCEE BUILD PROCESS
 
   <target name="buildJars" depends="_core" description="generate temporary jars used to generate the archive" >
     
+    <echots message="generate temporary jars used to generate the archive"/>
     <!-- generates a jar from the core 
           this jars are only 
     -->
@@ -411,10 +428,9 @@ LUCEE BUILD PROCESS
 
   </target>
 
+<target name="__build_archives" depends="buildJars">
 
-
-  <target name="__build" depends="buildJars">
-
+    <echots message="copy bundles in place"/>
     <!-- first we copy the jars in place otherwise, Lucee downloads them  -->
     <copy todir="${temp}/archive/base/lucee-server/bundles" flatten="true">
       <path>
@@ -422,11 +438,13 @@ LUCEE BUILD PROCESS
       </path>
     </copy>
 
+    <echots message="getting and unzip testbox"/>
     <!-- now we need to get the testbox source -->
     <unzip src="${temp}/testbox-${testboxVersion}.zip" dest="${temp}/testbox"/>
     <delete dir="${temp}/testbox-${testboxVersion}.zip"/>
 
 
+    <echots message="building different archives that get bundled (admin,doc) with help of the temporary generated lucee.jar"/>
     <!-- build the lucee-context.lar -->
     <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="false" errorproperty="exc">
       <classpath path="${java.class.path}">
@@ -446,8 +464,10 @@ LUCEE BUILD PROCESS
     </java>
     <echo>${exc}</echo>
 
+</target>
+<target name="__build_testbox" if="testcases">
 
-
+    <echots message="execute testcases ${testcases}"/>
     <!-- execute CFML testcases -->
     <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc2">
       <classpath path="${java.class.path}">
@@ -470,9 +490,13 @@ LUCEE BUILD PROCESS
     </java>
     <echo>${exc2}</echo>
 
+</target>
 
 
-<!-- now we have to build the lucee.jar again, this time with the lar files -->
+  <target name="__build" depends="__build_archives,__build_testbox">
+
+    <!-- now we have to build the lucee.jar again, this time with the lar files -->
+    <echots message="copy generated archive in place"/>
     <!-- copy the lucee lar -->
     <copy file="${temp}/archive/lucee-context.lar" tofile="${core}/resource/context/lucee-context.lar"/>
     <copy file="${temp}/archive/lucee-admin.lar" tofile="${core}/resource/context/lucee-admin.lar"/> 
@@ -484,6 +508,7 @@ LUCEE BUILD PROCESS
   <target name="buildCore" depends="__build">
 
     <!-- copy all the source to the classes folder -->
+    <echots message="copy everything to the classes folder"/>
     <copy todir="${outputDir}">
       <fileset dir="${core}">
         <exclude name=".*"/>
@@ -492,6 +517,9 @@ LUCEE BUILD PROCESS
   </target>
 
   <target name="addFelix">
+
+    <echots message="copy the content of the felix jar to the classes folder"/>
+    
     <!-- get the path for the felix jar TODO this impl could be better -->
     <felix property="felix" separator="${path.separator}" dependencies="${dependencies}"/>
     
@@ -527,6 +555,8 @@ LUCEE BUILD PROCESS
 
 
   <target name="addExtensions">
+    <echots message="add extensions"/>
+    
     <mkdir dir="${goal}/extensions/"/>
 
     <!-- add extension MySQL -->
@@ -604,6 +634,7 @@ LUCEE BUILD PROCESS
   </target>
 
   <target name="buildLoaderMaven" depends="__build,setMvnEnv,addExtensions,addFelix" description="generate the loader jar" >  
+    <echots message="build core"/>
     <!-- create the luce core -->
     <jar 
         basedir="${core}" 
@@ -621,6 +652,8 @@ LUCEE BUILD PROCESS
 
     
     <delete dir="${temp}"/>
+    <echots message="done with the ant part, now maven build the loader"/>
+    
   </target>
 
 
@@ -633,6 +666,7 @@ LUCEE BUILD PROCESS
   </target>
 
   <target name="buildLoaderAnt" depends="__build,setAntEnv,addExtensions,addFelix" description="generate the loader jar" >  
+    <echots message="build core"/>
     
     <!-- create core -->
     <jar 
@@ -651,6 +685,8 @@ LUCEE BUILD PROCESS
     <currentTime property="ct" />
     <echo file="${temp}/loader/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
 
+    <echots message="build loader"/>
+    
 
     <!-- genrates the jar from the loader -->
     <jar 
@@ -660,7 +696,8 @@ LUCEE BUILD PROCESS
 
 
     <delete dir="${temp}"/>
-
+    <echots message="done"/>
+    
   </target>
 
 </project>
