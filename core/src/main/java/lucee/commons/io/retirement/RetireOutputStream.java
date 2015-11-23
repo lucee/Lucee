@@ -21,6 +21,7 @@ package lucee.commons.io.retirement;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import lucee.print;
 import lucee.commons.io.res.Resource;
 
 public class RetireOutputStream extends OutputStream {
@@ -42,6 +43,7 @@ public class RetireOutputStream extends OutputStream {
 		this.res=res;
 		this.append=append;
 		retireRange = retireRangeInSeconds>0?retireRangeInSeconds*1000:0;
+		print.e("range:"+retireRange);
 		this.listener=listener;
 	}
 
