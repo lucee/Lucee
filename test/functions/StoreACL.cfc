@@ -155,7 +155,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		loop array=arr item="local.sct" {
 			if(!isNull(sct[key]))rtn=listAppend(rtn,sct[key]);
 		}
-		return rtn;
+		return listSort(rtn,"textnoCase");
  	}
 
 } 
