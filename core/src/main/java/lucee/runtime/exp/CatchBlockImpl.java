@@ -50,6 +50,7 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.MemberUtil;
 import lucee.runtime.type.util.StructSupport;
 import lucee.runtime.type.util.StructUtil;
+import lucee.runtime.util.PageContextUtil;
 
 public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Objects{
 	
@@ -199,6 +200,13 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 	
 	@Override
 	public String castToString(String defaultValue) {
+		PageContext pc = ThreadLocalPageContext.get();
+		if(pc instanceof PageContextImpl) {
+			try {
+				return PageContextUtil.getHandlePageException((PageContextImpl) pc,exception);
+			}
+			catch (PageException e) {}
+		}
 		return exception.getClass().getName();
 	}
 
