@@ -29,6 +29,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.jsp.tagext.BodyContent;
 
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.lang.StringUtil;
@@ -38,10 +39,13 @@ import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageExceptionImpl;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.op.Caster;
@@ -153,5 +157,23 @@ public class PageContextUtil {
 			throw CFMLFactoryImpl.createRequestTimeoutException(pc);
 		
 		return TimeSpanImpl.fromMillis(0);
+	}
+
+
+	public static String getHandlePageException(PageContextImpl pc, PageException pe) throws PageException {
+		BodyContent bc=null;
+		String str=null;
+		try{
+			bc = pc.pushBody();
+			pc.handlePageException(pe,false);
+		}
+		catch(Throwable t){
+			throw Caster.toPageException(t);
+		}
+		finally{
+			if(bc!=null)str=bc.getString();
+			pc.popBody();
+		}
+		return str;
 	}
 }

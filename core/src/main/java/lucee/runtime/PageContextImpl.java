@@ -1819,28 +1819,34 @@ public final class PageContextImpl extends PageContext {
 		return haystack;
 	}
 	
-	
 	@Override
 	public void handlePageException(PageException pe) {
+		handlePageException(pe, true);
+	}
+	
+	public void handlePageException(PageException pe, boolean setHeader) {
+	
 		if(!Abort.isSilentAbort(pe)) {
 			if(requestTimeoutException!=null)
 				pe=Caster.toPageException(requestTimeoutException);
 			
-			Charset cs = ReqRspUtil.getCharacterEncoding(this,rsp);
-			if(cs==null) {
-				ReqRspUtil.setContentType(rsp,"text/html");
-			}
-			else {
-				ReqRspUtil.setContentType(rsp,"text/html; charset=" + cs.name());
-			}
-			
-			if(pe.getExposeMessage())
-				rsp.setHeader("exception-message", StringUtil.emptyIfNull(pe.getMessage()).replace('\n', ' '));
-			//rsp.setHeader("exception-detail", pe.getDetail());
-			
 			int statusCode=getStatusCode(pe);
+				
+			// prepare response
+			if(rsp!=null) {
+				// content-type
+				Charset cs = ReqRspUtil.getCharacterEncoding(this,rsp);
+				if(cs==null) ReqRspUtil.setContentType(rsp,"text/html");
+				else ReqRspUtil.setContentType(rsp,"text/html; charset=" + cs.name());
+				
+				// expose error message in header
+				if(rsp!=null && pe.getExposeMessage())
+					rsp.setHeader("exception-message", StringUtil.emptyIfNull(pe.getMessage()).replace('\n', ' '));
+				
+				// status code
+				if(getConfig().getErrorStatusCode())rsp.setStatus(statusCode);
+			}
 			
-			if(getConfig().getErrorStatusCode())rsp.setStatus(statusCode);
 			
 			ErrorPage ep=errorPagePool.getErrorPage(pe,ErrorPageImpl.TYPE_EXCEPTION);
 			
