@@ -43,7 +43,7 @@ public class RetireOutputStream extends OutputStream {
 		this.res=res;
 		this.append=append;
 		retireRange = retireRangeInSeconds>0?retireRangeInSeconds*1000:0;
-		print.e("range:"+retireRange);
+		//print.e("range:"+retireRange);
 		this.listener=listener;
 	}
 
