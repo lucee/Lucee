@@ -29,6 +29,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -4368,7 +4369,7 @@ public final class XMLConfigAdmin {
 			
 			
 			if(id.equalsIgnoreCase(rhe.getId())) {
-				removeRHExtension(config,rhe);
+				removeRHExtension(config,rhe,null);
 				extensions.removeChild(child);
 				//bundles=RHExtension.toBundleDefinitions(child.getAttribute("bundles"));
 			}
@@ -4496,10 +4497,8 @@ public final class XMLConfigAdmin {
 	
 	public static void updateRHExtension(ConfigImpl config, Resource ext, boolean reload) throws PageException {
 		try{
-		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
-    	admin.updateRHExtension(config,ext);
-    	// TODO necessary? admin._store();
-    	// TODO necessary? if(reload)admin._reload();
+			XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
+	    	admin.updateRHExtension(config,ext);
 		}
 		catch(Throwable t){
 			throw Caster.toPageException(t);
@@ -4526,7 +4525,11 @@ public final class XMLConfigAdmin {
 		Log logger =ci.getLog("deploy");
 		String type=ci instanceof ConfigWeb?"web":"server";
 		
-		// load the extension
+		// load already installed previous version and uninstall the parts no longer needed
+		RHExtension existingRH = getRHExtension(ci,rhext.getId(),null);
+		if(existingRH!=null)
+			removeRHExtension(config, existingRH,rhext);
+		
 		
 		// INSTALL
 		try{
@@ -4819,15 +4822,37 @@ public final class XMLConfigAdmin {
 		}
 	}
 
-
-	private void removeRHExtension(Config config, RHExtension rhe) throws PageException{
+	/**
+	 * removes an installed extension from the system
+	 * 
+	 * @param config
+	 * @param rhe extension to remove
+	 * @param replacementRH the extension that will replace this extension, so do not remove parts defined in this extension.
+	 * @throws PageException
+	 */
+	private void removeRHExtension(Config config, RHExtension rhe, RHExtension replacementRH) throws PageException{
 		ConfigImpl ci=((ConfigImpl)config);
 		Log logger = ci.getLog("deploy");
 		
+		// MUST check replacementRH everywhere
 		
 		try {
 			// remove the bundles
-			XMLConfigAdmin.cleanBundles(ci, OSGiUtil.toBundleDefinitions(rhe.getBundlesFiles()));
+			BundleDefinition[] candidatesToRemove = OSGiUtil.toBundleDefinitions(rhe.getBundlesFiles());
+			if(replacementRH!=null) {
+				// spare bundles used in the new extension as well
+				Map<String, BundleDefinition> notRemove = toMap(OSGiUtil.toBundleDefinitions(replacementRH.getBundlesFiles()));
+				List<BundleDefinition> tmp=new ArrayList<OSGiUtil.BundleDefinition>();
+				String key;
+				for(int i=0;i<candidatesToRemove.length;i++){
+					key=candidatesToRemove[i].getName()+"|"+candidatesToRemove[i].getVersionAsString();
+					if(notRemove.containsKey(key)) continue;
+					tmp.add(candidatesToRemove[i]);
+				}
+				candidatesToRemove=tmp.toArray(new BundleDefinition[tmp.size()]);
+			}
+			XMLConfigAdmin.cleanBundles(ci, candidatesToRemove);
+			
 			
 			// FLD
 			removeFLDs(rhe.getFlds()); // MUST check if others use one of this fld
@@ -4888,7 +4913,7 @@ public final class XMLConfigAdmin {
 				}
 			}
 			
-			// remove Search
+			// remove resource
 			if(!ArrayUtil.isEmpty(rhe.getResources())) {
 				Iterator<Map<String, String>> itl = rhe.getResources().iterator();
 				Map<String, String> map;
@@ -4899,7 +4924,7 @@ public final class XMLConfigAdmin {
 					if(cd.hasClass()) {
 						_removeResourceProvider(scheme);
 					}
-					logger.info("extension", "remove resource provider engine ["+cd+"] from extension ["+rhe.getName()+":"+rhe.getVersion()+"]");
+					logger.info("extension", "remove resource ["+cd+"] from extension ["+rhe.getName()+":"+rhe.getVersion()+"]");
 				}
 			}
 			
@@ -5028,6 +5053,15 @@ public final class XMLConfigAdmin {
 		
 	}
 	
+	private Map<String, BundleDefinition> toMap(BundleDefinition[] bundleDefinitions) {
+		Map<String, BundleDefinition> rtn=new HashMap<String, OSGiUtil.BundleDefinition>();
+		for(int i=0;i<bundleDefinitions.length;i++){
+			rtn.put(bundleDefinitions[i].getName()+"|"+bundleDefinitions[i].getVersionAsString(), bundleDefinitions[i]);
+		}
+		return rtn;
+	}
+
+
 	private static boolean startsWith(String path,String type, String name) {
 		return StringUtil.startsWithIgnoreCase(path, name+"/") || StringUtil.startsWithIgnoreCase(path, type+"/"+name+"/");
 	}
@@ -6026,6 +6060,22 @@ public final class XMLConfigAdmin {
 		} catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
+	}
+	
+	private RHExtension getRHExtension(ConfigImpl config, String id, RHExtension defaultValue) {
+		Element extensions=_getRootElement("extensions");
+		Element[] children = XMLConfigWebFactory.getChildren(extensions,"rhextension");// LuceeHandledExtensions
+      	
+		if(children!=null)for(int i=0;i<children.length;i++) {
+			if(!id.equals(children[i].getAttribute("id"))) continue;
+			try {
+				return new RHExtension(config,children[i]);
+			}
+			catch (Throwable t) {
+				return defaultValue;
+			}
+      	}
+		return defaultValue;
 	}
 	
 	
