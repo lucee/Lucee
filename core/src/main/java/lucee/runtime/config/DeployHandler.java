@@ -80,7 +80,7 @@ public class DeployHandler {
 					else if("lex".equalsIgnoreCase(ext))
 						XMLConfigAdmin.updateRHExtension((ConfigImpl) config, child,true);
 					
-					// Lucee Extensions
+					// Lucee core
 					else if(config instanceof ConfigServer && "lco".equalsIgnoreCase(ext))
 						XMLConfigAdmin.updateCore((ConfigServerImpl) config, child,true);
 				}
