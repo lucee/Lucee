@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.121-SNAPSHOT</version>
+  <version>5.0.0.122-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -602,28 +602,41 @@
          <type>jar</type>
          <version>1.4.0.L004</version>
       </dependency>
-<!-- 
-  Bundle-SymbolicName: apache.xml.xalan
-  Bundle-Version: 2.7.1
-  source: lucee
--->
+      
+      
+<!-- apache.xml.xalan - 2.7.2 -->
       <dependency>
          <groupId>apache.xml</groupId>
          <artifactId>xalan</artifactId>
          <type>jar</type>
-         <version>2.7.1</version>
+         <version>2.7.2</version>
       </dependency>
-<!-- 
-  Bundle-SymbolicName: apache.xml.xerces
-  Bundle-Version: 2.11.1
-  source: lucee
--->
+<!-- apache.xml.xalan.serializer - 2.7.2 -->
+      <dependency>
+         <groupId>apache.xml.xalan</groupId>
+         <artifactId>serializer</artifactId>
+         <type>jar</type>
+         <version>2.7.2</version>
+      </dependency>
+<!-- apache.xml.xerces - 2.9.1 -->
       <dependency>
          <groupId>apache.xml</groupId>
          <artifactId>xerces</artifactId>
          <type>jar</type>
-         <version>2.11.0</version>
+         <version>2.9.1</version>
       </dependency>
+<!-- xml.apis - 1.3.4 -->
+      <dependency>
+         <groupId>xml</groupId>
+         <artifactId>apis</artifactId>
+         <type>jar</type>
+         <version>1.3.4</version>
+      </dependency>
+      
+    
+      
+  
+      
 <!-- 
   Bundle-SymbolicName: backport.util.concurrent
   Bundle-Version: 2.2.0
@@ -833,13 +846,6 @@
          <type>jar</type>
          <version>1.2.0</version>
       </dependency>
-<!-- serializer - 2.7.1 -->
-      <dependency>
-         <groupId>serializer</groupId>
-         <artifactId>serializer</artifactId>
-         <type>jar</type>
-         <version>2.7.1</version>
-      </dependency>
 
 <!-- slf4j.api - 1.6.4
 	Bundle-SymbolicName: slf4j.api
@@ -980,13 +986,7 @@
          <type>jar</type>
          <version>1.0.0</version>
       </dependency>
-<!-- xml.apis - 1.3.2 -->
-      <dependency>
-         <groupId>xml</groupId>
-         <artifactId>apis</artifactId>
-         <type>jar</type>
-         <version>1.3.2</version>
-      </dependency>
+
 <!-- xmlbeans - 2.3.0.r540734 -->
       <dependency>
          <groupId>xmlbeans</groupId>
