@@ -43,22 +43,6 @@ public class JarUtil {
 		,"com.sun.*"
 
 	};
-	/*public static final String[] DEFAULT_IGNORES=new String[]{
-		"java."
-		,"javax."
-		,"org.w3c"
-		,"org.osgi."
-		,"lucee."
-		,"org.xml."
-		,"sun."
-		,"coldfusion."
-		,"com.allaire.cfx."
-		,"com.integral.fusiondebug.server."
-		,"org.apache.xalan."
-		,"org.apache.xerces."
-		,"org.apache.xml."
-
-	};*/
 	
 	/**
 	 * 
