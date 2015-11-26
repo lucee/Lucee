@@ -18,13 +18,11 @@
  **/
 package lucee.runtime.cache.util;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import lucee.commons.io.cache.CacheKeyFilter;
 
-import org.apache.oro.text.regex.MalformedPatternException;
-import org.apache.oro.text.regex.Pattern;
-import org.apache.oro.text.regex.PatternMatcher;
-import org.apache.oro.text.regex.Perl5Compiler;
-import org.apache.oro.text.regex.Perl5Matcher;
 
 /**
  * Wildcard Filter
@@ -34,7 +32,6 @@ public class WildCardFilter implements CacheKeyFilter {
     private static final String specials="{}[]().+\\^$";
     
 	private final Pattern pattern;
-    private final PatternMatcher matcher=new Perl5Matcher();
 	private final String wildcard;
 
 	private boolean ignoreCase;
@@ -44,7 +41,7 @@ public class WildCardFilter implements CacheKeyFilter {
      * @param wildcard
      * @throws MalformedPatternException
      */
-    public WildCardFilter(String wildcard,boolean ignoreCase) throws MalformedPatternException {
+    public WildCardFilter(String wildcard,boolean ignoreCase) {
         this.wildcard=wildcard;
         this.ignoreCase=ignoreCase;
         StringBuilder sb = new StringBuilder(wildcard.length());
@@ -57,12 +54,13 @@ public class WildCardFilter implements CacheKeyFilter {
             else if(specials.indexOf(c)!=-1)sb.append('\\').append(c);
             else sb.append(c);
         }
-        pattern=new Perl5Compiler().compile(ignoreCase?sb.toString().toLowerCase():sb.toString());
+        pattern=Pattern.compile(ignoreCase?sb.toString().toLowerCase():sb.toString());
+        //pattern=new Perl5Compiler().compile(ignoreCase?sb.toString().toLowerCase():sb.toString());
     }
 
 	@Override
 	public boolean accept(String key) {
-		return matcher.matches(ignoreCase?key.toLowerCase():key, pattern);
+		return pattern.matcher(ignoreCase?key.toLowerCase():key).matches();
 	}
 
     @Override
@@ -74,5 +72,4 @@ public class WildCardFilter implements CacheKeyFilter {
 	public String toPattern() {
 		return wildcard;
 	}
-
 }

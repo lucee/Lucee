@@ -35,8 +35,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.TimeSpan;
 
-import org.apache.oro.text.regex.MalformedPatternException;
-
 public class CacheItemCache extends CacheItem {
 
 	private Cache cache;
@@ -96,7 +94,7 @@ public class CacheItemCache extends CacheItem {
 		cache.remove(CacheKeyFilterAll.getInstance());
 	}
 
-	public static void _flush(PageContext pc, Cache cache, String expireurl) throws MalformedPatternException, IOException {
+	public static void _flush(PageContext pc, Cache cache, String expireurl) throws IOException {
 		cache.remove(new WildCardFilter(expireurl,true));
 	}
 	

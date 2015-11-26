@@ -53,8 +53,6 @@ import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 
-import org.apache.oro.text.regex.MalformedPatternException;
-
 /**
 * Speeds up page rendering when dynamic content does not have to be retrieved each time a user accesses
 *   the page. To accomplish this, cfcache creates temporary files that contain the static HTML returned from
@@ -438,7 +436,7 @@ public final class Cache extends BodyTagImpl {
 
 	
 
-	private void doFlush() throws IOException, MalformedPatternException, PageException {
+	private void doFlush() throws IOException, PageException {
 		if(id!=null){
 			required("cache", "id", id);
 			CacheRemove.call(pageContext, id,throwOnError,cachename);

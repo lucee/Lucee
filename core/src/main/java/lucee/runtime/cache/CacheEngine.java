@@ -37,7 +37,6 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.TimeSpan;
 
-import org.apache.oro.text.regex.MalformedPatternException;
 // MUST this must be come from configuration
 public class CacheEngine {
 
@@ -59,7 +58,7 @@ public class CacheEngine {
 		return cache.contains(key);
 	}
 
-	public int flush(String key, String filter) throws MalformedPatternException, IOException {
+	public int flush(String key, String filter) throws IOException {
 		if(!Util.isEmpty(key)) return cache.remove(key)?1:0;
 		if(!Util.isEmpty(filter)) return cache.remove(new WildCardFilter(filter,false));
 		return cache.remove(CacheKeyFilterAll.getInstance());

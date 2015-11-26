@@ -31,8 +31,6 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.WildCardFilter;
 import lucee.runtime.converter.JavaConverter;
 
-import org.apache.oro.text.regex.MalformedPatternException;
-
 public class MetaData implements Serializable {
 	
 	private static Map<String,MetaData> instances=new HashMap<String,MetaData>();
@@ -74,7 +72,7 @@ public class MetaData implements Serializable {
 		}
 	}
 	
-	public synchronized List<String> get(String wildcard) throws MalformedPatternException, IOException {
+	public synchronized List<String> get(String wildcard) throws IOException {
 		synchronized (data) {
 			List<String> list=new ArrayList<String>();
 			Iterator<Entry<String, String>> it = data.entrySet().iterator();

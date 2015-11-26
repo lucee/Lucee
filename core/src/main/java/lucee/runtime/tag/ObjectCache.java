@@ -40,8 +40,6 @@ import lucee.runtime.functions.cache.Util;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.UDF;
 
-import org.apache.oro.text.regex.MalformedPatternException;
-
 /**
 * Flushes the query cache
 *
@@ -108,12 +106,7 @@ public final class ObjectCache extends TagImpl {
 		   return new QueryCacheHandlerFilterUDF((UDF)filter);
 		String sql=Caster.toString(filter,null);
 		if(!StringUtil.isEmpty(sql,true)) {
-			try {
-				return new QueryCacheHandlerFilter(sql,ignoreCase);
-			}
-			catch (MalformedPatternException e) {
-				throw Caster.toPageException(e);
-			}
+			return new QueryCacheHandlerFilter(sql,ignoreCase);
 		}
 		return null;
 	}

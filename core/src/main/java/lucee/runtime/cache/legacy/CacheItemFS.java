@@ -33,9 +33,6 @@ import lucee.commons.lang.Md5;
 import lucee.runtime.PageContext;
 import lucee.runtime.type.dt.TimeSpan;
 
-import org.apache.oro.text.regex.MalformedPatternException;
-
- 
 class CacheItemFS extends CacheItem {
 	
 	private final Resource res,directory;
@@ -97,7 +94,7 @@ class CacheItemFS extends CacheItem {
 		ResourceUtil.removeChildrenEL(dir);
 	}
 
-	protected static void _flush(PageContext pc, Resource dir, String expireurl) throws IOException, MalformedPatternException {
+	protected static void _flush(PageContext pc, Resource dir, String expireurl) throws IOException {
 		if(dir==null)dir=getDirectory(pc);
 		List<String> names;
 		names = MetaData.getInstance(dir).get(expireurl);

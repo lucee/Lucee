@@ -31,8 +31,6 @@ import lucee.runtime.config.Config;
 import lucee.runtime.functions.cache.Util;
 import lucee.runtime.type.dt.TimeSpan;
 
-import org.apache.oro.text.regex.MalformedPatternException;
-
  
 public abstract class CacheItem {
 
@@ -89,7 +87,7 @@ public abstract class CacheItem {
 		else CacheItemFS._flushAll(pc, dir);
 	}
 
-	public static void flush(PageContext pc, Resource dir, String cacheName,String expireurl) throws IOException, MalformedPatternException {
+	public static void flush(PageContext pc, Resource dir, String cacheName,String expireurl) throws IOException {
 		Cache cache = Util.getCache(pc,cacheName,Config.CACHE_TYPE_TEMPLATE,null);	
 		if(cache!=null) CacheItemCache._flush(pc, cache,expireurl);
 		else CacheItemFS._flush(pc, dir, expireurl);

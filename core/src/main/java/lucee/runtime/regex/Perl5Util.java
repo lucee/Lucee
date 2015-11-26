@@ -148,21 +148,6 @@ public final class Perl5Util {
         while(matcher.contains(input, pattern)) {
           result = matcher.getMatch();  
           rtn.appendEL(result.toString());
-          /*
-          System.out.println("Match: " + result.toString());
-          System.out.println("Length: " + result.length());
-          groups = result.groups();
-          System.out.println("Groups: " + groups);
-          System.out.println("Begin offset: " + result.beginOffset(0));
-          System.out.println("End offset: " + result.endOffset(0));
-          System.out.println("Saved Groups: ");
-
-          // Start at 1 because we just printed out group 0
-          for(int group = 1; group < groups; group++) {
-        	  System.out.println(group + ": " + result.group(group));
-        	  System.out.println("Begin: " + result.begin(group));
-        	  System.out.println("End: " + result.end(group));
-          }*/
         }
         return rtn;
     }

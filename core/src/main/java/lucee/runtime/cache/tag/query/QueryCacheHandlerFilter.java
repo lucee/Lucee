@@ -22,13 +22,11 @@ import lucee.commons.io.res.util.WildCardFilter;
 import lucee.runtime.cache.tag.CacheHandlerFilter;
 import lucee.runtime.type.Query;
 
-import org.apache.oro.text.regex.MalformedPatternException;
-
 public class QueryCacheHandlerFilter implements CacheHandlerFilter {
 	
 	private WildCardFilter filter;
 
-	public QueryCacheHandlerFilter(String wildcard, boolean ignoreCase)throws MalformedPatternException {
+	public QueryCacheHandlerFilter(String wildcard, boolean ignoreCase) {
 		filter=new WildCardFilter(wildcard,ignoreCase);
 	}
 

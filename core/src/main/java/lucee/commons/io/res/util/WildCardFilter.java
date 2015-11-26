@@ -1,6 +1,7 @@
 /**
  *
  * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
+ * Copyright (c) 2015, Lucee Assosication Switzerland
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,15 +19,12 @@
  **/
 package lucee.commons.io.res.util;
 
+import java.util.regex.Pattern;
+
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 
-import org.apache.oro.text.regex.MalformedPatternException;
-import org.apache.oro.text.regex.Pattern;
-import org.apache.oro.text.regex.PatternMatcher;
-import org.apache.oro.text.regex.Perl5Compiler;
-import org.apache.oro.text.regex.Perl5Matcher;
 
 /**
  * Wildcard Filter
@@ -37,11 +35,10 @@ public class WildCardFilter implements ResourceAndResourceNameFilter {
     private static final boolean IS_WIN=SystemUtil.isWindows();
     
 	private final Pattern pattern;
-    private final PatternMatcher matcher=new Perl5Matcher();
-	private final String wildcard;
+    private final String wildcard;
 	private boolean ignoreCase;
 
-    public WildCardFilter(String wildcard) throws MalformedPatternException {
+    public WildCardFilter(String wildcard) {
     	this(wildcard,IS_WIN);
     }
 	
@@ -49,7 +46,7 @@ public class WildCardFilter implements ResourceAndResourceNameFilter {
      * @param wildcard
      * @throws MalformedPatternException
      */
-    public WildCardFilter(String wildcard,boolean ignoreCase) throws MalformedPatternException {
+    public WildCardFilter(String wildcard,boolean ignoreCase) {
         this.wildcard=wildcard;
         StringBuilder sb = new StringBuilder(wildcard.length());
         int len=wildcard.length();
@@ -63,25 +60,64 @@ public class WildCardFilter implements ResourceAndResourceNameFilter {
         }
         
         this.ignoreCase=ignoreCase;
-        pattern=new Perl5Compiler().compile(ignoreCase?StringUtil.toLowerCase(sb.toString()):sb.toString());
+        pattern=Pattern.compile(ignoreCase?StringUtil.toLowerCase(sb.toString()):sb.toString());
     }
 
     @Override
     public boolean accept(Resource file) {
-        return matcher.matches(ignoreCase?StringUtil.toLowerCase(file.getName()):file.getName(), pattern);
+        return pattern.matcher(ignoreCase?StringUtil.toLowerCase(file.getName()):file.getName()).matches();
     }
 
 	@Override
 	public boolean accept(Resource parent, String name) {
-		return matcher.matches(ignoreCase?StringUtil.toLowerCase(name):name, pattern);
+		return pattern.matcher(ignoreCase?StringUtil.toLowerCase(name):name).matches();
 	}
 	public boolean accept(String name) {
-		return matcher.matches(ignoreCase?StringUtil.toLowerCase(name):name, pattern);
+		return pattern.matcher(ignoreCase?StringUtil.toLowerCase(name):name).matches();
 	}
 
     @Override
 	public String toString() {
 		return "Wildcardfilter:"+wildcard;
 	}
+    
+	
+	/*public static void main(String[] args) {
+		WildCardFilter filter = new WildCardFilter("*.cfc", true);
+		assertTrue(filter.accept("susi.cfc"));
+		assertFalse(filter.accept("susi.cf"));
+		assertTrue(filter.accept(".cfc"));
+		assertTrue(filter.accept("xx.CFC"));
+		
+		filter = new WildCardFilter("*.cfc", false);
+		assertTrue(filter.accept("susi.cfc"));
+		assertFalse(filter.accept("susi.cf"));
+		assertTrue(filter.accept(".cfc"));
+		assertFalse(filter.accept("xx.CFC"));
+		
+		filter = new WildCardFilter("ss?xx.cfc", false);
+		assertFalse(filter.accept("susi.cfc"));
+		assertTrue(filter.accept("ss1xx.cfc"));
+		assertFalse(filter.accept("ss12xx.cfc"));
+		
+
+		filter = new WildCardFilter("ss*xx.cfc", false);
+		assertFalse(filter.accept("susi.cfc"));
+		assertTrue(filter.accept("ss1xx.cfc"));
+		assertTrue(filter.accept("ss12xx.cfc"));
+
+		filter = new WildCardFilter("ss*xx.cfc", false);
+		assertTrue(filter.accept("ss{}[]().+\\^$ss12xx.cfc"));
+		
+		print.e("done");
+	}
+
+	private static void assertTrue(boolean b) {
+		if(!b) throw new RuntimeException("value is false, but true is expected");
+	}
+
+	private static void assertFalse(boolean b) {
+		if(b) throw new RuntimeException("value is true, but false is expected");
+	}*/
 	
 }
