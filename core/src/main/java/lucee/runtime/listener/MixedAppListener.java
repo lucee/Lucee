@@ -24,6 +24,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Constants;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Array;
 
@@ -114,5 +115,41 @@ public final class MixedAppListener extends ModernAppListener {
 		ps = ((PageContextImpl)pc).getPageSourceExisting("/"+Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER);
 		if(ps!=null) return ps;
 		return null;
+	}
+
+	@Override
+	public void onDebug(PageContext pc) throws PageException {
+		if(((PageContextImpl)pc).getAppListenerType()==ApplicationListener.TYPE_CLASSIC) 
+			ClassicAppListener._onDebug(pc);
+		else super.onDebug(pc);
+	}
+
+	@Override
+	public void onError(PageContext pc, PageException pe) {
+		if(((PageContextImpl)pc).getAppListenerType()==ApplicationListener.TYPE_CLASSIC) 
+			ClassicAppListener._onError(pc,pe);
+		else super.onError(pc, pe);
+	}
+
+	@Override
+	public boolean hasOnSessionStart(PageContext pc) {
+		if(((PageContextImpl)pc).getAppListenerType()==ApplicationListener.TYPE_CLASSIC) 
+			return ClassicAppListener._hasOnSessionStart(pc);
+		return super.hasOnSessionStart(pc);
+	}
+
+	@Override
+	public boolean hasOnApplicationStart() {
+		PageContext pc = ThreadLocalPageContext.get();
+		if(pc!=null && ((PageContextImpl)pc).getAppListenerType()==ApplicationListener.TYPE_CLASSIC) 
+			return ClassicAppListener._hasOnApplicationStart();
+		return super.hasOnApplicationStart();
+	}
+
+	@Override
+	public void onTimeout(PageContext pc) {
+		if(((PageContextImpl)pc).getAppListenerType()==ApplicationListener.TYPE_CLASSIC) 
+			ClassicAppListener._onTimeout(pc);
+		else super.onTimeout(pc);
 	}
 }

@@ -22,6 +22,7 @@ import java.io.IOException;
 
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Constants;
 import lucee.runtime.exp.MissingIncludeException;
@@ -46,7 +47,8 @@ public final class ClassicAppListener extends AppListenerSupport {
 	}
 	
 	static void _onRequest(PageContext pc,PageSource requestedPage,PageSource application, RequestListener rl) throws PageException {
-		
+		((PageContextImpl)pc).setAppListenerType(ApplicationListener.TYPE_CLASSIC);
+
 		// on requestStart
 		if(application!=null)pc.doInclude(new PageSource[]{application},false);
 		
@@ -103,6 +105,10 @@ public final class ClassicAppListener extends AppListenerSupport {
 
 	@Override
 	public void onDebug(PageContext pc) throws PageException {
+		_onDebug(pc);
+	}
+
+	public static void _onDebug(PageContext pc) throws PageException {
 		try {
 			if(pc.getConfig().debug())pc.getDebugger().writeOut(pc);
 		} 
@@ -113,7 +119,36 @@ public final class ClassicAppListener extends AppListenerSupport {
 
 	@Override
 	public void onError(PageContext pc,PageException pe) {
+		_onError(pc, pe);
+	}
+
+	public static void _onError(PageContext pc,PageException pe) {
 		pc.handlePageException(pe);
+	}
+	
+	@Override
+	public void onTimeout(PageContext pc) {
+		_onTimeout(pc);
+	}
+	public static void _onTimeout(PageContext pc) {
+	}
+	
+	@Override
+	public boolean hasOnApplicationStart(){
+		return false;
+	}
+	
+	public static boolean _hasOnApplicationStart(){
+		return false;
+	}
+	
+	@Override
+	public boolean hasOnSessionStart(PageContext pc){
+		return false;
+	}
+	
+	public static boolean _hasOnSessionStart(PageContext pc){
+		return false;
 	}
 
 	@Override

@@ -116,6 +116,7 @@ import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.functions.dynamicEvaluation.Serialize;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
+import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.listener.ClassicApplicationContext;
@@ -331,6 +332,9 @@ public final class PageContextImpl extends PageContext {
 	private int currentTemplateDialect=CFMLEngine.DIALECT_LUCEE;
 	private int requestDialect=CFMLEngine.DIALECT_LUCEE;
 	private boolean ignoreScopes=false;
+	
+	private int appListenerType=ApplicationListener.TYPE_NONE;
+
 
 	/** 
 	 * default Constructor
@@ -423,6 +427,7 @@ public final class PageContextImpl extends PageContext {
 			 int bufferSize, 
 			 boolean autoFlush,
 			 boolean isChild, boolean ignoreScopes) {
+		appListenerType=ApplicationListener.TYPE_NONE;
 		this.ignoreScopes=ignoreScopes;
 
 		requestId=counter++;
@@ -3321,4 +3326,12 @@ public final class PageContextImpl extends PageContext {
 	public boolean ignoreScopes() {
 		return ignoreScopes;
 	}
+	
+	public void setAppListenerType(int appListenerType) {
+		this.appListenerType=appListenerType;
+	}
+	public int getAppListenerType() {
+		return appListenerType;
+	}
+
 }

@@ -105,6 +105,7 @@ public class ModernAppListener extends AppListenerSupport {
 	
 	protected void _onRequest(PageContext pc, PageSource requestedPage,PageSource appPS, RequestListener rl) throws PageException {
 		PageContextImpl pci = (PageContextImpl)pc;
+		pci.setAppListenerType(ApplicationListener.TYPE_MODERN);
 		if(appPS!=null) {
 			String callPath=appPS.getComponentName();
 			
