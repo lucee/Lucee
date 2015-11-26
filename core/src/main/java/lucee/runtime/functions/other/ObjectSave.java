@@ -19,6 +19,7 @@
 package lucee.runtime.functions.other;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 
@@ -31,8 +32,6 @@ import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-
-import org.apache.commons.io.output.ByteArrayOutputStream;
 
 public class ObjectSave {
     
