@@ -31,7 +31,7 @@ public final class YesNoFormat implements Function {
 	public static String call(PageContext pc , Object object) throws PageException {
 		if(object instanceof String) {
 			Object str = object;
-			if(StringUtil.isEmpty(str)) return Caster.toString(false);
+			if(StringUtil.isEmpty(str)) return "No";
 		}
 	    return Caster.toBooleanValue(object)?"Yes":"No";
 	}
