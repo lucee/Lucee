@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.122-SNAPSHOT</version>
+  <version>5.0.0.123-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -536,50 +536,6 @@
 		<version>1.2.17</version>
 	</dependency>
 
-<!-- 
-  Bundle-SymbolicName: org.apache.poi.ooxml.schemas
-  Bundle-Version: 3.8.0
-  source: lucee
--->
-      <dependency>
-         <groupId>apache.poi.ooxml</groupId>
-         <artifactId>schemas</artifactId>
-         <type>jar</type>
-         <version>3.8.0</version>
-      </dependency>
-<!-- 
-  Bundle-SymbolicName: org.apache.poi.ooxml
-  Bundle-Version: 3.8.0
-  source: lucee
--->
-      <dependency>
-         <groupId>org.apache.poi</groupId>
-         <artifactId>ooxml</artifactId>
-         <type>jar</type>
-         <version>3.8.0</version>
-      </dependency>
-<!-- 
-  Bundle-SymbolicName: apache.poi.tm.extractors
-  Bundle-Version: 3.8.0
-  source: lucee
--->
-      <dependency>
-         <groupId>apache.poi.tm</groupId>
-         <artifactId>extractors</artifactId>
-         <type>jar</type>
-         <version>3.8.0</version>
-      </dependency>
-<!-- 
-  Bundle-SymbolicName: org.apache.poi
-  Bundle-Version: 3.8.0
-  source: lucee
--->
-      <dependency>
-         <groupId>org.apache</groupId>
-         <artifactId>poi</artifactId>
-         <type>jar</type>
-         <version>3.8.0</version>
-      </dependency>
 <!-- 
   Bundle-SymbolicName: apache.ws.axis.ant
   Bundle-Version: 1.4.0
