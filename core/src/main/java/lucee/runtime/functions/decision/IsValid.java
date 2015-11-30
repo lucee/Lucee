@@ -79,19 +79,8 @@ public final class IsValid implements Function {
 	}
 
 	public static boolean regex(String value,String strPattern) {
-		///// TEST15
-		if(value==null)
-						return false;
-					
-					try {
-						Pattern pattern = new Perl5Compiler().compile(strPattern, Perl5Compiler.MULTILINE_MASK);
-				        PatternMatcherInput input = new PatternMatcherInput(value);
-				        return new Perl5Matcher().matches(input, pattern);
-					} catch (MalformedPatternException e) {
-						return false;
-					}
-		//if(value==null) return false;
-		//return Perl5Util.matches(strPattern, value,false);
+		if(value==null) return false;
+		return Perl5Util.matches(strPattern, value,false);
 	}
 
 	public static boolean call(PageContext pc, String type, Object value, Object objMin, Object objMax) throws PageException {
