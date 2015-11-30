@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.126-SNAPSHOT</version>
+  <version>5.0.0.127-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -580,24 +580,24 @@
     <version>1.4.0.L004</version>
     <scope>compile</scope>
   </dependency>
+ 
+<!-- apache.xml.xalan - 2.7.2.0002L -->
+      <dependency>
+         <groupId>apache.xml</groupId>
+         <artifactId>xalan</artifactId>
+         <type>jar</type>
+         <version>2.7.2.0002L</version>
+         <scope>provided</scope>
+      </dependency>
+<!-- apache.xml.xalan.serializer - 2.7.2.0002L -->
+      <dependency>
+         <groupId>apache.xml.xalan</groupId>
+         <artifactId>serializer</artifactId>
+         <type>jar</type>
+         <version>2.7.2.0002L</version>
+         <scope>provided</scope>
+      </dependency>
       
-      
-<!-- apache.xml.xalan - 2.7.2 -->
-  <dependency>
-    <groupId>apache.xml</groupId>
-    <artifactId>xalan</artifactId>
-    <type>jar</type>
-    <version>2.7.2.0001L</version>
-    <scope>compile</scope>
-  </dependency>
-<!-- apache.xml.xalan.serializer - 2.7.2 -->
-  <dependency>
-    <groupId>apache.xml.xalan</groupId>
-    <artifactId>serializer</artifactId>
-    <type>jar</type>
-    <version>2.7.2.0001L</version>
-    <scope>compile</scope>
-  </dependency>
 <!-- apache.xml.xerces - 2.11.0 -->
   <dependency>
     <groupId>apache.xml</groupId>
