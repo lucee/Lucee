@@ -134,6 +134,7 @@ import lucee.runtime.op.Operator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.orm.ORMSession;
+import lucee.runtime.regex.Perl5Util;
 import lucee.runtime.rest.RestRequestListener;
 import lucee.runtime.rest.RestUtil;
 import lucee.runtime.security.Credential;
@@ -197,12 +198,6 @@ import lucee.runtime.util.VariableUtilImpl;
 import lucee.runtime.writer.BodyContentUtil;
 import lucee.runtime.writer.CFMLWriter;
 import lucee.runtime.writer.DevNullBodyContent;
-
-import org.apache.oro.text.regex.MalformedPatternException;
-import org.apache.oro.text.regex.Pattern;
-import org.apache.oro.text.regex.PatternMatcherInput;
-import org.apache.oro.text.regex.Perl5Compiler;
-import org.apache.oro.text.regex.Perl5Matcher;
 
 /**
  * page context for every page object. 
@@ -1533,15 +1528,8 @@ public final class PageContextImpl extends PageContext {
 				
 				if(strPattern==null) throw new ExpressionException("Missing attribute [pattern]");
 				
-				try {
-					Pattern pattern = new Perl5Compiler().compile(strPattern, Perl5Compiler.DEFAULT_MASK);
-					PatternMatcherInput input = new PatternMatcherInput(str);
-					if( !new Perl5Matcher().matches(input, pattern))
-						throw new ExpressionException("The value ["+str+"] doesn't match the provided pattern ["+strPattern+"]");
-					
-				} catch (MalformedPatternException e) {
-					throw new ExpressionException("The provided pattern ["+strPattern+"] is invalid",e.getMessage());
-				}
+				if(!Perl5Util.matches(strPattern, str))
+					throw new ExpressionException("The value ["+str+"] doesn't match the provided pattern ["+strPattern+"]");
 				setVariable(name,str);
 			}
 			else if ( type.equals( "int" ) || type.equals( "integer" ) ) {

@@ -18,9 +18,13 @@
  **/
 package lucee.runtime.regex;
 
+import java.io.IOException;
 import java.util.Map;
 
 import lucee.commons.collection.MapFactory;
+import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -151,6 +155,37 @@ public final class Perl5Util {
         }
         return rtn;
     }
+
+	
+	private static boolean _matches(String strPattern, String strInput) throws MalformedPatternException {
+		Pattern pattern = new Perl5Compiler().compile(strPattern, Perl5Compiler.DEFAULT_MASK);
+		PatternMatcherInput input = new PatternMatcherInput(strInput);
+		return new Perl5Matcher().matches(input, pattern);
+	}
+	
+	public static boolean matches(String strPattern, String strInput) throws PageException {
+		try {
+			return _matches(strPattern, strInput);
+		} 
+		catch (MalformedPatternException e) {
+			throw new ExpressionException("The provided pattern ["+strPattern+"] is invalid",e.getMessage());
+		}
+		
+	}
+	
+	public static boolean matches(String strPattern, String strInput, boolean defaultValue) {
+		try {
+			return _matches(strPattern, strInput);
+		}
+		catch (MalformedPatternException e) {
+			return defaultValue;
+		}
+	}
+	
+	
+	
+	
+	
 	
 	
 	private static Pattern getPattern(String strPattern, int type) throws MalformedPatternException {
@@ -235,4 +270,6 @@ public final class Perl5Util {
                 "<function name=\"susi2\" some=\"1\">\n<argument name=\"susi\">\naaa</function>",
                 1,false);
     }
+
+
 }
