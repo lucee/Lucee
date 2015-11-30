@@ -216,7 +216,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 			"MSSQL2.cfc"
 			});
 		
-		if(cleanupDatasources) {
+		/*if(cleanupDatasources) {
 			// DB Drivers
 			delete(dbDir,new String[]{
 			"H2.cfc","H2Selector.cfc","H2Server.cfc","HSQLDB.cfc","MSSQL.cfc","MSSQL2.cfc","MSSQLSelector.cfc","DB2.cfc","Oracle.cfc"
@@ -225,7 +225,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		create("/resource/context/admin/dbdriver/",new String[]{
 				"Other.cfc"
 				},dbDir,doNew);
-				
+		*/	
 		
 		
 		
