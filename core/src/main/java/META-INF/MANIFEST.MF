@@ -5,7 +5,8 @@ Minor-Name: Velvet
 Minor-Name-Explanation: http://en.wikipedia.org/wiki/Velvet_(dog)
 State: beta
 Bundle-Name: Lucee Core
-Require-Bundle-Fragment: slf4j.nop;bundle-version=1.7.12
+Require-Bundle-Fragment: slf4j.nop;bundle-version=1.7.12,
+ apache.xml.xalan.serializer;bundle-version=2.7.2.0002L
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: lucee.core
 Export-Package: coldfusion,
@@ -335,8 +336,7 @@ Require-Bundle: org.apache.sanselan.sanselan;bundle-version=0.97.0.incubator,
  log4j;bundle-version=1.2.17,
  apache.ws.axis.ant;bundle-version=1.4.0,
  apache.ws.axis;bundle-version=1.4.0.L004,
- apache.xml.xalan;bundle-version=2.7.2.0001L,
- apache.xml.xalan.serializer;bundle-version=2.7.2.0001L,
+ apache.xml.xalan;bundle-version=2.7.2.0002L,
  apache.xml.xerces;bundle-version=2.11.0.0001L,
  xml.apis;bundle-version=1.4.1,
  backport.util.concurrent;bundle-version=2.2.0,
