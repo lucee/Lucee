@@ -1,38 +1,24 @@
-<cfscript>
-stText.Settings.noDriver="There is no driver available for this type, please install a matching Extension for this type.";
+<cfset error.message="">
+<cfset error.detail="">
 
-error.message="";
-error.detail="";
+<cfset driverNames=structnew("linked")>
+<cfset driverNames=ComponentListPackageAsStruct("lucee-server.admin.dbdriver",driverNames)>
+<cfset driverNames=ComponentListPackageAsStruct("lucee.admin.dbdriver",driverNames)>
+<cfset driverNames=ComponentListPackageAsStruct("dbdriver",driverNames)>
 
-driverNames=structnew("linked");
-driverNames=ComponentListPackageAsStruct("lucee-server.admin.dbdriver",driverNames);
-driverNames=ComponentListPackageAsStruct("lucee.admin.dbdriver",driverNames);
-driverNames=ComponentListPackageAsStruct("dbdriver",driverNames);
-
-variables.drivers={};
-variables.selectors	= {};
-loop collection=driverNames index="n" item="fn" {
-	if(n!="Driver" && n!="IDriver") {
-		obj = createObject("component",fn);
-		if(isInstanceOf( obj, "types.IDriverSelector" ))
-			variables.selectors[n] = obj;
-		else if(isInstanceOf( obj, "types.IDatasource" ))
-			variables.drivers[n] = obj;
-	}
-}
-
-installed={};
-loop collection=drivers index="n" item="dr" {
-	try {
-		createObject("java",dr.getClass());
-		installed[dr.getClass()]=true;
-	}
-	catch(e){
-		installed[dr.getClass()]=false;
-	}
-}
-
-</cfscript>
+<cfset variables.drivers=struct()>
+<cfset variables.selectors	= struct()>
+<cfloop collection="#driverNames#" index="n" item="fn">
+	
+	<cfif n NEQ "Driver" and n NEQ "IDriver">
+		<cfset obj = createObject("component",fn)>
+		<cfif isInstanceOf( obj, "types.IDriverSelector" )>
+			<cfset variables.selectors[n] = obj>
+		<cfelseif isInstanceOf( obj, "types.IDatasource" )>
+			<cfset variables.drivers[n] = obj>
+		</cfif>
+	</cfif>
+</cfloop>
 
 <cffunction name="getDbDriverTypeName">
 	<cfargument name="className" required="true">
@@ -77,8 +63,10 @@ Defaults --->
 <cfelseif access EQ "none" or access EQ "no">
 	<cfset access=0>
 </cfif>
-
+	
+	
 <cfswitch expression="#url.action2#">
 	<cfcase value="list"><cfinclude template="services.datasource.list.cfm"/></cfcase>
 	<cfcase value="create"><cfinclude template="services.datasource.create.cfm"/></cfcase>
+
 </cfswitch>

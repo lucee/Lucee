@@ -1,4 +1,4 @@
-<cfinterface extends="IDriver">
+<cfinterface extends="types.IDriver">
 
 
 	<cffunction name="getOptions" returntype="array" output="false" 

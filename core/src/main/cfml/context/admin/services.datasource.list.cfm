@@ -242,6 +242,7 @@ list all mappings and display necessary edit fields --->
 	</cfoutput>
 </cfif>
 
+
 <cfif srcLocal.recordcount>
 	<cfoutput>
 		<h2>#stText.Settings.ListDatasources#</h2>
@@ -260,35 +261,23 @@ list all mappings and display necessary edit fields --->
 				</thead>
 				<tbody>
 					<cfloop query="srcLocal">
-						<cfset hasDriver=false>
-						<cftry>
-
-							<cfset label=getDbDriverTypeName(srcLocal.ClassName,srcLocal.dsn)>
-							<cfset hasDriver=true>
-							<!--- <cfset hasDriver=!isNull(installed[srcLocal.className]) && installed[srcLocal.className]> --->
-							<cfcatch>
-								<cfset label=srcLocal.ClassName>
-							</cfcatch>
-						</cftry>
-						<cfset css=hasDriver?"":"Red">
 						<!--- and now display --->
 						<tr>
-							<td class="tblContent#css# longwords">
+							<td>
 								 <input type="checkbox" class="checkbox" name="row_#srcLocal.currentrow#" value="#srcLocal.currentrow#">
 								<input type="hidden" name="username_#srcLocal.currentrow#" value="#srcLocal.Username#">
 								<input type="hidden" name="password_#srcLocal.currentrow#" value="#srcLocal.Password#">
 							</td>
-							<td class="tblContent#css# longwords"><input type="hidden" name="name_#srcLocal.currentrow#" value="#srcLocal.name#">#srcLocal.name#</td>
-							<td class="tblContent#css# longwords">#label#
-								<cfif !hasDriver><div class="commentError">#stText.Settings.noDriver#</div></cfif>
+							<td><input type="hidden" name="name_#srcLocal.currentrow#" value="#srcLocal.name#">#srcLocal.name#</td>
+							<td>#getDbDriverTypeName(srcLocal.ClassName,srcLocal.dsn)#
 								<cfif isDefined( "stVeritfyMessages[srcLocal.name].dbInfo" ) && stVeritfyMessages[srcLocal.name].dbInfo.recordCount>
 									<cfset qDbInfo = stVeritfyMessages[srcLocal.name].dbInfo>
 									<div class="comment">#stText.settings.datasource.databaseName#: #qDbInfo.DATABASE_PRODUCTNAME# #qDbInfo.DATABASE_VERSION#</div>
 									<div class="comment">#stText.settings.datasource.driverName#: #qDbInfo.DRIVER_NAME# #qDbInfo.DRIVER_VERSION# (JDBC #qDbInfo.JDBC_MAJOR_VERSION#.#qDbInfo.JDBC_MINOR_VERSION#)</div>
 								</cfif>
 							</td>
-							<td class="tblContent#css# longwords">#yesNoFormat(srcLocal.storage)#</td>
-							<td class="tblContent#css# longwords">
+							<td>#yesNoFormat(srcLocal.storage)#</td>
+							<td>
 								<cfif StructKeyExists(stVeritfyMessages, srcLocal.name)>
 									<cfif stVeritfyMessages[srcLocal.name].label eq "OK">
 										<span class="CheckOk">#stVeritfyMessages[srcLocal.name].label#</span>
@@ -303,7 +292,7 @@ list all mappings and display necessary edit fields --->
 									&nbsp;				
 								</cfif>
 							</td>
-							<td class="tblContent#css# longwords"><cfif hasDriver>#renderEditButton("#request.self#?action=#url.action#&action2=create&name=#srcLocal.name#")#</cfif>
+							<td>#renderEditButton("#request.self#?action=#url.action#&action2=create&name=#srcLocal.name#")#
 					
 
 						</tr>						
@@ -339,7 +328,6 @@ list all mappings and display necessary edit fields --->
 						</td>
 					</tr>
 					<cfset keys=StructKeyArray(drivers)>
-					
 					<cfset ArraySort(keys,"textNoCase")>
 					<tr>
 						<th scope="row">#stText.Settings.Type#</th>
