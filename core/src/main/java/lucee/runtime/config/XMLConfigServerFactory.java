@@ -33,6 +33,7 @@ import lucee.commons.lang.SystemOut;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLibException;
 
@@ -110,12 +111,18 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		}
 		
         Document doc=loadDocumentCreateIfFails(configFile, "server");
-
+        
+     // get version
+ 		Element luceeConfiguration = doc.getDocumentElement();
+ 		String strVersion = luceeConfiguration.getAttribute("version");
+ 		double version=Caster.toDoubleValue(strVersion, 1.0d);
+ 		boolean cleanupDatasources=version<5.0D;
+     		
        
         ConfigServerImpl config=new ConfigServerImpl(engine,initContextes,contextes,configDir,configFile);
 		load(config,doc,false,doNew);
 	    
-		createContextFiles(configDir,config,doNew);
+		createContextFiles(configDir,config,doNew,cleanupDatasources);
 	    return config;
     }
     /**
@@ -176,7 +183,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
         configServer.setLabels(labels);
 	}
 	
-	private static void createContextFiles(Resource configDir, ConfigServer config, boolean doNew) {
+	private static void createContextFiles(Resource configDir, ConfigServer config, boolean doNew, boolean cleanupDatasources) {
 		
 		Resource contextDir = configDir.getRealResource("context");
 		Resource adminDir = contextDir.getRealResource("admin");
@@ -208,6 +215,20 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		delete(dbDir,new String[]{
 			"MSSQL2.cfc"
 			});
+		
+		if(cleanupDatasources) {
+			// DB Drivers
+			delete(dbDir,new String[]{
+			"H2.cfc","H2Selector.cfc","H2Server.cfc","HSQLDB.cfc","MSSQL.cfc","MSSQL2.cfc","MSSQLSelector.cfc","DB2.cfc","Oracle.cfc"
+			,"MySQL.cfc","ODBC.cfc","Sybase.cfc","PostgreSql.cfc","Other.cfc","Firebird.cfc"});
+		}
+		create("/resource/context/admin/dbdriver/",new String[]{
+				"Other.cfc"
+				},dbDir,doNew);
+				
+		
+		
+		
 
 		// Cache Drivers
 		Resource cDir = adminDir.getRealResource("cdriver");
