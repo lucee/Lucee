@@ -57,6 +57,12 @@ import javax.servlet.jsp.tagext.BodyTag;
 import javax.servlet.jsp.tagext.Tag;
 import javax.servlet.jsp.tagext.TryCatchFinally;
 
+import org.apache.oro.text.regex.MalformedPatternException;
+import org.apache.oro.text.regex.Pattern;
+import org.apache.oro.text.regex.PatternMatcherInput;
+import org.apache.oro.text.regex.Perl5Compiler;
+import org.apache.oro.text.regex.Perl5Matcher;
+
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.BodyContentStack;
 import lucee.commons.io.CharsetUtil;
@@ -1527,9 +1533,19 @@ public final class PageContextImpl extends PageContext {
 				String str=Caster.toString(value);
 				
 				if(strPattern==null) throw new ExpressionException("Missing attribute [pattern]");
-				
-				if(!Perl5Util.matches(strPattern, str))
-					throw new ExpressionException("The value ["+str+"] doesn't match the provided pattern ["+strPattern+"]");
+				// TEST15
+				try {
+										Pattern pattern = new Perl5Compiler().compile(strPattern, Perl5Compiler.DEFAULT_MASK);
+										PatternMatcherInput input = new PatternMatcherInput(str);
+										if( !new Perl5Matcher().matches(input, pattern))
+											throw new ExpressionException("The value ["+str+"] doesn't match the provided pattern ["+strPattern+"]");
+										
+									} catch (MalformedPatternException e) {
+										throw new ExpressionException("The provided pattern ["+strPattern+"] is invalid",e.getMessage());
+									}
+									
+				//if(!Perl5Util.matches(strPattern, str))
+				//	throw new ExpressionException("The value ["+str+"] doesn't match the provided pattern ["+strPattern+"]");
 				setVariable(name,str);
 			}
 			else if ( type.equals( "int" ) || type.equals( "integer" ) ) {
