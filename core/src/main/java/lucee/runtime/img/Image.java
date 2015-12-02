@@ -1378,6 +1378,10 @@ public class Image extends StructSupport implements Cloneable,Struct {
 		if(obj instanceof Image) return (Image) obj;
 		if(obj instanceof ObjectWrap) return toImage(pc,((ObjectWrap)obj).getEmbededObject(),checkForVariables);
 		
+		if(obj instanceof BufferedImage) return new Image((BufferedImage)obj);
+		
+		
+		
 		// try to load from binary
 		if(Decision.isBinary(obj)) {
 			try {
