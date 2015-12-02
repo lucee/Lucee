@@ -27,17 +27,28 @@ import java.util.TimeZone;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.FunctionException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 
-public final class DateAdd implements Function {
-
+public final class DateAdd extends BIF {
+// do not change this is used in the chart extension
 	private static final long serialVersionUID = -5827644560609841341L;
 
 	public static DateTime call(PageContext pc , String datepart, double number, DateTime date) throws ExpressionException {
 		return _call(pc,pc.getTimeZone(), datepart, number, date);
 	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length!=3) throw new FunctionException(pc, "DateAdd", 3, 3, args.length);
+		return call(pc, Caster.toString(args[0]),  Caster.toDoubleValue(args[1]),  Caster.toDate(args[2],pc.getTimeZone()));
+	}
+	
 	
 	public synchronized static DateTime _call(PageContext pc ,TimeZone tz, String datepart, double number, DateTime date) throws ExpressionException {
 		datepart=datepart.toLowerCase();
