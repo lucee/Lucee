@@ -24,6 +24,10 @@
 					<td>#bundle.version#</td>
 				</tr>
 				<tr>
+					<th scope="row">#stText.info.bundles.path#</th>
+					<td>#bundle.path#</td>
+				</tr>
+				<tr>
 					<th scope="row">#stText.info.bundles.vendor#</th>
 					<td>#bundle.vendor#</td>
 				</tr>

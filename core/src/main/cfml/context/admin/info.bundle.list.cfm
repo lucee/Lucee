@@ -6,7 +6,6 @@
 
 <cfoutput>
 	<cfif not hasAccess><cfset noAccess(stText.setting.noAccess)></cfif>
-
 	<div class="pageintro">#stText.bundles.introText#</div>
 		<table class="maintbl checkboxtbl">
 			<thead>
@@ -14,6 +13,7 @@
 					<th width="3%"><cfif hasAccess><input type="checkbox" class="checkbox" name="rro" onclick="selectAll(this)"></cfif></th>
 					<th>#stText.info.bundles.subject#</th>
 					<th>#stText.info.bundles.version#</th>
+					<th>#stText.info.bundles.fileName#</th>
 					<th>#stText.info.bundles.vendor#</th>
 					<th>#stText.info.bundles.usedBy#</th>
 					<th>#stText.info.bundles.state#</th>
@@ -40,6 +40,10 @@
 							<!--- version --->
 							<td nowrap="nowrap">
 								#bundles.version#
+							</td>
+							<!--- path --->
+							<td title="#bundles.path#">
+							#listLast(bundles.path,"\/")#
 							</td>
 							<!--- vendor --->
 							<td >

@@ -7,6 +7,8 @@
 	stText.info.bundles.state="State";
 	stText.info.bundles.usedBy="Used by";
 	stText.info.bundles.isFragment="Fragment?";
+	stText.info.bundles.fileName="File name";
+	stText.info.bundles.path="Path";
 	stText.info.bundles.manifestHeaders="Manifest Headers";
 	stText.bundles.introText="This are all the bundles available locally";
 </cfscript>

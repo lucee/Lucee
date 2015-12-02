@@ -241,6 +241,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private static final Key SYMBOLIC_NAME = KeyImpl.init("symbolicName");
 	private static final Key VENDOR =  KeyImpl.init("vendor");
 	private static final Key USED_BY = KeyImpl.init("usedBy");
+	private static final Key PATH = KeyConstants._path;
 	private AdminSync adminSync;
 	
 	
@@ -3500,9 +3501,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		BundleDefinition bd;
 		Bundle b;
 		String str;
-		Query qry=new QueryImpl(new Key[]{SYMBOLIC_NAME,
-			KeyConstants._title,KeyConstants._description,KeyConstants._version,VENDOR,KeyConstants._state,USED_BY,KeyConstants._id,FRAGMENT
-		,HEADERS},bds.size(),"bundles");
+		Query qry=new QueryImpl(new Key[]{SYMBOLIC_NAME,KeyConstants._title,KeyConstants._description,
+				KeyConstants._version,VENDOR,KeyConstants._state,PATH,USED_BY,KeyConstants._id,FRAGMENT,HEADERS},bds.size(),"bundles");
 		int row=0;
 		while(it.hasNext()){
 			row++;
@@ -3511,6 +3511,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt(KeyConstants._title, row, bd.getName());
 			qry.setAt(KeyConstants._version, row, bd.getVersionAsString());
 			qry.setAt(USED_BY, row, _usedBy(bd.getName(),bd.getVersion(),coreBundles,extBundles));
+			try {
+				qry.setAt(PATH, row, bd.getBundleFile().getFile());
+			}
+			catch(Throwable t){	}
+			
+			
 			
 			b=bd.getLoadedBundle();
 			Map<String,Object> headers=null;
