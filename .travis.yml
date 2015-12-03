@@ -34,4 +34,8 @@ notifications:
 after_success:
 # - version=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version | egrep -v '^\[|Downloading:' | tr -d ' \n')
 - curl "http://stable.lucee.org/rest/update/provider/buildLatest"
+- curl "http://preview.lucee.org/download/?resetAsync=true"
+
+
+
 #- git commit -a -m "Committed by Travis-CI build number: $TRAVIS_JOB_ID "
