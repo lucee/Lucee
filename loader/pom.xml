@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.131-SNAPSHOT</version>
+  <version>5.0.0.132-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -993,14 +993,6 @@
     <scope>compile</scope>
   </dependency>
 
-<!-- xmlbeans - 2.3.0.r540734 -->
-  <dependency>
-    <groupId>xmlbeans</groupId>
-    <artifactId>xmlbeans</artifactId>
-    <type>jar</type>
-    <version>2.3.0.r540734</version>
-    <scope>compile</scope>
-  </dependency>
 <!-- xmlparserv2 - 1.2.2 -->
   <dependency>
     <groupId>xmlparserv2</groupId>

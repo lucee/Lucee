@@ -862,13 +862,7 @@
          <type>jar</type>
          <version>1.0.0</version>
       </dependency>
-<!-- xmlbeans - 2.3.0.r540734 -->
-      <dependency>
-         <groupId>xmlbeans</groupId>
-         <artifactId>xmlbeans</artifactId>
-         <type>jar</type>
-         <version>2.3.0.r540734</version>
-      </dependency>
+
 <!-- xmlparserv2 - 1.2.2 -->
       <dependency>
          <groupId>xmlparserv2</groupId>
