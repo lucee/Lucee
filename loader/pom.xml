@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.132-SNAPSHOT</version>
+  <version>5.0.0.133-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -754,14 +754,6 @@
     <artifactId>jencrypt</artifactId>
     <type>jar</type>
     <version>1.4.2.04</version>
-    <scope>compile</scope>
-  </dependency>
-<!-- jffmpeg - 1.4.2.09 -->
-  <dependency>
-    <groupId>jffmpeg</groupId>
-    <artifactId>jffmpeg</artifactId>
-    <type>jar</type>
-    <version>1.4.2.09</version>
     <scope>compile</scope>
   </dependency>
 <!-- org.jfree.chart - 1.0.19 -->
