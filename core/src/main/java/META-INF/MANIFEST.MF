@@ -9,6 +9,8 @@ Require-Bundle-Fragment: slf4j.nop;bundle-version=1.7.12,
  apache.xml.xalan.serializer;bundle-version=2.7.2.0002L
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: lucee.core
+Import-Package: com.sun.management,
+ com.sun.net.ssl.internal.ssl
 Export-Package: coldfusion,
  coldfusion.image,
  coldfusion.runtime,

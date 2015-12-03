@@ -40,7 +40,6 @@ public class JarUtil {
 		"java.*"
 		,"javax.*"
 		,"sun.*"
-		,"com.sun.*"
 
 	};
 	
