@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.128-SNAPSHOT</version>
+  <version>5.0.0.129-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -747,14 +747,7 @@
     <version>1.3.17</version>
     <scope>compile</scope>
   </dependency>
-<!-- jcommon - 1.0.10 -->
-  <dependency>
-    <groupId>jcommon</groupId>
-    <artifactId>jcommon</artifactId>
-    <type>jar</type>
-    <version>1.0.10</version>
-    <scope>compile</scope>
-  </dependency>
+
 <!-- jencrypt - 1.4.2.04 -->
   <dependency>
     <groupId>jencrypt</groupId>
@@ -787,6 +780,7 @@
          <version>1.0.23</version>
     	<scope>compile</scope>
       </dependency>
+
 <!-- jmimemagic
   <dependency>
     <groupId>net.sourceforge</groupId>

@@ -636,13 +636,7 @@
          <type>jar</type>
          <version>1.3.17</version>
       </dependency>
-<!-- jcommon - 1.0.10 -->
-      <dependency>
-         <groupId>jcommon</groupId>
-         <artifactId>jcommon</artifactId>
-         <type>jar</type>
-         <version>1.0.10</version>
-      </dependency>
+
 <!-- jencrypt - 1.4.2.04 -->
       <dependency>
          <groupId>jencrypt</groupId>
@@ -671,6 +665,7 @@
          <type>jar</type>
          <version>1.0.23</version>
       </dependency>
+
 <!-- jmimemagic
       <dependency>
          <groupId>net.sourceforge</groupId>
