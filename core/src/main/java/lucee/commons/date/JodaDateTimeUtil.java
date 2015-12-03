@@ -18,16 +18,12 @@
  */
 package lucee.commons.date;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-
-
-public class JodaDateTimeUtil extends DateTimeUtil {
+class JodaDateTimeUtil /*extends DateTimeUtil*/ {
+	/*
+	
+	disabled because it was not used and there are no plan to do in the near future
+	
 	
 	public static Map zones=new HashMap();
 	public static JREDateTimeUtil jreUtil=new JREDateTimeUtil();
@@ -126,13 +122,7 @@ public class JodaDateTimeUtil extends DateTimeUtil {
 	@Override
 	public String toString(lucee.runtime.type.dt.DateTime date, TimeZone tz) {
 		//return jreUtil.toString(date, tz);
-		/*DateTime dt = new DateTime(date.getTime(),getDateTimeZone(tz));
-		return "{ts '"+dt.getYear()+
-    	"-"+dt.getMonthOfYear()+
-    	"-"+dt.getDayOfMonth()+
-    	" "+dt.getHourOfDay()+
-    	":"+dt.getMinuteOfHour()+
-    	":"+dt.getSecondOfMinute()+"'}";*/
+		
 		
 		StringBuilder sb=new StringBuilder();
 		DateTime dt = new DateTime(date.getTime(),getDateTimeZone(tz));
@@ -151,5 +141,5 @@ public class JodaDateTimeUtil extends DateTimeUtil {
     	sb.append("'}");
     	 
     	return sb.toString();
-	}
+	}*/
 }

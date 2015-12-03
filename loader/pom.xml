@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.135-SNAPSHOT</version>
+  <version>5.0.0.136-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -772,14 +772,6 @@
     <type>jar</type>
     <version>0.1.2</version>
     <scope>compile</scope></dependency> -->
-<!-- org.joda.time - 2.1.0 -->
-  <dependency>
-    <groupId>org.joda</groupId>
-    <artifactId>time</artifactId>
-    <type>jar</type>
-    <version>2.1.0</version>
-    <scope>compile</scope>
-  </dependency>
 
 <!-- metadata.extractor - 2.6.4 -->
   <dependency>

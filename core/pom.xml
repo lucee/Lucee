@@ -660,13 +660,6 @@
          <type>jar</type>
          <version>0.1.2</version>
       </dependency> -->
-<!-- org.joda.time - 2.1.0 -->
-      <dependency>
-         <groupId>org.joda</groupId>
-         <artifactId>time</artifactId>
-         <type>jar</type>
-         <version>2.1.0</version>
-      </dependency>
 
 <!-- junit - 3.8.1 -->
       <dependency>
