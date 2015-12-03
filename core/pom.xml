@@ -765,12 +765,12 @@
          <type>jar</type>
          <version>1.1.2</version>
       </dependency>
-<!-- sun.jai.core - 1.2.1.0001L -->
+<!-- sun.jai.core - 1.2.1.0002L -->
       <dependency>
          <groupId>sun.jai</groupId>
          <artifactId>core</artifactId>
          <type>jar</type>
-         <version>1.2.1.0001L</version>
+         <version>1.2.1.0002L</version>
       </dependency>
 <!-- sun.jndi.ldap - 1.2.4 -->
       <dependency>
