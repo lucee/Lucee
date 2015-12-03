@@ -680,13 +680,7 @@
          <type>jar</type>
          <version>2.1.0</version>
       </dependency>
-<!-- jpedal.gpl - 3.51.12 -->
-      <dependency>
-         <groupId>jpedal</groupId>
-         <artifactId>gpl</artifactId>
-         <type>jar</type>
-         <version>3.51.12</version>
-      </dependency>
+
 <!-- junit - 3.8.1 -->
       <dependency>
          <groupId>junit</groupId>
