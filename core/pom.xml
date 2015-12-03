@@ -614,13 +614,6 @@
          <type>jar</type>
          <version>1.16.1</version>
       </dependency>
-<!-- javaparser - 1.0.8 -->
-      <dependency>
-         <groupId>javaparser</groupId>
-         <artifactId>javaparser</artifactId>
-         <type>jar</type>
-         <version>1.0.8</version>
-      </dependency>
 <!-- javasysmon - 0.3.3 -->
       <dependency>
          <groupId>javasysmon</groupId>
