@@ -497,7 +497,8 @@ public final class XMLConfigAdmin {
 	 * @param tls 
      * @throws PageException 
      */
-    public void updateMailServer(String hostName,String username,String password, int port, boolean tls, boolean ssl,long lifeTimeSpan, long idleTimeSpan) throws PageException {
+    public void updateMailServer(String hostName,String username,String password, int port, boolean tls, boolean ssl,
+    		long lifeTimeSpan, long idleTimeSpan, boolean reuseConnections) throws PageException {
     	checkWriteAccess();
     	boolean hasAccess=ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_MAIL);
         if(!hasAccess)
@@ -543,6 +544,8 @@ public final class XMLConfigAdmin {
       	server.setAttribute("ssl",Caster.toString(ssl));
       	server.setAttribute("life",Caster.toString(lifeTimeSpan));
       	server.setAttribute("idle",Caster.toString(idleTimeSpan));
+      	server.setAttribute("reuse-connection",Caster.toString(reuseConnections));
+      	
       	
     }
 

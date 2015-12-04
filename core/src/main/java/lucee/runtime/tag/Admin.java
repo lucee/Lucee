@@ -2400,7 +2400,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
                 getBoolV("tls", false),
                 getBoolV("ssl", false),
                 toTimeout(getObject("life",null),1000*60*5),
-                toTimeout(getObject("idle",null),1000*60*5)
+                toTimeout(getObject("idle",null),1000*60*5),
+                getBoolV("reuseConnection", true)
 
         );
         store();
