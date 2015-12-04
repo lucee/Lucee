@@ -44,6 +44,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.functions.system.GetDirectoryFromPath;
 import lucee.runtime.op.Caster;
+import lucee.runtime.plugin.template.TemplateEngine;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 
@@ -78,12 +79,13 @@ public final class PageSourceImpl implements PageSource {
 	private boolean flush=false;
     //private boolean recompileAlways;
     //private boolean recompileAfterStartUp;
+	
+	private TemplateEngine templateEngine = null;
     
     private PageSourceImpl() {
     	mapping=null;
         relPath=null;
     }
-    
     
     /**
 	 * constructor of the class
@@ -113,7 +115,10 @@ public final class PageSourceImpl implements PageSource {
 	    
 	}
 	
-	
+	public void setTemplateEngineIf(TemplateEngine te) {
+		if (this.templateEngine == null)
+			this.templateEngine = te;
+	}
 	
 	/**
 	 * private constructor of the class
@@ -128,7 +133,8 @@ public final class PageSourceImpl implements PageSource {
 	    this.isOutSide=isOutSide;
 	    if(realPath.indexOf("//")!=-1) {
         	realPath=StringUtil.replace(realPath, "//", "/",false);
-        }this.relPath=realPath;
+        }
+	    this.relPath=realPath;
 		
 	}
 	
@@ -259,8 +265,12 @@ public final class PageSourceImpl implements PageSource {
 			if(page!=null) {
 			//if(page!=null && !recompileAlways) {
 				if(srcLastModified!=page.getSourceLastModified()) {
-					this.page=page=compile(config,mapping.getClassRootDirectory(),page,false,false);
-                	page.setPageSource(this);
+					if (this.templateEngine != null) {
+						this.page=page=this.templateEngine.getPageFactory().getPage(this);
+					} else {
+						this.page=page=compile(config,mapping.getClassRootDirectory(),page,false,false);
+					}
+					page.setPageSource(this);
 					page.setLoadType(LOAD_PHYSICAL);
 				}
 		    	
@@ -268,6 +278,10 @@ public final class PageSourceImpl implements PageSource {
 		// page doesn't exist
 			else {
                 ///synchronized(this) {
+				
+				if (this.templateEngine != null) {
+					this.page=page=this.templateEngine.getPageFactory().getPage(this);
+				} else {
                     Resource classRootDir=mapping.getClassRootDirectory();
                     Resource classFile=classRootDir.getRealResource(_getJavaName()+".class");
                     boolean isNew=false;
@@ -301,10 +315,10 @@ public final class PageSourceImpl implements PageSource {
                     	isNew=true;
                     	this.page=page=compile(config,classRootDir,page,false,false);
                     }
-                    
-                    page.setPageSource(this);
-    				page.setLoadType(LOAD_PHYSICAL);
-
+				}
+				
+                page.setPageSource(this);
+				page.setLoadType(LOAD_PHYSICAL);
 			}
 			pci.setPageUsed(page);
 			return page;

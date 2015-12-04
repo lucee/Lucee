@@ -30,6 +30,7 @@ import javax.servlet.ServletContext;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.MappingUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
@@ -40,6 +41,8 @@ import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.plugin.template.TemplateEngine;
+import lucee.runtime.plugin.template.TemplateEnginePlugin;
 import lucee.runtime.type.util.ArrayUtil;
 
 import org.apache.commons.collections4.map.ReferenceMap;
@@ -351,6 +354,12 @@ public final class MappingImpl implements Mapping {
 		if(source!=null) return source;
 
 		PageSourceImpl newSource = new PageSourceImpl(this,path,isOut);
+		TemplateEngine te = getTemplateEngine(path);
+		
+		if (te != null) {
+			newSource.setTemplateEngineIf(te);
+		}
+		
 		pageSourcePool.setPage(path,newSource);
 		
 		return newSource;//new PageSource(this,path);
@@ -517,5 +526,19 @@ public final class MappingImpl implements Mapping {
 
 	public void flush() {
 		getPageSourcePool().clear();
+	}
+	
+	public TemplateEngine getTemplateEngine(String path) {
+		TemplateEngine plugin = null;
+
+		// TODO: replace empty array with a call to get the list from the Config
+		for (TemplateEngine _plugin : new TemplateEngine[] {}) {
+			if (_plugin.handlesExtension(ResourceUtil.getExtension(path, null))) {
+				plugin = _plugin;
+				break;
+			}
+		}
+		
+		return plugin;
 	}
 }
