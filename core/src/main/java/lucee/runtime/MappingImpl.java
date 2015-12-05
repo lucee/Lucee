@@ -41,8 +41,7 @@ import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.plugin.template.TemplateEngine;
-import lucee.runtime.plugin.template.TemplateEnginePlugin;
+import lucee.runtime.template.TemplateEngine;
 import lucee.runtime.type.util.ArrayUtil;
 
 import org.apache.commons.collections4.map.ReferenceMap;
@@ -532,7 +531,7 @@ public final class MappingImpl implements Mapping {
 		TemplateEngine plugin = null;
 
 		// TODO: replace empty array with a call to get the list from the Config
-		for (TemplateEngine _plugin : new TemplateEngine[] {}) {
+		for (TemplateEngine _plugin : config.getTemplateEngines()) {
 			if (_plugin.handlesExtension(ResourceUtil.getExtension(path, null))) {
 				plugin = _plugin;
 				break;

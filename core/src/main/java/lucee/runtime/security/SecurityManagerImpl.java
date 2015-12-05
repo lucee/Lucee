@@ -43,7 +43,7 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
     private static final Resource[] EMPTY_RESOURCE_ARRAY = new Resource[0];
 
 
-	private short[] accesses=new short[22];
+	private short[] accesses=new short[23];
     private Resource rootDirectory;
 	private Resource[] customFileAccess=EMPTY_RESOURCE_ARRAY;
    
@@ -69,13 +69,15 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
      * @param tagObject
      * @param tagRegistry
      * @param t 
-     * @param accessRead 
+     * @param accessRead
      */
 	 public SecurityManagerImpl(short setting, short file,short directJavaAccess,
 	       short mail, short datasource, short mapping, short remote, short customTag,
 	       short cfxSetting, short cfxUsage, short debugging,
            short search, short scheduledTasks,
-	       short tagExecute, short tagImport, short tagObject, short tagRegistry, short cache, short gateway, short orm, short accessRead, short accessWrite) {
+	       short tagExecute, short tagImport, short tagObject, short tagRegistry, short cache, short gateway, short orm, short templateEngines, 
+	       
+	       short accessRead, short accessWrite) {
         accesses[TYPE_SETTING]=setting;
         accesses[TYPE_FILE]=file;
         accesses[TYPE_DIRECT_JAVA_ACCESS]=directJavaAccess;
@@ -99,6 +101,8 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
         accesses[TYPE_ACCESS_READ]=accessRead;
         accesses[TYPE_ACCESS_WRITE]=accessWrite;
         accesses[TYPE_REMOTE]=remote;
+
+        accesses[TYPE_TEMPLATE_ENGINES]=templateEngines;
         
         
     }
@@ -128,6 +132,7 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
                 VALUE_YES,  // Cache
                 VALUE_YES,  // Gateway
                 VALUE_YES,  // ORM
+                VALUE_YES,  // Template Engines
               	ACCESS_OPEN,
               	ACCESS_PROTECTED);
         
@@ -175,6 +180,7 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
         else if(accessType.equals("cache")) return TYPE_CACHE;
         else if(accessType.equals("gateway")) return TYPE_GATEWAY;
         else if(accessType.equals("orm")) return TYPE_ORM;
+        else if(accessType.equals("templateEngines")) return TYPE_TEMPLATE_ENGINES;
         else if(accessType.startsWith("scheduled_task")) return TYPE_SCHEDULED_TASK;
         else throw new SecurityException(
                 "invalid access type ["+accessType+"]", 

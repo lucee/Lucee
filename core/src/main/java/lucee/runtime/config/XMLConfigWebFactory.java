@@ -157,6 +157,7 @@ import lucee.runtime.security.SecurityManager;
 import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.spooler.SpoolerEngineImpl;
 import lucee.runtime.tag.TagUtil;
+import lucee.runtime.template.TemplateEngine;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -418,6 +419,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		loadQueue(cs, config, doc);
 		loadMonitors(cs, config, doc);
 		loadLogin(cs, config, doc);
+		loadTemplateEngines(cs, config, doc);
 		config.setLoadTime(System.currentTimeMillis());
 
 		if (config instanceof ConfigWebImpl)
@@ -874,8 +876,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				SecurityManager.VALUE_YES), _attr(el, "cfx_usage", SecurityManager.VALUE_YES), _attr(el, "debugging", SecurityManager.VALUE_YES), _attr(el, "search",
 				SecurityManager.VALUE_YES), _attr(el, "scheduled_task", SecurityManager.VALUE_YES), _attr(el, "tag_execute", SecurityManager.VALUE_YES), _attr(el, "tag_import",
 				SecurityManager.VALUE_YES), _attr(el, "tag_object", SecurityManager.VALUE_YES), _attr(el, "tag_registry", SecurityManager.VALUE_YES), _attr(el, "cache",
-				SecurityManager.VALUE_YES), _attr(el, "gateway", SecurityManager.VALUE_YES), _attr(el, "orm", SecurityManager.VALUE_YES), _attr2(el, "access_read",
-				SecurityManager.ACCESS_PROTECTED), _attr2(el, "access_write", SecurityManager.ACCESS_PROTECTED));
+				SecurityManager.VALUE_YES), _attr(el, "gateway", SecurityManager.VALUE_YES), _attr(el, "orm", SecurityManager.VALUE_YES), _attr(el, "template_engines", SecurityManager.VALUE_YES)
+				
+				, _attr2(el, "access_read",	SecurityManager.ACCESS_PROTECTED), _attr2(el, "access_write", SecurityManager.ACCESS_PROTECTED));
 		return sm;
 	}
 
@@ -1428,6 +1431,61 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	private static void _getDotNotationUpperCase(StringBuilder sb, Mapping... mappings) {
 		for(int i=0;i<mappings.length;i++){
 			sb.append(((MappingImpl)mappings[i]).getDotNotationUpperCase()).append(';');
+		}
+	}
+	
+	private static void loadTemplateEngines(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_TEMPLATE_ENGINES);
+		Element el = getChildByName(doc.getDocumentElement(), "templateEngines");
+		Element[] _templateEngines = getChildren(el, "templateEngine");
+		
+		List<TemplateEngine> templateEngines = new ArrayList<>();
+		ClassDefinition cd;
+		Class clazz;
+		
+//		TODO: add to config-server
+//		if (configServer != null && config instanceof ConfigWeb) {
+//			for (TemplateEngine cste : configServer.getTemplateEngines()) {
+//				
+//			}
+//		}
+		
+		for (int i=0; i < _templateEngines.length; i++) {
+			Element teEl = _templateEngines[i];
+			
+			cd = getClassDefinition(teEl, "", config.getIdentification());
+			
+			if (cd != null) {
+				try {
+					clazz = cd.getClazz();
+					
+					TemplateEngine obj;
+					ConstructorInstance constr = Reflector.getConstructorInstance(clazz, new Object[] { config }, null);
+					
+					if (constr != null)
+						obj = (TemplateEngine) constr.invoke();
+					else
+						obj = (TemplateEngine) clazz.newInstance();
+					
+					templateEngines.add(obj);
+					
+					obj.setExtensions(teEl.getAttribute("file_extensions"));
+				}
+				catch (Throwable t) {
+					SystemOut.printDate(config.getErrWriter(), ExceptionUtil.getStacktrace(t, true));
+				}
+				
+			}
+		}
+		
+		if (templateEngines.size() > 0) {
+			TemplateEngine[] engines = new TemplateEngine[templateEngines.size()];
+			
+			int i=0;
+			for (TemplateEngine e : templateEngines)
+				engines[i++] = e;
+				
+			config.setTemplateEngines(engines);
 		}
 	}
 

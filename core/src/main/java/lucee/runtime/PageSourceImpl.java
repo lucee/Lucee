@@ -44,7 +44,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.functions.system.GetDirectoryFromPath;
 import lucee.runtime.op.Caster;
-import lucee.runtime.plugin.template.TemplateEngine;
+import lucee.runtime.template.TemplateEngine;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 
@@ -227,13 +227,17 @@ public final class PageSourceImpl implements PageSource {
 		if(page!=null && page.getLoadType()==LOAD_ARCHIVE) return page;
         try {
             synchronized(this) {
-                Class clazz=mapping.getArchiveClass(getClassName());
-                
-                this.page=page=newInstance(clazz);
-                page.setPageSource(this);
-                //page.setTimeCreated(System.currentTimeMillis());
-                page.setLoadType(LOAD_ARCHIVE);
-    			////load=LOAD_ARCHIVE;
+            	if (this.templateEngine != null) {
+            		this.page=page=this.templateEngine.getPageFactory().getPage(this);
+            	} else {
+	                Class clazz=mapping.getArchiveClass(getClassName());
+	                this.page=page=newInstance(clazz);
+            	}
+
+            	////load=LOAD_ARCHIVE;
+            	page.setPageSource(this);
+            	//page.setTimeCreated(System.currentTimeMillis());
+            	page.setLoadType(LOAD_ARCHIVE);
     			return page;
             }
         } 
