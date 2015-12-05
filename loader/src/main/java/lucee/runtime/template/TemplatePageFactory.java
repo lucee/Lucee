@@ -1,7 +1,7 @@
 /**
  * 
  */
-package lucee.runtime.plugin.template;
+package lucee.runtime.template;
 
 import lucee.runtime.Page;
 import lucee.runtime.PageSource;

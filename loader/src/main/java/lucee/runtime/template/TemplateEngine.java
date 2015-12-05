@@ -1,4 +1,4 @@
-package lucee.runtime.plugin.template;
+package lucee.runtime.template;
 
 import java.util.List;
 import java.util.Arrays;
