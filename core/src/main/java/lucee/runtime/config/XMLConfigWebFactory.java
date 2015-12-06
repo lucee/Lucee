@@ -1470,7 +1470,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						
 						templateEngines.add(obj);
 						
-						obj.setExtensions(teEl.getAttribute("file_extensions"));
+						String lbl = getAttr(teEl,"label");
+						if (!lbl.isEmpty()) {
+							lbl = obj.getClass().getName();
+						}
+						obj.setLabel(lbl);
+						obj.setConfig(config);
+						obj.setExtensions(getAttr(teEl,"file_extensions"));
 					}
 					catch (Throwable t) {
 						SystemOut.printDate(config.getErrWriter(), ExceptionUtil.getStacktrace(t, true));

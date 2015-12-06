@@ -849,5 +849,6 @@ public interface Config {
 	public Resource getDeployDirectory();
 	
 	public TemplateEngine[] getTemplateEngines();
-
+	
+	public TemplateEngine getTemplateEngine(String path);
 }

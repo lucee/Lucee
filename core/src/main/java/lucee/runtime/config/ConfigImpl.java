@@ -3448,6 +3448,20 @@ public abstract class ConfigImpl implements Config {
     public TemplateEngine[] getTemplateEngines() {
     	return this.templateEngines;
     }
+    
+    public TemplateEngine getTemplateEngine(String path) {
+		TemplateEngine plugin = null;
+
+		// TODO: replace empty array with a call to get the list from the Config
+		for (TemplateEngine _plugin : this.getTemplateEngines()) {
+			if (_plugin.handlesExtension(ResourceUtil.getExtension(path, null))) {
+				plugin = _plugin;
+				break;
+			}
+		}
+		
+		return plugin;
+	}
 
     public Resource getPluginDirectory() {
     	return getConfigDir().getRealResource("context/admin/plugin");

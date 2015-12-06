@@ -1,13 +1,24 @@
 package lucee.runtime.template;
 
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
 
+import lucee.runtime.config.Config;
 
 public abstract class TemplateEngine {
 	
+	private String label;
 	private List<String> extensions;
+	private Config config;
 	
+	public String getLabel() {
+		return label;
+	}
+
+	public void setLabel(String label) {
+		this.label = label;
+	}
+
 	public TemplateEngine setExtensions(String extensionList) {
 		return this.setExtensions(extensionList.split(",\\s*"));
 	}
@@ -25,6 +36,14 @@ public abstract class TemplateEngine {
 		return this.extensions;
 	}
 	
+	public Config getConfig() {
+		return config;
+	}
+
+	public void setConfig(Config config) {
+		this.config = config;
+	}
+
 	public boolean handlesExtension(String extension) {
 		return this.extensions.contains(extension);
 	}

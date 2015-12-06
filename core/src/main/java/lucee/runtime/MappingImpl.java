@@ -353,7 +353,7 @@ public final class MappingImpl implements Mapping {
 		if(source!=null) return source;
 
 		PageSourceImpl newSource = new PageSourceImpl(this,path,isOut);
-		TemplateEngine te = getTemplateEngine(path);
+		TemplateEngine te = this.getConfig().getTemplateEngine(path);
 		
 		if (te != null) {
 			newSource.setTemplateEngineIf(te);
@@ -525,19 +525,5 @@ public final class MappingImpl implements Mapping {
 
 	public void flush() {
 		getPageSourcePool().clear();
-	}
-	
-	public TemplateEngine getTemplateEngine(String path) {
-		TemplateEngine plugin = null;
-
-		// TODO: replace empty array with a call to get the list from the Config
-		for (TemplateEngine _plugin : config.getTemplateEngines()) {
-			if (_plugin.handlesExtension(ResourceUtil.getExtension(path, null))) {
-				plugin = _plugin;
-				break;
-			}
-		}
-		
-		return plugin;
 	}
 }
