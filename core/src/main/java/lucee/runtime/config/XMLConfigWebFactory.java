@@ -1434,6 +1434,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 	
+	@SuppressWarnings("rawtypes")
 	private static void loadTemplateEngines(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_TEMPLATE_ENGINES);
 		Element el = getChildByName(doc.getDocumentElement(), "templateEngines");
@@ -1443,49 +1444,50 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		ClassDefinition cd;
 		Class clazz;
 		
-//		TODO: add to config-server
-//		if (configServer != null && config instanceof ConfigWeb) {
-//			for (TemplateEngine cste : configServer.getTemplateEngines()) {
-//				
-//			}
-//		}
-		
-		for (int i=0; i < _templateEngines.length; i++) {
-			Element teEl = _templateEngines[i];
-			
-			cd = getClassDefinition(teEl, "", config.getIdentification());
-			
-			if (cd != null) {
-				try {
-					clazz = cd.getClazz();
-					
-					TemplateEngine obj;
-					ConstructorInstance constr = Reflector.getConstructorInstance(clazz, new Object[] { config }, null);
-					
-					if (constr != null)
-						obj = (TemplateEngine) constr.invoke();
-					else
-						obj = (TemplateEngine) clazz.newInstance();
-					
-					templateEngines.add(obj);
-					
-					obj.setExtensions(teEl.getAttribute("file_extensions"));
-				}
-				catch (Throwable t) {
-					SystemOut.printDate(config.getErrWriter(), ExceptionUtil.getStacktrace(t, true));
-				}
-				
+		if (configServer != null && config instanceof ConfigWeb) {
+			for (TemplateEngine cste : configServer.getTemplateEngines()) {
+				templateEngines.add(cste);
 			}
 		}
-		
-		if (templateEngines.size() > 0) {
-			TemplateEngine[] engines = new TemplateEngine[templateEngines.size()];
-			
-			int i=0;
-			for (TemplateEngine e : templateEngines)
-				engines[i++] = e;
+
+		if (hasAccess) {
+			for (int i=0; i < _templateEngines.length; i++) {
+				Element teEl = _templateEngines[i];
 				
-			config.setTemplateEngines(engines);
+				cd = getClassDefinition(teEl, "", config.getIdentification());
+				
+				if (cd != null) {
+					try {
+						clazz = cd.getClazz();
+						
+						TemplateEngine obj;
+						ConstructorInstance constr = Reflector.getConstructorInstance(clazz, new Object[] { config }, null);
+						
+						if (constr != null)
+							obj = (TemplateEngine) constr.invoke();
+						else
+							obj = (TemplateEngine) clazz.newInstance();
+						
+						templateEngines.add(obj);
+						
+						obj.setExtensions(teEl.getAttribute("file_extensions"));
+					}
+					catch (Throwable t) {
+						SystemOut.printDate(config.getErrWriter(), ExceptionUtil.getStacktrace(t, true));
+					}
+					
+				}
+			}
+			
+			if (templateEngines.size() > 0) {
+				TemplateEngine[] engines = new TemplateEngine[templateEngines.size()];
+				
+				int i=0;
+				for (TemplateEngine e : templateEngines)
+					engines[i++] = e;
+					
+				config.setTemplateEngines(engines);
+			}
 		}
 	}
 
