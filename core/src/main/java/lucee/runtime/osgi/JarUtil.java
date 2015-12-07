@@ -38,10 +38,9 @@ public class JarUtil {
 	
 	public static final String[] DEFAULT_IGNORES=new String[]{
 		"java.*"
-		,"javax.*"
-		,"sun.*"
 
 	};
+	
 	
 	/**
 	 * 

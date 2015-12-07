@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.136-SNAPSHOT</version>
+  <version>5.0.0.137-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -849,12 +849,12 @@
     <version>1.0.1</version>
     <scope>compile</scope>
   </dependency>
-<!-- sun.activation - 1.1.0 -->
+<!-- javax.activation - 1.1.0 -->
   <dependency>
-    <groupId>sun</groupId>
+    <groupId>javax</groupId>
     <artifactId>activation</artifactId>
     <type>jar</type>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <scope>compile</scope>
   </dependency>
 <!-- sun.jai.codec - 1.1.2 -->
@@ -905,14 +905,13 @@
     <version>1.2.4</version>
     <scope>compile</scope>
   </dependency>
-<!-- sun.mail - 1.3.3.01 -->
-  <dependency>
-    <groupId>sun</groupId>
-    <artifactId>mail</artifactId>
-    <type>jar</type>
-    <version>1.3.3.01</version>
-    <scope>compile</scope>
-  </dependency>
+
+<dependency>
+	<groupId>javax.mail</groupId>
+	<artifactId>mail</artifactId>
+	<version>1.4.7</version>
+</dependency>
+  
 <!-- sun.security.jaas - 1.2.4 -->
   <dependency>
     <groupId>sun.security</groupId>
@@ -977,6 +976,7 @@
     <version>1.2.2</version>
     <scope>compile</scope>
   </dependency>
+ 
    </dependencies>
 
 
