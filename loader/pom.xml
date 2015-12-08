@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.137-SNAPSHOT</version>
+  <version>5.0.0.138-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -414,13 +414,14 @@
 <!--
 	Bundle-SymbolicName: org.apache.commons.email
 	Bundle-Version: 1.4.0
-  source: mvn
--->
+  source: mvn -->
 	<dependency>
 		<groupId>org.apache.commons</groupId>
 		<artifactId>commons-email</artifactId>
 		<version>1.2</version>
-	  <scope>compile</scope></dependency>
+	    <scope>compile</scope>
+	</dependency>
+
 
 <!--
 	Bundle-SymbolicName: org.apache.commons.fileupload
@@ -849,14 +850,14 @@
     <version>1.0.1</version>
     <scope>compile</scope>
   </dependency>
-<!-- javax.activation - 1.1.0 -->
+<!-- javax.activation - 1.1.1
   <dependency>
     <groupId>javax</groupId>
     <artifactId>activation</artifactId>
     <type>jar</type>
     <version>1.1.1</version>
     <scope>compile</scope>
-  </dependency>
+  </dependency> -->
 <!-- sun.jai.codec - 1.1.2 -->
   <dependency>
     <groupId>sun.jai</groupId>
@@ -906,10 +907,12 @@
     <scope>compile</scope>
   </dependency>
 
+<!-- javax.mail -->
 <dependency>
 	<groupId>javax.mail</groupId>
-	<artifactId>mail</artifactId>
+	<artifactId>activation</artifactId>
 	<version>1.4.7</version>
+    <scope>compile</scope>
 </dependency>
   
 <!-- sun.security.jaas - 1.2.4 -->

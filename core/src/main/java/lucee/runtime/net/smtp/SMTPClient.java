@@ -89,7 +89,7 @@ import org.apache.commons.collections4.map.ReferenceMap;
 import com.sun.mail.smtp.SMTPMessage;
 
 public final class SMTPClient implements Serializable  {
-
+	
 	private static final long serialVersionUID = 5227282806519740328L;
 	
 	private static final int SPOOL_UNDEFINED=0;
@@ -464,43 +464,57 @@ public final class SMTPClient implements Serializable  {
 		msg.setHeader("X-Mailer", xmailer);
 		
 		msg.setHeader("Date",getNow(timeZone)); 
-	    //msg.setSentDate(new Date());
-			
+
 	    Multipart mp=null;
 	    
-		// Only HTML
-		if(plainText==null) {
-			if(ArrayUtil.isEmpty(attachmentz) && ArrayUtil.isEmpty(parts)){
-				fillHTMLText(msg);
-				setHeaders(msg,headers);
-				return new MimeMessageAndSession(msg,sat);
-			}
-			mp = new MimeMultipart();
-			mp.addBodyPart(getHTMLText());
-		}
 		// only Plain
-		else if(htmlText==null) {
+		if(StringUtil.isEmpty(htmlText)) {
 			if(ArrayUtil.isEmpty(attachmentz) && ArrayUtil.isEmpty(parts)){
 				fillPlainText(msg);
 				setHeaders(msg,headers);
 				return new MimeMessageAndSession(msg,sat);
 			}
-			mp = new MimeMultipart();
+			mp = new MimeMultipart("mixed");
 			mp.addBodyPart(getPlainText());
 		}
+	    // Only HTML
+ 		else if(StringUtil.isEmpty(plainText)) {
+ 			if(ArrayUtil.isEmpty(attachmentz) && ArrayUtil.isEmpty(parts)){
+ 				fillHTMLText(msg);
+ 				setHeaders(msg,headers);
+ 				return new MimeMessageAndSession(msg,sat);
+ 			}
+ 			mp = new MimeMultipart("mixed");
+ 			mp.addBodyPart(getHTMLText());
+ 		}
+	    
+	    
 		// Plain and HTML
-		else {
+		else { 
 			mp=new MimeMultipart("alternative");
 			mp.addBodyPart(getPlainText());
-			mp.addBodyPart(getHTMLText());
+			mp.addBodyPart(getHTMLText());// this need to be last
 			
 			if(!ArrayUtil.isEmpty(attachmentz) || !ArrayUtil.isEmpty(parts)){
 				MimeBodyPart content = new MimeBodyPart();
 				content.setContent(mp);
-				mp = new MimeMultipart();
+				mp = new MimeMultipart("mixed");
 				mp.addBodyPart(content);
 			}
 		}
+		/*
+		- mixed
+		-- alternative
+		--- text
+		--- related
+		---- html
+		---- inline image
+		---- inline image
+		-- attachment
+		-- attachment
+		
+		*/
+		
 		
 		// parts
 		if(!ArrayUtil.isEmpty(parts)){
@@ -517,12 +531,35 @@ public final class SMTPClient implements Serializable  {
 			for(int i=0;i<attachmentz.length;i++) {
 				mp.addBodyPart(toMimeBodyPart(mp,config,attachmentz[i]));	
 			}	
-		}		
+		}
 		msg.setContent(mp);
 		setHeaders(msg,headers);
 	    
 		return new MimeMessageAndSession(msg,sat);
 	}
+
+	/*private static void addMailcaps(ClassLoader cl) {
+		try {
+			Class<?> cCM = cl.loadClass("javax.activation.CommandMap");
+			Method getDefaultCommandMap = cCM.getMethod("getDefaultCommandMap", CLASS_EMPTY);
+			Object oMCM = getDefaultCommandMap.invoke(null, OBJECT_EMPTY);
+			
+			Method getMimeTypes = oMCM.getClass().getMethod("getMimeTypes", CLASS_EMPTY);
+
+			Method addMailcap = oMCM.getClass().getMethod("addMailcap", CLASS_STRING);
+			addMailcap(oMCM,addMailcap,"text/plain;;		x-java-content-handler=com.sun.mail.handlers.text_plain"); 
+			addMailcap(oMCM,addMailcap,"text/html;;		x-java-content-handler=com.sun.mail.handlers.text_html"); 
+			addMailcap(oMCM,addMailcap,"text/xml;;		x-java-content-handler=com.sun.mail.handlers.text_xml"); 
+			addMailcap(oMCM,addMailcap,"multipart/*;;		x-java-content-handler=com.sun.mail.handlers.multipart_mixed; x-java-fallback-entry=true"); 
+			addMailcap(oMCM,addMailcap,"message/rfc822;;	x-java-content-handler=com.sun.mail.handlers.message_rfc822"); 
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+	private static void addMailcap(Object oMCM, Method addMailcap, String value) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		addMailcap.invoke(oMCM, new Object[]{value});
+	}*/
+
 
 	private static String hash(Properties props) {
 		Enumeration<?> e = props.propertyNames();
@@ -875,7 +912,7 @@ public final class SMTPClient implements Serializable  {
 		return plain;
 	}
 	private void fillPlainText(MimePart mp) throws MessagingException {
-		mp.setDataHandler(new DataHandler(new StringDataSource(plainText,TEXT_PLAIN ,plainTextCharset,980)));
+		mp.setDataHandler(new DataHandler(new StringDataSource(plainText!=null?plainText:"",TEXT_PLAIN ,plainTextCharset,980)));
 		mp.setHeader("Content-Transfer-Encoding", "7bit");
 		mp.setHeader("Content-Type", TEXT_PLAIN+"; charset="+plainTextCharset);
 	}

@@ -11,7 +11,7 @@ Bundle-ManifestVersion: 2
 Bundle-SymbolicName: lucee.core
 Import-Package: coldfusion.xml.rpc,com.allaire.cfx,
  com.sun.management,com.sun.mail.smtp,com.sun.net.ssl.internal.ssl,
- javax.el,javax.servlet,javax.servlet.jsp,javax.script,
+ javax.el,javax.servlet,javax.servlet.jsp,javax.script,javax.activation,
  org.osgi.framework
 Export-Package: coldfusion,
  coldfusion.image,
@@ -367,8 +367,7 @@ Require-Bundle: org.apache.sanselan.sanselan;bundle-version=0.97.0.incubator,
  sun.jndi.ldapbp;bundle-version=1.2.4,
  sun.jndi.ldapsec;bundle-version=1.2.4,
  sun.jndi.providerutil;bundle-version=1.2.4,
- javax.mail;bundle-version=1.4.7,
- javax.activation;bundle-version=1.1.1,
+ javax.mail.activation;bundle-version=1.4.7,
  sun.security.jaas;bundle-version=1.2.4,
  sun.xml.jaxrpc;bundle-version=1.2.1,
  sun.xml.wsdl4j;bundle-version=1.5.1,
@@ -376,7 +375,8 @@ Require-Bundle: org.apache.sanselan.sanselan;bundle-version=0.97.0.incubator,
  tagsoup;bundle-version=1.2.1,
  w3c.dom;bundle-version=1.1.0,
  xdb;bundle-version=1.0.0,
- xmlparserv2;bundle-version=1.2.2
+ xmlparserv2;bundle-version=1.2.2,
+ org.apache.commons.email;bundle-version=1.2
 Require-Extension: 7E673D15-D87C-41A6-8B5F1956528C605F,
  99A4EF8D-F2FD-40C8-8FB8C2E67A4EEEB6,
  671B01B8-B3B3-42B9-AC055A356BED5281,
