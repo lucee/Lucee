@@ -395,7 +395,7 @@ public final class Image extends TagImpl {
 		
 		if(base64) {
 			String b64 = source.getBase64String(format);
-			pageContext.write("<img src=\"data:image/"+ImageUtil.getMimeTypeFromFormat(format)+";base64,"+b64+"\" width=\""+source.getWidth()+"\" height=\""+source.getHeight()+"\""+add+" />");
+			pageContext.write("<img src=\"data:"+ImageUtil.getMimeTypeFromFormat(format)+";base64,"+b64+"\" width=\""+source.getWidth()+"\" height=\""+source.getHeight()+"\""+add+" />");
 			return;
 		}
 		pageContext.write("<img src=\""+path+"\" width=\""+source.getWidth()+"\" height=\""+source.getHeight()+"\""+add+" />");
