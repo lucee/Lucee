@@ -31,24 +31,12 @@ import lucee.transformer.library.tag.TagLibTag;
  */
 public final class MailParam extends ChildEvaluator {
 
-	@Override
-	protected String getParentName() {
-		return "mail";
+	public MailParam(){
+		super("mail");
 	}
 	
 	@Override
 	public void evaluate(Tag tag,TagLibTag libTag) throws EvaluatorException { 
-		/*
-		// check attributes
-		boolean hasFile=tag.containsAttribute("file");
-		boolean hasName=tag.containsAttribute("name");
-		// both attributes
-		if(hasName && hasFile) {
-			throw new EvaluatorException("Wrong Context for tag "+libTag.getFullName()+", when you use attribute file you can't also use attribute name");
-		}
-		// no attributes
-		if(!hasName && !hasFile) {
-			throw new EvaluatorException("Wrong Context for tag "+libTag.getFullName()+", you must use attribute file or name for this tag");
-		}*/
+	
 	}
 }

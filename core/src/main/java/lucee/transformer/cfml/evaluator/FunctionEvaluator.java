@@ -1,6 +1,7 @@
 /**
  *
  * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
+ * Copyright (c) 2015, Lucee Assosication Switzerland
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -24,7 +25,12 @@ import lucee.transformer.library.function.FunctionLibFunction;
 
 public interface FunctionEvaluator {
 	
+	/**
+	 * This method is invoked to check the environment of a function, 
+	 * the method is invoked AFTER the parser has read the complete template, so you have the full environment.
+	 * @param bif 
+	 * @param flf the definition of the function from the fld file
+	 * @throws TemplateException
+	*/
 	public void evaluate(BIF bif, FunctionLibFunction flf) throws TemplateException;
-	
-	
 }

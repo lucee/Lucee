@@ -39,6 +39,9 @@ import lucee.runtime.config.Identification;
 import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.ListUtil;
+import lucee.transformer.cfml.evaluator.ChildEvaluator;
+import lucee.transformer.cfml.evaluator.TagEvaluator;
 import lucee.transformer.library.function.FunctionLibFactory;
 
 import org.xml.sax.Attributes;
@@ -292,6 +295,7 @@ public final class TagLibFactory extends DefaultHandler {
     			// TAG - description
 				else if(inside.equals("description"))	tag.setDescription(value);
     			// TTE - Class
+				else if(inside.equals("tte"))	tag.setTagEval(toTagEvaluator(value));
 				else if(inside.equals("tte-class"))	tag.setTTEClassDefinition(value,id,attributes);
     			// TTT - Class
 				else if(inside.equals("ttt-class"))	tag.setTTTClassDefinition(value,id,attributes);
@@ -380,8 +384,16 @@ public final class TagLibFactory extends DefaultHandler {
 		
     	}
     }	
-	
 
+	private static TagEvaluator toTagEvaluator(String value) {
+		String[] arr = ListUtil.listToStringArray(value, ':');
+		if(arr.length==2 && arr[0].trim().equalsIgnoreCase("parent")){
+			String parent=arr[1].trim();
+			return new ChildEvaluator(parent);
+		}
+		throw new RuntimeException(value+" is not supported as tte defintion, you can do for example [parent:<parent-name>]!");
+	}
+	
 	/**
 	 * Wird jedesmal wenn das Tag tag beginnt aufgerufen, um intern in einen anderen Zustand zu gelangen.
 	 */

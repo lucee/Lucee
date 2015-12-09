@@ -1824,7 +1824,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		}
 		else checkSemiColonLineFeed(data,true,true,true);
 		
-		if(tlt.hasTTEClassDefinition()) 
+		if(tlt.hasTTE()) 
 			data.ep.add(tlt, tag, data.flibs, data.srcCode);
 		
 		if(!StringUtil.isEmpty(attrName))validateAttributeName(attrName, data.srcCode, new ArrayList<String>(), tlt, new RefBooleanImpl(false), new StringBuffer(), allowTwiceAttr);
@@ -1889,7 +1889,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	
 
 	private final void eval(TagLibTag tlt, lucee.transformer.cfml.expression.CFMLExprTransformer.ExprData data, Tag tag) throws TemplateException {
-		if(tlt.hasTTEClassDefinition()){
+		if(tlt.hasTTE()){
 			try {
 				tlt.getEvaluator().execute(data.config, tag, tlt,data.flibs, data);
 			} catch (EvaluatorException e) {

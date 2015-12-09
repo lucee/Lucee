@@ -39,7 +39,7 @@ import lucee.transformer.library.tag.TagLibTag;
  * das man eine hoehere flexibilitaet beim Einstiegspunkt einer konkreten Implementation hat.
  * 
  */
-public class EvaluatorSupport implements Evaluator {
+public class EvaluatorSupport implements TagEvaluator {
 
 
 	/**

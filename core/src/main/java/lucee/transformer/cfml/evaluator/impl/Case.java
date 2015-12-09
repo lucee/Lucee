@@ -28,8 +28,7 @@ import lucee.transformer.cfml.evaluator.ChildEvaluator;
  */
 public final class Case extends ChildEvaluator {
 
-	@Override
-	protected String getParentName() {
-		return "switch";
+	public Case(){
+		super("switch");
 	}
 }

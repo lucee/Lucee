@@ -583,7 +583,7 @@ public final class CFMLTransformer {
 		comment(data.srcCode,true);
 		
 		// Tag Translator Evaluator
-		if(tagLibTag.hasTTEClassDefinition())	{
+		if(tagLibTag.hasTTE())	{
 			data.ep.add(tagLibTag,tag,data.flibs,data.srcCode);
 		}
 		
@@ -761,7 +761,7 @@ public final class CFMLTransformer {
 	}
 	
 	private boolean executeEvaluator(TagData data,TagLibTag tagLibTag, Tag tag) throws TemplateException {
-		if(tagLibTag.hasTTEClassDefinition())	{
+		if(tagLibTag.hasTTE())	{
 			try {
 				TagLib lib=tagLibTag.getEvaluator().execute(data.config,tag,tagLibTag,data.flibs,data);
 				if(lib!=null) {

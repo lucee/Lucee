@@ -1,6 +1,7 @@
 /**
  *
  * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
+ * Copyright (c) 2015, Lucee Assosication Switzerland
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,15 +21,14 @@ package lucee.transformer.cfml.evaluator;
 
 
 /**
- *
- * Eine EvaluatorException wird entweder von 
- * EvaluatorPool oder einer Klasse die das Interface 
- * Evaluator implementiert geworfen.
+ *exception thrown when the evaluation of a tag/function fails.
  */ 
 public final class EvaluatorException extends Exception {
+
+	private static final long serialVersionUID = 8659768179869079664L;
+
 	/**
-	 * Konstruktor der TemplateException.
-	 * @param message Fehlermeldung
+	 * @param message exception message
 	 */
 	public EvaluatorException(String message) {
 		super(message);

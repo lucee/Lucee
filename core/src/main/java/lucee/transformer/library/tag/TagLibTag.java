@@ -44,7 +44,7 @@ import lucee.transformer.bytecode.statement.tag.Tag;
 import lucee.transformer.bytecode.statement.tag.TagOther;
 import lucee.transformer.cfml.attributes.AttributeEvaluator;
 import lucee.transformer.cfml.attributes.AttributeEvaluatorException;
-import lucee.transformer.cfml.evaluator.Evaluator;
+import lucee.transformer.cfml.evaluator.TagEvaluator;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.tag.TagDependentBodyTransformer;
 import lucee.transformer.expression.Expression;
@@ -95,7 +95,7 @@ public final class TagLibTag {
 	private int min;
 	private int max;
 	private TagLib tagLib;
-	private Evaluator eval;
+	private TagEvaluator eval;
 	private TagDependentBodyTransformer tdbt;
 
 	private Map<String,TagLibTagAttr> attributes=new LinkedHashMap<String,TagLibTagAttr>();
@@ -135,6 +135,7 @@ public final class TagLibTag {
 		tlt.bundleName=bundleName;
 		tlt.bundleVersion=bundleVersion;
 		tlt.tteCD=tteCD;
+		tlt.eval=eval;
 		tlt.tdbtCD=tdbtCD;
 		tlt.min=min;
 		tlt.max=max;
@@ -324,7 +325,7 @@ public final class TagLibTag {
 	 * Falls kein Evaluator definiert ist wird null zurueckgegeben.
 	 * @return String Zeichenkette der Klassendefinition.
 	 */
-	public ClassDefinition getTTEClassDefinition() {
+	private ClassDefinition getTTEClassDefinition() {
 		return tteCD;
 	}
 	
@@ -338,11 +339,11 @@ public final class TagLibTag {
 	 * @return Implementation des Evaluator zu dieser Klasse.
 	 * @throws EvaluatorException Falls die Evaluator-Klasse nicht geladen werden kann.
 	 */
-	public Evaluator getEvaluator() throws EvaluatorException {
-		if(!hasTTEClassDefinition()) return null;
+	public TagEvaluator getEvaluator() throws EvaluatorException {
+		if(!hasTTE()) return null;
 		if(eval!=null) return eval;
 		try {
-			eval = (Evaluator) getTTEClassDefinition().getClazz().newInstance();
+			eval = (TagEvaluator) getTTEClassDefinition().getClazz().newInstance();
 		} 
 		catch (Throwable t) {
 			throw new EvaluatorException(t.getMessage());
@@ -380,8 +381,8 @@ public final class TagLibTag {
 	 * der Klasse die den Evaluator (Translation Time Evaluator) implementiert existiert.
 	 * @return Ob eine Evaluator definiert ist.
 	 */
-	public boolean hasTTEClassDefinition() {
-		return tteCD !=null;
+	public boolean hasTTE() {
+		return tteCD !=null || eval!=null;
 	}
 	
 	public boolean hasTTTClassDefinition() {
@@ -565,6 +566,10 @@ public final class TagLibTag {
 	 */
 	protected void setTTEClassDefinition(String tteClass, Identification id, Attributes attr) {
 		this.tteCD = ClassDefinitionImpl.toClassDefinition(tteClass,id, attr) ;
+	}
+	
+	protected void setTagEval(TagEvaluator eval) {
+		this.eval = eval;
 	}
 
 	/**

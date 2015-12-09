@@ -43,7 +43,6 @@ import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.library.tag.TagLibFactory;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
