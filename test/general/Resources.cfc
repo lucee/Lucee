@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	//public function setUp(){}
 
-	private FSEP = server.separator.file;
+	variables.FSEP = server.separator.file;
 
 	private void function directoryCreateDelete(string label,string dir){
 		var sub=arguments.dir&"test1/";
