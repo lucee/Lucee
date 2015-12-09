@@ -322,7 +322,7 @@ LUCEE BUILD PROCESS
       srcdir="${srcInst}" 
       target="1.7" 
       destdir="${temp}/agent"
-      debug="true" debuglevel="lines,vars,source" classpath="${dependencies}">
+      debug="true" debuglevel="lines,vars,source" classpath="${dependencies}" encoding="utf-8">
     </javac>
 
     <!-- create the manifest file -->
@@ -341,7 +341,7 @@ LUCEE BUILD PROCESS
       srcdir="${srcLoader}" 
       target="1.7" 
       destdir="${temp}/loader"
-      debug="true" debuglevel="lines,vars,source" classpath="${dependencies}">
+      debug="true" debuglevel="lines,vars,source" classpath="${dependencies}" encoding="utf-8">
     </javac>
     
     <!-- copy all non java files -->
@@ -376,7 +376,7 @@ LUCEE BUILD PROCESS
       srcdir="${srcCore}" 
       target="1.7" 
       destdir="${core}"
-      debug="true" debuglevel="lines,vars,source">
+      debug="true" debuglevel="lines,vars,source" encoding="utf-8">
        <classpath refid="classpath" />
     </javac>
 
