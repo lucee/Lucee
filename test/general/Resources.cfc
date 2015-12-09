@@ -6,8 +6,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	//public function setUp(){}
 
-	variables.FSEP = server.separator.file;
-
 	private void function directoryCreateDelete(string label,string dir){
 		var sub=arguments.dir&"test1/";
 		var subsub=sub&"test2/";
@@ -307,9 +305,9 @@ private function testResourceFileCreateDelete(res) localMode=true {
 }
 
 private function testResourceListening(res) localMode=true {
-    s=res.getRealResource("s#FSEP#ss.txt");
+	s=res.getRealResource("s/ss.txt");
     s.createFile(true);
-    ss=res.getRealResource("ss#FSEP#");
+    ss=res.getRealResource("ss/");
     ss.createDirectory(true);
     sss=res.getRealResource("sss.txt");
     sss.createFile(true);
@@ -375,8 +373,8 @@ private function testResourceMoveCopy(res) localMode=true {
 
 }
 
-private function testResourceGetter(res) localMode=true {
-    f=res.getRealResource("original.txt");
+private function testResourceGetter(res, fsep) localMode=true {
+	f=res.getRealResource("original.txt");
     d=res.getRealResource("dir/");
     d2=res.getRealResource("dir2")
     dd=res.getRealResource("dir/test.txt");
@@ -390,7 +388,7 @@ private function testResourceGetter(res) localMode=true {
     assertEquals("dir",dd.getParentResource().getName());
 
     // getRealPath
-    assertEquals(res.toString()&"#FSEP#dir#FSEP#test.txt",dd.toString());
+    assertEquals(res.toString()&"#fsep#dir#fsep#test.txt",dd.toString());
 
 }
 
@@ -412,7 +410,7 @@ private function testResourceReadWrite(res) localMode=true {
     assertEquals("Susi Sorglos foehnte Ihr Haar",res);
 }
 
-private function testResourceProvider(string path) localmode=true {
+private function testResourceProvider(string path, string fsep) localmode=true {
     // first we ceate a resource object
     res=createObject('java','lucee.commons.io.res.util.ResourceUtil').toResourceNotExisting(getPageContext(), path);
 
@@ -431,7 +429,7 @@ private function testResourceProvider(string path) localmode=true {
         res.createDirectory(true);
         testResourceFileCreateDelete(res);
     }
-    finally {if(res.exists()) res.remove(true);} 
+    finally {if(res.exists()) res.remove(true);}
 
     // test listening
     try {
@@ -457,7 +455,7 @@ private function testResourceProvider(string path) localmode=true {
     // test Getter
     try {
         res.createDirectory(true);
-        testResourceGetter(res);
+        testResourceGetter(res, fsep);
     }
     finally {if(res.exists()) res.remove(true);}
 
@@ -475,7 +473,7 @@ private function testResourceProvider(string path) localmode=true {
 
 
 
-	private void function test(string label,string root){
+	private void function test(string label,string root,string fsep=server.separator.file){
 		var start=getTickCount();
 		var dir=arguments.root&"testResource/";
 
@@ -493,7 +491,7 @@ private function testResourceProvider(string path) localmode=true {
 		    fileAMove(arguments.label,dir);
 		    fileAReadAppend(arguments.label,dir);
 		    fileAReadBinary(arguments.label,dir);
-		    testResourceProvider(dir&"testcaseRes");
+		    testResourceProvider(dir&"testcaseRes", fsep);
 
 		}
 		finally {
@@ -519,7 +517,7 @@ private function testResourceProvider(string path) localmode=true {
 	}
 
 	public void function testRam(){
-		test("ram","ram://");
+		test("ram","ram://","/");
 	}
 
 	public void function testLocalFilesystem(){
