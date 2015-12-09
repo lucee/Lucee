@@ -896,10 +896,13 @@ public final class PageSourceImpl implements PageSource {
 
 	@Override
 	public int getDialect() {
-		// page sources that are not a known dialect, default to lucee if enabled, otherwise fallback to a known CFML extension.
+		// page sources that are not a known dialect, default to lucee if enabled, otherwise fallback to CFML dialect.
 		boolean allowLuceeDialect = ((ConfigImpl)getMapping().getConfig()).allowLuceeDialect();
 		// MUST is the mapping always configWeb?
-		return ((ConfigWeb)getMapping().getConfig()).getFactory().toDialect(ResourceUtil.getExtension(relPath, allowLuceeDialect ? Constants.getLuceeComponentExtension() : Constants.getCFMLTemplateExtensions()[0]));
+		return allowLuceeDialect
+				?	((ConfigWeb)getMapping().getConfig()).getFactory().toDialect(ResourceUtil.getExtension(relPath, Constants.getLuceeComponentExtension()))
+				:	CFMLEngine.DIALECT_CFML		
+				;
 	}
 
 	/**
