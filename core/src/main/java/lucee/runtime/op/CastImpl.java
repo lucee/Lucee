@@ -311,8 +311,8 @@ public final class CastImpl implements Cast {
     @Override
     public Color toColor(Object o) throws PageException {
     	if(o instanceof Color) return (Color) o;
-    	else if (o instanceof String)ColorCaster.toColor((String)o);
-    	else if (o instanceof Number)ColorCaster.toColor(Integer.toHexString(((Number)o).intValue()));
+    	else if (o instanceof CharSequence)return ColorCaster.toColor(o.toString());
+    	else if (o instanceof Number)return ColorCaster.toColor(Integer.toHexString(((Number)o).intValue()));
     	throw new CasterException(o,Color.class);
     }
 
