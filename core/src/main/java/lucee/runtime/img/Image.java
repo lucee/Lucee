@@ -92,7 +92,9 @@ import lucee.commons.lang.font.FontUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
+import lucee.runtime.dump.DumpRow;
 import lucee.runtime.dump.DumpTable;
+import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.ExpressionException;
@@ -269,24 +271,55 @@ public class Image extends StructSupport implements Cloneable,Struct {
 	 * @param borderType 
 	 */
 	public void addBorder(int thickness, Color color, int borderType)  throws ExpressionException{
-		
-		double colorArray[] = {color.getRed(), color.getGreen(), color.getBlue()};
-		BorderExtender borderExtender = new BorderExtenderConstant(colorArray);
-		
-		ParameterBlock params = new ParameterBlock();
-		params.addSource(image());
-		params.add(thickness);
-		params.add(thickness);
-		params.add(thickness);
-		params.add(thickness);
-		if(BORDER_TYPE_CONSTANT==borderType)	params.add(borderExtender);
-		else 	params.add(BorderExtender.createInstance(borderType));
-		//else if(BORDER_TYPE_WRAP==borderType)params.add(BorderExtender.createInstance(BorderExtender.BORDER_REFLECT));
+		ColorModel cm = image().getColorModel();
+		if (((cm instanceof IndexColorModel)) && (cm.hasAlpha()) && (!cm.isAlphaPremultiplied())) {
+			image(paletteToARGB(image()));
+			cm = image().getColorModel();
+		}
 
-		image((JAI.create("border", params)).getAsBufferedImage());
-		
+		BufferedImage alpha = null;
+		if ((cm.getNumComponents() > 3) && (cm.hasAlpha())) {
+			alpha = getAlpha(image());
+			image(removeAlpha(image()));
+		}
+		if (alpha != null) {
+			ParameterBlock params1 = new ParameterBlock();
+			params1.addSource(alpha);
+			
+			params1.add(thickness); // left
+			params1.add(thickness); // right
+			params1.add(thickness); // top
+			params1.add(thickness); // bottom
+			params1.add(new BorderExtenderConstant(new double[] { 255D }));
+			
+			RenderingHints hints = new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+			hints.add(new RenderingHints(JAI.KEY_REPLACE_INDEX_COLOR_MODEL, Boolean.TRUE));
+			alpha = JAI.create("border", params1, hints).getAsBufferedImage();
+		}
+
+	    ParameterBlock params = new ParameterBlock();
+	    params.addSource(image());
+	    params.add(thickness); // left
+		params.add(thickness); // right
+		params.add(thickness); // top
+		params.add(thickness); // bottom
+	    params.add(toBorderExtender(borderType,color));
+
+	    image(JAI.create("border", params).getAsBufferedImage());
+
+	    if (alpha != null) {
+	      image(addAlpha(image(), alpha, thickness, thickness));
+	    }
 	}
 	
+	private Object toBorderExtender(int borderType, Color color) {
+		if (borderType==Image.BORDER_TYPE_CONSTANT) {
+			double[] colorArray = { color.getRed(), color.getGreen(), color.getBlue() };
+			return new BorderExtenderConstant(colorArray);
+		}
+		return BorderExtender.createInstance(borderType);
+	}
+
 	public void blur(int blurFactor)  throws ExpressionException{
 	    ParameterBlock params = new ParameterBlock();
 		params.addSource(image());
@@ -1261,7 +1294,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
     	ColorModel cmSource = image().getColorModel();
     	
     	if (cmSource instanceof IndexColorModel && cmSource.hasAlpha() && !cmSource.isAlphaPremultiplied()) {
-    		image(PaletteToARGB(image()));
+    		image(paletteToARGB(image()));
     	    cmSource = image().getColorModel();
     	}
     	
@@ -1303,7 +1336,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
     	if (alpha != null)image(addAlpha(image(), alpha, 0, 0));
     }
     
-    private static BufferedImage PaletteToARGB(BufferedImage src) {
+    private static BufferedImage paletteToARGB(BufferedImage src) {
     	IndexColorModel icm = (IndexColorModel) src.getColorModel();
     	int bands = icm.hasAlpha()?4:3;
     	
@@ -1666,8 +1699,30 @@ public class Image extends StructSupport implements Cloneable,Struct {
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
 		DumpData dd = _info().toDumpData(pageContext, maxlevel,dp);
-		if(dd instanceof DumpTable)((DumpTable)dd).setTitle("Struct (Image)");
+		if(dd instanceof DumpTable) {
+			DumpTable dt = ((DumpTable)dd);
+			dt.setTitle("Struct (Image)");
+			try {
+				dt.setComment("<img style=\"margin:5px\" src=\"data:image/png;base64,"+getBase64String("png")+"\">");
+			}
+			catch (PageException e) {}
+			
+		}
+		
 		return dd;
+	}
+	
+	@Override
+	public String castToString() throws PageException {
+		return "<img src=\"data:image/png;base64,"+getBase64String("png")+"\">";
+	}
+	@Override
+	public String castToString(String defaultValue) {
+		try {
+			return castToString();
+		} catch (PageException e) {
+			return defaultValue;
+		}
 	}
 
 	@Override
@@ -1732,18 +1787,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
 		}
     }
 
-	@Override
-	public String castToString() throws PageException {
-		return info().castToString();
-	}
-	@Override
-	public String castToString(String defaultValue) {
-		try {
-			return info().castToString(defaultValue);
-		} catch (ExpressionException e) {
-			return defaultValue;
-		}
-	}
+	
 
 	@Override
 	public int compareTo(String str) throws PageException {

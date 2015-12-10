@@ -217,7 +217,7 @@ component {
 			// title
 			if(structKeyExists(arguments.meta, 'title')){
 				var metaID = arguments.hasReference && structKeyExists(arguments.meta,'id') ? ' [#arguments.meta.id#]' : '';
-				var comment = structKeyExists(arguments.meta,'comment') ? "<br />" & replace(HTMLEditFormat(arguments.meta.comment),chr(10),' <br>','all') : '';
+				var comment = structKeyExists(arguments.meta,'comment') ? "<br />" & (left(arguments.meta.comment,4)=="<img"?arguments.meta.comment:replace(HTMLEditFormat(arguments.meta.comment),chr(10),' <br>','all')) : '';
 				
 				rtn&=('<tr>');
 				rtn&=('<td class="h#variables.colorKeys[arguments.meta.colorId]#" onclick="dumpOC(''#id#'');" colspan="#columnCount#" style="cursor:pointer;">');
