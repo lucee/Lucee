@@ -46,6 +46,7 @@ import java.util.UUID;
 import javax.servlet.ServletConfig;
 
 import lucee.aprint;
+import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.digest.HashUtil;
@@ -178,7 +179,6 @@ import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibException;
 
 import org.apache.log4j.Level;
-import org.jfree.chart.block.LabelBlockImpl;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.w3c.dom.Document;
@@ -214,13 +214,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	public static ConfigWebImpl newInstance(CFMLFactoryImpl factory, ConfigServerImpl configServer, Resource configDir, boolean isConfigDirACustomSetting,
 			ServletConfig servletConfig) throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, NoSuchAlgorithmException, BundleException {
-		// DO NOT REMOVE!!!!
-		try {
-			new LabelBlockImpl("aa");
-		}
-		catch (Throwable t) {
-
-		}
+		
 
 		String hash = SystemUtil.hash(servletConfig.getServletContext());
 		Map<String, String> labels = configServer.getLabels();
@@ -1284,11 +1278,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		Resource displayDir = templatesDir.getRealResource("display");
 		if (!displayDir.exists())
 			displayDir.mkdirs();
-
-		/*Resource lib = ResourceUtil.toResource(CFMLEngineFactory.getClassLoaderRoot(TP.class.getClassLoader()));
-		f = lib.getRealResource("jfreechart-patch.jar");
-		if (!f.exists())
-			createFileFromResourceEL("/resource/lib/jfreechart-patch.jar", f);*/
 
 	}
 
@@ -2655,6 +2644,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 */
 	private static void loadFilesystem(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean doNew) throws ExpressionException, TagLibException,
 			FunctionLibException {
+		
 		if (configServer != null) {
 			Resource src = configServer.getConfigDir().getRealResource("distribution");
 			Resource trg = config.getConfigDir().getRealResource("context/");

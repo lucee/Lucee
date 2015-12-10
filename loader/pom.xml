@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.138-SNAPSHOT</version>
+  <version>5.0.0.139-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -349,9 +349,9 @@
   source: lucee
 -->
    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>codec</artifactId>
-      <version>1.6.0</version>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.9</version>
      <scope>compile</scope>
    </dependency>
 
@@ -749,22 +749,6 @@
     <version>1.4.2.04</version>
     <scope>compile</scope>
   </dependency>
-<!-- org.jfree.chart - 1.0.19 -->
-      <dependency>
-         <groupId>org.jfree</groupId>
-         <artifactId>chart</artifactId>
-         <type>jar</type>
-         <version>1.0.19</version>
-    	<scope>compile</scope>
-      </dependency>
-<!-- org.jfree.common - 1.0.23 -->
-      <dependency>
-         <groupId>org.jfree</groupId>
-         <artifactId>common</artifactId>
-         <type>jar</type>
-         <version>1.0.23</version>
-    	<scope>compile</scope>
-      </dependency>
 
 <!-- jmimemagic
   <dependency>

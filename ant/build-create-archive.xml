@@ -26,6 +26,11 @@
 		type="web"
 		oldPassword=""
 		newPassword="webweb";
+    admin 
+		action="updatePassword"
+		type="server"
+		oldPassword=""
+		newPassword="webweb";
 
 
 /************************************

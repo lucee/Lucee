@@ -315,9 +315,9 @@
   		<version>1.10</version>
 	</dependency>-->
    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>codec</artifactId>
-      <version>1.6.0</version>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.9</version>
    </dependency>
 
 
@@ -638,21 +638,6 @@
          <version>1.4.2.04</version>
       </dependency>
 
-<!-- org.jfree.chart - 1.0.19 -->
-      <dependency>
-         <groupId>org.jfree</groupId>
-         <artifactId>chart</artifactId>
-         <type>jar</type>
-         <version>1.0.19</version>
-      </dependency>
-<!-- org.jfree.common - 1.0.23 -->
-      <dependency>
-         <groupId>org.jfree</groupId>
-         <artifactId>common</artifactId>
-         <type>jar</type>
-         <version>1.0.23</version>
-      </dependency>
-
 <!-- jmimemagic
       <dependency>
          <groupId>net.sourceforge</groupId>
@@ -787,7 +772,7 @@
          <version>1.2.4</version>
       </dependency>
       
-<!-- javax.mail -->
+<!-- javax.mail.activation -->
 	<dependency>
 		<groupId>javax.mail</groupId>
 		<artifactId>activation</artifactId>

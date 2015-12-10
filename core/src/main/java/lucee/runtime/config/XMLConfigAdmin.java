@@ -6091,12 +6091,12 @@ public final class XMLConfigAdmin {
 	 * @throws IOException 
 	 * @throws SAXException 
 	 */
-	public static String hasRHExtensions(ConfigImpl config, String id) throws PageException, SAXException, IOException {
+	public static RHExtension hasRHExtensions(ConfigImpl config, String id) throws PageException, SAXException, IOException {
 		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
 		return admin._hasRHExtensions(config, id);
 	}
 	
-	private String _hasRHExtensions(ConfigImpl config, String id) throws PageException {
+	private RHExtension _hasRHExtensions(ConfigImpl config, String id) throws PageException {
 		
 		Element extensions=_getRootElement("extensions");
 		Element[] children = XMLConfigWebFactory.getChildren(extensions,"rhextension");// LuceeHandledExtensions
@@ -6109,7 +6109,7 @@ public final class XMLConfigAdmin {
 				catch(Throwable t){
 					continue;
 				}
-				if(id.equalsIgnoreCase(rhe.getId())) return rhe.getVersion();
+				if(id.equalsIgnoreCase(rhe.getId())) return rhe;
 			}
 			return null;
 		}

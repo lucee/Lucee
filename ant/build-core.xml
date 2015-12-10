@@ -15,20 +15,21 @@
     value="http://downloads.ortussolutions.com/ortussolutions/testbox/${testboxVersion}/testbox-${testboxVersion}.zip"/>
   <property name="extURL" value="http://extension.lucee.org/rest/extension/provider/full/"/>
   
-  <property name="extLucene" value="EFDEB172-F52E-4D84-9CD1A1F561B3DFC8"/>
-  <property name="extHibernate" value="FAD1E8CB-4F45-4184-86359145767C29DE"/>
-  <property name="extPDF" value="66E312DD-D083-27C0-64189D16753FD6F0"/>
-  <property name="extS3" value="17AB52DE-B300-A94B-E058BD978511E39E"/>
+  <property name="extLucene"      value="EFDEB172-F52E-4D84-9CD1A1F561B3DFC8"/>
+  <property name="extHibernate"   value="FAD1E8CB-4F45-4184-86359145767C29DE"/>
+  <property name="extPDF"         value="66E312DD-D083-27C0-64189D16753FD6F0"/>
+  <property name="extS3"          value="17AB52DE-B300-A94B-E058BD978511E39E"/>
 
   <!-- DB drivers -->
-  <property name="extMySQL" value="7E673D15-D87C-41A6-8B5F1956528C605F"/>
-  <property name="extMSSQL" value="99A4EF8D-F2FD-40C8-8FB8C2E67A4EEEB6"/>
-  <property name="extPostgreSQL" value="671B01B8-B3B3-42B9-AC055A356BED5281"/>
-  <property name="extJDTsSQL" value="2BCD080F-4E1E-48F5-BEFE794232A21AF6"/>
-  <property name="extH2" value="465E1E35-2425-4F4E-8B3FAB638BD7280A"/>
+  <property name="extMySQL"       value="7E673D15-D87C-41A6-8B5F1956528C605F"/>
+  <property name="extMSSQL"       value="99A4EF8D-F2FD-40C8-8FB8C2E67A4EEEB6"/>
+  <property name="extPostgreSQL"  value="671B01B8-B3B3-42B9-AC055A356BED5281"/>
+  <property name="extJDTsSQL"     value="2BCD080F-4E1E-48F5-BEFE794232A21AF6"/>
+  <property name="extH2"          value="465E1E35-2425-4F4E-8B3FAB638BD7280A"/>
+  <property name="extChart"       value="D46B46A9-A0E3-44E1-D972A04AC3A8DC10"/>
 
-  <property name="extAdmin" value="CED6227E-0F49-6367-A68D21AACA6B07E8"/>
-  <property name="extDoc" value="D46D49C3-EB85-8D97-30BEC2F38561E985"/>
+  <property name="extAdmin"       value="CED6227E-0F49-6367-A68D21AACA6B07E8"/>
+  <property name="extDoc"         value="D46D49C3-EB85-8D97-30BEC2F38561E985"/>
 
   
   <!-- http://www.coldbox.org/download/testbox -->
@@ -227,6 +228,7 @@ LUCEE BUILD PROCESS
     <available file="${cache}/${extPostgreSQL}.lex" property="postgre.present"/>
     <available file="${cache}/${extJDTsSQL}.lex" property="jdts.present"/>
 
+    <available file="${cache}/${extChart}.lex" property="chart.present"/>
     <available file="${cache}/${extAdmin}.lex" property="admin.present"/>
     <available file="${cache}/${extDoc}.lex" property="doc.present"/>
   </target>
@@ -244,6 +246,9 @@ LUCEE BUILD PROCESS
   <target name="check-jdts" depends="check-cache" unless="jdts.present">
       <get src="${extURL}${extJDTsSQL}" dest="${cache}/${extJDTsSQL}.lex"/>
   </target>
+  <target name="check-chart" depends="check-cache" unless="chart.present">
+      <get src="${extURL}${extChart}" dest="${cache}/${extChart}.lex"/>
+  </target>
   <target name="check-admin" depends="check-cache" unless="admin.present">
       <get src="${extURL}${extAdmin}" dest="${cache}/${extAdmin}.lex"/>
   </target>
@@ -254,7 +259,7 @@ LUCEE BUILD PROCESS
       <get src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
   </target> 
 
-  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-admin,check-doc,check-testbox">
+  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-admin,check-doc,check-testbox">
     
     <mkdir dir="${temp}/loader/extensions/"/>
 
@@ -430,13 +435,24 @@ LUCEE BUILD PROCESS
 
 <target name="__build_archives" depends="buildJars">
 
-    <echots message="copy bundles in place"/>
+
     <!-- first we copy the jars in place otherwise, Lucee downloads them  -->
+    <echots message="copy bundles in place"/>
     <copy todir="${temp}/archive/base/lucee-server/bundles" flatten="true">
       <path>
         <pathelement path="${dependencies}"/>
       </path>
     </copy>
+    
+    <!-- no we copy the extension in place otherwise, Lucee downloads them as well  -->
+    <echots message="copy extensions in place"/>
+    <copy todir="${temp}/archive/base/lucee-server/context/extensions/available" flatten="true">
+      <fileset dir="${cache}">
+        <include name="**/*.lex"/>
+      </fileset>
+    </copy>
+
+
 
     <echots message="getting and unzip testbox"/>
     <!-- now we need to get the testbox source -->
@@ -485,7 +501,7 @@ LUCEE BUILD PROCESS
 
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
-      <jvmarg value="-Dlucee-extensions=${extH2};${extPDF};${extHibernate};${extS3};"/>
+      <jvmarg value="-Dlucee-extensions=${extH2};${extPDF};${extHibernate};${extS3};${extChart};"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
     </java>
     <echo>${exc2}</echo>
@@ -602,6 +618,17 @@ LUCEE BUILD PROCESS
       file="${goal}/extensions/${extJDTsSQL}.lex" 
       tofile="${goal}/extensions/${ext_jdts.filename}"/>
     <echo>add:${goal}/extensions/${ext_jdts.filename}</echo>
+
+    <!-- add extension Chart -->
+    <loadmf jar="${cache}/${extChart}.lex" prefix="ext_chart."/>
+    <toFileName name="${ext_chart.name}" version="${ext_chart.version}" property="ext_chart.filename"/>
+    <copy 
+      file="${cache}/${extChart}.lex" 
+      todir="${goal}/extensions/"/>
+    <move 
+      file="${goal}/extensions/${extChart}.lex" 
+      tofile="${goal}/extensions/${ext_chart.filename}"/>
+    <echo>add:${goal}/extensions/${ext_chart.filename}</echo>
 
     <!-- add extension Admin -->
     <loadmf jar="${cache}/${extAdmin}.lex" prefix="ext_admin."/>

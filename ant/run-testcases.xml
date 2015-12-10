@@ -31,6 +31,14 @@ try {
 				newPassword="#request.WEBADMINPASSWORD#";
 		}
 		catch(e){}// may exist from previous execution
+		try {
+		    admin 
+				action="updatePassword"
+				type="server"
+				oldPassword=""
+				newPassword="#request.WEBADMINPASSWORD#";
+		}
+		catch(e){}// may exist from previous execution
 
 	// create "/test" mapping
 		admin 

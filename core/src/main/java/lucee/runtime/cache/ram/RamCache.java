@@ -199,7 +199,11 @@ public class RamCache extends CacheSupport {
 			RamCacheEntry[] values = ramCache.entries.values().toArray(new RamCacheEntry[ramCache.entries.size()]);
 			for(int i=0;i<values.length;i++){
 				if(!CacheSupport.valid(values[i])){
-					ramCache.entries.remove(values[i].getKey());
+					ramCache
+						.entries
+						.remove(
+								values[i].getKey()
+								);
 				}
 			}
 		}

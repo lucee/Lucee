@@ -79,7 +79,7 @@
 	<cffunction name="testBar3D" localmode="true">
 		<cfsilent>
 <cfchart
-         format="png"
+         format="gif"
          scalefrom="0"
          scaleto="1200000"
          show3d="Yes">
@@ -135,8 +135,7 @@
 
 
 	<cffunction name="testPie" localmode="true">
-		<cfsilent>
-<cfchart
+		<cfsilent><cfchart showborder="ccc" 
          format="png"
          scalefrom="0"
          scaleto="1200000"
@@ -152,8 +151,7 @@
 		<cfchartdata item="May" value="1063911">
 		<cfchartdata item="June" value="1125123">
 	</cfchartseries>
-</cfchart>
-		</cfsilent>
+</cfchart></cfsilent>
 	</cffunction>
 <cfscript>
 	public function beforeTests(){
