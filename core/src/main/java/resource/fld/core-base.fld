@@ -4271,7 +4271,7 @@ EntitySave(entity, [forceinsert])</description>
     		<class>lucee.runtime.functions.query.QueryExecute</class>
     		<keywords>query</keywords>
 			<tte-class>lucee.transformer.cfml.evaluator.func.impl.QueryExecute</tte-class>
-			<description></description>
+			<description>Executes a SQL query, returns the result.</description>
     		<argument>
     			<name>sql</name>
     			<type>string</type>
