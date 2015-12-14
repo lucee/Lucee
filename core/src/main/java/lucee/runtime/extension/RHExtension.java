@@ -638,8 +638,8 @@ public class RHExtension implements Serializable {
 	}
 	
 	private static String unwrap(String value) {
-		char startDoubleQuote=(char)8220;// “
-		char endDoubleQuote=(char)8221;// ”
+		char startDoubleQuote=(char)8220;	// open-quote character
+		char endDoubleQuote=(char)8221;		// close-quote character
 		
 		if(StringUtil.isEmpty(value,true)) return "";
 		value=value.trim();
