@@ -45,6 +45,7 @@ import lucee.runtime.functions.conversion.DeserializeJSON;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 
 public class DeployHandler {
@@ -140,6 +141,19 @@ public class DeployHandler {
 			return value.substring(1, value.length()-1);
 		}
 		return value;
+	}
+	
+	
+	
+	public static void deployExtensions(Config config, String[] ids, Log log) {
+		if(!ArrayUtil.isEmpty(ids)) {
+	    	String id;
+			for(int i=0;i<ids.length;i++){
+	    		id=ids[i].trim();
+	    		if(StringUtil.isEmpty(id,true)) continue;
+	    		deployExtension(config, id.trim(),log);
+	    	}
+	    }
 	}
 
 	/**

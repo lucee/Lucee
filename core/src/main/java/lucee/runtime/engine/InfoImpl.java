@@ -280,7 +280,7 @@ public final class InfoImpl implements Info {
     }
 
 
-	public String[] getRequireExtension() {
+	public String[] getRequiredExtension() {
         return requiredExtension;
     }
 

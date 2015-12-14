@@ -212,7 +212,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @throws BundleException 
 	 */
 
-	public static ConfigWebImpl newInstance(CFMLFactoryImpl factory, ConfigServerImpl configServer, Resource configDir, boolean isConfigDirACustomSetting,
+	public static ConfigWebImpl newInstance(CFMLEngine engine, CFMLFactoryImpl factory, ConfigServerImpl configServer, Resource configDir, boolean isConfigDirACustomSetting,
 			ServletConfig servletConfig) throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, NoSuchAlgorithmException, BundleException {
 		
 
@@ -225,14 +225,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if (label == null)
 			label = hash;
 
-		SystemOut.print(SystemUtil.getPrintWriter(SystemUtil.OUT), "===================================================================\n" + "WEB CONTEXT (" + label + ")\n"
+		SystemOut.print(SystemUtil.getPrintWriter(SystemUtil.OUT), "===================================================================\n" + 
+				"WEB CONTEXT (" + label + ")\n"
 				+ "-------------------------------------------------------------------\n" + "- config:" + configDir + (isConfigDirACustomSetting ? " (custom setting)" : "") + "\n"
 				+ "- webroot:" + ReqRspUtil.getRootPath(servletConfig.getServletContext()) + "\n" + "- hash:" + hash + "\n" + "- label:" + label + "\n"
 				+ "===================================================================\n"
 
 		);
-		
-		boolean doNew = doNew(configDir);
+
+		int iDoNew = doNew(engine,configDir,false);
+		boolean doNew = iDoNew!=NEW_NONE;
 
 		Resource configFile = configDir.getRealResource("lucee-web.xml."+TEMPLATE_EXTENSION);
 
@@ -291,12 +293,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @throws BundleException 
 	 * @throws NoSuchAlgorithmException 
 	 */
-	public static void reloadInstance(ConfigServerImpl cs, ConfigWebImpl cw, boolean force) throws SAXException, ClassException, PageException, IOException, TagLibException,
+	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl cs, ConfigWebImpl cw, boolean force) throws SAXException, ClassException, PageException, IOException, TagLibException,
 			FunctionLibException, BundleException {
 		Resource configFile = cw.getConfigFile();
 		Resource configDir = cw.getConfigDir();
 
-		boolean doNew = doNew(configDir);
+		int iDoNew = doNew(engine,configDir,false);
+		boolean doNew = iDoNew!=NEW_NONE;
 
 		if (configFile == null)
 			return;
@@ -2839,9 +2842,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				createFileFromResourceEL("/resource/library/function/trace."+TEMPLATE_EXTENSION, f);
 
 			f = dir.getRealResource("queryExecute."+TEMPLATE_EXTENSION);
-			if (!f.exists() || doNew)
-				createFileFromResourceEL("/resource/library/function/queryExecute."+TEMPLATE_EXTENSION, f);
-
+			//if (!f.exists() || doNew)
+			//	createFileFromResourceEL("/resource/library/function/queryExecute."+TEMPLATE_EXTENSION, f);
+			if (f.exists())// FUTURE add this instead if(updateType=NEW_FRESH || updateType=NEW_FROM4)
+			delete(dir, "queryExecute."+TEMPLATE_EXTENSION);
+			
 			
 			f = dir.getRealResource("transactionCommit."+TEMPLATE_EXTENSION);
 			if (!f.exists() || doNew)

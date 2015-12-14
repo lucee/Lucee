@@ -30,6 +30,7 @@ import lucee.commons.io.res.type.file.FileResource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.SystemOut;
+import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.exp.PageException;
@@ -95,8 +96,9 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
     			
     			);
           		
-    	boolean doNew=doNew(configDir);
-    	
+    	int iDoNew = doNew(engine,configDir,false);
+		boolean doNew = iDoNew!=NEW_NONE;
+		
     	Resource configFile=configDir.getRealResource("lucee-server.xml");
     	
     	
@@ -124,7 +126,8 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		createContextFiles(configDir,config,doNew,cleanupDatasources);
 	    return config;
     }
-    /**
+    
+	/**
      * reloads the Config Object
      * @param configServer
      * @throws SAXException
@@ -135,13 +138,15 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
      * @throws FunctionLibException
      * @throws BundleException 
      */
-    public static void reloadInstance(ConfigServerImpl configServer) 
+    public static void reloadInstance(CFMLEngine engine, ConfigServerImpl configServer) 
     	throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
         Resource configFile=configServer.getConfigFile();
         
         if(configFile==null) return ;
         if(second(configServer.getLoadTime())>second(configFile.lastModified())) return ;
-        boolean doNew=doNew(configServer.getConfigDir());
+        int iDoNew = doNew(engine, configServer.getConfigDir(),false);
+		boolean doNew = iDoNew!=NEW_NONE;
+		
         load(configServer,loadDocument(configFile),true,doNew);
     }
     

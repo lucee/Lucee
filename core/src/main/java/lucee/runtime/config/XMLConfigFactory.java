@@ -27,10 +27,13 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SystemOut;
+import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.engine.InfoImpl;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.text.xml.XMLUtil;
 
+import org.osgi.framework.Version;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -39,30 +42,39 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 public abstract class XMLConfigFactory {
-	static boolean doNew(Resource contextDir) {
-		lucee.Info info = CFMLEngineFactory.getInstance().getInfo();
-		final boolean readonly = false;
-		try {
-			
-			Resource version = contextDir.getRealResource("version");
-			String v = info.getVersion() + "-" + info.getRealeaseTime();
-			if (!version.exists()) {
-				if (!readonly) {
-					version.createNewFile();
-					IOUtil.write(version, v, SystemUtil.getCharset(), false);
-				}
-				return true;
-			}
-			else if (!IOUtil.toString(version, SystemUtil.getCharset()).equals(v)) {
-				if (!readonly)
-					IOUtil.write(version, v, SystemUtil.getCharset(), false);
 
-				return true;
+	public static final int NEW_NONE=0;
+	public static final int NEW_MINOR=1;
+	public static final int NEW_FRESH=2;
+	public static final int NEW_FROM4=3;
+	
+	
+	public static int doNew(CFMLEngine engine, Resource contextDir, boolean readOnly) {
+		lucee.Info info = engine.getInfo();
+		try {
+			String strOldVersion;
+			Resource resOldVersion = contextDir.getRealResource("version");
+			String strNewVersion = info.getVersion() + "-" + info.getRealeaseTime();
+			
+			// fresh install
+			if (!resOldVersion.exists()) {
+				if(!readOnly) {
+					resOldVersion.createNewFile();
+					IOUtil.write(resOldVersion, strNewVersion, SystemUtil.getCharset(), false);
+				}
+				return NEW_FRESH;
+			}
+			// changed version
+			else if (!(strOldVersion=IOUtil.toString(resOldVersion, SystemUtil.getCharset())).equals(strNewVersion)) {
+				if(!readOnly) IOUtil.write(resOldVersion, strNewVersion, SystemUtil.getCharset(), false);
+				Version oldVersion = OSGiUtil.toVersion(strOldVersion);
+				
+				return oldVersion.getMajor()<5?NEW_FROM4:NEW_MINOR;
 			}
 		}
 		catch (Throwable t) {
 		}
-		return false;
+		return NEW_NONE;
 	}
 
 	/**
@@ -274,5 +286,4 @@ public abstract class XMLConfigFactory {
 		}
 		
 	}
-	
 }

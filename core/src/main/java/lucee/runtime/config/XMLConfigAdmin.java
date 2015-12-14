@@ -338,19 +338,19 @@ public final class XMLConfigAdmin {
     private synchronized void _reload() throws PageException, SAXException, ClassException, IOException, TagLibException, FunctionLibException, BundleException  {
     	
     	//if(storeInMemoryData)XMLCaster.writeTo(doc,config.getConfigFile());
-    	
+    	CFMLEngine engine = ConfigWebUtil.getEngine(config);
         if(config instanceof ConfigServerImpl) {
         	
             ConfigServerImpl cs=(ConfigServerImpl) config;
-            XMLConfigServerFactory.reloadInstance(cs);
+            XMLConfigServerFactory.reloadInstance(engine,cs);
             ConfigWeb[] webs=cs.getConfigWebs();
             for(int i=0;i<webs.length;i++) {
-                XMLConfigWebFactory.reloadInstance((ConfigServerImpl) config,(ConfigWebImpl)webs[i],true);
+                XMLConfigWebFactory.reloadInstance(engine,(ConfigServerImpl) config,(ConfigWebImpl)webs[i],true);
             }
         }
         else {
         	ConfigServerImpl cs=((ConfigWebImpl)config).getConfigServerImpl();
-            XMLConfigWebFactory.reloadInstance(cs,(ConfigWebImpl)config,false);
+            XMLConfigWebFactory.reloadInstance(engine,cs,(ConfigWebImpl)config,false);
         }
     }
     
