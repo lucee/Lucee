@@ -32,6 +32,7 @@ import java.net.URL;
 import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -93,10 +94,12 @@ import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
+import lucee.runtime.config.XMLConfigFactory;
 import lucee.runtime.config.XMLConfigServerFactory;
 import lucee.runtime.config.XMLConfigWebFactory;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.PageServletException;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.instrumentation.InstrumentationFactory;
@@ -218,7 +221,15 @@ public final class CFMLEngineImpl implements CFMLEngine {
     	this.info=new InfoImpl(bundleCollection==null?null:bundleCollection.core);
     	Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader()); // MUST better location for this
 		
-    	
+    	int doNew;
+    	try {
+			Resource configDir = getSeverContextConfigDirectory(factory);
+			doNew=XMLConfigFactory.doNew(this,configDir, true);
+			
+		}
+    	catch (IOException e) {
+    		throw new PageRuntimeException(e);
+		} 
     	CFMLEngineFactory.registerInstance((this));// patch, not really good but it works
         ConfigServerImpl cs = getConfigServerImpl();
     	
@@ -233,28 +244,43 @@ public final class CFMLEngineImpl implements CFMLEngine {
         deployBundledExtension(cs);
         
         // required extensions
-        Set<String> requireExtensions = lucee.runtime.type.util.ListUtil.toSet(info.getRequireExtension());
         
         
-        // install extension defined
+        // if we have an update 
+        Set<String> extensions;
+        if(doNew==XMLConfigFactory.NEW_FRESH || doNew==XMLConfigFactory.NEW_FROM4) {
+        	String[] ext = info.getRequiredExtension();
+        	extensions = lucee.runtime.type.util.ListUtil.toSet(ext);
+        	SystemOut.print(SystemUtil.getPrintWriter(SystemUtil.OUT),
+            	"Install Extensions ("+doNew+"):"+lucee.runtime.type.util.ListUtil.arrayToList(ext, ", "));
+        }
+        else
+        	extensions = new HashSet<String>();
+        
+        
+        		
+        		
+        		
+        
+        // install extension defined 
+        
         String extensionIds=System.getProperty("lucee-extensions");
         if(!StringUtil.isEmpty(extensionIds,true)) {
         	String[] ids = lucee.runtime.type.util.ListUtil.listToStringArray(extensionIds, ';');
         	for(int i=0;i<ids.length;i++){
-        		requireExtensions.add(ids[i].trim());
+        		extensions.add(ids[i].trim());
         	}
         }
         
-        if(requireExtensions.size()>0) {
-        	Log log = cs.getLog("deploy", true);
-        	Iterator<String> it = requireExtensions.iterator();
-        	String id;
-        	while(it.hasNext()){
-        		id=it.next();
-        		if(StringUtil.isEmpty(id,true)) continue;
-        		DeployHandler.deployExtension(cs, id.trim(),log);
-        	}
+        if(extensions.size()>0) {
+        	DeployHandler.deployExtensions(
+        			cs,
+        			extensions.toArray(new String[extensions.size()]),
+        			cs.getLog("deploy", true)
+        			);
         }
+        
+        
 
         touchMonitor(cs);  
         this.uptime=System.currentTimeMillis();
@@ -387,8 +413,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
     private ConfigServerImpl getConfigServerImpl() {
     	if(configServer==null) {
             try {
-            	ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
-            	Resource context = frp.getResource(factory.getResourceRoot().getAbsolutePath()).getRealResource("context");
+            	Resource context = getSeverContextConfigDirectory(factory); 
             	//CFMLEngineFactory.registerInstance(this);// patch, not really good but it works
                 configServer=XMLConfigServerFactory.newInstance(
                         this,
@@ -402,14 +427,19 @@ public final class CFMLEngineImpl implements CFMLEngine {
         return configServer;
     }
     
-    private  CFMLFactoryImpl loadJSPFactory(ConfigServerImpl configServer, ServletConfig sg, int countExistingContextes) throws ServletException {
+    private Resource getSeverContextConfigDirectory(CFMLEngineFactory factory) throws IOException {
+    	ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
+    	return frp.getResource(factory.getResourceRoot().getAbsolutePath()).getRealResource("context");
+	}
+
+	private  CFMLFactoryImpl loadJSPFactory(ConfigServerImpl configServer, ServletConfig sg, int countExistingContextes) throws ServletException {
     	try {
             // Load Config
     		RefBoolean isCustomSetting=new RefBooleanImpl();
             Resource configDir=getConfigDirectory(sg,configServer,countExistingContextes,isCustomSetting);
             
             CFMLFactoryImpl factory=new CFMLFactoryImpl(this,sg);
-            ConfigWebImpl config=XMLConfigWebFactory.newInstance(factory,configServer,configDir,isCustomSetting.toBooleanValue(),sg);
+            ConfigWebImpl config=XMLConfigWebFactory.newInstance(this,factory,configServer,configDir,isCustomSetting.toBooleanValue(),sg);
             factory.setConfig(config);
             return factory;
         }
