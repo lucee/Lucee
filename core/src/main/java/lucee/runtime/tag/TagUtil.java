@@ -49,8 +49,6 @@ import lucee.runtime.functions.BIFProxy;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.reflection.pairs.MethodInstance;
-import lucee.runtime.servlet.jsp.BodyTagPro;
-import lucee.runtime.servlet.jsp.TagPro;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -59,13 +57,10 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
-import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
 
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.Method;
 import org.osgi.framework.BundleException;
 
 public class TagUtil {

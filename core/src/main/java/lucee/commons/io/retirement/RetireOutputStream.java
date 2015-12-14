@@ -21,7 +21,6 @@ package lucee.commons.io.retirement;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import lucee.print;
 import lucee.commons.io.res.Resource;
 
 public class RetireOutputStream extends OutputStream {

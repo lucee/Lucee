@@ -33,7 +33,6 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
-import lucee.commons.io.res.util.ResourceUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Identification;
 import lucee.runtime.op.Caster;

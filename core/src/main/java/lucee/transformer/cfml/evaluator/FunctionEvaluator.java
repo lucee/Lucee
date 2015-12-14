@@ -21,7 +21,6 @@ package lucee.transformer.cfml.evaluator;
 
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.bytecode.expression.var.BIF;
-import lucee.transformer.expression.var.Variable;
 import lucee.transformer.library.function.FunctionLibFunction;
 
 public interface FunctionEvaluator {

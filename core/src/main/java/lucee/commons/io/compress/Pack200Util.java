@@ -37,8 +37,6 @@ import java.util.zip.GZIPOutputStream;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.ResourceProvider;
-import lucee.commons.io.res.ResourcesImpl;
 
 
 public class Pack200Util {

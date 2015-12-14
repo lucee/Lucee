@@ -52,7 +52,6 @@ import lucee.commons.net.URLEncoder;
 import lucee.runtime.exp.PageException;
 
 import org.apache.tika.Tika;
-import org.w3c.dom.Document;
 
 /**
  * I/O Util 

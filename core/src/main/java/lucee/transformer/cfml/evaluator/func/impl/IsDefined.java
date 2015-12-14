@@ -28,7 +28,6 @@ import lucee.transformer.bytecode.expression.type.CollectionKey;
 import lucee.transformer.bytecode.expression.type.CollectionKeyArray;
 import lucee.transformer.bytecode.expression.var.Argument;
 import lucee.transformer.bytecode.expression.var.BIF;
-import lucee.transformer.bytecode.statement.udf.Function;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.FunctionEvaluator;
 import lucee.transformer.expression.Expression;

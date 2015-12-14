@@ -18,7 +18,6 @@
  */
 package lucee.runtime.tag;
 
-import java.nio.charset.Charset;
 import java.util.Locale;
 import java.util.TimeZone;
 

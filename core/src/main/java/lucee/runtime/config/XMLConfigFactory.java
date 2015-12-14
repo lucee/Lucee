@@ -28,7 +28,6 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
-import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.engine.InfoImpl;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.text.xml.XMLUtil;

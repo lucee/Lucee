@@ -45,7 +45,6 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.exp.PageExceptionImpl;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.op.Caster;

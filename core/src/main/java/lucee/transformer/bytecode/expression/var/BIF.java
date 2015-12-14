@@ -22,7 +22,6 @@ import lucee.runtime.db.ClassDefinition;
 import lucee.transformer.Factory;
 import lucee.transformer.cfml.TransfomerSettings;
 import lucee.transformer.expression.ExprString;
-import lucee.transformer.expression.var.Variable;
 import lucee.transformer.library.function.FunctionLibFunction;
 
 

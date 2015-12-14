@@ -60,7 +60,6 @@ import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.compress.CompressUtil;
-import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;

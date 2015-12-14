@@ -23,7 +23,6 @@ import java.nio.charset.Charset;
 
 import javax.mail.internet.InternetAddress;
 
-import lucee.print;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;

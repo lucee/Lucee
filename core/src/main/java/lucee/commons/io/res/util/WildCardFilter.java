@@ -25,6 +25,8 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 
+import org.apache.oro.text.regex.MalformedPatternException;
+
 
 /**
  * Wildcard Filter

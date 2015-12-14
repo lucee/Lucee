@@ -20,7 +20,6 @@ package lucee.commons.net.http.httpclient;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.KeyStore;
 import java.util.ArrayList;

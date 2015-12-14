@@ -18,14 +18,7 @@
  **/
 package lucee.commons.io;
 
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.SortedMap;
 

@@ -36,7 +36,6 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.ResourceProvider;
 import lucee.loader.util.Util;
 
 

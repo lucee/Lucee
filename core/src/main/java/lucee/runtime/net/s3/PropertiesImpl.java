@@ -18,8 +18,6 @@
  */
 package lucee.runtime.net.s3;
 
-import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.tag.Directory;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 

@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 
 import lucee.commons.digest.Hash;
 import lucee.commons.io.CharsetUtil;

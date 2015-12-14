@@ -46,7 +46,6 @@ import java.util.UUID;
 import javax.servlet.ServletConfig;
 
 import lucee.aprint;
-import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.digest.HashUtil;
@@ -170,7 +169,6 @@ import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
-import lucee.runtime.util.PageContextUtil;
 import lucee.runtime.video.VideoExecuter;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;

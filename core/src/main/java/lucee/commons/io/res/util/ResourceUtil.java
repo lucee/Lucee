@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import lucee.commons.digest.Hash;
-import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.ContentType;
@@ -53,7 +52,6 @@ import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 

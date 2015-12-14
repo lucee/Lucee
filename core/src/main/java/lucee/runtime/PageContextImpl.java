@@ -116,7 +116,6 @@ import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.functions.dynamicEvaluation.Serialize;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
-import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.listener.ClassicApplicationContext;
@@ -198,12 +197,6 @@ import lucee.runtime.util.VariableUtilImpl;
 import lucee.runtime.writer.BodyContentUtil;
 import lucee.runtime.writer.CFMLWriter;
 import lucee.runtime.writer.DevNullBodyContent;
-
-import org.apache.oro.text.regex.MalformedPatternException;
-import org.apache.oro.text.regex.Pattern;
-import org.apache.oro.text.regex.PatternMatcherInput;
-import org.apache.oro.text.regex.Perl5Compiler;
-import org.apache.oro.text.regex.Perl5Matcher;
 
 /**
  * page context for every page object. 

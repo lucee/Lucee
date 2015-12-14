@@ -18,7 +18,6 @@
  **/
 package lucee.commons.net.http.httpclient.entity;
 
-import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
 
 import org.apache.http.Header;
