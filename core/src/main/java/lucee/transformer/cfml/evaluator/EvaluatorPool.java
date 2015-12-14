@@ -18,11 +18,15 @@
  */
 package lucee.transformer.cfml.evaluator;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import lucee.runtime.exp.TemplateException;
+import lucee.transformer.bytecode.expression.var.BIF;
 import lucee.transformer.bytecode.statement.tag.Tag;
 import lucee.transformer.library.function.FunctionLib;
+import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.util.SourceCode;
 
@@ -42,18 +46,20 @@ import lucee.transformer.util.SourceCode;
 
  */
 public final class EvaluatorPool {
-	
-	Vector v=new Vector();
+
+	List<TagData> tags=new ArrayList<TagData>(); 
+	List<FunctionData> functions=new ArrayList<FunctionData>(); 
 	
 	/**
-	 * Diese Methode wird aufgerufen um eine neue Methode in den Pool zu spielen.
-	 * @param libTag  Die Definition des Tag aus der TLD.
-	 * @param cfxdTag Das konkrete Tag innerhalb der kompletten CFXD.
-	 * @param flibs Saemtliche Function Library Deskriptoren des aktuellen Tag Libray Deskriptors.
-	 * @param cfml CFMLString des aktuellen uebersetzungsprozess.
+	 * add a tag to the pool to evaluate at the end
 	 */
 	public void add(TagLibTag libTag,Tag tag, FunctionLib[] flibs, SourceCode cfml) {
-		v.add(new EvaluatorData(libTag,tag,flibs,cfml));
+		tags.add(new TagData(libTag,tag,flibs,cfml));
+	}
+	
+	public void add(FunctionLibFunction flf,BIF bif, SourceCode cfml) {
+		functions.add(new FunctionData(flf,bif,cfml));
+		
 	}
 
 	/**
@@ -62,103 +68,92 @@ public final class EvaluatorPool {
 	 * @throws TemplateException
 	 */
 	public void run() throws TemplateException  {
-		int size=v.size();
-		for(int i=0;i<size;i++) {
-			EvaluatorData ec=(EvaluatorData)v.elementAt(i);
-			SourceCode cfml=ec.getCfml();
-			cfml.setPos(ec.getPos());
+		{
+		// tags
+		Iterator<TagData> it = tags.iterator();
+		while(it.hasNext()) {
+			TagData td=it.next();
+			SourceCode cfml=td.cfml;
+			cfml.setPos(td.pos);
 			try {
-				if(ec.getLibTag().getEvaluator()!=null)ec.getLibTag().getEvaluator().evaluate(
-						ec.getTag(),
-						ec.getLibTag(),
-						ec.getFlibs());
+				if(td.libTag.getEvaluator()!=null)td.libTag.getEvaluator().evaluate(
+						td.tag,
+						td.libTag,
+						td.flibs);
 			} catch (EvaluatorException e) {
-			    v.clear();//print.printST(e);
+			    clear();//print.printST(e);
 				throw new TemplateException(cfml,e);
 			}catch (Throwable e) {
-			    v.clear();
+			    clear();
 				throw new TemplateException(cfml,e);
 			}
 			
 		}
-		v.clear();
+		tags.clear();
+		}
+		// functions
+		Iterator<FunctionData> it = functions.iterator();
+		while(it.hasNext()) {
+			FunctionData td=it.next();
+			SourceCode cfml=td.cfml;
+			cfml.setPos(td.pos);
+			try {
+				if(td.flf.getEvaluator()!=null)td.flf.getEvaluator().evaluate(
+						td.bif,
+						td.flf);
+			} catch (EvaluatorException e) {
+			    clear();//print.printST(e);
+				throw new TemplateException(cfml,e);
+			}catch (Throwable e) {
+				clear();
+				throw new TemplateException(cfml,e);
+			}
+			
+		}
+		functions.clear();
+		
+		
 	}
 
 	/**
-	 *
-	 *
-	 * Die interne Klasse EvaluatorData dient zum Zwischenspeichern aller Daten 
-	 * die benoetigt werden einen einzelnen Evaluator aufzurufen. 
+	 * internal class to store all tag related data
 	 */
-	class EvaluatorData {
-		TagLibTag libTag;
-		Tag tag; 
-		FunctionLib[] flibs; 
-		SourceCode cfml;
-		int pos;
+	static class TagData {
+		private final TagLibTag libTag;
+		private final Tag tag; 
+		private final FunctionLib[] flibs; 
+		private final SourceCode cfml;
+		private final int pos;
 		
-		/**
-		* Konstruktor von EvaluatorData.
-		* @param libTag  Die Definition des Tag aus der TLD.
-	 	* @param cfxdTag Das konkrete Tag innerhalb der kompletten CFXD.
-	 	* @param flibs Saemtliche Function Library Deskriptoren des aktuellen Tag Libray Deskriptors.
-	 	* @param cfml CFMLString des aktuellen uebersetzungsprozess.
-	 	*/
-		public EvaluatorData(TagLibTag libTag,Tag tag, FunctionLib[] flibs, SourceCode cfml) {
+		public TagData(TagLibTag libTag,Tag tag, FunctionLib[] flibs, SourceCode cfml) {
 			this.libTag=libTag;
 			this.tag=tag;
 			this.flibs=flibs;
 			this.cfml=cfml;
 			this.pos=cfml.getPos();
 		}
+	}
+	
+	static class FunctionData {
+		private final FunctionLibFunction flf;
+		private final BIF bif; 
+		private final SourceCode cfml;
+		private final int pos;
 		
-		/**
-		 * Gibt den aktuellen CFMLString zurueck.
-		 * @return CFMLString des aktuellen uebersetzungsprozess.
-		 */
-		public SourceCode getCfml() {
-			return cfml;
+		public FunctionData(FunctionLibFunction flf,BIF bif, SourceCode cfml) {
+			this.flf=flf;
+			this.bif=bif;
+			this.cfml=cfml;
+			this.pos=cfml.getPos();
 		}
-
-		/**
-		 * Gibt den zu verarbeitenden Tag zurueck.
-		 * @return Das konkrete Tag innerhalb der kompletten CFXD.
-		 */
-		public Tag getTag() {
-			return tag;
-		}
-
-		/**
-		 * Gibt saemtliche Function Library Deskriptoren des aktuellen Tag Libray Deskriptors zurueck. 
-		 * @return Saemtliche Function Library Deskriptoren.
-		 */
-		public FunctionLib[] getFlibs() {
-			return flibs;
-		}
-
-		/**
-		 * Die Definition des aktuellen tags aus der TLD
-		 * @return den aktuellen TagLibTag.
-		 */
-		public TagLibTag getLibTag() {
-			return libTag;
-		}
-
-		/**
-		 * Die Position des zu verarbeitenden Tag innerhalb der CFML Seite.
-		 * @return Position des Tag.
-		 */
-		public int getPos() {
-			return pos;
-		}
-
 	}
 
     /**
      * clears the ppol
      */
     public void clear() {
-        v.clear();
+        tags.clear();
+        functions.clear();
     }
 
 	/*public static void getPool() {

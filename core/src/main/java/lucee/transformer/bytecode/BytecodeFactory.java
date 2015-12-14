@@ -30,6 +30,8 @@ import lucee.transformer.bytecode.cast.CastDouble;
 import lucee.transformer.bytecode.cast.CastInt;
 import lucee.transformer.bytecode.cast.CastString;
 import lucee.transformer.bytecode.expression.var.DataMemberImpl;
+import lucee.transformer.bytecode.expression.var.EmptyArray;
+import lucee.transformer.bytecode.expression.var.EmptyStruct;
 import lucee.transformer.bytecode.expression.var.VariableImpl;
 import lucee.transformer.bytecode.literal.LitBooleanImpl;
 import lucee.transformer.bytecode.literal.LitDoubleImpl;
@@ -305,5 +307,15 @@ public class BytecodeFactory extends Factory {
 	@Override
 	public Config getConfig() {
 		return config;
+	}
+
+	@Override
+	public Expression createStruct() {
+		return new EmptyStruct(this);
+	}
+
+	@Override
+	public Expression createArray() {
+		return new EmptyArray(this);
 	}
 }

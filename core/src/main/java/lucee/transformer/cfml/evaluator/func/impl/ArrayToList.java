@@ -22,6 +22,8 @@ import lucee.runtime.exp.TemplateException;
 import lucee.transformer.bytecode.cast.Cast;
 import lucee.transformer.bytecode.expression.var.Argument;
 import lucee.transformer.bytecode.expression.var.BIF;
+import lucee.transformer.bytecode.statement.udf.Function;
+import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.FunctionEvaluator;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.var.Variable;
@@ -30,7 +32,7 @@ import lucee.transformer.library.function.FunctionLibFunction;
 public class ArrayToList implements FunctionEvaluator{
 
 	@Override
-	public void evaluate(BIF bif, FunctionLibFunction flf) throws TemplateException {
+	public void execute(BIF bif, FunctionLibFunction flf) throws TemplateException {
 		Argument[] args = bif.getArguments();
 		
 		Argument arg = args[0];
@@ -42,5 +44,8 @@ public class ArrayToList implements FunctionEvaluator{
 			((Variable)value).setAsCollection(Boolean.TRUE);
 		}
 	}
+
+	@Override
+	public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {}
 
 }

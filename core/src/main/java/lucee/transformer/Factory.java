@@ -81,6 +81,12 @@ public abstract class Factory {
 	public abstract Variable createVariable(Position start, Position end);
 	public abstract Variable createVariable(int scope,Position start, Position end);
 
+
+	public abstract Expression createStruct();
+	public abstract Expression createArray();
+	
+	
+	
 	// CASTING
 	public abstract ExprDouble toExprDouble(Expression expr);
 	public abstract ExprString toExprString(Expression expr);

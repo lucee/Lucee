@@ -28,6 +28,8 @@ import lucee.transformer.bytecode.expression.type.CollectionKey;
 import lucee.transformer.bytecode.expression.type.CollectionKeyArray;
 import lucee.transformer.bytecode.expression.var.Argument;
 import lucee.transformer.bytecode.expression.var.BIF;
+import lucee.transformer.bytecode.statement.udf.Function;
+import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.FunctionEvaluator;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitString;
@@ -36,7 +38,7 @@ import lucee.transformer.library.function.FunctionLibFunction;
 public class IsDefined implements FunctionEvaluator{
 
 	@Override
-	public void evaluate(BIF bif, FunctionLibFunction flf) throws TemplateException {
+	public void execute(BIF bif, FunctionLibFunction flf) throws TemplateException {
 		Argument arg = bif.getArguments()[0];
 		Expression value = arg.getValue();
 		if(value instanceof LitString) {
@@ -75,5 +77,8 @@ public class IsDefined implements FunctionEvaluator{
 		}
 		//print.out("bif:"+arg.getValue().getClass().getName());
 	}
+
+	@Override
+	public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {}
 
 }

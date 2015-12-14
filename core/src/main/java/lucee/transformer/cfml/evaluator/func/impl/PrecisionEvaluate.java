@@ -23,6 +23,8 @@ import lucee.transformer.bytecode.expression.var.Argument;
 import lucee.transformer.bytecode.expression.var.BIF;
 import lucee.transformer.bytecode.op.OpBigDecimal;
 import lucee.transformer.bytecode.op.OpDouble;
+import lucee.transformer.bytecode.statement.udf.Function;
+import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.FunctionEvaluator;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.library.function.FunctionLibFunction;
@@ -31,7 +33,7 @@ import lucee.transformer.library.function.FunctionLibFunction;
 public class PrecisionEvaluate implements FunctionEvaluator {
 
 	@Override
-	public void evaluate(BIF bif, FunctionLibFunction flf) throws TemplateException {
+	public void execute(BIF bif, FunctionLibFunction flf) throws TemplateException {
 
 		Argument[] args = bif.getArguments();
 
@@ -50,4 +52,7 @@ public class PrecisionEvaluate implements FunctionEvaluator {
 		if(right instanceof OpDouble) right=toOpBigDecimal((OpDouble) right);
 		return new OpBigDecimal(left, right, op.getOperation());
 	}
+
+	@Override
+	public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {}
 }

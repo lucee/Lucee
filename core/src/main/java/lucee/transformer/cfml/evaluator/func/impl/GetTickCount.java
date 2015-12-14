@@ -22,6 +22,8 @@ import lucee.runtime.exp.TemplateException;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.bytecode.expression.var.Argument;
 import lucee.transformer.bytecode.expression.var.BIF;
+import lucee.transformer.bytecode.statement.udf.Function;
+import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.FunctionEvaluator;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitString;
@@ -30,7 +32,7 @@ import lucee.transformer.library.function.FunctionLibFunction;
 public class GetTickCount implements FunctionEvaluator{
 
 	@Override
-	public void evaluate(BIF bif, FunctionLibFunction flf) throws TemplateException {
+	public void execute(BIF bif, FunctionLibFunction flf) throws TemplateException {
 		Argument[] args = bif.getArguments();
 		if(ArrayUtil.isEmpty(args)) return;
 		
@@ -48,5 +50,8 @@ public class GetTickCount implements FunctionEvaluator{
 				arg.setValue(bif.getFactory().createLitDouble(lucee.runtime.functions.other.GetTickCount.UNIT_SECOND), "number");
 		}
 	}
+
+	@Override
+	public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {}
 
 }

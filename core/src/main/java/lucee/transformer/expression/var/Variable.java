@@ -19,13 +19,14 @@ package lucee.transformer.expression.var;
 
 import lucee.transformer.Context;
 import lucee.transformer.TransformerException;
+import lucee.transformer.bytecode.expression.var.Assign;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.Invoker;
 
 import org.objectweb.asm.Type;
 
 public interface Variable extends Expression, Invoker {
-	
+
 	public int getScope();
 	
 
@@ -56,5 +57,9 @@ public interface Variable extends Expression, Invoker {
 
 
 	Member removeMember(int index);
+
+
+	public void assign(Assign assign);
+	public Assign assign();
 	 
 }

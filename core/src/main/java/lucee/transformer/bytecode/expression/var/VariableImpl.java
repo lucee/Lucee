@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import lucee.print;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
@@ -165,6 +164,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	private boolean fromHash=false;
 	private Expression defaultValue;
 	private Boolean asCollection;
+	private Assign assign;
 
 	public VariableImpl(Factory factory,Position start,Position end) {
 		super(factory,start,end);
@@ -213,6 +213,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	public void addMember(Member member) {
 		if(member instanceof DataMember)countDM++;
 		else countFM++;
+		member.setParent(this);
 		members.add(member);
 	}
 
@@ -405,7 +406,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		try {
 			clazz = bifCD.getClazz();
 		} 
-		catch (Exception e) {
+		catch (Exception e) {e.printStackTrace();
 			//throw new TransformerException(e,line);
 		}
 		Type rtnType=Types.toType(bif.getReturnType());
@@ -780,6 +781,16 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	@Override
 	public int getCount() {
 		return countDM+countFM;
+	}
+
+	@Override
+	public void assign(Assign assign) {
+		this.assign=assign;
+	}
+
+	@Override
+	public Assign assign() {
+		return assign;
 	}
 	
 }

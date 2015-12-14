@@ -4265,6 +4265,54 @@ EntitySave(entity, [forceinsert])</description>
 	</function>
 	
 	
+	<!-- QueryExecute -->
+    	<function>
+    		<name>QueryExecute</name>
+    		<class>lucee.runtime.functions.query.QueryExecute</class>
+    		<keywords>query</keywords>
+			<tte-class>lucee.transformer.cfml.evaluator.func.impl.QueryExecute</tte-class>
+			<description></description>
+    		<argument>
+    			<name>sql</name>
+    			<type>string</type>
+    			<required>Yes</required>
+    			<description>SQL to execute</description>
+    	    </argument>
+    		<argument>
+    			<name>params</name>
+    			<alias>param</alias>
+    			<type>any</type>
+    			<required>No</required>
+    			<description>
+    			Array or Struct of parameter values. 
+    			When passing an array use ? as place holders. 
+    			When passing a struct use :keyName where keyName is the name of the key in the structure corresponding to
+    			the parameter. 
+    			The struct or array can be a struct with keys such as the following: cfsqltype, list
+    			</description>
+    	    </argument>
+    	    
+    	    <argument>
+    			<name>options</name>
+    			<alias>option</alias>
+    			<type>struct</type>
+    			<required>No</required>
+    			<description>Struct containing query options, all cfquery tag attributes are supported except the name attribute.</description>
+    	    </argument>
+    	    <argument>
+    			<name>name</name>
+    			<type>string</type>
+    			<status>hidden</status>
+    			<required>No</required>
+    			<description>name of the query produced, visible in dumps or debugging output.</description>
+    	    </argument>
+    	    
+    		<return>
+    			<type>any</type>
+    		</return>
+    	</function>
+	
+	
 	<!-- render -->
 	<function>
 		<name>render</name>

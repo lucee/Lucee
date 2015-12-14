@@ -1258,8 +1258,8 @@ public abstract class AbstrCFMLExprTransformer {
 		if(!data.srcCode.forwardIfCurrent(start))return null;
 		
 		Position line = data.srcCode.getPosition();
-		
-		BIF bif=new BIF(data.settings,data.factory,flf.getName(),flf);
+		BIF bif=new BIF(data.settings,data.factory.createLitString(flf.getName()),flf);
+		data.ep.add(flf, bif, data.srcCode);
 		bif.setArgType(flf.getArgType());
 		try {
 			bif.setClassDefinition(flf.getFunctionClassDefinition());
@@ -1441,7 +1441,7 @@ public abstract class AbstrCFMLExprTransformer {
     		
         	
         	// now we generate a _getStaticScope function call with that path
-        	BIF bif=ASMUtil.createBif(data.settings,data.factory,GET_STATIC_SCOPE);
+        	BIF bif=ASMUtil.createBif(data,GET_STATIC_SCOPE);
         	bif.addArgument(new Argument(componentPath,"string"));
 				
     		Variable var=data.factory.createVariable(old.getStart(),data.srcCode.getPosition());
@@ -1727,6 +1727,8 @@ public abstract class AbstrCFMLExprTransformer {
 		FunctionMember fm;
 		if(checkLibrary) {
 			BIF bif=new BIF(data.settings,name,flf);
+			data.ep.add(flf, bif, data.srcCode);
+			
 			bif.setArgType(flf.getArgType());
 			try {
 				bif.setClassDefinition(flf.getFunctionClassDefinition());
@@ -1840,7 +1842,8 @@ public abstract class AbstrCFMLExprTransformer {
         
         // evaluator
         if(checkLibrary && flf.hasTteClass()){
-        	flf.getEvaluator().evaluate((BIF) fm, flf);
+        	flf.getEvaluator().execute((BIF) fm, flf);
+        	
         }
         
 		return fm;

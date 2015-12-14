@@ -22,6 +22,7 @@ import lucee.runtime.db.ClassDefinition;
 import lucee.transformer.Factory;
 import lucee.transformer.cfml.TransfomerSettings;
 import lucee.transformer.expression.ExprString;
+import lucee.transformer.expression.var.Variable;
 import lucee.transformer.library.function.FunctionLibFunction;
 
 
@@ -38,22 +39,13 @@ public final class BIF extends FunctionMember {
 
 		private final Factory factory;
 
-		public final TransfomerSettings ts; 
+		public final TransfomerSettings ts;
 
-
-
-		public BIF(TransfomerSettings ts,ExprString name, FunctionLibFunction flf) {
+		public BIF(TransfomerSettings ts, ExprString name, FunctionLibFunction flf) {
 			this.ts=ts;
 			this.name=name;
 			this.flf=flf;
 			this.factory=name.getFactory();
-		}
-		
-		public BIF(TransfomerSettings ts,Factory factory,String name, FunctionLibFunction flf) {
-			this.ts=ts;
-			this.name=factory.createLitString(name);
-			this.flf=flf;
-			this.factory=factory;
 		}
 
 		public Factory getFactory() {

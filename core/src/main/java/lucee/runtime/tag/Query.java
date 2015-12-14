@@ -155,8 +155,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	private boolean lazy;
 	private Object params;
 	private int nestingLevel=0;
-	
-	
+	private boolean setReturnVariable=false;
+	private Object rtn;
 	
 	@Override
 	public void release()	{
@@ -187,6 +187,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		lazy=false;
 		params=null;
 		nestingLevel=0;
+		rtn=null;
+		setReturnVariable=false;
 	}
 	
 	
@@ -559,7 +561,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 						query=(lucee.runtime.type.Query) obj;
 					}
 					else {
-						if(!StringUtil.isEmpty(name)) {
+						if(setReturnVariable){
+							rtn=obj;
+						}
+						else if(!StringUtil.isEmpty(name)) {
 							pageContext.setVariable(name,obj);
 						}
 						if(result!=null){
@@ -599,8 +604,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 					pageContext.getDebugger().addQuery(debugUsage?query:null,datasource!=null?datasource.getName():null,name,sql,query.getRecordcount(),getPageSource(),exe);
 				}
 			}
-			
-			if(!query.isEmpty() && !StringUtil.isEmpty(name)) {
+			if(setReturnVariable){
+				rtn=query;
+			}
+			else if(!query.isEmpty() && !StringUtil.isEmpty(name)) {
 				pageContext.setVariable(name,query);
 			}
 			
@@ -688,7 +695,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			PageContextImpl pci=(PageContextImpl) pageContext;
 			List<PageSource> list = pci.getPageSourceList();
 			int index=list.size()-1-nestingLevel;
-			if(index>0) return list.get(index);
+			if(index>=0) return list.get(index);
 		}
 		return pageContext.getCurrentPageSource();
 	}
@@ -759,10 +766,10 @@ cachename: Name of the cache in secondary cache.
 		
 		try {
 			if(lazy && !createUpdateData && cachedWithin==null && cachedAfter==null && result==null)
-				return new SimpleQuery(pageContext,dc,sql,maxrows,blockfactor,timeout,getName(),pageContext.getCurrentPageSource().getDisplayPath(),tz);
+				return new SimpleQuery(pageContext,dc,sql,maxrows,blockfactor,timeout,getName(),getPageSource().getDisplayPath(),tz);
 			
 			
-			return new QueryImpl(pageContext,dc,sql,maxrows,blockfactor,timeout,getName(),pageContext.getCurrentPageSource().getDisplayPath(),createUpdateData,true);
+			return new QueryImpl(pageContext,dc,sql,maxrows,blockfactor,timeout,getName(),getPageSource().getDisplayPath(),createUpdateData,true);
 		}
 		finally {
 			manager.releaseConnection(pageContext,dc);
@@ -778,5 +785,15 @@ cachename: Name of the cache in secondary cache.
 	@Override
 	public int doAfterBody()	{
 		return SKIP_BODY;
+	}
+	
+
+	public void setReturnVariable(boolean setReturnVariable) {
+		this.setReturnVariable=setReturnVariable;
+		
+	}
+	public Object getReturnVariable() {
+		return rtn;
+		
 	}
 }

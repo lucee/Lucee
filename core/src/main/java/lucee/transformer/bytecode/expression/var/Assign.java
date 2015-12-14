@@ -89,6 +89,8 @@ public class Assign extends ExpressionBase {
 		super(variable.getFactory(),variable.getStart(),end);
 		this.variable=variable;
 		this.value=value;
+		if(value instanceof Variable)
+			((Variable)value).assign(this);
 		//this.returnOldValue=returnOldValue;
 	}
 	
