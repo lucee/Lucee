@@ -32,6 +32,7 @@ import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.expression.var.DataMember;
+import lucee.transformer.expression.var.Member;
 import lucee.transformer.expression.var.Variable;
 
 import org.objectweb.asm.Type;
@@ -70,11 +71,11 @@ public final class VariableString extends ExpressionBase implements ExprString {
 		return lucee.runtime.type.util.ListUtil.arrayToList(variableToStringArray(var,rawIfPossible),".");
 	}
 	public static String[] variableToStringArray(Variable var, boolean rawIfPossible) throws TransformerException {
-		List members = var.getMembers();
+		List<Member> members = var.getMembers();
 			
 		List<String> arr=new ArrayList<String>();
 		if(var.getScope()!=Scope.SCOPE_UNDEFINED)arr.add(ScopeFactory.toStringScope(var.getScope(),"undefined"));
-		Iterator it = members.iterator();
+		Iterator<Member> it = members.iterator();
 		DataMember dm;
 		Expression n;
 		while(it.hasNext()) {
