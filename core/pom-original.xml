@@ -13,7 +13,7 @@
   <groupId>org.lucee</groupId>
   <artifactId>core</artifactId>
   <version>5.0.0.141</version>
-  <packaging>pom</packaging>
+  <packaging>lco</packaging>
 
   <name>Lucee Core Build</name>
   <description>Building the Lucee Core File</description>
@@ -42,6 +42,215 @@
     </developer>
   </developers>
    
+
+   
+
+  <build>
+      <plugins>
+        <!-- publish to central maven -->
+        <plugin>
+          <groupId>org.sonatype.plugins</groupId>
+          <artifactId>nexus-staging-maven-plugin</artifactId>
+          <version>1.6.3</version>
+          <extensions>true</extensions>
+          <configuration>
+            <serverId>ossrh</serverId>
+            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+          </configuration>
+        </plugin>
+
+        <!-- GPG sign -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>1.5</version>
+          <executions>
+            <execution>
+              <id>sign-artifacts</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>sign</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
+        <!-- -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5</version>
+          <configuration>
+            <autoVersionSubmodules>true</autoVersionSubmodules>
+            <useReleaseProfile>false</useReleaseProfile>
+            <releaseProfiles>release</releaseProfiles>
+            <goals>deploy</goals>
+          </configuration>
+        </plugin> 
+
+
+        <!--  -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+<!--
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>attach-javadocs</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            <configuration>  
+                <additionalparam>-Xdoclint:none</additionalparam>
+                <additionnalDependencies>
+                  <additionnalDependency>
+                   <groupId>org.lucee</groupId>
+                   <artifactId>lucee</artifactId>
+                   <version>5.0.0.22</version>
+                  </additionnalDependency>
+                </additionnalDependencies>
+            </configuration>
+            </execution>
+          </executions>
+        </plugin> -->
+
+
+
+
+      <!-- plugin to build Lucee Core Files (.lco) -->
+         <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.8</version>
+            <executions>
+              <execution>
+                <id>ant-magic</id>
+                <phase>validate</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <tasks>
+                    <!-- get dependencies -->
+                    <dependencyfilesets prefix="mydeps."/>
+                    <path id="maven-ant-tasks.classpath" >
+                      <fileset refid="mydeps.org.apache.maven:maven-ant-tasks:jar"/>
+                    </path>
+                    <pathconvert property="dependencies" refid="mydeps.maven.project.dependencies"/>
+                    
+                    <property name="version" value="${project.version}"/>
+                        
+                    <!-- <property name="compile_classpath" refid="maven.compile.classpath"/> -->
+                    <property name="runtime_classpath" refid="maven.runtime.classpath"/>
+                            
+                    <property name="outputDir" value="${project.build.outputDirectory}"/>
+                    <!-- <property name="sourceDir" value="${project.build.sourceDirectory}"/> -->
+                    <property name="baseDir" value="${basedir}"/>
+                    <dirname file="${baseDir}" property="rootDir" />
+
+                    <ant antfile="../ant/build-core.xml" target="buildCore"/>
+                  </tasks>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+
+
+         <!-- creates the .lco file, this plugin extends the jar plugin from maven-->
+        <plugin>
+          
+          <groupId>org.lucee</groupId>
+          <artifactId>lco-plugin</artifactId>
+          <version>1.02-SNAPSHOT</version>
+<!--
+           TODO problem s that implementation ignores the manifest definition
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>2.6</version> -->
+
+          <!--declare that this plugin contributes the component extensions-->
+          <configuration>
+            <excludes>
+              <exclude>.*</exclude>
+            </excludes>
+            <archive>
+              <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+            </archive>       
+          </configuration>
+
+
+          <extensions>true</extensions>
+        </plugin>
+         
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+           <artifactId>maven-compiler-plugin</artifactId>
+           <version>3.3</version>
+           <configuration>
+             <source>1.7</source>
+             <target>1.7</target>
+              <excludes>
+                  <exclude>**/*.java</exclude>
+                </excludes>
+           </configuration>
+
+      </plugin>
+
+
+
+      </plugins>
+      <pluginManagement>
+      	<plugins>
+      		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+      		<plugin>
+      			<groupId>org.eclipse.m2e</groupId>
+      			<artifactId>lifecycle-mapping</artifactId>
+      			<version>1.0.0</version>
+      			<configuration>
+      				<lifecycleMappingMetadata>
+      					<pluginExecutions>
+      						<pluginExecution>
+      							<pluginExecutionFilter>
+      								<groupId>
+      									org.apache.maven.plugins
+      								</groupId>
+      								<artifactId>
+      									maven-antrun-plugin
+      								</artifactId>
+      								<versionRange>
+      									[1.8,)
+      								</versionRange>
+      								<goals>
+      									<goal>run</goal>
+      								</goals>
+      							</pluginExecutionFilter>
+      							<action>
+      								<ignore></ignore>
+      							</action>
+      						</pluginExecution>
+      					</pluginExecutions>
+      				</lifecycleMappingMetadata>
+      			</configuration>
+      		</plugin>
+      	</plugins>
+      </pluginManagement>
+  </build>
+
+
+
 
 	<dependencies>
 	   
@@ -629,7 +838,6 @@
          <type>jar</type>
          <version>1.2.2</version>
       </dependency>
-   </dependencies>
 
 <!-- xmpcore - 5.1.2 -->
       <dependency>
@@ -639,6 +847,8 @@
          <version>5.1.2</version>
          <scope>compile</scope>
       </dependency>
+   </dependencies>
+
 
    <repositories>
       <repository>
@@ -651,6 +861,7 @@
       </repository>
    </repositories>
 
+  
   <scm>
     <url>https://github.com/lucee/Lucee</url>
     <connection>scm:git:git://github.com/lucee/Lucee.git</connection>
