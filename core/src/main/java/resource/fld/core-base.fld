@@ -4301,6 +4301,7 @@ EntitySave(entity, [forceinsert])</description>
     	    </argument>
     	    <argument>
     			<name>name</name>
+    			<alias>queryName</alias>
     			<type>string</type>
     			<status>hidden</status>
     			<required>No</required>
