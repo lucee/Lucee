@@ -71,7 +71,7 @@ public class ImageMetaDrew {
 		InputStream is=null;
 		try {
 			is = res.getInputStream();
-			fill(info,TiffMetadataReader.readMetadata(is,true));
+			fill(info,TiffMetadataReader.readMetadata(is));
 		}
 		catch(Throwable t) {
 			//throw Caster.toPageException(t);
