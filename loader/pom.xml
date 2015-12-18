@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.147-SNAPSHOT</version>
+  <version>5.0.0.148-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -899,7 +899,7 @@
 <dependency>
 	<groupId>javax.mail</groupId>
 	<artifactId>activation</artifactId>
-	<version>1.4.7</version>
+	<version>1.4.7.0001L</version>
     <scope>compile</scope>
 </dependency>
   
