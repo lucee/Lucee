@@ -12,6 +12,7 @@ Bundle-SymbolicName: lucee.core
 Import-Package: coldfusion.xml.rpc,com.allaire.cfx,
  com.sun.management,com.sun.mail.smtp,com.sun.net.ssl.internal.ssl,
  javax.el,javax.servlet,javax.servlet.jsp,javax.script,javax.activation,
+ javax.imageio.plugins.jpeg,
  org.osgi.framework
 Export-Package: coldfusion,
  coldfusion.image,
