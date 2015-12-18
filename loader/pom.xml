@@ -420,6 +420,15 @@
          <scope>compile</scope>
       </dependency>
 
+<!-- jffmpeg - 1.4.2.09001L -->
+      <dependency>
+         <groupId>jffmpeg</groupId>
+         <artifactId>jffmpeg</artifactId>
+         <type>jar</type>
+         <version>1.4.2.09001L</version>
+         <scope>compile</scope>
+      </dependency>
+
 <!--
 	Bundle-SymbolicName: org.apache.commons.fileupload
 	Bundle-Version: 1.3.1

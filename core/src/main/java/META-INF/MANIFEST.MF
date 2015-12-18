@@ -377,6 +377,7 @@ Require-Bundle: org.apache.sanselan.sanselan;bundle-version=0.97.0.incubator,
  xmlparserv2;bundle-version=1.2.2,
  org.apache.commons.email;bundle-version=1.2.0.0001L,
  xmpcore;bundle-version=5.1.2
+ jffmpeg;bundle-version=1.4.2.09001L,
 Require-Extension: 7E673D15-D87C-41A6-8B5F1956528C605F,
  99A4EF8D-F2FD-40C8-8FB8C2E67A4EEEB6,
  671B01B8-B3B3-42B9-AC055A356BED5281,

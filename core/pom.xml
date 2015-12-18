@@ -94,7 +94,15 @@
 		<artifactId>sanselan</artifactId>
 		<version>0.97-incubator</version>
 	</dependency>
-
+	
+<!-- jffmpeg - 1.4.2.09001L -->
+      <dependency>
+         <groupId>jffmpeg</groupId>
+         <artifactId>jffmpeg</artifactId>
+         <type>jar</type>
+         <version>1.4.2.09001L</version>
+         <scope>compile</scope>
+      </dependency>
 
 <!-- org.apache.commons.codec - 1.10 
 	Bundle-SymbolicName: org.apache.commons.codec
