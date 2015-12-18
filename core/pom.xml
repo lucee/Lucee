@@ -578,12 +578,12 @@
          <type>jar</type>
          <version>1.2.4</version>
       </dependency>
-<!-- sun.xml.jaxrpc - 1.2.1 -->
+<!-- sun.xml.jaxrpc -->
       <dependency>
          <groupId>sun.xml</groupId>
          <artifactId>jaxrpc</artifactId>
          <type>jar</type>
-         <version>1.2.1</version>
+         <version>1.2.1.0001L</version>
       </dependency>
 <!-- sun.xml.wsdl4j - 1.5.1 -->
       <dependency>
