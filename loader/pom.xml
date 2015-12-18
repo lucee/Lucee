@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.148-SNAPSHOT</version>
+  <version>5.0.0.149-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -917,14 +917,14 @@
     <version>1.5.1</version>
     <scope>compile</scope>
   </dependency>
-<!-- sun.xml.saaj - 1.2.1 -->
-  <dependency>
-    <groupId>sun.xml</groupId>
-    <artifactId>saaj</artifactId>
-    <type>jar</type>
-    <version>1.2.1</version>
-    <scope>compile</scope>
-  </dependency>
+<!-- sun.xml.saaj - 1.2.1.0001L -->
+      <dependency>
+         <groupId>sun.xml</groupId>
+         <artifactId>saaj</artifactId>
+         <type>jar</type>
+         <version>1.2.1.0001L</version>
+         <scope>compile</scope>
+      </dependency>
 <!-- tagsoup - 1.2.1 -->
   <dependency>
     <groupId>tagsoup</groupId>
