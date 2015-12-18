@@ -22,6 +22,7 @@ import java.nio.charset.Charset;
 
 import javax.servlet.jsp.tagext.Tag;
 
+import lucee.commons.io.CharsetUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
@@ -57,6 +58,9 @@ public final class MailPart extends BodyTagImpl {
      */
     public void setCharset(Charset charset) {
         part.setCharset(charset);
+    }
+    public void setCharset(String charset) {
+        setCharset(CharsetUtil.toCharset(charset));
     }
     
     /**
