@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.146-SNAPSHOT</version>
+  <version>5.0.0.147-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -846,20 +846,20 @@
     <version>1.1.1</version>
     <scope>compile</scope>
   </dependency> -->
-<!-- sun.jai.codec - 1.1.2 -->
+<!-- sun.jai.codec -->
   <dependency>
     <groupId>sun.jai</groupId>
     <artifactId>codec</artifactId>
     <type>jar</type>
-    <version>1.1.2</version>
+    <version>1.1.2.0003L</version>
     <scope>compile</scope>
   </dependency>
-<!-- sun.jai.core - 1.2.1.0002L -->
+<!-- sun.jai.core -->
       <dependency>
          <groupId>sun.jai</groupId>
          <artifactId>core</artifactId>
          <type>jar</type>
-         <version>1.2.1.0002L</version>
+         <version>1.2.1.0003L</version>
          <scope>compile</scope>
       </dependency>
 <!-- sun.jndi.ldap - 1.2.4 -->
