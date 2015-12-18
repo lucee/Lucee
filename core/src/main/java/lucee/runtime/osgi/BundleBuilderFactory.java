@@ -468,7 +468,7 @@ public class BundleBuilderFactory {
 					Attributes attrs = manifest.getMainAttributes();
 					
 					// they are in bootdelegation
-					ManifestUtil.removeFromList(attrs,"Import-Package","javax.*"); 
+					//ManifestUtil.removeFromList(attrs,"Import-Package","javax.*"); 
 					ManifestUtil.removeOptional(attrs,"Import-Package"); 
 					
 					//ManifestUtil.removeFromList(attrs,"Import-Package","org.osgi.*");
