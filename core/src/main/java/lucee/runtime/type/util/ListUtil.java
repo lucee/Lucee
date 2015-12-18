@@ -1528,7 +1528,7 @@ public final class ListUtil {
 	}
 	
 	public static Set<String> listToSet(String list, String delimiter,boolean trim) {
-	    if(list.length()==0) return new HashSet<String>();
+	    if(list==null || list.length()==0) return new HashSet<String>();
 		int len=list.length();
 		int last=0;
 		char[] del=delimiter.toCharArray();
