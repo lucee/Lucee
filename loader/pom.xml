@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.142-SNAPSHOT</version>
+  <version>5.0.0.143-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -482,17 +482,14 @@
   <version>3.4</version>
   <scope>compile</scope></dependency>-->
 
-<!--
-	Bundle-SymbolicName: org.apache.commons.logging
-	Bundle-Version: 1.2.0
-  source: lucee
--->
-	<dependency>
-		<groupId>org.apache.commons.logging</groupId>
-		<artifactId>adapters</artifactId>
-		<version>1.1.1</version>
-	  <scope>compile</scope>
-  </dependency>
+<!-- org.apache.commons.logging.adapters - 1.1.1.0001L -->
+      <dependency>
+         <groupId>org.apache.commons.logging</groupId>
+         <artifactId>adapters</artifactId>
+         <type>jar</type>
+         <version>1.1.1.0001L</version>
+         <scope>compile</scope>
+      </dependency>
 
 <!--
   Bundle-SymbolicName: org.apache.commons.logging.api
@@ -571,14 +568,14 @@
   </dependency>
 <!-- 
   Bundle-SymbolicName: apache.ws.axis
-  Bundle-Version: 1.4.0.L004
+  Bundle-Version: 1.4.0.L006
   source: lucee
 -->
   <dependency>
     <groupId>apache.ws</groupId>
     <artifactId>axis</artifactId>
     <type>jar</type>
-    <version>1.4.0.L004</version>
+    <version>1.4.0.L006</version>
     <scope>compile</scope>
   </dependency>
       
@@ -588,7 +585,7 @@
     <groupId>apache.xml</groupId>
     <artifactId>xalan</artifactId>
     <type>jar</type>
-    <version>2.7.2.0002L</version>
+    <version>2.7.2.0003L</version>
     <scope>compile</scope>
   </dependency>
 <!-- apache.xml.xalan.serializer - 2.7.2 -->
@@ -596,7 +593,7 @@
     <groupId>apache.xml.xalan</groupId>
     <artifactId>serializer</artifactId>
     <type>jar</type>
-    <version>2.7.2.0002L</version>
+    <version>2.7.2.0003L</version>
     <scope>compile</scope>
   </dependency>
 <!-- apache.xml.xerces - 2.11.0 -->
@@ -604,7 +601,7 @@
     <groupId>apache.xml</groupId>
     <artifactId>xerces</artifactId>
     <type>jar</type>
-    <version>2.11.0.0001L</version>
+    <version>2.11.0.0002L</version>
     <scope>compile</scope>
   </dependency>
 <!-- xml.apis - 1.4.1 -->

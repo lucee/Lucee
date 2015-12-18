@@ -220,15 +220,14 @@
 </dependency>-->
 
 
-<!-- org.apache.commons.logging.adapters - 1.2 
-	Bundle-SymbolicName: org.apache.commons.logging
-	Bundle-Version: 1.2.0
--->
-	<dependency>
-		<groupId>org.apache.commons.logging</groupId>
-		<artifactId>adapters</artifactId>
-		<version>1.1.1</version>
-	</dependency>
+<!-- org.apache.commons.logging.adapters - 1.1.1.0001L -->
+      <dependency>
+         <groupId>org.apache.commons.logging</groupId>
+         <artifactId>adapters</artifactId>
+         <type>jar</type>
+         <version>1.1.1.0001L</version>
+         <scope>compile</scope>
+      </dependency>
 
 <!-- org.apache.commons.logging.api - 1.1.1 -->
       <dependency>
@@ -281,33 +280,33 @@
          <type>jar</type>
          <version>1.4.0</version>
       </dependency>
-<!-- apache.ws.axis - 1.4.0.L004 -->
+<!-- apache.ws.axis - 1.4.0.L006 -->
       <dependency>
          <groupId>apache.ws</groupId>
          <artifactId>axis</artifactId>
          <type>jar</type>
-         <version>1.4.0.L004</version>
+         <version>1.4.0.L006</version>
       </dependency>
-<!-- apache.xml.xalan - 2.7.2 -->
+<!-- apache.xml.xalan -->
       <dependency>
          <groupId>apache.xml</groupId>
          <artifactId>xalan</artifactId>
          <type>jar</type>
-         <version>2.7.2.0002L</version>
+         <version>2.7.2.0003L</version>
       </dependency>
 <!-- apache.xml.xalan.serializer - 2.7.2 -->
       <dependency>
          <groupId>apache.xml.xalan</groupId>
          <artifactId>serializer</artifactId>
          <type>jar</type>
-         <version>2.7.2.0002L</version>
+         <version>2.7.2.0003L</version>
       </dependency>
 <!-- apache.xml.xerces - 2.11.0 -->
       <dependency>
          <groupId>apache.xml</groupId>
          <artifactId>xerces</artifactId>
          <type>jar</type>
-         <version>2.11.0.0001L</version>
+         <version>2.11.0.0002L</version>
       </dependency>
 <!-- xml.apis - 1.4.1 -->
       <dependency>
