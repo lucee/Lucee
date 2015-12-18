@@ -25,6 +25,7 @@ import java.net.URL;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -40,6 +41,7 @@ import java.util.jar.Manifest;
 import javax.servlet.ServletConfig;
 import javax.servlet.jsp.tagext.Tag;
 
+import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
@@ -4926,7 +4928,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     	String name=getString("admin",action,"name");
     	String symName=getString("symbolicname",null);
     	String existingRelation=getString("existingrelation",null);
-    	boolean doDyn=StringUtil.isEmpty(existingRelation) || existingRelation.equalsIgnoreCase("dynamic");
+    	//boolean doDyn=StringUtil.isEmpty(existingRelation) || (existingRelation=existingRelation.trim()).equalsIgnoreCase("dynamic");
+    	//print.e("dynamic:"+existingRelation+"<>"+doDyn);
     	
     	
     	boolean ignoreExistingManifest=getBoolV("ignoreExistingManifest",false);
@@ -4937,7 +4940,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     	
     	Set<String> relatedPackages=null;
     	try {
-    		relatedPackages=JarUtil.getExternalImports(jar, OSGiUtil.getBootdelegation());
+    		relatedPackages=JarUtil.getExternalImports(jar, new String[0]);// OSGiUtil.getBootdelegation()
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -4970,7 +4973,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     	String classPath=getString("classPath",null);
     	if(!StringUtil.isEmpty(classPath,true))factory.addClassPath(classPath.trim());
     	
+    	// dynamic import packages
     	String dynamicImportPackage=getString("dynamicimportpackage",null);
+    	if(!StringUtil.isEmpty(dynamicImportPackage,true))factory.addDynamicImportPackage(dynamicImportPackage=dynamicImportPackage.trim());
+    	Set<String> dynamicImportPackageSet = ListUtil.listToSet(dynamicImportPackage, ",", true);
+    	/*String dynamicImportPackage=getString("dynamicimportpackage",null);
     	if(doDyn) {
 	        if(relatedPackages.size()>0) {
 	    		// add importPackage to set
@@ -4984,9 +4991,14 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	    	}
 	        relatedPackages.clear();
     	}
-    	if(!StringUtil.isEmpty(dynamicImportPackage,true))factory.addDynamicImportPackage(dynamicImportPackage.trim());
+    	if(!StringUtil.isEmpty(dynamicImportPackage,true))factory.addDynamicImportPackage(dynamicImportPackage.trim());*/
     	
-    	// Import Package
+    // Import Package
+    	// we remove all imports that are defined as dyn import
+    	Iterator<String> it = dynamicImportPackageSet.iterator();
+    	while(it.hasNext()){
+    		relatedPackages.remove(it.next());
+    	}
     	String importPackage=getString("importpackage",null);
     	// add importPackage to set
 		if(!StringUtil.isEmpty(importPackage)) {
@@ -5008,19 +5020,27 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     		if(arr.length!=newDynImport.size())
     			dynamicImportPackage=ListUtil.listToListEL(newDynImport, ",");
     	}
-    	// Set to List
-		importPackage=ListUtil.toList(relatedPackages, ",");
-		
+
+    	List sortedList = new ArrayList(relatedPackages);
+    	Collections.sort(sortedList);
+		importPackage=ListUtil.toList(sortedList, ",");		
     	if(!StringUtil.isEmpty(importPackage,true))factory.addImportPackage(importPackage.trim());
     	
     	String bundleActivationPolicy=getString("bundleActivationPolicy",null);
     	if(!StringUtil.isEmpty(bundleActivationPolicy,true))factory.setBundleActivationPolicy(bundleActivationPolicy.trim());
     	
     	String exportPackage=getString("exportpackage",null);
-    	if(!StringUtil.isEmpty(exportPackage,true))factory.addExportPackage(exportPackage.trim());
+    	
+    	if(!StringUtil.isEmpty(exportPackage,true)){
+    		exportPackage=ListUtil.sort(exportPackage.trim(), "text", "asc", ",");
+    		factory.addExportPackage(exportPackage);
+    	}
     	
     	String requireBundle=getString("requireBundle",null);
-    	if(!StringUtil.isEmpty(requireBundle,true))factory.addRequireBundle(requireBundle.trim());
+    	if(!StringUtil.isEmpty(requireBundle,true)){
+    		requireBundle=ListUtil.sort(requireBundle.trim(), "text", "asc", ",");
+    		factory.addRequireBundle(requireBundle);
+    	}
     	
     	String fragmentHost=getString("fragmentHost",null);
     	if(!StringUtil.isEmpty(fragmentHost,true))factory.addFragmentHost(fragmentHost.trim());
