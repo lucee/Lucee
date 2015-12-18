@@ -154,15 +154,14 @@
 		<version>0.5</version>
 	</dependency>
 
-<!-- org.apache.commons.email - 1.4 
-	Bundle-SymbolicName: org.apache.commons.email
-	Bundle-Version: 1.4.0
--->
-	<dependency>
-		<groupId>org.apache.commons</groupId>
-		<artifactId>commons-email</artifactId>
-		<version>1.2</version>
-	</dependency>
+<!-- org.apache.commons.email - 1.2.0.0001L -->
+      <dependency>
+         <groupId>org.apache.commons</groupId>
+         <artifactId>email</artifactId>
+         <type>jar</type>
+         <version>1.2.0.0001L</version>
+         <scope>compile</scope>
+      </dependency>
 
 <!-- org.apache.commons.fileupload
 	Bundle-SymbolicName: org.apache.commons.fileupload
