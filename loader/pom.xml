@@ -826,7 +826,7 @@
     <groupId>stax</groupId>
     <artifactId>api</artifactId>
     <type>jar</type>
-    <version>1.0.1</version>
+    <version>1.0.1.0001L</version>
     <scope>compile</scope>
   </dependency>
 <!-- javax.activation - 1.1.1
