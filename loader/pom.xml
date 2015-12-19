@@ -572,7 +572,7 @@
     <groupId>apache.ws</groupId>
     <artifactId>axis</artifactId>
     <type>jar</type>
-    <version>1.4.0.L006</version>
+    <version>1.4.0.L007</version>
     <scope>compile</scope>
   </dependency>
       
@@ -914,7 +914,7 @@
     <groupId>sun.xml</groupId>
     <artifactId>wsdl4j</artifactId>
     <type>jar</type>
-    <version>1.5.1</version>
+    <version>1.5.1.0001L</version>
     <scope>compile</scope>
   </dependency>
 <!-- sun.xml.saaj - 1.2.1.0001L -->
