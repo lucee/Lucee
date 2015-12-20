@@ -3,8 +3,16 @@ package lucee.runtime.template;
 import java.util.Arrays;
 import java.util.List;
 
+import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
 
+/**
+ * Template engines are the interface used to convert source files
+ * into Page objects.
+ * 
+ * @author dajester2013
+ *
+ */
 public abstract class TemplateEngine {
 	
 	private String label;
@@ -48,6 +56,22 @@ public abstract class TemplateEngine {
 		return this.extensions.contains(extension);
 	}
 	
+	final public int getDialect() {
+		int _d = _getDialect();
+		switch (_d) {
+			case CFMLEngine.DIALECT_BOTH:
+			case CFMLEngine.DIALECT_CFML:
+			case CFMLEngine.DIALECT_LUCEE:
+				return _d;
+			
+			default:
+				return CFMLEngine.DIALECT_LUCEE;
+		}
+	}
+	
+	int _getDialect() {
+		return CFMLEngine.DIALECT_LUCEE;
+	}
 	
 	abstract public TemplatePageFactory getPageFactory();
 	

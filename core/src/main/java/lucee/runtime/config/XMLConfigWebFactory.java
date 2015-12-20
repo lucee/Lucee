@@ -157,6 +157,8 @@ import lucee.runtime.security.SecurityManager;
 import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.spooler.SpoolerEngineImpl;
 import lucee.runtime.tag.TagUtil;
+import lucee.runtime.template.CFTemplateEngine;
+import lucee.runtime.template.LuceeTemplateEngine;
 import lucee.runtime.template.TemplateEngine;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.type.Collection.Key;
@@ -1444,6 +1446,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		ClassDefinition cd;
 		Class clazz;
 		
+		/* load the configured template enignes first */
 		if (configServer != null && config instanceof ConfigWeb) {
 			for (TemplateEngine cste : configServer.getTemplateEngines()) {
 				templateEngines.add(cste);
@@ -1484,17 +1487,28 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					
 				}
 			}
-			
-			if (templateEngines.size() > 0) {
-				TemplateEngine[] engines = new TemplateEngine[templateEngines.size()];
-				
-				int i=0;
-				for (TemplateEngine e : templateEngines)
-					engines[i++] = e;
-					
-				config.setTemplateEngines(engines);
-			}
 		}
+
+
+		if (config instanceof ConfigWeb) {
+			/* load the built-in engines here */
+			TemplateEngine cfEngine = new CFTemplateEngine(config);
+			cfEngine.setExtensions(Constants.getCFMLExtensions());
+			
+			TemplateEngine luceeEngine = new LuceeTemplateEngine(config);
+			luceeEngine.setExtensions(Constants.getLuceeExtensions());
+			
+			templateEngines.add(cfEngine);
+			templateEngines.add(luceeEngine);
+		}
+		
+		TemplateEngine[] teArr = new TemplateEngine[templateEngines.size()];
+		int i=0;
+		for (TemplateEngine te : templateEngines) {
+			teArr[i++] = te;
+		}
+		
+		config.setTemplateEngines(teArr);
 	}
 
 	/**

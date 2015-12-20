@@ -353,11 +353,6 @@ public final class MappingImpl implements Mapping {
 		if(source!=null) return source;
 
 		PageSourceImpl newSource = new PageSourceImpl(this,path,isOut);
-		TemplateEngine te = this.getConfig().getTemplateEngine(path);
-		
-		if (te != null) {
-			newSource.setTemplateEngineIf(te);
-		}
 		
 		pageSourcePool.setPage(path,newSource);
 		
