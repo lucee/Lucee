@@ -34,6 +34,7 @@ import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.compiler.CFMLCompilerImpl.Result;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Constants;
@@ -895,8 +896,13 @@ public final class PageSourceImpl implements PageSource {
 
 	@Override
 	public int getDialect() {
+		// page sources that are not a known dialect, default to lucee if enabled, otherwise fallback to CFML dialect.
+		boolean allowLuceeDialect = ((ConfigImpl)getMapping().getConfig()).allowLuceeDialect();
 		// MUST is the mapping always configWeb?
-		return ((ConfigWeb)getMapping().getConfig()).getFactory().toDialect(ResourceUtil.getExtension(relPath, Constants.getLuceeComponentExtension()));
+		return allowLuceeDialect
+				?	((ConfigWeb)getMapping().getConfig()).getFactory().toDialect(ResourceUtil.getExtension(relPath, Constants.getLuceeComponentExtension()))
+				:	CFMLEngine.DIALECT_CFML		
+				;
 	}
 
 	/**

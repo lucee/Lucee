@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
-	
+
 	//public function beforeTests(){}
-	
+
 	//public function afterTests(){}
 
 	//public function setUp(){}
@@ -9,11 +9,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	private void function directoryCreateDelete(string label,string dir){
 		var sub=arguments.dir&"test1/";
 		var subsub=sub&"test2/";
-	    
+
 		// before doing anything it should not exist
 		assertFalse(directoryExists(sub));
 	    assertFalse(directoryExists(subsub));
-	    
+
 	    // create the dirs
 	    directory directory="#sub#" action="create";
 	    directory directory="#subsub#" action="create";
@@ -21,7 +21,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	    // now it should exist
 	    assertTrue(directoryExists(sub));
 	    assertTrue(directoryExists(subsub));
-	    
+
 	    // delete them again
 	    directory directory="#subsub#" action="delete" recurse="no";
 	    directory directory="#sub#" action="delete" recurse="no";
@@ -38,7 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	    // now it should exist
 	    assertTrue(directoryExists(sub));
 	    assertTrue(directoryExists(subsub));
-	    
+
 	    // delete them again
 	    directory directory="#sub#" action="delete" recurse="yes";
 
@@ -66,7 +66,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	    assertTrue(hasException);
 
 	    directory directory="#sub#" action="delete" recurse="yes";
-	    
+
 		// should be gone again
 	    assertFalse(directoryExists(sub));
 	    assertFalse(directoryExists(subsub));
@@ -89,16 +89,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		    file action="write" file="#sf#" output="" addnewline="no" fixnewline="no";
 		    file action="write" file="#sdsf#" output="" addnewline="no" fixnewline="no";
 		    file action="write" file="#sdsdsf#" output="" addnewline="no" fixnewline="no";
-		    
+
 		    directory directory="#dir#" action="list" name="children" recurse="no";
 		    assertEquals(2,children.recordcount);
 		    assertEquals("test1,test2.txt",	listSort(valueList(children.name),'textnocase'));
 		    assertEquals("0,0",				listSort(valueList(children.size),'textnocase'));
 		    assertEquals("Dir,File",		listSort(valueList(children.type),'textnocase'));
-		    
+
 		    directory directory="#dir#" action="list" name="children" recurse="yes";
 		    assertEquals(5,children.recordcount);
-		    
+
 		    directory directory="#dir#" action="list" name="children" recurse="yes" filter="*5.txt";
 		    assertEquals(1,children.recordcount);
 	    }
@@ -124,14 +124,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		    file action="write" file="#sf#" output="" addnewline="no" fixnewline="no";
 		    file action="write" file="#sdsf#" output="" addnewline="no" fixnewline="no";
 		    file action="write" file="#sdsdsf#" output="" addnewline="no" fixnewline="no";
-		    
+
 		    directory directory="#dir#" action="list" name="children" recurse="yes";
 		    assertEquals("test1,test2.txt,test3,test4.txt,test5.txt",
 		  		listSort(valueList(children.name),'textnocase'));
 
 		    directory directory="#sdsd#" action="rename" newdirectory="#sdsdNew#";
 		    directory directory="#sd#" action="rename" newdirectory="#sdNew#";
-		    
+
 		    directory directory="#dir#" action="list" name="children" recurse="yes";
 		    assertEquals("test1New,test2.txt,test3New,test4.txt,test5.txt",
 		  		ListSort( valueList(children.name),'text'));
@@ -158,7 +158,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		    file action="write" file="#s#" output="aaa" addnewline="no" fixnewline="no";
 		    file action="copy" source="#s#" destination="#d#";
 		    file action="copy" source="#s#" destination="#sdsf#";
-		    
+
 		    directory directory="#dir#" action="list" name="children" recurse="yes";
 		    assertEquals("copy1.txt,copy2.txt,test1,test4.txt",
 			  		ListSort(valueList(children.name),'text'));
@@ -171,7 +171,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	private void function fileAMove(string label,string dir){
-	
+
 	    var children="";
 	    var s=arguments.dir&"move1.txt";
 	    var d=arguments.dir&"move2.txt";
@@ -182,7 +182,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		    file action="write" file="#s#" output="" addnewline="no" fixnewline="no";
 		    file action="move" source="#s#" destination="#d#";
 		    file action="move" source="#d#" destination="#sdsf#";
-		    
+
 		    directory directory="#dir#" action="list" name="children" recurse="yes";
 		    assertEquals("test1,test4.txt",
 			  		valueList(children.name));
@@ -209,7 +209,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	private void function fileAReadBinary(string label,string dir){
 	    var content="";
 	    var s=arguments.dir&"read.gif";
-	    
+
 	    try {
 		    file action="write" file="#s#" output="Susi" addnewline="no" fixnewline="no";
 	    	file action="readbinary" file="#s#" variable="content";
@@ -225,9 +225,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 private function testResourceDirectoryCreateDelete(res) localMode=true {
     sss=res.getRealResource("s/ss");
 
-    // must fail 
+    // must fail
     try{
-        sss.createDirectory(false); 
+        sss.createDirectory(false);
         fail=false;
     }
     catch(e){fail=true;}
@@ -243,7 +243,7 @@ private function testResourceDirectoryCreateDelete(res) localMode=true {
 
     // must fail dir with kids
     try{
-        s.remove(false); 
+        s.remove(false);
         fail=false;
     }
     catch(e){fail=true;}
@@ -253,20 +253,20 @@ private function testResourceDirectoryCreateDelete(res) localMode=true {
     s.remove(true);
     assertFalse(s.exists());
 
-    // must fail 
-    try{ 
+    // must fail
+    try{
         s.remove(true);// delete
        fail=false;
     }
     catch(e){fail=true;}
     assertTrue(fail);
-    
+
     assertFalse(sss.exists());
 
 
     d=res.getRealResource("notExist");
     try{
-        d.remove(false); 
+        d.remove(false);
         fail=false;
     }
     catch(e){fail=true;}
@@ -274,12 +274,12 @@ private function testResourceDirectoryCreateDelete(res) localMode=true {
 }
 
 private function testResourceFileCreateDelete(res) localMode=true {
-    
+
     sss=res.getRealResource("s/ss.txt");
 
-    // must fail 
+    // must fail
     try{
-        sss.createFile(false); 
+        sss.createFile(false);
         fail=false;
     }
     catch(e){fail=true;}
@@ -291,9 +291,9 @@ private function testResourceFileCreateDelete(res) localMode=true {
 
     s=sss.getParentresource();
 
-    // must fail 
+    // must fail
     try{
-        s.remove(false); 
+        s.remove(false);
         fail=false;
     }
     catch(e){fail=true;}
@@ -305,12 +305,12 @@ private function testResourceFileCreateDelete(res) localMode=true {
 }
 
 private function testResourceListening(res) localMode=true {
-    s=res.getRealResource("s/ss.txt");
-    s.createFile(true); 
+	s=res.getRealResource("s/ss.txt");
+    s.createFile(true);
     ss=res.getRealResource("ss/");
     ss.createDirectory(true);
     sss=res.getRealResource("sss.txt");
-    sss.createFile(true); 
+    sss.createFile(true);
 
     // all
     children=res.list();
@@ -328,7 +328,7 @@ private function toResource(string path) localMode=true {
 }
 
 private function testResourceIS(res) localMode=true {
-    
+
     // must be a existing dir
     assertTrue(res.exists());
     assertTrue(res.isDirectory());
@@ -348,7 +348,7 @@ private function testResourceIS(res) localMode=true {
 
 private function testResourceMoveCopy(res) localMode=true {
     o=res.getRealResource("original.txt");
-    o.createFile(true); 
+    o.createFile(true);
     assertTrue(o.exists());
 
     // copy
@@ -373,12 +373,12 @@ private function testResourceMoveCopy(res) localMode=true {
 
 }
 
-private function testResourceGetter(res) localMode=true {
-    f=res.getRealResource("original.txt");
+private function testResourceGetter(res, fsep) localMode=true {
+	f=res.getRealResource("original.txt");
     d=res.getRealResource("dir/");
     d2=res.getRealResource("dir2")
     dd=res.getRealResource("dir/test.txt");
-    
+
     // Name
     assertEquals("original.txt",f.getName());
     assertEquals("dir",d.getName());
@@ -388,15 +388,15 @@ private function testResourceGetter(res) localMode=true {
     assertEquals("dir",dd.getParentResource().getName());
 
     // getRealPath
-    assertEquals(res.toString()&"/dir/test.txt",dd.toString());
+    assertEquals(res.toString()&"#fsep#dir#fsep#test.txt",dd.toString());
 
 }
 
 private function testResourceReadWrite(res) localMode=true {
     f=res.getRealResource("original.txt");
-    
+
     IOUtil=createObject("java","lucee.commons.io.IOUtil");
-    
+
     IOUtil.write(f, "Susi Sorglos", nullValue(), false);
     res=IOUtil.toString(f,nullValue());
     assertEquals("Susi Sorglos",res);
@@ -410,74 +410,74 @@ private function testResourceReadWrite(res) localMode=true {
     assertEquals("Susi Sorglos foehnte Ihr Haar",res);
 }
 
-private function testResourceProvider(string path) localmode=true {
+private function testResourceProvider(string path, string fsep) localmode=true {
     // first we ceate a resource object
     res=createObject('java','lucee.commons.io.res.util.ResourceUtil').toResourceNotExisting(getPageContext(), path);
 
     // delete when exists
     if(res.exists()) res.remove(true);
-    
+
     // test create/delete directory
     try {
-        res.createDirectory(true); 
+        res.createDirectory(true);
         testResourceDirectoryCreateDelete(res);
     }
-    finally {if(res.exists()) res.remove(true);} 
-    
+    finally {if(res.exists()) res.remove(true);}
+
     // test create/delete file
     try {
-        res.createDirectory(true); 
+        res.createDirectory(true);
         testResourceFileCreateDelete(res);
     }
-    finally {if(res.exists()) res.remove(true);} 
-    
+    finally {if(res.exists()) res.remove(true);}
+
     // test listening
     try {
-        res.createDirectory(true); 
+        res.createDirectory(true);
         testResourceListening(res);
     }
-    finally {if(res.exists()) res.remove(true);} 
+    finally {if(res.exists()) res.remove(true);}
 
     // test "is"
     try {
-        res.createDirectory(true); 
+        res.createDirectory(true);
         testResourceIS(res);
     }
-    finally {if(res.exists()) res.remove(true);} 
+    finally {if(res.exists()) res.remove(true);}
 
     // test move and copy
     try {
-        res.createDirectory(true); 
+        res.createDirectory(true);
         testResourceMoveCopy(res);
     }
-    finally {if(res.exists()) res.remove(true);} 
+    finally {if(res.exists()) res.remove(true);}
 
     // test Getter
     try {
-        res.createDirectory(true); 
-        testResourceGetter(res);
+        res.createDirectory(true);
+        testResourceGetter(res, fsep);
     }
-    finally {if(res.exists()) res.remove(true);} 
+    finally {if(res.exists()) res.remove(true);}
 
     // test read/write
     try {
-        res.createDirectory(true); 
+        res.createDirectory(true);
         testResourceReadWrite(res);
     }
-    finally {if(res.exists()) res.remove(true);} 
+    finally {if(res.exists()) res.remove(true);}
 
-    
+
 }
 
 
 
 
 
-	private void function test(string label,string root){
+	private void function test(string label,string root,string fsep=server.separator.file){
 		var start=getTickCount();
 		var dir=arguments.root&"testResource/";
-		
-		// make sure there are no data from a previous run 
+
+		// make sure there are no data from a previous run
 		if(directoryExists(dir)) {
 			directory directory="#dir#" action="delete" recurse="yes";
 		}
@@ -491,12 +491,12 @@ private function testResourceProvider(string path) localmode=true {
 		    fileAMove(arguments.label,dir);
 		    fileAReadAppend(arguments.label,dir);
 		    fileAReadBinary(arguments.label,dir);
-		    testResourceProvider(dir&"testcaseRes");
-		    
+		    testResourceProvider(dir&"testcaseRes", fsep);
+
 		}
 		finally {
 			directory directory="#dir#" action="delete" recurse="yes";
-		}   
+		}
 		assertFalse(DirectoryExists(dir));
 
 	}
@@ -517,7 +517,7 @@ private function testResourceProvider(string path) localmode=true {
 	}
 
 	public void function testRam(){
-		test("ram","ram://");
+		test("ram","ram://","/");
 	}
 
 	public void function testLocalFilesystem(){
@@ -544,11 +544,8 @@ private function testResourceProvider(string path) localmode=true {
 	public void function testS3() localmode=true{
 		var s3=getCredencials();
 		if(!isNull(s3.accessKeyId)) {
-			application action="update" s3=s3; 
+			application action="update" s3=s3;
 			test("s3","s3:///");
 		}
 	}
-} 
-
-
-
+}
