@@ -851,4 +851,6 @@ public interface Config {
 	public TemplateEngine[] getTemplateEngines();
 	
 	public TemplateEngine getTemplateEngine(String path);
+	
+	public boolean allowLuceeDialect();
 }

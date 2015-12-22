@@ -1499,7 +1499,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			luceeEngine.setExtensions(Constants.getLuceeExtensions());
 			
 			templateEngines.add(cfEngine);
-			templateEngines.add(luceeEngine);
+			
+			// TODO: make this configurable
+			if (config.allowLuceeDialect()) {
+				templateEngines.add(luceeEngine);
+				((ConfigImpl)config).setDefaultTemplateEngine(luceeEngine);
+			} else {
+				((ConfigImpl)config).setDefaultTemplateEngine(cfEngine);
+			}
 		}
 		
 		TemplateEngine[] teArr = new TemplateEngine[templateEngines.size()];

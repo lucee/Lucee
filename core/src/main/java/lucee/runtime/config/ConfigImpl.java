@@ -425,6 +425,7 @@ public abstract class ConfigImpl implements Config {
 	private Map<Integer,Object> cachedWithins=new HashMap<Integer, Object>();
 	
 	private TemplateEngine[] templateEngines = new TemplateEngine[0];
+	private TemplateEngine defaultTemplateEngine;
 
 	private int queueMax=100;
 	private long queueTimeout=0;
@@ -3444,15 +3445,18 @@ public abstract class ConfigImpl implements Config {
     	this.templateEngines = templateEngines;
     }
     
+    public void setDefaultTemplateEngine(TemplateEngine templateEngine) {
+    	this.defaultTemplateEngine = templateEngine;
+    }
+    
     @Override
     public TemplateEngine[] getTemplateEngines() {
     	return this.templateEngines;
     }
     
     public TemplateEngine getTemplateEngine(String path) {
-		TemplateEngine plugin = null;
-
-		// TODO: replace empty array with a call to get the list from the Config
+		TemplateEngine plugin = defaultTemplateEngine;
+		
 		for (TemplateEngine _plugin : this.getTemplateEngines()) {
 			if (_plugin.handlesExtension(ResourceUtil.getExtension(path, null))) {
 				plugin = _plugin;
@@ -3582,6 +3586,7 @@ public abstract class ConfigImpl implements Config {
 	}
 
 	private boolean allowLuceeDialect=false;
+	@Override
 	public boolean allowLuceeDialect() {
 		return allowLuceeDialect;
 	}

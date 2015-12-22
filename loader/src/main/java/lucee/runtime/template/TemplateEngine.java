@@ -70,7 +70,7 @@ public abstract class TemplateEngine {
 	}
 	
 	int _getDialect() {
-		return CFMLEngine.DIALECT_LUCEE;
+		return config.allowLuceeDialect() ? CFMLEngine.DIALECT_LUCEE : CFMLEngine.DIALECT_CFML;
 	}
 	
 	abstract public TemplatePageFactory getPageFactory();
