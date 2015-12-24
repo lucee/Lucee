@@ -138,8 +138,6 @@ import lucee.runtime.util.Strings;
 import lucee.runtime.util.SystemUtilImpl;
 import lucee.runtime.util.TemplateUtil;
 import lucee.runtime.util.TemplateUtilImpl;
-import lucee.runtime.util.XMLUtil;
-import lucee.runtime.util.XMLUtilImpl;
 import lucee.runtime.util.ZipUtil;
 import lucee.runtime.util.ZipUtilImpl;
 import lucee.runtime.video.VideoUtil;
