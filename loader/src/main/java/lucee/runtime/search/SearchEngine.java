@@ -24,8 +24,6 @@ import lucee.commons.io.res.Resource;
 import lucee.runtime.config.Config;
 import lucee.runtime.type.Query;
 
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 /**
  * interface for a Search Engine
@@ -43,7 +41,7 @@ public interface SearchEngine {
 	public static final boolean DENY_OVERWRITE = false;
 
 	public abstract void init(Config config, Resource searchDir)
-			throws SAXException, IOException, SearchException;
+			throws IOException, SearchException;
 
 	/**
 	 * returns a collection by name
@@ -79,14 +77,14 @@ public interface SearchEngine {
 	 */
 	public abstract Resource getDirectory();
 
-	/**
+	/* *
 	 * return XML Element Matching index id
 	 * 
 	 * @param collElement XML Collection Element
 	 * @param id
 	 * @return XML Element
 	 */
-	public abstract Element getIndexElement(Element collElement, String id);
+	//public abstract Element getIndexElement(Element collElement, String id);
 
 	/**
 	 * @return returns the Name of the search engine to display in admin

@@ -293,7 +293,7 @@ public interface CFMLEngine {
 	 */
 	public HTTPUtil getHTTPUtil();
 
-	public XMLUtil getXMLUtil();
+	//public XMLUtil getXMLUtil();
 
 	public ListUtil getListUtil();
 

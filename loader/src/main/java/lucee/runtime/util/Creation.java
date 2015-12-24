@@ -59,8 +59,6 @@ import lucee.runtime.type.dt.Time;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.ClusterEntry;
 
-import org.w3c.dom.Document;
-
 /**
  * Creation of different Objects
  */
@@ -240,47 +238,6 @@ public interface Creation {
 	 */
 	public abstract Query createQuery(DatasourceConnection dc, SQL sql,
 			int maxrow, int fetchsize, int timeout, String name)
-			throws PageException;
-
-	/**
-	 * creates and returns a xml Document instance
-	 * 
-	 * @return struct
-	 * @throws PageException
-	 */
-	public abstract Document createDocument() throws PageException;
-
-	/**
-	 * creates and returns a xml Document instance
-	 * 
-	 * @param file
-	 * @param isHtml
-	 * @return struct
-	 * @throws PageException
-	 */
-	public abstract Document createDocument(Resource file, boolean isHtml)
-			throws PageException;
-
-	/**
-	 * creates and returns a xml Document instance
-	 * 
-	 * @param xml
-	 * @param isHtml
-	 * @return struct
-	 * @throws PageException
-	 */
-	public abstract Document createDocument(String xml, boolean isHtml)
-			throws PageException;
-
-	/**
-	 * creates and returns a xml Document instance
-	 * 
-	 * @param is
-	 * @param isHtml
-	 * @return struct
-	 * @throws PageException
-	 */
-	public abstract Document createDocument(InputStream is, boolean isHtml)
 			throws PageException;
 
 	/**

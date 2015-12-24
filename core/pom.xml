@@ -153,12 +153,12 @@
 		<version>0.5</version>
 	</dependency>
 
-<!-- org.apache.commons.email - 1.2.0.0001L -->
+<!-- org.apache.commons.email - 1.2.0.0002L -->
       <dependency>
          <groupId>org.apache.commons</groupId>
          <artifactId>email</artifactId>
          <type>jar</type>
-         <version>1.2.0.0001L</version>
+         <version>1.2.0.0002L</version>
          <scope>compile</scope>
       </dependency>
 
@@ -283,28 +283,28 @@
          <groupId>apache.ws</groupId>
          <artifactId>axis</artifactId>
          <type>jar</type>
-         <version>1.4.0.L007</version>
+         <version>1.4.0.L008</version>
       </dependency>
 <!-- apache.xml.xalan -->
       <dependency>
          <groupId>apache.xml</groupId>
          <artifactId>xalan</artifactId>
          <type>jar</type>
-         <version>2.7.2.0004L</version>
+         <version>2.7.2.0006L</version>
       </dependency>
 <!-- apache.xml.xalan.serializer - 2.7.2 -->
       <dependency>
          <groupId>apache.xml.xalan</groupId>
          <artifactId>serializer</artifactId>
          <type>jar</type>
-         <version>2.7.2.0004L</version>
+         <version>2.7.2.0005L</version>
       </dependency>
 <!-- apache.xml.xerces - 2.11.0 -->
       <dependency>
          <groupId>apache.xml</groupId>
          <artifactId>xerces</artifactId>
          <type>jar</type>
-         <version>2.11.0.0003L</version>
+         <version>2.11.0.0004L</version>
       </dependency>
 <!-- xml.apis - 1.4.1 -->
       <dependency>
@@ -447,7 +447,7 @@
          <groupId>metadata</groupId>
          <artifactId>extractor</artifactId>
          <type>jar</type>
-         <version>2.8.1.0001L</version>
+         <version>2.8.1.0002L</version>
          <scope>compile</scope>
       </dependency>
 
@@ -474,7 +474,7 @@
          <groupId>resolver</groupId>
          <artifactId>resolver</artifactId>
          <type>jar</type>
-         <version>1.2.0.0001L</version>
+         <version>1.2.0.0002L</version>
       </dependency>
 
 <!-- slf4j.api - 1.6.4
@@ -509,7 +509,7 @@
          <groupId>stax</groupId>
          <artifactId>api</artifactId>
          <type>jar</type>
-         <version>1.0.1.0001L</version>
+         <version>1.0.1.0002L</version>
       </dependency>
 <!-- javax.activation - 1.1.1
       <dependency>
@@ -565,7 +565,7 @@
 	<dependency>
 		<groupId>javax.mail</groupId>
 		<artifactId>activation</artifactId>
-		<version>1.4.7.0001L</version>
+		<version>1.4.7.0002L</version>
     	<scope>compile</scope>
 	</dependency>
  
@@ -581,14 +581,14 @@
          <groupId>sun.xml</groupId>
          <artifactId>jaxrpc</artifactId>
          <type>jar</type>
-         <version>1.2.1.0001L</version>
+         <version>1.2.1.0002L</version>
       </dependency>
 <!-- sun.xml.wsdl4j - 1.5.1 -->
       <dependency>
          <groupId>sun.xml</groupId>
          <artifactId>wsdl4j</artifactId>
          <type>jar</type>
-         <version>1.5.1.0001L</version>
+         <version>1.5.1.0002L</version>
       </dependency>
 <!-- sun.xml.saaj - 1.2.1.0001L -->
       <dependency>
@@ -598,12 +598,12 @@
          <version>1.2.1.0001L</version>
          <scope>compile</scope>
       </dependency>
-<!-- tagsoup - 1.2.1.0001L -->
+<!-- tagsoup - 1.2.1 -->
       <dependency>
          <groupId>tagsoup</groupId>
          <artifactId>tagsoup</artifactId>
          <type>jar</type>
-         <version>1.2.1.0001L</version>
+         <version>1.2.1.0002L</version>
          <scope>compile</scope>
       </dependency>
 <!-- w3c.dom - 1.1.0 -->
@@ -635,7 +635,7 @@
          <groupId>xmpcore</groupId>
          <artifactId>xmpcore</artifactId>
          <type>jar</type>
-         <version>5.1.2.0001L</version>
+         <version>5.1.2.0002L</version>
          <scope>compile</scope>
       </dependency>
 

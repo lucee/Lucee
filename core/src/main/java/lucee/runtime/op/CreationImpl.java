@@ -218,46 +218,6 @@ public final class CreationImpl implements Creation,Serializable {
         		DateTimeUtil.getInstance().toTime(null,1899,12,30,hour,minute,second,millis,0),false);
     }
 
-    @Override
-    public Document createDocument() throws PageException {
-        try {
-            return XMLUtil.newDocument();
-        } catch (Exception e) {
-            throw Caster.toPageException(e);
-        }
-    }
-
-    @Override
-    public Document createDocument(Resource res, boolean isHTML) throws PageException {
-        InputStream is=null;
-    	try {
-            return XMLUtil.parse(new InputSource(is=res.getInputStream()),null,isHTML);
-        } catch (Exception e) {
-            throw Caster.toPageException(e);
-        }
-        finally {
-        	IOUtil.closeEL(is);
-        }
-    }
-
-    @Override
-    public Document createDocument(String xml, boolean isHTML) throws PageException {
-        try {
-            return XMLUtil.parse(XMLUtil.toInputSource(null, xml),null,isHTML);
-        } catch (Exception e) {
-            throw Caster.toPageException(e);
-        }
-    }
-
-    @Override
-    public Document createDocument(InputStream is, boolean isHTML) throws PageException {
-        try {
-            return XMLUtil.parse(new InputSource(is),null,isHTML);
-        } catch (Exception e) {
-            throw Caster.toPageException(e);
-        }
-    }
-
 	@Override
 	public Key createKey(String key) {
 		return KeyImpl.init(key);
