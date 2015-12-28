@@ -138,8 +138,6 @@ import lucee.runtime.util.Strings;
 import lucee.runtime.util.SystemUtilImpl;
 import lucee.runtime.util.TemplateUtil;
 import lucee.runtime.util.TemplateUtilImpl;
-import lucee.runtime.util.XMLUtil;
-import lucee.runtime.util.XMLUtilImpl;
 import lucee.runtime.util.ZipUtil;
 import lucee.runtime.util.ZipUtilImpl;
 import lucee.runtime.video.VideoUtil;
@@ -364,7 +362,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
      */
     public static synchronized CFMLEngine getInstance(CFMLEngineFactory factory,BundleCollection bc) {
     	if(engine==null) {
-    		if(SystemUtil.getLoaderVersion()<5.6D)
+    		if(SystemUtil.getLoaderVersion()<5.7D)
     			throw new RuntimeException("You need to update your lucee.jar to run this version, you can download the latest jar from http://download.lucee.org.");
     			
     		engine=new CFMLEngineImpl(factory,bc);
@@ -1064,11 +1062,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	@Override
 	public ClassUtil getClassUtil() {
 		return new ClassUtilImpl();
-	}
-
-	@Override
-	public XMLUtil getXMLUtil() {
-		return new XMLUtilImpl();
 	}
 
 	@Override

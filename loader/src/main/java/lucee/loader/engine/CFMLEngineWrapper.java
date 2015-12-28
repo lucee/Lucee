@@ -313,10 +313,10 @@ public class CFMLEngineWrapper implements CFMLEngine {
 		return engine.getClassUtil();
 	}
 
-	@Override
+	/*@Override
 	public XMLUtil getXMLUtil() {
 		return engine.getXMLUtil();
-	}
+	}*/
 
 	@Override
 	public ScriptEngineFactory getScriptEngineFactory(final int dialect) {

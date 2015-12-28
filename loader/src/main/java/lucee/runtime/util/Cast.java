@@ -43,9 +43,6 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.TimeSpan;
 
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 /**
  * This class can cast object of one type to a other by CFML rules
  */
@@ -1473,41 +1470,41 @@ public interface Cast {
 	 */
 	public Locale toLocale(String strLocale, Locale defaultValue);
 
-	/**
+	/* *
 	 * casts a Object to a Node List
 	 * 
 	 * @param o Object to Cast
 	 * @return NodeList from Object
 	 * @throws PageException
 	 */
-	public NodeList toNodeList(Object o) throws PageException;
+	//public NodeList toNodeList(Object o) throws PageException;
 
-	/**
+	/* *
 	 * casts a Object to a Node List
 	 * 
 	 * @param o Object to Cast
 	 * @param defaultValue
 	 * @return NodeList from Object
 	 */
-	public NodeList toNodeList(Object o, NodeList defaultValue);
+	//public NodeList toNodeList(Object o, NodeList defaultValue);
 
-	/**
+	/* *
 	 * casts a Object to a XML Node
 	 * 
 	 * @param o Object to Cast
 	 * @return Node from Object
 	 * @throws PageException
 	 */
-	public Node toNode(Object o) throws PageException;
+	// public Node toNode(Object o) throws PageException;
 
-	/**
+	/* *
 	 * casts a Object to a XML Node
 	 * 
 	 * @param o Object to Cast
 	 * @param defaultValue
 	 * @return Node from Object
 	 */
-	public Node toNode(Object o, Node defaultValue);
+	//public Node toNode(Object o, Node defaultValue);
 
 	/**
 	 * casts a boolean to a Integer
@@ -1577,23 +1574,23 @@ public interface Cast {
 	 */
 	public Object toNull(Object value, Object defaultValue);
 
-	/**
+	/* *
 	 * cast Object to a XML Node
 	 * 
 	 * @param value
 	 * @return XML Node
 	 * @throws PageException
 	 */
-	public Node toXML(Object value) throws PageException;
+	//public Node toXML(Object value) throws PageException;
 
-	/**
+	/* *
 	 * cast Object to a XML Node
 	 * 
 	 * @param value
 	 * @param defaultValue
 	 * @return XML Node
 	 */
-	public Node toXML(Object value, Node defaultValue);
+	//public Node toXML(Object value, Node defaultValue);
 
 	/**
 	 * cast to given type

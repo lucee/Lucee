@@ -647,22 +647,22 @@ public final class CastImpl implements Cast {
         return Caster.toMap(o);
     }
 
-    @Override
+    //@Override
     public Node toNode(Object o, Node defaultValue) {
         return Caster.toNode(o,defaultValue);
     }
 
-    @Override
+    //@Override
     public Node toNode(Object o) throws PageException {
         return Caster.toNode(o);
     }
 
-    @Override
+    //@Override
     public NodeList toNodeList(Object o, NodeList defaultValue) {
         return Caster.toNodeList(o,defaultValue);
     }
 
-    @Override
+    //@Override
     public NodeList toNodeList(Object o) throws PageException {
         return Caster.toNodeList(o);
     }
@@ -925,12 +925,12 @@ public final class CastImpl implements Cast {
         return Caster.toVoid(o);
     }
 
-    @Override
+    //@Override
     public Node toXML(Object value, Node defaultValue) {
         return Caster.toXML(value,defaultValue);
     }
 
-    @Override
+    //@Override
     public Node toXML(Object value) throws PageException {
         return Caster.toXML(value);
     }

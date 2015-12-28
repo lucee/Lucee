@@ -22,5 +22,5 @@ package lucee.loader;
  * version of this loader (jar)
  */
 public class Version {
-	public static double VERSION = 5.6D;
+	public static double VERSION = 5.7D;
 }
