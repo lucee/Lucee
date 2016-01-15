@@ -290,21 +290,21 @@
          <groupId>apache.xml</groupId>
          <artifactId>xalan</artifactId>
          <type>jar</type>
-         <version>2.7.2.0006L</version>
+         <version>2.7.2.0007L</version>
       </dependency>
 <!-- apache.xml.xalan.serializer - 2.7.2 -->
       <dependency>
          <groupId>apache.xml.xalan</groupId>
          <artifactId>serializer</artifactId>
          <type>jar</type>
-         <version>2.7.2.0005L</version>
+         <version>2.7.2.0006L</version>
       </dependency>
 <!-- apache.xml.xerces - 2.11.0 -->
       <dependency>
          <groupId>apache.xml</groupId>
          <artifactId>xerces</artifactId>
          <type>jar</type>
-         <version>2.11.0.0004L</version>
+         <version>2.11.0.0005L</version>
       </dependency>
 <!-- xml.apis - 1.4.1 -->
       <dependency>
@@ -344,7 +344,25 @@
 		<artifactId>ehcache</artifactId>
 		<version>2.10.0</version>
 	</dependency>
-
+	
+	<!-- jta - 1.1.0 -->
+      <dependency>
+         <groupId>jta</groupId>
+         <artifactId>jta</artifactId>
+         <type>jar</type>
+         <version>1.1.0</version>
+         <scope>compile</scope>
+      </dependency>
+      
+      <!-- jboss.transaction - 1.2.0
+      <dependency>
+         <groupId>jboss</groupId>
+         <artifactId>transaction</artifactId>
+         <type>jar</type>
+         <version>1.2.0</version>
+         <scope>compile</scope>
+      </dependency> -->
+	
       
 <!-- ESAPI - 2.1.0 -->
       <dependency>
