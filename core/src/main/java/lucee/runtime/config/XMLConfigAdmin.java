@@ -1084,16 +1084,19 @@ public final class XMLConfigAdmin {
 		String name=bf.getSymbolicName();
 		if(StringUtil.isEmpty(name)) name=BundleBuilderFactory.createSymbolicName(resJar);
 		
+		
 		// version
 		Version version=bf.getVersion();
 		if(version==null) version=OSGiUtil.toVersion(extVersion);
 		
-		
+		SystemOut.printDate("failed to load ["+resJar+"] as OSGi Bundle");
 		BundleBuilderFactory bbf=new BundleBuilderFactory(resJar,name);
 		bbf.setVersion(version);
 		bbf.setIgnoreExistingManifest(false);
 		bbf.build();
 		
+		bf=new BundleFile(resJar);
+		SystemOut.printDate("converted  ["+resJar+"] to an OSGi Bundle");
 		return installBundle(config,bf);
 	}
 	
