@@ -82,6 +82,7 @@ public class BundleBuilderFactory {
 	private List<String> fragmentHost;
 	private List<String> importPackage; 
 	private List<String> requireBundle; 
+	private List<String> requireBundleFragment; 
 	private List<String> dynImportPackage; 
 	private List<String> classPath;
 
@@ -188,6 +189,19 @@ public class BundleBuilderFactory {
 		
 	}
 	
+
+	public List<String> getRequireBundleFragment() {
+		return requireBundleFragment;
+	}
+	
+	public void addRequireBundleFragment(String strRequireBundleFragment) {
+		if(StringUtil.isEmpty(strRequireBundleFragment)) return;
+		if(requireBundleFragment==null)
+			requireBundleFragment=new ArrayList<String>();
+		addPackages(requireBundleFragment,strRequireBundleFragment);
+		
+	}
+	
 	
 
 	public List<String> getFragmentHost() {
@@ -280,10 +294,14 @@ public class BundleBuilderFactory {
 			}
 			addList(attrs,"Export-Package",exportPackage);
 		}
-		
+
 		// Require-Bundle
 		str = attrs.getValue("Require-Bundle");
 		if(Util.isEmpty(str,true)) addList(attrs,"Require-Bundle",requireBundle);
+		
+		// Require-Bundle
+		str = attrs.getValue("Require-Bundle-Fragment");
+		if(Util.isEmpty(str,true)) addList(attrs,"Require-Bundle-Fragment",requireBundleFragment);
 		
 		
 		//str = attrs.getValue("Fragment-Host");

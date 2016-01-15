@@ -5036,11 +5036,19 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     		factory.addExportPackage(exportPackage);
     	}
     	
+    	
     	String requireBundle=getString("requireBundle",null);
     	if(!StringUtil.isEmpty(requireBundle,true)){
     		requireBundle=ListUtil.sort(requireBundle.trim(), "text", "asc", ",");
     		factory.addRequireBundle(requireBundle);
     	}
+    	
+    	String requireBundleFragment=getString("requireBundleFragment",null);
+    	if(!StringUtil.isEmpty(requireBundleFragment,true)){
+    		requireBundleFragment=ListUtil.sort(requireBundleFragment.trim(), "text", "asc", ",");
+    		factory.addRequireBundleFragment(requireBundleFragment);
+    	}
+    	
     	
     	String fragmentHost=getString("fragmentHost",null);
     	if(!StringUtil.isEmpty(fragmentHost,true))factory.addFragmentHost(fragmentHost.trim());
