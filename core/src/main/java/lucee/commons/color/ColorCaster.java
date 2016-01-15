@@ -44,41 +44,6 @@ public final class ColorCaster {
 	 * @throws ServletException 
 	 */
 	public static int contrast(Color left, Color right) throws ServletException {
-		
-		CFMLEngine engine = CFMLEngineFactory.getInstance();
-		// cookies for this simulated request, can also be null
-		javax.servlet.http.Cookie[] cookies = new Cookie[]{new Cookie("myCookie","myCookieValue")};
-		
-		// headers for this simulated request
-		Map<String, Object> headers=new HashMap();
-		headers.put("accept","text/html");
-
-		// headers for this simulated request, can also be null
-		Map<String, String> parameters=new HashMap();
-		
-		// headers for this simulated request, can also be null
-		Map<String, Object> attributes=new HashMap();
-		
-		PageContext pc = engine.createPageContext(
-				null,
-				 "localhost" // host
-				,"/index.cfm" // script name
-				,"test=1" // query string
-				,cookies
-				,headers
-				,parameters
-				,attributes
-				,System.out // response stream where the output is written to
-				,50000 // timeout for the simulated request in milli seconds
-				,true // register the pc to the thread
-				);
-		try{
-			// use the pc
-		}
-		finally{
-			engine.releasePageContext(pc, true/* unregister the pc from the thread*/);
-		}
-		
 		return
 		(Math.max(left.getRed(), right.getRed()) 		- Math.min(left.getRed(), right.getRed())) + 
 		(Math.max(left.getGreen(), right.getGreen()) 	- Math.min(left.getGreen(), right.getGreen())) + 
