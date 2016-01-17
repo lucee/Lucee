@@ -1611,6 +1611,7 @@ public abstract class AbstrCFMLExprTransformer {
 		}
 		else if (idStr.equals("VARIABLES"))		return data.factory.createVariable(Scope.SCOPE_VARIABLES,line,data.srcCode.getPosition());
 		else if (idStr.equals("REQUEST"))		return data.factory.createVariable(Scope.SCOPE_REQUEST,line,data.srcCode.getPosition());
+		else if (idStr.equals("SERVER")) 		return data.factory.createVariable(Scope.SCOPE_SERVER,line,data.srcCode.getPosition());
 		
 		if(data.settings.ignoreScopes)return null;
 		
@@ -1620,7 +1621,6 @@ public abstract class AbstrCFMLExprTransformer {
 		else if (idStr.equals("APPLICATION"))	return data.factory.createVariable(Scope.SCOPE_APPLICATION,line,data.srcCode.getPosition());
 		else if (idStr.equals("FORM")) 			return data.factory.createVariable(Scope.SCOPE_FORM,line,data.srcCode.getPosition());
 		else if (idStr.equals("URL"))			return data.factory.createVariable(Scope.SCOPE_URL,line,data.srcCode.getPosition());
-		else if (idStr.equals("SERVER")) 		return data.factory.createVariable(Scope.SCOPE_SERVER,line,data.srcCode.getPosition());
 		else if (idStr.equals("CLIENT"))		return data.factory.createVariable(Scope.SCOPE_CLIENT,line,data.srcCode.getPosition());
 		else if (idStr.equals("COOKIE"))		return data.factory.createVariable(Scope.SCOPE_COOKIE,line,data.srcCode.getPosition());
 		else if (idStr.equals("CLUSTER"))		return data.factory.createVariable(Scope.SCOPE_CLUSTER,line,data.srcCode.getPosition());
