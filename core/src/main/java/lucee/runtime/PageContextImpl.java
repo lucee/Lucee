@@ -2911,7 +2911,7 @@ public final class PageContextImpl extends PageContext {
 					pageSource,
 					config.getTLDs(dialect),
 					config.getFLDs(dialect),
-					classRootDir,false,false
+					classRootDir,false,ignoreScopes()
 					);
 		} catch (Exception e) {
 			throw Caster.toPageException(e);

@@ -259,7 +259,7 @@ public final class PageSourceImpl implements PageSource {
 			if(page!=null) {
 			//if(page!=null && !recompileAlways) {
 				if(srcLastModified!=page.getSourceLastModified()) {
-					this.page=page=compile(config,mapping.getClassRootDirectory(),page,false,false);
+					this.page=page=compile(config,mapping.getClassRootDirectory(),page,false,pc.ignoreScopes());
                 	page.setPageSource(this);
 					page.setLoadType(LOAD_PHYSICAL);
 				}
@@ -274,7 +274,7 @@ public final class PageSourceImpl implements PageSource {
                     // new class
                     if(flush || !classFile.exists()) {
                     //if(!classFile.exists() || recompileAfterStartUp) {
-                    	this.page=page= compile(config,classRootDir,null,false,false);
+                    	this.page=page= compile(config,classRootDir,null,false,pc.ignoreScopes());
                     	flush=false;
                         isNew=true;
                     }
@@ -286,20 +286,20 @@ public final class PageSourceImpl implements PageSource {
     					} catch (Throwable t) {t.printStackTrace();
 							this.page=page=null;
 						}
-                    	if(page==null) this.page=page=compile(config,classRootDir,null,false,false);
+                    	if(page==null) this.page=page=compile(config,classRootDir,null,false,pc.ignoreScopes());
                               
                     }
                     
                     // check if there is a newwer version
                     if(!isNew && srcLastModified!=page.getSourceLastModified()) {
                     	isNew=true;
-                    	this.page=page=compile(config,classRootDir,page,false,false);
+                    	this.page=page=compile(config,classRootDir,page,false,pc.ignoreScopes());
     				}
                     
                     // check version
                     if(!isNew && page.getVersion()!=pc.getConfig().getFactory().getEngine().getInfo().getFullVersionInfo()) {
                     	isNew=true;
-                    	this.page=page=compile(config,classRootDir,page,false,false);
+                    	this.page=page=compile(config,classRootDir,page,false,pc.ignoreScopes());
                     }
                     
                     page.setPageSource(this);
