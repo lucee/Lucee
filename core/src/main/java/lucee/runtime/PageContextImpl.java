@@ -1093,6 +1093,9 @@ public final class PageContextImpl extends PageContext {
 		if(ignoreScopes()) {
 			if("arguments".equals(strScope))	return argumentsScope();
 			if("local".equals(strScope))		return localScope();
+			if("request".equals(strScope))		return requestScope();
+			if("variables".equals(strScope))	return variablesScope(); 
+			if("server".equals(strScope))		return serverScope();
 			return defaultValue;
 		}
 		

@@ -541,6 +541,9 @@ public final class VariableInterpreter {
 			else if('v'==c) {
 				if("variables".equals(type))		return Scope.SCOPE_VARIABLES;
 			}
+			else if('s'==c) {
+				if("server".equals(type))			return Scope.SCOPE_SERVER;
+			}
 			return Scope.SCOPE_UNDEFINED;
 		}
 		
