@@ -72,11 +72,14 @@
 </cfif>
 
 
+<!--- 
+not supported with JSR223
 <cfset duplicate(client)>
 <cfset duplicate(session)>
-<cfset duplicate(application)>
-<cfset duplicate(request)>
+<cfset duplicate(application)> 
 <cfset duplicate(cgi)>
+--->
+<cfset duplicate(request)>
 <cfset duplicate(variables)>
 <cfset duplicate(server)>
 
