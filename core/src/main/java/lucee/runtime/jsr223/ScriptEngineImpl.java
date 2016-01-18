@@ -30,6 +30,7 @@ import javax.script.SimpleScriptContext;
 
 import lucee.commons.io.IOUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.compiler.Renderer;
 import lucee.runtime.compiler.Renderer.Result;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -173,7 +174,9 @@ public class ScriptEngineImpl implements ScriptEngine {
 	private PageContext createPageContext() {
 		try {
 			File root = new File(factory.engine.getCFMLEngineFactory().getResourceRoot(),"jsr223-webroot");
-			return PageContextUtil.getPageContext(root,"localhost", "/index.cfm", "", null, null, null, null, System.out, false,Long.MAX_VALUE,true);
+			PageContext _pc = PageContextUtil.getPageContext(root,"localhost", "/index.cfm", "", null, null, null, null, System.out, false,Long.MAX_VALUE,true);
+			_pc.serverScope().reload();
+			return _pc;
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
