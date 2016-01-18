@@ -161,7 +161,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				boolean autoflush,boolean register2Thread,boolean isChild,long timeout,boolean register2RunningThreads,boolean ignoreScopes) {
 		        PageContextImpl pc; 
 				synchronized (pcs) {
-					if(pcs.isEmpty()) pc=new PageContextImpl(scopeContext,config,idCounter++,servlet);
+					if(pcs.isEmpty()) pc=new PageContextImpl(scopeContext,config,idCounter++,servlet,ignoreScopes);
 		            else pc=((PageContextImpl)pcs.pop());
 		            if(timeout>0)pc.setRequestTimeout(timeout);
 		            if(register2RunningThreads)runningPcs.put(Integer.valueOf(pc.getId()),pc);

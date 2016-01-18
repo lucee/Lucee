@@ -338,7 +338,7 @@ public final class PageContextImpl extends PageContext {
 	 * @param id identity of the pageContext
 	 * @param servlet
 	 */
-	public PageContextImpl(ScopeContext scopeContext, ConfigWebImpl config, int id,HttpServlet servlet) {
+	public PageContextImpl(ScopeContext scopeContext, ConfigWebImpl config, int id,HttpServlet servlet, boolean jsr223) {
 		// must be first because is used after
 		tagHandlerPool=config.getTagHandlerPool();
 		this.servlet=servlet;
@@ -358,7 +358,7 @@ public final class PageContextImpl extends PageContext {
 		
 		//this.compiler=compiler;
 		//tagHandlerPool=config.getTagHandlerPool();
-		server=ScopeContext.getServerScope(this);
+		server=ScopeContext.getServerScope(this,jsr223);
 		
 		defaultApplicationContext=new ClassicApplicationContext(config,"",true,null);
 		
@@ -455,7 +455,7 @@ public final class PageContextImpl extends PageContext {
 		forceWriter=writer;
 		 
 		 // Scopes
-		 server=ScopeContext.getServerScope(this);
+		 server=ScopeContext.getServerScope(this,ignoreScopes);
 		 if(hasFamily) {
 			 variablesRoot=new VariablesImpl();
 			 variables=variablesRoot;
@@ -1327,7 +1327,7 @@ public final class PageContextImpl extends PageContext {
 	}
 	
 	public void reset() {
-		server=ScopeContext.getServerScope(this);
+		server=ScopeContext.getServerScope(this,ignoreScopes());
 	}
 	
 	@Override

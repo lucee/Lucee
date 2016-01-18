@@ -153,9 +153,9 @@ public final class ScopeContext {
 	 * @param pc
 	 * @return server scope
 	 */
-	public static Server getServerScope(PageContext pc) {
+	public static Server getServerScope(PageContext pc, boolean jsr223) {
 	    if(server==null) {
-	    	server=new ServerImpl(pc);
+	    	server=new ServerImpl(pc,jsr223);
 	    }
 		return server;
 	}
