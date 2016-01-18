@@ -1315,7 +1315,7 @@ public abstract class AbstrCFMLExprTransformer {
 		}
 		
 		data.srcCode.removeSpace();
-		if(!data.srcCode.forwardIfCurrent("->")) {
+		if(!data.srcCode.forwardIfCurrent("=>")) {
 			data.srcCode.setPos(pos);
 			return null;
 		}
