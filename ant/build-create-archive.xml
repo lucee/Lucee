@@ -59,7 +59,8 @@
 		file="#temp#/lucee-context.lar"
 		virtual="/context"
 		addCFMLFiles="true"
-		addNonCFMLFiles="true";
+		addNonCFMLFiles="true"
+		ignoreScopes="false";
 
 
 
@@ -89,7 +90,8 @@
 		file="#temp#/lucee-admin.lar"
 		virtual="/admin"
 		addCFMLFiles="true"
-		addNonCFMLFiles="true";
+		addNonCFMLFiles="true"
+		ignoreScopes="false";
 
 
 
@@ -119,7 +121,8 @@
 		file="#temp#/lucee-doc.lar"
 		virtual="/doc"
 		addCFMLFiles="true"
-		addNonCFMLFiles="true";
+		addNonCFMLFiles="true"
+		ignoreScopes="false";
 
 
 /************************************
@@ -148,7 +151,8 @@
 		file="#temp#/testbox.lar"
 		virtual="/testbox"
 		addCFMLFiles="true"
-		addNonCFMLFiles="true";
+		addNonCFMLFiles="true"
+		ignoreScopes="false";
 	
     ]]>
   </script>

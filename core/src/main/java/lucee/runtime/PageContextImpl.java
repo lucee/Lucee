@@ -3317,6 +3317,10 @@ public final class PageContextImpl extends PageContext {
 		return ignoreScopes;
 	}
 	
+	public void setIgnoreScopes(boolean ignoreScopes) {
+		this.ignoreScopes=ignoreScopes;
+	}
+	
 	public void setAppListenerType(int appListenerType) {
 		this.appListenerType=appListenerType;
 	}
