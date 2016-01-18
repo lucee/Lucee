@@ -233,6 +233,10 @@ LUCEE BUILD PROCESS
     <available file="${cache}/${extS3}.lex" property="s3.present"/>
     <available file="${cache}/${extAdmin}.lex" property="admin.present"/>
     <available file="${cache}/${extDoc}.lex" property="doc.present"/>
+    <available file="${cache}/${extHibernate}.lex" property="hibernate.present"/>
+    <available file="${cache}/${extPDF}.lex" property="pdf.present"/>
+
+
   </target>
 
 
@@ -254,6 +258,12 @@ LUCEE BUILD PROCESS
   <target name="check-s3" depends="check-cache" unless="s3.present">
       <get src="${extURL}${extS3}" dest="${cache}/${extS3}.lex"/>
   </target>
+  <target name="check-hibernate" depends="check-cache" unless="hibernate.present">
+      <get src="${extURL}${extHibernate}" dest="${cache}/${extHibernate}.lex"/>
+  </target>
+  <target name="check-pdf" depends="check-cache" unless="pdf.present">
+      <get src="${extURL}${extPDF}" dest="${cache}/${extPDF}.lex"/>
+  </target>
   <target name="check-admin" depends="check-cache" unless="admin.present">
       <get src="${extURL}${extAdmin}" dest="${cache}/${extAdmin}.lex"/>
   </target>
@@ -264,7 +274,7 @@ LUCEE BUILD PROCESS
       <get src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
   </target> 
 
-  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-admin,check-doc,check-testbox">
+  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-hibernate,check-pdf,check-admin,check-doc,check-testbox">
     
     <mkdir dir="${temp}/loader/extensions/"/>
 
@@ -506,7 +516,7 @@ LUCEE BUILD PROCESS
 
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
-      <jvmarg value="-Dlucee-extensions=${extH2};${extPDF};${extHibernate};${extS3};${extChart};"/>
+      <jvmarg value="-Dlucee-extensions=${extH2};"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
     </java>
     <echo>${exc2}</echo>
@@ -645,6 +655,28 @@ LUCEE BUILD PROCESS
       file="${goal}/extensions/${extS3}.lex" 
       tofile="${goal}/extensions/${ext_s3.filename}"/>
     <echo>add:${goal}/extensions/${ext_s3.filename}</echo>
+
+    <!-- add extension Hibernate -->
+    <loadmf jar="${cache}/${extHibernate}.lex" prefix="ext_hibernate."/>
+    <toFileName name="${ext_hibernate.name}" version="${ext_hibernate.version}" property="ext_hibernate.filename"/>
+    <copy 
+      file="${cache}/${extHibernate}.lex" 
+      todir="${goal}/extensions/"/>
+    <move 
+      file="${goal}/extensions/${extHibernate}.lex" 
+      tofile="${goal}/extensions/${ext_hibernate.filename}"/>
+    <echo>add:${goal}/extensions/${ext_hibernate.filename}</echo>
+
+    <!-- add extension PDF -->
+    <loadmf jar="${cache}/${extPDF}.lex" prefix="ext_pdf."/>
+    <toFileName name="${ext_pdf.name}" version="${ext_pdf.version}" property="ext_pdf.filename"/>
+    <copy 
+      file="${cache}/${extPDF}.lex" 
+      todir="${goal}/extensions/"/>
+    <move 
+      file="${goal}/extensions/${extPDF}.lex" 
+      tofile="${goal}/extensions/${ext_pdf.filename}"/>
+    <echo>add:${goal}/extensions/${ext_pdf.filename}</echo>
 
     <!-- add extension Admin -->
     <loadmf jar="${cache}/${extAdmin}.lex" prefix="ext_admin."/>
