@@ -22,6 +22,7 @@
 	<cffunction name="test" localmode="true">
 
 		<!--- not working in JSR223env --->
+		<cfthrow message="env:#server.lucee.environment#">
 		<cfif server.lucee.environment=="servlet">
 		
 			<!--- insert --->
