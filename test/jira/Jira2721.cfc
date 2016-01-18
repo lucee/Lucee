@@ -1,4 +1,4 @@
-/**
+﻿/**
  *
  * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
@@ -25,14 +25,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		, '"Some One" <someone@domain.com>'
 		, '(Some One) someone@domain.com'		
 		, 'someone@zurich.ch'		
-		, 'someone@zÃ¼rich.ch'
-		, '<someone@zÃ¼rich.ch> "zyz 09812)(*"'
-		, '<someone@zÃ¼rich.ch> "Some One"'
-		, '<someone@zÃ¼rich.ch> Some One'
-		, '<someone@zÃ¼rich.ch> (Some One)'
-		, 'Some One <someone@zÃ¼rich.ch>'
-		, '"Some One" <someone@zÃ¼rich.ch>'
-		, '(Some One) someone@zÃ¼rich.ch'
+		, 'someone@zürich.ch'
+		, '<someone@zürich.ch> "zyz 09812)(*"'
+		, '<someone@zürich.ch> "Some One"'
+		, '<someone@zürich.ch> Some One'
+		, '<someone@zürich.ch> (Some One)'
+		, 'Some One <someone@zürich.ch>'
+		, '"Some One" <someone@zürich.ch>'
+		, '(Some One) someone@zürich.ch'
 		, 'niceandsimple@example.com'
 		, 'very.common@example.com'
 		, 'not~that~common@example.com'
@@ -72,9 +72,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		, 'a"b(c)d,e:f;g<h>i[j\k]l@example.com'
 		, 'this is"not\allowed@example.com'
 		, 'this\ still\"not\\allowed@example.com'
-		, 'Some One someone@zÃ¼rich.ch'
-		, '<someone@zÃ¼rich.ch> "zyz 09812)(*'
-		, '<someone@zÃ¼rich.ch> zyz 09812)(*'
+		, 'Some One someone@zürich.ch'
+		, '<someone@zürich.ch> "zyz 09812)(*'
+		, '<someone@zürich.ch> zyz 09812)(*'
 		, 'user@IPv6:2001:db8:1ff::a0b:dbd0'
 		, 'user@2001:db8:1ff::a0b:dbd0'
 
