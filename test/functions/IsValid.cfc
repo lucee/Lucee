@@ -28,17 +28,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public void function testFunction() localmode="true"{
 		assertTrue(isvalid("function",realUDF));
 		assertTrue(isvalid("function",function(){}));
-		assertTrue(isvalid("function",()->1));
+		assertTrue(isvalid("function",()=>1));
 	}
 	public void function testLambda() localmode="true"{
 		assertFalse(isvalid("lambda",realUDF));
 		assertFalse(isvalid("lambda",function(){}));
-		assertTrue(isvalid("lambda",()->1));
+		assertTrue(isvalid("lambda",()=>1));
 	}
 	public void function testClosure() localmode="true"{
 		assertFalse(isvalid("closure",realUDF));
 		assertTrue(isvalid("closure",function(){}));
-		assertFalse(isvalid("closure",()->1));
+		assertFalse(isvalid("closure",()=>1));
 	}
 
 	public void function testNumber() localmode="true"{
