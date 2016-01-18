@@ -24,7 +24,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		local.l=2;
 		arguments.a=3;
 
-		res=() -> !isNull(v) && !isNull(l)&& !isNull(a); 
+		res=() => !isNull(v) && !isNull(l)&& !isNull(a); 
 
         assertTrue(res());
     }
