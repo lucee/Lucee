@@ -3565,4 +3565,9 @@ public abstract class ConfigImpl implements Config {
 	public void setAllowLuceeDialect(boolean allowLuceeDialect) {
 		this. allowLuceeDialect=allowLuceeDialect;
 	}
+	
+
+	public boolean installExtension(String extensionId) {
+		return DeployHandler.deployExtension(this, extensionId, getLog("deploy"));
+	}
 }

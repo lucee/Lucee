@@ -161,15 +161,16 @@ public class DeployHandler {
 	 * @param config
 	 * @param id the id of the extension
 	 * @param version pass null if you don't need a specific version
+	 * @return 
 	 * @throws IOException 
 	 * @throws PageException 
 	 */
-	public static void deployExtension(Config config, String id, Log log) {
+	public static boolean deployExtension(Config config, String id, Log log) {
 		ConfigImpl ci=(ConfigImpl) config;
 		
 		// is the extension already installed
 		try {
-			if(XMLConfigAdmin.hasRHExtensions(ci, id)!=null) return;
+			if(XMLConfigAdmin.hasRHExtensions(ci, id)!=null) return false;
 		} 
 		catch (Throwable t) {}
 		
@@ -212,10 +213,11 @@ public class DeployHandler {
 						Resource res = SystemUtil.getTempFile("lex", true);
 						IOUtil.copy(ext.getExtensionFile(), res);
 						XMLConfigAdmin.updateRHExtension((ConfigImpl) config, res, true);
-						return;
+						return true;
 					}
 				}
-				catch(Throwable t){}
+				catch(Throwable t){
+				}
 				
 			}
 		}
@@ -239,11 +241,13 @@ public class DeployHandler {
 				
 				// now forward it to the regular process
 				XMLConfigAdmin.updateRHExtension((ConfigImpl) config, res,true);
+				return true;
 			}
 			catch(Throwable t){
 				log.error("extension", t);
+				
 			}
-		}
+		}return false;
 	}
 
 	public static List<RHExtension> getLocalExtensions(Config config) {

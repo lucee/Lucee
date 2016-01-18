@@ -611,6 +611,10 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 			if(amfEngine==null) return AMFEngineDummy.getInstance();
 			return amfEngine;
 		}
+
+		public boolean installServerExtension(String extensionId) {
+			return configServer.installExtension(extensionId);
+		}
 		
 		
 }

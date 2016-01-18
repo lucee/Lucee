@@ -18,11 +18,20 @@
 package lucee.runtime.orm;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigServer;
+import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.DeployHandler;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 
 public class DummyORMEngine implements ORMEngine {
+
+	private static final String HIBERNATE = "FAD1E8CB-4F45-4184-86359145767C29DE";
+	private static boolean tryToInstall=true;
 
 	@Override
 	public String getLabel() {
@@ -54,12 +63,22 @@ public class DummyORMEngine implements ORMEngine {
 	}
 
 
-	private PageException notInstalled() {
+	private PageException notInstalled(PageContext pc) {
+		if(tryToInstall){
+			try {
+				ConfigWebImpl config = (ConfigWebImpl) ThreadLocalPageContext.getConfig(pc);
+				if(config.installServerExtension(HIBERNATE))
+					return new ApplicationException("Hibernate ORM Engine installed, with the next request the extension should work.");
+			}
+			finally {
+				tryToInstall=false;
+			}
+		}
 		return new ApplicationException("No ORM Engine installed!","Check out the Extension Store in the Lucee Administrator for \"ORM\".");
 	}
 
 	private PageRuntimeException notInstalledEL() {
-		return new PageRuntimeException(notInstalled());
+		return new PageRuntimeException(notInstalled(null));
 	}
 
 }
