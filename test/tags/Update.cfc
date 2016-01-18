@@ -21,32 +21,34 @@
 
 	<cffunction name="test" localmode="true">
 
+		<!--- not working in JSR223env --->
+		<cfif server.lucee.environment=="servlet">
+		
+			<!--- insert --->
+			<cfset form.id=1>
+			<cfinsert tablename="TUpdateX" formfields="id">
 
+			<cfquery  name="data" >
+			select id,i,i is null as isNUll from TUpdateX
+			</cfquery>
+			<cfset assertEquals(1,data.recordcount)>
+			<cfset assertEquals(1,data.id)>
+			<cfset assertEquals("",data.i)>
+			<cfset assertEquals(true,data.isNull)>
 
-		<!--- insert --->
-		<cfset form.id=1>
-		<cfinsert tablename="TUpdateX" formfields="id">
+			<cfset form.id=1>
+			<cfset form.i=5>
+			<cfupdate tablename="TUpdateX" formfields="id,i,">
 
-		<cfquery  name="data" >
-		select id,i,i is null as isNUll from TUpdateX
-		</cfquery>
-		<cfset assertEquals(1,data.recordcount)>
-		<cfset assertEquals(1,data.id)>
-		<cfset assertEquals("",data.i)>
-		<cfset assertEquals(true,data.isNull)>
+			<cfquery  name="data">
+			select id,i,i is null as isNUll from TUpdateX
+			</cfquery>
+			<cfset assertEquals(1,data.recordcount)>
+			<cfset assertEquals(1,data.id)>
+			<cfset assertEquals(5,data.i)>
+			<cfset assertEquals(false,data.isNull)>
 
-		<cfset form.id=1>
-		<cfset form.i=5>
-		<cfupdate tablename="TUpdateX" formfields="id,i,">
-
-		<cfquery  name="data">
-		select id,i,i is null as isNUll from TUpdateX
-		</cfquery>
-		<cfset assertEquals(1,data.recordcount)>
-		<cfset assertEquals(1,data.id)>
-		<cfset assertEquals(5,data.i)>
-		<cfset assertEquals(false,data.isNull)>
-
+	</cfif>
 
 
 

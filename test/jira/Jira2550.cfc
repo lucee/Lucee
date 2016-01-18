@@ -21,9 +21,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	public void function testDefault() {
 
-		param name="URL.default" type="integer" default="0";
-
+		param name="URL.default" type="integer" default="10";
 		URL.value = URL.default;
+		URL.value = url.default;
+		local.abc=evaluate("URL.default");
+		local.abc=evaluate("url.default"); 
 	}	
 
 

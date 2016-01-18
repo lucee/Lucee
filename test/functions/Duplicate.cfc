@@ -72,13 +72,15 @@
 </cfif>
 
 
-<!--- 
-not supported with JSR223
-<cfset duplicate(client)>
-<cfset duplicate(session)>
-<cfset duplicate(application)> 
-<cfset duplicate(cgi)>
---->
+
+<!--- not working in JSR223env --->
+<cfif server.lucee.environment=="servlet">
+	<cfset duplicate(client)>
+	<cfset duplicate(session)>
+	<cfset duplicate(application)> 
+	<cfset duplicate(cgi)>
+</cfif>
+
 <cfset duplicate(request)>
 <cfset duplicate(variables)>
 <cfset duplicate(server)>

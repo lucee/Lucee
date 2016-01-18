@@ -28,16 +28,17 @@
 	--->
 	<cffunction name="testDeleteClientVariable" localMode="modern">
 
-<!--- begin old test code --->
-<cflock timeout="1000" throwontimeout="yes" type="exclusive" scope="request">
-		<cfset client.susi=1>
-<cfset valueEquals(left="#DeleteClientVariable('susi')#", right="#true#")>
-<cfset valueEquals(left="#DeleteClientVariable('susi')#", right="#false#")>
-</cflock>
-<!--- end old test code --->
+
+		<!--- not working in JSR223env --->
+		<cfif server.lucee.environment=="servlet">
+			<cflock timeout="1000" throwontimeout="yes" type="exclusive" scope="request">
+				<cfset client.susi=1>
+				<cfset assertEquals(true,DeleteClientVariable('susi'))>
+				<cfset assertEquals(false,DeleteClientVariable('susi'))>
+			</cflock>
+		</cfif>
 	
 		
-		<!--- <cfset assertEquals("","")> --->
 	</cffunction>
 	
 	<cffunction access="private" name="valueEquals">
