@@ -98,7 +98,7 @@ public final class S3ResourceProvider implements ResourceProviderPro {
 
 
 	private PageException notInstalled() {
-		if(tryToInstall){
+		/*if(tryToInstall){
 			try {
 				ConfigWebImpl config = (ConfigWebImpl) ThreadLocalPageContext.getConfig();
 				if(config.installServerExtension(S3))
@@ -107,7 +107,7 @@ public final class S3ResourceProvider implements ResourceProviderPro {
 			finally {
 				tryToInstall=false;
 			}
-		}
+		}*/
 		return new ApplicationException("No S3 Resource installed!","Check out the Extension Store in the Lucee Administrator for \"S3\".");
 	}
 

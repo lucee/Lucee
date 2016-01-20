@@ -75,7 +75,7 @@ public class DummySearchEngine implements SearchEngine {
 	}
 	
 	private SearchException notInstalled() {
-		if(tryToInstall){
+		/*if(tryToInstall){
 			try {
 				ConfigWebImpl config = (ConfigWebImpl) ThreadLocalPageContext.getConfig();
 				if(config.installServerExtension(LUCENE))
@@ -84,7 +84,7 @@ public class DummySearchEngine implements SearchEngine {
 			finally {
 				tryToInstall=false;
 			}
-		}
+		}*/
 		return new SearchException("No Search Engine installed! Check out the Extension Store in the Lucee Administrator for \"Search\".");
 	}
 	

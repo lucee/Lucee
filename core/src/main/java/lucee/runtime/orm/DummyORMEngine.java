@@ -64,7 +64,7 @@ public class DummyORMEngine implements ORMEngine {
 
 
 	private PageException notInstalled(PageContext pc) {
-		if(tryToInstall){
+		/*if(tryToInstall){
 			try {
 				ConfigWebImpl config = (ConfigWebImpl) ThreadLocalPageContext.getConfig(pc);
 				if(config.installServerExtension(HIBERNATE))
@@ -73,7 +73,7 @@ public class DummyORMEngine implements ORMEngine {
 			finally {
 				tryToInstall=false;
 			}
-		}
+		}*/
 		return new ApplicationException("No ORM Engine installed!","Check out the Extension Store in the Lucee Administrator for \"ORM\".");
 	}
 
