@@ -29,6 +29,7 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 import java.sql.Time;
+import java.sql.Types;
 import java.util.Date;
 
 import lucee.commons.lang.FormatUtil;
@@ -36,6 +37,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
+import lucee.runtime.db.CFTypes;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.SQL;
@@ -52,6 +54,8 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.functions.arrays.ArrayFind;
 import lucee.runtime.op.Caster;
+import lucee.runtime.query.caster.Cast;
+import lucee.runtime.query.caster.OtherCast;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -64,7 +68,8 @@ import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.query.SimpleQuery;
 
 public class QueryUtil {
-
+	
+	
 	/*public static long sizeOf(QueryColumn column) {
 		if(column instanceof QueryColumnImpl){
 			return ((QueryColumnImpl)column).sizeOf();
@@ -76,6 +81,26 @@ public class QueryUtil {
 		}
 		return size;
 	}*/
+	
+	public static Cast toCast(ResultSet result, int type) throws SQLException {
+    	if(type==Types.TIMESTAMP)	return Cast.TIMESTAMP;
+        else if(type==Types.TIME)	return Cast.TIME;
+        else if(type==Types.DATE)	return Cast.DATE;
+        else if(type==Types.CLOB)	return Cast.CLOB;
+        else if(type==Types.BLOB)	return Cast.BLOB;
+        else if(type==Types.BIT)	return Cast.BIT;
+        else if(type==Types.ARRAY)	return Cast.ARRAY;
+        else if(type==Types.BIGINT)	return Cast.BIGINT;
+        //else if(types[i]==Types.TINYINT)	casts[i]=Cast.ARRAY;
+        
+        else if(type==CFTypes.OPAQUE){
+        	if(SQLUtil.isOracle(result.getStatement().getConnection()))
+        		return Cast.ORACLE_OPAQUE;
+        	return new OtherCast(type);
+			
+        }
+        else return new OtherCast(type);
+	}
 
 	/**
 	 * return column names as Key from a query

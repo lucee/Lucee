@@ -42,6 +42,7 @@ import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.scope.Undefined;
+import lucee.runtime.type.util.QueryUtil;
 
 public class SimpleQueryColumn implements QueryColumn {
 
@@ -62,42 +63,7 @@ public class SimpleQueryColumn implements QueryColumn {
 		this.index=index;
 		
 		try {
-			switch(type){
-			case Types.TIMESTAMP:
-				cast=Cast.TIMESTAMP;
-			break;
-			case Types.TIME:
-				cast=Cast.TIME;
-			break;
-			case Types.DATE:
-				cast=Cast.DATE;
-			break;
-			case Types.CLOB:
-				cast=Cast.CLOB;
-			break;
-			case Types.BLOB:
-				cast=Cast.BLOB;
-			break;
-			case Types.BIT:
-				cast=Cast.BIT;
-			break;
-			case Types.ARRAY:
-				cast=Cast.ARRAY;
-			break;
-			case Types.BIGINT:
-				cast=Cast.BIGINT;
-			break;
-			
-			case CFTypes.OPAQUE:
-				if(SQLUtil.isOracle(res.getStatement().getConnection()))
-	        		cast=Cast.ORACLE_OPAQUE;
-	        	else 
-	        		cast=Cast.OTHER;
-			break;
-			default:
-				cast=Cast.OTHER;
-			break;
-			}
+			cast=QueryUtil.toCast(res, type);
 		}
 		catch (Exception e) {
 			throw SimpleQuery.toRuntimeExc(e);
@@ -472,7 +438,7 @@ public class SimpleQueryColumn implements QueryColumn {
 	}*/
 	
 	private Object _get(int row) throws SQLException, IOException {
-		return cast.toCFType(null, type, res, index);
+		return cast.toCFType(null, res, index);
 	}
 
 	

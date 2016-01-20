@@ -410,25 +410,7 @@ public class QueryImpl implements Query,Objects {
 			for(int i=0;i<usedColumns.length;i++) {
 	            columnNames[i]=tmpColumnNames[usedColumns[i]];
 	            columns[i]=new QueryColumnImpl(this,columnNames[i],types[i]=meta.getColumnType(usedColumns[i]+1));
-	            
-	            if(types[i]==Types.TIMESTAMP)	casts[i]=Cast.TIMESTAMP;
-	            else if(types[i]==Types.TIME)	casts[i]=Cast.TIME;
-	            else if(types[i]==Types.DATE)	casts[i]=Cast.DATE;
-	            else if(types[i]==Types.CLOB)	casts[i]=Cast.CLOB;
-	            else if(types[i]==Types.BLOB)	casts[i]=Cast.BLOB;
-	            else if(types[i]==Types.BIT)	casts[i]=Cast.BIT;
-	            else if(types[i]==Types.ARRAY)	casts[i]=Cast.ARRAY;
-	            else if(types[i]==Types.BIGINT)	casts[i]=Cast.BIGINT;
-	            //else if(types[i]==Types.TINYINT)	casts[i]=Cast.ARRAY;
-	            
-	            else if(types[i]==CFTypes.OPAQUE){
-	            	if(SQLUtil.isOracle(result.getStatement().getConnection()))
-	            		casts[i]=Cast.ORACLE_OPAQUE;
-	            	else 
-	            		casts[i]=Cast.OTHER;
-					
-	            }
-	            else casts[i]=Cast.OTHER;
+	            casts[i]=QueryUtil.toCast(result, types[i]);
 			}
 			
 			if(createGeneratedKeys && columncount==1 && columnNames[0].equals(GENERATED_KEYS) && dc!=null && DataSourceUtil.isMSSQLDriver(dc)) {
@@ -447,7 +429,7 @@ public class QueryImpl implements Query,Objects {
 					break;
 				}
 				for(int i=0;i<usedColumns.length;i++) {
-				    columns[i].add(casts[i].toCFType(tz,types[i], result, usedColumns[i]+1));
+				    columns[i].add(casts[i].toCFType(tz, result, usedColumns[i]+1));
 				}
 				++recordcount;
 			}
