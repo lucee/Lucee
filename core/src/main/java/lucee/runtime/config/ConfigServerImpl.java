@@ -53,6 +53,7 @@ import lucee.runtime.engine.ThreadQueue;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.extension.RHExtension;
 import lucee.runtime.monitor.ActionMonitor;
 import lucee.runtime.monitor.ActionMonitorCollector;
 import lucee.runtime.monitor.IntervallMonitor;
@@ -805,5 +806,10 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	
 	public Map<String, String> getAMFEngineArgs()  {
 		return amfEngineArgs;
+	}
+
+	@Override
+	public RHExtension[] getServerRHExtensions() {
+		return getRHExtensions();
 	}
 }

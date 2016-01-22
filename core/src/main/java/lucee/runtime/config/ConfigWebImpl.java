@@ -59,6 +59,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
+import lucee.runtime.extension.RHExtension;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.lock.LockManager;
@@ -615,6 +616,9 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		public boolean installServerExtension(String extensionId) {
 			return configServer.installExtension(extensionId);
 		}
-		
-		
+
+		@Override
+		public RHExtension[] getServerRHExtensions() {
+			return configServer.getRHExtensions();
+		}
 }

@@ -101,6 +101,7 @@ import lucee.runtime.exp.SecurityException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.extension.Extension;
 import lucee.runtime.extension.ExtensionProvider;
+import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.functions.system.ContractPath;
 import lucee.runtime.listener.AppListenerUtil;
@@ -170,8 +171,9 @@ public abstract class ConfigImpl implements Config {
 	public static final int DEBUG_IMPLICIT_ACCESS = 16;
 	public static final int DEBUG_QUERY_USAGE = 32;
 	public static final int DEBUG_DUMP = 64;
-	
+
 	private static final Extension[] EXTENSIONS_EMPTY = new Extension[0];
+	private static final RHExtension[] RHEXTENSIONS_EMPTY = new RHExtension[0];
 	
 	public static final int MODE_CUSTOM = 1;
 	public static final int MODE_STRICT = 2;
@@ -375,6 +377,7 @@ public abstract class ConfigImpl implements Config {
 	private RHExtensionProvider[] rhextensionProviders=Constants.RH_EXTENSION_PROVIDERS;
 	
 	private Extension[] extensions=EXTENSIONS_EMPTY;
+	private RHExtension[] rhextensions=RHEXTENSIONS_EMPTY;
 	private boolean extensionEnabled;
 	private boolean allowRealPath=true;
 
@@ -545,8 +548,14 @@ public abstract class ConfigImpl implements Config {
 
 
     protected void setFLDs(FunctionLib[] flds, int dialect) {
-    	if(dialect==CFMLEngine.DIALECT_CFML)cfmlFlds=flds;
-    	else luceeFlds=flds;
+    	if(dialect==CFMLEngine.DIALECT_CFML){
+    		cfmlFlds=flds;
+    		if(cfmlFlds!=flds)combinedCFMLFLDs=null; // TODO improve check (hash) 
+    	}
+    	else {
+    		luceeFlds=flds;
+    		if(luceeFlds!=flds)combinedLuceeFLDs=null; // TODO improve check (hash) 
+    	}
     }
     
     /**
@@ -1315,8 +1324,14 @@ public abstract class ConfigImpl implements Config {
         	overwrite(flds[0], flds[i]);
         }
         flds=new FunctionLib[]{flds[0]};
-        if(dialect==CFMLEngine.DIALECT_CFML) cfmlFlds=flds;
-        else luceeFlds=flds;
+        if(dialect==CFMLEngine.DIALECT_CFML) {
+        	cfmlFlds=flds;
+        	if(cfmlFlds!=flds)combinedCFMLFLDs=null;// TODO improve check 
+        }
+        else {
+        	luceeFlds=flds;
+        	if(luceeFlds!=flds)combinedLuceeFLDs=null;// TODO improve check 
+        }
 		
 		if(fileFld==null) return;
         this.fldFile=fileFld;
@@ -2649,10 +2664,18 @@ public abstract class ConfigImpl implements Config {
 	public Extension[] getExtensions() {
 		return extensions;
 	}
+	public RHExtension[] getRHExtensions() {
+		return rhextensions;
+	}
+	
+	public abstract RHExtension[] getServerRHExtensions();
 
 	protected void setExtensions(Extension[] extensions) {
-		
 		this.extensions=extensions;
+	}
+	
+	protected void setExtensions(RHExtension[] extensions) {
+		this.rhextensions=extensions;
 	}
 
 	protected void setExtensionEnabled(boolean extensionEnabled) {

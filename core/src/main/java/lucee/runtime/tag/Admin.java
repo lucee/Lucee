@@ -627,6 +627,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         else if(check("getFlds",                ACCESS_FREE) && check2(ACCESS_READ  )) doGetFLDs();
         else if(check("getTlds",                ACCESS_FREE) && check2(ACCESS_READ  )) doGetTLDs();
         else if(check("getRHExtensions",        ACCESS_FREE) && check2(ACCESS_READ  )) doGetRHExtensions();
+        else if(check("getRHServerExtensions",  ACCESS_NOT_WHEN_SERVER) && check2(ACCESS_READ  )) doGetRHServerExtensions();
         else if(check("getLocalExtension",        ACCESS_FREE) && check2(ACCESS_READ  )) doGetLocalExtension();
         else if(check("getLocalExtensions",        ACCESS_FREE) && check2(ACCESS_READ  )) doGetLocalExtensions();
         else if(check("getMailSetting",         ACCESS_FREE) && check2(ACCESS_READ  )) doGetMailSetting();
@@ -2646,7 +2647,14 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     
 
 	private void doGetRHExtensions() throws PageException {
-        pageContext.setVariable(getString("admin",action,"returnVariable"),admin.getRHExtensionsAsQuery(config));
+		pageContext.setVariable(
+        		getString("admin",action,"returnVariable"),
+        		RHExtension.toQuery(config, config.getRHExtensions()));
+	}
+	private void doGetRHServerExtensions() throws PageException {
+		pageContext.setVariable(
+        		getString("admin",action,"returnVariable"),
+        		RHExtension.toQuery(config, config.getServerRHExtensions()));
 	}
 	
 	private void doGetLocalExtension() throws PageException {

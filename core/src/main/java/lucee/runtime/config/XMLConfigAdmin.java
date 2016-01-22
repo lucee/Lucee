@@ -6055,9 +6055,9 @@ public final class XMLConfigAdmin {
 		}
 		return list.toArray(new BundleDefinition[list.size()]); 
 	}
+	
 
-
-	public Query getRHExtensionsAsQuery(ConfigImpl config) throws PageException {
+	/*public Query getRHExtensionsAsQuery(ConfigImpl config) throws PageException {
 		Element extensions=_getRootElement("extensions");
 		Element[] children = XMLConfigWebFactory.getChildren(extensions,"rhextension");// LuceeHandledExtensions
       	try {
@@ -6065,7 +6065,7 @@ public final class XMLConfigAdmin {
 		} catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-	}
+	}*/
 	
 	private RHExtension getRHExtension(ConfigImpl config, String id, RHExtension defaultValue) {
 		Element extensions=_getRootElement("extensions");
