@@ -129,9 +129,14 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 
 <cfif isQuery(external)>
 	<div class="extensionlist">
+
 		<cfoutput query="#external#" group="id">
 			<cfif !StructKeyExists(existing,external.id)
-			and (isnull(data.type) or data.type EQ "all" or data.type EQ request.adminType or (data.type EQ "" and "web" EQ request.adminType)) 
+			and (isnull(external.releaseType) 
+				or external.releaseType EQ "" 
+				or external.releaseType EQ "all" 
+				or external.releaseType EQ request.adminType
+			) 
 			and (
 				session.extFilter.filter2 eq ""
 				or doFilter(session.extFilter.filter2,external.name,false)
