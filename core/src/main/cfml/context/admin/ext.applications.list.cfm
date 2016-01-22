@@ -29,13 +29,19 @@
 				</ul>
 				<div class="clear"></div>
 			</cfform>
-		</div>		
-		<div class="extensionlist">
-			<cfloop query="extensions">
-				<cfset existing[extensions.id]=true>
+		</div>	
+		<cfloop list="#request.adminType=="web"?"server,web":"web"#" item="type">
+			<cfset _extensions=type=="web"?extensions:serverExtensions>
+		<cfif type=="server">
+		<div style="text-align:center;background: ##fff;margin:10px 0px 0px 0px;border-radius: 10px;border:1px solid ##bf4f36;">
+				<h3 style="color:##bf4f36;margin-top:5px">#stText.ext.installedInServer#</h3>
+		</cfif>
+		<div<cfif type=="web"> style="margin-top:10px"<cfelse>  style="margin:0px 0px 4px 0px"</cfif> class="extensionlist">
+			<cfloop query=_extensions>
+				<cfif type=="web"><cfset existing[_extensions.id]=true></cfif>
 				<cfif session.extFilter.filter neq "">
 					<cftry>
-						<cfset prov=getProviderData(extensions.provider)>
+						<cfset prov=getProviderData(_extensions.provider)>
 						<cfset provTitle=prov.info.title>
 						<cfcatch>
 							<cfset provTitle="">
@@ -43,44 +49,44 @@
 					</cftry>
 				</cfif>
 				
-				<cfset cat=extensions.categories>
+				<cfset cat=_extensions.categories>
 				<cfif 
 				session.extFilter.filter eq ""
-				or doFilter(session.extFilter.filter,extensions.name,false)
+				or doFilter(session.extFilter.filter,_extensions.name,false)
 				or doFilter(session.extFilter.filter,arrayToList(cat),false)
 				or doFilter(session.extFilter.filter,provTitle,false)
 				><cfscript>
 	
-					link="#request.self#?action=#url.action#&action2=detail&id=#extensions.id#";
-					img=extensions.image;
+					link="#request.self#?action=#url.action#&action2=detail&id=#_extensions.id#";
+					img=_extensions.image;
 					if(len(img)==0) {
 						loop query="#external#"{
-							if(external.id==extensions.id) {
+							if(external.id==_extensions.id) {
 								img=external.image;
 								break;
 							}
 						}
 					}
 					dn=getDumpNail(img,130,50);
-					hasUpdate=updateAvailable(queryRowData(extensions,extensions.currentrow),external);
+					hasUpdate=updateAvailable(queryRowData(_extensions,_extensions.currentrow),external);
 					</cfscript><div class="extensionthumb">
 
 					
 
-						<a href="#link#" title="#extensions.name#
+						<a <cfif type=="web">href="#link#"<cfelse>style="border-color: ##E0E0E0;"</cfif> title="#_extensions.name#
 Categories: #arrayToList(cat)#"><cfif hasUpdate>
-       <div class="ribbon-wrapper"><div class="ribbon">UPDATE ME!</div></div>
+       <div class="ribbon-wrapper" <cfif type=="server">style="border-color:##bf4f36"</cfif>><div class="ribbon" <cfif type=="server">style="background-color:##bf4f36"</cfif>>UPDATE ME!</div></div>
 </cfif>
-<cfif extensions.trial>
-       <div class="ribbon-left-wrapper"><div class="ribbon-left">TRIAL</div></div>
+<cfif _extensions.trial>
+       <div class="ribbon-left-wrapper"><div class="ribbon-left" <cfif type=="server">style="background-color:##bf4f36"</cfif>>TRIAL</div></div>
 </cfif>
 							<div class="extimg">
 								<cfif len(dn)>
 									<img src="#dn#" alt="#stText.ext.extThumbnail#" />
 								</cfif>
 							</div>
-							#cut(extensions.name,40)#<br />
-							<span class="comment">#cut(arrayToList(cat),30)#</span>
+							<span <cfif type=="server">style="color:##bf4f36"</cfif>>#cut(_extensions.name,40)#<br /></span>
+							<span class="comment" <cfif type=="server">style="color:##bf4f36"</cfif>>#cut(arrayToList(cat),30)#</span>
 							
 						</a>
 					</div>
@@ -88,6 +94,8 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 			</cfloop>
 			<div class="clear"></div>
 		</div>
+	<cfif type=="server"></div></cfif>
+</cfloop>
 	</cfoutput>
 </cfif>
 

@@ -1,11 +1,9 @@
 <cfinclude template="ext.functions.cfm">
 
-<cfset stText.ext.free="Free">
-<cfset stText.ext.price="Price">
-<cfset stText.Buttons.installTrial="Install Trial">
-<cfset stText.Buttons.installFull="Install Full Version">
-<cfset stText.Buttons.updateTrial="Update as Trial">
-<cfset stText.Buttons.updateFull="Update as Full Version">
+
+
+<cfset stText.ext.installedInServer="Extension installed in the Server Administrator">
+
 
 <cfparam name="inc" default="">
 <cfparam name="url.action2" default="list">
@@ -29,13 +27,47 @@
 	returnVariable="providers">
 <cfset providerURLs=queryColumnData(providers,"url")>
 <cfset request.providers=providers>
-    
+
 
 <cfadmin 
     action="getRHExtensions"
     type="#request.adminType#"
     password="#session["password"&request.adminType]#"
     returnVariable="extensions">
+
+
+<cfif request.adminType=="web">
+	<cfadmin 
+	    action="getRHServerExtensions"
+	    type="#request.adminType#"
+	    password="#session["password"&request.adminType]#"
+	    returnVariable="serverExtensions">
+	<!---<cfset extensions=queryNew(serverExtensions.columnlist&",installLocation")>
+	<cfset ids={}>
+	 server 
+	<cfloop query=serverExtensions>
+		<cfset row=queryAddrow(extensions)>
+		<cfset ids[serverExtensions.id]="">
+		<cfset extensions.installLocation[row]="server">
+		<cfloop array="#queryColumnArray(serverExtensions)#" item="col">
+			<cfset extensions[col][row]=serverExtensions[col]>
+		</cfloop>
+	</cfloop>--->
+	<!--- web
+	<cfloop query=webExtensions>
+		<cfif !isNull(ids[webExtensions.id])>
+			<cfcontinue>
+		</cfif>
+		<cfset row=queryAddrow(extensions)>
+		<cfset extensions.installLocation[row]="web">
+		<cfloop array="#queryColumnArray(webExtensions)#" item="col">
+			<cfset extensions[col][row]=webExtensions[col]>
+		</cfloop>
+	</cfloop> --->
+
+</cfif>
+
+
 
 
 <cfparam name="error" default="#struct(message:"",detail:"")#">
