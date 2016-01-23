@@ -289,7 +289,7 @@ LUCEE BUILD PROCESS
   <target name="copyDeployFiles" depends="init,check" description="copy files from source/cfml to source/java/core/src/resource">
     <echots message="copy files from source/cfml to source/java/core/src/resource"/>
 
-    <copy todir="${srcCore}/resource/context/">
+    <copy todir="${srcCore}/resource/context/" overwrite="true">
       <fileset dir="${srcCFML}/context/">
         <include name="*.cfm"/>
         <include name="*.cfc"/>
@@ -298,10 +298,7 @@ LUCEE BUILD PROCESS
       </fileset>
     </copy>
 
-    <echo message="${srcCore}/resource/context/admin/resources/language/"/>
-    <echo message="${srcCFML}/context/admin/resources/language/"/>
-
-    <copy todir="${srcCore}/resource/context/admin/resources/language/">
+    <copy todir="${srcCore}/resource/context/admin/resources/language/" overwrite="true">
       <fileset dir="${srcCFML}/context/admin/resources/language/">
         <include name="*.cfm"/>
         <include name="*.cfc"/>
@@ -310,7 +307,7 @@ LUCEE BUILD PROCESS
       </fileset>
     </copy>
 
-    <copy todir="${srcCore}/resource/context/gateway">
+    <copy todir="${srcCore}/resource/context/gateway"  overwrite="true">
       <fileset dir="${srcCFML}/context/gateway">
         <include name="*.cfm"/>
         <include name="*.cfc"/>
@@ -319,7 +316,7 @@ LUCEE BUILD PROCESS
       </fileset>
     </copy>
 
-    <copy todir="${srcCore}/resource/context/templates/error">
+    <copy todir="${srcCore}/resource/context/templates/error"  overwrite="true">
       <fileset dir="${srcCFML}/context/templates/error">
         <include name="*.cfm"/>
         <include name="*.cfc"/>
@@ -328,7 +325,7 @@ LUCEE BUILD PROCESS
       </fileset>
     </copy>
 
-    <copy todir="${srcCore}/resource/context/admin/plugin">
+    <copy todir="${srcCore}/resource/context/admin/plugin"  overwrite="true">
       <fileset dir="${srcCFML}/context/admin/plugin">
         <include name="**/*.cfm"/>
         <include name="**/*.cfc"/>
