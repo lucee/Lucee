@@ -284,6 +284,11 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="ext.provider">Provider</data>
 	<data key="ext.documentation">Dokumentation</data>
 	<data key="ext.installeddesc">Diese Applikation ist bereits installiert.</data>
+	<data key="ext.installedServer">Installiert im Server Administrator</data>
+	<data key="ext.installedServerDesc">
+		Diese Extension wurde im Server Administrator installiert, Sie haben zwei Möglichkeiten. Sie können die Extension in diesem Web Kontext installieren und damit die Server Administrator installation überlagern oder Sie können Sie im Server Administrator updaten.</data>
+	<data key="ext.free">Free</data>
+	<data key="ext.price">Price</data>
 	<data key="ext.licenseagreement">Lizenzvereinbahrung</data>
 	<data key="remote.url">URL</data>
 	<data key="remote.urlpathmissing">Der Pfad zur Admin.cfc fehlt</data>
@@ -819,6 +824,12 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="buttons.reset">zurücksetzen</data>
 	<data key="buttons.repair">reparieren</data>
 	<data key="buttons.export">export</data>
+
+	<data key="buttons.installTrial">Trial installieren</data>
+	<data key="buttons.installFull">Vollversion installieren</data>
+	<data key="buttons.updateTrial">Update als Trial</data>
+	<data key="buttons.updateFull">Update als Vollversion</data>
+
 	<data key="schedule.executiontimedescmonthly">Definert die Zeit bei welcher der Task monatlich ausgeführt werden soll.</data>
 	<data key="schedule.username">Username</data>
 	<data key="schedule.passworddescription">Passwort, um auf eine geschützte URL zuzugreifen.</data>

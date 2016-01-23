@@ -288,6 +288,7 @@ LUCEE BUILD PROCESS
   
   <target name="copyDeployFiles" depends="init,check" description="copy files from source/cfml to source/java/core/src/resource">
     <echots message="copy files from source/cfml to source/java/core/src/resource"/>
+
     <copy todir="${srcCore}/resource/context/">
       <fileset dir="${srcCFML}/context/">
         <include name="*.cfm"/>
@@ -296,6 +297,9 @@ LUCEE BUILD PROCESS
         <include name="*.xml"/>
       </fileset>
     </copy>
+
+    <echo message="${srcCore}/resource/context/admin/resources/language/"/>
+    <echo message="${srcCFML}/context/admin/resources/language/"/>
 
     <copy todir="${srcCore}/resource/context/admin/resources/language/">
       <fileset dir="${srcCFML}/context/admin/resources/language/">
