@@ -679,6 +679,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>required</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<undefined-value>boolean:true</undefined-value>
 			<description>is argument required or not</description>
 		</attribute>
 		<attribute>

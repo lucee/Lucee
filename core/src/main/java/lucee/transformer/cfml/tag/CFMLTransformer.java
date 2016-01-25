@@ -1013,7 +1013,10 @@ public final class CFMLTransformer {
     	}
     	// default value boolean true
     	else {
-    		value=tag.getAttributeDefaultValue(data.factory);
+    		TagLibTagAttr attr = tag.getAttribute(name);
+    		if(attr!=null) value=attr.getUndefinedValue(data.factory); 
+    		else value=tag.getAttributeUndefinedValue(data.factory);
+    		
     		if(sbType.toString().length()>0) {
     			value=CastOther.toExpression(value, sbType.toString());
     		}

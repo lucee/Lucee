@@ -115,7 +115,7 @@ public final class TagLibTag {
 	private TagLibTagScript script;
 	private final static TagLibTagAttr UNDEFINED=new TagLibTagAttr(null);
 	private TagLibTagAttr singleAttr=UNDEFINED;
-	private Object attrDefaultValue;
+	private Object attrUndefinedValue;
 	private String bundleName;
 	private Version bundleVersion;
 	
@@ -837,34 +837,31 @@ public final class TagLibTag {
 	 * attribute value set, if the attribute has no value defined
 	 * @return
 	 */
-	public Expression getAttributeDefaultValue(Factory factory) {
-		if(attrDefaultValue==null) return factory.TRUE();
-		return factory.createLiteral(attrDefaultValue,factory.TRUE());
+	public Expression getAttributeUndefinedValue(Factory factory) {
+		if(attrUndefinedValue==null) return factory.TRUE();
+		return factory.createLiteral(attrUndefinedValue,factory.TRUE());
 	}
 	
-	public void setAttributeDefaultValue(String defaultValue) {
-		defaultValue=defaultValue.trim();
+	public void setAttributeUndefinedValue(String undefinedValue) {
+		this.attrUndefinedValue=toUndefinedValue(undefinedValue);
+	}
+	
+	public static Object toUndefinedValue(String undefinedValue) {
+		undefinedValue=undefinedValue.trim();
 		// boolean
-		if(StringUtil.startsWithIgnoreCase(defaultValue, "boolean:")) {
-			String str=defaultValue.substring(8).trim();
+		if(StringUtil.startsWithIgnoreCase(undefinedValue, "boolean:")) {
+			String str=undefinedValue.substring(8).trim();
 			Boolean b = Caster.toBoolean(str,null);
-			if(b!=null){
-				this.attrDefaultValue=b;
-				return;
-			}
-			
+			if(b!=null)return b;
 		}
 		// number
-		else if(StringUtil.startsWithIgnoreCase(defaultValue, "number:")) {
-			String str=defaultValue.substring(7).trim();
+		else if(StringUtil.startsWithIgnoreCase(undefinedValue, "number:")) {
+			String str=undefinedValue.substring(7).trim();
 			Double d = Caster.toDouble(str,null);
-			if(d!=null){
-				this.attrDefaultValue=d;
-				return;
-			}
+			if(d!=null) return d;
 			
 		}
-		else this.attrDefaultValue=defaultValue;
+		return undefinedValue;
 	}
 
 }

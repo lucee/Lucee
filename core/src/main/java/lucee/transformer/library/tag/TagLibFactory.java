@@ -262,8 +262,10 @@ public final class TagLibFactory extends DefaultHandler {
 					att.setRtexpr(Caster.toBooleanValue(value,false));
 				// Type
 				else if(inside.equals("type")) att.setType(value);
-				// Default-Value
+    			// Default-Value
 				else if(inside.equals("default-value")) att.setDefaultValue(value);
+    			// undefined-Value
+				else if(inside.equals("undefined-value")) att.setUndefinedValue(value);
     			// status
 				else if(inside.equals("status")) att.setStatus(toStatus(value));
     			// Description
@@ -310,7 +312,8 @@ public final class TagLibFactory extends DefaultHandler {
 				else if(inside.equals("allow-removing-literal"))  {
                     tag.setAllowRemovingLiteral(Caster.toBooleanValue(value,false));
                 }
-				else if(inside.equals("att-default-value"))	tag.setAttributeDefaultValue(value);
+				else if(inside.equals("att-default-value"))	tag.setAttributeUndefinedValue(value);
+				else if(inside.equals("att-undefined-value"))	tag.setAttributeUndefinedValue(value);
 				
     			
     			

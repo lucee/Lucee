@@ -31,6 +31,8 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.ListUtil;
+import lucee.transformer.Factory;
+import lucee.transformer.expression.Expression;
 
 
 /**
@@ -53,6 +55,7 @@ public final class TagLibTagAttr {
 	private boolean required;
 	private boolean rtexpr=true;
 	private Object defaultValue;
+	private Object undefinedValue;
     private TagLibTag tag;
 	private boolean hidden;
 	private boolean _default;
@@ -235,6 +238,18 @@ public final class TagLibTagAttr {
     public void setDefaultValue(Object defaultValue) {
         this.defaultValue=defaultValue;
         tag.setHasDefaultValue(true);
+    }
+    
+    public void setUndefinedValue(String undefinedValue) {
+    	this.undefinedValue=TagLibTag.toUndefinedValue(undefinedValue);
+	}
+    
+    /**
+     * @return Returns the defaultValue.
+     */
+    public Expression getUndefinedValue(Factory factory) {
+    	if(undefinedValue==null) return tag.getAttributeUndefinedValue(factory);
+        return factory.createLiteral(undefinedValue,factory.TRUE());
     }
 
     /**
