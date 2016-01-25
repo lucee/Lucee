@@ -479,7 +479,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	public int toDialect(String ext) {
 		if(cfmlExtensions==null) _initExtensions();
 		if(cfmlExtensions.contains(ext.toLowerCase())) return CFMLEngine.DIALECT_CFML;
-		return CFMLEngine.DIALECT_LUCEE;
+		return CFMLEngine.DIALECT_CFML;
 	}
 	
 	// FUTURE add to loader

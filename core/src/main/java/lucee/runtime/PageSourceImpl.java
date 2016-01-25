@@ -896,7 +896,8 @@ public final class PageSourceImpl implements PageSource {
 	@Override
 	public int getDialect() {
 		// MUST is the mapping always configWeb?
-		return ((ConfigWeb)getMapping().getConfig()).getFactory().toDialect(ResourceUtil.getExtension(relPath, Constants.getLuceeComponentExtension()));
+		return ((CFMLFactoryImpl)((ConfigWeb)getMapping().getConfig()).getFactory())
+				.toDialect(ResourceUtil.getExtension(relPath, Constants.getCFMLComponentExtension()),CFMLEngine.DIALECT_CFML);
 	}
 
 	/**
