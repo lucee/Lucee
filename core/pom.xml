@@ -19,6 +19,11 @@
   <description>Building the Lucee Core File</description>
   <url>http://maven.lucee.org/core/</url>
 
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
   <licenses>
     <license>
      <name>The GNU Lesser General Public License, Version 2.1</name>

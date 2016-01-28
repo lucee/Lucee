@@ -31,8 +31,6 @@ public class ServletConfigImpl implements ServletConfig {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param context
-	 * @param servletName
 	 */
 	public ServletConfigImpl(final ServletContextImpl context,
 			final String servletName) {

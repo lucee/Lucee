@@ -18,7 +18,6 @@
  */
 package lucee.transformer.bytecode.statement.tag;
 
-import lucee.commons.lang.RandomUtil;
 import lucee.runtime.tag.ThreadTag;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;

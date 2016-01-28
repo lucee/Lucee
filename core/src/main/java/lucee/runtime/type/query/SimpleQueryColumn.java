@@ -21,13 +21,10 @@ package lucee.runtime.type.query;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import lucee.commons.sql.SQLUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.db.CFTypes;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.engine.ThreadLocalPageContext;

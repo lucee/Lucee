@@ -3,8 +3,8 @@ package lucee.runtime.type.query;
 import lucee.runtime.db.SQL;
 import lucee.runtime.dump.Dumpable;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.type.Duplicable;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.Duplicable;
 
 public interface QueryResult extends Dumpable,Duplicable {
 

@@ -18,12 +18,6 @@
 package lucee.runtime.orm;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigServer;
-import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
-import lucee.runtime.config.DeployHandler;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;

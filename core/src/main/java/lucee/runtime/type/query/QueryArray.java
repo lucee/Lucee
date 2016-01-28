@@ -11,7 +11,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.Collection.Key;
 
 public class QueryArray extends ArrayImpl implements QueryResult {
 	

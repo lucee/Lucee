@@ -18,17 +18,8 @@
  **/
 package lucee.runtime.cache.tag.query;
 
-import java.io.Serializable;
-import java.util.Date;
-
 import lucee.commons.digest.HashUtil;
-import lucee.runtime.PageContext;
-import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.udf.UDFArgConverter;
-import lucee.runtime.dump.DumpData;
-import lucee.runtime.dump.DumpProperties;
-import lucee.runtime.dump.Dumpable;
-import lucee.runtime.type.Duplicable;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.query.QueryResult;
 

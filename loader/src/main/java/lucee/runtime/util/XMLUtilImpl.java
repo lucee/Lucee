@@ -197,7 +197,6 @@ public final class XMLUtilImpl implements XMLUtil {
      * @return parsed Document
      * @throws SAXException
      * @throws IOException
-     * @throws ParserConfigurationException 
      */
     public final Document parse(InputSource xml,InputSource validator, boolean isHtml) 
         throws SAXException, IOException {
@@ -382,8 +381,6 @@ public final class XMLUtilImpl implements XMLUtil {
      * return all Children of a node by a defined type as Node Array
      * @param node node to get children from
      * @param type type of returned node
-     * @param filter 
-     * @param caseSensitive 
      * @return all matching child node
      */
     public Node[] getChildNodesAsArray(Node node, short type) {

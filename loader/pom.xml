@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.164-SNAPSHOT</version>
+  <version>5.0.0.165-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -20,11 +20,13 @@
 
 
   <properties>
-      <timestamp>${maven.build.timestamp}</timestamp>
-      <maven.build.timestamp.format>yyyy/MM/dd HH:mm:ss z</maven.build.timestamp.format>
-      <maven.build.timestamp.zone>UTC</maven.build.timestamp.zone>
-      <maven.build.timestamp.locale>en,GB</maven.build.timestamp.locale>
-      <main.class>lucee.runtime.script.Main</main.class>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <timestamp>${maven.build.timestamp}</timestamp>
+    <maven.build.timestamp.format>yyyy/MM/dd HH:mm:ss z</maven.build.timestamp.format>
+    <maven.build.timestamp.zone>UTC</maven.build.timestamp.zone>
+    <maven.build.timestamp.locale>en,GB</maven.build.timestamp.locale>
+    <main.class>lucee.runtime.script.Main</main.class>
   </properties>
 
   <licenses>
@@ -241,9 +243,9 @@
       </plugin>
 
       </plugins>
-      <!--<pluginManagement>
+      <pluginManagement>
       	<plugins>
-      		This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.
+      		<!-- This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->
       		<plugin>
       			<groupId>org.eclipse.m2e</groupId>
       			<artifactId>lifecycle-mapping</artifactId>
@@ -275,7 +277,7 @@
       			</configuration>
       		</plugin>
       	</plugins>
-      </pluginManagement>-->
+      </pluginManagement>
   </build>
 
 

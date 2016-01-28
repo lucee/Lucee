@@ -18,16 +18,9 @@
 package lucee.runtime.search;
 
 import lucee.commons.io.res.Resource;
-import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebImpl;
-import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.type.Query;
-
-import org.w3c.dom.Element;
 
 public class DummySearchEngine implements SearchEngine {
 	
