@@ -85,6 +85,7 @@ import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.ThreadLocalDuplication;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.query.caster.Cast;
+import lucee.runtime.query.caster.OtherCast;
 import lucee.runtime.type.comparator.NumberSortRegisterComparator;
 import lucee.runtime.type.comparator.SortRegister;
 import lucee.runtime.type.comparator.SortRegisterComparator;
@@ -96,6 +97,8 @@ import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.it.ForEachQueryIterator;
 import lucee.runtime.type.it.KeyIterator;
 import lucee.runtime.type.it.StringIterator;
+import lucee.runtime.type.query.QueryArray;
+import lucee.runtime.type.query.QueryResult;
 import lucee.runtime.type.sql.BlobImpl;
 import lucee.runtime.type.sql.ClobImpl;
 import lucee.runtime.type.util.ArrayUtil;
@@ -111,7 +114,7 @@ import lucee.runtime.type.util.QueryUtil;
 /**
  * 
  */
-public class QueryImpl implements Query,Objects {
+public class QueryImpl implements Query,Objects,QueryResult {
 
 	private static final long serialVersionUID = 1035795427320192551L; // do not chnage
 
@@ -161,7 +164,7 @@ public class QueryImpl implements Query,Objects {
 		//stopwatch.start();
 		long start=System.nanoTime();
     	try {
-            fillResult(null,result,maxrow,false,false,tz);
+            fillResult(this,null,null,result,maxrow,false,false,tz);
         } catch (SQLException e) {
             throw new DatabaseException(e,null);
         } catch (IOException e) {
@@ -182,7 +185,7 @@ public class QueryImpl implements Query,Objects {
 		this.name=name;
         
 		try {	
-		    fillResult(null,result,-1,true,false,tz);
+		    fillResult(this,null,null,result,-1,true,false,tz);
 		} 
 		catch (SQLException e) {
 			throw new DatabaseException(e,null);
@@ -213,13 +216,22 @@ public class QueryImpl implements Query,Objects {
 		this.name=name;
 		this.template=template;
         this.sql=sql;
+		execute(pc,dc,sql,maxrow,fetchsize,timeout,createUpdateData,allowToCachePreperadeStatement,this,null);
+	}
+
+	public static QueryArray toArray(PageContext pc, DatasourceConnection dc,SQL sql,int maxrow, int fetchsize,TimeSpan timeout, String name,String template,boolean createUpdateData, boolean allowToCachePreperadeStatement) throws PageException {
+		QueryArray arr=new QueryArray(name,sql,template);
+		execute(pc,dc,sql,maxrow,fetchsize,timeout,createUpdateData,allowToCachePreperadeStatement,null,arr);
+		return arr;
+	}
+	
+	private static void execute(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout
+			, boolean createUpdateData, boolean allowToCachePreperadeStatement, QueryImpl qry, QueryArray arr) throws PageException {
+		
+        
+        
 		TimeZone tz = ThreadLocalPageContext.getTimeZone(pc);
-        //ResultSet result=null;
-		Statement stat=null;
-		// check SQL Restrictions
-		if(dc.getDatasource().hasSQLRestriction()) {
-			QueryUtil.checkSQLRestriction(dc,sql);
-        }
+        
 		// check if datasource support Generated Keys
 		boolean createGeneratedKeys=createUpdateData;
         if(createUpdateData){
@@ -227,7 +239,12 @@ public class QueryImpl implements Query,Objects {
         	if(!dci.supportsGetGeneratedKeys())createGeneratedKeys=false;
         }
 
-        
+		// check SQL Restrictions
+		if(dc.getDatasource().hasSQLRestriction()) {
+			QueryUtil.checkSQLRestriction(dc,sql);
+        }
+		
+		Statement stat=null;
 		//Stopwatch stopwatch=new Stopwatch();
         long start=System.nanoTime();
 		//stopwatch.start();
@@ -252,15 +269,18 @@ public class QueryImpl implements Query,Objects {
 		        hasResult=QueryUtil.execute(pc,preStat);    
 	        }
 			int uc;
-			ResultSet res;
+			//ResultSet res;
 			do {
 				if(hasResult) {
-					res=stat.getResultSet();
-					if(fillResult(dc,res, maxrow, true,createGeneratedKeys,tz))break;
+					//res=stat.getResultSet();
+					//if(fillResult(dc,res, maxrow, true,createGeneratedKeys,tz))break;
+					if(fillResult(qry,arr,dc,stat.getResultSet(), maxrow, true,createGeneratedKeys,tz))break;
+
 				}
-				else if((uc=setUpdateCount(stat))!=-1){
-					if(uc>0 && createGeneratedKeys)setGeneratedKeys(dc, stat,tz);
+				else if((uc=setUpdateCount(qry!=null?qry:arr,stat))!=-1){
+					if(uc>0 && createGeneratedKeys && qry!=null)qry.setGeneratedKeys(dc, stat,tz);
 				}
+				
 				else break;
 				try{
 					hasResult=stat.getMoreResults(Statement.CLOSE_CURRENT_RESULT);
@@ -281,25 +301,33 @@ public class QueryImpl implements Query,Objects {
         	//if(closeStatement)
         		DBUtil.closeEL(stat);
         }  
-		exeTime=System.nanoTime()-start;
-
-		if(columncount==0) {
-			if(columnNames==null) columnNames=new Collection.Key[0];
-			if(columns==null) columns=new QueryColumnImpl[0];
+		if(qry!=null) {
+			qry.exeTime=System.nanoTime()-start;
+	
+			if(qry.columncount==0) {
+				if(qry.columnNames==null) qry.columnNames=new Collection.Key[0];
+				if(qry.columns==null) qry.columns=new QueryColumnImpl[0];
+			}
 		}
+		else {
+			arr.setExecutionTime(System.nanoTime()-start);
+		}
+
+		
 	}
 	
-	private int setUpdateCount(Statement stat)  {
+	private static int setUpdateCount(QueryResult qr, Statement stat)  {
 		try{
 			int uc=stat.getUpdateCount();
 			if(uc>-1){
-				updateCount+=uc;
+				qr.setUpdateCount(qr.getUpdateCount()+uc);
 				return uc;
 			}
 		}
 		catch(Throwable t){}
 		return -1;
 	}
+	
 	
 	private boolean setGeneratedKeys(DatasourceConnection dc,Statement stat, TimeZone tz)  {
 		try{
@@ -323,31 +351,7 @@ public class QueryImpl implements Query,Objects {
 		}
 	}
 	
-	/*private void setUpdateData(Statement stat, boolean createGeneratedKeys, boolean createUpdateCount)  {
-		
-		// update Count
-		if(createUpdateCount){
-			try{
-				updateCount=stat.getUpdateCount();
-			}
-			catch(Throwable t){
-				t.printStackTrace();
-			}
-		}
-		// generated keys
-		if(createGeneratedKeys){
-			try{
-				ResultSet rs = stat.getGeneratedKeys();
-				generatedKeys=new QueryImpl(rs,"");
-			}
-			catch(Throwable t){
-				t.printStackTrace();
-			}
-		}
-	}*/
-
-
-	private void setItems(PageContext pc,TimeZone tz,PreparedStatement preStat, SQLItem[] items) throws DatabaseException, PageException, SQLException {
+	private static void setItems(PageContext pc,TimeZone tz,PreparedStatement preStat, SQLItem[] items) throws DatabaseException, PageException, SQLException {
 		for(int i=0;i<items.length;i++) {
             SQLCaster.setValue(pc,tz,preStat,i+1,items[i]);
         }
@@ -356,22 +360,29 @@ public class QueryImpl implements Query,Objects {
 	public int getUpdateCount() {
 		return updateCount;
 	}
+	public void setUpdateCount(int updateCount) {
+		this.updateCount=updateCount;
+	}
 	public Query getGeneratedKeys() {
 		return generatedKeys;
 	}
-
-	private void setAttributes(Statement stat,int maxrow, int fetchsize,TimeSpan timeout) throws SQLException {
+	
+	private static void setAttributes(Statement stat,int maxrow, int fetchsize,TimeSpan timeout) throws SQLException {
 		if(maxrow>-1) stat.setMaxRows(maxrow);
         if(fetchsize>0)stat.setFetchSize(fetchsize);       
         if(timeout!=null && ((int)timeout.getSeconds())>0)
         	DataSourceUtil.setQueryTimeoutSilent(stat,(int)timeout.getSeconds());
 	}
-
-    private boolean fillResult(DatasourceConnection dc, ResultSet result, int maxrow, boolean closeResult,boolean createGeneratedKeys, TimeZone tz) throws SQLException, IOException, PageException {
+	
+    private static boolean fillResult(QueryImpl qry,QueryArray arr,DatasourceConnection dc, ResultSet result, int maxrow, boolean closeResult,boolean createGeneratedKeys, TimeZone tz) throws SQLException, IOException, PageException {
     	if(result==null) return false;
+    	
+    	int recordcount=0,columncount=0;
+    	Collection.Key[] columnNames=null;
+    	QueryColumnImpl[] columns=null;
+    	
     	try {
-	    	recordcount=0;
-			ResultSetMetaData meta = result.getMetaData();
+	    	ResultSetMetaData meta = result.getMetaData();
 			columncount=meta.getColumnCount();
 			
 		// set header arrays
@@ -389,11 +400,10 @@ public class QueryImpl implements Query,Objects {
 					count++;
 				}
 			}
-			
-	
+
 			columncount=count;
 			columnNames=new Collection.Key[columncount];
-			columns=new QueryColumnImpl[columncount];
+			if(qry!=null)columns=new QueryColumnImpl[columncount];
 			Cast[] casts = new Cast[columncount];
 			
 		// get all used ints
@@ -406,40 +416,67 @@ public class QueryImpl implements Query,Objects {
 			}	
 						
 		// set used column names
-			int[] types=new int[columns.length];
+			int type;
 			for(int i=0;i<usedColumns.length;i++) {
 	            columnNames[i]=tmpColumnNames[usedColumns[i]];
-	            columns[i]=new QueryColumnImpl(this,columnNames[i],types[i]=meta.getColumnType(usedColumns[i]+1));
-	            casts[i]=QueryUtil.toCast(result, types[i]);
+	            type=meta.getColumnType(usedColumns[i]+1);
+	            if(qry!=null)columns[i]=new QueryColumnImpl(qry,columnNames[i],type);
+	            casts[i]=QueryUtil.toCast(result, type);
 			}
 			
 			if(createGeneratedKeys && columncount==1 && columnNames[0].equals(GENERATED_KEYS) && dc!=null && DataSourceUtil.isMSSQLDriver(dc)) {
 				columncount=0;
 				columnNames=null;
-				columns=null;
-				setGeneratedKeys(dc, result,tz);
+				if(qry!=null){
+					columns=null;
+					qry.setGeneratedKeys(dc, result,tz);
+				}
 				return false;
 			}
 			
-	
-		// fill data
-			//Object o;
-			while(result.next()) {
-				if(maxrow>-1 && recordcount>=maxrow) {
-					break;
+			// fill QUERY
+			if(qry!=null) {
+				while(result.next()) {
+					if(maxrow>-1 && recordcount>=maxrow) {
+						break;
+					}
+					for(int i=0;i<usedColumns.length;i++) {
+					    columns[i].add(casts[i].toCFType(tz, result, usedColumns[i]+1));
+					}
+					++recordcount;
 				}
-				for(int i=0;i<usedColumns.length;i++) {
-				    columns[i].add(casts[i].toCFType(tz, result, usedColumns[i]+1));
+			}
+			// fill ARRAY
+			else {
+				Struct sct;
+				while(result.next()) {
+					if(maxrow>-1 && recordcount>=maxrow) {
+						break;
+					}
+					sct=new StructImpl();
+					for(int i=0;i<usedColumns.length;i++) {
+						sct.set(columnNames[i], casts[i].toCFType(tz, result, usedColumns[i]+1));
+					}
+					arr.appendEL(sct);
+					++recordcount;
 				}
-				++recordcount;
 			}
     	}
     	finally {
+    		if(qry!=null) {
+	    		qry.columncount=columncount;
+				qry.recordcount=recordcount;
+				qry.columnNames=columnNames;
+				qry.columns=columns;
+    		}
+    		else {
+    			arr.setColumnNames(columnNames);
+    		}
     		if(closeResult)IOUtil.closeEL(result);
     	}
-		
 		return true;
 	}
+
 
     private Object toBytes(Blob blob) throws IOException, SQLException {
 		return IOUtil.toBytes((blob).getBinaryStream());
@@ -2628,7 +2665,7 @@ public class QueryImpl implements Query,Objects {
 
 	public void readExternal(ObjectInput in) throws IOException {
 		try {
-			QueryImpl other=(QueryImpl) new CFMLExpressionInterpreter().interpret(ThreadLocalPageContext.get(),in.readUTF());
+			QueryImpl other=(QueryImpl) new CFMLExpressionInterpreter(false).interpret(ThreadLocalPageContext.get(),in.readUTF());
 			this.arrCurrentRow=other.arrCurrentRow;
 			this.columncount=other.columncount;
 			this.columnNames=other.columnNames;

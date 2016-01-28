@@ -1,4 +1,4 @@
-package lucee.runtime.type;
+package lucee.runtime.type.query;
 
 import lucee.commons.lang.FormatUtil;
 import lucee.commons.lang.StringUtil;
@@ -7,9 +7,13 @@ import lucee.runtime.db.SQL;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.Collection;
+import lucee.runtime.type.Collection.Key;
 
-public class QueryArray extends ArrayImpl {
+public class QueryArray extends ArrayImpl implements QueryResult {
 	
 	private static final long serialVersionUID = -2123873025169506446L;
 	
@@ -17,6 +21,10 @@ public class QueryArray extends ArrayImpl {
 	private long executionTime;
 	private final String template;
 	private final String name;
+
+	private String cacheType;
+	private int updateCount;
+	private Key[] columnNames;
 
 	public QueryArray(String name, SQL sql, String template) {
 		this.name=name;
@@ -44,10 +52,10 @@ public class QueryArray extends ArrayImpl {
 			comment.append( " (showing top " ).append( Caster.toString( top ) ).append( ")" );
 		comment.append("\n");
 		comment.append("Cached: ").append(isCached()?"Yes\n":"No\n");
-		/* TODO if(isCached() && query instanceof QueryImpl) {
-			String ct=((QueryImpl)query).getCacheType();
+		if(isCached()) {
+			String ct=getCacheType();
 			comment.append("Cache Type: ").append(ct).append("\n");
-		}*/
+		}
 		
 		SQL sql=getSql();
 		if(sql!=null)
@@ -58,15 +66,37 @@ public class QueryArray extends ArrayImpl {
 		return dt;
 		
 	}
+	
+	@Override
+	public synchronized Collection duplicate(boolean deepCopy) {
+		QueryArray qa = new QueryArray(name,sql,template);
+		qa.cacheType=cacheType;
+		qa.columnNames=columnNames;
+		qa.executionTime=executionTime;
+		qa.updateCount=updateCount;
+		return duplicate(qa,deepCopy);
+	}
 
-	private SQL getSql() {
+	public SQL getSql() {
 		return sql;
 	}
 
-	private boolean isCached() {
-		// TODO 
-		return false;
-	}
+	
+	public void setCacheType(String cacheType) {
+    	this.cacheType=cacheType; 
+    }
+
+    public String getCacheType() {
+    	return cacheType; 
+    }
+
+
+    @Override
+    public boolean isCached() {
+        return cacheType!=null;
+    }
+	
+	
 
 	public long getExecutionTime() {
 		return executionTime;
@@ -80,6 +110,37 @@ public class QueryArray extends ArrayImpl {
 	}
 	public String getName() {
 		return name;
+	}
+	
+	@Override
+	public boolean isEmpty() {
+		return size()==0;
+	}
+
+	@Override
+	public int getRecordcount() {
+		return size();
+	}
+
+	@Override
+	public int getUpdateCount() {
+		return updateCount;
+	}
+
+	@Override
+	public void setUpdateCount(int updateCount) {
+		this.updateCount = updateCount;
+	}
+
+	@Override
+	public Key[] getColumnNames() {
+		return columnNames;
+	}
+	
+
+	@Override
+	public void setColumnNames(Key[] columnNames) throws PageException{
+		this.columnNames=columnNames;
 	}
 
 }

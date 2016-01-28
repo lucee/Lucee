@@ -32,7 +32,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheItem;
-import lucee.runtime.cache.tag.query.QueryCacheItem;
+import lucee.runtime.cache.tag.query.QueryResultCacheItem;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
@@ -69,8 +69,10 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
+import lucee.runtime.type.query.QueryResult;
 import lucee.runtime.type.query.SimpleQuery;
 import lucee.runtime.type.scope.Argument;
+import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.PageContextUtil;
@@ -90,8 +92,12 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	private static final Collection.Key MAX_RESULTS = KeyImpl.intern("maxResults");
 	private static final Collection.Key TIMEOUT = KeyConstants._timeout;
 	
+	private static final int RETURN_TYPE_UNDEFINED = 0;
 	private static final int RETURN_TYPE_QUERY = 1;
-	private static final int RETURN_TYPE_ARRAY_OF_ENTITY = 2;
+	private static final int RETURN_TYPE_ARRAY = 2;
+	private static final int RETURN_TYPE_STRUCT = 3;
+	public static final int RETURN_TYPE_STORED_PROC = 4;
+
 
 	
 	/** If specified, password overrides the password value specified in the data source setup. */
@@ -149,7 +155,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	
 	private boolean unique;
 	private Struct ormoptions;
-	private int returntype=RETURN_TYPE_ARRAY_OF_ENTITY;
+	private int returntype=RETURN_TYPE_UNDEFINED;
 	private TimeZone timezone;
 	private TimeZone tmpTZ;
 	private boolean lazy;
@@ -181,7 +187,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		unique=false;
 		
 		ormoptions=null;
-		returntype=RETURN_TYPE_ARRAY_OF_ENTITY;
+		returntype=RETURN_TYPE_UNDEFINED;
 		timezone=null;
 		tmpTZ=null;
 		lazy=false;
@@ -204,13 +210,17 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		if(strReturntype.equals("query"))
 			returntype=RETURN_TYPE_QUERY;
 		    //mail.setType(lucee.runtime.mail.Mail.TYPE_TEXT);
-		else if(strReturntype.equals("array_of_entity") || strReturntype.equals("array-of-entity") || 
-				strReturntype.equals("array_of_entities") || strReturntype.equals("array-of-entities") || 
-				strReturntype.equals("arrayofentities") || strReturntype.equals("arrayofentities"))
-			returntype=RETURN_TYPE_ARRAY_OF_ENTITY;
-		    //mail.setType(lucee.runtime.mail.Mail.TYPE_TEXT);
+		//else if(strReturntype.equals("struct"))
+		//	returntype=RETURN_TYPE_STRUCT;
+		else if(strReturntype.equals("array") || 
+				strReturntype.equals("array_of_struct") || strReturntype.equals("array-of-struct") || strReturntype.equals("arrayofstruct") ||
+				strReturntype.equals("array_of_entity") || strReturntype.equals("array-of-entity") || strReturntype.equals("arrayofentities") ||
+				strReturntype.equals("array_of_entities") || strReturntype.equals("array-of-entities") || strReturntype.equals("arrayofentities"))
+			returntype=RETURN_TYPE_ARRAY;
+
+		
 		else
-			throw new ApplicationException("attribute returntype of tag query has an invalid value","valid values are [query,array-of-entity] but value is now ["+strReturntype+"]");
+			throw new ApplicationException("attribute returntype of tag query has an invalid value","valid values are [query,array] but value is now ["+strReturntype+"]");
 	}
 
 
@@ -527,20 +537,23 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			}
 			else sql=items.size()>0?new SQLImpl(strSQL,items.toArray(new SQLItem[items.size()])):new SQLImpl(strSQL);
 			
-			lucee.runtime.type.Query query=null;
+
+			QueryResult qr=null;
+			
+			//lucee.runtime.type.Query query=null;
 			long exe=0;
 			boolean hasCached=cachedWithin!=null || cachedAfter!=null;
 			String cacheId=null;
 			if(hasCached) {
-				String id = CacheHandlerCollectionImpl.createId(sql,datasource!=null?datasource.getName():null,username,password);
+				String id = CacheHandlerCollectionImpl.createId(sql,datasource!=null?datasource.getName():null,username,password,returntype);
 				CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY,null).getInstanceMatchingObject(cachedWithin,null);
 				if(ch!=null) {
 					cacheId=ch.id();
 					CacheItem ci = ch.get(pageContext, id);
-					if(ci instanceof QueryCacheItem) {
-						QueryCacheItem ce = (QueryCacheItem) ci;
+					if(ci instanceof QueryResultCacheItem) {
+						QueryResultCacheItem ce = (QueryResultCacheItem) ci;
 						if(ce.isCachedAfter(cachedAfter))
-							query= ce.query;
+							qr= ce.getQueryResult();
 					}
 				}
 				else {
@@ -550,16 +563,24 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				//query=pageContext.getQueryCache().getQuery(pageContext,sql,datasource!=null?datasource.getName():null,username,password,cachedafter);
 			}
 			
-			
-			if(query==null) {
-				if("query".equals(dbtype)) 		query=executeQoQ(sql);
-				else if("orm".equals(dbtype) || "hql".equals(dbtype)) 	{
+			if(qr==null) {
+				// QoQ
+				if("query".equals(dbtype)) 		qr=(QueryResult)executeQoQ(sql);
+				// ORM and Datasource
+				else  	{ 
 					long start=System.nanoTime();
-					Object obj = executeORM(sql,returntype,ormoptions);
 					
-					if(obj instanceof lucee.runtime.type.Query){
-						query=(lucee.runtime.type.Query) obj;
-					}
+					Object obj = 
+							("orm".equals(dbtype) || "hql".equals(dbtype))?
+									executeORM(sql,returntype,ormoptions):
+									executeDatasoure(sql,result!=null,pageContext.getTimeZone());
+
+					
+					/*if(obj instanceof lucee.runtime.type.Query)
+						qr=query=(lucee.runtime.type.Query) obj;
+					else*/ 
+					if(obj instanceof QueryResult)
+						qr=(QueryResult)obj;
 					else {
 						if(setReturnVariable){
 							rtn=obj;
@@ -586,47 +607,55 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 						return EVAL_PAGE;
 					}
 				}
-				else query=executeDatasoure(sql,result!=null,pageContext.getTimeZone());
+				//else query=executeDatasoure(sql,result!=null,pageContext.getTimeZone());
 				
 				if(cachedWithin!=null) {
-					String id = CacheHandlerCollectionImpl.createId(sql,datasource!=null?datasource.getName():null,username,password);
+					String id = CacheHandlerCollectionImpl.createId(sql,datasource!=null?datasource.getName():null,username,password,returntype);
 					CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY,null).getInstanceMatchingObject(cachedWithin,null);
-					if(ch!=null)ch.set(pageContext, id,cachedWithin,new QueryCacheItem(query));
+					if(ch!=null)ch.set(pageContext, id,cachedWithin,QueryResultCacheItem.newInstance(qr));
 				}
-				exe=query.getExecutionTime();
+				exe=qr.getExecutionTime();
 			}
-	        else query.setCacheType(cacheId);
+	        else qr.setCacheType(cacheId);
 			
 			if(pageContext.getConfig().debug() && debug) {
 				boolean logdb=((ConfigImpl)pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DATABASE);
-				if(logdb){
-					boolean debugUsage=DebuggerImpl.debugQueryUsage(pageContext,query);
-					pageContext.getDebugger().addQuery(debugUsage?query:null,datasource!=null?datasource.getName():null,name,sql,query.getRecordcount(),getPageSource(),exe);
+				if(logdb && qr instanceof lucee.runtime.type.Query){
+					lucee.runtime.type.Query q = (lucee.runtime.type.Query)qr;
+					boolean debugUsage=DebuggerImpl.debugQueryUsage(pageContext,q);
+					pageContext.getDebugger().addQuery(debugUsage?q:null,datasource!=null?datasource.getName():null,name,sql,qr.getRecordcount(),getPageSource(),exe);
 				}
 			}
 			if(setReturnVariable){
-				rtn=query;
+				rtn=qr;
 			}
-			else if(!query.isEmpty() && !StringUtil.isEmpty(name)) {
-				pageContext.setVariable(name,query);
+			else if(!qr.isEmpty() && !StringUtil.isEmpty(name)) {
+				pageContext.setVariable(name,qr);
 			}
 			
 			// Result
 			if(result!=null) {
 				
 				Struct sct=new StructImpl();
-				sct.setEL(KeyConstants._cached, Caster.toBoolean(query.isCached()));
-				if(!query.isEmpty())sct.setEL(KeyConstants._COLUMNLIST, ListUtil.arrayToList(query.getColumnNamesAsString(),","));
-				int rc=query.getRecordcount();
-				if(rc==0)rc=query.getUpdateCount();
+				sct.setEL(KeyConstants._cached, Caster.toBoolean(qr.isCached()));
+				if(!qr.isEmpty()){
+					String list = ListUtil.arrayToList(
+							qr instanceof lucee.runtime.type.Query?
+							((lucee.runtime.type.Query)qr).getColumnNamesAsString():
+							CollectionUtil.toString(qr.getColumnNames(), false)
+							,",");
+					sct.setEL(KeyConstants._COLUMNLIST, list);
+				}
+				int rc=qr.getRecordcount();
+				if(rc==0)rc=qr.getUpdateCount();
 				sct.setEL(KeyConstants._RECORDCOUNT, Caster.toDouble(rc));
-				sct.setEL(KeyConstants._executionTime, Caster.toDouble(query.getExecutionTime()/1000000));
-				sct.setEL(KeyConstants._executionTimeNano, Caster.toDouble(query.getExecutionTime()));
+				sct.setEL(KeyConstants._executionTime, Caster.toDouble(qr.getExecutionTime()/1000000));
+				sct.setEL(KeyConstants._executionTimeNano, Caster.toDouble(qr.getExecutionTime()));
 				
 				sct.setEL(KeyConstants._SQL, sql.getSQLString());
 				
 				// GENERATED KEYS
-				lucee.runtime.type.Query qi = Caster.toQuery(query,null);
+				lucee.runtime.type.Query qi = Caster.toQuery(qr,null);
 				if(qi !=null){
 					lucee.runtime.type.Query qryKeys = qi.getGeneratedKeys();
 					if(qryKeys!=null){
@@ -673,7 +702,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			
 			// listener
 			((ConfigWebImpl)pageContext.getConfig()).getActionMonitorCollector()
-				.log(pageContext, "query", "Query", exe, query);
+				.log(pageContext, "query", "Query", exe, qr);
 			
 
 			// log
@@ -731,7 +760,7 @@ cacheable: Whether the result of this query is to be cached in the secondary cac
 cachename: Name of the cache in secondary cache.
 		 */
 		Object res = session.executeQuery(pageContext,dsn,sql.getSQLString(),params,unique,ormoptions);
-		if(returnType==RETURN_TYPE_ARRAY_OF_ENTITY) return res;
+		if(returnType==RETURN_TYPE_ARRAY || returnType==RETURN_TYPE_UNDEFINED) return res;
 		return session.toQuery(pageContext, res, null);
 		
 	}
@@ -760,15 +789,20 @@ cachename: Name of the cache in secondary cache.
 		} 
 	}
 	
-	private lucee.runtime.type.Query executeDatasoure(SQL sql,boolean createUpdateData,TimeZone tz) throws PageException {
+	private QueryResult executeDatasoure(SQL sql,boolean createUpdateData,TimeZone tz) throws PageException {
 		DatasourceManagerImpl manager = (DatasourceManagerImpl) pageContext.getDataSourceManager();
 		DatasourceConnection dc=manager.getConnection(pageContext,datasource, username, password);
 		
 		try {
-			if(lazy && !createUpdateData && cachedWithin==null && cachedAfter==null && result==null)
+			if(lazy && !createUpdateData && cachedWithin==null && cachedAfter==null && result==null) {
+				if(returntype!=RETURN_TYPE_QUERY)
+					throw new DatabaseException("only return type query is allowed when lazy is set to true", null, sql, dc);
+
 				return new SimpleQuery(pageContext,dc,sql,maxrows,blockfactor,timeout,getName(),getPageSource().getDisplayPath(),tz);
-			
-			
+			}
+			if(returntype==RETURN_TYPE_ARRAY)
+				return QueryImpl.toArray(pageContext,dc,sql,maxrows,blockfactor,timeout,getName(),getPageSource().getDisplayPath(),createUpdateData,true);
+				
 			return new QueryImpl(pageContext,dc,sql,maxrows,blockfactor,timeout,getName(),getPageSource().getDisplayPath(),createUpdateData,true);
 		}
 		finally {
