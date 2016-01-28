@@ -34,6 +34,9 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.runtime.type.util.ArrayUtil;
 
@@ -45,11 +48,11 @@ import org.apache.commons.collections4.map.ReferenceMap;
  */
 public final class PhysicalClassLoader extends ExtendableClassLoader {
 	
-	private Config config;
-	private ClassLoader pcl;
 	private Resource directory;
+	private ConfigImpl config; 
+	private ClassLoader[] parents;
 	
-	private Map<String,PhysicalClassLoader> customCLs; 
+	private Map<String,PhysicalClassLoader> customCLs;
 	
 	/**
 	 * Constructor of the class
@@ -57,11 +60,23 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	 * @param parent
 	 * @throws IOException
 	 */
-	public PhysicalClassLoader(Config config,Resource directory, ClassLoader parent) throws IOException {
-		super(parent);
+	public PhysicalClassLoader(Config c,Resource directory) throws IOException {
+		this(c,directory,null);
+	}
+	
+	private PhysicalClassLoader(Config c,Resource directory, ResourceClassLoader rcl) throws IOException {
+		super(rcl==null?c.getClassLoader():rcl);
 		
-		this.pcl=parent;
-		this.config=config;
+		config = (ConfigImpl)c;
+
+		ResourceClassLoader resCL = rcl!=null?rcl:config.getResourceClassLoader(null);
+		ClassLoader coreCL = config.getClassLoaderCore();
+		ClassLoader loaderCL = config.getClassLoaderLoader();
+		parents=resCL!=null?
+				new ClassLoader[]{resCL,coreCL,loaderCL}:
+				new ClassLoader[]{coreCL,loaderCL};
+		
+		
 		
 		// check directory
 		if(!directory.exists())
@@ -84,16 +99,16 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		Class<?> c = findLoadedClass(name);
 		//print.o("load:"+name+" -> "+c);
 		if (c == null) {
-			try {
-				c =pcl.loadClass(name);//if(name.indexOf("sub")!=-1)print.ds(name);
-			} 
-			catch (Throwable t) {
-				c = findClass(name);
+			for(ClassLoader p:parents) {
+				try {
+					c = p.loadClass(name);
+					break;
+				} 
+				catch (Throwable t) {}
 			}
+			if(c==null)c = findClass(name);
 		}
-		if (resolve) {
-			resolveClass(c);
-		}
+		if (resolve)resolveClass(c);
 		return c;
    }
 

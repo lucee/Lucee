@@ -626,7 +626,9 @@ public interface Config {
 	/**
 	 * @return classloader of ths context
 	 */
-	public ClassLoader getClassLoader();
+	public ClassLoader getClassLoader(); // FUTURE deprecated, use instead getClassLoaderCore
+	// public ClassLoader getClassLoaderCore();
+	// public ClassLoader getClassLoaderLoader();
 
 	public Resource getExtensionDirectory();
 

@@ -65,6 +65,7 @@ import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.commons.net.IPRange;
+import lucee.loader.TP;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CIPage;
 import lucee.runtime.Component;
@@ -667,6 +668,14 @@ public abstract class ConfigImpl implements Config {
     	return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
 
     }
+
+    public ClassLoader getClassLoaderCore() {
+    	return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
+    }
+    public ClassLoader getClassLoaderLoader() {
+    	return new TP().getClass().getClassLoader();
+    }
+    
     public ResourceClassLoader getResourceClassLoader() {
     	if(resourceCL==null) throw new RuntimeException("no RCL defined yet!");
     	return resourceCL;   
@@ -2293,7 +2302,7 @@ public abstract class ConfigImpl implements Config {
         
 		Resource dir = getClassDirectory().getRealResource("RPC");
 		if(!dir.exists())dir.createDirectory(true);
-		rpcClassLoader = new PhysicalClassLoader(this,dir,getClassLoader());
+		rpcClassLoader = new PhysicalClassLoader(this,dir);
 		return rpcClassLoader;
 	}
 	
