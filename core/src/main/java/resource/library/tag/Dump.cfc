@@ -13,7 +13,7 @@ component {
 	this.metadata.hint="Outputs the elements, variables and values of most kinds of CFML objects. Useful for debugging. You can display the contents of simple and complex variables, objects, components, user-defined functions, and other elements.";
 	this.metadata.attributetype="fixed";
 	this.metadata.attributes={
-		var:{required:false,type:"any",hint="Variable to display. Enclose a variable name in pound signs."},
+		var:{required:false,type:"string",hint="Variable to display. Enclose a variable name in pound signs."},
 		eval:{required:false,type:"any",hint="name of the variable to display, also used as label, when no label defined."},
 		expand:{required:false,type:"boolean",default:true,hint="expands views"},
 		label:{required:false,type:"string",default:"",hint="header for the dump output."},
@@ -59,12 +59,13 @@ component {
 			if(not len(attrib.label))
 				attrib['label'] = attrib.eval;
 			// eval not supported when caller has "Handle unquoted tag attribute values as strings." disabled
-			try {
-				attrib['var'] = evaluate(attrib.eval, arguments.caller);
-			}
+			attrib['var'] = evaluate(attrib.eval, arguments.caller);
+
+			/*try {}
 			catch(local.e){
+				if(isSimpleValue(attrib.eval)) rethrow;
 				throw "attribute ""eval"" cannot be evaluated because it is not a string, the attribute ""eval"" is not supported for the Lucee dialect.";
-			}
+			}*/
 		}
 
 		// context
