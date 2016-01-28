@@ -13,8 +13,8 @@ component {
 	this.metadata.hint="Outputs the elements, variables and values of most kinds of CFML objects. Useful for debugging. You can display the contents of simple and complex variables, objects, components, user-defined functions, and other elements.";
 	this.metadata.attributetype="fixed";
 	this.metadata.attributes={
-		var:{required:false,type:"string",hint="Variable to display. Enclose a variable name in pound signs."},
-		eval:{required:false,type:"any",hint="name of the variable to display, also used as label, when no label defined."},
+		var:{required:false,type:"any",hint="Variable to display. Enclose a variable name in pound signs."},
+		eval:{required:false,type:"string",hint="name of the variable to display, also used as label, when no label defined."},
 		expand:{required:false,type:"boolean",default:true,hint="expands views"},
 		label:{required:false,type:"string",default:"",hint="header for the dump output."},
 		top:{required:false,type:"number",default:9999,hint="The number of rows to display."},
