@@ -482,7 +482,7 @@ public final class VariableInterpreter {
 	            list.add(id);
             }
             else if(ps.forwardIfCurrent('[')) {
-                if(interpreter==null)interpreter=new CFMLExpressionInterpreter();
+                if(interpreter==null)interpreter=new CFMLExpressionInterpreter(false);
                 try {
                     list.add(Caster.toString(interpreter.interpretPart(pc,ps)));
                 } catch (PageException e) {

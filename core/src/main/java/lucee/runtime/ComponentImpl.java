@@ -2153,7 +2153,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	private void readExternalOldStyle(PageContext pc, String str) throws IOException {
 		try {
-			ComponentImpl other=(ComponentImpl) new CFMLExpressionInterpreter().interpret(pc,str);
+			ComponentImpl other=(ComponentImpl) new CFMLExpressionInterpreter(false).interpret(pc,str);
 			_readExternal(other);
 		}
 		catch (PageException e) {

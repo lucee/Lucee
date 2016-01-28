@@ -106,7 +106,7 @@ public final class Evaluate implements Function {
 		Object rst=null;
 		for(int i=0;i<len;i++) {
 			if(objs[i] instanceof Number) rst= objs[i];
-			else rst= new CFMLExpressionInterpreter().interpret(pc,Caster.toString(objs[i]), preciseMath);
+			else rst= new CFMLExpressionInterpreter(false).interpret(pc,Caster.toString(objs[i]), preciseMath);
 		}
 		return rst;
 	}

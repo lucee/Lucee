@@ -46,7 +46,7 @@ public abstract class StorageScopeFile extends StorageScopeImpl {
 	public static final String STORAGE_TYPE = "File"; 
 	
 	private static ScriptConverter serializer=new ScriptConverter();
-	protected static CFMLExpressionInterpreter evaluator=new CFMLExpressionInterpreter();
+	protected static CFMLExpressionInterpreter evaluator=new CFMLExpressionInterpreter(false);
 	
 	private Resource res;
 

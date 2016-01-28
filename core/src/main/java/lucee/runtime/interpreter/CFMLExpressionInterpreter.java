@@ -178,37 +178,32 @@ public class CFMLExpressionInterpreter {
     private FunctionLib fld;
 	protected boolean allowNullConstant=false;
 	private boolean preciseMath;
-	private boolean isJson;
+	private final boolean isJson;
+	private final boolean limited;
 	private ConfigImpl config;
 	
-    //private final static Map<String,Ref> data=new ReferenceMap(ReferenceMap.SOFT,ReferenceMap.SOFT);
-	
+    public CFMLExpressionInterpreter() {
+    	this(true); 
+    }
+    public CFMLExpressionInterpreter(boolean limited) {
+    	this.isJson=this instanceof JSONExpressionInterpreter;
+    	this.limited=limited || isJson; // json is always limited
+    }
 
-	 
     public Object interpret(PageContext pc,String str) throws PageException {
     	return interpret(pc,str,false);
     }
     
 
     public Object interpret(PageContext pc,String str, boolean preciseMath) throws PageException { 
-
-    	//Ref ref = data.get(str+":"+preciseMath);
-    	//if(ref!=null)return ref.getValue();
-    	
     	this.cfml=new ParserString(str);
     	this.preciseMath = preciseMath;
     	init();
-    	
-    	
-    	
-        
+
         if(LITERAL_ARRAY==null)LITERAL_ARRAY=fld.getFunction("_literalArray");
         if(LITERAL_STRUCT==null)LITERAL_STRUCT=fld.getFunction("_literalStruct");
         if(JSON_ARRAY==null)JSON_ARRAY=fld.getFunction("_jsonArray");
         if(JSON_STRUCT==null)JSON_STRUCT=fld.getFunction("_jsonStruct");
-        isJson=this instanceof JSONExpressionInterpreter;
-		
-        
 		
         cfml.removeSpace();
         Ref ref = assignOp();
@@ -977,7 +972,7 @@ public class CFMLExpressionInterpreter {
                 return ref;
             } 
         // Sharp
-            if(!isJson &&(ref=sharp())!=null) {
+            if(!limited &&(ref=sharp())!=null) {
                 mode=DYNAMIC;
                 return ref;
             }  
@@ -1041,7 +1036,7 @@ public class CFMLExpressionInterpreter {
         while(cfml.hasNext()) {
             cfml.next();
             // check sharp
-            if(!isJson && cfml.isCurrent('#')) {
+            if(!limited && cfml.isCurrent('#')) {
                 if(cfml.isNext('#')){
                     cfml.next();
                     str.append('#');
@@ -1174,7 +1169,7 @@ public class CFMLExpressionInterpreter {
             if (!cfml.forwardIfCurrent(')'))
                 throw new InterpreterException("Invalid Syntax Closing [)] not found");
             cfml.removeSpace();
-            return isJson?ref:subDynamic(ref);
+            return limited?ref:subDynamic(ref);
         }
 
         cfml.removeSpace();
@@ -1200,13 +1195,13 @@ public class CFMLExpressionInterpreter {
     		cfml.removeSpace();
     		return new  LString(null);
     	}
-    	else if(!isJson && name.equalsIgnoreCase("NEW")){
+    	else if(!limited && name.equalsIgnoreCase("NEW")){
     		Ref res = newOp();
     		if(res!=null) return res;
     	}  
         
         // Extract Scope from the Variable
-        return isJson?startElement(name):subDynamic(startElement(name));
+        return limited?startElement(name):subDynamic(startElement(name));
         
     }
         
@@ -1269,7 +1264,7 @@ public class CFMLExpressionInterpreter {
     private Ref startElement(String name) throws PageException {
         
         // check function
-        if (!isJson && cfml.isCurrent('(')) {
+        if (!limited && cfml.isCurrent('(')) {
             FunctionLibFunction function = fld.getFunction(name);
             Ref[] arguments = functionArg(name,true, function,')');
             if(function!=null) return new BIFCall(function,arguments);
@@ -1350,14 +1345,14 @@ public class CFMLExpressionInterpreter {
      * @return CFXD Variable Element oder null
     */
     private Ref scope(String idStr) {
-        if (!isJson && idStr.equals("var")) {
+        if (!limited && idStr.equals("var")) {
             String name=identifier(false);
             if(name!=null){
                 cfml.removeSpace();
                 return new Variable(new lucee.runtime.interpreter.ref.var.Scope(ScopeSupport.SCOPE_VAR),name);
             }
         }
-        int scope = isJson?Scope.SCOPE_UNDEFINED:VariableInterpreter.scopeString2Int(pc!=null && pc.ignoreScopes(),idStr);
+        int scope = limited?Scope.SCOPE_UNDEFINED:VariableInterpreter.scopeString2Int(pc!=null && pc.ignoreScopes(),idStr);
         if(scope==Scope.SCOPE_UNDEFINED) {
             return new Variable(new lucee.runtime.interpreter.ref.var.Scope(Scope.SCOPE_UNDEFINED),idStr);
         }

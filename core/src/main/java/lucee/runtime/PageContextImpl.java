@@ -2957,7 +2957,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public Object evaluate(String expression) throws PageException {
-		return new CFMLExpressionInterpreter().interpret(this,expression);
+		return new CFMLExpressionInterpreter(false).interpret(this,expression);
 	}
 	
 	@Override

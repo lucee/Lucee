@@ -1345,4 +1345,8 @@ public final class StringUtil {
 			str=str.substring(1,str.length()-1);
 		return str;
 	}
+	
+	public static String toStringNative(Object obj,String defaultValue) {
+		return obj==null?defaultValue:obj.toString();
+	}
 }
