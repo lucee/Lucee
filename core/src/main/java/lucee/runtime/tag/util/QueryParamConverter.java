@@ -22,6 +22,7 @@ package lucee.runtime.tag.util;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 
 import lucee.commons.lang.StringUtil;
@@ -59,7 +60,7 @@ public class QueryParamConverter {
 	
 	public static SQL convert(String sql, Struct params) throws PageException{
 		Iterator<Entry<Key, Object>> it = params.entryIterator();
-		ArrayList<SQLItems<NamedSQLItem>> namedItems=new ArrayList<SQLItems<NamedSQLItem>>();
+		List<SQLItems<NamedSQLItem>> namedItems=new ArrayList<SQLItems<NamedSQLItem>>();
 		Entry<Key, Object> e;
 		while(it.hasNext()){
 			e = it.next();
@@ -70,8 +71,8 @@ public class QueryParamConverter {
 	
 	public static SQL convert(String sql, Array params) throws PageException{
 		Iterator<Object> it = params.valueIterator();
-		ArrayList<SQLItems<NamedSQLItem>> namedItems=new ArrayList<SQLItems<NamedSQLItem>>();
-		ArrayList<SQLItems<SQLItem>> items=new ArrayList<SQLItems<SQLItem>>();
+		List<SQLItems<NamedSQLItem>> namedItems=new ArrayList<SQLItems<NamedSQLItem>>();
+		List<SQLItems<SQLItem>> items=new ArrayList<SQLItems<SQLItem>>();
 		Object value,paramValue;
 		while(it.hasNext()){
 			value = it.next();
@@ -109,7 +110,7 @@ public class QueryParamConverter {
 	}
 	
 
-	private static SQL convert(String sql, ArrayList<SQLItems<SQLItem>> items, ArrayList<SQLItems<NamedSQLItem>> namedItems) throws ApplicationException , PageException {
+	private static SQL convert(String sql, List<SQLItems<SQLItem>> items, List<SQLItems<NamedSQLItem>> namedItems) throws ApplicationException , PageException {
 		//if(namedParams.size()==0) return new Pair<String, List<Param>>(sql,params);
 		
 		StringBuilder sb=new StringBuilder();
@@ -171,7 +172,7 @@ public class QueryParamConverter {
 		return new SQLImpl(sb.toString(),finalItems.toArray(new SQLItem[finalItems.size()]));
 	}
 
-	private static SQLItems<SQLItem> flattenItems( ArrayList<SQLItems<SQLItem>> items ) {
+	private static SQLItems<SQLItem> flattenItems( List<SQLItems<SQLItem>> items ) {
 		SQLItems<SQLItem> finalItems = new SQLItems<SQLItem>();
 		Iterator<SQLItems<SQLItem>> listsToFlatten = items.iterator();
 		while(listsToFlatten.hasNext()){
@@ -187,7 +188,7 @@ public class QueryParamConverter {
 	}
 
 
-	private static SQLItems<SQLItem> get(String name, ArrayList<SQLItems<NamedSQLItem>> items) throws ApplicationException {
+	private static SQLItems<SQLItem> get(String name, List<SQLItems<NamedSQLItem>> items) throws ApplicationException {
 		Iterator<SQLItems<NamedSQLItem>> it = items.iterator();
 		SQLItems<NamedSQLItem> item;
 		while(it.hasNext()){
@@ -271,7 +272,7 @@ public class QueryParamConverter {
 			
 			// nulls (optional)
 			Object oNulls=sct.get(KeyConstants._nulls,null);
-			if(oNulls==null)oNulls=sct.get(KeyConstants._null,null);
+			//if(oNulls==null)oNulls=sct.get(KeyConstants._null,null);
 			
 			if(oNulls!=null) {
 				item.setNulls(Caster.toBooleanValue(oNulls));
