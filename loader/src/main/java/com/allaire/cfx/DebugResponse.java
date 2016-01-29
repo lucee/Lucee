@@ -24,9 +24,6 @@ import java.util.Hashtable;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.cfx.QueryWrap;
 
-/**
- * 
- */
 public final class DebugResponse implements Response {
 
 	private final StringBuffer write = new StringBuffer();
@@ -34,10 +31,6 @@ public final class DebugResponse implements Response {
 	private final Hashtable variables = new Hashtable();
 	private final Hashtable queries = new Hashtable();
 
-	/**
-	 * @see com.allaire.cfx.Response#addQuery(java.lang.String,
-	 *      java.lang.String[])
-	 */
 	@Override
 	public Query addQuery(final String name, final String[] columns) {
 		final QueryWrap query = new QueryWrap(CFMLEngineFactory.getInstance()
@@ -47,26 +40,16 @@ public final class DebugResponse implements Response {
 		return query;
 	}
 
-	/**
-	 * @see com.allaire.cfx.Response#setVariable(java.lang.String,
-	 *      java.lang.String)
-	 */
 	@Override
 	public void setVariable(final String key, final String value) {
 		variables.put(key.toLowerCase(), value);
 	}
 
-	/**
-	 * @see com.allaire.cfx.Response#write(java.lang.String)
-	 */
 	@Override
 	public void write(final String str) {
 		write.append(str);
 	}
 
-	/**
-	 * @see com.allaire.cfx.Response#writeDebug(java.lang.String)
-	 */
 	@Override
 	public void writeDebug(final String str) {
 		writeDebug.append(str);
@@ -115,7 +98,7 @@ public final class DebugResponse implements Response {
 	/**
 	 * print out a query
 	 * 
-	 * @param query
+	 * @param query query to print
 	 */
 	public void printQuery(final Query query) {
 		if (query != null) {

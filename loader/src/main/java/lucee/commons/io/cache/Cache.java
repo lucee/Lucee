@@ -31,6 +31,7 @@ public interface Cache {
 	 * @param config Lucee configuration
 	 * @param cacheName name of the cache
 	 * @param arguments configuration arguments
+	 * @throws IOException thrown when fail to execute
 	 */
 	public void init(Config config, String cacheName, Struct arguments)
 			throws IOException;
@@ -38,6 +39,10 @@ public interface Cache {
 	/**
 	 * return cache entry that match the key, throws a CacheException when entry
 	 * does not exist or is stale
+	 * 
+	 * @param key key name to get a entry for
+	 * @return matching cache entry
+	 * @throws IOException thrown when fail to execute
 	 */
 	public CacheEntry getCacheEntry(String key) throws IOException;
 

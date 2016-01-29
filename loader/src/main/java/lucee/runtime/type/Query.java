@@ -80,11 +80,11 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	public Object getAt(String key, int row, Object defaultValue);
 
 	/**
-	 * return a value of the resultset by specified column and row, otherwise to
-	 * getAt this method throw no exception if value dont exist (return null)
+	 * return a value of the resultset by specified column and row, otherwise return defaultValue
 	 * 
 	 * @param key column to get
 	 * @param row row to get from (1-recordcount)
+	 * @param defaultValue value returned in case row or column does not exist
 	 * @return value at the called poition
 	 */
 	public Object getAt(Collection.Key key, int row, Object defaultValue);
@@ -96,11 +96,10 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * @param row row to set
 	 * @param value value to fill
 	 * @return filled value
-	 * @throws PageException
+	 * @throws PageException thrown when fails to set the value
 	 * @deprecated use instead
 	 *             <code>{@link #setAtEL(lucee.runtime.type.Collection.Key, int, Object)}</code>
 	 */
-	@Deprecated
 	public Object setAt(String key, int row, Object value) throws PageException;
 
 	/**
@@ -110,7 +109,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * @param row row to set
 	 * @param value value to fill
 	 * @return filled value
-	 * @throws PageException
+	 * @throws PageException thrown when fails to set the value
 	 */
 	public Object setAt(Collection.Key key, int row, Object value)
 			throws PageException;
@@ -149,16 +148,16 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	/**
 	 * remove row from query
 	 * 
-	 * @param row
+	 * @param row row number to remove
 	 * @return return new rowcount
-	 * @throws PageException
+	 * @throws PageException exception thrown when it fails to remove the row
 	 */
 	public int removeRow(int row) throws PageException;
 
 	/**
 	 * remove row from query
 	 * 
-	 * @param row
+	 * @param row row number to remove
 	 * @return return new rowcount
 	 */
 	public int removeRowEL(int row);
@@ -171,7 +170,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 *            size like query has records)
 	 * @return if column is added return true otherwise false (always true,
 	 *         throw error when false)
-	 * @throws PageException
+	 * @throws PageException exception thrown when not able to add the column
 	 * @deprecated use instead
 	 *             <code>{@link #addColumn(lucee.runtime.type.Collection.Key, Array)}</code>
 	 */
@@ -187,7 +186,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 *            size like query has records)
 	 * @return if column is added return true otherwise false (always true,
 	 *         throw error when false)
-	 * @throws PageException
+	 * @throws PageException exception thrown when not able to add the column
 	 */
 	public boolean addColumn(Collection.Key columnName, Array content)
 			throws PageException;
@@ -201,7 +200,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * @param type data type from (java.sql.Types)
 	 * @return if column is added return true otherwise false (always true,
 	 *         throw error when false)
-	 * @throws PageException
+	 * @throws PageException exception thrown when not able to add the column
 	 * @deprecated use instead
 	 *             <code>{@link #addColumn(lucee.runtime.type.Collection.Key, Array, int)}</code>
 	 */
@@ -218,7 +217,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * @param type data type from (java.sql.Types)
 	 * @return if column is added return true otherwise false (always true,
 	 *         throw error when false)
-	 * @throws PageException
+	 * @throws PageException exception thrown when not able to add the column
 	 */
 	public boolean addColumn(Collection.Key columnName, Array content, int type)
 			throws PageException;
@@ -226,7 +225,6 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	/**
 	 * @return Coloned Object
 	 */
-	@Override
 	public Object clone();
 
 	/**
@@ -244,7 +242,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * 
 	 * @param key key to get
 	 * @return QieryColumn object
-	 * @throws PageException
+	 * @throws PageException exception thrown in case there is no column with that name
 	 * @deprecated use instead
 	 *             <code>{@link #getColumn(lucee.runtime.type.Collection.Key)}</code>
 	 */
@@ -256,7 +254,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * 
 	 * @param key key to get
 	 * @return QieryColumn object
-	 * @throws PageException
+	 * @throws PageException exception thrown in case there is no column with that name
 	 */
 	public QueryColumn getColumn(Collection.Key key) throws PageException;
 
@@ -264,17 +262,18 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * return the query column matching to key, if key not exist return null
 	 * 
 	 * @param key key to get
-	 * @return QieryColumn object
+	 * @param column default value returned in case there is no matching column
+	 * @return QueryColumn object
 	 * @deprecated use instead
 	 *             <code>{@link #getColumn(lucee.runtime.type.Collection.Key, QueryColumn)}</code>
 	 */
-	@Deprecated
 	public QueryColumn getColumn(String key, QueryColumn column);
 
 	/**
 	 * return the query column matching to key, if key not exist return null
 	 * 
 	 * @param key key to get
+	 * @param column default value returned in case there is no matching column
 	 * @return QieryColumn object
 	 */
 	public QueryColumn getColumn(Collection.Key key, QueryColumn column);
@@ -284,7 +283,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * 
 	 * @param key key to remove
 	 * @return QueryColumn object removed
-	 * @throws PageException
+	 * @throws PageException  thrown when fail to remove column
 	 * @deprecated use instead
 	 *             <code>{@link #removeColumn(lucee.runtime.type.Collection.Key)}</code>
 	 */
@@ -296,7 +295,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * 
 	 * @param key key to remove
 	 * @return QueryColumn object removed
-	 * @throws PageException
+	 * @throws PageException thrown when fail to remove column
 	 */
 	public QueryColumn removeColumn(Collection.Key key) throws PageException;
 
@@ -322,7 +321,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	/**
 	 * sets the execution Time of the query
 	 * 
-	 * @param l
+	 * @param l execution time
 	 */
 	public void setExecutionTime(long l);
 
@@ -330,7 +329,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * sorts a query by a column, direction is asc
 	 * 
 	 * @param column colun to sort
-	 * @throws PageException
+	 * @throws PageException if fails to sort
 	 * @deprecated use instead
 	 *             <code>{@link #sort(lucee.runtime.type.Collection.Key)}</code>
 	 */
@@ -341,7 +340,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * sorts a query by a column, direction is asc
 	 * 
 	 * @param column colun to sort
-	 * @throws PageException
+	 * @throws PageException if fails to sort
 	 */
 	public void sort(Collection.Key column) throws PageException;
 
@@ -350,7 +349,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * 
 	 * @param strColumn column to sort
 	 * @param order sort type (Query.ORDER_ASC or Query.ORDER_DESC)
-	 * @throws PageException
+	 * @throws PageException  if fails to sort
 	 * @deprecated use instead
 	 *             <code>{@link #sort(lucee.runtime.type.Collection.Key, int)}</code>
 	 */
@@ -362,7 +361,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * 
 	 * @param strColumn column to sort
 	 * @param order sort type (Query.ORDER_ASC or Query.ORDER_DESC)
-	 * @throws PageException
+	 * @throws PageException if fails to sort
 	 */
 	public void sort(Collection.Key strColumn, int order) throws PageException;
 

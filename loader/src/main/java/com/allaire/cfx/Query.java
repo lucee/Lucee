@@ -54,10 +54,10 @@ public interface Query extends ResultSet {
 	/**
 	 * returns one field of a Query as String
 	 * 
-	 * @param row
-	 * @param col
+	 * @param row row number to get
+	 * @param col column number to get
 	 * @return data from query object
-	 * @throws IndexOutOfBoundsException
+	 * @throws IndexOutOfBoundsException  thrown when col or/and row are invalid
 	 */
 	public String getData(int row, int col) throws IndexOutOfBoundsException;
 
@@ -74,10 +74,10 @@ public interface Query extends ResultSet {
 	/**
 	 * sets value at a defined position in Query
 	 * 
-	 * @param row
-	 * @param col
-	 * @param value
-	 * @throws IndexOutOfBoundsException
+	 * @param row row number to set
+	 * @param col column number to set
+	 * @param value value to set
+	 * @throws IndexOutOfBoundsException thrown when col or/and row are invalid
 	 */
 	public void setData(int row, int col, String value)
 			throws IndexOutOfBoundsException;

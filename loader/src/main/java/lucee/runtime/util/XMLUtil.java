@@ -65,8 +65,8 @@ public interface XMLUtil {
 	 * check if given name is equal to name of the element (with and without
 	 * namespace)
 	 * 
-	 * @param node 
-	 * @param name
+	 * @param node node to compare the name
+	 * @param name name to compare
 	 * @return is name of the given Node equal to the given name
 	 */
 	public boolean nameEqual(Node node, String name);
@@ -75,7 +75,6 @@ public interface XMLUtil {
 	 * return the root Element from a node
 	 * 
 	 * @param node node to get root element from
-	 * @param caseSensitive
 	 * @return Root Element
 	 */
 	public Element getRootElement(Node node);
@@ -105,8 +104,7 @@ public interface XMLUtil {
 	 * 
 	 * @param node node to get children from
 	 * @param type type of returned node
-	 * @param filter
-	 * @param caseSensitive
+	 * @param filter filter to use
 	 * @return all matching child node
 	 */
 	public ArrayList<Node> getChildNodes(Node node, short type, String filter);

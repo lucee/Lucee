@@ -26,9 +26,9 @@ public interface CustomTag {
 	/**
 	 * methods to invoke tag
 	 * 
-	 * @param request
-	 * @param response
-	 * @throws Exception
+	 * @param request request data
+	 * @param response response data
+	 * @throws Exception thrown when fail to process
 	 */
 	public void processRequest(Request request, Response response)
 			throws Exception;

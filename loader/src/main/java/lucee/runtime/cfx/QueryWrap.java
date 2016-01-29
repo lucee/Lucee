@@ -954,9 +954,9 @@ public class QueryWrap implements Query {
 	}
 
 	/**
-	 * @param keyColumn
-	 * @param order
-	 * @throws PageException
+	 * @param keyColumn name of the column to sort
+	 * @param order order type
+	 * @throws PageException thrown when sorting fails
 	 */
 	public synchronized void sort(final Key keyColumn, final int order)
 			throws PageException {
@@ -965,8 +965,8 @@ public class QueryWrap implements Query {
 	}
 
 	/**
-	 * @param column
-	 * @throws PageException
+	 * @param column name of the column to sort
+	 * @throws PageException thrown when sorting fails
 	 */
 	public void sort(final Key column) throws PageException {
 
@@ -974,9 +974,9 @@ public class QueryWrap implements Query {
 	}
 
 	/**
-	 * @param strColumn
-	 * @param order
-	 * @throws PageException
+	 * @param strColumn name of the column to sort
+	 * @param order order type
+	 * @throws PageException thrown when sorting fails
 	 */
 	@SuppressWarnings("deprecation")
 	public synchronized void sort(final String strColumn, final int order)
@@ -986,8 +986,8 @@ public class QueryWrap implements Query {
 	}
 
 	/**
-	 * @param column
-	 * @throws PageException
+	 * @param column name of the column to sort
+	 * @throws PageException thrown when sorting fails
 	 */
 	@SuppressWarnings("deprecation")
 	public void sort(final String column) throws PageException {
@@ -996,9 +996,9 @@ public class QueryWrap implements Query {
 	}
 
 	/**
-	 * @param pageContext
-	 * @param maxlevel
-	 * @param dp
+	 * @param pageContext page context object
+	 * @param maxlevel max level shown
+	 * @param dp property data
 	 * @return generated DumpData
 	 */
 	public DumpData toDumpData(final PageContext pageContext,

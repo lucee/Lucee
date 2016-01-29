@@ -29,10 +29,10 @@ public final class DebugQuery extends QueryWrap {
 	/**
 	 * Constructor of the DebugQuery
 	 * 
-	 * @param name
-	 * @param columns
-	 * @param data
-	 * @throws IllegalArgumentException
+	 * @param name query name
+	 * @param columns column names
+	 * @param data query data
+	 * @throws IllegalArgumentException thrown when arguments are invalid
 	 */
 	public DebugQuery(final String name, final String[] columns,
 			final String[][] data) throws IllegalArgumentException {
@@ -42,9 +42,9 @@ public final class DebugQuery extends QueryWrap {
 	/**
 	 * Constructor of the DebugQuery
 	 * 
-	 * @param name
-	 * @param columns
-	 * @throws IllegalArgumentException
+	 * @param name query name
+	 * @param columns column names
+	 * @throws IllegalArgumentException thrown when arguments are invalid
 	 */
 	public DebugQuery(final String name, final String[] columns)
 			throws IllegalArgumentException {
