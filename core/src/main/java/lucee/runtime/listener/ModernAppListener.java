@@ -357,15 +357,14 @@ public class ModernAppListener extends AppListenerSupport {
 		
 		// Response	
 		OutputStream os=DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
-		try {
+		// File based output stream
+		/*try {
 			Resource out = factory.getConfig().getConfigDir().getRealResource("output/"+methodName.getString()+".out");
 			out.getParentResource().mkdirs();
 			os = out.getOutputStream(false);
 		} 
-		catch (IOException e) {
-			e.printStackTrace();
-			// TODO was passiert hier
-		}
+		catch (IOException e) {}*/
+		
 		HttpServletResponseDummy rsp = new HttpServletResponseDummy(os);
 		
 		// PageContext
