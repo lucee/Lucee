@@ -1414,7 +1414,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		
 		
 		// folgend wird tlt extra nicht uebergeben, sonst findet pruefung statt
-		Attribute[] attrs = attributes(property,tlt,data,SEMI,	data.factory.NULL(),Boolean.FALSE,"name",true,NO_ATTR_SEP,false);
+		Attribute[] attrs = attributes(property,tlt,data,SEMI,	data.factory.EMPTY(),Boolean.FALSE,"name",true,NO_ATTR_SEP,false);
 
 		
 		checkSemiColonLineFeed(data,true,true,false);
