@@ -139,6 +139,9 @@
 		<cfset datasource.className= driver.getClass()>
 		<cfset datasource.host     = driver.getValue('host')>
 		<cfset datasource.database = driver.getValue('database')>
+		<cfif datasource.database == "">
+ 			<cfset datasource.database = datasource.name>
+ 		</cfif>
 		<cfset datasource.port     = driver.getValue('port')>
 		<cfset datasource.timezone = "">
 		<cfset datasource.username = driver.getValue('username')>
@@ -393,7 +396,7 @@
 					<th scope="row">#stText.Settings.dbAllowed#</th>
 					<td>
 
-						<div class="warning">
+						<div class="warningops">
 							This functionality is deprecated and will be removed in future versions, 
 							restrict operations by using roles and permissions in your DBMS!
 						</div>

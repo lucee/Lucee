@@ -111,6 +111,8 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="customtags.extensionsdesc">Dies sind die Extensions welche für Customtags verwendet werden und die Rheinefolge in welcher sie gesucht werden.</data>
 	<data key="menu.info.label">Info</data>
 	<data key="menu.info.bundle">Bundle (jar)</data>
+ 	<data key="menu.overview.label">Überblick</data>
+ 	<data key="menu.overview.overview">Überblick</data>
 	<data key="menu.server.label">Einstellungen</data>
 	<data key="menu.server.cache">Performance/Caching</data>
 	<data key="menu.server.regional">Regionales</data>

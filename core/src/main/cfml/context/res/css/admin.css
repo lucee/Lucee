@@ -437,13 +437,13 @@ h3 + .comment {
 	color:#3c3e40;
 }
 
-div.error, div.warning, div.message {
+div.error, div.warning, div.warningops, div.message {
 	border:1px solid red;
 	padding:5px;
 	margin:10px 0px;
 	color:red;
 }
-div.warning {
+div.warning, div.warningops {
 	border-color: #FC6;
 	color:#000;
 }
