@@ -60,16 +60,8 @@ public abstract class DateTimeUtil {
 
 	public static DateTimeUtil getInstance(){
 		if(instance==null)	{
-			// try to load Joda Date TimeUtil
-			try{
-				instance=new JREDateTimeUtil();
-				//SystemOut.printDate("using JRE Date Library");
-			}
-			// when not available (jar) load Impl that is based on the JRE
-			catch(Throwable t){
-				instance=new JREDateTimeUtil();
-				//SystemOut.printDate("using JRE Date Library");
-			}
+			// try to load jar Date TimeUtil
+			instance=new JREDateTimeUtil();
 		}
 		return instance;
 	}
