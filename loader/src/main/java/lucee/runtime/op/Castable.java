@@ -33,7 +33,7 @@ public interface Castable extends Serializable {
 	 * Method can throw a Exception
 	 * 
 	 * @return String representation of the Object
-	 * @throws PageException
+	 * @throws PageException thrown when fail to convert to a string
 	 */
 	public String castToString() throws PageException;
 
@@ -41,6 +41,7 @@ public interface Castable extends Serializable {
 	 * cast the castable value to a string, return the default value, when the
 	 * method is not castable
 	 * 
+	 * @param defaultValue default value returned in case not able to convert to a string
 	 * @return String representation of the Object
 	 */
 	public String castToString(String defaultValue);
@@ -49,13 +50,14 @@ public interface Castable extends Serializable {
 	 * cast the castable value to a boolean value
 	 * 
 	 * @return boolean Value representation of the Object
-	 * @throws PageException
+	 * @throws PageException thrown when fail to convert to a boolean
 	 */
 	public boolean castToBooleanValue() throws PageException;
 
 	/**
 	 * cast the castable value to a boolean value
 	 * 
+	 * @param defaultValue default value returned in case not able to convert to a boolean
 	 * @return boolean Value representation of the Object
 	 */
 	public Boolean castToBoolean(Boolean defaultValue);
@@ -64,13 +66,14 @@ public interface Castable extends Serializable {
 	 * cast the castable value to a double value
 	 * 
 	 * @return double Value representation of the Object
-	 * @throws PageException
+	 * @throws PageException thrown when fail to convert to a double value
 	 */
 	public double castToDoubleValue() throws PageException;
 
 	/**
 	 * cast the castable value to a double value
 	 * 
+	 * @param defaultValue default value returned in case not able to convert to a date object
 	 * @return double Value representation of the Object
 	 */
 	public double castToDoubleValue(double defaultValue);
@@ -79,7 +82,7 @@ public interface Castable extends Serializable {
 	 * cast the castable value to a date time object
 	 * 
 	 * @return date time representation of the Object
-	 * @throws PageException
+	 * @throws PageException thrown when fails to convert to a date object
 	 */
 	public DateTime castToDateTime() throws PageException;
 
