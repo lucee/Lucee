@@ -120,7 +120,7 @@
 
 
 <cfsavecontent variable="codeSample"><cfset count=0><cfset del="">
-this.componentpaths=["#mapping.virtual#"]=<cfif len(mapping.strPhysical) && !len(mapping.strArchive)>
+this.componentpaths["#mapping.virtual#"]=<cfif len(mapping.strPhysical) && !len(mapping.strArchive)>
 &nbsp;&nbsp;&nbsp;"#mapping.strPhysical#"<cfelse>{<cfif len(mapping.strPhysical)><cfset count++>
 &nbsp;&nbsp;&nbsp;physical:"#mapping.strPhysical#"<cfset del=","></cfif><cfif len(mapping.strArchive)><cfset count++>
 &nbsp;&nbsp;&nbsp;#del#archive:"#mapping.strArchive#"<cfset del=","></cfif><cfif count==2 && !mapping.PhysicalFirst>
