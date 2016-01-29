@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.173-SNAPSHOT</version>
+  <version>5.0.0.174-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -153,10 +153,10 @@
               <goals>
                 <goal>jar</goal>
               </goals>
-            <!-- add this to disable checking 
+            <!-- add this to disable checking -->
             <configuration>  
                 <additionalparam>-Xdoclint:none</additionalparam>
-            </configuration>-->
+            </configuration>
             </execution>
           </executions>
         </plugin>

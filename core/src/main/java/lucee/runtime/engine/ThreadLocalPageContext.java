@@ -23,6 +23,7 @@ import java.util.TimeZone;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
 
 /**
  * class to handle thread local PageContext, 
@@ -39,6 +40,8 @@ public final class ThreadLocalPageContext {
 	 * @param pc PageContext to register
 	 */
 	public static void register(PageContext pc) {
+		// TODO should i set the old one by "release"?
+		Thread.currentThread().setContextClassLoader(((ConfigImpl)pc.getConfig()).getClassLoaderCore());
 		pcThreadLocal.set(pc);
 	}
 
