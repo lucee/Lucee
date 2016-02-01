@@ -1393,10 +1393,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		
 
 		boolean hasName=false,hasType=false;
-
-		// TODO allow the following pattern property "a.b.C" d;
-		//Expression t = string(data);
-		// print.o("name:"+t.getClass().getName());
 		
 		int pos = data.srcCode.getPos();
 		String tmp=variableDec(data, true);
@@ -1414,7 +1410,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		
 		
 		// folgend wird tlt extra nicht uebergeben, sonst findet pruefung statt
-		Attribute[] attrs = attributes(property,tlt,data,SEMI,	data.factory.EMPTY(),Boolean.FALSE,"name",true,NO_ATTR_SEP,false);
+		Attribute[] attrs = attributes(property,tlt,data,SEMI,	data.factory.NULL(),Boolean.FALSE,"name",true,NO_ATTR_SEP,false);
 
 		
 		checkSemiColonLineFeed(data,true,true,false);
@@ -1440,14 +1436,12 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		}
 		
 		// now fill name named attributes -> attr1 attr2
-		
 		String first=null,second=null;
 		for(int i=0;i<attrs.length;i++){
 			attr=attrs[i];
-			
 			if(attr.getValue().equals(data.factory.NULL())){
 				// type
-				if(first==null && (!hasName || !hasType)){
+				if(first==null && ((!hasName && !hasType) || !hasName)){
 					first=attr.getNameOC();
 				}
 				// name
@@ -1462,8 +1456,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			}
 		}
 
-		
-		
 		if(first!=null) {
 				hasName=true;
 			if(second!=null){
@@ -2190,8 +2182,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	
 	
 	
-	private final Attribute[] attributes(Tag tag,TagLibTag tlt, ExprData data, EndCondition endCond,Expression defaultValue,Object oAllowExpression, 
-			String ignoreAttrReqFor, boolean allowTwiceAttr, char attributeSeparator,boolean allowColonAsNameValueSeparator) throws TemplateException {
+	private final Attribute[] attributes(Tag tag,TagLibTag tlt, ExprData data, EndCondition endCond,
+			Expression defaultValue,Object oAllowExpression, String ignoreAttrReqFor, boolean allowTwiceAttr, 
+			char attributeSeparator,boolean allowColonAsNameValueSeparator) throws TemplateException {
 		ArrayList<Attribute> attrs=new ArrayList<Attribute>();
 		ArrayList<String> ids=new ArrayList<String>();
 		while(data.srcCode.isValidIndex())	{
