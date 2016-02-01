@@ -53,15 +53,5 @@
 		assertEquals("myProperty4",propByName.myProperty4.name);
 		assertEquals("any",propByName.myProperty4.type);
 		assertEquals("myService",propByName.myProperty4.inject);
-
- 
-    	dump(propByName);
- 
-
-
-    	/*
- 	property name='myProperty3' inject;
- 	property name='myProperty4' inject='myService';
-    	*/
     }
  }
