@@ -482,7 +482,7 @@ public final class VariableInterpreter {
 	            list.add(id);
             }
             else if(ps.forwardIfCurrent('[')) {
-                if(interpreter==null)interpreter=new CFMLExpressionInterpreter();
+                if(interpreter==null)interpreter=new CFMLExpressionInterpreter(false);
                 try {
                     list.add(Caster.toString(interpreter.interpretPart(pc,ps)));
                 } catch (PageException e) {
@@ -540,6 +540,9 @@ public final class VariableInterpreter {
 			}
 			else if('v'==c) {
 				if("variables".equals(type))		return Scope.SCOPE_VARIABLES;
+			}
+			else if('s'==c) {
+				if("server".equals(type))			return Scope.SCOPE_SERVER;
 			}
 			return Scope.SCOPE_UNDEFINED;
 		}

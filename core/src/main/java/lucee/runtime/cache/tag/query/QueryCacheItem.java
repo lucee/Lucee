@@ -18,29 +18,20 @@
  **/
 package lucee.runtime.cache.tag.query;
 
-import java.io.Serializable;
-import java.util.Date;
-
 import lucee.commons.digest.HashUtil;
-import lucee.runtime.PageContext;
-import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.udf.UDFArgConverter;
-import lucee.runtime.dump.DumpData;
-import lucee.runtime.dump.DumpProperties;
-import lucee.runtime.dump.Dumpable;
-import lucee.runtime.type.Duplicable;
 import lucee.runtime.type.Query;
+import lucee.runtime.type.query.QueryResult;
 
-public class QueryCacheItem implements CacheItem, Dumpable, Serializable,Duplicable {
+public class QueryCacheItem extends QueryResultCacheItem {
 
 	private static final long serialVersionUID = 7327671003736543783L;
 
 	public final Query query;
-	private final long creationDate;
 
 	public QueryCacheItem(Query query){
+		super((QueryResult)query);
 		this.query=query;
-		this.creationDate=System.currentTimeMillis();
 	}
 
 	@Override
@@ -48,46 +39,14 @@ public class QueryCacheItem implements CacheItem, Dumpable, Serializable,Duplica
 		return Long.toString(HashUtil.create64BitHash(UDFArgConverter.serialize(query)));
 	}
 	
-	@Override
-	public String getName() {
-		return query.getName();
-	}
 
 	public Query getQuery() {
 		return query;
 	}
 
-	@Override
-	public long getPayload() {
-		return query.getRecordcount();
-	}
-	
-	@Override
-	public String getMeta() {
-		return query.getSql().getSQLString();
-	}
-	
-	@Override
-	public long getExecutionTime() {
-		return query.getExecutionTime();
-	}
-
-	public boolean isCachedAfter(Date cacheAfter) {
-    	if(cacheAfter==null) return true;
-    	if(creationDate>=cacheAfter.getTime()){
-        	return true;
-        }
-        return false;
-    }
-
-	@Override
-	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties properties) {
-		return query.toDumpData(pageContext, maxlevel, properties);
-	}
 
 	@Override
 	public Object duplicate(boolean deepCopy) {
-		// TODO Auto-generated method stub
 		return new QueryCacheItem((Query)query.duplicate(true));
 	}
 

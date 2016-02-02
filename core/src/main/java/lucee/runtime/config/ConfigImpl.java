@@ -65,6 +65,7 @@ import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.commons.net.IPRange;
+import lucee.loader.TP;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CIPage;
 import lucee.runtime.Component;
@@ -101,6 +102,7 @@ import lucee.runtime.exp.SecurityException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.extension.Extension;
 import lucee.runtime.extension.ExtensionProvider;
+import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.functions.system.ContractPath;
 import lucee.runtime.listener.AppListenerUtil;
@@ -171,8 +173,9 @@ public abstract class ConfigImpl implements Config {
 	public static final int DEBUG_IMPLICIT_ACCESS = 16;
 	public static final int DEBUG_QUERY_USAGE = 32;
 	public static final int DEBUG_DUMP = 64;
-	
+
 	private static final Extension[] EXTENSIONS_EMPTY = new Extension[0];
+	private static final RHExtension[] RHEXTENSIONS_EMPTY = new RHExtension[0];
 	
 	public static final int MODE_CUSTOM = 1;
 	public static final int MODE_STRICT = 2;
@@ -376,6 +379,7 @@ public abstract class ConfigImpl implements Config {
 	private RHExtensionProvider[] rhextensionProviders=Constants.RH_EXTENSION_PROVIDERS;
 	
 	private Extension[] extensions=EXTENSIONS_EMPTY;
+	private RHExtension[] rhextensions=RHEXTENSIONS_EMPTY;
 	private boolean extensionEnabled;
 	private boolean allowRealPath=true;
 
@@ -548,8 +552,14 @@ public abstract class ConfigImpl implements Config {
 
 
     protected void setFLDs(FunctionLib[] flds, int dialect) {
-    	if(dialect==CFMLEngine.DIALECT_CFML)cfmlFlds=flds;
-    	else luceeFlds=flds;
+    	if(dialect==CFMLEngine.DIALECT_CFML){
+    		cfmlFlds=flds;
+    		if(cfmlFlds!=flds)combinedCFMLFLDs=null; // TODO improve check (hash) 
+    	}
+    	else {
+    		luceeFlds=flds;
+    		if(luceeFlds!=flds)combinedLuceeFLDs=null; // TODO improve check (hash) 
+    	}
     }
     
     /**
@@ -661,6 +671,14 @@ public abstract class ConfigImpl implements Config {
     	return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
 
     }
+
+    public ClassLoader getClassLoaderCore() {
+    	return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
+    }
+    public ClassLoader getClassLoaderLoader() {
+    	return new TP().getClass().getClassLoader();
+    }
+    
     public ResourceClassLoader getResourceClassLoader() {
     	if(resourceCL==null) throw new RuntimeException("no RCL defined yet!");
     	return resourceCL;   
@@ -1318,8 +1336,14 @@ public abstract class ConfigImpl implements Config {
         	overwrite(flds[0], flds[i]);
         }
         flds=new FunctionLib[]{flds[0]};
-        if(dialect==CFMLEngine.DIALECT_CFML) cfmlFlds=flds;
-        else luceeFlds=flds;
+        if(dialect==CFMLEngine.DIALECT_CFML) {
+        	cfmlFlds=flds;
+        	if(cfmlFlds!=flds)combinedCFMLFLDs=null;// TODO improve check 
+        }
+        else {
+        	luceeFlds=flds;
+        	if(luceeFlds!=flds)combinedLuceeFLDs=null;// TODO improve check 
+        }
 		
 		if(fileFld==null) return;
         this.fldFile=fileFld;
@@ -2281,7 +2305,7 @@ public abstract class ConfigImpl implements Config {
         
 		Resource dir = getClassDirectory().getRealResource("RPC");
 		if(!dir.exists())dir.createDirectory(true);
-		rpcClassLoader = new PhysicalClassLoader(this,dir,getClassLoader());
+		rpcClassLoader = new PhysicalClassLoader(this,dir);
 		return rpcClassLoader;
 	}
 	
@@ -2652,10 +2676,18 @@ public abstract class ConfigImpl implements Config {
 	public Extension[] getExtensions() {
 		return extensions;
 	}
+	public RHExtension[] getRHExtensions() {
+		return rhextensions;
+	}
+	
+	public abstract RHExtension[] getServerRHExtensions();
 
 	protected void setExtensions(Extension[] extensions) {
-		
 		this.extensions=extensions;
+	}
+	
+	protected void setExtensions(RHExtension[] extensions) {
+		this.rhextensions=extensions;
 	}
 
 	protected void setExtensionEnabled(boolean extensionEnabled) {
@@ -3592,5 +3624,10 @@ public abstract class ConfigImpl implements Config {
 	}
 	public void setAllowLuceeDialect(boolean allowLuceeDialect) {
 		this. allowLuceeDialect=allowLuceeDialect;
+	}
+	
+
+	public boolean installExtension(String extensionId) {
+		return DeployHandler.deployExtension(this, extensionId, getLog("deploy"));
 	}
 }

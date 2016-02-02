@@ -65,7 +65,7 @@ public interface Request {
 	 * 
 	 * @param key key to get
 	 * @return value to key
-	 * @throws NumberFormatException
+	 * @throws NumberFormatException thrown when fail to convert the value to a number
 	 */
 	public int getIntAttribute(String key) throws NumberFormatException;
 
@@ -88,7 +88,7 @@ public interface Request {
 	/**
 	 * returns all the settings
 	 * 
-	 * @param key
+	 * @param key key to get setting for
 	 * @return settings
 	 */
 	public String getSetting(String key);

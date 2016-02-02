@@ -14,7 +14,7 @@ component {
 	this.metadata.attributetype="fixed";
 	this.metadata.attributes={
 		var:{required:false,type:"any",hint="Variable to display. Enclose a variable name in pound signs."},
-		eval:{required:false,type:"any",hint="name of the variable to display, also used as label, when no label defined."},
+		eval:{required:false,type:"string",hint="name of the variable to display, also used as label, when no label defined."},
 		expand:{required:false,type:"boolean",default:true,hint="expands views"},
 		label:{required:false,type:"string",default:"",hint="header for the dump output."},
 		top:{required:false,type:"number",default:9999,hint="The number of rows to display."},
@@ -59,12 +59,13 @@ component {
 			if(not len(attrib.label))
 				attrib['label'] = attrib.eval;
 			// eval not supported when caller has "Handle unquoted tag attribute values as strings." disabled
-			try {
-				attrib['var'] = evaluate(attrib.eval, arguments.caller);
-			}
+			attrib['var'] = evaluate(attrib.eval, arguments.caller);
+
+			/*try {}
 			catch(local.e){
+				if(isSimpleValue(attrib.eval)) rethrow;
 				throw "attribute ""eval"" cannot be evaluated because it is not a string, the attribute ""eval"" is not supported for the Lucee dialect.";
-			}
+			}*/
 		}
 
 		// context

@@ -10411,6 +10411,7 @@ The following things are considered to be empty:
 	<function>
 		<name>isNotMap</name>
 		<class>lucee.runtime.functions.other.IsNotMap</class>
+		<status>hidden</status>
 		<keywords>decision</keywords>
 		<description>return true if the given Object is not of Type java.util.Map</description>
 		<argument>
@@ -10423,6 +10424,18 @@ The following things are considered to be empty:
 			<type>boolean</type>
 		</return>
 	</function>
+	
+	
+	<!-- isInThread -->
+ 	<function>
+ 		<name>isInThread</name>
+ 		<class>lucee.runtime.functions.thread.IsInThread</class>
+ 		<keywords>thread,system</keywords>
+ 		<description>Determines whether the executing code is inside a cfthread or not.</description>
+ 		<return>
+ 			<type>boolean</type>
+ 		</return>
+ 	</function>
 
 	<!-- isObject -->
 	<function>

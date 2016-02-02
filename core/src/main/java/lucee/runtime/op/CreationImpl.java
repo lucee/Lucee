@@ -21,7 +21,6 @@ package lucee.runtime.op;
 
 
 import java.io.File;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.Iterator;
@@ -34,7 +33,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import lucee.commons.date.DateTimeUtil;
-import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.Pair;
@@ -79,7 +77,6 @@ import lucee.runtime.net.http.HttpServletResponseDummy;
 import lucee.runtime.spooler.ExecutionPlan;
 import lucee.runtime.spooler.SpoolerTask;
 import lucee.runtime.spooler.remote.RemoteClientTask;
-import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.CastableStruct;
@@ -102,9 +99,6 @@ import lucee.runtime.type.scope.ClusterEntry;
 import lucee.runtime.type.scope.ClusterEntryImpl;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.Creation;
-
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 
 /**
  * implemention of the ctration object

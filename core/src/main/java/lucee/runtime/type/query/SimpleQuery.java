@@ -89,7 +89,7 @@ import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.QueryUtil;
 
-public class SimpleQuery implements Query, ResultSet, Objects {
+public class SimpleQuery implements Query, ResultSet, Objects,QueryResult {
 	
 	static final Object DEFAULT_VALUE = new Object();
 	private ResultSet res;
@@ -105,6 +105,7 @@ public class SimpleQuery implements Query, ResultSet, Objects {
 	private int recordcount;
 	private ArrayInt arrCurrentRow=new ArrayInt();
 	private String cacheType;
+	private int updateCount;
 	
 
 	public SimpleQuery(PageContext pc,DatasourceConnection dc,SQL sql,int maxrow, int fetchsize,TimeSpan timeout, String name,String template,TimeZone tz) throws PageException {
@@ -227,9 +228,13 @@ public class SimpleQuery implements Query, ResultSet, Objects {
 	}
 
 	@Override
-	
+
 	public int getUpdateCount() {
-		throw notSupported();
+		return updateCount;
+	}
+	
+	public void setUpdateCount(int updateCount) {
+		this.updateCount=updateCount;
 	}
 
 	@Override

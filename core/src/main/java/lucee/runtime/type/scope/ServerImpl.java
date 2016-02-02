@@ -74,6 +74,8 @@ public final class ServerImpl extends ScopeSupport implements Server,SharedScope
     private static final Key VERSION_NAME = KeyImpl.intern("versionName");
 	private static final Key VERSION_NAME_EXPLANATION = KeyImpl.intern("versionNameExplanation");
 	private static final Key HOST_NAME = KeyImpl.intern("hostname");
+	private static final Key ENVIRONMENT = KeyConstants._environment;
+	
 
 
 	private static String jep;
@@ -91,9 +93,9 @@ public final class ServerImpl extends ScopeSupport implements Server,SharedScope
 	 * constructor of the server scope
 	 * @param pc
 	 */
-	public ServerImpl(PageContext pc) {
+	public ServerImpl(PageContext pc, boolean jsr223) {
 		super(true,"server",SCOPE_SERVER);
-		reload(pc);
+		reload(pc,jsr223);
 
 	}
 	
@@ -101,8 +103,11 @@ public final class ServerImpl extends ScopeSupport implements Server,SharedScope
 	public void reload() {	
 		reload(ThreadLocalPageContext.get());
 	}
-	
-	public void reload(PageContext pc) {		
+
+	public void reload(PageContext pc) {
+		
+	}
+	public void reload(PageContext pc, Boolean jsr223) {		
 	    Info info=pc.getConfig().getFactory().getEngine().getInfo();
 	    ReadOnlyStruct coldfusion=new ReadOnlyStruct();
 			coldfusion.setEL(PRODUCT_LEVEL,info.getLevel());
@@ -153,6 +158,7 @@ public final class ServerImpl extends ScopeSupport implements Server,SharedScope
 			lucee.setEL(RELEASE_DATE,new DateTimeImpl(info.getRealeaseTime(),false));
 			lucee.setEL(LOADER_VERSION,Caster.toDouble(SystemUtil.getLoaderVersion()));
 			lucee.setEL(LOADER_PATH, ClassUtil.getSourcePathForClass("lucee.loader.servlet.CFMLServlet", ""));
+			lucee.setEL(ENVIRONMENT, jsr223!=null && jsr223.booleanValue()?"jsr223":"servlet");
 
 			lucee.setReadOnly(true);
 		super.setEL (KeyConstants._lucee,lucee);

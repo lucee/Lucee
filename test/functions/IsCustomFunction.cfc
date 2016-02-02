@@ -36,7 +36,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals(true,isCustomFunction(realUDF));
 
 		assertEquals(false,isCustomFunction(function (a,b,c){},"udf"));
-		assertEquals(false,isCustomFunction((x) -> x * x ,"udf"));
+		assertEquals(false,isCustomFunction((x) => x * x ,"udf"));
 		assertEquals(true,isCustomFunction(realUDF,"udf"));
 		
 	} 
@@ -44,16 +44,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public void function testClosure() localmode="true"{
 		assertEquals(true,isCustomFunction(function (a,b,c){}));
 		assertEquals(true,isCustomFunction(function (a,b,c){},"closure"));
-		assertEquals(false,isCustomFunction((x) -> x * x ,"closure"));
+		assertEquals(false,isCustomFunction((x) => x * x ,"closure"));
 		assertEquals(false,isCustomFunction(realUDF,"closure"));
 
 	} 
 
 	public void function testLambda() localmode="true"{
-		assertEquals(true,isCustomFunction((x) -> x * x ));
+		assertEquals(true,isCustomFunction((x) => x * x ));
 
 		assertEquals(false,isCustomFunction(function (a,b,c){},"lambda"));
-		assertEquals(true,isCustomFunction((x) -> x * x ,"lambda"));
+		assertEquals(true,isCustomFunction((x) => x * x ,"lambda"));
 		assertEquals(false,isCustomFunction(realUDF,"lambda"));
 	} 
 

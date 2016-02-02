@@ -370,7 +370,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		loadConfig(cs, config, doc);
 		int mode = config.getMode();
 		Log log = config.getLog("application");
-		loadExtensionBundles(cs,config,doc,log);
 		loadConstants(cs, config, doc);
 		loadLoggers(cs, config, doc, isReload);
 		log = config.getLog("application");
@@ -381,6 +380,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		loadSecurity(cs, config, doc);
 		ConfigWebUtil.loadLib(cs, config);
 		loadSystem(cs, config, doc);
+		loadFilesystem(cs, config, doc, doNew); // load this before execute any code, what for example loadxtension does (json)
+		loadExtensionBundles(cs,config,doc,log);
 		loadORM(cs, config, doc,log);
 		loadResourceProvider(cs, config, doc);
 		loadCacheHandler(cs, config, doc,log);
@@ -394,7 +395,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		loadDataSources(cs, config, doc,log);
 		loadCache(cs, config, doc,log);
 		loadCustomTagsMappings(cs, config, doc, mode);
-		loadFilesystem(cs, config, doc, doNew); // load tlds
+		//loadFilesystem(cs, config, doc, doNew); // load tlds
 		loadTag(cs, config, doc); // load tlds
 		loadRegional(cs, config, doc);
 		loadCompiler(cs, config, doc, mode);
@@ -4203,20 +4204,24 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	private static void loadExtensionBundles(ConfigServerImpl cs, ConfigImpl config, Document doc, Log log) {
 		Element parent = getChildByName(doc.getDocumentElement(), "extensions");
 		Element[] children = getChildren(parent, "rhextension");
-		String str;
+		String strBundles;
 	
 		Map<String, BundleDefinition> extensionBundles=new HashMap<String,BundleDefinition>();
+		List<RHExtension> extensions=new ArrayList<RHExtension>();
+		
 		for(Element child:children){
-			str=getAttr(child,"bundles");
-			if(StringUtil.isEmpty(str)) continue;
 			RHExtension rhe;
 			try {
 				rhe = new RHExtension(config,child);
+				extensions.add(rhe);
 			} catch (Exception e) {
 				log.error("load-extension", e);
 				continue;
 			}
-			if(!rhe.getStartBundles()) continue;
+			
+			// now we lod the bundles
+			strBundles=getAttr(child,"bundles");
+			if(StringUtil.isEmpty(strBundles) || !rhe.getStartBundles()) continue;
 			
 			BundleFile[] bfs = rhe.getBundlesFiles();
 			BundleFile bf;
@@ -4231,8 +4236,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					log.error("OSGi", e);
 				}
 			}
-			
 		}
+		config.setExtensions(extensions.toArray(new RHExtension[extensions.size()]));
 		config.setExtensionBundleDefintions(extensionBundles);
 	}
 

@@ -1,5 +1,5 @@
 component {
 	static {
-		f = () -> true;
+		f = () => true;
 	}
 }

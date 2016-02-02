@@ -21,6 +21,7 @@ package lucee.runtime.type.wrap;
 import java.util.Iterator;
 import java.util.Map;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -79,11 +80,11 @@ public class MapAsStruct extends StructSupport implements Struct {
         Iterator it = map.keySet().iterator();
         int count=0;
         while(it.hasNext()) {
-            k[count++]=KeyImpl.init(it.next().toString());
+            k[count++]=KeyImpl.init(StringUtil.toStringNative(it.next(),""));
         }
         return k;
     }
-    
+        
     public static String getCaseSensitiveKey(Map map,String key) {
     	Iterator it = map.keySet().iterator();
 		String strKey;

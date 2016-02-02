@@ -174,6 +174,8 @@
 	<data key="security.cfx">CFX</data>
 	<data key="menu.info.label">Info</data>
 	<data key="menu.info.bundle">Bundle (jar)</data>
+	<data key="menu.overview.label">Overview</data>
+ 	<data key="menu.overview.overview">Overview</data>
 	<data key="menu.server.label">Settings</data>
 	<data key="menu.server.cache">Performance/Caching</data>
 	<data key="menu.server.regional">Regional</data>
@@ -276,6 +278,10 @@
 	<data key="ext.provider">Provider</data>
 	<data key="ext.documentation">Documentation</data>
 	<data key="ext.installeddesc">These applications are already installed on the system.</data>
+	<data key="ext.installedServer">Installed in Server Administrator</data>
+	<data key="ext.installedServerDesc">This Extension is already installed in the Server Administrator, you have 2 options, you can overwrite it for the current web context by installing it here as well or you can change it in the Server Administrator what will affect all Web Contexts.</data>
+	<data key="ext.free">Free</data>
+	<data key="ext.price">Price</data>
 	<data key="ext.licenseagreement">License agreement</data>
 	<data key="ext.uploadextension">Upload new extension (experimental)</data>
 	<data key="ext.uploadextensiondesc">If you downloaded an extension, you can add the extension here.</data>
@@ -820,6 +826,11 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="buttons.reset">reset</data>
 	<data key="buttons.repair">repair</data>
 	<data key="buttons.export">export</data>
+	<data key="buttons.installTrial">Install Trial</data>
+	<data key="buttons.installFull">Install Full Version</data>
+	<data key="buttons.updateTrial">Update as Trial</data>
+	<data key="buttons.updateFull">Update as Full Version</data>
+
 	<data key="video.web.installed">The video components are installed on your system.</data>
 	<data key="video.web.installedbut">The video components are installed but they can not be executed properly.Just switch to the Lucee Server Administrator, in order to repair it:</data>
 	<data key="video.upload">Upload</data>

@@ -492,7 +492,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 
 		@Override
 		public String nextElement() {
-			return it.next().toString();
+			return StringUtil.toStringNative(it.next(),"");
 		}
 		
 	}

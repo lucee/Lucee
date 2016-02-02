@@ -501,7 +501,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		    Object cacheValue=null;
 		    String dsn = ds instanceof DataSource?((DataSource)ds).getName():Caster.toString(ds);
 			if(hasCached) {
-				String id = CacheHandlerCollectionImpl.createId(_sql,dsn,username,password);
+				String id = CacheHandlerCollectionImpl.createId(_sql,dsn,username,password,Query.RETURN_TYPE_STORED_PROC);
 				CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY,null)
 						.getInstanceMatchingObject(cachedWithin,null);
 				
@@ -563,7 +563,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 				}
 			    if(hasCached){
 			    	cache.set(COUNT, Caster.toDouble(count));
-			    	String id = CacheHandlerCollectionImpl.createId(_sql,dsn,username,password);
+			    	String id = CacheHandlerCollectionImpl.createId(_sql,dsn,username,password,Query.RETURN_TYPE_STORED_PROC);
 					CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY,null)
 							.getInstanceMatchingObject(cachedWithin,null);
 					if(ch!=null)ch.set(pageContext, id, cachedWithin, new StoredProcCacheItem(cache,procedure, System.currentTimeMillis()-start));

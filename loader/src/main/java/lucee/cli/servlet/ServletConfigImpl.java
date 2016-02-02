@@ -28,37 +28,22 @@ public class ServletConfigImpl implements ServletConfig {
 	private final String servletName;
 	private final ServletContext context;
 
-	/**
-	 * Constructor of the class
-	 * 
-	 * @param context
-	 * @param servletName
-	 */
 	public ServletConfigImpl(final ServletContextImpl context,
 			final String servletName) {
 		this.servletName = servletName;
 		this.context = context;
 	}
 
-	/**
-	 * @see javax.servlet.ServletConfig#getInitParameter(java.lang.String)
-	 */
 	@Override
 	public String getInitParameter(final String key) {
 		return context.getInitParameter(key);
 	}
 
-	/**
-	 * @see javax.servlet.ServletConfig#getInitParameterNames()
-	 */
 	@Override
 	public Enumeration<String> getInitParameterNames() {
 		return context.getInitParameterNames();
 	}
 
-	/**
-	 * @see javax.servlet.ServletConfig#getServletName()
-	 */
 	@Override
 	public String getServletName() {
 		return servletName;

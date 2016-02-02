@@ -30,7 +30,7 @@ import lucee.loader.util.Util;
 
 public class CLI {
 
-	/**
+	/*
 	 * Config
 	 * 
 	 * webroot - webroot directory
@@ -41,10 +41,6 @@ public class CLI {
 	 * form - form (same pattern as query string)
 	 */
 
-	/**
-	 * @param args
-	 * @throws JspException
-	 */
 	public static void main(final String[] args) throws ServletException,
 			IOException, JspException {
 

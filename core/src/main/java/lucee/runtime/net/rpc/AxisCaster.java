@@ -470,7 +470,7 @@ public final class AxisCaster {
     	Property p;
     	Object v;
     	Collection.Key k;
-		CFMLExpressionInterpreter interpreter = new CFMLExpressionInterpreter();
+		CFMLExpressionInterpreter interpreter = new CFMLExpressionInterpreter(false);
 		
 		
 		

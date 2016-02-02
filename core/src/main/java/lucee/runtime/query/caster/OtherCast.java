@@ -24,10 +24,16 @@ import java.sql.Types;
 import java.util.TimeZone;
 
 public class OtherCast implements Cast {
+	
+	private final int type;
+
+	public OtherCast(int type){
+		this.type=type;
+	}
 
 
 	@Override
-	public Object toCFType(TimeZone tz, int type, ResultSet rst, int columnIndex) throws SQLException {
+	public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException {
 		if(type!=Types.SMALLINT) return rst.getObject(columnIndex);
 		
 		

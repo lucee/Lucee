@@ -18,7 +18,6 @@
  */
 package lucee.transformer.bytecode.statement.tag;
 
-import lucee.commons.lang.RandomUtil;
 import lucee.runtime.tag.ThreadTag;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
@@ -58,10 +57,10 @@ public final class TagThread extends TagBaseNoFinal {
 			return;
 		}
 		
-		Attribute name = getAttribute("name");
+		/*Attribute name = getAttribute("name");
 		if(name==null){
 			addAttribute(new Attribute(false, "name",bc.getFactory().createLitString("thread"+RandomUtil.createRandomStringLC(20)), "string"));
-		}
+		}*/
 
 		GeneratorAdapter adapter = bc.getAdapter();
 		Page page = ASMUtil.getAncestorPage(this);

@@ -97,13 +97,18 @@ public class RHExtension implements Serializable {
 	private static final Key PLUGINS = KeyImpl.init("plugins");
 	private static final Key START_BUNDLES = KeyImpl.init("startBundles");
 	private static final Key TRIAL = KeyImpl.init("trial");
+	private static final Key RELEASE_TYPE = KeyImpl.init("releaseType");
     
-
 	private static final String[] EMPTY = new String[0];
 	private static final BundleDefinition[] EMPTY_BD = new BundleDefinition[0];
 
+	public static final int RELEASE_TYPE_ALL=0;
+	public static final int RELEASE_TYPE_SERVER=1;
+	public static final int RELEASE_TYPE_WEB=2;
+
 
 	private final String id;
+	private final int releaseType;
 	private final String version;
 	private final String name;
 	
@@ -212,6 +217,20 @@ public class RHExtension implements Serializable {
 		}
 		name=str.trim();
 		
+
+		// release type 
+		str=unwrap(attr.getValue("release-type"));
+		int rt=RELEASE_TYPE_ALL;
+		if(!Util.isEmpty(str)) {
+			str=str.trim();
+			if("server".equalsIgnoreCase(str)) rt=RELEASE_TYPE_SERVER;
+			else if("web".equalsIgnoreCase(str)) rt=RELEASE_TYPE_WEB;
+		}
+		if((rt==RELEASE_TYPE_SERVER && isWeb) || (rt==RELEASE_TYPE_WEB && !isWeb)) {
+			throw new ApplicationException("Cannot install the Extension ["+ext+"] in the "+type+" context, this Extension has the release type ["+toReleaseType(rt, "")+"].");
+		}
+		releaseType=rt;
+		
 		
 		// description
 		description=unwrap(attr.getValue("description"));
@@ -228,7 +247,7 @@ public class RHExtension implements Serializable {
 			categories=ListUtil.trimItems(ListUtil.listToStringArray(str, ","));
 		}
 		else categories=null;
-
+		
 		// core version
 		str=unwrap(attr.getValue("lucee-core-version"));
 		//int minCoreVersion=InfoImpl.toIntVersion(str,0);
@@ -524,6 +543,7 @@ public class RHExtension implements Serializable {
       			,KeyConstants._name
       			,KeyConstants._description
       			,KeyConstants._image
+      			,RELEASE_TYPE
       			,TRIAL
       			,CATEGORIES
       			,START_BUNDLES
@@ -549,8 +569,9 @@ public class RHExtension implements Serializable {
   	  	qry.setAt(KeyConstants._description, row, description);
   	  	qry.setAt(KeyConstants._version, row, getVersion()==null?null:getVersion().toString());
   	  	qry.setAt(TRIAL, row, isTrial());
-	  	//qry.setAt(JARS, row,Caster.toArray(getJars()));
-  	  qry.setAt(FLDS, row, Caster.toArray(getFlds()));
+  	  	qry.setAt(RELEASE_TYPE, row, toReleaseType(getReleaseType(),"all"));
+  	  	//qry.setAt(JARS, row,Caster.toArray(getJars()));
+  	  	qry.setAt(FLDS, row, Caster.toArray(getFlds()));
 	    qry.setAt(TLDS, row, Caster.toArray(getTlds()));
 	    qry.setAt(FUNCTIONS, row, Caster.toArray(getFunctions()));
 	    qry.setAt(ARCHIVES, row, Caster.toArray(getArchives()));
@@ -573,6 +594,7 @@ public class RHExtension implements Serializable {
   	    qry.setAt(BUNDLES, row,qryBundles);
 	}
 	
+
 
 
 	public String getId() {
@@ -771,6 +793,9 @@ public class RHExtension implements Serializable {
 	public String getDescription() {
 		return description;
 	}
+	public int getReleaseType() {
+		return releaseType;
+	}
 
 	public BundleFile[] getBundlesfiles() {
 		return bundlesfiles;
@@ -866,6 +891,21 @@ public class RHExtension implements Serializable {
 		if(trial!=other.trial) return false;
 		
 		return true;
+	}
+	
+
+	public static String toReleaseType(int releaseType, String defaultValue) {
+		if(releaseType==RELEASE_TYPE_WEB) return "web";
+		if(releaseType==RELEASE_TYPE_SERVER) return "server";
+		if(releaseType==RELEASE_TYPE_ALL) return "all";
+		return defaultValue;
+	}
+	public static int toReleaseType(String releaseType, int defaultValue) {
+		if("web".equalsIgnoreCase(releaseType)) return RELEASE_TYPE_WEB;
+		if("server".equalsIgnoreCase(releaseType)) return RELEASE_TYPE_SERVER;
+		if("all".equalsIgnoreCase(releaseType)) return RELEASE_TYPE_ALL;
+		if("both".equalsIgnoreCase(releaseType)) return RELEASE_TYPE_ALL;
+		return defaultValue;
 	}
 
 }

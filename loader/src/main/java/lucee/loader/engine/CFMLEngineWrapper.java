@@ -61,7 +61,6 @@ import lucee.runtime.util.ResourceUtil;
 import lucee.runtime.util.Strings;
 import lucee.runtime.util.SystemUtil;
 import lucee.runtime.util.TemplateUtil;
-import lucee.runtime.util.XMLUtil;
 import lucee.runtime.util.ZipUtil;
 import lucee.runtime.video.VideoUtil;
 

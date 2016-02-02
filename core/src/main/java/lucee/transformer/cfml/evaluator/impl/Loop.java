@@ -34,6 +34,7 @@ import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.ExprTransformer;
 import lucee.transformer.cfml.TransfomerSettings;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
+import lucee.transformer.cfml.evaluator.EvaluatorPool;
 import lucee.transformer.cfml.evaluator.EvaluatorSupport;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitString;
@@ -161,7 +162,7 @@ public final class Loop extends EvaluatorSupport {
 				Expression expr=transformer.transform(
 						BytecodeFactory.getInstance(config),
 						page,
-						null,null,flibs,
+						new EvaluatorPool(),null,flibs,
 						config.getCoreTagLib(page.getSourceCode().getDialect()).getScriptTags(),
 						new SourceCode(text,false,page.getSourceCode().getDialect()),
 						new TransfomerSettings(
@@ -170,7 +171,7 @@ public final class Loop extends EvaluatorSupport {
 				
 				tag.addAttribute(new Attribute(false,"condition",page.getFactory().toExprBoolean(expr),"boolean"));
 			}
-			catch (Exception e) {
+			catch (Exception e) {e.printStackTrace();
 				throw new EvaluatorException(e.getMessage());
 			}
 			loop.setType(TagLoop.TYPE_CONDITION);

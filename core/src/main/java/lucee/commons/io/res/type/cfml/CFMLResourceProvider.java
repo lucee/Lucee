@@ -17,25 +17,36 @@
  * 
  */
 package lucee.commons.io.res.type.cfml;
+import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
+
+import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourceProviderPro;
 import lucee.commons.io.res.Resources;
 import lucee.commons.io.res.util.ResourceLockImpl;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.StructImpl;
 
 public class CFMLResourceProvider implements ResourceProviderPro {
 
@@ -82,7 +93,29 @@ public class CFMLResourceProvider implements ResourceProviderPro {
 		path=ResourceUtil.removeScheme(scheme,path);
 		path=ResourceUtil.prettifyPath(path);
 		if(!StringUtil.startsWith(path,'/'))path="/"+path;
-		return callResourceRTE(null, null, "getResource", new Object[]{path},false);
+		
+		return callResourceRTE(getPageContext(null), null, "getResource", new Object[]{path},false);
+	}
+
+	private PageContext getPageContext(PageContext pc) {
+		ThreadLocalPageContext.get(pc);
+		if(pc!=null) return pc;
+		
+		Config c = ThreadLocalPageContext.getConfig();
+		if(c instanceof ConfigWeb) {
+			return	ThreadUtil.createPageContext(
+				(ConfigWeb)c, 
+				DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, 
+				"localhost", "/","", new Cookie[0], new Pair[0], new Pair[0], new StructImpl(),false,-1);
+		}
+		try {
+			return CFMLEngineFactory.getInstance()
+					.createPageContext(new File("."), "localhost", "/", "", new Cookie[0], null, null, 
+							null, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, -1, false);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
@@ -143,7 +176,7 @@ public class CFMLResourceProvider implements ResourceProviderPro {
 	
 	
 	Resource callResourceRTE(PageContext pc,Component component,String methodName, Object[] args, boolean allowNull) {
-		pc = ThreadLocalPageContext.get(pc);
+		pc = getPageContext(pc);
 		try {
 			Object res = call(pc,getCFC(pc,component), methodName, args);
 			if(allowNull && res==null) return null;

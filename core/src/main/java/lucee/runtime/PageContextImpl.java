@@ -339,7 +339,7 @@ public final class PageContextImpl extends PageContext {
 	 * @param id identity of the pageContext
 	 * @param servlet
 	 */
-	public PageContextImpl(ScopeContext scopeContext, ConfigWebImpl config, int id,HttpServlet servlet) {
+	public PageContextImpl(ScopeContext scopeContext, ConfigWebImpl config, int id,HttpServlet servlet, boolean jsr223) {
 		// must be first because is used after
 		tagHandlerPool=config.getTagHandlerPool();
 		this.servlet=servlet;
@@ -359,7 +359,7 @@ public final class PageContextImpl extends PageContext {
 		
 		//this.compiler=compiler;
 		//tagHandlerPool=config.getTagHandlerPool();
-		server=ScopeContext.getServerScope(this);
+		server=ScopeContext.getServerScope(this,jsr223);
 		
 		defaultApplicationContext=new ClassicApplicationContext(config,"",true,null);
 		
@@ -456,7 +456,7 @@ public final class PageContextImpl extends PageContext {
 		forceWriter=writer;
 		 
 		 // Scopes
-		 server=ScopeContext.getServerScope(this);
+		 server=ScopeContext.getServerScope(this,ignoreScopes);
 		 if(hasFamily) {
 			 variablesRoot=new VariablesImpl();
 			 variables=variablesRoot;
@@ -1094,6 +1094,9 @@ public final class PageContextImpl extends PageContext {
 		if(ignoreScopes()) {
 			if("arguments".equals(strScope))	return argumentsScope();
 			if("local".equals(strScope))		return localScope();
+			if("request".equals(strScope))		return requestScope();
+			if("variables".equals(strScope))	return variablesScope(); 
+			if("server".equals(strScope))		return serverScope();
 			return defaultValue;
 		}
 		
@@ -1325,7 +1328,7 @@ public final class PageContextImpl extends PageContext {
 	}
 	
 	public void reset() {
-		server=ScopeContext.getServerScope(this);
+		server=ScopeContext.getServerScope(this,ignoreScopes());
 	}
 	
 	@Override
@@ -2912,7 +2915,7 @@ public final class PageContextImpl extends PageContext {
 					pageSource,
 					config.getTLDs(dialect),
 					config.getFLDs(dialect),
-					classRootDir,false,false
+					classRootDir,false,ignoreScopes()
 					);
 		} catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -2955,7 +2958,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public Object evaluate(String expression) throws PageException {
-		return new CFMLExpressionInterpreter().interpret(this,expression);
+		return new CFMLExpressionInterpreter(false).interpret(this,expression);
 	}
 	
 	@Override
@@ -3313,6 +3316,10 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public boolean ignoreScopes() {
 		return ignoreScopes;
+	}
+	
+	public void setIgnoreScopes(boolean ignoreScopes) {
+		this.ignoreScopes=ignoreScopes;
 	}
 	
 	public void setAppListenerType(int appListenerType) {

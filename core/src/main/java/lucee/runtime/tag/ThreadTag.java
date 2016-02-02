@@ -21,6 +21,7 @@ package lucee.runtime.tag;
 import java.util.Iterator;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.lang.RandomUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
@@ -47,6 +48,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.Threads;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 // MUST change behavor of mltiple headers now is a array, it das so?
@@ -73,8 +75,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	
 	private int action=ACTION_RUN;
 	private long duration=-1;
-	private String name;
-	private String lcName;
+	private Collection.Key _name;
 	private int priority=Thread.NORM_PRIORITY;
 	private long timeout=0;
 	private PageContext pc;
@@ -88,8 +89,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		super.release();
 		action=ACTION_RUN;
 		duration=-1;
-		name=null;
-		lcName=null;
+		_name=null;
 		priority=Thread.NORM_PRIORITY;
 		type=TYPE_DAEMON;
 		plans=EXECUTION_PLAN;
@@ -126,10 +126,13 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	 */
 	public void setName(String name) {
 		if(StringUtil.isEmpty(name,true)) return;
-		this.name = name.trim();
-		this.lcName=this.name.toLowerCase();
+		this._name=KeyImpl.init(name);
 	}
 
+	private Collection.Key name() {
+		if(_name==null) _name=KeyImpl.init("thread"+RandomUtil.createRandomStringLC(20));
+		return _name;
+	}
 
 	/**
 	 * @param strPriority the priority to set
@@ -199,14 +202,14 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 			// GERT
 			
 			// tries
-			Object oTries=sct.get("tries",null);
+			Object oTries=sct.get(KeyConstants._tries,null);
 			if(oTries==null)throw new ExpressionException("missing key tries inside struct");
 			int tries=Caster.toIntValue(oTries);
 			if(tries<0)throw new ExpressionException("tries must contain a none negative value");
 			
 			// interval
-			Object oInterval=sct.get("interval",null);
-			if(oInterval==null)oInterval=sct.get("intervall",null);
+			Object oInterval=sct.get(KeyConstants._interval,null);
+			if(oInterval==null)oInterval=sct.get(KeyConstants._intervall,null);
 			
 			if(oInterval==null)throw new ExpressionException("missing key interval inside struct");
 			int interval=toSeconds(oInterval);
@@ -254,11 +257,11 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 				doSleep();
 			break;
 			case ACTION_TERMINATE:	
-				required("thread", "terminate", "name", name);
+				required("thread", "terminate", "name", name().getString());
 				doTerminate();
 			break;
 			case ACTION_RUN:		
-				required("thread", "run", "name", name);
+				required("thread", "run", "name", name().getString());
 				return EVAL_BODY_INCLUDE;
 			
 		}
@@ -279,19 +282,19 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 			throw new ApplicationException("could not create a thread within a child thread");
 		
 		try {
-			Threads ts = pc.getThreadScope(lcName);
+			Threads ts = pc.getThreadScope(name());
 			
 			if(type==TYPE_DAEMON){
 				if(ts!=null)
-					throw new ApplicationException("could not create a thread with the name ["+name+"]. name must be unique within a request");
-				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc,currentPage,name,threadIndex,attrs,false);
-				pc.setThreadScope(name,new ThreadsImpl(ct));
+					throw new ApplicationException("could not create a thread with the name ["+name().getString()+"]. name must be unique within a request");
+				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc,currentPage,name().getString(),threadIndex,attrs,false);
+				pc.setThreadScope(name(),new ThreadsImpl(ct));
 				ct.setPriority(priority);
 				ct.setDaemon(false);
 				ct.start();
 			}
 			else {
-				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc,currentPage,name,threadIndex,attrs,true);
+				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc,currentPage,name().getString(),threadIndex,attrs,true);
 				ct.setPriority(priority);
 				((ConfigImpl)pc.getConfig()).getSpoolerEngine().add(new ChildSpoolerTask(ct,plans));
 			}
@@ -317,10 +320,10 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
     	PageContextImpl mpc=(PageContextImpl)getMainPageContext(pc);
 		
     	String[] names;
-    	if(lcName==null) {
+    	if(name()==null) {
     		names=mpc.getThreadScopeNames();
     	}
-    	else names=ListUtil.listToStringArray(lcName, ',');
+    	else names=ListUtil.listToStringArray(name().getLowerString(), ',');
     	
     	ChildThread ct;
     	Threads ts;
@@ -351,10 +354,10 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	private void doTerminate() throws ApplicationException {
 		PageContextImpl mpc=(PageContextImpl)getMainPageContext(pc);
 		
-		Threads ts = mpc.getThreadScope(lcName);
+		Threads ts = mpc.getThreadScope(name());
 		
 		if(ts==null)
-			throw new ApplicationException("there is no thread running with the name ["+name+"]");
+			throw new ApplicationException("there is no thread running with the name ["+name().getString()+"]");
 		ChildThread ct = ts.getChildThread();
 		
 		if(ct.isAlive()){

@@ -41,7 +41,6 @@ import java.util.jar.Manifest;
 import javax.servlet.ServletConfig;
 import javax.servlet.jsp.tagext.Tag;
 
-import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
@@ -627,6 +626,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         else if(check("getFlds",                ACCESS_FREE) && check2(ACCESS_READ  )) doGetFLDs();
         else if(check("getTlds",                ACCESS_FREE) && check2(ACCESS_READ  )) doGetTLDs();
         else if(check("getRHExtensions",        ACCESS_FREE) && check2(ACCESS_READ  )) doGetRHExtensions();
+        else if(check("getRHServerExtensions",  ACCESS_NOT_WHEN_SERVER) && check2(ACCESS_READ  )) doGetRHServerExtensions();
         else if(check("getLocalExtension",        ACCESS_FREE) && check2(ACCESS_READ  )) doGetLocalExtension();
         else if(check("getLocalExtensions",        ACCESS_FREE) && check2(ACCESS_READ  )) doGetLocalExtensions();
         else if(check("getMailSetting",         ACCESS_FREE) && check2(ACCESS_READ  )) doGetMailSetting();
@@ -873,9 +873,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     	
     	boolean addCFMLFiles = getBoolV("addCFMLFiles", true);
     	boolean addNonCFMLFiles=getBoolV("addNonCFMLFiles", true);
+    	Boolean ignoreScopes=getBool("ignoreScopes", null);
     	
     	// compile
-    	MappingImpl mapping = (MappingImpl) doCompileMapping(mappingType,virtual, true);
+    	MappingImpl mapping = (MappingImpl) doCompileMapping(mappingType,virtual, true,ignoreScopes);
         
     	// class files 
     	if(mapping==null)throw new ApplicationException("there is no mapping for ["+virtual+"]");
@@ -1005,19 +1006,29 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     	adminSync.broadcast(attributes, config);
     }
     private void doCompileMapping() throws PageException {
-        doCompileMapping(MAPPING_REGULAR,getString("admin",action,"virtual").toLowerCase(), getBoolV("stoponerror", true));
+    	doCompileMapping(
+    			MAPPING_REGULAR,
+    			getString("admin",action,"virtual").toLowerCase(), 
+    			getBoolV("stoponerror", true),
+    			getBool("ignoreScopes", null));
         adminSync.broadcast(attributes, config);
     }
     private void doCompileComponentMapping() throws PageException {
-        doCompileMapping(MAPPING_CFC,getString("admin",action,"virtual").toLowerCase(), getBoolV("stoponerror", true));
+        doCompileMapping(
+        		MAPPING_CFC,getString("admin",action,"virtual").toLowerCase(), 
+        		getBoolV("stoponerror", true),
+        		getBool("ignoreScopes", null));
         adminSync.broadcast(attributes, config);
     }
     private void doCompileCTMapping() throws PageException {
-        doCompileMapping(MAPPING_CT,getString("admin",action,"virtual").toLowerCase(), getBoolV("stoponerror", true));
+        doCompileMapping(
+        		MAPPING_CT,getString("admin",action,"virtual").toLowerCase(), 
+        		getBoolV("stoponerror", true),
+        		getBool("ignoreScopes", null));
         adminSync.broadcast(attributes, config);
     }
     
-    private Mapping doCompileMapping(short mappingType,String virtual, boolean stoponerror) throws PageException {
+    private Mapping doCompileMapping(short mappingType,String virtual, boolean stoponerror, Boolean ignoreScopes) throws PageException {
         
         if(StringUtil.isEmpty(virtual))return null;
         
@@ -1035,7 +1046,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
             Mapping mapping = mappings[i];
             if(mapping.getVirtualLowerCaseWithSlash().equals(virtual)) {
             	Map<String,String> errors = stoponerror?null:MapFactory.<String,String>getConcurrentMap();
-                doCompileFile(mapping,mapping.getPhysical(),"",errors);
+                doCompileFile(mapping,mapping.getPhysical(),"",errors,ignoreScopes);
                 if(errors!=null && errors.size()>0) {
                 	StringBuilder sb=new StringBuilder();
                 	Iterator<String> it = errors.keySet().iterator();
@@ -1054,26 +1065,28 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         return null;
     }
 
-    private void doCompileFile(Mapping mapping,Resource file,String path,Map<String,String> errors) throws PageException {
+    private void doCompileFile(Mapping mapping,Resource file,String path,Map<String,String> errors, Boolean explicitIgnoreScope) throws PageException {
         if(ResourceUtil.exists(file)) {
             if(file.isDirectory()) {
             	Resource[] files = file.listResources(FILTER_CFML_TEMPLATES);
                 if(files!=null)for(int i=0;i<files.length;i++) {
                     String p=path+'/'+files[i].getName();
                     //print.ln(files[i]+" - "+p);
-                    doCompileFile(mapping,files[i],p,errors);
+                    doCompileFile(mapping,files[i],p,errors,explicitIgnoreScope);
                 }
             }
             else if(file.isFile()) {
                 PageSource ps = mapping.getPageSource(path);
                 
-                
+                PageContextImpl pci=(PageContextImpl) pageContext;
+                boolean envIgnoreScopes=pci.ignoreScopes();
                 try {
-                	
+                	if(explicitIgnoreScope!=null)pci.setIgnoreScopes(explicitIgnoreScope);
                     ((PageSourceImpl)ps).clear();
-                    ps.loadPage(pageContext,false); 
+                    ((PageSourceImpl)ps).loadPage(pageContext,explicitIgnoreScope!=null); 
                     //pageContext.compile(ps);
-                } catch (PageException pe) {
+                }
+                catch (PageException pe) {
                 	//PageException pe = pse.getPageException();
                     
                     String template=ps.getDisplayPath();
@@ -1096,6 +1109,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
                     if(errors!=null) errors.put(template,msg.toString());
                     else throw new ApplicationException(msg.toString());
                 
+                }
+                finally {
+                	pci.setIgnoreScopes(envIgnoreScopes);
                 }
             }
         }
@@ -2630,7 +2646,14 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     
 
 	private void doGetRHExtensions() throws PageException {
-        pageContext.setVariable(getString("admin",action,"returnVariable"),admin.getRHExtensionsAsQuery(config));
+		pageContext.setVariable(
+        		getString("admin",action,"returnVariable"),
+        		RHExtension.toQuery(config, config.getRHExtensions()));
+	}
+	private void doGetRHServerExtensions() throws PageException {
+		pageContext.setVariable(
+        		getString("admin",action,"returnVariable"),
+        		RHExtension.toQuery(config, config.getServerRHExtensions()));
 	}
 	
 	private void doGetLocalExtension() throws PageException {
@@ -5036,11 +5059,19 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     		factory.addExportPackage(exportPackage);
     	}
     	
+    	
     	String requireBundle=getString("requireBundle",null);
     	if(!StringUtil.isEmpty(requireBundle,true)){
     		requireBundle=ListUtil.sort(requireBundle.trim(), "text", "asc", ",");
     		factory.addRequireBundle(requireBundle);
     	}
+    	
+    	String requireBundleFragment=getString("requireBundleFragment",null);
+    	if(!StringUtil.isEmpty(requireBundleFragment,true)){
+    		requireBundleFragment=ListUtil.sort(requireBundleFragment.trim(), "text", "asc", ",");
+    		factory.addRequireBundleFragment(requireBundleFragment);
+    	}
+    	
     	
     	String fragmentHost=getString("fragmentHost",null);
     	if(!StringUtil.isEmpty(fragmentHost,true))factory.addFragmentHost(fragmentHost.trim());

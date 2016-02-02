@@ -12,6 +12,13 @@
 </cfif>
 
 <cfset isInstalled=installed.count() GT 0><!--- if there are records it is installed --->
+<cfset isServerInstalled=false>
+<cfif !isNull(serverExtensions)>
+	<cfset serverInstalled=getDataByid(url.id,serverExtensions)>
+	<cfset isServerInstalled=serverInstalled.count()>
+</cfif>
+
+
 <cfset hasExternalInfo=available.count() GT 0>
 
 <cfset hasUpdate=false>
@@ -27,7 +34,9 @@
 <cfoutput>
 	<!--- title and description --->
 	<div class="modheader">
-		<h2>#app.name# (#isInstalled?stText.ext.installed:stText.ext.notInstalled#)</h2>
+		<h2>#app.name# (<cfif isInstalled>#stText.ext.installed#<cfelseif isServerInstalled>#stText.ext.installedServer#<cfelse>#stText.ext.notInstalled#</cfif>)</h2>
+		<cfif !isInstalled && isServerInstalled><div class="error">#stText.ext.installedServerDesc#</div></cfif>
+
 		#replace(replace(trim(app.description),'<','&lt;',"all"), chr(10),"<br />","all")#
 		<br /><br />
 	</div>

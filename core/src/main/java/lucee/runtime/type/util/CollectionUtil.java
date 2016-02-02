@@ -141,6 +141,16 @@ public class CollectionUtil {
 		return keyArr;
 	}
 
+	public static String[] toString(Collection.Key[] keys, boolean trim) {
+		if(keys==null) return null;
+		
+		String[] data=new String[keys.length];
+		for(int i=0	;i<keys.length;i++) {
+			data[i]=trim?keys[i].getString().trim():keys[i].getString();
+		}
+		return data;
+	}
+
 	public static <T> T remove(List<T> list,int index, T defaultValue) {
 		try{
 			return list.remove(index);

@@ -30,6 +30,9 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 
 public final class S3ResourceProvider implements ResourceProviderPro {
+	
+	private static final String S3 = "17AB52DE-B300-A94B-E058BD978511E39E";
+	private static boolean tryToInstall=true;
 
 	private static final long serialVersionUID = 3685913246889089664L;
 
@@ -90,7 +93,18 @@ public final class S3ResourceProvider implements ResourceProviderPro {
 	}
 	
 
+
 	private PageException notInstalled() {
+		/*if(tryToInstall){
+			try {
+				ConfigWebImpl config = (ConfigWebImpl) ThreadLocalPageContext.getConfig();
+				if(config.installServerExtension(S3))
+					return new ApplicationException("S3 Resource installed, with the next request the extension should work.");
+			}
+			finally {
+				tryToInstall=false;
+			}
+		}*/
 		return new ApplicationException("No S3 Resource installed!","Check out the Extension Store in the Lucee Administrator for \"S3\".");
 	}
 

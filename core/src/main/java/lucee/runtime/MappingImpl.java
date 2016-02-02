@@ -37,6 +37,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.listener.ApplicationListener;
@@ -220,7 +221,7 @@ public final class MappingImpl implements Mapping {
 	@Override
 	public Class<?> getPhysicalClass(String className) throws ClassNotFoundException,IOException {
 		if(pcl==null){
-			pcl=new PhysicalClassLoader(config,getClassRootDirectory(),getConfig().getClassLoader());
+			pcl=new PhysicalClassLoader(config,getClassRootDirectory());
 		}
 		return pcl.loadClass(className);
 	}
@@ -237,7 +238,7 @@ public final class MappingImpl implements Mapping {
 	@Override
 	public Class<?> getPhysicalClass(String className, byte[] code) throws IOException {
 		if(pcl==null){
-			pcl=new PhysicalClassLoader(config,getClassRootDirectory(),getConfig().getClassLoader());
+			pcl=new PhysicalClassLoader(config,getClassRootDirectory());
 		}
 		try {
 			return pcl.loadClass(className,code);

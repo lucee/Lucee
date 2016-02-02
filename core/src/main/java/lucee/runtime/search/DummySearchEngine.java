@@ -22,9 +22,10 @@ import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.type.Query;
 
-import org.w3c.dom.Element;
-
 public class DummySearchEngine implements SearchEngine {
+	
+	private static final String LUCENE = "EFDEB172-F52E-4D84-9CD1A1F561B3DFC8";
+	private static boolean tryToInstall=true;
 
 	@Override
 	public void init(Config config, Resource searchDir) {
@@ -66,10 +67,20 @@ public class DummySearchEngine implements SearchEngine {
 		throw notInstalledEL();
 	}
 	
-
 	private SearchException notInstalled() {
+		/*if(tryToInstall){
+			try {
+				ConfigWebImpl config = (ConfigWebImpl) ThreadLocalPageContext.getConfig();
+				if(config.installServerExtension(LUCENE))
+					return new SearchException("Lucene Search Engine installed, with the next request the extension should work.");
+			}
+			finally {
+				tryToInstall=false;
+			}
+		}*/
 		return new SearchException("No Search Engine installed! Check out the Extension Store in the Lucee Administrator for \"Search\".");
 	}
+	
 
 	private PageRuntimeException notInstalledEL() {
 		return new PageRuntimeException(notInstalled());

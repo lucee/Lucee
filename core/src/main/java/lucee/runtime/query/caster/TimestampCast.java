@@ -30,7 +30,7 @@ import lucee.runtime.type.dt.DateTimeImpl;
 public class TimestampCast implements Cast{
 
 	@Override
-	public Object toCFType(TimeZone tz,int type, ResultSet rst, int columnIndex) throws SQLException, IOException {
+	public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException {
 		Timestamp ts = rst.getTimestamp(columnIndex,JREDateTimeUtil.getThreadCalendar(tz));
 		if(ts==null) return null;
 		return new DateTimeImpl(ts.getTime(),false);

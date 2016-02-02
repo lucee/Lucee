@@ -30,11 +30,11 @@ public final class Render implements Function {
 	private static final long serialVersionUID = 669811806780804244L;
 
 	public static String call(PageContext pc , String cfml) throws PageException {
-		return Renderer.tag(pc, cfml,pc.getCurrentTemplateDialect(),false,false).getOutput();
+		return Renderer.tag(pc, cfml,pc.getCurrentTemplateDialect(),false,pc.ignoreScopes()).getOutput();
 	}
 	public static String call(PageContext pc , String cfml,String dialect) throws PageException {
 		if(StringUtil.isEmpty(dialect,true)) return call(pc, cfml);
-		return Renderer.tag(pc, cfml,ConfigWebUtil.toDialect(dialect.trim(), CFMLEngine.DIALECT_CFML),false,false).getOutput();
+		return Renderer.tag(pc, cfml,ConfigWebUtil.toDialect(dialect.trim(), CFMLEngine.DIALECT_CFML),false,pc.ignoreScopes()).getOutput();
 	}
 
 }

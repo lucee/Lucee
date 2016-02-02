@@ -1084,16 +1084,19 @@ public final class XMLConfigAdmin {
 		String name=bf.getSymbolicName();
 		if(StringUtil.isEmpty(name)) name=BundleBuilderFactory.createSymbolicName(resJar);
 		
+		
 		// version
 		Version version=bf.getVersion();
 		if(version==null) version=OSGiUtil.toVersion(extVersion);
 		
-		
+		SystemOut.printDate("failed to load ["+resJar+"] as OSGi Bundle");
 		BundleBuilderFactory bbf=new BundleBuilderFactory(resJar,name);
 		bbf.setVersion(version);
 		bbf.setIgnoreExistingManifest(false);
 		bbf.build();
 		
+		bf=new BundleFile(resJar);
+		SystemOut.printDate("converted  ["+resJar+"] to an OSGi Bundle");
 		return installBundle(config,bf);
 	}
 	
@@ -6052,9 +6055,9 @@ public final class XMLConfigAdmin {
 		}
 		return list.toArray(new BundleDefinition[list.size()]); 
 	}
+	
 
-
-	public Query getRHExtensionsAsQuery(ConfigImpl config) throws PageException {
+	/*public Query getRHExtensionsAsQuery(ConfigImpl config) throws PageException {
 		Element extensions=_getRootElement("extensions");
 		Element[] children = XMLConfigWebFactory.getChildren(extensions,"rhextension");// LuceeHandledExtensions
       	try {
@@ -6062,7 +6065,7 @@ public final class XMLConfigAdmin {
 		} catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-	}
+	}*/
 	
 	private RHExtension getRHExtension(ConfigImpl config, String id, RHExtension defaultValue) {
 		Element extensions=_getRootElement("extensions");
