@@ -2,7 +2,6 @@ package lucee.runtime.template;
 
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 
 public class LuceeTemplateEngine extends CoreTemplateEngine {
 

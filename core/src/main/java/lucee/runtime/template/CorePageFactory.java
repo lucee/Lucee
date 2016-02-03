@@ -31,18 +31,10 @@ public class CorePageFactory implements TemplatePageFactory {
 		this.engine = engine;
 		dialect = engine.getDialect();
 	}
-
-	
 	
 	public static final byte LOAD_ARCHIVE=2;
 	public static final byte LOAD_PHYSICAL=3;
 	
-//		private LuceeCoreTemplateEngine cfTemplateEngine;
-//	
-//		public LuceeCorePageFactory(LuceeCoreTemplateEngine cfTemplateEngine) {
-//			this.cfTemplateEngine = cfTemplateEngine;
-//		}
-
 	@Override
 	public Page getPage(PageContext pc, PageSource ps, boolean forceReload, Page defaultValue) throws PageException {
 		PageSourceImpl psi = (PageSourceImpl) ps;
@@ -76,7 +68,7 @@ public class CorePageFactory implements TemplatePageFactory {
 		if (page != null && page.getLoadType() == LOAD_ARCHIVE) return page;
 		try {
 			synchronized(ps) {
-				Class clazz = mapping.getArchiveClass(psi.getClassName());
+				Class<?> clazz = mapping.getArchiveClass(psi.getClassName());
 				page = newInstance(clazz, ps);
 				psi.setPage(page);
 				page.setPageSource(psi);
@@ -128,9 +120,6 @@ public class CorePageFactory implements TemplatePageFactory {
 				try {
 					page = newInstance(mapping.getPhysicalClass(psi.getClassName()), ps);
 				} catch(Throwable t) {
-//					System.out.println("DANGER WILL");
-//					System.out.println(psi.getClassName());
-//					t.printStackTrace();
 					page = null;
 				}
 				
@@ -215,43 +204,7 @@ public class CorePageFactory implements TemplatePageFactory {
 		return (Page) c.newInstance(new Object[]{ps});
 	}
 
-	
-//	@Override
-//	public Page getPage(PageContext pc, PageSource ps, boolean forceReload, Page defaultPage) {
-//		return loadArchivePage(pc, ps, defaultPage);
-//	}
-//	
-//	private Page loadArchivePage(PageContext pc, PageSource ps, Page defaultPage) {
-//		Page page;
-//		Mapping mapping = ps.getMapping();
-//		if (!mapping.hasArchive()) return  null;
-//		if (defaultPage != null && defaultPage.getLoadType() == PageSourceImpl.LOAD_ARCHIVE) return defaultPage;
-//		
-//		PageSourceImpl psi = (PageSourceImpl)ps;
-//		
-//		try {
-//			
-//			Class<?> clazz = mapping.getArchiveClass(ps.getClassName());
-//			page = newInstance(clazz, ps);
-//			psi.setPage(page);
-//			page.setPageSource(ps);
-//			page.setLoadType(PageSourceImpl.LOAD_ARCHIVE);
-//		
-//		} catch(Exception e) {
-//			page = null;
-//		}
-//		
-//		return page;
-//	}
-//	
-//	private Page loadPhysicalPage(PageContext pc, PageSource ps, boolean forceReload, Page defaultPage) {
-//		return null;
-//	}
-//	
-//	
-//	
-//	private Page newInstance(Class<?> clazz, PageSource ps) throws SecurityException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-//		Constructor<?> c = clazz.getConstructor(new Class[]{PageSource.class});
-//		return (Page) c.newInstance(new Object[]{ps});
-//	}
+	public CoreTemplateEngine getEngine() {
+		return engine;
+	}
 }
