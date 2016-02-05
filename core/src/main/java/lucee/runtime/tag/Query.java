@@ -739,7 +739,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	private Object executeORM(SQL sql, int returnType, Struct ormoptions) throws PageException {
 		ORMSession session=ORMUtil.getSession(pageContext);
-		
+		if(ormoptions==null) ormoptions=new StructImpl();
 		String dsn = null;
 		if (ormoptions!=null) dsn =	Caster.toString(ormoptions.get(KeyConstants._datasource,null),null);
 		if(StringUtil.isEmpty(dsn,true)) dsn=ORMUtil.getDefaultDataSource(pageContext).getName();
@@ -752,8 +752,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		}
 		
 		// query options
-		if(maxrows!=-1 && !ormoptions.containsKey(MAX_RESULTS)) ormoptions.setEL(MAX_RESULTS, new Double(maxrows));
-		if(timeout!=null && ((int)timeout.getSeconds())>0 && !ormoptions.containsKey(TIMEOUT)) ormoptions.setEL(TIMEOUT, new Double(timeout.getSeconds()));
+		if(maxrows!=-1 && !ormoptions.containsKey(MAX_RESULTS)) 
+			ormoptions.setEL(MAX_RESULTS, new Double(maxrows));
+		if(timeout!=null && ((int)timeout.getSeconds())>0 && !ormoptions.containsKey(TIMEOUT)) 
+			ormoptions.setEL(TIMEOUT, new Double(timeout.getSeconds()));
 		/* MUST
 offset: Specifies the start index of the resultset from where it has to start the retrieval.
 cacheable: Whether the result of this query is to be cached in the secondary cache. Default is false.
