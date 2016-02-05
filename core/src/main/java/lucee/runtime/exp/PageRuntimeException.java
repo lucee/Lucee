@@ -49,6 +49,7 @@ public class PageRuntimeException extends RuntimeException implements IPageExcep
 	 */
 	public PageRuntimeException(PageException pe) {
 		super(pe.getMessage());
+		setStackTrace(pe.getStackTrace());
 		this.pe=pe;
 	}
 	

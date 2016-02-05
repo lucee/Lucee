@@ -41,7 +41,7 @@ public final class ThreadLocalPageContext {
 	 */
 	public static void register(PageContext pc) {
 		// TODO should i set the old one by "release"?
-		Thread.currentThread().setContextClassLoader(((ConfigImpl)pc.getConfig()).getClassLoaderCore());
+		Thread.currentThread().setContextClassLoader(((ConfigImpl)pc.getConfig()).getClassLoaderEnv());
 		pcThreadLocal.set(pc);
 	}
 

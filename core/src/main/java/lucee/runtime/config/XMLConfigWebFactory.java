@@ -3402,6 +3402,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			log.error("ORM", e);
 			cd=cdDefault;
 		}
+		
 		config.setORMEngineClass(cd);
 
 		// config
@@ -4132,18 +4133,23 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				continue;
 			}
 			
-			// now we lod the bundles
-			strBundles=getAttr(child,"bundles");
-			if(StringUtil.isEmpty(strBundles) || !rhe.getStartBundles()) continue;
+			// now we load the bundles
+			//strBundles=getAttr(child,"bundles");
+			
+			//if(!rhe.getStartBundles()) continue;
 			
 			BundleFile[] bfs = rhe.getBundlesFiles();
 			BundleFile bf;
 			BundleDefinition bd;
-			for(int i=0;i<bfs.length;i++){
+			for(int i=0;i<bfs.length;i++) {
 				bf=bfs[i];
+				//if(bf.getSymbolicName().equals("hibernate.extension")) continue;
 				extensionBundles.put(bf.getSymbolicName()+"|"+bf.getVersionAsString(), bd=bf.toBundleDefinition());
 				try {
-					Bundle b = OSGiUtil.startIfNecessary(bd.getBundle(config));
+					if(rhe.getStartBundles()) {
+						Bundle b = bd.getBundle(config);
+						OSGiUtil.startIfNecessary(b);
+					}
 				} 
 				catch (BundleException e) {
 					log.error("OSGi", e);

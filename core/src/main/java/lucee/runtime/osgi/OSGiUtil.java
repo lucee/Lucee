@@ -983,6 +983,29 @@ public class OSGiUtil {
 		if(bootDelegation==null) return new String[0];
 		return bootDelegation;
 	}
+	
+	public static boolean isInBootelegation(String name) {
+		// extract package
+		int index=name.lastIndexOf('.');
+		if(index==-1) return false;
+		String pack=name.substring(0,index);
+		String[] arr = OSGiUtil.getBootdelegation();
+		
+		
+		for(String bd:arr){
+			bd=bd.trim();
+			// with wildcard
+			if(bd.endsWith(".*")){
+				bd=bd.substring(0,bd.length()-1);
+				if(pack.startsWith(bd)) return true;
+			}
+			// no wildcard
+			else {
+				if(bd.equals(pack)) return true;
+			}
+		}
+		return false;
+	}
 
 
 

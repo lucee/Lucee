@@ -116,6 +116,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * Constructor of the class
 	 */
 	protected CFMLEngineFactory(final ServletConfig config) {
+		
+		// PATCH
+		// System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration", "org.apache.xerces.parsers.XIncludeAwareParserConfiguration");
+		
+		
 		File logFile = null;
 		this.config = config;
 		try {

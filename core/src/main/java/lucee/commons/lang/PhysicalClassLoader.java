@@ -71,10 +71,10 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 		ResourceClassLoader resCL = rcl!=null?rcl:config.getResourceClassLoader(null);
 		ClassLoader coreCL = config.getClassLoaderCore();
-		ClassLoader loaderCL = config.getClassLoaderLoader();
+		// ClassLoader loaderCL = config.getClassLoaderLoader(); this gives a wrong result, boot dekegation needs to handle this
 		parents=resCL!=null?
-				new ClassLoader[]{resCL,coreCL,loaderCL}:
-				new ClassLoader[]{coreCL,loaderCL};
+				new ClassLoader[]{resCL,coreCL}:
+				new ClassLoader[]{coreCL};
 		
 		
 		

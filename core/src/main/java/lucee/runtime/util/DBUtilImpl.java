@@ -35,6 +35,7 @@ import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceUtil;
 import lucee.runtime.db.DatasourceConnection;
+import lucee.runtime.db.DatasourceManagerImpl;
 import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLCaster;
 import lucee.runtime.db.SQLImpl;
@@ -127,12 +128,40 @@ public class DBUtilImpl implements DBUtil {
 
 	@Override
 	public DatasourceConnection getDatasourceConnection(PageContext pc,DataSource datasource, String user, String pass) throws PageException {
-		return ((ConfigWebImpl)pc.getConfig()).getDatasourceConnectionPool().getDatasourceConnection(ThreadLocalPageContext.getConfig(pc), datasource, user, pass);
+		pc=ThreadLocalPageContext.get(pc);
+		
+		if(pc!=null) {
+			DatasourceManagerImpl manager = (DatasourceManagerImpl) pc.getDataSourceManager();
+			return manager.getConnection(pc,datasource, user, pass);
+		}
+		
+		ConfigWebImpl config=(ConfigWebImpl)ThreadLocalPageContext.getConfig(pc);
+		return config.getDatasourceConnectionPool().getDatasourceConnection(config, datasource, user, pass);
 	}
 
 	@Override
-	public DatasourceConnection getDatasourceConnection(PageContext pc,String datasourceName, String user, String pass) throws PageException {
-		return ((ConfigWebImpl)pc.getConfig()).getDatasourceConnectionPool().getDatasourceConnection(ThreadLocalPageContext.getConfig(pc), pc.getDataSource(datasourceName), user, pass);
+	public DatasourceConnection getDatasourceConnection(PageContext pc, String datasourceName, String user, String pass) throws PageException {
+		DataSource datasource=null;
+		pc=ThreadLocalPageContext.get(pc);
+		if(pc!=null) {
+			// default datasource
+			if("__default__".equalsIgnoreCase(datasourceName)) {
+				Object obj=pc.getApplicationContext().getDefDataSource();
+				if(obj instanceof String) datasourceName=(String)obj;
+				else datasource=(DataSource) obj;
+			}
+			
+			// get datasource from application context
+			if(datasource==null) 
+				datasource = pc.getApplicationContext().getDataSource(datasourceName, null);
+		}
+		
+		// get datasource from config
+		if(datasource==null) {
+			Config config=ThreadLocalPageContext.getConfig(pc);
+			datasource=config.getDataSource(datasourceName);
+		}
+		return getDatasourceConnection(pc, datasource, user, pass);
 	}
 
 	@Override

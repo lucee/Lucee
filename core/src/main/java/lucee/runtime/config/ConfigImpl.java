@@ -65,7 +65,6 @@ import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.commons.net.IPRange;
-import lucee.loader.TP;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CIPage;
 import lucee.runtime.Component;
@@ -115,6 +114,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
+import lucee.runtime.osgi.EnvClassLoader;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.rest.RestSettingImpl;
 import lucee.runtime.rest.RestSettings;
@@ -668,13 +668,16 @@ public abstract class ConfigImpl implements Config {
     	return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
 
     }
-
+    
+    public ClassLoader getClassLoaderEnv() {
+    	return new EnvClassLoader(this);
+    }
     public ClassLoader getClassLoaderCore() {
     	return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
     }
-    public ClassLoader getClassLoaderLoader() {
+    /*public ClassLoader getClassLoaderLoader() {
     	return new TP().getClass().getClassLoader();
-    }
+    }*/
     
     public ResourceClassLoader getResourceClassLoader() {
     	if(resourceCL==null) throw new RuntimeException("no RCL defined yet!");
@@ -3011,7 +3014,7 @@ public abstract class ConfigImpl implements Config {
 		this.cdORMEngine=cd;
 	}
 	
-	protected ClassDefinition<? extends ORMEngine> getORMEngineClass() {
+	public ClassDefinition<? extends ORMEngine> getORMEngineClass() {
 		return this.cdORMEngine;
 	}
 

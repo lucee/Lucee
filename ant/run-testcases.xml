@@ -44,7 +44,7 @@ try {
 		admin 
 			action="updateMapping"
 			type="web"
-			password="webweb"
+			password="#request.WEBADMINPASSWORD#"
 			virtual="/test"
 			physical="#test#"
 			toplevel="true"
