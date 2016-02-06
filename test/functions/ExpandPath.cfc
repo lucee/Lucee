@@ -31,6 +31,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"   {
     parent=getDirectoryFromPath(dir);
     parent=mid(parent,1,len(parent)-1);
 
+    SEP = Server.separator.file;
 
     public void function testDot(){
         assertEquals(dir,ExpandPath("."));
@@ -39,16 +40,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"   {
         assertEquals(parent,ExpandPath(".."));
     }
     public void function testDotDotSlash(){
-        assertEquals(parent&"/",ExpandPath("../"));
-        assertEquals("#parent#/tags",ExpandPath("../tags"));
-        assertEquals("#parent#/tagx/",ExpandPath("../tagx/"));
+        assertEquals(parent & SEP, ExpandPath("../"));
+        assertEquals("#parent##SEP#tags",ExpandPath("../tags"));
+        assertEquals("#parent##SEP#tagx#SEP#",ExpandPath("../tagx/"));
     }
 
     public void function testSlashJM(){
-        assertEquals("#server.coldfusion.rootdir#/jm",ExpandPath("/jm"));
+        assertEquals("#server.coldfusion.rootdir##SEP#jm",ExpandPath("/jm"));
     }
     public void function testBackSlashJM(){
-        assertEquals("#server.coldfusion.rootdir#/jm",ExpandPath("\jm"));
+        assertEquals("#server.coldfusion.rootdir##SEP#jm",ExpandPath("\jm"));
     }
 
     public void function testMapping(){
