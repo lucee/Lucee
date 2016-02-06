@@ -16,33 +16,35 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
+
 	<cffunction name="beforeTests">
 		<cfset variables.name=ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".")>
-		<cfset variables.parent=getDirectoryFromPath(getCurrentTemplatePath())&name&"/">
-		
+		<cfset variables.parent=getDirectoryFromPath(getCurrentTemplatePath()) & name & Server.separator.file>
 	</cffunction>
 	<cffunction name="afterTests">
 		<cfset directorydelete(parent,true)>
 	</cffunction>
 	<cffunction name="testDirectoryList" localMode="modern">
 
+		<cfset var SEP = Server.separator.file>
+
 <!--- begin old test code --->
 <cflock name="testdirectoryList" timeout="1" throwontimeout="no" type="exclusive">
 <cfset path=parent&createUUID()>
-<cfset path2=path&"/a">
+<cfset path2=path&"#SEP#a">
 <cfset directoryCreate(path2)>
-<cffile action="write" addnewline="yes" file="#path#/b.txt" output="aaa" fixnewline="no">
-<cffile action="write" addnewline="yes" file="#path2#/c.txt" output="aaa" fixnewline="no">
+<cffile action="write" addnewline="yes" file="#path##SEP#b.txt" output="aaa" fixnewline="no">
+<cffile action="write" addnewline="yes" file="#path2##SEP#c.txt" output="aaa" fixnewline="no">
 
 
 <cfset dir=directoryList(path)>
 <cfset valueEquals(left="#arrayLen(dir)#", right="#2#")>
-<cfset valueEquals(left="#listSort(arrayToList(dir),'textnocase')#", right="#path#/a,#path#/b.txt")>
+<cfset valueEquals(left="#listSort(arrayToList(dir),'textnocase')#", right="#path##SEP#a,#path##SEP#b.txt")>
 
 
 <cfset dir=directoryList(path,true)>
 <cfset valueEquals(left="#arrayLen(dir)#", right="#3#")>
-<cfset valueEquals(left="#listSort(arrayToList(dir),'textnocase')#", right="#path#/a,#path#/a/c.txt,#path#/b.txt")>
+<cfset valueEquals(left="#listSort(arrayToList(dir),'textnocase')#", right="#path##SEP#a,#path##SEP#a#SEP#c.txt,#path##SEP#b.txt")>
 
 
 <cfset dir=directoryList(path,true,"name")>
@@ -51,7 +53,7 @@
 
 <cfset dir=directoryList(path,true,"path")>
 <cfset valueEquals(left="#arrayLen(dir)#", right="#3#")>
-<cfset valueEquals(left="#listSort(arrayToList(dir),'textnocase')#", right="#path#/a,#path#/a/c.txt,#path#/b.txt")>
+<cfset valueEquals(left="#listSort(arrayToList(dir),'textnocase')#", right="#path##SEP#a,#path##SEP#a#SEP#c.txt,#path##SEP#b.txt")>
 
 <cfset dir=directoryList(path,true,"query")>
 
