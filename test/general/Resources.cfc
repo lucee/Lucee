@@ -374,22 +374,22 @@ private function testResourceMoveCopy(res) localMode=true {
 }
 
 private function testResourceGetter(res) localMode=true {
+	
     f=res.getRealResource("original.txt");
     d=res.getRealResource("dir/");
     d2=res.getRealResource("dir2")
     dd=res.getRealResource("dir/test.txt");
     
     // Name
-    assertEquals("original.txt",f.getName());
-    assertEquals("dir",d.getName());
-    assertEquals("dir2",d2.getName());
+    assertEqualPaths("original.txt",f.getName());
+    assertEqualPaths("dir",d.getName());
+    assertEqualPaths("dir2",d2.getName());
 
     // parent
-    assertEquals("dir",dd.getParentResource().getName());
+    assertEqualPaths("dir",dd.getParentResource().getName());
 
     // getRealPath
-    assertEquals(res.toString()&"/dir/test.txt",dd.toString());
-
+    assertEqualPaths(res.toString()&"/dir/test.txt",dd.toString());
 }
 
 private function testResourceReadWrite(res) localMode=true {
@@ -465,11 +465,18 @@ private function testResourceProvider(string path) localmode=true {
         testResourceReadWrite(res);
     }
     finally {if(res.exists()) res.remove(true);} 
-
-    
+   
 }
 
 
+/**
+* compare paths ignoring the difference between forward-slash and back-slash
+* for a platform-independent comparison
+*/
+private function assertEqualPaths(string path1, string path2) {
+
+	assertEquals(replace(path1, "\", "/", "all"), replace(path2, "\", "/", "all"));
+}
 
 
 
