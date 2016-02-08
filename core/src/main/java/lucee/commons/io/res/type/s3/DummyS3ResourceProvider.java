@@ -29,7 +29,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 
-public final class S3ResourceProvider implements ResourceProviderPro {
+public final class DummyS3ResourceProvider implements ResourceProviderPro {
 	
 	private static final String S3 = "17AB52DE-B300-A94B-E058BD978511E39E";
 	private static boolean tryToInstall=true;

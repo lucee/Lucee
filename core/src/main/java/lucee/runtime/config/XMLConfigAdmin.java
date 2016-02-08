@@ -56,7 +56,7 @@ import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
-import lucee.commons.io.res.type.s3.S3ResourceProvider;
+import lucee.commons.io.res.type.s3.DummyS3ResourceProvider;
 import lucee.commons.io.res.util.FileWrapper;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
@@ -1489,17 +1489,19 @@ public final class XMLConfigAdmin {
         Element[] providers = XMLConfigWebFactory.getChildren(resources,"resource-provider");
         
         // replace extension class with core class
+        boolean fixed=false;
         for(int i=0;i<providers.length;i++) {
         	if("s3".equalsIgnoreCase(providers[i].getAttribute("scheme"))) {
-        		if("lucee.extension.io.resource.type.s3.S3ResourceProvider".equalsIgnoreCase(providers[i].getAttribute("class"))){
-        			providers[i].setAttribute("class", S3ResourceProvider.class.getName());
-        			return true;
+        		if(
+        			"lucee.extension.io.resource.type.s3.S3ResourceProvider".equalsIgnoreCase(providers[i].getAttribute("class"))
+        			|| "lucee.commons.io.res.type.s3.S3ResourceProvider".equalsIgnoreCase(providers[i].getAttribute("class"))
+        			){
+        			resources.removeChild(providers[i]);
+        			fixed=true;
         		}
-        		return false;
         	}
         }
-        
-        return true;
+        return fixed;
 	}
 
     

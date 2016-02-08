@@ -61,7 +61,7 @@ import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.type.cfml.CFMLResourceProvider;
-import lucee.commons.io.res.type.s3.S3ResourceProvider;
+import lucee.commons.io.res.type.s3.DummyS3ResourceProvider;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ByteSizeParser;
 import lucee.commons.lang.ClassException;
@@ -479,9 +479,12 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					if(StringUtil.isEmpty(strProviderCFC))
 						strProviderCFC = getAttr(providers[i],"class");
 					
-					// ignore S3 extension
-					if ("lucee.extension.io.resource.type.s3.S3ResourceProvider".equals(prov.getClassName()))
-						prov=new ClassDefinitionImpl(S3ResourceProvider.class);
+					// ignore OLD S3 extension from 4.0
+					// lucee.commons.io.res.type.s3.S3ResourceProvider
+					if ("lucee.extension.io.resource.type.s3.S3ResourceProvider".equals(prov.getClassName()) || 
+						"lucee.commons.io.res.type.s3.S3ResourceProvider".equals(prov.getClassName()))
+						continue;
+						//prov=new ClassDefinitionImpl(S3ResourceProvider.class);
 	
 					strProviderScheme = getAttr(providers[i],"scheme");
 					// class
@@ -520,7 +523,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			
 			// we make sure we have the default on server level
 			if (!hasCS && !config.hasResourceProvider("s3")) {
-				ClassDefinition s3Class = new ClassDefinitionImpl(S3ResourceProvider.class);;
+				ClassDefinition s3Class = new ClassDefinitionImpl(DummyS3ResourceProvider.class);;
 				config.addResourceProvider("s3", s3Class, toArguments("lock-timeout:10000;", false));
 			}
 		}
@@ -3376,7 +3379,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		ClassDefinition cd = null;
 		if (orm != null) {
-			
 			// in the beginning we had attr class but only as default with dummy
 			String cls=getAttr(orm,"class");
 			if(DummyORMEngine.class.getName().equals(cls) || "lucee.runtime.orm.hibernate.HibernateORMEngine".equals(cls))
