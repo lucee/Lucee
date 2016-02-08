@@ -48,6 +48,7 @@ import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
+import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.XMLConfigAdmin;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.ThreadLocalConfig;
@@ -876,6 +877,20 @@ public class RHExtension implements Serializable {
 	}
 
 	public Resource getExtensionFile() {
+		if(!extensionFile.exists()) {
+			Config c = ThreadLocalPageContext.getConfig();
+			if(c!=null) {
+				Resource res = DeployHandler.getExtension(c, id, version, null);
+				if(res!=null && res.exists()) {
+					try {
+						IOUtil.copy(res, extensionFile);
+					}
+					catch (IOException e) {
+						res.delete();
+					}
+				}
+			}
+		}
 		return extensionFile;
 	}
 	

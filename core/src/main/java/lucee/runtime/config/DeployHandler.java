@@ -308,9 +308,9 @@ public class DeployHandler {
 		.append(value);
 	}
 
-	public static Resource getExtension(ConfigImpl ci, String id, String version, Log log) {
+	public static Resource getExtension(Config config, String id, String version, Log log) {
 		// local
-		RHExtension ext = getLocalExtension(ci, id,version,null);
+		RHExtension ext = getLocalExtension(config, id,version,null);
 		if(ext!=null && ext.getExtensionFile().exists()) {
 			try {
 				Resource res = SystemUtil.getTempFile("lex", true);
@@ -321,10 +321,7 @@ public class DeployHandler {
 		}
 		
 		// remote
-		return downloadExtension(ci, id, version, log);
-		
-		
-		
+		return downloadExtension(config, id, version, log);
 	}
 	
 	
