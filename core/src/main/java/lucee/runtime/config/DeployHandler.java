@@ -227,7 +227,18 @@ public class DeployHandler {
 		// if not we try to download it
 
 		log.info("extension", "installing the extension "+id+" from remote extension provider");
-		for(int i=0;i<providers.length;i++){
+		Resource res = downloadExtension(ci, id,null, log);
+		if(res!=null) {
+			try {
+				XMLConfigAdmin.updateRHExtension((ConfigImpl) config, res,true);
+				return true;
+			}
+			catch(Throwable t){
+				log.error("extension", t);
+			}
+		}
+		return false;
+		/*for(int i=0;i<providers.length;i++){
 			try{
 				url=providers[i].getURL();
 				url=new URL(url,"/rest/extension/provider/full/"+id+(apiKey==null?"":"?ioid="+apiKey));
@@ -247,7 +258,86 @@ public class DeployHandler {
 				log.error("extension", t);
 				
 			}
-		}return false;
+		}
+		return false;*/
+	}
+	
+	public static Resource downloadExtension(Config config, String id, String version, Log log){
+
+		String apiKey = config.getIdentification().getApiKey();
+		URL url;
+		RHExtensionProvider[] providers = ((ConfigImpl)config).getRHExtensionProviders();
+		for(int i=0;i<providers.length;i++){
+			try{
+				url=providers[i].getURL();
+				
+				StringBuilder qs=new StringBuilder();
+				addQueryParam(qs,"ioid",apiKey);
+				addQueryParam(qs,"version",version);
+				
+				
+				url=new URL(url,"/rest/extension/provider/full/"+id+qs);
+				
+				
+				
+				HTTPResponse rsp = HTTPEngine.get(url, null, null, -1, false, "UTF-8", "", null, new Header[]{new HeaderImpl("accept","application/cfml")});
+				if(rsp.getStatusCode()!=200)
+					throw new IOException("failed to load extension with id "+id);
+				
+				// copy it locally
+				Resource res = SystemUtil.getTempFile("lex", true);
+				IOUtil.copy(rsp.getContentAsStream(), res, true);
+				
+				return res;
+			}
+			catch(Throwable t) {
+				if(log!=null)log.error("extension", t);
+			}
+		}
+		return null;
+	}
+	
+	
+
+	private static void addQueryParam(StringBuilder qs, String name,String value) {
+		if(StringUtil.isEmpty(value)) return;
+		qs
+		.append(qs.length()==0?"?":"&")
+		.append(name)
+		.append("=")
+		.append(value);
+	}
+
+	public static Resource getExtension(ConfigImpl ci, String id, String version, Log log) {
+		// local
+		RHExtension ext = getLocalExtension(ci, id,version,null);
+		if(ext!=null && ext.getExtensionFile().exists()) {
+			try {
+				Resource res = SystemUtil.getTempFile("lex", true);
+				IOUtil.copy(ext.getExtensionFile(), res);
+				return res;
+			}
+			catch(IOException ioe){}
+		}
+		
+		// remote
+		return downloadExtension(ci, id, version, log);
+		
+		
+		
+	}
+	
+	
+	public static RHExtension getLocalExtension(Config config, String id, String version, RHExtension defaultValue) {
+		Iterator<RHExtension> it = getLocalExtensions(config).iterator();
+		RHExtension ext;
+		while(it.hasNext()){
+			ext=it.next();
+			if(ext.getId().equals(id) && (version==null || version.equals(ext.getVersion()))) {
+				return ext;
+			}
+		}
+		return defaultValue;
 	}
 
 	public static List<RHExtension> getLocalExtensions(Config config) {

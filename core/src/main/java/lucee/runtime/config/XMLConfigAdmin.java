@@ -4374,7 +4374,7 @@ public final class XMLConfigAdmin {
 			
 			
 			if(id.equalsIgnoreCase(rhe.getId())) {
-				removeRHExtension(config,rhe,null);
+				removeRHExtension(config,rhe,null,true);
 				extensions.removeChild(child);
 				//bundles=RHExtension.toBundleDefinitions(child.getAttribute("bundles"));
 			}
@@ -4532,9 +4532,14 @@ public final class XMLConfigAdmin {
 		
 		// load already installed previous version and uninstall the parts no longer needed
 		RHExtension existingRH = getRHExtension(ci,rhext.getId(),null);
-		if(existingRH!=null)
-			removeRHExtension(config, existingRH,rhext);
+		if(existingRH!=null) {
+			// same version
+			if(existingRH.getVersion().compareTo(rhext.getVersion())==0) {
+				removeRHExtension(config, existingRH,rhext,false);
+			}
+			else removeRHExtension(config, existingRH,rhext,true);
 		
+		}
 		
 		// INSTALL
 		try{
@@ -4835,7 +4840,7 @@ public final class XMLConfigAdmin {
 	 * @param replacementRH the extension that will replace this extension, so do not remove parts defined in this extension.
 	 * @throws PageException
 	 */
-	private void removeRHExtension(Config config, RHExtension rhe, RHExtension replacementRH) throws PageException{
+	private void removeRHExtension(Config config, RHExtension rhe, RHExtension replacementRH, boolean deleteExtension) throws PageException{
 		ConfigImpl ci=((ConfigImpl)config);
 		Log logger = ci.getLog("deploy");
 		
@@ -5041,7 +5046,7 @@ public final class XMLConfigAdmin {
 			
 			
 			// now we can delete the extension
-			rhe.getExtensionFile().delete();
+			if(deleteExtension)rhe.getExtensionFile().delete();
 			
 		}
 		catch(Throwable t){

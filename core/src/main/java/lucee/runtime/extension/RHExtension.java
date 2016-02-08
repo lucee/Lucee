@@ -139,7 +139,7 @@ public class RHExtension implements Serializable {
 	private final List<Map<String, String>> jdbcs;
 	private final List<Map<String, String>> mappings;
 	
-	private final Resource extensionFile;
+	private Resource extensionFile;
 	
 	public RHExtension(Config config, Resource ext, boolean moveIfNecessary) throws PageException, IOException, BundleException {
 		// make sure the config is registerd with the thread
@@ -430,6 +430,7 @@ public class RHExtension implements Serializable {
 		this.mappings=mappings==null?new ArrayList<Map<String, String>>():mappings;
 		
 		// copy the file to extension dir if it is not already there
+		this.extensionFile=ext;
 		if(moveIfNecessary){
 			Resource trg;
 			Resource trgDir;
@@ -438,15 +439,15 @@ public class RHExtension implements Serializable {
 				trgDir = trg.getParentResource();
 				trgDir.mkdirs();
 				if(!ext.getParentResource().equals(trgDir)) {
+					if(trg.exists()) trg.delete();
 					ResourceUtil.moveTo(ext, trg,true);
+					this.extensionFile=trg;
 				}
 			}
 			catch(Throwable t){
 				throw Caster.toPageException(t);
 			}
-			this.extensionFile=trg;
 		}
-		else this.extensionFile=ext;
 	}
 
 	public RHExtension(Config config,Element el) throws PageException, IOException, BundleException {
