@@ -3371,8 +3371,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		Element orm = hasAccess ? getChildByName(doc.getDocumentElement(), "orm") : null;
 		boolean hasCS = configServer != null;
 		
-		
-
 		// engine
 		ClassDefinition cdDefault = new ClassDefinitionImpl(DummyORMEngine.class);
 
@@ -3381,7 +3379,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			
 			// in the beginning we had attr class but only as default with dummy
 			String cls=getAttr(orm,"class");
-			if(DummyORMEngine.class.getName().equals(cls))
+			if(DummyORMEngine.class.getName().equals(cls) || "lucee.runtime.orm.hibernate.HibernateORMEngine".equals(cls))
 				orm.removeAttribute(cls);
 			
 			cd=getClassDefinition(orm, "engine-", config.getIdentification());
