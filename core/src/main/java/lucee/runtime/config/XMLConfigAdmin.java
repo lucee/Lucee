@@ -56,7 +56,6 @@ import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
-import lucee.commons.io.res.type.s3.DummyS3ResourceProvider;
 import lucee.commons.io.res.util.FileWrapper;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
@@ -1504,9 +1503,6 @@ public final class XMLConfigAdmin {
         return fixed;
 	}
 
-    
-    
-  
     public void verifyCFX(String name) throws PageException {
     	CFXTagPool pool=config.getCFXTagPool();
 		CustomTag ct=null;

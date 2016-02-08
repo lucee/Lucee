@@ -1,41 +1,13 @@
 package lucee.runtime.osgi;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.lang.instrument.ClassDefinition;
-import java.lang.instrument.UnmodifiableClassException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
-import org.apache.commons.collections4.map.ReferenceMap;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleException;
-
-import lucee.commons.digest.HashUtil;
-import lucee.commons.io.IOUtil;
-import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.util.ResourceClassLoader;
-import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.ClassException;
-import lucee.commons.lang.PhysicalClassLoader;
-import lucee.loader.TP;
-import lucee.loader.engine.CFMLEngine;
-import lucee.loader.osgi.BundleCollection;
-import lucee.loader.osgi.BundleUtil;
-import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;
-import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.instrumentation.InstrumentationFactory;
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
-import lucee.runtime.type.util.ArrayUtil;
+
+import org.osgi.framework.Bundle;
 
 public class EnvClassLoader extends ClassLoader {
 

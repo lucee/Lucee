@@ -3379,13 +3379,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		ClassDefinition cd = null;
 		if (orm != null) {
-			// in the beginning we had attr class but only as default with dummy
-			String cls=getAttr(orm,"class");
-			if(DummyORMEngine.class.getName().equals(cls) || "lucee.runtime.orm.hibernate.HibernateORMEngine".equals(cls))
-				orm.removeAttribute(cls);
-			
 			cd=getClassDefinition(orm, "engine-", config.getIdentification());
-			if(cd==null) cd=getClassDefinition(orm, "", config.getIdentification());
+			if(cd==null || cd.isClassNameEqualTo(DummyORMEngine.class.getName()) 
+					|| cd.isClassNameEqualTo("lucee.runtime.orm.hibernate.HibernateORMEngine"))
+				cd=getClassDefinition(orm, "", config.getIdentification());
+			
+			if(cd!=null && (cd.isClassNameEqualTo(DummyORMEngine.class.getName()) 
+					|| cd.isClassNameEqualTo("lucee.runtime.orm.hibernate.HibernateORMEngine")))
+				cd=null;
 		}
 		
 		if (cd==null || !cd.hasClass()) {
