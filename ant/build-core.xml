@@ -20,6 +20,7 @@
   <property name="extPDF"         value="66E312DD-D083-27C0-64189D16753FD6F0"/>
   <property name="extS3"          value="17AB52DE-B300-A94B-E058BD978511E39E"/>
   <property name="extChart"       value="D46B46A9-A0E3-44E1-D972A04AC3A8DC10"/>
+  <property name="extMongo"       value="E6634E1A-4CC5-4839-A83C67549ECA8D5B"/>
 
   <!-- DB drivers -->
   <property name="extMySQL"       value="7E673D15-D87C-41A6-8B5F1956528C605F"/>
@@ -517,7 +518,7 @@ LUCEE BUILD PROCESS
 
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
-      <jvmarg value="-Dlucee-extensions=${extH2};"/>
+      <jvmarg value="-Dlucee-extensions=${extH2};${extMongo};"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
     </java>
     <echo>${exc2}</echo>
