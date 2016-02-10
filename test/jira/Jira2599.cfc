@@ -1,5 +1,6 @@
 <!--- 
  *
+ * Copyright (c) 2015, Lucee Assosication Switzerland. All rights reserved.
  * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -17,17 +18,46 @@
  * 
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
+
+	private struct function getCredencials() {
+		// getting the credetials from the enviroment variables
+		var mongoDB={};
+		if(!isNull(server.system.environment.MONGODB_HOST) && !isNull(server.system.environment.MONGODB_PORT) && !isNull(server.system.environment.MONGODB_USERNAME) && !isNull(server.system.environment.MONGODB_PASSWORD)) {
+			mongoDB.host=server.system.environment.MONGODB_HOST;
+			mongoDB.port=server.system.environment.MONGODB_PORT;
+			mongoDB.user=server.system.environment.MONGODB_USERNAME;
+			mongoDB.pass=server.system.environment.MONGODB_PASSWORD;
+		}
+		// getting the credetials from the system variables
+		else if(!isNull(server.system.properties.MONGODB_HOST) && !isNull(server.system.properties.MONGODB_PORT) && !isNull(server.system.properties.MONGODB_USERNAME) && !isNull(server.system.properties.MONGODB_PASSWORD)) {
+			mongoDB.host=server.system.properties.MONGODB_HOST;
+			mongoDB.port=server.system.properties.MONGODB_PORT;
+			mongoDB.user=server.system.properties.MONGODB_USERNAME;
+			mongoDB.pass=server.system.properties.MONGODB_PASSWORD;
+		}
+		return mongoDB;
+	}
 	
+	public function setUp(){
+		variables.mongodb=getCredencials();
+		if(!isNull(variables.mongodb.host)) {
+			variables.supported=true;
+		}
+		else 
+			variables.supported=false;
+	}
+
 	//public function beforeTests(){}
 	
 	//public function afterTests(){}
 	
-	//public function setUp(){}
 
 	public void function testIdConversion(){
-		if(!isNull(request.testMongoDBExtension) && request.testMongoDBExtension) {
+		if(variables.supported) {
 			content = {'name':'Susi'};
-			mongo = MongoDBConnect("test");
+			mongo = MongoDBConnect("test",variables.mongoDB.host,variables.mongoDB.port);
+			mongo.authenticate(variables.mongoDB.user,variables.mongoDB.pass);
+
 			mongo['test'].insert(content);
 			
 			
