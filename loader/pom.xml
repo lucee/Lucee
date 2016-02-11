@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.179-SNAPSHOT</version>
+  <version>5.0.0.180-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -296,7 +296,7 @@
 	     <dependency>
     <groupId>org.apache.felix</groupId>
     <artifactId>org.apache.felix.framework</artifactId>
-    <version>4.6.1</version>
+    <version>5.4.0</version>
     <scope>compile</scope>
   </dependency>
   <dependency>
