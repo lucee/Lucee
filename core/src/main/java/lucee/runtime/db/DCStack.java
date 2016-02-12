@@ -126,7 +126,7 @@ class DCStack {
 				current.dc.isTimeout() || 
 				current.dc.isLifecycleTimeout() || 
 				isClosedEL(current.dc.getConnection()) || 
-				isValidEL(current.dc.getConnection())) { 
+				!isValidEL(current.dc.getConnection())) { 
 					
 			// when timeout was reached but it is still open, close it
 			if(!isClosedEL(current.dc.getConnection())){
