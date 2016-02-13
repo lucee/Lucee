@@ -81,7 +81,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testConnectByURI() skip="isNotSupported" {
-		var mongo = MongoDBConnect("test","mongodb://#variables.mongoDB.host#:#variables.mongoDB.port#");
+		var mongo = MongoDBConnect("test","mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.host#:#variables.mongoDB.port#");
 		assertEquals("test",mongo.getName());
 	}
 
@@ -127,6 +127,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			,{"_id":3, "name":"Three"}
 		]
 
+		var moreDocs = [
+			 {"_id":4, "name":"Four"}
+			,{"_id":5, "name":"Five"}
+			,{"_id":6, "name":"Six"}
+		]
+
 		// clear out collection, verify empty
 		coll.drop();
 		$assert.null(coll.findOne());
@@ -134,6 +140,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		// insert docs, verify count
 		coll.insert(docs);
 		$assert.isEqual( 3, coll.count() );
+
+		coll.insertMany(moreDocs);
 
 		// find a doc, test cursor methods
 		var docsFound = coll.find({"name":"One"});
@@ -145,8 +153,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		// find with limit and sort
 		docsFound = coll.find().sort({"_id":-1}).limit(2);
 		$assert.isEqual( 2, docsFound.size() );
-		$assert.isEqual( 3, docsFound.count() );
-		$assert.isEqual( "Three", docsFound.next().name );
+		$assert.isEqual( 6, docsFound.count() );
+		$assert.isEqual( "Six", docsFound.next().name );
 	}
 
 	public void function testUpdate() skip="isNotSupported" {
@@ -169,6 +177,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		// multi update, no criteria 
 		coll.update({},{"$set":{"updated":true}},false,true);
 		$assert.isEqual(5, coll.find({"updated":true}).size());
+	
+		// find and modify
+		var doc = coll.findAndModify({"_id":1},{"$set":{"modified":true}});
+		$assert.isEqual(1, coll.find({"modified":true}).size());
+		$assert.isEqual(1, doc._id);
+	}
+
+	public void function testRemove() skip="isNotSupported" {
+		var coll = resetTestCollection();
+
+		// remove 1 doc
+		coll.remove({"_id":1});
+		$assert.isEqual( 4, coll.count() );
+
+		// find and remove 1 doc
+		var doc = coll.findAndRemove({"_id":2});
+		$assert.isEqual( 2, doc._id );
+		$assert.isEqual( 3, coll.count() );
+
+		// remove all docs
+		coll.remove({});
+		$assert.isEqual( 0, coll.count() );
 	}
 
 	public void function testAggregateResults() skip="isNotSupported" {
@@ -269,6 +299,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		coll.mapReduce(fMap, fRed, "testmapreduce", {});
 		$assert.isEqual(5, db.getCollection("testmapreduce").count());
+	}
+
+	public void function testRename() skip="isNotSupported" {
+		var coll = resetTestCollection();
+		coll.rename("test2");
+		$assert.isEqual(5, db["test2"].count());
+
+		db["test2"].drop();				
 	}
 }
 </cfscript>
