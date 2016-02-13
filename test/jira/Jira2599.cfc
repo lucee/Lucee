@@ -49,41 +49,58 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		return mongoDB;
 	}
+
+	private any function resetTestCollection() {
+		var coll = db.getCollection("test");
+		var docs = [
+			 {"_id":1, "grp":1, "name":"One"}
+			,{"_id":2, "grp":1, "name":"Two"}
+			,{"_id":3, "grp":1, "name":"Three"}
+			,{"_id":4, "grp":2, "name":"Four"}
+			,{"_id":5, "grp":2, "name":"Five"}
+		];
+
+		coll.drop();
+		coll.insert(docs);
+
+		return coll;		
+	}
 	
 	// public function setUp(){}
 
-	//public function beforeTests(){}
+	public function beforeTests() {
+		db = MongoDBConnect("test",variables.mongoDB.host,variables.mongoDB.port);
+	}
 	
 	//public function afterTests(){}
 	
 
 	public void function testConnectByArgs() skip="isNotSupported" {
-		mongo = MongoDBConnect("test",variables.mongoDB.host,variables.mongoDB.port);
+		var mongo = MongoDBConnect("test",variables.mongoDB.host,variables.mongoDB.port);
 		assertEquals("test",mongo.getName());
 	}
 
 	public void function testConnectByURI() skip="isNotSupported" {
-		mongo = MongoDBConnect("test","mongodb://#variables.mongoDB.host#:#variables.mongoDB.port#");
+		var mongo = MongoDBConnect("test","mongodb://#variables.mongoDB.host#:#variables.mongoDB.port#");
 		assertEquals("test",mongo.getName());
 	}
 
 	// skip until authenticate is implemented
 	public void function testAuthenticate() skip="true" {
-		mongo = MongoDBConnect("test",variables.mongoDB.host,variables.mongoDB.port);
+		var mongo = MongoDBConnect("test",variables.mongoDB.host,variables.mongoDB.port);
 		mongo.authenticate(variables.mongoDB.user,variables.mongoDB.pass);
 	}
 
 	public void function testIdConversion() skip="isNotSupported" {
-		content = {'name':'Susi'};
-		mongo = MongoDBConnect("test",variables.mongoDB.host,variables.mongoDB.port);
-		mongo.getCollection("test").insert(content);
+		var content = {'name':'Susi'};
+		db.getCollection("test").insert(content);
 		
 		//Get by Name
-		var id = mongo['test'].findOne({'name':'Susi'});
+		var id = db['test'].findOne({'name':'Susi'});
 		assertEquals("Susi",id.name)
 		
 		//Get by Id : fails
-		var byid = mongo['test'].findOne({'_id':id});
+		var byid = db['test'].findOne({'_id':id});
 		assertEquals(isNull(byid),true)
 	}
 
@@ -103,8 +120,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testInsertAndFind() skip="isNotSupported" {
-		var mongo = MongoDBConnect("test",variables.mongoDB.host,variables.mongoDB.port);
-		var coll = mongo.getCollection("test");
+		var coll = db.getCollection("test");
 		var docs = [
 			 {"_id":1, "name":"One"}
 			,{"_id":2, "name":"Two"}
@@ -134,39 +150,125 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testUpdate() skip="isNotSupported" {
-		var mongo = MongoDBConnect("test",variables.mongoDB.host,variables.mongoDB.port);
-		var coll = mongo.getCollection("test");
-		var docs = [
-			 {"_id":1, "name":"One"}
-			,{"_id":2, "name":"Two"}
-			,{"_id":3, "name":"Three"}
-			,{"_id":4, "name":"Four"}
-			,{"_id":5, "name":"Five"}
-		]
-
-		coll.drop();
-		coll.insert(docs);
+		var coll = resetTestCollection();
 
 		// single update with criteria
 		coll.update({"_id":1}, {"$set":{"updated":true}});
 		$assert.isTrue( coll.findOne({"_id":1}).updated );
 
 		// reset data
-		coll.drop();
-		coll.insert(docs);
+		coll = resetTestCollection();
 
 		// single update, no criteria 
 		coll.update({},{"$set":{"updated":true}});
 		$assert.isEqual(1, coll.find({"updated":true}).size());
 
 		// reset data
-		coll.drop();
-		coll.insert(docs);
+		coll = resetTestCollection();
 
 		// multi update, no criteria 
 		coll.update({},{"$set":{"updated":true}},false,true);
 		$assert.isEqual(5, coll.find({"updated":true}).size());
 	}
 
+	public void function testAggregateResults() skip="isNotSupported" {
+		var coll = resetTestCollection();
+
+		// aggregate with N... structs as arguments returns AggregationResult
+		var results = coll.aggregate({"$group":{"_id":"$grp", "vals":{"$push":"$name"}}});
+		$assert.typeOf( "array", results.results() );
+		$assert.lengthOf( results.results(), 2 );
+
+		// aggregate with array of pipeline operations as single argument returns AggregationResult
+		var results = coll.aggregate([{"$group":{"_id":"$grp", "vals":{"$push":"$name"}}}]);
+		$assert.typeOf( "array", results.results() );
+		$assert.lengthOf( results.results(), 2 );
+	}
+
+	public void function testAggregateCursor() skip="isNotSupported" {
+		var coll = resetTestCollection();
+
+		// aggregate with array of pipeline operations as first argument with struct options as second argument returns Cursor
+		var results = coll.aggregate([{"$group":{"_id":"$grp", "vals":{"$push":"$name"}}},{"$sort":{"_id":1}}],{});
+		$assert.isTrue( results.hasNext() );
+		$assert.lengthOf( results.next().vals, 3 );
+	}
+
+	public void function testWriteConcern() skip="isNotSupported" {
+		var coll = resetTestCollection();
+
+		coll.setWriteConcern("UNACKNOWLEDGED");
+
+		var wc = coll.getWriteConcern();
+		$assert.isFalse(wc.isAcknowledged());
+	}
+
+	public void function testIndexing() skip="isNotSupported" {
+		var coll = resetTestCollection();
+
+		// get indexes
+		var idx = coll.getIndexes();
+		$assert.typeOf("array",idx);
+
+		// create indexes
+		coll.createIndex("grp");
+		coll.createIndex({"name":1},{"name":"name"});
+		idx = coll.getIndexes();
+		$assert.lengthOf(idx, 3);
+
+		// index size
+		var idxSize = coll.totalIndexSize();
+		$assert.typeOf("numeric", idxSize);
+
+		// drop index by name
+		coll.dropIndex("name");
+		idx = coll.getIndexes();
+		$assert.lengthOf(idx,2); // only _id + grp indexes should remain after dropIndex('name');
+
+		// drop all indexes
+		coll.dropIndexes();
+		idx = coll.getIndexes();
+		$assert.lengthOf(idx,1); // only _id index should remain after dropIndexes();
+	}
+
+	public void function testCollectionUtils() skip="isNotSupported" {
+		var coll = resetTestCollection();
+
+		$assert.typeOf("struct", coll.stats());
+		$assert.typeOf("numeric", coll.dataSize());		
+		$assert.typeOf("numeric", coll.storageSize());		
+	}
+
+	public void function testGroupAndDistinct() skip="isNotSupported" {
+		var coll = resetTestCollection();
+		$assert.isEqual(2, coll.distinct("grp").len());
+
+		// group is not implemented yet!		
+	}
+
+	public void function testMapReduce() skip="isNotSupported" {
+		var coll = resetTestCollection();
+		var fMap = "
+			function(){
+				var output = { id:this._id, name:this.name };
+				emit(this._id,output);
+			}		
+		";
+
+		var fRed = "
+			function(key, values) {
+				var outs = { name:null };
+				values.forEach(function(v){
+					if (outs.name===null) {
+						outs.name = v.name;
+					}
+				});
+				return outs;
+			};
+		"
+
+		coll.mapReduce(fMap, fRed, "testmapreduce", {});
+		$assert.isEqual(5, db.getCollection("testmapreduce").count());
+	}
 }
 </cfscript>
