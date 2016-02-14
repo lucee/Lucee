@@ -69,7 +69,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	// public function setUp(){}
 
 	public function beforeTests() {
-		db = MongoDBConnect("test",variables.mongoDB.host,variables.mongoDB.port);
+		db = MongoDBConnect("test","mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.host#:#variables.mongoDB.port#");
 	}
 	
 	//public function afterTests(){}
