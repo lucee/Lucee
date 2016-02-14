@@ -229,13 +229,16 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		} 
     	CFMLEngineFactory.registerInstance((this));// patch, not really good but it works
         ConfigServerImpl cs = getConfigServerImpl();
-    	
-        // start the controler
-        SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT),"Start CFML Controller");
+    	       
         controler = new Controler(cs,initContextes,5*1000,controlerState);
         controler.setDaemon(true);
         controler.setPriority(Thread.MIN_PRIORITY);
-        controler.start();
+        
+        if (System.getProperty("lucee.controller.disabled") == null || System.getProperty("lucee.controller.disabled").equalsIgnoreCase("false")) {
+        //	Start the Controller
+        	SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT),"Start CFML Controller");
+        	controler.start();
+        }
         
         // copy bundled extension to local extension directory (if never done before)
         deployBundledExtension(cs);
