@@ -69,7 +69,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	// public function setUp(){}
 
 	public function beforeTests() {
-		db = MongoDBConnect("test","mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.host#:#variables.mongoDB.port#");
+		var uri = "mongodb://#variables.mongoDB.host#:#variables.mongoDB.port#";
+		if (!isempty(variables.mongoDB.user) && !isEmpty(variables.mongoDB.pass))
+			uri = "mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.host#:#variables.mongoDB.port#";
+
+		db = MongoDBConnect("test",uri);
 	}
 	
 	//public function afterTests(){}
@@ -81,7 +85,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testConnectByURI() skip="isNotSupported" {
-		var mongo = MongoDBConnect("test","mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.host#:#variables.mongoDB.port#");
+		var uri = "mongodb://#variables.mongoDB.host#:#variables.mongoDB.port#";
+		if (!isempty(variables.mongoDB.user) && !isEmpty(variables.mongoDB.pass))
+			uri = "mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.host#:#variables.mongoDB.port#";
+
+		var mongo = MongoDBConnect("test",uri);
 		assertEquals("test",mongo.getName());
 	}
 
