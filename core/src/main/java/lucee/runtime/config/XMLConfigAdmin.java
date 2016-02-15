@@ -4498,10 +4498,10 @@ public final class XMLConfigAdmin {
 	
 	
 	
-	public static void updateRHExtension(ConfigImpl config, Resource ext, boolean reload) throws PageException {
+	public static void _updateRHExtension(ConfigImpl config, Resource ext, boolean reload) throws PageException {
 		try{
 			XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
-	    	admin.updateRHExtension(config,ext);
+	    	admin.updateRHExtension(config,ext,reload);
 		}
 		catch(Throwable t){
 			throw Caster.toPageException(t);
@@ -4510,25 +4510,28 @@ public final class XMLConfigAdmin {
 	
 	
 	
-	public void updateRHExtension(Config config, Resource ext) throws PageException{
+	public void updateRHExtension(Config config, Resource ext, boolean reload) throws PageException{
 		RHExtension rhext;
 		try{
+			long start=System.currentTimeMillis();
 			rhext = new RHExtension(config, ext,true);
 		}
 		catch(Throwable t){
 			DeployHandler.moveToFailedFolder(ext.getParentResource(),ext);
 			throw Caster.toPageException(t);
 		}
-		updateRHExtension(config, rhext);
+		long start=System.currentTimeMillis();
+		updateRHExtension(config, rhext, reload);
 	}
 	
 	
-	public void updateRHExtension(Config config, RHExtension rhext) throws PageException{
+	public void updateRHExtension(Config config, RHExtension rhext, boolean reload) throws PageException{
 		ConfigImpl ci=(ConfigImpl) config;
 		Log logger =ci.getLog("deploy");
 		String type=ci instanceof ConfigWeb?"web":"server";
-		
+		long start=System.currentTimeMillis();
 		// load already installed previous version and uninstall the parts no longer needed
+		
 		RHExtension existingRH = getRHExtension(ci,rhext.getId(),null);
 		if(existingRH!=null) {
 			// same version
@@ -4538,12 +4541,11 @@ public final class XMLConfigAdmin {
 			else removeRHExtension(config, existingRH,rhext,true);
 		
 		}
-		
 		// INSTALL
 		try{
 			
 			//boolean clearTags=false,clearFunction=false;
-			boolean reload=false;
+			boolean reloadNecessary=false;
 			
 			// store to xml
 			BundleDefinition[] existing = _updateExtension(ci, rhext);
@@ -4564,13 +4566,13 @@ public final class XMLConfigAdmin {
 				if(!entry.isDirectory() && startsWith(path,type,"flds") && StringUtil.endsWithIgnoreCase(path, ".fld")) {
 					logger.log(Log.LEVEL_INFO,"extension","deploy fld "+fileName);
 					updateFLD(zis, fileName,false);
-        			reload=true;
+        			reloadNecessary=true;
 				}
 				// tlds
 				if(!entry.isDirectory() && startsWith(path,type,"tlds") && StringUtil.endsWithIgnoreCase(path, ".tld")) {
 					logger.log(Log.LEVEL_INFO,"extension","deploy tld "+fileName);
         			updateTLD(zis, fileName,false);
-        			reload=true;
+        			reloadNecessary=true;
 				}
 				
 				// tags
@@ -4579,7 +4581,7 @@ public final class XMLConfigAdmin {
 					logger.log(Log.LEVEL_INFO,"extension","deploy tag "+sub);
         			updateTag(zis, sub,false); 
         			//clearTags=true;
-        			reload=true;
+        			reloadNecessary=true;
 				}
 
 				// functions
@@ -4588,7 +4590,7 @@ public final class XMLConfigAdmin {
 					logger.log(Log.LEVEL_INFO,"extension","deploy function "+sub);
         			updateFunction(zis, sub,false); 
         			//clearFunction=true;
-        			reload=true;
+        			reloadNecessary=true;
 				}
 				
 				// mappings
@@ -4596,7 +4598,7 @@ public final class XMLConfigAdmin {
 					String sub = subFolder(entry);
 					logger.log(Log.LEVEL_INFO,"extension","deploy mapping "+sub);
 					updateArchive(zis, sub,false);
-					reload=true;
+					reloadNecessary=true;
         			//clearFunction=true;
 				}
 				
@@ -4640,14 +4642,13 @@ public final class XMLConfigAdmin {
 				zis.closeEntry() ;
 			}
 			////////////////////////////////////////////
-			
-			
+
 			// load the bundles
 			BundleFile[] bfs = rhext.getBundlesFiles();
 			for(BundleFile bf:bfs){
 				OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(),null);
 			}
-			
+
 			// update cache handler
 			if(!ArrayUtil.isEmpty(rhext.getCacheHandlers())) {
 				Iterator<Map<String, String>> itl = rhext.getCacheHandlers().iterator();
@@ -4658,7 +4659,7 @@ public final class XMLConfigAdmin {
 					String _id=map.get("id");
 					if(!StringUtil.isEmpty(_id) && cd.hasClass()) {
 						_updateCacheHandler(_id,cd);
-						reload=true;
+						reloadNecessary=true;
 					}
 					logger.info("extension", "update cache handler ["+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
@@ -4673,12 +4674,12 @@ public final class XMLConfigAdmin {
 					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
 					if(cd.hasClass()) {	
 						_updateAMFEngine(cd,map.get("caster"),map.get("configuration"));
-						reload=true;
+						reloadNecessary=true;
 					}
 					logger.info("extension", "update AMF engine ["+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
 			}
-			
+
 			// update Search
 			if(!ArrayUtil.isEmpty(rhext.getSearchs())) {
 				Iterator<Map<String, String>> itl = rhext.getSearchs().iterator();
@@ -4688,7 +4689,7 @@ public final class XMLConfigAdmin {
 					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
 					if(cd.hasClass()) {
 						_updateSearchEngine(cd);
-						reload=true;
+						reloadNecessary=true;
 					}
 					logger.info("extension", "update search engine ["+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
@@ -4707,12 +4708,12 @@ public final class XMLConfigAdmin {
 						copyButIgnoreClassDef(map,args);
 						args.remove("scheme");
 						_updateResourceProvider(scheme, cd, args);
-						reload=true;
+						reloadNecessary=true;
 					}
 					logger.info("extension", "update resource provider ["+scheme+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
 			}
-			
+
 			// update orm
 			if(!ArrayUtil.isEmpty(rhext.getOrms())) {
 				Iterator<Map<String, String>> itl = rhext.getOrms().iterator();
@@ -4723,12 +4724,12 @@ public final class XMLConfigAdmin {
 					
 					if(cd.hasClass()) {
 						_updateORMEngine(cd);
-						reload=true;
+						reloadNecessary=true;
 					}
 					logger.info("extension", "update orm engine ["+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
 			}
-			
+
 			// update monitor
 			if(!ArrayUtil.isEmpty(rhext.getMonitors())) {
 				Iterator<Map<String, String>> itl = rhext.getMonitors().iterator();
@@ -4740,7 +4741,7 @@ public final class XMLConfigAdmin {
 					if(cd.hasClass()) {
 						_updateMonitorEnabled(true);
 						_updateMonitor(cd, map.get("type"), map.get("name"), true);
-						reload=true;
+						reloadNecessary=true;
 					}
 					logger.info("extension", "update monitor engine ["+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
@@ -4756,7 +4757,7 @@ public final class XMLConfigAdmin {
 					String _label=map.get("label");
 					if(cd.isBundle()) {
 						_updateJDBCDriver(_label,cd);
-						reload=true;
+						reloadNecessary=true;
 					}
 					logger.info("extension", "update JDBC Driver ["+_label+":"+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
@@ -4787,18 +4788,19 @@ public final class XMLConfigAdmin {
 					
 					
 					_updateMapping(virtual, physical, archive, primary, inspect, toplevel,lmode,ltype,readonly);
-					reload=true;
+					reloadNecessary=true;
 					
 					logger.info("extension", "update Mapping ["+virtual+"]");
 				}
 			}
-			
+
 			// reload
-			if(reload){
-				_storeAndReload();
+			if(reloadNecessary){
+				if(reload)
+					_storeAndReload();
+				else
+					_store();
 			}
-			
-			
 		}
 		catch(Throwable t){
 			DeployHandler.moveToFailedFolder(rhext.getExtensionFile().getParentResource(),rhext.getExtensionFile());
@@ -5051,7 +5053,7 @@ public final class XMLConfigAdmin {
 			
 			// failed to uninstall, so we install it again
 			try {
-				updateRHExtension(config, rhe.getExtensionFile());
+				updateRHExtension(config, rhe.getExtensionFile(),true);
 				//RHExtension.install(config, rhe.getExtensionFile());
 			} catch (Throwable t2) {
 				t2.printStackTrace();

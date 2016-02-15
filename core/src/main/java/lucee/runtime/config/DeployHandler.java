@@ -79,7 +79,7 @@ public class DeployHandler {
 
 					// Lucee Extensions
 					else if("lex".equalsIgnoreCase(ext))
-						XMLConfigAdmin.updateRHExtension((ConfigImpl) config, child,true);
+						XMLConfigAdmin._updateRHExtension((ConfigImpl) config, child,true);
 					
 					// Lucee core
 					else if(config instanceof ConfigServer && "lco".equalsIgnoreCase(ext))
@@ -151,7 +151,7 @@ public class DeployHandler {
 			for(int i=0;i<ids.length;i++){
 	    		id=ids[i].trim();
 	    		if(StringUtil.isEmpty(id,true)) continue;
-	    		deployExtension(config, id.trim(),log);
+	    		deployExtension(config, id.trim(),log,i+1==ids.length);
 	    	}
 	    }
 	}
@@ -165,7 +165,7 @@ public class DeployHandler {
 	 * @throws IOException 
 	 * @throws PageException 
 	 */
-	public static boolean deployExtension(Config config, String id, Log log) {
+	public static boolean deployExtension(Config config, String id, Log log, boolean reload) {
 		ConfigImpl ci=(ConfigImpl) config;
 		
 		// is the extension already installed
@@ -212,7 +212,7 @@ public class DeployHandler {
 						// avoid that the exzension from provider get removed
 						Resource res = SystemUtil.getTempFile("lex", true);
 						IOUtil.copy(ext.getExtensionFile(), res);
-						XMLConfigAdmin.updateRHExtension((ConfigImpl) config, res, true);
+						XMLConfigAdmin._updateRHExtension((ConfigImpl) config, res, reload);
 						return true;
 					}
 				}
@@ -230,7 +230,7 @@ public class DeployHandler {
 		Resource res = downloadExtension(ci, id,null, log);
 		if(res!=null) {
 			try {
-				XMLConfigAdmin.updateRHExtension((ConfigImpl) config, res,true);
+				XMLConfigAdmin._updateRHExtension((ConfigImpl) config, res,reload);
 				return true;
 			}
 			catch(Throwable t){
