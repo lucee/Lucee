@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletConfig;
@@ -620,5 +621,10 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		@Override
 		public RHExtension[] getServerRHExtensions() {
 			return configServer.getRHExtensions();
+		}
+
+		@Override
+		public List<RHExtension> loadLocalExtensions() {
+			return configServer.loadLocalExtensions();
 		}
 }

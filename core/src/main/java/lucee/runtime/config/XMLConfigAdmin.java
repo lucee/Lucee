@@ -4513,14 +4513,12 @@ public final class XMLConfigAdmin {
 	public void updateRHExtension(Config config, Resource ext, boolean reload) throws PageException{
 		RHExtension rhext;
 		try{
-			long start=System.currentTimeMillis();
 			rhext = new RHExtension(config, ext,true);
 		}
 		catch(Throwable t){
 			DeployHandler.moveToFailedFolder(ext.getParentResource(),ext);
 			throw Caster.toPageException(t);
 		}
-		long start=System.currentTimeMillis();
 		updateRHExtension(config, rhext, reload);
 	}
 	
@@ -4529,7 +4527,6 @@ public final class XMLConfigAdmin {
 		ConfigImpl ci=(ConfigImpl) config;
 		Log logger =ci.getLog("deploy");
 		String type=ci instanceof ConfigWeb?"web":"server";
-		long start=System.currentTimeMillis();
 		// load already installed previous version and uninstall the parts no longer needed
 		
 		RHExtension existingRH = getRHExtension(ci,rhext.getId(),null);
@@ -4644,9 +4641,11 @@ public final class XMLConfigAdmin {
 			////////////////////////////////////////////
 
 			// load the bundles
-			BundleFile[] bfs = rhext.getBundlesFiles();
-			for(BundleFile bf:bfs){
-				OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(),null);
+			if(rhext.getStartBundles()) {
+				BundleFile[] bfs = rhext.getBundlesFiles();
+				for(BundleFile bf:bfs){
+					OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(),null);
+				}
 			}
 
 			// update cache handler
@@ -5942,11 +5941,9 @@ public final class XMLConfigAdmin {
 		BundleCollection coreBundles = ConfigWebUtil.getEngine(config).getBundleCollection();
 		
 		// core master
-		long start=System.currentTimeMillis();
 		_cleanBundles(candiatesToRemove,coreBundles.core.getSymbolicName(),coreBundles.core.getVersion());
 		
 		// core slaves
-		start=System.currentTimeMillis();
 		Iterator<Bundle> it = coreBundles.getSlaves();
 		Bundle b;
 		while(it.hasNext()){
@@ -5955,7 +5952,6 @@ public final class XMLConfigAdmin {
 		}
 		
 		// all extension 
-		start=System.currentTimeMillis();
 		Iterator<BundleDefinition> itt = config.getAllExtensionBundleDefintions().iterator();
 		BundleDefinition bd;
 		while(itt.hasNext()){

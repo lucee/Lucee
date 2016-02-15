@@ -37,6 +37,7 @@ import lucee.commons.digest.Hash;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
+import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
@@ -686,6 +687,8 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	private ClassDefinition<AMFEngine> amfEngineCD;
 
 	private Map<String, String> amfEngineArgs;
+
+	private List<RHExtension> localExtensions;
 	
 	protected void setFullNullSupport(boolean fullNullSupport) {
 		this.fullNullSupport=fullNullSupport;
@@ -812,4 +815,30 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	public RHExtension[] getServerRHExtensions() {
 		return getRHExtensions();
 	}
+
+	@Override
+	public List<RHExtension> loadLocalExtensions() {
+		Resource[] locReses = getLocalExtensionProviderDirectory().listResources(new ExtensionResourceFilter(".lex"));
+		if(localExtensions==null) {
+			localExtensions=new ArrayList<RHExtension>();
+			Map<String,String> map=new HashMap<String,String>();
+			RHExtension ext;
+			String v;
+			for(int i=0;i<locReses.length;i++) {
+				try {
+					ext=new RHExtension(this,locReses[i],false);
+					// check if we already have an extension with the same id to avoid having more than once
+					v=map.get(ext.getId());
+					if(v!=null && v.compareToIgnoreCase(ext.getId())>0) continue;
+					
+					map.put(ext.getId(), ext.getVersion());
+					localExtensions.add(ext);
+				} 
+				catch(Exception e) {}
+			}
+		}
+		return localExtensions;
+	}
+	
+	
 }

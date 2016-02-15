@@ -3605,4 +3605,6 @@ public abstract class ConfigImpl implements Config {
 	public boolean installExtension(String extensionId) {
 		return DeployHandler.deployExtension(this, extensionId, getLog("deploy"),true);
 	}
+
+	public abstract List<RHExtension> loadLocalExtensions();
 }

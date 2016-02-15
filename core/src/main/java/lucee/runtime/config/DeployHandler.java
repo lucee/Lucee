@@ -149,7 +149,7 @@ public class DeployHandler {
 		if(!ArrayUtil.isEmpty(ids)) {
 	    	String id;
 			for(int i=0;i<ids.length;i++){
-	    		id=ids[i].trim();
+				id=ids[i].trim();
 	    		if(StringUtil.isEmpty(id,true)) continue;
 	    		deployExtension(config, id.trim(),log,i+1==ids.length);
 	    	}
@@ -174,7 +174,6 @@ public class DeployHandler {
 		} 
 		catch (Throwable t) {}
 		
-		
 		// check if a local extension is matching our id
 		Iterator<RHExtension> it = getLocalExtensions(config).iterator();
 		RHExtension ext=null,tmp;
@@ -184,7 +183,6 @@ public class DeployHandler {
 				ext=tmp;
 			}
 		}
-		
 		
 		String apiKey = config.getIdentification().getApiKey();
 		RHExtensionProvider[] providers = ci.getRHExtensionProviders();
@@ -217,13 +215,12 @@ public class DeployHandler {
 					}
 				}
 				catch(Throwable t){
+					t.printStackTrace();
 				}
 				
 			}
 		}
-		
-		
-		
+
 		// if not we try to download it
 
 		log.info("extension", "installing the extension "+id+" from remote extension provider");
@@ -338,24 +335,6 @@ public class DeployHandler {
 	}
 
 	public static List<RHExtension> getLocalExtensions(Config config) {
-		Resource[] locReses = config.getLocalExtensionProviderDirectory().listResources(new ExtensionResourceFilter(".lex"));
-		List<RHExtension> loc=new ArrayList<RHExtension>();
-		Map<String,String> map=new HashMap<String,String>();
-		RHExtension ext;
-		String v;
-		for(int i=0;i<locReses.length;i++) {
-			try {
-				ext=new RHExtension(config,locReses[i],false);
-				// check if we already have an extension with the same id to avoid having more than once
-				v=map.get(ext.getId());
-				if(v!=null && v.compareToIgnoreCase(ext.getId())>0) continue;
-				
-				map.put(ext.getId(), ext.getVersion());
-				loc.add(ext);
-			} 
-			catch(Exception e) {}
-		}
-		return loc;
+		return ((ConfigImpl)config).loadLocalExtensions();
 	}
-	
 }
