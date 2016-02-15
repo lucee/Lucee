@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -203,7 +204,6 @@ public final class XMLUtil {
      * @return returns a singelton TransformerFactory
      */
     public static TransformerFactory getTransformerFactory() {
-    	//return TransformerFactory.newInstance();
     	if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
         return transformerFactory;
     }
@@ -1044,10 +1044,11 @@ public final class XMLUtil {
     	factory.setErrorListener(SimpleErrorListener.THROW_FATAL);
 		Transformer transformer = factory.newTransformer(new StreamSource(xsl.getCharacterStream()));
 		if (parameters != null) {
-			Iterator it = parameters.entrySet().iterator();
+			Iterator<Entry<String, Object>> it = parameters.entrySet().iterator();
+			Entry<String, Object> e;
 			while ( it.hasNext() ) {
-				Map.Entry e = (Map.Entry) it.next();
-				transformer.setParameter(e.getKey().toString(), e.getValue());
+				e = it.next();
+				transformer.setParameter(e.getKey(), e.getValue());
 			}
 		}
 		transformer.transform(new DOMSource(doc), new StreamResult(sw));
