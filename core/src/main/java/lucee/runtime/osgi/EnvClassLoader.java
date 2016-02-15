@@ -62,11 +62,8 @@ public class EnvClassLoader extends ClassLoader {
 		if (resolve)resolveClass(c);
 		return c;
 	}
-	
+
 	private synchronized Object load(String name, short type) {
-		//print.e("looking for("+toType(type)+"):"+name);
-		
-		
 		Object obj=null;
 		// now we check in the core and loader for the class (this includes all jars loaded by the core)
 		for(ClassLoader p:parents) {
@@ -90,7 +87,11 @@ public class EnvClassLoader extends ClassLoader {
 				try {
 					if(type==CLASS)obj = b.loadClass(name);
 					else if(type==URL)obj = b.getResource(name);
-					else obj = ((ClassLoader)b).getResourceAsStream(name);
+					else {
+						java.net.URL url = b.getResource(name);
+						if(url!=null) obj=url.openStream();
+						//obj = ((ClassLoader)b).getResourceAsStream(name);
+					}
 					if(obj!=null)break;
 				} 
 				catch (Throwable t) {

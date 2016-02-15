@@ -50,12 +50,14 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.XMLException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.osgi.EnvClassLoader;
 import lucee.runtime.text.xml.struct.XMLMultiElementStruct;
 import lucee.runtime.text.xml.struct.XMLStruct;
 import lucee.runtime.text.xml.struct.XMLStructFactory;
@@ -204,6 +206,8 @@ public final class XMLUtil {
      * @return returns a singelton TransformerFactory
      */
     public static TransformerFactory getTransformerFactory() {
+    	Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
+		
     	if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
         return transformerFactory;
     }
