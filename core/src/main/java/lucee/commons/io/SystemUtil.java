@@ -99,6 +99,8 @@ public final class SystemUtil {
 	public static final int ARCH_32=lucee.runtime.util.SystemUtil.ARCH_32;
 	public static final int ARCH_64=lucee.runtime.util.SystemUtil.ARCH_64;
 
+	public static final String SETTING_CONTROLLER_DISABLED = "lucee.controller.disabled";
+	
 	public static final char CHAR_DOLLAR=(char)36;
 	public static final char CHAR_POUND=(char)163;
 	public static final char CHAR_EURO=(char)8364;
@@ -1088,6 +1090,38 @@ public final class SystemUtil {
 	}
 	
 
+
+	/**
+	 * returns a system setting by either a Java property name or a System environment variable
+	 * 
+	 * @param propOrEnv - either a lowercased Java property name (e.g. lucee.controller.disabled) or an UPPERCASED Environment variable name ((e.g. LUCEE_CONTROLLER_DISABLED))
+	 * @param defaultValue - value to return if the neither the property nor the environment setting was found 
+	 * @return - the value of the property referenced by propOrEnv or the defaultValue if not found
+	 */
+	public static String getSetting(String propOrEnv, String defaultValue) {
+		
+		String v = System.getProperty(propOrEnv);
+		
+		if (v != null)
+			return v;
+		
+		v = System.getenv(propOrEnv.replace('.', '_').toUpperCase());
+		
+		if (v != null)
+			return v;
+		
+		return defaultValue;		
+	}
+	
+	
+	/**
+	 * @return - returns getSetting(propOrEnv, null)
+	 */
+	public static String getSetting(String propOrEnv) {
+		
+		return getSetting(propOrEnv, null);
+	}
+
     
     public static void addLibraryPathIfNoExist(Resource res,Log log){
     	String existing = System.getProperty("java.library.path");
@@ -1228,5 +1262,5 @@ class StopThread extends Thread {
 		
 		if(count>10 && log!=null) LogUtil.log(log, Log.LEVEL_ERROR, "", "could not stop the thread, giving up", thread.getStackTrace());
 	}
-	
+
 }
