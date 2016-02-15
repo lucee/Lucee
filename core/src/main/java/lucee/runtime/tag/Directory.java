@@ -493,7 +493,6 @@ public final class Directory extends TagImpl  {
 
 
     private static int _fillQueryAll(Query query, Resource directory, ResourceFilter filter, int count, boolean hasMeta, boolean recurse) throws PageException, IOException {
-    	//long start=System.currentTimeMillis();
     	Resource[] list=directory.listResources();
     	
 		if(list==null || list.length==0) return count;

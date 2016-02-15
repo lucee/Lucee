@@ -522,7 +522,6 @@ public class OSGiUtil {
 	
 	
 	public static List<BundleDefinition> getBundleDefinitions(BundleContext bc) {
-		long start=System.currentTimeMillis();
 		Set<String> set=new HashSet<>();
 		List<BundleDefinition> list=new ArrayList<>();
     	Bundle[] bundles = bc.getBundles();
@@ -531,7 +530,6 @@ public class OSGiUtil {
     		set.add(b.getSymbolicName()+":"+b.getVersion());
     	}
     	// is it in jar directory but not loaded
-    	start=System.currentTimeMillis();
     	CFMLEngine engine = ConfigWebUtil.getEngine(ThreadLocalPageContext.getConfig());
 		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
 		try{

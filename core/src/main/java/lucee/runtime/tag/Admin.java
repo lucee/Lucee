@@ -308,8 +308,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     	
         // has Password
         if(action.equals("haspassword")) {
-           //long start=System.currentTimeMillis();
-            boolean hasPassword=type==TYPE_WEB?
+           boolean hasPassword=type==TYPE_WEB?
                     pageContext.getConfig().hasPassword():
                     pageContext.getConfig().hasServerPassword();
                     

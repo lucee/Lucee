@@ -485,7 +485,6 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 		}
 
 		private void doWait(long sleep) {
-			//long start=System.currentTimeMillis();
 			try {
 				sleeping=true;
 				synchronized (this) {
