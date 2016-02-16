@@ -1119,7 +1119,7 @@ public final class SystemUtil {
 	 */
 	public static String getSetting(String propOrEnv) {
 		
-		return getSetting(propOrEnv, null);
+		return getSetting(propOrEnv, "");
 	}
 
     
