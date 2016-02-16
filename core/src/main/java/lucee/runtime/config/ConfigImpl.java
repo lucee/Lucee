@@ -123,6 +123,7 @@ import lucee.runtime.schedule.SchedulerImpl;
 import lucee.runtime.search.SearchEngine;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.spooler.SpoolerEngine;
+import lucee.runtime.template.TemplateEngine;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -427,6 +428,8 @@ public abstract class ConfigImpl implements Config {
 
 	private Map<Integer,Object> cachedWithins=new HashMap<Integer, Object>();
 	
+	private TemplateEngine[] templateEngines = new TemplateEngine[0];
+	private TemplateEngine defaultTemplateEngine;
 
 	private int queueMax=100;
 	private long queueTimeout=0;
@@ -3472,8 +3475,32 @@ public abstract class ConfigImpl implements Config {
 	public Object getCachedWithin(int type) {
 		return cachedWithins.get(type);
 	}
-
+	
+    public void setTemplateEngines(TemplateEngine[] templateEngines) {
+    	this.templateEngines = templateEngines;
+    }
     
+    public void setDefaultTemplateEngine(TemplateEngine templateEngine) {
+    	this.defaultTemplateEngine = templateEngine;
+    }
+    
+    @Override
+    public TemplateEngine[] getTemplateEngines() {
+    	return this.templateEngines;
+    }
+    
+    public TemplateEngine getTemplateEngine(String path) {
+		TemplateEngine plugin = defaultTemplateEngine;
+		
+		for (TemplateEngine _plugin : this.getTemplateEngines()) {
+			if (_plugin.handlesExtension(ResourceUtil.getExtension(path, null))) {
+				plugin = _plugin;
+				break;
+			}
+		}
+		
+		return plugin;
+	}
 
     public Resource getPluginDirectory() {
     	return getConfigDir().getRealResource("context/admin/plugin");
@@ -3594,6 +3621,7 @@ public abstract class ConfigImpl implements Config {
 	}
 
 	private boolean allowLuceeDialect=false;
+	@Override
 	public boolean allowLuceeDialect() {
 		return allowLuceeDialect;
 	}

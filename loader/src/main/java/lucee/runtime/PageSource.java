@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import lucee.commons.io.res.Resource;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.template.TemplateEngine;
 
 /**
  * extends the source file with class features
@@ -180,5 +181,7 @@ public interface PageSource extends Serializable {
 	 * or is trusted and loaded
 	 */
 	public boolean executable();
+	
+	public TemplateEngine getTemplateEngine();
 
 }

@@ -53,6 +53,7 @@ import lucee.runtime.schedule.Scheduler;
 import lucee.runtime.search.SearchEngine;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.spooler.SpoolerEngine;
+import lucee.runtime.template.TemplateEngine;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.video.VideoExecuter;
@@ -848,5 +849,10 @@ public interface Config {
 	public Resource getLocalExtensionProviderDirectory();
 
 	public Resource getDeployDirectory();
-
+	
+	public TemplateEngine[] getTemplateEngines();
+	
+	public TemplateEngine getTemplateEngine(String path);
+	
+	public boolean allowLuceeDialect();
 }

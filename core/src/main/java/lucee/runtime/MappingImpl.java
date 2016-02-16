@@ -30,6 +30,7 @@ import javax.servlet.ServletContext;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.MappingUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
@@ -40,6 +41,7 @@ import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.template.TemplateEngine;
 import lucee.runtime.type.util.ArrayUtil;
 
 import org.apache.commons.collections4.map.ReferenceMap;
@@ -351,6 +353,7 @@ public final class MappingImpl implements Mapping {
 		if(source!=null) return source;
 
 		PageSourceImpl newSource = new PageSourceImpl(this,path,isOut);
+		
 		pageSourcePool.setPage(path,newSource);
 		
 		return newSource;//new PageSource(this,path);

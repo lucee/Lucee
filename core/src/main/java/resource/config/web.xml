@@ -174,7 +174,12 @@ Path placeholders:
 		cache-directory-max-size="100mb"/>
 		
 		
-		
+<!-- Template Engines
+	<templateEngines>
+		<templateEngine class="lucee.template.HandlebarsEngine" file_extensions="hbs" />
+	</templateEngines>
+ -->
+	<templateEngines></templateEngines>
 		
 <!--
 LOGGING

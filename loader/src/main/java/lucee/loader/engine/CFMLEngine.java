@@ -112,18 +112,18 @@ public interface CFMLEngine {
 	public void service(HttpServlet servlet, HttpServletRequest req,
 			HttpServletResponse rsp) throws IOException, ServletException;
 
-	/**
-	 * method to invoke the engine for CFML
-	 * 
-	 * @param servlet
-	 * @param req
-	 * @param rsp
-	 * @throws ServletException
-	 * @throws IOException
-	 * @throws ServletException
-	 */
-	public void serviceCFML(HttpServlet servlet, HttpServletRequest req,
-			HttpServletResponse rsp) throws IOException, ServletException;
+//	/**
+//	 * method to invoke the engine for CFML
+//	 * 
+//	 * @param servlet
+//	 * @param req
+//	 * @param rsp
+//	 * @throws ServletException
+//	 * @throws IOException
+//	 * @throws ServletException
+//	 */
+//	public void serviceCFML(HttpServlet servlet, HttpServletRequest req,
+//			HttpServletResponse rsp) throws IOException, ServletException;
 
 	/**
 	 * method to invoke the engine for AMF

@@ -550,6 +550,8 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract int getId();
 
 	public abstract JspWriter getRootWriter();
+	
+	public abstract JspWriter getOut();
 
 	/**
 	 * @return Returns the locale.
