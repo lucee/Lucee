@@ -1112,15 +1112,6 @@ public final class SystemUtil {
 		
 		return defaultValue;		
 	}
-	
-	
-	/**
-	 * @return - returns getSetting(propOrEnv, null)
-	 */
-	public static String getSetting(String propOrEnv) {
-		
-		return getSetting(propOrEnv, "");
-	}
 
     
     public static void addLibraryPathIfNoExist(Resource res,Log log){
