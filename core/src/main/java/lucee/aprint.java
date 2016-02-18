@@ -435,9 +435,10 @@ public class aprint {
     private static void _eo(PrintStream ps,Set set) {
     	Iterator it = set.iterator();
     	ps.println(set.getClass().getName()+" {");
+    	boolean first=true;
         while(it.hasNext()) {
+        	if(!first)ps.print(",");first=false;
         	_eo(ps,it.next());
-            ps.print(",");
         }
         _eo(ps,"}");
     }
