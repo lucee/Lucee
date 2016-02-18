@@ -523,24 +523,43 @@ private function assertEqualPaths(string path1, string path2) {
 		return s3;
 	}
 
+	
+
+	private void function addMapping(required string virtual, required string path){
+		var mappings=getApplicationSettings().mappings;
+		mappings[virtual]=path;
+		application 
+			action="update" 
+			mappings = mappings;
+	}
+
 	public void function testRam(){
 		test("ram","ram://");
+	}
+	public void function testRamAsMapping(){
+		addMapping("/testResRam","ram://");
+		test("ram","/testResRam/");
 	}
 
 	public void function testLocalFilesystem(){
 		test("file",getDirectoryFromPath(getCurrentTemplatePath()));
 	}
+	public void function testLocalFilesystemAsMapping(){
+
+		addMapping("/testResLF",getDirectoryFromPath(getCurrentTemplatePath()));
+		test("file","/testResLF/");
+	}
 
 	public void function testZip(){
 		var file=getDirectoryFromPath(getCurrentTemplatePath())&"zip-"&getTickCount()&".zip";
+		var zipPath="zip://"&file&"!/";
 		try {
 			//first we create a zip we can use then as a filesystem
 			zip action="zip" file=file  {
 				zipparam source=getCurrentTemplatePath();
 			}
-
 			// now we use that zip
-			test("zip",file);
+			test("zip",zipPath);
 		}
 		// now we delete that zip again
 		finally {
@@ -548,11 +567,42 @@ private function assertEqualPaths(string path1, string path2) {
 		}
 	}
 
+	public void function testZipAsMapping(){
+		var file=getDirectoryFromPath(getCurrentTemplatePath())&"zip-"&getTickCount()&".zip";
+		var zipPath="zip://"&file&"!/";
+		try {
+			//first we create a zip we can use then as a filesystem
+			zip action="zip" file=file  {
+				zipparam source=getCurrentTemplatePath();
+			}
+			
+			addMapping("/testResZip",zipPath);
+			// now we use that zip
+			//throw expandPath("/testResZip/")&":"&file;
+			test("zip","/testResZip/");
+		}
+		// now we delete that zip again
+		finally {
+			fileDelete(file);
+		}
+	}
+
+
+
 	public void function testS3() localmode=true{
 		var s3=getCredencials();
 		if(!isNull(s3.accessKeyId)) {
 			application action="update" s3=s3; 
 			test("s3","s3:///");
+		}
+	}
+
+	public void function testS3AsMapping() localmode=true{
+		var s3=getCredencials();
+		if(!isNull(s3.accessKeyId)) {
+			application action="update" s3=s3; 
+			addMapping("/testResS3","s3:///");
+			test("s3","/testResS3/");
 		}
 	}
 } 
