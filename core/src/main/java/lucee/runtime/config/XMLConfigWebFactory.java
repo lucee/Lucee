@@ -1339,6 +1339,12 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		// suppress ws before arg
 		sb.append(config.getSuppressWSBeforeArg());
 		sb.append(';');
+		
+		// externalize strings
+		sb.append(config.getExternalizeStringGTE());
+		sb.append(';');
+		
+		
 		// function output
 		sb.append(config.getDefaultFunctionOutput());
 		sb.append(';');
