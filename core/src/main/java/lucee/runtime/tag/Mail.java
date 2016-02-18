@@ -370,6 +370,10 @@ public final class Mail extends BodyTagImpl {
 		this.charset=CharsetUtil.toCharSet(charset);
 	}
 
+	public void setCharset(String charsetName) {
+		this.charset=CharsetUtil.toCharSet(charsetName);
+	}
+
 	/** set the value group
 	*  Specifies the query column to use when you group sets of records together to send as an e-mail 
 	* 		message. For example, if you send a set of billing statements to customers, you might group on 
