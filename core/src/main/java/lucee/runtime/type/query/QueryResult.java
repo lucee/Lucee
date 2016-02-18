@@ -5,6 +5,7 @@ import lucee.runtime.dump.Dumpable;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Duplicable;
+import lucee.runtime.type.Struct;
 
 public interface QueryResult extends Dumpable,Duplicable {
 
@@ -17,6 +18,7 @@ public interface QueryResult extends Dumpable,Duplicable {
     public String getCacheType();
 
 	public long getExecutionTime();
+	public void setExecutionTime(long time);
 	
 	public String getTemplate();
 	
@@ -31,4 +33,5 @@ public interface QueryResult extends Dumpable,Duplicable {
 	
 	public Key[] getColumnNames();
 	public void setColumnNames(Key[] columnNames) throws PageException;
+
 }

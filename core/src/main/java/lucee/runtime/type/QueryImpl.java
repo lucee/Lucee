@@ -96,6 +96,7 @@ import lucee.runtime.type.it.KeyIterator;
 import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.query.QueryArray;
 import lucee.runtime.type.query.QueryResult;
+import lucee.runtime.type.query.QueryStruct;
 import lucee.runtime.type.sql.BlobImpl;
 import lucee.runtime.type.sql.ClobImpl;
 import lucee.runtime.type.util.ArrayUtil;
@@ -104,6 +105,7 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.MemberUtil;
 import lucee.runtime.type.util.QueryUtil;
+import lucee.runtime.type.util.StructSupport;
 
 /**
  * implementation of the query interface
@@ -125,6 +127,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 
 	public static final Collection.Key GENERATED_KEYS = KeyImpl.intern("GENERATED_KEYS");
 	public static final Collection.Key GENERATEDKEYS = KeyImpl.intern("GENERATEDKEYS");
+	private static final Object NULL = new Object();
 	
 	
 	
@@ -161,7 +164,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		//stopwatch.start();
 		long start=System.nanoTime();
     	try {
-            fillResult(this,null,null,result,maxrow,false,false,tz);
+            fillResult(this,null,null,null,result,maxrow,false,false,tz);
         } catch (SQLException e) {
             throw new DatabaseException(e,null);
         } catch (IOException e) {
@@ -182,7 +185,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		this.name=name;
         
 		try {	
-		    fillResult(this,null,null,result,-1,true,false,tz);
+		    fillResult(this,null,null,null,result,-1,true,false,tz);
 		} 
 		catch (SQLException e) {
 			throw new DatabaseException(e,null);
@@ -213,17 +216,22 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		this.name=name;
 		this.template=template;
         this.sql=sql;
-		execute(pc,dc,sql,maxrow,fetchsize,timeout,createUpdateData,allowToCachePreperadeStatement,this,null);
+		execute(pc,dc,sql,maxrow,fetchsize,timeout,createUpdateData,allowToCachePreperadeStatement,this,null,null);
 	}
-
+	public static QueryStruct toStruct(PageContext pc, DatasourceConnection dc,SQL sql,Collection.Key keyName, int maxrow, int fetchsize,TimeSpan timeout, String name,String template,boolean createUpdateData, boolean allowToCachePreperadeStatement) throws PageException {
+		QueryStruct sct=new QueryStruct(name,sql,template);
+		execute(pc,dc,sql,maxrow,fetchsize,timeout,createUpdateData,allowToCachePreperadeStatement,null,sct,keyName);
+		return sct;
+	}
+	
 	public static QueryArray toArray(PageContext pc, DatasourceConnection dc,SQL sql,int maxrow, int fetchsize,TimeSpan timeout, String name,String template,boolean createUpdateData, boolean allowToCachePreperadeStatement) throws PageException {
 		QueryArray arr=new QueryArray(name,sql,template);
-		execute(pc,dc,sql,maxrow,fetchsize,timeout,createUpdateData,allowToCachePreperadeStatement,null,arr);
+		execute(pc,dc,sql,maxrow,fetchsize,timeout,createUpdateData,allowToCachePreperadeStatement,null,arr,null);
 		return arr;
 	}
 	
 	private static void execute(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout
-			, boolean createUpdateData, boolean allowToCachePreperadeStatement, QueryImpl qry, QueryArray arr) throws PageException {
+			, boolean createUpdateData, boolean allowToCachePreperadeStatement, QueryImpl qry, QueryResult qr, Collection.Key keyName) throws PageException {
 		
         
         
@@ -271,10 +279,10 @@ public class QueryImpl implements Query,Objects,QueryResult {
 				if(hasResult) {
 					//res=stat.getResultSet();
 					//if(fillResult(dc,res, maxrow, true,createGeneratedKeys,tz))break;
-					if(fillResult(qry,arr,dc,stat.getResultSet(), maxrow, true,createGeneratedKeys,tz))break;
+					if(fillResult(qry,qr,keyName,dc,stat.getResultSet(), maxrow, true,createGeneratedKeys,tz))break;
 
 				}
-				else if((uc=setUpdateCount(qry!=null?qry:arr,stat))!=-1){
+				else if((uc=setUpdateCount(qry!=null?qry:qr,stat))!=-1){
 					if(uc>0 && createGeneratedKeys && qry!=null)qry.setGeneratedKeys(dc, stat,tz);
 				}
 				
@@ -307,7 +315,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 			}
 		}
 		else {
-			arr.setExecutionTime(System.nanoTime()-start);
+			qr.setExecutionTime(System.nanoTime()-start);
 		}
 
 		
@@ -371,7 +379,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
         	DataSourceUtil.setQueryTimeoutSilent(stat,(int)timeout.getSeconds());
 	}
 	
-    private static boolean fillResult(QueryImpl qry,QueryArray arr,DatasourceConnection dc, ResultSet result, int maxrow, boolean closeResult,boolean createGeneratedKeys, TimeZone tz) throws SQLException, IOException, PageException {
+    private static boolean fillResult(QueryImpl qry,QueryResult qr,Collection.Key keyName, DatasourceConnection dc, ResultSet result, int maxrow, boolean closeResult,boolean createGeneratedKeys, TimeZone tz) throws SQLException, IOException, PageException {
     	if(result==null) return false;
     	
     	int recordcount=0,columncount=0;
@@ -443,9 +451,12 @@ public class QueryImpl implements Query,Objects,QueryResult {
 					++recordcount;
 				}
 			}
-			// fill ARRAY
+			// fill QueryResult
 			else {
 				Struct sct;
+				QueryArray qa=qr instanceof QueryArray?(QueryArray)qr:null;
+				QueryStruct qs=qa==null?(QueryStruct)qr:null;
+				Object k;
 				while(result.next()) {
 					if(maxrow>-1 && recordcount>=maxrow) {
 						break;
@@ -454,7 +465,20 @@ public class QueryImpl implements Query,Objects,QueryResult {
 					for(int i=0;i<usedColumns.length;i++) {
 						sct.set(columnNames[i], casts[i].toCFType(tz, result, usedColumns[i]+1));
 					}
-					arr.appendEL(sct);
+					if(qa!=null) qa.appendEL(sct);
+					else {
+						k=sct.get(keyName,NULL);
+						if(k==NULL) {
+							Struct keys=new StructImpl();
+							for(Collection.Key tmp:columnNames){
+								keys.set(tmp, "");
+							}
+							throw StructSupport.invalidKey(null,keys,keyName,"resultset");
+						}
+						if(k==null)k="";
+						qs.set(KeyImpl.toKey(k), sct);
+					}
+					
 					++recordcount;
 				}
 			}
@@ -467,7 +491,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 				qry.columns=columns;
     		}
     		else {
-    			arr.setColumnNames(columnNames);
+    			qr.setColumnNames(columnNames);
     		}
     		if(closeResult)IOUtil.closeEL(result);
     	}

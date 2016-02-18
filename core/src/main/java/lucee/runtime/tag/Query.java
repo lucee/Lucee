@@ -61,6 +61,7 @@ import lucee.runtime.tag.util.QueryParamConverter;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.QueryImpl;
@@ -163,6 +164,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	private int nestingLevel=0;
 	private boolean setReturnVariable=false;
 	private Object rtn;
+	private Key columnName;
 	
 	@Override
 	public void release()	{
@@ -195,6 +197,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		nestingLevel=0;
 		rtn=null;
 		setReturnVariable=false;
+		columnName=null;
 	}
 	
 	
@@ -210,8 +213,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		if(strReturntype.equals("query"))
 			returntype=RETURN_TYPE_QUERY;
 		    //mail.setType(lucee.runtime.mail.Mail.TYPE_TEXT);
-		//else if(strReturntype.equals("struct"))
-		//	returntype=RETURN_TYPE_STRUCT;
+		else if(strReturntype.equals("struct"))
+			returntype=RETURN_TYPE_STRUCT;
 		else if(strReturntype.equals("array") || 
 				strReturntype.equals("array_of_struct") || strReturntype.equals("array-of-struct") || strReturntype.equals("arrayofstruct") ||
 				strReturntype.equals("array_of_entity") || strReturntype.equals("array-of-entity") || strReturntype.equals("arrayofentities") ||
@@ -310,6 +313,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	public void setCachename(String cachename)	{
 		DeprecatedUtil.tagAttribute(pageContext,"query", "cachename");
 		//this.cachename=cachename;
+	}
+	public void setColumnkey(String columnKey) {
+		if(StringUtil.isEmpty(columnKey,true)) return;
+		this.columnName=KeyImpl.init(columnKey);
 	}
 	
 
@@ -804,7 +811,12 @@ cachename: Name of the cache in secondary cache.
 			}
 			if(returntype==RETURN_TYPE_ARRAY)
 				return QueryImpl.toArray(pageContext,dc,sql,maxrows,blockfactor,timeout,getName(),getPageSource().getDisplayPath(),createUpdateData,true);
-				
+			if(returntype==RETURN_TYPE_STRUCT){
+				if(columnName==null)
+					throw new ApplicationException("attribute columnType is required when return type is set to struct");
+
+				return QueryImpl.toStruct(pageContext,dc,sql,columnName,maxrows,blockfactor,timeout,getName(),getPageSource().getDisplayPath(),createUpdateData,true);
+			}
 			return new QueryImpl(pageContext,dc,sql,maxrows,blockfactor,timeout,getName(),getPageSource().getDisplayPath(),createUpdateData,true);
 		}
 		finally {

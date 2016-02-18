@@ -6325,6 +6325,17 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		</attribute>
 		<attribute>
 			<type>string</type>
+			<name>columnkey</name>
+			<alias>columnname,column</alias>
+			<status>hidden</status>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>When return type is set to "struct", the value of this column is used as key in the struct for every record.</description>
+		</attribute>
+		
+		
+		<attribute>
+			<type>string</type>
 			<name>result</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
