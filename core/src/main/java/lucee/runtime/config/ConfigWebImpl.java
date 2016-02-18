@@ -60,6 +60,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
+import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
@@ -614,8 +615,8 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 			return amfEngine;
 		}
 
-		public boolean installServerExtension(String extensionId) {
-			return configServer.installExtension(extensionId);
+		public boolean installServerExtension(ExtensionDefintion ed) {
+			return configServer.installExtension(ed);
 		}
 
 		@Override

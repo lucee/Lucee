@@ -29,12 +29,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import lucee.Info;
+import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -51,6 +53,7 @@ import lucee.runtime.config.Constants;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.XMLConfigAdmin;
 import lucee.runtime.db.ClassDefinition;
+import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -880,7 +883,7 @@ public class RHExtension implements Serializable {
 		if(!extensionFile.exists()) {
 			Config c = ThreadLocalPageContext.getConfig();
 			if(c!=null) {
-				Resource res = DeployHandler.getExtension(c, id, version, null);
+				Resource res = DeployHandler.getExtension(c,new ExtensionDefintion( id, version), null);
 				if(res!=null && res.exists()) {
 					try {
 						IOUtil.copy(res, extensionFile);
@@ -897,17 +900,25 @@ public class RHExtension implements Serializable {
 	@Override
 	public boolean equals(Object objOther) {
 		if(objOther == this) return true;
-		if(!(objOther instanceof RHExtension)) return false;
 		
-		RHExtension other=(RHExtension) objOther;
-
-		if(!id.equals(other.id)) return false;
-		if(!name.equals(other.name)) return false;
-		if(!version.equals(other.version)) return false;
-		if(trial!=other.trial) return false;
-		
-		return true;
+		if(objOther instanceof RHExtension) {
+			RHExtension other=(RHExtension) objOther;
+	
+			if(!id.equals(other.id)) return false;
+			if(!name.equals(other.name)) return false;
+			if(!version.equals(other.version)) return false;
+			if(trial!=other.trial) return false;
+			return true;
+		}
+		if(objOther instanceof ExtensionDefintion) {
+			ExtensionDefintion ed=(ExtensionDefintion) objOther;
+			if(!ed.getId().equalsIgnoreCase(getId())) return false;
+			if(ed.getVersion()==null || getVersion()==null) return true;
+			return ed.getVersion().equalsIgnoreCase(getVersion());
+		}
+		return false;
 	}
+	
 	
 
 	public static String toReleaseType(int releaseType, String defaultValue) {
@@ -924,4 +935,39 @@ public class RHExtension implements Serializable {
 		return defaultValue;
 	}
 
+	public static List<ExtensionDefintion> toExtensionDefinitions(String str) {
+		// first we split the list
+		List<ExtensionDefintion> rtn=new ArrayList<ExtensionDefintion>();
+		if(StringUtil.isEmpty(str)) return rtn;
+		
+		String[] arr = ListUtil.trimItems(ListUtil.listToStringArray(str, ','));
+		if(ArrayUtil.isEmpty(arr)) return rtn;
+		
+		String[] arrr;
+		int index;
+		ExtensionDefintion ed;
+		String s;
+		for(int i=0;i<arr.length;i++){
+			s=arr[i];
+			arrr = ListUtil.trimItems(ListUtil.listToStringArray(s, ';'));
+			ed=new ExtensionDefintion();
+			for(String ss:arrr){
+				index=ss.indexOf('=');
+				if(index!=-1) {
+					ed.setParam(ss.substring(0,index).trim(),ss.substring(index+1).trim());
+				}
+				else ed.setId(ss);
+			}
+			rtn.add(ed);
+		}
+		return rtn;
+	}
+	
+	public static void main(String[] args) {
+		Set<ExtensionDefintion> set = CFMLEngineImpl.toSet(null,toExtensionDefinitions("aaa,aaa,bbb,aaa"));
+		print.e(set);
+		set=CFMLEngineImpl.toSet(set,toExtensionDefinitions("aaa,bbb,ccc"));
+		print.e(set);
+		
+	}
 }

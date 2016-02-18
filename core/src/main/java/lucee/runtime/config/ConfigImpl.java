@@ -100,6 +100,7 @@ import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.extension.Extension;
+import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
@@ -3602,8 +3603,8 @@ public abstract class ConfigImpl implements Config {
 	}
 	
 
-	public boolean installExtension(String extensionId) {
-		return DeployHandler.deployExtension(this, extensionId, getLog("deploy"),true);
+	public boolean installExtension(ExtensionDefintion ed) {
+		return DeployHandler.deployExtension(this, ed, getLog("deploy"),true);
 	}
 
 	public abstract List<RHExtension> loadLocalExtensions();

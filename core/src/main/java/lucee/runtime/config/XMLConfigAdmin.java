@@ -86,6 +86,7 @@ import lucee.runtime.exp.HTTPException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.extension.Extension;
+import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.cache.Util;
 import lucee.runtime.functions.other.CreateObject;
@@ -6094,12 +6095,12 @@ public final class XMLConfigAdmin {
 	 * @throws IOException 
 	 * @throws SAXException 
 	 */
-	public static RHExtension hasRHExtensions(ConfigImpl config, String id) throws PageException, SAXException, IOException {
+	public static RHExtension hasRHExtensions(ConfigImpl config, ExtensionDefintion ed) throws PageException, SAXException, IOException {
 		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
-		return admin._hasRHExtensions(config, id);
+		return admin._hasRHExtensions(config, ed);
 	}
 	
-	private RHExtension _hasRHExtensions(ConfigImpl config, String id) throws PageException {
+	private RHExtension _hasRHExtensions(ConfigImpl config, ExtensionDefintion ed) throws PageException {
 		
 		Element extensions=_getRootElement("extensions");
 		Element[] children = XMLConfigWebFactory.getChildren(extensions,"rhextension");// LuceeHandledExtensions
@@ -6112,7 +6113,7 @@ public final class XMLConfigAdmin {
 				catch(Throwable t){
 					continue;
 				}
-				if(id.equalsIgnoreCase(rhe.getId())) return rhe;
+				if(ed.equals(rhe)) return rhe;
 			}
 			return null;
 		}

@@ -100,6 +100,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.PageServletException;
+import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.runtime.jsr223.ScriptEngineFactoryImpl;
@@ -244,35 +245,27 @@ public final class CFMLEngineImpl implements CFMLEngine {
         
         
         // if we have an update 
-        Set<String> extensions;
+        Set<ExtensionDefintion> extensions;
         if(doNew==XMLConfigFactory.NEW_FRESH || doNew==XMLConfigFactory.NEW_FROM4) {
-        	String[] ext = info.getRequiredExtension();
-        	extensions = lucee.runtime.type.util.ListUtil.toSet(ext);
+        	List<ExtensionDefintion> ext = info.getRequiredExtension();
+        	extensions = toSet(null,ext);
         	SystemOut.print(SystemUtil.getPrintWriter(SystemUtil.OUT),
-            	"Install Extensions ("+doNew+"):"+lucee.runtime.type.util.ListUtil.arrayToList(ext, ", "));
+            	"Install Extensions ("+doNew+"):"+toList(extensions));
         }
         else
-        	extensions = new HashSet<String>();
-        
-        
-        		
-        		
-        		
+        	extensions = new HashSet<ExtensionDefintion>();
         
         // install extension defined 
-        
         String extensionIds=System.getProperty("lucee-extensions");
         if(!StringUtil.isEmpty(extensionIds,true)) {
-        	String[] ids = lucee.runtime.type.util.ListUtil.listToStringArray(extensionIds, ';');
-        	for(int i=0;i<ids.length;i++){
-        		extensions.add(ids[i].trim());
-        	}
+        	List<ExtensionDefintion> _extensions = RHExtension.toExtensionDefinitions(extensionIds);
+        	extensions=toSet(extensions,_extensions);
         }
         
         if(extensions.size()>0) {
         	DeployHandler.deployExtensions(
         			cs,
-        			extensions.toArray(new String[extensions.size()]),
+        			extensions.toArray(new ExtensionDefintion[extensions.size()]),
         			cs.getLog("deploy", true)
         			);
         }
@@ -283,6 +276,50 @@ public final class CFMLEngineImpl implements CFMLEngine {
         this.uptime=System.currentTimeMillis();
         //this.config=config; 
     }
+
+	public static Set<ExtensionDefintion> toSet(Set<ExtensionDefintion> set, List<ExtensionDefintion> list) {
+		HashMap<String, ExtensionDefintion> map=new HashMap<String, ExtensionDefintion>();
+		ExtensionDefintion ed;
+			
+		// set > map
+		if(set!=null) {
+			Iterator<ExtensionDefintion> it = set.iterator();
+			while(it.hasNext()){
+				ed = it.next();
+				map.put(ed.toString(),ed);
+			}
+		}
+		
+		// list > map
+		if(list!=null) {
+			Iterator<ExtensionDefintion> it = list.iterator();
+			while(it.hasNext()){
+				ed = it.next();
+				map.put(ed.toString(),ed);
+			}
+		}
+		
+		// to Set
+		HashSet<ExtensionDefintion> rtn = new HashSet<ExtensionDefintion>();
+		Iterator<ExtensionDefintion> it = map.values().iterator();
+		while(it.hasNext()){
+			ed = it.next();
+			rtn.add(ed);
+		}
+		return rtn;
+	}
+	
+	public static String toList(Set<ExtensionDefintion> set) {
+		StringBuilder sb=new StringBuilder();
+		Iterator<ExtensionDefintion> it = set.iterator();
+		ExtensionDefintion ed;
+		while(it.hasNext()){
+			ed = it.next();
+			if(sb.length()>0) sb.append(", ");
+			sb.append(ed.toString());
+		}
+		return sb.toString();
+	}
 
 	private void deployBundledExtension(ConfigServerImpl cs) {
 		Resource dir = cs.getLocalExtensionProviderDirectory();

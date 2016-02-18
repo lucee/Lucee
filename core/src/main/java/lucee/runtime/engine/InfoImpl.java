@@ -19,7 +19,9 @@ package lucee.runtime.engine;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -31,6 +33,8 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.extension.ExtensionDefintion;
+import lucee.runtime.extension.RHExtension;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.osgi.OSGiUtil;
@@ -59,7 +63,7 @@ public final class InfoImpl implements Info {
     private final long releaseTime;
     private Version version;
 	private String level;
-	private String[] requiredExtension;
+	private List<ExtensionDefintion> requiredExtensions;
     
 	//private int state;
     //private final String strState;
@@ -84,8 +88,10 @@ public final class InfoImpl implements Info {
     		version=OSGiUtil.toVersion(mf.getValue("Bundle-Version"));
     		
     		String str=mf.getValue("Require-Extension");
-    		if(StringUtil.isEmpty(str,true)) requiredExtension=new String[0];
-    		else requiredExtension = ListUtil.trimItems(ListUtil.listToStringArray(str, ','));
+    		if(StringUtil.isEmpty(str,true)) requiredExtensions=new ArrayList<ExtensionDefintion>();
+    		else requiredExtensions = RHExtension.toExtensionDefinitions(str);
+    				
+    		//ListUtil.trimItems(ListUtil.listToStringArray(str, ','));
     	} 
     	catch (Throwable t) {
     		t.printStackTrace();
@@ -280,8 +286,8 @@ public final class InfoImpl implements Info {
     }
 
 
-	public String[] getRequiredExtension() {
-        return requiredExtension;
+	public List<ExtensionDefintion> getRequiredExtension() {
+        return requiredExtensions;
     }
 
 
