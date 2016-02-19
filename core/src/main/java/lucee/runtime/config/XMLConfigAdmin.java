@@ -5581,7 +5581,8 @@ public final class XMLConfigAdmin {
 	}
 
 
-	public void updateCompilerSettings(Boolean dotNotationUpperCase, Boolean suppressWSBeforeArg, Boolean nullSupport,Boolean handleUnQuotedAttrValueAsString) throws PageException {
+	public void updateCompilerSettings(Boolean dotNotationUpperCase, Boolean suppressWSBeforeArg, 
+			Boolean nullSupport,Boolean handleUnQuotedAttrValueAsString, Integer externalizeStringGTE) throws PageException {
 		
 		Element element = _getRootElement("compiler");
 		
@@ -5614,6 +5615,15 @@ public final class XMLConfigAdmin {
 		}
     	else {
     		element.setAttribute("full-null-support", Caster.toString(nullSupport));
+    	}
+    	
+    	// externalize-string-gte
+    	if(externalizeStringGTE==null){
+			if(element.hasAttribute("externalize-string-gte"))
+				element.removeAttribute("externalize-string-gte");
+		}
+    	else {
+    		element.setAttribute("externalize-string-gte", Caster.toString(externalizeStringGTE));
     	}
     	
     	// handle Unquoted Attribute Values As String

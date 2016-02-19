@@ -3327,7 +3327,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     			getBoolObject("admin", "UpdateCompilerSettings", "dotNotationUpperCase"),
     			getBoolObject("admin", "UpdateCompilerSettings", "suppressWSBeforeArg"),
     			getBoolObject("admin", "UpdateCompilerSettings", "nullSupport"),
-    			getBoolObject("admin", "UpdateCompilerSettings", "handleUnquotedAttrValueAsString")
+    			getBoolObject("admin", "UpdateCompilerSettings", "handleUnquotedAttrValueAsString"),
+    			getInteger("admin", "UpdateCompilerSettings", "externalizeStringGTE")
 				);
     	admin.updateTemplateCharset(getString("admin",action,"templateCharset"));
         
@@ -3373,6 +3374,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     	sct.set("nullSupport", config.getFullNullSupport()?Boolean.TRUE:Boolean.FALSE);
     	sct.set("handleUnquotedAttrValueAsString", config.getHandleUnQuotedAttrValueAsString()?Boolean.TRUE:Boolean.FALSE);
     	sct.set("templateCharset", config.getTemplateCharset());
+    	sct.set("externalizeStringGTE", Caster.toDouble(config.getExternalizeStringGTE()));
+    	
     }
     
     private void doGetLogSettings() throws  PageException {

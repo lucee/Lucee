@@ -269,7 +269,7 @@ public final class PageSourceImpl implements PageSource {
 			else {
                 ///synchronized(this) {
                     Resource classRootDir=mapping.getClassRootDirectory();
-                    Resource classFile=classRootDir.getRealResource(_getJavaName()+".class");
+                    Resource classFile=classRootDir.getRealResource(getJavaName()+".class");
                     boolean isNew=false;
                     // new class
                     if(flush || !classFile.exists()) {
@@ -568,7 +568,7 @@ public final class PageSourceImpl implements PageSource {
         return fileName;
     }
 	
-	private String _getJavaName() {
+	public String getJavaName() {
 		if(javaName==null) createClassAndPackage();
 		return javaName;
 	}

@@ -103,6 +103,8 @@ public interface PageSource extends Serializable {
 	 *         filename (Example: my.package.test_cfm)
 	 */
 	public String getClassName();
+	
+	public String getJavaName();
 
 	/**
 	 * @return returns the a package matching to file (Example: lucee.web)
