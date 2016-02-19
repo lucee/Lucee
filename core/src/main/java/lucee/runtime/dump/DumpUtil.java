@@ -21,6 +21,7 @@ package lucee.runtime.dump;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -38,7 +39,9 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpSession;
 
 import lucee.commons.date.TimeZoneUtil;
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.CharSet;
 import lucee.commons.lang.IDGenerator;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -156,6 +159,18 @@ public class DumpUtil {
 		if(o instanceof Number) {
 			DumpTable table = new DumpTable("numeric","#ff6600","#ffcc99","#000000");
 			table.appendRow(1,new SimpleDumpData("number"),new SimpleDumpData(Caster.toString(((Number)o))));
+			return table;
+		}
+		// Charset
+		if(o instanceof Charset) {
+			DumpTable table = new DumpTable("charset","#ff6600","#ffcc99","#000000");
+			table.appendRow(1,new SimpleDumpData("charset"),new SimpleDumpData(((Charset)o).name()));
+			return table;
+		}
+		// CharSet
+		if(o instanceof CharSet) {
+			DumpTable table = new DumpTable("charset","#ff6600","#ffcc99","#000000");
+			table.appendRow(1,new SimpleDumpData("charset"),new SimpleDumpData(((CharSet)o).name()));
 			return table;
 		}
 		// Locale
