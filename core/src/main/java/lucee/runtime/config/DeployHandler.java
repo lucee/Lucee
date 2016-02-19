@@ -178,16 +178,20 @@ public class DeployHandler {
 		// check if a local extension is matching our id
 		Iterator<RHExtension> it = getLocalExtensions(config).iterator();
 		RHExtension ext=null,tmp;
+		
+		log.info("extension", "installing the extension "+ed);
 		while(it.hasNext()){
 			tmp=it.next();
-			if(ed.equals(tmp) && (ext==null || ext.getVersion().compareTo(tmp.getVersion())<0)) {
+			if(ed.equals(tmp)) {
 				ext=tmp;
+				break;
 			}
 		}
 		
 		// if we have one and also the defined version matches, there is no need to check online
 		if(ext!=null && ed.getVersion()!=null) {
 			try{
+				log.info("extension", "installing the extension "+ed+" from local provider");
 				Resource res = SystemUtil.getTempFile("lex", true);
 				IOUtil.copy(ext.getExtensionFile(), res);
 				XMLConfigAdmin._updateRHExtension((ConfigImpl) config, res, reload);
@@ -243,6 +247,7 @@ public class DeployHandler {
 		// if we have an ext at this stage this mean the remote providers was not acessible or have not this extension
 		if(ext!=null) {
 			try{
+				log.info("extension", "installing the extension "+ed+" from local provider");
 				Resource res = SystemUtil.getTempFile("lex", true);
 				IOUtil.copy(ext.getExtensionFile(), res);
 				XMLConfigAdmin._updateRHExtension((ConfigImpl) config, res, reload);
@@ -266,28 +271,6 @@ public class DeployHandler {
 			}
 		}
 		return false;
-		/*for(int i=0;i<providers.length;i++){
-			try{
-				url=providers[i].getURL();
-				url=new URL(url,"/rest/extension/provider/full/"+id+(apiKey==null?"":"?ioid="+apiKey));
-				HTTPResponse rsp = HTTPEngine.get(url, null, null, -1, false, "UTF-8", "", null, new Header[]{new HeaderImpl("accept","application/cfml")});
-				if(rsp.getStatusCode()!=200)
-					throw new IOException("failed to load extension with id "+id);
-				
-				// copy it locally
-				Resource res = SystemUtil.getTempFile("lex", true);
-				IOUtil.copy(rsp.getContentAsStream(), res, true);
-				
-				// now forward it to the regular process
-				XMLConfigAdmin.updateRHExtension((ConfigImpl) config, res,true);
-				return true;
-			}
-			catch(Throwable t){
-				log.error("extension", t);
-				
-			}
-		}
-		return false;*/
 	}
 	
 	public static Resource downloadExtension(Config config, ExtensionDefintion ed, Log log){

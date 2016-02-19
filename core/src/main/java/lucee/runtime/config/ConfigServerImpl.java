@@ -34,6 +34,7 @@ import java.util.Map;
 import lucee.commons.collection.LinkedHashMapMaxSize;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Hash;
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
@@ -689,6 +690,8 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	private Map<String, String> amfEngineArgs;
 
 	private List<RHExtension> localExtensions;
+
+	private long localExtHash;
 	
 	protected void setFullNullSupport(boolean fullNullSupport) {
 		this.fullNullSupport=fullNullSupport;
@@ -819,7 +822,8 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	@Override
 	public List<RHExtension> loadLocalExtensions() {
 		Resource[] locReses = getLocalExtensionProviderDirectory().listResources(new ExtensionResourceFilter(".lex"));
-		if(localExtensions==null) {
+
+		if(localExtensions==null || localExtensions.size()!=locReses.length || extHash(locReses)==localExtHash) {
 			localExtensions=new ArrayList<RHExtension>();
 			Map<String,String> map=new HashMap<String,String>();
 			RHExtension ext;
@@ -834,10 +838,19 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 					map.put(ext.getId(), ext.getVersion());
 					localExtensions.add(ext);
 				} 
-				catch(Exception e) {}
+				catch(Exception e) {e.printStackTrace();}
 			}
+			localExtHash=extHash(locReses);
 		}
 		return localExtensions;
+	}
+
+	private long extHash(Resource[] locReses) {
+		StringBuilder sb=new StringBuilder();
+		for(Resource locRes:locReses){
+			sb.append(locRes.getAbsolutePath()).append(';');
+		}
+		return HashUtil.create64BitHash(sb);
 	}
 	
 	
