@@ -463,12 +463,12 @@ public final class XMLCaster {
 		if(Node.DOCUMENT_NODE==node.getNodeType()) 
         	return toHTML(XMLUtil.getRootElement(node,true));
 		
-		StringBuffer sb=new StringBuffer();
+		StringBuilder sb=new StringBuilder();
 		toHTML(node, sb);
 		return sb.toString();
 	}
     
-    private static void toHTML(Node node,StringBuffer sb) throws ExpressionException  {
+    private static void toHTML(Node node,StringBuilder sb) throws ExpressionException  {
 		short type=node.getNodeType();
         if(Node.ELEMENT_NODE==type) {
         	Element el = (Element) node;
