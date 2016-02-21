@@ -101,6 +101,7 @@ public class ManifestUtil {
 			e = it.next();
 			name=((Name)e.getKey()).toString();
 			value=(String)e.getValue();
+			if(StringUtil.isEmpty(value)) continue;
 			//aprint.e("Export-Package:"+name+":"+("Export-Package".equals(name)));
 			if("Import-Package".equals(name) || "Export-Package".equals(name) || "Require-Bundle".equals(name)) {
 				value=splitByComma(value);

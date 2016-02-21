@@ -279,11 +279,21 @@ public class BundleBuilderFactory {
 		if(!StringUtil.isEmpty(description))attrs.putValue("Bundle-Description",description);
 		if(!StringUtil.isEmpty(bundleActivationPolicy)) attrs.putValue("Bundle-ActivationPolicy",bundleActivationPolicy);
 		if(version!=null) attrs.putValue("Bundle-Version",version.toString());
-		
+
 		if(!StringUtil.isEmpty(activator)) {
-			attrs.putValue("Bundle-Activator",activator);
-			addImportPackage("org.osgi.framework");
+			if(!activator.equalsIgnoreCase("none")) {
+				attrs.putValue("Bundle-Activator",activator);
+				addImportPackage("org.osgi.framework");
+			}
+			else {
+				//attrs.remove("Bundle-Activator");
+				attrs.putValue("Bundle-Activator","");
+			}
 		}
+		
+		
+		
+		
 		
 		// Export-Package
 		String str = attrs.getValue("Export-Package");

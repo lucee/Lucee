@@ -4986,8 +4986,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			throw Caster.toPageException(e);
 		}
     	
-    	String activator=getString("activator",null);
-    	if(!StringUtil.isEmpty(activator,true))factory.setActivator(activator.trim());
+		
+    	
+		String activator=getString("bundleActivator",null);
+		if(activator==null) activator=getString("activator",null);
+
+		if(!StringUtil.isEmpty(activator,true))factory.setActivator(activator.trim());
     	
     	String version=getString("version",null);
     	if(!StringUtil.isEmpty(version,true))factory.setVersion(OSGiUtil.toVersion(version,null));
