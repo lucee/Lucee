@@ -213,7 +213,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	public static ConfigWebImpl newInstance(CFMLEngine engine, CFMLFactoryImpl factory, ConfigServerImpl configServer, Resource configDir, boolean isConfigDirACustomSetting,
 			ServletConfig servletConfig) throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, NoSuchAlgorithmException, BundleException {
 		
-
+		
 		String hash = SystemUtil.hash(servletConfig.getServletContext());
 		Map<String, String> labels = configServer.getLabels();
 		String label = null;
@@ -222,7 +222,21 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 		if (label == null)
 			label = hash;
-
+		
+		// make sure the web context does not point to the same directory as the server context
+		if(configDir.equals(configServer.getConfigDir()))
+			throw new ApplicationException("the web context ["+label+"] has defined the same configuration directory ["+configDir+"] as the server context");
+		
+		ConfigWeb[] webs = configServer.getConfigWebs();
+		if(!ArrayUtil.isEmpty(webs)) {
+			for(int i=0;i<webs.length;i++){
+				// not sure this is necessary if(hash.equals(((ConfigWebImpl)webs[i]).getHash())) continue;
+				if(configDir.equals(webs[i].getConfigDir()))
+					throw new ApplicationException("the web context ["+label+"] has defined the same configuration directory ["+configDir+"] as the web context ["+webs[i].getLabel()+"]");
+			}
+		}
+		
+		
 		SystemOut.print(SystemUtil.getPrintWriter(SystemUtil.OUT), "===================================================================\n" + 
 				"WEB CONTEXT (" + label + ")\n"
 				+ "-------------------------------------------------------------------\n" + "- config:" + configDir + (isConfigDirACustomSetting ? " (custom setting)" : "") + "\n"
