@@ -221,7 +221,8 @@ public final class GetTagData implements Function {
 		sct.set("attrMax",Caster.toDouble(tag.getMax()));
 		sct.set("hasNameAppendix",Caster.toBoolean(tag.hasAppendix()));
 		sct.set("attributeCollection",getSupportAttributeCollection(tag));
-		
+		if(tag.getIntroduced()!=null)sct.set(GetFunctionData.INTRODUCED,tag.getIntroduced().toString());
+        
 		// script
 		TagLibTagScript script = tag.getScript();
 		if(script!=null) {
@@ -259,6 +260,8 @@ public final class GetTagData implements Function {
 			if(attr.getDefaultValue()!=null)_arg.set("defaultValue",attr.getDefaultValue());
 			_arg.set(KeyConstants._required,attr.isRequired()?Boolean.TRUE:Boolean.FALSE);
 			_arg.set("scriptSupport",attr.getScriptSupportAsString());
+			if(attr.getIntroduced()!=null)_arg.set(GetFunctionData.INTRODUCED,attr.getIntroduced().toString());
+	        
 			_args.setEL(attr.getName(),_arg);
 		}
 		return sct;

@@ -246,14 +246,16 @@ public final class TagLibFactory extends DefaultHandler {
     			// Name
     			if(inside.equals("name")) att.setName(value);
     			// alias
-    			if(inside.equals("alias")) att.setAlias(value);
+    			else if(inside.equals("alias")) att.setAlias(value);
 
     			// Values
-    			if(inside.equals("values")) att.setValues(value);
+    			else if(inside.equals("values")) att.setValues(value);
 
     			// Value Delimiter
-    			if(inside.equals("value-delimiter")) att.setValueDelimiter(value);
-
+    			else if(inside.equals("value-delimiter")) att.setValueDelimiter(value);
+    			
+    			else if(inside.equals("introduced"))	att.setIntroduced(value);
+    			
 				// Required
 				else if(inside.equals("required")) 
 					att.setRequired(Caster.toBooleanValue(value,false));
@@ -295,6 +297,7 @@ public final class TagLibFactory extends DefaultHandler {
 				else if(inside.equals("status"))	tag.setStatus(toStatus(value));
     			// TAG - description
 				else if(inside.equals("description"))	tag.setDescription(value);
+				else if(inside.equals("introduced"))	tag.setIntroduced(value);
     			// TTE - Class
 				else if(inside.equals("tte"))	tag.setTagEval(toTagEvaluator(value));
 				else if(inside.equals("tte-class"))	tag.setTTEClassDefinition(value,id,attributes);

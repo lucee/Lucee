@@ -56,7 +56,8 @@ public final class GetFunctionData implements Function {
 	private static final Collection.Key ARGUMENT_TYPE = KeyImpl.intern("argumentType");
 	private static final Collection.Key ARG_MIN = KeyImpl.intern("argMin");
 	private static final Collection.Key ARG_MAX = KeyImpl.intern("argMax");
-
+	static final Collection.Key INTRODUCED = KeyImpl.intern("introduced");
+	
 	public static Struct call(PageContext pc , String strFunctionName) throws PageException {
 		return _call(pc, strFunctionName, pc.getCurrentTemplateDialect());
 	}
@@ -98,7 +99,10 @@ public final class GetFunctionData implements Function {
 	private static Struct javaBasedFunction(FunctionLibFunction function) throws PageException {
 		Struct sct=new StructImpl();
 		sct.set(KeyConstants._name,function.getName());
-        sct.set(KeyConstants._status,TagLibFactory.toStatus(function.getStatus()));
+		sct.set(KeyConstants._status,TagLibFactory.toStatus(function.getStatus()));
+		if(function.getIntroduced()!=null)sct.set(INTRODUCED,function.getIntroduced().toString());
+        //else if(inside.equals("introduced"))	att.setIntroduced(value);
+		
         sct.set(KeyConstants._description,StringUtil.emptyIfNull(function.getDescription()));
         if(!ArrayUtil.isEmpty(function.getKeywords()))sct.set("keywords",Caster.toArray(function.getKeywords()));
          
@@ -132,6 +136,8 @@ public final class GetFunctionData implements Function {
 				_arg.set(KeyConstants._type,StringUtil.emptyIfNull(arg.getTypeAsString()));
 				_arg.set(KeyConstants._name,StringUtil.emptyIfNull(arg.getName()));
 				_arg.set(KeyConstants._status,TagLibFactory.toStatus(arg.getStatus()));
+				if(arg.getIntroduced()!=null)_arg.set(INTRODUCED,arg.getIntroduced().toString());
+		        
 				_arg.set("defaultValue",arg.getDefaultValue());
 				_arg.set(KeyConstants._description,StringUtil.toStringEmptyIfNull(arg.getDescription()));
 				

@@ -582,6 +582,7 @@ A struct that defines default S3 settings, this settings can be overwritten as p
 			<name>cacheHTTP</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<introduced>5.0.0.0</introduced>
 			<description>name of the cache used to store data from a http tag</description>
 		</attribute>
 		<attribute>
@@ -589,6 +590,7 @@ A struct that defines default S3 settings, this settings can be overwritten as p
 			<name>cacheFile</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<introduced>5.0.0.0</introduced>
 			<description>name of the cache used to store data from file operations</description>
 		</attribute>
 		<attribute>
@@ -596,6 +598,7 @@ A struct that defines default S3 settings, this settings can be overwritten as p
 			<name>cacheWebservice</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<introduced>5.0.0.0</introduced>
 			<description>name of the cache used to store data from webservice calls</description>
 		</attribute>
 		<attribute>

@@ -33,12 +33,14 @@ import lucee.runtime.exp.TemplateException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.functions.BIFProxy;
 import lucee.runtime.op.Caster;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.cfml.evaluator.FunctionEvaluator;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.tag.TagLib;
 
+import org.osgi.framework.Version;
 import org.xml.sax.Attributes;
 
 
@@ -83,6 +85,7 @@ public final class FunctionLibFunction {
 	private BIF bif;
 	private String[] keywords;
 	private ClassDefinition functionCD;
+	private Version introduced;
 
 	
 	/**
@@ -390,6 +393,14 @@ public final class FunctionLibFunction {
 			return new BIFProxy(clazz);
 		}
 		return bif;
+	}
+	
+
+	public void setIntroduced(String introduced) {
+		this.introduced=OSGiUtil.toVersion(introduced, null);
+	}
+	public Version getIntroduced() {
+		return introduced; 
 	}
 	/*
 	public void setBundleName(String bundleName) {

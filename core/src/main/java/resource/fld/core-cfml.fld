@@ -182,6 +182,7 @@ you can use tag cfadmin instead. we will add support for this function in a futu
 		<name>createObject</name>
 		<!-- <status>deprecated</status> -->
 		<class>lucee.runtime.functions.other.CreateObject</class>
+		<modified>5.0.0.0</modified>
 		<description>
 		this function is deprecated, do the following instead.
 		- For Java use the function "JavaNew"
@@ -1574,6 +1575,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
+			<introduced>5.0.0.0</introduced>
 			<description>Locale to use instead of the locale of the page when processing the function</description>
     	</argument>
 		<return>
@@ -2374,7 +2376,8 @@ The following things are considered to be empty:
         <name>CacheRegionExists</name>
         <class>lucee.runtime.functions.cache.CacheRegionExists</class>
         <status>deprecated</status>
-        <description>this function exists solely for the purpose of compatibility with other CFML Engines.  we strongly recommend not to use this function.
+        <introduced>5.0.0.0</introduced>
+		<description>this function exists solely for the purpose of compatibility with other CFML Engines.  we strongly recommend not to use this function.
         it is recommended to use the Administrator interface in order to add or remove cache connections.
 
         this functions returns true if a cache connection with the passed cacheName exists.</description>
@@ -2403,7 +2406,8 @@ The following things are considered to be empty:
         <name>CacheRegionRemove</name>
         <class>lucee.runtime.functions.cache.CacheRegionRemove</class>
         <status>deprecated</status>
-        <description>this function exists solely for the purpose of compatibility with other CFML Engines.  we strongly recommend not to use this function.
+        <introduced>5.0.0.0</introduced>
+		<description>this function exists solely for the purpose of compatibility with other CFML Engines.  we strongly recommend not to use this function.
         it is recommended to use the Administrator interface in order to remove a cache connection.</description>
         <argument>
             <name>cacheName</name>
@@ -2430,7 +2434,8 @@ The following things are considered to be empty:
         <name>CacheRegionNew</name>
         <class>lucee.runtime.functions.cache.CacheRegionNew</class>
         <status>deprecated</status>
-        <description>this function exists solely for the purpose of compatibility with other CFML Engines.  we strongly recommend not to use this function.
+        <introduced>5.0.0.0</introduced>
+		<description>this function exists solely for the purpose of compatibility with other CFML Engines.  we strongly recommend not to use this function.
         to create a cache connection either declare it in your Application.cfc or create it via the in the Administrator interface.</description>
         <argument>
             <name>cacheName</name>

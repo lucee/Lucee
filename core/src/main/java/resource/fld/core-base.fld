@@ -1682,6 +1682,7 @@ sort direction:
 	<!-- BundleInfo -->
 	<function>
 		<name>BundleInfo</name>
+		<introduced>5.0.0.0</introduced>
 		<class>lucee.runtime.functions.system.BundleInfo</class>
 		<description>if the given object is loaded by a OSGi bundle, this function is returning information about that bundle</description>
 		<argument>
@@ -2427,7 +2428,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>WebserviceNew</name>
 		<class>lucee.runtime.functions.other.WebserviceProxy</class>
-		<description>create a Webservice Proxy object, a reference to a remote webservice</description>
+        <introduced>5.0.0.0</introduced>
+        <description>create a Webservice Proxy object, a reference to a remote webservice</description>
 		
 		<argument>
 			<name>url</name>
@@ -2965,7 +2967,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	</function>
 	
 	
-	<!-- ESAPIDecode,URL -->	
+	<!-- ESAPIDecode -->	
 	<function>
 		<name>ESAPIDecode</name>
 		<class>lucee.runtime.functions.owasp.ESAPIDecode</class>
@@ -3548,6 +3550,7 @@ dec: descending (z to a) sort order.
 			<type>boolean</type>
 			<required>No</required>
 			<default>false</default>
+			<introduced>5.0.0.0</introduced>
 			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
     	</argument>
 		<return>
@@ -3574,6 +3577,7 @@ dec: descending (z to a) sort order.
 			<type>boolean</type>
 			<required>No</required>
 			<default>false</default>
+			<introduced>5.0.0.0</introduced>
 			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
     	</argument>
 		<return>
@@ -3598,6 +3602,7 @@ dec: descending (z to a) sort order.
 			<type>boolean</type>
 			<required>No</required>
 			<default>false</default>
+			<introduced>5.0.0.0</introduced>
 			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
     	</argument>
 		<return>
@@ -3622,6 +3627,7 @@ dec: descending (z to a) sort order.
 			<type>boolean</type>
 			<required>No</required>
 			<default>false</default>
+			<introduced>5.0.0.0</introduced>
 			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
     	</argument>
 		<return>
@@ -3646,6 +3652,7 @@ dec: descending (z to a) sort order.
 			<type>boolean</type>
 			<required>No</required>
 			<default>false</default>
+			<introduced>5.0.0.0</introduced>
 			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
     	</argument>
 		<return>
@@ -3670,6 +3677,7 @@ dec: descending (z to a) sort order.
 			<type>boolean</type>
 			<required>No</required>
 			<default>false</default>
+			<introduced>5.0.0.0</introduced>
 			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
     	</argument>
 		<return>
@@ -3693,6 +3701,7 @@ dec: descending (z to a) sort order.
 			<type>boolean</type>
 			<required>No</required>
 			<default>false</default>
+			<introduced>5.0.0.0</introduced>
 			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
     	</argument>
 		<return>
@@ -3716,6 +3725,7 @@ dec: descending (z to a) sort order.
 			<type>boolean</type>
 			<required>No</required>
 			<default>false</default>
+			<introduced>5.0.0.0</introduced>
 			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
     	</argument>
 		<return>
@@ -3741,6 +3751,7 @@ dec: descending (z to a) sort order.
 			<type>boolean</type>
 			<required>No</required>
 			<default>false</default>
+			<introduced>5.0.0.0</introduced>
 			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
     	</argument>
 		<return>
@@ -3765,6 +3776,7 @@ dec: descending (z to a) sort order.
 			<type>boolean</type>
 			<required>No</required>
 			<default>false</default>
+			<introduced>5.0.0.0</introduced>
 			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
     	</argument>
 		<return>
@@ -3789,6 +3801,7 @@ dec: descending (z to a) sort order.
 			<type>boolean</type>
 			<required>No</required>
 			<default>false</default>
+			<introduced>5.0.0.0</introduced>
 			<description>If set to true, canonicalization happens before encoding. If set to false, the given input string will just be encoded. The default value for canonicalize is false. When this parameter is not specified, canonicalization will not happen. By default, when canonicalization is performed, both mixed and multiple encodings will be allowed. To use any other combinations you should canonicalize using canonicalize method and then do encoding.</description>
     	</argument>
 		<return>
@@ -4318,6 +4331,7 @@ EntitySave(entity, [forceinsert])</description>
 	<function>
 		<name>render</name>
 		<class>lucee.runtime.functions.dynamicEvaluation.Render</class>
+		<introduced>5.0.0.0</introduced>
 		<description></description>
 		<argument>
 			<name>code</name>
@@ -4463,6 +4477,7 @@ EntitySave(entity, [forceinsert])</description>
 	<function>
 		<name>FileInfo</name>
 		<class>lucee.runtime.functions.file.FileInfo</class>
+		<introduced>5.0.0.0</introduced>
 		<description>returns detailed info about the given file.</description>
 		<argument>
 			<name>file</name>
@@ -5178,6 +5193,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>GeneratePBKDFKey</name>
 		<class>lucee.runtime.functions.other.GeneratePBKDFKey</class>
+		<introduced>5.0.0.0</introduced>
 		<description>Implementation of Password-Based Key-Derivation Function (PBKDF).</description>
 		<argument>
 			<name>algorithm</name>
@@ -5648,6 +5664,7 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 		<name>getLocaleInfo</name>
 		<class>lucee.runtime.functions.displayFormatting.GetLocaleInfo</class>
 		<member-name>info</member-name>
+		<introduced>5.0.0.0</introduced>
 		<description>returns info to a specific Locale</description>
 		<argument>
 			<name>locale</name>
@@ -5775,6 +5792,7 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 			<required>no</required>
 			<values>cfml,lucee</values>
 			<default>cfml</default>
+			<introduced>5.0.0.0</introduced>
 			<description>the dialect you need (cfml,lucee)</description>
 		</argument>
 		<return>
@@ -6309,12 +6327,14 @@ if this attribute is not provided all types are returned.</description>
 			<name>timezone</name>
 			<type>timezone</type>
 			<required>No</required>
+			<introduced>5.0.0.0</introduced>
 			<description>the timezone to get the data from.</description>
     	</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
+			<introduced>5.0.0.0</introduced>
 			<description>locale used to format the output.</description>
     	</argument>
 		<return>
@@ -10315,7 +10335,8 @@ The following things are considered to be empty:
 			<type>string</type>
 			<values>closure,lambda,udf</values>
 			<required>No</required>
-		<description>limit to a specific type (closure,lambda,udf), if not set all custom function types are accpeted.</description>
+			<introduced>5.0.0.0</introduced>
+			<description>limit to a specific type (closure,lambda,udf), if not set all custom function types are accpeted.</description>
     </argument>
 		<return>
 			<type>boolean</type>
@@ -10431,7 +10452,8 @@ The following things are considered to be empty:
  		<name>isInThread</name>
  		<class>lucee.runtime.functions.thread.IsInThread</class>
  		<keywords>thread,system</keywords>
- 		<description>Determines whether the executing code is inside a cfthread or not.</description>
+ 		<introduced>5.0.0.0</introduced>
+		<description>Determines whether the executing code is inside a cfthread or not.</description>
  		<return>
  			<type>boolean</type>
  		</return>
@@ -11920,6 +11942,7 @@ The following things are considered to be empty:
 	<function>
 		<name>ManifestRead</name>
 		<class>lucee.runtime.functions.system.ManifestRead</class>
+		<introduced>5.0.0.0</introduced>
 		<description>reads a manifest file and returns the content as struct</description>
 		<argument>
 			<name>str</name>

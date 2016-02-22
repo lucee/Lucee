@@ -118,6 +118,7 @@ public final class TagLibTag {
 	private Object attrUndefinedValue;
 	private String bundleName;
 	private Version bundleVersion;
+	private Version introduced;
 	
 	public TagLibTag duplicate(boolean cloneAttributes) {
 		TagLibTag tlt = new TagLibTag(tagLib);
@@ -862,6 +863,14 @@ public final class TagLibTag {
 			
 		}
 		return undefinedValue;
+	}
+
+
+	public void setIntroduced(String introduced) {
+		this.introduced=OSGiUtil.toVersion(introduced, null);
+	}
+	public Version getIntroduced() {
+		return introduced; 
 	}
 
 }

@@ -1677,6 +1677,7 @@ If omitted, the file's attributes are maintained.</description>
 			<name>cachedWithin</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<introduced>5.0.0.0</introduced>
 		<description>
 possible values are:
 String "request": If original content was created within the current request, cached content data isused.
@@ -3588,6 +3589,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>clientCert</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<introduced>5.0.0.0</introduced>
 			<description>The full path to a PKCS12 format file that contains the client certificate for the request.</description>
 		</attribute>
 		<attribute>
@@ -3595,6 +3597,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>clientCertPassword</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<introduced>5.0.0.0</introduced>
 			<description>Password used to decrypt the client certificate.</description>
 		</attribute>
 		<attribute>
@@ -3602,6 +3605,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>cachedWithin</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<introduced>5.0.0.0</introduced>
 		<description>
 possible values are:
 String "request": If original content was created within the current request, cached content data isused.
@@ -7373,6 +7377,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 		</script> -->
 		<body-content>must</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<introduced>5.0.0.0</introduced>
 		<description>defines a static constructor within components</description>
 		<attribute-type>fixed</attribute-type>
 	</tag>

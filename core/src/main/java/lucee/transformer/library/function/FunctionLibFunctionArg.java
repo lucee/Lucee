@@ -20,8 +20,11 @@ package lucee.transformer.library.function;
 
 import java.io.IOException;
 
+import org.osgi.framework.Version;
+
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.Md5;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.transformer.library.tag.TagLib;
 
 
@@ -51,6 +54,7 @@ public final class FunctionLibFunctionArg {
 	private boolean hidden;	
 	private short status=TagLib.STATUS_IMPLEMENTED;
 	private short type=UNDEFINED;
+	private Version introduced;
 
 	
 	/**
@@ -217,5 +221,12 @@ public final class FunctionLibFunctionArg {
 	}
 	public void setHidden(boolean hidden) {
 		this.hidden=hidden;
+	}
+
+	public void setIntroduced(String introduced) {
+		this.introduced=OSGiUtil.toVersion(introduced, null);
+	}
+	public Version getIntroduced() {
+		return introduced; 
 	}
 }

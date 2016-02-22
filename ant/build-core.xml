@@ -25,7 +25,7 @@
   <property name="extPDFVersion"         value="1.0.0.48"/>
 
   <property name="extS3"          value="17AB52DE-B300-A94B-E058BD978511E39E"/>
-  <property name="extS3Version"          value="0.9.4.99"/>
+  <property name="extS3Version"          value="0.9.4.100"/>
 
   <property name="extChart"       value="D46B46A9-A0E3-44E1-D972A04AC3A8DC10"/>
   <property name="extChartVersion"       value="1.0.19.19"/>

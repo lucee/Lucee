@@ -279,7 +279,8 @@ public final class FunctionLibFactory extends DefaultHandler {
 				else if(inside.equals("status")) arg.setStatus(TagLibFactory.toStatus(value));
 				else if(inside.equals("description")) arg.setDescription(value);
 				else if(inside.equals("alias")) arg.setAlias(value);
-				
+				else if(inside.equals("introduced"))	arg.setIntroduced(value);
+    			
 				else if(inside.equals("required"))	{
 					arg.setRequired(value);
 					if(arg.isRequired())
@@ -310,6 +311,8 @@ public final class FunctionLibFactory extends DefaultHandler {
 				if(inside.equals("keywords"))
 					function.setKeywords(value);
 				
+				else if(inside.equals("introduced"))	function.setIntroduced(value);
+    			
 
 				else if(inside.equals("description"))
 					function.setDescription(value);
