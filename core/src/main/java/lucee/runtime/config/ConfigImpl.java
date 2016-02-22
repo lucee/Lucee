@@ -482,7 +482,6 @@ public abstract class ConfigImpl implements Config {
     
     /**
      * private constructor called by factory method
-     * @param factory
      * @param configDir - config directory
      * @param configFile - config file
      */
