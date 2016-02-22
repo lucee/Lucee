@@ -19,14 +19,23 @@
 package lucee.commons.io.res.util;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceLock;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.SystemOut;
+import lucee.runtime.CFMLFactory;
+import lucee.runtime.CFMLFactoryImpl;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.type.scope.CGIImpl;
+import lucee.runtime.util.PageContextUtil;
 
 public final class ResourceLockImpl implements ResourceLock {
 	
@@ -103,10 +112,35 @@ public final class ResourceLockImpl implements ResourceLock {
 				now=System.currentTimeMillis();
 				if((start+lockTimeout)<=now) {
 					Config config = ThreadLocalPageContext.getConfig();
-					if(config!=null)
-						SystemOut.printDate(config.getErrWriter(),"timeout after "+(now-start)+" ms ("+(lockTimeout)+" ms) occured while accessing file ["+path+"]");
+					
+					if(config!=null) {
+						PageContextImpl pc=null;
+						String add="";
+						if(config instanceof ConfigWeb) {
+							CFMLFactory factory = ((ConfigWeb)config).getFactory();
+							if(factory instanceof CFMLFactoryImpl) {
+								Map<Integer, PageContextImpl> pcs = ((CFMLFactoryImpl)factory).getActivePageContexts();
+								Iterator<PageContextImpl> it = pcs.values().iterator();
+								PageContextImpl tmp;
+								while(it.hasNext()) {
+									tmp=it.next();
+									if(t==tmp.getThread()) {
+										pc=tmp;
+										break;
+									}
+								}
+							}
+						}
+						if(pc!=null) {
+							add=" The file is locked by a request on the following URL "+ReqRspUtil.getRequestURL(pc.getHttpServletRequest(),true)+", that request started "+(System.currentTimeMillis()-pc.getStartTime())+"ms ago.";
+						}
+						
+						
+						SystemOut.printDate(config.getErrWriter(),
+								"timeout after "+(now-start)+" ms ("+(lockTimeout)+" ms) occured while accessing file ["+path+"]."+add);
+					}
 					else 
-						SystemOut.printDate("timeout ("+(lockTimeout)+" ms) occured while accessing file ["+path+"]");
+						SystemOut.printDate("timeout ("+(lockTimeout)+" ms) occured while accessing file ["+path+"].");
 					return;
 				}
 			} 
