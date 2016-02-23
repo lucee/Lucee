@@ -31,7 +31,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		application action="update" timezone="BST";
 		setTimeZone("BST");
 
-		query name="local.qry" datasource="#request.mysql#" {
+		query name="local.qry" {
 			echo("select 'a' as a");
 		}
 		//assertEquals("","");
@@ -43,7 +43,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		application action="update" timezone="Europe/London";
 		setTimeZone("Europe/London");
 		
-		query name="local.qry" datasource="#request.mysql#" {
+		query name="local.qry" {
 			echo("select 'a' as a");
 		}
 		//assertEquals("","");
