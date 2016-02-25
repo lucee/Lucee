@@ -21,25 +21,28 @@ package lucee.runtime.text.csv;
 import java.util.ArrayList;
 import java.util.List;
 
+import lucee.print;
 import lucee.commons.lang.StringUtil;
 
 
 public class CSVString {
+	
+	private static final char LF=10;
+	private static final char CR=13;
 
     private char[] buffer;
     private int pos;
     private char delim;
 
     public CSVString( String input, char delim ) {
-
         this.buffer = input.toCharArray();
         this.delim = delim;
     }
 
     public List<List<String>> parse() {
 
-        List<List<String>> result = new ArrayList();
-        List<String> line = new ArrayList();
+        List<List<String>> result = new ArrayList<List<String>>();
+        List<String> line = new ArrayList<String>();
 
         if ( buffer.length == 0 )
             return result;
@@ -55,13 +58,13 @@ public class CSVString {
 
                 sb.append( fwdQuote( c ) );
             }
-            else if ( c == '\n' ) {
-
+            else if ( c == LF || c == CR ) {
+            	if(c == CR && isNext(LF)) next();
                 line.add( sb.toString().trim() );
                 sb = new StringBuilder();
                 if ( isValidLine( line ) )
                     result.add( line );
-                line = new ArrayList();
+                line = new ArrayList<String>();
             }
             else if ( c == delim ) {
 
