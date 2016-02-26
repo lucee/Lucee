@@ -3024,7 +3024,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				str = getAttr(setting,"showversion");
 		}
 		if (!StringUtil.isEmpty(str) && hasAccess) {
-			config.setShowVersion(toBoolean(str, true));
+			config.setShowVersion(toBoolean(str, false));
 		}
 		else if (hasCS)
 			config.setShowVersion(configServer.isShowVersion());
