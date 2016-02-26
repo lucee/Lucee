@@ -288,7 +288,7 @@ public class CFMLWriterImpl extends CFMLWriter {
     protected final void flushBuffer(boolean closeConn) throws IOException {
     	if(!flushed && closeConn) {
         	response.setHeader("connection", "close");
-        	if(showVersion)response.setHeader(Constants.NAME+"-Version", version);
+        	//if(showVersion)response.setHeader(Constants.NAME+"-Version", version);
         	
         }
     	initOut();
@@ -388,7 +388,7 @@ public class CFMLWriterImpl extends CFMLWriter {
         	}
         	
         	if(closeConn)response.setHeader("connection", "close");
-        	if(showVersion)response.setHeader(Constants.NAME+"-Version", version);
+        	//if(showVersion)response.setHeader(Constants.NAME+"-Version", version);
         	boolean allowCompression;
             if(barr.length<=512) 
             	allowCompression=false;
