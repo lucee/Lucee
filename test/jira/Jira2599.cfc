@@ -22,7 +22,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	// skip closure
 	function isNotSupported() {
 		variables.mongodb=getCredentials();
-		if(!isNull(variables.mongodb.host)) {
+		if(!isNull(variables.mongodb.server)) {
 			variables.supported=true;
 		}
 		else 
@@ -35,14 +35,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		// getting the credetials from the enviroment variables
 		var mongoDB={};
 		if(!isNull(server.system.environment.MONGODB_SERVER) && !isNull(server.system.environment.MONGODB_PORT) && !isNull(server.system.environment.MONGODB_USERNAME) && !isNull(server.system.environment.MONGODB_PASSWORD)) {
-			mongoDB.host=server.system.environment.MONGODB_SERVER;
+			mongoDB.server=server.system.environment.MONGODB_SERVER;
 			mongoDB.port=server.system.environment.MONGODB_PORT;
 			mongoDB.user=server.system.environment.MONGODB_USERNAME;
 			mongoDB.pass=server.system.environment.MONGODB_PASSWORD;
 		}
 		// getting the credetials from the system variables
 		else if(!isNull(server.system.properties.MONGODB_SERVER) && !isNull(server.system.properties.MONGODB_PORT) && !isNull(server.system.properties.MONGODB_USERNAME) && !isNull(server.system.properties.MONGODB_PASSWORD)) {
-			mongoDB.host=server.system.properties.MONGODB_SERVER;
+			mongoDB.server=server.system.properties.MONGODB_SERVER;
 			mongoDB.port=server.system.properties.MONGODB_PORT;
 			mongoDB.user=server.system.properties.MONGODB_USERNAME;
 			mongoDB.pass=server.system.properties.MONGODB_PASSWORD;
@@ -69,9 +69,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	// public function setUp(){}
 
 	public function beforeTests() {
-		var uri = "mongodb://#variables.mongoDB.host#:#variables.mongoDB.port#";
+		var uri = "mongodb://#variables.mongoDB.server#:#variables.mongoDB.port#";
 		if (!isempty(variables.mongoDB.user) && !isEmpty(variables.mongoDB.pass))
-			uri = "mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.host#:#variables.mongoDB.port#";
+			uri = "mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.server#:#variables.mongoDB.port#";
 
 		db = MongoDBConnect("test",uri);
 	}
@@ -80,14 +80,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 
 	public void function testConnectByArgs() skip="isNotSupported" {
-		var mongo = MongoDBConnect("test",variables.mongoDB.host,variables.mongoDB.port);
+		var mongo = MongoDBConnect("test",variables.mongoDB.server,variables.mongoDB.port);
 		assertEquals("test",mongo.getName());
 	}
 
 	public void function testConnectByURI() skip="isNotSupported" {
-		var uri = "mongodb://#variables.mongoDB.host#:#variables.mongoDB.port#";
+		var uri = "mongodb://#variables.mongoDB.server#:#variables.mongoDB.port#";
 		if (!isempty(variables.mongoDB.user) && !isEmpty(variables.mongoDB.pass))
-			uri = "mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.host#:#variables.mongoDB.port#";
+			uri = "mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.server#:#variables.mongoDB.port#";
 
 		var mongo = MongoDBConnect("test",uri);
 		assertEquals("test",mongo.getName());
@@ -95,7 +95,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	// skip until authenticate is implemented
 	public void function testAuthenticate() skip="true" {
-		var mongo = MongoDBConnect("test",variables.mongoDB.host,variables.mongoDB.port);
+		var mongo = MongoDBConnect("test",variables.mongoDB.server,variables.mongoDB.port);
 		mongo.authenticate(variables.mongoDB.user,variables.mongoDB.pass);
 	}
 
