@@ -471,11 +471,7 @@ public abstract class ConfigImpl implements Config {
     	timeOffset=0;
         if(useTimeServer && !StringUtil.isEmpty(timeServer,true)) {
             NtpClient ntp=new NtpClient(timeServer);
-            try {
-                timeOffset=ntp.getOffset();
-            } catch (IOException e) {
-                timeOffset=0;
-            }
+            timeOffset=ntp.getOffset(0);
         }
     }
 

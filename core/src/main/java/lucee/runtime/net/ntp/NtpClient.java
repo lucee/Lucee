@@ -23,6 +23,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
+import lucee.commons.io.IOUtil;
+
 
 
 /**
@@ -51,31 +53,47 @@ public final class NtpClient	{
 	 */
 	public long getOffset() throws IOException {
 		/// Send request
-		DatagramSocket socket = new DatagramSocket();
-		socket.setSoTimeout(10000);
-		InetAddress address = InetAddress.getByName(serverName);
-		byte[] buf = new NtpMessage().toByteArray();
-		DatagramPacket packet = new DatagramPacket(buf, buf.length, address, 123);
+		DatagramSocket socket=null;
+		try{
+			socket = new DatagramSocket();
+			socket.setSoTimeout(20000);
+			InetAddress address = InetAddress.getByName(serverName);
+			byte[] buf = new NtpMessage().toByteArray();
+			DatagramPacket packet = new DatagramPacket(buf, buf.length, address, 123);
+			
+			// Set the transmit timestamp *just* before sending the packet
+			NtpMessage.encodeTimestamp(packet.getData(), 40, (System.currentTimeMillis()/1000.0) + 2208988800.0);
+			
+			socket.send(packet);
+			
+			// Get response
+			packet = new DatagramPacket(buf, buf.length);
+			socket.receive(packet);
+			
+			// Immediately record the incoming timestamp
+			double destinationTimestamp = (System.currentTimeMillis()/1000.0) + 2208988800.0;
+			
+			
+			// Process response
+			NtpMessage msg = new NtpMessage(packet.getData());
+			//double roundTripDelay = (destinationTimestamp-msg.originateTimestamp) - (msg.receiveTimestamp-msg.transmitTimestamp);
+			double localClockOffset = ((msg.receiveTimestamp - msg.originateTimestamp) + (msg.transmitTimestamp - destinationTimestamp)) / 2;
+			
+			return (long) (localClockOffset*1000);
+		}
+		finally {
+			IOUtil.closeEL(socket);
+		}
+	}
+	
+	public long getOffset(long defaultValue) {
+		try {
+			return getOffset();
+		}
+		catch (Throwable e) {
+			return defaultValue;
+		}
 		
-		// Set the transmit timestamp *just* before sending the packet
-		NtpMessage.encodeTimestamp(packet.getData(), 40, (System.currentTimeMillis()/1000.0) + 2208988800.0);
-		
-		socket.send(packet);
-		
-		// Get response
-		packet = new DatagramPacket(buf, buf.length);
-		socket.receive(packet);
-		
-		// Immediately record the incoming timestamp
-		double destinationTimestamp = (System.currentTimeMillis()/1000.0) + 2208988800.0;
-		
-		
-		// Process response
-		NtpMessage msg = new NtpMessage(packet.getData());
-		//double roundTripDelay = (destinationTimestamp-msg.originateTimestamp) - (msg.receiveTimestamp-msg.transmitTimestamp);
-		double localClockOffset = ((msg.receiveTimestamp - msg.originateTimestamp) + (msg.transmitTimestamp - destinationTimestamp)) / 2;
-		
-		return (long) (localClockOffset*1000);
 	}
 	
 	/**
