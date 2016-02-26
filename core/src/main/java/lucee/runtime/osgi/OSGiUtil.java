@@ -962,13 +962,13 @@ public class OSGiUtil {
 	public static String[] getBootdelegation() {
 		if(bootDelegation==null) {
 			InputStream is = null;
-			List<String> list=new ArrayList<>();
-	    	try {
+			try {
 	    		Properties prop = new Properties();
 	    		is = OSGiUtil.class.getClassLoader().getResourceAsStream("default.properties");
 	        	prop.load(is);
 	        	String bd = prop.getProperty("org.osgi.framework.bootdelegation");
 	        	if(!StringUtil.isEmpty(bd)) {
+	        		bd+=",java.lang,java.lang.*";
 	        		bootDelegation=ListUtil.trimItems(ListUtil.listToStringArray(StringUtil.unwrap(bd),','));
 	        	}
 			}
@@ -1015,5 +1015,12 @@ public class OSGiUtil {
 			rtn[i]=bundlesFiles[i].toBundleDefinition();
 		}
 		return rtn;
+	}
+
+
+
+	
+	public static  boolean isFrameworkBundle(Bundle b) {// FELIX specific
+		return "org.apache.felix.framework".equalsIgnoreCase(b.getSymbolicName()); // TODO move to cire util class tha does not exist yet
 	}
 }

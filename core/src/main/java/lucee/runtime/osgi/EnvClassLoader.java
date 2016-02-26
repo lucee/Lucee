@@ -1,18 +1,35 @@
 package lucee.runtime.osgi;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
 
+import lucee.print;
+import lucee.commons.io.SystemUtil;
+import lucee.commons.io.SystemUtil.Caller;
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.PhysicalClassLoader;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.reflection.Reflector;
+import lucee.runtime.type.Collection;
+import lucee.runtime.type.it.ItAsEnum;
+import lucee.runtime.type.util.ArrayUtil;
 
+import org.apache.commons.collections4.iterators.EnumerationIterator;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleReference;
 
 public class EnvClassLoader extends ClassLoader {
 
 	private ConfigImpl config;
-	private ClassLoader[] parents;
+	//private final ClassLoader[] parents;
 	//private ClassLoader loaderCL;
 
 	private static final short CLASS=1;
@@ -25,10 +42,10 @@ public class EnvClassLoader extends ClassLoader {
 		super(config.getClassLoaderCore());
 		this.config=config;
 		
-		ClassLoader coreCL = getParent();
+		//ClassLoader coreCL = getParent();
 		//loaderCL = TP.class.getClassLoader(); //this gives a wrong result because bootdelegetation should handle this!
 		
-		parents=new ClassLoader[]{coreCL};
+		//parents=new ClassLoader[]{coreCL};
 	}
 
 	@Override
@@ -38,101 +55,171 @@ public class EnvClassLoader extends ClassLoader {
 	
 	@Override
 	public URL getResource(String name) {
-		return (java.net.URL) load(name, URL);
+		return (java.net.URL) load(name, URL,true);
 	}
 
 	@Override
 	public InputStream getResourceAsStream(String name) {	
-		InputStream is = (InputStream) load(name, STREAM);
+		InputStream is = (InputStream) load(name, STREAM,true);
 		if(is!=null) return is;
 		
 		// PATCH 
-		//if(name.equalsIgnoreCase("META-INF/services/org.apache.xerces.xni.parser.XMLParserConfiguration"))
-		//	return (InputStream) load("org/apache/xerces/parsers/org.apache.xerces.xni.parser.XMLParserConfiguration", STREAM);
+		if(name.equalsIgnoreCase("META-INF/services/org.apache.xerces.xni.parser.XMLParserConfiguration")) {
+			String value="org.apache.xerces.parsers.XIncludeAwareParserConfiguration";
+			System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration", value);
+			return new ByteArrayInputStream(value.getBytes());
+		}
+		//	return (InputStream) load("org/apache/xerces/parsers/org.apache.xerces.xni.parser.XMLParserConfiguration", STREAM,true);
 		
 		return null;
+	}
+
+	@Override
+	public Enumeration<URL> getResources(String name) throws IOException {
+		List<URL> list=new ArrayList<URL>();
+		URL url = (URL)load(name,URL,false);
+		if(url!=null) list.add(url);
+		/*url = (URL)load(name,URL,false);
+		if(url!=null) list.add(url);
+		url = (URL)load(name,URL,false);
+		if(url!=null) list.add(url);*/
+		return new E<URL>(list.iterator());
 	}
 
 	@Override
 	protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
 		// First, check if the class has already been loaded
 		Class<?> c = findLoadedClass(name);
-		if(c==null)c = (Class<?>) load(name, CLASS);
+		if(c==null)c = (Class<?>) load(name, CLASS,true);
 		if(c==null)c = findClass(name);
 		if (resolve)resolveClass(c);
 		return c;
 	}
 
-	private synchronized Object load(String name, short type) {
+	private synchronized Object load(String name, short type, boolean doLog) {
 		Object obj=null;
-		// now we check in the core and loader for the class (this includes all jars loaded by the core)
-		for(ClassLoader p:parents) {
-			try {
-				if(type==CLASS)obj = p.loadClass(name);
-				else if(type==URL)obj = p.getResource(name);
-				else obj = p.getResourceAsStream(name);
-				if(obj!=null)break;
-			} 
-			catch (Throwable t) {}
-		}
-		if(obj!=null) return obj;
 		
+		// first we check the callers classpath
+		Caller caller = SystemUtil.getCallerClass();
+		if(!caller.isEmpty()) {
+			print.e("-------------------------------------");
+			print.e(caller);
+			
+			// if the request comes from classpath  
+			Class clazz=caller.fromClasspath();
+			if(clazz!=null) {
+				if(clazz.getClassLoader()!=null) {
+					obj=_load(clazz.getClassLoader(),name,type);
+					if(obj==null && clazz.getClassLoader() instanceof PhysicalClassLoader && clazz!=caller.fromBootDelegation && caller.fromBootDelegation!=null & caller.fromBootDelegation.getClassLoader()!=null) {
+						obj=_load(caller.fromBootDelegation.getClassLoader(),name,type);
+					}
+				}
+				
+				
+			}
+			if(obj==null && caller.fromBundle!=null) {
+				if(caller.fromBundle.getClassLoader()!=null)
+					obj=_load(caller.fromBundle.getClassLoader(),name,type);
+			}
+			if(obj!=null) return obj;
+		}	
+
+		// now we check in the core  for the class (this includes all jars loaded by the core)
+		if((caller.isEmpty() || caller.fromBundle!=null) && caller.fromBundle.getClassLoader()!=getParent()) {
+			print.e("check core:"+name+"->");
+			obj=_load(getParent(), name, type);
+			if(obj!=null) {
+				print.e("found in core:"+name+"->");
+				return obj;
+			}			
+		}
 		
 		// now we check extension bundles
-		Bundle[] bundles = ConfigWebUtil.getEngine(config).getBundleContext().getBundles();
-		Bundle b=null;
-		for(int i=0;i<bundles.length;i++) {
-			b=bundles[i];
-			if(b!=null && !isFrameworkBundle(b)) {
-				try {
-					if(type==CLASS)obj = b.loadClass(name);
-					else if(type==URL)obj = b.getResource(name);
-					else {
-						java.net.URL url = b.getResource(name);
-						if(url!=null) obj=url.openStream();
-						//obj = ((ClassLoader)b).getResourceAsStream(name);
+		if(caller.isEmpty() || caller.fromBundle!=null) {
+			print.e("check extension:"+name+"->");
+			Bundle[] bundles = ConfigWebUtil.getEngine(config).getBundleContext().getBundles();
+			Bundle b=null;
+			for(int i=0;i<bundles.length;i++) {
+				b=bundles[i];
+				if(b!=null && !OSGiUtil.isFrameworkBundle(b)) {
+					try {
+						if(type==CLASS)obj = b.loadClass(name);
+						else if(type==URL)obj = b.getResource(name);
+						else {
+							java.net.URL url = b.getResource(name);
+							if(url!=null) obj=url.openStream();
+						}
+						if(obj!=null)break;
+					} 
+					catch (Throwable t) {
+						obj=null;
 					}
-					if(obj!=null)break;
-				} 
-				catch (Throwable t) {
-					b=null;
 				}
 			}
-			else b=null;
+			if(obj!=null){
+				print.e("found in extensions:"+name+"->");
+				return obj;
+			}
+			
 		}
 		
-		Log log = config.getLog("application", true);
-		// not found
+		
+		if(caller.fromClasspath()!=null) {
+			ClassLoader loader = CFMLEngineFactory.class.getClassLoader();
+			obj=_load(loader, name, type);
+			if(obj!=null) {
+				print.e("found in classpath:"+name+"->");
+				return obj;
+			}
+		}
+		
 		if(obj==null) {
-			log.error(EnvClassLoader.class.getName(), "not able to find	 "+toType(type)+" "+name);
-		}
-		// found
-		else  {// should always be the case!
-			ClassLoader cl = obj.getClass().getClassLoader();
-			log.error(EnvClassLoader.class.getName(), "found "+toType(type)+" "+name+" in CL "+cl);
-		}
-		
-		
-		/*Bundle b;
-		while(it.hasNext()) {
-			b = it.next().getLoadedBundle();
-			if(b!=null){
-				print.e("checking:"+b);
-				try {
-					if(type==CLASS)obj = b.loadClass(name);
-					else if(type==URL)obj = b.getResource(name);
-					else obj = ((ClassLoader)b).getResourceAsStream(name);
-					print.e("sucess");
-					if(obj!=null)break;
-				} 
-				catch (Throwable t) {print.e("failed");
-				}
+			ClassLoader loader = CFMLEngineFactory.class.getClassLoader();
+			Object obj2 = _load(loader, name, type);
+			if(obj2!=null) {
+				print.e("found in classpath but not used:"+name+"->");
+				
 			}
-		}*/
+		}
+		
+		
+		
+		
+		if(doLog) {
+			Log log = config.getLog("application", true);
+			// not found
+			if(obj==null) {
+				log.error(EnvClassLoader.class.getName(), "not able to find	 "+toType(type)+" "+name);
+			}
+			// found
+			/*else  {// should always be the case!
+				ClassLoader cl = obj.getClass().getClassLoader();
+				log.error(EnvClassLoader.class.getName(), "found "+toType(type)+" "+name+" in CL "+cl);
+			}*/
+		}
+		
+
+		if(obj==null)print.e("not found:"+name+"->"+type);
+		if(obj==null)print.ds();
+		
 		
 		return obj;
    }
 
+
+	private Object _load(ClassLoader cl, String name, short type) {
+		Object obj=null;
+		if(cl!=null) {
+			try {
+				if(type==CLASS)obj = cl.loadClass(name);
+				else if(type==URL)obj = cl.getResource(name);
+				else obj = cl.getResourceAsStream(name);
+			} 
+			catch (Throwable t) {}
+			
+		}
+		return obj;
+	}
 
 	/*private void test(Bundle[] bundles, short type, String name) {
 		Bundle b=null;
@@ -181,9 +268,7 @@ public class EnvClassLoader extends ClassLoader {
 		}
 	}*/
 
-	private boolean isFrameworkBundle(Bundle b) {
-		return "org.apache.felix.framework".equalsIgnoreCase(b.getSymbolicName()); // TODO move to cire util class tha does not exist yet
-	}
+	
 
 	private String toType(short type) {
 		if(CLASS==type) return "class";
@@ -195,4 +280,25 @@ public class EnvClassLoader extends ClassLoader {
 	protected Class<?> findClass(String name) throws ClassNotFoundException {//if(name.indexOf("sub")!=-1)print.ds(name);	
 		throw new ClassNotFoundException("class "+name+" not found in the core, the loader and all the extension bundles");
 	}
+	
+	private static class E<T> implements Enumeration<T> {
+		
+		private Iterator<T> it;
+
+		private E(Iterator<T> it){
+			this.it=it;
+		}
+
+		@Override
+		public boolean hasMoreElements() {
+			return it.hasNext();
+		}
+
+		@Override
+		public T nextElement() {
+			return it.next();
+		}
+		
+	}
+	
 }

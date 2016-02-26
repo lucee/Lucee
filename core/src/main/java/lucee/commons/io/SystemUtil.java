@@ -56,6 +56,8 @@ import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassLoaderHelper;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.types.RefInteger;
+import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.loader.TP;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
@@ -70,6 +72,7 @@ import lucee.runtime.exp.StopException;
 import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
@@ -81,6 +84,7 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleReference;
 
 import com.jezhumble.javasysmon.CpuTimes;
 import com.jezhumble.javasysmon.JavaSysMon;
@@ -467,7 +471,7 @@ public final class SystemUtil {
      * @param ucl URL Class Loader
      * @param pathes Hashmap with allpathes
      */
-    private static void getClassPathesFromClassLoader(URLClassLoader ucl, ArrayList pathes) {
+    private static void getClassPathesFromClassLoader(URLClassLoader ucl, ArrayList<Resource> pathes) {
         ClassLoader pcl=ucl.getParent();
         // parent first
         if(pcl instanceof URLClassLoader)
@@ -492,7 +496,7 @@ public final class SystemUtil {
         if(classPathes!=null) 
             return classPathes;
         
-        ArrayList pathes=new ArrayList();
+        ArrayList<Resource> pathes=new ArrayList<Resource>();
         String pathSeperator=System.getProperty("path.separator");
         if(pathSeperator==null)pathSeperator=";";
             
@@ -1206,6 +1210,147 @@ public final class SystemUtil {
 		
     return null;
 }
+	
+	/**
+	 * @return returns a class stack trace
+	 */
+	public static Class[] getClassContext() {
+		final Ref ref=new Ref();
+		new SecurityManager() {
+	        {	
+	        	ref.context = getClassContext();
+	            
+	        }
+	    };
+	    Class[] context= new Class[ref.context.length-2];
+	    System.arraycopy(ref.context, 2,context, 0, ref.context.length-2);
+		return context;
+	}
+	
+	/**
+	 * 
+	 * @return the class calling me and the first class not in bootdelegation if the the is in bootdelegation
+	 */
+	public static Caller getCallerClass() {
+		final Ref ref=new Ref();
+		new SecurityManager() {
+	        {	
+	        	ref.context = getClassContext();
+	            
+	        }
+	    };
+	    
+	    Caller rtn=new Caller();
+	    
+	    // element at position 2 is the caller
+	    Class caller=ref.context[2];
+	    RefInteger index=new RefIntegerImpl(3);
+	    Class clazz=_getCallerClass(ref.context,caller,index,true,true);
+	    
+	    // analyze the first result
+	    if(clazz==null) return rtn;
+	    if(isFromBundle(clazz)) {
+	    	rtn.fromBundle=clazz;
+	    	return rtn;
+	    }
+	    if(!OSGiUtil.isInBootelegation(clazz.getName())) {
+	    	rtn.fromSystem=clazz;
+	    }
+	    else {
+	    	rtn.fromBootDelegation=clazz;
+	    }
+	    
+	    clazz=null;
+	    if(rtn.fromBootDelegation!=null) {
+	    	clazz=_getCallerClass(ref.context,caller,index,false,true);
+	    	if(clazz==null) return rtn;
+	    	if(isFromBundle(clazz)) {
+		    	rtn.fromBundle=clazz;
+		    	return rtn;
+		    }
+	    	else rtn.fromSystem=clazz;
+	    }
+	    
+	    
+    	clazz=_getCallerClass(ref.context,caller,index,false,false);
+    	if(clazz==null) return rtn;
+    	rtn.fromBundle=clazz;
+	    
+	    
+	    return rtn;
+	}
+	
+	private static Class _getCallerClass(Class[] context, Class caller, RefInteger index, boolean acceptBootDelegation, boolean acceptSystem) {
+		Class callerCaller;
+		
+		do{
+	    	callerCaller=context[index.toInt()];
+	    	index.plus(1);
+	    	if(callerCaller==caller || _isSystem(callerCaller)) {
+	    	    	callerCaller=null;
+	    	}
+
+	    	if(callerCaller!=null && !acceptSystem && !isFromBundle(callerCaller)) {
+	    		callerCaller=null;
+	    	}
+	    	else if(callerCaller!=null && !acceptBootDelegation && OSGiUtil.isInBootelegation(callerCaller.getName())) {
+	    		callerCaller=null;
+	    	}
+	    }
+	    while(callerCaller==null && index.toInt()<context.length);
+		return callerCaller;
+	}
+
+	public static class Caller {
+
+		public Class fromBootDelegation;
+		public Class fromSystem;
+		public Class fromBundle;
+		
+		
+		public String toString(){
+			return "fromBootDelegation:"+fromBootDelegation+";fromSystem:"+fromSystem+";fromBundle:"+fromBundle;
+		}
+
+		public boolean isEmpty() {
+			return fromBootDelegation==null && fromBundle==null && fromSystem==null;
+		}
+
+		public Class fromClasspath() { 
+			if(fromSystem!=null) {
+				if(fromSystem.getClassLoader()!=null)
+					return fromSystem;
+				if(fromBootDelegation!=null && fromBootDelegation.getClassLoader()!=null) return fromBootDelegation;
+				return fromSystem;
+			}
+			return fromBootDelegation;
+		}
+	}
+	
+
+	private static boolean isFromBundle(Class clazz) {
+		if(clazz==null) return false;
+		if(!(clazz.getClassLoader() instanceof BundleReference))
+			return false;
+		
+		BundleReference br=(BundleReference)clazz.getClassLoader();
+		return !OSGiUtil.isFrameworkBundle(br.getBundle());
+	}
+	
+
+	private static boolean _isSystem(Class clazz) {
+		if(clazz.getName()=="java.lang.Class") return true; // Class.forName(className)
+		if(clazz.getName().startsWith("com.sun.beans.finder.")) return true; 
+		if(clazz.getName().startsWith("java.beans.")) return true; 
+		if(clazz.getName().startsWith("java.util.ServiceLoader")) return true; 
+		
+		return false;
+	}
+}
+
+class Ref {
+	public Class[] context;
+	
 }
 
 class StopThread extends Thread {
