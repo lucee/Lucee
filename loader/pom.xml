@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.200-SNAPSHOT</version>
+  <version>5.0.0.201-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -354,14 +354,6 @@
      <scope>compile</scope>
    </dependency>
 
-   <!--<dependency>
-      <groupId>org.lucee</groupId>
-      <artifactId>commons-codec</artifactId>
-      <version>1.6</version>
-     <scope>compile</scope></dependency>-->
-
-
-
 <!--
 	Bundle-SymbolicName: org.apache.commons.collections
 	Bundle-Version: 3.2.1
@@ -638,29 +630,20 @@
     <version>1.0.20</version>
     <scope>compile</scope>
   </dependency>
-<!-- apache.http.components.client -->
   <dependency>
-    <groupId>apache.http.components</groupId>
-    <artifactId>client</artifactId>
-    <type>jar</type>
-    <version>4.5.0.0002L</version>
-    <scope>compile</scope>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>httpcomponents-httpclient</artifactId>
+  	<version>4.5.0</version>
   </dependency>
-<!-- apache.http.components.core  -->
   <dependency>
-    <groupId>apache.http.components</groupId>
-    <artifactId>core</artifactId>
-    <type>jar</type>
-    <version>4.4.1</version>
-    <scope>compile</scope>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>httpcomponents-httpcore</artifactId>
+  	<version>4.4.1</version>
   </dependency>
-<!-- apache.http.components.mime -->
   <dependency>
-    <groupId>apache.http.components</groupId>
-    <artifactId>mime</artifactId>
-    <type>jar</type>
-    <version>4.5.0</version>
-    <scope>compile</scope>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>httpcomponents-httpmime</artifactId>
+  	<version>4.5.0</version>
   </dependency>
 <!-- 
   Bundle-SymbolicName: org.lucee.hsqldb

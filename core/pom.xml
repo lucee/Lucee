@@ -349,28 +349,21 @@
          <type>jar</type>
          <version>1.0.20</version>
       </dependency>
-<!-- apache.http.components.client -->
-      <dependency>
-         <groupId>apache.http.components</groupId>
-         <artifactId>client</artifactId>
-         <type>jar</type>
-         <version>4.5.0.0002L</version>
-      </dependency>
-
-<!-- apache.http.components.core - 4.4.1 -->
-      <dependency>
-         <groupId>apache.http.components</groupId>
-         <artifactId>core</artifactId>
-         <type>jar</type>
-         <version>4.4.1</version>
-      </dependency>
-<!-- apache.http.components.mime -->
-      <dependency>
-         <groupId>apache.http.components</groupId>
-         <artifactId>mime</artifactId>
-         <type>jar</type>
-         <version>4.5.0</version>
-      </dependency>
+  <dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>httpcomponents-httpclient</artifactId>
+  	<version>4.5.0</version>
+  </dependency>
+  <dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>httpcomponents-httpcore</artifactId>
+  	<version>4.4.1</version>
+  </dependency>
+  <dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>httpcomponents-httpmime</artifactId>
+  	<version>4.5.0</version>
+  </dependency
 <!-- 
   Bundle-SymbolicName: org.lucee.hsqldb
   Bundle-Version: 1.8.0
