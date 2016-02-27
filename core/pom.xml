@@ -199,23 +199,16 @@
   <version>3.4</version>
 </dependency>-->
 
-
-<!-- org.apache.commons.logging.adapters - 1.1.1.0001L -->
-      <dependency>
-         <groupId>org.apache.commons.logging</groupId>
-         <artifactId>adapters</artifactId>
-         <type>jar</type>
-         <version>1.1.1.0001L</version>
-         <scope>compile</scope>
-      </dependency>
-
-<!-- org.apache.commons.logging.api - 1.1.1 -->
-      <dependency>
-         <groupId>org.apache.commons.logging</groupId>
-         <artifactId>api</artifactId>
-         <type>jar</type>
-         <version>1.1.1</version>
-      </dependency>
+  <dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>commons-logging-adapters</artifactId>
+  	<version>1.1.0</version>
+  </dependency>
+  <dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>commons-logging-api</artifactId>
+  	<version>1.1.0</version>
+  </dependency>
 
   <dependency>
   	<groupId>org.lucee</groupId>

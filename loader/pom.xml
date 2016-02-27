@@ -460,28 +460,19 @@
   <version>3.4</version>
   <scope>compile</scope></dependency>-->
 
-<!-- org.apache.commons.logging.adapters - 1.1.1.0001L -->
-      <dependency>
-         <groupId>org.apache.commons.logging</groupId>
-         <artifactId>adapters</artifactId>
-         <type>jar</type>
-         <version>1.1.1.0001L</version>
-         <scope>compile</scope>
-      </dependency>
 
-<!--
-  Bundle-SymbolicName: org.apache.commons.logging.api
-  Bundle-Version: 1.1.1
-  source: lucee
--->
   <dependency>
-    <groupId>org.apache.commons.logging</groupId>
-    <artifactId>api</artifactId>
-    <type>jar</type>
-    <version>1.1.1</version>
-    <scope>compile</scope>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>commons-logging-adapters</artifactId>
+  	<version>1.1.0</version>
   </dependency>
 
+  <dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>commons-logging-api</artifactId>
+  	<version>1.1.0</version>
+  </dependency>
+  
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>commons-logging</artifactId>
