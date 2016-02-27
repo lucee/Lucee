@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.199-SNAPSHOT</version>
+  <version>5.0.0.200-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -426,7 +426,7 @@
 	<dependency>
 		<groupId>org.lucee</groupId>
 		<artifactId>commons-httpclient</artifactId>
-		<version>3.1</version>
+		<version>3.1.0</version>
 	  <scope>compile</scope>
   </dependency>
 
@@ -482,17 +482,10 @@
     <scope>compile</scope>
   </dependency>
 
-<!--
-  Bundle-SymbolicName: org.apache.commons.logging
-  Bundle-Version: 1.1.1
-  source: lucee
--->
   <dependency>
-    <groupId>org.apache.commons</groupId>
-    <artifactId>logging</artifactId>
-    <type>jar</type>
-    <version>1.1.1</version>
-    <scope>compile</scope>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>commons-logging</artifactId>
+  	<version>1.1.1</version>
   </dependency>
 
 <!--
@@ -532,29 +525,16 @@
 	  <scope>compile</scope>
   </dependency>
 
-<!-- 
-  Bundle-SymbolicName: apache.ws.axis.ant
-  Bundle-Version: 1.4.0
-  source: lucee
--->
-  <dependency>
-    <groupId>apache.ws.axis</groupId>
-    <artifactId>ant</artifactId>
-    <type>jar</type>
-    <version>1.4.0</version>
-    <scope>compile</scope>
+<dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>axis-ant</artifactId>
+  	<version>1.4.0</version>
   </dependency>
-<!-- 
-  Bundle-SymbolicName: apache.ws.axis
-  Bundle-Version: 1.4.0.L006
-  source: lucee
--->
+
   <dependency>
-    <groupId>apache.ws</groupId>
-    <artifactId>axis</artifactId>
-    <type>jar</type>
-    <version>1.4.0.L008</version>
-    <scope>compile</scope>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>axis</artifactId>
+  	<version>1.4.0</version>
   </dependency>
       
       
@@ -903,29 +883,25 @@
     <version>1.2.4</version>
     <scope>compile</scope>
   </dependency>
-<!-- sun.xml.jaxrpc -->
+
   <dependency>
-    <groupId>sun.xml</groupId>
-    <artifactId>jaxrpc</artifactId>
-    <type>jar</type>
-    <version>1.2.1.0002L</version>
-    <scope>compile</scope></dependency>
-<!-- sun.xml.wsdl4j - 1.5.1 -->
-  <dependency>
-    <groupId>sun.xml</groupId>
-    <artifactId>wsdl4j</artifactId>
-    <type>jar</type>
-    <version>1.5.1.0002L</version>
-    <scope>compile</scope>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>jaxrpc</artifactId>
+  	<version>1.4.0</version>
   </dependency>
-<!-- sun.xml.saaj - 1.2.1.0001L -->
-      <dependency>
-         <groupId>sun.xml</groupId>
-         <artifactId>saaj</artifactId>
-         <type>jar</type>
-         <version>1.2.1.0001L</version>
-         <scope>compile</scope>
-      </dependency>
+    
+  <dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>wsdl4j</artifactId>
+  	<version>1.5.1</version>
+  </dependency>
+  
+  <dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>saaj</artifactId>
+  	<version>1.4.0</version>
+  </dependency>
+  
 <!-- tagsoup - 1.2.1 -->
       <dependency>
          <groupId>tagsoup</groupId>
