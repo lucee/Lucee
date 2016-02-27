@@ -1994,9 +1994,15 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			if (dataSource.hasAttribute("database")) {
 				
 				try {
+					cd=getClassDefinition(dataSource, "", config.getIdentification());
+					if(!cd.isBundle()) {
+						JDBCDriver jdbc = config.getJDBCDriverByClassName(cd.getClassName(),null);
+						if(jdbc!=null)cd=jdbc.cd;
+					}
+					
 					setDatasource(config, datasources
 						,getAttr(dataSource,"name")
-						,getClassDefinition(dataSource, "", config.getIdentification())
+						,cd
 						,getAttr(dataSource,"host")
 						,getAttr(dataSource,"database")
 						,Caster.toIntValue(getAttr(dataSource,"port"), -1)

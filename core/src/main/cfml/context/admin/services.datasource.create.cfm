@@ -527,11 +527,11 @@ if(datasource.storage) optional.append('storage:#datasource.storage# // default:
 if(datasource.readOnly) optional.append('readOnly:#datasource.readOnly# // default: false');
 </cfscript>
 
-
-
 <cfsavecontent variable="codeSample">
 	this.datasources["#datasource.name#"] = {
-	  class: '#datasource.classname#'
+	  class: '#datasource.classname#'#isNull(datasource.bundleName)?"":"
+	, bundleName: '"&datasource.bundleName&"'"##isNull(datasource.bundleVersion)?"":"
+	, bundleVersion: '"&datasource.bundleVersion&"'"#
 	, connectionString: '#replace(datasource.dsnTranslated,"'","''","all")#'<cfif len(datasource._password)>
 	, username: '#replace(datasource.username,"'","''","all")#'
 	, password: "#datasource.passwordEncrypted#"</cfif><cfif optional.len()>
