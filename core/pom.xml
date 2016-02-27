@@ -185,24 +185,16 @@
 		<version>3.1</version>
 	</dependency>
 
-<!-- org.apache.commons.io - 2.4 
-	Bundle-SymbolicName: org.apache.commons.io
-	Bundle-Version: 2.4.0
--->
 	<dependency>
 		<groupId>org.lucee</groupId>
 		<artifactId>commons-io</artifactId>
 		<version>2.4.0</version>
 	</dependency>
 
-<!-- org.apache.commons.lang 
-	Bundle-SymbolicName: org.apache.commons.lang
-	Bundle-Version: 2.6.0 -->
-
 	<dependency>
-		<groupId>commons-lang</groupId>
+		<groupId>org.lucee</groupId>
 		<artifactId>commons-lang</artifactId>
-		<version>2.6</version>
+		<version>2.6.0</version>
 	</dependency>
 
 <!-- org.apache.commons.lang 3

@@ -455,15 +455,10 @@
 	  <scope>compile</scope>
   </dependency>
 
-<!--
-	Bundle-SymbolicName: org.apache.commons.lang
-	Bundle-Version: 2.6.0
-  source: mvn
--->
 	<dependency>
-		<groupId>commons-lang</groupId>
+		<groupId>org.lucee</groupId>
 		<artifactId>commons-lang</artifactId>
-		<version>2.6</version>
+		<version>2.6.0</version>
 	  <scope>compile</scope>
   </dependency>
 
