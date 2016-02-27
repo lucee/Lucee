@@ -93,6 +93,7 @@ import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
+import lucee.runtime.config.XMLConfigAdmin;
 import lucee.runtime.config.XMLConfigFactory;
 import lucee.runtime.config.XMLConfigServerFactory;
 import lucee.runtime.config.XMLConfigWebFactory;
@@ -248,7 +249,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
         // required extensions
         
         
-        // if we have an update 
+        // if we have a "fresh" install  
         Set<ExtensionDefintion> extensions;
         if(doNew==XMLConfigFactory.NEW_FRESH || doNew==XMLConfigFactory.NEW_FROM4) {
         	List<ExtensionDefintion> ext = info.getRequiredExtension();
@@ -256,8 +257,34 @@ public final class CFMLEngineImpl implements CFMLEngine {
         	SystemOut.print(SystemUtil.getPrintWriter(SystemUtil.OUT),
             	"Install Extensions ("+doNew+"):"+toList(extensions));
         }
-        else
+        // if we have an update we update the extension that re installed and we have an older version as defined in the manifest
+        else if(doNew==XMLConfigFactory.NEW_MINOR) {
         	extensions = new HashSet<ExtensionDefintion>();
+        	Iterator<ExtensionDefintion> it = info.getRequiredExtension().iterator();
+        	ExtensionDefintion ed;
+        	RHExtension rhe;
+        	while(it.hasNext()){
+        		ed = it.next();
+        		if(ed.getVersion()==null) continue; // no version definition no update
+        		try{
+        			rhe = XMLConfigAdmin.hasRHExtensions(cs, new ExtensionDefintion(ed.getId()));
+        			if(rhe==null) continue; // not installed we do not update
+        			
+        			// if the installed is older than the one defined in the manifest we update (if possible)
+        			if(!rhe.getVersion().equals(ed.getVersion())) 
+        				extensions.add(ed);
+        		}
+        		catch(Throwable t){
+        			t.printStackTrace(); // fails we update
+        			extensions.add(ed);
+        		}
+        	}
+        }
+        else {
+        	extensions = new HashSet<ExtensionDefintion>();
+        }
+        // XMLConfigAdmin.hasRHExtensions(ci, ed)
+        
         
         // install extension defined 
         String extensionIds=System.getProperty("lucee-extensions");

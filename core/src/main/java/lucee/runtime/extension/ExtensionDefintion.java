@@ -13,7 +13,10 @@ public class ExtensionDefintion {
 	private Map<String,String> params=new HashMap<String, String>();
 
 	public ExtensionDefintion() {}
-	
+
+	public ExtensionDefintion(String id) {
+		this.id=id;
+	}
 	public ExtensionDefintion(String id, String version) {
 		this.id=id;
 		setParam("version", version);
