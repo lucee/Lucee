@@ -68,7 +68,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 	// public function setUp(){}
 
-	public function beforeTests() {
+	public function beforeTests() skip="isNotSupported" {
+		if(isNotSupported()) return;
 		var uri = "mongodb://#variables.mongoDB.server#:#variables.mongoDB.port#";
 		if (!isempty(variables.mongoDB.user) && !isEmpty(variables.mongoDB.pass))
 			uri = "mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.server#:#variables.mongoDB.port#";
@@ -80,11 +81,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 
 	public void function testConnectByArgs() skip="isNotSupported" {
+		if(isNotSupported()) return;
 		var mongo = MongoDBConnect("test",variables.mongoDB.server,variables.mongoDB.port);
 		assertEquals("test",mongo.getName());
 	}
 
 	public void function testConnectByURI() skip="isNotSupported" {
+		if(isNotSupported()) return;
 		var uri = "mongodb://#variables.mongoDB.server#:#variables.mongoDB.port#";
 		if (!isempty(variables.mongoDB.user) && !isEmpty(variables.mongoDB.pass))
 			uri = "mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.server#:#variables.mongoDB.port#";
@@ -95,11 +98,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	// skip until authenticate is implemented
 	public void function testAuthenticate() skip="true" {
+		if(isNotSupported()) return;
 		var mongo = MongoDBConnect("test",variables.mongoDB.server,variables.mongoDB.port);
 		mongo.authenticate(variables.mongoDB.user,variables.mongoDB.pass);
 	}
 
 	public void function testIdConversion() skip="isNotSupported" {
+		if(isNotSupported()) return;
 		var content = {'name':'Susi'};
 		db.getCollection("test").insert(content);
 		
@@ -113,6 +118,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testMongoDBID() skip="isNotSupported" {
+		if(isNotSupported()) return;
 		var id = MongoDBID();
 		$assert.key(id,"date");
 		$assert.key(id,"timestamp");
@@ -128,6 +134,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testInsertAndFind() skip="isNotSupported" {
+		if(isNotSupported()) return;
 		var coll = db.getCollection("test");
 		var docs = [
 			 {"_id":1, "name":"One"}
@@ -166,6 +173,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testUpdate() skip="isNotSupported" {
+		if(isNotSupported()) return;
 		var coll = resetTestCollection();
 
 		// single update with criteria
@@ -193,6 +201,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testRemove() skip="isNotSupported" {
+		if(isNotSupported()) return;
 		var coll = resetTestCollection();
 
 		// remove 1 doc
@@ -210,6 +219,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testAggregateResults() skip="isNotSupported" {
+		if(isNotSupported()) return;
 		var coll = resetTestCollection();
 
 		// aggregate with N... structs as arguments returns AggregationResult
@@ -224,6 +234,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testAggregateCursor() skip="isNotSupported" {
+		if(isNotSupported()) return;
 		var coll = resetTestCollection();
 
 		// aggregate with array of pipeline operations as first argument with struct options as second argument returns Cursor
@@ -233,6 +244,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testWriteConcern() skip="isNotSupported" {
+		if(isNotSupported()) return;
 		var coll = resetTestCollection();
 
 		coll.setWriteConcern("UNACKNOWLEDGED");
@@ -242,6 +254,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testIndexing() skip="isNotSupported" {
+		if(isNotSupported()) return;
 		var coll = resetTestCollection();
 
 		// get indexes
@@ -270,6 +283,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testCollectionUtils() skip="isNotSupported" {
+		if(isNotSupported()) return;
 		var coll = resetTestCollection();
 
 		$assert.typeOf("struct", coll.stats());
@@ -278,6 +292,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testGroupAndDistinct() skip="isNotSupported" {
+		if(isNotSupported()) return;
 		var coll = resetTestCollection();
 		$assert.isEqual(2, coll.distinct("grp").len());
 
@@ -285,6 +300,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testMapReduce() skip="isNotSupported" {
+		if(isNotSupported()) return;
 		var coll = resetTestCollection();
 		var fMap = "
 			function(){
@@ -310,6 +326,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testRename() skip="isNotSupported" {
+		if(isNotSupported()) return;
 		var coll = resetTestCollection();
 		coll.rename("test2");
 		$assert.isEqual(5, db["test2"].count());
