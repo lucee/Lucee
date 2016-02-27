@@ -9,7 +9,6 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 
-import lucee.print;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.Caller;
 import lucee.commons.io.log.Log;
@@ -17,14 +16,8 @@ import lucee.commons.lang.PhysicalClassLoader;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;
-import lucee.runtime.reflection.Reflector;
-import lucee.runtime.type.Collection;
-import lucee.runtime.type.it.ItAsEnum;
-import lucee.runtime.type.util.ArrayUtil;
 
-import org.apache.commons.collections4.iterators.EnumerationIterator;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleReference;
 
 public class EnvClassLoader extends ClassLoader {
 
@@ -102,8 +95,8 @@ public class EnvClassLoader extends ClassLoader {
 		// first we check the callers classpath
 		Caller caller = SystemUtil.getCallerClass();
 		if(!caller.isEmpty()) {
-			print.e("-------------------------------------");
-			print.e(caller);
+			//print.e("-------------------------------------");
+			//print.e(caller);
 			
 			// if the request comes from classpath  
 			Class clazz=caller.fromClasspath();
@@ -126,17 +119,17 @@ public class EnvClassLoader extends ClassLoader {
 
 		// now we check in the core  for the class (this includes all jars loaded by the core)
 		if((caller.isEmpty() || caller.fromBundle!=null) && caller.fromBundle.getClassLoader()!=getParent()) {
-			print.e("check core:"+name+"->");
+			//print.e("check core:"+name+"->");
 			obj=_load(getParent(), name, type);
 			if(obj!=null) {
-				print.e("found in core:"+name+"->");
+				//print.e("found in core:"+name+"->");
 				return obj;
 			}			
 		}
 		
 		// now we check extension bundles
 		if(caller.isEmpty() || caller.fromBundle!=null) {
-			print.e("check extension:"+name+"->");
+			//print.e("check extension:"+name+"->");
 			Bundle[] bundles = ConfigWebUtil.getEngine(config).getBundleContext().getBundles();
 			Bundle b=null;
 			for(int i=0;i<bundles.length;i++) {
@@ -157,7 +150,7 @@ public class EnvClassLoader extends ClassLoader {
 				}
 			}
 			if(obj!=null){
-				print.e("found in extensions:"+name+"->");
+				//print.e("found in extensions:"+name+"->");
 				return obj;
 			}
 			
@@ -168,7 +161,7 @@ public class EnvClassLoader extends ClassLoader {
 			ClassLoader loader = CFMLEngineFactory.class.getClassLoader();
 			obj=_load(loader, name, type);
 			if(obj!=null) {
-				print.e("found in classpath:"+name+"->");
+				//print.e("found in classpath:"+name+"->");
 				return obj;
 			}
 		}
@@ -177,7 +170,7 @@ public class EnvClassLoader extends ClassLoader {
 			ClassLoader loader = CFMLEngineFactory.class.getClassLoader();
 			Object obj2 = _load(loader, name, type);
 			if(obj2!=null) {
-				print.e("found in classpath but not used:"+name+"->");
+				//print.e("found in classpath but not used:"+name+"->");
 				
 			}
 		}
@@ -199,8 +192,8 @@ public class EnvClassLoader extends ClassLoader {
 		}
 		
 
-		if(obj==null)print.e("not found:"+name+"->"+type);
-		if(obj==null)print.ds();
+		//if(obj==null)print.e("not found:"+name+"->"+type);
+		//if(obj==null)print.ds();
 		
 		
 		return obj;
