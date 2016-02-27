@@ -335,16 +335,10 @@
 </dependency>
 
 
-<!--
-	Bundle-SymbolicName: org.apache.sanselan.sanselan
-	Bundle-Version: 0.97.0.incubator
-  source: mvn
--->
-	<dependency>
-		<groupId>org.apache.sanselan</groupId>
-		<artifactId>sanselan</artifactId>
-		<version>0.97-incubator</version>
-	  <scope>compile</scope>
+<dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>commons-sanselan</artifactId>
+  	<version>0.97.0.incubator</version>
   </dependency>
 
 
@@ -391,17 +385,10 @@
 
 
   
-
-<!--
-	Bundle-SymbolicName: org.apache.commons.compress
-	Bundle-Version: 1.9.0
-  source: mvn
--->
-	<dependency>
-		<groupId>org.apache.commons</groupId>
-		<artifactId>commons-compress</artifactId>
-		<version>1.9</version>
-	  <scope>compile</scope>
+<dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>commons-compress</artifactId>
+  	<version>1.9.0</version>
   </dependency>
       
 <!--
@@ -416,12 +403,12 @@
 	  <scope>compile</scope>
   </dependency>
 
-<!-- org.apache.commons.email - 1.2.0.0002L -->
+
       <dependency>
-         <groupId>org.apache.commons</groupId>
-         <artifactId>email</artifactId>
+         <groupId>org.lucee</groupId>
+         <artifactId>commons-email</artifactId>
          <type>jar</type>
-         <version>1.2.0.0002L</version>
+         <version>1.2.0</version>
          <scope>compile</scope>
       </dependency>
 

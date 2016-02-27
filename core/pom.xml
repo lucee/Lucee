@@ -90,15 +90,12 @@
 </dependency>
 
 
-<!-- org.apache.sanselan - 0.97.incubator 
-	Bundle-SymbolicName: org.apache.sanselan.sanselan
-	Bundle-Version: 0.97.0.incubator
--->
-	<dependency>
-		<groupId>org.apache.sanselan</groupId>
-		<artifactId>sanselan</artifactId>
-		<version>0.97-incubator</version>
-	</dependency>
+<dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>commons-sanselan</artifactId>
+  	<version>0.97.0.incubator</version>
+  </dependency>
+	
 
 <!-- org.apache.commons.codec - 1.10 
 	Bundle-SymbolicName: org.apache.commons.codec
@@ -138,15 +135,11 @@
   <version>4.0</version>
   </dependency>
 
-<!-- org.apache.commons.compress - 1.9.0
-	Bundle-SymbolicName: org.apache.commons.compress
-	Bundle-Version: 1.9.0
--->
-	<dependency>
-		<groupId>org.apache.commons</groupId>
-		<artifactId>commons-compress</artifactId>
-		<version>1.9</version>
-	</dependency>
+<dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>commons-compress</artifactId>
+  	<version>1.9.0</version>
+  </dependency>
       
 <!-- org.apache.commons.discovery - 0.5
 	Bundle-SymbolicName: org.apache.commons.discovery
@@ -158,12 +151,11 @@
 		<version>0.5</version>
 	</dependency>
 
-<!-- org.apache.commons.email - 1.2.0.0002L -->
       <dependency>
-         <groupId>org.apache.commons</groupId>
-         <artifactId>email</artifactId>
+         <groupId>org.lucee</groupId>
+         <artifactId>commons-email</artifactId>
          <type>jar</type>
-         <version>1.2.0.0002L</version>
+         <version>1.2.0</version>
          <scope>compile</scope>
       </dependency>
 
