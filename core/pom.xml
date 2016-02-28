@@ -363,7 +363,7 @@
   	<groupId>org.lucee</groupId>
   	<artifactId>httpcomponents-httpmime</artifactId>
   	<version>4.5.0</version>
-  </dependency
+  </dependency>
 <!-- 
   Bundle-SymbolicName: org.lucee.hsqldb
   Bundle-Version: 1.8.0
