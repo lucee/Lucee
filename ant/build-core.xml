@@ -19,7 +19,7 @@
   <property name="extLuceneVersion"      value="2.4.1.28"/>
 
   <property name="extHibernate"   value="FAD1E8CB-4F45-4184-86359145767C29DE"/>
-  <property name="extHibernateVersion"   value="3.5.5.52"/>
+  <property name="extHibernateVersion"   value="3.5.5.53"/>
 
   <property name="extPDF"         value="66E312DD-D083-27C0-64189D16753FD6F0"/>
   <property name="extPDFVersion"         value="1.0.0.48"/>

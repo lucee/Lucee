@@ -6,7 +6,7 @@ Minor-Name-Explanation: http://en.wikipedia.org/wiki/Velvet_(dog)
 State: beta
 Bundle-Name: Lucee Core
 Require-Bundle-Fragment: slf4j.nop;bundle-version=1.7.12,
- apache.xml.xalan.serializer;bundle-version=2.7.2.0006L
+ org.lucee.xalan.serializer;bundle-version=2.7.2
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: lucee.core
 Import-Package: coldfusion.xml.rpc,com.allaire.cfx,
@@ -338,9 +338,9 @@ Require-Bundle: org.lucee.commons.sanselan;bundle-version=0.97.0.incubator,
  log4j;bundle-version=1.2.17,
  org.lucee.axis.ant;bundle-version=1.4.0,
  org.lucee.axis;bundle-version=1.4.0,
- apache.xml.xalan;bundle-version=2.7.2.0007L,
- apache.xml.xerces;bundle-version=2.11.0.0005L,
- xml.apis;bundle-version=1.4.1,
+ org.lucee.xalan;bundle-version=2.7.2,
+ org.lucee.xml.xerces;bundle-version=2.11.0,
+ org.lucee.xml.apis;bundle-version=1.4.1,
  backport.util.concurrent;bundle-version=2.2.0,
  org.lucee.oswego-concurrent;bundle-version=1.3.4,
  net.sf.ehcache;bundle-version=2.10.0,
@@ -359,7 +359,7 @@ Require-Bundle: org.lucee.commons.sanselan;bundle-version=0.97.0.incubator,
  metadata.extractor;bundle-version=2.8.1.0002L,
  org.objectweb.asm.all;bundle-version=4.2,
  ojdbc14;bundle-version=0.0.0,
- resolver;bundle-version=1.2.0.0002L,
+ org.lucee.xml.resolver;bundle-version=1.2.0,
  slf4j.api;bundle-version=1.7.12,
  ss.css2;bundle-version=0.9.4,
  stax.api;bundle-version=1.0.1.0002L,
@@ -388,6 +388,6 @@ Require-Extension: 7E673D15-D87C-41A6-8B5F1956528C605F;name=MySQL;version=5.1.38
  D46D49C3-EB85-8D97-30BEC2F38561E985;name=Lucee Documentation;version=1.0.0.2,
  17AB52DE-B300-A94B-E058BD978511E39E;name=S3;version=0.9.4.101,
  D46B46A9-A0E3-44E1-D972A04AC3A8DC10;name=CFChart;version=1.0.19.19,
- FAD1E8CB-4F45-4184-86359145767C29DE;name=Hibernate;version=3.5.5.52,
+ FAD1E8CB-4F45-4184-86359145767C29DE;name=Hibernate;version=3.5.5.53,
  EFDEB172-F52E-4D84-9CD1A1F561B3DFC8;name=Lucene;version=2.4.1.28,
  66E312DD-D083-27C0-64189D16753FD6F0;name=PDF;version=1.0.0.48
