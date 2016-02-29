@@ -906,9 +906,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 					idName=idName2;
 					required=true;
 				}
+				if(idName==null) throw new TemplateException(data.srcCode,"invalid argument definition");
 			}
-			
-			
+
 			String typeName="any";
 			if(idName==null) throw new TemplateException(data.srcCode,"invalid argument definition");
 			comments(data);
@@ -919,16 +919,18 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			else if(idName.indexOf('.')!=-1 || idName.indexOf('[')!=-1) {
 				throw new TemplateException(data.srcCode,"invalid argument name ["+idName+"] definition");
 			}
+			if(idName==null) throw new TemplateException(data.srcCode,"invalid argument definition");
 			
 			comments(data);
 			Expression defaultValue;
+			
 			if(data.srcCode.isCurrent('=') || data.srcCode.isCurrent(':')) {
 				data.srcCode.next();
 				comments(data);
 				defaultValue=expression(data);
 			}
 			else defaultValue=null;
-			
+
 			// assign meta data defined in doc comment
 			passByRef = data.factory.TRUE();
 			displayName=data.factory.EMPTY();
@@ -958,7 +960,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 						params.remove(name);
 					}
 				}
-				
 			}
 			
 			// argument attributes
