@@ -16,13 +16,13 @@
   <property name="extURL" value="http://extension.lucee.org/rest/extension/provider/full/"/>
   
   <property name="extLucene"      value="EFDEB172-F52E-4D84-9CD1A1F561B3DFC8"/>
-  <property name="extLuceneVersion"      value="2.4.1.28"/>
+  <property name="extLuceneVersion"      value="2.4.1.29"/>
 
   <property name="extHibernate"   value="FAD1E8CB-4F45-4184-86359145767C29DE"/>
-  <property name="extHibernateVersion"   value="3.5.5.53"/>
+  <property name="extHibernateVersion"   value="3.5.5.56"/>
 
   <property name="extPDF"         value="66E312DD-D083-27C0-64189D16753FD6F0"/>
-  <property name="extPDFVersion"         value="1.0.0.48"/>
+  <property name="extPDFVersion"         value="1.0.0.49"/>
 
   <property name="extS3"          value="17AB52DE-B300-A94B-E058BD978511E39E"/>
   <property name="extS3Version"          value="0.9.4.101"/>
