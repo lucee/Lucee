@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.204-SNAPSHOT</version>
+  <version>5.0.0.205-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -585,20 +585,19 @@
          <scope>compile</scope>
       </dependency> -->
   
-  
-  
-<!--
-  Bundle-SymbolicName: ESAPI
-  Bundle-Version: 2.1.0
-  source: lucee
--->
   <dependency>
-    <groupId>ESAPI</groupId>
-    <artifactId>ESAPI</artifactId>
-    <type>jar</type>
-    <version>2.1.0</version>
-    <scope>compile</scope>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>esapi</artifactId>
+  	<version>2.1.0.1</version>
   </dependency>
+  <dependency>
+	<groupId>xom</groupId>
+	<artifactId>xom</artifactId>
+	<version>1.2.5</version>
+</dependency>
+  
+  
+  
 <!-- fusiondebug.api.server - 1.0.20 -->
   <dependency>
     <groupId>fusiondebug.api</groupId>

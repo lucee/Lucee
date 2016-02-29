@@ -345,7 +345,8 @@ Require-Bundle: org.lucee.commons.sanselan;bundle-version=0.97.0.incubator,
  org.lucee.oswego-concurrent;bundle-version=1.3.4,
  org.lucee.ehcache;bundle-version=2.10.1,
  org.lucee.jta;bundle-version=1.1.0,
- ESAPI;bundle-version=2.1.0,
+ org.lucee.esapi;bundle-version=2.1.0.1,
+ nu.xom;bundle-version=1.2.5.osgi,
  fusiondebug.api.server;bundle-version=1.0.20,
  org.lucee.httpcomponents.httpclient;bundle-version=4.5.0,
  org.lucee.httpcomponents.httpcore;bundle-version=4.4.1,
@@ -390,4 +391,4 @@ Require-Extension: 7E673D15-D87C-41A6-8B5F1956528C605F;name=MySQL;version=5.1.38
  D46B46A9-A0E3-44E1-D972A04AC3A8DC10;name=CFChart;version=1.0.19.19,
  FAD1E8CB-4F45-4184-86359145767C29DE;name=Hibernate;version=3.5.5.57,
  EFDEB172-F52E-4D84-9CD1A1F561B3DFC8;name=Lucene;version=2.4.1.29,
- 66E312DD-D083-27C0-64189D16753FD6F0;name=PDF;version=1.0.0.49
+ 66E312DD-D083-27C0-64189D16753FD6F0;name=PDF;version=1.0.0.50
