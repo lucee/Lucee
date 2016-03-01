@@ -5,6 +5,12 @@
   </description>
   
 
+  <taskdef resource="net/sf/antcontrib/antcontrib.properties">
+    <classpath>
+      <pathelement location="/usr/share/java/lib/ant-contrib-0.3.jar"/>
+    </classpath>
+  </taskdef>
+
   <property name="build.compiler" value="extJavac"/>
   <property name="agent" value="lucee.runtime.instrumentation.ExternalAgent"/>
   <property name="bundleName" value="Lucee Core"/>
@@ -56,6 +62,76 @@
   <tstamp>
       <format property="NOW" pattern="yyyy/MM/dd HH:mm:ss z" locale="en,GB"/>
   </tstamp>
+
+  <scriptdef name="readManifestEntry" language="javascript" loaderRef="sharedbuild-loaderRef">
+    <attribute name="file" />
+    <attribute name="variable" />
+    <attribute name="key" />
+    <![CDATA[
+        var filename = attributes.get("file");
+        var variable = attributes.get("variable");
+        var key = attributes.get("key");
+        
+        var manifest;
+        if (filename != null) {
+            manifest = new java.util.jar.Manifest(new java.io.FileInputStream(new java.io.File(filename)));
+        } else {
+            self.fail("missing file definition!");
+        }
+
+        var attrs=manifest.getMainAttributes();
+        project.setProperty(variable, attrs.getValue(key));
+    ]]>
+</scriptdef>
+
+  <scriptdef name="readRequiredExtensions" language="javascript" loaderRef="sharedbuild-loaderRef">
+    <attribute name="file" />
+    <![CDATA[
+        var filename = attributes.get("file");
+        var manifest = new java.util.jar.Manifest(new java.io.FileInputStream(new java.io.File(filename)));
+        var attrs=manifest.getMainAttributes();
+        var str=attrs.getValue("Require-Extension");
+        var arr=str.split(",");
+        var count=0;
+        var ids="";
+        var data="";
+        var versions="";
+        for (var i=0;i<arr.length;i++) {
+          var line=arr[i];
+          var extArr=line.split(';');
+          if(extArr.length<1) continue;
+          count++;
+          // the first is the id
+          if(ids.length>0)ids+=",";
+          ids+=extArr[0];
+          if(data.length>0)data+=",";
+          data+=extArr[0];
+          project.setProperty("reqExt.ID"+(i+1),extArr[0] );
+
+          // the rest has names
+          for (var y=1;y<extArr.length;y++) {
+            var ext=extArr[y];
+            var index=ext.indexOf('=');
+            if(index==-1) continue;
+              var name=ext.substring(0,index).trim();
+              var value=ext.substring(index+1).trim();
+              if(name=="version") {
+                if(versions.length>0)versions+=",";
+                versions+=value;
+                data+=";"+value;
+              }
+             project.setProperty("reqExt."+name+(i+1), value);
+          }
+        }
+        project.setProperty("reqExt.length", count+"");
+        project.setProperty("reqExt.ids", ids);
+        project.setProperty("reqExt.versions", versions);
+        project.setProperty("reqExt.data", data);
+
+
+        //
+    ]]>
+  </scriptdef>
 
   <macrodef name="echots">
     <attribute name="message"/>
@@ -173,7 +249,16 @@
      ]]>
   </scriptdef>
 
+
+
+<target name="setVar">
+    <property name="env.myreturn" value="${var}"/>
+    <echo>myreturn in setVar: ${env.myreturn}</echo>
+</target>
+
+
   <target name="init">
+    
 
     <property name="srcLoader" location="${rootDir}/loader/src/main/java"/>
     <property name="srcCore" location="${rootDir}/core/src/main/java"/>
@@ -190,6 +275,17 @@
     <property name="core" location="${temp}/core"/>
     <property file="${rootDir}/build.properties"/>
 
+    <readRequiredExtensions file="${coreManifest}"/>
+    <echo>Require-Extension:${reqExt.ID1}</echo>
+    <echo>Require-Extension:${reqExt.name1}</echo>
+    <echo>Require-Extension:${reqExt.version1}</echo>
+    <echo>Require-Extension:${reqExt.length}</echo>
+    <echo>Require-Extension:${reqExt.ids}</echo>
+    <echo>Require-Extension:${reqExt.versions}</echo>
+
+    <foreach target="setVar" param="var" list="${reqExt.data}"/>
+
+    <hkhlhlk/>
 <echo>
    __                     
   / / _   _  ___ ___  ___ 
