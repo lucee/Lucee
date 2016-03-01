@@ -46,7 +46,7 @@
 
   <!-- admin and doc -->
   <property name="extAdmin"       value="CED6227E-0F49-6367-A68D21AACA6B07E8"/>
-  <property name="extAdminVersion"       value="1.0.0.2"/>
+  <property name="extAdminVersion"       value="1.0.0.3"/>
   <property name="extDoc"         value="D46D49C3-EB85-8D97-30BEC2F38561E985"/>
   <property name="extDocVersion"         value="1.0.0.2"/>
 
