@@ -5,11 +5,6 @@
   </description>
   
 
-  <taskdef resource="net/sf/antcontrib/antcontrib.properties">
-    <classpath>
-      <pathelement location="/usr/share/java/lib/ant-contrib-0.3.jar"/>
-    </classpath>
-  </taskdef>
 
   <property name="build.compiler" value="extJavac"/>
   <property name="agent" value="lucee.runtime.instrumentation.ExternalAgent"/>
@@ -132,6 +127,30 @@
         //
     ]]>
   </scriptdef>
+  <scriptdef name="splitIdVersion" language="javascript">
+     <attribute name="prefix" />
+     <attribute name="value" />
+     <![CDATA[
+      var prefix = attributes.get("prefix");
+      var value = attributes.get("value");
+      
+      var index=value.indexOf(";");
+      var id;
+      var version="";
+      // no version
+      if(index==-1) {
+        id=value.trim();
+      }
+      else {
+        id=value.substring(0,index);
+        version=value.substring(index+1);
+      }
+      project.setProperty(prefix+"id", id);
+      project.setProperty(prefix+"version", version);
+     ]]>
+  </scriptdef>
+
+
 
   <macrodef name="echots">
     <attribute name="message"/>
@@ -252,8 +271,8 @@
 
 
 <target name="setVar">
-    <property name="env.myreturn" value="${var}"/>
-    <echo>myreturn in setVar: ${env.myreturn}</echo>
+    <splitIdVersion prefix="test" value="${var}"/>
+    <echo>myreturn in setVar: ${testid}:${testversion}</echo>
 </target>
 
 
@@ -283,6 +302,7 @@
     <echo>Require-Extension:${reqExt.ids}</echo>
     <echo>Require-Extension:${reqExt.versions}</echo>
 
+    <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
     <foreach target="setVar" param="var" list="${reqExt.data}"/>
 
     <hkhlhlk/>
