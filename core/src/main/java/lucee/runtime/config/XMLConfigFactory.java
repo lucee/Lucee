@@ -75,6 +75,35 @@ public abstract class XMLConfigFactory {
 		}
 		return NEW_NONE;
 	}
+	
+	public static void updateRequiredExtension(CFMLEngine engine, Resource contextDir) {
+		lucee.Info info = engine.getInfo();
+		try {
+			Resource res = contextDir.getRealResource("required-extension");
+			String str = info.getVersion() + "-" + info.getRealeaseTime();
+			if(!res.exists())res.createNewFile();
+			IOUtil.write(res, str, SystemUtil.getCharset(), false);
+			
+		}
+		catch (Throwable t) {
+		}
+	}
+
+	public static boolean isRequiredExtension(CFMLEngine engine, Resource contextDir) {
+		lucee.Info info = engine.getInfo();
+		try {
+			Resource res = contextDir.getRealResource("required-extension");
+			if(!res.exists()) return false;
+			
+			String writtenVersion=IOUtil.toString(res,SystemUtil.getCharset());
+			String currVersion = info.getVersion() + "-" + info.getRealeaseTime();
+			
+			return writtenVersion.equals(currVersion);
+		}
+		catch (Throwable t) {
+		}
+		return false;
+	}
 
 	/**
 	 * load XML Document from XML File

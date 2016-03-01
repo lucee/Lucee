@@ -45,7 +45,7 @@
 			
 			<cfset curr=server.lucee.version>
 			<cfset updateInfo=getAvailableVersion()>
-			<cfset hasUpdate=curr LT updateInfo.available>
+			<cfset hasUpdate=structKeyExists(updateInfo,"available") && curr LT updateInfo.available>
 			
 		</cfif>
 

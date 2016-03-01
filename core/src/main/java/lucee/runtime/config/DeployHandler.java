@@ -146,15 +146,18 @@ public class DeployHandler {
 	
 	
 	
-	public static void deployExtensions(Config config, ExtensionDefintion[] eds, Log log) {
+	public static boolean deployExtensions(Config config, ExtensionDefintion[] eds, Log log) {
+		boolean allSucessfull=true;
 		if(!ArrayUtil.isEmpty(eds)) {
 	    	ExtensionDefintion ed;
 			for(int i=0;i<eds.length;i++){
 				ed=eds[i];
 	    		if(StringUtil.isEmpty(ed.getId(),true)) continue;
-	    		deployExtension(config, ed,log,i+1==eds.length);
+	    		if(!deployExtension(config, ed,log,i+1==eds.length))
+	    			allSucessfull=false;
 	    	}
 	    }
+		return allSucessfull;
 	}
 
 	/**
@@ -197,7 +200,7 @@ public class DeployHandler {
 				XMLConfigAdmin._updateRHExtension((ConfigImpl) config, res, reload);
 				return true;
 			}
-			catch(Throwable t){
+			catch(Throwable t) {
 				ext=null;
 				t.printStackTrace();
 			}

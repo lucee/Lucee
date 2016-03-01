@@ -221,10 +221,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
     	Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader()); // MUST better location for this
 		
     	int doNew;
+    	Resource configDir=null;
     	try {
-			Resource configDir = getSeverContextConfigDirectory(factory);
+    		configDir = getSeverContextConfigDirectory(factory);
 			doNew=XMLConfigFactory.doNew(this,configDir, true);
-			
 		}
     	catch (IOException e) {
     		throw new PageRuntimeException(e);
@@ -248,6 +248,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
         
         // required extensions
         
+        boolean isRe=configDir==null?false:XMLConfigFactory.isRequiredExtension(this, configDir);
         
         // if we have a "fresh" install  
         Set<ExtensionDefintion> extensions;
@@ -258,7 +259,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
             	"Install Extensions ("+doNew+"):"+toList(extensions));
         }
         // if we have an update we update the extension that re installed and we have an older version as defined in the manifest
-        else if(doNew==XMLConfigFactory.NEW_MINOR) {
+        else if(doNew==XMLConfigFactory.NEW_MINOR || !isRe) {
         	extensions = new HashSet<ExtensionDefintion>();
         	Iterator<ExtensionDefintion> it = info.getRequiredExtension().iterator();
         	ExtensionDefintion ed;
@@ -294,12 +295,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
         }
         
         if(extensions.size()>0) {
-        	DeployHandler.deployExtensions(
+        	boolean sucess=DeployHandler.deployExtensions(
         			cs,
         			extensions.toArray(new ExtensionDefintion[extensions.size()]),
         			cs.getLog("deploy", true)
         			);
+        	if(sucess && configDir!=null)XMLConfigFactory.updateRequiredExtension(this, configDir);
         }
+        
         
         
 
