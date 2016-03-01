@@ -18,7 +18,6 @@
 <cfparam name="url.action2" default="none">
 <cfset error.message="">
 <cfset error.detail="">
-<cfset restBasePath="/rest/update/provider/">
 
 <cftry>
 <cfswitch expression="#url.action2#">
@@ -88,53 +87,15 @@ because this is only about optional updates, we do this only in background from 
 <cfset needNewJars=false>
 
 <cfscript>
-stText.services.update.serverNotReachable="Could not reach server {url}.";
-stText.services.update.serverFailed="server {url} failed to return a valid response.";
-
-	struct function getAvailableVersion() localmode="true"{
-		try{
-
-			admin
-				action="getAPIKey"
-				type="#request.adminType#"
-				password="#session["password"&request.adminType]#"
-				returnVariable="apiKey";
-
-			http
-			url="#update.location##restBasePath#info/#server.lucee.version#"
-			method="get" resolveurl="no" result="local.http" {
-				if(!isNull(apiKey))httpparam type="header" name="ioid" value="#apikey#";
-
-			}
-			// i have a response
-			if(isJson(http.filecontent)) {
-				rsp=deserializeJson(http.filecontent);
-			}
-			// service not available
-			else if(http.status_code==404) {
-				rsp={"type":"warning","message":replace(stText.services.update.serverNotReachable,'{url}',update.location)};
-			}
-			// server failed
-			else {
-				rsp={"type":"warning","message":replace(stText.services.update.serverFailed,'{url}',update.location)&" "&http.filecontent};
-			}
-		}
-		catch(e){
-			rsp={"type":"warning","message":replace(stText.services.update.serverFailed,'{url}',update.location)&" "&e.message};
-		}
-		return rsp;
-	}
+include "services.update.functions.cfm";
 
 // get info for the update location
-admin
-	action="getUpdate"
-	type="#request.adminType#"
-	password="#session["password"&request.adminType]#"
-	returnvariable="update";
+
 
 
 curr=server.lucee.version;
 updateData=getAvailableVersion();
+
 hasAccess=1;
 hasUpdate=structKeyExists(updateData,"available");
 
@@ -160,7 +121,7 @@ hasUpdate=structKeyExists(updateData,"available");
 								<!--- Release --->
 								<li>
 									<label>
-										<input type="radio" class="radio" name="location" value="http://release.lucee.org"<cfif update.location EQ 'http://release.lucee.org'> <cfset isCustom=false>checked="checked"</cfif> />
+										<input type="radio" class="radio" name="location" value="http://release.lucee.org"<cfif updateData.provider.location EQ 'http://release.lucee.org'> <cfset isCustom=false>checked="checked"</cfif> />
 										<b>#stText.services.update.location_release#</b>
 									</label>
 									<div class="comment">#stText.services.update.location_releaseDesc#</div>
@@ -168,7 +129,7 @@ hasUpdate=structKeyExists(updateData,"available");
 								<!--- Snapshot --->
 								<li>
 									<label>
-										<input type="radio" class="radio" name="location" value="http://snapshot.lucee.org"<cfif update.location EQ 'http://snapshot.lucee.org'> <cfset isCustom=false>checked="checked"</cfif> />
+										<input type="radio" class="radio" name="location" value="http://snapshot.lucee.org"<cfif updateData.provider.location EQ 'http://snapshot.lucee.org'> <cfset isCustom=false>checked="checked"</cfif> />
 										<b>#stText.services.update.location_snapshot#</b>
 									</label>
 									<div class="comment">#stText.services.update.location_snapshotDesc#</div>
@@ -178,7 +139,7 @@ hasUpdate=structKeyExists(updateData,"available");
 										<input type="radio" class="radio" id="sp_radio_custom" name="location"<cfif isCustom> checked="checked"</cfif> value="" />
 										<b>#stText.services.update.location_custom#</b>
 									</label>
-									<input id="customtextinput" type="text" class="text" name="locationCustom" size="40" value="<cfif isCustom>#update.location#</cfif>">
+									<input id="customtextinput" type="text" class="text" name="locationCustom" size="40" value="<cfif isCustom>#updateData.provider.location#</cfif>">
 									<div class="comment">#stText.services.update.location_customDesc#</div>
 
 									<cfsavecontent variable="headText">
@@ -198,7 +159,7 @@ hasUpdate=structKeyExists(updateData,"available");
 								</li>
 							</ul>
 						<cfelse>
-							<b>#update.location#</b>
+							<b>#updateData.provider.location#</b>
 						</cfif>
 					</td>
 				</tr>
@@ -207,11 +168,11 @@ hasUpdate=structKeyExists(updateData,"available");
 					<td>
 						<cfif hasAccess>
 							<select name="type">
-								<option value="manual" <cfif update.type EQ "manual">selected</cfif>>#stText.services.update.type_manually#</option>
-								<option value="auto" <cfif update.type EQ "auto">selected</cfif>>#stText.services.update.type_auto#</option>
+								<option value="manual" <cfif updateData.provider.type EQ "manual">selected</cfif>>#stText.services.update.type_manually#</option>
+								<option value="auto" <cfif updateData.provider.type EQ "auto">selected</cfif>>#stText.services.update.type_auto#</option>
 							</select>
 						<cfelse>
-							<b>#update.type#</b>
+							<b>#updateData.provider.type#</b>
 						</cfif>
 						<div class="comment">#stText.services.update.typeDesc#</div>
 					</td>

@@ -14,31 +14,17 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfsetting showdebugoutput="false">
-
-<cfparam name="session.alwaysNew" default="true" type="boolean">
-
-
-<cffunction name="getAvailableVersion" output="false">
-	<cfargument name="update">
-	<cfset var http="">
-	<cftry>
-		<cfhttp 
-			url="#update.location#/lucee/remote/version/Info.cfc?method=getpatchversionfor&level=#server.ColdFusion.ProductLevel#&version=#server.lucee.version#" 
-			method="get" resolveurl="no" result="http">
-		<cfwddx action="wddx2cfml" input="#http.fileContent#" output="local.wddx">
-		<cfset session.availableVersion=wddx>
-		<cfreturn session.availableVersion>
-		<cfcatch>
-			<cfreturn "">
-		</cfcatch>
-	</cftry>
-</cffunction>
-
-
-
 <cftry>
+<cfparam name="session.alwaysNew" default="true" type="boolean">
+<cfinclude template="services.update.functions.cfm">
+
+
+
+
+
 
 	<cfset adminType=url.adminType>
+	<cfset request.adminType=url.adminType>
 	<cfset password=session["password"&adminType]>
 	<cfset id="rai:"&hash(adminType&":"&password)>
 	<cfif not structKeyExists(session,id)>
@@ -56,58 +42,56 @@
 
 	<!--- Core --->
 		<cfif adminType == "server">
-			<cfadmin 
-				action="getUpdate"
-				type="#adminType#"
-				password="#password#"
-				returnvariable="update">
+			
 			<cfset curr=server.lucee.version>
-			<cfset avi=getAvailableVersion(update)>
-			<cfset hasUpdate=curr LT avi>
+			<cfset updateInfo=getAvailableVersion()>
+			<cfset hasUpdate=curr LT updateInfo.available>
+			
 		</cfif>
 
 	<!--- Extensions --->
 		<cfparam name="err" default="#struct(message:"",detail:"")#">
 		<cfinclude template="ext.functions.cfm">
 		<cfadmin 
-			action="getExtensions"
+			action="getRHExtensions"
 			type="#adminType#"
 			password="#password#"
 			returnVariable="extensions"><!--- #session["password"&url.adminType]# --->
-		
 		<cfif extensions.recordcount GT 0>
 			<cfadmin 
-				action="getExtensionProviders"
+				action="getRHExtensionProviders"
 				type="#adminType#"
 				password="#password#"
 				returnVariable="providers">
+			
+		
 			<cfset request.adminType=url.adminType>
-			<cfset data=getAllExternalData()>
+			<cfset external=getAllExternalData()>
+
 			<cfsavecontent variable="ext" trim="true">
 				<cfloop query="extensions">
 					<cfset sct={}>
 					<cfloop list="#extensions.columnlist()#" item="key">
 						<cfset sct[key]=extensions[key]>
 					</cfloop>
-
-					<cfif !updateAvailable(sct,extensions)>
+					<cfif !updateAvailable(sct,external)>
 						<cfcontinue>
 					</cfif>
-					<cfset uid=createId(extensions.provider,extensions.id)>
+					<cfset uid=extensions.id>
 					<cfset link="">
 					<cfset dn="">
-					<cfset link="#self#?action=extension.applications&action2=detail&uid=#uid#">
+					<cfset link="#self#?action=ext.applications&action2=detail&id=#uid#">
 					<cfoutput>
-						<a href="#link#" style="text-decoration:none;">- #extensions.label#</a><br>
+						<a href="#link#" style="color:red;text-decoration:none;">- #extensions.name#</a><br>
 					</cfoutput>
 				</cfloop>
 			</cfsavecontent>
 		</cfif>
 
-	<!--- Promotion --->
+	<!--- Promotion  disabled for the moment
 		<cfset existingExtensions={}>
 		<cfloop query="#extensions#">
-			<cfset existingExtensions[createId(extensions.provider,extensions.id)]=extensions.id>
+			<cfset existingExtensions[extensions.id]=extensions.id>
 		</cfloop>
 		<cfset promotion={level:0}>
 		
@@ -119,7 +103,7 @@
 			<cfif not isSimpleValue(provider)>
 				<cfset qry=provider.listApplications>
 				<cfloop query="#provider.listApplications#">
-					<cfset uid=createId(providerURL,qry.id)>
+					<cfset uid=qry.id>
 					<cfif	(qry.type EQ request.admintype or  qry.type EQ "all") and
 							!structKeyExists(existingExtensions,uid) and
 							isDefined('qry.promotionLevel') and 
@@ -136,7 +120,7 @@
 				</cfloop>
 			</cfif>
 		</cfloop>
-
+--->
 
 
 
@@ -147,7 +131,7 @@
 				<cfif adminType == "server" and hasUpdate>
 					<div class="error">
 						<a href="server.cfm?action=services.update" style="color:red;text-decoration:none;">
-						#replace( stText.services.update.update, { '{available}': avi, '{current}': curr } )#
+						#replace( stText.services.update.update, { '{available}': updateInfo.available, '{current}': curr } )#
 						</a>
 					</div>
 				</cfif>
@@ -155,14 +139,14 @@
 				<!--- Extension --->
 				<cfif extensions.recordcount and len(ext)>
 				<div class="error">
-					<a href="#self#?action=extension.applications" style="color:red;text-decoration:none;">
+					<a href="#self#?action=ext.applications" style="color:red;text-decoration:none;">
 						There are some updates available for your installed Extensions.<br>
 						#ext#
 					</a>
 				</div>
 				</cfif>
 				
-				<!--- Promotion<div class="normal"></div> --->
+				<!--- Promotion<div class="normal"></div> disabled for the moment
 				<cfif promotion.level GT 0>
 					
 					<h3><a href="#promotion.uri#">#promotion.label#</a></h3>
@@ -172,7 +156,7 @@
 					<span class="comment">#promotion.txt#</span>
 					
 				</cfif>
-				
+				 --->
 				
 			</cfoutput>
 		</cfsavecontent>
@@ -184,7 +168,7 @@
 
 	<cfoutput>#content#</cfoutput>
 	
-	<cfcatch><cfrethrow>
+	<cfcatch>
 		<cfoutput>
 			<div class="error">
 				Failed to retrieve update information:
