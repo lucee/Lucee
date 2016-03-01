@@ -38,7 +38,7 @@
   <property name="extMSSQL"       value="99A4EF8D-F2FD-40C8-8FB8C2E67A4EEEB6"/>
   <property name="extMSSQLVersion"       value="4.0.0"/>
   <property name="extPostgreSQL"  value="671B01B8-B3B3-42B9-AC055A356BED5281"/>
-  <property name="extPostgreSQLVersion"  value="9.4.1206.jdbc41"/>
+  <property name="extPostgreSQLVersion"  value="8.3.0.jdbc4"/>
   <property name="extJDTsSQL"     value="2BCD080F-4E1E-48F5-BEFE794232A21AF6"/>
   <property name="extJDTsSQLVersion"     value="1.2.5"/>
 
@@ -50,6 +50,7 @@
   <property name="extDoc"         value="D46D49C3-EB85-8D97-30BEC2F38561E985"/>
   <property name="extDocVersion"         value="1.0.0.2"/>
 
+<!-- TODO get the version number from manifest.mf --->
   
   <!-- http://www.coldbox.org/download/testbox -->
   <tstamp>
