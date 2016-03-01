@@ -16,40 +16,9 @@
     value="http://downloads.ortussolutions.com/ortussolutions/testbox/${testboxVersion}/testbox-${testboxVersion}.zip"/>
   <property name="extURL" value="http://extension.lucee.org/rest/extension/provider/full/"/>
   
-  <property name="extLucene"      value="EFDEB172-F52E-4D84-9CD1A1F561B3DFC8"/>
-  <property name="extLuceneVersion"      value="2.4.1.29"/>
-
-  <property name="extHibernate"   value="FAD1E8CB-4F45-4184-86359145767C29DE"/>
-  <property name="extHibernateVersion"   value="3.5.5.57"/>
-
-  <property name="extPDF"         value="66E312DD-D083-27C0-64189D16753FD6F0"/>
-  <property name="extPDFVersion"         value="1.0.0.50"/>
-
-  <property name="extS3"          value="17AB52DE-B300-A94B-E058BD978511E39E"/>
-  <property name="extS3Version"          value="0.9.4.101"/>
-
-  <property name="extChart"       value="D46B46A9-A0E3-44E1-D972A04AC3A8DC10"/>
-  <property name="extChartVersion"       value="1.0.19.19"/>
-
   <property name="extMongo"       value="E6634E1A-4CC5-4839-A83C67549ECA8D5B"/>
-
-  <!-- DB drivers -->
-  <property name="extMySQL"       value="7E673D15-D87C-41A6-8B5F1956528C605F"/>
-  <property name="extMySQLVersion"       value="5.1.38"/>
-  <property name="extMSSQL"       value="99A4EF8D-F2FD-40C8-8FB8C2E67A4EEEB6"/>
-  <property name="extMSSQLVersion"       value="4.0.0"/>
-  <property name="extPostgreSQL"  value="671B01B8-B3B3-42B9-AC055A356BED5281"/>
-  <property name="extPostgreSQLVersion"  value="8.3.0.jdbc4"/>
-  <property name="extJDTsSQL"     value="2BCD080F-4E1E-48F5-BEFE794232A21AF6"/>
-  <property name="extJDTsSQLVersion"     value="1.2.5"/>
-
   <property name="extH2"          value="465E1E35-2425-4F4E-8B3FAB638BD7280A"/>
 
-  <!-- admin and doc -->
-  <property name="extAdmin"       value="CED6227E-0F49-6367-A68D21AACA6B07E8"/>
-  <property name="extAdminVersion"       value="1.0.0.3"/>
-  <property name="extDoc"         value="D46D49C3-EB85-8D97-30BEC2F38561E985"/>
-  <property name="extDocVersion"         value="1.0.0.2"/>
 
 <!-- TODO get the version number from manifest.mf -->
   
@@ -91,6 +60,7 @@
         var ids="";
         var data="";
         var versions="";
+        var labels="";
         for (var i=0;i<arr.length;i++) {
           var line=arr[i];
           var extArr=line.split(';');
@@ -101,9 +71,12 @@
           ids+=extArr[0];
           if(data.length>0)data+=",";
           data+=extArr[0];
-          project.setProperty("reqExt.ID"+(i+1),extArr[0] );
+          var _id=extArr[0];
+          project.setProperty("reqExt.ID"+(i+1), _id);
 
           // the rest has names
+          var _version="";
+          var _name="";
           for (var y=1;y<extArr.length;y++) {
             var ext=extArr[y];
             var index=ext.indexOf('=');
@@ -114,13 +87,26 @@
                 if(versions.length>0)versions+=",";
                 versions+=value;
                 data+=";"+value;
+                _version=value;
+              }
+              if(name=="label") {
+                if(labels.length>0)labels+=",";
+                labels+=value;
+              }
+              else if(name=="name") {
+                _name=value;
               }
              project.setProperty("reqExt."+name+(i+1), value);
           }
+          project.setProperty("reqExt."+_name, _version);
+          project.setProperty("ext"+_name+"Version", _version);
+          project.setProperty("ext"+_name, _id);
+
         }
         project.setProperty("reqExt.length", count+"");
         project.setProperty("reqExt.ids", ids);
         project.setProperty("reqExt.versions", versions);
+        project.setProperty("reqExt.labels", labels);
         project.setProperty("reqExt.data", data);
 
 
@@ -269,11 +255,15 @@
   </scriptdef>
 
 
-
+<!-- TPDO make extension handling more dynamic
 <target name="setVar">
-    <splitIdVersion prefix="test" value="${var}"/>
-    <echo>myreturn in setVar: ${testid}:${testversion}</echo>
+    <splitIdVersion prefix="ext." value="${var}"/>
+    
+    <available file="${cache}/${ext.id}-${ext.version}.lex" property="ext.available"/>
+    <echo>available: ${ext.id}:${ext.available}</echo>
+
 </target>
+-->
 
 
   <target name="init">
@@ -294,34 +284,91 @@
     <property name="core" location="${temp}/core"/>
     <property file="${rootDir}/build.properties"/>
 
+
+    <!-- get the extensions from manifest -->
+    <!-- TODO extension handling must be more dynamic! -->
     <readRequiredExtensions file="${coreManifest}"/>
-    <echo>Require-Extension:${reqExt.ID1}</echo>
-    <echo>Require-Extension:${reqExt.name1}</echo>
-    <echo>Require-Extension:${reqExt.version1}</echo>
-    <echo>Require-Extension:${reqExt.length}</echo>
-    <echo>Require-Extension:${reqExt.ids}</echo>
-    <echo>Require-Extension:${reqExt.versions}</echo>
+    <fail message="Missing data from [Require-Extension] inside ${coreManifest}">
+    <condition>
+        <or>
+        <!-- Lucene -->
+        <not><isset property="extLucene"/></not>
+        <not><isset property="extLuceneVersion"/></not>
+        <!-- Hibernate -->
+        <not><isset property="extHibernate"/></not>
+        <not><isset property="extHibernateVersion"/></not>
+        <!-- PDF -->
+        <not><isset property="extPDF"/></not>
+        <not><isset property="extPDFVersion"/></not>
+        <!-- S3 -->
+        <not><isset property="extS3"/></not>
+        <not><isset property="extS3Version"/></not>
+        <!-- Chart -->
+        <not><isset property="extChart"/></not>
+        <not><isset property="extChartVersion"/></not>
+        <!-- MySQL -->
+        <not><isset property="extMySQL"/></not>
+        <not><isset property="extMySQLVersion"/></not>
+        <!-- MSSQL -->
+        <not><isset property="extMSSQL"/></not>
+        <not><isset property="extMSSQLVersion"/></not>
+        <!-- PostgreSQL -->
+        <not><isset property="extPostgreSQL"/></not>
+        <not><isset property="extPostgreSQLVersion"/></not>
+        <!-- JDTsSQL -->
+        <not><isset property="extJDTsSQL"/></not>
+        <not><isset property="extJDTsSQLVersion"/></not>
+        <!-- Admin -->
+        <not><isset property="extAdmin"/></not>
+        <not><isset property="extAdminVersion"/></not>
+        <!-- Doc -->
+        <not><isset property="extDoc"/></not>
+        <not><isset property="extDocVersion"/></not>
+        </or>
+    </condition>
+    </fail>
 
-    <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
-    <foreach target="setVar" param="var" list="${reqExt.data}"/>
-
-    <hkhlhlk/>
 <echo>
-   __                     
-  / / _   _  ___ ___  ___ 
- / / | | | |/ __/ _ \/ _ \
-/ /__| |_| | (_|  __/  __/
-\____/\__,_|\___\___|\___|
+               __                     
+              / / _   _  ___ ___  ___ 
+             / / | | | |/ __/ _ \/ _ \
+            / /__| |_| | (_|  __/  __/
+            \____/\__,_|\___\___|\___|
 
-==========================
-LUCEE BUILD PROCESS
-==========================                   
+
+
+           ____,'`-, 
+      _,--'   ,/::.; 
+   ,-'       ,/::,' `---.___        ___,_ 
+   |       ,:';:/        ;'"`;"`--./ ,-^.;--. 
+   |:     ,:';,'         '         `.   ;`   `-. 
+    \:.,:::/;/ -:.                   `  | `     `-. 
+     \:::,'//__.;  ,;  ,  ,  :.`-.   :. |  ;       :. 
+      \,',';/O)^. :'  ;  :   '__` `  :::`.       .:' ) 
+      |,'  |\__,: ;      ;  '/O)`.   :::`;       ' ,' 
+           |`--''            \__,' , ::::(       ,' 
+           `    ,            `--' ,: :::,'\   ,-' 
+            | ,;         ,    ,::'  ,:::   |,' 
+            |,:        .(          ,:::|   ` 
+            ::'_   _   ::         ,::/:| 
+           ,',' `-' \   `.      ,:::/,:| 
+          | : _  _   |   '     ,::,' ::: 
+          | \ O`'O  ,',   ,    :,'   ;:: 
+           \ `-'`--',:' ,' , ,,'      :: 
+            ``:.:.__   ',-','        ::' 
+              `--.__, ,::.         ::' 
+                   |:  ::::.       ::' 
+                   |:  ::::::    ,::' 
+
+           In every job that must be done. 
+             There is an element of fun!                  
     </echo>
 
-    <echots message="${version}"/>
-    <echots message="${name}"/>
-    <echots message="${name.explanation}"/>
-    <echots message="${rootDir}"/>
+    <echo message="${version}"/>
+    <echo message="${name}"/>
+    <echo message="${name.explanation}"/>
+    <echo message="Root: ${rootDir}"/>
+    <echo message="Required-Extensions: ${reqExt.labels}"/>
                     
     
     <!-- Create the time stamp -->
