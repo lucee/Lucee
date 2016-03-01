@@ -50,7 +50,7 @@
   <property name="extDoc"         value="D46D49C3-EB85-8D97-30BEC2F38561E985"/>
   <property name="extDocVersion"         value="1.0.0.2"/>
 
-<!-- TODO get the version number from manifest.mf --->
+<!-- TODO get the version number from manifest.mf -->
   
   <!-- http://www.coldbox.org/download/testbox -->
   <tstamp>
@@ -177,6 +177,7 @@
 
     <property name="srcLoader" location="${rootDir}/loader/src/main/java"/>
     <property name="srcCore" location="${rootDir}/core/src/main/java"/>
+    <property name="coreManifest" location="${srcCore}/META-INF/MANIFEST.MF"/>
     <property name="cache" location="${rootDir}/cache"/>
     <property name="trgLoader" location="${rootDir}/loader/target"/>
     <property name="trgCore" location="${rootDir}/core/target"/>
@@ -239,7 +240,6 @@ LUCEE BUILD PROCESS
     </macrodef>
 
   <target name="check-cache">
-      <!-- download file necessary -->
 
     <available file="${cache}/testbox-${testboxVersion}.zip" property="testbox.present"/>
 
