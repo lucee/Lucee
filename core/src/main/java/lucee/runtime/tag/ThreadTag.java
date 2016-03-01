@@ -129,9 +129,13 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		this._name=KeyImpl.init(name);
 	}
 
-	private Collection.Key name() {
-		if(_name==null) _name=KeyImpl.init("thread"+RandomUtil.createRandomStringLC(20));
+	private Collection.Key name(boolean create) {
+		if(_name==null && create) _name=KeyImpl.init("thread"+RandomUtil.createRandomStringLC(20));
 		return _name;
+	}
+	private String nameAsString(boolean create) {
+		name(create);
+		return _name==null?null:_name.getString();
 	}
 
 	/**
@@ -257,11 +261,11 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 				doSleep();
 			break;
 			case ACTION_TERMINATE:	
-				required("thread", "terminate", "name", name().getString());
+				required("thread", "terminate", "name", nameAsString(false));
 				doTerminate();
 			break;
 			case ACTION_RUN:		
-				required("thread", "run", "name", name().getString());
+				//required("thread", "run", "name", name(true).getString());
 				return EVAL_BODY_INCLUDE;
 			
 		}
@@ -280,21 +284,21 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		
 		if(((PageContextImpl)pc).getParentPageContext()!=null)
 			throw new ApplicationException("could not create a thread within a child thread");
-		
+		Key name = name(true);
 		try {
-			Threads ts = pc.getThreadScope(name());
+			Threads ts = pc.getThreadScope(name);
 			
 			if(type==TYPE_DAEMON){
 				if(ts!=null)
-					throw new ApplicationException("could not create a thread with the name ["+name().getString()+"]. name must be unique within a request");
-				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc,currentPage,name().getString(),threadIndex,attrs,false);
-				pc.setThreadScope(name(),new ThreadsImpl(ct));
+					throw new ApplicationException("could not create a thread with the name ["+name.getString()+"]. name must be unique within a request");
+				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc,currentPage,name.getString(),threadIndex,attrs,false);
+				pc.setThreadScope(name,new ThreadsImpl(ct));
 				ct.setPriority(priority);
 				ct.setDaemon(false);
 				ct.start();
 			}
 			else {
-				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc,currentPage,name().getString(),threadIndex,attrs,true);
+				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc,currentPage,name.getString(),threadIndex,attrs,true);
 				ct.setPriority(priority);
 				((ConfigImpl)pc.getConfig()).getSpoolerEngine().add(new ChildSpoolerTask(ct,plans));
 			}
@@ -320,10 +324,11 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
     	PageContextImpl mpc=(PageContextImpl)getMainPageContext(pc);
 		
     	String[] names;
-    	if(name()==null) {
+    	Key name = name(false);
+    	if(name==null) {
     		names=mpc.getThreadScopeNames();
     	}
-    	else names=ListUtil.listToStringArray(name().getLowerString(), ',');
+    	else names=ListUtil.listToStringArray(name.getLowerString(), ',');
     	
     	ChildThread ct;
     	Threads ts;
@@ -354,10 +359,10 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	private void doTerminate() throws ApplicationException {
 		PageContextImpl mpc=(PageContextImpl)getMainPageContext(pc);
 		
-		Threads ts = mpc.getThreadScope(name());
+		Threads ts = mpc.getThreadScope(nameAsString(false));
 		
 		if(ts==null)
-			throw new ApplicationException("there is no thread running with the name ["+name().getString()+"]");
+			throw new ApplicationException("there is no thread running with the name ["+nameAsString(false)+"]");
 		ChildThread ct = ts.getChildThread();
 		
 		if(ct.isAlive()){
