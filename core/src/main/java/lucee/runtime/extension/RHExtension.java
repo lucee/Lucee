@@ -964,12 +964,4 @@ public class RHExtension implements Serializable {
 		}
 		return rtn;
 	}
-	
-	public static void main(String[] args) {
-		Set<ExtensionDefintion> set = CFMLEngineImpl.toSet(null,toExtensionDefinitions("aaa,aaa,bbb,aaa"));
-		print.e(set);
-		set=CFMLEngineImpl.toSet(set,toExtensionDefinitions("aaa,bbb,ccc"));
-		print.e(set);
-		
-	}
 }
