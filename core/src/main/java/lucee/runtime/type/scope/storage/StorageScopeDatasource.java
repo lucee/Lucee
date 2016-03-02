@@ -114,7 +114,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 			throw Caster.toPageException(se);
 		}
 	    finally {
-	    	if(dc!=null) pool.releaseDatasourceConnection(config,dc,true);
+	    	if(dc!=null) pool.releaseDatasourceConnection(dc);
 	    }
 	    
 	    if(query!=null && pc.getConfig().debug()) {
@@ -164,7 +164,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 			ScopeContext.error(log, t);
 		}
 		finally {
-			if(dc!=null) pool.releaseDatasourceConnection(config,dc,true);
+			if(dc!=null) pool.releaseDatasourceConnection(dc);
 		}
 	}
 	
@@ -189,7 +189,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 			ScopeContext.error(log, t);
 		}
 		finally {
-			if(dc!=null) pool.releaseDatasourceConnection(ci,dc,true);
+			if(dc!=null) pool.releaseDatasourceConnection(dc);
 		}
 	}
 	

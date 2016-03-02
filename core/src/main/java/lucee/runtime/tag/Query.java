@@ -265,7 +265,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	public void setDatasource(Object datasource) throws PageException, ClassException, BundleException	{
 		if (Decision.isStruct(datasource)) {
-			this.datasource=AppListenerUtil.toDataSource("__temp__", Caster.toStruct(datasource),pageContext.getConfig().getLog("application"));
+			this.datasource=AppListenerUtil.toDataSource(pageContext.getConfig(),"__temp__", Caster.toStruct(datasource),pageContext.getConfig().getLog("application"));
 		} 
 		else if (Decision.isString(datasource)) {
 			this.datasource=pageContext.getDataSource(Caster.toString(datasource));

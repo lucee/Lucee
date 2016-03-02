@@ -624,7 +624,7 @@ public final class PageContextImpl extends PageContext {
 			java.util.Iterator<DatasourceConnection> it = transConns.values().iterator();
 			DatasourceConnectionPool pool = config.getDatasourceConnectionPool();
 			while(it.hasNext())	{
-				pool.releaseDatasourceConnection(config,(it.next()),true);
+				pool.releaseDatasourceConnection((it.next()));
 			}
 			transConns.clear();
 		}

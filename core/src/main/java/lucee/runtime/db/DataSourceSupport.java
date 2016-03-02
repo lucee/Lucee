@@ -24,10 +24,12 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.TimeZone;
 
+import lucee.print;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 
 import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.BundleException;
@@ -57,10 +59,10 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 	private final Log log; 
 
 
-	public DataSourceSupport(JDBCDriver jdbc, String name, ClassDefinition cd,String username, String password, boolean blob,boolean clob,int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, Log log) {
+	public DataSourceSupport(Config config, JDBCDriver jdbc, String name, ClassDefinition cd,String username, String password, boolean blob,boolean clob,int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, Log log) {
 		this.jdbc=jdbc;
 		this.name=name;
-        this.cd=cd;
+        this.cd=_initializeCD(jdbc,cd, config);
 		this.blob=blob;
 		this.clob=clob;
 		this.connectionLimit=connectionLimit;
@@ -105,7 +107,7 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 	
 	private Driver initialize(Config config) throws ClassException, BundleException, InstantiationException, IllegalAccessException {
 		if(driver==null) {
-			cd=_initializeCD(jdbc,cd, config);
+			//cd=_initializeCD(jdbc,cd, config);
 			driver=_initializeDriver(cd,config);
 		}
 		return driver;
@@ -114,8 +116,7 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 	private static ClassDefinition _initializeCD(JDBCDriver jdbc,ClassDefinition cd, Config config) {
 		// try to link the class defintion with a jdbc driver defintion
 		if(!cd.isBundle()) {
-			
-			ConfigImpl ci = ((ConfigImpl)config);
+			ConfigImpl ci = ((ConfigImpl)ThreadLocalPageContext.getConfig(config));
 			JDBCDriver tmp = jdbc!=null? ci.getJDBCDriverById(jdbc.cd.getId(), null):null;
 			if(tmp==null)tmp = ((ConfigImpl)config).getJDBCDriverByClassName(cd.getClassName(), null);
 			// we have a matching jdbc driver found 

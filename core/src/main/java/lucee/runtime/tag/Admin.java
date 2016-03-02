@@ -2843,7 +2843,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         //config.getDatasourceConnectionPool().remove(name);
         DataSource ds=null;
 		try {
-			ds = new DataSourceImpl(null,name,cd,host,dsn,database,port,username,password,connLimit,connTimeout,metaCacheTimeout,blob,clob,allow,custom,false,validate,storage,null, dbdriver,config.getLog("application"));
+			ds = new DataSourceImpl(config,null,name,cd,host,dsn,database,port,username,password,connLimit,connTimeout,metaCacheTimeout,blob,clob,allow,custom,false,validate,storage,null, dbdriver,config.getLog("application"));
 		} catch (Exception e) {
 			throw new DatabaseException(
 					"can't find class ["+cd.toString()+"] for jdbc driver, check if driver (jar file) is inside lib folder ("+e.getMessage()+")",null,null,null);

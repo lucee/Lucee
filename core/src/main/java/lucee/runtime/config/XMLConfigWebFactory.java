@@ -2339,7 +2339,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			boolean validate, boolean storage, String timezone, Struct custom, String dbdriver) throws BundleException, ClassException, SQLException {
 
 		datasources.put( datasourceName.toLowerCase(),
-				new DataSourceImpl(null,datasourceName, cd, server, dsn, databasename, port, user, pass, connectionLimit, connectionTimeout, metaCacheTimeout, blob, clob, allow,
+				new DataSourceImpl(config,null,datasourceName, cd, server, dsn, databasename, port, user, pass, connectionLimit, connectionTimeout, metaCacheTimeout, blob, clob, allow,
 						custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver,config.getLog("application")) );
 
 	}

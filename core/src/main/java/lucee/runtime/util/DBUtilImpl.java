@@ -123,7 +123,7 @@ public class DBUtilImpl implements DBUtil {
 
 	@Override
 	public void releaseDatasourceConnection(Config config, DatasourceConnection dc, boolean async) {
-		((ConfigImpl)config).getDatasourceConnectionPool().releaseDatasourceConnection(config, dc, async);
+		((ConfigImpl)config).getDatasourceConnectionPool().releaseDatasourceConnection( dc);
 	}
 
 	@Override

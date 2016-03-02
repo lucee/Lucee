@@ -137,27 +137,27 @@ public final class AppListenerUtil {
 		return "";
 	}
 	
-	public static DataSource[] toDataSources(Object o,DataSource[] defaultValue,Log log) {
+	public static DataSource[] toDataSources(Config config, Object o,DataSource[] defaultValue,Log log) {
 		try {
-			return toDataSources(o,log);
+			return toDataSources(config,o,log);
 		} catch (Throwable t) {
 			return defaultValue;
 		}
 	}
 
-	public static DataSource[] toDataSources(Object o,Log log) throws PageException {
+	public static DataSource[] toDataSources(Config config, Object o,Log log) throws PageException {
 		Struct sct = Caster.toStruct(o);
 		Iterator<Entry<Key, Object>> it = sct.entryIterator();
 		Entry<Key, Object> e;
 		java.util.List<DataSource> dataSources=new ArrayList<DataSource>();
 		while(it.hasNext()) {
 			e = it.next();
-			dataSources.add(toDataSource(e.getKey().getString().trim(), Caster.toStruct(e.getValue()),log));
+			dataSources.add(toDataSource(config,e.getKey().getString().trim(), Caster.toStruct(e.getValue()),log));
 		}
 		return dataSources.toArray(new DataSource[dataSources.size()]);
 	}
 
-	public static DataSource toDataSource(String name,Struct data,Log log) throws PageException {
+	public static DataSource toDataSource(Config config, String name,Struct data,Log log) throws PageException {
 			String user = Caster.toString(data.get(KeyConstants._username,null),null);
 			String pass = Caster.toString(data.get(KeyConstants._password,""),"");
 			if(StringUtil.isEmpty(user)) {
@@ -181,6 +181,7 @@ public final class AppListenerUtil {
 				
 				try{
 				return ApplicationDataSource.getInstance(
+					config,
 					name, 
 					cd, 
 					Caster.toString(oConnStr), 
@@ -204,7 +205,7 @@ public final class AppListenerUtil {
 			DataSourceDefintion dbt = DBUtil.getDataSourceDefintionForType(type, null);
 			if(dbt==null) throw new ApplicationException("no datasource type ["+type+"] found");
 			try {
-				return new DataSourceImpl(null,
+				return new DataSourceImpl(config,null,
 					name, 
 					dbt.classDefinition, 
 					Caster.toString(data.get(KeyConstants._host)), 
@@ -467,7 +468,7 @@ public final class AppListenerUtil {
 		Object o = sct.get(KeyConstants._datasource,null);
 		
 		if(o!=null) {
-			o=toDefaultDatasource(o,config.getLog("application"));
+			o=toDefaultDatasource(config,o,config.getLog("application"));
 			if(o!=null) ac.setORMDataSource(o);
 		}
 	}
@@ -552,7 +553,7 @@ public final class AppListenerUtil {
 	    throw new ApplicationException("invalid loginStorage definition ["+strLoginStorage+"], valid values are [session,cookie]");
 	}
 	
-	public static Object toDefaultDatasource(Object o,Log log) throws PageException {
+	public static Object toDefaultDatasource(Config config,Object o,Log log) throws PageException {
 		if(Decision.isStruct(o)) {
 			Struct sct=(Struct) o;
 			
@@ -565,7 +566,7 @@ public final class AppListenerUtil {
 			}
 			
 			try {
-				return AppListenerUtil.toDataSource("__default__",sct,log);
+				return AppListenerUtil.toDataSource(config,"__default__",sct,log);
 			} 
 			catch (PageException pe) { 
 				// again try fix for Jira ticket LUCEE-1931

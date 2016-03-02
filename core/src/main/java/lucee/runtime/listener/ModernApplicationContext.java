@@ -301,13 +301,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		// datasource
 		Object o = get(component,KeyConstants._datasource,null);
 		if(o!=null) {
-			this.ormDatasource=this.defaultDataSource = AppListenerUtil.toDefaultDatasource(o,pc.getConfig().getLog("application"));
+			this.ormDatasource=this.defaultDataSource = AppListenerUtil.toDefaultDatasource(pc.getConfig(),o,pc.getConfig().getLog("application"));
 		}
 
 		// default datasource
 		o=get(component,DEFAULT_DATA_SOURCE,null);
 		if(o!=null) {
-			this.defaultDataSource =AppListenerUtil.toDefaultDatasource(o,pc.getConfig().getLog("application"));
+			this.defaultDataSource =AppListenerUtil.toDefaultDatasource(pc.getConfig(),o,pc.getConfig().getLog("application"));
 		}
 		
 		// ormenabled
@@ -895,7 +895,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 				if(!Decision.isStruct(o)) o=null;
 			}*/
 			
-			if(o!=null) dataSources=AppListenerUtil.toDataSources(o,dataSources,config.getLog("application"));
+			if(o!=null) dataSources=AppListenerUtil.toDataSources(config,o,dataSources,config.getLog("application"));
 			
 			initDataSources=true; 
 		}

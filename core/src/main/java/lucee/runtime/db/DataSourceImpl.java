@@ -26,7 +26,9 @@ import java.util.TimeZone;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -74,11 +76,11 @@ public final class DataSourceImpl  extends DataSourceSupport {
 	 */
    
 
-	public DataSourceImpl(JDBCDriver driver,String name, ClassDefinition cd, String host, String connStr, String database, int port, String username, String password,
+	public DataSourceImpl(Config config,JDBCDriver driver,String name, ClassDefinition cd, String host, String connStr, String database, int port, String username, String password,
             int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow, Struct custom, boolean readOnly,
             boolean validate, boolean storage, TimeZone timezone, String dbdriver,Log log) throws BundleException, ClassException, SQLException {
 
-		super(driver,name, cd,username,ConfigWebUtil.decrypt(password),blob,clob,connectionLimit, connectionTimeout, metaCacheTimeout, timezone, allow<0?ALLOW_ALL:allow, storage, readOnly,log);
+		super(config,driver,name, cd,username,ConfigWebUtil.decrypt(password),blob,clob,connectionLimit, connectionTimeout, metaCacheTimeout, timezone, allow<0?ALLOW_ALL:allow, storage, readOnly,log);
 			
         this.host=host;
         this.database=database;
@@ -171,7 +173,7 @@ public final class DataSourceImpl  extends DataSourceSupport {
     
     public DataSource _clone(boolean readOnly) {
     	try {
-            return new DataSourceImpl(jdbc,getName(),getClassDefinition(), host, connStr, database, port, getUsername(), getPassword(), getConnectionLimit(), getConnectionTimeout(),getMetaCacheTimeout(), isBlob(), isClob(), allow, custom, readOnly, validate, isStorage(),getTimeZone(), dbdriver,getLog());
+            return new DataSourceImpl(ThreadLocalPageContext.getConfig(),jdbc,getName(),getClassDefinition(), host, connStr, database, port, getUsername(), getPassword(), getConnectionLimit(), getConnectionTimeout(),getMetaCacheTimeout(), isBlob(), isClob(), allow, custom, readOnly, validate, isStorage(),getTimeZone(), dbdriver,getLog());
 		} catch (RuntimeException re) {
 			throw re; // this should never happens, because the class was already loaded in this object
 		} catch (Exception e) {

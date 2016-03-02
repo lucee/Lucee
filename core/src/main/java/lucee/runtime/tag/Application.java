@@ -218,11 +218,11 @@ public final class Application extends TagImpl {
 	 * @throws PageException 
 	 */
 	public void setDatasource(Object datasource) throws PageException {
-		this.datasource = AppListenerUtil.toDefaultDatasource(datasource,pageContext.getConfig().getLog("application"));
+		this.datasource = AppListenerUtil.toDefaultDatasource(pageContext.getConfig(),datasource,pageContext.getConfig().getLog("application"));
 	}
 	
 	public void setDefaultdatasource(Object defaultdatasource) throws PageException {
-		this.defaultdatasource =  AppListenerUtil.toDefaultDatasource(defaultdatasource,pageContext.getConfig().getLog("application"));
+		this.defaultdatasource =  AppListenerUtil.toDefaultDatasource(pageContext.getConfig(),defaultdatasource,pageContext.getConfig().getLog("application"));
 	}
 	
 	public void setDatasources(Struct datasources) {
@@ -535,7 +535,7 @@ public final class Application extends TagImpl {
 		if(!StringUtil.isEmpty(defaultdatasource))ac.setDefDataSource(defaultdatasource);
 		if(datasources!=null){
 			try {
-				ac.setDataSources(AppListenerUtil.toDataSources(datasources,pageContext.getConfig().getLog("application")));
+				ac.setDataSources(AppListenerUtil.toDataSources(pageContext.getConfig(),datasources,pageContext.getConfig().getLog("application")));
 			} 
 			catch (Exception e) {
 				throw Caster.toPageException(e);

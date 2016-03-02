@@ -20,11 +20,12 @@ package lucee.runtime.db;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.commons.digest.HashUtil;
+import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
@@ -38,7 +39,7 @@ import lucee.runtime.type.util.ArrayUtil;
 public class DatasourceConnectionPool {
 
 	private ConcurrentHashMap<String,DCStack> dcs=new ConcurrentHashMap<String,DCStack>();
-	private Map<String,RefInteger> counter=new HashMap<String,RefInteger>();
+	private Map<String,RefInteger> counter=new ConcurrentHashMap<String,RefInteger>();
 	
 	public DatasourceConnection getDatasourceConnection(Config config,DataSource datasource, String user, String pass) throws PageException {
 		config=ThreadLocalPageContext.getConfig(config);
@@ -57,7 +58,7 @@ public class DatasourceConnectionPool {
 		// max connection
 		int max=datasource.getConnectionLimit();
 		synchronized (stack) {
-			while(max!=-1 && max<=_size(datasource)) {
+			while(max!=-1 && max<=_size(datasource,user,pass)) {
 				try {
 					stack.wait(10000L);
 				} 
@@ -69,13 +70,13 @@ public class DatasourceConnectionPool {
 			while(!stack.isEmpty()) {
 				DatasourceConnectionImpl dc=(DatasourceConnectionImpl) stack.get();
 				if(dc!=null && isValid(dc,Boolean.TRUE)){
-					_inc(datasource);
+					_inc(datasource,user,pass);
 					return dc.using();
 				}	
 			}
 			//config=ThreadLocalPageContext.getConfig();
 			
-			_inc(datasource);
+			_inc(datasource,user,pass);
 
 		}			
 		return loadDatasourceConnection(config,datasource, user, pass).using();
@@ -97,27 +98,25 @@ public class DatasourceConnectionPool {
         return new DatasourceConnectionImpl(conn,ds,user,pass);
     }
 	
-	public void releaseDatasourceConnection(Config config,DatasourceConnection dc, boolean async) {
-		releaseDatasourceConnection(dc);
-		//if(async)((SpoolerEngineImpl)config.getSpoolerEngine()).add((DatasourceConnectionImpl)dc);
-		//else releaseDatasourceConnection(dc);
-	}
-	
-	public void releaseDatasourceConnection(DatasourceConnection dc) {
+	public void releaseDatasourceConnection(DatasourceConnection dc,boolean closeIt) {
 		if(dc==null) return;
 		
 		DCStack stack=getDCStack(dc.getDatasource(), dc.getUsername(), dc.getPassword());
 		synchronized (stack) {
-			stack.add(dc);
-			int max = dc.getDatasource().getConnectionLimit();
-
+			if(closeIt) IOUtil.closeEL(dc.getConnection());
+			else stack.add(dc);
+			
+			int max =dc.getDatasource().getConnectionLimit();
 			if(max!=-1) {
-				_dec(dc.getDatasource());
+				_dec(dc.getDatasource(),dc.getUsername(),dc.getPassword());
 				stack.notify();
-				 
 			}
-			else _dec(dc.getDatasource());
+			else _dec(dc.getDatasource(),dc.getUsername(),dc.getPassword());
 		}
+	}
+	
+	public void releaseDatasourceConnection(DatasourceConnection dc) {
+		releaseDatasourceConnection(dc, false);
 	}
 
 	public void clear() {
@@ -135,7 +134,7 @@ public class DatasourceConnectionPool {
 
 	public void remove(DataSource datasource) {
 		Object[] arr = dcs.keySet().toArray();
-		String key,id=datasource.id();
+		String key,id=datasource.id(); // MUST
         for(int i=0;i<arr.length;i++) {
         	key=(String) arr[i];
         	if(key.startsWith(id)) {
@@ -195,26 +194,31 @@ public class DatasourceConnectionPool {
 		return count;
 	}
 
-	private void _inc(DataSource datasource) {
-		_getCounter(datasource).plus(1);
+	private void _inc(DataSource datasource, String username,String password) {
+		RefInteger c = _getCounter(datasource,username,password);
+		c.plus(1);
 	}
-	private void _dec(DataSource datasource) {
-		_getCounter(datasource).minus(1);
+	private void _dec(DataSource datasource, String username,String password) {
+		RefInteger c = _getCounter(datasource,username,password);
+		c.minus(1);
 	}
-	private int _size(DataSource datasource) {
-		return _getCounter(datasource).toInt();
+	private int _size(DataSource datasource, String username,String password) {
+		return _getCounter(datasource,username,password).toInt();
 	}
 
-	private RefInteger _getCounter(DataSource datasource) {
-		String did = datasource.id();
-		RefInteger ri=counter.get(did);
-		if(ri==null) {
-			counter.put(did,ri=new RefIntegerImpl(0));
+	private RefInteger _getCounter(DataSource datasource, String username,String password) {
+		String did = createId(datasource, username, password);
+		synchronized (counter) {
+			RefInteger ri=counter.get(did);
+			if(ri==null) {
+				counter.put(did,ri=new RefIntegerImpl(0));
+			}
+			return ri;
 		}
-		return ri;
+		
 	}
 
 	public static String createId(DataSource datasource, String user, String pass) {
-		return datasource.id()+":"+user+":"+pass;
+		return HashUtil.create64BitHashAsString(datasource.id()+":"+user+":"+pass);
 	}
 }

@@ -147,10 +147,11 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	@Override
 	public void releaseConnection(PageContext pc,DatasourceConnection dc) {
 		if(autoCommit) {
-			if(pc.getRequestTimeoutException()!=null) 
-				IOUtil.closeEL(dc.getConnection());
+			if(pc.getRequestTimeoutException()!=null) {
+				config.getDatasourceConnectionPool().releaseDatasourceConnection(dc,true);
+			}
 			else
-				config.getDatasourceConnectionPool().releaseDatasourceConnection(config,dc,false);
+				config.getDatasourceConnectionPool().releaseDatasourceConnection(dc);
 		}
 	}
 	

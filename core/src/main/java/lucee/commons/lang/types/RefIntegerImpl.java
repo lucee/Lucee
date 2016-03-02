@@ -38,7 +38,7 @@ public class RefIntegerImpl implements RefInteger {
      * @param value
      */
     @Override
-	public void setValue(int value) {
+	public synchronized void setValue(int value) {
         this.value = value;
     }
     
@@ -47,7 +47,7 @@ public class RefIntegerImpl implements RefInteger {
      * @param value
      */
     @Override
-	public void plus(int value) {
+	public synchronized void plus(int value) {
         this.value+=value;
     }
     
@@ -56,7 +56,7 @@ public class RefIntegerImpl implements RefInteger {
      * @param value
      */
     @Override
-	public void minus(int value) {
+	public synchronized void minus(int value) {
         this.value-=value;
     }
 
@@ -64,31 +64,31 @@ public class RefIntegerImpl implements RefInteger {
      * @return returns value as integer
      */
     @Override
-	public Integer toInteger() {
+	public synchronized Integer toInteger() {
         return Integer.valueOf(value);
     }
     /**
      * @return returns value as integer
      */
     @Override
-	public Double toDouble() {
+	public synchronized Double toDouble() {
         return new Double(value);
     }
     
 
 	@Override
-	public double toDoubleValue() {
+	public synchronized double toDoubleValue() {
 		return value;
 	}
 	
 	@Override
-	public int toInt() {
+	public synchronized int toInt() {
 		return value;
 	}
     
     
     @Override
-    public String toString() {
+    public synchronized String toString() {
         return String.valueOf(value);
     }
 }
