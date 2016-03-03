@@ -75,8 +75,9 @@ public final class JSession extends ScopeSupport implements Session,HttpSessionB
 		    if(hs!=null)this.httpSession=hs;
 		    if(httpSession!=null) {
 			    id = httpSession.getId();
-			    if(httpSession.getMaxInactiveInterval()<(timespan/1000))
-			    	httpSession.setMaxInactiveInterval((int)(timespan/1000));
+			    int timeoutInSeconds = ((int)(timespan/1000))+60;
+			    if(httpSession.getMaxInactiveInterval()<timeoutInSeconds)
+			    	httpSession.setMaxInactiveInterval(timeoutInSeconds);
 		    }
 		    
 		}

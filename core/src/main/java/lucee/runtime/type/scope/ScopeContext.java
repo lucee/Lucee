@@ -613,7 +613,7 @@ public final class ScopeContext {
         if(maxSessionTimeout<s)maxSessionTimeout=s;
         
         if(httpSession!=null) {
-        	httpSession.setMaxInactiveInterval(maxSessionTimeout);
+        	httpSession.setMaxInactiveInterval(maxSessionTimeout+60);
         	session= httpSession.getAttribute(appContext.getName());
         }
         else {
