@@ -114,7 +114,7 @@ public class InstrumentationFactory {
 	                
                 }
                 catch(IOException ioe){
-                	log.log(Log.LEVEL_ERROR,"Instrumentation", ioe);
+                	log.log(Log.LEVEL_INFO,"Instrumentation", ioe);
                 }
                 finally{
                 	Thread.currentThread().setContextClassLoader(ccl);
@@ -158,7 +158,7 @@ public class InstrumentationFactory {
 			log.info("Instrumentation", "found [lucee.runtime.instrumentation.ExternalAgent] in ClassLoader ["+clazz.getClassLoader()+"]");
 		}
 		else {
-			log.error("Instrumentation", "not found [lucee.runtime.instrumentation.ExternalAgent] in ClassLoader ["+cl+"]");
+			log.info("Instrumentation", "not found [lucee.runtime.instrumentation.ExternalAgent] in ClassLoader ["+cl+"]");
 			return null;
 		}
 		
@@ -173,7 +173,7 @@ public class InstrumentationFactory {
 			return _instr;
 		}
 		catch(Throwable t){
-			log.log(Log.LEVEL_ERROR, "Instrumentation", t);
+			log.log(Log.LEVEL_INFO, "Instrumentation", t);
 		}
 		return null;
 	}
@@ -370,7 +370,7 @@ public class InstrumentationFactory {
 			toolsJarFile=createToolsJar(config);
 		}
 		catch (IOException e) {
-			log.error("Instrumentation", e);
+			log.log(Log.LEVEL_INFO,"Instrumentation", e);
 		}
 
         if (!toolsJarFile.exists()) {
@@ -422,7 +422,7 @@ public class InstrumentationFactory {
         		// Log the message from the exception. Don't log the entire
                 // stack as this is expected when running on a JDK that doesn't
                 // support the Attach API.
-                log.log(Log.LEVEL_ERROR,"Instrumentation",t);
+                log.log(Log.LEVEL_INFO,"Instrumentation",t);
             
         }
     }
@@ -464,7 +464,7 @@ public class InstrumentationFactory {
 				try {
 					IOUtil.copy(src, trg,true);
 				} catch (IOException e) {
-					log.log(Log.LEVEL_ERROR,"Instrumentation",e);
+					log.log(Log.LEVEL_INFO,"Instrumentation",e);
 				}
 			}
 			
@@ -494,7 +494,7 @@ public class InstrumentationFactory {
             //}
             return loader.loadClass(cls);
         } catch (Exception e) {
-            log.log(Log.LEVEL_ERROR,"Instrumentation",e);
+            log.log(Log.LEVEL_INFO,"Instrumentation",e);
             
         }
         return null;
@@ -514,7 +514,7 @@ public class InstrumentationFactory {
                 return true;
             }
         } catch (Exception e) {
-            log.log(Log.LEVEL_ERROR, "Instrumentation", e);
+            log.log(Log.LEVEL_INFO, "Instrumentation", e);
             
         }
         return false;

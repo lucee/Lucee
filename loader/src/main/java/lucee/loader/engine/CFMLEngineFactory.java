@@ -631,7 +631,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			conn.connect();
 			code = conn.getResponseCode();
 		} catch (final UnknownHostException e) {
-			log(e);
+			//log(e);
 			throw e;
 		}
 		//System.out.println("SC:" + code+"->"+conn.getFollowRedirects());
@@ -694,6 +694,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		// first we look for a exact match
 		InputStream is = getClass().getResourceAsStream("bundles/"+osgiFileName);
 		if(is==null) is = getClass().getResourceAsStream("/bundles/"+osgiFileName);
+		System.out.println("found "+osgiFileName+":"+(is!=null));
 		if(is==null) {
 			is = getClass().getResourceAsStream("bundles/"+osgiFileName+pack20Ext);
 			if(is==null)is = getClass().getResourceAsStream("/bundles/"+osgiFileName+pack20Ext);
