@@ -178,18 +178,18 @@ public class EnvClassLoader extends ClassLoader {
 		
 		
 		
-		if(doLog) {
-			Log log = config.getLog("application", true);
+		/*if(doLog) {
+			//Log log = config.getLog("application", true);
 			// not found
-			if(obj==null) {
-				log.error(EnvClassLoader.class.getName(), "not able to find	 "+toType(type)+" "+name);
-			}
+			//if(obj==null) {
+				//log.error(EnvClassLoader.class.getName(), "not able to find	 "+toType(type)+" "+name);
+			//}
 			// found
-			/*else  {// should always be the case!
+			else  {// should always be the case!
 				ClassLoader cl = obj.getClass().getClassLoader();
 				log.error(EnvClassLoader.class.getName(), "found "+toType(type)+" "+name+" in CL "+cl);
-			}*/
-		}
+			}
+		}*/
 		
 
 		//if(obj==null)print.e("not found:"+name+"->"+type);
