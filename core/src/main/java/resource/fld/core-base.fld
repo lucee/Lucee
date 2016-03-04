@@ -6620,6 +6620,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     </argument>
 		<argument>
 			<name>color</name>
+			<alias>colour</alias>
 			<type>string</type>
 			<required>No</required>
 			<default>black</default>
@@ -6728,12 +6729,14 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
     </argument>
 		<argument>
 			<name>lineColor1</name>
+			<alias>lineColour1</alias>
 			<type>string</type>
 			<required>no</required>
 		<description>used only for type "linear", the color corresponding to value 0 in the colormap.</description>
     </argument>
 		<argument>
 			<name>lineColor2</name>
+			<alias>lineColour2</alias>
 			<type>string</type>
 			<required>no</required>
 		<description>used only for type "linear", the color corresponding to value 1 in the colormap.</description>
@@ -9655,6 +9658,7 @@ The file format is derived from the extension of the filename. The default value
     </argument>
 		<argument>
 			<name>color</name>
+			<alias>colour</alias>
 			<type>string</type>
 			<required>yes</required>
 		<description>Background color (The default value is "black"):
@@ -9702,6 +9706,7 @@ The file format is derived from the extension of the filename. The default value
     </argument>
 		<argument>
 			<name>color</name>
+			<alias>colour</alias>
 			<type>string</type>
 			<required>yes</required>
 		<description>Drawing color (The default value is "black"):
@@ -9941,6 +9946,7 @@ The value determines whether the image is blurred or sharpened:
     </argument>
 		<argument>
 			<name>color</name>
+			<alias>colour</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>the color (The default value is "black"):

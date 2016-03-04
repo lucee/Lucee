@@ -1825,6 +1825,7 @@ Each type-value pair must start with a hyphen.</description>
 		<attribute>
 			<type>string</type>
 			<name>bgColor</name>
+			<alias>bgColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Background color of slider label. See textColor for color options.</description>
@@ -1832,6 +1833,7 @@ Each type-value pair must start with a hyphen.</description>
 		<attribute>
 			<type>string</type>
 			<name>textColor</name>
+			<alias>textColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Slider label text color. Valid entries are: black, magenta,
@@ -3837,6 +3839,7 @@ Valid only for cfinput type="text".</description>
 		<attribute>
 			<type>string</type>
 			<name>bgColor</name>
+			<alias>bgColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Background color of slider label. See textColor for color options.</description>
@@ -3844,6 +3847,7 @@ Valid only for cfinput type="text".</description>
 		<attribute>
 			<type>string</type>
 			<name>textColor</name>
+			<alias>textColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Slider label text color. Valid entries are: black, magenta,

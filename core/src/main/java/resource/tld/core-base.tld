@@ -2224,6 +2224,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<attribute>
 			<type>string</type>
 			<name>lineColor</name>
+			<alias>lineColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
@@ -2251,6 +2252,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<attribute>
 			<type>string</type>
 			<name>colorList</name>
+			<alias>colourList</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
@@ -2285,6 +2287,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<attribute>
 			<type>string</type>
 			<name>color</name>
+			<alias>colour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The color to use when graphing the data point. The default is to use the values from the cfgraph
@@ -2430,6 +2433,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<attribute>
 			<type>string</type>
 			<name>textColor</name>
+			<alias>textColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Color value for text in the grid control. Options are: black (default), magenta, cyan, orange, darkgray,
@@ -2561,6 +2565,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<attribute>
 			<type>string</type>
 			<name>rowHeaderTextColor</name>
+			<alias>rowHeaderTextColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Text color value for the grid control row headers. Entries are: black (default), magenta, cyan,
@@ -2619,6 +2624,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<attribute>
 			<type>string</type>
 			<name>colHeaderTextColor</name>
+			<alias>colHeaderTextColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Color value for the grid control column headers. Valid entries are: black (default), magenta,
@@ -2629,6 +2635,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<attribute>
 			<type>string</type>
 			<name>bgColor</name>
+			<alias>bgColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Background color value for the grid control. Entries are: black, magenta, cyan,
@@ -2638,6 +2645,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<attribute>
 			<type>string</type>
 			<name>selectColor</name>
+			<alias>selectColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Background color for a selected item. See bgColor for color options.</description>
@@ -2842,6 +2850,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<attribute>
 			<type>string</type>
 			<name>textColor</name>
+			<alias>textColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Color value for grid element text in the grid column, or an expression you can use to manipulate text
@@ -2941,6 +2950,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<attribute>
 			<type>string</type>
 			<name>headerTextColor</name>
+			<alias>headerTextColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Color value for the grid control column header text. Entries are: black (default), magenta,
@@ -3749,6 +3759,7 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 		<attribute>
 			<type>string</type>
 			<name>color</name>
+			<alias>Colour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Border color. Hexadecimal value or supported named color. For a hexadecimal value, use the form "#xxxxxx" or "xxxxxx", where x = 0-9 or A-F; use two number signs or none.</description>
@@ -8086,6 +8097,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>foregroundcolor</name>
+			<alias>foregroundcolour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>alias for fgcolor</description>
@@ -8100,6 +8112,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>fgcolor</name>
+			<alias>fgcolour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>foreground color</description>
@@ -8107,6 +8120,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>bgcolor</name>
+			<alias>bgcolour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>background color</description>
@@ -8114,6 +8128,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>backgroundcolor</name>
+			<alias>backgroundcolour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>alias for bgcolor</description>
@@ -8128,6 +8143,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>screencolor</name>
+			<alias>screencolour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
@@ -8135,6 +8151,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>lightcolor</name>
+			<alias>lightcolour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
@@ -8325,6 +8342,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>fgcolor</name>
+			<alias>fgcolour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
@@ -8332,6 +8350,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>bgcolor</name>
+			<alias>bgcolour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
