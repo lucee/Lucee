@@ -359,7 +359,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		Resource dir = cs.getLocalExtensionProviderDirectory();
 		List<RHExtension> existing = DeployHandler.getLocalExtensions(cs);
 		String sub="extensions/";
-		
+		// MUST this does not work on windows! we need to add a index
 		ZipEntry entry;
 		ZipInputStream zis = null;
 		try {

@@ -732,6 +732,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		
 		
 		// now we search the current jar as a external zip what is slow (we do not support pack200 in this case)
+		// this also not works with windows
+		if(isWindows()) return null;
 		ZipEntry entry;
 		File temp;
 		ZipInputStream zis = null;
@@ -791,6 +793,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			Util.closeEL(zis);
 		}
 		return null;
+	}
+
+	private boolean isWindows() {
+		String os = System.getProperty("os.name").toLowerCase();
+		return os.startsWith("windows");
 	}
 
 	private void printDate(String value) {
