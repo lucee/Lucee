@@ -25,8 +25,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testWhiteSpaceAtTheEnd(){
 		var qry=CSVParser.toQuery(str, '|', '"', nullValue(), false );
-		assertEquals(5,qry.recordcount);
-		assertEquals(9,qry.columnCount);
+		assertEquals(5,qry.recordcount());
+		assertEquals(9,qry.columnCount());
 	}
 } 
 </cfscript>
