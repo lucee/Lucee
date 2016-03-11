@@ -56,10 +56,12 @@ import javax.servlet.jsp.JspException;
 import lucee.Info;
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.collection.MapFactory;
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.compress.CompressUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
@@ -354,8 +356,72 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		}
 		return sb.toString();
 	}
+	
 
 	private void deployBundledExtension(ConfigServerImpl cs) {
+		Resource dir = cs.getLocalExtensionProviderDirectory();
+		List<RHExtension> existing = DeployHandler.getLocalExtensions(cs);
+		String sub="extensions/";
+		
+		// get the index
+		ClassLoader cl=CFMLEngineFactory.getInstance().getCFMLEngineFactory().getClass().getClassLoader();
+		InputStream is = cl.getResourceAsStream("extensions/.index");
+		if(is==null)is = cl.getResourceAsStream("/extensions/.index");
+		if(is==null) return;
+		Log log = cs.getLog("deploy");
+			
+		try {
+		
+			String index=IOUtil.toString(is, CharsetUtil.UTF8);
+			String[] names = lucee.runtime.type.util.ListUtil.listToStringArray(index, ';');
+			String name;
+			Resource temp=null;
+			RHExtension rhe,exist;
+			Iterator<RHExtension> it;
+			
+			for(int i=0;i<names.length;i++){
+				name=names[i];
+				if(StringUtil.isEmpty(name,true)) continue;
+				name=name.trim();
+				is = cl.getResourceAsStream("extensions/"+name);
+				if(is==null)is = cl.getResourceAsStream("/extensions/"+name);
+				if(is==null) {
+					log.error("extract-extension", "could not found extension ["+name+"] defined in the index in the lucee.jar");
+					continue;
+				}
+				
+				try {
+					temp=SystemUtil.getTempFile("lex", true);
+					Util.copy(is, temp.getOutputStream(),false,true);
+					rhe = new RHExtension(cs, temp, false);
+					boolean alreadyExists=false;
+					it = existing.iterator();
+					while(it.hasNext()){
+						exist = it.next();
+						if(exist.equals(rhe)) {
+							alreadyExists=true;
+							break;
+						}
+					}
+					if(!alreadyExists) {
+						temp.moveTo(dir.getRealResource(name));
+						log.info("extract-extension", "added ["+name+"] to ["+dir+"]");
+						
+					}
+					
+				}
+				finally {
+					if(temp!=null && temp.exists())temp.delete();
+				}
+			}
+		}
+		catch(Throwable t){
+			log.error("extract-extension", t);
+		}
+		return;
+	}
+
+	private void deployBundledExtensionZip(ConfigServerImpl cs) {
 		Resource dir = cs.getLocalExtensionProviderDirectory();
 		List<RHExtension> existing = DeployHandler.getLocalExtensions(cs);
 		String sub="extensions/";
