@@ -3123,8 +3123,6 @@ public final class PageContextImpl extends PageContext {
 		manager.add(this,ormSession);
 		
 		return ormSession;
-		
-		
 	}
 
 	public ClassLoader getClassLoader() throws IOException {
