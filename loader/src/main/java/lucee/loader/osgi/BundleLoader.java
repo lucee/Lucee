@@ -280,65 +280,6 @@ public class BundleLoader {
 			Util.closeEL(jf);
 		}
 	}
-	
-	/*private static void deployBundledBundles(File bundleDirectory, Map<String, File> availableBundles) {
-		
-		String sub="bundles/";
-		
-		ZipEntry entry;
-		ZipInputStream zis = null;
-		try {
-			CodeSource src = CFMLEngineFactory.class.getProtectionDomain().getCodeSource();
-			if (src == null) return;
-			URL loc = src.getLocation();
-			
-			
-			zis=new ZipInputStream(loc.openStream());
-			String path,name,bundleInfo;
-			int index,i;
-			File trg,temp;
-			while ((entry = zis.getNextEntry())!= null) {
-				path = entry.getName();
-				if(path.startsWith(sub) && path.endsWith(".jar")) { // ignore non jara files or file from elsewhere
-					index=path.lastIndexOf('/')+1;
-					if(index==sub.length()) { // ignore sub directories
-						name=path.substring(index);
-						trg=new File(bundleDirectory,name);
-						// first let's check if we have that file in bundle directory with exact that name
-						if(!trg.isFile()) {
-							
-							temp=null;
-							try {
-								temp=File.createTempFile("bundle", ".jar");
-								Util.copy(zis, new FileOutputStream(temp),false,true);
-								bundleInfo=loadBundleInfo(temp);
-								if(bundleInfo!=null && !availableBundles.containsKey(bundleInfo)) {
-									i=bundleInfo.indexOf('|');
-									if(i!=-1) {
-										String bn = bundleInfo.substring(0, i);
-										String bv = bundleInfo.substring(i+1);
-										temp.renameTo(trg);
-										System.out.println("adding bundle ["+bn+"] in version ["+bv+"] to ["+trg+"]"); // TODO log this
-										availableBundles.put(bundleInfo, trg);
-									}
-								}
-							}
-							finally {
-								if(temp!=null && temp.exists())temp.delete();
-							}
-						}
-					}
-				}
-				zis.closeEntry();
-			} 
-		}
-		catch(Throwable t){
-			t.printStackTrace();// TODO log this
-		}
-		finally {
-			Util.closeEL(zis);
-		}
-	}*/
 
 	private static Map<String, String> readRequireBundle(final String rb)
 			throws IOException {
