@@ -706,7 +706,7 @@
 
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
-      <jvmarg value="-Dlucee-extensions=${extH2};${extMongo};"/>
+      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo};"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
     </java>
     <echo>${exc2}</echo>
@@ -790,6 +790,7 @@
       file="${goal}/extensions/${extMySQL}-${extMySQLVersion}.lex" 
       tofile="${goal}/extensions/${ext_mysql.filename}"/>
     <echo>add:${goal}/extensions/${ext_mysql.filename}</echo>
+    <echo file="${goal}/extensions/.index">${ext_mysql.filename};</echo>
 
     <!-- add extension MSSQL -->
     <loadmf jar="${cache}/${extMSSQL}-${extMSSQLVersion}.lex" prefix="ext_mssql."/>
@@ -801,6 +802,7 @@
       file="${goal}/extensions/${extMSSQL}-${extMSSQLVersion}.lex" 
       tofile="${goal}/extensions/${ext_mssql.filename}"/>
     <echo>add:${goal}/extensions/${ext_mssql.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_mssql.filename};</echo>
 
     <!-- add extension Postgre -->
     <loadmf jar="${cache}/${extPostgreSQL}-${extPostgreSQLVersion}.lex" prefix="ext_postgre."/>
@@ -812,6 +814,7 @@
       file="${goal}/extensions/${extPostgreSQL}-${extPostgreSQLVersion}.lex" 
       tofile="${goal}/extensions/${ext_postgre.filename}"/>
     <echo>add:${goal}/extensions/${ext_postgre.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_postgre.filename};</echo>
 
     <!-- add extension JDTS -->
     <loadmf jar="${cache}/${extJDTsSQL}-${extJDTsSQLVersion}.lex" prefix="ext_jdts."/>
@@ -823,6 +826,7 @@
       file="${goal}/extensions/${extJDTsSQL}-${extJDTsSQLVersion}.lex" 
       tofile="${goal}/extensions/${ext_jdts.filename}"/>
     <echo>add:${goal}/extensions/${ext_jdts.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_jdts.filename};</echo>
 
     <!-- add extension Chart -->
     <loadmf jar="${cache}/${extChart}-${extChartVersion}.lex" prefix="ext_chart."/>
@@ -834,6 +838,7 @@
       file="${goal}/extensions/${extChart}-${extChartVersion}.lex" 
       tofile="${goal}/extensions/${ext_chart.filename}"/>
     <echo>add:${goal}/extensions/${ext_chart.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_chart.filename};</echo>
 
     <!-- add extension S3 -->
     <loadmf jar="${cache}/${extS3}-${extS3Version}.lex" prefix="ext_s3."/>
@@ -845,6 +850,7 @@
       file="${goal}/extensions/${extS3}-${extS3Version}.lex" 
       tofile="${goal}/extensions/${ext_s3.filename}"/>
     <echo>add:${goal}/extensions/${ext_s3.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_s3.filename};</echo>
 
     <!-- add extension Hibernate -->
     <loadmf jar="${cache}/${extHibernate}-${extHibernateVersion}.lex" prefix="ext_hibernate."/>
@@ -856,6 +862,7 @@
       file="${goal}/extensions/${extHibernate}-${extHibernateVersion}.lex" 
       tofile="${goal}/extensions/${ext_hibernate.filename}"/>
     <echo>add:${goal}/extensions/${ext_hibernate.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_hibernate.filename};</echo>
 
 
     <!-- add extension Lucene -->
@@ -868,6 +875,7 @@
       file="${goal}/extensions/${extLucene}-${extLuceneVersion}.lex" 
       tofile="${goal}/extensions/${ext_lucene.filename}"/>
     <echo>add:${goal}/extensions/${ext_lucene.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_lucene.filename};</echo>
 
     <!-- add extension PDF -->
     <loadmf jar="${cache}/${extPDF}-${extPDFVersion}.lex" prefix="ext_pdf."/>
@@ -879,6 +887,7 @@
       file="${goal}/extensions/${extPDF}-${extPDFVersion}.lex" 
       tofile="${goal}/extensions/${ext_pdf.filename}"/>
     <echo>add:${goal}/extensions/${ext_pdf.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_pdf.filename};</echo>
 
     <!-- add extension Admin -->
     <loadmf jar="${cache}/${extAdmin}-${extAdminVersion}.lex" prefix="ext_admin."/>
@@ -890,6 +899,7 @@
       file="${goal}/extensions/${extAdmin}-${extAdminVersion}.lex" 
       tofile="${goal}/extensions/${ext_admin.filename}"/>
     <echo>add:${goal}/extensions/${ext_admin.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_admin.filename};</echo>
 
     <!-- add extension Doc -->
     <loadmf jar="${cache}/${extDoc}-${extDocVersion}.lex" prefix="ext_doc."/>
@@ -901,6 +911,7 @@
       file="${goal}/extensions/${extDoc}-${extDocVersion}.lex" 
       tofile="${goal}/extensions/${ext_doc.filename}"/>
     <echo>add:${goal}/extensions/${ext_doc.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_doc.filename};</echo>
 
 
   </target>
