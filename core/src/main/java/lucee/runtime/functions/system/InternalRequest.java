@@ -22,6 +22,7 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.other.CreatePageContext;
+import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.net.http.HttpServletResponseDummy;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
@@ -61,7 +62,7 @@ public class InternalRequest implements Function {
 		
 		PageContextImpl _pc=createPageContext(pc, template, urls, cookies, headers, reqCharset, baos);
 		fillForm(_pc,forms);
-		Collection cookie,request,session;
+		Collection cookie,request,session=null;
 		int status;
 		long exeTime;
 		boolean isText=false;
@@ -78,7 +79,7 @@ public class InternalRequest implements Function {
 			_pc.flush();
 			cookie=_pc.cookieScope().duplicate(false);
 			request=_pc.requestScope().duplicate(false);
-			session=_pc.sessionScope().duplicate(false);
+			session=sessionEnabled(_pc)?_pc.sessionScope().duplicate(false):null;
 			exeTime=System.currentTimeMillis()-pc.getStartTime();
 			//debugging=_pc.getDebugger().getDebuggingData(_pc).duplicate(false);
 			
@@ -125,13 +126,19 @@ public class InternalRequest implements Function {
 		else rst.set(FILECONTENT_BYNARY,barr);
 		rst.set(KeyConstants._cookies, cookie);
 		rst.set(KeyConstants._request, request);
-		rst.set(KeyConstants._session, session);
+		if(session!=null)rst.set(KeyConstants._session, session);
 		rst.set(KeyConstants._headers, headers);
 		//rst.put(KeyConstants._debugging, debugging);
 		rst.set(KeyConstants._executionTime, new Double(exeTime));
 		rst.set(KeyConstants._status, new Double(status));
 		return rst;
     }
+
+	private static boolean sessionEnabled(PageContextImpl pc) {
+		ApplicationContext ac = pc.getApplicationContext();
+		if(ac==null)return false;// this test properly is not necessary
+		return ac.hasName() && ac.isSetSessionManagement();
+	}
 
 	private static void fillForm(PageContextImpl _pc, Struct src) throws PageException {
 		if(src==null) return;
