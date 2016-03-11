@@ -1017,10 +1017,19 @@ public class OSGiUtil {
 		return rtn;
 	}
 
-
+	public static Bundle getFrameworkBundle(Config config, Bundle defaultValue) {
+		Bundle[] bundles = ConfigWebUtil.getEngine(config).getBundleContext().getBundles();
+		Bundle b=null;
+		for(int i=0;i<bundles.length;i++) {
+			b=bundles[i];
+			if(b!=null && isFrameworkBundle(b))  return b;
+		}
+		return defaultValue;
+	}
 
 	
 	public static  boolean isFrameworkBundle(Bundle b) {// FELIX specific
+		
 		return "org.apache.felix.framework".equalsIgnoreCase(b.getSymbolicName()); // TODO move to cire util class tha does not exist yet
 	}
 }
