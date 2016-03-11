@@ -25,6 +25,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.component.Property;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMUtil;
@@ -88,7 +89,9 @@ public final class UDFSetterProperty extends UDFGSProperty {
 		component.getComponentScope().set(propName, cast(pageContext,this.arguments[0],args[0],1));
 
 		// make sure it is reconized that set is called by hibernate
-		if(component.isPersistent())ORMUtil.getSession(pageContext);
+		//if(component.isPersistent())ORMUtil.getSession(pageContext);
+		ApplicationContext appContext = pageContext.getApplicationContext();
+		if(appContext.isORMEnabled() && component.isPersistent())ORMUtil.getSession(pageContext);
 		
 		return component;
 	}
@@ -108,7 +111,9 @@ public final class UDFSetterProperty extends UDFGSProperty {
 		component.getComponentScope().set(propName, cast(pageContext,arguments[0],value,1));
 
 		// make sure it is reconized that set is called by hibernate
-		if(component.isPersistent())ORMUtil.getSession(pageContext);
+		//if(component.isPersistent())ORMUtil.getSession(pageContext);
+		ApplicationContext appContext = pageContext.getApplicationContext();
+		if(appContext.isORMEnabled() && component.isPersistent())ORMUtil.getSession(pageContext);
 		
 		return component;
 	}
