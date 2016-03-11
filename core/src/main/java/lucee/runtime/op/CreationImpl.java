@@ -42,6 +42,7 @@ import lucee.commons.lang.types.RefDouble;
 import lucee.commons.lang.types.RefDoubleImpl;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
+import lucee.commons.lang.types.RefIntegerSync;
 import lucee.commons.lang.types.RefLong;
 import lucee.commons.lang.types.RefLongImpl;
 import lucee.commons.lang.types.RefString;
@@ -310,6 +311,11 @@ public final class CreationImpl implements Creation,Serializable {
 	@Override
 	public RefInteger createRefInteger(int i) {
 		return new RefIntegerImpl(i);
+	}
+	
+	// FUTURE add this and more to interface
+	public RefInteger createRefInteger(int i, boolean _syncronized) {
+		return _syncronized?new RefIntegerSync(i):new RefIntegerImpl(i);
 	}
 
 	@Override

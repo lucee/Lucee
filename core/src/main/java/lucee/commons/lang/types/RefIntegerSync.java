@@ -1,5 +1,6 @@
 /**
  *
+ * Copyright (c) 2016, Lucee Assosication Switzerland
  * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -21,13 +22,17 @@ package lucee.commons.lang.types;
 /**
  * Integer Type that can be modified
  */
-public final class RefIntegerSync extends RefIntegerImpl {
+public class RefIntegerSync implements RefInteger {
+
+    private int value;
 
     /**
      * @param value
      */
     public RefIntegerSync(int value) {
-        super(value);
+        this.value=value;
+    }
+    public RefIntegerSync() {
     }
     
     /**
@@ -35,7 +40,7 @@ public final class RefIntegerSync extends RefIntegerImpl {
      */
     @Override
 	public synchronized void setValue(int value) {
-    	super.setValue(value);
+        this.value = value;
     }
     
     /**
@@ -44,7 +49,7 @@ public final class RefIntegerSync extends RefIntegerImpl {
      */
     @Override
 	public synchronized void plus(int value) {
-    	super.plus(value);
+        this.value+=value;
     }
     
     /**
@@ -53,6 +58,38 @@ public final class RefIntegerSync extends RefIntegerImpl {
      */
     @Override
 	public synchronized void minus(int value) {
-        super.minus(value);
+        this.value-=value;
+    }
+
+    /**
+     * @return returns value as integer
+     */
+    @Override
+	public synchronized Integer toInteger() {
+        return Integer.valueOf(value);
+    }
+    /**
+     * @return returns value as integer
+     */
+    @Override
+	public synchronized Double toDouble() {
+        return new Double(value);
+    }
+    
+
+	@Override
+	public synchronized double toDoubleValue() {
+		return value;
+	}
+	
+	@Override
+	public synchronized int toInt() {
+		return value;
+	}
+    
+    
+    @Override
+    public synchronized String toString() {
+        return String.valueOf(value);
     }
 }

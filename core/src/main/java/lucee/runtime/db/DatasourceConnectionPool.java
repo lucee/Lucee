@@ -29,6 +29,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
+import lucee.commons.lang.types.RefIntegerSync;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
@@ -145,7 +146,7 @@ public class DatasourceConnectionPool {
         
         RefInteger ri=counter.get(id);
 		if(ri!=null)ri.setValue(0);
-		else counter.put(id,new RefIntegerImpl(0));
+		else counter.put(id,new RefIntegerSync(0));
         
 	}
 	
@@ -211,7 +212,7 @@ public class DatasourceConnectionPool {
 		synchronized (counter) {
 			RefInteger ri=counter.get(did);
 			if(ri==null) {
-				counter.put(did,ri=new RefIntegerImpl(0));
+				counter.put(did,ri=new RefIntegerSync(0));
 			}
 			return ri;
 		}
