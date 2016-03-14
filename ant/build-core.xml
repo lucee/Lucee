@@ -934,6 +934,11 @@
         file="${trgLoader}/${version}.lco" 
         tofile="${outputDir}/core/core.lco"/>
 
+    <!-- copy to core to the target folder -->
+    <copy 
+        file="${outputDir}/core/core.lco" 
+        tofile="${trgLoader}/${version}.lco"/>
+
     <!-- version -->
     <currentTime property="ct" />
     <echo file="${outputDir}/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
