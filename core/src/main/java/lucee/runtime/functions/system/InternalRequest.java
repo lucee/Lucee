@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.CharSet;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.ContentType;
 import lucee.commons.net.HTTPUtil;
@@ -43,7 +44,9 @@ public class InternalRequest implements Function {
 
 	public static final Key FILECONTENT_BYNARY = KeyImpl._const("filecontent_binary");
 
-	public static Struct call(final PageContext pc, String template, String method, Struct urls,Struct forms, Struct cookies, Struct headers) throws PageException {
+	private static final Key CONTENT_TYPE =  KeyImpl._const("content-type");
+
+	public static Struct call(final PageContext pc, String template, String method, Struct urls,Struct forms, Struct cookies, Struct headers, Object body) throws PageException {
 		// charset
 		Charset reqCharset=pc.getWebCharset();
 		
@@ -60,7 +63,31 @@ public class InternalRequest implements Function {
 		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		
-		PageContextImpl _pc=createPageContext(pc, template, urls, cookies, headers, reqCharset, baos);
+		byte[] _barr=null;
+		
+		if(Decision.isBinary(body)) _barr=Caster.toBinary(body);
+		else if(body!=null) {
+			Charset cs=null;
+			// get charset
+			if(headers!=null) {
+				String strCT=Caster.toString(headers.get(CONTENT_TYPE),null);
+				if(strCT!=null) {
+					ContentType ct = HTTPUtil.toContentType(strCT, null);
+					if(ct!=null) {
+						String strCS = ct.getCharset();
+						if(!StringUtil.isEmpty(strCS))
+							cs=CharsetUtil.toCharSet(strCS, CharSet.UTF8).toCharset();
+					}
+				}
+			}
+			if(cs==null) cs=CharsetUtil.UTF8;
+			
+			String str=Caster.toString(body);
+			_barr=str.getBytes(cs);
+		}
+			
+		
+		PageContextImpl _pc=createPageContext(pc, template, urls, cookies, headers, _barr, reqCharset, baos);
 		fillForm(_pc,forms);
 		Collection cookie,request,session=null;
 		int status;
@@ -151,7 +178,7 @@ public class InternalRequest implements Function {
 		}
 	}
 
-	private static PageContextImpl createPageContext(PageContext pc, String template, Struct urls, Struct cookies, Struct headers, Charset charset, OutputStream os) throws PageException {
+	private static PageContextImpl createPageContext(PageContext pc, String template, Struct urls, Struct cookies, Struct headers, byte[] body, Charset charset, OutputStream os) throws PageException {
 		
 		// query string | URL
 				Entry<Key, Object> e;
@@ -173,7 +200,8 @@ public class InternalRequest implements Function {
 				 template, 
 				sbQS.toString(), 
 				CreatePageContext.toCookies(cookies), 
-				CreatePageContext.toPair(headers,true), 
+				CreatePageContext.toPair(headers,true),
+				body,
 				CreatePageContext.toPair(new StructImpl(),true), 
 				CreatePageContext.castValuesToString(new StructImpl()),true,-1);
 	}

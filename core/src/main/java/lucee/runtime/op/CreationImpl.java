@@ -262,7 +262,7 @@ public final class CreationImpl implements Creation,Serializable {
 		}
 		
 		return new HttpServletRequestDummy(ResourceUtil.toResource(contextRoot), serverName, scriptName, queryString, cookies,
-				_headers, _parameters, Caster.toStruct(attributes,null), session);
+				_headers, _parameters, Caster.toStruct(attributes,null), session,null);
 	}
 
 	@Override

@@ -1163,7 +1163,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		
 		
 		HttpServletRequestDummy req=new HttpServletRequestDummy(
-				root,serverName,uri.getPath(),uri.getQuery(),cookies,headers,parameters,attributes,null);
+				root,serverName,uri.getPath(),uri.getQuery(),cookies,headers,parameters,attributes,null,null);
 		req.setProtocol("CLI/1.0");
 		HttpServletResponse rsp=new HttpServletResponseDummy(os);
 		

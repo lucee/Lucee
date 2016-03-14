@@ -57,7 +57,7 @@ public class JavaProxy {
 				pc=ThreadUtil.createPageContext(
 						config, 
 						DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, 
-						Constants.NAME, "/", "", null, null, null, null,true,-1);
+						Constants.NAME, "/", "", null, null, null, null, null,true,-1);
 				unregister=true;
 				pc.addPageSource(cfc.getPageSource(), true);
 			}

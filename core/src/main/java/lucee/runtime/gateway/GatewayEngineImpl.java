@@ -422,6 +422,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 				"method="+functionName+(cfcPeristent?"&"+ComponentPageImpl.REMOTE_PERSISTENT_ID+"="+remotePersisId:""), 
 				null, 
 				new Pair[]{new Pair<String,Object>("AMF-Forward","true")}, 
+				null,
 				null, 
 				attrs,register,Long.MAX_VALUE);
 		

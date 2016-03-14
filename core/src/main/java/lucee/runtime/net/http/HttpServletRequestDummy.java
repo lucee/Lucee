@@ -118,7 +118,7 @@ public final class HttpServletRequestDummy implements HttpServletRequest,Seriali
 
 	private HttpSession session;
 
-
+	
 
 	/**
 	 * constructor of the class
@@ -129,7 +129,7 @@ public final class HttpServletRequestDummy implements HttpServletRequest,Seriali
 	 * @param cookiess 
 	 */
 	public HttpServletRequestDummy(Resource contextRoot,String serverName, String scriptName,String queryString, 
-			Cookie[] cookies, Pair[] headers, Pair[] parameters, Struct attributes, HttpSession session) {
+			Cookie[] cookies, Pair[] headers, Pair[] parameters, Struct attributes, HttpSession session, byte[] inputData) {
 		this.serverName=serverName;
 		requestURI=scriptName;
 		this.queryString=queryString;
@@ -140,6 +140,7 @@ public final class HttpServletRequestDummy implements HttpServletRequest,Seriali
 		if(parameters!=null)this.parameters=parameters;
 		if(attributes!=null)this.attributes=attributes;
 		this.session=session;
+		this.inputData=inputData;
 	}
 	/**
 	 * constructor of the class
@@ -504,7 +505,7 @@ public final class HttpServletRequestDummy implements HttpServletRequest,Seriali
 	}
 	@Override
 	public int getContentLength() {
-		return -1;
+		return inputData==null?-1:inputData.length;
 	}
 	@Override
 	public String getContentType() {
@@ -695,7 +696,13 @@ public final class HttpServletRequestDummy implements HttpServletRequest,Seriali
 		this.session=session;
 	}
 	public static HttpServletRequestDummy clone(Config config,Resource rootDirectory,HttpServletRequest req) {
-
+		byte[] inputData=null;
+		try {
+			inputData=IOUtil.toBytes(req.getInputStream(),true,null);
+		}
+		catch (IOException e) {}
+		
+		
 		HttpServletRequestDummy dest = new HttpServletRequestDummy(
 				rootDirectory,
 				req.getServerName(),
@@ -705,7 +712,8 @@ public final class HttpServletRequestDummy implements HttpServletRequest,Seriali
 				HttpUtil.cloneHeaders(req),
 				HttpUtil.cloneParameters(req),
 				HttpUtil.getAttributesAsStruct(req),
-				getSessionEL(req)
+				getSessionEL(req),
+				inputData
 			);
 		
 

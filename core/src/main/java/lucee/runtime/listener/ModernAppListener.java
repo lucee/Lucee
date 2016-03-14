@@ -352,7 +352,7 @@ public class ModernAppListener extends AppListenerSupport {
 		String path = app.getPageSource().getRealpathWithVirtual();
 		
 		// Request
-		HttpServletRequestDummy req = new HttpServletRequestDummy(root,"localhost",path,"",null,null,null,null,null);
+		HttpServletRequestDummy req = new HttpServletRequestDummy(root,"localhost",path,"",null,null,null,null,null,null);
 		if(!StringUtil.isEmpty(cfid))req.setCookies(new Cookie[]{new Cookie("cfid",cfid),new Cookie("cftoken","0")});
 		
 		// Response	

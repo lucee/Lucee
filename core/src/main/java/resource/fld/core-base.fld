@@ -10260,6 +10260,12 @@ The following things are considered to be empty:
 			<required>no</required>
 			<description>Request header entries passed to the request</description>
     	</argument>
+		<argument>
+			<name>body</name>
+			<type>any</type>
+			<required>no</required>
+			<description>body to send with the request</description>
+    	</argument>
 		<return>
 			<type>struct</type>
 		</return>

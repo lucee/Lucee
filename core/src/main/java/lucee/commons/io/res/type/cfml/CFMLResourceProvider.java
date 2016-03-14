@@ -105,7 +105,7 @@ public class CFMLResourceProvider implements ResourceProviderPro {
 			return	ThreadUtil.createPageContext(
 				(ConfigWeb)c, 
 				DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, 
-				"localhost", "/","", new Cookie[0], new Pair[0], new Pair[0], new StructImpl(),false,-1);
+				"localhost", "/","", new Cookie[0], new Pair[0],null, new Pair[0], new StructImpl(),false,-1);
 		}
 		try {
 			return CFMLEngineFactory.getInstance()

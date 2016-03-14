@@ -892,12 +892,23 @@ public static String toString(Resource file, String charset) throws IOException 
     public static byte[] toBytes(InputStream is) throws IOException {
        return toBytes(is,false);
     }
-    
+
 
     public static byte[] toBytes(InputStream is, boolean closeStream) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         copy(is,baos,closeStream,true);
         return baos.toByteArray();
+    }
+
+    public static byte[] toBytes(InputStream is, boolean closeStream,byte[] defaultValue) {
+    	try {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        copy(is,baos,closeStream,true);
+        return baos.toByteArray();
+    	}
+    	catch(Throwable t){
+    		return defaultValue;
+    	}
     }
 
     public static byte[] toBytesMax(InputStream is, int max) throws IOException {

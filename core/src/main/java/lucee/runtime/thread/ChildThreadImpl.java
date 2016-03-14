@@ -162,7 +162,8 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 				try {
 					cwi = (ConfigWebImpl)config;
 					DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
-					pc=ThreadUtil.createPageContext(cwi, os, serverName, requestURI, queryString, SerializableCookie.toCookies(cookies), headers, parameters, attributes,true,-1);
+					pc=ThreadUtil.createPageContext(cwi, os, serverName, requestURI, queryString, 
+							SerializableCookie.toCookies(cookies), headers, null, parameters, attributes,true,-1);
 					pc.setRequestTimeout(requestTimeout);
 					p=PageSourceImpl.loadPage(pc, cwi.getPageSources(oldPc==null?pc:oldPc,null, template, false,false,true));
 					//p=cwi.getPageSources(oldPc,null, template, false,false,true).loadPage(cwi);

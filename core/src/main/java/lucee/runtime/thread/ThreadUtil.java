@@ -72,7 +72,7 @@ public class ThreadUtil {
 	 * @return
 	 */
 	public static PageContextImpl createPageContext(ConfigWeb config,OutputStream os,String serverName,String requestURI,
-			String queryString,Cookie[] cookies,Pair[] headers,Pair[] parameters,Struct attributes,boolean register, long timeout) {
+			String queryString,Cookie[] cookies,Pair[] headers,byte[] body,Pair[] parameters,Struct attributes,boolean register, long timeout) {
 		CFMLFactory factory = config.getFactory();
         HttpServletRequest	req = new HttpServletRequestDummy(
 				config.getRootDirectory(),
@@ -83,7 +83,7 @@ public class ThreadUtil {
 				headers,
 				parameters,
 				attributes,
-				null
+				null,body
 			);
 		
 		
@@ -143,7 +143,7 @@ public class ThreadUtil {
 				headers,
 				parameters,
 				attributes,
-				null
+				null,null
 			));
 	}
 

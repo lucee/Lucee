@@ -2123,7 +2123,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 				pcCreated=true;
 				ConfigWeb config = (ConfigWeb) ThreadLocalPageContext.getConfig();
 				Pair[] parr = new Pair[0];
-				pc=ThreadUtil.createPageContext(config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/","", new Cookie[0], parr, parr, new StructImpl(),true,-1);
+				pc=ThreadUtil.createPageContext(config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/","", new Cookie[0], parr,null, parr, new StructImpl(),true,-1);
 			}
 			
 			// reading fails for serialized data from Lucee version 4.1.2.002
