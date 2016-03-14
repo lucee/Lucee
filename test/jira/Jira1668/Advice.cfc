@@ -1,6 +1,5 @@
-<!--- 
+/**
  *
- * Copyright (c) 2016, Lucee Assosication Switzerland. All rights reserved.
  * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -16,25 +15,20 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+ **/
+<!---
+   Copyright 2010 Mark Mandel
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+       http://www.apache.org/licenses/LICENSE-2.0
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ --->
 
-	//public function setUp(){}
+<cfinterface hint="Tag interface for Advice. Implementations can be any type of advice, such as Interceptors.">
 
-	public void function test(){
-
-		//dump(getApplicationSettings().mappings);
-
-		local.uri=createURI("Jira1829/index.cfm");
-		local.result=_InternalRequest(uri);
-		assertEquals(200,result.status);
-		assertEquals("",trim(result.fileContent));
-	}
-	
-	private string function createURI(string calledName){
-		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
-		return baseURI&""&calledName;
-	}
-	
-} 
-</cfscript>
+</cfinterface>

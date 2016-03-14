@@ -1,6 +1,5 @@
 <!--- 
  *
- * Copyright (c) 2016, Lucee Assosication Switzerland. All rights reserved.
  * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -16,25 +15,10 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+ --->﻿<cfcomponent implements="MethodBeforeAdvice">
 
-	//public function setUp(){}
+<cffunction name="before" hint="Callback before a given method is invoked." access="public" returntype="void" output="false">
+</cffunction>
 
-	public void function test(){
 
-		//dump(getApplicationSettings().mappings);
-
-		local.uri=createURI("Jira1829/index.cfm");
-		local.result=_InternalRequest(uri);
-		assertEquals(200,result.status);
-		assertEquals("",trim(result.fileContent));
-	}
-	
-	private string function createURI(string calledName){
-		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
-		return baseURI&""&calledName;
-	}
-	
-} 
-</cfscript>
+</cfcomponent>
