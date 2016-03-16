@@ -35,6 +35,7 @@ import lucee.runtime.Component;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -178,14 +179,13 @@ public final class DateCaster {
         
     	DateTime dt=toDateTime(locale, str, tz,null,useCommomDateParserAsWell);
         if(dt==null){
-        	/* FUTURE 4.1
         	String prefix=locale.getLanguage()+"-"+locale.getCountry()+"-";
         	throw new ExpressionException("can't cast ["+str+"] to date value",
         			"to add custom formats for "+LocaleFactory.toString(locale)+
         			", create/extend on of the following files ["+prefix+"datetime.df (for date time formats), "+prefix+"date.df (for date formats) or "+prefix+"time.df (for time formats)] in the following directory [<context>/lucee/locales]."+
         			"");
-        	*/
-        	throw new ExpressionException("can't cast ["+str+"] to date value");
+        	
+        	//throw new ExpressionException("can't cast ["+str+"] to date value");
         }
         return dt;
     }
