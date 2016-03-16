@@ -157,4 +157,6 @@ public interface Mapping extends Serializable {
 	 * coming from the Application Context
 	 */
 	public int getListenerType();
+	
+	// public void flush(); FUTURE
 }
