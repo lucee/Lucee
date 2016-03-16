@@ -2,8 +2,8 @@ component {
 	
 	// static constructor
 	static {
-		private static.pstaticConstr1="p-static-constr-1";
-		public static.staticConstr1="static-constr-1";
+		 static.pstaticConstr1="p-static-constr-1";
+		 static.staticConstr1="static-constr-1";
 		staticConstr2="static-constr-2";
 		staticConstr3=function (abc,def){
 			insideClosure=true;
