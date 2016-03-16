@@ -16,7 +16,7 @@
  */
 component {
     static {
-        public final RED = new Color4(255,0,0); // calling someone else
+        final RED = new Color4(255,0,0); // calling someone else
     }
 
     private this.r;

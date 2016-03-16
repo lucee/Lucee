@@ -16,7 +16,7 @@
  */
 component {
     static {
-        public final RED = new Color(255,0,0); // calling itself
+        final RED = new Color(255,0,0); // calling itself
         
     }
 
