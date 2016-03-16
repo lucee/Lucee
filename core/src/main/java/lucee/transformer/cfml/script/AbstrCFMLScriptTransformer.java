@@ -1982,7 +1982,13 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				data.srcCode.setPos(pos);
 				throw new TemplateException(data.srcCode,"invalid syntax, access modifier cannot be used in this context");
 			}
-			if(access>-1)((Assign)expr).setAccess(access);
+			if(access>-1){
+				// this is only supported with the Lucee dialect
+				if(data.srcCode.getDialect()==CFMLEngine.DIALECT_CFML)
+					throw new TemplateException(data.srcCode,
+							"invalid syntax, access modifier cannot be used in this context");
+				((Assign)expr).setAccess(access);
+			}
 			if(_final)((Assign)expr).setModifier(Member.MODIFIER_FINAL);
 		}
 		
