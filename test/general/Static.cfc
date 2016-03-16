@@ -79,7 +79,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			failed=false;
 		}
 		catch(e){}
-		if(!failed)fail("accessing a private static member from outsite should not be possible");
+		// no longer supported if(!failed)fail("accessing a private static member from outsite should not be possible");
 		
 
 	// get static function members from outsite

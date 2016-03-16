@@ -16,9 +16,9 @@
  */
 component {
 
-    private this.r;
-    private this.g;
-    private this.b;
+    this.r;
+    this.g;
+    this.b;
 
     package function init(numeric r, numeric g, numeric b) {
         this.r = arguments.r;
