@@ -106,8 +106,8 @@ public interface HTTPUtil {
 	 * @see #toURL(String, int, boolean)
 	 * 
 	 */
-	public URL toURL(String strUrl, int port) throws MalformedURLException; // FUTURE deprecated use method <code>toURL(String strUrl, int port, boolean encodeIfNecessary)</code> instead
-
+	public URL toURL(String strUrl, int port) throws MalformedURLException;
+	
 	/**
 	 * 
 	 * @param strUrl
