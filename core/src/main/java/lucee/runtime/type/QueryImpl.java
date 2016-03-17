@@ -287,8 +287,10 @@ public class QueryImpl implements Query,Objects,QueryResult {
 				}
 				
 				else break;
+				
 				try{
-					hasResult=stat.getMoreResults(Statement.CLOSE_CURRENT_RESULT);
+					//hasResult=stat.getMoreResults(Statement.CLOSE_CURRENT_RESULT);
+					hasResult=stat.getMoreResults();
 				}
 				catch(Throwable t){
 					break;
