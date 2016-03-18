@@ -352,7 +352,7 @@ public class HTTPEngine4Impl {
                 // Allow TLSv1 protocol only
                 SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
                     sslContext,
-                    new String[] { "TLSv1" },
+                    new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" },
                     null,
                     SSLConnectionSocketFactory.getDefaultHostnameVerifier());
 
@@ -401,10 +401,10 @@ public class HTTPEngine4Impl {
 	 */
 	private static HttpEntity toHttpEntity(Object value, String mimetype, String charset) throws IOException {
 		if(value instanceof HttpEntity) return (HttpEntity) value;
-		
+
 		// content type
 		ContentType ct=HTTPEngine.toContentType(mimetype, charset);
-		
+
     	try{
     		if(value instanceof TemporaryStream) {
 	    		if(ct!=null)
@@ -424,7 +424,7 @@ public class HTTPEngine4Impl {
 			else {
 				if(ct==null)
 					ct=ContentType.APPLICATION_OCTET_STREAM;
-				
+
 				String str = Caster.toString(value);
 				if(str.equals("<empty>")) {
 					return new EmptyHttpEntity(ct);
@@ -436,7 +436,7 @@ public class HTTPEngine4Impl {
     		throw ExceptionUtil.toIOException(e);
     	}
     }
-	
+
 
 
 	public static Entity getEmptyEntity(ContentType contentType) {
