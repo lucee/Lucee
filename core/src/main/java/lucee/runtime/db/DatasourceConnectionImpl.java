@@ -78,7 +78,6 @@ public final class DatasourceConnectionImpl implements DatasourceConnection,Task
         	this.password=datasource.getPassword();
         }
         if(this.password==null)this.password="";
-		
     }
     
     @Override
@@ -132,24 +131,13 @@ public final class DatasourceConnectionImpl implements DatasourceConnection,Task
 	@Override
 	public boolean equals(Object obj) {
 		if(this==obj) return true;
-		
-		if(!(obj instanceof DatasourceConnectionImpl)) return false;
 		return equals(this, (DatasourceConnection) obj);
-		
-		
-		/*if(!(obj instanceof DatasourceConnectionImpl)) return false;
-		DatasourceConnectionImpl other=(DatasourceConnectionImpl) obj;
-		
-		if(!datasource.equals(other.datasource)) return false;
-		//print.out(username+".equals("+other.username+") && "+password+".equals("+other.password+")");
-		return username.equals(other.username) && password.equals(other.password);*/
 	}
 	
 	public static boolean equals(DatasourceConnection left,DatasourceConnection right) {
 		if(!left.getDatasource().equals(right.getDatasource())) return false;
 		return StringUtil.emptyIfNull(left.getUsername()).equals(StringUtil.emptyIfNull(right.getUsername())) 
 				&& StringUtil.emptyIfNull(left.getPassword()).equals(StringUtil.emptyIfNull(right.getPassword()));
-		
 	}
 	
 	

@@ -42,6 +42,7 @@ public class DatasourceConnectionPool {
 	private ConcurrentHashMap<String,DCStack> dcs=new ConcurrentHashMap<String,DCStack>();
 	private Map<String,RefInteger> counter=new ConcurrentHashMap<String,RefInteger>();
 	
+	// !!! do not change used in hibernate extension
 	public DatasourceConnection getDatasourceConnection(Config config,DataSource datasource, String user, String pass) throws PageException {
 		config=ThreadLocalPageContext.getConfig(config);
 		

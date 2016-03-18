@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import lucee.commons.io.IOUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.ConfigImpl;
@@ -92,6 +91,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
                     transConns.put(ds, newDC);
     			}
     			else if(!existingDC.equals(newDC)) {
+    				
                 	if(QOQ_DATASOURCE_NAME.equalsIgnoreCase(ds.getName())) return newDC;
                 	releaseConnection(pc, newDC);
     				throw new DatabaseException(
@@ -128,7 +128,6 @@ public final class DatasourceManagerImpl implements DataSourceManager {
                 	if(isolation!=Connection.TRANSACTION_NONE)
                 		newDC.getConnection().setTransactionIsolation(isolation);
                     transConns.put(ds, newDC);
-                    
     			}
     			else if(!existingDC.equals(newDC)) {
     				releaseConnection(pc,newDC);
@@ -147,7 +146,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	@Override
 	public void releaseConnection(PageContext pc,DatasourceConnection dc) {
 		if(autoCommit) {
-			if(pc.getRequestTimeoutException()!=null) {
+			if(pc!=null && pc.getRequestTimeoutException()!=null) {
 				config.getDatasourceConnectionPool().releaseDatasourceConnection(dc,true);
 			}
 			else
@@ -247,6 +246,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
         if(transConns.size()>0) {
         	Iterator<DatasourceConnection> it = this.transConns.values().iterator();
         	DatasourceConnection dc;
+        	
     		while(it.hasNext()){
     			dc = it.next();
 	        	try {
@@ -255,6 +255,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	            catch (SQLException e) {
 	                ExceptionHandler.printStackTrace(e);
 	            }
+	        	releaseConnection(null, dc);
     		}
             transConns.clear();
         }
@@ -273,7 +274,21 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 	@Override
 	public void release() {
-		transConns.clear();
+		if(transConns.size()>0) {
+        	Iterator<DatasourceConnection> it = this.transConns.values().iterator();
+        	DatasourceConnection dc;
+        	while(it.hasNext()){
+    			dc = it.next();
+	        	try {
+	            	dc.getConnection().setAutoCommit(true);
+	            } 
+	            catch (SQLException e) {
+	                ExceptionHandler.printStackTrace(e);
+	            }
+	        	releaseConnection(null, dc);
+    		}
+            transConns.clear();
+        }
 		this.isolation=Connection.TRANSACTION_NONE;
 	}
 

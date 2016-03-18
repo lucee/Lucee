@@ -42,7 +42,9 @@ import lucee.runtime.db.SQLImpl;
 import lucee.runtime.db.SQLItem;
 import lucee.runtime.db.SQLItemImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.util.QueryUtil;
@@ -121,26 +123,59 @@ public class DBUtilImpl implements DBUtil {
 		return new SQLImpl(sql,items);
 	}
 
+	
+	public void releaseDatasourceConnection(PageContext pc, DatasourceConnection dc, boolean managed) {
+		pc = ThreadLocalPageContext.get(pc);
+		
+		if(managed) {
+			if(pc==null)throw new PageRuntimeException(new ApplicationException("missing PageContext to access the Database Connection Manager"));
+			DatasourceManagerImpl manager = (DatasourceManagerImpl) pc.getDataSourceManager();
+			manager.releaseConnection(pc, dc);
+			return;
+		}
+		releaseDatasourceConnection(ThreadLocalPageContext.getConfig(pc), dc);
+	}
+	
+	public void releaseDatasourceConnection(Config config, DatasourceConnection dc) {
+		ConfigImpl ci=(ConfigWebImpl)ThreadLocalPageContext.getConfig(config);
+		ci.getDatasourceConnectionPool().releaseDatasourceConnection( dc);
+	}
+
 	@Override
 	public void releaseDatasourceConnection(Config config, DatasourceConnection dc, boolean async) {
-		((ConfigImpl)config).getDatasourceConnectionPool().releaseDatasourceConnection( dc);
+		releaseDatasourceConnection(config, dc);
 	}
 
 	@Override
 	public DatasourceConnection getDatasourceConnection(PageContext pc,DataSource datasource, String user, String pass) throws PageException {
+		return getDatasourceConnection(pc, datasource, user, pass, false);
+	}
+	
+	public DatasourceConnection getDatasourceConnection(PageContext pc,DataSource datasource, String user, String pass, boolean managed) throws PageException {
 		pc=ThreadLocalPageContext.get(pc);
 		
-		if(pc!=null) {
+		if(managed) {
+			if(pc==null)throw new ApplicationException("missing PageContext to access the Database Connection Manager");
 			DatasourceManagerImpl manager = (DatasourceManagerImpl) pc.getDataSourceManager();
 			return manager.getConnection(pc,datasource, user, pass);
 		}
-		
-		ConfigWebImpl config=(ConfigWebImpl)ThreadLocalPageContext.getConfig(pc);
-		return config.getDatasourceConnectionPool().getDatasourceConnection(config, datasource, user, pass);
+		return getDatasourceConnection(ThreadLocalPageContext.getConfig(pc), datasource, user, pass);
 	}
 
+	public DatasourceConnection getDatasourceConnection(Config config,DataSource datasource, String user, String pass) throws PageException {
+		ConfigImpl ci=(ConfigWebImpl)ThreadLocalPageContext.getConfig(config);
+		return ci.getDatasourceConnectionPool().getDatasourceConnection(config, datasource, user, pass);
+	}
+
+
+	
+	
 	@Override
 	public DatasourceConnection getDatasourceConnection(PageContext pc, String datasourceName, String user, String pass) throws PageException {
+		return getDatasourceConnection(pc, datasourceName, user, pass,true);
+	}
+	
+	public DatasourceConnection getDatasourceConnection(PageContext pc, String datasourceName, String user, String pass, boolean managed) throws PageException {
 		DataSource datasource=null;
 		pc=ThreadLocalPageContext.get(pc);
 		if(pc!=null) {
@@ -161,7 +196,7 @@ public class DBUtilImpl implements DBUtil {
 			Config config=ThreadLocalPageContext.getConfig(pc);
 			datasource=config.getDataSource(datasourceName);
 		}
-		return getDatasourceConnection(pc, datasource, user, pass);
+		return getDatasourceConnection(pc, datasource, user, pass,managed);
 	}
 
 	@Override

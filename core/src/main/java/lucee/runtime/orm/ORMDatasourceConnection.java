@@ -102,7 +102,7 @@ public class ORMDatasourceConnection implements DatasourceConnection {
 	@Override
 	public boolean equals(Object obj) {
 		if(this==obj) return true;
-		if(!(obj instanceof ORMDatasourceConnection)) return false;
+		//if(!(obj instanceof ORMDatasourceConnection)) return false;
 		return DatasourceConnectionImpl.equals(this, (DatasourceConnection) obj);
 	}
 

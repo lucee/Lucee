@@ -152,11 +152,22 @@ public interface DBUtil {
 
 	public void releaseDatasourceConnection(Config config,
 			DatasourceConnection dc, boolean async);
-
+	/*
+	FUTURE 
+	public void releaseDatasourceConnection(PageContext pc, DatasourceConnection dc,boolean managed);
+	public void releaseDatasourceConnection(Config config, DatasourceConnection dc);
+	*/
 	public DatasourceConnection getDatasourceConnection(PageContext pc,
 			DataSource datasource, String user, String pass)
 			throws PageException;
 
+	/*
+	FUTURE 
+	public DatasourceConnection getDatasourceConnection(PageContext pc,DataSource datasource, String user, String pass, boolean managed) throws PageException;
+	public DatasourceConnection getDatasourceConnection(Config config,DataSource datasource, String user, String pass) throws PageException;
+	
+	 */
+	
 	public DatasourceConnection getDatasourceConnection(PageContext pc,
 			String datasourceName, String user, String pass)
 			throws PageException;
