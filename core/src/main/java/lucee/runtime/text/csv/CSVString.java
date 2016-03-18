@@ -21,7 +21,6 @@ package lucee.runtime.text.csv;
 import java.util.ArrayList;
 import java.util.List;
 
-import lucee.print;
 import lucee.commons.lang.StringUtil;
 
 
@@ -35,7 +34,7 @@ public class CSVString {
     private char delim;
 
     public CSVString( String input, char delim ) {
-        this.buffer = input.trim().toCharArray();
+        this.buffer = input.toCharArray();
         this.delim = delim;
     }
 
@@ -53,9 +52,7 @@ public class CSVString {
         do {
 
             c = buffer[ pos ];
-
             if ( c == '"' || c == '\'' ) {
-
                 sb.append( fwdQuote( c ) );
             }
             else if ( c == LF || c == CR ) {
@@ -75,14 +72,13 @@ public class CSVString {
                 sb.append( c );
 
             next();
-        } while ( hasNext() );
+        } while ( pos < buffer.length );
         
-        if(buffer.length>pos)sb.append( buffer[ pos ] );
-        line.add( sb.toString().trim() );
+        
+        line.add( sb.toString() );
 
         if ( isValidLine( line ) )
             result.add( line );
-
         return result;
     }
 
