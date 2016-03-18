@@ -16,7 +16,7 @@
  * 
  ---><cfcomponent><cfscript>
 
-this.name="webadmin";
+this.name="webadmin#server.lucee.version#";
 this.clientmanagement="no";
 this.clientstorage="file"; 
 this.scriptprotect="all";

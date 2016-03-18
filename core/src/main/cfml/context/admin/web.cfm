@@ -4,7 +4,7 @@
 
 
 <cfif request.setCFApplication>
-	<cfapplication name="webadmin" 
+	<cfapplication name="webadmin#server.lucee.version#" 
 		sessionmanagement="yes" 
 		clientmanagement="no" 
 		setclientcookies="yes" 

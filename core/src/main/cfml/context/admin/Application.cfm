@@ -1,5 +1,5 @@
 <cfapplication 
-	name="webadmin" 
+	name="webadmin#server.lucee.version#" 
     clientmanagement="no" 
     clientstorage="file" 
     scriptprotect="none" 
