@@ -115,6 +115,8 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 	
 	private Result _compile(ConfigImpl config,PageSource ps,SourceCode sc,String className, TagLib[] tld, FunctionLib[] fld, 
         Resource classRootDir, boolean returnValue, boolean ignoreScopes) throws TemplateException, IOException {
+		if(className==null) className=ps.getClassName();
+        	
 		Result result=null;
 		//byte[] barr = null;
 			Page page = null;
@@ -171,23 +173,25 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 			} 
 	        catch (AlreadyClassException ace) {
 	        	InputStream is=null;
+	        	int dialect =sc==null?ps.getDialect():sc.getDialect();
 	        	try{
 	        		result = new Result(null,IOUtil.toBytes(is=ace.getInputStream()));
 	        		
 	        		String displayPath=ps!=null?"["+ps.getDisplayPath()+"] ":"";
 	        		String srcName = ASMUtil.getClassName(result.barr);
+	        		
 	        		// source is cfm and target cfc
-	        		if(sc.getDialect()==CFMLEngine.DIALECT_CFML &&
-	        				endsWith(srcName,Constants.getCFMLTemplateExtensions(),sc.getDialect())
+	        		if(dialect==CFMLEngine.DIALECT_CFML &&
+	        				endsWith(srcName,Constants.getCFMLTemplateExtensions(),dialect)
 	        				&& 
 	        				className.endsWith("_"+Constants.getCFMLComponentExtension()+
-	        					(sc.getDialect()==CFMLEngine.DIALECT_CFML?Constants.CFML_CLASS_SUFFIX:Constants.LUCEE_CLASS_SUFFIX))) {
+	        					(dialect==CFMLEngine.DIALECT_CFML?Constants.CFML_CLASS_SUFFIX:Constants.LUCEE_CLASS_SUFFIX))) {
 	        				throw new TemplateException("source file "+displayPath+"contains the bytecode for a regular cfm template not for a component");
 	        		}
 	        		// source is cfc and target cfm
-	        		if(sc.getDialect()==CFMLEngine.DIALECT_CFML &&
-	        				srcName.endsWith("_"+Constants.getCFMLComponentExtension()+(sc.getDialect()==CFMLEngine.DIALECT_CFML?Constants.CFML_CLASS_SUFFIX:Constants.LUCEE_CLASS_SUFFIX)) && 
-	        				endsWith(className,Constants.getCFMLTemplateExtensions(),sc.getDialect())
+	        		if(dialect==CFMLEngine.DIALECT_CFML &&
+	        				srcName.endsWith("_"+Constants.getCFMLComponentExtension()+(dialect==CFMLEngine.DIALECT_CFML?Constants.CFML_CLASS_SUFFIX:Constants.LUCEE_CLASS_SUFFIX)) && 
+	        				endsWith(className,Constants.getCFMLTemplateExtensions(),dialect)
 	        				)
 	        				throw new TemplateException("source file "+displayPath+"contains a component not a regular cfm template");
 	        		
