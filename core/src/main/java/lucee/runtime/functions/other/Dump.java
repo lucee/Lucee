@@ -39,6 +39,7 @@ import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ListUtil;
 
 public final class Dump implements Function {
@@ -152,7 +153,7 @@ public final class Dump implements Function {
 			
 		} 
 		catch (IOException e) {
-			throw new NativeException(e);
+			throw Caster.toPageException(e);
 		}
 		
 		return "";

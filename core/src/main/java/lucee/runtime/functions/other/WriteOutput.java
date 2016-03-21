@@ -27,13 +27,15 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class WriteOutput implements Function {
     public static boolean call(PageContext pc , String string) throws PageException {
         try {
             pc.forceWrite(string);
-        } catch (IOException e) {
-            throw new NativeException(e);
+        }
+        catch (IOException e) {
+            throw Caster.toPageException(e);
         }
         return true;
     }

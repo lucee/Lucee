@@ -127,7 +127,7 @@ public final class Location extends TagImpl {
 			pageContext.forceWrite("</head>\n<body>\n\t<h1>Object Moved</h1>\n\t		 <a HREF=\""+url+"\">here</a>\n");
 			pageContext.forceWrite("</body>\n</html>");
 		} catch (IOException e) {
-			throw new NativeException(e);
+			throw Caster.toPageException(e);
 		}
         if(pageContext.getConfig().debug())pageContext.getDebugger().setOutput(false);
 		throw new Abort(Abort.SCOPE_REQUEST);

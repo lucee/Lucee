@@ -3180,7 +3180,7 @@ public final class Caster {
         	}
         	//Throwable cause = t.getCause();
         	//if(cause!=null && cause!=t) return toPageException(cause);
-        	return new NativeException(t);
+        	return NativeException.newInstance(t);
         }
     }
     

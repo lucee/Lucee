@@ -28,6 +28,7 @@ import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -1385,7 +1386,9 @@ class StopThread extends Thread {
 						m.setAccessible(true); // allow to access private method
 						m.invoke(thread, new Object[]{t});
 					}
-					catch (Throwable t) {
+					catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | 
+							NoSuchMethodException | SecurityException e) {
+						e.printStackTrace();
 						LogUtil.log(log, Log.LEVEL_ERROR, "", t);
 						thread.stop();
 					}

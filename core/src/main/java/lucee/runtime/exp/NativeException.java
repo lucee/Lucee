@@ -42,7 +42,7 @@ public class NativeException extends PageExceptionImpl {
 	 * Standart constructor for native Exception class
 	 * @param t Throwable
 	 */
-	public NativeException(Throwable t) {
+	protected NativeException(Throwable t) {
         super(t=getRootCause(t),t.getClass().getName());
         this.t=t;
         
@@ -64,6 +64,12 @@ public class NativeException extends PageExceptionImpl {
         	else setStackTrace(st);
         }
         setAdditional(KeyConstants._Cause, t.getClass().getName());
+	}
+	
+	public static NativeException newInstance(Throwable t) {
+		if(t instanceof ThreadDeath) // never ever catch this
+			throw (ThreadDeath)t;
+		return new NativeException(t);
 	}
 
 	private static Throwable getRootCause(Throwable t) {

@@ -849,13 +849,8 @@ public final class Reflector {
 	    try {
 	    	return mi.invoke(obj);
         }
-		catch (InvocationTargetException e) {
-			Throwable target = e.getTargetException();
-			if(target instanceof PageException) throw (PageException)target;
-			throw new NativeException(e.getTargetException());
-		} 
 		catch (Exception e) {
-			throw new NativeException(e);
+			throw Caster.toPageException(e);
 		}
 	}
 	
