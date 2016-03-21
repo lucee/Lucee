@@ -269,7 +269,8 @@ public final class LocaleFactory {
 	}
 	
 	public static String toString(Locale locale) {
-		return locale.toString();
+		if(locale==null) return "";
+		return getDisplayName(locale);
 	}
 	
     /**

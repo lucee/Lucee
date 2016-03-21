@@ -34,7 +34,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var org=admin.getRegional();
 		var timeserver='swisstime.ethz.ch';
 		var timezone='gmt';
-		var locale='de_ch'
+		var locale='german (swiss)'
 		
 		admin.updateRegional(timezone,locale,timeserver,true);
 		
