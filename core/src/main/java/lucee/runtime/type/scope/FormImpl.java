@@ -66,7 +66,7 @@ public final class FormImpl extends ScopeSupport implements Form,ScriptProtected
 	private byte AMP=38;
 	
 	
-	private Map<String,Item> fileItems=MapFactory.<String,Item>getConcurrentMap();
+	private Map<String,Item> _fileItems=MapFactory.<String,Item>getConcurrentMap();
 	private Exception initException=null;
 
     private String encoding=null;
@@ -182,6 +182,7 @@ public final class FormImpl extends ScopeSupport implements Form,ScriptProtected
         	//byte[] value;
         	InputStream is;
         	ArrayList<URLItem> list=new ArrayList<URLItem>();
+        	String fileName;
 			while (iter.hasNext()) {
 			    FileItemStream item = iter.next();
 
@@ -190,8 +191,9 @@ public final class FormImpl extends ScopeSupport implements Form,ScriptProtected
 			    	list.add(new URLItem(item.getFieldName(),new String(IOUtil.toBytes(is),encoding),false));	     
 			    } 
 			    else {
-			    	tempFile=tempDir.getRealResource(getFileName());
-			    	fileItems.put(item.getFieldName().toLowerCase(),
+			    	fileName=getFileName();
+			    	tempFile=tempDir.getRealResource(fileName);
+			    	_fileItems.put(fileName,
 			    			new Item(tempFile,item.getContentType(),item.getName(),item.getFieldName()));
 					String value=tempFile.toString();
 			    	IOUtil.copy(is, tempFile,true);
@@ -286,14 +288,14 @@ public final class FormImpl extends ScopeSupport implements Form,ScriptProtected
         scriptProtected=ScriptProtected.UNDEFINED;
         raw=empty;
 		
-		if(!fileItems.isEmpty()) {
-			Iterator<Entry<String, Item>> it = fileItems.entrySet().iterator();
+		if(!_fileItems.isEmpty()) {
+			Iterator<Item> it = _fileItems.values().iterator();
 			Item item;
 			while(it.hasNext()) {
-				item=it.next().getValue();
+				item=it.next();
 				item.getResource().delete();
 			}
-			fileItems.clear();
+			_fileItems.clear();
 		}
 		initException=null;
 		
@@ -301,15 +303,12 @@ public final class FormImpl extends ScopeSupport implements Form,ScriptProtected
 
 	@Override
 	public FormItem[] getFileItems() {
-		if(fileItems==null || fileItems.isEmpty()) return new FormImpl.Item[0];
-		
-		Iterator<Entry<String, Item>> it = fileItems.entrySet().iterator();
-		Map.Entry<String, Item> entry;
-		FormImpl.Item[] rtn=new FormImpl.Item[fileItems.size()];
+		if(_fileItems==null || _fileItems.isEmpty()) return new FormImpl.Item[0];
+		Iterator<Item> it = _fileItems.values().iterator();
+		FormImpl.Item[] rtn=new FormImpl.Item[_fileItems.size()];
 		int index=0;
 		while(it.hasNext()){
-			entry=it.next();
-			rtn[index++]=entry.getValue();
+			rtn[index++]=it.next();
 		}
 		return rtn;
 	}
@@ -324,36 +323,38 @@ public final class FormImpl extends ScopeSupport implements Form,ScriptProtected
 		key=key.trim();
 		String lcKey = StringUtil.toLowerCase(key);
 		
-		// x
-		Item item = fileItems.get(lcKey);
-		if(item!=null)return item;
+		if(_fileItems==null || _fileItems.isEmpty()) return null;
 		
-		// form.x
-		if(lcKey.startsWith("form.")) {
-			lcKey=lcKey.substring(5).trim();
-			item = fileItems.get(lcKey);
-			if(item!=null)return item;
-		}
-		
-		// form . x
-		try {
-			Array array = ListUtil.listToArray(lcKey, '.');
-			if(array.size()>1 && array.getE(1).toString().trim().equals("form")) {
-				array.removeE(1);
-				lcKey=ListUtil.arrayToList(array, ".").trim();
-				item = fileItems.get(lcKey);
-				if(item!=null)return item;
-			}
-		} 
-		catch (PageException e) {}
-		
-		// /file.tmp
-		Iterator<Entry<String, Item>> it = fileItems.entrySet().iterator();
+		Iterator<Entry<String, Item>> it = _fileItems.entrySet().iterator();
+		Entry<String, Item> entry;
+		Item item;
 		while(it.hasNext()) {
-			item=it.next().getValue();
+			entry=it.next();
+			item = entry.getValue();
+			// x
+			if(item.getFieldName().equalsIgnoreCase(key)) return item;
+			
+			// form.x
+			if(lcKey.startsWith("form.")) {
+				lcKey=lcKey.substring(5).trim();
+				if(item.getFieldName().equalsIgnoreCase(lcKey))return item;
+			}
+			
+			// form . x
+			try {
+				Array array =  ListUtil.listToArray(lcKey, '.');
+				if(array.size()>1 && array.getE(1).toString().trim().equals("form")) {
+					array.removeE(1);
+					lcKey=ListUtil.arrayToList(array, ".").trim();
+					if(item.getFieldName().equalsIgnoreCase(lcKey))return item;
+				}
+			} 
+			catch (PageException e) {}
+			
+			// /file.tmp
 			if(item.getResource().getAbsolutePath().equalsIgnoreCase(key))return item;
+			if(entry.getKey().equalsIgnoreCase(key))return item;
 		}
-		
 		return null;
 	}
 
