@@ -41,6 +41,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.MissingIncludeException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.functions.system.GetDirectoryFromPath;
 import lucee.runtime.op.Caster;
@@ -340,7 +341,8 @@ public final class PageSourceImpl implements PageSource {
         }
         catch(Throwable t) {
         	if(t instanceof TemplateException) throw (TemplateException)t;
-        	throw new TemplateException(t.getClass().getName()+":"+t.getMessage());
+        	throw new PageRuntimeException(Caster.toPageException(t));
+        	//throw new TemplateException(t.getClass().getName()+":"+t.getMessage());
         }
 	}
 
