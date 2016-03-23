@@ -108,7 +108,7 @@ public final class Import extends EvaluatorSupport {
         textTagLib=ConfigWebUtil.replacePlaceholder(textTagLib, config);
         // File TagLib
         String ext=ResourceUtil.getExtension(textTagLib,null);
-        boolean hasTldExtension="tld".equalsIgnoreCase(ext);
+        boolean hasTldExtension="tld".equalsIgnoreCase(ext) || "tldx".equalsIgnoreCase(ext);
         
         Resource absFile=config.getResource(textTagLib);
 	    // TLD
@@ -188,7 +188,9 @@ public final class Import extends EvaluatorSupport {
 			filename=Md5.getDigestAsString(ResourceUtil.getCanonicalPathEL(jarFile)+jarFile.lastModified());
 		} catch (IOException e) {}
     	
-		Resource tldFile = jspTagLibDir.getRealResource(filename+".tld");
+    	Resource tldFile = jspTagLibDir.getRealResource(filename+".tld");
+    	if(tldFile.exists() ) return tldFile;
+    	tldFile = jspTagLibDir.getRealResource(filename+".tldx");
     	if(tldFile.exists() ) return tldFile;
     	
     	
@@ -214,7 +216,7 @@ public final class Import extends EvaluatorSupport {
             ZipEntry ze;
             byte[] barr;
             while((ze = zis.getNextEntry()) != null) {
-                if (!ze.isDirectory() && StringUtil.endsWithIgnoreCase(ze.getName(),".tld")) {
+                if (!ze.isDirectory() && (StringUtil.endsWithIgnoreCase(ze.getName(),".tld") || StringUtil.endsWithIgnoreCase(ze.getName(),".tldx"))) {
                     SystemOut.printDate(c.getOutWriter(),"found tld in file ["+jarFile+"] at position "+ze.getName());
                     ByteArrayOutputStream baos=new ByteArrayOutputStream();
                     while((bytes_read = zis.read(buffer)) != -1)

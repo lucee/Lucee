@@ -1136,7 +1136,7 @@ public abstract class ConfigImpl implements Config {
         
         // now overwrite with new data
         if(fileTld.isDirectory()) {
-        	Resource[] files=fileTld.listResources(new ExtensionResourceFilter("tld"));
+        	Resource[] files=fileTld.listResources(new ExtensionResourceFilter(new String[]{"tld","tldx"}));
             for(int i=0;i<files.length;i++) {
                 try {
                 	tl = TagLibFactory.loadFromFile(files[i],getIdentification());
