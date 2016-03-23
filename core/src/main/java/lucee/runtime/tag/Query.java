@@ -813,7 +813,7 @@ cachename: Name of the cache in secondary cache.
 				return QueryImpl.toArray(pageContext,dc,sql,maxrows,blockfactor,timeout,getName(),getPageSource().getDisplayPath(),createUpdateData,true);
 			if(returntype==RETURN_TYPE_STRUCT){
 				if(columnName==null)
-					throw new ApplicationException("attribute columnType is required when return type is set to struct");
+					throw new ApplicationException("attribute columnKey is required when return type is set to struct");
 
 				return QueryImpl.toStruct(pageContext,dc,sql,columnName,maxrows,blockfactor,timeout,getName(),getPageSource().getDisplayPath(),createUpdateData,true);
 			}
