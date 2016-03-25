@@ -394,14 +394,14 @@ Error Output --->
 						- memory: the data are only in the memory, so in fact no persistent storage<br>
 						- file: the data are stored in the local filesystem<br>
 						- cookie: the data are stored in the users cookie<br>
-						- &lt;cache-name&gt;: name of a cache instane that has ""Storage"" enabled<br>
-						- &lt;datasource-name&gt;: name of a datasource instane that has ""Storage"" enabled">
+						- &lt;cache-name&gt;: name of a cache instance that has ""Storage"" enabled<br>
+						- &lt;datasource-name&gt;: name of a datasource instance that has ""Storage"" enabled">
 				<cfset stText.Scopes.ClientStorageDesc="Default Storage for Session, possible values are:<br>
 						- memory: the data are only in the memory, so in fact no persistent storage<br>
 						- file: the data are stored in the local filesystem<br>
 						- cookie: the data are stored in the users cookie<br>
-						- &lt;cache-name&gt;: name of a cache instane that has ""Storage"" enabled<br>
-						- &lt;datasource-name&gt;: name of a datasource instane that has ""Storage"" enabled">
+						- &lt;cache-name&gt;: name of a cache instance that has ""Storage"" enabled<br>
+						- &lt;datasource-name&gt;: name of a datasource instance that has ""Storage"" enabled">
 							
 				
 				<!--- session storage --->
