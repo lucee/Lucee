@@ -63,7 +63,7 @@
 							</td>
 							<!--- edit --->
 							<td>
-								#renderEditButton("#request.self#?action=#url.action#&action2=create&symbolicName=#bundles.symbolicName#")#
+								#renderEditButton("#request.self#?action=#url.action#&action2=create&symbolicName=#bundles.symbolicName#&version=#bundles.version#")#
 								
 							</td> 
 						</tr>

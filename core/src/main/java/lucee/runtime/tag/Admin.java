@@ -26,7 +26,9 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -600,6 +602,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         else if(check("getMonitors",     ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ  )) doGetMonitors();
         else if(check("getMonitor",     ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ  )) doGetMonitor();
         else if(check("getBundles",     ACCESS_FREE) && check2(ACCESS_READ  )) doGetBundles();
+        else if(check("getBundle",     ACCESS_FREE) && check2(ACCESS_READ  )) doGetBundle();
         else if(check("getExecutionLog",     ACCESS_FREE) && check2(ACCESS_READ  )) doGetExecutionLog();
         else if(check("gateway",     ACCESS_NOT_WHEN_SERVER) && check2(ACCESS_READ  )) doGateway();
         
@@ -3513,19 +3516,120 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         pageContext.setVariable(getString("admin",action,"returnVariable"),qry);
 	}
 
+
+	
+	private void doGetBundle() throws PageException  {
+		String symbolicName = getString("admin", "getBundle", "symbolicName", true);
+		Version version = OSGiUtil.toVersion(getString("version", null), null);
+		
+		BundleDefinition bd;
+		BundleFile bf=null;
+		Bundle b = OSGiUtil.getBundleLoaded(symbolicName, version, null);
+		if(b!=null) {
+			bd=new BundleDefinition(b);
+		}
+		else {
+			try {
+				bf=OSGiUtil.getBundleFile(symbolicName, version, null, false);
+				bd=bf.toBundleDefinition();
+				b=bd.getLoadedBundle();
+				
+			} catch (BundleException e) {
+				throw Caster.toPageException(e);
+			}
+		}
+		
+		CFMLEngine engine = ConfigWebUtil.getEngine(config);
+		BundleCollection coreBundles = engine.getBundleCollection();
+		java.util.Collection<BundleDefinition> extBundles = config.getAllExtensionBundleDefintions();
+		
+		Struct sct = new StructImpl();
+		pageContext.setVariable(getString("admin",action,"returnVariable"),sct);
+		
+		sct.set(SYMBOLIC_NAME,bd.getName());
+		sct.set(KeyConstants._title, bd.getName());
+		sct.set(KeyConstants._version,bd.getVersionAsString());
+		sct.set(USED_BY, _usedBy(bd.getName(),bd.getVersion(),coreBundles,extBundles));
+		try {
+			if(b!=null) {
+				sct.set(PATH, b.getLocation());
+			}
+			else {
+				if(bf==null)bf=bd.getBundleFile(false);
+				sct.set(PATH, bf.getFile());
+			}
+			
+		}
+		catch(Throwable t){
+			
+		}
+		
+		
+		Map<String,Object> headers=null;
+		if(b!=null) {
+			sct.set(KeyConstants._version, bd.getVersion().toString());
+			sct.set(KeyConstants._id, b.getBundleId());
+			sct.set(KeyConstants._state, OSGiUtil.toState(b.getState(),null));
+			sct.set(FRAGMENT, OSGiUtil.isFragment(b));
+			
+			headers = OSGiUtil.getHeaders(b);
+		}
+		else {
+			sct.set(KeyConstants._state, "notinstalled");
+			try {
+				
+				if(bf==null)bf=bd.getBundleFile(false);
+				sct.set(KeyConstants._version, bf.getVersionAsString());
+				sct.set(FRAGMENT, OSGiUtil.isFragment(bf));
+				headers=bf.getHeaders();
+				
+				
+			}
+			catch (BundleException e) {}
+			
+		}
+		
+		
+		if(headers!=null) {
+			Struct h = Caster.toStruct(headers,false);
+			sct.set(HEADERS, h);
+			
+			// title
+			String str = Caster.toString(h.get("Bundle-Title",null),null);
+			if(StringUtil.isEmpty(str)) str=Caster.toString(h.get("Implementation-Title",null),null);
+			if(StringUtil.isEmpty(str)) str=Caster.toString(h.get("Specification-Title",null),null);
+			if(StringUtil.isEmpty(str)) str=Caster.toString(h.get("Bundle-Name",null),null);
+			if(!StringUtil.isEmpty(str))
+				sct.set(KeyConstants._title, str);
+
+			// description
+			str=Caster.toString(h.get("Bundle-Description",null),null);
+			if(StringUtil.isEmpty(str)) str=Caster.toString(h.get("Implementation-Description",null),null);
+			if(StringUtil.isEmpty(str)) str=Caster.toString(h.get("Specification-Description",null),null);
+			if(!StringUtil.isEmpty(str))
+				sct.set(KeyConstants._description, str);
+
+			// Vendor
+			str=Caster.toString(h.get("Bundle-Vendor",null),null);
+			if(StringUtil.isEmpty(str)) str=Caster.toString(h.get("Implementation-Vendor",null),null);
+			if(StringUtil.isEmpty(str)) str=Caster.toString(h.get("Specification-Vendor",null),null);
+			if(!StringUtil.isEmpty(str))
+				sct.set(VENDOR, str);
+			
+		}
+		
+		
+		
+		
+	}
 	
 	private void doGetBundles() throws PageException  {
-		//if(!(config instanceof ConfigServerImpl))
-		//	throw new ApplicationException("invalid context for this action");
-		
-		//ConfigServerImpl cs=(ConfigServerImpl) config;
 		CFMLEngine engine = ConfigWebUtil.getEngine(config);
 		BundleCollection coreBundles = engine.getBundleCollection();
 		java.util.Collection<BundleDefinition> extBundles = config.getAllExtensionBundleDefintions();
 		
 		List<BundleDefinition> bds = OSGiUtil.getBundleDefinitions(engine.getBundleContext());
 		Iterator<BundleDefinition> it = bds.iterator();
-		// Bundle[] bundles = cs.getCFMLEngine().getBundleContext().getBundles();
 		BundleDefinition bd;
 		Bundle b;
 		String str;
@@ -3535,18 +3639,23 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		while(it.hasNext()){
 			row++;
 			bd=it.next();
+			b=bd.getLoadedBundle();
 			qry.setAt(SYMBOLIC_NAME, row, bd.getName());
 			qry.setAt(KeyConstants._title, row, bd.getName());
 			qry.setAt(KeyConstants._version, row, bd.getVersionAsString());
 			qry.setAt(USED_BY, row, _usedBy(bd.getName(),bd.getVersion(),coreBundles,extBundles));
+			BundleFile bf=null;
 			try {
-				qry.setAt(PATH, row, bd.getBundleFile().getFile());
+				if(b!=null) {
+					qry.setAt(PATH, row, b.getLocation());
+				}
+				else {
+					bf=bd.getBundleFile(false);
+					qry.setAt(PATH, row, bf.getFile());
+				}
 			}
 			catch(Throwable t){	}
 			
-			
-			
-			b=bd.getLoadedBundle();
 			Map<String,Object> headers=null;
 			if(b!=null) {
 				qry.setAt(KeyConstants._version, row, bd.getVersion().toString());
@@ -3560,13 +3669,26 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				qry.setAt(KeyConstants._state, row, "notinstalled");
 				
 				try {
-					BundleFile bf=bd.getBundleFile();
-					qry.setAt(KeyConstants._version, row, bf.getVersionAsString());
-					//qry.setAt(KeyConstants._id, row, bf.getBundleId());
-					qry.setAt(FRAGMENT, row, OSGiUtil.isFragment(bf));
+					if(b!=null) {
+						qry.setAt(KeyConstants._version, row, b.getVersion().toString());
+						qry.setAt(FRAGMENT, row, OSGiUtil.isFragment(b));
+						Dictionary<String, String> dic = b.getHeaders();
+						Enumeration<String> keys = dic.keys();
+						headers=new HashMap<String,Object>();
+						String key;
+						while(keys.hasMoreElements()){
+							key=keys.nextElement();
+							headers.put(key, dic.get(key));
+						}
+					}
+					else {
+						if(bf!=null) bf=bd.getBundleFile(false);
+						qry.setAt(KeyConstants._version, row, bf.getVersionAsString());
+						//qry.setAt(KeyConstants._id, row, bf.getBundleId());
+						qry.setAt(FRAGMENT, row, OSGiUtil.isFragment(bf));
+						headers=bf.getHeaders();
+					}
 					
-					
-					headers=bf.getHeaders();
 				}
 				catch (BundleException e) {}
 				
@@ -3602,15 +3724,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				
 				// Specification-Vendor,Bundle-Vendor
 			}
+			
 		}
 		
 		QuerySort.call(pageContext, qry, "title");
-		
-        pageContext.setVariable(getString("admin",action,"returnVariable"),qry);
+		pageContext.setVariable(getString("admin",action,"returnVariable"),qry);
 	}
 	
 
-	private Object _usedBy(String name, Version version, BundleCollection coreBundles, java.util.Collection<BundleDefinition> extBundles) {
+	private String _usedBy(String name, Version version, BundleCollection coreBundles, java.util.Collection<BundleDefinition> extBundles) {
 		// core
 		if(_eq(name,version,coreBundles.core.getSymbolicName(),coreBundles.core.getVersion()))
 			return "core";

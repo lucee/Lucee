@@ -1,21 +1,16 @@
 <cfadmin 
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#" 
-	action="getBundles" 
+	action="getBundle" 
 	symbolicName="#url.symbolicName#"
-	returnvariable="_bundles">
-
-<cfloop query="#_bundles#">
-	<cfif url.symbolicName EQ _bundles.symbolicName>
-		<cfset bundle=querySlice(_bundles,_bundles.currentrow)>
-	</cfif>
-</cfloop>
+	version="#isNull(url.version)?'':url.version#"
+	returnvariable="bundle">
 
 <cfoutput>
 	<cfif not hasAccess><cfset noAccess(stText.setting.noAccess)></cfif>
 
 	<h2>#stText.info.bundles.subject# #bundle.title#<cfif bundle.symbolicName != bundle.title> (#bundle.symbolicName#)</cfif></h2>
-	<cfif len(bundle.description)><div class="pageintro">#bundle.description.trim()#</div></cfif>
+	<cfif !isNull(bundle.description) && len(bundle.description)><div class="pageintro">#bundle.description.trim()#</div></cfif>
 
 		<table class="maintbl">
 			<tbody>
@@ -25,20 +20,20 @@
 				</tr>
 				<tr>
 					<th scope="row">#stText.info.bundles.path#</th>
-					<td>#bundle.path#</td>
+					<td><cfif !isNull(bundle.path)>#bundle.path#</cfif></td>
 				</tr>
 				<tr>
 					<th scope="row">#stText.info.bundles.vendor#</th>
-					<td>#bundle.vendor#</td>
+					<td><cfif !isNull(bundle.vendor)>#bundle.vendor#</cfif></td>
 				</tr>
 				<tr style="#csss[bundle.state]#">
 					<th scope="row">#stText.info.bundles.State#</th>
 					<td>#bundle.State#</td>
 				</tr>
-				<tr>
+				<cfif !isNull(bundle.usedBy)><tr>
 					<th scope="row">#stText.info.bundles.usedBy#</th>
 					<td>#bundle.usedBy#</td>
-				</tr>
+				</tr></cfif>
 				<tr>
 					<th scope="row">#stText.info.bundles.isFragment#</th>
 

@@ -53,6 +53,7 @@ import lucee.runtime.config.Identification;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.type.util.ListUtil;
 
 import org.osgi.framework.Bundle;
@@ -842,9 +843,9 @@ public class OSGiUtil {
 		}
 		
 
-		public BundleFile getBundleFile() throws BundleException {
+		public BundleFile getBundleFile(boolean downloadIfNecessary) throws BundleException {
 			Config config = ThreadLocalPageContext.getConfig();
-			return OSGiUtil.getBundleFile(name, version, config==null?null:config.getIdentification(),true);
+			return OSGiUtil.getBundleFile(name, version, config==null?null:config.getIdentification(),downloadIfNecessary);
 			
 		}
 
