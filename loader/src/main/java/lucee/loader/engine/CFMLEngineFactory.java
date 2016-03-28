@@ -44,8 +44,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -301,13 +303,41 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			if (lucee == null) {
 				log(Logger.LOG_DEBUG, "Load Build in Core");
 				// 
+				
+				
 				final String coreExt = "lco";
-				setEngine(getCore());
+				
+				// copy core
+				
+				final File rc = new File(getTempDirectory(), "tmp_"+ System.currentTimeMillis() + "."+coreExt);
+				InputStream is=null;
+				OutputStream os=null;
+				try {
+					is = new TP().getClass().getResourceAsStream("/core/core." + coreExt);
+					os = new BufferedOutputStream(new FileOutputStream(rc));
+					copy(is, os);
+				}
+				finally {
+					closeEL(is);
+					closeEL(os);
+				}
+				
+				lucee = new File(patcheDir, getVersion(rc) + "." + coreExt);
+				try {
+					is = new FileInputStream(rc);
+					os = new BufferedOutputStream(new FileOutputStream(lucee));
+					copy(is, os);
+				}
+				finally {
+					closeEL(is);
+					closeEL(os);
+					rc.delete();
+				}
+				
+				setEngine(_getCore(lucee));
 
-				lucee = new File(patcheDir, singelton.getInfo().getVersion()
-						.toString()
-						+ "." + coreExt);
-				if (PATCH_ENABLED) {
+				
+				/*if (PATCH_ENABLED) {
 					final InputStream bis = new TP().getClass()
 							.getResourceAsStream("/core/core." + coreExt);
 					final OutputStream bos = new BufferedOutputStream(
@@ -315,8 +345,9 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					copy(bis, bos);
 					closeEL(bis);
 					closeEL(bos);
-				}
-			} else {
+				}*/
+			}
+			else {
 
 				bundleCollection = BundleLoader.loadBundles(this,
 						getFelixCacheDirectory(), getBundleDirectory(), lucee,
@@ -350,6 +381,20 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	}
 
+	
+	private static String getVersion(File file) throws IOException, BundleException {
+		JarFile jar = new JarFile(file);
+		Manifest manifest = jar.getManifest();
+		Attributes attrs = manifest.getMainAttributes();
+		
+		
+		//name = attrs.getValue("Bundle-Name");
+		//symbolicName = attrs.getValue("Bundle-SymbolicName");
+		return attrs.getValue("Bundle-Version");
+	}
+	
+	
+	
 	private static CFMLEngineWrapper setEngine(final CFMLEngine engine) {
 		//new RuntimeException("setEngine").printStackTrace();
 		if (singelton == null)
@@ -453,31 +498,16 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			logger.log(level, msg);
 	}
 
-	private CFMLEngine getCore() throws IOException, BundleException,
+	private CFMLEngine _getCore(File rc) throws IOException, BundleException,
 			ClassNotFoundException, SecurityException, NoSuchMethodException,
 			IllegalArgumentException, IllegalAccessException,
 			InvocationTargetException {
-		final File rc = new File(getTempDirectory(), "tmp_"
-				+ System.currentTimeMillis() + ".lco");
-		try {
-			InputStream is = null;
-			OutputStream os = null;
-			try {
-				is = new TP().getClass().getResourceAsStream("/core/core.lco");
-				os = new FileOutputStream(rc);
-				copy(is, os);
-
-			} finally {
-				closeEL(is);
-				closeEL(os);
-			}
-			bundleCollection = BundleLoader.loadBundles(this,
+		
+		bundleCollection = BundleLoader.loadBundles(this,
 					getFelixCacheDirectory(), getBundleDirectory(), rc,
 					bundleCollection);
-			return getEngine(bundleCollection);
-		} finally {
-			rc.delete();
-		}
+		return getEngine(bundleCollection);
+		
 	}
 
 	/**
