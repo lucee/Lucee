@@ -97,68 +97,6 @@ public class BundleLoader {
 				}
 			}
 
-			/* / org.osgi.framework.storage.clean
-			String storageClean = unwrap(defProp
-					.getProperty("org.osgi.framework.storage.clean"));
-			if (Util.isEmpty(storageClean))
-				storageClean = Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT;
-			engFac.log(Logger.LOG_INFO, "org.osgi.framework.storage.clean:"
-					+ storageClean);*/
-
-			/* / org.osgi.framework.bootdelegation
-			String bootDelegation = unwrap(defProp.getProperty("org.osgi.framework.bootdelegation"));
-			if (Util.isEmpty(bootDelegation))
-				throw new IOException(
-						"[org.osgi.framework.bootdelegation] setting is necessary in file {Lucee-Core}/default.properties");
-			engFac.log(Logger.LOG_INFO, "org.osgi.framework.bootdelegation:"
-					+ bootDelegation);*/
-
-			/* / org.osgi.framework.system.packages
-			String systemPackages = unwrap(defProp.getProperty("org.osgi.framework.system.packages"));
-			engFac.log(Logger.LOG_INFO, "org.osgi.framework.system.packages:"
-					+ systemPackages);*/
-
-			/*/ org.osgi.framework.bundle.parent
-			String parentClassLoader = unwrap(defProp
-					.getProperty("org.osgi.framework.bundle.parent"));
-			if (Util.isEmpty(parentClassLoader))
-				parentClassLoader = Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK;
-			else
-				parentClassLoader = BundleUtil
-						.toFrameworkBundleParent(parentClassLoader);
-			engFac.log(Logger.LOG_INFO, "org.osgi.framework.bundle.parent:"
-					+ parentClassLoader);
-			*/
-
-			/*/ felix.log.level
-			int logLevel = 1; // 1 = error, 2 = warning, 3 = information, and 4 = debug
-			String strLogLevel = unwrap(defProp.getProperty("felix.log.level"));
-			if (!Util.isEmpty(strLogLevel)) {
-				if ("warn".equalsIgnoreCase(strLogLevel)
-						|| "warning".equalsIgnoreCase(strLogLevel))
-					logLevel = 2;
-				else if ("info".equalsIgnoreCase(strLogLevel)
-						|| "information".equalsIgnoreCase(strLogLevel))
-					logLevel = 3;
-				else if ("debug".equalsIgnoreCase(strLogLevel))
-					logLevel = 4;
-			}
-			engFac.log(Logger.LOG_INFO,
-					"felix.log.level (1 = error, 2 = warning, 3 = information, and 4 = debug):"
-							+ logLevel);
-			*/
-			// 
-			/*
-			 if (old != null) {
-				bc = old.getBundleContext();
-				removeBundles(old);
-				//clearCacheDirectory(felix-cache);
-			} else {
-				bc = engFac.getFelix(cacheRootDir, storageClean, bootDelegation,
-						parentClassLoader, logLevel, null).getBundleContext();
-			}
-			 */
-
 			// close all bundles
 			Felix felix;
 			if (old != null) {
