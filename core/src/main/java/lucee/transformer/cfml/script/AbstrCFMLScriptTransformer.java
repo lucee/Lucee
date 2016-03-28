@@ -29,6 +29,7 @@ import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
+import lucee.runtime.PageSource;
 import lucee.runtime.component.Member;
 import lucee.runtime.config.Constants;
 import lucee.runtime.exp.PageRuntimeException;
@@ -83,6 +84,7 @@ import lucee.transformer.library.tag.TagLibException;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
 import lucee.transformer.library.tag.TagLibTagScript;
+import lucee.transformer.util.PageSourceCode;
 import lucee.transformer.util.SourceCode;
 
 
@@ -856,9 +858,21 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				FunctionLibFunction flf = getFLF(data,functionName);
 				try {
 					if(flf!=null && flf.getFunctionClassDefinition().getClazz()!=CFFunction.class){
-						throw new TemplateException(data.srcCode,"The name ["+functionName+"] is already used by a built in Function");
+						PageSource ps=null;
+						if(data.srcCode instanceof PageSourceCode) {
+							ps=((PageSourceCode)data.srcCode).getPageSource();
+						}
+						
+						String path=null;
+						if(ps!=null) {
+							path = ps.getDisplayPath();
+							path=path.replace('\\', '/');
+						}
+						if(path==null || path.indexOf("/library/function/")==-1)// TODO make better
+							throw new TemplateException(data.srcCode,"The name ["+functionName+"] is already used by a built in Function");
 					}
-				} catch (Throwable t) {
+				}
+				catch (Throwable t) {
 					throw new PageRuntimeException(Caster.toPageException(t));
 				}
 			}

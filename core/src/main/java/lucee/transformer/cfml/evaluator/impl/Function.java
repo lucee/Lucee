@@ -24,10 +24,12 @@ import java.util.List;
 import java.util.Map;
 
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageSource;
 import lucee.runtime.functions.system.CFFunction;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Body;
+import lucee.transformer.bytecode.Page;
 import lucee.transformer.bytecode.Statement;
 import lucee.transformer.bytecode.StaticBody;
 import lucee.transformer.bytecode.statement.tag.Attribute;
@@ -43,6 +45,8 @@ import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.tag.TagLibTag;
+import lucee.transformer.util.PageSourceCode;
+import lucee.transformer.util.SourceCode;
 
 /**
  * Prueft den Kontext des Tag function.
@@ -64,8 +68,17 @@ public final class Function extends EvaluatorSupport {
 		Attribute attrName = tag.getAttribute("name");
 		if(attrName!=null) {
 			Expression expr = attrName.getValue();
+			PageSource ps=null;
 			if(expr instanceof LitString && !isCI){
-				checkFunctionName(((LitString)expr).getString(),flibs);
+				Page p = ASMUtil.getAncestorPage(tag,null);
+				if(p!=null) {
+					SourceCode sc = p.getSourceCode();
+					if(sc instanceof PageSourceCode){
+						PageSourceCode psc=(PageSourceCode) sc;
+						ps=psc.getPageSource();
+					}
+				}
+				checkFunctionName(((LitString)expr).getString(),flibs,ps);
 			}
 				
 		}
@@ -154,16 +167,22 @@ public final class Function extends EvaluatorSupport {
 		}
 	}
 	
-	public static void checkFunctionName(String name, FunctionLib[] flibs) throws EvaluatorException {
+	public static void checkFunctionName(String name, FunctionLib[] flibs,PageSource ps) throws EvaluatorException {
 		FunctionLibFunction flf;
 		for (int i = 0; i < flibs.length; i++) {
 			flf = flibs[i].getFunction(name);
 			if(flf!=null && flf.getFunctionClassDefinition().getClazz(null)!=CFFunction.class) {
-				throw new EvaluatorException("The name ["+name+"] is already used by a built in Function");
+				String path=null;
+				if(ps!=null) {
+					path = ps.getDisplayPath();
+					path=path.replace('\\', '/');
+				}
+				if(path==null || path.indexOf("/library/function/")==-1)// TODO make better
+					throw new EvaluatorException("The name ["+name+"] is already used by a built in Function");
 			}
 		}
 	}
-
+	
 	public static void throwIfNotEmpty(Tag tag) throws EvaluatorException {
 		Body body = tag.getBody();
 		List<Statement> statments = body.getStatements();
