@@ -449,8 +449,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					BundleUtil.toFrameworkBundleParent(parentClassLoader));
 
 		// felix.cache.rootdir
-		if (!cacheRootDir.exists())
+		boolean isNew=false;
+		if (!cacheRootDir.exists()) {
 			cacheRootDir.mkdirs();
+			isNew=true;
+		}
 		if (cacheRootDir.isDirectory())
 			config.put("felix.cache.rootdir", cacheRootDir.getAbsolutePath());
 
@@ -483,10 +486,22 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		log(Logger.LOG_INFO, sb.toString());
 
 		felix = new Felix(config);
-		felix.start();
+		try {
+			felix.start();
+		}
+		catch(BundleException be) {
+			// this could be cause by an invalid felix cache, so we simply delete it and try again
+			if(!isNew && "Error creating bundle cache.".equals(be.getMessage())) {
+				Util.deleteContent(cacheRootDir,null);
+				
+			}
+				
+		}
+		
 
 		return felix;
 	}
+
 
 	public void log(final Throwable t) {
 		if (logger != null)
