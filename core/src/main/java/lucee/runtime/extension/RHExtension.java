@@ -353,9 +353,14 @@ public class RHExtension implements Serializable {
 					(startsWith(path,type,"jars") || startsWith(path,type,"jar") 
 					|| startsWith(path,type,"bundles") || startsWith(path,type,"bundle") 
 					|| startsWith(path,type,"lib") || startsWith(path,type,"libs")) && StringUtil.endsWithIgnoreCase(path, ".jar")) {
-					bf = XMLConfigAdmin.installBundle(config,zis,fileName,version,false);
-					bundles.add(bf);
-	
+					Object obj = XMLConfigAdmin.installBundle(config,zis,fileName,version,false,false);
+					if(obj instanceof BundleFile) bundles.add((BundleFile)obj);
+					else {
+						Resource tmp=(Resource)obj;
+						Resource tmpJar=tmp.getParentResource().getRealResource(ListUtil.last(path, "\\/"));
+						tmp.moveTo(tmpJar);
+						XMLConfigAdmin.updateJar(config, tmpJar, false);
+					}
 				}
 				
 				// flds
@@ -455,6 +460,7 @@ public class RHExtension implements Serializable {
 			}
 		}
 	}
+
 
 	public RHExtension(Config config,Element el) throws PageException, IOException, BundleException {
 		this(config,toResource(config,el),false);

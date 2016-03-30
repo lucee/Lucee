@@ -1043,10 +1043,10 @@ public final class XMLConfigAdmin {
 	}
 
 	public void updateJar(Resource resJar) throws IOException, BundleException {
-		updateJar(config, resJar);
+		updateJar(config, resJar,true);
 	}
 
-	private static void updateJar(Config config, Resource resJar) throws IOException, BundleException {
+	public static void updateJar(Config config, Resource resJar, boolean reloadWhenClassicJar) throws IOException, BundleException {
 		
 		BundleFile bf=new BundleFile(resJar);
 		
@@ -1065,13 +1065,15 @@ public final class XMLConfigAdmin {
 		if(fileLib.length()!=resJar.length()){
 			IOUtil.closeEL(config.getClassLoader());
 			ResourceUtil.copy(resJar, fileLib);
-			ConfigWebUtil.reloadLib(config);
+			if(reloadWhenClassicJar)ConfigWebUtil.reloadLib(config);
 		}
 	}
 	
 
-	
-	static BundleFile installBundle(Config config, Resource resJar, String extVersion) throws IOException, BundleException {
+	/*
+	 * important! returns null when not a bundle!
+	 */
+	static BundleFile installBundle(Config config, Resource resJar, String extVersion, boolean convert2bundle) throws IOException, BundleException {
 		
 		BundleFile bf=new BundleFile(resJar);
 		
@@ -1079,6 +1081,10 @@ public final class XMLConfigAdmin {
 		if(bf.isBundle()) {
 			return installBundle(config,bf);
 		}
+		
+		if(!convert2bundle) return null;
+		
+		
 		
 		// name
 		String name=bf.getSymbolicName();
@@ -1099,6 +1105,7 @@ public final class XMLConfigAdmin {
 		SystemOut.printDate("converted  ["+resJar+"] to an OSGi Bundle");
 		return installBundle(config,bf);
 	}
+	
 	
 
 	private static BundleFile installBundle(Config config, BundleFile bf) throws IOException, BundleException {
@@ -1139,15 +1146,21 @@ public final class XMLConfigAdmin {
 	 * @throws BundleException
 	 */
 	static Bundle updateBundle(Config config, InputStream is, String name,String extensionVersion,boolean closeStream) throws IOException, BundleException {
-		BundleFile bf = installBundle(config, is, name, extensionVersion, closeStream);
+		Object obj = installBundle(config, is, name, extensionVersion, closeStream,false);
+		if(!(obj instanceof BundleFile))
+			throw new BundleException("input is not an OSGi Bundle.");
+		
+		BundleFile bf=(BundleFile)obj;
 		return OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(),null);
 	}
 	
-	public static BundleFile installBundle(Config config, InputStream is, String name,String extensionVersion,boolean closeStream) throws IOException, BundleException {
+	public static Object installBundle(Config config, InputStream is, String name,String extensionVersion,boolean closeStream,boolean convert2bundle) throws IOException, BundleException {
 		Resource tmp=SystemUtil.getTempDirectory().getRealResource(name);
 		try{
 			IOUtil.copy(is, tmp,closeStream);
-			return installBundle(config, tmp,extensionVersion);
+			BundleFile bf = installBundle(config, tmp,extensionVersion,convert2bundle);
+			if(bf!=null) return bf;
+			return tmp;
 		}
 		finally {
 			tmp.delete();
@@ -1158,7 +1171,7 @@ public final class XMLConfigAdmin {
 		Resource tmp=SystemUtil.getTempDirectory().getRealResource(name);
 		try{
 			IOUtil.copy(is, tmp,closeStream);
-			updateJar(config, tmp);
+			updateJar(config, tmp,true);
 		}
 		finally {
 			tmp.delete();
