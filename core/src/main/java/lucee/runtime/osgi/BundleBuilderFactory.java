@@ -380,18 +380,6 @@ public class BundleBuilderFactory {
 		attrs.putValue(name, sb.toString());
 	}
 
-	/*public void addJar(Resource jar) throws ApplicationException{
-		if(!jar.isFile())
-			throw new ApplicationException("["+jar+"] is not a file");
-		jars.add(jar);
-	}
-
-	public void addJars(PageContext pc,String jars) throws PageException{
-		StringTokenizer st=new StringTokenizer(jars,",");
-		while(st.hasMoreTokens()){
-			addJar(ResourceUtil.toResourceExisting(pc,st.nextToken().trim()));
-		}
-	}*/
 	
 
 
