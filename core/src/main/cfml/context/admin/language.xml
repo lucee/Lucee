@@ -1256,7 +1256,7 @@
 		<custom key="scopes.sessiontype">Session type</custom>
 		<custom key="scopes.sessiontype_application">Application</custom>
 		<custom key="scopes.sessiontype_jee">JEE</custom>
-		<custom key="scopes.sessiontypedescription">JEE Sessions allow to make sessions over a cluster. when you change this setting you will lose your current session and you must make a new login</custom>
+		<custom key="scopes.sessiontypedescription">JEE Sessions allow you to make sessions over a cluster. When you change this setting, you will lose your current session, and you must make a new login.</custom>
 	
 		<custom key="scopes.small">small</custom>
 		<custom key="scopes.standard">standard (CFML Default)</custom>
