@@ -692,12 +692,11 @@
 
     <!-- first we copy the jars in place otherwise, Lucee downloads them  -->
     <echots message="copy bundles in place"/>
-    <copy todir="${temp}/archive/base/lucee-server/bundles" flatten="true">
-      <path>
-        <pathelement path="${dependencies}"/>
-      </path>
-    </copy>
-    
+    <addBundles 
+      bundles="${dependencies}" 
+      target="${temp}/archive/base/lucee-server/bundles"
+      coremanifest="${coreManifest}"/>
+
     <!-- no we copy the extension in place otherwise, Lucee downloads them as well  -->
     <echots message="copy extensions in place"/>
     <copy todir="${temp}/archive/base/lucee-server/context/extensions/available" flatten="true">
