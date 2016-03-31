@@ -231,9 +231,8 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 		
 		return c;
 	}	
-
+	
 	public static java.util.List<Resource> loadCFCLocation(Config config, ApplicationContext ac,Object obj, boolean onlyDir) {
-		
 		Resource res;
 		if(!Decision.isArray(obj)){
 			String list = Caster.toString(obj,null);
@@ -248,10 +247,16 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 			Iterator<Object> it = arr.valueIterator();
 			while(it.hasNext()){
 				try	{
-					res=toResourceExisting(config,ac,it.next(),onlyDir);
+					String path = Caster.toString(it.next(),null);
+					if(path==null) continue;
+					
+					//res=ResourceUtil.toResourceExisting(config, path,null);
+					//if(res==null || (onlyDir && !res.isDirectory()))
+						res=toResourceExisting(config,ac,path,onlyDir);
+					
 					if(res!=null) list.add(res);
 				}
-				catch(Throwable t){}
+				catch(Throwable t){t.printStackTrace();}
 			}
 			return list;
 		}
@@ -271,7 +276,7 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 		return Caster.toResource(config, obj, existing);
 	}
 
-	private static Resource toResourceExisting(Config config, ApplicationContext ac,Object obj, boolean onlyDir) {
+	public static Resource toResourceExisting(Config config, ApplicationContext ac,Object obj, boolean onlyDir) {
 		//Resource root = config.getRootDirectory();
 		String path = Caster.toString(obj,null);
 		if(StringUtil.isEmpty(path,true)) return null;
@@ -286,12 +291,7 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 			// abs path
 			if(path.startsWith("/")){
 				ConfigWebImpl cwi=(ConfigWebImpl) config;
-				PageSource ps = cwi.getPageSourceExisting(
-						pc, ac==null?null:ac.getMappings(), path, false, false, true, false);
-				//res=cwi.getPhysicalResourceExistingX(
-				//		pc, 
-				//		ac==null?null:ac.getMappings(), path, 
-				//		false, false, true);
+				PageSource ps = cwi.getPageSourceExisting(pc, ac==null?null:ac.getMappings(), path, false, false, true, false);
 				if(ps!=null){
 					res=ps.getResource();
 					if(res!=null && (!onlyDir || res.isDirectory())) return res;

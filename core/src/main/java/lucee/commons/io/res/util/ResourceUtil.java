@@ -187,6 +187,15 @@ public final class ResourceUtil {
     public static Resource toResourceExisting(PageContext pc ,String path) throws ExpressionException {
     	return toResourceExisting(pc, path,pc.getConfig().allowRealPath());
     }
+    
+    public static Resource toResourceExisting(PageContext pc ,String path,boolean allowRealpath, Resource defaultValue) {
+    	try {
+			return toResourceExisting(pc, path, allowRealpath);
+		}
+    	catch (Throwable e) {
+			return defaultValue;
+		}
+    }
     public static Resource toResourceExisting(PageContext pc ,String path,boolean allowRealpath) throws ExpressionException {
     	path=path.replace('\\','/');
     	Resource res = pc.getConfig().getResource(path);
@@ -222,6 +231,14 @@ public final class ResourceUtil {
         
         if(res.exists()) return res;
         throw new ExpressionException("file or directory "+path+" not exist");   
+    }
+    
+    public static Resource toResourceExisting(Config config ,String path, Resource defaultValue) {
+    	path=path.replace('\\','/');
+    	Resource res = config.getResource(path);
+        
+        if(res.exists()) return res;
+        return defaultValue;   
     }
     
     public static Resource toResourceNotExisting(Config config ,String path) {

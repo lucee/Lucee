@@ -93,7 +93,10 @@ public final class JavaProxy implements Function {
     	
     	// load class
     	try	{
-    		ClassLoader cl = resources.size()==0?null:pci.getClassLoader(resources.toArray(new Resource[resources.size()]));
+    		
+    		ClassLoader cl = resources.size()==0?
+    				pci.getClassLoader():
+    					pci.getClassLoader(resources.toArray(new Resource[resources.size()]));
     		Class clazz=null;
     		try{
 				clazz = ClassUtil.loadClass(cl,className);

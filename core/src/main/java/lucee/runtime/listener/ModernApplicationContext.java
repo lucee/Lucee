@@ -31,6 +31,7 @@ import java.util.TimeZone;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
@@ -43,6 +44,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -68,6 +70,7 @@ import lucee.runtime.type.UDFCustomType;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.ListUtil;
 
 public class ModernApplicationContext extends ApplicationContextSupport {
 
@@ -1213,7 +1216,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 				Object obj = sct.get(KeyImpl.init("loadPaths"),null);
 				List<Resource> paths;
 				if(obj!=null) {
-					paths = ORMConfigurationImpl.loadCFCLocation(config, null, obj,false);	
+					paths = loadPaths(ThreadLocalPageContext.get(), obj);	
 				}
 				else paths=new ArrayList<Resource>();
 					
@@ -1266,6 +1269,42 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			initJavaSettings=true; 
 		}
 	}
+	
+	
+	
+	public static java.util.List<Resource> loadPaths(PageContext pc, Object obj) {
+		
+		Resource res;
+		if(!Decision.isArray(obj)){
+			String list = Caster.toString(obj,null);
+			if(!StringUtil.isEmpty(list)) {
+				obj=ListUtil.listToArray(list, ',');
+			}
+		}
+		
+		if(Decision.isArray(obj)) {
+			Array arr=Caster.toArray(obj,null);
+			java.util.List<Resource> list=new ArrayList<Resource>();
+			Iterator<Object> it = arr.valueIterator();
+			while(it.hasNext()){
+				try	{
+					String path = Caster.toString(it.next(),null);
+					if(path==null) continue;
+					
+					res=ORMConfigurationImpl.toResourceExisting(pc.getConfig(), pc.getApplicationContext(), path, false);
+					if(res==null || !res.exists())
+						res=ResourceUtil.toResourceExisting(pc, path,true,null);
+					if(res!=null) list.add(res);
+				}
+				catch(Throwable t){t.printStackTrace();}
+			}
+			return list;
+		}
+		return null;
+	}
+	
+	
+	
 
 	@Override
 	public Map<Collection.Key, Object> getTagAttributeDefaultValues(PageContext pc,String tagClassName) {
