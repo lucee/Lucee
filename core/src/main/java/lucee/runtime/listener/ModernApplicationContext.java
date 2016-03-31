@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 
-import lucee.print;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
@@ -561,7 +560,6 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public short getWSType() {
 		if(!initWSType) {
-			String str=null;
 			Object o = get(component,WS_SETTINGS,null);
 			if(o instanceof Struct){ 
 				Struct sct= (Struct) o;
@@ -1291,20 +1289,15 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 				try	{
 					String path = Caster.toString(it.next(),null);
 					if(path==null) continue;
-					print.e("--------------------------------------------------");
-					print.e(path);
-					
+					//print.e("--------------------------------------------------");
+					//print.e(path);
 					res=ORMConfigurationImpl.toResourceExisting(pc.getConfig(), pc.getApplicationContext(), path, false);
 					
-					print.e(res+"->"+(res!=null && res.exists()));
-					
-					
-					
+					//print.e(res+"->"+(res!=null && res.exists()));
 					if(res==null || !res.exists())
 						res=ResourceUtil.toResourceExisting(pc, path,true,null);
 
-					print.e(res+"->"+(res!=null && res.exists()));
-					
+					//print.e(res+"->"+(res!=null && res.exists()));
 					if(res!=null) list.add(res);
 				}
 				catch(Throwable t){t.printStackTrace();}
