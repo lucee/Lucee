@@ -19,24 +19,22 @@
 package lucee.commons.sql;
 
 import lucee.commons.lang.ClassUtil;
+import lucee.runtime.op.Caster;
+import lucee.runtime.reflection.Reflector;
 
 public class OracleCaster {
 
-	private static final Class OPAQUE=ClassUtil.loadClass("oracle.sql.OPAQUE", null);
+	private static final Object[] ZERO_ARGS = new Object[0];
+
+	//private static final Class OPAQUE=ClassUtil.loadClass("oracle.sql.OPAQUE", null);
 	
 	public static Object OPAQUE(Object o) {
 		if(o==null) return null;
 			
 		try {
-			byte[] bv = ((oracle.sql.OPAQUE)o).getBytes();
 			
-			//OPAQUE op = ((oracle.sql.OPAQUE)o);
-			//OpaqueDescriptor desc = ((oracle.sql.OPAQUE)o).getDescriptor();
-			
-			
-			//Method getBytesValue = o.getClass().getMethod("getBytesValue", new Class[0]);
-			//byte[] bv = (byte[])getBytesValue.invoke(o, new Object[0]);
-			return new String(bv,"UTF-8");
+			byte[] bytes = Caster.toBytes(Reflector.callMethod(o, "getBytes", ZERO_ARGS),null);
+			return new String(bytes,"UTF-8");
 		}
 		catch (Exception e) {
 			//print.printST(e);
@@ -45,9 +43,9 @@ public class OracleCaster {
 		return o;
 	}
 
-	private static boolean equals(Class left, Class right) {
+	/*private static boolean equals(Class left, Class right) {
 		if(left==right)return true;
 		return left.equals(right.getName());
-	}
+	}*/
 
 }

@@ -19,25 +19,48 @@
 package lucee.runtime.query.caster;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import lucee.commons.lang.ClassUtil;
-import oracle.sql.OPAQUE;
+import lucee.commons.lang.ExceptionUtil;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
+import lucee.runtime.reflection.Reflector;
 
 public class _OracleOpaqueCast {
+	
+	
+	private static final Object[] ZERO_ARGS = new Object[0];
+	
+	
+	
+
 	public static Object toCFType(ResultSet rst, int columnIndex) throws SQLException, IOException {
 		validateClasses();
 		
 		Object o = rst.getObject(columnIndex);
 		if(o==null) return null;
 		
-		OPAQUE opaque = ((oracle.sql.OPAQUE)o);
-		if(opaque.getSQLTypeName().equals("SYS.XMLTYPE")){
-			return oracle.xdb.XMLType.createXML(opaque).getStringVal();
+		// we do not have oracle.sql.OPAQUE in the core, so we need reflection for this
+		try{
+			String typeName=Caster.toString(Reflector.callMethod(o, "getSQLTypeName", ZERO_ARGS),null);
+			
+			//OPAQUE opaque = ((oracle.sql.OPAQUE)o);
+			if("SYS.XMLTYPE".equals(typeName)) {
+				
+				// first we need to load the class in question
+				Class clazz=ClassUtil.loadClass(o.getClass().getClassLoader(),"oracle.xdb.XMLType");
+				return Reflector.callStaticMethod(clazz, "createXML", new Object[]{o});
+			}
+		}
+		catch(PageException pe){
+			throw ExceptionUtil.toIOException(pe);
 		}
 		return o;
 	}
+
 
 	private static void validateClasses() throws IOException {
 		Class<?> clazz1=ClassUtil.loadClass("oracle.xdb.XMLType", null);

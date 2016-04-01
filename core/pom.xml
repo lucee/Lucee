@@ -436,14 +436,6 @@
 	<version>4.2</version>
 </dependency>
 
-<!-- ojdbc14 - 0.0.0 -->
-      <dependency>
-         <groupId>ojdbc14</groupId>
-         <artifactId>ojdbc14</artifactId>
-         <type>jar</type>
-         <version>0.0.0</version>
-      </dependency>
-
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>xml-resolver</artifactId>
