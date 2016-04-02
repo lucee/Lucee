@@ -30,12 +30,9 @@ import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.net.http.ReqRspUtil;
-import lucee.runtime.type.scope.CGIImpl;
-import lucee.runtime.util.PageContextUtil;
 
 public final class ResourceLockImpl implements ResourceLock {
 	

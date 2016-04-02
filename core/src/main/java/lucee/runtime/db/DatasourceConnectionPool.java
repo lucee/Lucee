@@ -28,7 +28,6 @@ import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
-import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.commons.lang.types.RefIntegerSync;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;

@@ -18,7 +18,6 @@
  **/
 package lucee.commons.sql;
 
-import lucee.commons.lang.ClassUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 

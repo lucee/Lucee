@@ -30,7 +30,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.legacy.CacheItem;
-import lucee.runtime.config.Constants;
 import lucee.runtime.net.http.HttpServletResponseWrap;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;

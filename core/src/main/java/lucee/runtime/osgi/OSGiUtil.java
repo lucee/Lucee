@@ -53,7 +53,6 @@ import lucee.runtime.config.Identification;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.type.util.ListUtil;
 
 import org.osgi.framework.Bundle;

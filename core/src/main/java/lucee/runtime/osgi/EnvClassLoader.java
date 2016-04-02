@@ -11,7 +11,6 @@ import java.util.List;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.Caller;
-import lucee.commons.io.log.Log;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.ConfigImpl;

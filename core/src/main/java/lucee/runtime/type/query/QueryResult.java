@@ -5,7 +5,6 @@ import lucee.runtime.dump.Dumpable;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Duplicable;
-import lucee.runtime.type.Struct;
 
 public interface QueryResult extends Dumpable,Duplicable {
 

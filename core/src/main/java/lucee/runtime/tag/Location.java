@@ -26,7 +26,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.listener.ApplicationContext;

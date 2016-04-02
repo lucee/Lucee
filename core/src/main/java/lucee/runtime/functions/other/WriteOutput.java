@@ -24,7 +24,6 @@ package lucee.runtime.functions.other;
 import java.io.IOException;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;

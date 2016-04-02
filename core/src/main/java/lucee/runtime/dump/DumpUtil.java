@@ -39,7 +39,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpSession;
 
 import lucee.commons.date.TimeZoneUtil;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.IDGenerator;

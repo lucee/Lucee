@@ -18,19 +18,13 @@ package lucee.transformer.bytecode.util;
 
 import java.io.IOException;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.ResourceProvider;
-import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
-import lucee.runtime.type.util.ListUtil;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -145,9 +139,7 @@ public class MethodCleaner extends ClassVisitor implements Opcodes {
 	}
 	
 	public static void modifie(String path, String methodName,String[] argNames, String rtnName, String msg) throws IOException, ExpressionException{
-		print.e("->"+path);
 		Resource res = ResourceUtil.toResourceExisting(ThreadLocalPageContext.getConfig(), path);
-		print.e(res);
 		Class[] args=new Class[argNames.length];
 		for(int i=0;i<argNames.length;i++){
 			args[i]=ClassUtil.loadClass(argNames[i]);

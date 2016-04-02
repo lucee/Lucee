@@ -19,7 +19,6 @@
 package lucee.runtime.query.caster;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
