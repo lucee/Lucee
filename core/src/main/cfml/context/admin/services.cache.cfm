@@ -23,8 +23,8 @@
 		<cfset tmp = createObject("component",fn)>
 		<!--- Workaround for EHCache Extension --->
 		<cfset clazz=tmp.getClass()>
-		<cfif "lucee.extension.io.cache.eh.EHCache" EQ clazz>
-			<cfset clazz="lucee.runtime.cache.eh.EHCache">
+		<cfif "lucee.extension.io.cache.eh.EHCache" EQ clazz or "lucee.runtime.cache.eh.EHCache" EQ clazz>
+			<cfset clazz="org.lucee.extension.cache.eh.EHCache">
 		</cfif>
 		<cfset drivers[clazz]=tmp>
 	</cfif>

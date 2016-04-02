@@ -236,7 +236,8 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		create("/resource/context/admin/cdriver/",new String[]{
 		"Cache.cfc"
 		,"RamCache.cfc"
-		,"EHCache.cfc","Field.cfc"
+		//,"EHCache.cfc"
+		,"Field.cfc"
 		,"Group.cfc"}
 		,cDir,doNew);
 		

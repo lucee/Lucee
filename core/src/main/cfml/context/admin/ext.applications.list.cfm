@@ -10,7 +10,8 @@
 	</cfoutput>
 	<cfset structDelete(session, "extremoved", false) />
 </cfif>
-<cfif extensions.recordcount>
+
+<cfif extensions.recordcount || (!isNull(serverExtensions) && serverExtensions.recordcount)>
 	<cfoutput>
 		<!--- Installed Applications --->
 		<h2>#stText.ext.installed#</h2>

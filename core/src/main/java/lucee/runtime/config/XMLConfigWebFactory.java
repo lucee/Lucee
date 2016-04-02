@@ -78,7 +78,6 @@ import lucee.runtime.MappingImpl;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheConnectionImpl;
 import lucee.runtime.cache.ServerCacheConnection;
-import lucee.runtime.cache.eh.EHCache;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.request.RequestCacheHandler;
 import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
@@ -602,9 +601,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						log.error("Cache-Handler",t);
 					}
 				}
-
 			}
-			
 		}
 	}
 
@@ -2061,6 +2058,45 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 */
 	private static void loadCache(ConfigServerImpl configServer, ConfigImpl config, Document doc,Log log) {
 		boolean hasCS = configServer != null;
+		
+		
+		// load Cache info
+		{
+			Element parent = getChildByName(doc.getDocumentElement(), "caches");
+			Element[] children = getChildren(parent, "cache");
+			Map<String,ClassDefinition> map=new HashMap<String,ClassDefinition>();
+			
+
+			// first add the server drivers, so they can be overwritten
+			if(configServer!=null) {
+				Iterator<ClassDefinition> it = configServer.getCacheDefinitions().values().iterator();
+				ClassDefinition cd;
+				while(it.hasNext()){
+					cd = it.next();
+					map.put(cd.getClassName(), cd);
+				}
+			}
+			
+			ClassDefinition cd;
+			String label;
+			for(Element child:children){
+				cd=getClassDefinition(child, "", config.getIdentification());
+				
+				// check if it is a bundle
+				if(!cd.isBundle()) {
+					log.error("Datasource", "["+cd+"] does not have bundle info");
+					continue;
+				}
+				map.put(cd.getClassName(), cd);
+			}
+			config.setCacheDefinitions(map);
+		}
+		
+		
+		
+		
+		
+		
 		Map<String, CacheConnection> caches = new HashMap<String, CacheConnection>();
 
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
@@ -2111,13 +2147,18 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				Element eConnection = eConnections[i];
 				name = getAttr(eConnection,"name");
 				cd = getClassDefinition(eConnection, "", config.getIdentification());
+				if(!cd.isBundle()) {
+					ClassDefinition _cd = config.getCacheDefinition(cd.getClassName());
+					if(_cd!=null) cd=_cd;
+				}
+				
 				
 				try {
 					Struct custom = toStruct(getAttr(eConnection,"custom"));
 					
 					// Workaround for old EHCache class defintions
 					if (cd.getClassName()!=null && cd.getClassName().endsWith(".EHCacheLite")) {
-						cd=new ClassDefinitionImpl(EHCache.class);
+						cd=new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache");
 						if(!custom.containsKey("distributed")) 
 							custom.setEL("distributed", "off");
 						if(!custom.containsKey("asynchronousReplicationIntervalMillis")) 
@@ -2126,9 +2167,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							custom.setEL("maximumChunkSizeBytes", "5000000");
 						
 						
-					}
-					else if (cd.getClassName()!=null && cd.getClassName().endsWith(".extension.io.cache.eh.EHCache"))
-						cd=new ClassDefinitionImpl(EHCache.class);
+					}// 
+					else if (cd.getClassName()!=null 
+							&& (cd.getClassName().endsWith(".extension.io.cache.eh.EHCache")
+							|| cd.getClassName().endsWith("lucee.runtime.cache.eh.EHCache")))
+						cd=new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache");
 					// else cacheClazz = cd.getClazz();
 
 					cc = new CacheConnectionImpl(config, name, cd, custom, 

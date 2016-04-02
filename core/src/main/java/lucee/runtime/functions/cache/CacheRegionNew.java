@@ -18,7 +18,7 @@
 package lucee.runtime.functions.cache;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.cache.eh.EHCache;
+//import lucee.runtime.cache.eh.EHCache;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Password;
@@ -37,7 +37,7 @@ import lucee.transformer.library.ClassDefinitionImpl;
  */
 public class CacheRegionNew implements Function {
 
-    private final static String cacheClassName = EHCache.class.getName();
+    //sprivate final static String cacheClassName = EHCache.class.getName();
 
 
     public static String call( PageContext pc, String cacheName, Object arg2, Object arg3, String arg4 ) throws PageException {     // used Object for args 2 & 3 to match fld
@@ -78,8 +78,8 @@ public class CacheRegionNew implements Function {
     static String _call( PageContext pc, String cacheName, Struct properties, Boolean throwOnError, String strWebAdminPassword ) throws PageException {
         Password webAdminPassword = Util.getPassword( pc, strWebAdminPassword,false );
         try {
-            XMLConfigAdmin adminConfig = XMLConfigAdmin.newInstance( (ConfigWebImpl)pc.getConfig(), webAdminPassword );
-            adminConfig.updateCacheConnection( cacheName, new ClassDefinitionImpl(cacheClassName, null, null, pc.getConfig().getIdentification()), Config.CACHE_TYPE_NONE, properties, false, false );
+            XMLConfigAdmin adminConfig = XMLConfigAdmin.newInstance( (ConfigWebImpl)pc.getConfig(), webAdminPassword );// TODO why we have here EHCache?
+            adminConfig.updateCacheConnection( cacheName, new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache", null, null, pc.getConfig().getIdentification()), Config.CACHE_TYPE_NONE, properties, false, false );
             adminConfig.storeAndReload();
         } catch ( Exception e ) {
             if ( throwOnError )

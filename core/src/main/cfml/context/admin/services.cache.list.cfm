@@ -336,8 +336,8 @@ this.cache.webservice = "#!hasWSe?"&lt;cache-name>":defaults.webservice#";
 										<cfset driver=drivers[key]>
 										<!--- Workaround for EHCache Extension --->
 										<cfset clazz=trim(driver.getClass())>
-										<cfif "lucee.extension.io.cache.eh.EHCache" EQ clazz>
-											<cfset clazz="lucee.runtime.cache.eh.EHCache">
+										<cfif "lucee.extension.io.cache.eh.EHCache" EQ clazz or "lucee.runtime.cache.eh.EHCache" EQ clazz>
+											<cfset clazz="org.lucee.extension.cache.eh.EHCache">
 										</cfif>
 										<option value="#clazz#">#trim(driver.getLabel())#</option>
 									</cfloop>

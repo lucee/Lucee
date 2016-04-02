@@ -3603,4 +3603,16 @@ public abstract class ConfigImpl implements Config {
 	}
 
 	public abstract List<RHExtension> loadLocalExtensions();
+
+	private Map<String,ClassDefinition> cacheDefinitions;
+	public void setCacheDefinitions(Map<String,ClassDefinition> caches) {
+		this.cacheDefinitions=caches;
+	}
+	public Map<String,ClassDefinition> getCacheDefinitions() {
+		return this.cacheDefinitions; 
+	}
+	
+	public ClassDefinition getCacheDefinition(String className) {
+		return this.cacheDefinitions.get(className); 
+	}
 }

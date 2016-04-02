@@ -72,7 +72,6 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.osgi.BundleCollection;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
-import lucee.runtime.cache.eh.EHCache;
 import lucee.runtime.cfx.CFXTagException;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.converter.ConverterException;
@@ -1968,9 +1967,12 @@ public final class XMLConfigAdmin {
         
         try {
         	Class clazz;
-        	if(cd.getClassName()!=null && cd.getClassName().endsWith(".EHCacheLite")) clazz=EHCache.class;
-        	else clazz = ClassUtil.loadClass(config.getClassLoader(),cd.getClassName());
-			if(!Reflector.isInstaneOf(clazz, Cache.class))
+        	if(cd.getClassName()!=null && cd.getClassName().endsWith(".EHCacheLite")) 
+        		clazz=ClassUtil.loadClass(config.getClassLoader(),"org.lucee.extension.cache.eh.EHCache");
+        	else 
+        		clazz = ClassUtil.loadClass(config.getClassLoader(),cd.getClassName());
+			
+        	if(!Reflector.isInstaneOf(clazz, Cache.class))
 				throw new ExpressionException("class ["+clazz.getName()+"] is not of type ["+Cache.class.getName()+"]");
 		}
         catch (ClassException e) {
@@ -4046,6 +4048,20 @@ public final class XMLConfigAdmin {
     	if(reload)admin._reload();
 	}
 	
+	private void _removeCache(ClassDefinition cd) {
+		Element parent=_getRootElement("caches");
+		Element[] children = XMLConfigWebFactory.getChildren(parent,"cache");
+		for(int i=0;i<children.length;i++) {
+			Element el=children[i];
+			String _class=el.getAttribute("class");
+			if(_class!=null && _class.equalsIgnoreCase(cd.getClassName())) {
+				parent.removeChild(el);
+				break;
+			}
+		}
+	}
+	
+
 	private void _removeCacheHandler(String id) {
 		Element parent=_getRootElement("cache-handlers");
 		Element[] children = XMLConfigWebFactory.getChildren(parent,"cache-handler");
@@ -4069,6 +4085,29 @@ public final class XMLConfigAdmin {
 	public void updateCacheHandler(String id, ClassDefinition cd) throws PageException {
 		checkWriteAccess();
 		_updateCacheHandler(id, cd);
+	}
+	
+	private void _updateCache(ClassDefinition cd) throws PageException {
+		Element parent=_getRootElement("caches");
+
+        Element[] children = XMLConfigWebFactory.getChildren(parent,"cache");
+        Element ch=null;
+        // Update
+        for(int i=0;i<children.length;i++) {
+      	    Element el=children[i];
+      	    String _class=el.getAttribute("class");
+  			if(_class!=null && _class.equalsIgnoreCase(cd.getClassName())) {
+  				ch=el;
+  				break;
+  			}
+      	}
+        
+        // Insert
+      	if(ch==null) {
+      		ch = doc.createElement("cache");
+      		parent.appendChild(ch);
+      	}
+      	setClass(ch, null, "", cd);
 	}
 	
 	private void _updateCacheHandler(String id, ClassDefinition cd) throws PageException {
@@ -4553,7 +4592,7 @@ public final class XMLConfigAdmin {
 		
 		}
 		// INSTALL
-		try{
+		try {
 			
 			//boolean clearTags=false,clearFunction=false;
 			boolean reloadNecessary=false;
@@ -4643,6 +4682,13 @@ public final class XMLConfigAdmin {
 	        		logger.log(Log.LEVEL_INFO,"extension","deploy application "+realpath);
 	        		updateApplication( zis, realpath,false);
 				}
+				// components
+				if(!entry.isDirectory() && (startsWith(path,type,"components")) && !StringUtil.startsWith(fileName(entry), '.')) {
+					realpath=path.substring(13);
+	        		logger.log(Log.LEVEL_INFO,"extension","deploy component "+realpath);
+	        		updateComponent( zis, realpath,false);
+				}
+				
 				// plugins
 				if(!entry.isDirectory() && (startsWith(path,type,"plugins")) && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath=path.substring(8);
@@ -4653,7 +4699,7 @@ public final class XMLConfigAdmin {
 				zis.closeEntry() ;
 			}
 			////////////////////////////////////////////
-
+			   
 			// load the bundles
 			if(rhext.getStartBundles()) {
 				BundleFile[] bfs = rhext.getBundlesFiles();
@@ -4662,6 +4708,21 @@ public final class XMLConfigAdmin {
 				}
 			}
 
+			// update cache
+			if(!ArrayUtil.isEmpty(rhext.getCaches())) {
+				Iterator<Map<String, String>> itl = rhext.getCaches().iterator();
+				Map<String, String> map;
+				while(itl.hasNext()){
+					map = itl.next();
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					if(cd.isBundle()) {
+						_updateCache(cd);
+						reloadNecessary=true;
+					}
+					logger.info("extension", "update cache ["+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
+				}
+			}
+			
 			// update cache handler
 			if(!ArrayUtil.isEmpty(rhext.getCacheHandlers())) {
 				Iterator<Map<String, String>> itl = rhext.getCacheHandlers().iterator();
@@ -4677,7 +4738,7 @@ public final class XMLConfigAdmin {
 					logger.info("extension", "update cache handler ["+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
 			}
-
+			   
 			// update AMF
 			if(!ArrayUtil.isEmpty(rhext.getAMFs())) {
 				Iterator<Map<String, String>> itl = rhext.getAMFs().iterator();
@@ -4692,7 +4753,7 @@ public final class XMLConfigAdmin {
 					logger.info("extension", "update AMF engine ["+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
 			}
-
+			   
 			// update Search
 			if(!ArrayUtil.isEmpty(rhext.getSearchs())) {
 				Iterator<Map<String, String>> itl = rhext.getSearchs().iterator();
@@ -4707,7 +4768,7 @@ public final class XMLConfigAdmin {
 					logger.info("extension", "update search engine ["+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
 			}
-
+			   
 			// update Resource
 			if(!ArrayUtil.isEmpty(rhext.getResources())) {
 				Iterator<Map<String, String>> itl = rhext.getResources().iterator();
@@ -4726,7 +4787,7 @@ public final class XMLConfigAdmin {
 					logger.info("extension", "update resource provider ["+scheme+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
 			}
-
+			   
 			// update orm
 			if(!ArrayUtil.isEmpty(rhext.getOrms())) {
 				Iterator<Map<String, String>> itl = rhext.getOrms().iterator();
@@ -4742,7 +4803,7 @@ public final class XMLConfigAdmin {
 					logger.info("extension", "update orm engine ["+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
 			}
-
+			   
 			// update monitor
 			if(!ArrayUtil.isEmpty(rhext.getMonitors())) {
 				Iterator<Map<String, String>> itl = rhext.getMonitors().iterator();
@@ -4759,7 +4820,7 @@ public final class XMLConfigAdmin {
 					logger.info("extension", "update monitor engine ["+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
 			}
-
+			   
 			// update jdbc
 			if(!ArrayUtil.isEmpty(rhext.getJdbcs())) {
 				Iterator<Map<String, String>> itl = rhext.getJdbcs().iterator();
@@ -4775,7 +4836,7 @@ public final class XMLConfigAdmin {
 					logger.info("extension", "update JDBC Driver ["+_label+":"+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
 			}
-
+			   
 			// update mapping
 			if(!ArrayUtil.isEmpty(rhext.getMappings())) {
 				Iterator<Map<String, String>> itl = rhext.getMappings().iterator();
@@ -4808,14 +4869,14 @@ public final class XMLConfigAdmin {
 			}
 
 			// reload
-			if(reloadNecessary){
-				if(reload)
+			//if(reloadNecessary){
+				if(reload && reloadNecessary)
 					_storeAndReload();
 				else
 					_store();
-			}
+			//}
 		}
-		catch(Throwable t){
+		catch(Throwable t){t.printStackTrace();
 			DeployHandler.moveToFailedFolder(rhext.getExtensionFile().getParentResource(),rhext.getExtensionFile());
 			try {
 				XMLConfigAdmin.removeRHExtension((ConfigImpl)config, rhext.getId(), false);
@@ -4915,6 +4976,21 @@ public final class XMLConfigAdmin {
 					
 					if(!StringUtil.isEmpty(_id) && cd.hasClass()) {
 						_removeCacheHandler(_id);
+						//reload=true;
+					}
+					logger.info("extension", "remove cache handler ["+cd+"] from extension ["+rhe.getName()+":"+rhe.getVersion()+"]");
+				}
+			}
+
+			// remove cache
+			if(!ArrayUtil.isEmpty(rhe.getCaches())) {
+				Iterator<Map<String, String>> itl = rhe.getCaches().iterator();
+				Map<String, String> map;
+				while(itl.hasNext()){
+					map = itl.next();
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					if(cd.isBundle()) {
+						_removeCache(cd);
 						//reload=true;
 					}
 					logger.info("extension", "remove cache handler ["+cd+"] from extension ["+rhe.getName()+":"+rhe.getVersion()+"]");
@@ -5663,17 +5739,6 @@ public final class XMLConfigAdmin {
     	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
     }
 	
-	/*static Resource[] updateWebContexts(ConfigImpl config,InputStream is,String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
-    	List<Resource> filesDeployed=new ArrayList<Resource>();
-    	
-    	if(config instanceof ConfigWeb) {
-    		ConfigWebAdmin._updateContextClassic(config, is, realpath, closeStream, filesDeployed);
-    	}
-    	else ConfigWebAdmin._updateWebContexts(config, is, realpath, closeStream, filesDeployed,store);
-    	
-    	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
-    }*/
-
 	private static void _updateWebContexts(Config config,InputStream is,String realpath, boolean closeStream,List<Resource> filesDeployed, boolean store) throws PageException, IOException, SAXException, BundleException {
 		if(!(config instanceof ConfigServer))
 			throw new ApplicationException("invalid context, you can only call this method from server context");
@@ -5817,17 +5882,15 @@ public final class XMLConfigAdmin {
         return false;
     }
 
-	/*static Resource[] updateApplication(ConfigImpl config,InputStream is,String realpath, boolean closeStream) throws PageException, IOException, SAXException {
-    	ConfigWebAdmin admin = new ConfigWebAdmin(config, null);
-    	List<Resource> filesDeployed=new ArrayList<Resource>();
-    	admin.deployFilesFromStream(config,config.getRootDirectory(), is, realpath, closeStream, filesDeployed);
-    	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
-    }*/
-	
 	Resource[] updateApplication(InputStream is,String realpath, boolean closeStream) throws PageException, IOException, SAXException {
     	List<Resource> filesDeployed=new ArrayList<Resource>();
     	deployFilesFromStream(config,config.getRootDirectory(), is, realpath, closeStream, filesDeployed);
     	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
+    }
+	
+
+	Resource[] updateComponent(InputStream is,String realpath, boolean closeStream) throws PageException, IOException, SAXException {
+    	throw new ApplicationException("not supported yet!");
     }
 
 	private void deployFilesFromStream(Config config,Resource root, InputStream is,String realpath, boolean closeStream,List<Resource> filesDeployed) throws PageException, IOException, SAXException {
@@ -5871,6 +5934,10 @@ public final class XMLConfigAdmin {
 		for(int i=0;i<realpathes.length;i++){
 			removeFiles(config, config.getRootDirectory(), realpathes[i]);
 		}
+	}
+
+	private void removeComponents(Config config, String[] realpathes) throws PageException, IOException, SAXException {
+		throw new ApplicationException("not supported yet!");
 	}
 	
 	private void removeFiles(Config config,Resource root, String realpath) throws PageException, IOException, SAXException {
@@ -5940,16 +6007,18 @@ public final class XMLConfigAdmin {
   				// contexts
   				arr=_removeExtensionCheckOtherUsage(children,el,"webcontexts");
   				storeChildren=removeWebContexts(config,false, arr);
-  				
-  				
+
   				// applications
   				arr=_removeExtensionCheckOtherUsage(children,el,"applications");
   				removeApplications(config, arr);
+
+  				// components
+  				arr=_removeExtensionCheckOtherUsage(children,el,"components");
+  				removeComponents(config, arr);
+  				
   				// plugins
   				arr=_removeExtensionCheckOtherUsage(children,el,"plugins");
   				removePlugins(config, arr);
-  				
-  				
   				
   				extensions.removeChild(el);
   				
@@ -6041,7 +6110,7 @@ public final class XMLConfigAdmin {
 		Element extensions=_getRootElement("extensions");
 		Element[] children = XMLConfigWebFactory.getChildren(extensions,"rhextension");// LuceeHandledExtensions
       	
-        // Update
+		// Update
 		Element el;
 		String id;
 		BundleDefinition[] old;
@@ -6061,7 +6130,6 @@ public final class XMLConfigAdmin {
       	el = doc.createElement("rhextension");
       	ext.populate(el);
   		extensions.appendChild(el);
-    	
   		return null;
 	}
 	

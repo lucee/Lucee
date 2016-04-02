@@ -1,3 +1,0 @@
-<cfcomponent extends="EHCache">
-
-</cfcomponent>

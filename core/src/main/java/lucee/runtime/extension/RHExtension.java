@@ -96,6 +96,7 @@ public class RHExtension implements Serializable {
 	private static final Key ARCHIVES = KeyImpl.init("archives");
 	private static final Key CONTEXTS = KeyImpl.init("contexts");
 	private static final Key WEBCONTEXTS = KeyImpl.init("webcontexts");
+	private static final Key COMPONENTS = KeyImpl.init("components");
 	private static final Key APPLICATIONS = KeyImpl.init("applications");
 	private static final Key CATEGORIES = KeyImpl.init("categories");
 	private static final Key PLUGINS = KeyImpl.init("plugins");
@@ -128,12 +129,14 @@ public class RHExtension implements Serializable {
 	private final String[] functions;
 	private final String[] archives;
 	private final String[] applications;
+	private final String[] components;
 	private final String[] plugins;
 	private final String[] contexts;
 	private final String[] webContexts;
 	private final String[] categories;
 	private final String[] gateways;
 
+	private final List<Map<String, String>> caches;
 	private final List<Map<String, String>> cacheHandlers;
 	private final List<Map<String, String>> orms;
 	private final List<Map<String, String>> monitors;
@@ -190,7 +193,8 @@ public class RHExtension implements Serializable {
 		
 		
 		// read the manifest
-		
+
+		List<Map<String,String>> caches=null;
 		List<Map<String,String>> cacheHandlers=null;
 		List<Map<String,String>> orms=null;
 		List<Map<String,String>> monitors=null;
@@ -302,6 +306,12 @@ public class RHExtension implements Serializable {
 			monitors = toSettings(logger,str);
 		}
 		
+		// cache
+		str=unwrap(attr.getValue("cache"));
+		if(!StringUtil.isEmpty(str,true)) {
+			caches = toSettings(logger,str);
+		}
+		
 		// cache-handlers
 		str=unwrap(attr.getValue("cache-handler"));
 		if(!StringUtil.isEmpty(str,true)) {
@@ -340,6 +350,7 @@ public class RHExtension implements Serializable {
 		List<String> contexts=new ArrayList<String>();
 		List<String> webContexts=new ArrayList<String>();
 		List<String> applications=new ArrayList<String>();
+		List<String> components=new ArrayList<String>();
 		List<String> plugins=new ArrayList<String>();
 		List<String> gateways=new ArrayList<String>();
 		List<String> archives=new ArrayList<String>();
@@ -353,6 +364,7 @@ public class RHExtension implements Serializable {
 					(startsWith(path,type,"jars") || startsWith(path,type,"jar") 
 					|| startsWith(path,type,"bundles") || startsWith(path,type,"bundle") 
 					|| startsWith(path,type,"lib") || startsWith(path,type,"libs")) && StringUtil.endsWithIgnoreCase(path, ".jar")) {
+					
 					Object obj = XMLConfigAdmin.installBundle(config,zis,fileName,version,false,false);
 					if(obj instanceof BundleFile) bundles.add((BundleFile)obj);
 					else {
@@ -361,6 +373,7 @@ public class RHExtension implements Serializable {
 						tmp.moveTo(tmpJar);
 						XMLConfigAdmin.updateJar(config, tmpJar, false);
 					}
+					
 				}
 				
 				// flds
@@ -408,6 +421,10 @@ public class RHExtension implements Serializable {
 				if(!entry.isDirectory() && (startsWith(path,type,"web")) && !StringUtil.startsWith(fileName(entry), '.'))
 					applications.add(sub);
 				
+				// components
+				if(!entry.isDirectory() && (startsWith(path,type,"components")) && !StringUtil.startsWith(fileName(entry), '.'))
+					components.add(sub);
+				
 				// plugins
 				if(!entry.isDirectory() && (startsWith(path,type,"plugins")) && !StringUtil.startsWith(fileName(entry), '.')) 
 					plugins.add(sub);
@@ -429,8 +446,10 @@ public class RHExtension implements Serializable {
 		this.contexts=contexts.toArray(new String[contexts.size()]);
 		this.webContexts=webContexts.toArray(new String[webContexts.size()]);
 		this.applications=applications.toArray(new String[applications.size()]);
+		this.components=components.toArray(new String[components.size()]);
 		this.plugins=plugins.toArray(new String[plugins.size()]);
 		this.bundlesfiles=bundles.toArray(new BundleFile[bundles.size()]);
+		this.caches=caches==null?new ArrayList<Map<String, String>>():caches;
 		this.cacheHandlers=cacheHandlers==null?new ArrayList<Map<String, String>>():cacheHandlers;
 		this.orms=orms==null?new ArrayList<Map<String, String>>():orms;
 		this.monitors=monitors==null?new ArrayList<Map<String, String>>():monitors;
@@ -568,6 +587,7 @@ public class RHExtension implements Serializable {
       			,CONTEXTS
       			,WEBCONTEXTS
       			,APPLICATIONS
+      			,COMPONENTS
       			,PLUGINS
       			,EVENT_GATEWAYS
       			,ARCHIVES
@@ -593,7 +613,8 @@ public class RHExtension implements Serializable {
   	  	qry.setAt(WEBCONTEXTS, row, Caster.toArray(getWebContexts()));
   	  	qry.setAt(EVENT_GATEWAYS, row, Caster.toArray(getEventGateways()));
 	    qry.setAt(CATEGORIES, row, Caster.toArray(getCategories()));
-  	  	qry.setAt(APPLICATIONS, row, Caster.toArray(getApplications()));
+	    qry.setAt(APPLICATIONS, row, Caster.toArray(getApplications()));
+	    qry.setAt(COMPONENTS, row, Caster.toArray(getComponents()));
   		qry.setAt(PLUGINS, row, Caster.toArray(getPlugins()));
 	    qry.setAt(START_BUNDLES, row, Caster.toBoolean(getStartBundles()));
   	    
@@ -843,6 +864,10 @@ public class RHExtension implements Serializable {
 		return applications==null?EMPTY:applications;
 	}
 
+	public String[] getComponents() {
+		return components==null?EMPTY:components;
+	}
+
 	public String[] getPlugins() {
 		return plugins==null?EMPTY:plugins;
 	}
@@ -859,6 +884,10 @@ public class RHExtension implements Serializable {
 		return categories==null?EMPTY:categories;
 	}
 
+	public List<Map<String, String>> getCaches() {
+		return caches;
+	}
+	
 	public List<Map<String, String>> getCacheHandlers() {
 		return cacheHandlers;
 	}

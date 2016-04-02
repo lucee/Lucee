@@ -31,7 +31,12 @@
 				password="#session["password"&request.adminType]#"
 				
 				
-				name="#trim(form.name)#" class="#trim(form.class)#" 
+				name="#trim(form.name)#" 
+				class="#trim(form.class)#"
+				bundleName="#isNull(form.bundleName)?"":trim(form.bundleName)#"
+				bundleVersion="#isNull(form.bundleVersion)?"":trim(form.bundleVersion)#"
+
+
 				storage="#isDefined('form.storage') and form.storage#"
 				default="#StructKeyExists(form,'default')?form.default:""#" 
 				custom="#custom#"
@@ -73,11 +78,13 @@ Redirtect to entry --->
 	<!--- 
 	Error Output --->
 	<cfset printError(error)>
-
 	<h2>#driver.getLabel()# (#connection.class#)</h2>
 	<div class="pageintro">#driver.getDescription()#</div>
 	<cfform onerror="customError" action="#request.self#?action=#url.action#&action2=create#iif(isDefined('url.name'),de('&name=##url.name##'),de(''))#" method="post">
-		<cfinput type="hidden" name="class" value="#connection.class#">
+		<cfinput type="hidden" name="class" value="#driver.getClass()#">
+		<cfif !isNull(driver.getBundleName)><cfinput type="hidden" name="bundleName" value="#driver.getBundleName()#"></cfif>
+		<cfif !isNull(driver.getBundleVersion)><cfinput type="hidden" name="bundleVersion" value="#driver.getBundleVersion()#"></cfif>
+		
 		<cfinput type="hidden" name="name" value="#connection.name#" >
 		<cfinput type="hidden" name="_name" value="#connection.name#" >
 		<table class="maintbl">

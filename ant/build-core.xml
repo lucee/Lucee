@@ -352,6 +352,9 @@
         <!-- S3 -->
         <not><isset property="extS3"/></not>
         <not><isset property="extS3Version"/></not>
+        <!-- EHCache -->
+        <not><isset property="extEHCache"/></not>
+        <not><isset property="extEHCacheVersion"/></not>
         <!-- Chart -->
         <not><isset property="extChart"/></not>
         <not><isset property="extChartVersion"/></not>
@@ -465,13 +468,12 @@
 
     <available file="${cache}/${extChart}-${extChartVersion}.lex" property="chart.present"/>
     <available file="${cache}/${extS3}-${extS3Version}.lex" property="s3.present"/>
+    <available file="${cache}/${extEHCache}-${extEHCacheVersion}.lex" property="ehcache.present"/>
     <available file="${cache}/${extAdmin}-${extAdminVersion}.lex" property="admin.present"/>
     <available file="${cache}/${extDoc}-${extDocVersion}.lex" property="doc.present"/>
     <available file="${cache}/${extHibernate}-${extHibernateVersion}.lex" property="hibernate.present"/>
     <available file="${cache}/${extLucene}-${extLuceneVersion}.lex" property="lucene.present"/>
     <available file="${cache}/${extPDF}-${extPDFVersion}.lex" property="pdf.present"/>
-
-
   </target>
 
 
@@ -493,6 +495,9 @@
   <target name="check-s3" depends="check-cache" unless="s3.present">
       <get src="${extURL}${extS3}?version=${extS3Version}" dest="${cache}/${extS3}-${extS3Version}.lex"/>
   </target>
+  <target name="check-ehcache" depends="check-cache" unless="ehcache.present">
+      <get src="${extURL}${extEHCache}?version=${extEHCacheVersion}" dest="${cache}/${extEHCache}-${extEHCacheVersion}.lex"/>
+  </target>
   <target name="check-hibernate" depends="check-cache" unless="hibernate.present">
       <get src="${extURL}${extHibernate}?version=${extHibernateVersion}" dest="${cache}/${extHibernate}-${extHibernateVersion}.lex"/>
   </target>
@@ -512,7 +517,8 @@
       <get src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
   </target> 
 
-  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-testbox">
+
+  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-testbox">
     
     <mkdir dir="${temp}/loader/extensions/"/>
 
@@ -899,6 +905,18 @@
       tofile="${goal}/extensions/${ext_s3.filename}"/>
     <echo>add:${goal}/extensions/${ext_s3.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_s3.filename};</echo>
+
+    <!-- add extension EHCache -->
+    <loadmf jar="${cache}/${extEHCache}-${extEHCacheVersion}.lex" prefix="ext_ehcache."/>
+    <toFileName name="${ext_ehcache.name}" version="${ext_ehcache.version}" property="ext_ehcache.filename"/>
+    <copy 
+      file="${cache}/${extEHCache}-${extEHCacheVersion}.lex" 
+      todir="${goal}/extensions/"/>
+    <move 
+      file="${goal}/extensions/${extEHCache}-${extEHCacheVersion}.lex" 
+      tofile="${goal}/extensions/${ext_ehcache.filename}"/>
+    <echo>add:${goal}/extensions/${ext_ehcache.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_ehcache.filename};</echo>
 
     <!-- add extension Hibernate -->
     <loadmf jar="${cache}/${extHibernate}-${extHibernateVersion}.lex" prefix="ext_hibernate."/>

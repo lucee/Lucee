@@ -20,11 +20,8 @@ package lucee.runtime.config;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -152,7 +149,7 @@ public class DeployHandler {
 	    	ExtensionDefintion ed;
 			for(int i=0;i<eds.length;i++){
 				ed=eds[i];
-	    		if(StringUtil.isEmpty(ed.getId(),true)) continue;
+				if(StringUtil.isEmpty(ed.getId(),true)) continue;
 	    		if(!deployExtension(config, ed,log,i+1==eds.length))
 	    			allSucessfull=false;
 	    	}

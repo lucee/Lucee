@@ -100,7 +100,7 @@
 				
 				
 				name="#cacheName#" 
-				class="lucee.runtime.cache.eh.EHCache" 
+				class="org.lucee.extension.cache.eh.EHCache" 
 				storage="false"
 				default="object" 
 				custom="#{timeToLiveSeconds:86400
