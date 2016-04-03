@@ -139,7 +139,7 @@ component {
 			systemOutput(result,true);
 		}
 		else {
-			file action="write" addnewline="yes" file="#arguments.attrib.output#" output="#result#";
+			file action="write" addnewline="yes" file="#arguments.attrib.output#" output="<div id=""#dumpID#"" class=""-lucee-dump"">#result#</div>";
 		}
 	}
 
