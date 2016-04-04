@@ -3405,7 +3405,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			config.setTimeZone(configServer.getTimeZone());
 		else {
 			TimeZone def = TimeZone.getDefault();
-			if(def==null) def=TimeZoneConstants.UTC;
+			if(def==null) {
+				def=TimeZoneConstants.UTC;
+				TimeZone.setDefault(def);
+			}
 			config.setTimeZone(def);
 		}
 		// timeserver
