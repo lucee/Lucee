@@ -993,6 +993,10 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="settings.preservesinglequotesdescription">Erhält die einfachen Anführungszeichen (&apos;) in den SQL-Statements, die im Tag CFQuery definiert werden.</data>
 	<data key="settings.dbconntimeout">Verbindungs Timeout (in Minuten)</data>
 	<data key="settings.datasourcemodify">Neue Datenquelle erstellen</data>
+
+	<data key="settings.DatasourceExtensionServer">Vermissen Sie einen Datasource Type den Sie benötigen? Klicken Sie {link}hier{/link} um nach einem Datasource Type zu suchen.</data>
+	<data key="settings.DatasourceExtensionWeb">Vermissen Sie einen Datasource Type den Sie benötigen? Klicken Sie {linkServer}hier{/link} um nach einem Datasource Type zu suchen, welchen Sie für alle Webkontexte installieren möchten oder {link}hier{/link} für den aktuellen Webkontext.</data>
+	
 	<data key="settings.verifyconnection">Verbindung prüfen</data>
 	<data key="settings.namemissing">Bitte geben Sie einen Namen für die Datenquelle ein.</data>
 	<data key="settings.dbclob">Clob</data>
