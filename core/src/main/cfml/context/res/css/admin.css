@@ -13,11 +13,14 @@ html, body {
 body {
 	min-width:600px;
 	background-color:#3399cc;
+	background-image: url('../img/bg-web.gif.cfm');
+	background-repeat: no-repeat;
 	margin:0;
 	padding:0;
 }
 body.server {
 	background-color:#bf4f36;
+	background-image: url('../img/bg-web-server.gif.cfm');
 }
 body, td, th {
 	font-family:Arial, Helvetica, sans-serif;
@@ -126,12 +129,6 @@ body.full td#logotd {
 #logo h2 {
 	display:none;
 }
-/*body.server #logo a {
-	background-image:url(../img/server-railo.png.cfm);
-}
-body.server.full #logo a {
-	background-image:url(../img/server-railo-small.png.cfm);
-}*/
 
 #layouttbl td#tabstd {
 	vertical-align: bottom;
