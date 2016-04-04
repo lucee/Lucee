@@ -47,6 +47,7 @@ import javax.servlet.ServletConfig;
 
 import lucee.aprint;
 import lucee.commons.collection.MapFactory;
+import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.digest.MD5;
@@ -3402,9 +3403,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			config.setTimeZone(TimeZone.getTimeZone(strTimeZone));
 		else if (hasCS)
 			config.setTimeZone(configServer.getTimeZone());
-		else
-			config.setTimeZone(TimeZone.getDefault());
-
+		else {
+			TimeZone def = TimeZone.getDefault();
+			if(def==null) def=TimeZoneConstants.UTC;
+			config.setTimeZone(def);
+		}
 		// timeserver
 		String strTimeServer = null;
 		Boolean useTimeServer = null;
