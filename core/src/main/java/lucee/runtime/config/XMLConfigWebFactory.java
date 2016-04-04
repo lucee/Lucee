@@ -3404,12 +3404,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		else if (hasCS)
 			config.setTimeZone(configServer.getTimeZone());
 		else {
+			aprint.e("+++++++++++++++++++++++++++++++++++++");
 			TimeZone def = TimeZone.getDefault();
+			aprint.e(def);
+			
 			if(def==null) {
 				def=TimeZoneConstants.UTC;
 				TimeZone.setDefault(def);
 			}
 			config.setTimeZone(def);
+			aprint.e(def);
+			
 		}
 		// timeserver
 		String strTimeServer = null;
