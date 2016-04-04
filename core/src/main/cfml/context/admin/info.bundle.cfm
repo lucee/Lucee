@@ -5,12 +5,16 @@
 	stText.info.bundles.vendor="Vendor";
 	stText.info.bundles.type="Type";
 	stText.info.bundles.state="State";
+	stText.info.bundles.states.active="active";
+	stText.info.bundles.states.installed="loaded";
+	stText.info.bundles.states.notinstalled="not loaded";
+	stText.info.bundles.states.resolved="resolved";
 	stText.info.bundles.usedBy="Used by";
 	stText.info.bundles.isFragment="Fragment?";
 	stText.info.bundles.fileName="File name";
 	stText.info.bundles.path="Path";
 	stText.info.bundles.manifestHeaders="Manifest Headers";
-	stText.bundles.introText="This are all the bundles available locally";
+	stText.bundles.introText="This are all the OSGi bundles (jars) available locally";
 </cfscript>
 
 

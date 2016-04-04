@@ -59,7 +59,7 @@
 							
 
 							<td style="#csss[bundles.state]#" nowrap="nowrap">
-								#bundles.state#
+								#stText.info.bundles.states[bundles.state]?:bundles.state#
 							</td>
 							<!--- edit --->
 							<td>

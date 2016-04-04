@@ -28,7 +28,7 @@
 				</tr>
 				<tr style="#csss[bundle.state]#">
 					<th scope="row">#stText.info.bundles.State#</th>
-					<td>#bundle.State#</td>
+					<td>#stText.info.bundles.states[bundle.state]?:bundle.state#</td>
 				</tr>
 				<cfif !isNull(bundle.usedBy)><tr>
 					<th scope="row">#stText.info.bundles.usedBy#</th>
