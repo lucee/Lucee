@@ -3406,7 +3406,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		else {
 			TimeZone def = TimeZone.getDefault();
 			if(def==null) {
-				def=TimeZoneConstants.UTC;
+				def=TimeZoneConstants.EUROPE_LONDON;
 			}
 			config.setTimeZone(def);
 		}

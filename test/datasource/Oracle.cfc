@@ -40,10 +40,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if(orc.count()==0) return false;
 
 		// otherwise we get the following on travis ORA-00604: error occurred at recursive SQL level 1 / ORA-01882: timezone region not found
+		/*
 		var tz=getTimeZone();
 		var d1=tz.getDefault();
 		tz.setDefault(tz);
 		throw d1&":"&tz.getDefault();
+		*/
 		application action="update" 
 
 			datasource="#
