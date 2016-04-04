@@ -3404,18 +3404,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		else if (hasCS)
 			config.setTimeZone(configServer.getTimeZone());
 		else {
-			aprint.e("+++++++++++++++++++++++++++++++++++++");
 			TimeZone def = TimeZone.getDefault();
-			aprint.e(def);
-			
 			if(def==null) {
 				def=TimeZoneConstants.UTC;
-				TimeZone.setDefault(def);
 			}
 			config.setTimeZone(def);
-			aprint.e(def);
-			
 		}
+		
+		// this is necessary, otherwise travis has no default 
+		if(config instanceof ConfigServer)
+			TimeZone.setDefault(config.getTimeZone());
+		
 		// timeserver
 		String strTimeServer = null;
 		Boolean useTimeServer = null;
