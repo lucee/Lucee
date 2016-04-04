@@ -29,7 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if(!variables.has) return;
 		
 		query name="local.qry" {
-			echo("select 'AA' as a");
+			echo("SELECT owner, table_name FROM dba_tables where table_name like 'MAP_%'");
 		}
 		assertEquals("AA",qry.a);
 		

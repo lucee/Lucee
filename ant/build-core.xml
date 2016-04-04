@@ -18,6 +18,7 @@
   
   <property name="extMongo"       value="E6634E1A-4CC5-4839-A83C67549ECA8D5B"/>
   <property name="extH2"          value="465E1E35-2425-4F4E-8B3FAB638BD7280A"/>
+  <property name="extOracle"          value="D4EDFDBD-A9A3-E9AF-597322D767E0C949"/>
 
 
 <!-- TODO get the version number from manifest.mf -->
@@ -760,7 +761,7 @@
 
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
-      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo};"/>
+      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle}"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
     </java>
     <echo>${exc2}</echo>
