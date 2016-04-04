@@ -979,6 +979,9 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="settings.flushCache">flush cache</data>
 
 	<data key="settings.datasourcemodify">Create new datasource</data>
+	<data key="settings.DatasourceExtensionServer">Missing the datasource type you are looking for? Click {link}here{/link} to find an extension for the datasource type you require.</data>
+	<data key="settings.DatasourceExtensionWeb">Missing the datasource type you are looking for? Click {linkServer}here{/link} to search for an extension to install for all web contexts or {link}here{/link} for the current context only.</data>
+	
 	<data key="settings.verifyconnection">Verify connection</data>
 	<data key="settings.appcfc">Application.cfc</data>
 	<data key="settings.appcfcdesc">You can also set this in the Application.cfc as follows</data>

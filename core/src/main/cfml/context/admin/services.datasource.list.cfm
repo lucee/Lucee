@@ -352,7 +352,14 @@ list all mappings and display necessary edit fields --->
 										<option value="#key#">#driver.getName()#</option>
 									</cfif>
 								</cfloop>
-							</select>
+							</select><br>
+							<span class="comment">#replace(
+								replace(
+									replace(request.adminType=="web"?stText.Settings.DatasourceExtensionWeb:stText.Settings.DatasourceExtensionServer,'{linkServer}','<a href="server.cfm?action=ext.applications">','all')
+								,'{link}','<a href="#request.self#?action=ext.applications">','all')
+								,'{/link}','</a>','all')#</span>
+
+							<br>
 						</td>
 					</tr>
 				</tbody>
