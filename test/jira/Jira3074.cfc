@@ -1,4 +1,4 @@
-<cfcomponent extends="org.railo.cfml.test.RailoTestCase">
+<cfcomponent extends="org.lucee.cfml.test.RailoTestCase">
 <cfscript>
 
 	//public function afterTests(){}
