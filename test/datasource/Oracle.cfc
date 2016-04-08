@@ -22,11 +22,34 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	//public function afterTests(){}
 	
 	
-	variables.PROCEDURE="testOracle";
+	variables.PROCEDURE="testOraclePro";
+	variables.TABLE="testOracleTbl";
 
 	public function setUp(){
 		variables.has=defineDatasource();
 
+		// check if table exist
+		query name="local.check" {
+			echo("
+SELECT * FROM user_tables WHERE table_name = '#variables.TABLE#'
+			");
+		}
+
+		// create table if necessary
+		if(!check.recordcount) {
+			query name="local.check" {
+				echo("
+CREATE TABLE #variables.TABLE#
+( #variables.TABLE#_id number(10) NOT NULL,
+  Name varchar2(50) NOT NULL,
+  Vorname varchar2(50),
+  CONSTRAINT #variables.TABLE#_pk PRIMARY KEY (#variables.TABLE#_id)
+);
+					");
+			}
+		}
+
+		// check if procedure exist
 		query name="local.check" {
 			echo("
 SELECT * FROM USER_PROCEDURES WHERE object_name = '#variables.PROCEDURE#'
@@ -38,9 +61,9 @@ SELECT * FROM USER_PROCEDURES WHERE object_name = '#variables.PROCEDURE#'
 				echo("
 CREATE PROCEDURE dbo.#variables.PROCEDURE#(@sName AS Varchar(50), @sVorname AS Varchar(50), @iPKey AS INT OUTPUT) AS
 BEGIN
-   INSERT INTO customers (Name, Vorname) VALUES(@sName, @sVorname)
+   INSERT INTO #variables.TABLE# (Name, Vorname) VALUES(@sName, @sVorname)
    SELECT @iPKey = @@IDENTITY
-   SELECT Top 10 * FROM customers
+   SELECT Top 10 * FROM #variables.TABLE#
    SELECT Top 2
    END
 GO
