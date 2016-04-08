@@ -37,6 +37,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		//assertEquals("","");
 		
 	}
+
 	public void function testMySQLWithLondonTimezone(){
 		if(!variables.has) return;
 		
@@ -47,6 +48,33 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			echo("select 'a' as a");
 		}
 		//assertEquals("","");
+		
+	}
+
+	public void function testStoredProcIn(){
+		if(!variables.has) return;
+		
+		query {
+			echo("DROP PROCEDURE IF EXISTS `proc_IN`");
+		}
+		query {
+			echo("
+CREATE PROCEDURE `proc_IN` (IN var1 INT)
+BEGIN
+    SELECT var1 + 2 AS result;
+END
+			");
+		}
+
+		storedproc procedure="proc_IN" {
+			procparam type="in" cfsqltype="cf_sql_varchar" value="2";
+			procresult name="local.rsIn" resultset="1";
+
+		}
+		assertTrue(isQuery(rsIn));
+		assertEquals(1,rsIn.recordcount);
+		assertEquals("result",rsIn.columnlist);
+		assertEquals(4,rsIn.result);
 		
 	}
 
