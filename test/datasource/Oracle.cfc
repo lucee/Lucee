@@ -26,52 +26,33 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	variables.TABLE="testOracleTbl";
 
 	public function setUp(){
-		variables.has=defineDatasource();
+		variables.has=defineDatasource();		
+	}
 
-		// check if table exist
-		query name="local.check" {
+
+	public void function testStoredProc(){
+		if(!variables.has) return;
+		
+		query name="local.qry" {
 			echo("
-SELECT * FROM user_tables WHERE table_name = '#variables.TABLE#'
+CREATE OR REPLACE PROCEDURE procPrintHelloWorld
+IS
+BEGIN  
+  DBMS_OUTPUT.PUT_LINE('Hello World!');
+END
 			");
-		}
-
-		// create table if necessary
-		if(!check.recordcount) {
-			query name="local.check" {
-				echo("
-CREATE TABLE #variables.TABLE#
-( #variables.TABLE#_id number(10) NOT NULL,
-  Name varchar2(50) NOT NULL,
-  Vorname varchar2(50),
-  CONSTRAINT #variables.TABLE#_pk PRIMARY KEY (#variables.TABLE#_id)
-);
-					");
-			}
-		}
-
-		// check if procedure exist
-		query name="local.check" {
-			echo("
-SELECT * FROM USER_PROCEDURES WHERE object_name = '#variables.PROCEDURE#'
-			");
-		}
-
-		if(!check.recordcount) {
-			query name="local.check" {
-				echo("
-CREATE PROCEDURE dbo.#variables.PROCEDURE#(@sName AS Varchar(50), @sVorname AS Varchar(50), @iPKey AS INT OUTPUT) AS
-BEGIN
-   INSERT INTO #variables.TABLE# (Name, Vorname) VALUES(@sName, @sVorname)
-   SELECT @iPKey = @@IDENTITY
-   SELECT Top 10 * FROM #variables.TABLE#
-   SELECT Top 2
-   END
-GO
-					");
-			}
 		}
 		
+
+		storedproc procedure="procPrintHelloWorld" {
+			procresult name="local.res" resultset="1";
+		}
+		assertEquals('Hello World!',res);
+
+		//assertEquals("AA",qry.a);
+		
 	}
+
 
 	public void function testConnection(){
 		if(!variables.has) return;
