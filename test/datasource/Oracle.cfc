@@ -53,6 +53,28 @@ END
 		
 	}
 
+	public void function testStoredProcIn(){
+		if(!variables.has) return;
+		
+		query name="local.qry" {
+			echo("
+CREATE OR REPLACE PROCEDURE procOneINParameter(param1 IN VARCHAR2)
+IS
+BEGIN
+  DBMS_OUTPUT.PUT_LINE('Hello World IN parameter ' || param1);
+END
+			");
+		}
+		
+
+		storedproc procedure="procOneINParameter" {
+			procparam type="in" cfsqltype="cf_sql_varchar" value="mkyong";
+			procresult name="local.res" resultset="1";
+		}
+		assertEquals('Hello World IN parameter mkyong',res);
+		
+	}
+
 
 	public void function testConnection(){
 		if(!variables.has) return;
