@@ -21,8 +21,33 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 	//public function afterTests(){}
 	
+	
+	variables.PROCEDURE="testOracle";
+
 	public function setUp(){
 		variables.has=defineDatasource();
+
+		query name="local.check" {
+			echo("
+SELECT * FROM USER_PROCEDURES WHERE object_name = '#variables.PROCEDURE#'
+			");
+		}
+
+		if(!check.recordcount) {
+			query name="local.check" {
+				echo("
+CREATE PROCEDURE dbo.#variables.PROCEDURE#(@sName AS Varchar(50), @sVorname AS Varchar(50), @iPKey AS INT OUTPUT) AS
+BEGIN
+   INSERT INTO customers (Name, Vorname) VALUES(@sName, @sVorname)
+   SELECT @iPKey = @@IDENTITY
+   SELECT Top 10 * FROM customers
+   SELECT Top 2
+   END
+GO
+					");
+			}
+		}
+		
 	}
 
 	public void function testConnection(){
