@@ -21,6 +21,7 @@
  */
 package lucee.runtime.functions.international;
 
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Currency;
 import java.util.Locale;
@@ -60,12 +61,14 @@ public final class LSCurrencyFormat implements Function {
 	}
 
 	public static String none(Locale locale, double number) {
+		BigDecimal d = new BigDecimal(Double.toString(number)).setScale(2, BigDecimal.ROUND_HALF_UP);
         NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
-        return StringUtil.replace(nf.format(number),nf.getCurrency().getSymbol(locale),"",false).trim();
+        return StringUtil.replace(nf.format(d.doubleValue()),nf.getCurrency().getSymbol(locale),"",false).trim();
 	}
 	
 	public static String local(Locale locale, double number) {
-		return NumberFormat.getCurrencyInstance(locale).format(number);	
+		BigDecimal d = new BigDecimal(Double.toString(number)).setScale(2, BigDecimal.ROUND_HALF_UP);
+		return NumberFormat.getCurrencyInstance(locale).format(d.doubleValue());		
 	}
 	
 	public static String international(Locale locale, double number) {
