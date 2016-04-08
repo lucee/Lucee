@@ -100,6 +100,28 @@ END
 		
 	}
 
+	public void function testStoredProcInOut(){
+		if(!variables.has) return;
+		
+		query {
+			echo("DROP PROCEDURE IF EXISTS `proc_INOUT`");
+		}
+		query {
+			echo("
+CREATE PROCEDURE `proc_INOUT` (INOUT var1 INT)
+BEGIN
+    SET var1 = var1 * 2;
+END
+			");
+		}
+
+		storedproc procedure="proc_INOUT" {
+			procparam  type="inout" variable="local.res" cfsqltype="cf_sql_varchar" value="10";
+		}
+		assertEquals(20,res);
+		
+	}
+
 
 	private string function defineDatasource(){
 		var mySQL=getCredencials();
