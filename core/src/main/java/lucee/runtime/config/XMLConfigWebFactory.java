@@ -1180,57 +1180,24 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				"en.xml","de.xml"
 						},langDir,doNew);
 
-		
-
-		// delete Debug
-		Resource debug = adminDir.getRealResource("debug");
-		delete(debug,new String[]{
-				"Classic."+COMPONENT_EXTENSION
-				,"Modern."+COMPONENT_EXTENSION
-				,"Comment."+COMPONENT_EXTENSION
-				});
-		
 		// add Debug
+		Resource debug = adminDir.getRealResource("debug");
 		create("/resource/context/admin/debug/",new String[]{
 				"Debug."+COMPONENT_EXTENSION
 				,"Field."+COMPONENT_EXTENSION
 				,"Group."+COMPONENT_EXTENSION
 				},debug,doNew);
 		
-		// delete Cache Driver
-		Resource cDir = adminDir.getRealResource("cdriver");
-		delete(cDir,new String[]{
-		"RamCache."+COMPONENT_EXTENSION
-		,"EHCacheLite."+COMPONENT_EXTENSION
-		,"EHCache."+COMPONENT_EXTENSION
-		});
-		
 		// add Cache Drivers
+		Resource cDir = adminDir.getRealResource("cdriver");
 		create("/resource/context/admin/cdriver/",new String[]{
 		"Cache."+COMPONENT_EXTENSION
 		,"Field."+COMPONENT_EXTENSION
 		,"Group."+COMPONENT_EXTENSION}
 		,cDir,doNew);
 		
-		// delete DB Drivers
-		Resource dbDir = adminDir.getRealResource("dbdriver");
-		delete(dbDir,new String[]{
-		"HSQLDB."+COMPONENT_EXTENSION
-		,"H2."+COMPONENT_EXTENSION
-		,"MSSQL."+COMPONENT_EXTENSION
-		,"MSSQL2."+COMPONENT_EXTENSION
-		,"DB2."+COMPONENT_EXTENSION
-		,"Oracle."+COMPONENT_EXTENSION
-		,"MySQL."+COMPONENT_EXTENSION
-		,"ODBC."+COMPONENT_EXTENSION
-		,"Sybase."+COMPONENT_EXTENSION
-		,"PostgreSql."+COMPONENT_EXTENSION
-		,"Other."+COMPONENT_EXTENSION
-		,"Firebird."+COMPONENT_EXTENSION
-		,"Driver."+COMPONENT_EXTENSION
-		});
-		
 		// add DB Drivers types
+		Resource dbDir = adminDir.getRealResource("dbdriver");
 		Resource typesDir = dbDir.getRealResource("types");
 		create("/resource/context/admin/dbdriver/types/",new String[]{
 		"IDriver."+COMPONENT_EXTENSION
@@ -1240,15 +1207,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		,"Field."+COMPONENT_EXTENSION
 		},typesDir,doNew);
 		
-		// delete Gateway Drivers
-		Resource gDir = adminDir.getRealResource("gdriver");
-		delete(gDir,new String[]{
-		"TaskGatewayDriver."+COMPONENT_EXTENSION
-		,"DirectoryWatcher."+COMPONENT_EXTENSION
-		,"MailWatcher."+COMPONENT_EXTENSION
-		});
-		
 		// add Gateway Drivers
+		Resource gDir = adminDir.getRealResource("gdriver");
 		create("/resource/context/admin/gdriver/",new String[]{
 		"Gateway."+COMPONENT_EXTENSION
 		,"Field."+COMPONENT_EXTENSION

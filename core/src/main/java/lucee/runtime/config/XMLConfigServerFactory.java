@@ -68,7 +68,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
      */
     public static ConfigServerImpl newInstance(CFMLEngineImpl engine,Map<String,CFMLFactory> initContextes, Map<String,CFMLFactory> contextes, Resource configDir) 
         throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
-    	
+
     	boolean isCLI=SystemUtil.isCLICall();
     	if(isCLI){
     		Resource logs = configDir.getRealResource("logs");
@@ -216,17 +216,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		,"Field.cfc"
 		},typesDir,doNew);
 		
-		delete(dbDir,new String[]{
-			"MSSQL2.cfc"
-			});
-		
-		
-		if(cleanupDatasources) {
-			// DB Drivers
-			delete(dbDir,new String[]{
-			"H2.cfc","H2Selector.cfc","H2Server.cfc","HSQLDB.cfc","MSSQL.cfc","MSSQL2.cfc","MSSQLSelector.cfc","DB2.cfc","Oracle.cfc"
-			,"MySQL.cfc","ODBC.cfc","Sybase.cfc","PostgreSql.cfc","Other.cfc","Firebird.cfc"});
-			}
+	
 			create("/resource/context/admin/dbdriver/",new String[]{
 					"Other.cfc"
 			},dbDir,doNew);
@@ -241,12 +231,10 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		,"Group.cfc"}
 		,cDir,doNew);
 		
-		delete(cDir,new String[]{"EHCacheLite.cfc"});
 		
 		Resource wcdDir = configDir.getRealResource("web-context-deployment/admin");
 		Resource cdDir = wcdDir.getRealResource("cdriver");
-		delete(cdDir,new String[]{"EHCache.cfc"
-		,"EHCacheLite.cfc"});
+		
 		try {
 			ResourceUtil.deleteEmptyFolders(wcdDir);
 		}
