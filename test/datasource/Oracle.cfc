@@ -30,50 +30,64 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 
-	public void function testStoredProc(){
-		if(!variables.has) return;
-		
-		query name="local.qry" {
-			echo("
-CREATE OR REPLACE PROCEDURE procPrintHelloWorld
-IS
-BEGIN  
-  DBMS_OUTPUT.PUT_LINE('Hello World!');
-END
-			");
-		}
-		
-
-		storedproc procedure="procPrintHelloWorld" {
-			procresult name="local.res" resultset="1";
-		}
-		assertEquals('Hello World!',res);
-
-		//assertEquals("AA",qry.a);
-		
-	}
-
 	public void function testStoredProcIn(){
 		if(!variables.has) return;
 		
-		query name="local.qry" {
+		query name="qry" {
 			echo("
 CREATE OR REPLACE PROCEDURE procOneINParameter(param1 IN VARCHAR2)
 IS
 BEGIN
-  DBMS_OUTPUT.PUT_LINE('Hello World IN parameter ' || param1);
-END
+  DBMS_OUTPUT.PUT_LINE('in:' || param1);
+END;
 			");
 		}
-		
-
 		storedproc procedure="procOneINParameter" {
-			procparam type="in" cfsqltype="cf_sql_varchar" value="mkyong";
-			procresult name="local.res" resultset="1";
+			procparam type="in" value="input1" cfsqltype="cf_sql_varchar";
 		}
-		assertEquals('Hello World IN parameter mkyong',res);
 		
 	}
+
+	public void function testStoredProcOut(){
+		if(!variables.has) return;
+		
+		query name="qry" {
+			echo("
+CREATE OR REPLACE PROCEDURE procOneOUTParameter(outParam1 OUT VARCHAR2)
+IS
+BEGIN
+  outParam1 := 'out';
+END;
+			");
+		}
+
+		storedproc procedure="procOneOUTParameter" {
+			procparam type="out" variable="res" cfsqltype="cf_sql_varchar";
+		}
+
+		assertEquals('out',res);
+		
+	}
+
+	public void function testStoredProcInOut(){
+		if(!variables.has) return;
+		
+		query name="qry" {
+			echo("
+CREATE OR REPLACE PROCEDURE procOneINOUTParameter(genericParam IN OUT VARCHAR2)
+IS
+BEGIN
+  genericParam := 'out:' || genericParam;
+END;
+			");
+		}
+		storedproc procedure="procOneINOUTParameter" {
+			procparam type="inout" variable="res" value="in" cfsqltype="cf_sql_varchar";
+		}
+		assertEquals('out:in',res);
+		
+	}
+
 
 
 	public void function testConnection(){

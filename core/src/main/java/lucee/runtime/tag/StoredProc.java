@@ -277,26 +277,26 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		Connection conn = dc.getConnection();
 		
 		
-		if(SQLUtil.isOracle(conn)){
+		if(SQLUtil.isOracle(conn)) {
 			String name=this.procedure.toUpperCase();
 			int index=name.lastIndexOf('.');
 			
-			String pack=null,scheme=null;
+			String catalog=null,scheme=null;
 			if(index!=-1){
-				pack=name.substring(0,index);
+				catalog=name.substring(0,index);
 				name=name.substring(index+1);
 				
-				index=pack.lastIndexOf('.');
+				index=catalog.lastIndexOf('.');
 				if(index!=-1){
-					scheme=pack.substring(index+1);
-					pack=pack.substring(0,index);
+					scheme=catalog.substring(index+1);
+					catalog=catalog.substring(0,index);
 				}
-				
-				
 			}
+			if(StringUtil.isEmpty(scheme)) scheme=null;
+			if(StringUtil.isEmpty(catalog)) catalog=null;
 			
 			try {
-				DatabaseMetaData md = conn.getMetaData();
+								
 				
 				//if(procedureColumnCache==null)procedureColumnCache=new ReferenceMap();
 				//ProcMetaCollection coll=procedureColumnCache.get(procedure);
@@ -306,17 +306,39 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 				ProcMetaCollection coll=procedureColumnCache.get(procedure);
 				
 				if(coll==null || (cacheTimeout>=0 && (coll.created+cacheTimeout)<System.currentTimeMillis())) {
-					ResultSet res = md.getProcedureColumns(pack, scheme, name, null);
-					coll=createProcMetaCollection(res);
-					procedureColumnCache.put(procedure,coll);
+					DatabaseMetaData md = conn.getMetaData();
+					String _catalog=null,_scheme=null,_name=null;
+					boolean available=false;
+					ResultSet proc = md.getProcedures(catalog, scheme, name);
+					try {
+						while (proc.next()) {
+							_catalog = proc.getString(1);
+							_scheme = proc.getString(2);
+							_name = proc.getString(3);
+							if(_name.equals(name)) {
+								available=true;
+								break;
+							}
+						}
+					}
+					finally {
+						IOUtil.closeEL(proc);
+					}
+					if(available) {			
+						ResultSet res = md.getProcedureColumns(_catalog, _scheme, _name, "%");
+						coll=createProcMetaCollection(res);
+						procedureColumnCache.put(procedure,coll);
+					}
 				}
 				
 				index=-1;
+				int ct;
 				for(int i=0;i<coll.metas.length;i++) { 
 					index++;
+					ct=coll.metas[i].columnType;
 					
 					// Return
-					if(coll.metas[i].columnType==DatabaseMetaData.procedureColumnReturn) {
+					if(ct==DatabaseMetaData.procedureColumnReturn) {
 						index--;
 						ProcResultBean result= getFirstResult();
 						ProcParamBean param = new ProcParamBean();
@@ -327,7 +349,8 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 						returnValue=param;
 						
 					}	
-					else if(coll.metas[i].columnType==DatabaseMetaData.procedureColumnOut || coll.metas[i].columnType==DatabaseMetaData.procedureColumnInOut) {
+					else if(ct==DatabaseMetaData.procedureColumnOut || 
+							ct==DatabaseMetaData.procedureColumnInOut) {
 						if(coll.metas[i].dataType==CFTypes.CURSOR){
 							ProcResultBean result= getFirstResult();
 							
@@ -344,7 +367,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 							}
 						}
 					}	
-					else if(coll.metas[i].columnType==DatabaseMetaData.procedureColumnIn) {	
+					else if(ct==DatabaseMetaData.procedureColumnIn) {	
 						ProcParamBean param=get(params,index);
 						if(param!=null && coll.metas[i].dataType!=Types.OTHER && coll.metas[i].dataType!=param.getType()){
 							param.setType(coll.metas[i].dataType);
@@ -358,8 +381,6 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			catch (SQLException e) {
 			    throw new DatabaseException(e,dc);
 			}
-			
-			
 		}
 		
 		// return code
@@ -399,8 +420,13 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		} catch (PageException e) {}
 		*/
 		ArrayList<ProcMeta> list=new ArrayList<ProcMeta>();
-		while(res.next()) {
-			list.add(new ProcMeta(res.getInt(COLUMN_TYPE),getDataType(res)));
+		try {
+			while(res.next()) {
+				list.add(new ProcMeta(res.getInt(COLUMN_TYPE),getDataType(res)));
+			}
+		}
+		finally {
+			IOUtil.closeEL(res);
 		}
 		return new ProcMetaCollection(list.toArray(new ProcMeta[list.size()]));
 	}
