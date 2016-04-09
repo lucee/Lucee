@@ -30,7 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 
-	private void function testStoredProcIn(){
+	public void function testStoredProcIn(){
 		if(!variables.has) return;
 		echo(now()&"start:testStoredProcIn
 			");
@@ -53,7 +53,7 @@ END;
 			");
 	}
 
-	private void function testStoredProcOut(){
+	public void function testStoredProcOut(){
 		if(!variables.has) return;
 		
 		query name="qry" {
@@ -95,7 +95,7 @@ END;
 
 
 
-	private void function testConnection(){
+	public void function testConnection(){
 		if(!variables.has) return;
 		
 		echo(now()&"start:testConnection
