@@ -26,6 +26,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -577,10 +578,13 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			    }
 			    while((isResult=callStat.getMoreResults()) || (callStat.getUpdateCount() != -1));
 
+			    printo("done.results");
 			    // params
 			    it = params.iterator();
 			    while(it.hasNext()) {
 			    	param= it.next();
+
+				    printo("round.param");
 			    	if(param.getDirection()!=ProcParamBean.DIRECTION_IN){
 			    		Object value=null;
 			    		if(!StringUtil.isEmpty(param.getVariable())){
@@ -620,6 +624,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 				}
 				isFromCache=true;
 			}
+		    printo("done2");
 			
 		    // result
 		    long exe;
@@ -660,12 +665,13 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		    }
 		    manager.releaseConnection(pageContext,dc);
 		}
+	    printo("final");
 		return EVAL_PAGE;
 	}
 
 	private void printo(Object o) {
 		try {
-			ThreadLocalPageContext.get().write(o.toString());
+			ThreadLocalPageContext.get().write(new Date()+":"+o.toString()+"\n");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
