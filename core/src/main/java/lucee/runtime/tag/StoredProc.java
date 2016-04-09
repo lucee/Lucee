@@ -32,6 +32,7 @@ import java.util.Map.Entry;
 
 import javax.servlet.jsp.JspException;
 
+import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
@@ -396,7 +397,6 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		catch(Throwable t){
 			return null;
 		}
-		
 	}
 
 
@@ -497,12 +497,15 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		SQLImpl _sql=new SQLImpl(sql.toString());
 		CallableStatement callStat=null;
 		try {
+			print.o("before:prepareCall"+sql);
 		    callStat = dc.getConnection().prepareCall(sql.toString());
 		    		//ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY); 
     				//ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY); 
+		    print.o("after:prepareCall"+sql);
 		    
 		    if(blockfactor>0)callStat.setFetchSize(blockfactor);
 		    if(timeout>0)DataSourceUtil.setQueryTimeoutSilent(callStat,timeout);
+		    print.o("settings"+sql);
 		    
 	// set IN register OUT
 		    Iterator<ProcParamBean> it = params.iterator();
@@ -520,6 +523,8 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		    	}
 		    	index++;
 			}
+		    print.o("params");
+		    
 		    
 	// cache
 		    boolean isFromCache=false;
@@ -548,9 +553,12 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			    
 			    index=1;
 				do {
+				    print.o("round");
 			    	if(isResult){
 			    		ResultSet rs=callStat.getResultSet();
 			    		if(rs!=null) {
+			    			print.o(rs);
+					    	
 							try{
 								result=(ProcResultBean) results.get(index++,null);
 								if(result!=null) {
