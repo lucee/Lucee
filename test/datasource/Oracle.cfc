@@ -32,7 +32,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testStoredProcIn(){
 		if(!variables.has) return;
-		
+		echo(now()&"start:testStoredProcIn
+			");
 		query name="qry" {
 			echo("
 CREATE OR REPLACE PROCEDURE procOneINParameter(param1 IN VARCHAR2)
@@ -42,13 +43,17 @@ BEGIN
 END;
 			");
 		}
+		echo(now()&"----testStoredProcIn
+			");
 		storedproc procedure="procOneINParameter" {
 			procparam type="in" value="input1" cfsqltype="cf_sql_varchar";
 		}
 		
+		echo(now()&"end:testStoredProcIn
+			");
 	}
 
-	public void function testStoredProcOut(){
+	private void function testStoredProcOut(){
 		if(!variables.has) return;
 		
 		query name="qry" {
@@ -69,7 +74,7 @@ END;
 		
 	}
 
-	public void function testStoredProcInOut(){
+	private void function testStoredProcInOut(){
 		if(!variables.has) return;
 		
 		query name="qry" {
@@ -90,7 +95,7 @@ END;
 
 
 
-	public void function testConnection(){
+	private void function testConnection(){
 		if(!variables.has) return;
 		
 		query name="local.qry" {
