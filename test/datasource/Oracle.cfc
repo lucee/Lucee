@@ -30,7 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 
-	public void function testStoredProcIn(){
+	private void function testStoredProcIn(){
 		if(!variables.has) return;
 		
 		query name="qry" {
@@ -48,7 +48,7 @@ END;
 		
 	}
 
-	public void function testStoredProcOut(){
+	private void function testStoredProcOut(){
 		if(!variables.has) return;
 		
 		query name="qry" {
@@ -69,7 +69,7 @@ END;
 		
 	}
 
-	public void function testStoredProcInOut(){
+	private void function testStoredProcInOut(){
 		if(!variables.has) return;
 		
 		query name="qry" {
