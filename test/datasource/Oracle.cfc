@@ -95,12 +95,16 @@ END;
 
 
 
-	private void function testConnection(){
+	public void function testConnection(){
 		if(!variables.has) return;
 		
+		echo(now()&"start:testConnection
+			");
 		query name="local.qry" {
 			echo("SELECT owner, table_name FROM dba_tables where table_name like 'MAP_%'");
 		}
+		echo(now()&"endpublic:testConnection
+			");
 		//assertEquals("AA",qry.a);
 		
 	}
