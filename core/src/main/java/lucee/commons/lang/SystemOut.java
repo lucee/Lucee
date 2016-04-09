@@ -21,9 +21,11 @@ package lucee.commons.lang;
 import static lucee.commons.io.SystemUtil.ERR;
 import static lucee.commons.io.SystemUtil.OUT;
 
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.Date;
 
+import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
@@ -116,5 +118,22 @@ public final class SystemOut {
     		print(new PrintWriter((type==ERR)?System.err:System.out),value);
     	}
     }
+    
+
+    public PrintStream setOut(PrintStream ps) {
+        PrintStream org = System.out;
+        if(ps==null) ps = new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM);
+        System.setOut(ps);
+        return org;
+    }
+    
+    public PrintStream setErr(PrintStream ps) {
+        PrintStream org = System.out;
+        if(ps==null) ps = new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM);
+        System.setErr(ps);
+        return org;
+    }
+    
+    
 
 }

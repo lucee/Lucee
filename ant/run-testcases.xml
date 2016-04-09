@@ -60,7 +60,12 @@ try {
 			componentpaths = "#[{archive:testboxArchive}]#"; 
 	
  		// load testbox
+ 		SystemOut=createObject('java','lucee.commons.lang.SystemOut');
+ 		out=SystemOut.setOut(nullValue());
+ 		err=SystemOut.setErr(nullValue());
+
  		silent {
+ 		try {
 	 		tb=new testbox.system.TestBox(directory={ mapping="/test", recurse=true, filter=function(path){
 	 		
 //	 		echo(arguments.path&"
@@ -84,48 +89,86 @@ try {
 	 		}},reporter:"console");
 	 		// execute
 	 		report=tb.run(callbacks:{
+	onBundleStart 	= function( cfc, testResults ){
+		var meta=getComponentMetadata(cfc);
+		SystemOut.setOut(out);
+ 		SystemOut.setErr(err);
 
-	 			onBundleStart=function( target, testResults ) {
+		systemOutput("=============================================================
+#meta.name#",true);
+		SystemOut.setOut(nullValue());
+ 		SystemOut.setErr(nullValue());
+	}
+	,onBundleEnd 	= function( cfc, testResults ){
+			
+		var bundle=arrayLast(testResults.getBundleStats());
+		try {
+		SystemOut.setOut(out);
+ 		SystemOut.setErr(err);
 
-	 			},
-				onBundleEnd=function( target, testResults ) {
+		// we have an error
+		if(bundle.totalFail+bundle.totalError>0) {
+			systemOutput("	Time: #bundle.totalDuration# ms
+	Suites/Specs: #bundle.totalSuites#/#bundle.totalSpecs#
+	Pass: #bundle.totalPass#
+	Failures: #bundle.totalFail#
+	Errors: #bundle.totalError#
+	Skipped: #bundle.totalSkipped#  #serialize(bundle)#",true);
 
-				},
-				onSuiteStart=function( target, testResults, suite ) {
 
-				},
-				onSuiteEnd=function( target, testResults, suite ) {
 
-				},
-				onSpecStart=function( target, testResults, suite, spec ) {
+		}
+		// everything is fine
+		else {
+			systemOutput("	Time: #bundle.totalDuration# ms",true);
+		}
 
-				},
-				onSpecEnd=function( target, result, suite, spec ) {
 
-					/*echo("============================================================="&NL);
-		 			echo("Total Duration #result.getTotalDuration()# ms"&NL);
-		 			if((result.getTotalFail()+result.getTotalError())>0) {
-		 				echo("Shit happens!");
 
-			 			echo("->[Pass: #result.getTotalPass()#]"&NL);
-			 			echo("->[Failures: #result.getTotalFail()#]"&NL);
-			 			echo("->[Errors: #result.getTotalError()#]"&NL);
-			 			echo("->[Skipped: #result.getTotalSkipped()#]"&NL);
-		 			}
 
-					echo(serialize(spec));*/
-				}
+		// exceptions
+		if(!isSimpleValue( bundle.globalException )) {
+	systemOutput("GLOBAL BUNDLE EXCEPTION
+	#bundle.globalException.type#:#bundle.globalException.message#:#bundle.globalException.detail#
+=============================================================
+STACKTRACE
+=============================================================
+#bundle.globalException.stacktrace#
+=============================================================
+END STACKTRACE
+=============================================================",true);
+		}
 
-	 		}); 
+
+//systemOutput("=============================================================",true);
+		}
+		finally {
+			SystemOut.setOut(nullValue());
+	 		SystemOut.setErr(nullValue());
+		}
+		
+	}
+	/*,onSuiteStart 	= function( bundle, testResults, suite ){}
+	,onSuiteEnd		= function( bundle, testResults, suite ){}
+	,onSpecStart		= function( bundle, testResults, suite, spec ){}
+	,onSpecEnd 		= function( bundle, testResults, suite, spec ){}*/
+}); 
+
+
 	 		// get the result
 	 		result=tb.getResult();
+ 		}
+ 		finally {
+ 			//SystemOut.setOut(out);
+ 			//SystemOut.setErr(err);
+ 		}
  		}
  		
 
  		// throw an exception in case not all testcases have passed
  		if(result.getTotalFail()+result.getTotalError()>0) {
  			// output the report
- 			echo(trim(report));
+ 			//echo(trim(report));
 
  			throw "testbox could not sucessfull execute all testcases: failed #result.getTotalFail()#;error #result.getTotalError()#";
  		}
