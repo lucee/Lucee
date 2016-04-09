@@ -48,7 +48,7 @@ END;
 		
 	}
 
-	private void function testStoredProcOut(){
+	public void function testStoredProcOut(){
 		if(!variables.has) return;
 		
 		query name="qry" {
@@ -69,7 +69,7 @@ END;
 		
 	}
 
-	private void function testStoredProcInOut(){
+	public void function testStoredProcInOut(){
 		if(!variables.has) return;
 		
 		query name="qry" {
