@@ -28,7 +28,7 @@ function mem(type) {
     var qry=getMemoryUsage(type);
     loop query=qry {
         var perc=int(100/qry.max*qry.used);
-        if(qry.max<0 || qry.used<0) continue;
+        if(qry.max<0 || qry.used<0 || perc<90) continue;
         systemOutput("	"&replace(ucFirst(type),'_',' ')&" "&qry.name&": "&perc&"%",true);
     }
 }
