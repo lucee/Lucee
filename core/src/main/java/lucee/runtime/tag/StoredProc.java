@@ -18,6 +18,7 @@
  */
 package lucee.runtime.tag;
 
+import java.io.IOException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -32,7 +33,6 @@ import java.util.Map.Entry;
 
 import javax.servlet.jsp.JspException;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
@@ -58,6 +58,7 @@ import lucee.runtime.db.ProcMetaCollection;
 import lucee.runtime.db.SQLCaster;
 import lucee.runtime.db.SQLImpl;
 import lucee.runtime.db.SQLItemImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
@@ -497,15 +498,15 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		SQLImpl _sql=new SQLImpl(sql.toString());
 		CallableStatement callStat=null;
 		try {
-			print.o("before:prepareCall"+sql);
+			printo("before:prepareCall"+sql);
 		    callStat = dc.getConnection().prepareCall(sql.toString());
 		    		//ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY); 
     				//ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY); 
-		    print.o("after:prepareCall"+sql);
+		    printo("after:prepareCall"+sql);
 		    
 		    if(blockfactor>0)callStat.setFetchSize(blockfactor);
 		    if(timeout>0)DataSourceUtil.setQueryTimeoutSilent(callStat,timeout);
-		    print.o("settings"+sql);
+		    printo("settings"+sql);
 		    
 	// set IN register OUT
 		    Iterator<ProcParamBean> it = params.iterator();
@@ -523,7 +524,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		    	}
 		    	index++;
 			}
-		    print.o("params");
+		    printo("params");
 		    
 		    
 	// cache
@@ -553,11 +554,11 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			    
 			    index=1;
 				do {
-				    print.o("round");
+				    printo("round");
 			    	if(isResult){
 			    		ResultSet rs=callStat.getResultSet();
 			    		if(rs!=null) {
-			    			print.o(rs);
+			    			printo(rs);
 					    	
 							try{
 								result=(ProcResultBean) results.get(index++,null);
@@ -661,6 +662,18 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		}
 		return EVAL_PAGE;
 	}
+
+	private void printo(Object o) {
+		try {
+			ThreadLocalPageContext.get().write(o.toString());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+
+
 
 	private void setVariable(String name, Object value) throws PageException {
 		pageContext.setVariable(name, value);
