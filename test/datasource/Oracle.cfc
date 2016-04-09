@@ -30,7 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 
-	public void function testStoredProcIn(){
+	private void function testStoredProcIn(){
 		if(!variables.has) return;
 		echo(now()&"start:testStoredProcIn
 			");
@@ -95,7 +95,7 @@ END;
 
 
 
-	public void function testConnection(){
+	private void function testConnection(){
 		if(!variables.has) return;
 		
 		echo(now()&"start:testConnection
@@ -137,6 +137,7 @@ END;
 	private struct function getCredencials() {
 		// getting the credetials from the enviroment variables
 		var orc={};
+
 		if(
 			!isNull(server.system.environment.ORACLE_SERVER) && 
 			!isNull(server.system.environment.ORACLE_USERNAME) && 
