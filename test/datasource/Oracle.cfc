@@ -74,7 +74,7 @@ END;
 		
 	}
 
-	private void function testStoredProcInOut(){
+	public void function testStoredProcInOut(){
 		if(!variables.has) return;
 		
 		query name="qry" {
