@@ -110,7 +110,7 @@ function mem(type) {
  		SystemOut.setErr(err);
 
 		systemOutput("=============================================================
-#meta.name#",true);
+#meta.name#",false);
 		SystemOut.setOut(nullValue());
  		SystemOut.setErr(nullValue());
 	}
@@ -121,7 +121,8 @@ function mem(type) {
 		SystemOut.setOut(out);
  		SystemOut.setErr(err);
 
-		systemOutput("	Time: #bundle.totalDuration# ms",true);
+
+ 		systemOutput(" (#bundle.totalDuration# ms)",true);
 		mem("non_heap");
 		mem("heap");
 
@@ -179,25 +180,19 @@ END STACKTRACE
  		}
  		
 
- 		// throw an exception in case not all testcases have passed
- 		if(result.getTotalFail()+result.getTotalError()>0) {
- 			// output the report
- 			//echo(trim(report));
+		echo("============================================================="&NL);
+		echo("TestBox Version: #tb.getVersion()#"&NL);
+		echo("Global Stats (#result.getTotalDuration()# ms)"&NL);
+		echo("============================================================="&NL);
+		echo("->[Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#]"&NL);
+		echo("->[Pass: #result.getTotalPass()#]"&NL);
+		echo("->[Failures: #result.getTotalFail()#]"&NL);
+		echo("->[Errors: #result.getTotalError()#]"&NL);
+		echo("->[Skipped: #result.getTotalSkipped()#]"&NL);
 
+ 		if(result.getTotalFail()+result.getTotalError()>0) {
  			throw "testbox could not sucessfull execute all testcases: failed #result.getTotalFail()#;error #result.getTotalError()#";
  		}
- 		else {
- 			echo("============================================================="&NL);
- 			echo("TestBox Version: #tb.getVersion()#"&NL);
- 			echo("Global Stats (#result.getTotalDuration()# ms)"&NL);
- 			echo("============================================================="&NL);
- 			echo("->[Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#]"&NL);
- 			echo("->[Pass: #result.getTotalPass()#]"&NL);
- 			echo("->[Failures: #result.getTotalFail()#]"&NL);
- 			echo("->[Errors: #result.getTotalError()#]"&NL);
- 			echo("->[Skipped: #result.getTotalSkipped()#]"&NL);
- 		}
- 		
 	}
 	catch(e){
 		echo("-------------------------------------------------------"&NL);
