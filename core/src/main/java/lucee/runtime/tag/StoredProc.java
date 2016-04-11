@@ -578,15 +578,9 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		SQLImpl _sql=new SQLImpl(sql.toString());
 		CallableStatement callStat=null;
 		try {
-			printo("before:prepareCall"+sql);
-		    callStat = dc.getConnection().prepareCall(sql.toString());
-		    		//ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY); 
-    				//ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY); 
-		    printo("after:prepareCall"+sql);
-		    
+			callStat = dc.getConnection().prepareCall(sql.toString());
 		    if(blockfactor>0)callStat.setFetchSize(blockfactor);
 		    if(timeout>0)DataSourceUtil.setQueryTimeoutSilent(callStat,timeout);
-		    printo("settings"+sql);
 		    
 	// set IN register OUT
 		    Iterator<ProcParamBean> it = params.iterator();
@@ -604,9 +598,6 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		    	}
 		    	index++;
 			}
-		    printo("params");
-		    
-		    
 	// cache
 		    boolean isFromCache=false;
 		    boolean hasCached=cachedWithin!=null || cachedafter!=null;
@@ -634,13 +625,10 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			    
 			    index=1;
 				do {
-				    printo("round");
-			    	if(isResult){
+				    if(isResult){
 			    		ResultSet rs=callStat.getResultSet();
 			    		if(rs!=null) {
-			    			printo(rs);
-					    	
-							try{
+			    			try{
 								result=(ProcResultBean) results.get(index++,null);
 								if(result!=null) {
 									lucee.runtime.type.Query q = new QueryImpl(rs,result.getMaxrows(),result.getName(),pageContext.getTimeZone());	
@@ -657,14 +645,11 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			    }
 			    while((isResult=callStat.getMoreResults()) || (callStat.getUpdateCount() != -1));
 
-			    printo("done.results");
 			    // params
 			    it = params.iterator();
 			    while(it.hasNext()) {
 			    	param= it.next();
-
-				    printo("round.param");
-			    	if(param.getDirection()!=ProcParamBean.DIRECTION_IN){
+				    if(param.getDirection()!=ProcParamBean.DIRECTION_IN){
 			    		Object value=null;
 			    		if(!StringUtil.isEmpty(param.getVariable())){
 			    			try{
@@ -703,8 +688,6 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 				}
 				isFromCache=true;
 			}
-		    printo("done2");
-			
 		    // result
 		    long exe;
 		    
@@ -744,18 +727,10 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		    }
 		    manager.releaseConnection(pageContext,dc);
 		}
-	    printo("final");
 		return EVAL_PAGE;
 	}
 
-	private void printo(Object o) {
-		try {
-			ThreadLocalPageContext.get().write(new Date()+":"+o.toString()+"\n");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+	
 
 
 
