@@ -77,7 +77,7 @@ function mem(type) {
  		// load testbox
  		SystemOut=createObject('java','lucee.commons.lang.SystemOut');
  		out=SystemOut.setOut(nullValue());
- 		err=SystemOut.setErr(nullValue());
+ 		//err=SystemOut.setErr(nullValue());
 
  		silent {
  		try {
@@ -107,19 +107,19 @@ function mem(type) {
 	onBundleStart 	= function( cfc, testResults ){
 		var meta=getComponentMetadata(cfc);
 		SystemOut.setOut(out);
- 		SystemOut.setErr(err);
+ 		//SystemOut.setErr(err);
 
 		systemOutput("=============================================================
 #meta.name#",false);
 		SystemOut.setOut(nullValue());
- 		SystemOut.setErr(nullValue());
+ 		//SystemOut.setErr(nullValue());
 	}
 	,onBundleEnd 	= function( cfc, testResults ){
 			
 		var bundle=arrayLast(testResults.getBundleStats());
 		try {
 		SystemOut.setOut(out);
- 		SystemOut.setErr(err);
+ 		//SystemOut.setErr(err);
 
 
  		systemOutput(" (#bundle.totalDuration# ms)",true);
@@ -159,7 +159,7 @@ END STACKTRACE
 		}
 		finally {
 			SystemOut.setOut(nullValue());
-	 		SystemOut.setErr(nullValue());
+	 		//SystemOut.setErr(nullValue());
 		}
 		
 	}
