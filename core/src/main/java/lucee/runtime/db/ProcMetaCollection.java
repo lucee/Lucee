@@ -18,12 +18,14 @@
  **/
 package lucee.runtime.db;
 
+import java.util.List;
+
 public class ProcMetaCollection {
 
-	public ProcMeta[] metas;
+	public final List<ProcMeta> metas;
 	public long created=System.currentTimeMillis();
 	
-	public ProcMetaCollection(ProcMeta[] metas) {
+	public ProcMetaCollection(List<ProcMeta> metas) { 
 		this.metas=metas;
 	}
 	

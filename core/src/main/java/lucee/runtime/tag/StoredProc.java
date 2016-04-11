@@ -280,23 +280,29 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		Connection conn = dc.getConnection();
 		
 		
-		if(false && SQLUtil.isOracle(conn)) {
-			String name=this.procedure.toUpperCase();
-			int index=name.lastIndexOf('.');
+		if(SQLUtil.isOracle(conn)) {
+			String name=this.procedure.toUpperCase().trim();
 			
+			// split procedure definition 
 			String catalog=null,scheme=null;
-			if(index!=-1){
-				catalog=name.substring(0,index);
-				name=name.substring(index+1);
-				
-				index=catalog.lastIndexOf('.');
+			{
+				int index=name.lastIndexOf('.');
 				if(index!=-1){
-					scheme=catalog.substring(index+1);
-					catalog=catalog.substring(0,index);
+					catalog=name.substring(0,index).trim();
+					name=name.substring(index+1).trim();
+					
+					index=catalog.lastIndexOf('.');
+					if(index!=-1){
+		                scheme=catalog.substring(0,index).trim();
+		                catalog=catalog.substring(index+1).trim();
+						//scheme=catalog.substring(index+1);
+						//catalog=catalog.substring(0,index);
+					}
 				}
+				if(StringUtil.isEmpty(scheme)) scheme=null;
+				if(StringUtil.isEmpty(catalog)) catalog=null;
 			}
-			if(StringUtil.isEmpty(scheme)) scheme=null;
-			if(StringUtil.isEmpty(catalog)) catalog=null;
+			
 			
 			try {
 								
@@ -306,19 +312,30 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 				DataSourceSupport d = ((DataSourceSupport)dc.getDatasource());
 				long cacheTimeout = d.getMetaCacheTimeout();
 				Map<String, ProcMetaCollection> procedureColumnCache = d.getProcedureColumnCache();
-				ProcMetaCollection coll=procedureColumnCache.get(procedure);
+				String id=procedure.toLowerCase();
+				ProcMetaCollection coll=procedureColumnCache.get(id);
 				
 				if(coll==null || (cacheTimeout>=0 && (coll.created+cacheTimeout)<System.currentTimeMillis())) {
 					DatabaseMetaData md = conn.getMetaData();
 					String _catalog=null,_scheme=null,_name=null;
 					boolean available=false;
-					ResultSet proc = md.getProcedures(catalog, scheme, name);
+					/*print.e("pro:"+procedure);
+					print.e("cat:"+catalog);
+					print.e("sch:"+scheme);
+					print.e("nam:"+name);*/
+					ResultSet proc = md.getProcedures(null, null, name);
 					try {
 						while (proc.next()) {
 							_catalog = proc.getString(1);
 							_scheme = proc.getString(2);
 							_name = proc.getString(3);
-							if(_name.equals(name)) {
+							if(
+									_name.equalsIgnoreCase(name)
+									&&
+									(catalog==null || _catalog==null || catalog.equalsIgnoreCase(_catalog)) // second option is very unlikely to ever been the case, but does not hurt to test
+									&&
+									(scheme==null || _scheme==null || scheme.equalsIgnoreCase(_scheme)) // second option is very unlikely to ever been the case, but does not hurt to test
+							  ) {
 								available=true;
 								break;
 							}
@@ -327,56 +344,78 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 					finally {
 						IOUtil.closeEL(proc);
 					}
-					if(available) {			
+					
+					
+					
+					
+					if(available) {		
+						/*print.e("---------------");
+						print.e("_pro:"+procedure);
+						print.e("_cat:"+_catalog);
+						print.e("_sch:"+_scheme);
+						print.e("_nam:"+_name);*/
 						ResultSet res = md.getProcedureColumns(_catalog, _scheme, _name, "%");
 						coll=createProcMetaCollection(res);
-						procedureColumnCache.put(procedure,coll);
+						procedureColumnCache.put(id,coll);
 					}
 				}
 				
-				index=-1;
+				int index=-1;
 				int ct;
-				for(int i=0;i<coll.metas.length;i++) { 
-					index++;
-					ct=coll.metas[i].columnType;
-					
-					// Return
-					if(ct==DatabaseMetaData.procedureColumnReturn) {
-						index--;
-						ProcResultBean result= getFirstResult();
-						ProcParamBean param = new ProcParamBean();
+				if(coll!=null) {
+					Iterator<ProcMeta> it = coll.metas.iterator();
+					ProcMeta pm;
+					while(it.hasNext()) { 
+						index++;
+						pm=it.next();
+						ct=pm.columnType;
 						
-						param.setType(coll.metas[i].dataType);
-						param.setDirection(ProcParamBean.DIRECTION_OUT);
-						if(result!=null)param.setVariable(result.getName());
-						returnValue=param;
-						
-					}	
-					else if(ct==DatabaseMetaData.procedureColumnOut || 
-							ct==DatabaseMetaData.procedureColumnInOut) {
-						if(coll.metas[i].dataType==CFTypes.CURSOR){
+						// Return
+						if(ct==DatabaseMetaData.procedureColumnReturn) {
+							index--;
 							ProcResultBean result= getFirstResult();
-							
 							ProcParamBean param = new ProcParamBean();
-							param.setType(coll.metas[i].dataType);
+							
+							param.setType(pm.dataType);
 							param.setDirection(ProcParamBean.DIRECTION_OUT);
 							if(result!=null)param.setVariable(result.getName());
-							params.add(index, param);
-						}
-						else {								
-							ProcParamBean param= params.get(index);
-							if(coll.metas[i].dataType!=Types.OTHER && coll.metas[i].dataType!=param.getType()){
-								param.setType(coll.metas[i].dataType);
+							returnValue=param;
+							
+						}	
+						else if(ct==DatabaseMetaData.procedureColumnOut || ct==DatabaseMetaData.procedureColumnInOut) {
+							// review of the code: seems to add an addional column in this case
+							if(pm.dataType==CFTypes.CURSOR) {
+								ProcResultBean result= getFirstResult();
+								ProcParamBean param = new ProcParamBean();
+								
+								param.setType(pm.dataType);
+								param.setDirection(ProcParamBean.DIRECTION_OUT);
+								if(result!=null)param.setVariable(result.getName());
+								
+								if(params.size()<index)
+									throw new DatabaseException("you have only defined ["+params.size()+"] procparam tags, but the procedure/function called is expecting more", null, null, dc);
+								else if(params.size()==index)
+									params.add(param);
+								else
+									params.add(index, param);
 							}
-						}
-					}	
-					else if(ct==DatabaseMetaData.procedureColumnIn) {	
-						ProcParamBean param=get(params,index);
-						if(param!=null && coll.metas[i].dataType!=Types.OTHER && coll.metas[i].dataType!=param.getType()){
-							param.setType(coll.metas[i].dataType);
-						}
-					}	
+							else {							
+								ProcParamBean param= params.get(index);
+								if(param!=null && pm.dataType!=Types.OTHER && pm.dataType!=param.getType()){
+									param.setType(pm.dataType);
+								}
+							}
+						}	
+						else if(ct==DatabaseMetaData.procedureColumnIn) {	
+							ProcParamBean param=get(params,index);
+							if(param!=null && pm.dataType!=Types.OTHER && pm.dataType!=param.getType()){
+								param.setType(pm.dataType);
+							}
+						}	
+					}
 				}
+				
+				
 				contractTo(params,index+1);
 				
 				//if(res!=null)print.out(new QueryImpl(res,"columns").toString());
@@ -391,6 +430,46 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			returnValue=STATUS_CODE;
 		}
 	}
+
+
+
+	/*private String createID(String procedure, List<ProcParamBean> params, Array results) {
+		StringBuilder sb=new StringBuilder(procedure).append(';');
+		
+		// params
+		if(params!=null) {
+			Iterator<ProcParamBean> it = params.iterator();
+			ProcParamBean ppb;
+			while(it.hasNext()) {
+				ppb=it.next();
+				sb.append(ppb.getDirection())
+				.append(ppb.getIndex())
+				.append(ppb.getMaxLength())
+				.append(ppb.getNull())
+				.append(ppb.getScale())
+				.append(ppb.getType())
+				.append(ppb.getVariable())
+				.append(ppb.isValueSet())
+				.append(';');
+			}
+		}
+		
+		// return
+		if(results!=null){
+			Iterator<Object> it = results.valueIterator();
+			ProcResultBean prb;
+			while(it.hasNext()){
+				prb=(ProcResultBean)it.next();
+				sb.append(prb.getMaxrows())
+				.append(prb.getName())
+				.append(prb.getResultset());
+			}
+		}
+		return Caster.toString(HashUtil.create64BitHash(sb));
+	}*/
+
+
+
 
 	private static ProcParamBean get(List<ProcParamBean> params, int index) {
 		try{
@@ -430,7 +509,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		finally {
 			IOUtil.closeEL(res);
 		}
-		return new ProcMetaCollection(list.toArray(new ProcMeta[list.size()]));
+		return new ProcMetaCollection(list);
 	}
 
 
@@ -731,6 +810,4 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	public void setTimeout(double timeout) {
 		this.timeout = (int) timeout;
 	}
-	
-	
 }
