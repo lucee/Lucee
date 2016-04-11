@@ -18,11 +18,13 @@
 		
 	//public function afterTests(){}
 	
-	public function setUp(){
-		variables.has=defineDatasource();
+	public function setUp() {
+		if(isNull(variables.has))
+			variables.has=defineDatasource();
 	}
 
 	public function isNotSupported(){
+		setUp();
 		return !variables.has;
 	}
 
