@@ -20,7 +20,8 @@ package coldfusion.server;
 
 import java.util.Map;
 
-import org.apache.axis.client.Stub;
+import javax.xml.rpc.Stub;
+
 
 public interface XmlRpcService extends Service {
 
