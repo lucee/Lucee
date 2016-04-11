@@ -22,6 +22,11 @@
 		variables.has=defineDatasource();
 	}
 
+	public function isNotSupported(){
+		return !variables.has;
+	}
+
+	
 
 	private boolean function defineDatasource(){
 		var pgsql=getCredencials();
@@ -73,7 +78,7 @@
 
 
 </cfscript>
-	<cffunction name="test">
+	<cffunction name="test"  skip="isNotSupported">
 		<cfquery name="qry">
 			CREATE OR REPLACE FUNCTION f_is_bigint(IN in_value bigint, OUT out_is_bigint boolean, OUT out_value bigint)
 			  RETURNS record AS
