@@ -44,7 +44,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 			try {
 				query name="qry" {
-					echo("SHOW TABLES where Tables_in_test='testCommit'");
+					echo("SHOW TABLES LIKE 'testCommit'");
 				}
 				if(qry.recordcount==0) {
 					query {
@@ -85,7 +85,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 			try {
 				query name="qry" {
-					echo("SHOW TABLES where Tables_in_test='testRollback'");
+					echo("SHOW TABLES LIKE 'testRollback'");
 				}
 				if(qry.recordcount==0) {
 					query {
