@@ -38,6 +38,83 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 	}
 
+
+	public void function testTransactionCommit(){
+		if(!variables.has) return;
+		
+			try {
+				query name="qry" {
+					echo("SHOW TABLES where Tables_in_test='testRollback'");
+				}
+				if(qry.recordcount==0) {
+					query {
+						echo("CREATE TABLE testRollback (name VARCHAR(20));");
+					}
+				}
+
+				query name="qry" {
+					echo("select count(name) as cnt from testRollback");
+				}
+				dump(qry);
+				assertEquals(0,qry.cnt);
+				
+				transaction {
+					query {
+						echo("insert into testRollback(name) values('aaa')");
+					}
+					transaction action="commit";
+				}
+
+				query name="qry" {
+					echo("select count(name) as cnt from testRollback");
+				}
+				assertEquals(1,qry.cnt);
+			}
+			finally {
+				query name="qry" {
+					echo("drop table testRollback");
+				}
+			}
+	}
+
+	public void function testTransactionRollback(){
+		if(!variables.has) return;
+		
+			try {
+				query name="qry" {
+					echo("SHOW TABLES where Tables_in_test='testRollback'");
+				}
+				if(qry.recordcount==0) {
+					query {
+						echo("CREATE TABLE testRollback (name VARCHAR(20));");
+					}
+				}
+
+				query name="qry" {
+					echo("select count(name) as cnt from testRollback");
+				}
+				dump(qry);
+				assertEquals(0,qry.cnt);
+				
+				transaction {
+					query {
+						echo("insert into testRollback(name) values('aaa')");
+					}
+					transaction action="rollback";
+				}
+
+				query name="qry" {
+					echo("select count(name) as cnt from testRollback");
+				}
+				assertEquals(0,qry.cnt);
+			}
+			finally {
+				query name="qry" {
+					echo("drop table testRollback");
+				}
+			}
+	}
+
 	public void function testMySQLWithLondonTimezone(){
 		if(!variables.has) return;
 		
