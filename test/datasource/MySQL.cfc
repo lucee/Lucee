@@ -44,36 +44,39 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 			try {
 				query name="qry" {
-					echo("SHOW TABLES where Tables_in_test='testRollback'");
+					echo("SHOW TABLES where Tables_in_test='testCommit'");
 				}
 				if(qry.recordcount==0) {
 					query {
-						echo("CREATE TABLE testRollback (name VARCHAR(20));");
+						echo("CREATE TABLE testCommit (name VARCHAR(20));");
 					}
 				}
 
 				query name="qry" {
-					echo("select count(name) as cnt from testRollback");
+					echo("select count(name) as cnt from testCommit");
 				}
-				dump(qry);
 				assertEquals(0,qry.cnt);
 				
 				transaction {
 					query {
-						echo("insert into testRollback(name) values('aaa')");
+						echo("insert into testCommit(name) values('aaa')");
 					}
 					transaction action="commit";
 				}
 
 				query name="qry" {
-					echo("select count(name) as cnt from testRollback");
+					echo("select count(name) as cnt from testCommit");
 				}
 				assertEquals(1,qry.cnt);
 			}
 			finally {
-				query name="qry" {
-					echo("drop table testRollback");
+				try{
+					query name="qry" {
+						echo("drop table testCommit");
+					}	
 				}
+				catch(e){}
+				
 			}
 	}
 
@@ -93,7 +96,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				query name="qry" {
 					echo("select count(name) as cnt from testRollback");
 				}
-				dump(qry);
 				assertEquals(0,qry.cnt);
 				
 				transaction {
@@ -109,9 +111,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				assertEquals(0,qry.cnt);
 			}
 			finally {
-				query name="qry" {
-					echo("drop table testRollback");
+				try{
+					query name="qry" {
+						echo("drop table testRollback");
+					}	
 				}
+				catch(e){}
 			}
 	}
 
