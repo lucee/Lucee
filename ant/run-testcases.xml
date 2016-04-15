@@ -134,6 +134,21 @@ function mem(type) {
 	Errors: #bundle.totalError#
 	Skipped: #bundle.totalSkipped#  #serialize(bundle)#",true);
 
+			if(!isNull(bundle.SUITESTATS)) {
+		    	loop array=bundle.SUITESTATS item="local.suitestat" {
+		    		if(!isNull(suitestat.SPECSTATS)) {
+		        		loop array=suitestat.SPECSTATS item="local.specstats" {
+		            		if(!isNull(specstats.FAILMESSAGE)) {
+		   						systemOutput("		#specstats.name#:#specstats.FAILMESSAGE#",true);
+		            		}
+		        		}
+		    		}
+		    	}
+			}
+			systemOutput(serialize(bundle),true);
+
+
+
 
 
 		}
