@@ -200,11 +200,11 @@ public final class ResourceUtil {
     	path=path.replace('\\','/');
     	Resource res = pc.getConfig().getResource(path);
         
-        // not allow realpath
-        if(!allowRealpath){
-        	if(res.exists()) return res;
+        if(res.exists()) 
+        	return res;
+        else if(!allowRealpath)
         	throw new ExpressionException("file or directory "+path+" not exist");  
-        }
+        
         
     	if(res.isAbsolute() && res.exists()) {
             return res;
@@ -317,11 +317,11 @@ public final class ResourceUtil {
     }
     
     public static Resource toResourceNotExisting(PageContext pc ,String destination,boolean allowRealpath, boolean checkComponentMappings) {
-    	Resource res=null;
-        destination=destination.replace('\\','/');  
+    	destination=destination.replace('\\','/');  
     	
-    	if(!allowRealpath){
-    		res=pc.getConfig().getResource(destination);
+        Resource res=pc.getConfig().getResource(destination);
+    		
+    	if(!allowRealpath || res.exists()){
     		return res;
     	}
     	
