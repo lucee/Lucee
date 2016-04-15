@@ -138,7 +138,7 @@ function mem(type) {
 		    	loop array=bundle.SUITESTATS item="local.suitestat" {
 		    		if(!isNull(suitestat.SPECSTATS)) {
 		        		loop array=suitestat.SPECSTATS item="local.specstats" {
-		            		if(!isNull(specstats.FAILMESSAGE)) {
+		            		if(!isNull(specstats.FAILMESSAGE) && len(trim(specstats.FAILMESSAGE))) {
 		   						systemOutput("		#specstats.name#:#specstats.FAILMESSAGE#",true);
 		            		}
 		        		}
