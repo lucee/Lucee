@@ -132,7 +132,7 @@ function mem(type) {
 	Pass: #bundle.totalPass#
 	Failures: #bundle.totalFail#
 	Errors: #bundle.totalError#
-	Skipped: #bundle.totalSkipped#  #serialize(bundle)#",true);
+	Skipped: #bundle.totalSkipped#",true);
 
 			if(!isNull(bundle.SUITESTATS)) {
 		    	loop array=bundle.SUITESTATS item="local.suitestat" {
@@ -145,7 +145,10 @@ function mem(type) {
 		    		}
 		    	}
 			}
-			systemOutput(serialize(bundle),true);
+			systemOutput("
+
+
+"&serialize(bundle),true);
 
 
 
