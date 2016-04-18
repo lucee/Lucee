@@ -21,11 +21,13 @@
  */
 package lucee.runtime.functions.query;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.db.SQLCaster;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
@@ -35,18 +37,20 @@ public final class QueryAddColumn extends BIF {
 	private static final long serialVersionUID = -242783888553490683L;
 
 	public static double call(PageContext pc , Query query, String string) throws PageException {
-		return call(pc, query, string,new ArrayImpl());
+		return call(pc, query, string,null,new ArrayImpl());
 	}
 	
-	public static double call(PageContext pc , Query query, String string, Object array) throws PageException {
-		query.addColumn(KeyImpl.init(string),Caster.toArray(array));
-		return query.size();
+	public static double call(PageContext pc , Query query, String string, Object arrayOrDataType) throws PageException {
+		if(!Decision.isArray(arrayOrDataType))
+			return call(pc, query, string, Caster.toString(arrayOrDataType), new ArrayImpl());
+		return call(pc, query, string, null, Caster.toArray(arrayOrDataType));
 	}
 	
 	public static double call(PageContext pc , Query query, String string, Object datatype, Object array) throws PageException {
-		if(datatype==null) return call(pc, query, string, array);
-		
-		query.addColumn(KeyImpl.init(string),Caster.toArray(array),SQLCaster.toSQLType(Caster.toString(datatype)));
+		if(StringUtil.isEmpty(datatype))
+			query.addColumn(KeyImpl.init(string),Caster.toArray(array));
+		else
+			query.addColumn(KeyImpl.init(string),Caster.toArray(array),SQLCaster.toSQLType(Caster.toString(datatype)));
 		return query.size();
 	}
 	
