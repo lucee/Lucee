@@ -19,17 +19,17 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testString(){
-		assertEqual(11,val("11abc"));
-		assertEqual(0,val("abc"));
+		assertEquals(11,val("11abc"));
+		assertEquals(0,val("abc"));
 	}
 	public void function testBoolean(){
-		assertEqual(0,val(true));
+		assertEquals(0,val(true));
 	}
 	public void function testNumber(){
-		assertEqual(11,val(11));
+		assertEquals(11,val(11));
 	}
 	public void function testDate(){
-		assertEqual(0,val(now()));
+		assertEquals(0,val(now()));
 	}
 
 } 
