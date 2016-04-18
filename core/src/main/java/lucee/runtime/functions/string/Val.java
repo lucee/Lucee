@@ -28,16 +28,15 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 
 public final class Val implements Function {
-	
-	public static double call(PageContext pc , Object value) throws PageException {
-	    String str=Caster.toString(value);
-        str=str.trim();
-	    int pos=getPos(str);
-	    if(pos<=0) {
-		    if(Decision.isBoolean(str)) return Caster.toDoubleValue(str);
-		    return 0;
-		}
-		return Caster.toDoubleValue(str.substring(0,pos));
+
+	private static final long serialVersionUID = -4333040593277864043L;
+
+	public static double call(PageContext pc , String value) throws PageException {
+	    if(value==null) return 0;
+	    value=value.trim();
+	    int pos=getPos(value);
+	    if(pos<=0) return 0;
+		return Caster.toDoubleValue(value.substring(0,pos));
 	}
 	
 	private static int getPos(String str) { 
