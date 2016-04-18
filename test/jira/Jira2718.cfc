@@ -62,7 +62,7 @@
 	
 	function testScriptFunctionCreateTimespan(){
 		var initVal=scriptFunctionCreateTimespan();
-		sleep(5);
+		sleep(1);
 		assertEquals(true,initVal == scriptFunctionCreateTimespan());
 		sleep(10);
 		assertEquals(false,initVal == scriptFunctionCreateTimespan());
@@ -70,7 +70,7 @@
 	
 	function testTagFunctionCreateTimespan(){
 		var initVal=tagFunctionCreateTimespan();
-		sleep(5);
+		sleep(1);
 		assertEquals(true,initVal == tagFunctionCreateTimespan());
 		sleep(10);
 		assertEquals(false,initVal == tagFunctionCreateTimespan());
@@ -79,14 +79,14 @@
 	
 	function testTagFunctionDouble(){
 		var initVal=tagFunctionDouble();
-		sleep(5);
+		sleep(1);
 		assertEquals(true,initVal == tagFunctionDouble());
 		sleep(10);
 		assertEquals(false,initVal == tagFunctionDouble());
 	}
 	function testScriptFunctionDouble(){
 		var initVal=scriptFunctionDouble();
-		sleep(5);
+		sleep(1);
 		assertEquals(true,initVal == scriptFunctionDouble());
 		sleep(10);
 		assertEquals(false,initVal == scriptFunctionDouble());
@@ -95,12 +95,12 @@
 	
 	function testScriptFunctionRequest(){
 		var initVal=scriptFunctionRequest();
-		sleep(5);
+		sleep(1);
 		assertEquals(true,initVal == scriptFunctionRequest());
 	}
 	function testTagFunctionRequest(){
 		var initVal=tagFunctionRequest(argumentcollection:{});
-		sleep(5);
+		sleep(1);
 		assertEquals(true,initVal == tagFunctionRequest());
 	}
 	</cfscript>
