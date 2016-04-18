@@ -51,7 +51,11 @@ public class PageSourceCode extends SourceCode {
 		InputStream is=null;
 		try {
 			is = IOUtil.toBufferedInputStream(ps.getPhyscalFile().getInputStream());
-			if(ClassUtil.isBytecode(is))throw new AlreadyClassException(ps.getPhyscalFile());
+			if(ClassUtil.isBytecode(is))
+				throw new AlreadyClassException(ps.getPhyscalFile(),false);
+			if(ClassUtil.isEncryptedBytecode(is))
+				throw new AlreadyClassException(ps.getPhyscalFile(),true);
+			
 			content=IOUtil.toString(is,charset);
 			
 		}

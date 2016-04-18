@@ -21,11 +21,13 @@ package lucee.runtime.compiler;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.PublicKey;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.commons.digest.RSA;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
@@ -172,44 +174,43 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		        return result;
 			} 
 	        catch (AlreadyClassException ace) {
-	        	InputStream is=null;
-	        	int dialect =sc==null?ps.getDialect():sc.getDialect();
-	        	try{
-	        		result = new Result(null,IOUtil.toBytes(is=ace.getInputStream()));
-	        		
-	        		String displayPath=ps!=null?"["+ps.getDisplayPath()+"] ":"";
-	        		String srcName = ASMUtil.getClassName(result.barr);
-	        		
-	        		// source is cfm and target cfc
-	        		if(dialect==CFMLEngine.DIALECT_CFML &&
-	        				endsWith(srcName,Constants.getCFMLTemplateExtensions(),dialect)
-	        				&& 
-	        				className.endsWith("_"+Constants.getCFMLComponentExtension()+
-	        					(dialect==CFMLEngine.DIALECT_CFML?Constants.CFML_CLASS_SUFFIX:Constants.LUCEE_CLASS_SUFFIX))) {
-	        				throw new TemplateException("source file "+displayPath+"contains the bytecode for a regular cfm template not for a component");
-	        		}
-	        		// source is cfc and target cfm
-	        		if(dialect==CFMLEngine.DIALECT_CFML &&
-	        				srcName.endsWith("_"+Constants.getCFMLComponentExtension()+(dialect==CFMLEngine.DIALECT_CFML?Constants.CFML_CLASS_SUFFIX:Constants.LUCEE_CLASS_SUFFIX)) && 
-	        				endsWith(className,Constants.getCFMLTemplateExtensions(),dialect)
-	        				)
-	        				throw new TemplateException("source file "+displayPath+"contains a component not a regular cfm template");
-	        		
-	        		// rename class name when needed
-	        		if(!srcName.equals(className))result=new Result(result.page, ClassRenamer.rename(result.barr, className));
-	        		// store
-		        	if(classRootDir!=null) {
-		        		Resource classFile=classRootDir.getRealResource(className+".class");
-		    			Resource classFileDirectory=classFile.getParentResource();
-		    			if(!classFileDirectory.exists()) classFileDirectory.mkdirs(); 
-		    			result=new Result(result.page, Page.setSourceLastModified(result.barr,ps!=null?ps.getPhyscalFile().lastModified():System.currentTimeMillis()));
-		        		IOUtil.copy(new ByteArrayInputStream(result.barr), classFile,true);
-		        	}
-	        		
+	        	
+        		byte[] bytes = ace.getEncrypted()?readEncrypted(ace):readPlain(ace);
+        		
+        		
+        		result = new Result(null,bytes);
+        		
+        		String displayPath=ps!=null?"["+ps.getDisplayPath()+"] ":"";
+        		String srcName = ASMUtil.getClassName(result.barr);
+        		
+        		int dialect =sc==null?ps.getDialect():sc.getDialect();
+	        	// source is cfm and target cfc
+        		if(dialect==CFMLEngine.DIALECT_CFML &&
+        				endsWith(srcName,Constants.getCFMLTemplateExtensions(),dialect)
+        				&& 
+        				className.endsWith("_"+Constants.getCFMLComponentExtension()+
+        					(dialect==CFMLEngine.DIALECT_CFML?Constants.CFML_CLASS_SUFFIX:Constants.LUCEE_CLASS_SUFFIX))) {
+        				throw new TemplateException("source file "+displayPath+"contains the bytecode for a regular cfm template not for a component");
+        		}
+        		// source is cfc and target cfm
+        		if(dialect==CFMLEngine.DIALECT_CFML &&
+        				srcName.endsWith("_"+Constants.getCFMLComponentExtension()+(dialect==CFMLEngine.DIALECT_CFML?Constants.CFML_CLASS_SUFFIX:Constants.LUCEE_CLASS_SUFFIX)) && 
+        				endsWith(className,Constants.getCFMLTemplateExtensions(),dialect)
+        				)
+        				throw new TemplateException("source file "+displayPath+"contains a component not a regular cfm template");
+        		
+        		// rename class name when needed
+        		if(!srcName.equals(className))result=new Result(result.page, ClassRenamer.rename(result.barr, className));
+        		// store
+	        	if(classRootDir!=null) {
+	        		Resource classFile=classRootDir.getRealResource(className+".class");
+	    			Resource classFileDirectory=classFile.getParentResource();
+	    			if(!classFileDirectory.exists()) classFileDirectory.mkdirs(); 
+	    			result=new Result(result.page, Page.setSourceLastModified(result.barr,ps!=null?ps.getPhyscalFile().lastModified():System.currentTimeMillis()));
+	        		IOUtil.copy(new ByteArrayInputStream(result.barr), classFile,true);
 	        	}
-	        	finally {
-	        		IOUtil.closeEL(is);
-	        	}
+        		
+	        	
 	        	return result;
 	        }
 	        catch (TransformerException bce) {
@@ -219,6 +220,32 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 	        	if(ps!=null)bce.addContext(ps, line, col,null);
 	        	throw bce;
 			}
+	}
+
+	private byte[] readPlain(AlreadyClassException ace) throws IOException {
+		return IOUtil.toBytes(ace.getInputStream(),true);
+	}
+
+	private byte[] readEncrypted(AlreadyClassException ace) throws IOException {
+		
+		String str = System.getenv("PUBLIC_KEY");
+		if(str==null) str=System.getProperty("PUBLIC_KEY");
+		if(str==null) throw new RuntimeException("to decrypt encrypted bytecode, you need to set PUBLIC_KEY as system property or or enviroment variable");
+		
+		byte[] bytes = IOUtil.toBytes(ace.getInputStream(),true);
+		try {	
+			PublicKey publicKey = RSA.toPublicKey(str);
+			// first 2 bytes are just a mask to detect encrypted code, so we need to set offset 2
+			bytes=RSA.decrypt(bytes, publicKey,2);
+		}
+		catch (IOException ioe) {
+			throw ioe;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		
+		return bytes;
 	}
 
 	private boolean endsWith(String name, String[] extensions, int dialect) {
