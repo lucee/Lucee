@@ -5410,7 +5410,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			for(int i=0;i<webs.length;i++){
 				ConfigWebImpl cw=(ConfigWebImpl) webs[i];
 				try{
-				sct.setEL(cw.getLabel(), ((CFMLFactoryImpl)cw.getFactory()).getInfo());
+				sct.setEL(cw.getIdentification().getId(), ((CFMLFactoryImpl)cw.getFactory()).getInfo());
 				}
 				catch(Throwable t){}
 			}
@@ -5436,13 +5436,24 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		
 		ConfigServer cs=(ConfigServer) config;
 		ConfigWeb[] webs = cs.getConfigWebs();
+		boolean has=false;
 		for(int i=0;i<webs.length;i++){
 			ConfigWebImpl cw=(ConfigWebImpl) webs[i];
 			if(!cw.getIdentification().getId().equals(contextId)) continue;
 			 ((CFMLFactoryImpl)cw.getFactory()).stopThread(threadId,stopType);
+			 has=true;
 			 break;
-				
 		}
+		if(!has) {
+			for(int i=0;i<webs.length;i++){
+				ConfigWebImpl cw=(ConfigWebImpl) webs[i];
+				if(!contextId.equals(cw.getLabel())) continue;
+				 ((CFMLFactoryImpl)cw.getFactory()).stopThread(threadId,stopType);
+				 has=true;
+				 break;
+			}
+		}
+		
 	}
 	
 	private void doHeapDump() throws PageException {
