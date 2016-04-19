@@ -4686,7 +4686,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		
 	}
 
-	private static String getSystemPropOrEnvVar(String name, String defaultValue) {
+	public static String getSystemPropOrEnvVar(String name, String defaultValue) {
 		// env
 		String value=System.getenv(name);
 		if(!StringUtil.isEmpty(value)) return value;

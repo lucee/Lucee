@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project default="run" basedir="." name="Lucee">
 
+<macrodef name="echots">
+    <attribute name="message"/>
+    <sequential>
+      <local name="timestamp" />
+      <tstamp>
+        <format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
+      </tstamp>
+      <echo message="---------- ${timestamp} - @{message} ----------" />
+    </sequential>
+  </macrodef>
 
 <target name="run">
 
@@ -10,7 +20,10 @@
    | |/ _ \/ __| __|  _ \ / _ \ \/ /
    | |  __/\__ \ |_| |_) | (_) >  < 
    |_|\___||___/\__|____/ \___/_/\_\
+
 ]]></echo>
+<echots message="start TestBox testcases"/>
+
 
 
 	
@@ -46,6 +59,7 @@ function mem(type) {
 				newPassword="#request.WEBADMINPASSWORD#";
 		}
 		catch(e){}// may exist from previous execution
+
 		try {
 		    admin 
 				action="updatePassword"
@@ -54,6 +68,8 @@ function mem(type) {
 				newPassword="#request.WEBADMINPASSWORD#";
 		}
 		catch(e){}// may exist from previous execution
+
+		systemOutput("set password #dateTimeFormat(now())#",true);
 
 	// create "/test" mapping
 		admin 
@@ -67,12 +83,16 @@ function mem(type) {
 			primary="physical"
 			trusted="no";
 
+	systemOutput("set /test mapping #dateTimeFormat(now())#",true);
+
 
 	// set the testbox mapping
  	
 		application 
 			action="update" 
 			componentpaths = "#[{archive:testboxArchive}]#"; 
+
+	systemOutput("update componentpaths #dateTimeFormat(now())#",true);
 	
  		// load testbox
  		SystemOut=createObject('java','lucee.commons.lang.SystemOut');

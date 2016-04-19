@@ -251,17 +251,20 @@ public final class CFMLEngineImpl implements CFMLEngine {
         // required extensions
         
         boolean isRe=configDir==null?false:XMLConfigFactory.isRequiredExtension(this, configDir);
+        boolean installExtensions=Caster.toBooleanValue(XMLConfigWebFactory.getSystemPropOrEnvVar("lucee.extensions.install",null),true);
+        
+        //print.e("INSTALL-EXTENSIONS:"+installExtensions);
         
         // if we have a "fresh" install  
         Set<ExtensionDefintion> extensions;
-        if(doNew==XMLConfigFactory.NEW_FRESH || doNew==XMLConfigFactory.NEW_FROM4) {
+        if(installExtensions && (doNew==XMLConfigFactory.NEW_FRESH || doNew==XMLConfigFactory.NEW_FROM4)) {
         	List<ExtensionDefintion> ext = info.getRequiredExtension();
         	extensions = toSet(null,ext);
         	SystemOut.print(SystemUtil.getPrintWriter(SystemUtil.OUT),
             	"Install Extensions ("+doNew+"):"+toList(extensions));
         }
         // if we have an update we update the extension that re installed and we have an older version as defined in the manifest
-        else if(doNew==XMLConfigFactory.NEW_MINOR || !isRe) {
+        else if(installExtensions && (doNew==XMLConfigFactory.NEW_MINOR || !isRe)) {
         	extensions = new HashSet<ExtensionDefintion>();
         	Iterator<ExtensionDefintion> it = info.getRequiredExtension().iterator();
         	ExtensionDefintion ed;
@@ -290,7 +293,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
         
         
         // install extension defined 
-        String extensionIds=System.getProperty("lucee-extensions");
+        String extensionIds=XMLConfigWebFactory.getSystemPropOrEnvVar("lucee-extensions",null); // old no longer used
+        if(StringUtil.isEmpty(extensionIds,true))
+        	extensionIds=XMLConfigWebFactory.getSystemPropOrEnvVar("lucee.extensions",null);
+        
         if(!StringUtil.isEmpty(extensionIds,true)) {
         	List<ExtensionDefintion> _extensions = RHExtension.toExtensionDefinitions(extensionIds);
         	extensions=toSet(extensions,_extensions);
