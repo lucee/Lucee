@@ -297,25 +297,25 @@
     <groupId>org.apache.felix</groupId>
     <artifactId>org.apache.felix.framework</artifactId>
     <version>4.6.1</version>
-    <scope>provided</scope>
+    <scope>compile</scope>
   </dependency>
   <dependency>
     <groupId>javax.servlet</groupId>
     <artifactId>javax.servlet-api</artifactId>
     <version>3.1.0</version>
-    <scope>provided</scope>
+    <scope>compile</scope>
   </dependency>
   <dependency>
     <groupId>javax.servlet.jsp</groupId>
     <artifactId>jsp-api</artifactId>
     <version>2.2</version>
-    <scope>provided</scope>
+    <scope>compile</scope>
   </dependency>
   <dependency>
     <groupId>javax.el</groupId>
     <artifactId>javax.el-api</artifactId>
     <version>3.0.0</version>
-    <scope>provided</scope>
+    <scope>compile</scope>
   </dependency>
   <dependency>
     <groupId>org.apache.ant</groupId>
@@ -510,22 +510,26 @@
   	<groupId>org.lucee</groupId>
   	<artifactId>axis-ant</artifactId>
   	<version>1.4.0</version>
+    <scope>provided</scope>
   </dependency>
 
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>axis</artifactId>
   	<version>1.4.0</version>
+    <scope>provided</scope>
   </dependency>
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>xalan</artifactId>
   	<version>2.7.2</version>
+    <scope>provided</scope>
   </dependency>
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>xalan-serializer</artifactId>
   	<version>2.7.2</version>
+    <scope>provided</scope>
   </dependency>
   <dependency>
   	<groupId>org.lucee</groupId>
@@ -536,11 +540,13 @@
   	<groupId>org.lucee</groupId>
   	<artifactId>xml-xerces</artifactId>
   	<version>2.11.0</version>
+    <scope>provided</scope>
   </dependency>
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>xml-apis</artifactId>
   	<version>1.4.1</version>
+    <scope>provided</scope>
   </dependency>
 <!-- 
   Bundle-SymbolicName: backport.util.concurrent
