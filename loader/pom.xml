@@ -331,188 +331,110 @@
     <groupId>org.apache.tika</groupId>
     <artifactId>tika-core</artifactId>
     <version>1.10</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>commons-sanselan</artifactId>
   	<version>0.97.0.incubator</version>
+    <scope>provided</scope>
   </dependency>
-
-
-<!--
-	Bundle-SymbolicName: org.apache.commons.codec
-	Bundle-Version: 1.10.0
-  source: lucee
--->
-   <dependency>
-      <groupId>commons-codec</groupId>
-      <artifactId>commons-codec</artifactId>
-      <version>1.9</version>
-     <scope>compile</scope>
-   </dependency>
-
-<!--
-	Bundle-SymbolicName: org.apache.commons.collections
-	Bundle-Version: 3.2.1
-	<dependency>
-		<groupId>commons-collections</groupId>
-		<artifactId>commons-collections</artifactId>
-		<version>3.2.1</version>
-	  <scope>compile</scope></dependency>-->
-
-<!--
-  Bundle-SymbolicName: org.apache.commons.collections4
-  Bundle-Version: 4.0.0
-  source: mvn
--->
   <dependency>
-	<groupId>org.apache.commons</groupId>
-	<artifactId>commons-collections4</artifactId>
-	<version>4.0</version>
-    <scope>compile</scope>
+    <groupId>commons-codec</groupId>
+    <artifactId>commons-codec</artifactId>
+    <version>1.9</version>
+    <scope>provided</scope>
   </dependency>
-
-
-  
-<dependency>
+  <dependency>
+	  <groupId>org.apache.commons</groupId>
+	  <artifactId>commons-collections4</artifactId>
+	  <version>4.0</version>
+    <scope>provided</scope>
+  </dependency>
+  <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>commons-compress</artifactId>
   	<version>1.9.0</version>
+    <scope>provided</scope>
   </dependency>
-      
-<!--
-	Bundle-SymbolicName: org.apache.commons.discovery
-	Bundle-Version: 0.5
-  source: mvn
--->
 	<dependency>
 		<groupId>commons-discovery</groupId>
 		<artifactId>commons-discovery</artifactId>
 		<version>0.5</version>
-	  <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-
-
-      <dependency>
-         <groupId>org.lucee</groupId>
-         <artifactId>commons-email</artifactId>
-         <type>jar</type>
-         <version>1.2.0</version>
-         <scope>compile</scope>
-      </dependency>
-
+  <dependency>
+    <groupId>org.lucee</groupId>
+    <artifactId>commons-email</artifactId>
+    <version>1.2.0</version>
+    <scope>provided</scope>
+  </dependency>
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>commons-fileupload</artifactId>
   	<version>1.2.1</version>
+    <scope>provided</scope>
   </dependency>
-
-<!--
-	Bundle-SymbolicName: org.lucee.commons-httpclient
-	Bundle-Version: 3.1
-  source: mvn
--->
 	<dependency>
 		<groupId>org.lucee</groupId>
 		<artifactId>commons-httpclient</artifactId>
 		<version>3.1.0</version>
-	  <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-
-<!-- 
-	Bundle-SymbolicName: org.apache.commons.io
-	Bundle-Version: 2.4.0
-  source: mvn
--->
 	<dependency>
 		<groupId>org.lucee</groupId>
 		<artifactId>commons-io</artifactId>
 		<version>2.4.0</version>
-	  <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-
 	<dependency>
 		<groupId>org.lucee</groupId>
 		<artifactId>commons-lang</artifactId>
 		<version>2.6.0</version>
-	  <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-
-
-<!-- org.apache.commons.lang 3
-  Bundle-SymbolicName: org.apache.commons.lang3
-  Bundle-Version: 3.4.0
-
-<dependency>
-  <groupId>org.apache.commons</groupId>
-  <artifactId>commons-lang3</artifactId>
-  <version>3.4</version>
-  <scope>compile</scope></dependency>-->
-
-
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>commons-logging-adapters</artifactId>
   	<version>1.1.0</version>
+    <scope>provided</scope>
   </dependency>
-
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>commons-logging-api</artifactId>
   	<version>1.1.0</version>
+    <scope>provided</scope>
   </dependency>
-  
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>commons-logging</artifactId>
   	<version>1.1.1</version>
+    <scope>provided</scope>
   </dependency>
-
-<!--
-	Bundle-SymbolicName: org.apache.commons.net
-	Bundle-Version: 3.3.0
-  source: mvn
--->
 	<dependency>
 		<groupId>commons-net</groupId>
 		<artifactId>commons-net</artifactId>
 		<version>3.3</version>
-	  <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-
-<!--
-  Bundle-SymbolicName: org.apache.oro
-  Bundle-Version: 2.0.8
-  source: lucee
--->
   <dependency>
     <groupId>org.apache</groupId>
     <artifactId>oro</artifactId>
-    <type>jar</type>
     <version>2.0.8</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-
-<!--
-	Bundle-SymbolicName: log4j
-	Bundle-Version: 1.2.17
-  source: mvn
--->
 	<dependency>
 		<groupId>log4j</groupId>
 		<artifactId>log4j</artifactId>
 		<version>1.2.17</version>
-	  <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-
-<dependency>
+  <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>axis-ant</artifactId>
   	<version>1.4.0</version>
     <scope>provided</scope>
   </dependency>
-
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>axis</artifactId>
@@ -535,6 +457,7 @@
   	<groupId>org.lucee</groupId>
   	<artifactId>portlet</artifactId>
   	<version>1.0.0</version>
+    <scope>provided</scope>
   </dependency>
   <dependency>
   	<groupId>org.lucee</groupId>
@@ -548,347 +471,229 @@
   	<version>1.4.1</version>
     <scope>provided</scope>
   </dependency>
-<!-- 
-  Bundle-SymbolicName: backport.util.concurrent
-  Bundle-Version: 2.2.0
-  source: lucee
--->
   <dependency>
     <groupId>backport.util</groupId>
     <artifactId>concurrent</artifactId>
-    <type>jar</type>
     <version>2.2.0</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-
-<!-- 
-  Bundle-SymbolicName: org.lucee.oswego-concurrent
-  Bundle-Version: 1.3.4
-  source: mvn
--->
-    <dependency>
-       <groupId>org.lucee</groupId>
-       <artifactId>oswego-concurrent</artifactId>
-       <type>jar</type>
-       <version>1.3.4</version>
-      <scope>compile</scope>
-    </dependency> 
-
+  <dependency>
+    <groupId>org.lucee</groupId>
+    <artifactId>oswego-concurrent</artifactId>
+    <version>1.3.4</version>
+    <scope>provided</scope>
+  </dependency> 
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>jta</artifactId>
   	<version>1.1.0</version>
+    <scope>provided</scope>
   </dependency>
-      
-      <!-- jboss.transaction - 1.2.0
-      <dependency>
-         <groupId>jboss</groupId>
-         <artifactId>transaction</artifactId>
-         <type>jar</type>
-         <version>1.2.0</version>
-         <scope>compile</scope>
-      </dependency> -->
-  
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>esapi</artifactId>
   	<version>2.1.0.1</version>
+    <scope>provided</scope>
   </dependency>
   <dependency>
-	<groupId>xom</groupId>
-	<artifactId>xom</artifactId>
-	<version>1.2.5</version>
-</dependency>
-  
-  
-  
-<!-- fusiondebug.api.server - 1.0.20 -->
+	  <groupId>xom</groupId>
+	  <artifactId>xom</artifactId>
+	  <version>1.2.5</version>
+    <scope>provided</scope>
+  </dependency>
   <dependency>
     <groupId>fusiondebug.api</groupId>
     <artifactId>server</artifactId>
-    <type>jar</type>
     <version>1.0.20</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>httpcomponents-httpclient</artifactId>
   	<version>4.5.0</version>
+    <scope>provided</scope>
   </dependency>
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>httpcomponents-httpcore</artifactId>
   	<version>4.4.1</version>
+    <scope>provided</scope>
   </dependency>
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>httpcomponents-httpmime</artifactId>
   	<version>4.5.0</version>
+    <scope>provided</scope>
   </dependency>
-<!-- 
-  Bundle-SymbolicName: org.lucee.hsqldb
-  Bundle-Version: 1.8.0
-  source: mvn
-
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>hsqldb</artifactId>
-    <type>jar</type>
-    <version>2.3.3</version>
-    <scope>compile</scope></dependency>-->
   <dependency>
     <groupId>hsqldb</groupId>
     <artifactId>hsqldb</artifactId>
-    <type>jar</type>
     <version>1.8.0</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-
-<!-- jacob - 1.16.1 -->
   <dependency>
     <groupId>jacob</groupId>
     <artifactId>jacob</artifactId>
-    <type>jar</type>
     <version>1.16.1</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-<!-- javasysmon - 0.3.3 -->
   <dependency>
     <groupId>javasysmon</groupId>
     <artifactId>javasysmon</artifactId>
-    <type>jar</type>
     <version>0.3.3</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-
-<!-- jcifs - 1.3.17 -->
   <dependency>
     <groupId>org.samba</groupId>
     <artifactId>jcifs</artifactId>
-    <type>jar</type>
     <version>1.3.17</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-
-<!-- jencrypt - 1.4.2.04 -->
   <dependency>
     <groupId>jencrypt</groupId>
     <artifactId>jencrypt</artifactId>
-    <type>jar</type>
     <version>1.4.2.04</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-
-<!-- jmimemagic
   <dependency>
-    <groupId>net.sourceforge</groupId>
-    <artifactId>jmimemagic</artifactId>
-    <type>jar</type>
-    <version>0.1.2</version>
-    <scope>compile</scope></dependency> -->
-
-
-<!-- metadata.extractor - 2.8.1 -->
-    <dependency>
-       <groupId>metadata</groupId>
-       <artifactId>extractor</artifactId>
-       <type>jar</type>
-       <version>2.8.1.0002L</version>
-       <scope>compile</scope>
-    </dependency>
-
-<!-- org.objectweb.asm.all - 4.2 
-	Bundle-SymbolicName: org.objectweb.asm.all
-	Bundle-Version: 4.2
--->
-<dependency>
-	<groupId>org.ow2.asm</groupId>
-	<artifactId>asm-all</artifactId>
-	<version>4.2</version>
-  <scope>compile</scope>
-</dependency>
-
-
+    <groupId>metadata</groupId>
+    <artifactId>extractor</artifactId>
+    <version>2.8.1.0002L</version>
+    <scope>provided</scope>
+  </dependency>
+  <dependency>
+  	<groupId>org.ow2.asm</groupId>
+  	<artifactId>asm-all</artifactId>
+  	<version>4.2</version>
+    <scope>provided</scope>
+  </dependency>
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>xml-resolver</artifactId>
   	<version>1.2.0</version>
+    <scope>provided</scope>
   </dependency>
-
-<!-- slf4j.api - 1.6.4
-	Bundle-SymbolicName: slf4j.api
-	Bundle-Version: 1.7.12
--->
-<dependency>
-	<groupId>org.slf4j</groupId>
-	<artifactId>slf4j-api</artifactId>
-	<version>1.7.12</version>
-  <scope>compile</scope>
-</dependency>
-
-<!-- slf4j.nop - 1.7.12
-	Bundle-SymbolicName: slf4j.nop
-	Bundle-Version: 1.7.12
--->
   <dependency>
-	 <groupId>org.slf4j</groupId>
-	 <artifactId>slf4j-nop</artifactId>
-	 <version>1.7.12</version>
-    <scope>compile</scope>
+  	<groupId>org.slf4j</groupId>
+  	<artifactId>slf4j-api</artifactId>
+  	<version>1.7.12</version>
+    <scope>provided</scope>
   </dependency>
-
-<!-- ss.css2 - 0.9.4 -->
+  <dependency>
+	  <groupId>org.slf4j</groupId>
+	  <artifactId>slf4j-nop</artifactId>
+	  <version>1.7.12</version>
+    <scope>provided</scope>
+  </dependency>
   <dependency>
     <groupId>ss</groupId>
     <artifactId>css2</artifactId>
-    <type>jar</type>
     <version>0.9.4</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-<!-- stax.api - 1.0.1 -->
   <dependency>
     <groupId>stax</groupId>
     <artifactId>api</artifactId>
-    <type>jar</type>
     <version>1.0.1.0002L</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-<!-- javax.activation - 1.1.1
-  <dependency>
-    <groupId>javax</groupId>
-    <artifactId>activation</artifactId>
-    <type>jar</type>
-    <version>1.1.1</version>
-    <scope>compile</scope>
-  </dependency> -->
-<!-- sun.jai.codec -->
   <dependency>
     <groupId>sun.jai</groupId>
     <artifactId>codec</artifactId>
-    <type>jar</type>
     <version>1.1.2.0003L</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-<!-- sun.jai.core -->
-      <dependency>
-         <groupId>sun.jai</groupId>
-         <artifactId>core</artifactId>
-         <type>jar</type>
-         <version>1.2.1.0003L</version>
-         <scope>compile</scope>
-      </dependency>
-<!-- sun.jndi.ldap - 1.2.4 -->
+  <dependency>
+    <groupId>sun.jai</groupId>
+    <artifactId>core</artifactId>
+    <version>1.2.1.0003L</version>
+    <scope>provided</scope>
+  </dependency>
   <dependency>
     <groupId>sun.jndi</groupId>
     <artifactId>ldap</artifactId>
-    <type>jar</type>
     <version>1.2.4</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-<!-- sun.jndi.ldapbp - 1.2.4 -->
   <dependency>
     <groupId>sun.jndi</groupId>
     <artifactId>ldapbp</artifactId>
-    <type>jar</type>
     <version>1.2.4</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-<!-- sun.jndi.ldapsec - 1.2.4 -->
   <dependency>
     <groupId>sun.jndi</groupId>
     <artifactId>ldapsec</artifactId>
-    <type>jar</type>
     <version>1.2.4</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-<!-- sun.jndi.providerutil - 1.2.4 -->
   <dependency>
     <groupId>sun.jndi</groupId>
     <artifactId>providerutil</artifactId>
-    <type>jar</type>
     <version>1.2.4</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-
-<!-- javax.mail -->
-<dependency>
-	<groupId>javax.mail</groupId>
-	<artifactId>activation</artifactId>
-	<version>1.4.7.0002L</version>
-    <scope>compile</scope>
-</dependency>
-  
-<!-- sun.security.jaas - 1.2.4 -->
+  <dependency>
+	  <groupId>javax.mail</groupId>
+	  <artifactId>activation</artifactId>
+	  <version>1.4.7.0002L</version>
+    <scope>provided</scope>
+  </dependency>
   <dependency>
     <groupId>sun.security</groupId>
     <artifactId>jaas</artifactId>
-    <type>jar</type>
     <version>1.2.4</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>jaxrpc</artifactId>
   	<version>1.4.0</version>
+    <scope>provided</scope>
   </dependency>
-    
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>wsdl4j</artifactId>
   	<version>1.5.1</version>
+    <scope>provided</scope>
   </dependency>
-  
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>saaj</artifactId>
   	<version>1.4.0</version>
+    <scope>provided</scope>
   </dependency>
-  
-<!-- tagsoup - 1.2.1 -->
-      <dependency>
-         <groupId>tagsoup</groupId>
-         <artifactId>tagsoup</artifactId>
-         <type>jar</type>
-         <version>1.2.1.0002L</version>
-         <scope>compile</scope>
-      </dependency>
-<!-- w3c.dom - 1.1.0 -->
+  <dependency>
+    <groupId>tagsoup</groupId>
+    <artifactId>tagsoup</artifactId>
+    <version>1.2.1.0002L</version>
+    <scope>provided</scope>
+  </dependency>
   <dependency>
     <groupId>w3c</groupId>
     <artifactId>dom</artifactId>
-    <type>jar</type>
     <version>1.1.0</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-<!-- xdb - 1.0.0 -->
   <dependency>
     <groupId>xdb</groupId>
     <artifactId>xdb</artifactId>
-    <type>jar</type>
     <version>1.0.0</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-
-<!-- xmlparserv2 - 1.2.2 -->
   <dependency>
     <groupId>xmlparserv2</groupId>
     <artifactId>xmlparserv2</artifactId>
-    <type>jar</type>
     <version>1.2.2</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
-
-<!-- xmpcore - 5.1.2 -->
-      <dependency>
-         <groupId>xmpcore</groupId>
-         <artifactId>xmpcore</artifactId>
-         <type>jar</type>
-         <version>5.1.2.0002L</version>
-         <scope>compile</scope>
-      </dependency>
- 
-   </dependencies>
+  <dependency>
+    <groupId>xmpcore</groupId>
+    <artifactId>xmpcore</artifactId>
+    <version>5.1.2.0002L</version>
+    <scope>provided</scope>
+  </dependency> 
+</dependencies>
 
 
 
