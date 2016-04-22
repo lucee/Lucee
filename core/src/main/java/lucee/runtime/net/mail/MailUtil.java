@@ -27,6 +27,7 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeUtility;
 
+import lucee.print;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -175,13 +176,18 @@ public final class MailUtil {
 
 	        pos = domain.lastIndexOf( '.' );
 
-	        if ( pos > 0 && pos < domain.length() - 2 )         // test TLD to be at least 2 chars all alpha characters
-	            return StringUtil.isAllAlpha( domain.substring( pos + 1 ) );
+	        if ( pos > 0 && pos < domain.length() - 2 ) {        // test TLD to be at least 2 chars all alpha characters
+	           if(StringUtil.isAllAlpha( domain.substring( pos + 1 ) )) return true;
+	           try {
+	        	   addr.validate();
+	        	   return true;
+	           } catch (AddressException e) {}
+	        }
         }
-
+        
         return false;
     }
-
+    
 
     /**
      * returns an InternetAddress object or null if the parsing fails.  to be be used in multiple places.
