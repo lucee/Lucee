@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.apache.commons.net.ftp.FTPFile;
+
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -29,11 +31,12 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
+import lucee.runtime.net.ftp.AFTPClient;
 import lucee.runtime.net.ftp.FTPConnection;
 import lucee.runtime.net.ftp.FTPConnectionImpl;
 import lucee.runtime.net.ftp.FTPConstant;
 import lucee.runtime.net.ftp.FTPPath;
-import lucee.runtime.net.ftp.FTPPool;
+import lucee.runtime.net.ftp.FTPPoolImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -42,11 +45,6 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.util.ListUtil;
-
-import org.apache.commons.net.ftp.FTP;
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
-import org.apache.commons.net.ftp.FTPReply;
 
 /**
 * 
@@ -71,7 +69,7 @@ public final class Ftp extends TagImpl {
 	private static final Key  = KeyImpl.getInstance();
 	private static final Key  = KeyImpl.getInstance();*/
 	
-    private FTPPool pool;
+    private FTPPoolImpl pool;
 
 	private String action;
 	private String username;
@@ -100,6 +98,10 @@ public final class Ftp extends TagImpl {
 	private int proxyport=80;
 	private String proxyuser;
 	private String proxypassword="";
+	private String fingerprint;
+	private boolean secure;
+
+	private boolean recursive;
 	
 	//private Struct cfftp=new StructImpl();
 
@@ -134,6 +136,11 @@ public final class Ftp extends TagImpl {
 		this._new=null;
 		this.item=null;
         this.result=null;
+        
+        fingerprint=null;
+    	secure=false;
+    	recursive=false;
+    	
 	}
 
 	/**
@@ -152,7 +159,7 @@ public final class Ftp extends TagImpl {
 	@Override
 	public int doEndTag() throws PageException	{
 	    pool=((PageContextImpl)pageContext).getFTPPool();
-	    FTPClient client = null; 
+	    AFTPClient client = null; 
 	    
 	    
 	    // retries
@@ -193,24 +200,7 @@ public final class Ftp extends TagImpl {
 		return EVAL_PAGE;
 	}
 
-    /**
-     * check if a file or directory exists
-     * @return FTPCLient
-     * @throws PageException
-     * @throws IOException
-     */
-    private FTPClient actionExists() throws PageException, IOException {
-        required("item",item); 
 
-        FTPClient client = getClient();
-        FTPFile file=existsFile(client,item,false);
-        Struct cfftp = writeCfftp(client);
-
-        cfftp.setEL(RETURN_VALUE,Caster.toBoolean(file!=null));
-        cfftp.setEL(SUCCEEDED,Boolean.TRUE);
-        
-        return client;
-    }
 
     /**
      * check if a directory exists or not
@@ -218,10 +208,10 @@ public final class Ftp extends TagImpl {
      * @throws PageException
      * @throws IOException
      */
-    private FTPClient actionExistsDir() throws PageException, IOException {
+    private AFTPClient actionExistsDir() throws PageException, IOException {
     	required("directory",directory); 
 
-    	FTPClient client = getClient();
+    	AFTPClient client = getClient();
     	boolean res = existsDir(client,directory);
         Struct cfftp = writeCfftp(client);
 
@@ -230,16 +220,6 @@ public final class Ftp extends TagImpl {
         
         stoponerror=false;
         return client;
-    	
-    	/*FTPClient client = pool.get(createConnection());
-        FTPFile file=existsFile(client,directory);
-        Struct cfftp = writeCfftp(client);
-
-        cfftp.setEL(RETURN_VALUE,Caster.toBoolean(file!=null && file.isDirectory()));
-        cfftp.setEL(SUCCEEDED,Boolean.TRUE);
-        
-        stoponerror=false;
-        return client;*/
     }
 
     /**
@@ -248,10 +228,10 @@ public final class Ftp extends TagImpl {
      * @throws IOException
      * @throws PageException
      */
-    private FTPClient actionExistsFile() throws PageException, IOException {
+    private AFTPClient actionExistsFile() throws PageException, IOException {
         required("remotefile",remotefile); 
 
-        FTPClient client = getClient();
+        AFTPClient client = getClient();
         FTPFile file=existsFile(client,remotefile,true);
         
         Struct cfftp = writeCfftp(client);
@@ -261,9 +241,25 @@ public final class Ftp extends TagImpl {
         
         stoponerror=false;
         return client;
+    }
     
+    /**
+     * check if a file or directory exists
+     * @return FTPCLient
+     * @throws PageException
+     * @throws IOException
+     */
+    private AFTPClient actionExists() throws PageException, IOException {
+        required("item",item); 
     
+        AFTPClient client = getClient();
+        FTPFile file=existsFile(client,item,false);
+        Struct cfftp = writeCfftp(client);
     
+        cfftp.setEL(RETURN_VALUE,Caster.toBoolean(file!=null));
+        cfftp.setEL(SUCCEEDED,Boolean.TRUE);
+    
+        return client;
     }
 
     
@@ -302,7 +298,7 @@ public final class Ftp extends TagImpl {
         return null;
     }*/
     
-    private FTPFile existsFile(FTPClient client, String strPath,boolean isFile) throws PageException, IOException {
+    private FTPFile existsFile(AFTPClient client, String strPath,boolean isFile) throws PageException, IOException {
         strPath=strPath.trim();
         if(strPath.equals("/")) {
             FTPFile file= new FTPFile();
@@ -312,7 +308,7 @@ public final class Ftp extends TagImpl {
         }
         
         // get parent path
-        FTPPath path=new FTPPath(client.printWorkingDirectory(),strPath);
+        FTPPath path=new FTPPath(client,strPath);
         String p=path.getPath();
         String n=path.getName();
 
@@ -323,7 +319,7 @@ public final class Ftp extends TagImpl {
         // when directory
         FTPFile[] files=null;
         try {
-			files = client.listFiles(strPath);
+			files = client.listFiles(p);
 		} catch (IOException e) {}
         
         if(files!=null) {
@@ -337,11 +333,11 @@ public final class Ftp extends TagImpl {
         return null;
     }
     
-    private boolean existsDir(FTPClient client, String strPath) throws PageException, IOException {
+    private boolean existsDir(AFTPClient client, String strPath) throws PageException, IOException {
         strPath=strPath.trim();
         
         // get parent path
-        FTPPath path=new FTPPath(client.printWorkingDirectory(),strPath);
+        FTPPath path=new FTPPath(client,strPath);
         String p=path.getPath();
         String n=path.getName();
 
@@ -349,10 +345,7 @@ public final class Ftp extends TagImpl {
         if("//".equals(p))strPath="/"+n;
         if(!strPath.endsWith("/"))strPath+="/";
         
-        String pwd = client.printWorkingDirectory();
-        boolean rc = client.changeWorkingDirectory(directory);
-        client.changeWorkingDirectory(pwd);
-        return rc;
+        return client.directoryExists(directory);
     }
 
     /**
@@ -361,9 +354,9 @@ public final class Ftp extends TagImpl {
      * @throws IOException
      * @throws PageException 
      */
-    private FTPClient actionRemove() throws IOException, PageException {
+    private AFTPClient actionRemove() throws IOException, PageException {
         required("item",item);
-        FTPClient client = getClient();
+        AFTPClient client = getClient();
         client.deleteFile(item);
         writeCfftp(client);
         
@@ -376,11 +369,11 @@ public final class Ftp extends TagImpl {
      * @throws PageException
      * @throws IOException
      */
-    private FTPClient actionRename() throws PageException, IOException {
+    private AFTPClient actionRename() throws PageException, IOException {
         required("existing",existing); 
         required("new",_new);
         
-        FTPClient client = getClient();
+        AFTPClient client = getClient();
 		client.rename(existing,_new);
         writeCfftp(client);
         
@@ -393,11 +386,11 @@ public final class Ftp extends TagImpl {
      * @throws IOException
      * @throws PageException
      */
-    private FTPClient actionPutFile() throws IOException, PageException  {
+    private AFTPClient actionPutFile() throws IOException, PageException  {
         required("remotefile",remotefile); 
         required("localfile",localfile); 
         
-		FTPClient client = getClient();
+		AFTPClient client = getClient();
 		Resource local=ResourceUtil.toResourceExisting(pageContext ,localfile);//new File(localfile);
 		//	if(failifexists && local.exists()) throw new ApplicationException("File ["+local+"] already exist, if you want to overwrite, set attribute failIfExists to false");
 		InputStream is=null;
@@ -421,23 +414,25 @@ public final class Ftp extends TagImpl {
      * @throws PageException
      * @throws IOException
      */
-    private FTPClient actionGetFile() throws PageException, IOException {
+    private AFTPClient actionGetFile() throws PageException, IOException {
         required("remotefile",remotefile); 
         required("localfile",localfile); 
 		
         
-		FTPClient client = getClient();
+		AFTPClient client = getClient();
 		Resource local=ResourceUtil.toResourceExistingParent(pageContext ,localfile);//new File(localfile);
         pageContext.getConfig().getSecurityManager().checkFileLocation(local);
 		if(failifexists && local.exists()) throw new ApplicationException("File ["+local+"] already exist, if you want to overwrite, set attribute failIfExists to false");
 		OutputStream fos=null;
         client.setFileType(getType(local));
+        boolean success=false;
         try {
         	fos=IOUtil.toBufferedOutputStream(local.getOutputStream());
-            client.retrieveFile(remotefile,fos);
+            success=client.retrieveFile(remotefile,fos);
         }
         finally {
         	IOUtil.closeEL(fos);
+        	if(!success) local.delete();
         }
         writeCfftp(client);
         
@@ -450,11 +445,11 @@ public final class Ftp extends TagImpl {
      * @throws IOException
      * @throws PageException
      */
-    private FTPClient actionGetCurrentURL() throws PageException, IOException {
-        FTPClient client = getClient();
+    private AFTPClient actionGetCurrentURL() throws PageException, IOException {
+        AFTPClient client = getClient();
         String pwd=client.printWorkingDirectory();
         Struct cfftp = writeCfftp(client); 
-        cfftp.setEL("returnValue","ftp://"+client.getRemoteAddress().getHostName()+pwd);
+        cfftp.setEL("returnValue",client.getPrefix()+"://"+client.getRemoteAddress().getHostName()+pwd);
         return client;
     }
 
@@ -464,8 +459,8 @@ public final class Ftp extends TagImpl {
      * @throws IOException
      * @throws PageException
      */
-    private FTPClient actionGetCurrentDir() throws PageException, IOException {
-        FTPClient client = getClient();
+    private AFTPClient actionGetCurrentDir() throws PageException, IOException {
+        AFTPClient client = getClient();
         String pwd=client.printWorkingDirectory();
         Struct cfftp = writeCfftp(client);
         cfftp.setEL("returnValue",pwd);
@@ -478,16 +473,16 @@ public final class Ftp extends TagImpl {
      * @throws IOException
      * @throws PageException 
      */
-    private FTPClient actionChangeDir() throws IOException, PageException {
+    private AFTPClient actionChangeDir() throws IOException, PageException {
         required("directory",directory); 
 
-        FTPClient client = getClient();
+        AFTPClient client = getClient();
         client.changeWorkingDirectory(directory);
         writeCfftp(client);
         return client;
     }
 
-    private FTPClient getClient() throws PageException, IOException {
+    private AFTPClient getClient() throws PageException, IOException {
     	return pool.get(_createConnection());
 	}
 
@@ -497,14 +492,45 @@ public final class Ftp extends TagImpl {
      * @throws IOException
      * @throws PageException 
      */
-    private FTPClient actionRemoveDir() throws IOException, PageException {
+    private AFTPClient actionRemoveDir() throws IOException, PageException {
         required("directory",directory); 
 
-        FTPClient client = getClient();
+        AFTPClient client = getClient();
+        if(recursive) {
+        	removeRecursive(client,directory,FTPFile.DIRECTORY_TYPE);
+        }
+        else
         client.removeDirectory(directory);
+        
         writeCfftp(client);
         return client;
     }
+
+    private static void removeRecursive(AFTPClient client, String path, int type) throws IOException {
+    	// directory
+    	if(FTPFile.DIRECTORY_TYPE==type) {
+    		if(!path.endsWith("/")) path+="/";
+    		// first we remove the children
+    		FTPFile[] children = client.listFiles(path);
+    		for(FTPFile child:children){
+    			if(child.getName().equals(".") || child.getName().equals("..")) continue;
+				removeRecursive(client, path+child.getName(), child.getType());
+    		}
+    		// then the directory itself
+            client.removeDirectory(path);
+    		
+    	}
+    	// file
+    	else if(FTPFile.FILE_TYPE==type) {
+    		client.deleteFile(path);
+    	}
+    }
+    
+    
+    
+    
+    
+    
 
     /**
      * create a remote directory
@@ -512,10 +538,10 @@ public final class Ftp extends TagImpl {
      * @throws IOException
      * @throws PageException 
      */
-    private FTPClient actionCreateDir() throws IOException, PageException {
+    private AFTPClient actionCreateDir() throws IOException, PageException {
         required("directory",directory); 
 
-        FTPClient client = getClient();
+        AFTPClient client = getClient();
         client.makeDirectory(directory);
         writeCfftp(client);
         return client;
@@ -527,16 +553,23 @@ public final class Ftp extends TagImpl {
      * @throws PageException
      * @throws IOException
      */
-    private FTPClient actionListDir() throws PageException, IOException {
+    private AFTPClient actionListDir() throws PageException, IOException {
         required("name",name);
         required("directory",directory);
         
-        FTPClient client = getClient();
+        AFTPClient client = getClient();
         FTPFile[] files = client.listFiles(directory);
         if(files==null)files=new FTPFile[0];
         
-        String[] cols = new String[]{"attributes","isdirectory","lastmodified","length","mode","name",
-                "path","url","type","raw"};
+        pageContext.setVariable(name,toQuery(files,"ftp",directory,client.getRemoteAddress().getHostName()));
+        writeCfftp(client);
+        return client;
+    }
+
+    public static lucee.runtime.type.Query toQuery(FTPFile[] files, String prefix, String directory, String hostName) throws PageException {
+
+        String[] cols = new String[]{"name","isdirectory","lastmodified","length","mode",
+                "path","url","type","raw","attributes"};
         String[] types = new String[]{"VARCHAR","BOOLEAN","DATE","DOUBLE","VARCHAR","VARCHAR",
                 "VARCHAR","VARCHAR","VARCHAR","VARCHAR"};
         
@@ -548,13 +581,11 @@ public final class Ftp extends TagImpl {
         else if(directory.charAt(0)!='/')directory='/'+directory;
         if(directory.charAt(directory.length()-1)!='/')directory=directory+'/';
                 
-        pageContext.setVariable(name,query);
-        int row=0;
+        int row;
         for(int i=0;i<files.length;i++) {
             FTPFile file = files[i];
             if(file.getName().equals(".") || file.getName().equals("..")) continue;
-            query.addRow();
-            row++;
+            row=query.addRow();
             query.setAt("attributes",row,"");
             query.setAt("isdirectory",row,Caster.toBoolean(file.isDirectory()));
             query.setAt("lastmodified",row,new DateTimeImpl(file.getTimestamp()));
@@ -565,10 +596,9 @@ public final class Ftp extends TagImpl {
             query.setAt("raw",row,file.getRawListing());
             query.setAt("name",row,file.getName());
             query.setAt("path",row,directory+file.getName());
-            query.setAt("url",row,"ftp://"+client.getRemoteAddress().getHostName()+""+directory+file.getName());
+            query.setAt("url",row,prefix+"://"+hostName+""+directory+file.getName());
         }
-        writeCfftp(client);
-        return client;
+		return query;
     }
 
     /**	
@@ -577,13 +607,13 @@ public final class Ftp extends TagImpl {
      * @throws IOException
      * @throws PageException 
      */
-    private FTPClient actionOpen() throws IOException, PageException {
+    private AFTPClient actionOpen() throws IOException, PageException {
         required("server",server);
         required("username",username);
         required("password",password);
         
         
-        FTPClient client = getClient();
+        AFTPClient client = getClient();
         writeCfftp(client);
         return client;
     }
@@ -593,9 +623,9 @@ public final class Ftp extends TagImpl {
      * @return FTPCLient
      * @throws PageException 
      */
-    private FTPClient actionClose() throws PageException {
+    private AFTPClient actionClose() throws PageException {
         FTPConnection conn = _createConnection();
-        FTPClient client = pool.remove(conn);
+        AFTPClient client = pool.remove(conn);
         
         Struct cfftp = writeCfftp(client);
         cfftp.setEL("succeeded",Caster.toBoolean(client!=null));
@@ -621,7 +651,7 @@ public final class Ftp extends TagImpl {
      * @return FTPCLient
      * @throws PageException 
      */
-    private Struct writeCfftp(FTPClient client) throws PageException  {
+    private Struct writeCfftp(AFTPClient client) throws PageException  {
         Struct cfftp=new StructImpl();
         if(result==null)pageContext.variablesScope().setEL(CFFTP,cfftp);
         else pageContext.setVariable(result,cfftp);
@@ -637,7 +667,7 @@ public final class Ftp extends TagImpl {
         cfftp.setEL(ERROR_CODE,new Double(repCode));
         cfftp.setEL(ERROR_TEXT,repStr);
         
-        cfftp.setEL(SUCCEEDED,Caster.toBoolean(FTPReply.isPositiveCompletion(repCode)));
+        cfftp.setEL(SUCCEEDED,Caster.toBoolean(client.isPositiveCompletion()));
         cfftp.setEL(RETURN_VALUE,repStr);
         return cfftp;
     }
@@ -648,8 +678,8 @@ public final class Ftp extends TagImpl {
      * @return FTPCLient
      * @throws ApplicationException
      */
-    private boolean checkCompletion(FTPClient client) throws ApplicationException {
-        boolean  isPositiveCompletion=FTPReply.isPositiveCompletion(client.getReplyCode());
+    private boolean checkCompletion(AFTPClient client) throws ApplicationException {
+        boolean  isPositiveCompletion=client.isPositiveCompletion();
         if(isPositiveCompletion) return false;
         if(count++<retrycount) return true;
         if(stoponerror){
@@ -665,13 +695,13 @@ public final class Ftp extends TagImpl {
      * @return type
      */
     private int getType(Resource file) {
-        if(transferMode==FTPConstant.TRANSFER_MODE_BINARY) return FTP.BINARY_FILE_TYPE;
-        else if(transferMode==FTPConstant.TRANSFER_MODE_ASCCI) return FTP.ASCII_FILE_TYPE;
+        if(transferMode==FTPConstant.TRANSFER_MODE_BINARY) return AFTPClient.FILE_TYPE_BINARY;
+        else if(transferMode==FTPConstant.TRANSFER_MODE_ASCCI) return AFTPClient.FILE_TYPE_TEXT;
         else {
             String ext=ResourceUtil.getExtension(file,null);
             if(ext==null || ListUtil.listContainsNoCase(ASCIIExtensionList,ext,";",true,false)==-1)
-                return FTP.BINARY_FILE_TYPE;
-            	return FTP.ASCII_FILE_TYPE;
+                return AFTPClient.FILE_TYPE_BINARY;
+            return AFTPClient.FILE_TYPE_TEXT;
         }
     }
     
@@ -679,8 +709,9 @@ public final class Ftp extends TagImpl {
      * @return return a new FTP Connection Object
      */
     private FTPConnection _createConnection() {
-    	
-        return new FTPConnectionImpl(connectionName,server,username,password,port,timeout,transferMode,passive,proxyserver,proxyport,proxyuser,proxypassword);
+        return new FTPConnectionImpl(connectionName,server,username,password,port,timeout,transferMode,passive,
+        		proxyserver,proxyport,proxyuser,proxypassword,
+        		fingerprint,stoponerror,secure);
     }
     
     /**
@@ -785,6 +816,12 @@ public final class Ftp extends TagImpl {
     public void setName(String name) {
         this.name = name;
     }
+    
+    public void setRecurse(boolean recursive) {
+        this.recursive = recursive;
+    }
+    
+    
     /**
      * @param extensionList The aSCIIExtensionList to set.
      */
@@ -843,5 +880,13 @@ public final class Ftp extends TagImpl {
      */
     public void setResult(String result) {
         this.result = result;
+    }
+
+    public void setSecure(boolean secure) {
+        this.secure = secure;
+    }
+
+    public void setFingerprint(String fingerprint) {
+        this.fingerprint = fingerprint;
     }
 }

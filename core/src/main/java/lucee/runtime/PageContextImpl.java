@@ -123,7 +123,6 @@ import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.ModernAppListener;
 import lucee.runtime.listener.ModernAppListenerException;
 import lucee.runtime.monitor.RequestMonitor;
-import lucee.runtime.net.ftp.FTPPool;
 import lucee.runtime.net.ftp.FTPPoolImpl;
 import lucee.runtime.net.http.HTTPServletRequestWrap;
 import lucee.runtime.net.http.ReqRspUtil;
@@ -281,7 +280,7 @@ public final class PageContextImpl extends PageContext {
 	// Pools
 	private ErrorPagePool errorPagePool=new ErrorPagePool();
 	private TagHandlerPool tagHandlerPool;
-	private FTPPool ftpPool=new FTPPoolImpl();
+	private FTPPoolImpl ftpPool=new FTPPoolImpl();
 	
 	private Component activeComponent;
 	private UDF activeUDF;
@@ -2763,7 +2762,7 @@ public final class PageContextImpl extends PageContext {
 		if(!udfs.isEmpty())udfs.removeLast();
 	}
 
-	public FTPPool getFTPPool() {
+	public FTPPoolImpl getFTPPool() {
 		return ftpPool;
 	}
 

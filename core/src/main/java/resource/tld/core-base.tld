@@ -1950,6 +1950,32 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>Name of the result value (default:cfftp)</description>
 		</attribute>
+		
+		<attribute>
+			<type>string</type>
+			<name>fingerprint</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>the ssh fingerprint</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>secure</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Secure connection (sftp|shh) or not.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>recurse</name>
+			<alias>recursive</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>delete content of the directory</description>
+		</attribute>
+		
+		
+		
 	</tag>
 
 	<!-- Graph -->

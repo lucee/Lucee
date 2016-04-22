@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.net.ftp;
 
+import java.io.IOException;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -40,32 +42,32 @@ public final class FTPPath implements Dumpable{
 
     /**
      * @param current
-     * @param realpath
+     * @param relpath
      * @throws PageException
+     * @throws IOException 
      */
-    public FTPPath(String current, String realpath) throws PageException {
-        realpath=realpath.replace('\\','/');
-        //if(realpath.startsWith("./")) realpath=realpath.substring(2);
-        //if(realpath.startsWith(".")) realpath=realpath.substring(1);
-        Array realpathArr=ListUtil.listToArrayTrim(realpath,'/');
+    public FTPPath(AFTPClient client, String relpath) throws PageException, IOException {
+        relpath=relpath.replace('\\','/');
+        Array relpathArr=ListUtil.listToArrayTrim(relpath,'/');
 
-        // realpath is absolute
-        if(realpath.startsWith("/")) {
-            init(realpathArr);
+        // relpath is absolute
+        if(relpath.startsWith("/")) {
+            init(relpathArr);
             return;
         }
-        if(current==null)current="";
-        else current=current.replace('\\','/');
+        String current;
+        if(client==null)current="";
+        else current=client.printWorkingDirectory().replace('\\','/');
         Array parentArr=ListUtil.listToArrayTrim(current,'/');
         
         // Single Dot .
-        if(realpathArr.size()>0&&realpathArr.get(1,"").equals(".")) {
-            realpathArr.removeEL(1);
+        if(relpathArr.size()>0&&relpathArr.get(1,"").equals(".")) {
+            relpathArr.removeEL(1);
         }
         
         // Double Dot ..
-        while(realpathArr.size()>0&&realpathArr.get(1,"").equals("..")) {
-            realpathArr.removeEL(1);
+        while(relpathArr.size()>0&&relpathArr.get(1,"").equals("..")) {
+            relpathArr.removeEL(1);
             if(parentArr.size()>0) {
                 parentArr.removeEL(parentArr.size());
             }
@@ -73,7 +75,7 @@ public final class FTPPath implements Dumpable{
                 parentArr.prepend("..");
             }
 		}
-        ArrayMerge.append(parentArr,realpathArr);
+        ArrayMerge.append(parentArr,relpathArr);
         init(parentArr);
     }
     

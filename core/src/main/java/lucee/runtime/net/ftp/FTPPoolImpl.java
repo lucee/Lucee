@@ -27,20 +27,15 @@ import java.util.Map.Entry;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ApplicationException;
 
-import org.apache.commons.net.ftp.FTPClient;
-
 /**
  * Pool of FTP Client
  */
-public final class FTPPoolImpl implements FTPPool {
+public final class FTPPoolImpl {
 
     Map<String,FTPWrap> wraps=new HashMap<String, FTPWrap>();
-    //ArrayList arr=new ArrayList();
 
-    //@Override
-    @Override
-	public FTPClient get(FTPConnection conn) throws IOException, ApplicationException {
-        FTPClient client = _get(conn).getClient();
+    public AFTPClient get(FTPConnection conn) throws IOException, ApplicationException {
+        AFTPClient client = _get(conn).getClient();
         if(client==null)throw new ApplicationException("can't connect to server ["+conn.getServer()+"]");
         
         FTPWrap.setConnectionSettings(client,conn);
@@ -81,7 +76,8 @@ public final class FTPPoolImpl implements FTPPool {
         if(wrap!=null) {
             if(conn.loginEquals(wrap.getConnection())) {
                 return _get(new FTPConnectionImpl(name,null,null,null,conn.getPort(),conn.getTimeout(),conn.getTransferMode(),conn.isPassive(),
-                		conn.getProxyServer(),conn.getProxyPort(),conn.getProxyUser(),conn.getProxyPassword()));
+                		conn.getProxyServer(),conn.getProxyPort(),conn.getProxyUser(),conn.getProxyPassword(),
+                		conn.getFingerprint(),conn.getStopOnError(),conn.secure()));
             }
             disconnect(wrap.getClient());
         }
@@ -102,7 +98,7 @@ public final class FTPPoolImpl implements FTPPool {
      * disconnect a client
      * @param client
      */
-    private void disconnect(FTPClient client) {
+    private void disconnect(AFTPClient client) {
         try {
             if(client!=null && client.isConnected()) {
     			client.quit();
@@ -112,22 +108,19 @@ public final class FTPPoolImpl implements FTPPool {
         catch(IOException ioe) {}
     }
 
-    @Override
-    public FTPClient remove(FTPConnection conn) {
+    public AFTPClient remove(FTPConnection conn) {
         return remove(conn.getName());
     }
 
-    @Override
-    public FTPClient remove(String name) {
+    public AFTPClient remove(String name) {
         FTPWrap wrap=wraps.remove(name);
         if(wrap==null) return null;
         
-        FTPClient client = wrap.getClient();
+        AFTPClient client = wrap.getClient();
         disconnect(client);
         return client;
     }
 
-    @Override
     public void clear() {
         if(!wraps.isEmpty()) {
             Iterator<Entry<String, FTPWrap>> it = wraps.entrySet().iterator();

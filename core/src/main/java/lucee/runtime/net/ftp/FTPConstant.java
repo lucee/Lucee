@@ -106,4 +106,46 @@ public final class FTPConstant {
         
         return Integer.valueOf(rtn);
     }
+    public static void setPermission(FTPFile file, int mode) {
+
+        // world
+        file.setPermission(FTPFile.WORLD_ACCESS, FTPFile.EXECUTE_PERMISSION, (1&mode)>0);
+        file.setPermission(FTPFile.WORLD_ACCESS, FTPFile.WRITE_PERMISSION, (2&mode)>0);
+        file.setPermission(FTPFile.WORLD_ACCESS, FTPFile.READ_PERMISSION, (4&mode)>0);
+        
+        // group
+        file.setPermission(FTPFile.GROUP_ACCESS, FTPFile.EXECUTE_PERMISSION, (8&mode)>0);
+        file.setPermission(FTPFile.GROUP_ACCESS, FTPFile.WRITE_PERMISSION, (16&mode)>0);
+        file.setPermission(FTPFile.GROUP_ACCESS, FTPFile.READ_PERMISSION, (32&mode)>0);
+        
+        // user
+        file.setPermission(FTPFile.USER_ACCESS, FTPFile.EXECUTE_PERMISSION, (64&mode)>0);
+        file.setPermission(FTPFile.USER_ACCESS, FTPFile.WRITE_PERMISSION, (128&mode)>0);
+        file.setPermission(FTPFile.USER_ACCESS, FTPFile.READ_PERMISSION, (256&mode)>0);
+    }
+    
+    public static void setPermissionOld(FTPFile file, int mode) {
+        int mu=mode/100;
+        mode=mode-mu*100;
+        
+        int mg=mode/10;
+        mode=mode-mg*10;
+        
+        //print.e(mu+"-"+mg+"-"+mode);
+        
+        // world
+        file.setPermission(FTPFile.WORLD_ACCESS, FTPFile.READ_PERMISSION, ((PERMISSION_READ)&mode)>0);
+        file.setPermission(FTPFile.WORLD_ACCESS, FTPFile.WRITE_PERMISSION, ((PERMISSION_WRITE)&mode)>0);
+        file.setPermission(FTPFile.WORLD_ACCESS, FTPFile.EXECUTE_PERMISSION, ((PERMISSION_EXECUTE)&mode)>0);
+        
+        // group
+        file.setPermission(FTPFile.GROUP_ACCESS, FTPFile.READ_PERMISSION, ((PERMISSION_READ)&mg)>0);
+        file.setPermission(FTPFile.GROUP_ACCESS, FTPFile.WRITE_PERMISSION, ((PERMISSION_WRITE)&mg)>0);
+        file.setPermission(FTPFile.GROUP_ACCESS, FTPFile.EXECUTE_PERMISSION, ((PERMISSION_EXECUTE)&mg)>0);
+        
+        // user
+        file.setPermission(FTPFile.USER_ACCESS, FTPFile.READ_PERMISSION, ((PERMISSION_READ)&mu)>0);
+        file.setPermission(FTPFile.USER_ACCESS, FTPFile.WRITE_PERMISSION, ((PERMISSION_WRITE)&mu)>0);
+        file.setPermission(FTPFile.USER_ACCESS, FTPFile.EXECUTE_PERMISSION, ((PERMISSION_EXECUTE)&mu)>0);
+    }
 }

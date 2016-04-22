@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.239-SNAPSHOT</version>
+  <version>5.0.0.240-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -327,6 +327,18 @@
 <!-- 
   source: mvn
 -->
+	<dependency>
+  		<groupId>org.lucee</groupId>
+  		<artifactId>jzlib</artifactId>
+  		<version>1.1.3</version>
+    	<scope>provided</scope>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.lucee</groupId>
+  		<artifactId>jsch</artifactId>
+  		<version>0.1.53</version>
+    	<scope>provided</scope>
+  	</dependency>
   <dependency>
     <groupId>org.apache.tika</groupId>
     <artifactId>tika-core</artifactId>

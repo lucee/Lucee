@@ -19,6 +19,7 @@
 package lucee.runtime.exp;
 
 import lucee.runtime.config.Config;
+import lucee.runtime.net.ftp.AFTPClient;
 import lucee.runtime.op.Caster;
 
 import org.apache.commons.net.ftp.FTPClient;
@@ -30,6 +31,14 @@ public class FTPException extends ApplicationException {
 	private String msg;
 
 	public FTPException(String action, FTPClient client) {
+		super("action ["+action+"] from tag ftp failed", client.getReplyString());
+		//setAdditional("ReplyCode",Caster.toDouble(client.getReplyCode()));
+		//setAdditional("ReplyMessage",client.getReplyString());
+		code = client.getReplyCode();
+		msg = client.getReplyString();
+	}
+	
+	public FTPException(String action, AFTPClient client) {
 		super("action ["+action+"] from tag ftp failed", client.getReplyString());
 		//setAdditional("ReplyCode",Caster.toDouble(client.getReplyCode()));
 		//setAdditional("ReplyMessage",client.getReplyString());
