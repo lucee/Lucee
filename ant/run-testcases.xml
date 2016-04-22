@@ -137,12 +137,13 @@ function mem(type) {
 	,onBundleEnd 	= function( cfc, testResults ){
 			
 		var bundle=arrayLast(testResults.getBundleStats());
+
 		try {
 		SystemOut.setOut(out);
  		//SystemOut.setErr(err);
 
 
- 		systemOutput(" (#bundle.totalDuration# ms)",true);
+ 		systemOutput(" (#bundle.totalPass# tests passed in #bundle.totalDuration# ms)",true);
 		mem("non_heap");
 		mem("heap");
 
