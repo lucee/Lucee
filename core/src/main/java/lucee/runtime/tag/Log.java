@@ -253,18 +253,18 @@ public final class Log extends TagImpl {
 	}
 
 	private static lucee.commons.io.log.Log getFileLog(PageContext pc, String file, CharSet charset, boolean async) throws PageException {
-		LogAdapter log= FileLogPool.instance.get(file,CharsetUtil.toCharset(charset));
+		ConfigImpl config=(ConfigImpl) pc.getConfig();
+		Resource logDir=config.getLogDirectory();
+        Resource res = logDir.getRealResource(file);
+        	
+		LogAdapter log= FileLogPool.instance.get(res,CharsetUtil.toCharset(charset));
 		if(log!=null) return log;
 		
-		Config config=pc.getConfig();
 		if(charset==null) charset=CharsetUtil.toCharSet(((PageContextImpl)pc).getResourceCharset());
-    	Resource logDir=config.getConfigDir().getRealResource("logs");
-        
-    	if(!logDir.exists())logDir.mkdirs();
+    	
         try {
-        	Resource res = logDir.getRealResource(file);
-        	log=new LogAdapter(Log4jUtil.getResourceLog(config,res,CharsetUtil.toCharset(charset) , "cflog."+FileLogPool.toKey(file,CharsetUtil.toCharset(charset)), Level.TRACE,5,new Listener(FileLogPool.instance,file,charset),async));
-            FileLogPool.instance.put(file,CharsetUtil.toCharset(charset),log);
+        	log=new LogAdapter(Log4jUtil.getResourceLog(config,res,CharsetUtil.toCharset(charset) , "cflog."+FileLogPool.toKey(file,CharsetUtil.toCharset(charset)), Level.TRACE,5,new Listener(FileLogPool.instance,res,charset),async));
+            FileLogPool.instance.put(res,CharsetUtil.toCharset(charset),log);
         } 
         catch (IOException e) {
             throw Caster.toPageException(e);
@@ -282,19 +282,20 @@ public final class Log extends TagImpl {
 	
 	private static class FileLogPool {
 		
-		private static Map<String,LogAdapter> logs=new ConcurrentHashMap<String, LogAdapter>();
 		private static FileLogPool instance=new FileLogPool();
 		
-		public void retire(String file, Charset charset) {
-			logs.remove(toKey(file, charset));
+		private static Map<String,LogAdapter> logs=new ConcurrentHashMap<String, LogAdapter>();
+		
+		public void retire(Resource res, Charset charset) {
+			logs.remove(res.getAbsolutePath());
 		}
 
-		public void put(String file, Charset charset, LogAdapter log) {
-			logs.put(toKey(file, charset),log);
+		public void put(Resource res, Charset charset, LogAdapter log) {
+			logs.put(res.getAbsolutePath(),log);
 		}
 
-		public LogAdapter get(String file, Charset charset) {
-			LogAdapter l = logs.get(toKey(file, charset));
+		public LogAdapter get(Resource res, Charset charset) {
+			LogAdapter l = logs.get(res.getAbsolutePath());
 			return l;
 		}
 
@@ -307,18 +308,18 @@ public final class Log extends TagImpl {
 	private static class Listener implements RetireListener {
 		
 		private FileLogPool pool;
-		private String file;
+		private Resource res;
 		private CharSet charset;
 
-		public Listener(FileLogPool pool, String file, CharSet charset){
+		public Listener(FileLogPool pool, Resource res, CharSet charset){
 			this.pool=pool;
-			this.file=file;
+			this.res=res;
 			this.charset=charset;
 		}
 		
 		@Override
 		public void retire(RetireOutputStream os) {
-			pool.retire(file,CharsetUtil.toCharset(charset));
+			pool.retire(res,CharsetUtil.toCharset(charset));
 		}
 	}
 }

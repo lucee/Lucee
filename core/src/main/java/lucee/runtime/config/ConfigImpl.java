@@ -3314,6 +3314,7 @@ public abstract class ConfigImpl implements Config {
 	private int externalizeStringGTE=-1;
 	private Map<String, BundleDefinition> extensionBundles;
 	private JDBCDriver[] drivers;
+	private Resource logDir;
 	
 	
 
@@ -3473,6 +3474,13 @@ public abstract class ConfigImpl implements Config {
 
     public Resource getPluginDirectory() {
     	return getConfigDir().getRealResource("context/admin/plugin");
+    }
+    public Resource getLogDirectory() {
+    	if(logDir==null) {
+    		logDir=getConfigDir().getRealResource("logs");
+    		logDir.mkdir();
+    	}
+    	return logDir;
     }
 
     protected void setSalt(String salt) {
