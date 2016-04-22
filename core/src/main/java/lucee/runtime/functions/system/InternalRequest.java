@@ -46,9 +46,10 @@ public class InternalRequest implements Function {
 
 	private static final Key CONTENT_TYPE =  KeyImpl._const("content-type");
 
-	public static Struct call(final PageContext pc, String template, String method, Struct urls,Struct forms, Struct cookies, Struct headers, Object body) throws PageException {
+	public static Struct call(final PageContext pc, String template, String method, 
+			Struct urls,Struct forms, Struct cookies, Struct headers, Object body,String strCharset) throws PageException {
 		// charset
-		Charset reqCharset=pc.getWebCharset();
+		Charset reqCharset=StringUtil.isEmpty(strCharset)?pc.getWebCharset():CharsetUtil.toCharset(strCharset);
 		
 		String ext=ResourceUtil.getExtension(template, null);
 		// welcome files
@@ -93,7 +94,7 @@ public class InternalRequest implements Function {
 		int status;
 		long exeTime;
 		boolean isText=false;
-		Charset charset=null;
+		Charset _charset=null;
 		try{
 			
 			if(CFMLEngine.DIALECT_LUCEE==dialect)
@@ -141,7 +142,7 @@ public class InternalRequest implements Function {
 			ContentType ct = HTTPUtil.toContentType(rsp.getContentType(),null);
 			if(ct!=null){
 				isText = HTTPUtil.isTextMimeType(ct.getMimeType());
-				if(ct.getCharset()!=null) charset=CharsetUtil.toCharset(ct.getCharset(),null);
+				if(ct.getCharset()!=null) _charset=CharsetUtil.toCharset(ct.getCharset(),null);
 			}
 			releasePageContext(_pc,pc);
 			
@@ -149,7 +150,7 @@ public class InternalRequest implements Function {
 		Struct rst=new StructImpl();
 		
 		byte[] barr=baos.toByteArray();
-		if(isText) rst.set(KeyConstants._filecontent, new String(barr,charset==null?reqCharset:charset));
+		if(isText) rst.set(KeyConstants._filecontent, new String(barr,_charset==null?reqCharset:_charset));
 		else rst.set(FILECONTENT_BYNARY,barr);
 		rst.set(KeyConstants._cookies, cookie);
 		rst.set(KeyConstants._request, request);

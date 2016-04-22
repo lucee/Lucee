@@ -98,4 +98,10 @@ public interface FTPConnection {
 	 */
 	public String getProxyPassword();
 	
+	public abstract boolean secure();
+
+	public abstract boolean getStopOnError();
+
+	public abstract String getFingerprint();
+	
 }

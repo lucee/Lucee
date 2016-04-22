@@ -33,7 +33,7 @@ import org.apache.commons.net.ftp.FTPClient;
 public final class FTPWrap {
 
     private FTPConnection conn;
-    private FTPClient client;
+    private AFTPClient client;
     private InetAddress address;
     private long lastAccess=0;
 
@@ -78,7 +78,7 @@ public final class FTPWrap {
     /**
      * @return Returns the client.
      */
-    public FTPClient getClient() {
+    public AFTPClient getClient() {
         return client;
     }
 
@@ -106,7 +106,8 @@ public final class FTPWrap {
      */
     private void connect() throws IOException { 
         
-        client=new FTPClient();
+        client=AFTPClient.getInstance(conn.secure(), address, conn.getPort(), 
+        		conn.getUsername(),conn.getPassword(), conn.getFingerprint(), conn.getStopOnError());
         
         setConnectionSettings(client,conn);
         
@@ -124,8 +125,7 @@ public final class FTPWrap {
             		conn.getProxyUser(), 
             		conn.getProxyPassword()
             );
-        	client.connect(address,conn.getPort());
-        	client.login(conn.getUsername(),conn.getPassword());
+        	client.connect();
         }
         finally {
         	Proxy.end();
@@ -134,14 +134,11 @@ public final class FTPWrap {
 
 
 
-	static void setConnectionSettings(FTPClient client, FTPConnection conn) {
+	static void setConnectionSettings(AFTPClient client, FTPConnection conn) {
 		if(client==null) return;
 		
 		// timeout
-        client.setDataTimeout(conn.getTimeout()*1000);
-        try {
-			client.setSoTimeout(conn.getTimeout()*1000);
-		} catch (Throwable t) {}
+        client.setTimeout(conn.getTimeout()*1000);
         
         // passive/active Mode
 		int mode = client.getDataConnectionMode();

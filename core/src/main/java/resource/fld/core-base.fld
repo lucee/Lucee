@@ -10266,6 +10266,12 @@ The following things are considered to be empty:
 			<required>no</required>
 			<description>body to send with the request</description>
     	</argument>
+		<argument>
+			<name>charset</name>
+			<type>string</type>
+			<required>no</required>
+			<description>charset used for the request, if not set the web charset is used.</description>
+    	</argument>
 		<return>
 			<type>struct</type>
 		</return>

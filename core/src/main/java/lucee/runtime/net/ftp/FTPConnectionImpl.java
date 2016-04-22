@@ -27,18 +27,21 @@ package lucee.runtime.net.ftp;
  */
 public final class FTPConnectionImpl implements FTPConnection {
     
-    private String name;
-    private String server;
-    private String username;
-    private String password;
-    private int port;
-    private int timeout;
+    private final String name;
+    private final String server;
+    private final String username;
+    private final String password;
+    private final int port;
+    private final int timeout;
     private short transferMode;
-    private boolean passive;
-    private String proxyserver;
-    private int proxyport;
-    private String proxyuser;
-    private String proxypassword;
+    private final boolean passive;
+    private final String proxyserver;
+    private final int proxyport;
+    private final String proxyuser;
+    private final String proxypassword;
+    private final String fingerprint;
+	private final boolean stopOnError;
+	private final boolean secure;
 
     /**
      * @param name
@@ -52,7 +55,8 @@ public final class FTPConnectionImpl implements FTPConnection {
      * @param proxyserver
      */
     public FTPConnectionImpl(String name, String server, String username, String password,int port, int timeout, short transferMode,boolean passive, 
-    		String proxyserver,int proxyport,String proxyuser, String proxypassword) {
+    		String proxyserver,int proxyport,String proxyuser, String proxypassword, 
+    		String fingerprint, boolean stopOnError, boolean secure) {
         this.name=name==null?null:name.toLowerCase().trim();
         this.server=server;
         this.username=username;
@@ -66,6 +70,9 @@ public final class FTPConnectionImpl implements FTPConnection {
         this.proxyport=proxyport;
         this.proxyuser=proxyuser;
         this.proxypassword=proxypassword;
+        this.fingerprint=fingerprint;
+        this.stopOnError=stopOnError;
+        this.secure=secure;
     }
     @Override
     public String getName() {
@@ -165,6 +172,18 @@ public final class FTPConnectionImpl implements FTPConnection {
 		if(right==null) right="";
 		
 		return !left.equals(right);
+	}
+	@Override
+	public boolean secure() {
+		return secure;
+	}
+	@Override
+	public boolean getStopOnError() {
+		return stopOnError;
+	}
+	@Override
+	public String getFingerprint() {
+		return fingerprint;
 	}
 	
 }
