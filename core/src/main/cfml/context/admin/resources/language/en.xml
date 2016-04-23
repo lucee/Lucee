@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <language key="en" label="English">
 	<!-- this file contains the English/default language definition for the Admin March-2013 !-->
 
@@ -21,13 +21,13 @@
 	<data key="services.update.update">A patch {available} is available for your current version {current}.</data>
 	<data key="services.update.infotitle">Info</data>
 	<data key="services.update.restartdesc">Restart the Lucee engine.</data>
-	<data key="services.update.restartOKDesc">Lucee sucessfull restarted.</data>
+	<data key="services.update.restartOKDesc">Lucee successfully restarted.</data>
 	<data key="services.update.exe">Execute update</data>
 	<data key="services.update.jira">For details go to our {a}Bug Tracking System{/a}</data>
 	<data key="services.update.removedesc">Remove all installed patches or only latest.</data>
 	<data key="services.update.noupdate">There is no patch available for version {current}</data>
 	<data key="services.update.restart">Restart Lucee</data>
-	<data key="services.update.desc">You can patch Lucee in order to receive the latest bugfixes and improved version.</data>
+	<data key="services.update.desc">You can patch Lucee in order to receive the latest bug fixes and improved version.</data>
 	<data key="services.update.setdesc">Define where Lucee gets its patches. Lucee will restart automatically after the update in order for the changes to take effect.</data>
 	<data key="services.update.removelatest">Remove latest patch {version}</data>
 	<data key="services.update.remove">Remove installed patches</data>
@@ -54,7 +54,7 @@
 	<data key="mappings.addCFCFiles">Add Component Templates</data>
 	<data key="mappings.addCFCFilesDesc">Add all Component Source Templates as well (.cfc).</data>
 
-<data key="mappings.topleveldesc">Make this mapping web-accessible (i.e., accessible via a browser or remote HTTP call)</data>
+	<data key="mappings.topleveldesc">Make this mapping web-accessible (i.e., accessible via a browser or remote HTTP call)</data>
 	<data key="mappings.archiveheaddescription">Name of the archive file (ra or ras), (absolute or relative to the webroot)</data>
 	<data key="mappings.primaryheaddescription">Sets where Lucee-files will first be searched</data>
 	<data key="mappings.trustedheaddescription"></data>
@@ -127,11 +127,11 @@
 	<data key="security.speclistnewtitle">create new web context</data>
 	<data key="security.accesswritedesc">define the access for writing data</data>
 	<data key="security.tagimport">Tag CFImport</data>
-	<data key="security.cfmlenvironmentdescription">Settings that have an effect on how Lucee code interacts with the host enviroment</data>
+	<data key="security.cfmlenvironmentdescription">Settings that have an effect on how Lucee code interacts with the host environment</data>
 	<data key="security.functions">Tags &amp;amp; Functions</data>
 	<data key="security.functionsdescription">Tags and Functions that might be a potential risk to the host system</data>
 	<data key="security.filedescription">Defines how Lucee can interact with the local filesystem in a web context.&lt;br/&gt;- none: allows no access to the filesystem at all&lt;br/&gt;- local: allows only access to the filesystem within the webroot&lt;br/&gt;- all: allows full file access on the hosts filesystem&lt;br/&gt;</data>
-	<data key="security.cfmlenvironment">CFML Enviroment</data>
+	<data key="security.cfmlenvironment">CFML Environment</data>
 	<data key="security.file">File access</data>
 	<data key="security.settingsdescription">The settings (regional,component and scope) can be changed in the &quot;web administrator&quot;</data>
 	<data key="security.speclisthost">Host name</data>
@@ -305,7 +305,7 @@
 	<data key="ext.backtoprevpage">Go back to the previous page</data>
 	<data key="remote.url">URL</data>
 	<data key="remote.urlpathmissing">the path to the Admin.cfc is missing</data>
-	<data key="remote.downloadarchive">When calling &quot;&lt;Buttons.downloadArchive&gt;&quot;, the archive on the remote client will be created but the download ignored, In this case you shouln&apos;t include remote synchronization.</data>
+	<data key="remote.downloadarchive">When calling &quot;&lt;Buttons.downloadArchive&gt;&quot;, the archive on the remote client will be created but the download ignored, In this case you shouldn&apos;t include remote synchronization.</data>
 	<data key="remote.adminaccess">Admin Access</data>
 	<data key="remote.urlservermissing">Remote Client Server</data>
 	<data key="remote.proxyserver">Server</data>
@@ -333,7 +333,7 @@
 	<data key="remote.ot.name">Name</data>
 	<data key="remote.ot.url">URL</data>
 	<data key="remote.ot.exetime">Execution time</data>
-	<data key="remote.ot.overviewdesc">List of failed tasks. The tasks listed in green will be reexecuted. The ones in red have failed all attempts of executuion and wont be executed again.</data>
+	<data key="remote.ot.overviewdesc">List of failed tasks. The tasks listed in green will be re-executed. The ones in red have failed all attempts of execution and wont be executed again.</data>
 	<data key="remote.ot.nextexecutioninminutes">Next execution in minutes</data>
 	<data key="remote.ot.action">Action</data>
 	<data key="remote.ot.lastexecution">Last execution</data>
@@ -344,7 +344,7 @@
 	<data key="remote.ot.tries">Number of tries</data>
 	<data key="remote.ot.triesleft">Number of remaining tries</data>
 	<data key="remote.ot.detaildesc.green">This task has been executed &lt;tries&gt; times. There are &lt;triesleft&gt; tries left</data>
-	<data key="remote.ot.detaildesc.red">Even after &lt;tries&gt; tries, this task couln&apos;t be executed properly</data>
+	<data key="remote.ot.detaildesc.red">Even after &lt;tries&gt; tries, this task couldn&apos;t be executed properly</data>
 	<data key="remote.ot.fromto">1-100 of &lt;recordcount&gt; open tasks</data>
 	<data key="remote.securitykeymissing">The security key for the remote client is missing</data>
 	<data key="remote.serverpassworddesc">Http Access Authentication</data>
@@ -413,7 +413,7 @@
 	<data key="request.description">Settings that affect the execution of a request.</data>
 
 
-<data key="application.scriptprotectdescription">The configuration of Script protect, secures your system from &quot;cross-site scripting&quot;</data>
+	<data key="application.scriptprotectdescription">The configuration of Script protect, secures your system from &quot;cross-site scripting&quot;</data>
 	<data key="application.scriptprotect">Script-protect</data>
 	<data key="application.scriptprotectall">Script-protect checks in all scopes for external data (cgi,cookie,form,url)</data>
 	<data key="application.listenertypedescription_mixed">Mixed handling. Lucee looks for a file &quot;Application.cfm/OnRequestEnd.cfm&quot; as well as for the file &quot;Application.cfc&quot;</data>
@@ -425,7 +425,7 @@
 	<data key="application.listenermodedescription_root">Looks for the file &quot;Application.cfc/Application.cfm&quot; only in the webroot .</data>
 	<data key="application.listenertype_mixed">Mixed (CFML &amp;gt;= 7)</data>
 	<data key="application.listenertype_classic">Classical (CFML &amp;lt; 7)</data>
-	<data key="application.listenertypedescription_classic">Classic handling. Lucee looks for the file &quot;Application.cfm&quot; and a coresponding file &quot;OnRequestEnd.cfm&quot;</data>
+	<data key="application.listenertypedescription_classic">Classic handling. Lucee looks for the file &quot;Application.cfm&quot; and a corresponding file &quot;OnRequestEnd.cfm&quot;</data>
 	<data key="application.listenermodedescription_curr">Looks for the file &quot;Application.cfc/Application.cfm&quot; only in the current template directory .</data>
 	<data key="application.allowurlrequesttimeout">Request timeout in URL</data>
 	<data key="mail.passwordmissing">Please enter a value for the corresponding password.</data>
@@ -480,7 +480,7 @@
 	<data key="search.directorypath">Directory path</data>
 	<data key="search.mapped">Mapped</data>
 	<data key="search.searchthecollection">Search the collection</data>
-	<data key="search.searchtermmissing">Please enter a searchterm</data>
+	<data key="search.searchtermmissing">Please enter a search term</data>
 	<data key="search.url">URL</data>
 	<data key="search.fileextensions">File extensions</data>
 	<data key="search.external">External</data>
@@ -492,10 +492,10 @@
 	<data key="search.collections">Collections</data>
 	<data key="search.directorypathmissing">Please enter a path to be indexed</data>
 	<data key="search.path">Path</data>
-	<data key="search.searchterm">Enter the searchterm</data>
+	<data key="search.searchterm">Enter the search term</data>
 	<data key="search.language">Language</data>
 	<data key="search.createcol">Create collection</data>
-	<data key="search.description">Here you can manage, create, populate and delete search collections. By default, lucee uses Apache Lucene as the search engine.&lt;br/&gt;&lt;br/&gt;</data>
+	<data key="search.description">Here you can manage, create, populate and delete search collections. By default, Lucee uses Apache Lucene as the search engine.&lt;br/&gt;&lt;br/&gt;</data>
 	<data key="search.noresult">No Result for your criteria</data>
 	<data key="search.missing_name">Please enter a name for the collection</data>
 	<data key="search.indexsubdirs">Index subdirectories</data>
@@ -522,7 +522,7 @@
 	<data key="components.componentlocalsearch">Search local</data>
 	<data key="components.archivemissing">Please enter a value for the archive name (row </data>
 	<data key="components.datamemberaccesstypedescription">Define the accessor for the data-members of a component. This defines how variables of the &quot;this&quot; scope of a component can be accessed from outside of the component.</data>
-	<data key="components.autoimportdescription">the following package defintion is imported into every template.</data>
+	<data key="components.autoimportdescription">the following package definition is imported into every template.</data>
 	<data key="components.componentmappingsdesc">Additional Resources that Lucee checks for Components.</data>
 	<data key="components.componentmappingsearch">Search mappings</data>
 	<data key="components.useshadowdescription">Defines whether a component has an independent variables scope parallel to the &amp;quot;this&amp;quot; scope (CFML standard) or not.</data>
@@ -877,7 +877,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="schedule.urlmissing">Please enter a value for the URL of the task</data>
 	<data key="schedule.file">File</data>
 	<data key="schedule.timeoutdescription">Timeout in seconds. Defines how long a task will wait for the response of the server called by the URL</data>
-	<data key="schedule.outputdesc">With the following settings you can define, if lucee should store the result of the url invocation and where lucee should store this result</data>
+	<data key="schedule.outputdesc">With the following settings you can define, if Lucee should store the result of the url invocation and where Lucee should store this result</data>
 	<data key="schedule.port">Port</data>
 	<data key="schedule.urldescription">URL of the new task</data>
 	<data key="schedule.namedescription">Name of the new task (this name must be unique)</data>
@@ -891,8 +891,8 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="schedule.enddate">End date</data>
 	<data key="schedule.portdescription">Port of the URL to call (HTTP Default: 80)</data>
 	<data key="schedule.executiondescweekly">This task is executed once a week.</data>
-	<data key="schedule.endtimedesc">Define the time when lucee stop to executed the task within every day.</data>
-	<data key="schedule.executiondescevery">This task is executed in a certain intervall.</data>
+	<data key="schedule.endtimedesc">Define the time when Lucee stop to executed the task within every day.</data>
+	<data key="schedule.executiondescevery">This task is executed in a certain interval.</data>
 	<data key="schedule.enddatedesc">Define a date when the task should be executed the last time.</data>
 	<data key="schedule.namemissing">Please enter a value for the name of the task</data>
 	<data key="schedule.pause">pause</data>
@@ -913,12 +913,12 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="schedule.endtime">End time</data>
 	<data key="schedule.startdate">Start date</data>
 	<data key="schedule.password">Password</data>
-	<data key="schedule.starttimedesc">Defines the time when lucee starts to executed the task within every day.</data>
+	<data key="schedule.starttimedesc">Defines the time when Lucee starts to executed the task within every day.</data>
 	<data key="schedule.once">once</data>
 	<data key="schedule.resume">resume</data>
 	<data key="schedule.intervaltypedesc">Execution interval of the new task</data>
 	<data key="schedule.detail">Defined scheduled tasks</data>
-	<data key="schedule.executiondesconce">This task is executed only once at a specfic date and time.</data>
+	<data key="schedule.executiondesconce">This task is executed only once at a specific date and time.</data>
 	<data key="schedule.usernamedescription">Username to access the URL if it is protected by authentication</data>
 	<data key="schedule.startdatedesc">Defines the date when the task should be executed the first time.</data>
 	<data key="settings.datasourcesettings">Settings</data>
@@ -950,7 +950,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="settings.gateway.buttons.default">set as default</data>
 	<data key="settings.gateway.default">Default</data>
 	<data key="settings.gateway.namemissing">Cancel</data>
-	<data key="settings.gateway.descexisting">List of all existing gateways for this enviroment</data>
+	<data key="settings.gateway.descexisting">List of all existing gateways for this environment</data>
 	<data key="settings.gateway.title">Gateway</data>
 	<data key="settings.dbdatabase">Database</data>
 	<data key="settings.dbhostdesc">Host name where the database server is located</data>
@@ -972,7 +972,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="settings.dbconntimeout">Connection timeout (in minutes)</data>
 
 	<data key="settings.dbMetaCacheTimeout">Caching Meta Data</data>
-	<data key="settings.dbMetaCacheTimeoutDesc">define how long Stored Procedures Meta Data are strored in cache</data>
+	<data key="settings.dbMetaCacheTimeoutDesc">define how long Stored Procedures Meta Data are stored in cache</data>
 	<data key="settings.minutes">minute(s)</data>
 	<data key="settings.hours">hour(s)</data>
 	<data key="settings.days">day(s)</data>
@@ -986,7 +986,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="settings.appcfc">Application.cfc</data>
 	<data key="settings.appcfcdesc">You can also set this in the Application.cfc as follows</data>
 	<data key="settings.codetip">You can do this in your code yourself as follows</data>
-<data key="settings.tip">Coding tip (Click me)</data>
+	<data key="settings.tip">Coding tip (Click me)</data>
 
 	<data key="settings.appcfcSomedesc">Some of this settings can be done in the Application.cfc as well</data>
 	<data key="settings.namemissing">Please enter a name for the datasource</data>
@@ -1001,7 +1001,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 
 	<data key="settings.dbtimezoneDesc">
 When you define a date as a string (not with cfqueryparam) inside cfquery, there is normally no timezone information with it and the date string is based on the locale timezone. Therefore the database will interpret this date string based on it's own timezone.
-If the timezone of your Lucee instance and your database is different, this can lead to problems. Because of that Lucee now allows you to define a timezone for a specific datasource defintion. Be aware that you should only define a specific timezone, if you are a 100% sure that this timezone is used on the database server and it is different from the timezone of the Lucee instance. This setting can be overwritten by the cfquery attribute "timezone".</data>
+If the timezone of your Lucee instance and your database is different, this can lead to problems. Because of that Lucee now allows you to define a timezone for a specific datasource definition. Be aware that you should only define a specific timezone, if you are a 100% sure that this timezone is used on the database server and it is different from the timezone of the Lucee instance. This setting can be overwritten by the cfquery attribute "timezone".</data>
 	<data key="settings.dbtimezoneSame">Same as Lucee Instance</data>
 
 	<data key="settings.dbblobdesc">Enable binary large object retrieval (&lt;abbr title=&quot;binary large object&quot;&gt;BLOB&lt;/abbr&gt;)</data>
@@ -1035,11 +1035,11 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="cfx.cfxtags">Java CFX tags</data>
 	<data key="cfx.name">Name</data>
 	<data key="cfx.class">Class</data>
-	<data key="cfx.noaccessUsage">The usage of CFX Tags is completely forbitten for this context.</data>
+	<data key="cfx.noaccessUsage">The usage of CFX Tags is completely forbidden for this context.</data>
 	<data key="cfx.noaccessSetting">It is not allowed to create CFX Tags in this context, but it is allowed to use tags defined in the server admin.</data>
 	<data key="cfx.cpp.CFXTags">C++ CFX tags</data>
-	<data key="cfx.cpp.arch">Your Operation System and JRE (Java Runtime Enviroment) is running in a {os-arch}bit environment.</data>
-	<data key="cfx.cpp.archDiff">Your Operation System is running in a {os-arch}bit environment and your JRE (Java Runtime Enviroment) in a {jre-arch}bit environment.</data>
+	<data key="cfx.cpp.arch">Your Operation System and JRE (Java Runtime environment) is running in a {os-arch}bit environment.</data>
+	<data key="cfx.cpp.archDiff">Your Operation System is running in a {os-arch}bit environment and your JRE (Java Runtime environment) in a {jre-arch}bit environment.</data>
 	<data key="cfx.procedure">Procedure</data>
 	<data key="cfx.serverlibrary">Server Library</data>
 	<data key="cfx.keepAlive">Keep Alive</data>
@@ -1053,7 +1053,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.bookDesc">A complete guide to developing an application with Lucee from start to finish.</data>
 	<data key="overview.datetime">Lucee date/time</data>
 	<data key="overview.forum">Forum</data>
-	<data key="overview.featurerequestmail">features@lucee.ch</data>
+	<data key="overview.featurerequestmail">features@Lucee.ch</data>
 	<data key="overview.licenceprofessional">Professional</data>
 	<data key="overview.licencecommunitydesc">Lucee Community is intended to be used by low budget business applicants. Except for some few limitations the Community Version offers the entire language range of Lucee.</data>
 	<data key="overview.licenceenterprisedesc">The Enterprise Version of Lucee is the biggest and most comprehensive version intended to be used in a larger context.</data>
@@ -1087,14 +1087,14 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.contexts.config_file">Configuration File</data>
 	<data key="overview.licencedesc">Lucee is available in four different editions, adapted to the different areas of application and budgets.</data>
 	<data key="overview.serialnumberdescription">Serial number for Lucee</data>
-	<data key="overview.cfcompatibility">ColdFusion&amp;reg; compatibilty version</data>
+	<data key="overview.cfcompatibility">ColdFusion&amp;reg; compatibility version</data>
 	<data key="overview.os">OS</data>
 	<data key="overview.salesmail">sales@lucee.ch</data>
 	<data key="overview.installedfls">Installed function&lt;br/&gt; libraries</data>
 	<data key="overview.bugreportmail">bugs@lucee.ch</data>
 	<data key="overview.purchase">Purchase your Lucee license</data>
 	<data key="overview.sales">Sales</data>
-	<data key="overview.licenceprofessionaldesc">The Professional Version offers the full language range of Lucee, no restriction to the use of any feature has to be expected. With the Professional Version several web contextes can be used on one server, the number of web contextes however is limited by the licence price.</data>
+	<data key="overview.licenceprofessionaldesc">The Professional Version offers the full language range of Lucee, no restriction to the use of any feature has to be expected. With the Professional Version several web contexts can be used on one server, the number of web contexts however is limited by the licence price.</data>
 	<data key="overview.used">currently in use</data>
 	<data key="overview.licencecommunity">Community</data>
 	<data key="overview.remote_addr">Remote IP</data>
@@ -1104,7 +1104,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.versionname">Version Name</data>
 	<data key="overview.mailinglist_de">Mailinglist (german)</data>
 	<data key="overview.introdesc.web">Lucee, the CFML engine - free, open source and easy to use. This Web Administrator is provided in order to customize your web context.</data>
-	<data key="overview.introdesc.server">The Server Administrator allows you to install updates and patches for your Lucee installation and to restart the engine with a mouse click. You can preconfigure new web contexts and define restrictions and configurations per web context individually.</data>
+	<data key="overview.introdesc.server">The Server Administrator allows you to install updates and patches for your Lucee installation and to restart the engine with a mouse click. You can configure new web contexts and define restrictions and configurations per web context individually.</data>
 	<data key="overview.infomail">info@lucee.ch</data>
 	<data key="overview.servertime">Server date/time: </data>
 	<data key="overview.version">Version</data>
@@ -1172,7 +1172,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.LanguageName">Language</data>
 	<data key="overview.Submit">Upload file</data>
 	<data key="overview.langAlreadyExists">The language file you uploaded contains a language that already exists in this context.</data>
-	<data key="overview.ErrorWhileReadingLangFile">An error occured while reading the language file.</data>
+	<data key="overview.ErrorWhileReadingLangFile">An error occurred while reading the language file.</data>
 	<data key="overview.LangFileSeemsIncomplete">The language file you uploaded seems to be incomplete. Please note that only files that are at least 80% complete can be used.</data>
 	<data key="overview.LangFileUploaded">The language file for [lang] has been uploaded. It is [%] complete.</data>
 	<data key="settings.cloneDataSource">Copy datasource</data>
@@ -1186,7 +1186,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.gateway.class">Class</data>
 	<data key="settings.gateway.titleCreate">Create a new Gateway instance</data>
 	<data key="settings.gateway.titleExisting">List of existing gateway instances</data>
-	<data key="settings.gateway.descExisting">List of all existing gateways for this enviroment</data>
+	<data key="settings.gateway.descExisting">List of all existing gateways for this environment</data>
 	<data key="settings.gateway.nameMissing">Cancel</data>
 	<data key="settings.gateway.type">Type</data>
 	<data key="settings.gateway.state">State</data>
@@ -1207,7 +1207,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.cache.class">Class</data>
 	<data key="settings.cache.titleCreate">Create a new cache connection</data>
 	<data key="settings.cache.titleExisting">List of existing cache connections</data>
-	<data key="settings.cache.descExisting">List of all existing connection for this enviroment</data>
+	<data key="settings.cache.descExisting">List of all existing connection for this environment</data>
 	<data key="settings.cache.nameMissing">Cancel</data>
 	<data key="settings.cache.type">Type</data>
 	<data key="settings.cache.defaulttypeObject">Object</data>
@@ -1227,9 +1227,9 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.cache.defaulttypeFile">File</data>
 	<data key="settings.cache.defaulttypeFileDesc">This cache connection is used for caching the results of the tag file</data>
 	<data key="settings.cache.defaulttypeWebservice">Webservice (SOAP,REST,HTTP)</data>
-	<data key="settings.cache.defaulttypeWebserviceDesc">This cache connection is used for caching the results of webservice calls (SOAP, REST ot HTTP).</data>
+	<data key="settings.cache.defaulttypeWebserviceDesc">This cache connection is used for caching the results of webservice calls (SOAP, REST or HTTP).</data>
 
-	<data key="settings.cache.defaultDesc">Define the default cache connection for tempates (cfcache) and object (cacheGet, cachePut ...), this connection is used when no cache name is explicit defined</data>
+	<data key="settings.cache.defaultDesc">Define the default cache connection for templates (cfcache) and object (cacheGet, cachePut ...), this connection is used when no cache name is explicit defined</data>
 	<data key="settings.cache.Default">Default</data>
 	<data key="settings.cache.DefaultTitle">Default cache connection</data>
 	<data key="settings.cache.noDefault">no default cache</data>
@@ -1247,7 +1247,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.logging.readOnlyTitle">Readonly Logs</data>
 	<data key="settings.logging.readOnlyDesc">Readonly Logs are generated within the "server administrator" for all web instances and can not be modified by the "web administrator.</data>
 	<data key="settings.logging.title">Logs</data>
-	<data key="settings.logging.desc">List of existing Logs for this enviroment</data>
+	<data key="settings.logging.desc">List of existing Logs for this environment</data>
 	<data key="settings.logging.detailDesc">Log settings for a specific Log</data>
 	<data key="settings.logging.noDriver">There are no Appender/Layout drivers in that system</data>
 
@@ -1259,7 +1259,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.orm.catalog">Catalog</data>
 	<data key="settings.orm.catalogDesc">Specifies the default Catalog that should be used by ORM. This setting can be overwritten in Application.cfc as follows [this.ormsettings.catalog='db']</data>
 	<data key="settings.orm.cfclocation">Persistent Component Location</data>
-	<data key="settings.orm.cfclocationDesc">Specifies the directory that should be used to search for persistent CFCs to generate the mapping. If cfclocation is set, Lucee looks at only the paths specified in it. If it is not set, Lucee looks at the application directory, its sub-directories, and its mapped directories to search for persistent Comonents. This setting can be overwritten in Application.cfc as follows [this.ormsettings.cfclocation='...']</data>
+	<data key="settings.orm.cfclocationDesc">Specifies the directory that should be used to search for persistent CFCs to generate the mapping. If cfclocation is set, Lucee looks at only the paths specified in it. If it is not set, Lucee looks at the application directory, its sub-directories, and its mapped directories to search for persistent Components. This setting can be overwritten in Application.cfc as follows [this.ormsettings.cfclocation='...']</data>
 	<data key="settings.orm.dbcreate">Creating Tables behavior</data>
 	<data key="settings.orm.dbcreateDesc">Lucee ORM can automatically create the tables for your application in the database when ORM is initialized for the application. This setting can be overwritten in Application.cfc as follows [this.ormsettings.dbcreate='none']</data>
 	<data key="settings.orm.dbcreateNone">Setting this value does not change anything in the database schema.</data>
