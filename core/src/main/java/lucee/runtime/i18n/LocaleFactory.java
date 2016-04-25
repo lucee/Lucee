@@ -270,7 +270,8 @@ public final class LocaleFactory {
 	
 	public static String toString(Locale locale) {
 		if(locale==null) return "";
-		return getDisplayName(locale);
+		return locale.toString();
+		//return getDisplayName(locale);
 	}
 	
     /**

@@ -39,7 +39,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		admin.updateRegional(timezone,locale,timeserver,true);
 		
 		var mod=admin.getRegional();
-		assertEquals(locale,mod.locale);
+		var l=GetLocaleInfo(mod.locale,'en_US');
+		assertEquals("de",l.language);
+		assertEquals("CH",l.country);
 		assertEquals(timeserver,mod.timeserver);
 		assertEquals(timezone,mod.timezone);
 		assertEquals(true,mod.usetimeserver);

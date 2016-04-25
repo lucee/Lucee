@@ -1,6 +1,7 @@
 /**
  *
  * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
+ * Copyright (c) 2016, Lucee Assosication Switzerland. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,14 +22,13 @@
  */
 package lucee.runtime.functions.international;
 
-import java.util.Locale;
-
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.i18n.LocaleFactory;
 
 public final class GetLocale implements Function {
-	public static Locale call(PageContext pc ) {
-		return pc.getLocale();
+	public static String call(PageContext pc ) {
+		return LocaleFactory.getDisplayName(pc.getLocale());
 	}
 	
 }

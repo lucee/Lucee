@@ -5880,7 +5880,7 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
         currency values in a CFML application session, you use
         the SetLocale function.</description>
 		<return>
-			<type>locale</type>
+			<type>string</type>
 		</return>
 	</function>
 	<!-- GetMemoryUsage -->
