@@ -35,7 +35,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.el.ELContext;
 import javax.servlet.Servlet;
@@ -308,7 +307,6 @@ public final class PageContextImpl extends PageContext {
 	private Struct threads;
 	private boolean hasFamily=false;
 	private PageContextImpl parent;
-	private Map<String,DatasourceConnection> transConns=new ConcurrentHashMap<String,DatasourceConnection>();
 	private List<Statement> lazyStats;
 	private boolean fdEnabled;
 	private ExecutionLog execLog;
@@ -617,17 +615,6 @@ public final class PageContextImpl extends PageContext {
 		
 		// Pools
 		errorPagePool.clear();
-
-		// transaction connection
-		if(!transConns.isEmpty()){
-			java.util.Iterator<DatasourceConnection> it = transConns.values().iterator();
-			DatasourceConnectionPool pool = config.getDatasourceConnectionPool();
-			while(it.hasNext())	{
-				pool.releaseDatasourceConnection((it.next()));
-			}
-			transConns.clear();
-		}
-		
 
 		// lazy statements
 		if(lazyStats!=null && !lazyStats.isEmpty()){
@@ -1722,7 +1709,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	@Override
-	public Enumeration getAttributeNamesInScope(int scope) {
+	public Enumeration<String> getAttributeNamesInScope(int scope) {
 		
 		switch(scope){
 		case javax.servlet.jsp.PageContext.APPLICATION_SCOPE:
@@ -1924,8 +1911,6 @@ public final class PageContextImpl extends PageContext {
 			MissingIncludeException mie=(MissingIncludeException) pe;
 			if(mie.getPageDeep()<=maxDeepFor404) statusCode=404;
 		}
-		
-		// TODO Auto-generated method stub
 		return statusCode;
 	}
 
@@ -2085,8 +2070,8 @@ public final class PageContextImpl extends PageContext {
 			if(StringUtil.isEmpty(entry,true)) continue;
 			
 			index=entry.indexOf('=');
-			if(index!=-1)matrix.setEL(entry.substring(0,index).trim(), entry.substring(index+1).trim());
-			else matrix.setEL(entry.trim(), "");
+			if(index!=-1)matrix.setEL(KeyImpl.init(entry.substring(0,index).trim()), entry.substring(index+1).trim());
+			else matrix.setEL(KeyImpl.init(entry.trim()), "");
 		}
 		
 		// get accept
@@ -3041,23 +3026,6 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public boolean hasFamily() {
 		return hasFamily;
-	}
-	
-
-	public DatasourceConnection _getConnection(String datasource, String user,String pass) throws PageException {
-		return _getConnection(config.getDataSource(datasource),user,pass);
-	}
-	
-	public DatasourceConnection _getConnection(DataSource ds, String user,String pass) throws PageException {
-		
-		String id=DatasourceConnectionPool.createId(ds,user,pass);
-		DatasourceConnection dc=transConns.get(id);
-		if(dc!=null && DatasourceConnectionPool.isValid(dc,null)){
-			return dc;
-		}
-		dc=config.getDatasourceConnectionPool().getDatasourceConnection(getConfig(),ds, user, pass);
-		transConns.put(id, dc);
-		return dc;
 	}
 
 	@Override

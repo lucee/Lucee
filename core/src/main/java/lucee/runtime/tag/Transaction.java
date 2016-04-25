@@ -57,8 +57,8 @@ public final class Transaction extends BodyTagTryCatchFinallyImpl {
         isolation=Connection.TRANSACTION_NONE;
         action=ACTION_NONE;
         innerTag=false;
-        super.release();
         ignore=false;
+        super.release();
     }
 
     /**
