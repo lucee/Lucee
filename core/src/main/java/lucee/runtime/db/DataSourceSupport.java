@@ -29,6 +29,7 @@ import lucee.commons.lang.ClassException;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.transformer.library.ClassDefinitionImpl;
 
 import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.BundleException;
@@ -115,6 +116,13 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 	private static ClassDefinition _initializeCD(JDBCDriver jdbc,ClassDefinition cd, Config config) {
 		// try to link the class defintion with a jdbc driver defintion
 		if(!cd.isBundle()) {
+			if("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cd.getClassName())) {
+				cd=new ClassDefinitionImpl("com.microsoft.sqlserver.jdbc.SQLServerDriver",
+						cd.getName(),cd.getVersionAsString(),null);
+			}
+			
+			
+			
 			ConfigImpl ci = ((ConfigImpl)ThreadLocalPageContext.getConfig(config));
 			JDBCDriver tmp = jdbc!=null? ci.getJDBCDriverById(jdbc.cd.getId(), null):null;
 			if(tmp==null)tmp = ((ConfigImpl)config).getJDBCDriverByClassName(cd.getClassName(), null);

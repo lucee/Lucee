@@ -172,8 +172,12 @@ public final class AppListenerUtil {
 			// first check for {class:... , connectionString:...}
 			Object oConnStr=data.get(CONNECTION_STRING,null);
 			if(oConnStr!=null) {
+				String className=Caster.toString(data.get(KeyConstants._class));
+				if("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(className)) {
+					className="com.microsoft.sqlserver.jdbc.SQLServerDriver";
+				}
 				ClassDefinition cd=new ClassDefinitionImpl(
-					Caster.toString(data.get(KeyConstants._class))
+					className
 					, Caster.toString(data.get(KeyConstants._bundleName,null),null)
 					, Caster.toString(data.get(KeyConstants._bundleVersion,null),null)
 					, ThreadLocalPageContext.getConfig().getIdentification()

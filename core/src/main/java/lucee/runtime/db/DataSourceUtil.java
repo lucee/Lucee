@@ -73,8 +73,9 @@ public class DataSourceUtil {
 		} 
 		catch (SQLException e) {
 			String className=dc.getDatasource().getClassDefinition().getClassName();
-			if(className.equals("com.microsoft.jdbc.sqlserver.SQLServerDriver") || 
-					className.equals("net.sourceforge.jtds.jdbc.Driver"))
+			if( className.equals("com.microsoft.jdbc.sqlserver.SQLServerDriver") || 
+				className.equals("com.microsoft.sqlserver.jdbc.SQLServerDriver") || 
+				className.equals("net.sourceforge.jtds.jdbc.Driver"))
 				return true;
 		}
 		return false;
@@ -89,7 +90,7 @@ public class DataSourceUtil {
 		catch (SQLException e) {}
 		
 		String className=dc.getDatasource().getClassDefinition().getClassName();
-		return className.equals("com.microsoft.jdbc.sqlserver.SQLServerDriver");
+		return className.equals("com.microsoft.jdbc.sqlserver.SQLServerDriver") || className.equals("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 	}
 
 	public static boolean isValid(DatasourceConnection dc, int timeout) throws Throwable {
