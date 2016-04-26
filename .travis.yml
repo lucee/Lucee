@@ -33,6 +33,7 @@ notifications:
   slack: luceeserver:ZTfbu4bVSLFmakRcLInrNZIT
   email:
     - michael@lucee.org
+    - igal@lucee.org
 
 after_success:
 # - version=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version | egrep -v '^\[|Downloading:' | tr -d ' \n')
