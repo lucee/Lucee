@@ -371,7 +371,7 @@ public final class FunctionLibFactory extends DefaultHandler {
 		if(!dir.isDirectory())return new FunctionLib[0];
 		ArrayList<FunctionLib> arr=new ArrayList<FunctionLib>();
 		
-		Resource[] files=dir.listResources(new ExtensionResourceFilter("fld"));
+		Resource[] files=dir.listResources(new ExtensionResourceFilter(new String[]{"fld","fldx"}));
 		for(int i=0;i<files.length;i++)	{
 			if(files[i].isFile())
 				arr.add(FunctionLibFactory.loadFromFile(files[i],id));				

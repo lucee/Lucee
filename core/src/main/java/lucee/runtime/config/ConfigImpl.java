@@ -1347,7 +1347,7 @@ public abstract class ConfigImpl implements Config {
         // overwrite with addional functions
         FunctionLib fl;
         if(fileFld.isDirectory()) {
-            Resource[] files=fileFld.listResources(new ExtensionResourceFilter("fld"));
+            Resource[] files=fileFld.listResources(new ExtensionResourceFilter(new String[]{"fld","fldx"}));
             for(int i=0;i<files.length;i++) {
             	try {
             		fl = FunctionLibFactory.loadFromFile(files[i],getIdentification());

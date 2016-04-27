@@ -4613,7 +4613,7 @@ public final class XMLConfigAdmin {
 				path=entry.getName();
 				fileName=fileName(entry);
 				// flds
-				if(!entry.isDirectory() && startsWith(path,type,"flds") && StringUtil.endsWithIgnoreCase(path, ".fld")) {
+				if(!entry.isDirectory() && startsWith(path,type,"flds") && (StringUtil.endsWithIgnoreCase(path, ".fld") || StringUtil.endsWithIgnoreCase(path, ".fldx"))) {
 					logger.log(Log.LEVEL_INFO,"extension","deploy fld "+fileName);
 					updateFLD(zis, fileName,false);
         			reloadNecessary=true;

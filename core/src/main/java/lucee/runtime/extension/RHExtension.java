@@ -374,7 +374,7 @@ public class RHExtension implements Serializable {
 				}
 				
 				// flds
-				if(!entry.isDirectory() && startsWith(path,type,"flds") && StringUtil.endsWithIgnoreCase(path, ".fld")) 
+				if(!entry.isDirectory() && startsWith(path,type,"flds") && (StringUtil.endsWithIgnoreCase(path, ".fld") || StringUtil.endsWithIgnoreCase(path, ".fldx"))) 
 					flds.add(fileName);
 				
 				// tlds
