@@ -1338,10 +1338,11 @@ public final class StringUtil {
 
 
 	public static String unwrap(String str) {
+		if(StringUtil.isEmpty(str)) return "";
 		str = str.trim();
-		if(StringUtil.startsWith(str, '"') && StringUtil.endsWith(str, '"'))
+		if((startsWith(str, '"') || startsWith(str, (char)8220))  && (endsWith(str, '"') || endsWith(str, (char)8221))) // the numbers are “”
 			str=str.substring(1,str.length()-1);
-		if(StringUtil.startsWith(str, '\'') && StringUtil.endsWith(str, '\''))
+		if(startsWith(str, '\'') && endsWith(str, '\''))
 			str=str.substring(1,str.length()-1);
 		return str;
 	}

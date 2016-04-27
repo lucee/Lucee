@@ -204,19 +204,19 @@ public class RHExtension implements Serializable {
 		
 		Attributes attr = manifest.getMainAttributes();
 		// version
-		version=unwrap(attr.getValue("version"));
+		version=StringUtil.unwrap(attr.getValue("version"));
 		if(StringUtil.isEmpty(version)) {
 			throw new ApplicationException("cannot deploy extension ["+ext+"], this Extension has no version information.");
 		}
 		
 		// id
-		id=unwrap(attr.getValue("id"));
+		id=StringUtil.unwrap(attr.getValue("id"));
 		if(!Decision.isUUId(id)) {
 			throw new ApplicationException("The Extension ["+ext+"] has no valid id defined ("+id+"),id must be a valid UUID.");
 		}
 		
 		// name
-		String str=unwrap(attr.getValue("name"));
+		String str=StringUtil.unwrap(attr.getValue("name"));
 		if(StringUtil.isEmpty(str,true)) {
 			throw new ApplicationException("The Extension ["+ext+"] has no name defined, a name is necesary.");
 		}
@@ -224,7 +224,7 @@ public class RHExtension implements Serializable {
 		
 
 		// release type 
-		str=unwrap(attr.getValue("release-type"));
+		str=StringUtil.unwrap(attr.getValue("release-type"));
 		int rt=RELEASE_TYPE_ALL;
 		if(!Util.isEmpty(str)) {
 			str=str.trim();
@@ -238,23 +238,23 @@ public class RHExtension implements Serializable {
 		
 		
 		// description
-		description=unwrap(attr.getValue("description"));
-		trial=Caster.toBooleanValue(unwrap(attr.getValue("trial")),false);
+		description=StringUtil.unwrap(attr.getValue("description"));
+		trial=Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("trial")),false);
 		
 		// image
-		if(_img==null)_img=unwrap(attr.getValue("image"));
+		if(_img==null)_img=StringUtil.unwrap(attr.getValue("image"));
 		image=_img;
 		
 		// categories
-		str=unwrap(attr.getValue("category"));
-		if(StringUtil.isEmpty(str,true))str=unwrap(attr.getValue("categories"));
+		str=StringUtil.unwrap(attr.getValue("category"));
+		if(StringUtil.isEmpty(str,true))str=StringUtil.unwrap(attr.getValue("categories"));
 		if(!StringUtil.isEmpty(str,true)) {
 			categories=ListUtil.trimItems(ListUtil.listToStringArray(str, ","));
 		}
 		else categories=null;
 		
 		// core version
-		str=unwrap(attr.getValue("lucee-core-version"));
+		str=StringUtil.unwrap(attr.getValue("lucee-core-version"));
 		//int minCoreVersion=InfoImpl.toIntVersion(str,0);
 		Version minCoreVersion = OSGiUtil.toVersion(str, null);
 		if(minCoreVersion!=null && Util.isNewerThan(minCoreVersion,info.getVersion())) {
@@ -262,73 +262,73 @@ public class RHExtension implements Serializable {
 		}
 		
 		// loader version
-		str=unwrap(attr.getValue("lucee-loader-version"));
+		str=StringUtil.unwrap(attr.getValue("lucee-loader-version"));
 		double minLoaderVersion = Caster.toDoubleValue(str,0);
 		if(minLoaderVersion>SystemUtil.getLoaderVersion()) {
 			throw new ApplicationException("The Extension ["+ext+"] cannot be loaded, "+Constants.NAME+" Loader Version must be at least ["+str+"], update the Lucee.jar first.");
 		}
 		
 		// start bundles
-		str = unwrap(attr.getValue("start-bundles"));
+		str = StringUtil.unwrap(attr.getValue("start-bundles"));
 		startBundles=Caster.toBooleanValue(str,true);
 					
 
 		// amf
-		str=unwrap(attr.getValue("amf"));
+		str=StringUtil.unwrap(attr.getValue("amf"));
 		if(!StringUtil.isEmpty(str,true)) {
 			amfs = toSettings(logger,str);
 		}
 		
 		// resource
-		str=unwrap(attr.getValue("resource"));
+		str=StringUtil.unwrap(attr.getValue("resource"));
 		if(!StringUtil.isEmpty(str,true)) {
 			resources = toSettings(logger,str);
 		}
 
 		// search
-		str=unwrap(attr.getValue("search"));
+		str=StringUtil.unwrap(attr.getValue("search"));
 		if(!StringUtil.isEmpty(str,true)) {
 			searchs = toSettings(logger,str);
 		}
 		
 		// orm
-		str=unwrap(attr.getValue("orm"));
+		str=StringUtil.unwrap(attr.getValue("orm"));
 		if(!StringUtil.isEmpty(str,true)) {
 			orms = toSettings(logger,str);
 		}
 		
 		// monitor
-		str=unwrap(attr.getValue("monitor"));
+		str=StringUtil.unwrap(attr.getValue("monitor"));
 		if(!StringUtil.isEmpty(str,true)) {
 			monitors = toSettings(logger,str);
 		}
 		
 		// cache
-		str=unwrap(attr.getValue("cache"));
+		str=StringUtil.unwrap(attr.getValue("cache"));
 		if(!StringUtil.isEmpty(str,true)) {
 			caches = toSettings(logger,str);
 		}
 		
 		// cache-handlers
-		str=unwrap(attr.getValue("cache-handler"));
+		str=StringUtil.unwrap(attr.getValue("cache-handler"));
 		if(!StringUtil.isEmpty(str,true)) {
 			cacheHandlers = toSettings(logger,str);
 		}
 
 		// jdbcs
-		str=unwrap(attr.getValue("jdbc"));
+		str=StringUtil.unwrap(attr.getValue("jdbc"));
 		if(!StringUtil.isEmpty(str,true)) {
 			jdbcs = toSettings(logger,str);
 		}
 
 		// event-handler
-		str=unwrap(attr.getValue("event-handler"));
+		str=StringUtil.unwrap(attr.getValue("event-handler"));
 		if(!StringUtil.isEmpty(str,true)) {
 			eventGateways = toSettings(logger,str);
 		}
 
 		// mappings
-		str=unwrap(attr.getValue("mapping"));
+		str=StringUtil.unwrap(attr.getValue("mapping"));
 		if(!StringUtil.isEmpty(str,true)) {
 			mappings = toSettings(logger,str);
 		}
@@ -688,39 +688,6 @@ public class RHExtension implements Serializable {
 		catch (Throwable t) {
 			return defaultValue;
 		}
-	}
-	
-	private static String unwrap(String value) {
-		char startDoubleQuote=(char)8220;	// open-quote character
-		char endDoubleQuote=(char)8221;		// close-quote character
-		
-		if(StringUtil.isEmpty(value,true)) return "";
-		value=value.trim();
-		
-		String res = unwrap(value,'"');
-		if(res.length()<value.length()) return res;
-		
-		res = unwrap(value,'\''); 
-		if(res.length()<value.length()) return res;
-		
-		boolean changed=false;
-		if(value.charAt(0)==startDoubleQuote) {
-			value='"'+value.substring(1);
-			changed=true; 
-		}
-		if(value.charAt(value.length()-1)==endDoubleQuote) {
-			value=value.substring(0,value.length()-1)+'"';
-			changed=true; 
-		}
-		return changed?unwrap(value,'"'):value;
-	}
-	
-	private static String unwrap(String value, char del) {
-		value=value.trim();
-		if(StringUtil.startsWith(value, del) && StringUtil.endsWith(value, del)) {
-			return value.substring(1, value.length()-1);
-		}
-		return value;
 	}
 	
 	public static ClassDefinition<?> toClassDefinition(Config config, Map<String, String> map) {

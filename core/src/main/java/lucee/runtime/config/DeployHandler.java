@@ -125,22 +125,6 @@ public class DeployHandler {
 		
 	}
 
-	public static String unwrap(String value) {
-		if(value==null) return "";
-		String res = unwrap(value,'"');
-		if(res!=null) return res; // was double quote
-		
-		return unwrap(value,'\''); // try single quote unwrap, when there is no double quote.
-	}
-	
-	private static String unwrap(String value, char del) {
-		value=value.trim();
-		if(StringUtil.startsWith(value, del) && StringUtil.endsWith(value, del)) {
-			return value.substring(1, value.length()-1);
-		}
-		return value;
-	}
-	
 	
 	
 	public static boolean deployExtensions(Config config, ExtensionDefintion[] eds, Log log) {

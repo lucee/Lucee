@@ -4491,27 +4491,27 @@ public final class XMLConfigAdmin {
 			Attributes attr = manifest.getMainAttributes();
 			
 			//id = unwrap(attr.getValue("mapping-id"));
-			type = DeployHandler.unwrap(attr.getValue("mapping-type"));
-			virtual = DeployHandler.unwrap(attr.getValue("mapping-virtual-path"));
+			type = StringUtil.unwrap(attr.getValue("mapping-type"));
+			virtual = StringUtil.unwrap(attr.getValue("mapping-virtual-path"));
 			name = ListUtil.trim(virtual, "/");
-			readOnly = Caster.toBooleanValue(DeployHandler.unwrap(attr.getValue("mapping-readonly")),false);
-			topLevel = Caster.toBooleanValue(DeployHandler.unwrap(attr.getValue("mapping-top-level")),false);
+			readOnly = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-readonly")),false);
+			topLevel = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-top-level")),false);
 
-			listMode = ConfigWebUtil.toListenerMode(DeployHandler.unwrap(attr.getValue("mapping-listener-mode")), -1);
-			listType = ConfigWebUtil.toListenerType(DeployHandler.unwrap(attr.getValue("mapping-listener-type")), -1);
+			listMode = ConfigWebUtil.toListenerMode(StringUtil.unwrap(attr.getValue("mapping-listener-mode")), -1);
+			listType = ConfigWebUtil.toListenerType(StringUtil.unwrap(attr.getValue("mapping-listener-type")), -1);
 			
 			
-			inspect = ConfigWebUtil.inspectTemplate(DeployHandler.unwrap(attr.getValue("mapping-inspect")), Config.INSPECT_UNDEFINED);
+			inspect = ConfigWebUtil.inspectTemplate(StringUtil.unwrap(attr.getValue("mapping-inspect")), Config.INSPECT_UNDEFINED);
 			if(inspect==Config.INSPECT_UNDEFINED) {
-				Boolean trusted = Caster.toBoolean(DeployHandler.unwrap(attr.getValue("mapping-trusted")),null);
+				Boolean trusted = Caster.toBoolean(StringUtil.unwrap(attr.getValue("mapping-trusted")),null);
 				if(trusted!=null) {
 					if(trusted.booleanValue()) inspect=Config.INSPECT_NEVER;
 					else inspect=Config.INSPECT_ALWAYS;
 				}	
 			}
 			
-			hidden = Caster.toBooleanValue(DeployHandler.unwrap(attr.getValue("mapping-hidden")),false);
-			physicalFirst = Caster.toBooleanValue(DeployHandler.unwrap(attr.getValue("mapping-physical-first")),false);
+			hidden = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-hidden")),false);
+			physicalFirst = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-physical-first")),false);
 		} 
 		catch (Throwable t) {
 			DeployHandler.moveToFailedFolder(config.getDeployDirectory(),archive);
@@ -5315,8 +5315,8 @@ public final class XMLConfigAdmin {
 			is = file.getInputStream(entry);
 			Manifest manifest = new Manifest(is);
 			Attributes attr = manifest.getMainAttributes();
-			virtual = DeployHandler.unwrap(attr.getValue("mapping-virtual-path"));
-			type = DeployHandler.unwrap(attr.getValue("mapping-type"));
+			virtual = StringUtil.unwrap(attr.getValue("mapping-virtual-path"));
+			type = StringUtil.unwrap(attr.getValue("mapping-type"));
 			logger.info("archive", "remove "+type+" mapping ["+virtual+"]");
 			
 			if("regular".equalsIgnoreCase(type))	removeMapping(virtual);
