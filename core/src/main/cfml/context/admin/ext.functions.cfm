@@ -352,7 +352,7 @@
 				returnVariable="apiKey";
 
 			
-			http url="#uri#?version=#server.lucee.version#" result="local.http" {
+			http url="#uri#?coreVersion=#server.lucee.version#" result="local.http" {
 				httpparam type="header" name="accept" value="application/cfml";
 				if(!isNull(apikey))httpparam type="url" name="ioid" value="#apikey#";
 			}
@@ -430,7 +430,7 @@
 			return local.ext;
 		}
 		else {
-			http url="#uri#" result="local.http" {
+			http url="#uri#?coreVersion=#server.lucee.version#" result="local.http" {
 				httpparam type="header" name="accept" value="application/cfml";
 				if(!isNull(apiKey))httpparam type="url" name="ioid" value="#apikey#";
 
