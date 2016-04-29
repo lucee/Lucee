@@ -31,13 +31,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			names=listAppend(names,"auto#i#");
 			thread name="manual#i#" {
 				transaction isolation="read_uncommitted" {
-				    query name="response.query" datasource="mysql" {
+				    query name="response.query" {
 				    	echo("select 1 as one");
 				    }
 				}
 			}
 			thread name="auto#i#" {
-				query name="response.query" datasource="mysql" {
+				query name="response.query" {
 					echo("select 1 as one");
 				}
 			}
