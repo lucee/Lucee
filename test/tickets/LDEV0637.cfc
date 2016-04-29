@@ -112,12 +112,6 @@ END;
 		// getting the credetials from the enviroment variables
 		var orc={};
 
-		orc.server="52.49.158.251";
-		orc.username="system";
-		orc.password="lucee-test";
-		orc.port=1521;
-		orc.database="XE";
-
 		if(
 			!isNull(server.system.environment.ORACLE_SERVER) && 
 			!isNull(server.system.environment.ORACLE_USERNAME) && 
