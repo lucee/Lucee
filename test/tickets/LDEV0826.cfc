@@ -44,12 +44,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		thread action="join" name="#names#";
 
+		// check the results
 		var failures=[];
-		loop struct="#cfthread#" index="k" item="t" {
+		loop list="#names#" item="local.name" {
+			t=cfthread[name];
 			if(t.status!="completed") arrayAppend(failures,t);
 		}
 		if(failures.len()) throw serialize(failures);
-		
+
 		assertTrue(failures.len()==0);		
 	}
 
