@@ -44,11 +44,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		thread action="join" name="#names#";
 
-		var failedCount=0;
+		var failures=[];
 		loop struct="#cfthread#" index="k" item="t" {
-			if(t.status!="completed") failedCount++;
+			if(t.status!="completed") arrayAppend(failures,t);
 		}
-		assertTrue(failedCount==0);		
+		if(failures.len()) throw serialize(failures);
+		
+		assertTrue(failures.len()==0);		
 	}
 
 	private string function defineDatasource(){
