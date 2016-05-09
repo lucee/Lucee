@@ -157,7 +157,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	StaticScope _static;
 
 
-	private boolean insideStaticConstr;
+	boolean insideStaticConstr;
 
 
 	private AbstractFinal absFin;

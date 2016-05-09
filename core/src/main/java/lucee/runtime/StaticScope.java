@@ -79,8 +79,8 @@ public class StaticScope extends StructSupport implements Variables,Objects {
 				throw new ExpressionException("Component from type ["+cp.getComponentName()+"] has no accessible static Member with name ["+key+"]");
 			return cp._static.remove(key);	
 		}
-		// if not the parent
-		if(base!=null) return base._remove(pc,key);
+		// if not the parent (inside the static constructor we do not remove keys from base static scopes)
+		if(base!=null && !c.insideStaticConstr) return base._remove(pc,key);
 		
 		return null;
 	}
@@ -164,8 +164,8 @@ public class StaticScope extends StructSupport implements Variables,Objects {
 			return _set(pc,m, key, value);
 		}
 		
-		// if not the parent
-		if(base!=null) return base._setIfExists(pc,key, value);
+		// if not the parent (we only do this if we are outside the static constructor)
+		if(base!=null && !c.insideStaticConstr) return base._setIfExists(pc,key, value);
 		
 		return null;
 	}
