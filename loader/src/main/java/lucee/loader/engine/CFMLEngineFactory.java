@@ -675,9 +675,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			conn.setRequestMethod("GET");
 			conn.connect();
 			code = conn.getResponseCode();
-		} catch (final UnknownHostException e) {
-			//log(e);
-			throw e;
+		} catch (UnknownHostException e) {
+			throw new IOException("could not download the bundle  [" + symbolicName + ":"+ symbolicVersion + "] from " + updateUrl+" and copy to "+jar, e);
 		}
 		//System.out.println("SC:" + code+"->"+conn.getFollowRedirects());
 		// the update provider is not providing a download for this
@@ -699,9 +698,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					conn.connect();
 					code = conn.getResponseCode();
 				} catch (final UnknownHostException e) {
-					
 					log(e);
-					throw e;
+					throw new IOException("could not download the bundle  [" + symbolicName + ":"+ symbolicVersion + "] from " + location+" and copy to "+jar, e);
 				}
 				
 			}
