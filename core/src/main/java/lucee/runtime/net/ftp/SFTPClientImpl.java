@@ -25,6 +25,7 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
+import com.jcraft.jsch.UserInfo;
 
 public class SFTPClientImpl extends AFTPClient {
 	
@@ -63,20 +64,13 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public void connect() throws SocketException, IOException {
 		try {
-			//jsch.setKnownHosts("");
 			session = jsch.getSession(username,host.getHostAddress() , port);
-			/**/
 			java.util.Properties config = new java.util.Properties(); 
 			config.put("StrictHostKeyChecking", "no");
 			session.setConfig(config);
 			
-			
-			
-			//UserInfo ui=new UserInfoImpl();
-			if(!StringUtil.isEmpty(password)) 
-				session.setPassword(password);
-			
-		    //session.setUserInfo(ui);
+			UserInfo ui=new UserInfoImpl(password,null);
+			session.setUserInfo(ui);
 			if(timeout>0) session.setTimeout(timeout);
 		    session.connect();
 		    
@@ -86,7 +80,6 @@ public class SFTPClientImpl extends AFTPClient {
 		    
 		    
 		    // check fingerprint
-		    
 			if(!StringUtil.isEmpty(fingerprint)) {
 				if(!fingerprint.equalsIgnoreCase(fingerprint())) {
 					disconnect();
