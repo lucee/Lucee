@@ -278,8 +278,6 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 
 	private void returnValue(DatasourceConnection dc) throws PageException {
 		Connection conn = dc.getConnection();
-		
-		
 		if(SQLUtil.isOracle(conn)) {
 			String name=this.procedure.toUpperCase().trim();
 			
@@ -430,46 +428,6 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			returnValue=STATUS_CODE;
 		}
 	}
-
-
-
-	/*private String createID(String procedure, List<ProcParamBean> params, Array results) {
-		StringBuilder sb=new StringBuilder(procedure).append(';');
-		
-		// params
-		if(params!=null) {
-			Iterator<ProcParamBean> it = params.iterator();
-			ProcParamBean ppb;
-			while(it.hasNext()) {
-				ppb=it.next();
-				sb.append(ppb.getDirection())
-				.append(ppb.getIndex())
-				.append(ppb.getMaxLength())
-				.append(ppb.getNull())
-				.append(ppb.getScale())
-				.append(ppb.getType())
-				.append(ppb.getVariable())
-				.append(ppb.isValueSet())
-				.append(';');
-			}
-		}
-		
-		// return
-		if(results!=null){
-			Iterator<Object> it = results.valueIterator();
-			ProcResultBean prb;
-			while(it.hasNext()){
-				prb=(ProcResultBean)it.next();
-				sb.append(prb.getMaxrows())
-				.append(prb.getName())
-				.append(prb.getResultset());
-			}
-		}
-		return Caster.toString(HashUtil.create64BitHash(sb));
-	}*/
-
-
-
 
 	private static ProcParamBean get(List<ProcParamBean> params, int index) {
 		try{
@@ -718,7 +676,6 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			pageContext.getConfig().getLog("datasource").error("storedproc tag", pe);		
 			throw pe;
  		}
-
 		finally {
 		    if(callStat!=null){
 			    try {
