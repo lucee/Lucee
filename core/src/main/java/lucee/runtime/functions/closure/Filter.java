@@ -117,7 +117,7 @@ public class Filter extends BIF {
 		else
 			throw new FunctionException(pc, "Filter", 1, "data", "cannot iterate througth this type "+Caster.toTypeName(obj.getClass()));
 		
-		if(parallel) afterCall(pc,coll,futures);
+		if(parallel) afterCall(pc,coll,futures,execute);
 		
 		return coll;
 	}
@@ -287,7 +287,7 @@ public class Filter extends BIF {
 		return null;
 	}
 	
-	public static void afterCall(PageContext pc, Collection coll, List<Future<Data<Pair<Object, Object>>>> futures) throws PageException {
+	public static void afterCall(PageContext pc, Collection coll, List<Future<Data<Pair<Object, Object>>>> futures, ExecutorService es) throws PageException {
 		try{
 			boolean isArray=false;
 			boolean isQuery=false;
@@ -317,6 +317,9 @@ public class Filter extends BIF {
 		}
 		catch(Exception e){
 			throw Caster.toPageException(e);
+		}
+		finally {
+			es.shutdown();
 		}
 	}
 

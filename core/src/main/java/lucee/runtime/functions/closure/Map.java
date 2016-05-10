@@ -117,7 +117,7 @@ public class Map extends BIF {
 		else
 			throw new FunctionException(pc, "Map", 1, "data", "cannot iterate througth this type "+Caster.toTypeName(obj.getClass()));
 		
-		if(parallel) afterCall(pc,coll,futures);
+		if(parallel) afterCall(pc,coll,futures,execute);
 		
 		return coll;
 	}
@@ -288,7 +288,7 @@ public class Map extends BIF {
 		return null;
 	}
 	
-	public static void afterCall(PageContext pc, Collection coll, List<Future<Data<Object>>> futures) throws PageException {
+	public static void afterCall(PageContext pc, Collection coll, List<Future<Data<Object>>> futures, ExecutorService es) throws PageException {
 		boolean isQuery=coll instanceof Query;
 		try{
 			Iterator<Future<Data<Object>>> it = futures.iterator();
@@ -302,6 +302,9 @@ public class Map extends BIF {
 		}
 		catch(Exception e){
 			throw Caster.toPageException(e);
+		}
+		finally {
+			es.shutdown();
 		}
 	}
 	

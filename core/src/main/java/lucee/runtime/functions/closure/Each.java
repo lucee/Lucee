@@ -131,14 +131,14 @@ public final class Each extends BIF {
 		else
 			throw new FunctionException(pc, "Each", 1, "data", "cannot iterate througth this type "+Caster.toTypeName(obj.getClass()));
 		
-		if(parallel) afterCall(pc,futures);
+		if(parallel) afterCall(pc,futures,execute);
 			
 		
 		return null;
 	}
 	
 
-	public static void afterCall(PageContext pc, List<Future<Data<Object>>> futures) throws PageException {
+	public static void afterCall(PageContext pc, List<Future<Data<Object>>> futures, ExecutorService es) throws PageException {
 		try{
 			Iterator<Future<Data<Object>>> it = futures.iterator();
 			//Future<String> f;
@@ -148,6 +148,9 @@ public final class Each extends BIF {
 		}
 		catch(Exception e){
 			throw Caster.toPageException(e);
+		}
+		finally {
+			es.shutdown();
 		}
 	}
 	public static void invoke(PageContext pc , Array array, UDF udf,ExecutorService execute,List<Future<Data<Object>>> futures) throws PageException {
