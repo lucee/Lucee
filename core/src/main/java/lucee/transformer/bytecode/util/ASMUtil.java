@@ -594,7 +594,7 @@ public final class ASMUtil {
 		
     	// get<PropertyName>():<type>
     		Type[] types=new Type[0];
-    		Method method = new Method((clazz==boolean.class?"get":"get")+StringUtil.ucFirst(name),type,types);
+    		Method method = new Method((clazz==boolean.class?"get":"get")+(name),type,types);
             GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC , method, null, null, cw);
             
             Label start = new Label();
@@ -617,7 +617,7 @@ public final class ASMUtil {
 		
 		// set<PropertyName>(object):void
 			types=new Type[]{type};
-			method = new Method("set"+StringUtil.ucFirst(name),Types.VOID,types);
+			method = new Method("set"+(name),Types.VOID,types);
             adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC , method, null, null, cw);
             
             start = new Label();
