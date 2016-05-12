@@ -2472,7 +2472,7 @@ public final class PageContextImpl extends PageContext {
 	 * @return returns the root JSP Writer
 	 * 
 	 */
-	public CFMLWriter getRootOut() {
+	public CFMLWriter getRootOut() {// used in extension PDF
 		return bodyContentStack.getBase();
 	}
 	public JspWriter getRootWriter() {
