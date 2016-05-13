@@ -54,6 +54,7 @@ import lucee.runtime.util.Excepton;
 import lucee.runtime.util.HTMLUtil;
 import lucee.runtime.util.HTTPUtil;
 import lucee.runtime.util.IO;
+import lucee.runtime.util.JavaProxyUtil;
 import lucee.runtime.util.ListUtil;
 import lucee.runtime.util.ORMUtil;
 import lucee.runtime.util.Operation;
@@ -249,6 +250,8 @@ public interface CFMLEngine {
 	 * @return decision util
 	 */
 	public Creation getCreationUtil();
+	
+	public JavaProxyUtil getJavaProxyUtil();
 
 	/**
 	 * returns the IO util

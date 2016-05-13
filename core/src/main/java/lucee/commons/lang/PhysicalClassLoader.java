@@ -24,7 +24,9 @@ import java.io.InputStream;
 import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.UnmodifiableClassException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import lucee.commons.digest.HashUtil;
@@ -48,7 +50,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	
 	private Resource directory;
 	private ConfigImpl config; 
-	private ClassLoader[] parents;
+	private final ClassLoader[] parents;
 	
 	private Map<String,PhysicalClassLoader> customCLs;
 	
@@ -59,20 +61,31 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	 * @throws IOException
 	 */
 	public PhysicalClassLoader(Config c,Resource directory) throws IOException {
-		this(c,directory,null);
+		this(c,directory,(ClassLoader[])null,true);
 	}
-	
-	private PhysicalClassLoader(Config c,Resource directory, ResourceClassLoader rcl) throws IOException {
-		super(rcl==null?c.getClassLoader():rcl);
+	public PhysicalClassLoader(Config c,Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL) throws IOException {
+		super(parentClassLoaders==null || parentClassLoaders.length==0?c.getClassLoader():parentClassLoaders[0]);
 		
 		config = (ConfigImpl)c;
 
-		ResourceClassLoader resCL = rcl!=null?rcl:config.getResourceClassLoader(null);
-		ClassLoader coreCL = config.getClassLoaderCore();
-		// ClassLoader loaderCL = config.getClassLoaderLoader(); this gives a wrong result, boot dekegation needs to handle this
-		parents=resCL!=null?
-				new ClassLoader[]{resCL,coreCL}:
-				new ClassLoader[]{coreCL};
+		//ClassLoader resCL = parent!=null?parent:config.getResourceClassLoader(null);
+		
+		List<ClassLoader> tmp = new ArrayList<ClassLoader>();
+		if(parentClassLoaders==null || parentClassLoaders.length==0) {
+			ResourceClassLoader _cl = config.getResourceClassLoader(null);
+			if(_cl!=null) tmp.add(_cl);
+		}
+		else {
+			for(ClassLoader p:parentClassLoaders) {
+				tmp.add(p);
+			}
+		}
+		
+		
+		
+		if(includeCoreCL) tmp.add(config.getClassLoaderCore());
+		
+		parents= tmp.toArray(new ClassLoader[tmp.size()]);
 		
 		
 		
@@ -242,7 +255,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		
 		PhysicalClassLoader pcl=customCLs==null?null:customCLs.get(key);
 		if(pcl!=null) return pcl; 
-		pcl=new PhysicalClassLoader(config,getDirectory(),new ResourceClassLoader(resources,getParent()));
+		pcl=new PhysicalClassLoader(config,getDirectory(),new ClassLoader[]{new ResourceClassLoader(resources,getParent())},true);
 		if(customCLs==null)customCLs=new ReferenceMap<String,PhysicalClassLoader>();
 		customCLs.put(key, pcl);
 		return pcl;

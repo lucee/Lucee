@@ -23,25 +23,34 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.KeyGenerator;
 import lucee.commons.lang.PhysicalClassLoader;
+import lucee.loader.engine.CFMLEngine;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.java.JavaProxy;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
+import lucee.runtime.util.JavaProxyUtil;
 import lucee.transformer.bytecode.visitor.ArrayVisitor;
 
 import org.objectweb.asm.ClassWriter;
@@ -60,7 +69,11 @@ public class JavaProxyFactory {
 	private static final String COMPONENT_NAME="L"+Types.COMPONENT.getInternalName()+";";
 	private static final String CONFIG_WEB_NAME="L"+Types.CONFIG_WEB.getInternalName()+";";
 
-	private static final Type JAVA_PROXY = Type.getType(JavaProxy.class);
+	//private static final Type JAVA_PROXY = Type.getType(JavaProxy.class);
+
+	private static final Type CFML_ENGINE_FACTORY = Type.getType(CFMLEngineFactory.class);
+	private static final Type CFML_ENGINE = Type.getType(CFMLEngine.class);
+	private static final Type JAVA_PROXY_UTIL = Type.getType(JavaProxyUtil.class);
 
 	
 	private static final org.objectweb.asm.commons.Method CALL = new org.objectweb.asm.commons.Method(
@@ -114,6 +127,13 @@ public class JavaProxyFactory {
 			"toShort",
 			Types.SHORT,
 			new Type[]{Types.OBJECT});
+	
+	private static final org.objectweb.asm.commons.Method TO_STRING = new org.objectweb.asm.commons.Method(
+			"toString",
+			Types.STRING,
+			new Type[]{Types.OBJECT});
+	
+	
 	private static final org.objectweb.asm.commons.Method TO_ = new org.objectweb.asm.commons.Method(
 			"to",
 			Types.OBJECT,
@@ -157,7 +177,17 @@ public class JavaProxyFactory {
 			"toCFML",
 			Types.OBJECT,
 			new Type[]{Types.OBJECT});
-
+	
+	private static final org.objectweb.asm.commons.Method GET_INSTANCE = new org.objectweb.asm.commons.Method(
+			"getInstance",
+			CFML_ENGINE,
+			new Type[]{});
+	private static final org.objectweb.asm.commons.Method GET_JAVA_PROXY_UTIL = new org.objectweb.asm.commons.Method(
+			"getJavaProxyUtil",
+			JAVA_PROXY_UTIL,
+			new Type[]{});
+	
+	
 	
 	
 	
@@ -178,6 +208,8 @@ public class JavaProxyFactory {
 
 	public static Object createProxy(PageContext pc, Component cfc, Class extendz,Class... interfaces) throws PageException, IOException {
 		PageContextImpl pci=(PageContextImpl) pc;
+		ClassLoader[] parents = extractClassLoaders(interfaces);
+		
 		if(extendz==null) extendz=Object.class;
 		if(interfaces==null) interfaces=new Class[0];
 		else {
@@ -201,18 +233,21 @@ public class JavaProxyFactory {
     	//Mapping mapping = cfc.getPageSource().getMapping();
 		
     	// get ClassLoader
-    	PhysicalClassLoader cl=null;
+    	PhysicalClassLoader pcl=null;
 		try {
-			cl = (PhysicalClassLoader) pci.getRPCClassLoader(false);// mapping.getConfig().getRPCClassLoader(false)
+			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false,parents);// mapping.getConfig().getRPCClassLoader(false)
 		} catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
-		Resource classFile = cl.getDirectory().getRealResource(className.concat(".class"));
+		Resource classFile = pcl.getDirectory().getRealResource(className.concat(".class"));
 		
 		// check if already exists, if yes return
 		if(classFile.exists()) {
-			//Object obj=newInstance(cl,className,cfc);
-			// if(obj!=null) return obj;
+			try {
+				Object obj=newInstance(pcl,className,pc.getConfig(),cfc);
+				if(obj!=null) return obj;
+			}
+			catch(Throwable t) {}
 		}
 		
 		/*
@@ -276,13 +311,30 @@ public class JavaProxyFactory {
         	ResourceUtil.touch(classFile);
 	        IOUtil.copy(new ByteArrayInputStream(barr), classFile,true);
 	        
-	        cl = (PhysicalClassLoader) pci.getRPCClassLoader(true);
-	        Class<?> clazz = cl.loadClass(className, barr);
+	        pcl = (PhysicalClassLoader) pci.getRPCClassLoader(true,parents);
+	        Class<?> clazz = pcl.loadClass(className, barr);
 	        return newInstance(clazz, pc.getConfig(),cfc);
         }
         catch(Throwable t) {
         	throw Caster.toPageException(t);
         }
+	}
+
+	private static ClassLoader[] extractClassLoaders(Class[] classes) {
+		List<ClassLoader> list=new ArrayList<ClassLoader>();
+		ClassLoader cl,tmp;
+		Iterator<ClassLoader> it;
+		if(classes!=null)outer:for(int i=0; i<classes.length; i++) {
+			cl=classes[i].getClassLoader();
+			it = list.iterator();
+			while(it.hasNext()) {
+				tmp=it.next();
+				if(tmp==cl) continue outer;
+			}
+			list.add(cl);
+		}
+		
+		return list.toArray(new ClassLoader[list.size()]);
 	}
 
 	private static void _createProxy(ClassWriter cw, Set<Class> cDone,Map<String,Class> mDone, Component cfc, Class clazz, String className) throws IOException {
@@ -307,8 +359,8 @@ public class JavaProxyFactory {
 	}
 
 	private static void _createMethod(ClassWriter cw, Map<String,Class> mDone, Method src, String className) throws IOException {
-		Class<?>[] classArgs = src.getParameterTypes();
-		Class<?> classRtn = src.getReturnType();
+		final Class<?>[] classArgs = src.getParameterTypes();
+		final Class<?> classRtn = src.getReturnType();
 		
 		String str=src.getName()+"("+Reflector.getDspMethods(classArgs)+")";
 		Class rtnClass = mDone.get(str);
@@ -331,103 +383,107 @@ public class JavaProxyFactory {
          Label start=adapter.newLabel();
          adapter.visitLabel(start);
          
+         // if the result of "call" need castring, we have to do this here
+         if(needCastring(classRtn)) {
+        	adapter.invokeStatic(CFML_ENGINE_FACTORY, GET_INSTANCE);
+     		adapter.invokeInterface(CFML_ENGINE, GET_JAVA_PROXY_UTIL);
+         }
          
-         //JavaProxy.call(cfc,"add",new Object[]{arg0})
-         // config
+         
+         adapter.invokeStatic(CFML_ENGINE_FACTORY, GET_INSTANCE);
+ 		adapter.invokeInterface(CFML_ENGINE, GET_JAVA_PROXY_UTIL);
+ 		
+         
+         
+       //Java Proxy.call(cfc,"add",new Object[]{arg0})
+         // config (first argument)
          adapter.visitVarInsn(Opcodes.ALOAD, 0);
          adapter.visitFieldInsn(Opcodes.GETFIELD, className, "config", CONFIG_WEB_NAME);
          
-         // cfc
+         // cfc (second argument)
          adapter.visitVarInsn(Opcodes.ALOAD, 0);
          adapter.visitFieldInsn(Opcodes.GETFIELD, className, "cfc", COMPONENT_NAME);
          
-         // name
+         // name (3th argument)
          adapter.push(src.getName());
          
-         // arguments
+         // arguments (4th argument)
          ArrayVisitor av=new ArrayVisitor();
          av.visitBegin(adapter,Types.OBJECT,typeArgs.length);
          for(int y=0;y<typeArgs.length;y++){
  			av.visitBeginItem(adapter, y);
- 				adapter.loadArg(y);
- 				if(classArgs[y]==boolean.class) adapter.invokeStatic(JAVA_PROXY, _BOOLEAN);
- 				else if(classArgs[y]==byte.class) adapter.invokeStatic(JAVA_PROXY, _BYTE);
- 				else if(classArgs[y]==char.class) adapter.invokeStatic(JAVA_PROXY, _CHAR);
- 				else if(classArgs[y]==double.class) adapter.invokeStatic(JAVA_PROXY, _DOUBLE);
- 				else if(classArgs[y]==float.class) adapter.invokeStatic(JAVA_PROXY, _FLOAT);
- 				else if(classArgs[y]==int.class) adapter.invokeStatic(JAVA_PROXY, _INT);
- 				else if(classArgs[y]==long.class) adapter.invokeStatic(JAVA_PROXY, _LONG);
- 				else if(classArgs[y]==short.class) adapter.invokeStatic(JAVA_PROXY, _SHORT);
- 				else {
- 					adapter.invokeStatic(JAVA_PROXY, _OBJECT);
- 				}
- 				
- 				
- 			av.visitEndItem(adapter);
-         }
-         av.visitEnd();
-         adapter.invokeStatic(JAVA_PROXY, CALL);
-         
-       //JavaProxy.to...(...);
+ 			
+ 			adapter.invokeStatic(CFML_ENGINE_FACTORY, GET_INSTANCE);
+ 			adapter.invokeInterface(CFML_ENGINE, GET_JAVA_PROXY_UTIL);
+ 			
+ 			
+			adapter.loadArg(y);
+			if(classArgs[y]==boolean.class)		adapter.invokeInterface(JAVA_PROXY_UTIL, _BOOLEAN);
+			else if(classArgs[y]==byte.class)	adapter.invokeInterface(JAVA_PROXY_UTIL, _BYTE);
+			else if(classArgs[y]==char.class)	adapter.invokeInterface(JAVA_PROXY_UTIL, _CHAR);
+			else if(classArgs[y]==double.class)	adapter.invokeInterface(JAVA_PROXY_UTIL, _DOUBLE);
+			else if(classArgs[y]==float.class)	adapter.invokeInterface(JAVA_PROXY_UTIL, _FLOAT);
+			else if(classArgs[y]==int.class)	adapter.invokeInterface(JAVA_PROXY_UTIL, _INT);
+			else if(classArgs[y]==long.class)	adapter.invokeInterface(JAVA_PROXY_UTIL, _LONG);
+			else if(classArgs[y]==short.class)	adapter.invokeInterface(JAVA_PROXY_UTIL, _SHORT);
+			else 								adapter.invokeInterface(JAVA_PROXY_UTIL, _OBJECT);
+				
+			av.visitEndItem(adapter);
+		}
+		av.visitEnd();
+		adapter.invokeInterface(JAVA_PROXY_UTIL, CALL);
+		
+		//CFMLEngineFactory.getInstance().getCastUtil().toBooleanValue(o);
+		
+         //Java Proxy.to...(...);
          int rtn=Opcodes.IRETURN;
-         if(classRtn==boolean.class) 	adapter.invokeStatic(JAVA_PROXY, TO_BOOLEAN);
-         else if(classRtn==byte.class) 	adapter.invokeStatic(JAVA_PROXY, TO_BYTE);
-         else if(classRtn==char.class) 	adapter.invokeStatic(JAVA_PROXY, TO_CHAR);
+         if(classRtn==boolean.class) 	adapter.invokeInterface(JAVA_PROXY_UTIL, TO_BOOLEAN);
+         else if(classRtn==byte.class) 	adapter.invokeInterface(JAVA_PROXY_UTIL, TO_BYTE);
+         else if(classRtn==char.class) 	adapter.invokeInterface(JAVA_PROXY_UTIL, TO_CHAR);
          else if(classRtn==double.class){
         	 							rtn=Opcodes.DRETURN;
-        	 							adapter.invokeStatic(JAVA_PROXY, TO_DOUBLE);
+        	 							adapter.invokeInterface(JAVA_PROXY_UTIL, TO_DOUBLE);
          }
          else if(classRtn==float.class) {
 										rtn=Opcodes.FRETURN;
-										adapter.invokeStatic(JAVA_PROXY, TO_FLOAT);
+										adapter.invokeInterface(JAVA_PROXY_UTIL, TO_FLOAT);
          }
-         else if(classRtn==int.class) 	adapter.invokeStatic(JAVA_PROXY, TO_INT);
+         else if(classRtn==int.class) 	adapter.invokeInterface(JAVA_PROXY_UTIL, TO_INT);
          else if(classRtn==long.class) 	{
         	 							rtn=Opcodes.LRETURN;
-        	 							adapter.invokeStatic(JAVA_PROXY, TO_LONG);
+        	 							adapter.invokeInterface(JAVA_PROXY_UTIL, TO_LONG);
          }
-         else if(classRtn==short.class) adapter.invokeStatic(JAVA_PROXY, TO_SHORT);
+         else if(classRtn==short.class) adapter.invokeInterface(JAVA_PROXY_UTIL, TO_SHORT);
          else if(classRtn==void.class){
         	 							rtn=Opcodes.RETURN;
         	 							adapter.pop();
+         }
+         else if(classRtn==String.class){
+        	 	rtn=Opcodes.ARETURN;
+				adapter.invokeInterface(JAVA_PROXY_UTIL, TO_STRING);
          }
          else {
 										rtn=Opcodes.ARETURN;
 										adapter.checkCast(typeRtn);
          }
-         
-         
-         
-         /*mv = cw.visitMethod(ACC_PUBLIC, "add", "(Ljava/lang/Object;)Z", null, null);
-         mv.visitCode();
-         Label l0 = new Label();
-         mv.visitLabel(l0);
-         mv.visitLineNumber(20, l0);
-         mv.visitVarInsn(ALOAD, 0);
-         mv.visitFieldInsn(GETFIELD, "Test", "cfc", "Ljava/lang/Object;");
-         mv.visitLdcInsn("add");
-         mv.visitInsn(ICONST_1);
-         mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
-         mv.visitInsn(DUP);
-         mv.visitInsn(ICONST_0);
-         mv.visitVarInsn(ALOAD, 1);
-         mv.visitInsn(AASTORE);
-         mv.visitMethodInsn(INVOKESTATIC, "JavaProxy", "call", "(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;");
-         mv.visitMethodInsn(INVOKESTATIC, "JavaProxy", "toBoolean", "(Ljava/lang/Object;)Z");
-         mv.visitInsn(IRETURN);
-         Label l1 = new Label();
-         mv.visitLabel(l1);
-         mv.visitLocalVariable("this", "LTest;", null, l0, l1, 0);
-         mv.visitLocalVariable("arg0", "Ljava/lang/Object;", null, l0, l1, 1);
-         mv.visitMaxs(6, 2);
-         mv.visitEnd();*/
-         
-         
-         
+
          adapter.visitInsn(rtn);
          adapter.endMethod();
 		
 		
+	}
+
+	private static boolean needCastring(Class<?> classRtn) {
+		return	
+			classRtn==boolean.class || 
+			classRtn==byte.class || 
+			classRtn==char.class || 
+			classRtn==double.class || 
+			classRtn==float.class || 
+			classRtn==int.class || 
+			classRtn==long.class || 
+			classRtn==short.class || 
+			classRtn==String.class;
 	}
 
 	private static Object newInstance(PhysicalClassLoader cl, String className, ConfigWeb config,Component cfc) 

@@ -20,10 +20,12 @@ package lucee.runtime.functions.other;
 
 import java.io.IOException;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ClassUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -46,6 +48,10 @@ public class CreateDynamicProxy implements Function {
 	}
 	
 	public static Object _call(PageContext pc , Object oCFC,Object oInterfaces) throws PageException, IOException {
+		
+		if(SystemUtil.getLoaderVersion()<5.9D) 
+			throw new ApplicationException("You need to update your lucee.jar to execute the function [createDynamicProxy], you can download the latest jar from http://download.lucee.org.");
+		
 		
 		// Component
 		Component cfc;

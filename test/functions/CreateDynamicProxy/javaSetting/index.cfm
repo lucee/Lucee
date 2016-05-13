@@ -1,6 +1,6 @@
-/**
+<!--- 
  *
- * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
+ * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,12 +15,14 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- **/
-package lucee.loader;
+ ---><cfsetting showdebugoutput="no">
+<cfscript>
+	// first check if the jar is availble in general
+	echo(createObject("java","a.Test").init().hello("Susi"));
+	
+echo("-");
 
-/**
- * version of this loader (jar)
- */
-public class Version {
-	public static double VERSION = 5.9D;
-}
+	// now we do a proxy for the interface
+	proxy=createDynamicProxy(new Test(),"a.ITest");
+	echo(proxy.hello("Urs"));
+</cfscript>

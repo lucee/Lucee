@@ -117,6 +117,7 @@ import lucee.runtime.op.CreationImpl;
 import lucee.runtime.op.DecisionImpl;
 import lucee.runtime.op.ExceptonImpl;
 import lucee.runtime.op.IOImpl;
+import lucee.runtime.op.JavaProxyUtilImpl;
 import lucee.runtime.op.OperationImpl;
 import lucee.runtime.op.StringsImpl;
 import lucee.runtime.type.StructImpl;
@@ -132,6 +133,7 @@ import lucee.runtime.util.HTMLUtil;
 import lucee.runtime.util.HTMLUtilImpl;
 import lucee.runtime.util.HTTPUtilImpl;
 import lucee.runtime.util.IO;
+import lucee.runtime.util.JavaProxyUtil;
 import lucee.runtime.util.ListUtil;
 import lucee.runtime.util.ListUtilImpl;
 import lucee.runtime.util.ORMUtil;
@@ -505,9 +507,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
      */
     public static synchronized CFMLEngine getInstance(CFMLEngineFactory factory,BundleCollection bc) {
     	if(engine==null) {
-    		if(SystemUtil.getLoaderVersion()<5.8D)
-    			throw new RuntimeException("You need to update your lucee.jar to run this version, you can download the latest jar from http://download.lucee.org.");
-    			
+    		if(SystemUtil.getLoaderVersion()<5.9D) {
+    			if(SystemUtil.getLoaderVersion()<5.8D)
+    				throw new RuntimeException("You need to update your lucee.jar to run this version, you can download the latest jar from http://download.lucee.org.");
+    			else
+    				System.out.println("To use all features Lucee provides, you need to update your lucee.jar, you can download the latest jar from http://download.lucee.org.");
+    		}
     		engine=new CFMLEngineImpl(factory,bc);
     		
         }
@@ -1022,6 +1027,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
         return ExceptonImpl.getInstance();
     }
 
+
+	@Override
+	public JavaProxyUtil getJavaProxyUtil() {
+		return new JavaProxyUtilImpl();
+	}
+    
     @Override
     public Creation getCreationUtil() {
     	return CreationImpl.getInstance(this);

@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import lucee.commons.io.DevNullOutputStream;
+import lucee.commons.lang.ClassUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWeb;
@@ -135,11 +136,29 @@ public class JavaProxy {
 			throw new PageRuntimeException(pe);
 		}
 	}
+	
+	public static String toString(Object obj) {
+		try {
+			return Caster.toString(obj);
+		} catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
+	}
 
 	public static Object to(Object obj, Class clazz) {
-		return obj;
+		try {
+			return Caster.castTo(ThreadLocalPageContext.get(), clazz, obj);
+		} catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
 	}
-	
+	public static Object to(Object obj, String className) {
+		try {
+			return Caster.castTo(ThreadLocalPageContext.get(), className, obj,false);
+		} catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
+	}
 
 	public static Object toCFML(boolean value) {
 		return value?Boolean.TRUE:Boolean.FALSE;

@@ -3107,14 +3107,22 @@ public final class PageContextImpl extends PageContext {
 		}
 		return config.getResourceClassLoader();
 	}
-
+	
 	public ClassLoader getRPCClassLoader(boolean reload) throws IOException {
-		JavaSettingsImpl js = (JavaSettingsImpl) applicationContext.getJavaSettings();
-		if(js!=null) {
-			return ((PhysicalClassLoader)config.getRPCClassLoader(reload)).getCustomClassLoader(js.getResourcesTranslated(),reload);
-		}
-		return config.getRPCClassLoader(reload);
+		return getRPCClassLoader(reload, null);
 	}
+	
+	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader[] parents) throws IOException {
+		JavaSettingsImpl js = (JavaSettingsImpl) applicationContext.getJavaSettings();
+		ClassLoader cl=config.getRPCClassLoader(reload,parents);
+		if(js!=null) {
+			return ((PhysicalClassLoader)cl).getCustomClassLoader(js.getResourcesTranslated(),reload);
+		}
+		
+		return cl;
+	}
+	
+
 	
 	
 

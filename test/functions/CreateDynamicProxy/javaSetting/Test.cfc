@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
+ * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,11 +16,8 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.loader;
-
-/**
- * version of this loader (jar)
- */
-public class Version {
-	public static double VERSION = 5.9D;
+component {
+	string function hello(String name){
+		return "Salve "&name;
+	}
 }
