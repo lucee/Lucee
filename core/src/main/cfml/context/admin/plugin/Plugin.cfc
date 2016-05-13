@@ -16,7 +16,7 @@
  * 
  ---><cfcomponent hint="Plugin">
 	<cffunction name="load" output="no" returntype="any"
-		hint="load persitent data from admin">
+		hint="load persistent data from admin">
 		<cfset var data=struct()>
 		<cftry>
 			<cfadmin 
@@ -33,7 +33,7 @@
 	</cffunction>
 	
 	<cffunction name="save" returntype="void"
-		hint="save persitent data from admin">
+		hint="save persistent data from admin">
 		<cfargument name="data" type="any">
 		<cfadmin 
 			action="storageSet"
