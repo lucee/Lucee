@@ -21,6 +21,17 @@
 	<cffunction name="afterTests"></cffunction>
 	<cffunction name="setUp"></cffunction>
 	--->
+
+	<cffunction name="testNumbersBreakingInByteForm1" localMode="modern">
+		<cfset i=0>
+		<cfset assertEquals("9465656331668701",deserializeJson('9465656331668701'))>
+	</cffunction>
+
+	<cffunction name="testNumbersBreakingInByteForm2" localMode="modern">
+		<cfset i=0>
+		<cfset assertEquals("9465656331668701",Evaluate('"9465656331668701"'))>
+	</cffunction>
+
 	<cffunction name="testDeSerializeJSON" localMode="modern">
 
 <!--- begin old test code --->

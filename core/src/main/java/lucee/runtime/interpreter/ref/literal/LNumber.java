@@ -34,7 +34,7 @@ public final class LNumber implements Literal {
     
     
     
-	private Double literal;
+	private Object literal;
 
     /**
      * constructor of the class
@@ -51,6 +51,11 @@ public final class LNumber implements Literal {
      */
     public LNumber(String literal) throws PageException {
         this.literal=Caster.toDouble(literal);
+        // in theory this filter (>10) makes not really sense, just better for performance!!!
+        if(literal.length()>10) {
+        	if(!Caster.toString(this.literal).equals(literal))
+        		this.literal=literal;
+        }
     }
     
     @Override
@@ -80,15 +85,28 @@ public final class LNumber implements Literal {
 
     @Override
     public String toString() {
-        return Caster.toString(literal.doubleValue());
+        return literal instanceof String?(String)literal:Caster.toString((Double)literal);
     }
 
     @Override
 	public boolean eeq(PageContext pc,Ref other) throws PageException {
 		if(other instanceof LNumber){
-			return literal.doubleValue()==((LNumber)other).literal.doubleValue();
+			if(literal instanceof Double) {
+				// Double|Double
+				if(((LNumber)other).literal instanceof Double) {
+					return ((Double)literal).doubleValue()==((Double)((LNumber)other).literal).doubleValue();
+				}
+				// Double|String
+				return Caster.toString(((Double)literal).doubleValue()).equals(((LNumber)other).literal);
+			}
+			// String|Double
+			if(((LNumber)other).literal instanceof Double) {
+				return ((String)literal).equals(Caster.toString(((Double)((LNumber)other).literal).doubleValue()));
+			}
+			// String|String
+			return ((String)literal).equals((((LNumber)other).literal));
+			
 		}
-		// TODO Auto-generated method stub
 		return RefUtil.eeq(pc,this,other);
 	}
 }
