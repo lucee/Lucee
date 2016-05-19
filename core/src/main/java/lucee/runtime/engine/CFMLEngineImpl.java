@@ -218,12 +218,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				throw new RuntimeException(t);
 			}
     	}
-    	
-    	
-    	
+
     	this.info=new InfoImpl(bundleCollection==null?null:bundleCollection.core);
     	Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader()); // MUST better location for this
-		
+
     	int doNew;
     	Resource configDir=null;
     	try {
@@ -233,9 +231,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
     	catch (IOException e) {
     		throw new PageRuntimeException(e);
 		} 
+
     	CFMLEngineFactory.registerInstance((this));// patch, not really good but it works
-        ConfigServerImpl cs = getConfigServerImpl();
-    	
+    	ConfigServerImpl cs = getConfigServerImpl();
+        
         controler = new Controler(cs,initContextes,5*1000,controlerState);
         controler.setDaemon(true);
         controler.setPriority(Thread.MIN_PRIORITY);
@@ -243,19 +242,18 @@ public final class CFMLEngineImpl implements CFMLEngine {
         boolean disabled=Caster.toBooleanValue(SystemUtil.getSetting(SystemUtil.SETTING_CONTROLLER_DISABLED,null),false);
         if (!disabled) {
         	// start the controller
-            SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT), "Start CFML Controller");
+        	SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT), "Start CFML Controller");
         	controler.start();
         }        
         
         // copy bundled extension to local extension directory (if never done before)
         deployBundledExtension(cs);
-        
+
         // required extensions
         
         boolean isRe=configDir==null?false:XMLConfigFactory.isRequiredExtension(this, configDir);
         boolean installExtensions=Caster.toBooleanValue(XMLConfigWebFactory.getSystemPropOrEnvVar("lucee.extensions.install",null),true);
-        
-        //print.e("INSTALL-EXTENSIONS:"+installExtensions);
+        boolean updateReqExt=false;
         
         // if we have a "fresh" install  
         Set<ExtensionDefintion> extensions;
@@ -265,8 +263,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
         	SystemOut.print(SystemUtil.getPrintWriter(SystemUtil.OUT),
             	"Install Extensions ("+doNew+"):"+toList(extensions));
         }
+        
         // if we have an update we update the extension that re installed and we have an older version as defined in the manifest
         else if(installExtensions && (doNew==XMLConfigFactory.NEW_MINOR || !isRe)) {
+        	updateReqExt=true;
         	extensions = new HashSet<ExtensionDefintion>();
         	Iterator<ExtensionDefintion> it = info.getRequiredExtension().iterator();
         	ExtensionDefintion ed;
@@ -293,7 +293,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
         }
         // XMLConfigAdmin.hasRHExtensions(ci, ed)
         
-        
         // install extension defined 
         String extensionIds=XMLConfigWebFactory.getSystemPropOrEnvVar("lucee-extensions",null); // old no longer used
         if(StringUtil.isEmpty(extensionIds,true))
@@ -303,20 +302,19 @@ public final class CFMLEngineImpl implements CFMLEngine {
         	List<ExtensionDefintion> _extensions = RHExtension.toExtensionDefinitions(extensionIds);
         	extensions=toSet(extensions,_extensions);
         }
-        
         if(extensions.size()>0) {
-        	boolean sucess=DeployHandler.deployExtensions(
+        	updateReqExt=DeployHandler.deployExtensions(
         			cs,
         			extensions.toArray(new ExtensionDefintion[extensions.size()]),
         			cs.getLog("deploy", true)
         			);
-        	if(sucess && configDir!=null)XMLConfigFactory.updateRequiredExtension(this, configDir);
+        	
         }
-        
+        if(updateReqExt && configDir!=null)XMLConfigFactory.updateRequiredExtension(this, configDir);
         
         
 
-        touchMonitor(cs);  
+        touchMonitor(cs);   
         this.uptime=System.currentTimeMillis();
         //this.config=config; 
     }
@@ -557,7 +555,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
     private ConfigServerImpl getConfigServerImpl() {
     	if(configServer==null) {
-            try {
+    		try {
             	Resource context = getSeverContextConfigDirectory(factory); 
             	//CFMLEngineFactory.registerInstance(this);// patch, not really good but it works
                 configServer=XMLConfigServerFactory.newInstance(
