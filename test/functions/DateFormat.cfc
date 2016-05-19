@@ -1,5 +1,5 @@
-<!--- 
- *
+/*
+ * Copyright (c) 2016, Lucee Assosication Switzerland. All rights reserved.*
  * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -14,98 +14,71 @@
  * 
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
- ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
-	<!---
-	<cffunction name="beforeTests"></cffunction>
-	<cffunction name="afterTests"></cffunction>
-	<cffunction name="setUp"></cffunction>
-	--->
-	<cffunction name="testDateFormat" localMode="modern">
-
-<!--- begin old test code --->
-<cfset valueEquals(left="#dateFormat(100,'dd-mm-yyyy')#", right="09-04-1900")>
-<cfset valueEquals(left="#dateFormat(0,'dd-mm-yyyy')#", right="30-12-1899")>
-
-<cfset org=getLocale()>
-<cfset setLocale("German (Swiss)")>
-
-<cfset dt=CreateDateTime(2004,1,2,4,5,6)>
-<cfset valueEquals(left="#dateFormat(dt,"yyyy")#", right="2004")>
-<cfset valueEquals(left="#dateFormat(dt,"yy")#", right="04")>
-<cfset valueEquals(left="#dateFormat(dt,"y")#", right="4")>
-<cfset valueEquals(left="#dateFormat(dt,"MMMM")#", right="January")>
-
-<cfset valueEquals(left="#dateFormat(dt,"mmm")#", right="Jan")>
-<cfset valueEquals(left="#dateFormat(dt,"mm")#x", right="01x")>
-<cfset valueEquals(left="#dateFormat(dt,"m")#x", right="1x")>
-<cfset valueEquals(left="#dateFormat(dt)#", right="02-Jan-04")>
-<cfset valueEquals(left="#dateFormat(dt,"dddd")#", right="Friday")>
-<cfset valueEquals(left="#dateFormat(dt,"ddd")#", right="Fri")>
-<cfset valueEquals(left="#dateFormat(dt,"dd")#x", right="02x")>
-<cfset valueEquals(left="#dateFormat(dt,"d")#x", right="2x")>
-<cfset valueEquals(left="#dateFormat(dt,"dd.mm.yyyy")#x", right="02.01.2004x")>
-
-<cfset valueEquals(left="#dateFormat(dt,"short")#x", right="1/2/04x")>
-<cfset valueEquals(left="#dateFormat(dt,"medium")#x", right="Jan 2, 2004x")>
-<cfset valueEquals(left="#dateFormat(dt,"long")#x", right="January 2, 2004x")>
-<cfset valueEquals(left="#dateFormat(dt,"full")#x", right="Friday, January 2, 2004x")>
-<cfset setLocale("French (Swiss)")>
-<cfset valueEquals(left="#dateFormat(dt,"full")#x", right="Friday, January 2, 2004x")>
-<cfset setLocale(org)>
+ */
+ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 
-<cfset valueEquals(left="#dateFormat(' ','dd.mm.yyyy')#x", right="x")>
-<cfset x='susi'>
-<cftry> 
-	<cfset valueEquals(left="#dateFormat(x,'dd.mm.yyyy')#x", right="x")>
-    <cfset fail("must throw:The value of the parameter 1, which is currently ""susi"", must be a class java.util.Date value. ")> 
-    <cfcatch></cfcatch> 
-</cftry> 
-
-<cfset valueEquals(left="#dateFormat('1234','dd.mm.yyyy')#x", right="18.05.1903x")>
-
-<cfset valueEquals(
-	left="30-Dec-99",
-	right="#DateFormat(0)#")>
-
-<cfset valueEquals(
-	left="01.10.2005" ,
-	right="#DateFormat('2005/10/01 00:00:00', 'dd.mm.yyyy')#")>
-
-<cfset valueEquals(
-	left="01.10.2005" ,
-	right="#DateFormat(ParseDateTime('2005/10/01 00:00:00'), 'dd.mm.yyyy')#")>
-
-<cfset valueEquals(
-	left="01.10.2005" ,
-	right="#DateFormat(ParseDateTime('2005-10-01 00:00:00'), 'dd.mm.yyyy')#")>
-
-<cfset valueEquals(
-	left="",
-	right="#DateFormat('', 'dd.mm.yyyy')#")>
-
-
-<cfset date2=ParseDateTime("{ts '2008-09-01 01:34:55'}")>
-<cfset date=ParseDateTime("{ts '2008-09-01 01:34:55.123'}")>
-
-
-<cfset valueEquals(left="#DateFormat(date, "yymmdd")#", right="080901")>
-<cfset valueEquals(left="#DateFormat(date, "yy")#", right="08")>
-<cfset valueEquals(left="#DateFormat(date, "mm")#", right="09")>
-<cfset valueEquals(left="#DateFormat(date, "dd")#", right="01")>
-
-
-<cfset valueEquals(left="#DateFormat(date, "yymmdd") & Timeformat(date, "HHmmsslll")#", right="080901013455123")>
-<!--- end old test code --->
-	
+ 	public function testDateFormatMember() localMode="modern" {
+ 		dt=CreateDateTime(2004,1,2,4,5,6);
+		assertEquals("2004",dt.dateFormat("yyyy"));
 		
-		<!--- <cfset assertEquals("","")> --->
-	</cffunction>
-	
-	<cffunction access="private" name="valueEquals">
-		<cfargument name="left">
-		<cfargument name="right">
-		<cfset assertEquals(arguments.right,arguments.left)>
-	</cffunction>
-</cfcomponent>
+ 	}
+ 	public function testDateFormat() localMode="modern" {
+
+		assertEquals("09-04-1900",dateFormat(100,'dd-mm-yyyy'));
+		assertEquals("30-12-1899",dateFormat(0,'dd-mm-yyyy'));
+
+		org=getLocale();
+		setLocale("German (Swiss)")
+
+		dt=CreateDateTime(2004,1,2,4,5,6);
+		assertEquals("2004",dateFormat(dt,"yyyy"));
+		assertEquals("04",dateFormat(dt,"yy"));
+		assertEquals("4",dateFormat(dt,"y"));
+		assertEquals("January",dateFormat(dt,"MMMM"));
+
+		assertEquals("Jan",dateFormat(dt,"mmm"));
+		assertEquals("01x",dateFormat(dt,"mm")&"x");
+		assertEquals("1x",dateFormat(dt,"m")&"x");
+		assertEquals("02-Jan-04",dateFormat(dt));
+		assertEquals("Friday",dateFormat(dt,"dddd"));
+		assertEquals("Fri",dateFormat(dt,"ddd"));
+		assertEquals("02x",dateFormat(dt,"dd")&"x");
+		assertEquals("2x",dateFormat(dt,"d")&"x");
+		assertEquals("02.01.2004x",dateFormat(dt,"dd.mm.yyyy")&"x");
+
+		assertEquals("1/2/04x",dateFormat(dt,"short")&"x");
+		assertEquals("Jan 2, 2004x",dateFormat(dt,"medium")&"x");
+		assertEquals("January 2, 2004x",dateFormat(dt,"long")&"x");
+		assertEquals("Friday, January 2, 2004x",dateFormat(dt,"full")&"x");
+		setLocale("French (Swiss)");
+		assertEquals("Friday, January 2, 2004x",dateFormat(dt,"full")&"x");
+		setLocale(org);
+
+
+		assertEquals("x",dateFormat(' ','dd.mm.yyyy')&"x");
+		x='susi';
+		try {
+			assertEquals("x",dateFormat(x,'dd.mm.yyyy')&"x");
+		    fail("must throw:The value of the parameter 1, which is currently ""susi"", must be a class java.util.Date value. "); 
+		}
+		catch(e){}
+
+		assertEquals("18.05.1903x",dateFormat('1234','dd.mm.yyyy')&"x");
+		assertEquals("30-Dec-99",DateFormat(0));
+		assertEquals("01.10.2005" ,DateFormat('2005/10/01 00:00:00', 'dd.mm.yyyy'));
+		assertEquals("01.10.2005" ,DateFormat(ParseDateTime('2005/10/01 00:00:00'), 'dd.mm.yyyy'));
+		assertEquals("01.10.2005" ,DateFormat(ParseDateTime('2005-10-01 00:00:00'), 'dd.mm.yyyy'));
+		assertEquals("",DateFormat('', 'dd.mm.yyyy'));
+
+		date2=ParseDateTime("{ts '2008-09-01 01:34:55'}");
+		date=ParseDateTime("{ts '2008-09-01 01:34:55.123'}");
+
+		assertEquals("080901",DateFormat(date, "yymmdd"));
+		assertEquals("08",DateFormat(date, "yy"));
+		assertEquals("09",DateFormat(date, "mm"));
+		assertEquals("01",DateFormat(date, "dd"));
+
+		assertEquals("080901013455123",DateFormat(date, "yymmdd") & Timeformat(date, "HHmmsslll"));
+	}
+}

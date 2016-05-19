@@ -43,8 +43,6 @@ import lucee.transformer.library.tag.TagLib;
 import org.osgi.framework.Version;
 import org.xml.sax.Attributes;
 
-
-
 /**
  * Eine FunctionLibFunction repraesentiert eine einzelne Funktion innerhalb einer FLD.
  */
@@ -67,11 +65,7 @@ public final class FunctionLibFunction {
 	private int argMin=0;
 	private int argMax=-1;
 	private int argType=ARG_FIX;
-	
-
 	private String strReturnType;
-
-	//private String className="";
 	private ClassDefinition clazz;
 	private String description;
 	private boolean hasDefaultValues;
@@ -136,15 +130,13 @@ public final class FunctionLibFunction {
 		return status;
 	}
 
-
 	/**
 	 * @param status the status to set (TagLib.,TagLib.STATUS_IMPLEMENTED,TagLib.STATUS_DEPRECATED,TagLib.STATUS_UNIMPLEMENTED)
 	 */
 	public void setStatus(short status) {
 		this.status = status;
 	}
-	
-	
+
 	/**
 	 * Gibt die argument art zurueck.
 	 * @return argument art
@@ -222,7 +214,6 @@ public final class FunctionLibFunction {
 		addArg(arg);
 	}
 
-
 	/**
 	 * Setzt wieviele Argumente eine Funktion minimal haben muss.
 	 * @param argMin Minimale Anzahl Argumente der Funktion.
@@ -279,7 +270,6 @@ public final class FunctionLibFunction {
 	public void setArgType(int argType) {
 		this.argType=argType;
 	}
-	
 
 	public String getHash() {
 		
@@ -306,6 +296,7 @@ public final class FunctionLibFunction {
 			return "";
 		}
 	}
+
 	public boolean hasDefaultValues() {
 		return hasDefaultValues;
 	}
@@ -325,21 +316,24 @@ public final class FunctionLibFunction {
 		} 
 		return eval;
 	}
+
 	public void setTTEClass(String tteClass, Identification id,Attributes attrs) {
 		this.tteCD=ClassDefinitionImpl.toClassDefinition(tteClass,id,attrs);
 	}
+
 	public void setMemberName(String memberNames) {
 		if(StringUtil.isEmpty(memberNames,true)) return;
 		this.memberNames=ListUtil.trimItems(ListUtil.listToStringArray(memberNames, ','));	
 	}
+
 	public String[] getMemberNames() {
 		return memberNames;
 	}
-	
 
 	public void setKeywords(String keywords) {
 		this.keywords=ListUtil.trimItems(ListUtil.listToStringArray(keywords, ','));	
 	}
+
 	public String[] getKeywords() {
 		return keywords;
 	}
@@ -347,6 +341,7 @@ public final class FunctionLibFunction {
 	public void setMemberPosition(int pos) {
 		this.memberPosition=pos;	
 	}
+	
 	public int getMemberPosition() {
 		return memberPosition;
 	}
@@ -354,10 +349,15 @@ public final class FunctionLibFunction {
 	public void setMemberChaining(boolean memberChaining) {
 		this.memberChaining=memberChaining;	
 	}
+
 	public boolean getMemberChaining() {
 		return memberChaining;
 	}
-	
+
+	public void setMemberType(String memberType) {
+		this.memberType=CFTypes.toShortStrict(memberType,CFTypes.TYPE_UNKNOW);
+	}
+
 	public short getMemberType() {
 		if(memberNames!=null && memberType==CFTypes.TYPE_UNKNOW){
 			ArrayList<FunctionLibFunctionArg> args = getArg();
@@ -367,9 +367,11 @@ public final class FunctionLibFunction {
 		}
 		return memberType;
 	}
+
 	public String getMemberTypeAsString() {
 		return CFTypes.toString(getMemberType(),"any");
 	}
+
 	public BIF getBIF() {
 		if(bif!=null) return bif;
 		
@@ -394,21 +396,12 @@ public final class FunctionLibFunction {
 		}
 		return bif;
 	}
-	
 
 	public void setIntroduced(String introduced) {
 		this.introduced=OSGiUtil.toVersion(introduced, null);
 	}
+	
 	public Version getIntroduced() {
 		return introduced; 
 	}
-	/*
-	public void setBundleName(String bundleName) {
-		this.bundleName=bundleName.trim();
-	}
-
-	public void setBundleVersion(String bundleVersion) {
-		// TODO allow 1.0.0.0-2.0.0.0,3.0.0.0
-		this.bundleVersion=OSGiUtil.toVersion(bundleVersion.trim(),null);
-	}*/
 }

@@ -1,5 +1,6 @@
 <!--- 
  *
+ * Copyright (c) 2016, Lucee Assosication Switzerland. All rights reserved.*
  * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -21,6 +22,13 @@
 	<cffunction name="afterTests"></cffunction>
 	<cffunction name="setUp"></cffunction>
 	--->
+
+	<cffunction name="testDatePartMember" localMode="modern">
+		<cfset d1=CreateDateTime(2001, 12, 1, 4, 10, 1)> 
+		<cfset valueEquals(left="#d1.part("m")#", right="12")>
+	</cffunction>
+
+
 	<cffunction name="testDatePart" localMode="modern">
 
 <!--- begin old test code --->

@@ -1103,69 +1103,15 @@ Remember CFML arrays start at 1 not 0.</description>
 	<function>
 		<name>arraySort</name>
 		<class>lucee.runtime.functions.arrays.ArraySort</class>
-		<keywords>array,sort</keywords>
-		<description>Sorts array elements numerically or alphanumerically.</description>
-		<argument>
-			<name>array</name>
-			<type>object</type>
-			<required>Yes</required>
-		<description>Name of an array </description>
-    </argument>
-		<argument>
-			<name>sorttype_or_closure</name>
-			<alias>sort_type,sortType,closure,function,udf</alias>
-			<type>object</type>
-			<required>Yes</required>
-		<description>
-value can be a string or a closure/function.
-		
-a string must be one of the following values:
-- "numeric": sorts numbers
-- "text": sorts text alphabetically, taking case into account (case sensitive)
-- "textnocase": sorts text alphabetically, without regard to case (case insensitive)
-
-if you define a closure/function, the closure/function must accept 2 parameters of any type and return:
--1, if first parameter is "smaller" than second parameter
-0, if first parameter is equal to second parameter
-1, first parameter is "bigger" than second parameter
-
-</description>
-    </argument>
-		<argument>
-			<name>sort_order</name>
-			<alias>sortOrder</alias>
-			<type>string</type>
-			<required>No</required>
-			<default>asc</default>
-		<description>
-sort direction:		
-- asc(default): ascending sort order
-- desc: descending sort order.</description>
-    </argument>
-		<argument>
-			<name>locale_sensitive</name>
-			<alias>localeSensitive</alias>
-			<type>boolean</type>
-			<required>No</required>
-			<default>false</default>
-		<description>if true it does a locale sensitive sorting.</description>
-    </argument>
-		<return>
-			<type>boolean</type>
-		</return>
-	</function>
-	<!-- arraySortMember -->
-	<function>
-		<name>_arraySortMember</name>
-		<class>lucee.runtime.functions.arrays.ArraySort</class>
 		<member-name>sort</member-name>
 		<member-chaining>true</member-chaining>
+		<member-type>array</member-type>
+		
 		<keywords>array,sort</keywords>
-		<status>hidden</status>
 		<description>Sorts array elements numerically or alphanumerically.</description>
 		<argument>
 			<name>array</name>
-			<type>array</type>
+			<type>object</type>
 			<required>Yes</required>
 		<description>Name of an array </description>
     </argument>
@@ -1212,6 +1158,7 @@ sort direction:
 			<type>boolean</type>
 		</return>
 	</function>
+	
 	<!-- arraySum -->
 	<function>
 		<name>arraySum</name>
@@ -2588,6 +2535,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>dateAdd</name>
 		<class>lucee.runtime.functions.dateTime.DateAdd</class>
+		<member-name>add</member-name>
+		<member-position>3</member-position>
+		
 		<description>Adds units of time to a date.
         [datepart - quicky]
         yyyy: Year; q: Quarter; m: Month; y: Day of year; d: Day
@@ -2623,51 +2573,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<required>Yes</required>
 		<description>a datetime object</description>
     </argument>
-		<return>
-			<type>datetime</type>
-		</return>
-	</function>
-
-	<!-- _dateAdd (used only as member function) -->
-	<function>
-		<name>_dateAdd</name>
-		<class>lucee.runtime.functions.dateTime.DateAddMember</class>
-		<member-name>add</member-name>
-		<description>Adds units of time to a date.
-        [datepart - quicky]
-        yyyy: Year; q: Quarter; m: Month; y: Day of year; d: Day
-        w: Weekday; ww: Week; h: Hour; n: Minute; s: Second;
-        l: Millisecond</description>
-		<argument>
-			<name>date</name>
-			<type>datetime</type>
-			<required>Yes</required>
-			<description>a datetime object</description>
-	    </argument>
-		<argument>
-			<name>datepart</name>
-			<type>string</type>
-			<required>Yes</required>
-		<description>one of the following:
-- yyyy: Year
-- q: Quarter
-- m: Month
-- y: Day of year
-- d: Day
-- w: Weekday
-- ww: Week
-- h: Hour
-- n: Minute
-- s: Second
-- l: Millisecond
-			</description>
-	    </argument>
-		<argument>
-			<name>number</name>
-			<type>number</type>
-			<required>Yes</required>
-			<description>Number of units of datepart to add to date (positive, to get dates in the future; negative, to get dates in the past). Number must be an integer.</description>
-	    </argument>
 		<return>
 			<type>datetime</type>
 		</return>

@@ -323,6 +323,8 @@ public final class FunctionLibFactory extends DefaultHandler {
 					function.setMemberPosition(Caster.toIntValue(value,1));
 				else if(inside.equals("member-chaining"))
 					function.setMemberChaining(Caster.toBooleanValue(value,false));
+				else if(inside.equals("member-type"))
+					function.setMemberType(value);
 				
 				else if(inside.equals("status"))
 					function.setStatus(TagLibFactory.toStatus(value));

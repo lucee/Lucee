@@ -1,5 +1,6 @@
 <!--- 
  *
+ * Copyright (c) 2016, Lucee Assosication Switzerland. All rights reserved.*
  * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -21,6 +22,21 @@
 	<cffunction name="afterTests"></cffunction>
 	<cffunction name="setUp"></cffunction>
 	--->
+
+
+	<cffunction name="testArraySortMember" localMode="modern">
+		<cfset arr=arrayNew(1)>
+		<cfset arr[1]=111>
+		<cfset arr[2]=22>
+		<cfset arr[3]=3>
+
+		<cfset arr.sort("numeric")>
+		<cfset valueEquals(left="#arr[1]#", right="3")>
+		<cfset valueEquals(left="#arr[2]#", right="22")>
+		<cfset valueEquals(left="#arr[3]#", right="111")>
+
+	</cffunction>
+
 	<cffunction name="testArraySort" localMode="modern">
 
 <!--- begin old test code --->

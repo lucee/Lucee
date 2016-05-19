@@ -1,5 +1,6 @@
 <!--- 
  *
+ * Copyright (c) 2016, Lucee Assosication Switzerland. All rights reserved.*
  * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -21,6 +22,15 @@
 	<cffunction name="afterTests"></cffunction>
 	<cffunction name="setUp"></cffunction>
 	--->
+
+	<cffunction name="testDateAddMember" localMode="modern">
+		<cfset fixDate=CreateDateTime(2001, 11, 1, 4, 10, 4)> 
+		<cfset valueEquals(left="#fixDate.Add("yyyy", 1)#", right="{ts '2002-11-01 04:10:04'}")> 
+		<cfset valueEquals(left="#fixDate.Add("yyyy", 10)#", right="{ts '2011-11-01 04:10:04'}")> 
+		<cfset valueEquals(left="#fixDate.Add("yyyy", 123456789)#", right="{ts '123458790-11-01 04:10:04'}")> 
+
+	</cffunction>
+
 	<cffunction name="testDateAdd" localMode="modern">
 
 <!--- begin old test code --->
