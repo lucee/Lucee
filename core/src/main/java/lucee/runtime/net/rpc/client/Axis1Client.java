@@ -53,6 +53,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
+import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -762,6 +763,9 @@ final class Axis1Client extends WSClient {
         } catch (Exception e) {
             DumpTable table = new DumpTable("webservice","#99cccc","#ccffff","#000000");
             table.appendRow(1,new SimpleDumpData("webservice"),new SimpleDumpData(wsdlUrl));
+            table.appendRow(1,new SimpleDumpData("error"),DumpUtil.toDumpData(e, pageContext, maxlevel, dp));
+            
+            
             return table;
         }
     }

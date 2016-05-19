@@ -11,7 +11,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.0.251-SNAPSHOT</version>
+  <version>5.0.0.252-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -420,7 +420,7 @@
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>commons-logging</artifactId>
-  	<version>1.1.1</version>
+  	<version>1.1.1.L0001</version>
     <scope>provided</scope>
   </dependency>
 	<dependency>
@@ -444,13 +444,13 @@
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>axis-ant</artifactId>
-  	<version>1.4.0</version>
+  	<version>1.4.0.L0001</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>axis</artifactId>
-  	<version>1.4.0</version>
+  	<version>1.4.0.L0001</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
