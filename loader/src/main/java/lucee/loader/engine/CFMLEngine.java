@@ -251,7 +251,7 @@ public interface CFMLEngine {
 	 */
 	public Creation getCreationUtil();
 	
-	public JavaProxyUtil getJavaProxyUtil();
+	public Object getJavaProxyUtil();// FUTURE return JavaProxyUtil
 
 	/**
 	 * returns the IO util

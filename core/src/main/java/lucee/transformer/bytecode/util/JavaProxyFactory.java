@@ -184,7 +184,7 @@ public class JavaProxyFactory {
 			new Type[]{});
 	private static final org.objectweb.asm.commons.Method GET_JAVA_PROXY_UTIL = new org.objectweb.asm.commons.Method(
 			"getJavaProxyUtil",
-			JAVA_PROXY_UTIL,
+			Types.OBJECT, // FUTURE change to JavaProxy
 			new Type[]{});
 	
 	
@@ -387,11 +387,13 @@ public class JavaProxyFactory {
          if(needCastring(classRtn)) {
         	adapter.invokeStatic(CFML_ENGINE_FACTORY, GET_INSTANCE);
      		adapter.invokeInterface(CFML_ENGINE, GET_JAVA_PROXY_UTIL);
+     		adapter.checkCast(JAVA_PROXY_UTIL);
          }
          
          
          adapter.invokeStatic(CFML_ENGINE_FACTORY, GET_INSTANCE);
- 		adapter.invokeInterface(CFML_ENGINE, GET_JAVA_PROXY_UTIL);
+         adapter.invokeInterface(CFML_ENGINE, GET_JAVA_PROXY_UTIL);
+         adapter.checkCast(JAVA_PROXY_UTIL);
  		
          
          
@@ -415,6 +417,7 @@ public class JavaProxyFactory {
  			
  			adapter.invokeStatic(CFML_ENGINE_FACTORY, GET_INSTANCE);
  			adapter.invokeInterface(CFML_ENGINE, GET_JAVA_PROXY_UTIL);
+     		adapter.checkCast(JAVA_PROXY_UTIL);
  			
  			
 			adapter.loadArg(y);

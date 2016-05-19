@@ -1029,7 +1029,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 
 	@Override
-	public JavaProxyUtil getJavaProxyUtil() {
+	public Object getJavaProxyUtil() { // FUTURE return JavaProxyUtil
 		return new JavaProxyUtilImpl();
 	}
     

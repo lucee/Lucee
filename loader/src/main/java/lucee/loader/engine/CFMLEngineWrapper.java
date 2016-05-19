@@ -198,7 +198,7 @@ public class CFMLEngineWrapper implements CFMLEngine {
 	}
 	
 	@Override
-	public JavaProxyUtil getJavaProxyUtil() {
+	public Object getJavaProxyUtil() {// FUTURE return JavaProxyUtil
 		return engine.getJavaProxyUtil();
 	}
 
