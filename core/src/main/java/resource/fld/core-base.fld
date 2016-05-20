@@ -12609,7 +12609,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>queryKeyExists</name>
 		<class>lucee.runtime.functions.query.QueryColumnExists</class>
-		<member-name>columnExists</member-name>
+		<member-name>keyExists</member-name>
 		<keywords>query</keywords>
 		<description>Determines whether a specific column is present in a query.</description>
 		<argument>
