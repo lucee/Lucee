@@ -10151,6 +10151,24 @@ The following things are considered to be empty:
 	</function>
 	
 	
+	<!-- floor -->
+	<function>
+		<name>floor</name>
+		<class>lucee.runtime.functions.math.Floor</class>
+		<keywords>number</keywords>
+		<description>Calculates the closest integer that is smaller than number.</description>
+		<argument>
+			<name>number</name>
+			<type>number</type>
+			<required>Yes</required>
+		<description>Real number to round down to an integer.</description>
+    </argument>
+		<return>
+			<type>number</type>
+		</return>
+	</function>
+	
+	
 	<!-- InternalRequest -->
 	<function>
 		<name>_InternalRequest</name>
