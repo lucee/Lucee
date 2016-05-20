@@ -19,7 +19,7 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
-	ublic void function testCase(){
+	public void function testCase(){
 		arr=['SUSI'];
 		assertEquals("SUSI",arrayToList(arr));
 		arrayDeleteNoCase(arr,'susi');
