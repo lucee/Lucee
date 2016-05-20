@@ -12605,6 +12605,30 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
+	<!-- queryKeyExists -->
+	<function>
+		<name>queryKeyExists</name>
+		<class>lucee.runtime.functions.query.QueryColumnExists</class>
+		<member-name>columnExists</member-name>
+		<keywords>query</keywords>
+		<description>Determines whether a specific column is present in a query.</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description></description>
+    	</argument>	
+		<argument>
+			<name>column</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description></description>
+    	</argument>	
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
+	
 	<!-- queryColumnArray -->
 	<function>
 		<name>queryColumnArray</name>
