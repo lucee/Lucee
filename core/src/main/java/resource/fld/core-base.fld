@@ -2254,14 +2254,18 @@ sort direction:
     </argument>
 		<argument>
 			<name>month</name>
+			<alias>months</alias>
 			<type>number</type>
-			<required>Yes</required>
+			<default>1</default>
+			<required>no</required>
 		<description>Integer in the range 1-12</description>
     </argument>
 		<argument>
 			<name>day</name>
+			<alias>days</alias>
 			<type>number</type>
-			<required>Yes</required>
+			<default>1</default>
+			<required>no</required>
 		<description>Integer in the range 1-31</description>
     </argument>
 		<argument>
@@ -2289,43 +2293,56 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Creates a CFML date/time object from the given year, month, day, hour, minute and second</description>
 		<argument>
 			<name>year</name>
+			<alias>years</alias>
 			<type>number</type>
 			<required>Yes</required>
 		<description>Integer in the range 0-9999. Integers in the range 0-29 are converted to 2000-2029. Integers in the range 30-99 are converted to 1930-1999. You cannot specify dates before AD 100.</description>
     </argument>
 		<argument>
 			<name>month</name>
+			<alias>months</alias>
 			<type>number</type>
-			<required>Yes</required>
+			<default>1</default>
+			<required>no</required>
 		<description>Integer in the range 1-12</description>
     </argument>
 		<argument>
 			<name>day</name>
+			<alias>days</alias>
 			<type>number</type>
-			<required>Yes</required>
+			<default>1</default>
+			<required>no</required>
 		<description>Integer in the range 1-31</description>
     </argument>
 		<argument>
 			<name>hour</name>
+			<alias>hours</alias>
 			<type>number</type>
-			<required>Yes</required>
+			<default>0</default>
+			<required>no</required>
 		<description>Integer in the range 0-23</description>
     </argument>
 		<argument>
 			<name>minute</name>
+			<alias>minutes</alias>
 			<type>number</type>
-			<required>Yes</required>
+			<default>0</default>
+			<required>no</required>
 		<description>Integer in the range 0-59</description>
     </argument>
 		<argument>
 			<name>second</name>
+			<alias>seconds</alias>
 			<type>number</type>
-			<required>Yes</required>
+			<default>0</default>
+			<required>no</required>
 		<description>Integer in the range 0-59</description>
     </argument>
 		<argument>
-			<name>millis</name>
+			<name>millisecond</name>
+			<alias>milliseconds,millis</alias>
 			<type>number</type>
+			<default>0</default>
 			<required>No</required>
 		<description>Integer in the range 0-999</description>
     </argument>
@@ -2439,6 +2456,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Creates a CFML time object from the given hour, minute and second</description>
 		<argument>
 			<name>hour</name>
+			<alias>hours</alias>
 			<type>number</type>
 			<required>Yes</required>
 		<description>Number in the range 0-23</description>
@@ -2446,18 +2464,24 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<argument>
 			<name>minute</name>
 			<type>number</type>
-			<required>Yes</required>
+			<alias>minutes</alias>
+			<default>0</default>
+			<required>no</required>
 		<description>Number in the range 0-59</description>
     </argument>
 		<argument>
 			<name>second</name>
 			<type>number</type>
-			<required>Yes</required>
+			<alias>seconds</alias>
+			<default>0</default>
+			<required>no</required>
 		<description>Number in the range 0-59</description>
     </argument>
 		<argument>
-			<name>millis</name>
+			<name>millisecond</name>
 			<type>number</type>
+			<alias>milliseconds,millis</alias>
+			<default>0</default>
 			<required>No</required>
 		<description>Number in the range 0-999</description>
     </argument>
