@@ -2103,6 +2103,23 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
+	<!-- booleanFormat -->
+	<function>
+		<name>booleanFormat</name>
+		<class>lucee.runtime.functions.displayFormatting.TrueFalseFormat</class>
+		<keywords>boolean,formatting</keywords>
+		<description>True, for a non-zero value; False, otherwise.</description>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>a value that can be casted to a boolean</description>
+		</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	
 		<!-- unserializeJava 
 	deprecated replaced with evaluteJava
 	-->
