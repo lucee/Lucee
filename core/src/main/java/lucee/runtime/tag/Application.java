@@ -248,6 +248,11 @@ public final class Application extends TagImpl {
 		this.scopeCascading=tmp;
 	}
 	
+	public void setSearchimplicitscopes(boolean searchImplicitScopes) throws ApplicationException {
+		short tmp = ConfigWebUtil.toScopeCascading(searchImplicitScopes);
+		this.scopeCascading=tmp;
+	}
+	
 	public void setWebcharset(String charset) {
 		if(StringUtil.isEmpty(charset)) return;
 		webCharset = CharsetUtil.toCharSet(charset);

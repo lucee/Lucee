@@ -575,6 +575,12 @@ public final class ConfigWebUtil {
         else if(type.equalsIgnoreCase("standart"))return Config.SCOPE_STANDARD;
         return defaultValue;
 	}
+	
+	public static short toScopeCascading(boolean searchImplicitScopes) {
+		if(searchImplicitScopes) return Config.SCOPE_STANDARD;
+        return Config.SCOPE_STRICT;
+        
+	}
 
 	public static String toScopeCascading(short type, String defaultValue) {
 		switch(type){

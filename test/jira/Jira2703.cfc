@@ -53,8 +53,46 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		"strict->true;false;false;false;false;",
 		call("classic","strict"));
 	}
+
+
+
+	public void function testSearchImplicitScopesModernFalse(){
+		local.uri=createURI("Jira2703/modernacf12/index.cfm");
+		local.result=_InternalRequest(template:uri,urls:{SearchImplicitScopes:false});
+		local.res=trim(result.filecontent);
+
+		assertEquals("false->true;false;false;false;false;",res);
+	}
 	
+	public void function testSearchImplicitScopesModernTrue(){
+		local.uri=createURI("Jira2703/modernacf12/index.cfm");
+		local.result=_InternalRequest(template:uri,urls:{SearchImplicitScopes:true});
+		local.res=trim(result.filecontent);
+		assertEquals("true->true;true;true;true;true;",res);
+	}
+
+
+
+	public void function testSearchImplicitScopesClassicFalse(){
+		local.uri=createURI("Jira2703/classicacf12/index.cfm");
+		local.result=_InternalRequest(template:uri,urls:{SearchImplicitScopes:false});
+		local.res=trim(result.filecontent);
+
+		assertEquals("false->true;false;false;false;false;",res);
+	}
+	public void function testSearchImplicitScopesClassicTrue(){
+		local.uri=createURI("Jira2703/classicacf12/index.cfm");
+		local.result=_InternalRequest(template:uri,urls:{SearchImplicitScopes:true});
+		local.res=trim(result.filecontent);
+		
+		assertEquals("true->true;true;true;true;true;",res);
+	}
+
+
 	
+
+
+
 	private function call(type,casc){
 		local.uri=createURI("Jira2703/"&type&"/index.cfm");
 		local.result=_InternalRequest(template:uri,urls:{scopecascading:casc});

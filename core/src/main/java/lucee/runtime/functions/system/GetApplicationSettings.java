@@ -87,7 +87,15 @@ public class GetApplicationSettings {
 		sct.setEL("localMode", ac.getLocalMode()==Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS?Boolean.TRUE:Boolean.FALSE);
 		sct.setEL(KeyConstants._locale,LocaleFactory.toString(pc.getLocale()));
 		sct.setEL(KeyConstants._timezone,TimeZoneUtil.toString(pc.getTimeZone()));
+		
+		// scope cascading
 		sct.setEL("scopeCascading",ConfigWebUtil.toScopeCascading(ac.getScopeCascading(),null));
+		
+		if(ac.getScopeCascading()!=Config.SCOPE_SMALL) {
+			sct.setEL("searchImplicitScopes",ac.getScopeCascading()==Config.SCOPE_STANDARD);
+		}
+		
+		
 		
 		Struct cs=new StructImpl();
 		cs.setEL("web",pc.getWebCharset().name());

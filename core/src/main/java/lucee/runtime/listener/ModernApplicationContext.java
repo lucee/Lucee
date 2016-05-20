@@ -109,6 +109,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Collection.Key REST_SETTING = KeyImpl.intern("restsettings");
 	private static final Collection.Key JAVA_SETTING = KeyImpl.intern("javasettings");
 	private static final Collection.Key SCOPE_CASCADING = KeyImpl.intern("scopeCascading");
+	private static final Collection.Key SEARCH_IMPLICIT_SCOPES = KeyImpl.intern("searchImplicitScopes");
 	private static final Collection.Key TYPE_CHECKING = KeyImpl.intern("typeChecking");
 	private static final Collection.Key CGI_READONLY = KeyImpl.intern("CGIReadOnly");;
 	private static final Collection.Key SUPPRESS_CONTENT = KeyImpl.intern("suppressRemoteComponentContent");
@@ -283,6 +284,11 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if(o!=null){
 			scopeCascading=ConfigWebUtil.toScopeCascading(Caster.toString(o,null),(short)-1);
 		}
+		else {
+			Boolean b = Caster.toBoolean(get(component,SEARCH_IMPLICIT_SCOPES,null),null);
+			if(b!=null)scopeCascading=ConfigWebUtil.toScopeCascading(b);
+		}
+		
 	}
 	
 	

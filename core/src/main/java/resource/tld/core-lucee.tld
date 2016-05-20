@@ -478,7 +478,14 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 - standard: scans the scopes variables,cgi,url,form,cookie
 			</description>
 		</attribute>
-		
+		<attribute>
+			<type>boolean</type>
+			<name>searchImplicitScopes</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>alias to the attribute "scopecascading", takes a boolean value where true is equal to "standard" and false is equal to "struct" scope cascading mode.
+			For details see the description for the attribute "scopecascading".</description>
+		</attribute>
 	</tag>	
 	
 	<!-- Argument -->
