@@ -19,53 +19,52 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
-	//public function beforeTests(){}
-	
-	//public function afterTests(){}
-	
-	//public function setUp(){}
-
-
-	public void function testArrayDeleteCase(){
+	ublic void function testCase(){
 		arr=['SUSI'];
 		assertEquals("SUSI",arrayToList(arr));
-		arrayDelete(arr,'susi');
-		assertEquals("SUSI",arrayToList(arr));
+		arrayDeleteNoCase(arr,'susi');
+		assertEquals("",arrayToList(arr));
 	}
 
-	public void function testArrayDelete(){
+	public void function test(){
 		var arr=[1,2,3,4];
 		assertEquals("1,2,3,4",arrayToList(arr));
-		arrayDelete(arr,2)
+		arrayDeleteNoCase(arr,2)
 		assertEquals("1,3,4",arrayToList(arr));
-		arrayDelete(arr,1);
+		arrayDeleteNoCase(arr,1);
 		assertEquals("3,4",arrayToList(arr));
-		assertEquals(false,arrayDelete(arr,1));
-		assertEquals(true,arrayDelete(arr,3));
+		assertEquals(false,arrayDeleteNoCase(arr,1));
+		assertEquals(true,arrayDeleteNoCase(arr,3));
 		
 		
 		arr=['SUSI'];
 		assertEquals("SUSI",arrayToList(arr));
-		arrayDelete(arr,'SUSI');
+		arrayDeleteNoCase(arr,'SUSI');
 		assertEquals("",arrayToList(arr));
 
 		arr=[1,1,1];
 		assertEquals("1,1,1",arrayToList(arr));
-		arrayDelete(arr,1)
+		arrayDeleteNoCase(arr,1)
 		assertEquals("1,1",arrayToList(arr));
 	
 		arr=['SUSI','susi'];
 		assertEquals("SUSI,susi",arrayToList(arr));
-		arrayDelete(arr,'SUSI');
+		arrayDeleteNoCase(arr,'SUSI');
 		assertEquals("susi",arrayToList(arr));
 		
 		n=now();
 		arr=[now()];
-		arrayDelete(arr,n);
+		arrayDeleteNoCase(arr,n);
 		assertEquals("",arrayToList(arr));
 		
-
-
+		
+		/*assertEquals("","");
+		
+		try{
+			// error
+			fail("");
+		}
+		catch(local.exp){}*/
 	}
 } 
 </cfscript>

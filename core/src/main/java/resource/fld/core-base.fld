@@ -259,6 +259,39 @@ All elements in the array must contain values that can be converted to numeric.<
 			<type>boolean</type>
 		</return>
 	</function>
+	<!-- arrayDeleteNoCase -->
+	<function>
+		<name>arrayDeleteNoCase</name>
+		<class>lucee.runtime.functions.arrays.ArrayDeleteNoCase</class>
+		<member-name>delete</member-name>
+		<keywords>array</keywords>
+		<description>Deletes specified object from given array, in case of a string the case of the string does not matter.</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>The array to delete from</description>
+		</argument>
+		<argument>
+			<name>value</name>
+			<type>object</type>
+			<required>Yes</required>
+			<description>The value to delete</description>
+		</argument>
+		<argument>
+			<name>scope</name>
+			<type>string</type>
+			<required>No</required>
+			<description>
+				one: replaces the first occurrence (default)
+				all: replaces all occurrences
+			</description>
+		</argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>	
+
 	<!-- arrayDeleteAt -->
 	<function>
 		<name>arrayDeleteAt</name>
