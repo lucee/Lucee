@@ -332,6 +332,13 @@ Characters that show how Lucee displays a date:
 - yy: Year as last two digits; leading zero for years less than 10.
 - yyyy: Year represented by four digits.
 - gg: Period/era string. Ignored. Reserved. The following masks tell how to format the full date and cannot be combined with other masks:
+- z: Time zone in literal format, for example, IST
+- Z: Time zone in hours of offset (RFC 822 TimeZone), for example, +0530
+- X: Time zone in hours of offset in ISO 8601 format. The following are the three ways of using 'X':
+         X: +05
+         XX: +0530
+         XXX: +5:30
+
 - short: equivalent to m/d/y
 - medium: equivalent to mmm d, yyyy
 - long: equivalent to mmmm d, yyyy
@@ -1837,6 +1844,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- timeFormat -->
 	<function>
 		<name>timeFormat</name>
+		<member-name>timeFormat</member-name>
+        <member-type>date</member-type>
+        
 		<class>lucee.runtime.functions.displayFormatting.TimeFormat</class>
 		<keywords>date,string,formatting</keywords>
 		<description>Formats a time string to a given output</description>
@@ -1864,6 +1874,12 @@ Characters that show how Lucee displays a time:
 - l or L: milliseconds, with no leading zeros
 - t: one-character time marker string, such as A or P
 - tt: multiple-character time marker string, such as AM or PM
+- z: Time zone in literal format, for example, IST
+- Z: Time zone in hours of offset (RFC 822 TimeZone), for example, +0530
+- X: Time zone in hours of offset in ISO 8601 format. The following are the three ways of using 'X':
+         X: +05
+         XX: +0530
+         XXX: +5:30
 
 - short: equivalent to h:mm tt
 - medium: equivalent to h:mm:ss tt
