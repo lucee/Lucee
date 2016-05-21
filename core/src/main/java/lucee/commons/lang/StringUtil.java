@@ -23,9 +23,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import lucee.print;
+import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
 
 
@@ -723,8 +726,26 @@ public final class StringUtil {
 
         return sb.toString();
     }
-    
 	
+	public static String replace(PageContext pc, String input, String find, UDF udf, boolean firstOnly) throws PageException {
+		int len;
+		if((len=find.length())==0) return input;
+		
+		StringBuilder sb=new StringBuilder();
+		String repl;
+		int index,last=0;
+		while((index=input.indexOf(find,last))!=-1) {
+			sb.append(input.substring(last, index));
+			repl=Caster.toString(udf.call(pc, new Object[]{find,index,input}, true));
+			sb.append(repl);
+			last=index+len;
+			if(firstOnly) break;
+		}
+		if(last<input.length()) sb.append(input.substring(last));
+		return sb.toString();
+    }
+    
+
 	/**
 	 * maintains the legacy signature of this method where matches are CaSe sensitive (sets the default of ignoreCase to false). 
 	 * 

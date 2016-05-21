@@ -13286,7 +13286,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<argument>
 			<name>substring2</name>
 			<alias>sub2,repl</alias>
-			<type>string</type>
+			<type>any</type>
 			<required>No</required>
 			<description>Substring with which to replace the found matches.  This arg is required if the substring1 arg is a string</description>
 		</argument>
