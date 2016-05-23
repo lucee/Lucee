@@ -13307,6 +13307,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>replaceList</name>
 		<class>lucee.runtime.functions.string.ReplaceList</class>
+		<member-name>replaceList</member-name>
+		<keywords>string,list</keywords>
 		<description>Replaces occurrences of the elements from a delimited list
         in a string with corresponding elements from another delimited
         list. The search is case-sensitive.</description>
@@ -13347,6 +13349,54 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
+	
+	<!-- replaceListNoCase -->
+	<function>
+		<name>replaceListNoCase</name>
+		<class>lucee.runtime.functions.string.ReplaceListNoCase</class>
+		<member-name>replaceListNoCase</member-name>
+		<keywords>string,list</keywords>
+		<description>Replaces occurrences of the elements from a delimited list
+        in a string with corresponding elements from another delimited
+        list. The search is NOT case-sensitive.</description>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>A string</description>
+	    </argument>
+		<argument>
+			<name>list1</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>string list of search strings</description>
+	    </argument>
+		<argument>
+			<name>list2</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>string list of replacement strings</description>
+	    </argument>
+		<argument>
+			<name>delimiter_list1</name>
+			<alias>delimiter</alias>
+			<type>string</type>
+			<required>no</required>
+			<description>Delimiter for search, or if no replacement delimiter is defined, this delimiter is used for search and replacement.</description>
+	    </argument>
+		<argument>
+			<name>delimiter_list2</name>
+			<type>string</type>
+			<required>no</required>
+			<description>Delimiter for replacement.</description>
+	    </argument>
+	    
+	    
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	
 	<!-- replaceNoCase -->
 	<function>
 		<name>replaceNoCase</name>
