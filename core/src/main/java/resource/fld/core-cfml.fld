@@ -2095,8 +2095,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 - vbscript: for output inside vbscript
 - xml: for output inside XML
 - xml_attr: for output inside XML Attributes
-- xpath: for output in XPath
-</description>
+- xpath: for output in XPath</description>
 	    </argument>
     
 		<return>
