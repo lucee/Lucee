@@ -19,15 +19,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public void function testClassic() localmode="true" {
 		qry=query(a:[1,2,3]);
 		assertEquals('1,2,3',valueList(qry.a));
+		assertEquals('1;2;3',valueList(qry.a,';'));
 	}
 
-	public void function test() localmode="true" {
+	/*public void function test() localmode="true" {
 		qry=query(a:[1,2,3]);
 		assertEquals('1,2,3',valueList(qry,"a"));
-	} 
+	} */
 
 	public void function testMember() localmode="true" {
 		qry=query(a:[1,2,3]);
 		assertEquals('1,2,3',qry.valueList("a"));
+		assertEquals('1;2;3',qry.valueList("a",';'));
 	}
 } 

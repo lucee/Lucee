@@ -12,8 +12,8 @@ public class ValueList implements FunctionEvaluator {
 	@Override
 	public FunctionLibFunction pre(BIF bif, FunctionLibFunction flf) throws TemplateException {
 		Argument[] args = bif.getArguments();
-		// if we have to argument, we switch to QueryColumnData
-		if(args.length==2) {
+		// if we have 3 arguments, we switch to _valueList
+		if(args.length==3) {
 			return flf.getFunctionLib().getFunction("_ValueList");
 			
 		}

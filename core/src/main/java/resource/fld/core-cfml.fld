@@ -1965,7 +1965,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>valueList</name>
 		<class>lucee.runtime.functions.query.ValueList</class>
-		<tte-class>lucee.transformer.cfml.evaluator.func.impl.ValueList</tte-class>
+		<!--- <tte-class>lucee.transformer.cfml.evaluator.func.impl.ValueList</tte-class> --->
 		<status>deprecated</status>
 		<keywords>query</keywords>
 		<description>Returns a list of all the values, for a given column within the query, delimited by the value given.
