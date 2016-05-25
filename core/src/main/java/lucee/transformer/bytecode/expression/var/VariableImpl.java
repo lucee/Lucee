@@ -418,7 +418,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		// Arg Type FIX
 		if(bif.getArgType()==FunctionLibFunction.ARG_FIX && !bifCD.isBundle())	{
 			
-			if(isNamed(bif.getName(),args)) {
+			if(isNamed(bif.getFlf().getName(),args)) {
 				NamedArgument[] nargs=toNamedArguments(args);
 				
 				String[] names=new String[nargs.length];
@@ -755,7 +755,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	 * @return
 	 * @throws TransformerException
 	 */
-	private static  boolean isNamed(Object funcName,Argument[] args) throws TransformerException {
+	private static  boolean isNamed(String funcName,Argument[] args) throws TransformerException {
 		if(ArrayUtil.isEmpty(args)) return false;
 		boolean named=false;
 		for(int i=0;i<args.length;i++){

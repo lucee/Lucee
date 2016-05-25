@@ -21,6 +21,7 @@ package lucee.transformer.cfml.expression;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import lucee.print;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.exp.CasterException;
@@ -1258,7 +1259,7 @@ public abstract class AbstrCFMLExprTransformer {
 		if(!data.srcCode.forwardIfCurrent(start))return null;
 		
 		Position line = data.srcCode.getPosition();
-		BIF bif=new BIF(data.settings,data.factory.createLitString(flf.getName()),flf);
+		BIF bif=new BIF(data.factory,data.settings,flf);
 		data.ep.add(flf, bif, data.srcCode);
 		bif.setArgType(flf.getArgType());
 		try {
@@ -1723,128 +1724,184 @@ public abstract class AbstrCFMLExprTransformer {
 				checkLibrary = false;
 			}
 		}
-		// Element Function
-		FunctionMember fm;
-		if(checkLibrary) {
-			BIF bif=new BIF(data.settings,name,flf);
-			data.ep.add(flf, bif, data.srcCode);
-			
-			bif.setArgType(flf.getArgType());
-			try {
-				bif.setClassDefinition(flf.getFunctionClassDefinition());
-			} catch (Throwable t) {
-				throw new PageRuntimeException(t);
-			}
-			bif.setReturnType(flf.getReturnTypeAsString());
-			fm=bif;
-			
-			if(flf.getArgType()== FunctionLibFunction.ARG_DYNAMIC && flf.hasDefaultValues()){
-        		ArrayList<FunctionLibFunctionArg> args = flf.getArg();
-				Iterator<FunctionLibFunctionArg> it = args.iterator();
-        		FunctionLibFunctionArg arg;
-        		while(it.hasNext()){
-        			arg=it.next();
-        			if(arg.getDefaultValue()!=null)
-        				bif.addArgument(
-        						new NamedArgument(
-        								data.factory.createLitString(arg.getName()),
-        								data.factory.createLitString(arg.getDefaultValue()),
-        								arg.getTypeAsString(),false
-        								));
-        		}
-			}
-		}
-		else {
-			fm = new UDF(name);
-		}
-		
-		
-		
 
-		// Function Attributes
-		ArrayList<FunctionLibFunctionArg> arrFuncLibAtt = null;
-		int libLen = 0;
-		if (checkLibrary) {
-			arrFuncLibAtt = flf.getArg();
-			libLen = arrFuncLibAtt.size();
-		}
-		int count = 0;
-		do {
-			data.srcCode.next();
-            comments(data);
-
-			// finish
-			if (count==0 && data.srcCode.isCurrent(')'))
-				break;
-
-			// too many Attributes
-			boolean isDynamic=false;
-			int max=-1;
+		FunctionMember fm=null;
+		while(true) {
+			int pos = data.srcCode.getPos();
+			// Element Function
 			if(checkLibrary) {
-				isDynamic=flf.getArgType()==FunctionLibFunction.ARG_DYNAMIC;
-				max=flf.getArgMax();
-			// Dynamic
-				if(isDynamic) {
-					if(max!=-1 && max <= count)
-						throw new TemplateException(
-							data.srcCode,
-							"too many Attributes in function [" + ASMUtil.display(name) + "]");
-				}
-			// Fix
-				else {
-					if(libLen <= count){
-						
-						TemplateException te = new TemplateException(
-							data.srcCode,
-							"too many Attributes in function call [" + ASMUtil.display(name) + "]");
-						UDFUtil.addFunctionDoc(te, flf);
-						throw te;
-					}
-				}
+				BIF bif=new BIF(data.factory,data.settings,flf);
+				// TODO data.ep.add(flf, bif, data.srcCode);
 				
+				bif.setArgType(flf.getArgType());
+				try {
+					bif.setClassDefinition(flf.getFunctionClassDefinition());
+				} catch (Throwable t) {
+					throw new PageRuntimeException(t);
+				}
+				bif.setReturnType(flf.getReturnTypeAsString());
+				fm=bif;
+				
+				if(flf.getArgType()== FunctionLibFunction.ARG_DYNAMIC && flf.hasDefaultValues()){
+	        		ArrayList<FunctionLibFunctionArg> args = flf.getArg();
+					Iterator<FunctionLibFunctionArg> it = args.iterator();
+	        		FunctionLibFunctionArg arg;
+	        		while(it.hasNext()){
+	        			arg=it.next();
+	        			if(arg.getDefaultValue()!=null)
+	        				bif.addArgument(
+	        						new NamedArgument(
+	        								data.factory.createLitString(arg.getName()),
+	        								data.factory.createLitString(arg.getDefaultValue()),
+	        								arg.getTypeAsString(),false
+	        								));
+	        		}
+				}
+			}
+			else {
+				fm = new UDF(name);
 			}
 			
-			//Argument arg;
-			if (checkLibrary && !isDynamic) {
-				// current attribues from library
-				FunctionLibFunctionArg funcLibAtt =arrFuncLibAtt.get(count);
-				fm.addArgument(functionArgument(data,funcLibAtt.getTypeAsString(),false));	
-			} 
-			else {
-				fm.addArgument(functionArgument(data,false));
+			
+			
+	
+			// Function Attributes
+			ArrayList<FunctionLibFunctionArg> arrFuncLibAtt = null;
+			//int libLen = 0;
+			if (checkLibrary) {
+				arrFuncLibAtt = flf.getArg();
+				//libLen = arrFuncLibAtt.size();
 			}
-
-            comments(data);
-			count++;
-			if (data.srcCode.isCurrent(')'))
-				break;
-		} 
-		while (data.srcCode.isCurrent(','));
-
-		// end with ) ??		
-		if (!data.srcCode.forwardIfCurrent(')'))
-			throw new TemplateException(
-				data.srcCode,
-				"Invalid Syntax Closing [)] for function ["
-					+ ASMUtil.display(name)
-					+ "] not found");
-
-		// check min attributes
-		if (checkLibrary && flf.getArgMin() > count){
-			TemplateException te = new TemplateException(
-				data.srcCode,
-				"too few attributes in function [" + ASMUtil.display(name) + "]");
-			if(flf.getArgType()==FunctionLibFunction.ARG_FIX) UDFUtil.addFunctionDoc(te, flf);
-			throw te;
+			int count = 0;
+			do {
+				data.srcCode.next();
+	            comments(data);
+	
+				// finish
+				if (count==0 && data.srcCode.isCurrent(')'))
+					break;
+	
+				// too many Attributes
+				//boolean isDynamic=flf.getArgType()==FunctionLibFunction.ARG_DYNAMIC;
+				//int max=-1;
+				/*if(checkLibrary) {
+					isDynamic=flf.getArgType()==FunctionLibFunction.ARG_DYNAMIC;
+					max=flf.getArgMax();
+				// Dynamic
+					if(isDynamic) {
+						if(max!=-1 && max <= count)
+							throw new TemplateException(
+								data.srcCode,
+								"too many Attributes in function [" + ASMUtil.display(name) + "]");
+					}
+				// Fix
+					else {
+						if(libLen <= count){
+							TemplateException te = new TemplateException(
+								data.srcCode,
+								"too many Attributes in function call [" + ASMUtil.display(name) + "]");
+							UDFUtil.addFunctionDoc(te, flf);
+							throw te;
+						}
+					}
+					
+				}*/
+				
+				//Argument arg;
+				if (checkLibrary && flf.getArgType()!=FunctionLibFunction.ARG_DYNAMIC) {
+					// current attribues from library
+					try {
+						FunctionLibFunctionArg funcLibAtt =arrFuncLibAtt.get(count);
+						fm.addArgument(functionArgument(data,funcLibAtt.getTypeAsString(),false));
+					}
+					catch(Throwable t){
+						print.e(flf.getName());
+						t.printStackTrace();
+					}	
+				} 
+				else {
+					fm.addArgument(functionArgument(data,false));
+				}
+	
+	            comments(data);
+				count++;
+				if (data.srcCode.isCurrent(')'))
+					break;
+			} 
+			while (data.srcCode.isCurrent(','));
+	
+			// end with ) ??		
+			if (!data.srcCode.forwardIfCurrent(')'))
+				throw new TemplateException(
+					data.srcCode,
+					"Invalid Syntax Closing [)] for function ["
+						+ (flf!=null?flf.getName():ASMUtil.display(name))
+						+ "] not found");
+			
+	
+	       
+	        
+	        if (checkLibrary) {
+	        	 // pre
+		        if(flf.hasTteClass()){
+		        	FunctionLibFunction tmp = flf.getEvaluator().pre((BIF) fm, flf);
+		        	if(tmp!=null && tmp!=flf) {
+		        		flf=tmp;
+		        		data.srcCode.setPos(pos);
+		        		continue;
+		        	}
+		        }
+	        	
+	        	
+		        // check max attributes
+		        {
+					boolean isDynamic = flf.getArgType()==FunctionLibFunction.ARG_DYNAMIC;
+					int max = flf.getArgMax();
+				// Dynamic
+					if(isDynamic) {
+						if(max!=-1 && max < fm.getArguments().length)
+							throw new TemplateException(
+								data.srcCode,
+								"too many Attributes ("+max+":"+fm.getArguments().length+") in function [ " + ASMUtil.display(name) + " ]");
+					}
+				// Fix
+					else {
+						if(flf.getArg().size() < fm.getArguments().length){
+							TemplateException te = new TemplateException(
+								data.srcCode,
+								"too many Attributes ("+flf.getArg().size()+":"+fm.getArguments().length+") in function call [" + ASMUtil.display(name) + "]");
+							UDFUtil.addFunctionDoc(te, flf);
+							throw te;
+						}
+					}
+					
+				}
+		        
+				// check min attributes
+				if (flf.getArgMin() > count){
+					TemplateException te = new TemplateException(
+						data.srcCode,
+						"too few attributes in function [" + ASMUtil.display(name) + "]");
+					if(flf.getArgType()==FunctionLibFunction.ARG_FIX) UDFUtil.addFunctionDoc(te, flf);
+					throw te;
+				}
+	
+		        // evaluator
+		        if(flf.hasTteClass()){
+		        	flf.getEvaluator().execute((BIF) fm, flf);
+		        	
+		        }
+	        }
+	        comments(data);
+	        
+	        if(checkLibrary)data.ep.add(flf, (BIF)fm, data.srcCode);
+			
+	        
+	        break;
 		}
+		
 
-        comments(data);
         
-        // evaluator
-        if(checkLibrary && flf.hasTteClass()){
-        	flf.getEvaluator().execute((BIF) fm, flf);
-        	
-        }
         
 		return fm;
 	}

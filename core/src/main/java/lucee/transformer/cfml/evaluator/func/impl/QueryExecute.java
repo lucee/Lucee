@@ -65,4 +65,6 @@ public class QueryExecute implements FunctionEvaluator{
 			bif.addArgument(new Argument(bif.getFactory().createLitString(str), "string"));
 		}
 	}
+	@Override
+	public FunctionLibFunction pre(BIF bif, FunctionLibFunction flf) throws TemplateException {return null;}
 }
