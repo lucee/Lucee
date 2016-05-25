@@ -1965,6 +1965,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>valueList</name>
 		<class>lucee.runtime.functions.query.ValueList</class>
+		<tte-class>lucee.transformer.cfml.evaluator.func.impl.ValueList</tte-class>
 		<status>deprecated</status>
 		<keywords>query</keywords>
 		<description>Returns a list of all the values, for a given column within the query, delimited by the value given.
@@ -1975,6 +1976,40 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<required>Yes</required>
 		<description>Name of an executed query and column. Separate query name and column name with a period.</description>
     </argument>
+		<argument>
+			<name>delimiter</name>
+			<alias>delimiters</alias>
+			<type>string</type>
+			<required>No</required>
+			<default>,</default>
+		<description>A delimiter character to separate column data items.
+            Default: comma (,).</description>
+    </argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	
+	<!-- valueList (Member) -->
+	<function>
+		<name>_valueList</name>
+		<class>lucee.runtime.functions.query.ValueListMember</class>
+		<member-name>valueList</member-name>
+		<status>hidden</status>
+		<keywords>query</keywords>
+		<description>Returns a list of all the values, for a given column within the query, delimited by the value given.</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query object do get data from</description>
+	    </argument>	
+		<argument>
+			<name>columnName</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>name of the column returned</description>
+	    </argument>	
 		<argument>
 			<name>delimiter</name>
 			<alias>delimiters</alias>

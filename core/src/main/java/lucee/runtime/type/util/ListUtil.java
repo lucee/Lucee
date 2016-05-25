@@ -965,7 +965,7 @@ public final class ListUtil {
 		
 		for(int i=2;i<=len;i++) {
 			sb.append(delimiter);
-			sb.append(array.get(i,""));
+			sb.append(Caster.toString(array.get(i,"")));
 		}
 		return sb.toString();
 	}

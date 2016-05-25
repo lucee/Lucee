@@ -7,14 +7,14 @@ import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.FunctionEvaluator;
 import lucee.transformer.library.function.FunctionLibFunction;
 
-public class ValueArray implements FunctionEvaluator {
+public class ValueList implements FunctionEvaluator {
 
 	@Override
 	public FunctionLibFunction pre(BIF bif, FunctionLibFunction flf) throws TemplateException {
 		Argument[] args = bif.getArguments();
 		// if we have to argument, we switch to QueryColumnData
 		if(args.length==2) {
-			return flf.getFunctionLib().getFunction("QueryColumnData");
+			return flf.getFunctionLib().getFunction("_ValueList");
 			
 		}
 		return null;

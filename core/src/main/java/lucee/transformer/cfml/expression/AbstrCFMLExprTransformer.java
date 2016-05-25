@@ -21,7 +21,6 @@ package lucee.transformer.cfml.expression;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import lucee.print;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.exp.CasterException;
@@ -1781,43 +1780,18 @@ public abstract class AbstrCFMLExprTransformer {
 				if (count==0 && data.srcCode.isCurrent(')'))
 					break;
 	
-				// too many Attributes
-				//boolean isDynamic=flf.getArgType()==FunctionLibFunction.ARG_DYNAMIC;
-				//int max=-1;
-				/*if(checkLibrary) {
-					isDynamic=flf.getArgType()==FunctionLibFunction.ARG_DYNAMIC;
-					max=flf.getArgMax();
-				// Dynamic
-					if(isDynamic) {
-						if(max!=-1 && max <= count)
-							throw new TemplateException(
-								data.srcCode,
-								"too many Attributes in function [" + ASMUtil.display(name) + "]");
-					}
-				// Fix
-					else {
-						if(libLen <= count){
-							TemplateException te = new TemplateException(
-								data.srcCode,
-								"too many Attributes in function call [" + ASMUtil.display(name) + "]");
-							UDFUtil.addFunctionDoc(te, flf);
-							throw te;
-						}
-					}
-					
-				}*/
-				
 				//Argument arg;
 				if (checkLibrary && flf.getArgType()!=FunctionLibFunction.ARG_DYNAMIC) {
 					// current attribues from library
-					try {
-						FunctionLibFunctionArg funcLibAtt =arrFuncLibAtt.get(count);
-						fm.addArgument(functionArgument(data,funcLibAtt.getTypeAsString(),false));
-					}
-					catch(Throwable t){
-						print.e(flf.getName());
-						t.printStackTrace();
-					}	
+						String _type;
+						try{
+							_type = arrFuncLibAtt.get(count).getTypeAsString();
+						}
+						catch(IndexOutOfBoundsException e) {
+							_type=null;
+						}
+						fm.addArgument(functionArgument(data,_type,false));
+					
 				} 
 				else {
 					fm.addArgument(functionArgument(data,false));
