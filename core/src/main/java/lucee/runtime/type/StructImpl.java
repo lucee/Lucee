@@ -32,7 +32,10 @@ import lucee.commons.collection.MapProWrapper;
 import lucee.commons.collection.SyncMap;
 import lucee.commons.collection.WeakHashMapPro;
 import lucee.commons.lang.SerializableObject;
+import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
+import lucee.runtime.dump.DumpData;
+import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Duplicator;
@@ -92,7 +95,15 @@ public class StructImpl extends StructSupport {
     	return StructUtil.getType(map);
     }
     
-    
+
+	@Override
+	public DumpData toDumpData(PageContext pageContext, int maxlevel,DumpProperties properties) {
+		int type = getType();
+		String subject=type==Struct.TYPE_REGULAR || type==Struct.TYPE_SYNC || type==Struct.TYPE_UNDEFINED?
+				"Struct":"Struct ("+StructUtil.toType(type, "")+")";
+		
+		return StructUtil.toDumpTable(this,subject,pageContext,maxlevel,properties);
+	}
     
     
 	

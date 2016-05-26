@@ -279,17 +279,29 @@ public final class StructUtil {
 		}
 		return sct;
 	}
-    
-    public static int getType(MapPro m){
-    	if(m instanceof SyncMap)
-    		return ((SyncMap)m).getType();
-    	
-    	if(m instanceof LinkedHashMapPro) return Struct.TYPE_LINKED;
-    	if(m instanceof WeakHashMapPro) return Struct.TYPE_WEAKED;
-    	//if(map instanceof SyncMap) return TYPE_SYNC;
-    	if(m instanceof MapProWrapper) return Struct.TYPE_SOFT;
-    	return Struct.TYPE_REGULAR;
-    }
+
+	public static int getType(MapPro m){
+		if(m instanceof SyncMap)
+			return ((SyncMap)m).getType();
+		
+		if(m instanceof LinkedHashMapPro) return Struct.TYPE_LINKED;
+		if(m instanceof WeakHashMapPro) return Struct.TYPE_WEAKED;
+		//if(map instanceof SyncMap) return TYPE_SYNC;
+		if(m instanceof MapProWrapper) return Struct.TYPE_SOFT;
+		return Struct.TYPE_REGULAR;
+	}
+	
+	public static String toType(int type, String defaultValue){
+		if(Struct.TYPE_LINKED==type) return "ordered";
+		if(Struct.TYPE_WEAKED==type) return "weak";
+		if(Struct.TYPE_REGULAR==type) return "regular";
+		if(Struct.TYPE_REGULAR==type) return "regular";
+		if(Struct.TYPE_SOFT==type) return "soft";
+		if(Struct.TYPE_SYNC==type) return "synchronized";
+		if(Struct.TYPE_UNDEFINED==type) return "undefined";
+		
+		return defaultValue;
+	}
 
     /**
      * creates a hash based on the keys of the Map/Struct
