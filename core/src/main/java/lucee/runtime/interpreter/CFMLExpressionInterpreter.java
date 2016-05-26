@@ -19,7 +19,9 @@
 package lucee.runtime.interpreter;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import lucee.print;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ParserString;
 import lucee.loader.engine.CFMLEngine;
@@ -31,6 +33,7 @@ import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.TemplateException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.Set;
 import lucee.runtime.interpreter.ref.cast.Casting;
@@ -163,6 +166,8 @@ public class CFMLExpressionInterpreter {
 	private static FunctionLibFunction LITERAL_STRUCT = null;
 	private static FunctionLibFunction JSON_ARRAY = null;
 	private static FunctionLibFunction JSON_STRUCT = null;
+	private static FunctionLibFunction LITERAL_ORDERED_STRUCT = null;
+
 	
 
 	//private static final int CASE_TYPE_UPPER = 0;
@@ -204,6 +209,8 @@ public class CFMLExpressionInterpreter {
         if(LITERAL_STRUCT==null)LITERAL_STRUCT=fld.getFunction("_literalStruct");
         if(JSON_ARRAY==null)JSON_ARRAY=fld.getFunction("_jsonArray");
         if(JSON_STRUCT==null)JSON_STRUCT=fld.getFunction("_jsonStruct");
+        if(LITERAL_ORDERED_STRUCT==null)LITERAL_ORDERED_STRUCT=fld.getFunction("_literalOrderedStruct");
+
 		
         cfml.removeSpace();
         Ref ref = assignOp();
@@ -1012,7 +1019,29 @@ public class CFMLExpressionInterpreter {
     protected Ref json(FunctionLibFunction flf, char start, char end) throws PageException {
 		if(!cfml.isCurrent(start))return null;
 		
+		if(cfml.forwardIfCurrent('[',':',']') || cfml.forwardIfCurrent('[','=',']')) {
+			return new BIFCall(LITERAL_ORDERED_STRUCT,new Ref[0]);
+		}
+		
+		
+		
 		Ref[] args = functionArg(flf.getName(), false, flf,end);
+		if(args!=null && args.length>0 && flf==LITERAL_ARRAY) {
+			if(args[0] instanceof LFunctionValue) {
+				for(int i=1;i<args.length;i++) {
+					if(!(args[i] instanceof LFunctionValue)) 
+						throw new TemplateException("invalid argument for literal ordered struct, only named arguments are allowed like {name:\"value\",name2:\"value2\"}");
+				}
+				flf=LITERAL_ORDERED_STRUCT;
+			}
+			else {
+				for(int i=1;i<args.length;i++) {
+					if(args[i] instanceof LFunctionValue) 
+						throw new TemplateException("invalid argument for literal array, no named arguments are allowed");
+				}
+				
+			}
+		}
 		
 		return new BIFCall(flf,args);
 	}
@@ -1416,9 +1445,9 @@ public class CFMLExpressionInterpreter {
         
 
         // Function Attributes
-        ArrayList arr = new ArrayList();
+        List<Ref> arr = new ArrayList<Ref>();
         
-        ArrayList arrFuncLibAtt = null;
+        List<FunctionLibFunctionArg> arrFuncLibAtt = null;
         int libLen = 0;
         if (checkLibrary) {
             arrFuncLibAtt = flf.getArg();

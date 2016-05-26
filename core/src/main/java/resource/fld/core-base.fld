@@ -65,6 +65,7 @@
 	<function>
 		<name>_literalArray</name>
 		<class>lucee.runtime.functions.arrays.LiteralArray</class>
+		<tte-class>lucee.transformer.cfml.evaluator.func.impl.LiteralArray</tte-class>
 		<status>hidden</status>
 		<keywords>array</keywords>
 		<description>internal function used for literal array defintion</description>
@@ -14113,6 +14114,18 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.struct.LiteralStruct</class>
 		<status>hidden</status>
 		<description>internal function used as for literal struct defintion.</description>
+		<argument-type>dynamic</argument-type>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
+	<!-- _literalOrderedStruct -->
+	<function>
+		<name>_literalOrderedStruct</name>
+		<class>lucee.runtime.functions.struct.LiteralOrderedStruct</class>
+		<status>hidden</status>
+		<description>internal function used as for literal ordered struct defintion.</description>
 		<argument-type>dynamic</argument-type>
 		<return>
 			<type>struct</type>

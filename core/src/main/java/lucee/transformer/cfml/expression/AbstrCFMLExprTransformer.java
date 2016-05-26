@@ -21,6 +21,7 @@ package lucee.transformer.cfml.expression;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import lucee.print;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.exp.CasterException;
@@ -1258,8 +1259,28 @@ public abstract class AbstrCFMLExprTransformer {
 		if(!data.srcCode.forwardIfCurrent(start))return null;
 		
 		Position line = data.srcCode.getPosition();
+		
+		data.srcCode.removeSpace();
+		// [:|=]
+		if(data.srcCode.forwardIfCurrent(':', ']') || data.srcCode.forwardIfCurrent('=', ']')) {
+			flf=flf.getFunctionLib().getFunction("_literalOrderedStruct");
+			BIF bif=new BIF(data.factory,data.settings,flf);
+			bif.setArgType(flf.getArgType());
+			try {
+				bif.setClassDefinition(flf.getFunctionClassDefinition());
+			} catch (Throwable t) {
+				throw new PageRuntimeException(t);
+			}
+			bif.setReturnType(flf.getReturnTypeAsString());
+			
+			data.ep.add(flf, bif, data.srcCode);
+			Variable var=data.factory.createVariable(line,data.srcCode.getPosition());
+			var.addMember(bif);
+			return var;
+		}
+		
+		
 		BIF bif=new BIF(data.factory,data.settings,flf);
-		data.ep.add(flf, bif, data.srcCode);
 		bif.setArgType(flf.getArgType());
 		try {
 			bif.setClassDefinition(flf.getFunctionClassDefinition());
@@ -1267,6 +1288,8 @@ public abstract class AbstrCFMLExprTransformer {
 			throw new PageRuntimeException(t);
 		}
 		bif.setReturnType(flf.getReturnTypeAsString());
+		
+		
 		
 		do {
 			comments(data);
@@ -1281,6 +1304,25 @@ public abstract class AbstrCFMLExprTransformer {
 		if (!data.srcCode.forwardIfCurrent(end))
 			throw new TemplateException(data.srcCode,"Invalid Syntax Closing ["+end+"] not found");
 		comments(data);
+		
+		if(flf.hasTteClass()) {
+			FunctionLibFunction tmp = flf.getEvaluator().pre(bif, flf);
+			if(tmp!=null && tmp!=flf) {
+				bif.setFlf(flf=tmp);
+				bif.setArgType(flf.getArgType());
+				try {
+					bif.setClassDefinition(flf.getFunctionClassDefinition());
+				} catch (Throwable t) {
+					throw new PageRuntimeException(t);
+				}
+				bif.setReturnType(flf.getReturnTypeAsString());
+				
+			}
+		}
+		
+		
+		
+		data.ep.add(flf, bif, data.srcCode);
 		Variable var=data.factory.createVariable(line,data.srcCode.getPosition());
 		var.addMember(bif);
 		return var;
