@@ -3534,6 +3534,8 @@ public abstract class ConfigImpl implements Config {
 	 * @return
 	 */
 	public abstract Collection<BundleDefinition> getAllExtensionBundleDefintions();
+	
+	public abstract Collection<RHExtension> getAllRHExtensions();
 
 	protected void setJDBCDrivers(JDBCDriver[] drivers) {
 		this.drivers=drivers;

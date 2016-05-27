@@ -29,6 +29,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -42,6 +43,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
+import lucee.print;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
@@ -106,6 +108,7 @@ import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.BundleBuilderFactory;
 import lucee.runtime.osgi.BundleFile;
+import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.reflection.Reflector;
@@ -4601,7 +4604,7 @@ public final class XMLConfigAdmin {
 			BundleDefinition[] existing = _updateExtension(ci, rhext);
 			// _storeAndReload();
 			// this must happen after "store"
-			cleanBundles(ci,existing);// clean after populating the new ones
+			cleanBundles(rhext,ci,existing);// clean after populating the new ones
 			// ConfigWebAdmin.updateRHExtension(ci,rhext);
 			
 			
@@ -4612,6 +4615,23 @@ public final class XMLConfigAdmin {
 			while ( ( entry = zis.getNextEntry()) != null ) {
 				path=entry.getName();
 				fileName=fileName(entry);
+				
+				// jars
+				if(!entry.isDirectory() && 
+					(startsWith(path,type,"jars") || startsWith(path,type,"jar") 
+					|| startsWith(path,type,"bundles") || startsWith(path,type,"bundle") 
+					|| startsWith(path,type,"lib") || startsWith(path,type,"libs")) && StringUtil.endsWithIgnoreCase(path, ".jar")) {
+					
+					Object obj = XMLConfigAdmin.installBundle(config,zis,fileName,rhext.getVersion(),false,false);
+					// jar is not a bundle, only a regular jar
+					if(!(obj instanceof BundleFile)) {
+						Resource tmp=(Resource)obj;
+						Resource tmpJar=tmp.getParentResource().getRealResource(ListUtil.last(path, "\\/"));
+						tmp.moveTo(tmpJar);
+						XMLConfigAdmin.updateJar(config, tmpJar, false);
+					}
+				}
+				
 				// flds
 				if(!entry.isDirectory() && startsWith(path,type,"flds") && (StringUtil.endsWithIgnoreCase(path, ".fld") || StringUtil.endsWithIgnoreCase(path, ".fldx"))) {
 					logger.log(Log.LEVEL_INFO,"extension","deploy fld "+fileName);
@@ -4702,8 +4722,9 @@ public final class XMLConfigAdmin {
 			   
 			// load the bundles
 			if(rhext.getStartBundles()) {
-				BundleFile[] bfs = rhext.getBundlesFiles();
-				for(BundleFile bf:bfs){
+				rhext.deployBundles();
+				BundleInfo[] bfs = rhext.getBundles();
+				for(BundleInfo bf:bfs){
 					OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(),null);
 				}
 			}
@@ -4922,10 +4943,10 @@ public final class XMLConfigAdmin {
 		
 		try {
 			// remove the bundles
-			BundleDefinition[] candidatesToRemove = OSGiUtil.toBundleDefinitions(rhe.getBundlesFiles());
+			BundleDefinition[] candidatesToRemove = OSGiUtil.toBundleDefinitions(rhe.getBundles());
 			if(replacementRH!=null) {
 				// spare bundles used in the new extension as well
-				Map<String, BundleDefinition> notRemove = toMap(OSGiUtil.toBundleDefinitions(replacementRH.getBundlesFiles()));
+				Map<String, BundleDefinition> notRemove = toMap(OSGiUtil.toBundleDefinitions(replacementRH.getBundles()));
 				List<BundleDefinition> tmp=new ArrayList<OSGiUtil.BundleDefinition>();
 				String key;
 				for(int i=0;i<candidatesToRemove.length;i++){
@@ -4935,7 +4956,7 @@ public final class XMLConfigAdmin {
 				}
 				candidatesToRemove=tmp.toArray(new BundleDefinition[tmp.size()]);
 			}
-			XMLConfigAdmin.cleanBundles(ci, candidatesToRemove);
+			XMLConfigAdmin.cleanBundles(rhe,ci, candidatesToRemove);
 			
 			
 			// FLD
@@ -5967,7 +5988,7 @@ public final class XMLConfigAdmin {
 				admin._storeAndReload((ConfigImpl)webs[i]);
 			}
 		}
-		cleanBundles(config,old);// clean after populating the new ones
+		cleanBundles(null,config,old);// clean after populating the new ones
 			
 	}
 
@@ -6028,7 +6049,7 @@ public final class XMLConfigAdmin {
   		return null;
 	}
 	
-	public static void cleanBundles(ConfigImpl config, BundleDefinition[] candiatesToRemove) throws BundleException {
+	public static void cleanBundles(RHExtension rhe,ConfigImpl config, BundleDefinition[] candiatesToRemove) throws BundleException {
 		if(ArrayUtil.isEmpty(candiatesToRemove)) return;
 		
 		BundleCollection coreBundles = ConfigWebUtil.getEngine(config).getBundleCollection();
@@ -6043,15 +6064,19 @@ public final class XMLConfigAdmin {
 			b = it.next();
 			_cleanBundles(candiatesToRemove,b.getSymbolicName(),b.getVersion());
 		}
-		
+
 		// all extension 
-		Iterator<BundleDefinition> itt = config.getAllExtensionBundleDefintions().iterator();
-		BundleDefinition bd;
-		while(itt.hasNext()){
-			bd = itt.next();
-			_cleanBundles(candiatesToRemove,bd.getName(),bd.getVersion());
+		Iterator<RHExtension> itt = config.getAllRHExtensions().iterator();
+		RHExtension _rhe;
+		while(itt.hasNext()) {
+			_rhe=itt.next();
+			if(rhe!=null && rhe.equals(_rhe)) continue;
+			BundleInfo[] bundles = _rhe.getBundles();
+			for(BundleInfo bi:bundles) {
+				_cleanBundles(candiatesToRemove,bi.getSymbolicName(),bi.getVersion());
+			}
 		}
-		
+
 		// now we only have BundlesDefs in the array no longer used
 		for(BundleDefinition ctr:candiatesToRemove) {
 			if(ctr!=null)OSGiUtil.removeLocalBundle(ctr.getName(), ctr.getVersion(), true);
@@ -6121,7 +6146,7 @@ public final class XMLConfigAdmin {
   			if(ext.getId().equalsIgnoreCase(id)) {
   				old = RHExtension.toBundleDefinitions(el.getAttribute("bundles")); // get existing bundles before populate new ones
   				ext.populate(el);
-  				old=minus(old,OSGiUtil.toBundleDefinitions(ext.getBundlesFiles()));
+  				old=minus(old,OSGiUtil.toBundleDefinitions(ext.getBundles()));
   				return old;
   			}
       	}

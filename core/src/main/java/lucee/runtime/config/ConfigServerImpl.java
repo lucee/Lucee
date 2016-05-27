@@ -786,6 +786,31 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		
 		return rtn.values();
 	}
+	
+	@Override
+	public Collection<RHExtension> getAllRHExtensions() {
+		Map<String,RHExtension> rtn=new HashMap<>();
+		
+		// server (this) 
+		RHExtension[] arr = getRHExtensions();
+		for(RHExtension rhe:arr){
+			rtn.put(rhe.getId(),rhe);
+		}
+		
+		
+		// webs
+		ConfigWeb[] cws = getConfigWebs();
+		for(ConfigWeb cw:cws) {
+			arr = ((ConfigWebImpl)cw).getRHExtensions();
+			for(RHExtension rhe:arr){
+				rtn.put(rhe.getId(),rhe);
+			}
+		}
+		
+		
+		return rtn.values();
+	}
+	
 
 	protected void setLibHash(String libHash) {
 		this.libHash=libHash;

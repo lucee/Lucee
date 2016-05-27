@@ -147,6 +147,7 @@ import lucee.runtime.orm.DummyORMEngine;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.osgi.BundleFile;
+import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.reflection.Reflector;
@@ -4166,23 +4167,18 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			RHExtension rhe;
 			try {
 				rhe = new RHExtension(config,child);
+				if(rhe.getStartBundles()) rhe.deployBundles();
 				extensions.add(rhe);
 			} catch (Exception e) {
 				log.error("load-extension", e);
 				continue;
 			}
 			
-			// now we load the bundles
-			//strBundles=getAttr(child,"bundles");
-			
-			//if(!rhe.getStartBundles()) continue;
-			
-			BundleFile[] bfs = rhe.getBundlesFiles();
-			BundleFile bf;
+			BundleInfo[] bfs = rhe.getBundles();
+			BundleInfo bf;
 			BundleDefinition bd;
 			for(int i=0;i<bfs.length;i++) {
 				bf=bfs[i];
-				//if(bf.getSymbolicName().equals("hibernate.extension")) continue;
 				extensionBundles.put(bf.getSymbolicName()+"|"+bf.getVersionAsString(), bd=bf.toBundleDefinition());
 				try {
 					if(rhe.getStartBundles()) {
