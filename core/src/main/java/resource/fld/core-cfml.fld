@@ -1911,6 +1911,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>uRLEncodedFormat</name>
 		<class>lucee.runtime.functions.other.URLEncodedFormat</class>
+		<member-name>uRLEncodedFormat</member-name>
 		<keywords>string,formatting</keywords>
 		<description>Generates a URL-encoded string. For example, it replaces spaces
         with %20, and non-alphanumeric characters with equivalent

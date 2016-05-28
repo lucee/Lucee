@@ -22,16 +22,16 @@
 	<cffunction name="setUp"></cffunction>
 	--->
 	<cffunction name="testEncodeForXMLAttribute" localMode="modern">
-
-<!--- begin old test code --->
 <cfscript>
 enc=EncodeForXMLAttribute('<script>');
 valueEquals(enc,'&##x3c;script&##x3e;');
 </cfscript>
-<!--- end old test code --->
-	
-		
-		<!--- <cfset assertEquals("","")> --->
+	</cffunction>
+	<cffunction name="testEncodeForXMLAttributeMember" localMode="modern">
+<cfscript>
+enc='<script>'.EncodeForXMLAttribute();
+valueEquals(enc,'&##x3c;script&##x3e;');
+</cfscript>
 	</cffunction>
 	
 	<cffunction access="private" name="valueEquals">

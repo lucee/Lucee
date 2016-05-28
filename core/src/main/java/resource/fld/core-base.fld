@@ -264,7 +264,7 @@ All elements in the array must contain values that can be converted to numeric.<
 	<function>
 		<name>arrayDeleteNoCase</name>
 		<class>lucee.runtime.functions.arrays.ArrayDeleteNoCase</class>
-		<member-name>delete</member-name>
+		<member-name>deleteNoCase</member-name>
 		<keywords>array</keywords>
 		<description>Deletes specified object from given array, in case of a string the case of the string does not matter.</description>
 		<argument>
@@ -3521,12 +3521,29 @@ dec: descending (z to a) sort order.
 		</return>
 	</function>
 
-
+	<!-- decodeForHTML -->
+	<function>
+		<name>decodeForHTML</name>
+		<class>lucee.runtime.functions.owasp.DecodeForHTML</class>
+		<member-name>decodeForHTML</member-name>
+		<keywords>encode,ESAPI,HTML</keywords>
+		<description>Decodes the given encoded string.</description>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>string to encode</description>
+    	</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
 	
 	<!-- encodeForHTML -->
 	<function>
 		<name>encodeForHTML</name>
 		<class>lucee.runtime.functions.owasp.EncodeForHTML</class>
+		<member-name>encodeForHTML</member-name>
 		<keywords>encode,ESAPI,HTML</keywords>
 		<description>Encodes the given string for safe output in HTML to stop Cross Site Scripting attacks.</description>
 		<argument>
@@ -3552,6 +3569,7 @@ dec: descending (z to a) sort order.
 	<function>
 		<name>encodeForHTMLAttribute</name>
 		<class>lucee.runtime.functions.owasp.EncodeForHTMLAttribute</class>
+		<member-name>encodeForHTMLAttribute</member-name>
 		<keywords>ESAPI,HTML</keywords>
 		<description>Encodes the given string for safe output in HTML to stop Cross Site Scripting attacks.</description>
 		<argument>
@@ -3577,6 +3595,7 @@ dec: descending (z to a) sort order.
 	<function>
 		<name>encodeForCSS</name>
 		<class>lucee.runtime.functions.owasp.EncodeForCSS</class>
+		<member-name>encodeForCSS</member-name>
 		<keywords>ESAPI,CSS</keywords>
 		<description>Encodes the given string for safe output in CSS to stop Cross Site Scripting attacks.</description>
 		<argument>
@@ -3602,6 +3621,7 @@ dec: descending (z to a) sort order.
 	<function>
 		<name>encodeForJavaScript</name>
 		<class>lucee.runtime.functions.owasp.EncodeForJavaScript</class>
+		<member-name>encodeForJavascript</member-name>
 		<keywords>ESAPI,javascript</keywords>
 		<description>Encodes the given string for safe output in JavaScript to stop Cross Site Scripting attacks.</description>
 		<argument>
@@ -3627,6 +3647,7 @@ dec: descending (z to a) sort order.
 	<function>
 		<name>encodeForXML</name>
 		<class>lucee.runtime.functions.owasp.EncodeForXML</class>
+		<member-name>encodeForXML</member-name>
 		<keywords>ESAPI,XML</keywords>
 		<description>Encodes the given string for safe output in XML to stop Cross Site Scripting attacks.</description>
 		<argument>
@@ -3651,6 +3672,7 @@ dec: descending (z to a) sort order.
 	<function>
 		<name>encodeForXMLAttribute</name>
 		<class>lucee.runtime.functions.owasp.EncodeForXMLAttribute</class>
+		<member-name>encodeForXMLAttribute</member-name>
 		<keywords>ESAPI,XML</keywords>
 		<description>Encodes the given string for safe output in XMLAttribute to stop Cross Site Scripting attacks.</description>
 		<argument>
@@ -3675,6 +3697,7 @@ dec: descending (z to a) sort order.
 	<function>
 		<name>encodeForURL</name>
 		<class>lucee.runtime.functions.owasp.EncodeForURL</class>
+		<member-name>encodeForURL</member-name>
 		<keywords>ESAPI,URL</keywords>
 		<description>Encodes the given string for safe output in a URL.</description>
 		<argument>
@@ -3701,6 +3724,7 @@ dec: descending (z to a) sort order.
 	<function>
 		<name>encodeForLDAP</name>
 		<class>lucee.runtime.functions.owasp.EncodeForLDAP</class>
+		<member-name>encodeForLDAP</member-name>
 		<keywords>ESAPI,ldap</keywords>
 		<description>Encodes the given string for safe output in LDAP queries.</description>
 		<argument>
@@ -3726,6 +3750,7 @@ dec: descending (z to a) sort order.
 	<function>
 		<name>encodeForDN</name>
 		<class>lucee.runtime.functions.owasp.EncodeForDN</class>
+		<member-name>encodeForDN</member-name>
 		<keywords>ESAPI,DN</keywords>
 		<description>Encodes the given string for safe output in LDAP Distinguished Names.</description>
 		<argument>
@@ -3751,6 +3776,7 @@ dec: descending (z to a) sort order.
 	<function>
 		<name>encodeForXPath</name>
 		<class>lucee.runtime.functions.owasp.EncodeForXPath</class>
+		<member-name>encodeForXPath</member-name>
 		<keywords>ESAPI,XML</keywords>
 		<description>Encodes the given string for safe use in an XPath Query.</description>
 		<argument>
@@ -3777,6 +3803,7 @@ dec: descending (z to a) sort order.
 	<function>
 		<name>decodeFromURL</name>
 		<class>lucee.runtime.functions.owasp.DecodeFromURL</class>
+		<member-name>decodeFromURL</member-name>
 		<keywords>ESAPI,URL</keywords>
 		<description>Decodes a string that has been encoded in the URL using the encodeForURL.
 		this function is deprecated, use function ESAPIDecode('url',...) instead.</description>
@@ -3796,6 +3823,7 @@ dec: descending (z to a) sort order.
 	<function>
 		<name>encrypt</name>
 		<class>lucee.runtime.functions.other.Encrypt</class>
+		<member-name>encrypt</member-name>
 		<description>Encrypts a string. Uses a symmetric key-based algorithm, in
         which the same key is used to encrypt and decrypt a string.
         The security of the encrypted string depends on maintaining
@@ -12439,6 +12467,7 @@ ormEvictQueries([cacheName])</description>
 	<function>
 		<name>paragraphFormat</name>
 		<class>lucee.runtime.functions.displayFormatting.ParagraphFormat</class>
+		<member-name>paragraphFormat</member-name>
 		<keywords>string,formatting,HTML</keywords>
 		<description>Formats the carriage returns in a string to a HTML alternatives</description>
 		<argument>
@@ -15719,6 +15748,7 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>uRLDecode</name>
 		<class>lucee.runtime.functions.other.URLDecode</class>
+		<member-name>uRLDecode</member-name>
 		<description>Decodes a URL-encoded string.</description>
 		<argument>
 			<name>string</name>
@@ -15741,6 +15771,7 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>uRLEncode</name>
 		<class>lucee.runtime.functions.other.URLEncode</class>
+		<member-name>URLEncode</member-name>
 		<description>encode a url</description>
 		<argument>
 			<name>string</name>

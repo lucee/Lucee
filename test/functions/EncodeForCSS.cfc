@@ -16,22 +16,18 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
-	<!---
-	<cffunction name="beforeTests"></cffunction>
-	<cffunction name="afterTests"></cffunction>
-	<cffunction name="setUp"></cffunction>
-	--->
-	<cffunction name="testEncodeForCSS" localMode="modern">
 
-<!--- begin old test code --->
-<cfscript>
-enc=EncodeForCSS('<script>');
-valueEquals(enc,'\3c script\3e ');
-</cfscript>
-<!--- end old test code --->
-	
-		
-		<!--- <cfset assertEquals("","")> --->
+	<cffunction name="testEncodeForCSS" localMode="modern">
+		<cfscript>
+		enc=EncodeForCSS('<script>');
+		assertEquals('\3c script\3e ',enc);
+		</cfscript>
+	</cffunction>
+	<cffunction name="testEncodeForCSSMember" localMode="modern">
+		<cfscript>
+		enc='<script>'.encodeForCSS();
+		assertEquals('\3c script\3e ',enc);
+		</cfscript>
 	</cffunction>
 	
 	<cffunction access="private" name="valueEquals">

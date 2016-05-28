@@ -1,6 +1,5 @@
 <!--- 
  *
- * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,16 +20,16 @@
 	<cffunction name="afterTests"></cffunction>
 	<cffunction name="setUp"></cffunction>
 	--->
-	<cffunction name="testEncodeForLDAP" localMode="modern">
+	<cffunction name="testEncodeForHTML" localMode="modern">
 <cfscript>
-enc=EncodeForLDAP('<script>');
-valueEquals(enc,'<script>');
+dec=decodeForHTML('&lt;script&gt;');
+valueEquals(dec,'<script>');
 </cfscript>
 	</cffunction>
-	<cffunction name="testEncodeForLDAPMember" localMode="modern">
+	<cffunction name="testEncodeForHTMLMember" localMode="modern">
 <cfscript>
-enc='<script>'.EncodeForLDAP();
-valueEquals(enc,'<script>');
+dec='&lt;script&gt;'.decodeForHTML();
+valueEquals(dec,'<script>');
 </cfscript>
 	</cffunction>
 	
