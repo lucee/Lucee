@@ -384,13 +384,14 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	
 	private static String getVersion(File file) throws IOException, BundleException {
 		JarFile jar = new JarFile(file);
-		Manifest manifest = jar.getManifest();
-		Attributes attrs = manifest.getMainAttributes();
-		
-		
-		//name = attrs.getValue("Bundle-Name");
-		//symbolicName = attrs.getValue("Bundle-SymbolicName");
-		return attrs.getValue("Bundle-Version");
+		try {
+			Manifest manifest = jar.getManifest();
+			Attributes attrs = manifest.getMainAttributes();
+			return attrs.getValue("Bundle-Version");
+		}
+		finally {
+			jar.close();
+		}
 	}
 	
 	

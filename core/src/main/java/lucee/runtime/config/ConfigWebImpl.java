@@ -574,6 +574,11 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		public Collection<BundleDefinition> getAllExtensionBundleDefintions() {
 			return configServer.getAllExtensionBundleDefintions();
 		}
+
+		@Override
+		public Collection<RHExtension> getAllRHExtensions() {
+			return configServer.getAllRHExtensions();
+		}
 		
 		
 		@Override

@@ -37,6 +37,7 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -613,12 +614,23 @@ public class OSGiUtil {
 	 */
 	public static void removeLocalBundle(String name, Version version, boolean removePhysical) throws BundleException {
 		name=name.trim();
-		
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
     	CFMLEngineFactory factory = engine.getCFMLEngineFactory();
 
+    	BundleFile bf = _getBundleFile(factory, name, version, null);
+    	if(bf!=null) {
+    		BundleDefinition bd = bf.toBundleDefinition();
+    		if(bd!=null) {
+	    		Bundle b = bd.getLocalBundle();
+	    		if(b!=null) {
+	    			stopIfNecessary(b);
+					b.uninstall();
+	    		}
+        	}
+    	}
+    	
     	// stop loaded bundle
-    	BundleContext bc = engine.getBundleContext();
+    	/*BundleContext bc = engine.getBundleContext();
     	Bundle[] bundles = bc.getBundles();
     	for(Bundle b:bundles){
     		if(name.equalsIgnoreCase(b.getSymbolicName())) {
@@ -627,12 +639,11 @@ public class OSGiUtil {
     				b.uninstall();
     			}
     		}
-    	}
+    	}*/
     	
     	if(!removePhysical) return;
     	
     	// remove file
-    	BundleFile bf = _getBundleFile(factory, name, version, null);
     	if(bf!=null) bf.getFile().delete();
     }
 
@@ -841,6 +852,12 @@ public class OSGiUtil {
 			return bundle;
 		}
 		
+		public Bundle getLocalBundle() {
+			if(bundle==null) {
+				bundle=OSGiUtil.loadBundleFromLocal(name, version, null);
+			}
+			return bundle;
+		}
 
 		public BundleFile getBundleFile(boolean downloadIfNecessary) throws BundleException {
 			Config config = ThreadLocalPageContext.getConfig();
@@ -1007,12 +1024,12 @@ public class OSGiUtil {
 
 
 
-	public static BundleDefinition[] toBundleDefinitions( BundleFile[] bundlesFiles) {
-		if(bundlesFiles==null) return new BundleDefinition[0];
+	public static BundleDefinition[] toBundleDefinitions( BundleInfo[] bundles) {
+		if(bundles==null) return new BundleDefinition[0];
 		
-		BundleDefinition[] rtn=new BundleDefinition[bundlesFiles.length];
-		for(int i=0;i<bundlesFiles.length;i++){
-			rtn[i]=bundlesFiles[i].toBundleDefinition();
+		BundleDefinition[] rtn=new BundleDefinition[bundles.length];
+		for(int i=0;i<bundles.length;i++){
+			rtn[i]=bundles[i].toBundleDefinition();
 		}
 		return rtn;
 	}

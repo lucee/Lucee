@@ -19,6 +19,8 @@
 package lucee.runtime.extension;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -61,6 +63,7 @@ import lucee.runtime.functions.conversion.DeserializeJSON;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleFile;
+import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.type.Collection.Key;
@@ -119,7 +122,8 @@ public class RHExtension implements Serializable {
 	private final boolean trial;
 	private final String image;
 	private final boolean startBundles;
-	private final BundleFile[] bundlesfiles;
+	private final BundleInfo[] bundles;
+	private final String[] jars;
 	private final String[] flds;
 	private final String[] tlds;
 	private final String[] tags;
@@ -144,14 +148,23 @@ public class RHExtension implements Serializable {
 	private final List<Map<String, String>> mappings;
 	
 	private Resource extensionFile;
+
+	private String type;
+	private Config config;
+	
+
+
+	public RHExtension(Config config,Element el) throws PageException, IOException, BundleException {
+		this(config,toResource(config,el),false);
+	}
 	
 	public RHExtension(Config config, Resource ext, boolean moveIfNecessary) throws PageException, IOException, BundleException {
 		// make sure the config is registerd with the thread
 		if(ThreadLocalPageContext.getConfig()==null) ThreadLocalConfig.register(config);
-		
+		this.config=config;
 		// is it a web or server context?
 		boolean isWeb=config instanceof ConfigWeb;
-		String type=isWeb?"web":"server";
+		type=isWeb?"web":"server";
 		Log logger = ((ConfigImpl)config).getLog("deploy");
 		
 		// get info necessary for checking
@@ -338,8 +351,9 @@ public class RHExtension implements Serializable {
 		ZipEntry entry;
 		String path;
 		String fileName,sub;
-		BundleFile bf;
-		List<BundleFile> bundles=new ArrayList<BundleFile>();
+		
+		List<BundleInfo> bundles=new ArrayList<BundleInfo>();
+		List<String> jars=new ArrayList<String>();
 		List<String> flds=new ArrayList<String>();
 		List<String> tlds=new ArrayList<String>();
 		List<String> tags=new ArrayList<String>();
@@ -362,15 +376,9 @@ public class RHExtension implements Serializable {
 					|| startsWith(path,type,"bundles") || startsWith(path,type,"bundle") 
 					|| startsWith(path,type,"lib") || startsWith(path,type,"libs")) && StringUtil.endsWithIgnoreCase(path, ".jar")) {
 					
-					Object obj = XMLConfigAdmin.installBundle(config,zis,fileName,version,false,false);
-					if(obj instanceof BundleFile) bundles.add((BundleFile)obj);
-					else {
-						Resource tmp=(Resource)obj;
-						Resource tmpJar=tmp.getParentResource().getRealResource(ListUtil.last(path, "\\/"));
-						tmp.moveTo(tmpJar);
-						XMLConfigAdmin.updateJar(config, tmpJar, false);
-					}
-					
+					jars.add(fileName);
+					BundleInfo bi = BundleInfo.newInstance(zis, false);
+					if(bi.isBundle()) bundles.add(bi);
 				}
 				
 				// flds
@@ -433,6 +441,7 @@ public class RHExtension implements Serializable {
 		finally {
 			IOUtil.closeEL(zis);
 		}
+		this.jars=jars.toArray(new String[jars.size()]);
 		this.flds=flds.toArray(new String[flds.size()]);
 		this.tlds=tlds.toArray(new String[tlds.size()]);
 		this.tags=tags.toArray(new String[tags.size()]);
@@ -445,7 +454,7 @@ public class RHExtension implements Serializable {
 		this.applications=applications.toArray(new String[applications.size()]);
 		this.components=components.toArray(new String[components.size()]);
 		this.plugins=plugins.toArray(new String[plugins.size()]);
-		this.bundlesfiles=bundles.toArray(new BundleFile[bundles.size()]);
+		this.bundles=bundles.toArray(new BundleInfo[bundles.size()]);
 		this.caches=caches==null?new ArrayList<Map<String, String>>():caches;
 		this.cacheHandlers=cacheHandlers==null?new ArrayList<Map<String, String>>():cacheHandlers;
 		this.orms=orms==null?new ArrayList<Map<String, String>>():orms;
@@ -476,11 +485,42 @@ public class RHExtension implements Serializable {
 			}
 		}
 	}
-
-
-	public RHExtension(Config config,Element el) throws PageException, IOException, BundleException {
-		this(config,toResource(config,el),false);
+	
+	public void deployBundles() throws IOException, BundleException {
+		// no we read the content of the zip
+		ZipInputStream zis = new ZipInputStream( IOUtil.toBufferedInputStream(extensionFile.getInputStream()) ) ;	 
+		ZipEntry entry;
+		String path;
+		String fileName;
+		
+		try {
+			while ( ( entry = zis.getNextEntry()) != null ) {
+				path=entry.getName();
+				fileName=fileName(entry);
+				// jars
+				if(!entry.isDirectory() && 
+					(startsWith(path,type,"jars") || startsWith(path,type,"jar") 
+					|| startsWith(path,type,"bundles") || startsWith(path,type,"bundle") 
+					|| startsWith(path,type,"lib") || startsWith(path,type,"libs")) && StringUtil.endsWithIgnoreCase(path, ".jar")) {
+					
+					Object obj = XMLConfigAdmin.installBundle(config,zis,fileName,version,false,false);
+					// jar is not a bundle, only a regular jar
+					if(!(obj instanceof BundleFile)) {
+						Resource tmp=(Resource)obj;
+						Resource tmpJar=tmp.getParentResource().getRealResource(ListUtil.last(path, "\\/"));
+						tmp.moveTo(tmpJar);
+						XMLConfigAdmin.updateJar(config, tmpJar, false);
+					}
+				}
+										
+				zis.closeEntry() ;
+			}
+		}
+		finally {
+			IOUtil.closeEL(zis);
+		}
 	}
+
 	
 	private static Resource toResource(Config config, Element el) throws ApplicationException {
 		String fileName = el.getAttribute("file-name");
@@ -615,7 +655,7 @@ public class RHExtension implements Serializable {
   		qry.setAt(PLUGINS, row, Caster.toArray(getPlugins()));
 	    qry.setAt(START_BUNDLES, row, Caster.toBoolean(getStartBundles()));
   	    
-  	    BundleFile[] bfs = getBundlesFiles();
+  	    BundleInfo[] bfs = getBundles();
   	    Query qryBundles=new QueryImpl(new Key[]{KeyConstants._name,KeyConstants._version}, bfs.length, "bundles");
   	    for(int i=0;i<bfs.length;i++){
   	    	qryBundles.setAt(KeyConstants._name, i+1, bfs[i].getSymbolicName());
@@ -639,9 +679,6 @@ public class RHExtension implements Serializable {
 		return version;
 	}
 
-	public BundleFile[] getBundlesFiles() {
-		return bundlesfiles;
-	}
 
 	public boolean getStartBundles() {
 		return startBundles;
@@ -795,12 +832,16 @@ public class RHExtension implements Serializable {
 		return releaseType;
 	}
 
-	public BundleFile[] getBundlesfiles() {
-		return bundlesfiles;
+	public BundleInfo[] getBundles() {
+		return bundles;
 	}
 
 	public String[] getFlds() {
 		return flds==null?EMPTY:flds;
+	}
+	
+	public String[] getJars() {
+		return jars==null?EMPTY:jars;
 	}
 
 	public String[] getTlds() {
