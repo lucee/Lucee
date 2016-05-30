@@ -25,7 +25,9 @@ import java.security.PublicKey;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import lucee.commons.digest.RSA;
 import lucee.commons.io.IOUtil;
@@ -59,7 +61,7 @@ import lucee.transformer.util.SourceCode;
 public final class CFMLCompilerImpl implements CFMLCompiler {
 
 	private CFMLTransformer cfmlTransformer;
-	private Map<String,WatchEntry> watched=new ConcurrentHashMap<String,WatchEntry>(); 
+	private ConcurrentLinkedQueue<WatchEntry> watched=new ConcurrentLinkedQueue<WatchEntry>(); 
 	
 
 	
@@ -273,23 +275,29 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 	}
 	
 	public void watch(PageSource ps, long now) {
-		watched.put(ps.getDisplayPath(),new WatchEntry(ps,now,ps.getPhyscalFile().length(),ps.getPhyscalFile().lastModified()));
+		watched.offer(new WatchEntry(ps,now,ps.getPhyscalFile().length(),ps.getPhyscalFile().lastModified()));
 	}
-
+	
 	public void checkWatched() {
+		WatchEntry we;
 		long now=System.currentTimeMillis();
-		Iterator<Entry<String, WatchEntry>> it = watched.entrySet().iterator();
-		Entry<String, WatchEntry> e;
-		while(it.hasNext()){
-			e=it.next();
-			if(e.getValue().now+1000<=now) {// only check entries that are at least a second old
-				if(e.getValue().length!=e.getValue().ps.getPhyscalFile().length()) { // file changed (size or time)
-					((PageSourceImpl)e.getValue().ps).flush();
-				}
-				watched.remove(e.getKey());
+		Stack<WatchEntry> tmp =new Stack<WatchEntry>();
+		while((we=watched.poll())!=null) {
+			// to young 
+			if(we.now+1000>now) {
+				tmp.add(we);
+				continue;
+			}
+			if(we.length!=we.ps.getPhyscalFile().length()) { // file changed (size or time)
+				((PageSourceImpl)we.ps).flush();
 			}
 		}
 		
+		// add again entries that was to young for next round
+		Iterator<WatchEntry> it = tmp.iterator();
+		while(it.hasNext()) {
+			watched.add(we=it.next());
+		}
 	}
 	
 	private class WatchEntry {
