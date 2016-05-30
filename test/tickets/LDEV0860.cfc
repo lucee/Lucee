@@ -18,13 +18,13 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
-	
+
 	public function setUp(){
 		variables.has=defineDatasource();		
 	}
 
 	// read_uncommitted: Allows dirty read, non-repeatable read, and phantom
-	public void function testReadUncommitted(){
+	private void function testReadUncommitted(){
 		if(!variables.has) return;
 		transaction isolation="read_uncommitted" {
 			query name="local.qry" {
@@ -44,7 +44,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	// repeatable_read: Allows phantom. Does not allow dirty read or non-repeatable read.
-	public void function testRepeatableRead(){
+	private void function testRepeatableRead(){
 		if(!variables.has) return;
 		transaction isolation="repeatable_read" {
 			query name="local.qry" {
