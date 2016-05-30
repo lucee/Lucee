@@ -4,10 +4,14 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLClassLoader;
+import java.security.CodeSource;
+import java.security.PermissionCollection;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.jar.Manifest;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.Caller;
@@ -18,7 +22,7 @@ import lucee.runtime.config.ConfigWebUtil;
 
 import org.osgi.framework.Bundle;
 
-public class EnvClassLoader extends ClassLoader {
+public class EnvClassLoader extends URLClassLoader {
 
 	private ConfigImpl config;
 	//private final ClassLoader[] parents;
@@ -31,14 +35,12 @@ public class EnvClassLoader extends ClassLoader {
 
 	
 	public EnvClassLoader(ConfigImpl config) {
-		super(config.getClassLoaderCore());
+		super(new URL[0],config.getClassLoaderCore());
 		this.config=config;
 		
-		//ClassLoader coreCL = getParent();
-		//loaderCL = TP.class.getClassLoader(); //this gives a wrong result because bootdelegetation should handle this!
-		
-		//parents=new ClassLoader[]{coreCL};
 	}
+
+
 
 	@Override
 	public Class<?> loadClass(String name) throws ClassNotFoundException   {
@@ -71,10 +73,6 @@ public class EnvClassLoader extends ClassLoader {
 		List<URL> list=new ArrayList<URL>();
 		URL url = (URL)load(name,URL,false);
 		if(url!=null) list.add(url);
-		/*url = (URL)load(name,URL,false);
-		if(url!=null) list.add(url);
-		url = (URL)load(name,URL,false);
-		if(url!=null) list.add(url);*/
 		return new E<URL>(list.iterator());
 	}
 
@@ -94,8 +92,6 @@ public class EnvClassLoader extends ClassLoader {
 		// first we check the callers classpath
 		Caller caller = SystemUtil.getCallerClass();
 		if(!caller.isEmpty()) {
-			//print.e("-------------------------------------");
-			//print.e(caller);
 			
 			// if the request comes from classpath  
 			Class clazz=caller.fromClasspath();
@@ -173,27 +169,6 @@ public class EnvClassLoader extends ClassLoader {
 				
 			}
 		}
-		
-		
-		
-		
-		/*if(doLog) {
-			//Log log = config.getLog("application", true);
-			// not found
-			//if(obj==null) {
-				//log.error(EnvClassLoader.class.getName(), "not able to find	 "+toType(type)+" "+name);
-			//}
-			// found
-			else  {// should always be the case!
-				ClassLoader cl = obj.getClass().getClassLoader();
-				log.error(EnvClassLoader.class.getName(), "found "+toType(type)+" "+name+" in CL "+cl);
-			}
-		}*/
-		
-
-		//if(obj==null)print.e("not found:"+name+"->"+type);
-		//if(obj==null)print.ds();
-		
 		
 		return obj;
    }
@@ -291,6 +266,19 @@ public class EnvClassLoader extends ClassLoader {
 			return it.next();
 		}
 		
+	}
+	
+	//////////////////////////////////////////////////
+	// URLClassloader methods, need to be supressed //
+	//////////////////////////////////////////////////
+	@Override
+	public URL findResource(String name) {
+		return getResource(name);
+	}
+
+	@Override
+	public Enumeration<URL> findResources(String name) throws IOException {
+		return getResources(name);
 	}
 	
 }
