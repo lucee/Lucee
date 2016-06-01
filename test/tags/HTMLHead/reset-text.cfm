@@ -1,0 +1,1 @@
+<html><head></head><body><cfhtmlhead text="{first}"><cfhtmlhead action="reset"/><cfhtmlhead text="{second}"></body></html>
