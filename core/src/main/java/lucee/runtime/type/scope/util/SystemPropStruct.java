@@ -6,6 +6,7 @@ import java.util.Set;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.StructSupport;
 
 public class SystemPropStruct extends AbsSystemStruct {
@@ -98,5 +99,10 @@ public class SystemPropStruct extends AbsSystemStruct {
 
 	public static SystemPropStruct getInstance() {
 		return instance;
+	}
+
+	@Override
+	public int getType() {
+		return Struct.TYPE_REGULAR;
 	}
 }

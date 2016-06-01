@@ -262,10 +262,4 @@ public class StructImpl extends StructSupport {
 	public boolean equals(Object obj) {
 		return map.equals(obj);
 	}
-
-
-	@Override
-	public Set keySet() {
-		return StructUtil.keySet(this,getType()==TYPE_LINKED);
-	}
 }

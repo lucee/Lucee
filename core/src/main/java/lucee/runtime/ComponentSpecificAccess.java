@@ -532,4 +532,12 @@ public final class ComponentSpecificAccess extends StructSupport implements Comp
 	public Interface[] getInterfaces() {
 		return component.getInterfaces();
 	}
+
+	@Override
+	public int getType() {
+		if(component instanceof ComponentImpl) {
+			return ((ComponentImpl)component).getType();
+		}
+		return Struct.TYPE_REGULAR;
+	}
 }

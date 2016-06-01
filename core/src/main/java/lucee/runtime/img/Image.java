@@ -117,6 +117,7 @@ import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.MemberUtil;
 import lucee.runtime.type.util.StructSupport;
+import lucee.runtime.type.util.StructUtil;
 
 import org.apache.commons.codec.binary.Base64;
 import org.w3c.dom.Attr;
@@ -1932,6 +1933,12 @@ public class Image extends StructSupport implements Cloneable,Struct {
 	    g.dispose();
 
 	    return bimage;
+	}
+
+	@Override
+	public int getType() {
+		if(_info() instanceof StructSupport) return ((StructSupport)_info()).getType();
+		return Struct.TYPE_REGULAR;
 	}
 	
 }

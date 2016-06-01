@@ -22,10 +22,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.collection.LinkedHashMapPro;
 import lucee.commons.collection.MapPro;
@@ -107,9 +110,10 @@ public final class StructUtil {
 	}
 
 	public static Set<Entry<String, Object>> entrySet(Struct sct) {
+		boolean linked=sct instanceof StructImpl && ((StructImpl)sct).getType()==Struct.TYPE_LINKED;
 		Iterator<Entry<Key, Object>> it = sct.entryIterator();
 		Entry<Key, Object> e;
-		HashSet<Entry<String, Object>> set=new HashSet<Entry<String, Object>>();
+		Set<Entry<String, Object>> set=linked?new LinkedHashSet<Entry<String,Object>>() : new HashSet<Entry<String, Object>>();
 		while(it.hasNext()){
 			e= it.next();
 			set.add(new StructMapEntry(sct,e.getKey(),e.getValue()));
@@ -117,7 +121,9 @@ public final class StructUtil {
 		return set;
 	}
 	
-	public static Set<String> keySet(Struct sct, boolean linked) {
+	public static Set<String> keySet(Struct sct) {
+		boolean linked=sct instanceof StructSupport && ((StructSupport)sct).getType()==Struct.TYPE_LINKED;
+
 		Iterator<Key> it = sct.keyIterator();
 		Set<String> set=linked?new LinkedHashSet<String>():new HashSet<String>();
 		while(it.hasNext()){
@@ -288,6 +294,15 @@ public final class StructUtil {
     	if(m instanceof WeakHashMapPro) return Struct.TYPE_WEAKED;
     	//if(map instanceof SyncMap) return TYPE_SYNC;
     	if(m instanceof MapProWrapper) return Struct.TYPE_SOFT;
+    	return Struct.TYPE_REGULAR;
+    }
+    public static int getType(Map m){
+    	if(m instanceof MapPro) return getType(m);
+    	
+    	if(m instanceof LinkedHashMap) return Struct.TYPE_LINKED;
+    	if(m instanceof WeakHashMap) return Struct.TYPE_WEAKED;
+    	if(m instanceof ConcurrentHashMap) return Struct.TYPE_SYNC;
+    	
     	return Struct.TYPE_REGULAR;
     }
 

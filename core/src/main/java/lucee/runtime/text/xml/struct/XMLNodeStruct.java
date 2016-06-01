@@ -40,6 +40,7 @@ import lucee.runtime.text.xml.XMLNodeList;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.it.KeyIterator;
@@ -507,7 +508,9 @@ public class XMLNodeStruct extends StructSupport implements XMLStruct {
 		XMLNodeStruct other = ((XMLNodeStruct)obj);
 		return other.caseSensitive=caseSensitive && other.node.equals(node);
 	}
-	
-	
 
+	@Override
+	public int getType() {
+		return Struct.TYPE_LINKED;
+	}
 }

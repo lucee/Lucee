@@ -370,4 +370,11 @@ public final class XMLAttributes extends StructSupport implements Struct,NamedNo
 	public int compareTo(String str) throws PageException {
 		throw new ExpressionException("can't compare XML NamedNodeMap with a String");
 	}
+	
+
+
+	@Override
+	public int getType() {
+		return Struct.TYPE_LINKED;
+	}
 }
