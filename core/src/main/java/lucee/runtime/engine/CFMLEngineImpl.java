@@ -133,7 +133,6 @@ import lucee.runtime.util.HTMLUtil;
 import lucee.runtime.util.HTMLUtilImpl;
 import lucee.runtime.util.HTTPUtilImpl;
 import lucee.runtime.util.IO;
-import lucee.runtime.util.JavaProxyUtil;
 import lucee.runtime.util.ListUtil;
 import lucee.runtime.util.ListUtilImpl;
 import lucee.runtime.util.ORMUtil;

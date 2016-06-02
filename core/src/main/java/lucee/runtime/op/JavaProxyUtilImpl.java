@@ -1,6 +1,5 @@
 package lucee.runtime.op;
 
-import lucee.commons.lang.ClassUtil;
 import lucee.runtime.Component;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.java.JavaProxy;

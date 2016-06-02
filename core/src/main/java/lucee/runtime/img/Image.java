@@ -117,7 +117,6 @@ import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.MemberUtil;
 import lucee.runtime.type.util.StructSupport;
-import lucee.runtime.type.util.StructUtil;
 
 import org.apache.commons.codec.binary.Base64;
 import org.w3c.dom.Attr;

@@ -37,7 +37,6 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.StructSupport;
-import lucee.runtime.type.util.StructUtil;
 
 public abstract class FileStreamWrapper extends StructSupport implements Struct {
 

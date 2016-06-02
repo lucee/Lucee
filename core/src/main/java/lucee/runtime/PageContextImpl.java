@@ -87,8 +87,6 @@ import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.config.Password;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceManager;
-import lucee.runtime.db.DatasourceConnection;
-import lucee.runtime.db.DatasourceConnectionPool;
 import lucee.runtime.db.DatasourceManagerImpl;
 import lucee.runtime.debug.ActiveLock;
 import lucee.runtime.debug.ActiveQuery;

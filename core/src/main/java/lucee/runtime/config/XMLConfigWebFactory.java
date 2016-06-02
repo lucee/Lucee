@@ -146,7 +146,6 @@ import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.orm.DummyORMEngine;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
-import lucee.runtime.osgi.BundleFile;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;

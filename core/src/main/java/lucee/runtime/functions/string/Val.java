@@ -25,7 +25,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Decision;
 
 public final class Val implements Function {
 

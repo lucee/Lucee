@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import lucee.commons.io.DevNullOutputStream;
-import lucee.commons.lang.ClassUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWeb;
