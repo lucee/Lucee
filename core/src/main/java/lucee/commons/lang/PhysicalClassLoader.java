@@ -110,7 +110,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	@Override
 	protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
 		if (loadedClasses.contains(name) || unavaiClasses.contains(name)) {
-			return super.loadClass(name); // Use default CL cache
+			return super.loadClass(name,false); // Use default CL cache
 		}
 
 		
