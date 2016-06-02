@@ -23,6 +23,7 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.instrument.UnmodifiableClassException;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.ServletContext;
@@ -58,7 +59,8 @@ public final class MappingImpl implements Mapping {
 	private boolean topLevel;
 	private short inspect;
 	private boolean physicalFirst;
-	private PhysicalClassLoader pcl;
+	//private PhysicalClassLoader pcl;
+	private Map<String,PhysicalClassLoader> pcls=new HashMap<String, PhysicalClassLoader>();
 	private Resource archive;
 	
 	private boolean hasArchive;
@@ -217,13 +219,16 @@ public final class MappingImpl implements Mapping {
 	
 	@Override
 	public Class<?> getPhysicalClass(String className) throws ClassNotFoundException,IOException {
+		PhysicalClassLoader pcl = pcls.get(className);
 		if(pcl==null){
 			pcl=new PhysicalClassLoader(config,getClassRootDirectory());
+			pcls.put(className, pcl);
 		}
 		return pcl.loadClass(className);
 	}
 	
 	public Class<?> getPhysicalClass(String className, Class<?> defaultValue) {
+		PhysicalClassLoader pcl = pcls.get(className);
 		if(pcl==null)return null;
 		try {
 			return pcl.loadClass(className);
@@ -234,9 +239,18 @@ public final class MappingImpl implements Mapping {
 	
 	@Override
 	public Class<?> getPhysicalClass(String className, byte[] code) throws IOException {
-		if(pcl==null){
-			pcl=new PhysicalClassLoader(config,getClassRootDirectory());
+		PhysicalClassLoader pcl = pcls.get(className);
+		// flush
+		if(pcl!=null) {
+			
+			pageSourcePool.remove(className  );
+			//this.pageSourcePool.remove(key);
 		}
+		
+		
+		pcl = new PhysicalClassLoader(config,getClassRootDirectory());
+		
+		pcls.put(className, pcl);
 		try {
 			return pcl.loadClass(className,code);
 		} catch (UnmodifiableClassException e) {

@@ -282,7 +282,6 @@ public final class PageSourceImpl implements PageSource {
                     // load page
                     else {
                     	try {
-                    		//this.page=page=newInstance(mapping.getPhysicalClass(getClazz()));
                     		this.page=page=newInstance(mapping.getPhysicalClass(this.getClassName()));
     					} catch (Throwable t) {t.printStackTrace();
 							this.page=page=null;
@@ -291,17 +290,17 @@ public final class PageSourceImpl implements PageSource {
                               
                     }
                     
-                    // check if there is a newwer version
-                    if(!isNew && srcLastModified!=page.getSourceLastModified()) {
+                    // check if version changed or lasMod
+                    if(!isNew && 
+                    		(
+                    				srcLastModified!=page.getSourceLastModified()
+                    				||
+                    				page.getVersion()!=pc.getConfig().getFactory().getEngine().getInfo().getFullVersionInfo()
+                    		)
+                    ) {
                     	isNew=true;
                     	this.page=page=compile(config,classRootDir,page,false,pc.ignoreScopes());
     				}
-                    
-                    // check version
-                    if(!isNew && page.getVersion()!=pc.getConfig().getFactory().getEngine().getInfo().getFullVersionInfo()) {
-                    	isNew=true;
-                    	this.page=page=compile(config,classRootDir,page,false,pc.ignoreScopes());
-                    }
                     
                     page.setPageSource(this);
     				page.setLoadType(LOAD_PHYSICAL);
@@ -354,19 +353,11 @@ public final class PageSourceImpl implements PageSource {
         if((getPhyscalFile().lastModified()+10000)>(now=System.currentTimeMillis()))
         	cwi.getCompiler().watch(this,now);//SystemUtil.get
         
-
-        
+                
         Result result = cwi.getCompiler().
         	compile(cwi,this,cwi.getTLDs(dialect),cwi.getFLDs(dialect),classRootDir,returnValue,ignoreScopes);
-        //Class<?> clazz = mapping.getPhysicalClass(getClazz(),barr);
+        
         try{
-        	
-        	/*if(existing!=null && result.page!=null) {
-        		if(existing instanceof CIObject && result.page.isPage())
-        			throw new TemplateException("cannot convert the compiled component/interface ["+page.getPageSource().getDisplayPath()+"] to a regular template");
-        		else if(!(existing instanceof CIObject) && !result.page.isPage())
-        			throw new TemplateException("cannot convert the compiled regular template ["+page.getPageSource().getDisplayPath()+"] to a component/interface");
-        	}*/
         	
         	Class<?> clazz = mapping.getPhysicalClass(getClassName(), result.barr);
         	return  newInstance(clazz);
