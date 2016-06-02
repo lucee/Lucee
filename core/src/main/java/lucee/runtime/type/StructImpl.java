@@ -48,7 +48,7 @@ import org.apache.commons.collections4.map.ReferenceMap;
  */
 public class StructImpl extends StructSupport {
 	private static final long serialVersionUID = 1421746759512286393L;
-
+	private static final int TYPE_LINKED_NOT_SYNC=100;
 	
 	private MapPro<Collection.Key,Object> map;
 	
@@ -82,6 +82,7 @@ public class StructImpl extends StructSupport {
     	if(type==TYPE_WEAKED)	map=new SyncMap<Collection.Key, Object>(new WeakHashMapPro<Collection.Key,Object>(initialCapacity));
     	else if(type==TYPE_SOFT)	map=new SyncMap<Collection.Key, Object>(new MapProWrapper<Collection.Key, Object>(new ReferenceMap<Collection.Key, Object>(HARD,SOFT,initialCapacity,0.75f),new SerializableObject()));
     	else if(type==TYPE_LINKED)		map=new SyncMap<Collection.Key, Object>(new LinkedHashMapPro<Collection.Key,Object>(initialCapacity));
+    	else if(type==TYPE_LINKED_NOT_SYNC)		map=new LinkedHashMapPro<Collection.Key,Object>(initialCapacity);
     	else 						map=MapFactory.getConcurrentMap(initialCapacity);
     }
     

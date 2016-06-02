@@ -1,6 +1,6 @@
-/**
+<!--- 
  *
- * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
+ * Copyright (c) 2015, Lucee Assosication Switzerland. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,28 +15,29 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- **/
-package lucee.runtime.type.scope;
+ ---><cfscript>
+component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
-import lucee.runtime.type.Struct;
+	public void function test(){
+		forms=structNew('linked');
+		forms['a']='1';
+		forms['b']='2';
+		forms['e']='3';
+		forms['d']='4';
+		forms['f']='5';
 
-
-public final class LocalImpl extends ScopeSupport implements Scope,Local {
-
-	private boolean bind;
-	
-	public LocalImpl() {
-		super( "local", Scope.SCOPE_LOCAL, Struct.TYPE_SYNC);
+		uri=createURI("Scope/form.cfm");
+		local.res=_InternalRequest(
+			template:uri,
+			forms:forms
+		);
+		assertEquals("a:1;b:2;e:3;d:4;f:5;",res.filecontent.trim());
 	}
 
-	@Override
-	public boolean isBind() {
-		return bind;
+	private string function createURI(string calledName){
+		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
+		return baseURI&""&calledName;
 	}
 
-	@Override
-	public void setBind(boolean bind) {
-		this.bind=bind;
-	}
-
-}
+} 
+</cfscript>

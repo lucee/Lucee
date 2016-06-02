@@ -134,7 +134,9 @@ public final class StructUtil {
 
 	
 	public static DumpTable toDumpTable(Struct sct,String title,PageContext pageContext, int maxlevel, DumpProperties dp) {
-		Key[] keys = order(sct,CollectionUtil.keys(sct));
+		Key[] keys = CollectionUtil.keys(sct);
+		if(!(sct instanceof StructSupport) || ((StructSupport)sct).getType()!=Struct.TYPE_LINKED)
+			keys = order(sct,CollectionUtil.keys(sct));
 		DumpTable table = new DumpTable("struct","#9999ff","#ccccff","#000000");// "#9999ff","#ccccff","#000000"
 
 		int maxkeys=dp.getMaxKeys();

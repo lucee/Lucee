@@ -27,6 +27,7 @@ import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Struct;
 
 /**
  * Implements URL Scope 
@@ -43,7 +44,7 @@ public final class URLImpl extends ScopeSupport implements URL,ScriptProtected {
 	 * Standart Constructor
 	 */
 	public URLImpl() {
-		super(true,"url",SCOPE_URL);
+		super("url",SCOPE_URL, Struct.TYPE_LINKED);
 	}
 
     @Override

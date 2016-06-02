@@ -32,6 +32,7 @@ import javax.servlet.http.HttpSessionBindingListener;
 import lucee.runtime.PageContext;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.scope.storage.MemoryScope;
 import lucee.runtime.type.util.KeyConstants;
 
@@ -58,7 +59,7 @@ public final class JSession extends ScopeSupport implements Session,HttpSessionB
      * constructor of the class
      */
     public JSession() {
-        super(true,"session",SCOPE_SESSION);
+        super("session",SCOPE_SESSION, Struct.TYPE_LINKED);
         setDisplayName("Scope Session (Type JEE)");
         this.created=System.currentTimeMillis();
     }

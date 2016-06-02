@@ -67,13 +67,10 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
      * @param name name of the scope
      * @param type scope type (SCOPE_APPLICATION,SCOPE_COOKIE use)
      */
-    public ScopeSupport(boolean sync,String name, int type) {
-        super(sync?Struct.TYPE_SYNC:StructImpl.TYPE_UNDEFINED);
-        this.name=name;
-        this.type=type;
-        
-        id=++_id;
+    private ScopeSupport(String name, int type) {
+        this(name,type,Struct.TYPE_LINKED);
     }
+    
     /**
      * constructor for ScopeSupport
      * @param name name of the scope
@@ -182,7 +179,7 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
                 StringList list=ListUtil.listToStringListRemoveEmpty(name,'.');
                 Struct parent=this;
                 while(list.hasNextNext()) {
-                    parent=_fill(parent,list.next(),new CastableStruct(),false,scriptProteced,sameAsArray);
+                    parent=_fill(parent,list.next(),new CastableStruct(Struct.TYPE_LINKED),false,scriptProteced,sameAsArray);
                 }
                 _fill(parent,list.next(),value,true,scriptProteced,sameAsArray);
             } 
@@ -191,7 +188,7 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
         }
     }
     
-    private Struct _fill(Struct parent, String name, Object value, boolean isLast, boolean scriptProteced, boolean sameAsArray) {
+    private Struct _fill(final Struct parent, String name, Object value, boolean isLast, boolean scriptProteced, boolean sameAsArray) {
     	Object curr;
         boolean isArrayDef=sameAsArray;
         Collection.Key key=KeyImpl.init(name);
