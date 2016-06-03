@@ -87,7 +87,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 			}
         	
         	// we have already the same datasource but with different credentials
-        	if(!((DatasourceConnectionImpl)existingDC).equals(ds,user,pass)) {
+        	if(!DatasourceConnectionImpl.equals(existingDC,ds,user,pass)) {
             	if(QOQ_DATASOURCE_NAME.equalsIgnoreCase(ds.getName())) return existingDC;
             	
             	throw new DatabaseException("can't use different connections to the same datasource inside a single transaction.",null,null,existingDC);
@@ -130,7 +130,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
                 return;
 			}
 			
-        	if(!((DatasourceConnectionImpl)existingDC).equals(ds,null,null)) {
+        	if(!DatasourceConnectionImpl.equals(existingDC,ds,null,null)) {
 				//releaseConnection(pc,newDC);
             	throw new DatabaseException(
 						"can't use different connections to the same datasource inside a single transaction",null,null,existingDC);

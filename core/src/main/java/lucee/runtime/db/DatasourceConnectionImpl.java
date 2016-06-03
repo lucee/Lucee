@@ -139,17 +139,16 @@ public final class DatasourceConnectionImpl implements DatasourceConnection,Task
 		return StringUtil.emptyIfNull(left.getUsername()).equals(StringUtil.emptyIfNull(right.getUsername())) 
 				&& StringUtil.emptyIfNull(left.getPassword()).equals(StringUtil.emptyIfNull(right.getPassword()));
 	}
-	public boolean equals(DataSource ds, String user, String pass) {
+
+	public static boolean equals(DatasourceConnection dc, DataSource ds, String user, String pass) {
 		if(StringUtil.isEmpty(user)) {
             user=ds.getUsername();
             pass=ds.getPassword();
         }
-        if(!this.getDatasource().equals(ds)) return false;
-		return StringUtil.emptyIfNull(getUsername()).equals(StringUtil.emptyIfNull(user)) 
-				&& StringUtil.emptyIfNull(getPassword()).equals(StringUtil.emptyIfNull(pass));
+        if(!dc.getDatasource().equals(ds)) return false;
+		return StringUtil.emptyIfNull(dc.getUsername()).equals(StringUtil.emptyIfNull(user)) 
+				&& StringUtil.emptyIfNull(dc.getPassword()).equals(StringUtil.emptyIfNull(pass));
 	}
-	
-	
 
 	/**
 	 * @return the transactionIsolationLevel
@@ -521,4 +520,5 @@ public final class DatasourceConnectionImpl implements DatasourceConnection,Task
 	public int getNetworkTimeout() throws SQLException {
 		return connection.getNetworkTimeout();
 	}
+
 }

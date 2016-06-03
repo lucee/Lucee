@@ -69,10 +69,12 @@ public class DatasourceConnectionPool {
 			}
 
 			while(!stack.isEmpty()) {
-				DatasourceConnectionImpl dc=(DatasourceConnectionImpl) stack.get();
+				DatasourceConnection dc=(DatasourceConnection) stack.get();
 				if(dc!=null && isValid(dc,Boolean.TRUE)){
 					_inc(datasource,user,pass);
-					return dc.using();
+					if(dc instanceof DatasourceConnectionImpl)
+						return ((DatasourceConnectionImpl)dc).using();
+					return dc;
 				}	
 			}
 			//config=ThreadLocalPageContext.getConfig();

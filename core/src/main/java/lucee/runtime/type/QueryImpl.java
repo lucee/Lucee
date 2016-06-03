@@ -240,8 +240,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		// check if datasource support Generated Keys
 		boolean createGeneratedKeys=createUpdateData;
         if(createUpdateData){
-        	DatasourceConnectionImpl dci=(DatasourceConnectionImpl) dc;
-        	if(!dci.supportsGetGeneratedKeys())createGeneratedKeys=false;
+        	if(!dc.supportsGetGeneratedKeys())createGeneratedKeys=false;
         }
 
 		// check SQL Restrictions
