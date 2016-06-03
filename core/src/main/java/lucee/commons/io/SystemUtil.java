@@ -1388,7 +1388,6 @@ class StopThread extends Thread {
 					}
 					catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | 
 							NoSuchMethodException | SecurityException e) {
-						e.printStackTrace();
 						LogUtil.log(log, Log.LEVEL_ERROR, "", t);
 						thread.stop();
 					}
