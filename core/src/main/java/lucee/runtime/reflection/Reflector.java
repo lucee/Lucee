@@ -1460,6 +1460,17 @@ public final class Reflector {
 		return name;
 	}
 
+	public static Method getDeclaredMethod(Class<?> clazz,
+			String method, Class[] arguments, Method defaultValue) {
+		
+		try {
+			return clazz.getDeclaredMethod(method, arguments);
+		}
+		catch(Throwable t) {
+			return defaultValue;
+		}
+	}
+
 	
 
 	 
