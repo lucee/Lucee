@@ -45,7 +45,7 @@ import org.apache.commons.collections4.map.ReferenceMap;
  */
 public final class PageSourcePool implements Dumpable {
 	
-	private Map<Object,PageSource> pageSources=Collections.synchronizedMap(new ReferenceMap<Object,PageSource>(SOFT, SOFT));
+	private Map<String,PageSource> pageSources=Collections.synchronizedMap(new ReferenceMap<String,PageSource>(SOFT, SOFT));
 	//timeout timeout for files
 	private long timeout;
 	//max size of the pool cache
@@ -80,7 +80,7 @@ public final class PageSourcePool implements Dumpable {
 	 * @param key key reference to store page object
 	 * @param ps pagesource to store
 	 */
-	public void setPage(Object key, PageSource ps) {
+	public void setPage(String key, PageSource ps) {
 		ps.setLastAccessTime();
 		pageSources.put(key,ps);
 	}
@@ -107,7 +107,39 @@ public final class PageSourcePool implements Dumpable {
 	 * @return page object matching to key reference
 	 */
 	public boolean remove(Object key) {
-		return pageSources.remove(key)!=null;
+		
+		if(pageSources.remove(key)!=null) return true;
+		
+		Iterator<Entry<String, PageSource>> it = pageSources.entrySet().iterator();
+		PageSource ps;
+		while(it.hasNext()) {
+			Entry<String, PageSource> e;
+			e = it.next();
+			ps=e.getValue();
+			if(key.equals(ps.getClassName())) {
+				pageSources.remove(e.getKey());
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean flushPage(Object key) {
+		PageSource ps= pageSources.get(key);
+		if(ps!=null) {
+			((PageSourceImpl)ps).flush();
+			return true;
+		}
+		
+		Iterator<PageSource> it = pageSources.values().iterator();
+		while(it.hasNext()) {
+			ps = it.next();
+			if(key.equals(ps.getClassName())) {
+				((PageSourceImpl)ps).flush();
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**
@@ -153,14 +185,14 @@ public final class PageSourcePool implements Dumpable {
 	@Override
 	public DumpData toDumpData(PageContext pageContext,int maxlevel, DumpProperties dp) {
 		maxlevel--;
-		Iterator<Object> it = pageSources.keySet().iterator();
+		Iterator<PageSource> it = pageSources.values().iterator();
 		
 		
 		DumpTable table = new DumpTable("#FFCC00","#FFFF00","#000000");
 		table.setTitle("Page Source Pool");
 		table.appendRow(1,new SimpleDumpData("Count"),new SimpleDumpData(pageSources.size()));
 		while(it.hasNext()) {
-		    PageSource ps= pageSources.get(it.next());
+			PageSource ps= it.next();
 		    DumpTable inner = new DumpTable("#FFCC00","#FFFF00","#000000");
 			inner.setWidth("100%");
 			inner.appendRow(1,new SimpleDumpData("source"),new SimpleDumpData(ps.getDisplayPath()));
@@ -177,10 +209,10 @@ public final class PageSourcePool implements Dumpable {
 	 */
 	public void clearPages(ClassLoader cl) {
 		synchronized(pageSources){
-			Iterator<Entry<Object, PageSource>> it = this.pageSources.entrySet().iterator();
+			Iterator<PageSource> it = this.pageSources.values().iterator();
 			PageSourceImpl entry;
 			while(it.hasNext()) {
-				entry = (PageSourceImpl) it.next().getValue();
+				entry = (PageSourceImpl) it.next();
 				if(cl!=null)entry.clear(cl);
 				else entry.clear();
 			}

@@ -45,7 +45,7 @@ public abstract class FileStreamWrapper extends StructSupport implements Struct 
 	
 	protected Resource res;
 	private String status=STATE_OPEN;
-	private Struct info;
+	private StructImpl info;
 	private long lastModifed;
 	private long length;
 	
@@ -291,4 +291,11 @@ public abstract class FileStreamWrapper extends StructSupport implements Struct 
 	public abstract void skip(int len) throws PageException;
 
 	public abstract void seek(long pos) throws PageException;
+	
+
+
+	@Override
+	public int getType() {
+		return Struct.TYPE_REGULAR;
+	}
 }

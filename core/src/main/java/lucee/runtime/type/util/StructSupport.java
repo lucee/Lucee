@@ -84,7 +84,7 @@ public abstract class StructSupport implements Map,Struct {
 
 	@Override
 	public Set keySet() {
-		return StructUtil.keySet(this,true);
+		return StructUtil.keySet(this);
 	}
 
 	@Override
@@ -280,6 +280,8 @@ public abstract class StructSupport implements Map,Struct {
 		if(!(obj instanceof Collection)) return false;
 		return CollectionUtil.equals(this,(Collection)obj);
 	}
+
+	public abstract int getType(); // FUTURE add to loader
 
     /*@Override
 	public int hashCode() {

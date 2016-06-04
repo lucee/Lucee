@@ -285,4 +285,9 @@ public final class SVStruct extends StructSupport implements Reference,Struct {
 		return parent.values();
 	}
 
+	@Override
+	public int getType() {
+		return parent.getType();
+	}
+
 }

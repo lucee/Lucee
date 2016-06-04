@@ -1933,5 +1933,11 @@ public class Image extends StructSupport implements Cloneable,Struct {
 
 	    return bimage;
 	}
+
+	@Override
+	public int getType() {
+		if(_info() instanceof StructSupport) return ((StructSupport)_info()).getType();
+		return Struct.TYPE_REGULAR;
+	}
 	
 }

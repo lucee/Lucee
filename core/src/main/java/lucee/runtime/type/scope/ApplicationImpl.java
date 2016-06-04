@@ -26,6 +26,7 @@ import lucee.runtime.functions.system.GetApplicationSettings;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Struct;
 
 
 
@@ -45,7 +46,7 @@ public final class ApplicationImpl extends ScopeSupport implements Application,S
 	 * default constructor of the session scope
 	 */
 	public ApplicationImpl() {
-		super(true,"application",SCOPE_APPLICATION);
+		super("application",SCOPE_APPLICATION, Struct.TYPE_LINKED);
 		created = System.currentTimeMillis();
 	}
 

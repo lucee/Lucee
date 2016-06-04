@@ -7,6 +7,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.util.StructSupport;
+import lucee.runtime.type.util.StructUtil;
 
 public class EnvStruct extends AbsSystemStruct {
 
@@ -98,5 +99,10 @@ public class EnvStruct extends AbsSystemStruct {
 
 	public static EnvStruct getInstance() {
 		return instance;
+	}
+
+	@Override
+	public int getType() {
+		return StructUtil.getType(System.getenv());
 	}
 }

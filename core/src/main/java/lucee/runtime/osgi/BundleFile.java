@@ -25,7 +25,6 @@ import java.util.jar.JarFile;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.type.file.FileResource;
 
 import org.osgi.framework.BundleException;
 

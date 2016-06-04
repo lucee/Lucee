@@ -235,4 +235,9 @@ public final class ObjectStruct extends StructSupport implements Struct,Objects 
 	public int compareTo(DateTime dt) throws PageException {
 		return jo.compareTo(dt);
 	}
+
+	@Override
+	public int getType() {
+		return Struct.TYPE_REGULAR;
+	}
 }

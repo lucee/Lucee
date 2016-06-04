@@ -43,6 +43,7 @@ public class InternalRequest implements Function {
 	private static final long serialVersionUID = -8163856691035353577L;
 
 	public static final Key FILECONTENT_BYNARY = KeyImpl._const("filecontent_binary");
+	public static final Key STATUS_CODE = KeyImpl._const("status_code");
 
 	private static final Key CONTENT_TYPE =  KeyImpl._const("content-type");
 
@@ -159,6 +160,7 @@ public class InternalRequest implements Function {
 		//rst.put(KeyConstants._debugging, debugging);
 		rst.set(KeyConstants._executionTime, new Double(exeTime));
 		rst.set(KeyConstants._status, new Double(status));
+		rst.set(STATUS_CODE, new Double(status));
 		return rst;
     }
 

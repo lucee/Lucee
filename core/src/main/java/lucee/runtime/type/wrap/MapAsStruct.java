@@ -39,6 +39,7 @@ import lucee.runtime.type.it.KeyIterator;
 import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.it.ValueIterator;
 import lucee.runtime.type.util.StructSupport;
+import lucee.runtime.type.util.StructUtil;
 
 /**
  * 
@@ -281,5 +282,10 @@ public class MapAsStruct extends StructSupport implements Struct {
 	@Override
 	public java.util.Collection values() {
 		return map.values();
+	}
+	
+	@Override
+	public int getType() {
+		return StructUtil.getType(map);
 	}
 }

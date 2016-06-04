@@ -176,4 +176,10 @@ public final class CollectionStruct extends StructSupport implements ObjectWrap,
 	public Collection getCollection() {
 		return coll;
 	}
+
+	@Override
+	public int getType() {
+		if(coll instanceof StructSupport) return ((StructSupport)coll).getType();
+		return Struct.TYPE_REGULAR;
+	}
 }

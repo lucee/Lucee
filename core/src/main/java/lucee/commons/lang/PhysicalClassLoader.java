@@ -21,23 +21,22 @@ package lucee.commons.lang;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.UnmodifiableClassException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
-import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.runtime.type.util.ArrayUtil;
 
 import org.apache.commons.collections4.map.ReferenceMap;
@@ -51,6 +50,10 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	private Resource directory;
 	private ConfigImpl config; 
 	private final ClassLoader[] parents;
+	
+
+	Set<String> loadedClasses = new HashSet<>();
+	Set<String> unavaiClasses = new HashSet<>();
 	
 	private Map<String,PhysicalClassLoader> customCLs;
 	
@@ -106,9 +109,13 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+		if (loadedClasses.contains(name) || unavaiClasses.contains(name)) {
+			return super.loadClass(name,false); // Use default CL cache
+		}
+
+		
 		// First, check if the class has already been loaded
 		Class<?> c = findLoadedClass(name);
-		//print.o("load:"+name+" -> "+c);
 		if (c == null) {
 			for(ClassLoader p:parents) {
 				try {
@@ -135,6 +142,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			IOUtil.copy(res,baos,false);
 		} 
 		catch (IOException e) {
+			this.unavaiClasses.add(name);
 			throw new ClassNotFoundException("class "+name+" is invalid or doesn't exist");
 		}
 		
@@ -146,57 +154,26 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	public synchronized Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
-		Class<?> clazz=null;
-		try {
-			clazz = loadClass(name);
-		} catch (ClassNotFoundException cnf) {}
 		
-		// if class already exists
-		if(clazz!=null) {
-			try {
-				InstrumentationFactory.getInstrumentation(config).redefineClasses(new ClassDefinition(clazz,barr));
-			} 
-			catch (ClassNotFoundException e) {
-				// the documentation clearly sais that this exception only exists for backward compatibility and never happen
-			}
-			return clazz;
-		}
-		// class not exists yet
 		return _loadClass(name, barr);
 	}
 	
 	private synchronized Class<?> _loadClass(String name, byte[] barr) {
+
+		Class<?> clazz = defineClass(name,barr,0,barr.length);
 		
-		// class not exists yet
-		try {
-			return defineClass(name,barr,0,barr.length);
-		} 
-		catch (Throwable t) {
-			SystemUtil.sleep(1);
-			try {
-				return defineClass(name,barr,0,barr.length);
-			} 
-			catch (Throwable t2) {
-				SystemUtil.sleep(1);
-				return defineClass(name,barr,0,barr.length);
-			}
+		if (clazz != null) {
+			loadedClasses.add(name);
+			/*if (clazz.getPackage() == null) {
+				definePackage(name.replaceAll("\\.\\w+$", ""), null, null, null, null, null, null, null);
+			}*/
+			resolveClass(clazz);
 		}
+		return clazz;
 	}
-	
-	
-	
+
 	@Override
 	public URL getResource(String name) {
-		/*URL url=super.getResource(name);
-		if(url!=null) return url;
-		
-		Resource f =_getResource(name);
-		if(f!=null) {
-			try {
-				return f.toURL();
-			} 
-			catch (MalformedURLException e) {}
-		}*/
 		return null;
 	}
 

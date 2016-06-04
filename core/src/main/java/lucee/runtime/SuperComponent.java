@@ -391,7 +391,7 @@ public class SuperComponent extends MemberSupport implements Component, Member {
 
 	@Override
 	public Set keySet() {
-		return StructUtil.keySet(this,false);
+		return StructUtil.keySet(this);
 	}
 
 

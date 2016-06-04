@@ -2425,6 +2425,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- WebserviceNew -->
 	<function>
 		<name>WebserviceNew</name>
+		<status>hidden</status>
 		<class>lucee.runtime.functions.other.WebserviceProxy</class>
         <introduced>5.0.0.0</introduced>
         <description>create a Webservice Proxy object, a reference to a remote webservice</description>

@@ -42,6 +42,7 @@ import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.net.http.ServletInputStreamDummy;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
@@ -85,7 +86,7 @@ public final class FormImpl extends ScopeSupport implements Form,ScriptProtected
 	 * standart class Constructor
 	 */
 	public FormImpl() {
-		super(true,"form",SCOPE_FORM);
+		super("form",SCOPE_FORM, Struct.TYPE_LINKED);
 	}
 
     @Override

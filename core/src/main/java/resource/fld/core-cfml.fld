@@ -184,26 +184,20 @@ you can use tag cfadmin instead. we will add support for this function in a futu
 		<class>lucee.runtime.functions.other.CreateObject</class>
 		<modified>5.0.0.0</modified>
 		<description>
-		this function is deprecated, do the following instead.
-		- For Java use the function "JavaNew"
-		- For Webservices use the function "WebserviceNew"
-		- For Components do instead "new ComponentName()" or the function "loadComponent"
-		- There is no replacement for "com" 
-		
 		The CreateObject function takes different arguments depending on the value of the first argument:
         CreateObject('com', class, context, serverName)
         CreateObject('component', component-name)
-        CreateObject('java', class)
+        CreateObject('java', class, ...)
         CreateObject('webservice', urltowsdl, [, portname])</description>
 		<argument>
 			<name>type</name>
 			<type>string</type>
 			<required>Yes</required>
 		<description>one of the following:
-- com: for loading a com Object
 - java: for loading a java object
 - webservice: for loading a remote webservice 
-- component: for loading a Component (this functions does not call the init method of the component)</description>
+- component: for loading a Component (this functions does not call the init method of the component)
+- com: for loading a com Object</description>
     </argument>
 		<argument>
 			<name>classname</name>
@@ -212,10 +206,10 @@ you can use tag cfadmin instead. we will add support for this function in a futu
 			<required>no</required>
 		<description>
 the usage of this argument depend on type defined with argument "type":
-- com: Component ProgID for the object to invoke.
 - java: java class to load
 - webservice: WSDL url to call
 - component: The CFC name; corresponds to the name of the file that defines the component
+- com: Component ProgID for the object to invoke.
 		</description>
     </argument>
 		<argument>
@@ -239,10 +233,10 @@ this can be a list of multiple paths (directories containing class files or jar 
 			<required>No</required>
 		<description>
 the usage of this argument depend on type defined with argument "type":
-- com: not used (ignored)
 - java: delimiter used for the classpath (default comma) or bundle version when the previous argument was a bundle name
 - webservice: not used (ignored)
-- component: not used (ignored)</description>
+- component: not used (ignored)
+- com: not used (ignored)</description>
     </argument>
 		<return>
 			<type>any</type>

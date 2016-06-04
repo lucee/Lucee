@@ -38,6 +38,7 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.util.StructSupport;
+import lucee.runtime.type.util.StructUtil;
 
 /**
  * CFML data type struct
@@ -352,6 +353,11 @@ public final class StructImplKey extends StructSupport implements Struct {
 	@Override
 	public java.util.Collection values() {
 		return _map.values();
+	}
+
+	@Override
+	public int getType() {
+		return StructUtil.getType(_map);
 	}
 
 }

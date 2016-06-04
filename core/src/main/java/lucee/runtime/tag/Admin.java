@@ -1089,6 +1089,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
                     //pageContext.compile(ps);
                 }
                 catch (PageException pe) {
+                	pe.printStackTrace();
                 	//PageException pe = pse.getPageException();
                     
                     String template=ps.getDisplayPath();

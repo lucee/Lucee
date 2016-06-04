@@ -33,6 +33,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.ReadOnlyStruct;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.scope.util.EnvStruct;
 import lucee.runtime.type.scope.util.SystemPropStruct;
@@ -94,7 +95,7 @@ public final class ServerImpl extends ScopeSupport implements Server,SharedScope
 	 * @param pc
 	 */
 	public ServerImpl(PageContext pc, boolean jsr223) {
-		super(true,"server",SCOPE_SERVER);
+		super("server",SCOPE_SERVER, Struct.TYPE_LINKED);
 		reload(pc,jsr223);
 
 	}

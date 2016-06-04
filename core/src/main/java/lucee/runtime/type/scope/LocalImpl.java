@@ -18,13 +18,15 @@
  **/
 package lucee.runtime.type.scope;
 
+import lucee.runtime.type.Struct;
+
 
 public final class LocalImpl extends ScopeSupport implements Scope,Local {
 
 	private boolean bind;
 	
 	public LocalImpl() {
-		super(false, "local", Scope.SCOPE_LOCAL);
+		super( "local", Scope.SCOPE_LOCAL, Struct.TYPE_SYNC);
 	}
 
 	@Override

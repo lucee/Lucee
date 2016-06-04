@@ -1,0 +1,1 @@
+<html><head></head><body><cfhtmlhead>{first}</cfhtmlhead><cfhtmlhead>{second}</cfhtmlhead></body></html>

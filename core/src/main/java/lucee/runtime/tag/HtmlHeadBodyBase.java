@@ -71,8 +71,9 @@ public abstract class HtmlHeadBodyBase extends BodyTagTryCatchFinallyImpl {
 	 * @param action the action to set
 	 */
 	public void setAction(String action) {
-		if (!StringUtil.isEmpty(action, true))
-			this.action = action.trim().toLowerCase();
+		if (StringUtil.isEmpty(action, true)) return;
+		
+		this.action = action.trim().toLowerCase();
 	}
 
 
@@ -100,10 +101,7 @@ public abstract class HtmlHeadBodyBase extends BodyTagTryCatchFinallyImpl {
 
 	@Override
 	public int doEndTag() throws PageException {
-
-		if (!StringUtil.isEmpty(text))
-			processTag();
-
+		processTag();
 		return SKIP_BODY;
 	}
 
@@ -111,10 +109,9 @@ public abstract class HtmlHeadBodyBase extends BodyTagTryCatchFinallyImpl {
 	public int doAfterBody() throws PageException {
 
 		if (StringUtil.isEmpty(text) && bodyContent != null) {
-
 			text = bodyContent.getString();
-			processTag();
 		}
+		if(bodyContent!=null)bodyContent.clearBody();
 
 		return SKIP_BODY;
 	}
@@ -124,18 +121,15 @@ public abstract class HtmlHeadBodyBase extends BodyTagTryCatchFinallyImpl {
 		try {
 
 			if (StringUtil.isEmpty(action, true) || action.equals("append")) {
-
 				required(getTagName(), "text", text);
 				if (isValid())
 					actionAppend();
 			}
 			else if (action.equals("reset")) {
-
 				resetIdMap();
 				actionReset();
 			}
 			else if (action.equals("write")) {
-
 				required(getTagName(), "text", text);
 				resetIdMap();
 				if (isValid())          // call isValid() to register the id if set

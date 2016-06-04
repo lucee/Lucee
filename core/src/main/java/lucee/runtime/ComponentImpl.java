@@ -26,9 +26,9 @@ import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -794,7 +794,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
      * @return key set
      */
 	public Set<Key> keySet(int access) {
-    	HashSet<Key> set=new HashSet<Key>();
+		
+    	Set<Key> set=new LinkedHashSet<Key>();
         Map.Entry<Key, Member> entry;    
         Iterator<Entry<Key, Member>> it = _data.entrySet().iterator();
         while(it.hasNext()) {
@@ -2299,5 +2300,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		catch (NoSuchAlgorithmException e) {
 			return getPageSource().getDisplayPath();
 		}
+	}
+
+	@Override
+	public int getType() {
+		return StructUtil.getType(_data);
 	}
 }
