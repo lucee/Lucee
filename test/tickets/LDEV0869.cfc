@@ -22,13 +22,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		var content="
 <cfscript>
-a=1;
-b=2;
-c=3;
+aujhmlml=1;
+bujhmlml=2;
+cujhmlml=3;
 </cfscript>";
 		var content2="
 <cfscript>
-d=4;
+dujhmlml=4;
 </cfscript>";
 
 
