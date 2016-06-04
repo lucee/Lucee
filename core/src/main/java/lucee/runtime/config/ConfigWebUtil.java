@@ -624,7 +624,10 @@ public final class ConfigWebUtil {
 	
 	public static int toDialect(String strDialect, int defaultValue) {
 		if("cfml".equalsIgnoreCase(strDialect))return CFMLEngine.DIALECT_CFML;
+		if("cfm".equalsIgnoreCase(strDialect))return CFMLEngine.DIALECT_CFML;
+		if("cfc".equalsIgnoreCase(strDialect))return CFMLEngine.DIALECT_CFML;
 		if("lucee".equalsIgnoreCase(strDialect))return CFMLEngine.DIALECT_LUCEE;
+		
 		return defaultValue;
 	}
 

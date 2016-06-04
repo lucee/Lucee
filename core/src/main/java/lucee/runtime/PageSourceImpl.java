@@ -36,6 +36,7 @@ import lucee.runtime.compiler.CFMLCompilerImpl.Result;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -888,9 +889,24 @@ public final class PageSourceImpl implements PageSource {
 
 	@Override
 	public int getDialect() {
-		// MUST is the mapping always configWeb?
-		return ((CFMLFactoryImpl)((ConfigWeb)getMapping().getConfig()).getFactory())
-				.toDialect(ResourceUtil.getExtension(relPath, Constants.getCFMLComponentExtension()),CFMLEngine.DIALECT_CFML);
+		Config c = getMapping().getConfig();
+		ConfigWeb cw=null;
+		
+		String ext=ResourceUtil.getExtension(relPath, Constants.getCFMLComponentExtension());
+		
+		if(c instanceof ConfigWeb)
+			cw=(ConfigWeb) c;
+		else {
+			c=ThreadLocalPageContext.getConfig();
+			if(c instanceof ConfigWeb)
+				cw=(ConfigWeb) c;
+		}
+		if(cw!=null) {
+			return ((CFMLFactoryImpl)cw.getFactory())
+					.toDialect(ext,CFMLEngine.DIALECT_CFML);
+		}
+		
+		return ConfigWebUtil.toDialect(ext, CFMLEngine.DIALECT_CFML);
 	}
 
 	/**
