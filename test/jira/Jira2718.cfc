@@ -76,19 +76,19 @@
 		assertEquals(false,initVal == tagFunctionCreateTimespan());
 	}
 	
-	
+	// createTimeSpan(0,0,0,0,8)
 	function testTagFunctionDouble(){
 		var initVal=tagFunctionDouble();
-		sleep(1);
+		sleep(2);
 		assertEquals(true,initVal == tagFunctionDouble());
-		sleep(10);
+		sleep(16);
 		assertEquals(false,initVal == tagFunctionDouble());
 	}
 	function testScriptFunctionDouble(){
 		var initVal=scriptFunctionDouble();
-		sleep(1);
+		sleep(2);
 		assertEquals(true,initVal == scriptFunctionDouble());
-		sleep(10);
+		sleep(16);
 		assertEquals(false,initVal == scriptFunctionDouble());
 	}
 	
