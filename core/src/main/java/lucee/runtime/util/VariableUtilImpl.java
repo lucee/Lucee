@@ -125,7 +125,7 @@ public final class VariableUtilImpl implements VariableUtil {
     
     @Override
 	public Object get(PageContext pc, Object coll, Collection.Key key, Object defaultValue) {
-        // Objects
+    	// Objects
 		if(coll instanceof Objects) {
             return ((Objects)coll).get(pc,key,defaultValue);
         }
@@ -161,12 +161,13 @@ public final class VariableUtilImpl implements VariableUtil {
 		else if(coll instanceof Node) {
 		    return XMLStructFactory.newInstance((Node)coll,false).get(key,defaultValue);
 		}
+		else if(coll==null) return defaultValue;
+		
         // Direct Object Access
         if(pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS)==SecurityManager.VALUE_YES) {
 			return Reflector.getProperty(coll,key.getString(),defaultValue);
 		}
-		return null;
-		
+		return defaultValue;
 	}
 	
 	public Object getLight(PageContext pc, Object coll, Collection.Key key, Object defaultValue) {
@@ -778,6 +779,17 @@ public final class VariableUtilImpl implements VariableUtil {
     
 	}
 	
+	// FUTURE add to interface
+	public Object callFunctionWithoutNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args, Object defaultValue) {
+		// MUST make an independent impl for performance reasons
+		try {
+			return callFunctionWithoutNamedValues(pc, coll, key, args);
+		} catch (Throwable t) {
+			return defaultValue;
+		}
+			
+	}
+	
 	/**
      * @see lucee.runtime.util.VariableUtil#callFunctionWithNamedValues(lucee.runtime.PageContext, java.lang.Object, java.lang.String, java.lang.Object[])
      */
@@ -805,6 +817,17 @@ public final class VariableUtilImpl implements VariableUtil {
 	    
         
         throw new ExpressionException("No matching Method/Function ["+key+"] for call with named arguments found ");
+	}
+	
+	// FUTURE add to interface
+	public Object callFunctionWithNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args, Object defaultValue) {
+		// MUST make an independent impl for performance reasons
+		try {
+			return callFunctionWithNamedValues(pc, coll, key, args);
+		}
+		catch(Throwable t) {
+			return defaultValue;
+		}
 	}
 
 	@Override

@@ -1567,6 +1567,11 @@ public final class PageContextImpl extends PageContext {
 	public Object getFunction(Object coll, Key key, Object[] args) throws PageException {
 		return variableUtil.callFunctionWithoutNamedValues(this,coll,key,args);
 	}
+
+	// FUTURE add to interface
+	public Object getFunction(Object coll, Key key, Object[] args, Object defaultValue) {
+		return variableUtil.callFunctionWithoutNamedValues(this,coll,key,args,defaultValue);
+	}
 	
 	@Override
 	public Object getFunctionWithNamedValues(Object coll, String key, Object[] args) throws PageException {
@@ -1576,6 +1581,11 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public Object getFunctionWithNamedValues(Object coll, Key key, Object[] args) throws PageException {
 		return variableUtil.callFunctionWithNamedValues(this,coll,key,args);
+	}
+	
+	// FUTURE add to interface
+	public Object getFunctionWithNamedValues(Object coll, Key key, Object[] args, Object defaultValue) {
+		return variableUtil.callFunctionWithNamedValues(this,coll,key,args,defaultValue);
 	}
 
 	@Override

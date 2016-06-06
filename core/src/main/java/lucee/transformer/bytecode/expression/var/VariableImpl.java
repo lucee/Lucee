@@ -59,24 +59,17 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	 
 
 
-	// java.lang.Object get(java.lang.String)
-	final static Method METHOD_SCOPE_GET_KEY = new Method("get",
-			Types.OBJECT,
-			new Type[]{Types.COLLECTION_KEY});
-	// Object getCollection(java.lang.String)
-	final static Method METHOD_SCOPE_GET_COLLECTION_KEY= new Method("getCollection",
-			Types.OBJECT,
-			new Type[]{Types.COLLECTION_KEY});
+	// java.lang.Object get(Key)
+	final static Method METHOD_SCOPE_GET_KEY = new Method("get",Types.OBJECT,new Type[]{Types.COLLECTION_KEY});
+	
+	// Object getCollection(Key)
+	final static Method METHOD_SCOPE_GET_COLLECTION_KEY= new Method("getCollection",Types.OBJECT,new Type[]{Types.COLLECTION_KEY});
 
-	// java.lang.Object get(java.lang.String)
-	final static Method METHOD_SCOPE_GET = new Method("get",
-			Types.OBJECT,
-			new Type[]{Types.STRING});
-	// Object getCollection(java.lang.String)
-	/*final static Method METHOD_SCOPE_GET_COLLECTION= new Method("getCollection",
-			Types.OBJECT,
-			new Type[]{Types.STRING});*/
+	//public Object get(PageContext pc,Object coll, Key[] keys, Object defaultValue) {
+	/*???*/private final static Method CALLER_UTIL_GET = new Method("get",Types.OBJECT, new Type[]{Types.PAGE_CONTEXT,Types.OBJECT,Types.COLLECTION_KEY_ARRAY,Types.OBJECT});
 
+	
+	
 	final static Method INIT= new Method("init",
 			Types.COLLECTION_KEY,
 			new Type[]{Types.STRING});
@@ -84,51 +77,33 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			Types.COLLECTION_KEY,
 			new Type[]{Types.OBJECT});
 
-    final static Method[] METHODS_SCOPE_GET = new Method[6];
-    static {
-	    METHODS_SCOPE_GET[0] = METHOD_SCOPE_GET;
-	    METHODS_SCOPE_GET[1] = new Method("get",Types.OBJECT,new Type[]{Types.SCOPE,Types.STRING,Types.STRING}); 
-	    METHODS_SCOPE_GET[2] = new Method("get",Types.OBJECT,new Type[]{Types.SCOPE,Types.STRING,Types.STRING,Types.STRING});
-	    METHODS_SCOPE_GET[3] = new Method("get",Types.OBJECT,new Type[]{Types.SCOPE,Types.STRING,Types.STRING,Types.STRING,Types.STRING});
-	    METHODS_SCOPE_GET[4] = new Method("get",Types.OBJECT,new Type[]{Types.SCOPE,Types.STRING,Types.STRING,Types.STRING,Types.STRING,Types.STRING});
-	    METHODS_SCOPE_GET[5] = new Method("get",Types.OBJECT,new Type[]{Types.SCOPE,Types.STRING,Types.STRING,Types.STRING,Types.STRING,Types.STRING,Types.STRING});
-    }
-    
-    // Object getCollection (Object,String)
-    /*private final static Method GET_COLLECTION = new Method("getCollection",
-			Types.OBJECT,
-			new Type[]{Types.OBJECT,Types.STRING});*/
-    // Object get (Object,String)
-    /*private final static Method GET = new Method("get",
-			Types.OBJECT,
-			new Type[]{Types.OBJECT,Types.STRING});*/
 
-    //public Object get(PageContext pc,Object coll, Key[] keys, Object defaultValue) {
-    private final static Method CALLER_UTIL_GET = new Method("get",
-			Types.OBJECT,
-			new Type[]{Types.PAGE_CONTEXT,Types.OBJECT,Types.COLLECTION_KEY_ARRAY,Types.OBJECT});
-
-    	
-    // Object getCollection (Object,String)
-    private final static Method GET_COLLECTION_KEY = new Method("getCollection",
-			Types.OBJECT,
-			new Type[]{Types.OBJECT,Types.COLLECTION_KEY});
-    // Object get (Object,String)
-    private final static Method GET_KEY = new Method("get",
-			Types.OBJECT,
-			new Type[]{Types.OBJECT,Types.COLLECTION_KEY});
+    private static final int TWO=0;
+    private static final int THREE=1;
+	
+    // Object getCollection (Object,Key[,Object])
+    private final static Method[] GET_COLLECTION =new Method[]{ 
+    	new Method("getCollection",Types.OBJECT,new Type[]{Types.OBJECT,Types.COLLECTION_KEY}),
+    	new Method("getCollection",Types.OBJECT,new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT})
+    };
+	
     
+    // Object get (Object,Key)
+    private final static Method[] GET = new Method[]{ 
+    	new Method("get",Types.OBJECT,new Type[]{Types.OBJECT,Types.COLLECTION_KEY}),
+    	new Method("get",Types.OBJECT,new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT})
+    };
 
     
-    private final static Method GET_FUNCTION_KEY = new Method("getFunction",
-			Types.OBJECT,
-			new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT_ARRAY});
-    
-    
+    private final static Method[] GET_FUNCTION = new Method[]{
+		new Method("getFunction",Types.OBJECT,new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT_ARRAY}),
+		new Method("getFunction",Types.OBJECT,new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT_ARRAY,Types.OBJECT})
+    };
     // Object getFunctionWithNamedValues (Object,String,Object[])
-    private final static Method GET_FUNCTION_WITH_NAMED_ARGS_KEY = new Method("getFunctionWithNamedValues",
-			Types.OBJECT,
-			new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT_ARRAY});
+    private final static Method[] GET_FUNCTION_WITH_NAMED_ARGS =  new Method[]{
+		new Method("getFunctionWithNamedValues",Types.OBJECT,new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT_ARRAY}),
+		new Method("getFunctionWithNamedValues",Types.OBJECT,new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT_ARRAY,Types.OBJECT})
+    };
 	
 	
     private static final Method RECORDCOUNT = new Method("recordcount",
@@ -253,14 +228,18 @@ public class VariableImpl extends ExpressionBase implements Variable {
     	
     	
     	//boolean last;
-    	for(int i=doOnlyScope?0:1;i<count;i++) {
+    	int c=0;
+		for(int i=doOnlyScope?0:1;i<count;i++) {
+    		Member member=(members.get((count-1)-c));
+    		c++;
 			adapter.loadArg(0);
+			if(member.getSafeNavigated() && member instanceof UDF) adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
     	}
     	
     	Type rtn=_writeOutFirst(bc, (members.get(0)),mode,count==1,doOnlyScope,null,null);
 		
 		// pc.get(
-		for(int i=doOnlyScope?0:1;i<count;i++) {
+    	for(int i=doOnlyScope?0:1;i<count;i++) {
 			Member member=(members.get(i));
 			boolean last=(i+1)==count;
 			
@@ -280,12 +259,26 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					}
 					else {
 						getFactory().registerKey(bc,name,false);
-						adapter.invokeVirtual(Types.PAGE_CONTEXT,asCollection(asCollection, last)?GET_COLLECTION_KEY:GET_KEY);
+						// safe nav
+						int type;
+						if(member.getSafeNavigated()) {
+							ASMConstants.NULL(adapter);
+							type=THREE;
+						}
+						else type=TWO;
+						adapter.invokeVirtual(Types.PAGE_CONTEXT,asCollection(asCollection, last)?GET_COLLECTION[type]:GET[type]);
 					}
 				}
 				else{
 					getFactory().registerKey(bc,name,false);
-					adapter.invokeVirtual(Types.PAGE_CONTEXT,asCollection(asCollection, last)?GET_COLLECTION_KEY:GET_KEY);
+					// safe nav
+					int type;
+					if(member.getSafeNavigated()) {
+						ASMConstants.NULL(adapter);
+						type=THREE;
+					}
+					else type=TWO;
+					adapter.invokeVirtual(Types.PAGE_CONTEXT,asCollection(asCollection, last)?GET_COLLECTION[type]:GET[type]);
 				}
 				rtn=Types.OBJECT;
 			}
@@ -572,6 +565,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		// pc.getFunction (Object,String,Object[])
 	    // pc.getFunctionWithNamedValues (Object,String,Object[])
 		adapter.loadArg(0);
+		if(udf.getSafeNavigated()) adapter.checkCast(Types.PAGE_CONTEXT_IMPL);// FUTURE remove if no longer necessary to have PageContextImpl
 		
 		if(!doOnlyScope)adapter.loadArg(0);
 		Type rtn = TypeScope.invokeScope(adapter, scope);
@@ -590,7 +584,16 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			bc.getAdapter().getStatic(Types.CONSTANTS, "EMPTY_OBJECT_ARRAY", Types.OBJECT_ARRAY);
 		}
 		else ExpressionUtil.writeOutExpressionArray(bc, Types.OBJECT, args);
-		bc.getAdapter().invokeVirtual(Types.PAGE_CONTEXT,udf.hasNamedArgs()?GET_FUNCTION_WITH_NAMED_ARGS_KEY:GET_FUNCTION_KEY);
+		
+		int type;
+		if(udf.getSafeNavigated()) {
+			type=THREE;
+			ASMConstants.NULL(bc.getAdapter());
+		}
+		else type=TWO;
+		
+		bc.getAdapter().invokeVirtual(udf.getSafeNavigated()?Types.PAGE_CONTEXT_IMPL:Types.PAGE_CONTEXT,
+				udf.hasNamedArgs()?GET_FUNCTION_WITH_NAMED_ARGS[type]:GET_FUNCTION[type]);
 		return Types.OBJECT;
 	}
 
@@ -630,9 +633,14 @@ public class VariableImpl extends ExpressionBase implements Variable {
 				}
     		}
     	}
-    	// local
+    	
+    	
+    	if(member.getSafeNavigated())
+    		adapter.loadArg(0);
+    	
+    	// collection
     	Type rtn;
-    	if(scope==Scope.SCOPE_LOCAL && defaultValue!=null) {
+    	if(scope==Scope.SCOPE_LOCAL && defaultValue!=null) { // local
     		adapter.loadArg(0);
     		adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
     		getFactory().FALSE().writeOut(bc, MODE_VALUE);
@@ -640,13 +648,28 @@ public class VariableImpl extends ExpressionBase implements Variable {
     		adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, TypeScope.METHOD_LOCAL_EL);
     		rtn= Types.OBJECT;
     	}
-    	else {
+    	else { // all other scopes
     		adapter.loadArg(0);
     		rtn = TypeScope.invokeScope(adapter, scope);
     	}
+    	
+    	
 		if(doOnlyScope) return rtn;
 		getFactory().registerKey(bc,member.getName(),false);
-		adapter.invokeInterface(TypeScope.SCOPES[scope],!last && scope==Scope.SCOPE_UNDEFINED?METHOD_SCOPE_GET_COLLECTION_KEY:METHOD_SCOPE_GET_KEY);
+		
+		boolean _last=!last && scope==Scope.SCOPE_UNDEFINED;
+		if(!member.getSafeNavigated()) {
+			adapter.invokeInterface(TypeScope.SCOPES[scope],
+					_last?METHOD_SCOPE_GET_COLLECTION_KEY:METHOD_SCOPE_GET_KEY);
+		}
+		else {
+			ASMConstants.NULL(adapter);
+			adapter.invokeVirtual(Types.PAGE_CONTEXT,_last?GET_COLLECTION[THREE]:GET[THREE]);
+		}
+		
+		
+		
+		
 		return Types.OBJECT;
 	}
 

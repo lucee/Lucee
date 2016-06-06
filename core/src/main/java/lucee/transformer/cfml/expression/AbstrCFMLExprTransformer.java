@@ -20,8 +20,8 @@ package lucee.transformer.cfml.expression;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
-import lucee.print;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.exp.CasterException;
@@ -1386,7 +1386,9 @@ public abstract class AbstrCFMLExprTransformer {
 	    String name=null;
 	    Invoker invoker=null;
 		// Loop over nested Variables
+	    boolean safeNavigation;
 		while (data.srcCode.isValidIndex()) {
+			safeNavigation=false;
 			ExprString nameProp = null,namePropUC = null;
 			// []
 			if (data.srcCode.forwardIfCurrent('[')) {
@@ -1401,7 +1403,7 @@ public abstract class AbstrCFMLExprTransformer {
 						"Invalid Syntax Closing []] not found");
 			}
 			// .
-			else if (isStaticChild ||data.srcCode.forwardIfCurrent('.')) {
+			else if (isStaticChild || data.srcCode.forwardIfCurrent('.') || (safeNavigation=data.srcCode.forwardIfCurrent('?','.'))) {
 				isStaticChild=false;
 				// Extract next Var String
                 comments(data);
@@ -1413,18 +1415,7 @@ public abstract class AbstrCFMLExprTransformer {
 				nameProp=Identifier.toIdentifier(data.factory,name,line,data.srcCode.getPosition());
 				namePropUC=Identifier.toIdentifier(data.factory,name,data.settings.dotNotationUpper?Identifier.CASE_UPPER:Identifier.CASE_ORIGNAL,line,data.srcCode.getPosition());
 			}
-			/* / :
-			else if (data.cfml.forwardIfCurrent(':')) {
-				// Extract next Var String
-                comments(data);
-                int line=data.cfml.getLine();
-				name = identifier(true,true);
-				if(name==null) 
-					throw new TemplateException(cfml, "Invalid identifier");
-                comments(data);
-                
-				nameProp=LitString.toExprString(name,line);
-			}*/
+			
 			// finish
 			else {
 				break;
@@ -1442,15 +1433,31 @@ public abstract class AbstrCFMLExprTransformer {
             	invoker=new ExpressionInvoker(expr);
             	expr=invoker;
             }
+            
+            // safe navigation
+            Member member;
+            if(safeNavigation) {
+            	List<Member> members = invoker.getMembers();
+            	if(members.size()>0) {
+            		member = members.get(members.size()-1);
+            		member.setSafeNavigated(true);
+            	}
+            }
+            
+            
+            
 			// Method
 			if (data.srcCode.isCurrent('(')) {
 				if(nameProp==null && name!=null)nameProp=Identifier.toIdentifier(data.factory,name, Identifier.CASE_ORIGNAL,null,null);// properly this is never used
-				invoker.addMember(getFunctionMember(data,nameProp, false));
+				invoker.addMember(member=getFunctionMember(data,nameProp, false));
 			}
 			
 			// property
-			else invoker.addMember(data.factory.createDataMember(namePropUC));
+			else invoker.addMember(member=data.factory.createDataMember(namePropUC));
 			
+			if(safeNavigation) {
+            	member.setSafeNavigated(true);
+            }
 		}
 		
 		
