@@ -847,6 +847,15 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 	public void sort(String sortType, String sortOrder) throws PageException {
 		throwNotAllowedToAlter();
 	}
+	
+	protected void sort(int[] rows) throws PageException {
+		Object[] tmp=new Object[data.length];
+		for(int i=0;i<size;i++) {
+			tmp[i]=
+					data[rows[i]-1];
+		}
+		data=tmp;
+	}
 
 	@Override
 	public void sortIt(Comparator comp) {

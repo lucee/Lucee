@@ -64,7 +64,6 @@ import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.db.DataSourceUtil;
 import lucee.runtime.db.DatasourceConnection;
-import lucee.runtime.db.DatasourceConnectionImpl;
 import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLCaster;
 import lucee.runtime.db.SQLItem;
@@ -1082,6 +1081,13 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	public synchronized void sort(Collection.Key keyColumn, int order) throws PageException {
 		//disconnectCache();
         sort(getColumn(keyColumn),order);
+	}
+	
+	public void sort(int[] rows) throws PageException {
+		if(rows.length!=getRecordcount()) throw new ApplicationException("row count is invalid");
+		for(int i=0;i<columns.length;i++) {
+			columns[i].sort(rows);
+		}
 	}
 	
 	private void sort(QueryColumn column, int order) throws PageException {

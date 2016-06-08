@@ -13011,11 +13011,11 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>the query to sort</description>
     </argument>
 		<argument>
-			<name>column_name</name>
-			<alias>columnnames,columnname,name,names,column_names</alias>
-			<type>string</type>
+			<name>columnNameOrSortFunc</name>
+			<alias>column_name,columnnames,columnname,name,names,column_names,sort,function,udf,sortFunction,sortFunc</alias>
+			<type>any</type>
 			<required>Yes</required>
-		<description>a list of names or a single column name</description>
+		<description>a list of names, a single column name or a function used as comparator.</description>
     </argument>
 		<argument>
 			<name>direction</name>
@@ -13023,7 +13023,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 			<required>No</required>
 			<default></default>
-		<description>a list of directions or a single direction defintion (asc,desc), the list must have the same length as the columnName list</description>
+		<description>a list of directions or a single direction defintion (asc,desc), the list must have the same length as the columnName list. ONly used when the second argument defines a list of column names.</description>
     </argument>
 		<return>
 			<type>boolean</type>
