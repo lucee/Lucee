@@ -39,8 +39,8 @@ public final class ArrayMerge extends BIF {
 	}
 	public static Array call(PageContext pc , Array arr1, Array arr2, boolean leaveIndex) throws PageException {
 
-		ArrayImpl arr = new ArrayImpl();
-		arr.ensureCapacity(arr1.size() + arr2.size());
+		ArrayImpl arr = new ArrayImpl(true,arr1.size() + arr2.size());
+		//arr.ensureCapacity(arr1.size() + arr2.size());
 
 		if(leaveIndex) {
 			set(arr, arr2);

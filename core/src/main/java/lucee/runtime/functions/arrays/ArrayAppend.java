@@ -52,9 +52,8 @@ public final class ArrayAppend extends BIF {
 		if(merge && Decision.isCastableToArray(object)) {
 			Object[] appends = Caster.toNativeArray(object);
 			
-			if (array instanceof ArrayImpl) {
-				((ArrayImpl)array).ensureCapacity( array.size() + appends.length );
-			}
+			//if (array instanceof ArrayImpl) ((ArrayImpl)array).ensureCapacity( array.size() + appends.length );
+			
 			
 			for(int i=0;i<appends.length;i++){
 				array.append(appends[i]);

@@ -98,6 +98,7 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.scope.ClusterEntry;
 import lucee.runtime.type.scope.ClusterEntryImpl;
+import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.Creation;
 
@@ -134,7 +135,7 @@ public final class CreationImpl implements Creation,Serializable {
 	
     @Override
     public Array createArray(int dimension) throws PageException {
-        return new ArrayImpl(dimension);
+        return ArrayUtil.getInstance(dimension);
     }
 
     @Override

@@ -93,6 +93,14 @@
 			<default>1</default>
 			<description>Number of dimensions in new array: 1, 2, or 3</description>
     	</argument>
+    	<argument>
+			<name>synchronized</name>
+			<alias>isSynchronized</alias>
+			<type>boolean</type>
+			<required>no</required>
+			<default>true</default>
+			<description>Number of dimensions in new array: 1, 2, or 3</description>
+    	</argument>
 		<return>
 			<type>array</type>
 		</return>

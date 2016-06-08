@@ -48,15 +48,6 @@ public final class SVArray extends ArrayImpl implements Reference {
 
     /**
      * Constructor of the class
-     * @param dimension
-     * @throws ExpressionException
-     */
-    public SVArray(int dimension) throws ExpressionException {
-        super(dimension);
-    }
-
-    /**
-     * Constructor of the class
      * @param objects
      */
     public SVArray(Object[] objects) {
