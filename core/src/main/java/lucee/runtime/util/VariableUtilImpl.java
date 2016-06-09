@@ -769,6 +769,15 @@ public final class VariableUtilImpl implements VariableUtil {
 	    if(coll instanceof TimeZone) {
 			return MemberUtil.call(pc,coll,key,args, CFTypes.TYPE_TIMEZONE, "timezone");
 	    }
+	    if(coll instanceof Boolean) {
+	    	return MemberUtil.call(pc, coll, key, args, CFTypes.TYPE_BOOLEAN, "boolean");
+	    }
+	    if(coll instanceof Map) {
+	    	return MemberUtil.call(pc, coll, key, args, CFTypes.TYPE_STRUCT, "struct");
+	    }
+	    if(coll instanceof List) {
+	    	return MemberUtil.call(pc, coll, key, args, CFTypes.TYPE_ARRAY, "array");
+	    }
 	    
         // call Object Wrapper      
 	    if(pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS)==SecurityManager.VALUE_YES) {

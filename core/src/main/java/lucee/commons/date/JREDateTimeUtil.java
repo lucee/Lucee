@@ -56,6 +56,13 @@ public class JREDateTimeUtil extends DateTimeUtil {
 		return c.get(field);
 	}
 	
+	private static void _set(TimeZone tz, DateTime dt, int value, int field) {
+		Calendar c = _getThreadCalendar(tz);
+		c.setTimeInMillis(dt.getTime());
+		c.set(field, value);
+		dt.setTime(c.getTimeInMillis());
+	}
+	
 
 	private static int _get(Locale l,TimeZone tz, DateTime dt, int field) {
 		Calendar c = _getThreadCalendar(l,tz);
@@ -67,15 +74,27 @@ public class JREDateTimeUtil extends DateTimeUtil {
 	public int getYear(TimeZone tz, DateTime dt) {
 		return _get(tz,dt,Calendar.YEAR);
 	}
+	@Override
+	public void setYear(TimeZone tz, DateTime dt, int value) {
+		_set(tz,dt,value,Calendar.YEAR);
+	}
 
 	@Override
 	public int getMonth(TimeZone tz, DateTime dt) {
 		return _get(tz,dt,Calendar.MONTH)+1;
 	}
+	@Override
+	public void setMonth(TimeZone tz, DateTime dt, int value) {
+		_set(tz,dt,value-1,Calendar.MONTH);
+	}
 
 	@Override
 	public int getDay(TimeZone tz, DateTime dt) {
 		return _get(tz,dt,Calendar.DAY_OF_MONTH);
+	}
+	@Override
+	public void setDay(TimeZone tz, DateTime dt, int value) {
+		_set(tz,dt,value,Calendar.DAY_OF_MONTH);
 	}
 
 	@Override
@@ -84,8 +103,17 @@ public class JREDateTimeUtil extends DateTimeUtil {
 	}
 
 	@Override
+	public void setHour(TimeZone tz, DateTime dt, int value) {
+		_set(tz,dt,value,Calendar.HOUR_OF_DAY);
+	}
+
+	@Override
 	public int getMinute(TimeZone tz, DateTime dt) {
 		return _get(tz,dt,Calendar.MINUTE);
+	}
+	@Override
+	public void setMinute(TimeZone tz, DateTime dt, int value) {
+		_set(tz,dt,value,Calendar.MINUTE);
 	}
 
 	@Override
@@ -94,8 +122,17 @@ public class JREDateTimeUtil extends DateTimeUtil {
 	}
 
 	@Override
+	public void setSecond(TimeZone tz, DateTime dt, int value) {
+		_set(tz,dt,value,Calendar.SECOND);
+	}
+
+	@Override
 	public int getMilliSecond(TimeZone tz, DateTime dt) {
 		return _get(tz,dt,Calendar.MILLISECOND);
+	}
+	@Override
+	public void setMilliSecond(TimeZone tz, DateTime dt, int value) {
+		_set(tz,dt,value,Calendar.MILLISECOND);
 	}
 
 	@Override

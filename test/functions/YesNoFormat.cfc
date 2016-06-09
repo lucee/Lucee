@@ -37,5 +37,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("NoX",yesNoFormat("")&"X");		
 	}
 
+	public void function testMemberFunc(){
+		b=true;
+		assertEquals(3,b.yesNoFormat().len());
+		assertEquals("Yes",b.yesNoFormat());
+		assertEqUals("YesX",b.yesNoFormat()&"X");		
+	}
+
 } 
 </cfscript>

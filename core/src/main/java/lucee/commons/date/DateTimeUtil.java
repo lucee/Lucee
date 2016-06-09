@@ -212,19 +212,26 @@ public abstract class DateTimeUtil {
     
     abstract long _toTime(TimeZone tz,int year,int month,int day,int hour,int minute,int second,int milliSecond);
 	
-	public abstract int getYear(TimeZone tz,lucee.runtime.type.dt.DateTime dt);
+    public abstract int getYear(TimeZone tz,lucee.runtime.type.dt.DateTime dt);
+    public abstract void setYear(TimeZone tz,lucee.runtime.type.dt.DateTime dt, int value);
 	
-	public abstract int getMonth(TimeZone tz,DateTime dt);
+    public abstract int getMonth(TimeZone tz,DateTime dt);
+    public abstract void setMonth(TimeZone tz,DateTime dt, int value);
 	
-	public abstract int getDay(TimeZone tz,DateTime dt);
+    public abstract int getDay(TimeZone tz,DateTime dt);
+    public abstract void setDay(TimeZone tz,DateTime dt, int value);
 
-	public abstract int getHour(TimeZone tz,DateTime dt);
+    public abstract int getHour(TimeZone tz,DateTime dt);
+    public abstract void setHour(TimeZone tz,DateTime dt, int value);
 	
-	public abstract int getMinute(TimeZone tz,DateTime dt);
+    public abstract int getMinute(TimeZone tz,DateTime dt);
+    public abstract void setMinute(TimeZone tz,DateTime dt, int value);
 	
-	public abstract int getSecond(TimeZone tz,DateTime dt);
+    public abstract int getSecond(TimeZone tz,DateTime dt);
+    public abstract void setSecond(TimeZone tz,DateTime dt, int value);
 	
-	public abstract int getMilliSecond(TimeZone tz,DateTime dt);
+    public abstract int getMilliSecond(TimeZone tz,DateTime dt);
+    public abstract void setMilliSecond(TimeZone tz,DateTime dt, int value);
 
 	public abstract long getMilliSecondsInDay(TimeZone tz, long time);
 	

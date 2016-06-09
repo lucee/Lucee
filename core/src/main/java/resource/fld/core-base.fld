@@ -13767,6 +13767,270 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>number</type>
 		</return>
 	</function>
+	<!-- setMilliSecond -->
+	<function>
+		<name>setMilliSecond</name>
+		<class>lucee.runtime.functions.dateTime.SetMilliSecond</class>
+		<member-name>setMilliSecond</member-name>
+		<description>Sets the milli seconds of this Date Object to the specified value.</description>
+		<argument>
+			<name>date</name>
+			<type>datetime</type>
+			<required>Yes</required>
+			<description>A date/time object</description>
+		</argument>
+		<argument>
+			<name>millisecond</name>
+			<alias>milliseconds,ms,value</alias>
+			<type>number</type>
+			<required>Yes</required>
+			<description>value to set</description>
+		</argument>
+		<argument>
+			<name>timezone</name>
+			<type>timezone</type>
+			<required>no</required>
+		<description>
+A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
+For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
+       - AGT (for time in Argentina)
+       - Europe/Zurich (for time in Zurich/Switzerland)
+       - HST (Hawaiian Standard Time in the USA)
+		</description>
+    </argument>
+		<return>
+			<type>datetime</type>
+		</return>
+	</function>
+	<!-- setSecond -->
+	<function>
+		<name>setSecond</name>
+		<class>lucee.runtime.functions.dateTime.SetSecond</class>
+		<member-name>setSecond</member-name>
+		<description>Sets the seconds of this Date Object to the specified value.</description>
+		<argument>
+			<name>date</name>
+			<type>datetime</type>
+			<required>Yes</required>
+			<description>A date/time object</description>
+		</argument>
+		<argument>
+			<name>second</name>
+			<alias>seconds,value</alias>
+			<type>number</type>
+			<required>Yes</required>
+			<description>value to set</description>
+		</argument>
+		<argument>
+			<name>timezone</name>
+			<type>timezone</type>
+			<required>no</required>
+		<description>
+A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
+For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
+       - AGT (for time in Argentina)
+       - Europe/Zurich (for time in Zurich/Switzerland)
+       - HST (Hawaiian Standard Time in the USA)
+		</description>
+    </argument>
+		<return>
+			<type>datetime</type>
+		</return>
+	</function>
+	<!-- setMinute -->
+	<function>
+		<name>setMinute</name>
+		<class>lucee.runtime.functions.dateTime.SetMinute</class>
+		<member-name>setMinute</member-name>
+		<description>Sets the minutes of this Date Object to the specified value.</description>
+		<argument>
+			<name>date</name>
+			<type>datetime</type>
+			<required>Yes</required>
+			<description>A date/time object</description>
+		</argument>
+		<argument>
+			<name>minute</name>
+			<alias>minutes,value</alias>
+			<type>number</type>
+			<required>Yes</required>
+			<description>value to set</description>
+		</argument>
+		<argument>
+			<name>timezone</name>
+			<type>timezone</type>
+			<required>no</required>
+		<description>
+A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
+For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
+       - AGT (for time in Argentina)
+       - Europe/Zurich (for time in Zurich/Switzerland)
+       - HST (Hawaiian Standard Time in the USA)
+		</description>
+    </argument>
+		<return>
+			<type>datetime</type>
+		</return>
+	</function>
+	
+	<!-- setHour -->
+	<function>
+		<name>setHour</name>
+		<class>lucee.runtime.functions.dateTime.SetHour</class>
+		<member-name>setHour</member-name>
+		<description>Sets the hours of this Date Object to the specified value.</description>
+		<argument>
+			<name>date</name>
+			<type>datetime</type>
+			<required>Yes</required>
+			<description>A date/time object</description>
+		</argument>
+		<argument>
+			<name>hour</name>
+			<alias>hours,value</alias>
+			<type>number</type>
+			<required>Yes</required>
+			<description>value to set</description>
+		</argument>
+		<argument>
+			<name>timezone</name>
+			<type>timezone</type>
+			<required>no</required>
+		<description>
+A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
+For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
+       - AGT (for time in Argentina)
+       - Europe/Zurich (for time in Zurich/Switzerland)
+       - HST (Hawaiian Standard Time in the USA)
+		</description>
+    </argument>
+		<return>
+			<type>datetime</type>
+		</return>
+	</function>
+	
+	<!-- setDay -->
+	<function>
+		<name>setDay</name>
+		<class>lucee.runtime.functions.dateTime.SetDay</class>
+		<member-name>setDay</member-name>
+		<description>Sets the days of this Date Object to the specified value.</description>
+		<argument>
+			<name>date</name>
+			<type>datetime</type>
+			<required>Yes</required>
+			<description>A date/time object</description>
+		</argument>
+		<argument>
+			<name>day</name>
+			<alias>days,value</alias>
+			<type>number</type>
+			<required>Yes</required>
+			<description>value to set</description>
+		</argument>
+		<argument>
+			<name>timezone</name>
+			<type>timezone</type>
+			<required>no</required>
+		<description>
+A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
+For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
+       - AGT (for time in Argentina)
+       - Europe/Zurich (for time in Zurich/Switzerland)
+       - HST (Hawaiian Standard Time in the USA)
+		</description>
+    </argument>
+		<return>
+			<type>datetime</type>
+		</return>
+	</function>
+	
+	<!-- setMonth -->
+	<function>
+		<name>setMonth</name>
+		<class>lucee.runtime.functions.dateTime.SetMonth</class>
+		<member-name>setMonth</member-name>
+		<description>Sets the months of this Date Object to the specified value.</description>
+		<argument>
+			<name>date</name>
+			<type>datetime</type>
+			<required>Yes</required>
+			<description>A date/time object</description>
+		</argument>
+		<argument>
+			<name>month</name>
+			<alias>months,value</alias>
+			<type>number</type>
+			<required>Yes</required>
+			<description>value to set</description>
+		</argument>
+		<argument>
+			<name>timezone</name>
+			<type>timezone</type>
+			<required>no</required>
+		<description>
+A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
+For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
+       - AGT (for time in Argentina)
+       - Europe/Zurich (for time in Zurich/Switzerland)
+       - HST (Hawaiian Standard Time in the USA)
+		</description>
+    </argument>
+		<return>
+			<type>datetime</type>
+		</return>
+	</function>
+	
+	<!-- setYear -->
+	<function>
+		<name>setYear</name>
+		<class>lucee.runtime.functions.dateTime.SetYear</class>
+		<member-name>setYear</member-name>
+		<description>Sets the years of this Date Object to the specified value.</description>
+		<argument>
+			<name>date</name>
+			<type>datetime</type>
+			<required>Yes</required>
+			<description>A date/time object</description>
+		</argument>
+		<argument>
+			<name>year</name>
+			<alias>years,value</alias>
+			<type>number</type>
+			<required>Yes</required>
+			<description>value to set</description>
+		</argument>
+		<argument>
+			<name>timezone</name>
+			<type>timezone</type>
+			<required>no</required>
+		<description>
+A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
+For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
+       - AGT (for time in Argentina)
+       - Europe/Zurich (for time in Zurich/Switzerland)
+       - HST (Hawaiian Standard Time in the USA)
+		</description>
+    </argument>
+		<return>
+			<type>datetime</type>
+		</return>
+	</function>
+	
 	<!-- SendGatewayMessage -->
 	<function>
 		<name>SendGatewayMessage</name>

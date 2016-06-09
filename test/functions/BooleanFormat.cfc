@@ -37,5 +37,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("falseX",booleanFormat("")&"X");		
 	}
 
+	public void function testMemberFunc(){
+		var b=true;
+		assertEquals(4,b.booleanFormat().len());
+		assertEquals("true",b.booleanFormat());
+		assertEqUals("trueX",b.booleanFormat()&"X");		
+	}
+
 } 
 </cfscript>

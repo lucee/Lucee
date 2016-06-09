@@ -2146,6 +2146,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>yesNoFormat</name>
 		<class>lucee.runtime.functions.displayFormatting.YesNoFormat</class>
+		<member-name>yesNoFormat</member-name>
+		<member-type>boolean</member-type>
 		<keywords>boolean,formatting</keywords>
 		<description>Yes, for a non-zero value; No, otherwise.</description>
 		<argument>
@@ -2180,7 +2182,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>booleanFormat</name>
 		<class>lucee.runtime.functions.displayFormatting.TrueFalseFormat</class>
-		<keywords>boolean,formatting</keywords>
+		<member-name>booleanFormat</member-name>
+        <member-type>boolean</member-type>
+        <keywords>boolean,formatting</keywords>
 		<description>True, for a non-zero value; False, otherwise.</description>
 		<argument>
 			<name>value</name>

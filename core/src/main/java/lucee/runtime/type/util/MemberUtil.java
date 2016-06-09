@@ -38,6 +38,7 @@ import lucee.runtime.interpreter.ref.literal.LString;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.transformer.library.function.FunctionLib;
@@ -105,10 +106,9 @@ public class MemberUtil {
 			
 		}
 		if(pc.getConfig().getSecurityManager().getAccess(lucee.runtime.security.SecurityManager.TYPE_DIRECT_JAVA_ACCESS)==lucee.runtime.security.SecurityManager.VALUE_YES) {
-			return Reflector.callMethod(coll,methodName,args);
-			//Object res = Reflector.callMethod(coll,methodName,args,DEFAULT_VALUE);
-	    	//if(res!=DEFAULT_VALUE) return res;
-	    } 
+			if(!(coll instanceof Undefined))
+				return Reflector.callMethod(coll,methodName,args);
+		}
 		throw new ExpressionException("No matching function member ["+methodName+"] found, available function members are ["+lucee.runtime.type.util.ListUtil.sort(CollectionUtil.getKeyList(members.keySet().iterator(), ","),"textnocase","asc",",")+"]");
 	}
 
