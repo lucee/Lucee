@@ -24,22 +24,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testFunction() localmode="true" {
 		res = queryMap(people, function( row, rowNumber, recordset ){
-		    row['age'] = DateDiff( 'yyyy', row.dob, Now() )+1;
+		    row['age'] = DateDiff( 'yyyy', row.dob, CreateDate( 2016, 6, 9 ) )+1;
 		    return row;
 		});
 		assertEquals(
-			'46,21,56,28'
+			'47,22,57,29'
 			,valueList(res.age)
 		);
 	}
 
 	public void function testMemberFunction() localmode="true" {
 		res = people.map( function( row, rowNumber, recordset ){
-		    row['age'] = DateDiff( 'yyyy', row.dob, Now() );
+		    row['age'] = DateDiff( 'yyyy', row.dob, CreateDate( 2016, 6, 9 ) );
 		    return row;
 		});
 		assertEquals(
-			'45,20,55,27'
+			'46,21,56,28'
 			,valueList(res.age)
 		);
 	} 

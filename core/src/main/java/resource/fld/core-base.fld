@@ -13374,6 +13374,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<required>no</required>
 			<description>Delimiter for replacement.</description>
 	    </argument>
+		<argument>
+			<name>includeEmptyFields</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>When true, empty elements are preserved</description>
+	    </argument>
 	    
 	    
 		<return>
@@ -13420,6 +13426,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 			<required>no</required>
 			<description>Delimiter for replacement.</description>
+	    </argument>
+		<argument>
+			<name>includeEmptyFields</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>When true, empty elements are preserved</description>
 	    </argument>
 	    
 	    

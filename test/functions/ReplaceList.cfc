@@ -5,6 +5,18 @@
 	<cffunction name="setUp"></cffunction>
 	--->
 
+	<cffunction name="testIncludeEmptyField" localMode="modern">
+		<cfset stringtoreplace = "The quick brown fox jumped over the lazy dog.">
+		<cfset assertEquals(
+			"The quick ferret white jumped over the lazy .",
+			ReplaceList(stringtoreplace, "dog:brown:fox:black", "--black-ferret-white", ":", "-", false)
+		)>
+
+		<cfset assertEquals(
+			"The quick  ferret jumped over the lazy .",
+			ReplaceList(stringtoreplace, "dog:brown:fox:black", "--black-ferret-white", ":", "-", true)
+		)>
+	</cffunction>
 
 	<cffunction name="testReplaceListCase" localMode="modern">
 		<cfset assertEquals(
