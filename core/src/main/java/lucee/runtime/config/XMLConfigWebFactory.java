@@ -1023,6 +1023,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				createFileFromResourceEL("/resource/bin/windows" + ((SystemUtil.getJREArch() == SystemUtil.ARCH_64) ? "64" : "32") + "/" + name, jacob);
 			}
 		}
+		
 
 		Resource storDir = configDir.getRealResource("storage");
 		if (!storDir.exists())
@@ -1039,9 +1040,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			f = secDir.getRealResource("cacerts");
 			if (f.exists())
 				f.delete();
-			if (ResourceUtil.isEmpty(secDir))
-				secDir.delete();
+			
 		}
+		else
+			secDir.mkdirs();
+		f = secDir.getRealResource("antisamy-basic.xml");
+		if (!f.exists() || doNew) createFileFromResourceEL("/resource/security/antisamy-basic.xml", f);
+		
+		
 		
 		// lucee-context
 		f = contextDir.getRealResource("lucee-context.lar");

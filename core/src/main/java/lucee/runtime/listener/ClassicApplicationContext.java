@@ -37,6 +37,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.functions.other.CreateObject;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Duplicator;
@@ -97,6 +98,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private Map<Integer,Boolean> sameFieldAsArrays=new HashMap<Integer, Boolean>();
 	private RestSettings restSettings;
 	private Resource[] restCFCLocations;
+	private Resource antiSamyPolicy;
 	private JavaSettingsImpl javaSettings;
 	private DataSource[] dataSources;
 	private UDF onMissingTemplate;
@@ -151,7 +153,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
         this.javaSettings=new JavaSettingsImpl();
         this.wstype=WS_TYPE_AXIS1;
     	cgiScopeReadonly = ((ConfigImpl)config).getCGIScopeReadonly();
-
+    	this.antiSamyPolicy=((ConfigImpl)config).getAntiSamyPolicy();
+    	
     }
     
     /**
@@ -215,7 +218,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.clientCluster=clientCluster;
 		dbl.source=source;
 		dbl.cgiScopeReadonly=cgiScopeReadonly;
-		
+		dbl.antiSamyPolicy=antiSamyPolicy;
 		return dbl;
 	}
 
@@ -797,6 +800,14 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setCGIScopeReadonly(boolean cgiScopeReadonly) {
 		this.cgiScopeReadonly=cgiScopeReadonly;
+	}
+
+	@Override
+	public Resource getAntiSamyPolicyResource() {
+		return antiSamyPolicy;
+	}
+	public void setAntiSamyPolicyResource(Resource antiSamyPolicy) {
+		this.antiSamyPolicy = antiSamyPolicy;
 	}
 
 }

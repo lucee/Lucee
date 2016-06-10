@@ -3635,4 +3635,8 @@ public abstract class ConfigImpl implements Config {
 	public ClassDefinition getCacheDefinition(String className) {
 		return this.cacheDefinitions.get(className); 
 	}
+
+	public Resource getAntiSamyPolicy() {
+		return getConfigDir().getRealResource("security/antisamy-basic.xml");
+	}
 }

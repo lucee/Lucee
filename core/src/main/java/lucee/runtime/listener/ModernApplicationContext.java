@@ -212,6 +212,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initResourceCharset;
 	private boolean initCGIScopeReadonly;
 	
+	private Resource antiSamyPolicyResource;
+	
 	
 	private Resource[] restCFCLocations;
 
@@ -255,6 +257,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
         this.component=cfc;
 		
         
+        initAntiSamyPolicyResource(pc);
+        if(antiSamyPolicyResource==null)
+        	this.antiSamyPolicyResource=((ConfigImpl)config).getAntiSamyPolicy();
         // read scope cascading
         initScopeCascading();
         initSameFieldAsArray(pc);
@@ -806,6 +811,26 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if(!initWebCharset)initCharset();
 		return webCharset;
 	}
+	
+
+	@Override
+	public Resource getAntiSamyPolicyResource() {
+		return antiSamyPolicyResource;
+	}
+	
+	@Override
+	public void setAntiSamyPolicyResource(Resource res) {
+		antiSamyPolicyResource=res;
+	}
+	
+	public void initAntiSamyPolicyResource(PageContext pc) {
+		Struct sct = Caster.toStruct(get(component,KeyConstants._security,null),null);
+		if(sct!=null) {
+			Resource tmp = ResourceUtil.toResourceExisting(pc,Caster.toString(sct.get("antisamypolicy",null),null),true,null);
+			if(tmp!=null) antiSamyPolicyResource=tmp;
+		}
+	}
+	
 	
 	@Override
 	public Charset getResourceCharset() {
@@ -1394,5 +1419,4 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		initCGIScopeReadonly=true;
 		this.cgiScopeReadonly=cgiScopeReadonly;
 	}
-
 }

@@ -31,10 +31,12 @@ import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMUtil;
@@ -112,6 +114,7 @@ public final class Application extends TagImpl {
 	private String cacheHTTP;
 	private String cacheFile;
 	private String cacheWebservice;
+	private Resource antiSamyPolicyResource;
 	
 	private Struct datasources;
 	private UDF onmissingtemplate;
@@ -177,7 +180,7 @@ public final class Application extends TagImpl {
     	cacheHTTP=null;
     	cacheFile=null;
     	cacheWebservice=null;
-    	
+    	antiSamyPolicyResource=null;
     	onmissingtemplate=null;
     	scopeCascading=-1;
     }
@@ -364,6 +367,10 @@ public final class Application extends TagImpl {
 	
 	public void setCompression(boolean compress)	{
 		this.compression=compress;
+	}
+	
+	public void setAntiSamyPolicyResource(String strAntiSamyPolicyResource) throws ExpressionException {
+		this.antiSamyPolicyResource=ResourceUtil.toResourceExisting(pageContext, strAntiSamyPolicyResource);
 	}
 	
 
@@ -579,6 +586,7 @@ public final class Application extends TagImpl {
 		if(cacheHTTP!=null) 					ac.setDefaultCacheName(Config.CACHE_TYPE_HTTP, cacheHTTP);
 		if(cacheFile!=null) 					ac.setDefaultCacheName(Config.CACHE_TYPE_FILE, cacheFile);
 		if(cacheWebservice!=null) 				ac.setDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE, cacheWebservice);
+		if(antiSamyPolicyResource!=null) 		((ApplicationContextSupport)ac).setAntiSamyPolicyResource(antiSamyPolicyResource);
 		
 		if(tag!=null) ac.setTagAttributeDefaultValues(pageContext,tag);
 		ac.setClientCluster(clientCluster);

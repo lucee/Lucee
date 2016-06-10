@@ -264,6 +264,34 @@
     	<version>2.1.0.1</version>
       <scope>provided</scope>
     </dependency>
+    <!-- <dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>antisamy</artifactId>
+  	<version>1.5.3</version>
+  </dependency>
+  <dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>batik</artifactId>
+  	<version>1.7.0</version>
+  </dependency>
+  <dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>batik-util</artifactId>
+  	<version>1.7.0</version>
+  </dependency>
+  <dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>xml-apis-ext</artifactId>
+  	<version>1.3.04</version>
+  </dependency>
+  To MANIFEST:
+  
+ org.lucee.antisamy;bundle-version=1.5.3,
+ org.lucee.batik;bundle-version=1.7.0,
+ org.lucee.batikutil;bundle-version=1.7.0,
+ org.lucee.xml.apisext;bundle-version=1.3.04,
+  
+   -->
     <dependency>
   	  <groupId>xom</groupId>
   	  <artifactId>xom</artifactId>

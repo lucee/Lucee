@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
@@ -234,5 +235,9 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 		
 		if(value!=null)cachedWithins.put(type, value);
 	}
+
+	// FUTURE add to interface
+	public abstract Resource getAntiSamyPolicyResource();
+	public abstract void setAntiSamyPolicyResource(Resource res);
 
 }

@@ -3478,6 +3478,41 @@ dec: descending (z to a) sort order.
 		</return>
 	</function>
 	
+	<!-- GetSafeHTML
+	<function>
+		<name>GetSafeHTML</name>
+		<class>lucee.runtime.functions.owasp.GetSafeHTML</class>
+		<member-name>getSafeHTML</member-name>
+		<keywords>ESAPI,HTML</keywords>
+		<description>Sanitizes the given input string based on the the rules specified in an antisamy policy file. 
+		This can be used to prevent unwanted user supplied HTML being used in an application. the antisamy policy file can be passed as argument to this function or can be defined in the application scope with the argument "this.security.antisamypolicy". if no file is defined the default file is used that is located in the web context in the folder security.
+		</description>
+		<argument>
+			<name>input</name>
+			<alias>inputString</alias>
+			<type>string</type>
+			<required>Yes</required>
+		<description>the HTML String to encode</description>
+    </argument>
+		<argument>
+			<name>policy</name>
+			<alias>policyFile</alias>
+			<type>string</type>
+			<required>No</required>
+		<description>File path for antisamy policy file which specifies HTML rules.</description>
+    </argument>
+		<argument>
+			<name>throwOnError</name>
+			<type>boolean</type>
+			<required>No</required>
+		<description>if it fails to sanitize the HTML and this is set to true, an exception is thrown.</description>
+    </argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>  -->
+	
+	
 	<!-- ESAPIEncode -->	
 	<function>
 		<name>ESAPIEncode</name>
