@@ -1,6 +1,7 @@
 /**
  *
  * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
+ * Copyright (c) 2016, Lucee Association Switzerland. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,10 +22,14 @@ package lucee.transformer.bytecode.statement;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
+import lucee.transformer.bytecode.cast.CastString;
 import lucee.transformer.bytecode.util.Types;
+import lucee.transformer.expression.ExprInt;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
+import lucee.transformer.expression.literal.LitInteger;
 
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
@@ -40,9 +45,22 @@ public final class PrintOut extends StatementBaseNoFinal {
 			Types.VOID,
 			new Type[]{Types.OBJECT}); 
     
+    private final static Method METHOD_WRITE_ENCODE_STRING = new Method("writeEncodeFor",
+			Types.VOID,
+			new Type[]{Types.STRING,Types.STRING}); 
+    
+    private final static Method METHOD_WRITE_ENCODE_SHORT = new Method("writeEncodeFor",
+			Types.VOID,
+			new Type[]{Types.STRING,Types.SHORT_VALUE}); 
+    
     Expression expr;
 
 	private boolean checkPSQ;
+
+
+
+	private Expression encodeFor;
+	private boolean encodeForIsInt;
 
   
     
@@ -62,18 +80,28 @@ public final class PrintOut extends StatementBaseNoFinal {
      */
     @Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
+    	boolean doEncode=!checkPSQ && encodeFor!=null;
     	GeneratorAdapter adapter = bc.getAdapter();
         adapter.loadArg(0);
+        if(doEncode)adapter.checkCast(Types.PAGE_CONTEXT_IMPL); // FUTURE keyword:encodefore remove
+        
         ExprString es=bc.getFactory().toExprString(expr);
         boolean usedExternalizer=false;
         
-        /*if(es instanceof LitString) {
-        	LitString ls = ((LitString)es);
-        	ls.setExternalize(true);
-        }*/
-        
         if(!usedExternalizer)es.writeOut(bc,Expression.MODE_REF);
-        adapter.invokeVirtual(Types.PAGE_CONTEXT,checkPSQ?METHOD_WRITE_PSQ:METHOD_WRITE);
+        if(doEncode) {
+        	if(encodeForIsInt) {
+        		encodeFor.writeOut(bc, Expression.MODE_VALUE);
+        		adapter.visitInsn(Opcodes.I2S);
+            	adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL,METHOD_WRITE_ENCODE_SHORT); // FUTURE keyword:encodefore remove _IMPL
+        	}
+        	else {
+        		encodeFor.writeOut(bc, Expression.MODE_REF);
+        		adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL,METHOD_WRITE_ENCODE_STRING); // FUTURE keyword:encodefore remove _IMPL
+        	}
+        }
+        else
+        	adapter.invokeVirtual(Types.PAGE_CONTEXT,checkPSQ?METHOD_WRITE_PSQ:METHOD_WRITE);
     }
 
 
@@ -97,5 +125,13 @@ public final class PrintOut extends StatementBaseNoFinal {
 	 */
 	public void setCheckPSQ(boolean checkPSQ) {
 		this.checkPSQ = checkPSQ;
+	}
+	
+
+	public void setEncodeFor(Expression encodeFor) {
+		encodeForIsInt=encodeFor instanceof ExprInt;
+		
+    	if(!encodeForIsInt) this.encodeFor=CastString.toExprString(encodeFor);
+    	else this.encodeFor = encodeFor;
 	}
 }

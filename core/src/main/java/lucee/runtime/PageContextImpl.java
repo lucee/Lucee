@@ -111,6 +111,7 @@ import lucee.runtime.exp.NoLongerSupported;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.functions.dynamicEvaluation.Serialize;
+import lucee.runtime.functions.owasp.ESAPIEncode;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.listener.ApplicationContext;
@@ -684,6 +685,14 @@ public final class PageContextImpl extends PageContext {
 			writer.write(psq?Caster.toString(o):StringUtil.replace(Caster.toString(o),"'","''",false));
 		}
 	} 
+
+	// FUTURE add both method to interface
+	public void writeEncodeFor(String value, String encodeType) throws IOException, PageException { // FUTURE keyword:encodefore add to interface
+		write(ESAPIEncode.call(this, encodeType, value,false));
+	}
+	public void writeEncodeFor(String value, short encodeType) throws IOException, PageException { // FUTURE keyword:encodefore add to interface
+		write(ESAPIEncode.encode(value, encodeType, false));
+	}
 	
 	@Override
 	public void flush() {

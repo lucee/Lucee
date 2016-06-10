@@ -1,6 +1,7 @@
 /**
  *
  * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
+ * Copyright (c) 2016, Lucee Association Switzerland. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,11 +19,27 @@
  **/
 package lucee.transformer.cfml.evaluator.impl;
 
+import java.util.Iterator;
+
+import lucee.runtime.functions.owasp.ESAPIEncode;
+import lucee.runtime.functions.owasp.EncodeForCSS;
+import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.Statement;
+import lucee.transformer.bytecode.cast.CastOther;
+import lucee.transformer.bytecode.cast.CastString;
+import lucee.transformer.bytecode.expression.var.BIF;
+import lucee.transformer.bytecode.statement.PrintOut;
+import lucee.transformer.bytecode.statement.tag.Attribute;
 import lucee.transformer.bytecode.statement.tag.Tag;
 import lucee.transformer.bytecode.statement.tag.TagOutput;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.EvaluatorSupport;
+import lucee.transformer.expression.Expression;
+import lucee.transformer.expression.literal.Literal;
+import lucee.transformer.expression.var.Member;
+import lucee.transformer.expression.var.Variable;
+import lucee.transformer.library.function.FunctionLib;
+import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.tag.TagLibTag;
 
 
@@ -34,14 +51,39 @@ import lucee.transformer.library.tag.TagLibTag;
  */
 public final class Output extends EvaluatorSupport {
 
+	private static String ENCODE_FOR = EncodeForCSS.class.getName();
+	static {
+		// remove CSS
+		ENCODE_FOR=ENCODE_FOR.substring(0, ENCODE_FOR.length()-3);
+	}
+
 	@Override
-	public void evaluate(Tag tag,TagLibTag libTag) throws EvaluatorException { 
+	public void evaluate(Tag tag, TagLibTag libTag, FunctionLib[] flibs) throws EvaluatorException { 
 		
 		TagOutput output=(TagOutput) tag;
 		
         // check if inside a query tag
 		TagOutput parent = output;
-        boolean hasParentWithGroup=false;
+        
+		// encodeFor
+		Attribute encodeFor = tag.getAttribute("encodefor");
+		if(encodeFor!=null) {
+			Expression encodeForValue = CastString.toExprString(encodeFor.getValue());
+			if(encodeForValue instanceof Literal) {
+				Literal l=(Literal)encodeForValue;
+				short df=(short)-1;
+				short encType = ESAPIEncode.toEncodeType( l.getString(),df);
+				if(encType!=df)encodeForValue=encodeForValue.getFactory().createLitInteger(encType);
+			}
+			addEncodeToChildren(
+				tag.getBody().getStatements().iterator(),
+				encodeForValue,
+				getEncodeForFunction(flibs)
+			);
+		}
+		
+		// query
+		boolean hasParentWithGroup=false;
         boolean hasParentWithQuery=false;
 		boolean hasQuery=tag.containsAttribute("query");
 		
@@ -76,6 +118,16 @@ public final class Output extends EvaluatorSupport {
         
 	}
 	
+	private FunctionLibFunction getEncodeForFunction(FunctionLib[] flibs) throws EvaluatorException {
+		FunctionLibFunction f;
+		if(flibs!=null)for(int i=0;i<flibs.length;i++) {
+			f = flibs[i].getFunction("ESAPIEncode");
+			if(f!=null) return f;
+		}
+		// should never happen
+		throw new EvaluatorException("could not find function ESAPIEncode ("+(flibs==null?"null":""+flibs.length)+")");
+	}
+
 	public static TagOutput getParentTagOutput(TagOutput stat) {
 		Statement parent = stat;
 		
@@ -85,5 +137,59 @@ public final class Output extends EvaluatorSupport {
 			if(parent==null)return null;
 			if(parent instanceof TagOutput)	return (TagOutput) parent;
 		}
+	}
+	
+	private void addEncodeToChildren(Iterator it, Expression encodeForValue, FunctionLibFunction encodeForBIF) { 
+		Statement stat;
+		while(it.hasNext()) {
+			stat=(Statement) it.next();
+			if(stat instanceof PrintOut) {
+				PrintOut printOut = ((PrintOut)stat);
+				Expression e = removeCastString(printOut.getExpr());
+				if(!(e instanceof Literal)) {
+					if(e instanceof Variable) {
+						Member member = ((Variable)e).getFirstMember();
+						if(member instanceof BIF) {
+							BIF bif=(BIF) member;
+							String cn = bif.getClassDefinition().getClassName();
+							
+							if(cn.startsWith(ENCODE_FOR) || cn.equals(ESAPIEncode.class.getName())) {
+								continue;
+							}
+						}
+					}
+					
+					printOut.setEncodeFor(encodeForValue);
+				}
+			}
+			else if(stat instanceof Tag){
+				Body b=((Tag)stat).getBody();
+				if(b!=null) 
+					addEncodeToChildren(b.getStatements().iterator(),encodeForValue,encodeForBIF);
+			}
+			else if(stat instanceof Body){
+				addEncodeToChildren(((Body)stat).getStatements().iterator(),encodeForValue,encodeForBIF);
+			}
+		}
+	}
+	
+	private Expression removeCastString(Expression expr) {
+		while(true) {
+			if(expr instanceof CastString){
+				expr=((CastString)expr).getExpr();
+				
+			}
+			else if(
+					expr instanceof CastOther && 
+					(
+							((CastOther) expr).getType().equalsIgnoreCase("String") || 
+							((CastOther) expr).getType().equalsIgnoreCase("java.lang.String")
+					)
+				){
+					expr=((CastOther) expr).getExpr();
+			}
+			else break;
+		}
+		return expr;
 	}
 }

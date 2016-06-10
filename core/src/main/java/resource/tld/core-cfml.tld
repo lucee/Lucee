@@ -2025,6 +2025,24 @@ dWord: creates a value of 0 (zero)</description>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Last row of query that is included. You cannot use this attribute together with the attribute maxRows.</description>
 		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>encodefor</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>encode for what, valid values are:
+- css: for output inside Cascading Style Sheets (CSS)
+- dn: for output in LDAP Distinguished Names
+- html: for output inside HTML
+- html_attr: for output inside HTML Attributes
+- javascript: for output inside Javascript
+- ldap: for output in LDAP queries
+- url: for output in URL
+- vbscript: for output inside vbscript
+- xml: for output inside XML
+- xml_attr: for output inside XML Attributes
+- xpath: for output in XPath</description>
+		</attribute>
 	</tag>
 	
 	<!-- Script -->
