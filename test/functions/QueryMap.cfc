@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2016, Lucee Assosication Switzerland. All rights reserved.*
  * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -31,6 +32,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			'47,22,57,29'
 			,valueList(res.age)
 		);
+	}
+
+	public void function testResultingQueryPassedIn() localmode="true" {
+		res = queryMap(people, function( row, rowNumber, recordset ){
+		    row['age'] = DateDiff( 'yyyy', row.dob, CreateDate( 2016, 6, 9 ) )+1;
+		    return row;
+		},queryNew("susi"));
+		assertEquals('AGE,DOB,NAME,SUSI',listSort(res.columnlist,'text'));
+		
 	}
 
 	public void function testMemberFunction() localmode="true" {

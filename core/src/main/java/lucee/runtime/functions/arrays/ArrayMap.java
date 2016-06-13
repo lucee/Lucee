@@ -42,7 +42,7 @@ public class ArrayMap extends BIF {
 		return _call(pc, array, udf, parallel, (int)maxThreads);
 	}
 	private static Array _call(PageContext pc , Array array, UDF udf, boolean parallel, int maxThreads) throws PageException {
-		return (Array) Map._call(pc, array, udf, parallel, maxThreads);
+		return (Array) Map._call(pc, array, udf, parallel, maxThreads,null);
 	}
 
 	@Override

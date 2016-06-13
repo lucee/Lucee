@@ -881,6 +881,13 @@ Remember CFML arrays start at 1 not 0.</description>
 		
 		</argument>
 		<argument>
+			<name>resQuery</name>
+			<alias>resultingQuery</alias>
+			<type>query</type>
+			<required>no</required>
+			<description></description>
+    	</argument>
+		<argument>
 			<name>parallel</name>
 			<type>boolean</type>
 			<required>No</required>

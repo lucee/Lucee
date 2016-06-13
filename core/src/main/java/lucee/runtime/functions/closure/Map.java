@@ -1,5 +1,6 @@
 /**
  *
+ * Copyright (c) 2016, Lucee Assosication Switzerland. All rights reserved.*
  * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -58,16 +59,16 @@ public class Map extends BIF {
 
 
 	public static Object call(PageContext pc , Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf, false,20);
+		return _call(pc, obj, udf, false,20,null);
 	}
 	public static Object call(PageContext pc , Object obj, UDF udf, boolean parallel) throws PageException {
-		return _call(pc, obj, udf, parallel, 20);
+		return _call(pc, obj, udf, parallel, 20,null);
 	}
 	public static Object call(PageContext pc , Object obj, UDF udf, boolean parallel, double maxThreads) throws PageException {
-		return _call(pc, obj, udf, parallel, (int)maxThreads);
+		return _call(pc, obj, udf, parallel, (int)maxThreads,null);
 	}
 	
-	public static Collection _call(PageContext pc , Object obj, UDF udf, boolean parallel, int maxThreads) throws PageException { 
+	public static Collection _call(PageContext pc , Object obj, UDF udf, boolean parallel, int maxThreads, Query resQry) throws PageException { 
 		
 		ExecutorService execute=null;
 		List<Future<Data<Object>>> futures=null;
@@ -84,7 +85,7 @@ public class Map extends BIF {
 		}
 		// Query
 		else if(obj instanceof Query) {
-			coll=invoke(pc, (Query)obj, udf,execute,futures);
+			coll=invoke(pc, (Query)obj, udf,execute,futures,resQry);
 		}
 		// Struct
 		else if(obj instanceof Struct) {
@@ -184,9 +185,20 @@ public class Map extends BIF {
 		return rtn;
 	}
 
-	private static Query invoke(PageContext pc, Query qry, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws PageException {
+	private static Query invoke(PageContext pc, Query qry, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures,Query rtn) throws PageException {
 		Key[] colNames = qry.getColumnNames();
-		Query rtn=new QueryImpl(colNames,0,qry.getName());
+		
+		if(rtn==null) {
+			rtn=new QueryImpl(colNames,0,qry.getName());
+		}
+		else {
+			// check if we have the necessary columns
+			for(Key colName:colNames) {
+				if(rtn.getColumn(colName,null)==null) {
+					rtn.addColumn(colName,new ArrayImpl());
+				}
+			}
+		}
 		final int pid=pc.getId();
 		ForEachQueryIterator it=new ForEachQueryIterator(qry, pid);
 		int rowNbr;
