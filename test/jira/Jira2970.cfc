@@ -177,7 +177,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		res=qry.Map(function(row ){
 							return {a:row.a&":",b:row.b&":"};
  
-                        },parallel);
+                        },queryNew(qry.columnlist),parallel);
 
 		assertEquals('query("a":["a1:","a2:"],"b":["b1:","b2:"])',serialize(res));
 
