@@ -50,39 +50,47 @@ public class DatasourceConnectionPool {
             pass=datasource.getPassword();
         }
         if(pass==null)pass="";
-		
-		
+
 		// get stack
 		DCStack stack=getDCStack(datasource,user,pass);
-		
-		
+
 		// max connection
 		int max=datasource.getConnectionLimit();
-		synchronized (stack) {
-			while(max!=-1 && max<=_size(datasource,user,pass)) {
-				try {
-					stack.wait(10000L);
-				} 
-				catch (InterruptedException e) {
-					throw Caster.toPageException(e);
+		
+		// get an existing connection
+		DatasourceConnection rtn=null;
+		do {
+			synchronized (stack) {
+				while(max!=-1 && max<=_size(datasource,user,pass)) {
+					try {
+						stack.wait(10000L);
+					} 
+					catch (InterruptedException e) {
+						throw Caster.toPageException(e);
+					}
+				}
+	
+				while(!stack.isEmpty()) {
+					DatasourceConnection dc=(DatasourceConnection) stack.get();
+					if(dc!=null){
+						rtn=dc;
+						break;
+					}	
 				}
 			}
-
-			while(!stack.isEmpty()) {
-				DatasourceConnection dc=(DatasourceConnection) stack.get();
-				if(dc!=null && isValid(dc,Boolean.TRUE)){
-					_inc(datasource,user,pass);
-					if(dc instanceof DatasourceConnectionImpl)
-						return ((DatasourceConnectionImpl)dc).using();
-					return dc;
-				}	
-			}
-			//config=ThreadLocalPageContext.getConfig();
-			
+		}
+		while(rtn!=null && !isValid(rtn,Boolean.TRUE)) ;
+		
+		// create a new connection
+		if(rtn==null)
+			rtn=loadDatasourceConnection(config,datasource, user, pass);
+		
+		synchronized (stack) {
 			_inc(datasource,user,pass);
-
-		}			
-		return loadDatasourceConnection(config,datasource, user, pass).using();
+		}
+		if(rtn instanceof DatasourceConnectionImpl)
+			((DatasourceConnectionImpl)rtn).using();
+		return rtn;
 	}
 
 	private DatasourceConnectionImpl loadDatasourceConnection(Config config,DataSource ds, String user, String pass) throws PageException {
