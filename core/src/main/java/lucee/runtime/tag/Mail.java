@@ -297,18 +297,18 @@ public final class Mail extends BodyTagImpl {
 	 * @param disposition 
 	 * @throws PageException 
 	**/
-	public void setMimeattach(String strMimeattach, String type, String disposition, String contentID,boolean removeAfterSend) throws PageException	{
+	public void setMimeattach(String strMimeattach, String fileName, String type, String disposition, String contentID,boolean removeAfterSend) throws PageException	{
 		Resource file=ResourceUtil.toResourceNotExisting(pageContext,strMimeattach);
         pageContext.getConfig().getSecurityManager().checkFileLocation(file);
 		if(!file.exists())
 			throw new ApplicationException("can't attach file "+strMimeattach+", this file doesn't exist");
 		
 
-        smtp.addAttachment(file,type,disposition,contentID,removeAfterSend);
+        smtp.addAttachment(file,fileName,type,disposition,contentID,removeAfterSend);
 		
 	}
 	public void setMimeattach(String strMimeattach) throws PageException	{
-		setMimeattach(strMimeattach, "", null, null,false);
+		setMimeattach(strMimeattach,null, "", null, null,false);
 	}
 	
 	/**
@@ -557,11 +557,11 @@ public final class Mail extends BodyTagImpl {
 	 * @param disposition 
 	 * @throws PageException 
 	 */
-	public void setParam(String type, String file, String name, String value, String disposition, String contentID,Boolean oRemoveAfterSend) throws PageException {
+	public void setParam(String type, String file, String fileName, String name, String value, String disposition, String contentID,Boolean oRemoveAfterSend) throws PageException {
 		if(file!=null){
 			boolean removeAfterSend=(oRemoveAfterSend==null)?remove:oRemoveAfterSend.booleanValue();
 				
-			setMimeattach(file,type,disposition,contentID,removeAfterSend);
+			setMimeattach(file,fileName,type,disposition,contentID,removeAfterSend);
 		}
 		else {
 			if(name.equalsIgnoreCase("bcc"))			setBcc(value);

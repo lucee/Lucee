@@ -656,8 +656,8 @@ public final class SMTPClient implements Serializable  {
 		attachmentz=add(attachmentz, mbp);
 	}
 
-	public void addAttachment(Resource resource, String type, String disposition, String contentID,boolean removeAfterSend) {
-		Attachment att = new Attachment(resource, type, disposition, contentID,removeAfterSend);
+	public void addAttachment(Resource resource, String fileName, String type, String disposition, String contentID,boolean removeAfterSend) {
+		Attachment att = new Attachment(resource, fileName, type, disposition, contentID,removeAfterSend);
 		attachmentz=add(attachmentz, att);
 	}
 	
@@ -693,7 +693,7 @@ public final class SMTPClient implements Serializable  {
 	 * @throws FileNotFoundException 
 	 */
 	public void addAttachment(Resource file) throws MessagingException {
-		addAttachment(file,null,null,null,false);
+		addAttachment(file,null,null,null,null,false);
 	}
 	
 

@@ -55,6 +55,7 @@ public final class MailParam extends TagImpl {
 	/** Specifies the name of the header. Header names are case insensitive. This attribute is mutually 
 	** 		exclusive with the file attribute. */
 	private String name;
+	private String fileName;
 	
 	private String type="";
     private String disposition=null;
@@ -73,6 +74,7 @@ public final class MailParam extends TagImpl {
         contentID=null;
         remove=null;
         content=null;
+        fileName=null;
 	}
 	
 	/**
@@ -130,6 +132,10 @@ public final class MailParam extends TagImpl {
 	**/
 	public void setName(String name)	{
 		this.name=name;
+	}
+	
+	public void setFilename(String fileName)	{
+		this.fileName=fileName;
 	}
 
     /**
@@ -199,7 +205,7 @@ public final class MailParam extends TagImpl {
 		
 		if(parent instanceof Mail) {
 			Mail mail = (Mail)parent;
-			mail.setParam(type,file,name,value,disposition,contentID,remove);
+			mail.setParam(type,file,fileName, name,value,disposition,contentID,remove);
 		}
 		else {
 			throw new ApplicationException("Wrong Context, tag MailParam must be inside a Mail tag");	

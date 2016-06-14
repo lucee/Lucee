@@ -5573,6 +5573,13 @@ Lucee uses the number of characters in the file.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
+			<name>filename</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>file name used for the file attached with the attribute "file", if not set the name of the file itself is used.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
 			<name>name</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
