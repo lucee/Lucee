@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-Version: 5.0.0.200
 Built-Date: 2015-03-01 00:00:00
-Minor-Name: Velvet
-Minor-Name-Explanation: http://en.wikipedia.org/wiki/Velvet_(dog)
+Minor-Name: Bretagne
+Minor-Name-Explanation: http://nypost.com/2016/06/08/final-salutes-for-bretagne-the-last-911-rescue-dog/
 State: beta
 Bundle-Name: Lucee Core
 Require-Bundle-Fragment: slf4j.nop;bundle-version=1.7.12,
