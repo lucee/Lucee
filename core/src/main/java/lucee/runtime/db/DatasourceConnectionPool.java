@@ -60,6 +60,9 @@ public class DatasourceConnectionPool {
 		// get an existing connection
 		DatasourceConnection rtn=null;
 		do {
+			if(rtn!=null) {
+				IOUtil.closeEL(rtn.getConnection());
+			}
 			synchronized (stack) {
 				while(max!=-1 && max<=_size(datasource,user,pass)) {
 					try {
