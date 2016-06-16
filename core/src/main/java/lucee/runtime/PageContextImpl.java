@@ -121,6 +121,7 @@ import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.ModernAppListener;
 import lucee.runtime.listener.ModernAppListenerException;
 import lucee.runtime.monitor.RequestMonitor;
+import lucee.runtime.monitor.RequestMonitorPro;
 import lucee.runtime.net.ftp.FTPPoolImpl;
 import lucee.runtime.net.http.HTTPServletRequestWrap;
 import lucee.runtime.net.http.ReqRspUtil;
@@ -2030,6 +2031,9 @@ public final class PageContextImpl extends PageContext {
 	
 	@Override
 	public void executeRest(String realPath, boolean throwExcpetion) throws PageException  {
+		initallog();
+		
+		
 		ApplicationListener listener=null;//config.get ApplicationListener();
 		try{
 		String pathInfo = req.getPathInfo();
@@ -2264,6 +2268,7 @@ public final class PageContextImpl extends PageContext {
 				(gatewayContext?config.getApplicationListener():((MappingImpl)ps.getMapping()).getApplicationListener())
 				:ModernAppListener.getInstance();
 		try {
+			initallog();
 			listener.onRequest(this,ps,null);
 			log(false);
 		}
@@ -2296,6 +2301,21 @@ public final class PageContextImpl extends PageContext {
 			ps=null;
 		}
 	}
+	
+	private void initallog() {
+		if(!isGatewayContext() && config.isMonitoringEnabled()) {
+			RequestMonitor[] monitors = config.getRequestMonitors();
+			if(monitors!=null)for(int i=0;i<monitors.length;i++){
+				if(monitors[i].isLogEnabled()) {
+					try {
+						((RequestMonitorPro)monitors[i]).init(this);
+					} 
+					catch (Throwable e) {}
+				}
+			}
+		}
+	}
+
 
 	private void log(boolean error) {
 		if(!isGatewayContext() && config.isMonitoringEnabled()) {
@@ -2310,6 +2330,7 @@ public final class PageContextImpl extends PageContext {
 			}
 		}
 	}
+	
 
 	private PageSource getPageSource(Mapping[] mappings, String realPath) {
 		PageSource ps;

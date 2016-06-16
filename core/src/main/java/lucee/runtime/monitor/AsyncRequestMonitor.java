@@ -32,12 +32,12 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Query;
 
-public class AsyncRequestMonitor implements RequestMonitor {
+public class AsyncRequestMonitor implements RequestMonitorPro {
 	
-	private RequestMonitor monitor;
+	private RequestMonitorPro monitor;
 	private boolean logEnabled;
 
-	public AsyncRequestMonitor(RequestMonitor monitor){
+	public AsyncRequestMonitor(RequestMonitorPro monitor){
 		this.monitor=monitor;
 	}
 	
@@ -73,20 +73,27 @@ public class AsyncRequestMonitor implements RequestMonitor {
 	}
 
 	@Override
+	public void init(PageContext pc) throws IOException {
+		new _Log(monitor,pc,false,logEnabled,true).start();
+	}
+
+	@Override
 	public void log(PageContext pc, boolean error) throws IOException {
-		new _Log(monitor,pc,error,logEnabled).start();
+		new _Log(monitor,pc,error,logEnabled,false).start();
 	}
 
 	static class _Log extends PageContextThread {
-		private RequestMonitor monitor;
+		private RequestMonitorPro monitor;
 		private boolean error;
 		private boolean logEnabled;
+		private boolean init;
 
-		public _Log(RequestMonitor monitor, PageContext pc, boolean error, boolean logEnabled) {
+		public _Log(RequestMonitorPro monitor, PageContext pc, boolean error, boolean logEnabled, boolean init) {
 			super(pc);
 			this.monitor=monitor;
 			this.error=error;
 			this.logEnabled=logEnabled;
+			this.init=init;
 		}
 
 		@Override
@@ -94,7 +101,8 @@ public class AsyncRequestMonitor implements RequestMonitor {
 			try{
 				ThreadLocalPageContext.register(pc);
 				try {
-					monitor.log(pc, error);
+					if(init)monitor.log(pc, error);
+					else monitor.init(pc);
 				}
 				catch (IOException e) {
 					if(logEnabled) {

@@ -133,6 +133,8 @@ import lucee.runtime.monitor.IntervallMonitor;
 import lucee.runtime.monitor.IntervallMonitorWrap;
 import lucee.runtime.monitor.Monitor;
 import lucee.runtime.monitor.RequestMonitor;
+import lucee.runtime.monitor.RequestMonitorPro;
+import lucee.runtime.monitor.RequestMonitorProImpl;
 import lucee.runtime.monitor.RequestMonitorWrap;
 import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.net.http.ReqRspUtil;
@@ -3883,7 +3885,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						actions.add(new MonitorTemp(am, name, log));
 					}
 					else {
-						RequestMonitor m = obj instanceof RequestMonitor ? (RequestMonitor) obj : new RequestMonitorWrap(obj);
+						RequestMonitorPro m = new RequestMonitorProImpl(obj instanceof RequestMonitor ? (RequestMonitor) obj : new RequestMonitorWrap(obj));
 						if(async) m=new AsyncRequestMonitor(m);
 						m.init(configServer, name, log);
 						SystemOut.printDate(config.getOutWriter(), "initialize "+(strType)+" monitor ["+clazz.getName()+"]");
