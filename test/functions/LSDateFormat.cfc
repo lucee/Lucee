@@ -5,7 +5,7 @@
 	function testMemberFunction(){
 		local.orgLocale=getLocale();
 		setLocale("German (Swiss)");
-		dt=CreateDateTime(2004,1,2,4,5,6);
+		dt=CreateDateTime(2004,1,2,14,5,6);
 		try{
 			assertEquals("02.01.2004",dt.lsdateFormat());
 			assertEquals("02.01.04",dt.lsdateFormat("short"));
