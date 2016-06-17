@@ -59,7 +59,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	private function getDir() {
 
-		return getDirectoryFromPath( getCurrentTemplatePath(), '.' ) & "Jira2826/src";
+		return getDirectoryFromPath( getCurrentTemplatePath()) & "Jira2826/src";
 	}
 
 }
