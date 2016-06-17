@@ -79,7 +79,6 @@ public final class CastOther extends ExpressionBase implements Cast {
         break;
         case 's':
         	if("string".equals(lcType))							return expr.getFactory().toExprString(expr);
-        	//if("string_array".equals(lcType))					return StringArray.toExpr(expr);     
         break;
         case 'u':
         	if("uuid".equals(lcType)) 							return  expr.getFactory().toExprString(expr);
@@ -408,6 +407,12 @@ public final class CastOther extends ExpressionBase implements Cast {
                 adapter.invokeStatic(Types.CASTER,Methods_Caster.TO_TIMEZONE);
                 return Types.TIMEZONE;
             }
+            else if("timespan".equals(lcType)) {
+            	rtn=expr.writeOut(bc,MODE_REF);
+                if(!rtn.equals(Types.TIMESPAN))
+                	adapter.invokeStatic(Types.CASTER,Methods_Caster.TO_TIMESPAN);
+                return Types.TIMESPAN;
+            }
         break;
         case 's':
             if("struct".equals(lcType)) {
@@ -459,12 +464,6 @@ public final class CastOther extends ExpressionBase implements Cast {
                 	adapter.invokeStatic(Types.CASTER,Methods_Caster.TO_QUERY_COLUMN);
                 }
                 return Types.QUERY_COLUMN;
-            }
-            else if("timespan".equals(lcType)) {
-            	rtn=expr.writeOut(bc,MODE_REF);
-                if(!rtn.equals(Types.TIMESPAN))
-                	adapter.invokeStatic(Types.CASTER,Methods_Caster.TO_TIMESPAN);
-                return Types.TIMESPAN;
             }
         }
         Type t=getType(type);
