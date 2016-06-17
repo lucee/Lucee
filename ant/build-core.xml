@@ -763,6 +763,9 @@
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
       <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle}"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
+      <jvmarg value="-Dlucee.full.null.support=false"/>
+
+
     </java>
     <echo>${exc2}</echo>
 
