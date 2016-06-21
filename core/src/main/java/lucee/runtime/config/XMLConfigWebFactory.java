@@ -4626,7 +4626,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			else {
 				String str = getAttr(compiler,"full-null-support");
-
+				if(StringUtil.isEmpty(str, true)) str=getSystemPropOrEnvVar("lucee.full.null.support",null);
+				
 				if (!StringUtil.isEmpty(str, true)) {
 					fns = Caster.toBooleanValue(str, false);
 				}
