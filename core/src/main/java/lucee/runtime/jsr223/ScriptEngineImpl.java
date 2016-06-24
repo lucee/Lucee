@@ -29,11 +29,13 @@ import javax.script.ScriptException;
 import javax.script.SimpleScriptContext;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.compiler.Renderer;
 import lucee.runtime.compiler.Renderer.Result;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.scope.Variables;
 import lucee.runtime.util.PageContextUtil;
@@ -173,7 +175,8 @@ public class ScriptEngineImpl implements ScriptEngine {
 	private PageContext createPageContext() {
 		try {
 			File root = new File(factory.engine.getCFMLEngineFactory().getResourceRoot(),"jsr223-webroot");
-			return PageContextUtil.getPageContext(root,"localhost", "/index.cfm", "", null, null, null, null, System.out, false,Long.MAX_VALUE,true);
+			return PageContextUtil.getPageContext(root,"localhost", "/index.cfm", "", null, null, null, null, System.out, false,Long.MAX_VALUE,
+					Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.ignore.scopes", null),false));
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
