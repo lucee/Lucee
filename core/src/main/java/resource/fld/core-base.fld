@@ -10178,6 +10178,13 @@ The following things are considered to be empty:
 			<required>no</required>
 			<description>charset used for the request, if not set the web charset is used.</description>
     	</argument>
+		<argument>
+			<name>addtoken</name>
+			<type>boolean</type>
+			<default>false</default>
+			<required>no</required>
+			<description>if yes add urltoken as cookie</description>
+    	</argument>
 		<return>
 			<type>struct</type>
 		</return>
