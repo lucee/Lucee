@@ -4626,7 +4626,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			else {
 				String str = getAttr(compiler,"full-null-support");
-				if(StringUtil.isEmpty(str, true)) str=getSystemPropOrEnvVar("lucee.full.null.support",null);
+				if(StringUtil.isEmpty(str, true)) str=SystemUtil.getSystemPropOrEnvVar("lucee.full.null.support",null);
 				
 				if (!StringUtil.isEmpty(str, true)) {
 					fns = Caster.toBooleanValue(str, false);
@@ -4657,7 +4657,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		// allow-lucee-dialect
 		if(!hasCS) {
 			str = getAttr(compiler,"allow-lucee-dialect");
-			if(str==null || !Decision.isBoolean(str)) str=getSystemPropOrEnvVar("lucee.enable.dialect",null);
+			if(str==null || !Decision.isBoolean(str)) str=SystemUtil.getSystemPropOrEnvVar("lucee.enable.dialect",null);
 			if (str!=null && Decision.isBoolean(str)) {
 				config.setAllowLuceeDialect(Caster.toBooleanValue(str,false));
 			}
@@ -4682,16 +4682,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		
 	}
 
-	public static String getSystemPropOrEnvVar(String name, String defaultValue) {
-		// env
-		String value=System.getenv(name);
-		if(!StringUtil.isEmpty(value)) return value;
-		// prop
-		value=System.getProperty(name);
-		if(!StringUtil.isEmpty(value)) return value;
-		
-		return defaultValue;
-	}
 
 	/**
 	 * @param configServer

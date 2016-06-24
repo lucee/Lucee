@@ -1347,6 +1347,17 @@ public final class SystemUtil {
 		
 		return false;
 	}
+
+	public static String getSystemPropOrEnvVar(String name, String defaultValue) {
+		// env
+		String value=System.getenv(name);
+		if(!StringUtil.isEmpty(value)) return value;
+		// prop
+		value=System.getProperty(name);
+		if(!StringUtil.isEmpty(value)) return value;
+		
+		return defaultValue;
+	}
 }
 
 class Ref {

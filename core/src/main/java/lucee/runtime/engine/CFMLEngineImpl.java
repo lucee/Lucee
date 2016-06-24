@@ -252,7 +252,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
         // required extensions
         
         boolean isRe=configDir==null?false:XMLConfigFactory.isRequiredExtension(this, configDir);
-        boolean installExtensions=Caster.toBooleanValue(XMLConfigWebFactory.getSystemPropOrEnvVar("lucee.extensions.install",null),true);
+        boolean installExtensions=Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.extensions.install",null),true);
         
         //print.e("INSTALL-EXTENSIONS:"+installExtensions);
         
@@ -294,9 +294,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
         
         
         // install extension defined 
-        String extensionIds=XMLConfigWebFactory.getSystemPropOrEnvVar("lucee-extensions",null); // old no longer used
+        String extensionIds=SystemUtil.getSystemPropOrEnvVar("lucee-extensions",null); // old no longer used
         if(StringUtil.isEmpty(extensionIds,true))
-        	extensionIds=XMLConfigWebFactory.getSystemPropOrEnvVar("lucee.extensions",null);
+        	extensionIds=SystemUtil.getSystemPropOrEnvVar("lucee.extensions",null);
         
         if(!StringUtil.isEmpty(extensionIds,true)) {
         	List<ExtensionDefintion> _extensions = RHExtension.toExtensionDefinitions(extensionIds);
