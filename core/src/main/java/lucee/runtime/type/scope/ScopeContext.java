@@ -193,7 +193,6 @@ public final class ScopeContext {
 	
 	
 	public Client getClientScope(PageContext pc) throws PageException {
-		Client client=null;
 		ApplicationContext appContext = pc.getApplicationContext(); 
 		// get Context
 			Map<String, Scope> context = getSubMap(cfClientContextes,appContext.getName());
@@ -216,22 +215,25 @@ public final class ScopeContext {
 				if("memory".equals(storage))isMemory=true;
 			}
 			
-			final boolean doMemory=isMemory || !appContext.getClientCluster();
-			client=doMemory?(Client) context.get(pc.getCFID()):null;
+			Client existing=(Client) context.get(pc.getCFID());
+			Client client=appContext.getClientCluster()?null:existing;
+			//final boolean doMemory=isMemory || !appContext.getClientCluster();
+			//client=doMemory?(Client) context.get(pc.getCFID()):null;
 			if(client==null || client.isExpired() || !client.getStorage().equalsIgnoreCase(storage)) {
 				if("file".equals(storage)){
 					client=ClientFile.getInstance(appContext.getName(),pc,getLog());
 				}
 				else if("cookie".equals(storage))
 					client=ClientCookie.getInstance(appContext.getName(),pc,getLog());
-				else if("memory".equals(storage)){
+				else if("memory".equals(storage)) {
+					if(existing!=null) client=existing;
 					client=ClientMemory.getInstance(pc,getLog());
 				}
 				else{
 					DataSource ds = pc.getDataSource(storage,null);
 					if(ds!=null)client=ClientDatasource.getInstance(storage,pc,getLog());
-					else client=ClientCache.getInstance(storage,appContext.getName(),pc,getLog(),null);
-					
+					else client=ClientCache.getInstance(storage,appContext.getName(),pc,existing,getLog(),null);
+
 					if(client==null){
 						// datasource not enabled for storage
 						if(ds!=null)
@@ -246,7 +248,7 @@ public final class ScopeContext {
 					
 				}
 				client.setStorage(storage);
-				if(doMemory)context.put(pc.getCFID(),client);
+				context.put(pc.getCFID(),client);
 			}
 			else
 				getLog().log(Log.LEVEL_INFO,"scope-context", "use existing client scope for "+appContext.getName()+"/"+pc.getCFID()+" from storage "+storage);
@@ -517,12 +519,14 @@ public final class ScopeContext {
 				if("memory".equals(storage))isMemory=true;
 			}
 			
-			final boolean doMemory=isMemory || !appContext.getSessionCluster();
-			Session session=doMemory?appContext.getSessionCluster()?null:(Session) context.get(pc.getCFID()):null;
-			
-			if(!(session instanceof StorageScope) || session.isExpired() || !((StorageScope)session).getStorage().equalsIgnoreCase(storage)) {
+			Session existing=(Session) context.get(pc.getCFID());
+			Session session=appContext.getSessionCluster()?null:existing;
+
+			if(session==null || !(session instanceof StorageScope) || session.isExpired() || !((StorageScope)session).getStorage().equalsIgnoreCase(storage)) {
 				if(isMemory){
-					session=SessionMemory.getInstance(pc,isNew,getLog());
+					if(existing!=null) session=existing;
+					else session=SessionMemory.getInstance(pc,isNew,getLog());
+
 				}
 				else if("file".equals(storage)){
 					session=SessionFile.getInstance(appContext.getName(),pc,getLog());
@@ -532,8 +536,10 @@ public final class ScopeContext {
 				else{
 					DataSource ds = pc.getDataSource(storage,null);
 					if(ds!=null && ds.isStorage())session=SessionDatasource.getInstance(storage,pc,getLog(),null);
-					else session=SessionCache.getInstance(storage,appContext.getName(),pc,getLog(),null);
-					
+					else {
+						session=SessionCache.getInstance(storage,appContext.getName(),pc,existing,getLog(),null);
+					}
+
 					if(session==null){
 						// datasource not enabled for storage
 						if(ds!=null)
@@ -549,7 +555,7 @@ public final class ScopeContext {
 					}
 				}
 				((StorageScope)session).setStorage(storage);
-				if(doMemory)context.put(pc.getCFID(),session);
+				context.put(pc.getCFID(),session);
 				isNew.setValue(true);
 			}
 			else {
