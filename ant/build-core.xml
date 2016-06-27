@@ -767,7 +767,10 @@
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
-
+      <!--
+        felix.log.level
+        lucee.controller.disabled
+    -->
 
     </java>
     <echo>${exc2}</echo>
