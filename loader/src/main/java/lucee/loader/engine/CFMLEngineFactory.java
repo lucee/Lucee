@@ -415,21 +415,25 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (config == null)
 			config = new HashMap<String, Object>();
 
-		// Log Level
+	// Log Level
 		int logLevel = 1; // 1 = error, 2 = warning, 3 = information, and 4 = debug
-		final String strLogLevel = (String) config.get("felix.log.level");
-		if (!Util.isEmpty(strLogLevel))
-			if ("warn".equalsIgnoreCase(strLogLevel)
-					|| "warning".equalsIgnoreCase(strLogLevel)
-					|| "2".equalsIgnoreCase(strLogLevel))
+		String strLogLevel = getSystemPropOrEnvVar("felix.log.level", null);
+		if(Util.isEmpty(strLogLevel))strLogLevel = (String) config.get("felix.log.level");
+		
+		if (!Util.isEmpty(strLogLevel)) {
+			if ("0".equalsIgnoreCase(strLogLevel)) 
+				logLevel = 0;
+			else if ("error".equalsIgnoreCase(strLogLevel) || "1".equalsIgnoreCase(strLogLevel)) 
+				logLevel = 1;
+			else if ("warning".equalsIgnoreCase(strLogLevel) || "2".equalsIgnoreCase(strLogLevel)) 
 				logLevel = 2;
 			else if ("info".equalsIgnoreCase(strLogLevel)
 					|| "information".equalsIgnoreCase(strLogLevel)
 					|| "3".equalsIgnoreCase(strLogLevel))
 				logLevel = 3;
-			else if ("debug".equalsIgnoreCase(strLogLevel)
-					|| "4".equalsIgnoreCase(strLogLevel))
+			else if ("debug".equalsIgnoreCase(strLogLevel) || "4".equalsIgnoreCase(strLogLevel))
 				logLevel = 4;
+		}
 		config.put("felix.log.level", "" + logLevel);
 
 		// storage clean
@@ -501,6 +505,23 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		
 
 		return felix;
+	}
+	
+	protected static String getSystemPropOrEnvVar(String name, String defaultValue) {
+		// env
+		String value=System.getenv(name);
+		if(!Util.isEmpty(value)) return value;
+		
+		// prop
+		value=System.getProperty(name);
+		if(!Util.isEmpty(value)) return value;
+		
+		// env 2
+		name=name.replace('.', '_').toUpperCase();
+		value=System.getenv(name);
+		if(!Util.isEmpty(value)) return value;
+		
+		return defaultValue;
 	}
 
 
