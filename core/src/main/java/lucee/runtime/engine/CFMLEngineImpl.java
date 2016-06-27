@@ -239,7 +239,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
         controler.setDaemon(true);
         controler.setPriority(Thread.MIN_PRIORITY);
         
-        boolean disabled=Caster.toBooleanValue(SystemUtil.getSetting(SystemUtil.SETTING_CONTROLLER_DISABLED,null),false);
+        boolean disabled=Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_CONTROLLER_DISABLED,null),false);
         if (!disabled) {
         	// start the controller
             SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT), "Start CFML Controller");
