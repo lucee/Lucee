@@ -90,6 +90,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	private static final boolean PATCH_ENABLED = true;
 	public static final Version VERSION_ZERO = new Version(0, 0, 0, "0");
 	private static final String UPDATE_LOCATION = "http://release.lucee.org"; // MUST from server.xml
+	private static final long GB1 = 1024*1024*1024;
+	private static final long MB100 = 1024*1024*100;
 
 
 	private static CFMLEngineFactory factory;
@@ -127,6 +129,20 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		this.config = config;
 		try {
 			logFile = new File(getResourceRoot(), "context/logs/felix.log");
+			if(logFile.isFile()) {
+				// more than a GB (from the time we did not control it)
+				if(logFile.length()>GB1) {
+					logFile.delete(); // we simply delete it
+				}
+				else if(logFile.length()>MB100) {
+					File bak = new File(logFile.getParentFile(),"felix.1.log");
+					if(bak.isFile()) bak.delete();
+					logFile.renameTo(bak);
+				}
+				
+			}
+			
+			
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}

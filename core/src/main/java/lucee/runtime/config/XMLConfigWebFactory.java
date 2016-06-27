@@ -22,6 +22,7 @@ import static lucee.runtime.db.DatasourceManagerImpl.QOQ_DATASOURCE_NAME;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -192,6 +193,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	private static final String TEMPLATE_EXTENSION = "cfm";
 	private static final String COMPONENT_EXTENSION = "cfc";
 	private static final String COMPONENT_EXTENSION_LUCEE = "lucee";
+	private static final long GB1 = 1024*1024*1024;
 
 	/**
 	 * creates a new ServletConfig Impl Object
@@ -365,7 +367,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if(XMLConfigAdmin.fixLogging(cs,config,doc)) reload=true;
 		XMLConfigAdmin.fixOldExtensionLocation(config);
 		
-		
+		// delete to big felix.log (there is also code in the loader to do this, but if the loader is not updated ...)
+		if(config instanceof ConfigServerImpl) {
+			ConfigServerImpl _cs=(ConfigServerImpl) config;
+			File root = _cs.getCFMLEngine().getCFMLEngineFactory().getResourceRoot();
+			File log = new File(root,"context/logs/felix.log");
+			if(log.isFile() && log.length()>GB1) {
+				SystemOut.printDate("delete felix log: "+log);
+				if(log.delete()) ResourceUtil.touch(log);
+				
+			}
+		}
 		
 		
 		if (reload) {
