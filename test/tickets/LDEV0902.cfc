@@ -21,7 +21,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	variables.TABLE_NAME="LDEV0902";
 
 	public function setUp(){
-		variables.has=defineDatasource();		
+		variables.has=defineDatasource();	
+		if(variables.has) createTable();
 	}
 	public function teardown(){
 		deleteTable();		
