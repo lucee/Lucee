@@ -21,6 +21,7 @@ package lucee.runtime.type.util;
 import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Ref;
 import java.sql.ResultSet;
@@ -94,7 +95,7 @@ public class QueryUtil {
         //else if(types[i]==Types.TINYINT)	casts[i]=Cast.ARRAY;
         
     // ORACLE
-        else if(SQLUtil.isOracle(result.getStatement().getConnection())) {
+        else if(isOracleType(type) && isOracle(result)) {
         	if(type==CFTypes.ORACLE_OPAQUE) return Cast.ORACLE_OPAQUE;
         	else if(type==CFTypes.ORACLE_BLOB) return Cast.ORACLE_BLOB;
         	else if(type==CFTypes.ORACLE_CLOB) return Cast.ORACLE_CLOB;
@@ -110,6 +111,38 @@ public class QueryUtil {
         }
         
     	return new OtherCast(type);
+	}
+
+	private static boolean isOracleType(int type) {
+		switch(type) {
+		case CFTypes.ORACLE_OPAQUE:
+		case CFTypes.ORACLE_BLOB:
+		case CFTypes.ORACLE_CLOB:
+		case CFTypes.ORACLE_NCLOB:
+		case CFTypes.ORACLE_DISTINCT:
+		case CFTypes.ORACLE_JAVA_OBJECT:
+		case CFTypes.ORACLE_REF:
+		case CFTypes.ORACLE_STRUCT:
+				return true;
+		}
+		return false;
+	}
+
+	private static boolean isOracle(ResultSet result) {
+		try {
+			if(result==null) return false;
+			
+			Statement stat = result.getStatement();
+			if(stat==null) return false;
+			
+			Connection conn = stat.getConnection();
+			if(conn==null) return false;
+			
+			return SQLUtil.isOracle(conn);
+		}
+		catch(Throwable t) {
+			return false;
+		}
 	}
 
 	/**
