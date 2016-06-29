@@ -51,7 +51,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		    ( tid    NUMBER(6)
 		    , c_clob     CLOB
 		    , c_nclob    NCLOB
-		    ) ;");
+		    )");
 		}
 
 		query {
@@ -66,7 +66,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	private void function deleteTable(){
 		try {
 			query {
-				echo("DROP TABLE "&TABLE_NAME&" PURGE;");
+				echo("DROP TABLE "&TABLE_NAME&" PURGE");
 			}
 		}
 		catch(local.e) {}
