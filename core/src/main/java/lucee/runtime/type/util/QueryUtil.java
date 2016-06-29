@@ -93,13 +93,23 @@ public class QueryUtil {
         else if(type==Types.BIGINT)	return Cast.BIGINT;
         //else if(types[i]==Types.TINYINT)	casts[i]=Cast.ARRAY;
         
-        else if(type==CFTypes.OPAQUE){
-        	if(SQLUtil.isOracle(result.getStatement().getConnection()))
-        		return Cast.ORACLE_OPAQUE;
-        	return new OtherCast(type);
-			
+    // ORACLE
+        else if(SQLUtil.isOracle(result.getStatement().getConnection())) {
+        	if(type==CFTypes.ORACLE_OPAQUE) return Cast.ORACLE_OPAQUE;
+        	else if(type==CFTypes.ORACLE_BLOB) return Cast.ORACLE_BLOB;
+        	else if(type==CFTypes.ORACLE_CLOB) return Cast.ORACLE_CLOB;
+        	else if(type==CFTypes.ORACLE_NCLOB) return Cast.ORACLE_NCLOB;
+    		
+    		/*
+    		TODO
+    		if(type==CFTypes.ORACLE_DISTINCT) return Cast.ORACLE_DISTINCT;
+    		if(type==CFTypes.ORACLE_JAVA_OBJECT) return Cast.ORACLE_JAVA_OBJECT;
+    		if(type==CFTypes.ORACLE_REF) return Cast.ORACLE_REF;
+    		if(type==CFTypes.ORACLE_STRUCT) return Cast.ORACLE_STRUCT;
+    		*/
         }
-        else return new OtherCast(type);
+        
+    	return new OtherCast(type);
 	}
 
 	/**
