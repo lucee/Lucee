@@ -783,6 +783,15 @@ public final class ResourceUtil {
 	        res.createFile(true);
 	    }
     }
+    public static void touch(File res) throws IOException {
+    	if(res.exists()) {
+    		res.setLastModified(System.currentTimeMillis());
+	    }
+	    else {
+	    	res.mkdirs();
+	        res.createNewFile();
+	    }
+    }
     
     public static void clear(Resource res) throws IOException {
     	if(res.exists()) {

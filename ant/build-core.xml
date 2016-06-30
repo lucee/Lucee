@@ -737,6 +737,8 @@
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
+      <jvmarg value="-Dlucee.extensions.install=true"/>
+      <jvmarg value="-Dlucee.full.null.support=false"/>
     </java>
     <echo>${exc}</echo>
 
@@ -763,6 +765,13 @@
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
       <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle}"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
+      <jvmarg value="-Dlucee.extensions.install=true"/>
+      <jvmarg value="-Dlucee.full.null.support=false"/>
+      <!--
+        felix.log.level
+        lucee.controller.disabled
+    -->
+
     </java>
     <echo>${exc2}</echo>
 

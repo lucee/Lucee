@@ -19,6 +19,7 @@
 package lucee.runtime.type.scope.storage.clean;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -85,7 +86,11 @@ public class CacheStorageScopeCleaner extends StorageScopeCleanerSupport {
 			Iterator<CacheEntry> it = entries.iterator();
 			while(it.hasNext()){
 				ce=it.next();
-				expires=ce.lastModified().getTime()+ce.idleTimeSpan()-StorageScopeCache.SAVE_EXPIRES_OFFSET;
+				
+				Date lm = ce.lastModified();
+				long time=lm!=null?lm.getTime():0;
+				
+				expires=time+ce.idleTimeSpan()-StorageScopeCache.SAVE_EXPIRES_OFFSET;
 				if(expires<=System.currentTimeMillis()) {
 					key=ce.getKey().substring(len);
 					index=key.indexOf(':');

@@ -2656,8 +2656,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 - m: Months
 - y: Days of year (same as d)
 - d: Days
-- w: Weekdays (same as ww)
-- ww: Weeks
+- w: Weeks
 - h: Hours
 - n: Minutes
 - s: Seconds
@@ -10177,6 +10176,13 @@ The following things are considered to be empty:
 			<type>string</type>
 			<required>no</required>
 			<description>charset used for the request, if not set the web charset is used.</description>
+    	</argument>
+		<argument>
+			<name>addtoken</name>
+			<type>boolean</type>
+			<default>false</default>
+			<required>no</required>
+			<description>if yes add urltoken as cookie</description>
     	</argument>
 		<return>
 			<type>struct</type>
