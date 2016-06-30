@@ -2656,8 +2656,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 - m: Months
 - y: Days of year (same as d)
 - d: Days
-- w: Weekdays (same as ww)
-- ww: Weeks
+- w: Weeks
 - h: Hours
 - n: Minutes
 - s: Seconds
