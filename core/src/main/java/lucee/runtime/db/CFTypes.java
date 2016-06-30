@@ -24,7 +24,6 @@ import java.sql.Types;
 public interface CFTypes {
 	//public static final int BFILE=-13;//OracleTypes.BFILE;
 	public static final int CURSOR=-10;//OracleTypes.CURSOR;
-	public static final int OPAQUE=2007;
 	public static final int BFILE=-13;
 	public static final int BINARY_DOUBLE=101;
 	public static final int BINARY_FLOAT=100;
@@ -40,6 +39,10 @@ public interface CFTypes {
 	public static final int TIMESTAMPNS=-100;
 	public static final int TIMESTAMPTZ=-101;
 	public static final int VARCHAR2=-100;
+	
+
+	public static final int ORACLE_OPAQUE=2007;
+
 	
 	/**
 	 * <P>The constant in the Java programming language, sometimes referred
@@ -200,7 +203,7 @@ public interface CFTypes {
 	     * <code>JAVA_OBJECT</code>.
 	     * @since 1.2
 	     */
-	        public final static int JAVA_OBJECT         = 2000;
+	        public final static int ORACLE_JAVA_OBJECT         = 2000;
 
 	    /**
 	     * The constant in the Java programming language, sometimes referred to
@@ -208,7 +211,7 @@ public interface CFTypes {
 	     * <code>DISTINCT</code>.
 	     * @since 1.2
 	     */
-	        public final static int DISTINCT            = 2001;
+	        public final static int ORACLE_DISTINCT            = 2001;
 		
 	    /**
 	     * The constant in the Java programming language, sometimes referred to
@@ -216,7 +219,7 @@ public interface CFTypes {
 	     * <code>STRUCT</code>.
 	     * @since 1.2
 	     */
-	        public final static int STRUCT              = 2002;
+	        public final static int ORACLE_STRUCT              = 2002;
 
 	    /**
 	     * The constant in the Java programming language, sometimes referred to
@@ -224,7 +227,7 @@ public interface CFTypes {
 	     * <code>ARRAY</code>.
 	     * @since 1.2
 	     */
-	        public final static int ARRAY               = 2003;
+	        public final static int ORACLE_ARRAY               = 2003;
 
 	    /**
 	     * The constant in the Java programming language, sometimes referred to
@@ -232,7 +235,7 @@ public interface CFTypes {
 	     * <code>BLOB</code>.
 	     * @since 1.2
 	     */
-	        public final static int BLOB                = 2004;
+	        public final static int ORACLE_BLOB                = 2004;
 
 	    /**
 	     * The constant in the Java programming language, sometimes referred to
@@ -240,7 +243,10 @@ public interface CFTypes {
 	     * <code>CLOB</code>.
 	     * @since 1.2
 	     */
-	        public final static int CLOB                = 2005;
+	        public final static int ORACLE_CLOB                = 2005;
+	        
+
+	  	  public static final int ORACLE_NCLOB = 2011;
 
 	    /**
 	     * The constant in the Java programming language, sometimes referred to
@@ -248,7 +254,7 @@ public interface CFTypes {
 	     * <code>REF</code>.
 	     * @since 1.2
 	     */
-	        public final static int REF                 = 2006;
+	        public final static int ORACLE_REF                 = 2006;
 	        
 	    /**
 	     * The constant in the Java programming language, somtimes referred to

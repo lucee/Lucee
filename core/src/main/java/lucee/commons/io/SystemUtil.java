@@ -1099,24 +1099,28 @@ public final class SystemUtil {
 	/**
 	 * returns a system setting by either a Java property name or a System environment variable
 	 * 
-	 * @param propOrEnv - either a lowercased Java property name (e.g. lucee.controller.disabled) or an UPPERCASED Environment variable name ((e.g. LUCEE_CONTROLLER_DISABLED))
+	 * @param name - either a lowercased Java property name (e.g. lucee.controller.disabled) or an UPPERCASED Environment variable name ((e.g. LUCEE_CONTROLLER_DISABLED))
 	 * @param defaultValue - value to return if the neither the property nor the environment setting was found 
 	 * @return - the value of the property referenced by propOrEnv or the defaultValue if not found
 	 */
-	public static String getSetting(String propOrEnv, String defaultValue) {
+	public static String getSystemPropOrEnvVar(String name, String defaultValue) {
+		// env
+		String value=System.getenv(name);
+		if(!StringUtil.isEmpty(value)) return value;
 		
-		String v = System.getProperty(propOrEnv);
+		// prop
+		value=System.getProperty(name);
+		if(!StringUtil.isEmpty(value)) return value;
 		
-		if (v != null)
-			return v;
+		// env 2
+		name=name.replace('.', '_').toUpperCase();
+		value=System.getenv(name);
+		if(!StringUtil.isEmpty(value)) return value;
 		
-		v = System.getenv(propOrEnv.replace('.', '_').toUpperCase());
-		
-		if (v != null)
-			return v;
-		
-		return defaultValue;		
+		return defaultValue;
 	}
+	
+	
 
     
     public static void addLibraryPathIfNoExist(Resource res,Log log){
@@ -1347,6 +1351,8 @@ public final class SystemUtil {
 		
 		return false;
 	}
+
+	
 }
 
 class Ref {

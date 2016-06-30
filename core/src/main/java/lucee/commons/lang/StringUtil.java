@@ -1361,7 +1361,7 @@ public final class StringUtil {
 	public static String unwrap(String str) {
 		if(StringUtil.isEmpty(str)) return "";
 		str = str.trim();
-		if((startsWith(str, '"') || startsWith(str, (char)8220))  && (endsWith(str, '"') || endsWith(str, (char)8221))) // the numbers are “”
+		if((startsWith(str, '"') || startsWith(str, (char)8220)) && (endsWith(str, '"') || endsWith(str, (char)8221))) // #8220 and #8221 are left and right "double quotes"
 			str=str.substring(1,str.length()-1);
 		if(startsWith(str, '\'') && endsWith(str, '\''))
 			str=str.substring(1,str.length()-1);

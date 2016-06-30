@@ -19,6 +19,7 @@ import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -48,7 +49,20 @@ public class InternalRequest implements Function {
 	private static final Key CONTENT_TYPE =  KeyImpl._const("content-type");
 
 	public static Struct call(final PageContext pc, String template, String method, 
-			Struct urls,Struct forms, Struct cookies, Struct headers, Object body,String strCharset) throws PageException {
+			Struct urls,Struct forms, Struct cookies, Struct headers, Object body,String strCharset, boolean addToken) throws PageException {
+		
+		// add token
+		if(addToken) {
+			//if(true) throw new ApplicationException("addtoken==true");
+			if(cookies==null) cookies=new StructImpl();
+			
+			cookies.set(KeyConstants._cfid, pc.getCFID());
+			cookies.set(KeyConstants._cftoken, pc.getCFToken());
+			String jsessionid = pc.getJSessionId();
+			if(jsessionid!=null) cookies.set("jsessionid", jsessionid);
+		}
+		
+		
 		// charset
 		Charset reqCharset=StringUtil.isEmpty(strCharset)?pc.getWebCharset():CharsetUtil.toCharset(strCharset);
 		
@@ -190,6 +204,7 @@ public class InternalRequest implements Function {
 					Iterator<Entry<Key, Object>> it = urls.entryIterator();
 					while(it.hasNext()) {
 						e = it.next();
+						if(sbQS.length()>0) sbQS.append('&');
 						sbQS.append(urlenc(e.getKey().getString(),charset));
 						sbQS.append('=');
 						sbQS.append(urlenc(Caster.toString(e.getValue()), charset));
@@ -211,6 +226,7 @@ public class InternalRequest implements Function {
 	
 	private static void releasePageContext(PageContext pc, PageContext oldPC) {
 		pc.flush();
+		oldPC.getConfig().getFactory().releaseLuceePageContext(pc, false);
 		ThreadLocalPageContext.release();
 		if(oldPC!=null)ThreadLocalPageContext.register(oldPC);
 	}

@@ -522,6 +522,7 @@ public final class PageContextImpl extends PageContext {
 			client.touchAfterRequest(this);
 			client=null;
 		}
+		
 		if(session!=null){
 			session.touchAfterRequest(this);
 			session=null;
@@ -954,8 +955,11 @@ public final class PageContextImpl extends PageContext {
 	}
 	public synchronized void copyStateTo(PageContextImpl other) {
 		
-		
-		
+		// cfid (we do this that way, otherwise we only have the same cfid if the current pc has defined cfid in cookie or url)
+		getCFID(); 
+		other.cfid=cfid;
+		other.cftoken=cftoken;
+
 		// private Debugger debugger=new DebuggerImpl();
 		other.requestTimeout=requestTimeout;
 		other.locale=locale;
@@ -982,7 +986,6 @@ public final class PageContextImpl extends PageContext {
 		while(it.hasNext()) {
 			other.pathList.add(it.next());
 		}
-		
 		
 		// scopes
 		other.req=req;

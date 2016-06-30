@@ -18,6 +18,9 @@
  **/
 package lucee.runtime.type.scope.session;
 
+import java.util.Date;
+
+import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.log.Log;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
@@ -31,8 +34,8 @@ public final class SessionCache extends StorageScopeCache implements Session {
 	
 	private static final long serialVersionUID = -875719423763891692L;
 
-	private SessionCache(PageContext pc,String cacheName, String appName,Struct sct) { 
-		super(pc,cacheName,appName,"session",SCOPE_SESSION,sct);
+	private SessionCache(PageContext pc,String cacheName, String appName,Struct sct, long lastStored) { 
+		super(pc,cacheName,appName,"session",SCOPE_SESSION,sct, lastStored);
 	}
 
 	/**
@@ -56,30 +59,43 @@ public final class SessionCache extends StorageScopeCache implements Session {
 	 * @return client datasource scope
 	 * @throws PageException
 	 */
-	public static Session getInstance(String cacheName, String appName, PageContext pc,Log log) throws PageException {
-			Struct _sct = _loadData(pc, cacheName, appName,"session", log);
-			//structOk=true;
-			if(_sct==null) _sct=new StructImpl();
-			
-		return new SessionCache(pc,cacheName,appName,_sct);
+	public synchronized static Session getInstance(String cacheName, String appName, PageContext pc, Session existing, Log log) throws PageException {
+		CacheEntry ce = _loadData(pc, cacheName, appName,"session", log);
+		if(ce!=null) {
+			Date lm = ce.lastModified();
+			long time=lm!=null?lm.getTime():0;
+
+			if(existing instanceof StorageScopeCache) {
+				if(((StorageScopeCache)existing).lastModified()>=time) {
+					return existing;
+				}
+			}
+			return new SessionCache(pc,cacheName,appName,(Struct)ce.getValue(),time);
+		}
+		else if(existing!=null) {
+			return  existing;
+		}
+
+		SessionCache session = new SessionCache(pc,cacheName,appName,new StructImpl(),0);
+		session.store(pc.getConfig());
+		return session;
 	}
+
+	public static Session getInstance(String cacheName, String appName, PageContext pc, Session existing, Log log, Session defaultValue) {
+		try {
+			return getInstance(cacheName, appName, pc,existing, log);
+		}
+		catch (PageException e) {}
+		return defaultValue;
+	}
+
 	
-	public static boolean hasInstance(String cacheName, String appName, PageContext pc) {
+	public synchronized static boolean hasInstance(String cacheName, String appName, PageContext pc) {
 		try {
 			return _loadData(pc, cacheName, appName,"session", null)!=null;
 		} 
 		catch (PageException e) {
 			return false;
 		}
-}
-	
-
-	public static Session getInstance(String cacheName, String appName, PageContext pc,Log log, Session defaultValue) {
-		try {
-			return getInstance(cacheName, appName, pc,log);
-		}
-		catch (PageException e) {}
-		return defaultValue;
 	}
-
 }

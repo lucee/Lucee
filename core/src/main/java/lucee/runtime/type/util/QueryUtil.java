@@ -21,6 +21,7 @@ package lucee.runtime.type.util;
 import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Ref;
 import java.sql.ResultSet;
@@ -93,13 +94,55 @@ public class QueryUtil {
         else if(type==Types.BIGINT)	return Cast.BIGINT;
         //else if(types[i]==Types.TINYINT)	casts[i]=Cast.ARRAY;
         
-        else if(type==CFTypes.OPAQUE){
-        	if(SQLUtil.isOracle(result.getStatement().getConnection()))
-        		return Cast.ORACLE_OPAQUE;
-        	return new OtherCast(type);
-			
+    // ORACLE
+        else if(isOracleType(type) && isOracle(result)) {
+        	if(type==CFTypes.ORACLE_OPAQUE) return Cast.ORACLE_OPAQUE;
+        	else if(type==CFTypes.ORACLE_BLOB) return Cast.ORACLE_BLOB;
+        	else if(type==CFTypes.ORACLE_CLOB) return Cast.ORACLE_CLOB;
+        	else if(type==CFTypes.ORACLE_NCLOB) return Cast.ORACLE_NCLOB;
+    		
+    		/*
+    		TODO
+    		if(type==CFTypes.ORACLE_DISTINCT) return Cast.ORACLE_DISTINCT;
+    		if(type==CFTypes.ORACLE_JAVA_OBJECT) return Cast.ORACLE_JAVA_OBJECT;
+    		if(type==CFTypes.ORACLE_REF) return Cast.ORACLE_REF;
+    		if(type==CFTypes.ORACLE_STRUCT) return Cast.ORACLE_STRUCT;
+    		*/
         }
-        else return new OtherCast(type);
+        
+    	return new OtherCast(type);
+	}
+
+	private static boolean isOracleType(int type) {
+		switch(type) {
+		case CFTypes.ORACLE_OPAQUE:
+		case CFTypes.ORACLE_BLOB:
+		case CFTypes.ORACLE_CLOB:
+		case CFTypes.ORACLE_NCLOB:
+		case CFTypes.ORACLE_DISTINCT:
+		case CFTypes.ORACLE_JAVA_OBJECT:
+		case CFTypes.ORACLE_REF:
+		case CFTypes.ORACLE_STRUCT:
+				return true;
+		}
+		return false;
+	}
+
+	private static boolean isOracle(ResultSet result) {
+		try {
+			if(result==null) return false;
+			
+			Statement stat = result.getStatement();
+			if(stat==null) return false;
+			
+			Connection conn = stat.getConnection();
+			if(conn==null) return false;
+			
+			return SQLUtil.isOracle(conn);
+		}
+		catch(Throwable t) {
+			return false;
+		}
 	}
 
 	/**

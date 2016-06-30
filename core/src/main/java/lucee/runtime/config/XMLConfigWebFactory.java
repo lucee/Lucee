@@ -22,6 +22,7 @@ import static lucee.runtime.db.DatasourceManagerImpl.QOQ_DATASOURCE_NAME;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -194,6 +195,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	private static final String TEMPLATE_EXTENSION = "cfm";
 	private static final String COMPONENT_EXTENSION = "cfc";
 	private static final String COMPONENT_EXTENSION_LUCEE = "lucee";
+	private static final long GB1 = 1024*1024*1024;
 
 	/**
 	 * creates a new ServletConfig Impl Object
@@ -367,7 +369,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if(XMLConfigAdmin.fixLogging(cs,config,doc)) reload=true;
 		XMLConfigAdmin.fixOldExtensionLocation(config);
 		
-		
+		// delete to big felix.log (there is also code in the loader to do this, but if the loader is not updated ...)
+		if(config instanceof ConfigServerImpl) {
+			ConfigServerImpl _cs=(ConfigServerImpl) config;
+			File root = _cs.getCFMLEngine().getCFMLEngineFactory().getResourceRoot();
+			File log = new File(root,"context/logs/felix.log");
+			if(log.isFile() && log.length()>GB1) {
+				SystemOut.printDate("delete felix log: "+log);
+				if(log.delete()) ResourceUtil.touch(log);
+				
+			}
+		}
 		
 		
 		if (reload) {
@@ -4634,7 +4646,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			else {
 				String str = getAttr(compiler,"full-null-support");
-
+				if(StringUtil.isEmpty(str, true)) str=SystemUtil.getSystemPropOrEnvVar("lucee.full.null.support",null);
+				
 				if (!StringUtil.isEmpty(str, true)) {
 					fns = Caster.toBooleanValue(str, false);
 				}
@@ -4664,7 +4677,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		// allow-lucee-dialect
 		if(!hasCS) {
 			str = getAttr(compiler,"allow-lucee-dialect");
-			if(str==null || !Decision.isBoolean(str)) str=getSystemPropOrEnvVar("lucee.enable.dialect",null);
+			if(str==null || !Decision.isBoolean(str)) str=SystemUtil.getSystemPropOrEnvVar("lucee.enable.dialect",null);
 			if (str!=null && Decision.isBoolean(str)) {
 				config.setAllowLuceeDialect(Caster.toBooleanValue(str,false));
 			}
@@ -4689,16 +4702,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		
 	}
 
-	public static String getSystemPropOrEnvVar(String name, String defaultValue) {
-		// env
-		String value=System.getenv(name);
-		if(!StringUtil.isEmpty(value)) return value;
-		// prop
-		value=System.getProperty(name);
-		if(!StringUtil.isEmpty(value)) return value;
-		
-		return defaultValue;
-	}
 
 	/**
 	 * @param configServer
