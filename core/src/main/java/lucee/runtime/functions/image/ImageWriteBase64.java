@@ -20,7 +20,9 @@ package lucee.runtime.functions.image;
 
 import java.io.IOException;
 
+import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.img.Image;
@@ -35,9 +37,15 @@ public class ImageWriteBase64 {
 	public static String call(PageContext pc, Object name, String destination, String format, boolean inHTMLFormat) throws PageException {
 		//if(name instanceof String)name=pc.getVariable(Caster.toString(name));
 		Image image=Image.toImage(pc,name);
+		
+		Resource res=StringUtil.isEmpty(destination)?
+				image.getSource():
+				ResourceUtil.toResourceNotExisting(pc, destination);
+
 		try {
-			return image.writeBase64(ResourceUtil.toResourceNotExisting(pc, destination), format, inHTMLFormat);
-		} catch (IOException e) {
+			return image.writeBase64(res, format, inHTMLFormat);
+		}
+		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
 		

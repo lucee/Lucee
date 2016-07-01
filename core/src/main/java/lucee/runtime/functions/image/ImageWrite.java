@@ -21,7 +21,9 @@ package lucee.runtime.functions.image;
 
 import java.io.IOException;
 
+import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -46,14 +48,19 @@ public class ImageWrite implements Function {
 	public static String call(PageContext pc, Object name, String destination, double quality, boolean overwrite) throws PageException {
 		//if(name instanceof String)name=pc.getVariable(Caster.toString(name));
 		Image image=Image.toImage(pc,name);
-		
+
 		if(quality<0 || quality>1)
 			throw new FunctionException(pc,"ImageWrite",3,"quality","value have to be between 0 and 1");
 		
+		Resource res=StringUtil.isEmpty(destination)?
+					image.getSource():
+					ResourceUtil.toResourceNotExisting(pc, destination);
+		
+		
 		// MUST beide boolschen argumente checken
-		if(destination==null) return null;
+		if(res==null) return null;
 		try {
-			image.writeOut(ResourceUtil.toResourceNotExisting(pc, destination), overwrite , (float)quality);
+			image.writeOut(res, overwrite , (float)quality);
 		} catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
