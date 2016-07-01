@@ -70,5 +70,10 @@ public interface DatasourceConnection extends Connection {
 	 * @return
 	 */
 	public abstract boolean isLifecycleTimeout();
+	
 
+	// FUTURE public boolean isAutoCommit() throws SQLException;
+	
+	// FUTURE public void setAutoCommit(boolean setting) throws SQLException;
+	
 }
