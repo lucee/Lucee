@@ -26,6 +26,7 @@ import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CachePro;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.ram.RamCache;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
@@ -34,7 +35,6 @@ import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.util.CacheKeyFilterAll;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.functions.cache.Util;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.dt.TimeSpan;
@@ -140,7 +140,7 @@ public class TimespanCacheHandler implements CacheHandler {
 	
 
 	private Cache getCache(PageContext pc) {
-		Cache c = Util.getDefault(pc,cacheType,null);
+		Cache c = CacheUtil.getDefault(pc,cacheType,null);
 		if(c==null) {
 			if(defaultCache==null){
 				RamCache rm = new RamCache().init(0, 0, RamCache.DEFAULT_CONTROL_INTERVAL);

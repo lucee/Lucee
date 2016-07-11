@@ -20,6 +20,7 @@ package lucee.runtime.functions.cache;
 
 import lucee.commons.io.cache.Cache;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -50,8 +51,8 @@ public final class CachePut implements Function {
 		//if(timeSpan!=null && timeSpan.longValue()==0L) return "";
 		//if(idleTime!=null && idleTime.longValue()==0L) return "";
 		try {
-			Cache cache = Util.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT);
-			cache.put(Util.key(key), value, idleTime, timeSpan);
+			Cache cache = CacheUtil.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT);
+			cache.put(CacheUtil.key(key), value, idleTime, timeSpan);
 		} catch (Exception e) {
 			throw Caster.toPageException(e);
 		}

@@ -21,12 +21,12 @@ package lucee.runtime.functions.rest;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.XMLConfigAdmin;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.functions.cache.Util;
 import lucee.runtime.op.Caster;
 import lucee.runtime.rest.Mapping;
 import lucee.runtime.rest.RestUtil;
@@ -37,7 +37,7 @@ public class RestDeleteApplication {
 	}
 
 	public static String call(PageContext pc , String dirPath,String strWebAdminPassword) throws PageException {
-		Password webAdminPassword = Util.getPassword(pc, strWebAdminPassword,false);
+		Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword,false);
     	
 		Resource dir=RestDeleteApplication.toResource(pc,dirPath);
 		ConfigWebImpl config=(ConfigWebImpl) pc.getConfig();

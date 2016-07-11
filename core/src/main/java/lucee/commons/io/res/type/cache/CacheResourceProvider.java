@@ -35,10 +35,10 @@ import lucee.commons.io.res.util.ResourceLockImpl;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.ram.RamCache;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.functions.cache.Util;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;
 import lucee.runtime.type.Struct;
@@ -226,7 +226,7 @@ public final class CacheResourceProvider implements ResourceProviderPro {
 
 	public Cache getCache() {
 		PageContext pc = ThreadLocalPageContext.get();
-		Cache c = Util.getDefault(pc,Config.CACHE_TYPE_RESOURCE,null);
+		Cache c = CacheUtil.getDefault(pc,Config.CACHE_TYPE_RESOURCE,null);
 		if(c==null) {
 			if(defaultCache==null)defaultCache=new RamCache().init(0, 0, RamCache.DEFAULT_CONTROL_INTERVAL);
 			c=defaultCache;

@@ -30,6 +30,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.legacy.CacheItem;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.Abort;
@@ -42,7 +43,6 @@ import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.functions.cache.CacheGet;
 import lucee.runtime.functions.cache.CachePut;
 import lucee.runtime.functions.cache.CacheRemove;
-import lucee.runtime.functions.cache.Util;
 import lucee.runtime.functions.dateTime.GetHttpTimeString;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
@@ -404,8 +404,8 @@ public final class Cache extends BodyTagImpl {
 		}
 		else {
 			lucee.commons.io.cache.Cache cache = 
-				Util.getCache(pageContext,cachename,Config.CACHE_TYPE_OBJECT);
-			CacheEntry entry = throwOnError?cache.getCacheEntry(Util.key(id)):cache.getCacheEntry(Util.key(id),null);
+					CacheUtil.getCache(pageContext,cachename,Config.CACHE_TYPE_OBJECT);
+			CacheEntry entry = throwOnError?cache.getCacheEntry(CacheUtil.key(id)):cache.getCacheEntry(CacheUtil.key(id),null);
 			if(entry!=null){
 				pageContext.setVariable(name,entry.getValue());
 				pageContext.setVariable(metadata,entry.getCustomInfo());

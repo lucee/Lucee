@@ -32,6 +32,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.lang.KeyGenerator;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.tag.query.QueryCacheItem;
 import lucee.runtime.cache.tag.udf.UDFArgConverter;
 import lucee.runtime.config.ConfigImpl;
@@ -39,7 +40,6 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.db.SQL;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.functions.cache.Util;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.tag.HttpParamBean;
@@ -178,7 +178,7 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 			str=sb.toString();
 		}
 		try {
-			return Util.key(KeyGenerator.createKey(str));
+			return CacheUtil.key(KeyGenerator.createKey(str));
 		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);
@@ -187,7 +187,7 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 
 	public static String createId(SQL sql, String datasource, String username,String password, int returnType) throws PageException{
 		try {
-			return Util.key(KeyGenerator.createKey(sql.toHashString()+datasource+username+password+returnType));
+			return CacheUtil.key(KeyGenerator.createKey(sql.toHashString()+datasource+username+password+returnType));
 		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);

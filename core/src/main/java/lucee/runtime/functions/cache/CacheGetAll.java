@@ -24,6 +24,7 @@ import java.util.List;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.util.WildCardFilter;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
@@ -49,7 +50,7 @@ public final class CacheGetAll implements Function {
 	
 	public static Struct call(PageContext pc,String filter, String cacheName) throws PageException {
 		try {
-			Cache cache = Util.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT);
+			Cache cache = CacheUtil.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT);
 			List<CacheEntry> entries = CacheGetAllIds.isFilter(filter)?cache.entries(new WildCardFilter(filter,true)):cache.entries();
 			Iterator<CacheEntry> it=entries.iterator();
 			Struct sct = new StructImpl();

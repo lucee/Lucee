@@ -72,6 +72,7 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.osgi.BundleCollection;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cfx.CFXTagException;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.converter.ConverterException;
@@ -87,7 +88,6 @@ import lucee.runtime.exp.SecurityException;
 import lucee.runtime.extension.Extension;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
-import lucee.runtime.functions.cache.Util;
 import lucee.runtime.functions.other.CreateObject;
 import lucee.runtime.functions.other.CreateUUID;
 import lucee.runtime.functions.other.URLEncodedFormat;
@@ -2399,7 +2399,7 @@ public final class XMLConfigAdmin {
   	    		CacheConnection cc= conns.get(n.toLowerCase());
 
                 if ( cc != null )
-                    Util.removeEL( config instanceof ConfigWeb ? (ConfigWeb) config : null, cc );
+                	CacheUtil.removeEL( config instanceof ConfigWeb ? (ConfigWeb) config : null, cc );
 
                 parent.removeChild(children[i]);
   			}
@@ -2695,7 +2695,7 @@ public final class XMLConfigAdmin {
     	}
 		
     	// cache
-    	CacheConnection cc = Util.getCacheConnection(config, storage,null);
+    	CacheConnection cc = CacheUtil.getCacheConnection(ThreadLocalPageContext.get(config), storage,null);
     	if(cc!=null) {
     		if(cc.isStorage())return storage;
     		throw new ApplicationException("cache ["+storage+"] is not enabled to be used as session/client storage");

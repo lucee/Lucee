@@ -36,6 +36,7 @@ import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.CacheConnection;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.db.DataSource;
@@ -45,7 +46,6 @@ import lucee.runtime.exp.ExceptionHandler;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
-import lucee.runtime.functions.cache.Util;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
@@ -239,7 +239,7 @@ public final class ScopeContext {
 						if(ds!=null)
 							throw new ApplicationException("datasource ["+storage+"] is not enabled to be used as session/client storage, you have to enable it in the Lucee administrator.");
 						
-						CacheConnection cc = Util.getCacheConnection(pc.getConfig(),storage,null);
+						CacheConnection cc = CacheUtil.getCacheConnection(pc,storage,null);
 						if(cc!=null) 
 							throw new ApplicationException("cache ["+storage+"] is not enabled to be used  as a session/client storage, you have to enable it in the Lucee administrator.");
 						
@@ -547,7 +547,7 @@ public final class ScopeContext {
 									"datasource ["+storage+"] is not enabled to be used as session/client storage, " +
 									"you have to enable it in the Lucee administrator or define key \"storage=true\" for datasources defined in the application event handler.");
 						
-						CacheConnection cc = Util.getCacheConnection(pc.getConfig(),storage,null);
+						CacheConnection cc = CacheUtil.getCacheConnection(pc,storage,null);
 						if(cc!=null) 
 							throw new ApplicationException("cache ["+storage+"] is not enabled to be used  as a session/client storage, you have to enable it in the Lucee administrator.");
 						

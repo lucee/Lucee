@@ -20,6 +20,7 @@ package lucee.runtime.functions.cache;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.exp.ExpressionException;
@@ -35,7 +36,7 @@ public final class CacheGetDefaultCacheName implements Function {
 	private static final long serialVersionUID = 6115589794465960484L;
 
 	public static String call(PageContext pc, String strType) throws PageException {
-		int type = Util.toType(strType,Config.CACHE_TYPE_NONE);
+		int type = CacheUtil.toType(strType,Config.CACHE_TYPE_NONE);
 		if(type==Config.CACHE_TYPE_NONE)
 			throw new FunctionException(pc,"CacheGetDefaultCacheName",1,"type","invalid type defintion ["+strType+"], valid types are [object,resource,template,query]");
 		
