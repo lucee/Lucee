@@ -119,21 +119,21 @@ public abstract class ComponentPageImpl extends ComponentPage {
 		String client = Caster.toString(req.getAttribute("client"),null);
 		// call type (invocation, store-only)
 		String callType = Caster.toString(req.getAttribute("call-type"),null);
-		boolean fromGateway="lucee-gateway-1-0".equals(client);
+		boolean internalCall="lucee-gateway-1-0".equals(client) || "lucee-listener-1-0".equals(client);
 		boolean fromRest="lucee-rest-1-0".equals(client);
 		Component component;
 		try {
 			pc.setSilent();
 			// load the cfc
 			try {
-	            if(fromGateway && strRemotePersisId!=null) {
+	            if(internalCall && strRemotePersisId!=null) {
 	            	ConfigWebImpl config=(ConfigWebImpl) pc.getConfig();
 	            	GatewayEngineImpl engine = config.getGatewayEngine();
 	            	component=engine.getPersistentRemoteCFC(strRemotePersisId);
 	            	
 	            	if(component==null) {
 	            		component=newInstance(pc,getComponentName(),false,false,true);
-	            		if(!fromGateway)component=ComponentSpecificAccess.toComponentSpecificAccess(Component.ACCESS_REMOTE,component);
+	            		if(!internalCall)component=ComponentSpecificAccess.toComponentSpecificAccess(Component.ACCESS_REMOTE,component);
 	            		
 	            		engine.setPersistentRemoteCFC(strRemotePersisId,component);
 	            	}
@@ -141,7 +141,7 @@ public abstract class ComponentPageImpl extends ComponentPage {
 	            }
 	            else {
 	            	component=newInstance(pc,getComponentName(),false,false,true);
-            		if(!fromGateway)component=ComponentSpecificAccess.toComponentSpecificAccess(Component.ACCESS_REMOTE,component);
+            		if(!internalCall)component=ComponentSpecificAccess.toComponentSpecificAccess(Component.ACCESS_REMOTE,component);
 	            }
             }
             finally {
