@@ -72,6 +72,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.cache.CacheConnection;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cfx.customtag.CFXTagClass;
 import lucee.runtime.cfx.customtag.CPPCFXTagClass;
 import lucee.runtime.cfx.customtag.JavaCFXTagClass;
@@ -114,7 +115,6 @@ import lucee.runtime.extension.ExtensionImpl;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
-import lucee.runtime.functions.cache.Util;
 import lucee.runtime.functions.query.QuerySort;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
@@ -4038,7 +4038,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		
 		
 		try {
-			Cache cache = Util.getCache(pageContext.getConfig(), getString("admin",action,"name"));
+			Cache cache = CacheUtil.getCache(pageContext, getString("admin",action,"name"));
 			if(cache instanceof CachePro)
 				((CachePro)cache).verify();
 			else

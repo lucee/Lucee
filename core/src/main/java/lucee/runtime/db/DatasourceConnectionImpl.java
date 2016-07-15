@@ -47,7 +47,7 @@ import lucee.runtime.spooler.Task;
 /**
  * wrap for datasorce and connection from it
  */
-public final class DatasourceConnectionImpl implements DatasourceConnection,Task {
+public final class DatasourceConnectionImpl implements DatasourceConnectionPro,Task {
     
     //private static final int MAX_PS = 100;
 	private Connection connection;
@@ -519,6 +519,11 @@ public final class DatasourceConnectionImpl implements DatasourceConnection,Task
 	@Override
 	public int getNetworkTimeout() throws SQLException {
 		return connection.getNetworkTimeout();
+	}
+
+	@Override
+	public boolean isAutoCommit() throws SQLException {
+		return connection.getAutoCommit();
 	}
 
 }

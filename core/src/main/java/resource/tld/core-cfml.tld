@@ -193,6 +193,7 @@
 			<rtexprvalue>true</rtexprvalue>
 			<description>alias for default datasource</description>
 		</attribute>
+		
 		<attribute>
 			<type>object</type>
 			<name>defaultdatasource</name>
@@ -206,6 +207,13 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>A structure that contains datasources defintions.</description>
+		</attribute>
+		<attribute>
+			<type>struct</type>
+			<name>caches</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>A structure that contains cache defintions.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>

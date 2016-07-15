@@ -23,6 +23,7 @@ import static lucee.commons.io.SystemUtil.OUT;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import lucee.commons.io.DevNullOutputStream;
@@ -32,7 +33,9 @@ import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 public final class SystemOut {
-
+	
+	public static final SimpleDateFormat FORMAT=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+	
     /**
      * logs a value 
      * @param value
@@ -40,9 +43,7 @@ public final class SystemOut {
     public static void printDate(PrintWriter pw,String value) {
     	long millis=System.currentTimeMillis();
     	pw.write(
-    			new Date(millis)
-    			+"-"
-    			+(millis-(millis/1000*1000))
+    			FORMAT.format(new Date(millis))
     			+" "+value+"\n");
     	pw.flush();
     }

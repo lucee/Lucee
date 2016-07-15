@@ -89,25 +89,6 @@ public final class ResourcesImpl implements Resources {
 		return global;
 	}
 
-	public static void main(String[] args) throws IOException {
-		Resources rs=ResourcesImpl.getGlobal();
-		rs.registerResourceProvider(new RamResourceProviderOld());
-		
-		Resource changes = rs.getResource("d:/changes.txt");
-		changes = rs.getResource("file://d:/changes.txt");
-		System.out.println(changes.getCanonicalPath());
-		
-		Resource mem = rs.getResource("ram://changes.txt");
-		ResourceProvider mf=mem.getResourceProvider();
-		System.out.println(mem.getPath());
-		System.out.println(mem);
-		
-		mem = mf.getResource("changes.txt");
-		System.out.println(mem.getPath());
-		System.out.println(mem);
-		
-	}
-
 	/**
 	 * @return the defaultResource
 	 */

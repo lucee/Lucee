@@ -18,7 +18,9 @@
  */
 package lucee.runtime.tag;
 
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.TimeZone;
 
 import lucee.commons.io.CharsetUtil;
@@ -28,6 +30,7 @@ import lucee.commons.lang.CharSet;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageSource;
+import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.ApplicationException;
@@ -35,15 +38,19 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.ClassicApplicationContext;
+import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMUtil;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.UndefinedImpl;
+import lucee.runtime.type.util.KeyConstants;
 
 /**
 * Defines scoping for a CFML application, enables or disables storing client variables, 
@@ -112,8 +119,9 @@ public final class Application extends TagImpl {
 	private String cacheHTTP;
 	private String cacheFile;
 	private String cacheWebservice;
-	
+
 	private Struct datasources;
+	private Struct caches;
 	private UDF onmissingtemplate;
 	private short scopeCascading=-1;
 	private Boolean suppress;
@@ -146,6 +154,7 @@ public final class Application extends TagImpl {
         datasource=null;
         defaultdatasource=null;
         datasources=null;
+        caches=null;
         this.name="";
         action=ACTION_CREATE;
         localMode=-1;
@@ -224,9 +233,12 @@ public final class Application extends TagImpl {
 	public void setDefaultdatasource(Object defaultdatasource) throws PageException {
 		this.defaultdatasource =  AppListenerUtil.toDefaultDatasource(pageContext.getConfig(),defaultdatasource,pageContext.getConfig().getLog("application"));
 	}
-	
+
 	public void setDatasources(Struct datasources) {
 		this.datasources = datasources;
+	}
+	public void setCaches(Struct caches) {
+		this.caches = caches;
 	}
 	
 	public void setLocalmode(String strLocalMode) throws ApplicationException {
@@ -536,6 +548,68 @@ public final class Application extends TagImpl {
 		if(datasources!=null){
 			try {
 				ac.setDataSources(AppListenerUtil.toDataSources(pageContext.getConfig(),datasources,pageContext.getConfig().getLog("application")));
+			} 
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
+		}
+		if(caches!=null){
+			try {
+				ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+				Iterator<Entry<Key, Object>> it = caches.entryIterator();
+				Entry<Key, Object> e;
+				String name;
+				Struct sct;
+				while(it.hasNext()) {
+					e = it.next();
+					// default value by name
+					if(!StringUtil.isEmpty(name=Caster.toString(e.getValue(),null))) {
+						if(KeyConstants._function.equals(e.getKey()))
+							ac.setDefaultCacheName(Config.CACHE_TYPE_FUNCTION, name);
+						else if(KeyConstants._object.equals(e.getKey()))
+							ac.setDefaultCacheName(Config.CACHE_TYPE_OBJECT, name);
+						else if(KeyConstants._query.equals(e.getKey()))
+							ac.setDefaultCacheName(Config.CACHE_TYPE_QUERY, name);
+						else if(KeyConstants._resource.equals(e.getKey()))
+							ac.setDefaultCacheName(Config.CACHE_TYPE_RESOURCE, name);
+						else if(KeyConstants._template.equals(e.getKey()))
+							ac.setDefaultCacheName(Config.CACHE_TYPE_TEMPLATE, name);
+						else if(KeyConstants._include.equals(e.getKey()))
+							ac.setDefaultCacheName(Config.CACHE_TYPE_INCLUDE, name);
+						else if(KeyConstants._http.equals(e.getKey()))
+							ac.setDefaultCacheName(Config.CACHE_TYPE_HTTP, name);
+						else if(KeyConstants._file.equals(e.getKey()))
+							ac.setDefaultCacheName(Config.CACHE_TYPE_FILE, name);
+						else if(KeyConstants._webservice.equals(e.getKey()))
+							ac.setDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE, name);
+					}
+					// cache definition
+					else if((sct=Caster.toStruct(e.getValue(),null))!=null) {
+						CacheConnection cc = ModernApplicationContext.toCacheConnection(pageContext.getConfig(), e.getKey().getString(), sct, null);
+						if(cc!=null) {
+							acs.setCacheConnection(e.getKey().getString(), cc);
+							name=e.getKey().getString();
+							if(KeyConstants._function.equals(e.getKey()))
+								ac.setDefaultCacheName(Config.CACHE_TYPE_FUNCTION, name);
+							else if(KeyConstants._object.equals(e.getKey()))
+								ac.setDefaultCacheName(Config.CACHE_TYPE_OBJECT, name);
+							else if(KeyConstants._query.equals(e.getKey()))
+								ac.setDefaultCacheName(Config.CACHE_TYPE_QUERY, name);
+							else if(KeyConstants._resource.equals(e.getKey()))
+								ac.setDefaultCacheName(Config.CACHE_TYPE_RESOURCE, name);
+							else if(KeyConstants._template.equals(e.getKey()))
+								ac.setDefaultCacheName(Config.CACHE_TYPE_TEMPLATE, name);
+							else if(KeyConstants._include.equals(e.getKey()))
+								ac.setDefaultCacheName(Config.CACHE_TYPE_INCLUDE, name);
+							else if(KeyConstants._http.equals(e.getKey()))
+								ac.setDefaultCacheName(Config.CACHE_TYPE_HTTP, name);
+							else if(KeyConstants._file.equals(e.getKey()))
+								ac.setDefaultCacheName(Config.CACHE_TYPE_FILE, name);
+							else if(KeyConstants._webservice.equals(e.getKey()))
+								ac.setDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE, name);
+						}
+					}
+				}
 			} 
 			catch (Exception e) {
 				throw Caster.toPageException(e);

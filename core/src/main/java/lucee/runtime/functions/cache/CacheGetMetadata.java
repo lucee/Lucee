@@ -23,6 +23,7 @@ import java.io.IOException;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -54,8 +55,8 @@ public final class CacheGetMetadata implements Function {
 	
 	public static Struct call(PageContext pc, String id, String cacheName) throws PageException {
 		try {
-			Cache cache = Util.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT);
-			CacheEntry entry = cache.getCacheEntry(Util.key(id));
+			Cache cache = CacheUtil.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT);
+			CacheEntry entry = cache.getCacheEntry(CacheUtil.key(id));
 			
 			Struct info=new StructImpl();
 			info.set(CACHE_HITCOUNT, new Double(cache.hitCount()));

@@ -22,6 +22,7 @@ import java.io.IOException;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -62,25 +63,25 @@ public final class CacheGetProperties implements Function {
 				for(int i=0;i<names.length;i++){
 					name=names[i].trim();
 					if(name.equalsIgnoreCase("template"))
-						arr.appendEL(Util.getDefault(pc,Config.CACHE_TYPE_TEMPLATE).getCustomInfo());
+						arr.appendEL(CacheUtil.getDefault(pc,Config.CACHE_TYPE_TEMPLATE).getCustomInfo());
 					else if(name.equalsIgnoreCase("object"))
-						arr.appendEL(Util.getDefault(pc,Config.CACHE_TYPE_OBJECT).getCustomInfo());
+						arr.appendEL(CacheUtil.getDefault(pc,Config.CACHE_TYPE_OBJECT).getCustomInfo());
 					else if(name.equalsIgnoreCase("query"))
-						arr.appendEL(Util.getDefault(pc,Config.CACHE_TYPE_QUERY).getCustomInfo());
+						arr.appendEL(CacheUtil.getDefault(pc,Config.CACHE_TYPE_QUERY).getCustomInfo());
 					else if(name.equalsIgnoreCase("resource"))
-						arr.appendEL(Util.getDefault(pc,Config.CACHE_TYPE_RESOURCE).getCustomInfo());
+						arr.appendEL(CacheUtil.getDefault(pc,Config.CACHE_TYPE_RESOURCE).getCustomInfo());
 					else if(name.equalsIgnoreCase("function"))
-						arr.appendEL(Util.getDefault(pc,Config.CACHE_TYPE_FUNCTION).getCustomInfo());
+						arr.appendEL(CacheUtil.getDefault(pc,Config.CACHE_TYPE_FUNCTION).getCustomInfo());
 					else if(name.equalsIgnoreCase("include"))
-						arr.appendEL(Util.getDefault(pc,Config.CACHE_TYPE_INCLUDE).getCustomInfo());
+						arr.appendEL(CacheUtil.getDefault(pc,Config.CACHE_TYPE_INCLUDE).getCustomInfo());
 					else if(name.equalsIgnoreCase("http"))
-						arr.appendEL(Util.getDefault(pc,Config.CACHE_TYPE_HTTP).getCustomInfo());
+						arr.appendEL(CacheUtil.getDefault(pc,Config.CACHE_TYPE_HTTP).getCustomInfo());
 					else if(name.equalsIgnoreCase("file"))
-						arr.appendEL(Util.getDefault(pc,Config.CACHE_TYPE_FILE).getCustomInfo());
+						arr.appendEL(CacheUtil.getDefault(pc,Config.CACHE_TYPE_FILE).getCustomInfo());
 					else if(name.equalsIgnoreCase("webservice"))
-						arr.appendEL(Util.getDefault(pc,Config.CACHE_TYPE_WEBSERVICE).getCustomInfo());
+						arr.appendEL(CacheUtil.getDefault(pc,Config.CACHE_TYPE_WEBSERVICE).getCustomInfo());
 					else
-						arr.appendEL(Util.getCache(pc.getConfig(),name).getCustomInfo());
+						arr.appendEL(CacheUtil.getCache(pc,name).getCustomInfo());
 				}
 			}
 			
@@ -93,7 +94,7 @@ public final class CacheGetProperties implements Function {
 
 	private static void addDefault(PageContext pc, int type, Array arr) {
 		try {
-			arr.appendEL(Util.getDefault(pc,type).getCustomInfo());
+			arr.appendEL(CacheUtil.getDefault(pc,type).getCustomInfo());
 		} catch (IOException e) {}
 	}
 }

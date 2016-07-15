@@ -160,9 +160,11 @@ public final class JSConverter extends ConverterSupport {
 			done.remove(raw);
 		}
 		
-		throw new ConverterException("can't serialize Object of type ["+Caster.toClassName(object)+"] to a js representation");
-		//deep--;
-		//return rtn;
+		sb.append(goIn());
+		sb.append(NULL+";");
+		return;
+		//throw new ConverterException("can't serialize Object of type ["+Caster.toClassName(object)+"] to a js representation");
+		
 	}
 	
 

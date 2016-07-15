@@ -138,5 +138,11 @@ public final class ThreadLocalPageContext {
 		if(pc==null)return get();
 	    return pc;
 	}
+	
+	public static PageContext get(Config config) {
+		PageContext pc = get();
+		if(pc!=null && pc.getConfig()==config) return pc;
+		return null;
+	}
 
 }

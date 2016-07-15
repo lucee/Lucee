@@ -23,6 +23,7 @@ import java.io.IOException;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -38,7 +39,7 @@ public final class CacheGet implements Function {
 
 	public static Object call(PageContext pc, String key) throws PageException {
 		try {
-			return _call(pc, key, false, Util.getDefault(pc, Config.CACHE_TYPE_OBJECT));
+			return _call(pc, key, false, CacheUtil.getDefault(pc, Config.CACHE_TYPE_OBJECT));
 		} 
 		catch (IOException e) {
 			throw Caster.toPageException(e);
@@ -50,7 +51,7 @@ public final class CacheGet implements Function {
 		Boolean throwWhenNotExist=Caster.toBoolean(objThrowWhenNotExist,null);
 		if(throwWhenNotExist!=null) {
 			try {
-				return _call(pc, key, throwWhenNotExist.booleanValue(), Util.getDefault(pc, Config.CACHE_TYPE_OBJECT));
+				return _call(pc, key, throwWhenNotExist.booleanValue(), CacheUtil.getDefault(pc, Config.CACHE_TYPE_OBJECT));
 			} 
 			catch (IOException e) {
 				throw Caster.toPageException(e);
@@ -62,7 +63,7 @@ public final class CacheGet implements Function {
 			String cacheName=(String)objThrowWhenNotExist;
 			if(!StringUtil.isEmpty(cacheName)) {
 				try {
-					Cache cache = Util.getCache(pc.getConfig(),cacheName,null);
+					Cache cache = CacheUtil.getCache(pc,cacheName,null);
 					
 					if(cache!=null) 
 						return _call(pc, key, false, cache);
@@ -84,7 +85,7 @@ public final class CacheGet implements Function {
 		if(throwWhenNotExist==null)throw new FunctionException(pc, "cacheGet", 2, "ThrowWhenNotExist", "arguments needs to be a boolean value");
 		
 		try {
-			Cache cache = Util.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT);
+			Cache cache = CacheUtil.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT);
 			return _call(pc, key, throwWhenNotExist.booleanValue(), cache);
 		} catch (IOException e) {
 			throw Caster.toPageException(e);
@@ -92,6 +93,6 @@ public final class CacheGet implements Function {
 	}
 
 	private static Object _call(PageContext pc, String key, boolean throwWhenNotExist,Cache cache) throws IOException {
-		return throwWhenNotExist?cache.getValue(Util.key(key)):cache.getValue(Util.key(key),null);
+		return throwWhenNotExist?cache.getValue(CacheUtil.key(key)):cache.getValue(CacheUtil.key(key),null);
 	}
 }

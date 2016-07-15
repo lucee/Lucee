@@ -49,6 +49,28 @@
     ]]>
 </scriptdef>
 
+  <scriptdef name="listDirectory" language="javascript" loaderRef="sharedbuild-loaderRef">
+    <attribute name="directory" />
+    <attribute name="delimiter" />
+    <attribute name="returnvalue" />
+    <![CDATA[
+        var dir = new java.io.File(attributes.get("directory"));
+        var del = attributes.get("delimiter");
+        var rtn = attributes.get("returnvalue");
+
+        var sb=new java.lang.StringBuilder();
+        var children = dir.listFiles();
+        if(children!=null)for(var i=0;i<children.length;i++) {
+          var path=children[i].getPath();
+          if(!path.endsWith(".jar")) continue;
+          if(sb.length()>0) sb.append(del);
+          sb.append(children[i]);
+        }
+        project.setProperty(rtn, sb.toString());
+    ]]>
+  </scriptdef>
+
+
   <scriptdef name="readRequiredExtensions" language="javascript" loaderRef="sharedbuild-loaderRef">
     <attribute name="file" />
     <![CDATA[
@@ -586,6 +608,7 @@
     <!-- compie the source -->
     <javac 
       srcdir="${srcInst}" 
+      source="1.7" 
       target="1.7" 
       destdir="${temp}/agent"
       debug="true" debuglevel="lines,vars,source" classpath="${dependencies}">
@@ -743,14 +766,17 @@
     <echo>${exc}</echo>
 
 </target>
-<target name="__build_testbox" if="testcases">
 
+<target name="__build_testbox" if="testcases">
+    
+    <listDirectory directory="${test}/lib" delimiter=":" returnvalue="test_jars"/>
     <echots message="execute testcases ${testcases}"/>
     <!-- execute CFML testcases -->
     <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc2">
       <classpath path="${java.class.path}">
           <pathelement location="${temp}/lucee.jar"/>
           <pathelement path="${runtime_classpath}"/>
+          <pathelement path="${test_jars}"/>
       </classpath>
 
       <arg value="-f"/>

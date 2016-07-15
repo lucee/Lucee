@@ -152,10 +152,5 @@ public final class ModeUtil {
             int tmp=octalMode&0111; 
             if(value)return (octalMode-tmp)+0111; 
             return octalMode-tmp; 
-    } 
-    
-    public static void main(String[] args) throws IOException {
-		System.out.println(toStringMode(toOctalMode("--xrwxrwx")));
-		System.out.println(toStringMode(Integer.parseInt("0777",8)));
-	}
+    }
 }

@@ -59,7 +59,7 @@ public class RetireOutputStream extends OutputStream {
 		return os;
 	}
 	
-	public boolean retire() throws IOException{
+	public synchronized boolean retire() throws IOException{
 		if(os==null || (lastAccess+retireRange)>System.currentTimeMillis()) {
 			//print.e("not retire "+res);
 			return false;
@@ -70,7 +70,7 @@ public class RetireOutputStream extends OutputStream {
 		
 		return true;
 	}
-	public boolean retireNow() throws IOException{
+	public synchronized boolean retireNow() throws IOException{
 		if(os==null)return false;
 		append=true;
 		close();
@@ -78,7 +78,7 @@ public class RetireOutputStream extends OutputStream {
 	}
 
 	@Override
-	public void close() throws IOException {
+	public synchronized void close() throws IOException {
 		if(os!=null){
 			if(listener!=null) listener.retire(this);
 			try{
@@ -92,7 +92,7 @@ public class RetireOutputStream extends OutputStream {
 	}
 
 	@Override
-	public void flush() throws IOException {
+	public synchronized void flush() throws IOException {
 		if(os!=null){
 			getOutputStream().flush();
 			if(retireRange==0) retireNow();
@@ -100,21 +100,21 @@ public class RetireOutputStream extends OutputStream {
 	}
 	
 	@Override
-	public void write(int b) throws IOException {
+	public synchronized void write(int b) throws IOException {
 		//print.e("write:"+((char)b));
 		getOutputStream().write(b);
 		if(retireRange==0) retireNow();
 	}
 
 	@Override
-	public void write(byte[] b) throws IOException {
+	public synchronized void write(byte[] b) throws IOException {
 		//print.e("write.barr:"+b.length);
 		getOutputStream().write(b);
 		if(retireRange==0) retireNow();
 	}
 
 	@Override
-	public void write(byte[] b, int off, int len) throws IOException {
+	public synchronized void write(byte[] b, int off, int len) throws IOException {
 		//print.e("write.barr:"+b.length+":"+off+":"+len);
 		getOutputStream().write(b, off, len);
 		if(retireRange==0) retireNow();

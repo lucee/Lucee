@@ -194,6 +194,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	private static final String COMPONENT_EXTENSION = "cfc";
 	private static final String COMPONENT_EXTENSION_LUCEE = "lucee";
 	private static final long GB1 = 1024*1024*1024;
+	public static final boolean LOG = true;
 
 	/**
 	 * creates a new ServletConfig Impl Object
@@ -277,6 +278,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		load(configServer, configWeb, doc, false, doNew);
 		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
+		((CFMLEngineImpl)ConfigWebUtil.getEngine(configWeb)).onStart(configWeb,false);
 		return configWeb;
 	}
 
@@ -326,6 +328,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		cw.reset();
 		load(cs, cw, doc, true, doNew);
 		createContextFilesPost(configDir, cw, null, false, doNew);
+		((CFMLEngineImpl)ConfigWebUtil.getEngine(cw)).onStart(cw,true);
+		
 	}
 
 	private static long second(long ms) {
@@ -345,6 +349,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 */
 	synchronized static void load(ConfigServerImpl cs, ConfigImpl config, Document doc, boolean isReload, boolean doNew) throws ClassException, PageException, IOException,
 			TagLibException, FunctionLibException, BundleException {
+		if(LOG)SystemOut.printDate("start reading config");
+		
 		ThreadLocalConfig.register(config);
 		boolean reload=false;
 		
@@ -361,11 +367,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			catch (SAXException e) {
 			}
 		}
+		if(LOG)SystemOut.printDate("fixed LFI");
 		if(XMLConfigAdmin.fixSalt(doc)) reload=true;
+		if(LOG)SystemOut.printDate("fixed salt");
 		if(XMLConfigAdmin.fixS3(doc)) reload=true;
+		if(LOG)SystemOut.printDate("fixed S3");
 		if(XMLConfigAdmin.fixPSQ(doc)) reload=true;
+		if(LOG)SystemOut.printDate("fixed PSQ");
 		if(XMLConfigAdmin.fixLogging(cs,config,doc)) reload=true;
+		if(LOG)SystemOut.printDate("fixed logging");
 		XMLConfigAdmin.fixOldExtensionLocation(config);
+		if(LOG)SystemOut.printDate("fixed old extension location");
 		
 		// delete to big felix.log (there is also code in the loader to do this, but if the loader is not updated ...)
 		if(config instanceof ConfigServerImpl) {
@@ -378,6 +390,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				
 			}
 		}
+		if(LOG)SystemOut.printDate("fixed to big felix.log");
 		
 		
 		if (reload) {
@@ -387,69 +400,122 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			catch (SAXException e) {
 			}
+			if(LOG)SystemOut.printDate("reload xml");
+			
 		}
 		config.setLastModified();
 		if(config instanceof ConfigWeb)ConfigWebUtil.deployWebContext(cs,(ConfigWeb)config,false);
+		if(LOG)SystemOut.printDate("deploy web context");
 		loadConfig(cs, config, doc);
 		int mode = config.getMode();
 		Log log = config.getLog("application");
+		if(LOG)SystemOut.printDate("loaded config");
 		loadConstants(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded constants");
 		loadLoggers(cs, config, doc, isReload);
 		log = config.getLog("application");
 		//loadServerLibDesc(cs, config, doc,log);
+		if(LOG)SystemOut.printDate("loaded loggers");
 		loadTempDirectory(cs, config, doc, isReload);
+		if(LOG)SystemOut.printDate("loaded temp dir");
 		loadId(cs,config,doc);
+		if(LOG)SystemOut.printDate("loaded id");
 		loadVersion(config, doc);
+		if(LOG)SystemOut.printDate("loaded version");
 		loadSecurity(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded security");
 		ConfigWebUtil.loadLib(cs, config);
+		if(LOG)SystemOut.printDate("loaded lib");
 		loadSystem(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded system");
 		loadFilesystem(cs, config, doc, doNew); // load this before execute any code, what for example loadxtension does (json)
+		if(LOG)SystemOut.printDate("loaded filesystem");
 		loadExtensionBundles(cs,config,doc,log);
+		if(LOG)SystemOut.printDate("loaded extension bundles");
 		loadORM(cs, config, doc,log);
+		if(LOG)SystemOut.printDate("loaded orm");
 		loadResourceProvider(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded resource providers");
 		loadCacheHandler(cs, config, doc,log);
+		if(LOG)SystemOut.printDate("loaded cache handlers");
 		loadCharset(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded charset");
 		loadApplication(cs, config, doc, mode);
+		if(LOG)SystemOut.printDate("loaded application");
 		loadMappings(cs, config, doc, mode); // it is important this runs after
+		if(LOG)SystemOut.printDate("loaded mappings");
 												// loadApplication
 		loadRest(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded rest");
 		loadExtensions(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded extensions");
 		loadPagePool(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded page pool");
 		loadDataSources(cs, config, doc,log);
+		if(LOG)SystemOut.printDate("loaded datasources");
 		loadCache(cs, config, doc,log);
+		if(LOG)SystemOut.printDate("loaded cache");
 		loadCustomTagsMappings(cs, config, doc, mode);
+		if(LOG)SystemOut.printDate("loaded custom tag mappings");
 		//loadFilesystem(cs, config, doc, doNew); // load tlds
 		loadTag(cs, config, doc); // load tlds
+		if(LOG)SystemOut.printDate("loaded tags");
 		loadRegional(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded regional");
 		loadCompiler(cs, config, doc, mode);
+		if(LOG)SystemOut.printDate("loaded compiler");
 		loadScope(cs, config, doc, mode);
+		if(LOG)SystemOut.printDate("loaded scope");
 		loadMail(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded mail");
 		loadSearch(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded search");
 		loadScheduler(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded scheduled tasks");
 		loadDebug(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded debug");
 		loadError(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded error");
 		loadCFX(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded cfx");
 		loadComponent(cs, config, doc, mode);
+		if(LOG)SystemOut.printDate("loaded component");
 		loadUpdate(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded update");
 		loadJava(cs, config, doc); // define compile type
+		if(LOG)SystemOut.printDate("loaded java");
 		loadSetting(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded setting");
 		loadProxy(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded proxy");
 		loadRemoteClient(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded remote clients");
 		loadVideo(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded video");
 		loadFlex(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded flex");
 		settings(config);
+		if(LOG)SystemOut.printDate("loaded settings2");
 		loadListener(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded listeners");
 		loadDumpWriter(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded dump writers");
 		loadGatewayEL(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded gateways");
 		loadExeLog(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded exe log");
 		loadQueue(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded queue");
 		loadMonitors(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded monitors");
 		loadLogin(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded login");
 		config.setLoadTime(System.currentTimeMillis());
 
-		if (config instanceof ConfigWebImpl)
+		if (config instanceof ConfigWebImpl) {
 			TagUtil.addTagMetaData((ConfigWebImpl) config);
-
+			if(LOG)SystemOut.printDate("added tag meta data");
+		}
 		//ThreadLocalConfig.release();
 	}
 

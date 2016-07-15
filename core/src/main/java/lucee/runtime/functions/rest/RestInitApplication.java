@@ -22,11 +22,11 @@ package lucee.runtime.functions.rest;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.XMLConfigAdmin;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.functions.cache.Util;
 import lucee.runtime.op.Caster;
 import lucee.runtime.rest.Mapping;
 import lucee.runtime.rest.RestUtil;
@@ -70,14 +70,14 @@ public class RestInitApplication {
 			if(mapping.getVirtualWithSlash().equals(virtual)){
 				// directory has changed
 				if(!RestUtil.isMatch(pc, mapping, dir) || (defaultMapping!=null && mapping.isDefault()!=defaultMapping.booleanValue())) {
-					update(pc,dir,virtual,Util.getPassword(pc,webAdminPassword,false),defaultMapping==null?mapping.isDefault():defaultMapping.booleanValue());
+					update(pc,dir,virtual,CacheUtil.getPassword(pc,webAdminPassword,false),defaultMapping==null?mapping.isDefault():defaultMapping.booleanValue());
 				}
 				mapping.reset(pc);
 				hasResetted=true;
 			}
 		}
 		if(!hasResetted) {
-			update(pc,dir,virtual,Util.getPassword(pc,webAdminPassword,false),defaultMapping==null?false:defaultMapping.booleanValue());
+			update(pc,dir,virtual,CacheUtil.getPassword(pc,webAdminPassword,false),defaultMapping==null?false:defaultMapping.booleanValue());
 		}
 	
 		return null;

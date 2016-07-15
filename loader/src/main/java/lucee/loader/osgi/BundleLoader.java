@@ -102,9 +102,9 @@ public class BundleLoader {
 			if (old != null) {
 				removeBundlesEL(old);
 				felix = old.felix;
-				felix.stop();// stops all active bundles
+				// stops felix (wait for it)
+				BundleUtil.stop(felix,false);
 				felix = engFac.getFelix(cacheRootDir, config);
-				//felix.start();
 			} else
 				felix = engFac.getFelix(cacheRootDir, config);
 			final BundleContext bc = felix.getBundleContext();

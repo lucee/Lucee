@@ -25,6 +25,7 @@ import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.type.cache.CacheResourceProvider;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.tag.CacheHandlerCollection;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheHandlerFilter;
@@ -36,7 +37,6 @@ import lucee.runtime.config.Constants;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
-import lucee.runtime.functions.cache.Util;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.UDF;
 
@@ -136,7 +136,7 @@ public final class ObjectCache extends TagImpl {
 		else if(type==TYPE_INCLUDE) factory=pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_INCLUDE,null);
 		else if(type==TYPE_QUERY) factory=pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY,null);
 		else if(type==TYPE_RESOURCE) {
-			cache=Util.getDefault(pageContext,Config.CACHE_TYPE_RESOURCE,null);
+			cache=CacheUtil.getDefault(pageContext,Config.CACHE_TYPE_RESOURCE,null);
 			
 			// no specific cache is defined, get default default cache
 			if(cache==null) {
@@ -156,11 +156,11 @@ public final class ObjectCache extends TagImpl {
 		}
 		else if(type==TYPE_OBJECT) {
 			// throws a exception if not explicitly defined
-			cache=Util.getDefault(pageContext,Config.CACHE_TYPE_OBJECT);
+			cache=CacheUtil.getDefault(pageContext,Config.CACHE_TYPE_OBJECT);
 		}
 		else if(type==TYPE_TEMPLATE) {
 			// throws a exception if not explicitly defined
-			cache=Util.getDefault(pageContext,Config.CACHE_TYPE_TEMPLATE);
+			cache=CacheUtil.getDefault(pageContext,Config.CACHE_TYPE_TEMPLATE);
 		}
 		
 		// Clear
