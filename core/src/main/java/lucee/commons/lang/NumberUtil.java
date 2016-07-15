@@ -40,7 +40,6 @@ public class NumberUtil {
             	throw new ExpressionException("invalid hex constant ["+c+"], hex constants are [0-9,a-f]");
             }
             	
-            //System.out.println(c);
             switch (c) {
                 case 48:
                     n[i] = 0;

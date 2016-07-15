@@ -115,14 +115,6 @@ public class CertificateInstaller {
     	finally{
     		IOUtil.closeEL(os);
     	}
-/*
-    	System.out.println();
-    	System.out.println(cert);
-    	System.out.println();
-    	System.out.println
-    		("Added certificate to keystore 'jssecacerts' using alias '"
-    		+ alias + "'");
-*/
 	}
 
 	/**
@@ -134,7 +126,6 @@ public class CertificateInstaller {
 	 */
 	public IOException checkCertificate() {
 		SSLSocketFactory factory = context.getSocketFactory();
-		//System.out.println("Opening connection to " + host + ":" + port + "...");
 		
 		try {
 			SSLSocket socket = (SSLSocket)factory.createSocket(host, port);

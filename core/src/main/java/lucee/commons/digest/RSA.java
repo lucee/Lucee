@@ -127,23 +127,4 @@ public class RSA {
 	    
 	    return bytes;
 	}
-	
-	/*public static void main(String[] args) throws Exception {
-		KeyPair kp = createKeyPair();
-		String str="";
-		for(int i=0;i<=1700;i++) {
-			
-			str+=i+"Hello there how are you?\n";
-		}
-		byte[] bytes = str.getBytes();
-		
-		long start=System.currentTimeMillis();
-		byte[] enc = encrypt(bytes, kp.getPrivate());
-
-		System.out.println(enc.length);
-		byte[] dec = decrypt(enc, kp.getPublic());
-		System.out.println(new String(dec));
-		System.out.println("->"+(System.currentTimeMillis()-start));
-	}*/
-		  
 }
