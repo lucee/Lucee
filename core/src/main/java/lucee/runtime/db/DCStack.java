@@ -126,7 +126,7 @@ class DCStack {
 				current.dc.isTimeout() || 
 				current.dc.isLifecycleTimeout() || 
 				isClosedEL(current.dc.getConnection()) || 
-				!isValidEL(current.dc.getConnection())) { 
+				Boolean.FALSE.equals(isValidEL(current.dc.getConnection()))) { 
 					
 			// when timeout was reached but it is still open, close it
 			if(!isClosedEL(current.dc.getConnection())){
@@ -164,13 +164,12 @@ class DCStack {
 		}
 	}
 
-	private boolean isValidEL(Connection conn) {
+	private Boolean isValidEL(Connection conn) {
 		try {
-			return conn.isValid(datasource.getNetworkTimeout());
+			return conn.isValid(datasource.getNetworkTimeout())?Boolean.TRUE:Boolean.FALSE;
 		}
-		catch (SQLException e) {
-			datasource.getLog().error("Connection  Pool", e);
-			return false;
+		catch (Throwable t) {
+			return null;
 		}
 	}
 }
