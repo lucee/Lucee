@@ -123,11 +123,29 @@ public class BundleUtil {
 		factory.log(Logger.LOG_INFO, "start bundle:" + bundle.getSymbolicName()
 				+ ":" + bundle.getVersion().toString());
 
-		start(bundle);
+		start(bundle,false);
 	}
 
-	public static void start(final Bundle bundle) throws BundleException {
+	@Deprecated 
+	public static void start(final Bundle bundle) throws BundleException {start(bundle, false);}
+	public static void start(final Bundle bundle, boolean async) throws BundleException {
 		bundle.start();
+		if(!async)waitFor(bundle,Bundle.STARTING,Bundle.RESOLVED,Bundle.INSTALLED,60000L);
+	}
+	
+	public static void stop(final Bundle bundle, boolean async) throws BundleException {
+		bundle.stop();
+		if(!async)waitFor(bundle,Bundle.STOPPING,Bundle.ACTIVE,Bundle.ACTIVE,60000L);
+	}
+
+	private static void waitFor(Bundle bundle, int action1, int action2, int action3, long timeout) throws BundleException {
+		// we poll because opening a new thread is an overhead
+		long start=System.currentTimeMillis();
+		while(bundle.getState()==action1 || bundle.getState()==action2 || bundle.getState()==action3) {
+			if((start+timeout)<System.currentTimeMillis()) 
+				throw new BundleException("timeout ["+timeout+"] reached for action ["+(action1==Bundle.STARTING?"starting":"stopping")+"], bundle is still in ["+bundle.getState()+"]");
+			try {Thread.sleep(1);} catch (InterruptedException e) {} // take a nap, before trying again
+		}
 	}
 
 	public static void startIfNecessary(final CFMLEngineFactory factory,
