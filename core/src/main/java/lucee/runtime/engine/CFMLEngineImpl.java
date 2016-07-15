@@ -386,18 +386,25 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private void deployBundledExtension(ConfigServerImpl cs) {
 		Resource dir = cs.getLocalExtensionProviderDirectory();
 		List<RHExtension> existing = DeployHandler.getLocalExtensions(cs);
-		String sub="extensions/";
+		
+		Log log = cs.getLog("deploy");
 		
 		// get the index
 		ClassLoader cl=CFMLEngineFactory.getInstance().getCFMLEngineFactory().getClass().getClassLoader();
 		InputStream is = cl.getResourceAsStream("extensions/.index");
 		if(is==null)is = cl.getResourceAsStream("/extensions/.index");
-		if(is==null) return;
-		Log log = cs.getLog("deploy");
+		if(is==null)is = SystemUtil.getResourceAsStream(null, "/extensions/.index");
+		
+		if(is==null) {
+			log.error("extract-extension", "could not found [/extensions/.index] defined in the index in the lucee.jar");
+			return;
+		}
 			
 		try {
 		
 			String index=IOUtil.toString(is, CharsetUtil.UTF8);
+			log.info("extract-extension", "the following extensions are bundled with the lucee.jar ["+index+"]");
+			
 			String[] names = lucee.runtime.type.util.ListUtil.listToStringArray(index, ';');
 			String name;
 			Resource temp=null;
@@ -406,6 +413,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			
 			for(int i=0;i<names.length;i++){
 				name=names[i];
+				log.info("extract-extension", "add extension ["+name+"]");
+				
+				
 				if(StringUtil.isEmpty(name,true)) continue;
 				name=name.trim();
 				is = cl.getResourceAsStream("extensions/"+name);
@@ -528,7 +538,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
     			if(SystemUtil.getLoaderVersion()<5.8D)
     				throw new RuntimeException("You need to update your lucee.jar to run this version, you can download the latest jar from http://download.lucee.org.");
     			else
-    				System.out.println("To use all features Lucee provides, you need to update your lucee.jar, you can download the latest jar from http://download.lucee.org.");
+    				SystemOut.printDate("To use all features Lucee provides, you need to update your lucee.jar, you can download the latest jar from http://download.lucee.org.");
     		}
     		engine=new CFMLEngineImpl(factory,bc);
     		
@@ -1333,43 +1343,44 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return controler;
 	}
 
-	public void onStart(ConfigWebImpl cw, boolean reload) {
-			
-			print.o("----- LISTENER -----");
-			Resource listenerTemplateLucee = cw.getConfigDir().getRealResource("context/Web."+lucee.runtime.config.Constants.getLuceeComponentExtension());
-			Resource listenerTemplateCFML = cw.getConfigDir().getRealResource("context/Web."+lucee.runtime.config.Constants.getCFMLComponentExtension());
-			print.o(listenerTemplateCFML+":"+listenerTemplateCFML.isFile());
-			print.o(listenerTemplateLucee+":"+listenerTemplateLucee.isFile());
-			
-			// dialect
-			int dialect;
-			if(listenerTemplateLucee.isFile()) dialect=CFMLEngine.DIALECT_LUCEE;
-			else if(listenerTemplateCFML.isFile()) dialect=CFMLEngine.DIALECT_CFML;
-			else return;
-			
-			// we do not wait for this
-			new OnStart(cw, dialect, reload).start();
-			
-			
-			
-		}
+	public void onStart(ConfigImpl config, boolean reload) {
+		
+		String context=config instanceof ConfigWeb?"Web":"Server";
+		
+		
+		Resource listenerTemplateLucee = config.getConfigDir().getRealResource("context/"+context+"."+lucee.runtime.config.Constants.getLuceeComponentExtension());
+		Resource listenerTemplateCFML = config.getConfigDir().getRealResource("context/"+context+"."+lucee.runtime.config.Constants.getCFMLComponentExtension());
+		
+		// dialect
+		int dialect;
+		if(listenerTemplateLucee.isFile()) dialect=CFMLEngine.DIALECT_LUCEE;
+		else if(listenerTemplateCFML.isFile()) dialect=CFMLEngine.DIALECT_CFML;
+		else return;
+		
+		// we do not wait for this
+		new OnStart(config, dialect,context, reload).start();
+		
+		
+		
+	}
 	private class OnStart extends Thread {
 		
-		private ConfigWeb cw;
+		private ConfigImpl config;
 		private int dialect;
 		private boolean reload;
+		private String context;
 
-		public OnStart(ConfigWeb cw, int dialect, boolean reload) {
-			this.cw=cw;
+		public OnStart(ConfigImpl config, int dialect, String context, boolean reload) {
+			this.config=config;
 			this.dialect=dialect;
+			this.context=context;
 			this.reload=reload;
 		}
 		
 		public void run() {
-			print.o("run:"+dialect);
 			
 			String id=CreateUniqueId.invoke();
-			String requestURI="/lucee/Web."+(dialect==CFMLEngine.DIALECT_LUCEE?lucee.runtime.config.Constants.getLuceeComponentExtension():lucee.runtime.config.Constants.getCFMLComponentExtension());
+			String requestURI="/lucee/"+context+"."+(dialect==CFMLEngine.DIALECT_LUCEE?lucee.runtime.config.Constants.getLuceeComponentExtension():lucee.runtime.config.Constants.getCFMLComponentExtension());
 			//PageContext oldPC = ThreadLocalPageContext.get();
 			PageContextImpl pc=null;
 			try {
@@ -1381,13 +1392,16 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				}
 				Struct attrs=new StructImpl();
 				attrs.setEL("client", "lucee-listener-1-0");
-				
-				pc = ThreadUtil.createPageContext(
-					cw, 
-					DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, 
-					"localhost", requestURI,"method=onWebStart&reload="+reload+"&"+ComponentPageImpl.REMOTE_PERSISTENT_ID+"="+remotePersisId, 
-					new Cookie[0], new Pair[]{new Pair<String,Object>("AMF-Forward","true")},null, new Pair[0], attrs,true,-1);
-
+				if(config instanceof ConfigWeb) {
+					pc = ThreadUtil.createPageContext(
+						(ConfigWeb)config, 
+						DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, 
+						"localhost", requestURI,"method=on"+context+"Start&reload="+reload+"&"+ComponentPageImpl.REMOTE_PERSISTENT_ID+"="+remotePersisId, 
+						new Cookie[0], new Pair[]{new Pair<String,Object>("AMF-Forward","true")},null, new Pair[0], attrs,true,-1);
+				}
+				else {
+					return;
+				}
 				if(dialect==CFMLEngine.DIALECT_LUCEE)
 					pc.execute(requestURI, true,false);
 				else
@@ -1398,7 +1412,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				t.printStackTrace(); // TODO ignore
 			}
 			finally {
-				CFMLFactory f = cw.getFactory();
+				CFMLFactory f = pc.getConfig().getFactory();
 				f.releaseLuceePageContext(pc,true);
 				//ThreadLocalPageContext.register(oldPC);
 			}
