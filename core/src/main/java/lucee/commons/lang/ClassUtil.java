@@ -28,6 +28,8 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -142,15 +144,15 @@ public final class ClassUtil {
 	 */
 	public static Class loadClass(String className, Class defaultValue) {
 		// OSGI env
-		Class clazz= _loadClass(new OSGiBasedClassLoading(), className, null);
+		Class clazz= _loadClass(new OSGiBasedClassLoading(), className, null,null);
 		if(clazz!=null) return clazz;
 		
 		// core classloader
-		clazz= _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getCoreClassLoader()), className, null);
+		clazz= _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getCoreClassLoader()), className, null,null);
 		if(clazz!=null) return clazz;
 
 		// loader classloader
-		clazz= _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getLoaderClassLoader()), className, null);
+		clazz= _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getLoaderClassLoader()), className, null,null);
 		if(clazz!=null) return clazz;
 		
 		return defaultValue;
@@ -163,51 +165,68 @@ public final class ClassUtil {
 	 * @throws ClassException 
 	 */
 	public static Class loadClass(String className) throws ClassException {
+		Set<Throwable> exceptions=new HashSet<Throwable>();
 		// OSGI env
-		Class clazz= _loadClass(new OSGiBasedClassLoading(), className, null);
+		Class clazz= _loadClass(new OSGiBasedClassLoading(), className, null,exceptions);
 		if(clazz!=null) return clazz;
 		
 		// core classloader
-		clazz= _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getCoreClassLoader()), className, null);
+		clazz= _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getCoreClassLoader()), className, null,exceptions);
 		if(clazz!=null) return clazz;
 
 		// loader classloader
-		clazz= _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getLoaderClassLoader()), className, null);
+		clazz= _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getLoaderClassLoader()), className, null,exceptions);
 		if(clazz!=null) return clazz;
 		
-		
-		throw new ClassException("cannot load class through its string name, because no definition for the class with the specified name ["+className+"] could be found");
+		String msg="cannot load class through its string name, because no definition for the class with the specified name ["+className+"] could be found";
+		if(exceptions.size()>0) {
+			StringBuilder detail=new StringBuilder();
+			Iterator<Throwable> it = exceptions.iterator();
+			Throwable t;
+			while(it.hasNext()) {
+				t=it.next();
+				detail.append(t.getClass().getName()).append(':').append(t.getMessage()).append(';');
+			}
+			throw new ClassException(msg+" caused by ("+detail.toString()+")");
+		}
+		throw new ClassException(msg);
 	}
 	
 
 	public static Class loadClass(ClassLoader cl,String className, Class defaultValue) {
+		return loadClass(cl,className, defaultValue,null); 
+	}
+	
+	private static Class loadClass(ClassLoader cl,String className, Class defaultValue, Set<Throwable> exceptions) {
 		if(cl!=null) {
 			// TODO do not produce a resource classloader in the first place if there are no resources
 			if(cl instanceof ResourceClassLoader && ((ResourceClassLoader)cl).isEmpty()) {
 				ClassLoader p = ((ResourceClassLoader)cl).getParent();
 				if(p!=null)cl=p;
 			}
-			Class clazz= _loadClass(new ClassLoaderBasedClassLoading(cl), className, defaultValue);
+			Class clazz= _loadClass(new ClassLoaderBasedClassLoading(cl), className, defaultValue,exceptions);
 			if(clazz!=null) return clazz;
 		}
 		
 		// OSGI env
-		Class clazz= _loadClass(new OSGiBasedClassLoading(), className, null);
+		Class clazz= _loadClass(new OSGiBasedClassLoading(), className, null,exceptions);
 		if(clazz!=null) return clazz;
 		
 		// core classloader
 		if(cl!=SystemUtil.getCoreClassLoader()) {
-			clazz= _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getCoreClassLoader()), className, null);
+			clazz= _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getCoreClassLoader()), className, null,exceptions);
 			if(clazz!=null) return clazz;
 		}
 
 		// loader classloader
 		if(cl!=SystemUtil.getLoaderClassLoader()) {
-			clazz= _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getLoaderClassLoader()), className, null);
+			clazz= _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getLoaderClassLoader()), className, null,exceptions);
 			if(clazz!=null) return clazz;
 		}
 		return defaultValue;
 	}
+	
+	
 
 
 	/**
@@ -218,9 +237,21 @@ public final class ClassUtil {
 	 * @throws ClassException 
 	 */
 	public static Class loadClass(ClassLoader cl,String className) throws ClassException {
-		Class clazz = loadClass(cl,className,null);
+		Set<Throwable> exceptions=new HashSet<Throwable>();
+		Class clazz = loadClass(cl,className,null,exceptions);
 		if(clazz!=null) return clazz;
-		throw new ClassException("cannot load class through its string name, because no definition for the class with the specified name ["+className+"] could be found");
+		String msg="cannot load class through its string name, because no definition for the class with the specified name ["+className+"] could be found";
+		if(exceptions.size()>0) {
+			StringBuilder detail=new StringBuilder();
+			Iterator<Throwable> it = exceptions.iterator();
+			Throwable t;
+			while(it.hasNext()) {
+				t=it.next();
+				detail.append(t.getClass().getName()).append(':').append(t.getMessage()).append(';');
+			}
+			throw new ClassException(msg+" caused by ("+detail.toString()+")");
+		}
+		throw new ClassException(msg);
 	}
 	
 	/**
@@ -229,12 +260,12 @@ public final class ClassUtil {
 	 * @param cl 
 	 * @return matching Class
 	 */
-	private static Class _loadClass(ClassLoading cl,String className, Class defaultValue) {
+	private static Class _loadClass(ClassLoading cl,String className, Class defaultValue, Set<Throwable> exceptions) {
 		className=className.trim();
 		Class clazz = checkPrimaryTypes(className, null);
 		if(clazz!=null) return clazz;
 		
-		clazz=cl.loadClass(className, null);
+		clazz=cl.loadClass(className, null,exceptions);
 		if(clazz!=null) return clazz;
 		
 		// array in the format boolean[] or java.lang.String[]
@@ -247,7 +278,7 @@ public final class ClassUtil {
 			}
 			while(pureCN.lastIndexOf("[]")==pureCN.length()-2);
 			
-			clazz = _loadClass(cl, pureCN.toString(), null);
+			clazz = _loadClass(cl, pureCN.toString(), null,exceptions);
 			if(clazz!=null) {
 				for(int i=0;i<dimensions;i++)clazz=toArrayClass(clazz);
 				return clazz;
@@ -264,7 +295,7 @@ public final class ClassUtil {
 			}
 			while(pureCN.charAt(0)=='[');
 			
-			clazz = _loadClass(cl,pureCN.toString(), null);
+			clazz = _loadClass(cl,pureCN.toString(), null,exceptions);
 			if(clazz!=null) {
 				for(int i=0;i<dimensions;i++)clazz=toArrayClass(clazz);
 				return clazz;
@@ -274,7 +305,7 @@ public final class ClassUtil {
 		// class in format Ljava.lang.String;
 		else if(!StringUtil.isEmpty(className) && className.charAt(0)=='L' && className.endsWith(";")) {
 			className=className.substring(1,className.length()-1).replace('/', '.');
-			return _loadClass(cl,className, defaultValue);
+			return _loadClass(cl,className, defaultValue,exceptions);
 		}
 
 		return defaultValue;
@@ -720,6 +751,7 @@ public final class ClassUtil {
 	
 	private static interface ClassLoading {
 		public Class<?> loadClass(String className, Class defaultValue);
+		public Class<?> loadClass(String className, Class defaultValue, Set<Throwable> exceptions);
 	}
 
 	private static class ClassLoaderBasedClassLoading implements ClassLoading {
@@ -730,7 +762,12 @@ public final class ClassUtil {
 		}
 		
 		@Override
-		public Class<?> loadClass(String className, Class defaultValue){
+		public Class<?> loadClass(String className, Class defaultValue) {
+			return loadClass(className, defaultValue,null);
+		}
+
+		@Override
+		public Class<?> loadClass(String className, Class defaultValue, Set<Throwable> exceptions){
 			className=className.trim();
 			try {
 				return cl.loadClass(className);
@@ -740,16 +777,47 @@ public final class ClassUtil {
 					return Class.forName(className, false, cl);
 				}
 				catch (Throwable t2) {
+					if(exceptions!=null) {
+						exceptions.add(t2);
+					}
 					return defaultValue;
 				}
 			}
 		}
+
+		/*@Override
+		public Class<?> loadClass(String className) throws ClassException {
+			className=className.trim();
+			try {
+				return cl.loadClass(className);
+			}
+			catch (Throwable t) {
+				try {
+					return Class.forName(className, false, cl);
+				}
+				catch (Throwable t2) {
+					String msg=null;
+					if(t2 instanceof ClassNotFoundException || t2 instanceof NoClassDefFoundError) {
+						msg="["+t2.getClass().getName()+"] "+t2.getMessage();
+					}
+					if(StringUtil.isEmpty(msg)) msg="cannot load class through its string name, because no definition for the class with the specified name "
+							+ "["+className+"] could be found";
+					
+					throw new ClassException(msg);
+				}
+			}
+		}*/
 	}
 	
 	private static class OSGiBasedClassLoading implements ClassLoading {
 		@Override
 		public Class<?> loadClass(String className, Class defaultValue){
 			return OSGiUtil.loadClass(className, defaultValue);
+		}
+		
+		@Override
+		public Class<?> loadClass(String className, Class defaultValue, Set<Throwable> exceptions){
+			return loadClass(className, defaultValue);
 		}
 	}
 }
