@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
@@ -239,5 +240,6 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	// FUTURE add to interface
 	public abstract Resource getAntiSamyPolicyResource();
 	public abstract void setAntiSamyPolicyResource(Resource res);
-
+	public abstract CacheConnection getCacheConnection(String cacheName, CacheConnection defaultValue);
+	public abstract void setCacheConnection(String cacheName, CacheConnection value);
 }

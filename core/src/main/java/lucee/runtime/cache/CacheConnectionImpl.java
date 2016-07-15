@@ -19,15 +19,22 @@
 package lucee.runtime.cache;
 
 import java.io.IOException;
+import java.util.Arrays;
 
+import lucee.print;
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.db.ClassDefinition;
+import lucee.runtime.functions.struct.StructSort;
+import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
+import lucee.transformer.library.ClassDefinitionImpl;
 
 import org.osgi.framework.BundleException;
 
@@ -37,17 +44,18 @@ public class CacheConnectionImpl implements CacheConnection  {
 
 
 		private String name;
-		private ClassDefinition classDefinition;
+		private ClassDefinition<Cache> classDefinition;
 		private Struct custom;
 		private Cache cache;
 		private boolean readOnly;
 		private boolean storage;
-		private Class clazz;
+		private Class<Cache> clazz;
 
-		public CacheConnectionImpl(Config config,String name, ClassDefinition cd, Struct custom, boolean readOnly, boolean storage) throws CacheException, ClassException, BundleException {
+		public CacheConnectionImpl(Config config,String name, ClassDefinition<Cache> cd, Struct custom, boolean readOnly, boolean storage) throws CacheException, ClassException, BundleException {
 			this(config, name, cd, cd.getClazz(), custom, readOnly, storage);
 		}
-		private CacheConnectionImpl(Config config,String name, ClassDefinition cd, Class clazz, Struct custom, boolean readOnly, boolean storage) throws CacheException {
+		
+		private CacheConnectionImpl(Config config,String name, ClassDefinition<Cache> cd, Class<Cache> clazz, Struct custom, boolean readOnly, boolean storage) throws CacheException {
 			this.name=name;
 			this.classDefinition=cd;
 			this.clazz=clazz;
@@ -74,7 +82,7 @@ public class CacheConnectionImpl implements CacheConnection  {
 		}
 
 		@Override
-		public ClassDefinition getClassDefinition() {
+		public ClassDefinition<Cache> getClassDefinition() {
 			return classDefinition;
 		}
 
@@ -86,7 +94,20 @@ public class CacheConnectionImpl implements CacheConnection  {
 		
 		@Override
 		public String toString(){
-			return "name:"+this.name+";class:"+this.clazz.getName()+";custom:"+custom+";";
+			return "name:"+this.name+";"+getClassDefinition()+";custom:"+custom+";";
+		}
+
+		public String id() {
+			StringBuilder sb=new StringBuilder()
+			.append(name.toLowerCase()).append(';')
+			.append(getClassDefinition()).append(';');
+			Struct _custom = getCustom();
+			Key[] keys = _custom.keys();
+			Arrays.sort(keys);
+			for(Key k:keys) {
+				sb.append(k).append(':').append(_custom.get(k,null)).append(';');
+			}
+			return Caster.toString(HashUtil.create64BitHash(sb.toString()));
 		}
 
 

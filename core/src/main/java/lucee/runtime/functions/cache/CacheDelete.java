@@ -22,6 +22,7 @@ import java.io.IOException;
 
 import lucee.commons.io.cache.Cache;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -44,8 +45,8 @@ public final class CacheDelete implements Function {
 	
 	public static String call(PageContext pc, String id, boolean throwOnError, String cacheName) throws PageException {
 		try {
-			Cache cache = Util.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT);
-			if(!cache.remove(Util.key(id)) && throwOnError){
+			Cache cache = CacheUtil.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT);
+			if(!cache.remove(CacheUtil.key(id)) && throwOnError){
 				throw new ApplicationException("can not remove the element with the following id ["+id+"]");
 			}	
 		} 

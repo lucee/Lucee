@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
@@ -30,6 +31,7 @@ import lucee.commons.lang.CharSet;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.db.DataSource;
@@ -43,7 +45,9 @@ import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.rest.RestSettings;
+import lucee.runtime.type.Collection;
 import lucee.runtime.type.CustomType;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Scope;
@@ -94,8 +98,9 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
     private boolean clientCluster;
 	private Resource source;
 	private boolean triggerComponentDataMember;
-	private Map<Integer,String> defaultCaches=new HashMap<Integer, String>();
-	private Map<Integer,Boolean> sameFieldAsArrays=new HashMap<Integer, Boolean>();
+	private Map<Integer,String> defaultCaches=new ConcurrentHashMap<Integer, String>();
+	private Map<Collection.Key,CacheConnection> cacheConnections=new ConcurrentHashMap<Collection.Key,CacheConnection>();
+	private Map<Integer,Boolean> sameFieldAsArrays=new ConcurrentHashMap<Integer, Boolean>();
 	private RestSettings restSettings;
 	private Resource[] restCFCLocations;
 	private Resource antiSamyPolicy;
@@ -207,9 +212,10 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.sessionType=sessionType;
 		dbl.triggerComponentDataMember=triggerComponentDataMember;
 		dbl.restSettings=restSettings;
-		dbl.defaultCaches=Duplicator.duplicateMap(defaultCaches, new HashMap<Integer, String>(),false );
-		dbl.cachedWithins=Duplicator.duplicateMap(cachedWithins, new HashMap<Integer, Object>(),false );
-		dbl.sameFieldAsArrays=Duplicator.duplicateMap(sameFieldAsArrays, new HashMap<Integer, Boolean>(),false );
+		dbl.defaultCaches=Duplicator.duplicateMap(defaultCaches, new ConcurrentHashMap<Integer, String>(),false );
+		dbl.cacheConnections=Duplicator.duplicateMap(cacheConnections, new ConcurrentHashMap<Integer, String>(),false );
+		dbl.cachedWithins=Duplicator.duplicateMap(cachedWithins, new ConcurrentHashMap<Integer, Object>(),false );
+		dbl.sameFieldAsArrays=Duplicator.duplicateMap(sameFieldAsArrays, new ConcurrentHashMap<Integer, Boolean>(),false );
 		
 		dbl.ormEnabled=ormEnabled;
 		dbl.ormConfig=ormConfig;
@@ -674,6 +680,17 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public String getDefaultCacheName(int type) {
 		return defaultCaches.get(type);
+	}
+
+	@Override
+	public void setCacheConnection(String cacheName, CacheConnection value) {
+		if(StringUtil.isEmpty(cacheName,true)) return;
+		cacheConnections.put(KeyImpl.init(cacheName),value);
+	}
+
+	@Override
+	public CacheConnection getCacheConnection(String cacheName, CacheConnection defaultValue) {
+		return cacheConnections.get(KeyImpl.init(cacheName));
 	}
 	
 	@Override

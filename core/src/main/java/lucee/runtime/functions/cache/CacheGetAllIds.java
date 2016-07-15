@@ -23,6 +23,7 @@ import java.util.List;
 
 import lucee.commons.io.cache.Cache;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.util.WildCardFilter;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
@@ -50,7 +51,7 @@ public final class CacheGetAllIds implements Function {
 	
 	public static Array call(PageContext pc, String filter, String cacheName) throws PageException {
 		try {
-			Cache cache = Util.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT);
+			Cache cache = CacheUtil.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT);
 			
 			List<String> keys = isFilter(filter)?cache.keys(new WildCardFilter(filter,true)):cache.keys();
 			Iterator<String> it = keys.iterator();

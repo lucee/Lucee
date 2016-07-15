@@ -28,9 +28,9 @@ import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.functions.cache.Util;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.DateTime;
@@ -125,7 +125,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 	}
 	
 	protected static CacheEntry _loadData(PageContext pc, String cacheName, String appName, String strType, Log log) throws PageException	{
-		Cache cache = getCache(pc.getConfig(),cacheName);
+		Cache cache = getCache(pc,cacheName);
 		String key=getKey(pc.getCFID(),appName,strType);
 		CacheEntry ce = cache.getCacheEntry(key,null);
 
@@ -140,7 +140,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 	@Override
 	public synchronized void store(Config config) {
 		try {
-			Cache cache = getCache(config, cacheName);
+			Cache cache = getCache(ThreadLocalPageContext.get(config), cacheName);
 			String key=getKey(cfid, appName, getTypeAsString());
 			
 			CacheEntry existing = cache.getCacheEntry(key,null);
@@ -160,7 +160,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 	@Override
 	public synchronized void unstore(Config config) {
 		try {
-			Cache cache = getCache(config, cacheName);
+			Cache cache = getCache(ThreadLocalPageContext.get(config), cacheName);
 			String key=getKey(cfid, appName, getTypeAsString());
 			cache.remove(key);
 		} 
@@ -168,12 +168,12 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 	}
 	
 
-	private static Cache getCache(Config config, String cacheName) throws PageException {
+	private static Cache getCache(PageContext pc, String cacheName) throws PageException {
 		try {
-			CacheConnection cc = Util.getCacheConnection(config,cacheName);
+			CacheConnection cc = CacheUtil.getCacheConnection(pc,cacheName);
 			if(!cc.isStorage()) 
 				throw new ApplicationException("storage usage for this cache is disabled, you can enable this in the Lucee administrator.");
-			return CacheUtil.getInstance(cc,config); //cc.getInstance(config); 
+			return CacheUtil.getInstance(cc,ThreadLocalPageContext.getConfig(pc)); //cc.getInstance(config); 
 		} catch (IOException e) {
 			throw Caster.toPageException(e);
 		}

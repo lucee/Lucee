@@ -63,6 +63,13 @@
 			<description>A structure that contains datasources defintions.</description>
 		</attribute>
 		<attribute>
+			<type>struct</type>
+			<name>caches</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>A structure that contains cache defintions.</description>
+		</attribute>
+		<attribute>
 			<type>string</type>
 			<name>action</name>
 			<values>create,update</values>

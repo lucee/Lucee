@@ -728,7 +728,7 @@ public final class Http extends BodyTagImpl {
 
     	// cache
     		if(cachedWithin!=null) {
-    			CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FILE,null).getInstanceMatchingObject(cachedWithin,null);
+    			CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_HTTP,null).getInstanceMatchingObject(cachedWithin,null);
     			if(ch!=null) {
 	    			CacheItem ci = ch.get(pageContext, createId());
 	    			if(ci instanceof HTTPCacheItem) {
@@ -1305,7 +1305,7 @@ public final class Http extends BodyTagImpl {
 	     // add to cache
 	    	if(cachedWithin!=null && rsp.getStatusCode()==200) {
 				String id = createId();
-				CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FILE,null).getInstanceMatchingObject(cachedWithin,null);
+				CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_HTTP,null).getInstanceMatchingObject(cachedWithin,null);
 				if(ch!=null)ch.set(pageContext, id,cachedWithin,new HTTPCacheItem(cfhttp,url,System.nanoTime()-start));
 
 			}

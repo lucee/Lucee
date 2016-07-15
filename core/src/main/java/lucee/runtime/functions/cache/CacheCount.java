@@ -21,6 +21,7 @@ package lucee.runtime.functions.cache;
 import java.io.IOException;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -40,7 +41,7 @@ public final class CacheCount implements Function {
 	
 	public static double call(PageContext pc, String cacheName) throws PageException {
 		try {
-			return Util.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT).keys().size();
+			return CacheUtil.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT).keys().size();
 		} catch (IOException e) {
 			throw Caster.toPageException(e);
 		}

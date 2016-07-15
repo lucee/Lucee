@@ -174,12 +174,9 @@ public class FieldWarpFilter extends TransformFilter  implements DynFiltering {
 
 			sumX += (u - x) * weight;
 			sumY += (v - y) * weight;
-//if (x % 10 == 0&&y == 20)System.out.println("distance="+distance+" weight="+weight+" sumX="+sumX+" sumY="+sumY+" u="+u+" v="+v);
 			totalWeight += weight;
 		}
 
-//		out[0] = ImageMath.clamp(x + sumX / totalWeight + 0.5f, 0, width-1);
-//		out[1] = ImageMath.clamp(y + sumY / totalWeight + 0.5f, 0, height-1);
 		out[0] = x + sumX / totalWeight + 0.5f;
 		out[1] = y + sumY / totalWeight + 0.5f;
 	}

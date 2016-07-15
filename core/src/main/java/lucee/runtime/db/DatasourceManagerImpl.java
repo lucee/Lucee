@@ -72,9 +72,9 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 		
 		pc=ThreadLocalPageContext.get(pc);
 		//DatasourceConnection newDC = _getConnection(pc,ds,user,pass);
-		DatasourceConnection existingDC=null;
+		DatasourceConnectionPro existingDC=null;
 	    try {
-	    	existingDC = transConns.get(ds);
+	    	existingDC = (DatasourceConnectionPro) transConns.get(ds);
         	
 	    	// first time that datasource is used within this transaction
 	    	if(existingDC==null) {
@@ -94,8 +94,8 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 			}
             
         	// make sure we have auto commit disabled TODO i dont think this is necessary anymore
-        	if(existingDC.getConnection().getAutoCommit()) {
-        		existingDC.getConnection().setAutoCommit(false);
+        	if(existingDC.isAutoCommit()) {
+        		existingDC.setAutoCommit(false);
             }
         	return existingDC;
         }
@@ -118,9 +118,9 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 	private void _add(PageContext pc,ORMSession session, DataSource ds) throws PageException {
 		//ORMDatasourceConnection newDC = new ORMDatasourceConnection(pc,session,ds);
-		DatasourceConnection existingDC=null;
+		DatasourceConnectionPro existingDC=null;
 		try {
-        	existingDC = transConns.get(ds);
+        	existingDC = (DatasourceConnectionPro) transConns.get(ds);
         	// 
         	if(existingDC==null) {
         		ORMDatasourceConnection newDC = new ORMDatasourceConnection(pc,session,ds);
@@ -136,8 +136,8 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 						"can't use different connections to the same datasource inside a single transaction",null,null,existingDC);
 			}
             
-        	if(existingDC.getConnection().getAutoCommit()) {
-        		existingDC.getConnection().setAutoCommit(false);
+        	if(existingDC.isAutoCommit()) {
+        		existingDC.setAutoCommit(false);
             }
         	return;
         }

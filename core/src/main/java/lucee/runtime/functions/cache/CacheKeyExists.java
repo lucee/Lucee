@@ -21,6 +21,7 @@ package lucee.runtime.functions.cache;
 import java.io.IOException;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -39,7 +40,7 @@ public final class CacheKeyExists implements Function {
 	
 	public static boolean call(PageContext pc, String key,String cacheName) throws PageException {
 		try {
-			return Util.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT).contains(Util.key(key));
+			return CacheUtil.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT).contains(CacheUtil.key(key));
 		} catch (IOException e) {
 			throw Caster.toPageException(e);
 		}

@@ -23,6 +23,7 @@ import java.util.Iterator;
 
 import lucee.commons.io.cache.Cache;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -53,14 +54,14 @@ public final class CacheRemove implements Function {
 		String id;
 		Cache cache;
 		try {
-			cache = Util.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT);
+			cache = CacheUtil.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT);
 		} catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
 		StringBuilder sb=null;
 		try{
 			while(it.hasNext()){
-				id= Util.key(Caster.toString(it.next()));
+				id= CacheUtil.key(Caster.toString(it.next()));
 				if(!cache.remove(id) && throwOnError){
 					if(sb==null)sb=new StringBuilder();
 					else sb.append(',');

@@ -41,12 +41,13 @@ import lucee.runtime.PageContext;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.DatasourceConnectionImpl;
+import lucee.runtime.db.DatasourceConnectionPro;
 import lucee.runtime.db.SQL;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 
-public class ORMDatasourceConnection implements DatasourceConnection {
+public class ORMDatasourceConnection implements DatasourceConnectionPro {
 
 	private DataSource datasource;
 	private ORMConnection connection;
@@ -399,5 +400,10 @@ public class ORMDatasourceConnection implements DatasourceConnection {
 	@Override
 	public int getNetworkTimeout() throws SQLException {
 		return connection.getNetworkTimeout();
+	}
+
+	@Override
+	public boolean isAutoCommit() throws SQLException {
+		return connection.getAutoCommit();
 	}
 }

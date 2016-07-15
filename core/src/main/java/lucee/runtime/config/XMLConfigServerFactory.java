@@ -92,6 +92,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
     			"-------------------------------------------------------------------\n"+
     			"- config:"+configDir+"\n"+
     			"- loader-version:"+SystemUtil.getLoaderVersion()+"\n"+
+    			"- core-version:"+engine.getInfo().getVersion()+"\n"+
     			"===================================================================\n"
     			
     			);
@@ -148,6 +149,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		boolean doNew = iDoNew!=NEW_NONE;
 		
         load(configServer,loadDocument(configFile),true,doNew);
+        ((CFMLEngineImpl)ConfigWebUtil.getEngine(configServer)).onStart(configServer,true);
     }
     
     private static long second(long ms) {

@@ -101,12 +101,4 @@ public final class ScriptProtect {
 		}
 		return false;
 	}
-
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		System.out.println(translate("<hell <script><script susi=1><scriptsrc><> how are you <br />object <object ddd"));
-
-	}
 }

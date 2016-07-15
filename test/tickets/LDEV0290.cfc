@@ -30,12 +30,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("Susi Susi Susi",Test.tribleIt("Susi"));
 	}
 
-	/*public void function testInstantiateClassFromServletLibFolder(){
+	public void function testInstantiateClassFromServletLibFolder(){
 		// only works if the jar "LDEV0290/test2.jar" is in lib folder
-		var Test=createObject("java","test.Test2");
+		var Test=createObject("java","from.classpath.Test");
 		assertEquals("Susi Susi",Test.doubleIt("Susi"));
 		assertEquals("Susi Susi Susi",Test.tribleIt("Susi"));
-	}*/
+	}
 
 } 
 </cfscript>

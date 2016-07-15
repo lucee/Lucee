@@ -36,6 +36,7 @@ import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.CacheConnection;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.db.DataSource;
@@ -45,7 +46,6 @@ import lucee.runtime.exp.ExceptionHandler;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
-import lucee.runtime.functions.cache.Util;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
@@ -239,7 +239,7 @@ public final class ScopeContext {
 						if(ds!=null)
 							throw new ApplicationException("datasource ["+storage+"] is not enabled to be used as session/client storage, you have to enable it in the Lucee administrator.");
 						
-						CacheConnection cc = Util.getCacheConnection(pc.getConfig(),storage,null);
+						CacheConnection cc = CacheUtil.getCacheConnection(pc,storage,null);
 						if(cc!=null) 
 							throw new ApplicationException("cache ["+storage+"] is not enabled to be used  as a session/client storage, you have to enable it in the Lucee administrator.");
 						
@@ -523,6 +523,8 @@ public final class ScopeContext {
 			Session session=appContext.getSessionCluster()?null:existing;
 
 			if(session==null || !(session instanceof StorageScope) || session.isExpired() || !((StorageScope)session).getStorage().equalsIgnoreCase(storage)) {
+				if(!(existing instanceof StorageScope) || existing.isExpired()) existing=null;
+				// not necessary to check session in the same way, because it is overwritten anyway
 				if(isMemory){
 					if(existing!=null) session=existing;
 					else session=SessionMemory.getInstance(pc,isNew,getLog());
@@ -536,9 +538,7 @@ public final class ScopeContext {
 				else{
 					DataSource ds = pc.getDataSource(storage,null);
 					if(ds!=null && ds.isStorage())session=SessionDatasource.getInstance(storage,pc,getLog(),null);
-					else {
-						session=SessionCache.getInstance(storage,appContext.getName(),pc,existing,getLog(),null);
-					}
+					else session=SessionCache.getInstance(storage,appContext.getName(),pc,existing,getLog(),null);
 
 					if(session==null){
 						// datasource not enabled for storage
@@ -547,7 +547,7 @@ public final class ScopeContext {
 									"datasource ["+storage+"] is not enabled to be used as session/client storage, " +
 									"you have to enable it in the Lucee administrator or define key \"storage=true\" for datasources defined in the application event handler.");
 						
-						CacheConnection cc = Util.getCacheConnection(pc.getConfig(),storage,null);
+						CacheConnection cc = CacheUtil.getCacheConnection(pc,storage,null);
 						if(cc!=null) 
 							throw new ApplicationException("cache ["+storage+"] is not enabled to be used  as a session/client storage, you have to enable it in the Lucee administrator.");
 						

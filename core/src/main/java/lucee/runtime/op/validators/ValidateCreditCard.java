@@ -477,38 +477,6 @@ public final class ValidateCreditCard {
         }
         return ( digit * 2 - 1 ) % 9 + 1;
     }
-
-    // --------------------------- main() method ---------------------------
-
-    /**
-     * Test driver
-     *
-     * @param args not used
-     */
-    public static void main( String[] args )
-        {
-        if ( DEBUGGING )
-            {
-        	
-        	
-
-            System.out.println( isValid( "0" ) ); 
-            System.out.println( isValid( "4000000000006" ) ); 
-            System.out.println( isValid( "40000000-000,06" ) ); 
-            
-            System.out.println( isValid( 0 ) ); 
-            System.out.println( isValid( 6010222233334444L ) ); // false
-            System.out.println( isValid( 4000000000000L ) ); // false
-            System.out.println( isValid( 4000000000006L ) ); // true
-            System.out.println( isValid( 4000000000009L ) ); // false
-            System.out.println( isValid( 4999999999999L ) ); // false
-            System.out.println( isValid( 378888888888858L ) ); // true, Amex
-            System.out.println( isValid( 4888888888888838L ) ); // true, Visa;
-            System.out.println( isValid( 5588888888888838L ) ); // true, MC
-            System.out.println( isValid( 6011222233334444L ) ); // true, Dicover
-
-            } // end if debugging
-        } // end main
 } // end class CreditCard
 
 /**

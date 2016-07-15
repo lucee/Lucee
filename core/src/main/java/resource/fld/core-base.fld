@@ -5811,7 +5811,7 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 			<name>nameSpaceWithSeperator</name>
 			<type>string</type>
 			<required>Yes</required>
-			<description>The namesapce of the tag with the seperator Example: cf, rc: aso.</description>
+			<description>The namespace of the tag with the seperator Example: cf, rc: aso.</description>
 		</argument>
 		<argument>
 			<name>tagName</name>

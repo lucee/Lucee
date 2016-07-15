@@ -20,6 +20,7 @@ package lucee.runtime.functions.cache;
 
 import lucee.commons.io.cache.CacheKeyFilter;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.util.WildCardFilter;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
@@ -46,7 +47,7 @@ public final class CacheClear implements Function,CacheKeyFilter {
 			CacheKeyFilter f=FILTER;
 			if(CacheGetAllIds.isFilter(strFilter))
 				f=new WildCardFilter(strFilter,true);
-			return Util.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT).remove(f);
+			return CacheUtil.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT).remove(f);
 		} catch (Exception e) {
 			throw Caster.toPageException(e);
 		}

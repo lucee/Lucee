@@ -18,6 +18,8 @@
  */
 package lucee.runtime.listener;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,22 +29,33 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.osgi.framework.BundleException;
+
+import lucee.print;
 import lucee.commons.date.TimeZoneUtil;
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheConnection;
+import lucee.runtime.cache.CacheConnectionImpl;
 import lucee.runtime.component.Member;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DeprecatedException;
@@ -71,6 +84,7 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+import lucee.transformer.library.ClassDefinitionImpl;
 
 public class ModernApplicationContext extends ApplicationContextSupport {
 
@@ -103,6 +117,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	
 
 	private static final Collection.Key DEFAULT_DATA_SOURCE = KeyImpl.intern("defaultdatasource");
+	private static final Collection.Key DEFAULT_CACHE = KeyImpl.intern("defaultcache");
+
 	private static final Collection.Key ORM_ENABLED = KeyImpl.intern("ormenabled");
 	private static final Collection.Key ORM_SETTINGS = KeyImpl.intern("ormsettings");
 	private static final Collection.Key IN_MEMORY_FILESYSTEM = KeyImpl.intern("inmemoryfilesystem");
@@ -114,6 +130,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Collection.Key CGI_READONLY = KeyImpl.intern("CGIReadOnly");;
 	private static final Collection.Key SUPPRESS_CONTENT = KeyImpl.intern("suppressRemoteComponentContent");
 
+	private static Map<String,CacheConnection> initCacheConnections=new ConcurrentHashMap<String, CacheConnection>();
+
+	
 
 	
 	
@@ -154,6 +173,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private Properties s3;
 	private boolean triggerComponentDataMember;
 	private Map<Integer,String> defaultCaches;
+	private Map<Collection.Key,CacheConnection> cacheConnections;
 	private boolean sameFormFieldAsArray;
 	private boolean sameURLFieldAsArray;
 	private Map<String,CustomType> customTypes;	
@@ -186,7 +206,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initTriggerComponentDataMember;
 	private boolean initMappings;
 	private boolean initDataSources;
-	private boolean initDefaultCaches;
+	private boolean initCache;
 	//private boolean initSameFieldAsArrays;
 	private boolean initCTMappings;
 	private boolean initCMappings;
@@ -653,81 +673,162 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public String getDefaultCacheName(int type) {
-		if(!initDefaultCaches) {
+		initCache();
+		return defaultCaches.get(type);
+	}
+	
+
+	@Override
+	public CacheConnection getCacheConnection(String cacheName, CacheConnection defaultValue) {
+		initCache();
+		return cacheConnections.get(KeyImpl.init(cacheName));
+	}
+	
+	private void initCache() {
+		if(!initCache) { 
 			boolean hasResource=false;
-			if(defaultCaches==null)defaultCaches=new HashMap<Integer, String>();
-			Object o = get(component,KeyConstants._cache,null);
-			if(o!=null && Decision.isStruct(o)){ 
-				Struct sct = Caster.toStruct(o,null);
-				if(sct!=null){
-					// Function
-					String name=Caster.toString(sct.get(KeyConstants._function,null),null);
-					if(!StringUtil.isEmpty(name,true)) defaultCaches.put(Config.CACHE_TYPE_FUNCTION, name.trim());
-					// Query
-					name=Caster.toString(sct.get(KeyConstants._query,null),null);
-					if(!StringUtil.isEmpty(name,true)) defaultCaches.put(Config.CACHE_TYPE_QUERY, name.trim());
-					// Template
-					name=Caster.toString(sct.get(KeyConstants._template,null),null);
-					if(!StringUtil.isEmpty(name,true)) defaultCaches.put(Config.CACHE_TYPE_TEMPLATE, name.trim());
-					// Object
-					name=Caster.toString(sct.get(KeyConstants._object,null),null);
-					if(!StringUtil.isEmpty(name,true)) defaultCaches.put(Config.CACHE_TYPE_OBJECT, name.trim());
-					// INCLUDE
-					name=Caster.toString(sct.get(KeyConstants._include,null),null);
-					if(!StringUtil.isEmpty(name,true)) defaultCaches.put(Config.CACHE_TYPE_INCLUDE, name.trim());
-					// Resource
-					name=Caster.toString(sct.get(KeyConstants._resource,null),null);
-					if(!StringUtil.isEmpty(name,true)) {
-						defaultCaches.put(Config.CACHE_TYPE_RESOURCE, name.trim());
-						hasResource=true;
-					}
-					// HTTP
-					name=Caster.toString(sct.get(KeyConstants._http,null),null);
-					if(!StringUtil.isEmpty(name,true)) {
-						defaultCaches.put(Config.CACHE_TYPE_HTTP, name.trim());
-						hasResource=true;
-					}
-					// File
-					name=Caster.toString(sct.get(KeyConstants._file,null),null);
-					if(!StringUtil.isEmpty(name,true)) {
-						defaultCaches.put(Config.CACHE_TYPE_FILE, name.trim());
-						hasResource=true;
-					}
-					// Webservice
-					name=Caster.toString(sct.get(KeyConstants._webservice,null),null);
-					if(!StringUtil.isEmpty(name,true)) {
-						defaultCaches.put(Config.CACHE_TYPE_WEBSERVICE, name.trim());
-						hasResource=true;
-					}
-					
-				}
-			}
+			if(defaultCaches==null)defaultCaches=new ConcurrentHashMap<Integer, String>();
+			if(cacheConnections==null)cacheConnections=new ConcurrentHashMap<Collection.Key, CacheConnection>();
+			Struct sctDefCache = Caster.toStruct(get(component,DEFAULT_CACHE,null),null);
+			if(sctDefCache==null) sctDefCache = Caster.toStruct(get(component,KeyConstants._cache,null),null);
 			
+		// Default
+			if(sctDefCache!=null){ 
+			// Function
+				initDefaultCache(sctDefCache,Config.CACHE_TYPE_FUNCTION,KeyConstants._function);
+			// Query
+				initDefaultCache(sctDefCache,Config.CACHE_TYPE_QUERY,KeyConstants._query);
+			// Template
+				initDefaultCache(sctDefCache,Config.CACHE_TYPE_TEMPLATE,KeyConstants._template);
+			// Object
+				initDefaultCache(sctDefCache,Config.CACHE_TYPE_OBJECT,KeyConstants._object);
+			// INCLUDE
+				initDefaultCache(sctDefCache,Config.CACHE_TYPE_INCLUDE,KeyConstants._include);
+			// Resource
+				if(initDefaultCache(sctDefCache,Config.CACHE_TYPE_RESOURCE,KeyConstants._resource)) hasResource=true;
+			// HTTP
+				if(initDefaultCache(sctDefCache,Config.CACHE_TYPE_HTTP,KeyConstants._http)) hasResource=true;
+			// File
+				if(initDefaultCache(sctDefCache,Config.CACHE_TYPE_FILE,KeyConstants._file)) hasResource=true;
+			// Webservice
+				if(initDefaultCache(sctDefCache,Config.CACHE_TYPE_WEBSERVICE,KeyConstants._webservice)) hasResource=true;
+			}
 			// check alias inmemoryfilesystem 
 			if(!hasResource) {
 				String str = Caster.toString(get(component,IN_MEMORY_FILESYSTEM,null),null);
 				if(!StringUtil.isEmpty(str,true)) {
 					defaultCaches.put(Config.CACHE_TYPE_RESOURCE, str.trim());
 				}
-				
 			}
-			
-			
-			
-			initDefaultCaches=true; 
+		
+	// cache definitions
+			Struct sctCache = Caster.toStruct(get(component,KeyConstants._cache,null),null);
+			if(sctCache!=null){ 
+				Iterator<Entry<Key, Object>> it = sctCache.entryIterator();
+				Entry<Key, Object> e;
+				Struct sct;
+				CacheConnection cc;
+				while(it.hasNext()) {
+					e = it.next();
+					
+					if(KeyConstants._function.equals(e.getKey()) 
+							|| KeyConstants._query.equals(e.getKey()) 
+							|| KeyConstants._template.equals(e.getKey()) 
+							|| KeyConstants._object.equals(e.getKey()) 
+							|| KeyConstants._include.equals(e.getKey()) 
+							|| KeyConstants._resource.equals(e.getKey()) 
+							|| KeyConstants._http.equals(e.getKey()) 
+							|| KeyConstants._file.equals(e.getKey()) 
+							|| KeyConstants._webservice.equals(e.getKey())) continue;
+					
+					sct=Caster.toStruct(e.getValue(),null);
+					if(sct==null) continue;
+					
+					cc=toCacheConnection(config,e.getKey().getString(),sct,null);
+					if(cc!=null) cacheConnections.put(e.getKey(),cc);
+				}
+			}
+			initCache=true;
 		}
-		return defaultCaches.get(type);
 	}
 
 
+
+	private boolean initDefaultCache(Struct data, int type, Key key) {
+		Object o = data.get(key,null);
+		boolean hasResource=false;
+		if(o!=null) {
+			String name;
+			Struct sct;
+			CacheConnection cc;
+			
+			if(!StringUtil.isEmpty(name=Caster.toString(o,null),true)) {
+				defaultCaches.put(type, name.trim());
+				hasResource=true;
+			}
+			else if((sct=Caster.toStruct(o,null))!=null) {
+				cc=toCacheConnection(config, key.getString(), sct, null);
+				if(cc!=null) {
+					cacheConnections.put(key, cc);
+					defaultCaches.put(type, key.getString());
+					hasResource=true;
+				}
+			}
+		}
+		return hasResource;
+	}
+
+	public static CacheConnection toCacheConnection(Config config,String name,Struct data, CacheConnection defaultValue) {
+		try{
+			// class definition
+			String className = Caster.toString(data.get(KeyConstants._class,null),null);
+			if(StringUtil.isEmpty(className)) return defaultValue;
+			ClassDefinition cd=new ClassDefinitionImpl(
+				className
+				, Caster.toString(data.get(KeyConstants._bundleName,null),null)
+				, Caster.toString(data.get(KeyConstants._bundleVersion,null),null)
+				, config.getIdentification()
+			);
+			
+			
+			CacheConnectionImpl cc = new CacheConnectionImpl(config,name,cd
+					,Caster.toStruct(data.get(KeyConstants._custom,null),null)
+					,Caster.toBooleanValue(data.get(KeyConstants._readonly,null),false)
+					,Caster.toBooleanValue(data.get(KeyConstants._storage,null),false)
+			);
+			String id=cc.id();
+			CacheConnection icc = initCacheConnections.get(id);
+			if(icc!=null)return icc;
+			try {
+				Method m = cd.getClazz().getMethod("init", new Class[] { Config.class, String[].class, Struct[].class });
+				if(Modifier.isStatic(m.getModifiers()))
+					m.invoke(null, new Object[] { config, new String[]{cc.getName()},new Struct[]{cc.getCustom()}});
+				else
+					SystemOut.print(config.getErrWriter(), "method [init(Config,String[],Struct[]):void] for class [" + cd.toString() + "] is not static");
+				
+				initCacheConnections.put(id,cc);
+			}
+			catch(Throwable t){}
+			
+			return cc;
+		}
+		catch(Throwable t){
+			return defaultValue;
+		}
+	}
 
 	@Override
 	public void setDefaultCacheName(int type, String cacheName) {
 		if(StringUtil.isEmpty(cacheName,true)) return;
 		
-		initDefaultCaches=true;
-		if(defaultCaches==null)defaultCaches=new HashMap<Integer, String>();
+		initCache();
 		defaultCaches.put(type, cacheName.trim());
+	}
+	
+	public void setCacheConnection(String cacheName,CacheConnection cc) {
+		if(StringUtil.isEmpty(cacheName,true)) return;
+		initCache();
+		cacheConnections.put(KeyImpl.init(cacheName),cc);
 	}
 	
 	

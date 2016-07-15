@@ -679,6 +679,7 @@ public class OSGiUtil {
 			// check if required related bundles are missing and load them if necessary
 			List<BundleDefinition> list = getRequirements(bundle);
 			BundleDefinition bd;
+			List<BundleDefinition> failed = null;
 			Iterator<BundleDefinition> it = list.iterator();
 			while(it.hasNext()){
 				bd=it.next();
@@ -691,10 +692,29 @@ public class OSGiUtil {
 							.getIdentification(), true);
 				}
 				catch(BundleException _be){
+					if(failed==null) failed=new ArrayList<OSGiUtil.BundleDefinition>();
+					failed.add(bd);
 					log(_be);
 				}
 			}
-			BundleUtil.start(bundle);
+			try {
+				BundleUtil.start(bundle);
+			}
+			catch(BundleException be2) {
+				if(failed!=null) {
+					Iterator<BundleDefinition> itt = failed.iterator();
+					BundleDefinition _bd;
+					StringBuilder sb=new StringBuilder(" Lucee was not able to download the following bundles [");
+					while(itt.hasNext()){
+						_bd=itt.next();
+						sb.append(_bd.name+":"+_bd.getVersionAsString()).append(';');
+					}
+					sb.append("]");
+					throw new BundleException(be2.getMessage()+sb,be2.getCause());
+				} 
+				throw be2;
+			}
+			
 		}
 		return bundle;
 	}

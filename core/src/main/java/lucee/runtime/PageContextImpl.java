@@ -60,6 +60,8 @@ import lucee.commons.db.DBUtil;
 import lucee.commons.io.BodyContentStack;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.cache.Cache;
+import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.lang.PhysicalClassLoader;
@@ -73,6 +75,8 @@ import lucee.commons.lock.Lock;
 import lucee.commons.net.HTTPUtil;
 import lucee.intergral.fusiondebug.server.FDSignal;
 import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.cache.CacheConnection;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheItem;
@@ -115,6 +119,7 @@ import lucee.runtime.functions.owasp.ESAPIEncode;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.JavaSettingsImpl;
@@ -3222,7 +3227,31 @@ public final class PageContextImpl extends PageContext {
 		if(ds==null) ds=getConfig().getDataSource(datasource,defaultValue);
 		return ds;
 	}
+	
 
+
+	public CacheConnection getCacheConnection(String cacheName, CacheConnection defaultValue) {
+		cacheName=cacheName.toLowerCase().trim();
+		
+		CacheConnection cc=null;
+		if(getApplicationContext()!=null)cc = ((ApplicationContextSupport)getApplicationContext()).getCacheConnection(cacheName,null);
+		if(cc==null) cc= config.getCacheConnections().get(cacheName);
+		if(cc==null) return defaultValue;
+		
+		return cc;
+	}
+	
+	public CacheConnection getCacheConnection(String cacheName) throws CacheException {
+		cacheName=cacheName.toLowerCase().trim();
+		
+		CacheConnection cc=null;
+		if(getApplicationContext()!=null) cc = ((ApplicationContextSupport)getApplicationContext()).getCacheConnection(cacheName,null);
+		if(cc==null) cc= config.getCacheConnections().get(cacheName);
+		if(cc==null) throw CacheUtil.noCache(config,cacheName);
+		
+		return cc;
+	}
+	
 	public void setActiveQuery(ActiveQuery activeQuery) {
 		this.activeQueries.add(activeQuery);
 	}
