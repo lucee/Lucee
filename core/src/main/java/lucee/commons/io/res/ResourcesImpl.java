@@ -18,10 +18,7 @@
  */
 package lucee.commons.io.res;
 
-import java.io.IOException;
-
 import lucee.commons.io.res.type.file.FileResourceProvider;
-import lucee.commons.io.res.type.ram.RamResourceProviderOld;
 import lucee.commons.io.res.util.ResourceLockImpl;
 
 

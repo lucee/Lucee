@@ -21,7 +21,6 @@ package lucee.runtime.cache;
 import java.io.IOException;
 import java.util.Arrays;
 
-import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.exp.CacheException;
@@ -29,12 +28,10 @@ import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.db.ClassDefinition;
-import lucee.runtime.functions.struct.StructSort;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
-import lucee.transformer.library.ClassDefinitionImpl;
 
 import org.osgi.framework.BundleException;
 
