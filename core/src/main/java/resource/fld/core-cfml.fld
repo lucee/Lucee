@@ -13,7 +13,7 @@
 	<function>
 		<name>AjaxLink</name>
 		<class>lucee.runtime.functions.displayFormatting.AjaxLink</class>
-		<status>implemeted</status>
+		<status>unimplemeted</status>
 		<keywords>ajax</keywords>
 		<description>Causes an HTML href attribute to display link results in the current Ajax container.</description>
 		<argument>
@@ -32,6 +32,7 @@
 		<name>AjaxOnLoad</name>
 		<class>lucee.runtime.functions.displayFormatting.AjaxOnLoad</class>
 		<keywords>ajax</keywords>
+		<status>unimplemeted</status>
 		<description>Causes the specified JavaScript function to run when the page loads.</description>
 		<argument>
 			<name>functionName</name>
