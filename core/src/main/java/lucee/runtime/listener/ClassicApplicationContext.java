@@ -19,7 +19,6 @@
 package lucee.runtime.listener;
 
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;

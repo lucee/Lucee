@@ -31,17 +31,11 @@ import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.osgi.framework.BundleException;
-
-import lucee.print;
 import lucee.commons.date.TimeZoneUtil;
-import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
-import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
-import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefBoolean;

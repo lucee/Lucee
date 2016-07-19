@@ -19,7 +19,6 @@ import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;

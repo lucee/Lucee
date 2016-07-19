@@ -404,8 +404,7 @@ public class HTTPEngine4Impl {
 
 		// content type
 		ContentType ct=HTTPEngine.toContentType(mimetype, charset);
-
-    	try{
+		try{
     		if(value instanceof TemporaryStream) {
 	    		if(ct!=null)
 		    		return new TemporaryStreamHttpEntity((TemporaryStream)value,ct);
@@ -422,14 +421,18 @@ public class HTTPEngine4Impl {
 			    return new ByteArrayEntity(Caster.toBinary(value));
 			}
 			else {
-				if(ct==null)
+				boolean wasNull=false;
+				if(ct==null) {
+					wasNull=true;
 					ct=ContentType.APPLICATION_OCTET_STREAM;
-
+				}
 				String str = Caster.toString(value);
 				if(str.equals("<empty>")) {
 					return new EmptyHttpEntity(ct);
 				}
-				return new StringEntity(str,ct);
+				if(wasNull && !StringUtil.isEmpty(charset,true)) 
+					return new StringEntity(str,charset.trim());
+				else return new StringEntity(str,ct);
 			}
     	}
     	catch(Exception e){

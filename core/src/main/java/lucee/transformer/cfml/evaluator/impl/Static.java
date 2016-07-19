@@ -21,7 +21,6 @@ package lucee.transformer.cfml.evaluator.impl;
 import java.util.Iterator;
 import java.util.List;
 
-import lucee.print;
 import lucee.commons.lang.StringUtil;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.Statement;

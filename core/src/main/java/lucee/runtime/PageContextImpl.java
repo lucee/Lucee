@@ -60,7 +60,6 @@ import lucee.commons.db.DBUtil;
 import lucee.commons.io.BodyContentStack;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
-import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;

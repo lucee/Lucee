@@ -167,7 +167,7 @@ public final class Controler extends Thread {
                 		it.remove();
             		}
             		else {
-            			LogUtil.log(configServer.getLog("application"), Log.LEVEL_ERROR, "controler","was not able to stop conroler thread running for "+time+"ms", ct.getStackTrace());
+            			LogUtil.log(configServer.getLog("application"), Log.LEVEL_ERROR, "controler","was not able to stop controller thread running for "+time+"ms", ct.getStackTrace());
             		}
             	}
             }

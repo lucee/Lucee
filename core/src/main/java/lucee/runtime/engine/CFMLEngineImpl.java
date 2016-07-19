@@ -54,7 +54,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 
 import lucee.Info;
-import lucee.print;
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.CharsetUtil;
