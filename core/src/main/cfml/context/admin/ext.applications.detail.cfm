@@ -158,7 +158,7 @@
 			</tbody>
 		</table>
 		
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<input type="hidden" name="id" value="#url.id#">
 			<input type="hidden" name="provider" value="#available.provider#">
 			<cfset _trial=false>
@@ -174,11 +174,11 @@
 			
 			<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.uninstall#">
 			<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.cancel#">
-		</cfform>
+		</cfformClassic>
 		
 	<!--- Install --->
 	<cfelseif isInstalled and not hasUpdate>
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<input type="hidden" name="id" value="#url.id#">
 			<input type="hidden" name="provider" value="#isNull(available.provider)?"":available.provider#">
 			
@@ -196,11 +196,11 @@
 
 			<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.uninstall#">
 			<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.cancel#">
-		</cfform>
+		</cfformClassic>
 	<cfelse>
 	
 
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<input type="hidden" name="id" value="#url.id#">
 			<cfif isDefined('app.minCoreVersion') and (app.minCoreVersion GT server.lucee.version)>
 				<div class="error">#replace(stText.ext.toSmallVersion,'{version}',app.minCoreVersion,'all')#</div>
@@ -214,7 +214,7 @@
 				</cfif>
 			</cfif>
 			<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.cancel#">
-		</cfform>
+		</cfformClassic>
 	</cfif>
 </cfoutput>
 

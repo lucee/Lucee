@@ -107,7 +107,7 @@ Redirtect to entry --->
 	<cfif request.adminType EQ "web" and srcGlobal.recordcount>
 		<h2>#stText.Settings.cache.titleReadOnly#</h2>
 		<div class="itemintro">#stText.Settings.cache.descReadOnly#</div>
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
 					<tr>
@@ -164,14 +164,14 @@ Redirtect to entry --->
 					</tfoot>
 				</cfif>
 			</table>
-		</cfform>
+		</cfformClassic>
 		</cfif>
 		
 	<!--- LIST CACHE --->
 	<cfif srcLocal.recordcount and access EQ "yes">
 		<h2>#stText.Settings.cache.titleExisting#</h2>
 		<div class="itemintro">#stText.Settings.cache.descExisting#</div>
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
 					<tr>
@@ -228,7 +228,7 @@ Redirtect to entry --->
 					</tr>
 				</tfoot>
 			 </table>
-		</cfform>
+		</cfformClassic>
 		
 	</cfif>
 </cfoutput>
@@ -249,7 +249,7 @@ function defaultValue(field) {
 	<cfoutput>
 		<h2>#stText.Settings.cache.defaultTitle#</h2>
 		<div class="itemintro">#stText.Settings.cache.defaultDesc#</div>
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl">
 				<tbody>
 	<cfset defaults={}>		
@@ -308,7 +308,7 @@ this.cache.webservice = "#!hasWSe?"&lt;cache-name>":defaults.webservice#";
 					</tr>
 				</tfoot>
 			</table>
-		</cfform>
+		</cfformClassic>
 		
 	</cfoutput>
 </cfif>
@@ -320,12 +320,12 @@ this.cache.webservice = "#!hasWSe?"&lt;cache-name>":defaults.webservice#";
 		<cfset _drivers=ListSort(StructKeyList(drivers),'textnocase')>
 		<cfif listLen(_drivers)>
 			<h2>#stText.Settings.cache.titleCreate#</h2>
-			<cfform onerror="customError" action="#request.self#?action=#url.action#&action2=create" method="post">
+			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=create" method="post">
 				<table class="maintbl" style="width:400px;">
 					<tbody>
 						<tr>
 							<th scope="row" nowrap="nowrap">#stText.Settings.cache.Name#</th>
-							<td><cfinput type="text" name="_name" value="" class="xlarge" required="yes" 
+							<td><cfinputClassic type="text" name="_name" value="" class="xlarge" required="yes" 
 								message="#stText.Settings.cache.nameMissing#"></td>
 						</tr>
 						<tr>
@@ -354,7 +354,7 @@ this.cache.webservice = "#!hasWSe?"&lt;cache-name>":defaults.webservice#";
 						</tr>
 					</tfoot>
 				</table>   
-			</cfform>
+			</cfformClassic>
 		<cfelse>
 			<div class="text">#stText.Settings.cache.noDriver#</div>
 		</cfif>

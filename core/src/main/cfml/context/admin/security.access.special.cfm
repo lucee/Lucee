@@ -60,7 +60,7 @@ Overview
 	<cfoutput>	
 		<h2>#stText.Security.specListTitle#</h2>
 		<div class="itemintro">#stText.Security.specListText#</div>
-		<cfform onerror="customError" action="#go(url.action,"removeSecurityManager")#" method="post">
+		<cfformClassic onerror="customError" action="#go(url.action,"removeSecurityManager")#" method="post">
 			<table class="maintbl">
 				<thead>
 					<tr>
@@ -100,14 +100,14 @@ Overview
 					</tr>
 				</tfoot>
 			</table>
-		</cfform>
+		</cfformClassic>
 	</cfoutput>
 
 	<cfif hasNoneIndividual>
 		<cfoutput>
 			<!--- Create new Indicvidual sec --->
 			<h2>#stText.Security.specListNewTitle#</h2>
-			<cfform onerror="customError" action="#go(url.action,'createSecurityManager')#" method="post">
+			<cfformClassic onerror="customError" action="#go(url.action,'createSecurityManager')#" method="post">
 				<table class="maintbl">
 					<tbody>
 						<tr>
@@ -130,7 +130,7 @@ Overview
 						</tr>
 					</tfoot>
 				</table>   
-			</cfform>
+			</cfformClassic>
 		</cfoutput>
 	</cfif>
 </cfif>

@@ -104,7 +104,7 @@ Redirtect to entry --->
 
 <cfoutput>
 	<div class="pageintro">#stText.setting.compiler#</div>
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 				
@@ -306,5 +306,5 @@ Redirtect to entry --->
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 </cfoutput>

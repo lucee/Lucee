@@ -203,7 +203,7 @@ Error Output --->
 	<div class="pageintro">#stText.request.description#
 	</div>
 	
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		
 
 
@@ -310,16 +310,16 @@ Error Output --->
 							<tbody>
 								<cfif hasAccess>
 									<tr>
-										<td><cfinput type="text" name="request_days" value="#appSettings.requestTimeout_day#" 
+										<td><cfinputClassic type="text" name="request_days" value="#appSettings.requestTimeout_day#" 
 											class="number" required="yes" validate="integer" 
 											message="#stText.Scopes.TimeoutDaysValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="request_hours" value="#appSettings.requestTimeout_hour#" 
+										<td><cfinputClassic type="text" name="request_hours" value="#appSettings.requestTimeout_hour#" 
 											class="number" required="yes" validate="integer" 
 											message="#stText.Scopes.TimeoutHoursValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="request_minutes" value="#appSettings.requestTimeout_minute#" 
+										<td><cfinputClassic type="text" name="request_minutes" value="#appSettings.requestTimeout_minute#" 
 											class="number" required="yes" validate="integer" 
 											message="#stText.Scopes.TimeoutMinutesValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="request_seconds" value="#appSettings.requestTimeout_second#" 
+										<td><cfinputClassic type="text" name="request_seconds" value="#appSettings.requestTimeout_second#" 
 											class="number" required="yes" validate="integer" 
 											message="#stText.Scopes.TimeoutSecondsValue#request#stText.Scopes.TimeoutEndValue#"></td>
 									</tr>
@@ -402,7 +402,7 @@ Error Output --->
 					<th scope="row">#stText.application.ConcurrentRequestMax#</th>
 					<td>
 						<cfif hasAccess>
-							<cfinput type="text" name="ConcurrentRequestMax" value="#queueSettings.max#" 
+							<cfinputClassic type="text" name="ConcurrentRequestMax" value="#queueSettings.max#" 
 									class="number" required="yes" validate="integer" id="ConcurrentRequestMax"
 									message="#stText.application.ConcurrentRequestMaxError#">
 							
@@ -418,7 +418,7 @@ Error Output --->
 					<th scope="row">#stText.application.ConcurrentRequestTimeout#</th>
 					<td>
 						<cfif hasAccess>
-							<!---<cfinput type="text" name="ConcurrentRequestTimeout" value="#queueSettings.timeout#" 
+							<!---<cfinputClassic type="text" name="ConcurrentRequestTimeout" value="#queueSettings.timeout#" 
 									class="number" required="yes" validate="integer"  id="ConcurrentRequestTimeoutOld"
 									message="#stText.application.ConcurrentRequestTimeoutError#">--->
 							
@@ -445,16 +445,16 @@ Error Output --->
 
 
 									<tr>
-										<td><cfinput type="text" name="timeout_days" value="#days#" 
+										<td><cfinputClassic type="text" name="timeout_days" value="#days#" 
 											class="number" required="yes" validate="integer" 
 											message="#stText.Scopes.TimeoutDaysValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="timeout_hours" value="#hours#" 
+										<td><cfinputClassic type="text" name="timeout_hours" value="#hours#" 
 											class="number" required="yes" validate="integer" 
 											message="#stText.Scopes.TimeoutHoursValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="timeout_minutes" value="#minutes#" 
+										<td><cfinputClassic type="text" name="timeout_minutes" value="#minutes#" 
 											class="number" required="yes" validate="integer" 
 											message="#stText.Scopes.TimeoutMinutesValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="timeout_seconds" value="#seconds#" 
+										<td><cfinputClassic type="text" name="timeout_seconds" value="#seconds#" 
 											class="number" required="yes" validate="integer" 
 											message="#stText.Scopes.TimeoutSecondsValue#request#stText.Scopes.TimeoutEndValue#"></td>
 									</tr>
@@ -501,12 +501,12 @@ Error Output --->
 		</table>
 </cfif>
 	
-	</cfform>
+	</cfformClassic>
 
 	<h2>#stText.application.listener#</h2>
 	<div class="itemintro">#stText.application.listenerDescription#</div>
 		
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 				<!--- listener type --->
@@ -583,5 +583,5 @@ Error Output --->
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 </cfoutput>

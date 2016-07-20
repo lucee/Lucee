@@ -97,7 +97,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
     			
     			);
           		
-    	int iDoNew = doNew(engine,configDir,false);
+    	int iDoNew = doNew(engine,configDir,false).updateType;
 		boolean doNew = iDoNew!=NEW_NONE;
 		
     	Resource configFile=configDir.getRealResource("lucee-server.xml");
@@ -145,7 +145,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
         
         if(configFile==null) return ;
         if(second(configServer.getLoadTime())>second(configFile.lastModified())) return ;
-        int iDoNew = doNew(engine, configServer.getConfigDir(),false);
+        int iDoNew = doNew(engine, configServer.getConfigDir(),false).updateType;
 		boolean doNew = iDoNew!=NEW_NONE;
 		
         load(configServer,loadDocument(configFile),true,doNew);

@@ -152,7 +152,7 @@ Redirtect to entry --->
 
 		<!------------------------------ JAVA ------------------------------->
 		<h2>#stText.CFX.CFXTags#</h2>
-		<cfform onerror="customError" name="java" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" name="java" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
 					<tr>
@@ -182,7 +182,7 @@ Redirtect to entry --->
 								<cfif not has.cfx_setting or jtags.readOnly>
 									#jtags.class#
 								<cfelse>
-									<cfinput 
+									<cfinputClassic 
 										onKeyDown="checkTheBox(this)" type="text" name="class_#jtags.currentrow#" value="#jtags.class#" 
 										required="yes" class="xlarge" message="#stText.CFX.MissingClassValue##jtags.currentrow#)">
 								</cfif>
@@ -212,10 +212,10 @@ Redirtect to entry --->
 							<td>
 								<input type="checkbox" class="checkbox" name="row_#idx#" value="#idx#">
 							</td>
-							<td><cfinput onKeyDown="checkTheBox(this)" type="text" 
+							<td><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
 								name="name_#idx#" value="" required="no" class="xlarge">
 							</td>
-							<td><cfinput onKeyDown="checkTheBox(this)" type="text" 
+							<td><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
 								name="class_#idx#" value="" required="no" class="xlarge">
 							</td>
 							<td></td>
@@ -240,7 +240,7 @@ Redirtect to entry --->
 					</tfoot>
 				</cfif>
 			</table>
-		</cfform>
+		</cfformClassic>
 
 		<cfif structKeyExists(session,'enable') and session.enable EQ "cfxcpp">
 			<h2>#stText.CFX.cpp.CFXTags#</h2>
@@ -249,7 +249,7 @@ Redirtect to entry --->
 				If you have any problems while using the C++ CFX tags Implementation, please post the bugs and errors in our <a href="https://bitbucket.org/lucee/lucee/issues" target="_blank" class="CheckError">bugtracking system</a>. 
 			</div>
 			<!------------------------------ C++ ------------------------------->
-			<cfform onerror="customError" name="cpp" action="#request.self#?action=#url.action#" method="post">
+			<cfformClassic onerror="customError" name="cpp" action="#request.self#?action=#url.action#" method="post">
 				<table class="maintbl checkboxtbl">
 					<thead>
 						<tr>
@@ -284,7 +284,7 @@ Redirtect to entry --->
 									<cfif not has.cfx_setting or ctags.readOnly>
 										#ctags.serverlibrary#
 									<cfelse>
-										<cfinput 
+										<cfinputClassic 
 											onKeyDown="checkTheBox(this)" type="text" name="serverlibrary_#ctags.currentrow#" value="#ctags.serverlibrary#" 
 											required="yes" class="xlarge" message="#stText.CFX.MissingClassValue##ctags.currentrow#)">
 									</cfif>
@@ -294,7 +294,7 @@ Redirtect to entry --->
 									<cfif not has.cfx_setting or ctags.readOnly>
 										#ctags.procedure#
 									<cfelse>
-										<cfinput 
+										<cfinputClassic 
 											onKeyDown="checkTheBox(this)" type="text" name="procedure_#ctags.currentrow#" value="#ctags.procedure#" 
 											required="yes" class="xlarge" message="#stText.CFX.MissingClassValue##ctags.currentrow#)">
 									</cfif>
@@ -333,13 +333,13 @@ Redirtect to entry --->
 								<td>
 									<input type="checkbox" class="checkbox" name="row_#idx#" value="#idx#">
 								</td>
-								<td><cfinput onKeyDown="checkTheBox(this)" type="text" 
+								<td><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
 									name="name_#idx#" value="" required="no" class="xlarge">
 								</td>
-								<td><cfinput onKeyDown="checkTheBox(this)" type="text" 
+								<td><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
 									name="serverlibrary_#idx#" value="" required="no" class="xlarge">
 								</td>
-								<td><cfinput onKeyDown="checkTheBox(this)" type="text" 
+								<td><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
 									name="procedure_#idx#" value="ProcessTagRequest" required="no" class="xlarge">
 								</td>
 								<td>
@@ -380,7 +380,7 @@ Redirtect to entry --->
 						</tfoot>
 					</cfif>
 				</table>
-			</cfform>
+			</cfformClassic>
 		</cfif>
 	</cfif>
 </cfoutput>

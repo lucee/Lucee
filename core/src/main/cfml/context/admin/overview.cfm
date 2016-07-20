@@ -239,11 +239,11 @@ Error Output --->
 						<!--- has api key --->
 						<cfif !isNull(apiKey) && len(apiKey)>
 							<tr>
-								<cfform onerror="customError" action="#request.self#" method="post">
+								<cfformClassic onerror="customError" action="#request.self#" method="post">
 								<th scope="row">#stText.io.id#</th>
 								<td><input type="text" style="width:250px" name="apiKey" value="#apiKey#"/><input class="button submit" type="submit" name="mainAction" value="#stText.Buttons.ok#"><br>
 								<span class="comment">#stText.io.idDesc#</span></td>
-								</cfform>
+								</cfformClassic>
 							</tr>
 						</cfif>
 
@@ -468,7 +468,7 @@ Error Output --->
 		<div class="itemintro">
 			You can label your web contexts here, so they are more clearly distinguishable for use with extensions etc.
 		</div>
-		<cfform onerror="customError" action="#request.self#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#" method="post">
 			<table class="maintbl">
 				<thead>
 					<tr>
@@ -517,6 +517,6 @@ Error Output --->
 					</tr>
 				</tfoot>
 			</table>
-		</cfform>
+		</cfformClassic>
 	</cfif>
 </cfoutput>

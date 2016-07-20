@@ -118,7 +118,7 @@ Redirtect to entry --->
 
 	#stText.Debug.EnableDescription#
 
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post" name="debug_settings">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post" name="debug_settings">
 		<table class="maintbl autowidth">
 			<tbody>
 				<tr>
@@ -220,6 +220,6 @@ Redirtect to entry --->
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 
 </cfoutput>

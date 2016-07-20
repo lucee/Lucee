@@ -109,7 +109,7 @@ hasUpdate=structKeyExists(updateData,"available");
 	<!--- Settings --->
 	<h2>#stText.services.update.setTitle#</h2>
 	<div class="itemintro">#stText.services.update.setDesc#</div>
-	<cfform onerror="customError" action="#go(url.action,"settings")#" method="post">
+	<cfformClassic onerror="customError" action="#go(url.action,"settings")#" method="post">
 		<table class="maintbl">
 			<tbody>
 				<tr>
@@ -192,7 +192,7 @@ hasUpdate=structKeyExists(updateData,"available");
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 
 	<!---
 For testing
@@ -230,7 +230,7 @@ For testing
 		<!--- run update --->
 		<h2>#stText.services.update.exe#</h2>
 		<div class="itemintro">#stText.services.update.exeDesc#</div>
-		<cfform onerror="customError" action="#go(url.action,"Run")#" method="post">
+		<cfformClassic onerror="customError" action="#go(url.action,"Run")#" method="post">
 			<table class="maintbl">
 				<tbody>
 					<cfmodule template="remoteclients.cfm" colspan="1">
@@ -243,11 +243,11 @@ For testing
 					</tr>
 				</tfoot>
 			</table>
-		</cfform>
+		</cfformClassic>
 	<cfelseif needNewJars>
 		<h2>#stText.services.update.lib#</h2>
 		<div class="itemintro">#stText.services.update.libDesc#</div>
-		<cfform onerror="customError" action="#go(url.action,"updateJars")#" method="post">
+		<cfformClassic onerror="customError" action="#go(url.action,"updateJars")#" method="post">
 			<table class="maintbl">
 				<tbody>
 					<cfmodule template="remoteclients.cfm" colspan="2">
@@ -260,7 +260,7 @@ For testing
 					</tr>
 				</tfoot>
 			</table>
-		</cfform>
+		</cfformClassic>
 	</cfif>
 
 	<!--- remove update --->
@@ -268,7 +268,7 @@ For testing
 	<cfif size>
 		<h2>#stText.services.update.remove#</h2>
 		<div class="itemintro">#stText.services.update.removeDesc#</div>
-		<cfform onerror="customError" action="#go(url.action,"Remove")#" method="post">
+		<cfformClassic onerror="customError" action="#go(url.action,"Remove")#" method="post">
 			<table class="maintbl">
 				<thead>
 					<tr>
@@ -293,6 +293,6 @@ For testing
 					</tr>
 				</tfoot>
 			</table>
-		</cfform>
+		</cfformClassic>
 	</cfif>
 </cfoutput>

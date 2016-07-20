@@ -11,14 +11,14 @@
 	</cfif>
 	
 	<h2>#stText.Mail.Settings#</h2>
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 				<tr>
 					<th scope="row">#stText.mail.DefaultEncoding#</th>
 					<td>
 						<cfif hasAccess>
-							<cfinput type="text" name="defaultencoding" value="#mail.defaultEncoding#" class="medium" required="no" message="#stText.mail.missingEncoding#">
+							<cfinputClassic type="text" name="defaultencoding" value="#mail.defaultEncoding#" class="medium" required="no" message="#stText.mail.missingEncoding#">
 						<cfelse>
 							<input type="hidden" name="defaultencoding" value="#mail.defaultEncoding#">
 							<b>#mail.defaultEncoding#</b>
@@ -32,7 +32,7 @@
 					<th scope="row">#stText.Mail.LogFile#</th>
 					<td class="tblContent#css# tooltipMe"<cfif mail.strlogfile neq mail.logfile> title="#mail.strlogfile#:<br>#mail.logfile#"</cfif>>
 						<cfif hasAccess>
-							<cfinput type="text" name="logFile" value="#mail.strlogfile#" required="no" class="xlarge"
+							<cfinputClassic type="text" name="logFile" value="#mail.strlogfile#" required="no" class="xlarge"
 								message="#stText.Mail.LogFileMissing#">
 						<cfelse>
 							<b>#mail.strlogfile#</b><br>
@@ -78,7 +78,7 @@
 					<th scope="row">#stText.Mail.SpoolInterval#</th>
 					<td>
 						<cfif hasAccess>
-							<cfinput type="text" name="spoolInterval" value="#mail.spoolInterval#" validate="integer" class="number" required="no">
+							<cfinputClassic type="text" name="spoolInterval" value="#mail.spoolInterval#" validate="integer" class="number" required="no">
 						<cfelse>
 							<b>#mail.spoolInterval#</b>
 						</cfif>
@@ -89,7 +89,7 @@
 					<th scope="row">#stText.Mail.Timeout#</th>
 					<td>
 						<cfif hasAccess>
-							<cfinput type="text" name="timeout" value="#mail.timeout#" validate="integer" class="number" required="no"> #stText.mail.seconds#
+							<cfinputClassic type="text" name="timeout" value="#mail.timeout#" validate="integer" class="number" required="no"> #stText.mail.seconds#
 						<cfelse>
 							<b>#mail.timeout# #stText.mail.seconds#</b><br>
 						</cfif>
@@ -113,7 +113,7 @@
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 
 
 
@@ -140,7 +140,7 @@
 		</cfif>
 	</cfloop>
 		
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl checkboxtbl">
 			<thead>
 				<tr>
@@ -229,7 +229,7 @@
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 
 
 

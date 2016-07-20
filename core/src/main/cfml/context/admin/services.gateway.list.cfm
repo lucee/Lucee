@@ -138,7 +138,7 @@ Redirtect to entry --->
 		<h2>#stText.Settings.gateway.titleReadOnly#</h2>
 		
 		<div class="pageintro">#stText.Settings.cache.descReadOnly#</div>
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
 					<tr>
@@ -193,7 +193,7 @@ Redirtect to entry --->
 					</tr>
 				</tfoot>
 			</table>
-		</cfform>
+		</cfformClassic>
 	</cfif>
 
 	<!--- LIST --->
@@ -201,7 +201,7 @@ Redirtect to entry --->
 		<h2>#stText.Settings.gateway.titleExisting#</h2>
 		<div class="itemintro">#stText.Settings.gateway.descExisting#</div>
     
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
 					<tr>
@@ -264,7 +264,7 @@ Redirtect to entry --->
 					</tr>
 				</tfoot>
 			</table>
-		</cfform>
+		</cfformClassic>
 	</cfif>
 </cfoutput>
 
@@ -274,12 +274,12 @@ Redirtect to entry --->
 		<cfset _drivers=ListSort(StructKeyList(drivers),'textnocase')>
 	    <cfif listLen(_drivers)>
 			<h2>#stText.Settings.gateway.titleCreate#</h2>
-			<cfform onerror="customError" action="#request.self#?action=#url.action#&action2=create" method="post">
+			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=create" method="post">
 				<table class="maintbl">
 					<tbody>
 						<tr>
 							<th scope="row">#stText.Settings.gateway.id#</th>
-							<td><cfinput type="text" name="_id" value="" class="medium" required="yes" message="#stText.Settings.gateway.nameMissing#"></td>
+							<td><cfinputClassic type="text" name="_id" value="" class="medium" required="yes" message="#stText.Settings.gateway.nameMissing#"></td>
 						</tr>
 						<tr>
 							<th scope="row">#stText.Settings.gateway.type#</th>
@@ -302,7 +302,7 @@ Redirtect to entry --->
 						</tr>
 					</tfoot>
 				</table>   
-			</cfform>
+			</cfformClassic>
 	    <cfelse>
     		<div class="txt">#stText.Settings.gateway.noDriver#</div>
     	</cfif>

@@ -100,6 +100,7 @@ import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.XMLConfigAdmin;
 import lucee.runtime.config.XMLConfigFactory;
+import lucee.runtime.config.XMLConfigFactory.UpdateInfo;
 import lucee.runtime.config.XMLConfigServerFactory;
 import lucee.runtime.config.XMLConfigWebFactory;
 import lucee.runtime.exp.ApplicationException;
@@ -229,11 +230,11 @@ public final class CFMLEngineImpl implements CFMLEngine {
     	this.info=new InfoImpl(bundleCollection==null?null:bundleCollection.core);
     	Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader()); // MUST better location for this
 		
-    	int doNew;
+    	UpdateInfo updateInfo;
     	Resource configDir=null;
     	try {
     		configDir = getSeverContextConfigDirectory(factory);
-			doNew=XMLConfigFactory.doNew(this,configDir, true);
+    		updateInfo=XMLConfigFactory.doNew(this,configDir, true);
 		}
     	catch (IOException e) {
     		throw new PageRuntimeException(e);
@@ -257,7 +258,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
         
         
         // copy bundled extension to local extension directory (if never done before)
-        if(installExtensions && doNew!=XMLConfigFactory.NEW_NONE) {
+        if(installExtensions && updateInfo.updateType!=XMLConfigFactory.NEW_NONE) {
         	deployBundledExtension(cs);
         	SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT), "copy bundled extension to local extension directory (if never done before)");
         }
@@ -266,21 +267,24 @@ public final class CFMLEngineImpl implements CFMLEngine {
         
         // if we have a "fresh" install  
         Set<ExtensionDefintion> extensions;
-        if(installExtensions && (doNew==XMLConfigFactory.NEW_FRESH || doNew==XMLConfigFactory.NEW_FROM4)) {
+        if(installExtensions && (updateInfo.updateType==XMLConfigFactory.NEW_FRESH || updateInfo.updateType==XMLConfigFactory.NEW_FROM4)) {
         	List<ExtensionDefintion> ext = info.getRequiredExtension();
         	extensions = toSet(null,ext);
         	SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT),
-            	"detected Extensions to install (new;"+doNew+"):"+toList(extensions));
+            	"detected Extensions to install (new;"+updateInfo.updateType+"):"+toList(extensions));
         }
         // if we have an update we update the extension that re installed and we have an older version as defined in the manifest
-        else if(installExtensions && (doNew==XMLConfigFactory.NEW_MINOR || !isRe)) {
+        else if(installExtensions && (updateInfo.updateType==XMLConfigFactory.NEW_MINOR || !isRe)) {
         	extensions = new HashSet<ExtensionDefintion>();
         	Iterator<ExtensionDefintion> it = info.getRequiredExtension().iterator();
         	ExtensionDefintion ed;
         	RHExtension rhe;
         	while(it.hasNext()){
         		ed = it.next();
-        		if(ed.getVersion()==null) continue; // no version definition no update
+        		if(ed.getVersion()==null) {
+        			continue; // no version definition no update
+        			// MUST check if exension has a since thatis nwer than the old version...
+        		}
         		try{
         			rhe = XMLConfigAdmin.hasRHExtensions(cs, new ExtensionDefintion(ed.getId()));
         			if(rhe==null) continue; // not installed we do not update
@@ -295,7 +299,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
         		}
         	}
         	SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT),
-                	"detected Extensions to install (minor;"+doNew+"):"+toList(extensions));
+                	"detected Extensions to install (minor;"+updateInfo.updateType+"):"+toList(extensions));
         }
         else {
         	extensions = new HashSet<ExtensionDefintion>();

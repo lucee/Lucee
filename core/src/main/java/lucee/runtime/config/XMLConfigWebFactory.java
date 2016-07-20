@@ -250,7 +250,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		);
 
-		int iDoNew = doNew(engine,configDir,false);
+		int iDoNew = doNew(engine,configDir,false).updateType;
 		boolean doNew = iDoNew!=NEW_NONE;
 
 		Resource configFile = configDir.getRealResource("lucee-web.xml."+TEMPLATE_EXTENSION);
@@ -280,7 +280,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		load(configServer, configWeb, doc, false, doNew);
 		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
+		
+		// call web.cfc for this context
 		((CFMLEngineImpl)ConfigWebUtil.getEngine(configWeb)).onStart(configWeb,false);
+		
 		return configWeb;
 	}
 
@@ -316,7 +319,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		Resource configFile = cw.getConfigFile();
 		Resource configDir = cw.getConfigDir();
 
-		int iDoNew = doNew(engine,configDir,false);
+		int iDoNew = doNew(engine,configDir,false).updateType;
 		boolean doNew = iDoNew!=NEW_NONE;
 
 		if (configFile == null)

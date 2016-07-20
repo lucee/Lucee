@@ -100,7 +100,7 @@ Error Output --->
 
 <cfoutput>	
 	<h2>#stText.Settings.DatasourceSettings#</h2>
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 				<tr>
@@ -132,7 +132,7 @@ Error Output --->
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 </cfoutput>
 
 <cfadmin 
@@ -185,7 +185,7 @@ list all mappings and display necessary edit fields --->
 	<cfoutput>
 		<h2>#stText.Settings.ReadOnlyDatasources#</h2>
 		<div class="itemintro">#stText.Settings.ReadOnlyDatasourcesDescription#</div>
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
 					<tr>
@@ -238,7 +238,7 @@ list all mappings and display necessary edit fields --->
 					</tr>
 				</tfoot>
 			</table>
-		</cfform>
+		</cfformClassic>
 	</cfoutput>
 </cfif>
 
@@ -246,7 +246,7 @@ list all mappings and display necessary edit fields --->
 	<cfoutput>
 		<h2>#stText.Settings.ListDatasources#</h2>
 		<div class="itemintro">#stText.Settings['ListDatasourcesDesc'& request.adminType ]#</div>
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
 					<tr>
@@ -321,7 +321,7 @@ list all mappings and display necessary edit fields --->
 					</tr>
 				</tfoot>
 			</table>
-		</cfform>
+		</cfformClassic>
 	</cfoutput>
 </cfif>
 
@@ -329,12 +329,12 @@ list all mappings and display necessary edit fields --->
 	<cfoutput>
 		<!--- Create Datasource --->
 		<h2>#stText.Settings.DatasourceModify#</h2>
-		<cfform onerror="customError" action="#request.self#?action=#url.action#&action2=create" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=create" method="post">
 			<table class="maintbl autowidth">
 				<tbody>
 					<tr>
 						<th scope="row">#stText.Settings.Name#</th>
-						<td><cfinput type="text" name="name" value="" class="large" required="yes" 
+						<td><cfinputClassic type="text" name="name" value="" class="large" required="yes" 
 							message="#stText.Settings.NameMissing#">
 						</td>
 					</tr>
@@ -373,6 +373,6 @@ list all mappings and display necessary edit fields --->
 					</tr>
 				</tfoot>
 			</table>   
-		</cfform>
+		</cfformClassic>
 	</cfoutput>
 </cfif>
