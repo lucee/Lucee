@@ -29,13 +29,9 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import javax.servlet.jsp.tagext.BodyContent;
 
-import lucee.print;
 import lucee.cli.servlet.HTTPServletImpl;
-import lucee.cli.servlet.ServletConfigImpl;
-import lucee.cli.servlet.ServletContextImpl;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -55,7 +51,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.CreationImpl;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
-import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
