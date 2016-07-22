@@ -18,35 +18,81 @@
  **/
 package lucee.commons.io.log.log4j.appender;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+
+import javax.servlet.jsp.PageContext;
+
+import lucee.print;
+import lucee.commons.io.IOUtil;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.db.DatasourceConnection;
+import lucee.runtime.db.DatasourceConnectionPool;
+import lucee.runtime.db.DatasourceManagerImpl;
+import lucee.runtime.engine.ThreadLocalConfig;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.tag.Query;
 
 import org.apache.log4j.Appender;
 import org.apache.log4j.AppenderSkeleton;
+import org.apache.log4j.Layout;
+import org.apache.log4j.jdbc.JDBCAppender;
 import org.apache.log4j.spi.LoggingEvent;
 
-public class DataSourceAppender extends AppenderSkeleton implements Appender {
+public class DatasourceAppender extends JDBCAppender implements Appender {
 	
-	private DataSource ds;
+	//private DatasourceManagerImpl manager;
+	private DataSource datasource;
+	private String datasourceName;
+	private String username;
+	private String password;
+	private Config config;
+	private DatasourceConnectionPool pool;
 
-	public DataSourceAppender(DataSource ds){
-		this.ds=ds;
+	public DatasourceAppender(Config config, Layout layout, String datasource, String username, String password) throws PageException {
+		this.datasourceName=datasource;
+		this.username=username;
+		this.password=password;
+		this.config=config;
 		
+		if(layout!=null)setLayout(layout);
 	}
 	
 	@Override
-	public void close() {
-		
+	protected Connection getConnection() throws SQLException {
+		try {
+			
+			return pool().getDatasourceConnection(config, datasource, username, password);
+		} catch (PageException e) {
+			throw new SQLException(e);
+		}
+	}
+	
+	private DatasourceConnectionPool pool() throws PageException {
+		if(pool==null) {
+			if(datasource==null)datasource=config.getDataSource(datasourceName);
+			this.pool=((ConfigImpl)config).getDatasourceConnectionPool();
+		}
+		return pool;
 	}
 
 	@Override
-	public boolean requiresLayout() {
-		return false;
+	protected void closeConnection(Connection conn) {
+		boolean closed=false;
+		if(conn instanceof DatasourceConnection) {
+			try {
+				pool().releaseDatasourceConnection((DatasourceConnection)conn);
+				closed=true;
+			}
+			catch (PageException e) {
+				e.printStackTrace();
+			}
+		}
+		if(!closed) 
+			IOUtil.closeEL(conn);
 	}
-
-	@Override
-	protected void append(LoggingEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
 }

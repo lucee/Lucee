@@ -29,9 +29,13 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.servlet.jsp.tagext.BodyContent;
 
+import lucee.print;
 import lucee.cli.servlet.HTTPServletImpl;
+import lucee.cli.servlet.ServletConfigImpl;
+import lucee.cli.servlet.ServletContextImpl;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -51,6 +55,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.CreationImpl;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
+import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
@@ -97,49 +102,63 @@ public class PageContextUtil {
 
 		return result;
 	}
+	
+	
 
-	public static PageContext getPageContext(File contextRoot, String host, String scriptName, String queryString
+	public static PageContext getPageContext(Config config,ServletConfig servletConfig,File contextRoot, String host, String scriptName, String queryString
 			, Cookie[] cookies,Map<String, Object> headers,Map<String, String> parameters, 
 			Map<String, Object> attributes, OutputStream os, boolean register, long timeout, boolean ignoreScopes) throws ServletException {
-		
-		if(contextRoot==null)contextRoot=new File(".");
-		
-		// Engine
-		CFMLEngine engine=null;
-		try{
-			engine = CFMLEngineFactory.getInstance();
+		boolean callOnStart=ThreadLocalPageContext.callOnStart.get();
+		try {
+			ThreadLocalPageContext.callOnStart.set(false);
+			
+			if(contextRoot==null)contextRoot=new File(".");
+			// Engine
+			CFMLEngine engine=null;
+			try{
+				engine = CFMLEngineFactory.getInstance();
+			}
+			catch(Throwable t){}
+			if(engine==null) throw new ServletException("there is no ServletContext");
+	
+			if(headers==null) headers=new HashMap<String, Object>();
+			if(parameters==null) parameters=new HashMap<String, String>();
+			if(attributes==null) attributes=new HashMap<String, Object>();
+			
+			
+			// Request
+			HttpServletRequest req = CreationImpl.getInstance(engine).createHttpServletRequest(contextRoot, host, scriptName, queryString,
+					cookies, headers,parameters, attributes,
+					null); 
+			
+			// Response
+			HttpServletResponse rsp = CreationImpl.getInstance(engine).createHttpServletResponse(os);
+			
+			if(config==null) config = ThreadLocalPageContext.getConfig();
+			
+			CFMLFactory factory=null;
+			HttpServlet servlet;
+			if(config instanceof ConfigWeb) {
+				ConfigWeb cw=(ConfigWeb)config;
+				factory=cw.getFactory();
+				servlet=factory.getServlet();
+			}
+			else {		
+				if(servletConfig==null) {
+					ServletConfig[] configs = engine.getServletConfigs();
+					servletConfig=configs[0];
+				}
+				
+				
+				factory = engine.getCFMLFactory(servletConfig, req);
+				servlet=new HTTPServletImpl(servletConfig, servletConfig.getServletContext(), servletConfig.getServletName());
+			}
+			
+			return factory.getLuceePageContext(servlet,req,rsp,null,false,-1,false,register,timeout,false,ignoreScopes);
 		}
-		catch(Throwable t){}
-		if(engine==null) throw new ServletException("there is no ServletContext");
-		
-		
-		
-		// Request
-		HttpServletRequest req = CreationImpl.getInstance(engine).createHttpServletRequest(contextRoot, host, scriptName, queryString,
-				cookies, new HashMap<String, Object>(),
-				new HashMap<String, String>(), new HashMap<String, Object>(),
-				null); 
-		
-		// Response
-		HttpServletResponse rsp = CreationImpl.getInstance(engine).createHttpServletResponse(os);
-		
-		Config config = ThreadLocalPageContext.getConfig();
-		
-		CFMLFactory factory=null;
-		HttpServlet servlet;
-		if(config instanceof ConfigWeb) {
-			ConfigWeb cw=(ConfigWeb)config;
-			factory=cw.getFactory();
-			servlet=factory.getServlet();
+		finally {
+			ThreadLocalPageContext.callOnStart.set(callOnStart);
 		}
-		else {
-			ServletConfig[] configs = engine.getServletConfigs();
-			ServletConfig servletConfig=configs[0];
-			factory = engine.getCFMLFactory(servletConfig, req);
-			servlet=new HTTPServletImpl(servletConfig, servletConfig.getServletContext(), servletConfig.getServletName());
-		}
-		
-		return factory.getLuceePageContext(servlet,req,rsp,null,false,-1,false,register,timeout,false,ignoreScopes);
 	}
 	
 	

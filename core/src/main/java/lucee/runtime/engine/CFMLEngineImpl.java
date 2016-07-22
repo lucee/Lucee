@@ -54,6 +54,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 
 import lucee.Info;
+import lucee.print;
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.CharsetUtil;
@@ -1304,7 +1305,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	public PageContext createPageContext(File contextRoot, String host, String scriptName, String queryString
 			, Cookie[] cookies,Map<String, Object> headers,Map<String, String> parameters, 
 			Map<String, Object> attributes, OutputStream os, long timeout, boolean register) throws ServletException {
-		return PageContextUtil.getPageContext(contextRoot,host, scriptName, queryString, cookies, headers, parameters, attributes, os,register,timeout,false);
+		// FUTURE add first 2 arguments to interface
+		return PageContextUtil.getPageContext(null,null,contextRoot,host, scriptName, queryString, cookies, headers, parameters, attributes, os,register,timeout,false);
 	}
 	
 	@Override
@@ -1312,7 +1314,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		// TODO do a mored rect approach
 		PageContext pc = null;
 		try{
-			pc = PageContextUtil.getPageContext(contextRoot,host,scriptName, null, null, null, null, null, null,false,-1,false);
+			// FUTURE add first 2 arguments to interface
+			pc = PageContextUtil.getPageContext(null,null,contextRoot,host,scriptName, null, null, null, null, null, null,false,-1,false);
 			return pc.getConfig();
 		}
 		finally{
@@ -1346,9 +1349,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	public void onStart(ConfigImpl config, boolean reload) {
-		
 		String context=config instanceof ConfigWeb?"Web":"Server";
-		
+		if(!ThreadLocalPageContext.callOnStart.get()) return;
 		
 		Resource listenerTemplateLucee = config.getConfigDir().getRealResource("context/"+context+"."+lucee.runtime.config.Constants.getLuceeComponentExtension());
 		Resource listenerTemplateCFML = config.getConfigDir().getRealResource("context/"+context+"."+lucee.runtime.config.Constants.getCFMLComponentExtension());
@@ -1361,10 +1363,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		
 		// we do not wait for this
 		new OnStart(config, dialect,context, reload).start();
-		
-		
-		
 	}
+	
 	private class OnStart extends Thread {
 		
 		private ConfigImpl config;
@@ -1380,11 +1380,13 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		}
 		
 		public void run() {
+			boolean isWeb=config instanceof ConfigWeb;
 			
 			String id=CreateUniqueId.invoke();
-			String requestURI="/lucee/"+context+"."+(dialect==CFMLEngine.DIALECT_LUCEE?lucee.runtime.config.Constants.getLuceeComponentExtension():lucee.runtime.config.Constants.getCFMLComponentExtension());
+			final String requestURI="/"+(isWeb?"lucee":"lucee-server")+"/"+context+"."+(dialect==CFMLEngine.DIALECT_LUCEE?lucee.runtime.config.Constants.getLuceeComponentExtension():lucee.runtime.config.Constants.getCFMLComponentExtension());
+			
 			//PageContext oldPC = ThreadLocalPageContext.get();
-			PageContextImpl pc=null;
+			PageContext pc=null;
 			try {
 				String remotePersisId;
 				try {
@@ -1392,17 +1394,32 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				} catch (IOException e) {
 					throw Caster.toPageException(e);
 				}
-				Struct attrs=new StructImpl();
-				attrs.setEL("client", "lucee-listener-1-0");
+				String queryString="method=on"+context+"Start&reload="+reload+"&"+ComponentPageImpl.REMOTE_PERSISTENT_ID+"="+remotePersisId;
 				if(config instanceof ConfigWeb) {
+					Pair[] headers = new Pair[]{new Pair<String,Object>("AMF-Forward","true")};
+					Struct attrs=new StructImpl();
+					attrs.setEL("client", "lucee-listener-1-0");
+					
 					pc = ThreadUtil.createPageContext(
 						(ConfigWeb)config, 
 						DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, 
-						"localhost", requestURI,"method=on"+context+"Start&reload="+reload+"&"+ComponentPageImpl.REMOTE_PERSISTENT_ID+"="+remotePersisId, 
-						new Cookie[0], new Pair[]{new Pair<String,Object>("AMF-Forward","true")},null, new Pair[0], attrs,true,-1);
+						"localhost", requestURI,queryString, 
+						new Cookie[0], headers,null, new Pair[0], attrs,true,Long.MAX_VALUE);
 				}
 				else {
-					return;
+					Map<String, Object> headers=new HashMap<String, Object>();
+					headers.put("AMF-Forward","true");
+					Map<String, Object> attrs=new HashMap<String, Object>();
+					attrs.put("client", "lucee-listener-1-0");
+					
+					File root = new File(config.getRootDirectory().getAbsolutePath());
+					CreationImpl cr =(CreationImpl)CreationImpl.getInstance(engine);
+					ServletConfig sc = cr.createServletConfig(root, null, null);
+					pc = PageContextUtil.getPageContext(
+							config,sc,root,
+						"localhost", requestURI, queryString, 
+						new Cookie[0], headers, null, attrs, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, true,Long.MAX_VALUE,
+						Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.ignore.scopes", null),false));
 				}
 				if(dialect==CFMLEngine.DIALECT_LUCEE)
 					pc.execute(requestURI, true,false);

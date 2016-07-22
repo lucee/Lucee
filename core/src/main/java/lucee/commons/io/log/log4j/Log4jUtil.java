@@ -26,9 +26,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.print;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.log4j.appender.ConsoleAppender;
+import lucee.commons.io.log.log4j.appender.DatasourceAppender;
 import lucee.commons.io.log.log4j.appender.RollingResourceAppender;
 import lucee.commons.io.log.log4j.appender.TaskAppender;
 import lucee.commons.io.log.log4j.layout.ClassicLayout;
@@ -111,7 +113,6 @@ public class Log4jUtil {
     
     public static final Appender getAppender(Config config,Layout layout,String name,ClassDefinition cd, Map<String, String> appenderArgs){
     	if(appenderArgs==null)appenderArgs=new HashMap<String, String>();
-    	
     	// Appender
 		Appender appender=null;
 		if(cd!=null && cd.hasClass()) {
@@ -139,6 +140,37 @@ public class Log4jUtil {
 					else pw=config.getOutWriter();
 				}
 				appender = new ConsoleAppender(pw,layout);
+			}
+			else if(DatasourceAppender.class.getName().equalsIgnoreCase(cd.getClassName())) {
+				
+				// datasource
+				String dsn = Caster.toString(appenderArgs.get("datasource"),null);
+				if(StringUtil.isEmpty(dsn,true)) 
+					dsn = Caster.toString(appenderArgs.get("datasourceName"),null);
+				if(!StringUtil.isEmpty(dsn,true)) dsn=dsn.trim();
+				appenderArgs.put("datasource",dsn);
+				
+				// username
+				String user = Caster.toString(appenderArgs.get("username"),null);
+				if(StringUtil.isEmpty(user,true)) 
+					user = Caster.toString(appenderArgs.get("user"),null);
+				if(!StringUtil.isEmpty(user,true)) user=user.trim();
+				else user=null;
+				appenderArgs.put("username",user);
+				
+				// password
+				String pass = Caster.toString(appenderArgs.get("password"),null);
+				if(StringUtil.isEmpty(pass,true)) 
+					pass = Caster.toString(appenderArgs.get("pass"),null);
+				if(!StringUtil.isEmpty(pass,true)) pass=pass.trim();
+				else pass=null;
+				appenderArgs.put("password",pass);
+				
+				try {
+					appender = new DatasourceAppender(config, layout, dsn, user, pass);
+				} catch (PageException e) {e.printStackTrace();
+					appender = null;
+				}
 			}
 			else if(RollingResourceAppender.class.getName().equalsIgnoreCase(cd.getClassName())) {
 				
@@ -216,7 +248,6 @@ public class Log4jUtil {
 				}
 			}
 		}
-		
 		if(appender instanceof AppenderSkeleton) {
 			((AppenderSkeleton)appender).activateOptions();
 		}
@@ -234,6 +265,7 @@ public class Log4jUtil {
     public static ClassDefinition<Appender> appenderClassDefintion(String className) {
     	if("console".equalsIgnoreCase(className))return new ClassDefinitionImpl( ConsoleAppender.class);
     	if("resource".equalsIgnoreCase(className))return new ClassDefinitionImpl( RollingResourceAppender.class);
+    	if("datasource".equalsIgnoreCase(className))return new ClassDefinitionImpl( DatasourceAppender.class);
     		
     	return new ClassDefinitionImpl( className);
     }

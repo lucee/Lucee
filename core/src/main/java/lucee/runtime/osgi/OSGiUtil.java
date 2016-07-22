@@ -107,14 +107,20 @@ public class OSGiUtil {
 	 * @throws BundleException
 	 */
 	private static Bundle _loadBundle(BundleContext context,String path, InputStream is, boolean closeStream) throws BundleException {
-		
 		log(Log.LEVEL_INFO,"add bundle:" + path);
+		
 		try {
-			return BundleUtil.installBundle(context, path, is);
-			//return context.installBundle(path, is);
+			// we make this very simply so an old loader that is calling this still works
+			return context.installBundle(path, is);
 		}
 		finally {
-			if(closeStream)CFMLEngineFactory.closeEL(is);
+			// we make this very simply so an old loader that is calling this still works
+			if(closeStream && is!=null){
+				try {
+					is.close();
+				}
+				catch(Throwable t) {}
+			}
 		}
 	}
 	
@@ -1012,14 +1018,26 @@ public class OSGiUtil {
 	
 
 	private static void log(int level, String msg) {
-		Config config = ThreadLocalPageContext.getConfig();
-		Log log = config!=null?config.getLog("application"):null;
-		if(log!=null) log.log(level, "OSGi", msg);
+		try {
+			Config config = ThreadLocalPageContext.getConfig();
+			Log log = config!=null?config.getLog("application"):null;
+			if(log!=null) log.log(level, "OSGi", msg);
+		}
+		catch(Throwable t) {
+			/* this can fail when called from an old loader */
+			System.out.println(msg);
+		}
 	}
 	private static void log(Throwable t) {
-		Config config = ThreadLocalPageContext.getConfig();
-		Log log = config!=null?config.getLog("application"):null;
-		if(log!=null) log.log(Log.LEVEL_ERROR, "OSGi", t);
+		try {
+			Config config = ThreadLocalPageContext.getConfig();
+			Log log = config!=null?config.getLog("application"):null;
+			if(log!=null) log.log(Log.LEVEL_ERROR, "OSGi", t);
+		}
+		catch(Throwable _t) {
+			/* this can fail when called from an old loader */
+			System.out.println(t.getMessage());
+		}
 	}
 
 

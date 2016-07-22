@@ -34,6 +34,7 @@ public final class ThreadLocalPageContext {
 	private static final Locale DEFAULT_LOCALE = Locale.getDefault();
 	private static final TimeZone DEFAULT_TIMEZONE = TimeZone.getDefault();
 	private static ThreadLocal<PageContext> pcThreadLocal=new ThreadLocal<PageContext>();
+	public final static CallOnStart callOnStart=new CallOnStart();
 
 	/**
 	 * register a pagecontext for he current thread
@@ -144,5 +145,15 @@ public final class ThreadLocalPageContext {
 		if(pc!=null && pc.getConfig()==config) return pc;
 		return null;
 	}
+	
+	
+	public static class CallOnStart extends ThreadLocal<Boolean> {
 
+		@Override
+		protected Boolean initialValue() {
+			return Boolean.TRUE;
+		}
+		
+	}
+	
 }
