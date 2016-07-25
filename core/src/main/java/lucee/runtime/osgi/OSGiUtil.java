@@ -699,7 +699,7 @@ public class OSGiUtil {
 	 * @return
 	 * @throws BundleException 
 	 */
-	public static void removeLocalBundle(String name, Version version, boolean removePhysical) throws BundleException {
+	public static void removeLocalBundle(String name, Version version, boolean removePhysical, boolean doubleTap) throws BundleException {
 		name=name.trim();
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
     	CFMLEngineFactory factory = engine.getCFMLEngineFactory();
@@ -716,23 +716,20 @@ public class OSGiUtil {
         	}
     	}
     	
-    	// stop loaded bundle
-    	/*BundleContext bc = engine.getBundleContext();
-    	Bundle[] bundles = bc.getBundles();
-    	for(Bundle b:bundles){
-    		if(name.equalsIgnoreCase(b.getSymbolicName())) {
-    			if(version==null || version.equals(b.getVersion())) {
-    				stopIfNecessary(b);
-    				b.uninstall();
-    			}
-    		}
-    	}*/
-    	
     	if(!removePhysical) return;
     	
     	// remove file
-    	if(bf!=null) bf.getFile().delete();
+    	if(bf!=null) {
+    		if(!bf.getFile().delete() && doubleTap) bf.getFile().deleteOnExit();
+    	}
     }
+	
+	public static void removeLocalBundleSilently(String name, Version version, boolean removePhysical) {
+		try {
+			removeLocalBundle(name, version, removePhysical, true);
+		}
+		catch (Throwable t) {}
+	}
 
 	// bundle stuff
 	public static void startIfNecessary(Bundle[] bundles) throws BundleException {

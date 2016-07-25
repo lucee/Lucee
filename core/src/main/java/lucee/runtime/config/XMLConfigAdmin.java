@@ -5440,20 +5440,6 @@ public final class XMLConfigAdmin {
 		
 	}
 
-	
-	public void removeBundles(String[] arr, boolean removePhysical) throws BundleException {
-		String str;
-		int index;
-		if(!ArrayUtil.isEmpty(arr)) for(int n=0;n<arr.length;n++){
-			str=arr[n];
-			index=str.indexOf(':');
-			if(index!=-1) {// only use specific bundles (with a version)
-				OSGiUtil.removeLocalBundle(str.substring(0,index).trim(),OSGiUtil.toVersion(str.substring(index+1).trim()),removePhysical);
-			}
-		}
-		
-	}
-
 	class MyResourceNameFilter implements ResourceNameFilter {
 		private String name;
 		public MyResourceNameFilter(String name){
@@ -6077,7 +6063,7 @@ public final class XMLConfigAdmin {
 
 		// now we only have BundlesDefs in the array no longer used
 		for(BundleDefinition ctr:candiatesToRemove) {
-			if(ctr!=null)OSGiUtil.removeLocalBundle(ctr.getName(), ctr.getVersion(), true);
+			if(ctr!=null)OSGiUtil.removeLocalBundleSilently(ctr.getName(), ctr.getVersion(), true);
 		}
 	}
 
