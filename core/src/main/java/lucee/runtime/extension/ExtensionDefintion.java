@@ -5,7 +5,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.osgi.framework.Version;
+
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.osgi.OSGiUtil;
 
 public class ExtensionDefintion {
 
@@ -43,6 +46,13 @@ public class ExtensionDefintion {
 		if(StringUtil.isEmpty(version)) return null;
 		return version;
 	}
+
+	public Version getSince() {
+		String since = params.get("since");
+		if(StringUtil.isEmpty(since)) return null;
+		return OSGiUtil.toVersion(since, null);
+	}
+
 	public String toString(){
 		StringBuilder sb=new StringBuilder();
 		sb.append(getId());

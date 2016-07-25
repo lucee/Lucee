@@ -158,6 +158,7 @@ import lucee.runtime.video.VideoUtilImpl;
 import org.apache.felix.framework.Felix;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.Version;
 
 //import com.intergral.fusiondebug.server.FDControllerFactory;
 
@@ -283,14 +284,19 @@ public final class CFMLEngineImpl implements CFMLEngine {
         		ed = it.next();
         		if(ed.getVersion()==null) {
         			continue; // no version definition no update
-        			// MUST check if exension has a since thatis nwer than the old version...
         		}
         		try{
         			rhe = XMLConfigAdmin.hasRHExtensions(cs, new ExtensionDefintion(ed.getId()));
-        			if(rhe==null) continue; // not installed we do not update
+        			if(rhe==null) {
+        				Version since=ed.getSince();
+        				
+        				if(since==null || updateInfo.oldVersion==null || !Util.isNewerThan(since, updateInfo.oldVersion)) 
+        					continue; // not installed we do not update
+        				extensions.add(ed);
+        			}
         			
         			// if the installed is older than the one defined in the manifest we update (if possible)
-        			if(!rhe.getVersion().equals(ed.getVersion())) 
+        			else if(!rhe.getVersion().equals(ed.getVersion())) 
         				extensions.add(ed);
         		}
         		catch(Throwable t){
