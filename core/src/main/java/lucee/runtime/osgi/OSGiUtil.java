@@ -88,7 +88,7 @@ public class OSGiUtil {
 			BundleFile bf=new BundleFile(bundle);
 			if(!bf.isBundle()) throw new BundleException(bundle+" is not a valid bundle!");
 			
-			Bundle existing = loadBundleFromLocal(context,bf.getSymbolicName(),bf.getVersion(),null);
+			Bundle existing = loadBundleFromLocal(context,bf.getSymbolicName(),bf.getVersion(),false,null);
 			if(existing!=null) return existing;
 		}
 		
@@ -107,14 +107,20 @@ public class OSGiUtil {
 	 * @throws BundleException
 	 */
 	private static Bundle _loadBundle(BundleContext context,String path, InputStream is, boolean closeStream) throws BundleException {
-		
 		log(Log.LEVEL_INFO,"add bundle:" + path);
+		
 		try {
-			return BundleUtil.installBundle(context, path, is);
-			//return context.installBundle(path, is);
+			// we make this very simply so an old loader that is calling this still works
+			return context.installBundle(path, is);
 		}
 		finally {
-			if(closeStream)CFMLEngineFactory.closeEL(is);
+			// we make this very simply so an old loader that is calling this still works
+			if(closeStream && is!=null){
+				try {
+					is.close();
+				}
+				catch(Throwable t) {}
+			}
 		}
 	}
 	
@@ -333,7 +339,30 @@ public class OSGiUtil {
 		return defaultValue;
 	}
 		
+	public static Bundle loadBundle(BundleFile bf, Bundle defaultValue) {
+    	if(!bf.isBundle()) return defaultValue;
+    	
+		try {
+			return loadBundle(bf);
+		} catch (Exception e) {
+			return defaultValue;
+		}
+    }
 	
+	public static Bundle loadBundle(BundleFile bf) throws IOException, BundleException {
+    	
+		CFMLEngine engine = CFMLEngineFactory.getInstance();
+    	
+    	// check in loaded bundles
+    	BundleContext bc = engine.getBundleContext();
+    	Bundle[] bundles = bc.getBundles();
+    	for(Bundle b:bundles){
+    		if(bf.getSymbolicName().equals(b.getSymbolicName())) {
+    			if(b.getVersion().equals(bf.getVersion())) return b;
+    		}
+    	}
+    	return _loadBundle(bc, bf.getFile());
+    }
 	
 	public static Bundle loadBundle(String name, Version version,Identification id, boolean startIfNecessary) throws BundleException {
 		name=name.trim();
@@ -347,6 +376,7 @@ public class OSGiUtil {
     	Bundle[] bundles = bc.getBundles();
     	StringBuilder versionsFound=new StringBuilder();
     	for(Bundle b:bundles){
+    		
     		if(name.equalsIgnoreCase(b.getSymbolicName())) {
     			if(version==null || version.equals(b.getVersion())) {
     				if(startIfNecessary)startIfNecessary(b);
@@ -386,17 +416,11 @@ public class OSGiUtil {
     	String localDir="";
     	try {
 			localDir = " ("+factory.getBundleDirectory()+")";
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		} catch (IOException e) {}
     	String upLoc="";
     	try {
     		upLoc = " ("+factory.getUpdateLocation()+")";
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		} catch (IOException e) {}
     	
     	if(versionsFound.length()>0)
     		throw new BundleException("The OSGi Bundle with name ["+name+"] is not available in version ["+version+"] locally"+localDir+" or from the update provider"+upLoc+", the following versions are available locally ["+versionsFound+"].");
@@ -474,27 +498,91 @@ public class OSGiUtil {
 			
     		// first we check if there is a file match (fastest solution)
 			if(version!=null){
-				File jar = new File(dir, name + "-"
-					+ version.toString().replace('.', '-') + (".jar"));
-				if(jar.exists()) {
-					BundleFile bf=new BundleFile(jar);
+				File[] jars = new File[]{ 
+						new File(dir, name + "-"+ version.toString() + (".jar")),
+						new File(dir, name + "-"+ version.toString().replace('.', '-') + (".jar"))
+				};
+				for(int i=0;i<jars.length;i++) {
+					File jar=jars[i];
+					if(jar.exists()) {
+						BundleFile bf=new BundleFile(jar);
+						if(bf.isBundle() && name.equalsIgnoreCase(bf.getSymbolicName())) {
+							if(version.equals(bf.getVersion())) {
+								return bf;
+			    			}
+						}
+					}
+				}
+			}
+			
+			File[] children = dir.listFiles(JAR_EXT_FILTER);
+	    	
+			// now we make a closer filename test
+			String curr;
+			if(version!=null) {
+				File match=null;
+		    	String v=version.toString();
+				for(int i=0;i<children.length;i++){
+		    		curr=children[i].getName();
+		    		if(
+			    			curr.equalsIgnoreCase(name+"-"+v.replace('-', '.')) ||
+			    			curr.equalsIgnoreCase(name.replace('.', '-')+"-"+v) ||
+			    			curr.equalsIgnoreCase(name.replace('.', '-')+"-"+v.replace('.', '-')) ||
+			    			curr.equalsIgnoreCase(name.replace('.', '-')+"-"+v.replace('-', '.')) ||
+			    			curr.equalsIgnoreCase(name.replace('-', '.')+"-"+v) ||
+			    			curr.equalsIgnoreCase(name.replace('-', '.')+"-"+v.replace('.', '-')) ||
+			    			curr.equalsIgnoreCase(name.replace('-', '.')+"-"+v.replace('-', '.'))
+		    		) {
+		    			match=children[i];
+		    			break;
+		    		}
+		    	}
+		    	if(match!=null) {
+		    		BundleFile bf=new BundleFile(match);
 					if(bf.isBundle() && name.equalsIgnoreCase(bf.getSymbolicName())) {
 						if(version.equals(bf.getVersion())) {
 							return bf;
 		    			}
 					}
-				}
+		    	}
 			}
-			
+			else {
+				List<BundleFile> matches=new ArrayList<BundleFile>();
+				BundleFile bf;
+		    	for(int i=0;i<children.length;i++){
+		    		curr=children[i].getName();
+		    		if(
+			    			curr.startsWith(name+"-") ||
+			    			curr.startsWith(name.replace('-', '.')+"-") ||
+			    			curr.startsWith(name.replace('.', '-')+"-")
+		    		) {
+		    			bf=new BundleFile(children[i]);
+		    			if(bf.isBundle() && name.equalsIgnoreCase(bf.getSymbolicName())) {
+							matches.add(bf);
+						}
+		    		}
+		    	}
+		    	if(!matches.isEmpty()) {
+		    		bf=null; BundleFile _bf;
+					Iterator<BundleFile> it = matches.iterator();
+		    		while(it.hasNext()) {
+		    			_bf=it.next();
+		    			if(bf==null || Util.isNewerThan(_bf.getVersion(),bf.getVersion()))
+		    				bf=_bf;
+		    		}
+		    		if(bf!=null) {
+						return bf;
+	    			}
+		    	}
+			}
+	    	
 			// now we check by Manifest comparsion
-			File[] children = dir.listFiles(JAR_EXT_FILTER);
-	    	BundleFile bf;
+			BundleFile bf;
 	    	for(int i=0;i<children.length;i++){
 	    		bf=new BundleFile(children[i]);
-	    		
 	    		if(bf.isBundle() && name.equalsIgnoreCase(bf.getSymbolicName())) {
 	    			if(version==null || version.equals(bf.getVersion())) {
-						return bf;
+	    				return bf;
 	    			}
 	    			if(versionsFound!=null) {
 	    				if(versionsFound.length()>0) versionsFound.append(", ");
@@ -502,6 +590,8 @@ public class OSGiUtil {
 	    			}
 	    		}
 	    	}
+	    	
+	    	
     	}
     	catch(Exception e){}
 		return null;
@@ -568,18 +658,15 @@ public class OSGiUtil {
     	}
     	return defaultValue;
     }
-
-	public static Bundle loadBundleFromLocal(String name, Version version, Bundle defaultValue) {
+	
+	public static Bundle loadBundleFromLocal(String name, Version version, boolean loadIfNecessary, Bundle defaultValue) {
 		CFMLEngine engine = ConfigWebUtil.getEngine(ThreadLocalPageContext.getConfig());
-		return loadBundleFromLocal(engine.getBundleContext(), name, version, defaultValue);
+		return loadBundleFromLocal(engine.getBundleContext(), name, version,loadIfNecessary, defaultValue);
 	}
 	
 	
-	public static Bundle loadBundleFromLocal(BundleContext bc,String name, Version version, Bundle defaultValue) {
+	public static Bundle loadBundleFromLocal(BundleContext bc,String name, Version version, boolean loadIfNecessary, Bundle defaultValue) {
 		name=name.trim();
-		
-		
-    	
     	Bundle[] bundles = bc.getBundles();
     	for(Bundle b:bundles){
     		if(name.equalsIgnoreCase(b.getSymbolicName())) {
@@ -588,6 +675,7 @@ public class OSGiUtil {
     			}
     		}
     	}
+    	if(!loadIfNecessary) return defaultValue;
     	
     	// is it in jar directory but not loaded
     	
@@ -873,7 +961,7 @@ public class OSGiUtil {
 		
 		public Bundle getLocalBundle() {
 			if(bundle==null) {
-				bundle=OSGiUtil.loadBundleFromLocal(name, version, null);
+				bundle=OSGiUtil.loadBundleFromLocal(name, version,true, null);
 			}
 			return bundle;
 		}
@@ -930,14 +1018,26 @@ public class OSGiUtil {
 	
 
 	private static void log(int level, String msg) {
-		Config config = ThreadLocalPageContext.getConfig();
-		Log log = config!=null?config.getLog("application"):null;
-		if(log!=null) log.log(level, "OSGi", msg);
+		try {
+			Config config = ThreadLocalPageContext.getConfig();
+			Log log = config!=null?config.getLog("application"):null;
+			if(log!=null) log.log(level, "OSGi", msg);
+		}
+		catch(Throwable t) {
+			/* this can fail when called from an old loader */
+			System.out.println(msg);
+		}
 	}
 	private static void log(Throwable t) {
-		Config config = ThreadLocalPageContext.getConfig();
-		Log log = config!=null?config.getLog("application"):null;
-		if(log!=null) log.log(Log.LEVEL_ERROR, "OSGi", t);
+		try {
+			Config config = ThreadLocalPageContext.getConfig();
+			Log log = config!=null?config.getLog("application"):null;
+			if(log!=null) log.log(Log.LEVEL_ERROR, "OSGi", t);
+		}
+		catch(Throwable _t) {
+			/* this can fail when called from an old loader */
+			System.out.println(t.getMessage());
+		}
 	}
 
 

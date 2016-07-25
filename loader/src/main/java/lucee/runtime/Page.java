@@ -26,7 +26,6 @@ import java.lang.ref.SoftReference;
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
-import lucee.loader.util.Util;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Struct;

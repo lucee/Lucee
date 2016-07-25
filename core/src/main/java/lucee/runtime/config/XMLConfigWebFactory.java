@@ -217,8 +217,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	public static ConfigWebImpl newInstance(CFMLEngine engine, CFMLFactoryImpl factory, ConfigServerImpl configServer, Resource configDir, boolean isConfigDirACustomSetting,
 			ServletConfig servletConfig) throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, NoSuchAlgorithmException, BundleException {
-		
-		
+
 		String hash = SystemUtil.hash(servletConfig.getServletContext());
 		Map<String, String> labels = configServer.getLabels();
 		String label = null;
@@ -333,8 +332,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		cw.reset();
 		load(cs, cw, doc, true, doNew);
 		createContextFilesPost(configDir, cw, null, false, doNew);
-		((CFMLEngineImpl)ConfigWebUtil.getEngine(cw)).onStart(cw,true);
-		
 	}
 
 	private static long second(long ms) {

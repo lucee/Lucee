@@ -63,14 +63,15 @@ public class BundleUtil {
 			throws IOException, BundleException {
 
 		// if possible use that feature from core, it is smarter (can also load relations)
+		/* we no longer use this code, becaue it cause problem when the core is resatrted
 		ClassUtil cu = null;
 		try {
 			cu = CFMLEngineFactory.getInstance().getClassUtil();
-		} catch (final Throwable t) {
-		}
+		} 
+		catch (final Throwable t) {}
 		if (cu != null)
 			return cu.addBundle(context, is, closeIS, true);
-
+		*/
 		if (log != null)
 			log.info("OSGI", "add bundle:" + path);
 		else {
@@ -101,6 +102,8 @@ public class BundleUtil {
 
 	public static void start(final CFMLEngineFactory factory,
 			final Bundle bundle) throws BundleException {
+		
+		/* we no longer use this code, becaue it cause problem when the core is resatrted
 		ClassUtil cu = null;
 		try {
 			cu = CFMLEngineFactory.getInstance().getClassUtil();
@@ -109,7 +112,7 @@ public class BundleUtil {
 		if (cu != null) {
 			cu.start(bundle);
 			return;
-		}
+		}*/
 
 		final String fh = bundle.getHeaders().get("Fragment-Host");
 		if (!Util.isEmpty(fh)) {

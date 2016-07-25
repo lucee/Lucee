@@ -267,7 +267,9 @@ public interface Creation {
 
 	public abstract PageContext createPageContext(HttpServletRequest req,
 			HttpServletResponse rsp, OutputStream out);
-
+	
+	// FUTURE public ServletConfig createServletConfig(File root, Map<String, Object> attributes, Map<String, String> params) 
+	
 	/**
 	 * creates a component object from (Full)Name, for example
 	 * lucee.extensions.net.HTTPUtil

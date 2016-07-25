@@ -23,15 +23,19 @@ package lucee.runtime.op;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import lucee.cli.servlet.ServletConfigImpl;
+import lucee.cli.servlet.ServletContextImpl;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -269,6 +273,18 @@ public final class CreationImpl implements Creation,Serializable {
 	@Override
 	public HttpServletResponse createHttpServletResponse(OutputStream io) {
 		return new HttpServletResponseDummy(io);
+	}
+	
+	// FUTURE add to interface
+	public ServletConfig createServletConfig(File root, Map<String, Object> attributes, Map<String, String> params) {
+		final String servletName = "";
+		if(attributes==null)attributes = new HashMap<String, Object>();
+		if(params==null)params = new HashMap<String, String>();
+		if(root==null)root = new File("."); // working directory that the java command was called from
+
+		final ServletContextImpl servletContext = new ServletContextImpl(root, attributes, params, 1, 0);
+		final ServletConfigImpl servletConfig = new ServletConfigImpl(servletContext, servletName);
+		return servletConfig;
 	}
 
 	@Override

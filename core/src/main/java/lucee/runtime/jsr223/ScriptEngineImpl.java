@@ -175,7 +175,7 @@ public class ScriptEngineImpl implements ScriptEngine {
 	private PageContext createPageContext() {
 		try {
 			File root = new File(factory.engine.getCFMLEngineFactory().getResourceRoot(),"jsr223-webroot");
-			return PageContextUtil.getPageContext(root,"localhost", "/index.cfm", "", null, null, null, null, System.out, false,Long.MAX_VALUE,
+			return PageContextUtil.getPageContext(null,null,root,"localhost", "/index.cfm", "", null, null, null, null, System.out, false,Long.MAX_VALUE,
 					Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.ignore.scopes", null),false));
 		}
 		catch (Exception e) {

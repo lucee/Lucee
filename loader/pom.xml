@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.1.0.19-SNAPSHOT</version>
+  <version>5.1.0.20-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -376,7 +376,7 @@
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>commons-fileupload</artifactId>
-  	<version>1.3.2</version>
+  	<version>1.3.2.L0001</version>
     <scope>provided</scope>
   </dependency>
 	<dependency>
