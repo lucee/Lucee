@@ -45,7 +45,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals('.domain.com',sct.domain);
 		assertTrue(structKeyExists(sct,'Expires'));
 		local.res=parseDateTime(sct.expires);
-		assertTrue(dateAdd('s',10,now())==res || dateAdd('s',11,now())==res);
+		assertEquals(dateAdd('s',10,now()),res);
+		//assertTrue(dateAdd('s',10,now())==res || dateAdd('s',11,now())==res);
 	}
 
 
