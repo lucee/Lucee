@@ -18,9 +18,16 @@
  **/
 package lucee.runtime.tag;
 
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
+import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
+import lucee.runtime.listener.CookieData;
+import lucee.runtime.listener.SessionCookieData;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.util.KeyConstants;
 
 /**
 * Defines cookie variables, including expiration and security options.
@@ -152,7 +159,20 @@ public final class Cookie extends TagImpl {
 
 	@Override
 	public int doStartTag() throws PageException	{
-		pageContext.cookieScope().setCookie(KeyImpl.getInstance(name),value,expires,secure,path,domain,httponly,preservecase,encode);
+		Key key = KeyImpl.getInstance(name);
+		String appName = Login.getApplicationName(pageContext.getApplicationContext());
+		boolean isAppName=false;
+		if(KeyConstants._CFID.equalsIgnoreCase(key) || KeyConstants._CFTOKEN.equalsIgnoreCase(key) || (isAppName=key.equals(appName))) {
+			ApplicationContext ac = pageContext.getApplicationContext();
+			if(ac instanceof ApplicationContextSupport) {
+				ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+				CookieData data = isAppName?acs.getAuthCookie():acs.getSessionCookie();
+				if(data!=null && data.isDisableUpdate()) 
+					throw new ExpressionException("customize "+key+" is disabled!");
+				
+			}
+		}
+		pageContext.cookieScope().setCookie(key,value,expires,secure,path,domain,httponly,preservecase,encode);
 		return SKIP_BODY;
 	}
 

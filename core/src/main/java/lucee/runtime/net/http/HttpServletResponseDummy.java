@@ -270,11 +270,13 @@ public final class HttpServletResponseDummy implements HttpServletResponse,Seria
 
 	@Override
 	public Collection<String> getHeaders(String name) {
-		String value = getHeader(name);
-		if(value==null) return null;
 		Set<String> values=new HashSet<String>();
-		values.add(value);
-		return values;
+		for(int i=0;i<headers.length;i++){
+			if(headers[i].getName().equals(name)) {
+				values.add(Caster.toString(headers[i].getValue(),null));
+			}	
+		}
+		return values.size()==0?null:values;
 	}
 	
 	@Override

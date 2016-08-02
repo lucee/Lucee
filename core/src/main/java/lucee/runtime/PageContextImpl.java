@@ -123,6 +123,8 @@ import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.ModernAppListener;
 import lucee.runtime.listener.ModernAppListenerException;
+import lucee.runtime.listener.SessionCookieData;
+import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.monitor.RequestMonitor;
 import lucee.runtime.net.ftp.FTPPoolImpl;
 import lucee.runtime.net.http.HTTPServletRequestWrap;
@@ -153,6 +155,8 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.UDFPlus;
+import lucee.runtime.type.dt.TimeSpan;
+import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.it.ItAsEnum;
 import lucee.runtime.type.ref.Reference;
 import lucee.runtime.type.ref.VariableReference;
@@ -2461,10 +2465,37 @@ public final class PageContextImpl extends PageContext {
 
 
 	private void setClientCookies() {
-
+		TimeSpan tsExpires = SessionCookieDataImpl.DEFAULT.getTimeout();
 		String domain = PageContextUtil.getCookieDomain( this );
-		cookieScope().setCookieEL( KeyConstants._cfid, cfid, CookieImpl.NEVER,false, "/", domain, true, true, false );
-		cookieScope().setCookieEL( KeyConstants._cftoken, cftoken, CookieImpl.NEVER,false, "/", domain, true, true, false );
+		boolean httpOnly=SessionCookieDataImpl.DEFAULT.isHttpOnly();
+		boolean secure=SessionCookieDataImpl.DEFAULT.isSecure();
+		
+		ApplicationContext ac = getApplicationContext();
+		
+		if(ac instanceof ApplicationContextSupport) {
+			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+			SessionCookieData data = acs.getSessionCookie();
+			if(data!=null) {
+				// expires
+				TimeSpan ts = data.getTimeout();
+				if(ts!=null) tsExpires=ts;
+				// httpOnly
+				httpOnly=data.isHttpOnly();
+				// secure
+				secure=data.isSecure();
+				// domain
+				String tmp=data.getDomain();
+				if(!StringUtil.isEmpty(tmp,true)) domain=tmp.trim();
+			}
+		}
+		int expires;
+		long tmp=tsExpires.getSeconds();
+		if(Integer.MAX_VALUE<tmp) expires=Integer.MAX_VALUE;
+		else expires=(int)tmp;
+		
+		cookieScope().setCookieEL( KeyConstants._cfid, cfid,       expires,secure, "/", domain, httpOnly, true, false );
+		cookieScope().setCookieEL( KeyConstants._cftoken, cftoken, expires,secure, "/", domain, httpOnly, true, false );
+
 	}
 	
 

@@ -122,7 +122,11 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Collection.Key TYPE_CHECKING = KeyImpl.intern("typeChecking");
 	private static final Collection.Key CGI_READONLY = KeyImpl.intern("CGIReadOnly");;
 	private static final Collection.Key SUPPRESS_CONTENT = KeyImpl.intern("suppressRemoteComponentContent");
+	
 
+	private static final Collection.Key SESSION_COOKIE = KeyImpl.intern("sessioncookie");
+	private static final Collection.Key AUTH_COOKIE = KeyImpl.intern("authcookie");
+	
 	private static Map<String,CacheConnection> initCacheConnections=new ConcurrentHashMap<String, CacheConnection>();
 
 	
@@ -171,6 +175,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean sameURLFieldAsArray;
 	private Map<String,CustomType> customTypes;	
 	private boolean cgiScopeReadonly;
+	private SessionCookieData sessionCookie;
+	private AuthCookieData authCookie;
 	
 	private boolean initCustomTypes;
 	private boolean initCachedWithins;
@@ -224,6 +230,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private CharSet resourceCharset;
 	private boolean initResourceCharset;
 	private boolean initCGIScopeReadonly;
+	private boolean initSessionCookie;
+	private boolean initAuthCookie;
 	
 	
 	private Resource[] restCFCLocations;
@@ -1482,5 +1490,37 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public void setCGIScopeReadonly(boolean cgiScopeReadonly) {
 		initCGIScopeReadonly=true;
 		this.cgiScopeReadonly=cgiScopeReadonly;
+	}
+
+	@Override
+	public SessionCookieData getSessionCookie() {
+		if(!initSessionCookie) {
+			Struct sct = Caster.toStruct(get(component,SESSION_COOKIE,null),null);
+			if(sct!=null)sessionCookie=AppListenerUtil.toSessionCookie(config,sct);
+			initSessionCookie=true; 
+		}
+		return sessionCookie;
+	}
+	
+	@Override
+	public AuthCookieData getAuthCookie() {
+		if(!initAuthCookie) {
+			Struct sct = Caster.toStruct(get(component,AUTH_COOKIE,null),null);
+			if(sct!=null)authCookie=AppListenerUtil.toAuthCookie(config,sct);
+			initAuthCookie=true; 
+		}
+		return authCookie;
+	}
+	
+	@Override
+	public void setSessionCookie(SessionCookieData data) {
+		sessionCookie=data;
+		initSessionCookie=true;
+	}
+
+	@Override
+	public void setAuthCookie(AuthCookieData data) {
+		authCookie=data;
+		initAuthCookie=true;
 	}
 }

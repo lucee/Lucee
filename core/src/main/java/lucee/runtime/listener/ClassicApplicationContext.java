@@ -112,6 +112,10 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private short wstype;
 	private boolean cgiScopeReadonly;
 
+	private SessionCookieData sessionCookie;
+
+	private AuthCookieData authCookie;
+
     
     /**
      * constructor of the class
@@ -220,6 +224,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.clientCluster=clientCluster;
 		dbl.source=source;
 		dbl.cgiScopeReadonly=cgiScopeReadonly;
+		dbl.sessionCookie=sessionCookie;
+		dbl.authCookie=authCookie;
 		
 		return dbl;
 	}
@@ -813,6 +819,26 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setCGIScopeReadonly(boolean cgiScopeReadonly) {
 		this.cgiScopeReadonly=cgiScopeReadonly;
+	}
+
+	@Override
+	public SessionCookieData getSessionCookie() {
+		return sessionCookie;
+	}
+
+	@Override
+	public void setSessionCookie(SessionCookieData data) {
+		sessionCookie=data;
+	}
+
+	@Override
+	public AuthCookieData getAuthCookie() {
+		return authCookie;
+	}
+
+	@Override
+	public void setAuthCookie(AuthCookieData data) {
+		authCookie=data;
 	}
 
 }

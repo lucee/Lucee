@@ -131,23 +131,17 @@ public class InternalRequest implements Function {
 			Collection.Key name;
 			headers=new StructImpl();
 			Iterator<String> it = rsp.getHeaderNames().iterator();
-			Object value;
-			Array arr;
+			java.util.Collection<String> values;
 			while(it.hasNext()){
 				name=KeyImpl.init(it.next());
-				value=rsp.getHeaders(name.getString());
-				if(Decision.isSimpleValue(value))
-					headers.set(name, value);
-				else {
-					arr = Caster.toArray(value,null);
-					if(arr!=null){
-						if(arr.size()>1)
-							headers.set(name, arr);
-						else
-							headers.set(name, arr.getE(1));
-					}
-					else headers.set(name, value);
-				}	
+				values=rsp.getHeaders(name.getString());
+				if(values==null || values.size()==0) continue;
+				
+				
+				if(values.size()>1)
+					headers.set(name, Caster.toArray(values));
+				else
+					headers.set(name, values.iterator().next());	
 			}
 			
 			

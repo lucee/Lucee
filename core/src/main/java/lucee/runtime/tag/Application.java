@@ -39,8 +39,10 @@ import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
+import lucee.runtime.listener.AuthCookieData;
 import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.ModernApplicationContext;
+import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMUtil;
 import lucee.runtime.type.Collection.Key;
@@ -50,6 +52,7 @@ import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.UndefinedImpl;
+import lucee.runtime.type.scope.session.SessionCookie;
 import lucee.runtime.type.util.KeyConstants;
 
 /**
@@ -126,6 +129,8 @@ public final class Application extends TagImpl {
 	private short scopeCascading=-1;
 	private Boolean suppress;
 	private boolean cgiReadOnly=true;
+	private SessionCookieData sessionCookie;
+	private AuthCookieData authCookie;
 
      
     @Override
@@ -189,6 +194,8 @@ public final class Application extends TagImpl {
     	
     	onmissingtemplate=null;
     	scopeCascading=-1;
+    	authCookie=null;
+    	sessionCookie=null;
     }
     
     /** set the value setclientcookies
@@ -219,6 +226,14 @@ public final class Application extends TagImpl {
 	public void setSessionmanagement(boolean setSessionManagement)	{
 		this.setSessionManagement=setSessionManagement?Boolean.TRUE:Boolean.FALSE;
 	    //getAppContext().setSetSessionManagement(setSessionManagement);
+	}
+
+	public void setSessioncookie(Struct data)	{
+		this.sessionCookie=AppListenerUtil.toSessionCookie(pageContext.getConfig(), data);
+	}
+	
+	public void setAuthcookie(Struct data)	{
+		this.authCookie=AppListenerUtil.toAuthCookie(pageContext.getConfig(), data);
 	}
 
     
@@ -648,6 +663,14 @@ public final class Application extends TagImpl {
 		if(cacheHTTP!=null) 					ac.setDefaultCacheName(Config.CACHE_TYPE_HTTP, cacheHTTP);
 		if(cacheFile!=null) 					ac.setDefaultCacheName(Config.CACHE_TYPE_FILE, cacheFile);
 		if(cacheWebservice!=null) 				ac.setDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE, cacheWebservice);
+		if(sessionCookie!=null) 				{
+			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+			acs.setSessionCookie(sessionCookie);
+		}
+		if(authCookie!=null) 				{
+			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+			acs.setAuthCookie(authCookie);
+		}
 		
 		if(tag!=null) ac.setTagAttributeDefaultValues(pageContext,tag);
 		ac.setClientCluster(clientCluster);

@@ -485,6 +485,21 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 - standard: scans the scopes variables,cgi,url,form,cookie
 			</description>
 		</attribute>
+
+		<attribute>
+			<type>struct</type>
+			<name>authcookie</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>cfauthorization cookie behaviour</description>
+		</attribute>
+		<attribute>
+			<type>struct</type>
+			<name>sessioncookie</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>session cookie behaviour</description>
+		</attribute>
 		
 	</tag>	
 	
