@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.DispatcherType;
@@ -199,13 +200,13 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 	}
 
 	@Override
-	public void removeAttribute(String name) {
+	public synchronized void removeAttribute(String name) {
 		if(disconnected) disconnectData.attributes.remove(name); 
 		else req.removeAttribute(name);
 	}
 
 	@Override
-	public void setAttribute(String name, Object value) {
+	public synchronized void setAttribute(String name, Object value) {
 		if(disconnected) disconnectData.attributes.put(name, value);
 		else req.setAttribute(name, value);
 	}
@@ -216,13 +217,13 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 
 
 	@Override
-	public Object getAttribute(String name) {
+	public synchronized Object getAttribute(String name) {
 		if(disconnected) return disconnectData.attributes.get(name);
 		return req.getAttribute(name);
 	}
 
 	@Override
-	public Enumeration getAttributeNames() {
+	public synchronized Enumeration getAttributeNames() {
 		if(disconnected) {
 			return new EnumerationWrapper(disconnectData.attributes);
 		}
@@ -351,14 +352,14 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 		return req;
 	}
 
-	public void disconnect(PageContextImpl pc) {
+	public synchronized void disconnect(PageContextImpl pc) {
 		if(disconnected) return;
 		disconnectData=new DisconnectData();
 		
 		// attributes
 		{
 			Enumeration<String> attrNames = req.getAttributeNames();
-			disconnectData.attributes=new HashMap<String, Object>();
+			disconnectData.attributes=new ConcurrentHashMap<String, Object>();
 			String k;
 			while(attrNames.hasMoreElements()){
 				k=attrNames.nextElement();
@@ -369,7 +370,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 		// headers
 		{
 			Enumeration headerNames = req.getHeaderNames();
-			disconnectData.headers=new HashMap<Collection.Key, LinkedList<String>>();
+			disconnectData.headers=new ConcurrentHashMap<Collection.Key, LinkedList<String>>();
 			
 			String k;
 			Enumeration e;
