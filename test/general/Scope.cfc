@@ -49,7 +49,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				names=listAppend(names,"tghfjg"&i);
 				sleep(5);
 
-				thread name="t#i#" index="#i#" time=times[i] uri=uri cacheName=cacheName {
+				thread name="tghfjg#i#" index="#i#" time=times[i] uri=uri cacheName=cacheName {
 					request.data[index]=_InternalRequest(
 						addToken:true,
 						template:uri,
