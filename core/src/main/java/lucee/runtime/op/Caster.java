@@ -435,13 +435,15 @@ public final class Caster {
         	return ((Number)o).doubleValue();
         }
         else if(o instanceof Boolean) return ((Boolean)o).booleanValue()?1:0;
-        else if(o instanceof String) return toDoubleValue(o.toString(),true);
+        else if(o instanceof CharSequence) return toDoubleValue(o.toString(),true);
         //else if(o instanceof Clob) return toDoubleValue(toString(o));
         else if(o instanceof Castable) return ((Castable)o).castToDoubleValue();
         else if(o == null) return 0;//toDoubleValue("");
         else if(o instanceof ObjectWrap) return toDoubleValue(((ObjectWrap)o).getEmbededObject());
         else if(o instanceof Date) return DateTimeUtil.getInstance().toDoubleValue(((Date)o).getTime());
         else if(o instanceof Calendar) return DateTimeUtil.getInstance().toDoubleValue(((Calendar)o).getTimeInMillis());
+        else if(o instanceof Character) return toDoubleValue(o.toString(),true);
+        
         throw new CasterException(o,"number");
     }
 
@@ -599,7 +601,7 @@ public final class Caster {
     public static double toDoubleValue(Object o,boolean alsoFromDate,double defaultValue) {
         if(o instanceof Number) return ((Number)o).doubleValue();
         else if(o instanceof Boolean) return ((Boolean)o).booleanValue()?1:0;
-        else if(o instanceof String) return toDoubleValue(o.toString(),alsoFromDate,defaultValue);
+        else if(o instanceof CharSequence) return toDoubleValue(o.toString(),alsoFromDate,defaultValue);
         else if(o instanceof Castable) {
             return ((Castable)o).castToDoubleValue(defaultValue);
             
@@ -608,6 +610,7 @@ public final class Caster {
         else if(o instanceof ObjectWrap) return toDoubleValue(((ObjectWrap)o).getEmbededObject(new Double(defaultValue)),true,defaultValue);
         else if(o instanceof Date) return DateTimeUtil.getInstance().toDoubleValue(((Date)o).getTime());
         else if(o instanceof Calendar) return DateTimeUtil.getInstance().toDoubleValue(((Calendar)o).getTimeInMillis());
+        else if(o instanceof Character) return toDoubleValue(o.toString(),alsoFromDate,defaultValue);
         return defaultValue;
     }
     

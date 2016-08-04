@@ -110,7 +110,7 @@ public final class Decision {
 	 */
 	public static boolean isNumber(Object value) {
 		if(value instanceof Number) return true;
-		else if(value instanceof String) {
+		else if(value instanceof CharSequence || value instanceof Character) {
 			return isNumber(value.toString());
 		}
 		
