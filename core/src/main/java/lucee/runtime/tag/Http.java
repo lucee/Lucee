@@ -1195,17 +1195,17 @@ public final class Http extends BodyTagImpl {
                 	}
                     try {
                     	try{
-                    	str = is==null?"":IOUtil.toString(is,responseCharset);
+                    	str = is==null?"":IOUtil.toString(is,responseCharset,checkRemainingTimeout().getMillis());
                     	}
                     	catch(EOFException eof){
                     		if(is instanceof CachingGZIPInputStream) {
-                    			str = IOUtil.toString(is=((CachingGZIPInputStream)is).getRawData(),responseCharset);
+                    			str = IOUtil.toString(is=((CachingGZIPInputStream)is).getRawData(),responseCharset,checkRemainingTimeout().getMillis());
                     		}
                     		else throw eof;
                     	}
                     }
                     catch (UnsupportedEncodingException uee) {
-                    	str = IOUtil.toString(is,(Charset)null);
+                    	str = IOUtil.toString(is,(Charset)null,checkRemainingTimeout().getMillis());
                     }
                 }
                 catch (IOException ioe) {
