@@ -257,11 +257,12 @@ public class CacheUtil {
 	 * @throws IOException 
 	 */
 	public static Cache getInstance(CacheConnection cc, Config config) throws IOException {
-		Cache c = cc.getInstance(config);
+		return cc.getInstance(config);
+		/*Cache c = cc.getInstance(config);
 		if("org.lucee.extension.io.cache.memcache.MemCacheRaw".equals(c.getClass().getName())) {
 			return new CacheComplex(cc,c);
 		}
-		return c;
+		return c;*/
 	}
 	
 

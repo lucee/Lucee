@@ -38,7 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("a:1;b:2;e:3;d:4;f:5;",res.filecontent.trim());
 	}
 
-	private void function testScopeStorage(){
+	public void function testScopeStorage(){
 
 		try {
 			createRAMCache();

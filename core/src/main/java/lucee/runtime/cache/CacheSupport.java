@@ -20,6 +20,7 @@ package lucee.runtime.cache;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -214,15 +215,19 @@ public abstract class CacheSupport implements CachePro {
 	protected static boolean valid(CacheEntry entry) {
 		if(entry==null)return false;
 		long now = System.currentTimeMillis();
-		if(entry.liveTimeSpan()>0 && entry.liveTimeSpan()+entry.lastModified().getTime()<now){
+		if(entry.liveTimeSpan()>0 && entry.liveTimeSpan()+getTime(entry.lastModified())<now){
 			return false;
 		}
-		if(entry.idleTimeSpan()>0 && entry.idleTimeSpan()+entry.lastHit().getTime()<now){
+		if(entry.idleTimeSpan()>0 && entry.idleTimeSpan()+getTime(entry.lastHit())<now){
 			return false;
 		}
 		return true;
 	}
 	
+	private static long getTime(Date date) {
+		return date==null?0:date.getTime();
+	}
+
 	@Override
 	public CacheEntry getCacheEntry(String key) throws IOException {
 		CacheEntry entry = getCacheEntry(key, null);
