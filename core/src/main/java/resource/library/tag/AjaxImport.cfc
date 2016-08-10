@@ -46,7 +46,7 @@
   
 		<!--- check --->
 		<cfloop list="#attributes.tags#" index="el">
-			<cfif listFind(variables.tags,el) eq 0>
+			<cfif listFindNoCase(variables.tags,el) eq 0>
 				<cfthrow message="tag [#el#] is not a valid value. Valid tag names are [#variables.tags#]" />
 			</cfif>	
 		</cfloop>
