@@ -77,7 +77,9 @@ public final class ClientCache extends StorageScopeCache implements Client {
 		}
 		else if(existing!=null) return  existing;
 
-		return new ClientCache(pc,cacheName,appName,new StructImpl(),0);
+		ClientCache cc = new ClientCache(pc,cacheName,appName,new StructImpl(),0);
+		cc.store(pc.getConfig());
+		return cc;
 	}
 	
 	public static Client getInstance(String cacheName, String appName, PageContext pc, Client existing, Log log,Client defaultValue) {
