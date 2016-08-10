@@ -762,7 +762,8 @@ public class OSGiUtil {
 		}
 		catch(BundleException be){
 			// check if required related bundles are missing and load them if necessary
-			List<BundleDefinition> list = getRequirements(bundle);
+			List<BundleDefinition> list = getRequiredBundles(bundle);
+			//List<PackageDefinition> list2 = getRequiredPackages(bundle);
 			BundleDefinition bd;
 			List<BundleDefinition> failed = null;
 			Iterator<BundleDefinition> it = list.iterator();
@@ -771,7 +772,7 @@ public class OSGiUtil {
 				try{
 					loadBundle(
 							bd.name, 
-							bd.version, 
+							bd.getVersion(), 
 							ThreadLocalPageContext
 							.getConfig()
 							.getIdentification(), true);
@@ -825,7 +826,7 @@ public class OSGiUtil {
 		return !StringUtil.isEmpty(bf.getFragementHost(),true);
 	}
 	
-	private static List<BundleDefinition> getRequirements(Bundle bundle) throws BundleException {
+	public static List<BundleDefinition> getRequiredBundles(Bundle bundle) throws BundleException {
 		List<BundleDefinition> rtn=new ArrayList<BundleDefinition>();
 		BundleRevision br = bundle.adapt(BundleRevision.class);
 		List<Requirement> requirements = br.getRequirements(null);
@@ -843,7 +844,6 @@ public class OSGiUtil {
 				e = iit.next();
 				if(!"filter".equals(e.getKey())) continue;
 				value=e.getValue();
-				
 				// name
 				index=value.indexOf("(osgi.wiring.bundle");
 				if(index==-1) continue;
@@ -861,19 +861,19 @@ public class OSGiUtil {
 				
 				start=value.indexOf("<=",index);
 				if(start!=-1 && start<end) {
-					op=BundleDefinition.LTE;
+					op=VersionDefinition.LTE;
 					start+=2;
 				}
 				else {
 					start=value.indexOf(">=",index);
 					if(start!=-1 && start<end) {
-						op=BundleDefinition.LTE;
+						op=VersionDefinition.GTE;
 						start+=2;
 					}
 					else {
 						start=value.indexOf("=",index);
 						if(start!=-1 && start<end) {
-							op=BundleDefinition.EQ;
+							op=VersionDefinition.EQ;
 							start++;
 						}
 					}
@@ -889,21 +889,182 @@ public class OSGiUtil {
 		
 	}
 	
+
+	public static List<PackageDefinition> getRequiredPackages(Bundle bundle) throws BundleException {
+		List<PackageDefinition> rtn=new ArrayList<PackageDefinition>();
+		BundleRevision br = bundle.adapt(BundleRevision.class);
+		List<Requirement> requirements = br.getRequirements(null);
+		Iterator<Requirement> it = requirements.iterator();
+		Requirement r;
+		Entry<String, String> e;
+		String value,name;
+		int index,start,end,op,last;
+		boolean not;
+		PackageDefinition pd;
+		
+		while(it.hasNext()){
+			r = it.next();
+			Iterator<Entry<String, String>> iit = r.getDirectives().entrySet().iterator();
+			inner:while(iit.hasNext()){
+				e = iit.next();
+				if(!"filter".equals(e.getKey())) continue;
+				value=e.getValue();
+				// name(&(osgi.wiring.package=org.jboss.logging)(version>=3.3.0)(!(version>=4.0.0)))
+				index=value.indexOf("(osgi.wiring.package");
+				if(index==-1) continue;
+				start=value.indexOf('=',index);
+				end=value.indexOf(')',index);
+				if(start==-1 || end==-1 || end<start) continue;
+				name=value.substring(start+1,end).trim();
+				rtn.add(pd=new PackageDefinition(name));
+				last=end;
+				// version
+				while((index=value.indexOf("(version",last))!=-1) {
+					op=-1;
+					
+					if(index==-1) continue inner;
+					end=value.indexOf(')',index);
+					
+					start=value.indexOf("<=",index);
+					if(start!=-1 && start<end) {
+						op=VersionDefinition.LTE;
+						start+=2;
+					}
+					else {
+						start=value.indexOf(">=",index);
+						if(start!=-1 && start<end) {
+							op=VersionDefinition.GTE;
+							start+=2;
+						}
+						else {
+							start=value.indexOf("=",index);
+							if(start!=-1 && start<end) {
+								op=VersionDefinition.EQ;
+								start++;
+							}
+						}
+					}
+					not=value.charAt(index-1)=='!';
+					last=end;
+					if(op==-1 || start==-1 || end==-1 || end<start) continue;
+					pd.addVersion(op,value.substring(start,end).trim(),not);
+				}
+			}
+			
+		}
+		// (&(osgi.wiring.bundle=slf4j.api)(bundle-version>=1.6.4))
+		return rtn;
+	}
+	
 	
 	private static Bundle _loadBundle(BundleContext context, File bundle) throws IOException, BundleException {
 		return _loadBundle(context, bundle.getAbsolutePath(),new FileInputStream(bundle),true);
 	}
 	
 	
-	public static class BundleDefinition {
 
+
+	public static class VersionDefinition {
+		
 		public static final int LTE = 1;
 		public static final int GTE = 2;
 		public static final int EQ = 4;
-		private final String name;
-		private int op;
+		public static final int LT = 8;
+		public static final int GT = 16;
+		public static final int NEQ = 32;
+
+
 		private Version version;
+		private int op;
+
+		public VersionDefinition(Version version, int op, boolean not) {
+			this.version=version;
+			
+			if(not) {
+				if(op==LTE) {op=GT;not=false;}
+				if(op==LT) {op=GTE;not=false;}
+				if(op==GTE) {op=LT;not=false;}
+				if(op==GT) {op=LTE;not=false;}
+				if(op==EQ) {op=NEQ;not=false;}
+				if(op==NEQ) {op=EQ;not=false;}
+			}
+			this.op=op;
+			
+		}
+		
+		public Version getVersion() {
+			return version;
+		}
+
+		public int getOp() {
+			return op;
+		}
+		
+		public String getVersionAsString() {
+			return version==null?null:version.toString();
+		}
+		
+		public String toString() {
+			StringBuilder sb=new StringBuilder();
+			sb.append(getOpAsString()).append(' ')
+			.append(version);
+			
+			return sb.toString();
+		}
+		
+		public String getOpAsString() {
+			switch(getOp()){
+			case EQ:return "EQ";
+			case LTE:return "LTE";
+			case GTE:return "GTE";
+			case NEQ:return "NEQ";
+			case LT:return "LT";
+			case GT:return "GT";
+			}
+			return null;
+		}
+		
+	}
+	public static class PackageDefinition {
+		private final String name; 
+		private List<VersionDefinition> versions=new ArrayList<OSGiUtil.VersionDefinition>();
+
+		public PackageDefinition(String name) {
+			this.name=name;
+		}
+
+		public void addVersion(int op, String version, boolean not) throws BundleException {
+			versions.add(new VersionDefinition(OSGiUtil.toVersion(version),op,not));
+		}
+
+		public String getName() {
+			return name;
+		}
+		public List<VersionDefinition> getVersionDefinitons() {
+			return versions;
+		}
+		public String toString() {
+			StringBuilder sb=new StringBuilder();
+			sb.append("name:").append(name);
+			VersionDefinition vd;
+			Iterator<VersionDefinition> it = versions.iterator();
+			while(it.hasNext()) {
+				sb.append(';').append(it.next());
+			}
+			
+			return sb.toString();
+		}
+		
+		
+
+		
+	}
+	
+	public static class BundleDefinition {
+
+		private final String name;
 		private Bundle bundle;
+		private VersionDefinition versionDef;
 
 		public BundleDefinition(String name) {
 			this.name=name;
@@ -911,23 +1072,20 @@ public class OSGiUtil {
 		public BundleDefinition(String name, String version) throws BundleException {
 			this.name=name;
 			if(name==null) throw new IllegalArgumentException("name cannot be null");
-			setVersion(EQ, version);
+			setVersion(VersionDefinition.EQ, version);
 		}
 		
 		public BundleDefinition(String name, Version version) {
 			this.name=name;
 			if(name==null) throw new IllegalArgumentException("name cannot be null");
-			
-			this.version=version;
-			this.op=EQ;
+			setVersion(VersionDefinition.EQ, version);
 		}
 
 		public BundleDefinition(Bundle bundle) {
 			this.name=bundle.getSymbolicName();
 			if(name==null) throw new IllegalArgumentException("name cannot be null");
 			
-			this.version=bundle.getVersion();
-			this.op=EQ;
+			setVersion(VersionDefinition.EQ, bundle.getVersion());
 			this.bundle=bundle;
 		}
 
@@ -951,44 +1109,50 @@ public class OSGiUtil {
 		public Bundle getBundle(Config config) throws BundleException {
 			if(bundle==null) {
 				config = ThreadLocalPageContext.getConfig(config);
-				bundle=OSGiUtil.loadBundle(name, version, config==null?null:config.getIdentification(), false);
+				bundle=OSGiUtil.loadBundle(name, getVersion(), config==null?null:config.getIdentification(), false);
 			}
 			return bundle;
 		}
 		
 		public Bundle getLocalBundle() {
 			if(bundle==null) {
-				bundle=OSGiUtil.loadBundleFromLocal(name, version,true, null);
+				bundle=OSGiUtil.loadBundleFromLocal(name, getVersion(),true, null);
 			}
 			return bundle;
 		}
 
 		public BundleFile getBundleFile(boolean downloadIfNecessary) throws BundleException {
 			Config config = ThreadLocalPageContext.getConfig();
-			return OSGiUtil.getBundleFile(name, version, config==null?null:config.getIdentification(),downloadIfNecessary);
+			return OSGiUtil.getBundleFile(name, getVersion(), config==null?null:config.getIdentification(),downloadIfNecessary);
 			
 		}
 
 		public int getOp() {
-			return op;
+			return versionDef==null?VersionDefinition.EQ:versionDef.getOp();
+		}
+		
+		public Version getVersion() {
+			return versionDef==null?null:versionDef.getVersion();
 		}
 
-		public Version getVersion() {
-			return version;
+		public VersionDefinition getVersionDefiniton() {
+			return versionDef;
 		}
 
 		public String getVersionAsString() {
-			return version==null?null:version.toString();
+			return versionDef==null?null:versionDef.getVersionAsString();
 		}
 
 		public void setVersion(int op, String version) throws BundleException {
-			this.op=op;
-			this.version=OSGiUtil.toVersion(version);
+			setVersion(op,OSGiUtil.toVersion(version));
+		}
+		public void setVersion(int op, Version version) {
+			this.versionDef=new VersionDefinition(version, op, false);
 		}
 		
 		@Override
 		public String toString() {
-			return "name:"+name+";version:"+version+";op:"+getOpAsString()+";";
+			return "name:"+name+";version:"+versionDef+";";
 		}
 		
 		@Override
@@ -1000,15 +1164,6 @@ public class OSGiUtil {
 			
 		}
 		
-
-		public String getOpAsString() {
-			switch(op){
-			case EQ:return "EQ";
-			case LTE:return "LTE";
-			case GTE:return "GTE";
-			}
-			return null;
-		}
 
 	}
 	
