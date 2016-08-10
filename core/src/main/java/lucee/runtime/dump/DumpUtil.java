@@ -48,12 +48,18 @@ import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.functions.system.BundleInfo;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.net.rpc.Pojo;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
+import lucee.runtime.osgi.OSGiUtil.PackageDefinition;
+import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.QueryImpl;
@@ -590,6 +596,10 @@ public class DumpUtil {
 				bd.appendRow(1,new SimpleDumpData("symbolic-name"),new SimpleDumpData(b.getSymbolicName()));
 				bd.appendRow(1,new SimpleDumpData("version"),new SimpleDumpData(b.getVersion().toString()));
 				bd.appendRow(1,new SimpleDumpData("location"),new SimpleDumpData(b.getLocation()));
+				requiredBundles(bd,b);
+				
+				
+				
 				table.appendRow(1,new SimpleDumpData("bundle-info"),bd);
 			}
 			
@@ -599,6 +609,64 @@ public class DumpUtil {
 		finally{
 			ThreadLocalDump.remove(o);
 		}
+	}
+	
+	private static void requiredBundles(DumpTable parent, Bundle b) {
+		try {
+			List<BundleDefinition> list = OSGiUtil.getRequiredBundles(b);
+			if(list.isEmpty()) return;
+			DumpTable dt = new DumpTable("#6289a3","#dee3e9","#000000");
+			dt.appendRow(-1,new SimpleDumpData("name"),new SimpleDumpData("version"),new SimpleDumpData("operator"));
+			
+			
+			Iterator<BundleDefinition> it = list.iterator();
+			BundleDefinition bd;
+			VersionDefinition vd;
+			String v,op;
+			while(it.hasNext()) {
+				bd=it.next();
+				vd = bd.getVersionDefiniton();
+				if(vd!=null) {
+					v=vd.getVersionAsString();
+					op=vd.getOpAsString();
+				}
+				else {
+					v="";
+					op="";
+				}
+				dt.appendRow(0,new SimpleDumpData(bd.getName()),new SimpleDumpData(v),new SimpleDumpData(op));
+				
+			}
+			parent.appendRow(1,new SimpleDumpData("required-bundles"),dt);
+			
+		}
+		catch(Throwable t) {}
+	}
+
+	private static Array toArray2(List<PackageDefinition> list) {
+		Struct sct,_sct;
+		Array arr=new ArrayImpl(),_arr;
+		Iterator<PackageDefinition> it = list.iterator();
+		PackageDefinition pd;
+		Iterator<VersionDefinition> _it;
+		VersionDefinition vd;
+		while(it.hasNext()) {
+			pd=it.next();
+			sct=new StructImpl();
+			sct.setEL(KeyConstants._package, pd.getName());
+			sct.setEL("versions", _arr=new ArrayImpl());
+			
+			_it = pd.getVersionDefinitons().iterator();
+			while(_it.hasNext()) {
+				vd = _it.next();
+				_sct=new StructImpl();
+				_sct.setEL(KeyConstants._bundleVersion, vd.getVersion().toString());
+				_sct.setEL("operator", vd.getOpAsString());
+				_arr.appendEL(_sct);
+			}
+			arr.appendEL(sct);
+		}
+		return arr;
 	}
 
 	private static DumpData setId(String id, DumpData data) {
