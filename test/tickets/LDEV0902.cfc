@@ -44,6 +44,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 	}
 
+	public void function testQofQ(){
+		if(!variables.has) return;
+		
+		query name="local.qry" {
+			echo("select * from "&TABLE_NAME);
+
+		}
+		query dbtype="query" name="local.qry" {
+			echo("select * from qry");
+
+		}
+		
+	}
+
 	private void function createTable(){
 		
 		query {
