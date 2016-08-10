@@ -26,6 +26,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.QueryColumn;
 
 public final class ArrayToList extends BIF {
 
@@ -34,8 +35,10 @@ public final class ArrayToList extends BIF {
 	public static String call(PageContext pc , Array array) throws PageException {
 		return call(pc,array,',');
 	}
+
 	public static String call(PageContext pc , Array array, String delimiter) throws PageException {
 		if(delimiter.length()==1) return call(pc,array,delimiter.charAt(0));
+		if(array instanceof QueryColumn) array=unwrap(pc,(QueryColumn)array);
 		int len=array.size();
 		if(len==0) return "";
 		if(len==1)return Caster.toString(array.get(1,""));
@@ -50,6 +53,7 @@ public final class ArrayToList extends BIF {
 		return sb.toString();
 	}
 	public static String call(PageContext pc , Array array, char delimiter) throws PageException {
+		if(array instanceof QueryColumn) array=unwrap(pc,(QueryColumn)array);
 		int len=array.size();
 		if(len==0) return "";
 		if(len==1)return Caster.toString(array.getE(1));
@@ -62,6 +66,12 @@ public final class ArrayToList extends BIF {
 			sb.append(o==null?"":Caster.toString(o));
 		}
 		return sb.toString();
+	}
+	
+	private static Array unwrap(PageContext pc, QueryColumn col) {
+		Array arr = Caster.toArray(col.get(pc,(Object)null),null);
+		if(arr!=null) return arr;
+		return (Array)col;
 	}
 	
 	@Override
