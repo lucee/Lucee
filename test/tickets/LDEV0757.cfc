@@ -22,8 +22,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		request.results757=[];
 		local.names="";
 		loop from=1 to=30 index="local.i" {
-			names=listAppend(names,"t#i#")
-			thread name="t#i#"  {
+			names=listAppend(names,"t757_#i#")
+			thread name="t757_#i#"  {
 				//http url=request.baseURL&"qry.cfm" result="res";
 				uri=createURI("LDEV0757/qry.cfm");
 				local.res=_InternalRequest(uri);

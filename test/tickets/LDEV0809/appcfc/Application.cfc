@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
+ * Copyright (c) 2015, Lucee Assosication Switzerland. All rights reserved.*
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,37 +16,15 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.commons.io.log.log4j.appender;
+component {
 
-import lucee.runtime.db.DataSource;
-
-import org.apache.log4j.Appender;
-import org.apache.log4j.AppenderSkeleton;
-import org.apache.log4j.spi.LoggingEvent;
-
-public class DataSourceAppender extends AppenderSkeleton implements Appender {
-	
-	private DataSource ds;
-
-	public DataSourceAppender(DataSource ds){
-		this.ds=ds;
-		
+	this.name = hash( getCurrentTemplatePath() );
+    request.baseURL="http://#cgi.HTTP_HOST##GetDirectoryFromPath(cgi.SCRIPT_NAME)#";
+	request.currentPath=GetDirectoryFromPath(getCurrentTemplatePath());
+	if(not isDefined('url.original')) {
+		this.sessionmanagement="Yes" 
+		this.sessiontimeout=createTimeSpan(0,0,3,0);
+		this.sessioncookie={httponly=false, timeout=createTimeSpan(0, 0, 0, 10), secure=true,domain=".domain.com"};
+		this.authcookie={timeout=createTimeSpan(0, 0, 0, 10)};
 	}
-	
-	@Override
-	public void close() {
-		
-	}
-
-	@Override
-	public boolean requiresLayout() {
-		return false;
-	}
-
-	@Override
-	protected void append(LoggingEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
 }

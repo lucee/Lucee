@@ -65,24 +65,24 @@ public final class Controler extends Thread {
 	private long lastHourInterval=System.currentTimeMillis();
 	
     private final Map contextes;
-    private final RefBoolean run;
 	//private ScheduleThread scheduleThread;
 	private final ConfigServer configServer;
-	private final ShutdownHook shutdownHook; 
+	//private final ShutdownHook shutdownHook;
+	private ControllerState state; 
 
 	/**
 	 * @param contextes
 	 * @param interval
 	 * @param run 
 	 */
-	public Controler(ConfigServer configServer,Map contextes,int interval, RefBoolean run) {		
+	public Controler(ConfigServer configServer,Map contextes,int interval, ControllerState state) {		
         this.contextes=contextes;
 		this.interval=interval;
-        this.run=run;
+        this.state=state;
         this.configServer=configServer;
         
-        shutdownHook=new ShutdownHook(configServer);
-        Runtime.getRuntime().addShutdownHook(shutdownHook);
+        //shutdownHook=new ShutdownHook(configServer);
+        //Runtime.getRuntime().addShutdownHook(shutdownHook);
 	}
 	
 	private static class ControlerThread extends Thread {
@@ -126,7 +126,7 @@ public final class Controler extends Thread {
 		boolean firstRun=true;
 		List<ControlerThread> threads=new ArrayList<ControlerThread>();
 		CFMLFactoryImpl factories[]=null;
-		while(run.toBooleanValue()) {
+		while(state.active()) {
 			// sleep
 	        SystemUtil.sleep(interval);
 	        
@@ -167,7 +167,7 @@ public final class Controler extends Thread {
                 		it.remove();
             		}
             		else {
-            			LogUtil.log(configServer.getLog("application"), Log.LEVEL_ERROR, "controler","was not able to stop conroler thread running for "+time+"ms", ct.getStackTrace());
+            			LogUtil.log(configServer.getLog("application"), Log.LEVEL_ERROR, "controler","was not able to stop controller thread running for "+time+"ms", ct.getStackTrace());
             		}
             	}
             }
@@ -445,8 +445,8 @@ public final class Controler extends Thread {
     }
     
     public void close() {
-    	Runtime.getRuntime().removeShutdownHook(shutdownHook);
-    	shutdownHook.run();
+    	//boolean res=Runtime.getRuntime().removeShutdownHook(shutdownHook);
+    	//shutdownHook.run();
     }
 
     /*private void doLogMemoryUsage(ConfigWeb config) {

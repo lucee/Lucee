@@ -520,15 +520,15 @@ public final class ScopeContext {
 			}
 			
 			Session existing=(Session) context.get(pc.getCFID());
+			if(existing!=null && (existing.isExpired() || !(existing instanceof StorageScope))) existing=null; // second should not happen
+			
 			Session session=appContext.getSessionCluster()?null:existing;
 
-			if(session==null || !(session instanceof StorageScope) || session.isExpired() || !((StorageScope)session).getStorage().equalsIgnoreCase(storage)) {
-				if(!(existing instanceof StorageScope) || existing.isExpired()) existing=null;
+			if(session==null || !((StorageScope)session).getStorage().equalsIgnoreCase(storage)) {
 				// not necessary to check session in the same way, because it is overwritten anyway
 				if(isMemory){
 					if(existing!=null) session=existing;
 					else session=SessionMemory.getInstance(pc,isNew,getLog());
-
 				}
 				else if("file".equals(storage)){
 					session=SessionFile.getInstance(appContext.getName(),pc,getLog());

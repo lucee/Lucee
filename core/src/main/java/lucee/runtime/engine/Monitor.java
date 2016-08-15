@@ -29,17 +29,17 @@ public final class Monitor extends Thread {
 
 	
 	private static final long INTERVALL = 5000;
-	private final RefBoolean run;
 	private final ConfigServerImpl configServer;
+	private final ControllerState state;
 	
 	/**
 	 * @param contextes
 	 * @param interval
 	 * @param run 
 	 */
-	public Monitor(ConfigServer configServer,RefBoolean run) {
+	public Monitor(ConfigServer configServer,ControllerState state) {
         
-        this.run=run;
+        this.state=state;
         this.configServer=(ConfigServerImpl) configServer;
         
 	}
@@ -47,7 +47,7 @@ public final class Monitor extends Thread {
 	@Override
 	public void run() {
 		short tries=0;
-		while(run.toBooleanValue()) {
+		while(state.active()) {
             try {
 				sleep(INTERVALL);
 			} 

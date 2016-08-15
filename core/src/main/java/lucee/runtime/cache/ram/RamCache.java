@@ -30,8 +30,11 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CachePro;
 import lucee.commons.io.cache.exp.CacheException;
+import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.cache.CacheSupport;
 import lucee.runtime.config.Config;
+import lucee.runtime.engine.CFMLEngineImpl;
+import lucee.runtime.engine.ControllerState;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;
 import lucee.runtime.op.Duplicator;
@@ -51,8 +54,8 @@ public class RamCache extends CacheSupport {
 	
 
 	
-	public RamCache(){
-		new Controler(this).start();
+	public RamCache(CFMLEngineImpl engine){
+		new Controler(engine,this).start();
 	}
 
 	public static void init(Config config,String[] cacheNames,Struct[] arguments)  {//print.ds();
@@ -177,14 +180,16 @@ public class RamCache extends CacheSupport {
 	public static  class Controler extends Thread {
 
 		private RamCache ramCache;
+		private CFMLEngineImpl engine;
 
-		public Controler(RamCache ramCache) {
+		public Controler(CFMLEngineImpl engine, RamCache ramCache) {
+			this.engine=engine;
 			this.ramCache=ramCache;
 		}
 		
 		@Override
 		public void run(){
-			while(true){
+			while(engine.isRunning()){
 				try{
 					_run();
 				}

@@ -56,6 +56,9 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.dt.TimeSpan;
+import lucee.runtime.type.dt.TimeSpanImpl;
+import lucee.runtime.type.scope.CookieImpl;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.CollectionUtil;
@@ -80,6 +83,7 @@ public final class AppListenerUtil {
 	public static final Collection.Key STORAGE = KeyImpl.intern("storage");
 	public static final Collection.Key READ_ONLY = KeyImpl.intern("readOnly");
 	public static final Collection.Key DATABASE = KeyConstants._database;
+	public static final Collection.Key DISABLE_UPDATE = KeyImpl.intern("disableUpdate"); 
 	
 	public static PageSource getApplicationPageSource(PageContext pc,PageSource requestedPage, String filename, int mode) {
 		if(mode==ApplicationListener.MODE_CURRENT)return getApplicationPageSourceCurrent(requestedPage, filename);
@@ -655,5 +659,35 @@ public final class AppListenerUtil {
 		private String physical;
 		private String archive;
 		private boolean physicalFirst;
+	}
+	
+	public static SessionCookieData toSessionCookie(ConfigWeb config, Struct data) {
+		if(data==null) return SessionCookieDataImpl.DEFAULT; 
+		
+		return new SessionCookieDataImpl(
+			Caster.toBooleanValue(data.get(KeyConstants._httponly,null),SessionCookieDataImpl.DEFAULT.isHttpOnly()), 
+			Caster.toBooleanValue(data.get(KeyConstants._secure,null),SessionCookieDataImpl.DEFAULT.isSecure()), 
+			toTimespan(data.get(KeyConstants._timeout,null),SessionCookieDataImpl.DEFAULT.getTimeout()), 
+			Caster.toString(data.get(KeyConstants._domain,null),SessionCookieDataImpl.DEFAULT.getDomain()), 
+			Caster.toBooleanValue(data.get(DISABLE_UPDATE,null),SessionCookieDataImpl.DEFAULT.isDisableUpdate())
+		);
+	}
+
+	public static AuthCookieData toAuthCookie(ConfigWeb config, Struct data) { 
+		if(data==null) return AuthCookieDataImpl.DEFAULT; 
+		return new AuthCookieDataImpl(
+			toTimespan(data.get(KeyConstants._timeout,null),AuthCookieDataImpl.DEFAULT.getTimeout()), 
+			Caster.toBooleanValue(data.get(DISABLE_UPDATE,null),AuthCookieDataImpl.DEFAULT.isDisableUpdate())
+		);
+	}
+
+	private static TimeSpan toTimespan(Object obj, TimeSpan defaultValue) {
+		if(!(obj instanceof TimeSpan)) {
+			Double tmp = Caster.toDouble(obj,null);
+			if(tmp!=null && tmp.doubleValue()<=0d) return TimeSpanImpl.fromMillis(CookieImpl.NEVER*1000);
+		}
+		
+		
+		return Caster.toTimespan(obj, defaultValue);
 	}
 }

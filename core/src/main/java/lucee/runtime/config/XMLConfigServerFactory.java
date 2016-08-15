@@ -125,6 +125,8 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		load(config,doc,false,doNew);
 	    
 		createContextFiles(configDir,config,doNew,cleanupDatasources);
+
+        ((CFMLEngineImpl)ConfigWebUtil.getEngine(config)).onStart(config,false);
 	    return config;
     }
     

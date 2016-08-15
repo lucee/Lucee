@@ -17,13 +17,22 @@
  */
 package lucee.runtime.functions.system;
 
+import java.util.Iterator;
+import java.util.List;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.java.JavaObject;
+import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
+import lucee.runtime.osgi.OSGiUtil.PackageDefinition;
+import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -31,6 +40,7 @@ import lucee.runtime.type.util.KeyConstants;
 
 import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
 
 public class BundleInfo implements Function {
 
@@ -54,8 +64,61 @@ public class BundleInfo implements Function {
 			sct.setEL("location", b.getLocation());
 			sct.setEL(KeyConstants._version, b.getVersion().toString());
 			sct.setEL(KeyConstants._state, OSGiUtil.toState(b.getState(), null));
+			try{
+			sct.setEL("requiredBundles", toArray1(OSGiUtil.getRequiredBundles(b)));
+			sct.setEL("requiredPackages", toArray2(OSGiUtil.getRequiredPackages(b)));
+			}
+			catch(BundleException be){
+				throw Caster.toPageException(be);
+			}
 			return sct;
 		}
 		throw new ApplicationException(obj+"given object is not from a OSGi bundle");
+	}
+
+	private static Array toArray1(List<BundleDefinition> list) {
+		Struct sct;
+		Array arr=new ArrayImpl();
+		Iterator<BundleDefinition> it = list.iterator();
+		BundleDefinition bd;
+		VersionDefinition vd;
+		while(it.hasNext()) {
+			bd=it.next();
+			sct=new StructImpl();
+			sct.setEL(KeyConstants._bundleName, bd.getName());
+			vd = bd.getVersionDefiniton();
+			if(vd!=null) {
+				sct.setEL(KeyConstants._bundleVersion, vd.getVersionAsString());
+				sct.setEL("operator", vd.getOpAsString());
+			}
+			arr.appendEL(sct);
+		}
+		return arr;
+	}
+
+	private static Array toArray2(List<PackageDefinition> list) {
+		Struct sct,_sct;
+		Array arr=new ArrayImpl(),_arr;
+		Iterator<PackageDefinition> it = list.iterator();
+		PackageDefinition pd;
+		Iterator<VersionDefinition> _it;
+		VersionDefinition vd;
+		while(it.hasNext()) {
+			pd=it.next();
+			sct=new StructImpl();
+			sct.setEL(KeyConstants._package, pd.getName());
+			sct.setEL("versions", _arr=new ArrayImpl());
+			
+			_it = pd.getVersionDefinitons().iterator();
+			while(_it.hasNext()) {
+				vd = _it.next();
+				_sct=new StructImpl();
+				_sct.setEL(KeyConstants._bundleVersion, vd.getVersion().toString());
+				_sct.setEL("operator", vd.getOpAsString());
+				_arr.appendEL(_sct);
+			}
+			arr.appendEL(sct);
+		}
+		return arr;
 	}
 }

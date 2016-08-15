@@ -239,4 +239,8 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	// FUTURE add to interface
 	public abstract CacheConnection getCacheConnection(String cacheName, CacheConnection defaultValue);
 	public abstract void setCacheConnection(String cacheName, CacheConnection value);
+	public abstract SessionCookieData getSessionCookie();
+	public abstract void setSessionCookie(SessionCookieData data);
+	public abstract AuthCookieData getAuthCookie();
+	public abstract void setAuthCookie(AuthCookieData data);
 }

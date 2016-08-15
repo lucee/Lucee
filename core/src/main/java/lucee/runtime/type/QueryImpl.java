@@ -64,7 +64,6 @@ import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.db.DataSourceUtil;
 import lucee.runtime.db.DatasourceConnection;
-import lucee.runtime.db.DatasourceConnectionImpl;
 import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLCaster;
 import lucee.runtime.db.SQLItem;

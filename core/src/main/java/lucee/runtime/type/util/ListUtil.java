@@ -214,7 +214,7 @@ public final class ListUtil {
 		if(len==0) return array;
 		if(delimiter.length()==0) {
 	    	for(int i=0;i<len;i++){
-	    		array.appendEL(list.charAt(i));
+	    		array.appendEL(String.valueOf(list.charAt(i)));
 	    	}
 			return array;
 	    }

@@ -2,15 +2,11 @@ package lucee.commons.io.cache.complex;
 
 import java.util.Date;
 
-import lucee.commons.date.DateTimeUtil;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.runtime.cache.CacheUtil;
-import lucee.runtime.cache.ram.RamCacheEntry;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.StructImpl;
-import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 
 public class CacheComplexEntry implements CacheEntry {

@@ -1053,7 +1053,7 @@ public final class XMLConfigAdmin {
 		// resJar is a bundle
 		if(bf.isBundle()) {
 			bf=installBundle(config, bf);
-			OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(),null);
+			OSGiUtil.loadBundle(bf);
 			return;
 		}
 		
@@ -1119,7 +1119,7 @@ public final class XMLConfigAdmin {
 		
 		// copy to jar directory
 		File jar = new File(factory.getBundleDirectory(), bf.getSymbolicName() + "-"
-				+ bf.getVersion().toString().replace('.', '-') + (".jar"));
+				+ bf.getVersion().toString() + (".jar"));
 		
 		InputStream is=bf.getInputStream();
 		OutputStream os=new FileOutputStream(jar);
@@ -1151,7 +1151,7 @@ public final class XMLConfigAdmin {
 			throw new BundleException("input is not an OSGi Bundle.");
 		
 		BundleFile bf=(BundleFile)obj;
-		return OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(),null);
+		return OSGiUtil.loadBundle(bf);
 	}
 	
 	public static Object installBundle(Config config, InputStream is, String name,String extensionVersion,boolean closeStream,boolean convert2bundle) throws IOException, BundleException {
@@ -4723,7 +4723,7 @@ public final class XMLConfigAdmin {
 				rhext.deployBundles();
 				BundleInfo[] bfs = rhext.getBundles();
 				for(BundleInfo bf:bfs){
-					OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(),null);
+					OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(),false,null);
 				}
 			}
 
@@ -5440,20 +5440,6 @@ public final class XMLConfigAdmin {
 		
 	}
 
-	
-	public void removeBundles(String[] arr, boolean removePhysical) throws BundleException {
-		String str;
-		int index;
-		if(!ArrayUtil.isEmpty(arr)) for(int n=0;n<arr.length;n++){
-			str=arr[n];
-			index=str.indexOf(':');
-			if(index!=-1) {// only use specific bundles (with a version)
-				OSGiUtil.removeLocalBundle(str.substring(0,index).trim(),OSGiUtil.toVersion(str.substring(index+1).trim()),removePhysical);
-			}
-		}
-		
-	}
-
 	class MyResourceNameFilter implements ResourceNameFilter {
 		private String name;
 		public MyResourceNameFilter(String name){
@@ -6077,7 +6063,7 @@ public final class XMLConfigAdmin {
 
 		// now we only have BundlesDefs in the array no longer used
 		for(BundleDefinition ctr:candiatesToRemove) {
-			if(ctr!=null)OSGiUtil.removeLocalBundle(ctr.getName(), ctr.getVersion(), true);
+			if(ctr!=null)OSGiUtil.removeLocalBundleSilently(ctr.getName(), ctr.getVersion(), true);
 		}
 	}
 
