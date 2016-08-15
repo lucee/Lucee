@@ -33,8 +33,10 @@ import lucee.commons.io.cache.exp.CacheException;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.cache.CacheSupport;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ControllerState;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;
 import lucee.runtime.op.Duplicator;
@@ -51,26 +53,45 @@ public class RamCache extends CacheSupport {
 	private long until;
 	private int controlInterval=DEFAULT_CONTROL_INTERVAL*1000;
 	private boolean decouple;
+	private Thread controller;
 	
-
 	
-	public RamCache(CFMLEngineImpl engine){
-		new Controler(engine,this).start();
+	// this is used by the config by reflection
+	public RamCache(){
+		Config config = ThreadLocalPageContext.getConfig();
+		if(config!=null) {
+			CFMLEngine engine=ConfigWebUtil.getEngine(config);
+			if(engine instanceof CFMLEngineImpl) {
+				controller=new Controler((CFMLEngineImpl)engine,this);
+				controller.start();
+			}
+		}
 	}
+	
 
 	public static void init(Config config,String[] cacheNames,Struct[] arguments)  {//print.ds();
-		
 	}
 	
 	@Override
 	public void init(Config config,String cacheName, Struct arguments) throws IOException {
+		// RamCache is also used without calling init, because of that we have this test in constructor and here
+		if(controller==null) {
+			CFMLEngine engine=ConfigWebUtil.getEngine(config);
+			if(engine instanceof CFMLEngineImpl) {
+				controller=new Controler((CFMLEngineImpl)engine,this);
+				controller.start();
+			}
+		}
+		if(controller==null) throw new IOException("was not able to start controller");
+		
+		
 		// until
 		long until=Caster.toLongValue(arguments.get("timeToLiveSeconds",Constants.LONG_ZERO),Constants.LONG_ZERO)*1000;
 		long idleTime=Caster.toLongValue(arguments.get("timeToIdleSeconds",Constants.LONG_ZERO),Constants.LONG_ZERO)*1000;
 		Object ci = arguments.get("controlIntervall",null);
 		if(ci==null)ci = arguments.get("controlInterval",null);
-		int controlInterval=Caster.toIntValue(ci,DEFAULT_CONTROL_INTERVAL)*1000;
-		init(until,idleTime,controlInterval);
+		int intervalInSeconds=Caster.toIntValue(ci,DEFAULT_CONTROL_INTERVAL);
+		init(until,idleTime,intervalInSeconds);
 	}
 
 	public RamCache init(long until, long idleTime, int intervalInSeconds) {
@@ -192,11 +213,12 @@ public class RamCache extends CacheSupport {
 			while(engine.isRunning()){
 				try{
 					_run();
+					SystemUtil.sleep(ramCache.controlInterval);
+					
 				}
 				catch(Throwable t){
 					t.printStackTrace();
 				}
-				SystemUtil.sleep(ramCache.controlInterval);
 			}
 		}
 

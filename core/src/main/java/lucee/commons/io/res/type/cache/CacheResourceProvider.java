@@ -235,10 +235,7 @@ public final class CacheResourceProvider implements ResourceProviderPro {
 		if(c==null) {
 			//CFMLEngineImpl e=null;
 			if(defaultCache==null){
-				CFMLEngine engine = ConfigWebUtil.getEngine(ThreadLocalPageContext.getConfig(pc));
-				if(!(engine instanceof CFMLEngineImpl))
-					throw new RuntimeException(engine.getClass().getName()+" is not from type CFMLEngineImpl");
-				defaultCache=new RamCache((CFMLEngineImpl) engine).init(0, 0, RamCache.DEFAULT_CONTROL_INTERVAL);
+				defaultCache=new RamCache().init(0, 0, RamCache.DEFAULT_CONTROL_INTERVAL);
 			}
 			c=defaultCache;
 		}
