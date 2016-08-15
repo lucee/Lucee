@@ -1163,6 +1163,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return controlerState.active();
 	}
 	
+	public boolean active() {
+		return controlerState.active();
+	}
+	
 
 	public ControllerState getControllerState() {
 		return controlerState;

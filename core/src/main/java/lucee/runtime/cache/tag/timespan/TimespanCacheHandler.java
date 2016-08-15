@@ -147,10 +147,7 @@ public class TimespanCacheHandler implements CacheHandler {
 		Cache c = CacheUtil.getDefault(pc,cacheType,null);
 		if(c==null) {
 			if(defaultCache==null){
-				CFMLEngine engine = ConfigWebUtil.getEngine(ThreadLocalPageContext.getConfig(pc));
-				if(!(engine instanceof CFMLEngineImpl))
-					throw new RuntimeException(engine.getClass().getName()+" is not from type CFMLEngineImpl");
-				RamCache rm = new RamCache((CFMLEngineImpl) engine).init(0, 0, RamCache.DEFAULT_CONTROL_INTERVAL);
+				RamCache rm = new RamCache().init(0, 0, RamCache.DEFAULT_CONTROL_INTERVAL);
 				rm.decouple();
 				defaultCache=rm;
 			}
