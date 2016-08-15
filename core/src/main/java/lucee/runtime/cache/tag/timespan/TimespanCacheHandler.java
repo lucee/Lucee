@@ -25,6 +25,7 @@ import java.util.List;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CachePro;
+import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.ram.RamCache;
@@ -34,6 +35,9 @@ import lucee.runtime.cache.tag.CacheHandlerFilter;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.util.CacheKeyFilterAll;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.engine.CFMLEngineImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -143,7 +147,10 @@ public class TimespanCacheHandler implements CacheHandler {
 		Cache c = CacheUtil.getDefault(pc,cacheType,null);
 		if(c==null) {
 			if(defaultCache==null){
-				RamCache rm = new RamCache().init(0, 0, RamCache.DEFAULT_CONTROL_INTERVAL);
+				CFMLEngine engine = ConfigWebUtil.getEngine(ThreadLocalPageContext.getConfig(pc));
+				if(!(engine instanceof CFMLEngineImpl))
+					throw new RuntimeException(engine.getClass().getName()+" is not from type CFMLEngineImpl");
+				RamCache rm = new RamCache((CFMLEngineImpl) engine).init(0, 0, RamCache.DEFAULT_CONTROL_INTERVAL);
 				rm.decouple();
 				defaultCache=rm;
 			}

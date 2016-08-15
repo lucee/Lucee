@@ -34,10 +34,15 @@ import lucee.commons.io.res.Resources;
 import lucee.commons.io.res.util.ResourceLockImpl;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.loader.engine.CFMLEngine;
+import lucee.loader.engine.CFMLEngineWrapper;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.ram.RamCache;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.engine.CFMLEngineImpl;
+import lucee.runtime.engine.ControllerState;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;
@@ -228,7 +233,13 @@ public final class CacheResourceProvider implements ResourceProviderPro {
 		PageContext pc = ThreadLocalPageContext.get();
 		Cache c = CacheUtil.getDefault(pc,Config.CACHE_TYPE_RESOURCE,null);
 		if(c==null) {
-			if(defaultCache==null)defaultCache=new RamCache().init(0, 0, RamCache.DEFAULT_CONTROL_INTERVAL);
+			//CFMLEngineImpl e=null;
+			if(defaultCache==null){
+				CFMLEngine engine = ConfigWebUtil.getEngine(ThreadLocalPageContext.getConfig(pc));
+				if(!(engine instanceof CFMLEngineImpl))
+					throw new RuntimeException(engine.getClass().getName()+" is not from type CFMLEngineImpl");
+				defaultCache=new RamCache((CFMLEngineImpl) engine).init(0, 0, RamCache.DEFAULT_CONTROL_INTERVAL);
+			}
 			c=defaultCache;
 		}
 		if(!inits.contains(c.hashCode())){
