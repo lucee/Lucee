@@ -24,8 +24,13 @@ import lucee.commons.io.res.Resource;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
+import lucee.runtime.listener.AuthCookieData;
+import lucee.runtime.listener.AuthCookieDataImpl;
 import lucee.runtime.security.CredentialImpl;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.dt.TimeSpan;
+import lucee.runtime.type.scope.CookieImpl;
 import lucee.runtime.type.scope.Scope;
 
 /**
@@ -81,9 +86,26 @@ public final class Loginuser extends TagImpl {
 		    
 		    if(loginStorage==Scope.SCOPE_SESSION && pageContext.getApplicationContext().isSetSessionManagement())
 		        pageContext.sessionScope().set(KeyImpl.init(name),login.encode());
-		    else  {//if(loginStorage==Scope.SCOPE_COOKIE)
-		        pageContext.cookieScope().setCookie(KeyImpl.init(name),login.encode(),
-		        		-1,false,"/",Login.getCookieDomain(appContext));
+		    else  {
+		    	ApplicationContext ac = pageContext.getApplicationContext();
+		    	TimeSpan tsExpires=AuthCookieDataImpl.DEFAULT.getTimeout();
+		    	if(ac instanceof ApplicationContextSupport) {
+		    		ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+		    		AuthCookieData data = acs.getAuthCookie();
+		    		if(data!=null) {
+		    			TimeSpan tmp = data.getTimeout();
+		    			if(tmp!=null) tsExpires=tmp;
+		    		}
+		    	}
+				int expires;
+				long tmp=tsExpires.getSeconds();
+				if(Integer.MAX_VALUE<tmp) expires=Integer.MAX_VALUE;
+				else expires=(int)tmp;
+				
+
+		    	
+		        ((CookieImpl)pageContext.cookieScope()).setCookie(KeyImpl.init(name),login.encode(),
+		        		expires,false,"/",Login.getCookieDomain(appContext));
 		    }
 		}
 		

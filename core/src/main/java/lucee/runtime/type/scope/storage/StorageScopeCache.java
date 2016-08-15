@@ -1,6 +1,7 @@
 /**
  *
  * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
+ * Copyright (c) 2016, Lucee Assosication Switzerland
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -123,16 +124,19 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 		super.touchBeforeRequest(pc);
 	}
 	
-	protected static CacheEntry _loadData(PageContext pc, String cacheName, String appName, String strType, Log log) throws PageException	{
+	protected static StorageValue _loadData(PageContext pc, String cacheName, String appName, String strType, Log log) throws PageException	{
 		Cache cache = getCache(pc,cacheName);
 		String key=getKey(pc.getCFID(),appName,strType);
-		CacheEntry ce = cache.getCacheEntry(key,null);
+		Object val = cache.getValue(key,null);
 
-		if(ce!=null)
+		if(val instanceof StorageValue) {
 			ScopeContext.info(log,"load existing data from  cache ["+cacheName+"] to create "+strType+" scope for "+pc.getApplicationContext().getName()+"/"+pc.getCFID());
-		else 
+			return (StorageValue)val;
+		}
+		else {
 			ScopeContext.info(log,"create new "+strType+" scope for "+pc.getApplicationContext().getName()+"/"+pc.getCFID()+" in cache ["+cacheName+"]");
-		return ce;
+		}
+		return null;
 	}
 	
 
@@ -142,15 +146,15 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 			Cache cache = getCache(ThreadLocalPageContext.get(config), cacheName);
 			String key=getKey(cfid, appName, getTypeAsString());
 			
-			CacheEntry existing = cache.getCacheEntry(key,null);
+			Object existingVal = cache.getValue(key,null);
 			// cached data changed in meantime
 			
-			if(existing!=null && existing.lastModified()!=null && existing.lastModified().getTime()>lastModified()) {
-				Struct trg=((Struct)existing.getValue());
+			if(existingVal instanceof StorageValue && ((StorageValue)existingVal).lastModified()>lastModified()) {
+				Struct trg=((Struct)((StorageValue)existingVal).getValue());
 				StructUtil.copy(sct, trg, true);
 				sct=trg;
 			}
-			cache.put(key, sct,new Long(getTimeSpan()), null);
+			cache.put(key, new StorageValue(sct),new Long(getTimeSpan()), null);
 		} 
 		catch (Exception pe) {pe.printStackTrace();}
 

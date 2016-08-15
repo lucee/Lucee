@@ -1,10 +1,129 @@
-<cfset stText.ext.minLuceeVersion="Lucee Version">
-<cfset stText.ext.minLuceeVersionDesc="Minimal Lucee Version needed for this Extension.">
-<cfset stText.ext.toSmallVersion="You need at least the Lucee {version} to install this Extension">
+<cfscript>
+
+	function toVersionSortable(required string version) localMode=true {
+		version=unwrap(version.trim());
+		arr=listToArray(arguments.version,'.');
+		
+		// OSGi compatible version
+		if(arr.len()==4 && isNumeric(arr[1]) && isNumeric(arr[2]) && isNumeric(arr[3])) {
+			try{return toOSGiVersion(version).sortable}catch(local.e){};
+		}
 
 
-<cfset available=getDataByid(url.id,getExternalData(providerURLs))>
-<cfset installed=getDataByid(url.id,extensions)>
+		rtn="";
+		loop array=arr index="i" item="v" {
+			if(len(v)<5)
+			 rtn&="."&repeatString("0",5-len(v))&v;
+			else
+				rtn&="."&v;
+		} 
+		return 	rtn;
+	}
+
+
+	struct function toOSGiVersion(required string version, boolean ignoreInvalidVersion=false){
+		local.arr=listToArray(arguments.version,'.');
+		
+		if(arr.len()!=4 || !isNumeric(arr[1]) || !isNumeric(arr[2]) || !isNumeric(arr[3])) {
+			if(ignoreInvalidVersion) return {};
+			throw "version number ["&arguments.version&"] is invalid";
+		}
+		local.sct={major:arr[1]+0,minor:arr[2]+0,micro:arr[3]+0,qualifier_appendix:"",qualifier_appendix_nbr:100};
+
+		// qualifier has an appendix? (BETA,SNAPSHOT)
+		local.qArr=listToArray(arr[4],'-');
+		if(qArr.len()==1 && isNumeric(qArr[1])) local.sct.qualifier=qArr[1]+0;
+		else if(qArr.len()==2 && isNumeric(qArr[1])) {
+			sct.qualifier=qArr[1]+0;
+			sct.qualifier_appendix=qArr[2];
+			if(sct.qualifier_appendix=="SNAPSHOT")sct.qualifier_appendix_nbr=0;
+			else if(sct.qualifier_appendix=="BETA")sct.qualifier_appendix_nbr=50;
+			else sct.qualifier_appendix_nbr=75; // every other appendix is better than SNAPSHOT
+		}
+		else throw "version number ["&arguments.version&"] is invalid";
+		sct.pure=
+					sct.major
+					&"."&sct.minor
+					&"."&sct.micro
+					&"."&sct.qualifier;
+		sct.display=
+					sct.pure
+					&(sct.qualifier_appendix==""?"":"-"&sct.qualifier_appendix);
+		
+		sct.sortable=repeatString("0",2-len(sct.major))&sct.major
+					&"."&repeatString("0",3-len(sct.minor))&sct.minor
+					&"."&repeatString("0",3-len(sct.micro))&sct.micro
+					&"."&repeatString("0",4-len(sct.qualifier))&sct.qualifier
+					&"."&repeatString("0",3-len(sct.qualifier_appendix_nbr))&sct.qualifier_appendix_nbr;
+
+
+
+		return sct;
+
+
+	}
+	function unwrap(String str) {
+		str = str.trim();
+		if((left(str,1)==chr(8220) || left(str,1)=='"') && (right(str,1)=='"' || right(str,1)==chr(8221)))
+			str=mid(str,2,len(str)-2);
+		else if(left(str,1)=="'" && right(str,1)=="'")
+			str=mid(str,2,len(str)-2);
+		return str;
+	}
+
+	function toOrderedArray(array arr, boolean desc=false) {
+		arraySort(arr,function(l,r) {
+			if(desc) {
+				local.tmp=l;
+				l=r;
+				r=tmp;
+			}
+			return compare(toVersionSortable(l),toVersionSortable(r));
+			});
+		return arr;
+	}
+
+	function removeFromArray(arr,value) {
+		local.value=toVersionSortable(arguments.value);
+		loop array=arr index="local.i" item="local.v" {
+			if(toVersionSortable(v)==value) {
+				arrayDeleteAt(arr,i);
+				break;
+			}
+		}
+	}
+
+
+available=getDataByid(url.id,getExternalData(providerURLs));
+installed=getDataByid(url.id,extensions);
+isInstalled=installed.count() GT 0;
+
+
+// all version that can be installed
+
+	// Older versions
+	if(!isNull(available.older) && !isSimpleValue(available.older)) {
+		all=duplicate(available.older);
+	}
+	else {
+		all=[];
+	}
+
+	// latest version
+	if(!isNull(available.version)) arrayAppend(all,available.version);
+
+	// remove installed
+	if(isInstalled)removeFromArray(all,installed.version);
+	
+	// order
+	toOrderedArray(all,true);
+
+
+
+
+
+</cfscript>
+
 
 <!--- get informatioj to the provider of this extension --->
 <cfif !isNull(available.provider)>
@@ -64,6 +183,12 @@
 									<th scope="row">#stText.ext.installedVersion#</th>
 									<td>#installed.version#</td>
 								</tr>
+								<cfif arrayLen(all)>
+								<tr>
+									<th scope="row">#stText.ext.availableVersion#</th>
+									<td>#arrayToList(all,', ')#</td>
+								</tr>
+								</cfif>
 								<tr>
 									<th scope="row">Type</th>
 									<td>#installed.trial?"Trial":"Full"# Version</td>
@@ -72,8 +197,7 @@
 							<cfelse>
 								<tr>
 									<th scope="row">#stText.ext.availableVersion#</th>
-									<td>#available.version#
-								</td>
+									<td>#arrayToList(all,', ')#</td>
 								</tr>
 							</cfif>
 							
@@ -138,83 +262,73 @@
 		</tbody>
 	</table>
 	<br />
-	<!--- Update --->
-	<cfif isInstalled and hasUpdate>
-		<h2>#stText.ext.updateAvailable#</h2>
-		<cfset updateAvailableDesc=replace(stText.ext.updateAvailableDesc,'{installed}',installed.version)>
-		<cfset updateAvailableDesc=replace(updateAvailableDesc,'{update}',available.version)>
-		<!--- #updateAvailableDesc#--->
-		
-		<table class="maintbl autowidth">
-			<tbody>
-				<tr>
-					<th scope="row">#stText.ext.installedVersion#</td>
-					<td>#installed.version#</td>
-				</tr>
-				<tr>
-					<th scope="row">#stText.ext.availableVersion#</td>
-					<td>#available.version#</td>
-				</tr>
-			</tbody>
-		</table>
-		
-		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
-			<input type="hidden" name="id" value="#url.id#">
-			<input type="hidden" name="provider" value="#available.provider#">
-			<cfset _trial=false>
-			<cfif isDefined('app.trial') and isBoolean(app.trial)>
-				<cfset _trial=app.trial>
-			</cfif>
-			<cfif _trial>
-				<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.updateTrial#">
-				<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.updateFull#">
-			<cfelse>
-				<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.update#">
-			</cfif>
-			
-			<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.uninstall#">
-			<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.cancel#">
-		</cfformClassic>
-		
-	<!--- Install --->
-	<cfelseif isInstalled and not hasUpdate>
+
+<!--- Install different versions --->
+<cfif arrayLen(all) || isInstalled>
+<cfscript>
+
+if(isInstalled) installedVersion=toVersionSortable(installed.version);
+
+
+
+</cfscript>
+	<h2>#isInstalled?stText.ext.upDown:stText.ext.install#</h2>
+	#isInstalled?stText.ext.upDownDesc:stText.ext.installDesc#
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<input type="hidden" name="id" value="#url.id#">
 			<input type="hidden" name="provider" value="#isNull(available.provider)?"":available.provider#">
 			
+		<table class="maintbl autowidth">
+			<tbody>
+			<cfif arrayLen(all)>
+			<tr>
+			<td ><select name="version"  class="large" style="margin-top:8px">
+			<cfloop array="#all#" item="v">
+				<cfset vs=toVersionSortable(v)>
+				<cfif isInstalled>
+					<cfset comp=compare(installedVersion,vs)>
+					<cfif comp GT 0>
+						<cfset btn=stText.ext.downgradeTo>
+					<cfelseif comp LT 0>
+						<cfset btn=stText.ext.updateTo>
+					</cfif>
+				<cfelse>
+					<cfset btn="">
+				</cfif>
+					<option value="#v#">#btn# #v#</option>
+				
+			</cfloop>
+		</select> </td>
 
-			<cfif isDefined('app.trial') and isBoolean(app.trial)>
-				<cfset _trial=app.trial>
-			</cfif>
-			<cfif !isNull(available.provider)>
-			<cfif _trial>
-				<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.installFull#">
-			<cfelse>
-				<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.update#">
-			</cfif>
-			</cfif>
+		<td><input type="submit" class="button submit" name="mainAction" value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#"></td>
+		</tr>
+		</cfif>
+		<cfif isInstalled>
+		<tr>
+		<td colspan="2"><input type="submit" style="width:100%" class="button submit" name="mainAction" value="#stText.Buttons.uninstall#"></td>
+		</tr>
+		</cfif>
 
-			<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.uninstall#">
-			<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.cancel#">
-		</cfformClassic>
-	<cfelse>
-	
+		</tbody>
+		</table>
 
-		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
-			<input type="hidden" name="id" value="#url.id#">
-			<cfif isDefined('app.minCoreVersion') and (app.minCoreVersion GT server.lucee.version)>
+		</cfformclassic>
+</cfif>
+
+	<!--- Update --->
+
+		
+
+</cfoutput>
+
+
+<!---
+TODO
+
+
+<cfif isDefined('app.minCoreVersion') and (app.minCoreVersion GT server.lucee.version)>
 				<div class="error">#replace(stText.ext.toSmallVersion,'{version}',app.minCoreVersion,'all')#</div>
 			<cfelse>
-				<input type="hidden" name="provider" value="#available.provider#">
-				<cfif isDefined('app.trial') and isBoolean(app.trial) and app.trial EQ true>
-				<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.installTrial#">
-				<cfif true or !isDefined('app.disablefull') or app.disablefull NEQ true><input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.installFull#"></cfif>
-				<cfelse>
-				<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.install#">
-				</cfif>
-			</cfif>
-			<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.cancel#">
-		</cfformClassic>
-	</cfif>
-</cfoutput>
+--->
+
 

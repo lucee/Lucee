@@ -493,6 +493,20 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<description>alias to the attribute "scopecascading", takes a boolean value where true is equal to "standard" and false is equal to "struct" scope cascading mode.
 			For details see the description for the attribute "scopecascading".</description>
 		</attribute>
+		<attribute>
+			<type>struct</type>
+			<name>authcookie</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>cfauthorization cookie behaviour</description>
+		</attribute>
+		<attribute>
+			<type>struct</type>
+			<name>sessioncookie</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>session cookie behaviour</description>
+		</attribute>
 	</tag>	
 	
 	<!-- Argument -->

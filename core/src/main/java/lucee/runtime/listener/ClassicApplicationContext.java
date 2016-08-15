@@ -114,6 +114,10 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private short wstype;
 	private boolean cgiScopeReadonly;
 
+	private SessionCookieData sessionCookie;
+
+	private AuthCookieData authCookie;
+
     
     /**
      * constructor of the class
@@ -224,6 +228,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.source=source;
 		dbl.cgiScopeReadonly=cgiScopeReadonly;
 		dbl.antiSamyPolicy=antiSamyPolicy;
+		dbl.sessionCookie=sessionCookie;
+		dbl.authCookie=authCookie;
 		return dbl;
 	}
 
@@ -822,8 +828,28 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	public Resource getAntiSamyPolicyResource() {
 		return antiSamyPolicy;
 	}
+	
 	public void setAntiSamyPolicyResource(Resource antiSamyPolicy) {
 		this.antiSamyPolicy = antiSamyPolicy;
 	}
+	
+	@Override
+	public SessionCookieData getSessionCookie() {
+		return sessionCookie;
+	}
 
+	@Override
+	public void setSessionCookie(SessionCookieData data) {
+		sessionCookie=data;
+	}
+
+	@Override
+	public AuthCookieData getAuthCookie() {
+		return authCookie;
+	}
+
+	@Override
+	public void setAuthCookie(AuthCookieData data) {
+		authCookie=data;
+	}
 }

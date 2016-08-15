@@ -265,7 +265,7 @@
             	}
 			}
 		}
-
+		
 
 
 		loop struct="#datas#" index="local.provider" item="local.data" {
@@ -282,14 +282,16 @@
             	loop query="#qry#" label="inner" {
             		// has already record with that id
             		if(qry.id==data.extensions.id) {
+
             			// current version is older
-            			if(qry.version>=data.extensions.version) continue outer;
             			row=qry.currentrow;
+            			if(qry.version>data.extensions.version) {
+            				continue outer;
+            			}
             		}
             	}
 
-
-            	if(row==0)row=qry.addRow();
+				if(row==0)row=qry.addRow();
 				qry.setCell("provider",provider,row);
 				qry.setCell("lastModified",data.lastModified,row);
             	loop list="#data.extensions.columnlist()#" item="local.k" {
@@ -398,14 +400,14 @@
 	}
 
 
-	function downloadFull(required string provider,required string id){
-		return _download("full",provider,id);
+	function downloadFull(required string provider,required string id, string version=""){
+		return _download("full",provider,id,version);
 	}
-	function downloadTrial(required string provider,required string id){
-		return _download("trial",provider,id);
+	function downloadTrial(required string provider,required string id, string version=""){
+		return _download("trial",provider,id,version);
 	}
 
-	function _download(String type,required string provider,required string id){
+	function _download(String type,required string provider,required string id, string version=""){
     		
 
 		var start=getTickCount();
@@ -419,7 +421,7 @@
 		
 		var uri=provider&"/rest/extension/provider/"&type&"/"&id;
 
-		if(provider=="local") {
+		if(provider=="local") { // TODO use version from argument scope
 			admin 
 				action="getLocalExtension"
 				type="#request.adminType#"
@@ -430,7 +432,7 @@
 			return local.ext;
 		}
 		else {
-			http url="#uri#?coreVersion=#server.lucee.version#" result="local.http" {
+			http url="#uri#?coreVersion=#server.lucee.version##len(arguments.version)?'&version='&arguments.version:''#" result="local.http" {
 				httpparam type="header" name="accept" value="application/cfml";
 				if(!isNull(apiKey))httpparam type="url" name="ioid" value="#apikey#";
 

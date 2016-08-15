@@ -5000,7 +5000,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     		String version=getString("admin",action,"version");
     		boolean removePhysical=getBoolV("removePhysical", true);
     		
-    		OSGiUtil.removeLocalBundle(name.trim(),OSGiUtil.toVersion(version.trim()),removePhysical);
+    		OSGiUtil.removeLocalBundle(name.trim(),OSGiUtil.toVersion(version.trim()),removePhysical,false);
 		} 
     	catch (Exception e) {
 			throw Caster.toPageException(e);

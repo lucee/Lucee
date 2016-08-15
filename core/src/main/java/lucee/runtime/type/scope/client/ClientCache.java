@@ -29,6 +29,7 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.Client;
 import lucee.runtime.type.scope.storage.StorageScopeCache;
+import lucee.runtime.type.scope.storage.StorageValue;
 
 public final class ClientCache extends StorageScopeCache implements Client {
 	
@@ -64,20 +65,21 @@ public final class ClientCache extends StorageScopeCache implements Client {
 	 * @throws PageException
 	 */
 	public synchronized static Client getInstance(String cacheName, String appName, PageContext pc, Client existing, Log log) throws PageException {
-		CacheEntry ce = _loadData(pc, cacheName, appName,"client", log);
-		if(ce!=null) {
-			Date lm = ce.lastModified();
-			long time=lm!=null?lm.getTime():0;
+		StorageValue sv = _loadData(pc, cacheName, appName,"client", log);
+		if(sv!=null) {
+			long time = sv.lastModified();
 			
 			if(existing instanceof StorageScopeCache) {
 				if(((StorageScopeCache)existing).lastModified()>=time)
 					return existing;
 			}
-			return new ClientCache(pc,cacheName,appName,(Struct)ce.getValue(),time);
+			return new ClientCache(pc,cacheName,appName,sv.getValue(),time);
 		}
 		else if(existing!=null) return  existing;
 
-		return new ClientCache(pc,cacheName,appName,new StructImpl(),0);
+		ClientCache cc = new ClientCache(pc,cacheName,appName,new StructImpl(),0);
+		cc.store(pc.getConfig());
+		return cc;
 	}
 	
 	public static Client getInstance(String cacheName, String appName, PageContext pc, Client existing, Log log,Client defaultValue) {

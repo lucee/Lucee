@@ -173,7 +173,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
     private ConfigServerImpl configServer=null;
     private static CFMLEngineImpl engine=null;
     private CFMLEngineFactory factory;
-    private final RefBoolean controlerState=new RefBooleanImpl(true);
+    private final ControllerStateImpl controlerState=new ControllerStateImpl(true);
 	private boolean allowRequestTimeout=true;
 	private Monitor monitor;
 	private List<ServletConfig> servletConfigs=new ArrayList<ServletConfig>();
@@ -1003,8 +1003,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
     
     @Override
     public void reset(String configId) {
-        
-    	getControler().close();
+        getControler().close();
 		RetireOutputStreamFactory.close();
     	
         CFMLFactoryImpl cfmlFactory;
@@ -1046,7 +1045,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
         }
     	finally {
             // Controller
-            controlerState.setValue(false);
+            controlerState.setActive(false);
     	}
     }
     
@@ -1148,20 +1147,25 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	public boolean allowRequestTimeout() {
 		return allowRequestTimeout;
 	}
-	
+
 	public boolean isRunning() {
 		try{
 			CFMLEngine other = CFMLEngineFactory.getInstance();
 			// FUTURE patch, do better impl when changing loader
-			if(other!=this && controlerState.toBooleanValue() &&  !(other instanceof CFMLEngineWrapper)) {
+			if(other!=this && controlerState.active() &&  !(other instanceof CFMLEngineWrapper)) {
 				SystemOut.printDate("CFMLEngine is still set to true but no longer valid, "+lucee.runtime.config.Constants.NAME+" disable this CFMLEngine.");
-				controlerState.setValue(false);
+				controlerState.setActive(false);
 				reset();
 				return false;
 			}
 		}
 		catch(Throwable t){}
-		return controlerState.toBooleanValue();
+		return controlerState.active();
+	}
+	
+
+	public ControllerState getControllerState() {
+		return controlerState;
 	}
 
 	@Override

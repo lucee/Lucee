@@ -18,8 +18,11 @@
  **/
 package lucee.runtime.cache.ram;
 
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 import java.util.Date;
 
+import lucee.commons.io.IOUtil;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.type.Struct;
@@ -91,8 +94,7 @@ public class RamCacheEntry implements CacheEntry {
 
 	@Override
 	public long size() {
-		// TODO Auto-generated method stub
-		return 0;
+		return sizeOf(value);
 	}
 
 	public void update(Object value) {
@@ -106,4 +108,19 @@ public class RamCacheEntry implements CacheEntry {
 		hitCount++;
 		return this;
 	}
+	
+	private static int sizeOf(Object o) {
+		//System.err.println(o.getClass().getName());
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		ObjectOutputStream oos=null;
+        try {
+	        oos = new ObjectOutputStream(os);
+	        oos.writeObject(o);
+        }
+        catch(Throwable t){}
+        finally {
+        	IOUtil.closeEL(oos);
+        }
+        return os.toByteArray().length;
+    }
 }
