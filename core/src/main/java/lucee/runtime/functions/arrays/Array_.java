@@ -25,12 +25,8 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
-import lucee.runtime.functions.struct.Struct_;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
-import lucee.runtime.type.Collection;
-import lucee.runtime.type.FunctionValue;
-import lucee.runtime.type.Struct;
 
 /**
  * implementation of the Function array

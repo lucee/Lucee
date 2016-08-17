@@ -27,7 +27,6 @@ import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprInt;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
-import lucee.transformer.expression.literal.LitInteger;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;

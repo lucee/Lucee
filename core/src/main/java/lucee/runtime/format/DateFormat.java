@@ -18,13 +18,11 @@
  **/
 package lucee.runtime.format;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import lucee.print;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.lang.StringUtil;

@@ -27,7 +27,6 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
-import lucee.runtime.type.ArrayImpl;
 
 /**
  * implementation of the Function arrayAppend

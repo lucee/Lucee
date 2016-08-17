@@ -19,33 +19,20 @@
 package lucee.runtime.type;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map.Entry;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.SimpleDumpData;
-import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.exp.PageRuntimeException;
-import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.ThreadLocalDuplication;
-import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.it.EntryIterator;
-import lucee.runtime.type.it.KeyIterator;
-import lucee.runtime.type.it.StringIterator;
-import lucee.runtime.type.util.ArraySupport;
 import lucee.runtime.type.util.ArrayUtil;
-import lucee.runtime.type.util.ListIteratorImpl;
 import lucee.runtime.type.wrap.ListAsArray;
 
 

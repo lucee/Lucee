@@ -158,7 +158,6 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.dt.TimeSpan;
-import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.it.ItAsEnum;
 import lucee.runtime.type.ref.Reference;
 import lucee.runtime.type.ref.VariableReference;

@@ -18,9 +18,6 @@
  **/
 package lucee.runtime.type.scope.client;
 
-import java.util.Date;
-
-import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.log.Log;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;

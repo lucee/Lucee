@@ -1,7 +1,6 @@
 package lucee.runtime.monitor;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
@@ -10,7 +9,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.op.Caster;
 import lucee.runtime.type.Query;
 
 public class RequestMonitorProImpl implements RequestMonitorPro {

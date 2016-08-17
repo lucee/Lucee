@@ -18,20 +18,11 @@
  **/
 package lucee.runtime.functions.query;
 
-import java.util.Iterator;
-
 import lucee.runtime.PageContext;
-import lucee.runtime.config.NullSupportHelper;
-import lucee.runtime.db.SQLCaster;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.Array;
-import lucee.runtime.type.ArrayImpl;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
-import lucee.runtime.type.QueryColumn;
-import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ListUtil;
 
 public class ValueListMember extends BIF {

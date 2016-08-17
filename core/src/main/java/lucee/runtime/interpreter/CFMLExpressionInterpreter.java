@@ -21,7 +21,6 @@ package lucee.runtime.interpreter;
 import java.util.ArrayList;
 import java.util.List;
 
-import lucee.print;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ParserString;
 import lucee.loader.engine.CFMLEngine;

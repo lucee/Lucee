@@ -22,7 +22,6 @@ package lucee.runtime.type.scope.storage;
 import java.io.IOException;
 
 import lucee.commons.io.cache.Cache;
-import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.log.Log;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;

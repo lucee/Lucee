@@ -1,6 +1,5 @@
 package lucee.transformer.cfml.evaluator.func.impl;
 
-import lucee.print;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.bytecode.expression.var.Argument;
 import lucee.transformer.bytecode.expression.var.BIF;

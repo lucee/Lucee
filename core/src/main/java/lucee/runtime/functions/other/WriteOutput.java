@@ -28,10 +28,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
-import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.owasp.ESAPIEncode;
-import lucee.runtime.functions.owasp.EncodeForCSS;
-import lucee.runtime.functions.string.ReplaceList;
 import lucee.runtime.op.Caster;
 
 public final class WriteOutput extends BIF {

@@ -53,7 +53,6 @@ import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.UndefinedImpl;
-import lucee.runtime.type.scope.session.SessionCookie;
 import lucee.runtime.type.util.KeyConstants;
 
 /**

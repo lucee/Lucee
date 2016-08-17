@@ -38,7 +38,6 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
-import lucee.runtime.functions.other.CreateObject;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Duplicator;

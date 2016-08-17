@@ -5,10 +5,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.osgi.framework.Version;
-
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.osgi.OSGiUtil;
+
+import org.osgi.framework.Version;
 
 public class ExtensionDefintion {
 

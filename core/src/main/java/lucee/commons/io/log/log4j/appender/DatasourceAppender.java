@@ -21,7 +21,6 @@ package lucee.commons.io.log.log4j.appender;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -66,8 +65,6 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 	@Override
 	public String getSql() {
 		String sql = super.getSql();
-		print.e(":::::::::::::::::::::::::::::::::::::::::::::");
-		print.e(sql);
 		return sql;
 	}
 	

@@ -48,7 +48,6 @@ import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.functions.system.BundleInfo;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.net.rpc.Pojo;
 import lucee.runtime.op.Caster;

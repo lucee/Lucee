@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import lucee.commons.lang.ArrayUtilException;
 import lucee.commons.lang.ComparatorUtil;
@@ -41,15 +40,11 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.Operator;
-import lucee.runtime.op.ThreadLocalDuplication;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayClassic;
 import lucee.runtime.type.ArrayImpl;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.QueryColumn;
-import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.comparator.SortRegister;
 
 /**

@@ -35,7 +35,6 @@ import lucee.runtime.cache.CacheSupport;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.CFMLEngineImpl;
-import lucee.runtime.engine.ControllerState;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;

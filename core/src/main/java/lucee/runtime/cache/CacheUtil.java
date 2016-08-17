@@ -27,7 +27,6 @@ import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CacheEntryFilter;
 import lucee.commons.io.cache.CacheFilter;
-import lucee.commons.io.cache.complex.CacheComplex;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;

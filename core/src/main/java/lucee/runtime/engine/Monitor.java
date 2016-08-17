@@ -18,7 +18,6 @@
  **/
 package lucee.runtime.engine;
 
-import lucee.commons.lang.types.RefBoolean;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
 

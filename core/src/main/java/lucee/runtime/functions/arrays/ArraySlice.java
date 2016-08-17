@@ -27,7 +27,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
-import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.util.ArrayUtil;
 
 public final class ArraySlice extends BIF {
