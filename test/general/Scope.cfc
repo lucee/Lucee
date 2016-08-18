@@ -21,7 +21,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	times=[10,200,100,300,200,100,2,100,1,100];
 
 
-	public void function testFormOrder(){
+	public void function testFormOrder() {
 		forms=structNew('linked');
 		forms['a']='1';
 		forms['b']='2';
@@ -51,7 +51,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		try {
 			createRAMCache(cacheName);
-			request.data={};
+			request["data"&cacheName]={};
 			local.names="";
 			uri=createURI("ScopeStorage/call.cfm");
 			loop from=1 to=len(times) index="local.index" {
@@ -59,9 +59,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				sleep(1);
 
 				if(index==1) {
-					//http addToken=true url="http://localhost:8080"&uri&"?cacheName=#cacheName#&name=a#index#&value=#index#&time=#times[index]#";	
-					//request.data[index]=cfhttp;
-					request.data[index]=_InternalRequest(
+					request["data"&cacheName][index]=_InternalRequest(
 							addToken:true,
 							template:uri,
 							urls:{
@@ -75,9 +73,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				else {
 					names=listAppend(names,cacheName&index);
 					thread name="#cacheName##index#" index="#index#" time=times[index] uri=uri cacheName=cacheName {
-						//http addToken=true url="http://localhost:8080"&uri&"?cacheName=#cacheName#&name=a#index#&value=#index#&time=#time#";	
-						//request.data[index]=cfhttp;
-						request.data[index]=_InternalRequest(
+						request["data"&cacheName][index]=_InternalRequest(
 							addToken:true,
 							template:uri,
 							urls:{
@@ -93,16 +89,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			thread action="join" names=names;
 				
 			// test if all call get the same cfid
-			try {
-			for(var i=1;i<request.data.count();i++) {
+			local.data=request["data"&cacheName];
+			for(var i=1;i<data.count();i++) {
 				assertEquals(
-					trim(request.data[i].fileContent),
-					trim(request.data[i+1].fileContent));
+					trim(data[i].fileContent),
+					trim(data[i+1].fileContent));
 			}
-			}
-			catch(local.e) {
-				throw serialize(e);
-			}
+			
 
 			uri=createURI("ScopeStorage/dump.cfm");
 			res=_InternalRequest(
