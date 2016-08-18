@@ -21,7 +21,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	//public function setUp(){}
 
-	public void function test()  skip="hasMySQLCredencials"{
+	public void function test()  skip="notHasMySQLCredencials"{
 		//if(!hasMySQLCredencials()) return;
 		local.uri=createURI("Jira2049/index.cfm");
 		local.result=_InternalRequest(uri);
@@ -57,7 +57,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 
-	public boolean function hasMySQLCredencials() {
+	public boolean function notHasMySQLCredencials() {
 		// getting the credetials from the enviroment variables
 		if(
 			!isNull(server.system.environment.MYSQL_SERVER) && 
@@ -65,7 +65,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			!isNull(server.system.environment.MYSQL_PASSWORD) && 
 			!isNull(server.system.environment.MYSQL_PORT) && 
 			!isNull(server.system.environment.MYSQL_DATABASE)) {
-			return true;
+			return false;
 		}
 		// getting the credetials from the system variables
 		else if(
@@ -74,9 +74,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			!isNull(server.system.properties.MYSQL_PASSWORD) && 
 			!isNull(server.system.properties.MYSQL_PORT) && 
 			!isNull(server.system.properties.MYSQL_DATABASE)) {
-			return true;
+			return false;
 		}
-		return false;
+		return true;
 	}
 	
 } 
