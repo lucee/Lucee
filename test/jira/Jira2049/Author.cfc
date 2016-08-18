@@ -12,8 +12,6 @@ component entityName="Author" table="Author2049b" persistent=true accessors=true
 	property name="books" singularname="book" type="array" cfc="Book" fieldtype="one-to-many" cascade="all-delete-orphan" inverse="true" lazy="true";
 	
 	public void function preInsert() {
-		//setCreatedDateTime( now() );
-		systemOutput("----"&getAuthorName(),true,true);
 		setAuthorName("Susix");
 	}
 	
