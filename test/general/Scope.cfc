@@ -51,11 +51,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		try {
 			createRAMCache(cacheName);
-			request.data=[];
+			request.data={};
 			local.names="";
 			uri=createURI("ScopeStorage/call.cfm");
 			loop from=1 to=len(times) index="local.index" {
-				names=listAppend(names,cacheName&index);
+				
 				sleep(1);
 
 				if(index==1) {
@@ -73,6 +73,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 						);
 				}
 				else {
+					names=listAppend(names,cacheName&index);
 					thread name="#cacheName##index#" index="#index#" time=times[index] uri=uri cacheName=cacheName {
 						//http addToken=true url="http://localhost:8080"&uri&"?cacheName=#cacheName#&name=a#index#&value=#index#&time=#time#";	
 						//request.data[index]=cfhttp;
@@ -90,8 +91,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				}
 			}
 			thread action="join" names=names;
-			
-					
+				
+			// test if all call get the same cfid
+			for(var i=1;i<request.data.count();i++) {
+				assertEquals(
+					trim(request.data[i].fileContent),
+					trim(request.data[i+1].fileContent));
+			}
 
 			uri=createURI("ScopeStorage/dump.cfm");
 			res=_InternalRequest(
@@ -102,12 +108,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				}
 			);
 			
-			// test if all call get the same cfid
-			for(var i=1;i<request.data.len();i++) {
-				assertEquals(
-					trim(request.data[i].fileContent),
-					trim(request.data[i+1].fileContent));
-			}
 			
 			
 
