@@ -90,12 +90,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				
 			// test if all call get the same cfid
 			local.data=request["data"&cacheName];
+			try{
 			for(var i=1;i<data.count();i++) {
 				assertEquals(
 					trim(data[i].fileContent),
 					trim(data[i+1].fileContent));
 			}
-			
+			}
+			catch(local.e){
+				throw e.message&"->"&serialize(data);
+			}
 
 			uri=createURI("ScopeStorage/dump.cfm");
 			res=_InternalRequest(
