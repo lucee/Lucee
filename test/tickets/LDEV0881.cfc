@@ -25,7 +25,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		local.uri=createURI("LDEV0881/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
-		assertEquals("",trim(result.fileContent));
+
+		var ref=evaluate(trim(result.fileContent));
+		if(isArray(ref))ref=ref[1];
+
+		
+		assertTrue(isValid('component',ref));
+		assertEquals(1,ref.getId());
+		
+		var code=ref.getCode();
+		assertTrue(isValid('component',code));
+		assertEquals(1,code.getId());
+		assertEquals("a",code.getCode());
+
 	}
 	
 	private string function createURI(string calledName){
