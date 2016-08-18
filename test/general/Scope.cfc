@@ -18,8 +18,7 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
-	cacheName="testClusterStorage"&createUniqueId();
-	times=[2000,100,2500];
+	times=[10,200,100,300,200,100,2,100,1,100];
 
 
 	public void function testFormOrder(){
@@ -38,32 +37,62 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("a:1;b:2;e:3;d:4;f:5;",res.filecontent.trim());
 	}
 
-	public void function testScopeStorage(){
+
+	public void function testScopeStorageCache(){
+		testScopeStorage("memory-cache-");
+	}
+
+	public void function testScopeStorageNoCache(){
+		testScopeStorage("no-in-memory-cache-");
+	}
+
+	private void function testScopeStorage(cacheName){
+		local.cacheName=arguments.cacheName&createUniqueId();
 
 		try {
-			createRAMCache();
+			createRAMCache(cacheName);
 			request.data=[];
 			local.names="";
 			uri=createURI("ScopeStorage/call.cfm");
-			loop from=1 to=len(times) index="local.i" {
-				names=listAppend(names,"tghfjg"&i);
-				sleep(5);
+			loop from=1 to=len(times) index="local.index" {
+				names=listAppend(names,cacheName&index);
+				sleep(1);
 
-				thread name="tghfjg#i#" index="#i#" time=times[i] uri=uri cacheName=cacheName {
+				if(index==1) {
+					//http addToken=true url="http://localhost:8080"&uri&"?cacheName=#cacheName#&name=a#index#&value=#index#&time=#times[index]#";	
+					//request.data[index]=cfhttp;
 					request.data[index]=_InternalRequest(
-						addToken:true,
-						template:uri,
-						urls:{
-							cacheName:cacheName,
-							name:"a#index#",
-							value:index,
-							time:time
-						}
-					);
+							addToken:true,
+							template:uri,
+							urls:{
+								cacheName:cacheName,
+								name:"a#index#",
+								value:index,
+								time:times[index]
+							}
+						);
+				}
+				else {
+					thread name="#cacheName##index#" index="#index#" time=times[index] uri=uri cacheName=cacheName {
+						//http addToken=true url="http://localhost:8080"&uri&"?cacheName=#cacheName#&name=a#index#&value=#index#&time=#time#";	
+						//request.data[index]=cfhttp;
+						request.data[index]=_InternalRequest(
+							addToken:true,
+							template:uri,
+							urls:{
+								cacheName:cacheName,
+								name:"a#index#",
+								value:index,
+								time:time
+							}
+						);
+					}
 				}
 			}
 			thread action="join" names=names;
-			sleep(1000); // TODO why is this necessary
+			
+					
+
 			uri=createURI("ScopeStorage/dump.cfm");
 			res=_InternalRequest(
 				addToken:true,
@@ -72,39 +101,33 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					cacheName:cacheName
 				}
 			);
-
+			
+			// test if all call get the same cfid
+			for(var i=1;i<request.data.len();i++) {
+				assertEquals(
+					trim(request.data[i].fileContent),
+					trim(request.data[i+1].fileContent));
+			}
+			
 			
 
 			local.sess=evaluate(trim(res.filecontent));
-			
-			/*throw "count:"&structCount(cfthread)&";cfid:"&getPageContext().getCFID()&">"&listSort(structKeyList(sess),'textnocase')&"
-			xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-			"&serialize(res)&"
-			========================================
-			"&serialize(request.data)&"
-			----------------------------------------
-			"&serialize(cfthread)&"
-			----------------------------------------
-			";
-			assertEquals('',listSort(structKeyList(sess),'textnocase'));*/
-			assertEquals(1,sess['a-a1']);
-			assertEquals(2,sess['a-a2']);
-			assertEquals(3,sess['a-a3']);
-			/*assertEquals(1,sess['b-a1']);
-			assertEquals(2,sess['b-a2']);
-			assertEquals(3,sess['b-a3']);*/
+			for(var i=1;i<=times.len();i++) {
+				assertEquals(i,sess['a-a'&i]);
+				assertEquals(i,sess['b-a'&i]);
+			}
+
+
 
 		}
 		finally {
-			deleteCache();
-		}		
-			//assertEquals(first,second);
-			//assertEquals(first,third);
+			deleteCache(cacheName);
+		}
 	}
 
 	// ScopeStorage
 
-	private function createRAMCache(){
+	private function createRAMCache(cacheName){
 		admin 
 				action="updateCacheConnection"
 				type="web"
@@ -118,7 +141,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				custom="#{timeToLiveSeconds:86400
 					,timeToIdleSeconds:86400}#";
 	}
-	private function deleteCache(){
+	private function deleteCache(cacheName){
 		admin 
 			action="removeCacheConnection"
 			type="web"
