@@ -98,7 +98,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			}
 			}
 			catch(local.e){
-				throw e.message&"->"&serialize(data);
+				throw e.message&"->"&serialize(cfthread);
 			}
 
 			uri=createURI("ScopeStorage/dump.cfm");
