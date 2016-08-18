@@ -93,10 +93,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			thread action="join" names=names;
 				
 			// test if all call get the same cfid
+			try {
 			for(var i=1;i<request.data.count();i++) {
 				assertEquals(
 					trim(request.data[i].fileContent),
 					trim(request.data[i+1].fileContent));
+			}
+			}
+			catch(local.e) {
+				throw serialize(e);
 			}
 
 			uri=createURI("ScopeStorage/dump.cfm");
