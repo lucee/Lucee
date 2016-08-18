@@ -57,7 +57,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 
-	private boolean function hasMySQLCredencials() {
+	public boolean function hasMySQLCredencials() {
 		// getting the credetials from the enviroment variables
 		if(
 			!isNull(server.system.environment.MYSQL_SERVER) && 
