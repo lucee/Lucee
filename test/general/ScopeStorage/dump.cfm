@@ -1,4 +1,3 @@
 <cfscript>
-	echo(serialize(session));
-	systemoutput(serialize(session),true);
+	echo(serialize({session:session,client:client}));
 </cfscript>

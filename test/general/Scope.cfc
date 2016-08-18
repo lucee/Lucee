@@ -111,10 +111,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			
 			
 
-			local.sess=evaluate(trim(res.filecontent));
+			local.scopes=evaluate(trim(res.filecontent));
 			for(var i=1;i<=times.len();i++) {
-				assertEquals(i,sess['a-a'&i]);
-				assertEquals(i,sess['b-a'&i]);
+				assertEquals(i,scopes.session['sa-a'&i]);
+				assertEquals(i,scopes.session['sb-a'&i]);
+				assertEquals(i,scopes.client['ca-a'&i]);
+				assertEquals(i,scopes.client['cb-a'&i]);
 			}
 
 
