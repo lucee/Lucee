@@ -17,6 +17,7 @@
  */
 package lucee.transformer.bytecode.literal;
 
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.op.Caster;
@@ -103,9 +104,8 @@ public class LitStringImpl extends ExpressionBase implements LitString,ExprStrin
     	}
     	
     	
-    	if(str.length()>MAX_SIZE) {
-        	ExprString expr=_toExpr(bc.getFactory(),str);
-        	expr.writeOut(bc, mode);
+    	if(toBig(str)) {
+        	_toExpr(bc.getFactory(),str).writeOut(bc, mode);
         }
         else {
         	bc.getAdapter().push(str);
@@ -122,14 +122,18 @@ public class LitStringImpl extends ExpressionBase implements LitString,ExprStrin
     	if(TYPE_LOWER==caseType)	return _writeOut(bc, mode, str.toLowerCase());
         return _writeOut(bc, mode, str);
     }
+    
+    private static boolean toBig(String str) {
+		if(str.length()<(MAX_SIZE/2)) return false; // a char is max 2 bytes
+    	return str.getBytes(CharsetUtil.UTF8).length>MAX_SIZE;
+	}
 
     private static ExprString _toExpr(Factory factory,String str) {
-    	int size=MAX_SIZE-1;
-    	ExprString left = factory.createLitString(str.substring(0,size));
-    	str = str.substring(size);
-    	
-    	ExprString right = (str.length()>size)?_toExpr(factory,str):factory.createLitString(str);
-
+    	int size=str.length()/2;
+    	String l = str.substring(0,size);
+    	String r = str.substring(size);
+    	ExprString left =toBig(l)? _toExpr(factory,l):factory.createLitString(l);
+    	ExprString right =toBig(r)? _toExpr(factory,r):factory.createLitString(r);
     	return OpString.toExprString(left, right, false);
 	}
 
