@@ -50,10 +50,10 @@ import lucee.runtime.op.Caster;
 public class ORMDatasourceConnection implements DatasourceConnectionPro {
 
 	private DataSource datasource;
-	private ORMConnection connection;
+	private Connection connection;
 	private Boolean supportsGetGeneratedKeys;
 
-	public ORMDatasourceConnection(PageContext pc, ORMSession session, DataSource ds) throws PageException {
+	public ORMDatasourceConnection(PageContext pc, ORMSession session, DataSource ds, int transactionIsolation) throws PageException {
 		datasource=ds;
 		// this should never happen
 		if(datasource==null) {
@@ -64,12 +64,11 @@ public class ORMDatasourceConnection implements DatasourceConnectionPro {
 				throw new PageRuntimeException(pe);
 			}
 		}
-		connection=new ORMConnection(pc,session,datasource,false);
+		connection=new ORMConnection(pc,session,datasource,transactionIsolation);
 	}
 
 	@Override
 	public Connection getConnection() {
-		connection.begin();
 		return connection;
 	}
 

@@ -45,21 +45,24 @@ public class ORMConnection implements Connection {
 
 	private ORMSession session;
 	private boolean autoCommit=false;
-	private int isolation=Connection.TRANSACTION_SERIALIZABLE;
+	private int isolation;
 	private ORMTransaction trans;
 	private DataSource ds;
-	private boolean hasBegun;
+	//private boolean hasBegun;
 
 	/**
 	 * Constructor of the class
 	 * @param session
+	 * @param transactionIsolation 
 	 * @throws PageException 
 	 */
-	public ORMConnection(PageContext pc,ORMSession session, DataSource ds, boolean begin) throws PageException {
+	public ORMConnection(PageContext pc,ORMSession session, DataSource ds, int transactionIsolation) throws PageException {
 		this.session=session;
 		this.ds=ds;
+		isolation=transactionIsolation;
+		
 		trans = session.getTransaction(ds.getName(),session.getEngine().getConfiguration(pc).autoManageSession());
-		if(begin)trans.begin();
+		trans.begin();
 	}
 	
 	@Override
@@ -67,12 +70,6 @@ public class ORMConnection implements Connection {
 
 	@Override
 	public void close() throws SQLException {
-		// TODO Auto-generated method stub
-	}
-	
-	public void begin() {
-		if(!hasBegun)trans.begin();
-		hasBegun=true;
 	}
 
 	@Override
@@ -212,8 +209,10 @@ public class ORMConnection implements Connection {
 	@Override
 	public void setAutoCommit(boolean autoCommit) throws SQLException {
 		this.autoCommit=autoCommit;
-		if(autoCommit)
+		
+		if(autoCommit) {
 			trans.end();
+		}
 	}
 
 	@Override
