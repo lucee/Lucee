@@ -1,67 +1,6 @@
 <cfscript>
 
-	function toVersionSortable(required string version) localMode=true {
-		version=unwrap(version.trim());
-		arr=listToArray(arguments.version,'.');
-		
-		// OSGi compatible version
-		if(arr.len()==4 && isNumeric(arr[1]) && isNumeric(arr[2]) && isNumeric(arr[3])) {
-			try{return toOSGiVersion(version).sortable}catch(local.e){};
-		}
-
-
-		rtn="";
-		loop array=arr index="i" item="v" {
-			if(len(v)<5)
-			 rtn&="."&repeatString("0",5-len(v))&v;
-			else
-				rtn&="."&v;
-		} 
-		return 	rtn;
-	}
-
-
-	struct function toOSGiVersion(required string version, boolean ignoreInvalidVersion=false){
-		local.arr=listToArray(arguments.version,'.');
-		
-		if(arr.len()!=4 || !isNumeric(arr[1]) || !isNumeric(arr[2]) || !isNumeric(arr[3])) {
-			if(ignoreInvalidVersion) return {};
-			throw "version number ["&arguments.version&"] is invalid";
-		}
-		local.sct={major:arr[1]+0,minor:arr[2]+0,micro:arr[3]+0,qualifier_appendix:"",qualifier_appendix_nbr:100};
-
-		// qualifier has an appendix? (BETA,SNAPSHOT)
-		local.qArr=listToArray(arr[4],'-');
-		if(qArr.len()==1 && isNumeric(qArr[1])) local.sct.qualifier=qArr[1]+0;
-		else if(qArr.len()==2 && isNumeric(qArr[1])) {
-			sct.qualifier=qArr[1]+0;
-			sct.qualifier_appendix=qArr[2];
-			if(sct.qualifier_appendix=="SNAPSHOT")sct.qualifier_appendix_nbr=0;
-			else if(sct.qualifier_appendix=="BETA")sct.qualifier_appendix_nbr=50;
-			else sct.qualifier_appendix_nbr=75; // every other appendix is better than SNAPSHOT
-		}
-		else throw "version number ["&arguments.version&"] is invalid";
-		sct.pure=
-					sct.major
-					&"."&sct.minor
-					&"."&sct.micro
-					&"."&sct.qualifier;
-		sct.display=
-					sct.pure
-					&(sct.qualifier_appendix==""?"":"-"&sct.qualifier_appendix);
-		
-		sct.sortable=repeatString("0",2-len(sct.major))&sct.major
-					&"."&repeatString("0",3-len(sct.minor))&sct.minor
-					&"."&repeatString("0",3-len(sct.micro))&sct.micro
-					&"."&repeatString("0",4-len(sct.qualifier))&sct.qualifier
-					&"."&repeatString("0",3-len(sct.qualifier_appendix_nbr))&sct.qualifier_appendix_nbr;
-
-
-
-		return sct;
-
-
-	}
+	
 	function unwrap(String str) {
 		str = str.trim();
 		if((left(str,1)==chr(8220) || left(str,1)=='"') && (right(str,1)=='"' || right(str,1)==chr(8221)))
@@ -101,9 +40,9 @@ isInstalled=installed.count() GT 0;
 
 // all version that can be installed
 
-	// Older versions
-	if(!isNull(available.older) && !isSimpleValue(available.older)) {
-		all=duplicate(available.older);
+	// other Versions
+	if(!isNull(available.otherVersions) && !isSimpleValue(available.otherVersions)) {
+		all=duplicate(available.otherVersions);
 	}
 	else {
 		all=[];
