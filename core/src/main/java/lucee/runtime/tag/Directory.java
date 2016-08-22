@@ -39,7 +39,6 @@ import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.type.file.FileResource;
 import lucee.commons.io.res.util.ModeObjectWrap;
-import lucee.commons.io.res.util.ResourceAndResourceNameFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.res.util.UDFFilter;
 import lucee.commons.io.res.util.WildcardPatternFilter;
@@ -93,8 +92,9 @@ public final class Directory extends TagImpl  {
 	
 	/** Optional for action = "list". Ignored by all other actions. File extension filter applied to
 	** 		returned names. For example: *m. Only one mask filter can be applied at a time. */
-	private ResourceFilter filter;
-	private ResourceAndResourceNameFilter nameFilter;
+	//private final ResourceFilter filter=null;
+	//private ResourceAndResourceNameFilter nameFilter=null;
+	private ResourceFilter filter=null;
 
 	private String pattern;
 	private String patternDelimiters;
@@ -149,8 +149,8 @@ public final class Directory extends TagImpl  {
 
 
 		type=TYPE_ALL;
+		//filter=null;
 		filter=null;
-		nameFilter=null;
 		destination=null;
 		directory=null;
 		action="list";
@@ -189,7 +189,7 @@ public final class Directory extends TagImpl  {
 	}
 
 	public void setFilter(UDF filter) throws PageException	{
-		this.filter=nameFilter=UDFFilter.createResourceAndResourceNameFilter(filter);
+		this.filter=UDFFilter.createResourceAndResourceNameFilter(filter);
 	}
 
 	public void setFilter(String pattern) {
@@ -360,11 +360,11 @@ public final class Directory extends TagImpl  {
 	public int doStartTag() throws PageException	{
 
 		if (this.filter == null && !StringUtil.isEmpty(this.pattern))
-			this.filter = nameFilter = new WildcardPatternFilter(pattern, patternDelimiters);
+			this.filter = new WildcardPatternFilter(pattern, patternDelimiters);
 
 	    //securityManager = pageContext.getConfig().getSecurityManager();
 		if(action.equals("list")) {
-			Object res=actionList(pageContext,directory,serverPassword,type,filter,nameFilter,listInfo,recurse,sort);
+			Object res=actionList(pageContext,directory,serverPassword,type,filter,listInfo,recurse,sort);
 			if(!StringUtil.isEmpty(name) && res!=null)pageContext.setVariable(name,res);
 		}
 		else if(action.equals("create")) actionCreate(pageContext,directory,serverPassword,createPath,mode,acl,storage, nameconflict);
@@ -392,7 +392,8 @@ public final class Directory extends TagImpl  {
 	 * list all files and directories inside a directory
 	 * @throws PageException
 	 */
-	public static Object actionList(PageContext pageContext,Resource directory, String serverPassword, int type,ResourceFilter filter,ResourceAndResourceNameFilter nameFilter, 
+	public static Object actionList(PageContext pageContext,Resource directory, String serverPassword, int type,
+			ResourceFilter filter, 
 			int listInfo,boolean recurse,String sort) throws PageException {
 		// check directory
 		SecurityManager securityManager = pageContext.getConfig().getSecurityManager();
@@ -403,7 +404,6 @@ public final class Directory extends TagImpl  {
 	    	if(filter==null) filter=typeFilter; 
 	    	else filter=new AndResourceFilter(new ResourceFilter[]{typeFilter,filter});
 	    }
-	    
 	    
 		// create query Object
 	    String[] names = new String[]{"name","size","type","dateLastModified","attributes","mode","directory"};
@@ -450,14 +450,14 @@ public final class Directory extends TagImpl  {
 			// Query Name
 			else if(listInfo==LIST_INFO_QUERY_NAME) {
         	   if(recurse || type!=TYPE_ALL)_fillQueryNamesRec("",query, directory, filter, 0,recurse);
-        	   else _fillQueryNames(query, directory, nameFilter, 0);
+        	   else _fillQueryNames(query, directory, filter, 0);
 			}
 			
 			//Array Name/Path
 			else if(listInfo==LIST_INFO_ARRAY_NAME || listInfo==LIST_INFO_ARRAY_PATH) {
 				boolean onlyName=listInfo==LIST_INFO_ARRAY_NAME;
-        	   if(!onlyName || recurse || type!=TYPE_ALL)_fillArrayPathOrName(array, directory, nameFilter, 0, recurse, onlyName);//QueryNamesRec("",query, directory, filter, 0,recurse);
-        	   else _fillArrayName(array, directory, nameFilter, 0);
+        	   if(!onlyName || recurse || type!=TYPE_ALL)_fillArrayPathOrName(array, directory, filter, 0, recurse, onlyName);//QueryNamesRec("",query, directory, filter, 0,recurse);
+        	   else _fillArrayName(array, directory, filter, 0);
 			}	
 			 
         	   
@@ -527,16 +527,30 @@ public final class Directory extends TagImpl  {
         return count;
     }
  // this method only exists for performance reasion
-    private static int _fillQueryNames(Query query, Resource directory, ResourceNameFilter filter, int count) throws PageException {
-    	String[] list=directory.list();
-    	if(list==null || list.length==0) return count;
-        for(int i=0;i<list.length;i++) {
-            if(filter==null || filter.accept(directory,list[i])) {
-                query.addRow(1);
-                count++;
-                query.setAt(KeyConstants._name,count,list[i]);  
-            }     
-        }
+    private static int _fillQueryNames(Query query, Resource directory, ResourceFilter filter, int count) throws PageException {
+    	if(filter==null || filter instanceof ResourceNameFilter) {
+	    	ResourceNameFilter rnf=filter==null?null:(ResourceNameFilter)filter;
+    		String[] list=directory.list();
+	    	if(list==null || list.length==0) return count;
+	        for(int i=0;i<list.length;i++) {
+	            if(rnf==null || rnf.accept(directory,list[i])) {
+	                query.addRow(1);
+	                count++;
+	                query.setAt(KeyConstants._name,count,list[i]);  
+	            }     
+	        }
+    	}
+    	else {
+	    	Resource[] list = directory.listResources();
+	    	if(list==null || list.length==0) return count;
+	        for(int i=0;i<list.length;i++) {
+	            if(filter==null || filter.accept(list[i])) {
+	                query.addRow(1);
+	                count++;
+	                query.setAt(KeyConstants._name,count,list[i].getName());  
+	            }
+	        }
+    	}
         return count;
     }
     
@@ -572,14 +586,27 @@ public final class Directory extends TagImpl  {
     }
     
     // this method only exists for performance reasion
-    private static int _fillArrayName(Array arr, Resource directory, ResourceNameFilter filter, int count) {
-    	String[] list=directory.list();
-    	if(list==null || list.length==0) return count;
-        for(int i=0;i<list.length;i++) {
-            if(filter==null || filter.accept(directory,list[i])) {
-            	arr.appendEL(list[i]);  
-            }     
-        }
+    private static int _fillArrayName(Array arr, Resource directory, ResourceFilter filter, int count) {
+    	if(filter==null || filter instanceof ResourceNameFilter) {
+    		ResourceNameFilter rnf=filter==null?null:(ResourceNameFilter)filter;
+	    	String[] list=directory.list();
+	    	if(list==null || list.length==0) return count;
+	        for(int i=0;i<list.length;i++) {
+	            if(rnf==null || rnf.accept(directory,list[i])) {
+	            	arr.appendEL(list[i]);  
+	            }     
+	        }
+    	}
+    	else {
+    		Resource[] list = directory.listResources();
+	    	if(list==null || list.length==0) return count;
+	        for(int i=0;i<list.length;i++) {
+	            if(filter.accept(list[i])) {
+	            	arr.appendEL(list[i].getName());  
+	            }     
+	        }
+    	}
+        
         return count;
     }
 
@@ -833,14 +860,17 @@ public final class Directory extends TagImpl  {
 	 * @param strType the type to set
 	 */
 	public void setType(String strType) throws ApplicationException {
+		if(StringUtil.isEmpty(strType)) return;
+		type=toType(strType);
+	}
+	
+	public static int toType(String strType) throws ApplicationException {
 		strType=strType.trim().toLowerCase();
-		
-		if("all".equals(strType)) type=TYPE_ALL;
-		else if("dir".equals(strType)) type=TYPE_DIR;
-		else if("directory".equals(strType)) type=TYPE_DIR;
-		else if("file".equals(strType)) type=TYPE_FILE;
-		else throw new ApplicationException("invalid type ["+strType+"] for the tag directory");
-			
+		if("all".equals(strType)) return TYPE_ALL;
+		else if("dir".equals(strType)) return TYPE_DIR;
+		else if("directory".equals(strType)) return TYPE_DIR;
+		else if("file".equals(strType)) return TYPE_FILE;
+		else throw new ApplicationException("invalid type ["+strType+"], valid types are");
 	}
 
 }
