@@ -1,14 +1,6 @@
 <cfscript>
 
-	
-	function unwrap(String str) {
-		str = str.trim();
-		if((left(str,1)==chr(8220) || left(str,1)=='"') && (right(str,1)=='"' || right(str,1)==chr(8221)))
-			str=mid(str,2,len(str)-2);
-		else if(left(str,1)=="'" && right(str,1)=="'")
-			str=mid(str,2,len(str)-2);
-		return str;
-	}
+
 
 	function toOrderedArray(array arr, boolean desc=false) {
 		arraySort(arr,function(l,r) {
