@@ -20,6 +20,7 @@ package lucee.runtime.interpreter;
 
 import java.util.ArrayList;
 
+import lucee.print;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ParserString;
 import lucee.loader.engine.CFMLEngine;
@@ -1160,6 +1161,7 @@ public class CFMLExpressionInterpreter {
     private Ref dynamic() throws PageException {
         
         // get First Element of the Variable
+    	int pos = cfml.getPos();
         String name = identifier(false);
         if(name == null) {
             if (!cfml.forwardIfCurrent('('))return null;
@@ -1198,9 +1200,7 @@ public class CFMLExpressionInterpreter {
     	else if(!limited && name.equalsIgnoreCase("NEW")){
     		Ref res = newOp();
     		if(res!=null) return res;
-    	}  
-        
-        // Extract Scope from the Variable
+    	}
         return limited?startElement(name):subDynamic(startElement(name));
         
     }
@@ -1219,12 +1219,12 @@ public class CFMLExpressionInterpreter {
                 name = identifier(true);
                 if(name==null) throw new InterpreterException("Invalid identifier");
                 cfml.removeSpace();
-                ref=new Variable(ref,name);
+                ref=new Variable(ref,name,limited);
             }
             // []
             else if (cfml.forwardIfCurrent('[')) {
             	cfml.removeSpace();
-                ref=new Variable(ref,assignOp());
+                ref=new Variable(ref,assignOp(),limited);
                 cfml.removeSpace();
                 if (!cfml.forwardIfCurrent(']'))
                     throw new InterpreterException("Invalid Syntax Closing []] not found");
@@ -1349,12 +1349,12 @@ public class CFMLExpressionInterpreter {
             String name=identifier(false);
             if(name!=null){
                 cfml.removeSpace();
-                return new Variable(new lucee.runtime.interpreter.ref.var.Scope(ScopeSupport.SCOPE_VAR),name);
+                return new Variable(new lucee.runtime.interpreter.ref.var.Scope(ScopeSupport.SCOPE_VAR),name,limited);
             }
         }
         int scope = limited?Scope.SCOPE_UNDEFINED:VariableInterpreter.scopeString2Int(pc!=null && pc.ignoreScopes(),idStr);
         if(scope==Scope.SCOPE_UNDEFINED) {
-            return new Variable(new lucee.runtime.interpreter.ref.var.Scope(Scope.SCOPE_UNDEFINED),idStr);
+        	return new Variable(new lucee.runtime.interpreter.ref.var.Scope(Scope.SCOPE_UNDEFINED),idStr,limited);
         }
         return new lucee.runtime.interpreter.ref.var.Scope(scope);
         
