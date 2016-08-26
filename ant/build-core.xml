@@ -164,7 +164,7 @@
      <attribute name="target" />
      <attribute name="coremanifest" />
      <![CDATA[
-      var bundles = attributes.get("bundles").split(':');
+      var bundles = attributes.get("bundles").split(java.io.File.pathSeparator);
       var target = attributes.get("target");
       var coreManifestPath = attributes.get("coremanifest");
       
