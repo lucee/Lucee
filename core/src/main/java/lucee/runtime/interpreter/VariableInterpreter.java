@@ -300,8 +300,15 @@ public final class VariableInterpreter {
 		return new VariableReference((Collection)coll,list.next());
 	}
 	
-	public static VariableReference getVariableReference(PageContext pc,Collection.Key[] keys, boolean keepScope) throws PageException { 
-	   
+	public static VariableReference getVariableReference(PageContext pc,Collection.Key key, boolean keepScope) {   
+		if(keepScope) {
+			Collection coll = ((UndefinedImpl)pc.undefinedScope()).getScopeFor(key,null);
+			if(coll!=null) return new VariableReference(coll,key); 
+		}
+		return new VariableReference(pc.undefinedScope(),key); 
+	}
+	
+	public static VariableReference getVariableReference(PageContext pc,Collection.Key[] keys, boolean keepScope) throws PageException {
 		if(keys.length==1) {
 			if(keepScope) {
 				Collection coll = ((UndefinedImpl)pc.undefinedScope()).getScopeFor(keys[0],null);

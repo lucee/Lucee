@@ -54,69 +54,69 @@ public class OPUnary extends ExpressionBase implements ExprDouble {
 	
 
 	
-	final static Method UNARY_POST_PLUS= new Method("unaryPostPlus",
-			Types.DOUBLE,
-			new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY_ARRAY,Types.DOUBLE_VALUE});
+	final static Method UNARY_POST_PLUS_1= new Method("unaryPoPl",
+			Types.DOUBLE_VALUE, new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
+	final static Method UNARY_POST_PLUS_N= new Method("unaryPoPl",
+			Types.DOUBLE_VALUE, new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY_ARRAY,Types.DOUBLE_VALUE});
 	
-	final static Method UNARY_POST_MINUS= new Method("unaryPostMinus",
-			Types.DOUBLE,
-			new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY_ARRAY,Types.DOUBLE_VALUE});
-	
-	
-	final static Method UNARY_PRE_PLUS= new Method("unaryPrePlus",
-			Types.DOUBLE,
-			new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY_ARRAY,Types.DOUBLE_VALUE});
-	
-
-	final static Method UNARY_PRE_MINUS= new Method("unaryPreMinus",
-			Types.DOUBLE,
-			new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY_ARRAY,Types.DOUBLE_VALUE});
-
-	final static Method UNARY_PRE_MULTIPLY= new Method("unaryPreMultiply",
-			Types.DOUBLE,
-			new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY_ARRAY,Types.DOUBLE_VALUE});
-
-	final static Method UNARY_PRE_DIVIDE= new Method("unaryPreDivide",
-			Types.DOUBLE,
-			new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY_ARRAY,Types.DOUBLE_VALUE});
-	
-	final static Method UNARY_PRE_CONCAT= new Method("unaryPreConcat",
-			Types.STRING,
-			new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY_ARRAY,Types.STRING});
+	final static Method UNARY_POST_MINUS_N= new Method("unaryPoMi",
+			Types.DOUBLE_VALUE, new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY_ARRAY,Types.DOUBLE_VALUE});
+	final static Method UNARY_POST_MINUS_1= new Method("unaryPoMi",
+			Types.DOUBLE_VALUE, new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
 	
 	
-	
-	
-	
-	final static Method UNARY_POST_PLUS2= new Method("unaryPostPlus",
-			Types.DOUBLE,
-			new Type[]{Types.COLLECTION,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
-	
-	final static Method UNARY_POST_MINUS2= new Method("unaryPostMinus",
-			Types.DOUBLE,
-			new Type[]{Types.COLLECTION,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
-	
-	
-	final static Method UNARY_PRE_PLUS2= new Method("unaryPrePlus",
-			Types.DOUBLE,
-			new Type[]{Types.COLLECTION,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
+	final static Method UNARY_PRE_PLUS_N= new Method("unaryPrPl",
+			Types.DOUBLE_VALUE, new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY_ARRAY,Types.DOUBLE_VALUE});
+	final static Method UNARY_PRE_PLUS_1= new Method("unaryPrPl",
+			Types.DOUBLE_VALUE, new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
 	
 
-	final static Method UNARY_PRE_MINUS2= new Method("unaryPreMinus",
-			Types.DOUBLE,
-			new Type[]{Types.COLLECTION,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
+	final static Method UNARY_PRE_MINUS_N= new Method("unaryPrMi",
+			Types.DOUBLE_VALUE, new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY_ARRAY,Types.DOUBLE_VALUE});
+	final static Method UNARY_PRE_MINUS_1= new Method("unaryPrMi",
+			Types.DOUBLE_VALUE, new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
 
-	final static Method UNARY_PRE_MULTIPLY2= new Method("unaryPreMultiply",
-			Types.DOUBLE,
-			new Type[]{Types.COLLECTION,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
+	final static Method UNARY_PRE_MULTIPLY_N= new Method("unaryPrMu",
+			Types.DOUBLE_VALUE, new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY_ARRAY,Types.DOUBLE_VALUE});
+	final static Method UNARY_PRE_MULTIPLY_1= new Method("unaryPrMu",
+			Types.DOUBLE_VALUE, new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
 
-	final static Method UNARY_PRE_DIVIDE2= new Method("unaryPreDivide",
-			Types.DOUBLE,
-			new Type[]{Types.COLLECTION,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
+	final static Method UNARY_PRE_DIVIDE_N= new Method("unaryPrDi",
+			Types.DOUBLE_VALUE, new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY_ARRAY,Types.DOUBLE_VALUE});
+	final static Method UNARY_PRE_DIVIDE_1= new Method("unaryPrDi",
+			Types.DOUBLE_VALUE, new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
+	
+	final static Method UNARY_PRE_CONCAT_N= new Method("unaryPreConcat",
+			Types.STRING, new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY_ARRAY,Types.STRING});
+	final static Method UNARY_PRE_CONCAT_1= new Method("unaryPreConcat",
+			Types.STRING, new Type[]{Types.PAGE_CONTEXT,Types.COLLECTION_KEY,Types.STRING});
+	
+	
+	
+	
+	
+	final static Method UNARY_POST_PLUS2= new Method("unaryPoPl",
+			Types.DOUBLE_VALUE, new Type[]{Types.COLLECTION,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
+	
+	final static Method UNARY_POST_MINUS2= new Method("unaryPoMi",
+			Types.DOUBLE_VALUE, new Type[]{Types.COLLECTION,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
+	
+	
+	final static Method UNARY_PRE_PLUS2= new Method("unaryPrPl",
+			Types.DOUBLE_VALUE, new Type[]{Types.COLLECTION,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
+	
+
+	final static Method UNARY_PRE_MINUS2= new Method("unaryPrMi",
+			Types.DOUBLE_VALUE, new Type[]{Types.COLLECTION,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
+
+	final static Method UNARY_PRE_MULTIPLY2= new Method("unaryPrMu",
+			Types.DOUBLE_VALUE, new Type[]{Types.COLLECTION,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
+
+	final static Method UNARY_PRE_DIVIDE2= new Method("unaryPrDi",
+			Types.DOUBLE_VALUE, new Type[]{Types.COLLECTION,Types.COLLECTION_KEY,Types.DOUBLE_VALUE});
 	
 	final static Method UNARY_PRE_CONCAT2= new Method("unaryPreConcat",
-			Types.STRING,
-			new Type[]{Types.COLLECTION,Types.COLLECTION_KEY,Types.STRING});
+			Types.STRING, new Type[]{Types.COLLECTION,Types.COLLECTION_KEY,Types.STRING});
 	
 	
 	
@@ -187,12 +187,12 @@ public class OPUnary extends ExpressionBase implements ExprDouble {
 			if(operation==CONCAT) return Types.STRING;
 			
 			// convert from Double to double (if necessary)
-			if(mode==MODE_VALUE) {
-	            adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_DOUBLE_VALUE_FROM_DOUBLE);
+			if(mode==MODE_REF) {
+	            adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_DOUBLE_FROM_DOUBLE);
+	            return Types.DOUBLE;
+	        }
 	            return Types.DOUBLE_VALUE;
 	        }
-	        return Types.DOUBLE;
-		}
 		
 		
 
@@ -205,51 +205,60 @@ public class OPUnary extends ExpressionBase implements ExprDouble {
 		
 		
 		// Collection key Array
-		ArrayVisitor av=new ArrayVisitor();
-		int index=0;
-		av.visitBegin(adapter, Types.COLLECTION_KEY, scope!=null?members.size()+1:members.size());
-			Iterator<Member> it = members.iterator();
-			Member m;DataMember dm;
-			
-			if(scope!=null) {
-				av.visitBeginItem(adapter, index++);
-				getFactory().registerKey(bc,getFactory().createLitString(scope),false);
-				av.visitEndItem(adapter);
-			}
-			
-			while(it.hasNext()){
-				av.visitBeginItem(adapter, index++);
-				m = it.next();
-				if(!(m instanceof DataMember)) throw new TransformerException("you cannot use a unary operator with a function "+m.getClass().getName(), getStart());
-				getFactory().registerKey(bc,((DataMember) m).getName(),false);
-				av.visitEndItem(adapter);
-			}
-		av.visitEnd();
+		int arrSize=scope!=null?members.size()+1:members.size();
+		boolean useArray = arrSize>1 || scope!=null;
+		if(useArray) {
+			ArrayVisitor av=new ArrayVisitor();
+			int index=0;
+			av.visitBegin(adapter, Types.COLLECTION_KEY, arrSize);
+				Iterator<Member> it = members.iterator();
+				Member m;DataMember dm;
+				
+				if(scope!=null) {
+					av.visitBeginItem(adapter, index++);
+					getFactory().registerKey(bc,getFactory().createLitString(scope),false);
+					av.visitEndItem(adapter);
+				}
+				
+				while(it.hasNext()){
+					av.visitBeginItem(adapter, index++);
+					m = it.next();
+					if(!(m instanceof DataMember)) throw new TransformerException("you cannot use a unary operator with a function "+m.getClass().getName(), getStart());
+					getFactory().registerKey(bc,((DataMember) m).getName(),false);
+					av.visitEndItem(adapter);
+				}
+			av.visitEnd();
+		}
+		else {
+			Member m = members.iterator().next();
+			if(!(m instanceof DataMember)) throw new TransformerException("you cannot use a unary operator with a function "+m.getClass().getName(), getStart());
+			getFactory().registerKey(bc,((DataMember) m).getName(),false);	
+		}
 		
 		if(type==POST) {
 			if(operation!=OpDouble.PLUS && operation!=OpDouble.MINUS ) throw new TransformerException("Post only possible with plus or minus "+operation, value.getStart());
 			
 			value.writeOut(bc, MODE_VALUE);
-			if(operation==PLUS) adapter.invokeStatic(Types.OPERATOR, UNARY_POST_PLUS);
-			else if(operation==MINUS) adapter.invokeStatic(Types.OPERATOR, UNARY_POST_MINUS);
+			if(operation==PLUS) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_POST_PLUS_N:UNARY_POST_PLUS_1);
+			else if(operation==MINUS) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_POST_MINUS_N:UNARY_POST_MINUS_1);
 		}
 		else if(type==PRE) {
 			value.writeOut(bc, MODE_VALUE);
 
-			if(operation==PLUS) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_PLUS);
-			else if(operation==MINUS) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_MINUS);
-			else if(operation==DIVIDE) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_DIVIDE);
-			else if(operation==MULTIPLY) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_MULTIPLY);
-			else if(operation==CONCAT) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_CONCAT);
+			if(operation==PLUS) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_PRE_PLUS_N:UNARY_PRE_PLUS_1);
+			else if(operation==MINUS) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_PRE_MINUS_N:UNARY_PRE_MINUS_1);
+			else if(operation==DIVIDE) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_PRE_DIVIDE_N:UNARY_PRE_DIVIDE_1);
+			else if(operation==MULTIPLY) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_PRE_MULTIPLY_N:UNARY_PRE_MULTIPLY_1);
+			else if(operation==CONCAT) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_PRE_CONCAT_N:UNARY_PRE_CONCAT_1);
 		}
 		
 		if(operation==CONCAT) return Types.STRING;
 		
-		// convert from Double to double (if necessary)
-		if(mode==MODE_VALUE) {
-            adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_DOUBLE_VALUE_FROM_DOUBLE);
+		// convert from double to Double (if necessary)
+		if(mode==MODE_REF) {
+            adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_DOUBLE_FROM_DOUBLE);
+            return Types.DOUBLE;
+        }
             return Types.DOUBLE_VALUE;
         }
-        return Types.DOUBLE;
-	}
 }
