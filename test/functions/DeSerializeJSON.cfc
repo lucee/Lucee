@@ -23,6 +23,63 @@
 	<cffunction name="afterTests"></cffunction>
 	<cffunction name="setUp"></cffunction>
 	--->
+<cfscript>
+	function testNumber() {
+		var sct=deserializeJson('{a:1}');
+		assertEquals(1,sct.a);
+	}
+	function testBoolean() {
+		var sct=deserializeJson('{a:true}');
+		assertTrue(sct.a);
+	}
+	function testNull() {
+		var sct=deserializeJson('{a:null}');
+		assertTrue(isNull(sct.a));
+	}
+
+	function testString() {
+		var sct=deserializeJson('{a:"Susi"}');
+		assertEquals("Susi",sct.a);
+	}
+	
+	function testMustFail() {
+		var failed=false;
+		try {
+			var sct=deserializeJson('{a:susi}');
+		}
+		catch(local.e){
+			failed=true;
+		}
+		if(!failed) throw "{a:susi} must fail";
+
+		var failed=false;
+		try {
+			var sct=deserializeJson('{a:"#susi#"}');
+		}
+		catch(local.e){
+			failed=true;
+		}
+		if(!failed) throw '{a:"#susi#"} must fail';
+
+		var failed=false;
+		try {
+			var sct=deserializeJson('{a:"#susi#abc"}');
+		}
+		catch(local.e){
+			failed=true;
+		}
+		if(!failed) throw '{a:"#susi#abc"} must fail';
+
+		var failed=false;
+		try {
+			var sct=deserializeJson('{a:[a,b,c]}');
+		}
+		catch(local.e){
+			failed=true;
+		}
+		if(!failed) throw "{a:[a,b,c]} must fail";
+	}
+</cfscript>
 
 	<cffunction name="testNumbersBreakingInByteForm1" localMode="modern">
 		<cfset i=0>
