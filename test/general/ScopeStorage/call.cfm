@@ -1,7 +1,9 @@
 <cfscript>
-	session["a-"&url.name]=url.value;
+	client["ca-"&url.name]=url.value;
+	session["sa-"&url.name]=url.value;
 	sleep(url.time);
-	session["b-"&url.name]=url.value;
+	client["cb-"&url.name]=url.value;
+	session["sb-"&url.name]=url.value;
 	echo( getPageContext().getCFID() &":::::::::");
 	//echo(serialize(cookie));
 	//systemoutput(serialize(session),true);

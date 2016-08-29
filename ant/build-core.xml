@@ -167,7 +167,7 @@
       var bundles = attributes.get("bundles").split(java.io.File.pathSeparator);
       var target = attributes.get("target");
       var coreManifestPath = attributes.get("coremanifest");
-      
+
 
       // read the core Manifest
       manifest = new java.util.jar.Manifest(new java.io.FileInputStream(new java.io.File(coreManifestPath)));

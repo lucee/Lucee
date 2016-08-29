@@ -7,14 +7,9 @@ component {
 		};
 
 	this.ormEnabled = true;
-	/*this.ormSettings = {
-		dbcreate = "update",
-		secondarycacheenabled = false,
-		flushAtRequestEnd 	= false,
-		autoManageSession	= false,
-		secondaryCacheEnabled = false,
-		eventhandling = true
-	};*/
+	this.ormSettings = {
+		dbcreate = "dropcreate"
+	};
 
 
 

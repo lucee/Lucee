@@ -32,6 +32,6 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/Users/mic/lucee.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/loader"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

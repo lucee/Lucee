@@ -1929,7 +1929,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
     }
 
     public boolean contains(PageContext pc,String name) {
-       	return get(getAccess(pc),name,NullSupportHelper.NULL(pc))!=NullSupportHelper.NULL(pc);
+       	return get(pc,KeyImpl.init(name),NullSupportHelper.NULL(pc))!=NullSupportHelper.NULL(pc);
     }
 
 	/**
@@ -1938,7 +1938,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 * @return
 	 */
 	public boolean contains(PageContext pc,Key key) {
-	   	return get(getAccess(pc),key,NullSupportHelper.NULL(pc))!=NullSupportHelper.NULL(pc);
+	   	return get(pc,key,NullSupportHelper.NULL(pc))!=NullSupportHelper.NULL(pc);
 	}
 	
 	@Override

@@ -48,6 +48,8 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	boolean autoCommit=true;
 	private int isolation=Connection.TRANSACTION_NONE;
 	private Map<DataSource,DatasourceConnection> transConns=new HashMap<DataSource,DatasourceConnection>();
+
+	private boolean inside;
 	
 
 	/**
@@ -107,13 +109,18 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	}
 	
 	public void add(PageContext pc,ORMSession session) throws PageException {
-		if(autoCommit) return;
-		
-		DataSource[] sources = session.getDataSources();
-		for(int i=0;i<sources.length;i++){
-			_add(pc,session,sources[i]);
+		if(autoCommit || inside) return;
+
+		inside=true;
+		try{
+			DataSource[] sources = session.getDataSources();
+			for(int i=0;i<sources.length;i++){
+				_add(pc,session,sources[i]);
+			}
 		}
-		
+		finally {
+			inside=false;
+		}
 	}
 
 	private void _add(PageContext pc,ORMSession session, DataSource ds) throws PageException {
@@ -123,11 +130,12 @@ public final class DatasourceManagerImpl implements DataSourceManager {
         	existingDC = (DatasourceConnectionPro) transConns.get(ds);
         	// 
         	if(existingDC==null) {
-        		ORMDatasourceConnection newDC = new ORMDatasourceConnection(pc,session,ds);
-            	if(isolation!=Connection.TRANSACTION_NONE)
-            		newDC.getConnection().setTransactionIsolation(isolation);
-                transConns.put(ds,newDC);
-                return;
+        		if(isolation==Connection.TRANSACTION_NONE) isolation=Connection.TRANSACTION_SERIALIZABLE;
+                	
+        		ORMDatasourceConnection newDC = new ORMDatasourceConnection(pc,session,ds,isolation);
+            	
+            	transConns.put(ds,newDC);
+            	return;
 			}
 			
         	if(!DatasourceConnectionImpl.equals(existingDC,ds,null,null)) {

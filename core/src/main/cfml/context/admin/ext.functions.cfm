@@ -256,6 +256,7 @@
 			loop list="#locals.columnlist()#" item="local.k" {
                 if(!qry.columnExists(k)) qry.addColumn(k,[]);
             }
+            qry.addColumn('otherVersions',[]);
 
 			loop query="#locals#" {
 				row=qry.addrow();
@@ -265,20 +266,65 @@
             	}
 			}
 		}
-		
 
+		
+		querySort(query:qry,names:"id");
+		local.lastId="";
+		for(var row=qry.recordcount;row>=1;row--)  {
+			if(qry.id[row]==lastId) {
+				if(toVersionSortable(qry.version[row])<toVersionSortable(qry.version[row+1])) {
+					local.older=qry.version[row];
+
+					loop array=qry.columnArray() item="local.col" {
+						qry[col][row]=qry[col][row+1];
+					}
+				}
+				else 
+					local.older=qry.version[row+1];
+
+				local.ov=qry.otherVersions[row+1];
+				if(isSimpleValue(ov)) qry.otherVersions[row]=[older];
+				else {
+					arrayAppend(ov,older);
+					qry.otherVersions[row]=ov;
+				}
+				qry.deleteRow(row+1);
+			}
+			
+				
+			lastId=qry.id[row];
+		}
+
+	    
+		/* output just for testing
+		var q=duplicate(qry);
+    	loop list=q.columnlist item="local.le" {
+    		if(le=='name' || le=='id' || le=='version' || le=='otherVersions') continue;
+	    	q.deleteColumn(le);
+	    }
+	    dump(q);*/
 
 		loop struct="#datas#" index="local.provider" item="local.data" {
 			if(structKeyExists(data,"error")) continue;
+			
+			// rename older to otherVersions
+			if(queryColumnExists(data.extensions,"older") || !queryColumnExists(data.extensions,"otherVersions")) {
+				data.extensions.addColumn("otherVersions",data.extensions.columnData('older'));
+				data.extensions.deleteColumn("older");
+				//QuerySetColumn(data.extensions,"older","otherVersions");
+			}
+
 			// add missing columns
 			loop list="#data.extensions.columnlist()#" item="local.k" {
                 if(!qry.ColumnExists(k)) qry.addColumn(k,[]);
             }
 			// add Extensions data
 			var row=0;
+
             loop query="#data.extensions#" label="outer"{
             	row=0;
             	// does a row with the same id already exist?
+            	local.localNewer=false;
             	loop query="#qry#" label="inner" {
             		// has already record with that id
             		if(qry.id==data.extensions.id) {
@@ -286,20 +332,76 @@
             			// current version is older
             			row=qry.currentrow;
             			if(qry.version>data.extensions.version) {
-            				continue outer;
+            				// local data is newer
+							//localNewer=true;
+            				//continue outer;
             			}
             		}
             	}
 
-				if(row==0)row=qry.addRow();
-				qry.setCell("provider",provider,row);
-				qry.setCell("lastModified",data.lastModified,row);
-            	loop list="#data.extensions.columnlist()#" item="local.k" {
-            		qry.setCell(k,data.extensions[k],row);
-            	}
+            	// merge 
+            	if(row>0) {
+					qry.setCell("provider",provider,row);
+					qry.setCell("lastModified",data.lastModified,row);
+					if(toVersionSortable(qry.version[row])<toVersionSortable(data.extensions.version)) {
+						local.v=qry.version[row];
+						loop list="#data.extensions.columnlist()#" item="local.k" {
+							if(k=='otherVersions') continue;
+		            		qry.setCell(k,data.extensions[k],row);
+		            	}
+		            	if(isSimpleValue(qry.otherVersions[row])) qry.otherVersions[row]=[v];
+		            	else arrayAppend(qry.otherVersions[row],v);
+					}
+					else {
+						if(isSimpleValue(qry.otherVersions[row])) qry.otherVersions[row]=[data.extensions.version];
+						else arrayAppend(qry.otherVersions[row],data.extensions.version);
+					}
+
+					local.locals=qry.otherVersions[row];
+					local.externals=data.extensions.otherVersions;
+					if(isArray(locals) && locals.len() && isArray(externals) && externals.len()) {
+						loop array=locals item="local.lv" {
+							local.lvs=toVersionSortable(lv);
+							local.exists=false;
+							for(var i=externals.len();i>=1;i--) {
+								if(toVersionSortable(externals[i])==lvs) exists=true;
+							}
+
+							if(!exists) {
+								arrayAppend(externals,lv);
+							}
+						}
+						qry.otherVersions[row]=externals;
+					}
+					else if(isArray(locals) && locals.len() ) {
+						qry.otherVersions[row]=locals;
+					}
+					else {
+						qry.otherVersions[row]=externals;
+					}
+
+
+            	} 
+				else {
+					row=qry.addRow();
+					qry.setCell("provider",provider,row);
+					qry.setCell("lastModified",data.lastModified,row);
+	            	loop list="#data.extensions.columnlist()#" item="local.k" {
+		            	qry.setCell(k,data.extensions[k],row);
+		            }
+	        	}
             }
     	}
     	if(isQuery(qry)) querySort(query:qry,names:"name,id");
+    	
+    	/* output just for testing
+		var q=duplicate(qry);
+    	loop list=q.columnlist item="local.le" {
+    		if(le=='name' || le=='id' || le=='version' || le=='older' || le=='otherVersions') continue;
+	    	q.deleteColumn(le);
+	    }
+		dump(q);*/
+
     	return qry;
 	}
 
@@ -444,6 +546,78 @@
 		}
 	}
 
+
+	function toVersionSortable(required string version) localMode=true {
+		version=unwrap(version.trim());
+		arr=listToArray(arguments.version,'.');
+		
+		// OSGi compatible version
+		if(arr.len()==4 && isNumeric(arr[1]) && isNumeric(arr[2]) && isNumeric(arr[3])) {
+			try{return toOSGiVersion(version).sortable}catch(local.e){};
+		}
+
+
+		rtn="";
+		loop array=arr index="i" item="v" {
+			if(len(v)<5)
+			 rtn&="."&repeatString("0",5-len(v))&v;
+			else
+				rtn&="."&v;
+		} 
+		return 	rtn;
+	}
+
+
+	struct function toOSGiVersion(required string version, boolean ignoreInvalidVersion=false){
+		local.arr=listToArray(arguments.version,'.');
+		
+		if(arr.len()!=4 || !isNumeric(arr[1]) || !isNumeric(arr[2]) || !isNumeric(arr[3])) {
+			if(ignoreInvalidVersion) return {};
+			throw "version number ["&arguments.version&"] is invalid";
+		}
+		local.sct={major:arr[1]+0,minor:arr[2]+0,micro:arr[3]+0,qualifier_appendix:"",qualifier_appendix_nbr:100};
+
+		// qualifier has an appendix? (BETA,SNAPSHOT)
+		local.qArr=listToArray(arr[4],'-');
+		if(qArr.len()==1 && isNumeric(qArr[1])) local.sct.qualifier=qArr[1]+0;
+		else if(qArr.len()==2 && isNumeric(qArr[1])) {
+			sct.qualifier=qArr[1]+0;
+			sct.qualifier_appendix=qArr[2];
+			if(sct.qualifier_appendix=="SNAPSHOT")sct.qualifier_appendix_nbr=0;
+			else if(sct.qualifier_appendix=="BETA")sct.qualifier_appendix_nbr=50;
+			else sct.qualifier_appendix_nbr=75; // every other appendix is better than SNAPSHOT
+		}
+		else throw "version number ["&arguments.version&"] is invalid";
+		sct.pure=
+					sct.major
+					&"."&sct.minor
+					&"."&sct.micro
+					&"."&sct.qualifier;
+		sct.display=
+					sct.pure
+					&(sct.qualifier_appendix==""?"":"-"&sct.qualifier_appendix);
+		
+		sct.sortable=repeatString("0",2-len(sct.major))&sct.major
+					&"."&repeatString("0",3-len(sct.minor))&sct.minor
+					&"."&repeatString("0",3-len(sct.micro))&sct.micro
+					&"."&repeatString("0",4-len(sct.qualifier))&sct.qualifier
+					&"."&repeatString("0",3-len(sct.qualifier_appendix_nbr))&sct.qualifier_appendix_nbr;
+
+
+
+		return sct;
+
+
+	}
+
+	function unwrap(String str) {
+		str = str.trim();
+		if((left(str,1)==chr(8220) || left(str,1)=='"') && (right(str,1)=='"' || right(str,1)==chr(8221)))
+			str=mid(str,2,len(str)-2);
+		else if(left(str,1)=="'" && right(str,1)=="'")
+			str=mid(str,2,len(str)-2);
+		return str;
+	}
 </cfscript>
 
 

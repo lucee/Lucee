@@ -4718,7 +4718,12 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					fns = Caster.toBooleanValue(str, false);
 				}
 			}
-			NullSupportHelper.fullNullSupport = fns;
+			
+			// when FNS is true or the lucee dialect is disabled we have no flip flop within a request. FNS is always the same
+			if(fns || !Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.enable.dialect",null),false)) {
+				NullSupportHelper.fullNullSupport = fns;
+				NullSupportHelper.simpleMode = true;
+			}
 			((ConfigServerImpl) config).setFullNullSupport(fns);
 		}
 		

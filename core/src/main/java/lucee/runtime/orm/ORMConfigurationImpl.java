@@ -98,6 +98,7 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 	private boolean isDefaultCfcLocation=true;
 	private boolean skipCFCWithError=true;
 	private boolean autoManageSession=true;
+	private ApplicationContext ac;
 
 	private ORMConfigurationImpl(){
 		autogenmap=true;
@@ -228,6 +229,7 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 				//print.printST(e);
 			}
 		}
+		c.ac=ac;
 		
 		return c;
 	}	
@@ -363,10 +365,14 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 
 	@Override
 	public String hash() {
+		ApplicationContext _ac=ac;
+		if(_ac==null) _ac=ThreadLocalPageContext.get().getApplicationContext();
+		Object ds = _ac.getORMDataSource();
 		
 		String data=autogenmap+":"+catalog+":"+isDefaultCfcLocation
 		+":"+dbCreate+":"+dialect+":"+eventHandling+":"+namingStrategy+":"+eventHandler+":"+flushAtRequestEnd+":"+logSQL+":"+autoManageSession+":"+skipCFCWithError+":"+saveMapping+":"+schema+":"+secondaryCacheEnabled+":"+
 		useDBForMapping+":"+cacheProvider
+		+"datasource:"+ds
 		
 		+":"+toStr(cfcLocations)+":"+toStr(sqlScript)+":"+toStr(cacheConfig)+":"+toStr(ormConfig)
 		;

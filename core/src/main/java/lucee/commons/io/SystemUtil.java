@@ -43,6 +43,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletContext;
 
@@ -56,6 +57,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassLoaderHelper;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
@@ -1352,6 +1354,21 @@ public final class SystemUtil {
 		return false;
 	}
 
+	
+	private static Map<String,Integer> logs=new ConcurrentHashMap<String, Integer>();
+	
+	public static void logUsage() {
+		String st=ExceptionUtil.getStacktrace(new Throwable(), false);
+		Integer res = logs.get(st);
+		
+		if(res==null) res=1;
+		else res=res.intValue()+1;
+		
+		logs.put(st, res);
+	}
+	public static Map<String, Integer> getLogUsage() {
+		return logs;
+	}
 	
 }
 

@@ -3254,6 +3254,17 @@ asc: ascending (a to z) sort order.
 dec: descending (z to a) sort order.
 </description>
 		</argument>
+		<argument>
+			<name>type</name>
+			<type>string</type>
+			<required>no</required>
+		<description>
+type of the result returned:
+- file: includes only filenames
+- dir: includes only directory names
+- all: includes both filenames and directory names	
+		</description>
+    </argument>
 		<return>
 			<type>any</type>
 		</return>
