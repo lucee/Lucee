@@ -19,7 +19,7 @@
 package lucee.runtime.functions.file;
 
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.util.ResourceAndResourceNameFilter;
+import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.res.util.UDFFilter;
 import lucee.commons.lang.StringUtil;
@@ -30,25 +30,39 @@ import lucee.runtime.tag.Directory;
 public class DirectoryList {
 	
 	public static Object call(PageContext pc , String path) throws PageException {
-		return call(pc, path, false, null, null, null);
+		return _call(pc, path, false, Directory.LIST_INFO_ARRAY_PATH, null, null,Directory.TYPE_ALL);
 	}
 	
 	public static Object call(PageContext pc , String path,boolean recurse) throws PageException {
-		return call(pc, path, recurse, null, null, null);
+		return _call(pc, path, recurse, Directory.LIST_INFO_ARRAY_PATH, null, null,Directory.TYPE_ALL);
 	}
 	
 	public static Object call(PageContext pc , String path,boolean recurse,String strListInfo) throws PageException {
-		return call(pc, path, recurse, strListInfo, null, null);
+		return _call(pc, path, recurse, toListInfo(strListInfo), null, null,Directory.TYPE_ALL);
 	}
 	
 	public static Object call(PageContext pc , String path,boolean recurse,String strListInfo,Object oFilter) throws PageException {
-		return call(pc, path, recurse, strListInfo, oFilter, null);
+		return _call(pc, path, recurse, toListInfo(strListInfo), oFilter, null,Directory.TYPE_ALL);
 	}
 	
 	public static Object call(PageContext pc , String path,boolean recurse,String strListInfo,Object oFilter, String sort) throws PageException {
-		Resource dir=ResourceUtil.toResourceNotExisting(pc, path);
-		ResourceAndResourceNameFilter filter = UDFFilter.createResourceAndResourceNameFilter(oFilter);
+		return _call(pc, path, recurse, toListInfo(strListInfo), oFilter, sort,Directory.TYPE_ALL);
 		
+	}
+	
+	public static Object call(PageContext pc , String path,boolean recurse,String strListInfo,Object oFilter, String sort, String type) throws PageException {
+		
+		return _call(pc, path, recurse, toListInfo(strListInfo), oFilter, sort,StringUtil.isEmpty(type)?Directory.TYPE_ALL:Directory.toType(type));
+	}
+		
+	
+	public static Object _call(PageContext pc , String path,boolean recurse,int listInfo,Object oFilter, String sort, int type) throws PageException {
+		Resource dir=ResourceUtil.toResourceNotExisting(pc, path);
+		ResourceFilter filter = UDFFilter.createResourceAndResourceNameFilter(oFilter);
+		return Directory.actionList(pc, dir, null, type, filter, listInfo, recurse, sort);
+	}
+	
+	private static int toListInfo(String strListInfo) {
 		int listInfo=Directory.LIST_INFO_ARRAY_PATH;
 		if(!StringUtil.isEmpty(strListInfo,true)){
 			strListInfo=strListInfo.trim().toLowerCase();
@@ -59,12 +73,6 @@ public class DirectoryList {
 				listInfo=Directory.LIST_INFO_QUERY_ALL;
 			}
 		}
-		
-		return Directory.actionList(pc, dir, null, Directory.TYPE_ALL, filter, filter, listInfo, recurse, sort);
-
-		
-		//public static Object actionList(PageContext pageContext,Resource directory, String serverPassword, int type,ResourceFilter filter,ResourceAndResourceNameFilter nameFilter, 
-		//		int listInfo,boolean recurse,String sort) throws PageException {
-	    
+		return listInfo;
 	}
 }

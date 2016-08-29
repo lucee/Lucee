@@ -34,6 +34,7 @@ import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.compiler.CFMLCompilerImpl.Result;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.ConfigWebUtil;
@@ -890,6 +891,8 @@ public final class PageSourceImpl implements PageSource {
 	@Override
 	public int getDialect() {
 		Config c = getMapping().getConfig();
+		if(!((ConfigImpl)c).allowLuceeDialect()) return CFMLEngine.DIALECT_CFML;
+		// MUST improve performance on this
 		ConfigWeb cw=null;
 		
 		String ext=ResourceUtil.getExtension(relPath, Constants.getCFMLComponentExtension());

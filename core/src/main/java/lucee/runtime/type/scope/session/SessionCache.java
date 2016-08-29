@@ -62,6 +62,7 @@ public final class SessionCache extends StorageScopeCache implements Session {
 	 */
 	public synchronized static Session getInstance(String cacheName, String appName, PageContext pc, Session existing, Log log) throws PageException {
 		StorageValue sv = _loadData(pc, cacheName, appName,"session", log);
+		if(appName!=null && appName.startsWith("no-in-memory-cache-")) existing=null;
 		if(sv!=null) {
 			long time = sv.lastModified();
 			

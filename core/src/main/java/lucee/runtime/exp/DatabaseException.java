@@ -125,7 +125,8 @@ public final class DatabaseException extends PageExceptionImpl {
 				setAdditional(KeyImpl.init("DriverVersion"),md.getDriverVersion());
 				//setAdditional("url",md.getURL());
 				
-				setAdditional(KeyConstants._Datasource,dc.getDatasource().getName());
+				if(!"__default__".equals(dc.getDatasource().getName()))
+					setAdditional(KeyConstants._Datasource,dc.getDatasource().getName());
 				
 				
 			} 
