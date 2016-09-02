@@ -152,6 +152,9 @@ import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
+import lucee.runtime.page.engine.CFPageEngine;
+import lucee.runtime.page.engine.LuceePageEngine;
+import lucee.runtime.page.engine.PageEngine;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.reflection.pairs.ConstructorInstance;
 import lucee.runtime.search.DummySearchEngine;
@@ -512,6 +515,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if(LOG)SystemOut.printDate("loaded monitors");
 		loadLogin(cs, config, doc);
 		if(LOG)SystemOut.printDate("loaded login");
+		loadPageEngines(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded template engines");
 		config.setLoadTime(System.currentTimeMillis());
 
 		if (config instanceof ConfigWebImpl) {
@@ -1497,6 +1502,88 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		for(int i=0;i<mappings.length;i++){
 			sb.append(((MappingImpl)mappings[i]).getDotNotationUpperCase()).append(';');
 		}
+	}
+	
+	@SuppressWarnings("rawtypes")
+	private static void loadPageEngines(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_PAGE_ENGINES);
+		Element el = getChildByName(doc.getDocumentElement(), "pageEngines");
+		Element[] _pageEngines = getChildren(el, "pageEngine");
+		
+		List<PageEngine> pageEngines = new ArrayList<>();
+		ClassDefinition cd;
+		Class clazz;
+		
+		/* load the configured page engines first */
+		if (configServer != null && config instanceof ConfigWeb) {
+			for (PageEngine cste : configServer.getPageEngines()) {
+				pageEngines.add(cste);
+			}
+		}
+
+		if (hasAccess) {
+			for (int i=0; i < _pageEngines.length; i++) {
+				Element teEl = _pageEngines[i];
+				
+				cd = getClassDefinition(teEl, "", config.getIdentification());
+				
+				if (cd != null) {
+					try {
+						clazz = cd.getClazz();
+						
+						PageEngine obj;
+						ConstructorInstance constr = Reflector.getConstructorInstance(clazz, new Object[] { config }, null);
+						
+						if (constr != null)
+							obj = (PageEngine) constr.invoke();
+						else
+							obj = (PageEngine) clazz.newInstance();
+						
+						pageEngines.add(obj);
+						
+						String lbl = getAttr(teEl,"label");
+						if (!lbl.isEmpty()) {
+							lbl = obj.getClass().getName();
+						}
+						obj.setLabel(lbl);
+						obj.setConfig(config);
+						obj.setExtensions(getAttr(teEl,"file_extensions"));
+					}
+					catch (Throwable t) {
+						SystemOut.printDate(config.getErrWriter(), ExceptionUtil.getStacktrace(t, true));
+					}
+					
+				}
+			}
+		}
+
+
+		if (config instanceof ConfigWeb) {
+			/* load the built-in engines here */
+			PageEngine cfEngine = new CFPageEngine(config);
+			cfEngine.setExtensions(Constants.getCFMLExtensions());
+			
+			PageEngine luceeEngine = new LuceePageEngine(config);
+			luceeEngine.setExtensions(Constants.getLuceeExtensions());
+			
+			pageEngines.add(cfEngine);
+			
+			// TODO: make this configurable
+			if (config.allowLuceeDialect()) {
+				pageEngines.add(luceeEngine);
+				((ConfigImpl)config).setDefaultPageEngine(luceeEngine);
+			} else {
+				((ConfigImpl)config).setDefaultPageEngine(cfEngine);
+			}
+		}
+		
+		PageEngine[] pageEngineArr = new PageEngine[pageEngines.size()];
+		int i=0;
+		for (PageEngine te : pageEngines) {
+			pageEngineArr[i++] = te;
+		}
+		
+		config.setPageEngines(pageEngineArr);
 	}
 
 	/**

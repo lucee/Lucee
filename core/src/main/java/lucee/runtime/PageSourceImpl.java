@@ -47,6 +47,7 @@ import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.functions.system.GetDirectoryFromPath;
 import lucee.runtime.op.Caster;
+import lucee.runtime.page.engine.PageEngine;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 
@@ -81,12 +82,13 @@ public final class PageSourceImpl implements PageSource {
 	private boolean flush=false;
     //private boolean recompileAlways;
     //private boolean recompileAfterStartUp;
+	
+	private PageEngine pageEngine = null;
     
     private PageSourceImpl() {
     	mapping=null;
         relPath=null;
     }
-    
     
     /**
 	 * constructor of the class
@@ -113,10 +115,8 @@ public final class PageSourceImpl implements PageSource {
 			}
 		}
 		this.relPath=realPath;
-	    
+	    _loadPageEngine();
 	}
-	
-	
 	
 	/**
 	 * private constructor of the class
@@ -131,9 +131,14 @@ public final class PageSourceImpl implements PageSource {
 	    this.isOutSide=isOutSide;
 	    if(realPath.indexOf("//")!=-1) {
         	realPath=StringUtil.replace(realPath, "//", "/",false);
-        }this.relPath=realPath;
-		
+        }
+	    this.relPath=realPath;
+	    _loadPageEngine();
 	}
+    
+    private void _loadPageEngine() {
+    	this.pageEngine = this.mapping.getConfig().getPageEngine(relPath);
+    }
 	
 	/**
 	 * return page when already loaded, otherwise null
@@ -155,6 +160,9 @@ public final class PageSourceImpl implements PageSource {
 	
 	@Override
 	public Page loadPage(PageContext pc, boolean forceReload) throws PageException {
+		return pageEngine.getPageFactory().getPage(pc, this, forceReload, null);
+		
+		/*
 		if(forceReload) page=null;
 		
 		Page page=this.page;
@@ -169,12 +177,20 @@ public final class PageSourceImpl implements PageSource {
 	        if(page!=null) return page;
 	    }
 		throw new MissingIncludeException(this);
-	    
+	    */
 	}
 	
 	@Override
 	public Page loadPageThrowTemplateException(PageContext pc, boolean forceReload, Page defaultValue) throws TemplateException {
-		if(forceReload) page=null;
+		try {
+			return pageEngine.getPageFactory().getPage(pc, this, forceReload, defaultValue);
+		} catch(PageException e) {
+			if (e instanceof TemplateException)
+				throw (TemplateException)e;
+			return null;
+		}
+		
+		/*if(forceReload) page=null;
 		
 		Page page=this.page;
 		if(mapping.isPhysicalFirst()) {
@@ -187,13 +203,22 @@ public final class PageSourceImpl implements PageSource {
 	        if(page==null)page=loadPhysical(pc,page);
 	        if(page!=null) return page;
 	    }
-	    return defaultValue;
+	    return defaultValue;*/
 	}
 
 	
 	@Override
 	public Page loadPage(PageContext pc, boolean forceReload, Page defaultValue) {
-		if(forceReload) page=null;
+		try {
+			return pageEngine.getPageFactory().getPage(pc, this, forceReload, defaultValue);
+		} catch(PageException e) {
+			if (forceReload)
+				return null;
+			else
+				return defaultValue;
+		}
+		
+		/*if(forceReload) page=null;
 		
 		Page page=this.page;
 		if(mapping.isPhysicalFirst()) {
@@ -216,101 +241,101 @@ public final class PageSourceImpl implements PageSource {
 	        }
 	        if(page!=null) return page;
 	    }
-	    return defaultValue;
+	    return defaultValue;*/
 	}
 	
-    private Page loadArchive(Page page) {
-    	if(!mapping.hasArchive()) return null;
-		if(page!=null && page.getLoadType()==LOAD_ARCHIVE) return page;
-        try {
-            synchronized(this) {
-                Class clazz=mapping.getArchiveClass(getClassName());
-                
-                this.page=page=newInstance(clazz);
-                page.setPageSource(this);
-                //page.setTimeCreated(System.currentTimeMillis());
-                page.setLoadType(LOAD_ARCHIVE);
-    			////load=LOAD_ARCHIVE;
-    			return page;
-            }
-        } 
-        catch (Exception e) {
-        	// MUST print.e(e); is there a better way?
-        	return null;
-        }
-    }
-    
-    /**
-     * throws only an exception when compilation fails
-     * @param pc
-     * @param page
-     * @return
-     * @throws PageException
-     */
-    private Page loadPhysical(PageContext pc,Page page) throws TemplateException {
-    	if(!mapping.hasPhysical()) return null;
-    	
-    	ConfigWeb config=pc.getConfig();
-    	PageContextImpl pci=(PageContextImpl) pc;
-    	if((mapping.getInspectTemplate()==Config.INSPECT_NEVER || pci.isTrusted(page)) && isLoad(LOAD_PHYSICAL)) return page;
-    	Resource srcFile = getPhyscalFile();
-    	
-		long srcLastModified = srcFile.lastModified();
-        if(srcLastModified==0L) return null;
-    	
-		// Page exists    
-			if(page!=null) {
-			//if(page!=null && !recompileAlways) {
-				if(srcLastModified!=page.getSourceLastModified()) {
-					this.page=page=compile(config,mapping.getClassRootDirectory(),page,false,pc.ignoreScopes());
-                	page.setPageSource(this);
-					page.setLoadType(LOAD_PHYSICAL);
-				}
-		    	
-			}
-		// page doesn't exist
-			else {
-                ///synchronized(this) {
-                    Resource classRootDir=mapping.getClassRootDirectory();
-                    Resource classFile=classRootDir.getRealResource(getJavaName()+".class");
-                    boolean isNew=false;
-                    // new class
-                    if(flush || !classFile.exists()) {
-                    //if(!classFile.exists() || recompileAfterStartUp) {
-                    	this.page=page= compile(config,classRootDir,null,false,pc.ignoreScopes());
-                    	flush=false;
-                        isNew=true;
-                    }
-                    // load page
-                    else {
-                    	try {
-                    		this.page=page=newInstance(mapping.getPhysicalClass(this.getClassName()));
-    					} catch (Throwable t) {t.printStackTrace();
-							this.page=page=null;
-						}
-                    	if(page==null) this.page=page=compile(config,classRootDir,null,false,pc.ignoreScopes());
-                              
-                    }
-                    
-                    // check if version changed or lasMod
-                    if(!isNew && 
-                    		(
-                    				srcLastModified!=page.getSourceLastModified()
-                    				||
-                    				page.getVersion()!=pc.getConfig().getFactory().getEngine().getInfo().getFullVersionInfo()
-                    		)
-                    ) {
-                    	isNew=true;
-                    	this.page=page=compile(config,classRootDir,page,false,pc.ignoreScopes());
-    				}
-                    
-                    page.setPageSource(this);
-    				page.setLoadType(LOAD_PHYSICAL);
-
-			}
-			pci.setPageUsed(page);
-			return page;
-    }
+//    private Page loadArchive(Page page) {
+//    	if(!mapping.hasArchive()) return null;
+//		if(page!=null && page.getLoadType()==LOAD_ARCHIVE) return page;
+//        try {
+//            synchronized(this) {
+//                Class clazz=mapping.getArchiveClass(getClassName());
+//                
+//                this.page=page=newInstance(clazz);
+//                page.setPageSource(this);
+//                //page.setTimeCreated(System.currentTimeMillis());
+//                page.setLoadType(LOAD_ARCHIVE);
+//    			////load=LOAD_ARCHIVE;
+//    			return page;
+//            }
+//        } 
+//        catch (Exception e) {
+//        	// MUST print.e(e); is there a better way?
+//        	return null;
+//        }
+//    }
+//    
+//    /**
+//     * throws only an exception when compilation fails
+//     * @param pc
+//     * @param page
+//     * @return
+//     * @throws PageException
+//     */
+//    private Page loadPhysical(PageContext pc,Page page) throws TemplateException {
+//    	if(!mapping.hasPhysical()) return null;
+//    	
+//    	ConfigWeb config=pc.getConfig();
+//    	PageContextImpl pci=(PageContextImpl) pc;
+//    	if((mapping.getInspectTemplate()==Config.INSPECT_NEVER || pci.isTrusted(page)) && isLoad(LOAD_PHYSICAL)) return page;
+//    	Resource srcFile = getPhyscalFile();
+//    	
+//		long srcLastModified = srcFile.lastModified();
+//        if(srcLastModified==0L) return null;
+//    	
+//		// Page exists    
+//			if(page!=null) {
+//			//if(page!=null && !recompileAlways) {
+//				if(srcLastModified!=page.getSourceLastModified()) {
+//					this.page=page=compile(config,mapping.getClassRootDirectory(),page,false,pc.ignoreScopes());
+//                	page.setPageSource(this);
+//					page.setLoadType(LOAD_PHYSICAL);
+//				}
+//		    	
+//			}
+//		// page doesn't exist
+//			else {
+//                ///synchronized(this) {
+//                    Resource classRootDir=mapping.getClassRootDirectory();
+//                    Resource classFile=classRootDir.getRealResource(getJavaName()+".class");
+//                    boolean isNew=false;
+//                    // new class
+//                    if(flush || !classFile.exists()) {
+//                    //if(!classFile.exists() || recompileAfterStartUp) {
+//                    	this.page=page= compile(config,classRootDir,null,false,pc.ignoreScopes());
+//                    	flush=false;
+//                        isNew=true;
+//                    }
+//                    // load page
+//                    else {
+//                    	try {
+//                    		this.page=page=newInstance(mapping.getPhysicalClass(this.getClassName()));
+//    					} catch (Throwable t) {t.printStackTrace();
+//							this.page=page=null;
+//						}
+//                    	if(page==null) this.page=page=compile(config,classRootDir,null,false,pc.ignoreScopes());
+//                              
+//                    }
+//                    
+//                    // check if version changed or lasMod
+//                    if(!isNew && 
+//                    		(
+//                    				srcLastModified!=page.getSourceLastModified()
+//                    				||
+//                    				page.getVersion()!=pc.getConfig().getFactory().getEngine().getInfo().getFullVersionInfo()
+//                    		)
+//                    ) {
+//                    	isNew=true;
+//                    	this.page=page=compile(config,classRootDir,page,false,pc.ignoreScopes());
+//    				}
+//                    
+//                    page.setPageSource(this);
+//    				page.setLoadType(LOAD_PHYSICAL);
+//
+//			}
+//			pci.setPageUsed(page);
+//			return page;
+//    }
 
     public void flush() {
 		page=null;
@@ -320,62 +345,61 @@ public final class PageSourceImpl implements PageSource {
     private boolean isLoad(byte load) {
 		return page!=null && load==page.getLoadType();
 	}
-    
 
-	private synchronized Page compile(ConfigWeb config,Resource classRootDir, Page existing, boolean returnValue, boolean ignoreScopes) throws TemplateException {
-		try {
-			return _compile(config, classRootDir,existing,returnValue,ignoreScopes);
-        }
-			catch(RuntimeException re) {re.printStackTrace();
-	    	String msg=StringUtil.emptyIfNull(re.getMessage());
-	    	if(StringUtil.indexOfIgnoreCase(msg, "Method code too large!")!=-1) {
-	    		throw new TemplateException("There is too much code inside the template ["+getDisplayPath()+"], "+Constants.NAME+" was not able to break it into pieces, move parts of your code to an include or a external component/function",msg);
-	    	}
-	    	throw re;
-	    }
-        catch(ClassFormatError e) {
-        	String msg=StringUtil.emptyIfNull(e.getMessage());
-        	if(StringUtil.indexOfIgnoreCase(msg, "Invalid method Code length")!=-1) {
-        		throw new TemplateException("There is too much code inside the template ["+getDisplayPath()+"], "+Constants.NAME+" was not able to break it into pieces, move parts of your code to an include or a external component/function",msg);
-        	}
-        	throw new TemplateException("ClassFormatError:"+e.getMessage());
-        }
-        catch(Throwable t) {
-        	if(t instanceof TemplateException) throw (TemplateException)t;
-        	throw new PageRuntimeException(Caster.toPageException(t));
-        	//throw new TemplateException(t.getClass().getName()+":"+t.getMessage());
-        }
-	}
-
-	private Page _compile(ConfigWeb config,Resource classRootDir, Page existing,boolean returnValue, boolean ignoreScopes) throws IOException, SecurityException, IllegalArgumentException, PageException {
-        ConfigWebImpl cwi=(ConfigWebImpl) config;
-        int dialect=getDialect();
-        
-        long now;
-        if((getPhyscalFile().lastModified()+10000)>(now=System.currentTimeMillis()))
-        	cwi.getCompiler().watch(this,now);//SystemUtil.get
-        
-                
-        Result result = cwi.getCompiler().
-        	compile(cwi,this,cwi.getTLDs(dialect),cwi.getFLDs(dialect),classRootDir,returnValue,ignoreScopes);
-        
-        try{
-        	
-        	Class<?> clazz = mapping.getPhysicalClass(getClassName(), result.barr);
-        	return  newInstance(clazz);
-        }
-        catch(Throwable t){
-        	PageException pe = Caster.toPageException(t);
-        	pe.setExtendedInfo("failed to load template "+getDisplayPath());
-        	throw pe;
-        }
-    }
-
-    private Page newInstance(Class clazz) throws SecurityException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-    	Constructor<?> c = clazz.getConstructor(new Class[]{PageSource.class});
-		return (Page) c.newInstance(new Object[]{this});
-	}
-
+//	private synchronized Page compile(ConfigWeb config,Resource classRootDir, Page existing, boolean returnValue, boolean ignoreScopes) throws TemplateException {
+//		try {
+//			return _compile(config, classRootDir,existing,returnValue,ignoreScopes);
+//        }
+//			catch(RuntimeException re) {re.printStackTrace();
+//	    	String msg=StringUtil.emptyIfNull(re.getMessage());
+//	    	if(StringUtil.indexOfIgnoreCase(msg, "Method code too large!")!=-1) {
+//	    		throw new TemplateException("There is too much code inside the template ["+getDisplayPath()+"], "+Constants.NAME+" was not able to break it into pieces, move parts of your code to an include or a external component/function",msg);
+//	    	}
+//	    	throw re;
+//	    }
+//        catch(ClassFormatError e) {
+//        	String msg=StringUtil.emptyIfNull(e.getMessage());
+//        	if(StringUtil.indexOfIgnoreCase(msg, "Invalid method Code length")!=-1) {
+//        		throw new TemplateException("There is too much code inside the template ["+getDisplayPath()+"], "+Constants.NAME+" was not able to break it into pieces, move parts of your code to an include or a external component/function",msg);
+//        	}
+//        	throw new TemplateException("ClassFormatError:"+e.getMessage());
+//        }
+//        catch(Throwable t) {
+//        	if(t instanceof TemplateException) throw (TemplateException)t;
+//        	throw new PageRuntimeException(Caster.toPageException(t));
+//        	//throw new TemplateException(t.getClass().getName()+":"+t.getMessage());
+//        }
+//	}
+//
+//	private Page _compile(ConfigWeb config,Resource classRootDir, Page existing,boolean returnValue, boolean ignoreScopes) throws IOException, SecurityException, IllegalArgumentException, PageException {
+//        ConfigWebImpl cwi=(ConfigWebImpl) config;
+//        int dialect=getDialect();
+//        
+//        long now;
+//        if((getPhyscalFile().lastModified()+10000)>(now=System.currentTimeMillis()))
+//        	cwi.getCompiler().watch(this,now);//SystemUtil.get
+//        
+//                
+//        Result result = cwi.getCompiler().
+//        	compile(cwi,this,cwi.getTLDs(dialect),cwi.getFLDs(dialect),classRootDir,returnValue,ignoreScopes);
+//        
+//        try{
+//        	
+//        	Class<?> clazz = mapping.getPhysicalClass(getClassName(), result.barr);
+//        	return  newInstance(clazz);
+//        }
+//        catch(Throwable t){
+//        	PageException pe = Caster.toPageException(t);
+//        	pe.setExtendedInfo("failed to load template "+getDisplayPath());
+//        	throw pe;
+//        }
+//    }
+//
+//    private Page newInstance(Class clazz) throws SecurityException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+//    	Constructor<?> c = clazz.getConstructor(new Class[]{PageSource.class});
+//		return (Page) c.newInstance(new Object[]{this});
+//	}
+//
 
 	/**
      * return source path as String 
@@ -568,7 +592,7 @@ public final class PageSourceImpl implements PageSource {
 		return javaName;
 	}
 
-	private String _getPackageName() {
+	public String getPackageName() {
 		if(packageName==null) createClassAndPackage();
 		return packageName;
 	}
@@ -699,7 +723,7 @@ public final class PageSourceImpl implements PageSource {
         if(!mapping.hasArchive()) 		return IOUtil.toBufferedInputStream(getPhyscalFile().getInputStream());
         else if(isLoad(LOAD_PHYSICAL))	return IOUtil.toBufferedInputStream(getPhyscalFile().getInputStream());
         else if(isLoad(LOAD_ARCHIVE)) 	{
-            StringBuffer name=new StringBuffer(_getPackageName().replace('.','/'));
+            StringBuffer name=new StringBuffer(getPackageName().replace('.','/'));
             if(name.length()>0)name.append("/");
             name.append(getFileName());
             
@@ -890,7 +914,8 @@ public final class PageSourceImpl implements PageSource {
 
 	@Override
 	public int getDialect() {
-		Config c = getMapping().getConfig();
+		return pageEngine.getDialect();
+		/*Config c = getMapping().getConfig();
 		if(!((ConfigImpl)c).allowLuceeDialect()) return CFMLEngine.DIALECT_CFML;
 		// MUST improve performance on this
 		ConfigWeb cw=null;
@@ -909,7 +934,7 @@ public final class PageSourceImpl implements PageSource {
 					.toDialect(ext,CFMLEngine.DIALECT_CFML);
 		}
 		
-		return ConfigWebUtil.toDialect(ext, CFMLEngine.DIALECT_CFML);
+		return ConfigWebUtil.toDialect(ext, CFMLEngine.DIALECT_CFML);*/
 	}
 
 	/**
@@ -931,5 +956,23 @@ public final class PageSourceImpl implements PageSource {
 	@Override
 	public boolean executable() {
 		return (getMapping().getInspectTemplate()==Config.INSPECT_NEVER && isLoad()) || exists();
+	}
+	
+	public synchronized void setPage(Page page) {
+		this.page = page;
+	}
+	
+	public boolean isFlush() {
+		return flush;
+	}
+	
+	public synchronized void resetFlush() {
+		flush = false;
+	}
+	
+	@Override
+	public PageEngine getPageEngine() {
+		if (pageEngine == null) _loadPageEngine();
+		return pageEngine;
 	}
 }

@@ -18,54 +18,46 @@
  **/
 package lucee.loader.servlet;
 
-import java.io.IOException;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import lucee.loader.engine.CFMLEngineFactory;
-
 /**
  */
-public class CFMLServlet extends AbsServlet {
+@Deprecated
+public class CFMLServlet extends LuceeServlet {
 
 	private static final long serialVersionUID = -1878214660283329587L;
-
-	/**
-	 * @see javax.servlet.Servlet#init(javax.servlet.ServletConfig)
-	 */
-	@Override
-	public void init(final ServletConfig sg) throws ServletException {
-		super.init(sg);
-		//CFMLEngineFactory.log(Log.LEVEL_INFO, "init servlet");
-		try {
-			engine = CFMLEngineFactory.getInstance(sg, this);
-		} catch (final ServletException se) {
-			se.printStackTrace();// TEMP remove stacktrace
-			throw se;
-		} catch (final Throwable t) {
-			t.printStackTrace();// TEMP remove stacktrace
-		}
-	}
-
-	/**
-	 * @see javax.servlet.http.HttpServlet#service(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse)
-	 */
-	@Override
-	protected void service(final HttpServletRequest req,
-			final HttpServletResponse rsp) throws ServletException, IOException {
-		//CFMLEngineFactory.log(Log.LEVEL_INFO, "service CFML");
-		try {
-			engine.serviceCFML(this, req, rsp);
-		} catch (final ServletException se) {
-			se.printStackTrace();// TEMP remove stacktrace
-			throw se;
-		} catch (final Throwable t) {
-			t.printStackTrace();// TEMP remove stacktrace
-		}
-
-	}
+//
+//	/**
+//	 * @see javax.servlet.Servlet#init(javax.servlet.ServletConfig)
+//	 */
+//	@Override
+//	public void init(final ServletConfig sg) throws ServletException {
+//		super.init(sg);
+//		//CFMLEngineFactory.log(Log.LEVEL_INFO, "init servlet");
+//		try {
+//			engine = CFMLEngineFactory.getInstance(sg, this);
+//		} catch (final ServletException se) {
+//			se.printStackTrace();// TEMP remove stacktrace
+//			throw se;
+//		} catch (final Throwable t) {
+//			t.printStackTrace();// TEMP remove stacktrace
+//		}
+//	}
+//
+//	/**
+//	 * @see javax.servlet.http.HttpServlet#service(javax.servlet.http.HttpServletRequest,
+//	 *      javax.servlet.http.HttpServletResponse)
+//	 */
+//	@Override
+//	protected void service(final HttpServletRequest req,
+//			final HttpServletResponse rsp) throws ServletException, IOException {
+//		//CFMLEngineFactory.log(Log.LEVEL_INFO, "service CFML");
+//		try {
+//			engine.service(this, req, rsp);
+//		} catch (final ServletException se) {
+//			se.printStackTrace();// TEMP remove stacktrace
+//			throw se;
+//		} catch (final Throwable t) {
+//			t.printStackTrace();// TEMP remove stacktrace
+//		}
+//
+//	}
 }

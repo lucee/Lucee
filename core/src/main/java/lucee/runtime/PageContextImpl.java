@@ -2230,14 +2230,12 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public final void execute(String realPath, boolean throwExcpetion, boolean onlyTopLevel) throws PageException  {
-		requestDialect=currentTemplateDialect=CFMLEngine.DIALECT_LUCEE;
 		_execute(realPath, throwExcpetion, onlyTopLevel);
 	}
 	
 
 	@Override
 	public final void executeCFML(String realPath, boolean throwExcpetion, boolean onlyTopLevel) throws PageException  {
-		requestDialect=currentTemplateDialect=CFMLEngine.DIALECT_CFML;
 		_execute(realPath, throwExcpetion, onlyTopLevel);
 	}
 	
@@ -2269,6 +2267,8 @@ public final class PageContextImpl extends PageContext {
 			if(base==null) base=PageSourceImpl.best(config.getPageSources(this,null,realPath,onlyTopLevel,false,true));
 		}
 		else base=PageSourceImpl.best(config.getPageSources(this,null,realPath,onlyTopLevel,false,true));
+		
+		requestDialect=currentTemplateDialect=base.getDialect();
 		
 		execute(base, throwExcpetion, onlyTopLevel);
 	}
@@ -2965,7 +2965,7 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public synchronized void compile(PageSource pageSource) throws PageException {
 		Resource classRootDir = pageSource.getMapping().getClassRootDirectory();
-		int dialect=getCurrentTemplateDialect();
+		int dialect=pageSource.getDialect(); //getCurrentTemplateDialect();
         
 		try {
 			config.getCompiler().compile(

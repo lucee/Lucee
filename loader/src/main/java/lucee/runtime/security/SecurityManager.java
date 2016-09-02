@@ -118,6 +118,7 @@ public interface SecurityManager {
 	public static final int TYPE_CACHE = 19;
 	public static final int TYPE_GATEWAY = 20;
 	public static final int TYPE_ORM = 21;
+	public static final int TYPE_PAGE_ENGINES = 22;
 
 	/**
 	 * Field <code>VALUE_NO</code>

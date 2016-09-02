@@ -117,6 +117,7 @@ import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.EnvClassLoader;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
+import lucee.runtime.page.engine.PageEngine;
 import lucee.runtime.rest.RestSettingImpl;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.schedule.Scheduler;
@@ -428,6 +429,8 @@ public abstract class ConfigImpl implements Config {
 
 	private Map<Integer,Object> cachedWithins=new HashMap<Integer, Object>();
 	
+	private PageEngine[] pageEngines = new PageEngine[0];
+	private PageEngine defaultPageEngine;
 
 	private int queueMax=100;
 	private long queueTimeout=0;
@@ -3479,8 +3482,32 @@ public abstract class ConfigImpl implements Config {
 	public Object getCachedWithin(int type) {
 		return cachedWithins.get(type);
 	}
-
+	
+    public void setPageEngines(PageEngine[] pageEngines) {
+    	this.pageEngines = pageEngines;
+    }
     
+    public void setDefaultPageEngine(PageEngine pageEngine) {
+    	this.defaultPageEngine = pageEngine;
+    }
+    
+    @Override
+    public PageEngine[] getPageEngines() {
+    	return this.pageEngines;
+    }
+    
+    public PageEngine getPageEngine(String path) {
+		PageEngine engine = defaultPageEngine;
+		
+		for (PageEngine _engine : this.getPageEngines()) {
+			if (_engine.handlesExtension(ResourceUtil.getExtension(path, null))) {
+				engine = _engine;
+				break;
+			}
+		}
+		
+		return engine;
+	}
 
     public Resource getPluginDirectory() {
     	return getConfigDir().getRealResource("context/admin/plugin");

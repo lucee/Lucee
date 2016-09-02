@@ -48,6 +48,7 @@ import lucee.runtime.monitor.RequestMonitor;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.orm.ORMEngine;
+import lucee.runtime.page.engine.PageEngine;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.schedule.Scheduler;
 import lucee.runtime.search.SearchEngine;
@@ -848,5 +849,10 @@ public interface Config {
 	public Resource getLocalExtensionProviderDirectory();
 
 	public Resource getDeployDirectory();
-
+	
+	public PageEngine[] getPageEngines();
+	
+	public PageEngine getPageEngine(String path);
+	
+	public boolean allowLuceeDialect();
 }
