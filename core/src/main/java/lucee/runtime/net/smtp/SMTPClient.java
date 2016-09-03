@@ -675,14 +675,18 @@ public final class SMTPClient implements Serializable  {
 		
 		mbp.setFileName(att.getFileName());
 		if(!StringUtil.isEmpty(att.getType())) mbp.setHeader("Content-Type", att.getType());
-		if(!StringUtil.isEmpty(att.getDisposition())){
-			mbp.setDisposition(att.getDisposition());
-			/*if(mp instanceof MimeMultipart) {
+
+		String disposition = att.getDisposition();
+		if (!StringUtil.isEmpty(disposition)){
+
+			mbp.setDisposition(disposition);
+			if (mp instanceof MimeMultipart && MimePart.INLINE.equalsIgnoreCase(disposition)) {
 				((MimeMultipart)mp).setSubType("related");
-			}*/
-			
+			}
 		}
-		if(!StringUtil.isEmpty(att.getContentID()))mbp.setContentID(att.getContentID());
+
+		if (!StringUtil.isEmpty(att.getContentID()))
+			mbp.setContentID("<" + att.getContentID() + ">");
 			
 		return mbp;
 	}
@@ -901,7 +905,7 @@ public final class SMTPClient implements Serializable  {
 	}
 	
 	private void fillHTMLText(MimePart mp) throws MessagingException {
-		mp.setDataHandler(new DataHandler(new StringDataSource(htmlText,TEXT_HTML ,htmlTextCharset,76)));
+		mp.setDataHandler(new DataHandler(new StringDataSource(htmlText,TEXT_HTML ,htmlTextCharset, 78)));
 		mp.setHeader("Content-Transfer-Encoding", "7bit");
 		mp.setHeader("Content-Type", TEXT_HTML+"; charset="+htmlTextCharset);
 	}
@@ -912,14 +916,14 @@ public final class SMTPClient implements Serializable  {
 		return plain;
 	}
 	private void fillPlainText(MimePart mp) throws MessagingException {
-		mp.setDataHandler(new DataHandler(new StringDataSource(plainText!=null?plainText:"",TEXT_PLAIN ,plainTextCharset,980)));
+		mp.setDataHandler(new DataHandler(new StringDataSource(plainText!=null?plainText:"",TEXT_PLAIN ,plainTextCharset, 998)));
 		mp.setHeader("Content-Transfer-Encoding", "7bit");
 		mp.setHeader("Content-Type", TEXT_PLAIN+"; charset="+plainTextCharset);
 	}
 	
 	private BodyPart toMimeBodyPart(MailPart part) throws MessagingException {
 		MimeBodyPart mbp = new MimeBodyPart();
-		mbp.setDataHandler(new DataHandler(new StringDataSource(part.getBody(),part.getType() ,CharsetUtil.toCharSet(part.getCharset()),980)));
+		mbp.setDataHandler(new DataHandler(new StringDataSource(part.getBody(),part.getType() ,CharsetUtil.toCharSet(part.getCharset()), 998)));
 		//mbp.setHeader("Content-Transfer-Encoding", "7bit");
 		//mbp.setHeader("Content-Type", TEXT_PLAIN+"; charset="+plainTextCharset);
 		return mbp;
