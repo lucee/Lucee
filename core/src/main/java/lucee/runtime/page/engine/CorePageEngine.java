@@ -6,11 +6,10 @@ import lucee.runtime.page.engine.PageFactory;
 
 public abstract class CorePageEngine extends PageEngine {
 	
-	protected final Config cfg;
 	protected final PageFactory pageFactory;
 	
 	public CorePageEngine(Config cfg) {
-		this.cfg = cfg;
+		this.setConfig(cfg);
 		pageFactory = new CorePageFactory(this);
 	}
 	
