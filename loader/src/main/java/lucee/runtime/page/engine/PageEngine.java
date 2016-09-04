@@ -56,22 +56,7 @@ public abstract class PageEngine {
 		return this.extensions.contains(extension);
 	}
 	
-	final public int getDialect() {
-		int _d = _getDialect();
-		switch (_d) {
-			case CFMLEngine.DIALECT_BOTH:
-			case CFMLEngine.DIALECT_CFML:
-			case CFMLEngine.DIALECT_LUCEE:
-				return _d;
-			
-			default:
-				return CFMLEngine.DIALECT_LUCEE;
-		}
-	}
-	
-	int _getDialect() {
-		return config.allowLuceeDialect() ? CFMLEngine.DIALECT_LUCEE : CFMLEngine.DIALECT_CFML;
-	}
+	abstract public int getDialect();
 	
 	abstract public PageFactory getPageFactory();
 	

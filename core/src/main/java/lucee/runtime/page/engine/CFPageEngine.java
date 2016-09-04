@@ -8,7 +8,7 @@ public class CFPageEngine extends CorePageEngine {
 	public CFPageEngine(Config cfg) {super(cfg);}
 
 	@Override
-	int _getDialect() {
+	public int getDialect() {
 		return CFMLEngine.DIALECT_CFML;
 	}
 	

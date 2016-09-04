@@ -12,8 +12,9 @@ public class LuceePageEngine extends CorePageEngine {
 	}
 
 	@Override
-	int _getDialect() {
+	public int getDialect() {
 		return CFMLEngine.DIALECT_LUCEE;
 	}
+	
 	
 }
