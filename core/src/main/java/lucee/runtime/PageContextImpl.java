@@ -2233,7 +2233,10 @@ public final class PageContextImpl extends PageContext {
 		_execute(realPath, throwExcpetion, onlyTopLevel);
 	}
 	
-
+	/**
+	 * @deprecated Use execute instead.
+	 */
+	@Deprecated
 	@Override
 	public final void executeCFML(String realPath, boolean throwExcpetion, boolean onlyTopLevel) throws PageException  {
 		_execute(realPath, throwExcpetion, onlyTopLevel);
