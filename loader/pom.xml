@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.1.0.23-SNAPSHOT</version>
+  <version>5.1.0.24-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -41,6 +41,17 @@
         <role>Developer</role>
       </roles>
       <timezone>+1</timezone>
+    </developer>
+    <developer>
+      <id>isapir</id>
+      <name>Igal Sapir</name>
+      <email>dev@21solutions.net</email>
+      <organization>21 Solutions</organization>
+      <organizationUrl>http://21solutions.net/</organizationUrl>
+      <roles>
+          <role>Developer</role>
+      </roles>
+      <timezone>-8</timezone>
     </developer>
   </developers>
    

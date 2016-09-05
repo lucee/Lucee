@@ -40,6 +40,10 @@
 	function testString() {
 		var sct=deserializeJson('{a:"Susi"}');
 		assertEquals("Susi",sct.a);
+
+		var sct=deserializeJson('{a:"##susi##"}');
+		assertEquals("##susi##",sct.a);
+
 	}
 	
 	function testMustFail() {
@@ -52,23 +56,16 @@
 		}
 		if(!failed) throw "{a:susi} must fail";
 
-		var failed=false;
-		try {
-			var sct=deserializeJson('{a:"#susi#"}');
-		}
-		catch(local.e){
-			failed=true;
-		}
-		if(!failed) throw '{a:"#susi#"} must fail';
 
 		var failed=false;
 		try {
-			var sct=deserializeJson('{a:"#susi#abc"}');
+			var sct=deserializeJson('{a:susi=1}');
 		}
 		catch(local.e){
 			failed=true;
 		}
-		if(!failed) throw '{a:"#susi#abc"} must fail';
+		if(!failed) throw "{a:susi} must fail";
+
 
 		var failed=false;
 		try {
@@ -78,6 +75,7 @@
 			failed=true;
 		}
 		if(!failed) throw "{a:[a,b,c]} must fail";
+
 	}
 </cfscript>
 

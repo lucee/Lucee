@@ -320,10 +320,10 @@ public class CFMLExpressionInterpreter {
         if (cfml.forwardIfCurrent('=')) {
             cfml.removeSpace();
             if(mode==STATIC || ref instanceof Literal) {
-                ref=new DynAssign(ref,assignOp());
+                ref=new DynAssign(ref,assignOp(),limited);
             }
             else {
-                ref=new Assign(ref,assignOp());
+                ref=new Assign(ref,assignOp(),limited);
             }
         }
         return ref;
@@ -716,7 +716,7 @@ public class CFMLExpressionInterpreter {
 			cfml.removeSpace();
 			Ref right = assignOp();
 			Ref res = preciseMath?new BigPlus(ref,right):new Plus(ref,right);
-			ref=new Assign(ref,res);
+			ref=new Assign(ref,res,limited);
 		}
 		else {	
             cfml.removeSpace();
@@ -732,7 +732,7 @@ public class CFMLExpressionInterpreter {
 			cfml.removeSpace();
 			Ref right = assignOp();
 			Ref res = preciseMath?new BigMinus(ref,right):new Minus(ref,right);
-			ref=new Assign(ref,res);
+			ref=new Assign(ref,res,limited);
 		}
 		else {	
             cfml.removeSpace();
@@ -748,7 +748,7 @@ public class CFMLExpressionInterpreter {
 			cfml.removeSpace();
 			Ref right = assignOp();
 			Ref res = preciseMath?new BigDiv(ref, right):new Div(ref,right);
-			ref=new Assign(ref,res);
+			ref=new Assign(ref,res,limited);
 		}
 		else {	
             cfml.removeSpace();
@@ -763,7 +763,7 @@ public class CFMLExpressionInterpreter {
 			cfml.removeSpace();
 			Ref right = assignOp();
 			Ref res = preciseMath?new BigIntDiv(ref,right):new IntDiv(ref,right);
-			ref=new Assign(ref,res);
+			ref=new Assign(ref,res,limited);
 		}
 		else {	
             cfml.removeSpace();
@@ -778,7 +778,7 @@ public class CFMLExpressionInterpreter {
 			cfml.removeSpace();
 			Ref right = assignOp();
 			Ref res = preciseMath?new BigMod(ref,right):new Mod(ref,right);
-			ref=new Assign(ref,res);
+			ref=new Assign(ref,res,limited);
 		}
 		else {	
             cfml.removeSpace();
@@ -792,7 +792,7 @@ public class CFMLExpressionInterpreter {
 			cfml.removeSpace();
 			Ref right = assignOp();
 			Ref res = new  Concat(ref,right);
-			ref=new Assign(ref,res);
+			ref=new Assign(ref,res,limited);
 		}
 		else {	
             cfml.removeSpace();
@@ -807,7 +807,7 @@ public class CFMLExpressionInterpreter {
 			cfml.removeSpace();
 			Ref right = assignOp();
 			Ref res = preciseMath?new BigMulti(ref,right):new Multi(ref,right);
-			ref=new Assign(ref,res);
+			ref=new Assign(ref,res,limited);
 		}
 		else {	
             cfml.removeSpace();
@@ -901,7 +901,7 @@ public class CFMLExpressionInterpreter {
     private Ref _unaryOp(Ref ref,boolean isPlus) throws PageException {
         cfml.removeSpace();
 		Ref res = preciseMath?new BigPlus(ref,isPlus?PLUS_ONE:MINUS_ONE):new Plus(ref,isPlus?PLUS_ONE:MINUS_ONE);
-		ref=new Assign(ref,res);
+		ref=new Assign(ref,res,limited);
 		return preciseMath?new BigPlus(ref,isPlus?MINUS_ONE:PLUS_ONE):new Plus(ref,isPlus?MINUS_ONE:PLUS_ONE);
 	}
     
@@ -918,7 +918,7 @@ public class CFMLExpressionInterpreter {
         		cfml.removeSpace();
 				Ref expr = clip();
 				Ref res = preciseMath?new BigMinus(expr,new LNumber(new Double(1))):new Minus(expr,new LNumber(new Double(1)));
-				return new Assign(expr,res);
+				return new Assign(expr,res,limited);
 			}	
             cfml.removeSpace();
             return new Negate(clip());
@@ -929,7 +929,7 @@ public class CFMLExpressionInterpreter {
         		cfml.removeSpace();
 				Ref expr = clip();
 				Ref res = preciseMath?new BigPlus(expr,new LNumber(new Double(1))):new Plus(expr,new LNumber(new Double(1)));
-				return new Assign(expr,res);
+				return new Assign(expr,res,limited);
 			}
         	cfml.removeSpace();
 	        return new Casting("numeric",CFTypes.TYPE_NUMERIC,clip());
