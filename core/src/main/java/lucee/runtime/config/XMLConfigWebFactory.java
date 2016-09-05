@@ -4695,6 +4695,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			config.setDotNotationUpperCase(false);
 		}
 		else {
+			
+			// Env Var
+			if(!hasCS) {
+				Boolean tmp = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.preserve.case",null),null);
+				if(tmp!=null) {
+					config.setDotNotationUpperCase(!tmp.booleanValue());
+				}
+			}
 			String _case = getAttr(compiler,"dot-notation-upper-case");
 			if (!StringUtil.isEmpty(_case, true)) {
 				config.setDotNotationUpperCase(Caster.toBooleanValue(_case, true));
