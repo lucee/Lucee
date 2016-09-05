@@ -94,6 +94,7 @@ public final class Variable extends RefSupport implements Set {
 
     @Override
     public Object setValue(PageContext pc,Object obj) throws PageException {
+    	if(limited) throw new InterpreterException("invalid syntax, variables are not supported in a json string.");
         return pc.set(parent.touchValue(pc),KeyImpl.init(getKeyAsString(pc)),obj);
     }
 

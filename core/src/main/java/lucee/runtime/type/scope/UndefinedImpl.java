@@ -305,7 +305,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 		
 		if(checkArguments) {
 		    rtn=local.get(key,NullSupportHelper.NULL());
-		    if(rtn!=NullSupportHelper.NULL()) return local;;
+		    if(rtn!=NullSupportHelper.NULL()) return local;
 		    rtn=argument.getFunctionArgument(key,NullSupportHelper.NULL());
 		    if(rtn!=NullSupportHelper.NULL()) return argument;
 		}
