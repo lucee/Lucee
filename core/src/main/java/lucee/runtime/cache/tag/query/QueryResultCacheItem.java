@@ -12,8 +12,11 @@ import lucee.runtime.type.Duplicable;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.query.QueryArray;
 import lucee.runtime.type.query.QueryResult;
+import lucee.runtime.type.query.QueryStruct;
 
 public abstract class QueryResultCacheItem  implements CacheItem, Dumpable, Serializable,Duplicable {
+
+	private static final long serialVersionUID = -2322582053856364084L;
 
 	private QueryResult queryResult;
 	private final long creationDate;
@@ -24,12 +27,14 @@ public abstract class QueryResultCacheItem  implements CacheItem, Dumpable, Seri
 	}
 	
 
-	public static CacheItem newInstance(QueryResult qr) {
+	public static CacheItem newInstance(QueryResult qr, CacheItem defaultValue) {
 		if(qr instanceof Query)
 			return new QueryCacheItem((Query) qr);
 		else if(qr instanceof QueryArray)
 			return new QueryArrayItem((QueryArray) qr);
-		return null;// TODO QueryStruct
+		else if(qr instanceof QueryStruct)
+			return new QueryStructItem((QueryStruct) qr);
+		return defaultValue;
 	}
 	
 

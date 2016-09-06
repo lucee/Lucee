@@ -22,6 +22,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.compiler.target>1.7</maven.compiler.target>
   </properties>
 
   <licenses>
@@ -44,6 +46,17 @@
         <role>Developer</role>
       </roles>
       <timezone>+1</timezone>
+    </developer>
+    <developer>
+      <id>isapir</id>
+      <name>Igal Sapir</name>
+      <email>dev@21solutions.net</email>
+      <organization>21 Solutions</organization>
+      <organizationUrl>http://21solutions.net/</organizationUrl>
+      <roles>
+          <role>Developer</role>
+      </roles>
+      <timezone>-8</timezone>
     </developer>
   </developers>
    

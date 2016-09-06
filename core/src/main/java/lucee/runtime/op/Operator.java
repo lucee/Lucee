@@ -1037,10 +1037,7 @@ public final class Operator {
 		return rtn;
 	}
     public static double unaryPoPl(PageContext pc,Collection.Key key,double value) throws PageException {
-    	VariableReference ref = VariableInterpreter.getVariableReference(pc, key,true);
-    	double rtn=Caster.toDoubleValue(ref.get(pc));
-    	ref.set(rtn+value);
-		return rtn;
+    	return unaryPoPl(pc.undefinedScope(), key, value);
 	}
     public static double unaryPoPl(Collection coll,Collection.Key key,double value) throws PageException {
     	double rtn = Caster.toDoubleValue(coll.get(key));
@@ -1069,10 +1066,7 @@ public final class Operator {
 		return rtn;
 	}
     public static double unaryPoMi(PageContext pc,Collection.Key key,double value) throws PageException {
-    	VariableReference ref = VariableInterpreter.getVariableReference(pc, key,true);
-    	double rtn=Caster.toDoubleValue(ref.get(pc));
-    	ref.set(rtn-value);
-		return rtn;
+		return unaryPoMi(pc.undefinedScope(), key, value);
 	}
     public static double unaryPoMi(Collection coll,Collection.Key key,double value) throws PageException {
     	double rtn = Caster.toDoubleValue(coll.get(key));
@@ -1099,10 +1093,7 @@ public final class Operator {
 		return rtn;
 	}
     public static double unaryPrPl(PageContext pc,Collection.Key key,double value) throws PageException {
-    	VariableReference ref = VariableInterpreter.getVariableReference(pc, key,true);
-    	double rtn=Caster.toDoubleValue(ref.get(pc))+value;
-    	ref.set(rtn);
-		return rtn;
+    	return unaryPrPl(pc.undefinedScope(), key, value);
 	}
     public static double unaryPrPl(Collection coll,Collection.Key key,double value) throws PageException {
     	double rtn = Caster.toDoubleValue(coll.get(key))+value;
@@ -1129,10 +1120,7 @@ public final class Operator {
 		return rtn;
 	}
     public static double unaryPrMi(PageContext pc,Collection.Key key,double value) throws PageException {
-    	VariableReference ref = VariableInterpreter.getVariableReference(pc, key,true);
-    	double rtn=Caster.toDoubleValue(ref.get(pc))-value;
-    	ref.set(rtn);
-		return rtn;
+    	return unaryPrMi(pc.undefinedScope(), key, value);
 	}
     public static double unaryPrMi(Collection coll,Collection.Key key,double value) throws PageException {
     	double rtn = Caster.toDoubleValue(coll.get(key))-value;
@@ -1159,10 +1147,7 @@ public final class Operator {
 		return rtn;
 	}
     public static double unaryPrMu(PageContext pc,Collection.Key key,double value) throws PageException {
-    	VariableReference ref = VariableInterpreter.getVariableReference(pc, key,true);
-    	double rtn=Caster.toDoubleValue(ref.get(pc))*value;
-    	ref.set(rtn);
-		return rtn;
+    	return unaryPrMu(pc.undefinedScope(), key, value);
 	}
     public static double unaryPrMu(Collection coll,Collection.Key key,double value) throws PageException {
     	double rtn = Caster.toDoubleValue(coll.get(key))*value;
@@ -1189,17 +1174,14 @@ public final class Operator {
     	return rtn;
 	}
     public static double unaryPrDi(PageContext pc,Collection.Key key,double value) throws PageException {
-    	VariableReference ref = VariableInterpreter.getVariableReference(pc, key,true);
-    	double rtn=Caster.toDoubleValue(ref.get(pc))/value;
-    	ref.set(rtn);
-    	return rtn;
+    	return unaryPrDi(pc.undefinedScope(), key, value);
 	}
     public static double unaryPrDi(Collection coll,Collection.Key key,double value) throws PageException {
     	double rtn = Caster.toDoubleValue(coll.get(key))/value;
     	coll.set(key, rtn);
     	return rtn;
 	}
-    
+
 //Concat
     public static String unaryPreConcat(PageContext pc,Collection.Key[] keys,String value) throws PageException {
     	VariableReference ref = VariableInterpreter.getVariableReference(pc, keys,true);

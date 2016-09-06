@@ -619,11 +619,14 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				if(cachedWithin!=null) {
 					String id = CacheHandlerCollectionImpl.createId(sql,datasource!=null?datasource.getName():null,username,password,returntype);
 					CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY,null).getInstanceMatchingObject(cachedWithin,null);
-					if(ch!=null)ch.set(pageContext, id,cachedWithin,QueryResultCacheItem.newInstance(qr));
+					if(ch!=null) {
+						CacheItem ci = QueryResultCacheItem.newInstance(qr,null);
+						if(ci!=null)ch.set(pageContext, id,cachedWithin,ci);
+					}
 				}
 				exe=qr.getExecutionTime();
 			}
-	        else qr.setCacheType(cacheId);
+			else qr.setCacheType(cacheId);
 			
 			if(pageContext.getConfig().debug() && debug) {
 				boolean logdb=((ConfigImpl)pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DATABASE);
