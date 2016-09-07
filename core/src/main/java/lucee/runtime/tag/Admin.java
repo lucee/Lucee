@@ -2402,7 +2402,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
      * 
      */
     private void doRemoveMailServer() throws PageException {
-        admin.removeMailServer(getString("admin",action,"hostname"));
+        admin.removeMailServer(getString("admin",action,"hostname"),getString("username",null));
         store();
         adminSync.broadcast(attributes, config);
     }
@@ -2484,7 +2484,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         
 
         Server[] servers = config.getMailServers();
-        lucee.runtime.type.Query qry=new QueryImpl(new String[]{"hostname","password","username","port","authentication","readonly","tls","ssl","life","idle"},servers.length,"query");
+        lucee.runtime.type.Query qry=new QueryImpl(new String[]{"hostname","password","passwordEncrypted","username","port","authentication","readonly","tls","ssl","life","idle"},servers.length,"query");
         
         
         for(int i=0;i<servers.length;i++) {
@@ -2492,6 +2492,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
             int row=i+1;
             qry.setAt("hostname",row,s.getHostName());
             qry.setAt("password",row,s.isReadOnly()?"":s.getPassword());
+            qry.setAt("passwordEncrypted",row,s.isReadOnly()?"":ConfigWebUtil.encrypt(s.getPassword()));
             qry.setAt("username",row,s.isReadOnly()?"":s.getUsername());
             qry.setAt("port",row,Caster.toInteger(s.getPort()));
             qry.setAt("readonly",row,Caster.toBoolean(s.isReadOnly()));

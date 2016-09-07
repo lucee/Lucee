@@ -246,4 +246,6 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract void setSessionCookie(SessionCookieData data);
 	public abstract AuthCookieData getAuthCookie();
 	public abstract void setAuthCookie(AuthCookieData data);
+	public abstract lucee.runtime.net.mail.Server[] getMailServers();
+	public abstract void setMailServers(lucee.runtime.net.mail.Server[] servers);
 }

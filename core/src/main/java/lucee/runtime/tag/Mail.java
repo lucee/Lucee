@@ -539,7 +539,7 @@ public final class Mail extends BodyTagImpl {
 	public int doEndTag() throws PageException	{
 		smtp.setTimeZone(pageContext.getTimeZone());
 		try {
-			smtp.send(pageContext.getConfig(), sendTime!=null ? sendTime.getTime() : 0);
+			smtp.send(pageContext, sendTime!=null ? sendTime.getTime() : 0);
 		} 
 		catch (MailException e) {
 			throw Caster.toPageException(e);

@@ -57,6 +57,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -127,7 +128,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	private static final Collection.Key SESSION_COOKIE = KeyImpl.intern("sessioncookie");
 	private static final Collection.Key AUTH_COOKIE = KeyImpl.intern("authcookie");
-	
+
 	private static Map<String,CacheConnection> initCacheConnections=new ConcurrentHashMap<String, CacheConnection>();
 
 	
@@ -207,7 +208,6 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initMappings;
 	private boolean initDataSources;
 	private boolean initCache;
-	//private boolean initSameFieldAsArrays;
 	private boolean initCTMappings;
 	private boolean initCMappings;
 	private int localMode;
@@ -240,6 +240,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private Resource[] restCFCLocations;
 
 	private short scopeCascading=-1;
+
+	private Server[] mailServers;
+	private boolean initMailServer;
 		
 	public ModernApplicationContext(PageContext pc, Component cfc, RefBoolean throwsErrorWhileInit) {
 		super(pc.getConfig());
@@ -679,6 +682,39 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		return defaultCaches.get(type);
 	}
 	
+	@Override
+	public Server[] getMailServers() {
+		initMailServers();
+		return mailServers;
+	}
+	
+
+	private void initMailServers() {
+		if(!initMailServer) { 
+			Object oMail = get(component,KeyConstants._mail,null);
+			if(oMail==null) oMail = get(component,KeyConstants._mails,null);
+			
+			Array arrMail = Caster.toArray(oMail,null);
+			// we also support a single strucz instead of an array of structs
+			if(arrMail==null) {
+				Struct sctMail = Caster.toStruct(get(component,KeyConstants._mail,null),null);
+				if(sctMail!=null) {
+					arrMail = new ArrayImpl();
+					arrMail.appendEL(sctMail);
+				}
+			}
+			if(arrMail!=null){ 
+				mailServers=AppListenerUtil.toMailServers(config, arrMail, null);
+			}
+			initMailServer=true;
+		}
+	}
+	
+
+	public void setMailServers(Server[] servers) {
+		this.mailServers=servers;
+		this.initMailServer=true;
+	}
 
 	@Override
 	public CacheConnection getCacheConnection(String cacheName, CacheConnection defaultValue) {
@@ -779,7 +815,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		}
 		return hasResource;
 	}
-
+	
 	public static CacheConnection toCacheConnection(Config config,String name,Struct data, CacheConnection defaultValue) {
 		try{
 			// class definition

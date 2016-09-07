@@ -49,6 +49,14 @@
 			<description>alias for default datasource</description>
 		</attribute>
 		<attribute>
+			<type>array</type>
+			<name>mails</name>
+			<alias>mail</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>mail servers.</description>
+		</attribute>
+		<attribute>
 			<type>object</type>
 			<name>defaultdatasource</name>
 			<required>false</required>

@@ -510,6 +510,7 @@ public class KeyConstants {
 	public static final Key _parent=KeyImpl._const("parent");
 	public static final Key _password=KeyImpl._const("password");
 	public static final Key _username=KeyImpl._const("username");
+	public static final Key _user=KeyImpl._const("user");
 	public static final Key _path=KeyImpl._const("path");
 	public static final Key _path_info=KeyImpl._const("path_info");
 	public static final Key _pattern=KeyImpl._const("pattern");
@@ -920,8 +921,11 @@ public class KeyConstants {
 	public static final Key _tries = KeyImpl._const("tries");
 	public static final Key _interval = KeyImpl._const("interval");
 	public static final Key _intervall = KeyImpl._const("intervall");
+	public static final Key _mail = KeyImpl._const("mail");
+	public static final Key _mails = KeyImpl._const("mails");
 	
 	private static MapPro<String,Key> _____keys;
+
 	
 	public static String getFieldName(String key) {
 		init();

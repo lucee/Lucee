@@ -161,6 +161,26 @@
 			</table>
 		</cfformClassic>
 	</cfif>
+<cfif url.action2 EQ "edit">
+<cfsavecontent variable="codeSample">
+	this.mails =[ {
+	  host: '#data.hostname#'
+	, port: #data.port#
+	, username: '#replace(data.username,"'","''","all")#'
+	, password: '#data.passwordEncrypted?:''#'
+	, ssl: #data.ssl?:false#
+	, tls: #data.tls?:false#<cfif 
+	!isNull(data.life)>
+	, lifeTimespan: createTimeSpan(#data.life.days#,#data.life.hours#,#data.life.minutes#,#data.life.seconds#)</cfif><cfif 
+	!isNull(data.idle)>
+	, idleTimespan: createTimeSpan(#data.idle.days#,#data.idle.hours#,#data.idle.minutes#,#data.idle.seconds#)</cfif>
+}];
+</cfsavecontent>
+<cfset renderCodingTip( codeSample, "", true )>
+</cfif>
+
+
+
 
 
 

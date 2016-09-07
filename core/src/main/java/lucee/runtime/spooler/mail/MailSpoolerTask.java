@@ -25,6 +25,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.mail.MailException;
+import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.smtp.SMTPClient;
 import lucee.runtime.op.Caster;
 import lucee.runtime.spooler.ExecutionPlan;
@@ -44,14 +45,16 @@ public class MailSpoolerTask extends SpoolerTaskSupport {
 	
 	
 	private SMTPClient client;
+	private Server[] servers;
 
-	public MailSpoolerTask(ExecutionPlan[] plans,SMTPClient client, long sendTime) {
+	private MailSpoolerTask(ExecutionPlan[] plans,SMTPClient client,Server[] servers, long sendTime) {
 		super(plans, sendTime);
 		this.client=client;
+		this.servers=servers;
 	}
 
-	public MailSpoolerTask(SMTPClient client, long sendTime) {
-		this(EXECUTION_PLANS,client, sendTime);
+	public MailSpoolerTask(SMTPClient client,Server[] servers, long sendTime) {
+		this(EXECUTION_PLANS,client,servers, sendTime);
 	}
 	
 
@@ -110,7 +113,7 @@ public class MailSpoolerTask extends SpoolerTaskSupport {
 	@Override
 	public Object execute(Config config) throws PageException {
 		try {
-			client._send((ConfigWeb)config);
+			client._send((ConfigWeb)config,servers);
 		} 
 		catch (MailException e) {
 			throw Caster.toPageException(e);

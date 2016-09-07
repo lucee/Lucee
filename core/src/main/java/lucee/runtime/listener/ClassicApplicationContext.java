@@ -38,6 +38,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Duplicator;
@@ -98,6 +99,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private boolean triggerComponentDataMember;
 	private Map<Integer,String> defaultCaches=new ConcurrentHashMap<Integer, String>();
 	private Map<Collection.Key,CacheConnection> cacheConnections=new ConcurrentHashMap<Collection.Key,CacheConnection>();
+	private Server[] mailServers;
 	private Map<Integer,Boolean> sameFieldAsArrays=new ConcurrentHashMap<Integer, Boolean>();
 	private RestSettings restSettings;
 	private Resource[] restCFCLocations;
@@ -216,6 +218,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.restSettings=restSettings;
 		dbl.defaultCaches=Duplicator.duplicateMap(defaultCaches, new ConcurrentHashMap<Integer, String>(),false );
 		dbl.cacheConnections=Duplicator.duplicateMap(cacheConnections, new ConcurrentHashMap<Integer, String>(),false );
+		dbl.mailServers=mailServers;
 		dbl.cachedWithins=Duplicator.duplicateMap(cachedWithins, new ConcurrentHashMap<Integer, Object>(),false );
 		dbl.sameFieldAsArrays=Duplicator.duplicateMap(sameFieldAsArrays, new ConcurrentHashMap<Integer, Boolean>(),false );
 		
@@ -695,6 +698,16 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public CacheConnection getCacheConnection(String cacheName, CacheConnection defaultValue) {
 		return cacheConnections.get(KeyImpl.init(cacheName));
+	}
+
+	@Override
+	public void setMailServers(Server[] servers) {
+		this.mailServers=servers;
+	}
+
+	@Override
+	public Server[] getMailServers() {
+		return this.mailServers;
 	}
 	
 	@Override

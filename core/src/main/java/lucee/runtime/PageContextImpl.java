@@ -56,6 +56,7 @@ import javax.servlet.jsp.tagext.BodyTag;
 import javax.servlet.jsp.tagext.Tag;
 import javax.servlet.jsp.tagext.TryCatchFinally;
 
+import lucee.print;
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.BodyContentStack;
 import lucee.commons.io.CharsetUtil;
@@ -131,6 +132,7 @@ import lucee.runtime.monitor.RequestMonitorPro;
 import lucee.runtime.net.ftp.FTPPoolImpl;
 import lucee.runtime.net.http.HTTPServletRequestWrap;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Operator;
@@ -3348,6 +3350,27 @@ public final class PageContextImpl extends PageContext {
 		if(applicationContext==null) return config.getCachedWithin(type);
 		return applicationContext.getCachedWithin(type);
 	}
+	
+	// FUTURE add to interface
+	public lucee.runtime.net.mail.Server[] getMailServers() {
+		if(applicationContext!=null) {
+			print.e("++++++");
+			lucee.runtime.net.mail.Server[] appms = ((ApplicationContextSupport)applicationContext).getMailServers();
+			print.e(appms);
+			if(ArrayUtil.isEmpty(appms)) return config.getMailServers();
+			
+			lucee.runtime.net.mail.Server[] cms=config.getMailServers();
+			print.e(cms);
+			if(ArrayUtil.isEmpty(cms)) return appms;
+			
+			lucee.runtime.net.mail.Server[] arr = ServerImpl.merge(appms, cms);
+			print.e(arr);
+			return arr;
+		}
+		return config.getMailServers();
+	}
+	
+	
 
 	public void registerLazyStatement(Statement s) {
 		if(lazyStats==null)lazyStats=new ArrayList<Statement>();

@@ -503,12 +503,6 @@ public final class XMLConfigAdmin {
         if(!hasAccess)
             throw new SecurityException("no access to update mail server settings");
         
-        /*try {
-            SMTPVerifier.verify(hostName,username,password,port);
-        } catch (SMTPException e) {
-            throw Caster.toPageException(e);
-        }*/
-        
         Element mail=_getRootElement("mail");
         if(port<1) port=21;
 
@@ -521,10 +515,16 @@ public final class XMLConfigAdmin {
       	
         // Update
         Element server=null;
+        String _hostName,_username;
         for(int i=0;i<children.length;i++) {
       	    Element el=children[i];
-      	    String smtp=el.getAttribute("smtp");
-  			if(smtp!=null && smtp.equalsIgnoreCase(hostName)) {
+      	    _hostName=el.getAttribute("smtp");
+      	    _username=el.getAttribute("username");
+      	    if(
+      	    		StringUtil.emptyIfNull(_hostName).equalsIgnoreCase(hostName) 
+      	    	&& 
+      	    		StringUtil.emptyIfNull(_username).equals(StringUtil.emptyIfNull(username))
+      	    ) {
 	      		server=el;
 	      		break;
   			}
@@ -553,16 +553,22 @@ public final class XMLConfigAdmin {
      * @param hostName
      * @throws SecurityException 
      */
-    public void removeMailServer(String hostName) throws SecurityException {
+    public void removeMailServer(String hostName, String username) throws SecurityException {
     	checkWriteAccess();
     	
         Element mail=_getRootElement("mail");
         Element[] children = XMLConfigWebFactory.getChildren(mail,"server");
+        String _hostName,_username;
         if(children.length>0) {
 	      	for(int i=0;i<children.length;i++) {
 	      	    Element el=children[i];
-	      	    String smtp=el.getAttribute("smtp");
-	  			if(smtp!=null && smtp.equalsIgnoreCase(hostName)) {
+	      	    _hostName=el.getAttribute("smtp");
+	      	    _username=el.getAttribute("username");
+	  			if(
+	  					StringUtil.emptyIfNull(_hostName).equalsIgnoreCase(StringUtil.emptyIfNull(hostName))
+	  					&&
+	  					StringUtil.emptyIfNull(_username).equalsIgnoreCase(StringUtil.emptyIfNull(username))
+	  			) {
 		      		mail.removeChild(children[i]);
 	  			}
 	      	}

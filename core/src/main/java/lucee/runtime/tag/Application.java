@@ -46,6 +46,7 @@ import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMUtil;
+import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -123,8 +124,8 @@ public final class Application extends TagImpl {
 	private String cacheFile;
 	private String cacheWebservice;
 	private Resource antiSamyPolicyResource;
-	
 	private Struct datasources;
+	private Array mails;
 	private Struct caches;
 	private UDF onmissingtemplate;
 	private short scopeCascading=-1;
@@ -160,6 +161,7 @@ public final class Application extends TagImpl {
         datasource=null;
         defaultdatasource=null;
         datasources=null;
+        mails=null;
         caches=null;
         this.name="";
         action=ACTION_CREATE;
@@ -252,6 +254,9 @@ public final class Application extends TagImpl {
 
 	public void setDatasources(Struct datasources) {
 		this.datasources = datasources;
+	}
+	public void setMails(Array mails) {
+		this.mails = mails;
 	}
 	public void setCaches(Struct caches) {
 		this.caches = caches;
@@ -573,6 +578,15 @@ public final class Application extends TagImpl {
 		if(datasources!=null){
 			try {
 				ac.setDataSources(AppListenerUtil.toDataSources(pageContext.getConfig(),datasources,pageContext.getConfig().getLog("application")));
+			} 
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
+		}
+		if(mails!=null){
+			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+			try {
+				acs.setMailServers(AppListenerUtil.toMailServers(pageContext.getConfig(), mails, null));
 			} 
 			catch (Exception e) {
 				throw Caster.toPageException(e);

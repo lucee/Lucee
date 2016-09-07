@@ -157,6 +157,7 @@ Defaults --->
 			<cfelseif form.subAction EQ "#stText.Buttons.Delete#">
 				<cfset data.rows=toArrayFromForm("row")>
 				<cfset data.hosts=toArrayFromForm("hostname")>
+				<cfset data.usernames=toArrayFromForm("username")>
 				<!---  @todo
 				<cflock type="exclusive" scope="application" timeout="5"></cflock> --->
 				<cfset len=arrayLen(data.hosts)>
@@ -168,6 +169,7 @@ Defaults --->
 							password="#session["password"&request.adminType]#"
 							
 							hostname="#data.hosts[idx]#"
+							username="#data.usernames[idx]#"
 							remoteClients="#request.getRemoteClients()#">
 					</cfif>
 				</cfloop>

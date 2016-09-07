@@ -5,7 +5,21 @@ Defaults --->
 <cfparam name="form.mainAction" default="none">
 <cfparam name="form.subAction" default="none">
 
-
+<cfscript>
+	
+	function toTSStruct(seconds){
+		var data={};
+		var day=60*60*24;
+		var tmp=seconds/day;
+		data.days=int(tmp);
+		tmp=(tmp-data.days)*24;
+		data.hours=int(tmp);
+		tmp=(tmp-data.hours)*60;
+		data.minutes=int(tmp);
+		data.seconds=int((tmp-data.minutes)*60);
+		return data;
+	}
+</cfscript>
 <cfadmin 
 	action="getLocales"
 	locale="#stText.locale#"
@@ -70,6 +84,13 @@ Defaults --->
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="mappings">
+
+
+<cfadmin 
+	action="getMailservers"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="mailservers">
 	
 
 <!--- cache --->
@@ -107,7 +128,6 @@ hasCache=hasObj || hasTem || hasQry || hasRes || hasFun || hasInc;
 
 
 <cfoutput>
-	
 
 	<cfsavecontent variable="codeSample">
 component {
@@ -172,6 +192,26 @@ component {
 </cfif><cfif hasInc>	this.cache.include = "#!hasInc?"&lt;cache-name>":defaults.include#";</cfif>
 </cfif>	
 
+
+//////////////////////////////////////////////
+//               MAIL SERVERS               //
+//////////////////////////////////////////////
+	this.mails =[ 
+<cfloop query="#mailservers#"><cfset life=toTSStruct(mailservers.life)><cfset idle=toTSStruct(mailservers.idle)>
+		<cfif mailservers.currentrow GT 1>,</cfif>{
+		  host: '#mailservers.hostname#'
+		, port: #mailservers.port#
+		, username: '#replace(mailservers.username,"'","''","all")#'
+		, password: '#mailservers.passwordEncrypted?:''#'
+		, ssl: #mailservers.ssl?:false#
+		, tls: #mailservers.tls?:false#<cfif 
+		!isNull(mailservers.life)>
+		, lifeTimespan: createTimeSpan(#life.days#,#life.hours#,#life.minutes#,#life.seconds#)</cfif><cfif 
+		!isNull(mailservers.idle)>
+		, idleTimespan: createTimeSpan(#idle.days#,#idle.hours#,#idle.minutes#,#idle.seconds#)</cfif>
+		}
+</cfloop>
+	];
 //////////////////////////////////////////////
 //               DATASOURCES                //
 //////////////////////////////////////////////

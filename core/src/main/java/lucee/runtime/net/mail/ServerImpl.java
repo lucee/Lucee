@@ -18,6 +18,9 @@
  **/
 package lucee.runtime.net.mail;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.op.Caster;
@@ -26,7 +29,9 @@ import lucee.runtime.op.Caster;
 /**
  * 
  */
-public final class ServerImpl implements Server {
+public final class ServerImpl implements Server,Serializable {
+	
+	private static final long serialVersionUID = -3352908216814744100L;
 	
 	private String hostName;
 	private String username;
@@ -59,7 +64,7 @@ public final class ServerImpl implements Server {
 				pass=userpass.substring(index+1).trim();
 			}
 			else user=userpass.trim();
-	}
+		}
 
 		// server:port
 		index=host.indexOf(':');
@@ -125,9 +130,14 @@ public final class ServerImpl implements Server {
 		if(username!=null) {
 			return username+":"+password+"@"+hostName+":"+port;
 		}
-		return hostName+":"+port;
+		return hostName+":"+port+":"+ssl+":"+tls+":"+idle+":"+life;
 	}
-
+	
+	@Override
+	public boolean equals(Object obj) {
+		return toString().equals(obj.toString());
+	}
+	
     @Override
     public Server cloneReadOnly() {
         ServerImpl s = new ServerImpl(hostName, port,username, password,life,idle,tls,ssl,reuse);
@@ -173,5 +183,22 @@ public final class ServerImpl implements Server {
 
 	public boolean reuseConnections() {
 		return reuse;
+	}
+
+
+	public static lucee.runtime.net.mail.Server[] merge( lucee.runtime.net.mail.Server[] arr1, lucee.runtime.net.mail.Server[] arr2) {
+		ArrayList<lucee.runtime.net.mail.Server> result=new ArrayList<Server>();
+		
+		// first we fill it with the left array
+		for(int i=0;i<arr2.length;i++) {
+			result.add(arr2[i]);
+		}
+		
+		// now we fill the second array, but only the one not existing yet
+		for(int i=0;i<arr1.length;i++) {
+			if(!result.contains(arr1[i]))
+				result.add(arr1[i]);
+		}
+		return result.toArray(new lucee.runtime.net.mail.Server[result.size()]);
 	}
 }

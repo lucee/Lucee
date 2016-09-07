@@ -34,12 +34,11 @@
 		<cfparam name="form.metaCacheTimeout" default="60000">
 
 		
-
 		<cfadmin action="updateDatasource" type="#request.adminType#" password="#session["password"&request.adminType]#"
 			
 			classname="#driver.getClass()#"
 			dsn="#driver.getDSN()#"
-						
+			
 			name="#form.name#"
 			newName="#form.newName#"
 			

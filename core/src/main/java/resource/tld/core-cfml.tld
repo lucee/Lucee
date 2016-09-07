@@ -209,6 +209,14 @@
 			<description>A structure that contains datasources defintions.</description>
 		</attribute>
 		<attribute>
+			<type>array</type>
+			<name>mails</name>
+			<alias>mail</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>mail servers.</description>
+		</attribute>
+		<attribute>
 			<type>struct</type>
 			<name>caches</name>
 			<required>false</required>
