@@ -80,7 +80,7 @@
 
 		<cflocation url="#request.self#?action=#url.action##v#" addtoken="no">
 	</cfif>
-	<cfcatch>
+	<cfcatch><cfrethrow>
 		<cfset driver.onBeforeError(cfcatch)>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
