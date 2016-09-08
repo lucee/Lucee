@@ -22,6 +22,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.digest.HashUtil;
@@ -133,14 +134,36 @@ public class DatasourceConnectionPool {
 		releaseDatasourceConnection(dc, false);
 	}
 
-	public void clear() {
+	public void clear(boolean force) {
 		// remove all timed out conns
 		try{
 			Object[] arr = dcs.entrySet().toArray();
 			if(ArrayUtil.isEmpty(arr)) return;
 			for(int i=0;i<arr.length;i++) {
 				DCStack conns=(DCStack) ((Map.Entry) arr[i]).getValue();
-				if(conns!=null)conns.clear();
+				if(conns!=null)conns.clear(force);
+			}
+		}
+		catch(Throwable t){}
+	}
+	
+	public void clear(String dataSourceName,boolean force) {
+		// remove all timed out conns
+		try{
+			Object[] arr = dcs.entrySet().toArray();
+			if(ArrayUtil.isEmpty(arr)) return;
+			Entry e;
+			for(int i=0;i<arr.length;i++) {
+				e = ((Map.Entry) arr[i]);
+				DCStack conns=(DCStack) e.getValue();
+				
+				DatasourceConnection dc = conns.get();
+				if(dc!=null) {
+					String name=dc.getDatasource().getName();
+					if(dataSourceName.equalsIgnoreCase(name)) {
+						if(conns!=null)conns.clear(force);
+					}
+				}
 			}
 		}
 		catch(Throwable t){}
@@ -153,7 +176,7 @@ public class DatasourceConnectionPool {
         	key=(String) arr[i];
         	if(key.startsWith(id)) {
 				DCStack conns=dcs.get(key);
-				conns.clear();
+				conns.clear(true);
         	}
 		}
         

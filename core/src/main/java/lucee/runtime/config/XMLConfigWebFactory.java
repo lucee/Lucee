@@ -93,6 +93,7 @@ import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
 import lucee.runtime.db.JDBCDriver;
+import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.dump.ClassicHTMLDumpWriter;
 import lucee.runtime.dump.DumpWriter;
 import lucee.runtime.dump.DumpWriterEntry;
@@ -1986,8 +1987,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		 */
 		// Default query of query DB
 		try {
-			setDatasource(config, datasources, QOQ_DATASOURCE_NAME, new ClassDefinitionImpl("org.hsqldb.jdbcDriver","hsqldb","1.8.0",config.getIdentification()), "hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", -1, -1, 60000, true, true, DataSource.ALLOW_ALL,
-					false, false, null, new StructImpl(), "");
+			setDatasource(config, datasources, QOQ_DATASOURCE_NAME, 
+					new ClassDefinitionImpl("org.hsqldb.jdbcDriver","hsqldb","1.8.0",config.getIdentification()), 
+					"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", -1, -1, 60000, true, true, DataSource.ALLOW_ALL,
+					false, false, null, new StructImpl(), "",ParamSyntax.DEFAULT);
 		} catch (Exception e) {
 			log.error("Datasource", e);
 		}
@@ -2063,7 +2066,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						,toBoolean(getAttr(dataSource,"storage"), false)
 						,getAttr(dataSource,"timezone")
 						,toStruct(getAttr(dataSource,"custom"))
-						,getAttr(dataSource,"dbdriver"));
+						,getAttr(dataSource,"dbdriver")
+						,ParamSyntax.toParamSyntax(dataSource,ParamSyntax.DEFAULT));
 				} catch (Exception e) {
 					log.error("Datasource", e);
 				}
@@ -2426,11 +2430,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	private static void setDatasource(ConfigImpl config, Map<String, DataSource> datasources, String datasourceName, ClassDefinition cd, String server, String databasename,
 			int port, String dsn, String user, String pass, int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow,
-			boolean validate, boolean storage, String timezone, Struct custom, String dbdriver) throws BundleException, ClassException, SQLException {
+			boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax ps) throws BundleException, ClassException, SQLException {
 
 		datasources.put( datasourceName.toLowerCase(),
 				new DataSourceImpl(config,null,datasourceName, cd, server, dsn, databasename, port, user, pass, connectionLimit, connectionTimeout, metaCacheTimeout, blob, clob, allow,
-						custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver,config.getLog("application")) );
+						custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver,ps,config.getLog("application")) );
 
 	}
 

@@ -38,7 +38,8 @@
 			
 			classname="#driver.getClass()#"
 			dsn="#driver.getDSN()#"
-			
+			customParameterSyntax="#isNull(driver.customParameterSyntax)?nullValue():driver.customParameterSyntax()#"
+						
 			name="#form.name#"
 			newName="#form.newName#"
 			

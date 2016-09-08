@@ -77,7 +77,7 @@
 			</cfif>
 		</cfcase>
 	</cfswitch>
-	<cfcatch><cfrethrow>
+	<cfcatch>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
 	</cfcatch>

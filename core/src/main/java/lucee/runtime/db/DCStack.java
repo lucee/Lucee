@@ -107,8 +107,8 @@ class DCStack {
 		}
 	}
 
-	public synchronized void clear() {
-		clear(item,null);
+	public synchronized void clear(boolean force) {
+		clear(item,null,force);
 	}
 
 	/**
@@ -118,11 +118,11 @@ class DCStack {
 	 * @param timeout timeout in seconds used to validate existing connections
 	 * @throws SQLException
 	 */
-	private void clear(Item current,Item next) {
+	private void clear(Item current,Item next, boolean force) {
 		if(current==null) return;
 		
 		// timeout or closed
-		if(
+		if(		force ||
 				current.dc.isTimeout() || 
 				current.dc.isLifecycleTimeout() || 
 				isClosedEL(current.dc.getConnection()) || 
@@ -142,9 +142,9 @@ class DCStack {
 	        	next.prev=current.prev;
 	        }
 	        
-	        clear(current.prev,next);
+	        clear(current.prev,next,force);
 		}
-		else clear(current.prev,current);
+		else clear(current.prev,current,force);
 	}
 
 	private boolean isClosedEL(Connection conn) {

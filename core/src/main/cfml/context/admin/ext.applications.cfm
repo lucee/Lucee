@@ -169,7 +169,7 @@ stText.Buttons.upDown="update / downgrade";
 		</cfcase>
 	</cfswitch>
 <cfsavecontent variable="inc"><cfinclude template="#url.action#.#url.action2#.cfm"/></cfsavecontent>
-	<cfcatch><cfrethrow>
+	<cfcatch>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
 	</cfcatch>

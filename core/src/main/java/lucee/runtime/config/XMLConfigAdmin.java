@@ -78,6 +78,7 @@ import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.db.ClassDefinition;
+import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -1605,7 +1606,8 @@ public final class XMLConfigAdmin {
      */
     public void updateDataSource(String name, String newName, ClassDefinition cd, String dsn, String username, String password,
             String host, String database, int port, int connectionLimit, int connectionTimeout, long metaCacheTimeout,
-            boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver) throws PageException {
+            boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver,
+            ParamSyntax paramSyntax) throws PageException {
 
     	checkWriteAccess();
     	SecurityManager sm = config.getSecurityManager();
@@ -1670,7 +1672,13 @@ public final class XMLConfigAdmin {
 
 	            if (!StringUtil.isEmpty( dbdriver ))
 		            el.setAttribute("dbdriver", Caster.toString(dbdriver));
+	            
+	            // Param Syntax
+	            el.setAttribute("param-delimiter",(paramSyntax.delimiter));
+	            el.setAttribute("param-leading-delimiter",(paramSyntax.leadingDelimiter));
+	            el.setAttribute("param-separator",(paramSyntax.separator));
 
+	            
 	      		return;
   			}
       	}
@@ -1708,11 +1716,12 @@ public final class XMLConfigAdmin {
 	    if (!StringUtil.isEmpty( dbdriver ))
 		    el.setAttribute("dbdriver", Caster.toString(dbdriver));
 
-        /*
-  		    String host,String database,int port,String connectionLimit, String connectionTimeout,
-            boolean blob,boolean clob,int allow,Struct custom
-        );
-        */
+
+        // Param Syntax
+        el.setAttribute("param-delimiter",(paramSyntax.delimiter));
+        el.setAttribute("param-leading-delimiter",(paramSyntax.leadingDelimiter));
+        el.setAttribute("param-separator",(paramSyntax.separator));
+
     }
     
     static void removeJDBCDriver(ConfigImpl config, ClassDefinition cd, boolean reload) throws IOException, SAXException, PageException, BundleException {
