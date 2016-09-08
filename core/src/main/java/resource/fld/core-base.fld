@@ -2887,7 +2887,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>dbPoolClear</name>
 		<class>lucee.runtime.functions.system.DBPoolClear</class>
-		<status>hidden</status>
 		<description>clears all existing datasource connection</description>
 		<argument>
 			<name>datasource</name>
