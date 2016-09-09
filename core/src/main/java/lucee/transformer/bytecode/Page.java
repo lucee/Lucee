@@ -501,8 +501,10 @@ public final class Page extends BodyBase implements Root {
     	
     	cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC+Opcodes.ACC_FINAL, className, null, parent, null);
     	if(optionalPS!=null) {
-    		cw.visitSource(optionalPS.getPhyscalFile().getAbsolutePath(),
-    			"rel:"+optionalPS.getRealpathWithVirtual()); // when adding more use ; as delimiter
+    		cw.visitSource(optionalPS.getRealpathWithVirtual(),null); // when adding more use ; as delimiter
+    		
+    		//cw.visitSource(optionalPS.getPhyscalFile().getAbsolutePath(),
+        	//		"rel:"+optionalPS.getRealpathWithVirtual()); // when adding more use ; as delimiter
     	}
     	else {
     		//cw.visitSource("","rel:");
