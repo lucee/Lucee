@@ -27,6 +27,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -379,7 +380,7 @@ public final class Zip extends BodyTagImpl {
 	private void actionRead(boolean binary) throws ZipException, IOException, PageException {
 		required("file",file,true);
 		required("variable",variable);
-		required("entrypath",variable);
+		required("entrypath",entryPath);
 		ZipFile zip = getZip(file);
 		
 		try {
