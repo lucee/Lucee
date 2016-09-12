@@ -188,22 +188,24 @@ public class GetApplicationSettings {
 			Array _mails = new ArrayImpl();
 			sct.setEL("mails", _mails);
 			Server srv;
-			for(int i=0;i<servers.length;i++) {
-				srv=servers[i];
-				s=new StructImpl();
-				_mails.appendEL(s);
-				s.setEL(KeyConstants._host, srv.getHostName());
-				s.setEL(KeyConstants._port, srv.getPort());
-				if(!StringUtil.isEmpty(srv.getUsername()))s.setEL(KeyConstants._username, srv.getUsername());
-				if(!StringUtil.isEmpty(srv.getPassword()))s.setEL(KeyConstants._password, srv.getPassword());
-				s.setEL(KeyConstants._readonly, srv.isReadOnly());
-				s.setEL("ssl", srv.isSSL());
-				s.setEL("tls", srv.isTLS());
-				
-				if(srv instanceof ServerImpl) {
-					ServerImpl srvi=(ServerImpl) srv;
-					s.setEL("lifeTimespan", TimeSpanImpl.fromMillis(srvi.getLifeTimeSpan()));
-					s.setEL("idleTimespan", TimeSpanImpl.fromMillis(srvi.getIdleTimeSpan()));
+			if(servers!=null){
+				for(int i=0;i<servers.length;i++) {
+					srv=servers[i];
+					s=new StructImpl();
+					_mails.appendEL(s);
+					s.setEL(KeyConstants._host, srv.getHostName());
+					s.setEL(KeyConstants._port, srv.getPort());
+					if(!StringUtil.isEmpty(srv.getUsername()))s.setEL(KeyConstants._username, srv.getUsername());
+					if(!StringUtil.isEmpty(srv.getPassword()))s.setEL(KeyConstants._password, srv.getPassword());
+					s.setEL(KeyConstants._readonly, srv.isReadOnly());
+					s.setEL("ssl", srv.isSSL());
+					s.setEL("tls", srv.isTLS());
+					
+					if(srv instanceof ServerImpl) {
+						ServerImpl srvi=(ServerImpl) srv;
+						s.setEL("lifeTimespan", TimeSpanImpl.fromMillis(srvi.getLifeTimeSpan()));
+						s.setEL("idleTimespan", TimeSpanImpl.fromMillis(srvi.getIdleTimeSpan()));
+					}
 				}
 			}
 		}
