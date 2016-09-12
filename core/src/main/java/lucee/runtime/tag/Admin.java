@@ -2581,16 +2581,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         Struct sct=new StructImpl();
         pageContext.setVariable(getString("admin",action,"returnVariable"),sct);
         
-        //LoggerAndSourceData data = config.getLoggerAndSourceData("mail");
-        //lucee.commons.io.log.Log log=ls.getLog();
-        
-        //String logFile="";
-        //String logLevel="";
-        //if(log instanceof LogResource)logFile=((LogResource)log).getResource().toString();
-        //String logLevel=LogUtil.toStringType(data.getLevel(),"ERROR");
-        //sct.set("strlogfile",ls.getSource());
-        //sct.set("logfile",logFile);
-        //sct.set("loglevel",logLevel);
         int maxThreads=20;
         SpoolerEngine engine = config.getSpoolerEngine();
         if(engine instanceof SpoolerEngineImpl) {

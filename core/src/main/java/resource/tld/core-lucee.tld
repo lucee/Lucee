@@ -72,7 +72,16 @@
 		</attribute>
 		<attribute>
 			<type>struct</type>
+			<name>logs</name>
+			<alias>log</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>A structure that contains log defintions.</description>
+		</attribute>
+		<attribute>
+			<type>struct</type>
 			<name>caches</name>
+			<alias>cache</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>A structure that contains cache defintions.</description>

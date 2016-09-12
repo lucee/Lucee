@@ -19,14 +19,18 @@
 package lucee.runtime.listener;
 
 import java.nio.charset.Charset;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
@@ -45,8 +49,10 @@ import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.CustomType;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Scope;
@@ -118,6 +124,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private SessionCookieData sessionCookie;
 
 	private AuthCookieData authCookie;
+
+	private Map<Key, Pair<Log,Struct>> logs;
 
     
     /**
@@ -863,5 +871,32 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setAuthCookie(AuthCookieData data) {
 		authCookie=data;
+	}
+
+	@Override
+	public java.util.Collection<Key> getLogNames() {
+		if(logs==null) return new HashSet<Collection.Key>();
+		return logs.keySet();
+	}
+
+	@Override
+	public void setLoggers(Map<Key, Pair<Log,Struct>> logs) {
+		this.logs=logs;
+	}
+
+	@Override
+	public Log getLog(String name) {
+		if(logs==null) return null;
+		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
+		if(pair==null) return null;
+		return pair.getName();
+	}
+
+	@Override
+	public Struct getLogMetaData(String name) {
+		if(logs==null) return null;
+		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
+		if(pair==null) return null;
+		return (Struct)pair.getValue().duplicate(false);
 	}
 }

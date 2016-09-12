@@ -47,6 +47,13 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T> {
 		this.version=OSGiUtil.toVersion(version,null);
 		this.id=id;
 	}
+	
+	public ClassDefinitionImpl(Identification id,String className, String name, Version version) {
+		this.className=className==null?null:className.trim();
+		this.name=StringUtil.isEmpty(name,true)?null:name.trim();
+		this.version=version;
+		this.id=id;
+	}
 
 	public ClassDefinitionImpl(String className) {
 		this.className=className==null?null:className.trim();

@@ -31,11 +31,20 @@ import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.log4j.Appender;
+import org.apache.log4j.Level;
+import org.osgi.framework.Version;
+
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
+import lucee.commons.io.log.LoggerAndSourceData;
+import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefBoolean;
@@ -49,6 +58,7 @@ import lucee.runtime.component.Member;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.XMLConfigWebFactory;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -63,6 +73,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.rest.RestSettingImpl;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.type.Array;
@@ -76,6 +87,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.UDFCustomType;
 import lucee.runtime.type.dt.TimeSpan;
+import lucee.runtime.type.it.KeyAsStringIterator;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
@@ -124,6 +136,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Collection.Key TYPE_CHECKING = KeyImpl.intern("typeChecking");
 	private static final Collection.Key CGI_READONLY = KeyImpl.intern("CGIReadOnly");;
 	private static final Collection.Key SUPPRESS_CONTENT = KeyImpl.intern("suppressRemoteComponentContent");
+	private static final Collection.Key LOGS = KeyImpl.intern("logs");
+	private static final Collection.Key LOG = KeyImpl.intern("log");
 	
 
 	private static final Collection.Key SESSION_COOKIE = KeyImpl.intern("sessioncookie");
@@ -243,6 +257,10 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	private Server[] mailServers;
 	private boolean initMailServer;
+
+	private boolean initLog;
+
+	private Map<Collection.Key,Pair<Log,Struct>> logs;
 		
 	public ModernApplicationContext(PageContext pc, Component cfc, RefBoolean throwsErrorWhileInit) {
 		super(pc.getConfig());
@@ -695,7 +713,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			if(oMail==null) oMail = get(component,KeyConstants._mails,null);
 			
 			Array arrMail = Caster.toArray(oMail,null);
-			// we also support a single strucz instead of an array of structs
+			// we also support a single struct instead of an array of structs
 			if(arrMail==null) {
 				Struct sctMail = Caster.toStruct(get(component,KeyConstants._mail,null),null);
 				if(sctMail!=null) {
@@ -1590,4 +1608,45 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		authCookie=data;
 		initAuthCookie=true;
 	}
+
+	@Override
+	public void setLoggers(Map<Key, Pair<Log,Struct>> logs) {
+		this.logs=logs;
+		initLog=true;
+	}
+
+	@Override
+	public Log getLog(String name) {
+		if(!initLog) initLog();
+		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
+		if(pair==null) return null;
+		return pair.getName();
+	}
+
+	@Override
+	public Struct getLogMetaData(String name) {
+		if(!initLog) initLog();
+		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
+		if(pair==null) return null;
+		return (Struct)pair.getValue().duplicate(false);
+	}
+
+	@Override
+	public java.util.Collection<Collection.Key> getLogNames() {
+		if(!initLog) initLog();
+		return logs.keySet();
+	}
+
+	private void initLog() {
+		// appender
+		Object oLogs=get(component,LOGS,null);
+		if(oLogs==null) oLogs=get(component,LOG,null);
+		Struct sct=Caster.toStruct(oLogs,null);
+		logs=initLog(sct);
+		initLog=true;
+	}
+
 }
+
+
+

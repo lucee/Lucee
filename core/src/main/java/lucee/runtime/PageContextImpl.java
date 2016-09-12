@@ -26,6 +26,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -62,6 +63,8 @@ import lucee.commons.io.BodyContentStack;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.cache.exp.CacheException;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.lang.PhysicalClassLoader;
@@ -3354,17 +3357,13 @@ public final class PageContextImpl extends PageContext {
 	// FUTURE add to interface
 	public lucee.runtime.net.mail.Server[] getMailServers() {
 		if(applicationContext!=null) {
-			print.e("++++++");
 			lucee.runtime.net.mail.Server[] appms = ((ApplicationContextSupport)applicationContext).getMailServers();
-			print.e(appms);
 			if(ArrayUtil.isEmpty(appms)) return config.getMailServers();
 			
 			lucee.runtime.net.mail.Server[] cms=config.getMailServers();
-			print.e(cms);
 			if(ArrayUtil.isEmpty(cms)) return appms;
 			
 			lucee.runtime.net.mail.Server[] arr = ServerImpl.merge(appms, cms);
-			print.e(arr);
 			return arr;
 		}
 		return config.getMailServers();
@@ -3423,4 +3422,37 @@ public final class PageContextImpl extends PageContext {
 		return appListenerType;
 	}
 
+	public Log getLog(String name) {
+		return config.getLog(name);
+	}
+
+	public Log getLog(String name, boolean createIfNecessary) {
+		if(applicationContext!=null) {
+			Log log=((ApplicationContextSupport)applicationContext).getLog(name);
+			if(log!=null)return log;
+		}
+		return config.getLog(name,createIfNecessary);
+	}
+	
+	public java.util.Collection<String> getLogNames() {
+		java.util.Collection<String> cnames=config.getLoggers().keySet();
+		if(applicationContext!=null) {
+			java.util.Collection<Collection.Key> anames=((ApplicationContextSupport)applicationContext).getLogNames();
+			
+			java.util.Collection<String> names=new HashSet<String>();
+
+			copy(cnames,names);
+			copy(anames,names);
+			return names;
+			
+		}
+		return cnames;
+	}
+
+	private void copy(java.util.Collection src, java.util.Collection<String> trg) {
+		java.util.Iterator it = src.iterator();
+		while(it.hasNext()) {
+			trg.add(it.next().toString());
+		}
+	}
 }

@@ -754,7 +754,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		return cssStringToMap(attributes, decode, false);
 		
 	}
-	private static Map<String, String> cssStringToMap(String attributes, boolean decode, boolean lowerKeys) {
+	public static Map<String, String> cssStringToMap(String attributes, boolean decode, boolean lowerKeys) {
 		Map<String, String> map = new HashMap<String, String>();
 		if (StringUtil.isEmpty(attributes,true))
 			return map;

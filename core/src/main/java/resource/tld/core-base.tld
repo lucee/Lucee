@@ -4957,6 +4957,7 @@ Permits searching collections by title or displaying a separate title from the k
 		<attribute>
 			<type>string</type>
 			<name>log</name>
+			<alias>name</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>If you omit the file attribute, specifies the log in which to write the message.

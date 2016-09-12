@@ -125,6 +125,7 @@ public final class Application extends TagImpl {
 	private String cacheWebservice;
 	private Resource antiSamyPolicyResource;
 	private Struct datasources;
+	private Struct logs;
 	private Array mails;
 	private Struct caches;
 	private UDF onmissingtemplate;
@@ -161,6 +162,7 @@ public final class Application extends TagImpl {
         datasource=null;
         defaultdatasource=null;
         datasources=null;
+        logs=null;
         mails=null;
         caches=null;
         this.name="";
@@ -254,6 +256,9 @@ public final class Application extends TagImpl {
 
 	public void setDatasources(Struct datasources) {
 		this.datasources = datasources;
+	}
+	public void setLogs(Struct logs) {
+		this.logs = logs;
 	}
 	public void setMails(Array mails) {
 		this.mails = mails;
@@ -578,6 +583,15 @@ public final class Application extends TagImpl {
 		if(datasources!=null){
 			try {
 				ac.setDataSources(AppListenerUtil.toDataSources(pageContext.getConfig(),datasources,pageContext.getConfig().getLog("application")));
+			} 
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
+		}
+		if(logs!=null){
+			try {
+				ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+				acs.setLoggers(ApplicationContextSupport.initLog(logs));
 			} 
 			catch (Exception e) {
 				throw Caster.toPageException(e);

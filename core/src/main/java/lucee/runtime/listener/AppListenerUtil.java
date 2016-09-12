@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
@@ -491,7 +492,7 @@ public final class AppListenerUtil {
 		Object o = sct.get(KeyConstants._datasource,null);
 		
 		if(o!=null) {
-			o=toDefaultDatasource(config,o,config.getLog("application"));
+			o=toDefaultDatasource(config,o,LogUtil.getLog(pc,"application"));
 			if(o!=null) ac.setORMDataSource(o);
 		}
 	}

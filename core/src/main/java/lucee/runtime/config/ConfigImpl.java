@@ -3434,21 +3434,15 @@ public abstract class ConfigImpl implements Config {
 	}
 	
 	public Log getLog(String name, boolean createIfNecessary){
-		LoggerAndSourceData lsd = getLoggerAndSourceData(name,createIfNecessary);
+		LoggerAndSourceData lsd = _getLoggerAndSourceData(name,createIfNecessary);
 		if(lsd==null) return null;
 		return lsd.getLog();
 	}
 	
-	public Logger getLogger(String name, boolean createIfNecessary){
-		LoggerAndSourceData lsd = getLoggerAndSourceData(name,createIfNecessary);
-		if(lsd==null) return null;
-		return ((LogAdapter)lsd.getLog()).getLogger();
-	}
 
-	public LoggerAndSourceData getLoggerAndSourceData(String name, boolean createIfNecessary){
+	private LoggerAndSourceData _getLoggerAndSourceData(String name, boolean createIfNecessary){
 		LoggerAndSourceData las = loggers.get(name.toLowerCase());
 		if(las==null) {
-			
 			if(!createIfNecessary) return null;
 			return addLogger(name, Level.ERROR, Log4jUtil.appenderClassDefintion("console"), null, Log4jUtil.layoutClassDefintion("pattern"), null,true);
 		}

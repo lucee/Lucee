@@ -259,7 +259,7 @@ public final class ComponentUtil {
      */
     private static Class registerTypeMapping(Class clazz) throws AxisFault {
     	PageContext pc = ThreadLocalPageContext.get();
-    	RPCServer server=RPCServer.getInstance(pc.getId(),pc.getConfig(),pc.getServletContext());
+    	RPCServer server=RPCServer.getInstance(pc.getId(),pc,pc.getServletContext());
 		return registerTypeMapping(server, clazz);
     }
     /**

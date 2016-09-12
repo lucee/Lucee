@@ -210,17 +210,17 @@ public final class Log extends TagImpl {
 		
 		 if(text==null && exception==null)
 	        	throw new ApplicationException("Wrong Context, you must define one of the following attributes [text, exception]");
-		
+		PageContextImpl pci=(PageContextImpl) pageContext;
 		ConfigImpl config =(ConfigImpl) pageContext.getConfig();
 	    lucee.commons.io.log.Log logger;
 		if(file==null) {
-	    	logger=config.getLog(log.toLowerCase(),false);
+	    	logger=pci.getLog(log.toLowerCase(),false);
 	    	if(logger==null) {
 	    		// for backward compatiblity
 	    		if("console".equalsIgnoreCase(log))
 	    			logger=new LogAdapter(Log4jUtil.getConsoleLog(config, false, "cflog", Level.INFO));
 	    		else {
-	    			Set<String> set = config.getLoggers().keySet();
+	    			java.util.Collection<String> set = pci.getLogNames();
 	    			Iterator<String> it = set.iterator();
 	    			lucee.runtime.type.Collection.Key[] keys=new lucee.runtime.type.Collection.Key[set.size()];
 	    			int index=0;

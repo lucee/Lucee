@@ -89,7 +89,7 @@ public final class ComponentController {
 		
 		// cast return value to Axis type
 		try {
-			RPCServer server = RPCServer.getInstance(p.getId(),p.getConfig(),p.getServletContext());
+			RPCServer server = RPCServer.getInstance(p.getId(),p,p.getServletContext());
 			TypeMapping tm = mc!=null?mc.getTypeMapping():TypeMappingUtil.getServerTypeMapping(server.getEngine().getTypeMappingRegistry());
 			rtn=Caster.castTo(p, rtnType, rtn, false);
 			Class<?> clazz = Caster.cfTypeToClass(rtnType);

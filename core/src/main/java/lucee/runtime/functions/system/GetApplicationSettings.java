@@ -18,12 +18,21 @@
  */
 package lucee.runtime.functions.system;
 
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.log4j.Appender;
+import org.apache.log4j.Logger;
+
 import lucee.commons.date.TimeZoneUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
+import lucee.commons.io.log.log4j.Log4jUtil;
+import lucee.commons.io.log.log4j.LogAdapter;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.Mapping;
@@ -36,8 +45,11 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.ModernApplicationContext;
+import lucee.runtime.net.mail.Server;
+import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMConfiguration;
@@ -49,6 +61,8 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.dt.TimeSpan;
+import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
@@ -152,6 +166,48 @@ public class GetApplicationSettings {
 			}
 			
 		}
+
+		// logs
+		if(ac instanceof ApplicationContextSupport) {
+			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+			Iterator<Key> it = acs.getLogNames().iterator();
+			Struct _logs = new StructImpl();
+			sct.setEL("logs", _logs);
+			Key name;
+			while(it.hasNext()) {
+				name=it.next();
+				_logs.setEL(name,acs.getLogMetaData(name.getString()));
+			}
+		}
+
+		// mails
+		if(ac instanceof ApplicationContextSupport) {
+			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+			Server[] servers = acs.getMailServers();
+			Struct s;
+			Array _mails = new ArrayImpl();
+			sct.setEL("mails", _mails);
+			Server srv;
+			for(int i=0;i<servers.length;i++) {
+				srv=servers[i];
+				s=new StructImpl();
+				_mails.appendEL(s);
+				s.setEL(KeyConstants._host, srv.getHostName());
+				s.setEL(KeyConstants._port, srv.getPort());
+				if(!StringUtil.isEmpty(srv.getUsername()))s.setEL(KeyConstants._username, srv.getUsername());
+				if(!StringUtil.isEmpty(srv.getPassword()))s.setEL(KeyConstants._password, srv.getPassword());
+				s.setEL(KeyConstants._readonly, srv.isReadOnly());
+				s.setEL("ssl", srv.isSSL());
+				s.setEL("tls", srv.isTLS());
+				
+				if(srv instanceof ServerImpl) {
+					ServerImpl srvi=(ServerImpl) srv;
+					s.setEL("lifeTimespan", TimeSpanImpl.fromMillis(srvi.getLifeTimeSpan()));
+					s.setEL("idleTimespan", TimeSpanImpl.fromMillis(srvi.getIdleTimeSpan()));
+				}
+			}
+		}
+		
 		
 		// tag
 		Map<Key, Map<Collection.Key, Object>> tags = ac.getTagAttributeDefaultValues(pc);
@@ -243,7 +299,6 @@ public class GetApplicationSettings {
 		return sct;
 	}
 
-	
 
 	private static Struct _call(DataSource source) {
 		Struct s = new StructImpl();
