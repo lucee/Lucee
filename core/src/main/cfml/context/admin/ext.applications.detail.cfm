@@ -209,7 +209,7 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 			<tbody>
 			<cfif arrayLen(all)>
 			<tr>
-			<td ><cfdump var="#all#"><select name="version"  class="large" style="margin-top:8px">
+			<td ><select name="version"  class="large" style="margin-top:8px">
 
 			<cfloop array="#all#" item="v">
 				<cfset vs=toVersionSortable(v)>
