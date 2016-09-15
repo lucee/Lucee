@@ -470,30 +470,30 @@ public final class SMTPClient implements Serializable  {
 		// only Plain
 		if(StringUtil.isEmpty(htmlText)) {
 			if(ArrayUtil.isEmpty(attachmentz) && ArrayUtil.isEmpty(parts)){
-				fillPlainText(msg);
+				fillPlainText(config,msg);
 				setHeaders(msg,headers);
 				return new MimeMessageAndSession(msg,sat);
 			}
 			mp = new MimeMultipart("mixed");
-			mp.addBodyPart(getPlainText());
+			mp.addBodyPart(getPlainText(config));
 		}
 	    // Only HTML
  		else if(StringUtil.isEmpty(plainText)) {
  			if(ArrayUtil.isEmpty(attachmentz) && ArrayUtil.isEmpty(parts)){
- 				fillHTMLText(msg);
+ 				fillHTMLText(config,msg);
  				setHeaders(msg,headers);
  				return new MimeMessageAndSession(msg,sat);
  			}
  			mp = new MimeMultipart("mixed");
- 			mp.addBodyPart(getHTMLText());
+ 			mp.addBodyPart(getHTMLText(config));
  		}
 	    
 	    
 		// Plain and HTML
 		else { 
 			mp=new MimeMultipart("alternative");
-			mp.addBodyPart(getPlainText());
-			mp.addBodyPart(getHTMLText());// this need to be last
+			mp.addBodyPart(getPlainText(config));
+			mp.addBodyPart(getHTMLText(config));// this need to be last
 			
 			if(!ArrayUtil.isEmpty(attachmentz) || !ArrayUtil.isEmpty(parts)){
 				MimeBodyPart content = new MimeBodyPart();
@@ -522,7 +522,7 @@ public final class SMTPClient implements Serializable  {
 			if(mp instanceof MimeMultipart)
 				((MimeMultipart)mp).setSubType("alternative");
 			while(it.hasNext()){
-				mp.addBodyPart(toMimeBodyPart(it.next()));	
+				mp.addBodyPart(toMimeBodyPart(config,it.next()));	
 			}
 		}
 		
@@ -898,35 +898,46 @@ public final class SMTPClient implements Serializable  {
 		}
 	}
 
-	private MimeBodyPart getHTMLText() throws MessagingException {
+	private MimeBodyPart getHTMLText(Config config) throws MessagingException {
 		MimeBodyPart html = new MimeBodyPart();
-		fillHTMLText(html);
+		fillHTMLText(config,html);
 		return html;
 	}
 	
-	private void fillHTMLText(MimePart mp) throws MessagingException {
+	private void fillHTMLText(Config config,MimePart mp) throws MessagingException {
+		if(htmlTextCharset==null) htmlTextCharset=getMailDefaultCharset(config);
 		mp.setDataHandler(new DataHandler(new StringDataSource(htmlText,TEXT_HTML ,htmlTextCharset, 78)));
 		mp.setHeader("Content-Transfer-Encoding", "7bit");
 		mp.setHeader("Content-Type", TEXT_HTML+"; charset="+htmlTextCharset);
 	}
 
-	private MimeBodyPart getPlainText() throws MessagingException {
+
+	private MimeBodyPart getPlainText(Config config) throws MessagingException {
 		MimeBodyPart plain = new MimeBodyPart();
-		fillPlainText(plain);
+		fillPlainText(config,plain);
 		return plain;
 	}
-	private void fillPlainText(MimePart mp) throws MessagingException {
+	private void fillPlainText(Config config,MimePart mp) throws MessagingException {
+		if(plainTextCharset==null) plainTextCharset=getMailDefaultCharset(config);
 		mp.setDataHandler(new DataHandler(new StringDataSource(plainText!=null?plainText:"",TEXT_PLAIN ,plainTextCharset, 998)));
 		mp.setHeader("Content-Transfer-Encoding", "7bit");
 		mp.setHeader("Content-Type", TEXT_PLAIN+"; charset="+plainTextCharset);
 	}
 	
-	private BodyPart toMimeBodyPart(MailPart part) throws MessagingException {
+	private BodyPart toMimeBodyPart(Config config,MailPart part) throws MessagingException {
+		CharSet cs = CharsetUtil.toCharSet(part.getCharset());
+		if(cs==null) cs=getMailDefaultCharset(config);
 		MimeBodyPart mbp = new MimeBodyPart();
-		mbp.setDataHandler(new DataHandler(new StringDataSource(part.getBody(),part.getType() ,CharsetUtil.toCharSet(part.getCharset()), 998)));
+		mbp.setDataHandler(new DataHandler(new StringDataSource(part.getBody(),part.getType() ,cs, 998)));
 		//mbp.setHeader("Content-Transfer-Encoding", "7bit");
 		//mbp.setHeader("Content-Type", TEXT_PLAIN+"; charset="+plainTextCharset);
 		return mbp;
+	}
+
+	private CharSet getMailDefaultCharset(Config config) {
+		Charset cs = ThreadLocalPageContext.getConfig(config).getMailDefaultCharset();
+		if(cs==null) cs=CharsetUtil.UTF8;
+		return CharsetUtil.toCharSet(cs);
 	}
 
 	/**
