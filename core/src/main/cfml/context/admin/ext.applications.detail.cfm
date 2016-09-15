@@ -19,7 +19,6 @@
 		loop array=arr index="local.i" item="local.v" {
 			if(toVersionSortable(v)==value) {
 				arrayDeleteAt(arr,i);
-				break;
 			}
 		}
 	}
@@ -39,20 +38,17 @@ isInstalled=installed.count() GT 0;
 	else {
 		all=[];
 	}
-
+		
 	// latest version
-	if(!isNull(available.version)) arrayAppend(all,available.version);
+	if(!isNull(available.version) && !arrayContains(all,available.version)) {
+		arrayAppend(all,available.version);
+	}
 
 	// remove installed
-	if(isInstalled)removeFromArray(all,installed.version);
+	if(isInstalled) removeFromArray(all,installed.version);
 	
 	// order
 	toOrderedArray(all,true);
-
-
-
-
-
 </cfscript>
 
 
@@ -213,9 +209,11 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 			<tbody>
 			<cfif arrayLen(all)>
 			<tr>
-			<td ><select name="version"  class="large" style="margin-top:8px">
+			<td ><cfdump var="#all#"><select name="version"  class="large" style="margin-top:8px">
+
 			<cfloop array="#all#" item="v">
 				<cfset vs=toVersionSortable(v)>
+				<cfset btn="">
 				<cfif isInstalled>
 					<cfset comp=compare(installedVersion,vs)>
 					<cfif comp GT 0>
@@ -223,11 +221,8 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 					<cfelseif comp LT 0>
 						<cfset btn=stText.ext.updateTo>
 					</cfif>
-				<cfelse>
-					<cfset btn="">
 				</cfif>
-					<option value="#v#">#btn# #v#</option>
-				
+				<option value="#v#">#btn# #v#</option>
 			</cfloop>
 		</select> </td>
 
