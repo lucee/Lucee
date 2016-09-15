@@ -171,7 +171,7 @@ public class MappingUtil {
 			// classname is not distinct, because of that we must check class content
 			try {
 				SourceInfo si = ASMUtil.getSourceInfo(config, clazz, false);
-				if(si!=null && trace.getFileName()!=null && trace.getFileName().equals(si.absolutePath))
+				if(si!=null && trace.getFileName()!=null && trace.getFileName().equals(si.absolutePath(pc)))
 					return si;
 			}
 			catch (IOException e) {}
