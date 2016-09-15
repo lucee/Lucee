@@ -1,0 +1,86 @@
+<!--- 
+ *
+ * Copyright (c) 2016, Lucee Assosication Switzerland. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either 
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public 
+ * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ ---><cfscript>
+component extends="org.lucee.cfml.test.LuceeTestCase"	{
+
+	public function setUp() {
+		
+		variables.currFile=getCurrentTemplatePath();
+		variables.currDir=getDirectoryFromPath(currFile);
+
+		variables.root=currDir&"zip/";
+		variables.dir=root&"a/b/c/";
+		variables.file1=dir&"a.txt"
+		variables.dir1=root&"a/";
+		variables.file2=root&"a/b.txt";
+		variables.target=root&"test.zip";
+		variables.unzip=root&"unzip";
+
+		if(directoryExists(root)) directoryDelete(root,true);
+
+		directoryCreate(dir);
+		directoryCreate(unzip);
+		fileWrite(file1,"file 1");
+		fileWrite(file2,"file 2");
+	}
+
+	public function test() {
+		try {
+			if(fileExists(target)) fileDelete(target);
+			// zip
+			zip action="zip" file=target {
+				zipparam entryPath = "/1/2.cfm" source =variables.file1;
+				zipparam source =variables.file1;
+				zipparam source =variables.dir1;
+				zipparam prefix="n/m" source =variables.dir1;
+			}
+
+			// list
+			zip action="list" file=target name="local.qry";
+			assertEqual(6,qry.recordcount);
+			assertEqual('/1/2.cfm,a.txt,b.txt,b/c/a.txt,n/m/b.txt,n/m/b/c/a.txt',listSort(valueList(qry.name),'textnocase'));
+			
+			// read
+			zip action="read" entrypath="1/2.cfm" variable="local.entry" file=target;
+			assertEqual('file 1',entry);
+
+			// unzip
+			zip action="unzip" showdirectory=true file=target destination=unzip;
+			var qry=directoryList(path:unzip,listInfo:'query',recurse:true,type:'file');
+			queryAddColumn(qry,"relpath");
+			loop query=qry {
+				qry.relpath=mid(replace(qry.directory,unzip,'')&"/"&qry.name,2);
+			}
+			assertEqual(6,qry.recordcount);
+			assertEqual('1/2.cfm,a.txt,b.txt,b/c/a.txt,n/m/b.txt,n/m/b/c/a.txt',listSort(valueList(qry.relpath),'textnocase'));
+
+			// remove
+			zip action="delete" entrypath="/n/m/" file=target;
+			zip action="list" file=target name="local.qry";
+			assertEqual(4,qry.recordcount);
+			assertEqual('/1/2.cfm,a.txt,b.txt,b/c/a.txt',listSort(valueList(qry.name),'textnocase'));
+		
+
+		}
+		finally {
+			if(directoryExists(root)) directoryDelete(root,true);
+		}
+	}
+	
+} 
+</cfscript>
