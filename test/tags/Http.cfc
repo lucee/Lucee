@@ -26,6 +26,27 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		assertEquals(200,cfhttp.status_code);
 	}
 
+			
+	public void function testImplicit(){
+		var data=chr(228)&chr(246)&chr(252); // äöü
+		data="{aaa:'#data#'}";
+		http url="http://snapshot.lucee.org/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
+			httpparam type="body" value=data;
+		}
+		res=evaluate(res.filecontent);
+		assertEquals(data,res.httpRequestData.content);
+	}
+
+	public void function testExplicit(){
+		var data=chr(228)&chr(246)&chr(252); // äöü
+		data="{aaa:'#data#'}";
+		http url="http://snapshot.lucee.org/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
+			httpparam type="body" mimetype="text/plain; charset=UTF-8" value=data;
+		}
+		res=evaluate(res.filecontent);
+		assertEquals(data,res.httpRequestData.content);
+	}
+
 
 
 }
