@@ -52,12 +52,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 			// list
 			zip action="list" file=target name="local.qry";
-			assertEqual(6,qry.recordcount);
-			assertEqual('/1/2.cfm,a.txt,b.txt,b/c/a.txt,n/m/b.txt,n/m/b/c/a.txt',listSort(valueList(qry.name),'textnocase'));
+			assertEquals(6,qry.recordcount);
+			assertEquals('/1/2.cfm,a.txt,b.txt,b/c/a.txt,n/m/b.txt,n/m/b/c/a.txt',listSort(valueList(qry.name),'textnocase'));
 			
 			// read
 			zip action="read" entrypath="1/2.cfm" variable="local.entry" file=target;
-			assertEqual('file 1',entry);
+			assertEquals('file 1',entry);
 
 			// unzip
 			zip action="unzip" showdirectory=true file=target destination=unzip;
@@ -66,14 +66,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			loop query=qry {
 				qry.relpath=mid(replace(qry.directory,unzip,'')&"/"&qry.name,2);
 			}
-			assertEqual(6,qry.recordcount);
-			assertEqual('1/2.cfm,a.txt,b.txt,b/c/a.txt,n/m/b.txt,n/m/b/c/a.txt',listSort(valueList(qry.relpath),'textnocase'));
+			assertEquals(6,qry.recordcount);
+			assertEquals('1/2.cfm,a.txt,b.txt,b/c/a.txt,n/m/b.txt,n/m/b/c/a.txt',listSort(valueList(qry.relpath),'textnocase'));
 
 			// remove
 			zip action="delete" entrypath="/n/m/" file=target;
 			zip action="list" file=target name="local.qry";
-			assertEqual(4,qry.recordcount);
-			assertEqual('/1/2.cfm,a.txt,b.txt,b/c/a.txt',listSort(valueList(qry.name),'textnocase'));
+			assertEquals(4,qry.recordcount);
+			assertEquals('/1/2.cfm,a.txt,b.txt,b/c/a.txt',listSort(valueList(qry.name),'textnocase'));
 		
 
 		}
