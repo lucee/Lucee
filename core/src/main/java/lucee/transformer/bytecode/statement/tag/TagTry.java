@@ -94,7 +94,7 @@ public final class TagTry extends TagBase implements FlowControlRetry {
 
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
-		GeneratorAdapter adapter = bc.getAdapter();
+		final GeneratorAdapter adapter = bc.getAdapter();
 		adapter.visitLabel(begin);
 		Body tryBody=new BodyBase(getFactory());
 		List<Tag> catches=new ArrayList<Tag>();
@@ -134,10 +134,22 @@ public final class TagTry extends TagBase implements FlowControlRetry {
 			}
 			return;
 		}
+		
+        final int old=adapter.newLocal(Types.PAGE_EXCEPTION);
+        adapter.loadArg(0);
+        adapter.invokeVirtual(Types.PAGE_CONTEXT, GET_CATCH);
+		adapter.storeLocal(old);
+		
 		TryCatchFinallyVisitor tcfv=new TryCatchFinallyVisitor(new OnFinally() {
 			
 			@Override
 			public void _writeOut(BytecodeContext bc) throws TransformerException {
+				
+
+		        adapter.loadArg(0);
+		        adapter.loadLocal(old);
+		        adapter.invokeVirtual(Types.PAGE_CONTEXT, SET_CATCH_PE);
+		        
 				if(_finally!=null) {
 					
 					ExpressionUtil.visitLine(bc, _finally.getStart());
@@ -169,10 +181,7 @@ public final class TagTry extends TagBase implements FlowControlRetry {
 		    
 
 	        // PageExceptionImpl old=pc.getCatch();
-	        int old=adapter.newLocal(Types.PAGE_EXCEPTION);
-	        adapter.loadArg(0);
-	        adapter.invokeVirtual(Types.PAGE_CONTEXT, GET_CATCH);
-			adapter.storeLocal(old);
+
 			
 	        // PageException pe=Caster.toPageEception(e);
 	        int pe=adapter.newLocal(Types.PAGE_EXCEPTION);
@@ -233,9 +242,6 @@ public final class TagTry extends TagBase implements FlowControlRetry {
 			
 		
 		// PageExceptionImpl old=pc.getCatch();
-        adapter.loadArg(0);
-        adapter.loadLocal(old);
-        adapter.invokeVirtual(Types.PAGE_CONTEXT, SET_CATCH_PE);
 			
 		tcfv.visitCatchEnd(bc);
 	}

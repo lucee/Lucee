@@ -2694,31 +2694,21 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public PageException setCatch(Throwable t) {
-		if(t==null) {
-			exception=null;
-			undefinedScope().removeEL(KeyConstants._cfcatch);
-		}
-		else {
-			exception = Caster.toPageException(t);
-			undefinedScope().setEL(KeyConstants._cfcatch,exception.getCatchBlock(config));
-			if(!gatewayContext && config.debug() && config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION)) debugger.addException(config,exception);
-		}
-		return exception;
+		PageException pe=t==null?null:Caster.toPageException(t);
+		_setCatch(pe, false, true, false);
+		return pe;
 	}
+	
 	
 	public void setCatch(PageException pe) {
-		exception = pe;
-		if(pe==null) {
-			undefinedScope().removeEL(KeyConstants._cfcatch);
-		}
-		else {
-			undefinedScope().setEL(KeyConstants._cfcatch,pe.getCatchBlock(config));
-			if(!gatewayContext && config.debug() && config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION)) debugger.addException(config,exception);
-		}
+		_setCatch(pe, false, true, false);
+	}
+	public void setCatch(PageException pe,boolean caught, boolean store) {
+		_setCatch(pe, caught, store, true);
 	}
 	
-	public void setCatch(PageException pe,boolean caught, boolean store) {
-		if(fdEnabled){
+	public void _setCatch(PageException pe,boolean caught, boolean store, boolean signal) {
+		if(signal && fdEnabled){
 			FDSignal.signal(pe, caught);
 		}
 		exception = pe;

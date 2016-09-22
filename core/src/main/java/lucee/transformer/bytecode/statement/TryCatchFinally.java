@@ -149,7 +149,7 @@ public final class TryCatchFinally extends StatementBase implements Opcodes,HasB
 	 */
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
-		GeneratorAdapter adapter = bc.getAdapter();
+		final GeneratorAdapter adapter = bc.getAdapter();
 		
 		adapter.visitLabel(begin);
 		
@@ -164,11 +164,23 @@ public final class TryCatchFinally extends StatementBase implements Opcodes,HasB
 			return;
 		}
 		
+		// PageExceptionImpl old=pc.getCatch();
+        final int old=adapter.newLocal(Types.PAGE_EXCEPTION);
+        adapter.loadArg(0);
+        adapter.invokeVirtual(Types.PAGE_CONTEXT, TagTry.GET_CATCH);
+		adapter.storeLocal(old);
+        
+		
 		
 		TryCatchFinallyVisitor tcfv=new TryCatchFinallyVisitor(new OnFinally() {
 			
 			@Override
 			public void _writeOut(BytecodeContext bc) throws TransformerException {
+
+	            adapter.loadArg(0);
+	            adapter.loadLocal(old);
+	            adapter.invokeVirtual(Types.PAGE_CONTEXT, TagTry.SET_CATCH_PE);
+				
 				_writeOutFinally(bc,lRef);
 			}
 		},getFlowControlFinal());
@@ -177,7 +189,7 @@ public final class TryCatchFinally extends StatementBase implements Opcodes,HasB
 		tcfv.visitTryBegin(bc);
 			tryBody.writeOut(bc);
 		int lThrow = tcfv.visitTryEndCatchBeging(bc);
-			_writeOutCatch(bc, lRef, lThrow);
+			_writeOutCatch(bc, lRef, lThrow,old);
 		tcfv.visitCatchEnd(bc);
 		
 	}
@@ -217,7 +229,7 @@ public final class TryCatchFinally extends StatementBase implements Opcodes,HasB
 		}*/
 	}
 	
-	private void _writeOutCatch(BytecodeContext bc, int lRef,int lThrow) throws TransformerException {
+	private void _writeOutCatch(BytecodeContext bc, int lRef,int lThrow, int old) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
 		int pe=adapter.newLocal(Types.PAGE_EXCEPTION);
 		
@@ -232,13 +244,13 @@ public final class TryCatchFinally extends StatementBase implements Opcodes,HasB
 	        adapter.throwException();
 	        adapter.visitLabel(abortEnd);
 
-
+/*
 	        // PageExceptionImpl old=pc.getCatch();
 	        int old=adapter.newLocal(Types.PAGE_EXCEPTION);
 	        adapter.loadArg(0);
 	        adapter.invokeVirtual(Types.PAGE_CONTEXT, TagTry.GET_CATCH);
 			adapter.storeLocal(old);
-	        
+*/
 	        
 			// cast to PageException  Caster.toPagException(t);
 	        adapter.loadLocal(lThrow);
@@ -303,10 +315,9 @@ public final class TryCatchFinally extends StatementBase implements Opcodes,HasB
 			}
 			adapter.visitLabel(endAllIf);
 			
-    		// PageExceptionImpl old=pc.setCatch(old);
-            adapter.loadArg(0);
+            /*adapter.loadArg(0);
             adapter.loadLocal(old);
-            adapter.invokeVirtual(Types.PAGE_CONTEXT, TagTry.SET_CATCH_PE);
+            adapter.invokeVirtual(Types.PAGE_CONTEXT, TagTry.SET_CATCH_PE);*/
 			
 	}
 
