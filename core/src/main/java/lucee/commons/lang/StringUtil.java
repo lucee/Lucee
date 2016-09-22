@@ -28,10 +28,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.util.ArrayUtil;
 
-
-
-
-
 /**
  * Util to do some additional String Operations
  */
@@ -681,23 +677,32 @@ public final class StringUtil {
 		if ( findLen == 0 )
 			return input;
 
-		String scan = input;
+		//String scan = input;
 
-        if ( ignoreCase ) {
-            
+        /*if ( ignoreCase ) {
             scan = scan.toLowerCase();
             find = find.toLowerCase();
         }
-        else if ( findLen == repl.length() ) {
+        else*/ if (!ignoreCase &&  findLen == repl.length() ) {
 
         	if ( find.equals( repl ) )
         		return input;
-        	
         	if ( !firstOnly && findLen == 1 )
         		return input.replace( find.charAt(0), repl.charAt(0) );
         }
+        
+        /*print.e(input);
+        print.e(input.length());
 
-		int pos = scan.indexOf( find );
+        print.e(scan);
+        print.e(scan.length());*/
+        
+        /*for(int i=0;i<scan.length();i++) {
+        	print.e(scan.charAt(i));
+        }*/
+        
+        
+		int pos = ignoreCase?indexOfIgnoreCase(input, find):input.indexOf( find );
 
 		if (pos == -1)
 			return input;
@@ -715,7 +720,7 @@ public final class StringUtil {
             if ( firstOnly )
             	break;
 
-			pos = scan.indexOf( find, start );
+			pos = ignoreCase?indexOfIgnoreCase(input, find, start ):input.indexOf(find, start );
         }
                 
         if ( input.length() > start )
@@ -723,8 +728,7 @@ public final class StringUtil {
 
         return sb.toString();
     }
-    
-	
+
 	/**
 	 * maintains the legacy signature of this method where matches are CaSe sensitive (sets the default of ignoreCase to false). 
 	 * 
@@ -784,8 +788,15 @@ public final class StringUtil {
 	}
 	
 	public static int indexOfIgnoreCase(String haystack, String needle) {
+		return indexOfIgnoreCase(haystack, needle, 0);
+	}
+	
+	public static int indexOfIgnoreCase(String haystack, String needle, int offset) {
 		if(StringUtil.isEmpty(haystack) || StringUtil.isEmpty(needle)) return -1;
 		needle=needle.toLowerCase();
+		
+		if(offset>0) haystack=haystack.substring(offset);
+		else offset=0;
 		
 		int lenHaystack=haystack.length();
 		int lenNeedle=needle.length();
@@ -799,13 +810,12 @@ public final class StringUtil {
 					if(needle.charAt(y)!=Character.toLowerCase(haystack.charAt(i-(lenNeedle-1)+y)))
 							continue outer;
 				}
-				return i-(lenNeedle-1);
+				return (i-(lenNeedle-1))+offset;
 			}
 		}
-		
-		
 		return -1;
 	}
+
     
     /**
      * Tests if this string starts with the specified prefix.
