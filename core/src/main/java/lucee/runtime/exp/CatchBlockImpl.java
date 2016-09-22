@@ -233,7 +233,7 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 	
 	@Override
 	public void print(PageContext pc){
-		((PageContextImpl)pc).handlePageException(exception);
+		pc.handlePageException(exception);
 		
 	}
 
