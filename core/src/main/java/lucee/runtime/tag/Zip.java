@@ -27,7 +27,6 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -45,6 +44,7 @@ import lucee.commons.io.res.util.FileWrapper;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.res.util.UDFFilter;
 import lucee.commons.io.res.util.WildcardPatternFilter;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.ApplicationException;
@@ -53,6 +53,8 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTimeImpl;
@@ -384,9 +386,12 @@ public final class Zip extends BodyTagImpl {
 		ZipFile zip = getZip(file);
 		
 		try {
-			ZipEntry ze = zip.getEntry(entryPath);
-			if(ze==null)ze = zip.getEntry(entryPath+"/");
-			if(ze==null) throw new ApplicationException("zip file ["+file+"] has no entry with name ["+entryPath+"]");
+			ZipEntry ze = getZipEntry(zip, entryPath);
+			if(ze==null) {
+				String msg=ExceptionUtil.similarKeyMessage(names(zip), entryPath, "entry", "zip file", "in the zip file ["+file+"]", true);
+				throw new ApplicationException(msg);
+				//throw new ApplicationException("zip file ["+file+"] has no entry with name ["+entryPath+"]");
+			}
 			
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			
@@ -405,6 +410,32 @@ public final class Zip extends BodyTagImpl {
 			IOUtil.closeEL(zip);
 		}
 		
+	}
+
+	
+	private ZipEntry getZipEntry(ZipFile zip, String path) {
+		ZipEntry ze = zip.getEntry(entryPath);
+		if(ze!=null) return ze;
+		
+		ze = zip.getEntry(entryPath+"/");
+		if(ze!=null) return ze;
+		
+		ze = zip.getEntry("/"+entryPath);
+		if(ze!=null) return ze;
+		
+		ze = zip.getEntry("/"+entryPath+"/");
+		if(ze!=null) return ze;
+		
+		return ze;
+	}
+
+	private Key[] names(ZipFile zip) {
+		List<Key> list=new ArrayList<Key>();
+		Enumeration<? extends ZipEntry> entries = zip.entries();
+		while(entries.hasMoreElements()) {
+			list.add(KeyImpl.init(entries.nextElement().getName()));
+		}
+		return list.toArray(new Key[list.size()]);
 	}
 
 
