@@ -294,10 +294,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	
 	public void register(Page currentPage, int threadIndex) throws PageException	{
 		if(ACTION_RUN!=action) return;
-		
-		
-		if(!((ApplicationContextSupport)pageContext.getApplicationContext()).deepThread() && ((PageContextImpl)pc).getParentPageContext()!=null)
-			throw new ApplicationException("could not create a thread within a child thread");
+
 		Key name = name(true);
 		try {
 			Threads ts = ThreadTag.getThreadScope(pc,name,ThreadTag.LEVEL_ALL); // pc.getThreadScope(name);

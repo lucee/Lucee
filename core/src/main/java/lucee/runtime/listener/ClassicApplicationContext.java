@@ -900,9 +900,4 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		if(pair==null) return null;
 		return (Struct)pair.getValue().duplicate(false);
 	}
-
-	@Override
-	public boolean deepThread() {
-		return false;
-	}
 }

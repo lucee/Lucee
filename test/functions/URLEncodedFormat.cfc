@@ -7,7 +7,7 @@
 
 	<cffunction name="testURLEncodedFormatMember" localMode="modern">
 		<cfset valueEquals(left="#" ".URLEncodedFormat()#", right="%20")>
-		<cfset valueEquals(left="#" ".URLEncode()#", right="%20")>
+		<cfset valueEquals(left="#" ".URLEncode()#", right="+")>
 	</cffunction>
 
 	<cffunction name="testURLEncodedFormat" localMode="modern">

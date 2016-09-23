@@ -1645,8 +1645,4 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		logs=initLog(sct);
 		initLog=true;
 	}
-
-	public boolean deepThread() {
-		return Caster.toBooleanValue(get(component,KeyImpl.init("deepThread"),null),false);
-	}
 }
