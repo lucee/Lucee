@@ -66,8 +66,6 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 	@Override
 	public String getSql() {
 		String sql = super.getSql();
-		print.e(":::::::::::::::::::::::::::::::::::::::::::::");
-		print.e(sql);
 		return sql;
 	}
 	
