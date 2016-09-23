@@ -40,18 +40,18 @@ public class HttpUtil {
 	 * @param req
 	 * @return
 	 */
-	public static Pair[] cloneHeaders(HttpServletRequest req) {
-		List headers=new ArrayList();
-		Enumeration e = req.getHeaderNames(),ee;
+	public static Pair<String,String>[] cloneHeaders(HttpServletRequest req) {
+		List<Pair<String,String>> headers=new ArrayList<Pair<String,String>>();
+		Enumeration<String> e = req.getHeaderNames(),ee;
 		String name;
 		while(e.hasMoreElements()){
-			name=(String) e.nextElement();
+			name= e.nextElement();
 			ee=req.getHeaders(name);
 			while(ee.hasMoreElements()){
-				headers.add(new Pair(name,ee.nextElement().toString()));
+				headers.add(new Pair<String,String>(name,ee.nextElement().toString()));
 			}
 		}
-		return (Pair[]) headers.toArray(new Pair[headers.size()]);
+		return (Pair<String,String>[]) headers.toArray(new Pair[headers.size()]);
 	}
 
 	public static Struct getAttributesAsStruct(HttpServletRequest req) {
