@@ -243,4 +243,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract void setSessionCookie(SessionCookieData data);
 	public abstract AuthCookieData getAuthCookie();
 	public abstract void setAuthCookie(AuthCookieData data);
+
+
+	public abstract boolean deepThread();
 }

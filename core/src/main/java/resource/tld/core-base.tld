@@ -6931,6 +6931,25 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<description>if true, the saved content will be appended to an already existing variable instead of overwriting it.</description>
 		</attribute>
 	</tag>
+	
+	<!-- Script2
+	<tag>
+		<name>Script2</name>
+		<tag-class>lucee.runtime.tag.Script2</tag-class>
+		<body-content>must</body-content>
+		<body-rtexprvalue>false</body-rtexprvalue>
+		<handle-exception>true</handle-exception>
+		<description></description>
+		<attribute-type>fixed</attribute-type>
+		<attribute>
+			<type>string</type>
+			<name>language</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+	</tag> -->
+	
 	<!-- Schedule -->
 	<tag>
 		<name>Schedule</name>
@@ -7584,6 +7603,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 		<name>Thread</name>
 		<tag-class>lucee.runtime.tag.ThreadTag</tag-class>
 		<ttt-class>lucee.transformer.bytecode.statement.tag.TagThread</ttt-class>
+		<tte-class>lucee.transformer.cfml.evaluator.impl.TagThread</tte-class>
 		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>

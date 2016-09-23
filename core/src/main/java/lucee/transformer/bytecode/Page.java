@@ -1047,8 +1047,7 @@ public final class Page extends BodyBase implements Root {
 		ConditionVisitor cv=new ConditionVisitor();
         DecisionIntVisitor div;
         cv.visitBefore();
-        //print.ln("functions:"+functions.length);
-	        for(int i=offset;i<length;i++) {
+            for(int i=offset;i<length;i++) {
 	        	cv.visitWhenBeforeExpr();
 		        	div=new DecisionIntVisitor();
 					div.visitBegin();

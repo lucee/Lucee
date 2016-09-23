@@ -35,6 +35,7 @@ import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Duplicator;
+import lucee.runtime.tag.ThreadTag;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
@@ -209,7 +210,8 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 		
 		// thread scopes
 		if(pc.hasFamily()) {
-			rtn = pc.getThreadScope(key,NullSupportHelper.NULL());
+			rtn = //ThreadTag.getThreadScope(pc, key, ThreadTag.LEVEL_CURRENT+ThreadTag.LEVEL_KIDS);
+					pc.getThreadScope(key,NullSupportHelper.NULL());
 			if(rtn!=NullSupportHelper.NULL()) {
 				if(debug) debugCascadedAccess(pc,"thread", key);
 				return rtn;

@@ -40,6 +40,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
+import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.rest.RestSettings;
@@ -840,5 +841,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	public void setAuthCookie(AuthCookieData data) {
 		authCookie=data;
 	}
-
+	@Override
+	public boolean deepThread() {
+		return false;
+	}
 }

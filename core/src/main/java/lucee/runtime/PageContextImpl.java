@@ -144,6 +144,7 @@ import lucee.runtime.security.ScriptProtect;
 import lucee.runtime.tag.Login;
 import lucee.runtime.tag.TagHandlerPool;
 import lucee.runtime.tag.TagUtil;
+import lucee.runtime.thread.ThreadsImpl;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -312,7 +313,8 @@ public final class PageContextImpl extends PageContext {
 	private DatasourceManagerImpl manager;
 	private Struct threads;
 	private boolean hasFamily=false;
-	private PageContextImpl parent;
+	private PageContextImpl parent=null;
+	private List<PageContext> children=null;
 	private List<Statement> lazyStats;
 	private boolean fdEnabled;
 	private ExecutionLog execLog;
@@ -331,6 +333,8 @@ public final class PageContextImpl extends PageContext {
 	private boolean ignoreScopes=false;
 	
 	private int appListenerType=ApplicationListener.TYPE_NONE;
+
+	private ThreadsImpl currentThread;
 
 
 	/** 
@@ -561,7 +565,7 @@ public final class PageContextImpl extends PageContext {
 			close();
 			thread=null;
 			base=null;
-			
+			if(children!=null) children.clear();
 			
 			request=null;
 			_url=null;
@@ -570,8 +574,9 @@ public final class PageContextImpl extends PageContext {
 			undefined=null;
 			variables=null;
 			variablesRoot=null;
-			if(threads!=null && threads.size()>0) threads.clear();
-			
+			//if(threads!=null && threads.size()>0) threads.clear();
+			threads=null;
+			currentThread=null;
 		}
 		else {
 			close();
@@ -671,7 +676,6 @@ public final class PageContextImpl extends PageContext {
 		manager.release();
 		includeOnce.clear();
 		pe=null;
-
 	}
 
 	@Override
@@ -970,6 +974,8 @@ public final class PageContextImpl extends PageContext {
 		hasFamily=true;
 		other.hasFamily=true;
 		other.parent=this;
+		if(children==null) children=new ArrayList<PageContext>();
+		children.add(other);
 		other.applicationContext=applicationContext;
 		other.thread=Thread.currentThread();
 		other.startTime=System.currentTimeMillis();
@@ -1006,7 +1012,7 @@ public final class PageContextImpl extends PageContext {
 		other.gatewayContext=gatewayContext;
 		
 		// thread
-		if(threads!=null){
+		/*if(threads!=null){
 			synchronized (threads) {
 				
 				java.util.Iterator<Entry<Key, Object>> it2 = threads.entryIterator();
@@ -1016,7 +1022,7 @@ public final class PageContextImpl extends PageContext {
 					other.setThreadScope(entry.getKey(), (Threads)entry.getValue());
 				}
 			}
-		}
+		}*/
 		
 		
 		// initialize stuff
@@ -3004,6 +3010,9 @@ public final class PageContextImpl extends PageContext {
 	public PageContext getParentPageContext() {
 		return parent;
 	}
+	public List<PageContext> getChildPageContexts() {
+		return children;
+	}
 
 
 	@Override
@@ -3017,7 +3026,7 @@ public final class PageContextImpl extends PageContext {
 		return getThreadScope(KeyImpl.init(name));
 	}
 	
-	public Threads getThreadScope(Collection.Key name) {
+	public Threads getThreadScope(Collection.Key name) {// MUST who uses this? is cfthread/thread handling necessary
 		if(threads==null)threads=new StructImpl();
 		Object obj = threads.get(name,null);
 		if(obj instanceof Threads)return (Threads) obj;
@@ -3026,21 +3035,25 @@ public final class PageContextImpl extends PageContext {
 	
 	public Object getThreadScope(Collection.Key name,Object defaultValue) {
 		if(threads==null)threads=new StructImpl();
-		if(name.equalsIgnoreCase(KeyConstants._cfthread)) return threads;
+		if(name.equalsIgnoreCase(KeyConstants._cfthread)) return threads; // do not change this, this is used!
+		if(name.equalsIgnoreCase(KeyConstants._thread)) {
+			ThreadsImpl curr = getCurrentThreadScope();
+			if(curr!=null) return curr;
+		}
 		return threads.get(name,defaultValue);
 	}
-	
-	public Object getThreadScope(String name,Object defaultValue) {
-		if(threads==null)threads=new StructImpl();
-		if(name.equalsIgnoreCase(KeyConstants._cfthread.getLowerString())) return threads;
-		return threads.get(KeyImpl.init(name),defaultValue);
+
+	public void setCurrentThreadScope(ThreadsImpl thread) {
+		currentThread=thread;
+	}
+
+	public ThreadsImpl getCurrentThreadScope() {
+		return currentThread;
 	}
 
 	@Override
 	public void setThreadScope(String name,Threads ct) {
-		hasFamily=true;
-		if(threads==null)	threads=new StructImpl();
-		threads.setEL(KeyImpl.init(name), ct);
+		setThreadScope(KeyImpl.init(name), ct);
 	}
 	
 	public void setThreadScope(Collection.Key name,Threads ct) {
@@ -3067,7 +3080,6 @@ public final class PageContextImpl extends PageContext {
 		getApplicationContext().setTimeZone(timeZone);
 		this.timeZone=timeZone;
 	}
-
 
 	/**
 	 * @return the requestId
@@ -3105,7 +3117,6 @@ public final class PageContextImpl extends PageContext {
 		if(execLog!=null)execLog.end(position, id);
 	}
 
-	
 	@Override
 	public ORMSession getORMSession(boolean create) throws PageException {
 		if(ormSession==null || !ormSession.isValid())	{
@@ -3147,10 +3158,6 @@ public final class PageContextImpl extends PageContext {
 		
 		return cl;
 	}
-	
-
-	
-	
 
 	public void resetSession() {
 		this.session=null;
@@ -3162,8 +3169,6 @@ public final class PageContextImpl extends PageContext {
 		return gatewayContext;
 	}
 
-
-
 	/**
 	 * @param gatewayContext the gatewayContext to set
 	 */
@@ -3171,11 +3176,10 @@ public final class PageContextImpl extends PageContext {
 		this.gatewayContext = gatewayContext;
 	}
 
-
-
 	public void setServerPassword(Password serverPassword) {
 		this.serverPassword=serverPassword;
 	}
+
 	public Password getServerPassword() {
 		return serverPassword;
 	}
@@ -3207,8 +3211,6 @@ public final class PageContextImpl extends PageContext {
 		if(ds==null) ds=getConfig().getDataSource(datasource,defaultValue);
 		return ds;
 	}
-	
-
 
 	public CacheConnection getCacheConnection(String cacheName, CacheConnection defaultValue) {
 		cacheName=cacheName.toLowerCase().trim();
@@ -3350,5 +3352,4 @@ public final class PageContextImpl extends PageContext {
 	public int getAppListenerType() {
 		return appListenerType;
 	}
-
 }
