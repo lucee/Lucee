@@ -584,9 +584,9 @@ public abstract class PageExceptionImpl extends PageException {
 	    	if(path==null){
 				SourceInfo si=MappingUtil.getMatch(pc,trace);
 				if(si!=null) {
-					if(si.absolutePath!=null) {
-						res = pc.getConfig().getResource(si.absolutePath);
-						if(res.exists()) path=si.absolutePath;
+					if(si.absolutePath(pc)!=null) {
+						res = pc.getConfig().getResource(si.absolutePath(pc));
+						if(res.exists()) path=si.absolutePath(pc);
 					}
 					if(path==null && si.relativePath!=null) path=si.relativePath;
 				}

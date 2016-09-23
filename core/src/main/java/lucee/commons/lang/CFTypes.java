@@ -27,7 +27,7 @@ public final class CFTypes {
     /**
      * Field <code>TYPE_ANY</code>
      */
-    public static final short TYPE_ANY=0;
+    public static final short TYPE_ANY=0; // do not change used in extension
     /**
      * Field <code>TYPE_ARRAY</code>
      */
@@ -39,7 +39,7 @@ public final class CFTypes {
     /**
      * Field <code>TYPE_BOOLEAN</code>
      */
-    public static final short TYPE_BOOLEAN=2;
+    public static final short TYPE_BOOLEAN=2; // do not change used in extension
     /**
      * Field <code>TYPE_BINARY</code>
      */
@@ -59,7 +59,7 @@ public final class CFTypes {
     /**
      * Field <code>TYPE_STRING</code>
      */
-    public static final short TYPE_STRING=7;
+    public static final short TYPE_STRING=7; // do not change used in extension
     /**
      * Field <code>TYPE_STRUCT</code>
      */

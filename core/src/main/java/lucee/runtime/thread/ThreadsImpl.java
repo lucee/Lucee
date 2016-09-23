@@ -23,7 +23,9 @@ import java.io.InputStream;
 import java.lang.Thread.State;
 import java.util.Iterator;
 
+import lucee.print;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -50,13 +52,14 @@ import lucee.runtime.type.util.StructSupport;
 
 public class ThreadsImpl extends StructSupport implements lucee.runtime.type.scope.Threads {
 
-	private static final Key KEY_ERROR = KeyImpl.intern("ERROR");
+	private static final Key KEY_ERROR = KeyConstants._ERROR;
 	private static final Key KEY_ELAPSEDTIME = KeyImpl.intern("ELAPSEDTIME");
-	private static final Key KEY_OUTPUT = KeyImpl.intern("OUTPUT");
+	private static final Key KEY_OUTPUT = KeyConstants._OUTPUT;
 	private static final Key KEY_PRIORITY = KeyImpl.intern("PRIORITY");
 	private static final Key KEY_STARTTIME = KeyImpl.intern("STARTTIME");
-	private static final Key KEY_STATUS = KeyImpl.intern("STATUS");
-	private static final Key KEY_STACKTRACE = KeyImpl.intern("STACKTRACE");
+	private static final Key KEY_STATUS = KeyConstants._STATUS;
+	private static final Key KEY_STACKTRACE = KeyConstants._STACKTRACE;
+	private static final Key KEY_CHILD_THREADS = KeyImpl.intern("childThreads");
 	
 	private static final Key[] DEFAULT_KEYS=new Key[]{
 		KEY_ELAPSEDTIME,
@@ -65,7 +68,8 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 		KEY_PRIORITY,
 		KEY_STARTTIME,
 		KEY_STATUS,
-		KEY_STACKTRACE
+		KEY_STACKTRACE,
+		KEY_CHILD_THREADS
 	};
 	
 	private ChildThreadImpl ct;
@@ -144,8 +148,14 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 		if(KEY_STATUS.equalsIgnoreCase(key)) return getState();
 		if(KEY_ERROR.equalsIgnoreCase(key)) return ct.catchBlock;
 		if(KEY_STACKTRACE.equalsIgnoreCase(key)) return getStackTrace();
+		if(KEY_CHILD_THREADS.equalsIgnoreCase(key)) return Duplicator.duplicate(getThreads(),false);
 		return defaultValue;
 	}
+
+	private Object getThreads() {
+		return ct.getThreads();
+	}
+
 
 	private String getStackTrace() {
 		StringBuilder sb=new StringBuilder();

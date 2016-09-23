@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import lucee.commons.lang.StringUtil;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
@@ -33,6 +34,8 @@ import lucee.transformer.bytecode.statement.FlowControlFinal;
 import lucee.transformer.bytecode.statement.FlowControlFinalImpl;
 import lucee.transformer.bytecode.statement.FlowControlRetry;
 import lucee.transformer.bytecode.statement.TryCatchFinally;
+import lucee.transformer.bytecode.util.ASMConstants;
+import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.OnFinally;
@@ -46,7 +49,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
-public final class TagTry extends TagBase implements FlowControlRetry {
+public final class TagTry2 extends TagBase implements FlowControlRetry {
 
 	//private static final ExprString ANY=LitString.toExprString("any");
 
@@ -60,20 +63,35 @@ public final class TagTry extends TagBase implements FlowControlRetry {
 			Types.PAGE_EXCEPTION,
 			new Type[]{Types.THROWABLE});
 	
-	
+
 	public static final Method SET_CATCH_PE = new Method(
 			"setCatch",
 			Types.VOID,
 			new Type[]{Types.PAGE_EXCEPTION});
+	
+	private static final Method SET_CATCH_PE2 = new Method(
+			"setCatch",
+			Types.VOID,
+			new Type[]{Types.PAGE_EXCEPTION,Types.STRING});
 	
 	public static final Method SET_CATCH3 = new Method(
 			"setCatch",
 			Types.VOID,
 			new Type[]{Types.PAGE_EXCEPTION,Types.BOOLEAN_VALUE,Types.BOOLEAN_VALUE});
 	
+	private static final Method SET_CATCH4 = new Method(
+			"setCatch",
+			Types.VOID,
+			new Type[]{Types.PAGE_EXCEPTION,Types.BOOLEAN_VALUE,Types.BOOLEAN_VALUE,Types.STRING});
+	
 	public static final Method GET_CATCH = new Method(
 			"getCatch",
 			Types.PAGE_EXCEPTION,
+			new Type[]{});
+	
+	public static final Method GET_CATCH_NAME = new Method(
+			"getCatchName",
+			Types.STRING,
 			new Type[]{});
 
 	//  public boolean typeEqual(String type);
@@ -88,13 +106,13 @@ public final class TagTry extends TagBase implements FlowControlRetry {
 	private Label begin = new Label();
 
 	
-	public TagTry(Factory f, Position start,Position end) {
+	public TagTry2(Factory f, Position start,Position end) {
 		super(f,start,end);
 	}
 
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
-		final GeneratorAdapter adapter = bc.getAdapter();
+		GeneratorAdapter adapter = bc.getAdapter();
 		adapter.visitLabel(begin);
 		Body tryBody=new BodyBase(getFactory());
 		List<Tag> catches=new ArrayList<Tag>();
@@ -134,22 +152,10 @@ public final class TagTry extends TagBase implements FlowControlRetry {
 			}
 			return;
 		}
-		
-        final int old=adapter.newLocal(Types.PAGE_EXCEPTION);
-        adapter.loadArg(0);
-        adapter.invokeVirtual(Types.PAGE_CONTEXT, GET_CATCH);
-		adapter.storeLocal(old);
-		
 		TryCatchFinallyVisitor tcfv=new TryCatchFinallyVisitor(new OnFinally() {
 			
 			@Override
 			public void _writeOut(BytecodeContext bc) throws TransformerException {
-				
-
-		        adapter.loadArg(0);
-		        adapter.loadLocal(old);
-		        adapter.invokeVirtual(Types.PAGE_CONTEXT, SET_CATCH_PE);
-		        
 				if(_finally!=null) {
 					
 					ExpressionUtil.visitLine(bc, _finally.getStart());
@@ -181,7 +187,17 @@ public final class TagTry extends TagBase implements FlowControlRetry {
 		    
 
 	        // PageExceptionImpl old=pc.getCatch();
-
+	        int oldPE=adapter.newLocal(Types.PAGE_EXCEPTION);
+	        int oldName=adapter.newLocal(Types.STRING);
+	        adapter.loadArg(0);
+	        adapter.invokeVirtual(Types.PAGE_CONTEXT, GET_CATCH);
+			adapter.storeLocal(oldPE);
+			
+			adapter.loadArg(0);
+			adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
+	        adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, GET_CATCH_NAME);
+			adapter.storeLocal(oldName);
+			
 			
 	        // PageException pe=Caster.toPageEception(e);
 	        int pe=adapter.newLocal(Types.PAGE_EXCEPTION);
@@ -197,15 +213,16 @@ public final class TagTry extends TagBase implements FlowControlRetry {
 			while(it.hasNext()) {
 				tag=it.next();
 				Label endIf=new Label();
+				
+				// type
 				attrType = tag.getAttribute("type");
 				type=bc.getFactory().createLitString("any");
 				if(attrType!=null)type=attrType.getValue();
-
 				if(type instanceof LitString && ((LitString)type).getString().equalsIgnoreCase("any")){
 					tagElse=tag;
 					continue;
 				}
-				
+
 				ExpressionUtil.visitLine(bc, tag.getStart());
 				
 				// if(pe.typeEqual(@type)
@@ -214,7 +231,7 @@ public final class TagTry extends TagBase implements FlowControlRetry {
 				adapter.invokeVirtual(Types.PAGE_EXCEPTION, TYPE_EQUAL);
 				
 				adapter.ifZCmp(Opcodes.IFEQ, endIf);
-					catchBody(bc,adapter,tag,pe,true,true);
+					catchBody(bc,adapter,tag,pe,true,true,extractName(tag));
 					
 	            adapter.visitJumpInsn(Opcodes.GOTO, endAllIfs);
 	            
@@ -224,12 +241,12 @@ public final class TagTry extends TagBase implements FlowControlRetry {
 			}
 			// else 
 			if(tagElse!=null){
-				catchBody(bc, adapter, tagElse, pe, true,true);
+				catchBody(bc, adapter, tagElse, pe, true,true,extractName(tagElse));
 			}
 			else{
 				// pc.setCatch(pe,true);
 				adapter.loadArg(0);
-		        adapter.loadLocal(pe);
+				adapter.loadLocal(pe);
 		        adapter.push(false);
 		        adapter.push(true);
 		        adapter.invokeVirtual(Types.PAGE_CONTEXT, SET_CATCH3);
@@ -241,22 +258,61 @@ public final class TagTry extends TagBase implements FlowControlRetry {
 			adapter.visitLabel(endAllIfs);
 			
 		
-		// PageExceptionImpl old=pc.getCatch();
+		
+		adapter.loadLocal(oldName);
+		Label notNull = new Label();
+		adapter.visitJumpInsn(Opcodes.IFNONNULL, notNull);
+		// NULL
+			adapter.loadArg(0);
+	        adapter.loadLocal(oldPE);
+	        adapter.invokeVirtual(Types.PAGE_CONTEXT, SET_CATCH_PE);
+
+		Label end = new Label();
+		adapter.visitJumpInsn(Opcodes.GOTO, end);
+		adapter.visitLabel(notNull);
+		// NOT NULL
+			adapter.loadArg(0);
+	        adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
+	        adapter.loadLocal(oldPE);
+	        adapter.loadLocal(oldName);
+	        adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, SET_CATCH_PE2);
+
+		adapter.visitLabel(end);
 			
+			
+			
+			
+		
 		tcfv.visitCatchEnd(bc);
 	}
 	
 
-	private static void catchBody(BytecodeContext bc, GeneratorAdapter adapter,Tag tag, int pe,boolean caugth, boolean store) throws TransformerException {
-		// pc.setCatch(pe,true);
+	private Expression extractName(Tag tag) {
+		Attribute attrName = tag.getAttribute("name");
+		if(attrName!=null) return attrName.getValue();
+		return null;
+	}
+
+	private static void catchBody(BytecodeContext bc, GeneratorAdapter adapter,Tag tag, int pe,boolean caugth, boolean store, Expression name) throws TransformerException {
+		
+		
 		adapter.loadArg(0);
-        adapter.loadLocal(pe);
-        adapter.push(caugth);
-        adapter.push(store);
-        adapter.invokeVirtual(Types.PAGE_CONTEXT, SET_CATCH3);
+		if(name==null) {
+			adapter.loadLocal(pe);
+	        adapter.push(caugth);
+	        adapter.push(store);
+	        adapter.invokeVirtual(Types.PAGE_CONTEXT, SET_CATCH3);
+		}
+		else {
+			adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
+	        adapter.loadLocal(pe);
+	        adapter.push(caugth);
+	        adapter.push(store);
+	        name.writeOut(bc, Expression.MODE_REF);
+	        adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, SET_CATCH4);
+		}
+        
         BodyBase.writeOut(bc, tag.getBody());
-		//ExpressionUtil.writeOut(tag.getBody(), bc);
-    	
 	}
 	
 	private boolean hasFinally(){

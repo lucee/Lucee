@@ -20,21 +20,46 @@ package lucee.runtime.functions.other;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.op.Caster;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 
 public class URLEncode {
 
 	
-	public static String call(PageContext pc , String str) throws PageException {
-		return URLEncodedFormat.call(pc,str, "UTF-8",true);
+	public static String call(PageContext pc, String str) throws PageException {
+
+		return invoke(str, "UTF-8", true);
 	}
 	
 
 	public static String call(PageContext pc , String str, String encoding) throws PageException {
-		return URLEncodedFormat.call(pc,str, encoding,true);
+
+		return invoke(str, encoding, true);
 	}
-	
-	public static String call(PageContext pc , String str, String encoding,boolean force) throws PageException {
-		return URLEncodedFormat.call(pc,str, encoding,force);
+
+
+	public static String call(PageContext pc , String str, String encoding, boolean force) throws PageException {
+
+		return invoke(str, encoding, force);
+	}
+
+
+	public static String invoke(String str, String encoding, boolean force) throws PageException {
+
+		if(!force && !ReqRspUtil.needEncoding(str,false))
+			return str;
+
+		try {
+
+			return URLEncoder.encode(str, encoding);
+		} catch (UnsupportedEncodingException e) {
+
+			throw Caster.toPageException(e);
+		}
 	}
 
 }

@@ -1205,11 +1205,11 @@ public final class ListUtil {
         }
         return arr;
     }
-    
-    public static String[] toStringArray(Set<String> set) {
-        return set.toArray(new String[set.size()]);
+
+    public static String[] toStringArray(java.util.Collection<String> coll) {
+        return coll.toArray(new String[coll.size()]);
     }
-    
+
     public static String[] toStringArray(List<String> list) {
     	return list.toArray(new String[list.size()]);
     }

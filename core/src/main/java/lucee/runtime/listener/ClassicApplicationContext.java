@@ -45,6 +45,7 @@ import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
+import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.rest.RestSettings;
@@ -898,5 +899,10 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
 		if(pair==null) return null;
 		return (Struct)pair.getValue().duplicate(false);
+	}
+
+	@Override
+	public boolean deepThread() {
+		return false;
 	}
 }

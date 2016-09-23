@@ -44,8 +44,24 @@ public final class TagThread extends TagBaseNoFinal {
 			"register",Types.VOID,new Type[]{Types.PAGE,Types.INT_VALUE});
 
 
+	private int index;
+
+
 	public TagThread(Factory f, Position start,Position end) {
 		super(f,start,end);
+		//print.e("::::"+ASMUtil.getAttributeString(this, "action","run")+":"+hashCode());
+	}
+	
+
+
+	public void init() throws TransformerException {
+		String action=ASMUtil.getAttributeString(this, "action","run");
+		// no body
+		if(!"run".equalsIgnoreCase(action)) return;
+		
+		Page page = ASMUtil.getAncestorPage(this);
+		index=page.addThread(this);
+		
 	}
 
 	@Override
@@ -63,14 +79,14 @@ public final class TagThread extends TagBaseNoFinal {
 		}*/
 
 		GeneratorAdapter adapter = bc.getAdapter();
-		Page page = ASMUtil.getAncestorPage(this);
+		//Page page = ASMUtil.getAncestorPage(this);
 		
-		int index=page.addThread(this);
+		//int index=page.addThread(this);
 		super._writeOut(bc,false);
 		
 		adapter.loadLocal(bc.getCurrentTag());
 		adapter.loadThis();
-        adapter.push(index);
+		adapter.push(index);
 		adapter.invokeVirtual(THREAD_TAG, REGISTER);
 		
 	}

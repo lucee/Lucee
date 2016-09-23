@@ -387,11 +387,13 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract void setSessionCookie(SessionCookieData data);
 	public abstract AuthCookieData getAuthCookie();
 	public abstract void setAuthCookie(AuthCookieData data);
+
 	public abstract lucee.runtime.net.mail.Server[] getMailServers();
 	public abstract void setMailServers(lucee.runtime.net.mail.Server[] servers);
 
 	public abstract void setLoggers(Map<Key, Pair<Log,Struct>> logs);
 	public abstract java.util.Collection<Collection.Key> getLogNames();
 	public abstract Log getLog(String name);
-	public abstract Struct getLogMetaData(String string);	
+	public abstract Struct getLogMetaData(String string);
+	public abstract boolean deepThread();
 }
