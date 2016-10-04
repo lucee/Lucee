@@ -328,6 +328,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		cw.reset();
 		load(cs, cw, doc, true, doNew);
 		createContextFilesPost(configDir, cw, null, false, doNew);
+		((CFMLEngineImpl)ConfigWebUtil.getEngine(cw)).onStart(cw,true);
+		
 	}
 
 	private static long second(long ms) {
