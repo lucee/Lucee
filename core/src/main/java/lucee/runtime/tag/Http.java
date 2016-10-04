@@ -743,7 +743,7 @@ public final class Http extends BodyTagImpl {
 
     		boolean isBinary = false;
     		boolean doMultiPart=doUploadFile || this.multiPart;
-    		HttpPost post=null;
+			HttpEntityEnclosingRequest post=null;
     		HttpEntityEnclosingRequest eem=null;
 
 
@@ -759,8 +759,9 @@ public final class Http extends BodyTagImpl {
     		}
     		else if(this.method==METHOD_PUT) {
     			isBinary=true;
-    			HttpPut put = new HttpPut(url);
-    		    req=put;
+				HttpEntityEnclosingRequest put = (HttpEntityEnclosingRequest) new HttpPut(url);
+				post=put;
+    		    req=(HttpRequestBase) put;
     		    eem=put;
 
     		}
@@ -779,8 +780,8 @@ public final class Http extends BodyTagImpl {
     		}
     		else {
     			isBinary=true;
-    			post=new HttpPost(url);
-    			req=post;
+				post= (HttpEntityEnclosingRequest) new HttpPost(url);
+    			req=(HttpRequestBase) post;
     			eem=post;
     		}
 
@@ -1311,7 +1312,7 @@ public final class Http extends BodyTagImpl {
 			if(client!=null)client.close();
 		}
 	}
-	
+
 	private TimeSpan checkRemainingTimeout() throws RequestTimeoutException {
 		TimeSpan remaining = PageContextUtil.remainingTime(pageContext,true);
 		if(this.timeout==null || ((int)this.timeout.getSeconds())<=0 || timeout.getSeconds()>remaining.getSeconds()) { // not set
@@ -2013,10 +2014,10 @@ public final class Http extends BodyTagImpl {
 
 	public static void setTimeout(HttpClientBuilder builder, TimeSpan timeout) {
 		if(timeout==null || timeout.getMillis()<=0) return;
-		
+
 		int ms=(int)timeout.getMillis();
 		if(ms<0)ms=Integer.MAX_VALUE;
-		
+
 		//builder.setConnectionTimeToLive(ms, TimeUnit.MILLISECONDS);
     	SocketConfig sc=SocketConfig.custom()
     			.setSoTimeout(ms)
@@ -2027,7 +2028,7 @@ public final class Http extends BodyTagImpl {
 }
 
 class Executor4 extends PageContextThread {
-	
+
 	 final Http http;
 	 private final CloseableHttpClient client;
 	 final boolean redirect;
