@@ -61,6 +61,18 @@
   </developers>
    
 
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>src/main/java</directory>
+            </resource>
+        </resources>
+    </build>
+
+
 	<dependencies>
     <dependency>
       <groupId>org.apache.felix</groupId>
