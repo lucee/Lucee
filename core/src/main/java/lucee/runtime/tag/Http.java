@@ -743,7 +743,7 @@ public final class Http extends BodyTagImpl {
 
     		boolean isBinary = false;
     		boolean doMultiPart=doUploadFile || this.multiPart;
-    		HttpPost post=null;
+    		HttpEntityEnclosingRequest post=null;
     		HttpEntityEnclosingRequest eem=null;
 
 
@@ -760,6 +760,7 @@ public final class Http extends BodyTagImpl {
     		else if(this.method==METHOD_PUT) {
     			isBinary=true;
     			HttpPut put = new HttpPut(url);
+    			post=put;
     		    req=put;
     		    eem=put;
 
@@ -780,7 +781,7 @@ public final class Http extends BodyTagImpl {
     		else {
     			isBinary=true;
     			post=new HttpPost(url);
-    			req=post;
+    			req=(HttpPost)post;
     			eem=post;
     		}
 
