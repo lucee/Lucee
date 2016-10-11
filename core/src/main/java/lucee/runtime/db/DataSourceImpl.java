@@ -125,7 +125,7 @@ public final class DataSourceImpl  extends DataSourceSupport {
         if(!doQueryString) return src;
         
         // FUTURE remove; this is for backward compatibility to old MSSQL driver
-        if(paramSyntax==ParamSyntax.DEFAULT && getClassDefinition().getClassName().indexOf("microsoft")!=-1 || getClassDefinition().getClassName().indexOf("jtds")!=-1)
+        if(ParamSyntax.DEFAULT.equals(paramSyntax) && getClassDefinition().getClassName().indexOf("microsoft")!=-1 || getClassDefinition().getClassName().indexOf("jtds")!=-1)
         	return src+=';'+name+'='+value;
         return src+=(leading?paramSyntax.leadingDelimiter:paramSyntax.delimiter)+name+paramSyntax.separator+value;
         //return src+=((src.indexOf('?')!=-1)?'&':'?')+name+'='+value;
