@@ -466,10 +466,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	public int doStartTag() throws PageException	{
 		
 		//timeout
-		TimeSpan remaining = PageContextUtil.remainingTime(pageContext,true);
+		/*TimeSpan remaining = PageContextUtil.remainingTime(pageContext,true);
 		if(this.timeout==null || ((int)this.timeout.getSeconds())<=0 || timeout.getSeconds()>remaining.getSeconds()) { // not set
 			this.timeout=remaining;
-		}
+		}*/
 		
 		
 		// default datasource
