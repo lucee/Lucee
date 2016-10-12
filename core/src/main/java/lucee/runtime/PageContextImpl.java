@@ -2397,8 +2397,22 @@ public final class PageContextImpl extends PageContext {
 		Object oCfid = urlScope().get(KeyConstants._cfid,null);
 		Object oCftoken = urlScope().get(KeyConstants._cftoken,null);
 		
+		// if CFID comes from URL, we only accept if already exists
+		if(oCfid!=null) {
+			if(Decision.isGUIdSimple(oCfid)) {
+				if(!scopeContext.hasExistingCFID(this, Caster.toString(oCfid,null))) {
+					oCfid=null;
+					oCftoken=null;
+				}
+			}
+			else {
+				oCfid=null;
+				oCftoken=null;
+			}
+		}
+		
 		// Cookie
-		if((oCfid==null || !Decision.isGUIdSimple(oCfid)) || oCftoken==null) {
+		if(oCfid==null) {
 			setCookie=false;
 			oCfid = cookieScope().get(KeyConstants._cfid,null);
 			oCftoken = cookieScope().get(KeyConstants._cftoken,null);
@@ -2447,7 +2461,7 @@ public final class PageContextImpl extends PageContext {
 		}
 		else {
 			cfid=Caster.toString(oCfid,null);
-			cftoken=Caster.toString(oCftoken,null);
+			cftoken=Caster.toString(oCftoken,"0");
 		}
 		
 		if(setCookie && applicationContext.isSetClientCookies())
