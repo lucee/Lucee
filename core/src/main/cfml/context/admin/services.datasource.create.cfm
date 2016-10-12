@@ -113,11 +113,6 @@
 			name="#_name#"
 			returnVariable="datasource">
 
-		<cftry>
-			<cfdbinfo type="Version" datasource="#_name#" name='dbinfo'>
-			<cfcatch></cfcatch>
-		</cftry>
-		
 		<cfset datasource._password=datasource.password>
 		<cfset datasource.password="****************">
 		<cfset dbdriver = datasource.dbdriver ?: "">
@@ -212,20 +207,6 @@
 		<h3>Datasource configuration</h3>
 		<table class="maintbl">
 			<tbody>
-				<cfif isDefined("dbInfo")>
-				<tr>
-					<th scope="row">#stText.settings.datasource.databaseName#</th>
-					<td class="comment">
-						#dbInfo.DATABASE_PRODUCTNAME# #dbInfo.DATABASE_VERSION#
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">#stText.settings.datasource.driverName#</th>
-					<td class="comment">
-						#dbInfo.DRIVER_NAME# #dbInfo.DRIVER_VERSION# (JDBC #dbInfo.JDBC_MAJOR_VERSION#.#dbInfo.JDBC_MINOR_VERSION#)
-					</td>
-				</tr>
-				</cfif>
 				<tr>
 					<th scope="row">Name</th>
 					<td>
