@@ -62,6 +62,7 @@ import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTimeImpl;
+import lucee.runtime.type.query.QueryResult;
 import lucee.runtime.type.util.KeyConstants;
 
 
@@ -200,10 +201,19 @@ public final class DebuggerImpl implements Debugger {
     }
 	
 
-	public static boolean debugQueryUsage(PageContext pageContext, Query query) {
-		if(pageContext.getConfig().debug() && query instanceof QueryImpl) {
+	public static boolean debugQueryUsage(PageContext pageContext, QueryResult qr) {
+		if(pageContext.getConfig().debug() && qr instanceof QueryImpl) {
 			if(((ConfigWebImpl)pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_QUERY_USAGE)){
-				query.enableShowQueryUsage();
+				((QueryImpl)qr).enableShowQueryUsage();
+				return true;
+			}
+		}
+		return false;
+	}
+	public static boolean debugQueryUsage(PageContext pageContext, Query qry) {
+		if(pageContext.getConfig().debug() && qry instanceof QueryImpl) {
+			if(((ConfigWebImpl)pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_QUERY_USAGE)){
+				((QueryImpl)qry).enableShowQueryUsage();
 				return true;
 			}
 		}
@@ -229,7 +239,13 @@ public final class DebuggerImpl implements Debugger {
 	public void addQuery(Query query,String datasource,String name,SQL sql, int recordcount, PageSource src,long time) {
 		String path="";
 		if(src!=null) path=src.getDisplayPath();
-		queries.add(new QueryEntryImpl(query,datasource,name,sql,recordcount,path,time));
+		queries.add(new QueryResultEntryImpl((QueryResult)query,datasource,name,sql,recordcount,path,time));
+	}
+	
+	public void addQuery(QueryResult qr,String datasource,String name,SQL sql, int recordcount, PageSource src,long time) {
+		String path="";
+		if(src!=null) path=src.getDisplayPath();
+		queries.add(new QueryResultEntryImpl(qr,datasource,name,sql,recordcount,path,time));
 	}
 	
 	@Override
@@ -651,7 +667,7 @@ public final class DebuggerImpl implements Debugger {
     }
     
 	private static Struct getUsage(QueryEntry qe) throws PageException {
-		Query qry = ((QueryEntryImpl)qe).getQry();
+		Query qry = qe.getQry();
         
         QueryColumn c;
         DebugQueryColumn dqc;
@@ -672,28 +688,6 @@ public final class DebuggerImpl implements Debugger {
         return null;
 	}
 
-	/*private static String getUsageList(QueryEntry qe) throws PageException  {
-		Query qry = ((QueryEntryImpl)qe).getQry();
-        StringBuilder sb=new StringBuilder();
-        QueryColumn c;
-        DebugQueryColumn dqc;
-        outer:if(qry!=null) {
-        	String[] columnNames = qry.getColumns();
-        	Collection.Key colName;
-        	for(int i=0;i<columnNames.length;i++){
-        		colName=KeyImpl.init(columnNames[i]);
-        		c = qry.getColumn(colName);
-        		if(!(c instanceof DebugQueryColumn)) break outer;
-        		dqc=(DebugQueryColumn) c;
-        		if(!dqc.isUsed()){
-        			if(sb.length()>0) sb.append(", ");
-        			sb.append(colName.getString());
-        		}
-        	}
-        }
-        return sb.toString();
-	}*/
-
 	@Override
 	public DebugTimer addTimer(String label, long time, String template) {
 		DebugTimerImpl t;
@@ -707,22 +701,7 @@ public final class DebuggerImpl implements Debugger {
 		
 		long _lastTrace =(traces.isEmpty())?lastEntry: lastTrace;
 		lastTrace = System.currentTimeMillis();
-        /*StackTraceElement[] _traces = Thread.currentThread().getStackTrace();
-		String clazz=page.getFullClassName();
-		int line=0;
-		
-		// line
-		for(int i=0;i<_traces.length;i++) {
-			StackTraceElement trace=_traces[i];
-    		if(trace.getClassName().startsWith(clazz)) {
-    			line=trace.getLineNumber();
-    			print.e(SystemUtil.getCurrentContext());
-    			print.e(page.getDisplayPath());
-    			print.e(line);
-    			break;
-			}
-		}*/
-		
+        
 		DebugTraceImpl t=new DebugTraceImpl(type,category,text,ps==null?"unknown template":ps.getDisplayPath(),SystemUtil.getCurrentContext().line,"",varName,varValue,lastTrace-_lastTrace);
 		traces.add(t);
 		return t;
@@ -730,21 +709,6 @@ public final class DebuggerImpl implements Debugger {
 	
 	
 	public DebugDump addDump(PageSource ps,String dump) {
-		/*
-		StackTraceElement[] _traces = Thread.currentThread().getStackTrace();
-		String clazz=ps.getFullClassName();
-		
-		// line
-		int line=0;
-		for(int i=0;i<_traces.length;i++) {
-			StackTraceElement trace=_traces[i];
-    		if(trace.getClassName().startsWith(clazz)) {
-    			line=trace.getLineNumber();
-    			break;
-			}
-		}*/
-		
-		
 		DebugDump dt=new DebugDumpImpl(ps.getDisplayPath(),SystemUtil.getCurrentContext().line,dump);
 		dumps.add(dt);
 		return dt;

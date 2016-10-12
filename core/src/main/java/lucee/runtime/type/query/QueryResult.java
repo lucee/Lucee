@@ -23,8 +23,7 @@ public interface QueryResult extends Dumpable,Duplicable {
 	
 	public String getName();
 	
-	public boolean isEmpty();
-	
+	public int getColumncount();
 	public int getRecordcount();
 
 	public int getUpdateCount();
