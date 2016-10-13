@@ -172,7 +172,8 @@ public final class StringUtil {
 		rtn.append(quotesUsed);
 		
 		for(int i=0;i<arr.length;i++) {
-			if(arr[i] < 128){
+			boolean controlChar = Character.isISOControl(arr[i]);
+			if(!controlChar && arr[i] < 128){
 				switch(arr[i]) {
 					case '\\': rtn.append("\\\\"); break;
 					case '\n': rtn.append("\\n"); break;
@@ -208,11 +209,11 @@ public final class StringUtil {
 					default : rtn.append(arr[i]); break;
 				}
 			}
-			else if(enc==null || !enc.canEncode(arr[i])) {
-				if (arr[i] < 0x10)			rtn.append("\\u000");
-			    else if (arr[i] < 0x100) 	rtn.append( "\\u00");
-			    else if (arr[i] < 0x1000) 	rtn.append( "\\u0");
-			    else 						rtn.append( "\\u");
+			else if(controlChar || enc==null || !enc.canEncode(arr[i])) {
+				if (arr[i] < 0x10)          rtn.append("\\u000");
+				else if (arr[i] < 0x100)    rtn.append("\\u00");
+				else if (arr[i] < 0x1000)   rtn.append("\\u0");
+				else                        rtn.append("\\u");
 				rtn.append(Integer.toHexString(arr[i]));
 			}
 			else {
