@@ -176,7 +176,9 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
     
     @Override
     public ConfigServer getConfigServer(String password) throws ExpressionException {
-    	return getConfigServer(PasswordImpl.passwordToCompare(this, true, password));
+    	Password pw = isServerPasswordEqual(password);
+    	if(pw==null) pw=PasswordImpl.passwordToCompare(this, true, password);
+    	return getConfigServer(pw);
     }
     
     @Override
