@@ -36,6 +36,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		assertFalse(exe(1).isCached());
 		assertTrue(exe(1).isCached());
+	}
+
+	private void function test2(){ // TODO came from pull request 35
+		assertFalse(exe(0).isCached());
+		assertFalse(exe(0).isCached());
+
+		assertFalse(exe(1).isCached());
+		assertTrue(exe(1).isCached());
 
 		// Cache should not be used here, even if it is populated.
 		assertFalse(exe(0).isCached());
