@@ -815,7 +815,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
 		return image();
 	}
 	public BufferedImage image() throws ExpressionException {
-		if(_image==null) throw (new ExpressionException("image is not initalized"));
+		if(_image==null) throw (new ExpressionException("image is not initialized"));
 		return _image;
 	}
 	public void image(BufferedImage image) {
