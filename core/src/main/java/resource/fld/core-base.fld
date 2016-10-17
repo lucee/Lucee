@@ -2818,6 +2818,24 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
+		<!-- dbPoolClear -->
+	<function>
+		<name>dbPoolClear</name>
+		<class>lucee.runtime.functions.system.DBPoolClear</class>
+		<status>hidden</status>
+		<description>clears all existing datasource connection</description>
+		<argument>
+			<name>datasource</name>
+			<alias>datasourcename,name,ds</alias>
+			<type>string</type>
+			<required>no</required>
+			<description>specific datasource to clear, if not set all datasources get removed.</description>
+		</argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
+	
 	<!-- each -->
 	<function>
 		<name>each</name>
@@ -15593,31 +15611,33 @@ _- asc (default): ascending (a to z) sort order
 			<type>string</type>
 		</return>
 	</function>
-	<!-- uRLEncode -->
+	<!-- URLEncode -->
 	<function>
-		<name>uRLEncode</name>
+		<name>URLEncode</name>
 		<class>lucee.runtime.functions.other.URLEncode</class>
-		<description>encode a url</description>
+		<description>Encodes a string to be URL-safe according to the application/x-www-form-urlencoded MIME format</description>
 		<argument>
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+		    <description></description>
+        </argument>
 		<argument>
 			<name>charset</name>
 			<type>string</type>
 			<required>No</required>
 			<default>utf-8</default>
-		<description></description>
-    </argument>
+		    <description>The World Wide Web Consortium Recommendation states that UTF-8 should be used as per
+		    https://www.w3.org/TR/html40/appendix/notes.html#non-ascii-chars - Using different charsets may cause
+		    incompatibilities with other systems.</description>
+        </argument>
 		<argument>
 			<name>force</name>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
-		<description></description>
-    </argument>
+		    <description>If false, then the string will not be encoded if it does not contain unsafe characters.</description>
+        </argument>
 		<return>
 			<type>string</type>
 		</return>

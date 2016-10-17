@@ -16,114 +16,78 @@
  	 */	 
 	variables.params = [];	
 	variables.parts = [];
-	variables.tagname = "";			
-	</cfscript>
-	
-	<!--- 
-	init
-	 --->
-	<cffunction name="init" returntype="Base" access="public" output="false">
-		<cfscript>
+	variables.tagname = "";
+
+	public Base function init() {
 		setAttributes(argumentCollection=arguments);
-		return this;		
-		</cfscript>		
-	</cffunction>
-
-	
-	<!--- 
-	addParam
-	 --->
-	<cffunction name="addParam" returntype="Base" output="false" access="public" 
-				hint="Add a new param">
-		<cfscript>
-		ArrayAppend(variables.params,arguments);
-		return this;		
-		</cfscript>
-	</cffunction>
-
-
-	<!--- 
-	clearParams
-	 --->
-	<cffunction name="clearParams" returntype="Base" output="false" access="public" hint="Clear the stored params Array">
-		<cfscript>
-		variables.params = [];
 		return this;	
-		</cfscript>	
-	</cffunction>
+	}
 
-	<!--- 
-	addPart
-	 --->
-	<cffunction name="addPart" returntype="Base" output="false" access="public">
-		<cfscript>
+	/**
+	* Add a new param
+	*/
+	public Base function addParam() {
+		ArrayAppend(variables.params,arguments);
+		return this;	
+	}
+
+	/**
+	* Clear the stored params Array
+	*/
+	public Base function clearParams() {
+		variables.params = [];
+		return this;
+	}
+
+	/**
+	* add a new part
+	*/
+	public Base function addPart() {
 		ArrayAppend(variables.parts,arguments);
-		return this;		
-		</cfscript>
-	</cffunction>	
+		return this;
+	}
 
-	<!--- 
-	clearParts
-	 --->
-	<cffunction name="clearParts" returntype="Base" output="false" access="public">
-		<cfscript>
+	/**
+	* Clear the stored parts Array
+	*/
+	public Base function clearParts() {
 		variables.parts = [];
-	    return this;		
-		</cfscript>
-	</cffunction>	
+	    return this;	
+	}
 
-	<!--- 
-	setAttributes
-	 --->
-	<cffunction name="setAttributes" returntype="Base" output="false" access="public">
-		<cfscript>
+	public Base function setAttributes() {
 		StructAppend(variables.attributes, arguments, true);
-		return this;		
-		</cfscript>
-	</cffunction>
+		return this;	
+	}
 
-	<!--- 
-	clearAttributes
-	 --->
-	<cffunction name="clearAttributes" returntype="Base" output="false" access="public">
-		<cfscript>
+	public Base function clearAttributes() {
 		variables.attributes = {};
-		return this;		
-		</cfscript>
-	</cffunction>
+		return this;	
+	}
 
-	<!--- 
-	clear
-	 --->
-	<cffunction name="clear" returntype="Base" output="false" access="public">
-		<cfscript>
+	public Base function clear() {
 		clearAttributes();
 		clearParams();
 		clearParts();
-		return this;		
-		</cfscript>
-	</cffunction>	
+		return this;	
+	}
 
-	<!--- 
-	getSupportedTagAttributes
-	 --->
-	<cffunction name="getSupportedTagAttributes" returntype="Struct" output="false" access="public">
-		<cfscript>
-		return getTagData("cf",getTagName());
-		</cfscript>
-	</cffunction>	
-	
+	public Struct function getSupportedTagAttributes() {
+		return getTagData("cf",getTagName());	
+	}
+
+
+	</cfscript>
 	<!--- 
 	invoke Tag 
 	--->
 	<cffunction name="invokeTag" output="false" access="private" returntype="any" hint="invokes the service tag">
-		<cfset var tagname = getTagName()>
-		<cfset var tagAttributes = getAttributes()>
-		<cfset var tagParams = getParams()>	
-		<cfset var resultVar = "">
-		<cfset var result = new Result()>
-		<cfset var tagResult = "">
-
+		<cfset local.tagname = getTagName()>
+		<cfset local.tagAttributes = getAttributes()>
+		<cfset local.tagParams = getParams()>	
+		<cfset local.resultVar = "">
+		<cfset local.result = new Result()>
+		
 		<!--- Makes the attributes available in local scope. Es : query of queries --->
 		<cfset structAppend(local,tagAttributes,true)>
 		
@@ -133,12 +97,11 @@
 			<cfcase value="query">
 								
 				<!--- get the query array to loop --->
-				<cfset var qArray = getQArray()>
+				<cfset local.qArray = getQArray()>
 				<!--- declare the query local var --->
-				<cfset var q = "">
 				
-				<cfquery name="q" attributeCollection="#tagAttributes#" result="tagResult">
-					<cfloop array="#qArray#" index="Local.item"><!---
+				<cfquery name="local.___q" attributeCollection="#tagAttributes#" result="local.tagResult">
+					<cfloop array="#local.qArray#" index="Local.item"><!---
 						!---><cfif structKeyExists(item,'type') and item.type eq 'string'><!---
 							!--->#preserveSingleQuotes(item.value)#<!---
 						!---><cfelse><!---
@@ -146,8 +109,8 @@
 						!---></cfif></cfloop>
 				</cfquery>
 				
-				<cfset result.setResult(q)>			
-				<cfset result.setPrefix(tagResult)>
+				<cfif !isNull(local.___q)><cfset result.setResult(local.___q)></cfif>			
+				<cfif !isNull(local.tagResult)><cfset result.setPrefix(local.tagResult)></cfif>
 				
 				<cfreturn result>
 			</cfcase>
@@ -161,18 +124,13 @@
 				Object.
 				 --->
 				<cfif structkeyExists(tagAttributes,'action') and tagAttributes.action eq 'listdir'>
-					<cfset tagAttributes.name = 'q' >
-					<cfset var q = "">
+					<cfset tagAttributes.name = 'local.___q' >
 				</cfif>
-				
-				<cfftp attributeCollection="#tagAttributes#" result="tagResult"/>
-				
+				<cfftp attributeCollection="#tagAttributes#" result="local.tagResult"/>
 				<cfif tagAttributes["action"] eq "listdir">
-	                  <cfset result.setResult(q)>
+	                  <cfif !isNull(local.___q)><cfset result.setResult(local.___q)></cfif>
 				</cfif>
-								
-				<cfset result.setPrefix(tagResult)>
-				
+				<cfif !isNull(local.tagResult)><cfset result.setPrefix(local.tagResult)></cfif>
 			</cfcase>
 			
 			<!--- cfhttp --->
@@ -193,9 +151,9 @@
 			
 			<!--- cfmail --->
 			<cfcase value="mail">
-				<cfset var body = "">
+				<cfset local.body = "">
 				<cfif StructKeyExists(tagAttributes, "body")>
-					<cfset body = tagAttributes.body>
+					<cfset local.body = tagAttributes.body>
 					<cfset Structdelete(tagAttributes, "body")>
 				</cfif>
 				<cfmail attributeCollection="#tagAttributes#">#body#<!---							
@@ -271,20 +229,19 @@
 		<cfargument name="methodArguments" type="Array">
 		
 		<cfscript>
-			var attrName = mid( arguments.methodname, 4 );
-			var methodType = left( arguments.methodname, 3 );
-			var tagname = getTagName();
-			var supportedTagAttributes = getSupportedTagAttributes().attributes;
-			var tagAttributes = getAttributes();
-			
-			var lAllowedExtra = "";
+			local.attrName = mid( arguments.methodname, 4 );
+			local.methodType = left( arguments.methodname, 3 );
+			local.tagname = getTagName();
+			local.supportedTagAttributes = getSupportedTagAttributes().attributes;
+			local.tagAttributes = getAttributes();
+			local.lAllowedExtra = "";
 			
 			switch(tagName){
 				case "mail":
-					lAllowedExtra = "body";
+					local.lAllowedExtra = "body";
 					break;
 				case "query":
-					lAllowedExtra = "sql";	
+					local.lAllowedExtra = "sql";	
 					break;			
 			}
 

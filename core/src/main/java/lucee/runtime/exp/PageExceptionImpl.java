@@ -46,6 +46,7 @@ import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.err.ErrorPage;
+import lucee.runtime.functions.system.GetCurrentContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -212,6 +213,12 @@ public abstract class PageExceptionImpl extends PageException {
 		StackTraceElement trace=null;
 		int index=-1;
 		PageSource ps;
+		
+		PageContextImpl pc=null;
+		if(config instanceof ConfigWeb) 
+			pc = (PageContextImpl) ThreadLocalPageContext.get();
+		
+		
 		for(int i=0;i<traces.length;i++) {
 			trace=traces[i];
 			tlast=template;
@@ -226,17 +233,21 @@ public abstract class PageExceptionImpl extends PageException {
 			try {
 				
 				Resource res = config.getResource(template);
-				// template is absolute, so this is not necessary if(!res.exists()) res = ResourceUtil.toResourceNotExisting(ThreadLocalPageContext.get(), template,true,true); 
 				
+				if(!res.exists()) {
+					PageSource _ps = pc==null?null:pc.getPageSource(template);
+					res=_ps.getPhyscalFile();
+					if(res==null || !res.exists()) {
+						res=config.getResource(_ps.getDisplayPath());
+						if(res!=null && res.exists()) dspPath=res.getAbsolutePath();
+					}
+					else dspPath=res.getAbsolutePath();
+				}
+				else dspPath=res.getAbsolutePath();
 				
 				
 				// class was not build on the local filesystem
 				if(!res.exists()) {
-					// try to make a match by class name
-					PageContext pc=null;
-					if(config instanceof ConfigWeb) 
-						pc = ThreadLocalPageContext.get();
-					
 					SourceInfo si=pc!=null?MappingUtil.getMatch(pc,trace):MappingUtil.getMatch(config,trace);
 					if(si!=null && si.relativePath!=null) {
 						dspPath=si.relativePath;
@@ -245,8 +256,11 @@ public abstract class PageExceptionImpl extends PageException {
 							PageSource _ps = PageSourceImpl.best(config.getPageSources(ThreadLocalPageContext.get(), null, si.relativePath, false, false, true));
 							if(_ps!=null && _ps.exists()) {
 								res=_ps.getResource();
+								if(res!=null && res.exists()) dspPath=res.getAbsolutePath();
 							}
+							else dspPath=res.getAbsolutePath();
 						}
+						else dspPath=res.getAbsolutePath();
 					}
 				}
 				 
@@ -584,9 +598,9 @@ public abstract class PageExceptionImpl extends PageException {
 	    	if(path==null){
 				SourceInfo si=MappingUtil.getMatch(pc,trace);
 				if(si!=null) {
-					if(si.absolutePath!=null) {
-						res = pc.getConfig().getResource(si.absolutePath);
-						if(res.exists()) path=si.absolutePath;
+					if(si.absolutePath(pc)!=null) {
+						res = pc.getConfig().getResource(si.absolutePath(pc));
+						if(res.exists()) path=si.absolutePath(pc);
 					}
 					if(path==null && si.relativePath!=null) path=si.relativePath;
 				}

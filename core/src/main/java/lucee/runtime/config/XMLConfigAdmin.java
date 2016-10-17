@@ -78,6 +78,7 @@ import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.db.ClassDefinition;
+import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -1599,7 +1600,8 @@ public final class XMLConfigAdmin {
      */
     public void updateDataSource(String name, String newName, ClassDefinition cd, String dsn, String username, String password,
             String host, String database, int port, int connectionLimit, int connectionTimeout, long metaCacheTimeout,
-            boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver) throws PageException {
+            boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver,
+            ParamSyntax paramSyntax) throws PageException {
 
     	checkWriteAccess();
     	SecurityManager sm = config.getSecurityManager();
@@ -1664,7 +1666,13 @@ public final class XMLConfigAdmin {
 
 	            if (!StringUtil.isEmpty( dbdriver ))
 		            el.setAttribute("dbdriver", Caster.toString(dbdriver));
+	            
+	            // Param Syntax
+	            el.setAttribute("param-delimiter",(paramSyntax.delimiter));
+	            el.setAttribute("param-leading-delimiter",(paramSyntax.leadingDelimiter));
+	            el.setAttribute("param-separator",(paramSyntax.separator));
 
+	            
 	      		return;
   			}
       	}
@@ -1702,11 +1710,12 @@ public final class XMLConfigAdmin {
 	    if (!StringUtil.isEmpty( dbdriver ))
 		    el.setAttribute("dbdriver", Caster.toString(dbdriver));
 
-        /*
-  		    String host,String database,int port,String connectionLimit, String connectionTimeout,
-            boolean blob,boolean clob,int allow,Struct custom
-        );
-        */
+
+        // Param Syntax
+        el.setAttribute("param-delimiter",(paramSyntax.delimiter));
+        el.setAttribute("param-leading-delimiter",(paramSyntax.leadingDelimiter));
+        el.setAttribute("param-separator",(paramSyntax.separator));
+
     }
     
     static void removeJDBCDriver(ConfigImpl config, ClassDefinition cd, boolean reload) throws IOException, SAXException, PageException, BundleException {
@@ -4702,9 +4711,9 @@ public final class XMLConfigAdmin {
 				}
 				// components
 				if(!entry.isDirectory() && (startsWith(path,type,"components")) && !StringUtil.startsWith(fileName(entry), '.')) {
-					realpath=path.substring(13);
+					realpath=path.substring(11);
 	        		logger.log(Log.LEVEL_INFO,"extension","deploy component "+realpath);
-	        		updateComponent( zis, realpath,false);
+	        		updateComponent( zis, realpath,false,false);
 				}
 				
 				// plugins
@@ -4889,6 +4898,7 @@ public final class XMLConfigAdmin {
 
 			// reload
 			//if(reloadNecessary){
+			reloadNecessary=true;
 				if(reload && reloadNecessary)
 					_storeAndReload();
 				else
@@ -5759,11 +5769,7 @@ public final class XMLConfigAdmin {
         if(store)_storeAndReload((ConfigImpl)config);
     }
 	
-	Resource[] updateContext(InputStream is,String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
-    	List<Resource> filesDeployed=new ArrayList<Resource>();
-    	_updateContext(config, is, realpath, closeStream, filesDeployed,store);
-    	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
-    }
+	
 	
 	/*static Resource[] updateContext(ConfigImpl config,InputStream is,String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
     	List<Resource> filesDeployed=new ArrayList<Resource>();
@@ -5771,11 +5777,29 @@ public final class XMLConfigAdmin {
     	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
     }*/
 
+	Resource[] updateComponent(InputStream is,String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
+    	List<Resource> filesDeployed=new ArrayList<Resource>();
+    	_updateComponent(config, is, realpath, closeStream, filesDeployed,store);
+    	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
+    }
+	private static void _updateComponent(Config config,InputStream is,String realpath, boolean closeStream,List<Resource> filesDeployed, boolean store) throws PageException, IOException, SAXException, BundleException {
+		Resource comps = config.getConfigDir().getRealResource("components"); // MUST get that dynamically
+		Resource trg = comps.getRealResource(realpath);
+		if(trg.exists()) trg.remove(true);
+        Resource p = trg.getParentResource();
+        if(!p.isDirectory()) p.createDirectory(true); 
+        IOUtil.copy(is, trg.getOutputStream(false), closeStream,true);
+        filesDeployed.add(trg);
+        if(store)_storeAndReload((ConfigImpl)config);
+    }
+	
+	Resource[] updateContext(InputStream is,String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
+    	List<Resource> filesDeployed=new ArrayList<Resource>();
+    	_updateContext(config, is, realpath, closeStream, filesDeployed,store);
+    	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
+    }
 	private static void _updateContext(Config config,InputStream is,String realpath, boolean closeStream,List<Resource> filesDeployed, boolean store) throws PageException, IOException, SAXException, BundleException {
-		//if(!(config instanceof ConfigServer))
-		//	throw new ApplicationException("invalid context, you can only call this method from server context");
-
-        Resource trg = config.getConfigDir().getRealResource("context").getRealResource(realpath);
+		Resource trg = config.getConfigDir().getRealResource("context").getRealResource(realpath);
         if(trg.exists()) trg.remove(true);
         Resource p = trg.getParentResource();
         if(!p.isDirectory()) p.createDirectory(true); 
@@ -5821,7 +5845,31 @@ public final class XMLConfigAdmin {
         filesDeployed.add(trg);
         _storeAndReload((ConfigImpl)config);
     }
+	
 
+	public boolean removeComponents(Config config, boolean store,String... realpathes) throws PageException, IOException, SAXException, BundleException {
+		if(ArrayUtil.isEmpty(realpathes)) return false;
+		boolean force=false;
+		for(int i=0;i<realpathes.length;i++){
+			if(_removeContext(config, realpathes[i],store))
+				force=true;
+		}
+		return force;
+	}
+	
+	private boolean _removeComponent(Config config,String realpath, boolean _store) throws PageException, IOException, SAXException, BundleException {
+    	
+    	Resource context = config.getConfigDir().getRealResource("components"); // MUST get dyn
+    	Resource trg = context.getRealResource(realpath);
+    	if(trg.exists()) {
+        	trg.remove(true);
+        	if(_store) XMLConfigAdmin._storeAndReload((ConfigImpl) config);
+        	ResourceUtil.removeEmptyFolders(context,null);
+        	return true;
+        }
+        return false;
+    }
+	
 	public boolean removeContext(Config config, boolean store,String... realpathes) throws PageException, IOException, SAXException, BundleException {
 		if(ArrayUtil.isEmpty(realpathes)) return false;
 		boolean force=false;
@@ -5894,9 +5942,6 @@ public final class XMLConfigAdmin {
     }
 	
 
-	Resource[] updateComponent(InputStream is,String realpath, boolean closeStream) throws PageException, IOException, SAXException {
-    	throw new ApplicationException("not supported yet!");
-    }
 
 	private void deployFilesFromStream(Config config,Resource root, InputStream is,String realpath, boolean closeStream,List<Resource> filesDeployed) throws PageException, IOException, SAXException {
     	if(config instanceof ConfigServer) {
@@ -5939,10 +5984,6 @@ public final class XMLConfigAdmin {
 		for(int i=0;i<realpathes.length;i++){
 			removeFiles(config, config.getRootDirectory(), realpathes[i]);
 		}
-	}
-
-	private void removeComponents(Config config, String[] realpathes) throws PageException, IOException, SAXException {
-		throw new ApplicationException("not supported yet!");
 	}
 	
 	private void removeFiles(Config config,Resource root, String realpath) throws PageException, IOException, SAXException {
@@ -6019,7 +6060,7 @@ public final class XMLConfigAdmin {
 
   				// components
   				arr=_removeExtensionCheckOtherUsage(children,el,"components");
-  				removeComponents(config, arr);
+  				removeComponents(config, false, arr);
   				
   				// plugins
   				arr=_removeExtensionCheckOtherUsage(children,el,"plugins");

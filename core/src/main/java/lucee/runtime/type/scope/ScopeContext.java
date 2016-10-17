@@ -449,6 +449,23 @@ public final class ScopeContext {
         return session instanceof JSession;
 	}
 	
+	private boolean hasExistingCFSessionScope(PageContext pc, String cfid) {
+		ApplicationContext appContext = pc.getApplicationContext(); 
+		Map<String, Scope> context = getSubMap(cfSessionContextes,appContext.getName());
+		return context.containsKey(cfid);
+	}
+	
+	private boolean hasExistingClientScope(PageContext pc, String cfid) {
+		ApplicationContext appContext = pc.getApplicationContext(); 
+		Map<String, Scope> context = getSubMap(cfClientContextes,appContext.getName());
+		return context.containsKey(cfid);
+	}
+	
+	public boolean hasExistingCFID(PageContext pc, String cfid) {
+		if(hasExistingCFSessionScope(pc,cfid)) return true;
+		return hasExistingClientScope(pc,cfid);
+	}
+	
 	
 	private boolean hasExistingCFSessionScope(PageContext pc) {
 		

@@ -70,7 +70,9 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
+import lucee.runtime.type.query.QueryArray;
 import lucee.runtime.type.query.QueryResult;
+import lucee.runtime.type.query.QueryStruct;
 import lucee.runtime.type.query.SimpleQuery;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.util.CollectionUtil;
@@ -466,10 +468,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	public int doStartTag() throws PageException	{
 		
 		//timeout
-		TimeSpan remaining = PageContextUtil.remainingTime(pageContext,true);
+		/*TimeSpan remaining = PageContextUtil.remainingTime(pageContext,true);
 		if(this.timeout==null || ((int)this.timeout.getSeconds())<=0 || timeout.getSeconds()>remaining.getSeconds()) { // not set
 			this.timeout=remaining;
-		}
+		}*/
 		
 		
 		// default datasource
@@ -572,7 +574,16 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			
 			if(qr==null) {
 				// QoQ
-				if("query".equals(dbtype)) 		qr=(QueryResult)executeQoQ(sql);
+				if("query".equals(dbtype)) {
+					lucee.runtime.type.Query q=executeQoQ(sql);
+					if(returntype==RETURN_TYPE_ARRAY)
+						qr=QueryArray.toQueryArray(q); // TODO this should be done in queryExecute itself so we not have to convert afterwards
+					else if(returntype==RETURN_TYPE_STRUCT){
+						if(columnName==null) throw new ApplicationException("attribute columnKey is required when return type is set to struct");
+						qr=QueryStruct.toQueryStruct(q,columnName); // TODO this should be done in queryExecute itself so we not have to convert afterwards
+					}
+					else qr=(QueryResult)q;
+				}
 				// ORM and Datasource
 				else  	{ 
 					long start=System.nanoTime();
@@ -630,16 +641,16 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			
 			if(pageContext.getConfig().debug() && debug) {
 				boolean logdb=((ConfigImpl)pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DATABASE);
-				if(logdb && qr instanceof lucee.runtime.type.Query){
-					lucee.runtime.type.Query q = (lucee.runtime.type.Query)qr;
-					boolean debugUsage=DebuggerImpl.debugQueryUsage(pageContext,q);
-					pageContext.getDebugger().addQuery(debugUsage?q:null,datasource!=null?datasource.getName():null,name,sql,qr.getRecordcount(),getPageSource(),exe);
+				if(logdb){
+					boolean debugUsage=DebuggerImpl.debugQueryUsage(pageContext,qr);
+					DebuggerImpl di=(DebuggerImpl) pageContext.getDebugger();
+					di.addQuery(debugUsage?qr:null,datasource!=null?datasource.getName():null,name,sql,qr.getRecordcount(),getPageSource(),exe);
 				}
 			}
 			if(setReturnVariable){
 				rtn=qr;
 			}
-			else if(!qr.isEmpty() && !StringUtil.isEmpty(name)) {
+			else if((qr.getColumncount()+qr.getRecordcount())>0 && !StringUtil.isEmpty(name)) {
 				pageContext.setVariable(name,qr);
 			}
 			
@@ -648,7 +659,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				
 				Struct sct=new StructImpl();
 				sct.setEL(KeyConstants._cached, Caster.toBoolean(qr.isCached()));
-				if(!qr.isEmpty()){
+				if((qr.getColumncount()+qr.getRecordcount())>0){
 					String list = ListUtil.arrayToList(
 							qr instanceof lucee.runtime.type.Query?
 							((lucee.runtime.type.Query)qr).getColumnNamesAsString():

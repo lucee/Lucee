@@ -51,6 +51,7 @@ public final class DataSourceImpl  extends DataSourceSupport {
     private Struct custom;
 	private boolean validate;
 	private String dbdriver;
+	private final ParamSyntax paramSyntax;
     
 	/**
 	 * constructor of the class
@@ -69,6 +70,7 @@ public final class DataSourceImpl  extends DataSourceSupport {
 	 * @param allow 
 	 * @param custom 
 	 * @param readOnly 
+	 * @param ps 
 	 * @throws ClassNotFoundException 
 	 * @throws ClassException 
 	 * @throws BundleException 
@@ -78,7 +80,7 @@ public final class DataSourceImpl  extends DataSourceSupport {
 
 	public DataSourceImpl(Config config,JDBCDriver driver,String name, ClassDefinition cd, String host, String connStr, String database, int port, String username, String password,
             int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow, Struct custom, boolean readOnly,
-            boolean validate, boolean storage, TimeZone timezone, String dbdriver,Log log) throws BundleException, ClassException, SQLException {
+            boolean validate, boolean storage, TimeZone timezone, String dbdriver,ParamSyntax paramSyntax, Log log) throws BundleException, ClassException, SQLException {
 
 		super(config,driver,name, cd,username,ConfigWebUtil.decrypt(password),blob,clob,connectionLimit, connectionTimeout, metaCacheTimeout, timezone, allow<0?ALLOW_ALL:allow, storage, readOnly,log);
 			
@@ -91,39 +93,42 @@ public final class DataSourceImpl  extends DataSourceSupport {
         this.validate=validate;
         
         this.connStrTranslated=connStr; 
+		this.paramSyntax=(paramSyntax==null)?ParamSyntax.DEFAULT:paramSyntax;
         translateConnStr();
 
 		this.dbdriver = dbdriver;
-        
-        //	throw new DatabaseException("can't find class ["+classname+"] for jdbc driver, check if driver (jar file) is inside lib folder",e.getMessage(),null,null,null);
-        
 	}
     private void translateConnStr() {
-        connStrTranslated=replace(connStrTranslated,"host",host,false);
-        connStrTranslated=replace(connStrTranslated,"database",database,false);
-        connStrTranslated=replace(connStrTranslated,"port",Caster.toString(port),false);
-        connStrTranslated=replace(connStrTranslated,"username",getUsername(),false);
-        connStrTranslated=replace(connStrTranslated,"password",getPassword(),false);
+        connStrTranslated=replace(connStrTranslated,"host",host,false,false);
+        connStrTranslated=replace(connStrTranslated,"database",database,false,false);
+        connStrTranslated=replace(connStrTranslated,"port",Caster.toString(port),false,false);
+        connStrTranslated=replace(connStrTranslated,"username",getUsername(),false,false);
+        connStrTranslated=replace(connStrTranslated,"password",getPassword(),false,false);
         
         //Collection.Key[] keys = custom==null?new Collection.Key[0]:custom.keys();
         if(custom!=null) {
         	Iterator<Entry<Key, Object>> it = custom.entryIterator();
         	Entry<Key, Object> e;
-            while(it.hasNext()) {
+            boolean leading=true;
+        	while(it.hasNext()) {
 	        	e = it.next();
-	            connStrTranslated=replace(connStrTranslated,e.getKey().getString(),Caster.toString(e.getValue(),""),true);
+	            connStrTranslated=replace(connStrTranslated,e.getKey().getString(),Caster.toString(e.getValue(),""),true,leading);
+	            leading=false;
 	        }
         }
     }
 
-    private String replace(String src, String name, String value,boolean doQueryString) {
+    private String replace(String src, String name, String value,boolean doQueryString, boolean leading) {
         if(StringUtil.indexOfIgnoreCase(src,"{"+name+"}")!=-1) {
             return StringUtil.replace(connStrTranslated,"{"+name+"}",value,false);
         }
         if(!doQueryString) return src;
-        if(getClassDefinition().getClassName().indexOf("microsoft")!=-1 || getClassDefinition().getClassName().indexOf("jtds")!=-1)
+        
+        // FUTURE remove; this is for backward compatibility to old MSSQL driver
+        if(ParamSyntax.DEFAULT.equals(paramSyntax) && getClassDefinition().getClassName().indexOf("microsoft")!=-1 || getClassDefinition().getClassName().indexOf("jtds")!=-1)
         	return src+=';'+name+'='+value;
-        return src+=((src.indexOf('?')!=-1)?'&':'?')+name+'='+value;
+        return src+=(leading?paramSyntax.leadingDelimiter:paramSyntax.delimiter)+name+paramSyntax.separator+value;
+        //return src+=((src.indexOf('?')!=-1)?'&':'?')+name+'='+value;
     }
 
     @Override
@@ -161,6 +166,11 @@ public final class DataSourceImpl  extends DataSourceSupport {
         return host;
     }
     
+    
+    public ParamSyntax getParamSyntax() {
+        return paramSyntax;
+    }
+    
     @Override
     public Object clone() {
         return _clone(isReadOnly());
@@ -173,7 +183,7 @@ public final class DataSourceImpl  extends DataSourceSupport {
     
     public DataSource _clone(boolean readOnly) {
     	try {
-            return new DataSourceImpl(ThreadLocalPageContext.getConfig(),jdbc,getName(),getClassDefinition(), host, connStr, database, port, getUsername(), getPassword(), getConnectionLimit(), getConnectionTimeout(),getMetaCacheTimeout(), isBlob(), isClob(), allow, custom, readOnly, validate, isStorage(),getTimeZone(), dbdriver,getLog());
+            return new DataSourceImpl(ThreadLocalPageContext.getConfig(),jdbc,getName(),getClassDefinition(), host, connStr, database, port, getUsername(), getPassword(), getConnectionLimit(), getConnectionTimeout(),getMetaCacheTimeout(), isBlob(), isClob(), allow, custom, readOnly, validate, isStorage(),getTimeZone(), dbdriver,getParamSyntax(),getLog());
 		} catch (RuntimeException re) {
 			throw re; // this should never happens, because the class was already loaded in this object
 		} catch (Exception e) {

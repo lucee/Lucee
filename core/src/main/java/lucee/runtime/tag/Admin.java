@@ -93,6 +93,7 @@ import lucee.runtime.config.RemoteClient;
 import lucee.runtime.config.RemoteClientImpl;
 import lucee.runtime.config.XMLConfigAdmin;
 import lucee.runtime.db.ClassDefinition;
+import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
 import lucee.runtime.db.DataSourceManager;
@@ -2824,6 +2825,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         		, getString("bundleVersion",null)
         		, config.getIdentification());
         
+        // customParameterSyntax
+        Struct sct=getStruct("customParameterSyntax", null);
+        ParamSyntax ps=(sct!=null && sct.containsKey("delimiter") &&  sct.containsKey("separator") )?ParamSyntax.toParamSyntax(sct):ParamSyntax.DEFAULT;
+        
         String dsn=getString("admin",action,"dsn");
         String name=getString("admin",action,"name");
         String newName=getString("admin",action,"newName");
@@ -2847,10 +2852,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         //config.getDatasourceConnectionPool().remove(name);
         DataSource ds=null;
 		try {
-			ds = new DataSourceImpl(config,null,name,cd,host,dsn,database,port,username,password,connLimit,connTimeout,metaCacheTimeout,blob,clob,allow,custom,false,validate,storage,null, dbdriver,config.getLog("application"));
+			ds = new DataSourceImpl(config,null,name,cd,host,dsn,database,port,username,password,connLimit,connTimeout,metaCacheTimeout,blob,clob,allow,custom,false,validate,storage,null, dbdriver,ps,config.getLog("application"));
 		} catch (Exception e) {
-			throw new DatabaseException(
-					"can't find class ["+cd.toString()+"] for jdbc driver, check if driver (jar file) is inside lib folder ("+e.getMessage()+")",null,null,null);
+			throw Caster.toPageException(e);
 		}
         
         if(verify)_doVerifyDatasource(ds,username,password);
@@ -2875,7 +2879,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
                 storage,
                 timezone,
                 custom,
-		        dbdriver
+		        dbdriver,
+		        ps
         );
         store();
         adminSync.broadcast(attributes, config);

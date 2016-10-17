@@ -257,7 +257,7 @@ public final class Controler extends Thread {
 					try{DeployHandler.deploy(config);}catch(Throwable t){t.printStackTrace();}
 					
 					// clear unused DB Connections
-					try{((ConfigImpl)config).getDatasourceConnectionPool().clear();}catch(Throwable t){}
+					try{((ConfigImpl)config).getDatasourceConnectionPool().clear(false);}catch(Throwable t){}
 					// clear all unused scopes
 					try{cfmlFactory.getScopeContext().clearUnused();}catch(Throwable t){}
 					// Memory usage

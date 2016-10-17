@@ -38,6 +38,7 @@ import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.db.ApplicationDataSource;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DBUtil;
+import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.db.DBUtil.DataSourceDefintion;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
@@ -232,7 +233,7 @@ public final class AppListenerUtil {
 					true, 
 					Caster.toBooleanValue(data.get(STORAGE,null),false), 
 					Caster.toTimeZone(data.get(TIMEZONE,null),null),
-					"",log
+					"",ParamSyntax.toParamSyntax(data,ParamSyntax.DEFAULT),log
 				);
 			}
 			catch(Exception cnfe){

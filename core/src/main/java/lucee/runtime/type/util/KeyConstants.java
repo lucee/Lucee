@@ -839,6 +839,7 @@ public class KeyConstants {
 	public static final Key _ELEMENT = KeyImpl._const("ELEMENT");
 	public static final Key _WARNINGS = KeyImpl._const("WARNINGS");
 	public static final Key _VALIDATE = KeyImpl._const("VALIDATE");
+	public static final Key _ERROR = KeyImpl._const("ERROR");
 	public static final Key _ERRORS = KeyImpl._const("ERRORS");
 	public static final Key _STATUS = KeyImpl._const("STATUS");
 	public static final Key _FATALERRORS = KeyImpl._const("FATALERRORS");
@@ -920,6 +921,7 @@ public class KeyConstants {
 	public static final Key _tries = KeyImpl._const("tries");
 	public static final Key _interval = KeyImpl._const("interval");
 	public static final Key _intervall = KeyImpl._const("intervall");
+	public static final Key _STACKTRACE = KeyImpl._const("STACKTRACE");
 	
 	private static MapPro<String,Key> _____keys;
 	

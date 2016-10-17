@@ -1008,6 +1008,11 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	}
 	
 	@Override
+	public int getColumncount() {
+		return columncount;
+	}
+	
+	@Override
 	public int getCurrentrow(int pid) {
 		return arrCurrentRow.get(pid,1);
 	}

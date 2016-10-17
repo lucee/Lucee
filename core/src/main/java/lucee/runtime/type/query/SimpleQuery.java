@@ -458,9 +458,18 @@ public class SimpleQuery implements Query, ResultSet, Objects,QueryResult {
 	}
 
 	@Override
-	
 	public int getRecordcount() {
 		return recordcount;
+	}
+
+	@Override
+	public int getColumncount() {
+		return columnNames==null?0:columnNames.length;
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return recordcount+getColumnCount()==0;
 	}
 
 	@Override
@@ -514,10 +523,6 @@ public class SimpleQuery implements Query, ResultSet, Objects,QueryResult {
 		return go(index);
 	}*/
 
-	@Override
-	public boolean isEmpty() {
-		return recordcount+columnNames.length==0;
-	}
 
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {

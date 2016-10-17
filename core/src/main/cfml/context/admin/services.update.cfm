@@ -216,9 +216,9 @@ For testing
 			#updatedata.message#
 		</div>
 		<div style="overflow:auto;height:200px;border-style:solid;border-width:1px;padding:10px">
-<pre><cfloop list="#listSort(structKeyList(updateData.changelog),'textnocase')#" item="key"><!---
+<pre><cfif isStruct(updateData.changelog)><cfloop list="#listSort(structKeyList(updateData.changelog),'textnocase')#" item="key"><!---
 			---><cfif findNoCase("LDEV",key)><a target="_blank" href="http://issues.lucee.org/browse/#key#">#key#</a><cfelse><a target="_blank" href="https://bitbucket.org/lucee/lucee/issue/#key#">###key#</a></cfif> - #updateData.changelog[key]#
-</cfloop></pre></div>
+</cfloop></cfif></pre></div>
 		#jira#
 	<cfelse>
 		<h2>#stText.services.update.infoTitle#</h2>

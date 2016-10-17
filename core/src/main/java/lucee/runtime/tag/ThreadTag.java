@@ -18,7 +18,9 @@
  **/
 package lucee.runtime.tag;
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.RandomUtil;
@@ -33,6 +35,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.ext.tag.DynamicAttributes;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.spooler.ExecutionPlan;
 import lucee.runtime.spooler.ExecutionPlanImpl;
@@ -71,6 +74,16 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	
 	private static final int TYPE_DAEMON = 0;
 	private static final int TYPE_TASK = 1;
+
+	public static final int LEVEL_KIDS = 1;
+	public static final int LEVEL_PARENTS = 2;
+	public static final int LEVEL_CURRENT = 4;
+	public static final int LEVEL_ALL = LEVEL_KIDS+LEVEL_PARENTS+LEVEL_CURRENT;
+	
+	
+	
+	
+	
 	private static final ExecutionPlan[] EXECUTION_PLAN = new ExecutionPlan[0];
 	
 	private int action=ACTION_RUN;
@@ -282,16 +295,18 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	public void register(Page currentPage, int threadIndex) throws PageException	{
 		if(ACTION_RUN!=action) return;
 		
-		if(((PageContextImpl)pc).getParentPageContext()!=null)
+		
+		if(!((ApplicationContextSupport)pageContext.getApplicationContext()).deepThread() && ((PageContextImpl)pc).getParentPageContext()!=null)
 			throw new ApplicationException("could not create a thread within a child thread");
 		Key name = name(true);
 		try {
-			Threads ts = pc.getThreadScope(name);
+			Threads ts = ThreadTag.getThreadScope(pc,name,ThreadTag.LEVEL_ALL); // pc.getThreadScope(name);
 			
 			if(type==TYPE_DAEMON){
 				if(ts!=null)
 					throw new ApplicationException("could not create a thread with the name ["+name.getString()+"]. name must be unique within a request");
 				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc,currentPage,name.getString(),threadIndex,attrs,false);
+
 				pc.setThreadScope(name,new ThreadsImpl(ct));
 				ct.setPriority(priority);
 				ct.setDaemon(false);
@@ -312,6 +327,101 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		}
 	}
 	
+
+	public static java.util.Collection<String> getThreadScopeNames(PageContext pc, boolean recurive) {
+		return getThreadScopeNames(pc, 
+				recurive?
+						LEVEL_CURRENT+LEVEL_KIDS:
+						LEVEL_CURRENT);
+	}
+
+	public static java.util.Collection<String> getThreadScopeNames(PageContext pc, int level) {
+		String[] names=null;
+		java.util.Collection<String> result=new HashSet<String>();
+		
+		// current
+		if((level&LEVEL_CURRENT)>0) {
+			names=pc.getThreadScopeNames();
+			if(names!=null)for(int i=0;i<names.length;i++) {
+				result.add(names[i]);
+			}
+		}
+		// parent
+		if((level&LEVEL_PARENTS)>0) {
+			PageContext parent=pc.getParentPageContext();
+			while(parent!=null) {
+				names=parent.getThreadScopeNames();
+				if(names!=null)for(int i=0;i<names.length;i++) {
+					result.add(names[i]);
+				}
+				parent=parent.getParentPageContext();
+			}
+		}
+		// children
+		if((level&LEVEL_KIDS)>0 && pc.hasFamily()) {
+			getKidsThreadScopeNames(((PageContextImpl)pc).getChildPageContexts(),result,0);
+		}
+		return result;
+	}
+	
+	private static void getKidsThreadScopeNames(List<PageContext> pageContexts,java.util.Collection<String> result, int level) {
+		if(pageContexts==null || pageContexts.isEmpty()) return;
+		
+		String[] names=null;
+		Iterator<PageContext> it = pageContexts.iterator();
+		PageContext pc;
+		while(it.hasNext()) {
+			pc=it.next();
+			names=pc.getThreadScopeNames();
+
+			if(names!=null)for(int i=0;i<names.length;i++) {
+				result.add(names[i]);
+			}
+			
+			getKidsThreadScopeNames(((PageContextImpl)pc).getChildPageContexts(),result,level+1);
+		}
+	}
+
+	public static Threads getThreadScope(PageContext pc, Key name, int level) {
+		Threads t=null;
+		// current
+		if((level&LEVEL_CURRENT)>0) {
+			t=pc.getThreadScope(name);
+			if(t!=null) return t;
+		}
+		// parent
+		if((level&LEVEL_PARENTS)>0) {
+			PageContext parent=pc.getParentPageContext();
+			while(parent!=null) {
+				t=parent.getThreadScope(name);
+				if(t!=null) return t;
+				parent=parent.getParentPageContext();
+			}
+		}
+		// children
+		if((level&LEVEL_KIDS)>0 && pc.hasFamily()) {
+			t=getKidsThreadScope(((PageContextImpl)pc).getChildPageContexts(),name);
+			if(t!=null) return t;
+		}
+		return t;
+	}
+	
+	private static Threads getKidsThreadScope(List<PageContext> pageContexts, Key name) {
+		if(pageContexts==null || pageContexts.isEmpty()) return null;
+		
+		Threads t;
+		Iterator<PageContext> it = pageContexts.iterator();
+		PageContext pc;
+		while(it.hasNext()) {
+			pc=it.next();
+			t=pc.getThreadScope(name);
+			if(t!=null) return t;
+			t=getKidsThreadScope(((PageContextImpl)pc).getChildPageContexts(),name);
+			return t;
+		}
+		return null;
+	}
+
 	private void doSleep() throws ExpressionException {
 		if(duration>=0) {
 			SystemUtil.sleep(duration);
@@ -321,12 +431,12 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	}
 
     private void doJoin() throws ApplicationException {
-    	PageContextImpl mpc=(PageContextImpl)getMainPageContext(pc);
+    	//PageContextImpl mpc=(PageContextImpl)getMainPageContext(pc);
 		
-    	String[] names;
+    	String[] names,all=null;
     	Key name = name(false);
     	if(name==null) {
-    		names=mpc.getThreadScopeNames();
+    		all=names=ListUtil.toStringArray(ThreadTag.getThreadScopeNames(pc, ThreadTag.LEVEL_CURRENT+ThreadTag.LEVEL_KIDS)); // mpc.getThreadScopeNames();
     	}
     	else names=ListUtil.listToStringArray(name.getLowerString(), ',');
     	
@@ -337,9 +447,14 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
     	for(int i=0;i<names.length;i++) {
     		if(StringUtil.isEmpty(names[i],true))continue;
     		//PageContextImpl mpc=(PageContextImpl)getMainPageContext(pc);
-    		ts = mpc.getThreadScope(names[i]);
-    		if(ts==null)
-    			throw new ApplicationException("there is no thread running with the name ["+names[i]+"], only the following threads existing ["+ListUtil.arrayToList(mpc.getThreadScopeNames(),", ")+"]");
+    		ts = ThreadTag.getThreadScope(pc, KeyImpl.init(names[i]), ThreadTag.LEVEL_CURRENT+ThreadTag.LEVEL_KIDS);//mpc.getThreadScope(names[i]);
+    		if(ts==null) {
+    			if(all==null)all=ListUtil.toStringArray(ThreadTag.getThreadScopeNames(pc, ThreadTag.LEVEL_CURRENT+ThreadTag.LEVEL_KIDS)); // mpc.getThreadScopeNames();
+    			
+    			throw new ApplicationException("there is no thread running with the name ["+
+    											names[i]+"], only the following threads existing ["+
+    											ListUtil.arrayToList(all,", ")+"]");
+    		}
     		ct=ts.getChildThread();
     		
     		if(ct.isAlive()) {
@@ -354,12 +469,12 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
     			if(_timeout<1) break;
     		}
     	}
-    	
     }
+    
 	private void doTerminate() throws ApplicationException {
-		PageContextImpl mpc=(PageContextImpl)getMainPageContext(pc);
+		//PageContextImpl mpc=(PageContextImpl)getMainPageContext(pc);
 		
-		Threads ts = mpc.getThreadScope(nameAsString(false));
+		Threads ts = ThreadTag.getThreadScope(pc, KeyImpl.init(nameAsString(false)), ThreadTag.LEVEL_CURRENT+ThreadTag.LEVEL_KIDS); //mpc.getThreadScope(nameAsString(false));
 		
 		if(ts==null)
 			throw new ApplicationException("there is no thread running with the name ["+nameAsString(false)+"]");
@@ -372,11 +487,11 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		
 	}
 
-	private PageContext getMainPageContext(PageContext pc) {
+	/*private PageContext getMainPageContext(PageContext pc) {
 		if(pc==null)pc=pageContext;
 		if(pc.getParentPageContext()==null) return pc;
 		return pc.getParentPageContext();
-	}
+	}*/
 
 	@Override
 	public void doInitBody()	{

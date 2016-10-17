@@ -39,6 +39,7 @@
 			
 			classname="#driver.getClass()#"
 			dsn="#driver.getDSN()#"
+			customParameterSyntax="#isNull(driver.customParameterSyntax)?nullValue():driver.customParameterSyntax()#"
 						
 			name="#form.name#"
 			newName="#form.newName#"
@@ -79,7 +80,7 @@
 
 		<cflocation url="#request.self#?action=#url.action##v#" addtoken="no">
 	</cfif>
-	<cfcatch>
+	<cfcatch><cfrethrow>
 		<cfset driver.onBeforeError(cfcatch)>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
@@ -113,10 +114,10 @@
 			name="#_name#"
 			returnVariable="datasource">
 
-		<cftry>
+		<!--- <cftry> TODO add again with timeout
 			<cfdbinfo type="Version" datasource="#_name#" name='dbinfo'>
 			<cfcatch></cfcatch>
-		</cftry>
+		</cftry> --->
 		
 		<cfset datasource._password=datasource.password>
 		<cfset datasource.password="****************">

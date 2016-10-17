@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 
+import lucee.print;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -57,6 +58,7 @@ import lucee.runtime.type.scope.Local;
 import lucee.runtime.type.scope.LocalImpl;
 import lucee.runtime.type.scope.Threads;
 import lucee.runtime.type.scope.Undefined;
+import lucee.runtime.type.util.KeyConstants;
 
 public class ChildThreadImpl extends ChildThread implements Serializable {
 
@@ -67,9 +69,9 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 	//private static final Set EMPTY = new HashSet(); 
 	
 	private int threadIndex;
-	private PageContextImpl parent;
+	private PageContextImpl parent=null;
 	PageContextImpl pc =null;
-	private String tagName;
+	private final String tagName;
 	private long start;
 	private Threads scope;
 	
@@ -89,9 +91,9 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 	private SerializableCookie[] cookies;
 	private String serverName;
 	private String queryString;
-	private Pair[] parameters;
+	private Pair<String,String>[] parameters;
 	private String requestURI;
-	private Pair[] headers;
+	private Pair<String,String>[] headers;
 	private Struct attributes;
 	private String template;
 	private long requestTimeout;
@@ -101,6 +103,8 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 	String contentType;
 
 	String contentEncoding;
+
+	private Object threadScope;
 	
 	
 	public ChildThreadImpl(PageContextImpl parent,Page page, String tagName,int threadIndex, Struct attrs, boolean serializable) {
@@ -121,7 +125,6 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 				catch(ConcurrentModificationException e){// MUST search for:hhlhgiug
 					this.parent=ThreadUtil.clonePageContext(parent, output,false,false,true,true);
 				}
-				//this.parent=parent;
 			}
 		}
 		else {
@@ -150,7 +153,6 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 	}
 	public PageException execute(Config config) {
 		PageContext oldPc = ThreadLocalPageContext.get();
-		
 		Page p=page;
 		try {
 			if(parent!=null){
@@ -173,7 +175,8 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 				}
 					pc.addPageSource(p.getPageSource(), true);
 			}
-			pc.setThreadScope("thread", new ThreadsImpl(this));
+			threadScope=pc.getThreadScope(KeyConstants._cfthread,null);
+			pc.setCurrentThreadScope(new ThreadsImpl(this));
 			pc.setThread(Thread.currentThread());
 			
 			//String encodings = pc.getHttpServletRequest().getHeader("Accept-Encoding");
@@ -210,7 +213,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 						if(log!=null)LogUtil.log(log,Log.LEVEL_ERROR,this.getName(), t);
 					}
 					PageException pe = Caster.toPageException(t);
-					if(!serializable)catchBlock=pe.getCatchBlock(pc);
+					if(!serializable)catchBlock=pe.getCatchBlock(pc.getConfig());
 					return pe;
 				}
 			}
@@ -252,9 +255,13 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 		return start;
 	}
 
-	public Threads getThreadScope() {
+	/*public Threads getThreadScopeX() {
 		if(scope==null) scope=new ThreadsImpl(this);
 		return scope;
+	}*/
+	
+	public Object getThreads() {
+		return threadScope;
 	}
 
 	@Override

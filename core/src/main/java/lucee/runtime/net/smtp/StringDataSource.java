@@ -34,9 +34,9 @@ import org.apache.commons.lang.WordUtils;
 
 public final class StringDataSource implements DataSource {
 
-	private String text;
-	private String ct;
-	private CharSet charset;
+	private final String text;
+	private final String ct;
+	private final CharSet charset;
 
 	public final static char CR = (char) 13;
 	public final static char LF = (char) 10;
@@ -55,7 +55,7 @@ public final class StringDataSource implements DataSource {
 
 	@Override
 	public InputStream getInputStream() throws IOException {
-		return new ByteArrayInputStream(text.getBytes(CharsetUtil.toCharset(charset)));
+		return new ByteArrayInputStream(charset==null?text.getBytes():text.getBytes(CharsetUtil.toCharset(charset)));
 	}
 
 	@Override

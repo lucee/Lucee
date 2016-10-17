@@ -75,7 +75,7 @@ public class CFFunction {
 		if(objArr.length<=3)arguments=ArrayUtil.OBJECT_EMPTY;
 		else if(objArr[3] instanceof FunctionValue){
 			FunctionValue fv;
-			namedArguments=new StructImpl();
+			namedArguments=new StructImpl(Struct.TYPE_LINKED);
 			if(callerScopes)	namedArguments.setEL(KeyConstants._caller, cs);
 			else if(caller)		namedArguments.setEL(KeyConstants._caller, Duplicator.duplicate(pc.undefinedScope(),false));
 			for(int i=3;i<objArr.length;i++){

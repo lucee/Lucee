@@ -1523,4 +1523,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		authCookie=data;
 		initAuthCookie=true;
 	}
+
+	@Override
+	public boolean deepThread() {
+		return Caster.toBooleanValue(get(component,KeyImpl.init("deepThread"),null),false);
+	}
 }
