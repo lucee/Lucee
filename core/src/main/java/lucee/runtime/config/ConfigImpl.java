@@ -547,11 +547,11 @@ public abstract class ConfigImpl implements Config {
     protected void setFLDs(FunctionLib[] flds, int dialect) {
     	if(dialect==CFMLEngine.DIALECT_CFML){
     		cfmlFlds=flds;
-    		if(cfmlFlds!=flds)combinedCFMLFLDs=null; // TODO improve check (hash) 
+    		combinedCFMLFLDs=null; // TODO improve check (hash) 
     	}
     	else {
     		luceeFlds=flds;
-    		if(luceeFlds!=flds)combinedLuceeFLDs=null; // TODO improve check (hash) 
+    		combinedLuceeFLDs=null; // TODO improve check (hash) 
     	}
     }
     
@@ -746,7 +746,7 @@ public abstract class ConfigImpl implements Config {
     
     public Password isPasswordEqual(String password) {
     	if(this.password==null) return null;
-    	return this.password.isEqual(this,password);
+    	return ((PasswordImpl)this.password).isEqual(this,password);
     }
     
     @Override
@@ -1246,7 +1246,6 @@ public abstract class ConfigImpl implements Config {
     }
     
     protected void setFunctionDirectory(Resource functionDirectory) {
-    	//this.functionDirectory=functionDirectory;
     	this.functionMapping= new MappingImpl(this,"/mapping-function/",functionDirectory.getAbsolutePath(),null,ConfigImpl.INSPECT_NEVER,true,true,true,true,false,true,null,-1,-1);
     	FunctionLib flc=cfmlFlds[cfmlFlds.length-1];
     	FunctionLib fll=luceeFlds[luceeFlds.length-1];
@@ -1260,8 +1259,9 @@ public abstract class ConfigImpl implements Config {
             	if(fll!=null)createFunction(fll, files[i]);
                     
             }
+            combinedCFMLFLDs=null;
+            combinedLuceeFLDs=null;
         }
-        
     }
     
     public void createFunction(FunctionLib fl,String filename) {

@@ -522,12 +522,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			throw new ApplicationException( _getErrorMessage(cUdf,iUdf),
 				"return type ["+cUdf.getReturnTypeAsString()+"] does not match the "+("abstract component/interface")+" function return type ["+iUdf.getReturnTypeAsString()+"]");
 		}
-// output
-		if(iUdf.getOutput()!=cUdf.getOutput()){
-			throw new ApplicationException( _getErrorMessage(cUdf,iUdf),
-				"output does not match the "+("abstract component/interface")+" function output definition");
-		}
-		
+
 // arguments
 		if(iFA.length!=cFA.length) {
 			throw new ApplicationException( _getErrorMessage(cUdf,iUdf),"not the same argument count");

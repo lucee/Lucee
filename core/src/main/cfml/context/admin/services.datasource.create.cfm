@@ -113,10 +113,10 @@
 			name="#_name#"
 			returnVariable="datasource">
 
-		<cftry>
+		<!--- <cftry> TODO add again with timeout
 			<cfdbinfo type="Version" datasource="#_name#" name='dbinfo'>
 			<cfcatch></cfcatch>
-		</cftry>
+		</cftry> --->
 		
 		<cfset datasource._password=datasource.password>
 		<cfset datasource.password="****************">

@@ -425,7 +425,7 @@ public class RHExtension implements Serializable {
 					applications.add(sub);
 				
 				// components
-				if(!entry.isDirectory() && (startsWith(path,type,"components")) && !StringUtil.startsWith(fileName(entry), '.'))
+				if(!entry.isDirectory() && (startsWith(path,type,"components")) && !StringUtil.startsWith(fileName(entry), '.')) 
 					components.add(sub);
 				
 				// plugins

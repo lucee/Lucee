@@ -4717,9 +4717,9 @@ public final class XMLConfigAdmin {
 				}
 				// components
 				if(!entry.isDirectory() && (startsWith(path,type,"components")) && !StringUtil.startsWith(fileName(entry), '.')) {
-					realpath=path.substring(13);
+					realpath=path.substring(11);
 	        		logger.log(Log.LEVEL_INFO,"extension","deploy component "+realpath);
-	        		updateComponent( zis, realpath,false);
+	        		updateComponent( zis, realpath,false,false);
 				}
 				
 				// plugins
@@ -4904,6 +4904,7 @@ public final class XMLConfigAdmin {
 
 			// reload
 			//if(reloadNecessary){
+			reloadNecessary=true;
 				if(reload && reloadNecessary)
 					_storeAndReload();
 				else
@@ -5774,11 +5775,7 @@ public final class XMLConfigAdmin {
         if(store)_storeAndReload((ConfigImpl)config);
     }
 	
-	Resource[] updateContext(InputStream is,String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
-    	List<Resource> filesDeployed=new ArrayList<Resource>();
-    	_updateContext(config, is, realpath, closeStream, filesDeployed,store);
-    	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
-    }
+	
 	
 	/*static Resource[] updateContext(ConfigImpl config,InputStream is,String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
     	List<Resource> filesDeployed=new ArrayList<Resource>();
@@ -5786,11 +5783,29 @@ public final class XMLConfigAdmin {
     	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
     }*/
 
+	Resource[] updateComponent(InputStream is,String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
+    	List<Resource> filesDeployed=new ArrayList<Resource>();
+    	_updateComponent(config, is, realpath, closeStream, filesDeployed,store);
+    	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
+    }
+	private static void _updateComponent(Config config,InputStream is,String realpath, boolean closeStream,List<Resource> filesDeployed, boolean store) throws PageException, IOException, SAXException, BundleException {
+		Resource comps = config.getConfigDir().getRealResource("components"); // MUST get that dynamically
+		Resource trg = comps.getRealResource(realpath);
+		if(trg.exists()) trg.remove(true);
+        Resource p = trg.getParentResource();
+        if(!p.isDirectory()) p.createDirectory(true); 
+        IOUtil.copy(is, trg.getOutputStream(false), closeStream,true);
+        filesDeployed.add(trg);
+        if(store)_storeAndReload((ConfigImpl)config);
+    }
+	
+	Resource[] updateContext(InputStream is,String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
+    	List<Resource> filesDeployed=new ArrayList<Resource>();
+    	_updateContext(config, is, realpath, closeStream, filesDeployed,store);
+    	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
+    }
 	private static void _updateContext(Config config,InputStream is,String realpath, boolean closeStream,List<Resource> filesDeployed, boolean store) throws PageException, IOException, SAXException, BundleException {
-		//if(!(config instanceof ConfigServer))
-		//	throw new ApplicationException("invalid context, you can only call this method from server context");
-
-        Resource trg = config.getConfigDir().getRealResource("context").getRealResource(realpath);
+		Resource trg = config.getConfigDir().getRealResource("context").getRealResource(realpath);
         if(trg.exists()) trg.remove(true);
         Resource p = trg.getParentResource();
         if(!p.isDirectory()) p.createDirectory(true); 
@@ -5836,7 +5851,31 @@ public final class XMLConfigAdmin {
         filesDeployed.add(trg);
         _storeAndReload((ConfigImpl)config);
     }
+	
 
+	public boolean removeComponents(Config config, boolean store,String... realpathes) throws PageException, IOException, SAXException, BundleException {
+		if(ArrayUtil.isEmpty(realpathes)) return false;
+		boolean force=false;
+		for(int i=0;i<realpathes.length;i++){
+			if(_removeContext(config, realpathes[i],store))
+				force=true;
+		}
+		return force;
+	}
+	
+	private boolean _removeComponent(Config config,String realpath, boolean _store) throws PageException, IOException, SAXException, BundleException {
+    	
+    	Resource context = config.getConfigDir().getRealResource("components"); // MUST get dyn
+    	Resource trg = context.getRealResource(realpath);
+    	if(trg.exists()) {
+        	trg.remove(true);
+        	if(_store) XMLConfigAdmin._storeAndReload((ConfigImpl) config);
+        	ResourceUtil.removeEmptyFolders(context,null);
+        	return true;
+        }
+        return false;
+    }
+	
 	public boolean removeContext(Config config, boolean store,String... realpathes) throws PageException, IOException, SAXException, BundleException {
 		if(ArrayUtil.isEmpty(realpathes)) return false;
 		boolean force=false;
@@ -5909,9 +5948,6 @@ public final class XMLConfigAdmin {
     }
 	
 
-	Resource[] updateComponent(InputStream is,String realpath, boolean closeStream) throws PageException, IOException, SAXException {
-    	throw new ApplicationException("not supported yet!");
-    }
 
 	private void deployFilesFromStream(Config config,Resource root, InputStream is,String realpath, boolean closeStream,List<Resource> filesDeployed) throws PageException, IOException, SAXException {
     	if(config instanceof ConfigServer) {
@@ -5954,10 +5990,6 @@ public final class XMLConfigAdmin {
 		for(int i=0;i<realpathes.length;i++){
 			removeFiles(config, config.getRootDirectory(), realpathes[i]);
 		}
-	}
-
-	private void removeComponents(Config config, String[] realpathes) throws PageException, IOException, SAXException {
-		throw new ApplicationException("not supported yet!");
 	}
 	
 	private void removeFiles(Config config,Resource root, String realpath) throws PageException, IOException, SAXException {
@@ -6034,7 +6066,7 @@ public final class XMLConfigAdmin {
 
   				// components
   				arr=_removeExtensionCheckOtherUsage(children,el,"components");
-  				removeComponents(config, arr);
+  				removeComponents(config, false, arr);
   				
   				// plugins
   				arr=_removeExtensionCheckOtherUsage(children,el,"plugins");

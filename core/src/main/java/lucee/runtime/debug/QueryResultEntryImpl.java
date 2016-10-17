@@ -20,11 +20,12 @@ package lucee.runtime.debug;
 
 import lucee.runtime.db.SQL;
 import lucee.runtime.type.Query;
+import lucee.runtime.type.query.QueryResult;
 
 /**
  * 
  */
-public final class QueryEntryImpl implements QueryEntry {
+public final class QueryResultEntryImpl implements QueryEntry {
 
 	private static final long serialVersionUID = 8655915268130645466L;
 	
@@ -34,7 +35,7 @@ public final class QueryEntryImpl implements QueryEntry {
     private final String name;
     private final int recordcount;
     private final String datasource;
-	private final Query qry;
+	private final QueryResult qr;
 	private final long startTime;
 	
 	/**
@@ -44,7 +45,7 @@ public final class QueryEntryImpl implements QueryEntry {
 	 * @param src
 	 * @param exe
 	 */
-	public QueryEntryImpl(Query qry,String datasource, String name,SQL sql,int recordcount, String src, long exe) {
+	public QueryResultEntryImpl(QueryResult qr,String datasource, String name,SQL sql,int recordcount, String src, long exe) {
 		this.startTime=System.currentTimeMillis()-(exe/1000000);
 		this.datasource=datasource;
         this.recordcount=recordcount;
@@ -52,12 +53,18 @@ public final class QueryEntryImpl implements QueryEntry {
 	    this.src=src;
 		this.sql=sql;
 		this.exe=exe;
-		this.qry=qry;
+		this.qr=qr;
 	}
 	
 	@Override
-	public Query getQry() {
-		return qry;
+	public Query getQry() { // FUTURE deprecate
+		if(qr instanceof Query)
+			return (Query)qr;
+		return null;
+	}
+	
+	public QueryResult getQueryResult() {
+		return qr;
 	}
 	
 	@Override
@@ -99,6 +106,6 @@ public final class QueryEntryImpl implements QueryEntry {
 
 	@Override
 	public String getCacheType() {
-		return qry==null?null:qry.getCacheType();
+		return qr==null?null:qr.getCacheType();
 	}
 }

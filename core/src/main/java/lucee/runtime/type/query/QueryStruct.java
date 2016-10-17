@@ -7,10 +7,13 @@ import lucee.runtime.db.SQL;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
+import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.Collection.Key;
 
 public class QueryStruct extends StructImpl implements QueryResult {
 	
@@ -115,6 +118,11 @@ public class QueryStruct extends StructImpl implements QueryResult {
 	public int getRecordcount() {
 		return size();
 	}
+	
+	@Override
+	public int getColumncount() {
+		return columnNames==null?0:columnNames.length;
+	}
 
 	@Override
 	public int getUpdateCount() {
@@ -137,4 +145,26 @@ public class QueryStruct extends StructImpl implements QueryResult {
 		this.columnNames=columnNames;
 	}
 
+	
+	public static QueryStruct toQueryStruct(lucee.runtime.type.Query q, Key columnName) throws PageException {
+		QueryStruct qs = new QueryStruct(q.getName(), q.getSql(), q.getTemplate());
+		qs.setCacheType(q.getCacheType());
+		qs.setColumnNames(q.getColumnNames());
+		qs.setExecutionTime(q.getExecutionTime());
+		qs.setUpdateCount(q.getUpdateCount());
+		
+		int rows=q.getRecordcount();
+		if(rows==0) return qs;
+		Key[] columns = q.getColumnNames();
+		
+		Struct tmp;
+		for(int r=1;r<=rows;r++) {
+			tmp=new StructImpl();
+			qs.set(Caster.toKey(q.getAt(columnName, r)), tmp);
+			for(Key c:columns) {
+				tmp.setEL(c, q.getAt(c, r,null));
+			}
+		}
+		return qs;
+	}
 }

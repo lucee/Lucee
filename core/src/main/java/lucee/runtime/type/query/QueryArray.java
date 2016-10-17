@@ -11,6 +11,8 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 
 public class QueryArray extends ArrayImpl implements QueryResult {
 	
@@ -110,15 +112,15 @@ public class QueryArray extends ArrayImpl implements QueryResult {
 	public String getName() {
 		return name;
 	}
-	
-	@Override
-	public boolean isEmpty() {
-		return size()==0;
-	}
 
 	@Override
 	public int getRecordcount() {
 		return size();
+	}
+	
+	@Override
+	public int getColumncount() {
+		return columnNames==null?0:columnNames.length;
 	}
 
 	@Override
@@ -140,6 +142,29 @@ public class QueryArray extends ArrayImpl implements QueryResult {
 	@Override
 	public void setColumnNames(Key[] columnNames) throws PageException{
 		this.columnNames=columnNames;
+	}
+
+	public static QueryArray toQueryArray(lucee.runtime.type.Query q) throws PageException {
+		QueryArray qa = new QueryArray(q.getName(), q.getSql(), q.getTemplate());
+		qa.setCacheType(q.getCacheType());
+		qa.setColumnNames(q.getColumnNames());
+		qa.setExecutionTime(q.getExecutionTime());
+		qa.setUpdateCount(q.getUpdateCount());
+		
+		
+		
+		int rows=q.getRecordcount();
+		if(rows==0) return qa;
+		Key[] columns = q.getColumnNames();
+		
+		Struct tmp;
+		for(int r=1;r<=rows;r++) {
+			qa.add(tmp=new StructImpl());
+			for(Key c:columns) {
+				tmp.set(c, q.getAt(c, r,null));
+			}
+		}
+		return qa;
 	}
 
 }

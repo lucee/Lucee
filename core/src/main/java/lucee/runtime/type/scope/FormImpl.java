@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2014, the Railo Company Ltd.
- * Copyright (c) 2015, Lucee Assosication Switzerland
+ * Copyright (c) 2016, Lucee Assosication Switzerland
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -60,7 +60,8 @@ import org.apache.commons.fileupload.servlet.ServletRequestContext;
  * Form Scope
  */
 public final class FormImpl extends ScopeSupport implements Form,ScriptProtected {
-	
+
+	private static final long serialVersionUID = -2618472604584253354L;
 
 	private byte EQL=61;
 	private byte NL=10;
@@ -321,8 +322,8 @@ public final class FormImpl extends ScopeSupport implements Form,ScriptProtected
 	
 	@Override
 	public FormItem getUploadResource(String key) {
-		key=key.trim();
-		String lcKey = StringUtil.toLowerCase(key);
+		
+		final String keyC = makeComparable(key);
 		
 		if(_fileItems==null || _fileItems.isEmpty()) return null;
 		
@@ -332,31 +333,31 @@ public final class FormImpl extends ScopeSupport implements Form,ScriptProtected
 		while(it.hasNext()) {
 			entry=it.next();
 			item = entry.getValue();
-			// x
-			if(item.getFieldName().equalsIgnoreCase(key)) return item;
-			
-			// form.x
-			if(lcKey.startsWith("form.")) {
-				lcKey=lcKey.substring(5).trim();
-				if(item.getFieldName().equalsIgnoreCase(lcKey))return item;
-			}
-			
-			// form . x
-			try {
-				Array array =  ListUtil.listToArray(lcKey, '.');
-				if(array.size()>1 && array.getE(1).toString().trim().equals("form")) {
-					array.removeE(1);
-					lcKey=ListUtil.arrayToList(array, ".").trim();
-					if(item.getFieldName().equalsIgnoreCase(lcKey))return item;
-				}
-			} 
-			catch (PageException e) {}
+			if(item.getFieldName().equalsIgnoreCase(keyC)) return item;
 			
 			// /file.tmp
 			if(item.getResource().getAbsolutePath().equalsIgnoreCase(key))return item;
 			if(entry.getKey().equalsIgnoreCase(key))return item;
 		}
 		return null;
+	}
+
+	private String makeComparable(String key) {
+		key=StringUtil.trim(key, "");
+		
+		// form.x
+		if(StringUtil.startsWithIgnoreCase(key,"form.")) key=key.substring(5).trim();
+		
+		// form . x
+		try {
+			Array array =  ListUtil.listToArray(key, '.');
+			if(array.size()>1 && array.getE(1).toString().trim().equalsIgnoreCase("form")) {
+				array.removeE(1);
+				key=ListUtil.arrayToList(array, ".").trim();
+			}
+		} 
+		catch (PageException e) {}
+		return key;
 	}
 
 	@Override

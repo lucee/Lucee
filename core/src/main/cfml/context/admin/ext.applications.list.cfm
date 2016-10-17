@@ -130,7 +130,6 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 
 <cfif isQuery(external)>
 	<div class="extensionlist">
-
 		<cfoutput query="#external#" group="id">
 			<cfif !StructKeyExists(existing,external.id)
 			and (isnull(external.releaseType) 
@@ -141,8 +140,8 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 			and (
 				session.extFilter.filter2 eq ""
 				or doFilter(session.extFilter.filter2,external.name,false)
-				or doFilter(session.extFilter.filter2,data.category,false)
-				or doFilter(session.extFilter.filter2,info.title,false)
+				or doFilter(session.extFilter.filter2,external.category,false)
+				or doFilter(session.extFilter.filter2,info.title?:'',false)
 			)
 			>
 			
