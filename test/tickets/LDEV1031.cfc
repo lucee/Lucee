@@ -51,6 +51,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		q = new Query(
 			sql = "insert into T1031(id, i, vc) values(1,2,'3')"
 		);
+		q.execute();
 	}
 } 
 </cfscript>
