@@ -87,8 +87,7 @@
 		<cfset local.tagParams = getParams()>	
 		<cfset local.resultVar = "">
 		<cfset local.result = new Result()>
-		<cfset local.tagResult = "">
-
+		
 		<!--- Makes the attributes available in local scope. Es : query of queries --->
 		<cfset structAppend(local,tagAttributes,true)>
 		
@@ -101,7 +100,7 @@
 				<cfset local.qArray = getQArray()>
 				<!--- declare the query local var --->
 				
-				<cfquery name="local.___q" attributeCollection="#tagAttributes#" result="tagResult">
+				<cfquery name="local.___q" attributeCollection="#tagAttributes#" result="local.tagResult">
 					<cfloop array="#local.qArray#" index="Local.item"><!---
 						!---><cfif structKeyExists(item,'type') and item.type eq 'string'><!---
 							!--->#preserveSingleQuotes(item.value)#<!---
@@ -110,8 +109,8 @@
 						!---></cfif></cfloop>
 				</cfquery>
 				
-				<cfset result.setResult(local.___q)>			
-				<cfset result.setPrefix(tagResult)>
+				<cfif !isNull(local.___q)><cfset result.setResult(local.___q)></cfif>			
+				<cfif !isNull(local.tagResult)><cfset result.setPrefix(local.tagResult)></cfif>
 				
 				<cfreturn result>
 			</cfcase>
@@ -127,11 +126,11 @@
 				<cfif structkeyExists(tagAttributes,'action') and tagAttributes.action eq 'listdir'>
 					<cfset tagAttributes.name = 'local.___q' >
 				</cfif>
-				<cfftp attributeCollection="#tagAttributes#" result="tagResult"/>
+				<cfftp attributeCollection="#tagAttributes#" result="local.tagResult"/>
 				<cfif tagAttributes["action"] eq "listdir">
-	                  <cfset result.setResult(local.___q)>
+	                  <cfif !isNull(local.___q)><cfset result.setResult(local.___q)></cfif>
 				</cfif>
-				<cfset result.setPrefix(tagResult)>
+				<cfif !isNull(local.tagResult)><cfset result.setPrefix(local.tagResult)></cfif>
 			</cfcase>
 			
 			<!--- cfhttp --->
