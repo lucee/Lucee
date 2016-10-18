@@ -236,7 +236,7 @@ public abstract class PageExceptionImpl extends PageException {
 				
 				if(!res.exists()) {
 					PageSource _ps = pc==null?null:pc.getPageSource(template);
-					res=_ps.getPhyscalFile();
+					res=_ps==null?null:_ps.getPhyscalFile();
 					if(res==null || !res.exists()) {
 						res=config.getResource(_ps.getDisplayPath());
 						if(res!=null && res.exists()) dspPath=res.getAbsolutePath();
