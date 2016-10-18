@@ -20,9 +20,12 @@ package lucee.runtime.functions.system;
 
 import java.util.Iterator;
 
+import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageSource;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -52,20 +55,15 @@ public final class CallStackGet implements Function {
 	}
 
 	public static Object call(PageContext pc, String type) throws PageException {
-
 		Array arr = (Array)call(pc);
-
 		if ( type.equalsIgnoreCase( "array" ) )
 			return arr;
 
 		if ( type.equalsIgnoreCase( "json" ) ) {
-
 			try {
-
 				return new JSONConverter(true,null).serialize( pc, arr, false );
 			}
 			catch (Throwable t) {
-
 				throw Caster.toPageException( t );
 			}
 		}
@@ -77,51 +75,34 @@ public final class CallStackGet implements Function {
 		Iterator it = arr.valueIterator();
 
 		if ( type.equalsIgnoreCase( "text" ) || type.equalsIgnoreCase( "string" ) ) {
-
 			while (it.hasNext()) {
-
 				struct = (Struct)it.next();
-
 				sb.append( (String)struct.get( KeyConstants._template ) );
-
 				func = (String)struct.get( KeyConstants._function );
 				if ( !func.isEmpty() ) {
 					sb.append( '.' ).append( func ).append( "()" );
 				}
-
 				sb.append( ':' ).append( ((Double)struct.get( LINE_NUMBER )).intValue() );
-
 				if ( it.hasNext() )
 					sb.append( "; " );
 			}
-
 			return sb.toString();
 		}
 
 		if ( type.equalsIgnoreCase( "html" ) ) {
-
 			sb.append( "<ul class='-lucee-array'>" );
-
 			while (it.hasNext()) {
-
 				struct = (Struct)it.next();
-
 				sb.append( "<li>" );
-
 				sb.append( (String)struct.get( KeyConstants._template ) );
-
 				func = (String)struct.get( KeyConstants._function );
 				if ( !func.isEmpty() ) {
 					sb.append( '.' ).append( func ).append( "()" );
 				}
-
 				sb.append( ':' ).append( ((Double)struct.get( LINE_NUMBER )).intValue() );
-
 				sb.append( "</li>" );
 			}
-
 			sb.append("</ul>");
-
 			return sb.toString();
 		}
 
@@ -160,9 +141,25 @@ public final class CallStackGet implements Function {
 				template=ExpandPath.call(pc, template);
 			}
 			catch (PageException e) {}*/
-			item.setEL(KeyConstants._template,template);
+			item.setEL(KeyConstants._template,abs((PageContextImpl)pc,template));
 			item.setEL(lineNumberName,new Double(line));
 			tagContext.appendEL(item);
 		}
+	}
+
+	private static String abs(PageContextImpl pc, String template) {
+		ConfigWeb config = pc.getConfig();
+		
+		Resource res = config.getResource(template);
+		if(res.exists()) return template;
+		
+		PageSource ps = pc==null?null:pc.getPageSource(template);
+		res = ps==null?null:ps.getPhyscalFile();
+		if(res==null || !res.exists()) {
+			res=config.getResource(ps.getDisplayPath());
+			if(res!=null && res.exists()) return res.getAbsolutePath();
+		}
+		else return res.getAbsolutePath();
+		return template;
 	}
 }
