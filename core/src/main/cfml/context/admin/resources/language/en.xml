@@ -724,7 +724,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 
 	<data key="setting.suppressWSBeforeArg">Suppress whitespace before cfargument</data>
 
-	<data key="setting.suppressWSBeforeArgDesc">if set, Lucee suppress whitespace defined between the "cffunction" starting tag  and the last "cfargument" tag.
+	<data key="setting.suppressWSBeforeArgDesc">If set, Lucee suppresses whitespace defined between the "cffunction" starting tag and the last "cfargument" tag.
 	This setting is ignored when there is a different output between this tags as white space.</data>
 	<data key="setting.templatecache">Page Pool Cache</data>
 	<data key="setting.querycache">Query Cache</data>
