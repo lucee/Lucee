@@ -94,6 +94,7 @@ public class RHExtension implements Serializable {
 	private static final Key ARCHIVES = KeyImpl.init("archives");
 	private static final Key CONTEXTS = KeyImpl.init("contexts");
 	private static final Key WEBCONTEXTS = KeyImpl.init("webcontexts");
+	private static final Key CONFIG = KeyImpl.init("config");
 	private static final Key COMPONENTS = KeyImpl.init("components");
 	private static final Key APPLICATIONS = KeyImpl.init("applications");
 	private static final Key CATEGORIES = KeyImpl.init("categories");
@@ -131,6 +132,7 @@ public class RHExtension implements Serializable {
 	private final String[] components;
 	private final String[] plugins;
 	private final String[] contexts;
+	private final String[] configs;
 	private final String[] webContexts;
 	private final String[] categories;
 	private final String[] gateways;
@@ -357,6 +359,7 @@ public class RHExtension implements Serializable {
 		List<String> tags=new ArrayList<String>();
 		List<String> functions=new ArrayList<String>();
 		List<String> contexts=new ArrayList<String>();
+		List<String> configs=new ArrayList<String>();
 		List<String> webContexts=new ArrayList<String>();
 		List<String> applications=new ArrayList<String>();
 		List<String> components=new ArrayList<String>();
@@ -409,10 +412,14 @@ public class RHExtension implements Serializable {
 				// functions
 				if(!entry.isDirectory() && startsWith(path,type,"functions")) 
 					functions.add(sub);
-	
+
 				// context
 				if(!entry.isDirectory() && startsWith(path,type,"context") && !StringUtil.startsWith(fileName(entry), '.')) 
 					contexts.add(sub);
+
+				// config
+				if(!entry.isDirectory() && startsWith(path,type,"config") && !StringUtil.startsWith(fileName(entry), '.')) 
+					configs.add(sub);
 				
 				// web contextS
 				if(!entry.isDirectory() && startsWith(path,type,"webcontexts") && !StringUtil.startsWith(fileName(entry), '.')) 
@@ -446,8 +453,9 @@ public class RHExtension implements Serializable {
 		this.gateways=gateways.toArray(new String[gateways.size()]);
 		this.functions=functions.toArray(new String[functions.size()]);
 		this.archives=archives.toArray(new String[archives.size()]);
-		
+
 		this.contexts=contexts.toArray(new String[contexts.size()]);
+		this.configs=configs.toArray(new String[configs.size()]);
 		this.webContexts=webContexts.toArray(new String[webContexts.size()]);
 		this.applications=applications.toArray(new String[applications.size()]);
 		this.components=components.toArray(new String[components.size()]);
@@ -621,6 +629,7 @@ public class RHExtension implements Serializable {
       			,FUNCTIONS
       			,CONTEXTS
       			,WEBCONTEXTS
+      			,CONFIG
       			,APPLICATIONS
       			,COMPONENTS
       			,PLUGINS
@@ -645,8 +654,9 @@ public class RHExtension implements Serializable {
 	    qry.setAt(ARCHIVES, row, Caster.toArray(getArchives()));
   	    qry.setAt(TAGS, row, Caster.toArray(getTags()));
   	    qry.setAt(CONTEXTS, row, Caster.toArray(getContexts()));
-  	  	qry.setAt(WEBCONTEXTS, row, Caster.toArray(getWebContexts()));
-  	  	qry.setAt(EVENT_GATEWAYS, row, Caster.toArray(getEventGateways()));
+  	    qry.setAt(WEBCONTEXTS, row, Caster.toArray(getWebContexts()));
+  	  	qry.setAt(CONFIG, row, Caster.toArray(getConfigs()));
+	  	qry.setAt(EVENT_GATEWAYS, row, Caster.toArray(getEventGateways()));
 	    qry.setAt(CATEGORIES, row, Caster.toArray(getCategories()));
 	    qry.setAt(APPLICATIONS, row, Caster.toArray(getApplications()));
 	    qry.setAt(COMPONENTS, row, Caster.toArray(getComponents()));
@@ -877,6 +887,10 @@ public class RHExtension implements Serializable {
 
 	public String[] getContexts() {
 		return contexts==null?EMPTY:contexts;
+	}
+
+	public String[] getConfigs() {
+		return configs==null?EMPTY:configs;
 	}
 
 	public String[] getWebContexts() {
