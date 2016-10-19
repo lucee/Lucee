@@ -438,7 +438,8 @@ public class StaticScope extends StructSupport implements Variables,Objects {
 		Entry<Key, Member> e;
 		while(it.hasNext()) {
 			e = it.next();
-			int a=e.getValue().getAccess();
+			int a=access(pc,e.getValue().getAccess());
+			
 			DumpTable box=accesses[a];
 			Object o=e.getValue().getValue();
 			
@@ -468,6 +469,11 @@ public class StaticScope extends StructSupport implements Variables,Objects {
 	}
 
 
+
+	private int access(PageContext pc, int access) {
+		if(access>-1) return access;
+		return pc.getConfig().getComponentDataMemberDefaultAccess();
+	}
 
 	public Component getComponent() {
 		return c;
