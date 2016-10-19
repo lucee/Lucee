@@ -650,8 +650,8 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="scopes.applicationtimeoutdescription">Sets the amount of time Lucee will keep the application scope alive. This behaviour can be overridden by the tag cfapplication.</data>
 	<data key="scopes.clienttimeout">Client timeout</data>
 	<data key="scopes.cascadetoresultsetdescription">When a variable has no scope defined (Example: #myVar# instead of #variables.myVar#), Lucee will also search available resultsets (CFML&amp;nbsp;Standard) or not</data>
-	<data key="scopes.cascadingdescription">Depending on this setting Lucee scans certain scopes to find a variable called from the CFML source. This will only happen, when the variable is called without a scope. (Example: #myVar# instead of #variables.myVar#)&lt;br/&gt;- strict: scans only the variables scope&lt;br/&gt;- small: scans the scopes variables,url,form&lt;br/&gt;- standard (CFML Standard): scans the scopes variables,cgi,url,form,cookie</data>
-	<data key="scopes.sessiontypedescription">JEE Sessions allow to make sessions over a cluster. when you change this setting you will lose your current session and you must make a new login</data>
+	<data key="scopes.cascadingdescription">Depending on this setting Lucee scans certain scopes to find a variable called from the CFML source. This will only happen when the variable is called without a scope. (Example: #myVar# instead of #variables.myVar#)&lt;br/&gt;- strict: scans only the variables scope&lt;br/&gt;- small: scans the scopes variables,url,form&lt;br/&gt;- standard (CFML Standard): scans the scopes variables,cgi,url,form,cookie</data>
+	<data key="scopes.sessiontypedescription">JEE Sessions allow to make sessions over a cluster. When you change this setting you will lose your current session and you must make a new login</data>
 	<data key="scopes.web">Here you can define the settings for how Lucee handles scopes.</data>
 	<data key="scopes.localmodeClassic">Classic</data>
 	<data key="scopes.timeoutsecondsvalue">Value seconds for </data>
@@ -724,7 +724,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 
 	<data key="setting.suppressWSBeforeArg">Suppress whitespace before cfargument</data>
 
-	<data key="setting.suppressWSBeforeArgDesc">if set, Lucee suppress whitespace defined between the "cffunction" starting tag  and the last "cfargument" tag.
+	<data key="setting.suppressWSBeforeArgDesc">If set, Lucee suppresses whitespace defined between the "cffunction" starting tag and the last "cfargument" tag.
 	This setting is ignored when there is a different output between this tags as white space.</data>
 	<data key="setting.templatecache">Page Pool Cache</data>
 	<data key="setting.querycache">Query Cache</data>
