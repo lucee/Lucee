@@ -967,7 +967,7 @@
 		<custom key="mail.logfilemissing">Missing value for mail log file</custom>
 		<custom key="mail.mailservers">Mail servers</custom>
 	
-		<custom key="mail.mailserversdescription">You can define more than one mail server. When sending a mail, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</custom>
+		<custom key="mail.mailserversdescription">You can define more than one mail server. When sending an email, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</custom>
 		<custom key="mail.missingencoding">Please enter a value for the default encoding</custom>
 		<custom key="mail.password">Password</custom>
 		<custom key="mail.passwordmissing">Please enter a value for the corresponding password (row </custom>
