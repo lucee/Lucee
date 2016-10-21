@@ -206,4 +206,11 @@ component output="false" extends="Base" accessors="true"{
 
 	}
 
+	/*
+	 * @hint Scan the passed array looking for a "name" param match.
+	 */
+	public static query function new(required columnNames, columnTypes, data) {
+		return queryNew(columnNames,columnTypes?:nullvalue(),data?:nullvalue());
+	}
+
 }
