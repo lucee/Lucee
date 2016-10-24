@@ -43,5 +43,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			if(fileExists("test.pdf"))fileDelete("test.pdf");
 		}
 	}
+
+	private void function testPDFProtect(){
+		try {
+			document format="pdf" pagetype="A4" orientation="portrait" filename="test-protect.pdf" overwrite="true" {
+				echo("<p>This is where mickey mouse lives</p>");
+			}
+			assertTrue(isPDFFile("test-protect.pdf"));
+
+			pdf action="protect" encrypt="AES_128" source="test-protect.pdf" newUserPassword="PDFPassword";
+		}
+		finally {
+			if(fileExists("test-protect.pdf"))fileDelete("test-protect.pdf");
+		}
+	}
 } 
 </cfscript>
