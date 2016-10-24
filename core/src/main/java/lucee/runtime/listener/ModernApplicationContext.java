@@ -781,34 +781,56 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			Struct sctCache = Caster.toStruct(get(component,KeyConstants._cache,null),null);
 			if(sctCache!=null){ 
 				Iterator<Entry<Key, Object>> it = sctCache.entryIterator();
-				Entry<Key, Object> e;
-				Struct sct;
-				CacheConnection cc;
-				while(it.hasNext()) {
-					e = it.next();
-					
-					if(KeyConstants._function.equals(e.getKey()) 
-							|| KeyConstants._query.equals(e.getKey()) 
-							|| KeyConstants._template.equals(e.getKey()) 
-							|| KeyConstants._object.equals(e.getKey()) 
-							|| KeyConstants._include.equals(e.getKey()) 
-							|| KeyConstants._resource.equals(e.getKey()) 
-							|| KeyConstants._http.equals(e.getKey()) 
-							|| KeyConstants._file.equals(e.getKey()) 
-							|| KeyConstants._webservice.equals(e.getKey())) continue;
-					
-					sct=Caster.toStruct(e.getValue(),null);
-					if(sct==null) continue;
-					
-					cc=toCacheConnection(config,e.getKey().getString(),sct,null);
-					if(cc!=null) cacheConnections.put(e.getKey(),cc);
-				}
+				
+				_initCache(cacheConnections,it,false);
+				
+				
 			}
 			initCache=true;
 		}
 	}
 
 
+
+	private void _initCache(Map<Key, CacheConnection> cacheConnections, Iterator<Entry<Key, Object>> it, boolean sub) {
+		Entry<Key, Object> e;
+		Struct sct;
+		CacheConnection cc;
+		while(it.hasNext()) {
+			e = it.next();
+			
+			if(!sub && KeyConstants._function.equals(e.getKey()) 
+					|| KeyConstants._query.equals(e.getKey()) 
+					|| KeyConstants._template.equals(e.getKey()) 
+					|| KeyConstants._object.equals(e.getKey()) 
+					|| KeyConstants._include.equals(e.getKey()) 
+					|| KeyConstants._resource.equals(e.getKey()) 
+					|| KeyConstants._http.equals(e.getKey()) 
+					|| KeyConstants._file.equals(e.getKey()) 
+					|| KeyConstants._webservice.equals(e.getKey())) continue;
+			
+			if(!sub && KeyConstants._connections.equals(e.getKey()) ) {
+				Struct _sct=Caster.toStruct(e.getValue(),null);
+				if(_sct!=null)_initCache(cacheConnections, _sct.entryIterator(),true);
+				continue;
+				
+			}
+			
+			
+			sct=Caster.toStruct(e.getValue(),null);
+			if(sct==null) continue;
+			
+			cc=toCacheConnection(config,e.getKey().getString(),sct,null);
+			
+			
+			if(cc!=null) cacheConnections.put(e.getKey(),cc);
+		}
+	}
+
+	private void _initCache(Iterator<Entry<Key, Object>> it) {
+		// TODO Auto-generated method stub
+		
+	}
 
 	private boolean initDefaultCache(Struct data, int type, Key key) {
 		Object o = data.get(key,null);

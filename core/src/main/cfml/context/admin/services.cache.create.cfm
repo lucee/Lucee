@@ -261,21 +261,20 @@ Redirtect to entry --->
 		</table>
 	</cfformClassic>
 </cfoutput>
-
-<!---
-<cfoutput>
-<form action="#action('update')#" method="post">
-	<table border="0" cellpadding="0" cellspacing="0" bgcolor="##FFCC00"
-		style="background-color:##FFCC00;border-style:solid;border-color:##000000;border-width:1px;padding:10px;">
-	<tr>
-		<td valign="top" >
-			<textarea style="background-color:##FFCC00;border-style:solid;border-color:##000000;border-width:0px;" name="note" cols="40" rows="10">#req.note#</textarea>
-		</td>
-	</tr>
-	</table>
-	<br />
-	<input class="button submit" type="submit" name="submit" value="#lang.btnSubmit#" />
-</form>
+<cfif !isNew>
 	
-</cfoutput>
---->
+<cftry>
+<cfoutput><cfsavecontent variable="codeSample">
+this.cache.connections["#connection.name#"] = {
+	  class: '#connection.class#'#isNull(connection.bundleName) || isEmpty(connection.bundleName)?"":"
+	, bundleName: '"&connection.bundleName&"'"##isNull(connection.bundleVersion) || isEmpty(connection.bundleVersion)?"":"
+	, bundleVersion: '"&connection.bundleVersion&"'"##!connection.readOnly?"":"
+	, readOnly: "&connection.readonly#
+	, storage: #connection.storage#
+	, custom: #isStruct(connection.custom)?serialize(connection.custom):'{}'#
+	, default: '#connection.default#'
+};
+</cfsavecontent></cfoutput>
+<cfset renderCodingTip( codeSample, "", true )>
+<cfcatch></cfcatch>
+</cftry></cfif>

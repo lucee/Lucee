@@ -94,6 +94,8 @@ public class KeyConstants {
 	public static final Key _CircuitXML=KeyImpl._const("CircuitXML");
 	public static final Key _Commenting=KeyImpl._const("Commenting");
 	public static final Key _Connection=KeyImpl._const("Connection");
+	public static final Key _connection=KeyImpl._const("connection");
+	public static final Key _connections=KeyImpl._const("connections");
 	public static final Key _Cookie=KeyImpl._const("Cookie");
 	public static final Key _Created=KeyImpl._const("Created");
 	public static final Key _D=KeyImpl._const("D");
