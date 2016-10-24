@@ -33,13 +33,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals('name',meta[1].name);
 		assertEquals('VARCHAR',meta[1].typeName);
 		
-		assertEquals(false,meta[1].isCaseSensitive);
-		assertEquals('age',meta[1].name);
-		assertEquals('DATE',meta[1].typeName);
+		assertEquals(false,meta[2].isCaseSensitive);
+		assertEquals('age',meta[2].name);
+		assertEquals('DATE',meta[2].typeName);
 		
-		assertEquals(false,meta[1].isCaseSensitive);
-		assertEquals('whatever',meta[1].name);
-		assertEquals('INTEGER',meta[1].typeName);
+		assertEquals(false,meta[3].isCaseSensitive);
+		assertEquals('whatever',meta[3].name);
+		assertEquals('INTEGER',meta[3].typeName);
 
 	}
 
@@ -54,13 +54,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals('name',meta[1].name);
 		assertEquals('VARCHAR',meta[1].typeName);
 		
-		assertEquals(false,meta[1].isCaseSensitive);
-		assertEquals('age',meta[1].name);
-		assertEquals('DATE',meta[1].typeName);
+		assertEquals(false,meta[2].isCaseSensitive);
+		assertEquals('age',meta[2].name);
+		assertEquals('DATE',meta[2].typeName);
 		
-		assertEquals(false,meta[1].isCaseSensitive);
-		assertEquals('whatever',meta[1].name);
-		assertEquals('INTEGER',meta[1].typeName);
+		assertEquals(false,meta[3].isCaseSensitive);
+		assertEquals('whatever',meta[3].name);
+		assertEquals('INTEGER',meta[3].typeName);
 
 	}
 
@@ -73,15 +73,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		assertEquals(false,meta[1].isCaseSensitive);
 		assertEquals('name',meta[1].name);
-		assertEquals('VARCHAR',meta[1].typeName);
+		assertEquals('OBJECT',meta[1].typeName);
 		
-		assertEquals(false,meta[1].isCaseSensitive);
-		assertEquals('age',meta[1].name);
-		assertEquals('VARCHAR',meta[1].typeName);
+		assertEquals(false,meta[2].isCaseSensitive);
+		assertEquals('age',meta[2].name);
+		assertEquals('OBJECT',meta[2].typeName);
 		
-		assertEquals(false,meta[1].isCaseSensitive);
-		assertEquals('whatever',meta[1].name);
-		assertEquals('VARCHAR',meta[1].typeName);
+		assertEquals(false,meta[3].isCaseSensitive);
+		assertEquals('whatever',meta[3].name);
+		assertEquals('OBJECT',meta[3].typeName);
 
 	}
 
