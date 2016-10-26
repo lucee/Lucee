@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.functions.system;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.zip.ZipInputStream;
 
@@ -43,6 +45,25 @@ public class IsZipFile {
 		try {
 			//ZipEntry ze;
 			ZipInputStream zis = new ZipInputStream(is=res.getInputStream());
+			while ((zis.getNextEntry()) != null ) {
+	        	zis.closeEntry();
+	        	hasEntries=true;
+	        }
+		} catch (Throwable t) {
+			return false;
+		}
+		finally {
+			IOUtil.closeEL(is);
+		}
+		return hasEntries;
+	}
+	
+	public static boolean invoke(File file) {
+		InputStream is=null;
+		boolean hasEntries=false;
+		try {
+			//ZipEntry ze;
+			ZipInputStream zis = new ZipInputStream(is=new FileInputStream(file));
 			while ((zis.getNextEntry()) != null ) {
 	        	zis.closeEntry();
 	        	hasEntries=true;

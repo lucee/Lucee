@@ -26,8 +26,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,7 +71,10 @@ import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.engine.CFMLEngineFactorySupport;
 import lucee.loader.osgi.BundleCollection;
+import lucee.loader.util.ExtensionFilter;
+import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
@@ -139,6 +144,7 @@ import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLibException;
 
+import org.apache.felix.framework.Logger;
 import org.apache.log4j.Level;
 import org.apache.xerces.parsers.DOMParser;
 import org.osgi.framework.Bundle;
@@ -3698,6 +3704,7 @@ public final class XMLConfigAdmin {
         
     	synchronized(factory){
 	        try {
+	        	cleanUp(factory);
 	            factory.update(cs.getPassword(),cs.getIdentification());
 	        } 
 	        catch (Exception e) {
@@ -3738,6 +3745,158 @@ public final class XMLConfigAdmin {
             throw Caster.toPageException(e);
         }
     }
+
+	public void changeVersionTo(Version version, Password password, IdentificationWeb id) throws PageException {
+		checkWriteAccess();
+    	
+    	ConfigServerImpl cs=(ConfigServerImpl) ConfigImpl.getConfigServer(config,password);
+    	
+    	try {
+        	CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
+        	cleanUp(factory);
+        	// do we have the core file?
+        	final File patchDir = factory.getPatchDirectory();
+    		File localPath=new File(version.toString()+".lco");
+        	
+    		if(!localPath.isFile()) {
+    			localPath=null;
+    			Version v;
+    			final File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { ".lco" }));
+        		for (final File patch : patches) {
+        			v=CFMLEngineFactory.toVersion(patch.getName(),null);
+        			// not a valid file get deleted
+        			if(v==null){
+        				patch.delete();
+        			}
+        			else {
+	        			if(v.equals(version)) { // match!
+	        				localPath=patch;
+	        			}
+	        			// delete newer files
+	        			else if(Util.isNewerThan(v,version)) {
+	        				patch.delete();
+	        			}
+        			}
+    			}
+    		}
+        	
+    		// download patch
+        	if(localPath==null) {
+        		
+        		downloadCore(factory, version, id);
+        	}
+        	
+        	
+        	
+        	
+        	factory.restart(password);
+        } 
+        catch (Exception e) {
+            throw Caster.toPageException(e);
+        }
+	}
+	
+	private void cleanUp(CFMLEngineFactory factory) throws IOException {
+		final File patchDir = factory.getPatchDirectory();
+		final File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { ".lco" }));
+		for (final File patch : patches) {
+			if(!IsZipFile.invoke(patch)) patch.delete();
+		}
+	}
+
+
+	private File downloadCore( CFMLEngineFactory factory, Version version,Identification id) throws IOException {
+		final URL updateProvider = factory.getUpdateLocation();
+
+		
+		final URL updateUrl = new URL(updateProvider,
+				"/rest/update/provider/download/" + version.toString()
+						+ (id != null ? id.toQueryString() : "")
+						+ (id == null ? "?" : "&")+"allowRedirect=true"
+				);
+		//log.debug("Admin", "download "+version+" from " + updateUrl);
+		System.out.println(updateUrl);
+		
+		
+		// local resource
+		final File patchDir = factory.getPatchDirectory();
+		final File newLucee = new File(patchDir, version + (".lco"));
+		
+		int code;
+		HttpURLConnection conn;
+		try {
+			conn = (HttpURLConnection) updateUrl.openConnection();
+			conn.setRequestMethod("GET");
+			conn.connect();
+			code = conn.getResponseCode();
+		} catch (final UnknownHostException e) {
+			//log.error("Admin", e);
+			throw e;
+		}
+		
+		// the update provider is not providing a download for this
+		if (code != 200) {
+			
+			// the update provider can also provide a different (final) location for this
+			if(code==302) {
+				String location = conn.getHeaderField("Location");
+				// just in case we check invalid names
+				if(location==null)location = conn.getHeaderField("location");
+				if(location==null)location = conn.getHeaderField("LOCATION");
+				System.out.println("download redirected:" + location); // MUST remove
+				//log.debug("Admin", "download redirected to " + updateUrl);
+				
+				
+				conn.disconnect();
+				URL url = new URL(location);
+				try {
+					conn = (HttpURLConnection) url.openConnection();
+					conn.setRequestMethod("GET");
+					conn.connect();
+					code = conn.getResponseCode();
+				} catch (final UnknownHostException e) {
+					//log.error("Admin", e);
+					throw e;
+				}
+			}
+			
+			// no download available!
+			if(code != 200){
+				final String msg = "Lucee is not able do download the core for version ["
+					+ version.toString() + "] from " + updateUrl
+					+ ", please donwload it manually and copy to [" + patchDir + "]";
+				//log.debug("Admin", msg);
+				conn.disconnect();
+				throw new IOException(msg);
+			}
+		}
+		
+		// copy it to local directory
+		if (newLucee.createNewFile()) {
+			IOUtil.copy((InputStream) conn.getContent(), new FileOutputStream(newLucee),false,true);
+			conn.disconnect();
+			
+			// when it is a loader extract the core from it
+			File tmp = CFMLEngineFactory.extractCoreIfLoader(newLucee);
+			if(tmp!=null) {
+				System.out.println("extract core from loader"); // MUST remove
+				//log.debug("Admin", "extract core from loader");
+				
+				newLucee.delete();
+				tmp.renameTo(newLucee);
+				tmp.delete();
+				System.out.println("exist?"+newLucee.exists()); // MUST remove
+				
+			}
+		}
+		else {
+			conn.disconnect();
+			//log.debug("Admin","File for new Version already exists, won't copy new one");
+			return null;
+		}
+		return newLucee;
+	}
+	
     
 	private String getCoreExtension() {
     	return "lco";
@@ -3770,6 +3929,7 @@ public final class XMLConfigAdmin {
         
     	synchronized(factory){
 	        try {
+	        	cleanUp(factory);
 	            factory.restart(cs.getPassword());
 	        } 
 	        catch (Exception e) {

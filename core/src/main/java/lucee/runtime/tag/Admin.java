@@ -43,6 +43,7 @@ import java.util.jar.Manifest;
 import javax.servlet.ServletConfig;
 import javax.servlet.jsp.tagext.Tag;
 
+import lucee.VersionInfo;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
@@ -805,7 +806,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         else if(check("restart",                ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE     )) doRestart();
         else if(check("runUpdate",              ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE     )) doRunUpdate();
         else if(check("removeUpdate",           ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE     )) doRemoveUpdate();
+        else if(check("changeVersionTo",           ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE     )) doChangeVersionTo();
         else if(check("getUpdate",              ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE     )) doGetUpdate();
+        else if(check("getMinVersion",              ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ     )) getMinVersion();
         else if(check("listPatches",              ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ     )) listPatches();
         else if(check("updateupdate",           ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE     )) doUpdateUpdate();
         else if(check("getSerial",              ACCESS_FREE) && check2(ACCESS_READ     )) doGetSerial();
@@ -863,6 +866,20 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         else 			admin.removeUpdate(password);
         adminSync.broadcast(attributes, config);
     }
+    
+    private void doChangeVersionTo() throws PageException {
+    	try {
+			Version version = OSGiUtil.toVersion(getString("admin", "changeVersionTo", "version"));
+			admin.changeVersionTo(version,password
+					//,pageContext.getConfig().getLog("Application")
+					,pageContext.getConfig().getIdentification());
+	        adminSync.broadcast(attributes, config);
+		} catch (BundleException e) {
+			throw Caster.toPageException(e);
+		}
+    }
+    
+    
     
     private void doRestart() throws PageException {
     	admin.restart(password);
@@ -2478,7 +2495,16 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			throw Caster.toPageException(e);
 		}
     }
-
+    private void getMinVersion() throws PageException  {
+    	try {
+    		
+			pageContext.setVariable(getString("admin",action,"returnVariable"),VersionInfo.getIntVersion().toString());
+		} catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+    }
+    
+    
 
     private void doGetMailServers() throws PageException {
         
