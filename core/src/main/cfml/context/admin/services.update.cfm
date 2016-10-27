@@ -268,18 +268,18 @@ For testing
 
 <cfscript>
 
-stText.services.update.downUpTitle="Update / Downgrade";
+stText.services.update.downUpTitle="Update Lucee Version";
 stText.services.update.downUpSub="Current version: {version}";
-stText.services.update.downUpDesc="Update or downgrade your current version.";
-stText.services.update.downgradeTo="downgrade to";
-stText.services.update.updateTo="update to";
-stText.services.update.downup="downgrade/update";
+stText.services.update.downUpDesc="Upgrade or downgrade your current version.";
+stText.services.update.downgradeTo="Downgrade to";
+stText.services.update.updateTo="Upgrade to";
+stText.services.update.downup="update";
 
 
 stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{version}',server.lucee.version);
 </cfscript>
 
-	<!--- downgrade/update --->
+	<!--- downgrade/upgrade --->
 	<cfif updateData.qryotherVersions.recordcount>
 		<h2>#stText.services.update.downUpTitle#</h2>
 		<div id="updateInfoDesc" style="text-align: center;"></div>
