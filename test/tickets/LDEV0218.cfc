@@ -1,4 +1,20 @@
-<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
+<!---
+ * Copyright (c) 2016, Lucee Assosication Switzerland. All rights reserved.*
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either 
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public 
+ * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ *--->
+ <cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
 	<cfscript>
 	function beforeAll(){
 		// runs before all testcases
@@ -61,37 +77,7 @@
 				expect(NOT isNull(local.result) && structKeyExists(local.result, "RecordCount") && local.result.RecordCount EQ 2).toBeTrue();
 			}, labels="result in local scope(var)");
 
-			it(title="Case 4: result in local scope(var & without quotes and hashes)", body=function(){
-				var result = {};
-				var qData = queryExecute("SELECT * FROM allCountries", {}, {dbtype="query", result=local.result});
-
-				// Expectations for this case
-				expect(isNull(variables.result)).toBeTrue();
-				expect(isNull(local.result)).toBeFalse();
-				expect(NOT isNull(local.result) && structKeyExists(local.result, "RecordCount") && local.result.RecordCount EQ 2).toBeTrue();
-			}, labels="result in local scope(var & without quotes and hashes)");
-
-			it(title="Case 5: result in variables scope( without quotes and hashes)", body=function(){
-				result = {};
-				var qData = queryExecute("SELECT * FROM allCountries", {}, {dbtype="query", result=result});
-
-				// Expectations for this case
-				expect(isNull(variables.result)).toBeFalse();
-				expect(isNull(local.result)).toBeTrue();
-				expect(NOT isNull(variables.result) && structKeyExists(variables.result, "RecordCount") && variables.result.RecordCount EQ 2).toBeTrue();
-			}, labels="result in local scope(var & without quotes and hashes)");
-
-			it(title="Case 6: result not available in any scope(without quotes and hashes)", body=function(){
-				var isSuccess = true;
-				try {
-					var qData = queryExecute("SELECT * FROM allCountries", {}, {dbtype="query", result=result});
-				} catch (any e) {
-					isSuccess = false; // error! variable [RESULT] doesn't exist
-				}
-				// Expectations for this case
-				expect(isSuccess).toBeTrue();
-			}, labels="result not available in any scope(without quotes and hashes)");
-
+			
 			it(title="Case 7: result in local scoped struct", body=function(){
 				var foo = {};
 				var qData = queryExecute("SELECT * FROM allCountries", {}, {dbtype="query", result="foo.result"});
