@@ -4875,6 +4875,12 @@ public final class XMLConfigAdmin {
 	        		logger.log(Log.LEVEL_INFO,"extension","deploy application "+realpath);
 	        		updateApplication( zis, realpath,false);
 				}
+				// configs
+				if(!entry.isDirectory() && (startsWith(path,type,"config")) && !StringUtil.startsWith(fileName(entry), '.')) {
+					realpath=path.substring(7);
+	        		logger.log(Log.LEVEL_INFO,"extension","deploy config "+realpath);
+	        		updateConfigs( zis, realpath,false,false);
+				}
 				// components
 				if(!entry.isDirectory() && (startsWith(path,type,"components")) && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath=path.substring(11);
@@ -5942,6 +5948,23 @@ public final class XMLConfigAdmin {
     	ConfigWebAdmin._updateContext(config, is, realpath, closeStream, filesDeployed,store);
     	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
     }*/
+	
+
+	Resource[] updateConfigs(InputStream is,String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
+    	List<Resource> filesDeployed=new ArrayList<Resource>();
+    	_updateConfigs(config, is, realpath, closeStream, filesDeployed,store);
+    	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
+    }
+	private static void _updateConfigs(Config config,InputStream is,String realpath, boolean closeStream,List<Resource> filesDeployed, boolean store) throws PageException, IOException, SAXException, BundleException {
+		Resource configs = config.getConfigDir(); // MUST get that dynamically
+		Resource trg = configs.getRealResource(realpath);
+		if(trg.exists()) trg.remove(true);
+        Resource p = trg.getParentResource();
+        if(!p.isDirectory()) p.createDirectory(true); 
+        IOUtil.copy(is, trg.getOutputStream(false), closeStream,true);
+        filesDeployed.add(trg);
+        if(store)_storeAndReload((ConfigImpl)config);
+    }
 
 	Resource[] updateComponent(InputStream is,String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
     	List<Resource> filesDeployed=new ArrayList<Resource>();
@@ -6011,13 +6034,34 @@ public final class XMLConfigAdmin {
         filesDeployed.add(trg);
         _storeAndReload((ConfigImpl)config);
     }
+	public boolean removeConfigs(Config config, boolean store,String... realpathes) throws PageException, IOException, SAXException, BundleException {
+		if(ArrayUtil.isEmpty(realpathes)) return false;
+		boolean force=false;
+		for(int i=0;i<realpathes.length;i++){
+			if(_removeConfigs(config, realpathes[i],store))
+				force=true;
+		}
+		return force;
+	}
 	
+	private boolean _removeConfigs(Config config,String realpath, boolean _store) throws PageException, IOException, SAXException, BundleException {
+    	
+    	Resource context = config.getConfigDir(); // MUST get dyn
+    	Resource trg = context.getRealResource(realpath);
+    	if(trg.exists()) {
+        	trg.remove(true);
+        	if(_store) XMLConfigAdmin._storeAndReload((ConfigImpl) config);
+        	ResourceUtil.removeEmptyFolders(context,null);
+        	return true;
+        }
+        return false;
+    }
 
 	public boolean removeComponents(Config config, boolean store,String... realpathes) throws PageException, IOException, SAXException, BundleException {
 		if(ArrayUtil.isEmpty(realpathes)) return false;
 		boolean force=false;
 		for(int i=0;i<realpathes.length;i++){
-			if(_removeContext(config, realpathes[i],store))
+			if(_removeComponent(config, realpathes[i],store))
 				force=true;
 		}
 		return force;
@@ -6216,7 +6260,7 @@ public final class XMLConfigAdmin {
   				arr=_removeExtensionCheckOtherUsage(children,el,"contexts");
   				storeChildren=removeContext(config,false, arr);
   				
-  				// contexts
+  				// webcontexts
   				arr=_removeExtensionCheckOtherUsage(children,el,"webcontexts");
   				storeChildren=removeWebContexts(config,false, arr);
 
@@ -6227,6 +6271,10 @@ public final class XMLConfigAdmin {
   				// components
   				arr=_removeExtensionCheckOtherUsage(children,el,"components");
   				removeComponents(config, false, arr);
+
+  				// configs
+  				arr=_removeExtensionCheckOtherUsage(children,el,"config");
+  				removeConfigs(config, false, arr);
   				
   				// plugins
   				arr=_removeExtensionCheckOtherUsage(children,el,"plugins");

@@ -69,8 +69,8 @@ public class ReadOnlyStruct extends StructImpl {
 
 	@Override
 	public Collection duplicate(boolean deepCopy) {
-		ReadOnlyStruct trg=new ReadOnlyStruct();
-		trg.isReadOnly=isReadOnly;
+		Struct trg=new StructImpl();
+		//trg.isReadOnly=isReadOnly;
 		copy(this, trg, deepCopy);
 		return trg;
 	}

@@ -28,8 +28,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testFunctions(){
 		
-		
-		
 		assertEquals(true,structKeyExists(meta,'functions'));
 		assertEquals(3,arrayLen(meta.functions));
 		
@@ -56,6 +54,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals(true,param.required);
 		assertEquals('string',param.type);
 		
+	}
+
+	public void function testInterface() {
+		local.meta = getComponentMetadata("GetComponentMetadata.Intr");
+		assertEquals(true,structKeyExists(meta,'functions'));
+		assertEquals(1,arrayLen(meta.functions));
+		
+	}
+
+	public void function testAbstractComponent() {
+		local.meta = getComponentMetadata("GetComponentMetadata.AbstrComp");
+		assertEquals(true,structKeyExists(meta,'functions'));
+		assertEquals(1,arrayLen(meta.functions));
 	}
 } 
 </cfscript>

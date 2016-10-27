@@ -125,7 +125,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		load(config,doc,false,doNew);
 	    
 		createContextFiles(configDir,config,doNew,cleanupDatasources);
-
+		
         ((CFMLEngineImpl)ConfigWebUtil.getEngine(config)).onStart(config,false);
 	    return config;
     }
@@ -151,6 +151,8 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		boolean doNew = iDoNew!=NEW_NONE;
 		
         load(configServer,loadDocument(configFile),true,doNew);
+
+        ((CFMLEngineImpl)ConfigWebUtil.getEngine(configServer)).onStart(configServer,true);
     }
     
     private static long second(long ms) {
