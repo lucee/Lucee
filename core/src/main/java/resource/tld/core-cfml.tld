@@ -908,7 +908,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 		<!-- <tdbt-class>lucee.transformer.cfml.script.CFMLScriptTransformer</tdbt-class> -->
 		<body-content>must</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
-		<description>Defines table column header, width, alignment, and text. Used only inside a cftable.</description>
+		<description>Defines a function that can accept arguments and return a value.</description>
 		<att-class>lucee.transformer.cfml.attributes.impl.Function</att-class>
 		<attribute-type>mixed</attribute-type>
 		<attribute>
@@ -991,7 +991,7 @@ no: the function is processed as if it were within a cfsilent tag </description>
 			<name>returnFormat</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The format in which to return values to a remote caller.</description>
+			<description>The format in which to return values to a remote caller. Possible values are [wddx], json, plain (text), serialize (cfml, cfm), xml, and java.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
