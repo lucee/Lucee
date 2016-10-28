@@ -14,23 +14,39 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+ component extends="org.lucee.cfml.test.LuceeTestCase"	{
+	
 
-	public void function testMemberFunction() localmode="true" {
-		t=createDateTime(2000,1,1,0,0,0);
-		t.setMilliSecond(10);
-		assertEquals("00:00:00:10",TimeFormat(t,'HH:mm:ss:ll'));
-		
-		assertEquals("00:00:00:180",TimeFormat(t.setMilliSecond(180),'HH:mm:ss:ll'));
-		assertEquals("00:00:00:180",TimeFormat(t,'HH:mm:ss:ll'));
-		
-		assertEquals("00:00:00:01",TimeFormat(t.setMilliSecond(1,getTimeZone()),'HH:mm:ss:ll'));
+	public void function testSetMilliSecondMemberFunction(){
+		var date=createDateTime(2000,1,1,0,0,0);
+		assertEquals("{ts '2000-01-01 00:00:00'}",date);
+		date.setMilliSecond(10);
+		assertEquals("{ts '2000-01-01 00:00:00'}",date);
+
 	}
 
-	/* support for this is removed public void function testFunction() localmode="true" {
-		t=createDateTime(2000,1,1,0,0,0);
-		assertEquals("00:00:00:00",TimeFormat(t,'HH:mm:ss:ll'));
-		setMilliSecond(t,1200);
-		assertEquals("00:00:01:200",TimeFormat(t,'HH:mm:ss:ll'));
-	}*/
+	public void function testSetYearMemberFunction(){
+		var date=createDateTime(2000,1,1,0,0,0);
+		assertEquals("{ts '2000-01-01 00:00:00'}",date);
+		date.setYear(2016);
+		assertEquals("{ts '2016-01-01 00:00:00'}",date);
+
+	}
+
+	public void function testSetYear(){
+		// this should not work
+		var date=createDateTime(2000,1,1,0,0,0);
+		var broken=false;
+		try{
+			setYear(date,2016);
+		}
+		catch(local.e){broken=true;}
+
+		assertTrue(broken);
+	}
+
+
 } 
+
+
+

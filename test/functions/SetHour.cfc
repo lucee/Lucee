@@ -28,12 +28,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("{ts '2000-01-01 01:00:00'}",t.setHour(1,getTimeZone())&"");
 	}
 
-	public void function testFunction() localmode="true" {
+	/* support for this is removed public void function testFunction() localmode="true" {
 		t=createDateTime(2000,1,1,0,0,0);
 		assertEquals("{ts '2000-01-01 00:00:00'}",t&"");
 		setHour(t,25);
 		assertEquals("{ts '2000-01-02 01:00:00'}",t&"");
-	}
+	}*/
 	
 	public void function testMethod() localmode="true" {
 		t=createDateTime(2000,1,1,0,0,0);

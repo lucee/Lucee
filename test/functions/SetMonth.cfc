@@ -29,10 +29,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}    // testMemberFunction:Expected [{ts '2000-02-01 00:00:00'}] but received [{ts '2000-03-01 00:00:00'}]
     
 
-	public void function testFunction() localmode="true" {
+	/* support for this is removed public void function testFunction() localmode="true" {
 		t=createDateTime(2000,1,1,0,0,0);
 		assertEquals("{ts '2000-01-01 00:00:00'}",t&"");
 		setMonth(t,13);
 		assertEquals("{ts '2001-01-01 00:00:00'}",t&"");
-	}
+	}*/
 } 
