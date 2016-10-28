@@ -32,6 +32,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 
 import org.osgi.framework.BundleException;
 
@@ -58,7 +59,7 @@ public class CacheConnectionImpl implements CacheConnection  {
 			this.clazz=clazz;
 			if(!Reflector.isInstaneOf(clazz, Cache.class))
 				throw new CacheException("class ["+clazz.getName()+"] does not implement interface ["+Cache.class.getName()+"]");
-			this.custom=custom;
+			this.custom=custom==null?new StructImpl():custom;
 			this.readOnly=readOnly;
 			this.storage=storage;
 		}
