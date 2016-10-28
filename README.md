@@ -26,3 +26,7 @@ Philosophy
 A primary aim of Lucee is to provide the functionality of ColdFusion(c) using less resources and giving better performance, and the Lucee team continues to "treat slowness as a bug" as a core development philosophy. Many performance tests have shown Lucee to perform faster than other CFML engines. In addition to this, Lucee attempts to resolve many inconsistencies found in traditional CFML. These are either forced changes in behavior, or configurable options in the Lucee Administrator.
 The Lucee team is always open to feedback and active at CFML community events, and is keen to remind people that Lucee is a community project.
 
+
+Contributing
+----------
+If you want to contribute fixes to the Lucee platform, please send pull requests to the a version branch like `5.0`.  The `master` branch is used only for stable releases and is merged into from the version branches.  Read more in our [contributing guide](CONTRIBUTING.md).
