@@ -1,5 +1,4 @@
-<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
-	<cfscript>
+component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
 		describe('include cfc', function(){
 			beforeEach(function( currentSpec ){
@@ -17,5 +16,4 @@
 			});
 		});
 	}
-	</cfscript>
-</cfcomponent>
+}
