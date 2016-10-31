@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Vector;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
@@ -53,7 +55,9 @@ public class ArrayImpl extends ListAsArray {
 	}
 
 	public ArrayImpl(boolean sync, int initalCap) {
-		super(sync?Collections.synchronizedList(new ArrayList(initalCap)):new ArrayList(initalCap));
+		//super(new CopyOnWriteArrayList());
+		//super(Collections.synchronizedList(new ArrayList(initalCap)));
+		super(sync?new Vector(initalCap):new ArrayList(initalCap));
 	}
 	
 	public ArrayImpl(Object[] objects) {

@@ -43,6 +43,7 @@ import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.it.KeyIterator;
 import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.util.ArraySupport;
+import lucee.runtime.type.util.ListIteratorImpl;
 
 /**
  * 
@@ -541,8 +542,14 @@ public class ListAsArray extends ArraySupport implements Array,List {
 	}
 
 	@Override
-	public Iterator valueIterator() {
-		return list.iterator();
+	public Iterator<Object> valueIterator() {
+		return new ListIteratorImpl(list, 0);
+		//return list.iterator();
+	}
+	@Override
+	public Iterator<Object> getIterator() {
+		return new ListIteratorImpl(list, 0);
+		//return list.iterator();
 	}
 
 	/*---@Override

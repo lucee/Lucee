@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2014, the Railo Company Ltd.
- * Copyright (c) 2015, Lucee Assosication Switzerland
+ * Copyright (c) 2016, Lucee Assosication Switzerland
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,25 +23,34 @@ import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
 
-public class ListIteratorImpl implements ListIterator {
+
+public class ListIteratorImpl<T> implements ListIterator<T> {
 	
 	private static final int UNDEFINED = Integer.MIN_VALUE;
-	private List list;
+	private List<T> list;
 	private int index=-1;
 	private int current=UNDEFINED;
 
 	/**
 	 * Constructor of the class
 	 * @param arr
+	 */
+	public ListIteratorImpl(List<T> list){
+		this(list,0);
+	}
+	
+	/**
+	 * Constructor of the class
+	 * @param arr
 	 * @param index 
 	 */
-	public ListIteratorImpl(List list, int index){
+	public ListIteratorImpl(List<T> list, int index){
 		this.list=list;
 		this.index=index-1;
 	}
 
 	@Override
-	public void add(Object o) {
+	public void add(T o) {
 		list.add(++index,o);
 	}
 
@@ -53,7 +62,7 @@ public class ListIteratorImpl implements ListIterator {
 	}
 
 	@Override
-	public void set(Object o) {
+	public void set(T o) {
 		if(current==UNDEFINED) throw new IllegalStateException();
 		list.set(current, o);
 	}
@@ -82,7 +91,7 @@ public class ListIteratorImpl implements ListIterator {
 	}
 
 	@Override
-	public Object previous() {
+	public T previous() {
 		if(!hasPrevious())
 			throw new NoSuchElementException();
 		current=index;
@@ -90,7 +99,7 @@ public class ListIteratorImpl implements ListIterator {
 	}
 
 	@Override
-	public Object next() {
+	public T next() {
 		if(!hasNext())
 			throw new NoSuchElementException();
 		return list.get(current=++index);
