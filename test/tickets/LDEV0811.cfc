@@ -19,7 +19,7 @@
 
 	public void function testJSONEscapeChar(){
 		var res=serializeJSON("I don" & chr(18) & "t know!")
-		assertEquals("I don\u0012t know!",res);
+		assertEquals('"I don\u0012t know!"',res);
 	}
 
 
