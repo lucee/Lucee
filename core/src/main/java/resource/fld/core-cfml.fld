@@ -1608,18 +1608,20 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Parses a date/time string according to the English (U.S.)
         locale conventions. (To format a date/time string for other
         locales, use the LSParseDateTime function.)</description>
+        <member-name>parseDateTime</member-name>
+        <member-type>string</member-type>
 		<argument>
 			<name>date</name>
 			<type>object</type>
 			<required>Yes</required>
-		<description>A string containing a date/time value formatted according to U.S. locale conventions.</description>
-    </argument>
+			<description>A string containing a date/time value formatted according to U.S. locale conventions.</description>
+    	</argument>
 		<argument>
 			<name>popConversion</name>
 			<type>string</type>
 			<required>No</required>
-		<description></description>
-    </argument>
+			<description></description>
+    	</argument>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
