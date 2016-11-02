@@ -396,7 +396,7 @@ public class RHExtension implements Serializable {
 				
 				// event-gateway
 				if(!entry.isDirectory() && 
-						(startsWith(path,type,"event-gateway") || startsWith(path,type,"eventGateway")) && 
+						(startsWith(path,type,"event-gateways") || startsWith(path,type,"eventGateways")) && 
 						( 
 							StringUtil.endsWithIgnoreCase(path, "."+Constants.getCFMLComponentExtension()) || 
 							StringUtil.endsWithIgnoreCase(path, "."+Constants.getLuceeComponentExtension())
