@@ -1,6 +1,6 @@
 <cfsetting showdebugoutput="no">
-<cfparam name="URL.Scene" default="1">
-<cfif URL.Scene EQ 1>
+<cfparam name="FORM.Scene" default="1">
+<cfif FORM.Scene EQ 1>
 	<cfscript>
 		pm = entityNew("PageMapping");
 		ormreload();
@@ -8,7 +8,7 @@
 	</cfscript>
 <cfelse>
 	<!--- HQL using query tag --->
-	<cfquery name="result2" dbtype="hql">
+	<cfquery name="result" dbtype="hql">
 		FROM PageMapping
 	</cfquery>
 </cfif>
