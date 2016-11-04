@@ -19,15 +19,15 @@
 					// Runs after each spec in this suite group
 				});
 
-				it(title="Case 1: returnvariable attribute for cfschedule(should be unavailable)", body=function(){
+				it(title="Case 1: returnvariable attribute for cfschedule(should still be available)", body=function(){
 					try{
 						local.result= cfscheduleWithReturnVariable();
 					}catch( any e ){
 						hasError = true;
 					}
-					expect(hasError).toBeTrue();
+					expect(hasError).toBeFalse();
 					// But it set to false here, so we need to remove the attribute returnvariable
-				}, labels="returnvariable attribute for cfschedule(should be unavailable)");
+				}, labels="returnvariable attribute for cfschedule(should still be available)");
 
 				it(title="Case 2: result attribute for cfschedule(should be available)", body=function(){
 					try{
@@ -42,12 +42,17 @@
 		}
 	</cfscript>
 
-	<cffunction name="cfscheduleWithReturnVariable">
+	<cffunction name="cfscheduleWithReturnVariableOld">
 		<cfset attrStruct = {}>
 		<cfset attrStruct.action = "list">
 		<cfset attrStruct.returnvariable = "local.result">
 		<cfschedule attributeCollection="#attrStruct#">
 
+		<cfreturn local.result>
+	</cffunction>
+
+	<cffunction name="cfscheduleWithReturnVariable">
+		<cfschedule action = "list" returnvariable = "local.result">
 		<cfreturn local.result>
 	</cffunction>
 
