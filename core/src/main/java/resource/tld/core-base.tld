@@ -7167,7 +7167,8 @@ To use cached data, the current query must use the same SQL statement, data sour
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>returnvariable</name>
+			<name>result</name>
+			<alias>returnvariable</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>return variable name of action list</description>
