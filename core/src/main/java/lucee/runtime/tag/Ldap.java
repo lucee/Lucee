@@ -111,7 +111,7 @@ public final class Ldap extends TagImpl {
      * @throws ApplicationException 
      */
     public void setFilterfile(String filterfile) {
-		DeprecatedUtil.tagAttribute(pageContext,"LDAP", "filterfile");
+		//DeprecatedUtil.tagAttribute(pageContext,"LDAP", "filterfile");
     }
     
     /** Specifies the character that cfldap uses to separate multiple 

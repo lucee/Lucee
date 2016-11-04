@@ -144,7 +144,7 @@ public final class Log extends TagImpl {
 	**/
 	public void setTime(boolean useTime) throws ApplicationException	{
 		if(useTime) return;
-		DeprecatedUtil.tagAttribute(pageContext,"Log", "time");
+		//DeprecatedUtil.tagAttribute(pageContext,"Log", "time");
 	    throw new ApplicationException("attribute [time] for tag [log] is deprecated, only the value true is allowed");
 	}
 
@@ -169,7 +169,7 @@ public final class Log extends TagImpl {
 	**/
 	public void setDate(boolean useDate) throws ApplicationException	{
 		if(useDate) return;
-		DeprecatedUtil.tagAttribute(pageContext,"Log", "date");
+		//DeprecatedUtil.tagAttribute(pageContext,"Log", "date");
 	    throw new ApplicationException("attribute [date] for tag [log] is deprecated, only the value true is allowed");
 	}
 
@@ -183,7 +183,7 @@ public final class Log extends TagImpl {
 	**/
 	public void setThread(boolean thread) throws ApplicationException	{
 		if(thread) return;
-		DeprecatedUtil.tagAttribute(pageContext,"Log", "thread");
+		//DeprecatedUtil.tagAttribute(pageContext,"Log", "thread");
 	    throw new ApplicationException("attribute [thread] for tag [log] is deprecated, only the value true is allowed");
 	}
 

@@ -173,7 +173,7 @@ public final class Search extends TagImpl {
 	* @param language value to set
 	**/
 	public void setLanguage(String language)	{
-		DeprecatedUtil.tagAttribute(pageContext,"Search", "language");
+		//DeprecatedUtil.tagAttribute(pageContext,"Search", "language");
 	}
 
 	/** set the value external
@@ -181,7 +181,7 @@ public final class Search extends TagImpl {
 	 * @throws ApplicationException
 	**/
 	public void setExternal(boolean external) throws ApplicationException	{
-		DeprecatedUtil.tagAttribute(pageContext,"Search", "external");
+		//DeprecatedUtil.tagAttribute(pageContext,"Search", "external");
 	}
 
 	/** set the value name

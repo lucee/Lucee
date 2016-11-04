@@ -56,7 +56,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMSession;
 import lucee.runtime.orm.ORMUtil;
-import lucee.runtime.tag.util.DeprecatedUtil;
 import lucee.runtime.tag.util.QueryParamConverter;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -313,7 +312,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	* @param cachename value to set
 	**/
 	public void setCachename(String cachename)	{
-		DeprecatedUtil.tagAttribute(pageContext,"query", "cachename");
+		//DeprecatedUtil.tagAttribute(pageContext,"query", "cachename");
 		//this.cachename=cachename;
 	}
 	public void setColumnkey(String columnKey) {
@@ -339,7 +338,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	 * @throws ApplicationException
 	**/
 	public void setProviderdsn(String providerdsn) throws ApplicationException	{
-		DeprecatedUtil.tagAttribute(pageContext,"Query", "providerdsn");
+		//DeprecatedUtil.tagAttribute(pageContext,"Query", "providerdsn");
 	}
 
 	/** set the value connectstring
@@ -347,7 +346,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	 * @throws ApplicationException
 	**/
 	public void setConnectstring(String connectstring) throws ApplicationException	{
-		DeprecatedUtil.tagAttribute(pageContext,"Query", "connectstring");
+		//DeprecatedUtil.tagAttribute(pageContext,"Query", "connectstring");
 	}
 	
 
@@ -390,7 +389,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	 * @throws ApplicationException
 	**/
 	public void setDbname(String dbname) {
-		DeprecatedUtil.tagAttribute(pageContext,"Query", "dbname");
+		//DeprecatedUtil.tagAttribute(pageContext,"Query", "dbname");
 	}
 
 	/** set the value maxrows
@@ -416,7 +415,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	 * @throws ApplicationException
 	**/
 	public void setProvider(String provider) {
-		DeprecatedUtil.tagAttribute(pageContext,"Query", "provider");
+		//DeprecatedUtil.tagAttribute(pageContext,"Query", "provider");
 	}
 
 	/** set the value dbserver
@@ -426,7 +425,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	 * @throws ApplicationException
 	**/
 	public void setDbserver(String dbserver) {
-		DeprecatedUtil.tagAttribute(pageContext,"Query", "dbserver");
+		//DeprecatedUtil.tagAttribute(pageContext,"Query", "dbserver");
 	}
 
 	/** set the value name

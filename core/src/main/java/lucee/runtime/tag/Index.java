@@ -255,7 +255,7 @@ public final class Index extends TagImpl {
 	 * @throws ApplicationException
 	**/
 	public void setExternal(boolean external) {
-		DeprecatedUtil.tagAttribute(pageContext,"Index", "external");
+		//DeprecatedUtil.tagAttribute(pageContext,"Index", "external");
 	}
 
 	/** set the value extensions

@@ -100,7 +100,7 @@ public class ProcParam extends TagSupport {
 		param.setVariable(variable);
 	}
 	public void setDbvarname(String dbvarname) {
-		DeprecatedUtil.tagAttribute(pageContext,"procparam","dbvarname");
+		//DeprecatedUtil.tagAttribute(pageContext,"procparam","dbvarname");
 	}
 	
 	

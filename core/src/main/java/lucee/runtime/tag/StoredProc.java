@@ -162,7 +162,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	* @param cachename value to set
 	**/
 	public void setCachename(String cachename)	{
-		DeprecatedUtil.tagAttribute(pageContext,"StoredProc", "cachename");
+		//DeprecatedUtil.tagAttribute(pageContext,"StoredProc", "cachename");
 	}
 
 	/** set the value cachedwithin
@@ -190,7 +190,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	 */
 	@Deprecated
 	public void setBlockfactor(int blockfactor) {
-		DeprecatedUtil.tagAttribute(pageContext,"storedproc","blockfactor");
+		//DeprecatedUtil.tagAttribute(pageContext,"storedproc","blockfactor");
 		this.blockfactor = blockfactor;
 	}
 
@@ -247,10 +247,10 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	 * @param dbvarname the dbvarname to set
 	 */
 	public void setDbvarname(String dbvarname) {
-		DeprecatedUtil.tagAttribute(pageContext,"storedproc","dbvarname");
+		//DeprecatedUtil.tagAttribute(pageContext,"storedproc","dbvarname");
 	}
 	public void setDbtype(String dbtype) {
-		DeprecatedUtil.tagAttribute(pageContext,"storedproc","dbtype");
+		//DeprecatedUtil.tagAttribute(pageContext,"storedproc","dbtype");
 	}
 
 	public void addProcParam(ProcParamBean param) {
