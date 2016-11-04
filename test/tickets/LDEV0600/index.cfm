@@ -9,7 +9,9 @@
 			c2 = new comp2();
 		}
 		c1.foo();
+		silent {dump(c1);}
 		c2.foo();
+		silent {dump(c2);}
 	}
 	catch(any e) {
 		if( e.Message != -1 )
