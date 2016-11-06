@@ -35,17 +35,30 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	}
 
-	public function testLDEV1063(){
+	public function testLDEV1063a(){
 
 		if(!variables.has) return;
 
+		// SELECT CAST(:election as date) AS election_date;
 		query name="local.qry" params=[election:"2016-11-08"] { echo("
-		--	SELECT CAST(:election as date) AS election_date;
 		    SELECT :election::date AS election_date;
 		"); }
 
 		assertEquals("2016-11-08", qry.election_date);
 	}
+
+	public function testLDEV1063b(){
+
+		if(!variables.has) return;
+
+		// SELECT CAST(? as date) AS election_date;
+		query name="local.qry" params=[election:"2016-11-08"] { echo("
+		    SELECT ?::date AS election_date;
+		"); }
+
+		assertEquals("2016-11-08", qry.election_date);
+	}
+
 
 	private boolean function defineDatasource(){
 		var pgsql=getCredencials();
