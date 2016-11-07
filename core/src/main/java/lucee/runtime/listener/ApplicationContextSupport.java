@@ -382,6 +382,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract Resource getAntiSamyPolicyResource();
 	public abstract void setAntiSamyPolicyResource(Resource res);
 	public abstract CacheConnection getCacheConnection(String cacheName, CacheConnection defaultValue);
+	public abstract Key[] getCacheConnectionNames();
 	public abstract void setCacheConnection(String cacheName, CacheConnection value);
 	public abstract SessionCookieData getSessionCookie();
 	public abstract void setSessionCookie(SessionCookieData data);

@@ -38,8 +38,10 @@ import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.i18n.LocaleFactory;
@@ -248,8 +250,27 @@ public class GetApplicationSettings {
 		String fil = ac.getDefaultCacheName(Config.CACHE_TYPE_FILE);
 		String wse = ac.getDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE);
 		
-		
-		if(fun!=null || obj!=null || qry!=null || res!=null || tmp!=null || inc!=null || htt!=null || fil!=null || wse!=null) {
+		// cache connections
+		Struct conns=new StructImpl();
+		if(ac instanceof ApplicationContextSupport) {
+			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+			Key[] names = acs.getCacheConnectionNames();
+			for(Key name:names) {
+				CacheConnection data = acs.getCacheConnection(name.getString(),null);
+				Struct _sct=new StructImpl();
+				conns.setEL(name, _sct);
+				_sct.setEL(KeyConstants._custom,data.getCustom());
+				_sct.setEL(KeyConstants._storage,data.isStorage());
+				ClassDefinition cd = data.getClassDefinition();
+				if(cd!=null) {
+					_sct.setEL(KeyConstants._class,cd.getClassName());
+					if(!StringUtil.isEmpty(cd.getName())) _sct.setEL(KeyConstants._bundleName,cd.getClassName());
+					if(cd.getVersion()!=null) _sct.setEL(KeyConstants._bundleVersion,cd.getVersionAsString());
+				}
+			}
+		}
+
+		if(!conns.isEmpty() || fun!=null || obj!=null || qry!=null || res!=null || tmp!=null || inc!=null || htt!=null || fil!=null || wse!=null) {
 			Struct cache=new StructImpl();
 			sct.setEL(KeyConstants._cache, cache);
 			if(fun!=null)cache.setEL(KeyConstants._function, fun);
@@ -261,7 +282,11 @@ public class GetApplicationSettings {
 			if(htt!=null)cache.setEL(KeyConstants._http, htt);
 			if(fil!=null)cache.setEL(KeyConstants._file, fil);
 			if(wse!=null)cache.setEL(KeyConstants._webservice, wse);
+			if(conns!=null)cache.setEL(KeyConstants._connections, conns);
 		}
+		
+		
+		
 		
 		// java settings
 		JavaSettings js = ac.getJavaSettings();

@@ -710,6 +710,11 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
+	public Key[] getCacheConnectionNames() {
+		return cacheConnections==null?new Key[0]:cacheConnections.keySet().toArray(new Key[cacheConnections.size()]);
+	}
+
+	@Override
 	public void setMailServers(Server[] servers) {
 		this.mailServers=servers;
 	}
@@ -900,4 +905,5 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		if(pair==null) return null;
 		return (Struct)pair.getValue().duplicate(false);
 	}
+
 }

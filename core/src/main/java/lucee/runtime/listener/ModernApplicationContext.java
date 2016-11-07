@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -738,6 +739,12 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public CacheConnection getCacheConnection(String cacheName, CacheConnection defaultValue) {
 		initCache();
 		return cacheConnections.get(KeyImpl.init(cacheName));
+	}
+	
+	public Key[] getCacheConnectionNames() {
+		initCache();
+		Set<Key> set = cacheConnections.keySet();
+		return set.toArray(new Key[set.size()]);
 	}
 	
 	private void initCache() {
