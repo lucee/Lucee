@@ -35,7 +35,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	}
 
-	public function testLDEV1063a(){
+	public function testLDEV1063a() skip=true{
 
 		if(!variables.has) return;
 
@@ -47,7 +47,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("2016-11-08", qry.election_date);
 	}
 
-	public function testLDEV1063b(){
+	public function testLDEV1063b() skip=true{
 
 		if(!variables.has) return;
 
