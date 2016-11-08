@@ -243,7 +243,6 @@ public final class JSONConverter extends ConverterSupport {
         	}
         }
     	
-    	
     	sb.append(goIn());
         sb.append("{");
         //Key[] keys = struct.keys();
@@ -424,7 +423,7 @@ public final class JSONConverter extends ConverterSupport {
 			    if(oDoIt)sb.append(',');
 			    oDoIt=true;
 			    sb.append(goIn());
-	            sb.append(StringUtil.escapeJS(_keys[i].getString(),'"',charsetEncoder));
+	            sb.append(StringUtil.escapeJS(_keys[i].getString().toUpperCase(),'"',charsetEncoder));
 	            sb.append(":[");
 				boolean doIt=false;
 					for(int y=1;y<=len;y++) {
