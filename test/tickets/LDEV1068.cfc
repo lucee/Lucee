@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
-		describe( "list to array function with numeric value", function() {
-			it("simple list to array function", function( currentSpec ){
+		describe( "Test suite for LDEV-1068", function() {
+			it("Checking serializeJSON() for serializing query", function( currentSpec ){
 				columnName = "name,age,sex";
 				query = queryNew(columnName);
 				queryAddRow( query, ['saravana',35,'male'] );
