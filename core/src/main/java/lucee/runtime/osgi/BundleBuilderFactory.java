@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -219,7 +220,7 @@ public class BundleBuilderFactory {
 		this.bundleActivationPolicy=bundleActivationPolicy;
 	}
 	
-	private static void addPackages(List<String> packages, String str) {
+	private static void addPackages(Collection<String> packages, String str) {
 		StringTokenizer st=new StringTokenizer(str,",");
 		while(st.hasMoreTokens()){
 			packages.add(st.nextToken().trim());
@@ -290,20 +291,29 @@ public class BundleBuilderFactory {
 				attrs.putValue("Bundle-Activator","");
 			}
 		}
-		
-		
-		
-		
-		
+
 		// Export-Package
-		String str = attrs.getValue("Export-Package");
+		String str = ignoreExistingManifest?null:attrs.getValue("Export-Package");
 		// no existing Export-Package
+		Set<String> set;
 		if(Util.isEmpty(str,true)) {
-			if(ArrayUtil.isEmpty(exportPackage) || isAsterix(exportPackage)) {
-				exportPackage=ListUtil.toList(existingPackages);
-			}
-			addList(attrs,"Export-Package",exportPackage);
+			set=existingPackages;
 		}
+		else {
+			set=new HashSet<String>();
+			addPackages(set, str);
+		}
+		
+		if(!ArrayUtil.isEmpty(exportPackage) && !isAsterix(exportPackage)) {
+			Iterator<String> it = exportPackage.iterator();
+			while(it.hasNext()) {
+				set.add(it.next());
+			}
+		}
+		exportPackage=ListUtil.toList(set);
+		
+		addList(attrs,"Export-Package",exportPackage);
+		
 
 		// Require-Bundle
 		str = attrs.getValue("Require-Bundle");

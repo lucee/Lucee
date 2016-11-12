@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.1.1.11-SNAPSHOT</version>
+  <version>5.1.1.12-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -348,12 +348,13 @@
     <version>1.10</version>
     <scope>provided</scope>
   </dependency>
-  <dependency>
-  	<groupId>org.lucee</groupId>
-  	<artifactId>commons-sanselan</artifactId>
-  	<version>0.97.0.incubator</version>
-    <scope>provided</scope>
-  </dependency>
+    <dependency>
+         <groupId>org.apache.commons</groupId>
+         <artifactId>image</artifactId>
+         <type>jar</type>
+         <version>1.0.0.R1534292</version>
+         <scope>provided</scope>
+      </dependency>
   <dependency>
     <groupId>commons-codec</groupId>
     <artifactId>commons-codec</artifactId>

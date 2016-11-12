@@ -1260,7 +1260,7 @@ public final class SystemUtil {
 	    	rtn.fromBundle=clazz;
 	    	return rtn;
 	    }
-	    if(!OSGiUtil.isInBootelegation(clazz.getName())) {
+	    if(!OSGiUtil.isClassInBootelegation(clazz.getName())) {
 	    	rtn.fromSystem=clazz;
 	    }
 	    else {
@@ -1300,7 +1300,7 @@ public final class SystemUtil {
 	    	if(callerCaller!=null && !acceptSystem && !isFromBundle(callerCaller)) {
 	    		callerCaller=null;
 	    	}
-	    	else if(callerCaller!=null && !acceptBootDelegation && OSGiUtil.isInBootelegation(callerCaller.getName())) {
+	    	else if(callerCaller!=null && !acceptBootDelegation && OSGiUtil.isClassInBootelegation(callerCaller.getName())) {
 	    		callerCaller=null;
 	    	}
 	    }
