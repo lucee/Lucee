@@ -19,6 +19,7 @@
 package lucee.runtime.dump;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
@@ -532,6 +533,40 @@ public class DumpUtil {
 			}
 			if(fields.length>0)table.appendRow(1,new SimpleDumpData("fields"),fieldDump);
 			
+			// Constructors
+			Constructor[] constructors = clazz.getConstructors();
+			DumpTable constrDump = new DumpTable("#6289a3","#dee3e9","#000000");
+			constrDump.appendRow(-1,new SimpleDumpData("interface"),new SimpleDumpData("exceptions"));
+			for(int i=0;i<constructors.length;i++) {
+				Constructor constr = constructors[i];
+				
+				
+				// exceptions
+				StringBuilder sbExp=new StringBuilder();
+				Class[] exceptions = constr.getExceptionTypes();
+				for(int p=0;p<exceptions.length;p++){
+					if(p>0)sbExp.append("\n");
+					sbExp.append(Caster.toClassName(exceptions[p]));
+				}
+				
+				// parameters
+				StringBuilder sbParams=new StringBuilder("<init>");
+				sbParams.append('(');
+				Class[] parameters = constr.getParameterTypes();
+				for(int p=0;p<parameters.length;p++){
+					if(p>0)sbParams.append(", ");
+					sbParams.append(Caster.toClassName(parameters[p]));
+				}
+				sbParams.append(')');
+				
+				constrDump.appendRow(0,
+					new SimpleDumpData(sbParams.toString()),
+					new SimpleDumpData(sbExp.toString())
+				);
+			}
+			if(constructors.length>0)table.appendRow(1,new SimpleDumpData("constructors"),constrDump);
+			
+
 			// Methods
 			StringBuilder objMethods=new StringBuilder();
 			Method[] methods=clazz.getMethods();
@@ -572,6 +607,8 @@ public class DumpUtil {
 				);
 			}
 			if(methods.length>0)table.appendRow(1,new SimpleDumpData("methods"),methDump);
+			
+			
 			
 			
 			DumpTable inherited = new DumpTable("#6289a3","#dee3e9","#000000");
