@@ -1518,10 +1518,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		Map<String,Mapping> mappings = MapFactory.<String,Mapping>getConcurrentMap();
 		Mapping tmp;
 
+		boolean finished = false;
+
 		if (configServer != null && config instanceof ConfigWeb) {
 			Mapping[] sm = configServer.getMappings();
 			for (int i = 0; i < sm.length; i++) {
 				if (!sm[i].isHidden()) {
+					if ("/".equals(sm[i].getVirtual())) finished = true;
 					if (sm[i] instanceof MappingImpl) {
 						tmp = ((MappingImpl) sm[i]).cloneReadOnly(config);
 						mappings.put(tmp.getVirtualLowerCase(), tmp);
@@ -1534,8 +1537,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 			}
 		}
-
-		boolean finished = false;
 
 		if (hasAccess) {
 			boolean hasServerContext=false;
