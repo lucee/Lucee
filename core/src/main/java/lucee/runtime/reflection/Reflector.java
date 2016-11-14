@@ -838,10 +838,6 @@ public final class Reflector {
 		if(obj==null) {
 			throw new ExpressionException("can't call method ["+methodName+"] on object, object is null");
 		}
-		
-		//checkAccesibility(obj,methodName);
-        
-        
 		MethodInstance mi=getMethodInstanceEL(obj,obj.getClass(), methodName, args);
 		if(mi==null)
 		    throw throwCall(obj,methodName,args);
