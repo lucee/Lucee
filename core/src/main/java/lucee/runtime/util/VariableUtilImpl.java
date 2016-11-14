@@ -18,6 +18,7 @@
  */
 package lucee.runtime.util;
 
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -769,15 +770,23 @@ public final class VariableUtilImpl implements VariableUtil {
 	    if(coll instanceof TimeZone) {
 			return MemberUtil.call(pc,coll,key,args, CFTypes.TYPE_TIMEZONE, "timezone");
 	    }
+	    // Boolean
 	    if(coll instanceof Boolean) {
 	    	return MemberUtil.call(pc, coll, key, args, CFTypes.TYPE_BOOLEAN, "boolean");
 	    }
+	    // Map
 	    if(coll instanceof Map) {
 	    	return MemberUtil.call(pc, coll, key, args, CFTypes.TYPE_STRUCT, "struct");
 	    }
+	    // List
 	    if(coll instanceof List) {
 	    	return MemberUtil.call(pc, coll, key, args, CFTypes.TYPE_ARRAY, "array");
 	    }
+	    // Date
+	    if(coll instanceof Date) {
+	    	return MemberUtil.call(pc, coll, key, args, CFTypes.TYPE_DATETIME, "date");
+	    }
+	    
 	    
         // call Object Wrapper      
 	    if(pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS)==SecurityManager.VALUE_YES) {

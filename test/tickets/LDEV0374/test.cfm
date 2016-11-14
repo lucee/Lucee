@@ -1,6 +1,7 @@
 <cfscript>
 	param name="FORM.Scene" default="1";
 	param name="FORM.Purpose" default="";
+	
 	// Refreshing ORM objects
 	// ormReload();
 
@@ -20,7 +21,6 @@
 	EntitySave(t2);
 	// Getting data from db
 	t3 = entityLoad("users");
-
 	date1 = t3[1].getDateJoined();
 	date2 = t3[2].getDateJoined();
 
