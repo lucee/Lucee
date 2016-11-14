@@ -34,11 +34,12 @@ public class ImageGetEXIFMetadata {
 	public static Struct call(PageContext pc, Object name) throws PageException {
 		//if(name instanceof String) name=pc.getVariable(Caster.toString(name));
 		Image img = Image.toImage(pc,name);
-		return getData(img);
+		return img.info();//getData(img);
 	}
 
-	public static Struct getData(Image img) throws PageException {
-		Struct sct = img.info(),data=new StructImpl();
+	public static Struct flatten(Struct sct) throws PageException {
+		
+		Struct data=new StructImpl();
 		Iterator it = sct.entrySet().iterator();
 		Map.Entry entry;
 		while(it.hasNext()){

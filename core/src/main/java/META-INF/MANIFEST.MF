@@ -321,7 +321,7 @@ Export-Package: coldfusion,
  lucee.transformer.library.function,
  lucee.transformer.library.tag,
  lucee.transformer.util
-Require-Bundle: org.lucee.commons.sanselan;bundle-version=0.97.0.incubator,
+Require-Bundle: org.apache.commons.image;bundle-version=1.0.0.R1534292,
  org.apache.commons.codec;bundle-version=1.9.0,
  org.apache.commons.collections4;bundle-version=4.0.0,
  org.lucee.commons.compress;bundle-version=1.9.0,

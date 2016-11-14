@@ -47,7 +47,7 @@ public class ImageMetaDrew {
 	 * @throws MetadataException 
 	 * @throws JpegProcessingException 
 	 */
-	public static void addInfo(String format, Resource res, Struct info)  {
+	public static void addInfo(String format, Resource res, Struct info) {
 		if("jpg".equalsIgnoreCase(format))jpg(res, info);
 		else if("tiff".equalsIgnoreCase(format))tiff(res, info);
 		

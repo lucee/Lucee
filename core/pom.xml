@@ -127,11 +127,12 @@
   	</dependency>
 	
     <dependency>
-  	  <groupId>org.lucee</groupId>
-  	  <artifactId>commons-sanselan</artifactId>
-  	  <version>0.97.0.incubator</version>
-      <scope>provided</scope>
-    </dependency>
+         <groupId>org.apache.commons</groupId>
+         <artifactId>image</artifactId>
+         <type>jar</type>
+         <version>1.0.0.R1534292</version>
+         <scope>provided</scope>
+      </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>

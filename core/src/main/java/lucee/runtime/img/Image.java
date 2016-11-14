@@ -98,6 +98,7 @@ import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.functions.image.ImageGetEXIFMetadata;
 import lucee.runtime.img.filter.QuantizeFilter;
 import lucee.runtime.img.gif.GifEncoder;
 import lucee.runtime.interpreter.VariableInterpreter;
@@ -331,11 +332,12 @@ public class Image extends StructSupport implements Cloneable,Struct {
 	}
 	
 
-	public Struct info()  throws ExpressionException{
+	public Struct info()  throws PageException {
 		if(sctInfo!=null) return sctInfo;
 		
 		Struct sctInfo=new StructImpl(),sct;
-		
+		ImageMetaDrew.addInfo(format,source,sctInfo);
+		sctInfo=ImageGetEXIFMetadata.flatten(sctInfo);
 		
 		sctInfo.setEL("height",new Double(getHeight()));
 		sctInfo.setEL("width",new Double(getWidth()));
@@ -372,9 +374,8 @@ public class Image extends StructSupport implements Cloneable,Struct {
 
 		
 		getMetaData(sctInfo);
-		
-		ImageMeta.addInfo(format,source,sctInfo);
-		
+		//Metadata.addInfo(format,source,sctInfo);
+		Metadata.addExifInfo(format,source,sctInfo);
 		this.sctInfo=sctInfo;
 		return sctInfo;
 	}
@@ -1639,7 +1640,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
 	private Struct _info() {
 		try {
 			return info();
-		} catch (ExpressionException e) {
+		} catch (PageException e) {
 			throw new PageRuntimeException(e);
 		}
 	}
@@ -1752,7 +1753,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
 	public Boolean castToBoolean(Boolean defaultValue) {
 		try {
 			return info().castToBoolean(defaultValue);
-		} catch (ExpressionException e) {
+		} catch (PageException e) {
 			return defaultValue;
 		}
 	}
@@ -1766,7 +1767,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
     public DateTime castToDateTime(DateTime defaultValue) {
         try {
 			return info().castToDateTime(defaultValue);
-		} catch (ExpressionException e) {
+		} catch (PageException e) {
 			return defaultValue;
 		}
     }
@@ -1780,7 +1781,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
     public double castToDoubleValue(double defaultValue) {
         try {
 			return info().castToDoubleValue(defaultValue);
-		} catch (ExpressionException e) {
+		} catch (PageException e) {
 			return defaultValue;
 		}
     }
@@ -1845,7 +1846,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
 		try {
 			return info().containsValue(value);
 		} 
-		catch (ExpressionException e) {
+		catch (PageException e) {
 			return false;
 		}
 	}
@@ -1854,7 +1855,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
 	public java.util.Collection values() {
 		try {
 			return info().values();
-		} catch (ExpressionException e) {
+		} catch (PageException e) {
 			throw new PageRuntimeException(e);
 		}
 	}
