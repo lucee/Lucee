@@ -7,7 +7,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					template:uri,
 					forms:{Scene:1}
 				);
-				expect(result.fileContent.trim()).toBe("");
+				expect(left(result.fileContent.trim(), 100)).toBe("test_package_init");
 			});
 
 			it(title="Creating object for a component which has an init() with package access, from another component of same folder", body=function( currentSpec ) {
@@ -16,7 +16,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					template:uri,
 					forms:{Scene:2}
 				);
-				expect(result.fileContent.trim()).toBe("");
+				expect(left(result.fileContent.trim(), 100)).toBe("test_package_init");
 			});
 		});
 
@@ -27,7 +27,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					template:uri,
 					forms:{Scene:1}
 				);
-				expect(result.fileContent.trim()).notToBe("");
+				expect(left(result.fileContent.trim(), 100)).toBe("Error Occurred!!!");
 			});
 
 			it(title="Creating object for a component which has an init() with package access, from another component of different folder", body=function( currentSpec ) {
@@ -36,7 +36,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					template:uri,
 					forms:{Scene:2}
 				);
-				expect(result.fileContent.trim()).notToBe("");
+				expect(left(result.fileContent.trim(), 100)).toBe("Error Occurred!!!");
 			});
 		});
 	}
