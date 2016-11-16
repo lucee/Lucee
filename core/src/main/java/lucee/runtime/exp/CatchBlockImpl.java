@@ -57,6 +57,7 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 	private static final long serialVersionUID = -3680961614605720352L;
 	
 	public static final Key ERROR_CODE = KeyImpl.intern("ErrorCode");
+	public static final Key CAUSE = KeyImpl.intern("Cause");
 	public static final Key EXTENDEDINFO = KeyImpl.intern("ExtendedInfo");
 	public static final Key EXTENDED_INFO = KeyImpl.intern("Extended_Info");
 	public static final Key TAG_CONTEXT = KeyImpl.intern("TagContext");
@@ -79,9 +80,10 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 		setEL(TAG_CONTEXT, new SpecialItem(pe, TAG_CONTEXT));
 		setEL(KeyConstants._type, new SpecialItem(pe, KeyConstants._type));
 		setEL(STACK_TRACE, new SpecialItem(pe, STACK_TRACE));
+		// setEL(CAUSE, new SpecialItem(pe, CAUSE));  // FUTURE 5.2 disable
 		
 		
-		if(pe instanceof NativeException){
+		/*if(pe instanceof NativeException){
 			Throwable throwable = ((NativeException)pe).getRootCause();
 			Method[] mGetters = Reflector.getGetters(throwable.getClass());
 			Method getter;
@@ -97,7 +99,7 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 					setEL(key,new Pair(throwable,key, getter,false));
 				}
 			}
-		}
+		}*/
 	}
 
 	
@@ -118,11 +120,19 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 			if(key==EXTENDED_INFO) return StringUtil.emptyIfNull(pe.getExtendedInfo());
 			if(key==KeyConstants._type) return StringUtil.emptyIfNull(pe.getTypeAsString());
 			if(key==STACK_TRACE) return StringUtil.emptyIfNull(pe.getStackTraceAsString());
+			// if(key==CAUSE) return getCauseAsCatchBlock();  // FUTURE 5.2 disable
 			if(key==ADDITIONAL) return pe.getAdditional();
 			if(key==TAG_CONTEXT) return pe.getTagContext(ThreadLocalPageContext.getConfig());
 			return null;
 		}
 		
+		private CatchBlock getCauseAsCatchBlock() {
+			Throwable cause = pe.getCause();
+			if(cause==null) return null;
+			return new CatchBlockImpl(NativeException.newInstance(cause));
+			
+		}
+
 		public void set(Object o){
 			try {
 				if(!(o instanceof Pair)) {
