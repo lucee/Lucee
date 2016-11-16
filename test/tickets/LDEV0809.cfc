@@ -35,8 +35,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		local.arr=result.headers['Set-Cookie'];
 		local.str='';
 		loop array=arr item="local.entry" {
+			systemOutput(entry,1,1);
 			if(find('cfid=',entry)) str=entry;
 		}
+		systemOutput(str,1,1);
 		assertTrue(len(str)>0);
 		local.sct=toStruct(str);
 		assertFalse(structKeyExists(sct,'HTTPOnly'));
