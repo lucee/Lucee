@@ -36,8 +36,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		local.str='';
 		loop array=arr item="local.entry" {
 			systemOutput(entry,1,1);
-			if(find('cfid=',entry)) str=entry;
+			if(find('cfid=',entry) && find(';Secure',entry)) str=entry;
 		}
+		if(isEmpty(str)) {
+			loop array=arr item="local.entry" {
+				systemOutput(entry,1,1);
+				if(find('cfid=',entry)) str=entry;
+			}
+		}
+
+
 		systemOutput(str,1,1);
 		assertTrue(len(str)>0);
 		local.sct=toStruct(str);
