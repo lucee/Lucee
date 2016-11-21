@@ -354,10 +354,11 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
         	
 	        
 	        
+	        	if(returnValue==null && pc.getConfig().getFullNullSupport()) return returnValue;
+		        if(properties.getReturnType()==CFTypes.TYPE_ANY || !((PageContextImpl)pc).getTypeChecking()) return returnValue;
+		        if(Decision.isCastableTo(properties.getReturnTypeAsString(),returnValue,false,false,-1)) return returnValue;
+		        throw new UDFCasterException(this,properties.getReturnTypeAsString(),returnValue);
 	        
-	        if(properties.getReturnType()==CFTypes.TYPE_ANY || !((PageContextImpl)pc).getTypeChecking()) return returnValue;
-	        else if(Decision.isCastableTo(properties.getReturnTypeAsString(),returnValue,false,false,-1)) return returnValue;
-	        else throw new UDFCasterException(this,properties.getReturnTypeAsString(),returnValue);
 			//REALCAST return Caster.castTo(pageContext,returnType,returnValue,false);
 //////////////////////////////////////////
 			
