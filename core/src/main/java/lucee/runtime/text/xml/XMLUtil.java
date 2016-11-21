@@ -1151,7 +1151,7 @@ public final class XMLUtil {
 	public static InputSource toInputSource(PageContext pc, String xml, boolean canBePath) throws IOException, ExpressionException {
 		// xml text
 		xml=xml.trim(); 
-		if(!canBePath || xml.startsWith("<"))	{
+		if(!canBePath || xml.startsWith("<") || xml.length()>2000)	{
 			return new InputSource(new StringReader(xml));
 		}
 		// xml link
