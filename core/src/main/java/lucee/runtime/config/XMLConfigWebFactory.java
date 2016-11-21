@@ -89,6 +89,7 @@ import lucee.runtime.cfx.customtag.JavaCFXTagClass;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.config.ajax.AjaxFactory;
 import lucee.runtime.config.component.ComponentFactory;
+import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
@@ -118,6 +119,7 @@ import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.ExtensionProviderImpl;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
+import lucee.runtime.functions.other.ObjectSave;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.gateway.GatewayEntryImpl;
@@ -4251,7 +4253,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		Element parent = getChildByName(doc.getDocumentElement(), "extensions");
 		Element[] children = getChildren(parent, "rhextension");
 		String strBundles;
-	
 		Map<String, BundleDefinition> extensionBundles=new HashMap<String,BundleDefinition>();
 		List<RHExtension> extensions=new ArrayList<RHExtension>();
 		
@@ -4259,13 +4260,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			RHExtension rhe;
 			try {
 				rhe = new RHExtension(config,child);
-				if(rhe.getStartBundles()) rhe.deployBundles();
+				if(rhe.getStartBundles()) rhe.deployBundles(config);
 				extensions.add(rhe);
 			} catch (Exception e) {
 				log.error("load-extension", e);
 				continue;
 			}
-			
+
 			BundleInfo[] bfs = rhe.getBundles();
 			BundleInfo bf;
 			BundleDefinition bd;

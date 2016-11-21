@@ -111,46 +111,46 @@ public class RHExtension implements Serializable {
 	public static final int RELEASE_TYPE_WEB=2;
 
 
-	private final String id;
-	private final int releaseType;
-	private final String version;
-	private final String name;
+	private String id;
+	private int releaseType;
+	private String version;
+	private String name;
 	
 
-	private final String description;
-	private final boolean trial;
-	private final String image;
-	private final boolean startBundles;
-	private final BundleInfo[] bundles;
-	private final String[] jars;
-	private final String[] flds;
-	private final String[] tlds;
-	private final String[] tags;
-	private final String[] functions;
-	private final String[] archives;
-	private final String[] applications;
-	private final String[] components;
-	private final String[] plugins;
-	private final String[] contexts;
-	private final String[] configs;
-	private final String[] webContexts;
-	private final String[] categories;
-	private final String[] gateways;
+	private String description;
+	private boolean trial;
+	private String image;
+	private boolean startBundles;
+	private BundleInfo[] bundles;
+	private String[] jars;
+	private String[] flds;
+	private String[] tlds;
+	private String[] tags;
+	private String[] functions;
+	private String[] archives;
+	private String[] applications;
+	private String[] components;
+	private String[] plugins;
+	private String[] contexts;
+	private String[] configs;
+	private String[] webContexts;
+	private String[] categories;
+	private String[] gateways;
 
-	private final List<Map<String, String>> caches;
-	private final List<Map<String, String>> cacheHandlers;
-	private final List<Map<String, String>> orms;
-	private final List<Map<String, String>> monitors;
-	private final List<Map<String, String>> searchs;
-	private final List<Map<String, String>> resources;
-	private final List<Map<String, String>> amfs;
-	private final List<Map<String, String>> jdbcs;
-	private final List<Map<String, String>> mappings;
+	private List<Map<String, String>> caches;
+	private List<Map<String, String>> cacheHandlers;
+	private List<Map<String, String>> orms;
+	private List<Map<String, String>> monitors;
+	private List<Map<String, String>> searchs;
+	private List<Map<String, String>> resources;
+	private List<Map<String, String>> amfs;
+	private List<Map<String, String>> jdbcs;
+	private List<Map<String, String>> mappings;
 	
 	private Resource extensionFile;
 
 	private String type;
-	private Config config;
+	//private Config config;
 	
 
 
@@ -161,7 +161,7 @@ public class RHExtension implements Serializable {
 	public RHExtension(Config config, Resource ext, boolean moveIfNecessary) throws PageException, IOException, BundleException {
 		// make sure the config is registerd with the thread
 		if(ThreadLocalPageContext.getConfig()==null) ThreadLocalConfig.register(config);
-		this.config=config;
+		//this.config=config;
 		// is it a web or server context?
 		boolean isWeb=config instanceof ConfigWeb;
 		type=isWeb?"web":"server";
@@ -170,40 +170,165 @@ public class RHExtension implements Serializable {
 		// get info necessary for checking
 		Info info = ConfigWebUtil.getEngine(config).getInfo();
 		
-		
-		// get the Manifest
+		// no we read the content of the zip
+		ZipInputStream zis = new ZipInputStream( IOUtil.toBufferedInputStream(ext.getInputStream()) ) ;	 
+		ZipEntry entry;
 		Manifest manifest = null;
-		ZipInputStream zis=null;
 		String _img=null;
+		String path;
+		String fileName,sub;
+		
+		List<BundleInfo> bundles=new ArrayList<BundleInfo>();
+		List<String> jars=new ArrayList<String>();
+		List<String> flds=new ArrayList<String>();
+		List<String> tlds=new ArrayList<String>();
+		List<String> tags=new ArrayList<String>();
+		List<String> functions=new ArrayList<String>();
+		List<String> contexts=new ArrayList<String>();
+		List<String> configs=new ArrayList<String>();
+		List<String> webContexts=new ArrayList<String>();
+		List<String> applications=new ArrayList<String>();
+		List<String> components=new ArrayList<String>();
+		List<String> plugins=new ArrayList<String>();
+		List<String> gateways=new ArrayList<String>();
+		List<String> archives=new ArrayList<String>();
 		try {
-			zis = new ZipInputStream( IOUtil.toBufferedInputStream(ext.getInputStream()) ) ;	 
-			ZipEntry entry;
-			String name;
 			while ( ( entry = zis.getNextEntry()) != null ) {
-				name=entry.getName();
-				if(!entry.isDirectory() && name.equalsIgnoreCase("META-INF/MANIFEST.MF")) {
+				path=entry.getName();
+				fileName=fileName(entry);
+				sub=subFolder(entry);
+				
+				if(!entry.isDirectory() && path.equalsIgnoreCase("META-INF/MANIFEST.MF")) {
 					manifest = toManifest(config,zis,null);
 				}
-				else if(!entry.isDirectory() && name.equalsIgnoreCase("META-INF/logo.png")) {
+				else if(!entry.isDirectory() && path.equalsIgnoreCase("META-INF/logo.png")) {
 					_img = toBase64(zis,null);
 				}
+				
+				
+				// jars
+				else if(!entry.isDirectory() && 
+					(startsWith(path,type,"jars") || startsWith(path,type,"jar") 
+					|| startsWith(path,type,"bundles") || startsWith(path,type,"bundle") 
+					|| startsWith(path,type,"lib") || startsWith(path,type,"libs")) && StringUtil.endsWithIgnoreCase(path, ".jar")) {
+					
+					jars.add(fileName);
+					BundleInfo bi = BundleInfo.newInstance(zis, false);
+					if(bi.isBundle()) bundles.add(bi);
+				}
+				
+				// flds
+				else if(!entry.isDirectory() && startsWith(path,type,"flds") && (StringUtil.endsWithIgnoreCase(path, ".fld") || StringUtil.endsWithIgnoreCase(path, ".fldx"))) 
+					flds.add(fileName);
+				
+				// tlds
+				else if(!entry.isDirectory() && startsWith(path,type,"tlds") && (StringUtil.endsWithIgnoreCase(path, ".tld") || StringUtil.endsWithIgnoreCase(path, ".tldx"))) 
+					tlds.add(fileName);
+				
+				// archives
+				else if(!entry.isDirectory() && (startsWith(path,type,"archives") || startsWith(path,type,"mappings")) && StringUtil.endsWithIgnoreCase(path, ".lar")) 
+					archives.add(fileName);
+				
+				// event-gateway
+				else if(!entry.isDirectory() && 
+						(startsWith(path,type,"event-gateways") || startsWith(path,type,"eventGateways")) && 
+						( 
+							StringUtil.endsWithIgnoreCase(path, "."+Constants.getCFMLComponentExtension()) || 
+							StringUtil.endsWithIgnoreCase(path, "."+Constants.getLuceeComponentExtension())
+						)
+					)
+					gateways.add(sub);
+
+				
+				// tags
+				else if(!entry.isDirectory() && startsWith(path,type,"tags")) 
+					tags.add(sub);
+				
+				// functions
+				else if(!entry.isDirectory() && startsWith(path,type,"functions")) 
+					functions.add(sub);
+
+				// context
+				else if(!entry.isDirectory() && startsWith(path,type,"context") && !StringUtil.startsWith(fileName(entry), '.')) 
+					contexts.add(sub);
+
+				// config
+				else if(!entry.isDirectory() && startsWith(path,type,"config") && !StringUtil.startsWith(fileName(entry), '.')) 
+					configs.add(sub);
+				
+				// web contextS
+				else if(!entry.isDirectory() && startsWith(path,type,"webcontexts") && !StringUtil.startsWith(fileName(entry), '.')) 
+					webContexts.add(sub);
+				
+				// applications
+				else if(!entry.isDirectory() && (startsWith(path,type,"applications")) && !StringUtil.startsWith(fileName(entry), '.'))
+					applications.add(sub);
+				else if(!entry.isDirectory() && (startsWith(path,type,"web")) && !StringUtil.startsWith(fileName(entry), '.'))
+					applications.add(sub);
+				
+				// components
+				else if(!entry.isDirectory() && (startsWith(path,type,"components")) && !StringUtil.startsWith(fileName(entry), '.')) 
+					components.add(sub);
+				
+				// plugins
+				else if(!entry.isDirectory() && (startsWith(path,type,"plugins")) && !StringUtil.startsWith(fileName(entry), '.')) 
+					plugins.add(sub);
+				
 				
 				zis.closeEntry() ;
 			}
 		}
-		catch(Throwable t){
-			throw Caster.toPageException(t);
-		}
 		finally {
 			IOUtil.closeEL(zis);
 		}
+		
+
+		// read the manifest
+		readManifestConfig(manifest,ext,isWeb,_img,info,logger);
+		
+		
+		this.jars=jars.toArray(new String[jars.size()]);
+		this.flds=flds.toArray(new String[flds.size()]);
+		this.tlds=tlds.toArray(new String[tlds.size()]);
+		this.tags=tags.toArray(new String[tags.size()]);
+		this.gateways=gateways.toArray(new String[gateways.size()]);
+		this.functions=functions.toArray(new String[functions.size()]);
+		this.archives=archives.toArray(new String[archives.size()]);
+
+		this.contexts=contexts.toArray(new String[contexts.size()]);
+		this.configs=configs.toArray(new String[configs.size()]);
+		this.webContexts=webContexts.toArray(new String[webContexts.size()]);
+		this.applications=applications.toArray(new String[applications.size()]);
+		this.components=components.toArray(new String[components.size()]);
+		this.plugins=plugins.toArray(new String[plugins.size()]);
+		this.bundles=bundles.toArray(new BundleInfo[bundles.size()]);
+
+		
+		// copy the file to extension dir if it is not already there
+		this.extensionFile=ext;
+		if(moveIfNecessary){
+			Resource trg;
+			Resource trgDir;
+			try {
+				trg = getExtensionFile(config, ext,id,name,version);
+				trgDir = trg.getParentResource();
+				trgDir.mkdirs();
+				if(!ext.getParentResource().equals(trgDir)) {
+					if(trg.exists()) trg.delete();
+					ResourceUtil.moveTo(ext, trg,true);
+					this.extensionFile=trg;
+				}
+			}
+			catch(Throwable t){
+				throw Caster.toPageException(t);
+			}
+		}
+	}
+	
+	private void readManifestConfig(Manifest manifest, Resource ext, boolean isWeb, String _img, Info info, Log logger) throws ApplicationException {
 		if(manifest==null)
 			throw new ApplicationException("The Extension ["+ext+"] is invalid,no Manifest file was found at [META-INF/MANIFEST.MF].");
 		
-		
-		
-		// read the manifest
-
 		List<Map<String,String>> caches=null;
 		List<Map<String,String>> cacheHandlers=null;
 		List<Map<String,String>> orms=null;
@@ -212,10 +337,13 @@ public class RHExtension implements Serializable {
 		List<Map<String,String>> resources=null;
 		List<Map<String,String>> amfs=null;
 		List<Map<String,String>> jdbcs=null;
-		List<Map<String,String>> eventGateways=null;
+		//List<Map<String,String>> eventGateways=null;
 		List<Map<String,String>> mappings=null;
 		
 		Attributes attr = manifest.getMainAttributes();
+
+		
+		
 		// version
 		version=StringUtil.unwrap(attr.getValue("version"));
 		if(StringUtil.isEmpty(version)) {
@@ -335,10 +463,10 @@ public class RHExtension implements Serializable {
 		}
 
 		// event-handler
-		str=StringUtil.unwrap(attr.getValue("event-handler"));
+		/*str=StringUtil.unwrap(attr.getValue("event-handler"));
 		if(!StringUtil.isEmpty(str,true)) {
 			eventGateways = toSettings(logger,str);
-		}
+		}*/
 
 		// mappings
 		str=StringUtil.unwrap(attr.getValue("mapping"));
@@ -346,121 +474,7 @@ public class RHExtension implements Serializable {
 			mappings = toSettings(logger,str);
 		}
 		
-		// no we read the content of the zip
-		zis = new ZipInputStream( IOUtil.toBufferedInputStream(ext.getInputStream()) ) ;	 
-		ZipEntry entry;
-		String path;
-		String fileName,sub;
-		
-		List<BundleInfo> bundles=new ArrayList<BundleInfo>();
-		List<String> jars=new ArrayList<String>();
-		List<String> flds=new ArrayList<String>();
-		List<String> tlds=new ArrayList<String>();
-		List<String> tags=new ArrayList<String>();
-		List<String> functions=new ArrayList<String>();
-		List<String> contexts=new ArrayList<String>();
-		List<String> configs=new ArrayList<String>();
-		List<String> webContexts=new ArrayList<String>();
-		List<String> applications=new ArrayList<String>();
-		List<String> components=new ArrayList<String>();
-		List<String> plugins=new ArrayList<String>();
-		List<String> gateways=new ArrayList<String>();
-		List<String> archives=new ArrayList<String>();
-		try {
-			while ( ( entry = zis.getNextEntry()) != null ) {
-				path=entry.getName();
-				fileName=fileName(entry);
-				sub=subFolder(entry);
-				// jars
-				if(!entry.isDirectory() && 
-					(startsWith(path,type,"jars") || startsWith(path,type,"jar") 
-					|| startsWith(path,type,"bundles") || startsWith(path,type,"bundle") 
-					|| startsWith(path,type,"lib") || startsWith(path,type,"libs")) && StringUtil.endsWithIgnoreCase(path, ".jar")) {
-					
-					jars.add(fileName);
-					BundleInfo bi = BundleInfo.newInstance(zis, false);
-					if(bi.isBundle()) bundles.add(bi);
-				}
-				
-				// flds
-				if(!entry.isDirectory() && startsWith(path,type,"flds") && (StringUtil.endsWithIgnoreCase(path, ".fld") || StringUtil.endsWithIgnoreCase(path, ".fldx"))) 
-					flds.add(fileName);
-				
-				// tlds
-				if(!entry.isDirectory() && startsWith(path,type,"tlds") && (StringUtil.endsWithIgnoreCase(path, ".tld") || StringUtil.endsWithIgnoreCase(path, ".tldx"))) 
-					tlds.add(fileName);
-				
-				// archives
-				if(!entry.isDirectory() && (startsWith(path,type,"archives") || startsWith(path,type,"mappings")) && StringUtil.endsWithIgnoreCase(path, ".lar")) 
-					archives.add(fileName);
-				
-				// event-gateway
-				if(!entry.isDirectory() && 
-						(startsWith(path,type,"event-gateways") || startsWith(path,type,"eventGateways")) && 
-						( 
-							StringUtil.endsWithIgnoreCase(path, "."+Constants.getCFMLComponentExtension()) || 
-							StringUtil.endsWithIgnoreCase(path, "."+Constants.getLuceeComponentExtension())
-						)
-					)
-					gateways.add(sub);
 
-				
-				// tags
-				if(!entry.isDirectory() && startsWith(path,type,"tags")) 
-					tags.add(sub);
-				
-				// functions
-				if(!entry.isDirectory() && startsWith(path,type,"functions")) 
-					functions.add(sub);
-
-				// context
-				if(!entry.isDirectory() && startsWith(path,type,"context") && !StringUtil.startsWith(fileName(entry), '.')) 
-					contexts.add(sub);
-
-				// config
-				if(!entry.isDirectory() && startsWith(path,type,"config") && !StringUtil.startsWith(fileName(entry), '.')) 
-					configs.add(sub);
-				
-				// web contextS
-				if(!entry.isDirectory() && startsWith(path,type,"webcontexts") && !StringUtil.startsWith(fileName(entry), '.')) 
-					webContexts.add(sub);
-				
-				// applications
-				if(!entry.isDirectory() && (startsWith(path,type,"applications")) && !StringUtil.startsWith(fileName(entry), '.'))
-					applications.add(sub);
-				if(!entry.isDirectory() && (startsWith(path,type,"web")) && !StringUtil.startsWith(fileName(entry), '.'))
-					applications.add(sub);
-				
-				// components
-				if(!entry.isDirectory() && (startsWith(path,type,"components")) && !StringUtil.startsWith(fileName(entry), '.')) 
-					components.add(sub);
-				
-				// plugins
-				if(!entry.isDirectory() && (startsWith(path,type,"plugins")) && !StringUtil.startsWith(fileName(entry), '.')) 
-					plugins.add(sub);
-				
-				
-				zis.closeEntry() ;
-			}
-		}
-		finally {
-			IOUtil.closeEL(zis);
-		}
-		this.jars=jars.toArray(new String[jars.size()]);
-		this.flds=flds.toArray(new String[flds.size()]);
-		this.tlds=tlds.toArray(new String[tlds.size()]);
-		this.tags=tags.toArray(new String[tags.size()]);
-		this.gateways=gateways.toArray(new String[gateways.size()]);
-		this.functions=functions.toArray(new String[functions.size()]);
-		this.archives=archives.toArray(new String[archives.size()]);
-
-		this.contexts=contexts.toArray(new String[contexts.size()]);
-		this.configs=configs.toArray(new String[configs.size()]);
-		this.webContexts=webContexts.toArray(new String[webContexts.size()]);
-		this.applications=applications.toArray(new String[applications.size()]);
-		this.components=components.toArray(new String[components.size()]);
-		this.plugins=plugins.toArray(new String[plugins.size()]);
-		this.bundles=bundles.toArray(new BundleInfo[bundles.size()]);
 		this.caches=caches==null?new ArrayList<Map<String, String>>():caches;
 		this.cacheHandlers=cacheHandlers==null?new ArrayList<Map<String, String>>():cacheHandlers;
 		this.orms=orms==null?new ArrayList<Map<String, String>>():orms;
@@ -470,29 +484,10 @@ public class RHExtension implements Serializable {
 		this.amfs=amfs==null?new ArrayList<Map<String, String>>():amfs;
 		this.jdbcs=jdbcs==null?new ArrayList<Map<String, String>>():jdbcs;
 		this.mappings=mappings==null?new ArrayList<Map<String, String>>():mappings;
-		
-		// copy the file to extension dir if it is not already there
-		this.extensionFile=ext;
-		if(moveIfNecessary){
-			Resource trg;
-			Resource trgDir;
-			try {
-				trg = getExtensionFile(config, ext,id,name,version);
-				trgDir = trg.getParentResource();
-				trgDir.mkdirs();
-				if(!ext.getParentResource().equals(trgDir)) {
-					if(trg.exists()) trg.delete();
-					ResourceUtil.moveTo(ext, trg,true);
-					this.extensionFile=trg;
-				}
-			}
-			catch(Throwable t){
-				throw Caster.toPageException(t);
-			}
-		}
+		//this.eventGateways=eventGateways==null?new ArrayList<Map<String, String>>():eventGateways;	
 	}
-	
-	public void deployBundles() throws IOException, BundleException {
+
+	public void deployBundles(Config config) throws IOException, BundleException {
 		// no we read the content of the zip
 		ZipInputStream zis = new ZipInputStream( IOUtil.toBufferedInputStream(extensionFile.getInputStream()) ) ;	 
 		ZipEntry entry;

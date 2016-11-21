@@ -22,6 +22,7 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -1159,7 +1160,9 @@ public class OSGiUtil {
 	
 
 
-	public static class VersionDefinition {
+	public static class VersionDefinition implements Serializable {
+		
+		private static final long serialVersionUID = 4915024473510761950L;
 		
 		public static final int LTE = 1;
 		public static final int GTE = 2;
@@ -1289,7 +1292,7 @@ public class OSGiUtil {
 		}
 	}
 	
-	public static class BundleDefinition {
+	public static class BundleDefinition implements Serializable {
 
 		private final String name;
 		private Bundle bundle;

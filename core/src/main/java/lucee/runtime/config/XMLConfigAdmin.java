@@ -4901,7 +4901,7 @@ public final class XMLConfigAdmin {
 			   
 			// load the bundles
 			if(rhext.getStartBundles()) {
-				rhext.deployBundles();
+				rhext.deployBundles(ci);
 				BundleInfo[] bfs = rhext.getBundles();
 				for(BundleInfo bf:bfs){
 					OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(),false,null);
