@@ -163,7 +163,7 @@
 	</cfif>
 <cfif url.action2 EQ "edit">
 <cfsavecontent variable="codeSample">
-	this.mails =[ {
+	this.mailservers =[ {
 	  host: '#data.hostname#'
 	, port: #data.port#
 	, username: '#replace(data.username,"'","''","all")#'

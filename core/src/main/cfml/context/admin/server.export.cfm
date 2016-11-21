@@ -196,7 +196,7 @@ component {
 //////////////////////////////////////////////
 //               MAIL SERVERS               //
 //////////////////////////////////////////////
-	this.mails =[ 
+	this.mailservers =[ 
 <cfloop query="#mailservers#"><cfset life=toTSStruct(mailservers.life)><cfset idle=toTSStruct(mailservers.idle)>
 		<cfif mailservers.currentrow GT 1>,</cfif>{
 		  host: '#mailservers.hostname#'

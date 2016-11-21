@@ -32,16 +32,10 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.Level;
-import org.osgi.framework.Version;
 
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
-import lucee.commons.io.log.LoggerAndSourceData;
-import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
@@ -59,7 +53,6 @@ import lucee.runtime.component.Member;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;
-import lucee.runtime.config.XMLConfigWebFactory;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -74,7 +67,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.rest.RestSettingImpl;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.type.Array;
@@ -88,7 +80,6 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.UDFCustomType;
 import lucee.runtime.type.dt.TimeSpan;
-import lucee.runtime.type.it.KeyAsStringIterator;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
@@ -712,6 +703,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if(!initMailServer) { 
 			Object oMail = get(component,KeyConstants._mail,null);
 			if(oMail==null) oMail = get(component,KeyConstants._mails,null);
+			if(oMail==null) oMail = get(component,KeyImpl.init("mailserver"),null);
+			if(oMail==null) oMail = get(component,KeyImpl.init("mailservers"),null);
 			
 			Array arrMail = Caster.toArray(oMail,null);
 			// we also support a single struct instead of an array of structs
