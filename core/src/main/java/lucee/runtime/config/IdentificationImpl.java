@@ -48,8 +48,8 @@ public abstract class IdentificationImpl implements Identification {
 
 	@Override
 	public String getId() {
-		// this is dine here for performance reasons
-		if(id==null) id=createId(securityKey,securityToken,true,securityKey);
+		// this is here for performance reasons
+		if(id==null) id=createId(securityKey,securityToken,false,securityKey);
 		return id;
 	}
 
