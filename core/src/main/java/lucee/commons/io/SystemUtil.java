@@ -42,7 +42,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletContext;
@@ -143,7 +142,6 @@ public final class SystemUtil {
 	private static final boolean isMacOSX;
 	private static final boolean isUnix;
 	
-    private static Resource tempFile;
     private static Resource homeFile;
     private static Resource[] classPathes;
     private static CharSet charset;
@@ -253,6 +251,7 @@ public final class SystemUtil {
 	private static JavaSysMon jsm;
 	private static Boolean isCLI;
 	private static double loaderVersion=0D;
+	private static boolean hasMacAddress; 
 	private static String macAddress; 
 
     /**
@@ -769,7 +768,7 @@ public final class SystemUtil {
 	
 	public static int getAddressSize() {
 		try {
-			Class unsafe = ClassUtil.loadClass("sun.misc.Unsafe",null);
+			Class<?> unsafe = ClassUtil.loadClass("sun.misc.Unsafe",null);
 			if(unsafe==null) return 0;
 		
 			Field unsafeField = unsafe.getDeclaredField("theUnsafe");
@@ -1031,7 +1030,7 @@ public final class SystemUtil {
 		// this is done via reflection to make it work in older version, where the class lucee.loader.Version does not exist
 		if(loaderVersion==0D) {
 			loaderVersion=4D;
-			Class cVersion = ClassUtil.loadClass(getLoaderClassLoader(),"lucee.loader.Version",null);
+			Class<?> cVersion = ClassUtil.loadClass(getLoaderClassLoader(),"lucee.loader.Version",null);
 			if(cVersion!=null) {
 				try {
 					Field f = cVersion.getField("VERSION");
@@ -1043,11 +1042,16 @@ public final class SystemUtil {
 		return loaderVersion;
 	}
 	
-	public static String getMacAddress() {
-		if(macAddress==null) {
+	public static String getMacAddress(String defaultValue) {
+		if(!hasMacAddress) {
 			try{
 				InetAddress ip = InetAddress.getLocalHost();
 				NetworkInterface network = NetworkInterface.getByInetAddress(ip);
+				if(network==null) {
+					hasMacAddress=true;
+					return null;
+				}
+				
 				byte[] mac = network.getHardwareAddress();
 		  
 				StringBuilder sb = new StringBuilder();
@@ -1057,7 +1061,7 @@ public final class SystemUtil {
 				macAddress= sb.toString();
 			}
 			catch(Throwable t){}
-			
+			hasMacAddress=true;
 		}
 		return macAddress;
 	}
@@ -1074,8 +1078,6 @@ public final class SystemUtil {
 		}
 		
 		URL url=null;
-    	
-    		Properties prop = new Properties();
     		if(bundle!=null) {
 	    		try {
 	    			url = bundle.getEntry(pns);
@@ -1085,7 +1087,7 @@ public final class SystemUtil {
     		
     		// core class loader
     		if(url==null) {
-	    		Class clazz = PageSourceImpl.class;
+	    		Class<?> clazz = PageSourceImpl.class;
 	    		ClassLoader cl = clazz.getClassLoader();
 	    		url=cl.getResource(pns);
 	    		if(url==null) {
@@ -1221,7 +1223,7 @@ public final class SystemUtil {
 	/**
 	 * @return returns a class stack trace
 	 */
-	public static Class[] getClassContext() {
+	public static Class<?>[] getClassContext() {
 		final Ref ref=new Ref();
 		new SecurityManager() {
 	        {	
@@ -1229,7 +1231,7 @@ public final class SystemUtil {
 	            
 	        }
 	    };
-	    Class[] context= new Class[ref.context.length-2];
+	    Class<?>[] context= new Class[ref.context.length-2];
 	    System.arraycopy(ref.context, 2,context, 0, ref.context.length-2);
 		return context;
 	}
@@ -1250,9 +1252,9 @@ public final class SystemUtil {
 	    Caller rtn=new Caller();
 	    
 	    // element at position 2 is the caller
-	    Class caller=ref.context[2];
+	    Class<?> caller=ref.context[2];
 	    RefInteger index=new RefIntegerImpl(3);
-	    Class clazz=_getCallerClass(ref.context,caller,index,true,true);
+	    Class<?> clazz=_getCallerClass(ref.context,caller,index,true,true);
 	    
 	    // analyze the first result
 	    if(clazz==null) return rtn;
@@ -1287,8 +1289,8 @@ public final class SystemUtil {
 	    return rtn;
 	}
 	
-	private static Class _getCallerClass(Class[] context, Class caller, RefInteger index, boolean acceptBootDelegation, boolean acceptSystem) {
-		Class callerCaller;
+	private static Class<?> _getCallerClass(Class<?>[] context, Class<?> caller, RefInteger index, boolean acceptBootDelegation, boolean acceptSystem) {
+		Class<?> callerCaller;
 		
 		do{
 	    	callerCaller=context[index.toInt()];
@@ -1310,9 +1312,9 @@ public final class SystemUtil {
 
 	public static class Caller {
 
-		public Class fromBootDelegation;
-		public Class fromSystem;
-		public Class fromBundle;
+		public Class<?> fromBootDelegation;
+		public Class<?> fromSystem;
+		public Class<?> fromBundle;
 		
 		
 		public String toString(){
@@ -1323,7 +1325,7 @@ public final class SystemUtil {
 			return fromBootDelegation==null && fromBundle==null && fromSystem==null;
 		}
 
-		public Class fromClasspath() { 
+		public Class<?> fromClasspath() { 
 			if(fromSystem!=null) {
 				if(fromSystem.getClassLoader()!=null)
 					return fromSystem;
@@ -1335,7 +1337,7 @@ public final class SystemUtil {
 	}
 	
 
-	private static boolean isFromBundle(Class clazz) {
+	private static boolean isFromBundle(Class<?> clazz) {
 		if(clazz==null) return false;
 		if(!(clazz.getClassLoader() instanceof BundleReference))
 			return false;
@@ -1345,7 +1347,7 @@ public final class SystemUtil {
 	}
 	
 
-	private static boolean _isSystem(Class clazz) {
+	private static boolean _isSystem(Class<?> clazz) {
 		if(clazz.getName()=="java.lang.Class") return true; // Class.forName(className)
 		if(clazz.getName().startsWith("com.sun.beans.finder.")) return true; 
 		if(clazz.getName().startsWith("java.beans.")) return true; 
@@ -1373,7 +1375,7 @@ public final class SystemUtil {
 }
 
 class Ref {
-	public Class[] context;
+	public Class<?>[] context;
 	
 }
 

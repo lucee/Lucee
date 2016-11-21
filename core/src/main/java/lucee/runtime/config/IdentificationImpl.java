@@ -28,7 +28,7 @@ import lucee.loader.util.Util;
 public abstract class IdentificationImpl implements Identification {
 
 	private final String apiKey;
-	private final String id;
+	private String id;
 	private final String securityKey;
 	private final String securityToken; 
 
@@ -38,7 +38,6 @@ public abstract class IdentificationImpl implements Identification {
 		this.apiKey=apiKey;
 		this.securityKey=securityKey;
 		this.securityToken=createSecurityToken(c.getConfigDir());
-		this.id=createId(securityKey,securityToken,true,securityKey);
 	}
 	
 
@@ -49,6 +48,8 @@ public abstract class IdentificationImpl implements Identification {
 
 	@Override
 	public String getId() {
+		// this is dine here for performance reasons
+		if(id==null) id=createId(securityKey,securityToken,true,securityKey);
 		return id;
 	}
 
@@ -67,7 +68,7 @@ public abstract class IdentificationImpl implements Identification {
     	
 		try {
 			if(addMacAddress){// because this was new we could swutch to a new ecryption // FUTURE cold we get rid of the old one?
-				return Hash.sha256(key+";"+token+":"+SystemUtil.getMacAddress());
+				return Hash.sha256(key+";"+token+":"+SystemUtil.getMacAddress(""));
 			}
 			return Md5.getDigestAsString(key+token);
 		} 

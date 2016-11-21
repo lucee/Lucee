@@ -219,7 +219,7 @@ public class SystemUtilImpl implements SystemUtil {
 
 	@Override
 	public String getMacAddress() {
-		return lucee.commons.io.SystemUtil.getMacAddress();
+		return lucee.commons.io.SystemUtil.getMacAddress(null);
 	}
 
 	@Override
