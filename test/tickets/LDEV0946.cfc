@@ -10,7 +10,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			it(title="Component with no functions defined", body=function( currentSpec ) {
 				a = createObject("component", "LDEV0946.a");
 				A_Meta = GetMetaData(a);
-				expect(structKeyExists(A_Meta, "functions")).toBeTrue();
+				expect(structKeyExists(A_Meta, "functions")).toBeFalse();
 			});
 		});
 	}
