@@ -1,0 +1,1 @@
+<cfapplication name = "formValidation"  serverSideFormValidation="true">
