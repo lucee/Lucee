@@ -115,7 +115,7 @@ public final class DateTimeImpl extends DateTime implements SimpleValue,Objects 
     }
     
 	public String castToString(TimeZone tz) {// MUST move to DateTimeUtil
-		return DateTimeUtil.getInstance().toString(this,tz);
+		return DateTimeUtil.getInstance().toString(this,tz,false);
 		
 	}
 	

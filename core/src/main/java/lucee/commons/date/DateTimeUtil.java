@@ -244,7 +244,7 @@ public abstract class DateTimeUtil {
 	public abstract int getWeekOfYear(Locale locale,TimeZone tz,DateTime dt);
 	public abstract int getFirstDayOfMonth(TimeZone tz, DateTime dt);
 
-	public abstract String toString(DateTime dt, TimeZone tz);
+	public abstract String toString(DateTime dt, TimeZone tz, boolean addTimeZoneOffset);
 
 	public static String toHTTPTimeString(long time, boolean oldFormat) {
 		return toHTTPTimeString(new Date(time),oldFormat);

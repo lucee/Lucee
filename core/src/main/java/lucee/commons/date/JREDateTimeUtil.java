@@ -24,6 +24,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTime;
@@ -44,20 +45,20 @@ public class JREDateTimeUtil extends DateTimeUtil {
 	 @Override
 	long _toTime(TimeZone tz, int year, int month, int day, int hour,int minute, int second, int milliSecond) {
 		if(tz==null)tz=ThreadLocalPageContext.getTimeZone(tz);
-		Calendar time = _getThreadCalendar(tz);
+		Calendar time = _getThreadCalendar((PageContext)null,tz);
 		time.set(year,month-1,day,hour,minute,second);
 		time.set(Calendar.MILLISECOND,milliSecond);  
 		return time.getTimeInMillis();
 	}
 
 	private static int _get(TimeZone tz, DateTime dt, int field) {
-		Calendar c = _getThreadCalendar(tz);
+		Calendar c = _getThreadCalendar((PageContext)null,tz);
 		c.setTimeInMillis(dt.getTime());
 		return c.get(field);
 	}
 	
 	private static void _set(TimeZone tz, DateTime dt, int value, int field) {
-		Calendar c = _getThreadCalendar(tz);
+		Calendar c = _getThreadCalendar((PageContext)null,tz);
 		c.setTimeInMillis(dt.getTime());
 		c.set(field, value);
 		dt.setTime(c.getTimeInMillis());
@@ -147,7 +148,7 @@ public class JREDateTimeUtil extends DateTimeUtil {
 	
 	@Override
 	public synchronized int getFirstDayOfMonth(TimeZone tz, DateTime dt) {
-		Calendar c = _getThreadCalendar(tz);
+		Calendar c = _getThreadCalendar((PageContext)null,tz);
 		c.setTimeInMillis(dt.getTime());
 		c.set(Calendar.DATE,1);
 		return c.get(Calendar.DAY_OF_YEAR);
@@ -171,7 +172,7 @@ public class JREDateTimeUtil extends DateTimeUtil {
 
 	@Override
 	public synchronized long getMilliSecondsInDay(TimeZone tz,long time) {
-		Calendar c = _getThreadCalendar(tz);
+		Calendar c = _getThreadCalendar((PageContext)null,tz);
 		c.setTimeInMillis(time);
 		return	(c.get(Calendar.HOUR_OF_DAY)*3600000)+
 				(c.get(Calendar.MINUTE)*60000)+
@@ -181,15 +182,16 @@ public class JREDateTimeUtil extends DateTimeUtil {
 
 	@Override
 	public synchronized int getDaysInMonth(TimeZone tz, DateTime dt) {
-		Calendar c = _getThreadCalendar(tz);
+		Calendar c = _getThreadCalendar((PageContext)null,tz);
 		c.setTimeInMillis(dt.getTime());
 		return daysInMonth(c.get(Calendar.YEAR), c.get(Calendar.MONTH)+1);
 	}
 
 
 	@Override
-	public String toString(DateTime dt, TimeZone tz) {
-		Calendar c = _getThreadCalendar(tz);
+	public String toString(DateTime dt, TimeZone tz, boolean addTimeZoneOffset) {
+		
+		Calendar c = _getThreadCalendar((PageContext)null,tz);
 		c.setTimeInMillis(dt.getTime());
 			//"HH:mm:ss"
 		StringBuilder sb=new StringBuilder();
@@ -206,9 +208,46 @@ public class JREDateTimeUtil extends DateTimeUtil {
     	toString(sb,c.get(Calendar.MINUTE),2);
     	sb.append(":");
     	toString(sb,c.get(Calendar.SECOND),2);
+    	if(addTimeZoneOffset)addTimeZoneOffset(c,sb);
     	sb.append("'}");
         	 
         return sb.toString();
+	}
+	
+	/*public static void main(String[] args) {
+		Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Pacific/Marquesas"));
+		//c = Calendar.getInstance(TimeZoneConstants.AUSTRALIA_DARWIN);
+		
+		c.setTimeInMillis(0);
+		print.e(c.getTimeZone());
+		print.e(toTimeZoneOffset(c));
+		
+		print.e(c.get(Calendar.ZONE_OFFSET)+c.get(Calendar.DST_OFFSET) );
+		print.e(c.getTimeZone().getOffset(c.getTimeInMillis()));
+		
+		c.set(Calendar.MONTH,7);
+		print.e(c.get(Calendar.ZONE_OFFSET)+c.get(Calendar.DST_OFFSET) );
+		print.e(c.getTimeZone().getOffset(c.getTimeInMillis()));
+	}*/
+	
+	
+	
+	
+	
+
+	private void addTimeZoneOffset(Calendar c, StringBuilder sb) {
+		int min = (c.get(Calendar.ZONE_OFFSET)+c.get(Calendar.DST_OFFSET))/60000;
+		char op;
+		if(min<0) {
+			op='-';
+			min=min-min-min;
+		}
+		else op='+';
+		
+		int hours=min/60;
+		min=min-(hours*60);
+		sb.append(op).append(hours).append(':');
+		toString(sb,min,2);
 	}
 
 	public static Calendar newInstance(TimeZone tz,Locale l) {
@@ -252,15 +291,13 @@ public class JREDateTimeUtil extends DateTimeUtil {
 		return c;
 	}
 	
-
-	
 	/*
 	 * internally we use a other instance to avoid conflicts
 	 */
-	private static Calendar _getThreadCalendar(TimeZone tz){
+	private static Calendar _getThreadCalendar(PageContext pc, TimeZone tz){
 		Calendar c = _calendar.get();
 		c.clear();
-		if(tz==null)tz=ThreadLocalPageContext.getTimeZone();
+		if(tz==null)tz=ThreadLocalPageContext.getTimeZone(pc);
 		c.setTimeZone(tz);
 		return c;
 	}
