@@ -246,7 +246,9 @@ public class JREDateTimeUtil extends DateTimeUtil {
 		
 		int hours=min/60;
 		min=min-(hours*60);
-		sb.append(op).append(hours).append(':');
+		sb.append(op);
+		toString(sb,hours,2);
+		sb.append(':');
 		toString(sb,min,2);
 	}
 
