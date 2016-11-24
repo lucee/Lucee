@@ -48,20 +48,21 @@ public class StructKeyTranslate extends BIF {
 		return translate(sct, deepTranslation,leaveOriginalKey);
     }
 	
-	public static int translate(Collection coll,boolean deep,boolean leaveOrg) throws PageException {
-		Iterator<Entry<Key, Object>> it = coll.entryIterator();
-		Entry<Key, Object> e;
+	private static int translate(Collection coll,boolean deep,boolean leaveOrg) throws PageException {
+		Key[] keys = coll.keys(); //we do not entry to avoid ConcurrentModificationException
+		
 		boolean isStruct=coll instanceof Struct;
 		String key;
+		Object value;
 		int index;
 		int count=0;
-		while(it.hasNext()){
-			e = it.next();
-			key=e.getKey().getString();
-			if(deep)count+=translate(e.getValue(),leaveOrg);
+		for(Key k:keys) {
+			key=k.getString();
+			value=coll.get(k);
+			if(deep)count+=translate(value,leaveOrg);
 			if(isStruct && (index=key.indexOf('.'))!=-1){
 				count++;
-				translate(index,e.getKey(),key,coll,leaveOrg);
+				translate(index,k,key,coll,leaveOrg);
 			}
 		}
 		return count;
