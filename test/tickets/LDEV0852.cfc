@@ -12,6 +12,15 @@
 			}
 		}
 
+		public function afterTests(){
+			var path = ExpandPath("./");
+			var directory = GetDirectoryFromPath(path);
+			variables.file='#directory#test.pdf';
+			if(fileExists(file)){
+				fileDelete(file);
+			}
+		}
+
 		public function run( testResults , testBox ) {
 
 			describe( "pdfparam attribute with dynamic variable", function() {
