@@ -278,6 +278,17 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 				new String[]{form.getEncoding(),url.getEncoding()});
 	}
 
+	@Override
+	public String getParameter(String name) {
+		if(!disconnected) {
+			String val = req.getParameter(name);
+			if(val!=null) return val;
+		}
+		String[] values = getParameterValues(name);
+		if(ArrayUtil.isEmpty(values)) return null;
+		return values[0];
+	}
+
 	private static URLImpl _url(PageContext pc) {
 		URL u = pc.urlScope();
 		if(u instanceof UrlFormImpl) {
@@ -678,14 +689,6 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 		catch(Throwable t){}
 		// TODO add support for this
 		throw new RuntimeException("this method is not supported when root request is gone");
-	}
-
-	@Override
-	public String getParameter(String name) {
-		if(!disconnected) return req.getParameter(name);
-		String[] values = getParameterValues(name);
-		if(ArrayUtil.isEmpty(values)) return null;
-		return values[0];
 	}
 
 	@Override
