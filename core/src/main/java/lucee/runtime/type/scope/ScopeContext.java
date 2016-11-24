@@ -25,7 +25,9 @@ import java.util.UUID;
 
 import javax.servlet.http.HttpSession;
 
+import lucee.print;
 import lucee.commons.collection.MapFactory;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SizeOf;
@@ -58,11 +60,13 @@ import lucee.runtime.type.scope.client.ClientCookie;
 import lucee.runtime.type.scope.client.ClientDatasource;
 import lucee.runtime.type.scope.client.ClientFile;
 import lucee.runtime.type.scope.client.ClientMemory;
+import lucee.runtime.type.scope.client.StorageClientCache;
 import lucee.runtime.type.scope.session.SessionCache;
 import lucee.runtime.type.scope.session.SessionCookie;
 import lucee.runtime.type.scope.session.SessionDatasource;
 import lucee.runtime.type.scope.session.SessionFile;
 import lucee.runtime.type.scope.session.SessionMemory;
+import lucee.runtime.type.scope.session.StorageSessionCache;
 import lucee.runtime.type.scope.storage.MemoryScope;
 import lucee.runtime.type.scope.storage.StorageScope;
 import lucee.runtime.type.scope.storage.StorageScopeCleaner;
@@ -80,6 +84,12 @@ public final class ScopeContext {
 	private static final int MINUTE = 60*1000;
 	private static final long CLIENT_MEMORY_TIMESPAN =  5*MINUTE;
 	private static final long SESSION_MEMORY_TIMESPAN =  5*MINUTE;
+	private static final boolean INVIDUAL_STORAGE_KEYS;
+	static {
+		INVIDUAL_STORAGE_KEYS=Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("individualStorageKeys", null),false);
+	}
+	
+	
 	
 	private Map<String,Map<String,Scope>> cfSessionContextes=MapFactory.<String,Map<String,Scope>>getConcurrentMap();
 	private Map<String,Map<String,Scope>> cfClientContextes=MapFactory.<String,Map<String,Scope>>getConcurrentMap();
@@ -232,7 +242,10 @@ public final class ScopeContext {
 				else{
 					DataSource ds = pc.getDataSource(storage,null);
 					if(ds!=null)client=ClientDatasource.getInstance(storage,pc,getLog());
-					else client=ClientCache.getInstance(storage,appContext.getName(),pc,existing,getLog(),null);
+					else {
+						if(INVIDUAL_STORAGE_KEYS) client=StorageClientCache.getInstance(storage,appContext.getName(),pc,existing,getLog(),null);
+						else client=ClientCache.getInstance(storage,appContext.getName(),pc,existing,getLog(),null);
+					}
 
 					if(client==null){
 						// datasource not enabled for storage
@@ -496,6 +509,8 @@ public final class ScopeContext {
 					if(ds!=null && ds.isStorage()){
 						if(SessionDatasource.hasInstance(storage,pc)) return true;
 					}
+					if(INVIDUAL_STORAGE_KEYS)
+						return StorageSessionCache.hasInstance(storage, appContext.getName(), pc);
 					return  SessionCache.hasInstance(storage,appContext.getName(),pc);
 				}
 			}
@@ -555,7 +570,10 @@ public final class ScopeContext {
 				else{
 					DataSource ds = pc.getDataSource(storage,null);
 					if(ds!=null && ds.isStorage())session=SessionDatasource.getInstance(storage,pc,getLog(),null);
-					else session=SessionCache.getInstance(storage,appContext.getName(),pc,existing,getLog(),null);
+					else {
+						if(INVIDUAL_STORAGE_KEYS) session=StorageSessionCache.getInstance(storage,appContext.getName(),pc,existing,getLog(),null);
+						else session=SessionCache.getInstance(storage,appContext.getName(),pc,existing,getLog(),null);
+					}
 
 					if(session==null){
 						// datasource not enabled for storage
