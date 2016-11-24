@@ -1067,7 +1067,7 @@ public final class DateCaster {
 	// MINUTE
 	int minute=0;
 	if(!ds.isAfterLast()) {
-		if(!ds.fwIfCurrent(':'))return defaultValue;		
+		if(!(ds.fwIfCurrent(':') || ds.fwIfCurrent('.')))return defaultValue;		
 		minute=ds.readDigits();
 		if(minute==-1) return defaultValue;
 		
