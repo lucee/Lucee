@@ -267,7 +267,6 @@
 			}
 		}
 
-		
 		querySort(query:qry,names:"id");
 		local.lastId="";
 		for(var row=qry.recordcount;row>=1;row--)  {
@@ -295,7 +294,6 @@
 			lastId=qry.id[row];
 		}
 
-	    
 		/* output just for testing
 		var q=duplicate(qry);
     	loop list=q.columnlist item="local.le" {
@@ -308,6 +306,7 @@
 			if(structKeyExists(data,"error")) continue;
 			
 			// rename older to otherVersions
+
 			if(queryColumnExists(data.extensions,"older") || !queryColumnExists(data.extensions,"otherVersions")) {
 				data.extensions.addColumn("otherVersions",data.extensions.columnData('older'));
 				data.extensions.deleteColumn("older");
@@ -318,6 +317,7 @@
 			loop list="#data.extensions.columnlist()#" item="local.k" {
                 if(!qry.ColumnExists(k)) qry.addColumn(k,[]);
             }
+
 			// add Extensions data
 			var row=0;
 
@@ -349,11 +349,11 @@
 							if(k=='otherVersions') continue;
 		            		qry.setCell(k,data.extensions[k],row);
 		            	}
-		            	if(isSimpleValue(qry.otherVersions[row])) qry.otherVersions[row]=[v];
+		            	if(isSimpleValue(qry.otherVersions[row]) || isNull(qry.otherVersions[row])) qry.otherVersions[row]=[v];
 		            	else arrayAppend(qry.otherVersions[row],v);
 					}
 					else {
-						if(isSimpleValue(qry.otherVersions[row])) qry.otherVersions[row]=[data.extensions.version];
+						if(isSimpleValue(qry.otherVersions[row]) || isNull(qry.otherVersions[row])) qry.otherVersions[row]=[data.extensions.version];
 						else arrayAppend(qry.otherVersions[row],data.extensions.version);
 					}
 
