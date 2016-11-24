@@ -80,7 +80,7 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 		setEL(TAG_CONTEXT, new SpecialItem(pe, TAG_CONTEXT));
 		setEL(KeyConstants._type, new SpecialItem(pe, KeyConstants._type));
 		setEL(STACK_TRACE, new SpecialItem(pe, STACK_TRACE));
-		// setEL(CAUSE, new SpecialItem(pe, CAUSE));  // FUTURE 5.2 disable
+		setEL(CAUSE, new SpecialItem(pe, CAUSE));
 		
 		
 		/*if(pe instanceof NativeException){
@@ -120,7 +120,7 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 			if(key==EXTENDED_INFO) return StringUtil.emptyIfNull(pe.getExtendedInfo());
 			if(key==KeyConstants._type) return StringUtil.emptyIfNull(pe.getTypeAsString());
 			if(key==STACK_TRACE) return StringUtil.emptyIfNull(pe.getStackTraceAsString());
-			// if(key==CAUSE) return getCauseAsCatchBlock();  // FUTURE 5.2 disable
+			if(key==CAUSE) return getCauseAsCatchBlock();
 			if(key==ADDITIONAL) return pe.getAdditional();
 			if(key==TAG_CONTEXT) return pe.getTagContext(ThreadLocalPageContext.getConfig());
 			return null;
