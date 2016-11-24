@@ -1995,7 +1995,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			setDatasource(config, datasources, QOQ_DATASOURCE_NAME, 
 					new ClassDefinitionImpl("org.hsqldb.jdbcDriver","hsqldb","1.8.0",config.getIdentification()), 
 					"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", -1, -1, 60000, true, true, DataSource.ALLOW_ALL,
-					false, false, null, new StructImpl(), "",ParamSyntax.DEFAULT);
+					false, false, null, new StructImpl(), "",ParamSyntax.DEFAULT,false);
 		} catch (Exception e) {
 			log.error("Datasource", e);
 		}
@@ -2072,7 +2072,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						,getAttr(dataSource,"timezone")
 						,toStruct(getAttr(dataSource,"custom"))
 						,getAttr(dataSource,"dbdriver")
-						,ParamSyntax.toParamSyntax(dataSource,ParamSyntax.DEFAULT));
+						,ParamSyntax.toParamSyntax(dataSource,ParamSyntax.DEFAULT)
+						,toBoolean(getAttr(dataSource,"literal-timestamp-with-tsoffset"), false)
+						);
 				} catch (Exception e) {
 					log.error("Datasource", e);
 				}
@@ -2435,11 +2437,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	private static void setDatasource(ConfigImpl config, Map<String, DataSource> datasources, String datasourceName, ClassDefinition cd, String server, String databasename,
 			int port, String dsn, String user, String pass, int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow,
-			boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax ps) throws BundleException, ClassException, SQLException {
+			boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax ps, boolean literalTimestampWithTSOffset) throws BundleException, ClassException, SQLException {
 
 		datasources.put( datasourceName.toLowerCase(),
 				new DataSourceImpl(config,null,datasourceName, cd, server, dsn, databasename, port, user, pass, connectionLimit, connectionTimeout, metaCacheTimeout, blob, clob, allow,
-						custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver,ps,config.getLog("application")) );
+						custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver,ps,literalTimestampWithTSOffset,config.getLog("application")) );
 
 	}
 

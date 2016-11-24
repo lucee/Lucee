@@ -682,6 +682,7 @@ public final class PageContextImpl extends PageContext {
 		manager.release();
 		includeOnce.clear();
 		pe=null;
+		this.literalTimestampWithTSOffset=false;
 	}
 
 	@Override
@@ -3151,6 +3152,8 @@ public final class PageContextImpl extends PageContext {
 	private Stack<ActiveQuery> activeQueries=new Stack<ActiveQuery>();
 	private Stack<ActiveLock> activeLocks=new Stack<ActiveLock>();
 
+	private boolean literalTimestampWithTSOffset;
+
 	public boolean isTrusted(Page page) {
 		if(page==null)return false;
 		
@@ -3460,5 +3463,13 @@ public final class PageContextImpl extends PageContext {
 		while(it.hasNext()) {
 			trg.add(it.next().toString());
 		}
+	}
+
+	public void setTimestampWithTSOffset(boolean literalTimestampWithTSOffset) {
+		this.literalTimestampWithTSOffset=literalTimestampWithTSOffset;
+	}
+	
+	public boolean getTimestampWithTSOffset() {
+		return literalTimestampWithTSOffset;
 	}
 }

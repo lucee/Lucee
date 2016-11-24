@@ -248,7 +248,10 @@ public final class AppListenerUtil {
 					true, 
 					Caster.toBooleanValue(data.get(STORAGE,null),false), 
 					Caster.toTimeZone(data.get(TIMEZONE,null),null),
-					"",ParamSyntax.toParamSyntax(data,ParamSyntax.DEFAULT),log
+					"",
+					ParamSyntax.toParamSyntax(data,ParamSyntax.DEFAULT),
+					Caster.toBooleanValue(data.get("literalTimestampWithTSOffset",null),false),
+					log
 				);
 			}
 			catch(Exception cnfe){

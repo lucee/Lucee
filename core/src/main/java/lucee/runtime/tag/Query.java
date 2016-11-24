@@ -39,6 +39,7 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.db.DataSourceImpl;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.DatasourceManagerImpl;
 import lucee.runtime.db.HSQLDBHandler;
@@ -167,6 +168,9 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	private Object rtn;
 	private Key columnName;
 	
+	private boolean literalTimestampWithTSOffset;
+	private boolean previousLiteralTimestampWithTSOffset;
+	
 	@Override
 	public void release()	{
 		super.release();
@@ -199,6 +203,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		rtn=null;
 		setReturnVariable=false;
 		columnName=null;
+		literalTimestampWithTSOffset=false;
+		previousLiteralTimestampWithTSOffset=false;
 	}
 	
 	
@@ -496,18 +502,29 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			pageContext.setTimeZone(timezone);
 		}
 		
+		PageContextImpl pci = ((PageContextImpl)pageContext);
+		
 		// cache within
 		if(StringUtil.isEmpty(cachedWithin)){
 			Object tmp = ((PageContextImpl)pageContext).getCachedWithin(ConfigWeb.CACHEDWITHIN_QUERY);
 			if(tmp!=null)setCachedwithin(tmp);
 		}
 		
+		// literal timestamp with TSOffset
+		if(datasource instanceof DataSourceImpl) 
+			literalTimestampWithTSOffset=((DataSourceImpl)datasource).getLiteralTimestampWithTSOffset();
+		else 
+			literalTimestampWithTSOffset=false;
+		
+		previousLiteralTimestampWithTSOffset=pci.getTimestampWithTSOffset();
+		pci.setTimestampWithTSOffset(literalTimestampWithTSOffset);
 		
 		return EVAL_BODY_BUFFERED;
 	}
 	
 	@Override
 	public void doFinally() {
+		((PageContextImpl)pageContext).setTimestampWithTSOffset(previousLiteralTimestampWithTSOffset);
 		if(tmpTZ!=null) {
 			pageContext.setTimeZone(tmpTZ);
 		}

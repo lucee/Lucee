@@ -39,7 +39,7 @@
 			classname="#driver.getClass()#"
 			dsn="#driver.getDSN()#"
 			customParameterSyntax="#isNull(driver.customParameterSyntax)?nullValue():driver.customParameterSyntax()#"
-						
+			literalTimestampWithTSOffset="#isNull(driver.literalTimestampWithTSOffset)?false:driver.literalTimestampWithTSOffset()#"
 			name="#form.name#"
 			newName="#form.newName#"
 			

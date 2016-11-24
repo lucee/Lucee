@@ -2849,6 +2849,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         Struct sct=getStruct("customParameterSyntax", null);
         ParamSyntax ps=(sct!=null && sct.containsKey("delimiter") &&  sct.containsKey("separator") )?ParamSyntax.toParamSyntax(sct):ParamSyntax.DEFAULT;
         
+        // 
+        boolean literalTimestampWithTSOffset=getBoolV("literalTimestampWithTSOffset", false);
+        
         String dsn=getString("admin",action,"dsn");
         String name=getString("admin",action,"name");
         String newName=getString("admin",action,"newName");
@@ -2872,7 +2875,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         //config.getDatasourceConnectionPool().remove(name);
         DataSource ds=null;
 		try {
-			ds = new DataSourceImpl(config,null,name,cd,host,dsn,database,port,username,password,connLimit,connTimeout,metaCacheTimeout,blob,clob,allow,custom,false,validate,storage,null, dbdriver,ps,config.getLog("application"));
+			ds = new DataSourceImpl(config,null,name,cd,host,dsn,database,port,username,password,connLimit,connTimeout,metaCacheTimeout,blob,clob,allow,custom,false,validate,storage,null, dbdriver,ps,literalTimestampWithTSOffset,config.getLog("application"));
 		} catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
@@ -2900,7 +2903,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
                 timezone,
                 custom,
 		        dbdriver,
-		        ps
+		        ps,
+		        literalTimestampWithTSOffset
         );
         store();
         adminSync.broadcast(attributes, config);

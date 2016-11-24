@@ -24,6 +24,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.type.dt.DateTime;
@@ -244,7 +245,7 @@ public abstract class DateTimeUtil {
 	public abstract int getWeekOfYear(Locale locale,TimeZone tz,DateTime dt);
 	public abstract int getFirstDayOfMonth(TimeZone tz, DateTime dt);
 
-	public abstract String toString(DateTime dt, TimeZone tz, boolean addTimeZoneOffset);
+	public abstract String toString(PageContext pc, DateTime dt, TimeZone tz, Boolean addTimeZoneOffset);
 
 	public static String toHTTPTimeString(long time, boolean oldFormat) {
 		return toHTTPTimeString(new Date(time),oldFormat);

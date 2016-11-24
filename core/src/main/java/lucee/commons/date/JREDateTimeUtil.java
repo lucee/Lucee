@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTime;
@@ -189,9 +190,9 @@ public class JREDateTimeUtil extends DateTimeUtil {
 
 
 	@Override
-	public String toString(DateTime dt, TimeZone tz, boolean addTimeZoneOffset) {
+	public String toString(PageContext pc,DateTime dt, TimeZone tz, Boolean addTimeZoneOffset) {
 		
-		Calendar c = _getThreadCalendar((PageContext)null,tz);
+		Calendar c = _getThreadCalendar(pc,tz);
 		c.setTimeInMillis(dt.getTime());
 			//"HH:mm:ss"
 		StringBuilder sb=new StringBuilder();
@@ -208,7 +209,10 @@ public class JREDateTimeUtil extends DateTimeUtil {
     	toString(sb,c.get(Calendar.MINUTE),2);
     	sb.append(":");
     	toString(sb,c.get(Calendar.SECOND),2);
-    	if(addTimeZoneOffset)addTimeZoneOffset(c,sb);
+    	if(addTimeZoneOffset!=Boolean.FALSE) {
+    		if(addTimeZoneOffset==null && pc!=null) addTimeZoneOffset=((PageContextImpl)pc).getTimestampWithTSOffset();
+    		if(addTimeZoneOffset==Boolean.TRUE) addTimeZoneOffset(c,sb);
+    	}
     	sb.append("'}");
         	 
         return sb.toString();

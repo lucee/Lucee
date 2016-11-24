@@ -52,6 +52,7 @@ public final class DataSourceImpl  extends DataSourceSupport {
 	private boolean validate;
 	private String dbdriver;
 	private final ParamSyntax paramSyntax;
+	private final boolean literalTimestampWithTSOffset;
     
 	/**
 	 * constructor of the class
@@ -80,7 +81,7 @@ public final class DataSourceImpl  extends DataSourceSupport {
 
 	public DataSourceImpl(Config config,JDBCDriver driver,String name, ClassDefinition cd, String host, String connStr, String database, int port, String username, String password,
             int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow, Struct custom, boolean readOnly,
-            boolean validate, boolean storage, TimeZone timezone, String dbdriver,ParamSyntax paramSyntax, Log log) throws BundleException, ClassException, SQLException {
+            boolean validate, boolean storage, TimeZone timezone, String dbdriver,ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, Log log) throws BundleException, ClassException, SQLException {
 
 		super(config,driver,name, cd,username,ConfigWebUtil.decrypt(password),blob,clob,connectionLimit, connectionTimeout, metaCacheTimeout, timezone, allow<0?ALLOW_ALL:allow, storage, readOnly,log);
 			
@@ -94,6 +95,7 @@ public final class DataSourceImpl  extends DataSourceSupport {
         
         this.connStrTranslated=connStr; 
 		this.paramSyntax=(paramSyntax==null)?ParamSyntax.DEFAULT:paramSyntax;
+		this.literalTimestampWithTSOffset=literalTimestampWithTSOffset;
         translateConnStr();
 
 		this.dbdriver = dbdriver;
@@ -165,10 +167,15 @@ public final class DataSourceImpl  extends DataSourceSupport {
     public String getHost() {
         return host;
     }
-    
-    
+
+    // FUTURE add to interface
     public ParamSyntax getParamSyntax() {
         return paramSyntax;
+    }
+
+    // FUTURE add to interface
+    public boolean getLiteralTimestampWithTSOffset() {
+        return literalTimestampWithTSOffset;
     }
     
     @Override
@@ -183,7 +190,7 @@ public final class DataSourceImpl  extends DataSourceSupport {
     
     public DataSource _clone(boolean readOnly) {
     	try {
-            return new DataSourceImpl(ThreadLocalPageContext.getConfig(),jdbc,getName(),getClassDefinition(), host, connStr, database, port, getUsername(), getPassword(), getConnectionLimit(), getConnectionTimeout(),getMetaCacheTimeout(), isBlob(), isClob(), allow, custom, readOnly, validate, isStorage(),getTimeZone(), dbdriver,getParamSyntax(),getLog());
+            return new DataSourceImpl(ThreadLocalPageContext.getConfig(),jdbc,getName(),getClassDefinition(), host, connStr, database, port, getUsername(), getPassword(), getConnectionLimit(), getConnectionTimeout(),getMetaCacheTimeout(), isBlob(), isClob(), allow, custom, readOnly, validate, isStorage(),getTimeZone(), dbdriver,getParamSyntax(),literalTimestampWithTSOffset,getLog());
 		} catch (RuntimeException re) {
 			throw re; // this should never happens, because the class was already loaded in this object
 		} catch (Exception e) {
