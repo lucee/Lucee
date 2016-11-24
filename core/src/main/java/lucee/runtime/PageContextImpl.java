@@ -778,7 +778,6 @@ public final class PageContextImpl extends PageContext {
 	}
 	
 	public PageSource getPageSource(String realPath) {
-		SystemOut.print(config.getOutWriter(),"method getPageSource is deprecated");
 		return PageSourceImpl.best(config.getPageSources(this,applicationContext.getMappings(),realPath,false,useSpecialMappings,true));
 	}
 	
