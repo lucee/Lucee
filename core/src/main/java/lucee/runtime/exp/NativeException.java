@@ -47,7 +47,7 @@ public class NativeException extends PageExceptionImpl {
         this.t=t;
         
         // set stacktrace
-        /*
+        
         StackTraceElement[] st = getRootCause(t).getStackTrace();
         if(hasLuceeRuntime(st))setStackTrace(st);
         else {
@@ -60,7 +60,7 @@ public class NativeException extends PageExceptionImpl {
         		setStackTrace(mst);
         	}
         	else setStackTrace(st);
-        }*/
+        }
         setAdditional(KeyConstants._Cause, t.getClass().getName()); // FUTURE 5.2 disable
 	}
 	
