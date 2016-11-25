@@ -7,11 +7,15 @@ component {
 	this.datasources = {
 		DSN1 = {
 			class: 'org.hsqldb.jdbcDriver'
-		, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource1/db'
+			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource1/db'
 		},
 		DSN2 = {
 			class: 'org.hsqldb.jdbcDriver'
-		, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource1/db'
+			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource1/db'
+		},
+		DSN3 = {
+			class: 'org.hsqldb.jdbcDriver'
+			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource1/db'
 		}
 	};
 

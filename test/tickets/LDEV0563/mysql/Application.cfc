@@ -23,6 +23,15 @@ component {
 		, password: mySQL.password
 	};
 
+	this.datasources["DSN3"] = {
+		class: 'org.gjt.mm.mysql.Driver'
+		, bundleName:'com.mysql.jdbc'
+		, bundleVersion:'5.1.38'
+		, connectionString: 'jdbc:mysql://'&mySQL.server&':'&mySQL.port&'/'&mySQL.database&'?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true'
+		, username: mySQL.username
+		, password: mySQL.password
+	};
+
 	this.datasource = "DSN1";
 
 	function onRequestStart(){
@@ -30,15 +39,20 @@ component {
 		query{
 			echo("DROP TABLE IF EXISTS users1;");
 		}
-
 		query{
 			echo("DROP TABLE IF EXISTS users2;");
+		}
+		query{
+			echo("DROP TABLE IF EXISTS users3;");
 		}
 		query{
 			echo("CREATE TABLE users1( Name varchar(50) )");
 		}
 		query{
 			echo("CREATE TABLE users2( Name varchar(50) )");
+		}
+		query{
+			echo("CREATE TABLE users3( Name varchar(50) )");
 		}
 	}
 
