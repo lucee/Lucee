@@ -1,34 +1,34 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
-		mode = "ACFcompatibility";
+		var mode = "ACFcompatibility";
 		describe( "Test suite for LDEV-388", function() {
 			describe(title="checking listreduce() working in member function", body = function( currentSpec ) {
 				it(title="Having list as prefix", body = function( currentSpec ) {
-					mylist = "1,2,3,4,5,6,7,8,9,10";
+					var mylist = "1,2,3,4,5,6,7,8,9,10";
 					try{
-						ReducedVal = mylist.listReduce(
+						var ReducedVal = mylist.listReduce(
 							function(prev, val){
 								return prev + val;
 							},
 							0
 						);
 					} catch ( any e){
-						ReducedVal = e.message;
+						var ReducedVal = e.message;
 					}
 					expect(ReducedVal).toBe(55);
 				});
 
 				it(title="without list as prefix", body = function( currentSpec ) {
-					mylist = "1,2,3,4,5,6,7,8,9,10";
+					var mylist = "1,2,3,4,5,6,7,8,9,10";
 					try{
-						ReducedVal = mylist.Reduce(
+						var ReducedVal = mylist.Reduce(
 							function(prev, val){
 								return prev + val;
 							},
 							0
 						);
 					} catch ( any e){
-						ReducedVal = e.message;
+						var ReducedVal = e.message;
 					}
 					if ( mode == "ACFcompatibility")
 						expect(ReducedVal).toBe("The Reduce method was not found.");
@@ -39,8 +39,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			describe(title="checking listFilter() working in member function", body = function( currentSpec ) {
 				it(title="Having list as prefix", body = function( currentSpec ) {
-					mylist = "apple|orange|mango";
-					filteredVal = mylist.listFilter(
+					var mylist = "apple|orange|mango";
+					var filteredVal = mylist.listFilter(
 						function(elem, idx){
 							if(elem != "orange" ){
 								return true;
@@ -52,8 +52,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="without list as prefix", body = function( currentSpec ) {
-					mylist = "apple|orange|mango";
-					filteredVal = mylist.Filter(
+					var mylist = "apple|orange|mango";
+					var filteredVal = mylist.Filter(
 						function(elem, idx){
 							if(elem != "orange" ){
 								return true;
