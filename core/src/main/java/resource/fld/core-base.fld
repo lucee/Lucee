@@ -11230,7 +11230,7 @@ The following things are considered to be empty:
 	<function>
 		<name>listFilter</name>
 		<class>lucee.runtime.functions.list.ListFilter</class>
-		<member-name>listFilter,filter</member-name>
+		<member-name>listFilter</member-name>
 		<keywords>list,string,iterator</keywords>
 		<description>This function creates a new string list that returns all entries from an string list that match the given filter.</description>
 		<argument>
@@ -14898,7 +14898,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>ListReduce</name>
 		<class>lucee.runtime.functions.list.ListReduce</class>
-		<member-name>listReduce,reduce</member-name>
+		<member-name>listReduce</member-name>
 		<keywords>array,iterator</keywords>
 		<description>Iterates over every entry of the given array and calls the closure with every element. 
 		This function will reduce the array to a single value and will return the value.</description>
