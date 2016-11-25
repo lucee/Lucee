@@ -635,7 +635,7 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
 
 
 	<data key="setting.compiler">Lucee Compiler Einstellungen, dies beeinflusst wie der Lucee Compiler den Source Code übersetzt. Das ändern dieser Einstellungen löscht alle existierenden Class Files.</data>
-	<data key="setting.dotNotation">Dot Notation</data>
+	<data key="setting.dotNotation">Key case</data>
 
 
 	<data key="setting.dotNotationUpperCaseDesc">Konvertiert Struct Keys definiert mit "Dot Notation" als grossgeschrieben (CFML Standard).

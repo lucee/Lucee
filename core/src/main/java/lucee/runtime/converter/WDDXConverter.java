@@ -35,6 +35,7 @@ import javax.xml.parsers.FactoryConfigurationError;
 
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.lang.NumberUtil;
+import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
@@ -42,6 +43,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.coder.CoderException;
 import lucee.runtime.component.Property;
+import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -319,11 +321,17 @@ public final class WDDXConverter extends ConverterSupport {
 	private String _serializeQuery(Query query, Set<Object> done) throws ConverterException {
 		
 		// fieldnames
+		PageContext pc = ThreadLocalPageContext.get();
+		boolean upperCase=false;
+		if(pc!=null)upperCase = 
+				pc.getCurrentTemplateDialect()==CFMLEngine.DIALECT_CFML && 
+				!((ConfigWebImpl)pc.getConfig()).preserveCase();
+
 		StringBuilder fn=new StringBuilder();
 		Collection.Key[] keys = CollectionUtil.keys(query);
 		for(int i=0;i<keys.length;i++){
 			if(i>0) fn.append(',');
-			fn.append(XMLUtil.escapeXMLString(keys[i].getString()));
+			fn.append(XMLUtil.escapeXMLString(upperCase?keys[i].getUpperString():keys[i].getString()));
 		}
 		
 		

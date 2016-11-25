@@ -58,8 +58,10 @@ import java.util.TimeZone;
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.db.DataSourceUtil;
@@ -823,6 +825,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		return getAt(KeyImpl.init(key), row, defaultValue);
 	}
 
+	@Override
 	public Object getAt(Collection.Key key, int row, Object defaultValue) {
 		int index=getIndexFromKey(key);
 		if(index!=-1) {
@@ -831,7 +834,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		if(key.length()>=10) {
 	        if(key.equals(KeyConstants._RECORDCOUNT)) return new Double(getRecordcount());
 	        if(key.equals(KeyConstants._CURRENTROW)) return new Double(row);
-	        if(key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(true);
+	        if(key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(ThreadLocalPageContext.get());
 		}
         return defaultValue;
 	}
@@ -847,12 +850,13 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		if(index!=-1) {
 			return columns[index].get(row, NullSupportHelper.full()?null:"");
 		}
+		PageContext pc = ThreadLocalPageContext.get();
 		if(key.length()>=10) {
         	if(key.equals(KeyConstants._RECORDCOUNT)) return new Double(getRecordcount());
         	if(key.equals(KeyConstants._CURRENTROW)) return new Double(row);
-			if(key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(true);
+			if(key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(pc);
         }
-		throw new DatabaseException("column ["+key+"] not found in query, columns are ["+getColumnlist(false)+"]",null,sql,null);
+		throw new DatabaseException("column ["+key+"] not found in query, columns are ["+getColumnlist(pc)+"]",null,sql,null);
 	}
 	
 
@@ -888,12 +892,13 @@ public class QueryImpl implements Query,Objects,QueryResult {
         
         QueryColumn removed = removeColumnEL(key);
         if(removed==null) {
+        	PageContext pc = ThreadLocalPageContext.get();
             if(key.equals(KeyConstants._RECORDCOUNT) || 
             		key.equals(KeyConstants._CURRENTROW) || 
             		key.equals(KeyConstants._COLUMNLIST))
-                throw new DatabaseException("can't remove "+key+" this is not a row","existing rows are ["+getColumnlist(false)+"]",null,null);
+                throw new DatabaseException("can't remove "+key+" this is not a row","existing rows are ["+getColumnlist(pc)+"]",null,null);
             throw new DatabaseException("can't remove row ["+key+"], this row doesn't exist",
-                    "existing rows are ["+getColumnlist(false)+"]",null,null);
+                    "existing rows are ["+getColumnlist(pc)+"]",null,null);
         }
         return removed;
 	}
@@ -963,7 +968,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
         if(index!=-1) {
             return columns[index].set(row,value);
         }
-        throw new DatabaseException("column ["+key+"] does not exist","columns are ["+getColumnlist(false)+"]",sql,null);
+        throw new DatabaseException("column ["+key+"] does not exist","columns are ["+getColumnlist(ThreadLocalPageContext.get())+"]",sql,null);
 	}
     
     @Override
@@ -1022,17 +1027,24 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	 * return a string list of all columns
 	 * @return string list
 	 */
-	public String getColumnlist(boolean upperCase) {
+	public String getColumnlist(PageContext pc) {
 		StringBuilder sb=new StringBuilder();
+		
+		pc=ThreadLocalPageContext.get(pc);
+		boolean upperCase=false;
+		if(pc!=null)upperCase = 
+				pc.getCurrentTemplateDialect()==CFMLEngine.DIALECT_CFML && 
+				!((ConfigWebImpl)pc.getConfig()).preserveCase();
+
 		for(int i=0;i<columnNames.length;i++) {
 			if(i>0)sb.append(',');
 			sb.append(upperCase?columnNames[i].getUpperString():columnNames[i].getString());
 		}
 		return sb.toString();
 	}
-	public String getColumnlist() {
+	/*public String getColumnlist() {
 		return getColumnlist(true);
-	}
+	}*/
 
 	public boolean go(int index) {
 		return go(index,getPid());
@@ -1271,7 +1283,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	        if(key.equals(KeyConstants._CURRENTROW)) return new QueryColumnRef(this,key,Types.INTEGER);
 	        if(key.equals(KeyConstants._COLUMNLIST)) return new QueryColumnRef(this,key,Types.INTEGER);
 		}
-        throw new DatabaseException("key ["+key.getString()+"] not found in query, columns are ["+getColumnlist(false)+"]",null,sql,null);
+        throw new DatabaseException("key ["+key.getString()+"] not found in query, columns are ["+getColumnlist(ThreadLocalPageContext.get())+"]",null,sql,null);
 	}
 	
 

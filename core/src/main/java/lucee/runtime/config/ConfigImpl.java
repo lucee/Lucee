@@ -3272,6 +3272,10 @@ public abstract class ConfigImpl implements Config {
 	public boolean getDotNotationUpperCase() {
 		return dotNotationUpperCase;
 	}
+	
+	public boolean preserveCase() {
+		return !dotNotationUpperCase;
+	}
 	private boolean defaultFunctionOutput=true;
 	protected void setDefaultFunctionOutput(boolean defaultFunctionOutput) {
 		this.defaultFunctionOutput=defaultFunctionOutput;
