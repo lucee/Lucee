@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import lucee.commons.collection.LongKeyList;
 import lucee.commons.lang.SystemOut;
@@ -110,14 +111,13 @@ public final class PageSourcePool implements Dumpable {
 		
 		if(pageSources.remove(key)!=null) return true;
 		
-		Iterator<Entry<String, PageSource>> it = pageSources.entrySet().iterator();
+		Set<String> set = pageSources.keySet();
+		String[] keys = set.toArray(new String[set.size()]); // done this way to avoid ConcurrentModificationException
 		PageSource ps;
-		while(it.hasNext()) {
-			Entry<String, PageSource> e;
-			e = it.next();
-			ps=e.getValue();
+		for(String k:keys) {
+			ps=pageSources.get(k);
 			if(key.equals(ps.getClassName())) {
-				pageSources.remove(e.getKey());
+				pageSources.remove(k);
 				return true;
 			}
 		}
