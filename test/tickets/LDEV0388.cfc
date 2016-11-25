@@ -63,7 +63,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					} catch ( any e){
 						var filteredVal = e.message;
 					}
-					expect(filteredVal).toBe("No matching Method/Function for String.Filter(lucee.runtime.type.Closure, numeric) found");
+					expect(filteredVal).toBe("No matching Method/Function for String.Filter(lucee.runtime.type.Closure, string) found");
 				 
 				});
 
