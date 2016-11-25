@@ -8,24 +8,24 @@
 </cfquery>
 
 <cfquery datasource="DSN1">
-	INSERT INTO users1 VALUES('POTHYS')
+	INSERT INTO users1 VALUES('POTHYS1')
 </cfquery>
 <cfquery datasource="DSN2">
-	INSERT INTO users2 VALUES('POTHYS')
+	INSERT INTO users2 VALUES('POTHYS2')
 </cfquery>
 
 <cftry>
 	<cftransaction>
 		<cfquery datasource="DSN1">
-			INSERT INTO users1 VALUES('SARAVANA')
+			INSERT INTO users1 VALUES('SARAVANA1')
 		</cfquery>
 		<cfif FORM.Scene EQ 1>
 			<cfquery datasource="DSN2">
-				INSERT INTO users2 VALUES('SARAVANA')
+				INSERT INTO users2 VALUES('SARAVANA2')
 			</cfquery>
 		<cfelse>
 			<cfquery datasource="DSN1">
-				INSERT INTO users3 VALUES('SARAVANA')
+				INSERT INTO users3 VALUES('SARAVANA3')
 			</cfquery>
 		</cfif>
 	</cftransaction>

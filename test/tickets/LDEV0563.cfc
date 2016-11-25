@@ -1,24 +1,9 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
-	function beforeAll(){
-		// before all testcases
-	}
-
-	function afterAll(){
-		// runs after all testcases
-	}
-
+	multiDSNError = "can't use different connections inside a transaction";
 	function run(){
-		describe( title="Test suite for checking cftransaction with multiple datasources", body=function(){
-			beforeEach(function(){
-				// runs before each spec in this suite group
-			});
-
-			afterEach(function(){
-				// Runs after each spec in this suite group
-			});
-
+		describe( title="Test suite for checking cftransaction with multiple datasources(hsql with ORM)", body=function(){
 			it(title="With valid table names, but different datasources", body=function(){
-				uri = createURI("LDEV0563/test.cfm");
+				uri = createURI("LDEV0563/hsql/test.cfm");
 				result = _InternalRequest(
 					template:uri,
 					forms:{Scene=1}
@@ -32,7 +17,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it(title="With invalid table name to check first table is rolled back or not", body=function(){
-				uri = createURI("LDEV0563/test.cfm");
+				uri = createURI("LDEV0563/hsql/test.cfm");
 				result = _InternalRequest(
 					template:uri,
 					forms:{Scene=2}
@@ -45,11 +30,79 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(Count2).toBe(1);
 			});
 		});
+
+		describe( title="Test suite for checking cftransaction with multiple datasources(mysql without ORM)", skip=checkMySqlEnvVarsAvailable(), body=function(){
+			it(title="With valid table names, but different datasources", body=function(){
+				uri = createURI("LDEV0563/mysql/test.cfm");
+				result = _InternalRequest(
+					template:uri,
+					forms:{Scene=1}
+				);
+				errorMsg = listGetAt(result.fileContent.trim(), 1, "|", true);
+				Count1 = listGetAt(result.fileContent.trim(), 2, "|", true);
+				Count2 = listGetAt(result.fileContent.trim(), 3, "|", true);
+				expect(errorMsg).toBe(multiDSNError);
+				expect(Count1).toBe(1);
+				expect(Count2).toBe(1);
+			});
+
+			it(title="With invalid table name to check first table is rolled back or not", body=function(){
+				uri = createURI("LDEV0563/mysql/test.cfm");
+				result = _InternalRequest(
+					template:uri,
+					forms:{Scene=2}
+				);
+				errorMsg = listGetAt(result.fileContent.trim(), 1, "|", true);
+				Count1 = listGetAt(result.fileContent.trim(), 2, "|", true);
+				Count2 = listGetAt(result.fileContent.trim(), 3, "|", true);
+				expect(errorMsg).toBe("Table 'luceetestdb.users3' doesn't exist");
+				expect(Count1).toBe(1);
+				expect(Count2).toBe(1);
+			});
+		});
 	}
 
 	// Private functions
 	private string function createURI(string calledName){
 		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI & "" & calledName;
+	}
+
+	private boolean function checkMySqlEnvVarsAvailable() {
+		// getting the credentials from the environment variables
+		var mySQL={};
+		if(isNull(server.system)){
+			server.system = structNew();
+			currSystem = createObject("java", "java.lang.System");
+			server.system.environment = currSystem.getenv();
+			server.system.properties = currSystem.getproperties();
+		}
+
+		if(
+			!isNull(server.system.environment.MYSQL_SERVER) &&
+			!isNull(server.system.environment.MYSQL_USERNAME) &&
+			!isNull(server.system.environment.MYSQL_PASSWORD) &&
+			!isNull(server.system.environment.MYSQL_PORT) &&
+			!isNull(server.system.environment.MYSQL_DATABASE)) {
+			mySQL.server=server.system.environment.MYSQL_SERVER;
+			mySQL.username=server.system.environment.MYSQL_USERNAME;
+			mySQL.password=server.system.environment.MYSQL_PASSWORD;
+			mySQL.port=server.system.environment.MYSQL_PORT;
+			mySQL.database=server.system.environment.MYSQL_DATABASE;
+		}
+		// getting the credentials from the system variables
+		else if(
+			!isNull(server.system.properties.MYSQL_SERVER) &&
+			!isNull(server.system.properties.MYSQL_USERNAME) &&
+			!isNull(server.system.properties.MYSQL_PASSWORD) &&
+			!isNull(server.system.properties.MYSQL_PORT) &&
+			!isNull(server.system.properties.MYSQL_DATABASE)) {
+			mySQL.server=server.system.properties.MYSQL_SERVER;
+			mySQL.username=server.system.properties.MYSQL_USERNAME;
+			mySQL.password=server.system.properties.MYSQL_PASSWORD;
+			mySQL.port=server.system.properties.MYSQL_PORT;
+			mySQL.database=server.system.properties.MYSQL_DATABASE;
+		}
+		return structIsEmpty(mySQL);
 	}
 }
