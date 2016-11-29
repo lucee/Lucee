@@ -80,15 +80,23 @@ public final class FunctionLibFunction {
 	private String[] keywords;
 	private ClassDefinition functionCD;
 	private Version introduced;
+	private final boolean core;
 
 	
 	/**
 	 * Geschuetzer Konstruktor ohne Argumente.
 	 */
-	public FunctionLibFunction() {
+	/*public FunctionLibFunction() {
+		this.core=false;
+	}*/
+	
+	public FunctionLibFunction(boolean core) {
+		this.core=core;
 	}
-	public FunctionLibFunction(FunctionLib functionLib) {
+	
+	public FunctionLibFunction(FunctionLib functionLib, boolean core) {
 			this.functionLib=functionLib;
+			this.core=core;
 	}
 	
 	/**
@@ -338,6 +346,10 @@ public final class FunctionLibFunction {
 		return keywords;
 	}
 	
+	public boolean isCore() {
+		return core;
+	}
+	
 	public void setMemberPosition(int pos) {
 		this.memberPosition=pos;	
 	}
@@ -382,7 +394,7 @@ public final class FunctionLibFunction {
 		catch (Throwable t) {
 			throw new PageRuntimeException(Caster.toPageException(t));
 		}
-        
+
 		if(Reflector.isInstaneOf(clazz, BIF.class)) {
 			try {
 				bif=(BIF)clazz.newInstance();

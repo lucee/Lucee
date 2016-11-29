@@ -19,6 +19,7 @@ package lucee.transformer.bytecode.expression.var;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import lucee.commons.lang.StringUtil;
@@ -127,9 +128,9 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	private static final Method STATIC_TOUCH0 = new Method("staticTouch",Types.OBJECT,new Type[]{});
 	private static final Method STATIC_GET1 = new Method("staticGet",Types.OBJECT,new Type[]{Types.OBJECT});
 	private static final Method STATIC_TOUCH1 = new Method("staticTouch",Types.OBJECT,new Type[]{Types.OBJECT});
-	private static final Method INVOKE_BIF = new Method("invokeBIF",Types.OBJECT,
+	private static final Method INVOKE = new Method("invoke",Types.OBJECT,
 			new Type[]{Types.PAGE_CONTEXT,Types.OBJECT_ARRAY,Types.STRING,Types.STRING,Types.STRING});
-	
+
 	private int scope=Scope.SCOPE_UNDEFINED;
 	List<Member> members=new ArrayList<Member>();
 	int countDM=0;
@@ -408,9 +409,9 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		// arguments
 		Argument[] args = bif.getArguments();
 		Type[] argTypes;
-		// Arg Type FIX
-		if(bif.getArgType()==FunctionLibFunction.ARG_FIX && !bifCD.isBundle())	{
-			
+		boolean core=bif.getFlf().isCore(); // MUST setting this to false need to work !!!
+		
+		if(bif.getArgType()==FunctionLibFunction.ARG_FIX && !bifCD.isBundle() && core)	{
 			if(isNamed(bif.getFlf().getName(),args)) {
 				NamedArgument[] nargs=toNamedArguments(args);
 				
@@ -419,8 +420,6 @@ public class VariableImpl extends ExpressionBase implements Variable {
 				for(int i=0;i<nargs.length;i++){
 					names[i] = getName(nargs[i].getName());
 				}
-				
-				
 				ArrayList<FunctionLibFunctionArg> list = bif.getFlf().getArg();
 				Iterator<FunctionLibFunctionArg> it = list.iterator();
 				
@@ -447,13 +446,11 @@ public class VariableImpl extends ExpressionBase implements Variable {
 						throw bce;
 					}
 				}
-				
 			}
-			else{
+			else {
 				argTypes=new Type[args.length+1];
 				argTypes[0]=Types.PAGE_CONTEXT;
-				
-				
+
 				for(int y=0;y<args.length;y++) {
 					argTypes[y+1]=Types.toType(args[y].getStringType());
 					args[y].writeOutValue(bc, Types.isPrimitiveType(argTypes[y+1])?MODE_VALUE:MODE_REF);
@@ -483,22 +480,75 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					}
 					argTypes=tmp;
 				}
- 				
 			}
 			
 		}
 		// Arg Type DYN or bundle based
-		else	{
+		else {
+			
+			
+
+			///////////////////////////////////////////////////////////////
+			
+			
+			if(bif.getArgType()==FunctionLibFunction.ARG_FIX) {
+				if(isNamed(bif.getFlf().getName(),args)) {
+					NamedArgument[] nargs=toNamedArguments(args);
+					String[] names=getNames(nargs);
+					ArrayList<FunctionLibFunctionArg> list = bif.getFlf().getArg();
+					Iterator<FunctionLibFunctionArg> it = list.iterator();
+					LinkedList<Argument> tmpArgs = new LinkedList<Argument>();
+					LinkedList<Boolean> nulls = new LinkedList<Boolean>();
+					
+					FunctionLibFunctionArg flfa;
+					VT vt;
+					while(it.hasNext()) {
+						flfa =it.next();
+						vt = getMatchingValueAndType(bc.getFactory(),flfa,nargs,names,line);
+						if(vt.index!=-1) 
+							names[vt.index]=null;
+						if(vt.value==null)
+							tmpArgs.add(new Argument(bif.getFactory().createNull(),"any")); // has to by any otherwise a caster is set
+						else 
+							tmpArgs.add(new Argument(vt.value, vt.type));
+						
+						nulls.add(vt.value==null);
+					}
+					
+					for(int y=0;y<names.length;y++){
+						if(names[y]!=null) {
+							TransformerException bce = new TransformerException("argument ["+names[y]+"] is not allowed for function ["+bif.getFlf().getName()+"]", args[y].getStart());
+							UDFUtil.addFunctionDoc(bce, bif.getFlf());
+							throw bce;
+						}
+					}
+					// remove null at the end
+					Boolean tmp;
+					while((tmp=nulls.pollLast())!=null) {
+						if(!tmp.booleanValue()) break;
+						tmpArgs.pollLast();
+					}
+					args=tmpArgs.toArray(new Argument[tmpArgs.size()]);
+				}
+			}
+			
+			///////////////////////////////////////////////////////////////
+			
+			
+			
+			
+			
+			
 			argTypes=new Type[2];
 			argTypes[0]=Types.PAGE_CONTEXT;
 			argTypes[1]=Types.OBJECT_ARRAY;
 			ExpressionUtil.writeOutExpressionArray(bc, Types.OBJECT, args);
 		}
-		// only class
-		if(!bifCD.isBundle()) {
+		// core
+		if(core && !bifCD.isBundle()) {
 			adapter.invokeStatic(Type.getType(clazz),new Method("call",rtnType,argTypes));
 		}
-		// bundle
+		// external
 		else {
 			//in that case we need 3 addional args 
 			// className
@@ -509,7 +559,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			if(bifCD.getVersionAsString()!=null)adapter.push(bifCD.getVersionAsString());// bundle version
 			else ASMConstants.NULL(adapter);
 			
-			adapter.invokeStatic(Types.TAG_UTIL,INVOKE_BIF);
+			adapter.invokeStatic(Types.FUNCTION_HANDLER_POOL,INVOKE);
 			rtnType=Types.OBJECT;
 		}
 		
@@ -754,6 +804,17 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		return name;
 	}
 
+	private static String[] getNames(NamedArgument[] args) throws TransformerException {
+		String[] names=new String[args.length];
+		for(int i=0;i<args.length;i++){
+			names[i] = getName(args[i].getName());
+		}
+		return names;
+	}
+	
+	
+
+
 	/**
 	 * translate a array of arguments to a araay of NamedArguments, attention no check if the elements are really  named arguments
 	 * @param args
@@ -818,7 +879,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	
 }
 
-class VT{
+class VT {
 	Expression value;
 	String type;
 	int index;
