@@ -2,20 +2,15 @@
 	<cfscript>
 		
 		public function beforeAll(){
-			var path = ExpandPath("./");
-			var directory = GetDirectoryFromPath(path);
-			variables.file='#directory#test852.pdf';
+			variables.file="test852.pdf";
 			if(not fileExists(file)){
-				cfdocument(format="PDF" filename="test852.pdf"){
+				cfdocument(format="PDF" filename=file){
 					defaultDocumentSection();
 				}
 			}
 		}
 
 		public function afterAll(){
-			var path = ExpandPath("./");
-			var directory = GetDirectoryFromPath(path);
-			variables.file='#directory#test852.pdf';
 			if(fileExists(file)){
 				fileDelete(file);
 			}
