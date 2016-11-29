@@ -52,6 +52,7 @@ import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ExceptionHandler;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.DynamicAttributes;
+import lucee.runtime.functions.FunctionHandlerPool;
 import lucee.runtime.img.Image;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.net.rpc.server.ComponentController;
@@ -262,6 +263,7 @@ public final class Types {
 	public static final Type DYNAMIC_ATTRIBUTES = Type.getType(DynamicAttributes.class);
 	public static final Type IDENTIFICATION = Type.getType(Identification.class);
 	public static final Type TAG_UTIL = Type.getType(TagUtil.class);
+	public static final Type FUNCTION_HANDLER_POOL = Type.getType(FunctionHandlerPool.class);
 	public static final Type BIF = Type.getType(lucee.runtime.ext.function.BIF.class);
 	public static final Type DATA_MEMBER = Type.getType(lucee.runtime.component.DataMember.class);
 	
