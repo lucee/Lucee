@@ -4,18 +4,18 @@
 		public function beforeAll(){
 			var path = ExpandPath("./");
 			var directory = GetDirectoryFromPath(path);
-			variables.file='#directory#test.pdf';
+			variables.file='#directory#test852.pdf';
 			if(not fileExists(file)){
-				cfdocument(format="PDF" filename="test.pdf"){
+				cfdocument(format="PDF" filename="test852.pdf"){
 					defaultDocumentSection();
 				}
 			}
 		}
 
-		public function afterTests(){
+		public function afterAll(){
 			var path = ExpandPath("./");
 			var directory = GetDirectoryFromPath(path);
-			variables.file='#directory#test.pdf';
+			variables.file='#directory#test852.pdf';
 			if(fileExists(file)){
 				fileDelete(file);
 			}
@@ -31,7 +31,7 @@
 						cfdocument(format="PDF" name="myVar"){
 							DocumentSectionWithDynamicVariable("");
 						}
-						cfpdf(action="merge" destination="test.pdf" overwrite="yes"){
+						cfpdf(action="merge" destination="test852.pdf" overwrite="yes"){
 							cfpdfparam(source="myVar");
 						}
 					}
@@ -48,7 +48,7 @@
 						cfDocument(format="PDF" name="myVar#i#"){
 							DocumentSectionWithDynamicVariable(i);
 						}
-						cfpdf(action="merge" destination="test.pdf" overwrite="yes"){
+						cfpdf(action="merge" destination="test852.pdf" overwrite="yes"){
 							cfpdfparam(source="myVar#i#");
 						}
 					}
@@ -69,7 +69,7 @@
 							cfDocument(format="PDF" name="myVar#i#"){
 								DocumentSectionWithDynamicVariable(i);
 							}
-							cfpdf(action="merge" destination="test.pdf" overwrite="yes"){
+							cfpdf(action="merge" destination="test852.pdf" overwrite="yes"){
 								cfpdfparam(source="myVar#i#");
 							}
 						}
@@ -88,7 +88,7 @@
 							cfDocument(format="PDF" name="myVar#i#"){
 								DocumentSectionWithDynamicVariable(i);
 							}
-							cfpdf(action="merge" destination="test.pdf" overwrite="yes"){
+							cfpdf(action="merge" destination="test852.pdf" overwrite="yes"){
 								cfpdfparam(source="myVar#i#");
 							}
 						}
