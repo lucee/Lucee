@@ -1649,7 +1649,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		Parses the string argument as a numeric value. 
 		</description>
 		<argument>
-			<name>nummber</name>
+			<name>number</name>
 			<type>string</type>
 			<required>Yes</required>
 			<description>
