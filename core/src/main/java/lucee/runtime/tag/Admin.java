@@ -2875,7 +2875,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         //config.getDatasourceConnectionPool().remove(name);
         DataSource ds=null;
 		try {
-			ds = new DataSourceImpl(config,null,name,cd,host,dsn,database,port,username,password,connLimit,connTimeout,metaCacheTimeout,blob,clob,allow,custom,false,validate,storage,null, dbdriver,ps,literalTimestampWithTSOffset,config.getLog("application"));
+			ds = new DataSourceImpl(config,null,name,cd,host,dsn,database,port,
+					username,password,connLimit,connTimeout,metaCacheTimeout,blob,clob,
+					allow,custom,false,validate,storage,null, dbdriver,ps,literalTimestampWithTSOffset,config.getLog("application"));
 		} catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
@@ -4127,10 +4129,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
                 sct.setEL("clob",Boolean.valueOf(d.isClob()));
                 sct.setEL("validate",Boolean.valueOf(d.validate()));
                 sct.setEL("storage",Boolean.valueOf(d.isStorage()));
-
-	            if (d instanceof DataSourceImpl) {
-
-		            sct.setEL("dbdriver", Caster.toString( ((DataSourceImpl)d).getDbDriver(), "" ));
+                if (d instanceof DataSourceImpl) {
+	            	DataSourceImpl di = ((DataSourceImpl)d);
+	            	sct.setEL("literalTimestampWithTSOffset",Boolean.valueOf(di.getLiteralTimestampWithTSOffset()));
+		            sct.setEL("dbdriver", Caster.toString( di.getDbDriver(), "" ));
 	            }
                 pageContext.setVariable(getString("admin",action,"returnVariable"),sct);
                 return;

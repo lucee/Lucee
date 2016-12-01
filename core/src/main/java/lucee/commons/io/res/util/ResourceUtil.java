@@ -1448,13 +1448,13 @@ public final class ResourceUtil {
 	public static int directrySize(Resource dir,ResourceFilter filter) {
 		if(dir==null || !dir.isDirectory()) return 0;
 		if(filter==null) return dir.list().length;
-		return dir.list(filter).length;
+		return ArrayUtil.size(dir.list(filter));
 	}
 	
 	public static int directrySize(Resource dir,ResourceNameFilter filter) {
 		if(dir==null || !dir.isDirectory()) return 0;
 		if(filter==null) return dir.list().length;
-		return dir.list(filter).length;
+		return ArrayUtil.size(dir.list(filter));
 	}
 	
 	public static String[] names(Resource[] resources) {
