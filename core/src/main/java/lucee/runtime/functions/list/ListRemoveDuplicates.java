@@ -39,16 +39,15 @@ public final class ListRemoveDuplicates extends BIF {
 	private static final long serialVersionUID = -6596215135126751629L;
 	
 	public static String call(PageContext pc , String list) throws PageException {
-
 		return call(pc, list, ",", false);
 	}
 
 	public static String call(PageContext pc, String list, String delimiter) throws PageException {
-
 		return call(pc, list, delimiter, false);
 	}
 
 	public static String call(PageContext pc , String list, String delimiter, boolean ignoreCase) throws PageException {
+		if(list==null) return "";
 		if(delimiter==null) delimiter=",";
 		Array array = ListUtil.listToArrayRemoveEmpty(list, delimiter);
 
@@ -68,18 +67,17 @@ public final class ListRemoveDuplicates extends BIF {
 			value=Caster.toString(it.next());
 
 			if(!existing.contains(value)) {
-
+				if(sb.length()>0)
+					sb.append(delimiter);
+				
 				sb.append(value);
 				existing.add(value);
-
-				if(it.hasNext())
-					sb.append(delimiter);
 			}
 		}
 
 		return sb.toString();
 	}
-	
+
     @Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
     	if(args.length==1)

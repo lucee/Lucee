@@ -1,8 +1,8 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
-		describe( "Test suite for LDEV-584", function() {
+		describe( "Test suite for listRemoveDuplicates", function() {
 			it(title="checking listRemoveDuplicates function, having simple list with duplicate values", body = function( currentSpec ) {
-				var list = '1,7,7,10,6,7,8';
+				var list = '1,7,,7,10,6,7,8';
 				var result = listRemoveDuplicates(list);
 				expect(result).toBe('1,7,10,6,8');
 			});
