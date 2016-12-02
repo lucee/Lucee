@@ -11,9 +11,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				errorMsg = listGetAt(result.fileContent.trim(), 1, "|", true);
 				Count1 = listGetAt(result.fileContent.trim(), 2, "|", true);
 				Count2 = listGetAt(result.fileContent.trim(), 3, "|", true);
-				expect(errorMsg).toBe("can't use different connections inside a transaction");
-				expect(Count1).toBe(1);
-				expect(Count2).toBe(1);
+				Count3 = listGetAt(result.fileContent.trim(), 4, "|", true);
+				expect(errorMsg).toBe("");
+				expect(Count1).toBe(2);
+				expect(Count2).toBe(2);
+				expect(Count2).toBe(2);
 			});
 
 			it(title="With invalid table name to check first table is rolled back or not", body=function(){
@@ -25,9 +27,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				errorMsg = listGetAt(result.fileContent.trim(), 1, "|", true);
 				Count1 = listGetAt(result.fileContent.trim(), 2, "|", true);
 				Count2 = listGetAt(result.fileContent.trim(), 3, "|", true);
-				expect(errorMsg).toBe("Table not found in statement [INSERT INTO users3]");
+				Count3 = listGetAt(result.fileContent.trim(), 4, "|", true);
+				expect(errorMsg).toBe("Table not found in statement [INSERT INTO users4]");
 				expect(Count1).toBe(1);
 				expect(Count2).toBe(1);
+				expect(Count3).toBe(1);
 			});
 		});
 
@@ -41,9 +45,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				errorMsg = listGetAt(result.fileContent.trim(), 1, "|", true);
 				Count1 = listGetAt(result.fileContent.trim(), 2, "|", true);
 				Count2 = listGetAt(result.fileContent.trim(), 3, "|", true);
-				expect(errorMsg).toBe(multiDSNError);
-				expect(Count1).toBe(1);
-				expect(Count2).toBe(1);
+				Count3 = listGetAt(result.fileContent.trim(), 4, "|", true);
+				expect(errorMsg).toBe('');
+				expect(Count1).toBe(2);
+				expect(Count2).toBe(2);
+				expect(Count3).toBe(2);
 			});
 
 			it(title="With invalid table name to check first table is rolled back or not", body=function(){
@@ -55,9 +61,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				errorMsg = listGetAt(result.fileContent.trim(), 1, "|", true);
 				Count1 = listGetAt(result.fileContent.trim(), 2, "|", true);
 				Count2 = listGetAt(result.fileContent.trim(), 3, "|", true);
-				expect(errorMsg).toBe("Table 'luceetestdb.users3' doesn't exist");
+				Count3 = listGetAt(result.fileContent.trim(), 4, "|", true);
+				expect(errorMsg).toBe("Table 'luceetestdb.users4' doesn't exist");
 				expect(Count1).toBe(1);
 				expect(Count2).toBe(1);
+				expect(Count3).toBe(1);
 			});
 		});
 	}
