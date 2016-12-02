@@ -2,12 +2,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-1098", function() {
 			it("javacast with type 'bigdecimal',value from string.charAt()", function( currentSpec ){
-				try {
+				
 					var string= 'test';
 					var result = JavaCast("bigdecimal", string.charAt(0));
-				} catch ( any e){
-					var result = e.message;
-				}
 				expect(result).toBe(116);
 			});
 
