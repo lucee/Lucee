@@ -556,7 +556,7 @@ public final class ScopeContext {
 			
 			Session session=appContext.getSessionCluster()?null:existing;
 
-			if(session==null || !((StorageScope)session).getStorage().equalsIgnoreCase(storage)) {
+			if(session==null || !(session instanceof StorageScope) || !((StorageScope)session).getStorage().equalsIgnoreCase(storage)) {
 				// not necessary to check session in the same way, because it is overwritten anyway
 				if(isMemory){
 					if(existing!=null) session=existing;
@@ -589,7 +589,7 @@ public final class ScopeContext {
 						throw new ApplicationException("there is no cache or datasource with name ["+storage+"] defined.");
 					}
 				}
-				((StorageScope)session).setStorage(storage);
+				if(session instanceof StorageScope)((StorageScope)session).setStorage(storage);
 				context.put(pc.getCFID(),session);
 				isNew.setValue(true);
 			}
@@ -850,8 +850,7 @@ public final class ScopeContext {
     				if(scope.lastVisit()+timespan<now && !(scope instanceof MemoryScope)) {
     					getLog().log(Log.LEVEL_INFO,"scope-context", "remove from memory "+strType+" scope for "+applicationName+"/"+cfid+" from storage "+scope.getStorage());
     					
-        				//if(scope instanceof StorageScope)((StorageScope)scope).store(cfmlFactory.getConfig());
-    					fhm.remove(arrClients[y]);
+        				fhm.remove(arrClients[y]);
         				count--;
     				}
     			}
