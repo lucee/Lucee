@@ -62,7 +62,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				Count1 = listGetAt(result.fileContent.trim(), 2, "|", true);
 				Count2 = listGetAt(result.fileContent.trim(), 3, "|", true);
 				Count3 = listGetAt(result.fileContent.trim(), 4, "|", true);
-				var find1=findNoCase("users4' doesn't exist",errorMsg);
+				var find1=findNoCase("users4' doesn't exist",errorMsg)>0;
 				expect(find1).toBe(true);
 				expect(Count1).toBe(1);
 				expect(Count2).toBe(1);
