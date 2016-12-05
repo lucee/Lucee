@@ -117,7 +117,7 @@ public final class ScopeContext {
 	 */
 	private Log getLog() {
 		if(log==null) {
-			this.log=((ConfigImpl)factory.getConfig()).getLog("scope");
+			this.log=factory.getConfig().getLog("scope");
 			
 		}
 		return log;
@@ -505,7 +505,7 @@ public final class ScopeContext {
 				else if("cookie".equals(storage))
 					return SessionCookie.hasInstance(appContext.getName(),pc);
 				else {
-					DataSource ds = ((ConfigImpl)pc.getConfig()).getDataSource(storage,null);
+					DataSource ds = pc.getConfig().getDataSource(storage,null);
 					if(ds!=null && ds.isStorage()){
 						if(SessionDatasource.hasInstance(storage,pc)) return true;
 					}
