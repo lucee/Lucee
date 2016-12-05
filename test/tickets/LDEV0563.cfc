@@ -62,10 +62,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				Count1 = listGetAt(result.fileContent.trim(), 2, "|", true);
 				Count2 = listGetAt(result.fileContent.trim(), 3, "|", true);
 				Count3 = listGetAt(result.fileContent.trim(), 4, "|", true);
-				expect(errorMsg).toBe("Table 'luceetestdb.users4' doesn't exist");
+				var find1=findNoCase("users4' doesn't exist",errorMsg);
+				expect(find1).toBe(true);
 				expect(Count1).toBe(1);
 				expect(Count2).toBe(1);
 				expect(Count3).toBe(1);
+
+				// With invalid table name to check first table is rolled back or not:Expected [
+				// Table 'luceetestdb.users4' doesn't exist] but received [
+				// Table 'test.users4' doesn't exist]
 			});
 		});
 	}
