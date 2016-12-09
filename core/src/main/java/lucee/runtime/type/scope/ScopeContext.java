@@ -55,6 +55,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.scope.client.ClientCache;
 import lucee.runtime.type.scope.client.ClientCookie;
 import lucee.runtime.type.scope.client.ClientDatasource;
@@ -71,6 +72,7 @@ import lucee.runtime.type.scope.storage.MemoryScope;
 import lucee.runtime.type.scope.storage.StorageScope;
 import lucee.runtime.type.scope.storage.StorageScopeCleaner;
 import lucee.runtime.type.scope.storage.StorageScopeEngine;
+import lucee.runtime.type.scope.storage.StorageScopeImpl;
 import lucee.runtime.type.scope.storage.clean.DatasourceStorageScopeCleaner;
 import lucee.runtime.type.scope.storage.clean.FileStorageScopeCleaner;
 import lucee.runtime.type.wrap.MapAsStruct;
@@ -601,8 +603,19 @@ public final class ScopeContext {
 	}
 	
 	public void removeSessionScope(PageContext pc) throws PageException {
-		
-		//CFSession
+		removeCFSessionScope(pc);
+		removeJSessionScope(pc);
+	}
+
+	public void removeJSessionScope(PageContext pc) throws PageException {
+		HttpSession httpSession=pc.getSession();
+        if(httpSession!=null) {
+        	ApplicationContext appContext = pc.getApplicationContext(); 
+    		httpSession.removeAttribute(appContext.getName());
+        }
+	}
+	
+	public void removeCFSessionScope(PageContext pc) throws PageException {
 		Session sess = getCFSessionScope(pc, new RefBooleanImpl());
 		ApplicationContext appContext = pc.getApplicationContext(); 
 		Map<String, Scope> context = getSubMap(cfSessionContextes,appContext.getName());
@@ -610,12 +623,6 @@ public final class ScopeContext {
 			context.remove(pc.getCFID());
 			if(sess instanceof StorageScope)((StorageScope)sess).unstore(pc.getConfig());
 		}
-		
-		// JSession
-		HttpSession httpSession=pc.getSession();
-        if(httpSession!=null) {
-        	httpSession.removeAttribute(appContext.getName());
-        }
 	}
 	
 	public void removeClientScope(PageContext pc) throws PageException {
@@ -982,29 +989,40 @@ public final class ScopeContext {
 
 	public void invalidateUserScope(PageContextImpl pc,boolean migrateSessionData,boolean migrateClientData) throws PageException {
 		ApplicationContext appContext = pc.getApplicationContext();
-
+		RefBoolean isNew=new RefBooleanImpl();
+		
 		// get in memory scopes
 		Map<String, Scope> clientContext = getSubMap(cfClientContextes,appContext.getName());
-		UserScope clientScope = (UserScope) clientContext.get(pc.getCFID());
+		UserScope oldClient = (UserScope) clientContext.get(pc.getCFID());
 		Map<String, Scope> sessionContext = getSubMap(cfSessionContextes,appContext.getName());
-		UserScope sessionScope = (UserScope) sessionContext.get(pc.getCFID());
+		UserScope oldSession = (UserScope) sessionContext.get(pc.getCFID());
 		
 		// remove  Scopes completly
-		removeSessionScope(pc);
+		removeCFSessionScope(pc);
 		removeClientScope(pc);
 		
 		pc.resetIdAndToken();
 
-		_migrate(pc,clientContext,clientScope,migrateClientData);
-		_migrate(pc,sessionContext,sessionScope,migrateSessionData);
-	}
-
-	private static void _migrate(PageContextImpl pc, Map<String, Scope> context, UserScope scope, boolean migrate) {
-		if(scope==null) return;
-		if(!migrate) scope.clear();
-		scope.resetEnv(pc);
-		context.put(pc.getCFID(), scope);
+		if(oldSession!=null) 
+			migrate(pc,oldSession,getCFSessionScope(pc, isNew),migrateSessionData);
+		if(oldClient!=null) 
+			migrate(pc,oldClient,getClientScope(pc),migrateClientData);
+		
 	}
 	
-
+	private static void migrate(PageContextImpl pc, UserScope oldScope, UserScope newScope, boolean migrate) {
+		if(oldScope==null || newScope==null) return;
+		if(!migrate)oldScope.clear();
+		oldScope.resetEnv(pc);
+		Iterator<Entry<Key, Object>> it = oldScope.entryIterator();
+		Entry<Key, Object> e;
+		if(migrate){
+			while(it.hasNext()) {
+				e = it.next();
+				if(StorageScopeImpl.KEYS.contains(e.getKey())) continue;
+				newScope.setEL(e.getKey(), e.getValue());
+			}
+			if(newScope instanceof StorageScope)((StorageScope)newScope).store(pc.getConfig());
+		}
+	}
 }
