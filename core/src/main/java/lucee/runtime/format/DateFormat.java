@@ -20,6 +20,7 @@ package lucee.runtime.format;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -96,10 +97,8 @@ public final class DateFormat extends BaseFormat implements Format {
 			break;
 			// RFC 822 TimeZone
 			case 'Z':{
-				int count=1;
 				while(mask.length()>pos+1 && mask.charAt(pos+1)=='Z') {
 					pos++;
-					count++;
 				}
 				formated.append(Z(time,tz));
 			}	
@@ -115,6 +114,21 @@ public final class DateFormat extends BaseFormat implements Format {
 				formated.append(X(time,tz,count));
 			}	
 			break;
+			
+
+			// g: Era designator
+			// gg: Era designator
+
+			case 'g':
+			case 'G':
+				String era=toEra(calendar.get(Calendar.ERA),"");
+				while(mask.length()>pos+1 && Character.toLowerCase(mask.charAt(pos+1))=='g') {
+					pos++;
+				}
+				formated.append(era);
+			break;
+			
+			
 			// d: Day of month. Digits; no leading zero for single-digit days 
 			// dd: Day of month. Digits; leading zero for single-digit days 
 			// ddd: Day of week, abbreviation 
@@ -192,13 +206,17 @@ public final class DateFormat extends BaseFormat implements Format {
 							formated.append(year4);
 							pos+=3;
 						}
+						else if((next__2=='y' || next__2=='Y')) {
+							formated.append(year4);
+							pos+=2;
+						}
 						else {
 							formated.append(year2<10?"0"+year2:""+year2);
 							pos++;
 						}
 					}
 					else {
-						formated.append(year2);
+						formated.append(year4);
 					}					
 				break;
 				
@@ -210,6 +228,13 @@ public final class DateFormat extends BaseFormat implements Format {
 		return formated.toString();
 	}
 	
+
+
+	private String toEra(int era, String defaultValue) {
+		if(GregorianCalendar.AD==era) return "AD";
+		if(GregorianCalendar.BC==era) return "BC";
+		return defaultValue;
+	}
 
 	public static Object X(long time, TimeZone tz, int count) {
 		if(tz.equals(TimeZoneConstants.UTC)) return "Z";
