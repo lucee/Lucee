@@ -442,7 +442,7 @@ public final class Caster {
         else if(o instanceof ObjectWrap) return toDoubleValue(((ObjectWrap)o).getEmbededObject());
         else if(o instanceof Date) return DateTimeUtil.getInstance().toDoubleValue(((Date)o).getTime());
         else if(o instanceof Calendar) return DateTimeUtil.getInstance().toDoubleValue(((Calendar)o).getTimeInMillis());
-        else if(o instanceof Character) return toDoubleValue(o.toString(),true);
+        else if(o instanceof Character) return (double)(((Character)o).charValue());
         
         throw new CasterException(o,"number");
     }
@@ -610,7 +610,7 @@ public final class Caster {
         else if(o instanceof ObjectWrap) return toDoubleValue(((ObjectWrap)o).getEmbededObject(new Double(defaultValue)),true,defaultValue);
         else if(o instanceof Date) return DateTimeUtil.getInstance().toDoubleValue(((Date)o).getTime());
         else if(o instanceof Calendar) return DateTimeUtil.getInstance().toDoubleValue(((Calendar)o).getTimeInMillis());
-        else if(o instanceof Character) return toDoubleValue(o.toString(),alsoFromDate,defaultValue);
+        else if(o instanceof Character) return (double)(((Character)o).charValue());
         return defaultValue;
     }
     
@@ -761,7 +761,8 @@ public final class Caster {
         
         if(o instanceof Number) return ((Number)o).intValue();
         else if(o instanceof Boolean) return ((Boolean)o).booleanValue()?1:0;
-        else if(o instanceof String) return toIntValue(o.toString().trim());
+        else if(o instanceof CharSequence) return toIntValue(o.toString().trim());
+        else if(o instanceof Character) return (int)(((Character)o).charValue());
         //else if(o instanceof Clob) return toIntValue(toString(o));
         else if(o instanceof Castable) return (int)((Castable)o).castToDoubleValue();
         else if(o instanceof Date) return (int)new DateTimeImpl((Date)o).castToDoubleValue();
@@ -784,8 +785,9 @@ public final class Caster {
         
         if(o instanceof Number) return ((Number)o).intValue();
         else if(o instanceof Boolean) return ((Boolean)o).booleanValue()?1:0;
-        else if(o instanceof String) return toIntValue(o.toString().trim(),defaultValue);
+        else if(o instanceof CharSequence) return toIntValue(o.toString().trim(),defaultValue);
         //else if(o instanceof Clob) return toIntValue(toString(o));
+        else if(o instanceof Character) return (int)(((Character)o).charValue());
         else if(o instanceof Castable) {
             return (int)((Castable)o).castToDoubleValue(defaultValue);
             
@@ -1391,11 +1393,10 @@ public final class Caster {
      * @throws PageException
      */
     public static long toLongValue(Object o) throws PageException {
-        if(o instanceof Character) return (((Character)o).charValue());
-        else if(o instanceof Boolean) return ((((Boolean)o).booleanValue())?1L:0L);
+        if(o instanceof Boolean) return ((((Boolean)o).booleanValue())?1L:0L);
         else if(o instanceof Number) return (((Number)o).longValue());
-        else if(o instanceof String) {
-        	String str=(String)o;
+        else if(o instanceof CharSequence) {
+        	String str=o.toString();
         	try{
         		return Long.parseLong(str);
         	}
@@ -1403,6 +1404,7 @@ public final class Caster {
         		return (long)toDoubleValue(str);
         	}                                                                                                                                                     
         }
+        else if(o instanceof Character) return (((Character)o).charValue());
         else if(o instanceof Castable) return (long)((Castable)o).castToDoubleValue();    
         else if(o instanceof ObjectWrap) return toLongValue(((ObjectWrap)o).getEmbededObject());
 		
@@ -1463,10 +1465,11 @@ public final class Caster {
         if(o instanceof Character) return (((Character)o).charValue());
         else if(o instanceof Boolean) return ((((Boolean)o).booleanValue())?1L:0L);
         else if(o instanceof Number) return (((Number)o).longValue());
-        else if(o instanceof String) return (long)toDoubleValue(o.toString(),defaultValue);                                                                                                                                                      
+        else if(o instanceof CharSequence) return (long)toDoubleValue(o.toString(),defaultValue);                                                                                                                                                      
         else if(o instanceof Castable) {
             return (long)((Castable)o).castToDoubleValue(defaultValue);                                                                                           
         }
+        else if(o instanceof Character) return (long)(((Character)o).charValue());
         else if(o instanceof ObjectWrap) return toLongValue(((ObjectWrap)o).getEmbededObject(toLong(defaultValue)),defaultValue);
 		
         return defaultValue;
@@ -1647,10 +1650,10 @@ public final class Caster {
      * @throws PageException
      */
     public static float toFloatValue(Object o) throws PageException {
-        if(o instanceof Character) return (((Character)o).charValue());
-        else if(o instanceof Boolean) return ((((Boolean)o).booleanValue())?1F:0F);
+        if(o instanceof Boolean) return ((((Boolean)o).booleanValue())?1F:0F);
         else if(o instanceof Number) return (((Number)o).floatValue());
-        else if(o instanceof String) return (float)toDoubleValue(o.toString());                                                                                                                                                      
+        else if(o instanceof CharSequence) return (float)toDoubleValue(o.toString());
+        else if(o instanceof Character) return (((Character)o).charValue());
         else if(o instanceof Castable) return (float)((Castable)o).castToDoubleValue();    
         else if(o instanceof ObjectWrap) return toFloatValue(((ObjectWrap)o).getEmbededObject());
 		
@@ -1677,7 +1680,8 @@ public final class Caster {
         if(o instanceof Character) return (((Character)o).charValue());
         else if(o instanceof Boolean) return ((((Boolean)o).booleanValue())?1F:0F);
         else if(o instanceof Number) return (((Number)o).floatValue());
-        else if(o instanceof String) return (float)toDoubleValue(o.toString(),defaultValue);                                                                                                                                                      
+        else if(o instanceof CharSequence) return (float)toDoubleValue(o.toString(),defaultValue);                                                                                                                                                      
+        else if(o instanceof Character) return (float)(((Character)o).charValue());
         else if(o instanceof Castable) {
             return (float)((Castable)o).castToDoubleValue(defaultValue);
                                                                                                                                                                   
@@ -1722,10 +1726,10 @@ public final class Caster {
      */
     public static short toShortValue(Object o) throws PageException {
         if(o instanceof Short) return ((Short)o).shortValue();
-        if(o instanceof Character) return (short)(((Character)o).charValue());
+        else if(o instanceof CharSequence) return (short)toDoubleValue(o.toString());
+        else if(o instanceof Character) return (short)(((Character)o).charValue());
         else if(o instanceof Boolean) return (short)((((Boolean)o).booleanValue())?1:0);
         else if(o instanceof Number) return (((Number)o).shortValue());
-        else if(o instanceof String) return (short)toDoubleValue(o.toString());                                                                                                                                                             
         else if(o instanceof Castable) return (short)((Castable)o).castToDoubleValue(); 
         else if(o instanceof ObjectWrap) return toShortValue(((ObjectWrap)o).getEmbededObject());
 		
@@ -1750,10 +1754,10 @@ public final class Caster {
      */
     public static short toShortValue(Object o, short defaultValue) {
         if(o instanceof Short) return ((Short)o).shortValue();
-        if(o instanceof Character) return (short)(((Character)o).charValue());
         else if(o instanceof Boolean) return (short)((((Boolean)o).booleanValue())?1:0);
         else if(o instanceof Number) return (((Number)o).shortValue());
-        else if(o instanceof String) return (short)toDoubleValue(o.toString(),defaultValue);                                                                                                                                                             
+        else if(o instanceof CharSequence) return (short)toDoubleValue(o.toString(),defaultValue);                                                                                                                                                             
+        else if(o instanceof Character) return (short)(((Character)o).charValue());
         else if(o instanceof Castable) {
             return (short)((Castable)o).castToDoubleValue(defaultValue);
                                                                                                                                             
@@ -4473,18 +4477,18 @@ public final class Caster {
 		else if(trgClass==boolean.class)return Caster.toBoolean(obj); 
 		else if(trgClass==byte.class)return Caster.toByte(obj); 
 		else if(trgClass==short.class)return Caster.toShort(obj); 
-		else if(trgClass==int.class)return Integer.valueOf(Caster.toDouble(obj).intValue()); 
+		else if(trgClass==int.class)return Caster.toInteger(obj); 
 		else if(trgClass==long.class)return Caster.toLong(obj);
-		else if(trgClass==float.class)return new Float(Caster.toDouble(obj).floatValue()); 
+		else if(trgClass==float.class)return Caster.toFloat(obj); 
 		else if(trgClass==double.class)return Caster.toDouble(obj); 
 		else if(trgClass==char.class)return Caster.toCharacter(obj); 
 		
 		else if(trgClass==Boolean.class)return Caster.toBoolean(obj); 
 		else if(trgClass==Byte.class)return Caster.toByte(obj); 
 		else if(trgClass==Short.class)return Caster.toShort(obj); 
-		else if(trgClass==Integer.class)return Integer.valueOf(Caster.toDouble(obj).intValue()); 
+		else if(trgClass==Integer.class)return Caster.toInteger(obj); 
 		else if(trgClass==Long.class)return Caster.toLong(obj); 
-		else if(trgClass==Float.class)return new Float(Caster.toDouble(obj).floatValue()); 
+		else if(trgClass==Float.class)return Caster.toFloat(obj); 
 		else if(trgClass==Double.class)return Caster.toDouble(obj); 
 		else if(trgClass==Character.class)return Caster.toCharacter(obj); 
 		
@@ -4508,7 +4512,8 @@ public final class Caster {
 			return new BigDecimal(((Number)o).toString());
 		}
         else if(o instanceof Boolean) return new BigDecimal(((Boolean)o).booleanValue()?1:0);
-        else if(o instanceof String) return new BigDecimal(o.toString());
+        else if(o instanceof CharSequence) return new BigDecimal(o.toString());
+        else if(o instanceof Character) return new BigDecimal((int)(((Character)o).charValue()));
         else if(o instanceof Castable) return new BigDecimal(((Castable)o).castToDoubleValue());
         else if(o == null) return BigDecimal.ZERO;
         else if(o instanceof ObjectWrap) return toBigDecimal(((ObjectWrap)o).getEmbededObject());
@@ -4521,7 +4526,8 @@ public final class Caster {
 			return new BigInteger(((Number)o).toString());
 		}
         else if(o instanceof Boolean) return new BigInteger(((Boolean)o).booleanValue()?"1":"0");
-        else if(o instanceof String) return new BigInteger(o.toString());
+        else if(o instanceof CharSequence) return new BigInteger(o.toString());
+        else if(o instanceof Character) return new BigInteger(String.valueOf((int)(((Character)o).charValue())));
         else if(o instanceof Castable) return new BigInteger(""+Caster.toIntValue(((Castable)o).castToDoubleValue()));
         else if(o == null) return BigInteger.ZERO;
         else if(o instanceof ObjectWrap) return toBigInteger(((ObjectWrap)o).getEmbededObject());

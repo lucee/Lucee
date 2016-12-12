@@ -112,9 +112,8 @@ public final class ServerImpl extends ScopeSupport implements Server,SharedScope
 	    Info info=pc.getConfig().getFactory().getEngine().getInfo();
 	    ReadOnlyStruct coldfusion=new ReadOnlyStruct();
 			coldfusion.setEL(PRODUCT_LEVEL,info.getLevel());
-			//coldfusion.setEL(PRODUCT_CONTEXT_COUNT,"inf");
-			coldfusion.setEL(PRODUCT_VERSION,"11,0,07,296330");
-			//coldfusion.setEL(PRODUCT_VERSION,"8,0,0,1");
+			//coldfusion.setEL(PRODUCT_VERSION,"11,0,07,296330");
+			coldfusion.setEL(PRODUCT_VERSION,"2016,0,03,300357");
 			coldfusion.setEL(SERIAL_NUMBER,"0");
 			coldfusion.setEL(PRODUCT_NAME,"Lucee");
 			
