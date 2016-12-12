@@ -182,16 +182,6 @@ component {
 	this.charset.resource="#charset.resourceCharset#";
 	
 	this.scopeCascading = "#scope.scopeCascadingType#";
-<cfif hasCache>
-	// cache
-<cfif hasObj>	this.cache.object = "#!hasObj?"&lt;cache-name>":defaults.object#";
-</cfif><cfif hasTem>	this.cache.template = "#!hasTem?"&lt;cache-name>":defaults.template#";
-</cfif><cfif hasQry>	this.cache.query = "#!hasQry?"&lt;cache-name>":defaults.query#";
-</cfif><cfif hasRes>	this.cache.resource = "#!hasRes?"&lt;cache-name>":defaults.resource#";
-</cfif><cfif hasFun>	this.cache.function = "#!hasFun?"&lt;cache-name>":defaults.function#";
-</cfif><cfif hasInc>	this.cache.include = "#!hasInc?"&lt;cache-name>":defaults.include#";</cfif>
-</cfif>	
-
 
 //////////////////////////////////////////////
 //               MAIL SERVERS               //
@@ -238,6 +228,27 @@ if(datasources.readOnly) optional.append('readOnly:#datasources.readOnly# // def
 	</cfif></cfloop></cfif>
 	};
 	</cfloop>
+//////////////////////////////////////////////
+//                 CACHES                   //
+//////////////////////////////////////////////
+	<cfloop query="#cacheConnections#">this.cache.connections["#cacheConnections.name#"] = {
+		  class: '#cacheConnections.class#'#isNull(cacheConnections.bundleName) || isEmpty(cacheConnections.bundleName)?"":"
+		, bundleName: '"&cacheConnections.bundleName&"'"##isNull(cacheConnections.bundleVersion) || isEmpty(cacheConnections.bundleVersion)?"":"
+		, bundleVersion: '"&cacheConnections.bundleVersion&"'"##!cacheConnections.readOnly?"":"
+		, readOnly: "&cacheConnections.readonly#
+		, storage: #cacheConnections.storage#
+		, custom: #isStruct(cacheConnections.custom)?serialize(cacheConnections.custom):'{}'#
+		, default: '#cacheConnections.default#'
+	};
+	</cfloop><cfif hasCache>
+	// cache defaults
+<cfif hasObj>	this.cache.object = "#!hasObj?"&lt;cache-name>":defaults.object#";
+</cfif><cfif hasTem>	this.cache.template = "#!hasTem?"&lt;cache-name>":defaults.template#";
+</cfif><cfif hasQry>	this.cache.query = "#!hasQry?"&lt;cache-name>":defaults.query#";
+</cfif><cfif hasRes>	this.cache.resource = "#!hasRes?"&lt;cache-name>":defaults.resource#";
+</cfif><cfif hasFun>	this.cache.function = "#!hasFun?"&lt;cache-name>":defaults.function#";
+</cfif><cfif hasInc>	this.cache.include = "#!hasInc?"&lt;cache-name>":defaults.include#";</cfif>
+</cfif>	
 
 //////////////////////////////////////////////
 //               MAPPINGS                   //
