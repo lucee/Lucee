@@ -16243,6 +16243,7 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>xmlChildPos</name>
 		<class>lucee.runtime.functions.xml.XmlChildPos</class>
+		<member-name>childPos</member-name>
 		<keywords>XML</keywords>
 		<description>Gets the position of a child element within an XML document
         object.
@@ -16275,6 +16276,7 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>xmlElemNew</name>
 		<class>lucee.runtime.functions.xml.XmlElemNew</class>
+		<member-name>elemNew</member-name>
 		<keywords>XML</keywords>
 		<description>Creates an XML document object element</description>
 		<argument>
@@ -16323,6 +16325,7 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>XmlGetNodeType</name>
 		<class>lucee.runtime.functions.xml.XmlGetNodeType</class>
+		<member-name>getNodeType</member-name>
 		<keywords>XML</keywords>
 		<description>Determines the type of an XML document object node.</description>
 		<argument>
@@ -16413,6 +16416,7 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>xmlSearch</name>
 		<class>lucee.runtime.functions.xml.XmlSearch</class>
+		<member-name>search</member-name>
 		<keywords>XML</keywords>
 		<description>Uses an XPath language expression to search an XML document object.</description>
 		<argument>
@@ -16437,6 +16441,9 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>xmlTransform</name>
 		<class>lucee.runtime.functions.xml.XmlTransform</class>
+		<member-name>transform</member-name>
+		<member-type>xml</member-type>
+		
 		<keywords>XML,string</keywords>
 		<description>Applies an Extensible Stylesheet Language Transformation (XSLT)
         to an XML document object that is represented as a string

@@ -417,7 +417,7 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 			return null;
 		}
 		
-		return MemberUtil.call(pc, this, KeyImpl.init(methodName), arguments, CFTypes.TYPE_STRUCT, "struct");
+		return MemberUtil.call(pc, this, KeyImpl.init(methodName), arguments, new short[]{CFTypes.TYPE_STRUCT}, new String[]{"struct"});
 		
 		/*try{
 			return Reflector.callMethod(obj, methodName, arguments);

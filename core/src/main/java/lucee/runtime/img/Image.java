@@ -1462,7 +1462,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
 		if(obj instanceof UDFPlus) {
 			return ((UDFPlus)obj).call(pc,methodName,args,false);
 		}
-		return MemberUtil.call(pc, this, methodName, args, CFTypes.TYPE_IMAGE, "image");
+		return MemberUtil.call(pc, this, methodName, args, new short[]{CFTypes.TYPE_IMAGE}, new String[]{"image"});
 	}
 
     @Override
