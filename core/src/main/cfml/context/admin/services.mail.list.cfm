@@ -236,8 +236,23 @@
 
 
 
-
 <!--- NEW Server --->	
+<cfscript>
+// load available mail server templates
+variables.drivers={};
+driverNames=structnew("linked");
+driverNames=ComponentListPackageAsStruct("lucee-server.admin.mailservers",driverNames);
+driverNames=ComponentListPackageAsStruct("lucee.admin.mailservers",driverNames);
+driverNames=ComponentListPackageAsStruct("mailservers",driverNames);
+
+loop struct=driverNames index="name" item="componentPath" {
+	if(name == 'MailServer') continue;
+	drivers[name]=createObject("component",componentPath);
+}
+
+//dump(drivers);
+</cfscript>
+
 	<cfset data={hostName:"",port:"",username:"",life:60,idle:10}>
 	<h2>#stText.mail.createnewMailServerConn#</h2>
 	<p>#stText.mail.createnewMailServerConnDesc#</p>
