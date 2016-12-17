@@ -38,56 +38,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			it(title="Creating a new s3 bucket", skip=isNotSupported(), body=function( currentSpec ) {
 				if(isNotSupported()) return;
-				hasErrorInternal = false;
-				try{
-					if( directoryExists(baseWithBucketName))
-						directoryDelete(baseWithBucketName, true);
-					directoryCreate(baseWithBucketName);
-				} catch(any e){
-					hasError = true;
-					hasErrorInternal = true;
-				}
-				expect(hasErrorInternal).toBeFalse();
+				if( directoryExists(baseWithBucketName))
+					directoryDelete(baseWithBucketName, true);
+				directoryCreate(baseWithBucketName);
 			});
 
+			// we accept this because S3 accept this, so if ACF does not, that is a bug/limitation in ACF.
 			it(title="Creating a new file without extension", skip=isNotSupported(), body=function( currentSpec ) {
-				hasErrorInternal = false;
-				try{
-					if(!fileExists(baseWithBucketName & "/a"))
-						fileWrite(baseWithBucketName & "/a", "");
-				} catch(any e){
-					hasError = true;
-					hasErrorInternal = true;
-				}
-				expect(hasErrorInternal).toBeTrue();
+				if(!fileExists(baseWithBucketName & "/a"))
+					fileWrite(baseWithBucketName & "/a", "");
 			});
 
+			// because previous file is empty it is accepted as directory
 			it(title="Creating a new file by the newly created file(blank extension) as a folder", skip=isNotSupported(), body=function( currentSpec ) {
-				hasErrorInternal = false;
-				try{
-					if(!fileExists(baseWithBucketName & "/a/foo.txt"))
-						fileWrite(baseWithBucketName & "/a/foo.txt", "hello there");
-				} catch(any e){
-					hasError = true;
-					hasErrorInternal = true;
-					ErrorMsg = reReplaceNoCase(e.Message, regEx, "", "ALL");
-				}
-				expect(hasErrorInternal).toBeTrue();
-				expect(ErrorMsg).toBe("directory doesn't exist");
+				//hasErrorInternal = false;
+				if(!fileExists(baseWithBucketName & "/a/foo.txt"))
+					fileWrite(baseWithBucketName & "/a/foo.txt", "hello there");
+				
 			});
 
 			it(title="Trying to access the file(no extension) as a directory", skip=isNotSupported(), body=function( currentSpec ) {
-				hasErrorInternal = false;
-				ErrorMsg = "";
-				try{
-					myContent = directoryList(baseWithBucketName & "/a", true);
-				} catch(any e){
-					hasError = true;
-					hasErrorInternal = true;
-					ErrorMsg = reReplaceNoCase(e.Message, regEx, "", "ALL");
-				}
-				expect(hasErrorInternal).toBeTrue();
-				expect(ErrorMsg).toBe("directory doesn't exist");
+				var children = directoryList(baseWithBucketName & "/a", true,'query');
+				expect(1).toBe(children.recordcount);
 			});
 		});
 	}
@@ -104,6 +76,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			s3.ACCESSKEYID=server.system.properties.S3_ACCESS_ID;
 			s3.AWSSECRETKEY=server.system.properties.S3_SECRET_KEY;
 		}
+		s3 = {
+			 ACCESSKEYID:'AKIAJ4OOM4POF5ZYOJPA'
+			,AWSSECRETKEY:'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'
+		};
 		return s3;
 	}
 }
