@@ -76,10 +76,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			s3.ACCESSKEYID=server.system.properties.S3_ACCESS_ID;
 			s3.AWSSECRETKEY=server.system.properties.S3_SECRET_KEY;
 		}
-		s3 = {
-			 ACCESSKEYID:'AKIAJ4OOM4POF5ZYOJPA'
-			,AWSSECRETKEY:'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'
-		};
 		return s3;
 	}
 }
