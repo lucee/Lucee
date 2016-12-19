@@ -84,6 +84,11 @@ public class QueryUtil {
 		return size;
 	}*/
 	
+	public static void main(String[] args) throws SQLException {
+		Cast f = toCast(null, -101);
+		print.e(f);
+	}
+	
 	public static Cast toCast(ResultSet result, int type) throws SQLException {
 		print.e("oooooooooooo "+type+" ooooooooooooo");
 		if(type==Types.TIMESTAMP)	return Cast.TIMESTAMP;
@@ -103,6 +108,7 @@ public class QueryUtil {
         	else if(type==CFTypes.ORACLE_BLOB) return Cast.ORACLE_BLOB;
         	else if(type==CFTypes.ORACLE_CLOB) return Cast.ORACLE_CLOB;
         	else if(type==CFTypes.ORACLE_NCLOB) return Cast.ORACLE_NCLOB;
+        	else if(type==CFTypes.ORACLE_TIMESTAMPTZ)	return Cast.ORACLE_TIMESTAMPTZ;
     		
     		/*
     		TODO
@@ -125,6 +131,7 @@ public class QueryUtil {
 		case CFTypes.ORACLE_JAVA_OBJECT:
 		case CFTypes.ORACLE_REF:
 		case CFTypes.ORACLE_STRUCT:
+		case CFTypes.ORACLE_TIMESTAMPTZ:
 				return true;
 		}
 		return false;

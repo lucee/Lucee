@@ -39,6 +39,8 @@ public interface Cast {
 	public static final Cast ORACLE_BLOB = new OracleBlobCast();
 	public static final Cast ORACLE_CLOB = new OracleClobCast();
 	public static final Cast ORACLE_NCLOB = new OracleNClobCast();
+	public static final Cast ORACLE_TIMESTAMPTZ = new OracleTimestampTZ();
+	
 	
 	//public Object toCFType(TimeZone tz,int type,ResultSet rst, int columnIndex) throws SQLException, IOException;
 	public Object toCFType(TimeZone tz,ResultSet rst, int columnIndex) throws SQLException, IOException;

@@ -37,7 +37,7 @@ public interface CFTypes {
 	public static final int ROWID=-8;
 	public static final int TIMESTAMPLTZ=-102;
 	public static final int TIMESTAMPNS=-100;
-	public static final int TIMESTAMPTZ=-101;
+	public static final int ORACLE_TIMESTAMPTZ=-101;
 	public static final int VARCHAR2=-100;
 	
 
