@@ -12,7 +12,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					, password: orc.password
 				};
 				var Test = queryExecute("SELECT	systimestamp AS db_time FROM dual", {}, {datasource="#oracletestdb#", result="result"});
-				expect(getMetadata(Test.DB_Time[1]).getName()).toBe("java.lang.String");
+				//expect(getMetadata(Test.DB_Time[1]).getName()).toBe("java.lang.String");
+				expect(Test.DB_Time[1]).toBe("java.lang.String");
 			});
 		});
 	}

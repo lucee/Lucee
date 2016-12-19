@@ -1,7 +1,5 @@
 /**
  *
- * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either 
@@ -18,39 +16,32 @@
  **/
 package lucee.runtime.query.caster;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.Timestamp;
 import java.util.TimeZone;
 
-import lucee.print;
+import lucee.commons.date.JREDateTimeUtil;
+import lucee.commons.lang.ExceptionUtil;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.reflection.Reflector;
+import lucee.runtime.type.dt.DateTimeImpl;
 
-public class OtherCast implements Cast {
+public class OracleTimestampNS implements Cast {
 	
-	private final int type;
-
-	public OtherCast(int type){
-		this.type=type;
-	}
-
-
 	@Override
-	public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException {
-		if(type!=Types.SMALLINT) return rst.getObject(columnIndex);
+	public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException {
+		Object o = rst.getObject(columnIndex);
+		if(o==null) return null;
 		
-		
+		// we do not have oracle.sql.TIMESTAMPTZ in the core, so we need reflection for this
 		try{
-			return rst.getObject(columnIndex);
+			Timestamp ts=(Timestamp) Reflector.callMethod(o, "timestampValue", new Object[]{});
+			return new DateTimeImpl(ts.getTime(),false);
 		}
-		// workaround for MSSQL Driver, in some situation getObject throws a cast exception using getString avoids this
-		catch(SQLException e){
-			try{
-				return rst.getString(columnIndex);
-			}
-			catch(SQLException e2){
-				throw e;
-			}
+		catch(PageException pe){
+			throw ExceptionUtil.toIOException(pe);
 		}
 	}
-
 }

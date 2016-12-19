@@ -33,7 +33,6 @@ import java.sql.Time;
 import java.sql.Types;
 import java.util.Date;
 
-import lucee.print;
 import lucee.commons.lang.FormatUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
@@ -71,26 +70,7 @@ import lucee.runtime.type.query.SimpleQuery;
 
 public class QueryUtil {
 	
-	
-	/*public static long sizeOf(QueryColumn column) {
-		if(column instanceof QueryColumnImpl){
-			return ((QueryColumnImpl)column).sizeOf();
-		}
-		int len = column.size();
-		long size=0;
-		for(int i=1;i<=len;i++){
-			size+=SizeOf.size(column.get(i,null));
-		}
-		return size;
-	}*/
-	
-	public static void main(String[] args) throws SQLException {
-		Cast f = toCast(null, -101);
-		print.e(f);
-	}
-	
 	public static Cast toCast(ResultSet result, int type) throws SQLException {
-		print.e("oooooooooooo "+type+" ooooooooooooo");
 		if(type==Types.TIMESTAMP)	return Cast.TIMESTAMP;
         else if(type==Types.TIME)	return Cast.TIME;
         else if(type==Types.DATE)	return Cast.DATE;
@@ -99,16 +79,16 @@ public class QueryUtil {
         else if(type==Types.BIT)	return Cast.BIT;
         else if(type==Types.ARRAY)	return Cast.ARRAY;
         else if(type==Types.BIGINT)	return Cast.BIGINT;
-        //else if(types[i]==Types.TINYINT)	casts[i]=Cast.ARRAY;
-        
+
     // ORACLE
         else if(isOracleType(type) && isOracle(result)) {
-        	print.e("nnnnnnnnnnnn "+type+" nnnnnnnnnnnnn");
-			if(type==CFTypes.ORACLE_OPAQUE) return Cast.ORACLE_OPAQUE;
+        	if(type==CFTypes.ORACLE_OPAQUE) return Cast.ORACLE_OPAQUE;
         	else if(type==CFTypes.ORACLE_BLOB) return Cast.ORACLE_BLOB;
         	else if(type==CFTypes.ORACLE_CLOB) return Cast.ORACLE_CLOB;
         	else if(type==CFTypes.ORACLE_NCLOB) return Cast.ORACLE_NCLOB;
         	else if(type==CFTypes.ORACLE_TIMESTAMPTZ)	return Cast.ORACLE_TIMESTAMPTZ;
+        	else if(type==CFTypes.ORACLE_TIMESTAMPLTZ)	return Cast.ORACLE_TIMESTAMPLTZ;
+        	else if(type==CFTypes.ORACLE_TIMESTAMPNS)	return Cast.ORACLE_TIMESTAMPNS;
     		
     		/*
     		TODO
@@ -132,6 +112,8 @@ public class QueryUtil {
 		case CFTypes.ORACLE_REF:
 		case CFTypes.ORACLE_STRUCT:
 		case CFTypes.ORACLE_TIMESTAMPTZ:
+		case CFTypes.ORACLE_TIMESTAMPLTZ:
+		case CFTypes.ORACLE_TIMESTAMPNS:
 				return true;
 		}
 		return false;
