@@ -852,6 +852,7 @@ public final class Http extends BodyTagImpl {
     			else if(type.equals("file")) {
     				hasForm=true;
     				if(this.method==METHOD_GET) throw new ApplicationException("httpparam type file can't only be used, when method of the tag http equal post");
+    				//if(param.getFile()==null) throw new ApplicationException("httpparam type file can't only be used, when method of the tag http equal post");
     				String strCT = getContentType(param);
     				ContentType ct = HTTPUtil.toContentType(strCT,null);
 
@@ -1062,11 +1063,11 @@ public final class Http extends BodyTagImpl {
 
 			rsp=e.response;
 
-
+			
 			if(!e.done){
-				req.abort();
+				req.abort();	
 				if(throwonerror)
-					throw new HTTPException("408 Request Time-out","a timeout occurred in tag http",408,"Time-out",rsp.getURL());
+					throw new HTTPException("408 Request Time-out","a timeout occurred in tag http",408,"Time-out",rsp==null?null:rsp.getURL());
 				setRequestTimeout(cfhttp);
 				return;
 				//throw new ApplicationException("timeout");

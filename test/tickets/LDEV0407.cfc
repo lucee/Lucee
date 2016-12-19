@@ -12,6 +12,7 @@
 						.getPrefix();
 					} catch ( any e){
 						var httpResponse = e.message;
+						if(httpResponse!="408 Request Time-out") rethrow;
 					}
 					expect(httpResponse).toBe("408 Request Time-out");
 				});
@@ -23,6 +24,9 @@
 			});
 		}
 	</cfscript>
+
+
+	
 	
 	<cffunction name="cfhttptag" access="private" returntype="Any">
 		<cfset result = "">
