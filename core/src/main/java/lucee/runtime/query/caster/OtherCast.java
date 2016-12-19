@@ -23,6 +23,8 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.TimeZone;
 
+import lucee.print;
+
 public class OtherCast implements Cast {
 	
 	private final int type;
@@ -38,6 +40,10 @@ public class OtherCast implements Cast {
 		
 		
 		try{
+			print.e("mmmmmmmm "+type+" mmmmmmmmm");
+			Object res = rst.getObject(columnIndex);
+			print.e("m "+(res==null?null:res.getClass().getName())+" m");
+			
 			return rst.getObject(columnIndex);
 		}
 		// workaround for MSSQL Driver, in some situation getObject throws a cast exception using getString avoids this
