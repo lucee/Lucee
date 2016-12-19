@@ -33,6 +33,7 @@ import java.sql.Time;
 import java.sql.Types;
 import java.util.Date;
 
+import lucee.print;
 import lucee.commons.lang.FormatUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
@@ -84,7 +85,8 @@ public class QueryUtil {
 	}*/
 	
 	public static Cast toCast(ResultSet result, int type) throws SQLException {
-    	if(type==Types.TIMESTAMP)	return Cast.TIMESTAMP;
+		print.e("oooooooooooo "+type+" ooooooooooooo");
+		if(type==Types.TIMESTAMP)	return Cast.TIMESTAMP;
         else if(type==Types.TIME)	return Cast.TIME;
         else if(type==Types.DATE)	return Cast.DATE;
         else if(type==Types.CLOB)	return Cast.CLOB;
@@ -96,7 +98,8 @@ public class QueryUtil {
         
     // ORACLE
         else if(isOracleType(type) && isOracle(result)) {
-        	if(type==CFTypes.ORACLE_OPAQUE) return Cast.ORACLE_OPAQUE;
+        	print.e("nnnnnnnnnnnn "+type+" nnnnnnnnnnnnn");
+			if(type==CFTypes.ORACLE_OPAQUE) return Cast.ORACLE_OPAQUE;
         	else if(type==CFTypes.ORACLE_BLOB) return Cast.ORACLE_BLOB;
         	else if(type==CFTypes.ORACLE_CLOB) return Cast.ORACLE_CLOB;
         	else if(type==CFTypes.ORACLE_NCLOB) return Cast.ORACLE_NCLOB;
@@ -109,8 +112,7 @@ public class QueryUtil {
     		if(type==CFTypes.ORACLE_STRUCT) return Cast.ORACLE_STRUCT;
     		*/
         }
-        
-    	return new OtherCast(type);
+        return new OtherCast(type);
 	}
 
 	private static boolean isOracleType(int type) {
