@@ -13,6 +13,12 @@
 					expect(result.height).toBe(4032);
 					expect(result.width).toBe(3024);
 				});
+
+				it(title="checking ImageInfo(), when image rotate into 90 degree in clockwise direction", body = function( currentSpec ) {
+					var result = imageRotation();
+					expect(result.height).toBe(3024);
+					expect(result.width).toBe(4032);
+				});
 			});
 		}
 		//private Function//
@@ -32,6 +38,13 @@
 	<cffunction name="JPGimageinfo" returntype="Struct" access="private">
 		<cfset uri = createURI("LDEV1107/Desert.jpg")>
 		<cfimage action="read" source="#uri#" name="result">
+		<cfset info=ImageInfo(result)>
+		<cfreturn info>
+	</cffunction>
+
+	<cffunction name="imageRotation" returntype="Struct" access="private">
+		<cfset uri = createURI("LDEV1107/test1.png")>
+		<cfimage action="rotate" source="#uri#" angle="90" name="result">
 		<cfset info=ImageInfo(result)>
 		<cfreturn info>
 	</cffunction>
