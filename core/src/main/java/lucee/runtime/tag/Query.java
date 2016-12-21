@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 
+import lucee.print;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
@@ -497,6 +498,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		
 		
 		// timezone
+
 		if(timezone!=null || (datasource!=null && (timezone=datasource.getTimeZone())!=null)) {
 			tmpTZ=pageContext.getTimeZone();
 			pageContext.setTimeZone(timezone);
@@ -521,28 +523,16 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		
 		return EVAL_BODY_BUFFERED;
 	}
-	
-	@Override
-	public void doFinally() {
-		((PageContextImpl)pageContext).setTimestampWithTSOffset(previousLiteralTimestampWithTSOffset);
-		if(tmpTZ!=null) {
-			pageContext.setTimeZone(tmpTZ);
-		}
-		super.doFinally();
-	}
 
 	@Override
 	public int doEndTag() throws PageException	{
-
-		
-		
 		if(hasChangedPSQ)pageContext.setPsq(orgPSQ);
 		String strSQL=bodyContent.getString();
 		// no SQL String defined
 		if(strSQL.length()==0) 
 			throw new DatabaseException("no sql string defined, inside query tag",null,null,null);
 		
-		try{
+		try {
 		
 			strSQL=strSQL.trim();
 			// cannot use attribute params and queryparam tag
@@ -603,16 +593,11 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				// ORM and Datasource
 				else  	{ 
 					long start=System.nanoTime();
-					
 					Object obj = 
 							("orm".equals(dbtype) || "hql".equals(dbtype))?
 									executeORM(sql,returntype,ormoptions):
 									executeDatasoure(sql,result!=null,pageContext.getTimeZone());
 
-					
-					/*if(obj instanceof lucee.runtime.type.Query)
-						qr=query=(lucee.runtime.type.Query) obj;
-					else*/ 
 					if(obj instanceof QueryResult)
 						qr=(QueryResult)obj;
 					else {
@@ -752,6 +737,12 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			// log
 			pageContext.getConfig().getLog("datasource").error("query tag", pe);
 			throw pe;
+		}
+		finally {
+			((PageContextImpl)pageContext).setTimestampWithTSOffset(previousLiteralTimestampWithTSOffset);
+			if(tmpTZ!=null) {
+				pageContext.setTimeZone(tmpTZ);
+			}
 		}
 		return EVAL_PAGE;
 	}
