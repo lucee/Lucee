@@ -36,4 +36,10 @@ That interface at icloud.com does not offer labels or other more advanced tools 
 	*/
 	public boolean function useSSL() {return false;}
 
+	/**
+	* Returns shortname for this mail server.
+	* @return do return shortname for this mail server.
+	* */
+	public string function getShortName() {return "iCloud";}
+
 }

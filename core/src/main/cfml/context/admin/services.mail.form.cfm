@@ -1,18 +1,95 @@
+<cfscript>
+// load available mail server templates
+variables.drivers={};
+driverNames=structnew("linked");
+driverNames=ComponentListPackageAsStruct("lucee-server.admin.mailservers",driverNames);
+driverNames=ComponentListPackageAsStruct("lucee.admin.mailservers",driverNames);
+driverNames=ComponentListPackageAsStruct("mailservers",driverNames);
 
-
+loop struct=driverNames index="name" item="componentPath" {
+	if(name == 'MailServer') continue;
+	drivers[name]=createObject("component",componentPath);
+}
+</cfscript>
 
 <cfoutput>
+<script type="text/javascript">
+	active={};
+	var bodies={};
+	function enable(btn,type,id){
+		var old=active[type];
+		if(old==id) return;
+		active[type]=id;
+
+		$(document).ready(function(){
+				$(btn).css('background-color','#request.adminType=="web"?'##39c':'##c00'#');
+				$(btn).css('color','white');
+				$('##button_'+old).css('background-color','');
+				bodies[old]=$('##div_'+old).detach();
+				bodies[id].appendTo("##group_Connection");
+		});
+	}
+</script>
 	
 
 <!--- NEW Server --->	
 	
 		<cfif hasAccess>
+			<cfset count=0>
+			<cfset len=structCount(drivers)>
+			<cfset _DefaultName = "Other">
+			<cfset _DefaultDriver = drivers["Other"]>
+			<cfset hiddenFormContents = "">
+
+			<!--- Some common functionalities --->
+			<cfset data.life=toTSStruct(data.life)>
+			<cfset data.idle=toTSStruct(data.idle)>
+
+			<cfset driverList = "Gmail,Yahoo,Outlook,GMX,iCloud,Other">
+			<cfloop list="#driverList#" index="driverClass">
+				<cfif !structKeyExists(drivers, driverClass)>
+					<cfcontinue>
+				</cfif>
+				<cfset driver = drivers[driverClass]>
+				<cfset _name = driver.getShortName()>
+				<cfif isNull(drivers[_name])>
+					<cfcontinue>
+				</cfif>
+				<cfset _driver = drivers[_name]>
+				<cfset count++>
+				<cfset orientation="bm">
+				<cfif count==1><cfset orientation="bl"></cfif>
+				<cfif count==len><cfset orientation="br"></cfif>
+
+				<cfset id="Connection_#hash(driver.getLabel(),'quick')#">
+				<cfset isActiveEdit = data.hostName NEQ "" AND driver.getHost() EQ data.hostName AND driver.getPort() EQ data.port AND driver.useTLS() EQ data.tls AND driver.useSSL() EQ data.ssl>
+				<cfset active=(driver.getLabel() EQ _DefaultDriver.getLabel() AND data.hostName EQ "") OR isActiveEdit>
+				<cfif active>
+					<cfset hasActive = true>
+				</cfif>
+				<cfif driverClass EQ "Other" AND !isDefined("hasActive")>
+					<cfset active=true>
+				</cfif>
+				<cfif active>
+					<cfset _DefaultName = driverClass>
+					<cfset _DefaultDriver = drivers[driverClass]>
+				</cfif>
+
+				<input id="button_#id#" onclick="enable(this,'group_Connection','#id#');"
+					type="button"
+					class="#orientation# button"
+					name="changeConnection"
+					<cfif active> style="color:white;background-color:#(request.adminType=="web"?'##39c':'##c00')#;"</cfif>
+					value="#_name#">
+				<cfsavecontent variable="tmpContent">
+					<div id="div_#id#">
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<input type="hidden" name="id_#ms.recordcount+1#" value="new">
 			<input type="hidden" name="row_#ms.recordcount+1#" value="true" >
 			<table class="maintbl">
 				<tbody>
 					<!--- host --->
+					<cfif driverClass EQ "Other">
 					<tr>
 						<th scope="row">#stText.Mail.Server#</th>
 						<td>
@@ -20,8 +97,12 @@
 							<div class="comment">#stText.mail.serverDesc#</div>
 						</td>
 					</tr>
+					<cfelse>
+						<cfinputClassic type="hidden" name="hostName_#ms.recordcount+1#" value="#driver.getHost()#" required="yes" class="large" message="#stText.Mail.hostnameMissing#">
+					</cfif>
 
 					<!--- Port --->
+					<cfif driverClass EQ "Other">
 					<tr>
 						<th scope="row">#stText.Mail.port#</th>
 						<td>
@@ -31,6 +112,9 @@
 							<div class="comment">#stText.mail.portDesc#</div>
 						</td>
 					</tr>
+					<cfelse>
+						<cfinputClassic type="hidden" name="port_#ms.recordcount+1#" value="#driver.getPort()#" required="yes"validate="integer" message="#stText.Mail.PortErrorFirst#">
+					</cfif>
 
 					<!--- Username ---->
 					<tr>
@@ -52,6 +136,7 @@
 					</tr>
 
 					<!--- TLS --->
+					<cfif driverClass EQ "Other">
 					<tr>
 						<th scope="row">#stText.Mail.tls#</th>
 						<td>
@@ -59,22 +144,27 @@
 							<div class="comment">#stText.mail.tlsDesc#</div>
 						</td>
 					</tr>
+					<cfelse>
+						<cfinputClassic class="checkbox" type="checkbox" checked="#driver.useTLS()#" name="tls_#ms.recordcount+1#" value="true" style="display: none;">
+					</cfif>
 
 					<!--- SSL --->
+					<cfif driverClass EQ "Other">
 					<tr>
 						<th scope="row">#stText.Mail.ssl#</th>
 						<td>
 							<cfinputClassic class="checkbox" type="checkbox" checked="#!isNull(data.ssl) && data.ssl#" name="ssl_#ms.recordcount+1#" value="true">
 							<div class="comment">#stText.mail.sslDesc#</div>
-							
 						</td>
 					</tr>
+					<cfelse>
+						<cfinputClassic class="checkbox" type="checkbox" checked="#driver.useSSL()#" name="ssl_#ms.recordcount+1#" value="true" style="display: none;">
+					</cfif>
 
 					<!--- Life Timespan --->
 					<tr>
 						<th scope="row">#stText.Mail.life#</th>
 						<td>
-							<cfset data.life=toTSStruct(data.life)>
 						<table class="maintbl" style="width:auto">
 							<thead>
 								<tr>
@@ -113,8 +203,6 @@
 					<tr>
 						<th scope="row">#stText.Mail.idle#</th>
 						<td>
-
-						<cfset data.idle=toTSStruct(data.idle)>
 						<table class="maintbl" style="width:auto">
 							<thead>
 								<tr>
@@ -160,6 +248,31 @@
 				</tfoot>
 			</table>
 		</cfformClassic>
+					</div>
+				</cfsavecontent>
+				<cfset hiddenFormContents &= tmpContent>
+			</cfloop>
+			<div id="group_Connection">
+				#hiddenFormContents#
+			</div>
+			<script>
+				<cfloop collection="#drivers#" index="driverClass" item="driver">
+					<cfset _name = driver.getShortName()>
+					<cfif isNull(drivers[_name])>
+						<cfcontinue>
+					</cfif>
+					<cfset _driver = drivers[_name]>
+					<cfset id="Connection_#hash(driver.getLabel(),'quick')#">
+					<cfset active = driver.getLabel() EQ _DefaultDriver.getLabel()>
+					<cfif !active>
+						$(document).ready(function(){
+							bodies['#id#']=$('##div_#id#').detach();
+						});
+					<cfelse>
+						active['group_Connection']='#id#';
+					</cfif>
+				</cfloop>
+			</script>
 	</cfif>
 <cfif url.action2 EQ "edit">
 <cfsavecontent variable="codeSample">

@@ -36,4 +36,10 @@ component implements="MailServer" {
 	*/
 	public boolean function useSSL() {return false;}
 
+	/**
+	* Returns shortname for this mail server.
+	* @return do return shortname for this mail server.
+	* */
+	public string function getShortName() {return "Gmail";}
+
 }

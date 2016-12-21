@@ -33,4 +33,10 @@ interface {
 	* @return do enable secure connections via SSL.
 	*/
 	public boolean function useSSL();
+
+	/**
+	* Returns shortname for this mail server.
+	* @return do return shortname for this mail server.
+	* */
+	public string function getShortName();
 }
