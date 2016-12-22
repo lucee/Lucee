@@ -39,4 +39,10 @@ interface {
 	* @return do return shortname for this mail server.
 	* */
 	public string function getShortName();
+
+	/**
+	* Returns order by which this mail server should be displayed.
+	* @return do return order by which this mail server should be displayed.
+	* */
+	public string function getSortOrder();
 }

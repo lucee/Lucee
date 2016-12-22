@@ -42,4 +42,9 @@ That interface at icloud.com does not offer labels or other more advanced tools 
 	* */
 	public string function getShortName() {return "iCloud";}
 
+	/**
+	* Returns order by which this mail server should be displayed.
+	* @return do return order by which this mail server should be displayed.
+	* */
+	public string function getSortOrder() {return 5;}
 }

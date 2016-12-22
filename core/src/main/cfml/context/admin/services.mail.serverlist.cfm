@@ -1,3 +1,18 @@
+<cfscript>
+// load available mail server templates
+variables.drivers={};
+variables.DriverData = {};
+driverNames=structnew("linked");
+driverNames=ComponentListPackageAsStruct("lucee-server1.admin.mailservers",driverNames);
+driverNames=ComponentListPackageAsStruct("lucee.admin.mailservers",driverNames);
+driverNames=ComponentListPackageAsStruct("mailservers",driverNames);
+loop struct=driverNames index="name" item="componentPath" {
+	if(name == 'MailServer') continue;
+	drivers[name]=createObject("component",componentPath);
+	variables.DriverData[name] = "#drivers[name].getHost()#|#drivers[name].getPort()#|#drivers[name].useTLS()#|#drivers[name].useSSL()#";
+}
+</cfscript>
+
 <cfoutput>
 <h2>#stText.Mail.MailServers#</h2>
 <div class="itemintro">#stText.Mail.MailServersDescription#</div>
@@ -36,6 +51,13 @@
 		</thead>
 		<tbody>
 			<cfloop query="ms">
+				<cfset isPredefinedMailserver = false>
+				<cfloop collection="#variables.DriverData#" item="currDriver">
+					<cfif variables.DriverData[currDriver] EQ "#ms.hostName#|#ms.port#|#ms.tls#|#ms.ssl#">
+						<cfset isPredefinedMailserver = true>
+						<cfbreak>
+					</cfif>
+				</cfloop>
 				<tr>
 					<td>
 						<input type="hidden" name="id_#ms.currentrow#" value="#hash(ms.hostName&":"&ms.username&":"&ms.password&":"&ms.tls&":"&ms.ssl)#">
@@ -50,8 +72,7 @@
 						<input type="hidden" name="password_#ms.currentrow#" value="#variables.stars#">
 						<input type="hidden" name="port_#ms.currentrow#" value="#ms.port#">
 
-
-						#ms.hostName#
+						<cfif isPredefinedMailserver>#drivers[currDriver].getLabel()#<cfelse>#ms.hostName#</cfif>
 					</td>
 					
 					<!--- port --->
