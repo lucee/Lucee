@@ -28,10 +28,26 @@ class DCStack {
 	
 	private Item item;
 	private DataSource datasource;
+	private String user;
+	private String pass;
 	
+
+	public DataSource getDatasource() {
+		return datasource;
+	}
+
+	public String getUsername() {
+		return user;
+	}
+
+	public String getPassword() {
+		return pass;
+	}
 
 	DCStack(DataSource datasource, String user, String pass) {
 		this.datasource=datasource;
+		this.user=user;
+		this.pass=pass;
 	}
 
 	public void add(DatasourceConnection dc){

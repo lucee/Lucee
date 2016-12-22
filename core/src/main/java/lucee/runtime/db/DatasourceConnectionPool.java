@@ -35,7 +35,12 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.KeyConstants;
 
 public class DatasourceConnectionPool {
 
@@ -208,7 +213,29 @@ public class DatasourceConnectionPool {
 		
 		return true;
 	}
-
+	
+	public Array meta() {
+		Iterator<Entry<String, DCStack>> it = dcs.entrySet().iterator();
+		Entry<String, DCStack> e;
+		DCStack dcstack;
+		DataSource ds;
+		Struct sct;
+		Array arr=new ArrayImpl();
+		while(it.hasNext()) {
+			e = it.next();
+			dcstack = e.getValue();
+			ds = dcstack.getDatasource();
+			sct=new StructImpl();
+			try {sct.setEL(KeyConstants._used, _getCounter(e.getKey()).toDouble());}catch(Throwable t){}
+			try {sct.setEL(KeyConstants._name, ds.getName());}catch(Throwable t){}
+			try {sct.setEL("connectionLimit", ds.getConnectionLimit());}catch(Throwable t){}
+			try {sct.setEL("connectionTimeout", ds.getConnectionTimeout());}catch(Throwable t){}
+			try {sct.setEL("connectionString", ds.getConnectionStringTranslated());}catch(Throwable t){}
+			try {sct.setEL(KeyConstants._database, ds.getDatabase());}catch(Throwable t){}
+			if(sct.size()>0)arr.appendEL(sct);
+		}
+		return arr;
+	}
 
 	private DCStack getDCStack(DataSource datasource, String user, String pass) {
 		String id = createId(datasource,user,pass);
@@ -244,7 +271,10 @@ public class DatasourceConnectionPool {
 	}
 
 	private RefInteger _getCounter(DataSource datasource, String username,String password) {
-		String did = createId(datasource, username, password);
+		return _getCounter(createId(datasource, username, password));
+	}
+
+	private RefInteger _getCounter(String did) {
 		synchronized (counter) {
 			RefInteger ri=counter.get(did);
 			if(ri==null) {
@@ -252,7 +282,6 @@ public class DatasourceConnectionPool {
 			}
 			return ri;
 		}
-		
 	}
 
 	public static String createId(DataSource datasource, String user, String pass) {
