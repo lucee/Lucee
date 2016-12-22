@@ -132,6 +132,8 @@ public final class ClassUtil {
 			return OSGiUtil.loadBundle(name, version, id, true).loadClass(className);
 		} 
 		catch (ClassNotFoundException e) {
+			if(version==null)
+				throw new ClassException("In the OSGi Bundle with the name ["+name+"] was no class with name ["+className+"] found.");
 			throw new ClassException("In the OSGi Bundle with the name ["+name+"] and the version ["+version+"] was no class with name ["+className+"] found.");
 		}
 	}
