@@ -44,6 +44,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.PageServletException;
+import lucee.runtime.exp.TemplateException;
 import lucee.runtime.ext.tag.AppendixTag;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
 import lucee.runtime.ext.tag.DynamicAttributes;
@@ -355,7 +356,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 			if(m==c.getTagMapping()) m=c.getServerTagMapping();
 			else m=null;
 			// is te page source from a tag mapping, so perhaps it was moved from server to web context
-			if(m!=null){
+			if(m!=null) {
 				PageSource ps = m.getPageSource(source.getFilename());
 				try {
 					cfc = ComponentLoader.loadComponent(
@@ -366,8 +367,8 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 				catch (PageException e1) {
 					throw e;
 				}
-				
 			}
+			else throw e;
 		}
 		validateAttributes(cfc,attributesScope,StringUtil.ucFirst(ListUtil.last(source.getPageSource().getComponentName(),'.')));
 
