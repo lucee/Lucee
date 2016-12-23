@@ -42,4 +42,9 @@ component implements="MailServer" {
 	* */
 	public string function getShortName() {return "Gmail";}
 
+	/**
+	* Returns order by which this mail server should be displayed.
+	* @return do return order by which this mail server should be displayed.
+	* */
+	public string function getSortOrder() {return 1;}
 }

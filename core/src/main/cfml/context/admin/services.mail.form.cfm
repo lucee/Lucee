@@ -2,7 +2,7 @@
 // load available mail server templates
 variables.drivers={};
 driverNames=structnew("linked");
-driverNames=ComponentListPackageAsStruct("lucee-server.admin.mailservers",driverNames);
+driverNames=ComponentListPackageAsStruct("lucee-server1.admin.mailservers",driverNames);
 driverNames=ComponentListPackageAsStruct("lucee.admin.mailservers",driverNames);
 driverNames=ComponentListPackageAsStruct("mailservers",driverNames);
 
@@ -45,17 +45,27 @@ loop struct=driverNames index="name" item="componentPath" {
 			<cfset data.life=toTSStruct(data.life)>
 			<cfset data.idle=toTSStruct(data.idle)>
 
-			<cfset driverList = "Gmail,Yahoo,Outlook,GMX,iCloud,Other">
+			<!--- Dynamically creating the driver/server list --->
+			<cfset driverListArray = arrayNew(1)>
+			<cfset driverListArray[len] = "">
+			<cfloop collection="#drivers#" item="currDriver">
+				<cfset tmpPos = drivers[currDriver].getSortOrder()>
+				<cfif tmpPos EQ 0>
+					<cfset driverListArray[len] = currDriver>
+				<cfelse>
+					<cfset driverListArray[tmpPos] = currDriver>
+				</cfif>
+			</cfloop>
+			<cfset driverList = arrayToList(driverListArray)>
+			<cfset len = listLen(driverList)>
+
 			<cfloop list="#driverList#" index="driverClass">
-				<cfif !structKeyExists(drivers, driverClass)>
+				<cfif isNull(drivers[driverClass])>
 					<cfcontinue>
 				</cfif>
 				<cfset driver = drivers[driverClass]>
 				<cfset _name = driver.getShortName()>
-				<cfif isNull(drivers[_name])>
-					<cfcontinue>
-				</cfif>
-				<cfset _driver = drivers[_name]>
+				<cfset _driver = drivers[driverClass]>
 				<cfset count++>
 				<cfset orientation="bm">
 				<cfif count==1><cfset orientation="bl"></cfif>
@@ -258,10 +268,10 @@ loop struct=driverNames index="name" item="componentPath" {
 			<script>
 				<cfloop collection="#drivers#" index="driverClass" item="driver">
 					<cfset _name = driver.getShortName()>
-					<cfif isNull(drivers[_name])>
+					<cfif isNull(drivers[driverClass])>
 						<cfcontinue>
 					</cfif>
-					<cfset _driver = drivers[_name]>
+					<cfset _driver = drivers[driverClass]>
 					<cfset id="Connection_#hash(driver.getLabel(),'quick')#">
 					<cfset active = driver.getLabel() EQ _DefaultDriver.getLabel()>
 					<cfif !active>
