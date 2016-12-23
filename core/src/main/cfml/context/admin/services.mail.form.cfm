@@ -2,7 +2,7 @@
 // load available mail server templates
 variables.drivers={};
 driverNames=structnew("linked");
-driverNames=ComponentListPackageAsStruct("lucee-server1.admin.mailservers",driverNames);
+driverNames=ComponentListPackageAsStruct("lucee-server.admin.mailservers",driverNames);
 driverNames=ComponentListPackageAsStruct("lucee.admin.mailservers",driverNames);
 driverNames=ComponentListPackageAsStruct("mailservers",driverNames);
 
@@ -45,21 +45,15 @@ loop struct=driverNames index="name" item="componentPath" {
 			<cfset data.life=toTSStruct(data.life)>
 			<cfset data.idle=toTSStruct(data.idle)>
 
-			<!--- Dynamically creating the driver/server list --->
-			<cfset driverListArray = arrayNew(1)>
-			<cfset driverListArray[len] = "">
-			<cfloop collection="#drivers#" item="currDriver">
-				<cfset tmpPos = drivers[currDriver].getSortOrder()>
-				<cfif tmpPos EQ 0>
-					<cfset driverListArray[len] = currDriver>
-				<cfelse>
-					<cfset driverListArray[tmpPos] = currDriver>
-				</cfif>
-			</cfloop>
-			<cfset driverList = arrayToList(driverListArray)>
-			<cfset len = listLen(driverList)>
+			<cfset driverNames = structKeyArray(drivers)>
+			<cfset arraySort(driverNames,'textnocase')>
 
-			<cfloop list="#driverList#" index="driverClass">
+			<!--- if there is an "Other" we put it to the end --->
+			<cfif arrayDelete(driverNames,'Other')>
+				<cfset arrayAppend(driverNames,'Other')>
+			</cfif>
+			<cfset len=driverNames.len()>
+			<cfloop array="#driverNames#" item="driverClass">
 				<cfif isNull(drivers[driverClass])>
 					<cfcontinue>
 				</cfif>
