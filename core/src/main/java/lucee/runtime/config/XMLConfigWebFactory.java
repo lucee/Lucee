@@ -1415,6 +1415,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		// full null support
 		sb.append(config.getFullNullSupport());
 		sb.append(';');
+		
+		// fusiondebug or not (FD uses full path name)
+		sb.append(config.allowRequestTimeout());
+		sb.append(';');
 
 		// tld
 		for (int i = 0; i < ctlds.length; i++) {
@@ -1423,7 +1427,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		for (int i = 0; i < ltlds.length; i++) {
 			sb.append(ltlds[i].getHash());
 		}
-
 		// fld
 		for (int i = 0; i < cflds.length; i++) {
 			sb.append(cflds[i].getHash());
