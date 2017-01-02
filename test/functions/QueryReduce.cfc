@@ -22,16 +22,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
     [ "Jim" , CreateDate( 1988, 1, 1 ), 0 ]
 	]);
 
+	variables.date=createDateTime(2016,3,13,17,0,0);
+
 	public void function testMemberFunction() localmode="true" {
 		totalAge = people.reduce( function(age=0, row, rowNumber, recordset ){
-		    return age +  DateDiff( 'yyyy', recordset.dob, Now() );
+		    return age +  DateDiff( 'yyyy', recordset.dob, date );
 		});
 		assertEquals(151,totalAge);
 	}
 
 	public void function testFunction() localmode="true" {
 		totalAge = QueryReduce(people, function(age=0, row, rowNumber, recordset ){
-		    return age +  DateDiff( 'yyyy', recordset.dob, Now() );
+		    return age +  DateDiff( 'yyyy', recordset.dob, date );
 		});
 		assertEquals(151,totalAge);
 	}
