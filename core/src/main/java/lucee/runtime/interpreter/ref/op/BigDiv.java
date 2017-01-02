@@ -21,6 +21,7 @@ package lucee.runtime.interpreter.ref.op;
 import lucee.commons.math.MathUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.interpreter.InterpreterException;
 import lucee.runtime.interpreter.ref.Ref;
 
 /**
@@ -33,12 +34,13 @@ public final class BigDiv extends Big {
 	 * @param left
 	 * @param right
 	 */
-	public BigDiv(Ref left, Ref right) {
-		super(left,right);
+	public BigDiv(Ref left, Ref right, boolean limited) {
+		super(left,right,limited);
 	}
 
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
-		return MathUtil.divide(getLeft(pc),getRight(pc)).toString();
+		if(limited) throw new InterpreterException("invalid syntax, math operations are not supported in a json string.");
+        return MathUtil.divide(getLeft(pc),getRight(pc)).toString();
 	}
 }

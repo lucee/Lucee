@@ -20,6 +20,7 @@ package lucee.runtime.interpreter.ref.op;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.interpreter.InterpreterException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
 
@@ -30,20 +31,23 @@ public final class NEEQ extends RefSupport implements Ref {
 
     private Ref right;
     private Ref left;
+	private boolean limited;
 
     /**
      * constructor of the class
      * @param left
      * @param right
      */
-    public NEEQ(Ref left, Ref right) {
+    public NEEQ(Ref left, Ref right, boolean limited) {
         this.left=left;
         this.right=right;
+		this.limited=limited;
     }
 
     @Override
 	public Object getValue(PageContext pc) throws PageException {
-    	return left.eeq(pc,right)?Boolean.FALSE:Boolean.TRUE;
+    	if(limited) throw new InterpreterException("invalid syntax, boolean operations are not supported in a json string.");
+        return left.eeq(pc,right)?Boolean.FALSE:Boolean.TRUE;
         //return (left.getValue()!=right.getValue())?Boolean.TRUE:Boolean.FALSE;
     }
 
