@@ -21,19 +21,26 @@ public class LogST extends Thread {
 	private static final char NL = '\n';
 	private Thread thread;
 	private long size=0;
-	private long max=1024*1024*100; 
+	private long max=1024*1024*100;
+	private final File logDirectory;
+	private final String logName;
+	private final int timeRange; 
 	
-	public static void main(String[] args) throws InterruptedException {
+	/*public static void main(String[] args) throws InterruptedException {
 
     	print.e("----------- start ------------");
 		LogST log = new LogST(Thread.currentThread());
 		log.start();
 		log.join();
     	print.e("----------- stop ------------");
-	}
+	}*/
 	
-	public LogST(Thread thread) {
+	public LogST(Thread thread, File logDirectory, String logName, int timeRange) {
 		this.thread=thread;
+		this.logDirectory=logDirectory;
+		this.logName=logName;
+		this.timeRange=timeRange;
+		if(timeRange<1) throw new RuntimeException("time range "+timeRange+" is invalid.");
 	}
 	
 	public void run() {
@@ -42,7 +49,7 @@ public class LogST extends Thread {
 			ps=new PrintStream(createFile());
 			while(true) {
 				printStackTrace(ps,thread.getStackTrace());
-				SystemUtil.sleep(10);
+				SystemUtil.sleep(timeRange);
 				if(size>max) {
 					IOUtil.closeEL(ps);
 					ps=new PrintStream(createFile());
@@ -63,7 +70,7 @@ public class LogST extends Thread {
     private File createFile() throws IOException {
     	File f;
     	int count=0;
-    	while((f=new File("/Users/mic/stacktrace-"+(++count)+".log")).isFile()) {
+    	while((f=new File(logDirectory,logName+"-"+(++count)+".log")).isFile()) {
     		
     	}
     	print.e(f.getCanonicalPath());
@@ -90,11 +97,16 @@ public class LogST extends Thread {
             
         }
     }
-
-	public static void _do() {
+	public static void _do(File logDirectory) {
+		_do(logDirectory, "stacktrace", 10);
+	}
+	public static void _do(File logDirectory, String logName) {
+		_do(logDirectory, logName, 10);
+	}
+	public static void _do(File logDirectory, String logName, int timeRange) {
 
     	print.e("----------- start ------------");
-		LogST log = new LogST(Thread.currentThread());
+		LogST log = new LogST(Thread.currentThread(),logDirectory,logName,timeRange);
 		log.start();
 		//log.join();
     	print.e("----------- stop ------------");

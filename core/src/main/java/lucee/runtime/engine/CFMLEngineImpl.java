@@ -193,6 +193,18 @@ public final class CFMLEngineImpl implements CFMLEngine {
     private CFMLEngineImpl(CFMLEngineFactory factory, BundleCollection bc) {
     	this.factory=factory; 
     	this.bundleCollection=bc;
+
+    	// log the startup process
+    	String logDir=SystemUtil.getSystemPropOrEnvVar("startlogdirectory", null);
+    	if(logDir!=null) {
+    		File f = new File(logDir);
+    		if(f.isDirectory()) {
+	    		String logName=SystemUtil.getSystemPropOrEnvVar("logName", "stacktrace");
+	    		int timeRange=Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("timeRange", "stacktrace"),10);
+	    		LogST._do(f, logName, timeRange);
+    		}
+    	}
+    	
     	
     	// happen when Lucee is loaded directly
     	if(bundleCollection==null) {
