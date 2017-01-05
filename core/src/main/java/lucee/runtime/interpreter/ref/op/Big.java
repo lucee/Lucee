@@ -34,17 +34,17 @@ public abstract class Big extends RefSupport implements Ref {
 
 	private Ref right;
 	private Ref left;
+	protected boolean limited;
 
 	/**
 	 * constructor of the class
 	 * @param left
 	 * @param right
 	 */
-	public Big(Ref left, Ref right) {
-		
-		
+	public Big(Ref left, Ref right, boolean limited) {
 		this.left=left;
 		this.right=right;
+		this.limited=limited;
 	}
 
 	protected static BigDecimal toBigDecimal(PageContext pc,Ref ref) throws PageException {

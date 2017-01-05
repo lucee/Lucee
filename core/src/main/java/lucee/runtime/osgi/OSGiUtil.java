@@ -368,7 +368,8 @@ public class OSGiUtil {
     	return _loadBundle(bc, bf.getFile());
     }
 	
-	public static Bundle loadBundleByPackage(String packageName, List<VersionDefinition> versionDefinitions, Set<Bundle> loadedBundles, boolean startIfNecessary, Set<Bundle> parents) throws BundleException, IOException {
+	public static Bundle loadBundleByPackage(String packageName, List<VersionDefinition> versionDefinitions, 
+			Set<Bundle> loadedBundles, boolean startIfNecessary, Set<Bundle> parents) throws BundleException, IOException {
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
     	CFMLEngineFactory factory = engine.getCFMLEngineFactory();
     	
@@ -428,24 +429,24 @@ public class OSGiUtil {
 		return null;
 	}
 
-
-
+	
 	public static Bundle loadBundle(String name, Version version,Identification id, boolean startIfNecessary) throws BundleException {
+		return _loadBundle(name, version, id, startIfNecessary,null);
+	}
+	public static Bundle _loadBundle(String name, Version version,Identification id, boolean startIfNecessary, Set<Bundle> parents) throws BundleException {
 		name=name.trim();
 		
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
     	CFMLEngineFactory factory = engine.getCFMLEngineFactory();
-    	
     	
     	// check in loaded bundles
     	BundleContext bc = engine.getBundleContext();
     	Bundle[] bundles = bc.getBundles();
     	StringBuilder versionsFound=new StringBuilder();
     	for(Bundle b:bundles){
-    		
     		if(name.equalsIgnoreCase(b.getSymbolicName())) {
     			if(version==null || version.equals(b.getVersion())) {
-    				if(startIfNecessary)startIfNecessary(b);
+    				if(startIfNecessary)_startIfNecessary(b,parents);
     				return b;
     			}
     			if(versionsFound.length()>0) versionsFound.append(", ");
@@ -907,12 +908,15 @@ public class OSGiUtil {
 						continue;
 					}
 					try{
-						b=loadBundle(
+						if(parents==null) parents=new HashSet<Bundle>();
+						parents.add(bundle);
+						
+						b=_loadBundle(
 								bd.name, 
 								bd.getVersion(), 
 								ThreadLocalPageContext
 								.getConfig()
-								.getIdentification(), true);
+								.getIdentification(), true,parents);
 						loadedBundles.add(b);
 					}
 					catch(BundleException _be){

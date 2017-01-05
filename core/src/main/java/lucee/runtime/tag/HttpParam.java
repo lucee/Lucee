@@ -98,6 +98,9 @@ public final class HttpParam extends TagImpl {
             throw new ApplicationException("attribute [name] is required for tag [httpparam] if type is not [body or xml]");
         }
         
+        if("file".equalsIgnoreCase(param.getType()) && param.getFile()==null)
+        	throw new ApplicationException("attribute [file] is required for tag [httpparam] if type is [file]");
+        
 		// get HTTP Tag
 		Tag parent=getParent();
 		while(parent!=null && !(parent instanceof Http)) {

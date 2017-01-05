@@ -23,6 +23,7 @@ import java.io.IOException;
 
 import javax.servlet.jsp.tagext.Tag;
 
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
@@ -32,6 +33,8 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
+import lucee.runtime.functions.other.CreateUniqueId;
+import lucee.runtime.functions.string.Hash;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ListUtil;
 
@@ -163,8 +166,13 @@ public final class MailParam extends TagImpl {
 		
 		if(content!=null){
 			required("mailparam", "file", file);
-			String filename = ListUtil.last(file, "/\\",true);
-			Resource res = SystemUtil.getTempDirectory().getRealResource(filename);
+			String id="id-"+CreateUniqueId.invoke();
+			String ext=ResourceUtil.getExtension(file, "tmp");
+			
+			if(StringUtil.isEmpty(fileName) && !StringUtil.isEmpty(file))
+				fileName = ListUtil.last(file, "/\\",true);
+			
+			Resource res = SystemUtil.getTempDirectory().getRealResource(id+"."+ext);
 			if(res.exists())ResourceUtil.removeEL(res, true);
 			try {
 				IOUtil.write(res, content);

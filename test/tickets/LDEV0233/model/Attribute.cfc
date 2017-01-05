@@ -1,0 +1,1 @@
+component persistent="true" table="Attribute" {	property name="id" column="id" ormtype="int" notnull="true" fieldtype="id" generator="native";	property name="ContentType" fieldtype="many-to-one" cfc="ContentType" fkcolumn="fkContentType" inverse="true";}
