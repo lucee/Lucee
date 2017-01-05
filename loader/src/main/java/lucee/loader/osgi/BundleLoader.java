@@ -189,7 +189,7 @@ public class BundleLoader {
 			final File jarDirectory) {
 		final Map<String, File> rtn = new HashMap<String, File>();
 		final File[] jars = jarDirectory.listFiles();
-		for (int i = 0; i < jars.length; i++) {
+		if(jars!=null)for (int i = 0; i < jars.length; i++) {
 			if (!jars[i].isFile() || !jars[i].getName().endsWith(".jar"))
 				continue;
 			try {

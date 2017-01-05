@@ -1613,7 +1613,7 @@ public final class XMLConfigAdmin {
     public void updateDataSource(String name, String newName, ClassDefinition cd, String dsn, String username, String password,
             String host, String database, int port, int connectionLimit, int connectionTimeout, long metaCacheTimeout,
             boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver,
-            ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset) throws PageException {
+            ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout) throws PageException {
 
     	checkWriteAccess();
     	SecurityManager sm = config.getSecurityManager();
@@ -1688,6 +1688,12 @@ public final class XMLConfigAdmin {
 	            if(literalTimestampWithTSOffset)el.setAttribute("literal-timestamp-with-tsoffset","true");
 	            else if(el.hasAttribute("literal-timestamp-with-tsoffset")) 
 	            	el.removeAttribute("literal-timestamp-with-tsoffset");
+	            
+	            if(alwaysSetTimeout)el.setAttribute("always-set-timeout","true");
+	            else if(el.hasAttribute("always-set-timeout")) 
+	            	el.removeAttribute("always-set-timeout");
+	            
+	            
 	      		return;
   			}
       	}
@@ -1732,7 +1738,7 @@ public final class XMLConfigAdmin {
         el.setAttribute("param-separator",(paramSyntax.separator));
         
         if(literalTimestampWithTSOffset)el.setAttribute("literal-timestamp-with-tsoffset","true");
-        
+        if(alwaysSetTimeout)el.setAttribute("always-set-timeout","true");
     }
     
     static void removeJDBCDriver(ConfigImpl config, ClassDefinition cd, boolean reload) throws IOException, SAXException, PageException, BundleException {

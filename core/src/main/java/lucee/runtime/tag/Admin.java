@@ -2851,6 +2851,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         
         // 
         boolean literalTimestampWithTSOffset=getBoolV("literalTimestampWithTSOffset", false);
+        boolean alwaysSetTimeout=getBoolV("alwaysSetTimeout", false);
         
         String dsn=getString("admin",action,"dsn");
         String name=getString("admin",action,"name");
@@ -2877,7 +2878,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		try {
 			ds = new DataSourceImpl(config,null,name,cd,host,dsn,database,port,
 					username,password,connLimit,connTimeout,metaCacheTimeout,blob,clob,
-					allow,custom,false,validate,storage,null, dbdriver,ps,literalTimestampWithTSOffset,config.getLog("application"));
+					allow,custom,false,validate,storage,null, dbdriver,ps,literalTimestampWithTSOffset,alwaysSetTimeout,config.getLog("application"));
 		} catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
@@ -2906,7 +2907,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
                 custom,
 		        dbdriver,
 		        ps,
-		        literalTimestampWithTSOffset
+		        literalTimestampWithTSOffset,
+		        alwaysSetTimeout
         );
         store();
         adminSync.broadcast(attributes, config);
@@ -4132,7 +4134,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
                 if (d instanceof DataSourceImpl) {
 	            	DataSourceImpl di = ((DataSourceImpl)d);
 	            	sct.setEL("literalTimestampWithTSOffset",Boolean.valueOf(di.getLiteralTimestampWithTSOffset()));
-		            sct.setEL("dbdriver", Caster.toString( di.getDbDriver(), "" ));
+	            	sct.setEL("alwaysSetTimeout",Boolean.valueOf(di.getAlwaysSetTimeout()));
+	            	
+	            	sct.setEL("dbdriver", Caster.toString( di.getDbDriver(), "" ));
 	            }
                 pageContext.setVariable(getString("admin",action,"returnVariable"),sct);
                 return;

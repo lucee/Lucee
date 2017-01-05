@@ -251,6 +251,7 @@ public final class AppListenerUtil {
 					"",
 					ParamSyntax.toParamSyntax(data,ParamSyntax.DEFAULT),
 					Caster.toBooleanValue(data.get("literalTimestampWithTSOffset",null),false),
+					Caster.toBooleanValue(data.get("alwaysSetTimeout",null),false),
 					log
 				);
 			}

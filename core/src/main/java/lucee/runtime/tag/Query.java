@@ -471,14 +471,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	@Override
 	public int doStartTag() throws PageException	{
-		
-		//timeout
-		/*TimeSpan remaining = PageContextUtil.remainingTime(pageContext,true);
-		if(this.timeout==null || ((int)this.timeout.getSeconds())<=0 || timeout.getSeconds()>remaining.getSeconds()) { // not set
-			this.timeout=remaining;
-		}*/
-		
-		
+
 		// default datasource
 		if(datasource==null && (dbtype==null || !dbtype.equals("query"))){
 			Object obj = pageContext.getApplicationContext().getDefDataSource();
@@ -494,10 +487,16 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			}
 			datasource=obj instanceof DataSource?(DataSource)obj:pageContext.getDataSource(Caster.toString(obj));
 		}
-		
-		
-		// timezone
 
+		//timeout
+		if(datasource instanceof DataSourceImpl && ((DataSourceImpl) datasource).getAlwaysSetTimeout()) {
+			TimeSpan remaining = PageContextUtil.remainingTime(pageContext,true);
+			if(this.timeout==null || ((int)this.timeout.getSeconds())<=0 || timeout.getSeconds()>remaining.getSeconds()) { // not set
+				this.timeout=remaining;
+			}
+		}
+
+		// timezone
 		if(timezone!=null || (datasource!=null && (timezone=datasource.getTimeZone())!=null)) {
 			tmpTZ=pageContext.getTimeZone();
 			pageContext.setTimeZone(timezone);
