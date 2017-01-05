@@ -3,7 +3,7 @@
 variables.drivers={};
 variables.DriverData = {};
 driverNames=structnew("linked");
-driverNames=ComponentListPackageAsStruct("lucee-server1.admin.mailservers",driverNames);
+driverNames=ComponentListPackageAsStruct("lucee-server.admin.mailservers",driverNames);
 driverNames=ComponentListPackageAsStruct("lucee.admin.mailservers",driverNames);
 driverNames=ComponentListPackageAsStruct("mailservers",driverNames);
 loop struct=driverNames index="name" item="componentPath" {
