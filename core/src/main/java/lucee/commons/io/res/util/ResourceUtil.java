@@ -1042,21 +1042,21 @@ public final class ResourceUtil {
 		try {
 			removeChildren(res,filter);
 		}
-		catch(Throwable e) {}
+		catch(Throwable t) {}
 	}
 
 	public static void removeChildrenEL(Resource res,ResourceFilter filter) {
 		try {
 			removeChildren(res,filter);
 		}
-		catch(Throwable e) {}
+		catch(Throwable t) {}
 	}
 	
 	public static void removeChildrenEL(Resource res) {
 		try {
 			removeChildren(res);
 		}
-		catch(Throwable e) {}
+		catch(Throwable t) {}
 	}
 
 	public static void removeEL(Resource res, boolean force) {

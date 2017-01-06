@@ -676,8 +676,8 @@ final class Axis1Client extends WSClient {
 	            parser.run(wsdlUrl);
 	            wsdlExecuted=true;
 	        }
-	        catch(Throwable e) {
-	            throw Caster.toPageException(e);
+	        catch(Throwable t) {
+	            throw Caster.toPageException(t);
 	        }
 		}
 		

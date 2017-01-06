@@ -118,10 +118,10 @@ public class SocketGateway implements Gateway {
 	        serverSocket = null;
 		    state = STOPPED;
 		}
-		catch(Throwable e){
+		catch(Throwable t){
 			state=FAILED;
-			error("Error in Socket Gateway ["+id+"]: " + e.getMessage());
-            e.printStackTrace();
+			error("Error in Socket Gateway ["+id+"]: " + t.getMessage());
+            t.printStackTrace();
             //throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
 		}
     }
