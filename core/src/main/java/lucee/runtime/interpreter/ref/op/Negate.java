@@ -45,8 +45,7 @@ public final class Negate extends RefSupport implements Ref {
 
     @Override
 	public Object getValue(PageContext pc) throws PageException {
-    	if(limited) throw new InterpreterException("invalid syntax, this operation is not supported in a json string.");
-        return new Double(-Caster.toDoubleValue(ref.getValue(pc)));
+    	return new Double(-Caster.toDoubleValue(ref.getValue(pc)));
     }
 
     @Override
