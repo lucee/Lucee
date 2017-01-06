@@ -19,10 +19,13 @@ component {
 
 	this.Name = "__LUCEE_DOCS";
 
+	variables.isDebug = true;		// ATTN: set to false for production!
+
 
 	function onApplicationStart() {
 
 		Application.objects.utils = new DocUtils();
+		Application.objects.missingTemplateHandler = new StaticResourceProvider();
 	}
 
 
@@ -33,6 +36,13 @@ component {
 
 		param name="URL.item"   default="";
 		param name="URL.format" default="html";
+	}
+
+	function onMissingTemplate( target ) {
+
+		if ( variables.isDebug )	onApplicationStart();		// disable cache for debug/develop
+
+		Application.objects.missingTemplateHandler.onMissingTemplate( target );
 	}
 
 }
