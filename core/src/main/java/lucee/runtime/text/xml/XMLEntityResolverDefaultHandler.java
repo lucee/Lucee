@@ -19,6 +19,7 @@
 package lucee.runtime.text.xml;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.net.HTTPUtil;
 
 import org.xml.sax.InputSource;
@@ -45,6 +46,7 @@ public class XMLEntityResolverDefaultHandler extends DefaultHandler {
 			return new InputSource(IOUtil.toBufferedInputStream(HTTPUtil.toURL(systemID,true).openStream()));
 		} 
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return null;
 		}
 	}

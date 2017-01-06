@@ -60,6 +60,7 @@ import lucee.commons.io.res.filter.NotResourceFilter;
 import lucee.commons.io.res.filter.OrResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.IDGenerator;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.surveillance.HeapDumper;
@@ -565,7 +566,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     			if(config instanceof ConfigServer)
     				((PageContextImpl)pageContext).setServerPassword(password);
     		}
-    		catch(Throwable t){}
+    		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     	}
     	else if(check("getinfo",           ACCESS_FREE) && check2(ACCESS_READ  )) doGetInfo();
     	else if(check("surveillance",           ACCESS_FREE) && check2(ACCESS_READ  )) doSurveillance();
@@ -1126,7 +1127,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
                             msg.append(Caster.toString(((Struct)context.getE(1)).get("line")));
                     	}
                     	}
-                    	catch(Throwable t){}
+                    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
                     	
                     }
                     msg.append("]");
@@ -3594,9 +3595,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			}
 			
 		}
-		catch(Throwable t){
-			
-		}
+		catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		
 		
 		Map<String,Object> headers=null;
@@ -3688,7 +3687,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 					qry.setAt(PATH, row, bf.getFile());
 				}
 			}
-			catch(Throwable t){	}
+			catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 			
 			Map<String,Object> headers=null;
 			if(b!=null) {
@@ -4242,7 +4241,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				}
 				qry.setAt("triesmax", row,Caster.toDouble(triesMax));
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
     	return row;
 	}
@@ -4291,9 +4290,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doSetCluster()  {// MUST remove this
 		try {
 			_doSetCluster();
-		} catch(Throwable t) {
-			//print.printST(t);
 		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	
 	private void _doSetCluster() throws PageException {
@@ -5448,7 +5446,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				try{
 				sct.setEL(cw.getIdentification().getId(), ((CFMLFactoryImpl)cw.getFactory()).getInfo());
 				}
-				catch(Throwable t){}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
 			pageContext.setVariable(getString("admin",action,"returnVariable"),sct);
 			

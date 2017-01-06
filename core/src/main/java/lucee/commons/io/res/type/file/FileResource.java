@@ -39,6 +39,7 @@ import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.ResourceOutputStream;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 
 /**
  * Implementation og Resource for the local filesystem (java.io.File)
@@ -622,7 +623,8 @@ public final class FileResource extends File implements Resource {
 			return super.setLastModified(time);
 		}
 		catch(Throwable t) {// IllegalArgumentException or IOException
-			return false;
+			ExceptionUtil.rethrowIfNecessary(t);
+        	return false;
 		}
 		finally {
 			provider.unlock(this);

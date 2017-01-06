@@ -778,6 +778,7 @@ public final class ScopeContext {
         clearUnusedApplications(factory);
     	}
     	catch(Throwable t){
+    		ExceptionUtil.rethrowIfNecessary(t);
     		error(t);
     	}
     }
@@ -827,7 +828,7 @@ public final class ScopeContext {
 	    	}
     	
     	}
-    	catch(Throwable t){t.printStackTrace();}
+    	catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
     }
 
     
@@ -907,7 +908,7 @@ public final class ScopeContext {
     					try {
     						if(type==Scope.SCOPE_SESSION)listener.onSessionEnd(cfmlFactory,(String)applicationName,(String)cfid);
     					} 
-    					catch(Throwable t) {t.printStackTrace();
+    					catch(Throwable t) {
     						ExceptionHandler.log(cfmlFactory.getConfig(),Caster.toPageException(t));
     					}
     					finally {

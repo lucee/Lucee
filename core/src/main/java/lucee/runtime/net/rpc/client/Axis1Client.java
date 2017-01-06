@@ -407,9 +407,7 @@ final class Axis1Client extends WSClient {
 	    				rethrow=false;
 	        			
 					}
-					catch(Throwable t) {
-						t.printStackTrace();
-					}
+					catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 				//}
         	}
         	if(rethrow) throw af;

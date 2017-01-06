@@ -21,6 +21,7 @@ package lucee.runtime.net.smtp;
 import javax.mail.Transport;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.net.smtp.SMTPClient.MimeMessageAndSession;
 
 
@@ -62,6 +63,7 @@ public final class SMTPSender extends Thread {
 			isSent = true;
 		} 
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			this.throwable=t;
 		}
 		finally {
@@ -70,7 +72,7 @@ public final class SMTPSender extends Thread {
 				else SMTPConnectionPool.disconnect(mmas.session.transport);
 			
 			}
-			catch(Throwable t) {}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			SystemUtil.notify(lock);
 		}
 	}

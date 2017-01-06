@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import lucee.commons.lang.CFTypes;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Caster;
 import lucee.transformer.Position;
@@ -171,9 +172,7 @@ public final class ExpressionUtil {
 	        adapter.push(id);
 		    adapter.invokeVirtual(Types.PAGE_CONTEXT, method);
 		}
-		catch(Throwable t) {
-			t.printStackTrace();
-		}		
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}		
 	}
 
 	public static boolean doLog(BytecodeContext bc) {

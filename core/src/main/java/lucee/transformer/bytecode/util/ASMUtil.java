@@ -28,6 +28,7 @@ import lucee.aprint;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
@@ -550,8 +551,8 @@ public final class ASMUtil {
     		md5=createMD5(properties);
     	}
     	catch(Throwable t){
+    		ExceptionUtil.rethrowIfNecessary(t);
     		md5="";
-    		t.printStackTrace();
     	}
         
         FieldVisitor fv = cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL + Opcodes.ACC_STATIC, "_md5_", "Ljava/lang/String;", null, md5);
@@ -1131,10 +1132,7 @@ public final class ASMUtil {
 				}
 			}
 		}
-		catch(Throwable t) {
-			// TODO Auto-generated catch block
-			t.printStackTrace();
-		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 
@@ -1152,6 +1150,7 @@ public final class ASMUtil {
 		try {
 			bif.setClassDefinition(flf.getFunctionClassDefinition());
 		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new PageRuntimeException(t);
 		}
 		bif.setReturnType(flf.getReturnTypeAsString());

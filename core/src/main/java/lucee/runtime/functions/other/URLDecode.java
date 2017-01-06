@@ -23,6 +23,7 @@ package lucee.runtime.functions.other;
 
 import java.io.UnsupportedEncodingException;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.net.URLDecoder;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -36,6 +37,7 @@ public final class URLDecode implements Function {
 		try {
 			return java.net.URLDecoder.decode(str,encoding);
 		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			try {
 				return URLDecoder.decode(str,encoding,true);
 			} catch (UnsupportedEncodingException uee) {

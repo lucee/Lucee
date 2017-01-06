@@ -21,6 +21,7 @@
  */
 package lucee.runtime.functions.query;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.db.SQLCaster;
 import lucee.runtime.exp.PageException;
@@ -45,7 +46,7 @@ public class ValueArray extends BIF {
 			try{
 				obj=Caster.castTo(pc, type, column.getTypeAsString(), obj);
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			arr.append(obj);
 		}
 		return arr;	

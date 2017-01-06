@@ -180,6 +180,7 @@ public final class ConfigWebUtil {
 				
 			}
 			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				list.add(libs[i]);
 				log.log(Log.LEVEL_ERROR, "OSGi", t);
 	        }

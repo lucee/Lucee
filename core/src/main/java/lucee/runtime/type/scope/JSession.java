@@ -29,6 +29,7 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionBindingEvent;
 import javax.servlet.http.HttpSessionBindingListener;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.type.Collection;
@@ -82,11 +83,8 @@ public final class JSession extends ScopeSupport implements Session,HttpSessionB
 		    }
 		    
 		}
-	    catch(Throwable t) {
-	    	
-	    }
+	    catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
          
-
 	    lastAccess=System.currentTimeMillis();
         setEL(KeyConstants._sessionid,id);
         setEL(KeyConstants._urltoken,"CFID="+pc.getCFID()+"&CFTOKEN="+pc.getCFToken()+"&jsessionid="+id);
@@ -113,7 +111,7 @@ public final class JSession extends ScopeSupport implements Session,HttpSessionB
 	    		httpSession=null;
 	    		lastAccess=-1;
 	    	}
-	    	catch(Throwable t) {}
+	    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     	}
         super.release(pc);
     }

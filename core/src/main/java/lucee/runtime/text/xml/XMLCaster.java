@@ -35,6 +35,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.HTMLEntities;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -586,6 +587,7 @@ public final class XMLCaster {
 			writeTo(node, new StreamResult(sw),false,false,null,null,null);
 		} 
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 		finally {
@@ -755,6 +757,7 @@ public final class XMLCaster {
 		try {
 			return XMLUtil.parse(new InputSource(new StringReader(Caster.toString(value))),null,false).getDocumentElement();
 		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}

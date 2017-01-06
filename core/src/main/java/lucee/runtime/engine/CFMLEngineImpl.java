@@ -69,6 +69,7 @@ import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.res.util.ResourceUtilImpl;
 import lucee.commons.io.retirement.RetireOutputStreamFactory;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
@@ -234,6 +235,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
     			//bundleContext=bundleCollection.getBundleContext();
     		}
     		catch(Throwable t) {
+    			ExceptionUtil.rethrowIfNecessary(t);
+    			if(t instanceof Error) throw (Error)t;
 				throw new RuntimeException(t);
 			}
     	}
@@ -312,7 +315,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
         				extensions.add(ed);
         		}
         		catch(Throwable t){
-        			t.printStackTrace(); // fails we update
+        			ExceptionUtil.rethrowIfNecessary(t); // fails we update
         			extensions.add(ed);
         		}
         	}
@@ -472,6 +475,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			log.error("extract-extension", t);
 		}
 		return;
@@ -532,7 +536,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			} 
 		}
 		catch(Throwable t){
-			t.printStackTrace();// TODO log this
+			ExceptionUtil.rethrowIfNecessary(t);// TODO log this
 		}
 		finally {
 			Util.closeEL(zis);
@@ -729,7 +733,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					CompressUtil.compress(CompressUtil.FORMAT_ZIP, railoRoot, p.getRealResource("railo-web-context-old.zip"), false, -1);
 					ResourceUtil.removeEL(railoRoot, true);
 				}
-				catch(Throwable t){t.printStackTrace();}
+				catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
         	}
         	else {
             	try {
@@ -1028,10 +1032,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		            if(configId!=null && !configId.equals(cfmlFactory.getConfigWebImpl().getIdentification().getId())) continue;
 		            	
 		            // scopes
-		            try{cfmlFactory.getScopeContext().clear();}catch(Throwable t){t.printStackTrace();}
+		            try{cfmlFactory.getScopeContext().clear();}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		            
 		            // PageContext
-		            try{cfmlFactory.resetPageContext();}catch(Throwable t){t.printStackTrace();}
+		            try{cfmlFactory.resetPageContext();}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		            
 		            // Query Cache
 		            try{ 
@@ -1042,17 +1046,15 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		            		pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_INCLUDE,null).clear(pc);
 		            	}
 		            	//cfmlFactory.getDefaultQueryCache().clear(null);
-		            }catch(Throwable t){t.printStackTrace();}
+		            }catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		            
 		            
 		            
 		            // Gateway
-		            try{ cfmlFactory.getConfigWebImpl().getGatewayEngine().reset();}catch(Throwable t){t.printStackTrace();}
+		            try{ cfmlFactory.getConfigWebImpl().getGatewayEngine().reset();}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		            
 	        	}
-	        	catch(Throwable t){
-	        		t.printStackTrace();
-	        	}
+	        	catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 	        }
         }
     	finally {
@@ -1171,7 +1173,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				return false;
 			}
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		return controlerState.active();
 	}
 	
@@ -1457,7 +1459,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			} 
 			catch(Throwable t) {
 				// we simply ignore exceptions, if the template itself throws an error it will be handled by the error listener
-				t.printStackTrace(); // TODO ignore
+				ExceptionUtil.rethrowIfNecessary(t);
 			}
 			finally {
 				CFMLFactory f = pc.getConfig().getFactory();

@@ -33,6 +33,7 @@ import java.sql.Time;
 import java.sql.Types;
 import java.util.Date;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.FormatUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
@@ -132,6 +133,7 @@ public class QueryUtil {
 			return SQLUtil.isOracle(conn);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return false;
 		}
 	}

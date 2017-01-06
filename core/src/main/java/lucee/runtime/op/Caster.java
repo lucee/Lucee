@@ -65,6 +65,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
 import lucee.runtime.Component;
@@ -1423,7 +1424,7 @@ public final class Caster {
     		bi = new BigInteger(str);
     		
     	}
-    	catch(Throwable t){}
+    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     	if(bi!=null) {
     		if(bi.bitLength()<64) return bi.longValue();
     		throw new ApplicationException("number ["+str+"] cannot be casted to a long value, number is to long ("+(bi.bitLength()+1)+" bit)");
@@ -1451,6 +1452,7 @@ public final class Caster {
 	    	return bi;
     	}
     	catch(Throwable t) {
+    		ExceptionUtil.rethrowIfNecessary(t);
     		return defaultValue;
     	}
     }
@@ -1914,6 +1916,7 @@ public final class Caster {
         	try {
 				return new String((byte[])o,pc.getWebCharset());
 			} catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				return new String((byte[])o);
 			}
         }
@@ -2771,6 +2774,7 @@ public final class Caster {
     	try {
 			return Base64Coder.encodeFromString(str,charset);
 		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
     }
@@ -2779,6 +2783,7 @@ public final class Caster {
         try {
 			return Base64Coder.encode(b);
 		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
     }
@@ -3180,6 +3185,9 @@ public final class Caster {
         }
         else if(t instanceof ExecutionException){
             return toPageException(((ExecutionException)t).getCause());
+        }
+        else if(t instanceof ThreadDeath){
+            throw (ThreadDeath)t; // never catch ThreadDeath!
         }
         else {
         	if(t instanceof OutOfMemoryError) {

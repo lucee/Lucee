@@ -29,6 +29,7 @@ import javax.servlet.jsp.tagext.Tag;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -241,6 +242,7 @@ public class TagUtil {
     		
     	}
     	catch(Throwable t){
+    		ExceptionUtil.rethrowIfNecessary(t);
     		return;
     	}
     	PageContext orgPC = ThreadLocalPageContext.get();
@@ -253,9 +255,7 @@ public class TagUtil {
     		_addTagMetaData(pc,cw,CFMLEngine.DIALECT_LUCEE);
     		
     	}
-    	catch(Throwable t){
-    		//t.printStackTrace();
-    	}
+    	catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
     	finally{
     		pc.getConfig().getFactory().releaseLuceePageContext(pc, true);
     		ThreadLocalPageContext.register(orgPC);
@@ -316,9 +316,7 @@ public class TagUtil {
 			}
 			
 		} 
-		catch(Throwable t) {
-			//t.printStackTrace();
-		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     }
 
 	/**

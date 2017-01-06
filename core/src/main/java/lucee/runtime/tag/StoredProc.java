@@ -34,6 +34,7 @@ import javax.servlet.jsp.JspException;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -431,6 +432,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			return params.get(index);
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			return null;
 		}
 	}
@@ -610,7 +612,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			    			try{
 			    				value=SQLCaster.toCFType(callStat.getObject(param.getIndex()));
 			    			}
-			    			catch(Throwable t){}
+			    			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			    			value=emptyIfNull(value);
 			    			
 			    			if(param==STATUS_CODE) res.set(STATUSCODE, value);

@@ -34,6 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import lucee.commons.collection.AbstractCollection;
 import lucee.commons.collection.AbstractMapPro;
 import lucee.commons.collection.AbstractSet;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.KeyImpl;
@@ -1306,6 +1307,7 @@ public class KeyConcurrentHashMapPro<V> extends AbstractMapPro<lucee.runtime.typ
             	return true;
             }
             catch(Throwable t){
+            	ExceptionUtil.rethrowIfNecessary(t);
             	return false;
             }
         }
@@ -1356,6 +1358,7 @@ public class KeyConcurrentHashMapPro<V> extends AbstractMapPro<lucee.runtime.typ
             	return v.equals(e.getValue());
             }
             catch(Throwable t){
+            	ExceptionUtil.rethrowIfNecessary(t);
             	return false;
             }
         }

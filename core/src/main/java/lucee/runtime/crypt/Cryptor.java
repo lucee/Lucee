@@ -29,6 +29,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.coder.Coder;
 import lucee.runtime.exp.PageException;
@@ -141,7 +142,7 @@ public class Cryptor {
             return result;
         }
         catch(Throwable t) {
-
+        	ExceptionUtil.rethrowIfNecessary(t);
             throw Caster.toPageException( t );
         }
     }
@@ -171,7 +172,7 @@ public class Cryptor {
             return Coder.encode( encoding, encrypted );
         }
         catch(Throwable t) {
-
+        	ExceptionUtil.rethrowIfNecessary(t);
             throw Caster.toPageException( t );
         }
     }
@@ -201,7 +202,7 @@ public class Cryptor {
             return new String( decrypted, charset );
         }
         catch(Throwable t) {
-
+        	ExceptionUtil.rethrowIfNecessary(t);
             throw Caster.toPageException( t );
         }
     }

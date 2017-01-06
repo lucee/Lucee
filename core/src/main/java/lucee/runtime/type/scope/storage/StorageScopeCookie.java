@@ -21,6 +21,7 @@ package lucee.runtime.type.scope.storage;
 import java.util.Date;
 
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.converter.ScriptConverter;
@@ -119,7 +120,7 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 			}
 			
 		} 
-		catch(Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	
 	@Override

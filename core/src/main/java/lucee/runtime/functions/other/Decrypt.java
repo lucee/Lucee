@@ -82,7 +82,6 @@ public final class Decrypt implements Function {
             return Cryptor.decrypt( input, key, algorithm, baIVS, iterations, encoding, Cryptor.DEFAULT_CHARSET  );
         }
         catch(Throwable t) {
-
             throw Caster.toPageException( t );
         }
     }

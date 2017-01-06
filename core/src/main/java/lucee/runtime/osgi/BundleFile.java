@@ -25,6 +25,7 @@ import java.util.jar.JarFile;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 
 import org.osgi.framework.BundleException;
 
@@ -72,7 +73,7 @@ public class BundleFile extends BundleInfo {
 			BundleFile bf = new BundleFile(res);
 			if(bf.isBundle()) return bf;
 		}
-		catch(Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		return null;
 	}

@@ -18,6 +18,7 @@
  **/
 package lucee.intergral.fusiondebug.server.util;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.intergral.fusiondebug.server.type.coll.FDCollection;
 import lucee.intergral.fusiondebug.server.type.coll.FDUDF;
 import lucee.intergral.fusiondebug.server.type.nat.FDNative;
@@ -65,6 +66,7 @@ public class FDCaster {
 			return new ScriptConverter().serialize(object);
 		} 
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return object.toString();
 		}
 	}

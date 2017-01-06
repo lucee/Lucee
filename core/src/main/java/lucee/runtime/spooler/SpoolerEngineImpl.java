@@ -35,6 +35,7 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
@@ -204,7 +205,8 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	        ois = new ObjectInputStream(is);
 	        task = (SpoolerTask) ois.readObject();
         } 
-        catch(Throwable t) {//t.printStackTrace();
+        catch(Throwable t) {
+        	ExceptionUtil.rethrowIfNecessary(t);
         	IOUtil.closeEL(is);
         	IOUtil.closeEL(ois);
         	res.delete();
@@ -358,7 +360,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 			}
 			qry.setAt(TRIES_MAX, row,Caster.toDouble(triesMax));
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	
 	private Array translateTime(Array exp) {
@@ -395,7 +397,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 					task= CollectionUtil.remove(tasks,0,null);
 					if(task!=null)task.execute(config);
 				}
-				catch(Throwable t) {}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
 		}
 		
@@ -414,7 +416,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 				this.setPriority(MIN_PRIORITY);
 			}
 			// can throw security exceptions
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		
 		@Override
@@ -491,9 +493,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 					wait(sleep);
 				}
 				
-			} catch(Throwable t) {
-				//
-			}
+			} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			finally {
 				sleeping=false;
 			}
@@ -597,6 +597,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 			task=null;
 		} 
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			task.setLastExecution(System.currentTimeMillis());
 			task.setNextExecution(calculateNextExecution(task));
 			LogUtil.log(log,Log.LEVEL_ERROR,"remote-client", task.subject(),t);

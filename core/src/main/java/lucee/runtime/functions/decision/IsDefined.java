@@ -21,6 +21,7 @@
  */
 package lucee.runtime.functions.decision;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.ext.function.Function;
@@ -48,6 +49,7 @@ public final class IsDefined implements Function {
 			if(coll==NullSupportHelper.NULL(pc))return false;
 			//return pc.scope((int)scope).get(key,null)!=null; 
 		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 	        return false;
 	    }
 		return true;
@@ -64,6 +66,7 @@ public final class IsDefined implements Function {
 				if(coll==defVal)return false;
 			}
 		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 	        return false;
 	    }
 		return true; 
@@ -83,6 +86,7 @@ public final class IsDefined implements Function {
 				if(coll==defVal)return false;
 			}
 		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 	        return false;
 	    }
 		return true; 

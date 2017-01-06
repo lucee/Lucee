@@ -29,6 +29,7 @@ import java.util.jar.Manifest;
 import lucee.Info;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.io.IOUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Constants;
@@ -94,7 +95,6 @@ public final class InfoImpl implements Info {
     		//ListUtil.trimItems(ListUtil.listToStringArray(str, ','));
     	} 
     	catch(Throwable t) {
-    		t.printStackTrace();
     		throw new PageRuntimeException(Caster.toPageException(t));
 		}
     	
@@ -113,7 +113,7 @@ public final class InfoImpl implements Info {
 	    			is = bundle.getEntry("default.properties").openStream();
 	    			prop.load(is);
 	    		}
-	    		catch(Throwable t) {}
+	    		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	    		finally {IOUtil.closeEL(is);}
 			}
 			if(prop.getProperty(keyToValidate)!=null) return prop;
@@ -126,7 +126,7 @@ public final class InfoImpl implements Info {
     	    	is = cl.getResourceAsStream("default.properties");
 	            prop.load(is);
     		}
-    		catch(Throwable t) {t.printStackTrace();}
+    		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     		finally {IOUtil.closeEL(is);}
 			if(prop.getProperty(keyToValidate)!=null) return prop;
 	    	
@@ -137,7 +137,7 @@ public final class InfoImpl implements Info {
     	    	is = cl.getResourceAsStream("/default.properties");
 	            prop.load(is);
     		}
-    		catch(Throwable t) {}
+    		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     		finally {IOUtil.closeEL(is);}
 	    	if(prop.getProperty(keyToValidate)!=null) return prop;
 	    	
@@ -148,7 +148,7 @@ public final class InfoImpl implements Info {
     	    	is = clazz.getResourceAsStream("/default.properties");
 	            prop.load(is);
     		}
-    		catch(Throwable t) {}
+    		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     		finally {IOUtil.closeEL(is);}
 	    	if(prop.getProperty(keyToValidate)!=null) return prop;
 	    	
@@ -158,7 +158,7 @@ public final class InfoImpl implements Info {
     	    	is = clazz.getResourceAsStream("../../default.properties");
 	            prop.load(is);
     		}
-    		catch(Throwable t) {}
+    		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     		finally {IOUtil.closeEL(is);}
 	    	if(prop.getProperty(keyToValidate)!=null) return prop;
 	    	
@@ -182,7 +182,7 @@ public final class InfoImpl implements Info {
 					manifest = load(bundle.getEntry("META-INF/MANIFEST.MF").openStream());
 					if(manifest!=null) return manifest;
 				}
-				catch(Throwable t) {}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
 	
 			// try from core classloader without leading slash
@@ -212,7 +212,7 @@ public final class InfoImpl implements Info {
 					if(manifest!=null) return manifest;
 				}
 			}
-			catch(Throwable t) {}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	    	
 	    	
     		return null;
@@ -231,7 +231,7 @@ public final class InfoImpl implements Info {
 			String sn = m.getMainAttributes().getValue("Bundle-SymbolicName");
 			if("lucee.core".equals(sn)) return m;
 		}
-		catch(Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		finally {IOUtil.closeEL(is);}
 		return null;
 	}
@@ -259,6 +259,7 @@ public final class InfoImpl implements Info {
 	    	return (ma*1000000)+(mi*10000)+(re*100)+pa;
     	}
     	catch(Throwable t){
+    		ExceptionUtil.rethrowIfNecessary(t);
     		return defaultValue;
     	}
     }

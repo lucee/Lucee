@@ -82,7 +82,6 @@ public final class Encrypt implements Function {
             return Cryptor.encrypt( input, key, algorithm, baIVS, iterations, encoding, Cryptor.DEFAULT_CHARSET  );
         }
         catch(Throwable t) {
-
             throw Caster.toPageException( t );
         }
     }

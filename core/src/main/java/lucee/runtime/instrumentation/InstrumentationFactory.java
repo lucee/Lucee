@@ -38,6 +38,7 @@ import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.type.file.FileResource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngine;
@@ -173,6 +174,7 @@ public class InstrumentationFactory {
 			return _instr;
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			log.log(Log.LEVEL_INFO, "Instrumentation", t);
 		}
 		return null;
@@ -337,7 +339,9 @@ public class InstrumentationFactory {
                 .invoke(vm, new Object[] { agentJar });
             vmClass.getMethod("detach", new Class[] {}).invoke(vm,
                 new Object[] {});
-        } catch(Throwable t) {
+        }
+        catch(Throwable t) {
+        	ExceptionUtil.rethrowIfNecessary(t);
         		// Log the message from the exception. Don't log the entire
                 // stack as this is expected when running on a JDK that doesn't
                 // support the Attach API.

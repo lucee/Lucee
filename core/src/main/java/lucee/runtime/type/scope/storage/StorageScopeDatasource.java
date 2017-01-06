@@ -21,6 +21,7 @@ package lucee.runtime.type.scope.storage;
 import java.sql.SQLException;
 
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
@@ -161,6 +162,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 			executor.update(config, cfid,appName, dc, getType(), sct,getTimeSpan(),log);
 		} 
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			ScopeContext.error(log, t);
 		}
 		finally {
@@ -186,6 +188,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 			executor.delete(config, cfid,appName, dc, getType(),log);
 		} 
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			ScopeContext.error(log, t);
 		}
 		finally {

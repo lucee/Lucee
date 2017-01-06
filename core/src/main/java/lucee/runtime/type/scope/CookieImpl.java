@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import lucee.commons.date.DateTimeUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
@@ -376,9 +377,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie,ScriptProte
 			}
 	    	setHttpOnly.invoke(cookie, SET_HTTP_ONLY_ARGS);
     	}
-		catch(Throwable t) {
-			// HTTPOnly is not supported in this enviroment
-		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	
 	public static boolean isHTTPOnly(javax.servlet.http.Cookie cookie) {
@@ -389,6 +388,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie,ScriptProte
 	    	return Caster.toBooleanValue(isHttpOnly.invoke(cookie, IS_HTTP_ONLY_ARGS));
     	}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return false;
 		}
 	}

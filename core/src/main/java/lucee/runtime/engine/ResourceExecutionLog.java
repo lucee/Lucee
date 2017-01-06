@@ -92,6 +92,7 @@ public class ResourceExecutionLog extends ExecutionLogSupport {
 					}
 				} 
 				catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					err(pc,t);
 					dir=getTemp(pc);
 				}

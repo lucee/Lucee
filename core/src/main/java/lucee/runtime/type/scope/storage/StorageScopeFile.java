@@ -22,6 +22,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
@@ -104,7 +105,7 @@ public abstract class StorageScopeFile extends StorageScopeImpl {
 			if(!res.exists())ResourceUtil.createFileEL(res, true);
 			IOUtil.write(res, (getTimeSpan()+System.currentTimeMillis())+":"+serializer.serializeStruct(sct, ignoreSet), "UTF-8", false);
 		} 
-		catch(Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	
 	protected static Struct _loadData(PageContext pc,Resource res, Log log) {
@@ -133,6 +134,7 @@ public abstract class StorageScopeFile extends StorageScopeImpl {
 				return s;
 			} 
 			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				ScopeContext.error(log, t);
 			}
 		}
@@ -148,7 +150,7 @@ public abstract class StorageScopeFile extends StorageScopeImpl {
 			if(!res.exists())return;
 			res.remove(true);
 		} 
-		catch(Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	
 	protected static Resource _loadResource(ConfigWeb config, int type,String name, String cfid) {

@@ -28,6 +28,7 @@ import javax.imageio.stream.ImageInputStream;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.img.coder.Coder;
 
@@ -256,7 +257,7 @@ public class ImageUtil {
 		 try {
     		 if(iis!=null)iis.close();
     	 } 
-    	 catch(Throwable t) {}
+    	 catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		
 	}

@@ -22,6 +22,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SystemOut;
 public abstract class Coder {
 	
@@ -41,6 +42,7 @@ public abstract class Coder {
 				SystemOut.printDate("use Sanselan and JRE Image Coder ");
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				SystemOut.printDate("use JRE Image Coder ");
 			}
 		} 

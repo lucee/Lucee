@@ -21,6 +21,7 @@ package lucee.runtime.functions.file;
 import java.io.IOException;
 
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -57,6 +58,6 @@ public class FileAppend {
 		if(fsw==null)return;
 		try {
 			fsw.close();
-		} catch(Throwable t) {}
+		} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 }

@@ -41,6 +41,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
@@ -586,6 +587,7 @@ public class RHExtension implements Serializable {
 				children[i].populate(qry); // ,i+1
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				log.error("extension", t);
 			}
       	}
@@ -600,6 +602,7 @@ public class RHExtension implements Serializable {
 				new RHExtension(config,children[i]).populate(qry); // ,i+1
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				log.error("extension", t);
 			}
       	}
@@ -700,7 +703,7 @@ public class RHExtension implements Serializable {
 			if(dst.exists()) dst.remove(true);
 			ResourceUtil.moveTo(res, dst,true);
 		}
-		catch(Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		// TODO Auto-generated method stub
 		
@@ -715,6 +718,7 @@ public class RHExtension implements Serializable {
 			return new Manifest(new ByteArrayInputStream(str.getBytes(cs)));
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -726,6 +730,7 @@ public class RHExtension implements Serializable {
 			return Caster.toB64(bytes,defaultValue);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -773,6 +778,7 @@ public class RHExtension implements Serializable {
 			
 		} 
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			log.error("Extension Installation", t);
 		}
 		

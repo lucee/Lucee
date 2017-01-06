@@ -21,6 +21,7 @@ package lucee.runtime.type.scope.storage.clean;
 import java.sql.SQLException;
 
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
@@ -56,6 +57,7 @@ public class DatasourceStorageScopeCleaner extends StorageScopeCleanerSupport {
 				try {
 					clean(config,datasources[i]);
 				} catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					error(t);
 				}
 			}

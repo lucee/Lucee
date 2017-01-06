@@ -29,6 +29,7 @@ import java.util.zip.ZipFile;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 
 public final class RCL extends ClassLoader implements Closeable {
     
@@ -142,6 +143,7 @@ public Class loadClass(String name) throws ClassNotFoundException   {
         	return defineClass(name,barr,0,barr.length);
         }
         catch(Throwable t) {
+        	ExceptionUtil.rethrowIfNecessary(t);
         	return defaultValue;
         }
     }

@@ -23,6 +23,7 @@ package lucee.runtime.functions.other;
 
 import java.io.UnsupportedEncodingException;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.URLEncoder;
 import lucee.runtime.PageContext;
@@ -58,6 +59,7 @@ public final class URLEncodedFormat implements Function {
 			//return enc;
 		} 
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			try {
 				return URLEncoder.encode(str, encoding);
 			} 

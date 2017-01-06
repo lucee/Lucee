@@ -31,6 +31,7 @@ import javax.servlet.ServletContext;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.MappingUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
@@ -160,6 +161,7 @@ public final class MappingImpl implements Mapping {
 			archiveBundle=OSGiUtil.installBundle( bc, archive,true);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			archMod=archive.lastModified();
 			config.getLog("application").log(Log.LEVEL_ERROR, "OSGi", t);
 			archive=null;
@@ -233,6 +235,7 @@ public final class MappingImpl implements Mapping {
 		try {
 			return pcl.loadClass(className);
 		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return null;
 		}
 	}

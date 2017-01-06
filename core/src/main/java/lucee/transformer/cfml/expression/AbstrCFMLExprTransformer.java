@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.exp.CasterException;
@@ -1269,6 +1270,7 @@ public abstract class AbstrCFMLExprTransformer {
 			try {
 				bif.setClassDefinition(flf.getFunctionClassDefinition());
 			} catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				throw new PageRuntimeException(t);
 			}
 			bif.setReturnType(flf.getReturnTypeAsString());
@@ -1285,6 +1287,7 @@ public abstract class AbstrCFMLExprTransformer {
 		try {
 			bif.setClassDefinition(flf.getFunctionClassDefinition());
 		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new PageRuntimeException(t);
 		}
 		bif.setReturnType(flf.getReturnTypeAsString());
@@ -1313,6 +1316,7 @@ public abstract class AbstrCFMLExprTransformer {
 				try {
 					bif.setClassDefinition(flf.getFunctionClassDefinition());
 				} catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					throw new PageRuntimeException(t);
 				}
 				bif.setReturnType(flf.getReturnTypeAsString());
@@ -1785,6 +1789,7 @@ public abstract class AbstrCFMLExprTransformer {
 				try {
 					bif.setClassDefinition(flf.getFunctionClassDefinition());
 				} catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					throw new PageRuntimeException(t);
 				}
 				bif.setReturnType(flf.getReturnTypeAsString());

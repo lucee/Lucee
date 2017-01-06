@@ -135,6 +135,7 @@ public Class loadClass(String name) throws ClassNotFoundException   {
         	return defineClass(name,barr,start,barr.length-start);
         }
         catch(Throwable t) {
+        	ExceptionUtil.rethrowIfNecessary(t);
         	return null;
         }
     }

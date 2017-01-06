@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.component.DataMember;
 import lucee.runtime.component.Member;
 import lucee.runtime.debug.DebugEntryTemplate;
@@ -97,7 +98,7 @@ public class StaticScope extends StructSupport implements Variables,Objects {
 	public Object removeEL(Key key) {
 		try{
 			return remove(key);
-		}catch(Throwable t){return null;}
+		}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);return null;}
 	}
 
 	@Override

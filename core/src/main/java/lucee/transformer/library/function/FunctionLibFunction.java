@@ -24,6 +24,7 @@ import java.util.Iterator;
 
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Identification;
@@ -320,6 +321,7 @@ public final class FunctionLibFunction {
 			eval = (FunctionEvaluator) tteCD.getClazz().newInstance();
 		} 
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new TemplateException(t.getMessage());
 		} 
 		return eval;
@@ -392,6 +394,7 @@ public final class FunctionLibFunction {
 			clazz = getFunctionClassDefinition().getClazz();
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new PageRuntimeException(Caster.toPageException(t));
 		}
 
@@ -400,6 +403,7 @@ public final class FunctionLibFunction {
 				bif=(BIF)clazz.newInstance();
 			}
 			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				throw new RuntimeException(t);
 			}
 		}

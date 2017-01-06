@@ -554,9 +554,7 @@ public final class SMTPClient implements Serializable  {
 			addMailcap(oMCM,addMailcap,"text/xml;;		x-java-content-handler=com.sun.mail.handlers.text_xml"); 
 			addMailcap(oMCM,addMailcap,"multipart/*;;		x-java-content-handler=com.sun.mail.handlers.multipart_mixed; x-java-fallback-entry=true"); 
 			addMailcap(oMCM,addMailcap,"message/rfc822;;	x-java-content-handler=com.sun.mail.handlers.message_rfc822"); 
-		} catch(Throwable t) {
-			t.printStackTrace();
-		}
+		} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	private static void addMailcap(Object oMCM, Method addMailcap, String value) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		addMailcap.invoke(oMCM, new Object[]{value});
@@ -808,7 +806,7 @@ public final class SMTPClient implements Serializable  {
                 		try{
                 			if(sender.isAlive())sender.stop();
                 		}
-                		catch(Throwable t2){}
+                		catch(Throwable t2){ExceptionUtil.rethrowIfNecessary(t2);}
                 		
                 		// after thread is stopped check sent flag again
                 		if(!sender.isSent()){

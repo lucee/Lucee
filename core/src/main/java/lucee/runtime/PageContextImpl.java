@@ -67,6 +67,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
@@ -555,9 +556,7 @@ public final class PageContextImpl extends PageContext {
 				}
 				ormSession.closeAll(this);
 			} 
-			catch(Throwable t) {
-				//print.printST(t);
-			}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			ormSession=null;
 		}
 		
@@ -1883,6 +1882,7 @@ public final class PageContextImpl extends PageContext {
 					doInclude(new PageSource[]{ep.getTemplate()},false);
 					return;
 				} catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					if(Abort.isSilentAbort(t)) return;
 					pe=Caster.toPageException(t);
 				}

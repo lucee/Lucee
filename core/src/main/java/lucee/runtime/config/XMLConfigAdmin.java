@@ -62,6 +62,7 @@ import lucee.commons.io.res.util.FileWrapper;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.commons.net.HTTPUtil;
@@ -266,9 +267,7 @@ public final class XMLConfigAdmin {
 			admin._reload();
 			SystemOut.printDate(ci.getOutWriter(), "reloaded the configuration ["+file+"] automaticly");
 		} 
-		catch(Throwable t) {
-			t.printStackTrace();
-		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
     private void addResourceProvider(String scheme,ClassDefinition cd,String arguments) throws PageException {
@@ -367,7 +366,7 @@ public final class XMLConfigAdmin {
     	try {
 	    	ConfigWebFactory.getChildByName(doc.getDocumentElement(),"cfabort",true);
     	}
-    	catch(Throwable t) {}
+    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     }*/
 
 
@@ -4221,9 +4220,7 @@ public final class XMLConfigAdmin {
 			else if(Monitor.TYPE_REQUEST==type)
 				monitor=config.getIntervallMonitor(name);
 		}
-		catch(Throwable t){
-			//t.printStackTrace();
-		}
+		catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		IOUtil.closeEL(monitor);
 	}
 
@@ -4607,6 +4604,7 @@ public final class XMLConfigAdmin {
 				rhe = new RHExtension(config, child);
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				continue;
 			}
 			
@@ -4650,6 +4648,7 @@ public final class XMLConfigAdmin {
 	    	admin.restart(config);
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(config.getDeployDirectory(),core);
 			throw Caster.toPageException(t);
 		}
@@ -4701,6 +4700,7 @@ public final class XMLConfigAdmin {
 			physicalFirst = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-physical-first")),false);
 		} 
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(config.getDeployDirectory(),archive);
 			throw Caster.toPageException(t);
 		}
@@ -4728,6 +4728,7 @@ public final class XMLConfigAdmin {
 				_updateCustomTag(virtual, null, trgFile.getAbsolutePath(), "archive", inspect);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(config.getDeployDirectory(),archive);
 			throw Caster.toPageException(t);
 		}
@@ -4756,6 +4757,7 @@ public final class XMLConfigAdmin {
 			rhext = new RHExtension(config, ext,true);
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(ext.getParentResource(),ext);
 			throw Caster.toPageException(t);
 		}
@@ -5088,13 +5090,12 @@ public final class XMLConfigAdmin {
 					_store();
 			//}
 		}
-		catch(Throwable t){t.printStackTrace();
+		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(rhext.getExtensionFile().getParentResource(),rhext.getExtensionFile());
 			try {
 				XMLConfigAdmin.removeRHExtension((ConfigImpl)config, rhext.getId(), false);
-			} catch (Throwable t2) {
-				t2.printStackTrace();
-			}
+			} catch (Throwable t2) {ExceptionUtil.rethrowIfNecessary(t2);}
 			throw Caster.toPageException(t);
 		}
 	}
@@ -5351,14 +5352,12 @@ public final class XMLConfigAdmin {
 			
 		}
 		catch(Throwable t){
-			
+			ExceptionUtil.rethrowIfNecessary(t);
 			// failed to uninstall, so we install it again
 			try {
 				updateRHExtension(config, rhe.getExtensionFile(),true);
 				//RHExtension.install(config, rhe.getExtensionFile());
-			} catch (Throwable t2) {
-				t2.printStackTrace();
-			}
+			} catch (Throwable t2) {ExceptionUtil.rethrowIfNecessary(t2);}
 			throw Caster.toPageException(t);
 		}
 		
@@ -5663,12 +5662,12 @@ public final class XMLConfigAdmin {
 	        	try{
 	        		root.removeAttribute("serial-number");
 	        	}
-	        	catch(Throwable t){}
+	        	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	        }
         	try{
         		root.removeAttribute("serial");
         	}
-        	catch(Throwable t){}
+        	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	    }
 
 
@@ -6445,6 +6444,7 @@ public final class XMLConfigAdmin {
 				return new RHExtension(config,children[i]);
 			}
 			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				return defaultValue;
 			}
       	}
@@ -6477,6 +6477,7 @@ public final class XMLConfigAdmin {
 					rhe = new RHExtension(config,children[i]);
 				}
 				catch(Throwable t){
+					ExceptionUtil.rethrowIfNecessary(t);
 					continue;
 				}
 				if(ed.equals(rhe)) return rhe;

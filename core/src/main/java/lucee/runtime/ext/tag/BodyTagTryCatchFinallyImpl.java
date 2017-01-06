@@ -20,6 +20,7 @@ package lucee.runtime.ext.tag;
 
 import javax.servlet.jsp.tagext.TryCatchFinally;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.exp.AbortException;
 import lucee.runtime.exp.PageServletException;
 
@@ -31,6 +32,7 @@ public abstract class BodyTagTryCatchFinallyImpl extends BodyTagImpl implements 
 
 	@Override
 	public void doCatch(Throwable t) throws Throwable {
+		ExceptionUtil.rethrowIfNecessary(t);
 		if(t instanceof PageServletException) {
 		    PageServletException pse=(PageServletException)t;
 		    t=pse.getPageException();
