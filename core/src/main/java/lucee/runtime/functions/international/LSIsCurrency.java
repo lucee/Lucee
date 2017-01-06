@@ -34,7 +34,7 @@ public final class LSIsCurrency implements Function {
 		try {
 			LSParseCurrency.toDoubleValue(pc.getLocale(),string,true);
 			return true;
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return false;
 		}		
 	}
@@ -42,7 +42,7 @@ public final class LSIsCurrency implements Function {
 		try {
 			LSParseCurrency.toDoubleValue(locale==null?pc.getLocale():locale,string,false);
 			return true;
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return false;
 		}
 	}

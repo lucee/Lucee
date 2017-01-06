@@ -179,7 +179,7 @@ public final class ConfigWebUtil {
 	    		OSGiUtil.start(OSGiUtil.installBundle( bc, libs[i],true));
 				
 			}
-			catch (Throwable t) {
+			catch(Throwable t) {
 				list.add(libs[i]);
 				log.log(Log.LEVEL_ERROR, "OSGi", t);
 	        }

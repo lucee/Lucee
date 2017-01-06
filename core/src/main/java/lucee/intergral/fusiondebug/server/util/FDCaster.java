@@ -64,7 +64,7 @@ public class FDCaster {
 		try {
 			return new ScriptConverter().serialize(object);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			return object.toString();
 		}
 	}

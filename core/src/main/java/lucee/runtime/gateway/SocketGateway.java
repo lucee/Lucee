@@ -85,7 +85,7 @@ public class SocketGateway implements Gateway {
                     sst.start();
                     sockets.add(sst);
                 }
-                catch (Throwable t) {
+                catch(Throwable t) {
                     error("Failed to listen on Socket ["+id+"] on port ["+port+"]: " + t.getMessage());
                 }
             }
@@ -130,7 +130,7 @@ public class SocketGateway implements Gateway {
 		try	{
             serverSocket = new ServerSocket(port);
         }
-        catch (Throwable t) {
+        catch(Throwable t) {
             error("Failed to start Socket Gateway ["+id+"] on port ["+port+"] " +t.getMessage());
             throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(t);
         }
@@ -188,7 +188,7 @@ public class SocketGateway implements Gateway {
 	                }
 	                //socketRegistry.remove(this.getName());
 	            }
-	            catch (Throwable t)	{
+	            catch(Throwable t)	{
 	                error("Failed to read from Socket Gateway ["+id+"]: " + t.getMessage());
 	            }
 	            finally{

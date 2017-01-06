@@ -775,7 +775,7 @@ public final class FileTag extends BodyTagImpl {
 	            sct.setEL(KeyConstants._img,img);
             }
         } 
-		catch (Throwable t) {}
+		catch(Throwable t) {}
 		return sct;
 	}
 

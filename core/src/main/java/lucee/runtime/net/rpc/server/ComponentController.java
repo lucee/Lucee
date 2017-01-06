@@ -56,7 +56,7 @@ public final class ComponentController {
 		try {
 			return _invoke(name, args);
 		} 
-		catch (Throwable t) {t.printStackTrace();
+		catch(Throwable t) {t.printStackTrace();
 			throw AxisFault.makeFault((Caster.toPageException(t)));
 		}
 	}
@@ -95,7 +95,7 @@ public final class ComponentController {
 			Class<?> clazz = Caster.cfTypeToClass(rtnType);
 			return AxisCaster.toAxisType(tm,rtn,clazz.getComponentType()!=null?clazz:null);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			throw Caster.toPageException(t);
 		}
 	}

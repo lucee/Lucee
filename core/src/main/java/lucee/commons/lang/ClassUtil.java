@@ -347,7 +347,7 @@ public final class ClassUtil {
 		try {
 			return clazz.newInstance();
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			return defaultValue;
 		}
 	}
@@ -439,7 +439,7 @@ public final class ClassUtil {
 			return c.newInstance(args);
 			
 		}
-		catch (Throwable t) {//print.printST(t);
+		catch(Throwable t) {//print.printST(t);
 			return defaultValue;
 		}
 		
@@ -684,7 +684,7 @@ public final class ClassUtil {
 			result = SystemUtil.fixWindowsPath(result);
 			return result;
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {}
 
 		return defaultValue;
 	}
@@ -706,7 +706,7 @@ public final class ClassUtil {
 
 			return  getSourcePathForClass(ClassUtil.loadClass(className), defaultValue);
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {}
 
 		return defaultValue;
 	}
@@ -774,7 +774,7 @@ public final class ClassUtil {
 			try {
 				return cl.loadClass(className);
 			}
-			catch (Throwable t) {
+			catch(Throwable t) {
 				try {
 					return Class.forName(className, false, cl);
 				}
@@ -793,7 +793,7 @@ public final class ClassUtil {
 			try {
 				return cl.loadClass(className);
 			}
-			catch (Throwable t) {
+			catch(Throwable t) {
 				try {
 					return Class.forName(className, false, cl);
 				}

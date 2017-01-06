@@ -872,7 +872,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 							throw new TemplateException(data.srcCode,"The name ["+functionName+"] is already used by a built in Function");
 					}
 				}
-				catch (Throwable t) {
+				catch(Throwable t) {
 					throw new PageRuntimeException(Caster.toPageException(t));
 				}
 			}

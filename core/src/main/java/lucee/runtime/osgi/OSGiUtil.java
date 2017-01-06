@@ -281,7 +281,7 @@ public class OSGiUtil {
     		// load from core
 			return bc.core.loadClass(className);
 		}
-    	catch (Throwable t) {} // class is not visible to the Lucee core
+    	catch(Throwable t) {} // class is not visible to the Lucee core
 		
 		// now we check all started bundled (not only bundles used by core)
 		Bundle[] bundles = bc.getBundleContext().getBundles();
@@ -289,7 +289,7 @@ public class OSGiUtil {
     		if(b==bc.core) continue;
 			try {
 				return b.loadClass(className);
-			} catch (Throwable t) {} // class is not visible to that bundle
+			} catch(Throwable t) {} // class is not visible to that bundle
     	}
     	
     	// now we check lucee loader (SystemClassLoader?)
@@ -298,7 +298,7 @@ public class OSGiUtil {
     		//print.e("loader:");
     		return factory.getClass().getClassLoader().loadClass(className);
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {}
     	
     	/*
     	try {
@@ -847,7 +847,7 @@ public class OSGiUtil {
 		try {
 			removeLocalBundle(name, version, removePhysical, true);
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {}
 	}
 
 	// bundle stuff

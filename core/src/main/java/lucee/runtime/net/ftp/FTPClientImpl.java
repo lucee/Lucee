@@ -175,7 +175,7 @@ public class FTPClientImpl extends AFTPClient {
 		client.setDataTimeout(timeout);
         try {
 			client.setSoTimeout(timeout);
-		} catch (Throwable t) {}
+		} catch(Throwable t) {}
 	}
 
 }

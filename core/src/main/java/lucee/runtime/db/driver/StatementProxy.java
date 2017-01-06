@@ -305,7 +305,7 @@ public class StatementProxy implements StatementPro {
 		try {
 			stat.getClass().getMethod("closeOnCompletion", new Class[0]).invoke(stat, new Object[0]);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			if(t instanceof InvocationTargetException && ((InvocationTargetException)t).getTargetException() instanceof SQLException)
 				throw (SQLException)((InvocationTargetException)t).getTargetException();
 			throw new PageRuntimeException(Caster.toPageException(t));
@@ -318,7 +318,7 @@ public class StatementProxy implements StatementPro {
 		try {
 			return Caster.toBooleanValue(stat.getClass().getMethod("isCloseOnCompletion", new Class[0]).invoke(stat, new Object[0]));
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			if(t instanceof InvocationTargetException && ((InvocationTargetException)t).getTargetException() instanceof SQLException)
 				throw (SQLException)((InvocationTargetException)t).getTargetException();
 			throw new PageRuntimeException(Caster.toPageException(t));

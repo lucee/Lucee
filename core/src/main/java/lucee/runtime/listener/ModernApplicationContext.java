@@ -1143,7 +1143,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			ComponentSpecificAccess cw=ComponentSpecificAccess.toComponentSpecificAccess(Component.ACCESS_PRIVATE, component); 
 			return cw.get(key,null);
 		} 
-		catch (Throwable t) {}
+		catch(Throwable t) {}
 		
 		return null;
 	}

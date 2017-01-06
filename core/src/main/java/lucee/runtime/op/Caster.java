@@ -1913,7 +1913,7 @@ public final class Caster {
         	
         	try {
 				return new String((byte[])o,pc.getWebCharset());
-			} catch (Throwable t) {
+			} catch(Throwable t) {
 				return new String((byte[])o);
 			}
         }
@@ -2770,7 +2770,7 @@ public final class Caster {
         if(StringUtil.isEmpty(charset,true))charset="UTF-8";
     	try {
 			return Base64Coder.encodeFromString(str,charset);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return defaultValue;
 		}
     }
@@ -2778,7 +2778,7 @@ public final class Caster {
     public static String toB64(byte[] b, String defaultValue) {
         try {
 			return Base64Coder.encode(b);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return defaultValue;
 		}
     }

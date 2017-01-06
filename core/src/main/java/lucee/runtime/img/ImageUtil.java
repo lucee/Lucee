@@ -256,7 +256,7 @@ public class ImageUtil {
 		 try {
     		 if(iis!=null)iis.close();
     	 } 
-    	 catch (Throwable t) {}
+    	 catch(Throwable t) {}
 		
 		
 	}

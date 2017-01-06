@@ -337,7 +337,7 @@ public class InstrumentationFactory {
                 .invoke(vm, new Object[] { agentJar });
             vmClass.getMethod("detach", new Class[] {}).invoke(vm,
                 new Object[] {});
-        } catch (Throwable t) {
+        } catch(Throwable t) {
         		// Log the message from the exception. Don't log the entire
                 // stack as this is expected when running on a JDK that doesn't
                 // support the Attach API.

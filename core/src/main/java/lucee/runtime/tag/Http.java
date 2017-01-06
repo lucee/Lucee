@@ -2055,7 +2055,7 @@ class Executor4 extends PageContextThread {
 			response=execute(context);
 			done=true;
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			this.t=t;
 		}
 		finally {

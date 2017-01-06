@@ -204,7 +204,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 			try {
 				p.threadCall(pc, threadIndex); 
 			}
-			catch (Throwable t) {
+			catch(Throwable t) {
 				if(!Abort.isSilentAbort(t)) {
 					ConfigWeb c = pc.getConfig();
 					if(c instanceof ConfigImpl) {

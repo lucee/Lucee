@@ -315,7 +315,7 @@ public final class Reflector {
 					rating.plus(3);
 					return trg;
 				}
-			} catch (Throwable t) {}
+			} catch(Throwable t) {}
 			
 			
 			return trg;
@@ -817,7 +817,7 @@ public final class Reflector {
             if(ci==null) return defaultValue;
             return ci.invoke();
         }
-		catch (Throwable t) {
+		catch(Throwable t) {
 		    return defaultValue;
 		}
 	}
@@ -895,7 +895,7 @@ public final class Reflector {
 	    try {
 	    	return mi.invoke(obj);
         }
-		catch (Throwable t) {
+		catch(Throwable t) {
 			return defaultValue;
 		}
 	}
@@ -1120,7 +1120,7 @@ public final class Reflector {
 		
 		try {
 			return fields[0].get(obj);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return defaultValue;
 		}
 	}
@@ -1194,7 +1194,7 @@ public final class Reflector {
 		if(!ArrayUtil.isEmpty(fields)) {
 			try {
 				return fields[0].get(obj);
-			} catch (Throwable t) {}
+			} catch(Throwable t) {}
 		}
 		
 		// then getter
@@ -1219,7 +1219,7 @@ public final class Reflector {
 		try {
 	    	if(setField(obj,prop,value))done=true;
 	    } 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			
         }
 	    if(!done)callSetter(obj,prop,value);
@@ -1239,14 +1239,14 @@ public final class Reflector {
 			try {
 				fields[0].set(obj,value);
 				return;
-			} catch (Throwable t) {}
+			} catch(Throwable t) {}
 		}
 		
 		// then check for setter
         try {
             getSetter(obj, prop, value).invoke(obj);
         } 
-        catch (Throwable t) {} 
+        catch(Throwable t) {} 
         
 	}
 	

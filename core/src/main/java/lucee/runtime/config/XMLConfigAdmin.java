@@ -266,7 +266,7 @@ public final class XMLConfigAdmin {
 			admin._reload();
 			SystemOut.printDate(ci.getOutWriter(), "reloaded the configuration ["+file+"] automaticly");
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			t.printStackTrace();
 		}
 	}
@@ -367,7 +367,7 @@ public final class XMLConfigAdmin {
     	try {
 	    	ConfigWebFactory.getChildByName(doc.getDocumentElement(),"cfabort",true);
     	}
-    	catch( Throwable t) {}
+    	catch(Throwable t) {}
     }*/
 
 
@@ -4700,7 +4700,7 @@ public final class XMLConfigAdmin {
 			hidden = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-hidden")),false);
 			physicalFirst = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-physical-first")),false);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			DeployHandler.moveToFailedFolder(config.getDeployDirectory(),archive);
 			throw Caster.toPageException(t);
 		}
@@ -4727,7 +4727,7 @@ public final class XMLConfigAdmin {
 			else if("ct".equalsIgnoreCase(type))
 				_updateCustomTag(virtual, null, trgFile.getAbsolutePath(), "archive", inspect);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			DeployHandler.moveToFailedFolder(config.getDeployDirectory(),archive);
 			throw Caster.toPageException(t);
 		}
@@ -5536,7 +5536,7 @@ public final class XMLConfigAdmin {
 			else if("ct".equalsIgnoreCase(type))	removeCustomTag(virtual);
 			else throw new ApplicationException("invalid type ["+type+"], valid types are [regular, cfc, ct]");
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			throw Caster.toPageException(t);
 		}
 		finally {
@@ -6444,7 +6444,7 @@ public final class XMLConfigAdmin {
 			try {
 				return new RHExtension(config,children[i]);
 			}
-			catch (Throwable t) {
+			catch(Throwable t) {
 				return defaultValue;
 			}
       	}

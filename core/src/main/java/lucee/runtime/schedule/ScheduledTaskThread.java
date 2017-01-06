@@ -92,7 +92,7 @@ public class ScheduledTaskThread extends Thread {
 			task.setValid(false);
 			try {
 				scheduler.removeIfNoLonerValid(task);
-			} catch (Throwable t) {
+			} catch(Throwable t) {
 				t.printStackTrace();
 			}
 		}

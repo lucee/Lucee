@@ -83,7 +83,7 @@ public class DeployHandler {
 					else if(config instanceof ConfigServer && "lco".equalsIgnoreCase(ext))
 						XMLConfigAdmin.updateCore((ConfigServerImpl) config, child,true);
 				}
-				catch (Throwable t) {
+				catch(Throwable t) {
 					Log log = config.getLog("deploy");
 					log.error("Extension", t);
 				}
@@ -119,7 +119,7 @@ public class DeployHandler {
 			if(dst.exists()) dst.remove(true);
 			ResourceUtil.moveTo(res, dst,true);
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {}
 		
 		// TODO Auto-generated method stub
 		
@@ -157,7 +157,7 @@ public class DeployHandler {
 		try {
 			if(XMLConfigAdmin.hasRHExtensions(ci, ed)!=null) return false;
 		} 
-		catch (Throwable t) {}
+		catch(Throwable t) {}
 		
 		// check if a local extension is matching our id
 		Iterator<RHExtension> it = getLocalExtensions(config).iterator();

@@ -1036,7 +1036,7 @@ public final class SystemUtil {
 					Field f = cVersion.getField("VERSION");
 					loaderVersion=f.getDouble(null);
 				} 
-				catch (Throwable t) {t.printStackTrace();}
+				catch(Throwable t) {t.printStackTrace();}
 			}
 		}
 		return loaderVersion;
@@ -1082,7 +1082,7 @@ public final class SystemUtil {
 	    		try {
 	    			url = bundle.getEntry(pns);
 	    		}
-	    		catch (Throwable t) {}
+	    		catch(Throwable t) {}
     		}
     		
     		// core class loader
@@ -1193,7 +1193,7 @@ public final class SystemUtil {
     		try {
     			is = bundle.getEntry(path).openStream();
     			if(is!=null) return is;
-    		}catch (Throwable t) {}
+    		}catch(Throwable t) {}
 		}
 		
 		// try from core classloader
@@ -1201,21 +1201,21 @@ public final class SystemUtil {
 		try{
 			is = cl.getResourceAsStream(path);
 			if(is!=null) return is;
-		}catch (Throwable t) {}
+		}catch(Throwable t) {}
 
 		// try from loader classloader
 		cl = PageSource.class.getClassLoader();
 		try{
 			is = cl.getResourceAsStream(path);
 			if(is!=null) return is;
-		}catch (Throwable t) {}
+		}catch(Throwable t) {}
 
 		// try from loader classloader
 		cl = ClassLoader.getSystemClassLoader();
 		try{
 			is = cl.getResourceAsStream(path);
 			if(is!=null) return is;
-		}catch (Throwable t) {}
+		}catch(Throwable t) {}
 		
     return null;
 }

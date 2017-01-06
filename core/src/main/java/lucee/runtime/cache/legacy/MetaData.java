@@ -57,7 +57,7 @@ public class MetaData implements Serializable {
 				try {
 					instance= new MetaData(file,(HashMap)JavaConverter.deserialize(file));
 				}
-				catch (Throwable t) {}
+				catch(Throwable t) {}
 			}
 			if(instance==null) instance=new MetaData(file);
 			instances.put(directory.getAbsolutePath(), instance);

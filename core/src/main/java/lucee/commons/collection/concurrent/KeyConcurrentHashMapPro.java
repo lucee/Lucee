@@ -1305,7 +1305,7 @@ public class KeyConcurrentHashMapPro<V> extends AbstractMapPro<lucee.runtime.typ
             	KeyConcurrentHashMapPro.this.rem(o);
             	return true;
             }
-            catch( Throwable t){
+            catch(Throwable t){
             	return false;
             }
         }
@@ -1355,7 +1355,7 @@ public class KeyConcurrentHashMapPro<V> extends AbstractMapPro<lucee.runtime.typ
             	}
             	return v.equals(e.getValue());
             }
-            catch( Throwable t){
+            catch(Throwable t){
             	return false;
             }
         }

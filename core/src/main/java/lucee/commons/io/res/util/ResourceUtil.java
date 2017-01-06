@@ -832,7 +832,7 @@ public final class ResourceUtil {
     			is = res.getInputStream();
     			return IOUtil.getMimeType(is, defaultValue);
 			} 
-    		catch (Throwable t) {
+    		catch(Throwable t) {
 				return defaultValue;
 			}
     		finally {
@@ -1063,7 +1063,7 @@ public final class ResourceUtil {
 		try {
 			res.remove(force);
 		} 
-		catch (Throwable t) {}
+		catch(Throwable t) {}
 	}
 
 	public static void createFileEL(Resource res, boolean force) {
@@ -1440,7 +1440,7 @@ public final class ResourceUtil {
 		try {
 			return ps.getResourceTranslated(pc);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			return defaultValue;
 		}
 	}

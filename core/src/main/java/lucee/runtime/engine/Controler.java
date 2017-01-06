@@ -108,7 +108,7 @@ public final class Controler extends Thread {
 				controler.control(factories,firstRun);
 				done=System.currentTimeMillis()-start;
 			} 
-			catch (Throwable t) {
+			catch(Throwable t) {
 				this.t=t;
 			}
 			//long time=System.currentTimeMillis()-start;
@@ -192,7 +192,7 @@ public final class Controler extends Thread {
         try {
 			ScopeContext.getClusterScope(configServer,true).broadcast();
 		} 
-        catch (Throwable t) {
+        catch(Throwable t) {
 			t.printStackTrace();
 		}
         
@@ -340,7 +340,7 @@ public final class Controler extends Thread {
 				children[i].delete();
 				
 			}
-		} catch (Throwable t) {}
+		} catch(Throwable t) {}
 	}
 
 	private void checkCacheFileSize(ConfigWeb config) {

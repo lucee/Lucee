@@ -73,7 +73,7 @@ public class CacheUtil {
 		if(cc==null) return defaultValue;
 		try {
 			return cc.getInstance(config);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return defaultValue;
 		}
 	}
@@ -122,7 +122,7 @@ public class CacheUtil {
 		Config config = ThreadLocalPageContext.getConfig(pc);
 		try {
 			return cc.getInstance(config);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return defaultValue;
 		}
 	}

@@ -93,7 +93,7 @@ public class FileStorageScopeCleaner extends StorageScopeCleanerSupport {
 			
 			ResourceUtil.deleteEmptyFolders(dir);
 		
-		} catch (Throwable t) {error(t);}
+		} catch(Throwable t) {error(t);}
 
 		
 		//long maxSize = type==Scope.SCOPE_CLIENT?cwi.getClientScopeDirSize():cwi.getSessionScopeDirSize();

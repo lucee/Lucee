@@ -57,7 +57,7 @@ public final class URLEncodedFormat implements Function {
 			return StringUtil.replace(StringUtil.replace(StringUtil.replace(StringUtil.replace(StringUtil.replace(enc, "+", "%20", false), "*", "%2A", false), "-", "%2D", false), ".", "%2E", false), "_", "%5F", false);// TODO do better
 			//return enc;
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			try {
 				return URLEncoder.encode(str, encoding);
 			} 

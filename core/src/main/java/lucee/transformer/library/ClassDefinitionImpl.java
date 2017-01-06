@@ -85,7 +85,7 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T> {
 		try {
 			return getClazz();
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			return defaultValue;
 		}
 	}

@@ -160,7 +160,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 			SQLExecutor executor=SQLExecutionFactory.getInstance(dc);
 			executor.update(config, cfid,appName, dc, getType(), sct,getTimeSpan(),log);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			ScopeContext.error(log, t);
 		}
 		finally {
@@ -185,7 +185,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 			SQLExecutor executor=SQLExecutionFactory.getInstance(dc);
 			executor.delete(config, cfid,appName, dc, getType(),log);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			ScopeContext.error(log, t);
 		}
 		finally {

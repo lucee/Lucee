@@ -119,7 +119,7 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 			}
 			
 		} 
-		catch (Throwable t) {}
+		catch(Throwable t) {}
 	}
 	
 	@Override

@@ -196,7 +196,7 @@ public class ComponentListPackage implements Function {
 						Class<?> clazz = mapping.getArchiveClass(className);
 						sourceName=ASMUtil.getSourceInfo(pc.getConfig(),clazz,true).name;
 					}
-					catch (Throwable t) {}
+					catch(Throwable t) {}
 					
 					if(StringUtil.isEmpty(sourceName)) {
 						c=IOUtil.toString(children[i],(Charset)null);

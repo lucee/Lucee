@@ -112,7 +112,7 @@ public class BundleInfo implements Serializable {
 		try {
 			return getSymbolicName()!=null && getVersion()!=null;
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			return false;
 		}
 	}

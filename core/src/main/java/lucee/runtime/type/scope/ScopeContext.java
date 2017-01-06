@@ -907,7 +907,7 @@ public final class ScopeContext {
     					try {
     						if(type==Scope.SCOPE_SESSION)listener.onSessionEnd(cfmlFactory,(String)applicationName,(String)cfid);
     					} 
-    					catch (Throwable t) {t.printStackTrace();
+    					catch(Throwable t) {t.printStackTrace();
     						ExceptionHandler.log(cfmlFactory.getConfig(),Caster.toPageException(t));
     					}
     					finally {
@@ -940,7 +940,7 @@ public final class ScopeContext {
 				try {
 					listener.onApplicationEnd(jspFactory,(String)arrContextes[i]);
 				} 
-				catch (Throwable t) {
+				catch(Throwable t) {
 					ExceptionHandler.log(jspFactory.getConfig(),Caster.toPageException(t));
 				}
 				finally {

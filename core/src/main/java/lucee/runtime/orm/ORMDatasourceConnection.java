@@ -111,7 +111,7 @@ public class ORMDatasourceConnection implements DatasourceConnectionPro {
 		if(supportsGetGeneratedKeys==null){
 			try {
 				supportsGetGeneratedKeys=Caster.toBoolean(getConnection().getMetaData().supportsGetGeneratedKeys());
-			} catch (Throwable t) {
+			} catch(Throwable t) {
 				return false;
 			}
 		}

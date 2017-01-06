@@ -71,7 +71,7 @@ public abstract class XMLConfigFactory {
 				return new UpdateInfo(oldVersion,oldVersion.getMajor()<5?NEW_FROM4:NEW_MINOR);
 			}
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 		}
 		return UpdateInfo.NEW_NONE;
 	}
@@ -104,7 +104,7 @@ public abstract class XMLConfigFactory {
 			IOUtil.write(res, str, SystemUtil.getCharset(), false);
 			
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 		}
 	}
 
@@ -119,7 +119,7 @@ public abstract class XMLConfigFactory {
 			
 			return writtenVersion.equals(currVersion);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 		}
 		return false;
 	}

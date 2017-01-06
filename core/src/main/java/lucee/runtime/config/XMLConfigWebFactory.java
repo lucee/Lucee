@@ -297,7 +297,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			try {
 				IOUtil.copy(new ByteArrayInputStream(content.getBytes()), htAccess, true);
 			}
-			catch (Throwable t) {
+			catch(Throwable t) {
 			}
 		}
 	}
@@ -806,7 +806,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						cs.setConfigListener(cl);
 					}
 				}
-				catch (Throwable t) {
+				catch(Throwable t) {
 					t.printStackTrace(config.getErrWriter());
 
 				}
@@ -2346,7 +2346,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			loadGateway(configServer, config, doc);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			t.printStackTrace();
 		}
 	}
@@ -2457,7 +2457,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			setDatasource(config, datasources, datasourceName, cd, server, databasename, port, dsn, user, pass, connectionLimit, connectionTimeout, metaCacheTimeout, blob,
 					clob, allow, validate, storage, timezone, custom, dbdriver);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 		}
 	}*/
 
@@ -3337,7 +3337,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				try {
 					return (PrintWriter) ClassUtil.loadInstance(classname);
 				}
-				catch (Throwable t) {
+				catch(Throwable t) {
 					t.printStackTrace();
 				}
 			}
@@ -3349,7 +3349,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					if (res != null)
 						return new PrintWriter(res.getOutputStream(), true);
 				}
-				catch (Throwable t) {
+				catch(Throwable t) {
 					t.printStackTrace();
 				}
 			}
@@ -3987,7 +3987,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						requests.add(m);
 					}
 				}
-				catch (Throwable t) {
+				catch(Throwable t) {
 					SystemOut.printDate(config.getErrWriter(), ExceptionUtil.getStacktrace(t, true));
 				}
 			}

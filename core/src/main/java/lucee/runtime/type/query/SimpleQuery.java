@@ -307,7 +307,7 @@ public class SimpleQuery implements Query, ResultSet, Objects,QueryResult {
 		try {
 			return column.get(row,defaultValue);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			return defaultValue;
 		}
 	}

@@ -71,7 +71,7 @@ public class Elvis {
 				coll=vu.getCollection(pc,coll,varNames[i],defVal);
 				if(coll==defVal)return false;
 			}
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 	        return false;
 	    }
 		return true; 

@@ -170,7 +170,7 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro,T
 		if(supportsGetGeneratedKeys==null){
 			try {
 				supportsGetGeneratedKeys=Caster.toBoolean(getConnection().getMetaData().supportsGetGeneratedKeys());
-			} catch (Throwable t) {
+			} catch(Throwable t) {
 				return false;
 			}
 		}

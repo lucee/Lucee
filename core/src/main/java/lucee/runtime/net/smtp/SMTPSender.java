@@ -61,7 +61,7 @@ public final class SMTPSender extends Thread {
 			transport.sendMessage(mmas.message, mmas.message.getAllRecipients());
 			isSent = true;
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			this.throwable=t;
 		}
 		finally {
@@ -70,7 +70,7 @@ public final class SMTPSender extends Thread {
 				else SMTPConnectionPool.disconnect(mmas.session.transport);
 			
 			}
-			catch (Throwable t) {}
+			catch(Throwable t) {}
 			SystemUtil.notify(lock);
 		}
 	}

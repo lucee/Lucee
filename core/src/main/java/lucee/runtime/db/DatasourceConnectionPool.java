@@ -197,18 +197,18 @@ public class DatasourceConnectionPool {
 		try {
 			if(dc.getConnection().isClosed())return false;
 		} 
-		catch (Throwable t) {return false;}
+		catch(Throwable t) {return false;}
 
 		try {
 			if(dc.getDatasource().validate() && !DataSourceUtil.isValid(dc,1000))return false;
 		} 
-		catch (Throwable t) {} // not all driver support this, because of that we ignore a error here, also protect from java 5
+		catch(Throwable t) {} // not all driver support this, because of that we ignore a error here, also protect from java 5
 		
 		
 		try {
 			if(autoCommit!=null) dc.getConnection().setAutoCommit(autoCommit.booleanValue());
 		} 
-		catch (Throwable t) {return false;}
+		catch(Throwable t) {return false;}
 		
 		
 		return true;

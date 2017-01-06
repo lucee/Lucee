@@ -104,7 +104,7 @@ public abstract class StorageScopeFile extends StorageScopeImpl {
 			if(!res.exists())ResourceUtil.createFileEL(res, true);
 			IOUtil.write(res, (getTimeSpan()+System.currentTimeMillis())+":"+serializer.serializeStruct(sct, ignoreSet), "UTF-8", false);
 		} 
-		catch (Throwable t) {}
+		catch(Throwable t) {}
 	}
 	
 	protected static Struct _loadData(PageContext pc,Resource res, Log log) {
@@ -132,7 +132,7 @@ public abstract class StorageScopeFile extends StorageScopeImpl {
 				ScopeContext.info(log,"load existing file storage ["+res+"]");
 				return s;
 			} 
-			catch (Throwable t) {
+			catch(Throwable t) {
 				ScopeContext.error(log, t);
 			}
 		}
@@ -148,7 +148,7 @@ public abstract class StorageScopeFile extends StorageScopeImpl {
 			if(!res.exists())return;
 			res.remove(true);
 		} 
-		catch (Throwable t) {}
+		catch(Throwable t) {}
 	}
 	
 	protected static Resource _loadResource(ConfigWeb config, int type,String name, String cfid) {

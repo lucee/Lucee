@@ -136,7 +136,7 @@ public class EnvClassLoader extends URLClassLoader {
 						}
 						if(obj!=null)break;
 					} 
-					catch (Throwable t) {
+					catch(Throwable t) {
 						obj=null;
 					}
 				}
@@ -179,7 +179,7 @@ public class EnvClassLoader extends URLClassLoader {
 				else if(type==URL)obj = cl.getResource(name);
 				else obj = cl.getResourceAsStream(name);
 			} 
-			catch (Throwable t) {}
+			catch(Throwable t) {}
 			
 		}
 		return obj;
@@ -211,7 +211,7 @@ public class EnvClassLoader extends URLClassLoader {
 						list.add(b);
 					}
 				} 
-				catch (Throwable t) {
+				catch(Throwable t) {
 					b=null;
 				}
 			

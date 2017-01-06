@@ -96,7 +96,7 @@ public final class Break extends EvaluatorSupport {
 			Variable var=(Variable)value;
 			try {
 				return VariableString.variableToString(var, true);
-			} catch (Throwable t) {}
+			} catch(Throwable t) {}
 		}
 		return defaultValue;
 	}

@@ -61,7 +61,7 @@ public final class DBUtil {
 		if(stat!=null) {
             try {
                 stat.close();
-            } catch (Throwable t) {}
+            } catch(Throwable t) {}
         }
 	}
 
@@ -69,7 +69,7 @@ public final class DBUtil {
 		if(rs!=null) {
             try {
                 rs.close();
-            } catch (Throwable t) {}
+            } catch(Throwable t) {}
         }
 	}
 

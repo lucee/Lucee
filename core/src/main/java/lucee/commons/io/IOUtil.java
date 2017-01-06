@@ -389,7 +389,7 @@ public final class IOUtil {
     		 if(conn!=null)conn.close();
     	 } 
     	 //catch (AlwaysThrow at) {throw at;}
-    	 catch (Throwable t) {}
+    	 catch(Throwable t) {}
      }
      
     /**
@@ -401,7 +401,7 @@ public final class IOUtil {
     		 if(is!=null)is.close();
     	 } 
     	 //catch (AlwaysThrow at) {throw at;}
-    	 catch (Throwable t) {}
+    	 catch(Throwable t) {}
      }
      
      public static void closeEL(ZipFile zip) {
@@ -409,7 +409,7 @@ public final class IOUtil {
     		 if(zip!=null)zip.close();
     	 } 
     	 //catch (AlwaysThrow at) {throw at;}
-    	 catch (Throwable t) {}
+    	 catch(Throwable t) {}
      }
      
      /**
@@ -1008,7 +1008,7 @@ public static String toString(Resource file, String charset) throws IOException 
     	
     	/*try {
 			return URLConnection.guessContentTypeFromStream(is);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return defaultValue;
 		}*/
 		
@@ -1036,7 +1036,7 @@ public static String toString(Resource file, String charset) throws IOException 
         	Tika tika = new Tika();
         	return tika.detect(barr);
         } 
-        catch (Throwable t) {
+        catch(Throwable t) {
 			return defaultValue;
         }
     }

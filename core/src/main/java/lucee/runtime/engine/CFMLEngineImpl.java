@@ -233,7 +233,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
     			bundleCollection=new BundleCollection(felix, felix, null);
     			//bundleContext=bundleCollection.getBundleContext();
     		}
-    		catch (Throwable t) {
+    		catch(Throwable t) {
 				throw new RuntimeException(t);
 			}
     	}
@@ -1455,7 +1455,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				else
 					pc.executeCFML(requestURI, true,false);
 			} 
-			catch (Throwable t) {
+			catch(Throwable t) {
 				// we simply ignore exceptions, if the template itself throws an error it will be handled by the error listener
 				t.printStackTrace(); // TODO ignore
 			}

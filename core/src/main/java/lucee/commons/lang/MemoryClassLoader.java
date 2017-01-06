@@ -61,7 +61,7 @@ public final class MemoryClassLoader extends ExtendableClassLoader {
 			try {
 				c =pcl.loadClass(name);//if(name.indexOf("sub")!=-1)print.ds(name);
 			} 
-			catch (Throwable t) {
+			catch(Throwable t) {
 				c = findClass(name);
 			}
 		}
@@ -105,7 +105,7 @@ public final class MemoryClassLoader extends ExtendableClassLoader {
 		try {
 			return defineClass(name,barr,0,barr.length);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			SystemUtil.sleep(1);
 			try {
 				return defineClass(name,barr,0,barr.length);

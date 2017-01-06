@@ -518,7 +518,7 @@ public final class TagHelper {
 		TagLibTag tlt = tag.getTagLibTag();
 		try {
 			return tlt.getTagType();
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			throw new TransformerException(t,tag.getStart());
 		}
 	}

@@ -88,7 +88,7 @@ public class ActionMonitorCollectorRefImpl implements ActionMonitorCollector {
 		try {
 			return (String) getName.invoke(am, new Object[]{});
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			t.printStackTrace();
 		}
 		return null;
@@ -99,7 +99,7 @@ public class ActionMonitorCollectorRefImpl implements ActionMonitorCollector {
 			try {
 				logpc=monitor.getClass().getMethod("log", new Class[]{PageContext.class,String.class,String.class,long.class,Object.class});
 			} 
-			catch (Throwable t) {
+			catch(Throwable t) {
 				t.printStackTrace();
 				return;
 			}
@@ -108,7 +108,7 @@ public class ActionMonitorCollectorRefImpl implements ActionMonitorCollector {
 		try {
 			logpc.invoke(monitor, new Object[]{pc,type,label,executionTime,data});
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			t.printStackTrace();
 		}
 	}
@@ -118,7 +118,7 @@ public class ActionMonitorCollectorRefImpl implements ActionMonitorCollector {
 			try {
 				logc=monitor.getClass().getMethod("log", new Class[]{ConfigWeb.class,String.class,String.class,long.class,Object.class});
 			} 
-			catch (Throwable t) {
+			catch(Throwable t) {
 				t.printStackTrace();
 				return;
 			}
@@ -127,7 +127,7 @@ public class ActionMonitorCollectorRefImpl implements ActionMonitorCollector {
 		try {
 			logc.invoke(monitor, new Object[]{config,type,label,executionTime,data});
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			t.printStackTrace();
 		}
 	}
@@ -138,7 +138,7 @@ public class ActionMonitorCollectorRefImpl implements ActionMonitorCollector {
 			try {
 				init=monitor.getClass().getMethod("init", new Class[]{ConfigServer.class,String.class,boolean.class});
 			} 
-			catch (Throwable t) {
+			catch(Throwable t) {
 				t.printStackTrace();
 				return null;
 			}
@@ -147,7 +147,7 @@ public class ActionMonitorCollectorRefImpl implements ActionMonitorCollector {
 		try {
 			return (ActionMonitor)init.invoke(monitor, new Object[]{cs,name,log});
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			t.printStackTrace();
 			return null;
 		}

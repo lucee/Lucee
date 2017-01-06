@@ -754,7 +754,7 @@ public final class XMLCaster {
 		}
 		try {
 			return XMLUtil.parse(new InputSource(new StringReader(Caster.toString(value))),null,false).getDocumentElement();
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return defaultValue;
 		}
 	}

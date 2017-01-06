@@ -48,7 +48,7 @@ public final class MD5	{
         try {
 			return  new MD5(str).getDigest();
 		} 
-        catch (Throwable t) {
+        catch(Throwable t) {
 			return defaultValue;
 		}
      }

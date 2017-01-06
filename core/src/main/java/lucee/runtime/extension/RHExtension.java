@@ -700,7 +700,7 @@ public class RHExtension implements Serializable {
 			if(dst.exists()) dst.remove(true);
 			ResourceUtil.moveTo(res, dst,true);
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {}
 		
 		// TODO Auto-generated method stub
 		
@@ -714,7 +714,7 @@ public class RHExtension implements Serializable {
 			str=str.trim()+"\n";
 			return new Manifest(new ByteArrayInputStream(str.getBytes(cs)));
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			return defaultValue;
 		}
 	}
@@ -725,7 +725,7 @@ public class RHExtension implements Serializable {
 			if(ArrayUtil.isEmpty(bytes)) return defaultValue;
 			return Caster.toB64(bytes,defaultValue);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			return defaultValue;
 		}
 	}
@@ -772,7 +772,7 @@ public class RHExtension implements Serializable {
 			}
 			
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			log.error("Extension Installation", t);
 		}
 		

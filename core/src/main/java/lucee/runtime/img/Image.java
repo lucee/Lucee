@@ -417,7 +417,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
                 return meta;
             }
         }
-        catch (Throwable t) {}
+        catch(Throwable t) {}
         finally{
         	ImageUtil.closeEL(iis);
 			IOUtil.closeEL(is);
@@ -1050,14 +1050,14 @@ public class Image extends StructSupport implements Cloneable,Struct {
 		try {
 			iwp.setCompressionMode(mode);
 		}
-		catch( Throwable t) {}
+		catch(Throwable t) {}
 	}
 
 	private void setCompressionQualityEL(ImageWriteParam iwp, float quality) {
 		try {
 			iwp.setCompressionQuality(quality);
 		}
-		catch( Throwable t) {}
+		catch(Throwable t) {}
 	}
 
 	public void convert(String format) {
@@ -1110,7 +1110,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
     	try {
 			transparency=img.getTransparency();
 		} 
-    	catch (Throwable t) {}
+    	catch(Throwable t) {}
     	int type = (transparency == Transparency.OPAQUE) ?BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
         
     	
@@ -1445,7 +1445,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
 		try {
 			return toImage(pc, obj, checkForVariables);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			return defaultValue;
 		}
 	}
@@ -1492,14 +1492,14 @@ public class Image extends StructSupport implements Cloneable,Struct {
 						try {
 							return createImage(pc, pc.getVariable(Caster.toString(obj)), false,clone,checkAccess,format);
 						}
-						catch (Throwable t) {
+						catch(Throwable t) {
 							throw ee;
 						}
 					}
 					try {
 						return new Image(Caster.toString(obj),format);
 					}
-					catch (Throwable t) {
+					catch(Throwable t) {
 						throw ee;
 					}
 				}
@@ -1512,7 +1512,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
 			if(obj instanceof BufferedImage)	return new Image(((BufferedImage) obj));
 			if(obj instanceof java.awt.Image)	return new Image(toBufferedImage((java.awt.Image) obj));
 			
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			throw Caster.toPageException(t);
 		}
 		throw new CasterException(obj,"Image");

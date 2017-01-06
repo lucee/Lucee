@@ -951,7 +951,7 @@ public class KeyConstants {
 				try {
 					_____keys.put(fields[i].getName().substring(1),(Key)fields[i].get(null));
 				}
-				catch (Throwable t) {
+				catch(Throwable t) {
 					t.printStackTrace();
 				}
 			}

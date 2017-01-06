@@ -48,7 +48,7 @@ public class ManifestRead {
 		try {
 			res = ResourceUtil.toResourceExisting(pc, str);
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {}
 		
 		// is a file!
 		if(res!=null){
@@ -87,7 +87,7 @@ public class ManifestRead {
 				}
 				
 			}
-			catch (Throwable t) {
+			catch(Throwable t) {
 				throw Caster.toPageException(t);
 			}
 		}

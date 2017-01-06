@@ -376,7 +376,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie,ScriptProte
 			}
 	    	setHttpOnly.invoke(cookie, SET_HTTP_ONLY_ARGS);
     	}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			// HTTPOnly is not supported in this enviroment
 		}
 	}
@@ -388,7 +388,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie,ScriptProte
 			}
 	    	return Caster.toBooleanValue(isHttpOnly.invoke(cookie, IS_HTTP_ONLY_ARGS));
     	}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			return false;
 		}
 	}

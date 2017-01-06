@@ -319,7 +319,7 @@ public final class FunctionLibFunction {
 		try {
 			eval = (FunctionEvaluator) tteCD.getClazz().newInstance();
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			throw new TemplateException(t.getMessage());
 		} 
 		return eval;
@@ -391,7 +391,7 @@ public final class FunctionLibFunction {
 		try {
 			clazz = getFunctionClassDefinition().getClazz();
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			throw new PageRuntimeException(Caster.toPageException(t));
 		}
 
@@ -399,7 +399,7 @@ public final class FunctionLibFunction {
 			try {
 				bif=(BIF)clazz.newInstance();
 			}
-			catch (Throwable t) {
+			catch(Throwable t) {
 				throw new RuntimeException(t);
 			}
 		}

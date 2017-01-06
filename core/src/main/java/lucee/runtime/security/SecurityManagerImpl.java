@@ -353,7 +353,7 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 				return true;
 			}
 		} 
-        catch (Throwable t) {}
+        catch(Throwable t) {}
 		return false;
 	}
 
@@ -388,7 +388,7 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 				PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
 				spw=pc.getServerPassword();
 			} 
-			catch (Throwable t) {}
+			catch(Throwable t) {}
 		}
 		config=ThreadLocalPageContext.getConfig(config);
 		

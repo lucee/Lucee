@@ -173,7 +173,7 @@ public final class ReqRspUtil {
 			Method setCharacterEncoding = rsp.getClass().getMethod("setCharacterEncoding", new Class[0]);
 			setCharacterEncoding.invoke(rsp, new Object[0]);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			throw ExceptionUtil.toRuntimeException(t);
 		}
 	}
@@ -354,7 +354,7 @@ public final class ReqRspUtil {
 		try {
 			return isThis(req, HTTPUtil.toURL(url,true));
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			return false;
 		}
 	}

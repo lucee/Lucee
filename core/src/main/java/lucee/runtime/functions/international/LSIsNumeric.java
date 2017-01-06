@@ -38,7 +38,7 @@ public final class LSIsNumeric implements Function {
 		try {
 			LSParseNumber.call(pc,string,locale);
 			return true;
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return false;
 		}
 	}

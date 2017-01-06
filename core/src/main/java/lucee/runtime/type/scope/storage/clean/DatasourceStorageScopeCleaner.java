@@ -55,7 +55,7 @@ public class DatasourceStorageScopeCleaner extends StorageScopeCleanerSupport {
 			if(datasources[i].isStorage()) {
 				try {
 					clean(config,datasources[i]);
-				} catch (Throwable t) {
+				} catch(Throwable t) {
 					error(t);
 				}
 			}

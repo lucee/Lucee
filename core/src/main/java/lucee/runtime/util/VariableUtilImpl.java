@@ -802,7 +802,7 @@ public final class VariableUtilImpl implements VariableUtil {
 		// MUST make an independent impl for performance reasons
 		try {
 			return callFunctionWithoutNamedValues(pc, coll, key, args);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return defaultValue;
 		}
 			

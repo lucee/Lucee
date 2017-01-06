@@ -141,7 +141,7 @@ public Class loadClass(String name) throws ClassNotFoundException   {
         try {
         	return defineClass(name,barr,0,barr.length);
         }
-        catch( Throwable t) {
+        catch(Throwable t) {
         	return defaultValue;
         }
     }

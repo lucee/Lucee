@@ -1016,7 +1016,7 @@ public final class CastImpl implements Cast {
 	public BigDecimal toBigDecimal(Object obj, BigDecimal defaultValue) {
 		try {
 			return Caster.toBigDecimal(obj);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return defaultValue;
 		}
 	}

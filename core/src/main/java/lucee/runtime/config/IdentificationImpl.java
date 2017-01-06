@@ -72,7 +72,7 @@ public abstract class IdentificationImpl implements Identification {
 			}
 			return Md5.getDigestAsString(key+token);
 		} 
-    	catch (Throwable t) {
+    	catch(Throwable t) {
 			return defaultValue;
 		}
 	}

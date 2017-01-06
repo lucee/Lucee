@@ -166,7 +166,7 @@ public final class DumpStruct implements Function {
 			}
 
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			simpleValue = "{error}";
 		}
 

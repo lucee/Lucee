@@ -102,7 +102,7 @@ public class DataSourceUtil {
 		try {
 			return ps.isClosed();
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			return defaultValue;
 		}
 	}
@@ -111,7 +111,7 @@ public class DataSourceUtil {
 		try {
 			dbName = dc.getDatasource().getDatabase();
 		} 
-		catch( Throwable t) {}
+		catch(Throwable t) {}
 		
 		if (StringUtil.isEmpty(dbName)) dbName = dc.getConnection().getCatalog();  // works on most JDBC drivers (except Oracle )
 		return dbName;

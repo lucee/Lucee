@@ -227,7 +227,7 @@ public class PasswordImpl implements Password {
 				}
 			}
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			// Optinal functionality, ignore failures
 			t.printStackTrace();
 		}

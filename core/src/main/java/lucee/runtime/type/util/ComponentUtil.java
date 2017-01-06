@@ -712,7 +712,7 @@ public final class ComponentUtil {
 	public static long getCompileTime(PageContext pc, PageSource ps,long defaultValue) {
 		try {
 			return getCompileTime(pc, ps);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return defaultValue;
 		}
 	}

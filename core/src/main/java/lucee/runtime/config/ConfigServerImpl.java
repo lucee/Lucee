@@ -550,7 +550,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 			//if(pcl!=null)return pcl.shrink(force);
 			((MappingImpl)mapping).shrink();
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			t.printStackTrace();
 		}
 		return 0;

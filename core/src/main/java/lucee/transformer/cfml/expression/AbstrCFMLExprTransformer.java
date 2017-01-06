@@ -1268,7 +1268,7 @@ public abstract class AbstrCFMLExprTransformer {
 			bif.setArgType(flf.getArgType());
 			try {
 				bif.setClassDefinition(flf.getFunctionClassDefinition());
-			} catch (Throwable t) {
+			} catch(Throwable t) {
 				throw new PageRuntimeException(t);
 			}
 			bif.setReturnType(flf.getReturnTypeAsString());
@@ -1284,7 +1284,7 @@ public abstract class AbstrCFMLExprTransformer {
 		bif.setArgType(flf.getArgType());
 		try {
 			bif.setClassDefinition(flf.getFunctionClassDefinition());
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			throw new PageRuntimeException(t);
 		}
 		bif.setReturnType(flf.getReturnTypeAsString());
@@ -1312,7 +1312,7 @@ public abstract class AbstrCFMLExprTransformer {
 				bif.setArgType(flf.getArgType());
 				try {
 					bif.setClassDefinition(flf.getFunctionClassDefinition());
-				} catch (Throwable t) {
+				} catch(Throwable t) {
 					throw new PageRuntimeException(t);
 				}
 				bif.setReturnType(flf.getReturnTypeAsString());
@@ -1784,7 +1784,7 @@ public abstract class AbstrCFMLExprTransformer {
 				bif.setArgType(flf.getArgType());
 				try {
 					bif.setClassDefinition(flf.getFunctionClassDefinition());
-				} catch (Throwable t) {
+				} catch(Throwable t) {
 					throw new PageRuntimeException(t);
 				}
 				bif.setReturnType(flf.getReturnTypeAsString());

@@ -204,7 +204,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	        ois = new ObjectInputStream(is);
 	        task = (SpoolerTask) ois.readObject();
         } 
-        catch (Throwable t) {//t.printStackTrace();
+        catch(Throwable t) {//t.printStackTrace();
         	IOUtil.closeEL(is);
         	IOUtil.closeEL(ois);
         	res.delete();
@@ -395,7 +395,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 					task= CollectionUtil.remove(tasks,0,null);
 					if(task!=null)task.execute(config);
 				}
-				catch (Throwable t) {}
+				catch(Throwable t) {}
 			}
 		}
 		
@@ -491,7 +491,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 					wait(sleep);
 				}
 				
-			} catch (Throwable t) {
+			} catch(Throwable t) {
 				//
 			}
 			finally {

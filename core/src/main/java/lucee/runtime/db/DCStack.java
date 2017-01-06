@@ -184,7 +184,7 @@ class DCStack {
 		try {
 			return conn.isValid(datasource.getNetworkTimeout())?Boolean.TRUE:Boolean.FALSE;
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			return null;
 		}
 	}

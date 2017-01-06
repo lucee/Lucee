@@ -555,7 +555,7 @@ public final class PageContextImpl extends PageContext {
 				}
 				ormSession.closeAll(this);
 			} 
-			catch (Throwable t) {
+			catch(Throwable t) {
 				//print.printST(t);
 			}
 			ormSession=null;
@@ -1882,7 +1882,7 @@ public final class PageContextImpl extends PageContext {
 					
 					doInclude(new PageSource[]{ep.getTemplate()},false);
 					return;
-				} catch (Throwable t) {
+				} catch(Throwable t) {
 					if(Abort.isSilentAbort(t)) return;
 					pe=Caster.toPageException(t);
 				}
@@ -1908,7 +1908,7 @@ public final class PageContextImpl extends PageContext {
 						
 						write(content);
 						return;
-					} catch (Throwable t) {
+					} catch(Throwable t) {
 						pe=Caster.toPageException(t);
 					}
 				}

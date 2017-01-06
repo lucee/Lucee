@@ -40,7 +40,7 @@ public final class CFMLResourceOutputStream extends OutputStream {
 		try {
 			res.setBinary(baos.toByteArray());
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			throw ExceptionUtil.toIOException(t);
 		}
 		finally {

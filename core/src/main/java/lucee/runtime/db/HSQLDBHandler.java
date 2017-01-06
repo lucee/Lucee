@@ -237,7 +237,7 @@ public final class HSQLDBHandler {
 			//print.out("remove:"+tableName);
 			try {
 				removeTable(conn,tableName);
-			} catch (Throwable t) {}
+			} catch(Throwable t) {}
 		}
 	}
 	

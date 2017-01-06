@@ -1131,7 +1131,7 @@ public final class ASMUtil {
 				}
 			}
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			// TODO Auto-generated catch block
 			t.printStackTrace();
 		}
@@ -1151,7 +1151,7 @@ public final class ASMUtil {
 		bif.setArgType(flf.getArgType());
 		try {
 			bif.setClassDefinition(flf.getFunctionClassDefinition());
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			throw new PageRuntimeException(t);
 		}
 		bif.setReturnType(flf.getReturnTypeAsString());

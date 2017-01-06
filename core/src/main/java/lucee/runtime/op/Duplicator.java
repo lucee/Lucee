@@ -132,7 +132,7 @@ public final class Duplicator {
 					String ser = JavaConverter.serialize((Serializable)object);
 					return JavaConverter.deserialize(ser);
 					
-				} catch (Throwable t) {}
+				} catch(Throwable t) {}
 			}
         }  
         finally {

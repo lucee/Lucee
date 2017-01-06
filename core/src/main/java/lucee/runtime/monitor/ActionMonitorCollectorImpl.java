@@ -52,7 +52,7 @@ public class ActionMonitorCollectorImpl implements ActionMonitorCollector {
 		while(it.hasNext()){
 			try {
 				it.next().log(pc, type, label, executionTime, data);
-			} catch (Throwable t) {
+			} catch(Throwable t) {
 				t.printStackTrace();
 			}
 		}
@@ -65,7 +65,7 @@ public class ActionMonitorCollectorImpl implements ActionMonitorCollector {
 		while(it.hasNext()){
 			try {
 				it.next().log(config, type, label, executionTime, data);
-			} catch (Throwable t) {
+			} catch(Throwable t) {
 				t.printStackTrace();
 			}
 		}

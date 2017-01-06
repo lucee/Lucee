@@ -161,7 +161,7 @@ public class RemoteClientImpl implements RemoteClient {
 			return id=IdentificationImpl.createId(securityKey, Caster.toString(result,null),false, null);
 			
 		} 
-		catch (Throwable t) {t.printStackTrace();
+		catch(Throwable t) {t.printStackTrace();
 			return null;
 		}
 	}

@@ -1305,7 +1305,7 @@ public class ConcurrentHashMapPro<K, V> extends AbstractMapPro<K, V>
             	ConcurrentHashMapPro.this.rem(o);
             	return true;
             }
-            catch( Throwable t){
+            catch(Throwable t){
             	return false;
             }
         }
@@ -1355,7 +1355,7 @@ public class ConcurrentHashMapPro<K, V> extends AbstractMapPro<K, V>
             	}
             	return v.equals(e.getValue());
             }
-            catch( Throwable t){
+            catch(Throwable t){
             	return false;
             }
         }

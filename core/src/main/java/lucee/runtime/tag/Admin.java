@@ -1341,7 +1341,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     	try {
     		admin.removeContext(server, true,strRealpath);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			throw Caster.toPageException(t);
 		}
 		
@@ -3155,7 +3155,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     	try {
 			new RemoteClientTask(null,client,attrColl,getCallerId(),"synchronisation").execute(config);
 		} 
-    	catch (Throwable t) {
+    	catch(Throwable t) {
 			throw Caster.toPageException(t);
 		}
     }
@@ -4291,7 +4291,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doSetCluster()  {// MUST remove this
 		try {
 			_doSetCluster();
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			//print.printST(t);
 		}
 	}

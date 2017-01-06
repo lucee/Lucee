@@ -160,7 +160,7 @@ public final class AppListenerUtil {
 	public static DataSource[] toDataSources(Config config, Object o,DataSource[] defaultValue,Log log) {
 		try {
 			return toDataSources(config,o,log);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return defaultValue;
 		}
 	}
@@ -265,7 +265,7 @@ public final class AppListenerUtil {
 	public static Mapping[] toMappings(ConfigWeb cw,Object o,Mapping[] defaultValue, Resource source) { 
 		try {
 			return toMappings(cw, o,source);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return defaultValue;
 		}
 	}
@@ -346,7 +346,7 @@ public final class AppListenerUtil {
 	public static Mapping[] toCustomTagMappings(ConfigWeb cw, Object o, Resource source, Mapping[] defaultValue) {
 		try {
 			return toMappings(cw,"custom", o,false,source);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return defaultValue;
 		}
 	}
@@ -359,7 +359,7 @@ public final class AppListenerUtil {
 		
 		try {
 			return toMappings(cw,"component", o,true,source);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return defaultValue;
 		}
 	}

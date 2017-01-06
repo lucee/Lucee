@@ -285,7 +285,7 @@ public final class PageSourceImpl implements PageSource {
                     else {
                     	try {
                     		this.page=page=newInstance(mapping.getPhysicalClass(this.getClassName()));
-    					} catch (Throwable t) {t.printStackTrace();
+    					} catch(Throwable t) {t.printStackTrace();
 							this.page=page=null;
 						}
                     	if(page==null) this.page=page=compile(config,classRootDir,null,false,pc.ignoreScopes());

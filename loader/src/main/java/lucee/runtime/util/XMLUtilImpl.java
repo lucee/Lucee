@@ -780,7 +780,7 @@ public final class XMLUtilImpl implements XMLUtil {
 				return new InputSource(
 						engine.getIOUtil().toBufferedInputStream(engine.getHTTPUtil().toURL(systemID).openStream()));
 			} 
-			catch (Throwable t) {
+			catch(Throwable t) {
 				return null;
 			}
 		}

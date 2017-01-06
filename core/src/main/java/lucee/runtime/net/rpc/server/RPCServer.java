@@ -348,7 +348,7 @@ public final class RPCServer{
                     ((org.apache.axis.SOAPPart) responseMsg.getSOAPPart()).
                             getMessage().setMessageContext(msgContext);
                 }
-            } catch (Throwable t) {
+            } catch(Throwable t) {
             	if(t instanceof InvocationTargetException)
             		t=((InvocationTargetException)t).getTargetException();
             	// Exception

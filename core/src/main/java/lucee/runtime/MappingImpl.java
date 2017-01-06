@@ -159,7 +159,7 @@ public final class MappingImpl implements Mapping {
 		try {
 			archiveBundle=OSGiUtil.installBundle( bc, archive,true);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			archMod=archive.lastModified();
 			config.getLog("application").log(Log.LEVEL_ERROR, "OSGi", t);
 			archive=null;
@@ -232,7 +232,7 @@ public final class MappingImpl implements Mapping {
 		if(pcl==null)return null;
 		try {
 			return pcl.loadClass(className);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return null;
 		}
 	}

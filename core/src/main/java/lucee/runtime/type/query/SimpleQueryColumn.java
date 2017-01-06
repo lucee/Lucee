@@ -397,7 +397,7 @@ public class SimpleQueryColumn implements QueryColumn {
 			}
 			return _get(row);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			throw Caster.toPageException(t);
 		}
 	}
@@ -413,7 +413,7 @@ public class SimpleQueryColumn implements QueryColumn {
 			}
 			return _get(row);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			return defaultValue;
 		}
 	}

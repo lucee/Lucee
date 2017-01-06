@@ -34,7 +34,7 @@ public class IsZipFile {
 		try {
 			return invoke(ResourceUtil.toResourceExisting(pc, path));
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			return false;
 		}
 	}
@@ -49,7 +49,7 @@ public class IsZipFile {
 	        	zis.closeEntry();
 	        	hasEntries=true;
 	        }
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return false;
 		}
 		finally {
@@ -68,7 +68,7 @@ public class IsZipFile {
 	        	zis.closeEntry();
 	        	hasEntries=true;
 	        }
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			return false;
 		}
 		finally {

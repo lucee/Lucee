@@ -633,7 +633,7 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 		if(mi!=null) {
 			try {
 				return mi.invoke(this);
-			} catch (Throwable t) {
+			} catch(Throwable t) {
 				try {
 					return pc.getFunction(QueryUtil.getValue(this,query.getCurrentrow(pc.getId())), methodName, arguments);
 				} catch (PageException pe) {

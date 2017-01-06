@@ -47,7 +47,7 @@ public final class IsDefined implements Function {
 			coll=((VariableUtilImpl)pc.getVariableUtil()).get(pc,coll,key,NullSupportHelper.NULL(pc));
 			if(coll==NullSupportHelper.NULL(pc))return false;
 			//return pc.scope((int)scope).get(key,null)!=null; 
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 	        return false;
 	    }
 		return true;
@@ -63,7 +63,7 @@ public final class IsDefined implements Function {
 				coll=vu.getCollection(pc,coll,varNames[i],defVal);
 				if(coll==defVal)return false;
 			}
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 	        return false;
 	    }
 		return true; 
@@ -82,7 +82,7 @@ public final class IsDefined implements Function {
 				coll=pc.getVariableUtil().getCollection(pc,coll,varNames[i],defVal);
 				if(coll==defVal)return false;
 			}
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 	        return false;
 	    }
 		return true; 

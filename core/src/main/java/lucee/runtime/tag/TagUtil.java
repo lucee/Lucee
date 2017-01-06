@@ -316,7 +316,7 @@ public class TagUtil {
 			}
 			
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			//t.printStackTrace();
 		}
     }

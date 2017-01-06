@@ -57,6 +57,6 @@ public class FileAppend {
 		if(fsw==null)return;
 		try {
 			fsw.close();
-		} catch (Throwable t) {}
+		} catch(Throwable t) {}
 	}
 }

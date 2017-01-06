@@ -176,7 +176,7 @@ public class IPRangeNode<T> implements Comparable<IPRangeNode>, Comparator<IPRan
 
 			return findAddr( InetAddress.getByName(addr) );
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {}
 
 		return null;
 	}
@@ -237,7 +237,7 @@ public class IPRangeNode<T> implements Comparable<IPRangeNode>, Comparator<IPRan
 
 			return findFast( InetAddress.getByName(addr) );
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {}
 
 		return null;
 	}

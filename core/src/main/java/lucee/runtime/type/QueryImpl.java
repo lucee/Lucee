@@ -2732,7 +2732,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		try {
 			out.writeUTF(new ScriptConverter().serialize(this));
 		} 
-		catch (Throwable t) {}
+		catch(Throwable t) {}
 	}
 
 	public int getHoldability() throws SQLException {

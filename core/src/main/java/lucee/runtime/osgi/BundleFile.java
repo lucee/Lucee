@@ -72,7 +72,7 @@ public class BundleFile extends BundleInfo {
 			BundleFile bf = new BundleFile(res);
 			if(bf.isBundle()) return bf;
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {}
 		
 		return null;
 	}

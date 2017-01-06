@@ -39,7 +39,7 @@ public class UDFCustomType implements CustomType {
 		try {
 			return udf.call(pc, new Object[]{o}, false);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			return defaultValue;
 		}
 	}

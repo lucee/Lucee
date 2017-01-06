@@ -346,7 +346,7 @@ public final class TagLibTag {
 		try {
 			eval = (TagEvaluator) getTTEClassDefinition().getClazz().newInstance();
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			throw new EvaluatorException(t.getMessage());
 		} 
 		return eval;
@@ -363,7 +363,7 @@ public final class TagLibTag {
 		if(tdbt!=null) return tdbt;
 		try {
 			tdbt = (TagDependentBodyTransformer) tdbtCD.getClazz().newInstance();
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			throw new TagLibException(t);
 		} 
 		return tdbt;

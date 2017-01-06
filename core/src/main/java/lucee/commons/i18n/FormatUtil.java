@@ -197,7 +197,7 @@ public class FormatUtil {
 					}
 					
 				} 
-				catch (Throwable t) {}
+				catch(Throwable t) {}
 			}
 		}
 	}
