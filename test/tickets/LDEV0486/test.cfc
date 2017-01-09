@@ -7,6 +7,10 @@ component {
 		return testMethod();
 	}
 
+	public test function getThis(){
+		return this;
+	}
+
 	private boolean function testMethod(){
 		return true;
 	}
