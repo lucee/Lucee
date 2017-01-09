@@ -1395,6 +1395,7 @@ class StopThread extends Thread {
 	public void run(){
 		PageContextImpl pci=(PageContextImpl) pc;
 		Thread thread = pc.getThread();
+		if(thread==null) return;
 		pci.setRequestTimeoutException(t);
 		int count=0;
 		if(thread.isAlive()) {
