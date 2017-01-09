@@ -50,6 +50,7 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Identification;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ExceptionHandler;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.functions.FunctionHandlerPool;
@@ -192,6 +193,7 @@ public final class Types {
     
     public static final Type STRING = Type.getType(String.class);
     public static final Type STRING_ARRAY = Type.getType(String[].class);
+    public static final Type STRING_UTIL = Type.getType(StringUtil.class);
 
     public static final Type STRUCT = Type.getType(lucee.runtime.type.Struct.class);
     public static final Type STRUCT_IMPL = Type.getType(lucee.runtime.type.StructImpl.class);
@@ -225,6 +227,7 @@ public final class Types {
 	//public static final Type RETURN_ EXCEPTION = Type.getType(ReturnException.class);
 	public static final Type TIMEZONE = Type.getType(java.util.TimeZone.class);
 	public static final Type STRING_BUFFER = Type.getType(StringBuffer.class);
+	public static final Type STRING_BUILDER = Type.getType(StringBuilder.class);
 	public static final Type MEMBER = Type.getType(Member.class);
 	public static final Type UDF = Type.getType(UDF.class);
 	public static final Type UDF_PROPERTIES = Type.getType(UDFProperties.class);
@@ -266,6 +269,7 @@ public final class Types {
 	public static final Type FUNCTION_HANDLER_POOL = Type.getType(FunctionHandlerPool.class);
 	public static final Type BIF = Type.getType(lucee.runtime.ext.function.BIF.class);
 	public static final Type DATA_MEMBER = Type.getType(lucee.runtime.component.DataMember.class);
+	public static final Type EXPRESSION_EXCEPTION = Type.getType(ExpressionException.class);
 	
 	 
 
