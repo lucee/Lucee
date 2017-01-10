@@ -1,3 +1,5 @@
+<cfparam name="Attributes.prevLinkItem" default="">
+<cfparam name="Attributes.nextLinkItem" default="">
 <cfoutput>
 <cfif thistag.executionmode EQ "start">
 	<cfset currPath = expandpath(getDirectoryfromPath(CGI.SCRIPT_NAME))>
@@ -47,6 +49,35 @@
 					</li>
 				</ul>
 				<a class="header-logo hidden-lg" href="index.cfm"><img alt="Lucee" src="assets/images/lucee-logo.png.cfm"></a>
+				<ul class="nav nav-list pull-right">
+					<cfif len(Attributes.prevLinkItem)>
+						<li>
+							<a href="#listLast(CGI.SCRIPT_NAME, "/")#?item=#Attributes.prevLinkItem#">
+								<span class="access-hide">Previous page: &lt;#Attributes.prevLinkItem#&gt;</span>
+								<span class="icon icon-arrow-back icon-lg"></span>
+							</a>
+						</li>
+					</cfif>
+
+					<cfif len(Attributes.nextLinkItem)>
+						<li>
+							<a href="#listLast(CGI.SCRIPT_NAME, "/")#?item=#Attributes.nextLinkItem#">
+								<span class="access-hide">Next page: &lt;#Attributes.nextLinkItem#&gt;</span>
+								<span class="icon icon-arrow-forward icon-lg"></span>
+							</a>
+						</li>
+					</cfif>
+
+					<cfif lCase(listLast(CGI.SCRIPT_NAME, "/") NEQ "index.cfm")>
+						<li>
+							<a class="menu-toggle" href="##search">
+								<span class="access-hide">Search</span>
+								<span class="icon icon-search icon-lg"></span>
+								<span class="header-close icon icon-close icon-lg"></span>
+							</a>
+						</li>
+					</cfif>
+				</ul>
 				<span class="header-fix-show header-logo pull-none text-overflow">#Attributes.Title#</span>
 			</header>
 			<div class="menu menu-right menu-search" id="search">
@@ -94,8 +125,8 @@
 				</div>
 			</footer>
 
-			<script src="assets/js/base.min.js.cfm" type="text/javascript"></script>
 			<cfif isDefined( "Request.htmlBody" )>#Request.htmlBody#</cfif>
+			<script src="assets/js/base.min.js.cfm" type="text/javascript"></script>
 		</body>
 	</html>
 </cfif>
