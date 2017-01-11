@@ -18,6 +18,7 @@
  */
 package lucee.transformer.cfml.script;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.ParserString;
 import lucee.commons.lang.StringUtil;
 import lucee.transformer.Factory;
@@ -39,6 +40,7 @@ public class DocCommentTransformer {
 			return dc;
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			return null;
 		}
 	}

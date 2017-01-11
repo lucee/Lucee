@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.runtime.Mapping;
@@ -160,7 +161,8 @@ public final class AppListenerUtil {
 	public static DataSource[] toDataSources(Config config, Object o,DataSource[] defaultValue,Log log) {
 		try {
 			return toDataSources(config,o,log);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -251,6 +253,7 @@ public final class AppListenerUtil {
 					"",
 					ParamSyntax.toParamSyntax(data,ParamSyntax.DEFAULT),
 					Caster.toBooleanValue(data.get("literalTimestampWithTSOffset",null),false),
+					Caster.toBooleanValue(data.get("alwaysSetTimeout",null),false),
 					log
 				);
 			}
@@ -264,7 +267,8 @@ public final class AppListenerUtil {
 	public static Mapping[] toMappings(ConfigWeb cw,Object o,Mapping[] defaultValue, Resource source) { 
 		try {
 			return toMappings(cw, o,source);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -345,7 +349,8 @@ public final class AppListenerUtil {
 	public static Mapping[] toCustomTagMappings(ConfigWeb cw, Object o, Resource source, Mapping[] defaultValue) {
 		try {
 			return toMappings(cw,"custom", o,false,source);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -358,7 +363,8 @@ public final class AppListenerUtil {
 		
 		try {
 			return toMappings(cw,"component", o,true,source);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}

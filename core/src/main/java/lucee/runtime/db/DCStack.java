@@ -21,6 +21,7 @@ package lucee.runtime.db;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SystemOut;
 
 class DCStack {
@@ -184,7 +185,8 @@ class DCStack {
 		try {
 			return conn.isValid(datasource.getNetworkTimeout())?Boolean.TRUE:Boolean.FALSE;
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return null;
 		}
 	}

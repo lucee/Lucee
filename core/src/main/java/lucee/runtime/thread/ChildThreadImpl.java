@@ -30,6 +30,7 @@ import lucee.print;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
@@ -204,7 +205,8 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 			try {
 				p.threadCall(pc, threadIndex); 
 			}
-			catch (Throwable t) {
+			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				if(!Abort.isSilentAbort(t)) {
 					ConfigWeb c = pc.getConfig();
 					if(c instanceof ConfigImpl) {

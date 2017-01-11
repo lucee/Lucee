@@ -166,7 +166,7 @@ public class SizeAndCount {
 	        oos = new ObjectOutputStream(os);
 	        oos.writeObject(o);
         }
-        catch(Throwable t){}
+        catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
         finally {
         	IOUtil.closeEL(oos);
         }

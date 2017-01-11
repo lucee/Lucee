@@ -42,6 +42,7 @@ import javax.servlet.http.HttpSession;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.IDGenerator;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -466,7 +467,10 @@ public class DumpUtil {
 							}
 							
 						}
-						catch (Throwable t) {value="not able to retrieve the data:"+t.getMessage();}
+						catch(Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							value="not able to retrieve the data:"+t.getMessage();
+						}
 						
 						
 						
@@ -676,7 +680,7 @@ public class DumpUtil {
 			parent.appendRow(1,new SimpleDumpData("required-bundles"),dt);
 			
 		}
-		catch(Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	private static Array toArray2(List<PackageQuery> list) {

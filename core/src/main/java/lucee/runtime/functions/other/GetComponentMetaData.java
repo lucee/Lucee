@@ -42,7 +42,7 @@ public final class GetComponentMetaData implements Function {
 		/*try{
 			Page page = ComponentLoader.loadPage(pc,((PageContextImpl)pc).getCurrentPageSource(null), Caster.toString(obj), null,null);
 			if(page.metaData!=null && page.metaData.get()!=null) return page.metaData.get();
-		}catch(Throwable t){}*/
+		}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}*/
 		
 		// load the cfc when metadata was not defined before
 		try{

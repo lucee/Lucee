@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerSync;
@@ -149,7 +150,7 @@ public class DatasourceConnectionPool {
 				if(conns!=null)conns.clear(force);
 			}
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	
 	public void clear(String dataSourceName,boolean force) {
@@ -171,7 +172,7 @@ public class DatasourceConnectionPool {
 				}
 			}
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	public void remove(DataSource datasource) {
@@ -197,18 +198,18 @@ public class DatasourceConnectionPool {
 		try {
 			if(dc.getConnection().isClosed())return false;
 		} 
-		catch (Throwable t) {return false;}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);return false;}
 
 		try {
 			if(dc.getDatasource().validate() && !DataSourceUtil.isValid(dc,1000))return false;
 		} 
-		catch (Throwable t) {} // not all driver support this, because of that we ignore a error here, also protect from java 5
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);} // not all driver support this, because of that we ignore a error here, also protect from java 5
 		
 		
 		try {
 			if(autoCommit!=null) dc.getConnection().setAutoCommit(autoCommit.booleanValue());
 		} 
-		catch (Throwable t) {return false;}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);return false;}
 		
 		
 		return true;
@@ -226,12 +227,12 @@ public class DatasourceConnectionPool {
 			dcstack = e.getValue();
 			ds = dcstack.getDatasource();
 			sct=new StructImpl();
-			try {sct.setEL(KeyConstants._used, _getCounter(e.getKey()).toDouble());}catch(Throwable t){}
-			try {sct.setEL(KeyConstants._name, ds.getName());}catch(Throwable t){}
-			try {sct.setEL("connectionLimit", ds.getConnectionLimit());}catch(Throwable t){}
-			try {sct.setEL("connectionTimeout", ds.getConnectionTimeout());}catch(Throwable t){}
-			try {sct.setEL("connectionString", ds.getConnectionStringTranslated());}catch(Throwable t){}
-			try {sct.setEL(KeyConstants._database, ds.getDatabase());}catch(Throwable t){}
+			try {sct.setEL(KeyConstants._used, _getCounter(e.getKey()).toDouble());}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+			try {sct.setEL(KeyConstants._name, ds.getName());}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+			try {sct.setEL("connectionLimit", ds.getConnectionLimit());}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+			try {sct.setEL("connectionTimeout", ds.getConnectionTimeout());}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+			try {sct.setEL("connectionString", ds.getConnectionStringTranslated());}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+			try {sct.setEL(KeyConstants._database, ds.getDatabase());}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			if(sct.size()>0)arr.appendEL(sct);
 		}
 		return arr;

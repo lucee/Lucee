@@ -221,7 +221,7 @@ public class ImageFilter {
 		DynFiltering filter=null;
 		try {
 			filter=(DynFiltering) clazz.newInstance();
-		} catch (Throwable t) {
+		} catch(Throwable t) {
 			throw Caster.toPageException(t);
 		}
 		

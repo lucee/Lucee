@@ -24,6 +24,7 @@ package lucee.runtime.functions.other;
 import java.util.Set;
 
 import lucee.commons.digest.HashUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
@@ -166,7 +167,8 @@ public final class DumpStruct implements Function {
 			}
 
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			simpleValue = "{error}";
 		}
 

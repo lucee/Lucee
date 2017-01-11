@@ -57,6 +57,8 @@ import javax.servlet.jsp.tagext.BodyTag;
 import javax.servlet.jsp.tagext.Tag;
 import javax.servlet.jsp.tagext.TryCatchFinally;
 
+import org.objectweb.asm.Type;
+
 import lucee.print;
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.BodyContentStack;
@@ -67,6 +69,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
@@ -208,6 +211,7 @@ import lucee.runtime.util.VariableUtilImpl;
 import lucee.runtime.writer.BodyContentUtil;
 import lucee.runtime.writer.CFMLWriter;
 import lucee.runtime.writer.DevNullBodyContent;
+import lucee.transformer.bytecode.util.Types;
 
 /**
  * page context for every page object. 
@@ -555,9 +559,7 @@ public final class PageContextImpl extends PageContext {
 				}
 				ormSession.closeAll(this);
 			} 
-			catch (Throwable t) {
-				//print.printST(t);
-			}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			ormSession=null;
 		}
 		
@@ -1484,21 +1486,105 @@ public final class PageContextImpl extends PageContext {
 	
 
 	public void param(String type, String name, Object defaultValue,String regex) throws PageException {
-		param(type, name, defaultValue,Double.NaN,Double.NaN,regex,-1);
+		_param(type, name, defaultValue,Double.NaN,Double.NaN,regex,-1);
 	}
 	public void param(String type, String name, Object defaultValue,double min, double max) throws PageException {
-		param(type, name, defaultValue,min,max,null,-1);
+		_param(type, name, defaultValue,min,max,null,-1);
 	}
 
 	public void param(String type, String name, Object defaultValue,int maxLength) throws PageException {
-		param(type, name, defaultValue,Double.NaN,Double.NaN,null,maxLength);
+		_param(type, name, defaultValue,Double.NaN,Double.NaN,null,maxLength);
 	}
 
 	public void param(String type, String name, Object defaultValue) throws PageException {
-		param(type, name, defaultValue,Double.NaN,Double.NaN,null,-1);
+		_param(type, name, defaultValue,Double.NaN,Double.NaN,null,-1);
 	}
 	
-	private void param(String type, String name, Object defaultValue, double min,double max, String strPattern, int maxLength) throws PageException {
+	// used by generated code FUTURE add to interface
+	public void subparam(String type, String name, final Object value, double min,double max, 
+			String strPattern, int maxLength, final boolean isNew) throws PageException {
+
+		// check attributes type
+		if(type==null)type="any";
+		else type=type.trim().toLowerCase();
+		
+		// cast and set value
+		if(!"any".equals(type)) {
+			// range
+			if("range".equals(type)) {
+				boolean hasMin=Decision.isValid(min);
+				boolean hasMax=Decision.isValid(max);
+				double number = Caster.toDoubleValue(value);
+				
+				if(!hasMin && !hasMax)
+					throw new ExpressionException("you need to define one of the following attributes [min,max], when type is set to [range]");
+				
+				if(hasMin && number<min)
+					throw new ExpressionException("The number ["+Caster.toString(number)+"] is to small, the number must be at least ["+Caster.toString(min)+"]");
+				
+				if(hasMax && number>max)
+					throw new ExpressionException("The number ["+Caster.toString(number)+"] is to big, the number cannot be bigger than ["+Caster.toString(max)+"]");
+				
+				setVariable(name,Caster.toDouble(number));
+			}
+			// regex
+			else if("regex".equals(type) || "regular_expression".equals(type)) {
+				String str=Caster.toString(value);
+				
+				if(strPattern==null) throw new ExpressionException("Missing attribute [pattern]");
+				
+				if(!Perl5Util.matches(strPattern, str))
+					throw new ExpressionException("The value ["+str+"] doesn't match the provided pattern ["+strPattern+"]");
+				setVariable(name,str);
+			}
+			else if ( type.equals( "int" ) || type.equals( "integer" ) ) {
+
+				if ( !Decision.isInteger( value ) )
+					throw new ExpressionException( "The value [" + value + "] is not a valid integer" );
+
+				setVariable( name, value );
+			}
+			else {
+				if(!Decision.isCastableTo(type,value,true,true,maxLength)) {
+					if(maxLength>-1 && ("email".equalsIgnoreCase(type) || "url".equalsIgnoreCase(type) || "string".equalsIgnoreCase(type))) {
+						StringBuilder msg=new StringBuilder(CasterException.createMessage(value, type));
+						msg.append(" with a maximum length of "+maxLength+" characters");
+						throw new CasterException(msg.toString());	
+					}
+					throw new CasterException(value,type);	
+				}
+				
+				setVariable(name,value);
+				//REALCAST setVariable(name,Caster.castTo(this,type,value,true));
+			}
+		}
+		else if(isNew) setVariable(name,value);
+	}
+	
+	
+	private void _param(String type, String name, Object defaultValue, double min,double max, String strPattern, int maxLength) throws PageException {
+
+		// check attributes name
+		if(StringUtil.isEmpty(name))
+			throw new ExpressionException("The attribute name is required");
+		
+		Object value=null;
+		boolean isNew=false;
+		
+		// get value
+		value=VariableInterpreter.getVariableEL(this,name,NullSupportHelper.NULL(this));
+		if(NullSupportHelper.NULL(this)==value) {
+			if(defaultValue==null)
+				throw new ExpressionException("The required parameter ["+name+"] was not provided.");
+			value=defaultValue;
+			isNew=true;
+		}
+		
+		subparam(type, name, value, min, max, strPattern, maxLength, isNew);
+		
+	}
+	
+	/*private void paramX(String type, String name, Object defaultValue, double min,double max, String strPattern, int maxLength) throws PageException {
 
 		// check attributes type
 		if(type==null)type="any";
@@ -1571,7 +1657,7 @@ public final class PageContextImpl extends PageContext {
 			}
 		}
 		else if(isNew) setVariable(name,value);
-	}
+	}*/
 
 
 	@Override
@@ -1882,7 +1968,8 @@ public final class PageContextImpl extends PageContext {
 					
 					doInclude(new PageSource[]{ep.getTemplate()},false);
 					return;
-				} catch (Throwable t) {
+				} catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					if(Abort.isSilentAbort(t)) return;
 					pe=Caster.toPageException(t);
 				}
@@ -1908,7 +1995,7 @@ public final class PageContextImpl extends PageContext {
 						
 						write(content);
 						return;
-					} catch (Throwable t) {
+					} catch(Throwable t) {
 						pe=Caster.toPageException(t);
 					}
 				}

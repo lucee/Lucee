@@ -26,6 +26,7 @@ import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.tagext.Tag;
 
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.Mapping;
@@ -210,6 +211,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 
 	@Override
     public void doCatch(Throwable t) throws Throwable {
+		ExceptionUtil.rethrowIfNecessary(t);
     	if(source.isCFC()){
 	    	String source=isEndTag?"end":"body";
 	    	isEndTag=false;
@@ -262,6 +264,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
         	doInclude();
         }
         catch(Throwable t){
+        	ExceptionUtil.rethrowIfNecessary(t);
         	writeOut(genConBefore);
         	throw Caster.toPageException(t);
         }
@@ -324,7 +327,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
         try {
             pageContext.doInclude(new PageSource[]{source.getPageSource()},false);
         }
-        catch (Throwable t) {
+        catch(Throwable t) {
             throw Caster.toPageException(t);
         }
         finally {
@@ -398,6 +401,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 	        exeBody=Caster.toBooleanValue(rtn,true);
         }
         catch(Throwable t) {
+        	ExceptionUtil.rethrowIfNecessary(t);
         	_doCFCCatch(t,"start",true);
         }
         return exeBody?EVAL_BODY_BUFFERED:SKIP_BODY;
@@ -575,6 +579,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 	        exeAgain= Caster.toBooleanValue(rtn,false);
 	    }
         catch(Throwable t){
+        	ExceptionUtil.rethrowIfNecessary(t);
         	isEndTag=true;
         	throw Caster.toPageException(t);
         }
@@ -624,6 +629,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 			else throw t;
     	}
     	catch(Throwable th) {
+    		ExceptionUtil.rethrowIfNecessary(th);
     		writeEnclosingWriter();
     		_doCFCFinally();
     		throw Caster.toPageException(th);

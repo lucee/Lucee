@@ -22,6 +22,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 
 class DoubleCoder extends Coder {
 
@@ -42,6 +43,7 @@ class DoubleCoder extends Coder {
 			return first.toBufferedImage(res, format);
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			return second.toBufferedImage(res, format);
 		}
 	}
@@ -52,6 +54,7 @@ class DoubleCoder extends Coder {
 			return first.toBufferedImage(bytes, format);
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			return second.toBufferedImage(bytes, format);
 		}
 	}

@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.type;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 
@@ -39,7 +40,8 @@ public class UDFCustomType implements CustomType {
 		try {
 			return udf.call(pc, new Object[]{o}, false);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}

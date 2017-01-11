@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
@@ -872,7 +873,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 							throw new TemplateException(data.srcCode,"The name ["+functionName+"] is already used by a built in Function");
 					}
 				}
-				catch (Throwable t) {
+				catch(Throwable t) {
 					throw new PageRuntimeException(Caster.toPageException(t));
 				}
 			}
@@ -1801,6 +1802,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 						attrValue=isSimpleValue(attr.getType())?null:json(data,JSON_STRUCT,'{','}');
 					}
 					catch(Throwable t){
+						ExceptionUtil.rethrowIfNecessary(t);
 						data.srcCode.setPos(p);
 					}
 				}

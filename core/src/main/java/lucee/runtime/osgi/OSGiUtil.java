@@ -43,6 +43,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringList;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -123,7 +124,7 @@ public class OSGiUtil {
 				try {
 					is.close();
 				}
-				catch(Throwable t) {}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
 		}
 	}
@@ -281,7 +282,7 @@ public class OSGiUtil {
     		// load from core
 			return bc.core.loadClass(className);
 		}
-    	catch (Throwable t) {} // class is not visible to the Lucee core
+    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);} // class is not visible to the Lucee core
 		
 		// now we check all started bundled (not only bundles used by core)
 		Bundle[] bundles = bc.getBundleContext().getBundles();
@@ -289,7 +290,7 @@ public class OSGiUtil {
     		if(b==bc.core) continue;
 			try {
 				return b.loadClass(className);
-			} catch (Throwable t) {} // class is not visible to that bundle
+			} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);} // class is not visible to that bundle
     	}
     	
     	// now we check lucee loader (SystemClassLoader?)
@@ -298,7 +299,7 @@ public class OSGiUtil {
     		//print.e("loader:");
     		return factory.getClass().getClassLoader().loadClass(className);
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     	
     	/*
     	try {
@@ -335,10 +336,10 @@ public class OSGiUtil {
 	    			}
 	    		}
 	    		}
-	    		catch(Throwable t2){t2.printStackTrace();}
+	    		catch(Throwable t2){ExceptionUtil.rethrowIfNecessary(t2);}
 	    	}
 		}
-		catch(Throwable t1){t1.printStackTrace();}
+		catch(Throwable t1){ExceptionUtil.rethrowIfNecessary(t1);}
     	
 		return defaultValue;
 	}
@@ -477,7 +478,7 @@ public class OSGiUtil {
 		    	if(startIfNecessary)start(b);
 		    	return b;
 	    	}
-	    	catch(Throwable t){}
+	    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
     	
     	String localDir="";
@@ -576,7 +577,7 @@ public class OSGiUtil {
 	    		bf=new BundleFile(factory.downloadBundle(name, version.toString(),id));
 	    		if(bf.isBundle()) return bf;
 	    	}
-	    	catch(Throwable t){}
+	    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
     	
     	if(versionsFound.length()>0)
@@ -605,7 +606,7 @@ public class OSGiUtil {
 	    		bf=new BundleFile(factory.downloadBundle(name, version.toString(),id));
 	    		if(bf.isBundle()) return bf;
 	    	}
-	    	catch(Throwable t){}
+	    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
     	
     	return defaultValue;
@@ -750,7 +751,7 @@ public class OSGiUtil {
 		    		if(bf.isBundle() && !set.contains(bf.getSymbolicName()+":"+bf.getVersion())) 
 		    			list.add(new BundleDefinition(bf.getSymbolicName(),bf.getVersion()));
 	    		}
-	    		catch(Throwable t){t.printStackTrace();}
+	    		catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 	    	}
     	}
     	catch(IOException ioe){}
@@ -847,7 +848,7 @@ public class OSGiUtil {
 		try {
 			removeLocalBundle(name, version, removePhysical, true);
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	// bundle stuff
@@ -1412,6 +1413,7 @@ public class OSGiUtil {
 			if(log!=null) log.log(level, "OSGi", msg);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			/* this can fail when called from an old loader */
 			System.out.println(msg);
 		}
@@ -1423,6 +1425,7 @@ public class OSGiUtil {
 			if(log!=null) log.log(Log.LEVEL_ERROR, "OSGi", t);
 		}
 		catch(Throwable _t) {
+			ExceptionUtil.rethrowIfNecessary(_t);
 			/* this can fail when called from an old loader */
 			System.out.println(t.getMessage());
 		}

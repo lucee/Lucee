@@ -47,6 +47,7 @@ import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.Part;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLItem;
 import lucee.runtime.PageContext;
@@ -256,6 +257,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 				
 			}
 			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				barr=null;
 				return new ServletInputStreamDummy(new byte[]{});	 
 			}
@@ -662,7 +664,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 		try{
 			return req.isUserInRole(role);
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		// TODO add support for this
 		throw new RuntimeException("this method is not supported when root request is gone");
 	}
@@ -674,7 +676,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 		try{
 			return req.getLocales();
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		// TODO add support for this
 		throw new RuntimeException("this method is not supported when root request is gone");
 	}
@@ -686,7 +688,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 		try{
 			return req.getRealPath(path);
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		// TODO add support for this
 		throw new RuntimeException("this method is not supported when root request is gone");
 	}

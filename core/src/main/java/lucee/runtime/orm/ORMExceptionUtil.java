@@ -19,6 +19,7 @@ package lucee.runtime.orm;
 
 import java.lang.reflect.Method;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.Component;
 import lucee.runtime.db.DataSource;
@@ -127,6 +128,6 @@ public class ORMExceptionUtil {
 			}
 			setAdditional.invoke(pe, new Object[]{name,value});
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 }

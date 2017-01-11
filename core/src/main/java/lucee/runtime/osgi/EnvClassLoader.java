@@ -12,6 +12,7 @@ import java.util.List;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.Caller;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.ConfigImpl;
@@ -136,7 +137,8 @@ public class EnvClassLoader extends URLClassLoader {
 						}
 						if(obj!=null)break;
 					} 
-					catch (Throwable t) {
+					catch(Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
 						obj=null;
 					}
 				}
@@ -179,7 +181,7 @@ public class EnvClassLoader extends URLClassLoader {
 				else if(type==URL)obj = cl.getResource(name);
 				else obj = cl.getResourceAsStream(name);
 			} 
-			catch (Throwable t) {}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			
 		}
 		return obj;
@@ -211,7 +213,7 @@ public class EnvClassLoader extends URLClassLoader {
 						list.add(b);
 					}
 				} 
-				catch (Throwable t) {
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);
 					b=null;
 				}
 			

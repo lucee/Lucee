@@ -2,14 +2,25 @@
 <cfparam name="request.disableFrame" default="false" type="boolean">
 <cfparam name="request.setCFApplication" default="true" type="boolean">
 
-
 <cfif request.setCFApplication>
-	<cfapplication name="webadmin#server.lucee.version#" 
+	<cfapplication 
+		name="webadmin#server.lucee.version#" 
 		sessionmanagement="yes" 
 		clientmanagement="no" 
 		setclientcookies="yes" 
-		setdomaincookies="no">
+		setdomaincookies="no"
+		clientStorage="file"
+		sessionStorage="memory"
+		scriptprotect="all"
+		sessiontimeout="#createTimeSpan(0,0,30,0)#"
+		applicationtimeout="#createTimeSpan(1,0,0,0)#"
+		localmode="update"
+		webcharset="utf-8"
+		>
 </cfif>
+
+
+
 
 <!--- todo: remember screenwidth, so images have the correct width etc. --->
 <!--- PK: instead of session.screenWidth, we now have:
@@ -22,7 +33,6 @@
 <cfif structKeyExists(url,'enable')>
 	<cfset session.enable=url.enable>
 </cfif>
-  
 <cfparam name="session.alwaysNew" default="false" type="boolean">
 <cfif structKeyExists(url,'alwaysNew')>
 	<cfset session.alwaysNew=url.alwaysNew EQ true>

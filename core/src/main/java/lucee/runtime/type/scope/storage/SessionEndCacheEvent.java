@@ -60,7 +60,7 @@ public class SessionEndCacheEvent implements CacheEventListener {
 			factory.getScopeContext().info("call onSessionEnd for "+appName+"/"+cfid);
 			listener.onSessionEnd(factory, appName, cfid);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			ExceptionHandler.log(factory.getConfig(),Caster.toPageException(t));
 		}
 	}

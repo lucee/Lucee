@@ -297,8 +297,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			try {
 				IOUtil.copy(new ByteArrayInputStream(content.getBytes()), htAccess, true);
 			}
-			catch (Throwable t) {
-			}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 	}
 
@@ -610,7 +609,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					}
 				}
 				catch(Throwable t){ // TODO log the exception
-					t.printStackTrace();
+					ExceptionUtil.rethrowIfNecessary(t);
 				}
 			}
 
@@ -684,6 +683,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						config.addCacheHandler(strId,cd);
 					}
 					catch(Throwable t){
+						ExceptionUtil.rethrowIfNecessary(t);
 						log.error("Cache-Handler",t);
 					}
 				}
@@ -806,7 +806,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						cs.setConfigListener(cl);
 					}
 				}
-				catch (Throwable t) {
+				catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					t.printStackTrace(config.getErrWriter());
 
 				}
@@ -1998,7 +1999,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			setDatasource(config, datasources, QOQ_DATASOURCE_NAME, 
 					new ClassDefinitionImpl("org.hsqldb.jdbcDriver","hsqldb","1.8.0",config.getIdentification()), 
 					"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", -1, -1, 60000, true, true, DataSource.ALLOW_ALL,
-					false, false, null, new StructImpl(), "",ParamSyntax.DEFAULT,false);
+					false, false, null, new StructImpl(), "",ParamSyntax.DEFAULT,false,false);
 		} catch (Exception e) {
 			log.error("Datasource", e);
 		}
@@ -2077,6 +2078,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						,getAttr(dataSource,"dbdriver")
 						,ParamSyntax.toParamSyntax(dataSource,ParamSyntax.DEFAULT)
 						,toBoolean(getAttr(dataSource,"literal-timestamp-with-tsoffset"), false)
+						,toBoolean(getAttr(dataSource,"always-set-timeout"), false)
+						
 						);
 				} catch (Exception e) {
 					log.error("Datasource", e);
@@ -2344,9 +2347,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			loadGateway(configServer, config, doc);
 		}
-		catch (Throwable t) {
-			t.printStackTrace();
-		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	private static void loadGateway(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
@@ -2440,11 +2441,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	private static void setDatasource(ConfigImpl config, Map<String, DataSource> datasources, String datasourceName, ClassDefinition cd, String server, String databasename,
 			int port, String dsn, String user, String pass, int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow,
-			boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax ps, boolean literalTimestampWithTSOffset) throws BundleException, ClassException, SQLException {
+			boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax ps, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout) throws BundleException, ClassException, SQLException {
 
 		datasources.put( datasourceName.toLowerCase(),
 				new DataSourceImpl(config,null,datasourceName, cd, server, dsn, databasename, port, user, pass, connectionLimit, connectionTimeout, metaCacheTimeout, blob, clob, allow,
-						custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver,ps,literalTimestampWithTSOffset,config.getLog("application")) );
+						custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver,ps,literalTimestampWithTSOffset,alwaysSetTimeout,config.getLog("application")) );
 
 	}
 
@@ -2455,8 +2456,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			setDatasource(config, datasources, datasourceName, cd, server, databasename, port, dsn, user, pass, connectionLimit, connectionTimeout, metaCacheTimeout, blob,
 					clob, allow, validate, storage, timezone, custom, dbdriver);
 		}
-		catch (Throwable t) {
-		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}*/
 
 	/**
@@ -3335,9 +3335,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				try {
 					return (PrintWriter) ClassUtil.loadInstance(classname);
 				}
-				catch (Throwable t) {
-					t.printStackTrace();
-				}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
 			else if (StringUtil.startsWithIgnoreCase(streamtype, "file:")) {
 				String strRes = streamtype.substring(5);
@@ -3347,9 +3345,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					if (res != null)
 						return new PrintWriter(res.getOutputStream(), true);
 				}
-				catch (Throwable t) {
-					t.printStackTrace();
-				}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
 
 		}
@@ -3985,7 +3981,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						requests.add(m);
 					}
 				}
-				catch (Throwable t) {
+				catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					SystemOut.printDate(config.getErrWriter(), ExceptionUtil.getStacktrace(t, true));
 				}
 			}

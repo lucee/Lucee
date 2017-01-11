@@ -98,7 +98,7 @@ public final class Hash40 implements Function {
 		    
 			return MD5Legacy.stringify( md.digest() ).toUpperCase();
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			throw Caster.toPageException(t);
 		}
 	}

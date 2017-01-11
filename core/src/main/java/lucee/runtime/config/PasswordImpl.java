@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
 import lucee.commons.digest.Hash;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.crypt.BlowfishEasy;
 import lucee.runtime.exp.PageException;
@@ -227,10 +228,7 @@ public class PasswordImpl implements Password {
 				}
 			}
 		}
-		catch (Throwable t) {
-			// Optinal functionality, ignore failures
-			t.printStackTrace();
-		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		return null;
 	}
 	/**

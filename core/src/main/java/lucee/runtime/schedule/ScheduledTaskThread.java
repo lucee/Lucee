@@ -24,6 +24,7 @@ import java.util.TimeZone;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
@@ -92,9 +93,7 @@ public class ScheduledTaskThread extends Thread {
 			task.setValid(false);
 			try {
 				scheduler.removeIfNoLonerValid(task);
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
+			} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		
 	}

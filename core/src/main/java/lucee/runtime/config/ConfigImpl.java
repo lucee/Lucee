@@ -3405,7 +3405,7 @@ public abstract class ConfigImpl implements Config {
 				it.next().close();
 			}
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		loggers.clear();
 	}
 	

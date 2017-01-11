@@ -188,6 +188,7 @@ public final class IOUtil {
     			skipped = in.skip(offset);
     		}
     		catch(Throwable t){
+    			ExceptionUtil.rethrowIfNecessary(t);
     			// skipped will be -1, see below
     		}
     		
@@ -234,6 +235,7 @@ public final class IOUtil {
     			skipped = in.skip(offset);
     		}
     		catch(Throwable t){
+    			ExceptionUtil.rethrowIfNecessary(t);
     			// skipped will be -1, see below
     		}
     		
@@ -389,7 +391,7 @@ public final class IOUtil {
     		 if(conn!=null)conn.close();
     	 } 
     	 //catch (AlwaysThrow at) {throw at;}
-    	 catch (Throwable t) {}
+    	 catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
      }
      
     /**
@@ -401,7 +403,7 @@ public final class IOUtil {
     		 if(is!=null)is.close();
     	 } 
     	 //catch (AlwaysThrow at) {throw at;}
-    	 catch (Throwable t) {}
+    	 catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
      }
      
      public static void closeEL(ZipFile zip) {
@@ -409,7 +411,7 @@ public final class IOUtil {
     		 if(zip!=null)zip.close();
     	 } 
     	 //catch (AlwaysThrow at) {throw at;}
-    	 catch (Throwable t) {}
+    	 catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
      }
      
      /**
@@ -421,7 +423,7 @@ public final class IOUtil {
                if(os!=null)os.close();
          } 
       	 //catch (AlwaysThrow at) {throw at;}
-         catch (Throwable e) {}
+         catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
        }
      
      public static void closeEL(ResultSet rs) {
@@ -949,6 +951,7 @@ public static String toString(Resource file, String charset) throws IOException 
         return baos.toByteArray();
     	}
     	catch(Throwable t){
+    		ExceptionUtil.rethrowIfNecessary(t);
     		return defaultValue;
     	}
     }
@@ -1008,7 +1011,8 @@ public static String toString(Resource file, String charset) throws IOException 
     	
     	/*try {
 			return URLConnection.guessContentTypeFromStream(is);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}*/
 		
@@ -1036,7 +1040,8 @@ public static String toString(Resource file, String charset) throws IOException 
         	Tika tika = new Tika();
         	return tika.detect(barr);
         } 
-        catch (Throwable t) {
+        catch(Throwable t) {
+        	ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
         }
     }
@@ -1192,6 +1197,7 @@ public static String toString(Resource file, String charset) throws IOException 
 				IOUtil.copy(r, w, blockSize, -1);
 			} 
 			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				this.t=t;
 			}
 			finally {

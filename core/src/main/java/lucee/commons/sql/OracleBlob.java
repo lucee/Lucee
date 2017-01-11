@@ -23,6 +23,7 @@ import java.sql.Blob;
 import java.sql.Connection;
 
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.op.Caster;
 
 public class OracleBlob {
@@ -60,6 +61,7 @@ public class OracleBlob {
 			return (Blob) blob;
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			//print.printST(t);
 		}
 		return defaultValue;

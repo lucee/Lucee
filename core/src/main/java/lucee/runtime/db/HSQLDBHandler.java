@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import lucee.commons.db.DBUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -237,7 +238,7 @@ public final class HSQLDBHandler {
 			//print.out("remove:"+tableName);
 			try {
 				removeTable(conn,tableName);
-			} catch (Throwable t) {}
+			} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 	}
 	

@@ -22,6 +22,7 @@ import java.io.IOException;
 import lucee.commons.digest.Hash;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.loader.util.Util;
 
@@ -72,7 +73,8 @@ public abstract class IdentificationImpl implements Identification {
 			}
 			return Md5.getDigestAsString(key+token);
 		} 
-    	catch (Throwable t) {
+    	catch(Throwable t) {
+    		ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}

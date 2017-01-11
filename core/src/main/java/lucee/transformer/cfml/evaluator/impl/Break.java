@@ -18,6 +18,7 @@
  **/
 package lucee.transformer.cfml.evaluator.impl;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.transformer.bytecode.cast.Cast;
 import lucee.transformer.bytecode.expression.var.VariableString;
@@ -96,7 +97,7 @@ public final class Break extends EvaluatorSupport {
 			Variable var=(Variable)value;
 			try {
 				return VariableString.variableToString(var, true);
-			} catch (Throwable t) {}
+			} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		return defaultValue;
 	}

@@ -57,6 +57,7 @@ import java.util.TimeZone;
 
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -293,6 +294,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 					hasResult=stat.getMoreResults();
 				}
 				catch(Throwable t){
+					ExceptionUtil.rethrowIfNecessary(t);
 					break;
 				}
 			}
@@ -331,7 +333,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 				return uc;
 			}
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		return -1;
 	}
 	
@@ -342,7 +344,8 @@ public class QueryImpl implements Query,Objects,QueryResult {
 			setGeneratedKeys(dc, rs,tz);
 			return true;
 		}
-		catch(Throwable t) {t.printStackTrace();
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return false;
 		}
 	}
@@ -2732,7 +2735,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		try {
 			out.writeUTF(new ScriptConverter().serialize(this));
 		} 
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	public int getHoldability() throws SQLException {
