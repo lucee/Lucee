@@ -7,9 +7,8 @@
 <cfset arrAllItems   = Application.objects.utils.getAllTags()>
 
 <cfif len( url.item )>
-
-	<cfif !arrAllItems.findNoCase( url.item )>
-
+	<cfset itemPos = arrAllItems.findNoCase( url.item )>
+	<cfif !itemPos>
 		<cfset url.item = "">
 	</cfif>
 
@@ -21,10 +20,21 @@
 			<cfset url.namespace = ns>
 		</cfif>
 	</cfloop>
+	<cfset prevLinkItem = itemPos GT 1 ? arrAllItems[itemPos-1] : "">
+	<cfset nextLinkItem = itemPos NEQ arrAllItems.len() ? arrAllItems[itemPos+1] : "">
+<cfelse>
+	<cfset prevLinkItem = "">
+	<cfset nextLinkItem = "">
 </cfif>
 
-
 <cfsavecontent variable="Request.htmlBody">
+	<style type="text/css">
+		.tt-suggestion.tt-selectable p{
+			margin: 0px !important;
+		}
+	</style>
+	<script src="assets/js/jquery-1.9.min.js.cfm" type="text/javascript"></script>
+	<script src="assets/js/typeahead.min.js.cfm"></script>
 
 	<script type="text/javascript">
 
@@ -33,37 +43,49 @@
 			var typeaheadData = #serializeJson( arrAllItems )#;
 		</cfoutput>
 
+		var substringMatcher = function(strs) {
+			return function findMatches(q, cb) {
+				var matches, substringRegex;
+
+				// an array that will be populated with substring matches
+				matches = [];
+
+				// regex used to determine if a string contains the substring `q`
+				substrRegex = new RegExp(q, 'i');
+
+				// iterate through the pool of strings and for any string that
+				// contains the substring `q`, add it to the `matches` array
+				$.each(strs, function(i, str) {
+					if (substrRegex.test(str)) {
+						matches.push(str);
+					}
+				});
+
+				cb(matches);
+			};
+		};
+
 		$( function() {
+			$( '#lucee-docs-search-input' ).typeahead(
+				{
+					hint: true,
+					highlight: true,
+					minLength: 1
+				},
+				{ source: substringMatcher(typeaheadData) }
+			).on('typeahead:selected', typeaheadSelected);
 
-			$( '#search-item' ).typeahead( {
-
-				source: typeaheadData
-			});
+			function typeaheadSelected($e, datum){
+				window.location.href = "tags.cfm?item=" + datum.toString();
+			}
 		});
 	</script>
 </cfsavecontent>
 
-
-<cfmodule template="doc_layout.cfm" title="Lucee Tag Reference">
+<cfmodule template="doc_layout.cfm" title="Lucee Tag Reference" prevLinkItem="#prevLinkItem#" nextLinkItem="#nextLinkItem#">
 
 
 <cfoutput>
-
-	<form id="form-item-selector" action="#CGI.SCRIPT_NAME#">
-		<div class="centered x-large">
-
-			#stText.doc.choosetag#:
-			<input type="text" name="item" id="search-item" autocomplete="off">
-
-			<input type="submit" value="#stText.Buttons.OK#">
-		</div>
-		<cfif len( url.item )>
-
-			<div class="centered" style="padding: 0.5em;"><a href="#CGI.SCRIPT_NAME#">see all tags</a></div>
-		</cfif>
-	</form>
-
-
 	<cfif len( url.item )>
 
 		<cfset data = getTagData( url.namespace, url.item )>
@@ -72,6 +94,15 @@
 		<cfparam name="data.attributes" default="#{}#">
 		<cfparam name="data.attributetype" default="fixed">
 
+		<div class="tile-wrap">
+			<div class="tile">
+				<ul class="breadcrumb margin-no-top margin-right margin-no-bottom margin-left">
+					<li><a href="index.cfm">Home</a></li>
+					<li><a href="tags.cfm">Lucee tags</a></li>
+					<li class="active">&lt;#lCase( tagName )#&gt;</li>
+				</ul>
+			</div>
+		</div>
 		<h2>Tag <em>&lt;#uCase( tagName )#&gt;</em></h2>
 
 		<cfif data.status == "deprecated">
@@ -175,20 +206,53 @@
 		</cfif>
 	<cfelse><!--- len( url.item) !--->
 
-		<!--- render index !--->
-		<br>
+		<div class="tile-wrap">
+			<div class="tile">
+				<ul class="breadcrumb margin-no-top margin-right margin-no-bottom margin-left">
+					<li><a href="index.cfm">Home</a></li>
+					<li class="active">Lucee tags</li>
+				</ul>
+			</div>
+		</div>
 
-		<cfset lastPrefix = "">
-		<cfloop array="#arrAllItems#" item="ai" index="ii">
+		<p>Tags are at the core of Lucee Server's templating language. You can check out every tag that has been created using the A-Z index below.</p>
 
-			<cfif left( ai, 3 ) != lastPrefix>
-
-				<div style="height: 0.65em;"></div>
-				<cfset lastPrefix = left( ai, 3 )>
-			</cfif>
-
-			<a href="#CGI.SCRIPT_NAME#?item=#ai#" class="index-item">#ai#</a>
+		<cfset qryAllItems = queryNew("tags")>
+		<cfloop array="#arrAllItems#" index="ai">
+			<cfset QueryAddRow(qryAllItems, ["#lCase(ai)#"])>
 		</cfloop>
+
+		<cfset list = "_,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z">
+		<cfset myarray= {}>
+
+		<div class="tile-wrap tile-wrap-animation">
+			<cfloop index="i"  list="#list#">
+				<cfif i EQ "_">
+					<cfset queryList = queryNew("tags")>
+					<cfset QueryAddRow(queryList, ["cf_"])>
+				<cfelse>
+					<cfquery name="queryList" dbtype="query">
+						SELECT tags FROM qryAllItems  WHERE tags LIKE 'cf#i#%';
+					</cfquery>
+				</cfif>
+				<div class="tile tile-collapse tile-collapse-full">
+					<div class="tile-toggle" data-target="##function-#lCase(i)#" data-toggle="tile">
+						<div class="tile-inner">
+							<div class="text-overflow"><strong>#uCase(i)#</strong></div>
+						</div>
+					</div>
+					<div class="tile-active-show collapse" id="function-#lCase(i)#">
+						<cfloop list="#valueList(queryList.tags)#" index="currTag">
+							<span class="tile">
+								<div class="tile-inner">
+									<div class="text-overflow"><a href="tags.cfm?item=#currTag#">&lt;#currTag#&gt;</a></div>
+								</div>
+							</span>
+						</cfloop>
+					</div>
+				</div>
+			</cfloop>
+		</div>
 
 	</cfif><!--- len( url.item) !--->
 
