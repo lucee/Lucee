@@ -200,6 +200,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	private static final String COMPONENT_EXTENSION_LUCEE = "lucee";
 	private static final long GB1 = 1024*1024*1024;
 	public static final boolean LOG = true;
+	private static final int DEFAULT_MAX_CONNECTION = 100;
 
 	/**
 	 * creates a new ServletConfig Impl Object
@@ -1998,7 +1999,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			setDatasource(config, datasources, QOQ_DATASOURCE_NAME, 
 					new ClassDefinitionImpl("org.hsqldb.jdbcDriver","hsqldb","1.8.0",config.getIdentification()), 
-					"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", -1, -1, 60000, true, true, DataSource.ALLOW_ALL,
+					"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", DEFAULT_MAX_CONNECTION, -1, 60000, true, true, DataSource.ALLOW_ALL,
 					false, false, null, new StructImpl(), "",ParamSyntax.DEFAULT,false,false);
 		} catch (Exception e) {
 			log.error("Datasource", e);
@@ -2065,7 +2066,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						,getAttr(dataSource,"dsn")
 						,getAttr(dataSource,"username")
 						,ConfigWebUtil.decrypt(getAttr(dataSource,"password"))
-						,Caster.toIntValue(getAttr(dataSource,"connectionLimit"), -1)
+						,Caster.toIntValue(getAttr(dataSource,"connectionLimit"), DEFAULT_MAX_CONNECTION)
 						,Caster.toIntValue(getAttr(dataSource,"connectionTimeout"), -1)
 						,Caster.toLongValue(getAttr(dataSource,"metaCacheTimeout"), 60000)
 						,toBoolean(getAttr(dataSource,"blob"), true)

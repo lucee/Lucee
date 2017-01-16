@@ -155,9 +155,8 @@ list all mappings and display necessary edit fields --->
 	</cfif>
 </cfloop> --->
 <cfset querySort(datasources,"name")>
-<cfset srcLocal=queryNew("name,classname,dsn,username,password,readonly,storage")>
-<cfset srcGlobal=queryNew("name,classname,dsn,username,password,readonly,storage")>
-		
+<cfset srcLocal=queryNew("name,classname,dsn,username,password,readonly,storage,openConnections")>
+<cfset srcGlobal=queryNew("name,classname,dsn,username,password,readonly,storage,openConnections")>
 <cfloop query="datasources">
 	<cfif not datasources.readOnly>
 		<cfset QueryAddRow(srcLocal)>
@@ -166,6 +165,7 @@ list all mappings and display necessary edit fields --->
 		<cfset QuerySetCell(srcLocal,"dsn",datasources.dsn)>
 		<cfset QuerySetCell(srcLocal,"username",datasources.username)>
 		<cfset QuerySetCell(srcLocal,"password",datasources.password)>
+		<cfset QuerySetCell(srcLocal,"openConnections",datasources.openConnections)>
 		<cfset QuerySetCell(srcLocal,"readonly",datasources.readonly)>
 		<cfset QuerySetCell(srcLocal,"storage",datasources.storage)>
 	<cfelse>
@@ -175,6 +175,7 @@ list all mappings and display necessary edit fields --->
 		<cfset QuerySetCell(srcGlobal,"dsn",datasources.dsn)>
 		<cfset QuerySetCell(srcGlobal,"username",datasources.username)>
 		<cfset QuerySetCell(srcGlobal,"password",datasources.password)>
+		<cfset QuerySetCell(srcGlobal,"openConnections",datasources.openConnections)>
 		<cfset QuerySetCell(srcGlobal,"readonly",datasources.readonly)>
 		<cfset QuerySetCell(srcGlobal,"storage",datasources.storage)>
 	</cfif>
@@ -192,6 +193,7 @@ list all mappings and display necessary edit fields --->
 						<th width="3%"><input type="checkbox" class="checkbox" name="rowreadonly" onclick="selectAll(this)" /></th>
 						<th width="28%">#stText.Settings.Name#</th>
 						<th width="55%">#stText.Settings.Type#</th>
+						<th width="8%">#stText.Settings.openConn#</th>
 						<th width="8%">#stText.Settings.dbStorage#</th>
 						<th width="6%">#stText.Settings.DBCheck#</th>
 					</tr>
@@ -210,6 +212,7 @@ list all mappings and display necessary edit fields --->
 								#srcGlobal.name#
 							</td>
 							<td>#getDbDriverTypeName(srcGlobal.ClassName,srcGlobal.dsn)#</td>
+							<td>#srcGlobal.openConnections#</td>
 							<td>#yesNoFormat(srcGlobal.storage)#</td>
 							<td>
 								<cfif StructKeyExists(stVeritfyMessages, srcGlobal.name)>
@@ -253,6 +256,7 @@ list all mappings and display necessary edit fields --->
 						<th width="3%"><input type="checkbox" class="checkbox" name="rowread" onclick="selectAll(this)" /></th>
 						<th width="25%">#stText.Settings.Name#</th>
 						<th width="55%">#stText.Settings.Type#</th>
+						<cfif request.adminType EQ "web"><th width="8%">#stText.Settings.openConn#</th></cfif>
 						<th width="8%">#stText.Settings.dbStorage#</th>
 						<th width="6%">#stText.Settings.DBCheck#</th>
 						<th width="3%">&nbsp;</th>
@@ -287,6 +291,7 @@ list all mappings and display necessary edit fields --->
 									<div class="comment">#stText.settings.datasource.driverName#: #qDbInfo.DRIVER_NAME# #qDbInfo.DRIVER_VERSION# (JDBC #qDbInfo.JDBC_MAJOR_VERSION#.#qDbInfo.JDBC_MINOR_VERSION#)</div>
 								</cfif>
 							</td>
+							<cfif request.adminType EQ "web"><td class="tblContent#css# longwords">#srcLocal.openConnections#</td></cfif>
 							<td class="tblContent#css# longwords">#yesNoFormat(srcLocal.storage)#</td>
 							<td class="tblContent#css# longwords">
 								<cfif StructKeyExists(stVeritfyMessages, srcLocal.name)>

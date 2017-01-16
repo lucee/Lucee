@@ -20,6 +20,7 @@ package lucee.runtime.db;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -36,8 +37,6 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.Array;
-import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
@@ -215,25 +214,26 @@ public class DatasourceConnectionPool {
 		return true;
 	}
 	
-	public Array meta() {
+	public Struct meta() {
 		Iterator<Entry<String, DCStack>> it = dcs.entrySet().iterator();
 		Entry<String, DCStack> e;
 		DCStack dcstack;
 		DataSource ds;
 		Struct sct;
-		Array arr=new ArrayImpl();
+		Struct arr=new StructImpl();
 		while(it.hasNext()) {
 			e = it.next();
 			dcstack = e.getValue();
 			ds = dcstack.getDatasource();
 			sct=new StructImpl();
-			try {sct.setEL(KeyConstants._used, _getCounter(e.getKey()).toDouble());}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+			//try {sct.setEL(KeyConstants._used, _getCounter(e.getKey()).toDouble());}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			try {sct.setEL(KeyConstants._name, ds.getName());}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			try {sct.setEL("connectionLimit", ds.getConnectionLimit());}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			try {sct.setEL("connectionTimeout", ds.getConnectionTimeout());}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			try {sct.setEL("connectionString", ds.getConnectionStringTranslated());}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+			try {sct.setEL("openConnections", openConnections(ds.getName()));}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			try {sct.setEL(KeyConstants._database, ds.getDatabase());}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
-			if(sct.size()>0)arr.appendEL(sct);
+			if(sct.size()>0)arr.setEL(ds.getName(),sct);
 		}
 		return arr;
 	}
@@ -250,13 +250,25 @@ public class DatasourceConnectionPool {
 		}
 	}
 	
-	public int openConnections() {
+	public Map<String,Integer> openConnections() {
+		Map<String,Integer> map=new HashMap<String, Integer>();
 		Iterator<DCStack> it = dcs.values().iterator();
-		int count=0;
+
+		DCStack dcstack;
 		while(it.hasNext()){
-			count+=it.next().openConnections();
+			dcstack=it.next();
+			Integer val = map.get(dcstack.getDatasource().getName());
+			if(val==null) val=dcstack.openConnections();
+			else val=val.intValue()+dcstack.openConnections();
+			map.put(dcstack.getDatasource().getName(), val);
 		}
-		return count;
+		return map;
+	}
+	
+	public int openConnections(String dataSourceName) {
+		Integer res = openConnections().get(dataSourceName);
+		if(res==null) return -1;
+		return res.intValue();
 	}
 
 	private void _inc(DataSource datasource, String username,String password) {
