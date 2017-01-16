@@ -389,7 +389,7 @@ public final class FileTag extends BodyTagImpl {
 		break;
 		case ACTION_INFO: actionInfo();
 		break;
-		case ACTION_TOUCH: actionTouch();
+		case ACTION_TOUCH: actionTouch(pageContext, securityManager, file,serverPassword,createPath,acl, mode, attributes);
 		break;
 		case ACTION_UNDEFINED: throw new ApplicationException("missing attribute action"); // should never happens
 		
@@ -684,9 +684,14 @@ public final class FileTag extends BodyTagImpl {
     
     /**
      * write to the source file
+     * @param attributes 
+     * @param mode 
+     * @param acl 
+     * @param serverPassword, booleancreatePath 
      * @throws PageException
      */
-    private void actionTouch() throws PageException {
+    public static void actionTouch(PageContext pageContext, SecurityManager securityManager, 
+    		Resource file, String serverPassword, boolean createPath, Object acl, int mode, String attributes) throws PageException {
         checkFile(pageContext, securityManager, file, serverPassword,createPath,true,true,true);
         
         try {

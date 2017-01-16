@@ -4859,6 +4859,29 @@ If omitted, the file's attributes are maintained.</description>
 			<type>void</type>
 		</return>
 	</function>
+
+	<!-- fileTouch -->
+	<function>
+		<name>fileTouch</name>
+		<class>lucee.runtime.functions.file.FileTouch</class>
+		<description>Touches given file, creates the file if not already exists.</description>
+		<argument>
+			<name>file</name>
+			<type>any</type>
+			<required>Yes</required>
+		<description>file to touch.</description>
+    	</argument>
+		<argument>
+			<name>createPath</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>if set to false, expects all parent directories to exist, true (default) will generate necessary directories</description>
+		</argument>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
+	
 	<!-- FileDelete -->
 	<function>
 		<name>FileDelete</name>
