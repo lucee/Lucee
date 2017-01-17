@@ -105,8 +105,13 @@
 		<cfset first=true>
 		<cfset optCount=0>
 		<h2>#stText.doc.example#</h2>
-		<pre><span class="syntaxFunc">#data.name#(</span><cfloop array="#data.arguments#" index="item"><cfif item.status EQ "hidden"><cfcontinue></cfif><cfif not first><span class="syntaxFunc">,</span></cfif><cfif not item.required><cfset optCount=optCount+1><span class="syntaxFunc">[</span></cfif><span class="syntaxType">#item.type#</span> <span class="syntaxText">#item.name#</span><cfset first=false></cfloop><span class="syntaxFunc">#RepeatString(']',optCount)#):</span><span class="syntaxType">#data.returntype#</span></pre>
+		<pre><span class="nf">#data.name#</span><span class="p">(</snap><cfloop array="#data.arguments#" index="item"><cfif item.status EQ "hidden"><cfcontinue></cfif><cfif not first><span class="nv">,</span></cfif><cfif not item.required><cfset optCount=optCount+1><span class="nv">[</span></cfif><span class="nv">#item.type#</span> <span class="nv">#item.name#</span><cfset first=false></cfloop><span class="syntaxFunc">#RepeatString(']',optCount)#):</span><span class="syntaxType">#data.returntype#</span></pre>
 
+		<!--- Category --->
+		<cfif structKeyExists(data, "keywords") AND !arrayIsEmpty(data.keywords)>
+			<h2>#stText.doc.category#</h2>
+			<div class="text">#arraytolist(data.keywords)#</div>
+		</cfif>
 		<!--- Argumente --->
 		<h2>#stText.doc.argTitle#</h2>
 		<cfif data.argumentType EQ "fixed" and not arraylen(data.arguments)>
