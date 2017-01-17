@@ -1,4 +1,5 @@
 <cfinclude template="/lucee/admin/resources/text.cfm">
+<cfset stText.doc.attr.default="Default Value">
 
 <cfparam name="URL.namespace" default="cf">
 
@@ -84,10 +85,8 @@
 
 <cfmodule template="doc_layout.cfm" title="Lucee Tag Reference" prevLinkItem="#prevLinkItem#" nextLinkItem="#nextLinkItem#">
 
-
 <cfoutput>
 	<cfif len( url.item )>
-
 		<cfset data = getTagData( url.namespace, url.item )>
 		<cfset tagName = data.namespace & data.namespaceseperator & data.name>
 
@@ -129,39 +128,100 @@
 		<cfif data.hasNameAppendix><cfset tagName &= "CustomName"></cfif>
 
 		<!--- TODO: color coded example tag --->
-		<pre>	<span class="syntaxTag">&lt;#tagName#</span><cfif data.attributeType == "noname"> <span class="syntaxAttr">##<cfloop array="#arrAttrNames#" index="key">#data.attributes[key].type# <cfbreak></cfloop>expression##</span> <cfelse><!---
-	---><cfloop array="#arrAttrNames#" index="key"><cfset attr = data.attributes[ key ]><cfif attr.status EQ "hidden"><cfcontinue></cfif>
-		<cfif !attr.required><span class="syntaxAttr">[</span></cfif><!---
-		---><span class="syntaxAttr">#key#</span>=<span class="syntaxText">"<cfif !attr.required><i></cfif>#attr.type#<cfif !attr.required></i></cfif>"</span><!---
-		---><cfif !attr.required><span class="syntaxAttr">]</span></cfif></cfloop></cfif><!---
+	<pre><!---
+		---><span class="nt">&lt;#tagName#</span><!---
+		---><cfif data.attributeType == "noname"><!---
+			---> <span class="syntaxTag">##<!---
+				---><cfloop array="#arrAttrNames#" index="key"><!---
+					--->#data.attributes[key].type# <cfbreak><!---
+				---></cfloop><!---
+				--->expression##<!---
+			---></span><!---
+		---><cfelse><!---
+			---><cfloop array="#arrAttrNames#" index="key"><!---
+				---><cfset attr = data.attributes[ key ]><!---
+				---><cfif attr.status EQ "hidden"><cfcontinue></cfif><!---
+				--->
+	<cfif !attr.required><span class="err">[</span></cfif><!---
+				---><span class="na">#key#=</span><!---
+				---><span class="s"><!---
+					---><cfif !attr.required><i></cfif><cfif attr.keyExists("values")>#attr["values"].toList("|")#<cfelse>#attr.type#</cfif><cfif !attr.required></i></cfif><!---
+				---></span><!---
+				---><cfif !attr.required><span class="err">]</span></cfif><!---
+			---></cfloop><!---
+		---></cfif><!---
 
-	---><cfif data.attributeType == "dynamic" || data.attributeType == "mixed"> <span class="syntaxAttr">...</span> </cfif><cfif data.bodyType == "prohibited"><span class="syntaxTag">&gt;</span>
-	<cfelseif data.bodyType == "free"><span class="syntaxTag">&gt;
+		---><cfif data.attributeType == "dynamic" || data.attributeType == "mixed"> <span class="syntaxAttr">...</span> </cfif><!---
+		---><cfif data.bodyType == "prohibited"><!---
+			---><span class="nt">&gt;</span><!---
+		---><cfelseif data.bodyType == "free"><!---
+			---><span class="nt">&gt;</span><!---
+			--->
+<span class="err">[</span><!---
+			---><span class="nt">&lt;/#tagName#&gt;</span><!---
+			---><span class="err">]</span><!---
+		---><cfelseif data.bodyType == "required"><!---
+			---><span class="nt">&gt;<!---
+			--->
+&lt;/#tagName#&gt;</span><!---
+		---></cfif><!---
+	---></pre>
 
-	[&lt;/#tagName#&gt;]</span>
-	<cfelseif data.bodyType == "required"><span class="syntaxTag">&gt;
+	<cfif data.keyExists( "script" ) && data.script.type != "none">
+		<cfset arrAttrNames = data.attributes.keyArray().sort( 'textnocase' )>
+		<div class="text">#stText.doc.alsoScript#</div>
+		<!--- <cfabort showerror="Test"/> --->
+<pre>
+<span class="nt">&lt;cfscript&gt;</span>
+	<span class="nt">#data.name#</span><!---
+	---><cfif data.attributeType == "noname"><!---
+		---> <span class="syntaxAttr">##<!---
+			---><cfloop array="#arrAttrNames#" index="key">#data.attributes[ key ].type# <cfbreak></cfloop><!---
+			--->expression##<!---
+		---></span><!---
+	---><cfelseif data.script.type == "single"><!---  AND listFindNoCase("abort,break", data.name) ---><!---
+		---> <span class="syntaxAttr"><!---
+			---><cfloop array="#arrAttrNames#" index="key"><!---
+				---><cfset ss = data.attributes[ key ].scriptSupport><!---
+				---><cfset attr = data.attributes[ key ]><!---
+				---><cfif ss != "none"><!---
+					---><cfif ss == "optional"><span class="err">[</span></cfif><!---
+					---><cfif attr.keyExists("values")>#attr["values"].toList("|")#<cfelse>#attr.type#</cfif><!---
+					---><cfif data.script.rtexpr> expression</cfif><!---
+					---><cfif ss == "optional"><span class="err">]</span></cfif><!---
+					---><cfbreak><!---
+				---></cfif><!---
+			---></cfloop><!---
+		---></span><!---
+	---><cfelse><!---
+		---><cfloop array="#arrAttrNames#" index="key"><!---
+			---><cfset attr=data.attributes[key]><!---
+			---><cfif attr.status == "hidden"><cfcontinue></cfif>
+		<cfif !attr.required><span class="err">[</span></cfif><!---
+			---><span class="na">#key#=</span><!---
+			---><span class="s"><!---
+				---><cfif !attr.required></cfif><!---
+				---><cfif attr.keyExists("values")>#attr["values"].toList("|")#<cfelse>#attr.type#</cfif><!---
+				---><cfif !attr.required><!---
+					---><span class="err">]</span><!---
+			---></span><!---
+				---></cfif><!---
+		---></cfloop><!---
+	---></cfif><!---
 
-	&lt;/#tagName#&gt;</span></cfif></pre>
-
-		<cfif data.keyExists( "script" ) && data.script.type != "none">
-
-			<cfset arrAttrNames = data.attributes.keyArray().sort( 'textnocase' )>
-			<div class="text">#stText.doc.alsoScript#</div>
-			<pre><span class="syntaxTag">	&lt;cfscript></span>
-		<span class="syntaxAttr">#data.name#</span><!---
-	No Name ---><cfif data.attributeType == "noname"> <span class="syntaxAttr">##<cfloop array="#arrAttrNames#" index="key">#data.attributes[ key ].type# <cfbreak></cfloop>expression##</span><!---
-	Single type ---><cfelseif data.script.type == "single"><span class="syntaxAttr"><cfloop array="#arrAttrNames#" index="key"><cfset ss = data.attributes[ key ].scriptSupport><cfif ss != "none"> <!---
-	 ---><cfif ss == "optional">[</cfif>#data.attributes[ key ].type#<cfif data.script.rtexpr> expression</cfif><cfif ss == "optional">]</cfif><cfbreak></cfif></cfloop></span><!---
-	multiple ---><cfelse><cfloop array="#arrAttrNames#" index="key"><cfset attr=data.attributes[key]><cfif attr.status == "hidden"><cfcontinue></cfif>
-		<cfif !attr.required><span class="syntaxAttr">[</span></cfif><!---
-		---><span class="syntaxAttr">#key#</span>=<span class="syntaxText">"<cfif !attr.required><i></cfif>#attr.type#<cfif !attr.required></i></cfif>"</span><!---
-		---><cfif !attr.required><span class="syntaxAttr">]</span></cfif></cfloop></cfif><!---
-
-	---><cfif data.attributeType == "dynamic" || data.attributeType == "mixed"> <span class="syntaxAttr">...</span> </cfif><cfif data.bodyType == "prohibited"><span class="syntaxAttr">;</span><cfelseif data.bodyType == "required" || data.bodyType == "free"><span class="syntaxAttr"> {
-
-	}</span></cfif>
-	<span class="syntaxTag">&lt;/cfscript></span></pre>
-		</cfif>
+	---><cfif data.attributeType == "dynamic" || data.attributeType == "mixed"><!---
+		---><span class="syntaxAttr">...</span><!---
+	---></cfif><!---
+	---><cfif data.bodyType == "prohibited"><!---
+		---><span class="syntaxAttr">;</span><!---
+	---><cfelseif data.bodyType == "required" || data.bodyType == "free"><!---
+		---><span class="syntaxAttr"> {
+			[...]
+	}</span><!---
+	---></cfif>
+<span class="nt">&lt;/cfscript></span>
+</pre>
+	</cfif>
 
 		<!--- Attributes --->
 		<h2>#stText.doc.attrTitle#</h2>
@@ -180,6 +240,7 @@
 				</cfif>
 			</div>
 		</cfif>
+		<cfset isdefault = Findnocase('defaultValue', serializeJSON(data))>
 		<cfif ( data.attributeType == "fixed" || data.attributeType == "mixed" ) && arrayLen( arrAttrNames )>
 			<table class="maintbl">
 				<thead>
@@ -187,7 +248,8 @@
 						<th width="21%">#stText.doc.attr.name#</th>
 						<th width="7%">#stText.doc.attr._type#</th>
 						<th width="7%">#stText.doc.attr.required#</th>
-						<th width="65%">#stText.doc.attr.description#</th>
+						<cfif val(isdefault)><th width="7%">#stText.doc.attr.default#</th></cfif>
+						<th width="65">#stText.doc.attr.description#</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -198,6 +260,7 @@
 							<td>#key#</td>
 							<td><cfif attr.type EQ "object">any<cfelse>#attr.type#</cfif></td>
 							<td>#YesNoFormat(attr.required)#</td>
+							<cfif val(isdefault)><td><cfif structKeyExists(attr, "defaultValue")>#attr.defaultValue#</cfif></td></cfif>
 							<td><cfif attr.status EQ "deprecated"><b class="error">#stText.doc.depAttr#</b><cfelse>#Application.objects.utils.formatAttrDesc( attr.description )#</cfif>&nbsp;</td>
 						</tr>
 					</cfloop>

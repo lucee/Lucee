@@ -1,4 +1,5 @@
 <cfinclude template="/lucee/admin/resources/text.cfm">
+<cfset stText.doc.attr.default="Default Value">
 
 <cfset itemList = Application.objects.utils.getMemberFunctions()>
 <cfset arrAllItems = itemList.keyArray().sort( 'textnocase' )>
@@ -105,6 +106,12 @@
 		<cfset optCount=0>
 		<pre><span class="syntaxFunc">#ucFirst(data.member.type)#.#data.member.name#(</span><cfloop array="#data.arguments#" index="index" item="item"><cfif index EQ 1 or item.status EQ "hidden"><cfcontinue></cfif><cfif not first><span class="syntaxFunc">,</span></cfif><cfif not item.required><cfset optCount=optCount+1><span class="syntaxFunc">[</span></cfif><span class="syntaxType">#item.type#</span> <span class="syntaxText">#item.name#</span><cfset first=false></cfloop><span class="syntaxFunc">#RepeatString(']',optCount)#):</span><span class="syntaxType">#data.returntype#</span></pre>
 
+		<!--- Category --->
+		<cfif structKeyExists(data, "keywords") AND !arrayIsEmpty(data.keywords)>
+			<h2>#stText.doc.category#</h2>
+			<div class="text">#arraytolist(data.keywords)#</div>
+		</cfif>
+
 		<!--- Argumente --->
 		<h2>#stText.doc.argTitle#</h2>
 		<div class="itemintro">
@@ -115,12 +122,17 @@
 			</cfif>
 		</div>
 		<cfif data.argumentType EQ "fixed" and arraylen(data.arguments) GT 1>
+			<cfset hasdefaults=false>
+			<cfloop array="#data.arguments#" index="key" item="val">
+				<cfif !isNull(val.defaultValue)><cfset hasdefaults=true></cfif>
+			</cfloop>
 			<table class="maintbl">
 				<thead>
 					<tr>
 						<th width="20%">#stText.doc.arg.name#</th>
 						<th width="7%">#stText.doc.arg._type#</th>
 						<th width="7%">#stText.doc.arg.required#</th>
+						<cfif hasdefaults><th width="7%">#stText.doc.attr.default#</th></cfif>
 						<th width="66%">#stText.doc.arg.description#</th>
 					</tr>
 				</thead>
@@ -131,6 +143,7 @@
 							<td>#attr.name	#</td>
 							<td>#attr.type#&nbsp;</td>
 							<td>#YesNoFormat(attr.required)#</td>
+							<cfif hasdefaults><td><cfif isNull(attr.defaultValue)>&nbsp;<cfelse>#attr.defaultValue#</cfif></td></cfif>
 							<td>
 								<cfif attr.status == "deprecated">
 									<b class="error">#stText.doc.depArg#</b>

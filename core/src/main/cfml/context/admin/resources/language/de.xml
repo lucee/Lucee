@@ -1055,6 +1055,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="doc.attr.type.dynamic">Für dieses Tag gibt es keine Beschränkung was für Attribute verwendet werden dürfen.</data>
 	<data key="doc.attr.max">Lediglich die Anzahl der Attribute ist auf {max} beschränkt.</data>
 	<data key="doc.attr.description">Beschreibung</data>
+	<data key="doc.attr.default">Standardwert</data>
 	<data key="doc.body.prohibited">Dieses Tag darf keinen Body haben.</data>
 	<data key="doc.body.required">Dieses Tag muss einen Body haben.</data>
 	<data key="doc.body.free">Dieses Tag darf einen Body haben, muss aber nicht.</data>
@@ -1080,6 +1081,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="doc.example">Beispiel</data>
 	<data key="doc.chooseTag">Choose a tag</data>
 	<data key="doc.chooseFunction">Choose a function</data>
+	<data key="doc.category">Kategorie</data>
 	<data key="overview.installedtls">Installierte Tag Bibliotheken</data>
 	<data key="overview.bugreport">Fehlerreport</data>
 	<data key="overview.Docs">Documentation</data>
