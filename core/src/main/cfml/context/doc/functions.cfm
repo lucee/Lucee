@@ -1,3 +1,4 @@
+<cfsetting showDebugOutput=false>
 <cfinclude template="/lucee/admin/resources/text.cfm">
 <cfset stText.doc.attr.default="Default Value">
 

@@ -1,3 +1,4 @@
+<cfsetting showDebugOutput=false>
 <cfinclude template="/lucee/admin/resources/text.cfm">
 <cfset stText.doc.attr.default="Default Value">
 
@@ -40,7 +41,6 @@
 	<script type="text/javascript">
 
 		<cfoutput>
-
 			var typeaheadData = #serializeJson( arrAllItems )#;
 		</cfoutput>
 
@@ -286,7 +286,6 @@
 		</cfloop>
 
 		<cfset list = "_,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z">
-		<cfset myarray= {}>
 
 		<div class="tile-wrap tile-wrap-animation">
 			<cfloop index="i"  list="#list#">
