@@ -1,3 +1,4 @@
+<cfsetting showDebugOutput=false>
 <cfparam name="Attributes.prevLinkItem" default="">
 <cfparam name="Attributes.nextLinkItem" default="">
 <cfoutput>
@@ -31,6 +32,9 @@
 								</li>
 								<li class=" ">
 									<a href="objects.cfm">Objects</a>
+								</li>
+								<li class=" ">
+									<a href="categories.cfm">Categories</a>
 								</li>
 							</ul>
 						</div>
