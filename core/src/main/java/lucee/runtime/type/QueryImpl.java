@@ -820,14 +820,10 @@ public class QueryImpl implements Query,Objects,QueryResult {
 				);
 	}
 
-    private boolean getKeyCase( PageContext pc ){
-        pc=ThreadLocalPageContext.get( pc );
-        boolean upperCase = false;
-        if( pc != null ){
-          upperCase = pc.getCurrentTemplateDialect()== CFMLEngine.DIALECT_CFML && !((ConfigWebImpl)pc.getConfig()).preserveCase();
-        }
-        return upperCase;
-    }
+    private boolean getKeyCase( PageContext pc ) {
+		pc = ThreadLocalPageContext.get(pc);
+		return pc != null && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !((ConfigWebImpl) pc.getConfig()).preserveCase();
+	}
 
 	@Override
 	public Object getAt(String key, int row, Object defaultValue) {
@@ -840,11 +836,10 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		if(index!=-1) {
 			return columns[index].get(row,defaultValue);
 		}
-		boolean upperCase = getKeyCase(ThreadLocalPageContext.get());
 		if(key.length()>=10) {
 	        if(key.equals(KeyConstants._RECORDCOUNT)) return new Double(getRecordcount());
 	        if(key.equals(KeyConstants._CURRENTROW)) return new Double(row);
-	        if(key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(upperCase);
+	        if(key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get()));
 		}
         return defaultValue;
 	}
@@ -860,13 +855,12 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		if(index!=-1) {
 			return columns[index].get(row, NullSupportHelper.full()?null:"");
 		}
-		boolean upperCase = getKeyCase(ThreadLocalPageContext.get());
 		if(key.length()>=10) {
         	if(key.equals(KeyConstants._RECORDCOUNT)) return new Double(getRecordcount());
         	if(key.equals(KeyConstants._CURRENTROW)) return new Double(row);
-			if(key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(upperCase);
+			if(key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get()));
         }
-		throw new DatabaseException("column ["+key+"] not found in query, columns are ["+getColumnlist(upperCase)+"]",null,sql,null);
+		throw new DatabaseException("column ["+key+"] not found in query, columns are ["+getColumnlist(getKeyCase(ThreadLocalPageContext.get()))+"]",null,sql,null);
 	}
 
 
@@ -902,13 +896,12 @@ public class QueryImpl implements Query,Objects,QueryResult {
 
         QueryColumn removed = removeColumnEL(key);
         if(removed==null) {
-        	boolean upperCase = getKeyCase(ThreadLocalPageContext.get());
-            if(key.equals(KeyConstants._RECORDCOUNT) ||
+             if(key.equals(KeyConstants._RECORDCOUNT) ||
             		key.equals(KeyConstants._CURRENTROW) ||
             		key.equals(KeyConstants._COLUMNLIST))
-                throw new DatabaseException("can't remove "+key+" this is not a row","existing rows are ["+getColumnlist(upperCase)+"]",null,null);
+                throw new DatabaseException("can't remove "+key+" this is not a row","existing rows are ["+getColumnlist(getKeyCase(ThreadLocalPageContext.get()))+"]",null,null);
             throw new DatabaseException("can't remove row ["+key+"], this row doesn't exist",
-                    "existing rows are ["+getColumnlist(upperCase)+"]",null,null);
+                    "existing rows are ["+getColumnlist(getKeyCase(ThreadLocalPageContext.get()))+"]",null,null);
         }
         return removed;
 	}
@@ -975,11 +968,10 @@ public class QueryImpl implements Query,Objects,QueryResult {
 
     public Object setAt(Collection.Key key, int row, Object value) throws PageException {
 		int index=getIndexFromKey(key);
-		boolean upperCase = getKeyCase( ThreadLocalPageContext.get() );
         if(index!=-1) {
             return columns[index].set(row,value);
         }
-        throw new DatabaseException("column ["+key+"] does not exist","columns are ["+getColumnlist(upperCase)+"]",sql,null);
+        throw new DatabaseException("column ["+key+"] does not exist","columns are ["+getColumnlist(getKeyCase(ThreadLocalPageContext.get()))+"]",sql,null);
 	}
 
     @Override
@@ -1281,13 +1273,12 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	public QueryColumn getColumn(Collection.Key key) throws DatabaseException {
 		int index=getIndexFromKey(key);
 		if(index!=-1) return columns[index];
-   		boolean upperCase = getKeyCase( ThreadLocalPageContext.get() );
 		if(key.length()>=10) {
         	if(key.equals(KeyConstants._RECORDCOUNT)) return new QueryColumnRef(this,key,Types.INTEGER);
 	        if(key.equals(KeyConstants._CURRENTROW)) return new QueryColumnRef(this,key,Types.INTEGER);
 	        if(key.equals(KeyConstants._COLUMNLIST)) return new QueryColumnRef(this,key,Types.INTEGER);
 		}
-        throw new DatabaseException("key ["+key.getString()+"] not found in query, columns are ["+getColumnlist(upperCase)+"]",null,sql,null);
+        throw new DatabaseException("key ["+key.getString()+"] not found in query, columns are ["+getColumnlist(getKeyCase(ThreadLocalPageContext.get()))+"]",null,sql,null);
 	}
 
 
