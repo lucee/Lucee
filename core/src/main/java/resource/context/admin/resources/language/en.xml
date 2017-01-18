@@ -1140,6 +1140,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="doc.attr.type.dynamic">There is no restriction for attributes for this tag.</data>
 	<data key="doc.attr.max">Only the number of attributes is restricted to {max}.</data>
 	<data key="doc.attr.description">Description</data>
+	<data key="doc.attr.default">Default Value</data>
 	<data key="doc.attrdesc">Attributes, supported by the tag.</data>
 	<data key="doc.attrtitle">Attributes</data>
 	<data key="doc.argtitle">Arguments</data>
@@ -1152,6 +1153,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="doc.example">Example</data>
 	<data key="doc.chooseTag">Choose a tag</data>
 	<data key="doc.chooseFunction">Choose a function</data>
+	<data key="doc.category">Category</data>
 	<data key="help.logotitle">Lucee help</data>
 	<data key="help.closewindow">Close window</data>
 	<data key="help.videohelp">Lucee - online video help</data>
