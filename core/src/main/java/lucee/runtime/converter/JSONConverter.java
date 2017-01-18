@@ -36,6 +36,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import lucee.commons.lang.CFTypes;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
@@ -374,7 +375,7 @@ public final class JSONConverter extends ConverterSupport {
 		sct.setEL("ReturnType", udf.getReturnTypeAsString());
 		try{
 			sct.setEL("PagePath", udf.getSource());
-		}catch(Throwable t){}
+		}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		_serializeStruct(pc,test,sct, sb, serializeQueryByColumns, true,done);
 		// TODO key SuperScope and next?

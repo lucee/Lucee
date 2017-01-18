@@ -24,6 +24,7 @@ import java.util.Date;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.cache.CacheEntry;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.type.Struct;
 
@@ -117,7 +118,7 @@ public class RamCacheEntry implements CacheEntry {
 	        oos = new ObjectOutputStream(os);
 	        oos.writeObject(o);
         }
-        catch(Throwable t){}
+        catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
         finally {
         	IOUtil.closeEL(oos);
         }

@@ -25,6 +25,7 @@ import javax.servlet.jsp.tagext.BodyTag;
 import javax.servlet.jsp.tagext.IterationTag;
 
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.reflection.Reflector;
@@ -518,7 +519,8 @@ public final class TagHelper {
 		TagLibTag tlt = tag.getTagLibTag();
 		try {
 			return tlt.getTagType();
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new TransformerException(t,tag.getStart());
 		}
 	}

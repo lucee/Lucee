@@ -40,6 +40,7 @@ import java.util.Vector;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
@@ -315,7 +316,7 @@ public final class Reflector {
 					rating.plus(3);
 					return trg;
 				}
-			} catch (Throwable t) {}
+			} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			
 			
 			return trg;
@@ -389,7 +390,7 @@ public final class Reflector {
 					return AxisCaster.toPojo(pojo, null, null, null, (Component)sct, new HashSet<Object>());
 				return AxisCaster.toPojo(pojo, null, null, null,sct, new HashSet<Object>());
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		if(trgClass.isPrimitive()) {
 			//return convert(src,srcClass,toReferenceClass(trgClass));
@@ -817,7 +818,8 @@ public final class Reflector {
             if(ci==null) return defaultValue;
             return ci.invoke();
         }
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 		    return defaultValue;
 		}
 	}
@@ -895,7 +897,8 @@ public final class Reflector {
 	    try {
 	    	return mi.invoke(obj);
         }
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -1120,7 +1123,8 @@ public final class Reflector {
 		
 		try {
 			return fields[0].get(obj);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -1194,7 +1198,7 @@ public final class Reflector {
 		if(!ArrayUtil.isEmpty(fields)) {
 			try {
 				return fields[0].get(obj);
-			} catch (Throwable t) {}
+			} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		
 		// then getter
@@ -1219,9 +1223,7 @@ public final class Reflector {
 		try {
 	    	if(setField(obj,prop,value))done=true;
 	    } 
-		catch (Throwable t) {
-			
-        }
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	    if(!done)callSetter(obj,prop,value);
 	}
 	
@@ -1239,14 +1241,14 @@ public final class Reflector {
 			try {
 				fields[0].set(obj,value);
 				return;
-			} catch (Throwable t) {}
+			} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		
 		// then check for setter
         try {
             getSetter(obj, prop, value).invoke(obj);
         } 
-        catch (Throwable t) {} 
+        catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);} 
         
 	}
 	
@@ -1281,7 +1283,7 @@ public final class Reflector {
 		for(int i=0;i<objs.length;i++) {
 			java.lang.reflect.Array.set(rtn, i, convert(objs[i], compClass,null));
 		}
-		//}catch(Throwable t){t.printStackTrace();}
+		//}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		
 		return rtn;
 	}
@@ -1463,6 +1465,7 @@ public final class Reflector {
 			return clazz.getDeclaredMethod(method, arguments);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}

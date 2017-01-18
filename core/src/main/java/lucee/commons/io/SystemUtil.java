@@ -780,6 +780,7 @@ public final class SystemUtil {
 		    return Caster.toIntValue(res,0);
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			return 0;
 		}
 	    
@@ -942,7 +943,7 @@ public final class SystemUtil {
 			}
 			
 		}
-		catch(Throwable t){}
+		catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		return null;
 	}
 	public static long microTime() {
@@ -1036,7 +1037,7 @@ public final class SystemUtil {
 					Field f = cVersion.getField("VERSION");
 					loaderVersion=f.getDouble(null);
 				} 
-				catch (Throwable t) {t.printStackTrace();}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);t.printStackTrace();}
 			}
 		}
 		return loaderVersion;
@@ -1060,7 +1061,7 @@ public final class SystemUtil {
 				}
 				macAddress= sb.toString();
 			}
-			catch(Throwable t){}
+			catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 			hasMacAddress=true;
 		}
 		return macAddress;
@@ -1082,7 +1083,7 @@ public final class SystemUtil {
 	    		try {
 	    			url = bundle.getEntry(pns);
 	    		}
-	    		catch (Throwable t) {}
+	    		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     		}
     		
     		// core class loader
@@ -1148,7 +1149,7 @@ public final class SystemUtil {
 	        fieldSysPath.setAccessible(true);
 	        fieldSysPath.set(null, null);
     	}
-    	catch(Throwable t){}
+    	catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 
     }
 
@@ -1193,7 +1194,7 @@ public final class SystemUtil {
     		try {
     			is = bundle.getEntry(path).openStream();
     			if(is!=null) return is;
-    		}catch (Throwable t) {}
+    		}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		
 		// try from core classloader
@@ -1201,21 +1202,21 @@ public final class SystemUtil {
 		try{
 			is = cl.getResourceAsStream(path);
 			if(is!=null) return is;
-		}catch (Throwable t) {}
+		}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 
 		// try from loader classloader
 		cl = PageSource.class.getClassLoader();
 		try{
 			is = cl.getResourceAsStream(path);
 			if(is!=null) return is;
-		}catch (Throwable t) {}
+		}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 
 		// try from loader classloader
 		cl = ClassLoader.getSystemClassLoader();
 		try{
 			is = cl.getResourceAsStream(path);
 			if(is!=null) return is;
-		}catch (Throwable t) {}
+		}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
     return null;
 }
@@ -1394,6 +1395,7 @@ class StopThread extends Thread {
 	public void run(){
 		PageContextImpl pci=(PageContextImpl) pc;
 		Thread thread = pc.getThread();
+		if(thread==null) return;
 		pci.setRequestTimeoutException(t);
 		int count=0;
 		if(thread.isAlive()) {

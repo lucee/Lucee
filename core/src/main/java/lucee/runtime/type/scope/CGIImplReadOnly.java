@@ -27,6 +27,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
@@ -162,7 +163,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI,ScriptP
 		    		https.setEL(KeyImpl.init("http_"+k),v);	
 		    	}
 			}
-			catch(Throwable t){t.printStackTrace();}
+			catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		
 		String lkey=key.getLowerString();
@@ -262,7 +263,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI,ScriptP
 			PageContext pc = ThreadLocalPageContext.get();
 			return pc.getBasePageSource().getResourceTranslated(pc).toString();
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		return "";
 	}
 

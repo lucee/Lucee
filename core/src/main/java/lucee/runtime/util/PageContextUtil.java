@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.tagext.BodyContent;
 
 import lucee.cli.servlet.HTTPServletImpl;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -113,7 +114,7 @@ public class PageContextUtil {
 			try{
 				engine = CFMLEngineFactory.getInstance();
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			if(engine==null) throw new ServletException("there is no ServletContext");
 	
 			if(headers==null) headers=new HashMap<String, Object>();

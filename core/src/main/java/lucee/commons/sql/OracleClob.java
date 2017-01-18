@@ -23,6 +23,7 @@ import java.sql.Clob;
 import java.sql.Connection;
 
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.op.Caster;
 
 public class OracleClob {
@@ -60,6 +61,7 @@ public class OracleClob {
 			return (Clob) clob;
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			//print.printST(t);
 		}
 		return defaultValue;

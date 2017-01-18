@@ -336,7 +336,7 @@ public abstract class ArraySupport extends AbstractList implements Array,List,Ob
 
 	@Override
 	public Object call(PageContext pc, Key methodName, Object[] args) throws PageException {
-		return MemberUtil.call(pc, this, methodName, args, CFTypes.TYPE_ARRAY, "array");
+		return MemberUtil.call(pc, this, methodName, args, new short[]{CFTypes.TYPE_ARRAY}, new String[]{"array"});
 	}
 
 	@Override

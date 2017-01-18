@@ -60,6 +60,7 @@ import lucee.commons.io.res.filter.NotResourceFilter;
 import lucee.commons.io.res.filter.OrResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.IDGenerator;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.surveillance.HeapDumper;
@@ -565,7 +566,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     			if(config instanceof ConfigServer)
     				((PageContextImpl)pageContext).setServerPassword(password);
     		}
-    		catch(Throwable t){}
+    		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     	}
     	else if(check("getinfo",           ACCESS_FREE) && check2(ACCESS_READ  )) doGetInfo();
     	else if(check("surveillance",           ACCESS_FREE) && check2(ACCESS_READ  )) doSurveillance();
@@ -1126,7 +1127,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
                             msg.append(Caster.toString(((Struct)context.getE(1)).get("line")));
                     	}
                     	}
-                    	catch(Throwable t){}
+                    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
                     	
                     }
                     msg.append("]");
@@ -1341,7 +1342,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     	try {
     		admin.removeContext(server, true,strRealpath);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			throw Caster.toPageException(t);
 		}
 		
@@ -2851,6 +2852,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         
         // 
         boolean literalTimestampWithTSOffset=getBoolV("literalTimestampWithTSOffset", false);
+        boolean alwaysSetTimeout=getBoolV("alwaysSetTimeout", false);
         
         String dsn=getString("admin",action,"dsn");
         String name=getString("admin",action,"name");
@@ -2875,7 +2877,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         //config.getDatasourceConnectionPool().remove(name);
         DataSource ds=null;
 		try {
-			ds = new DataSourceImpl(config,null,name,cd,host,dsn,database,port,username,password,connLimit,connTimeout,metaCacheTimeout,blob,clob,allow,custom,false,validate,storage,null, dbdriver,ps,literalTimestampWithTSOffset,config.getLog("application"));
+			ds = new DataSourceImpl(config,null,name,cd,host,dsn,database,port,
+					username,password,connLimit,connTimeout,metaCacheTimeout,blob,clob,
+					allow,custom,false,validate,storage,null, dbdriver,ps,literalTimestampWithTSOffset,alwaysSetTimeout,config.getLog("application"));
 		} catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
@@ -2904,7 +2908,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
                 custom,
 		        dbdriver,
 		        ps,
-		        literalTimestampWithTSOffset
+		        literalTimestampWithTSOffset,
+		        alwaysSetTimeout
         );
         store();
         adminSync.broadcast(attributes, config);
@@ -3151,7 +3156,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     	try {
 			new RemoteClientTask(null,client,attrColl,getCallerId(),"synchronisation").execute(config);
 		} 
-    	catch (Throwable t) {
+    	catch(Throwable t) {
 			throw Caster.toPageException(t);
 		}
     }
@@ -3590,9 +3595,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			}
 			
 		}
-		catch(Throwable t){
-			
-		}
+		catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		
 		
 		Map<String,Object> headers=null;
@@ -3684,7 +3687,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 					qry.setAt(PATH, row, bf.getFile());
 				}
 			}
-			catch(Throwable t){	}
+			catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 			
 			Map<String,Object> headers=null;
 			if(b!=null) {
@@ -4127,10 +4130,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
                 sct.setEL("clob",Boolean.valueOf(d.isClob()));
                 sct.setEL("validate",Boolean.valueOf(d.validate()));
                 sct.setEL("storage",Boolean.valueOf(d.isStorage()));
-
-	            if (d instanceof DataSourceImpl) {
-
-		            sct.setEL("dbdriver", Caster.toString( ((DataSourceImpl)d).getDbDriver(), "" ));
+                if (d instanceof DataSourceImpl) {
+	            	DataSourceImpl di = ((DataSourceImpl)d);
+	            	sct.setEL("literalTimestampWithTSOffset",Boolean.valueOf(di.getLiteralTimestampWithTSOffset()));
+	            	sct.setEL("alwaysSetTimeout",Boolean.valueOf(di.getAlwaysSetTimeout()));
+	            	
+	            	sct.setEL("dbdriver", Caster.toString( di.getDbDriver(), "" ));
 	            }
                 pageContext.setVariable(getString("admin",action,"returnVariable"),sct);
                 return;
@@ -4236,7 +4241,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				}
 				qry.setAt("triesmax", row,Caster.toDouble(triesMax));
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
     	return row;
 	}
@@ -4285,9 +4290,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doSetCluster()  {// MUST remove this
 		try {
 			_doSetCluster();
-		} catch (Throwable t) {
-			//print.printST(t);
 		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	
 	private void _doSetCluster() throws PageException {
@@ -5442,7 +5446,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				try{
 				sct.setEL(cw.getIdentification().getId(), ((CFMLFactoryImpl)cw.getFactory()).getInfo());
 				}
-				catch(Throwable t){}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
 			pageContext.setVariable(getString("admin",action,"returnVariable"),sct);
 			

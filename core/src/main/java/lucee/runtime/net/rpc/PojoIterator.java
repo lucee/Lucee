@@ -59,7 +59,7 @@ public class PojoIterator implements Iterator<Pair<Collection.Key,Object>> {
 			
 			return new Pair<Collection.Key, Object>(KeyImpl.init(g.getName().substring(3)), g.invoke(pojo, EMPTY_ARG));
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			throw new PageRuntimeException(Caster.toPageException(t));
 		}
 	}

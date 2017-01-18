@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.op;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.type.Collection;
@@ -71,7 +72,8 @@ public class Elvis {
 				coll=vu.getCollection(pc,coll,varNames[i],defVal);
 				if(coll==defVal)return false;
 			}
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 	        return false;
 	    }
 		return true; 

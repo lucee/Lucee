@@ -30,6 +30,7 @@ public class RequestTimeoutException extends Abort implements Stop {
 	public RequestTimeoutException(Thread t,String msg) {
 		super(SCOPE_REQUEST,msg);
 		this.stacktrace=t!=null?t.getStackTrace():new Throwable().getStackTrace();
+		setStackTrace(stacktrace);
 	}
 	
 	@Override

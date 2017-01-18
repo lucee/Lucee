@@ -26,6 +26,7 @@ import java.util.zip.ZipInputStream;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 
 public class IsZipFile {
@@ -34,7 +35,8 @@ public class IsZipFile {
 		try {
 			return invoke(ResourceUtil.toResourceExisting(pc, path));
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return false;
 		}
 	}
@@ -49,7 +51,8 @@ public class IsZipFile {
 	        	zis.closeEntry();
 	        	hasEntries=true;
 	        }
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return false;
 		}
 		finally {
@@ -68,7 +71,8 @@ public class IsZipFile {
 	        	zis.closeEntry();
 	        	hasEntries=true;
 	        }
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return false;
 		}
 		finally {

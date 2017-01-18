@@ -432,6 +432,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	    		componentPage.staticConstructor(pageContext,this);
 	    	}
 	    	catch(Throwable t){
+	    		ExceptionUtil.rethrowIfNecessary(t);
 	    		componentPage._static.setInit(false);
 	    		throw Caster.toPageException(t);
 	    	}
@@ -1571,7 +1572,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
             try {
             	String path=ContractPath.call(pc, ps.getDisplayPath()); // MUST better impl !!!
 				sct.set("remoteAddress",""+new URL(req.getScheme(),req.getServerName(),req.getServerPort(),req.getContextPath()+path+"?wsdl"));
-			} catch (Throwable t) {}
+			} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
             
         
         // Properties

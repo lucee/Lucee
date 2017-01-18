@@ -25,10 +25,14 @@ import java.util.TimeZone;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.FunctionException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTime;
 
-public final class DatePart implements Function {
+public final class DatePart extends BIF {
 	
 	private static final long serialVersionUID = -4203375459570986511L;
 
@@ -36,7 +40,7 @@ public final class DatePart implements Function {
 		return call(pc, datepart, date, null);
 	}
 	
-	public static double call(PageContext pc , String datepart, DateTime date,TimeZone tz) throws ExpressionException {
+	public static double call(PageContext pc, String datepart, DateTime date, TimeZone tz) throws ExpressionException {
 		datepart=datepart.toLowerCase();
 		char first=datepart.length()==1?datepart.charAt(0):(char)0;
 		
@@ -52,5 +56,15 @@ public final class DatePart implements Function {
 		else if(first=='s') return Second.call(pc,date,tz);
 		else if(first=='l') return MilliSecond.call(pc, date,tz);	
 		throw new ExpressionException("invalid datepart type ["+datepart+"] for function datePart");
+	}
+	
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length==2)
+			return call(pc, Caster.toString(args[0]), Caster.toDateTime(args[1],null));
+		if(args.length==3)
+			return call(pc, Caster.toString(args[0]), Caster.toDateTime(args[1],null), Caster.toTimeZone(args[2]));
+		
+		throw new FunctionException(pc,"DatePart",2,3,args.length);
 	}
 }

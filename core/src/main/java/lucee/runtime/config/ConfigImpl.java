@@ -1266,7 +1266,7 @@ public abstract class ConfigImpl implements Config {
     
     public void createFunction(FunctionLib fl,String filename) {
     	String name=toName(filename);//filename.substring(0,filename.length()-(getCFMLExtensions().length()+1));
-        FunctionLibFunction flf = new FunctionLibFunction(fl);
+        FunctionLibFunction flf = new FunctionLibFunction(fl,true);
     	flf.setArgType(FunctionLibFunction.ARG_DYNAMIC);
     	flf.setFunctionClass("lucee.runtime.functions.system.CFFunction",null,null);
     	flf.setName(name);
@@ -3405,7 +3405,7 @@ public abstract class ConfigImpl implements Config {
 				it.next().close();
 			}
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		loggers.clear();
 	}
 	

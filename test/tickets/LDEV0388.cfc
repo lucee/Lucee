@@ -20,6 +20,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="without list as prefix", body = function( currentSpec ) {
 					var mylist = "1,2,3,4,5,6,7,8,9,10";
+					var expMsg="";
 					try{
 						var ReducedVal = mylist.Reduce(
 							function(prev, val){
@@ -28,9 +29,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 							0
 						);
 					} catch ( any e){
-						var ReducedVal = e.message;
+						expMsg = e.message;
 					}
-					expect(ReducedVal).toBe("No matching Method/Function for String.Reduce(lucee.runtime.type.Closure, numeric) found");
+					expect(expMsg GT 0).toBe(true);
 
 				});
 			});
@@ -51,6 +52,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="without list as prefix", body = function( currentSpec ) {
 					var mylist = "apple|orange|mango";
+					var expMsg="";
 					try {
 						var filteredVal = mylist.Filter(
 							function(elem, idx){
@@ -61,9 +63,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 							}, "|"
 						);
 					} catch ( any e){
-						var filteredVal = e.message;
+						expMsg = e.message;
 					}
-					expect(filteredVal).toBe("No matching Method/Function for String.Filter(lucee.runtime.type.Closure, string) found");
+					expect(expMsg GT 0).toBe(true);
 				 
 				});
 

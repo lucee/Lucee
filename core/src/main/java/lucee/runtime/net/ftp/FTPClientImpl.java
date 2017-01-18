@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.SocketException;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 
 import org.apache.commons.net.ftp.FTP;
@@ -175,7 +176,7 @@ public class FTPClientImpl extends AFTPClient {
 		client.setDataTimeout(timeout);
         try {
 			client.setSoTimeout(timeout);
-		} catch (Throwable t) {}
+		} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 }

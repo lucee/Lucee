@@ -510,7 +510,7 @@ public final class ArgumentImpl extends ScopeSupport implements Argument {
 		if(obj instanceof UDFPlus) {
 			return ((UDFPlus)obj).call(pc,methodName,args,false);
 		}
-		return MemberUtil.call(pc, this, methodName, args, CFTypes.TYPE_STRUCT, "struct");
+		return MemberUtil.call(pc, this, methodName, args, new short[]{CFTypes.TYPE_STRUCT}, new String[]{"struct"});
 		//return MemberUtil.call(pc, this, methodName, args, CFTypes.TYPE_ARRAY, "array");
 	}
 

@@ -39,6 +39,7 @@ import lucee.commons.io.res.type.datasource.core.MSSQL;
 import lucee.commons.io.res.type.datasource.core.MySQL;
 import lucee.commons.io.res.util.ResourceLockImpl;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -444,7 +445,8 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 		    }
 		}
 		catch(Throwable t) {
-			return false;
+			ExceptionUtil.rethrowIfNecessary(t);
+        	return false;
 		}
 		return true;
 	}
@@ -466,7 +468,8 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 		    }
 		}
 		catch(Throwable t) {
-			return false;
+			ExceptionUtil.rethrowIfNecessary(t);
+        	return false;
 		}
 		return true;
 	}

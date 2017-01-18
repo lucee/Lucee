@@ -20,6 +20,7 @@ package lucee.runtime.interpreter.ref.op;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.interpreter.InterpreterException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
 import lucee.runtime.op.Caster;
@@ -31,19 +32,22 @@ public final class Concat extends RefSupport implements Ref {
     
     private Ref right;
     private Ref left;
+	private boolean limited;
 
     /**
      * constructor of the class
      * @param left
      * @param right
      */
-    public Concat(Ref left, Ref right) {
+    public Concat(Ref left, Ref right, boolean limited) {
     	this.left=left;
         this.right=right;
+		this.limited=limited;
     }
     
     @Override
     public Object getValue(PageContext pc) throws PageException {
+    	if(limited) throw new InterpreterException("invalid syntax, this operation is not supported in a json string.");
         return Caster.toString(left.getValue(pc))+Caster.toString(right.getValue(pc));
     }
 

@@ -44,6 +44,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SizeOf;
 import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
@@ -238,7 +239,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
                     try {
                     	pc.getThread().setPriority(Thread.MIN_PRIORITY);
                     }
-                    catch(Throwable t) {}
+                    catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
                 }
             }
         //}
@@ -255,7 +256,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	        	strLocks=" open locks at this time ("+ListUtil.arrayToList(locks, ", ")+").";
 	        //LockManagerImpl.unlockAll(pc.getId());
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
         if(log!=null)LogUtil.log(log,Log.LEVEL_ERROR,"controler",
         		"stop thread ("+pc.getId()+") because run into a timeout "+getPath(pc)+"."+strLocks,pc.getThread().getStackTrace());
         pc.getConfig().getThreadQueue().exit(pc);
@@ -274,6 +275,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			return "(no path available)";
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return "(fail to retrieve path:"+t.getClass().getName()+":"+t.getMessage()+")";
 		}
 	}
@@ -298,6 +300,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		}
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			return length;
 		}
 	    return length;
@@ -515,6 +518,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	    	}
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			ArrayUtil.addAll(cfmlExtensions,Constants.getCFMLExtensions());
 			ArrayUtil.addAll(luceeExtensions,Constants.getLuceeExtensions());
 		}

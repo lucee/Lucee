@@ -65,7 +65,7 @@ public final class JavaProxy implements Function {
 				try {
 					return ClassUtil.loadClassByBundle(className,str,delimiterOrVersion,pc.getConfig().getIdentification());
 				}
-				catch (Throwable t) {
+				catch(Throwable t) {
 					throw Caster.toPageException(t);
 				}
 			}

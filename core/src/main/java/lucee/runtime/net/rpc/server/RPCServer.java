@@ -44,6 +44,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -348,7 +349,8 @@ public final class RPCServer{
                     ((org.apache.axis.SOAPPart) responseMsg.getSOAPPart()).
                             getMessage().setMessageContext(msgContext);
                 }
-            } catch (Throwable t) {
+            } catch(Throwable t) {
+            	ExceptionUtil.rethrowIfNecessary(t);
             	if(t instanceof InvocationTargetException)
             		t=((InvocationTargetException)t).getTargetException();
             	// Exception

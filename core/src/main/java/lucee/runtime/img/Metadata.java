@@ -24,6 +24,7 @@ import java.util.List;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -59,7 +60,7 @@ public class Metadata {
     		is=res.getInputStream();
     		fillExif(format, is,info);
     	}
-    	catch(Throwable t) {}
+    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     	finally {
     		IOUtil.closeEL(is);
     	}
@@ -75,10 +76,10 @@ public class Metadata {
             
             // EXIF
             if(jpegMetadata!=null) {
-            	try{set(jpegMetadata.getExif().getItems(),info,null);}catch(Throwable t){}
+            	try{set(jpegMetadata.getExif().getItems(),info,null);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
             }
             // GPS
-            try{gps(jpegMetadata,info);}catch(Throwable t){}
+            try{gps(jpegMetadata,info);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
         }
     }
 	
@@ -88,7 +89,7 @@ public class Metadata {
     		is=res.getInputStream();
     		fill(format, is,info);
     	}
-    	catch(Throwable t) {}
+    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     	finally {
     		IOUtil.closeEL(is);
     	}
@@ -104,8 +105,8 @@ public class Metadata {
         if (metadata instanceof JpegImageMetadata) {
             final JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
             
-            try{set(jpegMetadata.getItems(),info,null);}catch(Throwable t){}
-            try{set(metadata.getItems(),info,null);}catch(Throwable t){}
+            try{set(jpegMetadata.getItems(),info,null);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+            try{set(metadata.getItems(),info,null);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
             
             // Photoshop
             if(metadata instanceof JpegImageMetadata) {
@@ -117,9 +118,9 @@ public class Metadata {
 		            	if(list!=null && !list.isEmpty()) {
 		            		Struct ps=new StructImpl();
 		            		info.setEL("photoshop", ps);
-		            		try{set(list,ps,null);}catch(Throwable t){}
+		            		try{set(list,ps,null);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		            	}
-	            	}catch(Throwable t){}
+	            	}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
             	}
             }
             
@@ -127,10 +128,10 @@ public class Metadata {
             if(jpegMetadata!=null) {
             	Struct exif=new StructImpl();
             	info.setEL("exif", exif);
-            	try{set(jpegMetadata.getExif().getItems(),exif,null);}catch(Throwable t){}
+            	try{set(jpegMetadata.getExif().getItems(),exif,null);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
             }
             // GPS
-            try{gps(jpegMetadata,info);}catch(Throwable t){}
+            try{gps(jpegMetadata,info);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 
         }
     }

@@ -32,12 +32,33 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 	}
 
+	public void function testTimespan(){
+		var rightNow = Now();
+		var testData = {"time": rightNow};
+		var cacheId='jkijhiiuhkj';
+		var cacheName='susi';
+
+		// first we store the data
+		cachePut(id=cacheId, value=testData, cacheName=cacheName);
+
+		// getting back without waiting on it
+		theValue = cacheGet(id=cacheId, cacheName=cacheName);
+		wasFound = !isNull(theValue);
+		assertTrue(wasFound);
+
+		// getting back after at least a second
+		sleep(1500); // take a nap
+		theValue = cacheGet(id=cacheId, cacheName=cacheName);
+		wasFound = !isNull(theValue);
+		assertFalse(wasFound);		
+	}
+
 	private string function defineCache(){
 		application action="update" 
 			caches="#{susi:{
 		  class: 'lucee.runtime.cache.ram.RamCache'
 		, storage: false
-		, custom: {"timeToIdleSeconds":"0","timeToLiveSeconds":"0"}
+		, custom: {"timeToIdleSeconds":"1","timeToLiveSeconds":"1"}
 		, default: 'function'
 	}}#";
 	

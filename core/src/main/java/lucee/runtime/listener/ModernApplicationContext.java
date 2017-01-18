@@ -32,13 +32,13 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
@@ -314,6 +314,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			throwsErrorWhileInit.setValue(false);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throwsErrorWhileInit.setValue(true);
 			pc.removeLastPageSource(true);
 		}
@@ -886,11 +887,12 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 				
 				initCacheConnections.put(id,cc);
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			
 			return cc;
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -1143,7 +1145,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			ComponentSpecificAccess cw=ComponentSpecificAccess.toComponentSpecificAccess(Component.ACCESS_PRIVATE, component); 
 			return cw.get(key,null);
 		} 
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		return null;
 	}

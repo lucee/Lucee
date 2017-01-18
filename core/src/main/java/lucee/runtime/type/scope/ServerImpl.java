@@ -23,6 +23,7 @@ import java.io.File;
 import lucee.Info;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -112,9 +113,8 @@ public final class ServerImpl extends ScopeSupport implements Server,SharedScope
 	    Info info=pc.getConfig().getFactory().getEngine().getInfo();
 	    ReadOnlyStruct coldfusion=new ReadOnlyStruct();
 			coldfusion.setEL(PRODUCT_LEVEL,info.getLevel());
-			//coldfusion.setEL(PRODUCT_CONTEXT_COUNT,"inf");
-			coldfusion.setEL(PRODUCT_VERSION,"11,0,07,296330");
-			//coldfusion.setEL(PRODUCT_VERSION,"8,0,0,1");
+			//coldfusion.setEL(PRODUCT_VERSION,"11,0,07,296330");
+			coldfusion.setEL(PRODUCT_VERSION,"2016,0,03,300357");
 			coldfusion.setEL(SERIAL_NUMBER,"0");
 			coldfusion.setEL(PRODUCT_NAME,"Lucee");
 			
@@ -127,7 +127,7 @@ public final class ServerImpl extends ScopeSupport implements Server,SharedScope
 			try{
 				rootdir=ThreadLocalPageContext.getConfig(pc).getRootDirectory().getAbsolutePath();
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			coldfusion.setEL(ROOT_DIR,rootdir);// 
 
 			
@@ -200,7 +200,7 @@ public final class ServerImpl extends ScopeSupport implements Server,SharedScope
 			try{
 				name=pc.getServletContext().getServerInfo();
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			servlet.setEL(KeyConstants._name,name);
 			servlet.setReadOnly(true);
 			

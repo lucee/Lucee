@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ListUtil;
@@ -75,7 +76,8 @@ public class IPUtil {
             	try{
             		_int=Integer.parseInt(str,16);
             	}
-            	catch(Throwable t){t.printStackTrace();
+            	catch(Throwable t){
+            		ExceptionUtil.rethrowIfNecessary(t);
             		_int=-1;
             	}
                 if(_int<0 || _int> 65535)

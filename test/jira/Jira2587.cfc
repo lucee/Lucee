@@ -38,16 +38,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		// Day in month
 		assertEquals("9",DateTimeFormat(date,"d"));
 		assertEquals("09",DateTimeFormat(date,"dd"));
-		assertEquals("009",DateTimeFormat(date,"ddd"));
-		assertEquals("0009",DateTimeFormat(date,"dddd"));
-		assertEquals("00009",DateTimeFormat(date,"ddddd"));
+		assertEquals("Tue",DateTimeFormat(date,"ddd"));
+		assertEquals("Tuesday",DateTimeFormat(date,"dddd"));
+		assertEquals("Tuesday",DateTimeFormat(date,"ddddd"));
 		
 		// Day in year
 		assertEquals("160",DateTimeFormat(date,"D"));
 		assertEquals("160",DateTimeFormat(date,"DD"));
-		assertEquals("160",DateTimeFormat(date,"DDD"));
-		assertEquals("0160",DateTimeFormat(date,"DDDD"));
-		assertEquals("00160",DateTimeFormat(date,"DDDDD"));
+		assertEquals("Tue",DateTimeFormat(date,"DDD"));
+		assertEquals("Tuesday",DateTimeFormat(date,"DDDD"));
+		assertEquals("Tuesday",DateTimeFormat(date,"DDDDD"));
 	}
 	
 	public void function testE(){
@@ -80,7 +80,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("AD AD",DateTimeFormat(date,"GG GG"));
 		
 		
-		assertEquals("g",DateTimeFormat(date,"g"));
+		assertEquals("AD",DateTimeFormat(date,"g"));
+		assertEquals("AD",DateTimeFormat(date,"gg"));
 		
 	}
 	
@@ -216,8 +217,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("2009",DateTimeFormat(date,"yyy"));
 		assertEquals("2009",DateTimeFormat(date,"yyyy"));
 		assertEquals("02009",DateTimeFormat(date,"yyyyy"));
+
+		assertEquals("2009",DateTimeFormat(date,"Y"));
+		assertEquals("09",DateTimeFormat(date,"YY"));
+		assertEquals("2009",DateTimeFormat(date,"YYY"));
+		assertEquals("2009",DateTimeFormat(date,"YYYY"));
+		assertEquals("02009",DateTimeFormat(date,"YYYYY"));
 		
-		assertEquals("Y",DateTimeFormat(date,"Y"));
 			
 	}
 	

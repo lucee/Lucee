@@ -40,6 +40,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ModeObjectWrap;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.runtime.PageContext;
@@ -388,7 +389,7 @@ public final class FileTag extends BodyTagImpl {
 		break;
 		case ACTION_INFO: actionInfo();
 		break;
-		case ACTION_TOUCH: actionTouch();
+		case ACTION_TOUCH: actionTouch(pageContext, securityManager, file,serverPassword,createPath,acl, mode, attributes);
 		break;
 		case ACTION_UNDEFINED: throw new ApplicationException("missing attribute action"); // should never happens
 		
@@ -474,7 +475,8 @@ public final class FileTag extends BodyTagImpl {
 			source.moveTo(destination);
 				
 		}
-		catch(Throwable t) {t.printStackTrace();
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new ApplicationException(t.getMessage());
 		}
 		setACL(pageContext,destination,acl);
@@ -577,6 +579,7 @@ public final class FileTag extends BodyTagImpl {
 			if(!file.delete()) throw new ApplicationException("can't delete file ["+file+"]");
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new ApplicationException(t.getMessage());
 		}
 	}
@@ -681,9 +684,14 @@ public final class FileTag extends BodyTagImpl {
     
     /**
      * write to the source file
+     * @param attributes 
+     * @param mode 
+     * @param acl 
+     * @param serverPassword, booleancreatePath 
      * @throws PageException
      */
-    private void actionTouch() throws PageException {
+    public static void actionTouch(PageContext pageContext, SecurityManager securityManager, 
+    		Resource file, String serverPassword, boolean createPath, Object acl, int mode, String attributes) throws PageException {
         checkFile(pageContext, securityManager, file, serverPassword,createPath,true,true,true);
         
         try {
@@ -763,7 +771,7 @@ public final class FileTag extends BodyTagImpl {
 		try {
 			sct.setEL(KeyConstants._checksum,Hash.md5(file));
 		}
-		catch(Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		
 		try { 		
@@ -775,7 +783,7 @@ public final class FileTag extends BodyTagImpl {
 	            sct.setEL(KeyConstants._img,img);
             }
         } 
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		return sct;
 	}
 

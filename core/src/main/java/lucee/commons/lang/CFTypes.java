@@ -251,7 +251,7 @@ public final class CFTypes {
 
 	            case 'i':
 	                if(alsoAlias && ("int".equals(type) || "integer".equals(type))) 	return TYPE_NUMERIC;
-	                if("image".equals(type)) 	return TYPE_NUMERIC;
+	                // conflicts with component named Image if("image".equals(type)) 	return TYPE_IMAGE;
 	            break;
 
 	            case 'l':

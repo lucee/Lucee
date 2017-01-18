@@ -25,6 +25,7 @@ import java.sql.Types;
 import java.util.TimeZone;
 
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.converter.ConverterException;
@@ -163,6 +164,7 @@ public class Ansi92 extends SQLExecutorSupport {
 			query = new QueryImpl(ThreadLocalPageContext.get(),dc,sqlSelect,-1,-1,null,"query");
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			// possible that the table not exist, if not there is nothing to clean
 			return;
 		}

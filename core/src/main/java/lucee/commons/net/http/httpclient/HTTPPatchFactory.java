@@ -36,7 +36,7 @@ public class HTTPPatchFactory {
 		try {
 			return (HttpEntityEnclosingRequestBase) ClassUtil.loadInstance(clazz,new Object[]{url});
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			throw Caster.toPageException(t);
 		}
 		

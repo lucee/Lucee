@@ -44,7 +44,7 @@ public final class NumberFormat implements Function {
      * @throws ExpressionException
      */
     public static String call(PageContext pc, Object object) throws PageException {
-        return new lucee.runtime.util.NumberFormat().format(Locale.US,toNumber(pc,object));
+    	return new lucee.runtime.util.NumberFormat().format(Locale.US,toNumber(pc,object)).replace('\'',',');
     }
     
     /**

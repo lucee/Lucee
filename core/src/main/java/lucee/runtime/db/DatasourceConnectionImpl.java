@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -170,7 +171,8 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro,T
 		if(supportsGetGeneratedKeys==null){
 			try {
 				supportsGetGeneratedKeys=Caster.toBoolean(getConnection().getMetaData().supportsGetGeneratedKeys());
-			} catch (Throwable t) {
+			} catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				return false;
 			}
 		}
