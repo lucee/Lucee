@@ -27,6 +27,7 @@ import java.sql.Statement;
 import java.util.regex.Pattern;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.ParserString;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.db.driver.ConnectionProxy;
@@ -129,6 +130,7 @@ public class SQLUtil {
 				return blob;
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				return BlobImpl.toBlob(value);
 			}
 		}

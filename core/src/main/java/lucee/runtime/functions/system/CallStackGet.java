@@ -63,7 +63,7 @@ public final class CallStackGet implements Function {
 			try {
 				return new JSONConverter(true,null).serialize( pc, arr, false );
 			}
-			catch (Throwable t) {
+			catch(Throwable t) {
 				throw Caster.toPageException( t );
 			}
 		}

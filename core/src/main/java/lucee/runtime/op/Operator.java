@@ -33,6 +33,7 @@ import java.util.TimeZone;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.lang.CFTypes;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.component.Member;
@@ -411,7 +412,7 @@ public final class Operator {
 					try{
 						return new BigDecimal(left).compareTo(new BigDecimal(right));
 					}
-					catch(Throwable t){}
+					catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 				}
 				return compare(Caster.toDoubleValue(left,Double.NaN),Caster.toDoubleValue(right,Double.NaN));
 			}
@@ -436,7 +437,7 @@ public final class Operator {
             	try{
             		return new BigDecimal(left).compareTo(new BigDecimal(right));
             	}
-            	catch(Throwable t){}
+            	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
             }
     		return compare(Caster.toDoubleValue(left,Double.NaN),right); 
     	}

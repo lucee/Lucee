@@ -203,13 +203,7 @@ public final class XMLUtilImpl implements XMLUtil {
         
         if(!isHtml) {
         	// try to load org.apache.xerces.jaxp.DocumentBuilderFactoryImpl, oracle impl sucks
-        	DocumentBuilderFactory factory = null;
-        	try{
-        		factory = new DocumentBuilderFactoryImpl();
-        	}
-        	catch(Throwable t) {
-        		factory = DocumentBuilderFactory.newInstance();
-        	}
+        	DocumentBuilderFactory factory = newDocumentBuilderFactory();
         	
         	//print.o(factory);
             if(validator==null) {
@@ -260,11 +254,21 @@ public final class XMLUtilImpl implements XMLUtil {
         }
     }
 	
+	private DocumentBuilderFactory newDocumentBuilderFactory() {
+		try{
+    		return new DocumentBuilderFactoryImpl();
+    	}
+    	catch(Throwable t) {
+    		return DocumentBuilderFactory.newInstance();
+    	}
+	}
+
 	private static void setAttributeEL(DocumentBuilderFactory factory,String name, Object value) {
 		try{
 			factory.setAttribute(name, value);
 		}
 		catch(Throwable t){
+			if(t instanceof ThreadDeath) throw (ThreadDeath)t;
 			//SystemOut.printDate("attribute ["+name+"] is not allowed for ["+factory.getClass().getName()+"]");
 		}
 	}
@@ -295,7 +299,7 @@ public final class XMLUtilImpl implements XMLUtil {
 	@Override
     public Document newDocument() throws ParserConfigurationException, FactoryConfigurationError {
 		if(docBuilder==null) {
-			docBuilder=DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			docBuilder=newDocumentBuilderFactory().newDocumentBuilder();
 		}
 		return docBuilder.newDocument();
 	}
@@ -331,7 +335,7 @@ public final class XMLUtilImpl implements XMLUtil {
 					rtn.add(n);
 				}
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {if(t instanceof ThreadDeath) throw (ThreadDeath)t;}
 		}
 		return rtn;
 	}
@@ -349,7 +353,7 @@ public final class XMLUtilImpl implements XMLUtil {
 					rtn.add(n);
 				}
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {if(t instanceof ThreadDeath) throw (ThreadDeath)t;}
 		}
 		return rtn;
 	}
@@ -370,7 +374,7 @@ public final class XMLUtilImpl implements XMLUtil {
 					}
 				}
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {if(t instanceof ThreadDeath) throw (ThreadDeath)t;}
 		}
 		return null;
 	}
@@ -555,6 +559,7 @@ public final class XMLUtilImpl implements XMLUtil {
 			return XMLReaderFactory.createXMLReader(oprionalDefaultSaxParser);
 		}
 		catch(Throwable t){
+			if(t instanceof ThreadDeath) throw (ThreadDeath)t;
 			return XMLReaderFactory.createXMLReader();
 		}
 	}
@@ -678,6 +683,7 @@ public final class XMLUtilImpl implements XMLUtil {
 			writeTo(node, new StreamResult(sw),false,false,null,null,null);
 		} 
 		catch(Throwable t){
+			if(t instanceof ThreadDeath) throw (ThreadDeath)t;
 			return defaultValue;
 		}
 		finally {
@@ -780,7 +786,8 @@ public final class XMLUtilImpl implements XMLUtil {
 				return new InputSource(
 						engine.getIOUtil().toBufferedInputStream(engine.getHTTPUtil().toURL(systemID).openStream()));
 			} 
-			catch (Throwable t) {
+			catch(Throwable t) {
+				if(t instanceof ThreadDeath) throw (ThreadDeath)t;
 				return null;
 			}
 		}

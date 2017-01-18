@@ -27,6 +27,7 @@ import lucee.commons.io.res.filter.DirectoryResourceFilter;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTimeImpl;
@@ -93,7 +94,7 @@ public class FileStorageScopeCleaner extends StorageScopeCleanerSupport {
 			
 			ResourceUtil.deleteEmptyFolders(dir);
 		
-		} catch (Throwable t) {error(t);}
+		} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);error(t);}
 
 		
 		//long maxSize = type==Scope.SCOPE_CLIENT?cwi.getClientScopeDirSize():cwi.getSessionScopeDirSize();

@@ -126,7 +126,7 @@ public class CFFunction {
 			}
 			throw new ExpressionException("there is no Function defined with name ["+name+"] in template ["+mapping.getStrPhysical()+File.separator+filename+"]");
 		} 
-    	catch (Throwable t) {
+    	catch(Throwable t) {
 			throw Caster.toPageException(t);
 		}
 		finally{

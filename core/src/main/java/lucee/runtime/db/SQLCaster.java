@@ -33,6 +33,7 @@ import java.util.TimeZone;
 
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
 import lucee.runtime.PageContext;
@@ -182,7 +183,7 @@ public final class SQLCaster {
     				try{
     					stat.setString(parameterIndex,Caster.toString(value));
     				}
-    				catch(Throwable t){
+    				catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);
     					stat.setClob(parameterIndex,SQLUtil.toClob(stat.getConnection(),value));
     				}
     				

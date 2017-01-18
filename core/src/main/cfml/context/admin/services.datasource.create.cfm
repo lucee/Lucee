@@ -40,6 +40,8 @@
 			dsn="#driver.getDSN()#"
 			customParameterSyntax="#isNull(driver.customParameterSyntax)?nullValue():driver.customParameterSyntax()#"
 			literalTimestampWithTSOffset="#isNull(driver.literalTimestampWithTSOffset)?false:driver.literalTimestampWithTSOffset()#"
+			alwaysSetTimeout="#isNull(driver.alwaysSetTimeout)?false:driver.alwaysSetTimeout()#"
+			
 			name="#form.name#"
 			newName="#form.newName#"
 			
@@ -525,6 +527,11 @@ if(datasource.metaCacheTimeout NEQ 60000)optional.append(',metaCacheTimeout:#dat
 if(len(datasource.timezone))optional.append("timezone:'#replace(datasource.timezone,"'","''","all")#'");
 if(datasource.storage) optional.append('storage:#datasource.storage# // default: false');
 if(datasource.readOnly) optional.append('readOnly:#datasource.readOnly# // default: false');
+if(!isNull(driver.literalTimestampWithTSOffset) && driver.literalTimestampWithTSOffset()) 
+	optional.append('literalTimestampWithTSOffset:true // default: false');
+if(!isNull(driver.alwaysSetTimeout) && driver.alwaysSetTimeout()) 
+	optional.append('alwaysSetTimeout:true // default: false');
+
 </cfscript>
 
 <cfsavecontent variable="codeSample">

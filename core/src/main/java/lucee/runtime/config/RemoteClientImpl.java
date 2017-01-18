@@ -19,6 +19,7 @@
 package lucee.runtime.config;
 
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.crypt.CFMXCompat;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.other.Encrypt;
@@ -161,7 +162,8 @@ public class RemoteClientImpl implements RemoteClient {
 			return id=IdentificationImpl.createId(securityKey, Caster.toString(result,null),false, null);
 			
 		} 
-		catch (Throwable t) {t.printStackTrace();
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return null;
 		}
 	}

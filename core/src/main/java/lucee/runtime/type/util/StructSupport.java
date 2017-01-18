@@ -22,6 +22,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.w3c.dom.Node;
+
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -258,7 +260,9 @@ public abstract class StructSupport implements Map,Struct {
 		if(obj instanceof UDFPlus) {
 			return ((UDFPlus)obj).call(pc,methodName,args,false);
 		}
-		return MemberUtil.call(pc, this, methodName, args, CFTypes.TYPE_STRUCT, "struct");
+		if(this instanceof Node)
+			return MemberUtil.call(pc, this, methodName, args, new short[]{CFTypes.TYPE_XML,CFTypes.TYPE_STRUCT}, new String[]{"xml","struct"});
+		return MemberUtil.call(pc, this, methodName, args, new short[]{CFTypes.TYPE_STRUCT}, new String[]{"struct"});
 	}
 
     @Override

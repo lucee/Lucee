@@ -35,6 +35,7 @@ import java.util.Set;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.KeyGenerator;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.loader.engine.CFMLEngine;
@@ -243,7 +244,7 @@ public class JavaProxyFactory {
 				Object obj=newInstance(pcl,className,pc.getConfig(),cfc);
 				if(obj!=null) return obj;
 			}
-			catch(Throwable t) {}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		
 		/*
@@ -312,6 +313,7 @@ public class JavaProxyFactory {
 	        return newInstance(clazz, pc.getConfig(),cfc);
         }
         catch(Throwable t) {
+        	ExceptionUtil.rethrowIfNecessary(t);
         	throw Caster.toPageException(t);
         }
 	}

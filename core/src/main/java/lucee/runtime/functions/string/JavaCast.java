@@ -89,8 +89,8 @@ public final class JavaCast implements Function {
 	
 	private static Object to(PageContext pc, Object obj,Class<?> trgClass) throws PageException {
 		if(trgClass==null)return Caster.toNull(obj); 
-		else if(trgClass==BigDecimal.class)return new BigDecimal(Caster.toString(obj)); 
-		else if(trgClass==BigInteger.class)return new BigInteger(Caster.toString(obj)); 
+		else if(trgClass==BigDecimal.class)return Caster.toBigDecimal(obj); 
+		else if(trgClass==BigInteger.class)return Caster.toBigInteger(obj); 
 		return Caster.castTo(pc, trgClass, obj);
 		//throw new ExpressionException("can't cast only to the following data types (bigdecimal,int, long, float ,double ,boolean ,string,null ), "+lcType+" is invalid");
 	}

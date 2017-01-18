@@ -18,6 +18,7 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	variables.name='testApplicationListener';
+	
 	public void function testApplicationListener(){
 		uri=createURI("ApplicationListener/index.cfm");
 		local.res=_InternalRequest(
@@ -44,6 +45,56 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		// again the same cfid
 		assertEquals("index.cfm",res.filecontent.trim());
 	}
+
+
+	public void function testONRequestNotExisting(){
+		uri=createURI("ApplicationListener2/notExists.cfm");
+		local.res=_InternalRequest(
+			template:uri
+		);
+		assertEquals(
+			"onRequestStart:notExists.cfm;onRequest:notExists.cfm;",
+			res.filecontent.trim());
+	}
+    
+
+	public void function testONRequestExisting(){
+		uri=createURI("ApplicationListener2/test.cfm");
+		local.res=_InternalRequest(
+			template:uri
+		);
+		assertEquals(
+			"onRequestStart:test.cfm;onRequest:test.cfm;",
+			res.filecontent.trim());
+	}
+
+	public void function testONCFCRequestNotExistingFile() {
+		uri=createURI("ApplicationListener2/NotExisting.cfc");
+		local.res=_InternalRequest(
+			template:uri
+			,urls:{method:'notExisting'}
+		);
+		assertEquals("onRequestStart:NotExisting.cfc;onCFCRequest:NotExisting,notExisting,{};",res.filecontent.trim());
+	}
+	
+	public void function testONCFCRequestNotExistingMethod() {
+		uri=createURI("ApplicationListener2/Test.cfc");
+		local.res=_InternalRequest(
+			template:uri
+			,urls:{method:'notExisting'}
+		);
+		assertEquals("onRequestStart:Test.cfc;onCFCRequest:Test,notExisting,{};",res.filecontent.trim());
+	}
+
+	public void function testONCFCRequestExisting() {
+		uri=createURI("ApplicationListener2/Test.cfc");
+		local.res=_InternalRequest(
+			template:uri
+			,urls:{method:'test'}
+		);
+		assertEquals("onRequestStart:Test.cfc;onCFCRequest:Test,test,{};",res.filecontent.trim());
+	}
+
 
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";

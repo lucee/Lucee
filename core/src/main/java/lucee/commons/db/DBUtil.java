@@ -22,6 +22,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import lucee.commons.lang.ExceptionUtil;
+
 /**
  * Utility for db
  */
@@ -61,7 +63,7 @@ public final class DBUtil {
 		if(stat!=null) {
             try {
                 stat.close();
-            } catch (Throwable t) {}
+            } catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
         }
 	}
 
@@ -69,7 +71,7 @@ public final class DBUtil {
 		if(rs!=null) {
             try {
                 rs.close();
-            } catch (Throwable t) {}
+            } catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
         }
 	}
 

@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
@@ -354,7 +355,7 @@ public class ORMUtil {
 				if(ds!=null) return ds;
 			}
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		
 		return getDefaultDataSource(pc, defaultValue);

@@ -38,6 +38,7 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Map;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 
@@ -623,7 +624,8 @@ public class CallableStatementProxy extends PreparedStatementProxy implements Ca
 		try {
 			return (T) stat.getClass().getMethod("getObject", new Class[]{int.class,Class.class}).invoke(stat, new Object[]{parameterIndex,type});
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			if(t instanceof InvocationTargetException && ((InvocationTargetException)t).getTargetException() instanceof SQLException)
 				throw (SQLException)((InvocationTargetException)t).getTargetException();
 			throw new PageRuntimeException(Caster.toPageException(t));
@@ -636,7 +638,8 @@ public class CallableStatementProxy extends PreparedStatementProxy implements Ca
 		try {
 			return (T) stat.getClass().getMethod("getObject", new Class[]{String.class,Class.class}).invoke(stat, new Object[]{parameterName,type});
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			if(t instanceof InvocationTargetException && ((InvocationTargetException)t).getTargetException() instanceof SQLException)
 				throw (SQLException)((InvocationTargetException)t).getTargetException();
 			throw new PageRuntimeException(Caster.toPageException(t));

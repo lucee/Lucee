@@ -20,6 +20,7 @@ package lucee.runtime.com;
 
 import java.lang.reflect.Method;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.ArrayImpl;
@@ -82,6 +83,7 @@ public final class COMUtil {
 			}
 			// this reflection allows support for old and new jacob version
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				try{
 					Method toCurrency = variant.getClass().getMethod("toCurrency", new Class[0]);
 					Object curreny = toCurrency.invoke(variant, new Object[0]);
@@ -90,6 +92,7 @@ public final class COMUtil {
 					l=Caster.toLongValue(longValue.invoke(curreny, new Object[0]),0);
 				}
 				catch(Throwable t2){
+					ExceptionUtil.rethrowIfNecessary(t2);
 					l=0;
 				}
 			}

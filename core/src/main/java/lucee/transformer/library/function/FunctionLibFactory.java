@@ -76,7 +76,8 @@ public final class FunctionLibFactory extends DefaultHandler {
 
 	private FunctionLibFunctionArg arg;
 	private Attributes attributes;
-	private final Identification id; 
+	private final Identification id;
+	private final boolean core; 
 	
 	//private final static String FLD_1_0=	"/resource/fld/web-cfmfunctionlibrary_1_0";
 	private final static String FLD_BASE=	"/resource/fld/core-base.fld";
@@ -102,10 +103,11 @@ public final class FunctionLibFactory extends DefaultHandler {
 	 * @param file File Objekt auf die TLD.
 	 * @throws FunctionLibException
 	 */
-	private FunctionLibFactory(String saxParser,FunctionLib lib,Resource file,Identification id) throws FunctionLibException {
+	private FunctionLibFactory(String saxParser,FunctionLib lib,Resource file,Identification id, boolean core) throws FunctionLibException {
 		super();
 		this.id=id;
 		this.lib=lib==null?new FunctionLib():lib;
+		this.core=core;
 		
 		Reader r=null;
 		try {
@@ -123,15 +125,12 @@ public final class FunctionLibFactory extends DefaultHandler {
 	 * @param saxParser String Klassenpfad zum Sax Parser.
 	 * @throws FunctionLibException
 	 */
-	private FunctionLibFactory(String saxParser,FunctionLib lib,String systemFLD, Identification id) throws FunctionLibException {
+	private FunctionLibFactory(String saxParser,FunctionLib lib,String systemFLD, Identification id, boolean core) throws FunctionLibException {
 		super();
 		this.id=id;
 		this.lib=lib==null?new FunctionLib():lib;
+		this.core=core;
 		InputSource is=new InputSource(this.getClass().getResourceAsStream(systemFLD) );
-		
-		
-		
-		
 		init(saxParser,is);		
 	}
 	
@@ -202,7 +201,7 @@ public final class FunctionLibFactory extends DefaultHandler {
 	 * um intern in einen anderen Zustand zu gelangen.
 	 */
     private void startFunction()	{
-    	function=new FunctionLibFunction();
+    	function=new FunctionLibFunction(core);
     	insideFunction=true;
     }
     
@@ -393,7 +392,7 @@ public final class FunctionLibFactory extends DefaultHandler {
 		// Read in XML
 		FunctionLib lib=FunctionLibFactory.hashLib.get(id(res));//getHashLib(file.getAbsolutePath());
 		if(lib==null)	{
-			lib=new FunctionLibFactory(DEFAULT_SAX_PARSER,null,res,id).getLib();
+			lib=new FunctionLibFactory(DEFAULT_SAX_PARSER,null,res,id,false).getLib();
 			FunctionLibFactory.hashLib.put(id(res),lib);
 		}
 		lib.setSource(res.toString());
@@ -426,10 +425,10 @@ public final class FunctionLibFactory extends DefaultHandler {
 	 */
 	public static FunctionLib[] loadFromSystem(Identification id) throws FunctionLibException	{
 		if(systemFLDs[CFMLEngine.DIALECT_CFML]==null) {
-			FunctionLib cfml = new FunctionLibFactory(DEFAULT_SAX_PARSER,null,FLD_BASE,id).getLib();
+			FunctionLib cfml = new FunctionLibFactory(DEFAULT_SAX_PARSER,null,FLD_BASE,id,true).getLib();
 			FunctionLib lucee = cfml.duplicate(false);
-			systemFLDs[CFMLEngine.DIALECT_CFML] = new FunctionLibFactory(DEFAULT_SAX_PARSER,cfml,FLD_CFML,id).getLib();
-			systemFLDs[CFMLEngine.DIALECT_LUCEE] = new FunctionLibFactory(DEFAULT_SAX_PARSER,lucee,FLD_LUCEE,id).getLib();
+			systemFLDs[CFMLEngine.DIALECT_CFML] = new FunctionLibFactory(DEFAULT_SAX_PARSER,cfml,FLD_CFML,id,true).getLib();
+			systemFLDs[CFMLEngine.DIALECT_LUCEE] = new FunctionLibFactory(DEFAULT_SAX_PARSER,lucee,FLD_LUCEE,id,true).getLib();
 		}
 		return systemFLDs;
 	}

@@ -30,6 +30,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
@@ -83,7 +84,8 @@ public class DeployHandler {
 					else if(config instanceof ConfigServer && "lco".equalsIgnoreCase(ext))
 						XMLConfigAdmin.updateCore((ConfigServerImpl) config, child,true);
 				}
-				catch (Throwable t) {
+				catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					Log log = config.getLog("deploy");
 					log.error("Extension", t);
 				}
@@ -104,6 +106,7 @@ public class DeployHandler {
 				ReqRspUtil.getRootPath(webs[i].getServletContext());
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				return false;
 			}
 		}
@@ -119,7 +122,7 @@ public class DeployHandler {
 			if(dst.exists()) dst.remove(true);
 			ResourceUtil.moveTo(res, dst,true);
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		// TODO Auto-generated method stub
 		
@@ -157,7 +160,7 @@ public class DeployHandler {
 		try {
 			if(XMLConfigAdmin.hasRHExtensions(ci, ed)!=null) return false;
 		} 
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		// check if a local extension is matching our id
 		Iterator<RHExtension> it = getLocalExtensions(config).iterator();
@@ -182,6 +185,7 @@ public class DeployHandler {
 				return true;
 			}
 			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				ext=null;
 				t.printStackTrace();
 			}
@@ -222,9 +226,7 @@ public class DeployHandler {
 						return true;
 					}
 				}
-				catch(Throwable t){
-					t.printStackTrace();
-				}
+				catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 			}
 		}
 		
@@ -237,9 +239,7 @@ public class DeployHandler {
 				XMLConfigAdmin._updateRHExtension((ConfigImpl) config, res, reload);
 				return true;
 			}
-			catch(Throwable t){
-				t.printStackTrace();
-			}
+			catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		
 		// if not we try to download it
@@ -251,6 +251,7 @@ public class DeployHandler {
 				return true;
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				log.error("extension", t);
 			}
 		}
@@ -286,6 +287,7 @@ public class DeployHandler {
 				return res;
 			}
 			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				if(log!=null)log.error("extension", t);
 			}
 		}

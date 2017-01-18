@@ -20,6 +20,19 @@ component {
 	this.name = "__LUCEE_STATIC_RESOURCE" & ( left( CGI.CF_TEMPLATE_PATH, 6 ) == "zip://" ? "_ARC" : "" );
 
 
+	this.clientmanagement="no";
+	this.clientstorage="file"; 
+	this.scriptprotect="all";
+	this.sessionmanagement="yes";
+	this.sessionStorage="memory";
+	this.sessiontimeout="#createTimeSpan(0,0,30,0)#";
+	this.setclientcookies="yes";
+	this.setdomaincookies="no"; 
+	this.applicationtimeout="#createTimeSpan(1,0,0,0)#";
+	this.localmode="update";
+	this.web.charset="utf-8";
+
+
 	variables.isDebug = true;		// ATTN: set to false for production!
 
 

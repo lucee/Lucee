@@ -28,6 +28,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
@@ -285,7 +286,8 @@ public final class PageSourceImpl implements PageSource {
                     else {
                     	try {
                     		this.page=page=newInstance(mapping.getPhysicalClass(this.getClassName()));
-    					} catch (Throwable t) {t.printStackTrace();
+    					} catch(Throwable t) {
+    						ExceptionUtil.rethrowIfNecessary(t);
 							this.page=page=null;
 						}
                     	if(page==null) this.page=page=compile(config,classRootDir,null,false,pc.ignoreScopes());
@@ -341,6 +343,7 @@ public final class PageSourceImpl implements PageSource {
         	throw new TemplateException("ClassFormatError:"+e.getMessage());
         }
         catch(Throwable t) {
+        	ExceptionUtil.rethrowIfNecessary(t);
         	if(t instanceof TemplateException) throw (TemplateException)t;
         	throw new PageRuntimeException(Caster.toPageException(t));
         	//throw new TemplateException(t.getClass().getName()+":"+t.getMessage());

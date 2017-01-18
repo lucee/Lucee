@@ -35,6 +35,7 @@ import java.util.jar.Manifest;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.file.FileResource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
@@ -112,7 +113,8 @@ public class BundleInfo implements Serializable {
 		try {
 			return getSymbolicName()!=null && getVersion()!=null;
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return false;
 		}
 	}

@@ -17,12 +17,26 @@
 component {
 
 
-	this.Name = "__LUCEE_DOCS";
+	this.name="luceedoc_#server.lucee.version#";
+	this.clientmanagement="no";
+	this.clientstorage="file"; 
+	this.scriptprotect="all";
+	this.sessionmanagement="yes";
+	this.sessionStorage="memory";
+	this.sessiontimeout="#createTimeSpan(0,0,30,0)#";
+	this.setclientcookies="yes";
+	this.setdomaincookies="no"; 
+	this.applicationtimeout="#createTimeSpan(1,0,0,0)#";
+	this.localmode="update";
+	this.web.charset="utf-8";
+
+	variables.isDebug = true;		// ATTN: set to false for production!
 
 
 	function onApplicationStart() {
 
 		Application.objects.utils = new DocUtils();
+		Application.objects.missingTemplateHandler = new StaticResourceProvider();
 	}
 
 
@@ -33,6 +47,13 @@ component {
 
 		param name="URL.item"   default="";
 		param name="URL.format" default="html";
+	}
+
+	function onMissingTemplate( target ) {
+
+		if ( variables.isDebug )	onApplicationStart();		// disable cache for debug/develop
+
+		Application.objects.missingTemplateHandler.onMissingTemplate( target );
 	}
 
 }

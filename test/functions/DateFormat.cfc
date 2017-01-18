@@ -110,7 +110,7 @@
 		dt=CreateDateTime(2004,1,2,4,5,6);
 		assertEquals("2004",dateFormat(dt,"yyyy"));
 		assertEquals("04",dateFormat(dt,"yy"));
-		assertEquals("4",dateFormat(dt,"y"));
+		assertEquals("2004",dateFormat(dt,"y"));
 		assertEquals("January",dateFormat(dt,"MMMM"));
 
 		assertEquals("Jan",dateFormat(dt,"mmm"));

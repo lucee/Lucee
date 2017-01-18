@@ -21,6 +21,7 @@ package lucee.runtime.monitor;
 import java.io.IOException;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.XMLConfigWebFactory;
 import lucee.runtime.config.XMLConfigWebFactory.MonitorTemp;
@@ -38,7 +39,8 @@ public class ActionMonitorFatory {
 			addMonitors(collector,cs,temps);
 			return collector;
 		}
-		catch(Throwable t){t.printStackTrace();
+		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			ActionMonitorCollector collector = new ActionMonitorCollectorRefImpl();
 			addMonitors(collector,cs,temps);
 			return collector;

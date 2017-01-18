@@ -98,7 +98,7 @@ public final class Hash implements Function {
 			}
 		    return lucee.commons.digest.Hash.toHexString(data,true);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			throw Caster.toPageException(t);
 		}
 	}

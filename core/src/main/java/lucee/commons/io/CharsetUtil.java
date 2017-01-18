@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.SortedMap;
 
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
@@ -58,6 +59,7 @@ public class CharsetUtil {
 			return Charset.forName(charset);
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -73,6 +75,7 @@ public class CharsetUtil {
 			return new CharSet(Charset.forName(charset));
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}

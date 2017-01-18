@@ -26,16 +26,19 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import lucee.commons.lang.CFTypes;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.functions.xml.XmlSearch;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.text.xml.XMLUtil;
+import lucee.runtime.text.xml.struct.XMLStruct;
 import lucee.runtime.text.xml.struct.XMLStructFactory;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -188,7 +191,7 @@ public final class VariableUtilImpl implements VariableUtil {
 				//if(rtn==null)rtn=((Map)coll).get(MapAsStruct.getCaseSensitiveKey((Map)coll, key.getString()));
 				if(rtn!=null) return rtn;
 			}
-			catch(Throwable t) {}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			return Reflector.getField(coll,key.getString(),defaultValue);
 			//return rtn;
 		} 
@@ -223,7 +226,7 @@ public final class VariableUtilImpl implements VariableUtil {
 				//if(rtn==null)rtn=((Map)coll).get(MapAsStruct.getCaseSensitiveKey((Map)coll, key));
 				if(rtn!=null) return rtn;
 			}
-			catch(Throwable t) {}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			return Reflector.getProperty(coll,key,defaultValue);
 			//return rtn;
 		} 
@@ -273,7 +276,7 @@ public final class VariableUtilImpl implements VariableUtil {
 					rtn=((Map)coll).get(MapAsStruct.getCaseSensitiveKey((Map)coll, key.getString()));
 				if(rtn!=null) return rtn;
 			}
-			catch(Throwable t) {}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			rtn = Reflector.getProperty(coll,key.getString(),null);
 			if(rtn!=null) return rtn;
 			
@@ -351,7 +354,7 @@ public final class VariableUtilImpl implements VariableUtil {
 				if(rtn!=null) return rtn;
 				
 			}
-			catch(Throwable t) {}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			rtn = Reflector.getProperty(coll,key,null);
 			if(rtn!=null) return rtn;
 			throw new ExpressionException("Key ["+key+"] doesn't exist in Map ("+Caster.toClassName(coll)+")","keys are ["+keyList(((Map)coll))+"]");
@@ -415,7 +418,7 @@ public final class VariableUtilImpl implements VariableUtil {
 				Reflector.setProperty(coll,key.getString(),value);
 				return value;
 			}
-			catch(Throwable t) {t.printStackTrace();}*/
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}*/
 			((Map)coll).put(key.getString(),value);
 			return value;
 		} 
@@ -475,7 +478,7 @@ public final class VariableUtilImpl implements VariableUtil {
 				Reflector.setProperty(coll,key,value);
 				return value;
 			}
-			catch(Throwable t) {}*/
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}*/
 			((Map)coll).put(key,value);
 			return value;
 		} 
@@ -535,7 +538,7 @@ public final class VariableUtilImpl implements VariableUtil {
 				Reflector.setProperty(coll,key,value);
 				return value;
 			}
-			catch(Throwable t) {}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			((Map)coll).put(key,value);
 			return value;
 		} 
@@ -588,7 +591,7 @@ public final class VariableUtilImpl implements VariableUtil {
 				Reflector.setProperty(coll,key.getString(),value);
 				return value;
 			}
-			catch(Throwable t) {}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			((Map)coll).put(key,value);
 			return value;
 		} 
@@ -760,31 +763,33 @@ public final class VariableUtilImpl implements VariableUtil {
 		}
 	    // Strings
 	    if(coll instanceof String) {
-			return MemberUtil.call(pc,coll,key,args, CFTypes.TYPE_STRING, "string");
+			return MemberUtil.call(pc,coll,key,args, new short[]{CFTypes.TYPE_STRING}, new String[]{"string"});
 	    }
 	    // Locale
 	    if(coll instanceof Locale) {
-			return MemberUtil.call(pc,coll,key,args, CFTypes.TYPE_LOCALE, "locale");
+			return MemberUtil.call(pc,coll,key,args, new short[]{CFTypes.TYPE_LOCALE}, new String[]{"locale"});
 	    }
 	    // TimeZone
 	    if(coll instanceof TimeZone) {
-			return MemberUtil.call(pc,coll,key,args, CFTypes.TYPE_TIMEZONE, "timezone");
+			return MemberUtil.call(pc,coll,key,args, new short[]{CFTypes.TYPE_TIMEZONE}, new String[]{"timezone"});
 	    }
 	    // Boolean
 	    if(coll instanceof Boolean) {
-	    	return MemberUtil.call(pc, coll, key, args, CFTypes.TYPE_BOOLEAN, "boolean");
+	    	return MemberUtil.call(pc, coll, key, args, new short[]{CFTypes.TYPE_BOOLEAN}, new String[]{"boolean"});
 	    }
-	    // Map
+	    // Map || XML
 	    if(coll instanceof Map) {
-	    	return MemberUtil.call(pc, coll, key, args, CFTypes.TYPE_STRUCT, "struct");
+	    	if(coll instanceof Node) 
+	    		return MemberUtil.call(pc, coll, key, args, new short[]{CFTypes.TYPE_XML,CFTypes.TYPE_STRUCT}, new String[]{"xml","struct"});
+	    	return MemberUtil.call(pc, coll, key, args, new short[]{CFTypes.TYPE_STRUCT}, new String[]{"struct"});
 	    }
 	    // List
 	    if(coll instanceof List) {
-	    	return MemberUtil.call(pc, coll, key, args, CFTypes.TYPE_ARRAY, "array");
+	    	return MemberUtil.call(pc, coll, key, args, new short[]{CFTypes.TYPE_ARRAY}, new String[]{"array"});
 	    }
 	    // Date
 	    if(coll instanceof Date) {
-	    	return MemberUtil.call(pc, coll, key, args, CFTypes.TYPE_DATETIME, "date");
+	    	return MemberUtil.call(pc, coll, key, args, new short[]{CFTypes.TYPE_DATETIME}, new String[]{"date"});
 	    }
 	    
 	    
@@ -802,7 +807,8 @@ public final class VariableUtilImpl implements VariableUtil {
 		// MUST make an independent impl for performance reasons
 		try {
 			return callFunctionWithoutNamedValues(pc, coll, key, args);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 			
@@ -844,6 +850,7 @@ public final class VariableUtilImpl implements VariableUtil {
 			return callFunctionWithNamedValues(pc, coll, key, args);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}

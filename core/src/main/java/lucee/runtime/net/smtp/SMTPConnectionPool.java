@@ -32,6 +32,8 @@ import javax.mail.NoSuchProviderException;
 import javax.mail.Session;
 import javax.mail.Transport;
 
+import lucee.commons.lang.ExceptionUtil;
+
 public class SMTPConnectionPool {
 
 	private static Map<String,Stack<SessionAndTransport>> sessions=new HashMap<String, Stack<SessionAndTransport>>();
@@ -158,7 +160,7 @@ public class SMTPConnectionPool {
 		try{
 			return satStack.pop();
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		return null;
 	}
 	

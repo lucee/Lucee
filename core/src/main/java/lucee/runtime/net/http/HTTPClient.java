@@ -164,7 +164,7 @@ public class HTTPClient implements Objects, Iteratorable {
 			return cfc;
 	        
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			throw new PageRuntimeException(Caster.toPageException(t));
 		}
 	}

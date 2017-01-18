@@ -316,7 +316,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 			}
 			
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			throw Caster.toPageException(t);
 		}
 		finally {

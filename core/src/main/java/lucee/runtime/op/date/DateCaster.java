@@ -892,19 +892,6 @@ public final class DateCaster {
 		return defaultValue;
 	}
 	
-	/*public static void main(String[] args) throws PageException {
-		print.e(toDateSimple("{t '15:19:50'}", TimeZoneConstants.CET));
-		//print.e(toDateSimple("{t '15:19:50+2'}", TimeZoneConstants.CET));
-		print.e(toDateSimple("{t '15:19:50+2:0'}", TimeZoneConstants.CET));
-		print.e(toDateSimple("{t '15:19:50+02:0'}", TimeZoneConstants.CET));
-		print.e(toDateSimple("{t '15:19:50+02:00'}", TimeZoneConstants.CET));
-		
-
-		print.e(toDateSimple("{ts '2016-11-23 15:19:50'}", TimeZoneConstants.CET));
-		print.e(toDateSimple("{ts '2016-11-23 15:19:50+1:0'}", TimeZoneConstants.CET));
-		print.e(toDateSimple("{ts '2016-11-23 15:19:50+02:00'}", TimeZoneConstants.CET));
-	}*/
-
 	private static DateTime _toDateSimpleTS(DateString ds, TimeZone timeZone, DateTime defaultValue) {
 		// Date
 		// "^\\{d '([0-9]{2,4})-([0-9]{1,2})-([0-9]{1,2})'\\}$"
@@ -1078,7 +1065,6 @@ public final class DateCaster {
 		hour=h;
 	}
 	
-
 	if(hour>12) return defaultValue;
 	if(minute>59) return defaultValue;
 	if(hour==12 && minute>0) return defaultValue;

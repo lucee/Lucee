@@ -45,7 +45,7 @@ public abstract class SpoolerTaskWS extends SpoolerTaskSupport {
 			
 			return rpc.callWithNamedValues(config, KeyImpl.init(getMethodName()), getArguments());
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
 			throw Caster.toPageException(t);
 		}
 	}

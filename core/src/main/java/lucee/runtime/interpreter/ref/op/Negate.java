@@ -20,6 +20,7 @@ package lucee.runtime.interpreter.ref.op;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.interpreter.InterpreterException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
 import lucee.runtime.op.Caster;
@@ -31,18 +32,20 @@ import lucee.runtime.op.Caster;
 public final class Negate extends RefSupport implements Ref {
 
     private Ref ref;
+	private boolean limited;
 
     /**
      * constructor of the class
      * @param ref
      */
-    public Negate(Ref ref) {
+    public Negate(Ref ref, boolean limited) {
         this.ref=ref;
+		this.limited=limited;
     }
 
     @Override
 	public Object getValue(PageContext pc) throws PageException {
-        return new Double(-Caster.toDoubleValue(ref.getValue(pc)));
+    	return new Double(-Caster.toDoubleValue(ref.getValue(pc)));
     }
 
     @Override
