@@ -10,7 +10,7 @@
 		}
 	</cfscript>
 
-	<cffunction name="processURL" returntype="struct" access="public">
+	<cffunction name="processURL" returntype="struct" access="private">
 		<cfargument name="targetURL" type="string" required="yes" hint="URL to add to the collection">
 
 		<cfhttp method="get" url="#Arguments.targetURL#" redirect="no" resolveURL="yes" timeout="30" result="httpResult"/>
@@ -18,7 +18,7 @@
 		<cfreturn httpResult>
 	</cffunction>
 
-	<cffunction name="testCase" returntype="String" access="public">
+	<cffunction name="testCase" returntype="String" access="private">
 		<cfset URLs = ArrayNew(1)>
 		<cfset ArrayAppend(URLs,"http://www.lucee.org")>
 		<cfset ArrayAppend(URLs,"http://lucee.org/downloads.html")>
