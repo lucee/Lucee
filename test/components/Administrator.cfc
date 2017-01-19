@@ -132,4 +132,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		//admin.updateJar();
 	}
 	
+	public any function testGetOutputSetting() {
+		var outputSetting = admin.getOutputSetting();
+
+		assertEquals(isStruct(outputSetting),true);
+		assertEquals(structKeyExists(outputSetting, "allowCompression") && isBoolean(outputSetting.allowCompression),true);
+		assertEquals(structKeyExists(outputSetting, "bufferOutput") && isBoolean(outputSetting.bufferOutput),true);
+		assertEquals(structKeyExists(outputSetting, "cfmlWriter") && isValid("string", outputSetting.cfmlWriter),true);
+		assertEquals(structKeyExists(outputSetting, "contentLength") && isBoolean(outputSetting.contentLength),true);
+		assertEquals(structKeyExists(outputSetting, "suppressContent") && isBoolean(outputSetting.suppressContent),true);
+	}
 }

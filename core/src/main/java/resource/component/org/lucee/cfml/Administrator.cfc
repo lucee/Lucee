@@ -172,7 +172,66 @@ component	{
 			returnVariable="local.rtn";
 			return rtn;
 	}
+
+	/**
+	* @hint updates output settings for this context
+	* @cfmlWriter an argument for Whitespace management in lucee Output settings
+	* @suppressContent an argument for suppressContent in lucee Output settings
+	* @allowCompression an argument for allowCompression in lucee Output settings
+	* @bufferOutput an argument for bufferOutput in lucee Output settings
+	*/
+	public void function updateOutputSetting( required string cfmlWriter, boolean suppressContent, boolean allowCompression, boolean bufferOutput ){
+		admin
+			action="securityManager"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.hasAccess"
+			secType="setting"
+			secValue="yes";
+		if(local.hasAccess){
+			admin
+				action="updateOutputSetting"
+				type="#variables.type#"
+				password="#variables.password#"
+
+				cfmlWriter="#arguments.cfmlWriter#"
+				suppressContent="#isDefined('arguments.suppressContent') and arguments.suppressContent#"
+				allowCompression="#isDefined('arguments.allowCompression') and arguments.allowCompression#"
+				bufferOutput="#isDefined('arguments.bufferOutput') and arguments.bufferOutput#"
+				contentLength=""
+
+				remoteClients="#variables.remoteClients#";
+		}
+	}
 	
+	/**
+	* @hint resets output settings for this context
+	*/
+	public any function resetOutputSetting() {
+		admin
+			action="securityManager"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.hasAccess"
+			secType="setting"
+			secValue="yes";
+		if(local.hasAccess){
+			admin
+				action="updateOutputSetting"
+				type="#variables.type#"
+				password="#variables.password#"
+
+				cfmlWriter=""
+				suppressContent=""
+				showVersion=""
+				allowCompression=""
+				bufferOutput=""
+				contentLength=""
+
+				remoteClients="#request.getRemoteClients()#";
+		}
+	}
+
 	/**
 	* @hint returns all available timezones
 	*/
@@ -230,5 +289,16 @@ component	{
 			name="#arguments.name#";
 	}
 	
-	
-} 
+	/**
+	* @hint returns the Preserve single quotes setting from datasource page
+	*/
+	public boolean function getDatasourceSetting() {
+		admin
+			action="getDatasourceSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.dbSetting";
+
+		return local.dbSetting;
+	}
+}
