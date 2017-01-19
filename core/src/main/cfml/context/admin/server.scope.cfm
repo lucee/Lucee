@@ -417,11 +417,23 @@ Error Output --->
 							<option value="memory" <cfif scope.sessionStorage EQ "memory">selected</cfif>>#ucFirst(stText.Scopes.memory)#</option>
 							<option value="file" <cfif scope.sessionStorage EQ "file">selected</cfif>>#ucFirst(stText.Scopes.file)#</option>
 							<option value="cookie" <cfif scope.sessionStorage EQ "cookie">selected</cfif>>#ucFirst(stText.Scopes.cookie)#</option>
-							<cfloop array="#cacheConnections#" index="key">
-								<option value="#key#" <cfif scope.sessionStorage EQ key>selected</cfif>>cache: #key#</option>
+							<cfloop from="1" to="#arrayLen(cacheConnections)#" index="key">
+								<cfif key EQ 1>
+									<optgroup label="Cache">
+								</cfif>
+								<option value="#cacheConnections[key]#" <cfif scope.sessionStorage EQ cacheConnections[key]>selected</cfif>>cache: #cacheConnections[key]#</option>
+								<cfif key EQ arrayLen(cacheConnections)>
+									</optgroup>
+								</cfif>
 							</cfloop>
-							<cfloop array="#datasources#" index="key">
-								<option value="#key.getName()#" <cfif scope.sessionStorage EQ key.getName()>selected</cfif>>dsn: #key.getName()#</option>
+							<cfloop from="1" to="#arrayLen(datasources)#" index="key">
+								<cfif key EQ 1>
+									<optgroup label="Datasources">
+								</cfif>
+								<option value="#datasources[key].getName()#" <cfif scope.sessionStorage EQ datasources[key].getName()>selected</cfif>>dsn: #datasources[key].getName()#</option>
+								<cfif key EQ arrayLen(datasources)>
+									</optgroup>
+								</cfif>
 							</cfloop>
 						</select>
 						<!--- <cfinputClassic type="text" name="sessionStorage" value="#scope.sessionStorage#"> --->
@@ -442,11 +454,23 @@ Error Output --->
 							<option value="memory" <cfif scope.clientStorage EQ "memory">selected</cfif>>#ucFirst(stText.Scopes.memory)#</option>
 							<option value="file" <cfif scope.clientStorage EQ "file">selected</cfif>>#ucFirst(stText.Scopes.file)#</option>
 							<option value="cookie" <cfif scope.clientStorage EQ "cookie">selected</cfif>>#ucFirst(stText.Scopes.cookie)#</option>
-							<cfloop array="#cacheConnections#" index="key">
-								<option value="#key#" <cfif scope.clientStorage EQ key>selected</cfif>>cache: #key#</option>
+							<cfloop from="1" to="#arrayLen(cacheConnections)#" index="key">
+								<cfif key EQ 1>
+									<optgroup label="Cache">
+								</cfif>
+								<option value="#cacheConnections[key]#" <cfif scope.sessionStorage EQ cacheConnections[key]>selected</cfif>>cache: #cacheConnections[key]#</option>
+								<cfif key EQ arrayLen(cacheConnections)>
+									</optgroup>
+								</cfif>
 							</cfloop>
-							<cfloop array="#datasources#" index="key">
-								<option value="#key.getName()#" <cfif scope.clientStorage EQ key.getName()>selected</cfif>>dsn: #key.getName()#</option>
+							<cfloop from="1" to="#arrayLen(datasources)#" index="key">
+								<cfif key EQ 1>
+									<optgroup label="Datasources">
+								</cfif>
+								<option value="#datasources[key].getName()#" <cfif scope.clientStorage EQ datasources[key].getName()>selected</cfif>>dsn: #datasources[key].getName()#</option>
+								<cfif key EQ arrayLen(datasources)>
+									</optgroup>
+								</cfif>
 							</cfloop>
 						</select>
 						<!--- <cfinputClassic type="text" name="clientStorage" value="#scope.clientStorage#"> --->
