@@ -25,7 +25,6 @@ import java.util.UUID;
 
 import javax.servlet.http.HttpSession;
 
-import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -61,13 +60,14 @@ import lucee.runtime.type.scope.client.ClientCookie;
 import lucee.runtime.type.scope.client.ClientDatasource;
 import lucee.runtime.type.scope.client.ClientFile;
 import lucee.runtime.type.scope.client.ClientMemory;
-import lucee.runtime.type.scope.client.StorageClientCache;
 import lucee.runtime.type.scope.session.SessionCache;
 import lucee.runtime.type.scope.session.SessionCookie;
 import lucee.runtime.type.scope.session.SessionDatasource;
 import lucee.runtime.type.scope.session.SessionFile;
 import lucee.runtime.type.scope.session.SessionMemory;
-import lucee.runtime.type.scope.session.StorageSessionCache;
+import lucee.runtime.type.scope.storage.IKHandlerCache;
+import lucee.runtime.type.scope.storage.IKHandlerDatasource;
+import lucee.runtime.type.scope.storage.IKStorageScopeSupport;
 import lucee.runtime.type.scope.storage.MemoryScope;
 import lucee.runtime.type.scope.storage.StorageScope;
 import lucee.runtime.type.scope.storage.StorageScopeCleaner;
@@ -90,9 +90,7 @@ public final class ScopeContext {
 	static {
 		INVIDUAL_STORAGE_KEYS=Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("individualStorageKeys", null),false);
 	}
-	
-	
-	
+
 	private Map<String,Map<String,Scope>> cfSessionContextes=MapFactory.<String,Map<String,Scope>>getConcurrentMap();
 	private Map<String,Map<String,Scope>> cfClientContextes=MapFactory.<String,Map<String,Scope>>getConcurrentMap();
 	private Map<String,Application> applicationContextes=MapFactory.<String,Application>getConcurrentMap();
@@ -243,9 +241,14 @@ public final class ScopeContext {
 				}
 				else{
 					DataSource ds = pc.getDataSource(storage,null);
-					if(ds!=null)client=ClientDatasource.getInstance(storage,pc,getLog());
+					if(ds!=null){
+						if(INVIDUAL_STORAGE_KEYS)  client=(Client)IKStorageScopeSupport.getInstance(Scope.SCOPE_CLIENT, 
+								new IKHandlerDatasource(), appContext.getName(), storage, pc, existing, getLog());
+						else client=ClientDatasource.getInstance(storage,pc,getLog());
+					}
 					else {
-						if(INVIDUAL_STORAGE_KEYS) client=StorageClientCache.getInstance(storage,appContext.getName(),pc,existing,getLog(),null);
+						if(INVIDUAL_STORAGE_KEYS) client=(Client)IKStorageScopeSupport.getInstance(Scope.SCOPE_CLIENT, 
+								new IKHandlerCache(), appContext.getName(), storage, pc, existing, getLog());
 						else client=ClientCache.getInstance(storage,appContext.getName(),pc,existing,getLog(),null);
 					}
 
@@ -509,11 +512,18 @@ public final class ScopeContext {
 				else {
 					DataSource ds = pc.getConfig().getDataSource(storage,null);
 					if(ds!=null && ds.isStorage()){
-						if(SessionDatasource.hasInstance(storage,pc)) return true;
+						if(INVIDUAL_STORAGE_KEYS) {
+							return IKStorageScopeSupport.hasInstance(Scope.SCOPE_SESSION, new IKHandlerDatasource(), 
+									appContext.getName(), storage, pc);
+						}
+						else {
+							if(SessionDatasource.hasInstance(storage,pc)) return true;
+						}
 					}
 					if(INVIDUAL_STORAGE_KEYS)
-						return StorageSessionCache.hasInstance(storage, appContext.getName(), pc);
-					return  SessionCache.hasInstance(storage,appContext.getName(),pc);
+						return IKStorageScopeSupport.hasInstance(Scope.SCOPE_SESSION, new IKHandlerCache(), 
+								appContext.getName(), storage, pc);
+					return SessionCache.hasInstance(storage,appContext.getName(),pc);
 				}
 			}
 			return true;
@@ -571,9 +581,14 @@ public final class ScopeContext {
 					session=SessionCookie.getInstance(appContext.getName(),pc,getLog());
 				else{
 					DataSource ds = pc.getDataSource(storage,null);
-					if(ds!=null && ds.isStorage())session=SessionDatasource.getInstance(storage,pc,getLog(),null);
+					if(ds!=null && ds.isStorage()) {
+						if(INVIDUAL_STORAGE_KEYS) session=(Session)IKStorageScopeSupport.getInstance(Scope.SCOPE_SESSION, 
+								new IKHandlerDatasource(), appContext.getName(), storage, pc, existing, getLog());
+						else session=SessionDatasource.getInstance(storage,pc,getLog(),null);
+					}
 					else {
-						if(INVIDUAL_STORAGE_KEYS) session=StorageSessionCache.getInstance(storage,appContext.getName(),pc,existing,getLog(),null);
+						if(INVIDUAL_STORAGE_KEYS) session=(Session)IKStorageScopeSupport.getInstance(Scope.SCOPE_SESSION, 
+								new IKHandlerCache(), appContext.getName(), storage, pc, existing, getLog());
 						else session=SessionCache.getInstance(storage,appContext.getName(),pc,existing,getLog(),null);
 					}
 

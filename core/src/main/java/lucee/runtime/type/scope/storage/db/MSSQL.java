@@ -42,7 +42,7 @@ public class MSSQL extends SQLExecutorSupport {
 
 	@Override
 	public void update(Config config, String cfid, String applicationName,
-			DatasourceConnection dc, int type, Struct data, long timeSpan,
+			DatasourceConnection dc, int type, Object data, long timeSpan,
 			Log log) throws PageException, SQLException {
 		// TODO Auto-generated method stub
 

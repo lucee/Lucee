@@ -13,16 +13,16 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 
-public class StorageVal implements Serializable {
+public class IKStorageValue implements Serializable {
 
 	private static final long serialVersionUID = 2728185742217909233L;
 	private static final byte[] EMPTY = new byte[0];
 	
-	private transient MapPro<Collection.Key,StorageScopeItem> value;
+	private transient MapPro<Collection.Key,IKStorageScopeItem> value;
 	private long lastModified;
 	private final byte[] barr;
 
-	public StorageVal(MapPro<Collection.Key,StorageScopeItem> value) throws PageException {
+	public IKStorageValue(MapPro<Collection.Key,IKStorageScopeItem> value) throws PageException {
 		this.value=value;
 		this.barr=serialize(value);
 		this.lastModified=System.currentTimeMillis();
@@ -31,7 +31,7 @@ public class StorageVal implements Serializable {
 	public long lastModified() {
 		return lastModified;
 	}
-	public MapPro<Collection.Key,StorageScopeItem> getValue() throws PageException {
+	public MapPro<Collection.Key,IKStorageScopeItem> getValue() throws PageException {
 		if(value==null) {
 			if(barr.length==0) return null;
 			value=deserialize(barr);
@@ -39,14 +39,14 @@ public class StorageVal implements Serializable {
 		return value;
 	}
 	
-	private static MapPro<Collection.Key,StorageScopeItem> deserialize(byte[] barr) throws PageException {
+	private static MapPro<Collection.Key,IKStorageScopeItem> deserialize(byte[] barr) throws PageException {
 		if(barr==null || barr.length==0) return null;
 		
 		ObjectInputStream ois=null;
-		MapPro<Collection.Key,StorageScopeItem> data=null;
+		MapPro<Collection.Key,IKStorageScopeItem> data=null;
 		try {
 			ois = new ObjectInputStream(new ByteArrayInputStream(barr));
-			data=(MapPro<Collection.Key,StorageScopeItem>)ois.readObject();
+			data=(MapPro<Collection.Key,IKStorageScopeItem>)ois.readObject();
 		}
 		catch(Exception e) {
 			throw Caster.toPageException(e);
@@ -57,7 +57,7 @@ public class StorageVal implements Serializable {
 		return data;
 	}
 	
-	private static byte[] serialize(MapPro<Collection.Key,StorageScopeItem> data) throws PageException {
+	private static byte[] serialize(MapPro<Collection.Key,IKStorageScopeItem> data) throws PageException {
 		if(data==null) return EMPTY;
 		
 		ByteArrayOutputStream os = new ByteArrayOutputStream();

@@ -93,13 +93,13 @@ public abstract class StorageScopeFile extends StorageScopeImpl {
 	public void touchAfterRequest(PageContext pc) {
 		setTimeSpan(pc);
 		super.touchAfterRequest(pc);
-		store(pc.getConfig());
+		store(pc);
 	}
 	
 	
 	
 	@Override
-	public void store(Config config) {
+	public void store(PageContext pc) {
 		//if(!super.hasContent()) return;
 		try {
 			if(!res.exists())ResourceUtil.createFileEL(res, true);
@@ -145,7 +145,7 @@ public abstract class StorageScopeFile extends StorageScopeImpl {
 	
 	
 	@Override
-	public void unstore(Config config) {
+	public void unstore(PageContext pc) {
 		try {
 			if(!res.exists())return;
 			res.remove(true);

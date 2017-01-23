@@ -2,7 +2,7 @@ package lucee.runtime.type.scope.storage;
 
 import java.io.Serializable;
 
-public class StorageScopeItem implements Serializable {
+public class IKStorageScopeItem implements Serializable {
 
 	private static final long serialVersionUID = -8187816208907138226L;
 
@@ -10,7 +10,7 @@ public class StorageScopeItem implements Serializable {
 	private long lastModifed;
 	private boolean removed;
 
-	public StorageScopeItem(Object value) {
+	public IKStorageScopeItem(Object value) {
 		this.value=value;
 		this.lastModifed=System.currentTimeMillis();
 	}
