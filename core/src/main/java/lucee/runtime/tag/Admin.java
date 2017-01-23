@@ -4360,7 +4360,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         lucee.runtime.type.Query qry=new QueryImpl(new String[]{"name","host","classname","bundleName","bundleVersion","dsn","DsnTranslated","database","port",
                 "timezone","username","password","passwordEncrypted","readonly"
                 ,"grant","drop","create","revoke","alter","select","delete","update","insert"
-                ,"connectionLimit","connectionTimeout","clob","blob","validate","storage","customSettings","metaCacheTimeout"},ds.size(),"query");
+                ,"connectionLimit","openConnections","connectionTimeout","clob","blob","validate","storage","customSettings","metaCacheTimeout"},ds.size(),"query");
         
         int row=0;
 
@@ -4392,7 +4392,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
             qry.setAt(KeyConstants._grant,row,Boolean.valueOf(d.hasAllow(DataSource.ALLOW_GRANT)));
             qry.setAt(KeyConstants._revoke,row,Boolean.valueOf(d.hasAllow(DataSource.ALLOW_REVOKE)));
             qry.setAt(KeyConstants._alter,row,Boolean.valueOf(d.hasAllow(DataSource.ALLOW_ALTER)));
-
+            int oc = config.getDatasourceConnectionPool().openConnections(key.toString());
+            qry.setAt("openConnections",row,oc<0?0:oc);
             qry.setAt("connectionLimit",row,d.getConnectionLimit()<1?"":Caster.toString(d.getConnectionLimit()));
             qry.setAt("connectionTimeout",row,d.getConnectionTimeout()<1?"":Caster.toString(d.getConnectionTimeout()));
             qry.setAt("customSettings",row,d.getCustoms());

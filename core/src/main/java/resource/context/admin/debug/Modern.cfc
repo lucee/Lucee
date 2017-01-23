@@ -576,19 +576,41 @@
 						<cfset isOpen = this.isSectionOpen( sectionId )>
 						<cfset local.total  =0>
 						<cfset local.records=0>
+						<cfset local.openConns=0>
+						<cfloop struct="#debugging.datasources#" index="dsn" item="item">
+							<cfset local.openConns=item.openConnections>
+						</cfloop>
+
 						<cfloop query="queries">
 							<cfset total   += queries.time>
 							<cfset records += queries.count>
 						</cfloop>
-
-						<div class="section-title">SQL Queries</div>
+						<div class="section-title">Datasource Information</div>
 						<table>
-							<cfset renderSectionHeadTR( sectionId, "#queries.recordcount# Quer#queries.recordcount GT 1 ? 'ies' : 'y'# Executed (Total Records: #records#; Total Time: #unitFormat( arguments.custom.unit, total ,prettify)# ms)" )>
+							<cfset renderSectionHeadTR( sectionId, "#queries.recordcount# Quer#queries.recordcount GT 1 ? 'ies' : 'y'# Executed (Total Records: #records#; Total Time: #unitFormat( arguments.custom.unit, total ,prettify)# ms; Total Open Connections: #openConns#)" )>
 
 							<tr>
 								<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+									
+									
 									<table><tr><td>
+										<b>General</b>
+										<table class="details">
+										<tr>
+											<th>Name</th>
+											<th>Open Connections</th>
+											<th>Max Connections</th>
+										</tr>
+										<cfloop struct="#debugging.datasources#" index="local.dsName" item="local.dsData">
+										<tr>
+											<td class="txt-r">#dsData.name#</td>
+											<td class="txt-r">#dsData.openConnections#</td>
+											<td class="txt-r">#dsData.connectionLimit==-1?'INF':dsData.connectionLimit#</td>
+										</tr>
+										</cfloop>
+										</table>
 									<cfset hasCachetype=ListFindNoCase(queries.columnlist,"cachetype") gt 0>
+									<br><b>SQL Queries</b>
 										<cfloop query="queries">
 
 											<table class="details">

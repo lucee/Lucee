@@ -231,7 +231,11 @@
 				<tr>
 					<th scope="row">Name</th>
 					<td>
-						<cfinputClassic type="text" name="newName" value="#datasource.name#" class="large">
+						<cfif error.message NEQ "" OR error.Detail NEQ "">
+							<cfinputClassic type="text" name="newName" value="#form.newname#" class="large">
+						<cfelse>
+							<cfinputClassic type="text" name="newName" value="#datasource.name#" class="large">
+						</cfif>
 					</td>
 				</tr>
 				

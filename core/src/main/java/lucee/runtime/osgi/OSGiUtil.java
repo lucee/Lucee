@@ -432,9 +432,14 @@ public class OSGiUtil {
 
 	
 	public static Bundle loadBundle(String name, Version version,Identification id, boolean startIfNecessary) throws BundleException {
-		return _loadBundle(name, version, id, startIfNecessary,null);
+		try {
+			return _loadBundle(name, version, id, startIfNecessary,null);
+		}
+		catch (StartFailedException sfe) {
+			throw sfe.bundleException;
+		}
 	}
-	public static Bundle _loadBundle(String name, Version version,Identification id, boolean startIfNecessary, Set<Bundle> parents) throws BundleException {
+	public static Bundle _loadBundle(String name, Version version,Identification id, boolean startIfNecessary, Set<Bundle> parents) throws BundleException, StartFailedException {
 		name=name.trim();
 		
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
@@ -447,7 +452,14 @@ public class OSGiUtil {
     	for(Bundle b:bundles){
     		if(name.equalsIgnoreCase(b.getSymbolicName())) {
     			if(version==null || version.equals(b.getVersion())) {
-    				if(startIfNecessary)_startIfNecessary(b,parents);
+    				if(startIfNecessary) {
+    					try{
+    						_startIfNecessary(b,parents);
+    					}
+    					catch(BundleException be) {
+    						throw new StartFailedException(be,b);
+    					}
+    				}
     				return b;
     			}
     			if(versionsFound.length()>0) versionsFound.append(", ");
@@ -465,7 +477,14 @@ public class OSGiUtil {
 				e.printStackTrace();
 			}
 			if(b!=null) {
-				if(startIfNecessary)startIfNecessary(b);
+				if(startIfNecessary){
+					try{
+						startIfNecessary(b);
+					}
+					catch(BundleException be) {
+						throw new StartFailedException(be,b);
+					}
+				}
 				return b;
 			}
     	}
@@ -475,7 +494,14 @@ public class OSGiUtil {
 	    	try{
 	    		File f = factory.downloadBundle(name, version.toString(),id);
 		    	Bundle b = _loadBundle(bc, f);
-		    	if(startIfNecessary)start(b);
+		    	if(startIfNecessary){
+		    		try{
+						start(b);
+					}
+					catch(BundleException be) {
+						throw new StartFailedException(be,b);
+					}
+		    	}
 		    	return b;
 	    	}
 	    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
@@ -901,7 +927,8 @@ public class OSGiUtil {
 				Bundle b;
 				BundleDefinition bd;
 				Iterator<BundleDefinition> it = listBundles.iterator();
-				while(it.hasNext()){
+				List<StartFailedException> secondChance = null;
+				while(it.hasNext()) {
 					bd=it.next();
 					b=exists(loadedBundles, bd);
 					if(b!=null) {
@@ -920,10 +947,33 @@ public class OSGiUtil {
 								.getIdentification(), true,parents);
 						loadedBundles.add(b);
 					}
-					catch(BundleException _be){
+					catch(StartFailedException sfe) {
+						sfe.setBundleDefinition(bd);
+						if(secondChance==null) secondChance=new ArrayList<StartFailedException>();
+						secondChance.add(sfe);
+					}
+					catch(BundleException _be) {
 						if(failedBD==null) failedBD=new ArrayList<OSGiUtil.BundleDefinition>();
 						failedBD.add(bd);
 						log(_be);
+					}
+				}
+				// we do this because it maybe was relaying on other bundles now loaded
+				// TODO rewrite the complete impl so didd is not necessary
+				if(secondChance!=null) {
+					Iterator<StartFailedException> _it = secondChance.iterator();
+					StartFailedException sfe;
+					while(_it.hasNext()) {
+						sfe = _it.next();
+						try {
+							start(sfe.bundle);
+							loadedBundles.add(sfe.bundle);
+						}
+						catch(BundleException _be) {
+							if(failedBD==null) failedBD=new ArrayList<OSGiUtil.BundleDefinition>();
+							failedBD.add(sfe.getBundleDefinition());
+							log(_be);
+						}
 					}
 				}
 			}
@@ -1342,6 +1392,7 @@ public class OSGiUtil {
 		 * get Bundle, also load if necessary from local or remote
 		 * @return
 		 * @throws BundleException
+		 * @throws StartFailedException 
 		 */
 		public Bundle getBundle(Config config) throws BundleException {
 			if(bundle==null) {

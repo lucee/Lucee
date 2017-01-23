@@ -75,7 +75,7 @@ public final class SessionCache extends StorageScopeCache implements Session {
 		}
 
 		SessionCache session = new SessionCache(pc,cacheName,appName,new StructImpl(),0);
-		session.store(pc.getConfig());
+		session.store(pc);
 		return session;
 	}
 

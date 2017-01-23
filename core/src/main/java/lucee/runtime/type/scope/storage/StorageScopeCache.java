@@ -109,7 +109,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 	public void touchAfterRequest(PageContext pc) {
 		setTimeSpan(pc);
 		super.touchAfterRequest(pc);
-		store(pc.getConfig());
+		store(pc);
 	}
 
 	@Override
@@ -140,9 +140,9 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 	
 
 	@Override
-	public synchronized void store(Config config) {
+	public synchronized void store(PageContext pc) {
 		try {
-			Cache cache = getCache(ThreadLocalPageContext.get(config), cacheName);
+			Cache cache = getCache(ThreadLocalPageContext.get(pc), cacheName);
 			String key=getKey(cfid, appName, getTypeAsString());
 			
 			Object existingVal = cache.getValue(key,null);
@@ -156,13 +156,12 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 			cache.put(key, new StorageValue(sct),new Long(getTimeSpan()), null);
 		} 
 		catch (Exception pe) {pe.printStackTrace();}
-
 	}
 
 	@Override
-	public synchronized void unstore(Config config) {
+	public synchronized void unstore(PageContext pc) {
 		try {
-			Cache cache = getCache(ThreadLocalPageContext.get(config), cacheName);
+			Cache cache = getCache(ThreadLocalPageContext.get(pc), cacheName);
 			String key=getKey(cfid, appName, getTypeAsString());
 			cache.remove(key);
 		} 

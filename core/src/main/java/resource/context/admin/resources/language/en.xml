@@ -966,6 +966,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="settings.listdatasourcesdescserver">Datasources created here are available for ALL web contexts to use. The settings for these datasources can only be modified in this Server Administrator area.</data>
 	<data key="settings.dballowed">Allowed operations</data>
 	<data key="Settings.dbStorage">Storage</data>
+	<data key="Settings.openConn">Open Connections</data>
 	<data key="Settings.dbStorageDesc">Allow to use this datasource as client/session storage.</data>
 	<data key="settings.dbport">Port</data>
 	<data key="settings.preservesinglequotesdescription">Preserve single quotes (&quot;) in the SQL defined with the tag cfquery</data>
