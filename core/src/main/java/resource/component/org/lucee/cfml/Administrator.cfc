@@ -493,6 +493,181 @@ component	{
 			remoteClients="#variables.remoteClients#";
 	}
 
+	/**
+	* @hint returns a list mail servers defined for this context
+	*/
+	public query function getMailservers(){
+		admin
+			action="getMailservers"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.mailservers";
+		return local.mailservers;
+	}
+
+	/**
+	* @hint updates a specific mail server defined for this context
+	* @host Mail server host name (for example smtp.gmail.com).
+	* @port Port of the mail server (for example 587).
+	* @username Username of the mail server.
+	* @password Password of the mail server.
+	* @tls Enable Transport Layer Security.
+	* @ssl Enable secure connections via SSL.
+	* @life Overall timeout for the connections established to the mail server.
+	* @idle Idle timeout for the connections established to the mail server.
+	*/
+	public void function updateMailServer( required string host, required string port, required string username, required string password, required boolean tls, required boolean ssl, required string life, required string idle ){
+		var ms = getMailservers();
+		admin
+			action="updateMailServer"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			hostname="#arguments.host#"
+			dbusername="#arguments.username#"
+			dbpassword="#toPassword(arguments.hosts,arguments.password, ms)#"
+			life="#arguments.life#"
+			idle="#arguments.idle#"
+
+			port="#arguments.port#"
+			id="new"
+			tls="#arguments.tls#"
+			ssl="#data.ssl#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint removes a specific mailserver defined for this context.
+	* @host hostname for the mail server to be removed.
+	* @username username of the mail server to be removed.
+	*/
+	public void function removeMailServer(){
+		admin
+			action="removeMailServer"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			hostname="#arguments.host#"
+			username="#arguments.username#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint returns mail settings for this context.
+	*/
+	public struct function getMailSetting(){
+		admin
+			action="getMailSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.mail";
+		return local.mail;
+	}
+
+	/**
+	* @hint updates the mail settings for this context
+	* @spoolenable If enabled the mails are sent in a background thread and the main request does not have to wait until the mails are sent.
+	* @timeout Time in seconds that the Task Manager waits to send a single mail, when the time is reached the Task Manager stops the thread and the mail gets moved to unsent folder, where the Task Manager will pick it up later to try to send it again.
+	* @defaultEncoding Default encoding used for mail servers
+	*/
+	public void function updateMailSetting(){
+		admin
+			action="updateMailSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			spoolEnable="#arguments.spoolenable#"
+			timeout="#arguments.timeout#"
+			defaultEncoding="#arguments.defaultEncoding#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint resets the mail settings for this context
+	*/
+	public void function resetMailSetting(){
+		admin
+			action="updateMailSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			spoolEnable=""
+			timeout=""
+			defaultEncoding=""
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint returns the list of mappings defined for this context
+	*/
+	public query function getMappings(){
+		admin
+			action="getMappings"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.mappings";
+		return local.mappings;
+	}
+
+	/**
+	* @hint updates/inserts a specific mapping for this context
+	* @virtual virtual name for the mapping
+	* @physical physical path for the mapping
+	* @archive archive path for the mapping, if needed.
+	* @primary type of mapping ( physical/archive )
+	* @inspect type of inspection for the mapping(never/once/always/"").
+	* @toplevel 
+	*/
+	public void function updateMapping(required string virtual, required string physical, required string archive, required string primary, required string inspect, required boolean toplevel) {
+		admin
+			action="updateMapping"
+			type="#variables.type#"
+			password="#variables.password#"
+			
+			virtual="#arguments.virtual#"
+			physical="#arguments.physical#"
+			archive="#arguments.archive#"
+			primary="#arguments.primary#"
+			inspect="#arguments.inspect#"
+			toplevel="yes"
+			remoteClients="#variables.remoteClients#";
+	}
+	
+	/**
+	* @hint removes a mapping defined in this context
+	* @virtual virtual name for the mapping to be removed.
+	*/
+	public void function removeMapping(required string virtual){
+		admin
+			action="removeMapping"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			virtual="#arguments.virtual#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint compiles the mapping for any errors
+	* @virtual virtual name for the mapping to be compiled.
+	*/
+	public void function compileMapping(required string virtual){
+		admin
+			action="compileMapping"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			virtual="#arguments.virtual#"
+			stoponerror="yes"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint creates new archieve for the mapping
+	*/
+	publice void function createArchiveFromMapping(){
+		// updateMapping(arguments.virtual, arguments.physical, arguments.archive, arguments.primary, arguments.inspect, arguments.toplevel);
+	}
 
 	/* Private functions */
 	private struct function ComponentListPackageAsStruct(string package, cfcNames=structnew("linked")){
@@ -509,5 +684,16 @@ component	{
 	function getArguments(Key, default) {
 		if(not structKeyExists(arguments,Key)) return default;
 		return arguments[Key];
+	}
+
+	function toPassword(host, pw, ms){
+		var i=1;
+		if(arguments.pw EQ variables.stars){
+			for(i=arguments.ms.recordcount;i>0;i--){
+				if(arguments.host EQ arguments.ms.hostname[i])
+					return arguments.ms.password[i];
+			}
+		}
+		return arguments.pw;
 	}
 }
