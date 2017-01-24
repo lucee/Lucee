@@ -517,23 +517,32 @@ component	{
 	* @idle Idle timeout for the connections established to the mail server.
 	*/
 	public void function updateMailServer( required string host, required string port, required string username, required string password, required boolean tls, required boolean ssl, required string life, required string idle ){
-		var ms = getMailservers();
 		admin
-			action="updateMailServer"
+			action="securityManager"
 			type="#variables.type#"
 			password="#variables.password#"
+			returnVariable="local.hasAccess"
+			secType="mail"
+			secValue="yes";
+		if(local.hasAccess){
+			var ms = getMailservers();
+			admin
+				action="updateMailServer"
+				type="#variables.type#"
+				password="#variables.password#"
 
-			hostname="#arguments.host#"
-			dbusername="#arguments.username#"
-			dbpassword="#toPassword(arguments.hosts,arguments.password, ms)#"
-			life="#arguments.life#"
-			idle="#arguments.idle#"
+				hostname="#arguments.host#"
+				dbusername="#arguments.username#"
+				dbpassword="#toPassword(arguments.hosts,arguments.password, ms)#"
+				life="#arguments.life#"
+				idle="#arguments.idle#"
 
-			port="#arguments.port#"
-			id="new"
-			tls="#arguments.tls#"
-			ssl="#data.ssl#"
-			remoteClients="#variables.remoteClients#";
+				port="#arguments.port#"
+				id="new"
+				tls="#arguments.tls#"
+				ssl="#data.ssl#"
+				remoteClients="#variables.remoteClients#";
+		}
 	}
 
 	/**
@@ -543,13 +552,22 @@ component	{
 	*/
 	public void function removeMailServer(){
 		admin
-			action="removeMailServer"
+			action="securityManager"
 			type="#variables.type#"
 			password="#variables.password#"
+			returnVariable="local.hasAccess"
+			secType="mail"
+			secValue="yes";
+		if(local.hasAccess){
+			admin
+				action="removeMailServer"
+				type="#variables.type#"
+				password="#variables.password#"
 
-			hostname="#arguments.host#"
-			username="#arguments.username#"
-			remoteClients="#variables.remoteClients#";
+				hostname="#arguments.host#"
+				username="#arguments.username#"
+				remoteClients="#variables.remoteClients#";
+		}
 	}
 
 	/**
@@ -620,31 +638,49 @@ component	{
 	*/
 	public void function updateMapping(required string virtual, required string physical, required string archive, required string primary, required string inspect, required boolean toplevel) {
 		admin
-			action="updateMapping"
+			action="securityManager"
 			type="#variables.type#"
 			password="#variables.password#"
-			
-			virtual="#arguments.virtual#"
-			physical="#arguments.physical#"
-			archive="#arguments.archive#"
-			primary="#arguments.primary#"
-			inspect="#arguments.inspect#"
-			toplevel="yes"
-			remoteClients="#variables.remoteClients#";
+			returnVariable="local.hasAccess"
+			secType="mapping"
+			secValue="yes";
+		if(local.hasAccess){
+			admin
+				action="updateMapping"
+				type="#variables.type#"
+				password="#variables.password#"
+
+				virtual="#arguments.virtual#"
+				physical="#arguments.physical#"
+				archive="#arguments.archive#"
+				primary="#arguments.primary#"
+				inspect="#arguments.inspect#"
+				toplevel="yes"
+				remoteClients="#variables.remoteClients#";
+		}
 	}
-	
+
 	/**
 	* @hint removes a mapping defined in this context
 	* @virtual virtual name for the mapping to be removed.
 	*/
 	public void function removeMapping(required string virtual){
 		admin
-			action="removeMapping"
+			action="securityManager"
 			type="#variables.type#"
 			password="#variables.password#"
+			returnVariable="local.hasAccess"
+			secType="mapping"
+			secValue="yes";
+		if(local.hasAccess){
+			admin
+				action="removeMapping"
+				type="#variables.type#"
+				password="#variables.password#"
 
-			virtual="#arguments.virtual#"
-			remoteClients="#variables.remoteClients#";
+				virtual="#arguments.virtual#"
+				remoteClients="#variables.remoteClients#";
+		}
 	}
 
 	/**
@@ -653,13 +689,22 @@ component	{
 	*/
 	public void function compileMapping(required string virtual){
 		admin
-			action="compileMapping"
+			action="securityManager"
 			type="#variables.type#"
 			password="#variables.password#"
+			returnVariable="local.hasAccess"
+			secType="mapping"
+			secValue="yes";
+		if(local.hasAccess){
+			admin
+				action="compileMapping"
+				type="#variables.type#"
+				password="#variables.password#"
 
-			virtual="#arguments.virtual#"
-			stoponerror="yes"
-			remoteClients="#variables.remoteClients#";
+				virtual="#arguments.virtual#"
+				stoponerror="yes"
+				remoteClients="#variables.remoteClients#";
+		}
 	}
 
 	/**
