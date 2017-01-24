@@ -664,9 +664,116 @@ component	{
 
 	/**
 	* @hint creates new archieve for the mapping
+	* @virtual virtual name for the mapping.
+	* @addCFMLFile Add all CFML Source Templates as well (.cfm,.cfc,.cfml).
+	* @addNonCFMLFile Add all Non CFML Source Templates as well (.js,.css,.gif,.png ...)
+	* @doDownload Whether need to download the archive or not.
 	*/
-	publice void function createArchiveFromMapping(){
-		// updateMapping(arguments.virtual, arguments.physical, arguments.archive, arguments.primary, arguments.inspect, arguments.toplevel);
+	public void function createArchiveFromMapping(required string virtual, required boolean addCFMLFile, required boolean addNonCFMLFile, required boolean doDownload){
+		var ext="lar";
+		var filename=arguments.virtual;
+		filename=mid(filename,2,len(filename));
+		if(len(filename)){
+			filename="archive-"&filename&"."&ext;
+		}else{
+			filename="archive-root."&ext;
+		}
+		filename=Replace(filename,"/","-","all");
+		var target=expandPath("#cgi.context_path#/lucee/archives/"&filename);
+		count=0;
+		while(fileExists(target)){
+			count=count+1;
+			target="#cgi.context_path#/lucee/archives/"&filename;
+			target=replace(target,'.'&ext,count&'.'&ext);
+			target=expandPath(target);
+		}
+		admin
+			action="createArchive"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			file="#target#"
+			virtual="#arguments.virtual#"
+			addCFMLFiles="#arguments.addCFMLFile#"
+			addNonCFMLFiles="#arguments.addNonCFMLFile#"
+			append="#not arguments.doDownload#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint returns the list of extensions for this context.
+	*/
+	public query function getExtensions(){
+		admin
+			action="getRHExtensions"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.extensions";
+		return local.extensions;
+	}
+
+	/**
+	* @hint updates(install/upgrade/downgrade) a specific extension.
+	* @provider provider of the extension
+	* @id id of the extension
+	* @version version of the extension
+	*/
+	public void function updateExtension( required string provider, required id string, required string version ){
+		admin
+			action="updateRHExtension"
+			type="#variables.type#"
+			password="#variables.password#"
+			source="#downloadFull(arguments.provider,arguments.id,arguments.version)#";
+	}
+
+	/**
+	* @hint removes(uninstall) a specific extension.
+	* @id id of the extension to be removed
+	*/
+	public void function removeExtension( required id string ){
+		admin
+			action="removeRHExtension"
+			type="#variables.type#"
+			password="#variables.password#"
+			id="#arguments.id#";
+	}
+
+	/**
+	* @hint returns the list of extension providers for this context.
+	*/
+	public query function getExtensionProviders(){
+		admin
+			action="getRHExtensionProviders"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+		return local.providers;
+	}
+
+	/**
+	* @hint Adds a new extension provider for this context.
+	* @url URL to the Extension Provider (Example: http://www.myhost.com)
+	*/
+	public void function updateExtensionProvider( required string url ){
+		admin
+			action="updateRHExtensionProvider"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			url="#trim(arguments.url)#";
+	}
+
+	/**
+	* @hint Adds a new extension provider for this context.
+	* @url URL to the Extension Provider (Example: http://www.myhost.com)
+	*/
+	public void function removeExtensionProvider( required string url ){
+		admin
+			action="removeRHExtensionProvider"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			url="#trim(arguments.url)#";
 	}
 
 	/* Private functions */
