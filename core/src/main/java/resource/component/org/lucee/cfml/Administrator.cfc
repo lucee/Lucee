@@ -533,14 +533,14 @@ component	{
 
 				hostname="#arguments.host#"
 				dbusername="#arguments.username#"
-				dbpassword="#toPassword(arguments.hosts,arguments.password, ms)#"
+				dbpassword="#toPassword(arguments.host,arguments.password, ms)#"
 				life="#arguments.life#"
 				idle="#arguments.idle#"
 
 				port="#arguments.port#"
 				id="new"
 				tls="#arguments.tls#"
-				ssl="#data.ssl#"
+				ssl="#arguments.ssl#"
 				remoteClients="#variables.remoteClients#";
 		}
 	}
@@ -763,7 +763,7 @@ component	{
 	* @id id of the extension
 	* @version version of the extension
 	*/
-	public void function updateExtension( required string provider, required id string, required string version ){
+	public void function updateExtension( required string provider, required string id , required string version ){
 		admin
 			action="updateRHExtension"
 			type="#variables.type#"
@@ -775,7 +775,7 @@ component	{
 	* @hint removes(uninstall) a specific extension.
 	* @id id of the extension to be removed
 	*/
-	public void function removeExtension( required id string ){
+	public void function removeExtension( required string id  ){
 		admin
 			action="removeRHExtension"
 			type="#variables.type#"
@@ -839,6 +839,7 @@ component	{
 	}
 
 	function toPassword(host, pw, ms){
+		variables.stars = "*********";
 		var i=1;
 		if(arguments.pw EQ variables.stars){
 			for(i=arguments.ms.recordcount;i>0;i--){
@@ -847,5 +848,45 @@ component	{
 			}
 		}
 		return arguments.pw;
+	}
+
+	function downloadFull(required string provider,required string id , string version){
+		return _download("full",provider,id,version);
+	}
+
+	function _download(String type,required string provider,required string id, string version){
+
+
+		var start=getTickCount();
+		// get info from remote
+		admin
+			action="getAPIKey"
+			type=variables.type
+			password=variables.password
+			returnVariable="apiKey";
+
+		var uri=provider&"/rest/extension/provider/"&type&"/"&id;
+
+		if(provider=="local") { // TODO use version from argument scope
+			admin
+				action="getLocalExtension"
+				type=variables.type
+				password=variables.password
+				id="#id#"
+				asBinary=true
+				returnVariable="local.ext";
+			return local.ext;
+		}
+		else {
+			http url="#uri#?coreVersion=#server.lucee.version##len(arguments.version)?'&version='&arguments.version:''#" result="local.http" {
+				httpparam type="header" name="accept" value="application/cfml";
+				if(!isNull(apiKey))httpparam type="url" name="ioid" value="#apikey#";
+
+			}
+			if(!isNull(http.status_code) && http.status_code==200) {
+				return http.fileContent;
+			}
+			throw http.fileContent;
+		}
 	}
 }
