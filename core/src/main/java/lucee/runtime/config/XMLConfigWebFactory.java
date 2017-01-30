@@ -3901,6 +3901,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				Element el = elServers[i];
 				if (el.getNodeName().equals("server"))
 					servers[index++] = new ServerImpl(
+							Caster.toIntValue(getAttr(el,"id"), i+1), 
 							getAttr(el,"smtp"), 
 							Caster.toIntValue(getAttr(el,"port"), 25), 
 							getAttr(el,"username"),
