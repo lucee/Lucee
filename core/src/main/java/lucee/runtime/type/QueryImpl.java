@@ -2998,9 +2998,4 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		if(!(obj instanceof Collection)) return false;
 		return CollectionUtil.equals(this,(Collection)obj);
 	}
-
-	/*@Override
-	public int hashCode() {
-		return CollectionUtil.hashCode(this);
-	}*/
 }

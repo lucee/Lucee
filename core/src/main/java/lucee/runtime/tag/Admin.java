@@ -2515,12 +2515,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         
 
         Server[] servers = config.getMailServers();
-        lucee.runtime.type.Query qry=new QueryImpl(new String[]{"hostname","password","passwordEncrypted","username","port","authentication","readonly","tls","ssl","life","idle"},servers.length,"query");
+        lucee.runtime.type.Query qry=new QueryImpl(new String[]{"id","hostname","password","passwordEncrypted","username","port","authentication","readonly","tls","ssl","life","idle"},servers.length,"query");
         
         
         for(int i=0;i<servers.length;i++) {
             Server s= servers[i];
             int row=i+1;
+            qry.setAt("id",row,s instanceof ServerImpl? ((ServerImpl)s).getId():-1);
             qry.setAt("hostname",row,s.getHostName());
             qry.setAt("password",row,s.isReadOnly()?"":s.getPassword());
             qry.setAt("passwordEncrypted",row,s.isReadOnly()?"":ConfigWebUtil.encrypt(s.getPassword()));
