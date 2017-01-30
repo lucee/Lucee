@@ -1760,8 +1760,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 
 	@Override
 	public Object call(PageContext pc, Key methodName, Object[] arguments) throws PageException {
-		return MemberUtil.call(pc, this, methodName, arguments, new short[]{lucee.commons.lang.CFTypes.TYPE_QUERY}, new String[]{"query"});
-		//return Reflector.callMethod(this,methodName,arguments);
+		return MemberUtil.call(pc, this, methodName, arguments, lucee.commons.lang.CFTypes.TYPE_QUERY, "query");
 	}
 
 	@Override
