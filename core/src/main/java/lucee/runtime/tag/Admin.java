@@ -2436,7 +2436,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     private void doUpdateMailServer() throws PageException {
         
         admin.updateMailServer(
-                getString("admin",action,"hostname"),
+        		getInt("id",-1),
+        		getString("admin",action,"hostname"),
                 getString("admin",action,"dbusername"),
                 getString("admin",action,"dbpassword"),
                 Caster.toIntValue(getString("admin",action,"port")),
@@ -2515,7 +2516,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         
 
         Server[] servers = config.getMailServers();
-        lucee.runtime.type.Query qry=new QueryImpl(new String[]{"id","hostname","password","passwordEncrypted","username","port","authentication","readonly","tls","ssl","life","idle"},servers.length,"query");
+        lucee.runtime.type.Query qry=new QueryImpl(new String[]{"id","hostname","password","passwordEncrypted","username","port","authentication","readonly","tls","ssl","life","idle","type"},servers.length,"query");
         
         
         for(int i=0;i<servers.length;i++) {
@@ -2529,10 +2530,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
             qry.setAt("port",row,Caster.toInteger(s.getPort()));
             qry.setAt("readonly",row,Caster.toBoolean(s.isReadOnly()));
             qry.setAt("authentication",row,Caster.toBoolean(s.hasAuthentication()));
-            if(s instanceof ServerImpl) {
+            qry.setAt("ssl",row,Caster.toBoolean(s.isSSL()));
+	        qry.setAt("tls",row,Caster.toBoolean(s.isTLS()));
+	        if(s instanceof ServerImpl) {
             	ServerImpl si = (ServerImpl)s;
-	            qry.setAt("ssl",row,Caster.toBoolean(si.isSSL()));
-	            qry.setAt("tls",row,Caster.toBoolean(si.isTLS()));
+            	qry.setAt("type",row,si.getType()==ServerImpl.TYPE_GLOBAL?"global":"local");
 	            qry.setAt("life",row,(si.getLifeTimeSpan()/1000));
 	            qry.setAt("idle",row,(si.getIdleTimeSpan()/1000));
             }

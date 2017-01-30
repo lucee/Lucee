@@ -443,7 +443,8 @@
 	<data key="mail.portDesc">Port of the mail server (for example 587).</data>
 	<data key="mail.missingencoding">Please enter a value for the default encoding</data>
 	<data key="mail.logfile">Log file</data>
-	<data key="mail.mailservers">Mail server connections</data>
+	<data key="mail.mailservers.local">Mail server connections</data>
+	<data key="mail.mailservers.global">Mail server connections (Connections from Server Administrator)</data>
 	<data key="mail.defaultencodingdescription">This is the default encoding used</data>
 	<data key="mail.spoolinterval">Spool interval</data>
 	<data key="mail.server">Server (SMTP)</data>
@@ -451,7 +452,13 @@
 	<data key="mail.porterrorlast">) of type number</data>
 	<data key="mail.spoolenabled">Spool enable</data>
 	<data key="mail.settings">Mail settings</data>
-	<data key="mail.mailserversdescription">You can define more than one mail server connection. When sending an email, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</data>
+	<data key="mail.mailserversdescription.local">You can define more than one mail server connection. When sending an email, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</data>
+	<data key="mail.mailserversdescription.global">These connections have been created in the Server Administrator and are shared with ALL web contexts. 
+		You cannot modify these mail servers in the Web Administrator.
+		You can define more than one mail server connection. When sending an email, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</data>
+
+
+
 	<data key="mail.createnewMailServerConn">New connection</data>
 	<data key="mail.createnewMailServerConnDesc">Create a new mail server connection.</data>
 	<data key="mail.editMailServerConn">Edit connection</data>

@@ -11,23 +11,34 @@ loop struct=driverNames index="name" item="componentPath" {
 	drivers[name]=createObject("component",componentPath);
 	variables.DriverData[name] = "#drivers[name].getHost()#|#drivers[name].getPort()#|#drivers[name].useTLS()#|#drivers[name].useSSL()#";
 }
-</cfscript>
 
+count.local=0;
+count.global=0;
+loop query="ms" {
+	if(ms.type=='local')count.local++;
+	else count.global++;
+}
+</cfscript>
+<cfloop list="#request.adminType=='server'?'global':'global,local'#" item="contextType">
+<cfif count[contextType]==0><cfcontinue></cfif>
 <cfoutput>
-<h2>#stText.Mail.MailServers#</h2>
-<div class="itemintro">#stText.Mail.MailServersDescription#</div>
+<cfset ct=request.adminType=='server'?'local':contextType>
+<h2>#stText.Mail.MailServers[ct]#</h2>
+<div class="itemintro">#stText.Mail.MailServersDescription[ct]#</div>
 
 <!--- show verify messages in a more prominent way --->
 <cfloop collection="#stVeritfyMessages#" item="hostname">
-	<cfif stVeritfyMessages[hostname].label eq "OK">
-		<div class="message">
-			Verification of mail server [#hostname#] was successful.
-		</div>
-	<cfelse>
-		<div class="error">
-			<strong>Verification of mail server [#hostname#] failed:</strong>
-			<br /><em>#stVeritfyMessages[hostName].message#</em>
-		</div>
+	<cfif stVeritfyMessages[hostname].contextType==contextType>
+		<cfif stVeritfyMessages[hostname].label eq "OK">
+			<div class="message">
+				Verification of mail server [#hostname#] was successful.
+			</div>
+		<cfelse>
+			<div class="error">
+				<strong>Verification of mail server [#hostname#] failed:</strong>
+				<br /><em>#stVeritfyMessages[hostName].message#</em>
+			</div>
+		</cfif>
 	</cfif>
 </cfloop>
 	
@@ -46,11 +57,12 @@ loop struct=driverNames index="name" item="componentPath" {
 				<th>#stText.Mail.ssl#</th>
 				<th>#stText.Mail.life#<br><span class="comment">dd:hh:mm:ss</span></th>
 				<th>#stText.Mail.idle#<br><span class="comment">dd:hh:mm:ss</span></th>
-				<th></th>
+				<cfif contextType=="local" or request.adminType=='server'><th></th></cfif>
 			</tr>
 		</thead>
 		<tbody>
 			<cfloop query="ms">
+				<cfif ms.type!=contextType><cfcontinue></cfif>
 				<cfset isPredefinedMailserver = false>
 				<cfloop collection="#variables.DriverData#" item="currDriver">
 					<cfif variables.DriverData[currDriver] EQ "#ms.hostName#|#ms.port#|#ms.tls#|#ms.ssl#">
@@ -61,7 +73,7 @@ loop struct=driverNames index="name" item="componentPath" {
 				<tr>
 					<td>
 						<input type="hidden" name="id_#ms.currentrow#" value="#hash(ms.hostName&":"&ms.username&":"&ms.password&":"&ms.tls&":"&ms.ssl)#">
-						<cfif not ms.readonly>
+						<cfif not ms.readonly || contextType=="global">
 							<input type="checkbox" class="checkbox" name="row_#ms.currentrow#" value="#ms.currentrow#">
 						</cfif>
 					</td>
@@ -99,12 +111,10 @@ loop struct=driverNames index="name" item="componentPath" {
 					<td><cfset sct=toTSStruct(ms.idle)>
 						#fill(sct.days)#:#fill(sct.hours)#:#fill(sct.minutes)#:#fill(sct.seconds)#
 					</td>
-
-
 					<!--- edit --->
-					<td>
+					<cfif contextType=="local" or request.adminType=='server'><td>
 						#renderEditButton("#request.self#?action=#url.action#&action2=edit&row=#ms.currentrow#")#
-					</td>
+					</td></cfif>
 				</tr>
 			</cfloop>
 			
@@ -117,10 +127,15 @@ loop struct=driverNames index="name" item="componentPath" {
 				<tr>
 					<td colspan="7">
 						<input type="hidden" name="mainAction" value="#stText.Buttons.Update#">
-						<input type="submit" class="bl button submit" name="subAction" value="#stText.Buttons.Verify#">
-						<!--- <input type="submit" class="bm button submit" name="subAction" value="#stText.Buttons.Update#"> --->
-						<input type="reset" class="bm button reset" name="cancel" value="#stText.Buttons.Cancel#">
-						<input type="submit" class="br button submit" name="subAction" value="#stText.Buttons.Delete#">
+						<input type="hidden" name="contextType" value="#contextType#">
+						<cfif contextType=="local" or request.adminType=='server'>
+							<input type="submit" class="bl button submit" name="subAction" value="#stText.Buttons.Verify#">
+							<input type="reset" class="bm button reset" name="cancel" value="#stText.Buttons.Cancel#">
+							<input type="submit" class="br button submit" name="subAction" value="#stText.Buttons.Delete#">
+						<cfelse>
+							<input type="submit" class="blr button submit" name="subAction" value="#stText.Buttons.Verify#">
+						
+						</cfif>
 					</td>	
 				</tr>
 			</tfoot>
@@ -128,3 +143,6 @@ loop struct=driverNames index="name" item="componentPath" {
 	</table>
 </cfformClassic>
 </cfoutput>
+</cfloop>
+
+

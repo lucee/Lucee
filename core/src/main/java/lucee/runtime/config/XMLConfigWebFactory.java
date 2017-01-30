@@ -3884,23 +3884,23 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		// Servers
 		int index = 0;
-		Server[] servers = null;
+		//Server[] servers = null;
 		Element[] elServers = getChildren(mail, "server");
+		List<Server> servers=new ArrayList<Server>();
 		if (hasCS) {
 			Server[] readOnlyServers = configServer.getMailServers();
-			servers = new Server[readOnlyServers.length + (hasAccess ? elServers.length : 0)];
 			for (int i = 0; i < readOnlyServers.length; i++) {
-				servers[i] = readOnlyServers[index++].cloneReadOnly();
+				servers.add(readOnlyServers[index++].cloneReadOnly());
 			}
 		}
-		else {
+		/*else {
 			servers = new Server[elServers.length];
-		}
+		}*/
 		if (hasAccess) {
 			for (int i = 0; i < elServers.length; i++) {
 				Element el = elServers[i];
 				if (el.getNodeName().equals("server"))
-					servers[index++] = new ServerImpl(
+					servers.add(i, new ServerImpl(
 							Caster.toIntValue(getAttr(el,"id"), i+1), 
 							getAttr(el,"smtp"), 
 							Caster.toIntValue(getAttr(el,"port"), 25), 
@@ -3910,11 +3910,12 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							toLong(el.getAttribute("idle"), 1000*60*1),
 							toBoolean(getAttr(el,"tls"), false), 
 							toBoolean(getAttr(el,"ssl"), false), 
-							toBoolean(getAttr(el,"reuse-connection"), true));
-
+							toBoolean(getAttr(el,"reuse-connection"), true),
+							hasCS?ServerImpl.TYPE_LOCAL:ServerImpl.TYPE_GLOBAL)
+					);
 			}
 		}
-		config.setMailServers(servers);
+		config.setMailServers(servers.toArray(new Server[servers.size()]));
 	}
 
 	private static void loadMonitors(ConfigServerImpl configServer, ConfigImpl config, Document doc) throws IOException {

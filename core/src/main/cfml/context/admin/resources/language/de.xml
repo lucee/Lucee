@@ -428,7 +428,8 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="mail.port">Port des Mail Servers (z.B. 587)</data>
 	<data key="mail.missingencoding">Bitte geben Sie einen Wert für das Standard Encoding ein</data>
 	<data key="mail.logfile">Log Datei</data>
-	<data key="mail.mailservers">Mail Server Verbindungen</data>
+	<data key="mail.mailservers.local">Mail Server Verbindungen</data>
+	<data key="mail.mailservers.global">Mail Server Verbindungen (Verbindungen vom Server Administrator)</data>
 	<data key="mail.defaultencodingdescription">Standardencoding</data>
 	<data key="mail.spoolinterval">Spool Intervall</data>
 	<data key="mail.server">Server (SMTP)</data>
