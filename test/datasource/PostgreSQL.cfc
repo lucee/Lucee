@@ -22,35 +22,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	//public function afterTests(){}
 
 	public function setUp(){
-		//variables.has83=defineDatasource83();
-		//variables.has94=defineDatasource94(); 
+		variables.has=defineDatasource();
 	}
 
-	private void function testConnection83(){
-		_testConnection(defineDatasource83());
-	}
-	public void function testConnection94(){
-		_testConnection(defineDatasource94());
-	}
-	private void function _testConnection(has){
-		if(!has) return;
+	public void function testConnection(){
+		if(!variables.has) return;
+
 		query name="local.qry" {
 			echo("select 'AA' as a");
 		}
 		assertEquals("AA",qry.a);
+
 	}
 
+	public function testLDEV1063a() skip=true{
 
-
-	private function testLDEV1063a83() skip=true{
-		_testLDEV1063a(defineDatasource83());
-	}
-	public function testLDEV1063a94() skip=true{
-		_testLDEV1063a(defineDatasource94());
-	}
-	private function _testLDEV1063a(has) skip=true{
-
-		if(!has) return;
+		if(!variables.has) return;
 
 		// SELECT CAST(:election as date) AS election_date;
 		query name="local.qry" params=[election:"2016-11-08"] { echo("
@@ -60,41 +47,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("2016-11-08", qry.election_date);
 	}
 
-	private function testLDEV1063b83() skip=true{
-		_testLDEV1063b(defineDatasource83());
-	}
-	public function testLDEV1063b94() skip=true{
-		_testLDEV1063b(defineDatasource94());
-	}
-	private function _testLDEV1063b(has) skip=true{
+	public function testLDEV1063b() skip=true{
 
-		if(!has) return;
+		if(!variables.has) return;
 
 		// SELECT CAST(? as date) AS election_date;
 		query name="local.qry" params=[election:"2016-11-08"] { echo("
 		    SELECT ?::date AS election_date;
 		"); }
+
 		assertEquals("2016-11-08", qry.election_date);
 	}
 
 
-	private boolean function defineDatasource83(){
-		var pgsql=getCredencials();
-		if(pgsql.count()==0) return false;
-		application action="update"
-			datasource="#{
-	  class: 'org.postgresql.Driver'
-	, bundleName: 'org.lucee.postgresql'
-	, bundleVersion: '8.3.0.jdbc4'
-	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
-	, username: pgsql.username
-	, password: pgsql.password
-}#";
-
-	return true;
-	}
-
-	private boolean function defineDatasource94(){
+	private boolean function defineDatasource(){
 		var pgsql=getCredencials();
 		if(pgsql.count()==0) return false;
 		application action="update"
@@ -106,11 +72,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	, username: pgsql.username
 	, password: pgsql.password
 }#";
-
+/*
+	, bundleName: 'org.lucee.postgresql'
+	, bundleVersion: '8.3.0.jdbc4'
+*/
 	return true;
 	}
-
-
 
 	private struct function getCredencials() {
 		// getting the credetials from the enviroment variables
