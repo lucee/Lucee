@@ -106,6 +106,7 @@ public final class MailParam extends TagImpl {
 		if(type.equals("text"))type="text/plain";
 		else if(type.equals("plain"))type="text/plain";
 		else if(type.equals("html"))type="text/html";
+		else if(type.startsWith("multipart/")) return; // TODO see LDEV-570 maybe add support for content-type in the future
 		
 		this.type=type;
 	}
