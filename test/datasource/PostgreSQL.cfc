@@ -35,6 +35,29 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	}
 
+	public void function testMySQLWithBSTTimezone(){
+		if(!variables.has) return;
+		
+
+		var tz1=getApplicationSettings().timezone;
+		var tz2=getTimeZone();
+		try{
+			application action="update" timezone="BST";
+			setTimeZone("BST");
+
+			query name="local.qry" {
+				echo("select 'AA' as a");
+			}
+			assertEquals("AA",qry.a);
+		}
+		finally {
+			application action="update" timezone="#tz1#";
+			setTimeZone(tz2);
+		}
+		//assertEquals("","");
+		
+	}
+
 	public function testLDEV1063a() skip=true{
 
 		if(!variables.has) return;
