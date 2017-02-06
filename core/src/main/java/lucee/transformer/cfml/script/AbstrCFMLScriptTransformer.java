@@ -2227,7 +2227,15 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		
 		// not defined attributes
 		if(tlt!=null){
-			boolean hasAttributeCollection=attrs.contains("attributecollection");
+			boolean hasAttributeCollection=false;
+			Iterator<Attribute> iii = attrs.iterator();
+			while(iii.hasNext()) {
+				if("attributecollection".equalsIgnoreCase(iii.next().getName())){
+					hasAttributeCollection=true;
+					break;
+				}
+			}
+			
 			int type=tlt.getAttributeType();
 			if(type==TagLibTag.ATTRIBUTE_TYPE_FIXED || type==TagLibTag.ATTRIBUTE_TYPE_MIXED)	{
 				Map<String, TagLibTagAttr> hash = tlt.getAttributes();
