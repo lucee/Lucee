@@ -28,8 +28,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testMySQLWithBSTTimezone(){
 		if(!variables.has) return;
-		application action="update" timezone="BST";
-		setTimeZone("BST");
+		//application action="update" timezone="BST";
+		//setTimeZone("BST");
 
 		query name="local.qry" {
 			echo("select 'a' as a");
