@@ -22,11 +22,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	//public function afterTests(){}
 
 	public function setUp(){
-		variables.has83=defineDatasource83();
-		variables.has94=defineDatasource94(); 
+		//variables.has83=defineDatasource83();
+		//variables.has94=defineDatasource94(); 
 	}
 
-	public void function testConnection83(){
+	private void function testConnection83(){
 		_testConnection(defineDatasource83());
 	}
 	public void function testConnection94(){
@@ -42,7 +42,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 
-	public function testLDEV1063a83() skip=true{
+	private function testLDEV1063a83() skip=true{
 		_testLDEV1063a(defineDatasource83());
 	}
 	public function testLDEV1063a94() skip=true{
@@ -60,7 +60,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("2016-11-08", qry.election_date);
 	}
 
-	public function testLDEV1063b83() skip=true{
+	private function testLDEV1063b83() skip=true{
 		_testLDEV1063b(defineDatasource83());
 	}
 	public function testLDEV1063b94() skip=true{

@@ -30,7 +30,7 @@
 
 	
 
-	private boolean function defineDatasource(){
+	private boolean function defineDatasourceOld(){
 		var pgsql=getCredencials();
 		if(pgsql.count()==0) return false;
 		application action="update" 
@@ -45,6 +45,23 @@
 	
 	return true;
 	}
+
+	private boolean function defineDatasource(){
+		var pgsql=getCredencials();
+		if(pgsql.count()==0) return false;
+		application action="update"
+			datasource="#{
+	  class: 'org.postgresql.Driver'
+	, bundleName: 'org.postgresql.jdbc42'
+	, bundleVersion: '9.4.1212'
+	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
+	, username: pgsql.username
+	, password: pgsql.password
+}#";
+
+	return true;
+	}
+
 
 	private struct function getCredencials() {
 		// getting the credetials from the enviroment variables
