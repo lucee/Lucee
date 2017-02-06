@@ -66,7 +66,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		application action="update"
 			datasource="#{
 	  class: 'org.postgresql.Driver'
-	, bundleName: 'org.lucee.postgresql'
+	, bundleName: 'org.postgresql.jdbc42'
 	, bundleVersion: '9.4.1212'
 	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
 	, username: pgsql.username
