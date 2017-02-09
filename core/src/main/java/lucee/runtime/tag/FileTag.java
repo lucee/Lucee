@@ -589,32 +589,26 @@ public final class FileTag extends BodyTagImpl {
 	 * @throws PageException
 	 */
 	private void actionRead(boolean binary) throws PageException {
-		
 		if(variable==null)
 			throw new ApplicationException("attribute variable is not defined for tag file");
-		checkFile(pageContext, securityManager, file, serverPassword,false,false,true,false);
-		boolean hasCached=cachedWithin!=null;
 		
 		// CACHE
 		if(StringUtil.isEmpty(cachedWithin)){
-			Object tmp = ((PageContextImpl)pageContext).getCachedWithin(ConfigWeb.CACHEDWITHIN_HTTP);
+			Object tmp = ((PageContextImpl)pageContext).getCachedWithin(ConfigWeb.CACHEDWITHIN_FILE);
 			if(tmp!=null)setCachedwithin(tmp);
 		}
-		
-		/*if(clearCache) {
-			hasCached=false;
-			pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FILE,null)
-					.remove(pageContext, createId(binary));
-		}
-		else */
-			if(hasCached) {
-			CacheHandler ch =pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FILE,null).getInstanceMatchingObject(cachedWithin,null);
+		if(cachedWithin!=null) {
+			CacheHandler ch =pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FILE,null)
+					.getInstanceMatchingObject(cachedWithin,null);
 			CacheItem ci = ch!=null?ch.get(pageContext, createId(binary)):null;
 			if(ci instanceof FileCacheItem) {
 				pageContext.setVariable(variable,((FileCacheItem)ci).getData());
 				return;
 			}
 		}
+		
+		checkFile(pageContext, securityManager, file, serverPassword,false,false,true,false);
+		
 		
 		try {
 			long start = System.nanoTime();
