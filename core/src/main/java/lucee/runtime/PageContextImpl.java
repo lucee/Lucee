@@ -814,30 +814,29 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void doInclude(String realPath) throws PageException {
-		doInclude(getRelativePageSources(realPath),false);
+		_doInclude(getRelativePageSources(realPath),false,getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE));
 	}
 	
 	@Override
 	public void doInclude(String realPath, boolean runOnce) throws PageException {
-		doInclude(getRelativePageSources(realPath),runOnce);
+		_doInclude(getRelativePageSources(realPath),runOnce,getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE));
 	}
 	// used by the transformer
 	public void doInclude(String realPath, boolean runOnce, Object cachedWithin) throws PageException {
-		doInclude(getRelativePageSources(realPath),runOnce,cachedWithin); 
+		if(cachedWithin==null) cachedWithin=getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE);
+		_doInclude(getRelativePageSources(realPath),runOnce,cachedWithin); 
 	}
 	
 	@Override
 	public void doInclude(PageSource[] sources, boolean runOnce) throws PageException {
-		doInclude(sources, runOnce,getCachedWithin(Config.CACHEDWITHIN_INCLUDE));
+		_doInclude(sources, runOnce,getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE));
 	}
 
-	public void doInclude(PageSource[] sources, boolean runOnce, Object cachedWithin) throws PageException {
+	// IMPORTANT!!! we do not getCachedWithin in this method, because Modern|ClassicAppListener is calling this method and in this case it should not be used
+	public void _doInclude(PageSource[] sources, boolean runOnce, Object cachedWithin) throws PageException {
 		if(cachedWithin==null) {
-			cachedWithin=getApplicationContext().getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE);
-			if(cachedWithin==null) {
-				_doInclude(sources, runOnce);
-				return;
-			}
+			_doInclude(sources, runOnce);
+			return;
 		}
 		
 		// ignore call when runonce an it is not first call 
