@@ -63,7 +63,6 @@ public class LogST extends Thread {
 		finally {
 			IOUtil.closeEL(ps);
 		}
-		print.e("----------- done ------------");
 	}
 	
 	
@@ -73,8 +72,7 @@ public class LogST extends Thread {
     	while((f=new File(logDirectory,logName+"-"+(++count)+".log")).isFile()) {
     		
     	}
-    	print.e(f.getCanonicalPath());
-		return f;
+    	return f;
 	}
 
 	private void printStackTrace(PrintStream ps, StackTraceElement[] trace) {
@@ -105,10 +103,8 @@ public class LogST extends Thread {
 	}
 	public static void _do(File logDirectory, String logName, int timeRange) {
 
-    	print.e("----------- start ------------");
-		LogST log = new LogST(Thread.currentThread(),logDirectory,logName,timeRange);
+    	LogST log = new LogST(Thread.currentThread(),logDirectory,logName,timeRange);
 		log.start();
 		//log.join();
-    	print.e("----------- stop ------------");
 	}
 }
