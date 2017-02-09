@@ -1577,12 +1577,12 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 					e = it.next();
 					k=AppListenerUtil.toCachedWithinType(e.getKey().getString(),-1);
 					v=e.getValue();
-					if(k!=-1 && !StringUtil.isEmpty(v)) cachedWithins.put(k, v);
+					if(k!=-1 && !StringUtil.isEmpty(v)) setCachedWithin(k, v);
 				}
 			}
 			initCachedWithins=true;
 		} 
-		return cachedWithins.get(type);
+		return super.getCachedWithin(type);
 	}
 	
 	@Override

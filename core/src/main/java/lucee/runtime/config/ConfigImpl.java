@@ -41,6 +41,7 @@ import java.util.TimeZone;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.log.log4j.Log4jUtil;
@@ -76,6 +77,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.cache.CacheConnection;
+import lucee.runtime.cache.ram.RamCache;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.cfx.customtag.CFXTagPoolImpl;
@@ -104,6 +106,7 @@ import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
+import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.functions.system.ContractPath;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
@@ -2884,6 +2887,18 @@ public abstract class ConfigImpl implements Config {
 	@Override
 	public Map<String,CacheConnection> getCacheConnections() {
 		return caches;
+	}
+	
+	// used by argus cache FUTURE add to interface
+	/**
+	 * creates a new RamCache, please make sure to finalize. 
+	 * @param arguments possible arguments are "timeToLiveSeconds", "timeToIdleSeconds" and "controlInterval"
+	 * @throws IOException 
+	 */
+	public Cache createRAMCache(Struct arguments) throws IOException {
+		RamCache rc = new RamCache();
+		rc.init(this, ""+CreateUniqueId.invoke(), arguments); 
+		return rc;
 	}
 
 	@Override

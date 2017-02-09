@@ -131,6 +131,7 @@ import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.ModernAppListener;
 import lucee.runtime.listener.ModernAppListenerException;
+import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.monitor.RequestMonitor;
@@ -832,8 +833,11 @@ public final class PageContextImpl extends PageContext {
 
 	public void doInclude(PageSource[] sources, boolean runOnce, Object cachedWithin) throws PageException {
 		if(cachedWithin==null) {
-			_doInclude(sources, runOnce);
-			return;
+			cachedWithin=getApplicationContext().getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE);
+			if(cachedWithin==null) {
+				_doInclude(sources, runOnce);
+				return;
+			}
 		}
 		
 		// ignore call when runonce an it is not first call 

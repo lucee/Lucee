@@ -79,7 +79,13 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	protected String applicationtoken;
 	
 	private Map<Collection.Key,Map<Collection.Key,Object>> tagDefaultAttributeValues=null;
-	protected Map<Integer,Object> cachedWithins;
+	protected Object cachedWithinFunction;
+	protected Object cachedWithinInclude;
+	protected Object cachedWithinQuery;
+	protected Object cachedWithinResource;
+	protected Object cachedWithinHTTP;
+	protected Object cachedWithinFile;
+	protected Object cachedWithinWS;
 
 
 	protected ConfigWeb config;
@@ -88,15 +94,13 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 		this.config=config;
 		tagDefaultAttributeValues=((ConfigImpl)config).getTagDefaultAttributeValues();
 		
-		cachedWithins=new HashMap<Integer, Object>();
-		cachedWithins.put(Config.CACHEDWITHIN_FUNCTION, config.getCachedWithin(Config.CACHEDWITHIN_FUNCTION));
-		cachedWithins.put(Config.CACHEDWITHIN_INCLUDE, config.getCachedWithin(Config.CACHEDWITHIN_INCLUDE));
-		cachedWithins.put(Config.CACHEDWITHIN_QUERY, config.getCachedWithin(Config.CACHEDWITHIN_QUERY));
-		cachedWithins.put(Config.CACHEDWITHIN_RESOURCE, config.getCachedWithin(Config.CACHEDWITHIN_RESOURCE));
-		cachedWithins.put(Config.CACHEDWITHIN_HTTP, config.getCachedWithin(Config.CACHEDWITHIN_HTTP));
-		cachedWithins.put(Config.CACHEDWITHIN_FILE, config.getCachedWithin(Config.CACHEDWITHIN_FILE));
-		cachedWithins.put(Config.CACHEDWITHIN_WEBSERVICE, config.getCachedWithin(Config.CACHEDWITHIN_WEBSERVICE));
-		
+		cachedWithinFunction=config.getCachedWithin(Config.CACHEDWITHIN_FUNCTION);
+		cachedWithinInclude=config.getCachedWithin(Config.CACHEDWITHIN_INCLUDE);
+		cachedWithinQuery=config.getCachedWithin(Config.CACHEDWITHIN_QUERY);
+		cachedWithinResource=config.getCachedWithin(Config.CACHEDWITHIN_RESOURCE);
+		cachedWithinHTTP=config.getCachedWithin(Config.CACHEDWITHIN_HTTP);
+		cachedWithinFile=config.getCachedWithin(Config.CACHEDWITHIN_FILE);
+		cachedWithinWS=config.getCachedWithin(Config.CACHEDWITHIN_WEBSERVICE);
 	}
 	
 
@@ -123,7 +127,13 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 				tagDefaultAttributeValues.put(e.getKey(), map);
 			}
 		}
-		other.cachedWithins=Duplicator.duplicateMap(cachedWithins, true);
+		other.cachedWithinFile=Duplicator.duplicate(cachedWithinFile, true);
+		other.cachedWithinFunction=Duplicator.duplicate(cachedWithinFunction, true);
+		other.cachedWithinHTTP=Duplicator.duplicate(cachedWithinHTTP, true);
+		other.cachedWithinInclude=Duplicator.duplicate(cachedWithinInclude, true);
+		other.cachedWithinQuery=Duplicator.duplicate(cachedWithinQuery, true);
+		other.cachedWithinResource=Duplicator.duplicate(cachedWithinResource, true);
+		other.cachedWithinWS=Duplicator.duplicate(cachedWithinWS, true);
 	}
 
 	@Override
@@ -258,10 +268,31 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	@Override
 	public final void setCachedWithin(int type, Object value) {
 		if(StringUtil.isEmpty(value)) return;
-		if(cachedWithins==null)
-			cachedWithins=new HashMap<Integer, Object>();
 		
-		if(value!=null)cachedWithins.put(type, value);
+		switch(type) {
+			case Config.CACHEDWITHIN_FUNCTION: cachedWithinFunction=value; break;
+			case Config.CACHEDWITHIN_INCLUDE: cachedWithinInclude=value; break;
+			case Config.CACHEDWITHIN_QUERY: cachedWithinQuery=value; break;
+			case Config.CACHEDWITHIN_RESOURCE: cachedWithinResource=value; break;
+			case Config.CACHEDWITHIN_HTTP: cachedWithinHTTP=value; break;
+			case Config.CACHEDWITHIN_FILE: cachedWithinFile=value; break;
+			case Config.CACHEDWITHIN_WEBSERVICE: cachedWithinWS=value; break;
+		}
+	}
+	
+	@Override
+	public Object getCachedWithin(int type) {
+		
+		switch(type) {
+			case Config.CACHEDWITHIN_FUNCTION: return cachedWithinFunction;
+			case Config.CACHEDWITHIN_INCLUDE: return cachedWithinInclude;
+			case Config.CACHEDWITHIN_QUERY: return cachedWithinQuery;
+			case Config.CACHEDWITHIN_RESOURCE: return cachedWithinResource;
+			case Config.CACHEDWITHIN_HTTP: return cachedWithinHTTP;
+			case Config.CACHEDWITHIN_FILE: return cachedWithinFile;
+			case Config.CACHEDWITHIN_WEBSERVICE: return cachedWithinWS;
+		}
+		return null;
 	}
 	
 	public static Map<Collection.Key,Pair<Log,Struct>> initLog(Struct sct) {
