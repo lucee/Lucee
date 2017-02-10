@@ -198,8 +198,8 @@ component {
 					variables.colorKeys[k]=count++;
 					var bc=darkenColor(darkenColor(v.highLightColor));
 					var fc=(bc);
-					head&="#prefix# td.n#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.normalColor#;}"& variables.NEWLINE;
-					head&="#prefix# td.h#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.highLightColor#;}"& variables.NEWLINE;
+					head&="#prefix# td.luceeN#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.normalColor#;}"& variables.NEWLINE;
+					head&="#prefix# td.luceeH#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.highLightColor#;}"& variables.NEWLINE;
 				}
 
 				
@@ -221,7 +221,7 @@ component {
 				var comment = structKeyExists(arguments.meta,'comment') ? "<br />" & (left(arguments.meta.comment,4)=="<img"?arguments.meta.comment:replace(HTMLEditFormat(arguments.meta.comment),chr(10),' <br>','all')) : '';
 				
 				rtn&=('<tr>');
-				rtn&=('<td class="h#variables.colorKeys[arguments.meta.colorId]#" onclick="dumpOC(''#id#'');" colspan="#columnCount#" style="cursor:pointer;">');
+				rtn&=('<td class="luceeH#variables.colorKeys[arguments.meta.colorId]#" onclick="dumpOC(''#id#'');" colspan="#columnCount#" style="cursor:pointer;">');
 				rtn&=('<span>#arguments.meta.title##metaID#</span>');
 				rtn&=(comment & '</td>');
 				rtn&=('</tr>');
@@ -245,12 +245,12 @@ component {
 						if(isStruct(node)) {
 							var value = this.html(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level+1,arguments.dumpID,arguments.cssColors);
 
-							rtn&=('<td class="#doHighlight(arguments.meta,c)?'h':'n'##variables.colorKeys[arguments.meta.colorId]#">');
+							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">');
 							rtn&=(value);
 							rtn&=('</td>');
 						}
 						else {
-							rtn&=('<td class="#doHighlight(arguments.meta,c)?'h':'n'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>' );
+							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>' );
 						}
 						c *= 2;
 					}
@@ -322,9 +322,9 @@ component {
 					var h2Color = (v.normalColor);
 					var borderColor = darkenColor( darkenColor( v.highLightColor ));
 					variables.colorKeys[k]=count++;
-					rtn&="#prefix# td.n#variables.colorKeys[k]# {background-color:white;border-color:#borderColor#; color:black;cursor:pointer;}"& variables.NEWLINE;
-					rtn&="#prefix# td.h1#variables.colorKeys[k]# {background-color:#h1Color#;border-color:#borderColor#; color:white;cursor:pointer;}"& variables.NEWLINE;
-					rtn&="#prefix# td.h2#variables.colorKeys[k]# {background-color:#h2Color#;border-color:#borderColor#; color:black;cursor:pointer;}"& variables.NEWLINE;
+					rtn&="#prefix# td.luceeN#variables.colorKeys[k]# {background-color:white;border-color:#borderColor#; color:black;cursor:pointer;}"& variables.NEWLINE;
+					rtn&="#prefix# td.luceeH1#variables.colorKeys[k]# {background-color:#h1Color#;border-color:#borderColor#; color:white;cursor:pointer;}"& variables.NEWLINE;
+					rtn&="#prefix# td.luceeH2#variables.colorKeys[k]# {background-color:#h2Color#;border-color:#borderColor#; color:black;cursor:pointer;}"& variables.NEWLINE;
 				}
 
 
