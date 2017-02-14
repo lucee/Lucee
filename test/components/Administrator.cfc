@@ -23,6 +23,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	 function beforeAll(){
 		request.WEBADMINPASSWORD = "password";
 		variables.admin=new org.lucee.cfml.Administrator("server",request.WEBADMINPASSWORD);
+		// writeDump(admin);
 	}
 
 	function run( testResults , testBox ) {
@@ -119,6 +120,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});
 
 			describe( title="test-Jars function", body=function() {
+				
 				it(title="testUpdateJar()", body=function( currentSpec ) {
 					var hasError = false;
 					try {
@@ -128,6 +130,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 						var hasError = true;
 					}
 					assertEquals(hasError, false);
+				});
+
+				it(title="testGetjar()", body=function( currentSpec ) {
+					var Jars = admin.getJars();
+					assertEquals(isQuery(Jars),true);
 				});
 
 				it(title="testRemoveJar()", body=function( currentSpec ) {
@@ -188,7 +195,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});
 
 			describe( title="test-dataSource functions", body=function() {
-				it(title="testgetDatasources()", body=function( currentSpec ) {
+				xit(title="testgetDatasources()", body=function( currentSpec ) {
 					var getDatasource = admin.getDatasources();
 					assertEquals(IsQuery(getDatasource), true);
 				});
@@ -228,7 +235,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					assertEquals((findnoCase('testDSN1', ListOfDSNName) GT 0), true);
 				});
 
-				it(title="testremoveDatasource()", body=function( currentSpec ) {
+				it(title="testgetDatasource()", body=function( currentSpec ) {
+					var getDatasource = admin.getDatasource('TestDSN1');
+					writeDump(getDatasource);
+				});
+
+				xit(title="testremoveDatasource()", body=function( currentSpec ) {
 					// admin.removeDatasource('testDSN1');
 					// var getDatasource = admin.getDatasources();
 					// var ListOfDSNName = valueList(getDatasource.name);
@@ -384,6 +396,118 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					admin.removeExtensionProvider('http://www.myhost.com');
 					var getExtensionsProvider = admin.getExtensionProviders();
 					assertEquals((isquery(getExtensionsProvider) && FindNocase( 'http://www.myhost.com',valueList(getExtensionsProvider.url)) EQ 0) ,true);
+				});
+			});
+
+			describe( title="test ORM function()", body=function() {
+				it(title="checking getORMEngine()", body=function( currentSpec ) {
+					var ORMEngine = admin.getORMEngine();
+					assertEquals(isstruct(ORMEngine) ,true);
+					var strctKeylist = structKeyList(ORMEngine);
+					assertEquals(FindNocase('bundleName',strctKeylist) GT 0, true);
+				});
+
+				it(title="checking getORMSetting()", body=function( currentSpec ) {
+					var ORMsetting = admin.getORMSetting();
+					assertEquals(isstruct(ORMsetting) ,true);
+					var strctKeylist = structKeyList(ORMsetting);
+					assertEquals(FindNocase('autogenmap',strctKeylist) GT 0, true);
+				});
+				
+			});
+			
+
+			describe( title="test tldx and Fldx function", body=function() {
+				xit(title="checking getTlds()", body=function( currentSpec ) {
+					var tlds = admin.getTlds();
+					assertEquals(isquery(tlds) ,true);
+					assertEquals((tlds.type EQ 'cfml'), true);
+				});
+
+				it(title="checking getFlds()", body=function( currentSpec ) {
+					var flds = admin.getFlds();
+					assertEquals(isquery(flds) ,true);
+					assertEquals((flds.displayname EQ 'Lucee Core Function Library'), true);
+				});
+			});
+
+			describe( title="test info(), isMonitorEnabled()", body=function() {
+				it(title="checking getinfo()", body=function( currentSpec ) {
+					var info = admin.getinfo();
+					assertEquals(isstruct(info) ,true);
+					var strctKeylist = structKeyList(info);
+					assertEquals(FindNocase('config',strctKeylist) GT 0, true);
+				});
+
+				it(title="checking isMonitorEnabled()", body=function( currentSpec ) {
+					var isEnable = admin.isMonitorEnabled();
+					assertEquals(isBoolean(isEnable) ,true);
+				});
+			});
+
+			describe( title="test application functions", body=function() {
+				it(title="checking getApplicationSetting()", body=function( currentSpec ) {
+					var appSetting = admin.getApplicationSetting();
+					assertEquals(isstruct(appSetting) ,true);
+					var strctKeylist = structKeyList(appSetting);
+					assertEquals(FindNocase('AllowURLRequestTimeout',strctKeylist) GT 0, true);
+				});
+
+				it(title="checking getApplicationListener()", body=function( currentSpec ) {
+					var appListner = admin.getApplicationListener();
+					assertEquals(isstruct(appListner) ,true);
+					var strctKeylist = structKeyList(appListner);
+					assertEquals(FindNocase('type',strctKeylist) GT 0, true);
+				});
+			});
+
+			describe( title="test getproxy(), getComponent(), getscope(), getQueueSetting(), getCustomTagSetting(), surveillance(), getJDBCDrivers()", body=function() {
+				it(title="test getproxy()", body=function( currentSpec ) {
+					var proxy = admin.getproxy();
+					assertEquals(isstruct(proxy) ,true);
+					var strctKeylist = structKeyList(proxy);
+					assertEquals(FindNocase('port',strctKeylist) GT 0, true);
+				});
+
+				it(title="test getComponent()", body=function( currentSpec ) {
+					var getComp = admin.getComponent();
+					assertEquals(isstruct(getComp) ,true);
+					var strctKeylist = structKeyList(getComp);
+					assertEquals(FindNocase('componentDataMemberDefaultAccess',strctKeylist) GT 0, true);
+				});
+
+				it(title="test getscope()", body=function( currentSpec ) {
+					var getScope = admin.getScope();
+					assertEquals(isstruct(getScope) ,true);
+					var strctKeylist = structKeyList(getScope);
+					assertEquals(FindNocase('applicationTimeout',strctKeylist) GT 0, true);
+				});
+
+				it(title="test getQueueSetting()", body=function( currentSpec ) {
+					var getQueueSttg = admin.getQueueSetting();
+					assertEquals(isstruct(getQueueSttg) ,true);
+					var strctKeylist = structKeyList(getQueueSttg);
+					assertEquals(FindNocase('enable',strctKeylist) GT 0, true);
+				});
+
+				it(title="test getCustomTagSetting()", body=function( currentSpec ) {
+					var getQueueSttg = admin.getCustomTagSetting();
+					assertEquals(isstruct(getQueueSttg) ,true);
+					var strctKeylist = structKeyList(getQueueSttg);
+					assertEquals(FindNocase('customTagDeepSearch',strctKeylist) GT 0, true);
+				});
+
+				it(title="test surveillance()", body=function( currentSpec ) {
+					var surveillance = admin.surveillance();
+					assertEquals(isstruct(surveillance) ,true);
+				});
+				
+			});
+
+			describe( title="test getSpoolerTasks", body=function() {
+				it(title="getSpoolerTasks()", body=function( currentSpec ) {
+					var spoolertask = admin.getSpoolerTasks();
+					assertEquals(isQuery(spoolertask) ,true);
 				});
 			});
 		});

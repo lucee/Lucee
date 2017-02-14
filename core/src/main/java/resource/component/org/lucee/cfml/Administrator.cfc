@@ -825,159 +825,151 @@ component	{
  
 	public query function getInfo(){
 		admin
-			action="doGetInfo()"
+			action="getinfo"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 
 	//@surveillance()
 	public query function surveillance(){
 		admin
-			action="doSurveillance()"
+			action="surveillance"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
-	//@getRegional()//
-
-	public query function getRegional(){
-		admin
-			action="doGetRegional()"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.providers";
-	}
-
+	
 	// is MonitorEnabled
 
-	public query function isMonitorEnabled(){
+	public boolean function isMonitorEnabled(){
 		admin
-			action="doIsMonitorEnabled()"
+			action="isMonitorEnabled"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	public void function resetORMSetting(){
 		admin
-			action="resetORMSetting()"
+			action="resetORMSetting"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
 	}
 
 	//getORMSetting 
 	public query function getORMSetting(){
 		admin
-			action="doGetORMSetting()"
+			action="getORMSetting"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getORMEngine 
 
-	public query function getORMEngine(){
+	public struct function getORMEngine(){
 		admin
-			action="doGetORMEngine()"
+			action="getORMEngine"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getApplicationListener
 
-	public query function getApplicationListener(){
+	public struct function getApplicationListener(){
 		admin
-			action="doGetApplicationListener()"
+			action="getApplicationListener"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getProxy
 
-	public query function getProxy(){
+	public struct function getProxy(){
 		admin
-			action="doGetProxy()"
+			action="getProxy"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
-
 	
-
-	//getCharset
-
-	public query function getCharset(){
-		admin
-			action="doGetCharset()"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.providers";
-	}
-
 	//getComponent
 
-	public query function getComponent(){
+	public Struct function getComponent(){
 		admin
-			action="doGetComponent()"
+			action="getComponent"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getScope
 
-	public query function getScope(){
+	public struct function getScope(){
 		admin
-			action="doGetScope()"
+			action="getScope"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getApplicationSetting	
 
-	public query function getApplicationSetting(){
+	public struct function getApplicationSetting(){
 		admin
-			action="doGetApplicationSetting()"
+			action="getApplicationSetting"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getQueueSetting
 
-	public query function getQueueSetting(){
+	public struct function getQueueSetting(){
 		admin
-			action="doGetQueueSetting()"
+			action="getQueueSetting"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getCustomTagSetting
 
-	public query function getCustomTagSetting(){
+	public struct function getCustomTagSetting(){
 		admin
-			action="doGetCustomTagSetting()"
+			action="getCustomTagSetting"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getDatasource 
 
-	public query function doGetDatasource(){
+	public struct function getDatasource( required string name ){
 		admin
-			action="doGetCustomTagSetting()"
+			action="getDatasource"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			name="#arguments.name#"
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 
@@ -985,90 +977,101 @@ component	{
 
 	public query function getJDBCDrivers(){
 		admin
-			action="doGetJDBCDrivers()"
+			action="getJDBCDrivers"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getCacheConnections
 
 	public query function getCacheConnections(){
 		admin
-			action="doGetCacheConnections()"
+			action="getCacheConnections"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getCacheConnection 
 
-	public query function getCacheConnections(){
+	public query function getCacheConnection( required string name ){
 		admin
-			action="doGetCacheConnection()"
+			action="getCacheConnection"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			name = "#arguments.name#"
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getCacheDefaultConnection
 
-	public query function getCacheDefaultConnection(){
+	public struct function getCacheDefaultConnection(){
 		admin
-			action="doGetCacheDefaultConnection()"
+			action="getCacheDefaultConnection"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getRemoteClients
 
 	public query function getRemoteClients(){
 		admin
-			action="doGetRemoteClients()"
+			action="getRemoteClients"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getRemoteClient
 
-	public query function getRemoteClients(){
+	public query function getRemoteClient( required string url ){
 		admin
-			action="doGetRemoteClient()"
+			action="getRemoteClient"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			url = "#trim(arguments.url)#"
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//hasRemoteClientUsage
 
 	public boolean function hasRemoteClientUsage(){
 		admin
-			action="doHasRemoteClientUsage()"
+			action="hasRemoteClientUsage"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getRemoteClientUsage
 
 	public query function getRemoteClientUsage(){
 		admin
-			action="doGetRemoteClientUsage()"
+			action="getRemoteClientUsage"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getSpoolerTasks
 
 	public query function getSpoolerTasks(){
 		admin
-			action="doGetSpoolerTasks()"
+			action="getSpoolerTasks"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 
@@ -1076,110 +1079,126 @@ component	{
 
 	public struct function getPerformanceSettings(){
 		admin
-			action="doGetPerformanceSettings()"
+			action="getPerformanceSettings"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getLogSettings
 
 	public query function getLogSettings(){
 		admin
-			action="doGetLogSettings()"
+			action="getLogSettings"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getCompilerSettings 
 
-	public query function getCompilerSettings(){
+	public struct function getCompilerSettings(){
 		admin
-			action="doGetCompilerSettings()"
+			action="getCompilerSettings"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//updatePerformanceSettings
 
-	public query function updatePerformanceSettings(){
+	public query function updatePerformanceSettings( required string template, required string typeChecking){
 		admin
-			action="doUpdatePerformanceSettings()"
+			action="updatePerformanceSettings"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			typeChecking="#arguments.typeChecking#"
+			inspectTemplate="#arguments.template#";
 	}
 
 	//updateCompilerSettings
 
+
+	//need to check
 	public query function updateCompilerSettings(){
 		admin
-			action="doUpdateCompilerSettings()"
+			action="doUpdateCompilerSettings"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getGatewayentries 
 
 	public query function getGatewayentries(){
 		admin
-			action="doGetGatewayEntries()"
+			action="getGatewayentries"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getGatewayentry
-	
-	public struct function getGatewayentry(){
+
+	public struct function getGatewayentry( required string id){
 		admin
-			action="doGetGatewayEntry()"
+			action="getGatewayentry"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			id = "#arguments.id#"
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getRunningThreads
 
 	public query function getRunningThreads(){
 		admin
-			action="doGetRunningThreads()"
+			action="getRunningThreads"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getMonitors
 
 	public query function getMonitors(){
 		admin
-			action="doGetMonitors()"
+			action="getMonitors"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getMonitor
 
-	public struct function getMonitor(){
+	public struct function getMonitor( required string monitorType,  required string name){
 		admin
-			action="doGetMonitor()"
+			action="getMonitor"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			monitorType="#arguments.monitorType#"
+			name="arguments.name"
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getBundles
 
 	public query function getBundles(){
 		admin
-			action="doGetBundles()"
+			action="getBundles"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 
@@ -1187,10 +1206,11 @@ component	{
 
 	public strct function getBundle(){
 		admin
-			action="doGetBundle()"
+			action="getBundle"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getExecutionLog
@@ -1198,20 +1218,22 @@ component	{
 
 	public strct function getExecutionLog(){
 		admin
-			action="doGetExecutionLog()"
+			action="getExecutionLog"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//gateway
-
+	//need to check
 	public strct function gateway(){
 		admin
-			action="doGateway()"
+			action="gateway"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 
@@ -1221,87 +1243,94 @@ component	{
 
 	public query function getRemoteClientTasks(){
 		admin
-			action="doGetSpoolerTasks()"
+			action="doGetSpoolerTasks"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getDatasourceDriverList
 
 	public query function getDatasourceDriverList(){
 		admin
-			action="doGetDatasourceDriverList()"
+			action="getDatasourceDriverList"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getDebuggingList
 
 	public query function getDebuggingList(){
 		admin
-			action="doGetDebuggingList()"
+			action="doGetDebuggingList"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getDebugSetting
 
 	public struct function getDebugSetting(){
 		admin
-			action="doGetDebugSetting()"
+			action="getDebugSetting"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getSSLCertificate
 
 	public struct function getSSLCertificate(){
 		admin
-			action="doGetSSLCertificate()"
+			action="doGetSSLCertificate"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getPluginDirectory
 
 	public struct function getPluginDirectory(){
 		admin
-			action="doGetPluginDirectory()"
+			action="getPluginDirectory"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getPlugins
 
-	public struct function getPlugins(){
+	public query function getPlugins(){
 		admin
-			action="doGetPlugins()"
+			action="getPlugins"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//updatePlugin
 
-	public struct function updatePlugin(){
+	public struct function updatePlugin( required string source ){
 		admin
-			action="doUpdatePlugin()"
+			action="updatePlugin"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			source="#arguments.source#";
 	}
 
 	//removePlugin
 
-	public struct function removePlugin( required string name){
+	public struct function removePlugin( required string name ){
 		admin
-			action="doRemovePlugin()"
+			action="doRemovePlugin"
 			type="#variables.type#"
 			password="#variables.password#"
 			name="#arguments.name#";
@@ -1309,19 +1338,20 @@ component	{
 
 	//getContextDirectory
 
-	public query function getContextDirectory(	){
+	public query function getContextDirectory(){
 		admin
-			action="getContextDirectory()"
+			action="getContextDirectory"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//updateContext
 
-	public query function updateContext(){
+	public query function updateContext( required string source, required string destination ){
 		admin
-			action="doUpdateContext()"
+			action="updateContext"
 			type="#variables.type#"
 			password="#variables.password#"
 			source="#arguments.source#"
@@ -1330,9 +1360,9 @@ component	{
 
 	//removeContext
 
-	public query function removeContext(){
+	public query function removeContext( required string destination ){
 		admin
-			action="doRemoveContext()"
+			action="removeContext"
 			type="#variables.type#"
 			password="#variables.password#"
 			destination="#arguments.destination#";
@@ -1342,10 +1372,11 @@ component	{
 
 	public query function getJars(){
 		admin
-			action="doGetJars()"
+			action="getJars"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 			
 	}
 
@@ -1353,106 +1384,71 @@ component	{
 
 	public query function getFlds(){
 		admin
-			action="doGetFLDs()"
+			action="getFlds"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getTlds
 
 	public query function getTlds(){
 		admin
-			action="doGetTLDs()"
+			action="getTlds"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getRHServerExtensions
 
 	public query function getRHServerExtensions(){
 		admin
-			action="doGetRHServerExtensions()"
+			action="getRHServerExtensions"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getLocalExtension
 
 	public query function getLocalExtension( required string id  ){
 		admin
-			action="doGetLocalExtension()"
+			action="getLocalExtension"
 			type="#variables.type#"
 			password="#variables.password#"
 			id="#arguments.id#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//getLocalExtensions
 
 	public query function getLocalExtensions(){
 		admin
-			action="doGetLocalExtensions()"
+			action="getLocalExtensions"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
-
-	//getMailSetting
-
-	public struct function getMailSetting(){
-		admin
-			action="doGetMailSetting()"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.providers";
-	}
 
 	//getTaskSetting
 
-
 	public struct function getTaskSetting(){
 		admin
-			action="doGetTaskSetting()"
+			action="getTaskSetting"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
-	//getMailServers
-
-	public query function getMailServers(){
-		admin
-			action="doGetMailServers()"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.providers";
-	}
-
-	//getMapping
-
-	public struct function getMapping(){
-		admin
-			action="doGetMapping()"
-			type="#variables.type#"
-			password="#variables.password#"
-			virtual = "arguments.virtual"
-			returnVariable="local.providers";
-	}
-
-	//getMappings
-
-	public struct function getMappings(){
-		admin
-			action="doGetMappings()"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.providers";
-	}
-
+			
 	/* Private functions */
 	private struct function ComponentListPackageAsStruct(string package, cfcNames=structnew("linked")){
 		try{
