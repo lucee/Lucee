@@ -821,6 +821,638 @@ component	{
 			url="#trim(arguments.url)#";
 	}
 
+	//@getInfo()
+ 
+	public query function getInfo(){
+		admin
+			action="doGetInfo()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+
+	//@surveillance()
+	public query function surveillance(){
+		admin
+			action="doSurveillance()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//@getRegional()//
+
+	public query function getRegional(){
+		admin
+			action="doGetRegional()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	// is MonitorEnabled
+
+	public query function isMonitorEnabled(){
+		admin
+			action="doIsMonitorEnabled()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	public void function resetORMSetting(){
+		admin
+			action="resetORMSetting()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getORMSetting 
+	public query function getORMSetting(){
+		admin
+			action="doGetORMSetting()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getORMEngine 
+
+	public query function getORMEngine(){
+		admin
+			action="doGetORMEngine()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getApplicationListener
+
+	public query function getApplicationListener(){
+		admin
+			action="doGetApplicationListener()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getProxy
+
+	public query function getProxy(){
+		admin
+			action="doGetProxy()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	
+
+	//getCharset
+
+	public query function getCharset(){
+		admin
+			action="doGetCharset()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getComponent
+
+	public query function getComponent(){
+		admin
+			action="doGetComponent()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getScope
+
+	public query function getScope(){
+		admin
+			action="doGetScope()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getApplicationSetting	
+
+	public query function getApplicationSetting(){
+		admin
+			action="doGetApplicationSetting()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getQueueSetting
+
+	public query function getQueueSetting(){
+		admin
+			action="doGetQueueSetting()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getCustomTagSetting
+
+	public query function getCustomTagSetting(){
+		admin
+			action="doGetCustomTagSetting()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getDatasource 
+
+	public query function doGetDatasource(){
+		admin
+			action="doGetCustomTagSetting()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+
+	//getJDBCDrivers 
+
+	public query function getJDBCDrivers(){
+		admin
+			action="doGetJDBCDrivers()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getCacheConnections
+
+	public query function getCacheConnections(){
+		admin
+			action="doGetCacheConnections()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getCacheConnection 
+
+	public query function getCacheConnections(){
+		admin
+			action="doGetCacheConnection()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getCacheDefaultConnection
+
+	public query function getCacheDefaultConnection(){
+		admin
+			action="doGetCacheDefaultConnection()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getRemoteClients
+
+	public query function getRemoteClients(){
+		admin
+			action="doGetRemoteClients()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getRemoteClient
+
+	public query function getRemoteClients(){
+		admin
+			action="doGetRemoteClient()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//hasRemoteClientUsage
+
+	public boolean function hasRemoteClientUsage(){
+		admin
+			action="doHasRemoteClientUsage()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getRemoteClientUsage
+
+	public query function getRemoteClientUsage(){
+		admin
+			action="doGetRemoteClientUsage()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getSpoolerTasks
+
+	public query function getSpoolerTasks(){
+		admin
+			action="doGetSpoolerTasks()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+
+	//getPerformanceSettings
+
+	public struct function getPerformanceSettings(){
+		admin
+			action="doGetPerformanceSettings()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getLogSettings
+
+	public query function getLogSettings(){
+		admin
+			action="doGetLogSettings()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getCompilerSettings 
+
+	public query function getCompilerSettings(){
+		admin
+			action="doGetCompilerSettings()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//updatePerformanceSettings
+
+	public query function updatePerformanceSettings(){
+		admin
+			action="doUpdatePerformanceSettings()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//updateCompilerSettings
+
+	public query function updateCompilerSettings(){
+		admin
+			action="doUpdateCompilerSettings()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getGatewayentries 
+
+	public query function getGatewayentries(){
+		admin
+			action="doGetGatewayEntries()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getGatewayentry
+	
+	public struct function getGatewayentry(){
+		admin
+			action="doGetGatewayEntry()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getRunningThreads
+
+	public query function getRunningThreads(){
+		admin
+			action="doGetRunningThreads()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getMonitors
+
+	public query function getMonitors(){
+		admin
+			action="doGetMonitors()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getMonitor
+
+	public struct function getMonitor(){
+		admin
+			action="doGetMonitor()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getBundles
+
+	public query function getBundles(){
+		admin
+			action="doGetBundles()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+
+	//getBundle
+
+	public strct function getBundle(){
+		admin
+			action="doGetBundle()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getExecutionLog
+
+
+	public strct function getExecutionLog(){
+		admin
+			action="doGetExecutionLog()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//gateway
+
+	public strct function gateway(){
+		admin
+			action="doGateway()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+
+	//alias for getSpoolerTasks
+
+	//getRemoteClientTasks 
+
+	public query function getRemoteClientTasks(){
+		admin
+			action="doGetSpoolerTasks()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getDatasourceDriverList
+
+	public query function getDatasourceDriverList(){
+		admin
+			action="doGetDatasourceDriverList()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getDebuggingList
+
+	public query function getDebuggingList(){
+		admin
+			action="doGetDebuggingList()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getDebugSetting
+
+	public struct function getDebugSetting(){
+		admin
+			action="doGetDebugSetting()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getSSLCertificate
+
+	public struct function getSSLCertificate(){
+		admin
+			action="doGetSSLCertificate()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getPluginDirectory
+
+	public struct function getPluginDirectory(){
+		admin
+			action="doGetPluginDirectory()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getPlugins
+
+	public struct function getPlugins(){
+		admin
+			action="doGetPlugins()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//updatePlugin
+
+	public struct function updatePlugin(){
+		admin
+			action="doUpdatePlugin()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//removePlugin
+
+	public struct function removePlugin( required string name){
+		admin
+			action="doRemovePlugin()"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#";
+	}
+
+	//getContextDirectory
+
+	public query function getContextDirectory(	){
+		admin
+			action="getContextDirectory()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//updateContext
+
+	public query function updateContext(){
+		admin
+			action="doUpdateContext()"
+			type="#variables.type#"
+			password="#variables.password#"
+			source="#arguments.source#"
+			destination="#arguments.destination#";
+	}
+
+	//removeContext
+
+	public query function removeContext(){
+		admin
+			action="doRemoveContext()"
+			type="#variables.type#"
+			password="#variables.password#"
+			destination="#arguments.destination#";
+	}
+
+	//getJars
+
+	public query function getJars(){
+		admin
+			action="doGetJars()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+			
+	}
+
+	//getFlds
+
+	public query function getFlds(){
+		admin
+			action="doGetFLDs()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getTlds
+
+	public query function getTlds(){
+		admin
+			action="doGetTLDs()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getRHServerExtensions
+
+	public query function getRHServerExtensions(){
+		admin
+			action="doGetRHServerExtensions()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getLocalExtension
+
+	public query function getLocalExtension( required string id  ){
+		admin
+			action="doGetLocalExtension()"
+			type="#variables.type#"
+			password="#variables.password#"
+			id="#arguments.id#"
+			returnVariable="local.providers";
+	}
+
+	//getLocalExtensions
+
+	public query function getLocalExtensions(){
+		admin
+			action="doGetLocalExtensions()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+
+	//getMailSetting
+
+	public struct function getMailSetting(){
+		admin
+			action="doGetMailSetting()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getTaskSetting
+
+
+	public struct function getTaskSetting(){
+		admin
+			action="doGetTaskSetting()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getMailServers
+
+	public query function getMailServers(){
+		admin
+			action="doGetMailServers()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getMapping
+
+	public struct function getMapping(){
+		admin
+			action="doGetMapping()"
+			type="#variables.type#"
+			password="#variables.password#"
+			virtual = "arguments.virtual"
+			returnVariable="local.providers";
+	}
+
+	//getMappings
+
+	public struct function getMappings(){
+		admin
+			action="doGetMappings()"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
 	/* Private functions */
 	private struct function ComponentListPackageAsStruct(string package, cfcNames=structnew("linked")){
 		try{
@@ -833,12 +1465,12 @@ component	{
 		return cfcNames;
 	}
 
-	function getArguments(Key, default) {
+	private function getArguments(Key, default) {
 		if(not structKeyExists(arguments,Key)) return default;
 		return arguments[Key];
 	}
 
-	function toPassword(host, pw, ms){
+	private function toPassword(host, pw, ms){
 		variables.stars = "*********";
 		var i=1;
 		if(arguments.pw EQ variables.stars){
@@ -850,11 +1482,11 @@ component	{
 		return arguments.pw;
 	}
 
-	function downloadFull(required string provider,required string id , string version){
+	private function downloadFull(required string provider,required string id , string version){
 		return _download("full",provider,id,version);
 	}
 
-	function _download(String type,required string provider,required string id, string version){
+	private function _download(String type,required string provider,required string id, string version){
 
 
 		var start=getTickCount();
