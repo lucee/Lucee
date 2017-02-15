@@ -1110,22 +1110,24 @@ component	{
 
 	//updatePerformanceSettings
 
-	public query function updatePerformanceSettings( required string template, required string typeChecking){
+	
+	public query function updatePerformanceSettings( required string template, boolean typeChecking=false){
 		admin
+
 			action="updatePerformanceSettings"
 			type="#variables.type#"
 			password="#variables.password#"
-			typeChecking="#arguments.typeChecking#"
+			typeChecking="#getArguments('typeChecking',false)#"
 			inspectTemplate="#arguments.template#";
 	}
 
 	//updateCompilerSettings
 
 
-	//need to check
+	
 	public query function updateCompilerSettings(){
 		admin
-			action="doUpdateCompilerSettings"
+			action="updateCompilerSettings"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
@@ -1134,7 +1136,7 @@ component	{
 
 	//getGatewayentries 
 
-	public query function getGatewayentries(){
+	public query function getGatewayentries( type ){
 		admin
 			action="getGatewayentries"
 			type="#variables.type#"
@@ -1144,7 +1146,7 @@ component	{
 	}
 
 	//getGatewayentry
-
+	
 	public struct function getGatewayentry( required string id){
 		admin
 			action="getGatewayentry"
@@ -1203,12 +1205,13 @@ component	{
 
 
 	//getBundle
-
-	public strct function getBundle(){
+	
+	public strct function getBundle( required string name ){
 		admin
 			action="getBundle"
 			type="#variables.type#"
 			password="#variables.password#"
+			symbolicName = "#arguments.name#"
 			returnVariable="local.rtn";
 			return rtn;
 	}
@@ -1226,12 +1229,14 @@ component	{
 	}
 
 	//gateway
-	//need to check
-	public strct function gateway(){
+	
+	public strct function gateway( required string id, required string gatewayAction ){
 		admin
 			action="gateway"
 			type="#variables.type#"
 			password="#variables.password#"
+			id="#arguments.id#"
+			gatewayAction="#arguments.gatewayAction#"
 			returnVariable="local.rtn";
 			return rtn;
 	}
@@ -1243,7 +1248,7 @@ component	{
 
 	public query function getRemoteClientTasks(){
 		admin
-			action="doGetSpoolerTasks"
+			action="getRemoteClientTasks"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
@@ -1262,10 +1267,10 @@ component	{
 	}
 
 	//getDebuggingList
-
+	
 	public query function getDebuggingList(){
 		admin
-			action="doGetDebuggingList"
+			action="getDebuggingList"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
@@ -1284,19 +1289,20 @@ component	{
 	}
 
 	//getSSLCertificate
-
-	public struct function getSSLCertificate(){
+	
+	public struct function getSSLCertificate( required string host ){
 		admin
-			action="doGetSSLCertificate"
+			action="getSSLCertificate"
 			type="#variables.type#"
 			password="#variables.password#"
+			host="#arguments.host#"
 			returnVariable="local.rtn";
 			return rtn;
 	}
 
 	//getPluginDirectory
 
-	public struct function getPluginDirectory(){
+	public string function getPluginDirectory(){
 		admin
 			action="getPluginDirectory"
 			type="#variables.type#"
@@ -1316,8 +1322,7 @@ component	{
 			return rtn;
 	}
 
-	//updatePlugin
-
+	
 	public struct function updatePlugin( required string source ){
 		admin
 			action="updatePlugin"
@@ -1325,9 +1330,6 @@ component	{
 			password="#variables.password#"
 			source="#arguments.source#";
 	}
-
-	//removePlugin
-
 	public struct function removePlugin( required string name ){
 		admin
 			action="doRemovePlugin"
@@ -1337,7 +1339,7 @@ component	{
 	}
 
 	//getContextDirectory
-
+	
 	public query function getContextDirectory(){
 		admin
 			action="getContextDirectory"
@@ -1447,6 +1449,428 @@ component	{
 			returnVariable="local.rtn";
 			return rtn;
 	}
+
+public struct function getMapping( required string virtual ){
+		admin
+			action="getMapping"
+			type="#variables.type#"
+			password="#variables.password#"
+			virtual = "arguments.virtual"
+			returnVariable="local.providers";
+	}
+
+	//getCustomTagMappings
+
+	public query function getCustomTagMappings(){
+		admin
+			action="getCustomTagMappings"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getCfxTags
+
+	public query function getCfxTags(){
+		admin
+			action="getCfxTags"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getCPPCfxTags
+
+	public query function getCPPCfxTags(){
+		admin
+			action="getCPPCfxTags"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getJavaCfxTags
+
+	public query function getJavaCfxTags(){
+		admin
+			action="getJavaCfxTags"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getDebugEntry
+
+	public query function getDebugEntry(){
+		admin
+			action="getDebugEntry"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//getError
+
+	public struct function getError(){
+		admin
+			action="getError"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//verifyremoteclient
+
+	public struct function verifyremoteclient(){
+		admin
+			action="verifyremoteclient"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+	}
+
+	//verifyDatasource
+
+	public struct function verifyDatasource( required string name, required string dbusername, required string dbpassword ){
+		admin
+			action="verifyDatasource"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#"
+			dbusername="#arguments.dbusername#"
+			dbpassword="#arguments.dbpassword#";
+	}
+
+	//verifyCacheConnection
+
+	public query function verifyCacheConnection( required string name ){
+		admin
+			action="verifyCacheConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#";
+	}
+
+	//verifyMailServer
+
+	public struct function verifyMailServer( required string hostname, required string port, required string mailusername, required string mailpassword ){
+		admin
+			action="verifyMailServer"
+			type="#variables.type#"
+			password="#variables.password#"
+			hostname="#arguments.hostname#"
+			port="#arguments.port#"
+			mailusername="#arguments.mailusername#"
+			mailpassword="#arguments.mailpassword#";
+	}
+
+	//verifyExtensionProvider
+
+	public query function verifyExtensionProvider( required string name ){
+		admin
+			action="verifyExtensionProvider"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#";
+	}
+
+	//verifyJavaCFX
+
+	public query function verifyJavaCFX( required string name, required string class ){
+		admin
+			action="verifyJavaCFX"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#"
+			class="#arguments.class#";
+	}
+
+	//verifyCFX
+
+	public query function verifyCFX( required string name ){
+		admin
+			action="verifyCFX"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#";
+	}
+
+	//resetId
+
+	public query function resetId(){
+		admin
+			action="resetId"
+			type="#variables.type#"
+			password="#variables.password#";
+	}
+
+	//updateLoginSettings
+
+	public query function updateLoginSettings( boolean rememberme, boolean captcha, numeric delay  ){
+		admin
+			action="updateLoginSettings"
+			type="#variables.type#"
+			password="#variables.password#"
+			rememberme="#arguments.rememberme#"
+			captcha="#arguments.captcha#"
+			delay="#arguments.delay#";
+	}
+
+	//updateLogSettings
+
+	public query function updateLogSettings( boolean rememberme, boolean captcha, numeric delay  ){
+		admin
+			action="updateLogSettings"
+			type="#variables.type#"
+			password="#variables.password#"
+			rememberme="#arguments.rememberme#"
+			captcha="#arguments.captcha#"
+			delay="#arguments.delay#";
+	}
+
+	//updateJar
+
+	public query function updateJar(){
+		admin
+			action="updateJar"
+			type="#variables.type#"
+			password="#variables.password#";
+	}
+
+	//updateSSLCertificate
+
+	public query function updateSSLCertificate( required string host, numeric port = 443 ){
+		admin
+			action="updateSSLCertificate"
+			type="#variables.type#"
+			password="#variables.password#"
+			host="#arguments.host#"
+			port="#arguments.port#";
+	}
+
+	//updateMonitorEnabled
+
+	public query function updateMonitorEnabled(){
+		admin
+			action="updateMonitorEnabled"
+			type="#variables.type#"
+			password="#variables.password#"
+	}
+
+	//updateTLD
+
+	public query function updateTLD(){
+		admin
+			action="updateTLD"
+			type="#variables.type#"
+			password="#variables.password#"
+	}
+
+	//updateFLD
+
+	public query function updateFLD(){
+		admin
+			action="updateFLD"
+			type="#variables.type#"
+			password="#variables.password#"
+	}
+
+	//updateApplicationListener->
+
+	public query function updateApplicationListener( required string listenerType, required string listenerMode ){
+		admin
+			action="updateApplicationListener"
+			type="#variables.type#"
+			password="#variables.password#"
+			listenerType="#arguments.listenerType#"
+			listenerMode="#arguments.listenerMode#";
+	}
+
+	//updateCachedWithin->
+	
+	public query function updateCachedWithin(){
+		admin
+			action="updateCachedWithin"
+			type="#variables.type#"
+			password="#variables.password#"
+	}
+
+	//updateproxy
+
+	public query function updateproxy( boolean proxyenabled, string proxyserver, numeric proxyport, string proxyusername, string proxypassword ){
+		admin
+			action="updateproxy"
+			type="#variables.type#"
+			password="#variables.password#"
+			proxyenabled="#arguments.proxyenabled#"
+			proxyserver="#arguments.proxyserver#"
+			proxyport="#arguments.proxyport#"
+			proxyusername="#arguments.proxyusername#"
+			proxypassword="#arguments.proxypassword#";
+	}	
+
+	//updateCharset
+
+	public query function updateCharset( string resourceCharset, string templateCharset, string webCharset ){
+		admin
+			action="updateCharset"
+			type="#variables.type#"
+			password="#variables.password#"
+			resourceCharset="#arguments.resourceCharset#"
+			templateCharset="#arguments.templateCharset#"
+			webCharset="#arguments.webCharset#";
+	}
+
+	//updatecomponent
+
+	public query function updatecomponent(){
+		admin
+			action="updatecomponent"
+			type="#variables.type#"
+			password="#variables.password#"
+	}
+
+	//updatescope
+
+	public query function updatescope( required string scopeCascadingType, required boolean allowImplicidQueryCall, required boolean mergeFormAndUrl, required boolean sessionManagement, required boolean clientManagement, required boolean domainCookies, required boolean clientCookies, required date clientTimeout, required date sessionTimeout, required string clientStorage, required string sessionStorage, required date applicationTimeout, required string sessionType, required string localMode, required boolean cgiReadonly ){
+		admin
+			action="updatescope"
+			type="#variables.type#"
+			password="#variables.password#"
+			scopeCascadingType="#arguments.scopeCascadingType#"
+			allowImplicidQueryCall="#arguments.allowImplicidQueryCall#"
+			mergeFormAndUrl="#arguments.mergeFormAndUrl#"
+			sessionManagement="#arguments.sessionManagement#"
+			clientManagement="#arguments.clientManagement#"
+			domainCookies="#arguments.domainCookies#"
+			clientCookies="#arguments.clientCookies#"
+			clientTimeout="#arguments.clientTimeout#"
+			sessionTimeout="#arguments.sessionTimeout#"
+			clientStorage="#arguments.clientStorage#"
+			sessionStorage="#arguments.sessionStorage#"
+			applicationTimeout="#arguments.applicationTimeout#"
+			sessionType="#arguments.sessionType#"
+			localMode="#arguments.localMode#"
+			cgiReadonly="#arguments.cgiReadonly#";
+	}
+
+	//updateRestSettings
+
+	public void function updateRestSettings(){
+		admin
+			action="updateRestSettings"
+			type="#variables.type#"
+			password="#variables.password#"
+	}
+
+	//updateRestMapping
+
+	public void function updateRestMapping( required string virtual, required string physical, required string default ){
+		admin
+			action="updateRestMapping"
+			type="#variables.type#"
+			password="#variables.password#"
+			virtual="#arguments.virtual#"
+			physical="#arguments.physical#"
+			default="#arguments.default#";
+	}
+
+	//removeRestMapping
+
+	public void function removeRestMapping( required string virtual ){
+		admin
+			action="removeRestMapping"
+			type="#variables.type#"
+			password="#variables.password#"
+			virtual="#arguments.virtual#";
+	}
+
+	//updateApplicationSetting
+
+	public void function updateApplicationSetting( required date requestTimeout, required string scriptProtect, required boolean allowURLRequestTimeout ){
+		admin
+			action="updateApplicationSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+			requestTimeout="#arguments.requestTimeout#"
+			scriptProtect="#arguments.scriptProtect#"
+			allowURLRequestTimeout="#arguments.allowURLRequestTimeout#";
+	}
+
+	//updateOutputSetting
+
+	public void function updateOutputSetting( required string cfmlWriter, required boolean suppressContent, required boolean allowCompression, required string contentLength, required string bufferOutput ){
+		admin
+			action="updateOutputSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+			cfmlWriter="#arguments.cfmlWriter#"
+			suppressContent="#arguments.suppressContent#"
+			allowCompression="#arguments.allowCompression#"
+			contentLength="#arguments.contentLength#"
+			bufferOutput="#arguments.bufferOutput#";
+	}	
+
+	//updateQueueSetting
+
+	public void function updateQueueSetting( required numeric max, required numeric timeout, required boolean enable ){
+		admin
+			action="updateQueueSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+			max="#arguments.max#"
+			timeout="#arguments.timeout#"
+			enable="#arguments.enable#";
+	}
+
+	//updateJDBCDriver
+
+	public void function updateJDBCDriver( required string classname, required string label, string bundleName, string bundleVersion ){
+		admin
+			action="updateJDBCDriver"
+			type="#variables.type#"
+			password="#variables.password#"
+			classname="#arguments.classname#"
+			label="#arguments.label#"
+			bundleName="#arguments.bundleName#"
+			bundleVersion="#arguments.bundleVersion#";
+	}
+
+	//updateCacheDefaultConnection-> doUpdateCacheDefaultConnection(); need to check
+
+	public void function updateCacheDefaultConnection( string object, string template, string query, string resource, string function, string include, string http, string file, string webservice ){
+		admin
+			action="updateRestSettings"
+			type="#variables.type#"
+			password="#variables.password#"
+			object="#arguments.object#"
+			template="#arguments.template#"
+			query="#arguments.query#"
+			resource="#arguments.resource#"
+			"function"="#arguments['function']#"
+			include="#arguments.include#"
+			http="#arguments.http#"
+			file="#arguments.file#"
+			webservice="#arguments.webservice#";
+	}
+
+	//updateCacheConnection
+
+	public void function updateCacheConnection( required string class, required string name, required struct custom, string bundleName, string bundleVersion, boolean readonly=false, boolean storage=false ){
+		admin
+			action="updateCacheConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+			class="#arguments.class#"
+			name="#arguments.name#"
+			custom="#arguments.custom#"
+			bundleName="#arguments.bundleName#"
+			bundleVersion="#arguments.bundleVersion#"
+			readonly="#arguments.readonly#"
+			storage="#arguments.storage#";
+	}	
+
+
 
 			
 	/* Private functions */
