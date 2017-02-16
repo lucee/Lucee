@@ -1450,13 +1450,14 @@ component	{
 			return rtn;
 	}
 
-public struct function getMapping( required string virtual ){
+	public struct function getMapping( required string virtual ){
 		admin
 			action="getMapping"
 			type="#variables.type#"
 			password="#variables.password#"
-			virtual = "arguments.virtual"
+			virtual = "#arguments.virtual#"
 			returnVariable="local.providers";
+			return providers;
 	}
 
 	//getCustomTagMappings
@@ -1467,6 +1468,7 @@ public struct function getMapping( required string virtual ){
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.providers";
+			return providers;
 	}
 
 	//getCfxTags
@@ -1477,6 +1479,7 @@ public struct function getMapping( required string virtual ){
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.providers";
+			return providers;
 	}
 
 	//getCPPCfxTags
@@ -1487,6 +1490,7 @@ public struct function getMapping( required string virtual ){
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.providers";
+			return providers;
 	}
 
 	//getJavaCfxTags
@@ -1497,6 +1501,7 @@ public struct function getMapping( required string virtual ){
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.providers";
+			return providers;
 	}
 
 	//getDebugEntry
@@ -1507,6 +1512,7 @@ public struct function getMapping( required string virtual ){
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.providers";
+			return providers;
 	}
 
 	//getError
@@ -1517,21 +1523,26 @@ public struct function getMapping( required string virtual ){
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.providers";
+			return providers;
 	}
 
 	//verifyremoteclient
 
-	public struct function verifyremoteclient(){
+	public void function verifyremoteclient( required string label, required string url, required string adminPassword, required string securityKey, required string usage ){
 		admin
 			action="verifyremoteclient"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
+			label="#arguments.label#"
+			url="#arguments.url#"
+			adminPassword="#arguments.adminPassword#"
+			securityKey="#arguments.securityKey#"
+			usage="#arguments.usage#";
 	}
 
 	//verifyDatasource
 
-	public struct function verifyDatasource( required string name, required string dbusername, required string dbpassword ){
+	public void function verifyDatasource( required string name, required string dbusername, required string dbpassword ){
 		admin
 			action="verifyDatasource"
 			type="#variables.type#"
@@ -1543,7 +1554,7 @@ public struct function getMapping( required string virtual ){
 
 	//verifyCacheConnection
 
-	public query function verifyCacheConnection( required string name ){
+	public void function verifyCacheConnection( required string name ){
 		admin
 			action="verifyCacheConnection"
 			type="#variables.type#"
@@ -1566,12 +1577,12 @@ public struct function getMapping( required string virtual ){
 
 	//verifyExtensionProvider
 
-	public query function verifyExtensionProvider( required string name ){
+	public void function verifyExtensionProvider( required string url ){
 		admin
 			action="verifyExtensionProvider"
 			type="#variables.type#"
 			password="#variables.password#"
-			name="#arguments.name#";
+			url="#arguments.url#"
 	}
 
 	//verifyJavaCFX
@@ -1587,7 +1598,7 @@ public struct function getMapping( required string virtual ){
 
 	//verifyCFX
 
-	public query function verifyCFX( required string name ){
+	public void function verifyCFX( required string name ){
 		admin
 			action="verifyCFX"
 			type="#variables.type#"
@@ -1597,7 +1608,7 @@ public struct function getMapping( required string virtual ){
 
 	//resetId
 
-	public query function resetId(){
+	public void function resetId(){
 		admin
 			action="resetId"
 			type="#variables.type#"
@@ -1606,7 +1617,7 @@ public struct function getMapping( required string virtual ){
 
 	//updateLoginSettings
 
-	public query function updateLoginSettings( boolean rememberme, boolean captcha, numeric delay  ){
+	public void function updateLoginSettings( boolean rememberme=false, boolean captcha=false, numeric delay=0  ){
 		admin
 			action="updateLoginSettings"
 			type="#variables.type#"
@@ -1618,23 +1629,17 @@ public struct function getMapping( required string virtual ){
 
 	//updateLogSettings
 
-	public query function updateLogSettings( boolean rememberme, boolean captcha, numeric delay  ){
+	public void function updateLogSettings( required string level, required string appenderClass, required string layoutClass, required string name, struct appenderArgs={}, struct layoutArgs={} ){
 		admin
-			action="updateLogSettings"
-			type="#variables.type#"
-			password="#variables.password#"
-			rememberme="#arguments.rememberme#"
-			captcha="#arguments.captcha#"
-			delay="#arguments.delay#";
-	}
-
-	//updateJar
-
-	public query function updateJar(){
-		admin
-			action="updateJar"
-			type="#variables.type#"
-			password="#variables.password#";
+				action="updateLogSettings"
+				type="#variables.type#"
+				password="#variables.password#"
+				name="#arguments.name#"
+				level="#arguments.level#"
+				appenderClass="#arguments.appenderClass#"
+				appenderArgs="#arguments.appenderArgs#"
+				layoutClass="#arguments.layoutClass#"
+				layoutArgs="#arguments.layoutArgs#";
 	}
 
 	//updateSSLCertificate
@@ -1668,7 +1673,7 @@ public struct function getMapping( required string virtual ){
 
 	//updateFLD
 
-	public query function updateFLD(){
+	public void function updateFLD(){
 		admin
 			action="updateFLD"
 			type="#variables.type#"
@@ -1677,7 +1682,7 @@ public struct function getMapping( required string virtual ){
 
 	//updateApplicationListener->
 
-	public query function updateApplicationListener( required string listenerType, required string listenerMode ){
+	public void function updateApplicationListener( required string listenerType, required string listenerMode ){
 		admin
 			action="updateApplicationListener"
 			type="#variables.type#"
@@ -1688,16 +1693,18 @@ public struct function getMapping( required string virtual ){
 
 	//updateCachedWithin->
 	
-	public query function updateCachedWithin(){
+	public void function updateCachedWithin( required string cachedWithinType, required string cachedWithin ){
 		admin
 			action="updateCachedWithin"
 			type="#variables.type#"
 			password="#variables.password#"
+			cachedWithinType="#arguments.cachedWithinType#"
+			cachedWithin="#arguments.cachedWithin#";
 	}
 
 	//updateproxy
 
-	public query function updateproxy( boolean proxyenabled, string proxyserver, numeric proxyport, string proxyusername, string proxypassword ){
+	public void function updateproxy( boolean proxyenabled=false, string proxyserver="testProxy", numeric proxyport=443, string proxyusername="admin", string proxypassword="password" ){
 		admin
 			action="updateproxy"
 			type="#variables.type#"
