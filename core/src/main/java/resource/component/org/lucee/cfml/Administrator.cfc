@@ -1009,10 +1009,11 @@ component	{
 
 	//getCacheDefaultConnection
 
-	public struct function getCacheDefaultConnection(){
+	public struct function getCacheDefaultConnection( required string cachetype ){
 		admin
 			action="getCacheDefaultConnection"
 			type="#variables.type#"
+			cachetype="#arguments.cacheType#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
 			return rtn;
@@ -1031,12 +1032,12 @@ component	{
 
 	//getRemoteClient
 
-	public query function getRemoteClient( required string url ){
+	public struct function getRemoteClient( required string url ){
 		admin
 			action="getRemoteClient"
 			type="#variables.type#"
 			password="#variables.password#"
-			url = "#trim(arguments.url)#"
+			url = "#arguments.url#"
 			returnVariable="local.rtn";
 			return rtn;
 	}
@@ -1057,6 +1058,38 @@ component	{
 	public query function getRemoteClientUsage(){
 		admin
 			action="getRemoteClientUsage"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
+	}
+
+	//verifyremoteclient
+
+	public struct function verifyremoteclient( required string label, required string url, required string adminPassword, required string securityKey ){
+		var tmpStruct = {};
+		try{
+			admin
+				action="verifyremoteclient"
+				type="#variables.type#"
+				password="#variables.password#"
+				label="#arguments.label#"
+				url="#arguments.url#"
+				adminPassword="#arguments.adminPassword#"
+				securityKey="#arguments.securityKey#"
+			tmpStruct.label = "Ok";
+		} catch ( any e ) {
+			tmpStruct.label = "Error";
+			tmpStruct.message = e.message;
+		}
+		return tmpStruct;
+	}
+
+	//getRemoteClientTasks 
+
+	public query function getRemoteClientTasks(){
+		admin
+			action="getRemoteClientTasks"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
@@ -1244,16 +1277,7 @@ component	{
 
 	//alias for getSpoolerTasks
 
-	//getRemoteClientTasks 
-
-	public query function getRemoteClientTasks(){
-		admin
-			action="getRemoteClientTasks"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
+	
 
 	//getDatasourceDriverList
 
@@ -1526,122 +1550,181 @@ component	{
 			return providers;
 	}
 
-	//verifyremoteclient
-
-	public void function verifyremoteclient( required string label, required string url, required string adminPassword, required string securityKey, required string usage ){
-		admin
-			action="verifyremoteclient"
-			type="#variables.type#"
-			password="#variables.password#"
-			label="#arguments.label#"
-			url="#arguments.url#"
-			adminPassword="#arguments.adminPassword#"
-			securityKey="#arguments.securityKey#"
-			usage="#arguments.usage#";
-	}
 
 	//verifyDatasource
 
-	public void function verifyDatasource( required string name, required string dbusername, required string dbpassword ){
-		admin
-			action="verifyDatasource"
-			type="#variables.type#"
-			password="#variables.password#"
-			name="#arguments.name#"
-			dbusername="#arguments.dbusername#"
-			dbpassword="#arguments.dbpassword#";
+	public struct function verifyDatasource( required string name, required string dbusername, required string dbpassword ){
+		var tmpStruct = {};
+		try{
+			admin
+				action="verifyDatasource"
+				type="#variables.type#"
+				password="#variables.password#"
+				name="#arguments.name#"
+				dbusername="#arguments.dbusername#"
+				dbpassword="#arguments.dbpassword#";
+				tmpStruct.label = "Ok";
+		} catch ( any e ){
+			tmpStruct.label = "Error";
+			tmpStruct.message = e.message;
+		}
+		return tmpStruct;
 	}
 
 	//verifyCacheConnection
 
 	public void function verifyCacheConnection( required string name ){
-		admin
-			action="verifyCacheConnection"
-			type="#variables.type#"
-			password="#variables.password#"
-			name="#arguments.name#";
+		var tmpStruct = {};
+		try{
+			admin
+				action="verifyCacheConnection"
+				type="#variables.type#"
+				password="#variables.password#"
+				name="#arguments.name#";
+		} catch ( any e ){
+			tmpStruct.label = "Error";
+			tmpStruct.message = e.message;
+		}
+		return tmpStruct;
 	}
 
 	//verifyMailServer
 
 	public struct function verifyMailServer( required string hostname, required string port, required string mailusername, required string mailpassword ){
-		admin
-			action="verifyMailServer"
-			type="#variables.type#"
-			password="#variables.password#"
-			hostname="#arguments.hostname#"
-			port="#arguments.port#"
-			mailusername="#arguments.mailusername#"
-			mailpassword="#arguments.mailpassword#";
+		local.stVeritfyMessages={};
+		try{
+			admin
+				action="verifyMailServer"
+				type="#variables.type#"
+				password="#variables.password#"
+				hostname="#arguments.hostname#"
+				port="#arguments.port#"
+				mailusername="#arguments.mailusername#"
+				mailpassword="#arguments.mailpassword#";
+				stVeritfyMessages.label="ok"
+		}catch( any e ){
+			stVeritfyMessages.label="error";
+			stVeritfyMessages.catch=e.message;
+		}
+		return stVeritfyMessages;
 	}
 
 	//verifyExtensionProvider
 
-	public void function verifyExtensionProvider( required string url ){
-		admin
-			action="verifyExtensionProvider"
-			type="#variables.type#"
-			password="#variables.password#"
-			url="#arguments.url#"
+	public struct function verifyExtensionProvider( required string url ){
+		local.verifyExtensionProvider={};
+		try{
+			admin
+				action="verifyExtensionProvider"
+				type="#variables.type#"
+				password="#variables.password#"
+				url="#arguments.url#";
+			verifyExtensionProvider.label="ok";
+		}catch( any e ){
+			verifyExtensionProvider.label="error";
+			verifyExtensionProvider.catch=e.message;
+		}
+		return verifyExtensionProvider;
 	}
 
 	//verifyJavaCFX
 
-	public query function verifyJavaCFX( required string name, required string class ){
-		admin
-			action="verifyJavaCFX"
-			type="#variables.type#"
-			password="#variables.password#"
-			name="#arguments.name#"
-			class="#arguments.class#";
+	public struct function verifyJavaCFX( required string name, required string class, string bundleName, string bundleVersion ){
+		local.verifyJavaCFX={};
+		try{
+			admin
+				action="verifyJavaCFX"
+				type="#variables.type#"
+				password="#variables.password#"
+				name="#arguments.name#"
+				class="#arguments.class#"
+				bundleName="#arguments.bundleName#"
+				bundleVersion="#arguments.bundleVersion#";
+			verifyJavaCFX.label="ok";
+		}catch( any e ){
+			verifyJavaCFX.label="error";
+			verifyJavaCFX.catch=e.message;
+		}
+		return verifyJavaCFX;
 	}
 
 	//verifyCFX
 
-	public void function verifyCFX( required string name ){
-		admin
-			action="verifyCFX"
-			type="#variables.type#"
-			password="#variables.password#"
-			name="#arguments.name#";
+	public struct function verifyCFX( required string name ){
+		local.verifyCFX={};
+		try{
+			admin
+				action="verifyCFX"
+				type="#variables.type#"
+				password="#variables.password#"
+				name="#arguments.name#";
+			verifyJavaCFX.label="ok";
+		}catch( any e ){
+			local.verifyCFX.label="error";
+			local.verifyCFX.catch=e.message;
+		}
+		return local.verifyCFX;
 	}
 
 	//resetId
 
-	public void function resetId(){
-		admin
-			action="resetId"
-			type="#variables.type#"
-			password="#variables.password#";
+	public struct function resetId(){
+		local.resetId={};
+		try{
+			admin
+				action="resetId"
+				type="#variables.type#"
+				password="#variables.password#";
+			resetId.label="ok";
+		}catch( any e ){
+			resetId.label="error";
+			resetId.catch=e.message;
+		}
+		return resetId;
 	}
 
 	//updateLoginSettings
 
-	public void function updateLoginSettings( boolean rememberme=false, boolean captcha=false, numeric delay=0  ){
-		admin
-			action="updateLoginSettings"
-			type="#variables.type#"
-			password="#variables.password#"
-			rememberme="#arguments.rememberme#"
-			captcha="#arguments.captcha#"
-			delay="#arguments.delay#";
+	public struct function updateLoginSettings( boolean rememberme=false, boolean captcha=false, numeric delay=0  ){
+		local.updateLoginSettings={};
+		try{
+			admin
+				action="updateLoginSettings"
+				type="#variables.type#"
+				password="#variables.password#"
+				rememberme="#arguments.rememberme#"
+				captcha="#arguments.captcha#"
+				delay="#arguments.delay#";
+			updateLoginSettings.label="ok"
+		}catch( any e ){
+			updateLoginSettings.label="error";
+			updateLoginSettings.catch=e.message;
+		}
+		return updateLoginSettings;
 	}
 
 	//updateLogSettings
 
-	public void function updateLogSettings( required string level, required string appenderClass, required string layoutClass, required string name, struct appenderArgs={}, struct layoutArgs={} ){
-		admin
-				action="updateLogSettings"
-				type="#variables.type#"
-				password="#variables.password#"
-				name="#arguments.name#"
-				level="#arguments.level#"
-				appenderClass="#arguments.appenderClass#"
-				appenderArgs="#arguments.appenderArgs#"
-				layoutClass="#arguments.layoutClass#"
-				layoutArgs="#arguments.layoutArgs#";
+	public struct function updateLogSettings( required string level, required string appenderClass, required string layoutClass, required string name, struct appenderArgs={}, struct layoutArgs={} ){
+		local.updateLogSettings={};
+		try{
+			admin
+					action="updateLogSettings"
+					type="#variables.type#"
+					password="#variables.password#"
+					name="#arguments.name#"
+					level="#arguments.level#"
+					appenderClass="#arguments.appenderClass#"
+					appenderArgs="#arguments.appenderArgs#"
+					layoutClass="#arguments.layoutClass#"
+					layoutArgs="#arguments.layoutArgs#";
+			updateLogSettings.label="ok"
+		}catch( any e ){
+			updateLogSettings.label="error";
+			updateLogSettings.catch=e.message;
+		}
+		return updateLogSettings;
 	}
-
 	//updateSSLCertificate
 
 	public query function updateSSLCertificate( required string host, numeric port = 443 ){
@@ -1653,33 +1736,7 @@ component	{
 			port="#arguments.port#";
 	}
 
-	//updateMonitorEnabled
-
-	public query function updateMonitorEnabled(){
-		admin
-			action="updateMonitorEnabled"
-			type="#variables.type#"
-			password="#variables.password#"
-	}
-
-	//updateTLD
-
-	public query function updateTLD(){
-		admin
-			action="updateTLD"
-			type="#variables.type#"
-			password="#variables.password#"
-	}
-
-	//updateFLD
-
-	public void function updateFLD(){
-		admin
-			action="updateFLD"
-			type="#variables.type#"
-			password="#variables.password#"
-	}
-
+	
 	//updateApplicationListener->
 
 	public void function updateApplicationListener( required string listenerType, required string listenerMode ){
@@ -1704,7 +1761,7 @@ component	{
 
 	//updateproxy
 
-	public void function updateproxy( boolean proxyenabled=false, string proxyserver="testProxy", numeric proxyport=443, string proxyusername="admin", string proxypassword="password" ){
+	public void function updateproxy( boolean proxyenabled, string proxyserver="testProxy", numeric proxyport=443, string proxyusername="admin", string proxypassword="password" ){
 		admin
 			action="updateproxy"
 			type="#variables.type#"
@@ -1799,9 +1856,9 @@ component	{
 			action="updateApplicationSetting"
 			type="#variables.type#"
 			password="#variables.password#"
-			requestTimeout="#arguments.requestTimeout#"
 			scriptProtect="#arguments.scriptProtect#"
-			allowURLRequestTimeout="#arguments.allowURLRequestTimeout#";
+			allowURLRequestTimeout="#arguments.allowURLRequestTimeout#"
+			requestTimeout="#arguments.requestTimeout#";
 	}
 
 	//updateOutputSetting
@@ -1843,11 +1900,21 @@ component	{
 			bundleVersion="#arguments.bundleVersion#";
 	}
 
-	//updateCacheDefaultConnection-> doUpdateCacheDefaultConnection(); need to check
+	//updateCacheDefaultConnection-> doUpdateCacheDefaultConnection();
 
-	public void function updateCacheDefaultConnection( string object, string template, string query, string resource, string function, string include, string http, string file, string webservice ){
+	public void function updateCacheDefaultConnection( 
+		string object = "", 
+		string template = "", 
+		string query = "", 
+		string resource = "", 
+		string function = "", 
+		string include = "", 
+		string http = "", 
+		string file = "", 
+		string webservice = ""
+	){
 		admin
-			action="updateRestSettings"
+			action="updateCacheDefaultConnection"
 			type="#variables.type#"
 			password="#variables.password#"
 			object="#arguments.object#"
@@ -1863,7 +1930,16 @@ component	{
 
 	//updateCacheConnection
 
-	public void function updateCacheConnection( required string class, required string name, required struct custom, string bundleName, string bundleVersion, boolean readonly=false, boolean storage=false ){
+	public void function updateCacheConnection( 
+		required string class, 
+		required string name, 
+		struct custom, 
+		string bundleName= "", 
+		string bundleVersion="",
+		string default="",
+		boolean readonly=false, 
+		boolean storage=false 
+	){
 		admin
 			action="updateCacheConnection"
 			type="#variables.type#"
@@ -1873,11 +1949,10 @@ component	{
 			custom="#arguments.custom#"
 			bundleName="#arguments.bundleName#"
 			bundleVersion="#arguments.bundleVersion#"
-			readonly="#arguments.readonly#"
-			storage="#arguments.storage#";
+			default="#arguments.default#"
+			readonly="#getArguments('readonly', false)#"
+			storage="#getArguments('storage', false)#";
 	}	
-
-
 
 			
 	/* Private functions */
