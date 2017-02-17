@@ -32,6 +32,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
+import lucee.commons.lang.types.RefIntegerSync;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.compiler.CFMLCompilerImpl.Result;
 import lucee.runtime.config.Config;
@@ -78,7 +79,7 @@ public final class PageSourceImpl implements PageSource {
     private String compName;
     private Page page;
 	private long lastAccess;	
-	private int accessCount=0;
+	private RefIntegerSync accessCount=new RefIntegerSync();
 	private boolean flush=false;
     //private boolean recompileAlways;
     //private boolean recompileAfterStartUp;
@@ -224,16 +225,14 @@ public final class PageSourceImpl implements PageSource {
     	if(!mapping.hasArchive()) return null;
 		if(page!=null && page.getLoadType()==LOAD_ARCHIVE) return page;
         try {
+            Class clazz=mapping.getArchiveClass(getClassName());
+            page=newInstance(clazz);
             synchronized(this) {
-                Class clazz=mapping.getArchiveClass(getClassName());
-                
-                this.page=page=newInstance(clazz);
                 page.setPageSource(this);
-                //page.setTimeCreated(System.currentTimeMillis());
                 page.setLoadType(LOAD_ARCHIVE);
-    			////load=LOAD_ARCHIVE;
-    			return page;
+            	this.page=page;
             }
+    		return page;
         } 
         catch (Exception e) {
         	// MUST print.e(e); is there a better way?
@@ -258,60 +257,55 @@ public final class PageSourceImpl implements PageSource {
     	
 		long srcLastModified = srcFile.lastModified();
         if(srcLastModified==0L) return null;
-    	
-		// Page exists    
-			if(page!=null) {
-			//if(page!=null && !recompileAlways) {
-				if(srcLastModified!=page.getSourceLastModified()) {
-					this.page=page=compile(config,mapping.getClassRootDirectory(),page,false,pc.ignoreScopes());
-                	page.setPageSource(this);
-					page.setLoadType(LOAD_PHYSICAL);
-				}
-		    	
+	
+	// Page exists    
+		if(page!=null) {
+		//if(page!=null && !recompileAlways) {
+			if(srcLastModified!=page.getSourceLastModified()) {
+				this.page=page=compile(config,mapping.getClassRootDirectory(),page,false,pc.ignoreScopes());
+            	page.setPageSource(this);
+				page.setLoadType(LOAD_PHYSICAL);
 			}
-		// page doesn't exist
+	    	
+		}
+	// page doesn't exist
+		else {
+			Resource classRootDir=mapping.getClassRootDirectory();
+			Resource classFile=classRootDir.getRealResource(getJavaName()+".class");
+			boolean isNew=false;
+			// new class
+			if(flush || !classFile.exists()) {
+				this.page=page= compile(config,classRootDir,null,false,pc.ignoreScopes());
+				flush=false;
+				isNew=true;
+			}
+			// load page
 			else {
-                ///synchronized(this) {
-                    Resource classRootDir=mapping.getClassRootDirectory();
-                    Resource classFile=classRootDir.getRealResource(getJavaName()+".class");
-                    boolean isNew=false;
-                    // new class
-                    if(flush || !classFile.exists()) {
-                    //if(!classFile.exists() || recompileAfterStartUp) {
-                    	this.page=page= compile(config,classRootDir,null,false,pc.ignoreScopes());
-                    	flush=false;
-                        isNew=true;
-                    }
-                    // load page
-                    else {
-                    	try {
-                    		this.page=page=newInstance(mapping.getPhysicalClass(this.getClassName()));
-    					} catch(Throwable t) {
-    						ExceptionUtil.rethrowIfNecessary(t);
-							this.page=page=null;
-						}
-                    	if(page==null) this.page=page=compile(config,classRootDir,null,false,pc.ignoreScopes());
-                              
-                    }
-                    
-                    // check if version changed or lasMod
-                    if(!isNew && 
-                    		(
-                    				srcLastModified!=page.getSourceLastModified()
-                    				||
-                    				page.getVersion()!=pc.getConfig().getFactory().getEngine().getInfo().getFullVersionInfo()
-                    		)
-                    ) {
-                    	isNew=true;
-                    	this.page=page=compile(config,classRootDir,page,false,pc.ignoreScopes());
-    				}
-                    
-                    page.setPageSource(this);
-    				page.setLoadType(LOAD_PHYSICAL);
-
+				try {
+					this.page=page=newInstance(mapping.getPhysicalClass(this.getClassName()));
+				}
+				catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					this.page=page=null;
+				}
+				if(page==null) this.page=page=compile(config,classRootDir,null,false,pc.ignoreScopes());
 			}
-			pci.setPageUsed(page);
-			return page;
+
+			// check if version changed or lasMod
+			if(!isNew && 
+					(
+							srcLastModified!=page.getSourceLastModified()
+							||
+							page.getVersion()!=pc.getConfig().getFactory().getEngine().getInfo().getFullVersionInfo()
+					)) {
+				isNew=true;
+				this.page=page=compile(config,classRootDir,page,false,pc.ignoreScopes());
+			}
+			page.setPageSource(this);
+			page.setLoadType(LOAD_PHYSICAL);
+		}
+		pci.setPageUsed(page);
+		return page;
     }
 
     public void flush() {
@@ -324,7 +318,7 @@ public final class PageSourceImpl implements PageSource {
 	}
     
 
-	private synchronized Page compile(ConfigWeb config,Resource classRootDir, Page existing, boolean returnValue, boolean ignoreScopes) throws TemplateException {
+	private Page compile(ConfigWeb config,Resource classRootDir, Page existing, boolean returnValue, boolean ignoreScopes) throws TemplateException {
 		try {
 			return _compile(config, classRootDir,existing,returnValue,ignoreScopes);
         }
@@ -346,33 +340,32 @@ public final class PageSourceImpl implements PageSource {
         	ExceptionUtil.rethrowIfNecessary(t);
         	if(t instanceof TemplateException) throw (TemplateException)t;
         	throw new PageRuntimeException(Caster.toPageException(t));
-        	//throw new TemplateException(t.getClass().getName()+":"+t.getMessage());
         }
 	}
 
 	private Page _compile(ConfigWeb config,Resource classRootDir, Page existing,boolean returnValue, boolean ignoreScopes) throws IOException, SecurityException, IllegalArgumentException, PageException {
-        ConfigWebImpl cwi=(ConfigWebImpl) config;
-        int dialect=getDialect();
-        
-        long now;
-        if((getPhyscalFile().lastModified()+10000)>(now=System.currentTimeMillis()))
-        	cwi.getCompiler().watch(this,now);//SystemUtil.get
-        
-                
-        Result result = cwi.getCompiler().
-        	compile(cwi,this,cwi.getTLDs(dialect),cwi.getFLDs(dialect),classRootDir,returnValue,ignoreScopes);
-        
-        try{
-        	
-        	Class<?> clazz = mapping.getPhysicalClass(getClassName(), result.barr);
-        	return  newInstance(clazz);
-        }
-        catch(Throwable t){
-        	PageException pe = Caster.toPageException(t);
-        	pe.setExtendedInfo("failed to load template "+getDisplayPath());
-        	throw pe;
-        }
-    }
+		ConfigWebImpl cwi=(ConfigWebImpl) config;
+		int dialect=getDialect();
+
+		long now;
+		if((getPhyscalFile().lastModified()+10000)>(now=System.currentTimeMillis()))
+			cwi.getCompiler().watch(this,now);//SystemUtil.get
+		
+		synchronized(this) {
+			Result result = cwi.getCompiler().
+				compile(cwi,this,cwi.getTLDs(dialect),cwi.getFLDs(dialect),classRootDir,returnValue,ignoreScopes);
+			
+			try {
+				Class<?> clazz = mapping.getPhysicalClass(getClassName(), result.barr);
+				return newInstance(clazz);
+			}
+			catch(Throwable t){
+				PageException pe = Caster.toPageException(t);
+				pe.setExtendedInfo("failed to load template "+getDisplayPath());
+				throw pe;
+			}
+		}
+	}
 
     private Page newInstance(Class clazz) throws SecurityException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     	Constructor<?> c = clazz.getConstructor(new Class[]{PageSource.class});
@@ -582,13 +575,13 @@ public final class PageSourceImpl implements PageSource {
 	}
 	
 	
-	private synchronized void createClassAndPackage() {
+	private void createClassAndPackage() {
 		String str=relPath;
 		StringBuilder packageName=new StringBuilder();
 		StringBuilder javaName = new StringBuilder();
 		String[] arr=ListUtil.toStringArrayEL(ListUtil.listToArrayRemoveEmpty(str,'/'));
 		
-		String varName;
+		String varName,className=null,fileName=null;
 		for(int i=0;i<arr.length;i++) {
 			if(i==(arr.length-1)) {
 				int index=arr[i].lastIndexOf('.');
@@ -611,15 +604,20 @@ public final class PageSourceImpl implements PageSource {
 			javaName.append('/');
 			javaName.append(varName);
 		}
-		this.packageName=packageName.toString().toLowerCase();
-		this.javaName=javaName.toString().toLowerCase();
+		synchronized (this) {
+			this.packageName=packageName.toString().toLowerCase();
+			this.javaName=javaName.toString().toLowerCase();
+			this.fileName=fileName;
+			this.className=className;
+		}
 	}
 	
 	
 
-	private synchronized void createComponentName() {
+	private void createComponentName() {
 		Resource res = this.getPhyscalFile();
 	    String str=null;
+	    final String relPath=this.relPath;
 		if(res!=null) {
 			
 			str=res.getAbsolutePath();
@@ -636,7 +634,7 @@ public final class PageSourceImpl implements PageSource {
 		}
 		else str=relPath;
 	    
-		StringBuffer compName=new StringBuffer();
+		StringBuilder compName=new StringBuilder();
 		String[] arr;
 		
 		// virtual part
@@ -657,7 +655,10 @@ public final class PageSourceImpl implements PageSource {
 			}
 			else compName.append(arr[i]);
 		}
-		this.compName=compName.toString();
+		synchronized (this) {
+			this.compName=compName.toString();
+		}
+		
 	}
 
     @Override
@@ -781,14 +782,14 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	@Override
-	public synchronized final void setLastAccessTime() {
-		accessCount++;
+	public final void setLastAccessTime() {
+		accessCount.plus(1);
 		this.lastAccess=System.currentTimeMillis();
 	}	
 	
 	@Override
 	public final int getAccessCount() {
-		return accessCount;
+		return accessCount.toInt();
 	}
 
     @Override

@@ -21,6 +21,7 @@ package lucee.commons.lang;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.UnmodifiableClassException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.functions.other.CreateObject;
+import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.runtime.type.util.ArrayUtil;
 
 import org.apache.commons.collections4.map.ReferenceMap;
@@ -161,19 +163,29 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	public synchronized Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
-		
+		Class<?> clazz=null;
+		try {
+			clazz = loadClass(name);
+		} catch (ClassNotFoundException cnf) {}
+		  		
+		// if class already exists
+		if(clazz!=null) {
+			try {
+				InstrumentationFactory.getInstrumentation(config).redefineClasses(new ClassDefinition(clazz,barr));
+			} 
+			catch (ClassNotFoundException e) {
+				// the documentation clearly sais that this exception only exists for backward compatibility and never happen
+			}
+			return clazz;
+		}
+		// class not exists yet
 		return _loadClass(name, barr);
 	}
 	
 	private synchronized Class<?> _loadClass(String name, byte[] barr) {
-
 		Class<?> clazz = defineClass(name,barr,0,barr.length);
-		
 		if (clazz != null) {
 			loadedClasses.add(name);
-			/*if (clazz.getPackage() == null) {
-				definePackage(name.replaceAll("\\.\\w+$", ""), null, null, null, null, null, null, null);
-			}*/
 			resolveClass(clazz);
 		}
 		return clazz;
