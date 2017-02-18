@@ -28,7 +28,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	function run( testResults , testBox ) {
 		describe( title="test case for Administrator", body=function() {
-			xdescribe( title="test-Regional functions", body=function() {
+			describe( title="test-Regional functions", body=function() {
 				it(title="testGetRegional()", body=function( currentSpec ) {
 					var reginal=admin.getRegional();
 					assertEquals(isStruct(reginal),true);
@@ -68,7 +68,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test-Charset functions", body=function() {
+			describe( title="test-Charset functions", body=function() {
 				it(title="testGetCharset()", body=function( currentSpec ) {
 					var charset=admin.getCharset();
 					assertEquals(isStruct(charset),true);
@@ -104,7 +104,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test-timezone functions", body=function() {
+			describe( title="test-timezone functions", body=function() {
 				it(title="testGetAvailableTimeZones()", body=function( currentSpec ) {
 					var timezones=admin.getAvailableTimeZones();
 					assertEquals(isQuery(timezones),true);
@@ -119,19 +119,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test-Jars function", body=function() {
+			describe( title="test-Jars function", body=function() {
 				
-				it(title="testUpdateJar()", body=function( currentSpec ) {
-					var hasError = false;
-					try {
-						admin.updateJar(expandPath("./hello.jar"));
-					}
-					catch(any e) {
-						var hasError = true;
-					}
-					assertEquals(hasError, false);
-				});
-
 				it(title="testGetjar()", body=function( currentSpec ) {
 					var Jars = admin.getJars();
 					assertEquals(isQuery(Jars),true);
@@ -142,7 +131,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test-Output Setting functions", body=function() {
+			describe( title="test-Output Setting functions", body=function() {
 				it(title="testGetOutputSetting()", body=function( currentSpec ) {
 					var outputSetting = admin.getOutputSetting();
 					assertEquals(isStruct(outputSetting),true);
@@ -176,7 +165,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test-dataSource setting functions", body=function() {
+			describe( title="test-dataSource setting functions", body=function() {
 				it(title="testgetDatasourceSetting()", body=function( currentSpec ) {
 					var getDatasource = admin.getDatasourceSetting();
 					assertEquals((isStruct(getDatasource) && isBoolean(getDatasource.psq)) , true);
@@ -263,7 +252,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 			});
 
-			xdescribe( title="test-mail server functions", body=function() {
+			describe( title="test-mail server functions", body=function() {
 				it(title="checking getMailservers()", body=function( currentSpec ) {
 					var mailservers = admin.getMailservers();
 					assertEquals(isQuery(mailservers),true);
@@ -295,10 +284,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test-mail setting functions", body=function() {
+			describe( title="test-mail setting functions", body=function() {
 				it(title="checking getMailSettings()", body=function( currentSpec ) {
 					var getMailSettings = admin.getMailSetting();
 					assertEquals(isStruct(getMailSettings),true);
+					assertEquals(listSort(structKeyList(getMailSettings),'textnocase'), 'defaultencoding,maxThreads,spoolEnable,spoolInterval,timeout');
 				});
 
 				it(title="checking updateMailSettings()", body=function( currentSpec ) {
@@ -319,7 +309,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test-mapping settings function", body=function() {
+			describe( title="test-mapping settings function", body=function() {
 				it(title="checking getMappings()", body=function( currentSpec ) {
 					var getMappings = admin.getMappings();
 					assertEquals(isquery(getMappings) ,true);
@@ -348,7 +338,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test-Compile mapping settings function", body=function() {
+			describe( title="test-Compile mapping settings function", body=function() {
 				it(title="checking compileMapping()", body=function( currentSpec ) {
 					try{
 						var hasError = false;
@@ -377,7 +367,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test-Extension functions", body=function() {
+			describe( title="test-Extension functions", body=function() {
 				it(title="checking getExtensions()", body=function( currentSpec ) {
 					var getExtensions = admin.getExtensions();
 					assertEquals(isquery(getExtensions) ,true);
@@ -414,7 +404,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test-extension providers functions", body=function() {
+			describe( title="test-extension providers functions", body=function() {
 				it(title="checking getExtensionProviders()", body=function( currentSpec ) {
 					var getExtensionsProvider = admin.getExtensionProviders();
 					assertEquals((isquery(getExtensionsProvider) && getExtensionsProvider.url EQ 'http://extension.lucee.org') ,true);
@@ -432,24 +422,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test ORM function()", body=function() {
+			describe( title="test ORM function()", body=function() {
 				it(title="checking getORMEngine()", body=function( currentSpec ) {
 					var ORMEngine = admin.getORMEngine();
 					assertEquals(isstruct(ORMEngine) ,true);
-					var strctKeylist = structKeyList(ORMEngine);
-					assertEquals(FindNocase('bundleName',strctKeylist) GT 0, true);
+					assertEquals(listSort(structKeyList(ORMEngine),'textnocase'),'bundleName,bundleVersion,class');
 				});
 
 				it(title="checking getORMSetting()", body=function( currentSpec ) {
 					var ORMsetting = admin.getORMSetting();
 					assertEquals(isstruct(ORMsetting) ,true);
-					var strctKeylist = structKeyList(ORMsetting);
-					assertEquals(FindNocase('autogenmap',strctKeylist) GT 0, true);
+					assertEquals(listSort(structKeyList(ORMsetting),'textnocase'),'autogenmap,cacheconfig,cacheProvider,catalog,cfcLocation,dbCreate,dialect,eventHandler,eventHandling,flushAtRequestEnd,isDefaultCfclocation,logSql,namingstrategy,ormConfig,savemapping,schema,secondarycacheenabled,sqlscript,useDBForMapping');
 				});
 			});
 			
 
-			xdescribe( title="test tldx and Fldx function", body=function() {
+			describe( title="test tldx and Fldx function", body=function() {
 				it(title="checking getTlds()", body=function( currentSpec ) {
 					var tlds = admin.getTlds();
 					assertEquals(isquery(tlds) ,true);
@@ -463,7 +451,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test info functions", body=function() {
+			describe( title="test info functions", body=function() {
 				it(title="checking getinfo()", body=function( currentSpec ) {
 					var info = admin.getinfo();
 					assertEquals(isstruct(info) ,true);
@@ -472,7 +460,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test Monitor functions", body=function() {
+			describe( title="test Monitor functions", body=function() {
 				it(title="checking isMonitorEnabled()", body=function( currentSpec ) {
 					var isEnable = admin.isMonitorEnabled();
 					assertEquals(isBoolean(isEnable) ,true);
@@ -481,23 +469,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				it(title="checking getMonitors()", body=function( currentSpec ) {
 					var monitors = admin.getMonitors();
 					assertEquals(isquery(monitors) ,true);
-					assertEquals(FindNocase('name',monitors.columnlist ) GT 0, true);
 				});
 			});
 
-			xdescribe( title="test application functions", body=function() {
+			describe( title="test application functions", body=function() {
 				it(title="checking getApplicationSetting()", body=function( currentSpec ) {
 					var appSetting = admin.getApplicationSetting();
 					assertEquals(isstruct(appSetting) ,true);
-					var strctKeylist = structKeyList(appSetting);
-					assertEquals(FindNocase('AllowURLRequestTimeout',strctKeylist) GT 0, true);
+					assertEquals(listSort(structKeyList(appSetting),'textnocase'),'AllowURLRequestTimeout,requestTimeout,requestTimeout_day,requestTimeout_hour,requestTimeout_minute,requestTimeout_second,scriptProtect');
+					
 				});
 
 				it(title="checking getApplicationListener()", body=function( currentSpec ) {
 					var appListner = admin.getApplicationListener();
 					assertEquals(isstruct(appListner) ,true);
-					var strctKeylist = structKeyList(appListner);
-					assertEquals(FindNocase('type',strctKeylist) GT 0, true);
+					assertEquals(listSort(structKeyList(appListner),'textnocase'),'mode,type');
+					
 				});
 			});
 
@@ -505,81 +492,75 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				it(title="checking getproxy()", body=function( currentSpec ) {
 					var proxy = admin.getproxy();
 					assertEquals(isstruct(proxy) ,true);
-					var strctKeylist = structKeyList(proxy);
-					assertEquals(FindNocase('port',strctKeylist) GT 0, true);
+					assertEquals(listSort(structKeyList(proxy),'textnocase'),'password,port,server,username');
 				});
 
 			});
 
-			xdescribe( title="test Component functions", body=function() {
+			describe( title="test Component functions", body=function() {
 				it(title="checking getComponent()", body=function( currentSpec ) {
 					var getComp = admin.getComponent();
 					assertEquals(isstruct(getComp) ,true);
-					var strctKeylist = structKeyList(getComp);
-					assertEquals(FindNocase('componentDataMemberDefaultAccess',strctKeylist) GT 0, true);
+					assertEquals(listSort(structKeyList(getComp),'textnocase'),'baseComponentTemplateCFML,baseComponentTemplateLucee,componentDataMemberDefaultAccess,ComponentDefaultImport,componentDumpTemplate,componentLocalSearch,componentPathCache,deepSearch,strBaseComponentTemplateCFML,strBaseComponentTemplateLucee,strComponentDumpTemplate,triggerDataMember,useShadow');
 				});
 			});
 
-			xdescribe( title="test scope functions", body=function() {
+			describe( title="test scope functions", body=function() {
 				it(title="checking getscope()", body=function( currentSpec ) {
 					var getScope = admin.getScope();
 					assertEquals(isstruct(getScope) ,true);
-					var strctKeylist = structKeyList(getScope);
-					assertEquals(FindNocase('applicationTimeout',strctKeylist) GT 0, true);
+					assertEquals(listSort(structKeyList(getScope),'textnocase'), 'allowImplicidQueryCall,applicationTimeout,applicationTimeout_day,applicationTimeout_hour,applicationTimeout_minute,applicationTimeout_second,cgiReadonly,clientCookies,clientManagement,clientStorage,clientTimeout,clientTimeout_day,clientTimeout_hour,clientTimeout_minute,clientTimeout_second,domainCookies,localmode,mergeFormAndUrl,scopeCascadingType,sessionManagement,sessionStorage,sessionTimeout,sessionTimeout_day,sessionTimeout_hour,sessionTimeout_minute,sessionTimeout_second,sessiontype');
 				});
 			});
 
 			describe( title="test QueueSetting functions", body=function() {
 				it(title="checking getQueueSetting()", body=function( currentSpec ) {
-					var getQueueSttg = admin.getQueueSetting();
-					assertEquals(isstruct(getQueueSttg) ,true);
-					var strctKeylist = structKeyList(getQueueSttg);
-					assertEquals(FindNocase('enable',strctKeylist) GT 0, true);
+					var getQueueSettings = admin.getQueueSetting();
+					assertEquals(isstruct(getQueueSettings) ,true);
+					assertEquals(listSort(structKeyList(getQueueSettings),'textnocase'), 'enable,max,timeout');
 				});
 
 				it(title="checking updateQueueSetting()", body=function( currentSpec ) {
-					admin.updateQueueSetting(enable=true);
-					var updateQueueSetting = admin.getupdateQueueSetting();
+					admin.updateQueueSetting(enable=true,max="100",timeout='3600');
+					var updateQueueSetting = admin.getQueueSetting();
 					assertEquals(isStruct(updateQueueSetting),true);
 					assertEquals(structKeyExists(updateQueueSetting, "enable") && isBoolean(updateQueueSetting.enable),true);
 					assertEquals(structKeyExists(updateQueueSetting, "max") && (updateQueueSetting.max EQ 100),true);
-					assertEquals(structKeyExists(updateQueueSetting, "timeout") && (updateQueueSetting.timeout EQ 0), true);
+					assertEquals(structKeyExists(updateQueueSetting, "timeout") && (updateQueueSetting.timeout EQ 3600), true);
 				});
 			});
 
-			xdescribe( title="test CustomTag functions", body=function() {
+			describe( title="test CustomTag functions", body=function() {
 				it(title="checking getCustomTagSetting()", body=function( currentSpec ) {
-					var getQueueSttg = admin.getCustomTagSetting();
-					assertEquals(isstruct(getQueueSttg) ,true);
-					var strctKeylist = structKeyList(getQueueSttg);
-					assertEquals(FindNocase('customTagDeepSearch',strctKeylist) GT 0, true);
+					var customTagSetting = admin.getCustomTagSetting();
+					assertEquals(isstruct(customTagSetting) ,true);
+					assertEquals(listSort(structKeyList(customTagSetting),'textnocase'), 'customTagDeepSearch,customTagLocalSearch,customTagPathCache,deepSearch,extensions,localSearch');
 				});
 			});
 
-			xdescribe( title="test surveillance functions", body=function() {
+			describe( title="test surveillance functions", body=function() {
 				it(title="checking surveillance()", body=function( currentSpec ) {
 					var surveillance = admin.surveillance();
 					assertEquals(isstruct(surveillance) ,true);
 				});
 			});
 
-			xdescribe( title="test spoolerTasks functions", body=function() {
+			describe( title="test spoolerTasks functions", body=function() {
 				it(title="checking getSpoolerTasks()", body=function( currentSpec ) {
 					var spoolertask = admin.getSpoolerTasks();
 					assertEquals(isQuery(spoolertask) ,true);
 				});
 			});
 
-			xdescribe( title="test performance functions", body=function() {
+			describe( title="test performance functions", body=function() {
 				it(title="checking getPerformanceSettings()", body=function( currentSpec ) {
 					var performanceSettings = admin.getPerformanceSettings();
 					assertEquals(isstruct(performanceSettings) ,true);
-					var strctKeylist = structKeyList(performanceSettings);
-					assertEquals(FindNocase('typeChecking',strctKeylist) GT 0, true);				
+					assertEquals(listSort(structKeyList(performanceSettings),'textnocase'), 'inspectTemplate,typeChecking');			
 				});
 			});
 
-			xdescribe( title="test log functions", body=function() {
+			describe( title="test log functions", body=function() {
 				it(title="checking logsetting()", body=function( currentSpec ) {
 					var logsettings = admin.getLogSettings();
 					assertEquals(isquery(logsettings) ,true);
@@ -588,21 +569,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				it(title="checking getExecutionLog()", body=function( currentSpec ) {
 					var execLog = admin.getExecutionLog();
 					assertEquals(isstruct(execLog) ,true);
-					var strctKeylist = structKeyList(execLog);
-					assertEquals(FindNocase('enabled',strctKeylist) GT 0, true);
+					assertEquals(listSort(structKeyList(execLog),'textnocase'), 'arguments,class,enabled');
 				});
 			});
 
-			xdescribe( title="test CompilerSettings functions", body=function() {
+			describe( title="test CompilerSettings functions", body=function() {
 				it(title="checking getCompilerSettings()", body=function( currentSpec ) {
 					var compileSettings = admin.getCompilerSettings();
 					assertEquals(isstruct(compileSettings) ,true);
-					var strctKeylist = structKeyList(compileSettings);
-					assertEquals(FindNocase('templateCharset',strctKeylist) GT 0, true);
+					assertEquals(listSort(structKeyList(compileSettings),'textnocase'), 'DotNotationUpperCase,externalizeStringGTE,handleUnquotedAttrValueAsString,nullSupport,suppressWSBeforeArg,templateCharset');
 				});
 			});
 			
-			xdescribe( title="test gateway functions", body=function() {
+			describe( title="test gateway functions", body=function() {
 				it(title="checking getGatewayentries()", body=function( currentSpec ) {
 					var gatewayEntries = adminweb.getGatewayentries();
 					assertEquals(isquery(gatewayEntries) ,true);
@@ -611,17 +590,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				it(title="checking getGatewayentry()", body=function( currentSpec ) {
 					var gatewayEntry = adminweb.getGatewayentry('testgateway');
 					assertEquals(isStruct(gatewayEntry) ,true);
+					assertEquals(listSort(structKeyList(gatewayEntry),'textnocase'), 'bundleName,bundleVersion,cfcPath,class,custom,id,listenerCfcPath,readOnly,startupMode,state');
 				});
 			});
 
-			xdescribe( title="test thread functions", body=function() {
+			describe( title="test thread functions", body=function() {
 				it(title="checking thread()", body=function( currentSpec ) {
 					var runningThrd = admin.getRunningThreads();
 					assertEquals(isquery(runningThrd) ,true);
 				});
 			});
 
-			xdescribe( title="test bundles functions", body=function() {
+			describe( title="test bundles functions", body=function() {
 				it(title="checking getBundles()", body=function( currentSpec ) {
 					var bundles = admin.getBundles();
 					assertEquals(isquery(bundles) ,true);
@@ -634,18 +614,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test debugging functions", body=function() {
-
+			describe( title="test debugging functions", body=function() {
 				it(title="checking getDebugSetting()", body=function( currentSpec ) {
 					var deguggingListSetting = admin.getDebugSetting();
 					assertEquals(isstruct(deguggingListSetting) ,true);
-					var strctKeylist = structKeyList(deguggingListSetting);
-					assertEquals(FindNocase('maxLogs',strctKeylist) GT 0, true);
+					assertEquals(listSort(structKeyList(deguggingListSetting),'textnocase'), 'maxLogs');
 				});
 			});
 
 			
-			xdescribe( title="test Certificate functions", body=function() {
+			describe( title="test Certificate functions", body=function() {
 			
 				it(title="checking getSSLCertificate()", body=function( currentSpec ) {
 					var hostName = 'localHost';
@@ -654,7 +632,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test plugin functions", body=function() {
+			describe( title="test plugin functions", body=function() {
 				it(title="checking getPluginDirectory()", body=function( currentSpec ) {
 					var pluginDirectory = admin.getPluginDirectory();
 					assertEquals(isstruct(pluginDirectory), false);
@@ -664,29 +642,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					var plugin = admin.getPlugins();
 					assertEquals(isquery(plugin) ,true);
 				});
-				
-
-				it(title="checking updatePugin()", body=function( currentSpec ) {
-					var plugin = admin.getPlugins();
-					assertEquals(isquery(plugin) ,true);
-				});
-				
-				it(title="checking removePlugins()", body=function( currentSpec ) {
-					var rmvplugin = admin.getPlugins();
-					assertEquals(isquery(rmvplugin) ,true);
-				});
 			});
 
-			xdescribe( title="test taskSetting functions", body=function() {
+			describe( title="test taskSetting functions", body=function() {
 				it(title="checking getTaskSetting()", body=function( currentSpec ) {
 					var taskSetting = admin.getTaskSetting();
 					assertEquals(isstruct(taskSetting) ,true);
-					var strctKeylist = structKeyList(taskSetting);
-					assertEquals(FindNocase('maxThreads',strctKeylist) GT 0, true);
+					assertEquals(listSort(structKeyList(taskSetting),'textnocase'), 'maxThreads');
 				});
 			});
 
-			xdescribe( title="test getMapping functions", body=function() {
+			describe( title="test getMapping functions", body=function() {
 				it(title="checking getMapping()", body=function( currentSpec ) {
 					var virtual = "/lucee-server1";
 					var mapping = admin.getMapping(virtual);
@@ -696,7 +662,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test getCustomTagMappings functions", body=function() {
+			describe( title="test getCustomTagMappings functions", body=function() {
 				it(title="checking getCustomTagMappings()", body=function( currentSpec ) {
 					var customTagMappings = admin.getCustomTagMappings();
 					assertEquals(isquery(customTagMappings) ,true);
@@ -705,7 +671,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test getCfxTags functions", body=function() {
+			describe( title="test getCfxTags functions", body=function() {
 				it(title="checking getCfxTags()", body=function( currentSpec ) {
 					var cfxTags = admin.getCfxTags();
 					assertEquals(isquery(cfxTags) ,true);
@@ -714,7 +680,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test getCPPCfxTags functions", body=function() {
+			describe( title="test getCPPCfxTags functions", body=function() {
 				it(title="checking getCPPCfxTags()", body=function( currentSpec ) {
 					var CPPCfxTags = admin.getCPPCfxTags();
 					assertEquals(isquery(CPPCfxTags) ,true);
@@ -723,7 +689,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test getJavaCfxTags functions", body=function() {
+			describe( title="test getJavaCfxTags functions", body=function() {
 				it(title="checking getJavaCfxTags()", body=function( currentSpec ) {
 					var javaCfxTags = admin.getJavaCfxTags();
 					assertEquals(isquery(javaCfxTags) ,true);
@@ -732,7 +698,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test getDebugEntry functions", body=function() {
+			describe( title="test getDebugEntry functions", body=function() {
 				it(title="checking getDebugEntry()", body=function( currentSpec ) {
 					var debugEntry = admin.getDebugEntry();
 					assertEquals(isquery(debugEntry) ,true);
@@ -741,7 +707,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test getError functions", body=function() {
+			describe( title="test getError functions", body=function() {
 				it(title="checking getError()", body=function( currentSpec ) {
 					var error = admin.getError();
 					assertEquals(isStruct(error) ,true);
@@ -750,7 +716,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test remoteclient functions", body=function() {
+			describe( title="test remoteclient functions", body=function() {
 				it(title="checking getremoteclients", body=function( currentSpec ) {
 					var remoteClients = admin.getRemoteClients();
 					assertEquals(isquery(remoteClients) ,true);
@@ -788,99 +754,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test verifyCFX functions", body=function() {
-				it(title="checking verifyCFX()", body=function( currentSpec ) {
-					var hasError=false;
-					try{
-						var verifyCFX = admin.verifyCFX(name="helloworld");
-					}catch(any e){
-						hasError=true;
-					}
-					assertEquals(hasError,false);
-				});
-			});
-
-			xdescribe( title="test resetId functions", body=function() {
-				it(title="checking resetId()", body=function( currentSpec ) {
-					var hasError=false;
-					try{
-						var resetId = admin.resetId();
-					}catch(any e){
-						hasError=true;
-					}
-					assertEquals(hasError,false);
-				});
-			});
-
-			xdescribe( title="test updateLoginSettings functions", body=function() {
-				it(title="checking updateLoginSettings()", body=function( currentSpec ) {
-					var hasError=false;
-					try{
-						var updateLoginSettings = admin.updateLoginSettings(rememberme=true,captcha=false,delay=1);
-					}catch(any e){
-						hasError=true;
-					}
-					assertEquals(hasError,false);
-				});
-			});
-
-			xdescribe( title="test updateLogSettings functions", body=function() {
-				it(title="checking updateLogSettings()", body=function( currentSpec ) {
-					var hasError=false;
-					try{
-						var updateLogSettings = admin.updateLogSettings(level="ERROR", appenderClass="Resource", layoutClass="Classic", name="exception");
-					}catch(any e){
-						hasError=true;
-					}
-					assertEquals(hasError,false);
-				});
-			});
-
-			xdescribe( title="test updateFLD functions", body=function() {
-				it(title="checking updateFLD()", body=function( currentSpec ) {
-					var hasError = false;
-					try {
-						admin.updateFLD();
-					}
-					catch(any e) {
-						var hasError = true;
-					}
-					assertEquals(hasError, false);
-				});
-			});
-
-			xdescribe( title="test updateApplicationListener functions", body=function() {
-				it(title="checking updateApplicationListener()", body=function( currentSpec ) {
-					var tmpStrt = {};
-					tmpStrt.listenerType = "testType";
-					tmpStrt.listenerMode = "testMode";
-					var hasError = false;
-					try {
-						admin.updateApplicationListener(argumentCollection = #tmpStrt#);
-					}
-					catch(any e) {
-						var hasError = true;
-					}
-					assertEquals(hasError, false);
-				});
-			});
-
-			xdescribe( title="test updateCachedWithin functions", body=function() {
-				it(title="checking updateCachedWithin()", body=function( currentSpec ) {
-					var tmpStrt = {};
-					tmpStrt.cachedWithinType = "query";
-					tmpStrt.cachedWithin = "testMode";
-					var hasError = false;
-					try {
-						admin.updateCachedWithin(argumentCollection = #tmpStrt#);
-					}
-					catch(any e) {
-						var hasError = true;
-					}
-					assertEquals(hasError, false);
-				});
-			});
-
 			describe( title="test cache functions", body=function() {
 				it(title="checking getCacheConnections()", body=function( currentSpec ) {
 					var getCacheConnections = admin.getCacheConnections();
@@ -915,7 +788,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			xdescribe( title="test verifyMailServer functions", body=function() {
+			describe( title="test verifyMailServer functions", body=function() {
 				it(title="checking verifyMailServer()", body=function( currentSpec ) {
 					var verifyMailServer = admin.verifyMailServer( hostname="smtp.gmail.com", port="587", mailusername="test@gmail.com", mailpassword="test" );
 					assertEquals(verifyMailServer.label,"ok");
@@ -949,22 +822,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					assertEquals(resetId.label,"ok");
 				});
 			});
-
-			describe( title="test updateLoginSettings functions", body=function() {
-				it(title="checking updateLoginSettings()", body=function( currentSpec ) {
-					var updateLoginSettings = admin.updateLoginSettings(rememberme=true,captcha=false,delay=1);
-					assertEquals(updateLoginSettings.label,"ok");
-				});
-			});
-
-			describe( title="test updateLogSettings functions", body=function() {
-				it(title="checking updateLogSettings()", body=function( currentSpec ) {
-					var updateLogSettings = admin.updateLogSettings(level="ERROR", appenderClass="Resource", layoutClass="Classic", name="exception");
-					assertEquals(updateLogSettings.label,"ok");
-				});
-			});
 		});
 	}
 }
-
-
