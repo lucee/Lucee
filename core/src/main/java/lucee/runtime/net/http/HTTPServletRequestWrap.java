@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.AsyncContext;
@@ -57,8 +58,10 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.dt.DateTime;
+import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.scope.Form;
 import lucee.runtime.type.scope.FormImpl;
 import lucee.runtime.type.scope.URL;
@@ -225,7 +228,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 	@Override
 	public synchronized Enumeration getAttributeNames() {
 		if(disconnected) {
-			return new EnumerationWrapper(disconnectData.attributes);
+			return new EnumerationWrapper(disconnectData.attributes.keySet().toArray());
 		}
 		return req.getAttributeNames();
 		
@@ -557,7 +560,8 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 	@Override
 	public Enumeration getHeaderNames() {
 		if(!disconnected) return req.getHeaderNames();
-		return new StringItasEnum(disconnectData.headers.keySet().iterator());
+		Set<Key> set = disconnectData.headers.keySet();
+		return new StringIterator(set.toArray(new Key[set.size()]));
 	}
 
 	@Override
