@@ -47,6 +47,7 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.Part;
 
+import lucee.commons.collection.concurrent.ConcurrentHashMapPro;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -374,18 +375,18 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 		// attributes
 		{
 			Enumeration<String> attrNames = req.getAttributeNames();
-			disconnectData.attributes=new ConcurrentHashMap<String, Object>();
+			disconnectData.attributes=new ConcurrentHashMapPro<String, Object>();
 			String k;
 			while(attrNames.hasMoreElements()){
 				k=attrNames.nextElement();
-				disconnectData.attributes.put(k, req.getAttribute(k));
+				if(!StringUtil.isEmpty(k))disconnectData.attributes.put(k, req.getAttribute(k));
 			}
 		}
 		
 		// headers
 		{
 			Enumeration headerNames = req.getHeaderNames();
-			disconnectData.headers=new ConcurrentHashMap<Collection.Key, LinkedList<String>>();
+			disconnectData.headers=new ConcurrentHashMapPro<Collection.Key, LinkedList<String>>();
 			
 			String k;
 			Enumeration e;
@@ -396,7 +397,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 				while(e.hasMoreElements()){
 					list.add(e.nextElement().toString());
 				}
-				disconnectData.headers.put(KeyImpl.init(k),list);
+				if(!StringUtil.isEmpty(k))disconnectData.headers.put(KeyImpl.init(k),list);
 			}
 		}
 		
