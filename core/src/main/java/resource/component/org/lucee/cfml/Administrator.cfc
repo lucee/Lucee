@@ -823,7 +823,7 @@ component	{
 
 	//@getInfo()
  
-	public query function getInfo(){
+	public struct function getInfo(){
 		admin
 			action="getinfo"
 			type="#variables.type#"
@@ -834,7 +834,7 @@ component	{
 
 
 	//@surveillance()
-	public query function surveillance(){
+	public struct function surveillance(){
 		admin
 			action="surveillance"
 			type="#variables.type#"
@@ -863,7 +863,7 @@ component	{
 	}
 
 	//getORMSetting 
-	public query function getORMSetting(){
+	public struct function getORMSetting(){
 		admin
 			action="getORMSetting"
 			type="#variables.type#"
@@ -997,7 +997,7 @@ component	{
 
 	//getCacheConnection 
 
-	public query function getCacheConnection( required string name ){
+	public struct function getCacheConnection( required string name ){
 		admin
 			action="getCacheConnection"
 			type="#variables.type#"
@@ -1239,7 +1239,7 @@ component	{
 
 	//getBundle
 	
-	public strct function getBundle( required string name ){
+	public struct function getBundle( required string name ){
 		admin
 			action="getBundle"
 			type="#variables.type#"
@@ -1252,7 +1252,7 @@ component	{
 	//getExecutionLog
 
 
-	public strct function getExecutionLog(){
+	public struct function getExecutionLog(){
 		admin
 			action="getExecutionLog"
 			type="#variables.type#"
@@ -1263,7 +1263,7 @@ component	{
 
 	//gateway
 	
-	public strct function gateway( required string id, required string gatewayAction ){
+	public struct function gateway( required string id, required string gatewayAction ){
 		admin
 			action="gateway"
 			type="#variables.type#"
@@ -1314,7 +1314,7 @@ component	{
 
 	//getSSLCertificate
 	
-	public struct function getSSLCertificate( required string host ){
+	public query function getSSLCertificate( required string host ){
 		admin
 			action="getSSLCertificate"
 			type="#variables.type#"
@@ -1441,7 +1441,7 @@ component	{
 
 	//getLocalExtension
 
-	public query function getLocalExtension( required string id  ){
+	public struct function getLocalExtension( required string id  ){
 		admin
 			action="getLocalExtension"
 			type="#variables.type#"
@@ -1773,18 +1773,6 @@ component	{
 			proxypassword="#arguments.proxypassword#";
 	}	
 
-	//updateCharset
-
-	public query function updateCharset( string resourceCharset, string templateCharset, string webCharset ){
-		admin
-			action="updateCharset"
-			type="#variables.type#"
-			password="#variables.password#"
-			resourceCharset="#arguments.resourceCharset#"
-			templateCharset="#arguments.templateCharset#"
-			webCharset="#arguments.webCharset#";
-	}
-
 	//updatecomponent
 
 	public query function updatecomponent(){
@@ -1860,20 +1848,6 @@ component	{
 			allowURLRequestTimeout="#arguments.allowURLRequestTimeout#"
 			requestTimeout="#arguments.requestTimeout#";
 	}
-
-	//updateOutputSetting
-
-	public void function updateOutputSetting( required string cfmlWriter, required boolean suppressContent, required boolean allowCompression, required string contentLength, required string bufferOutput ){
-		admin
-			action="updateOutputSetting"
-			type="#variables.type#"
-			password="#variables.password#"
-			cfmlWriter="#arguments.cfmlWriter#"
-			suppressContent="#arguments.suppressContent#"
-			allowCompression="#arguments.allowCompression#"
-			contentLength="#arguments.contentLength#"
-			bufferOutput="#arguments.bufferOutput#";
-	}	
 
 	//updateQueueSetting
 

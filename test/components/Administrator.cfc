@@ -351,7 +351,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 				it(title="checking createArchiveFromMapping ()", body=function( currentSpec ) {
 					var tmpStrt = {};
-					tmpStrt.virtual = "/lucee-server1";
+					tmpStrt.virtual = "/lucee-server";
 					tmpStrt.addCFMLFile = false;
 					tmpStrt.addNonCFMLFile = false;
 					tmpStrt.doDownload = false;
@@ -359,7 +359,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					var getMappings = admin.getMappings();
 					var result = QueryExecute(
 						sql="SELECT Archive
-						 FROM getMappings where Virtual = '/lucee-server1' and Archive != ''",
+						 FROM getMappings where Virtual = '/lucee-server' and Archive != ''",
 						options=
 						{dbtype="query"}
 					);
@@ -393,10 +393,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 
 				it(title="checking getLocalExtension()", body=function( currentSpec ) {
-					var id = "87FE44E5-179C-43A3-A87B3D38BEF4652E";
-					var localExtension = admin.getLocalExtension(id);
+					var localExtensions = admin.getLocalExtensions();
+					var localExtension = admin.getLocalExtension(localExtensions.id);
 					assertEquals(isstruct(localExtension) ,true);
-					assertEquals((localExtension.description EQ 'Local EHCache.'), true)
+					assertEquals(listSort(structKeyList(localExtension),'textnocase'),'applications,archives,bundles,categories,components,config,contexts,description,eventGateways,flds,functions,id,image,name,plugins,releaseType,startBundles,tags,tlds,trial,version,webcontexts');
 				});
 
 				xit(title="checking RemoveExtensions()", body=function( currentSpec ) {
@@ -455,8 +455,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				it(title="checking getinfo()", body=function( currentSpec ) {
 					var info = admin.getinfo();
 					assertEquals(isstruct(info) ,true);
-					var strctKeylist = structKeyList(info);
-					assertEquals(FindNocase('config',strctKeylist) GT 0, true);
+					assertEquals(listSort(structKeyList(info),'textnocase'),'config,configServerDir,configWebDir,javaAgentSupported,servlets');
 				});
 			});
 
@@ -608,9 +607,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 				
 				it(title="checking getBundle()", body=function( currentSpec ) {
-					var symbolicName = 'c3mho1ly7lvh'
-					var bundle = admin.getBundle( symbolicName );
-					assertEquals(isstruct(bundle) ,true);
+					var bundles = admin.getBundles();
+					var bundle = admin.getBundle( bundles.symbolicName );
+					assertEquals(isStruct(bundle) ,true);
+					assertEquals(listSort(structKeyList(bundle),'textnocase'), 'description,fragment,headers,id,path,state,symbolicName,title,usedBy,version');
 				});
 			});
 
@@ -654,7 +654,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 			describe( title="test getMapping functions", body=function() {
 				it(title="checking getMapping()", body=function( currentSpec ) {
-					var virtual = "/lucee-server1";
+					var virtual = "/lucee-server";
 					var mapping = admin.getMapping(virtual);
 					assertEquals(isstruct(mapping) ,true);
 					var strctKeylist = structKeyList(mapping);
@@ -723,7 +723,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 
 				it(title="checking getremoteclient", body=function( currentSpec ) {
-					var remoteClient = admin.getRemoteClient('http://www.xmlme.com/WSShakespeare.asmx/?WSDL');
+					var remoteClients = admin.getRemoteClients();
+					var remoteClient = admin.getRemoteClient(remoteClients.url);
 					assertEquals(isstruct(remoteClient) ,true);
 					assertEquals(listSort(structKeyList(remoteClient),'textnocase'),'adminPassword,label,proxyPassword,proxyPort,proxyServer,proxyUsername,securityKey,ServerPassword,ServerUsername,type,url,usage');
 				});
