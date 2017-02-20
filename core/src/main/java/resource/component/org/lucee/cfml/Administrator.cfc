@@ -1914,7 +1914,6 @@
 			throw http.fileContent;
 		}
 	}
-}
 </cfscript>
 <cffunction name="downloadFile" access="private" returntype="void">
 	<cfargument name="target" type="string" required="true">
