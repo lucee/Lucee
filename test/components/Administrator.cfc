@@ -294,7 +294,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				it(title="checking updateMailSettings()", body=function( currentSpec ) {
 					var tmpStrt = {};
 					tmpStrt.spoolEnable = false;
-					tmpStrt.spoolInterval = 05;
 					tmpStrt.timeout = 20;
 					tmpStrt.defaultEncoding = "utf-8";
 					admin.updateMailSetting(argumentCollection = #tmpStrt#);
@@ -342,7 +341,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				it(title="checking compileMapping()", body=function( currentSpec ) {
 					try{
 						var hasError = false;
-						admin.compileMapping('/lucee-server');
+						admin.compileMapping('/lucee-server', true);
 					} catch ( any e) {
 						var hasError = true;
 					}
@@ -538,8 +537,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});
 
 			describe( title="test surveillance functions", body=function() {
-				it(title="checking surveillance()", body=function( currentSpec ) {
-					var surveillance = admin.surveillance();
+				it(title="checking getSurveillance()", body=function( currentSpec ) {
+					var surveillance = admin.getSurveillance();
 					assertEquals(isstruct(surveillance) ,true);
 				});
 			});

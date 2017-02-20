@@ -1,6 +1,5 @@
-
-
-component	{
+<cfcomponent>
+<cfscript>
 	
 	/**
 	** @hint constructor of the component
@@ -182,26 +181,17 @@ component	{
 	*/
 	public void function updateOutputSetting( required string cfmlWriter, boolean suppressContent, boolean allowCompression, boolean bufferOutput ){
 		admin
-			action="securityManager"
+			action="updateOutputSetting"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.hasAccess"
-			secType="setting"
-			secValue="yes";
-		if(local.hasAccess){
-			admin
-				action="updateOutputSetting"
-				type="#variables.type#"
-				password="#variables.password#"
 
-				cfmlWriter="#arguments.cfmlWriter#"
-				suppressContent="#isDefined('arguments.suppressContent') and arguments.suppressContent#"
-				allowCompression="#isDefined('arguments.allowCompression') and arguments.allowCompression#"
-				bufferOutput="#isDefined('arguments.bufferOutput') and arguments.bufferOutput#"
-				contentLength=""
+			cfmlWriter="#arguments.cfmlWriter#"
+			suppressContent="#isDefined('arguments.suppressContent') and arguments.suppressContent#"
+			allowCompression="#isDefined('arguments.allowCompression') and arguments.allowCompression#"
+			bufferOutput="#isDefined('arguments.bufferOutput') and arguments.bufferOutput#"
+			contentLength=""
 
-				remoteClients="#variables.remoteClients#";
-		}
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
@@ -209,27 +199,18 @@ component	{
 	*/
 	public void function resetOutputSetting() {
 		admin
-			action="securityManager"
+			action="updateOutputSetting"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.hasAccess"
-			secType="setting"
-			secValue="yes";
-		if(local.hasAccess){
-			admin
-				action="updateOutputSetting"
-				type="#variables.type#"
-				password="#variables.password#"
 
-				cfmlWriter=""
-				suppressContent=""
-				showVersion=""
-				allowCompression=""
-				bufferOutput=""
-				contentLength=""
+			cfmlWriter=""
+			suppressContent=""
+			showVersion=""
+			allowCompression=""
+			bufferOutput=""
+			contentLength=""
 
-				remoteClients="#variables.remoteClients#";
-		}
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
@@ -303,8 +284,8 @@ component	{
 	}
 
 	/**
-	* @hint updates the Preserve single quotes setting from datasource page
-	* @psq an argument for psq enabled or not
+	* @hint update general datasource settings
+	* @psq if set to true, lucee preserves all single quotes within a query tag and escapes them
 	*/
 	public void function updateDatasourceSetting( required boolean psq ){
 		admin
@@ -518,31 +499,21 @@ component	{
 	*/
 	public void function updateMailServer( required string host, required string port, required string username, required string password, required boolean tls, required boolean ssl, required string life, required string idle ){
 		admin
-			action="securityManager"
+			action="updateMailServer"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.hasAccess"
-			secType="mail"
-			secValue="yes";
-		if(local.hasAccess){
-			var ms = getMailservers();
-			admin
-				action="updateMailServer"
-				type="#variables.type#"
-				password="#variables.password#"
 
-				hostname="#arguments.host#"
-				dbusername="#arguments.username#"
-				dbpassword="#toPassword(arguments.host,arguments.password, ms)#"
-				life="#arguments.life#"
-				idle="#arguments.idle#"
+			hostname="#arguments.host#"
+			dbusername="#arguments.username#"
+			dbpassword="#arguments.password#"
+			life="#arguments.life#"
+			idle="#arguments.idle#"
 
-				port="#arguments.port#"
-				id="new"
-				tls="#arguments.tls#"
-				ssl="#arguments.ssl#"
-				remoteClients="#variables.remoteClients#";
-		}
+			port="#arguments.port#"
+			id="new"
+			tls="#arguments.tls#"
+			ssl="#arguments.ssl#"
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
@@ -550,24 +521,15 @@ component	{
 	* @host hostname for the mail server to be removed.
 	* @username username of the mail server to be removed.
 	*/
-	public void function removeMailServer(){
+	public void function removeMailServer( required string host, required string username ){
 		admin
-			action="securityManager"
+			action="removeMailServer"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.hasAccess"
-			secType="mail"
-			secValue="yes";
-		if(local.hasAccess){
-			admin
-				action="removeMailServer"
-				type="#variables.type#"
-				password="#variables.password#"
 
-				hostname="#arguments.host#"
-				username="#arguments.username#"
-				remoteClients="#variables.remoteClients#";
-		}
+			hostname="#arguments.host#"
+			username="#arguments.username#"
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
@@ -588,14 +550,14 @@ component	{
 	* @timeout Time in seconds that the Task Manager waits to send a single mail, when the time is reached the Task Manager stops the thread and the mail gets moved to unsent folder, where the Task Manager will pick it up later to try to send it again.
 	* @defaultEncoding Default encoding used for mail servers
 	*/
-	public void function updateMailSetting(){
+	public void function updateMailSetting( required boolean spoolEnable, required numeric timeOut, required string defaultEncoding ){
 		admin
 			action="updateMailSetting"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			spoolEnable="#arguments.spoolenable#"
-			timeout="#arguments.timeout#"
+			spoolEnable="#arguments.spoolEnable#"
+			timeout="#arguments.timeOut#"
 			defaultEncoding="#arguments.defaultEncoding#"
 			remoteClients="#variables.remoteClients#";
 	}
@@ -636,28 +598,19 @@ component	{
 	* @inspect type of inspection for the mapping(never/once/always/"").
 	* @toplevel 
 	*/
-	public void function updateMapping(required string virtual, required string physical, required string archive, required string primary, required string inspect, required boolean toplevel) {
+	public void function updateMapping(required string virtual, string physical="", string archive="", string primary="", string inspect="", boolean toplevel=true) {
 		admin
-			action="securityManager"
+			action="updateMapping"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.hasAccess"
-			secType="mapping"
-			secValue="yes";
-		if(local.hasAccess){
-			admin
-				action="updateMapping"
-				type="#variables.type#"
-				password="#variables.password#"
 
-				virtual="#arguments.virtual#"
-				physical="#arguments.physical#"
-				archive="#arguments.archive#"
-				primary="#arguments.primary#"
-				inspect="#arguments.inspect#"
-				toplevel="yes"
-				remoteClients="#variables.remoteClients#";
-		}
+			virtual="#arguments.virtual#"
+			physical="#arguments.physical#"
+			archive="#arguments.archive#"
+			primary="#arguments.primary#"
+			inspect="#arguments.inspect#"
+			toplevel="yes"
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
@@ -666,45 +619,27 @@ component	{
 	*/
 	public void function removeMapping(required string virtual){
 		admin
-			action="securityManager"
+			action="removeMapping"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.hasAccess"
-			secType="mapping"
-			secValue="yes";
-		if(local.hasAccess){
-			admin
-				action="removeMapping"
-				type="#variables.type#"
-				password="#variables.password#"
 
-				virtual="#arguments.virtual#"
-				remoteClients="#variables.remoteClients#";
-		}
+			virtual="#arguments.virtual#"
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
 	* @hint compiles the mapping for any errors
 	* @virtual virtual name for the mapping to be compiled.
 	*/
-	public void function compileMapping(required string virtual){
+	public void function compileMapping(required string virtual, boolean stopOnError=true){
 		admin
-			action="securityManager"
+			action="compileMapping"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.hasAccess"
-			secType="mapping"
-			secValue="yes";
-		if(local.hasAccess){
-			admin
-				action="compileMapping"
-				type="#variables.type#"
-				password="#variables.password#"
 
-				virtual="#arguments.virtual#"
-				stoponerror="yes"
-				remoteClients="#variables.remoteClients#";
-		}
+			virtual="#arguments.virtual#"
+			stoponerror="#stopOnError#"
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
@@ -714,7 +649,7 @@ component	{
 	* @addNonCFMLFile Add all Non CFML Source Templates as well (.js,.css,.gif,.png ...)
 	* @doDownload Whether need to download the archive or not.
 	*/
-	public void function createArchiveFromMapping(required string virtual, required boolean addCFMLFile, required boolean addNonCFMLFile, required boolean doDownload){
+	public void function createArchiveFromMapping(required string virtual, boolean addCFMLFile=true, boolean addNonCFMLFile=true, required string target){
 		var ext="lar";
 		var filename=arguments.virtual;
 		filename=mid(filename,2,len(filename));
@@ -737,12 +672,15 @@ component	{
 			type="#variables.type#"
 			password="#variables.password#"
 
-			file="#target#"
+			file="#arguments.target#"
 			virtual="#arguments.virtual#"
 			addCFMLFiles="#arguments.addCFMLFile#"
 			addNonCFMLFiles="#arguments.addNonCFMLFile#"
-			append="#not arguments.doDownload#"
+			append="true"
 			remoteClients="#variables.remoteClients#";
+
+		// downloadFile(arguments.target);
+
 	}
 
 	/**
@@ -822,7 +760,6 @@ component	{
 	}
 
 	//@getInfo()
- 
 	public struct function getInfo(){
 		admin
 			action="getinfo"
@@ -832,9 +769,8 @@ component	{
 			return rtn;
 	}
 
-
 	//@surveillance()
-	public struct function surveillance(){
+	public struct function getSurveillance(){
 		admin
 			action="surveillance"
 			type="#variables.type#"
@@ -843,9 +779,7 @@ component	{
 			return rtn;
 	}
 
-	
 	// is MonitorEnabled
-
 	public boolean function isMonitorEnabled(){
 		admin
 			action="isMonitorEnabled"
@@ -862,7 +796,7 @@ component	{
 			password="#variables.password#"
 	}
 
-	//getORMSetting 
+	//getORMSetting
 	public struct function getORMSetting(){
 		admin
 			action="getORMSetting"
@@ -872,8 +806,7 @@ component	{
 			return rtn;
 	}
 
-	//getORMEngine 
-
+	//getORMEngine
 	public struct function getORMEngine(){
 		admin
 			action="getORMEngine"
@@ -884,7 +817,6 @@ component	{
 	}
 
 	//getApplicationListener
-
 	public struct function getApplicationListener(){
 		admin
 			action="getApplicationListener"
@@ -895,7 +827,6 @@ component	{
 	}
 
 	//getProxy
-
 	public struct function getProxy(){
 		admin
 			action="getProxy"
@@ -1054,7 +985,6 @@ component	{
 	}
 
 	//getRemoteClientUsage
-
 	public query function getRemoteClientUsage(){
 		admin
 			action="getRemoteClientUsage"
@@ -1065,7 +995,6 @@ component	{
 	}
 
 	//verifyremoteclient
-
 	public struct function verifyremoteclient( required string label, required string url, required string adminPassword, required string securityKey ){
 		var tmpStruct = {};
 		try{
@@ -1946,18 +1875,6 @@ component	{
 		return arguments[Key];
 	}
 
-	private function toPassword(host, pw, ms){
-		variables.stars = "*********";
-		var i=1;
-		if(arguments.pw EQ variables.stars){
-			for(i=arguments.ms.recordcount;i>0;i--){
-				if(arguments.host EQ arguments.ms.hostname[i])
-					return arguments.ms.password[i];
-			}
-		}
-		return arguments.pw;
-	}
-
 	private function downloadFull(required string provider,required string id , string version){
 		return _download("full",provider,id,version);
 	}
@@ -1998,3 +1915,11 @@ component	{
 		}
 	}
 }
+</cfscript>
+<cffunction name="downloadFile" access="private" returntype="void">
+	<cfargument name="target" type="string" required="true">
+
+	<cfset filename = listLast(listLast(arguments.target, "/"), "\")>
+	<CFHEADER NAME="Content-Disposition" VALUE="inline; filename=#filename#"><cfcontent file="#arguments.target#" deletefile="yes" type="application/unknow">
+</cffunction>
+</cfcomponent>
