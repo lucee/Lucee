@@ -207,15 +207,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					tmpStrt.clob = false;
 					tmpStrt.validate = false;
 					tmpStrt.storage = false;
-					tmpStrt.allowed_select = false;
-					tmpStrt.allowed_insert = false;
-					tmpStrt.allowed_update = false;
-					tmpStrt.allowed_delete = false;
-					tmpStrt.allowed_alter = false;
-					tmpStrt.allowed_drop = false;
-					tmpStrt.allowed_revoke = false;
-					tmpStrt.allowed_create = false;
-					tmpStrt.allowed_grant = false;
+					tmpStrt.allowedSelect = false;
+					tmpStrt.allowedInsert = false;
+					tmpStrt.allowedUpdate = false;
+					tmpStrt.allowedDelete = false;
+					tmpStrt.allowedAlter = false;
+					tmpStrt.allowedDrop = false;
+					tmpStrt.allowedRevoke = false;
+					tmpStrt.allowedCreate = false;
+					tmpStrt.allowedGrant = false;
 					tmpStrt.verify = false;
 					admin.updateDatasource(argumentCollection = #tmpStrt#);
 					var getDatasource = admin.getDatasources();
@@ -243,11 +243,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 
 				it(title="checking verifyDatasource()", body=function( currentSpec ) {
-					tmpStrt.name = "TestDSN1";
-					tmpStrt.dbusername = "sa";
-					tmpStrt.dbpassword = "sqlPwd@12##";
+					var getDatasource = admin.getDatasources();
+					assertEquals(IsQuery(getDatasource), true);
+					tmpStrt.name = getDatasource.name;
+					tmpStrt.dbusername = getDatasource.username;
+					tmpStrt.dbpassword = getDatasource.password;
 					var verfiyDataSource = admin.verifyDatasource(argumentCollection = #tmpStrt#);
 					assertEquals(isstruct(verfiyDataSource) ,true);
+					assertEquals(verfiyDataSource.label,"ok");
 				});
 		
 			});
@@ -483,6 +486,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					assertEquals(isstruct(appListner) ,true);
 					assertEquals(listSort(structKeyList(appListner),'textnocase'),'mode,type');
 					
+				});
+
+				it(title="checking updateApplicationListener()", body=function( currentSpec ) {
+					var tmpStrt = {};
+					tmpStrt.listenerType = "mixed";
+					tmpStrt.listenerMode = "root";
+					admin.updateApplicationListener(argumentCollection = #tmpStrt#);
+					var appListner = admin.getApplicationListener();
+					assertEquals(isstruct(appListner) ,true);
+					assertEquals(appListner.mode EQ 'root' ,true);
 				});
 			});
 
@@ -785,6 +798,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					var getCacheConnection = admin.getCacheConnection('testCache');
 					assertEquals(isstruct(getCacheConnection) ,true);
 					assertEquals(getCacheConnection.default EQ 'function' ,true);
+				});
+
+				it(title="checking verifyCacheConnection()", body=function( currentSpec ) {
+					var getCacheConnections = admin.getCacheConnections();
+					assertEquals(isquery(getCacheConnections) ,true);
+					var verifyCache = admin.verifyCacheConnection(getCacheConnections.name);
+					assertEquals(isstruct(verifyCache) ,true);
+					assertEquals(verifyCache.label,"ok");
 				});
 			});
 

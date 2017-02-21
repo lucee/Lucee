@@ -111,37 +111,36 @@
 	*/
 	public void function updateCharset(string resourceCharset, string templateCharset,string webCharset){
 		var charset="";
-		
+
 		// check resourceCharset
 		if(isNull(arguments.resourceCharset) || isEmpty(arguments.resourceCharset)) {
 			charset=getCharset();
 			arguments.resourceCharset=charset.resourceCharset;
 		}
-		
+
 		// check templateCharset
 		if(isNull(arguments.templateCharset) || isEmpty(arguments.templateCharset)) {
 			if(isSimpleValue(charset))charset=getCharset();
 			arguments.templateCharset=charset.templateCharset;
 		}
-		
+
 		// check webCharset
 		if(isNull(arguments.webCharset) || isEmpty(arguments.webCharset)) {
 			if(isSimpleValue(charset))charset=getCharset();
 			arguments.webCharset=charset.webCharset;
 		}
-			
-		admin 
+
+		admin
 			action="updateCharset"
 			type="#variables.type#"
 			password="#variables.password#"
-			
+
 			templateCharset="#arguments.templateCharset#"
 			webCharset="#arguments.webCharset#"
 			resourceCharset="#arguments.resourceCharset#"
 			remoteClients="#variables.remoteClients#";
-			
 	}
-	
+
 	/**
 	* @hint remove web specific charset settings and set back to server context settings, this function only works with type "web" and is ignored with type "server"
 	*/
@@ -339,25 +338,25 @@
 	* @blob Enable binary large object retrieval (BLOB)
 	* @clob Enable long text retrieval (CLOB)
 	* @validate Validate the connection before use (only works with JDBC 4.0 Drivers)
-	* @allowed_select allow database permission for select
-	* @allowed_insert allow database permission for insert
-	* @allowed_update allow database permission for update
-	* @allowed_delete allow database permission for delete
-	* @allowed_alter allow database permission for alter
-	* @allowed_drop allow database permission for drop
-	* @allowed_revoke allow database permission for revoke
-	* @allowed_create allow database permission for create
-	* @allowed_grant allow database permission for grant
+	* @allowedSelect allow database permission for select
+	* @allowedInsert allow database permission for insert
+	* @allowedUpdate allow database permission for update
+	* @allowedDelete allow database permission for delete
+	* @allowedAlter allow database permission for alter
+	* @allowedDrop allow database permission for drop
+	* @allowedRevoke allow database permission for revoke
+	* @allowedCreate allow database permission for create
+	* @allowedGrant allow database permission for grant
 	* @storage Allow to use this datasource as client/session storage.
-	* @custom_useUnicode Should the driver use Unicode character encodings when handling strings?
-	* @custom_characterEncoding Should only be used when the driver can't determine the character set mapping, or you are trying to 'force' the driver to use a character set that MySQL either doesn't natively support (such as UTF-8)If it is set to true, what character encoding should the driver use when dealing with strings?
-	* @custom_useOldAliasMetadataBehavior Should the driver use the legacy behavior for "AS" clauses on columns and tables, and only return aliases (if any) rather than the original column/table name? In 5.0.x, the default value was true.
-	* @custom_allowMultiQueries Allow the use of ";" to delimit multiple queries during one statement
-	* @custom_zeroDateTimeBehavior What should happen when the driver encounters DATETIME values that are composed entirely of zeroes (used by MySQL to represent invalid dates)? Valid values are "exception", "round" and "convertToNull"
-	* @custom_autoReconnect Should the driver try to re-establish stale and/or dead connections?
-	* @custom_jdbcCompliantTruncation If set to false then values for table fields are automatically truncated so that they fit into the field.
-	* @custom_tinyInt1isBit if set to "true" (default) tinyInt(1) is converted to a bit value otherwise as integer.
-	* @custom_useLegacyDatetimeCode Use code for DATE/TIME/DATETIME/TIMESTAMP handling in result sets and statements
+	* @customUseUnicode Should the driver use Unicode character encodings when handling strings?
+	* @customCharacterEncoding Should only be used when the driver can't determine the character set mapping, or you are trying to 'force' the driver to use a character set that MySQL either doesn't natively support (such as UTF-8)If it is set to true, what character encoding should the driver use when dealing with strings?
+	* @customUseOldAliasMetadataBehavior Should the driver use the legacy behavior for "AS" clauses on columns and tables, and only return aliases (if any) rather than the original column/table name? In 5.0.x, the default value was true.
+	* @customAllowMultiQueries Allow the use of ";" to delimit multiple queries during one statement
+	* @customZeroDateTimeBehavior What should happen when the driver encounters DATETIME values that are composed entirely of zeroes (used by MySQL to represent invalid dates)? Valid values are "exception", "round" and "convertToNull"
+	* @customAutoReconnect Should the driver try to re-establish stale and/or dead connections?
+	* @customJdbcCompliantTruncation If set to false then values for table fields are automatically truncated so that they fit into the field.
+	* @customTinyInt1isBit if set to "true" (default) tinyInt(1) is converted to a bit value otherwise as integer.
+	* @customUseLegacyDatetimeCode Use code for DATE/TIME/DATETIME/TIMESTAMP handling in result sets and statements
 	* @verify whether connection needs to be verified
 	*/
 	public void function updateDatasource(
@@ -381,25 +380,25 @@
 		boolean storage=false,
 		boolean verify=false,
 
-		boolean allowed_select=false,
-		boolean allowed_insert=false,
-		boolean allowed_update=false,
-		boolean allowed_delete=false,
-		boolean allowed_alter=false,
-		boolean allowed_drop=false,
-		boolean allowed_revoke=false,
-		boolean allowed_create=false,
-		boolean allowed_grant=false,
+		boolean allowedSelect=false,
+		boolean allowedInsert=false,
+		boolean allowedUpdate=false,
+		boolean allowedDelete=false,
+		boolean allowedAlter=false,
+		boolean allowedDrop=false,
+		boolean allowedRevoke=false,
+		boolean allowedCreate=false,
+		boolean allowedGrant=false,
 
-		boolean custom_useUnicode=false,
-		string custom_characterEncoding=false,
-		boolean custom_useOldAliasMetadataBehavior=false,
-		boolean custom_allowMultiQueries=false,
-		string custom_zeroDateTimeBehavior=false,
-		boolean custom_autoReconnect=false,
-		boolean custom_jdbcCompliantTruncation=false,
-		boolean custom_tinyInt1isBit=false,
-		boolean custom_useLegacyDatetimeCode=false
+		boolean customUseUnicode=false,
+		string customCharacterEncoding=false,
+		boolean customUseOldAliasMetadataBehavior=false,
+		boolean customAllowMultiQueries=false,
+		string customZeroDateTimeBehavior=false,
+		boolean customAutoReconnect=false,
+		boolean customJdbcCompliantTruncation=false,
+		boolean customTinyInt1isBit=false,
+		boolean customUseLegacyDatetimeCode=false
 	){
 
 		var driverNames=structnew("linked");
@@ -410,9 +409,9 @@
 		var driver=createObject("component", drivernames[ arguments.type ]);
 		var custom=structNew();
 		loop collection="#arguments#" item="key"{
-			if(findNoCase("custom_",key) EQ 1){
+			if(findNoCase("custom",key) EQ 1){
 				l=len(key);
-				custom[mid(key,8,l-8+1)]=arguments[key];
+				custom[mid(key,7,l-7+1)]=arguments[key];
 			}
 		}
 
@@ -445,15 +444,15 @@
 			validate="#getArguments('validate',false)#"
 			storage="#getArguments('storage',false)#"
 
-			allowed_select="#getArguments('allowed_select',false)#"
-			allowed_insert="#getArguments('allowed_insert',false)#"
-			allowed_update="#getArguments('allowed_update',false)#"
-			allowed_delete="#getArguments('allowed_delete',false)#"
-			allowed_alter="#getArguments('allowed_alter',false)#"
-			allowed_drop="#getArguments('allowed_drop',false)#"
-			allowed_revoke="#getArguments('allowed_revoke',false)#"
-			allowed_create="#getArguments('allowed_create',false)#"
-			allowed_grant="#getArguments('allowed_grant',false)#"
+			allowed_select="#getArguments('allowedSelect',false)#"
+			allowed_insert="#getArguments('allowedInsert',false)#"
+			allowed_update="#getArguments('allowedUpdate',false)#"
+			allowed_delete="#getArguments('allowedDelete',false)#"
+			allowed_alter="#getArguments('allowedAlter',false)#"
+			allowed_drop="#getArguments('allowedDrop',false)#"
+			allowed_revoke="#getArguments('allowedRevoke',false)#"
+			allowed_create="#getArguments('allowedCreate',false)#"
+			allowed_grant="#getArguments('allowedGrant',false)#"
 			verify="#arguments.verify#"
 			custom="#custom#"
 			dbdriver="#arguments.type#"
@@ -835,9 +834,8 @@
 			returnVariable="local.rtn";
 			return rtn;
 	}
-	
-	//getComponent
 
+	//getComponent
 	public Struct function getComponent(){
 		admin
 			action="getComponent"
@@ -847,8 +845,19 @@
 			return rtn;
 	}
 
-	//getScope
+	/**
+	* @hint returns the list of component mappings
+	*/
+	public query function getComponentMappings(){
+		admin
+			action="getComponentMappings"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.mappings";
+		return local.mappings;
+	}
 
+	//getScope
 	public struct function getScope(){
 		admin
 			action="getScope"
@@ -1209,7 +1218,6 @@
 	
 
 	//getDatasourceDriverList
-
 	public query function getDatasourceDriverList(){
 		admin
 			action="getDatasourceDriverList"
@@ -1220,7 +1228,6 @@
 	}
 
 	//getDebuggingList
-	
 	public query function getDebuggingList(){
 		admin
 			action="getDebuggingList"
@@ -1231,7 +1238,6 @@
 	}
 
 	//getDebugSetting
-
 	public struct function getDebugSetting(){
 		admin
 			action="getDebugSetting"
@@ -1242,7 +1248,6 @@
 	}
 
 	//getSSLCertificate
-	
 	public query function getSSLCertificate( required string host ){
 		admin
 			action="getSSLCertificate"
@@ -1275,7 +1280,6 @@
 			return rtn;
 	}
 
-	
 	public struct function updatePlugin( required string source ){
 		admin
 			action="updatePlugin"
@@ -1292,7 +1296,6 @@
 	}
 
 	//getContextDirectory
-	
 	public query function getContextDirectory(){
 		admin
 			action="getContextDirectory"
@@ -1303,7 +1306,6 @@
 	}
 
 	//updateContext
-
 	public query function updateContext( required string source, required string destination ){
 		admin
 			action="updateContext"
@@ -1314,7 +1316,6 @@
 	}
 
 	//removeContext
-
 	public query function removeContext( required string destination ){
 		admin
 			action="removeContext"
@@ -1324,52 +1325,46 @@
 	}
 
 	//getJars
-
 	public query function getJars(){
 		admin
 			action="getJars"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
-			return rtn;
-			
+		return rtn;
 	}
 
 	//getFlds
-
 	public query function getFlds(){
 		admin
 			action="getFlds"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
 	}
 
 	//getTlds
-
 	public query function getTlds(){
 		admin
 			action="getTlds"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
 	}
 
 	//getRHServerExtensions
-
 	public query function getRHServerExtensions(){
 		admin
 			action="getRHServerExtensions"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
 	}
 
 	//getLocalExtension
-
 	public struct function getLocalExtension( required string id  ){
 		admin
 			action="getLocalExtension"
@@ -1377,30 +1372,28 @@
 			password="#variables.password#"
 			id="#arguments.id#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
 	}
 
 	//getLocalExtensions
-
 	public query function getLocalExtensions(){
 		admin
 			action="getLocalExtensions"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
 	}
 
 
 	//getTaskSetting
-
 	public struct function getTaskSetting(){
 		admin
 			action="getTaskSetting"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
 	}
 
 	public struct function getMapping( required string virtual ){
@@ -1410,33 +1403,42 @@
 			password="#variables.password#"
 			virtual = "#arguments.virtual#"
 			returnVariable="local.providers";
-			return providers;
+		return providers;
 	}
 
 	//getCustomTagMappings
-
 	public query function getCustomTagMappings(){
 		admin
 			action="getCustomTagMappings"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.providers";
-			return providers;
+		return providers;
 	}
 
 	//getCfxTags
-
 	public query function getCfxTags(){
 		admin
 			action="getCfxTags"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.providers";
-			return providers;
+		return providers;
+	}
+
+	/**
+	** @hint returns the debugging settings
+	*/
+	public struct function getDebug(){
+		admin
+			action="getDebug"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.debug";
+		return local.debug;
 	}
 
 	//getCPPCfxTags
-
 	public query function getCPPCfxTags(){
 		admin
 			action="getCPPCfxTags"
@@ -1447,7 +1449,6 @@
 	}
 
 	//getJavaCfxTags
-
 	public query function getJavaCfxTags(){
 		admin
 			action="getJavaCfxTags"
@@ -1458,7 +1459,6 @@
 	}
 
 	//getDebugEntry
-
 	public query function getDebugEntry(){
 		admin
 			action="getDebugEntry"
@@ -1469,7 +1469,6 @@
 	}
 
 	//getError
-
 	public struct function getError(){
 		admin
 			action="getError"
@@ -1502,7 +1501,7 @@
 
 	//verifyCacheConnection
 
-	public void function verifyCacheConnection( required string name ){
+	public struct function verifyCacheConnection( required string name ){
 		var tmpStruct = {};
 		try{
 			admin
@@ -1510,6 +1509,7 @@
 				type="#variables.type#"
 				password="#variables.password#"
 				name="#arguments.name#";
+				tmpStruct.label = "Ok";
 		} catch ( any e ){
 			tmpStruct.label = "Error";
 			tmpStruct.message = e.message;
@@ -1677,8 +1677,7 @@
 			listenerMode="#arguments.listenerMode#";
 	}
 
-	//updateCachedWithin->
-	
+	//updateCachedWithin
 	public void function updateCachedWithin( required string cachedWithinType, required string cachedWithin ){
 		admin
 			action="updateCachedWithin"
@@ -1689,7 +1688,6 @@
 	}
 
 	//updateproxy
-
 	public void function updateproxy( boolean proxyenabled, string proxyserver="testProxy", numeric proxyport=443, string proxyusername="admin", string proxypassword="password" ){
 		admin
 			action="updateproxy"
@@ -1700,74 +1698,172 @@
 			proxyport="#arguments.proxyport#"
 			proxyusername="#arguments.proxyusername#"
 			proxypassword="#arguments.proxypassword#";
-	}	
-
-	//updatecomponent
-
-	public query function updatecomponent(){
-		admin
-			action="updatecomponent"
-			type="#variables.type#"
-			password="#variables.password#"
 	}
 
-	//updatescope
+	/**
+	* @hint updates component mapping settings
+	* @baseComponentTemplateCFML Every component(CFC) that does not explicitly extend another component (attribute "extends") will by default extend this component.
+	* @baseComponentTemplateLucee Every component(lucee) that does not explicitly extend another component (attribute "extends") will by default extend this component.
+	* @componentDumpTemplate If you call a component directly, this template will be invoked to dump the component.
+	* @componentDataMemberDefaultAccess Define the accessor for the data-members of a component. This defines how variables of the "this" scope of a component can be accessed from outside of the component., values available for this argument are [private,public,package,remote]
+	* @triggerDataMember If there is no accessible data member (property, element of the this scope) inside a component, Lucee searches for available matching "getters" or "setters" for the requested property.
+	* @useShadow Defines whether a component has an independent variables scope parallel to the "this" scope (CFML standard) or not.
+	* @componentDefaultImport this package definition is imported into every template.
+	* @componentLocalSearch Search relative to the caller directory for the component
+	* @componentPathCache component path is cached and not resolved again
+	* @componentDeepSearchDesc Search for CFCs in the subdirectories of the "Additional Resources" below.
+	*/
+	public struct function updateComponent(string baseComponentTemplateCFML="", string baseComponentTemplateLucee="", string componentDumpTemplate="", string componentDataMemberDefaultAccess="public", boolean triggerDataMember=false, boolean useShadow=true, string componentDefaultImport="org.lucee.cfml.*", boolean componentLocalSearch=false, boolean componentPathCache=false, boolean componentDeepSearchDesc=false){
+		var res = {};
+		try{
+			admin
+				action="updateComponent"
+				type="#variables.type#"
+				password="#variables.password#"
 
-	public query function updatescope( required string scopeCascadingType, required boolean allowImplicidQueryCall, required boolean mergeFormAndUrl, required boolean sessionManagement, required boolean clientManagement, required boolean domainCookies, required boolean clientCookies, required date clientTimeout, required date sessionTimeout, required string clientStorage, required string sessionStorage, required date applicationTimeout, required string sessionType, required string localMode, required boolean cgiReadonly ){
-		admin
-			action="updatescope"
-			type="#variables.type#"
-			password="#variables.password#"
-			scopeCascadingType="#arguments.scopeCascadingType#"
-			allowImplicidQueryCall="#arguments.allowImplicidQueryCall#"
-			mergeFormAndUrl="#arguments.mergeFormAndUrl#"
-			sessionManagement="#arguments.sessionManagement#"
-			clientManagement="#arguments.clientManagement#"
-			domainCookies="#arguments.domainCookies#"
-			clientCookies="#arguments.clientCookies#"
-			clientTimeout="#arguments.clientTimeout#"
-			sessionTimeout="#arguments.sessionTimeout#"
-			clientStorage="#arguments.clientStorage#"
-			sessionStorage="#arguments.sessionStorage#"
-			applicationTimeout="#arguments.applicationTimeout#"
-			sessionType="#arguments.sessionType#"
-			localMode="#arguments.localMode#"
-			cgiReadonly="#arguments.cgiReadonly#";
+				baseComponentTemplateCFML="#arguments.baseComponentTemplateCFML#"
+				baseComponentTemplateLucee="#arguments.baseComponentTemplateLucee#"
+				componentDumpTemplate="#arguments.componentDumpTemplate#"
+				componentDataMemberDefaultAccess="#arguments.componentDataMemberDefaultAccess#"
+				triggerDataMember="#arguments.triggerDataMember#"
+				useShadow="#arguments.useShadow#"
+				componentDefaultImport="#arguments.componentDefaultImport#"
+				componentLocalSearch="#arguments.componentLocalSearch#"
+				componentPathCache="#arguments.componentPathCache#"
+				deepSearch="#arguments.componentDeepSearchDesc#"
+
+				remoteClients="#variables.remoteClients#";
+
+			res.label = "OK";
+		}catch( any e ){
+			res.label = "Error";
+			res.exception = e;
+		}
+
+		return res;
 	}
 
-	//updateRestSettings
+	/**
+	* @hint updates scope settings
+	* @scopeCascadingType Depending on this setting Lucee scans certain scopes to find a variable called from the CFML source.
+	* @allowImplicidQueryCall When a variable has no scope defined, Lucee will search available result sets (CFML Standard) or not.
+	* @mergeFormAndUrl Defines if the scopes URL and Form will be merged together. If a key already exists in Form and URL Scopes, the value from the Form Scope is used.
+	* @sessionManagement Enable or disable session management.
+	* @clientManagement Enable or disable client management.
+	* @domainCookies Enable or disable domain cookies.
+	* @clientCookies Enable or disable client cookies.
+	* @clientTimeout Sets the amount of time Lucee will keep the client scope alive.
+	* @sessionTimeout Sets the amount of time Lucee will keep the session scope alive.
+	* @applicationTimeout Sets the amount of time Lucee will keep the application scope alive.
+	* @clientStorage Default storage for client, can be either [memory,file,cookie or any datasources or any caches defined]
+	* @sessionStorage Default storage for session, can be either [memory,file,cookie or any datasources or any caches defined]
+	* @sessionType type of session handled by lucee, can be either [application,jee]
+	* @localMode Defines how the local scope of a function is invoked when a variable with no scope definition is used, can be either [classic,modern]
+	* @cgiReadonly Defines whether the CGI Scope is read only or not.
+	*/
+	public struct function updateScope( required string scopeCascadingType, required boolean allowImplicidQueryCall, required boolean mergeFormAndUrl, required boolean sessionManagement, required boolean clientManagement, required boolean domainCookies, required boolean clientCookies, required date clientTimeout, required date sessionTimeout, required string clientStorage, required string sessionStorage, required date applicationTimeout, required string sessionType, required string localMode, required boolean cgiReadonly ){
+		var res = {};
+		try{
+			admin
+				action="updateScope"
+				type="#variables.type#"
+				password="#variables.password#"
+				scopeCascadingType="#arguments.scopeCascadingType#"
+				allowImplicidQueryCall="#arguments.allowImplicidQueryCall#"
+				mergeFormAndUrl="#arguments.mergeFormAndUrl#"
+				sessionManagement="#arguments.sessionManagement#"
+				clientManagement="#arguments.clientManagement#"
+				domainCookies="#arguments.domainCookies#"
+				clientCookies="#arguments.clientCookies#"
+				clientTimeout="#arguments.clientTimeout#"
+				sessionTimeout="#arguments.sessionTimeout#"
+				clientStorage="#arguments.clientStorage#"
+				sessionStorage="#arguments.sessionStorage#"
+				applicationTimeout="#arguments.applicationTimeout#"
+				sessionType="#arguments.sessionType#"
+				localMode="#arguments.localMode#"
+				cgiReadonly="#arguments.cgiReadonly#";
 
-	public void function updateRestSettings(){
-		admin
-			action="updateRestSettings"
-			type="#variables.type#"
-			password="#variables.password#"
+			res.label = "OK";
+		}catch( any e ){
+			res.label = "Error";
+			res.exception = e;
+		}
+
+		return res;
 	}
 
-	//updateRestMapping
+	/**
+	* @hint updates rest mapping settings
+	* @list enable list Services when "/rest/" is called
+	*/
+	public struct function updateRestSettings( boolean list=false ){
+		var res = {};
+		try{
+			admin
+				action="updateRestSettings"
+				type="#variables.type#"
+				password="#variables.password#"
+				list="#arguments.list#"
+				remoteClients="#variables.remoteClients#";
 
-	public void function updateRestMapping( required string virtual, required string physical, required string default ){
-		admin
-			action="updateRestMapping"
-			type="#variables.type#"
-			password="#variables.password#"
-			virtual="#arguments.virtual#"
-			physical="#arguments.physical#"
-			default="#arguments.default#";
+			res.label = "OK";
+		}catch( any e ){
+			res.label = "Error";
+			res.exception = e;
+		}
+
+		return res;
 	}
 
-	//removeRestMapping
+	/**
+	* @hint updates a rest mapping
+	* @virtual virtual name for the rest mapping
+	* @physical physical directory for the rest mapping
+	* @default Whether this mapping is default for rest
+	*/
+	public struct function updateRestMapping( required string virtual, required string physical, boolean default=false ){
+		var res = {};
+		try{
+			admin
+				action="updateRestMapping"
+				type="#variables.type#"
+				password="#variables.password#"
+				virtual="#arguments.virtual#"
+				physical="#arguments.physical#"
+				default="#arguments.default#";
 
-	public void function removeRestMapping( required string virtual ){
-		admin
-			action="removeRestMapping"
-			type="#variables.type#"
-			password="#variables.password#"
-			virtual="#arguments.virtual#";
+			res.label = "OK";
+		}catch( any e ){
+			res.label = "Error";
+			res.exception = e;
+		}
+
+		return res;
+	}
+
+	/**
+	* @hint updates a rest mapping
+	* @virtual virtual name for the rest mapping to be removed
+	*/
+	public struct function removeRestMapping( required string virtual ){
+		var res = {};
+		try{
+			admin
+				action="removeRestMapping"
+				type="#variables.type#"
+				password="#variables.password#"
+				virtual="#arguments.virtual#";
+			res.label = "OK";
+		}catch( any e ){
+			res.label = "Error";
+			res.exception = e;
+		}
+
+		return res;
 	}
 
 	//updateApplicationSetting
-
 	public void function updateApplicationSetting( required date requestTimeout, required string scriptProtect, required boolean allowURLRequestTimeout ){
 		admin
 			action="updateApplicationSetting"
@@ -1779,7 +1875,6 @@
 	}
 
 	//updateQueueSetting
-
 	public void function updateQueueSetting( required numeric max, required numeric timeout, required boolean enable ){
 		admin
 			action="updateQueueSetting"
@@ -1791,7 +1886,6 @@
 	}
 
 	//updateJDBCDriver
-
 	public void function updateJDBCDriver( required string classname, required string label, string bundleName, string bundleVersion ){
 		admin
 			action="updateJDBCDriver"
@@ -1803,17 +1897,16 @@
 			bundleVersion="#arguments.bundleVersion#";
 	}
 
-	//updateCacheDefaultConnection-> doUpdateCacheDefaultConnection();
-
-	public void function updateCacheDefaultConnection( 
-		string object = "", 
-		string template = "", 
-		string query = "", 
-		string resource = "", 
-		string function = "", 
-		string include = "", 
-		string http = "", 
-		string file = "", 
+	//updateCacheDefaultConnection
+	public void function updateCacheDefaultConnection(
+		string object = "",
+		string template = "",
+		string query = "",
+		string resource = "",
+		string function = "",
+		string include = "",
+		string http = "",
+		string file = "",
 		string webservice = ""
 	){
 		admin
@@ -1832,16 +1925,15 @@
 	}
 
 	//updateCacheConnection
-
-	public void function updateCacheConnection( 
-		required string class, 
-		required string name, 
-		struct custom, 
-		string bundleName= "", 
+	public void function updateCacheConnection(
+		required string class,
+		required string name,
+		struct custom,
+		string bundleName= "",
 		string bundleVersion="",
 		string default="",
-		boolean readonly=false, 
-		boolean storage=false 
+		boolean readonly=false,
+		boolean storage=false
 	){
 		admin
 			action="updateCacheConnection"
@@ -1855,9 +1947,8 @@
 			default="#arguments.default#"
 			readonly="#getArguments('readonly', false)#"
 			storage="#getArguments('storage', false)#";
-	}	
+	}
 
-			
 	/* Private functions */
 	private struct function ComponentListPackageAsStruct(string package, cfcNames=structnew("linked")){
 		try{
