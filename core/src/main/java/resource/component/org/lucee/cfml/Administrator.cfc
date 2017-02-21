@@ -1612,10 +1612,26 @@
 		return resetId;
 	}
 
-	//updateLoginSettings
+	/**
+	* @hint returns the Login settings
+	*/
+	public struct function getLoginSettings(){
+		admin
+			action="getLoginSettings"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.loginSettings";
+		return loginSettings;
+	}
 
-	public struct function updateLoginSettings( boolean rememberme=false, boolean captcha=false, numeric delay=0  ){
-		local.updateLoginSettings={};
+	/**
+	* @hint updates the login settings
+	* @rememberMe Allow "Remember Me" functionality.
+	* @captcha Use Captcha in the login to make sure the form is submitted by a human.
+	* @delay Sets the delay between login attempts. This is a global setting for all user requests.
+	*/
+	public struct function updateLoginSettings( boolean rememberMe=false, boolean captcha=false, numeric delay=0  ){
+		var res = {};
 		try{
 			admin
 				action="updateLoginSettings"
@@ -1624,12 +1640,12 @@
 				rememberme="#arguments.rememberme#"
 				captcha="#arguments.captcha#"
 				delay="#arguments.delay#";
-			updateLoginSettings.label="ok"
+			res.label = "OK";
 		}catch( any e ){
-			updateLoginSettings.label="error";
-			updateLoginSettings.catch=e.message;
+			res.label = "Error";
+			res.exception = e;
 		}
-		return updateLoginSettings;
+		return res;
 	}
 
 	//updateLogSettings
@@ -1863,26 +1879,60 @@
 		return res;
 	}
 
-	//updateApplicationSetting
-	public void function updateApplicationSetting( required date requestTimeout, required string scriptProtect, required boolean allowURLRequestTimeout ){
-		admin
-			action="updateApplicationSetting"
-			type="#variables.type#"
-			password="#variables.password#"
-			scriptProtect="#arguments.scriptProtect#"
-			allowURLRequestTimeout="#arguments.allowURLRequestTimeout#"
-			requestTimeout="#arguments.requestTimeout#";
+	/**
+	* @hint updates common application settings
+	* @requestTimeout Sets the amount of time the engine will wait for a request to finish before a request timeout will be raised.
+	* @scriptProtect secures your system from "cross-site scripting"
+	* @allowURLRequestTimeout Whether lucee needs to obey the URL parameter RequestTimeout or not
+	*/
+	public struct function updateApplicationSetting( required timespan requestTimeout, required string scriptProtect, required boolean allowURLRequestTimeout ){
+		var res = {};
+		try{
+			admin
+				action="updateApplicationSetting"
+				type="#variables.type#"
+				password="#variables.password#"
+
+				scriptProtect="#arguments.scriptProtect#"
+				allowURLRequestTimeout="#arguments.allowURLRequestTimeout#"
+				requestTimeout="#arguments.requestTimeout#"
+
+				remoteClients="#variables.remoteClients#";
+			res.label = "OK";
+		}catch( any e ){
+			res.label = "Error";
+			res.exception = e;
+		}
+
+		return res;
 	}
 
-	//updateQueueSetting
-	public void function updateQueueSetting( required numeric max, required numeric timeout, required boolean enable ){
-		admin
-			action="updateQueueSetting"
-			type="#variables.type#"
-			password="#variables.password#"
-			max="#arguments.max#"
-			timeout="#arguments.timeout#"
-			enable="#arguments.enable#";
+	/**
+	* @hint updates the concurrent request handling settings.
+	* @max limits the max number of concurrent requests.
+	* @timeout timeout for a request in concurrent request queue.
+	* @enable enable or disable concurrent request queue.
+	*/
+	public struct function updateQueueSetting( required numeric max, required numeric timeout, required boolean enable ){
+		var res = {};
+		try{
+			admin
+				action="updateQueueSetting"
+				type="#variables.type#"
+				password="#variables.password#"
+
+				max="#arguments.max#"
+				timeout="#arguments.timeout#"
+				enable="#arguments.enable#"
+
+				remoteClients="#variables.remoteClients#";
+			res.label = "OK";
+		}catch( any e ){
+			res.label = "Error";
+			res.exception = e;
+		}
+
+		return res;
 	}
 
 	//updateJDBCDriver
@@ -1891,13 +1941,25 @@
 			action="updateJDBCDriver"
 			type="#variables.type#"
 			password="#variables.password#"
+
 			classname="#arguments.classname#"
 			label="#arguments.label#"
 			bundleName="#arguments.bundleName#"
 			bundleVersion="#arguments.bundleVersion#";
 	}
 
-	//updateCacheDefaultConnection
+	/**
+	* @hint updates the default cache connection for various lucee elements
+	* @object sets the default cache connection for object
+	* @template sets the default cache connection for template
+	* @query sets the default cache connection for query
+	* @resource sets the default cache connection for resource
+	* @function sets the default cache connection for function
+	* @include sets the default cache connection for include
+	* @http sets the default cache connection for http
+	* @file sets the default cache connection for file
+	* @webservice sets the default cache connection for webservice
+	*/
 	public void function updateCacheDefaultConnection(
 		string object = "",
 		string template = "",
@@ -1909,45 +1971,90 @@
 		string file = "",
 		string webservice = ""
 	){
-		admin
-			action="updateCacheDefaultConnection"
-			type="#variables.type#"
-			password="#variables.password#"
-			object="#arguments.object#"
-			template="#arguments.template#"
-			query="#arguments.query#"
-			resource="#arguments.resource#"
-			"function"="#arguments['function']#"
-			include="#arguments.include#"
-			http="#arguments.http#"
-			file="#arguments.file#"
-			webservice="#arguments.webservice#";
+		var res = {};
+		try{
+			admin
+				action="updateCacheDefaultConnection"
+				type="#variables.type#"
+				password="#variables.password#"
+				object="#arguments.object#"
+				template="#arguments.template#"
+				query="#arguments.query#"
+				resource="#arguments.resource#"
+				function="#arguments['function']#"
+				include="#arguments.include#"
+				http="#arguments.http#"
+				file="#arguments.file#"
+				webservice="#arguments.webservice#"
+				remoteClients="#variables.remoteClients#";
+
+			res.label = "OK";
+		}catch( any e ){
+			res.label = "Error";
+			res.exception = e;
+		}
+
+		return res;
 	}
 
 	//updateCacheConnection
-	public void function updateCacheConnection(
-		required string class,
-		required string name,
-		struct custom,
-		string bundleName= "",
-		string bundleVersion="",
-		string default="",
-		boolean readonly=false,
-		boolean storage=false
-	){
-		admin
-			action="updateCacheConnection"
-			type="#variables.type#"
-			password="#variables.password#"
-			class="#arguments.class#"
-			name="#arguments.name#"
-			custom="#arguments.custom#"
-			bundleName="#arguments.bundleName#"
-			bundleVersion="#arguments.bundleVersion#"
-			default="#arguments.default#"
-			readonly="#getArguments('readonly', false)#"
-			storage="#getArguments('storage', false)#";
-	}
+	// public void function updateCacheConnection(
+	// 	required string class,
+	// 	required string name,
+	// 	struct custom={},
+	// 	string bundleName= "",
+	// 	string bundleVersion="",
+	// 	string default="",
+	// 	boolean readonly=false,
+	// 	boolean storage=false
+	// ){
+	// 	// load available drivers
+	// 	driverNames=structnew("linked");
+	// 	driverNames=ComponentListPackageAsStruct("lucee-server.admin.cdriver",driverNames);
+	// 	driverNames=ComponentListPackageAsStruct("lucee.admin.cdriver",driverNames);
+	// 	driverNames=ComponentListPackageAsStruct("cdriver",driverNames);
+
+	// 	drivers={};
+	// 	loop collection="#driverNames#" index="n" item="fn"{
+	// 		if(n NEQ "Cache" AND n NEQ "Field" AND n NEQ "Group"){
+	// 			tmp = createObject("component",fn);
+	// 			// Workaround for EHCache Extension
+	// 			clazz=tmp.getClass();
+	// 			if("lucee.extension.io.cache.eh.EHCache" EQ clazz or "lucee.runtime.cache.eh.EHCache" EQ clazz){
+	// 				clazz="org.lucee.extension.cache.eh.EHCache";
+	// 			}
+	// 			drivers[clazz]=tmp;
+	// 		}
+	// 	}
+	// 	var driver = drivers[arguments.class];
+	// 	writeDump(driver.getCustomFields());abort;
+	// 	loop collection="#arguments#" item="key"{
+	// 		if(left(key,13) EQ "custompart_d_"){
+	// 			var name=mid(key,14,10000);
+	// 			custom[name]=(form["custompart_d_"&name]*86400)+(form["custompart_h_"&name]*3600)+(form["custompart_m_"&name]*60)+form["custompart_s_"&name];
+	// 		}
+	// 	}
+	// 	loop collection="#form#" item="key"{
+	// 		if(left(key,7) EQ "custom_"){
+	// 			custom[mid(key,8,10000)]=form[key];
+	// 		}
+	// 	}
+	// 	admin
+	// 		action="updateCacheConnection"
+	// 		type="#variables.type#"
+	// 		password="#variables.password#"
+
+	// 		class="#arguments.class#"
+	// 		name="#arguments.name#"
+	// 		custom="#arguments.custom#"
+	// 		bundleName="#arguments.bundleName#"
+	// 		bundleVersion="#arguments.bundleVersion#"
+	// 		default="#arguments.default#"
+	// 		readonly="#getArguments('readonly', false)#"
+	// 		storage="#getArguments('storage', false)#"
+
+	// 		remoteClients="#variables.remoteClients#";
+	// }
 
 	/* Private functions */
 	private struct function ComponentListPackageAsStruct(string package, cfcNames=structnew("linked")){

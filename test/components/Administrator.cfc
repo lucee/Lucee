@@ -514,6 +514,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					assertEquals(isstruct(getComp) ,true);
 					assertEquals(listSort(structKeyList(getComp),'textnocase'),'baseComponentTemplateCFML,baseComponentTemplateLucee,componentDataMemberDefaultAccess,ComponentDefaultImport,componentDumpTemplate,componentLocalSearch,componentPathCache,deepSearch,strBaseComponentTemplateCFML,strBaseComponentTemplateLucee,strComponentDumpTemplate,triggerDataMember,useShadow');
 				});
+
+				it(title="checking getComponentMappings()", body=function( currentSpec ) {
+					var getCompMap = admin.getComponentMappings();
+					assertEquals(isQuery(getCompMap) ,true);
+					assertEquals(listSort(structKeyList(getCompMap),'textnocase'),'archive,hidden,inspect,physical,physicalFirst,readonly,strarchive,strphysical,virtual');
+				});
+
+				it(title="checking updateComponent()", body=function( currentSpec ) {
+					var tmpStrt = {};
+					tmpStrt.triggerDataMember = true;
+					var updateComponent = admin.updateComponent(argumentCollection=tmpStrt);
+					assertEquals(isstruct(updateComponent) ,true);
+					assertEquals(updateComponent.label EQ 'Ok' ,true);
+					var getComp = admin.getComponent();
+					assertEquals(isstruct(getComp) ,true);
+					assertEquals(getComp.triggerDataMember EQ 'true' ,true);
+				});
 			});
 
 			describe( title="test scope functions", body=function() {
@@ -582,6 +599,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					assertEquals(isstruct(execLog) ,true);
 					assertEquals(listSort(structKeyList(execLog),'textnocase'), 'arguments,class,enabled');
 				});
+
+				it(title="checking updateLogSettings()", body=function( currentSpec ) {
+					var tmpStrt = {};
+					var logsettings = admin.getLogSettings();
+					assertEquals(isquery(logsettings) ,true);
+					tmpStrt.name = logsettings.name;
+					tmpStrt.level = logsettings.level;
+					tmpStrt.appenderClass = logsettings.appenderClass;
+					tmpStrt.layoutClass = logsettings.layoutClass;
+					tmpStrt.appenderArgs = {"charset":"windows-1252","maxFiles":"10","maxFileSize":"10485760","path":"{lucee-config}/logs/exception.log","timeout":"180"};
+					tmpStrt.layoutArgs = logsettings.layoutArgs;
+					var updateLog = admin.updateLogSettings(argumentCollection = tmpStrt);
+					assertEquals(isstruct(updateLog) ,true);
+					assertEquals(updateLog.label,"ok");
+					logsettings = admin.getLogSettings();
+					assertEquals(logsettings.appenderArgs[1].timeout EQ 180 ,true);
+				});
 			});
 
 			describe( title="test CompilerSettings functions", body=function() {
@@ -627,6 +661,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});
 
 			describe( title="test debugging functions", body=function() {
+				it(title="checking getDebug()", body=function( currentSpec ) {
+					var debuggingSetting = admin.getDebug();
+					assertEquals(isstruct(debuggingSetting) ,true);
+					assertEquals(listSort(structKeyList(debuggingSetting),'textnocase'), 'database,debug,dump,exception,implicitAccess,queryUsage,timer,tracing');
+				});
+
 				it(title="checking getDebugSetting()", body=function( currentSpec ) {
 					var deguggingListSetting = admin.getDebugSetting();
 					assertEquals(isstruct(deguggingListSetting) ,true);
@@ -841,6 +881,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				it(title="checking resetId()", body=function( currentSpec ) {
 					var resetId = admin.resetId();
 					assertEquals(resetId.label,"ok");
+				});
+			});
+
+			describe( title="test LoginSettings functions", body=function() {
+				it(title="checking getLoginSettings()", body=function( currentSpec ) {
+					var loginSettings = admin.getLoginSettings();
+					assertEquals(isstruct(loginSettings) ,true);
+					writeDump(listSort(structKeyList(loginSettings),'textnocase'));
+					assertEquals(listSort(structKeyList(loginSettings),'textnocase'),'locale,timeserver,timezone,usetimeserver');
+				});
+
+				it(title="checking updateLoginSettings()", body=function( currentSpec ) {
+					var tmpStrt = {};
+					tmpStrt.captcha = "true";
+					var updateLogin = admin.updateLoginSettings(argumentCollection=tmpStrt);
+					assertEquals(isstruct(updateLogin) ,true);
+					assertEquals(updateLogin.label,"OK");
+					var loginSettings = admin.getLoginSettings();
+					assertEquals(isstruct(loginSettings) ,true);
+					assertEquals(loginSettings.captcha EQ 'true' ,true);
 				});
 			});
 		});
