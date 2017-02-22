@@ -758,7 +758,9 @@
 			url="#trim(arguments.url)#";
 	}
 
-	//@getInfo()
+	/**
+	* @hint returns the configuration information details
+	*/
 	public struct function getInfo(){
 		admin
 			action="getinfo"
@@ -768,7 +770,9 @@
 			return rtn;
 	}
 
-	//@surveillance()
+	/**
+	* @hint returns the surveillance details
+	*/
 	public struct function getSurveillance(){
 		admin
 			action="surveillance"
@@ -778,7 +782,9 @@
 			return rtn;
 	}
 
-	// is MonitorEnabled
+	/**
+	* @hint Checks whether the monitor is enable or not
+	*/
 	public boolean function isMonitorEnabled(){
 		admin
 			action="isMonitorEnabled"
@@ -868,7 +874,9 @@
 		return res;
 	}
 
-	//getORMEngine
+	/**
+	* @hint returns the ORM engine details
+	*/
 	public struct function getORMEngine(){
 		admin
 			action="getORMEngine"
@@ -878,7 +886,9 @@
 		return rtn;
 	}
 
-	//getApplicationListener
+	/**
+	* @hint returns the listener details of application
+	*/
 	public struct function getApplicationListener(){
 		admin
 			action="getApplicationListener"
@@ -888,7 +898,9 @@
 			return rtn;
 	}
 
-	//getProxy
+	/**
+	* @hint returns the proxy details
+	*/
 	public struct function getProxy(){
 		admin
 			action="getProxy"
@@ -898,7 +910,9 @@
 			return rtn;
 	}
 
-	//getComponent
+	/**
+	* @hint returns the list of component information
+	*/
 	public Struct function getComponent(){
 		admin
 			action="getComponent"
@@ -920,7 +934,9 @@
 		return local.mappings;
 	}
 
-	//getScope
+	/**
+	* @hint returns the details of scopes
+	*/
 	public struct function getScope(){
 		admin
 			action="getScope"
@@ -930,8 +946,9 @@
 			return rtn;
 	}
 
-	//getApplicationSetting	
-
+	/**
+	* @hint returns the details of application settings
+	*/
 	public struct function getApplicationSetting(){
 		admin
 			action="getApplicationSetting"
@@ -941,8 +958,9 @@
 			return rtn;
 	}
 
-	//getQueueSetting
-
+	/**
+	* @hint returns the details of queue settings
+	*/
 	public struct function getQueueSetting(){
 		admin
 			action="getQueueSetting"
@@ -952,8 +970,9 @@
 			return rtn;
 	}
 
-	//getCustomTagSetting
-
+	/**
+	* @hint returns the details of custom tag settings
+	*/
 	public struct function getCustomTagSetting(){
 		admin
 			action="getCustomTagSetting"
@@ -963,8 +982,10 @@
 			return rtn;
 	}
 
-	//getDatasource 
-
+	/**
+	* @hint returns the datasource information
+	* @name Specifies the name of the datasource
+	*/
 	public struct function getDatasource( required string name ){
 		admin
 			action="getDatasource"
@@ -976,8 +997,9 @@
 	}
 
 
-	//getJDBCDrivers 
-
+	/**
+	* @hint returns the list of JDBC drivers
+	*/
 	public query function getJDBCDrivers(){
 		admin
 			action="getJDBCDrivers"
@@ -987,8 +1009,9 @@
 			return rtn;
 	}
 
-	//getCacheConnections
-
+	/**
+	* @hint returns the list of cache connections
+	*/
 	public query function getCacheConnections(){
 		admin
 			action="getCacheConnections"
@@ -998,8 +1021,10 @@
 			return rtn;
 	}
 
-	//getCacheConnection 
-
+	/**
+	* @hint returns the details of cache connections
+	* @name specifies the name of the cache
+	*/
 	public struct function getCacheConnection( required string name ){
 		admin
 			action="getCacheConnection"
@@ -1010,8 +1035,10 @@
 			return rtn;
 	}
 
-	//getCacheDefaultConnection
-
+	/**
+	* @hint returns the details of default cache connections
+	* @cachetype specifies the type of the cache
+	*/
 	public struct function getCacheDefaultConnection( required string cachetype ){
 		admin
 			action="getCacheDefaultConnection"
@@ -1022,8 +1049,9 @@
 			return rtn;
 	}
 
-	//getRemoteClients
-
+	/**
+	* @hint returns the list of remote clients
+	*/
 	public query function getRemoteClients(){
 		admin
 			action="getRemoteClients"
@@ -1033,8 +1061,10 @@
 			return rtn;
 	}
 
-	//getRemoteClient
-
+	/**
+	* @hint returns the details of a remote client
+	* @url specifies the URL of the remote client
+	*/
 	public struct function getRemoteClient( required string url ){
 		admin
 			action="getRemoteClient"
@@ -1045,8 +1075,9 @@
 			return rtn;
 	}
 
-	//hasRemoteClientUsage
-
+	/**
+	* @hint returns whether the client usage has remote connection
+	*/
 	public boolean function hasRemoteClientUsage(){
 		admin
 			action="hasRemoteClientUsage"
@@ -1056,7 +1087,9 @@
 			return rtn;
 	}
 
-	//getRemoteClientUsage
+	/**
+	* @hint returns the list of remote client usage
+	*/
 	public query function getRemoteClientUsage(){
 		admin
 			action="getRemoteClientUsage"
@@ -1066,7 +1099,13 @@
 			return rtn;
 	}
 
-	//verifyremoteclient
+	/**
+	* @hint verifies whether it is remote client
+	* @label specifies name of the remote client
+	* @url specifies the url path of the remote client
+	* @adminPassword specifies the administrator password for remote client
+	* @securityKey specifies the security key for the remote
+	*/
 	public struct function verifyremoteclient( required string label, required string url, required string adminPassword, required string securityKey ){
 		var tmpStruct = {};
 		try{
@@ -1086,8 +1125,9 @@
 		return tmpStruct;
 	}
 
-	//getRemoteClientTasks 
-
+	/**
+	* @hint returns the list of remote client tasks
+	*/
 	public query function getRemoteClientTasks(){
 		admin
 			action="getRemoteClientTasks"
@@ -1097,8 +1137,9 @@
 			return rtn;
 	}
 
-	//getSpoolerTasks
-
+	/**
+	* @hint returns the list of spooler tasks
+	*/
 	public query function getSpoolerTasks(){
 		admin
 			action="getSpoolerTasks"
@@ -1109,8 +1150,9 @@
 	}
 
 
-	//getPerformanceSettings
-
+	/**
+	* @hint returns the details of performance settings
+	*/
 	public struct function getPerformanceSettings(){
 		admin
 			action="getPerformanceSettings"
@@ -1120,8 +1162,9 @@
 			return rtn;
 	}
 
-	//getLogSettings
-
+	/**
+	* @hint returns the list of log settings
+	*/
 	public query function getLogSettings(){
 		admin
 			action="getLogSettings"
@@ -1154,7 +1197,7 @@
 				type="#variables.type#"
 				password="#variables.password#"
 
-				typeChecking="#getArguments('typeChecking',false)#"
+				typeChecking="#arguments.typeChecking#"
 				inspectTemplate="#arguments.inspectTemplate#"
 
 				remoteClients="#variables.remoteClients#";
@@ -1198,6 +1241,31 @@
 			id = "#arguments.id#"
 			returnVariable="local.rtn";
 			return rtn;
+	}
+
+	/**
+	* @hint updates a gateway entry
+	* @id id of the gateway
+	* @class class for the gateway
+	* @cfcPath path to the component of the gateway
+	* @listenerCfcPath Path to the Component that is listening to the Gateways action
+	* @startupMode mode of operation at startup, possible values are [automatic,manual,disabled]
+	* @custom structure contains custom fields for the specific gateway
+	*/
+	public void function updateGatewayEntry( required string id, string class="", string cfcPath="", string listenerCfcPath="", required string startupMode, struct custom={} ){
+		admin
+			action="updateGatewayEntry"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			id="#trim(arguments.id)#"
+			class="#trim(arguments.class)#"
+			cfcPath="#trim(arguments.cfcPath)#"
+			listenerCfcPath="#trim(arguments.listenerCfcPath)#"
+			startupMode="#trim(arguments.startupMode)#"
+			custom="#arguments.custom#"
+
+			remoteClients="#variables.remoteClients#";
 	}
 
 	//getRunningThreads

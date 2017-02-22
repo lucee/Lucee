@@ -351,17 +351,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					assertEquals(hasError EQ false, true);
 				});
 
-				it(title="checking createArchiveFromMapping ()", body=function( currentSpec ) {
+				it(title="checking createArchiveFromMapping()", body=function( currentSpec ) {
 					var tmpStrt = {};
-					tmpStrt.virtual = "/lucee-server";
+					tmpStrt.virtual = "/TestArchive";
 					tmpStrt.addCFMLFile = false;
 					tmpStrt.addNonCFMLFile = false;
 					tmpStrt.doDownload = false;
+					tmpStrt.target = "";
 					admin.createArchiveFromMapping(argumentCollection = #tmpStrt#);
 					var getMappings = admin.getMappings();
 					var result = QueryExecute(
 						sql="SELECT Archive
-						 FROM getMappings where Virtual = '/lucee-server' and Archive != ''",
+						 FROM getMappings where Virtual = '/TestArchive' and Archive != ''",
 						options=
 						{dbtype="query"}
 					);
@@ -373,6 +374,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				it(title="checking getExtensions()", body=function( currentSpec ) {
 					var getExtensions = admin.getExtensions();
 					assertEquals(isquery(getExtensions) ,true);
+				});
+
+				it(title="checking getExtensionInfo()", body=function( currentSpec ) {
+					var extensionsInfo = admin.getExtensionInfo();
+					assertEquals(isStruct(extensionsInfo) ,true);
+					assertEquals(listSort(structKeyList(extensionsInfo),'textnocase'),'directory,enabled');
 				});
 				
 				it(title="checking updateExtensions()", body=function( currentSpec ) {
@@ -437,6 +444,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					assertEquals(isstruct(ORMsetting) ,true);
 					assertEquals(listSort(structKeyList(ORMsetting),'textnocase'),'autogenmap,cacheconfig,cacheProvider,catalog,cfcLocation,dbCreate,dialect,eventHandler,eventHandling,flushAtRequestEnd,isDefaultCfclocation,logSql,namingstrategy,ormConfig,savemapping,schema,secondarycacheenabled,sqlscript,useDBForMapping');
 				});
+
+				it(title="checking updateORMSetting()", body=function( currentSpec ) {
+					var updateORM = admin.updateORMSetting(schema="testSchema");
+					assertEquals(isstruct(updateORM) ,true);
+					assertEquals(updateORM.label,"OK");
+					var ORMsetting = admin.getORMSetting();
+					assertEquals(isstruct(ORMsetting) ,true);
+					assertEquals(ORMsetting.schema EQ 'testSchema' ,true);
+				});
+
+				it(title="checking resetORMSetting()", body=function( currentSpec ) {
+					var resetORM = admin.resetORMSetting();
+					assertEquals(isstruct(resetORM) ,true);
+					assertEquals(resetORM.label,"ok");
+				});
 			});
 			
 
@@ -479,7 +501,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					var appSetting = admin.getApplicationSetting();
 					assertEquals(isstruct(appSetting) ,true);
 					assertEquals(listSort(structKeyList(appSetting),'textnocase'),'AllowURLRequestTimeout,requestTimeout,requestTimeout_day,requestTimeout_hour,requestTimeout_minute,requestTimeout_second,scriptProtect');
-					
 				});
 
 				it(title="checking updateApplicationSetting()", body=function( currentSpec ) {
@@ -621,6 +642,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				it(title="checking getSpoolerTasks()", body=function( currentSpec ) {
 					var spoolertask = admin.getSpoolerTasks();
 					assertEquals(isQuery(spoolertask) ,true);
+					assertEquals(listSort(structKeyList(spoolertask),'textnocase'), 'closed,detail,exceptions,id,lastExecution,name,nextExecution,tries,triesmax,type');
 				});
 			});
 
@@ -628,7 +650,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				it(title="checking getPerformanceSettings()", body=function( currentSpec ) {
 					var performanceSettings = admin.getPerformanceSettings();
 					assertEquals(isstruct(performanceSettings) ,true);
-					assertEquals(listSort(structKeyList(performanceSettings),'textnocase'), 'inspectTemplate,typeChecking');			
+					assertEquals(listSort(structKeyList(performanceSettings),'textnocase'), 'inspectTemplate,typeChecking');
+				});
+
+				it(title="checking updatePerformanceSettings()", body=function( currentSpec ) {
+					var tmpStrt = {};
+					var performanceSettings = admin.getPerformanceSettings();
+					assertEquals(isstruct(performanceSettings) ,true);
+					tmpStrt.inspectTemplate = performanceSettings.inspectTemplate;
+					tmpStrt.typeChecking = true;
+					var updatePerformance = admin.updatePerformanceSettings(argumentCollection = tmpStrt);
+					assertEquals(isstruct(updatePerformance) ,true);
+					assertEquals(updatePerformance.label,"ok");
+					var updatedPerformanceSettings = admin.getPerformanceSettings();
+					assertEquals(isstruct(updatedPerformanceSettings) ,true);
+					assertEquals(updatedPerformanceSettings.typeChecking EQ true ,true);
 				});
 			});
 
@@ -636,6 +672,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				it(title="checking logsetting()", body=function( currentSpec ) {
 					var logsettings = admin.getLogSettings();
 					assertEquals(isquery(logsettings) ,true);
+					assertEquals(listSort(structKeyList(logsettings),'textnocase'), 'appenderArgs,appenderBundleName,appenderBundleVersion,appenderClass,layoutArgs,layoutBundleName,layoutBundleVersion,layoutClass,level,name,readonly');
 				});
 
 				it(title="checking getExecutionLog()", body=function( currentSpec ) {
@@ -676,8 +713,27 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					assertEquals(isquery(gatewayEntries) ,true);
 				});
 
+				it(title="checking updateGatewayentry()", body=function( currentSpec ) {
+					var tmpstruct = {};
+					tmpstruct.id = "testDirectorygateway";
+					tmpstruct.class = "";
+					tmpstruct.cfcPath = "lucee.extension.gateway.DirectoryWatcher";
+					tmpstruct.listenerCfcPath = "lucee.extension.gateway.DirectoryWatcherListener";
+					tmpstruct.startupMode = "automatic";
+					tmpstruct.custom = {};
+					tmpstruct.custom.directory = "#expandPath('/')#";
+					tmpstruct.custom.recurse = "false";
+					tmpstruct.custom.interval = "6000";
+					tmpstruct.custom.extensions = "*";
+					tmpstruct.custom.changeFunction = "onChange";
+					tmpstruct.custom.addFunction = "onAdd";
+					tmpstruct.custom.deleteFunction = "onDelete";
+					
+					adminweb.updateGatewayEntry(argumentCollection = tmpstruct);
+				});
+
 				it(title="checking getGatewayentry()", body=function( currentSpec ) {
-					var gatewayEntry = adminweb.getGatewayentry('testgateway');
+					var gatewayEntry = adminweb.getGatewayentry('testDirectorygateway');
 					assertEquals(isStruct(gatewayEntry) ,true);
 					assertEquals(listSort(structKeyList(gatewayEntry),'textnocase'), 'bundleName,bundleVersion,cfcPath,class,custom,id,listenerCfcPath,readOnly,startupMode,state');
 				});
@@ -937,13 +993,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 				it(title="checking updateLoginSettings()", body=function( currentSpec ) {
 					var tmpStrt = {};
-					tmpStrt.captcha = "true";
+					tmpStrt.captcha = "false";
 					var updateLogin = admin.updateLoginSettings(argumentCollection=tmpStrt);
 					assertEquals(isstruct(updateLogin) ,true);
 					assertEquals(updateLogin.label,"OK");
 					var loginSettings = admin.getLoginSettings();
 					assertEquals(isstruct(loginSettings) ,true);
-					assertEquals(loginSettings.captcha EQ 'true' ,true);
+					assertEquals(loginSettings.captcha EQ 'false' ,true);
 				});
 			});
 
