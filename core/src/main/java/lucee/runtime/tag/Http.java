@@ -202,7 +202,6 @@ public final class Http extends BodyTagImpl {
 	private static final Key HTTP_VERSION = KeyImpl.intern("http_version");
 
 
-	private static final Key FILE_CONTENT = KeyConstants._filecontent;
 	private static final Key EXPLANATION = KeyImpl.intern("explanation");
 	private static final Key RESPONSEHEADER = KeyImpl.intern("responseheader");
 	private static final Key SET_COOKIE = KeyImpl.intern("set-cookie");
@@ -1095,6 +1094,7 @@ public final class Http extends BodyTagImpl {
 
 /////////////////////////////////////////// EXECUTE /////////////////////////////////////////////////
 		Charset responseCharset=CharsetUtil.toCharset(rsp.getCharset());
+		int statCode=0;
 	// Write Response Scope
 		//String rawHeader=httpMethod.getStatusLine().toString();
 			String mimetype=null;
@@ -1102,7 +1102,7 @@ public final class Http extends BodyTagImpl {
 
 		// status code
 			cfhttp.set(STATUSCODE,((rsp.getStatusCode()+" "+rsp.getStatusText()).trim()));
-			cfhttp.set(STATUS_CODE,new Double(rsp.getStatusCode()));
+			cfhttp.set(STATUS_CODE,new Double(statCode=rsp.getStatusCode()));
 			cfhttp.set(STATUS_TEXT,(rsp.getStatusText()));
 			cfhttp.set(HTTP_VERSION,(rsp.getProtocolVersion()));
 
@@ -1155,7 +1155,7 @@ public final class Http extends BodyTagImpl {
 	        }
 	        cfhttp.set(RESPONSEHEADER,responseHeader);
 	        cfhttp.set(KeyConstants._cookies,cookies);
-	        responseHeader.set(STATUS_CODE,new Double(rsp.getStatusCode()));
+	        responseHeader.set(STATUS_CODE,new Double(statCode=rsp.getStatusCode()));
 	        responseHeader.set(EXPLANATION,(rsp.getStatusText()));
 	        if(setCookie.size()>0)responseHeader.set(SET_COOKIE,setCookie);
 
@@ -1241,7 +1241,7 @@ public final class Http extends BodyTagImpl {
 		        	//if(e.redirectURL!=null)url=e.redirectURL.toExternalForm();
 		        	str=new URLResolver().transform(str,e.response.getTargetURL(),false);
 		        }
-		        cfhttp.set(FILE_CONTENT,str);
+		        cfhttp.set(KeyConstants._filecontent,str);
 		        try {
 		        	if(file!=null){
 		        		IOUtil.write(file,str,((PageContextImpl)pageContext).getWebCharset(),false);
@@ -1292,13 +1292,13 @@ public final class Http extends BodyTagImpl {
 		        //IF Multipart response get file content and parse parts
 		        if(barr!=null) {
 				    if(isMultipart) {
-				    	cfhttp.set(FILE_CONTENT,MultiPartResponseUtils.getParts(barr,mimetype));
+				    	cfhttp.set(KeyConstants._filecontent,MultiPartResponseUtils.getParts(barr,mimetype));
 				    } else {
-				    	cfhttp.set(FILE_CONTENT,barr);
+				    	cfhttp.set(KeyConstants._filecontent,barr);
 				    }
 		        }
 		        else
-			    	cfhttp.set(FILE_CONTENT,"");
+			    	cfhttp.set(KeyConstants._filecontent,"");
 
 
 		        if(file!=null) {
@@ -1324,7 +1324,11 @@ public final class Http extends BodyTagImpl {
 	    	if(cachedWithin!=null && rsp.getStatusCode()==200) {
 				String id = createId();
 				CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_HTTP,null).getInstanceMatchingObject(cachedWithin,null);
-				if(ch!=null)ch.set(pageContext, id,cachedWithin,new HTTPCacheItem(cfhttp,url,System.nanoTime()-start));
+				if(ch!=null){
+					
+					if(statCode>=200 && statCode<300)
+						ch.set(pageContext, id,cachedWithin,new HTTPCacheItem(cfhttp,url,System.nanoTime()-start));
+				}
 
 			}
     	}
@@ -1442,7 +1446,7 @@ public final class Http extends BodyTagImpl {
 	private void setUnknownHost(Struct cfhttp,Throwable t) {
 		cfhttp.setEL(CHARSET,"");
 		cfhttp.setEL(ERROR_DETAIL,"Unknown host: "+t.getMessage());
-		cfhttp.setEL(FILE_CONTENT,"Connection Failure");
+		cfhttp.setEL(KeyConstants._filecontent,"Connection Failure");
 		cfhttp.setEL(KeyConstants._header,"");
 		cfhttp.setEL(KeyConstants._mimetype,"Unable to determine MIME type of file.");
 		cfhttp.setEL(RESPONSEHEADER,new StructImpl());
@@ -1453,7 +1457,7 @@ public final class Http extends BodyTagImpl {
 	private void setRequestTimeout(Struct cfhttp) {
 		cfhttp.setEL(CHARSET,"");
 		cfhttp.setEL(ERROR_DETAIL,"");
-		cfhttp.setEL(FILE_CONTENT,"Connection Timeout");
+		cfhttp.setEL(KeyConstants._filecontent,"Connection Timeout");
 		cfhttp.setEL(KeyConstants._header,"");
 		cfhttp.setEL(KeyConstants._mimetype,"Unable to determine MIME type of file.");
 		cfhttp.setEL(RESPONSEHEADER,new StructImpl());
