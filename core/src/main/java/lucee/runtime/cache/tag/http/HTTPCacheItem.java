@@ -20,7 +20,6 @@ package lucee.runtime.cache.tag.http;
 import java.io.Serializable;
 
 import lucee.commons.digest.HashUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.dump.DumpData;
@@ -68,7 +67,7 @@ public class HTTPCacheItem implements CacheItem, Serializable, Dumpable {
 		//	return filecontent.toString();
 		if(filecontent instanceof byte[])
 			return Caster.toB64((byte[])filecontent);
-		return data.toString();
+		return filecontent.toString();
 	}
 
 	@Override

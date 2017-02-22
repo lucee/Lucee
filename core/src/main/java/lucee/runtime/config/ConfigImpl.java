@@ -2897,6 +2897,7 @@ public abstract class ConfigImpl implements Config {
 	 */
 	public Cache createRAMCache(Struct arguments) throws IOException {
 		RamCache rc = new RamCache();
+		if(arguments==null) arguments=new StructImpl();
 		rc.init(this, ""+CreateUniqueId.invoke(), arguments); 
 		return rc;
 	}
