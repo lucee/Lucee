@@ -788,21 +788,84 @@
 			return rtn;
 	}
 
-	public void function resetORMSetting(){
-		admin
-			action="resetORMSetting"
-			type="#variables.type#"
-			password="#variables.password#"
-	}
-
-	//getORMSetting
+	/**
+	* @hint returns the ORM settings
+	*/
 	public struct function getORMSetting(){
 		admin
 			action="getORMSetting"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
+	}
+
+	/**
+	* @hint updates ORM settings
+	* @autoGenMap Specifies whether Lucee should automatically generate mapping for the persistent CFCs.
+	* @eventHandling Specifies whether ORM Event callbacks should be given.
+	* @flushAtRequestEnd Specifies whether ormflush should be called automatically at request end.
+	* @logSQL Specifies whether the SQL queries that are executed by ORM will be logged.
+	* @saveMapping Specifies whether the generated Hibernate mapping file has to be saved to file system.
+	* @useDBForMapping Specifies whether the database has to be inspected to identify the missing information required to generate the Hibernate mapping.
+	* @catalog Specifies the default Catalog that should be used by ORM.
+	* @cfcLocation Specifies the directory that should be used to search for persistent CFCs to generate the mapping.
+	* @dbCreate Specifies whether Lucee should automatically generate mapping for the persistent CFCs, possible values are [none,update,dropcreate]
+	* @schema Specifies the default Schema that should be used by ORM.
+	*/
+	public struct function updateORMSetting( boolean autoGenMap=false, boolean eventHandling=false, boolean flushAtRequestEnd=false, boolean logSQL=false, boolean saveMapping=false, boolean useDBForMapping=false, string catalog="", string cfcLocation="", string dbCreate="none", string schema="" ){
+		var res = {};
+		try{
+			var settings = getORMSetting();
+			admin
+				action="updateORMSetting"
+				type="#variables.type#"
+				password="#variables.password#"
+
+				autogenmap="#arguments.autoGenMap#"
+				eventHandling="#arguments.eventHandling#"
+				flushatrequestend="#arguments.flushAtRequestEnd#"
+				logSQL="#arguments.logSQL#"
+				savemapping="#arguments.saveMapping#"
+				useDBForMapping="#arguments.useDBForMapping#"
+
+				catalog="#arguments.catalog#"
+				cfclocation="#arguments.cfcLocation#"
+				dbcreate="#arguments.dbCreate#"
+				schema="#arguments.schema#"
+
+				sqlscript="#settings.sqlScript#"
+				cacheconfig="#settings.cacheConfig#"
+				cacheProvider="#settings.cacheProvider#"
+				ormConfig="#settings.ormConfig#"
+				secondarycacheenabled="#settings.secondaryCacheEnabled#"
+
+				remoteClients="#variables.remoteClients#";
+			res.label = "OK";
+		}catch( any e ){
+			res.label = "Error";
+			res.exception = e;
+		}
+		return res;
+	}
+
+	/**
+	* @hint resets the ORM settings
+	*/
+	public struct function resetORMSetting(){
+		var res = {};
+		try{
+			admin
+				action="resetORMSetting"
+				type="#variables.type#"
+				password="#variables.password#"
+				remoteClients="#variables.remoteClients#";
+			res.label = "OK";
+		}catch( any e ){
+			res.label = "Error";
+			res.exception = e;
+		}
+		return res;
 	}
 
 	//getORMEngine
@@ -812,7 +875,7 @@
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
 	}
 
 	//getApplicationListener
@@ -1068,8 +1131,7 @@
 			return rtn;
 	}
 
-	//getCompilerSettings 
-
+	//getCompilerSettings
 	public struct function getCompilerSettings(){
 		admin
 			action="getCompilerSettings"
@@ -1079,23 +1141,33 @@
 			return rtn;
 	}
 
-	//updatePerformanceSettings
+	/**
+	* @hint updates server caching settings
+	* @inspectTemplate sets the type of inspection for files inside the template cache
+	* @typeChecking If disabled Lucee ignores type definitions with function arguments and return values
+	*/
+	public struct function updatePerformanceSettings( required string inspectTemplate, boolean typeChecking=false ){
+		var res = {};
+		try{
+			admin
+				action="updatePerformanceSettings"
+				type="#variables.type#"
+				password="#variables.password#"
 
-	
-	public query function updatePerformanceSettings( required string template, boolean typeChecking=false){
-		admin
+				typeChecking="#getArguments('typeChecking',false)#"
+				inspectTemplate="#arguments.inspectTemplate#"
 
-			action="updatePerformanceSettings"
-			type="#variables.type#"
-			password="#variables.password#"
-			typeChecking="#getArguments('typeChecking',false)#"
-			inspectTemplate="#arguments.template#";
+				remoteClients="#variables.remoteClients#";
+			res.label = "OK";
+		}catch(any e){
+			res.label = "Error";
+			res.exception = e;
+		}
+
+		return res;
 	}
 
 	//updateCompilerSettings
-
-
-	
 	public query function updateCompilerSettings(){
 		admin
 			action="updateCompilerSettings"
@@ -1777,7 +1849,7 @@
 	* @localMode Defines how the local scope of a function is invoked when a variable with no scope definition is used, can be either [classic,modern]
 	* @cgiReadonly Defines whether the CGI Scope is read only or not.
 	*/
-	public struct function updateScope( required string scopeCascadingType, required boolean allowImplicidQueryCall, required boolean mergeFormAndUrl, required boolean sessionManagement, required boolean clientManagement, required boolean domainCookies, required boolean clientCookies, required date clientTimeout, required date sessionTimeout, required string clientStorage, required string sessionStorage, required date applicationTimeout, required string sessionType, required string localMode, required boolean cgiReadonly ){
+	public struct function updateScope( required string scopeCascadingType, required boolean allowImplicidQueryCall, required boolean mergeFormAndUrl, required boolean sessionManagement, required boolean clientManagement, required boolean domainCookies, required boolean clientCookies, required timespan clientTimeout, required timespan sessionTimeout, required string clientStorage, required string sessionStorage, required timespan applicationTimeout, required string sessionType, required string localMode, required boolean cgiReadonly ){
 		var res = {};
 		try{
 			admin
@@ -1810,6 +1882,18 @@
 	}
 
 	/**
+	* @hint returns the rest settings
+	*/
+	public struct function getRestSettings(){
+		admin
+			action="getRestSettings"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.restSettings";
+		return restSettings;
+	}
+
+	/**
 	* @hint updates rest mapping settings
 	* @list enable list Services when "/rest/" is called
 	*/
@@ -1830,6 +1914,18 @@
 		}
 
 		return res;
+	}
+
+	/**
+	* @hint returns the list of rest mappings
+	*/
+	public query function getRestMappings(){
+		admin
+			action="getRestMappings"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.restMappings";
+		return restMappings;
 	}
 
 	/**
@@ -2055,6 +2151,18 @@
 
 	// 		remoteClients="#variables.remoteClients#";
 	// }
+
+	/**
+	* @hint returns the extension Info
+	*/
+	public struct function getExtensionInfo(){
+		admin
+			action="getExtensionInfo"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.info";
+		return info;
+	}
 
 	/* Private functions */
 	private struct function ComponentListPackageAsStruct(string package, cfcNames=structnew("linked")){
