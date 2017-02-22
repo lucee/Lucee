@@ -369,6 +369,7 @@ public final class Http extends BodyTagImpl {
         compression=true;
         clientCert=null;
         clientCertPassword=null;
+        cachedWithin=null;
 	}
 
 	/**
