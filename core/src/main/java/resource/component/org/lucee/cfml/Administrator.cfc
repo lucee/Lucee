@@ -1076,6 +1076,43 @@
 	}
 
 	/**
+	* @hint updates the details for a remote client
+	* @url url for the remote client, combination of url_server & url_path
+	* @securityKey remote security key for remote client
+	* @serverUsername username for http access authentication
+	* @serverPassword password for http access authentication
+	* @adminPassword password for the access to the remote Lucee Server Administrator
+	* @label name or label for the remote client
+	* @usage Define for what the Remote Client is used
+	* @proxyServer host name of the proxy server
+	* @proxyUsername username for the proxy server
+	* @proxyPassword password for the proxy server
+	* @proxyPort port for the proxy server
+	*/
+	public void function updateRemoteClient( required string url, required string securityKey, string serverUsername="", string serverPassword="", required string adminPassword, required string label, string usage="", string proxyServer="", string proxyUsername="", string proxyPassword="", string proxyPort="" ){
+		admin
+			action="updateRemoteClient"
+			type="#variables.type#"
+			remotetype="#variables.type#"
+			password="#variables.password#"
+
+			attributeCollection="#arguments#";
+	}
+
+	/**
+	* @hint removes/deletes a remote client
+	* @url url of the remote client to be removed
+	*/
+	public void function removeRemoteClient( required string url ){
+		admin
+			action="removeRemoteClient"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			url="#arguments.url#";
+	}
+
+	/**
 	* @hint returns whether the client usage has remote connection
 	*/
 	public boolean function hasRemoteClientUsage(){
@@ -1185,43 +1222,51 @@
 	}
 
 	/**
-	* @hint updates server caching settings
-	* @inspectTemplate sets the type of inspection for files inside the template cache
-	* @typeChecking If disabled Lucee ignores type definitions with function arguments and return values
+	* @hint updates the compiler settings for lucee server
+	* @templateCharset Default characterset used to read templates (*.cfm and *.cfc files)
+	* @dotNotation Convert all struct keys defined with "dot notation" to upper case or need to preserve case.
+	* @nullSupport If set, lucee has complete support for null, otherwise a partial null support.
+	* @suppressWSBeforeArg If set, Lucee suppresses whitespace defined between the "cffunction" starting tag and the last "cfargument" tag.
+	* @handleUnquotedAttrValueAsString Handle unquoted tag attribute values as strings.
+	* @externalizeStringGTE Externalize strings from generated class files to separate files.
 	*/
-	public struct function updatePerformanceSettings( required string inspectTemplate, boolean typeChecking=false ){
-		var res = {};
-		try{
-			admin
-				action="updatePerformanceSettings"
-				type="#variables.type#"
-				password="#variables.password#"
-
-				typeChecking="#arguments.typeChecking#"
-				inspectTemplate="#arguments.inspectTemplate#"
-
-				remoteClients="#variables.remoteClients#";
-			res.label = "OK";
-		}catch(any e){
-			res.label = "Error";
-			res.exception = e;
+	public void function updateCompilerSettings( required string templateCharset, required string dotNotation, boolean nullSupport=false, boolean suppressWSBeforeArg=true, boolean handleUnquotedAttrValueAsString=true, numeric externalizeStringGTE=-1 ){
+		var dotNotUpper=true;
+		if(isDefined('arguments.dotNotation') and arguments.dotNotation EQ "oc"){
+			dotNotUpper=false;
 		}
-
-		return res;
-	}
-
-	//updateCompilerSettings
-	public query function updateCompilerSettings(){
 		admin
 			action="updateCompilerSettings"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
+
+			nullSupport="#arguments.nullSupport#"
+			dotNotationUpperCase="#dotNotUpper#"
+			suppressWSBeforeArg="#arguments.suppressWSBeforeArg#"
+			handleUnquotedAttrValueAsString="#arguments.handleUnquotedAttrValueAsString#"
+			templateCharset="#arguments.templateCharset#"
+			externalizeStringGTE="#arguments.externalizeStringGTE#"
+			remoteClients="#variables.remoteClients#";
 	}
 
-	//getGatewayentries 
+	/**
+	* @hint updates server caching settings
+	* @inspectTemplate sets the type of inspection for files inside the template cache
+	* @typeChecking If disabled Lucee ignores type definitions with function arguments and return values
+	*/
+	public void function updatePerformanceSettings( required string inspectTemplate, boolean typeChecking=false ){
+		admin
+			action="updatePerformanceSettings"
+			type="#variables.type#"
+			password="#variables.password#"
 
+			typeChecking="#arguments.typeChecking#"
+			inspectTemplate="#arguments.inspectTemplate#"
+
+			remoteClients="#variables.remoteClients#";
+	}
+
+	//getGatewayentries
 	public query function getGatewayentries( type ){
 		admin
 			action="getGatewayentries"
@@ -1269,7 +1314,6 @@
 	}
 
 	//getRunningThreads
-
 	public query function getRunningThreads(){
 		admin
 			action="getRunningThreads"
@@ -1279,19 +1323,23 @@
 			return rtn;
 	}
 
-	//getMonitors
-
+	/**
+	* @hint returns the list of of monitors available
+	*/
 	public query function getMonitors(){
 		admin
 			action="getMonitors"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
 	}
 
-	//getMonitor
-
+	/**
+	* @hint returns the details of a monitor
+	* @monitorType type of the monitor
+	* @name name of the monitor
+	*/
 	public struct function getMonitor( required string monitorType,  required string name){
 		admin
 			action="getMonitor"
@@ -1300,7 +1348,7 @@
 			monitorType="#arguments.monitorType#"
 			name="arguments.name"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
 	}
 
 	//getBundles
@@ -1367,24 +1415,90 @@
 			return rtn;
 	}
 
-	//getDebuggingList
+	// debugging related functions
+	/**
+	* @hint returns the list of available debugging templates
+	*/
 	public query function getDebuggingList(){
 		admin
 			action="getDebuggingList"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
 	}
 
-	//getDebugSetting
+	/**
+	* @hint returns the logged debug data
+	*/
+	public array function getLoggedDebugData(){
+		admin
+			action="getLoggedDebugData"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.logs";
+		return logs;
+	}
+
+	/**
+	* @hint returns the list of debug entries
+	*/
+	public query function getDebugEntry(){
+		admin
+			action="getDebugEntry"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+		return providers;
+	}
+
+	/**
+	* @hint returns the debug log settings
+	*/
 	public struct function getDebugSetting(){
 		admin
 			action="getDebugSetting"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
+	}
+
+	/**
+	* @hint updates the debug log settings
+	* @maxLogs defines maximum no.of logs
+	*/
+	public void function updateDebugSetting( required numeric maxLogs ){
+		admin
+			action="updateDebugSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+			maxLogs="#arguments.maxLogs#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint resets the debug log settings
+	*/
+	public void function resetDebugSetting(){
+		admin
+			action="updateDebugSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+			maxLogs=""
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	** @hint returns the debugging settings
+	*/
+	public struct function getDebug(){
+		admin
+			action="getDebug"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.debug";
+		return local.debug;
 	}
 
 	//getSSLCertificate
@@ -1566,18 +1680,6 @@
 		return providers;
 	}
 
-	/**
-	** @hint returns the debugging settings
-	*/
-	public struct function getDebug(){
-		admin
-			action="getDebug"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.debug";
-		return local.debug;
-	}
-
 	//getCPPCfxTags
 	public query function getCPPCfxTags(){
 		admin
@@ -1592,16 +1694,6 @@
 	public query function getJavaCfxTags(){
 		admin
 			action="getJavaCfxTags"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.providers";
-			return providers;
-	}
-
-	//getDebugEntry
-	public query function getDebugEntry(){
-		admin
-			action="getDebugEntry"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.providers";
@@ -2161,64 +2253,43 @@
 		return res;
 	}
 
-	//updateCacheConnection
-	// public void function updateCacheConnection(
-	// 	required string class,
-	// 	required string name,
-	// 	struct custom={},
-	// 	string bundleName= "",
-	// 	string bundleVersion="",
-	// 	string default="",
-	// 	boolean readonly=false,
-	// 	boolean storage=false
-	// ){
-	// 	// load available drivers
-	// 	driverNames=structnew("linked");
-	// 	driverNames=ComponentListPackageAsStruct("lucee-server.admin.cdriver",driverNames);
-	// 	driverNames=ComponentListPackageAsStruct("lucee.admin.cdriver",driverNames);
-	// 	driverNames=ComponentListPackageAsStruct("cdriver",driverNames);
+	/**
+	* @hint updates a cache connection
+	* @class class name for the cache connection
+	* @name name for the cache connection
+	* @custom custom fields for the cache connection
+	* @bundleName bundle name for the cache connection
+	* @bundleVersion bundle version for the cache connection
+	* @default for which type, this cache is set to default
+	* @readonly whether this cache connection is readonly.
+	* @storage whether allow to use this cache as client/session storage.
+	*/
+	public void function updateCacheConnection(
+		required string class,
+		required string name,
+		struct custom={},
+		string bundleName= "",
+		string bundleVersion="",
+		string default="",
+		boolean readonly=false,
+		boolean storage=false
+	){
+		admin
+			action="updateCacheConnection"
+			type="#variables.type#"
+			password="#variables.password#"
 
-	// 	drivers={};
-	// 	loop collection="#driverNames#" index="n" item="fn"{
-	// 		if(n NEQ "Cache" AND n NEQ "Field" AND n NEQ "Group"){
-	// 			tmp = createObject("component",fn);
-	// 			// Workaround for EHCache Extension
-	// 			clazz=tmp.getClass();
-	// 			if("lucee.extension.io.cache.eh.EHCache" EQ clazz or "lucee.runtime.cache.eh.EHCache" EQ clazz){
-	// 				clazz="org.lucee.extension.cache.eh.EHCache";
-	// 			}
-	// 			drivers[clazz]=tmp;
-	// 		}
-	// 	}
-	// 	var driver = drivers[arguments.class];
-	// 	writeDump(driver.getCustomFields());abort;
-	// 	loop collection="#arguments#" item="key"{
-	// 		if(left(key,13) EQ "custompart_d_"){
-	// 			var name=mid(key,14,10000);
-	// 			custom[name]=(form["custompart_d_"&name]*86400)+(form["custompart_h_"&name]*3600)+(form["custompart_m_"&name]*60)+form["custompart_s_"&name];
-	// 		}
-	// 	}
-	// 	loop collection="#form#" item="key"{
-	// 		if(left(key,7) EQ "custom_"){
-	// 			custom[mid(key,8,10000)]=form[key];
-	// 		}
-	// 	}
-	// 	admin
-	// 		action="updateCacheConnection"
-	// 		type="#variables.type#"
-	// 		password="#variables.password#"
+			class="#arguments.class#"
+			name="#arguments.name#"
+			custom="#arguments.custom#"
+			bundleName="#arguments.bundleName#"
+			bundleVersion="#arguments.bundleVersion#"
+			default="#arguments.default#"
+			readonly="#getArguments('readonly', false)#"
+			storage="#getArguments('storage', false)#"
 
-	// 		class="#arguments.class#"
-	// 		name="#arguments.name#"
-	// 		custom="#arguments.custom#"
-	// 		bundleName="#arguments.bundleName#"
-	// 		bundleVersion="#arguments.bundleVersion#"
-	// 		default="#arguments.default#"
-	// 		readonly="#getArguments('readonly', false)#"
-	// 		storage="#getArguments('storage', false)#"
-
-	// 		remoteClients="#variables.remoteClients#";
-	// }
+			remoteClients="#variables.remoteClients#";
+	}
 
 	/**
 	* @hint returns the extension Info

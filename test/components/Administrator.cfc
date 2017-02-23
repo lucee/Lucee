@@ -230,13 +230,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					assertEquals(getDatasource.name EQ 'TestDSN1', true);
 				});
 
-				xit(title="testremoveDatasource()", body=function( currentSpec ) {
-					// admin.removeDatasource('testDSN1');
-					// var getDatasource = admin.getDatasources();
-					// var ListOfDSNName = valueList(getDatasource.name);
-					// assertEquals((findnoCase('testDSN1', ListOfDSNName) EQ 0), true);
-				});
-
 				it(title="checking getDatasourceDriverList()", body=function( currentSpec ) {
 					var datasourceDriverList = admin.getDatasourceDriverList();
 					assertEquals(isQuery(datasourceDriverList),true);
@@ -251,6 +244,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					var verfiyDataSource = admin.verifyDatasource(argumentCollection = #tmpStrt#);
 					assertEquals(isstruct(verfiyDataSource) ,true);
 					assertEquals(verfiyDataSource.label,"ok");
+				});
+
+				it(title="testremoveDatasource()", body=function( currentSpec ) {
+					admin.removeDatasource('testDSN1');
+					var getDatasource = admin.getDatasources();
+					var ListOfDSNName = valueList(getDatasource.name);
+					assertEquals((findnoCase('testDSN1', ListOfDSNName) EQ 0), true);
 				});
 		
 			});
@@ -319,32 +319,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 				it(title="checking updateMappings()", body=function( currentSpec ) {
 					var tmpStrt = {};
-					tmpStrt.virtual = "/lucee-server07";
-					tmpStrt.physical = "C:\portables\lucee-express-5.1.1.30-SNAPSHOT-Dummy\lucee-server\context\context";
-					tmpStrt.archive = "{lucee-config}/context/lucee-admin.lar";
+					tmpStrt.virtual = "/TestArchive";
+					tmpStrt.physical = "#expandPath('./LDEV1159/TestArchive')#";
+					tmpStrt.archive = "#expandPath('./')#TestArchive.lar";
 					tmpStrt.primary = "Resources";
 					tmpStrt.inspect = "Once";
 					tmpStrt.toplevel = true;
 					admin.updateMapping(argumentCollection = #tmpStrt#);
 					var getMappings = admin.getMappings();
 					var ListOfvirtual = valueList(getMappings.virtual);
-					assertEquals(Find("/lucee-server07", ListOfvirtual) GT 0, true);
+					assertEquals(Find("/TestArchive", ListOfvirtual) GT 0, true);
 				});
 
-				it(title="checking remove mapping()", body=function( currentSpec ) {
-					var virtual = "/lucee-server07";
-					admin.removeMapping(#virtual#);
-					var getMappings = admin.getMappings();
-					var ListOfvirtual = valueList(getMappings.virtual);
-					assertEquals(Find("/lucee-server07", ListOfvirtual) EQ 0, true);
-				});
-			});
-
-			describe( title="test-Compile mapping settings function", body=function() {
 				it(title="checking compileMapping()", body=function( currentSpec ) {
 					try{
 						var hasError = false;
-						admin.compileMapping('/lucee-server', true);
+						admin.compileMapping('/TestArchive', true);
 					} catch ( any e) {
 						var hasError = true;
 					}
@@ -357,7 +347,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					tmpStrt.addCFMLFile = false;
 					tmpStrt.addNonCFMLFile = false;
 					tmpStrt.doDownload = false;
-					tmpStrt.target = "";
+					tmpStrt.target = "#expandPath('./LDEV1159/TestArchive.lar')#";
 					admin.createArchiveFromMapping(argumentCollection = #tmpStrt#);
 					var getMappings = admin.getMappings();
 					var result = QueryExecute(
@@ -367,6 +357,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 						{dbtype="query"}
 					);
 					assertEquals(result.recordcount EQ 1,true);
+				});
+
+				it(title="checking remove mapping()", body=function( currentSpec ) {
+					var virtual = "/TestArchive";
+					admin.removeMapping(virtual);
+					var getMappings = admin.getMappings();
+					var ListOfvirtual = valueList(getMappings.virtual);
+					assertEquals(Find("/TestArchive", ListOfvirtual) EQ 0, true);
 				});
 			});
 
@@ -408,7 +406,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					assertEquals(listSort(structKeyList(localExtension),'textnocase'),'applications,archives,bundles,categories,components,config,contexts,description,eventGateways,flds,functions,id,image,name,plugins,releaseType,startBundles,tags,tlds,trial,version,webcontexts');
 				});
 
-				xit(title="checking RemoveExtensions()", body=function( currentSpec ) {
+				it(title="checking RemoveExtensions()", body=function( currentSpec ) {
 					admin.removeExtension('2BCD080F-4E1E-48F5-BEFE794232A21AF6');
 				});
 			});
@@ -659,9 +657,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					assertEquals(isstruct(performanceSettings) ,true);
 					tmpStrt.inspectTemplate = performanceSettings.inspectTemplate;
 					tmpStrt.typeChecking = true;
-					var updatePerformance = admin.updatePerformanceSettings(argumentCollection = tmpStrt);
-					assertEquals(isstruct(updatePerformance) ,true);
-					assertEquals(updatePerformance.label,"ok");
+
+					admin.updatePerformanceSettings(argumentCollection = tmpStrt);
+
 					var updatedPerformanceSettings = admin.getPerformanceSettings();
 					assertEquals(isstruct(updatedPerformanceSettings) ,true);
 					assertEquals(updatedPerformanceSettings.typeChecking EQ true ,true);
@@ -704,6 +702,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					var compileSettings = admin.getCompilerSettings();
 					assertEquals(isstruct(compileSettings) ,true);
 					assertEquals(listSort(structKeyList(compileSettings),'textnocase'), 'DotNotationUpperCase,externalizeStringGTE,handleUnquotedAttrValueAsString,nullSupport,suppressWSBeforeArg,templateCharset');
+				});
+
+				it(title="checking updateCompilerSettings()", body=function( currentSpec ) {
+					var tmpStruct={};
+					tmpStruct.templateCharset="windows-1252";
+					tmpStruct.dotNotation="oc";
+					tmpStruct.nullSupport=false;
+					tmpStruct.suppressWSBeforeArg=true;
+					tmpStruct.handleUnquotedAttrValueAsString=true;
+					tmpStruct.externalizeStringGTE=-1;
+					admin.updateCompilerSettings(argumentCollection=tmpStruct);
 				});
 			});
 			
@@ -761,16 +770,55 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});
 
 			describe( title="test debugging functions", body=function() {
-				it(title="checking getDebug()", body=function( currentSpec ) {
-					var debuggingSetting = admin.getDebug();
-					assertEquals(isstruct(debuggingSetting) ,true);
-					assertEquals(listSort(structKeyList(debuggingSetting),'textnocase'), 'database,debug,dump,exception,implicitAccess,queryUsage,timer,tracing');
+				// beforeEach(function( currentSpec ){
+				// 	if( currentSpec EQ "checking getDebuggingList()"){
+				// 		writeDump("TEst");
+				// 		if( !directoryExists(expandPath("/") & "/lucee/templates/debugging") ){
+				// 			directoryCreate(expandPath("/") & "/lucee/templates/debugging");
+				// 		}
+				// 		var fileList="admin,web,public";
+				// 		loop list="#fileList#" index="myfile"{
+				// 			if( !fileExists(expandPath("/") & "/lucee/templates/debugging/debugging-#myfile#.cfm") )
+				// 				fileCopy( expandPath("./LDEV1159/debugging/debugging-#myfile#.cfm"), expandPath("/") & "/lucee/templates/debugging/debugging-#myfile#.cfm" );
+				// 		}
+				// 	}
+				// });
+				it(title="checking getDebuggingList()", body=function( currentSpec ) {
+					var debuggingTemplates = admin.getDebuggingList();
+					assertEquals(isQuery(debuggingTemplates) ,true);
+					assertEquals(listSort(structKeyList(debuggingTemplates),'textnocase'), 'name');
+				});
+
+				it(title="checking getLoggedDebugData()", body=function( currentSpec ) {
+					var debugLogs = adminWeb.getLoggedDebugData();
+					assertEquals(isArray(debugLogs), true);
+				});
+
+				it(title="checking getDebugEntry()", body=function( currentSpec ) {
+					var debugEntry = admin.getDebugEntry();
+					assertEquals(isquery(debugEntry) ,true);
+					var strctKeylist = structKeyList(debugEntry);
+					assertEquals(FindNocase('ipRange',strctKeylist) GT 0, true);
 				});
 
 				it(title="checking getDebugSetting()", body=function( currentSpec ) {
 					var deguggingListSetting = admin.getDebugSetting();
 					assertEquals(isstruct(deguggingListSetting) ,true);
 					assertEquals(listSort(structKeyList(deguggingListSetting),'textnocase'), 'maxLogs');
+				});
+
+				it(title="checking updateDebugSetting()", body=function( currentSpec ) {
+					admin.updateDebugSetting( maxLogs=100 );
+				});
+
+				it(title="checking resetDebugSetting()", body=function( currentSpec ) {
+					admin.resetDebugSetting();
+				});
+
+				it(title="checking getDebug()", body=function( currentSpec ) {
+					var debuggingSetting = admin.getDebug();
+					assertEquals(isstruct(debuggingSetting) ,true);
+					assertEquals(listSort(structKeyList(debuggingSetting),'textnocase'), 'database,debug,dump,exception,implicitAccess,queryUsage,timer,tracing');
 				});
 			});
 
@@ -850,15 +898,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			});
 
-			describe( title="test getDebugEntry functions", body=function() {
-				it(title="checking getDebugEntry()", body=function( currentSpec ) {
-					var debugEntry = admin.getDebugEntry();
-					assertEquals(isquery(debugEntry) ,true);
-					var strctKeylist = structKeyList(debugEntry);
-					assertEquals(FindNocase('ipRange',strctKeylist) GT 0, true);
-				});
-			});
-
 			describe( title="test getError functions", body=function() {
 				it(title="checking getError()", body=function( currentSpec ) {
 					var error = admin.getError();
@@ -869,25 +908,40 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});
 
 			describe( title="test remoteclient functions", body=function() {
-				it(title="checking getremoteclients", body=function( currentSpec ) {
+				it(title="checking getRemoteClients", body=function( currentSpec ) {
 					var remoteClients = admin.getRemoteClients();
 					assertEquals(isquery(remoteClients) ,true);
 				});
 
-				it(title="checking getremoteclient", body=function( currentSpec ) {
-					var remoteClients = admin.getRemoteClients();
-					var remoteClient = admin.getRemoteClient(remoteClients.url);
+				it(title="checking updateRemoteClient", body=function( currentSpec ) {
+					var tmpStruct = {};
+					tmpStruct.url = "#CGI.SERVER_NAME#/lucee/admin.cfc?wsdl";
+					tmpStruct.securityKey = "Test";
+					tmpStruct.serverUsername = "Test";
+					tmpStruct.serverPassword = "Test";
+					tmpStruct.adminPassword = "Test";
+					tmpStruct.label = "TestRemoteClient";
+					tmpStruct.usage = "";
+					tmpStruct.proxyServer = "";
+					tmpStruct.proxyUsername = "";
+					tmpStruct.proxyPassword = "";
+					tmpStruct.proxyPort = "";
+					admin.updateRemoteClient(argumentCollection=tmpStruct);
+				});
+
+				it(title="checking getRemoteClient", body=function( currentSpec ) {
+					var remoteClient = admin.getRemoteClient("#CGI.SERVER_NAME#/lucee/admin.cfc?wsdl");
 					assertEquals(isstruct(remoteClient) ,true);
 					assertEquals(listSort(structKeyList(remoteClient),'textnocase'),'adminPassword,label,proxyPassword,proxyPort,proxyServer,proxyUsername,securityKey,ServerPassword,ServerUsername,type,url,usage');
 				});
 
-				it(title="checking verifyremoteclient()", body=function( currentSpec ) {
+				it(title="checking verifyRemoteClient()", body=function( currentSpec ) {
 					var tmpStrt = {};
 					tmpStrt.label = "test";
-					tmpStrt.url = "http://www.xmlme.com/WSShakespeare.asmx/?WSDL";
-					tmpStrt.adminPassword = "qwerty";
-					tmpStrt.securityKey = "qwerty";
-					var verifyClient = admin.verifyremoteclient(argumentCollection = #tmpStrt#);
+					tmpStrt.url = "#CGI.SERVER_NAME#/lucee/admin.cfc?wsdl";
+					tmpStrt.adminPassword = "Test";
+					tmpStrt.securityKey = "Test";
+					var verifyClient = admin.verifyRemoteClient(argumentCollection = #tmpStrt#);
 					assertEquals(isstruct(verifyClient) ,true);
 				});
 
@@ -905,6 +959,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					var remoteClientTask = admin.getRemoteClientTasks();
 					assertEquals(isQuery(remoteClientTask) ,true);
 				});
+
+				it(title="checking removeRemoteClient", body=function( currentSpec ) {
+					admin.removeRemoteClient("#CGI.SERVER_NAME#/lucee/admin.cfc?wsdl");
+				});
 			});
 
 			describe( title="test cache functions", body=function() {
@@ -919,25 +977,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					assertEquals(listSort(structKeyList(getCacheConnection),'textnocase'),'bundleName,bundleVersion,class,custom,default,name,readOnly,storage');
 				});
 
-				it(title="checking getCacheDefaultConnection()", body=function( currentSpec ) {
-					var defaultCacheConnection = admin.getCacheDefaultConnection('query');
-					assertEquals(isstruct(defaultCacheConnection) ,true);
-					assertEquals(listSort(structKeyList(defaultCacheConnection),'textnocase'),'bundleName,bundleVersion,class,custom,default,name,readonly');
-				});
-
-				xit(title="checking updateCacheConnection()", body=function( currentSpec ) {
+				it(title="checking updateCacheConnection()", body=function( currentSpec ) {
 					var tmpStrt = {};
 					tmpStrt.class="lucee.runtime.cache.ram.RamCache";
 					tmpStrt.name="testCache";
 					tmpStrt.custom={"timeToIdleSeconds":"86400","timeToLiveSeconds":"3600"};
 					tmpStrt.bundleName="";
 					tmpStrt.bundleVersion="";
-					tmpStrt.default="function";
-					tmpStrt.storage=false;
+					tmpStrt.default="query";
 					admin.updateCacheConnection(argumentCollection=tmpStrt);
 					var getCacheConnection = admin.getCacheConnection('testCache');
 					assertEquals(isstruct(getCacheConnection) ,true);
-					assertEquals(getCacheConnection.default EQ 'function' ,true);
+					assertEquals(getCacheConnection.default EQ 'query' ,true);
+				});
+
+				it(title="checking getCacheDefaultConnection()", body=function( currentSpec ) {
+					var defaultCacheConnection = admin.getCacheDefaultConnection('query');
+					assertEquals(isstruct(defaultCacheConnection) ,true);
+					assertEquals(listSort(structKeyList(defaultCacheConnection),'textnocase'),'bundleName,bundleVersion,class,custom,default,name,readonly');
 				});
 
 				it(title="checking verifyCacheConnection()", body=function( currentSpec ) {
