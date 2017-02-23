@@ -481,12 +481,14 @@ public final class DateCaster {
     
     public static DateTime toDateAdvanced(Object o,short convertingType, TimeZone timeZone) throws PageException {
         DateTime dt = toDateAdvanced(o,convertingType,timeZone,null);
-        if(dt==null) throw new ExpressionException("can't cast value to a Date Object");
+        if(dt==null) {
+        	if(o instanceof CharSequence)
+        		throw new ExpressionException("can't cast value ["+o+"] to a Date Object");
+        	throw new ExpressionException("can't cast value to a Date Object");
+        }
         return dt;
     }
-    
-    
-	
+
 	/**
 	 * converts a String to a Time Object, returns null if invalid string
 	 * @param str String to convert
@@ -653,7 +655,7 @@ public final class DateCaster {
 		// second
 		int second=ds.readDigits();
 		if(second==-1){
-			if(!alsoMonthString) return defaultValue;
+			if(!alsoMonthString || month!=0) return defaultValue;
 			second=ds.readMonthString();
 			if(second==-1)return defaultValue;
 			month=2;
