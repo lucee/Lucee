@@ -2346,6 +2346,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				
 			}
 			else {
+				idOC=attr.getName();
+				idLC=idOC.toLowerCase();
 				sbType.append(attr.getType());
 				//parseExpression[0]=attr.getRtexpr();
 			}
