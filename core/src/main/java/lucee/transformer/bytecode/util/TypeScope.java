@@ -40,6 +40,8 @@ import org.objectweb.asm.commons.Method;
 
 public final class TypeScope {
 	
+	public static int SCOPE_UNDEFINED_LOCAL=16;
+	
 	public final static Type SCOPE = Type.getType(Scope.class);
 	public final static Type[] SCOPES = new Type[ScopeSupport.SCOPE_COUNT];
     static {
@@ -58,9 +60,10 @@ public final class TypeScope {
     	SCOPES[Scope.SCOPE_VARIABLES]=		Types.VARIABLES;
     	SCOPES[Scope.SCOPE_CLUSTER]=		Type.getType(Cluster.class); 
     	SCOPES[Scope.SCOPE_VAR]=			SCOPES[Scope.SCOPE_LOCAL]; 
+    	//SCOPES[SCOPE_UNDEFINED_LOCAL]=		SCOPES[Scope.SCOPE_LOCAL]; 
     }
     
-	public final static Method[] METHODS = new Method[ScopeSupport.SCOPE_COUNT];
+	public final static Method[] METHODS = new Method[ScopeSupport.SCOPE_COUNT+1];
     static {
     	METHODS[Scope.SCOPE_APPLICATION]=	new Method("applicationScope",	SCOPES[Scope.SCOPE_APPLICATION],new Type[]{});
     	METHODS[Scope.SCOPE_ARGUMENTS]=		new Method("argumentsScope",	SCOPES[Scope.SCOPE_ARGUMENTS],new Type[]{});
@@ -77,6 +80,7 @@ public final class TypeScope {
     	METHODS[Scope.SCOPE_VARIABLES]=		new Method("variablesScope",	SCOPES[Scope.SCOPE_VARIABLES],new Type[]{});
     	METHODS[Scope.SCOPE_CLUSTER]=		new Method("clusterScope",		SCOPES[Scope.SCOPE_CLUSTER],new Type[]{}); 
     	METHODS[Scope.SCOPE_VAR]=	new Method("localScope",		SCOPES[Scope.SCOPE_VAR],new Type[]{}); 
+    	METHODS[SCOPE_UNDEFINED_LOCAL]=	new Method("usl",		SCOPE,new Type[]{}); 
         }
     // Argument argumentsScope (boolean)
     public final static Method METHOD_ARGUMENT_BIND=new Method("argumentsScope",SCOPES[Scope.SCOPE_ARGUMENTS],new Type[]{Types.BOOLEAN_VALUE});
@@ -95,7 +99,12 @@ public final class TypeScope {
     
     
     public static Type invokeScope(GeneratorAdapter adapter, int scope) {
-		return invokeScope(adapter,TypeScope.METHODS[scope],Types.PAGE_CONTEXT);
+		if(scope==SCOPE_UNDEFINED_LOCAL) {
+			adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
+			return invokeScope(adapter,TypeScope.METHODS[scope],Types.PAGE_CONTEXT_IMPL);
+		}
+		else
+			return invokeScope(adapter,TypeScope.METHODS[scope],Types.PAGE_CONTEXT);
 	}
 	
 	public static Type invokeScope(GeneratorAdapter adapter, Method m, Type type) {

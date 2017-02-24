@@ -1151,6 +1151,13 @@ public final class PageContextImpl extends PageContext {
 		return undefined;
 	}
 	
+
+	public Scope usl() {
+		if(!undefined.isInitalized()) undefined.initialize(this);
+		if(undefined.getCheckArguments()) return undefined.localScope();
+		return undefined;
+	}
+	
 	@Override
 	public Variables variablesScope() { return variables; }
 	
@@ -2867,12 +2874,14 @@ public final class PageContextImpl extends PageContext {
 		}
 		exception = pe;
 		if(store){
+			Undefined u=undefinedScope();
 			if(pe==null) {
-				undefinedScope().removeEL(KeyConstants._cfcatch);
+				(u.getCheckArguments()?u.localScope():u).removeEL(KeyConstants._cfcatch);
 			}
 			else {
-				undefinedScope().setEL(KeyConstants._cfcatch,pe.getCatchBlock(config));
-				if(!gatewayContext && config.debug() && config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION)) debugger.addException(config,exception);
+				(u.getCheckArguments()?u.localScope():u).setEL(KeyConstants._cfcatch,pe.getCatchBlock(config));
+				if(!gatewayContext && config.debug() && config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION)) 
+					debugger.addException(config,exception);
 			}
 		}
 	}
@@ -2887,7 +2896,9 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public void clearCatch() {
 		exception = null;
-		undefinedScope().removeEL(KeyConstants._cfcatch);
+		
+		Undefined u=undefinedScope();
+		(u.getCheckArguments()?u.localScope():u).removeEL(KeyConstants._cfcatch);
 	}
 
 	@Override

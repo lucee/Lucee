@@ -69,7 +69,7 @@ public final class ForEach extends StatementBase implements FlowControlBreak,Flo
 	 */
 	public ForEach(Variable key,Expression value,Body body,Position start, Position end,String label) {
 		super(key.getFactory(),start,end);
-		this.key=new VariableRef(key);
+		this.key=new VariableRef(key,false);
 		this.value=value;
 		this.body=body;
 		this.label=label;
