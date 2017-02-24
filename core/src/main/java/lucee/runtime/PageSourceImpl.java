@@ -439,10 +439,10 @@ public final class PageSourceImpl implements PageSource {
 				}
 				else {
 					// MUST remove this
-					aprint.e(
+					/*aprint.e(
 							tmp+":"+physcalSource+":"+
 							mapping.getPhysical().getAbsolutePath()+":"+
-							relpath+":"+relPath);
+							relpath+":"+relPath);*/
 				}
 			}
         }
