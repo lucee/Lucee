@@ -818,6 +818,37 @@
 			id="#arguments.id#";
 	}
 
+	//getRHServerExtensions
+	public query function getRHServerExtensions(){
+		admin
+			action="getRHServerExtensions"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	//getLocalExtension
+	public struct function getLocalExtension( required string id  ){
+		admin
+			action="getLocalExtension"
+			type="#variables.type#"
+			password="#variables.password#"
+			id="#arguments.id#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
+	//getLocalExtensions
+	public query function getLocalExtensions(){
+		admin
+			action="getLocalExtensions"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
 	/**
 	* @hint returns the list of extension providers for this context.
 	*/
@@ -854,37 +885,6 @@
 			password="#variables.password#"
 
 			url="#trim(arguments.url)#";
-	}
-
-	//getRHServerExtensions
-	public query function getRHServerExtensions(){
-		admin
-			action="getRHServerExtensions"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-		return rtn;
-	}
-
-	//getLocalExtension
-	public struct function getLocalExtension( required string id  ){
-		admin
-			action="getLocalExtension"
-			type="#variables.type#"
-			password="#variables.password#"
-			id="#arguments.id#"
-			returnVariable="local.rtn";
-		return rtn;
-	}
-
-	//getLocalExtensions
-	public query function getLocalExtensions(){
-		admin
-			action="getLocalExtensions"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-		return rtn;
 	}
 
 	//verifyExtensionProvider
