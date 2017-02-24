@@ -28,11 +28,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testMySQLWithBSTTimezone(){
 		if(!variables.has) return;
-		application action="update" timezone="BST";
-		setTimeZone("BST");
+		
+		var tz1=getApplicationSettings().timezone;
+		var tz2=getTimeZone();
+		try{
+			application action="update" timezone="BST";
+			setTimeZone("BST");
 
-		query name="local.qry" {
-			echo("select 'a' as a");
+			query name="local.qry" {
+				echo("select 'a' as a");
+			}
+		}
+		finally {
+			application action="update" timezone="#tz1#";
+			setTimeZone(tz2);
 		}
 		//assertEquals("","");
 		

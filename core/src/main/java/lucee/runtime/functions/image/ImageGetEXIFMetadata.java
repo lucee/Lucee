@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.img.Image;
@@ -49,10 +50,15 @@ public class ImageGetEXIFMetadata {
 			else if(entry.getValue() instanceof List) 
 				fill(data,entry.getKey(),(List)entry.getValue());
 			else
-				data.put(entry.getKey(),entry.getValue());
+				data.put(entry.getKey(),unwrap(entry.getValue()));
 		}
 		
 		return data;
+	}
+
+	private static Object unwrap(Object value) {
+		if(value instanceof CharSequence) return StringUtil.unwrap(value.toString());
+		return value;
 	}
 
 	private static void fill(Struct data, Map map) throws PageException {
@@ -72,6 +78,6 @@ public class ImageGetEXIFMetadata {
 	private static void fill(Struct data, Object key, List list) throws PageException {
 		data.put(
 				key,
-				lucee.runtime.type.util.ListUtil.listToList(list, ","));
+				unwrap(lucee.runtime.type.util.ListUtil.listToList(list, ",")));
 	}
 }

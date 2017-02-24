@@ -228,7 +228,15 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.defaultCaches=Duplicator.duplicateMap(defaultCaches, new ConcurrentHashMap<Integer, String>(),false );
 		dbl.cacheConnections=Duplicator.duplicateMap(cacheConnections, new ConcurrentHashMap<Integer, String>(),false );
 		dbl.mailServers=mailServers;
-		dbl.cachedWithins=Duplicator.duplicateMap(cachedWithins, new ConcurrentHashMap<Integer, Object>(),false );
+		dbl.cachedWithinFile=Duplicator.duplicate(cachedWithinFile,false);
+		dbl.cachedWithinFunction=Duplicator.duplicate(cachedWithinFunction,false);
+		dbl.cachedWithinHTTP=Duplicator.duplicate(cachedWithinHTTP,false);
+		dbl.cachedWithinInclude=Duplicator.duplicate(cachedWithinInclude,false);
+		dbl.cachedWithinQuery=Duplicator.duplicate(cachedWithinQuery,false);
+		dbl.cachedWithinResource=Duplicator.duplicate(cachedWithinResource,false);
+		dbl.cachedWithinWS=Duplicator.duplicate(cachedWithinWS,false);
+		
+		
 		dbl.sameFieldAsArrays=Duplicator.duplicateMap(sameFieldAsArrays, new ConcurrentHashMap<Integer, Boolean>(),false );
 		
 		dbl.ormEnabled=ormEnabled;
@@ -722,11 +730,6 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public Server[] getMailServers() {
 		return this.mailServers;
-	}
-	
-	@Override
-	public Object getCachedWithin(int type) {
-		return cachedWithins.get(type);
 	}
 
 	public void setSameFieldAsArray(PageContext pc,int scope, boolean sameFieldAsArray) {

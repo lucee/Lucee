@@ -13,7 +13,7 @@ before_install:
 
 services:
   - mysql # server:"127.0.0.1"; user:"root"; password:""
-  - postgresql # server:"127.0.0.1"; user:"postgres"; password:""
+  - postgresql "9.6" # server:"127.0.0.1"; user:"postgres"; password:""
   - mongodb #  server:"127.0.0.1" user/pass see below
 
 before_install:

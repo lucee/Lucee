@@ -66,11 +66,9 @@ public final class PageSourcePool implements Dumpable {
 	 * @param updateAccesTime define if do update access time
 	 * @return page
 	 */
-	public PageSource getPageSource(Object key,boolean updateAccesTime) {
-		Object o=pageSources.get(key);
-		if(o==null) return null;
-		
-		PageSource ps=(PageSource) o;
+	public PageSource getPageSource(String key,boolean updateAccesTime) {
+		PageSource ps=pageSources.get(key.toLowerCase());
+		if(ps==null) return null;
 		if(updateAccesTime)ps.setLastAccessTime();
 		return ps;
 	}
@@ -83,7 +81,9 @@ public final class PageSourcePool implements Dumpable {
 	 */
 	public void setPage(String key, PageSource ps) {
 		ps.setLastAccessTime();
-		pageSources.put(key,ps);
+		
+		
+		pageSources.put(key.toLowerCase(),ps);
 	}
 	
 	/**
@@ -91,15 +91,17 @@ public final class PageSourcePool implements Dumpable {
 	 * @param key key reference to a page object
 	 * @return has page object or not
 	 */
-	public boolean exists(Object key) {
-		return pageSources.containsKey(key);
+	public boolean exists(String key) {
+		return pageSources.containsKey(key.toLowerCase());
 	}
 	
 	/**
 	 * @return returns a array of all keys in the page pool
 	 */
-	public Object[] keys() {
-		return ArrayUtil.keys(pageSources);
+	public String[] keys() {
+		if(pageSources==null) return new String[0];
+		Set<String> set = pageSources.keySet();
+		return set.toArray(new String[set.size()]);
 	}
 	
 	/**
@@ -107,16 +109,16 @@ public final class PageSourcePool implements Dumpable {
 	 * @param key key reference to page object
 	 * @return page object matching to key reference
 	 */
-	public boolean remove(Object key) {
+	public boolean remove(String key) {
 		
-		if(pageSources.remove(key)!=null) return true;
+		if(pageSources.remove(key.toLowerCase())!=null) return true;
 		
 		Set<String> set = pageSources.keySet();
 		String[] keys = set.toArray(new String[set.size()]); // done this way to avoid ConcurrentModificationException
 		PageSource ps;
 		for(String k:keys) {
 			ps=pageSources.get(k);
-			if(key.equals(ps.getClassName())) {
+			if(key.equalsIgnoreCase(ps.getClassName())) {
 				pageSources.remove(k);
 				return true;
 			}
@@ -124,8 +126,8 @@ public final class PageSourcePool implements Dumpable {
 		return false;
 	}
 	
-	public boolean flushPage(Object key) {
-		PageSource ps= pageSources.get(key);
+	public boolean flushPage(String key) {
+		PageSource ps= pageSources.get(key.toLowerCase());
 		if(ps!=null) {
 			((PageSourceImpl)ps).flush();
 			return true;
@@ -134,7 +136,7 @@ public final class PageSourcePool implements Dumpable {
 		Iterator<PageSource> it = pageSources.values().iterator();
 		while(it.hasNext()) {
 			ps = it.next();
-			if(key.equals(ps.getClassName())) {
+			if(key.equalsIgnoreCase(ps.getClassName())) {
 				((PageSourceImpl)ps).flush();
 				return true;
 			}
@@ -163,7 +165,7 @@ public final class PageSourcePool implements Dumpable {
 		
 		SystemOut.printDate(config.getOutWriter(),"PagePool: "+size()+">("+maxSize+")");
 		if(size()>maxSize) {
-			Object[] keys=keys();
+			String[] keys=keys();
 			LongKeyList list=new LongKeyList();
 			for(int i=0;i<keys.length;i++) {
 			    PageSource ps= getPageSource(keys[i],false);
@@ -177,7 +179,7 @@ public final class PageSourcePool implements Dumpable {
 			while(size()>maxSize) {
 				Object key = list.shift();
 				if(key==null)break;
-				remove(key);
+				remove(key.toString());
 			}
 		}
 	}

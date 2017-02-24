@@ -60,8 +60,8 @@ public final class MappingImpl implements Mapping {
 	private boolean topLevel;
 	private short inspect;
 	private boolean physicalFirst;
-	//private PhysicalClassLoader pcl;
-	private Map<String,PhysicalClassLoader> pcls=new HashMap<String, PhysicalClassLoader>();
+	private PhysicalClassLoader pcl;
+	//private Map<String,PhysicalClassLoader> pcls=new HashMap<String, PhysicalClassLoader>();
 	private Resource archive;
 	
 	private boolean hasArchive;
@@ -221,16 +221,16 @@ public final class MappingImpl implements Mapping {
 	
 	@Override
 	public Class<?> getPhysicalClass(String className) throws ClassNotFoundException,IOException {
-		PhysicalClassLoader pcl = pcls.get(className);
+		//PhysicalClassLoader pcl = pcls.get(className);
 		if(pcl==null){
 			pcl=new PhysicalClassLoader(config,getClassRootDirectory());
-			pcls.put(className, pcl);
+			//pcls.put(className, pcl);
 		}
 		return pcl.loadClass(className);
 	}
 	
 	public Class<?> getPhysicalClass(String className, Class<?> defaultValue) {
-		PhysicalClassLoader pcl = pcls.get(className);
+		//PhysicalClassLoader pcl = pcls.get(className);
 		if(pcl==null)return null;
 		try {
 			return pcl.loadClass(className);
@@ -242,18 +242,19 @@ public final class MappingImpl implements Mapping {
 	
 	@Override
 	public Class<?> getPhysicalClass(String className, byte[] code) throws IOException {
-		PhysicalClassLoader pcl = pcls.get(className);
+		if(pcl==null) pcl=new PhysicalClassLoader(config,getClassRootDirectory());
+		/*PhysicalClassLoader pcl = pcls.get(className);
 		// flush
 		if(pcl!=null) {
 			
-			pageSourcePool.remove(className  );
+			pageSourcePool.remove(className);
 			//this.pageSourcePool.remove(key);
 		}
 		
-		
+		// MUST is that ok
 		pcl = new PhysicalClassLoader(config,getClassRootDirectory());
 		
-		pcls.put(className, pcl);
+		pcls.put(className, pcl);*/
 		try {
 			return pcl.loadClass(className,code);
 		} catch (UnmodifiableClassException e) {

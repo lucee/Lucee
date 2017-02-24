@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.AsyncContext;
@@ -46,6 +47,7 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.Part;
 
+import lucee.commons.collection.concurrent.ConcurrentHashMapPro;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -57,8 +59,10 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.dt.DateTime;
+import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.scope.Form;
 import lucee.runtime.type.scope.FormImpl;
 import lucee.runtime.type.scope.URL;
@@ -225,7 +229,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 	@Override
 	public synchronized Enumeration getAttributeNames() {
 		if(disconnected) {
-			return new EnumerationWrapper(disconnectData.attributes);
+			return new EnumerationWrapper(disconnectData.attributes.keySet().toArray());
 		}
 		return req.getAttributeNames();
 		
@@ -371,18 +375,18 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 		// attributes
 		{
 			Enumeration<String> attrNames = req.getAttributeNames();
-			disconnectData.attributes=new ConcurrentHashMap<String, Object>();
+			disconnectData.attributes=new ConcurrentHashMapPro<String, Object>();
 			String k;
 			while(attrNames.hasMoreElements()){
 				k=attrNames.nextElement();
-				disconnectData.attributes.put(k, req.getAttribute(k));
+				if(!StringUtil.isEmpty(k))disconnectData.attributes.put(k, req.getAttribute(k));
 			}
 		}
 		
 		// headers
 		{
 			Enumeration headerNames = req.getHeaderNames();
-			disconnectData.headers=new ConcurrentHashMap<Collection.Key, LinkedList<String>>();
+			disconnectData.headers=new ConcurrentHashMapPro<Collection.Key, LinkedList<String>>();
 			
 			String k;
 			Enumeration e;
@@ -393,7 +397,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 				while(e.hasMoreElements()){
 					list.add(e.nextElement().toString());
 				}
-				disconnectData.headers.put(KeyImpl.init(k),list);
+				if(!StringUtil.isEmpty(k))disconnectData.headers.put(KeyImpl.init(k),list);
 			}
 		}
 		
@@ -557,7 +561,8 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 	@Override
 	public Enumeration getHeaderNames() {
 		if(!disconnected) return req.getHeaderNames();
-		return new StringItasEnum(disconnectData.headers.keySet().iterator());
+		Set<Key> set = disconnectData.headers.keySet();
+		return new StringIterator(set.toArray(new Key[set.size()]));
 	}
 
 	@Override

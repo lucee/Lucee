@@ -223,7 +223,7 @@ public class ModernAppListener extends AppListenerSupport {
 					if(!isComp && app.contains(pc,ON_REQUEST))
 						call(app,pci, ON_REQUEST, new Object[]{targetPage},false);
 					else
-						pci.doInclude(new PageSource[]{requestedPage},false);
+						pci._doInclude(new PageSource[]{requestedPage},false,null);
 				}
 				catch(PageException pe){
 					pe=handlePageException(pci,app,pe,requestedPage,targetPage,goon);
@@ -250,7 +250,7 @@ public class ModernAppListener extends AppListenerSupport {
 				if(requestedPage==null) return;
 			}
 			
-			pc.doInclude(new PageSource[]{requestedPage},false);
+			pci._doInclude(new PageSource[]{requestedPage},false,null);
 		}
 	}
 	

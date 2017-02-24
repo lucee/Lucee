@@ -177,8 +177,8 @@ public class FormatUtil {
 	private static void addCustom(List<DateFormat> list,Locale locale,short formatType) {
 		// get custom formats from file
 		Config config = ThreadLocalPageContext.getConfig();
-		Resource dir=config.getConfigDir().getRealResource("locales");
-		if(dir.isDirectory()) {
+		Resource dir=config!=null?config.getConfigDir().getRealResource("locales"):null;
+		if(dir!=null && dir.isDirectory()) {
 			String appendix="-datetime";
 			if(formatType==FORMAT_TYPE_DATE)appendix="-date";
 			if(formatType==FORMAT_TYPE_TIME)appendix="-time";

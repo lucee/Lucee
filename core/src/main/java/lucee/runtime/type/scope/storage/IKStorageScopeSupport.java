@@ -193,7 +193,6 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	}
 	
 	public static Scope getInstance(int scope, IKHandler handler, String appName, String name, PageContext pc, Session existing, Log log, Session defaultValue) {
-		print.e("---------- individual storage ----------");
 		try {
 			return getInstance(scope, handler, appName, name, pc,existing, log);
 		}
