@@ -65,25 +65,23 @@ public final class PageSourceImpl implements PageSource {
     //private byte load=LOAD_NONE;
 
 	private final MappingImpl mapping;
-    private final String relPath;
     
     private boolean isOutSide;
     
-    private String className;
+    private String relPath;
     private String packageName;
     private String javaName;
+    private String className;
+    private String fileName;
 
     private Resource physcalSource;
     private Resource archiveSource;
-    private String fileName;
     private String compName;
     private Page page;
 	private long lastAccess;	
 	private RefIntegerSync accessCount=new RefIntegerSync();
 	private boolean flush=false;
-    //private boolean recompileAlways;
-    //private boolean recompileAfterStartUp;
-    
+
     private PageSourceImpl() {
     	mapping=null;
         relPath=null;
@@ -428,7 +426,21 @@ public final class PageSourceImpl implements PageSource {
             if(!mapping.hasPhysical()) {
             	return null;
             }
-			physcalSource=ResourceUtil.toExactResource(mapping.getPhysical().getRealResource(relPath));
+            Resource tmp = mapping.getPhysical().getRealResource(relPath);
+			physcalSource=ResourceUtil.toExactResource(tmp);
+			// fix if the case not match
+			if(!tmp.getAbsolutePath().equals(physcalSource.getAbsolutePath())) {
+				String relpath = physcalSource.getAbsolutePath().substring(mapping.getPhysical().getAbsolutePath().length());
+				// just a security!
+				if(relPath.equalsIgnoreCase(relpath)) {
+					this.relPath=relpath;
+					createClassAndPackage();
+				}
+				else {
+					// MUST remove this
+					throw new RuntimeException(tmp+":"+physcalSource+":"+mapping.getPhysical().getAbsolutePath()+":"+relpath);
+				}
+			}
         }
         return physcalSource;
 	}

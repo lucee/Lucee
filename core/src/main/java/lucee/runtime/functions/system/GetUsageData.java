@@ -269,7 +269,7 @@ public final class GetUsageData implements Function {
 		long elements=0,size=0;
 		
 		PageSourcePool psp;
-		Object[] keys;
+		String[] keys;
 		PageSourceImpl ps;
 		Resource res;
 		MappingImpl mapping;

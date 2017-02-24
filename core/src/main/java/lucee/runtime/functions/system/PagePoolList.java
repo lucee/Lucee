@@ -53,7 +53,7 @@ public final class PagePoolList implements Function {
 	}
 
 	private static Array toArray(Array arr, PageSourcePool psp) throws PageException {
-		Object[] keys = psp.keys();
+		String[] keys = psp.keys();
 		
 		PageSourceImpl ps;
 		for(int y=0;y<keys.length;y++)	{
