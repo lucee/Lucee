@@ -272,7 +272,7 @@ public final class CreationImpl implements Creation,Serializable {
 
 	@Override
 	public HttpServletResponse createHttpServletResponse(OutputStream io) {
-		return new HttpServletResponseDummy(io);
+		return new HttpServletResponseDummy(io); // do not change, flex extension is depending on this
 	}
 	
 	// FUTURE add to interface
