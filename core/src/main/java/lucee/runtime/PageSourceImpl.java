@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import lucee.aprint;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -438,7 +439,10 @@ public final class PageSourceImpl implements PageSource {
 				}
 				else {
 					// MUST remove this
-					throw new RuntimeException(tmp+":"+physcalSource+":"+mapping.getPhysical().getAbsolutePath()+":"+relpath);
+					aprint.e(
+							tmp+":"+physcalSource+":"+
+							mapping.getPhysical().getAbsolutePath()+":"+
+							relpath+":"+relPath);
 				}
 			}
         }
