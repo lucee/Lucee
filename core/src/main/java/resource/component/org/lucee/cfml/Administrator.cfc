@@ -489,7 +489,12 @@
 			remoteClients="#variables.remoteClients#";
 	}
 
-	//verifyDatasource
+	/**
+	* @hint verifies whether it is datasource or not
+	* @name name of the datasource to be verified
+	* @dbusername username of the database
+	* @dbpassword password of the database
+	*/
 	public struct function verifyDatasource( required string name, required string dbusername, required string dbpassword ){
 		var tmpStruct = {};
 		try{
@@ -562,7 +567,13 @@
 			remoteClients="#variables.remoteClients#";
 	}
 
-	//verifyMailServer
+	/**
+	* @hint verifies whether it is mail server or not
+	* @hostname name of the host server to be verified
+	* @port port number of the host
+	* @mailusername username of the mail
+	* @mailpassword password of the mail
+	*/
 	public struct function verifyMailServer( required string hostname, required string port, required string mailusername, required string mailpassword ){
 		local.stVeritfyMessages={};
 		try{
@@ -656,6 +667,10 @@
 		return local.mappings;
 	}
 
+	/**
+	* @hint returns the details about mapping
+	* @virtual specifies the virtual name for the mapping
+	*/
 	public struct function getMapping( required string virtual ){
 		admin
 			action="getMapping"
@@ -758,7 +773,9 @@
 		// downloadFile(arguments.target);
 	}
 
-	//getCustomTagMappings
+	/**
+	* @hint returns the list of custom tag mappings
+	*/
 	public query function getCustomTagMappings(){
 		admin
 			action="getCustomTagMappings"
@@ -818,7 +835,9 @@
 			id="#arguments.id#";
 	}
 
-	//getRHServerExtensions
+	/**
+	* @hint returns the list of RH server extension
+	*/
 	public query function getRHServerExtensions(){
 		admin
 			action="getRHServerExtensions"
@@ -828,7 +847,10 @@
 		return rtn;
 	}
 
-	//getLocalExtension
+	/**
+	* @hint returns the details about local extension
+	* @id specifies the id of local extension
+	*/
 	public struct function getLocalExtension( required string id  ){
 		admin
 			action="getLocalExtension"
@@ -839,7 +861,9 @@
 		return rtn;
 	}
 
-	//getLocalExtensions
+	/**
+	* @hint returns the list of local extensions
+	*/
 	public query function getLocalExtensions(){
 		admin
 			action="getLocalExtensions"
@@ -887,7 +911,10 @@
 			url="#trim(arguments.url)#";
 	}
 
-	//verifyExtensionProvider
+	/**
+	* @hint verifies whether it is an extension provider or not
+	* @url URL to the Extension Provider (Example: http://www.myhost.com)
+	*/
 	public struct function verifyExtensionProvider( required string url ){
 		local.verifyExtensionProvider={};
 		try{
@@ -1089,7 +1116,10 @@
 			return rtn;
 	}
 
-	//verifyCacheConnection
+	/**
+	* @hint verifies whether cache has connection or not
+	* @name specifies the name of the cache to be verified
+	*/
 	public struct function verifyCacheConnection( required string name ){
 		var tmpStruct = {};
 		try{
@@ -1207,7 +1237,11 @@
 		return res;
 	}
 
-	//updateCachedWithin
+	/**
+	* @hint updates the cache within information
+	* @cachedWithinType specifies the type of cache to be updated
+	* @cachedWithin specifies the time limit for the cache
+	*/
 	public void function updateCachedWithin( required string cachedWithinType, required string cachedWithin ){
 		admin
 			action="updateCachedWithin"
@@ -1643,7 +1677,11 @@
 			return rtn;
 	}
 
-	//updateSSLCertificate
+	/**
+	* @hint update the SSL certificates
+	* @host specifies the host server name
+	* @port specifies the port number of the host server
+	*/
 	public query function updateSSLCertificate( required string host, numeric port = 443 ){
 		admin
 			action="updateSSLCertificate"
@@ -1701,7 +1739,9 @@
 			name="#arguments.name#";
 	}
 
-	//getContextDirectory
+	/**
+	* @hint returns the list of context directories path
+	*/
 	public query function getContextDirectory(){
 		admin
 			action="getContextDirectory"
@@ -1711,7 +1751,11 @@
 			return rtn;
 	}
 
-	//updateContext
+	/**
+	* @hint update the context directories
+	* @source specifies the source path to get data
+	* @destination specifies the destination path to store data
+	*/
 	public query function updateContext( required string source, required string destination ){
 		admin
 			action="updateContext"
@@ -1721,7 +1765,10 @@
 			destination="#arguments.destination#";
 	}
 
-	//removeContext
+	/**
+	* @hint removes the context directories from the path
+	* @destination specifies the destination path to remove context
+	*/
 	public query function removeContext( required string destination ){
 		admin
 			action="removeContext"
@@ -1730,7 +1777,9 @@
 			destination="#arguments.destination#";
 	}
 
-	//getFlds
+	/**
+	* @hint returns the list of FLD's
+	*/
 	public query function getFlds(){
 		admin
 			action="getFlds"
@@ -1740,7 +1789,9 @@
 		return rtn;
 	}
 
-	//getTlds
+	/**
+	* @hint returns the list of TLD's
+	*/
 	public query function getTlds(){
 		admin
 			action="getTlds"
@@ -1762,7 +1813,9 @@
 			return rtn;
 	}
 
-	//getTaskSetting
+	/**
+	* @hint returns the details of task settings
+	*/
 	public struct function getTaskSetting(){
 		admin
 			action="getTaskSetting"
@@ -1772,7 +1825,9 @@
 		return rtn;
 	}
 
-	//getCfxTags
+	/**
+	* @hint returns the list of CFX tags
+	*/
 	public query function getCfxTags(){
 		admin
 			action="getCfxTags"
@@ -1782,7 +1837,10 @@
 		return providers;
 	}
 
-	//verifyCFX
+	/**
+	* @hint verifies whether it is CFX tag or not
+	* @name specifies the name of the tag to verify
+	*/
 	public struct function verifyCFX( required string name ){
 		local.verifyCFX={};
 		try{
@@ -1799,7 +1857,9 @@
 		return local.verifyCFX;
 	}
 
-	//getCPPCfxTags
+	/**
+	* @hint returns the list of CPPCFX tags
+	*/
 	public query function getCPPCfxTags(){
 		admin
 			action="getCPPCfxTags"
@@ -1809,7 +1869,9 @@
 			return providers;
 	}
 
-	//getJavaCfxTags
+	/**
+	* @hint returns the list of javaCFX tags
+	*/
 	public query function getJavaCfxTags(){
 		admin
 			action="getJavaCfxTags"
@@ -1819,7 +1881,13 @@
 			return providers;
 	}
 
-	//verifyJavaCFX
+	/**
+	* @hint verifies whether it is javaCFX tag or not
+	* @name specifies the name of the javaCFXtag to verify
+	* @class class name for the javaCFX
+	* @bundleName bundle name for the javaCFX
+	* @bundleVersion bundle version for the javaCFX
+	*/
 	public struct function verifyJavaCFX( required string name, required string class, string bundleName, string bundleVersion ){
 		local.verifyJavaCFX={};
 		try{
@@ -1899,7 +1967,14 @@
 			return rtn;
 	}
 
-	//updateLogSettings
+	/**
+	* @hint updates the log settings
+	* @appenderClass specifies the appender class to display the log
+	* @layoutClass specifies the layout format to display
+	* @name specifies the name of the log to update
+	* @appenderArgs specifies the structure of appender class
+	* @layoutArgs specifies the structure of layout class
+	*/
 	public struct function updateLogSettings( required string level, required string appenderClass, required string layoutClass, required string name, struct appenderArgs={}, struct layoutArgs={} ){
 		local.updateLogSettings={};
 		try{
@@ -1933,7 +2008,11 @@
 			return rtn;
 	}
 
-	//updateApplicationListener->
+	/**
+	* @hint updates the application listener
+	* @listenerType specifies the type of listener to update
+	* @listenerMode specifies the mode of the listener
+	*/
 	public void function updateApplicationListener( required string listenerType, required string listenerMode ){
 		admin
 			action="updateApplicationListener"
@@ -1955,7 +2034,14 @@
 			return rtn;
 	}
 
-	//updateproxy
+	/**
+	* @hint updates the proxy settings
+	* @proxyenabled specifies whether the proxy is enable or not
+	* @proxyserver specifies the proxy server
+	* @proxyport specifies the port of proxy host server
+	* @proxyusername specifies the username of the proxy to access
+	* @proxypassword specifies the password of the proxy to access
+	*/
 	public void function updateproxy( boolean proxyenabled, string proxyserver="testProxy", numeric proxyport=443, string proxyusername="admin", string proxypassword="password" ){
 		admin
 			action="updateproxy"
@@ -2216,7 +2302,13 @@
 			return rtn;
 	}
 
-	//updateJDBCDriver
+	/**
+	* @hint updates the JDBC driver
+	* @classname specifies the class name of JDBC driver
+	* @label specifies the name of the JDBC driver to update
+	* @bundleName specifies the bundle name of JDBC driver
+	* @bundleVersion specifies the bundle version of JDBC driver
+	*/
 	public void function updateJDBCDriver( required string classname, required string label, string bundleName, string bundleVersion ){
 		admin
 			action="updateJDBCDriver"
@@ -2277,7 +2369,9 @@
 			return rtn;
 	}
 
-	//getError
+	/**
+	* @hint returns the details about error
+	*/
 	public struct function getError(){
 		admin
 			action="getError"
@@ -2287,7 +2381,9 @@
 			return providers;
 	}
 
-	//resetId
+	/**
+	* @hint reset the ID
+	*/
 	public struct function resetId(){
 		local.resetId={};
 		try{
