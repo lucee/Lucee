@@ -1,6 +1,5 @@
 <cfcomponent>
 <cfscript>
-	
 	/**
 	** @hint constructor of the component
 	* @type type contex type, valid values are "server" or "web"
@@ -10,21 +9,20 @@
 		variables.type=arguments.type;
 		variables.password=arguments.password;
 		variables.remoteClients=!isNull(arguments.remoteClients)?arguments.remoteClients:"";
-		
 	}
-	
+
 	/**
 	* @hint returns reginal information about this context, this includes the locale, the timezone,a timeserver address and if the timeserver is used or not
 	*/
 	public struct function getRegional(){
-		admin 
+		admin
 			action="getRegional"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
 			return rtn;
 	}
-	
+
 	/**
 	* @hint updates the regional settings of this context
 	* @timezone timezone used for this context, this can be for example "gmt+1" or "Europe/Zurich", use the function "getAvailableTimeZones" to get a list of available timezones
@@ -34,75 +32,72 @@
 	*/
 	public void function updateRegional(string timezone, string locale,string timeserver,boolean usetimeserver){
 		var regional="";
-		
+
 		// check timezone
 		if(isNull(arguments.timezone) || isEmpty(arguments.timezone)) {
 			regional=getRegional();
 			arguments.timezone=regional.timezone;
 		}
-		
+
 		// check locale
 		if(isNull(arguments.locale) || isEmpty(arguments.locale)) {
 			if(isSimpleValue(regional))regional=getRegional();
 			arguments.locale=regional.locale;
 		}
-		
+
 		// check timeserver
 		if(isNull(arguments.timeserver) || isEmpty(arguments.timeserver)) {
 			if(isSimpleValue(regional))regional=getRegional();
 			arguments.timeserver=regional.timeserver;
 		}
-		
+
 		// check usetimeserver
 		if(isNull(arguments.usetimeserver)) {
 			if(isSimpleValue(regional))regional=getRegional();
 			arguments.usetimeserver=regional.usetimeserver;
 		}
-			
-		admin 
+
+		admin
 			action="updateRegional"
 			type="#variables.type#"
 			password="#variables.password#"
-			
+
 			timezone="#arguments.timezone#"
 			locale="#arguments.locale#"
 			timeserver="#arguments.timeserver#"
 			usetimeserver="#arguments.usetimeserver#"
 			remoteClients="#variables.remoteClients#";
-			
 	}
-	
+
 	/**
 	* @hint remove web specific regional settings and set back to server context settings, this function only works with type "web" and is ignored with type "server"
 	*/
 	public void function resetRegional(){
 		if(variables.type != "web") return;
-			
-		admin 
+
+		admin
 			action="updateRegional"
 			type="#variables.type#"
 			password="#variables.password#"
-			
 			timezone=""
 			locale=""
 			timeserver=""
 			usetimeserver=""
 			remoteClients="#variables.remoteClients#";
-			
 	}
-	
+
 	/**
 	* @hint returns charset information about this context
 	*/
 	public struct function getCharset(){
-		admin 
+		admin
 			action="getCharset"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
 			return rtn;
 	}
-	
+
 	/**
 	* @hint updates the charset settings of this context
 	* @resourceCharset default charset used for read/write resources (cffile,wilewrite ...)
@@ -146,19 +141,17 @@
 	*/
 	public void function resetCharset(){
 		if(variables.type != "web") return;
-			
-		admin 
+
+		admin
 			action="updateCharset"
 			type="#variables.type#"
 			password="#variables.password#"
-			
 			templateCharset=""
 			webCharset=""
 			resourceCharset=""
 			remoteClients="#variables.remoteClients#";
-			
 	}
-	
+
 	/**
 	* @hint returns output settings for this context
 	*/
@@ -220,12 +213,11 @@
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn"
-			
 			action="getTimeZones";
 			querySort(rtn,"id,display");
 			return rtn;
 	}
-	
+
 	/**
 	* @hint returns all available locales
 	*/
@@ -234,13 +226,23 @@
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn"
-			
 			action="getLocales";
 			return rtn;
 	}
 
 
-	
+	/**
+	* @hint returns the list of available JARS
+	*/
+	public query function getJars(){
+		admin
+			action="getJars"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
+	}
+
 	/**
 	* @hint updates or inserts of not existing a jar to the Lucee handled lib folder
 	* @path path (including file name) to the jar file, this can be any virtual file systm supported (local filesystem, zip, ftp, s3, ram ...)
@@ -319,6 +321,20 @@
 			password="#variables.password#"
 			returnVariable="local.datasources";
 		return local.datasources;
+	}
+
+	/**
+	* @hint returns the datasource information
+	* @name Specifies the name of the datasource
+	*/
+	public struct function getDatasource( required string name ){
+		admin
+			action="getDatasource"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#"
+			returnVariable="local.rtn";
+		return rtn;
 	}
 
 	/**
@@ -473,6 +489,37 @@
 			remoteClients="#variables.remoteClients#";
 	}
 
+	//verifyDatasource
+	public struct function verifyDatasource( required string name, required string dbusername, required string dbpassword ){
+		var tmpStruct = {};
+		try{
+			admin
+				action="verifyDatasource"
+				type="#variables.type#"
+				password="#variables.password#"
+				name="#arguments.name#"
+				dbusername="#arguments.dbusername#"
+				dbpassword="#arguments.dbpassword#";
+				tmpStruct.label = "Ok";
+		} catch ( any e ){
+			tmpStruct.label = "Error";
+			tmpStruct.message = e.message;
+		}
+		return tmpStruct;
+	}
+
+	/**
+	* @hint returns the list of datasource driver details
+	*/
+	public query function getDatasourceDriverList(){
+		admin
+			action="getDatasourceDriverList"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
+	}
+
 	/**
 	* @hint returns a list mail servers defined for this context
 	*/
@@ -514,6 +561,27 @@
 			ssl="#arguments.ssl#"
 			remoteClients="#variables.remoteClients#";
 	}
+
+	//verifyMailServer
+	public struct function verifyMailServer( required string hostname, required string port, required string mailusername, required string mailpassword ){
+		local.stVeritfyMessages={};
+		try{
+			admin
+				action="verifyMailServer"
+				type="#variables.type#"
+				password="#variables.password#"
+				hostname="#arguments.hostname#"
+				port="#arguments.port#"
+				mailusername="#arguments.mailusername#"
+				mailpassword="#arguments.mailpassword#";
+				stVeritfyMessages.label="ok"
+		}catch( any e ){
+			stVeritfyMessages.label="error";
+			stVeritfyMessages.catch=e.message;
+		}
+		return stVeritfyMessages;
+	}
+
 
 	/**
 	* @hint removes a specific mailserver defined for this context.
@@ -588,6 +656,16 @@
 		return local.mappings;
 	}
 
+	public struct function getMapping( required string virtual ){
+		admin
+			action="getMapping"
+			type="#variables.type#"
+			password="#variables.password#"
+			virtual = "#arguments.virtual#"
+			returnVariable="local.providers";
+		return providers;
+	}
+
 	/**
 	* @hint updates/inserts a specific mapping for this context
 	* @virtual virtual name for the mapping
@@ -595,9 +673,8 @@
 	* @archive archive path for the mapping, if needed.
 	* @primary type of mapping ( physical/archive )
 	* @inspect type of inspection for the mapping(never/once/always/"").
-	* @toplevel 
 	*/
-	public void function updateMapping(required string virtual, string physical="", string archive="", string primary="", string inspect="", boolean toplevel=true) {
+	public void function updateMapping(required string virtual, string physical="", string archive="", string primary="", string inspect="") {
 		admin
 			action="updateMapping"
 			type="#variables.type#"
@@ -679,7 +756,16 @@
 			remoteClients="#variables.remoteClients#";
 
 		// downloadFile(arguments.target);
+	}
 
+	//getCustomTagMappings
+	public query function getCustomTagMappings(){
+		admin
+			action="getCustomTagMappings"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+		return providers;
 	}
 
 	/**
@@ -692,6 +778,18 @@
 			password="#variables.password#"
 			returnVariable="local.extensions";
 		return local.extensions;
+	}
+
+	/**
+	* @hint returns the extension Info
+	*/
+	public struct function getExtensionInfo(){
+		admin
+			action="getExtensionInfo"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.info";
+		return info;
 	}
 
 	/**
@@ -758,40 +856,52 @@
 			url="#trim(arguments.url)#";
 	}
 
-	/**
-	* @hint returns the configuration information details
-	*/
-	public struct function getInfo(){
+	//getRHServerExtensions
+	public query function getRHServerExtensions(){
 		admin
-			action="getinfo"
+			action="getRHServerExtensions"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
 	}
 
-	/**
-	* @hint returns the surveillance details
-	*/
-	public struct function getSurveillance(){
+	//getLocalExtension
+	public struct function getLocalExtension( required string id  ){
 		admin
-			action="surveillance"
+			action="getLocalExtension"
 			type="#variables.type#"
 			password="#variables.password#"
+			id="#arguments.id#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
 	}
 
-	/**
-	* @hint Checks whether the monitor is enable or not
-	*/
-	public boolean function isMonitorEnabled(){
+	//getLocalExtensions
+	public query function getLocalExtensions(){
 		admin
-			action="isMonitorEnabled"
+			action="getLocalExtensions"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
+	}
+
+	//verifyExtensionProvider
+	public struct function verifyExtensionProvider( required string url ){
+		local.verifyExtensionProvider={};
+		try{
+			admin
+				action="verifyExtensionProvider"
+				type="#variables.type#"
+				password="#variables.password#"
+				url="#arguments.url#";
+			verifyExtensionProvider.label="ok";
+		}catch( any e ){
+			verifyExtensionProvider.label="error";
+			verifyExtensionProvider.catch=e.message;
+		}
+		return verifyExtensionProvider;
 	}
 
 	/**
@@ -887,30 +997,6 @@
 	}
 
 	/**
-	* @hint returns the listener details of application
-	*/
-	public struct function getApplicationListener(){
-		admin
-			action="getApplicationListener"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint returns the proxy details
-	*/
-	public struct function getProxy(){
-		admin
-			action="getProxy"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
 	* @hint returns the list of component information
 	*/
 	public Struct function getComponent(){
@@ -923,6 +1009,49 @@
 	}
 
 	/**
+	* @hint updates component mapping settings
+	* @baseComponentTemplateCFML Every component(CFC) that does not explicitly extend another component (attribute "extends") will by default extend this component.
+	* @baseComponentTemplateLucee Every component(lucee) that does not explicitly extend another component (attribute "extends") will by default extend this component.
+	* @componentDumpTemplate If you call a component directly, this template will be invoked to dump the component.
+	* @componentDataMemberDefaultAccess Define the accessor for the data-members of a component. This defines how variables of the "this" scope of a component can be accessed from outside of the component., values available for this argument are [private,public,package,remote]
+	* @triggerDataMember If there is no accessible data member (property, element of the this scope) inside a component, Lucee searches for available matching "getters" or "setters" for the requested property.
+	* @useShadow Defines whether a component has an independent variables scope parallel to the "this" scope (CFML standard) or not.
+	* @componentDefaultImport this package definition is imported into every template.
+	* @componentLocalSearch Search relative to the caller directory for the component
+	* @componentPathCache component path is cached and not resolved again
+	* @componentDeepSearchDesc Search for CFCs in the subdirectories of the "Additional Resources" below.
+	*/
+	public struct function updateComponent(string baseComponentTemplateCFML="", string baseComponentTemplateLucee="", string componentDumpTemplate="", string componentDataMemberDefaultAccess="public", boolean triggerDataMember=false, boolean useShadow=true, string componentDefaultImport="org.lucee.cfml.*", boolean componentLocalSearch=false, boolean componentPathCache=false, boolean componentDeepSearchDesc=false){
+		var res = {};
+		try{
+			admin
+				action="updateComponent"
+				type="#variables.type#"
+				password="#variables.password#"
+
+				baseComponentTemplateCFML="#arguments.baseComponentTemplateCFML#"
+				baseComponentTemplateLucee="#arguments.baseComponentTemplateLucee#"
+				componentDumpTemplate="#arguments.componentDumpTemplate#"
+				componentDataMemberDefaultAccess="#arguments.componentDataMemberDefaultAccess#"
+				triggerDataMember="#arguments.triggerDataMember#"
+				useShadow="#arguments.useShadow#"
+				componentDefaultImport="#arguments.componentDefaultImport#"
+				componentLocalSearch="#arguments.componentLocalSearch#"
+				componentPathCache="#arguments.componentPathCache#"
+				deepSearch="#arguments.componentDeepSearchDesc#"
+
+				remoteClients="#variables.remoteClients#";
+
+			res.label = "OK";
+		}catch( any e ){
+			res.label = "Error";
+			res.exception = e;
+		}
+
+		return res;
+	}
+
+	/**
 	* @hint returns the list of component mappings
 	*/
 	public query function getComponentMappings(){
@@ -932,81 +1061,6 @@
 			password="#variables.password#"
 			returnVariable="local.mappings";
 		return local.mappings;
-	}
-
-	/**
-	* @hint returns the details of scopes
-	*/
-	public struct function getScope(){
-		admin
-			action="getScope"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint returns the details of application settings
-	*/
-	public struct function getApplicationSetting(){
-		admin
-			action="getApplicationSetting"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint returns the details of queue settings
-	*/
-	public struct function getQueueSetting(){
-		admin
-			action="getQueueSetting"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint returns the details of custom tag settings
-	*/
-	public struct function getCustomTagSetting(){
-		admin
-			action="getCustomTagSetting"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint returns the datasource information
-	* @name Specifies the name of the datasource
-	*/
-	public struct function getDatasource( required string name ){
-		admin
-			action="getDatasource"
-			type="#variables.type#"
-			password="#variables.password#"
-			name="#arguments.name#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-
-	/**
-	* @hint returns the list of JDBC drivers
-	*/
-	public query function getJDBCDrivers(){
-		admin
-			action="getJDBCDrivers"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
 	}
 
 	/**
@@ -1035,6 +1089,61 @@
 			return rtn;
 	}
 
+	//verifyCacheConnection
+	public struct function verifyCacheConnection( required string name ){
+		var tmpStruct = {};
+		try{
+			admin
+				action="verifyCacheConnection"
+				type="#variables.type#"
+				password="#variables.password#"
+				name="#arguments.name#";
+				tmpStruct.label = "Ok";
+		} catch ( any e ){
+			tmpStruct.label = "Error";
+			tmpStruct.message = e.message;
+		}
+		return tmpStruct;
+	}
+
+	/**
+	* @hint updates a cache connection
+	* @class class name for the cache connection
+	* @name name for the cache connection
+	* @custom custom fields for the cache connection
+	* @bundleName bundle name for the cache connection
+	* @bundleVersion bundle version for the cache connection
+	* @default for which type, this cache is set to default
+	* @readonly whether this cache connection is readonly.
+	* @storage whether allow to use this cache as client/session storage.
+	*/
+	public void function updateCacheConnection(
+		required string class,
+		required string name,
+		struct custom={},
+		string bundleName= "",
+		string bundleVersion="",
+		string default="",
+		boolean readonly=false,
+		boolean storage=false
+	){
+		admin
+			action="updateCacheConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			class="#arguments.class#"
+			name="#arguments.name#"
+			custom="#arguments.custom#"
+			bundleName="#arguments.bundleName#"
+			bundleVersion="#arguments.bundleVersion#"
+			default="#arguments.default#"
+			readonly="#getArguments('readonly', false)#"
+			storage="#getArguments('storage', false)#"
+
+			remoteClients="#variables.remoteClients#";
+	}
+
 	/**
 	* @hint returns the details of default cache connections
 	* @cachetype specifies the type of the cache
@@ -1047,6 +1156,65 @@
 			password="#variables.password#"
 			returnVariable="local.rtn";
 			return rtn;
+	}
+
+	/**
+	* @hint updates the default cache connection for various lucee elements
+	* @object sets the default cache connection for object
+	* @template sets the default cache connection for template
+	* @query sets the default cache connection for query
+	* @resource sets the default cache connection for resource
+	* @function sets the default cache connection for function
+	* @include sets the default cache connection for include
+	* @http sets the default cache connection for http
+	* @file sets the default cache connection for file
+	* @webservice sets the default cache connection for webservice
+	*/
+	public void function updateCacheDefaultConnection(
+		string object = "",
+		string template = "",
+		string query = "",
+		string resource = "",
+		string function = "",
+		string include = "",
+		string http = "",
+		string file = "",
+		string webservice = ""
+	){
+		var res = {};
+		try{
+			admin
+				action="updateCacheDefaultConnection"
+				type="#variables.type#"
+				password="#variables.password#"
+				object="#arguments.object#"
+				template="#arguments.template#"
+				query="#arguments.query#"
+				resource="#arguments.resource#"
+				function="#arguments['function']#"
+				include="#arguments.include#"
+				http="#arguments.http#"
+				file="#arguments.file#"
+				webservice="#arguments.webservice#"
+				remoteClients="#variables.remoteClients#";
+
+			res.label = "OK";
+		}catch( any e ){
+			res.label = "Error";
+			res.exception = e;
+		}
+
+		return res;
+	}
+
+	//updateCachedWithin
+	public void function updateCachedWithin( required string cachedWithinType, required string cachedWithin ){
+		admin
+			action="updateCachedWithin"
+			type="#variables.type#"
+			password="#variables.password#"
+			cachedWithinType="#arguments.cachedWithinType#"
+			cachedWithin="#arguments.cachedWithin#";
 	}
 
 	/**
@@ -1143,11 +1311,11 @@
 	* @adminPassword specifies the administrator password for remote client
 	* @securityKey specifies the security key for the remote
 	*/
-	public struct function verifyremoteclient( required string label, required string url, required string adminPassword, required string securityKey ){
+	public struct function verifyRemoteClient( required string label, required string url, required string adminPassword, required string securityKey ){
 		var tmpStruct = {};
 		try{
 			admin
-				action="verifyremoteclient"
+				action="verifyRemoteClient"
 				type="#variables.type#"
 				password="#variables.password#"
 				label="#arguments.label#"
@@ -1175,43 +1343,8 @@
 	}
 
 	/**
-	* @hint returns the list of spooler tasks
+	* @hint returns the details of compiler settings
 	*/
-	public query function getSpoolerTasks(){
-		admin
-			action="getSpoolerTasks"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-
-	/**
-	* @hint returns the details of performance settings
-	*/
-	public struct function getPerformanceSettings(){
-		admin
-			action="getPerformanceSettings"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint returns the list of log settings
-	*/
-	public query function getLogSettings(){
-		admin
-			action="getLogSettings"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	//getCompilerSettings
 	public struct function getCompilerSettings(){
 		admin
 			action="getCompilerSettings"
@@ -1250,6 +1383,18 @@
 	}
 
 	/**
+	* @hint returns the details of performance settings
+	*/
+	public struct function getPerformanceSettings(){
+		admin
+			action="getPerformanceSettings"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
+	}
+
+	/**
 	* @hint updates server caching settings
 	* @inspectTemplate sets the type of inspection for files inside the template cache
 	* @typeChecking If disabled Lucee ignores type definitions with function arguments and return values
@@ -1266,21 +1411,25 @@
 			remoteClients="#variables.remoteClients#";
 	}
 
-	//getGatewayentries
-	public query function getGatewayentries( type ){
+	/**
+	* @hint returns the list of gateway entries
+	*/
+	public query function getGatewayEntries( type ){
 		admin
-			action="getGatewayentries"
+			action="getGatewayEntries"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
 			return rtn;
 	}
 
-	//getGatewayentry
-	
-	public struct function getGatewayentry( required string id){
+	/**
+	* @hint returns the details of specified gateway entry
+	* @id specifies the gateway id
+	*/
+	public struct function getGatewayEntry( required string id){
 		admin
-			action="getGatewayentry"
+			action="getGatewayEntry"
 			type="#variables.type#"
 			password="#variables.password#"
 			id = "#arguments.id#"
@@ -1313,10 +1462,28 @@
 			remoteClients="#variables.remoteClients#";
 	}
 
-	//getRunningThreads
-	public query function getRunningThreads(){
+	/**
+	* @hint returns the details about gateway
+	* @id specifies the gateway id
+	* @gatewayAction specifies the action of gateway
+	*/
+	public struct function gateway( required string id, required string gatewayAction ){
 		admin
-			action="getRunningThreads"
+			action="gateway"
+			type="#variables.type#"
+			password="#variables.password#"
+			id="#arguments.id#"
+			gatewayAction="#arguments.gatewayAction#"
+			returnVariable="local.rtn";
+			return rtn;
+	}
+
+	/**
+	* @hint Checks whether the monitor is enable or not
+	*/
+	public boolean function isMonitorEnabled(){
+		admin
+			action="isMonitorEnabled"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
@@ -1351,8 +1518,9 @@
 		return rtn;
 	}
 
-	//getBundles
-
+	/**
+	* @hint returns the list of bundles
+	*/
 	public query function getBundles(){
 		admin
 			action="getBundles"
@@ -1362,9 +1530,10 @@
 			return rtn;
 	}
 
-
-	//getBundle
-	
+	/**
+	* @hint returns the details of bundle
+	* @name specifies the name of the bundle
+	*/
 	public struct function getBundle( required string name ){
 		admin
 			action="getBundle"
@@ -1375,47 +1544,6 @@
 			return rtn;
 	}
 
-	//getExecutionLog
-
-
-	public struct function getExecutionLog(){
-		admin
-			action="getExecutionLog"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	//gateway
-	
-	public struct function gateway( required string id, required string gatewayAction ){
-		admin
-			action="gateway"
-			type="#variables.type#"
-			password="#variables.password#"
-			id="#arguments.id#"
-			gatewayAction="#arguments.gatewayAction#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-
-	//alias for getSpoolerTasks
-
-	
-
-	//getDatasourceDriverList
-	public query function getDatasourceDriverList(){
-		admin
-			action="getDatasourceDriverList"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	// debugging related functions
 	/**
 	* @hint returns the list of available debugging templates
 	*/
@@ -1501,7 +1629,10 @@
 		return local.debug;
 	}
 
-	//getSSLCertificate
+	/**
+	* @hint returns the list of SSL certificates
+	* @host specifies the host server name
+	*/
 	public query function getSSLCertificate( required string host ){
 		admin
 			action="getSSLCertificate"
@@ -1512,8 +1643,19 @@
 			return rtn;
 	}
 
-	//getPluginDirectory
+	//updateSSLCertificate
+	public query function updateSSLCertificate( required string host, numeric port = 443 ){
+		admin
+			action="updateSSLCertificate"
+			type="#variables.type#"
+			password="#variables.password#"
+			host="#arguments.host#"
+			port="#arguments.port#";
+	}
 
+	/**
+	* @hint returns the plugin directory path
+	*/
 	public string function getPluginDirectory(){
 		admin
 			action="getPluginDirectory"
@@ -1523,8 +1665,9 @@
 			return rtn;
 	}
 
-	//getPlugins
-
+	/**
+	* @hint returns the list of plugins
+	*/
 	public query function getPlugins(){
 		admin
 			action="getPlugins"
@@ -1534,6 +1677,10 @@
 			return rtn;
 	}
 
+	/**
+	* @hint updates the list of SSL certificates
+	* @host specifies the host name
+	*/
 	public struct function updatePlugin( required string source ){
 		admin
 			action="updatePlugin"
@@ -1541,6 +1688,11 @@
 			password="#variables.password#"
 			source="#arguments.source#";
 	}
+
+	/**
+	* @hint removes the plugin
+	* @host specifies the plugin name
+	*/
 	public struct function removePlugin( required string name ){
 		admin
 			action="doRemovePlugin"
@@ -1578,16 +1730,6 @@
 			destination="#arguments.destination#";
 	}
 
-	//getJars
-	public query function getJars(){
-		admin
-			action="getJars"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-		return rtn;
-	}
-
 	//getFlds
 	public query function getFlds(){
 		admin
@@ -1608,37 +1750,17 @@
 		return rtn;
 	}
 
-	//getRHServerExtensions
-	public query function getRHServerExtensions(){
+	/**
+	* @hint returns the list of spooler tasks
+	*/
+	public query function getSpoolerTasks(){
 		admin
-			action="getRHServerExtensions"
+			action="getSpoolerTasks"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
-		return rtn;
+			return rtn;
 	}
-
-	//getLocalExtension
-	public struct function getLocalExtension( required string id  ){
-		admin
-			action="getLocalExtension"
-			type="#variables.type#"
-			password="#variables.password#"
-			id="#arguments.id#"
-			returnVariable="local.rtn";
-		return rtn;
-	}
-
-	//getLocalExtensions
-	public query function getLocalExtensions(){
-		admin
-			action="getLocalExtensions"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-		return rtn;
-	}
-
 
 	//getTaskSetting
 	public struct function getTaskSetting(){
@@ -1650,26 +1772,6 @@
 		return rtn;
 	}
 
-	public struct function getMapping( required string virtual ){
-		admin
-			action="getMapping"
-			type="#variables.type#"
-			password="#variables.password#"
-			virtual = "#arguments.virtual#"
-			returnVariable="local.providers";
-		return providers;
-	}
-
-	//getCustomTagMappings
-	public query function getCustomTagMappings(){
-		admin
-			action="getCustomTagMappings"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.providers";
-		return providers;
-	}
-
 	//getCfxTags
 	public query function getCfxTags(){
 		admin
@@ -1678,6 +1780,23 @@
 			password="#variables.password#"
 			returnVariable="local.providers";
 		return providers;
+	}
+
+	//verifyCFX
+	public struct function verifyCFX( required string name ){
+		local.verifyCFX={};
+		try{
+			admin
+				action="verifyCFX"
+				type="#variables.type#"
+				password="#variables.password#"
+				name="#arguments.name#";
+			verifyJavaCFX.label="ok";
+		}catch( any e ){
+			local.verifyCFX.label="error";
+			local.verifyCFX.catch=e.message;
+		}
+		return local.verifyCFX;
 	}
 
 	//getCPPCfxTags
@@ -1700,96 +1819,7 @@
 			return providers;
 	}
 
-	//getError
-	public struct function getError(){
-		admin
-			action="getError"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.providers";
-			return providers;
-	}
-
-
-	//verifyDatasource
-
-	public struct function verifyDatasource( required string name, required string dbusername, required string dbpassword ){
-		var tmpStruct = {};
-		try{
-			admin
-				action="verifyDatasource"
-				type="#variables.type#"
-				password="#variables.password#"
-				name="#arguments.name#"
-				dbusername="#arguments.dbusername#"
-				dbpassword="#arguments.dbpassword#";
-				tmpStruct.label = "Ok";
-		} catch ( any e ){
-			tmpStruct.label = "Error";
-			tmpStruct.message = e.message;
-		}
-		return tmpStruct;
-	}
-
-	//verifyCacheConnection
-
-	public struct function verifyCacheConnection( required string name ){
-		var tmpStruct = {};
-		try{
-			admin
-				action="verifyCacheConnection"
-				type="#variables.type#"
-				password="#variables.password#"
-				name="#arguments.name#";
-				tmpStruct.label = "Ok";
-		} catch ( any e ){
-			tmpStruct.label = "Error";
-			tmpStruct.message = e.message;
-		}
-		return tmpStruct;
-	}
-
-	//verifyMailServer
-
-	public struct function verifyMailServer( required string hostname, required string port, required string mailusername, required string mailpassword ){
-		local.stVeritfyMessages={};
-		try{
-			admin
-				action="verifyMailServer"
-				type="#variables.type#"
-				password="#variables.password#"
-				hostname="#arguments.hostname#"
-				port="#arguments.port#"
-				mailusername="#arguments.mailusername#"
-				mailpassword="#arguments.mailpassword#";
-				stVeritfyMessages.label="ok"
-		}catch( any e ){
-			stVeritfyMessages.label="error";
-			stVeritfyMessages.catch=e.message;
-		}
-		return stVeritfyMessages;
-	}
-
-	//verifyExtensionProvider
-
-	public struct function verifyExtensionProvider( required string url ){
-		local.verifyExtensionProvider={};
-		try{
-			admin
-				action="verifyExtensionProvider"
-				type="#variables.type#"
-				password="#variables.password#"
-				url="#arguments.url#";
-			verifyExtensionProvider.label="ok";
-		}catch( any e ){
-			verifyExtensionProvider.label="error";
-			verifyExtensionProvider.catch=e.message;
-		}
-		return verifyExtensionProvider;
-	}
-
 	//verifyJavaCFX
-
 	public struct function verifyJavaCFX( required string name, required string class, string bundleName, string bundleVersion ){
 		local.verifyJavaCFX={};
 		try{
@@ -1807,41 +1837,6 @@
 			verifyJavaCFX.catch=e.message;
 		}
 		return verifyJavaCFX;
-	}
-
-	//verifyCFX
-
-	public struct function verifyCFX( required string name ){
-		local.verifyCFX={};
-		try{
-			admin
-				action="verifyCFX"
-				type="#variables.type#"
-				password="#variables.password#"
-				name="#arguments.name#";
-			verifyJavaCFX.label="ok";
-		}catch( any e ){
-			local.verifyCFX.label="error";
-			local.verifyCFX.catch=e.message;
-		}
-		return local.verifyCFX;
-	}
-
-	//resetId
-
-	public struct function resetId(){
-		local.resetId={};
-		try{
-			admin
-				action="resetId"
-				type="#variables.type#"
-				password="#variables.password#";
-			resetId.label="ok";
-		}catch( any e ){
-			resetId.label="error";
-			resetId.catch=e.message;
-		}
-		return resetId;
 	}
 
 	/**
@@ -1880,8 +1875,31 @@
 		return res;
 	}
 
-	//updateLogSettings
+	/**
+	* @hint returns the list of log settings
+	*/
+	public query function getLogSettings(){
+		admin
+			action="getLogSettings"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
+	}
 
+	/**
+	* @hint returns the details about execution log
+	*/
+	public struct function getExecutionLog(){
+		admin
+			action="getExecutionLog"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
+	}
+
+	//updateLogSettings
 	public struct function updateLogSettings( required string level, required string appenderClass, required string layoutClass, required string name, struct appenderArgs={}, struct layoutArgs={} ){
 		local.updateLogSettings={};
 		try{
@@ -1902,20 +1920,20 @@
 		}
 		return updateLogSettings;
 	}
-	//updateSSLCertificate
 
-	public query function updateSSLCertificate( required string host, numeric port = 443 ){
+	/**
+	* @hint returns the listener details of application
+	*/
+	public struct function getApplicationListener(){
 		admin
-			action="updateSSLCertificate"
+			action="getApplicationListener"
 			type="#variables.type#"
 			password="#variables.password#"
-			host="#arguments.host#"
-			port="#arguments.port#";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
-	
 	//updateApplicationListener->
-
 	public void function updateApplicationListener( required string listenerType, required string listenerMode ){
 		admin
 			action="updateApplicationListener"
@@ -1925,14 +1943,16 @@
 			listenerMode="#arguments.listenerMode#";
 	}
 
-	//updateCachedWithin
-	public void function updateCachedWithin( required string cachedWithinType, required string cachedWithin ){
+	/**
+	* @hint returns the proxy details
+	*/
+	public struct function getProxy(){
 		admin
-			action="updateCachedWithin"
+			action="getProxy"
 			type="#variables.type#"
 			password="#variables.password#"
-			cachedWithinType="#arguments.cachedWithinType#"
-			cachedWithin="#arguments.cachedWithin#";
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	//updateproxy
@@ -1949,46 +1969,15 @@
 	}
 
 	/**
-	* @hint updates component mapping settings
-	* @baseComponentTemplateCFML Every component(CFC) that does not explicitly extend another component (attribute "extends") will by default extend this component.
-	* @baseComponentTemplateLucee Every component(lucee) that does not explicitly extend another component (attribute "extends") will by default extend this component.
-	* @componentDumpTemplate If you call a component directly, this template will be invoked to dump the component.
-	* @componentDataMemberDefaultAccess Define the accessor for the data-members of a component. This defines how variables of the "this" scope of a component can be accessed from outside of the component., values available for this argument are [private,public,package,remote]
-	* @triggerDataMember If there is no accessible data member (property, element of the this scope) inside a component, Lucee searches for available matching "getters" or "setters" for the requested property.
-	* @useShadow Defines whether a component has an independent variables scope parallel to the "this" scope (CFML standard) or not.
-	* @componentDefaultImport this package definition is imported into every template.
-	* @componentLocalSearch Search relative to the caller directory for the component
-	* @componentPathCache component path is cached and not resolved again
-	* @componentDeepSearchDesc Search for CFCs in the subdirectories of the "Additional Resources" below.
+	* @hint returns the details of scopes
 	*/
-	public struct function updateComponent(string baseComponentTemplateCFML="", string baseComponentTemplateLucee="", string componentDumpTemplate="", string componentDataMemberDefaultAccess="public", boolean triggerDataMember=false, boolean useShadow=true, string componentDefaultImport="org.lucee.cfml.*", boolean componentLocalSearch=false, boolean componentPathCache=false, boolean componentDeepSearchDesc=false){
-		var res = {};
-		try{
-			admin
-				action="updateComponent"
-				type="#variables.type#"
-				password="#variables.password#"
-
-				baseComponentTemplateCFML="#arguments.baseComponentTemplateCFML#"
-				baseComponentTemplateLucee="#arguments.baseComponentTemplateLucee#"
-				componentDumpTemplate="#arguments.componentDumpTemplate#"
-				componentDataMemberDefaultAccess="#arguments.componentDataMemberDefaultAccess#"
-				triggerDataMember="#arguments.triggerDataMember#"
-				useShadow="#arguments.useShadow#"
-				componentDefaultImport="#arguments.componentDefaultImport#"
-				componentLocalSearch="#arguments.componentLocalSearch#"
-				componentPathCache="#arguments.componentPathCache#"
-				deepSearch="#arguments.componentDeepSearchDesc#"
-
-				remoteClients="#variables.remoteClients#";
-
-			res.label = "OK";
-		}catch( any e ){
-			res.label = "Error";
-			res.exception = e;
-		}
-
-		return res;
+	public struct function getScope(){
+		admin
+			action="getScope"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	/**
@@ -2136,6 +2125,18 @@
 	}
 
 	/**
+	* @hint returns the details of application settings
+	*/
+	public struct function getApplicationSetting(){
+		admin
+			action="getApplicationSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
+	}
+
+	/**
 	* @hint updates common application settings
 	* @requestTimeout Sets the amount of time the engine will wait for a request to finish before a request timeout will be raised.
 	* @scriptProtect secures your system from "cross-site scripting"
@@ -2161,6 +2162,18 @@
 		}
 
 		return res;
+	}
+
+	/**
+	* @hint returns the details of queue settings
+	*/
+	public struct function getQueueSetting(){
+		admin
+			action="getQueueSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	/**
@@ -2191,6 +2204,18 @@
 		return res;
 	}
 
+	/**
+	* @hint returns the list of JDBC drivers
+	*/
+	public query function getJDBCDrivers(){
+		admin
+			action="getJDBCDrivers"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
+	}
+
 	//updateJDBCDriver
 	public void function updateJDBCDriver( required string classname, required string label, string bundleName, string bundleVersion ){
 		admin
@@ -2205,102 +2230,77 @@
 	}
 
 	/**
-	* @hint updates the default cache connection for various lucee elements
-	* @object sets the default cache connection for object
-	* @template sets the default cache connection for template
-	* @query sets the default cache connection for query
-	* @resource sets the default cache connection for resource
-	* @function sets the default cache connection for function
-	* @include sets the default cache connection for include
-	* @http sets the default cache connection for http
-	* @file sets the default cache connection for file
-	* @webservice sets the default cache connection for webservice
+	* @hint returns the configuration information details
 	*/
-	public void function updateCacheDefaultConnection(
-		string object = "",
-		string template = "",
-		string query = "",
-		string resource = "",
-		string function = "",
-		string include = "",
-		string http = "",
-		string file = "",
-		string webservice = ""
-	){
-		var res = {};
+	public struct function getInfo(){
+		admin
+			action="getinfo"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
+	}
+
+	/**
+	* @hint returns the surveillance details
+	*/
+	public struct function getSurveillance(){
+		admin
+			action="surveillance"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
+	}
+
+	/**
+	* @hint returns the details of custom tag settings
+	*/
+	public struct function getCustomTagSetting(){
+		admin
+			action="getCustomTagSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
+	}
+
+	/**
+	* @hint returns the list of running threads
+	*/
+	public query function getRunningThreads(){
+		admin
+			action="getRunningThreads"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
+	}
+
+	//getError
+	public struct function getError(){
+		admin
+			action="getError"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+			return providers;
+	}
+
+	//resetId
+	public struct function resetId(){
+		local.resetId={};
 		try{
 			admin
-				action="updateCacheDefaultConnection"
+				action="resetId"
 				type="#variables.type#"
-				password="#variables.password#"
-				object="#arguments.object#"
-				template="#arguments.template#"
-				query="#arguments.query#"
-				resource="#arguments.resource#"
-				function="#arguments['function']#"
-				include="#arguments.include#"
-				http="#arguments.http#"
-				file="#arguments.file#"
-				webservice="#arguments.webservice#"
-				remoteClients="#variables.remoteClients#";
-
-			res.label = "OK";
+				password="#variables.password#";
+			resetId.label="ok";
 		}catch( any e ){
-			res.label = "Error";
-			res.exception = e;
+			resetId.label="error";
+			resetId.catch=e.message;
 		}
-
-		return res;
-	}
-
-	/**
-	* @hint updates a cache connection
-	* @class class name for the cache connection
-	* @name name for the cache connection
-	* @custom custom fields for the cache connection
-	* @bundleName bundle name for the cache connection
-	* @bundleVersion bundle version for the cache connection
-	* @default for which type, this cache is set to default
-	* @readonly whether this cache connection is readonly.
-	* @storage whether allow to use this cache as client/session storage.
-	*/
-	public void function updateCacheConnection(
-		required string class,
-		required string name,
-		struct custom={},
-		string bundleName= "",
-		string bundleVersion="",
-		string default="",
-		boolean readonly=false,
-		boolean storage=false
-	){
-		admin
-			action="updateCacheConnection"
-			type="#variables.type#"
-			password="#variables.password#"
-
-			class="#arguments.class#"
-			name="#arguments.name#"
-			custom="#arguments.custom#"
-			bundleName="#arguments.bundleName#"
-			bundleVersion="#arguments.bundleVersion#"
-			default="#arguments.default#"
-			readonly="#getArguments('readonly', false)#"
-			storage="#getArguments('storage', false)#"
-
-			remoteClients="#variables.remoteClients#";
-	}
-
-	/**
-	* @hint returns the extension Info
-	*/
-	public struct function getExtensionInfo(){
-		admin
-			action="getExtensionInfo"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.info";
-		return info;
+		return resetId;
 	}
 
 	/* Private functions */
