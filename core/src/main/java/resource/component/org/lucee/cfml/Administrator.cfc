@@ -1446,6 +1446,20 @@
 	}
 
 	/**
+	* @hint resets the server caching settings
+	*/
+	public void function resetPerformanceSettings(){
+		admin
+			action="updatePerformanceSettings"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			inspectTemplate=""
+			typeChecking=""
+
+			remoteClients="#variables.remoteClients#";
+
+	/**
 	* @hint returns the list of gateway entries
 	*/
 	public query function getGatewayEntries( type ){
@@ -1454,7 +1468,7 @@
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
 	}
 
 	/**
@@ -1468,7 +1482,7 @@
 			password="#variables.password#"
 			id = "#arguments.id#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
 	}
 
 	/**
@@ -1497,6 +1511,19 @@
 	}
 
 	/**
+	* @hint removes the gateway entry
+	* @id id of the gateway to be removed
+	*/
+	public void function removeGatewayEntry( required string id ){
+		admin
+			action="removeGatewayEntry"
+			type="#variables.type#"
+			password="#variables.password#"
+			id="#trim(arguments.id)#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
 	* @hint returns the details about gateway
 	* @id specifies the gateway id
 	* @gatewayAction specifies the action of gateway
@@ -1509,7 +1536,7 @@
 			id="#arguments.id#"
 			gatewayAction="#arguments.gatewayAction#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
 	}
 
 	/**
@@ -1521,7 +1548,7 @@
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
-			return rtn;
+		return rtn;
 	}
 
 	/**
@@ -1615,6 +1642,60 @@
 	}
 
 	/**
+	* @hint creates/updates a debug entry.
+	* @label label for the debugging template entry
+	* @type type of the debugging template entry
+	* @ipRange ip range for the debugging template entry
+	* @custom a struct contains all the custom fields for debugging template entry
+	*/
+	public void function updateDebugEntry( required string label, required string type, required string ipRange, required struct custom ){
+		// load available drivers
+		var driverNames=structnew("linked");
+		driverNames=ComponentListPackageAsStruct("lucee-server.admin.debug",driverNames);
+		driverNames=ComponentListPackageAsStruct("lucee.admin.debug",driverNames);
+		driverNames=ComponentListPackageAsStruct("debug",driverNames);
+
+
+		var drivers={};
+		loop collection="#driverNames#" index="local.n" item="local.fn"{
+			if(n EQ "Debug" or n EQ "Field" or n EQ "Group"){
+				continue;
+			}
+			tmp=createObject('component',fn);
+			drivers[trim(tmp.getId())]=tmp;
+		}
+
+		var driver=drivers[trim(arguments.type)];
+		var meta=getMetaData(driver);
+		admin
+			action="updateDebugEntry"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			label="#arguments.label#"
+			debugtype="#arguments.type#"
+			iprange="#arguments.ipRange#"
+			fullname="#meta.fullName#"
+			path="#contractPath(meta.path)#"
+			custom="#arguments.custom#"
+
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint removes a debug entry
+	* @id id of the debug entry to be removed.
+	*/
+	public void function removeDebugEntry( required string id ){
+		admin
+			action="removeDebugEntry"
+			type="#variables.type#"
+			password="#variables.password#"
+			id="#arguments.id#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
 	* @hint returns the debug log settings
 	*/
 	public struct function getDebugSetting(){
@@ -1661,6 +1742,58 @@
 			password="#variables.password#"
 			returnVariable="local.debug";
 		return local.debug;
+	}
+
+	/**
+	* @hint updates the debugging settings
+	* @debug sets whether  debugging is enabled
+	* @database this option sets to log the database activity for the SQL Query events and Stored Procedure events.
+	* @queryUsage this option sets to log the query usage information.
+	* @exception this option sets to log the all exceptions raised for the request.
+	* @tracing this option sets to log the trace event information.
+	* @dump this option sets to enable output produced with help of the tag cfdump and send to debugging.
+	* @timer this option sets to show timer event information.
+	* @implicitAccess this option sets to log all accesses to scopes, queries and threads that happens implicit (cascaded).
+	*/
+	public void function updateDebug( boolean debug=false, boolean database=false, boolean queryUsage=false, boolean exception=false, boolean tracing=false, boolean dump=false, boolean timer=false, boolean implicitAccess=false ){
+		admin
+			action="updateDebug"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			debug="#arguments.debug#"
+			database="#arguments.database#"
+			exception="#arguments.exception#"
+			tracing="#arguments.tracing#"
+			dump="#arguments.dump#"
+			timer="#arguments.timer#"
+			implicitAccess="#arguments.implicitAccess#"
+			queryUsage="#arguments.queryUsage#"
+
+			debugTemplate=""
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint resets the debugging settings
+	*/
+	public void function resetDebug(){
+		admin
+			action="updateDebug"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			debug=""
+			database=""
+			exception=""
+			tracing=""
+			dump=""
+			timer=""
+			implicitAccess=""
+			queryUsage=""
+
+			debugTemplate=""
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
@@ -1752,11 +1885,23 @@
 	}
 
 	/**
+	* @hint returns the list of contexts
+	*/
+	public query function getContextes(){
+		admin
+			action="getContextes"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.contextes";
+		return contextes;
+	}
+
+	/**
 	* @hint update the context directories
 	* @source specifies the source path to get data
 	* @destination specifies the destination path to store data
 	*/
-	public query function updateContext( required string source, required string destination ){
+	public void function updateContext( required string source, required string destination ){
 		admin
 			action="updateContext"
 			type="#variables.type#"
@@ -1769,7 +1914,7 @@
 	* @hint removes the context directories from the path
 	* @destination specifies the destination path to remove context
 	*/
-	public query function removeContext( required string destination ){
+	public void function removeContext( required string destination ){
 		admin
 			action="removeContext"
 			type="#variables.type#"
@@ -2322,6 +2467,30 @@
 	}
 
 	/**
+	* @hint updates the password for administrator
+	* @oldPassword existing password for administrator
+	* @newPassword new password for administrator
+	*/
+	public void function updatePassword( required string oldPassword, required string newPassword ){
+		admin
+			action="updatePassword"
+			type="#variables.type#"
+			oldPassword="#arguments.oldPassword#"
+			newPassword="#arguments.newPassword#";
+	}
+
+	/**
+	* @contextPath contextPath for which password needs to be resetted.
+	*/
+	public void function resetPassword( required string contextPath ){
+		admin
+			action="resetPassword"
+			type="#variables.type#"
+			password="#variables.password#"
+			contextPath="#arguments.contextPath#";
+	}
+
+	/**
 	* @hint returns the configuration information details
 	*/
 	public struct function getInfo(){
@@ -2397,6 +2566,19 @@
 			resetId.catch=e.message;
 		}
 		return resetId;
+	}
+
+	/**
+	* @hints checks whether the current user has access
+	* @secType area for which access needs to be checked
+	*/
+	public boolean function securityManager( required string secType ){
+		admin
+			action="securityManager"
+			type="#request.adminType#"
+			password="#session["password"&request.adminType]#"
+			secType="#arguments.secType#";
+			returnVariable="access"
 	}
 
 	/* Private functions */

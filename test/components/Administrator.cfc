@@ -643,6 +643,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isstruct(updatedPerformanceSettings) ,true);
 					assertEquals(updatedPerformanceSettings.typeChecking EQ true ,true);
 				});
+
+				it(title="checking resetPerformanceSettings()", body=function( currentSpec ) {
+					admin.resetPerformanceSettings();
+				});
 			});
 
 			describe( title="test gateway functions", body=function() {
@@ -735,6 +739,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(FindNocase('ipRange',strctKeylist) GT 0, true);
 				});
 
+				xit(title="checking updateDebugEntry()", body=function( currentSpec ) {
+					// var tmpstruct = {};
+					// tmpstruct.label = "testDebug";
+					// tmpstruct.type = "lucee-classic";
+					// tmpstruct.ipRange = "127.0.0.1";
+					// tmpstruct.custom = {};
+
+					// adminweb.updateDebugEntry(argumentCollection = tmpstruct);
+				});
+
+				xit(title="checking removeDebugEntry()", body=function( currentSpec ) {
+					// var debugEntry = admin.getDebugEntry();
+					// admin.removeDebugEntry("");
+				});
+
 				it(title="checking getDebugSetting()", body=function( currentSpec ) {
 					var deguggingListSetting = admin.getDebugSetting();
 					assertEquals(isstruct(deguggingListSetting) ,true);
@@ -753,6 +772,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var debuggingSetting = admin.getDebug();
 					assertEquals(isstruct(debuggingSetting) ,true);
 					assertEquals(listSort(structKeyList(debuggingSetting),'textnocase'), 'database,debug,dump,exception,implicitAccess,queryUsage,timer,tracing');
+				});
+
+				it(title="checking updateDebug()", body=function( currentSpec ) {
+					admin.updateDebug( implicitAccess=true );
+				});
+
+				it(title="checking resetDebug()", body=function( currentSpec ) {
+					admin.resetDebug();
 				});
 			});
 
@@ -773,6 +800,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking getPlugins()", body=function( currentSpec ) {
 					var plugin = admin.getPlugins();
 					assertEquals(isquery(plugin) ,true);
+				});
+			});
+
+			describe( title="test context functions", body=function() {
+				it(title="checking getContextDirectory()", body=function( currentSpec ) {
+					var contextDirectory = admin.getContextDirectory();
+					assertEquals(isquery(contextDirectory), false);
+					assertEquals(listSort(structKeyList(contextDirectory),'textnocase'), 'clientElements,clientSize,config_file,hash,hasOwnSecContext,id,label,path,sessionElements,sessionSize,url');
+
+				});
+
+				it(title="checking getContextes()", body=function( currentSpec ) {
+					var getContext = admin.getContextes();
+					assertEquals(isquery(getContext), false);
+					assertEquals(listSort(structKeyList(getContext),'textnocase'), 'clientElements,clientSize,config_file,hash,hasOwnSecContext,id,label,path,sessionElements,sessionSize,url');
 				});
 			});
 
