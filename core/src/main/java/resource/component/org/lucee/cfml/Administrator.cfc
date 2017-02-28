@@ -1181,6 +1181,36 @@
 	}
 
 	/**
+	* @hint updates the component mappings settings
+	* @virtual specifies as identifier when automatically import a Lucee Archive build based on this Mapping
+	* @physical specifies directory path where the components are located, this path should not include the package
+	* @archive specifies file path to a components Lucee Archive (.lar).
+	* @inspect checks for changes in the source file for a already loaded component
+	*/
+	public void function updateComponentMapping(required string virtual, required string physical, required string archive, string inspect="never"){
+		admin
+			action="updateComponentMapping"
+			type="#variables.type#"
+			password="#variables.password#"
+			virtual="#arguments.virtual#"
+			physical="#arguments.physical#"
+			archive="#arguments.archive#"
+			inspect="#arguments.inspect#";
+	}
+
+	/**
+	* @hint removes the component mappings
+	* @virtual specifies the virtual name of the component mappings
+	*/
+	public void function removeComponentMapping(required string virtual){
+		admin
+			action="removeComponentMapping"
+			type="#variables.type#"
+			password="#variables.password#"
+			virtual="#arguments.virtual#";
+	}
+
+	/**
 	* @hint returns the list of cache connections
 	*/
 	public query function getCacheConnections(){
@@ -1448,6 +1478,34 @@
 	}
 
 	/**
+	* @hint updates the details for a remote client usage
+	* @code specifies the code of the remote client
+	* @displayName specifies the name of the remote client usage
+	*/
+	public void function updateRemoteClientUsage( required string code, required string displayName ){
+		admin
+			action="updateRemoteClientUsage"
+			type="#variables.type#"
+			remotetype="#variables.type#"
+			password="#variables.password#"
+			code="#arguments.code#"
+			displayname="#arguments.displayName#";
+	}
+
+	/**
+	* @hint removes/deletes a remote client usage
+	* @code specifies the code of the remote client
+	*/
+	public void function removeRemoteClientUsage( required string code ){
+		admin
+			action="removeRemoteClientUsage"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			code="#arguments.code#";
+	}
+
+	/**
 	* @hint verifies whether it is remote client
 	* @label specifies name of the remote client
 	* @url specifies the url path of the remote client
@@ -1483,6 +1541,32 @@
 			password="#variables.password#"
 			returnVariable="local.rtn";
 			return rtn;
+	}
+
+	/**
+	* @hint removes/deletes a remote client task
+	* @id specifies the id of the remote client task
+	*/
+	public void function removeRemoteClientTask( required string id ){
+		admin
+			action="removeRemoteClientTask"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			id="#arguments.id#";
+	}
+
+	/**
+	* @hint executes the specified remote client task
+	* @id specifies the id of the remote client task
+	*/
+	public void function executeRemoteClientTask( required string id ){
+		admin
+			action="executeRemoteClientTask"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			id="#arguments.id#";
 	}
 
 	/**
@@ -1672,6 +1756,18 @@
 	}
 
 	/**
+	* @hint updates the monitor details
+	* @monitorEnabled specifies whether to enable monitor or not
+	*/
+	public void function updateMonitorEnabled(required boolean monitorEnabled){
+		admin
+			action="updateMonitorEnabled"
+			type="#variables.type#"
+			password="#variables.password#"
+			monitorEnabled="#arguments.monitorEnabled#";
+	}
+
+	/**
 	* @hint returns the details of a monitor
 	* @monitorType type of the monitor
 	* @name name of the monitor
@@ -1682,7 +1778,7 @@
 			type="#variables.type#"
 			password="#variables.password#"
 			monitorType="#arguments.monitorType#"
-			name="arguments.name"
+			name="#arguments.name#"
 			returnVariable="local.rtn";
 		return rtn;
 	}
@@ -2091,6 +2187,18 @@
 	}
 
 	/**
+	* @hint update the task settings
+	* @maxThreads specifies the maximum number of parallel threads used to execute tasks at the same time
+	*/
+	public void function updateTaskSetting(required numeric maxThreads){
+		admin
+			action="updateTaskSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+			maxThreads="#arguments.maxThreads#"
+	}
+
+	/**
 	* @hint returns the list of CFX tags
 	*/
 	public query function getCfxTags(){
@@ -2230,6 +2338,22 @@
 			password="#variables.password#"
 			returnVariable="local.rtn";
 			return rtn;
+	}
+
+	/**
+	* @hint updates the execution log settings
+	* @class specifies the class name of execution log
+	* @arguments specifies the structure of arguments
+	* @enabled specifies whether log is enable or not
+	*/
+	public void function updateExecutionLog(struct arguments={},required string class,boolean enabled=false){
+		admin
+			action="updateExecutionLog"
+			type="#variables.type#"
+			password="#variables.password#"
+			arguments="#arguments.arguments#"
+			class="#arguments.class#"
+			enabled="#arguments.enabled#";
 	}
 
 	/**
@@ -2691,6 +2815,61 @@
 			password="#variables.password#"
 			returnVariable="local.rtn";
 			return rtn;
+	}
+
+	/**
+	* @hint returns the details of custom tag settings
+	* @deepSearch Search for custom tags in subdirectories.
+	* @localSearch Search in the caller directory for the custom tag
+	* @component path is cached and not resolved again
+	* @extensions These are the extensions used for Custom Tags, in the order they are searched.
+	*/
+	public void function updateCustomTagSetting( required boolean deepSearch, required boolean localSearch, required customTagPathCache, required string extensions ) {
+		admin
+			action="updateCustomTagSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			deepSearch="#arguments.deepSearch#"
+			localSearch="#arguments.localSearch#"
+			customTagPathCache="#arguments.customTagPathCache#"
+			extensions="#arguments.extensions#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint update exiting custom tag
+	* @virtual The name is used as identifier when you automaticly import a Lucee Archive build based on this Mapping.
+	* @physical Directory path where the custom tags are located.
+	* @archive File path to a custom tag Lucee Archive (.lar).
+	* @primary Defines where Lucee does looks first for a requested custom tags
+	* @inspect When does Lucee checks for changes in the source file for a already loaded custom tags.
+	*/
+	public void function updateCustomTag( required string virtual, required string physical, required string archive, string primary="Resource", string inspect="" ) {
+		admin
+			action="updateCustomTag"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			virtual="#arguments.virtual#"
+			physical="#arguments.physical#"
+			archive="#arguments.archive#"
+			primary="#arguments.primary#"
+			inspect="#arguments.inspect#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint update exiting custom tag
+	* @virtual The name is used as identifier when you automaticly import a Lucee Archive build based on this Mapping.
+	*/
+	public any function removecustomtag( required string virtual ) {
+		admin
+			action="removeCustomTag"
+			type="#variables.type#"
+			password="#variables.password#"
+			virtual="#arguments.virtual#"
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**

@@ -539,6 +539,25 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isQuery(getCompMap) ,true);
 					assertEquals(listSort(structKeyList(getCompMap),'textnocase'),'archive,hidden,inspect,physical,physicalFirst,readonly,strarchive,strphysical,virtual');
 				});
+
+				it(title="checking updateComponentMapping()", body=function( currentSpec ) {
+					var tmpStrt = {};
+					tmpStrt.virtual = "/TestArchive";
+					tmpStrt.physical = "#expandPath('./LDEV1159/TestArchive')#";
+					tmpStrt.archive = "#expandPath('./')#TestArchive.lar";
+					tmpStrt.inspect = "once";
+					admin.updateComponentMapping(argumentCollection=tmpStrt);
+					var getCompMap = admin.getComponentMappings();
+					assertEquals(isQuery(getCompMap) ,true);
+					assertEquals(findNoCase("/TestArchive",valueList(getCompMap.virtual)) NEQ 0,true);
+				});
+
+				it(title="checking removeComponentMapping()", body=function( currentSpec ) {
+					admin.removeComponentMapping("/TestArchive");
+					var getCompMap = admin.getComponentMappings();
+					assertEquals(isQuery(getCompMap) ,true);
+					assertEquals(findNoCase("/TestArchive",valueList(getCompMap.virtual)) EQ 0,true);
+				});
 			});
 
 			describe( title="test cache functions", body=function() {
@@ -654,6 +673,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking getRemoteClientUsage()", body=function( currentSpec ) {
 					var getremoteclient = admin.getRemoteClientUsage();
 					assertEquals(isQuery(getremoteclient) ,true);
+					assertEquals(listSort(structKeyList(getremoteclient),'textnocase'), 'code,displayname');
+				});
+
+				it(title="checking updateRemoteClientUsage", body=function( currentSpec ) {
+					var tmpStruct = {};
+					tmpStruct.code = "testRemoteCode";
+					tmpStruct.displayName = "Test";
+					admin.updateRemoteClientUsage(argumentCollection=tmpStruct);
+					var getremoteclient = admin.getRemoteClientUsage();
+					assertEquals(isQuery(getremoteclient) ,true);
+					assertEquals( listFindNoCase(valueList(getremoteclient.code), "testRemoteCode"), true );
+				});
+
+				it(title="checking removeRemoteClientUsage", body=function( currentSpec ) {
+					admin.removeRemoteClientUsage("testRemoteCode");
+					var getremoteclient = admin.getRemoteClientUsage();
+					assertEquals(isQuery(getremoteclient) ,true);
+					assertEquals( listFindNoCase(valueList(getremoteclient.code), "testRemoteCode"), false );
 				});
 
 				it(title="checking verifyRemoteClient()", body=function( currentSpec ) {
@@ -669,6 +706,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking getRemoteClientTasks()", body=function( currentSpec ) {
 					var remoteClientTask = admin.getRemoteClientTasks();
 					assertEquals(isQuery(remoteClientTask) ,true);
+					assertEquals(listSort(structKeyList(remoteClientTask),'textnocase'),'closed,detail,exceptions,id,lastExecution,name,nextExecution,tries,triesmax,type');
+				});
+
+				it(title="checking removeRemoteClientTask", body=function( currentSpec ) {
+					admin.removeRemoteClientTask("testRemoteTask");
+					var remoteClientTask = admin.getRemoteClientTasks();
+					assertEquals(isQuery(remoteClientTask) ,true);
+					assertEquals( listFindNoCase(valueList(remoteClientTask.id), "testRemoteTask"), false );
+				});
+
+				it(title="checking executeRemoteClientTask", body=function( currentSpec ) {
+					admin.executeRemoteClientTask("testRemoteTask");
 				});
 			});
 
@@ -770,6 +819,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking getMonitors()", body=function( currentSpec ) {
 					var monitors = admin.getMonitors();
 					assertEquals(isquery(monitors) ,true);
+					assertEquals(listSort(structKeyList(monitors),'textnocase'), 'class,logEnabled,name,type');
+				});
+
+				it(title="checking updateMonitorEnabled()", body=function( currentSpec ) {
+					var monitors = admin.updateMonitorEnabled(false);
+					var isEnable = admin.isMonitorEnabled();
+					assertEquals(isBoolean(isEnable) ,true);
+					assertEquals(isEnable EQ false ,true);
 				});
 			});
 
@@ -893,13 +950,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="checking getContextes()", body=function( currentSpec ) {
 					var getContext = admin.getContextes();
-					assertEquals(isquery(getContext), false);
+					assertEquals(isquery(getContext), true);
 					assertEquals(listSort(structKeyList(getContext),'textnocase'), 'clientElements,clientSize,config_file,hash,hasOwnSecContext,id,label,path,sessionElements,sessionSize,url');
 				});
 
 				it(title="checking getContexts()", body=function( currentSpec ) {
 					var getContexts = admin.getContexts();
-					assertEquals(isquery(getContexts), false);
+					assertEquals(isquery(getContexts), true);
 					assertEquals(listSort(structKeyList(getContexts),'textnocase'), 'clientElements,clientSize,config_file,hash,hasOwnSecContext,id,label,path,sessionElements,sessionSize,url');
 				});
 			});
@@ -968,6 +1025,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isstruct(taskSetting) ,true);
 					assertEquals(listSort(structKeyList(taskSetting),'textnocase'), 'maxThreads');
 				});
+
+				it(title="checking updateTaskSetting()", body=function( currentSpec ) {
+					admin.updateTaskSetting(maxThreads=30);
+					var taskSetting = admin.getTaskSetting();
+					assertEquals(isstruct(taskSetting) ,true);
+					assertEquals(taskSetting.maxThreads EQ 30 ,true);
+				});
 			});
 
 			describe( title="test CfxTags functions", body=function() {
@@ -1033,6 +1097,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var execLog = admin.getExecutionLog();
 					assertEquals(isstruct(execLog) ,true);
 					assertEquals(listSort(structKeyList(execLog),'textnocase'), 'arguments,class,enabled');
+				});
+
+				it(title="checking updateExecutionLog()", body=function( currentSpec ) {
+					var execLog = admin.getExecutionLog();
+					assertEquals(isstruct(execLog) ,true);
+					var tmpstruct = execLog.arguments;
+					tmpstruct.class = execLog.class;
+					tmpstruct.enabled = true;
+					admin.updateExecutionLog(argumentCollection=tmpstruct);
+					var updatedExecLog = admin.getExecutionLog();
+					assertEquals(isstruct(updatedExecLog) ,true);
+					assertEquals(updatedExecLog.enabled EQ true ,true);
 				});
 
 				it(title="checking updateLogSettings()", body=function( currentSpec ) {
