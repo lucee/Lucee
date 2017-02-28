@@ -544,6 +544,38 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isstruct(defaultCacheConnection) ,true);
 					assertEquals(listSort(structKeyList(defaultCacheConnection),'textnocase'),'bundleName,bundleVersion,class,custom,default,name,readonly');
 				});
+
+				it(title="checking removeCacheConnection()", body=function( currentSpec ){
+					var removeCacheConnection = admin.removeCacheConnection('testCache');
+					var getCacheConnections = admin.getCacheConnections();
+					assertEquals( listFindNoCase( valueList(getCacheConnections.name), 'testCache' ), false );
+				});
+
+				it(title="checking updateCacheDefaultConnection()", body=function( currentSpec ){
+					var tmpStrt = {};
+					tmpStrt.class="lucee.runtime.cache.ram.RamCache";
+					tmpStrt.name="testDefaultCache";
+					tmpStrt.custom={"timeToIdleSeconds":"86400","timeToLiveSeconds":"3600"};
+					tmpStrt.bundleName="";
+					tmpStrt.bundleVersion="";
+					tmpStrt.default="query";
+					admin.updateCacheConnection(argumentCollection=tmpStrt);
+
+					admin.updateCacheDefaultConnection(object="testDefaultCache");
+					var defaultCacheConnection = admin.getCacheDefaultConnection('object');
+					assertEquals(isstruct(defaultCacheConnection) ,true);
+					assertEquals(listSort(structKeyList(defaultCacheConnection),'textnocase'),'bundleName,bundleVersion,class,custom,default,name,readonly');
+				});
+
+
+				it(title="checking removeCacheDefaultConnection()", body=function( currentSpec ){
+					admin.removeCacheDefaultConnection();
+					var defaultCacheConnection = admin.getCacheDefaultConnection('object');
+					writeDump(defaultCacheConnection);
+					assertEquals(isstruct(defaultCacheConnection) ,true);
+					assertEquals(structIsEmpty(defaultCacheConnection) ,true);
+				});
+
 			});
 
 			describe( title="test remoteclient functions", body=function() {
@@ -678,6 +710,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					tmpstruct.custom.deleteFunction = "onDelete";
 
 					adminweb.updateGatewayEntry(argumentCollection = tmpstruct);
+				});
+
+				it(title="checking gateway()", body=function( currentSpec ) {
+					adminweb.gateway( id="testDirectorygateway", gatewayAction="stop" );
+					var gatewayEntry = adminweb.getGatewayentry('testdirectorygateway');
+					writeDump(gatewayEntry);
+				});
+
+				it(title="checking removeGatewayEntry()", body=function( currentSpec ) {
+					adminweb.removeGatewayEntry( id="testDirectorygateway" );
+					var gatewayEntry = adminweb.getGatewayentry('testdirectorygateway');
 				});
 			});
 
@@ -815,6 +858,44 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var getContext = admin.getContextes();
 					assertEquals(isquery(getContext), false);
 					assertEquals(listSort(structKeyList(getContext),'textnocase'), 'clientElements,clientSize,config_file,hash,hasOwnSecContext,id,label,path,sessionElements,sessionSize,url');
+				});
+
+				it(title="checking getContexts()", body=function( currentSpec ) {
+					var getContexts = admin.getContexts();
+					assertEquals(isquery(getContexts), false);
+					assertEquals(listSort(structKeyList(getContexts),'textnocase'), 'clientElements,clientSize,config_file,hash,hasOwnSecContext,id,label,path,sessionElements,sessionSize,url');
+				});
+			});
+
+			describe( title="test password function", body=function() {
+				it(title="checking updatePassword()", body=function( currentSpec ) {
+					admin.updatePassword(oldPassword="password", newPassword="server" );
+				});
+
+				it(title="checking resetPassword()", body=function( currentSpec ) {
+					admin.resetPassword(contextPath="");
+				});
+
+				it(title="checking getDefaultPassword()", body=function( currentSpec ) {
+					var defaultPassword = admin.getDefaultPassword();
+					assertEquals(defaultPassword, "password");
+				});
+
+				it(title="checking updateDefaultPassword()", body=function( currentSpec ) {
+					admin.updateDefaultPassword(newPassword="server");
+					var defaultPassword = admin.getDefaultPassword();
+					assertEquals(defaultPassword, "5b60d9a2bbe408b885a800894a2a40c3e35c6e2a9826120857cedecde02d6782");
+				});
+
+				it(title="checking removeDefaultPassword()", body=function( currentSpec ) {
+					admin.removeDefaultPassword();
+					var defaultPassword = admin.getDefaultPassword();
+					assertEquals(defaultPassword, "");
+				});
+
+				it(title="checking hashpassword()", body=function( currentSpec ) {
+					var hashpassword = admin.hashpassword();
+					assertEquals(hashpassword, "d01f259718576fd992b263de978ed62c78fb476e40adfe6067fe305f7cb346c3");
 				});
 			});
 

@@ -1175,6 +1175,22 @@
 	}
 
 	/**
+	* @hint remove a cache connection
+	* @name name for the cache connection
+	*/
+	public void function removeCacheConnection( required string name ) {
+		admin
+			action="removeCacheConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			name="#arguments.name#"
+
+			remoteClients="#variables.remoteClients#";
+	}
+
+
+	/**
 	* @hint returns the details of default cache connections
 	* @cachetype specifies the type of the cache
 	*/
@@ -1211,37 +1227,40 @@
 		string file = "",
 		string webservice = ""
 	){
-		var res = {};
-		try{
-			admin
-				action="updateCacheDefaultConnection"
-				type="#variables.type#"
-				password="#variables.password#"
-				object="#arguments.object#"
-				template="#arguments.template#"
-				query="#arguments.query#"
-				resource="#arguments.resource#"
-				function="#arguments['function']#"
-				include="#arguments.include#"
-				http="#arguments.http#"
-				file="#arguments.file#"
-				webservice="#arguments.webservice#"
-				remoteClients="#variables.remoteClients#";
+		admin
+			action="updateCacheDefaultConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+			object="#arguments.object#"
+			template="#arguments.template#"
+			query="#arguments.query#"
+			resource="#arguments.resource#"
+			"function"="#arguments['function']#"
+			include="#arguments.include#"
+			http="#arguments.http#"
+			file="#arguments.file#"
+			webservice="#arguments.webservice#"
+			remoteClients="#variables.remoteClients#";
 
-			res.label = "OK";
-		}catch( any e ){
-			res.label = "Error";
-			res.exception = e;
-		}
-
-		return res;
 	}
+
+	/**
+	* @hint remove all default cache connection for various lucee elements
+	*/
+	public void function removeCacheDefaultConnection() {
+		admin
+			action="removeCacheDefaultConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+			remoteClients="#variables.remoteClients#";
+	}
+
 
 	/**
 	* @hint updates the cache within information
 	* @cachedWithinType specifies the type of cache to be updated
 	* @cachedWithin specifies the time limit for the cache
-	*/
+	*/.
 	public void function updateCachedWithin( required string cachedWithinType, required string cachedWithin ){
 		admin
 			action="updateCachedWithin"
@@ -1458,6 +1477,7 @@
 			typeChecking=""
 
 			remoteClients="#variables.remoteClients#";
+	}
 
 	/**
 	* @hint returns the list of gateway entries
@@ -1528,15 +1548,13 @@
 	* @id specifies the gateway id
 	* @gatewayAction specifies the action of gateway
 	*/
-	public struct function gateway( required string id, required string gatewayAction ){
+	public void function gateway( required string id, required string gatewayAction ){
 		admin
 			action="gateway"
 			type="#variables.type#"
 			password="#variables.password#"
 			id="#arguments.id#"
-			gatewayAction="#arguments.gatewayAction#"
-			returnVariable="local.rtn";
-		return rtn;
+			gatewayAction="#arguments.gatewayAction#";
 	}
 
 	/**
@@ -1866,7 +1884,7 @@
 	*/
 	public struct function removePlugin( required string name ){
 		admin
-			action="doRemovePlugin"
+			action="removePlugin"
 			type="#variables.type#"
 			password="#variables.password#"
 			name="#arguments.name#";
@@ -1894,6 +1912,18 @@
 			password="#variables.password#"
 			returnVariable="local.contextes";
 		return contextes;
+	}
+
+	/**
+	* @hint returns the list of contexts
+	*/
+	public query function getContexts(){
+		admin
+			action="getContexts"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.contexts";
+		return contexts;
 	}
 
 	/**
@@ -2491,6 +2521,53 @@
 	}
 
 	/**
+	* @hint to get default password.
+	*/
+	public string function getDefaultPassword() {
+		admin
+			action="getDefaultPassword"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="defaultPassword";
+		return defaultPassword;
+	}
+
+	/**
+	* @hint update the default password.
+	* @newPassword the new password to set.
+	*/
+	public void function updateDefaultPassword( required string newPassword) {
+		admin
+			action="updateDefaultPassword"
+			type="#variables.type#"
+			password="#variables.password#"
+			newPassword="#arguments.newPassword#";
+	}
+
+	/**
+	* @hint remove the default password.
+	*/
+	public void function removeDefaultPassword() {
+		admin
+			action="removeDefaultPassword"
+			type="#variables.type#"
+			password="#variables.password#";
+	}
+
+	/**
+	* @hint to get hashedPassword.
+	*/
+	public string function hashpassword() {
+		admin
+			action="hashPassword"
+			type="#variables.type#"
+			pw="#variables.password#"
+			returnVariable="hashedPassword";
+		return hashedPassword;
+	}
+
+
+	/**
 	* @hint returns the configuration information details
 	*/
 	public struct function getInfo(){
@@ -2603,7 +2680,6 @@
 	}
 
 	private function _download(String type,required string provider,required string id, string version){
-
 
 		var start=getTickCount();
 		// get info from remote
