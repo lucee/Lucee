@@ -734,6 +734,34 @@
 	}
 
 	/**
+	* @hint compiles the CTmapping for any errors
+	* @virtual virtual name for the CTmapping to be compiled.
+	*/
+	public void function compileCTMapping(required string virtual){
+		admin
+			action="compileCTMapping"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			virtual="#arguments.virtual#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint compiles the component mapping for any errors
+	* @virtual virtual name for the component mapping to be compiled.
+	*/
+	public void function compileComponentMapping(required string virtual){
+		admin
+			action="compileComponentMapping"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			virtual="#arguments.virtual#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
 	* @hint creates new archieve for the mapping
 	* @virtual virtual name for the mapping.
 	* @addCFMLFile Add all CFML Source Templates as well (.cfm,.cfc,.cfml).
@@ -810,6 +838,18 @@
 	}
 
 	/**
+	* @hint updates the extension information.
+	* @enabled enable or disable to update the extension information.
+	*/
+	public void function updateExtensionInfo(boolean enabled=false){
+		admin
+			action="updateExtensionInfo"
+			type="#variables.type#"
+			password="#variables.password#"
+			enabled="#arguments.enabled#";
+	}
+
+	/**
 	* @hint updates(install/upgrade/downgrade) a specific extension.
 	* @provider provider of the extension
 	* @id id of the extension
@@ -833,6 +873,18 @@
 			type="#variables.type#"
 			password="#variables.password#"
 			id="#arguments.id#";
+	}
+
+	/**
+	* @hint returns the list of RH extensions
+	*/
+	public query function getRHExtensions(){
+		admin
+			action="getRHExtensions"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+		return rtn;
 	}
 
 	/**
@@ -878,7 +930,7 @@
 	*/
 	public query function getExtensionProviders(){
 		admin
-			action="getRHExtensionProviders"
+			action="getExtensionProviders"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.providers";
@@ -886,12 +938,12 @@
 	}
 
 	/**
-	* @hint Adds a new extension provider for this context.
+	* @hint updates the extension provider for this context.
 	* @url URL to the Extension Provider (Example: http://www.myhost.com)
 	*/
 	public void function updateExtensionProvider( required string url ){
 		admin
-			action="updateRHExtensionProvider"
+			action="updateExtensionProvider"
 			type="#variables.type#"
 			password="#variables.password#"
 
@@ -899,12 +951,12 @@
 	}
 
 	/**
-	* @hint Adds a new extension provider for this context.
+	* @hint removes the extension provider for this context.
 	* @url URL to the Extension Provider (Example: http://www.myhost.com)
 	*/
 	public void function removeExtensionProvider( required string url ){
 		admin
-			action="removeRHExtensionProvider"
+			action="removeExtensionProvider"
 			type="#variables.type#"
 			password="#variables.password#"
 
@@ -929,6 +981,44 @@
 			verifyExtensionProvider.catch=e.message;
 		}
 		return verifyExtensionProvider;
+	}
+
+	/**
+	* @hint returns the list of extension providers for this context.
+	*/
+	public query function getRHExtensionProviders(){
+		admin
+			action="getRHExtensionProviders"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+		return local.providers;
+	}
+
+	/**
+	* @hint updates RH extension provider for this context.
+	* @url URL to the Extension Provider (Example: http://www.myhost.com)
+	*/
+	public void function updateRHExtensionProvider( required string url ){
+		admin
+			action="updateRHExtensionProvider"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			url="#trim(arguments.url)#";
+	}
+
+	/**
+	* @hint removes the extension provider for this context.
+	* @url URL to the Extension Provider (Example: http://www.myhost.com)
+	*/
+	public void function removeRHExtensionProvider( required string url ){
+		admin
+			action="removeRHExtensionProvider"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			url="#trim(arguments.url)#";
 	}
 
 	/**

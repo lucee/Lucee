@@ -20,9 +20,10 @@
 
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	 function beforeAll(){
-		request.WEBADMNIPASSWORD = "password";
-		variables.admin=new org.lucee.cfml.Administrator("server",request.WEBADMNIPASSWORD);
-		variables.adminweb=new org.lucee.cfml.Administrator("web", "password");
+		request.WEBADMINPASSWORD = "password";
+		request.SERVERADMINPASSWORD = "password";
+		variables.admin=new org.lucee.cfml.Administrator("server",request.SERVERADMINPASSWORD);
+		variables.adminweb=new org.lucee.cfml.Administrator("web", request.WEBADMINPASSWORD);
 	}
 
 	function run( testResults , testBox ) {
@@ -349,13 +350,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking compileMapping()", body=function( currentSpec ) {
-					try{
-						var hasError = false;
-						admin.compileMapping('/TestArchive', true);
-					} catch ( any e) {
-						var hasError = true;
-					}
-					assertEquals(hasError EQ false, true);
+					admin.compileMapping('/TestArchive', true);
+				});
+
+				it(title="checking compileCTMapping()", body=function( currentSpec ) {
+					admin.compileCTMapping('/TestArchive');
+				});
+
+				it(title="checking compileComponentMapping()", body=function( currentSpec ) {
+					admin.compileComponentMapping('/TestArchive');
 				});
 
 				it(title="checking createArchiveFromMapping()", body=function( currentSpec ) {
@@ -365,7 +368,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					tmpStrt.addNonCFMLFile = false;
 					tmpStrt.doDownload = false;
 					tmpStrt.target = "#expandPath('./LDEV1159/TestArchive.lar')#";
-					admin.createArchiveFromMapping(argumentCollection = #tmpStrt#);
+					admin.createArchiveFromMapping(argumentCollection = tmpStrt);
 					var getMappings = admin.getMappings();
 					var result = QueryExecute(
 						sql="SELECT Archive
@@ -396,6 +399,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(listSort(structKeyList(extensionsInfo),'textnocase'),'directory,enabled');
 				});
 
+				it(title="checking updateExtensionInfo()", body=function( currentSpec ) {
+					admin.updateExtensionInfo(enabled=true);
+					var extensionsInfo = admin.getExtensionInfo();
+					assertEquals(isStruct(extensionsInfo) ,true);
+					assertEquals(extensionsInfo.enabled EQ true ,true);
+				});
+
 				it(title="checking updateExtension()", body=function( currentSpec ) {
 					var tmpStrt = {};
 					tmpStrt.provider = "http://extension.lucee.org";
@@ -408,9 +418,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					admin.removeExtension('2BCD080F-4E1E-48F5-BEFE794232A21AF6');
 				});
 
+				it(title="checking getRHExtensions()", body=function( currentSpec ) {
+					var getRHExtensions = adminweb.getRHExtensions();
+					assertEquals(isquery(getRHExtensions) ,true);
+					assertEquals(listSort(structKeyList(getRHExtensions),'textnocase'),'applications,archives,bundles,categories,components,config,contexts,description,eventGateways,flds,functions,id,image,name,plugins,releaseType,startBundles,tags,tlds,trial,version,webcontexts');
+
+				});
+
 				it(title="checking getRHServerExtensions()", body=function( currentSpec ) {
 					var getRHServerExtensions = adminweb.getRHServerExtensions();
 					assertEquals(isquery(getRHServerExtensions) ,true);
+					assertEquals(listSort(structKeyList(getRHServerExtensions),'textnocase'),'applications,archives,bundles,categories,components,config,contexts,description,eventGateways,flds,functions,id,image,name,plugins,releaseType,startBundles,tags,tlds,trial,version,webcontexts');
 				});
 
 				it(title="checking getLocalExtensions()", body=function( currentSpec ) {
@@ -430,7 +448,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking getExtensionProviders()", body=function( currentSpec ) {
 					var getExtensionsProvider = admin.getExtensionProviders();
 					assertEquals(isquery(getExtensionsProvider) ,true);
-					assertEquals(listSort(structKeyList(getExtensionsProvider),'textnocase'),'readonly,url');
+					assertEquals(listSort(structKeyList(getExtensionsProvider),'textnocase'),'isreadonly,url');
 				});
 
 				it(title="checking updateExtensionProvider()", body=function( currentSpec ) {
@@ -448,6 +466,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking verifyExtensionProvider()", body=function( currentSpec ) {
 					var verifyExtensionProvider = admin.verifyExtensionProvider(url="http://extension.lucee.org");
 					assertEquals(verifyExtensionProvider.label,"ok");
+				});
+
+				it(title="checking getRHExtensionProviders()", body=function( currentSpec ) {
+					var getRHExtensionsProvider = admin.getRHExtensionProviders();
+					assertEquals(isquery(getRHExtensionsProvider) ,true);
+					assertEquals(listSort(structKeyList(getRHExtensionsProvider),'textnocase'),'readonly,url');
+				});
+
+				it(title="checking updateRHExtensionProvider()", body=function( currentSpec ) {
+					admin.updateRHExtensionProvider('http://www.myhost.com');
+					var getRHExtensionsProvider = admin.getRHExtensionProviders();
+					assertEquals((isquery(getRHExtensionsProvider) && FindNocase( 'http://www.myhost.com',valueList(getRHExtensionsProvider.url)) GT 0) ,true);
+				});
+
+				it(title="checking removeRHExtensionProvider()", body=function( currentSpec ) {
+					admin.removeRHExtensionProvider('http://www.myhost.com');
+					var getRHExtensionsProvider = admin.getRHExtensionProviders();
+					assertEquals((isquery(getRHExtensionsProvider) && FindNocase( 'http://www.myhost.com',valueList(getRHExtensionsProvider.url)) EQ 0) ,true);
 				});
 			});
 
@@ -542,6 +578,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking getCacheDefaultConnection()", body=function( currentSpec ) {
 					var defaultCacheConnection = admin.getCacheDefaultConnection('query');
 					assertEquals(isstruct(defaultCacheConnection) ,true);
+					assertEquals(defaultCacheConnection.name ,"testCache");
 					assertEquals(listSort(structKeyList(defaultCacheConnection),'textnocase'),'bundleName,bundleVersion,class,custom,default,name,readonly');
 				});
 
@@ -571,7 +608,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking removeCacheDefaultConnection()", body=function( currentSpec ){
 					admin.removeCacheDefaultConnection();
 					var defaultCacheConnection = admin.getCacheDefaultConnection('object');
-					writeDump(defaultCacheConnection);
 					assertEquals(isstruct(defaultCacheConnection) ,true);
 					assertEquals(structIsEmpty(defaultCacheConnection) ,true);
 				});
@@ -715,12 +751,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking gateway()", body=function( currentSpec ) {
 					adminweb.gateway( id="testDirectorygateway", gatewayAction="stop" );
 					var gatewayEntry = adminweb.getGatewayentry('testdirectorygateway');
-					writeDump(gatewayEntry);
+					assertEquals(gatewayEntry.state, "stopping");
 				});
 
 				it(title="checking removeGatewayEntry()", body=function( currentSpec ) {
-					adminweb.removeGatewayEntry( id="testDirectorygateway" );
-					var gatewayEntry = adminweb.getGatewayentry('testdirectorygateway');
+					adminweb.removeGatewayEntry( id="testgateway" );
+					var gatewayEntry = adminweb.getGatewayentries();
+					assertEquals( listFindNoCase(valueList(gatewayEntry.id), "testgateway"), false );
 				});
 			});
 
@@ -869,22 +906,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			describe( title="test password function", body=function() {
 				it(title="checking updatePassword()", body=function( currentSpec ) {
-					admin.updatePassword(oldPassword="password", newPassword="server" );
-				});
-
-				it(title="checking resetPassword()", body=function( currentSpec ) {
-					admin.resetPassword(contextPath="");
+					admin.updatePassword(oldPassword="#request.SERVERADMINPASSWORD#", newPassword="server" );
+					try{
+						admin.updatePassword(oldPassword="#request.SERVERADMINPASSWORD#", newPassword="server" );
+					}catch( any e ){
+						assertEquals( e.message, 'No access, password is invalid' );
+					}
+					admin.updatePassword(oldPassword="server", newPassword="#request.SERVERADMINPASSWORD#" );
 				});
 
 				it(title="checking getDefaultPassword()", body=function( currentSpec ) {
 					var defaultPassword = admin.getDefaultPassword();
-					assertEquals(defaultPassword, "password");
+					assertEquals(defaultPassword, "");
 				});
 
 				it(title="checking updateDefaultPassword()", body=function( currentSpec ) {
 					admin.updateDefaultPassword(newPassword="server");
 					var defaultPassword = admin.getDefaultPassword();
-					assertEquals(defaultPassword, "5b60d9a2bbe408b885a800894a2a40c3e35c6e2a9826120857cedecde02d6782");
+					assertEquals(defaultPassword, "cf2c550c667429be657529fe8c469ef7ce0814619c73459995b82657f9aa3a94");
 				});
 
 				it(title="checking removeDefaultPassword()", body=function( currentSpec ) {
@@ -892,10 +931,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var defaultPassword = admin.getDefaultPassword();
 					assertEquals(defaultPassword, "");
 				});
+				
+				it(title="checking resetPassword()", body=function( currentSpec ) {
+					admin.resetPassword(contextPath="#server.coldfusion.rootdir#");
+				});
 
 				it(title="checking hashpassword()", body=function( currentSpec ) {
 					var hashpassword = admin.hashpassword();
-					assertEquals(hashpassword, "d01f259718576fd992b263de978ed62c78fb476e40adfe6067fe305f7cb346c3");
+					assertEquals(hashpassword, "a4209ccad407e10eb905f8dae17f6e9329adcffe34b54256617dca81ebc395a0");
 				});
 			});
 
