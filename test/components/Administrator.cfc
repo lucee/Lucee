@@ -1279,26 +1279,32 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
-			describe( title="test info functions", body=function() {
-				it(title="checking getinfo()", body=function( currentSpec ) {
-					var info = admin.getinfo();
-					assertEquals(isstruct(info) ,true);
-					assertEquals(listSort(structKeyList(info),'textnocase'),'config,configServerDir,configWebDir,javaAgentSupported,servlets');
-				});
-			});
-
-			describe( title="test surveillance functions", body=function() {
-				it(title="checking getSurveillance()", body=function( currentSpec ) {
-					var surveillance = admin.getSurveillance();
-					assertEquals(isstruct(surveillance) ,true);
-				});
-			});
-
 			describe( title="test CustomTag functions", body=function() {
 				it(title="checking getCustomTagSetting()", body=function( currentSpec ) {
 					var customTagSetting = admin.getCustomTagSetting();
 					assertEquals(isstruct(customTagSetting) ,true);
 					assertEquals(listSort(structKeyList(customTagSetting),'textnocase'), 'customTagDeepSearch,customTagLocalSearch,customTagPathCache,deepSearch,extensions,localSearch');
+				});
+
+				it(title="checking updateCustomTagSetting()", body=function( currentSpec ) {
+					var customTagSetting = admin.getCustomTagSetting();
+					admin.updateCustomTagSetting(deepSearch=!(customTagSetting.customTagDeepSearch), localSearch=true, customTagPathCache=true, extensions="cfm,cfc,lucee" );
+					var updatedSetting = admin.getCustomTagSetting();
+					assertEquals( updatedSetting.customTagDeepSearch, !(customTagSetting.customTagDeepSearch) );
+					admin.updateCustomTagSetting(deepSearch=customTagSetting.customTagDeepSearch, localSearch=customTagSetting.customTagLocalSearch, customTagPathCache=customTagSetting.customTagPathCache, extensions=arrayToList(customTagSetting.extensions) );
+				});
+
+				it(title="checking updatecustomtag()", body=function( currentSpec ) {
+					admin.updatecustomtag( virtual="/testcustomtag", physical="#getcurrentTemplatepath()#", archive="", primary="Resource", inspect="");
+					var customTagMappings = admin.getCustomTagMappings();
+					assertEquals(isQuery(customTagMappings) ,true);
+					assertEquals( listFindNoCase(valueList(customTagMappings.virtual), "/testcustomtag") NEQ 0, true );
+				});
+
+				it(title="checking removecustomtag()", body=function( currentSpec ) {
+					admin.removecustomtag( virtual="/testcustomtag" );
+					var customTagMappings = admin.getCustomTagMappings();
+					assertEquals( listFindNoCase(valueList(customTagMappings.virtual), "/testcustomtag"), false );
 				});
 			});
 
@@ -1318,10 +1324,166 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+			describe( title="test authKey functions", body=function() {
+				it(title="checking listAuthKey()", body=function( currentSpec ) {
+					var getAuthKeys = admin.listAuthKey();
+					assertEquals(isArray(getAuthKeys) ,true);
+				});
+
+				it(title="checking updateAuthKey()", body=function( currentSpec ) {
+					admin.updateAuthKey(key="testAuth");
+					var getAuthKeys = admin.listAuthKey();
+					assertEquals(isArray(getAuthKeys) ,true);
+					assertEquals(arrayFindNoCase(getAuthKeys,"testAuth") NEQ 0, true);
+				});
+
+				it(title="checking removeAuthKey()", body=function( currentSpec ) {
+					admin.removeAuthKey(key="testAuth");
+					var getAuthKeys = admin.listAuthKey();
+					assertEquals(isArray(getAuthKeys) ,true);
+					assertEquals(arrayFindNoCase(getAuthKeys,"testAuth") EQ 0, true);
+				});
+			});
+
+			describe( title="test resource providers functions", body=function() {
+				it(title="checking getResourceProviders()", body=function( currentSpec ) {
+					var resourceProviders = admin.getResourceProviders();
+					assertEquals(isQuery(resourceProviders) ,true);
+					assertEquals(listSort(structKeyList(resourceProviders),'textnocase'), 'arguments,bundleName,bundleVersion,caseSensitive,class,default,scheme,support');
+				});
+
+				it(title="checking updateResourceProvider()", body=function( currentSpec ) {
+					var resourceProviders = admin.getResourceProviders();
+					assertEquals(isQuery(resourceProviders) ,true);
+					var tmpstruct = {};
+					tmpstruct.class = resourceProviders.class;
+					tmpstruct.scheme = "testScheme";
+					tmpstruct.arguments = "lock-timeout:10000";
+					admin.updateResourceProvider(argumentCollection=tmpstruct);
+					var updatedResourceProviders = admin.getResourceProviders();
+					assertEquals(isQuery(updatedResourceProviders) ,true);
+					assertEquals(FindNoCase("testScheme",valueList(updatedResourceProviders.scheme)) NEQ 0, true);
+				});
+
+				it(title="checking updateDefaultResourceProvider()", body=function( currentSpec ) {
+					var resourceProviders = admin.getResourceProviders();
+					assertEquals(isQuery(resourceProviders) ,true);
+					var tmpstruct = {};
+					tmpstruct.class = resourceProviders.class;
+					tmpstruct.arguments = "lock-timeout:30000";
+					admin.updateDefaultResourceProvider(argumentCollection=tmpstruct);
+					var resourceProviders = admin.getResourceProviders();
+					assertEquals(isQuery(resourceProviders) ,true);
+					assertEquals(FindNoCase("lock-timeout:30000",valueList(resourceProviders.arguments)) NEQ 0, true);
+				});
+
+				it(title="checking removeResourceProvider()", body=function( currentSpec ) {
+					admin.removeResourceProvider(scheme="testScheme");
+					var resourceProviders = admin.getResourceProviders();
+					assertEquals(isQuery(resourceProviders) ,true);
+					assertEquals(FindNoCase(valueList(resourceProviders.scheme),"testScheme") EQ 0, true);
+				});
+			});
+
+			describe( title="test cluster class functions", body=function() {
+				it(title="checking getClusterClass()", body=function( currentSpec ) {
+					var clusterClass = admin.getClusterClass();
+					assertEquals(len(clusterClass) GT 0, true);
+				});
+
+				it(title="checking updateClusterClass()", body=function( currentSpec ) {
+					var clusterClass = admin.getClusterClass();
+					assertEquals(len(clusterClass) GT 0, true);
+					admin.updateClusterClass(class="lucee.runtime.type.scope.ClusterRemote");
+					var updatedClusterClass = admin.getClusterClass();
+					assertEquals(updatedClusterClass EQ "lucee.runtime.type.scope.ClusterRemote", true);
+					admin.updateClusterClass(class=clusterClass);
+				});
+			});
+
+			describe( title="test admin sync class functions", body=function() {
+				it(title="checking getAdminSyncClass()", body=function( currentSpec ) {
+					var adminSyncClass = admin.getAdminSyncClass();
+					assertEquals(len(adminSyncClass) GT 0, true);
+				});
+
+				it(title="checking updateAdminSyncClass()", body=function( currentSpec ) {
+					var adminSyncClass = admin.getAdminSyncClass();
+					assertEquals(len(adminSyncClass) GT 0, true);
+					admin.updateAdminSyncClass(class="lucee.runtime.config.AdminSyncNotSupported");
+					var updatedAdminSyncClass = admin.getAdminSyncClass();
+					assertEquals(updatedAdminSyncClass EQ "lucee.runtime.config.AdminSyncNotSupported", true);
+					admin.updateAdminSyncClass(class=adminSyncClass);
+				});
+			});
+
+			describe( title="test videoExecuter class functions", body=function() {
+				it(title="checking getVideoExecuterClass()", body=function( currentSpec ) {
+					var videoExecuterClass = admin.getVideoExecuterClass();
+					assertEquals(len(videoExecuterClass) GT 0, true);
+				});
+
+				it(title="checking updateVideoExecuterClass()", body=function( currentSpec ) {
+					var videoExecuterClass = admin.getVideoExecuterClass();
+					assertEquals(len(videoExecuterClass) GT 0, true);
+					admin.updateVideoExecuterClass(class="lucee.runtime.video.VideoExecuter");
+					var updatedVideoExecuterClass = admin.getVideoExecuterClass();
+					assertEquals(updatedVideoExecuterClass EQ "lucee.runtime.video.VideoExecuter", true);
+					admin.updateVideoExecuterClass(class=videoExecuterClass);
+				});
+			});
+
+			describe( title="test update functions", body=function() {
+				it(title="checking getUpdate()", body=function( currentSpec ) {
+					var getUpdate = admin.getUpdate();
+					assertEquals(isStruct(getUpdate), true);
+					assertEquals(listSort(structKeyList(getUpdate),'textnocase'),'location,type');
+				});
+
+				it(title="checking runUpdate()", body=function( currentSpec ) {
+					admin.runUpdate();
+				});
+
+				it(title="checking updateUpdate()", body=function( currentSpec ) {
+					var getUpdate = admin.getUpdate();
+					assertEquals(isStruct(getUpdate), true);
+					admin.updateUpdate(updatetype="automatic",updatelocation="http://test.lucee.org");
+					var updatedGetUpdate = admin.getUpdate();
+					assertEquals(isStruct(updatedGetUpdate), true);
+					assertEquals(updatedGetUpdate.type EQ "automatic", true);
+					assertEquals(updatedGetUpdate.location EQ "http://test.lucee.org", true);
+					admin.updateUpdate(updatetype=getUpdate.type, updatelocation=getUpdate.location);
+				});
+
+				it(title="checking removeUpdate()", body=function( currentSpec ) {
+					var getUpdate = admin.getUpdate();
+					// admin.removeUpdate();
+					var updatedGetUpdate = admin.getUpdate();
+					assertEquals(isStruct(updatedGetUpdate), true);
+					assertEquals(listSort(structKeyList(updatedGetUpdate),'textnocase'),'location,type');
+					admin.updateUpdate(updatetype=getUpdate.type, updatelocation=getUpdate.location);
+				});
+			});
+
 			describe( title="test resetId functions", body=function() {
 				it(title="checking resetId()", body=function( currentSpec ) {
 					var resetId = admin.resetId();
 					assertEquals(resetId.label,"ok");
+				});
+			});
+
+			describe( title="test surveillance functions", body=function() {
+				it(title="checking getSurveillance()", body=function( currentSpec ) {
+					var surveillance = admin.getSurveillance();
+					assertEquals(isstruct(surveillance) ,true);
+				});
+			});
+
+			describe( title="test info functions", body=function() {
+				it(title="checking getinfo()", body=function( currentSpec ) {
+					var info = admin.getinfo();
+					assertEquals(isstruct(info) ,true);
+					assertEquals(listSort(structKeyList(info),'textnocase'),'config,configServerDir,configWebDir,javaAgentSupported,servlets');
 				});
 			});
 		});

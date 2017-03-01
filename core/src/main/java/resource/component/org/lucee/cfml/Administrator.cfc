@@ -2780,31 +2780,6 @@
 		return hashedPassword;
 	}
 
-
-	/**
-	* @hint returns the configuration information details
-	*/
-	public struct function getInfo(){
-		admin
-			action="getinfo"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint returns the surveillance details
-	*/
-	public struct function getSurveillance(){
-		admin
-			action="surveillance"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
 	/**
 	* @hint returns the details of custom tag settings
 	*/
@@ -2897,6 +2872,227 @@
 	}
 
 	/**
+	* @hints checks whether the current user has access
+	* @secType area for which access needs to be checked
+	*/
+	public boolean function securityManager( required string secType ){
+		admin
+			action="securityManager"
+			type="#request.adminType#"
+			password="#session["password"&request.adminType]#"
+			secType="#arguments.secType#";
+			returnVariable="access"
+	}
+
+	/**
+	* @hint returns the list of authKeys
+	*/
+	public array function listAuthKey(){
+		admin
+			action="listAuthKey"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+			return providers;
+	}
+
+	/**
+	* @hint update the authKey details
+	* @key specifies the key name to update
+	*/
+	public void function updateAuthKey(string key=""){
+		admin
+			action="updateAuthKey"
+			type="#variables.type#"
+			password="#variables.password#"
+			key="#arguments.key#";
+	}
+
+	/**
+	* @hint removes the authKey details
+	* @key specifies the key name to remove
+	*/
+	public void function removeAuthKey(string key=""){
+		admin
+			action="removeAuthKey"
+			type="#variables.type#"
+			password="#variables.password#"
+			key="#arguments.key#";
+	}
+
+	/**
+	* @hint returns the list of resource providers
+	*/
+	public query function getResourceProviders(){
+		admin
+			action="getResourceProviders"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+			return providers;
+	}
+
+	/**
+	* @hint update the details of resource provider
+	* @class specifies the class name to update
+	* @scheme specifies the type of resource to update
+	* @arguments specifies the arguments passed to update
+	*/
+	public void function updateResourceProvider(required string class, required string scheme, required string arguments){
+		admin
+			action="updateResourceProvider"
+			type="#variables.type#"
+			password="#variables.password#"
+			class="#arguments.class#"
+			scheme="#arguments.scheme#"
+			arguments="#arguments.arguments#";
+	}
+
+	/**
+	* @hint update the details of resource provider
+	* @class specifies the class name to update
+	* @arguments specifies the arguments passed to update
+	*/
+	public void function updateDefaultResourceProvider(required string class, required string arguments){
+		admin
+			action="updateDefaultResourceProvider"
+			type="#variables.type#"
+			password="#variables.password#"
+			class="#arguments.class#"
+			arguments="#arguments.arguments#";
+	}
+
+	/**
+	* @hint removes the resource provider
+	* @scheme specifies the type of resource to remove
+	*/
+	public void function removeResourceProvider(required string scheme){
+		admin
+			action="removeResourceProvider"
+			type="#variables.type#"
+			password="#variables.password#"
+			scheme="#arguments.scheme#";
+	}
+
+	/**
+	* @hint returns the information about cluster class
+	*/
+	public string function getClusterClass(){
+		admin
+			action="getClusterClass"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+			return providers;
+	}
+
+	/**
+	* @hint update the details of cluster class
+	* @class specifies the class name to update
+	*/
+	public void function updateClusterClass(required string class){
+		admin
+			action="updateClusterClass"
+			type="#variables.type#"
+			password="#variables.password#"
+			class="#arguments.class#";
+	}
+
+	/**
+	* @hint returns the information about adminSync class
+	*/
+	public string function getAdminSyncClass(){
+		admin
+			action="getAdminSyncClass"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+			return providers;
+	}
+
+	/**
+	* @hint update the details of adminSync class
+	* @class specifies the class name to update
+	*/
+	public void function updateAdminSyncClass(required string class){
+		admin
+			action="updateAdminSyncClass"
+			type="#variables.type#"
+			password="#variables.password#"
+			class="#arguments.class#";
+	}
+
+	/**
+	* @hint returns the information about videoExecuter class
+	*/
+	public string function getVideoExecuterClass(){
+		admin
+			action="getVideoExecuterClass"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+			return providers;
+	}
+
+	/**
+	* @hint update the details of videoExecuter class
+	* @class specifies the class name to update
+	*/
+	public void function updateVideoExecuterClass(required string class){
+		admin
+			action="updateVideoExecuterClass"
+			type="#variables.type#"
+			password="#variables.password#"
+			class="#arguments.class#";
+	}
+
+	/**
+	* @hint returns the information about update details
+	*/
+	public struct function getUpdate(){
+		admin
+			action="getUpdate"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+			return providers;
+	}
+
+	/**
+	* @hint executes and run the update details
+	*/
+	public void function runUpdate(){
+		admin
+			action="runUpdate"
+			type="#variables.type#"
+			password="#variables.password#";
+	}
+
+	/**
+	* @hint updates the update details
+	* @updatetype specifies the type of the update
+	* @updatelocation specifies the location to update
+	*/
+	public void function updateUpdate(required string updatetype, required string updatelocation){
+		admin
+			action="updateUpdate"
+			type="#variables.type#"
+			password="#variables.password#"
+			updatetype="#arguments.updatetype#"
+			updatelocation="#arguments.updatelocation#";
+	}
+
+	/**
+	* @hint removes the update details
+	*/
+	public void function removeUpdate(){
+		admin
+			action="removeUpdate"
+			type="#variables.type#"
+			password="#variables.password#";
+	}
+
+	/**
 	* @hint reset the ID
 	*/
 	public struct function resetId(){
@@ -2915,16 +3111,27 @@
 	}
 
 	/**
-	* @hints checks whether the current user has access
-	* @secType area for which access needs to be checked
+	* @hint returns the surveillance details
 	*/
-	public boolean function securityManager( required string secType ){
+	public struct function getSurveillance(){
 		admin
-			action="securityManager"
-			type="#request.adminType#"
-			password="#session["password"&request.adminType]#"
-			secType="#arguments.secType#";
-			returnVariable="access"
+			action="surveillance"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
+	}
+
+	/**
+	* @hint returns the configuration information details
+	*/
+	public struct function getInfo(){
+		admin
+			action="getinfo"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	/* Private functions */
