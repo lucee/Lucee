@@ -1087,10 +1087,34 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			describe( title="test log functions", body=function() {
-				it(title="checking logsetting()", body=function( currentSpec ) {
+				it(title="checking getLogSettings()", body=function( currentSpec ) {
 					var logsettings = admin.getLogSettings();
 					assertEquals(isquery(logsettings) ,true);
 					assertEquals(listSort(structKeyList(logsettings),'textnocase'), 'appenderArgs,appenderBundleName,appenderBundleVersion,appenderClass,layoutArgs,layoutBundleName,layoutBundleVersion,layoutClass,level,name,readonly');
+				});
+
+				it(title="checking updateLogSettings()", body=function( currentSpec ) {
+					var tmpStrt = {};
+					var logsettings = admin.getLogSettings();
+					assertEquals(isquery(logsettings) ,true);
+					tmpStrt.name = "testLOG";
+					tmpStrt.level = logsettings.level;
+					tmpStrt.appenderClass = logsettings.appenderClass;
+					tmpStrt.layoutClass = logsettings.layoutClass;
+					tmpStrt.appenderArgs = {"charset":"windows-1252","maxFiles":"10","maxFileSize":"10485760","path":"{lucee-config}/logs/exception.log","timeout":"180"};
+					tmpStrt.layoutArgs = logsettings.layoutArgs;
+					var updateLog = admin.updateLogSettings(argumentCollection = tmpStrt);
+					assertEquals(isstruct(updateLog) ,true);
+					assertEquals(updateLog.label,"ok");
+					logsettings = admin.getLogSettings();
+					assertEquals(listFindNoCase(valueList(logsettings.name),"testLOG") NEQ 0 ,true);
+				});
+
+				it(title="checking removeLogSetting()", body=function( currentSpec ) {
+					admin.removeLogSetting(name="testLOG");
+					var logsettings = admin.getLogSettings();
+					assertEquals(isquery(logsettings) ,true);
+					assertEquals(listFindNoCase(valueList(logsettings.name),"testLOG") EQ 0 ,true);
 				});
 
 				it(title="checking getExecutionLog()", body=function( currentSpec ) {
@@ -1109,23 +1133,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var updatedExecLog = admin.getExecutionLog();
 					assertEquals(isstruct(updatedExecLog) ,true);
 					assertEquals(updatedExecLog.enabled EQ true ,true);
-				});
-
-				it(title="checking updateLogSettings()", body=function( currentSpec ) {
-					var tmpStrt = {};
-					var logsettings = admin.getLogSettings();
-					assertEquals(isquery(logsettings) ,true);
-					tmpStrt.name = logsettings.name;
-					tmpStrt.level = logsettings.level;
-					tmpStrt.appenderClass = logsettings.appenderClass;
-					tmpStrt.layoutClass = logsettings.layoutClass;
-					tmpStrt.appenderArgs = {"charset":"windows-1252","maxFiles":"10","maxFileSize":"10485760","path":"{lucee-config}/logs/exception.log","timeout":"180"};
-					tmpStrt.layoutArgs = logsettings.layoutArgs;
-					var updateLog = admin.updateLogSettings(argumentCollection = tmpStrt);
-					assertEquals(isstruct(updateLog) ,true);
-					assertEquals(updateLog.label,"ok");
-					logsettings = admin.getLogSettings();
-					assertEquals(logsettings.appenderArgs[1].timeout EQ 180 ,true);
 				});
 			});
 
@@ -1152,6 +1159,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var proxy = admin.getproxy();
 					assertEquals(isstruct(proxy) ,true);
 					assertEquals(listSort(structKeyList(proxy),'textnocase'),'password,port,server,username');
+				});
+
+				it(title="checking updateProxy()", body=function( currentSpec ) {
+					var proxy = admin.getproxy();
+					var tmpstruct = {};
+					tmpstruct.proxyenabled = true;
+					tmpstruct.proxyserver = "testProxy";
+					tmpstruct.proxyport = "443";
+					tmpstruct.proxyusername = "server";
+					tmpstruct.proxypassword = "password";
+					admin.updateProxy(argumentCollection=tmpstruct);
+					var updatedProxy = admin.getproxy();
+					assertEquals(isstruct(updatedProxy) ,true);
+					assertEquals(updatedProxy.server EQ "testProxy" ,true);
+					assertEquals(updatedProxy.port EQ 443 ,true);
+					admin.updateProxy(argumentCollection=proxy,proxyenabled=true);
 				});
 			});
 
@@ -1322,6 +1345,46 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var strctKeylist = structKeyList(error);
 					assertEquals(FindNocase('doStatusCode',strctKeylist) GT 0, true);
 				});
+
+				it(title="checking updateError()", body=function( currentSpec ) {
+					var error = admin.getError();
+					var tmpstruct = {};
+					tmpstruct.template500 = "/lucee/templates/error/test.cfm";
+					tmpstruct.template404 = "/lucee/templates/error/test.cfm";
+					tmpstruct.statuscode = false;
+					admin.updateError(argumentCollection=tmpstruct);
+					var updatedError = admin.getError();
+					assertEquals(isStruct(updatedError) ,true);
+					assertEquals(updatedError.str[404] EQ "/lucee/templates/error/test.cfm", true);
+					assertEquals(updatedError.str[500] EQ "/lucee/templates/error/test.cfm", true);
+					assertEquals(updatedError.doStatusCode EQ false, true);
+					admin.updateError(template500=error.str[500], template404=error.str[404], statuscode=error.doStatusCode);
+				});
+			});
+
+			describe( title="test securityManager functions", body=function() {
+				it(title="checking securityManager()", body=function( currentSpec ) {
+					var debuggingSecurityManager = admin.securityManager(secType="debugging", secvalue="" );
+					assertEquals(isBoolean(debuggingSecurityManager), true);
+				});
+
+				it(title="checking createSecurityManager()", body=function( currentSpec ) {
+					var contexts=admin.getContexts();
+					admin.createsecuritymanager(id=contexts.id[1]);
+					var testContexts=admin.getContexts();
+					var result = QueryExecute(
+						sql="SELECT hasOwnSecContext FROM testContexts where id = '#contexts.id[1]#' ",
+						options=
+						{dbtype="query"}
+					);
+					assertEquals( result.hasOwnSecContext[1], true );
+				});
+
+				it(title="checking getSecurityManager()", body=function( currentSpec ) {
+					var contexts=admin.getContexts();
+					var SecurityManager=admin.getSecurityManager(id=contexts.id[1]);
+					assertEquals(listSort(structKeyList(SecurityManager),'textnocase'), 'access_read,access_write,cache,cfx_setting,cfx_usage,custom_tag,datasource,debugging,direct_java_access,file,file_access,gateway,mail,mapping,orm,remote,scheduled_task,search,setting,tag_execute,tag_import,tag_object,tag_registry');
+				});
 			});
 
 			describe( title="test authKey functions", body=function() {
@@ -1484,6 +1547,32 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var info = admin.getinfo();
 					assertEquals(isstruct(info) ,true);
 					assertEquals(listSort(structKeyList(info),'textnocase'),'config,configServerDir,configWebDir,javaAgentSupported,servlets');
+				});
+			});
+
+			describe( title="test reload functions", body=function() {
+				it(title="checking reload()", body=function( currentSpec ) {
+					admin.reload();
+				});
+			});
+
+			describe( title="test restart functions", body=function() {
+				it(title="checking restart()", body=function( currentSpec ) {
+					// admin.restart();
+				});
+			});
+
+			describe( title="test getMinVersion functions", body=function() {
+				it(title="checking getMinVersion()", body=function( currentSpec ) {
+					var minVersion = admin.getMinVersion();
+					assertEquals(len(minVersion) GT 0,true);
+				});
+			});
+
+			describe( title="test listPatches functions", body=function() {
+				it(title="checking listPatches()", body=function( currentSpec ) {
+					var listPatches = admin.listPatches();
+					assertEquals(isArray(listPatches),true);
 				});
 			});
 		});

@@ -2329,34 +2329,6 @@
 	}
 
 	/**
-	* @hint returns the details about execution log
-	*/
-	public struct function getExecutionLog(){
-		admin
-			action="getExecutionLog"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint updates the execution log settings
-	* @class specifies the class name of execution log
-	* @arguments specifies the structure of arguments
-	* @enabled specifies whether log is enable or not
-	*/
-	public void function updateExecutionLog(struct arguments={},required string class,boolean enabled=false){
-		admin
-			action="updateExecutionLog"
-			type="#variables.type#"
-			password="#variables.password#"
-			arguments="#arguments.arguments#"
-			class="#arguments.class#"
-			enabled="#arguments.enabled#";
-	}
-
-	/**
 	* @hint updates the log settings
 	* @appenderClass specifies the appender class to display the log
 	* @layoutClass specifies the layout format to display
@@ -2383,6 +2355,46 @@
 			updateLogSettings.catch=e.message;
 		}
 		return updateLogSettings;
+	}
+
+	/**
+	* @hint removes the Log settings
+	* @name specifies the name of the log to remove
+	*/
+	public void function removeLogSetting(required string name){
+		admin
+			action="removeLogSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#";
+	}
+
+	/**
+	* @hint returns the details about execution log
+	*/
+	public struct function getExecutionLog(){
+		admin
+			action="getExecutionLog"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
+	}
+
+	/**
+	* @hint updates the execution log settings
+	* @class specifies the class name of execution log
+	* @arguments specifies the structure of arguments
+	* @enabled specifies whether log is enable or not
+	*/
+	public void function updateExecutionLog(struct arguments={},required string class,boolean enabled=false){
+		admin
+			action="updateExecutionLog"
+			type="#variables.type#"
+			password="#variables.password#"
+			arguments="#arguments.arguments#"
+			class="#arguments.class#"
+			enabled="#arguments.enabled#";
 	}
 
 	/**
@@ -2872,16 +2884,105 @@
 	}
 
 	/**
+	* @hint update the details about error
+	* @template500 specifies template that will be invoked in case of an error
+	* @template404 specifies template that will be invoked in case of a missing error
+	* @statuscode specifies status code to enable or not
+	*/
+	public void function updateError(required string template500, required string template404, boolean statuscode=false){
+		admin
+			action="updateError"
+			type="#variables.type#"
+			password="#variables.password#"
+			template500="#arguments.template500#"
+			template404="#arguments.template404#"
+			statuscode="#arguments.statuscode#";
+	}
+
+	/**
 	* @hints checks whether the current user has access
 	* @secType area for which access needs to be checked
+	* @secvalue specifies the sec value
 	*/
-	public boolean function securityManager( required string secType ){
+	public boolean function securityManager( required string secType, string secvalue="" ){
 		admin
 			action="securityManager"
-			type="#request.adminType#"
-			password="#session["password"&request.adminType]#"
-			secType="#arguments.secType#";
-			returnVariable="access"
+			type="#variables.type#"
+			password="#variables.password#"
+			secType="#arguments.secType#"
+			secvalue="#arguments.secvalue#"
+			returnVariable="access";
+
+		return access;
+	}
+
+	/**
+	* @hints checks whether the current user has access
+	* @id id of the web context
+	*/
+	public void function createsecuritymanager( required string id ) {
+		admin
+			action="createSecurityManager"
+			type="#variables.type#"
+			password="#variables.password#"
+			id="#arguments.id#";
+	}
+
+	/**
+	* @hints checks whether the current user has access
+	* @id id of the web context
+	*/
+	public struct function getSecurityManager( required string id ) {
+		admin
+			action="getSecurityManager"
+			type="#variables.type#"
+			password="#variables.password#"
+			id="#arguments.id#"
+			returnVariable="access";
+
+		return access;
+	}
+
+	/**
+	* @hints create archive for the mappings
+	* @virtual specifies the virtual name of the mapping to create archive
+	* @file specifies the path of the file
+	*/
+	public void function createArchive( required string virtual, required string file ){
+		admin
+			action="createArchive"
+			type="#variables.type#"
+			password="#variables.password#"
+			virtual="#arguments.virtual#"
+			file="#arguments.file#";
+	}
+
+	/**
+	* @hints create component archive for the mappings
+	* @virtual specifies the virtual name of the mapping to create archive
+	* @file specifies the path of the file
+	*/
+	public void function createComponentArchive( required string virtual, required string file ){
+		admin
+			action="createComponentArchive"
+			type="#variables.type#"
+			password="#variables.password#"
+			virtual="#arguments.virtual#"
+			file="#arguments.file#";
+	}
+
+	/**
+	* @hints create CTarchive for the mappings
+	* @virtual specifies the virtual name of the mapping to create archive
+	* @file specifies the path of the file
+	*/
+	public void function createCTArchive( required string virtual, required string file ){
+		admin
+			action="createCTArchive"
+			type="#variables.type#"
+			password="#variables.password#"
+			virtual="#arguments.virtual#"
+			file="#arguments.file#";
 	}
 
 	/**
@@ -3128,6 +3229,50 @@
 	public struct function getInfo(){
 		admin
 			action="getinfo"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
+	}
+
+	/**
+	* @hint reloads the overall process
+	*/
+	public void function reload(){
+		admin
+			action="reload"
+			type="#variables.type#"
+			password="#variables.password#";
+	}
+
+	/**
+	* @hint restart the application
+	*/
+	public void function restart(){
+		admin
+			action="restart"
+			type="#variables.type#"
+			password="#variables.password#";
+	}
+
+	/**
+	* @hint returns the list of min versions available
+	*/
+	public string function getMinVersion(){
+		admin
+			action="getMinVersion"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return rtn;
+	}
+
+	/**
+	* @hint restart the list of patches available
+	*/
+	public array function listPatches(){
+		admin
+			action="listPatches"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
