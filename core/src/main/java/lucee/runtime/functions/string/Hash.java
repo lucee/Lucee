@@ -24,6 +24,7 @@ package lucee.runtime.functions.string;
 import java.security.MessageDigest;
 
 import lucee.commons.digest.HashUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
@@ -99,6 +100,7 @@ public final class Hash implements Function {
 		    return lucee.commons.digest.Hash.toHexString(data,true);
 		} 
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 	}

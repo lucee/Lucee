@@ -194,6 +194,7 @@ public final class ResourceUtil {
 			return toResourceExisting(pc, path, allowRealpath);
 		}
     	catch (Throwable e) {
+    		ExceptionUtil.rethrowIfNecessary(e);
 			return defaultValue;
 		}
     }

@@ -97,6 +97,7 @@ public class SocketGateway implements Gateway {
             serverSocket = null;
         }
         catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
         	state=FAILED;
 		    error("Error in Socet Gateway ["+id+"]: " + e.getMessage());
             e.printStackTrace();

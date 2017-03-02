@@ -142,6 +142,7 @@ public final class ExceptionUtil {
 
 
 	public static RuntimeException toRuntimeException(Throwable t) {
+		rethrowIfNecessary(t);
 		// TODO is there a improvement necessary?
 		return new RuntimeException(t);
 	}

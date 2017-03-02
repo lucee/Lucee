@@ -184,6 +184,7 @@ final class Axis1Client extends WSClient {
             return _call(pc,pc.getConfig(),methodName,null,arguments);
         } 
         catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
         	throw Caster.toPageException(t);
 		} 
     }
@@ -675,6 +676,7 @@ final class Axis1Client extends WSClient {
 	            wsdlExecuted=true;
 	        }
 	        catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 	            throw Caster.toPageException(t);
 	        }
 		}

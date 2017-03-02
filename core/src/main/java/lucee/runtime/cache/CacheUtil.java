@@ -274,6 +274,7 @@ public class CacheUtil {
 			remove(config,cc);
 			return true;
 		} catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
 			return false;
 		}
 	}

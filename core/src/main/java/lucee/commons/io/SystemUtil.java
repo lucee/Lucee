@@ -1037,7 +1037,7 @@ public final class SystemUtil {
 					Field f = cVersion.getField("VERSION");
 					loaderVersion=f.getDouble(null);
 				} 
-				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);t.printStackTrace();}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
 		}
 		return loaderVersion;
@@ -1397,11 +1397,11 @@ class StopThread extends Thread {
 		Thread thread = pc.getThread();
 		if(thread==null) return;
 		pci.setRequestTimeoutException(t);
-		int count=0;
+		//int count=0;
 		if(thread.isAlive()) {
-			do{
-				if(count>10) break; // should never happen
-				if(count>0 && log!=null) LogUtil.log(log, Log.LEVEL_ERROR, "", "could not stop the thread, trying again", thread.getStackTrace());
+			//// do{
+				//// if(count>10) break; // should never happen
+				//if(count>0 && log!=null) LogUtil.log(log, Log.LEVEL_ERROR, "", "could not stop the thread, trying again", thread.getStackTrace());
 				
 				try{
 					thread.stop(t);
@@ -1420,12 +1420,11 @@ class StopThread extends Thread {
 						thread.stop();
 					}
 				}
-				SystemUtil.sleep(1000);
-				count++;
-			}
-			while(thread.isAlive() && pci.isInitialized());
+				//// SystemUtil.sleep(1000);
+				//count++;
+			////}while(thread.isAlive() && pci.isInitialized());
 		}
 		
-		if(count>10 && log!=null) LogUtil.log(log, Log.LEVEL_ERROR, "", "could not stop the thread, giving up", thread.getStackTrace());
+		//if(count>10 && log!=null) LogUtil.log(log, Log.LEVEL_ERROR, "", "could not stop the thread, giving up", thread.getStackTrace());
 	}
 }

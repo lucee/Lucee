@@ -22,6 +22,7 @@ import java.io.IOException;
 
 import javax.servlet.jsp.JspException;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.writer.BodyContentImpl;
@@ -57,6 +58,7 @@ public final class Silent extends BodyTagTryCatchFinallyImpl {
 
 	@Override
 	public void doCatch(Throwable t) throws Throwable {
+		ExceptionUtil.rethrowIfNecessary(t);
 		if(bufferOutput.booleanValue()){
 	    	try {
 				bc.flush();

@@ -1112,6 +1112,7 @@ public final class Reflector {
 	    	return getFieldsIgnoreCase(obj.getClass(),prop)[0].get(obj);
         }
 		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
             throw Caster.toPageException(e);
 		}
 	}
@@ -1207,6 +1208,7 @@ public final class Reflector {
             if(first>='0' && first<='9') return defaultValue;
             return getGetter(obj.getClass(), prop).invoke(obj);
         } catch (Throwable e1) {
+			ExceptionUtil.rethrowIfNecessary(e1);
             return defaultValue;
         } 
 	}

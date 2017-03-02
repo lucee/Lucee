@@ -73,6 +73,7 @@ public final class QueryExecute extends BIF {
 					qry.doCatch(t);
 				}
 				catch (Throwable t2) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					throw Caster.toPageException(t2);
 				}
 			}

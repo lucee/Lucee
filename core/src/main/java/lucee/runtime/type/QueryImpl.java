@@ -304,6 +304,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 			throw new DatabaseException(e,sql,dc);
 		}
 		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
 			throw Caster.toPageException(e);
 		}
         finally {

@@ -27,6 +27,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -66,6 +67,7 @@ public final class JavaProxy implements Function {
 					return ClassUtil.loadClassByBundle(className,str,delimiterOrVersion,pc.getConfig().getIdentification());
 				}
 				catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					throw Caster.toPageException(t);
 				}
 			}

@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Vector;
 
 import lucee.commons.collection.MapFactory;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.math.MathUtil;
 import lucee.runtime.PageContext;
@@ -86,6 +87,7 @@ public final class Executer {
 		    statements=parser.readStatements();
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 		    throw Caster.toPageException(t);
 		}
 		return execute(statements,pc, sql, maxrows);

@@ -157,6 +157,7 @@ public class SimpleQuery implements Query, ResultSet, Objects,QueryResult {
 			throw new DatabaseException(e,sql,dc);
 		} 
 		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
 			throw Caster.toPageException(e);
 		}
 		exeTime= System.nanoTime()-start;

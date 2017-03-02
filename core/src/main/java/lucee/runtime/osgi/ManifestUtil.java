@@ -30,6 +30,7 @@ import java.util.jar.Attributes.Name;
 import java.util.jar.Manifest;
 
 import lucee.aprint;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.type.util.ListUtil;
 
@@ -185,7 +186,9 @@ public class ManifestUtil {
 				sb.append(str);
 			}
 		}
-		catch (Throwable e) {}
+		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
+		}
 		if(removed) {
 			if(sb.length()>0)
 				attrs.putValue(key, sb.toString());
@@ -221,7 +224,9 @@ public class ManifestUtil {
 				sb.append(str);
 			}
 		}
-		catch (Throwable e) {}
+		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
+		}
 		if(removed) attrs.putValue(key, sb.toString());
 		
 	}

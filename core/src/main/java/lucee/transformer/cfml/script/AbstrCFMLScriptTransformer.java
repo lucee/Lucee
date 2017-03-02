@@ -874,6 +874,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 					}
 				}
 				catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					throw new PageRuntimeException(Caster.toPageException(t));
 				}
 			}

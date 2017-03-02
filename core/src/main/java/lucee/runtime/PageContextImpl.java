@@ -893,6 +893,7 @@ public final class PageContextImpl extends PageContext {
 				currentPage.call(this);
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				PageException pe = Caster.toPageException(t);
 				if(Abort.isAbort(pe)) {
 					if(Abort.isAbort(pe,Abort.SCOPE_REQUEST))throw pe;
@@ -923,6 +924,7 @@ public final class PageContextImpl extends PageContext {
 				currentPage.call(this);
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				PageException pe = Caster.toPageException(t);
 				if(Abort.isAbort(pe)) {
 					if(Abort.isAbort(pe,Abort.SCOPE_REQUEST))throw pe;
@@ -2006,6 +2008,7 @@ public final class PageContextImpl extends PageContext {
 						write(content);
 						return;
 					} catch(Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
 						pe=Caster.toPageException(t);
 					}
 				}
@@ -2312,6 +2315,7 @@ public final class PageContextImpl extends PageContext {
 		
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			PageException pe = Caster.toPageException(t);
 			if(!Abort.isSilentAbort(pe)){
 				log(true);
@@ -2402,7 +2406,10 @@ public final class PageContextImpl extends PageContext {
 			}
 			else log(false);
 
-			if(throwExcpetion) throw pe;
+			if(throwExcpetion) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				throw pe;
+			}
 		}
 		finally {
 			if(enablecfoutputonly>0){
@@ -2428,7 +2435,7 @@ public final class PageContextImpl extends PageContext {
 					try {
 						((RequestMonitorPro)monitors[i]).init(this);
 					} 
-					catch (Throwable e) {}
+					catch (Throwable e) {ExceptionUtil.rethrowIfNecessary(e);}
 				}
 			}
 		}
@@ -2443,7 +2450,7 @@ public final class PageContextImpl extends PageContext {
 					try {
 						monitors[i].log(this,error);
 					} 
-					catch (Throwable e) {}
+					catch (Throwable e) {ExceptionUtil.rethrowIfNecessary(e);}
 				}
 			}
 		}

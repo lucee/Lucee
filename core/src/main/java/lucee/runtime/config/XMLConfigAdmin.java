@@ -3627,7 +3627,9 @@ public final class XMLConfigAdmin {
         try {
 			location=HTTPUtil.toURL(location,true).toString();
 		} 
-        catch (Throwable e) {}
+        catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
+        }
         update.setAttribute("location",location);
     }
     
@@ -4625,6 +4627,7 @@ public final class XMLConfigAdmin {
     	if(reload)admin._reload();
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 	}
@@ -4745,6 +4748,7 @@ public final class XMLConfigAdmin {
 	    	admin.updateRHExtension(config,ext,reload);
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 	}
@@ -5536,6 +5540,7 @@ public final class XMLConfigAdmin {
 			else throw new ApplicationException("invalid type ["+type+"], valid types are [regular, cfc, ct]");
 		} 
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 		finally {

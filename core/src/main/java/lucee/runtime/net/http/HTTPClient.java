@@ -165,6 +165,7 @@ public class HTTPClient implements Objects, Iteratorable {
 	        
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new PageRuntimeException(Caster.toPageException(t));
 		}
 	}
@@ -197,6 +198,7 @@ public class HTTPClient implements Objects, Iteratorable {
 				
 			}
 			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				throw new PageRuntimeException(Caster.toPageException(t));
 			}
 			finally {

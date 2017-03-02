@@ -3186,9 +3186,9 @@ public final class Caster {
         else if(t instanceof ExecutionException){
             return toPageException(((ExecutionException)t).getCause());
         }
-        else if(t instanceof ThreadDeath){
+        /*else if(t instanceof ThreadDeath){
             throw (ThreadDeath)t; // never catch ThreadDeath!
-        }
+        }*/
         else {
         	if(t instanceof OutOfMemoryError) {
         		ThreadLocalPageContext.getConfig().checkPermGenSpace(true);

@@ -359,6 +359,7 @@ public final class PageSourceImpl implements PageSource {
 				return newInstance(clazz);
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				PageException pe = Caster.toPageException(t);
 				pe.setExtendedInfo("failed to load template "+getDisplayPath());
 				throw pe;

@@ -98,6 +98,7 @@ public final class ComponentController {
 			return AxisCaster.toAxisType(tm,rtn,clazz.getComponentType()!=null?clazz:null);
 		} 
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 	}

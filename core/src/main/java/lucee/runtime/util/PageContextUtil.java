@@ -191,6 +191,7 @@ public class PageContextUtil {
 			pc.handlePageException(pe,false);
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 		finally{

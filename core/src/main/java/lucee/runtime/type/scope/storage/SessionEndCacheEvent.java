@@ -20,6 +20,7 @@ package lucee.runtime.type.scope.storage;
 
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CacheEventListener;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
@@ -61,6 +62,7 @@ public class SessionEndCacheEvent implements CacheEventListener {
 			listener.onSessionEnd(factory, appName, cfid);
 		} 
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			ExceptionHandler.log(factory.getConfig(),Caster.toPageException(t));
 		}
 	}

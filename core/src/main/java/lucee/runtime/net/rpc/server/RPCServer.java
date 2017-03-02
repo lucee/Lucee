@@ -163,6 +163,7 @@ public final class RPCServer{
 			}
 		} 
         catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
         	if(e instanceof InvocationTargetException)
         		e= ((InvocationTargetException)e).getTargetException();
         	if(e instanceof PageException)
