@@ -1114,6 +1114,32 @@
 	}
 
 	/**
+	* @hint update the ORM engine details
+	* @class specifies the class name of ORM engine to update
+	* @bundleName specifies the bundle name of ORM
+	* @bundleVersion specifies the bundle version of ORM
+	*/
+	public void function updateORMEngine(required string class, string bundleName="", string bundleVersion=""){
+		admin
+			action="updateORMEngine"
+			type="#variables.type#"
+			password="#variables.password#"
+			class="#arguments.class#"
+			bundleName="#arguments.bundleName#"
+			bundleVersion="#arguments.bundleVersion#";
+	}
+
+	/**
+	* @hint removes the ORM engine details
+	*/
+	public void function removeORMEngine(){
+		admin
+			action="removeORMEngine"
+			type="#variables.type#"
+			password="#variables.password#";
+	}
+
+	/**
 	* @hint returns the list of component information
 	*/
 	public Struct function getComponent(){
@@ -1223,20 +1249,6 @@
 	}
 
 	/**
-	* @hint returns the details of cache connections
-	* @name specifies the name of the cache
-	*/
-	public struct function getCacheConnection( required string name ){
-		admin
-			action="getCacheConnection"
-			type="#variables.type#"
-			password="#variables.password#"
-			name = "#arguments.name#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
 	* @hint verifies whether cache has connection or not
 	* @name specifies the name of the cache to be verified
 	*/
@@ -1292,6 +1304,20 @@
 			storage="#getArguments('storage', false)#"
 
 			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint returns the details of cache connections
+	* @name specifies the name of the cache
+	*/
+	public struct function getCacheConnection( required string name ){
+		admin
+			action="getCacheConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+			name = "#arguments.name#"
+			returnVariable="local.rtn";
+			return rtn;
 	}
 
 	/**
@@ -1768,11 +1794,29 @@
 	}
 
 	/**
+	* @hint updates the details of a monitor
+	* @monitorType type of the monitor
+	* @name name of the monitor
+	* @logEnabled specifies whether log is enable or not
+	* @class specifies the class name for monitor
+	*/
+	public void function updateMonitor(required string monitorType,  required string name, required boolean logEnabled, required string class){
+		admin
+			action="updateMonitor"
+			type="#variables.type#"
+			password="#variables.password#"
+			monitorType="#arguments.monitorType#"
+			name="#arguments.name#"
+			logEnabled="#arguments.logEnabled#"
+			class="#arguments.class#";
+	}
+
+	/**
 	* @hint returns the details of a monitor
 	* @monitorType type of the monitor
 	* @name name of the monitor
 	*/
-	public struct function getMonitor( required string monitorType,  required string name){
+	public struct function getMonitor(required string monitorType,  required string name){
 		admin
 			action="getMonitor"
 			type="#variables.type#"
@@ -1781,6 +1825,20 @@
 			name="#arguments.name#"
 			returnVariable="local.rtn";
 		return rtn;
+	}
+
+	/**
+	* @hint returns the details of a monitor
+	* @type type of the monitor
+	* @name name of the monitor
+	*/
+	public void function removeMonitor(required string type,  required string name){
+		admin
+			action="removeMonitor"
+			type="#variables.type#"
+			password="#variables.password#"
+			type="#arguments.type#"
+			name="#arguments.name#";
 	}
 
 	/**
@@ -1807,6 +1865,20 @@
 			symbolicName = "#arguments.name#"
 			returnVariable="local.rtn";
 			return rtn;
+	}
+
+	/**
+	* @hint remove the details of bundle
+	* @name specifies the name of the bundle
+	* @version specifies the version of the bundle
+	*/
+	public void function removeBundle( required string name, required string version ){
+		admin
+			action="removeBundle"
+			type="#variables.type#"
+			password="#variables.password#"
+			name = "#arguments.name#"
+			version = "#arguments.version#";
 	}
 
 	/**
@@ -2243,6 +2315,24 @@
 	}
 
 	/**
+	* @hint updates the CPPCFX tags
+	* @name specifies the name of the CPPCFX tag
+	* @procedure specifies the procedures to update
+	* @serverLibrary specifies the server library to update
+	* @keepAlive specified whether the tag active or not
+	*/
+	public void function updateCPPCfx(required string name, required string procedure, required string serverLibrary, required boolean keepAlive){
+		admin
+			action="updateCPPCfx"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#"
+			procedure="#arguments.procedure#"
+			serverLibrary="#arguments.serverLibrary#"
+			keepAlive="#arguments.keepAlive#";
+	}
+
+	/**
 	* @hint returns the list of javaCFX tags
 	*/
 	public query function getJavaCfxTags(){
@@ -2278,6 +2368,32 @@
 			verifyJavaCFX.catch=e.message;
 		}
 		return verifyJavaCFX;
+	}
+
+	/**
+	* @hint updates the CPPCFX tags
+	* @name specifies the name of the javaCFX tag
+	* @class specifies the class of javaCFX tag to update
+	*/
+	public void function updatejavacfx(required string name, required string class){
+		admin
+			action="updatejavacfx"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#"
+			class="#arguments.class#";
+	}
+
+	/**
+	* @hint removes the CFX tags
+	* @name specifies the name of CFXtag
+	*/
+	public void function removecfx(required string name){
+		admin
+			action="removecfx"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#";
 	}
 
 	/**
@@ -2935,6 +3051,210 @@
 	public struct function getSecurityManager( required string id ) {
 		admin
 			action="getSecurityManager"
+			type="#variables.type#"
+			password="#variables.password#"
+			id="#arguments.id#"
+			returnVariable="access";
+
+		return access;
+	}
+
+	/**
+	* @hints Update a particular security manager
+	* @id id of the web context
+	* @setting The settings (regional,component and scope) can be changed in the "web administrator"
+	* @file Defines how Lucee can interact with the local filesystem in a web context.
+	* @direct_java_access Allows access to Java methods and properties from the Lucee code
+	* @mail The mail settings can be changed in the "web administrator"
+	* @datasource Defines how many datasources can be added in the "web administrator".
+	* @mapping Allows adding, removing and updating of mappings in the "web administrator".
+	* @remote It allows the settings in the administrator to be synchronized with other Lucee contexts
+	* @custom_tag The custom tag settings can be changed in the "web administrator"
+	* @cfx_setting The settings for the cfx tags can be changed. The globally defined CFX tags defined in the "server administrator" can be used as well.
+	* @cfx_usage CFX tags one can load Java classes which might have full access to the local hosts system.
+	* @debugging The debugging settings can be changed in the "web administrator"
+	* @tag_execute This tag is used to execute a process on the local hosts system
+	* @tag_import This tag can be used to import JSP and Lucee tag libraries
+	* @tag_object The tag CFObject and the function CreateObject you can load Java objects. If disabled, you only can create objects of type "component"
+	* @tag_registry The tag CFRegistry you have full access to the registry of the local hosts system
+	* @cache The cache settings can be changed in the "web administrator"
+	* @gateway The gateway settings can be changed in the "web administrator"
+	* @orm The ORM settings can be changed in the "web administrator"
+	* @access_read define the access for reading data
+	* @access_write define the access for writing data
+	* @search The search settings can be changed in the "web administrator"
+	* @scheduled_task The scheduled task settings can be changed in the "web administrator"
+	* @file_access define additional directories where file access is allowed
+	*/
+	public void function updateSecurityManager(
+		required string  id,
+		required boolean setting,
+		required string  file,
+		required boolean direct_java_access,
+		required boolean mail,
+		required string  datasource,
+		required boolean mapping,
+		required boolean remote,
+		required boolean custom_tag,
+		required boolean cfx_setting,
+		required boolean cfx_usage,
+		required boolean debugging,
+		required boolean tag_execute,
+		required boolean tag_import,
+		required boolean tag_object,
+		required boolean tag_registry,
+		required boolean cache,
+		required boolean gateway,
+		required boolean orm,
+		required string  access_read,
+		required string  access_write,
+		         boolean search=yes,
+		         boolean scheduled_task=yes,
+		         array   file_access=[] ) {
+		admin
+			action="updateSecurityManager"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			id="#arguments.id#"
+			setting="#arguments.setting#"
+			file="#arguments.file#"
+			file_access="#arguments.file_access#"
+			direct_java_access="#arguments.direct_java_access#"
+			mail="#arguments.mail#"
+			datasource="#arguments.datasource#"
+			mapping="#arguments.mapping#"
+			remote="#arguments.remote#"
+			custom_tag="#arguments.custom_tag#"
+			cfx_setting="#arguments.cfx_setting#"
+			cfx_usage="#arguments.cfx_usage#"
+			debugging="#arguments.debugging#"
+			search="#arguments.search#"
+			scheduled_task="#arguments.scheduled_task#"
+			tag_execute="#arguments.tag_execute#"
+			tag_import="#arguments.tag_import#"
+			tag_object="#arguments.tag_object#"
+			tag_registry="#arguments.tag_registry#"
+			cache="#arguments.cache#"
+			gateway="#arguments.gateway#"
+			orm="#arguments.orm#"
+			access_read="#arguments.access_read#"
+			access_write="#arguments.access_write#";
+	}
+
+	/**
+	* @hints To remove a security manager for a context
+	* @id id of the web context
+	*/
+	public void function removeSecurityManager( required string id ) {
+		admin
+			action="removeSecurityManager"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			id="#arguments.id#";
+	}
+
+	/**
+	* @hints To get default security manager for a context
+	*/
+	public struct function getDefaultSecurityManager() {
+		admin
+			action="getDefaultSecurityManager"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="access";
+
+		return access;
+	}
+
+	/**
+	* @hints Update a particular security manager
+	* @setting The settings (regional,component and scope) can be changed in the "web administrator"
+	* @file Defines how Lucee can interact with the local filesystem in a web context.
+	* @direct_java_access Allows access to Java methods and properties from the Lucee code
+	* @mail The mail settings can be changed in the "web administrator"
+	* @datasource Defines how many datasources can be added in the "web administrator".
+	* @mapping Allows adding, removing and updating of mappings in the "web administrator".
+	* @remote It allows the settings in the administrator to be synchronized with other Lucee contexts
+	* @custom_tag The custom tag settings can be changed in the "web administrator"
+	* @cfx_setting The settings for the cfx tags can be changed. The globally defined CFX tags defined in the "server administrator" can be used as well.
+	* @cfx_usage CFX tags one can load Java classes which might have full access to the local hosts system.
+	* @debugging The debugging settings can be changed in the "web administrator"
+	* @tag_execute This tag is used to execute a process on the local hosts system
+	* @tag_import This tag can be used to import JSP and Lucee tag libraries
+	* @tag_object The tag CFObject and the function CreateObject you can load Java objects. If disabled, you only can create objects of type "component"
+	* @tag_registry The tag CFRegistry you have full access to the registry of the local hosts system
+	* @cache The cache settings can be changed in the "web administrator"
+	* @gateway The gateway settings can be changed in the "web administrator"
+	* @orm The ORM settings can be changed in the "web administrator"
+	* @access_read define the access for reading data
+	* @access_write define the access for writing data
+	* @search The search settings can be changed in the "web administrator"
+	* @scheduled_task The scheduled task settings can be changed in the "web administrator"
+	* @file_access define additional directories where file access is allowed
+	*/
+	public void function updateDefaultSecurityManager(
+		required boolean setting,
+		required string  file,
+		required boolean direct_java_access,
+		required boolean mail,
+		required string  datasource,
+		required boolean mapping,
+		required boolean remote,
+		required boolean custom_tag,
+		required boolean cfx_setting,
+		required boolean cfx_usage,
+		required boolean debugging,
+		required boolean tag_execute,
+		required boolean tag_import,
+		required boolean tag_object,
+		required boolean tag_registry,
+		required boolean cache,
+		required boolean gateway,
+		required boolean orm,
+		required string  access_read,
+		required string  access_write,
+		         boolean search=yes,
+		         boolean scheduled_task=yes,
+		         array   file_access=[] ) {
+		admin
+			action="updateDefaultSecurityManager"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			setting="#arguments.setting#"
+			file="#arguments.file#"
+			file_access="#arguments.file_access#"
+			direct_java_access="#arguments.direct_java_access#"
+			mail="#arguments.mail#"
+			datasource="#arguments.datasource#"
+			mapping="#arguments.mapping#"
+			remote="#arguments.remote#"
+			custom_tag="#arguments.custom_tag#"
+			cfx_setting="#arguments.cfx_setting#"
+			cfx_usage="#arguments.cfx_usage#"
+			debugging="#arguments.debugging#"
+			search="#arguments.search#"
+			scheduled_task="#arguments.scheduled_task#"
+			tag_execute="#arguments.tag_execute#"
+			tag_import="#arguments.tag_import#"
+			tag_object="#arguments.tag_object#"
+			tag_registry="#arguments.tag_registry#"
+			cache="#arguments.cache#"
+			gateway="#arguments.gateway#"
+			orm="#arguments.orm#"
+			access_read="#arguments.access_read#"
+			access_write="#arguments.access_write#";
+	}
+
+	/**
+	* @hints Check Individual security manager is there for a context
+	* @id id of the web context
+	*/
+	public boolean function hasIndividualSecurity( required string id ) {
+		admin
+			action="hasIndividualSecurity"
 			type="#variables.type#"
 			password="#variables.password#"
 			id="#arguments.id#"

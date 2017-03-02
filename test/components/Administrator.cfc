@@ -514,6 +514,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isstruct(ORMEngine) ,true);
 					assertEquals(listSort(structKeyList(ORMEngine),'textnocase'),'bundleName,bundleVersion,class');
 				});
+
+				it(title="checking updateORMEngine()", body=function( currentSpec ) {
+					var ORMEngine = admin.getORMEngine();
+					assertEquals(isstruct(ORMEngine) ,true);
+					var tmpstruct = {};
+					tmpstruct.class = "lucee.runtime.orm.ORMEngine";
+					tmpstruct.bundleName = "";
+					tmpstruct.bundleVersion = "";
+					admin.updateORMEngine(argumentCollection=tmpstruct);
+					var updatedORMEngine = admin.getORMEngine();
+					assertEquals(isstruct(updatedORMEngine) ,true);
+					assertEquals(updatedORMEngine.class EQ 'lucee.runtime.orm.ORMEngine' ,true);
+					admin.updateORMEngine(argumentCollection=ORMEngine);
+				});
+
+				it(title="checking removeORMEngine()", body=function( currentSpec ) {
+					// admin.removeORMEngine();
+				});
 			});
 
 			describe( title="test Component functions", body=function() {
@@ -566,12 +584,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isquery(getCacheConnections) ,true);
 				});
 
-				it(title="checking getCacheConnection()", body=function( currentSpec ) {
-					var getCacheConnection = admin.getCacheConnection('testCache');
-					assertEquals(isstruct(getCacheConnection) ,true);
-					assertEquals(listSort(structKeyList(getCacheConnection),'textnocase'),'bundleName,bundleVersion,class,custom,default,name,readOnly,storage');
-				});
-
 				it(title="checking verifyCacheConnection()", body=function( currentSpec ) {
 					var getCacheConnections = admin.getCacheConnections();
 					assertEquals(isquery(getCacheConnections) ,true);
@@ -592,6 +604,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var getCacheConnection = admin.getCacheConnection('testCache');
 					assertEquals(isstruct(getCacheConnection) ,true);
 					assertEquals(getCacheConnection.default EQ 'query' ,true);
+				});
+
+				it(title="checking getCacheConnection()", body=function( currentSpec ) {
+					var getCacheConnection = admin.getCacheConnection('testCache');
+					assertEquals(isstruct(getCacheConnection) ,true);
+					assertEquals(listSort(structKeyList(getCacheConnection),'textnocase'),'bundleName,bundleVersion,class,custom,default,name,readOnly,storage');
 				});
 
 				it(title="checking getCacheDefaultConnection()", body=function( currentSpec ) {
@@ -623,14 +641,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(listSort(structKeyList(defaultCacheConnection),'textnocase'),'bundleName,bundleVersion,class,custom,default,name,readonly');
 				});
 
-
 				it(title="checking removeCacheDefaultConnection()", body=function( currentSpec ){
 					admin.removeCacheDefaultConnection();
 					var defaultCacheConnection = admin.getCacheDefaultConnection('object');
 					assertEquals(isstruct(defaultCacheConnection) ,true);
 					assertEquals(structIsEmpty(defaultCacheConnection) ,true);
 				});
-
 			});
 
 			describe( title="test remoteclient functions", body=function() {
@@ -828,6 +844,31 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isBoolean(isEnable) ,true);
 					assertEquals(isEnable EQ false ,true);
 				});
+
+				it(title="checking updateMonitor()", body=function( currentSpec ) {
+					var tmpstruct = {};
+					tmpstruct.monitorType = "intervall";
+					tmpstruct.name = "testDesktop";
+					tmpstruct.logEnabled = false;
+					tmpstruct.class = "lucee.commons.io.res.type.file.FileResourceProvider";
+					admin.updateMonitor(argumentCollection=tmpstruct);
+					var monitors = admin.getMonitors();
+					assertEquals(isquery(monitors) ,true);
+					assertEquals(listFindNoCase(valueList(monitors.name), "testDesktop") NEQ 0 ,true);
+				});
+
+				it(title="checking getMonitor()", body=function( currentSpec ) {
+					var monitor = admin.getMonitor(monitorType="intervall",name="testDesktop");
+					assertEquals(isstruct(monitor) ,true);
+					assertEquals(listSort(structKeyList(monitor),'textnocase'), 'class,logEnabled,name,type');
+				});
+
+				it(title="checking removeMonitor()", body=function( currentSpec ) {
+					admin.removeMonitor(type="intervall",name="testDesktop");
+					var monitors = admin.getMonitors();
+					assertEquals(isquery(monitors) ,true);
+					assertEquals(listFindNoCase(valueList(monitors.name), "testDesktop") EQ 0 ,true);
+				});
 			});
 
 			describe( title="test bundles functions", body=function() {
@@ -841,6 +882,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var bundle = admin.getBundle( bundles.symbolicName );
 					assertEquals(isStruct(bundle) ,true);
 					assertEquals(listSort(structKeyList(bundle),'textnocase'), 'description,fragment,headers,id,path,state,symbolicName,title,usedBy,version');
+				});
+
+				it(title="checking removeBundle()", body=function( currentSpec ) {
+					var bundles = admin.getBundles();
+					var tmpstruct = {};
+					tmpstruct.name = bundles.symbolicName;
+					tmpstruct.version = bundles.version;
+					// admin.removeBundle(argumentCollection=tmpstruct);
 				});
 			});
 
@@ -1054,6 +1103,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(FindNocase('isvalid',strctKeylist) GT 0, true);
 				});
 
+				it(title="checking updateCPPCfx()", body=function( currentSpec ) {
+					var tmpstruct = {};
+					tmpstruct.name = "testCPPCFX";
+					tmpstruct.procedure = "testProc";
+					tmpstruct.serverLibrary = "#expandPath("./")#";
+					tmpstruct.keepAlive = true;
+					admin.updateCPPCfx(argumentCollection=tmpstruct);
+					var CPPCfxTags = admin.getCPPCfxTags();
+					assertEquals(isquery(CPPCfxTags) ,true);
+					assertEquals(listFindNocase(valueList(CPPCfxTags.name),"testCPPCFX") GT 0, true);
+				});
+
 				it(title="checking getJavaCfxTags()", body=function( currentSpec ) {
 					var javaCfxTags = admin.getJavaCfxTags();
 					assertEquals(isquery(javaCfxTags) ,true);
@@ -1064,6 +1125,27 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking verifyJavaCFX()", body=function( currentSpec ) {
 					var verifyJavaCFX = admin.verifyJavaCFX(name="helloworld", class="lucee.cfx.example.HelloWorld");
 					assertEquals(verifyJavaCFX.label,"ok");
+				});
+
+				it(title="checking updatejavacfx()", body=function( currentSpec ) {
+					var tmpstruct = {};
+					tmpstruct.name = "testJavaCFX";
+					tmpstruct.class = "lucee.cfx.example.HelloWorld";
+					admin.updatejavacfx(argumentCollection=tmpstruct);
+					var javaCfxTags = admin.getJavaCfxTags();
+					assertEquals(isquery(javaCfxTags) ,true);
+					assertEquals(listFindNocase(valueList(javaCfxTags.name),"testJavaCFX") GT 0, true);
+				});
+
+				it(title="checking removecfx()", body=function( currentSpec ) {
+					admin.removecfx("testCPPCFX");
+					admin.removecfx("testJavaCFX");
+					var CPPCfxTags = admin.getCPPCfxTags();
+					assertEquals(isquery(CPPCfxTags) ,true);
+					var javaCfxTags = admin.getJavaCfxTags();
+					assertEquals(isquery(javaCfxTags) ,true);
+					assertEquals(listFindNocase(valueList(CPPCfxTags.name),"testCPPCFX") EQ 0, true);
+					assertEquals(listFindNocase(valueList(javaCfxTags.name),"testJavaCFX") EQ 0, true);
 				});
 			});
 
@@ -1384,6 +1466,70 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var contexts=admin.getContexts();
 					var SecurityManager=admin.getSecurityManager(id=contexts.id[1]);
 					assertEquals(listSort(structKeyList(SecurityManager),'textnocase'), 'access_read,access_write,cache,cfx_setting,cfx_usage,custom_tag,datasource,debugging,direct_java_access,file,file_access,gateway,mail,mapping,orm,remote,scheduled_task,search,setting,tag_execute,tag_import,tag_object,tag_registry');
+				});
+
+				it(title="checking updateSecurityManager()", body=function( currentSpec ) {
+					var updateSecurityManager={};
+					var context=admin.getContexts().id[1];
+					var SecurityManager=admin.getSecurityManager(id=context);
+
+					SecurityManager.id=context;
+					SecurityManager.datasource=SecurityManager.datasource != -1 ? SecurityManager.datasource : "yes";
+					updateSecurityManager=SecurityManager;
+					updateSecurityManager.mail=!SecurityManager.mail;
+
+					admin.updateSecurityManager(argumentCollection=updateSecurityManager);
+					updatedSecurityManager=admin.getSecurityManager(id=context);
+
+					assertEquals( val(updatedSecurityManager.mail) == val(!SecurityManager.mail), true);
+					admin.updateSecurityManager(argumentCollection=SecurityManager);
+				});
+
+				it(title="checking removeSecurityManager()", body=function( currentSpec ) {
+					var contexts=admin.getContexts();
+					var securityManagerId = QueryExecute(
+						sql="SELECT id FROM contexts where hasOwnSecContext = 'true' ",
+						options=
+						{dbtype="query"}
+					).id[1];
+					admin.removeSecurityManager(id=securityManagerId);
+					var testContexts=admin.getContexts();
+					var result = QueryExecute(
+						sql="SELECT hasOwnSecContext FROM testContexts where id = '#securityManagerId#' ",
+						options=
+						{dbtype="query"}
+					);
+					assertEquals( result.hasOwnSecContext[1], false );
+				});
+
+				it(title="checking getDefaultSecurityManager()", body=function( currentSpec ) {
+					var defaultSecurityManager=admin.getDefaultSecurityManager();
+					assertEquals(listSort(structKeyList(defaultSecurityManager),'textnocase'), 'access_read,access_write,cache,cfx_setting,cfx_usage,custom_tag,datasource,debugging,direct_java_access,file,file_access,gateway,mail,mapping,orm,remote,scheduled_task,search,setting,tag_execute,tag_import,tag_object,tag_registry');
+				});
+
+				it(title="checking updateDefaultSecurityManager()", body=function( currentSpec ) {
+					var updateDefaultSecurityManager={};
+					var defaultSecurityManager=admin.getDefaultSecurityManager();
+
+					defaultSecurityManager.datasource=defaultSecurityManager.datasource != -1 ? defaultSecurityManager.datasource : "yes";
+					updateDefaultSecurityManager=defaultSecurityManager;
+					updateDefaultSecurityManager.mail=!defaultSecurityManager.mail;
+
+					admin.updateDefaultSecurityManager(argumentCollection=updateDefaultSecurityManager);
+					updatedDefaultSecurityManager=admin.getDefaultSecurityManager();
+
+					assertEquals( val(updatedDefaultSecurityManager.mail) == val(!defaultSecurityManager.mail), true);
+					admin.updateDefaultSecurityManager(argumentCollection=defaultSecurityManager);
+				});
+
+				it(title="checking hasIndividualSecurity()", body=function( currentSpec ) {
+					var contexts=admin.getContexts();
+					admin.createsecuritymanager(id=contexts.id[1]);
+					var result1=admin.hasIndividualSecurity(id=contexts.id[1]);
+					assertEquals(result1,true);
+					admin.removeSecurityManager(id=contexts.id[1]);
+					var result2=admin.hasIndividualSecurity(id=contexts.id[1]);
+					assertEquals(result2,false);
 				});
 			});
 
