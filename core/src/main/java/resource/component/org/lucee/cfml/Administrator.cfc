@@ -2247,6 +2247,40 @@
 	}
 
 	/**
+	* @hint executes the spooler task of given id
+	* @id specifies the id of spooler task to execute
+	*/
+	public void function executeSpoolerTask(required string id){
+		admin
+			action="executeSpoolerTask"
+			type="#variables.type#"
+			password="#variables.password#"
+			id="#arguments.id#";
+	}
+
+	/**
+	* @hint removes the spooler task of given id
+	* @id specifies the id of spooler task to remove
+	*/
+	public void function removeSpoolerTask(required string id){
+		admin
+			action="removeSpoolerTask"
+			type="#variables.type#"
+			password="#variables.password#"
+			id="#arguments.id#";
+	}
+
+	/**
+	* @hint removes all the spooler task
+	*/
+	public void function removeAllSpoolerTask(){
+		admin
+			action="removeAllSpoolerTask"
+			type="#variables.type#"
+			password="#variables.password#";
+	}
+
+	/**
 	* @hint returns the details of task settings
 	*/
 	public struct function getTaskSetting(){
@@ -2836,6 +2870,18 @@
 			label="#arguments.label#"
 			bundleName="#arguments.bundleName#"
 			bundleVersion="#arguments.bundleVersion#";
+	}
+
+	/**
+	* @hint removes the JDBC driver
+	* @class specifies the class name of JDBC driver to remove
+	*/
+	public void function removeJDBCDriver( required string class ){
+		admin
+			action="removeJDBCDriver"
+			type="#variables.type#"
+			password="#variables.password#"
+			class="#arguments.class#";
 	}
 
 	/**
@@ -3511,6 +3557,30 @@
 			action="removeUpdate"
 			type="#variables.type#"
 			password="#variables.password#";
+	}
+
+	/**
+	* @hint returns the serial number for lucee
+	*/
+	public string function getSerial(){
+		admin
+			action="getSerial"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.providers";
+			return providers;
+	}
+
+	/**
+	* @hint updates the serial number
+	* @serial specifies the serial number to update
+	*/
+	public void function updateSerial(required string serial){
+		admin
+			action="updateSerial"
+			type="#variables.type#"
+			password="#variables.password#"
+			serial="#arguments.serial#";
 	}
 
 	/**

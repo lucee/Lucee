@@ -1069,6 +1069,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(listSort(structKeyList(spoolertask),'textnocase'), 'closed,detail,exceptions,id,lastExecution,name,nextExecution,tries,triesmax,type');
 				});
 
+				it(title="checking executeSpoolerTask()", body=function( currentSpec ) {
+					admin.executeSpoolerTask(id="testSpooler");
+				});
+
+				it(title="checking removeSpoolerTask()", body=function( currentSpec ) {
+					admin.removeSpoolerTask(id="testSpooler");
+					var spoolertask = admin.getSpoolerTasks();
+					assertEquals(isQuery(spoolertask) ,true);
+					assertEquals(listFindNocase(valueList(spoolertask.id),"testSpooler") EQ 0 ,true);
+				});
+
+				it(title="checking removeAllSpoolerTask()", body=function( currentSpec ) {
+					admin.removeAllSpoolerTask();
+					var spoolertask = admin.getSpoolerTasks();
+					assertEquals(isQuery(spoolertask) ,true);
+					assertEquals(spoolertask.recordcount EQ 0 ,true);
+				});
+
 				it(title="checking getTaskSetting()", body=function( currentSpec ) {
 					var taskSetting = admin.getTaskSetting();
 					assertEquals(isstruct(taskSetting) ,true);
