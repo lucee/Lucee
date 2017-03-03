@@ -3,10 +3,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		try{
 			var extensionNames = "";
 			if( structKeyExists(server, "lucee") && listFirst(server.lucee.version, ".") == "5" ){
-				admin action="getRHExtensions" type="server" password="password" returnVariable="returnVariable"; //To get extension details in above 5.0 versions
+				admin action="getRHExtensions" type="web" password=request.WEBADMINPASSWORD returnVariable="returnVariable"; //To get extension details in above 5.0 versions
 				extensionNames = valueList(returnVariable.name);
 			}else{
-				admin action="getExtensions" type="server" password="password" returnVariable="returnVariable"; //To get extension details in below 5.0 versions
+				admin action="getExtensions" type="web" password=request.WEBADMINPASSWORD returnVariable="returnVariable"; //To get extension details in below 5.0 versions
 				extensionNames = valueList(returnVariable.label);
 			}
 			if(listFindNoCase(extensionNames,"Memcached driver (BETA)")){
