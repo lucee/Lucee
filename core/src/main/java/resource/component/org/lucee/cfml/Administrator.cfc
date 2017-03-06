@@ -230,33 +230,6 @@
 			return rtn;
 	}
 
-
-	/**
-	* @hint returns the list of available JARS
-	*/
-	public query function getJars(){
-		admin
-			action="getJars"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-		return rtn;
-	}
-
-	/**
-	* @hint updates or inserts of not existing a jar to the Lucee handled lib folder
-	* @path path (including file name) to the jar file, this can be any virtual file systm supported (local filesystem, zip, ftp, s3, ram ...)
-	*/
-	public void function updateJar(required string path){
-		admin
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn"
-
-			action="updateJar"
-			jar="#arguments.path#";
-	}
-
 	/**
 	* @hint returns the Preserve single quotes setting from datasource page
 	*/
@@ -1238,20 +1211,12 @@
 	* @hint verifies whether cache has connection or not
 	* @name specifies the name of the cache to be verified
 	*/
-	public struct function verifyCacheConnection( required string name ){
-		var tmpStruct = {};
-		try{
-			admin
-				action="verifyCacheConnection"
-				type="#variables.type#"
-				password="#variables.password#"
-				name="#arguments.name#";
-				tmpStruct.label = "Ok";
-		} catch ( any e ){
-			tmpStruct.label = "Error";
-			tmpStruct.message = e.message;
-		}
-		return tmpStruct;
+	public void function verifyCacheConnection( required string name ){
+		admin
+			action="verifyCacheConnection"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#";
 	}
 
 	/**
@@ -1319,87 +1284,6 @@
 			name="#arguments.name#"
 
 			remoteClients="#variables.remoteClients#";
-	}
-
-
-	/**
-	* @hint returns the details of default cache connections
-	* @cachetype specifies the type of the cache
-	*/
-	public struct function getCacheDefaultConnection( required string cachetype ){
-		admin
-			action="getCacheDefaultConnection"
-			type="#variables.type#"
-			cachetype="#arguments.cacheType#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint updates the default cache connection for various lucee elements
-	* @object sets the default cache connection for object
-	* @template sets the default cache connection for template
-	* @query sets the default cache connection for query
-	* @resource sets the default cache connection for resource
-	* @function sets the default cache connection for function
-	* @include sets the default cache connection for include
-	* @http sets the default cache connection for http
-	* @file sets the default cache connection for file
-	* @webservice sets the default cache connection for webservice
-	*/
-	public void function updateCacheDefaultConnection(
-		string object = "",
-		string template = "",
-		string query = "",
-		string resource = "",
-		string function = "",
-		string include = "",
-		string http = "",
-		string file = "",
-		string webservice = ""
-	){
-		admin
-			action="updateCacheDefaultConnection"
-			type="#variables.type#"
-			password="#variables.password#"
-			object="#arguments.object#"
-			template="#arguments.template#"
-			query="#arguments.query#"
-			resource="#arguments.resource#"
-			"function"="#arguments['function']#"
-			include="#arguments.include#"
-			http="#arguments.http#"
-			file="#arguments.file#"
-			webservice="#arguments.webservice#"
-			remoteClients="#variables.remoteClients#";
-
-	}
-
-	/**
-	* @hint remove all default cache connection for various lucee elements
-	*/
-	public void function removeCacheDefaultConnection() {
-		admin
-			action="removeCacheDefaultConnection"
-			type="#variables.type#"
-			password="#variables.password#"
-			remoteClients="#variables.remoteClients#";
-	}
-
-
-	/**
-	* @hint updates the cache within information
-	* @cachedWithinType specifies the type of cache to be updated
-	* @cachedWithin specifies the time limit for the cache
-	*/.
-	public void function updateCachedWithin( required string cachedWithinType, required string cachedWithin ){
-		admin
-			action="updateCachedWithin"
-			type="#variables.type#"
-			password="#variables.password#"
-			cachedWithinType="#arguments.cachedWithinType#"
-			cachedWithin="#arguments.cachedWithin#";
 	}
 
 	/**
@@ -1541,44 +1425,6 @@
 			tmpStruct.message = e.message;
 		}
 		return tmpStruct;
-	}
-
-	/**
-	* @hint returns the list of remote client tasks
-	*/
-	public query function getRemoteClientTasks(){
-		admin
-			action="getRemoteClientTasks"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint removes/deletes a remote client task
-	* @id specifies the id of the remote client task
-	*/
-	public void function removeRemoteClientTask( required string id ){
-		admin
-			action="removeRemoteClientTask"
-			type="#variables.type#"
-			password="#variables.password#"
-
-			id="#arguments.id#";
-	}
-
-	/**
-	* @hint executes the specified remote client task
-	* @id specifies the id of the remote client task
-	*/
-	public void function executeRemoteClientTask( required string id ){
-		admin
-			action="executeRemoteClientTask"
-			type="#variables.type#"
-			password="#variables.password#"
-
-			id="#arguments.id#";
 	}
 
 	/**
@@ -1762,90 +1608,6 @@
 	}
 
 	/**
-	* @hint Checks whether the monitor is enable or not
-	*/
-	public boolean function isMonitorEnabled(){
-		admin
-			action="isMonitorEnabled"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-		return rtn;
-	}
-
-	/**
-	* @hint returns the list of of monitors available
-	*/
-	public query function getMonitors(){
-		admin
-			action="getMonitors"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-		return rtn;
-	}
-
-	/**
-	* @hint updates the monitor details
-	* @monitorEnabled specifies whether to enable monitor or not
-	*/
-	public void function updateMonitorEnabled(required boolean monitorEnabled){
-		admin
-			action="updateMonitorEnabled"
-			type="#variables.type#"
-			password="#variables.password#"
-			monitorEnabled="#arguments.monitorEnabled#";
-	}
-
-	/**
-	* @hint updates the details of a monitor
-	* @monitorType type of the monitor
-	* @name name of the monitor
-	* @logEnabled specifies whether log is enable or not
-	* @class specifies the class name for monitor
-	*/
-	public void function updateMonitor(required string monitorType,  required string name, required boolean logEnabled, required string class){
-		admin
-			action="updateMonitor"
-			type="#variables.type#"
-			password="#variables.password#"
-			monitorType="#arguments.monitorType#"
-			name="#arguments.name#"
-			logEnabled="#arguments.logEnabled#"
-			class="#arguments.class#";
-	}
-
-	/**
-	* @hint returns the details of a monitor
-	* @monitorType type of the monitor
-	* @name name of the monitor
-	*/
-	public struct function getMonitor(required string monitorType,  required string name){
-		admin
-			action="getMonitor"
-			type="#variables.type#"
-			password="#variables.password#"
-			monitorType="#arguments.monitorType#"
-			name="#arguments.name#"
-			returnVariable="local.rtn";
-		return rtn;
-	}
-
-	/**
-	* @hint returns the details of a monitor
-	* @type type of the monitor
-	* @name name of the monitor
-	*/
-	public void function removeMonitor(required string type,  required string name){
-		admin
-			action="removeMonitor"
-			type="#variables.type#"
-			password="#variables.password#"
-			type="#arguments.type#"
-			name="#arguments.name#";
-	}
-
-	/**
 	* @hint returns the list of bundles
 	*/
 	public query function getBundles(){
@@ -1869,32 +1631,6 @@
 			symbolicName = "#arguments.name#"
 			returnVariable="local.rtn";
 			return rtn;
-	}
-
-	/**
-	* @hint remove the details of bundle
-	* @name specifies the name of the bundle
-	* @version specifies the version of the bundle
-	*/
-	public void function removeBundle( required string name, required string version ){
-		admin
-			action="removeBundle"
-			type="#variables.type#"
-			password="#variables.password#"
-			name = "#arguments.name#"
-			version = "#arguments.version#";
-	}
-
-	/**
-	* @hint returns the list of available debugging templates
-	*/
-	public query function getDebuggingList(){
-		admin
-			action="getDebuggingList"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-		return rtn;
 	}
 
 	/**
@@ -2117,54 +1853,6 @@
 	}
 
 	/**
-	* @hint returns the list of plugins
-	*/
-	public query function getPlugins(){
-		admin
-			action="getPlugins"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint updates the list of SSL certificates
-	* @host specifies the host name
-	*/
-	public struct function updatePlugin( required string source ){
-		admin
-			action="updatePlugin"
-			type="#variables.type#"
-			password="#variables.password#"
-			source="#arguments.source#";
-	}
-
-	/**
-	* @hint removes the plugin
-	* @host specifies the plugin name
-	*/
-	public struct function removePlugin( required string name ){
-		admin
-			action="removePlugin"
-			type="#variables.type#"
-			password="#variables.password#"
-			name="#arguments.name#";
-	}
-
-	/**
-	* @hint returns the list of context directories path
-	*/
-	public query function getContextDirectory(){
-		admin
-			action="getContextDirectory"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
 	* @hint returns the list of contexts
 	*/
 	public query function getContextes(){
@@ -2319,18 +2007,6 @@
 			password="#variables.password#"
 			maxThreads=""
 			remoteClients="#variables.remoteClients#";
-	}
-
-	/**
-	* @hint returns the list of CFX tags
-	*/
-	public query function getCfxTags(){
-		admin
-			action="getCfxTags"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.providers";
-		return providers;
 	}
 
 	/**
@@ -2535,34 +2211,6 @@
 			password="#variables.password#"
 			name="#arguments.name#"
 			remoteClients="#variables.remoteClients#";
-	}
-
-	/**
-	* @hint returns the details about execution log
-	*/
-	public struct function getExecutionLog(){
-		admin
-			action="getExecutionLog"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint updates the execution log settings
-	* @class specifies the class name of execution log
-	* @arguments specifies the structure of arguments
-	* @enabled specifies whether log is enable or not
-	*/
-	public void function updateExecutionLog(struct arguments={},required string class,boolean enabled=false){
-		admin
-			action="updateExecutionLog"
-			type="#variables.type#"
-			password="#variables.password#"
-			arguments="#arguments.arguments#"
-			class="#arguments.class#"
-			enabled="#arguments.enabled#";
 	}
 
 	/**
@@ -2874,49 +2522,6 @@
 	}
 
 	/**
-	* @hint returns the list of JDBC drivers
-	*/
-	public query function getJDBCDrivers(){
-		admin
-			action="getJDBCDrivers"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint updates the JDBC driver
-	* @classname specifies the class name of JDBC driver
-	* @label specifies the name of the JDBC driver to update
-	* @bundleName specifies the bundle name of JDBC driver
-	* @bundleVersion specifies the bundle version of JDBC driver
-	*/
-	public void function updateJDBCDriver( required string classname, required string label, string bundleName, string bundleVersion ){
-		admin
-			action="updateJDBCDriver"
-			type="#variables.type#"
-			password="#variables.password#"
-
-			classname="#arguments.classname#"
-			label="#arguments.label#"
-			bundleName="#arguments.bundleName#"
-			bundleVersion="#arguments.bundleVersion#";
-	}
-
-	/**
-	* @hint removes the JDBC driver
-	* @class specifies the class name of JDBC driver to remove
-	*/
-	public void function removeJDBCDriver( required string class ){
-		admin
-			action="removeJDBCDriver"
-			type="#variables.type#"
-			password="#variables.password#"
-			class="#arguments.class#";
-	}
-
-	/**
 	* @hint updates the password for administrator
 	* @oldPassword existing password for administrator
 	* @newPassword new password for administrator
@@ -3051,18 +2656,6 @@
 			password="#variables.password#"
 			virtual="#arguments.virtual#"
 			remoteClients="#variables.remoteClients#";
-	}
-
-	/**
-	* @hint returns the list of running threads
-	*/
-	public query function getRunningThreads(){
-		admin
-			action="getRunningThreads"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
 	}
 
 	/**
@@ -3327,21 +2920,6 @@
 	}
 
 	/**
-	* @hints Check Individual security manager is there for a context
-	* @id id of the web context
-	*/
-	public boolean function hasIndividualSecurity( required string id ) {
-		admin
-			action="hasIndividualSecurity"
-			type="#variables.type#"
-			password="#variables.password#"
-			id="#arguments.id#"
-			returnVariable="access";
-
-		return access;
-	}
-
-	/**
 	* @hints create archive for the mappings
 	* @virtual specifies the virtual name of the mapping to create archive
 	* @file specifies the path of the file
@@ -3381,168 +2959,6 @@
 			password="#variables.password#"
 			virtual="#arguments.virtual#"
 			file="#arguments.file#";
-	}
-
-	/**
-	* @hint returns the list of authKeys
-	*/
-	public array function listAuthKey(){
-		admin
-			action="listAuthKey"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.providers";
-			return providers;
-	}
-
-	/**
-	* @hint update the authKey details
-	* @key specifies the key name to update
-	*/
-	public void function updateAuthKey(string key=""){
-		admin
-			action="updateAuthKey"
-			type="#variables.type#"
-			password="#variables.password#"
-			key="#arguments.key#";
-	}
-
-	/**
-	* @hint removes the authKey details
-	* @key specifies the key name to remove
-	*/
-	public void function removeAuthKey(string key=""){
-		admin
-			action="removeAuthKey"
-			type="#variables.type#"
-			password="#variables.password#"
-			key="#arguments.key#";
-	}
-
-	/**
-	* @hint returns the list of resource providers
-	*/
-	public query function getResourceProviders(){
-		admin
-			action="getResourceProviders"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.providers";
-			return providers;
-	}
-
-	/**
-	* @hint update the details of resource provider
-	* @class specifies the class name to update
-	* @scheme specifies the type of resource to update
-	* @arguments specifies the arguments passed to update
-	*/
-	public void function updateResourceProvider(required string class, required string scheme, required string arguments){
-		admin
-			action="updateResourceProvider"
-			type="#variables.type#"
-			password="#variables.password#"
-			class="#arguments.class#"
-			scheme="#arguments.scheme#"
-			arguments="#arguments.arguments#";
-	}
-
-	/**
-	* @hint update the details of resource provider
-	* @class specifies the class name to update
-	* @arguments specifies the arguments passed to update
-	*/
-	public void function updateDefaultResourceProvider(required string class, required string arguments){
-		admin
-			action="updateDefaultResourceProvider"
-			type="#variables.type#"
-			password="#variables.password#"
-			class="#arguments.class#"
-			arguments="#arguments.arguments#";
-	}
-
-	/**
-	* @hint removes the resource provider
-	* @scheme specifies the type of resource to remove
-	*/
-	public void function removeResourceProvider(required string scheme){
-		admin
-			action="removeResourceProvider"
-			type="#variables.type#"
-			password="#variables.password#"
-			scheme="#arguments.scheme#";
-	}
-
-	/**
-	* @hint returns the information about cluster class
-	*/
-	public string function getClusterClass(){
-		admin
-			action="getClusterClass"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.providers";
-			return providers;
-	}
-
-	/**
-	* @hint update the details of cluster class
-	* @class specifies the class name to update
-	*/
-	public void function updateClusterClass(required string class){
-		admin
-			action="updateClusterClass"
-			type="#variables.type#"
-			password="#variables.password#"
-			class="#arguments.class#";
-	}
-
-	/**
-	* @hint returns the information about adminSync class
-	*/
-	public string function getAdminSyncClass(){
-		admin
-			action="getAdminSyncClass"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.providers";
-			return providers;
-	}
-
-	/**
-	* @hint update the details of adminSync class
-	* @class specifies the class name to update
-	*/
-	public void function updateAdminSyncClass(required string class){
-		admin
-			action="updateAdminSyncClass"
-			type="#variables.type#"
-			password="#variables.password#"
-			class="#arguments.class#";
-	}
-
-	/**
-	* @hint returns the information about videoExecuter class
-	*/
-	public string function getVideoExecuterClass(){
-		admin
-			action="getVideoExecuterClass"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.providers";
-			return providers;
-	}
-
-	/**
-	* @hint update the details of videoExecuter class
-	* @class specifies the class name to update
-	*/
-	public void function updateVideoExecuterClass(required string class){
-		admin
-			action="updateVideoExecuterClass"
-			type="#variables.type#"
-			password="#variables.password#"
-			class="#arguments.class#";
 	}
 
 	/**
@@ -3631,40 +3047,6 @@
 			resetId.catch=e.message;
 		}
 		return resetId;
-	}
-
-	/**
-	* @hint returns the surveillance details
-	*/
-	public struct function getSurveillance(){
-		admin
-			action="surveillance"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint returns the configuration information details
-	*/
-	public struct function getInfo(){
-		admin
-			action="getinfo"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint reloads the overall process
-	*/
-	public void function reload(){
-		admin
-			action="reload"
-			type="#variables.type#"
-			password="#variables.password#";
 	}
 
 	/**
