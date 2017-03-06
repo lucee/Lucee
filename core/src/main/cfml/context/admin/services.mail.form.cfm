@@ -88,8 +88,9 @@ loop struct=driverNames index="name" item="componentPath" {
 				<cfsavecontent variable="tmpContent">
 					<div id="div_#id#">
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
-			<input type="hidden" name="id_#ms.recordcount+1#" value="new">
+			<input type="hidden" name="id_#ms.recordcount+1#" value="#data.id?:-1#">
 			<input type="hidden" name="row_#ms.recordcount+1#" value="true" >
+
 			<table class="maintbl">
 				<tbody>
 					<!--- host --->

@@ -169,8 +169,11 @@ public final class GetUsageData implements Function {
 					}
 				}
 			}
-			openConnections+=web.getDatasourceConnectionPool().openConnections();
-
+			
+			Iterator<Integer> _it = web.getDatasourceConnectionPool().openConnections().values().iterator();
+			while(_it.hasNext()) {
+				openConnections+=_it.next().intValue();
+			}
 
 			// Template Cache
 			Mapping[] mappings = ConfigWebUtil.getAllMappings(web);
@@ -266,7 +269,7 @@ public final class GetUsageData implements Function {
 		long elements=0,size=0;
 		
 		PageSourcePool psp;
-		Object[] keys;
+		String[] keys;
 		PageSourceImpl ps;
 		Resource res;
 		MappingImpl mapping;

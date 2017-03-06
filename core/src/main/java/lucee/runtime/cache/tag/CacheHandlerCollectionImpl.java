@@ -303,7 +303,7 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 			.append(toString(hpb.getFile()))
 			.append(CACHE_DEL);
 		}
-		return sb.toString();
+		return HashUtil.create64BitHashAsString(sb.toString());
 	}
 	
 

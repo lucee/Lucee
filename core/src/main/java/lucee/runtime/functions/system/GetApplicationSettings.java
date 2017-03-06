@@ -159,10 +159,10 @@ public class GetApplicationSettings {
 		}
 		
 		// datasources
+		Struct _sources = new StructImpl();
+		sct.setEL(KeyConstants._datasources, _sources);
 		DataSource[] sources = ac.getDataSources();
 		if(!ArrayUtil.isEmpty(sources)){
-			Struct _sources = new StructImpl(),s;
-			sct.setEL(KeyConstants._datasources, _sources);
 			for(int i=0;i<sources.length;i++){
 				_sources.setEL(KeyImpl.init(sources[i].getName()), _call(sources[i]));
 			}
@@ -170,11 +170,11 @@ public class GetApplicationSettings {
 		}
 
 		// logs
+		Struct _logs = new StructImpl();
+		sct.setEL("logs", _logs);
 		if(ac instanceof ApplicationContextSupport) {
 			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
 			Iterator<Key> it = acs.getLogNames().iterator();
-			Struct _logs = new StructImpl();
-			sct.setEL("logs", _logs);
 			Key name;
 			while(it.hasNext()) {
 				name=it.next();
@@ -183,12 +183,12 @@ public class GetApplicationSettings {
 		}
 
 		// mails
+		Array _mails = new ArrayImpl();
+		sct.setEL("mails", _mails);
 		if(ac instanceof ApplicationContextSupport) {
 			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
 			Server[] servers = acs.getMailServers();
 			Struct s;
-			Array _mails = new ArrayImpl();
-			sct.setEL("mails", _mails);
 			Server srv;
 			if(servers!=null){
 				for(int i=0;i<servers.length;i++) {
@@ -216,7 +216,7 @@ public class GetApplicationSettings {
 		// tag
 		Map<Key, Map<Collection.Key, Object>> tags = ac.getTagAttributeDefaultValues(pc);
 		if(tags!=null) {
-			Struct tag = new StructImpl(),s;
+			Struct tag = new StructImpl();
 			Iterator<Entry<Key, Map<Collection.Key, Object>>> it = tags.entrySet().iterator();
 			Entry<Collection.Key, Map<Collection.Key, Object>> e;
 			Iterator<Entry<Collection.Key, Object>> iit;

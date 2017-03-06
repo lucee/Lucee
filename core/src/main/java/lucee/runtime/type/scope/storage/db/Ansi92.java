@@ -18,10 +18,13 @@
  */
 package lucee.runtime.type.scope.storage.db;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Set;
 import java.util.TimeZone;
 
 import lucee.commons.io.log.Log;
@@ -29,6 +32,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.converter.ConverterException;
+import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.db.DataSourceUtil;
 import lucee.runtime.db.DatasourceConnection;
@@ -42,6 +46,7 @@ import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
@@ -105,7 +110,8 @@ public class Ansi92 extends SQLExecutorSupport {
 	}
 
 	@Override
-	public void update(Config config, String cfid, String applicationName, DatasourceConnection dc, int type, Struct data, long timeSpan, Log log) throws PageException, SQLException {
+	public void update(Config config, String cfid, String applicationName, DatasourceConnection dc, int type, Object data, long timeSpan, Log log) 
+			throws PageException, SQLException {
 		String strType = VariableInterpreter.scopeInt2String(type);
 		TimeZone tz = ThreadLocalPageContext.getTimeZone();
 		int recordsAffected = _update(config,dc.getConnection(),cfid,applicationName,"update "+PREFIX+"_"+strType+"_data set expires=?,data=? where cfid=? and name=?",data,timeSpan,log,tz);
@@ -119,21 +125,27 @@ public class Ansi92 extends SQLExecutorSupport {
 		}
 	}
 
-	private static int _update(Config config,Connection conn,String cfid, String applicationName, String strSQL,Struct data, long timeSpan, Log log, TimeZone tz) throws SQLException, PageException {
-		//String appName = pc.getApplicationContext().getName();
-		try{
-			SQLImpl sql = new SQLImpl(strSQL,new SQLItem[]{
-				new SQLItemImpl(createExpires(config,timeSpan),Types.VARCHAR),
-				new SQLItemImpl(new ScriptConverter().serializeStruct(data,ignoreSet),Types.VARCHAR),
-				new SQLItemImpl(cfid,Types.VARCHAR),
-				new SQLItemImpl(applicationName,Types.VARCHAR)
-			});
-			ScopeContext.info(log,sql.toString());
+	private static int _update(Config config,Connection conn,String cfid, String applicationName, String strSQL,Object data, long timeSpan, Log log, TimeZone tz) throws SQLException, PageException {
+		SQLImpl sql = new SQLImpl(strSQL,new SQLItem[]{
+			new SQLItemImpl(createExpires(config,timeSpan),Types.VARCHAR),
+			new SQLItemImpl(serialize(data,ignoreSet),Types.VARCHAR),
+			new SQLItemImpl(cfid,Types.VARCHAR),
+			new SQLItemImpl(applicationName,Types.VARCHAR)
+		});
+		ScopeContext.info(log,sql.toString());
 
-			return execute(null,conn, sql,tz);
+		return execute(null,conn, sql,tz);
+	}
+
+	private static Object serialize(Object data, Set<Key> ignoreSet) throws PageException {
+		try {
+			if(data instanceof Struct) {
+				return "struct:"+(new ScriptConverter().serializeStruct((Struct)data,ignoreSet));
+			}
+			return JavaConverter.serialize((Serializable)data);
 		}
-		catch(ConverterException ce){
-			throw Caster.toPageException(ce);
+		catch(Exception e){
+			throw Caster.toPageException(e);
 		}
 	}
 

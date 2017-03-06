@@ -1569,7 +1569,6 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if(!initCachedWithins) {
 			Struct sct = Caster.toStruct(get(component,KeyConstants._cachedWithin,null),null);
 			if(sct!=null) {
-
 				Iterator<Entry<Key, Object>> it = sct.entryIterator();
 				Entry<Key, Object> e;
 				Object v; int k;
@@ -1577,12 +1576,39 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 					e = it.next();
 					k=AppListenerUtil.toCachedWithinType(e.getKey().getString(),-1);
 					v=e.getValue();
-					if(k!=-1 && !StringUtil.isEmpty(v)) cachedWithins.put(k, v);
+					if(k!=-1 && !StringUtil.isEmpty(v)) setCachedWithin(k, v);
 				}
 			}
+			sct=null;
+			// also support this.tag.include... as second chance 
+			if(super.getCachedWithin(Config.CACHEDWITHIN_INCLUDE)==null) {
+				sct = Caster.toStruct(get(component,KeyConstants._tag,null),null);
+				if(sct!=null) {
+					Object obj=sct.get(KeyConstants._include,null);
+					if(Decision.isCastableToStruct(obj)) {
+						Struct tmp=Caster.toStruct(obj,null);
+						obj=tmp==null?null:tmp.get("cachedWithin",null);
+						if(!StringUtil.isEmpty(obj)) setCachedWithin(Config.CACHEDWITHIN_INCLUDE, obj);
+					}
+				}
+			}
+
+			// also support this.tag.function... as second chance 
+			if(super.getCachedWithin(Config.CACHEDWITHIN_FUNCTION)==null) {
+				if(sct==null)sct = Caster.toStruct(get(component,KeyConstants._tag,null),null);
+				if(sct!=null) {
+					Object obj=sct.get(KeyConstants._function,null);
+					if(Decision.isCastableToStruct(obj)) {
+						Struct tmp=Caster.toStruct(obj,null);
+						obj=tmp==null?null:tmp.get("cachedWithin",null);
+						if(!StringUtil.isEmpty(obj)) setCachedWithin(Config.CACHEDWITHIN_FUNCTION, obj);
+					}
+				}
+			}
+			
 			initCachedWithins=true;
 		} 
-		return cachedWithins.get(type);
+		return super.getCachedWithin(type);
 	}
 	
 	@Override

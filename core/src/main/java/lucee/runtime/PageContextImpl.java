@@ -131,6 +131,7 @@ import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.ModernAppListener;
 import lucee.runtime.listener.ModernAppListenerException;
+import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.monitor.RequestMonitor;
@@ -813,24 +814,26 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void doInclude(String realPath) throws PageException {
-		doInclude(getRelativePageSources(realPath),false);
+		_doInclude(getRelativePageSources(realPath),false,getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE));
 	}
 	
 	@Override
 	public void doInclude(String realPath, boolean runOnce) throws PageException {
-		doInclude(getRelativePageSources(realPath),runOnce);
+		_doInclude(getRelativePageSources(realPath),runOnce,getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE));
 	}
 	// used by the transformer
 	public void doInclude(String realPath, boolean runOnce, Object cachedWithin) throws PageException {
-		doInclude(getRelativePageSources(realPath),runOnce,cachedWithin); 
+		if(cachedWithin==null) cachedWithin=getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE);
+		_doInclude(getRelativePageSources(realPath),runOnce,cachedWithin); 
 	}
 	
 	@Override
 	public void doInclude(PageSource[] sources, boolean runOnce) throws PageException {
-		doInclude(sources, runOnce,getCachedWithin(Config.CACHEDWITHIN_INCLUDE));
+		_doInclude(sources, runOnce,getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE));
 	}
 
-	public void doInclude(PageSource[] sources, boolean runOnce, Object cachedWithin) throws PageException {
+	// IMPORTANT!!! we do not getCachedWithin in this method, because Modern|ClassicAppListener is calling this method and in this case it should not be used
+	public void _doInclude(PageSource[] sources, boolean runOnce, Object cachedWithin) throws PageException {
 		if(cachedWithin==null) {
 			_doInclude(sources, runOnce);
 			return;

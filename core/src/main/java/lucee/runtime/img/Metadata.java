@@ -25,6 +25,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -199,6 +200,7 @@ public class Metadata {
 	}
 
 	private static void set(Struct sct1, Struct sct2, String name1, String name2, Object value) {
+		if(value instanceof CharSequence)value=StringUtil.unwrap(value.toString());
 		sct1.setEL(name1, value);
 		sct2.setEL(name2, value);
 	}
@@ -229,8 +231,8 @@ public class Metadata {
         while(it.hasNext()) {
         	item=(Item) it.next();
         	
-        	data1.setEL(item.getKeyword(),item.getText());
-        	if(data2!=null)data2.setEL(item.getKeyword(),item.getText());
+        	data1.setEL(item.getKeyword(),StringUtil.unwrap(item.getText()));
+        	if(data2!=null)data2.setEL(item.getKeyword(),StringUtil.unwrap(item.getText()));
         }
 	}
 

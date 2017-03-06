@@ -265,13 +265,24 @@ Redirtect to entry --->
 	
 <cftry>
 <cfoutput><cfsavecontent variable="codeSample">
+<cfif isStruct(connection.custom)>
+	<cfset newLineChar = Chr(13) & Chr(10)>
+	<cfset tabChar = chr(9)>
+	<cfset customTab = newLineChar & tabChar & tabChar>
+	<cfset connectionCustom_Aligned = serialize(connection.custom)>
+	<cfset connectionCustom_Aligned = replaceNoCase(connectionCustom_Aligned, '","', '",#customTab#"', 'ALL')>
+	<cfset connectionCustom_Aligned = replaceNoCase(connectionCustom_Aligned, '{"', '{#customTab#"', "ALL")>
+	<cfset connectionCustom_Aligned = replaceNoCase(connectionCustom_Aligned, '"}', '"#newLineChar##tabChar#}', "ALL")>
+<cfelse>
+	<cfset connectionCustom_Aligned = '{}'>
+</cfif>
 this.cache.connections["#connection.name#"] = {
 	  class: '#connection.class#'#isNull(connection.bundleName) || isEmpty(connection.bundleName)?"":"
 	, bundleName: '"&connection.bundleName&"'"##isNull(connection.bundleVersion) || isEmpty(connection.bundleVersion)?"":"
 	, bundleVersion: '"&connection.bundleVersion&"'"##!connection.readOnly?"":"
 	, readOnly: "&connection.readonly#
 	, storage: #connection.storage#
-	, custom: #isStruct(connection.custom)?serialize(connection.custom):'{}'#
+	, custom: #connectionCustom_Aligned#
 	, default: '#connection.default#'
 };
 </cfsavecontent></cfoutput>

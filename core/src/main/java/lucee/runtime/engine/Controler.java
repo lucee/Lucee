@@ -62,6 +62,7 @@ public final class Controler extends Thread {
 	
 	private int interval;
 	private long lastMinuteInterval=System.currentTimeMillis()-(1000*59); // first after a second
+	private long last10SecondsInterval=System.currentTimeMillis()-(1000*9); // first after a second
 	private long lastHourInterval=System.currentTimeMillis();
 	
     private final Map contextes;
@@ -185,8 +186,12 @@ public final class Controler extends Thread {
 	
 	private void control(CFMLFactoryImpl[] factories, boolean firstRun) {
 		long now = System.currentTimeMillis();
+        boolean do10Seconds=last10SecondsInterval+10000<now;
+        if(do10Seconds)last10SecondsInterval=now;
+        
         boolean doMinute=lastMinuteInterval+60000<now;
         if(doMinute)lastMinuteInterval=now;
+        
         boolean doHour=(lastHourInterval+(1000*60*60))<now;
         if(doHour)lastHourInterval=now;
         
@@ -197,6 +202,11 @@ public final class Controler extends Thread {
         catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
         
 
+        // every 10 seconds
+        if(do10Seconds) {
+        	// deploy extensions, archives ...
+			//try{DeployHandler.deploy(configServer);}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
+        }
         // every minute
         if(doMinute) {
         	// deploy extensions, archives ...
@@ -209,12 +219,12 @@ public final class Controler extends Thread {
         }
         
         for(int i=0;i<factories.length;i++) {
-            control(factories[i], doMinute, doHour,firstRun);
+            control(factories[i], do10Seconds, doMinute, doHour,firstRun);
         }
 	}
 
 
-	private void control(CFMLFactoryImpl cfmlFactory, boolean doMinute, boolean doHour, boolean firstRun) {
+	private void control(CFMLFactoryImpl cfmlFactory, boolean do10Seconds, boolean doMinute, boolean doHour, boolean firstRun) {
 		try {
 				boolean isRunning=cfmlFactory.getUsedPageContextLength()>0;   
 			    if(isRunning) {
@@ -241,6 +251,9 @@ public final class Controler extends Thread {
 					config = cfmlFactory.getConfig();
 				}
 				ThreadLocalConfig.register(config);
+				if(do10Seconds) {
+					//try{DeployHandler.deploy(config);}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
+				}
 				
 				//every Minute
 				if(doMinute) {
@@ -412,13 +425,13 @@ public final class Controler extends Thread {
     }
     private void removeOldest(PageSourcePool[] pools) {
         PageSourcePool pool=null;
-        Object key=null;
+        String key=null;
         PageSource ps=null;
         
         long date=-1;
         for(int i=0;i<pools.length;i++) {
         	try {
-	            Object[] keys=pools[i].keys();
+	            String[] keys=pools[i].keys();
 	            for(int y=0;y<keys.length;y++) {
 	                ps = pools[i].getPageSource(keys[y],false);
 	                if(date==-1 || date>ps.getLastAccessTime()) {

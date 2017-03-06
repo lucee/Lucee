@@ -385,14 +385,17 @@ public abstract class StorageScopeImpl extends StructSupport implements StorageS
 	}
 	
 	@Override
-	public void store(Config config){
-		//do nothing
+	public final void store(Config config) {
+		store(ThreadLocalPageContext.get(config));
 	}
 
 	@Override
-	public void unstore(Config config){
-		//do nothing
+	public final void unstore(Config config) {
+		unstore(ThreadLocalPageContext.get(config));
 	}
+
+	public void store(PageContext pc){}
+	public void unstore(PageContext pc){}
 
 	/**
 	 * @return the hasChanges

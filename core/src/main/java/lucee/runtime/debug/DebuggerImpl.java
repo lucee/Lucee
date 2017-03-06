@@ -337,7 +337,13 @@ public final class DebuggerImpl implements Debugger {
     
 	@Override
 	public Struct getDebuggingData(PageContext pc, boolean addAddionalInfo) throws DatabaseException {
-		List<QueryEntry> queries = getQueries();
+		Struct debugging=new StructImpl();
+	    
+		// datasources
+		debugging.setEL(KeyConstants._datasources,((ConfigImpl)pc.getConfig()).getDatasourceConnectionPool().meta());
+		
+		//queries
+        List<QueryEntry> queries = getQueries();
 	    Struct qryExe=new StructImpl();
 	    ListIterator<QueryEntry> qryIt = queries.listIterator();
         Collection.Key[] cols = new Collection.Key[]{
@@ -351,7 +357,6 @@ public final class DebuggerImpl implements Debugger {
         		CACHE_TYPE};
         String[] types = new String[]{"VARCHAR","DOUBLE","VARCHAR","VARCHAR","DOUBLE","VARCHAR","ANY","VARCHAR"};
         
-        //queries
         Query qryQueries=null;
         try {
             qryQueries = new QueryImpl(cols,types,queries.size(),"query");
@@ -384,7 +389,6 @@ public final class DebuggerImpl implements Debugger {
 		
 	    // Pages
 	    // src,load,app,query,total
-	    Struct debugging=new StructImpl();
 	    row=0;
         ArrayList<DebugEntryTemplate> arrPages = toArray();
 		int len=arrPages.size();

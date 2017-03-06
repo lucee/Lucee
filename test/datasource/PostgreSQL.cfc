@@ -26,7 +26,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testConnection(){
-		if(!variables.has) return;
+		_testConnection(defineDatasource());
+	}
+	public void function testConnection83(){
+		_testConnection(defineDatasource83());
+	}
+	public void function testConnection94(){
+		_testConnection(defineDatasource94());
+	}
+	private void function _testConnection(has){
+		if(!has) return;
 
 		query name="local.qry" {
 			echo("select 'AA' as a");
@@ -35,9 +44,33 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	}
 
-	public function testLDEV1063a() skip=true{
+	private void function testWithBSTTimezone(){
+		var has=defineDatasource();
+		if(!has) return;
+		
 
-		if(!variables.has) return;
+		var tz1=getApplicationSettings().timezone;
+		var tz2=getTimeZone();
+		try{
+			application action="update" timezone="BST";
+			setTimeZone("BST");
+
+			query name="local.qry" {
+				echo("select 'AA' as a");
+			}
+			assertEquals("AA",qry.a);
+		}
+		finally {
+			application action="update" timezone="#tz1#";
+			setTimeZone(tz2);
+		}
+		//assertEquals("","");
+		
+	}
+
+	public function testLDEV1063a() skip=true{
+		var has=defineDatasource();
+		if(!has) return;
 
 		// SELECT CAST(:election as date) AS election_date;
 		query name="local.qry" params=[election:"2016-11-08"] { echo("
@@ -48,8 +81,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public function testLDEV1063b() skip=true{
-
-		if(!variables.has) return;
+		var has=defineDatasource();
+		if(!has) return;
 
 		// SELECT CAST(? as date) AS election_date;
 		query name="local.qry" params=[election:"2016-11-08"] { echo("
@@ -60,7 +93,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 
-	private boolean function defineDatasource(){
+	private boolean function defineDatasource83(){
+		var pgsql=getCredencials();
+		if(pgsql.count()==0) return false;
+		application action="update"
+			datasource="#{
+	  class: 'org.postgresql.Driver'
+	, bundleName: 'org.postgresql.jdbc42'
+	, bundleVersion: '9.4.1212'
+	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
+	, username: pgsql.username
+	, password: pgsql.password
+}#";
+	return true;
+	}
+
+
+	private boolean function defineDatasource94(){
 		var pgsql=getCredencials();
 		if(pgsql.count()==0) return false;
 		application action="update"
@@ -72,7 +121,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	, username: pgsql.username
 	, password: pgsql.password
 }#";
+	return true;
+	}
 
+	// bundled version
+	private boolean function defineDatasource(){
+		var pgsql=getCredencials();
+		if(pgsql.count()==0) return false;
+		application action="update"
+			datasource="#{
+	  class: 'org.postgresql.Driver'
+	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
+	, username: pgsql.username
+	, password: pgsql.password
+}#";
 	return true;
 	}
 

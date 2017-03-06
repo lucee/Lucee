@@ -502,7 +502,7 @@ public final class XMLConfigAdmin {
 	 * @param tls 
      * @throws PageException 
      */
-    public void updateMailServer(String hostName,String username,String password, int port, boolean tls, boolean ssl,
+    public void updateMailServer(int id, String hostName,String username,String password, int port, boolean tls, boolean ssl,
     		long lifeTimeSpan, long idleTimeSpan, boolean reuseConnections) throws PageException {
     	checkWriteAccess();
     	boolean hasAccess=ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_MAIL);
@@ -519,21 +519,27 @@ public final class XMLConfigAdmin {
         
         Element[] children = XMLConfigWebFactory.getChildren(mail,"server");
       	
+        boolean checkId=id>0;
+        
         // Update
         Element server=null;
         String _hostName,_username;
         for(int i=0;i<children.length;i++) {
       	    Element el=children[i];
-      	    _hostName=el.getAttribute("smtp");
-      	    _username=el.getAttribute("username");
-      	    if(
-      	    		StringUtil.emptyIfNull(_hostName).equalsIgnoreCase(hostName) 
-      	    	&& 
-      	    		StringUtil.emptyIfNull(_username).equals(StringUtil.emptyIfNull(username))
-      	    ) {
-	      		server=el;
-	      		break;
-  			}
+      	    if(checkId) {
+      	    	if(i+1==id) {
+		      		server=el;
+		      		break;
+	  			}
+      	    }
+      	    else {
+	      	    _hostName=StringUtil.emptyIfNull(el.getAttribute("smtp"));
+	      	    _username=StringUtil.emptyIfNull(el.getAttribute("username"));
+	      	    if(_hostName.equalsIgnoreCase(hostName) && _username.equals(StringUtil.emptyIfNull(username))) {
+		      		server=el;
+		      		break;
+	  			}
+      	    }
       	}
         
         // Insert

@@ -200,6 +200,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	private static final String COMPONENT_EXTENSION_LUCEE = "lucee";
 	private static final long GB1 = 1024*1024*1024;
 	public static final boolean LOG = true;
+	private static final int DEFAULT_MAX_CONNECTION = 100;
 
 	/**
 	 * creates a new ServletConfig Impl Object
@@ -1998,7 +1999,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			setDatasource(config, datasources, QOQ_DATASOURCE_NAME, 
 					new ClassDefinitionImpl("org.hsqldb.jdbcDriver","hsqldb","1.8.0",config.getIdentification()), 
-					"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", -1, -1, 60000, true, true, DataSource.ALLOW_ALL,
+					"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", DEFAULT_MAX_CONNECTION, -1, 60000, true, true, DataSource.ALLOW_ALL,
 					false, false, null, new StructImpl(), "",ParamSyntax.DEFAULT,false,false);
 		} catch (Exception e) {
 			log.error("Datasource", e);
@@ -2065,7 +2066,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						,getAttr(dataSource,"dsn")
 						,getAttr(dataSource,"username")
 						,ConfigWebUtil.decrypt(getAttr(dataSource,"password"))
-						,Caster.toIntValue(getAttr(dataSource,"connectionLimit"), -1)
+						,Caster.toIntValue(getAttr(dataSource,"connectionLimit"), DEFAULT_MAX_CONNECTION)
 						,Caster.toIntValue(getAttr(dataSource,"connectionTimeout"), -1)
 						,Caster.toLongValue(getAttr(dataSource,"metaCacheTimeout"), 60000)
 						,toBoolean(getAttr(dataSource,"blob"), true)
@@ -3883,23 +3884,24 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		// Servers
 		int index = 0;
-		Server[] servers = null;
+		//Server[] servers = null;
 		Element[] elServers = getChildren(mail, "server");
+		List<Server> servers=new ArrayList<Server>();
 		if (hasCS) {
 			Server[] readOnlyServers = configServer.getMailServers();
-			servers = new Server[readOnlyServers.length + (hasAccess ? elServers.length : 0)];
 			for (int i = 0; i < readOnlyServers.length; i++) {
-				servers[i] = readOnlyServers[index++].cloneReadOnly();
+				servers.add(readOnlyServers[index++].cloneReadOnly());
 			}
 		}
-		else {
+		/*else {
 			servers = new Server[elServers.length];
-		}
+		}*/
 		if (hasAccess) {
 			for (int i = 0; i < elServers.length; i++) {
 				Element el = elServers[i];
 				if (el.getNodeName().equals("server"))
-					servers[index++] = new ServerImpl(
+					servers.add(i, new ServerImpl(
+							Caster.toIntValue(getAttr(el,"id"), i+1), 
 							getAttr(el,"smtp"), 
 							Caster.toIntValue(getAttr(el,"port"), 25), 
 							getAttr(el,"username"),
@@ -3908,11 +3910,12 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							toLong(el.getAttribute("idle"), 1000*60*1),
 							toBoolean(getAttr(el,"tls"), false), 
 							toBoolean(getAttr(el,"ssl"), false), 
-							toBoolean(getAttr(el,"reuse-connection"), true));
-
+							toBoolean(getAttr(el,"reuse-connection"), true),
+							hasCS?ServerImpl.TYPE_LOCAL:ServerImpl.TYPE_GLOBAL)
+					);
 			}
 		}
-		config.setMailServers(servers);
+		config.setMailServers(servers.toArray(new Server[servers.size()]));
 	}
 
 	private static void loadMonitors(ConfigServerImpl configServer, ConfigImpl config, Document doc) throws IOException {

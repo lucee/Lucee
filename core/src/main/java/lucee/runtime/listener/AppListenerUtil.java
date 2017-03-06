@@ -756,7 +756,7 @@ public final class AppListenerUtil {
 		boolean tls = Caster.toBooleanValue(data.get("tls",null),false);
 		boolean ssl = Caster.toBooleanValue(data.get("ssl",null),false);
 		
-		return new ServerImpl(hostName, port, username, password, lifeTimespan.getMillis(), idleTimespan.getMillis(), tls, ssl, false); // MUST improve store connection somehow
+		return new ServerImpl(-1,hostName, port, username, password, lifeTimespan.getMillis(), idleTimespan.getMillis(), tls, ssl, false,ServerImpl.TYPE_LOCAL); // MUST improve store connection somehow
 	}
 
 }

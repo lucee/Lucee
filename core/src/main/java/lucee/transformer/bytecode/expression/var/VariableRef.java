@@ -71,13 +71,4 @@ public final class VariableRef extends ExpressionBase {
 		}
 		return Types.REFERENCE;
 	}
-
-	/* *
-	 *
-	 * @see lucee.transformer.bytecode.expression.Expression#getType()
-	 * /
-	public int getType() {
-		return Types._OBJECT;
-	}*/
-
 }

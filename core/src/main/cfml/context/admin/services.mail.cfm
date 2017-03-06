@@ -53,15 +53,13 @@ Defaults --->
 	function toTimeSpan(required string prefix){
 		local.days=toArrayFromForm(prefix&"_days");
 		local.hours=toArrayFromForm(prefix&"_hours");
-		local.minutes=data.ids=toArrayFromForm(prefix&"_minutes");
-		local.seconds=data.ids=toArrayFromForm(prefix&"_seconds");
+		local.minutes=toArrayFromForm(prefix&"_minutes");
+		local.seconds=toArrayFromForm(prefix&"_seconds");
 		local.rtn=[];
 		loop array=days index="local.i" item="local.day" {
 			rtn[i]=createTimeSpan(day,hours[i],minutes[i],seconds[i]);
 		}
-
 		return rtn;
-
 	}
 
 	function toTSStruct(seconds){
@@ -127,7 +125,7 @@ Defaults --->
 				<cfset data.ids=toArrayFromForm("id")>
 				<cfset data.idles=toTimeSpan("idle")>
 				<cfset data.lifes=toTimeSpan("life")>
-
+				
 				<cfloop index="idx" from="1" to="#arrayLen(data.hosts)#">
 					<cfif isDefined("data.rows[#idx#]") and data.hosts[idx] NEQ "">
 						<cfparam name="data.ports[idx]" default="25">
@@ -168,6 +166,7 @@ Defaults --->
 							type="#request.adminType#"
 							password="#session["password"&request.adminType]#"
 							
+							id="#isDefined("data.ids[#idx#]")?data.ids[idx]:''#"
 							hostname="#data.hosts[idx]#"
 							username="#data.usernames[idx]#"
 							remoteClients="#request.getRemoteClients()#">
@@ -192,6 +191,8 @@ Defaults --->
 								mailusername="#data.usernames[idx]#"
 								mailpassword="#toPassword(data.hosts[idx],data.passwords[idx], ms)#">
 							<cfset stVeritfyMessages[data.hosts[idx]].Label = "OK">
+							<cfset stVeritfyMessages[data.hosts[idx]].contextType = contextType>
+							
 							<cfcatch>
 								<cfset stVeritfyMessages[data.hosts[idx]].Label = "Error">
 								<cfset stVeritfyMessages[data.hosts[idx]].message = cfcatch.message>

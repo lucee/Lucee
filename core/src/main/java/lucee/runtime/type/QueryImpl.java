@@ -14,7 +14,7 @@
  * 
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.type;
 
@@ -174,46 +174,46 @@ public class QueryImpl implements Query,Objects,QueryResult {
         }
 		exeTime=System.nanoTime()-start;
     }
-    
+
     /**
      * Constructor of the class
      * only for internal usage (cloning/deserialize)
      */
     public QueryImpl() {
     }
-    
-    
+
+
     public QueryImpl(ResultSet result, String name,TimeZone tz) throws PageException {
 		this.name=name;
-        
-		try {	
+
+		try {
 		    fillResult(this,null,null,null,result,-1,true,false,tz);
-		} 
+		}
 		catch (SQLException e) {
 			throw new DatabaseException(e,null);
-		} 
+		}
 		catch (Exception e) {
 		    throw Caster.toPageException(e);
-		} 
+		}
 	}
-	
+
 	/**
 	 * constructor of the class, to generate a resultset from a sql query
 	 * @param dc Connection to a database
-	 * @param name 
+	 * @param name
 	 * @param sql sql to execute
 	 * @param maxrow maxrow for the resultset
 	 * @throws PageException
-	 */	
+	 */
     public QueryImpl(PageContext pc, DatasourceConnection dc,SQL sql,int maxrow, int fetchsize,TimeSpan timeout, String name) throws PageException {
     	this(pc,dc, sql, maxrow, fetchsize, timeout, name,null,false,true);
     }
-    
+
 
     public QueryImpl(PageContext pc, DatasourceConnection dc,SQL sql,int maxrow, int fetchsize,TimeSpan timeout, String name,String template) throws PageException {
     	this(pc,dc, sql, maxrow, fetchsize, timeout, name,template,false,true);
     }
-    
+
 	public QueryImpl(PageContext pc, DatasourceConnection dc,SQL sql,int maxrow, int fetchsize,TimeSpan timeout, String name,String template,boolean createUpdateData, boolean allowToCachePreperadeStatement) throws PageException {
 		this.name=name;
 		this.template=template;
@@ -225,20 +225,20 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		execute(pc,dc,sql,maxrow,fetchsize,timeout,createUpdateData,allowToCachePreperadeStatement,null,sct,keyName);
 		return sct;
 	}
-	
+
 	public static QueryArray toArray(PageContext pc, DatasourceConnection dc,SQL sql,int maxrow, int fetchsize,TimeSpan timeout, String name,String template,boolean createUpdateData, boolean allowToCachePreperadeStatement) throws PageException {
 		QueryArray arr=new QueryArray(name,sql,template);
 		execute(pc,dc,sql,maxrow,fetchsize,timeout,createUpdateData,allowToCachePreperadeStatement,null,arr,null);
 		return arr;
 	}
-	
+
 	private static void execute(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout
 			, boolean createUpdateData, boolean allowToCachePreperadeStatement, QueryImpl qry, QueryResult qr, Collection.Key keyName) throws PageException {
-		
-        
-        
+
+
+
 		TimeZone tz = ThreadLocalPageContext.getTimeZone(pc);
-        
+
 		// check if datasource support Generated Keys
 		boolean createGeneratedKeys=createUpdateData;
         if(createUpdateData){
@@ -249,14 +249,14 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		if(dc.getDatasource().hasSQLRestriction()) {
 			QueryUtil.checkSQLRestriction(dc,sql);
         }
-		
+
 		Statement stat=null;
 		//Stopwatch stopwatch=new Stopwatch();
         long start=System.nanoTime();
 		//stopwatch.start();
 		boolean hasResult=false;
 		//boolean closeStatement=true;
-		try {	
+		try {
 			SQLItem[] items=sql.getItems();
 			if(items.length==0) {
 		    	stat=dc.getConnection().createStatement();
@@ -272,7 +272,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	        	stat=preStat;
 	            setAttributes(preStat,maxrow,fetchsize,timeout);
 	            setItems(pc,ThreadLocalPageContext.getTimeZone(pc),preStat,items);
-		        hasResult=QueryUtil.execute(pc,preStat);    
+		        hasResult=QueryUtil.execute(pc,preStat);
 	        }
 			int uc;
 			//ResultSet res;
@@ -286,9 +286,9 @@ public class QueryImpl implements Query,Objects,QueryResult {
 				else if((uc=setUpdateCount(qry!=null?qry:qr,stat))!=-1){
 					if(uc>0 && createGeneratedKeys && qry!=null)qry.setGeneratedKeys(dc, stat,tz);
 				}
-				
+
 				else break;
-				
+
 				try{
 					//hasResult=stat.getMoreResults(Statement.CLOSE_CURRENT_RESULT);
 					hasResult=stat.getMoreResults();
@@ -299,20 +299,20 @@ public class QueryImpl implements Query,Objects,QueryResult {
 				}
 			}
 			while(true);
-		} 
+		}
 		catch (SQLException e) {
 			throw new DatabaseException(e,sql,dc);
-		} 
+		}
 		catch (Throwable e) {
 			throw Caster.toPageException(e);
 		}
         finally {
         	//if(closeStatement)
         		DBUtil.closeEL(stat);
-        }  
+        }
 		if(qry!=null) {
 			qry.exeTime=System.nanoTime()-start;
-	
+
 			if(qry.columncount==0) {
 				if(qry.columnNames==null) qry.columnNames=new Collection.Key[0];
 				if(qry.columns==null) qry.columns=new QueryColumnImpl[0];
@@ -322,9 +322,9 @@ public class QueryImpl implements Query,Objects,QueryResult {
 			qr.setExecutionTime(System.nanoTime()-start);
 		}
 
-		
+
 	}
-	
+
 	private static int setUpdateCount(QueryResult qr, Statement stat)  {
 		try{
 			int uc=stat.getUpdateCount();
@@ -336,8 +336,8 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		return -1;
 	}
-	
-	
+
+
 	private boolean setGeneratedKeys(DatasourceConnection dc,Statement stat, TimeZone tz)  {
 		try{
 			ResultSet rs = stat.getGeneratedKeys();
@@ -349,18 +349,18 @@ public class QueryImpl implements Query,Objects,QueryResult {
 			return false;
 		}
 	}
-	
+
 	private void setGeneratedKeys(DatasourceConnection dc,ResultSet rs, TimeZone tz) throws PageException  {
 		generatedKeys=new QueryImpl(rs,"",tz);
-		
-		// ACF compatibility action 
+
+		// ACF compatibility action
 		if(generatedKeys.getColumnCount()==1 && DataSourceUtil.isMSSQL(dc)) {
 			generatedKeys.renameEL(GENERATED_KEYS,KeyConstants._IDENTITYCOL);
 			generatedKeys.renameEL(GENERATEDKEYS,KeyConstants._IDENTITYCOL);
 			generatedKeys.renameEL(KeyConstants._ID,KeyConstants._IDENTITYCOL);
 		}
 	}
-	
+
 	private static void setItems(PageContext pc,TimeZone tz,PreparedStatement preStat, SQLItem[] items) throws DatabaseException, PageException, SQLException {
 		for(int i=0;i<items.length;i++) {
             SQLCaster.setValue(pc,tz,preStat,i+1,items[i]);
@@ -376,25 +376,25 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	public Query getGeneratedKeys() {
 		return generatedKeys;
 	}
-	
+
 	private static void setAttributes(Statement stat,int maxrow, int fetchsize,TimeSpan timeout) throws SQLException {
 		if(maxrow>-1) stat.setMaxRows(maxrow);
-        if(fetchsize>0)stat.setFetchSize(fetchsize);       
+        if(fetchsize>0)stat.setFetchSize(fetchsize);
         if(timeout!=null && ((int)timeout.getSeconds())>0)
         	DataSourceUtil.setQueryTimeoutSilent(stat,(int)timeout.getSeconds());
 	}
-	
+
     private static boolean fillResult(QueryImpl qry,QueryResult qr,Collection.Key keyName, DatasourceConnection dc, ResultSet result, int maxrow, boolean closeResult,boolean createGeneratedKeys, TimeZone tz) throws SQLException, IOException, PageException {
     	if(result==null) return false;
-    	
+
     	int recordcount=0,columncount=0;
     	Collection.Key[] columnNames=null;
     	QueryColumnImpl[] columns=null;
-    	
+
     	try {
 	    	ResultSetMetaData meta = result.getMetaData();
 			columncount=meta.getColumnCount();
-			
+
 		// set header arrays
 			Collection.Key[] tmpColumnNames = new Collection.Key[columncount];
 			int count=0;
@@ -415,7 +415,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 			columnNames=new Collection.Key[columncount];
 			if(qry!=null)columns=new QueryColumnImpl[columncount];
 			Cast[] casts = new Cast[columncount];
-			
+
 		// get all used ints
 			int[] usedColumns=new int[columncount];
 			count=0;
@@ -423,8 +423,8 @@ public class QueryImpl implements Query,Objects,QueryResult {
 				if(tmpColumnNames[i]!=null) {
 					usedColumns[count++]=i;
 				}
-			}	
-						
+			}
+
 		// set used column names
 			int type;
 			for(int i=0;i<usedColumns.length;i++) {
@@ -433,7 +433,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	            if(qry!=null)columns[i]=new QueryColumnImpl(qry,columnNames[i],type);
 	            casts[i]=QueryUtil.toCast(result, type);
 			}
-			
+
 			if(createGeneratedKeys && columncount==1 && columnNames[0].equals(GENERATED_KEYS) && dc!=null && DataSourceUtil.isMSSQLDriver(dc)) {
 				columncount=0;
 				columnNames=null;
@@ -443,7 +443,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 				}
 				return false;
 			}
-			
+
 			// fill QUERY
 			if(qry!=null) {
 				while(result.next()) {
@@ -483,7 +483,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 						if(k==null)k="";
 						qs.set(KeyImpl.toKey(k), sct);
 					}
-					
+
 					++recordcount;
 				}
 			}
@@ -523,7 +523,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	 * constructor of the class, to generate a empty resultset (no database execution)
 	 * @param strColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
-	 * @param name 
+	 * @param name
 	 * @deprecated use instead <code>QueryImpl(Collection.Key[] columnKeys, int rowNumber,String name)</code>
 	 */
 	public QueryImpl(String[] strColumns, int rowNumber,String name) {
@@ -542,12 +542,12 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	 * constructor of the class, to generate a empty resultset (no database execution)
 	 * @param strColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
-	 * @param name 
+	 * @param name
 	 */
 	public QueryImpl(Collection.Key[] columnKeys, int rowNumber,String name) throws DatabaseException {
 		this(columnKeys,rowNumber,name,null);
 	}
-	
+
 	public QueryImpl(Collection.Key[] columnKeys, int rowNumber,String name, SQL sql) throws DatabaseException {
 		this.name=name;
         columncount=columnKeys.length;
@@ -561,14 +561,14 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		validateColumnNames(columnNames);
 		this.sql=sql;
 	}
-	
+
 	/**
 	 * constructor of the class, to generate a empty resultset (no database execution)
 	 * @param strColumns columns for the resultset
 	 * @param strTypes array of the types
 	 * @param rowNumber count of rows to generate (empty fields)
-	 * @param name 
-	 * @throws DatabaseException 
+	 * @param name
+	 * @throws DatabaseException
 	 */
 	public QueryImpl(String[] strColumns, String[] strTypes, int rowNumber, String name) throws DatabaseException {
         this.name=name;
@@ -582,14 +582,14 @@ public class QueryImpl implements Query,Objects,QueryResult {
 			columns[i]=new QueryColumnImpl(this,columnNames[i],SQLCaster.toSQLType(strTypes[i]),recordcount);
 		}
 	}
-	
+
 	/**
 	 * constructor of the class, to generate a empty resultset (no database execution)
 	 * @param strColumns columns for the resultset
 	 * @param strTypes array of the types
 	 * @param rowNumber count of rows to generate (empty fields)
-	 * @param name 
-	 * @throws DatabaseException 
+	 * @param name
+	 * @throws DatabaseException
 	 */
 	public QueryImpl(Collection.Key[] columnNames, String[] strTypes, int rowNumber, String name) throws DatabaseException {
         this.name=name;
@@ -603,13 +603,13 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		}
 		validateColumnNames(columnNames);
 	}
-	
+
 	/**
 	 * constructor of the class, to generate a empty resultset (no database execution)
 	 * @param arrColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
-	 * @param name 
-	 * @throws DatabaseException 
+	 * @param name
+	 * @throws DatabaseException
 	 */
 	public QueryImpl(Array arrColumns, int rowNumber, String name) throws DatabaseException {
         this.name=name;
@@ -629,7 +629,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	 * @param arrColumns columns for the resultset
 	 * @param arrTypes type of the columns
 	 * @param rowNumber count of rows to generate (empty fields)
-	 * @param name 
+	 * @param name
 	 * @throws PageException
 	 */
 	public QueryImpl(Array arrColumns, Array arrTypes, int rowNumber, String name) throws PageException {
@@ -650,30 +650,30 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	 * constructor of the class
 	 * @param columnNames columns definition as String Array
 	 * @param arrColumns values
-	 * @param name 
+	 * @param name
 	 * @throws DatabaseException
 	 */
 
 	public QueryImpl(String[] strColumnNames, Array[] arrColumns, String name) throws DatabaseException {
-		this(CollectionUtil.toKeys(strColumnNames,true),arrColumns,name);		
-	}	
-	
+		this(CollectionUtil.toKeys(strColumnNames,true),arrColumns,name);
+	}
+
 	private static void validateColumnNames(Key[] columnNames) throws DatabaseException {
 		Set<String> testMap=new HashSet<String>();
 		for(int i=0	;i<columnNames.length;i++) {
-			
+
 			// Only allow column names that are valid variable name
 			//if(!Decision.isSimpleVariableName(columnNames[i]))
 			//	throw new DatabaseException("invalid column name ["+columnNames[i]+"] for query", "column names must start with a letter and can be followed by letters numbers and underscores [_]. RegExp:[a-zA-Z][a-zA-Z0-9_]*",null,null,null);
-			
+
 			if(testMap.contains(columnNames[i].getLowerString()))
 				throw new DatabaseException("invalid parameter for query, ambiguous column name "+columnNames[i],"columnNames: "+ListUtil.arrayToListTrim( _toStringKeys(columnNames),","),null,null);
 			testMap.add(columnNames[i].getLowerString());
 		}
 	}
-	
 
-	
+
+
 	private static String[] _toStringKeys(Collection.Key[] columnNames) {
 		String[] strColumnNames=new String[columnNames.length];
 		for(int i=0	;i<strColumnNames.length;i++) {
@@ -681,7 +681,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		}
 		return strColumnNames;
 	}
-	
+
 	/*public QueryImpl(Collection.Key[] columnNames, QueryColumn[] columns, String name,long exeTime, boolean isCached,SQL sql) throws DatabaseException {
 		this.columnNames=columnNames;
 		this.columns=columns;
@@ -691,12 +691,12 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		this.columncount=columnNames.length;
 		this.recordcount=columns.length==0?0:columns[0].size();
 		this.sql=sql;
-		
+
 	}*/
 
 	public QueryImpl(Collection.Key[] columnNames, Array[] arrColumns, String name) throws DatabaseException {
         this.name=name;
-        
+
         if(columnNames.length!=arrColumns.length)
 			throw new DatabaseException("invalid parameter for query, not the same count from names and columns","names:"+columnNames.length+";columns:"+arrColumns.length,null,null);
 		int len=0;
@@ -713,23 +713,23 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		// test keys
 			validateColumnNames(columnNames);
 		}
-		
+
 		columncount=columns.length;
 		recordcount=len;
 		this.columnNames=columnNames;
 	}
-	
+
     /**
      * constructor of the class
      * @param columnList
      * @param data
-     * @param name 
-     * @throws DatabaseException 
+     * @param name
+     * @throws DatabaseException
      */
     public QueryImpl(String[] strColumnList, Object[][] data,String name) throws DatabaseException {
-    	
+
         this(toCollKeyArr(strColumnList),data.length,name);
-        
+
         for(int iRow=0;iRow<data.length;iRow++) {
             Object[] row=data[iRow];
             for(int iCol=0;iCol<row.length;iCol++) {
@@ -793,7 +793,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 
 	//private static int pidc=0;
 	private int getPid() {
-		
+
 		PageContext pc = ThreadLocalPageContext.get();
 		if(pc==null) {
 			pc=CFMLEngineFactory.getInstance().getThreadPageContext();
@@ -823,6 +823,11 @@ public class QueryImpl implements Query,Objects,QueryResult {
 				);
 	}
 
+    private boolean getKeyCase( PageContext pc ) {
+		pc = ThreadLocalPageContext.get(pc);
+		return pc != null && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !((ConfigWebImpl) pc.getConfig()).preserveCase();
+	}
+
 	@Override
 	public Object getAt(String key, int row, Object defaultValue) {
 		return getAt(KeyImpl.init(key), row, defaultValue);
@@ -837,11 +842,11 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		if(key.length()>=10) {
 	        if(key.equals(KeyConstants._RECORDCOUNT)) return new Double(getRecordcount());
 	        if(key.equals(KeyConstants._CURRENTROW)) return new Double(row);
-	        if(key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(ThreadLocalPageContext.get());
+	        if(key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get()));
 		}
         return defaultValue;
 	}
-	
+
 	@Override
 	public Object getAt(String key, int row) throws PageException {
 		return getAt(KeyImpl.init(key), row);
@@ -853,20 +858,19 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		if(index!=-1) {
 			return columns[index].get(row, NullSupportHelper.full()?null:"");
 		}
-		PageContext pc = ThreadLocalPageContext.get();
 		if(key.length()>=10) {
         	if(key.equals(KeyConstants._RECORDCOUNT)) return new Double(getRecordcount());
         	if(key.equals(KeyConstants._CURRENTROW)) return new Double(row);
-			if(key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(pc);
+			if(key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get()));
         }
-		throw new DatabaseException("column ["+key+"] not found in query, columns are ["+getColumnlist(pc)+"]",null,sql,null);
+		throw new DatabaseException("column ["+key+"] not found in query, columns are ["+getColumnlist(getKeyCase(ThreadLocalPageContext.get()))+"]",null,sql,null);
 	}
-	
+
 
     @Override
     public synchronized int removeRow(int row) throws PageException {
         //disconnectCache();
-        
+
         for(int i=0;i<columns.length;i++) {
             columns[i].removeRow(row);
         }
@@ -876,14 +880,14 @@ public class QueryImpl implements Query,Objects,QueryResult {
     @Override
     public int removeRowEL(int row) {
         //disconnectCache();
-        
+
         try {
             return removeRow(row);
         } catch (PageException e) {
             return recordcount;
         }
     }
-    
+
     @Override
     public QueryColumn removeColumn(String key) throws DatabaseException {
         return removeColumn(KeyImpl.init(key));
@@ -892,16 +896,15 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	@Override
 	public QueryColumn removeColumn(Collection.Key key) throws DatabaseException {
 		//disconnectCache();
-        
+
         QueryColumn removed = removeColumnEL(key);
         if(removed==null) {
-        	PageContext pc = ThreadLocalPageContext.get();
-            if(key.equals(KeyConstants._RECORDCOUNT) || 
-            		key.equals(KeyConstants._CURRENTROW) || 
+             if(key.equals(KeyConstants._RECORDCOUNT) ||
+            		key.equals(KeyConstants._CURRENTROW) ||
             		key.equals(KeyConstants._COLUMNLIST))
-                throw new DatabaseException("can't remove "+key+" this is not a row","existing rows are ["+getColumnlist(pc)+"]",null,null);
+                throw new DatabaseException("can't remove "+key+" this is not a row","existing rows are ["+getColumnlist(getKeyCase(ThreadLocalPageContext.get()))+"]",null,null);
             throw new DatabaseException("can't remove row ["+key+"], this row doesn't exist",
-                    "existing rows are ["+getColumnlist(pc)+"]",null,null);
+                    "existing rows are ["+getColumnlist(getKeyCase(ThreadLocalPageContext.get()))+"]",null,null);
         }
         return removed;
 	}
@@ -913,7 +916,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 
 	public QueryColumn removeColumnEL(Collection.Key key) {
 		//disconnectCache();
-        
+
         int index=getIndexFromKey(key);
         if(index!=-1) {
             int current=0;
@@ -938,8 +941,8 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	}
 
 	@Override
-	public Object setEL(String key, Object value) {	
-		return setEL(KeyImpl.init(key),value);	
+	public Object setEL(String key, Object value) {
+		return setEL(KeyImpl.init(key),value);
 	}
 
 	@Override
@@ -948,7 +951,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 				arrCurrentRow.get(getPid(), 1),
 				value);
 	}
-	
+
 	@Override
 	public Object set(String key, Object value) throws PageException {
 		return set(KeyImpl.init(key),value);
@@ -960,7 +963,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 				arrCurrentRow.get(getPid(), 1),
 				value);
 	}
-    
+
     @Override
     public Object setAt(String key,int row, Object value) throws PageException {
     	return setAt(KeyImpl.init(key), row, value);
@@ -971,9 +974,9 @@ public class QueryImpl implements Query,Objects,QueryResult {
         if(index!=-1) {
             return columns[index].set(row,value);
         }
-        throw new DatabaseException("column ["+key+"] does not exist","columns are ["+getColumnlist(ThreadLocalPageContext.get())+"]",sql,null);
+        throw new DatabaseException("column ["+key+"] does not exist","columns are ["+getColumnlist(getKeyCase(ThreadLocalPageContext.get()))+"]",sql,null);
 	}
-    
+
     @Override
     public Object setAtEL(String key,int row, Object value) {
         return setAtEL(KeyImpl.init(key), row, value);
@@ -1005,7 +1008,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	public void reset() {
 		reset(getPid());
 	}
-	
+
 	public void reset(int pid) {
 		arrCurrentRow.set(pid,0);
 	}
@@ -1014,12 +1017,12 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	public int getRecordcount() {
 		return recordcount;
 	}
-	
+
 	@Override
 	public int getColumncount() {
 		return columncount;
 	}
-	
+
 	@Override
 	public int getCurrentrow(int pid) {
 		return arrCurrentRow.get(pid,1);
@@ -1030,21 +1033,14 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	 * return a string list of all columns
 	 * @return string list
 	 */
-	public String getColumnlist(PageContext pc) {
-		StringBuilder sb=new StringBuilder();
-		
-		pc=ThreadLocalPageContext.get(pc);
-		boolean upperCase=false;
-		if(pc!=null)upperCase = 
-				pc.getCurrentTemplateDialect()==CFMLEngine.DIALECT_CFML && 
-				!((ConfigWebImpl)pc.getConfig()).preserveCase();
-
-		for(int i=0;i<columnNames.length;i++) {
-			if(i>0)sb.append(',');
-			sb.append(upperCase?columnNames[i].getUpperString():columnNames[i].getString());
-		}
-		return sb.toString();
-	}
+    public String getColumnlist(boolean upperCase) {
+        StringBuilder sb=new StringBuilder();
+        for(int i=0;i<columnNames.length;i++) {
+            if(i>0)sb.append(',');
+            sb.append(upperCase?columnNames[i].getUpperString():columnNames[i].getString());
+        }
+        return sb.toString();
+    }
 	/*public String getColumnlist() {
 		return getColumnlist(true);
 	}*/
@@ -1052,7 +1048,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	public boolean go(int index) {
 		return go(index,getPid());
 	}
-	
+
 	public boolean go(int index, int pid) {
 		if(index>0 && index<=recordcount) {
 			arrCurrentRow.set(pid, index);
@@ -1071,7 +1067,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
 		return QueryUtil.toDumpData(this, pageContext, maxlevel, dp);
 	}
-	
+
 	/**
 	 * sorts a query by a column
 	 * @param column colun to sort
@@ -1087,7 +1083,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	}
 
 	/**
-	 * sorts a query by a column 
+	 * sorts a query by a column
 	 * @param strColumn column to sort
 	 * @param order sort type (Query.ORDER_ASC or Query.ORDER_DESC)
 	 * @throws PageException
@@ -1096,40 +1092,40 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		//disconnectCache();
         sort(getColumn(strColumn),order);
 	}
-	
+
 	@Override
 	public synchronized void sort(Collection.Key keyColumn, int order) throws PageException {
 		//disconnectCache();
         sort(getColumn(keyColumn),order);
 	}
-	
+
 	public void sort(int[] rows) throws PageException {
 		if(rows.length!=getRecordcount()) throw new ApplicationException("row count is invalid");
 		for(int i=0;i<columns.length;i++) {
 			columns[i].sort(rows);
 		}
 	}
-	
+
 	private void sort(QueryColumn column, int order) throws PageException {
         int type = column.getType();
-		
+
 		SortRegister[] arr= ArrayUtil.toSortRegisterArray(column);
-		
+
 		Arrays.sort(arr,
 		(
-				type==Types.BIGINT || 
-				type==Types.BIT || 
-				type==Types.INTEGER || 
-				type==Types.SMALLINT || 
+				type==Types.BIGINT ||
+				type==Types.BIT ||
+				type==Types.INTEGER ||
+				type==Types.SMALLINT ||
 				type==Types.TINYINT	||
-		        type==Types.DECIMAL || 
-		        type==Types.DOUBLE || 
-		        type==Types.NUMERIC || 
+		        type==Types.DECIMAL ||
+		        type==Types.DOUBLE ||
+		        type==Types.NUMERIC ||
 		        type==Types.REAL)?
-		
+
 		(Comparator)new NumberSortRegisterComparator(order==ORDER_ASC):(Comparator)new SortRegisterComparator(null,order==ORDER_ASC,true,true)
 		);
-		
+
 		for(int i=0;i<columns.length;i++) {
 			column=columns[i];
 			int len=column.size();
@@ -1142,9 +1138,9 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	}
 
 	@Override
-	 public synchronized boolean addRow(int count) {		
+	 public synchronized boolean addRow(int count) {
          //disconnectCache();
-            
+
          for(int i=0;i<columns.length;i++) {
         	 QueryColumnPro column = columns[i];
 		 	column.addRow(count);
@@ -1152,7 +1148,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		 recordcount+=count;
 		 return true;
 	 }
-	 
+
 	 @Override
 	public boolean addColumn(String columnName, Array content) throws DatabaseException {
 		return addColumn(columnName,content,Types.OTHER);
@@ -1161,7 +1157,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	public boolean addColumn(Collection.Key columnName, Array content) throws PageException {
 		return addColumn(columnName,content,Types.OTHER);
 	}
-	
+
     @Override
     public synchronized boolean addColumn(String columnName, Array content, int type) throws DatabaseException {
 		return addColumn(KeyImpl.init(columnName.trim()), content, type);
@@ -1172,7 +1168,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		//disconnectCache();
         // TODO Meta type
 		content=(Array) Duplicator.duplicate(content,false);
-		
+
 	 	if(getIndexFromKey(columnName)!=-1)
 	 		throw new DatabaseException("column name ["+columnName.getString()+"] already exist",null,sql,null);
 	 	if(content.size()!=getRecordcount()) {
@@ -1192,14 +1188,14 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	 	newColumnNames[columns.length]=columnName;
 	 	columns=newColumns;
 	 	columnNames=newColumnNames;
-	 	
+
 	 	columncount++;
-	 	
+
 	 	if(logUsage)enableShowQueryUsage();
-	 	
+
 		return true;
 	}
-	
+
 
 	/* *
 	 * if this query is still connected with cache (same query also in cache)
@@ -1207,20 +1203,20 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	 */
 	//protected void disconnectCache() {}
 
-	
+
 	@Override
     public Object clone() {
         return cloneQuery(true);
     }
-    
+
     @Override
     public Collection duplicate(boolean deepCopy) {
         return cloneQuery(deepCopy);
     }
-    
 
-	
-    
+
+
+
     /**
      * @return clones the query object
      */
@@ -1260,10 +1256,10 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		}
 		return types;
 	}
-	
+
 	@Override
 	public synchronized Map<Collection.Key,String> getTypesAsMap() {
-		
+
 		Map<Collection.Key,String> map=new HashMap<Collection.Key,String>();
 		for(int i=0;i<columns.length;i++) {
 			map.put(columnNames[i],columns[i].getTypeAsString());
@@ -1280,15 +1276,14 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	public QueryColumn getColumn(Collection.Key key) throws DatabaseException {
 		int index=getIndexFromKey(key);
 		if(index!=-1) return columns[index];
-        
 		if(key.length()>=10) {
         	if(key.equals(KeyConstants._RECORDCOUNT)) return new QueryColumnRef(this,key,Types.INTEGER);
 	        if(key.equals(KeyConstants._CURRENTROW)) return new QueryColumnRef(this,key,Types.INTEGER);
 	        if(key.equals(KeyConstants._COLUMNLIST)) return new QueryColumnRef(this,key,Types.INTEGER);
 		}
-        throw new DatabaseException("key ["+key.getString()+"] not found in query, columns are ["+getColumnlist(ThreadLocalPageContext.get())+"]",null,sql,null);
+        throw new DatabaseException("key ["+key.getString()+"] not found in query, columns are ["+getColumnlist(getKeyCase(ThreadLocalPageContext.get()))+"]",null,sql,null);
 	}
-	
+
 
 	private void renameEL(Collection.Key src, Collection.Key trg) {
 		int index=getIndexFromKey(src);
@@ -1297,14 +1292,14 @@ public class QueryImpl implements Query,Objects,QueryResult {
 			columns[index].setKey(trg);
 		}
 	}
-	
+
 	public synchronized void rename(Collection.Key columnName,Collection.Key newColumnName) throws ExpressionException {
 		int index=getIndexFromKey(columnName);
 		if(index==-1) throw new ExpressionException("invalid column name definitions");
 		columnNames[index]=newColumnName;
 		columns[index].setKey(newColumnName);
 	}
-	
+
 
 	@Override
 	public QueryColumn getColumn(String key, QueryColumn defaultValue) {
@@ -1322,16 +1317,16 @@ public class QueryImpl implements Query,Objects,QueryResult {
         }
         return defaultValue;
 	}
-	
+
 	@Override
 	public String toString() {
 		Collection.Key[] keys=keys();
-		
+
 		StringBuffer sb=new StringBuffer();
 
 		sb.append("Query\n");
 		sb.append("---------------------------------------------------\n");
-		
+
 		if(sql!=null) {
 			sb.append(sql+"\n");
 			sb.append("---------------------------------------------------\n");
@@ -1341,7 +1336,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 			sb.append("Execution Time (ns): "+exeTime+"\n");
 			sb.append("---------------------------------------------------\n");
 		}
-		
+
 		sb.append("Recordcount: "+getRecordcount()+"\n");
 		sb.append("---------------------------------------------------\n");
 		String trenner="";
@@ -1350,7 +1345,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		}
 		trenner+="+\n";
 		sb.append(trenner);
-	
+
 	// Header
 		for(int i=0;i<keys.length;i++) {
 			sb.append(getToStringField(keys[i].getString()));
@@ -1358,7 +1353,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		sb.append("|\n");
 		sb.append(trenner);
 		sb.append(trenner);
-		
+
 	// body
 		for(int i=0;i<recordcount;i++) {
 			for(int y=0;y<keys.length;y++) {
@@ -1366,7 +1361,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 					Object o=getAt(keys[y],i+1);
 					if(o instanceof String)sb.append(getToStringField(o.toString()));
 					else if(o instanceof Number) sb.append(getToStringField(Caster.toString(((Number)o))));
-					else if(o instanceof Clob) sb.append(getToStringField(Caster.toString(o)));							
+					else if(o instanceof Clob) sb.append(getToStringField(Caster.toString(o)));
 					else sb.append(getToStringField(o.toString()));
 				} catch (PageException e) {
 					sb.append(getToStringField("[empty]"));
@@ -1388,9 +1383,9 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		else if(str.length()==21) return "|"+str;
 		else  return "|"+str.substring(0,18)+"...";
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param type
 	 * @return return String represetation of a Type from int type
 	 */
@@ -1441,15 +1436,15 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		}
 		return -1;
 	}
-	
+
 	private int getIndexFromKey(Collection.Key key) {
-		
+
 		for(int i=0;i<columnNames.length;i++) {
 			if(columnNames[i].equalsIgnoreCase(key)) return i;
 		}
 		return -1;
 	}
-	
+
 	@Override
 	public void setExecutionTime(long exeTime) {
 		this.exeTime=exeTime;
@@ -1461,7 +1456,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
      */
     public synchronized boolean cutRowsTo(int maxrows) {
         //disconnectCache();
-        
+
         if(maxrows>-1 && maxrows<getRecordcount()) {
 			 for(int i=0;i<columns.length;i++) {
 			 	QueryColumn column = columns[i];
@@ -1474,16 +1469,16 @@ public class QueryImpl implements Query,Objects,QueryResult {
     }
 
     public void setCacheType(String cacheType) {
-    	this.cacheType=cacheType; 
+    	this.cacheType=cacheType;
     }
 
     public String getCacheType() {
-    	return cacheType; 
+    	return cacheType;
     }
 
     @Override
     public void setCached(boolean isCached) {
-    	throw new RuntimeException("method no longer supported"); 
+    	throw new RuntimeException("method no longer supported");
     }
 
     @Override
@@ -1521,7 +1516,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
     public String[] getColumns() {
         return getColumnNamesAsString();
     }
-    
+
     @Override
     public Collection.Key[] getColumnNames() {
     	Collection.Key[] keys = keys();
@@ -1529,11 +1524,11 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		System.arraycopy(keys,0,rtn,0,keys.length);
 		return rtn;
     }
-    
+
     public void setColumnNames(Collection.Key[] trg) throws PageException {
     	columncount=trg.length;
     	Collection.Key[] src = keys();
-    	
+
     	// target < source
     	if(trg.length<src.length){
     		this.columnNames=new Collection.Key[trg.length];
@@ -1546,11 +1541,11 @@ public class QueryImpl implements Query,Objects,QueryResult {
     		this.columns=tmp;
     		return;
     	}
-    	
+
     	if(trg.length>src.length){
     		int recordcount=getRecordcount();
     		for(int i=src.length;i<trg.length;i++){
-    			
+
     			Array arr=new ArrayImpl();
     			for(int r=1;r<=recordcount;r++){
     				arr.setE(i,"");
@@ -1559,20 +1554,20 @@ public class QueryImpl implements Query,Objects,QueryResult {
     		}
     		src = keys();
     	}
-    	
+
 		for(int i=0;i<trg.length;i++){
 			this.columnNames[i]=trg[i];
 			this.columns[i].setKey(trg[i]);
     	}
     }
-    
+
 
 
 	@Override
 	public String[] getColumnNamesAsString() {
 		return CollectionUtil.keysAsString(this);
 	}
-	
+
 	public int getColumnCount() {
 		return columncount;
 	}
@@ -1583,7 +1578,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		if(col<1 || col>keys.length) {
 			new IndexOutOfBoundsException("invalid column index to retrieve Data from query, valid index goes from 1 to "+keys.length);
 		}
-		
+
 		Object o=getAt(keys[col-1],row,NullSupportHelper.NULL());
 		if(o==NullSupportHelper.NULL())
 			throw new IndexOutOfBoundsException("invalid row index to retrieve Data from query, valid index goes from 1 to "+getRecordcount());
@@ -1614,7 +1609,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		}
 		try {
 			setAt(keys[col-1],row,value);
-		} 
+		}
 		catch (PageException e) {
 			throw new IndexOutOfBoundsException("invalid row index to retrieve Data from query, valid index goes from 1 to "+getRecordcount());
 		}
@@ -1623,13 +1618,13 @@ public class QueryImpl implements Query,Objects,QueryResult {
     @Override
     public boolean containsKey(String key) {
         return getColumn(key,null)!=null;
-    }	
+    }
 
 	@Override
 	public boolean containsKey(Collection.Key key) {
         return getColumn(key,null)!=null;
 	}
-	
+
     @Override
     public String castToString() throws ExpressionException {
         throw new ExpressionException("Can't cast Complex Object Type Query to String",
@@ -1646,7 +1641,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
     public boolean castToBooleanValue() throws ExpressionException {
         throw new ExpressionException("Can't cast Complex Object Type Query to a boolean value");
     }
-    
+
     @Override
     public Boolean castToBoolean(Boolean defaultValue) {
         return defaultValue;
@@ -1657,7 +1652,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
     public double castToDoubleValue() throws ExpressionException {
         throw new ExpressionException("Can't cast Complex Object Type Query to a number value");
     }
-    
+
     @Override
     public double castToDoubleValue(double defaultValue) {
         return defaultValue;
@@ -1668,7 +1663,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
     public DateTime castToDateTime() throws ExpressionException {
         throw new ExpressionException("Can't cast Complex Object Type Query to a Date");
     }
-    
+
     @Override
     public DateTime castToDateTime(DateTime defaultValue) {
         return defaultValue;
@@ -1721,13 +1716,13 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		if((currentrow=arrCurrentRow.get(getPid(),0))==0) return null;
 		return getAt(columnName,currentrow,null);
 	}
-	
+
 	@Override
 	public Object getObject(int columnIndex) throws SQLException {
 		if(columnIndex>0 && columnIndex<=columncount) return  getObject(this.columnNames[columnIndex-1].getString());
 		return null;
 	}
-	
+
 	@Override
 	public String getString(int columnIndex) throws SQLException {
 		Object rtn = getObject(columnIndex);
@@ -1735,7 +1730,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		if(Decision.isCastableToString(rtn)) return Caster.toString(rtn,null);
 		throw new SQLException("can't cast value to string");
 	}
-	
+
 	@Override
 	public String getString(String columnName) throws SQLException {
 		Object rtn = getObject(columnName);
@@ -1743,7 +1738,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		if(Decision.isCastableToString(rtn)) return Caster.toString(rtn,null);
 		throw new SQLException("can't cast value to string");
 	}
-	
+
 	@Override
 	public boolean getBoolean(int columnIndex) throws SQLException {
 		Object rtn = getObject(columnIndex);
@@ -1751,7 +1746,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		if(Decision.isCastableToBoolean(rtn)) return Caster.toBooleanValue(rtn,false);
 		throw new SQLException("can't cast value to boolean");
 	}
-	
+
 	@Override
 	public boolean getBoolean(String columnName) throws SQLException {
 		Object rtn = getObject(columnName);
@@ -1759,8 +1754,8 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		if(Decision.isCastableToBoolean(rtn)) return Caster.toBooleanValue(rtn,false);
 		throw new SQLException("can't cast value to boolean");
 	}
-	
-	
+
+
 	// ---------------------------------------
 
 	@Override
@@ -1770,7 +1765,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	}
 
 	@Override
-	public Object callWithNamedValues(PageContext pc, Key methodName, Struct args) throws PageException {	
+	public Object callWithNamedValues(PageContext pc, Key methodName, Struct args) throws PageException {
 		return MemberUtil.callWithNamedValues(pc, this, methodName, args,lucee.commons.lang.CFTypes.TYPE_QUERY, "query");
 	}
 
@@ -1798,7 +1793,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	public Object setEL(PageContext pc, Key propertyName, Object value) {
 		return setAtEL(propertyName,arrCurrentRow.get(pc.getId(),1),value);
 	}
-	
+
 	@Override
 	public boolean wasNull() {
 		throw new PageRuntimeException(new ApplicationException("method [wasNull] is not supported"));
@@ -1811,7 +1806,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 			return false;
 		}
 		//row=row%recordcount;
-		
+
 		if(row>0) arrCurrentRow.set(getPid(),row);
 		else arrCurrentRow.set(getPid(),(recordcount+1)+row);
 		return true;
@@ -1933,7 +1928,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		if(bytes==null) return null;
 		try {
 			return BlobImpl.toBlob(bytes);
-		} 
+		}
 		catch (PageException e) {
 			throw new SQLException(e.getMessage());
 		}
@@ -2308,7 +2303,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		if(str==null) return null;
 		try {
 			return new ByteArrayInputStream(str.getBytes("UTF-8"));
-		} 
+		}
 		catch (UnsupportedEncodingException e) {
 			throw new SQLException(e.getMessage());
 		}
@@ -2320,7 +2315,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		if(str==null) return null;
 		try {
 			return new ByteArrayInputStream(str.getBytes("UTF-8"));
-		} 
+		}
 		catch (UnsupportedEncodingException e) {
 			throw new SQLException(e.getMessage());
 		}
@@ -2371,7 +2366,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	public boolean previous() {
 		return previous(getPid());
 	}
-	
+
 	public boolean previous(int pid) {
 		if(0<(arrCurrentRow.set(pid,arrCurrentRow.get(pid,0)-1))) {
 			return true;
@@ -2382,7 +2377,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 
 	public void refreshRow() throws SQLException {
 		// ignore
-		
+
 	}
 
 	@Override
@@ -2696,17 +2691,17 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	public Iterator<Collection.Key> keyIterator() {
 		return new KeyIterator(keys());
 	}
-    
+
 	@Override
 	public Iterator<String> keysAsStringIterator() {
     	return new StringIterator(keys());
     }
-	
+
 	@Override
 	public Iterator<Entry<Key, Object>> entryIterator() {
 		return new EntryIterator(this, keys());
 	}
-	
+
 	public Iterator<Object> valueIterator() {
 		return new CollectionIterator(keys(),this);
 	}
@@ -2725,7 +2720,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 			this.recordcount=other.recordcount;
 			this.sql=other.sql;
 			this.updateCount=other.updateCount;
-			
+
 		} catch (PageException e) {
 			throw new IOException(e.getMessage());
 		}
@@ -2754,7 +2749,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		updateString(columnLabel, nString);
 	}
 
-	
+
 
 	public String getNString(int columnIndex) throws SQLException {
 		return getString(columnIndex);
@@ -2891,11 +2886,11 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	public boolean isWrapperFor(Class<?> iface) throws SQLException {
 		throw notSupported();
 	}
-	
 
-	
-	//JDK6: uncomment this for compiling with JDK6 
-	 
+
+
+	//JDK6: uncomment this for compiling with JDK6
+
 	public void updateNClob(int columnIndex, NClob nClob) throws SQLException {
 		throw notSupported();
 	}
@@ -2927,7 +2922,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	public void updateSQLXML(String columnLabel, SQLXML xmlObject) throws SQLException {
 		throw notSupported();
 	}
-	
+
 	public RowId getRowId(int columnIndex) throws SQLException {
 		throw notSupported();
 	}
@@ -2943,11 +2938,11 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	public void updateRowId(String columnLabel, RowId x) throws SQLException {
 		throw notSupported();
 	}
-	
+
 	public void removeRows(int index, int count) throws PageException {
 		QueryUtil.removeRows(this,index,count);
 	}
-	
+
 
 	private SQLException notSupported() {
 		return new SQLException("this feature is not supported");
@@ -2963,7 +2958,7 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	public long getExecutionTime() {
 		return exeTime;
 	}
-	
+
 	public static QueryImpl cloneQuery(Query qry,boolean deepCopy) {
         QueryImpl newResult=new QueryImpl();
         boolean inside=ThreadLocalDuplication.set(qry, newResult);
@@ -2975,8 +2970,8 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	        	col =  qry.getColumn(newResult.columnNames[i],null);
 	        	newResult.columns[i]=QueryUtil.duplicate2QueryColumnImpl(newResult,col,deepCopy);
 	        }
-	        
-		        
+
+
 		    newResult.sql=qry.getSql();
 	        newResult.template=qry.getTemplate();
 	        newResult.recordcount=qry.getRecordcount();
@@ -2992,20 +2987,15 @@ public class QueryImpl implements Query,Objects,QueryResult {
         	if(!inside)ThreadLocalDuplication.reset();
         }
     }
-	
+
 	@Override
 	public java.util.Iterator getIterator() {
 		return new ForEachQueryIterator(this, ThreadLocalPageContext.get().getId());
     }
-	
+
 	@Override
 	public boolean equals(Object obj){
 		if(!(obj instanceof Collection)) return false;
 		return CollectionUtil.equals(this,(Collection)obj);
 	}
-	
-	/*@Override
-	public int hashCode() {
-		return CollectionUtil.hashCode(this);
-	}*/
 }
