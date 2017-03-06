@@ -258,20 +258,6 @@
 	}
 
 	/**
-	* @hint removes a existing jar from the Lucee handled lib folder, if the jar does not exists, the call is simply ignored 
-	* @name name of the jar (no path) of the jar file to remove
-	*/
-	public void function removeJar(required string name){
-		admin
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn"
-
-			action="removeJar"
-			name="#arguments.name#";
-	}
-
-	/**
 	* @hint returns the Preserve single quotes setting from datasource page
 	*/
 	public struct function getDatasourceSetting() {
@@ -1636,6 +1622,24 @@
 	}
 
 	/**
+	* @hint resets the compiler settings to its defaults.
+	*/
+	public void function resetCompilerSettings(){
+		admin
+			action="updateCompilerSettings"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			nullSupport=""
+			dotNotationUpperCase=""
+			suppressWSBeforeArg=""
+			handleUnquotedAttrValueAsString=""
+			templateCharset=""
+			externalizeStringGTE=""
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
 	* @hint returns the details of performance settings
 	*/
 	public struct function getPerformanceSettings(){
@@ -2302,6 +2306,19 @@
 			type="#variables.type#"
 			password="#variables.password#"
 			maxThreads="#arguments.maxThreads#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hints resets task settings
+	*/
+	public void function resetTaskSetting(){
+		admin
+			action="updateTaskSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+			maxThreads=""
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
@@ -2516,7 +2533,8 @@
 			action="removeLogSetting"
 			type="#variables.type#"
 			password="#variables.password#"
-			name="#arguments.name#";
+			name="#arguments.name#"
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
@@ -2570,7 +2588,21 @@
 			type="#variables.type#"
 			password="#variables.password#"
 			listenerType="#arguments.listenerType#"
-			listenerMode="#arguments.listenerMode#";
+			listenerMode="#arguments.listenerMode#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint resets application listener
+	*/
+	public void function resetApplicationListener(){
+		admin
+			action="updateApplicationListener"
+			type="#variables.type#"
+			password="#variables.password#"
+			listenerType=""
+			listenerMode=""
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
