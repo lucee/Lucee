@@ -725,7 +725,6 @@
 	* @virtual virtual name for the mapping.
 	* @addCFMLFile Add all CFML Source Templates as well (.cfm,.cfc,.cfml).
 	* @addNonCFMLFile Add all Non CFML Source Templates as well (.js,.css,.gif,.png ...)
-	* @doDownload Whether need to download the archive or not.
 	*/
 	public void function createArchiveFromMapping(required string virtual, boolean addCFMLFile=true, boolean addNonCFMLFile=true, required string target){
 		var ext="lar";
@@ -1005,7 +1004,7 @@
 	* @dbCreate Specifies whether Lucee should automatically generate mapping for the persistent CFCs, possible values are [none,update,dropcreate]
 	* @schema Specifies the default Schema that should be used by ORM.
 	*/
-	public struct function updateORMSetting( boolean autoGenMap=false, boolean eventHandling=false, boolean flushAtRequestEnd=false, boolean logSQL=false, boolean saveMapping=false, boolean useDBForMapping=false, string catalog="", string cfcLocation="", string dbCreate="none", string schema="" ){
+	public struct function updateORMSetting( boolean autoGenMap=true, boolean eventHandling=false, boolean flushAtRequestEnd=false, boolean logSQL=false, boolean saveMapping=false, boolean useDBForMapping=false, string catalog="", string cfcLocation="", string dbCreate="none", string schema="" ){
 		var res = {};
 		try{
 			var settings = getORMSetting();
@@ -1169,6 +1168,7 @@
 	* @hint updates the component mappings settings
 	* @virtual specifies as identifier when automatically import a Lucee Archive build based on this Mapping
 	* @physical specifies directory path where the components are located, this path should not include the package
+	* @primary type of mapping, resource/archive
 	* @archive specifies file path to a components Lucee Archive (.lar).
 	* @inspect checks for changes in the source file for a already loaded component
 	*/
@@ -1179,6 +1179,7 @@
 			password="#variables.password#"
 			virtual="#arguments.virtual#"
 			physical="#arguments.physical#"
+			primary="#arguments.primary#"
 			archive="#arguments.archive#"
 			inspect="#arguments.inspect#";
 	}
@@ -1891,18 +1892,6 @@
 	}
 
 	/**
-	* @hint removes the context directories from the path
-	* @destination specifies the destination path to remove context
-	*/
-	public void function removeContext( required string destination ){
-		admin
-			action="removeContext"
-			type="#variables.type#"
-			password="#variables.password#"
-			destination="#arguments.destination#";
-	}
-
-	/**
 	* @hint returns the list of FLD's
 	*/
 	public query function getFlds(){
@@ -2273,9 +2262,9 @@
 	* @proxyusername specifies the username of the proxy to access
 	* @proxypassword specifies the password of the proxy to access
 	*/
-	public void function updateproxy( boolean proxyenabled, string proxyserver="testProxy", numeric proxyport=443, string proxyusername="admin", string proxypassword="password" ){
+	public void function updateProxy( boolean proxyenabled, string proxyserver="testProxy", numeric proxyport=443, string proxyusername="admin", string proxypassword="password" ){
 		admin
-			action="updateproxy"
+			action="updateProxy"
 			type="#variables.type#"
 			password="#variables.password#"
 			proxyenabled="#arguments.proxyenabled#"
@@ -2283,6 +2272,31 @@
 			proxyport="#arguments.proxyport#"
 			proxyusername="#arguments.proxyusername#"
 			proxypassword="#arguments.proxypassword#";
+	}
+
+	/**
+	* @hint enables the proxy settings
+	* @proxyserver specifies the proxy server
+	* @proxyport specifies the port of proxy host server
+	* @proxyusername specifies the username of the proxy to access
+	* @proxypassword specifies the password of the proxy to access
+	*/
+	public void function enableProxy( string proxyserver="testProxy", numeric proxyport=443, string proxyusername="admin", string proxypassword="password" ){
+		arguments.proxyenabled = true;
+		updateProxy(argumentCollection=arguments);
+	}
+
+	/**
+	* @hint disables the proxy settings
+	*/
+	public void function disableProxy(){
+		var tmpStruct={};
+		tmpStruct.proxyenabled=false;
+		tmpStruct.proxyServer="";
+		tmpStruct.proxyPort="80";
+		tmpStruct.proxyUsername="";
+		tmpStruct.proxyPassword="";
+		updateProxy(argumentCollection=tmpStruct);
 	}
 
 	/**
@@ -2315,36 +2329,53 @@
 	* @localMode Defines how the local scope of a function is invoked when a variable with no scope definition is used, can be either [classic,modern]
 	* @cgiReadonly Defines whether the CGI Scope is read only or not.
 	*/
-	public struct function updateScope( required string scopeCascadingType, required boolean allowImplicidQueryCall, required boolean mergeFormAndUrl, required boolean sessionManagement, required boolean clientManagement, required boolean domainCookies, required boolean clientCookies, required timespan clientTimeout, required timespan sessionTimeout, required string clientStorage, required string sessionStorage, required timespan applicationTimeout, required string sessionType, required string localMode, required boolean cgiReadonly ){
-		var res = {};
-		try{
-			admin
-				action="updateScope"
-				type="#variables.type#"
-				password="#variables.password#"
-				scopeCascadingType="#arguments.scopeCascadingType#"
-				allowImplicidQueryCall="#arguments.allowImplicidQueryCall#"
-				mergeFormAndUrl="#arguments.mergeFormAndUrl#"
-				sessionManagement="#arguments.sessionManagement#"
-				clientManagement="#arguments.clientManagement#"
-				domainCookies="#arguments.domainCookies#"
-				clientCookies="#arguments.clientCookies#"
-				clientTimeout="#arguments.clientTimeout#"
-				sessionTimeout="#arguments.sessionTimeout#"
-				clientStorage="#arguments.clientStorage#"
-				sessionStorage="#arguments.sessionStorage#"
-				applicationTimeout="#arguments.applicationTimeout#"
-				sessionType="#arguments.sessionType#"
-				localMode="#arguments.localMode#"
-				cgiReadonly="#arguments.cgiReadonly#";
+	public void function updateScope( required string scopeCascadingType, required boolean allowImplicidQueryCall, required boolean mergeFormAndUrl, required boolean sessionManagement, required boolean clientManagement, required boolean domainCookies, required boolean clientCookies, required timespan clientTimeout, required timespan sessionTimeout, required string clientStorage, required string sessionStorage, required timespan applicationTimeout, required string sessionType, required string localMode, required boolean cgiReadonly ){
+		admin
+			action="updateScope"
+			type="#variables.type#"
+			password="#variables.password#"
+			scopeCascadingType="#arguments.scopeCascadingType#"
+			allowImplicidQueryCall="#arguments.allowImplicidQueryCall#"
+			mergeFormAndUrl="#arguments.mergeFormAndUrl#"
+			sessionManagement="#arguments.sessionManagement#"
+			clientManagement="#arguments.clientManagement#"
+			domainCookies="#arguments.domainCookies#"
+			clientCookies="#arguments.clientCookies#"
+			clientTimeout="#arguments.clientTimeout#"
+			sessionTimeout="#arguments.sessionTimeout#"
+			clientStorage="#arguments.clientStorage#"
+			sessionStorage="#arguments.sessionStorage#"
+			applicationTimeout="#arguments.applicationTimeout#"
+			sessionType="#arguments.sessionType#"
+			localMode="#arguments.localMode#"
+			cgiReadonly="#arguments.cgiReadonly#"
+			remoteClients="#variables.remoteClients#";
+	}
 
-			res.label = "OK";
-		}catch( any e ){
-			res.label = "Error";
-			res.exception = e;
-		}
-
-		return res;
+	/**
+	* @hint reset scope settings
+	*/
+	public void function resetScope(){
+		admin
+			action="updateScope"
+			type="#variables.type#"
+			password="#variables.password#"
+			scopeCascadingType=""
+			allowImplicidQueryCall=""
+			mergeFormAndUrl=""
+			sessionManagement=""
+			clientManagement=""
+			domainCookies=""
+			clientCookies=""
+			clientTimeout=""
+			sessionTimeout=""
+			clientStorage=""
+			sessionStorage=""
+			applicationTimeout=""
+			sessionType=""
+			localMode=""
+			cgiReadonly=""
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
@@ -2363,23 +2394,25 @@
 	* @hint updates rest mapping settings
 	* @list enable list Services when "/rest/" is called
 	*/
-	public struct function updateRestSettings( boolean list=false ){
-		var res = {};
-		try{
-			admin
-				action="updateRestSettings"
-				type="#variables.type#"
-				password="#variables.password#"
-				list="#arguments.list#"
-				remoteClients="#variables.remoteClients#";
+	public void function updateRestSettings( boolean list=false ){
+		admin
+			action="updateRestSettings"
+			type="#variables.type#"
+			password="#variables.password#"
+			list="#arguments.list#"
+			remoteClients="#variables.remoteClients#";
+	}
 
-			res.label = "OK";
-		}catch( any e ){
-			res.label = "Error";
-			res.exception = e;
-		}
-
-		return res;
+	/**
+	* @hint resets rest mapping settings
+	*/
+	public void function resetRestSettings(){
+		admin
+			action="updateRestSettings"
+			type="#variables.type#"
+			password="#variables.password#"
+			list=""
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
@@ -2459,26 +2492,33 @@
 	* @scriptProtect secures your system from "cross-site scripting"
 	* @allowURLRequestTimeout Whether lucee needs to obey the URL parameter RequestTimeout or not
 	*/
-	public struct function updateApplicationSetting( required timespan requestTimeout, required string scriptProtect, required boolean allowURLRequestTimeout ){
-		var res = {};
-		try{
-			admin
-				action="updateApplicationSetting"
-				type="#variables.type#"
-				password="#variables.password#"
+	public void function updateApplicationSetting( required timespan requestTimeout, required string scriptProtect, required boolean allowURLRequestTimeout ){
+		admin
+			action="updateApplicationSetting"
+			type="#variables.type#"
+			password="#variables.password#"
 
-				scriptProtect="#arguments.scriptProtect#"
-				allowURLRequestTimeout="#arguments.allowURLRequestTimeout#"
-				requestTimeout="#arguments.requestTimeout#"
+			scriptProtect="#arguments.scriptProtect#"
+			allowURLRequestTimeout="#arguments.allowURLRequestTimeout#"
+			requestTimeout="#arguments.requestTimeout#"
 
-				remoteClients="#variables.remoteClients#";
-			res.label = "OK";
-		}catch( any e ){
-			res.label = "Error";
-			res.exception = e;
-		}
+			remoteClients="#variables.remoteClients#";
+	}
 
-		return res;
+	/**
+	* @hint resets the common application settings
+	*/
+	public void function resetApplicationSetting(){
+		admin
+			action="updateApplicationSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			scriptProtect=""
+			allowURLRequestTimeout=""
+			requestTimeout=""
+
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
@@ -2499,26 +2539,28 @@
 	* @timeout timeout for a request in concurrent request queue.
 	* @enable enable or disable concurrent request queue.
 	*/
-	public struct function updateQueueSetting( required numeric max, required numeric timeout, required boolean enable ){
-		var res = {};
-		try{
-			admin
-				action="updateQueueSetting"
-				type="#variables.type#"
-				password="#variables.password#"
+	public void function updateQueueSetting( required numeric max, required numeric timeout, required boolean enable ){
+		admin
+			action="updateQueueSetting"
+			type="#variables.type#"
+			password="#variables.password#"
 
-				max="#arguments.max#"
-				timeout="#arguments.timeout#"
-				enable="#arguments.enable#"
+			max="#arguments.max#"
+			timeout="#arguments.timeout#"
+			enable="#arguments.enable#"
 
-				remoteClients="#variables.remoteClients#";
-			res.label = "OK";
-		}catch( any e ){
-			res.label = "Error";
-			res.exception = e;
-		}
+			remoteClients="#variables.remoteClients#";
+	}
 
-		return res;
+	public void function resetQueueSetting(){
+		admin
+			action="updateQueueSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+			max=""
+			timeout=""
+			enable=""
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
@@ -2683,7 +2725,30 @@
 			password="#variables.password#"
 			template500="#arguments.template500#"
 			template404="#arguments.template404#"
-			statuscode="#arguments.statuscode#";
+			statuscode="#arguments.statuscode#"
+			remoteClients="#variables.remoteClients#";
+	}
+
+	/**
+	* @hint resets the error template settings
+	*/
+	public void function resetError(){
+		admin
+			action="updateError"
+			type="#variables.type#"
+			password="#variables.password#"
+			template500=""
+			template404=""
+			statuscode=""
+			remoteClients="#variables.remoteClients#";
+	}
+
+	public void function getErrorList(){
+		admin
+			action="getErrorList"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
 	}
 
 	/**
@@ -2920,45 +2985,43 @@
 	}
 
 	/**
-	* @hints create archive for the mappings
-	* @virtual specifies the virtual name of the mapping to create archive
-	* @file specifies the path of the file
-	*/
-	public void function createArchive( required string virtual, required string file ){
-		admin
-			action="createArchive"
-			type="#variables.type#"
-			password="#variables.password#"
-			virtual="#arguments.virtual#"
-			file="#arguments.file#";
-	}
-
-	/**
 	* @hints create component archive for the mappings
 	* @virtual specifies the virtual name of the mapping to create archive
 	* @file specifies the path of the file
+	* @addCFMLFile Add all CFML Source Templates as well (.cfm,.cfc,.cfml).
+	* @addNonCFMLFile Add all Non CFML Source Templates as well (.js,.css,.gif,.png ...)
 	*/
-	public void function createComponentArchive( required string virtual, required string file ){
+	public void function createComponentArchive( required string virtual, required string file, required boolean addCFMLFile, required boolean addNonCFMLFile ){
 		admin
 			action="createComponentArchive"
 			type="#variables.type#"
 			password="#variables.password#"
 			virtual="#arguments.virtual#"
-			file="#arguments.file#";
+			file="#arguments.file#"
+			addCFMLFiles="#arguments.addCFMLFiles#"
+			addNonCFMLFiles="#arguments.addNonCFMLFiles#"
+			append="true"
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
 	* @hints create CTarchive for the mappings
 	* @virtual specifies the virtual name of the mapping to create archive
 	* @file specifies the path of the file
+	* @addCFMLFile Add all CFML Source Templates as well (.cfm,.cfc,.cfml).
+	* @addNonCFMLFile Add all Non CFML Source Templates as well (.js,.css,.gif,.png ...)
 	*/
-	public void function createCTArchive( required string virtual, required string file ){
+	public void function createCTArchive( required string virtual, required string file, required boolean addCFMLFile, required boolean addNonCFMLFile ){
 		admin
 			action="createCTArchive"
 			type="#variables.type#"
 			password="#variables.password#"
 			virtual="#arguments.virtual#"
-			file="#arguments.file#";
+			file="#arguments.file#"
+			addCFMLFiles="#arguments.addCFMLFiles#"
+			addNonCFMLFiles="#arguments.addNonCFMLFiles#"
+			append="true"
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
