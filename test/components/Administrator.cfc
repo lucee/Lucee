@@ -1486,6 +1486,39 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					admin.updateDefaultSecurityManager(argumentCollection=defaultSecurityManager);
 				});
 			});
+			
+			describe( title="test storage functions", body=function() {
+				it(title="checking storageSet()", body=function( currentSpec ) {
+					admin.storageSet( key="test", value="result" );
+					var getStorage = admin.storageGet( key="test" );
+					assertEquals(getStorage EQ 'result', true);
+				});
+
+				it(title="checking storageGet()", body=function( currentSpec ) {
+					var getStorage = admin.storageGet( key="test" );
+					assertEquals(getStorage EQ 'result', true);
+				});
+			});
+
+			describe( title="test API functions", body=function() {
+				it(title="checking updateAPIkey()", body=function( currentSpec ) {
+					variables.APIkey=createGUid();
+					admin.updateAPIkey(APIkey);
+					var getAPIkey=admin.getAPIkey();
+					assertEquals(getAPIkey EQ APIkey, true);
+				});
+
+				it(title="checking getAPIkey()", body=function( currentSpec ) {
+					var getAPIkey=admin.getAPIkey();
+					assertEquals(getAPIkey EQ APIkey, true);
+				});
+
+				it(title="checking removeAPIKey()", body=function( currentSpec ) {
+					admin.removeAPIKey();
+					var getAPIkey=admin.getAPIkey();
+					assertEquals(isNull(getAPIkey), true);
+				});
+			});
 
 			describe( title="test update functions", body=function() {
 				it(title="checking getUpdate()", body=function( currentSpec ) {

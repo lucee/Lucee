@@ -2985,6 +2985,68 @@
 	}
 
 	/**
+	* @hint returns information about storage details
+	* @key specifies key name to get storage details
+	*/
+	public string function storageGet( required string key ){
+		admin
+			action="storageGet"
+			type="#variables.type#"
+			password="#variables.password#"
+			key="#arguments.key#"
+			returnVariable="local.rtn";
+			return local.rtn;
+	}
+
+	/**
+	* @hint update the storage details
+	* @key specifies key name to update 
+	* @value value to update for the specify key
+	*/
+	public void function storageSet( required string key, required string value ){
+		admin
+			action="storageSet"
+			type="#variables.type#"
+			password="#variables.password#"
+			key="#arguments.key#"
+			value="#arguments.value#";
+	}
+
+	/**
+	* @hint returns information about API key
+	*/
+	public string function getAPIKey(){
+		admin
+			action="getAPIKey"
+			type="#variables.type#"
+			password="#variables.password#"
+			returnVariable="local.rtn";
+			return local.rtn;
+	}
+
+	/**
+	* @hint update the API key details
+	* @key key to update
+	*/
+	public void function updateAPIKey( required string key ){
+		admin
+			action="updateAPIKey"
+			type="#variables.type#"
+			password="#variables.password#"
+			key="#arguments.key#";
+	}
+
+	/**
+	* @hint to removeAPIKey
+	*/
+	public void function removeAPIKey(){
+		admin
+			action="removeAPIKey"
+			type="#variables.type#"
+			password="#variables.password#"
+	}
+
+	/**
 	* @hints create component archive for the mappings
 	* @virtual specifies the virtual name of the mapping to create archive
 	* @file specifies the path of the file
