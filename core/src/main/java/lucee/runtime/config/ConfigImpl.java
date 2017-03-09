@@ -3443,9 +3443,14 @@ public abstract class ConfigImpl implements Config {
 		loggers.put(name.toLowerCase(),las);
 		return las;
 	}
-	
+
 	public Map<String,LoggerAndSourceData> getLoggers(){
 		return loggers;
+	}
+	
+	// FUTURE add to interface
+	public String[] getLogNames(){
+		return loggers.keySet().toArray(new String[loggers.size()]);
 	}
 	
 	@Override
