@@ -4547,6 +4547,10 @@ public final class Caster {
 		if(value instanceof ObjectWrap) {
 			return ((ObjectWrap)value).getEmbededObject();
 		}
+		if(value instanceof JavaObject) {
+			return ((JavaObject)value).getEmbededObject();
+		}
+		
 		return value;
 	}
 	
@@ -4554,6 +4558,9 @@ public final class Caster {
 		if(value==null) return null;
 		if(value instanceof ObjectWrap) {
 			return ((ObjectWrap)value).getEmbededObject(defaultValue);
+		}
+		if(value instanceof JavaObject) {
+			return ((JavaObject)value).getEmbededObject(defaultValue);
 		}
 		return value;
 	}
