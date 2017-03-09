@@ -83,8 +83,8 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 		// setEL(CAUSE, new SpecialItem(pe, CAUSE));  // FUTURE 5.2 disable
 		
 		
-		/*if(pe instanceof NativeException){
-			Throwable throwable = ((NativeException)pe).getRootCause();
+		if(pe instanceof NativeException) {
+			Throwable throwable = ((NativeException)pe).getException();
 			Method[] mGetters = Reflector.getGetters(throwable.getClass());
 			Method getter;
 			Collection.Key key;
@@ -95,14 +95,14 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 						continue;
 					}
 					key=KeyImpl.init(Reflector.removeGetterPrefix(getter.getName()));
-					if(STACK_TRACE.equalsIgnoreCase(key)) continue;
+					if(STACK_TRACE.equalsIgnoreCase(key)) 
+						continue;
 					setEL(key,new Pair(throwable,key, getter,false));
 				}
 			}
-		}*/
+		}
 	}
 
-	
 	class SpecialItem {
 		private PageExceptionImpl pe;
 		private Key key;
@@ -411,7 +411,7 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 
 	public Object call(PageContext pc, String methodName, Object[] arguments) throws PageException {
 		Object obj=exception;
-		if(exception instanceof NativeException) obj=((NativeException)exception).getRootCause();
+		if(exception instanceof NativeException) obj=((NativeException)exception).getException();
 		if("dump".equalsIgnoreCase(methodName)){
 			print(pc);
 			return null;

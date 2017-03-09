@@ -106,4 +106,8 @@ public class NativeException extends PageExceptionImpl {
 	public void setAdditional(Collection.Key key, Object value) {
 		super.setAdditional(key, value);
 	}
+
+	public Throwable getException() {
+		return t;
+	}
 }
