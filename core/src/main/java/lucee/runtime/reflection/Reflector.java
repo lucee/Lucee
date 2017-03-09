@@ -591,7 +591,6 @@ public final class Reflector {
     		e=eit.next();
     		coll.setEL(e.getKey(), _clean(done,e.getValue()));
     	}
-    	
     	return coll;
     }
     
@@ -1414,7 +1413,7 @@ public final class Reflector {
 	
 	public static Method[] getGetters(Class clazz) {
 		Method[] methods = clazz.getMethods();
-		ArrayList list=new ArrayList();
+		List<Method> list=new ArrayList<Method>();
 		for(int i=0;i<methods.length;i++) {
 			if(isGetter(methods[i])) list.add(methods[i]);
 		}
