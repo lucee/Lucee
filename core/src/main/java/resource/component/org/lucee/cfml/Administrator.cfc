@@ -1443,15 +1443,15 @@
 	/**
 	* @hint updates the compiler settings for lucee server
 	* @templateCharset Default characterset used to read templates (*.cfm and *.cfc files)
-	* @dotNotation Convert all struct keys defined with "dot notation" to upper case or need to preserve case.
+	* @dotNotationUpperCase Convert all struct keys defined with "dot notation" to upper case or need to preserve case.
 	* @nullSupport If set, lucee has complete support for null, otherwise a partial null support.
 	* @suppressWSBeforeArg If set, Lucee suppresses whitespace defined between the "cffunction" starting tag and the last "cfargument" tag.
 	* @handleUnquotedAttrValueAsString Handle unquoted tag attribute values as strings.
 	* @externalizeStringGTE Externalize strings from generated class files to separate files.
 	*/
-	public void function updateCompilerSettings( required string templateCharset, required string dotNotation, boolean nullSupport=false, boolean suppressWSBeforeArg=true, boolean handleUnquotedAttrValueAsString=true, numeric externalizeStringGTE=-1 ){
+	public void function updateCompilerSettings( required string templateCharset, required string dotNotationUpperCase, boolean nullSupport=false, boolean suppressWSBeforeArg=true, boolean handleUnquotedAttrValueAsString=true, numeric externalizeStringGTE=-1 ){
 		var dotNotUpper=true;
-		if(isDefined('arguments.dotNotation') and arguments.dotNotation EQ "oc"){
+		if(isDefined('arguments.dotNotationUpperCase') and arguments.dotNotationUpperCase EQ "oc"){
 			dotNotUpper=false;
 		}
 		admin
@@ -1878,9 +1878,24 @@
 	}
 
 	/**
+	* @hints updates the label for a web context
+	* @label new label for the web context.
+	* @hash hash for the web context to be updated.
+	*/
+	public void function updateLabel( required string label, required string hash ){
+		admin
+			action="updateLabel"
+			type="#variables.type#"
+			password="#variables.password#"
+
+			label="#arguments.label#"
+			hash="#arguments.hash#";
+	}
+
+	/**
 	* @hint update the context directories
 	* @source specifies the source path to get data
-	* @destination specifies the destination path to store data
+	* @destination specifies the destination filename
 	*/
 	public void function updateContext( required string source, required string destination ){
 		admin
@@ -1888,7 +1903,7 @@
 			type="#variables.type#"
 			password="#variables.password#"
 			source="#arguments.source#"
-			destination="#arguments.destination#";
+			destination="/lucee/admin/resources/language/#arguments.destination#";
 	}
 
 	/**
@@ -3013,7 +3028,7 @@
 	}
 
 	/**
-	* @hint returns information about API key
+	* @hint returns API key
 	*/
 	public string function getAPIKey(){
 		admin
@@ -3021,11 +3036,13 @@
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
-			return local.rtn;
+		// if(isNull(local.rtn))
+		// 	return;
+		return local.rtn;
 	}
 
 	/**
-	* @hint update the API key details
+	* @hint updates the API key
 	* @key key to update
 	*/
 	public void function updateAPIKey( required string key ){
@@ -3037,13 +3054,13 @@
 	}
 
 	/**
-	* @hint to removeAPIKey
+	* @hint removes the API key
 	*/
 	public void function removeAPIKey(){
 		admin
 			action="removeAPIKey"
 			type="#variables.type#"
-			password="#variables.password#"
+			password="#variables.password#";
 	}
 
 	/**
@@ -3099,16 +3116,6 @@
 	}
 
 	/**
-	* @hint executes and run the update details
-	*/
-	public void function runUpdate(){
-		admin
-			action="runUpdate"
-			type="#variables.type#"
-			password="#variables.password#";
-	}
-
-	/**
 	* @hint updates the update details
 	* @updatetype specifies the type of the update
 	* @updatelocation specifies the location to update
@@ -3123,6 +3130,16 @@
 	}
 
 	/**
+	* @hint executes and run the update details
+	*/
+	public void function runUpdate(){
+		admin
+			action="runUpdate"
+			type="#variables.type#"
+			password="#variables.password#";
+	}
+
+	/**
 	* @hint removes the update details
 	*/
 	public void function removeUpdate(){
@@ -3133,28 +3150,39 @@
 	}
 
 	/**
-	* @hint returns the serial number for lucee
+	* @hint to update the current version
 	*/
-	public string function getSerial(){
+	public void function changeVersionTo( required string version ){
 		admin
-			action="getSerial"
+			action="changeVersionTo"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="local.providers";
-			return providers;
+			version="#arguments.version#"
 	}
 
-	/**
-	* @hint updates the serial number
-	* @serial specifies the serial number to update
-	*/
-	public void function updateSerial(required string serial){
-		admin
-			action="updateSerial"
-			type="#variables.type#"
-			password="#variables.password#"
-			serial="#arguments.serial#";
-	}
+	// /**
+	// * @hint returns the serial number for lucee
+	// */
+	// public string function getSerial(){
+		// admin
+			// action="getSerial"
+			// type="#variables.type#"
+			// password="#variables.password#"
+			// returnVariable="local.providers";
+		// return providers;
+	// }
+
+	// /**
+	// * @hint updates the serial number
+	// * @serial specifies the serial number to update
+	// */
+	// public void function updateSerial(required string serial){
+		// admin
+			// action="updateSerial"
+			// type="#variables.type#"
+			// password="#variables.password#"
+			// serial="#arguments.serial#";
+	// }
 
 	/**
 	* @hint reset the ID
@@ -3206,6 +3234,16 @@
 			password="#variables.password#"
 			returnVariable="local.rtn";
 			return rtn;
+	}
+
+	/**
+	* @hint specifies the access of admin
+	*/
+	public void function connect(){
+		admin
+			action="connect"
+			type="#variables.type#"
+			password="#variables.password#";
 	}
 
 	/* Private functions */

@@ -692,23 +692,32 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			describe( title="test CompilerSettings functions", body=function() {
 				it(title="checking getCompilerSettings()", body=function( currentSpec ) {
 					var compileSettings = admin.getCompilerSettings();
-					assertEquals(isstruct(compileSettings) ,true);
+					assertEquals(isStruct(compileSettings) ,true);
 					assertEquals(listSort(structKeyList(compileSettings),'textnocase'), 'DotNotationUpperCase,externalizeStringGTE,handleUnquotedAttrValueAsString,nullSupport,suppressWSBeforeArg,templateCharset');
 				});
 
 				it(title="checking updateCompilerSettings()", body=function( currentSpec ) {
-					var tmpStruct={};
-					tmpStruct.templateCharset="windows-1252";
-					tmpStruct.dotNotation="oc";
-					tmpStruct.nullSupport=false;
-					tmpStruct.suppressWSBeforeArg=true;
-					tmpStruct.handleUnquotedAttrValueAsString=true;
-					tmpStruct.externalizeStringGTE=-1;
-					admin.updateCompilerSettings(argumentCollection=tmpStruct);
+					var compileSettings = admin.getCompilerSettings();
+					assertEquals(isStruct(compileSettings) ,true);
+					compileSettings.handleUnquotedAttrValueAsString=false;
+					admin.updateCompilerSettings(argumentCollection=compileSettings);
+
+					var updatedCompileSettings = admin.getCompilerSettings();
+					assertEquals(isStruct(updatedCompileSettings) ,true);
+					assertEquals(updatedCompileSettings.handleUnquotedAttrValueAsString, false);
 				});
 
 				it(title="checking resetCompilerSettings()", body=function( currentSpec ) {
 					admin.resetCompilerSettings();
+
+					var updatedCompileSettings = admin.getCompilerSettings();
+					assertEquals(isStruct(updatedCompileSettings) ,true);
+					assertEquals(updatedCompileSettings.DotNotationUpperCase, true);
+					assertEquals(updatedCompileSettings.externalizeStringGTE, -1);
+					assertEquals(updatedCompileSettings.handleUnquotedAttrValueAsString, false);
+					assertEquals(updatedCompileSettings.nullSupport, false);
+					assertEquals(updatedCompileSettings.suppressWSBeforeArg, true);
+					assertEquals(updatedCompileSettings.templateCharset.toString(), "windows-1252");
 				});
 			});
 
@@ -902,18 +911,33 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			describe( title="test context functions", body=function() {
 				it(title="checking getContextes()", body=function( currentSpec ) {
 					var getContext = admin.getContextes();
-					assertEquals(isquery(getContext), true);
+					assertEquals(isQuery(getContext), true);
 					assertEquals(listSort(structKeyList(getContext),'textnocase'), 'clientElements,clientSize,config_file,hash,hasOwnSecContext,id,label,path,sessionElements,sessionSize,url');
 				});
 
 				it(title="checking getContexts()", body=function( currentSpec ) {
 					var getContexts = admin.getContexts();
-					assertEquals(isquery(getContexts), true);
+					assertEquals(isQuery(getContexts), true);
 					assertEquals(listSort(structKeyList(getContexts),'textnocase'), 'clientElements,clientSize,config_file,hash,hasOwnSecContext,id,label,path,sessionElements,sessionSize,url');
 				});
 
-				xit(title="checking getContexts()", body=function( currentSpec ) {
-					// admin.updateContext();
+				it(title="checking updateLabel()", body=function( currentSpec ) {
+					var getContexts = admin.getContexts();
+					var firstContextHash=getContexts.hash[1];
+					var firstContextLabel=getContexts.label[1];
+					admin.updateLabel(label="firstContext", hash="#firstContextHash#");
+					var updatedContexts = admin.getContexts();
+					var firstUpdatedContextHash=updatedContexts.hash[1];
+					expect(firstUpdatedContextHash).toBe(firstContextHash);
+					// resetting it to to original hash
+					admin.updateLabel(label="#firstContextLabel#", hash="#firstContextHash#");
+				});
+
+				it(title="checking updateContext()", body=function( currentSpec ) {
+					var tmpStruct={};
+					tmpStruct.source="#expandPath('./en.xml')#";
+					tmpStruct.destination="en.xml";
+					admin.updateContext(argumentCollection=tmpStruct);
 				});
 			});
 
@@ -943,16 +967,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking removeDefaultPassword()", body=function( currentSpec ) {
 					admin.removeDefaultPassword();
 					var defaultPassword = admin.getDefaultPassword();
-					assertEquals(defaultPassword, "");
 				});
 
 				it(title="checking resetPassword()", body=function( currentSpec ) {
-					admin.resetPassword(contextPath="#server.coldfusion.rootdir#");
+					admin.resetPassword(contextPath="#expandPath('\')#");
 				});
 
 				it(title="checking hashpassword()", body=function( currentSpec ) {
 					var hashpassword = admin.hashpassword();
-					// assertEquals(hashpassword, "a4209ccad407e10eb905f8dae17f6e9329adcffe34b54256617dca81ebc395a0");
 				});
 			});
 
@@ -1147,7 +1169,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking resetApplicationListener()", body=function( currentSpec ) {
 					admin.resetApplicationListener();
 					var appListner = admin.getApplicationListener();
-					assertEquals(isstruct(appListner) ,true);
+					assertEquals(isStruct(appListner) ,true);
 					assertEquals(appListner.mode EQ 'curr2root' ,true);
 				});
 			});
@@ -1312,7 +1334,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					admin.updateApplicationSetting(argumentCollection = tmpStrt);
 
 					var updatedAppSetting = admin.getApplicationSetting();
-					assertEquals(isstruct(updatedAppSetting) ,true);
+					assertEquals(isStruct(updatedAppSetting) ,true);
 					assertEquals(updatedAppSetting.requestTimeout_hour EQ 2 ,true);
 				});
 
@@ -1320,8 +1342,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					admin.resetApplicationSetting();
 
 					var updatedAppSetting = admin.getApplicationSetting();
-					assertEquals(isstruct(updatedAppSetting) ,true);
-					assertEquals(updatedAppSetting.requestTimeout_hour EQ 2 ,true);
+					assertEquals(isStruct(updatedAppSetting) ,true);
+					assertEquals(updatedAppSetting.requestTimeout_day EQ 0 ,true);
+					assertEquals(updatedAppSetting.requestTimeout_hour EQ 0 ,true);
+					assertEquals(updatedAppSetting.requestTimeout_minute EQ 30 ,true);
+					assertEquals(updatedAppSetting.requestTimeout_second EQ 0 ,true);
 				});
 			});
 
@@ -1400,11 +1425,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(updatedError.str[404] EQ "/lucee/templates/error/test.cfm", true);
 					assertEquals(updatedError.str[500] EQ "/lucee/templates/error/test.cfm", true);
 					assertEquals(updatedError.doStatusCode EQ false, true);
-					// admin.updateError(template500=error.str[500], template404=error.str[404], statuscode=error.doStatusCode);
 				});
 
 				it(title="checking resetError()", body=function( currentSpec ) {
 					admin.resetError();
+					var updatedError = admin.getError();
+					assertEquals(isStruct(updatedError) ,true);
+					assertEquals(updatedError.str[404] EQ "/lucee/templates/error/error.cfm", true);
+					assertEquals(updatedError.str[500] EQ "/lucee/templates/error/error.cfm", true);
+					assertEquals(updatedError.doStatusCode EQ false, true);
 				});
 			});
 
@@ -1527,10 +1556,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(listSort(structKeyList(getUpdate),'textnocase'),'location,type');
 				});
 
-				it(title="checking runUpdate()", body=function( currentSpec ) {
-					admin.runUpdate();
-				});
-
 				it(title="checking updateUpdate()", body=function( currentSpec ) {
 					var getUpdate = admin.getUpdate();
 					assertEquals(isStruct(getUpdate), true);
@@ -1539,7 +1564,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isStruct(updatedGetUpdate), true);
 					assertEquals(updatedGetUpdate.type EQ "automatic", true);
 					assertEquals(updatedGetUpdate.location EQ "http://test.lucee.org", true);
+					// resetting it to original settings
 					admin.updateUpdate(updatetype=getUpdate.type, updatelocation=getUpdate.location);
+				});
+
+				it(title="checking runUpdate()", body=function( currentSpec ) {
+					admin.runUpdate();
 				});
 
 				it(title="checking removeUpdate()", body=function( currentSpec ) {
@@ -1549,6 +1579,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isStruct(updatedGetUpdate), true);
 					assertEquals(listSort(structKeyList(updatedGetUpdate),'textnocase'),'location,type');
 					admin.updateUpdate(updatetype=getUpdate.type, updatelocation=getUpdate.location);
+				});
+			});
+
+			describe( title="Checking serial related functions", body=function() {
+				it(title="checking getSerial()", body=function( currentSpec ) {
+					var mySerial=admin.getSerial();
+					expect(mySerial).toBe("");
+				});
+
+				xit(title="checking updateSerial()", body=function( currentSpec ) {
+					admin.updateSerial("123456");
+					var mySerial=admin.getSerial();
+					expect(mySerial).toBe("123456");
 				});
 			});
 
@@ -1578,6 +1621,39 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isArray(listPatches),true);
 				});
 			});
+
+			describe( title="test changeVersionTo function", body=function() {
+				it(title="checking changeVersionTo()", body=function( currentSpec ) {
+					restBasePath="/rest/update/provider/";
+					var getUpdate = admin.getUpdate();
+
+					http
+					url="#getUpdate.location##restBasePath#info/#server.lucee.version#"
+					method="get" resolveurl="no" result="local.http";
+
+					if(isJson(http.filecontent)) {
+						updateAvailable=deserializeJson(http.filecontent);
+					} else{
+						return false;
+					}
+
+					LatestVersion = ArrayLast(updateAvailable.otherVersions);
+					if( ReplaceNocase(replaceNocase(LatestVersion, ".", "ALL"), "-SNAPSHOT", "") GT ReplaceNocase(replaceNocase(server.lucee.version, ".", "ALL"), "-SNAPSHOT", "") ){
+						admin.changedVersoinTo(LatestVersion);
+						assertEquals(server.lucee.version EQ LatestVersion, true);
+					} else{
+						return false;
+					}
+				});
+			});
+
+			describe( title="test connect function", body=function() {
+				it(title="checking connect()", body=function( currentSpec ) {
+					var connect = admin.connect();
+					assertEquals(connect EQ "",true);
+				});
+			});
+
 		});
 	}
 }
