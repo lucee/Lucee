@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.engine;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
 
@@ -65,6 +66,7 @@ public final class Monitor extends Thread {
 	            		monitors[i].log();
 	        		} 
 	        		catch (Throwable e) {
+	        			ExceptionUtil.rethrowIfNecessary(e);
 	        			e.printStackTrace();
 	        		}
             	}

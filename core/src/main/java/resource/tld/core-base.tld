@@ -3981,6 +3981,13 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<description>Password that corresponds to user name.</description>
 		</attribute>
 		<attribute>
+			<type>boolean</type>
+			<name>secure</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>enables SSL for pop requests</description>
+		</attribute>
+		<attribute>
 			<type>string</type>
 			<name>action</name>
 			<values>getHeaderOnly,getAll,delete</values>
@@ -5845,6 +5852,13 @@ Lucee uses the number of characters in the file.</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Password that corresponds to user name.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>secure</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>enables SSL for pop requests</description>
 		</attribute>
 		<attribute>
 			<type>string</type>

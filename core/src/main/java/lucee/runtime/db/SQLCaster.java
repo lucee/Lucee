@@ -510,6 +510,7 @@ public final class SQLCaster {
     		throw new DatabaseException(e,null);
     	}
     	catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
     		throw Caster.toPageException(t);
     	}
     }

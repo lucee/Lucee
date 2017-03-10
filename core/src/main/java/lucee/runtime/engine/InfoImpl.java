@@ -95,6 +95,7 @@ public final class InfoImpl implements Info {
     		//ListUtil.trimItems(ListUtil.listToStringArray(str, ','));
     	} 
     	catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
     		throw new PageRuntimeException(Caster.toPageException(t));
 		}
     	

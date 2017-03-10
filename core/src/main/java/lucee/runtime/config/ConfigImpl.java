@@ -263,6 +263,7 @@ public abstract class ConfigImpl implements Config {
 
     private int spoolInterval=30;
     private boolean spoolEnable=true;
+    private boolean sendPartial=false;
 
     private Server[] mailServers;
 
@@ -643,6 +644,11 @@ public abstract class ConfigImpl implements Config {
     public boolean isMailSpoolEnable() {
         return spoolEnable;
     }
+    // FUTURE add to interface
+    public boolean isMailSendPartial() {
+        return sendPartial;
+    }
+
     
     @Override
     public Server[] getMailServers() {
@@ -1487,6 +1493,11 @@ public abstract class ConfigImpl implements Config {
     protected void setMailSpoolEnable(boolean spoolEnable) {
         this.spoolEnable = spoolEnable;
     }
+    
+    protected void setMailSendPartial(boolean sendPartial) {
+		 this.sendPartial = sendPartial;
+	}
+
     
     /**
      * @param mailTimeout The mailTimeout to set.
@@ -3443,9 +3454,14 @@ public abstract class ConfigImpl implements Config {
 		loggers.put(name.toLowerCase(),las);
 		return las;
 	}
-	
+
 	public Map<String,LoggerAndSourceData> getLoggers(){
 		return loggers;
+	}
+	
+	// FUTURE add to interface
+	public String[] getLogNames(){
+		return loggers.keySet().toArray(new String[loggers.size()]);
 	}
 	
 	@Override

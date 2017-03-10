@@ -328,6 +328,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
             pageContext.doInclude(new PageSource[]{source.getPageSource()},false);
         }
         catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
             throw Caster.toPageException(t);
         }
         finally {

@@ -893,6 +893,7 @@ public final class PageContextImpl extends PageContext {
 				currentPage.call(this);
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				PageException pe = Caster.toPageException(t);
 				if(Abort.isAbort(pe)) {
 					if(Abort.isAbort(pe,Abort.SCOPE_REQUEST))throw pe;
@@ -923,6 +924,7 @@ public final class PageContextImpl extends PageContext {
 				currentPage.call(this);
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				PageException pe = Caster.toPageException(t);
 				if(Abort.isAbort(pe)) {
 					if(Abort.isAbort(pe,Abort.SCOPE_REQUEST))throw pe;
@@ -1148,6 +1150,13 @@ public final class PageContextImpl extends PageContext {
 	 */
 	public Undefined us() {
 		if(!undefined.isInitalized()) undefined.initialize(this);
+		return undefined;
+	}
+	
+
+	public Scope usl() {
+		if(!undefined.isInitalized()) undefined.initialize(this);
+		if(undefined.getCheckArguments()) return undefined.localScope();
 		return undefined;
 	}
 	
@@ -1999,6 +2008,7 @@ public final class PageContextImpl extends PageContext {
 						write(content);
 						return;
 					} catch(Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
 						pe=Caster.toPageException(t);
 					}
 				}
@@ -2305,6 +2315,7 @@ public final class PageContextImpl extends PageContext {
 		
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			PageException pe = Caster.toPageException(t);
 			if(!Abort.isSilentAbort(pe)){
 				log(true);
@@ -2395,7 +2406,10 @@ public final class PageContextImpl extends PageContext {
 			}
 			else log(false);
 
-			if(throwExcpetion) throw pe;
+			if(throwExcpetion) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				throw pe;
+			}
 		}
 		finally {
 			if(enablecfoutputonly>0){
@@ -2421,7 +2435,7 @@ public final class PageContextImpl extends PageContext {
 					try {
 						((RequestMonitorPro)monitors[i]).init(this);
 					} 
-					catch (Throwable e) {}
+					catch (Throwable e) {ExceptionUtil.rethrowIfNecessary(e);}
 				}
 			}
 		}
@@ -2436,7 +2450,7 @@ public final class PageContextImpl extends PageContext {
 					try {
 						monitors[i].log(this,error);
 					} 
-					catch (Throwable e) {}
+					catch (Throwable e) {ExceptionUtil.rethrowIfNecessary(e);}
 				}
 			}
 		}
@@ -2867,12 +2881,14 @@ public final class PageContextImpl extends PageContext {
 		}
 		exception = pe;
 		if(store){
+			Undefined u=undefinedScope();
 			if(pe==null) {
-				undefinedScope().removeEL(KeyConstants._cfcatch);
+				(u.getCheckArguments()?u.localScope():u).removeEL(KeyConstants._cfcatch);
 			}
 			else {
-				undefinedScope().setEL(KeyConstants._cfcatch,pe.getCatchBlock(config));
-				if(!gatewayContext && config.debug() && config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION)) debugger.addException(config,exception);
+				(u.getCheckArguments()?u.localScope():u).setEL(KeyConstants._cfcatch,pe.getCatchBlock(config));
+				if(!gatewayContext && config.debug() && config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION)) 
+					debugger.addException(config,exception);
 			}
 		}
 	}
@@ -2887,7 +2903,9 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public void clearCatch() {
 		exception = null;
-		undefinedScope().removeEL(KeyConstants._cfcatch);
+		
+		Undefined u=undefinedScope();
+		(u.getCheckArguments()?u.localScope():u).removeEL(KeyConstants._cfcatch);
 	}
 
 	@Override

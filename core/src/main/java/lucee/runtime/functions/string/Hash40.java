@@ -23,6 +23,7 @@ package lucee.runtime.functions.string;
 
 import java.security.MessageDigest;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.MD5Legacy;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -99,6 +100,7 @@ public final class Hash40 implements Function {
 			return MD5Legacy.stringify( md.digest() ).toUpperCase();
 		} 
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 	}

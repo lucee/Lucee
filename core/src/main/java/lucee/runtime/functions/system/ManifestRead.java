@@ -89,6 +89,7 @@ public class ManifestRead {
 				
 			}
 			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				throw Caster.toPageException(t);
 			}
 		}

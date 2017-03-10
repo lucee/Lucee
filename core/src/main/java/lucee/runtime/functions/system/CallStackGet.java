@@ -22,6 +22,7 @@ import java.util.Iterator;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -64,6 +65,7 @@ public final class CallStackGet implements Function {
 				return new JSONConverter(true,null).serialize( pc, arr, false );
 			}
 			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				throw Caster.toPageException( t );
 			}
 		}

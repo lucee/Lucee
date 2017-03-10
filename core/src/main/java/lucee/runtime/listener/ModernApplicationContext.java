@@ -1512,7 +1512,10 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 					//print.e(res+"->"+(res!=null && res.exists()));
 					if(res!=null) list.add(res);
 				}
-				catch(Throwable t){t.printStackTrace();}
+				catch(Throwable t){
+					ExceptionUtil.rethrowIfNecessary(t);
+					t.printStackTrace();
+				}
 			}
 			return list;
 		}

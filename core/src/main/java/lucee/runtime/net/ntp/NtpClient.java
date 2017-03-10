@@ -24,6 +24,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.lang.ExceptionUtil;
 
 
 
@@ -91,6 +92,7 @@ public final class NtpClient	{
 			return getOffset();
 		}
 		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
 			return defaultValue;
 		}
 		

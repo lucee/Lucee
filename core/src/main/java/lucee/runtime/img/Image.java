@@ -1517,6 +1517,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
 			if(obj instanceof java.awt.Image)	return new Image(toBufferedImage((java.awt.Image) obj));
 			
 		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 		throw new CasterException(obj,"Image");

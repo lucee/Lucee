@@ -20,6 +20,7 @@ package lucee.runtime.functions.system;
 
 import java.io.File;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.Mapping;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
@@ -127,6 +128,7 @@ public class CFFunction {
 			throw new ExpressionException("there is no Function defined with name ["+name+"] in template ["+mapping.getStrPhysical()+File.separator+filename+"]");
 		} 
     	catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 		finally{

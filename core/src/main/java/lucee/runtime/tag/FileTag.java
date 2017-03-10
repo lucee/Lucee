@@ -968,6 +968,7 @@ public final class FileTag extends BodyTagImpl {
 				IOUtil.copy(formItem.getResource(),destination);
 			}
 			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				throw Caster.toPageException(t);
 			}
 			

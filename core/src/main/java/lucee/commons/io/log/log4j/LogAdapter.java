@@ -21,6 +21,7 @@ package lucee.commons.io.log.log4j;
 import java.lang.reflect.InvocationTargetException;
 
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 
 import org.apache.log4j.Logger;
@@ -106,6 +107,7 @@ public class LogAdapter implements Log {
 	}
 
 	private Throwable toThrowable(Throwable t) {
+		ExceptionUtil.rethrowIfNecessary(t);
 		if(t instanceof InvocationTargetException) return ((InvocationTargetException)t).getTargetException();
 		return t;
 	}

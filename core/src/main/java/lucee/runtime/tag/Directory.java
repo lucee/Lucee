@@ -765,6 +765,7 @@ public final class Directory extends TagImpl  {
 			directory.moveTo(newdirectory);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 		

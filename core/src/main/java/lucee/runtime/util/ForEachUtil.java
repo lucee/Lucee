@@ -26,6 +26,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.type.Collection;
 import lucee.runtime.type.ForEachIteratorable;
 import lucee.runtime.type.Iteratorable;
 import lucee.runtime.type.ObjectWrap;
@@ -58,10 +59,10 @@ public class ForEachUtil {
         Iterator it = _toIterator(o);
         if(it!=null) return it;
 		
-        if(o instanceof ObjectWrap)return forEach(((ObjectWrap)o).getEmbededObject());
-		return  forEach(Caster.toCollection(o));
-		//throw new CasterException(o,"collection");
-
+        if(Decision.isWrapped(o))
+        	return forEach(Caster.unwrap(o));
+        
+        return  forEach(Caster.toCollection(o));
 	}
 	
 	
@@ -77,6 +78,9 @@ public class ForEachUtil {
 			return new EnumAsIt((Enumeration)o);
 		}
         if(o instanceof JavaObject) {
+        	Collection coll = Caster.toCollection(((JavaObject)o).getEmbededObject(null),null);
+        	if(coll!=null) return coll.getIterator();
+        	
         	String[] names = ClassUtil.getFieldNames(((JavaObject)o).getClazz());
         	return new ArrayIterator(names);
         }

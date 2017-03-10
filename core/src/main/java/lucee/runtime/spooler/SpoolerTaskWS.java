@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.spooler;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.RemoteClient;
 import lucee.runtime.exp.PageException;
@@ -46,6 +47,7 @@ public abstract class SpoolerTaskWS extends SpoolerTaskSupport {
 			return rpc.callWithNamedValues(config, KeyImpl.init(getMethodName()), getArguments());
 		} 
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 	}

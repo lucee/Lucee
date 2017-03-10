@@ -321,6 +321,7 @@ public class RHExtension implements Serializable {
 				}
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				throw Caster.toPageException(t);
 			}
 		}

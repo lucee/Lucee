@@ -21,6 +21,7 @@
  */
 package lucee.runtime.functions.other;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.Coder;
 import lucee.runtime.crypt.CFMXCompat;
@@ -82,6 +83,7 @@ public final class Encrypt implements Function {
             return Cryptor.encrypt( input, key, algorithm, baIVS, iterations, encoding, Cryptor.DEFAULT_CHARSET  );
         }
         catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
             throw Caster.toPageException( t );
         }
     }

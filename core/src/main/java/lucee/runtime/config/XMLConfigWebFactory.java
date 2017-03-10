@@ -1023,6 +1023,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			createFileFromResourceCheckSizeDiff(resource, file);
 		}
 		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
 			aprint.err(resource);
 			aprint.err(file);
 			e.printStackTrace();
@@ -1887,6 +1888,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 			}
 			catch (Throwable e) {
+				ExceptionUtil.rethrowIfNecessary(e);
 				e.printStackTrace();
 				clazz = ConsoleExecutionLog.class;
 			}
@@ -2314,6 +2316,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					//SystemOut.print(config.getErrWriter(), "missing method [public static init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] ");
 				}
 				catch (Throwable e) {
+					ExceptionUtil.rethrowIfNecessary(e);
 					log.error("Cache", e);
 					//e.printStackTrace();
 				}
@@ -3851,7 +3854,15 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		boolean hasCS = configServer != null;
 		Element mail = getChildByName(doc.getDocumentElement(), "mail");
-
+		
+		// Send partial 
+		String strSendPartial = mail.getAttribute("send-partial");
+		if (!StringUtil.isEmpty(strSendPartial) && hasAccess) {
+			config.setMailSendPartial(toBoolean(strSendPartial, false));
+		}
+		else if (hasCS)
+			config.setMailSendPartial(configServer.isMailSendPartial());
+		
 		// Spool Interval
 		String strSpoolInterval = getAttr(mail,"spool-interval");
 		if (!StringUtil.isEmpty(strSpoolInterval) && hasAccess) {

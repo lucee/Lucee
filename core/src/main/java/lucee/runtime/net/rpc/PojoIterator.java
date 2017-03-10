@@ -21,6 +21,7 @@ package lucee.runtime.net.rpc;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
@@ -60,6 +61,7 @@ public class PojoIterator implements Iterator<Pair<Collection.Key,Object>> {
 			return new Pair<Collection.Key, Object>(KeyImpl.init(g.getName().substring(3)), g.invoke(pojo, EMPTY_ARG));
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new PageRuntimeException(Caster.toPageException(t));
 		}
 	}

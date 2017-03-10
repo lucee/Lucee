@@ -430,7 +430,7 @@ public final class IOUtil {
          try {
              if(rs!=null)rs.close();
        } 
-       catch (Throwable e) {}
+       catch (Throwable e) {ExceptionUtil.rethrowIfNecessary(e);}
      }
      
      /**
@@ -442,7 +442,7 @@ public final class IOUtil {
                if(r!=null)r.close();
          } 
          //catch (AlwaysThrow at) {throw at;}
-         catch (Throwable e) {}
+         catch (Throwable e) {ExceptionUtil.rethrowIfNecessary(e);}
        }
 
      
@@ -455,7 +455,7 @@ public final class IOUtil {
                if(c!=null)c.close();
          } 
          //catch (AlwaysThrow at) {throw at;}
-         catch (Throwable e) {}
+         catch (Throwable e) {ExceptionUtil.rethrowIfNecessary(e);}
        }
      
      /**
@@ -467,7 +467,7 @@ public final class IOUtil {
                if(w!=null)w.close();
          } 
       	 //catch (AlwaysThrow at) {throw at;}
-         catch (Throwable e) {}
+         catch (Throwable e) {ExceptionUtil.rethrowIfNecessary(e);}
      }
      
      /**
@@ -478,7 +478,7 @@ public final class IOUtil {
            try {
                if(t!=null && t.isConnected())t.close();
          } 
-         catch (Throwable e) {}
+         catch (Throwable e) {ExceptionUtil.rethrowIfNecessary(e);}
      }
 
      /**
@@ -499,7 +499,7 @@ public final class IOUtil {
                  Method method = obj.getClass().getMethod("close",new Class[0]);
                  method.invoke(obj,new Object[0]);
              } 
-             catch (Throwable e) {}
+             catch (Throwable e) {ExceptionUtil.rethrowIfNecessary(e);}
          }
      }
 

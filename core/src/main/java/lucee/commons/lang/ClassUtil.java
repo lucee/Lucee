@@ -440,7 +440,7 @@ public final class ClassUtil {
 			return c.newInstance(args);
 			
 		}
-		catch(Throwable t) {//print.printST(t);
+		catch(Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}

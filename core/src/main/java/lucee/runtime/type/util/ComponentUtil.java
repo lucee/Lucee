@@ -176,6 +176,7 @@ public final class ComponentUtil {
 	        return registerTypeMapping(cl.loadClass(className, barr));
         }
         catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
         	throw Caster.toPageException(t);
         }
     }

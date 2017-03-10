@@ -382,7 +382,7 @@ public final class SMTPClient implements Serializable  {
 	
 	private MimeMessageAndSession createMimeMessage(lucee.runtime.config.Config config,String hostName, int port, 
 			String username, String password,long lifeTimesan, long idleTimespan,
-			boolean tls,boolean ssl, boolean newConnection) throws MessagingException {
+			boolean tls,boolean ssl,boolean sendPartial, boolean newConnection) throws MessagingException {
 		
 	      Properties props = (Properties) System.getProperties().clone();
 	      String strTimeout = Caster.toString(getTimeout(config));
@@ -390,6 +390,8 @@ public final class SMTPClient implements Serializable  {
 	      props.put("mail.smtp.host", hostName);
 	      props.put("mail.smtp.timeout", strTimeout);
 	      props.put("mail.smtp.connectiontimeout", strTimeout);
+	      props.put("mail.smtp.sendpartial", Caster.toString(sendPartial));
+
 	      if(port>0){
 	    	  props.put("mail.smtp.port", Caster.toString(port));
 	      }
@@ -779,12 +781,14 @@ public final class SMTPClient implements Serializable  {
 			else _ssl=((ServerImpl)server).isSSL();
 			
 			
+			
 			MimeMessageAndSession msgSess;
 			boolean recyleConnection=((ServerImpl)server).reuseConnections();
 			{//synchronized(LOCK) {
 				try {
 					msgSess = createMimeMessage(config,server.getHostName(),server.getPort(),_username,_password,
-							((ServerImpl)server).getLifeTimeSpan(),((ServerImpl)server).getIdleTimeSpan(),_tls,_ssl,!recyleConnection);
+							((ServerImpl)server).getLifeTimeSpan(),((ServerImpl)server).getIdleTimeSpan(),_tls,_ssl,
+							((ConfigImpl)config).isMailSendPartial(),!recyleConnection);
 				} catch (MessagingException e) {
 					// listener
 					listener(config,server,log,e,System.nanoTime()-start);
@@ -813,6 +817,11 @@ public final class SMTPClient implements Serializable  {
                 			throw new MessagingException("timeout occurred after "+(_timeout/1000)+" seconds while sending mail message");
                 		}
                 	}
+            		// could have an exception but was send anyway
+            		if(sender.getThrowable()!=null) {
+            			Throwable t = sender.getThrowable();
+	                	if(log!=null) LogUtil.log(log, Log.LEVEL_ERROR, "send mail", t);
+            		}
                 	clean(config,attachmentz);
                 	
                 	listener(config,server,log,null,System.nanoTime()-start);

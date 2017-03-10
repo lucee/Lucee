@@ -717,6 +717,7 @@ public final class TagLibTag {
 			throw new TagLibException(e.getMessage());
 		} 
 		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
 			throw new TagLibException(e);
 		}
 	}

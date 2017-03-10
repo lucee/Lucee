@@ -18,6 +18,7 @@
  */
 package lucee.transformer.bytecode.expression.var;
 
+import lucee.runtime.type.scope.Scope;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
@@ -35,6 +36,8 @@ public final class VariableRef extends ExpressionBase {
 	
 	private VariableImpl variable;
 
+	private final boolean alwaysLocal;
+
 	// Object touch (Object,Key)
     private final static Method TOUCH_KEY =  new Method("touch",
 			Types.OBJECT,
@@ -44,9 +47,10 @@ public final class VariableRef extends ExpressionBase {
 			Types.REFERENCE,
 			new Type[]{Types.OBJECT,Types.COLLECTION_KEY});
 
-	public VariableRef(Variable variable) {
+	public VariableRef(Variable variable, boolean alwaysLocal) {
 		super(variable.getFactory(),variable.getStart(),variable.getEnd());
 		this.variable=(VariableImpl)variable;
+		this.alwaysLocal=alwaysLocal;
 	}
 
 	/**
@@ -61,7 +65,10 @@ public final class VariableRef extends ExpressionBase {
 		for(int i=0;i<=count;i++) {
     		adapter.loadArg(0);
 		}
-		TypeScope.invokeScope(adapter, variable.getScope());
+		
+		int scope = variable.getScope();
+		if(alwaysLocal && scope==Scope.SCOPE_UNDEFINED) scope=TypeScope.SCOPE_UNDEFINED_LOCAL;
+		TypeScope.invokeScope(adapter, scope);
 		
 		boolean isLast;
 		for(int i=0;i<count;i++) {

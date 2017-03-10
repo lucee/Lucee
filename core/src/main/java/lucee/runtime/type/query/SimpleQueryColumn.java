@@ -399,6 +399,7 @@ public class SimpleQueryColumn implements QueryColumn {
 			return _get(row);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 	}

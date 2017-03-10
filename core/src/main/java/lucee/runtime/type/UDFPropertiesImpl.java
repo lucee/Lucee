@@ -228,6 +228,7 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 			
 		} 
 		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
 			e.printStackTrace();
 			throw ExceptionUtil.toIOException(e);
 		}

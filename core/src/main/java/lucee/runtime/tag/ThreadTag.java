@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.RandomUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Page;
@@ -317,6 +318,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 			
 		} 
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 		finally {

@@ -295,6 +295,7 @@ public abstract class XMLConfigFactory {
 			createFileFromResource(resource, file, null);
 		}
 		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
 			SystemOut.printDate(ExceptionUtil.getStacktrace(e, true), SystemUtil.ERR);
 		}
 	}

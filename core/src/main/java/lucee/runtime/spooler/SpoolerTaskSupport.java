@@ -103,6 +103,7 @@ public abstract class SpoolerTaskSupport implements SpoolerTask {
 			execute(config);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			PageException pe = Caster.toPageException(t);
 			String st = ExceptionUtil.getStacktrace(t,true);
 			//config.getErrWriter().write(st+"\n");

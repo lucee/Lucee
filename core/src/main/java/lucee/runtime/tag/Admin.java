@@ -1343,6 +1343,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     		admin.removeContext(server, true,strRealpath);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 		
@@ -3160,6 +3161,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			new RemoteClientTask(null,client,attrColl,getCallerId(),"synchronisation").execute(config);
 		} 
     	catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
     }

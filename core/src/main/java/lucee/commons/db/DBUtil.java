@@ -35,28 +35,28 @@ public final class DBUtil {
 			
 			if(conn!=null)conn.setAutoCommit(b);
         } 
-        catch (Throwable e) {}
+        catch (Throwable e) {ExceptionUtil.rethrowIfNecessary(e);}
 	}
 
 	public static void setReadOnlyEL(Connection conn, boolean b) {
 		try {
 			if(conn!=null)conn.setReadOnly(b);
 		} 
-		catch (Throwable e) {}
+		catch (Throwable e) {ExceptionUtil.rethrowIfNecessary(e);}
 	}
 
 	public static void commitEL(Connection conn) {
 		try {
 			if(conn!=null)conn.commit();
 		} 
-		catch (Throwable e) {}
+		catch (Throwable e) {ExceptionUtil.rethrowIfNecessary(e);}
 	}
 
 	public static void setTransactionIsolationEL(Connection conn,int level) {
 		try {
 			if(conn!=null)conn.setTransactionIsolation(level);
 		} 
-		catch (Throwable e) {}
+		catch (Throwable e) {ExceptionUtil.rethrowIfNecessary(e);}
 	}
 
 	public static void closeEL(Statement stat) {

@@ -40,6 +40,7 @@ import javax.mail.Part;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Store;
+import javax.mail.UIDFolder;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 
@@ -126,13 +127,14 @@ public abstract class MailClient {
 	private int maxrows = 0;
 	private boolean uniqueFilenames = false;
 	private Resource attachmentDirectory = null;
+	private final boolean secure;
 
 	
-	public static MailClient getInstance(int type,String server, int port, String username, String password){
+	public static MailClient getInstance(int type,String server, int port, String username, String password, boolean secure){
 		if(TYPE_POP3==type)
-			return new PopClient(server,port,username,password);
+			return new PopClient(server,port,username,password,secure);
 		if(TYPE_IMAP==type)
-			return new ImapClient(server,port,username,password);
+			return new ImapClient(server,port,username,password,secure);
 		return null;
 	}
 	
@@ -142,8 +144,9 @@ public abstract class MailClient {
 	 * @param port
 	 * @param username
 	 * @param password
+	 * @param secure 
 	 */
-	public MailClient(String server, int port, String username, String password) {
+	public MailClient(String server, int port, String username, String password, boolean secure) {
 		timeout = 60000;
 		startrow = 0;
 		maxrows = -1;
@@ -152,6 +155,7 @@ public abstract class MailClient {
 		this.port = port;
 		this.username = username;
 		this.password = password;
+		this.secure = secure;
 	}
 
 
@@ -203,9 +207,19 @@ public abstract class MailClient {
 		properties.put("mail."+type+".connectiontimeout", String.valueOf(timeout));
 		properties.put("mail."+type+".timeout", String.valueOf(timeout));
 		//properties.put("mail.mime.charset", "UTF-8");
-	        
+	    if(secure) {
+	    	properties.put("mail."+type+".ssl.enable", "true" );
+	    	//properties.put("mail."+type+".starttls.enable", "true" );
+	    }
+	    
+		if(TYPE_IMAP==getType()){
+			properties.put("mail.imap.partialfetch", "false" );
+		}
+		if(TYPE_POP3==getType()){
+			
+		}
 		
-		if(TYPE_IMAP==getType())properties.put("mail.imap.partialfetch", "false" );
+		
 		
 		_fldtry = username != null ? Session.getInstance(properties, new _Authenticator(username, password)) : Session.getInstance(properties);
 		_fldelse = _fldtry.getStore(type);
@@ -367,7 +381,10 @@ public abstract class MailClient {
 		}
 		return map;
 	}
-    protected abstract String getId(Folder folder,Message message) throws MessagingException ;
+    protected String getId(Folder folder,Message message) throws MessagingException {
+    	return _getId(folder, message);
+    }
+    protected abstract String _getId(Folder folder,Message message) throws MessagingException ;
 
 
     private void getContentEL(Query query, Message message, int row) {
