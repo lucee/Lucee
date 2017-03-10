@@ -24,6 +24,7 @@ public class Imap extends _Mail {
 
 	@Override
 	protected int getDefaultPort() {
+		if(isSecure()) return 993;
 		return 143;
 	}
 
