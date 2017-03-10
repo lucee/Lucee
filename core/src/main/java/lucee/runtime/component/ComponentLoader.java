@@ -73,7 +73,7 @@ public class ComponentLoader {
     public static ComponentImpl searchComponent(PageContext pc,PageSource loadingLocation,String rawPath, Boolean searchLocal, Boolean searchRoot, boolean isExtendedComponent) throws PageException  {
     	return (ComponentImpl)_search(pc,loadingLocation, rawPath, searchLocal, searchRoot,true,RETURN_TYPE_COMPONENT,isExtendedComponent);
     }
-    public static ComponentImpl searchComponent(PageContext pc,PageSource loadingLocation,String rawPath, Boolean searchLocal, Boolean searchRoot, boolean isExtendedComponent,boolean executeConstr) throws PageException  {
+    public static ComponentImpl searchComponent(PageContext pc,PageSource loadingLocation,String rawPath, Boolean searchLocal, Boolean searchRoot, final boolean isExtendedComponent,boolean executeConstr) throws PageException  {
     	return (ComponentImpl)_search(pc,loadingLocation, rawPath, searchLocal, searchRoot,executeConstr,RETURN_TYPE_COMPONENT,isExtendedComponent);
     }
 
@@ -92,7 +92,7 @@ public class ComponentLoader {
     
 
     private static Object _search(PageContext pc,PageSource loadingLocation,String rawPath, Boolean searchLocal, 
-    		Boolean searchRoot, boolean executeConstr, short returnType, boolean isExtendedComponent) throws PageException  {
+    		Boolean searchRoot, boolean executeConstr, short returnType, final boolean isExtendedComponent) throws PageException  {
     	PageSource currPS = pc.getCurrentPageSource();
     	Page currP=currPS==null?null:currPS.loadPage(pc,false);
     	int dialect = currPS==null?pc.getCurrentTemplateDialect():currPS.getDialect();
@@ -109,7 +109,7 @@ public class ComponentLoader {
     
     
     private static Object _search(PageContext pc,PageSource loadingLocation,String rawPath, Boolean searchLocal, 
-    		Boolean searchRoot, boolean executeConstr, short returnType, Page currP, int dialect, boolean isExtendedComponent) throws PageException  {
+    		Boolean searchRoot, boolean executeConstr, short returnType, Page currP, int dialect, final boolean isExtendedComponent) throws PageException  {
     	ConfigImpl config=(ConfigImpl) pc.getConfig();
     	
     	if(dialect==CFMLEngine.DIALECT_LUCEE && !config.allowLuceeDialect())PageContextImpl.notSupported();
@@ -386,7 +386,7 @@ public class ComponentLoader {
 	
 
 	private static CIObject load(PageContext pc,Page page, String callPath,String sub,boolean isRealPath, short returnType,
-			boolean isExtendedComponent, boolean executeConstr) throws PageException  {
+			final boolean isExtendedComponent, boolean executeConstr) throws PageException  {
 		CIPage cip = toCIPage(page, callPath);
 		if(sub!=null) {
 			cip=loadSub(cip,sub);
@@ -449,7 +449,7 @@ public class ComponentLoader {
         } 
     }
 
-	private static ComponentImpl _loadComponent(PageContext pc,CIPage page, String callPath, boolean isRealPath, boolean isExtendedComponent, boolean executeConstr) throws PageException {
+	private static ComponentImpl _loadComponent(PageContext pc,CIPage page, String callPath, boolean isRealPath, final boolean isExtendedComponent, boolean executeConstr) throws PageException {
        ComponentImpl rtn=null;
         if(pc.getConfig().debug()) {
             DebugEntryTemplate debugEntry=pc.getDebugger().getEntry(pc,page.getPageSource());
@@ -533,7 +533,7 @@ public class ComponentLoader {
 		return i;
 	}
     
-    private static ComponentImpl initComponent(PageContext pc,CIPage page,String callPath,boolean isRealPath,boolean isExtendedComponent, boolean executeConstr) throws PageException {
+    private static ComponentImpl initComponent(PageContext pc,CIPage page,String callPath,boolean isRealPath,final boolean isExtendedComponent, boolean executeConstr) throws PageException {
     	// is not a component, then it has to be a interface
     	if(!(page instanceof ComponentPageImpl))
 			throw new ApplicationException("you cannot instantiate the interface ["+

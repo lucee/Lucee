@@ -40,6 +40,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
@@ -550,9 +551,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 			//if(pcl!=null)return pcl.shrink(force);
 			((MappingImpl)mapping).shrink();
 		} 
-		catch (Throwable t) {
-			t.printStackTrace();
-		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		return 0;
 	}
 	
@@ -641,6 +640,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 			return factory.getInstalledPatches();
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			try {
 				return getInstalledPatchesOld(factory);
 			} catch (Exception e1) {

@@ -25,6 +25,7 @@ import java.util.Iterator;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
@@ -258,7 +259,7 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 					
 					if(res!=null) list.add(res);
 				}
-				catch(Throwable t){t.printStackTrace();}
+				catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 			}
 			return list;
 		}

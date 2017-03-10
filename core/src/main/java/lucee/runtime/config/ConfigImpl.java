@@ -41,6 +41,7 @@ import java.util.TimeZone;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.log.log4j.Log4jUtil;
@@ -76,6 +77,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.cache.CacheConnection;
+import lucee.runtime.cache.ram.RamCache;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.cfx.customtag.CFXTagPoolImpl;
@@ -104,6 +106,7 @@ import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
+import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.functions.system.ContractPath;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
@@ -1266,7 +1269,7 @@ public abstract class ConfigImpl implements Config {
     
     public void createFunction(FunctionLib fl,String filename) {
     	String name=toName(filename);//filename.substring(0,filename.length()-(getCFMLExtensions().length()+1));
-        FunctionLibFunction flf = new FunctionLibFunction(fl);
+        FunctionLibFunction flf = new FunctionLibFunction(fl,true);
     	flf.setArgType(FunctionLibFunction.ARG_DYNAMIC);
     	flf.setFunctionClass("lucee.runtime.functions.system.CFFunction",null,null);
     	flf.setName(name);
@@ -2885,6 +2888,19 @@ public abstract class ConfigImpl implements Config {
 	public Map<String,CacheConnection> getCacheConnections() {
 		return caches;
 	}
+	
+	// used by argus cache FUTURE add to interface
+	/**
+	 * creates a new RamCache, please make sure to finalize. 
+	 * @param arguments possible arguments are "timeToLiveSeconds", "timeToIdleSeconds" and "controlInterval"
+	 * @throws IOException 
+	 */
+	public Cache createRAMCache(Struct arguments) throws IOException {
+		RamCache rc = new RamCache();
+		if(arguments==null) arguments=new StructImpl();
+		rc.init(this, ""+CreateUniqueId.invoke(), arguments); 
+		return rc;
+	}
 
 	@Override
 	public CacheConnection getCacheDefaultConnection(int type) {
@@ -3272,6 +3288,10 @@ public abstract class ConfigImpl implements Config {
 	public boolean getDotNotationUpperCase() {
 		return dotNotationUpperCase;
 	}
+	
+	public boolean preserveCase() {
+		return !dotNotationUpperCase;
+	}
 	private boolean defaultFunctionOutput=true;
 	protected void setDefaultFunctionOutput(boolean defaultFunctionOutput) {
 		this.defaultFunctionOutput=defaultFunctionOutput;
@@ -3401,7 +3421,7 @@ public abstract class ConfigImpl implements Config {
 				it.next().close();
 			}
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		loggers.clear();
 	}
 	
@@ -3434,21 +3454,15 @@ public abstract class ConfigImpl implements Config {
 	}
 	
 	public Log getLog(String name, boolean createIfNecessary){
-		LoggerAndSourceData lsd = getLoggerAndSourceData(name,createIfNecessary);
+		LoggerAndSourceData lsd = _getLoggerAndSourceData(name,createIfNecessary);
 		if(lsd==null) return null;
 		return lsd.getLog();
 	}
 	
-	public Logger getLogger(String name, boolean createIfNecessary){
-		LoggerAndSourceData lsd = getLoggerAndSourceData(name,createIfNecessary);
-		if(lsd==null) return null;
-		return ((LogAdapter)lsd.getLog()).getLogger();
-	}
 
-	public LoggerAndSourceData getLoggerAndSourceData(String name, boolean createIfNecessary){
+	private LoggerAndSourceData _getLoggerAndSourceData(String name, boolean createIfNecessary){
 		LoggerAndSourceData las = loggers.get(name.toLowerCase());
 		if(las==null) {
-			
 			if(!createIfNecessary) return null;
 			return addLogger(name, Level.ERROR, Log4jUtil.appenderClassDefintion("console"), null, Log4jUtil.layoutClassDefintion("pattern"), null,true);
 		}
@@ -3634,5 +3648,9 @@ public abstract class ConfigImpl implements Config {
 	
 	public ClassDefinition getCacheDefinition(String className) {
 		return this.cacheDefinitions.get(className); 
+	}
+
+	public Resource getAntiSamyPolicy() {
+		return getConfigDir().getRealResource("security/antisamy-basic.xml");
 	}
 }

@@ -48,11 +48,11 @@ public abstract class XMLConfigFactory {
 	public static final int NEW_FROM4=3;
 	
 	
-	public static int doNew(CFMLEngine engine, Resource contextDir, boolean readOnly) {
+	public static UpdateInfo doNew(CFMLEngine engine, Resource contextDir, boolean readOnly) {
 		lucee.Info info = engine.getInfo();
 		try {
 			String strOldVersion;
-			Resource resOldVersion = contextDir.getRealResource("version");
+			final Resource resOldVersion = contextDir.getRealResource("version");
 			String strNewVersion = info.getVersion() + "-" + info.getRealeaseTime();
 			
 			// fresh install
@@ -61,19 +61,37 @@ public abstract class XMLConfigFactory {
 					resOldVersion.createNewFile();
 					IOUtil.write(resOldVersion, strNewVersion, SystemUtil.getCharset(), false);
 				}
-				return NEW_FRESH;
+				return UpdateInfo.NEW_FRESH;
 			}
 			// changed version
 			else if (!(strOldVersion=IOUtil.toString(resOldVersion, SystemUtil.getCharset())).equals(strNewVersion)) {
 				if(!readOnly) IOUtil.write(resOldVersion, strNewVersion, SystemUtil.getCharset(), false);
 				Version oldVersion = OSGiUtil.toVersion(strOldVersion);
 				
-				return oldVersion.getMajor()<5?NEW_FROM4:NEW_MINOR;
+				return new UpdateInfo(oldVersion,oldVersion.getMajor()<5?NEW_FROM4:NEW_MINOR);
 			}
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+		return UpdateInfo.NEW_NONE;
+	}
+	
+	public static class UpdateInfo {
+
+		public static final UpdateInfo NEW_NONE = new UpdateInfo(XMLConfigWebFactory.NEW_NONE);
+		public static final UpdateInfo NEW_FRESH = new UpdateInfo(XMLConfigWebFactory.NEW_FRESH);
+		
+		public final Version oldVersion;
+		public final int updateType;
+
+		public UpdateInfo(int updateType) {
+			this.oldVersion=null;
+			this.updateType=updateType;
 		}
-		return NEW_NONE;
+		public UpdateInfo(Version oldVersion, int updateType) {
+			this.oldVersion=oldVersion;
+			this.updateType=updateType;
+		}
+		
 	}
 	
 	public static void updateRequiredExtension(CFMLEngine engine, Resource contextDir) {
@@ -85,8 +103,7 @@ public abstract class XMLConfigFactory {
 			IOUtil.write(res, str, SystemUtil.getCharset(), false);
 			
 		}
-		catch (Throwable t) {
-		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	public static boolean isRequiredExtension(CFMLEngine engine, Resource contextDir) {
@@ -100,8 +117,7 @@ public abstract class XMLConfigFactory {
 			
 			return writtenVersion.equals(currVersion);
 		}
-		catch (Throwable t) {
-		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		return false;
 	}
 
@@ -279,6 +295,7 @@ public abstract class XMLConfigFactory {
 			createFileFromResource(resource, file, null);
 		}
 		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
 			SystemOut.printDate(ExceptionUtil.getStacktrace(e, true), SystemUtil.ERR);
 		}
 	}

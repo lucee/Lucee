@@ -25,10 +25,13 @@ import java.io.ObjectOutput;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -62,6 +65,7 @@ import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.debug.DebugEntryTemplate;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
+import lucee.runtime.dump.DumpRow;
 import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.SimpleDumpData;
@@ -428,6 +432,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	    		componentPage.staticConstructor(pageContext,this);
 	    	}
 	    	catch(Throwable t){
+	    		ExceptionUtil.rethrowIfNecessary(t);
 	    		componentPage._static.setInit(false);
 	    		throw Caster.toPageException(t);
 	    	}
@@ -1046,92 +1051,107 @@ public final class ComponentImpl extends StructSupport implements Externalizable
         return table;
     }
     
-	static DumpTable thisScope(ComponentImpl ci,PageContext pc, int maxlevel, DumpProperties dp,int access) {
-		maxlevel--;
-		ComponentSpecificAccess cw=new ComponentSpecificAccess(Component.ACCESS_PRIVATE, ci);
-		Collection.Key[] keys= cw.keys();
-		
-		
-		
+	static DumpTable thisScope(ComponentImpl ci, PageContext pc, int maxlevel, DumpProperties dp, int access){
+
+		DumpTable table = new DumpTable("#ffffff","#cccccc","#000000");
 		DumpTable[] accesses=new DumpTable[4];
-		accesses[Component.ACCESS_PRIVATE] = new DumpTable("#ff6633","#ff9966","#000000");
-		accesses[Component.ACCESS_PRIVATE].setTitle("private");
-		accesses[Component.ACCESS_PRIVATE].setWidth("100%");
-		//accesses[Component.ACCESS_PRIVATE].setRow(1,"100%");
-		accesses[Component.ACCESS_PACKAGE] = new DumpTable("#ff9966","#ffcc99","#000000");
-		accesses[Component.ACCESS_PACKAGE].setTitle("package");
-		accesses[Component.ACCESS_PACKAGE].setWidth("100%");
-		accesses[Component.ACCESS_PUBLIC] = new DumpTable("#ffcc99","#ffffcc","#000000");
-		accesses[Component.ACCESS_PUBLIC].setTitle("public");
-		accesses[Component.ACCESS_PUBLIC].setWidth("100%");
+
 		accesses[Component.ACCESS_REMOTE] = new DumpTable("#ccffcc","#ffffff","#000000");
 		accesses[Component.ACCESS_REMOTE].setTitle("remote");
-		accesses[Component.ACCESS_REMOTE].setWidth("100%");
-		
+		accesses[Component.ACCESS_PUBLIC] = new DumpTable("#ffcc99","#ffffcc","#000000");
+		accesses[Component.ACCESS_PUBLIC].setTitle("public");
+		accesses[Component.ACCESS_PACKAGE] = new DumpTable("#ff9966","#ffcc99","#000000");
+		accesses[Component.ACCESS_PACKAGE].setTitle("package");
+		accesses[Component.ACCESS_PRIVATE] = new DumpTable("#ff6633","#ff9966","#000000");
+		accesses[Component.ACCESS_PRIVATE].setTitle("private");
+
+		maxlevel--;
+		ComponentSpecificAccess cw = new ComponentSpecificAccess(Component.ACCESS_PRIVATE, ci);
+		Collection.Key[] keys = cw.keys();
+
+		List<DumpRow>[] drAccess = new List[4];
+		for (int i=0; i<drAccess.length; i++)
+			drAccess[i] = new ArrayList();		// ACCESS_REMOTE=0, ACCESS_PUBLIC=1, ACCESS_PACKAGE=2, ACCESS_PRIVATE=3
+
 		Collection.Key key;
-		for(int i=0;i<keys.length;i++) {
-			key=keys[i];
-			int a=ci.getAccess(key);
-			DumpTable box=accesses[a];
-			Object o=cw.get(key,null);
-			if(o==ci)o="[this]";
-			if(DumpUtil.keyValid(dp,maxlevel, key))
-				box.appendRow(1,new SimpleDumpData(key.getString()),DumpUtil.toDumpData(o,pc,maxlevel,dp));
+		for(int i=0; i<keys.length; i++){
+			key = keys[i];
+			List<DumpRow> box = drAccess[ci.getAccess(key)];
+			Object o = cw.get(key, null);
+			if (o == ci)
+				o = "[this]";
+			if (DumpUtil.keyValid(dp, maxlevel, key)){
+				String memberName = (o instanceof UDF) ? ((UDF)o).getFunctionName() : key.getString();
+				box.add(new DumpRow(1, new SimpleDumpData(memberName), DumpUtil.toDumpData(o, pc, maxlevel, dp)));
+			}
+		}
+
+		List<DumpRow> dumpRows;
+		for (int i=0; i<drAccess.length; i++){
+
+			dumpRows = drAccess[i];
+			if (!dumpRows.isEmpty()){
+
+				Collections.sort(dumpRows, new Comparator<DumpRow>() {
+					@Override
+					public int compare(DumpRow o1, DumpRow o2) {
+						DumpData[] rowItems1 = o1.getItems();
+						DumpData[] rowItems2 = o2.getItems();
+
+						if (rowItems1.length >= 0 && rowItems2.length > 0 && rowItems1[0] instanceof SimpleDumpData && rowItems2[0] instanceof SimpleDumpData)
+							return String.CASE_INSENSITIVE_ORDER.compare(rowItems1[0].toString(), rowItems2[0].toString());
+
+						return 0;
+					}
+				});
+
+				DumpTable dtAccess = accesses[i];
+				dtAccess.setWidth("100%");
+				for (DumpRow dr : dumpRows)
+					dtAccess.appendRow(dr);
+
+				table.appendRow(0, dtAccess);
+			}
 		}
 		
-		
-		DumpTable table=new DumpTable("#ffffff","#cccccc","#000000");
-		
 		// properties
-		if(ci.top.properties.persistent || ci.top.properties.accessors){
-			Property[] properties=ci.getProperties(false,true,false,false);
-			DumpTable prop = new DumpTable("#99cc99","#ccffcc","#000000");
+		if (ci.top.properties.persistent || ci.top.properties.accessors){
+			Property[] properties = ci.getProperties(false, true, false, false);
 
+			DumpTable prop = new DumpTable("#99cc99","#ccffcc","#000000");
 			prop.setTitle("Properties");
 			prop.setWidth("100%");
+
 			Property p;
 			Object child;
-			for(int i=0;i<properties.length;i++) {
+			for (int i=0; i<properties.length; i++){
 				p=properties[i];
-				child = ci.scope.get(KeyImpl.init(p.getName()),null);
+				child = ci.scope.get(KeyImpl.init(p.getName()), null);
 				DumpData dd;
 				if(child instanceof Component) {
 					DumpTable t = new DumpTable("component","#99cc99","#ffffff","#000000");
-					t.appendRow(1,new SimpleDumpData(((Component)child).getPageSource().getDialect()==CFMLEngine.DIALECT_CFML?"Component":"Class"),new SimpleDumpData(((Component)child).getCallName()));
-					dd=t;
-					
+					t.appendRow(1
+							,new SimpleDumpData(((Component)child).getPageSource().getDialect() == CFMLEngine.DIALECT_CFML ? "Component":"Class")
+							,new SimpleDumpData(((Component)child).getCallName())
+					);
+					dd = t;
 				}
-				else 
-					dd=DumpUtil.toDumpData(child, pc, maxlevel-1, dp);
+				else {
+					dd = DumpUtil.toDumpData(child, pc, maxlevel-1, dp);
+				}
 				
-				
-				
-				prop.appendRow(1, new SimpleDumpData(p.getName()),dd);
+				prop.appendRow(1, new SimpleDumpData(p.getName()), dd);
 			}
 			
 			if(access>=ACCESS_PUBLIC && !prop.isEmpty()) {
-				table.appendRow(0,prop);
+				table.appendRow(0, prop);
 			}
 		}
-		
 
-		
-
-		if(!accesses[ACCESS_REMOTE].isEmpty()) {
-			table.appendRow(0,accesses[Component.ACCESS_REMOTE]);
-		}
-		if(!accesses[ACCESS_PUBLIC].isEmpty()) {
-			table.appendRow(0,accesses[Component.ACCESS_PUBLIC]);
-		}
-		if(!accesses[ACCESS_PACKAGE].isEmpty()) {
-			table.appendRow(0,accesses[Component.ACCESS_PACKAGE]);
-		}
-		if(!accesses[ACCESS_PRIVATE].isEmpty()) {
-			table.appendRow(0,accesses[Component.ACCESS_PRIVATE]);
-		}
 		return table;
 	}
-	
+
+
 	/**
 	 * @return return call path
 	 */
@@ -1552,7 +1572,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
             try {
             	String path=ContractPath.call(pc, ps.getDisplayPath()); // MUST better impl !!!
 				sct.set("remoteAddress",""+new URL(req.getScheme(),req.getServerName(),req.getServerPort(),req.getContextPath()+path+"?wsdl"));
-			} catch (Throwable t) {}
+			} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
             
         
         // Properties

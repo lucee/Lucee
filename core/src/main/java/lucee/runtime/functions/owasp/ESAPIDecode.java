@@ -39,6 +39,7 @@ public class ESAPIDecode implements Function {
 	
 	public static final short DEC_BASE64=1;
 	public static final short DEC_URL=2;
+	public static final short DEC_HTML=3;
 	
 	public static String decode(String item, short decFrom) throws PageException  {
 		
@@ -48,6 +49,8 @@ public class ESAPIDecode implements Function {
 			 Encoder encoder = ESAPI.encoder();
 			 switch(decFrom){
 			 case DEC_URL:return encoder.decodeFromURL(item);
+			 //case DEC_BASE64:return encoder.decodeFromBase64(item);
+			 case DEC_HTML:return encoder.decodeForHTML(item);
 			 }
 			 throw new ApplicationException("invalid target decoding defintion");
 		}
@@ -63,9 +66,10 @@ public class ESAPIDecode implements Function {
 		short decFrom;
 		strDecodeFrom=StringUtil.emptyIfNull(strDecodeFrom).trim().toLowerCase();
 		if("url".equals(strDecodeFrom)) decFrom=DEC_URL;
+		else if("html".equals(strDecodeFrom)) decFrom=DEC_HTML;
 		else 
 			throw new FunctionException(pc, "ESAPIDecode", 1, "decodeFrom", "value ["+strDecodeFrom+"] is invalid, valid values are " +
-					"[url]");
+					"[url,html]");
 		return decode(value, decFrom);
 	}
 	

@@ -132,6 +132,8 @@ public final class ClassUtil {
 			return OSGiUtil.loadBundle(name, version, id, true).loadClass(className);
 		} 
 		catch (ClassNotFoundException e) {
+			if(version==null)
+				throw new ClassException("In the OSGi Bundle with the name ["+name+"] was no class with name ["+className+"] found.");
 			throw new ClassException("In the OSGi Bundle with the name ["+name+"] and the version ["+version+"] was no class with name ["+className+"] found.");
 		}
 	}
@@ -345,7 +347,8 @@ public final class ClassUtil {
 		try {
 			return clazz.newInstance();
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -437,7 +440,8 @@ public final class ClassUtil {
 			return c.newInstance(args);
 			
 		}
-		catch (Throwable t) {//print.printST(t);
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 		
@@ -682,7 +686,7 @@ public final class ClassUtil {
 			result = SystemUtil.fixWindowsPath(result);
 			return result;
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 
 		return defaultValue;
 	}
@@ -704,7 +708,7 @@ public final class ClassUtil {
 
 			return  getSourcePathForClass(ClassUtil.loadClass(className), defaultValue);
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 
 		return defaultValue;
 	}
@@ -772,11 +776,12 @@ public final class ClassUtil {
 			try {
 				return cl.loadClass(className);
 			}
-			catch (Throwable t) {
+			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				try {
 					return Class.forName(className, false, cl);
 				}
-				catch (Throwable t2) {
+				catch (Throwable t2) {ExceptionUtil.rethrowIfNecessary(t2);
 					if(exceptions!=null) {
 						exceptions.add(t2);
 					}
@@ -791,11 +796,11 @@ public final class ClassUtil {
 			try {
 				return cl.loadClass(className);
 			}
-			catch (Throwable t) {
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);
 				try {
 					return Class.forName(className, false, cl);
 				}
-				catch (Throwable t2) {
+				catch (Throwable t2) {ExceptionUtil.rethrowIfNecessary(t2);
 					String msg=null;
 					if(t2 instanceof ClassNotFoundException || t2 instanceof NoClassDefFoundError) {
 						msg="["+t2.getClass().getName()+"] "+t2.getMessage();

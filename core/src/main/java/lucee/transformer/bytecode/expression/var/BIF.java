@@ -21,7 +21,6 @@ package lucee.transformer.bytecode.expression.var;
 import lucee.runtime.db.ClassDefinition;
 import lucee.transformer.Factory;
 import lucee.transformer.cfml.TransfomerSettings;
-import lucee.transformer.expression.ExprString;
 import lucee.transformer.library.function.FunctionLibFunction;
 
 
@@ -30,7 +29,7 @@ public final class BIF extends FunctionMember {
 	
 		private static String ANY="any";
 	
-		private ExprString name;
+		//private ExprString nameq;
 		private int argType;
 		private ClassDefinition cd;
 		private String returnType=ANY;
@@ -40,11 +39,11 @@ public final class BIF extends FunctionMember {
 
 		public final TransfomerSettings ts;
 
-		public BIF(TransfomerSettings ts, ExprString name, FunctionLibFunction flf) {
+		public BIF(Factory factory,TransfomerSettings ts, FunctionLibFunction flf) {
 			this.ts=ts;
-			this.name=name;
+			//this.name=name;
 			this.flf=flf;
-			this.factory=name.getFactory();
+			this.factory=factory;//name.getFactory();
 		}
 
 		public Factory getFactory() {
@@ -79,10 +78,10 @@ public final class BIF extends FunctionMember {
 
 		/**
 		 * @return the name
-		 */
-		public ExprString getName() {
+		
+		public ExprString getNameX() {
 			return name;
-		}
+		} */
 
 		/**
 		 * @return the returnType

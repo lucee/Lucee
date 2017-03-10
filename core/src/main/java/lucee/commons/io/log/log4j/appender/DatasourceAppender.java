@@ -21,7 +21,6 @@ package lucee.commons.io.log.log4j.appender;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;

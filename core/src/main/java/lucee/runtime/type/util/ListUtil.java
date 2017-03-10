@@ -62,7 +62,7 @@ public final class ListUtil {
 		char inside=0;
 		
 		ArrayImpl array=new ArrayImpl();
-		try{
+		//try{
 			for(int i=0;i<len;i++) {
 			    c=list.charAt(i);
 			    for(int y=0;y<quo.length;y++){
@@ -75,15 +75,14 @@ public final class ListUtil {
 			    
 			    for(int y=0;y<del.length;y++) {
 					if(inside==0 && c==del[y]) {
-						array._append(list.substring(last,i));
+						array.appendEL(list.substring(last,i));
 						last=i+1;
 						break;
 					}
 			    }
 			}
-			if(last<=len)array.append(list.substring(last));
-		}
-		catch(ExpressionException e){}
+			if(last<=len)array.appendEL(list.substring(last));
+		//}catch(PageException e){}
 		return array;
 	}
 	
@@ -113,7 +112,7 @@ public final class ListUtil {
 		char c;
 		
 		ArrayImpl array=new ArrayImpl();
-		try{
+		//try{
 			for(int i=0;i<len;i++) {
 			    c=list.charAt(i);
 			    for(int y=0;y<del.length;y++) {
@@ -124,9 +123,8 @@ public final class ListUtil {
 					}
 			    }
 			}
-			if(last<=len)array.append(list.substring(last));
-		}
-		catch(ExpressionException e){}
+			if(last<=len)array.appendEL(list.substring(last));
+		//}catch(ExpressionException e){}
 		return array;
 	}
 	
@@ -226,13 +224,13 @@ public final class ListUtil {
 		    c=list.charAt(i);
 		    for(int y=0;y<del.length;y++) {
 				if(c==del[y]) {
-					if(last<i)array._append(list.substring(last,i));
+					if(last<i)array.appendEL(list.substring(last,i));
 					last=i+1;
 					break;
 				}
 		    }
 		}
-		if(last<len)array._append(list.substring(last));
+		if(last<len)array.appendEL(list.substring(last));
 		return array;
 	}
 	
@@ -250,11 +248,11 @@ public final class ListUtil {
         
         for(int i=0;i<len;i++) {
             if(list.charAt(i)==delimiter) {
-                if(last<i)array._append(list.substring(last,i));
+                if(last<i)array.appendEL(list.substring(last,i));
                 last=i+1;
             }
         }
-        if(last<len)array._append(list.substring(last));
+        if(last<len)array.appendEL(list.substring(last));
 
         return array;
     }

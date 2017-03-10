@@ -1,5 +1,6 @@
 <!--- 
  *
+ * Copyright (c) 2016, Lucee Assosication Switzerland. All rights reserved.*
  * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -23,6 +24,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	//public function afterTests(){}
 	
 	//public function setUp(){}
+
+
+	public void function testArrayDeleteCase(){
+		arr=['SUSI'];
+		assertEquals("SUSI",arrayToList(arr));
+		arrayDelete(arr,'susi');
+		assertEquals("SUSI",arrayToList(arr));
+	}
 
 	public void function testArrayDelete(){
 		var arr=[1,2,3,4];
@@ -55,14 +64,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		arrayDelete(arr,n);
 		assertEquals("",arrayToList(arr));
 		
-		
-		/*assertEquals("","");
-		
-		try{
-			// error
-			fail("");
-		}
-		catch(local.exp){}*/
+
+
 	}
 } 
 </cfscript>

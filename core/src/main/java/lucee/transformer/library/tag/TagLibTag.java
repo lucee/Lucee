@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Identification;
@@ -346,7 +347,8 @@ public final class TagLibTag {
 		try {
 			eval = (TagEvaluator) getTTEClassDefinition().getClazz().newInstance();
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new EvaluatorException(t.getMessage());
 		} 
 		return eval;
@@ -363,7 +365,8 @@ public final class TagLibTag {
 		if(tdbt!=null) return tdbt;
 		try {
 			tdbt = (TagDependentBodyTransformer) tdbtCD.getClazz().newInstance();
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new TagLibException(t);
 		} 
 		return tdbt;
@@ -714,6 +717,7 @@ public final class TagLibTag {
 			throw new TagLibException(e.getMessage());
 		} 
 		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
 			throw new TagLibException(e);
 		}
 	}

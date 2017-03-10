@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -397,7 +398,8 @@ public class SimpleQueryColumn implements QueryColumn {
 			}
 			return _get(row);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 	}
@@ -413,7 +415,8 @@ public class SimpleQueryColumn implements QueryColumn {
 			}
 			return _get(row);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}

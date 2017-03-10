@@ -21,6 +21,7 @@ package lucee.commons.lang;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.UnmodifiableClassException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -32,11 +33,14 @@ import java.util.Set;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.functions.other.CreateObject;
+import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.runtime.type.util.ArrayUtil;
 
 import org.apache.commons.collections4.map.ReferenceMap;
@@ -50,7 +54,6 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	private Resource directory;
 	private ConfigImpl config; 
 	private final ClassLoader[] parents;
-	
 
 	Set<String> loadedClasses = new HashSet<>();
 	Set<String> unavaiClasses = new HashSet<>();
@@ -66,6 +69,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	public PhysicalClassLoader(Config c,Resource directory) throws IOException {
 		this(c,directory,(ClassLoader[])null,true);
 	}
+
 	public PhysicalClassLoader(Config c,Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL) throws IOException {
 		super(parentClassLoaders==null || parentClassLoaders.length==0?c.getClassLoader():parentClassLoaders[0]);
 		
@@ -83,15 +87,10 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 				tmp.add(p);
 			}
 		}
-		
-		
-		
+
 		if(includeCoreCL) tmp.add(config.getClassLoaderCore());
-		
 		parents= tmp.toArray(new ClassLoader[tmp.size()]);
-		
-		
-		
+
 		// check directory
 		if(!directory.exists())
 			directory.mkdirs();
@@ -113,7 +112,6 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			return super.loadClass(name,false); // Use default CL cache
 		}
 
-		
 		// First, check if the class has already been loaded
 		Class<?> c = findLoadedClass(name);
 		if (c == null) {
@@ -122,9 +120,20 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 					c = p.loadClass(name);
 					break;
 				} 
-				catch (Throwable t) {}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
-			if(c==null)c = findClass(name);
+			if(c==null) {
+				c = findClass(name);
+				/*try {
+					c = findClass(name);
+				}
+				catch(ClassNotFoundException cnf) {
+					return SystemUtil.getLoaderClassLoader().loadClass(name);
+				}
+				catch(NoClassDefFoundError cfdfe) {
+					return SystemUtil.getLoaderClassLoader().loadClass(name);
+				}*/
+			}
 		}
 		if (resolve)resolveClass(c);
 		return c;
@@ -154,19 +163,29 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	public synchronized Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
-		
+		Class<?> clazz=null;
+		try {
+			clazz = loadClass(name);
+		} catch (ClassNotFoundException cnf) {}
+		  		
+		// if class already exists
+		if(clazz!=null) {
+			try {
+				InstrumentationFactory.getInstrumentation(config).redefineClasses(new ClassDefinition(clazz,barr));
+			} 
+			catch (ClassNotFoundException e) {
+				// the documentation clearly sais that this exception only exists for backward compatibility and never happen
+			}
+			return clazz;
+		}
+		// class not exists yet
 		return _loadClass(name, barr);
 	}
 	
 	private synchronized Class<?> _loadClass(String name, byte[] barr) {
-
 		Class<?> clazz = defineClass(name,barr,0,barr.length);
-		
 		if (clazz != null) {
 			loadedClasses.add(name);
-			/*if (clazz.getPackage() == null) {
-				definePackage(name.replaceAll("\\.\\w+$", ""), null, null, null, null, null, null, null);
-			}*/
 			resolveClass(clazz);
 		}
 		return clazz;

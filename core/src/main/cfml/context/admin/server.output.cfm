@@ -84,7 +84,7 @@ Defaults --->
 	<div class="pageintro">
 		#stText.setting[request.adminType]#
 	</div>
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 				<!--- Suppress Whitespace --->
@@ -192,5 +192,5 @@ Defaults --->
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 </cfoutput>

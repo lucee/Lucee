@@ -32,6 +32,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
@@ -122,7 +123,7 @@ public final class ComponentUtil {
 				Class clazz=cl.loadClass(className);
 				if(clazz!=null && !hasChangesOfChildren(classFile.lastModified(),clazz))return registerTypeMapping(clazz);
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		if(!create) return null;
 		isNew.setValue(true);
@@ -175,6 +176,7 @@ public final class ComponentUtil {
 	        return registerTypeMapping(cl.loadClass(className, barr));
         }
         catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
         	throw Caster.toPageException(t);
         }
     }
@@ -259,7 +261,7 @@ public final class ComponentUtil {
      */
     private static Class registerTypeMapping(Class clazz) throws AxisFault {
     	PageContext pc = ThreadLocalPageContext.get();
-    	RPCServer server=RPCServer.getInstance(pc.getId(),pc.getConfig(),pc.getServletContext());
+    	RPCServer server=RPCServer.getInstance(pc.getId(),pc,pc.getServletContext());
 		return registerTypeMapping(server, clazz);
     }
     /**
@@ -426,7 +428,7 @@ public final class ComponentUtil {
 				Class clazz=cl.loadClass(className);
 				if(clazz!=null && !hasChangesOfChildren(classFile.lastModified(), clazz))return clazz;//ClassUtil.loadInstance(clazz);
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		
 		// extends
@@ -472,7 +474,7 @@ public final class ComponentUtil {
 				Class clazz=cl.loadClass(className);
 				if(clazz!=null )return clazz;
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 
 		// Properties
@@ -712,7 +714,8 @@ public final class ComponentUtil {
 	public static long getCompileTime(PageContext pc, PageSource ps,long defaultValue) {
 		try {
 			return getCompileTime(pc, ps);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}

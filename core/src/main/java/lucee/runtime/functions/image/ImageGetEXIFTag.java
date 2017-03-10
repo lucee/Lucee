@@ -31,7 +31,7 @@ public class ImageGetEXIFTag {
 		//if(name instanceof String) name=pc.getVariable(Caster.toString(name));
 		Image img = Image.toImage(pc,name);
 		
-		Struct data = ImageGetEXIFMetadata.getData(img);
+		Struct data = img.info();//ImageGetEXIFMetadata.getData(img);
 		Object value = data.get(tagName, null);
 		if(value==null){
 			throw new FunctionException(pc, "ImageGetEXIFTag", 2, "tagName", ExceptionUtil.similarKeyMessage(data,tagName,"tag","tags",null,true));

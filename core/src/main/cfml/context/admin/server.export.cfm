@@ -5,7 +5,21 @@ Defaults --->
 <cfparam name="form.mainAction" default="none">
 <cfparam name="form.subAction" default="none">
 
-
+<cfscript>
+	
+	function toTSStruct(seconds){
+		var data={};
+		var day=60*60*24;
+		var tmp=seconds/day;
+		data.days=int(tmp);
+		tmp=(tmp-data.days)*24;
+		data.hours=int(tmp);
+		tmp=(tmp-data.hours)*60;
+		data.minutes=int(tmp);
+		data.seconds=int((tmp-data.minutes)*60);
+		return data;
+	}
+</cfscript>
 <cfadmin 
 	action="getLocales"
 	locale="#stText.locale#"
@@ -70,6 +84,13 @@ Defaults --->
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="mappings">
+
+
+<cfadmin 
+	action="getMailservers"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="mailservers">
 	
 
 <!--- cache --->
@@ -107,7 +128,6 @@ hasCache=hasObj || hasTem || hasQry || hasRes || hasFun || hasInc;
 
 
 <cfoutput>
-	
 
 	<cfsavecontent variable="codeSample">
 component {
@@ -162,16 +182,26 @@ component {
 	this.charset.resource="#charset.resourceCharset#";
 	
 	this.scopeCascading = "#scope.scopeCascadingType#";
-<cfif hasCache>
-	// cache
-<cfif hasObj>	this.cache.object = "#!hasObj?"&lt;cache-name>":defaults.object#";
-</cfif><cfif hasTem>	this.cache.template = "#!hasTem?"&lt;cache-name>":defaults.template#";
-</cfif><cfif hasQry>	this.cache.query = "#!hasQry?"&lt;cache-name>":defaults.query#";
-</cfif><cfif hasRes>	this.cache.resource = "#!hasRes?"&lt;cache-name>":defaults.resource#";
-</cfif><cfif hasFun>	this.cache.function = "#!hasFun?"&lt;cache-name>":defaults.function#";
-</cfif><cfif hasInc>	this.cache.include = "#!hasInc?"&lt;cache-name>":defaults.include#";</cfif>
-</cfif>	
 
+//////////////////////////////////////////////
+//               MAIL SERVERS               //
+//////////////////////////////////////////////
+	this.mailservers =[ 
+<cfloop query="#mailservers#"><cfset life=toTSStruct(mailservers.life)><cfset idle=toTSStruct(mailservers.idle)>
+		<cfif mailservers.currentrow GT 1>,</cfif>{
+		  host: '#mailservers.hostname#'
+		, port: #mailservers.port#
+		, username: '#replace(mailservers.username,"'","''","all")#'
+		, password: '#mailservers.passwordEncrypted?:''#'
+		, ssl: #mailservers.ssl?:false#
+		, tls: #mailservers.tls?:false#<cfif 
+		!isNull(mailservers.life)>
+		, lifeTimespan: createTimeSpan(#life.days#,#life.hours#,#life.minutes#,#life.seconds#)</cfif><cfif 
+		!isNull(mailservers.idle)>
+		, idleTimespan: createTimeSpan(#idle.days#,#idle.hours#,#idle.minutes#,#idle.seconds#)</cfif>
+		}
+</cfloop>
+	];
 //////////////////////////////////////////////
 //               DATASOURCES                //
 //////////////////////////////////////////////
@@ -198,6 +228,27 @@ if(datasources.readOnly) optional.append('readOnly:#datasources.readOnly# // def
 	</cfif></cfloop></cfif>
 	};
 	</cfloop>
+//////////////////////////////////////////////
+//                 CACHES                   //
+//////////////////////////////////////////////
+	<cfloop query="#cacheConnections#">this.cache.connections["#cacheConnections.name#"] = {
+		  class: '#cacheConnections.class#'#isNull(cacheConnections.bundleName) || isEmpty(cacheConnections.bundleName)?"":"
+		, bundleName: '"&cacheConnections.bundleName&"'"##isNull(cacheConnections.bundleVersion) || isEmpty(cacheConnections.bundleVersion)?"":"
+		, bundleVersion: '"&cacheConnections.bundleVersion&"'"##!cacheConnections.readOnly?"":"
+		, readOnly: "&cacheConnections.readonly#
+		, storage: #cacheConnections.storage#
+		, custom: #isStruct(cacheConnections.custom)?serialize(cacheConnections.custom):'{}'#
+		, default: '#cacheConnections.default#'
+	};
+	</cfloop><cfif hasCache>
+	// cache defaults
+<cfif hasObj>	this.cache.object = "#!hasObj?"&lt;cache-name>":defaults.object#";
+</cfif><cfif hasTem>	this.cache.template = "#!hasTem?"&lt;cache-name>":defaults.template#";
+</cfif><cfif hasQry>	this.cache.query = "#!hasQry?"&lt;cache-name>":defaults.query#";
+</cfif><cfif hasRes>	this.cache.resource = "#!hasRes?"&lt;cache-name>":defaults.resource#";
+</cfif><cfif hasFun>	this.cache.function = "#!hasFun?"&lt;cache-name>":defaults.function#";
+</cfif><cfif hasInc>	this.cache.include = "#!hasInc?"&lt;cache-name>":defaults.include#";</cfif>
+</cfif>	
 
 //////////////////////////////////////////////
 //               MAPPINGS                   //
@@ -222,9 +273,9 @@ this.mappings["#mappings.virtual#"]=<cfif len(mappings.strPhysical) && !len(mapp
 
 <h1>#stText.settings.exportAppCFC#</h1>	
 <div class="pageintro">#stText.settings.exportAppCFCDesc#</div>
-<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 <input type="submit" class="button submit" onclick="disableBlockUI=true;" name="subAction" value="#stText.Buttons.export#">
-</cfform>
+</cfformClassic>
 
 
 <cfset renderCodingTip( codeSample,false, false )>

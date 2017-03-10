@@ -3,18 +3,18 @@
 <cfparam name="languages" default="#{en:'English',de:'Deutsch'}#">
 
 <cfoutput>
-	<cfform name="login" action="#request.self#" method="post"><!--- onerror="customError"--->
+	<cfformClassic name="login" action="#request.self#" method="post"><!--- onerror="customError"--->
 		<table class="maintbl" style="width:300px">
 			<tbody> 
 				<tr>
 					<th scope="row" class="right" nowrap="nowrap">#stText.Login.Password#</th>
-					<td><cfinput type="password" name="new_password" id="new_password" value="" passthrough='autocomplete="off"'
+					<td><cfinputClassic type="password" name="new_password" id="new_password" value="" passthrough='autocomplete="off"'
 						class="xlarge" required="yes" message="#stText.Login.PasswordMissing#" />
 					</td>
 				</tr>
 				<tr>
 					<th scope="row" class="right" nowrap="nowrap">#stText.Login.RetypePassword#</th>
-					<td><cfinput type="password" name="new_password_re" value="" passthrough='autocomplete="off"'
+					<td><cfinputClassic type="password" name="new_password_re" value="" passthrough='autocomplete="off"'
 						class="xlarge" required="yes" message="#stText.Login.RetypePasswordMissing#" />
 					</td>
 				</tr>
@@ -51,7 +51,7 @@
 				</tr>
 			</tfoot>
 		</table>
-	</cfform>
+	</cfformClassic>
 </cfoutput>
 
 <script type="text/javascript">

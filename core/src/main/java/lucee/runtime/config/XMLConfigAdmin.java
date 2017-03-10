@@ -26,8 +26,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -60,6 +62,7 @@ import lucee.commons.io.res.util.FileWrapper;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.commons.net.HTTPUtil;
@@ -69,7 +72,10 @@ import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.engine.CFMLEngineFactorySupport;
 import lucee.loader.osgi.BundleCollection;
+import lucee.loader.util.ExtensionFilter;
+import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
@@ -139,6 +145,7 @@ import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLibException;
 
+import org.apache.felix.framework.Logger;
 import org.apache.log4j.Level;
 import org.apache.xerces.parsers.DOMParser;
 import org.osgi.framework.Bundle;
@@ -260,9 +267,7 @@ public final class XMLConfigAdmin {
 			admin._reload();
 			SystemOut.printDate(ci.getOutWriter(), "reloaded the configuration ["+file+"] automaticly");
 		} 
-		catch (Throwable t) {
-			t.printStackTrace();
-		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
     private void addResourceProvider(String scheme,ClassDefinition cd,String arguments) throws PageException {
@@ -361,7 +366,7 @@ public final class XMLConfigAdmin {
     	try {
 	    	ConfigWebFactory.getChildByName(doc.getDocumentElement(),"cfabort",true);
     	}
-    	catch( Throwable t) {}
+    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     }*/
 
 
@@ -504,12 +509,6 @@ public final class XMLConfigAdmin {
         if(!hasAccess)
             throw new SecurityException("no access to update mail server settings");
         
-        /*try {
-            SMTPVerifier.verify(hostName,username,password,port);
-        } catch (SMTPException e) {
-            throw Caster.toPageException(e);
-        }*/
-        
         Element mail=_getRootElement("mail");
         if(port<1) port=21;
 
@@ -522,10 +521,16 @@ public final class XMLConfigAdmin {
       	
         // Update
         Element server=null;
+        String _hostName,_username;
         for(int i=0;i<children.length;i++) {
       	    Element el=children[i];
-      	    String smtp=el.getAttribute("smtp");
-  			if(smtp!=null && smtp.equalsIgnoreCase(hostName)) {
+      	    _hostName=el.getAttribute("smtp");
+      	    _username=el.getAttribute("username");
+      	    if(
+      	    		StringUtil.emptyIfNull(_hostName).equalsIgnoreCase(hostName) 
+      	    	&& 
+      	    		StringUtil.emptyIfNull(_username).equals(StringUtil.emptyIfNull(username))
+      	    ) {
 	      		server=el;
 	      		break;
   			}
@@ -554,16 +559,22 @@ public final class XMLConfigAdmin {
      * @param hostName
      * @throws SecurityException 
      */
-    public void removeMailServer(String hostName) throws SecurityException {
+    public void removeMailServer(String hostName, String username) throws SecurityException {
     	checkWriteAccess();
     	
         Element mail=_getRootElement("mail");
         Element[] children = XMLConfigWebFactory.getChildren(mail,"server");
+        String _hostName,_username;
         if(children.length>0) {
 	      	for(int i=0;i<children.length;i++) {
 	      	    Element el=children[i];
-	      	    String smtp=el.getAttribute("smtp");
-	  			if(smtp!=null && smtp.equalsIgnoreCase(hostName)) {
+	      	    _hostName=el.getAttribute("smtp");
+	      	    _username=el.getAttribute("username");
+	  			if(
+	  					StringUtil.emptyIfNull(_hostName).equalsIgnoreCase(StringUtil.emptyIfNull(hostName))
+	  					&&
+	  					StringUtil.emptyIfNull(_username).equalsIgnoreCase(StringUtil.emptyIfNull(username))
+	  			) {
 		      		mail.removeChild(children[i]);
 	  			}
 	      	}
@@ -1601,7 +1612,7 @@ public final class XMLConfigAdmin {
     public void updateDataSource(String name, String newName, ClassDefinition cd, String dsn, String username, String password,
             String host, String database, int port, int connectionLimit, int connectionTimeout, long metaCacheTimeout,
             boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver,
-            ParamSyntax paramSyntax) throws PageException {
+            ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout) throws PageException {
 
     	checkWriteAccess();
     	SecurityManager sm = config.getSecurityManager();
@@ -1671,7 +1682,16 @@ public final class XMLConfigAdmin {
 	            el.setAttribute("param-delimiter",(paramSyntax.delimiter));
 	            el.setAttribute("param-leading-delimiter",(paramSyntax.leadingDelimiter));
 	            el.setAttribute("param-separator",(paramSyntax.separator));
-
+	            
+	            
+	            if(literalTimestampWithTSOffset)el.setAttribute("literal-timestamp-with-tsoffset","true");
+	            else if(el.hasAttribute("literal-timestamp-with-tsoffset")) 
+	            	el.removeAttribute("literal-timestamp-with-tsoffset");
+	            
+	            if(alwaysSetTimeout)el.setAttribute("always-set-timeout","true");
+	            else if(el.hasAttribute("always-set-timeout")) 
+	            	el.removeAttribute("always-set-timeout");
+	            
 	            
 	      		return;
   			}
@@ -1715,7 +1735,9 @@ public final class XMLConfigAdmin {
         el.setAttribute("param-delimiter",(paramSyntax.delimiter));
         el.setAttribute("param-leading-delimiter",(paramSyntax.leadingDelimiter));
         el.setAttribute("param-separator",(paramSyntax.separator));
-
+        
+        if(literalTimestampWithTSOffset)el.setAttribute("literal-timestamp-with-tsoffset","true");
+        if(alwaysSetTimeout)el.setAttribute("always-set-timeout","true");
     }
     
     static void removeJDBCDriver(ConfigImpl config, ClassDefinition cd, boolean reload) throws IOException, SAXException, PageException, BundleException {
@@ -3605,7 +3627,9 @@ public final class XMLConfigAdmin {
         try {
 			location=HTTPUtil.toURL(location,true).toString();
 		} 
-        catch (Throwable e) {}
+        catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
+        }
         update.setAttribute("location",location);
     }
     
@@ -3692,6 +3716,7 @@ public final class XMLConfigAdmin {
         
     	synchronized(factory){
 	        try {
+	        	cleanUp(factory);
 	            factory.update(cs.getPassword(),cs.getIdentification());
 	        } 
 	        catch (Exception e) {
@@ -3732,6 +3757,158 @@ public final class XMLConfigAdmin {
             throw Caster.toPageException(e);
         }
     }
+
+	public void changeVersionTo(Version version, Password password, IdentificationWeb id) throws PageException {
+		checkWriteAccess();
+    	
+    	ConfigServerImpl cs=(ConfigServerImpl) ConfigImpl.getConfigServer(config,password);
+    	
+    	try {
+        	CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
+        	cleanUp(factory);
+        	// do we have the core file?
+        	final File patchDir = factory.getPatchDirectory();
+    		File localPath=new File(version.toString()+".lco");
+        	
+    		if(!localPath.isFile()) {
+    			localPath=null;
+    			Version v;
+    			final File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { ".lco" }));
+        		for (final File patch : patches) {
+        			v=CFMLEngineFactory.toVersion(patch.getName(),null);
+        			// not a valid file get deleted
+        			if(v==null){
+        				patch.delete();
+        			}
+        			else {
+	        			if(v.equals(version)) { // match!
+	        				localPath=patch;
+	        			}
+	        			// delete newer files
+	        			else if(Util.isNewerThan(v,version)) {
+	        				patch.delete();
+	        			}
+        			}
+    			}
+    		}
+        	
+    		// download patch
+        	if(localPath==null) {
+        		
+        		downloadCore(factory, version, id);
+        	}
+        	
+        	
+        	
+        	
+        	factory.restart(password);
+        } 
+        catch (Exception e) {
+            throw Caster.toPageException(e);
+        }
+	}
+	
+	private void cleanUp(CFMLEngineFactory factory) throws IOException {
+		final File patchDir = factory.getPatchDirectory();
+		final File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { ".lco" }));
+		for (final File patch : patches) {
+			if(!IsZipFile.invoke(patch)) patch.delete();
+		}
+	}
+
+
+	private File downloadCore( CFMLEngineFactory factory, Version version,Identification id) throws IOException {
+		final URL updateProvider = factory.getUpdateLocation();
+
+		
+		final URL updateUrl = new URL(updateProvider,
+				"/rest/update/provider/download/" + version.toString()
+						+ (id != null ? id.toQueryString() : "")
+						+ (id == null ? "?" : "&")+"allowRedirect=true"
+				);
+		//log.debug("Admin", "download "+version+" from " + updateUrl);
+		System.out.println(updateUrl);
+		
+		
+		// local resource
+		final File patchDir = factory.getPatchDirectory();
+		final File newLucee = new File(patchDir, version + (".lco"));
+		
+		int code;
+		HttpURLConnection conn;
+		try {
+			conn = (HttpURLConnection) updateUrl.openConnection();
+			conn.setRequestMethod("GET");
+			conn.connect();
+			code = conn.getResponseCode();
+		} catch (final UnknownHostException e) {
+			//log.error("Admin", e);
+			throw e;
+		}
+		
+		// the update provider is not providing a download for this
+		if (code != 200) {
+			
+			// the update provider can also provide a different (final) location for this
+			if(code==302) {
+				String location = conn.getHeaderField("Location");
+				// just in case we check invalid names
+				if(location==null)location = conn.getHeaderField("location");
+				if(location==null)location = conn.getHeaderField("LOCATION");
+				System.out.println("download redirected:" + location); // MUST remove
+				//log.debug("Admin", "download redirected to " + updateUrl);
+				
+				
+				conn.disconnect();
+				URL url = new URL(location);
+				try {
+					conn = (HttpURLConnection) url.openConnection();
+					conn.setRequestMethod("GET");
+					conn.connect();
+					code = conn.getResponseCode();
+				} catch (final UnknownHostException e) {
+					//log.error("Admin", e);
+					throw e;
+				}
+			}
+			
+			// no download available!
+			if(code != 200){
+				final String msg = "Lucee is not able do download the core for version ["
+					+ version.toString() + "] from " + updateUrl
+					+ ", please donwload it manually and copy to [" + patchDir + "]";
+				//log.debug("Admin", msg);
+				conn.disconnect();
+				throw new IOException(msg);
+			}
+		}
+		
+		// copy it to local directory
+		if (newLucee.createNewFile()) {
+			IOUtil.copy((InputStream) conn.getContent(), new FileOutputStream(newLucee),false,true);
+			conn.disconnect();
+			
+			// when it is a loader extract the core from it
+			File tmp = CFMLEngineFactory.extractCoreIfLoader(newLucee);
+			if(tmp!=null) {
+				System.out.println("extract core from loader"); // MUST remove
+				//log.debug("Admin", "extract core from loader");
+				
+				newLucee.delete();
+				tmp.renameTo(newLucee);
+				tmp.delete();
+				System.out.println("exist?"+newLucee.exists()); // MUST remove
+				
+			}
+		}
+		else {
+			conn.disconnect();
+			//log.debug("Admin","File for new Version already exists, won't copy new one");
+			return null;
+		}
+		return newLucee;
+	}
+	
     
 	private String getCoreExtension() {
     	return "lco";
@@ -3764,6 +3941,7 @@ public final class XMLConfigAdmin {
         
     	synchronized(factory){
 	        try {
+	        	cleanUp(factory);
 	            factory.restart(cs.getPassword());
 	        } 
 	        catch (Exception e) {
@@ -4044,9 +4222,7 @@ public final class XMLConfigAdmin {
 			else if(Monitor.TYPE_REQUEST==type)
 				monitor=config.getIntervallMonitor(name);
 		}
-		catch(Throwable t){
-			//t.printStackTrace();
-		}
+		catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		IOUtil.closeEL(monitor);
 	}
 
@@ -4430,6 +4606,7 @@ public final class XMLConfigAdmin {
 				rhe = new RHExtension(config, child);
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				continue;
 			}
 			
@@ -4450,6 +4627,7 @@ public final class XMLConfigAdmin {
     	if(reload)admin._reload();
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 	}
@@ -4473,6 +4651,7 @@ public final class XMLConfigAdmin {
 	    	admin.restart(config);
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(config.getDeployDirectory(),core);
 			throw Caster.toPageException(t);
 		}
@@ -4523,7 +4702,8 @@ public final class XMLConfigAdmin {
 			hidden = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-hidden")),false);
 			physicalFirst = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-physical-first")),false);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(config.getDeployDirectory(),archive);
 			throw Caster.toPageException(t);
 		}
@@ -4550,7 +4730,8 @@ public final class XMLConfigAdmin {
 			else if("ct".equalsIgnoreCase(type))
 				_updateCustomTag(virtual, null, trgFile.getAbsolutePath(), "archive", inspect);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(config.getDeployDirectory(),archive);
 			throw Caster.toPageException(t);
 		}
@@ -4567,6 +4748,7 @@ public final class XMLConfigAdmin {
 	    	admin.updateRHExtension(config,ext,reload);
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 	}
@@ -4579,6 +4761,7 @@ public final class XMLConfigAdmin {
 			rhext = new RHExtension(config, ext,true);
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(ext.getParentResource(),ext);
 			throw Caster.toPageException(t);
 		}
@@ -4709,6 +4892,12 @@ public final class XMLConfigAdmin {
 	        		logger.log(Log.LEVEL_INFO,"extension","deploy application "+realpath);
 	        		updateApplication( zis, realpath,false);
 				}
+				// configs
+				if(!entry.isDirectory() && (startsWith(path,type,"config")) && !StringUtil.startsWith(fileName(entry), '.')) {
+					realpath=path.substring(7);
+	        		logger.log(Log.LEVEL_INFO,"extension","deploy config "+realpath);
+	        		updateConfigs( zis, realpath,false,false);
+				}
 				// components
 				if(!entry.isDirectory() && (startsWith(path,type,"components")) && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath=path.substring(11);
@@ -4729,7 +4918,7 @@ public final class XMLConfigAdmin {
 			   
 			// load the bundles
 			if(rhext.getStartBundles()) {
-				rhext.deployBundles();
+				rhext.deployBundles(ci);
 				BundleInfo[] bfs = rhext.getBundles();
 				for(BundleInfo bf:bfs){
 					OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(),false,null);
@@ -4905,13 +5094,12 @@ public final class XMLConfigAdmin {
 					_store();
 			//}
 		}
-		catch(Throwable t){t.printStackTrace();
+		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(rhext.getExtensionFile().getParentResource(),rhext.getExtensionFile());
 			try {
 				XMLConfigAdmin.removeRHExtension((ConfigImpl)config, rhext.getId(), false);
-			} catch (Throwable t2) {
-				t2.printStackTrace();
-			}
+			} catch (Throwable t2) {ExceptionUtil.rethrowIfNecessary(t2);}
 			throw Caster.toPageException(t);
 		}
 	}
@@ -5168,14 +5356,12 @@ public final class XMLConfigAdmin {
 			
 		}
 		catch(Throwable t){
-			
+			ExceptionUtil.rethrowIfNecessary(t);
 			// failed to uninstall, so we install it again
 			try {
 				updateRHExtension(config, rhe.getExtensionFile(),true);
 				//RHExtension.install(config, rhe.getExtensionFile());
-			} catch (Throwable t2) {
-				t2.printStackTrace();
-			}
+			} catch (Throwable t2) {ExceptionUtil.rethrowIfNecessary(t2);}
 			throw Caster.toPageException(t);
 		}
 		
@@ -5353,7 +5539,8 @@ public final class XMLConfigAdmin {
 			else if("ct".equalsIgnoreCase(type))	removeCustomTag(virtual);
 			else throw new ApplicationException("invalid type ["+type+"], valid types are [regular, cfc, ct]");
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 		finally {
@@ -5480,12 +5667,12 @@ public final class XMLConfigAdmin {
 	        	try{
 	        		root.removeAttribute("serial-number");
 	        	}
-	        	catch(Throwable t){}
+	        	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	        }
         	try{
         		root.removeAttribute("serial");
         	}
-        	catch(Throwable t){}
+        	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	    }
 
 
@@ -5776,6 +5963,23 @@ public final class XMLConfigAdmin {
     	ConfigWebAdmin._updateContext(config, is, realpath, closeStream, filesDeployed,store);
     	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
     }*/
+	
+
+	Resource[] updateConfigs(InputStream is,String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
+    	List<Resource> filesDeployed=new ArrayList<Resource>();
+    	_updateConfigs(config, is, realpath, closeStream, filesDeployed,store);
+    	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
+    }
+	private static void _updateConfigs(Config config,InputStream is,String realpath, boolean closeStream,List<Resource> filesDeployed, boolean store) throws PageException, IOException, SAXException, BundleException {
+		Resource configs = config.getConfigDir(); // MUST get that dynamically
+		Resource trg = configs.getRealResource(realpath);
+		if(trg.exists()) trg.remove(true);
+        Resource p = trg.getParentResource();
+        if(!p.isDirectory()) p.createDirectory(true); 
+        IOUtil.copy(is, trg.getOutputStream(false), closeStream,true);
+        filesDeployed.add(trg);
+        if(store)_storeAndReload((ConfigImpl)config);
+    }
 
 	Resource[] updateComponent(InputStream is,String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
     	List<Resource> filesDeployed=new ArrayList<Resource>();
@@ -5845,13 +6049,34 @@ public final class XMLConfigAdmin {
         filesDeployed.add(trg);
         _storeAndReload((ConfigImpl)config);
     }
+	public boolean removeConfigs(Config config, boolean store,String... realpathes) throws PageException, IOException, SAXException, BundleException {
+		if(ArrayUtil.isEmpty(realpathes)) return false;
+		boolean force=false;
+		for(int i=0;i<realpathes.length;i++){
+			if(_removeConfigs(config, realpathes[i],store))
+				force=true;
+		}
+		return force;
+	}
 	
+	private boolean _removeConfigs(Config config,String realpath, boolean _store) throws PageException, IOException, SAXException, BundleException {
+    	
+    	Resource context = config.getConfigDir(); // MUST get dyn
+    	Resource trg = context.getRealResource(realpath);
+    	if(trg.exists()) {
+        	trg.remove(true);
+        	if(_store) XMLConfigAdmin._storeAndReload((ConfigImpl) config);
+        	ResourceUtil.removeEmptyFolders(context,null);
+        	return true;
+        }
+        return false;
+    }
 
 	public boolean removeComponents(Config config, boolean store,String... realpathes) throws PageException, IOException, SAXException, BundleException {
 		if(ArrayUtil.isEmpty(realpathes)) return false;
 		boolean force=false;
 		for(int i=0;i<realpathes.length;i++){
-			if(_removeContext(config, realpathes[i],store))
+			if(_removeComponent(config, realpathes[i],store))
 				force=true;
 		}
 		return force;
@@ -6050,7 +6275,7 @@ public final class XMLConfigAdmin {
   				arr=_removeExtensionCheckOtherUsage(children,el,"contexts");
   				storeChildren=removeContext(config,false, arr);
   				
-  				// contexts
+  				// webcontexts
   				arr=_removeExtensionCheckOtherUsage(children,el,"webcontexts");
   				storeChildren=removeWebContexts(config,false, arr);
 
@@ -6061,6 +6286,10 @@ public final class XMLConfigAdmin {
   				// components
   				arr=_removeExtensionCheckOtherUsage(children,el,"components");
   				removeComponents(config, false, arr);
+
+  				// configs
+  				arr=_removeExtensionCheckOtherUsage(children,el,"config");
+  				removeConfigs(config, false, arr);
   				
   				// plugins
   				arr=_removeExtensionCheckOtherUsage(children,el,"plugins");
@@ -6219,7 +6448,8 @@ public final class XMLConfigAdmin {
 			try {
 				return new RHExtension(config,children[i]);
 			}
-			catch (Throwable t) {
+			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				return defaultValue;
 			}
       	}
@@ -6252,6 +6482,7 @@ public final class XMLConfigAdmin {
 					rhe = new RHExtension(config,children[i]);
 				}
 				catch(Throwable t){
+					ExceptionUtil.rethrowIfNecessary(t);
 					continue;
 				}
 				if(ed.equals(rhe)) return rhe;

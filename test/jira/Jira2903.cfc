@@ -28,23 +28,25 @@
 		return !variables.has;
 	}
 
-	
-
 	private boolean function defineDatasource(){
 		var pgsql=getCredencials();
 		if(pgsql.count()==0) return false;
-		application action="update" 
+		application action="update"
 			datasource="#{
 	  class: 'org.postgresql.Driver'
-	, bundleName: 'org.lucee.postgresql'
-	, bundleVersion: '8.3.0.jdbc4'
+	, bundleName: 'org.postgresql.jdbc42'
+	, bundleVersion: '9.4.1212'
 	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
 	, username: pgsql.username
 	, password: pgsql.password
 }#";
-	
+/*
+	, bundleName: 'org.lucee.postgresql'
+	, bundleVersion: '8.3.0.jdbc4'
+*/
 	return true;
 	}
+
 
 	private struct function getCredencials() {
 		// getting the credetials from the enviroment variables

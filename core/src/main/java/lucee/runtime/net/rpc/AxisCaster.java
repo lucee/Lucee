@@ -39,6 +39,7 @@ import javax.xml.rpc.encoding.TypeMapping;
 
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
@@ -579,6 +580,7 @@ public final class AxisCaster {
     			pojo=(Pojo) ClassUtil.loadInstance(clazz);
     		}
     		catch(Throwable t){
+    			ExceptionUtil.rethrowIfNecessary(t);
     			throw Caster.toPageException(t);
     		}
     		// Struct
@@ -612,6 +614,7 @@ public final class AxisCaster {
 	        		
         		}
         		catch(Throwable fault){
+        			ExceptionUtil.rethrowIfNecessary(fault);
         			throw Caster.toPageException(fault);
         		}
         		return pojo;

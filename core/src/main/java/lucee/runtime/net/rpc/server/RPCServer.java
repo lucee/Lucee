@@ -41,9 +41,13 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.Component;
+import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.exp.PageException;
@@ -115,17 +119,10 @@ public final class RPCServer{
      * Initialization method.
      * @throws AxisFault 
      */
-    private RPCServer(Config config,ServletContext context) throws AxisFault {
+    private RPCServer(PageContext pc,ServletContext context) throws AxisFault {
         this.context=context;
-        ConfigImpl ci=(ConfigImpl) config;
-        
-        
-        this.log=ci.getLogger("application",true);
-        this.exceptionLog=ci.getLogger("exception",true);
-        
-        
-        
-        
+        this.log=LogUtil.toLogger(pc.getConfig().getLog("application"));
+        this.exceptionLog=LogUtil.toLogger(pc.getConfig().getLog("exception"));
         
         initQueryStringHandlers();
         ServiceAdmin.setEngine(this.getEngine(), context.getServerInfo());
@@ -166,6 +163,7 @@ public final class RPCServer{
 			}
 		} 
         catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
         	if(e instanceof InvocationTargetException)
         		e= ((InvocationTargetException)e).getTargetException();
         	if(e instanceof PageException)
@@ -352,7 +350,8 @@ public final class RPCServer{
                     ((org.apache.axis.SOAPPart) responseMsg.getSOAPPart()).
                             getMessage().setMessageContext(msgContext);
                 }
-            } catch (Throwable t) {
+            } catch(Throwable t) {
+            	ExceptionUtil.rethrowIfNecessary(t);
             	if(t instanceof InvocationTargetException)
             		t=((InvocationTargetException)t).getTargetException();
             	// Exception
@@ -812,10 +811,10 @@ public final class RPCServer{
         return axisServer;
     }
     
-	public static RPCServer getInstance(int id, Config config,ServletContext servletContext) throws AxisFault {
+	public static RPCServer getInstance(int id, PageContext pc,ServletContext servletContext) throws AxisFault {
 		RPCServer server=(RPCServer) servers.get(Caster.toString(id));
 		if(server==null){
-			servers.put(Caster.toString(id), server=new RPCServer(config,servletContext));
+			servers.put(Caster.toString(id), server=new RPCServer(pc,servletContext));
 		}
 		return server;
 	}

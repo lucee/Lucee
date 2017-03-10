@@ -26,6 +26,7 @@ public abstract class FunctionMember implements Member {
 	private Argument[] arguments=new Argument[0];
 	private boolean _hasNamedArgs;
 	private Variable parent;
+	private boolean safeNavigated;
 
 
 	public final void setParent(Variable parent) {
@@ -61,4 +62,13 @@ public abstract class FunctionMember implements Member {
 		return _hasNamedArgs;
 	}
 
+	@Override
+	public void setSafeNavigated(boolean safeNavigated) {
+		this.safeNavigated=safeNavigated;
+	}
+
+	@Override
+	public boolean getSafeNavigated() {
+		return this.safeNavigated;
+	}
 }

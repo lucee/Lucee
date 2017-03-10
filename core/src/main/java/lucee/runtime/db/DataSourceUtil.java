@@ -22,6 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 
 
@@ -102,7 +103,8 @@ public class DataSourceUtil {
 		try {
 			return ps.isClosed();
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -111,7 +113,7 @@ public class DataSourceUtil {
 		try {
 			dbName = dc.getDatasource().getDatabase();
 		} 
-		catch( Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		if (StringUtil.isEmpty(dbName)) dbName = dc.getConnection().getCatalog();  // works on most JDBC drivers (except Oracle )
 		return dbName;

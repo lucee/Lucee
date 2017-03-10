@@ -63,20 +63,30 @@ public abstract class StorageScopeImpl extends StructSupport implements StorageS
 	private static final long serialVersionUID = 7874930250042576053L;
 	private static Set<Collection.Key> FIX_KEYS=new HashSet<Collection.Key>();
 	static {
-		FIX_KEYS.add(CFID);
-		FIX_KEYS.add(CFTOKEN);
-		FIX_KEYS.add(URLTOKEN);
-		FIX_KEYS.add(LASTVISIT);
-		FIX_KEYS.add(HITCOUNT);
-		FIX_KEYS.add(TIMECREATED);
+		FIX_KEYS.add(KeyConstants._cfid);
+		FIX_KEYS.add(KeyConstants._cftoken);
+		FIX_KEYS.add(KeyConstants._urltoken);
+		FIX_KEYS.add(KeyConstants._lastvisit);
+		FIX_KEYS.add(KeyConstants._hitcount);
+		FIX_KEYS.add(KeyConstants._timecreated);
 	}
 	
+	public static Set<Collection.Key> KEYS=new HashSet<Collection.Key>();
+	static {
+		KEYS.add(KeyConstants._cfid);
+		KEYS.add(KeyConstants._cftoken);
+		KEYS.add(KeyConstants._urltoken);
+		KEYS.add(KeyConstants._lastvisit);
+		KEYS.add(KeyConstants._hitcount);
+		KEYS.add(KeyConstants._timecreated);
+		KEYS.add(KeyConstants._sessionid);
+	}
 
 	protected static Set<Collection.Key> ignoreSet=new HashSet<Collection.Key>();
 	static {
-		ignoreSet.add(CFID);
-		ignoreSet.add(CFTOKEN);
-		ignoreSet.add(URLTOKEN);
+		ignoreSet.add(KeyConstants._cfid);
+		ignoreSet.add(KeyConstants._cftoken);
+		ignoreSet.add(KeyConstants._urltoken);
 	}
 	
 	
@@ -375,14 +385,17 @@ public abstract class StorageScopeImpl extends StructSupport implements StorageS
 	}
 	
 	@Override
-	public void store(Config config){
-		//do nothing
+	public final void store(Config config) {
+		store(ThreadLocalPageContext.get(config));
 	}
 
 	@Override
-	public void unstore(Config config){
-		//do nothing
+	public final void unstore(Config config) {
+		unstore(ThreadLocalPageContext.get(config));
 	}
+
+	public void store(PageContext pc){}
+	public void unstore(PageContext pc){}
 
 	/**
 	 * @return the hasChanges

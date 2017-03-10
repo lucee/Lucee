@@ -40,11 +40,11 @@ public final class ExceptionHandler {
 		pe.printStackTrace(config.getErrWriter()); 
 		
 		// apllication Log
-		LogUtil.log(((ConfigImpl)config).getLog("application"),Log.LEVEL_ERROR, "",pe);
+		LogUtil.log(config.getLog("application"),Log.LEVEL_ERROR, "",pe);
 		
 		// exception.log
 		String st = ExceptionUtil.getStacktrace(pe,true);
-		LogUtil.log(((ConfigImpl)config).getLog("exception"),Log.LEVEL_ERROR, "",pe);
+		LogUtil.log(config.getLog("exception"),Log.LEVEL_ERROR, "",pe);
 		
 		
 	}

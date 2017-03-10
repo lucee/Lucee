@@ -22,16 +22,16 @@
 	<cffunction name="setUp"></cffunction>
 	--->
 	<cffunction name="testEncodeForLDAP" localMode="modern">
-
-<!--- begin old test code --->
 <cfscript>
 enc=EncodeForLDAP('<script>');
 valueEquals(enc,'<script>');
 </cfscript>
-<!--- end old test code --->
-	
-		
-		<!--- <cfset assertEquals("","")> --->
+	</cffunction>
+	<cffunction name="testEncodeForLDAPMember" localMode="modern">
+<cfscript>
+enc='<script>'.EncodeForLDAP();
+valueEquals(enc,'<script>');
+</cfscript>
 	</cffunction>
 	
 	<cffunction access="private" name="valueEquals">

@@ -23,9 +23,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
 
 /**
@@ -170,51 +172,51 @@ public final class StringUtil {
 		rtn.append(quotesUsed);
 		
 		for(int i=0;i<arr.length;i++) {
-			if(arr[i] < 128){
-				switch(arr[i]) {
-					case '\\': rtn.append("\\\\"); break;
-					case '\n': rtn.append("\\n"); break;
-					case '\r': rtn.append("\\r"); break;
-					case '\f': rtn.append("\\f"); break;
-					case '\b': rtn.append("\\b"); break;
-					case '\t': rtn.append("\\t"); break;
-					case '"' : 
-						if(quotesUsed=='"') rtn.append("\\\"");
-						else rtn.append('"'); 
-					break;
-					case '\'': 
-						if(quotesUsed=='\'') rtn.append("\\\'");
-						else rtn.append('\''); 
-					break;
-					case '/': 
-						// escape </script>
-						if(
-							i>0 && arr[i-1]=='<'
-							&& i+1<arr.length && arr[i+1]=='s'
-							&& i+2<arr.length && arr[i+2]=='c'
-							&& i+3<arr.length && arr[i+3]=='r'
-							&& i+4<arr.length && arr[i+4]=='i'
-							&& i+5<arr.length && arr[i+5]=='p'
-							&& i+6<arr.length && arr[i+6]=='t'
-							&& i+7<arr.length && (isWhiteSpace(arr[i+7]) || arr[i+7]=='>')
-							
-						) {
-							rtn.append("\\/");
-							break;
-						} 
-					
-					default : rtn.append(arr[i]); break;
-				}
-			}
-			else if(enc==null || !enc.canEncode(arr[i])) {
-				if (arr[i] < 0x10)			rtn.append("\\u000");
-			    else if (arr[i] < 0x100) 	rtn.append( "\\u00");
-			    else if (arr[i] < 0x1000) 	rtn.append( "\\u0");
-			    else 						rtn.append( "\\u");
-				rtn.append(Integer.toHexString(arr[i]));
-			}
-			else {
-				rtn.append(arr[i]);
+			switch(arr[i]) {
+				case '\\': rtn.append("\\\\"); break;
+				case '\n': rtn.append("\\n"); break;
+				case '\r': rtn.append("\\r"); break;
+				case '\f': rtn.append("\\f"); break;
+				case '\b': rtn.append("\\b"); break;
+				case '\t': rtn.append("\\t"); break;
+				case '"' : 
+					if(quotesUsed=='"') rtn.append("\\\"");
+					else rtn.append('"'); 
+				break;
+				case '\'': 
+					if(quotesUsed=='\'') rtn.append("\\\'");
+					else rtn.append('\''); 
+				break;
+				case '/': 
+					// escape </script>
+					if(
+						i>0 && arr[i-1]=='<'
+						&& i+1<arr.length && arr[i+1]=='s'
+						&& i+2<arr.length && arr[i+2]=='c'
+						&& i+3<arr.length && arr[i+3]=='r'
+						&& i+4<arr.length && arr[i+4]=='i'
+						&& i+5<arr.length && arr[i+5]=='p'
+						&& i+6<arr.length && arr[i+6]=='t'
+						&& i+7<arr.length && (isWhiteSpace(arr[i+7]) || arr[i+7]=='>')
+						
+					) {
+						rtn.append("\\/");
+						break;
+					} 
+				
+				default:
+					if(Character.isISOControl(arr[i]) ||
+							(arr[i] >= 128 && (enc==null || !enc.canEncode(arr[i]))) ) {
+						if (arr[i] < 0x10)          rtn.append("\\u000");
+						else if (arr[i] < 0x100)    rtn.append("\\u00");
+						else if (arr[i] < 0x1000)   rtn.append("\\u0");
+						else                        rtn.append("\\u");
+						rtn.append(Integer.toHexString(arr[i]));
+					}
+					else {
+						rtn.append(arr[i]);
+					}
+				break;
 			}
 		}
 		return rtn.append(quotesUsed).toString();
@@ -727,6 +729,24 @@ public final class StringUtil {
         	sb.append( input.substring( start ) );
 
         return sb.toString();
+    }
+
+	public static String replace(PageContext pc, String input, String find, UDF udf, boolean firstOnly) throws PageException {
+		int len;
+		if((len=find.length())==0) return input;
+		
+		StringBuilder sb=new StringBuilder();
+		String repl;
+		int index,last=0;
+		while((index=input.indexOf(find,last))!=-1) {
+			sb.append(input.substring(last, index));
+			repl=Caster.toString(udf.call(pc, new Object[]{find,index,input}, true));
+			sb.append(repl);
+			last=index+len;
+			if(firstOnly) break;
+		}
+		if(last<input.length()) sb.append(input.substring(last));
+		return sb.toString();
     }
 
 	/**

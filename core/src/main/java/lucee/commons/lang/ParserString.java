@@ -513,6 +513,25 @@ public final class ParserString {
 		return rtn;	
 	}
 	
+	public boolean forwardIfCurrent(char first,char second,char third) {
+		int start=pos;
+		if(!forwardIfCurrent(first)) return false; 
+		
+		removeSpace();
+		boolean rtn=forwardIfCurrent(second); 
+		if(!rtn){
+			pos=start;
+			return rtn;	
+		}
+		
+		removeSpace();
+		rtn=forwardIfCurrent(third); 
+		if(!rtn)pos=start;
+		
+		
+		return rtn;	
+	}
+	
 	/**
 	 * Gibt zurueck ob first den folgenden Zeichen entspricht, gefolgt von Leerzeichen und second.
 	 * @param first Erste Zeichen zum Vergleich (Vor den Leerzeichen).

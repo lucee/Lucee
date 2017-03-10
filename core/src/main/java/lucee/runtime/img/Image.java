@@ -87,6 +87,7 @@ import javax.swing.ImageIcon;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.CFTypes;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.font.FontUtil;
 import lucee.runtime.PageContext;
@@ -98,6 +99,7 @@ import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.functions.image.ImageGetEXIFMetadata;
 import lucee.runtime.img.filter.QuantizeFilter;
 import lucee.runtime.img.gif.GifEncoder;
 import lucee.runtime.interpreter.VariableInterpreter;
@@ -331,11 +333,12 @@ public class Image extends StructSupport implements Cloneable,Struct {
 	}
 	
 
-	public Struct info()  throws ExpressionException{
+	public Struct info()  throws PageException {
 		if(sctInfo!=null) return sctInfo;
 		
 		Struct sctInfo=new StructImpl(),sct;
-		
+		ImageMetaDrew.addInfo(format,source,sctInfo);
+		sctInfo=ImageGetEXIFMetadata.flatten(sctInfo);
 		
 		sctInfo.setEL("height",new Double(getHeight()));
 		sctInfo.setEL("width",new Double(getWidth()));
@@ -372,9 +375,8 @@ public class Image extends StructSupport implements Cloneable,Struct {
 
 		
 		getMetaData(sctInfo);
-		
-		ImageMeta.addInfo(format,source,sctInfo);
-		
+		//Metadata.addInfo(format,source,sctInfo);
+		Metadata.addExifInfo(format,source,sctInfo);
 		this.sctInfo=sctInfo;
 		return sctInfo;
 	}
@@ -416,7 +418,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
                 return meta;
             }
         }
-        catch (Throwable t) {}
+        catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
         finally{
         	ImageUtil.closeEL(iis);
 			IOUtil.closeEL(is);
@@ -1049,14 +1051,14 @@ public class Image extends StructSupport implements Cloneable,Struct {
 		try {
 			iwp.setCompressionMode(mode);
 		}
-		catch( Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	private void setCompressionQualityEL(ImageWriteParam iwp, float quality) {
 		try {
 			iwp.setCompressionQuality(quality);
 		}
-		catch( Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	public void convert(String format) {
@@ -1109,7 +1111,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
     	try {
 			transparency=img.getTransparency();
 		} 
-    	catch (Throwable t) {}
+    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     	int type = (transparency == Transparency.OPAQUE) ?BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
         
     	
@@ -1444,7 +1446,8 @@ public class Image extends StructSupport implements Cloneable,Struct {
 		try {
 			return toImage(pc, obj, checkForVariables);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -1491,14 +1494,16 @@ public class Image extends StructSupport implements Cloneable,Struct {
 						try {
 							return createImage(pc, pc.getVariable(Caster.toString(obj)), false,clone,checkAccess,format);
 						}
-						catch (Throwable t) {
+						catch(Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
 							throw ee;
 						}
 					}
 					try {
 						return new Image(Caster.toString(obj),format);
 					}
-					catch (Throwable t) {
+					catch(Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
 						throw ee;
 					}
 				}
@@ -1511,7 +1516,8 @@ public class Image extends StructSupport implements Cloneable,Struct {
 			if(obj instanceof BufferedImage)	return new Image(((BufferedImage) obj));
 			if(obj instanceof java.awt.Image)	return new Image(toBufferedImage((java.awt.Image) obj));
 			
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 		throw new CasterException(obj,"Image");
@@ -1639,7 +1645,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
 	private Struct _info() {
 		try {
 			return info();
-		} catch (ExpressionException e) {
+		} catch (PageException e) {
 			throw new PageRuntimeException(e);
 		}
 	}
@@ -1752,7 +1758,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
 	public Boolean castToBoolean(Boolean defaultValue) {
 		try {
 			return info().castToBoolean(defaultValue);
-		} catch (ExpressionException e) {
+		} catch (PageException e) {
 			return defaultValue;
 		}
 	}
@@ -1766,7 +1772,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
     public DateTime castToDateTime(DateTime defaultValue) {
         try {
 			return info().castToDateTime(defaultValue);
-		} catch (ExpressionException e) {
+		} catch (PageException e) {
 			return defaultValue;
 		}
     }
@@ -1780,7 +1786,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
     public double castToDoubleValue(double defaultValue) {
         try {
 			return info().castToDoubleValue(defaultValue);
-		} catch (ExpressionException e) {
+		} catch (PageException e) {
 			return defaultValue;
 		}
     }
@@ -1845,7 +1851,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
 		try {
 			return info().containsValue(value);
 		} 
-		catch (ExpressionException e) {
+		catch (PageException e) {
 			return false;
 		}
 	}
@@ -1854,7 +1860,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
 	public java.util.Collection values() {
 		try {
 			return info().values();
-		} catch (ExpressionException e) {
+		} catch (PageException e) {
 			throw new PageRuntimeException(e);
 		}
 	}

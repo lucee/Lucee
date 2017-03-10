@@ -118,7 +118,7 @@ Create Datasource --->
 		</cfif>
 	</div>
 	
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<!---
 		replaced with encoding output
 		<tr>
@@ -126,7 +126,7 @@ Create Datasource --->
 			<td>
 				<span class="comment">#stText.Regional.DefaultEncodingDescription#</span>
 				<cfif hasAccess>
-				<cfinput type="text" name="defaultencoding" value="#regional.defaultEncoding#" 
+				<cfinputClassic type="text" name="defaultencoding" value="#regional.defaultEncoding#" 
 					style="width:200px" required="yes" message="#stText.regional.missingEncoding#">
 				
 				<cfelse>
@@ -178,7 +178,7 @@ Create Datasource --->
 						<cfelse>
 							<b>#regional.timezone#</b>
 						</cfif>
-						<!--- <cfinput type="text" name="timezone" value="#config.timezone.getId()#" style="width:200px" required="yes" message="Missing value for timezone"> --->
+						<!--- <cfinputClassic type="text" name="timezone" value="#config.timezone.getId()#" style="width:200px" required="yes" message="Missing value for timezone"> --->
 						<div class="comment">#stText.Regional.TimeZoneDescription#</div>
 						
 						<cfsavecontent variable="codeSample">
@@ -238,6 +238,6 @@ Create Datasource --->
 				</tr>
 			</tbody>
 		</table>
-	</cfform>
+	</cfformClassic>
 
 </cfoutput>

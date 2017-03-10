@@ -32,6 +32,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.FileWrapper;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -48,7 +49,7 @@ public class ManifestRead {
 		try {
 			res = ResourceUtil.toResourceExisting(pc, str);
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		// is a file!
 		if(res!=null){
@@ -87,7 +88,8 @@ public class ManifestRead {
 				}
 				
 			}
-			catch (Throwable t) {
+			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				throw Caster.toPageException(t);
 			}
 		}

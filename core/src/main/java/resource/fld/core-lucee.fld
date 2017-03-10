@@ -532,12 +532,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.international.LSParseDateTime</class>
 		<description>Converts a string that is a valid date/time representation in
         the current locale into a date/time object.</description>
+		<member-name>parseDateTime</member-name>
+        <member-type>string</member-type>
 		<argument>
 			<name>date</name>
 			<type>object</type>
 			<required>Yes</required>
-		<description>A string in a format that is readable in the current locale. </description>
-    </argument>
+			<description>A string in a format that is readable in the current locale. </description>
+    	</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>

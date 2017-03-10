@@ -18,6 +18,7 @@
  **/
 package lucee.commons.io.log.log4j.appender.task;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Config;
@@ -65,6 +66,7 @@ public class Task implements SpoolerTask {
 			return null;
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			CFMLEngine engine = CFMLEngineFactory.getInstance();
 			Cast caster = engine.getCastUtil();
 			Creation creator = engine.getCreationUtil();

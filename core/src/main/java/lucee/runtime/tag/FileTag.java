@@ -40,6 +40,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ModeObjectWrap;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.runtime.PageContext;
@@ -474,7 +475,8 @@ public final class FileTag extends BodyTagImpl {
 			source.moveTo(destination);
 				
 		}
-		catch(Throwable t) {t.printStackTrace();
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new ApplicationException(t.getMessage());
 		}
 		setACL(pageContext,destination,acl);
@@ -577,6 +579,7 @@ public final class FileTag extends BodyTagImpl {
 			if(!file.delete()) throw new ApplicationException("can't delete file ["+file+"]");
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new ApplicationException(t.getMessage());
 		}
 	}
@@ -586,32 +589,26 @@ public final class FileTag extends BodyTagImpl {
 	 * @throws PageException
 	 */
 	private void actionRead(boolean binary) throws PageException {
-		
 		if(variable==null)
 			throw new ApplicationException("attribute variable is not defined for tag file");
-		checkFile(pageContext, securityManager, file, serverPassword,false,false,true,false);
-		boolean hasCached=cachedWithin!=null;
 		
 		// CACHE
 		if(StringUtil.isEmpty(cachedWithin)){
-			Object tmp = ((PageContextImpl)pageContext).getCachedWithin(ConfigWeb.CACHEDWITHIN_HTTP);
+			Object tmp = ((PageContextImpl)pageContext).getCachedWithin(ConfigWeb.CACHEDWITHIN_FILE);
 			if(tmp!=null)setCachedwithin(tmp);
 		}
-		
-		/*if(clearCache) {
-			hasCached=false;
-			pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FILE,null)
-					.remove(pageContext, createId(binary));
-		}
-		else */
-			if(hasCached) {
-			CacheHandler ch =pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FILE,null).getInstanceMatchingObject(cachedWithin,null);
+		if(cachedWithin!=null) {
+			CacheHandler ch =pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FILE,null)
+					.getInstanceMatchingObject(cachedWithin,null);
 			CacheItem ci = ch!=null?ch.get(pageContext, createId(binary)):null;
 			if(ci instanceof FileCacheItem) {
 				pageContext.setVariable(variable,((FileCacheItem)ci).getData());
 				return;
 			}
 		}
+		
+		checkFile(pageContext, securityManager, file, serverPassword,false,false,true,false);
+		
 		
 		try {
 			long start = System.nanoTime();
@@ -763,7 +760,7 @@ public final class FileTag extends BodyTagImpl {
 		try {
 			sct.setEL(KeyConstants._checksum,Hash.md5(file));
 		}
-		catch(Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		
 		try { 		
@@ -775,7 +772,7 @@ public final class FileTag extends BodyTagImpl {
 	            sct.setEL(KeyConstants._img,img);
             }
         } 
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		return sct;
 	}
 
@@ -966,6 +963,7 @@ public final class FileTag extends BodyTagImpl {
 				IOUtil.copy(formItem.getResource(),destination);
 			}
 			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				throw Caster.toPageException(t);
 			}
 			

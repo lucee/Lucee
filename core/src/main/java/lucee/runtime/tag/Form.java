@@ -117,7 +117,7 @@ public final class Form extends BodyTagImpl {
      * @throws ApplicationException
      */
     public void setEnablecab(boolean enablecab) {
-		DeprecatedUtil.tagAttribute(pageContext,"Form", "enablecab");
+		//DeprecatedUtil.tagAttribute(pageContext,"Form", "enablecab");
         
     }
     /**
@@ -524,7 +524,7 @@ public final class Form extends BodyTagImpl {
     }
 
 
-    private String de(String str) {
+    private String de(String str) throws PageException {
         return DE.call(pageContext,str);
     }
     private String js(String str) {

@@ -42,6 +42,7 @@ import lucee.commons.io.res.filter.IgnoreSystemFiles;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.type.http.HTTPResource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -193,6 +194,7 @@ public final class ResourceUtil {
 			return toResourceExisting(pc, path, allowRealpath);
 		}
     	catch (Throwable e) {
+    		ExceptionUtil.rethrowIfNecessary(e);
 			return defaultValue;
 		}
     }
@@ -832,8 +834,9 @@ public final class ResourceUtil {
     			is = res.getInputStream();
     			return IOUtil.getMimeType(is, defaultValue);
 			} 
-    		catch (Throwable t) {
-				return defaultValue;
+    		catch(Throwable t) {
+    			ExceptionUtil.rethrowIfNecessary(t);
+            	return defaultValue;
 			}
     		finally {
     			IOUtil.closeEL(is);
@@ -1042,28 +1045,28 @@ public final class ResourceUtil {
 		try {
 			removeChildren(res,filter);
 		}
-		catch(Throwable e) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	public static void removeChildrenEL(Resource res,ResourceFilter filter) {
 		try {
 			removeChildren(res,filter);
 		}
-		catch(Throwable e) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	
 	public static void removeChildrenEL(Resource res) {
 		try {
 			removeChildren(res);
 		}
-		catch(Throwable e) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	public static void removeEL(Resource res, boolean force) {
 		try {
 			res.remove(force);
 		} 
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	public static void createFileEL(Resource res, boolean force) {
@@ -1440,7 +1443,8 @@ public final class ResourceUtil {
 		try {
 			return ps.getResourceTranslated(pc);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -1448,13 +1452,13 @@ public final class ResourceUtil {
 	public static int directrySize(Resource dir,ResourceFilter filter) {
 		if(dir==null || !dir.isDirectory()) return 0;
 		if(filter==null) return dir.list().length;
-		return dir.list(filter).length;
+		return ArrayUtil.size(dir.list(filter));
 	}
 	
 	public static int directrySize(Resource dir,ResourceNameFilter filter) {
 		if(dir==null || !dir.isDirectory()) return 0;
 		if(filter==null) return dir.list().length;
-		return dir.list(filter).length;
+		return ArrayUtil.size(dir.list(filter));
 	}
 	
 	public static String[] names(Resource[] resources) {

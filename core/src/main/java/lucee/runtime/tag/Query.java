@@ -39,6 +39,7 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.db.DataSourceImpl;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.DatasourceManagerImpl;
 import lucee.runtime.db.HSQLDBHandler;
@@ -56,7 +57,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMSession;
 import lucee.runtime.orm.ORMUtil;
-import lucee.runtime.tag.util.DeprecatedUtil;
 import lucee.runtime.tag.util.QueryParamConverter;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -168,6 +168,9 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	private Object rtn;
 	private Key columnName;
 	
+	private boolean literalTimestampWithTSOffset;
+	private boolean previousLiteralTimestampWithTSOffset;
+	
 	@Override
 	public void release()	{
 		super.release();
@@ -200,6 +203,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		rtn=null;
 		setReturnVariable=false;
 		columnName=null;
+		literalTimestampWithTSOffset=false;
+		previousLiteralTimestampWithTSOffset=false;
 	}
 	
 	
@@ -313,7 +318,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	* @param cachename value to set
 	**/
 	public void setCachename(String cachename)	{
-		DeprecatedUtil.tagAttribute(pageContext,"query", "cachename");
+		//DeprecatedUtil.tagAttribute(pageContext,"query", "cachename");
 		//this.cachename=cachename;
 	}
 	public void setColumnkey(String columnKey) {
@@ -339,7 +344,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	 * @throws ApplicationException
 	**/
 	public void setProviderdsn(String providerdsn) throws ApplicationException	{
-		DeprecatedUtil.tagAttribute(pageContext,"Query", "providerdsn");
+		//DeprecatedUtil.tagAttribute(pageContext,"Query", "providerdsn");
 	}
 
 	/** set the value connectstring
@@ -347,7 +352,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	 * @throws ApplicationException
 	**/
 	public void setConnectstring(String connectstring) throws ApplicationException	{
-		DeprecatedUtil.tagAttribute(pageContext,"Query", "connectstring");
+		//DeprecatedUtil.tagAttribute(pageContext,"Query", "connectstring");
 	}
 	
 
@@ -390,7 +395,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	 * @throws ApplicationException
 	**/
 	public void setDbname(String dbname) {
-		DeprecatedUtil.tagAttribute(pageContext,"Query", "dbname");
+		//DeprecatedUtil.tagAttribute(pageContext,"Query", "dbname");
 	}
 
 	/** set the value maxrows
@@ -416,7 +421,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	 * @throws ApplicationException
 	**/
 	public void setProvider(String provider) {
-		DeprecatedUtil.tagAttribute(pageContext,"Query", "provider");
+		//DeprecatedUtil.tagAttribute(pageContext,"Query", "provider");
 	}
 
 	/** set the value dbserver
@@ -426,7 +431,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	 * @throws ApplicationException
 	**/
 	public void setDbserver(String dbserver) {
-		DeprecatedUtil.tagAttribute(pageContext,"Query", "dbserver");
+		//DeprecatedUtil.tagAttribute(pageContext,"Query", "dbserver");
 	}
 
 	/** set the value name
@@ -466,14 +471,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	@Override
 	public int doStartTag() throws PageException	{
-		
-		//timeout
-		/*TimeSpan remaining = PageContextUtil.remainingTime(pageContext,true);
-		if(this.timeout==null || ((int)this.timeout.getSeconds())<=0 || timeout.getSeconds()>remaining.getSeconds()) { // not set
-			this.timeout=remaining;
-		}*/
-		
-		
+
 		// default datasource
 		if(datasource==null && (dbtype==null || !dbtype.equals("query"))){
 			Object obj = pageContext.getApplicationContext().getDefDataSource();
@@ -489,13 +487,22 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			}
 			datasource=obj instanceof DataSource?(DataSource)obj:pageContext.getDataSource(Caster.toString(obj));
 		}
-		
-		
+
+		//timeout
+		if(datasource instanceof DataSourceImpl && ((DataSourceImpl) datasource).getAlwaysSetTimeout()) {
+			TimeSpan remaining = PageContextUtil.remainingTime(pageContext,true);
+			if(this.timeout==null || ((int)this.timeout.getSeconds())<=0 || timeout.getSeconds()>remaining.getSeconds()) { // not set
+				this.timeout=remaining;
+			}
+		}
+
 		// timezone
 		if(timezone!=null || (datasource!=null && (timezone=datasource.getTimeZone())!=null)) {
 			tmpTZ=pageContext.getTimeZone();
 			pageContext.setTimeZone(timezone);
 		}
+		
+		PageContextImpl pci = ((PageContextImpl)pageContext);
 		
 		// cache within
 		if(StringUtil.isEmpty(cachedWithin)){
@@ -503,30 +510,27 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			if(tmp!=null)setCachedwithin(tmp);
 		}
 		
+		// literal timestamp with TSOffset
+		if(datasource instanceof DataSourceImpl) 
+			literalTimestampWithTSOffset=((DataSourceImpl)datasource).getLiteralTimestampWithTSOffset();
+		else 
+			literalTimestampWithTSOffset=false;
+		
+		previousLiteralTimestampWithTSOffset=pci.getTimestampWithTSOffset();
+		pci.setTimestampWithTSOffset(literalTimestampWithTSOffset);
 		
 		return EVAL_BODY_BUFFERED;
-	}
-	
-	@Override
-	public void doFinally() {
-		if(tmpTZ!=null) {
-			pageContext.setTimeZone(tmpTZ);
-		}
-		super.doFinally();
 	}
 
 	@Override
 	public int doEndTag() throws PageException	{
-
-		
-		
 		if(hasChangedPSQ)pageContext.setPsq(orgPSQ);
 		String strSQL=bodyContent.getString();
 		// no SQL String defined
 		if(strSQL.length()==0) 
 			throw new DatabaseException("no sql string defined, inside query tag",null,null,null);
 		
-		try{
+		try {
 		
 			strSQL=strSQL.trim();
 			// cannot use attribute params and queryparam tag
@@ -587,16 +591,11 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				// ORM and Datasource
 				else  	{ 
 					long start=System.nanoTime();
-					
 					Object obj = 
 							("orm".equals(dbtype) || "hql".equals(dbtype))?
 									executeORM(sql,returntype,ormoptions):
 									executeDatasoure(sql,result!=null,pageContext.getTimeZone());
 
-					
-					/*if(obj instanceof lucee.runtime.type.Query)
-						qr=query=(lucee.runtime.type.Query) obj;
-					else*/ 
 					if(obj instanceof QueryResult)
 						qr=(QueryResult)obj;
 					else {
@@ -736,6 +735,12 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			// log
 			pageContext.getConfig().getLog("datasource").error("query tag", pe);
 			throw pe;
+		}
+		finally {
+			((PageContextImpl)pageContext).setTimestampWithTSOffset(previousLiteralTimestampWithTSOffset);
+			if(tmpTZ!=null) {
+				pageContext.setTimeZone(tmpTZ);
+			}
 		}
 		return EVAL_PAGE;
 	}

@@ -34,8 +34,8 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SystemOut;
-import lucee.commons.lang.types.RefBoolean;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
@@ -62,6 +62,7 @@ public final class Controler extends Thread {
 	
 	private int interval;
 	private long lastMinuteInterval=System.currentTimeMillis()-(1000*59); // first after a second
+	private long last10SecondsInterval=System.currentTimeMillis()-(1000*9); // first after a second
 	private long lastHourInterval=System.currentTimeMillis();
 	
     private final Map contextes;
@@ -109,7 +110,8 @@ public final class Controler extends Thread {
 				controler.control(factories,firstRun);
 				done=System.currentTimeMillis()-start;
 			} 
-			catch (Throwable t) {
+			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				this.t=t;
 			}
 			//long time=System.currentTimeMillis()-start;
@@ -184,8 +186,12 @@ public final class Controler extends Thread {
 	
 	private void control(CFMLFactoryImpl[] factories, boolean firstRun) {
 		long now = System.currentTimeMillis();
+        boolean do10Seconds=last10SecondsInterval+10000<now;
+        if(do10Seconds)last10SecondsInterval=now;
+        
         boolean doMinute=lastMinuteInterval+60000<now;
         if(doMinute)lastMinuteInterval=now;
+        
         boolean doHour=(lastHourInterval+(1000*60*60))<now;
         if(doHour)lastHourInterval=now;
         
@@ -193,29 +199,32 @@ public final class Controler extends Thread {
         try {
 			ScopeContext.getClusterScope(configServer,true).broadcast();
 		} 
-        catch (Throwable t) {
-			t.printStackTrace();
-		}
+        catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
         
 
+        // every 10 seconds
+        if(do10Seconds) {
+        	// deploy extensions, archives ...
+			//try{DeployHandler.deploy(configServer);}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
+        }
         // every minute
         if(doMinute) {
         	// deploy extensions, archives ...
-			try{DeployHandler.deploy(configServer);}catch(Throwable t){t.printStackTrace();}
-            try{XMLConfigAdmin.checkForChangesInConfigFile(configServer);}catch(Throwable t){}
+			try{DeployHandler.deploy(configServer);}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
+            try{XMLConfigAdmin.checkForChangesInConfigFile(configServer);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
         }
         // every hour
         if(doHour) {
-        	try{configServer.checkPermGenSpace(true);}catch(Throwable t){}
+        	try{configServer.checkPermGenSpace(true);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
         }
         
         for(int i=0;i<factories.length;i++) {
-            control(factories[i], doMinute, doHour,firstRun);
+            control(factories[i], do10Seconds, doMinute, doHour,firstRun);
         }
 	}
 
 
-	private void control(CFMLFactoryImpl cfmlFactory, boolean doMinute, boolean doHour, boolean firstRun) {
+	private void control(CFMLFactoryImpl cfmlFactory, boolean do10Seconds, boolean doMinute, boolean doHour, boolean firstRun) {
 		try {
 				boolean isRunning=cfmlFactory.getUsedPageContextLength()>0;   
 			    if(isRunning) {
@@ -230,18 +239,21 @@ public final class Controler extends Thread {
 					config.reloadTimeServerOffset();
 					checkOldClientFile(config);
 					
-					//try{checkStorageScopeFile(config,Session.SCOPE_CLIENT);}catch(Throwable t){}
-					//try{checkStorageScopeFile(config,Session.SCOPE_SESSION);}catch(Throwable t){}
-					try{config.reloadTimeServerOffset();}catch(Throwable t){}
-					try{checkTempDirectorySize(config);}catch(Throwable t){}
-					try{checkCacheFileSize(config);}catch(Throwable t){}
-					try{cfmlFactory.getScopeContext().clearUnused();}catch(Throwable t){}
+					//try{checkStorageScopeFile(config,Session.SCOPE_CLIENT);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+					//try{checkStorageScopeFile(config,Session.SCOPE_SESSION);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+					try{config.reloadTimeServerOffset();}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+					try{checkTempDirectorySize(config);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+					try{checkCacheFileSize(config);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+					try{cfmlFactory.getScopeContext().clearUnused();}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 				}
 				
 				if(config==null) {
 					config = cfmlFactory.getConfig();
 				}
 				ThreadLocalConfig.register(config);
+				if(do10Seconds) {
+					//try{DeployHandler.deploy(config);}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
+				}
 				
 				//every Minute
 				if(doMinute) {
@@ -251,15 +263,16 @@ public final class Controler extends Thread {
 					ThreadLocalConfig.register(config);
 					
 					// double check templates
-					try{((ConfigWebImpl)config).getCompiler().checkWatched();}catch(Throwable t){t.printStackTrace();}
+					try{((ConfigWebImpl)config).getCompiler().checkWatched();}catch(Throwable t){
+						ExceptionUtil.rethrowIfNecessary(t);t.printStackTrace();}
 					
 					// deploy extensions, archives ...
-					try{DeployHandler.deploy(config);}catch(Throwable t){t.printStackTrace();}
+					try{DeployHandler.deploy(config);}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 					
 					// clear unused DB Connections
-					try{((ConfigImpl)config).getDatasourceConnectionPool().clear(false);}catch(Throwable t){}
+					try{((ConfigImpl)config).getDatasourceConnectionPool().clear(false);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 					// clear all unused scopes
-					try{cfmlFactory.getScopeContext().clearUnused();}catch(Throwable t){}
+					try{cfmlFactory.getScopeContext().clearUnused();}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 					// Memory usage
 					// clear Query Cache
 					/*try{
@@ -267,16 +280,16 @@ public final class Controler extends Thread {
 						ConfigWebUtil.getCacheHandlerFactories(config).include.clean(null);
 						ConfigWebUtil.getCacheHandlerFactories(config).function.clean(null);
 						//cfmlFactory.getDefaultQueryCache().clearUnused(null);
-					}catch(Throwable t){t.printStackTrace();}*/
+					}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}*/
 					// contract Page Pool
-					//try{doClearPagePools((ConfigWebImpl) config);}catch(Throwable t){}
-					//try{checkPermGenSpace((ConfigWebImpl) config);}catch(Throwable t){}
-					try{doCheckMappings(config);}catch(Throwable t){}
-					try{doClearMailConnections();}catch(Throwable t){}
+					//try{doClearPagePools((ConfigWebImpl) config);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+					//try{checkPermGenSpace((ConfigWebImpl) config);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+					try{doCheckMappings(config);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+					try{doClearMailConnections();}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 					// clean LockManager
-					if(cfmlFactory.getUsedPageContextLength()==0)try{((LockManagerImpl)config.getLockManager()).clean();}catch(Throwable t){}
+					if(cfmlFactory.getUsedPageContextLength()==0)try{((LockManagerImpl)config.getLockManager()).clean();}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 					
-					try{XMLConfigAdmin.checkForChangesInConfigFile(config);}catch(Throwable t){}
+					try{XMLConfigAdmin.checkForChangesInConfigFile(config);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	            	
 				}
 				// every hour
@@ -287,21 +300,19 @@ public final class Controler extends Thread {
 					ThreadLocalConfig.register(config);
 					
 					// time server offset
-					try{config.reloadTimeServerOffset();}catch(Throwable t){}
+					try{config.reloadTimeServerOffset();}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 					// check file based client/session scope
-					//try{checkStorageScopeFile(config,Session.SCOPE_CLIENT);}catch(Throwable t){}
-					//try{checkStorageScopeFile(config,Session.SCOPE_SESSION);}catch(Throwable t){}
+					//try{checkStorageScopeFile(config,Session.SCOPE_CLIENT);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+					//try{checkStorageScopeFile(config,Session.SCOPE_SESSION);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 					// check temp directory
-					try{checkTempDirectorySize(config);}catch(Throwable t){}
+					try{checkTempDirectorySize(config);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 					// check cache directory
-					try{checkCacheFileSize(config);}catch(Throwable t){}
+					try{checkCacheFileSize(config);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 				}
 
-	        	try{configServer.checkPermGenSpace(true);}catch(Throwable t){}
+	        	try{configServer.checkPermGenSpace(true);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
-			catch(Throwable t){
-				
-			}
+			catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 			finally{
 				ThreadLocalConfig.release();
 			}
@@ -341,7 +352,7 @@ public final class Controler extends Thread {
 				children[i].delete();
 				
 			}
-		} catch (Throwable t) {}
+		} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	private void checkCacheFileSize(ConfigWeb config) {
@@ -415,13 +426,13 @@ public final class Controler extends Thread {
     }
     private void removeOldest(PageSourcePool[] pools) {
         PageSourcePool pool=null;
-        Object key=null;
+        String key=null;
         PageSource ps=null;
         
         long date=-1;
         for(int i=0;i<pools.length;i++) {
         	try {
-	            Object[] keys=pools[i].keys();
+	            String[] keys=pools[i].keys();
 	            for(int y=0;y<keys.length;y++) {
 	                ps = pools[i].getPageSource(keys[y],false);
 	                if(date==-1 || date>ps.getLastAccessTime()) {
@@ -432,6 +443,7 @@ public final class Controler extends Thread {
 	            }
         	}
         	catch(Throwable t) {
+        		ExceptionUtil.rethrowIfNecessary(t);
         		pools[i].clear();
         	}
         	

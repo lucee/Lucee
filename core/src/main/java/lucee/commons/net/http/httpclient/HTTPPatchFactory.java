@@ -19,6 +19,7 @@
 package lucee.commons.net.http.httpclient;
 
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -36,8 +37,9 @@ public class HTTPPatchFactory {
 		try {
 			return (HttpEntityEnclosingRequestBase) ClassUtil.loadInstance(clazz,new Object[]{url});
 		}
-		catch (Throwable t) {
-			throw Caster.toPageException(t);
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+        	throw Caster.toPageException(t);
 		}
 		
 		

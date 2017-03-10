@@ -34,6 +34,7 @@ import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.listener.AppListenerUtil;
@@ -47,6 +48,7 @@ import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMUtil;
+import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -54,7 +56,6 @@ import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.UndefinedImpl;
-import lucee.runtime.type.scope.session.SessionCookie;
 import lucee.runtime.type.util.KeyConstants;
 
 /**
@@ -124,8 +125,10 @@ public final class Application extends TagImpl {
 	private String cacheHTTP;
 	private String cacheFile;
 	private String cacheWebservice;
-
+	private Resource antiSamyPolicyResource;
 	private Struct datasources;
+	private Struct logs;
+	private Array mails;
 	private Struct caches;
 	private UDF onmissingtemplate;
 	private short scopeCascading=-1;
@@ -161,6 +164,8 @@ public final class Application extends TagImpl {
         datasource=null;
         defaultdatasource=null;
         datasources=null;
+        logs=null;
+        mails=null;
         caches=null;
         this.name="";
         action=ACTION_CREATE;
@@ -193,7 +198,7 @@ public final class Application extends TagImpl {
     	cacheHTTP=null;
     	cacheFile=null;
     	cacheWebservice=null;
-    	
+    	antiSamyPolicyResource=null;
     	onmissingtemplate=null;
     	scopeCascading=-1;
     	authCookie=null;
@@ -254,6 +259,12 @@ public final class Application extends TagImpl {
 	public void setDatasources(Struct datasources) {
 		this.datasources = datasources;
 	}
+	public void setLogs(Struct logs) {
+		this.logs = logs;
+	}
+	public void setMails(Array mails) {
+		this.mails = mails;
+	}
 	public void setCaches(Struct caches) {
 		this.caches = caches;
 	}
@@ -274,6 +285,11 @@ public final class Application extends TagImpl {
 		short NULL=-1;
 		short tmp = ConfigWebUtil.toScopeCascading(scopeCascading,NULL);
 		if(tmp==NULL) throw new ApplicationException("invalid value ("+scopeCascading+") for attribute [ScopeCascading], valid values are [strict,small,standard]");
+		this.scopeCascading=tmp;
+	}
+	
+	public void setSearchimplicitscopes(boolean searchImplicitScopes) throws ApplicationException {
+		short tmp = ConfigWebUtil.toScopeCascading(searchImplicitScopes);
 		this.scopeCascading=tmp;
 	}
 	
@@ -388,6 +404,10 @@ public final class Application extends TagImpl {
 	
 	public void setCompression(boolean compress)	{
 		this.compression=compress;
+	}
+	
+	public void setAntiSamyPolicyResource(String strAntiSamyPolicyResource) throws ExpressionException {
+		this.antiSamyPolicyResource=ResourceUtil.toResourceExisting(pageContext, strAntiSamyPolicyResource);
 	}
 	
 
@@ -570,6 +590,24 @@ public final class Application extends TagImpl {
 				throw Caster.toPageException(e);
 			}
 		}
+		if(logs!=null){
+			try {
+				ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+				acs.setLoggers(ApplicationContextSupport.initLog(logs));
+			} 
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
+		}
+		if(mails!=null){
+			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+			try {
+				acs.setMailServers(AppListenerUtil.toMailServers(pageContext.getConfig(), mails, null));
+			} 
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
+		}
 		if(caches!=null){
 			try {
 				ApplicationContextSupport acs=(ApplicationContextSupport) ac;
@@ -665,6 +703,7 @@ public final class Application extends TagImpl {
 		if(cacheHTTP!=null) 					ac.setDefaultCacheName(Config.CACHE_TYPE_HTTP, cacheHTTP);
 		if(cacheFile!=null) 					ac.setDefaultCacheName(Config.CACHE_TYPE_FILE, cacheFile);
 		if(cacheWebservice!=null) 				ac.setDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE, cacheWebservice);
+		if(antiSamyPolicyResource!=null) 		((ApplicationContextSupport)ac).setAntiSamyPolicyResource(antiSamyPolicyResource);
 		if(sessionCookie!=null) 				{
 			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
 			acs.setSessionCookie(sessionCookie);

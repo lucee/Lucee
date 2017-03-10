@@ -4957,6 +4957,7 @@ Permits searching collections by title or displaying a separate title from the k
 		<attribute>
 			<type>string</type>
 			<name>log</name>
+			<alias>name</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>If you omit the file attribute, specifies the log in which to write the message.
@@ -5570,6 +5571,13 @@ Lucee uses the number of characters in the file.</description>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Attaches the specified file to the message. This attribute is mutually exclusive with the
 		name attribute.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>filename</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>file name used for the file attached with the attribute "file", if not set the name of the file itself is used.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7159,7 +7167,8 @@ To use cached data, the current query must use the same SQL statement, data sour
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>returnvariable</name>
+			<name>result</name>
+			<alias>returnvariable</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>return variable name of action list</description>
@@ -9089,18 +9098,14 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
     </attribute>
 	</tag>
 
-
-
-
-
-
 	<!-- Form -->
 	<tag>
-		<name>form</name>
+		<name>formclassic</name>
 		<tag-class>lucee.runtime.tag.Form</tag-class>
 		<allow-removing-literal>yes</allow-removing-literal>
 		<body-content>must</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<status>hidden</status>
 		<description>Builds a form with CFML custom control tags that provide more functionality than standard
   HTML form input elements (XML and Flash type not supported).</description>
 		<attribute-type>fixed</attribute-type>
@@ -9447,10 +9452,11 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 
 	<!-- Input -->
 	<tag>
-		<name>input</name>
+		<name>inputclassic</name>
 		<tag-class  >lucee.runtime.tag.Input</tag-class>
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<status>hidden</status>
 		<description>Used inside cfform to place radio buttons, checkboxes, or text boxes. Provides input
   validation for the specified control type.</description>
 		<attribute-type>fixed</attribute-type>
@@ -10179,12 +10185,13 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 	</tag>
 
-	<!-- Select -->
+	<!-- Selectclassic -->
 	<tag>
 		<name>Select</name>
 		<tag-class  >lucee.runtime.tag.Select</tag-class>
 		<body-content>must</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<status>hidden</status>
 		<description>Used inside cfform, cfselect lets you construct a drop-down list box form control. You can
   populate the drop-down list box from a query, or using the option tag. Use option elements to populate
   lists. The syntax for the option tag is the same as for its HTML counterpart.</description>

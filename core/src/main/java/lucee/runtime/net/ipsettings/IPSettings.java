@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import lucee.commons.lang.ExceptionUtil;
+
 
 /**
  * an efficient data structure for IP-range based settings
@@ -53,7 +55,7 @@ public class IPSettings {
 			root.addChild( ipv4 = new IPRangeNode( "0.0.0.0", "255.255.255.255" ) );
 			root.addChild( ipv6 = new IPRangeNode( "0:0:0:0:0:0:0:0", "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff" ) );
 		}
-		catch (Throwable t) {}                                                  // all valid addresses, should never happen
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}                                                  // all valid addresses, should never happen
 	}
 
 
@@ -195,7 +197,7 @@ public class IPSettings {
 
 			return this.getSettings( InetAddress.getByName(addr) );
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 
 		return EMPTY;
 	}
@@ -235,7 +237,7 @@ public class IPSettings {
 
 			return this.getNodeSettings( InetAddress.getByName(addr) );
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 
 		return EMPTY;
 	}

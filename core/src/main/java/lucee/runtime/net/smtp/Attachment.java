@@ -40,9 +40,9 @@ public class Attachment implements Serializable {
 	private String fileName;
 	private boolean removeAfterSend;
 
-	public Attachment(Resource resource, String type, String disposition,String contentID, boolean removeAfterSend) {
+	public Attachment(Resource resource, String fileName, String type, String disposition,String contentID, boolean removeAfterSend) {
 		this.absolutePath=resource.getAbsolutePath();// do not store resource, this is pehrhaps not serialiable
-		this.fileName=resource.getName();
+		this.fileName=StringUtil.isEmpty(fileName,true)?resource.getName():fileName.trim();
 		this.removeAfterSend=removeAfterSend;
 		this.disposition=disposition;
 		this.contentID=contentID;

@@ -62,6 +62,8 @@ import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
@@ -552,9 +554,7 @@ public final class SMTPClient implements Serializable  {
 			addMailcap(oMCM,addMailcap,"text/xml;;		x-java-content-handler=com.sun.mail.handlers.text_xml"); 
 			addMailcap(oMCM,addMailcap,"multipart/*;;		x-java-content-handler=com.sun.mail.handlers.multipart_mixed; x-java-fallback-entry=true"); 
 			addMailcap(oMCM,addMailcap,"message/rfc822;;	x-java-content-handler=com.sun.mail.handlers.message_rfc822"); 
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
+		} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	private static void addMailcap(Object oMCM, Method addMailcap, String value) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		addMailcap.invoke(oMCM, new Object[]{value});
@@ -656,8 +656,8 @@ public final class SMTPClient implements Serializable  {
 		attachmentz=add(attachmentz, mbp);
 	}
 
-	public void addAttachment(Resource resource, String type, String disposition, String contentID,boolean removeAfterSend) {
-		Attachment att = new Attachment(resource, type, disposition, contentID,removeAfterSend);
+	public void addAttachment(Resource resource, String fileName, String type, String disposition, String contentID,boolean removeAfterSend) {
+		Attachment att = new Attachment(resource, fileName, type, disposition, contentID,removeAfterSend);
 		attachmentz=add(attachmentz, att);
 	}
 	
@@ -697,29 +697,30 @@ public final class SMTPClient implements Serializable  {
 	 * @throws FileNotFoundException 
 	 */
 	public void addAttachment(Resource file) throws MessagingException {
-		addAttachment(file,null,null,null,false);
+		addAttachment(file,null,null,null,null,false);
 	}
 	
 
 	
 	
-	public void send(ConfigWeb config, long sendTime) throws MailException {
-		if(ArrayUtil.isEmpty(config.getMailServers()) && ArrayUtil.isEmpty(host))
-			throw new MailException("no SMTP Server defined");
-		
+	public void send(PageContext pc, long sendTime) throws MailException {
 		if(plainText==null && htmlText==null)
 			throw new MailException("you must define plaintext or htmltext");
+		Server[] servers = ((PageContextImpl)pc).getMailServers();
 		
-		///if(timeout<1)timeout=config.getMailTimeout()*1000;
+		ConfigWeb config = pc.getConfig();
+		if(ArrayUtil.isEmpty(servers) && ArrayUtil.isEmpty(host))
+			throw new MailException("no SMTP Server defined");
+
 		if(spool==SPOOL_YES || (spool==SPOOL_UNDEFINED && config.isMailSpoolEnable())) {
-			config.getSpoolerEngine().add(new MailSpoolerTask(this, sendTime));
+			config.getSpoolerEngine().add(new MailSpoolerTask(this, servers, sendTime));
         }
 		else
-			_send(config);
+			_send(config,servers);
 	}
 	
 
-	public void _send(lucee.runtime.config.ConfigWeb config) throws MailException {
+	public void _send(lucee.runtime.config.ConfigWeb config, Server[] servers) throws MailException {
 		long start=System.nanoTime();
 		long _timeout = getTimeout(config);
 		try {
@@ -727,7 +728,7 @@ public final class SMTPClient implements Serializable  {
         	Proxy.start(proxyData);
 		Log log = ((ConfigImpl)config).getLog("mail");
 		// Server
-        Server[] servers = config.getMailServers();
+        //Server[] servers = config.getMailServers();
         if(host!=null) {
         	int prt;
         	String usr,pwd;
@@ -805,7 +806,7 @@ public final class SMTPClient implements Serializable  {
                 		try{
                 			if(sender.isAlive())sender.stop();
                 		}
-                		catch(Throwable t2){}
+                		catch(Throwable t2){ExceptionUtil.rethrowIfNecessary(t2);}
                 		
                 		// after thread is stopped check sent flag again
                 		if(!sender.isSent()){

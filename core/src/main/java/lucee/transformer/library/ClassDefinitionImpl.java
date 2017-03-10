@@ -20,6 +20,7 @@ package lucee.transformer.library;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
@@ -45,6 +46,13 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T> {
 		this.className=className==null?null:className.trim();
 		this.name=StringUtil.isEmpty(name,true)?null:name.trim();
 		this.version=OSGiUtil.toVersion(version,null);
+		this.id=id;
+	}
+	
+	public ClassDefinitionImpl(Identification id,String className, String name, Version version) {
+		this.className=className==null?null:className.trim();
+		this.name=StringUtil.isEmpty(name,true)?null:name.trim();
+		this.version=version;
 		this.id=id;
 	}
 
@@ -78,7 +86,8 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T> {
 		try {
 			return getClazz();
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}

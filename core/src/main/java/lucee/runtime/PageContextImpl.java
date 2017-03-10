@@ -26,6 +26,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -56,13 +57,19 @@ import javax.servlet.jsp.tagext.BodyTag;
 import javax.servlet.jsp.tagext.Tag;
 import javax.servlet.jsp.tagext.TryCatchFinally;
 
+import org.objectweb.asm.Type;
+
+import lucee.print;
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.BodyContentStack;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.cache.exp.CacheException;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
@@ -114,6 +121,7 @@ import lucee.runtime.exp.NoLongerSupported;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.functions.dynamicEvaluation.Serialize;
+import lucee.runtime.functions.owasp.ESAPIEncode;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.listener.ApplicationContext;
@@ -123,12 +131,15 @@ import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.ModernAppListener;
 import lucee.runtime.listener.ModernAppListenerException;
+import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.monitor.RequestMonitor;
+import lucee.runtime.monitor.RequestMonitorPro;
 import lucee.runtime.net.ftp.FTPPoolImpl;
 import lucee.runtime.net.http.HTTPServletRequestWrap;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Operator;
@@ -157,7 +168,6 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.dt.TimeSpan;
-import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.it.ItAsEnum;
 import lucee.runtime.type.ref.Reference;
 import lucee.runtime.type.ref.VariableReference;
@@ -202,6 +212,7 @@ import lucee.runtime.util.VariableUtilImpl;
 import lucee.runtime.writer.BodyContentUtil;
 import lucee.runtime.writer.CFMLWriter;
 import lucee.runtime.writer.DevNullBodyContent;
+import lucee.transformer.bytecode.util.Types;
 
 /**
  * page context for every page object. 
@@ -549,9 +560,7 @@ public final class PageContextImpl extends PageContext {
 				}
 				ormSession.closeAll(this);
 			} 
-			catch (Throwable t) {
-				//print.printST(t);
-			}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			ormSession=null;
 		}
 		
@@ -676,6 +685,7 @@ public final class PageContextImpl extends PageContext {
 		manager.release();
 		includeOnce.clear();
 		pe=null;
+		this.literalTimestampWithTSOffset=false;
 	}
 
 	@Override
@@ -697,6 +707,14 @@ public final class PageContextImpl extends PageContext {
 			writer.write(psq?Caster.toString(o):StringUtil.replace(Caster.toString(o),"'","''",false));
 		}
 	} 
+
+	// FUTURE add both method to interface
+	public void writeEncodeFor(String value, String encodeType) throws IOException, PageException { // FUTURE keyword:encodefore add to interface
+		write(ESAPIEncode.call(this, encodeType, value,false));
+	}
+	public void writeEncodeFor(String value, short encodeType) throws IOException, PageException { // FUTURE keyword:encodefore add to interface
+		write(ESAPIEncode.encode(value, encodeType, false));
+	}
 	
 	@Override
 	public void flush() {
@@ -763,7 +781,6 @@ public final class PageContextImpl extends PageContext {
 	}
 	
 	public PageSource getPageSource(String realPath) {
-		SystemOut.print(config.getOutWriter(),"method getPageSource is deprecated");
 		return PageSourceImpl.best(config.getPageSources(this,applicationContext.getMappings(),realPath,false,useSpecialMappings,true));
 	}
 	
@@ -797,24 +814,26 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void doInclude(String realPath) throws PageException {
-		doInclude(getRelativePageSources(realPath),false);
+		_doInclude(getRelativePageSources(realPath),false,getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE));
 	}
 	
 	@Override
 	public void doInclude(String realPath, boolean runOnce) throws PageException {
-		doInclude(getRelativePageSources(realPath),runOnce);
+		_doInclude(getRelativePageSources(realPath),runOnce,getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE));
 	}
 	// used by the transformer
 	public void doInclude(String realPath, boolean runOnce, Object cachedWithin) throws PageException {
-		doInclude(getRelativePageSources(realPath),runOnce,cachedWithin); 
+		if(cachedWithin==null) cachedWithin=getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE);
+		_doInclude(getRelativePageSources(realPath),runOnce,cachedWithin); 
 	}
 	
 	@Override
 	public void doInclude(PageSource[] sources, boolean runOnce) throws PageException {
-		doInclude(sources, runOnce,getCachedWithin(Config.CACHEDWITHIN_INCLUDE));
+		_doInclude(sources, runOnce,getCachedWithin(ConfigWeb.CACHEDWITHIN_INCLUDE));
 	}
 
-	public void doInclude(PageSource[] sources, boolean runOnce, Object cachedWithin) throws PageException {
+	// IMPORTANT!!! we do not getCachedWithin in this method, because Modern|ClassicAppListener is calling this method and in this case it should not be used
+	public void _doInclude(PageSource[] sources, boolean runOnce, Object cachedWithin) throws PageException {
 		if(cachedWithin==null) {
 			_doInclude(sources, runOnce);
 			return;
@@ -874,6 +893,7 @@ public final class PageContextImpl extends PageContext {
 				currentPage.call(this);
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				PageException pe = Caster.toPageException(t);
 				if(Abort.isAbort(pe)) {
 					if(Abort.isAbort(pe,Abort.SCOPE_REQUEST))throw pe;
@@ -904,6 +924,7 @@ public final class PageContextImpl extends PageContext {
 				currentPage.call(this);
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				PageException pe = Caster.toPageException(t);
 				if(Abort.isAbort(pe)) {
 					if(Abort.isAbort(pe,Abort.SCOPE_REQUEST))throw pe;
@@ -1129,6 +1150,13 @@ public final class PageContextImpl extends PageContext {
 	 */
 	public Undefined us() {
 		if(!undefined.isInitalized()) undefined.initialize(this);
+		return undefined;
+	}
+	
+
+	public Scope usl() {
+		if(!undefined.isInitalized()) undefined.initialize(this);
+		if(undefined.getCheckArguments()) return undefined.localScope();
 		return undefined;
 	}
 	
@@ -1470,21 +1498,105 @@ public final class PageContextImpl extends PageContext {
 	
 
 	public void param(String type, String name, Object defaultValue,String regex) throws PageException {
-		param(type, name, defaultValue,Double.NaN,Double.NaN,regex,-1);
+		_param(type, name, defaultValue,Double.NaN,Double.NaN,regex,-1);
 	}
 	public void param(String type, String name, Object defaultValue,double min, double max) throws PageException {
-		param(type, name, defaultValue,min,max,null,-1);
+		_param(type, name, defaultValue,min,max,null,-1);
 	}
 
 	public void param(String type, String name, Object defaultValue,int maxLength) throws PageException {
-		param(type, name, defaultValue,Double.NaN,Double.NaN,null,maxLength);
+		_param(type, name, defaultValue,Double.NaN,Double.NaN,null,maxLength);
 	}
 
 	public void param(String type, String name, Object defaultValue) throws PageException {
-		param(type, name, defaultValue,Double.NaN,Double.NaN,null,-1);
+		_param(type, name, defaultValue,Double.NaN,Double.NaN,null,-1);
 	}
 	
-	private void param(String type, String name, Object defaultValue, double min,double max, String strPattern, int maxLength) throws PageException {
+	// used by generated code FUTURE add to interface
+	public void subparam(String type, String name, final Object value, double min,double max, 
+			String strPattern, int maxLength, final boolean isNew) throws PageException {
+
+		// check attributes type
+		if(type==null)type="any";
+		else type=type.trim().toLowerCase();
+		
+		// cast and set value
+		if(!"any".equals(type)) {
+			// range
+			if("range".equals(type)) {
+				boolean hasMin=Decision.isValid(min);
+				boolean hasMax=Decision.isValid(max);
+				double number = Caster.toDoubleValue(value);
+				
+				if(!hasMin && !hasMax)
+					throw new ExpressionException("you need to define one of the following attributes [min,max], when type is set to [range]");
+				
+				if(hasMin && number<min)
+					throw new ExpressionException("The number ["+Caster.toString(number)+"] is to small, the number must be at least ["+Caster.toString(min)+"]");
+				
+				if(hasMax && number>max)
+					throw new ExpressionException("The number ["+Caster.toString(number)+"] is to big, the number cannot be bigger than ["+Caster.toString(max)+"]");
+				
+				setVariable(name,Caster.toDouble(number));
+			}
+			// regex
+			else if("regex".equals(type) || "regular_expression".equals(type)) {
+				String str=Caster.toString(value);
+				
+				if(strPattern==null) throw new ExpressionException("Missing attribute [pattern]");
+				
+				if(!Perl5Util.matches(strPattern, str))
+					throw new ExpressionException("The value ["+str+"] doesn't match the provided pattern ["+strPattern+"]");
+				setVariable(name,str);
+			}
+			else if ( type.equals( "int" ) || type.equals( "integer" ) ) {
+
+				if ( !Decision.isInteger( value ) )
+					throw new ExpressionException( "The value [" + value + "] is not a valid integer" );
+
+				setVariable( name, value );
+			}
+			else {
+				if(!Decision.isCastableTo(type,value,true,true,maxLength)) {
+					if(maxLength>-1 && ("email".equalsIgnoreCase(type) || "url".equalsIgnoreCase(type) || "string".equalsIgnoreCase(type))) {
+						StringBuilder msg=new StringBuilder(CasterException.createMessage(value, type));
+						msg.append(" with a maximum length of "+maxLength+" characters");
+						throw new CasterException(msg.toString());	
+					}
+					throw new CasterException(value,type);	
+				}
+				
+				setVariable(name,value);
+				//REALCAST setVariable(name,Caster.castTo(this,type,value,true));
+			}
+		}
+		else if(isNew) setVariable(name,value);
+	}
+	
+	
+	private void _param(String type, String name, Object defaultValue, double min,double max, String strPattern, int maxLength) throws PageException {
+
+		// check attributes name
+		if(StringUtil.isEmpty(name))
+			throw new ExpressionException("The attribute name is required");
+		
+		Object value=null;
+		boolean isNew=false;
+		
+		// get value
+		value=VariableInterpreter.getVariableEL(this,name,NullSupportHelper.NULL(this));
+		if(NullSupportHelper.NULL(this)==value) {
+			if(defaultValue==null)
+				throw new ExpressionException("The required parameter ["+name+"] was not provided.");
+			value=defaultValue;
+			isNew=true;
+		}
+		
+		subparam(type, name, value, min, max, strPattern, maxLength, isNew);
+		
+	}
+	
+	/*private void paramX(String type, String name, Object defaultValue, double min,double max, String strPattern, int maxLength) throws PageException {
 
 		// check attributes type
 		if(type==null)type="any";
@@ -1557,7 +1669,7 @@ public final class PageContextImpl extends PageContext {
 			}
 		}
 		else if(isNew) setVariable(name,value);
-	}
+	}*/
 
 
 	@Override
@@ -1584,6 +1696,11 @@ public final class PageContextImpl extends PageContext {
 	public Object getFunction(Object coll, Key key, Object[] args) throws PageException {
 		return variableUtil.callFunctionWithoutNamedValues(this,coll,key,args);
 	}
+
+	// FUTURE add to interface
+	public Object getFunction(Object coll, Key key, Object[] args, Object defaultValue) {
+		return variableUtil.callFunctionWithoutNamedValues(this,coll,key,args,defaultValue);
+	}
 	
 	@Override
 	public Object getFunctionWithNamedValues(Object coll, String key, Object[] args) throws PageException {
@@ -1593,6 +1710,11 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public Object getFunctionWithNamedValues(Object coll, Key key, Object[] args) throws PageException {
 		return variableUtil.callFunctionWithNamedValues(this,coll,key,args);
+	}
+	
+	// FUTURE add to interface
+	public Object getFunctionWithNamedValues(Object coll, Key key, Object[] args, Object defaultValue) {
+		return variableUtil.callFunctionWithNamedValues(this,coll,key,args,defaultValue);
 	}
 
 	@Override
@@ -1858,7 +1980,8 @@ public final class PageContextImpl extends PageContext {
 					
 					doInclude(new PageSource[]{ep.getTemplate()},false);
 					return;
-				} catch (Throwable t) {
+				} catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					if(Abort.isSilentAbort(t)) return;
 					pe=Caster.toPageException(t);
 				}
@@ -1884,7 +2007,8 @@ public final class PageContextImpl extends PageContext {
 						
 						write(content);
 						return;
-					} catch (Throwable t) {
+					} catch(Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
 						pe=Caster.toPageException(t);
 					}
 				}
@@ -2028,6 +2152,9 @@ public final class PageContextImpl extends PageContext {
 	
 	@Override
 	public void executeRest(String realPath, boolean throwExcpetion) throws PageException  {
+		initallog();
+		
+		
 		ApplicationListener listener=null;//config.get ApplicationListener();
 		try{
 		String pathInfo = req.getPathInfo();
@@ -2188,6 +2315,7 @@ public final class PageContextImpl extends PageContext {
 		
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			PageException pe = Caster.toPageException(t);
 			if(!Abort.isSilentAbort(pe)){
 				log(true);
@@ -2262,6 +2390,7 @@ public final class PageContextImpl extends PageContext {
 				(gatewayContext?config.getApplicationListener():((MappingImpl)ps.getMapping()).getApplicationListener())
 				:ModernAppListener.getInstance();
 		try {
+			initallog();
 			listener.onRequest(this,ps,null);
 			log(false);
 		}
@@ -2277,7 +2406,10 @@ public final class PageContextImpl extends PageContext {
 			}
 			else log(false);
 
-			if(throwExcpetion) throw pe;
+			if(throwExcpetion) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				throw pe;
+			}
 		}
 		finally {
 			if(enablecfoutputonly>0){
@@ -2294,6 +2426,21 @@ public final class PageContextImpl extends PageContext {
 			ps=null;
 		}
 	}
+	
+	private void initallog() {
+		if(!isGatewayContext() && config.isMonitoringEnabled()) {
+			RequestMonitor[] monitors = config.getRequestMonitors();
+			if(monitors!=null)for(int i=0;i<monitors.length;i++){
+				if(monitors[i].isLogEnabled()) {
+					try {
+						((RequestMonitorPro)monitors[i]).init(this);
+					} 
+					catch (Throwable e) {ExceptionUtil.rethrowIfNecessary(e);}
+				}
+			}
+		}
+	}
+
 
 	private void log(boolean error) {
 		if(!isGatewayContext() && config.isMonitoringEnabled()) {
@@ -2303,11 +2450,12 @@ public final class PageContextImpl extends PageContext {
 					try {
 						monitors[i].log(this,error);
 					} 
-					catch (Throwable e) {}
+					catch (Throwable e) {ExceptionUtil.rethrowIfNecessary(e);}
 				}
 			}
 		}
 	}
+	
 
 	private PageSource getPageSource(Mapping[] mappings, String realPath) {
 		PageSource ps;
@@ -2733,12 +2881,14 @@ public final class PageContextImpl extends PageContext {
 		}
 		exception = pe;
 		if(store){
+			Undefined u=undefinedScope();
 			if(pe==null) {
-				undefinedScope().removeEL(KeyConstants._cfcatch);
+				(u.getCheckArguments()?u.localScope():u).removeEL(KeyConstants._cfcatch);
 			}
 			else {
-				undefinedScope().setEL(KeyConstants._cfcatch,pe.getCatchBlock(config));
-				if(!gatewayContext && config.debug() && config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION)) debugger.addException(config,exception);
+				(u.getCheckArguments()?u.localScope():u).setEL(KeyConstants._cfcatch,pe.getCatchBlock(config));
+				if(!gatewayContext && config.debug() && config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION)) 
+					debugger.addException(config,exception);
 			}
 		}
 	}
@@ -2753,7 +2903,9 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public void clearCatch() {
 		exception = null;
-		undefinedScope().removeEL(KeyConstants._cfcatch);
+		
+		Undefined u=undefinedScope();
+		(u.getCheckArguments()?u.localScope():u).removeEL(KeyConstants._cfcatch);
 	}
 
 	@Override
@@ -3107,6 +3259,8 @@ public final class PageContextImpl extends PageContext {
 	private Stack<ActiveQuery> activeQueries=new Stack<ActiveQuery>();
 	private Stack<ActiveLock> activeLocks=new Stack<ActiveLock>();
 
+	private boolean literalTimestampWithTSOffset;
+
 	public boolean isTrusted(Page page) {
 		if(page==null)return false;
 		
@@ -3315,6 +3469,23 @@ public final class PageContextImpl extends PageContext {
 		if(applicationContext==null) return config.getCachedWithin(type);
 		return applicationContext.getCachedWithin(type);
 	}
+	
+	// FUTURE add to interface
+	public lucee.runtime.net.mail.Server[] getMailServers() {
+		if(applicationContext!=null) {
+			lucee.runtime.net.mail.Server[] appms = ((ApplicationContextSupport)applicationContext).getMailServers();
+			if(ArrayUtil.isEmpty(appms)) return config.getMailServers();
+			
+			lucee.runtime.net.mail.Server[] cms=config.getMailServers();
+			if(ArrayUtil.isEmpty(cms)) return appms;
+			
+			lucee.runtime.net.mail.Server[] arr = ServerImpl.merge(appms, cms);
+			return arr;
+		}
+		return config.getMailServers();
+	}
+	
+	
 
 	public void registerLazyStatement(Statement s) {
 		if(lazyStats==null)lazyStats=new ArrayList<Statement>();
@@ -3365,5 +3536,47 @@ public final class PageContextImpl extends PageContext {
 	}
 	public int getAppListenerType() {
 		return appListenerType;
+	}
+
+	public Log getLog(String name) {
+		return config.getLog(name);
+	}
+
+	public Log getLog(String name, boolean createIfNecessary) {
+		if(applicationContext!=null) {
+			Log log=((ApplicationContextSupport)applicationContext).getLog(name);
+			if(log!=null)return log;
+		}
+		return config.getLog(name,createIfNecessary);
+	}
+	
+	public java.util.Collection<String> getLogNames() {
+		java.util.Collection<String> cnames=config.getLoggers().keySet();
+		if(applicationContext!=null) {
+			java.util.Collection<Collection.Key> anames=((ApplicationContextSupport)applicationContext).getLogNames();
+			
+			java.util.Collection<String> names=new HashSet<String>();
+
+			copy(cnames,names);
+			copy(anames,names);
+			return names;
+			
+		}
+		return cnames;
+	}
+
+	private void copy(java.util.Collection src, java.util.Collection<String> trg) {
+		java.util.Iterator it = src.iterator();
+		while(it.hasNext()) {
+			trg.add(it.next().toString());
+		}
+	}
+
+	public void setTimestampWithTSOffset(boolean literalTimestampWithTSOffset) {
+		this.literalTimestampWithTSOffset=literalTimestampWithTSOffset;
+	}
+	
+	public boolean getTimestampWithTSOffset() {
+		return literalTimestampWithTSOffset;
 	}
 }

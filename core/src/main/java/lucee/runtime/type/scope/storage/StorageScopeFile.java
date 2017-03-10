@@ -22,6 +22,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
@@ -92,19 +93,19 @@ public abstract class StorageScopeFile extends StorageScopeImpl {
 	public void touchAfterRequest(PageContext pc) {
 		setTimeSpan(pc);
 		super.touchAfterRequest(pc);
-		store(pc.getConfig());
+		store(pc);
 	}
 	
 	
 	
 	@Override
-	public void store(Config config) {
+	public void store(PageContext pc) {
 		//if(!super.hasContent()) return;
 		try {
 			if(!res.exists())ResourceUtil.createFileEL(res, true);
 			IOUtil.write(res, (getTimeSpan()+System.currentTimeMillis())+":"+serializer.serializeStruct(sct, ignoreSet), "UTF-8", false);
 		} 
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	
 	protected static Struct _loadData(PageContext pc,Resource res, Log log) {
@@ -132,7 +133,8 @@ public abstract class StorageScopeFile extends StorageScopeImpl {
 				ScopeContext.info(log,"load existing file storage ["+res+"]");
 				return s;
 			} 
-			catch (Throwable t) {
+			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				ScopeContext.error(log, t);
 			}
 		}
@@ -143,12 +145,12 @@ public abstract class StorageScopeFile extends StorageScopeImpl {
 	
 	
 	@Override
-	public void unstore(Config config) {
+	public void unstore(PageContext pc) {
 		try {
 			if(!res.exists())return;
 			res.remove(true);
 		} 
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	
 	protected static Resource _loadResource(ConfigWeb config, int type,String name, String cfid) {

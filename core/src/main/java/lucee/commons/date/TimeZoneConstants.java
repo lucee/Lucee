@@ -43,6 +43,15 @@ public final class TimeZoneConstants {
 	public static final TimeZone SYSTEMV_HST10 = TimeZone.getTimeZone("SystemV/HST10");
 	public static final TimeZone US_ALEUTIAN = TimeZone.getTimeZone("US/Aleutian");
 	public static final TimeZone US_HAWAII = TimeZone.getTimeZone("US/Hawaii");
+	public static final TimeZone US_EASTERN = TimeZone.getTimeZone("US/Eastern");
+	public static final TimeZone ET = US_EASTERN;
+	public static final TimeZone US_MOUNTAIN = TimeZone.getTimeZone("US/Mountain");
+	public static final TimeZone MT = US_MOUNTAIN;
+	public static final TimeZone US_CENTRAL = TimeZone.getTimeZone("US/Central");
+	public static final TimeZone CT = US_CENTRAL;
+	public static final TimeZone US_PACIFIC = TimeZone.getTimeZone("US/Pacific");
+	public static final TimeZone PT = US_PACIFIC;
+	
 	public static final TimeZone PACIFIC_MARQUESAS = TimeZone.getTimeZone("Pacific/Marquesas");
 	public static final TimeZone AST = TimeZone.getTimeZone("AST");
 	public static final TimeZone AMERICA_ANCHORAGE = TimeZone.getTimeZone("America/Anchorage");
@@ -69,7 +78,6 @@ public final class TimeZoneConstants {
 	public static final TimeZone PACIFIC_PITCAIRN = TimeZone.getTimeZone("Pacific/Pitcairn");
 	public static final TimeZone SYSTEMV_PST8 = TimeZone.getTimeZone("SystemV/PST8");
 	public static final TimeZone SYSTEMV_PST8PDT = TimeZone.getTimeZone("SystemV/PST8PDT");
-	public static final TimeZone US_PACIFIC = TimeZone.getTimeZone("US/Pacific");
 	public static final TimeZone US_PACIFIC_NEW = TimeZone.getTimeZone("US/Pacific-New");
 	public static final TimeZone AMERICA_BOISE = TimeZone.getTimeZone("America/Boise");
 	public static final TimeZone AMERICA_CAMBRIDGE_BAY = TimeZone.getTimeZone("America/Cambridge_Bay");
@@ -93,7 +101,6 @@ public final class TimeZoneConstants {
 	public static final TimeZone SYSTEMV_MST7 = TimeZone.getTimeZone("SystemV/MST7");
 	public static final TimeZone SYSTEMV_MST7MDT = TimeZone.getTimeZone("SystemV/MST7MDT");
 	public static final TimeZone US_ARIZONA = TimeZone.getTimeZone("US/Arizona");
-	public static final TimeZone US_MOUNTAIN = TimeZone.getTimeZone("US/Mountain");
 	public static final TimeZone AMERICA_BELIZE = TimeZone.getTimeZone("America/Belize");
 	public static final TimeZone AMERICA_CANCUN = TimeZone.getTimeZone("America/Cancun");
 	public static final TimeZone AMERICA_CHICAGO = TimeZone.getTimeZone("America/Chicago");
@@ -128,7 +135,6 @@ public final class TimeZoneConstants {
 	public static final TimeZone PACIFIC_GALAPAGOS = TimeZone.getTimeZone("Pacific/Galapagos");
 	public static final TimeZone SYSTEMV_CST6 = TimeZone.getTimeZone("SystemV/CST6");
 	public static final TimeZone SYSTEMV_CST6CDT = TimeZone.getTimeZone("SystemV/CST6CDT");
-	public static final TimeZone US_CENTRAL = TimeZone.getTimeZone("US/Central");
 	public static final TimeZone US_INDIANA_STARKE = TimeZone.getTimeZone("US/Indiana-Starke");
 	public static final TimeZone AMERICA_ATIKOKAN = TimeZone.getTimeZone("America/Atikokan");
 	public static final TimeZone AMERICA_BOGOTA = TimeZone.getTimeZone("America/Bogota");
@@ -174,7 +180,6 @@ public final class TimeZoneConstants {
 	public static final TimeZone SYSTEMV_EST5 = TimeZone.getTimeZone("SystemV/EST5");
 	public static final TimeZone SYSTEMV_EST5EDT = TimeZone.getTimeZone("SystemV/EST5EDT");
 	public static final TimeZone US_EAST_INDIANA = TimeZone.getTimeZone("US/East-Indiana");
-	public static final TimeZone US_EASTERN = TimeZone.getTimeZone("US/Eastern");
 	public static final TimeZone US_MICHIGAN = TimeZone.getTimeZone("US/Michigan");
 	public static final TimeZone AMERICA_ANGUILLA = TimeZone.getTimeZone("America/Anguilla");
 	public static final TimeZone AMERICA_ANTIGUA = TimeZone.getTimeZone("America/Antigua");

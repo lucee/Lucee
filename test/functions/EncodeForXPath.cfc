@@ -21,17 +21,11 @@
 	<cffunction name="afterTests"></cffunction>
 	<cffunction name="setUp"></cffunction>
 	--->
-	<cffunction name="testEncodeForXPath" localMode="modern">
-
-<!--- begin old test code --->
+	<cffunction name="testEncodeForXPathMember" localMode="modern">
 <cfscript>
-enc=EncodeForXPath('<script>');
+enc='<script>'.EncodeForXPath();
 valueEquals(enc,'&lt;script&gt;');
 </cfscript>
-<!--- end old test code --->
-	
-		
-		<!--- <cfset assertEquals("","")> --->
 	</cffunction>
 	
 	<cffunction access="private" name="valueEquals">

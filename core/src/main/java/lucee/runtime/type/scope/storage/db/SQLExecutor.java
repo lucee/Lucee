@@ -60,7 +60,7 @@ public interface SQLExecutor {
 	 * @throws PageException
 	 * @throws SQLException
 	 */
-	public void update(Config config, String cfid,String applicationName, DatasourceConnection dc,int type,Struct data,long timeSpan, Log log) throws PageException,SQLException;
+	public void update(Config config, String cfid,String applicationName, DatasourceConnection dc,int type,Object data,long timeSpan, Log log) throws PageException,SQLException;
 
 	/**
 	 * deletes the data in the datasource for a specific user (CFID), if there is no data for this user nothing is happeing

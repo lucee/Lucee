@@ -28,14 +28,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefBoolean;
@@ -57,6 +61,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -119,14 +124,17 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Collection.Key REST_SETTING = KeyImpl.intern("restsettings");
 	private static final Collection.Key JAVA_SETTING = KeyImpl.intern("javasettings");
 	private static final Collection.Key SCOPE_CASCADING = KeyImpl.intern("scopeCascading");
+	private static final Collection.Key SEARCH_IMPLICIT_SCOPES = KeyImpl.intern("searchImplicitScopes");
 	private static final Collection.Key TYPE_CHECKING = KeyImpl.intern("typeChecking");
 	private static final Collection.Key CGI_READONLY = KeyImpl.intern("CGIReadOnly");;
 	private static final Collection.Key SUPPRESS_CONTENT = KeyImpl.intern("suppressRemoteComponentContent");
+	private static final Collection.Key LOGS = KeyImpl.intern("logs");
+	private static final Collection.Key LOG = KeyImpl.intern("log");
 	
 
 	private static final Collection.Key SESSION_COOKIE = KeyImpl.intern("sessioncookie");
 	private static final Collection.Key AUTH_COOKIE = KeyImpl.intern("authcookie");
-	
+
 	private static Map<String,CacheConnection> initCacheConnections=new ConcurrentHashMap<String, CacheConnection>();
 
 	
@@ -206,7 +214,6 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initMappings;
 	private boolean initDataSources;
 	private boolean initCache;
-	//private boolean initSameFieldAsArrays;
 	private boolean initCTMappings;
 	private boolean initCMappings;
 	private int localMode;
@@ -233,10 +240,19 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initSessionCookie;
 	private boolean initAuthCookie;
 	
+	private Resource antiSamyPolicyResource;
+	
 	
 	private Resource[] restCFCLocations;
 
 	private short scopeCascading=-1;
+
+	private Server[] mailServers;
+	private boolean initMailServer;
+
+	private boolean initLog;
+
+	private Map<Collection.Key,Pair<Log,Struct>> logs;
 		
 	public ModernApplicationContext(PageContext pc, Component cfc, RefBoolean throwsErrorWhileInit) {
 		super(pc.getConfig());
@@ -276,6 +292,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
         this.component=cfc;
 		
         
+        initAntiSamyPolicyResource(pc);
+        if(antiSamyPolicyResource==null)
+        	this.antiSamyPolicyResource=((ConfigImpl)config).getAntiSamyPolicy();
         // read scope cascading
         initScopeCascading();
         initSameFieldAsArray(pc);
@@ -295,6 +314,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			throwsErrorWhileInit.setValue(false);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throwsErrorWhileInit.setValue(true);
 			pc.removeLastPageSource(true);
 		}
@@ -305,6 +325,11 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if(o!=null){
 			scopeCascading=ConfigWebUtil.toScopeCascading(Caster.toString(o,null),(short)-1);
 		}
+		else {
+			Boolean b = Caster.toBoolean(get(component,SEARCH_IMPLICIT_SCOPES,null),null);
+			if(b!=null)scopeCascading=ConfigWebUtil.toScopeCascading(b);
+		}
+		
 	}
 	
 	
@@ -668,11 +693,52 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		return defaultCaches.get(type);
 	}
 	
+	@Override
+	public Server[] getMailServers() {
+		initMailServers();
+		return mailServers;
+	}
+	
+
+	private void initMailServers() {
+		if(!initMailServer) { 
+			Object oMail = get(component,KeyConstants._mail,null);
+			if(oMail==null) oMail = get(component,KeyConstants._mails,null);
+			if(oMail==null) oMail = get(component,KeyImpl.init("mailserver"),null);
+			if(oMail==null) oMail = get(component,KeyImpl.init("mailservers"),null);
+			
+			Array arrMail = Caster.toArray(oMail,null);
+			// we also support a single struct instead of an array of structs
+			if(arrMail==null) {
+				Struct sctMail = Caster.toStruct(get(component,KeyConstants._mail,null),null);
+				if(sctMail!=null) {
+					arrMail = new ArrayImpl();
+					arrMail.appendEL(sctMail);
+				}
+			}
+			if(arrMail!=null){ 
+				mailServers=AppListenerUtil.toMailServers(config, arrMail, null);
+			}
+			initMailServer=true;
+		}
+	}
+	
+
+	public void setMailServers(Server[] servers) {
+		this.mailServers=servers;
+		this.initMailServer=true;
+	}
 
 	@Override
 	public CacheConnection getCacheConnection(String cacheName, CacheConnection defaultValue) {
 		initCache();
 		return cacheConnections.get(KeyImpl.init(cacheName));
+	}
+	
+	public Key[] getCacheConnectionNames() {
+		initCache();
+		Set<Key> set = cacheConnections.keySet();
+		return set.toArray(new Key[set.size()]);
 	}
 	
 	private void initCache() {
@@ -716,34 +782,56 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			Struct sctCache = Caster.toStruct(get(component,KeyConstants._cache,null),null);
 			if(sctCache!=null){ 
 				Iterator<Entry<Key, Object>> it = sctCache.entryIterator();
-				Entry<Key, Object> e;
-				Struct sct;
-				CacheConnection cc;
-				while(it.hasNext()) {
-					e = it.next();
-					
-					if(KeyConstants._function.equals(e.getKey()) 
-							|| KeyConstants._query.equals(e.getKey()) 
-							|| KeyConstants._template.equals(e.getKey()) 
-							|| KeyConstants._object.equals(e.getKey()) 
-							|| KeyConstants._include.equals(e.getKey()) 
-							|| KeyConstants._resource.equals(e.getKey()) 
-							|| KeyConstants._http.equals(e.getKey()) 
-							|| KeyConstants._file.equals(e.getKey()) 
-							|| KeyConstants._webservice.equals(e.getKey())) continue;
-					
-					sct=Caster.toStruct(e.getValue(),null);
-					if(sct==null) continue;
-					
-					cc=toCacheConnection(config,e.getKey().getString(),sct,null);
-					if(cc!=null) cacheConnections.put(e.getKey(),cc);
-				}
+				
+				_initCache(cacheConnections,it,false);
+				
+				
 			}
 			initCache=true;
 		}
 	}
 
 
+
+	private void _initCache(Map<Key, CacheConnection> cacheConnections, Iterator<Entry<Key, Object>> it, boolean sub) {
+		Entry<Key, Object> e;
+		Struct sct;
+		CacheConnection cc;
+		while(it.hasNext()) {
+			e = it.next();
+			
+			if(!sub && KeyConstants._function.equals(e.getKey()) 
+					|| KeyConstants._query.equals(e.getKey()) 
+					|| KeyConstants._template.equals(e.getKey()) 
+					|| KeyConstants._object.equals(e.getKey()) 
+					|| KeyConstants._include.equals(e.getKey()) 
+					|| KeyConstants._resource.equals(e.getKey()) 
+					|| KeyConstants._http.equals(e.getKey()) 
+					|| KeyConstants._file.equals(e.getKey()) 
+					|| KeyConstants._webservice.equals(e.getKey())) continue;
+			
+			if(!sub && KeyConstants._connections.equals(e.getKey()) ) {
+				Struct _sct=Caster.toStruct(e.getValue(),null);
+				if(_sct!=null)_initCache(cacheConnections, _sct.entryIterator(),true);
+				continue;
+				
+			}
+			
+			
+			sct=Caster.toStruct(e.getValue(),null);
+			if(sct==null) continue;
+			
+			cc=toCacheConnection(config,e.getKey().getString(),sct,null);
+			
+			
+			if(cc!=null) cacheConnections.put(e.getKey(),cc);
+		}
+	}
+
+	private void _initCache(Iterator<Entry<Key, Object>> it) {
+		// TODO Auto-generated method stub
+		
+	}
 
 	private boolean initDefaultCache(Struct data, int type, Key key) {
 		Object o = data.get(key,null);
@@ -768,7 +856,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		}
 		return hasResource;
 	}
-
+	
 	public static CacheConnection toCacheConnection(Config config,String name,Struct data, CacheConnection defaultValue) {
 		try{
 			// class definition
@@ -799,11 +887,12 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 				
 				initCacheConnections.put(id,cc);
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			
 			return cc;
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -903,6 +992,26 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if(!initWebCharset)initCharset();
 		return webCharset;
 	}
+	
+
+	@Override
+	public Resource getAntiSamyPolicyResource() {
+		return antiSamyPolicyResource;
+	}
+	
+	@Override
+	public void setAntiSamyPolicyResource(Resource res) {
+		antiSamyPolicyResource=res;
+	}
+	
+	public void initAntiSamyPolicyResource(PageContext pc) {
+		Struct sct = Caster.toStruct(get(component,KeyConstants._security,null),null);
+		if(sct!=null) {
+			Resource tmp = ResourceUtil.toResourceExisting(pc,Caster.toString(sct.get("antisamypolicy",null),null),true,null);
+			if(tmp!=null) antiSamyPolicyResource=tmp;
+		}
+	}
+	
 	
 	@Override
 	public Charset getResourceCharset() {
@@ -1036,7 +1145,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			ComponentSpecificAccess cw=ComponentSpecificAccess.toComponentSpecificAccess(Component.ACCESS_PRIVATE, component); 
 			return cw.get(key,null);
 		} 
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		return null;
 	}
@@ -1403,7 +1512,10 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 					//print.e(res+"->"+(res!=null && res.exists()));
 					if(res!=null) list.add(res);
 				}
-				catch(Throwable t){t.printStackTrace();}
+				catch(Throwable t){
+					ExceptionUtil.rethrowIfNecessary(t);
+					t.printStackTrace();
+				}
 			}
 			return list;
 		}
@@ -1460,7 +1572,6 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if(!initCachedWithins) {
 			Struct sct = Caster.toStruct(get(component,KeyConstants._cachedWithin,null),null);
 			if(sct!=null) {
-
 				Iterator<Entry<Key, Object>> it = sct.entryIterator();
 				Entry<Key, Object> e;
 				Object v; int k;
@@ -1468,12 +1579,39 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 					e = it.next();
 					k=AppListenerUtil.toCachedWithinType(e.getKey().getString(),-1);
 					v=e.getValue();
-					if(k!=-1 && !StringUtil.isEmpty(v)) cachedWithins.put(k, v);
+					if(k!=-1 && !StringUtil.isEmpty(v)) setCachedWithin(k, v);
 				}
 			}
+			sct=null;
+			// also support this.tag.include... as second chance 
+			if(super.getCachedWithin(Config.CACHEDWITHIN_INCLUDE)==null) {
+				sct = Caster.toStruct(get(component,KeyConstants._tag,null),null);
+				if(sct!=null) {
+					Object obj=sct.get(KeyConstants._include,null);
+					if(Decision.isCastableToStruct(obj)) {
+						Struct tmp=Caster.toStruct(obj,null);
+						obj=tmp==null?null:tmp.get("cachedWithin",null);
+						if(!StringUtil.isEmpty(obj)) setCachedWithin(Config.CACHEDWITHIN_INCLUDE, obj);
+					}
+				}
+			}
+
+			// also support this.tag.function... as second chance 
+			if(super.getCachedWithin(Config.CACHEDWITHIN_FUNCTION)==null) {
+				if(sct==null)sct = Caster.toStruct(get(component,KeyConstants._tag,null),null);
+				if(sct!=null) {
+					Object obj=sct.get(KeyConstants._function,null);
+					if(Decision.isCastableToStruct(obj)) {
+						Struct tmp=Caster.toStruct(obj,null);
+						obj=tmp==null?null:tmp.get("cachedWithin",null);
+						if(!StringUtil.isEmpty(obj)) setCachedWithin(Config.CACHEDWITHIN_FUNCTION, obj);
+					}
+				}
+			}
+			
 			initCachedWithins=true;
 		} 
-		return cachedWithins.get(type);
+		return super.getCachedWithin(type);
 	}
 	
 	@Override
@@ -1525,7 +1663,39 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
-	public boolean deepThread() {
-		return Caster.toBooleanValue(get(component,KeyImpl.init("deepThread"),null),false);
+	public void setLoggers(Map<Key, Pair<Log,Struct>> logs) {
+		this.logs=logs;
+		initLog=true;
+	}
+
+	@Override
+	public Log getLog(String name) {
+		if(!initLog) initLog();
+		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
+		if(pair==null) return null;
+		return pair.getName();
+	}
+
+	@Override
+	public Struct getLogMetaData(String name) {
+		if(!initLog) initLog();
+		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
+		if(pair==null) return null;
+		return (Struct)pair.getValue().duplicate(false);
+	}
+
+	@Override
+	public java.util.Collection<Collection.Key> getLogNames() {
+		if(!initLog) initLog();
+		return logs.keySet();
+	}
+
+	private void initLog() {
+		// appender
+		Object oLogs=get(component,LOGS,null);
+		if(oLogs==null) oLogs=get(component,LOG,null);
+		Struct sct=Caster.toStruct(oLogs,null);
+		logs=initLog(sct);
+		initLog=true;
 	}
 }

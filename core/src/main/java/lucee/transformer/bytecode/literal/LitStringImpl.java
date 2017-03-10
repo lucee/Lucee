@@ -18,6 +18,7 @@
 package lucee.transformer.bytecode.literal;
 
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.op.Caster;
@@ -100,7 +101,7 @@ public class LitStringImpl extends ExpressionBase implements LitString,ExprStrin
 		    		return Types.STRING;
 	    		}
     		}
-    		catch(Throwable t){}
+    		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     	}
     	
     	

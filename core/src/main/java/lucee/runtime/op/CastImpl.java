@@ -34,6 +34,9 @@ import lucee.commons.color.ColorCaster;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.security.Credentials;
+import lucee.commons.security.CredentialsImpl;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
@@ -43,6 +46,7 @@ import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.date.DateCaster;
+import lucee.runtime.security.CredentialImpl;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
@@ -1013,7 +1017,8 @@ public final class CastImpl implements Cast {
 	public BigDecimal toBigDecimal(Object obj, BigDecimal defaultValue) {
 		try {
 			return Caster.toBigDecimal(obj);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -1046,5 +1051,10 @@ public final class CastImpl implements Cast {
 	@Override
 	public DumpData toDumpTable(Struct sct,String title,PageContext pageContext, int maxlevel, DumpProperties dp) {
 		return StructUtil.toDumpTable(sct, title, pageContext, maxlevel, dp);
+	}
+	
+	// FUTURE add to interface
+	public Credentials toCredentials(String username, String password) {
+		return CredentialsImpl.toCredentials(username, password);
 	}
 }

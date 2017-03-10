@@ -20,11 +20,14 @@ package lucee.runtime.format;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
 import lucee.commons.date.JREDateTimeUtil;
+import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 
 public final class DateFormat extends BaseFormat implements Format {
 	
@@ -61,6 +64,7 @@ public final class DateFormat extends BaseFormat implements Format {
 		return format(date.getTime(), mask, tz);
 	}
 	public String format(long time,String mask, TimeZone tz) {
+		tz=ThreadLocalPageContext.getTimeZone(tz);
 		Calendar calendar = JREDateTimeUtil.getThreadCalendar(getLocale(),tz);
 		calendar.setTimeInMillis(time);
 
@@ -82,7 +86,49 @@ public final class DateFormat extends BaseFormat implements Format {
 			char c=mask.charAt(pos);
 			char next=(len>pos+1)?mask.charAt(pos+1):(char)0;
 			switch(c) {
+			case 'z':{
+				int count=1;
+				while(mask.length()>pos+1 && mask.charAt(pos+1)=='z') {
+					pos++;
+					count++;
+				}
+				formated.append(z(time,tz,count));
+			}		
+			break;
+			// RFC 822 TimeZone
+			case 'Z':{
+				while(mask.length()>pos+1 && mask.charAt(pos+1)=='Z') {
+					pos++;
+				}
+				formated.append(Z(time,tz));
+			}	
+			break;
+			// ISO 8601 TimeZone
+			case 'X':{
+				int count=1;
+				while(mask.length()>pos+1 && mask.charAt(pos+1)=='X') {
+					pos++;
+					count++;
+				}
+				TimeZone.setDefault(TimeZone.getTimeZone("CET"));
+				formated.append(X(time,tz,count));
+			}	
+			break;
+			
 
+			// g: Era designator
+			// gg: Era designator
+
+			case 'g':
+			case 'G':
+				String era=toEra(calendar.get(Calendar.ERA),"");
+				while(mask.length()>pos+1 && Character.toLowerCase(mask.charAt(pos+1))=='g') {
+					pos++;
+				}
+				formated.append(era);
+			break;
+			
+			
 			// d: Day of month. Digits; no leading zero for single-digit days 
 			// dd: Day of month. Digits; leading zero for single-digit days 
 			// ddd: Day of week, abbreviation 
@@ -160,13 +206,17 @@ public final class DateFormat extends BaseFormat implements Format {
 							formated.append(year4);
 							pos+=3;
 						}
+						else if((next__2=='y' || next__2=='Y')) {
+							formated.append(year4);
+							pos+=2;
+						}
 						else {
 							formated.append(year2<10?"0"+year2:""+year2);
 							pos++;
 						}
 					}
 					else {
-						formated.append(year2);
+						formated.append(year4);
 					}					
 				break;
 				
@@ -178,6 +228,74 @@ public final class DateFormat extends BaseFormat implements Format {
 		return formated.toString();
 	}
 	
+
+
+	private String toEra(int era, String defaultValue) {
+		if(GregorianCalendar.AD==era) return "AD";
+		if(GregorianCalendar.BC==era) return "BC";
+		return defaultValue;
+	}
+
+	public static Object X(long time, TimeZone tz, int count) {
+		if(tz.equals(TimeZoneConstants.UTC)) return "Z";
+		String res = Z(time,tz);
+		if(count==1) return res.substring(0, 3);
+		if(count==2) return res;
+		
+		//String h=(res.charAt(1)=='0')? h=res.substring(2, 3):res.substring(1, 3);
+		return res.substring(0, 1)+res.substring(1, 3)+":"+res.substring(3);
+	}
+
+
+	public static String z(long time, TimeZone tz, int count) {
+		Calendar c = Calendar.getInstance(tz,Locale.US);
+		c.setTimeInMillis(time);
+		
+		boolean daylight = c.get(Calendar.DST_OFFSET) != 0;
+        int style = (count < 4 ? TimeZone.SHORT : TimeZone.LONG);
+        
+		
+		return tz.getDisplayName(daylight, style, Locale.US);
+	}
+	
+	
+	public static String Z(long time, TimeZone tz) {
+		StringBuilder sb=new StringBuilder();
+		Calendar c = Calendar.getInstance(tz,Locale.US);
+		c.setTimeInMillis(time);
+		int value = (c.get(Calendar.ZONE_OFFSET) + c.get(Calendar.DST_OFFSET)) / 60000;
+		int width = 4;
+		if (value >= 0) sb.append('+');
+		else width++;
+		
+		int num = (value / 60) * 100 + (value % 60);
+		sprintf0d(sb, num, width);
+		return sb.toString();
+	}
+	
+    /**
+     * Mimics sprintf(buf, "%0*d", decaimal, width).
+     */
+    private static final StringBuilder sprintf0d(StringBuilder sb, int value, int width) {
+        long d = value;
+        if (d < 0) {
+            sb.append('-');
+            d = -d;
+            --width;
+        }
+        int n = 10;
+        for (int i = 2; i < width; i++) {
+            n *= 10;
+        }
+        for (int i = 1; i < width && d < n; i++) {
+            sb.append('0');
+            n /= 10;
+        }
+        sb.append(d);
+        return sb;
+    }
+
+
 
 	private String getAsString(Calendar c,int style, TimeZone tz) {
 		java.text.DateFormat df = java.text.DateFormat.getDateInstance(style,getLocale());

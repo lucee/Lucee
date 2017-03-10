@@ -18,9 +18,6 @@
  **/
 package lucee.runtime.type.scope.session;
 
-import java.util.Date;
-
-import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.log.Log;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
@@ -78,7 +75,7 @@ public final class SessionCache extends StorageScopeCache implements Session {
 		}
 
 		SessionCache session = new SessionCache(pc,cacheName,appName,new StructImpl(),0);
-		session.store(pc.getConfig());
+		session.store(pc);
 		return session;
 	}
 

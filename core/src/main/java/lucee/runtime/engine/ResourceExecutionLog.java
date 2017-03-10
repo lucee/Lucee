@@ -91,7 +91,8 @@ public class ResourceExecutionLog extends ExecutionLogSupport {
 						err(pc,"can not create directory ["+dir+"], there is already a file with same name.");
 					}
 				} 
-				catch (Throwable t) {
+				catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					err(pc,t);
 					dir=getTemp(pc);
 				}

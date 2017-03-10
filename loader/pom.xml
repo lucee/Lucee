@@ -1,17 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-
-  <!-- <parent>
-    <groupId>org.lucee</groupId>
-    <artifactId>parent</artifactId>
-    <version>5.0.0.22</version>
-    
-  </parent> -->
-
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.1.83-SNAPSHOT</version>
+  <version>5.1.2.24-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -62,7 +54,7 @@
       <timezone>-8</timezone>
     </developer>
   </developers>
-   
+
   <profiles>
     <profile>
         <id>release-sign-artifacts</id>
@@ -93,7 +85,7 @@
         </build>
     </profile>
 </profiles>
-     
+
 
   <build>
       <plugins>
@@ -137,7 +129,7 @@
             <releaseProfiles>release</releaseProfiles>
             <goals>deploy</goals>
           </configuration>
-        </plugin> 
+        </plugin>
 
         <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -154,10 +146,10 @@
         </plugin>
 
         <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-          <version>2.10.3</version>
-     
+     		<groupId>org.apache.maven.plugins</groupId>
+     		<artifactId>maven-javadoc-plugin</artifactId>
+         	<version>2.10.3</version>
+
           <executions>
             <execution>
               <id>attach-javadocs</id>
@@ -165,7 +157,7 @@
                 <goal>jar</goal>
               </goals>
             <!-- add this to disable checking
-            <configuration>  
+            <configuration>
                 <additionalparam>-Xdoclint:none</additionalparam>
             </configuration> -->
             </execution>
@@ -194,12 +186,12 @@
                       <fileset refid="mydeps.org.apache.maven:maven-ant-tasks:jar" />
                     </path>
                     <pathconvert property="dependencies" refid="mydeps.maven.project.dependencies" />
-                    
+
                     <property name="version" value="${project.version}" />
-                        
+
                     <!-- <property name="compile_classpath" refid="maven.compile.classpath" /> -->
                     <property name="runtime_classpath" refid="maven.runtime.classpath" />
-                        
+
                     <property name="outputDir" value="${project.build.outputDirectory}" />
                     <property name="testcases" value="true" />
 
@@ -209,7 +201,7 @@
                     <property name="baseDir" value="${basedir}" />
                     <dirname file="${baseDir}" property="rootDir" />
 
-                    <ant antfile="../ant/build-core.xml" target="buildLoaderMaven" />                    
+                    <ant antfile="../ant/build-core.xml" target="buildLoaderMaven" />
 
 
                   </tasks>
@@ -226,7 +218,7 @@
        <artifactId>maven-jar-plugin</artifactId>
        <version>2.6</version>
             <extensions>true</extensions>
-          
+
             <configuration>
                 <excludes>
                   <exclude>.*</exclude>
@@ -236,11 +228,11 @@
                 <manifest>
                   <mainClass>${main.class}</mainClass>
                 </manifest>
-                  </archive> 
+                  </archive>
               </configuration>
 
           </plugin>
-         
+
          <plugin>
        <groupId>org.apache.maven.plugins</groupId>
       <artifactId>maven-compiler-plugin</artifactId>
@@ -294,8 +286,8 @@
 
 
 
-  <dependencies>
-     
+	<dependencies>
+
   <dependency>
     <groupId>junit</groupId>
     <artifactId>junit</artifactId>
@@ -303,8 +295,8 @@
     <scope>test</scope>
   </dependency>
 
-    
-  <dependency>
+
+	<dependency>
     <groupId>org.apache.felix</groupId>
     <artifactId>org.apache.felix.framework</artifactId>
     <version>4.6.1</version>
@@ -335,7 +327,7 @@
     <scope>compile</scope>
   </dependency>
 
-<!-- 
+<!--
   source: mvn
 -->
   <dependency>
@@ -356,12 +348,13 @@
     <version>1.10</version>
     <scope>provided</scope>
   </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-sanselan</artifactId>
-    <version>0.97.0.incubator</version>
-    <scope>provided</scope>
-  </dependency>
+    <dependency>
+         <groupId>org.apache.commons</groupId>
+         <artifactId>image</artifactId>
+         <type>jar</type>
+         <version>1.0.0.R1534292</version>
+         <scope>provided</scope>
+      </dependency>
   <dependency>
     <groupId>commons-codec</groupId>
     <artifactId>commons-codec</artifactId>
@@ -505,7 +498,7 @@
     <artifactId>oswego-concurrent</artifactId>
     <version>1.3.4</version>
     <scope>provided</scope>
-  </dependency> 
+  </dependency>
   <dependency>
     <groupId>org.lucee</groupId>
     <artifactId>jta</artifactId>
@@ -518,6 +511,26 @@
     <version>2.1.0.1</version>
     <scope>provided</scope>
   </dependency>
+  <!-- <dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>antisamy</artifactId>
+  	<version>1.5.3</version>
+  </dependency>
+  <dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>batik</artifactId>
+  	<version>1.7.0</version>
+  </dependency>
+  <dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>batik-util</artifactId>
+  	<version>1.7.0</version>
+  </dependency>
+  <dependency>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>xml-apis-ext</artifactId>
+  	<version>1.3.04</version>
+  </dependency> -->
   <dependency>
     <groupId>xom</groupId>
     <artifactId>xom</artifactId>
@@ -715,7 +728,7 @@
     <artifactId>xmpcore</artifactId>
     <version>5.1.2.0002L</version>
     <scope>provided</scope>
-  </dependency> 
+  </dependency>
 </dependencies>
 
 

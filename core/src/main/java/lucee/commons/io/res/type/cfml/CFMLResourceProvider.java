@@ -31,6 +31,7 @@ import lucee.commons.io.res.ResourceProviderPro;
 import lucee.commons.io.res.Resources;
 import lucee.commons.io.res.util.ResourceLockImpl;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -286,7 +287,8 @@ public class CFMLResourceProvider implements ResourceProviderPro {
 			if(StringUtil.length(str,true)==1) return str.charAt(0);
 		}
 		catch(Throwable t){
-			// fallback to default "/"
+			ExceptionUtil.rethrowIfNecessary(t);
+    		// fallback to default "/"
 		}
 		return '/';
 	}

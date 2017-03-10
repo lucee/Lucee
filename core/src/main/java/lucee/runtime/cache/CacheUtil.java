@@ -27,8 +27,8 @@ import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CacheEntryFilter;
 import lucee.commons.io.cache.CacheFilter;
-import lucee.commons.io.cache.complex.CacheComplex;
 import lucee.commons.io.cache.exp.CacheException;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
@@ -74,7 +74,8 @@ public class CacheUtil {
 		if(cc==null) return defaultValue;
 		try {
 			return cc.getInstance(config);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -123,7 +124,8 @@ public class CacheUtil {
 		Config config = ThreadLocalPageContext.getConfig(pc);
 		try {
 			return cc.getInstance(config);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -272,6 +274,7 @@ public class CacheUtil {
 			remove(config,cc);
 			return true;
 		} catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
 			return false;
 		}
 	}

@@ -36,12 +36,17 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import lucee.commons.lang.CFTypes;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.component.Property;
+import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
@@ -243,7 +248,6 @@ public final class JSONConverter extends ConverterSupport {
         	}
         }
     	
-    	
     	sb.append(goIn());
         sb.append("{");
         //Key[] keys = struct.keys();
@@ -371,7 +375,7 @@ public final class JSONConverter extends ConverterSupport {
 		sct.setEL("ReturnType", udf.getReturnTypeAsString());
 		try{
 			sct.setEL("PagePath", udf.getSource());
-		}catch(Throwable t){}
+		}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		_serializeStruct(pc,test,sct, sb, serializeQueryByColumns, true,done);
 		// TODO key SuperScope and next?
@@ -420,11 +424,16 @@ public final class JSONConverter extends ConverterSupport {
 			sb.append('{');
 			boolean oDoIt=false;
 			int len=query.getRecordcount();
+			pc=ThreadLocalPageContext.get(pc);
+			boolean upperCase=false;
+			if(pc!=null)upperCase = pc.getCurrentTemplateDialect()==CFMLEngine.DIALECT_CFML && ((ConfigWebImpl)pc.getConfig()).getDotNotationUpperCase();
+           
 			for(int i=0;i<_keys.length;i++) {
 			    if(oDoIt)sb.append(',');
 			    oDoIt=true;
 			    sb.append(goIn());
-	            sb.append(StringUtil.escapeJS(_keys[i].getString(),'"',charsetEncoder));
+			    
+			    sb.append(StringUtil.escapeJS(upperCase?_keys[i].getUpperString():_keys[i].getString(),'"',charsetEncoder));
 	            sb.append(":[");
 				boolean doIt=false;
 					for(int y=1;y<=len;y++) {

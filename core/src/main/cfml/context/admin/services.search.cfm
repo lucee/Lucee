@@ -190,16 +190,16 @@
 		<cfoutput>
 			<!--- Create Collection --->
 			<h2>#stText.Search.CreateCol#</h2>
-			<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 				<table class="maintbl autowidth">
 					<tbody>
 						<tr>
 							<th scope="row">#stText.Search.Name#</th>
-							<td><cfinput type="text" name="collName" value="" class="large" required="yes" message="#stText.Search.Missing_Name#"></td>
+							<td><cfinputClassic type="text" name="collName" value="" class="large" required="yes" message="#stText.Search.Missing_Name#"></td>
 						</tr>
 						<tr>
 							<th scope="row">#stText.Search.Path#</th>
-							<td><cfinput type="text" name="collPath" value="" class="large" required="yes" message="#stText.Search.Missing_Path#"></td>
+							<td><cfinputClassic type="text" name="collPath" value="" class="large" required="yes" message="#stText.Search.Missing_Path#"></td>
 						</tr>
 						<tr>
 							<th scope="row">#stText.Search.Language#</th>
@@ -224,7 +224,7 @@
 						</tr>
 					</tfoot>
 				</table>
-			</cfform>
+			</cfformClassic>
 		</cfoutput>
 	<cfelse>
 		<cfset collection=struct()>
@@ -276,16 +276,16 @@
 				---><!--- 
 				Create Index --->
 				<h2>#stText.Search.PathAction#</h2>
-				<cfform onerror="customError" action="#request.self#?action=#url.action#&collection=#collection.name#" method="post">
+				<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&collection=#collection.name#" method="post">
 					<table class="maintbl">
 						<tbody>
 							<tr>
 								<th scope="row">#stText.Search.FileExtensions#</th>
-								<td><cfinput type="text" name="extensions" value=".html, .htm, .cfm, .cfml" class="large" required="yes" message="#stText.Search.FileExtensionsMissing#"></td>
+								<td><cfinputClassic type="text" name="extensions" value=".html, .htm, .cfm, .cfml" class="large" required="yes" message="#stText.Search.FileExtensionsMissing#"></td>
 							</tr>
 							<tr>
 								<th scope="row">#stText.Search.DirectoryPath#</th>
-								<td><cfinput type="text" name="path" value="" class="large" required="yes" message="#stText.Search.DirectoryPathMissing#"></td>
+								<td><cfinputClassic type="text" name="path" value="" class="large" required="yes" message="#stText.Search.DirectoryPathMissing#"></td>
 							</tr>
 							<tr>
 								<th scope="row">#stText.Search.IndexSubdirs#</th>
@@ -293,7 +293,7 @@
 							</tr>
 							<tr>
 								<th scope="row">#stText.Search.URL#</th>
-								<td><cfinput type="text" name="url" value="" class="large" required="no"></td>
+								<td><cfinputClassic type="text" name="url" value="" class="large" required="no"></td>
 							</tr>
 							<tr>
 								<th scope="row">#stText.Search.Language#</th>
@@ -319,10 +319,10 @@
 							</tr>
 						</tfoot>
 					</table>
-				</cfform>
+				</cfformClassic>
 				
 				<h2>#stText.Search.SearchTheCollection#</h2>
-				<cfform onerror="customError" action="#request.self#?action=#url.action#&collection=#collection.name#&search=1" method="post">
+				<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&collection=#collection.name#&search=1" method="post">
 					<table class="maintbl">
 						<tbody>
 							<tr>
@@ -332,7 +332,7 @@
 										<cfset session.searchterm=form.searchterm>
 									</cfif>
 									<cfparam name="session.searchterm" default="">
-									<cfinput type="text" name="searchterm" value="#session.searchterm#" class="large"
+									<cfinputClassic type="text" name="searchterm" value="#session.searchterm#" class="large"
 										required="yes" message="#stText.Search.SearchTermMissing#">
 								</td>
 							</tr>
@@ -353,7 +353,7 @@
 							</td></tr>
 						</tfoot>
 					</table>
-				</cfform>
+				</cfformClassic>
 
 				<cfif StructKeyExists(form,'searchterm')>
 					<cfsearch 

@@ -93,12 +93,12 @@ Redirtect to entry --->
 
 	<h2>#driver.getLabel()#</h2>
 	<div class="pageintro">#driver.getDescription()#</div>
-	<cfform onerror="customError" action="#request.self#?action=#url.action#&action2=create#iif(isDefined('url.id'),de('&id=##url.id##'),de(''))#" method="post">
-		<cfinput type="hidden" name="name" value="#listLast(getMetaData(driver).name,'.')#">
-		<cfinput type="hidden" name="class" value="#entry.class#">
-		<cfinput type="hidden" name="cfcPath" value="#entry.cfcPath#">
-		<cfinput type="hidden" name="id" value="#entry.id#" >
-		<cfinput type="hidden" name="_id" value="#entry.id#" >
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=create#iif(isDefined('url.id'),de('&id=##url.id##'),de(''))#" method="post">
+		<cfinputClassic type="hidden" name="name" value="#listLast(getMetaData(driver).name,'.')#">
+		<cfinputClassic type="hidden" name="class" value="#entry.class#">
+		<cfinputClassic type="hidden" name="cfcPath" value="#entry.cfcPath#">
+		<cfinputClassic type="hidden" name="id" value="#entry.id#" >
+		<cfinputClassic type="hidden" name="_id" value="#entry.id#" >
 		<table class="maintbl">
 			<tbody>
 				<tr>
@@ -108,7 +108,7 @@ Redirtect to entry --->
 				<cfif driver.getListenerCfcMode() NEQ "none">
 					<tr>
 						<th scope="row">#stText.Settings.gateway.ListenerCfcPath#</th>
-						<td><cfinput type="text" name="listenerCfcPath" value="#entry.listenerCfcPath#" required="#driver.getListenerCfcMode() EQ "required"#" class="large" message="Missing value for field listener CFC Path">
+						<td><cfinputClassic type="text" name="listenerCfcPath" value="#entry.listenerCfcPath#" required="#driver.getListenerCfcMode() EQ "required"#" class="large" message="Missing value for field listener CFC Path">
 						<div class="comment">
 							<cfif structKeyExists(driver,'getListenerCFCDescription')>
 								#driver.getListenerCFCDescription()#
@@ -156,14 +156,14 @@ Redirtect to entry --->
 						<td width="300">
 				</cfif>
 				<cfif type EQ "text" or type EQ "password">
-					<cfinput type="#type#" 
+					<cfinputClassic type="#type#" 
 						name="custom_#field.getName()#" 
 						value="#default#" class="large" required="#field.getRequired()#" 
 						message="Missing value for field #field.getDisplayName()#">
 					<cfelseif type EQ "textarea">
 						<textarea style="height:70px;" class="large" name="custom_#field.getName()#">#default#</textarea>
 					<cfelseif type EQ "hidden">
-						<cfinput type="hidden" name="custom_#field.getName()#" value="#default#">
+						<cfinputClassic type="hidden" name="custom_#field.getName()#" value="#default#">
 					<cfelseif type EQ "time">
 						<cfsilent>
 							<cfset doBR=false>
@@ -197,19 +197,19 @@ Redirtect to entry --->
 							</thead>
 							<tbody>
 								<tr>
-									<td><cfinput type="text" 
+									<td><cfinputClassic type="text" 
 										name="custompart_d_#field.getName()#" 
 										value="#addZero(d)#" class="number" required="#field.getRequired()#"   validate="integer"
 										message="Missing value for field #field.getDisplayName()#"></td>
-									<td><cfinput type="text" 
+									<td><cfinputClassic type="text" 
 										name="custompart_h_#field.getName()#" 
 										value="#addZero(h)#" class="number" required="#field.getRequired()#"  maxlength="2"  validate="integer"
 										message="Missing value for field #field.getDisplayName()#"></td>
-									<td><cfinput type="text" 
+									<td><cfinputClassic type="text" 
 										name="custompart_m_#field.getName()#" 
 										value="#addZero(m)#" class="number" required="#field.getRequired()#"  maxlength="2" validate="integer" 
 										message="Missing value for field #field.getDisplayName()#"></td>
-									<td><cfinput type="text" 
+									<td><cfinputClassic type="text" 
 										name="custompart_s_#field.getName()#" 
 										value="#addZero(s)#" class="number" required="#field.getRequired()#"  maxlength="2"  validate="integer"
 										message="Missing value for field #field.getDisplayName()#"></td>
@@ -238,7 +238,7 @@ Redirtect to entry --->
 								<cfloop index="item" list="#field.getValues()#">
 									<li>
 										<label>
-											<cfinput type="#type#" class="#type#" name="custom_#field.getName()#" value="#item#" checked="#item EQ default#">
+											<cfinputClassic type="#type#" class="#type#" name="custom_#field.getName()#" value="#item#" checked="#item EQ default#">
 											<b>#item#</b>
 										</label>
 										<cfif isStruct(desc) and StructKeyExists(desc,item)>
@@ -249,7 +249,7 @@ Redirtect to entry --->
 							</ul>
 						<cfelse>
 							<cfset item = field.getValues() />
-							<cfinput type="#type#" class="#type#" name="custom_#field.getName()#" value="#item#" checked="#item EQ default#">
+							<cfinputClassic type="#type#" class="#type#" name="custom_#field.getName()#" value="#item#" checked="#item EQ default#">
 						</cfif>
 						<cfif isStruct(desc) and StructKeyExists(desc,'_bottom')>
 							<div class="comment" style="padding-top:4px">#desc._bottom#</div>
@@ -274,5 +274,5 @@ Redirtect to entry --->
 				</tr>
 			</tfoot>
 		</table>
-	</cfform>
+	</cfformClassic>
 </cfoutput>

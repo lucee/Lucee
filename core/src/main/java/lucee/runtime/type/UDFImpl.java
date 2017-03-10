@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import javax.servlet.jsp.tagext.BodyContent;
 
 import lucee.commons.lang.CFTypes;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
@@ -338,6 +339,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 				if(ownerComponent!=null)pci.setActiveUDF(parent);
 			}
 	        catch(Throwable t) {
+	        	ExceptionUtil.rethrowIfNecessary(t);
 	        	if(ownerComponent!=null)pci.setActiveUDF(parent);
 	        	if(!getOutput()) {
 	        		if(bufferOutput)BodyContentUtil.flushAndPop(pc,bc);
@@ -354,10 +356,11 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
         	
 	        
 	        
+	        	if(returnValue==null && pc.getConfig().getFullNullSupport()) return returnValue;
+		        if(properties.getReturnType()==CFTypes.TYPE_ANY || !((PageContextImpl)pc).getTypeChecking()) return returnValue;
+		        if(Decision.isCastableTo(properties.getReturnTypeAsString(),returnValue,false,false,-1)) return returnValue;
+		        throw new UDFCasterException(this,properties.getReturnTypeAsString(),returnValue);
 	        
-	        if(properties.getReturnType()==CFTypes.TYPE_ANY || !((PageContextImpl)pc).getTypeChecking()) return returnValue;
-	        else if(Decision.isCastableTo(properties.getReturnTypeAsString(),returnValue,false,false,-1)) return returnValue;
-	        else throw new UDFCasterException(this,properties.getReturnTypeAsString(),returnValue);
 			//REALCAST return Caster.castTo(pageContext,returnType,returnValue,false);
 //////////////////////////////////////////
 			

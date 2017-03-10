@@ -18,9 +18,6 @@
  **/
 package lucee.runtime.type.scope.client;
 
-import java.util.Date;
-
-import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.log.Log;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
@@ -80,7 +77,7 @@ public final class ClientCache extends StorageScopeCache implements Client {
 		else if(existing!=null) return  existing;
 
 		ClientCache cc = new ClientCache(pc,cacheName,appName,new StructImpl(),0);
-		cc.store(pc.getConfig());
+		cc.store(pc);
 		return cc;
 	}
 	

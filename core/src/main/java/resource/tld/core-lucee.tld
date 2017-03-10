@@ -49,6 +49,14 @@
 			<description>alias for default datasource</description>
 		</attribute>
 		<attribute>
+			<type>array</type>
+			<name>mails</name>
+			<alias>mail</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>mail servers.</description>
+		</attribute>
+		<attribute>
 			<type>object</type>
 			<name>defaultdatasource</name>
 			<required>false</required>
@@ -64,7 +72,16 @@
 		</attribute>
 		<attribute>
 			<type>struct</type>
+			<name>logs</name>
+			<alias>log</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>A structure that contains log defintions.</description>
+		</attribute>
+		<attribute>
+			<type>struct</type>
 			<name>caches</name>
+			<alias>cache</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>A structure that contains cache defintions.</description>
@@ -485,7 +502,14 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 - standard: scans the scopes variables,cgi,url,form,cookie
 			</description>
 		</attribute>
-
+		<attribute>
+			<type>boolean</type>
+			<name>searchImplicitScopes</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>alias to the attribute "scopecascading", takes a boolean value where true is equal to "standard" and false is equal to "struct" scope cascading mode.
+			For details see the description for the attribute "scopecascading".</description>
+		</attribute>
 		<attribute>
 			<type>struct</type>
 			<name>authcookie</name>
@@ -500,7 +524,6 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<rtexprvalue>true</rtexprvalue>
 			<description>session cookie behaviour</description>
 		</attribute>
-		
 	</tag>	
 	
 	<!-- Argument -->
@@ -895,6 +918,24 @@ To use cached data, the function must be called with the exact same arguments.</
 		<body-rtexprvalue>true</body-rtexprvalue>
 		<description>inside the body of this tags, expressions surrounded by "#" are parsed.</description>
 		<attribute-type>fixed</attribute-type>
+		<attribute>
+			<type>string</type>
+			<name>encodefor</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>encode for what, valid values are:
+- css: for output inside Cascading Style Sheets (CSS)
+- dn: for output in LDAP Distinguished Names
+- html: for output inside HTML
+- html_attr: for output inside HTML Attributes
+- javascript: for output inside Javascript
+- ldap: for output in LDAP queries
+- url: for output in URL
+- vbscript: for output inside vbscript
+- xml: for output inside XML
+- xml_attr: for output inside XML Attributes
+- xpath: for output in XPath</description>
+		</attribute>
 	</tag>
 	
 	<!-- ScriptX -->

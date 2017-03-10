@@ -21,6 +21,15 @@
 	<cffunction name="afterTests"></cffunction>
 	<cffunction name="setUp"></cffunction>
 	--->
+
+	<cffunction name="testCreateDateTimeOptionalArgs" localMode="modern">
+		<cfset assertEquals("{ts '2000-12-11 00:00:00'}x","#CreateDateTime(2000, 12, 11)#x")> 
+		<cfset assertEquals("{ts '2000-12-01 00:00:00'}x","#CreateDateTime(2000, 12)#x")> 
+		<cfset assertEquals("{ts '2000-01-01 00:00:00'}x","#CreateDateTime(2000)#x")> 
+		<cfset assertEquals("{ts '2000-01-23 00:05:00'}x","#CreateDateTime(year:2000,day:23,minute:5)#x")> 
+	</cffunction>
+
+
 	<cffunction name="testCreateDateTime" localMode="modern">
 
 <!--- begin old test code --->

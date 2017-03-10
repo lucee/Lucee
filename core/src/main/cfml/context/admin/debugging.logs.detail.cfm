@@ -46,11 +46,11 @@
 	
     
 <table class="tbl" width="740">
-<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post" name="debug_settings">
+<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post" name="debug_settings">
 <tr>
     <td ><input type="submit" name="mainAction" class="submit" value="#stText.buttons.back#" /></td>
 </tr>
-</cfform>
+</cfformClassic>
 </table>
 
 

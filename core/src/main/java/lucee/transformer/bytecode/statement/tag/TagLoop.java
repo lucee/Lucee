@@ -341,6 +341,8 @@ public final class TagLoop extends TagGroup implements FlowControlBreak,FlowCont
 		//VariableReference item=VariableInterpreter.getVariableReference(pc,index);
 		int index = -1;
 		Attribute attrIndex = getAttribute("index");
+		if (attrIndex == null)
+			attrIndex = getAttribute("key");
 		if(attrIndex!=null){
 			index = adapter.newLocal(Types.VARIABLE_REFERENCE);
 			adapter.loadArg(0);
@@ -352,6 +354,8 @@ public final class TagLoop extends TagGroup implements FlowControlBreak,FlowCont
 		//VariableReference item=VariableInterpreter.getVariableReference(pc,item);
 		int item = -1;
 		Attribute attrItem = getAttribute("item");
+		if (attrItem == null)
+			attrItem = getAttribute("value");
 		if(attrItem!=null){
 			item = adapter.newLocal(Types.VARIABLE_REFERENCE);
 			adapter.loadArg(0);

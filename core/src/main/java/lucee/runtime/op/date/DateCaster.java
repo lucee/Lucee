@@ -481,12 +481,14 @@ public final class DateCaster {
     
     public static DateTime toDateAdvanced(Object o,short convertingType, TimeZone timeZone) throws PageException {
         DateTime dt = toDateAdvanced(o,convertingType,timeZone,null);
-        if(dt==null) throw new ExpressionException("can't cast value to a Date Object");
+        if(dt==null) {
+        	if(o instanceof CharSequence)
+        		throw new ExpressionException("can't cast value ["+o+"] to a Date Object");
+        	throw new ExpressionException("can't cast value to a Date Object");
+        }
         return dt;
     }
-    
-    
-	
+
 	/**
 	 * converts a String to a Time Object, returns null if invalid string
 	 * @param str String to convert
@@ -653,7 +655,7 @@ public final class DateCaster {
 		// second
 		int second=ds.readDigits();
 		if(second==-1){
-			if(!alsoMonthString) return defaultValue;
+			if(!alsoMonthString || month!=0) return defaultValue;
 			second=ds.readMonthString();
 			if(second==-1)return defaultValue;
 			month=2;
@@ -710,7 +712,7 @@ public final class DateCaster {
 			hours=ds.readDigits();
 			ds.removeWhitespace();
 			if(hours==-1) {
-				return parseOffset(ds,timeZone,date,0,0,0,0,defaultValue);
+				return parseOffset(ds,timeZone,date,0,0,0,0,true,defaultValue);
 			}
 		}
 		else next=true;
@@ -762,23 +764,24 @@ public final class DateCaster {
 	    }
 		
 		ds.fwIfCurrent(' ');
-		return parseOffset(ds,timeZone,date,hours,minutes,seconds,msSeconds,defaultValue);
+		return parseOffset(ds,timeZone,date,hours,minutes,seconds,msSeconds,true,defaultValue);
 	    
 	}
 
-	private static DateTime parseOffset(DateString ds, TimeZone timeZone, int[] date,int hours, int minutes, int seconds, int msSeconds,DateTime defaultValue) {
+	private static DateTime parseOffset(DateString ds, TimeZone timeZone, int[] date,int hours, int minutes, int seconds, int msSeconds, boolean checkAfterLast,
+			DateTime defaultValue) {
 		if(ds.isLast() && (ds.fwIfCurrent('Z') ||  ds.fwIfCurrent('z'))) {
 			return util.toDateTime(TimeZoneConstants.UTC, date[0], date[1], date[2], hours, minutes, seconds, msSeconds,defaultValue);
 		}
 		else if(ds.fwIfCurrent('+')){
 	    	DateTime rtn = util.toDateTime(timeZone, date[0], date[1], date[2], hours, minutes, seconds, msSeconds,defaultValue);
 	    	if(rtn==defaultValue) return rtn;
-       	 	return readOffset(true,timeZone,rtn,date[0], date[1], date[2], hours, minutes, seconds, msSeconds,ds,defaultValue);
+	    	return readOffset(true,timeZone,rtn,date[0], date[1], date[2], hours, minutes, seconds, msSeconds,ds,checkAfterLast,defaultValue);
 	    }
 	    else if(ds.fwIfCurrent('-')){
 	    	DateTime rtn = util.toDateTime(timeZone, date[0], date[1], date[2], hours, minutes, seconds, msSeconds, defaultValue);
 	    	if(rtn==defaultValue) return rtn;
-      	 	return readOffset(false,timeZone,rtn,date[0], date[1], date[2], hours, minutes, seconds, msSeconds,ds,defaultValue);
+      	 	return readOffset(false,timeZone,rtn,date[0], date[1], date[2], hours, minutes, seconds, msSeconds,ds,checkAfterLast,defaultValue);
 	    }
 		return defaultValue;
 	}
@@ -890,7 +893,7 @@ public final class DateCaster {
 		
 		return defaultValue;
 	}
-
+	
 	private static DateTime _toDateSimpleTS(DateString ds, TimeZone timeZone, DateTime defaultValue) {
 		// Date
 		// "^\\{d '([0-9]{2,4})-([0-9]{1,2})-([0-9]{1,2})'\\}$"
@@ -945,7 +948,6 @@ public final class DateCaster {
 					int second=ds.readDigits();
 					if(second==-1) return defaultValue;
 				
-
 	           // Milli Second
 	                int millis=0;
 	                
@@ -953,12 +955,16 @@ public final class DateCaster {
 	                    millis=ds.readDigits();
 	                }
 					
-					
+	                int before=ds.getPos();
+	                DateTime tmp = parseOffset(ds, timeZone, new int[]{1899,12,30}, hour, minute, second, millis,false, defaultValue);
+					if(tmp==null && before!=ds.getPos()) return defaultValue;
+	                
 					if(!(ds.fwIfCurrent('\'') && ds.fwIfCurrent('}')))return defaultValue;
 					
-					
-					
 					if(ds.isAfterLast()){
+						if(tmp!=null) {
+							return new TimeImpl(tmp.getTime(),false);
+						}
 						long time=util.toTime(timeZone,1899,12,30,hour,minute,second,millis,DEFAULT_VALUE);
 						if(time==DEFAULT_VALUE)return defaultValue;
 						return new TimeImpl(time,false);
@@ -1009,9 +1015,20 @@ public final class DateCaster {
                 millis=ds.readDigits();
             }
             
+            int before=ds.getPos();
+            DateTime tmp = parseOffset(ds, timeZone, new int[]{year,month,day}, hour, minute, second, millis,false, defaultValue);
+			if(tmp==null && before!=ds.getPos()) return defaultValue;
+            
+            
             if(!(ds.fwIfCurrent('\'') && ds.fwIfCurrent('}')))return defaultValue;
-            if(ds.isAfterLast())return util.toDateTime(timeZone,year, month, day,hour,minute,second,millis,defaultValue);//new DateTimeImpl(year,month,day,hour,minute,second);
-			return defaultValue;
+            
+            if(ds.isAfterLast()){
+				if(tmp!=null) return tmp;
+				return util.toDateTime(timeZone,year, month, day,hour,minute,second,millis,defaultValue);
+			}
+            
+            
+            return defaultValue;
 			
 		}
 		else return defaultValue;
@@ -1027,9 +1044,9 @@ public final class DateCaster {
      * @param defaultValue 
 	 * @return date Object with offset
      */
-    private static DateTime readOffset(boolean isPlus,TimeZone timeZone,DateTime dt,int years, int months, int days, int hours, int minutes, int seconds, int milliSeconds, DateString ds,DateTime defaultValue) {
+    private static DateTime readOffset(boolean isPlus,TimeZone timeZone,DateTime dt,int years, int months, int days, int hours, int minutes, int seconds, int milliSeconds, DateString ds, boolean checkAfterLast,DateTime defaultValue) {
     //timeZone=ThreadLocalPageContext.getTimeZone(timeZone);
-    if(timeZone==null) return defaultValue;
+    	if(timeZone==null) return defaultValue;
 	// HOUR
 	int hourLength=ds.getPos();
 	int hour=ds.readDigits();
@@ -1039,7 +1056,7 @@ public final class DateCaster {
 	// MINUTE
 	int minute=0;
 	if(!ds.isAfterLast()) {
-		if(!ds.fwIfCurrent(':'))return defaultValue;		
+		if(!(ds.fwIfCurrent(':') || ds.fwIfCurrent('.')))return defaultValue;		
 		minute=ds.readDigits();
 		if(minute==-1) return defaultValue;
 		
@@ -1049,7 +1066,7 @@ public final class DateCaster {
 		minute=hour-(h*100);
 		hour=h;
 	}
-
+	
 	if(hour>12) return defaultValue;
 	if(minute>59) return defaultValue;
 	if(hour==12 && minute>0) return defaultValue;
@@ -1057,7 +1074,7 @@ public final class DateCaster {
 	long offset = hour*60L*60L*1000L;
 	offset+=minute*60*1000;
 	
-	if(ds.isAfterLast()) {
+	if(!checkAfterLast || ds.isAfterLast()) {
 		long time= util.toTime(TimeZoneConstants.UTC, years, months, days, hours, minutes, seconds, milliSeconds, 0);
     	
 		if(isPlus)time-=offset;

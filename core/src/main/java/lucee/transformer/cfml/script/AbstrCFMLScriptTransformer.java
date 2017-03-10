@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
@@ -872,7 +873,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 							throw new TemplateException(data.srcCode,"The name ["+functionName+"] is already used by a built in Function");
 					}
 				}
-				catch (Throwable t) {
+				catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					throw new PageRuntimeException(Caster.toPageException(t));
 				}
 			}
@@ -1801,6 +1803,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 						attrValue=isSimpleValue(attr.getType())?null:json(data,JSON_STRUCT,'{','}');
 					}
 					catch(Throwable t){
+						ExceptionUtil.rethrowIfNecessary(t);
 						data.srcCode.setPos(p);
 					}
 				}
@@ -1998,9 +2001,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			}
 			if(access>-1){
 				// this is only supported with the Lucee dialect
-				if(data.srcCode.getDialect()==CFMLEngine.DIALECT_CFML)
-					throw new TemplateException(data.srcCode,
-							"invalid syntax, access modifier cannot be used in this context");
+				//if(data.srcCode.getDialect()==CFMLEngine.DIALECT_CFML)
+				//	throw new TemplateException(data.srcCode,
+				//			"invalid syntax, access modifier cannot be used in this context");
 				((Assign)expr).setAccess(access);
 			}
 			if(_final)((Assign)expr).setModifier(Member.MODIFIER_FINAL);
@@ -2225,7 +2228,15 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		
 		// not defined attributes
 		if(tlt!=null){
-			boolean hasAttributeCollection=attrs.contains("attributecollection");
+			boolean hasAttributeCollection=false;
+			Iterator<Attribute> iii = attrs.iterator();
+			while(iii.hasNext()) {
+				if("attributecollection".equalsIgnoreCase(iii.next().getName())){
+					hasAttributeCollection=true;
+					break;
+				}
+			}
+			
 			int type=tlt.getAttributeType();
 			if(type==TagLibTag.ATTRIBUTE_TYPE_FIXED || type==TagLibTag.ATTRIBUTE_TYPE_MIXED)	{
 				Map<String, TagLibTagAttr> hash = tlt.getAttributes();
@@ -2336,6 +2347,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				
 			}
 			else {
+				idOC=attr.getName();
+				idLC=idOC.toLowerCase();
 				sbType.append(attr.getType());
 				//parseExpression[0]=attr.getRtexpr();
 			}

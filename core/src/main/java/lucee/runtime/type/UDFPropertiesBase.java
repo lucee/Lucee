@@ -56,8 +56,18 @@ public abstract class UDFPropertiesBase implements UDFProperties {
 	public final Page getPage(PageContext pc) throws PageException {
 		
 		// MUST no page source
-		if(getPageSource()!=null)return ComponentUtil.getPage(pc,getPageSource());
-		if(getPage()!=null)return getPage();
+		PageException pe=null;
+		if(getPageSource()!=null) {
+			try {
+				return ComponentUtil.getPage(pc,getPageSource());
+			} catch (PageException e) {
+				pe=e;
+			}
+		}
+		Page p = getPage();
+		if(p!=null) return p;
+		
+		if(pe!=null) throw pe;
 		throw new ApplicationException("missing Page Source");
 	}
 

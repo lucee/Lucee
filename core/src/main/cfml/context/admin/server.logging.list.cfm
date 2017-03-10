@@ -59,7 +59,7 @@ Redirtect to entry --->
 	<cfif request.adminType EQ "web" and hasReadOnly>
 		<h2>#stText.Settings.logging.readOnlyTitle#</h2>
 		<div class="itemintro">#stText.Settings.logging.readOnlyDesc#</div>
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
 					<tr>
@@ -89,14 +89,14 @@ Redirtect to entry --->
 					</cfloop>
 				</tbody>
 			</table>
-		</cfform>
+		</cfformClassic>
 	</cfif>
 
 	<!--- LIST CACHE --->
 	<cfif logs.recordcount and hasReadable>
 		<h2>#stText.Settings.logging.title#</h2>
 		<div class="itemintro">#stText.Settings.logging.desc#</div>
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
 					<tr>
@@ -140,7 +140,7 @@ Redirtect to entry --->
 					</tr>
 				</tfoot>
 			 </table>
-		</cfform>
+		</cfformClassic>
 		
 	</cfif>
 </cfoutput>
@@ -164,12 +164,12 @@ function defaultValue(field) {
 		<cfset _appenders=ListSort(StructKeyList(appenders),'textnocase')>
 		<cfif listLen(_appenders) and listLen(_layouts)>
 			<h2>#stText.Settings.logging.titleCreate#</h2>
-			<cfform onerror="customError" action="#request.self#?action=#url.action#&action2=create" method="post">
+			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=create" method="post">
 				<table class="maintbl" style="width:400px;">
 					<tbody>
 						<tr>
 							<th scope="row" nowrap="nowrap">#stText.Settings.cache.Name#</th>
-							<td><cfinput type="text" name="_name" value="" class="xlarge" required="yes" 
+							<td><cfinputClassic type="text" name="_name" value="" class="xlarge" required="yes" 
 								message="#stText.Settings.cache.nameMissing#"></td>
 						</tr>
 						<tr>
@@ -204,7 +204,7 @@ function defaultValue(field) {
 						</tr>
 					</tfoot>
 				</table>   
-			</cfform>
+			</cfformClassic>
 		<cfelse>
 			<div class="text">#stText.Settings.logging.noDriver#</div>
 		</cfif>

@@ -18,7 +18,10 @@
  **/
 package lucee.runtime.net.rpc.client;
 
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -39,19 +42,19 @@ public abstract class WSClient implements Objects, Iteratorable {
 	public static WSClient getInstance(PageContext pc,String wsdlUrl, String username, String password, ProxyData proxyData) throws PageException {
 		pc=ThreadLocalPageContext.get(pc);
 		if(pc!=null) {
-			Logger l = ((ConfigImpl)pc.getConfig()).getLogger("application", true);
+			Log l = pc.getConfig().getLog("application");
 			ApplicationContext ac = pc.getApplicationContext();
 			if(ac!=null) {
 				if(ApplicationContext.WS_TYPE_JAX_WS==ac.getWSType()) {
-					l.info("using JAX WS Client");
+					l.info("RPC","using JAX WS Client");
 					return new JaxWSClient(wsdlUrl, username, password, proxyData);
 				}
 				if(ApplicationContext.WS_TYPE_CXF==ac.getWSType()) {
-					l.info("using CXF Client");
+					l.info("RPC","using CXF Client");
 					return new CXFClient(wsdlUrl, username, password, proxyData);
 				}
 			}
-			l.info("using Axis 1 RPC Client");
+			l.info("RPC","using Axis 1 RPC Client");
 		}
 		return new Axis1Client(wsdlUrl,username,password,proxyData);
 	}

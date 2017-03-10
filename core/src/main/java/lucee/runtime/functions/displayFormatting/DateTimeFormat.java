@@ -40,7 +40,11 @@ public final class DateTimeFormat extends BIF {
 	private static final long serialVersionUID = 134840879454373440L;
 	public static final String DEFAULT_MASK = "dd-MMM-yyyy HH:mm:ss";// this is already a SimpleDateFormat mask!
 	private static final String[] AP = new String[]{"A","P"};
-
+	private static final char ZERO = (char)0;
+	private static final char ONE = (char)1;
+	private static final String  ZEROZERO = new StringBuilder().append(ZERO).append(ZERO).toString();
+	
+	
 	/**
 	 * @param pc
 	 * @param object
@@ -105,10 +109,9 @@ public final class DateTimeFormat extends BIF {
 		return call(pc,args[0],Caster.toString(args[1]),Caster.toTimeZone(args[2]));
 	}
 	
-
-
 	private static String convertMask(String mask) {
 		if(mask==null) return DEFAULT_MASK;
+		mask=StringUtil.replace(mask, "''", ZEROZERO, false);
 		boolean inside=false;
 		char[] carr = mask.toCharArray();
 		StringBuilder sb=new StringBuilder();
@@ -123,6 +126,8 @@ public final class DateTimeFormat extends BIF {
 			case 'N': if(!inside){sb.append('m');}else{sb.append(carr[i]);} break;
 			case 'l': if(!inside){sb.append('S');}else{sb.append(carr[i]);} break;
 			case 'L': if(!inside){sb.append('S');}else{sb.append(carr[i]);} break;
+			case 'Y': if(!inside){sb.append('y');}else{sb.append(carr[i]);} break;
+			case 'g': if(!inside){sb.append('G');}else{sb.append(carr[i]);} break;
 			
 			case 'f': if(!inside){sb.append("'f'");}else{sb.append(carr[i]);} break;
 			case 'e': if(!inside){sb.append("'e'");}else{sb.append(carr[i]);} break;
@@ -132,8 +137,6 @@ public final class DateTimeFormat extends BIF {
 			case 'M': 
 			case 'W': 
 			case 'w': 
-			case 'D': 
-			case 'd': 
 			case 'F': 
 			case 'E': 
 			case 'a': 
@@ -146,6 +149,26 @@ public final class DateTimeFormat extends BIF {
 			case 's': 
 			//case '.': 
 					sb.append(carr[i]);
+			break;
+			
+			case 'D': 
+			case 'd': 
+				int len=sb.length();
+				// 2 before are D or d
+				if(len>1 && (sb.charAt(len-1)=='d'||sb.charAt(len-1)=='D') && (sb.charAt(len-2)=='d'||sb.charAt(len-2)=='D')) {
+					sb.deleteCharAt(len-1);
+					sb.deleteCharAt(len-2);
+					sb.append(ONE).append(ONE).append(ONE);
+					break;
+				}
+				// 2 before are D or d
+				else if(len>0 && sb.charAt(len-1)==ONE) {
+					sb.append(ONE);
+					break;
+				}
+				
+				
+				sb.append(carr[i]);
 			break;
 			
 
@@ -179,6 +202,29 @@ public final class DateTimeFormat extends BIF {
 				else
 					sb.append(c);
 			}
+		}
+		String str=StringUtil.replace(sb.toString(), "''", "", false);
+		str=StringUtil.replace(str, ZEROZERO,"''", false);
+		str=str.replace(ONE, 'E');
+		str=y2yyyy(str);
+		return str;
+	}
+
+	public static String y2yyyy(String str) {
+		char[] carr = str.toCharArray();
+		StringBuilder sb=new StringBuilder();
+		boolean inside=false;
+		char c;
+		for(int i=0;i<carr.length;i++) {
+			c=carr[i];
+			if(c=='\'') inside=!inside;
+			else if(!inside && c=='y') {
+				if((i==0 || carr[i-1]!='y') && (i==(carr.length-1) || carr[i+1]!='y')) {
+					sb.append("yyyy");
+					continue;
+				}
+			}
+			sb.append(c);
 		}
 		return sb.toString();
 	}

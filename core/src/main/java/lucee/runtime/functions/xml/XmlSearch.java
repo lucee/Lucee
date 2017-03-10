@@ -21,6 +21,7 @@ package lucee.runtime.functions.xml;
 
 import javax.xml.transform.TransformerException;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
@@ -74,6 +75,7 @@ public final class XmlSearch implements Function {
 				return rs.object();
 			}
 		} catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
 			throw Caster.toPageException(e);
 		}
 		

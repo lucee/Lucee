@@ -21,6 +21,7 @@ package lucee.runtime.type.scope.storage;
 import java.sql.SQLException;
 
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
@@ -97,7 +98,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 	
 	
 	protected static Struct _loadData(PageContext pc, String datasourceName,String strType,int type, Log log, boolean mxStyle) throws PageException	{
-		ConfigImpl config = (ConfigImpl)pc.getConfig();
+		ConfigImpl config = (ConfigImpl)ThreadLocalPageContext.getConfig(pc);
 		DatasourceConnectionPool pool = config.getDatasourceConnectionPool();
 		DatasourceConnection dc=pool.getDatasourceConnection(config,pc.getDataSource(datasourceName),null,null);
 		SQLExecutor executor=SQLExecutionFactory.getInstance(dc);
@@ -108,7 +109,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 		try {
 			if(!dc.getDatasource().isStorage()) 
 				throw new ApplicationException("storage usage for this datasource is disabled, you can enable this in the Lucee administrator.");
-			query = executor.select(pc.getConfig(),pc.getCFID(),pc.getApplicationContext().getName(), dc, type,log, true);
+			query = executor.select(config,pc.getCFID(),pc.getApplicationContext().getName(), dc, type,log, true);
 		} 
 		catch (SQLException se) {
 			throw Caster.toPageException(se);
@@ -117,7 +118,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 	    	if(dc!=null) pool.releaseDatasourceConnection(dc);
 	    }
 	    
-	    if(query!=null && pc.getConfig().debug()) {
+	    if(query!=null && config.debug()) {
 	    	boolean debugUsage=DebuggerUtil.debugQueryUsage(pc,query);
 	    	pc.getDebugger().addQuery(debugUsage?query:null,datasourceName,"",query.getSql(),query.getRecordcount(),((PageContextImpl)pc).getCurrentPageSource(null),query.getExecutionTime());
 	    }
@@ -128,11 +129,17 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 			return null;
 	    }
 	    String str=Caster.toString(query.get(KeyConstants._data));
+	    if(str!=null && str.startsWith("struct:")) str=str.substring(7);
 	    if(mxStyle) return null;
-	    Struct s = (Struct)pc.evaluate(str);
-	    ScopeContext.info(log,"load existing data from ["+datasourceName+"."+PREFIX+"_"+strType+"_data] to create "+strType+" scope for "+pc.getApplicationContext().getName()+"/"+pc.getCFID());
-		
-	    return s;
+	    
+	    try{
+	    	Struct s = (Struct)pc.evaluate(str);
+		    ScopeContext.info(log,"load existing data from ["+datasourceName+"."+PREFIX+"_"+strType+"_data] to create "+strType+" scope for "+pc.getApplicationContext().getName()+"/"+pc.getCFID());
+		    return s;
+	    }
+	    catch(Exception e){
+	    	return null;
+	    }
 	}
 
 	@Override
@@ -140,27 +147,26 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 		setTimeSpan(pc);
 		super.touchAfterRequest(pc); 
 		
-		store(pc.getConfig());
+		store(pc);
 	}
 	
 	@Override
-	public void store(Config config) {
-		//if(!super.hasContent()) return;
-		
+	public void store(PageContext pc) {
 		DatasourceConnection dc = null;
-		ConfigImpl ci = (ConfigImpl)config;
+		ConfigImpl ci = (ConfigImpl)ThreadLocalPageContext.getConfig(pc);
 		DatasourceConnectionPool pool = ci.getDatasourceConnectionPool();
-		Log log=((ConfigImpl)config).getLog("scope");
+		Log log=ci.getLog("scope");
 		try {
-			PageContext pc = ThreadLocalPageContext.get();// FUTURE change method interface
+			pc = ThreadLocalPageContext.get(pc);// FUTURE change method interface
 			DataSource ds;
 			if(pc!=null) ds=pc.getDataSource(datasourceName);
-			else ds=config.getDataSource(datasourceName);
+			else ds=ci.getDataSource(datasourceName);
 			dc=pool.getDatasourceConnection(null,ds,null,null);
 			SQLExecutor executor=SQLExecutionFactory.getInstance(dc);
-			executor.update(config, cfid,appName, dc, getType(), sct,getTimeSpan(),log);
+			executor.update(ci, cfid,appName, dc, getType(), sct,getTimeSpan(),log);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			ScopeContext.error(log, t);
 		}
 		finally {
@@ -169,23 +175,24 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 	}
 	
 	@Override
-	public void unstore(Config config) {
-		ConfigImpl ci=(ConfigImpl) config;
+	public void unstore(PageContext pc) {
+		ConfigImpl ci=(ConfigImpl) ThreadLocalPageContext.getConfig(pc);
 		DatasourceConnection dc = null;
 		
 		
 		DatasourceConnectionPool pool = ci.getDatasourceConnectionPool();
-		Log log=((ConfigImpl)config).getLog("scope");
+		Log log=ci.getLog("scope");
 		try {
-			PageContext pc = ThreadLocalPageContext.get();// FUTURE change method interface
+			pc = ThreadLocalPageContext.get(pc);// FUTURE change method interface
 			DataSource ds;
 			if(pc!=null) ds=pc.getDataSource(datasourceName);
-			else ds=config.getDataSource(datasourceName);
+			else ds=ci.getDataSource(datasourceName);
 			dc=pool.getDatasourceConnection(null,ds,null,null);
 			SQLExecutor executor=SQLExecutionFactory.getInstance(dc);
-			executor.delete(config, cfid,appName, dc, getType(),log);
+			executor.delete(ci, cfid,appName, dc, getType(),log);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			ScopeContext.error(log, t);
 		}
 		finally {

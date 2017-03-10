@@ -25,6 +25,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -79,6 +80,7 @@ public final class Sprite extends TagImpl {
 		try {
 			return _doStartTag();
 		} catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
 			throw Caster.toPageException(e);
 		}
 	}

@@ -19,6 +19,7 @@
 package lucee.runtime.cfx.customtag;
 
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.cfx.CFXTagException;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.reflection.Reflector;
@@ -55,6 +56,7 @@ public final class JavaCFXTagClass implements CFXTagClass {
 		try {
 			return _newInstance();
 		} catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
 			throw new CFXTagException(e);
 		}
 	}

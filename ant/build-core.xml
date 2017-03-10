@@ -399,6 +399,9 @@
         <!-- Doc -->
         <not><isset property="extDoc"/></not>
         <not><isset property="extDocVersion"/></not>
+        <!-- Form -->
+        <not><isset property="extForm"/></not>
+        <not><isset property="extFormVersion"/></not>
         </or>
     </condition>
     </fail>
@@ -497,6 +500,7 @@
     <available file="${cache}/${extHibernate}-${extHibernateVersion}.lex" property="hibernate.present"/>
     <available file="${cache}/${extLucene}-${extLuceneVersion}.lex" property="lucene.present"/>
     <available file="${cache}/${extPDF}-${extPDFVersion}.lex" property="pdf.present"/>
+    <available file="${cache}/${extForm}-${extFormVersion}.lex" property="form.present"/>
   </target>
 
 
@@ -536,12 +540,15 @@
   <target name="check-doc" depends="check-cache" unless="doc.present">
       <get src="${extURL}${extDoc}?version=${extDocVersion}" dest="${cache}/${extDoc}-${extDocVersion}.lex"/>
   </target>
+  <target name="check-form" depends="check-cache" unless="form.present">
+      <get src="${extURL}${extForm}?version=${extFormVersion}" dest="${cache}/${extForm}-${extFormVersion}.lex"/>
+  </target>
   <target name="check-testbox" depends="check-cache" unless="testbox.present">
       <get src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
   </target> 
 
 
-  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-testbox">
+  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-testbox">
     
     <mkdir dir="${temp}/loader/extensions/"/>
 
@@ -786,7 +793,7 @@
       <jvmarg value="-Dtemp=${temp}"/>
       <jvmarg value="-DtestboxArchive=${temp}/archive/testbox.lar"/>
       <jvmarg value="-Dexecute=${testcases}"/>
-
+      <jvmarg value="-DindividualStorageKeys=false"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
       <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle}"/>
@@ -1015,6 +1022,17 @@
     <echo>add:${goal}/extensions/${ext_doc.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_doc.filename};</echo>
 
+    <!-- add extension Form -->
+    <loadmf jar="${cache}/${extForm}-${extFormVersion}.lex" prefix="ext_form."/>
+    <toFileName name="${ext_form.name}" version="${ext_form.version}" property="ext_form.filename"/>
+    <copy 
+      file="${cache}/${extForm}-${extFormVersion}.lex" 
+      todir="${goal}/extensions/"/>
+    <move 
+      file="${goal}/extensions/${extForm}-${extFormVersion}.lex" 
+      tofile="${goal}/extensions/${ext_form.filename}"/>
+    <echo>add:${goal}/extensions/${ext_form.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_form.filename};</echo>
 
   </target>
 

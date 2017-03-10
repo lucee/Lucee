@@ -21,6 +21,16 @@
 	<cffunction name="afterTests"></cffunction>
 	<cffunction name="setUp"></cffunction>
 	--->
+
+<cffunction name="testEncryptMember" localMode="modern">
+
+<cfset assertEquals(
+					"hallo welt",
+					trim(decrypt("hallo welt".encrypt("stringkey"),"stringkey"))
+		)>
+	
+</cffunction>
+
 	<cffunction name="testEncrypt" localMode="modern">
 
 <!--- begin old test code --->

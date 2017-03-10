@@ -24,6 +24,7 @@ import lucee.transformer.expression.var.Variable;
 public final class DataMemberImpl implements DataMember {
 	private ExprString name;
 	private Variable parent;
+	private boolean safeNavigated;
 
 	public DataMemberImpl(ExprString name) {
 		this.name=name;
@@ -41,5 +42,15 @@ public final class DataMemberImpl implements DataMember {
 	@Override
 	public ExprString getName() {
 		return name;
+	}
+
+	@Override
+	public void setSafeNavigated(boolean safeNavigated) {
+		this.safeNavigated=safeNavigated;
+	}
+
+	@Override
+	public boolean getSafeNavigated() {
+		return this.safeNavigated;
 	}
 }

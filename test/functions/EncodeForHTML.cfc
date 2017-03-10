@@ -22,16 +22,16 @@
 	<cffunction name="setUp"></cffunction>
 	--->
 	<cffunction name="testEncodeForHTML" localMode="modern">
-
-<!--- begin old test code --->
 <cfscript>
 enc=EncodeForHTML('<script>');
 valueEquals(enc,'&lt;script&gt;');
 </cfscript>
-<!--- end old test code --->
-	
-		
-		<!--- <cfset assertEquals("","")> --->
+	</cffunction>
+	<cffunction name="testEncodeForHTMLMember" localMode="modern">
+<cfscript>
+enc='<script>'.EncodeForHTML();
+valueEquals(enc,'&lt;script&gt;');
+</cfscript>
 	</cffunction>
 	
 	<cffunction access="private" name="valueEquals">

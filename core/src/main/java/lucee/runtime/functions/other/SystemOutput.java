@@ -48,6 +48,7 @@ public final class SystemOutput implements Function {
     			string=Serialize.call(pc, obj);
     		}
     		catch(Throwable t){
+    			ExceptionUtil.rethrowIfNecessary(t);
     			string=obj.toString();
     		}
     	}

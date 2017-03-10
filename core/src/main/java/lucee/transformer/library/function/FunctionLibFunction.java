@@ -24,6 +24,7 @@ import java.util.Iterator;
 
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Identification;
@@ -80,15 +81,23 @@ public final class FunctionLibFunction {
 	private String[] keywords;
 	private ClassDefinition functionCD;
 	private Version introduced;
+	private final boolean core;
 
 	
 	/**
 	 * Geschuetzer Konstruktor ohne Argumente.
 	 */
-	public FunctionLibFunction() {
+	/*public FunctionLibFunction() {
+		this.core=false;
+	}*/
+	
+	public FunctionLibFunction(boolean core) {
+		this.core=core;
 	}
-	public FunctionLibFunction(FunctionLib functionLib) {
+	
+	public FunctionLibFunction(FunctionLib functionLib, boolean core) {
 			this.functionLib=functionLib;
+			this.core=core;
 	}
 	
 	/**
@@ -311,7 +320,8 @@ public final class FunctionLibFunction {
 		try {
 			eval = (FunctionEvaluator) tteCD.getClazz().newInstance();
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new TemplateException(t.getMessage());
 		} 
 		return eval;
@@ -336,6 +346,10 @@ public final class FunctionLibFunction {
 
 	public String[] getKeywords() {
 		return keywords;
+	}
+	
+	public boolean isCore() {
+		return core;
 	}
 	
 	public void setMemberPosition(int pos) {
@@ -379,15 +393,17 @@ public final class FunctionLibFunction {
 		try {
 			clazz = getFunctionClassDefinition().getClazz();
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new PageRuntimeException(Caster.toPageException(t));
 		}
-        
+
 		if(Reflector.isInstaneOf(clazz, BIF.class)) {
 			try {
 				bif=(BIF)clazz.newInstance();
 			}
-			catch (Throwable t) {
+			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				throw new RuntimeException(t);
 			}
 		}

@@ -58,20 +58,20 @@ Error Output --->
 <cfoutput>
 	<cfif not hasAccess><cfset noAccess(stText.setting.noAccess)></cfif>
 	<div class="pageintro">#stText.services.certificate.desc#</div>
-	<cfform action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 				<tr>
 					<th scope="row">#stText.services.certificate.host#</th>
 					<td>
-						<cfinput type="text" name="host" value="#_host#" class="large" required="yes">
+						<cfinputClassic type="text" name="host" value="#_host#" class="large" required="yes">
 						<div class="comment">#stText.services.certificate.hostDesc#</div>
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">#stText.services.certificate.port#</th>
 					<td>
-						<cfinput type="text" name="port" value="#_port#" class="number" required="yes" validate="integer"><br />
+						<cfinputClassic type="text" name="port" value="#_port#" class="number" required="yes" validate="integer"><br />
 						<div class="comment">#stText.services.certificate.portDesc#</div>
 					</td>
 				</tr>
@@ -87,7 +87,7 @@ Error Output --->
 				</tr>
 			</tfoot>
 		</table>
-	</cfform>
+	</cfformClassic>
 
 	<cfif len(_host) and len(_port)>
 		<cftry>

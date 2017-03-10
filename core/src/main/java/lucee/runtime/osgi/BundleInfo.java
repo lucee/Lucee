@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -34,6 +35,7 @@ import java.util.jar.Manifest;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.file.FileResource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
@@ -44,9 +46,10 @@ import lucee.runtime.type.util.KeyConstants;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
-public class BundleInfo {
+public class BundleInfo implements Serializable {
 
-
+	private static final long serialVersionUID = -8723070772449992030L;
+	
 	private final Version version;
 	private final String name;
 	private final String symbolicName;
@@ -58,8 +61,8 @@ public class BundleInfo {
 	private final String dynamicImportPackage;
 	private final String classPath;
 	private final String requireBundle;
-	private Attributes attrs;
-	private final String fragementHost; 
+	private final String fragementHost;
+	private final Map<String, Object> headers;
 	
 	public static BundleInfo newInstance(InputStream is, boolean closeStream) throws IOException, BundleException {
 		File tmp = File.createTempFile("temp-extension", "lex");
@@ -81,7 +84,7 @@ public class BundleInfo {
 		JarFile jar=new JarFile(file);
 		try {
 			Manifest manifest = jar.getManifest();
-			attrs = manifest.getMainAttributes();
+			Attributes attrs = manifest.getMainAttributes();
 			
 			manifestVersion = Caster.toIntValue(attrs.getValue("Bundle-ManifestVersion"),1);
 			
@@ -97,6 +100,9 @@ public class BundleInfo {
 			classPath = attrs.getValue("Bundle-ClassPath");
 			requireBundle = attrs.getValue("Require-Bundle");
 			fragementHost = attrs.getValue("Fragment-Host");
+			
+			headers=createHeaders(attrs);
+			
 		}
 		finally {
 			IOUtil.closeEL(jar);
@@ -107,7 +113,8 @@ public class BundleInfo {
 		try {
 			return getSymbolicName()!=null && getVersion()!=null;
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return false;
 		}
 	}
@@ -190,6 +197,10 @@ public class BundleInfo {
 	 * @return
 	 */
 	public Map<String, Object> getHeaders() {
+		return headers;
+	}
+	
+	private Map<String, Object> createHeaders(Attributes attrs) {
 		Map<String, Object> headers=new HashMap<String, Object>();
 		Iterator<Entry<Object, Object>> it = attrs.entrySet().iterator();
 		Entry<Object, Object> e;

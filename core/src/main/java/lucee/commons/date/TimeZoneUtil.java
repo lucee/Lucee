@@ -116,7 +116,23 @@ public class TimeZoneUtil {
 		set("Fiji Islands Standard Time",TimeZoneConstants.PACIFIC_FIJI); // (GMT+12:00) Fiji Islands, Kamchatka, Marshall Islands
 		set("New Zealand Standard Time",TimeZoneConstants.NZ); // (GMT+12:00) Auckland, Wellington
 		set("Tonga Standard Time",TimeZoneConstants.PACIFIC_TONGATAPU); // (GMT+13:00) Nuku'alofa
-		
+		set("CEST",TimeZoneConstants.CET);
+		set("ACDT",TimeZoneConstants.ACT);
+		set("ACST",TimeZoneConstants.AUSTRALIA_EUCLA);
+		set("ACST",TimeZoneConstants.AUSTRALIA_TASMANIA);
+		set("AEST",TimeZoneConstants.AUSTRALIA_QUEENSLAND);
+		set("ET",TimeZoneConstants.ET);
+		set("EDT",TimeZoneConstants.ET);
+		set("EST",TimeZoneConstants.ET);
+		set("MT",TimeZoneConstants.MT);
+		set("MST",TimeZoneConstants.MT);
+		set("MDT",TimeZoneConstants.MT);
+		set("CT",TimeZoneConstants.CT);
+		set("CST",TimeZoneConstants.CT);
+		set("CDT",TimeZoneConstants.CT);
+		set("PT",TimeZoneConstants.PT);
+		set("PST",TimeZoneConstants.PT);
+		set("PDT",TimeZoneConstants.PT);
 		
 	}
 	
@@ -157,20 +173,15 @@ public class TimeZoneUtil {
 		else if(strTimezone.startsWith("utc")) gmtOffset=getGMTOffset(strTimezone.substring(3).trim(),Float.NaN);
 		else if(strTimezone.startsWith("etc/utc")) gmtOffset=getGMTOffset(strTimezone.substring(7).trim(),Float.NaN);
 		
-
-		
 		if(!Float.isNaN(gmtOffset)) {
 			strTimezone="etc/gmt"+(gmtOffset>=0?"+":"")+Caster.toString(gmtOffset);
 			tz =  IDS.get(strTimezone);
 			if(tz!=null) return tz;
 			
 		}
-		
-		
-		
-		
 		return defaultValue;
 	}
+	
 	
 	private static float getGMTOffset(String str, float defaultValue) {
 		int index;

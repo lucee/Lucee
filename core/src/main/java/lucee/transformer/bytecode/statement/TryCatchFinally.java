@@ -364,7 +364,7 @@ public final class TryCatchFinally extends StatementBase implements Opcodes,HasB
 	 * @throws TransformerException
 	 */
 	public void addCatch(Expression type, Expression name, Body b, Position line) throws TransformerException {
-		
+		// MUSTMUST
 		// type
 		if(type==null || type instanceof ExprString) ;
 		else if(type instanceof Variable) {
@@ -376,9 +376,9 @@ public final class TryCatchFinally extends StatementBase implements Opcodes,HasB
 		if(name instanceof LitString){
 			Variable v = getFactory().createVariable(Scope.SCOPE_UNDEFINED,name.getStart(),name.getEnd());
 			v.addMember(getFactory().createDataMember(getFactory().toExprString(name)));
-			name=new VariableRef(v);
+			name=new VariableRef(v,true);
 		}
-		else if(name instanceof Variable) name=new VariableRef((Variable) name);
+		else if(name instanceof Variable) name=new VariableRef((Variable) name,true);
 		else throw new TransformerException("name from catch statement is invalid",name.getStart());
 		
 		addCatch((ExprString)type, (VariableRef)name, b, line);

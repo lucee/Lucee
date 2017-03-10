@@ -144,7 +144,7 @@ list all mappings and display necessary edit fields --->
 	<div class="pageintro">#stText.rest.desc#</div>
 	<!--- Settings --->
 	<h2>#stText.rest.setting#</h2>
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 				<tr>
@@ -180,12 +180,12 @@ list all mappings and display necessary edit fields --->
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 
 	<!--- Mappings --->
 	<h2>#stText.rest.mapping#</h2>
 	<div class="itemintro">#stText.rest.mappingDesc#</div>
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl checkboxtbl">
 			<thead>
 				<tr>
@@ -219,7 +219,7 @@ list all mappings and display necessary edit fields --->
 								<cfif !len(css) && abs NEQ rest.strPhysical><abbr title="#abs#"></cfif><cfif rest.readOnly>
 									#rest.strPhysical#
 								<cfelse>
-									<cfinput  onKeyDown="checkTheBox(this)" type="text" 
+									<cfinputClassic  onKeyDown="checkTheBox(this)" type="text" 
 									name="physical_#rest.currentrow#" value="#rest.strPhysical#" required="no"  
 									class="xlarge" message="#stText.rest.PhysicalMissing##rest.currentrow#)">
 								</cfif><cfif !len(css) &&  abs NEQ rest.strPhysical></abbr></cfif>
@@ -267,13 +267,13 @@ list all mappings and display necessary edit fields --->
 						<th scope="row">#stText.rest.VirtualHead#</th>
 						<td>
 							<input type="hidden" name="row_#rest.recordcount+1#" value="#rest.recordcount+1#">
-							<cfinput type="text" name="virtual_#rest.recordcount+1#" value="" required="no" class="medium" />
+							<cfinputClassic type="text" name="virtual_#rest.recordcount+1#" value="" required="no" class="medium" />
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">#stText.rest.PhysicalHead#</th>
 						<td>
-							<cfinput type="text" name="physical_#rest.recordcount+1#" value="" required="no" class="large">
+							<cfinputClassic type="text" name="physical_#rest.recordcount+1#" value="" required="no" class="large">
 						</td>
 					</tr>
 					<tr>
@@ -292,5 +292,5 @@ list all mappings and display necessary edit fields --->
 				</tfoot>
 			</table>
 		</cfif>
-	</cfform>
+	</cfformClassic>
 </cfoutput>

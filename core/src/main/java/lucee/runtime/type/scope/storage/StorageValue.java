@@ -2,13 +2,11 @@ package lucee.runtime.type.scope.storage;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import lucee.commons.io.IOUtil;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;

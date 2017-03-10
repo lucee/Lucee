@@ -3,23 +3,23 @@
 		<cfreturn 1>
 		<cfreturn RandRange(1,0)>
 	</cffunction>
-	
+
 	<cffunction name="updateAvailable" output="no">
 		<cfargument name="data" required="yes" type="struct">
 		<cfargument name="extensions" required="yes" type="query">
 		<cfset var result=getdataByid(data.id,extensions)>
-		
+
 		<cfif result.count()==0><cfreturn false></cfif>
 		<cfif data.version LT result.version>
 			<cfreturn true>
-		</cfif>	
-		
+		</cfif>
+
 		<cfreturn false>
 	</cffunction>
-	
-	
-	
-			
+
+
+
+
 	<cffunction name="doFilter" returntype="string" output="false">
 		<cfargument name="filter" required="yes" type="string">
 		<cfargument name="value" required="yes" type="string">
@@ -34,13 +34,13 @@
 			<cfreturn FindNoCase(filter,value)>
 		</cfif>
 	</cffunction>
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
 <cfscript>
 
 </cfscript>
@@ -49,11 +49,11 @@
 		<cfset systemOutput("deprecated function call:<print-stack-trace>",true,true)>
 		<cfreturn createObject('component',"ExtensionProviderProxy").init(arguments.provider)>
 	</cffunction>
-	
-	
+
+
 	<cfset request.loadCFC=loadCFC>
-	
-	
+
+
 	<cffunction name="getDetail" returntype="struct" output="yes">
 		<cfargument name="hashProvider" required="yes" type="string">
 		<cfargument name="appId" required="yes" type="string">
@@ -83,7 +83,7 @@
 		</cfloop>
 		<cfreturn detail>
 	</cffunction>
-	
+
 <cfscript>
 	/**
 	* returns the row matching the given id from given extesnion query, if there is more record than once for given id (data from different extension provider), the data with the newest version is returned
@@ -101,12 +101,12 @@
 
 </cfscript>
 	<cffunction name="getInstalledById" returntype="struct" output="yes">
-		
+
 		<cfreturn tmp>
 	</cffunction>
 
-	
-	
+
+
 	<cffunction name="getDownloadDetails" returntype="struct" output="yes">
 		<cfargument name="hashProvider" required="yes" type="string">
 		<cfargument name="type" required="yes" type="string">
@@ -124,8 +124,8 @@
 		<cfreturn struct()>
 	</cffunction>
 	<cfset request.getDownloadDetails=getDownloadDetails>
-	
-	
+
+
 	<cffunction name="getDetailFromExtension" returntype="struct" output="yes">
 		<cfargument name="hashProvider" required="yes" type="string">
 		<cfargument name="appId" required="yes" type="string">
@@ -141,7 +141,7 @@
 				<cfbreak>
 			</cfif>
 		</cfloop>
-		
+
 		<!--- installed --->
 		<cfloop query="extensions">
 			<cfif  hash(extensions.provider) EQ arguments.hashProvider and extensions.id EQ arguments.appId>
@@ -151,17 +151,17 @@
 		</cfloop>
 		<cfreturn detail>
 	</cffunction>
-	
-	
+
+
 	<cffunction name="getDumpNailOld" returntype="string" output="no">
 		<cfargument name="imgUrl" required="yes" type="string">
 		<cfargument name="width" required="yes" type="number" default="80">
 		<cfargument name="height" required="yes" type="number" default="40">
-		
+
 		<cfreturn "data:image/png;base64,#imgURL#">
 		<cfreturn "thumbnail.cfm?img=#urlEncodedFormat(imgUrl)#&width=#width#&height=#height#">
-	</cffunction>    
-	
+	</cffunction>
+
 	<cffunction name="getDumpNail">
 		<cfargument name="src" required="yes" type="string">
 		<cfargument name="width" required="yes" type="number" default="80">
@@ -169,7 +169,7 @@
 
 		<cfset local.id=hash(src&":"&width&"x"&height)>
 		<cfset mimetypes={png:'png',gif:'gif',jpg:'jpeg'}>
-	
+
 		<cfif len(src) ==0>
 			<cfset ext="gif">
 		<cfelse>
@@ -178,9 +178,9 @@
 				<cfset ext="png"><!--- base64 encoded binary --->
 			</cfif>
 		</cfif>
-		
-	
-	
+
+
+
 	<!--- copy and shrink to local dir --->
 	<cfset tmpfile=expandPath("{temp-directory}/admin-ext-thumbnails/__"&id&"."&ext)>
 	<cfif fileExists(tmpfile)>
@@ -188,7 +188,7 @@
 		<cffile action="read" file="#tmpfile#" variable="b64">
 	<cfelseif len(src) ==0>
 		<cfset local.b64=("R0lGODlhMQApAIAAAGZmZgAAACH5BAEAAAAALAAAAAAxACkAAAIshI+py+0Po5y02ouz3rz7D4biSJbmiabqyrbuC8fyTNf2jef6zvf+DwwKeQUAOw==")>
-		
+
 	<cfelse>
 		<cfif fileExists(src)>
 			<cffile action="readbinary" file="#src#" variable="data">
@@ -208,7 +208,7 @@
 			</cfif>
 			<cfset data=toBinary(img)>
 		</cfif>
-		
+
 		<cftry>
 			<cfset local.b64=toBase64(data)>
 			<cffile action="write" file="#tmpfile#" output="#b64#" createPath="true">
@@ -216,8 +216,8 @@
 		</cftry>
 	</cfif>
 	<cfreturn "data:image/png;base64,#b64#">
-		
-	
+
+
 	</cffunction>
 
 <cfscript>
@@ -226,7 +226,7 @@
 	* get information from all available ExtensionProvider defined
 	*/
 	function getAllExternalData(boolean forceReload=false, numeric timeSpan=60){
-		admin 
+		admin
 			action="getRHExtensionProviders"
 			type="#request.adminType#"
 			password="#session["password"&request.adminType]#"
@@ -246,7 +246,7 @@
 		var qry=queryNew("id,name,provider,lastModified");
 
 		if(useLocalProvider) {
-			admin 
+			admin
 			    action="getLocalExtensions"
 			    type="#request.adminType#"
 			    password="#session["password"&request.adminType]#"
@@ -267,7 +267,6 @@
 			}
 		}
 
-		
 		querySort(query:qry,names:"id");
 		local.lastId="";
 		for(var row=qry.recordcount;row>=1;row--)  {
@@ -279,23 +278,23 @@
 						qry[col][row]=qry[col][row+1];
 					}
 				}
-				else 
+				else
 					local.older=qry.version[row+1];
 
 				local.ov=qry.otherVersions[row+1];
-				if(isSimpleValue(ov)) qry.otherVersions[row]=[older];
+				if (isSimpleValue(ov) || isNull(ov))
+					qry.otherVersions[row]=[older];
 				else {
 					arrayAppend(ov,older);
 					qry.otherVersions[row]=ov;
 				}
 				qry.deleteRow(row+1);
 			}
-			
-				
+
+
 			lastId=qry.id[row];
 		}
 
-	    
 		/* output just for testing
 		var q=duplicate(qry);
     	loop list=q.columnlist item="local.le" {
@@ -306,8 +305,9 @@
 
 		loop struct="#datas#" index="local.provider" item="local.data" {
 			if(structKeyExists(data,"error")) continue;
-			
+
 			// rename older to otherVersions
+
 			if(queryColumnExists(data.extensions,"older") || !queryColumnExists(data.extensions,"otherVersions")) {
 				data.extensions.addColumn("otherVersions",data.extensions.columnData('older'));
 				data.extensions.deleteColumn("older");
@@ -318,6 +318,7 @@
 			loop list="#data.extensions.columnlist()#" item="local.k" {
                 if(!qry.ColumnExists(k)) qry.addColumn(k,[]);
             }
+
 			// add Extensions data
 			var row=0;
 
@@ -339,7 +340,7 @@
             		}
             	}
 
-            	// merge 
+            	// merge
             	if(row>0) {
 					qry.setCell("provider",provider,row);
 					qry.setCell("lastModified",data.lastModified,row);
@@ -349,11 +350,11 @@
 							if(k=='otherVersions') continue;
 		            		qry.setCell(k,data.extensions[k],row);
 		            	}
-		            	if(isSimpleValue(qry.otherVersions[row])) qry.otherVersions[row]=[v];
+		            	if(isSimpleValue(qry.otherVersions[row]) || isNull(qry.otherVersions[row])) qry.otherVersions[row]=[v];
 		            	else arrayAppend(qry.otherVersions[row],v);
 					}
 					else {
-						if(isSimpleValue(qry.otherVersions[row])) qry.otherVersions[row]=[data.extensions.version];
+						if(isSimpleValue(qry.otherVersions[row]) || isNull(qry.otherVersions[row])) qry.otherVersions[row]=[data.extensions.version];
 						else arrayAppend(qry.otherVersions[row],data.extensions.version);
 					}
 
@@ -381,7 +382,7 @@
 					}
 
 
-            	} 
+            	}
 				else {
 					row=qry.addRow();
 					qry.setCell("provider",provider,row);
@@ -393,7 +394,7 @@
             }
     	}
     	if(isQuery(qry)) querySort(query:qry,names:"name,id");
-    	
+
     	/* output just for testing
 		var q=duplicate(qry);
     	loop list=q.columnlist item="local.le" {
@@ -414,9 +415,9 @@
     	return datas;
 	}
 
-    
+
 	function getProviderInfo(required string provider, boolean forceReload=false, numeric timeSpan=60){
-    	
+
 		if(provider=="local" || provider=="") {
 			local.provider={};
 			provider.meta.title="Local Extension Provider";
@@ -429,18 +430,18 @@
 
     	// request (within request we only try once to load the data)
         if(!forceReload and
-			StructKeyExists(request,"rhproviders") and 
+			StructKeyExists(request,"rhproviders") and
 			StructKeyExists(request.rhproviders,provider) and
 			isStruct(request.rhproviders[provider]))
         		return request.rhproviders[provider];
-        // from session 
+        // from session
         if(!forceReload and
-        	  StructKeyExists(session,"rhproviders") and 
-			  StructKeyExists(session.rhproviders,provider) and 
+        	  StructKeyExists(session,"rhproviders") and
+			  StructKeyExists(session.rhproviders,provider) and
 			  StructKeyExists(session.rhproviders[provider],'lastModified') and
 			  DateAdd("s",arguments.timespan,session.rhproviders[provider].lastModified) GT now())
 				return session.rhproviders[provider];
-		
+
 		try {
 			var start=getTickCount();
 
@@ -449,13 +450,13 @@
 			//dump("get:"&uri);
 			//SystemOutput(uri&"<print-stack-trace>",true,true);
 
-			admin 
+			admin
 				action="getAPIKey"
 				type="#request.adminType#"
 				password="#session["password"&request.adminType]#"
 				returnVariable="apiKey";
 
-			
+
 			http url="#uri#?coreVersion=#server.lucee.version#" result="local.http" {
 				httpparam type="header" name="accept" value="application/cfml";
 				if(!isNull(apikey))httpparam type="url" name="ioid" value="#apikey#";
@@ -510,21 +511,21 @@
 	}
 
 	function _download(String type,required string provider,required string id, string version=""){
-    		
+
 
 		var start=getTickCount();
 
 		// get info from remote
-		admin 
+		admin
 			action="getAPIKey"
 			type="#request.adminType#"
 			password="#session["password"&request.adminType]#"
 			returnVariable="apiKey";
-		
+
 		var uri=provider&"/rest/extension/provider/"&type&"/"&id;
 
 		if(provider=="local") { // TODO use version from argument scope
-			admin 
+			admin
 				action="getLocalExtension"
 				type="#request.adminType#"
 				password="#session["password"&request.adminType]#"
@@ -539,7 +540,7 @@
 				if(!isNull(apiKey))httpparam type="url" name="ioid" value="#apikey#";
 
 			}
-			if(!isNull(http.status_code) && http.status_code==200) { 
+			if(!isNull(http.status_code) && http.status_code==200) {
 				return http.fileContent;
 			}
 			throw http.fileContent;
@@ -550,7 +551,7 @@
 	function toVersionSortable(required string version) localMode=true {
 		version=unwrap(version.trim());
 		arr=listToArray(arguments.version,'.');
-		
+
 		// OSGi compatible version
 		if(arr.len()==4 && isNumeric(arr[1]) && isNumeric(arr[2]) && isNumeric(arr[3])) {
 			try{return toOSGiVersion(version).sortable}catch(local.e){};
@@ -563,14 +564,14 @@
 			 rtn&="."&repeatString("0",5-len(v))&v;
 			else
 				rtn&="."&v;
-		} 
+		}
 		return 	rtn;
 	}
 
 
 	struct function toOSGiVersion(required string version, boolean ignoreInvalidVersion=false){
 		local.arr=listToArray(arguments.version,'.');
-		
+
 		if(arr.len()!=4 || !isNumeric(arr[1]) || !isNumeric(arr[2]) || !isNumeric(arr[3])) {
 			if(ignoreInvalidVersion) return {};
 			throw "version number ["&arguments.version&"] is invalid";
@@ -596,7 +597,7 @@
 		sct.display=
 					sct.pure
 					&(sct.qualifier_appendix==""?"":"-"&sct.qualifier_appendix);
-		
+
 		sct.sortable=repeatString("0",2-len(sct.major))&sct.major
 					&"."&repeatString("0",3-len(sct.minor))&sct.minor
 					&"."&repeatString("0",3-len(sct.micro))&sct.micro

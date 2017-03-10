@@ -18,26 +18,52 @@
  */
 package lucee.runtime.listener;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.log4j.Appender;
+import org.apache.log4j.HTMLLayout;
+import org.apache.log4j.Level;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.xml.XMLLayout;
+import org.osgi.framework.Version;
+
+import lucee.print;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LoggerAndSourceData;
+import lucee.commons.io.log.log4j.Log4jUtil;
+import lucee.commons.io.log.log4j.appender.ConsoleAppender;
+import lucee.commons.io.log.log4j.appender.DatasourceAppender;
+import lucee.commons.io.log.log4j.appender.RollingResourceAppender;
+import lucee.commons.io.log.log4j.layout.ClassicLayout;
+import lucee.commons.io.res.Resource;
+import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.XMLConfigWebFactory;
+import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.functions.dynamicEvaluation.GetVariable;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
@@ -45,13 +71,21 @@ import lucee.transformer.library.tag.TagLibTagAttr;
 public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	private static final long serialVersionUID = 1384678713928757744L;
+
+	private static Map<Collection.Key,LoggerAndSourceData> _loggers=new ConcurrentHashMap<Collection.Key, LoggerAndSourceData>(); 
 	
 	protected int idletimeout=1800;
 	protected String cookiedomain;
 	protected String applicationtoken;
 	
 	private Map<Collection.Key,Map<Collection.Key,Object>> tagDefaultAttributeValues=null;
-	protected Map<Integer,Object> cachedWithins;
+	protected Object cachedWithinFunction;
+	protected Object cachedWithinInclude;
+	protected Object cachedWithinQuery;
+	protected Object cachedWithinResource;
+	protected Object cachedWithinHTTP;
+	protected Object cachedWithinFile;
+	protected Object cachedWithinWS;
 
 
 	protected ConfigWeb config;
@@ -60,15 +94,13 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 		this.config=config;
 		tagDefaultAttributeValues=((ConfigImpl)config).getTagDefaultAttributeValues();
 		
-		cachedWithins=new HashMap<Integer, Object>();
-		cachedWithins.put(Config.CACHEDWITHIN_FUNCTION, config.getCachedWithin(Config.CACHEDWITHIN_FUNCTION));
-		cachedWithins.put(Config.CACHEDWITHIN_INCLUDE, config.getCachedWithin(Config.CACHEDWITHIN_INCLUDE));
-		cachedWithins.put(Config.CACHEDWITHIN_QUERY, config.getCachedWithin(Config.CACHEDWITHIN_QUERY));
-		cachedWithins.put(Config.CACHEDWITHIN_RESOURCE, config.getCachedWithin(Config.CACHEDWITHIN_RESOURCE));
-		cachedWithins.put(Config.CACHEDWITHIN_HTTP, config.getCachedWithin(Config.CACHEDWITHIN_HTTP));
-		cachedWithins.put(Config.CACHEDWITHIN_FILE, config.getCachedWithin(Config.CACHEDWITHIN_FILE));
-		cachedWithins.put(Config.CACHEDWITHIN_WEBSERVICE, config.getCachedWithin(Config.CACHEDWITHIN_WEBSERVICE));
-		
+		cachedWithinFunction=config.getCachedWithin(Config.CACHEDWITHIN_FUNCTION);
+		cachedWithinInclude=config.getCachedWithin(Config.CACHEDWITHIN_INCLUDE);
+		cachedWithinQuery=config.getCachedWithin(Config.CACHEDWITHIN_QUERY);
+		cachedWithinResource=config.getCachedWithin(Config.CACHEDWITHIN_RESOURCE);
+		cachedWithinHTTP=config.getCachedWithin(Config.CACHEDWITHIN_HTTP);
+		cachedWithinFile=config.getCachedWithin(Config.CACHEDWITHIN_FILE);
+		cachedWithinWS=config.getCachedWithin(Config.CACHEDWITHIN_WEBSERVICE);
 	}
 	
 
@@ -95,7 +127,13 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 				tagDefaultAttributeValues.put(e.getKey(), map);
 			}
 		}
-		other.cachedWithins=Duplicator.duplicateMap(cachedWithins, true);
+		other.cachedWithinFile=Duplicator.duplicate(cachedWithinFile, true);
+		other.cachedWithinFunction=Duplicator.duplicate(cachedWithinFunction, true);
+		other.cachedWithinHTTP=Duplicator.duplicate(cachedWithinHTTP, true);
+		other.cachedWithinInclude=Duplicator.duplicate(cachedWithinInclude, true);
+		other.cachedWithinQuery=Duplicator.duplicate(cachedWithinQuery, true);
+		other.cachedWithinResource=Duplicator.duplicate(cachedWithinResource, true);
+		other.cachedWithinWS=Duplicator.duplicate(cachedWithinWS, true);
 	}
 
 	@Override
@@ -230,20 +268,163 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	@Override
 	public final void setCachedWithin(int type, Object value) {
 		if(StringUtil.isEmpty(value)) return;
-		if(cachedWithins==null)
-			cachedWithins=new HashMap<Integer, Object>();
 		
-		if(value!=null)cachedWithins.put(type, value);
+		switch(type) {
+			case Config.CACHEDWITHIN_FUNCTION: cachedWithinFunction=value; break;
+			case Config.CACHEDWITHIN_INCLUDE: cachedWithinInclude=value; break;
+			case Config.CACHEDWITHIN_QUERY: cachedWithinQuery=value; break;
+			case Config.CACHEDWITHIN_RESOURCE: cachedWithinResource=value; break;
+			case Config.CACHEDWITHIN_HTTP: cachedWithinHTTP=value; break;
+			case Config.CACHEDWITHIN_FILE: cachedWithinFile=value; break;
+			case Config.CACHEDWITHIN_WEBSERVICE: cachedWithinWS=value; break;
+		}
 	}
 	
+	@Override
+	public Object getCachedWithin(int type) {
+		
+		switch(type) {
+			case Config.CACHEDWITHIN_FUNCTION: return cachedWithinFunction;
+			case Config.CACHEDWITHIN_INCLUDE: return cachedWithinInclude;
+			case Config.CACHEDWITHIN_QUERY: return cachedWithinQuery;
+			case Config.CACHEDWITHIN_RESOURCE: return cachedWithinResource;
+			case Config.CACHEDWITHIN_HTTP: return cachedWithinHTTP;
+			case Config.CACHEDWITHIN_FILE: return cachedWithinFile;
+			case Config.CACHEDWITHIN_WEBSERVICE: return cachedWithinWS;
+		}
+		return null;
+	}
+	
+	public static Map<Collection.Key,Pair<Log,Struct>> initLog(Struct sct) {
+		Map<Collection.Key,Pair<Log,Struct>> rtn=new ConcurrentHashMap<Collection.Key,Pair<Log,Struct>>();
+		if(sct==null) return rtn;
+		
+		Iterator<Entry<Key, Object>> it = sct.entryIterator();
+		Entry<Key, Object> e;
+		Struct v; int k;
+		Collection.Key name;
+		LoggerAndSourceData las;
+		while(it.hasNext()){
+			e = it.next();
+			name=e.getKey();
+			v=Caster.toStruct(e.getValue(),null);
+			if(v==null) continue;
+			
+			// raw way
+			Struct sctApp=Caster.toStruct(v.get("appender",null),null);
+			ClassDefinition cdApp=toClassDefinition(sctApp,null,true,false);
+			Struct sctLay=Caster.toStruct(v.get("layout",null),null);
+			ClassDefinition cdLay=toClassDefinition(sctLay,null,false,true);
+			if(cdApp!=null && cdApp.hasClass()) {
+				// level
+				String strLevel=Caster.toString(v.get("level",null),null);
+				if(StringUtil.isEmpty(strLevel,true))Caster.toString(v.get("loglevel",null),null);
+				Level level=Log4jUtil.toLevel(StringUtil.trim(strLevel,""),Level.ERROR);
+				
+				Struct sctAppArgs=Caster.toStruct(sctApp.get("arguments",null),null);
+				Struct sctLayArgs=Caster.toStruct(sctLay.get("arguments",null),null);
+				
+				boolean readOnly = Caster.toBooleanValue(v.get("readonly",null),false);
+				
+				// ignore when no appender/name is defined
+				if(!StringUtil.isEmpty(name)) {
+					Map<String, String> appArgs = toMap(sctAppArgs);
+					if(cdLay!=null && cdLay.hasClass()) {
+						Map<String, String> layArgs = toMap(sctLayArgs);
+						las=addLogger(name,level,cdApp,appArgs,cdLay,layArgs,readOnly);
+					}
+					else
+						las=addLogger(name,level,cdApp,appArgs,null,null,readOnly);
+					rtn.put(name, new Pair<Log,Struct>(las.getLog(),v));
+				}
+			}
+		}
+		return rtn;
+	}
+	
+	private static Map<String, String> toMap(Struct sct) {
+		Iterator<Entry<Key, Object>> it = sct.entryIterator();
+		Map<String, String> map=new HashMap<String, String>();
+		Entry<Key, Object> e;
+		while(it.hasNext()) {
+			e = it.next();
+			map.put(e.getKey().getLowerString(), Caster.toString(e.getValue(),null));
+		}
+		return map;
+	}
+
+
+	private static LoggerAndSourceData addLogger(Collection.Key name, Level level,
+			ClassDefinition appender, Map<String, String> appenderArgs, 
+			ClassDefinition layout, Map<String, String> layoutArgs, boolean readOnly) {
+		LoggerAndSourceData existing = _loggers.get(name);
+		String id=LoggerAndSourceData.id(name.getLowerString(), appender,appenderArgs,layout,layoutArgs,level,readOnly);
+		
+		if(existing!=null) {
+			if(existing.id().equals(id)) {
+				return existing;
+			}
+			existing.close();
+		}
+
+		LoggerAndSourceData las = new LoggerAndSourceData(null,id,name.getLowerString(), appender,appenderArgs,layout,layoutArgs,level,readOnly);
+		_loggers.put(name,las);
+		return las;
+	}
+	
+
+	public static ClassDefinition toClassDefinition(Struct sct, ClassDefinition defaultValue, boolean isAppender, boolean isLayout) {
+		if(sct==null) return defaultValue;
+		
+		// class
+		String className=Caster.toString(sct.get("class",null),null);
+		if(StringUtil.isEmpty(className)) return defaultValue;
+		
+		if(isAppender) {
+			if("console".equalsIgnoreCase(className))	return new ClassDefinitionImpl( ConsoleAppender.class);
+	    	if("resource".equalsIgnoreCase(className))	return new ClassDefinitionImpl( RollingResourceAppender.class);
+	    	if("datasource".equalsIgnoreCase(className))return new ClassDefinitionImpl( DatasourceAppender.class);
+		}
+		else if(isLayout) {
+	    	if("classic".equalsIgnoreCase(className))return new ClassDefinitionImpl( ClassicLayout.class);
+	    	if("html".equalsIgnoreCase(className))return new ClassDefinitionImpl( HTMLLayout.class);
+	    	if("xml".equalsIgnoreCase(className))return new ClassDefinitionImpl( XMLLayout.class);
+	    	if("pattern".equalsIgnoreCase(className))return new ClassDefinitionImpl( PatternLayout.class);
+		}
+		
+		// name
+		String name=Caster.toString(sct.get("bundlename",null),null);
+		if(StringUtil.isEmpty(name)) name=Caster.toString(sct.get("name",null),null);
+		
+		// version
+		Version version=OSGiUtil.toVersion(Caster.toString(sct.get("bundleversion",null),null),null);
+		if(version==null) version=OSGiUtil.toVersion(Caster.toString(sct.get("version",null),null),null);
+		
+		if(StringUtil.isEmpty(name)) return new ClassDefinitionImpl(className);
+		
+		return new ClassDefinitionImpl(null,className, name, version);
+	}
+	
+	
+	
+	
+
 	// FUTURE add to interface
+	public abstract Resource getAntiSamyPolicyResource();
+	public abstract void setAntiSamyPolicyResource(Resource res);
 	public abstract CacheConnection getCacheConnection(String cacheName, CacheConnection defaultValue);
+	public abstract Key[] getCacheConnectionNames();
 	public abstract void setCacheConnection(String cacheName, CacheConnection value);
 	public abstract SessionCookieData getSessionCookie();
 	public abstract void setSessionCookie(SessionCookieData data);
 	public abstract AuthCookieData getAuthCookie();
 	public abstract void setAuthCookie(AuthCookieData data);
 
+	public abstract lucee.runtime.net.mail.Server[] getMailServers();
+	public abstract void setMailServers(lucee.runtime.net.mail.Server[] servers);
 
-	public abstract boolean deepThread();
+	public abstract void setLoggers(Map<Key, Pair<Log,Struct>> logs);
+	public abstract java.util.Collection<Collection.Key> getLogNames();
+	public abstract Log getLog(String name);
+	public abstract Struct getLogMetaData(String string);
 }

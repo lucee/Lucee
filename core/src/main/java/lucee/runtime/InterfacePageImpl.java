@@ -17,6 +17,7 @@
  */
 package lucee.runtime;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.DumpWriter;
 import lucee.runtime.exp.ApplicationException;
@@ -77,6 +78,7 @@ public abstract class InterfacePageImpl extends InterfacePage {
 			
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);//Exception Handler.castAnd Stack(t, this, pc);
 		}
 		return null;

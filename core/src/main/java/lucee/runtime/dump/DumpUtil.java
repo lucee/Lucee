@@ -19,6 +19,7 @@
 package lucee.runtime.dump;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
@@ -41,6 +42,7 @@ import javax.servlet.http.HttpSession;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.IDGenerator;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -48,14 +50,13 @@ import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.functions.system.BundleInfo;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.net.rpc.Pojo;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
-import lucee.runtime.osgi.OSGiUtil.PackageDefinition;
+import lucee.runtime.osgi.OSGiUtil.PackageQuery;
 import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.type.Array;
@@ -466,7 +467,10 @@ public class DumpUtil {
 							}
 							
 						}
-						catch (Throwable t) {value="not able to retrieve the data:"+t.getMessage();}
+						catch(Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							value="not able to retrieve the data:"+t.getMessage();
+						}
 						
 						
 						
@@ -533,6 +537,40 @@ public class DumpUtil {
 			}
 			if(fields.length>0)table.appendRow(1,new SimpleDumpData("fields"),fieldDump);
 			
+			// Constructors
+			Constructor[] constructors = clazz.getConstructors();
+			DumpTable constrDump = new DumpTable("#6289a3","#dee3e9","#000000");
+			constrDump.appendRow(-1,new SimpleDumpData("interface"),new SimpleDumpData("exceptions"));
+			for(int i=0;i<constructors.length;i++) {
+				Constructor constr = constructors[i];
+				
+				
+				// exceptions
+				StringBuilder sbExp=new StringBuilder();
+				Class[] exceptions = constr.getExceptionTypes();
+				for(int p=0;p<exceptions.length;p++){
+					if(p>0)sbExp.append("\n");
+					sbExp.append(Caster.toClassName(exceptions[p]));
+				}
+				
+				// parameters
+				StringBuilder sbParams=new StringBuilder("<init>");
+				sbParams.append('(');
+				Class[] parameters = constr.getParameterTypes();
+				for(int p=0;p<parameters.length;p++){
+					if(p>0)sbParams.append(", ");
+					sbParams.append(Caster.toClassName(parameters[p]));
+				}
+				sbParams.append(')');
+				
+				constrDump.appendRow(0,
+					new SimpleDumpData(sbParams.toString()),
+					new SimpleDumpData(sbExp.toString())
+				);
+			}
+			if(constructors.length>0)table.appendRow(1,new SimpleDumpData("constructors"),constrDump);
+			
+
 			// Methods
 			StringBuilder objMethods=new StringBuilder();
 			Method[] methods=clazz.getMethods();
@@ -573,6 +611,8 @@ public class DumpUtil {
 				);
 			}
 			if(methods.length>0)table.appendRow(1,new SimpleDumpData("methods"),methDump);
+			
+			
 			
 			
 			DumpTable inherited = new DumpTable("#6289a3","#dee3e9","#000000");
@@ -640,14 +680,14 @@ public class DumpUtil {
 			parent.appendRow(1,new SimpleDumpData("required-bundles"),dt);
 			
 		}
-		catch(Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
-	private static Array toArray2(List<PackageDefinition> list) {
+	private static Array toArray2(List<PackageQuery> list) {
 		Struct sct,_sct;
 		Array arr=new ArrayImpl(),_arr;
-		Iterator<PackageDefinition> it = list.iterator();
-		PackageDefinition pd;
+		Iterator<PackageQuery> it = list.iterator();
+		PackageQuery pd;
 		Iterator<VersionDefinition> _it;
 		VersionDefinition vd;
 		while(it.hasNext()) {

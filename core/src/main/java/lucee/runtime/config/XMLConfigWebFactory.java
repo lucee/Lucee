@@ -89,6 +89,7 @@ import lucee.runtime.cfx.customtag.JavaCFXTagClass;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.config.ajax.AjaxFactory;
 import lucee.runtime.config.component.ComponentFactory;
+import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
@@ -118,6 +119,7 @@ import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.ExtensionProviderImpl;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
+import lucee.runtime.functions.other.ObjectSave;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.gateway.GatewayEntryImpl;
@@ -135,6 +137,8 @@ import lucee.runtime.monitor.IntervallMonitor;
 import lucee.runtime.monitor.IntervallMonitorWrap;
 import lucee.runtime.monitor.Monitor;
 import lucee.runtime.monitor.RequestMonitor;
+import lucee.runtime.monitor.RequestMonitorPro;
+import lucee.runtime.monitor.RequestMonitorProImpl;
 import lucee.runtime.monitor.RequestMonitorWrap;
 import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.net.http.ReqRspUtil;
@@ -196,6 +200,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	private static final String COMPONENT_EXTENSION_LUCEE = "lucee";
 	private static final long GB1 = 1024*1024*1024;
 	public static final boolean LOG = true;
+	private static final int DEFAULT_MAX_CONNECTION = 100;
 
 	/**
 	 * creates a new ServletConfig Impl Object
@@ -248,7 +253,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		);
 
-		int iDoNew = doNew(engine,configDir,false);
+		int iDoNew = doNew(engine,configDir,false).updateType;
 		boolean doNew = iDoNew!=NEW_NONE;
 
 		Resource configFile = configDir.getRealResource("lucee-web.xml."+TEMPLATE_EXTENSION);
@@ -278,7 +283,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		load(configServer, configWeb, doc, false, doNew);
 		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
+		
+		// call web.cfc for this context
 		((CFMLEngineImpl)ConfigWebUtil.getEngine(configWeb)).onStart(configWeb,false);
+		
 		return configWeb;
 	}
 
@@ -290,8 +298,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			try {
 				IOUtil.copy(new ByteArrayInputStream(content.getBytes()), htAccess, true);
 			}
-			catch (Throwable t) {
-			}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 	}
 
@@ -314,7 +321,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		Resource configFile = cw.getConfigFile();
 		Resource configDir = cw.getConfigDir();
 
-		int iDoNew = doNew(engine,configDir,false);
+		int iDoNew = doNew(engine,configDir,false).updateType;
 		boolean doNew = iDoNew!=NEW_NONE;
 
 		if (configFile == null)
@@ -328,8 +335,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		cw.reset();
 		load(cs, cw, doc, true, doNew);
 		createContextFilesPost(configDir, cw, null, false, doNew);
+
 		((CFMLEngineImpl)ConfigWebUtil.getEngine(cw)).onStart(cw,true);
-		
 	}
 
 	private static long second(long ms) {
@@ -603,7 +610,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					}
 				}
 				catch(Throwable t){ // TODO log the exception
-					t.printStackTrace();
+					ExceptionUtil.rethrowIfNecessary(t);
 				}
 			}
 
@@ -677,6 +684,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						config.addCacheHandler(strId,cd);
 					}
 					catch(Throwable t){
+						ExceptionUtil.rethrowIfNecessary(t);
 						log.error("Cache-Handler",t);
 					}
 				}
@@ -751,7 +759,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		return cssStringToMap(attributes, decode, false);
 		
 	}
-	private static Map<String, String> cssStringToMap(String attributes, boolean decode, boolean lowerKeys) {
+	public static Map<String, String> cssStringToMap(String attributes, boolean decode, boolean lowerKeys) {
 		Map<String, String> map = new HashMap<String, String>();
 		if (StringUtil.isEmpty(attributes,true))
 			return map;
@@ -799,7 +807,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						cs.setConfigListener(cl);
 					}
 				}
-				catch (Throwable t) {
+				catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					t.printStackTrace(config.getErrWriter());
 
 				}
@@ -1014,6 +1023,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			createFileFromResourceCheckSizeDiff(resource, file);
 		}
 		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
 			aprint.err(resource);
 			aprint.err(file);
 			e.printStackTrace();
@@ -1101,6 +1111,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				createFileFromResourceEL("/resource/bin/windows" + ((SystemUtil.getJREArch() == SystemUtil.ARCH_64) ? "64" : "32") + "/" + name, jacob);
 			}
 		}
+		
 
 		Resource storDir = configDir.getRealResource("storage");
 		if (!storDir.exists())
@@ -1117,9 +1128,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			f = secDir.getRealResource("cacerts");
 			if (f.exists())
 				f.delete();
-			if (ResourceUtil.isEmpty(secDir))
-				secDir.delete();
+			
 		}
+		else
+			secDir.mkdirs();
+		f = secDir.getRealResource("antisamy-basic.xml");
+		if (!f.exists() || doNew) createFileFromResourceEL("/resource/security/antisamy-basic.xml", f);
+		
+		
 		
 		// lucee-context
 		f = contextDir.getRealResource("lucee-context.lar");
@@ -1402,6 +1418,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		// full null support
 		sb.append(config.getFullNullSupport());
 		sb.append(';');
+		
+		// fusiondebug or not (FD uses full path name)
+		sb.append(config.allowRequestTimeout());
+		sb.append(';');
 
 		// tld
 		for (int i = 0; i < ctlds.length; i++) {
@@ -1410,7 +1430,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		for (int i = 0; i < ltlds.length; i++) {
 			sb.append(ltlds[i].getHash());
 		}
-
 		// fld
 		for (int i = 0; i < cflds.length; i++) {
 			sb.append(cflds[i].getHash());
@@ -1507,10 +1526,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		Map<String,Mapping> mappings = MapFactory.<String,Mapping>getConcurrentMap();
 		Mapping tmp;
 
+		boolean finished = false;
+
 		if (configServer != null && config instanceof ConfigWeb) {
 			Mapping[] sm = configServer.getMappings();
 			for (int i = 0; i < sm.length; i++) {
 				if (!sm[i].isHidden()) {
+					if ("/".equals(sm[i].getVirtual())) finished = true;
 					if (sm[i] instanceof MappingImpl) {
 						tmp = ((MappingImpl) sm[i]).cloneReadOnly(config);
 						mappings.put(tmp.getVirtualLowerCase(), tmp);
@@ -1523,8 +1545,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 			}
 		}
-
-		boolean finished = false;
 
 		if (hasAccess) {
 			boolean hasServerContext=false;
@@ -1868,6 +1888,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 			}
 			catch (Throwable e) {
+				ExceptionUtil.rethrowIfNecessary(e);
 				e.printStackTrace();
 				clazz = ConsoleExecutionLog.class;
 			}
@@ -1980,8 +2001,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			setDatasource(config, datasources, QOQ_DATASOURCE_NAME, 
 					new ClassDefinitionImpl("org.hsqldb.jdbcDriver","hsqldb","1.8.0",config.getIdentification()), 
-					"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", -1, -1, 60000, true, true, DataSource.ALLOW_ALL,
-					false, false, null, new StructImpl(), "",ParamSyntax.DEFAULT);
+					"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", DEFAULT_MAX_CONNECTION, -1, 60000, true, true, DataSource.ALLOW_ALL,
+					false, false, null, new StructImpl(), "",ParamSyntax.DEFAULT,false,false);
 		} catch (Exception e) {
 			log.error("Datasource", e);
 		}
@@ -2047,7 +2068,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						,getAttr(dataSource,"dsn")
 						,getAttr(dataSource,"username")
 						,ConfigWebUtil.decrypt(getAttr(dataSource,"password"))
-						,Caster.toIntValue(getAttr(dataSource,"connectionLimit"), -1)
+						,Caster.toIntValue(getAttr(dataSource,"connectionLimit"), DEFAULT_MAX_CONNECTION)
 						,Caster.toIntValue(getAttr(dataSource,"connectionTimeout"), -1)
 						,Caster.toLongValue(getAttr(dataSource,"metaCacheTimeout"), 60000)
 						,toBoolean(getAttr(dataSource,"blob"), true)
@@ -2058,7 +2079,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						,getAttr(dataSource,"timezone")
 						,toStruct(getAttr(dataSource,"custom"))
 						,getAttr(dataSource,"dbdriver")
-						,ParamSyntax.toParamSyntax(dataSource,ParamSyntax.DEFAULT));
+						,ParamSyntax.toParamSyntax(dataSource,ParamSyntax.DEFAULT)
+						,toBoolean(getAttr(dataSource,"literal-timestamp-with-tsoffset"), false)
+						,toBoolean(getAttr(dataSource,"always-set-timeout"), false)
+						
+						);
 				} catch (Exception e) {
 					log.error("Datasource", e);
 				}
@@ -2291,6 +2316,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					//SystemOut.print(config.getErrWriter(), "missing method [public static init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] ");
 				}
 				catch (Throwable e) {
+					ExceptionUtil.rethrowIfNecessary(e);
 					log.error("Cache", e);
 					//e.printStackTrace();
 				}
@@ -2325,9 +2351,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			loadGateway(configServer, config, doc);
 		}
-		catch (Throwable t) {
-			t.printStackTrace();
-		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	private static void loadGateway(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
@@ -2421,11 +2445,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	private static void setDatasource(ConfigImpl config, Map<String, DataSource> datasources, String datasourceName, ClassDefinition cd, String server, String databasename,
 			int port, String dsn, String user, String pass, int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow,
-			boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax ps) throws BundleException, ClassException, SQLException {
+			boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax ps, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout) throws BundleException, ClassException, SQLException {
 
 		datasources.put( datasourceName.toLowerCase(),
 				new DataSourceImpl(config,null,datasourceName, cd, server, dsn, databasename, port, user, pass, connectionLimit, connectionTimeout, metaCacheTimeout, blob, clob, allow,
-						custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver,ps,config.getLog("application")) );
+						custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver,ps,literalTimestampWithTSOffset,alwaysSetTimeout,config.getLog("application")) );
 
 	}
 
@@ -2436,8 +2460,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			setDatasource(config, datasources, datasourceName, cd, server, databasename, port, dsn, user, pass, connectionLimit, connectionTimeout, metaCacheTimeout, blob,
 					clob, allow, validate, storage, timezone, custom, dbdriver);
 		}
-		catch (Throwable t) {
-		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}*/
 
 	/**
@@ -3316,9 +3339,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				try {
 					return (PrintWriter) ClassUtil.loadInstance(classname);
 				}
-				catch (Throwable t) {
-					t.printStackTrace();
-				}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
 			else if (StringUtil.startsWithIgnoreCase(streamtype, "file:")) {
 				String strRes = streamtype.substring(5);
@@ -3328,9 +3349,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					if (res != null)
 						return new PrintWriter(res.getOutputStream(), true);
 				}
-				catch (Throwable t) {
-					t.printStackTrace();
-				}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
 
 		}
@@ -3885,6 +3904,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				Element el = elServers[i];
 				if (el.getNodeName().equals("server"))
 					servers[index++] = new ServerImpl(
+							Caster.toIntValue(getAttr(el,"id"), i+1), 
 							getAttr(el,"smtp"), 
 							Caster.toIntValue(getAttr(el,"port"), 25), 
 							getAttr(el,"username"),
@@ -3958,7 +3978,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						actions.add(new MonitorTemp(am, name, log));
 					}
 					else {
-						RequestMonitor m = obj instanceof RequestMonitor ? (RequestMonitor) obj : new RequestMonitorWrap(obj);
+						RequestMonitorPro m = new RequestMonitorProImpl(obj instanceof RequestMonitor ? (RequestMonitor) obj : new RequestMonitorWrap(obj));
 						if(async) m=new AsyncRequestMonitor(m);
 						m.init(configServer, name, log);
 						SystemOut.printDate(config.getOutWriter(), "initialize "+(strType)+" monitor ["+clazz.getName()+"]");
@@ -3966,7 +3986,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						requests.add(m);
 					}
 				}
-				catch (Throwable t) {
+				catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					SystemOut.printDate(config.getErrWriter(), ExceptionUtil.getStacktrace(t, true));
 				}
 			}
@@ -4239,7 +4260,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		Element parent = getChildByName(doc.getDocumentElement(), "extensions");
 		Element[] children = getChildren(parent, "rhextension");
 		String strBundles;
-	
 		Map<String, BundleDefinition> extensionBundles=new HashMap<String,BundleDefinition>();
 		List<RHExtension> extensions=new ArrayList<RHExtension>();
 		
@@ -4247,13 +4267,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			RHExtension rhe;
 			try {
 				rhe = new RHExtension(config,child);
-				if(rhe.getStartBundles()) rhe.deployBundles();
+				if(rhe.getStartBundles()) rhe.deployBundles(config);
 				extensions.add(rhe);
 			} catch (Exception e) {
 				log.error("load-extension", e);
 				continue;
 			}
-			
+
 			BundleInfo[] bfs = rhe.getBundles();
 			BundleInfo bf;
 			BundleDefinition bd;
@@ -4690,6 +4710,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			config.setDotNotationUpperCase(false);
 		}
 		else {
+			
+			// Env Var
+			if(!hasCS) {
+				Boolean tmp = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.preserve.case",null),null);
+				if(tmp!=null) {
+					config.setDotNotationUpperCase(!tmp.booleanValue());
+				}
+			}
 			String _case = getAttr(compiler,"dot-notation-upper-case");
 			if (!StringUtil.isEmpty(_case, true)) {
 				config.setDotNotationUpperCase(Caster.toBooleanValue(_case, true));

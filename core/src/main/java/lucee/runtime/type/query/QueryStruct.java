@@ -29,6 +29,7 @@ public class QueryStruct extends StructImpl implements QueryResult {
 	private Key[] columnNames;
 
 	public QueryStruct(String name, SQL sql, String template) {
+		super(Struct.TYPE_LINKED);
 		this.name=name;
 		this.sql=sql;
 		this.template=template;

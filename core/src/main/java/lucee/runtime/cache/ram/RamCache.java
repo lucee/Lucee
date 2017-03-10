@@ -30,12 +30,12 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CachePro;
 import lucee.commons.io.cache.exp.CacheException;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.cache.CacheSupport;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.CFMLEngineImpl;
-import lucee.runtime.engine.ControllerState;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;
@@ -216,9 +216,7 @@ public class RamCache extends CacheSupport {
 					SystemUtil.sleep(ramCache.controlInterval);
 					
 				}
-				catch(Throwable t){
-					t.printStackTrace();
-				}
+				catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 			}
 		}
 

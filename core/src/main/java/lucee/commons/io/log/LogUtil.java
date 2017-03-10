@@ -20,8 +20,12 @@ package lucee.commons.io.log;
 
 import java.io.PrintStream;
 
+import org.apache.log4j.Logger;
+
 import lucee.commons.io.log.log4j.LogAdapter;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 
 /**
  * Helper class for the logs
@@ -57,6 +61,18 @@ public final class LogUtil {
 		Throwable t = new Throwable();
 		t.setStackTrace(stackTrace);
 		log(log,level,logName,msg,t);
-	}    
+	}
+
+	public static Logger toLogger(lucee.commons.io.log.Log log) {
+		if(log==null) return null;
+		return ((LogAdapter)log).getLogger();
+	}
+
+	public static Log getLog(PageContext pc, String name) {
+		return ((PageContextImpl)pc).getLog(name);
+	}
 	
+	public static Log getLog(PageContext pc, String name, boolean createIfNecessary) {
+		return ((PageContextImpl)pc).getLog(name,createIfNecessary);
+	}
 }

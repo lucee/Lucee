@@ -23,6 +23,7 @@ import java.sql.Connection;
 
 import javax.servlet.jsp.JspException;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.db.DataSourceManager;
 import lucee.runtime.db.DatasourceManagerImpl;
 import lucee.runtime.exp.DatabaseException;
@@ -131,6 +132,7 @@ public final class Transaction extends BodyTagTryCatchFinallyImpl {
     
     @Override
     public void doCatch(Throwable t) throws Throwable {
+		ExceptionUtil.rethrowIfNecessary(t);
     	if(innerTag || ignore) throw t;
         
     	DataSourceManager manager = pageContext.getDataSourceManager();

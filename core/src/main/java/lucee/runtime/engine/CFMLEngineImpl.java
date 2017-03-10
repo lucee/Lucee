@@ -69,6 +69,7 @@ import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.res.util.ResourceUtilImpl;
 import lucee.commons.io.retirement.RetireOutputStreamFactory;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
@@ -100,6 +101,7 @@ import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.XMLConfigAdmin;
 import lucee.runtime.config.XMLConfigFactory;
+import lucee.runtime.config.XMLConfigFactory.UpdateInfo;
 import lucee.runtime.config.XMLConfigServerFactory;
 import lucee.runtime.config.XMLConfigWebFactory;
 import lucee.runtime.exp.ApplicationException;
@@ -157,6 +159,7 @@ import lucee.runtime.video.VideoUtilImpl;
 import org.apache.felix.framework.Felix;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.Version;
 
 //import com.intergral.fusiondebug.server.FDControllerFactory;
 
@@ -191,6 +194,18 @@ public final class CFMLEngineImpl implements CFMLEngine {
     private CFMLEngineImpl(CFMLEngineFactory factory, BundleCollection bc) {
     	this.factory=factory; 
     	this.bundleCollection=bc;
+
+    	// log the startup process
+    	String logDir=SystemUtil.getSystemPropOrEnvVar("startlogdirectory", null);
+    	if(logDir!=null) {
+    		File f = new File(logDir);
+    		if(f.isDirectory()) {
+	    		String logName=SystemUtil.getSystemPropOrEnvVar("logName", "stacktrace");
+	    		int timeRange=Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("timeRange", "stacktrace"),10);
+	    		LogST._do(f, logName, timeRange);
+    		}
+    	}
+    	
     	
     	// happen when Lucee is loaded directly
     	if(bundleCollection==null) {
@@ -219,7 +234,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
     			bundleCollection=new BundleCollection(felix, felix, null);
     			//bundleContext=bundleCollection.getBundleContext();
     		}
-    		catch (Throwable t) {
+    		catch(Throwable t) {
+    			ExceptionUtil.rethrowIfNecessary(t);
+    			if(t instanceof Error) throw (Error)t;
 				throw new RuntimeException(t);
 			}
     	}
@@ -229,11 +246,11 @@ public final class CFMLEngineImpl implements CFMLEngine {
     	this.info=new InfoImpl(bundleCollection==null?null:bundleCollection.core);
     	Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader()); // MUST better location for this
 		
-    	int doNew;
+    	UpdateInfo updateInfo;
     	Resource configDir=null;
     	try {
     		configDir = getSeverContextConfigDirectory(factory);
-			doNew=XMLConfigFactory.doNew(this,configDir, true);
+    		updateInfo=XMLConfigFactory.doNew(this,configDir, true);
 		}
     	catch (IOException e) {
     		throw new PageRuntimeException(e);
@@ -257,7 +274,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
         
         
         // copy bundled extension to local extension directory (if never done before)
-        if(installExtensions && doNew!=XMLConfigFactory.NEW_NONE) {
+        if(installExtensions && updateInfo.updateType!=XMLConfigFactory.NEW_NONE) {
         	deployBundledExtension(cs);
         	SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT), "copy bundled extension to local extension directory (if never done before)");
         }
@@ -266,36 +283,44 @@ public final class CFMLEngineImpl implements CFMLEngine {
         
         // if we have a "fresh" install  
         Set<ExtensionDefintion> extensions;
-        if(installExtensions && (doNew==XMLConfigFactory.NEW_FRESH || doNew==XMLConfigFactory.NEW_FROM4)) {
+        if(installExtensions && (updateInfo.updateType==XMLConfigFactory.NEW_FRESH || updateInfo.updateType==XMLConfigFactory.NEW_FROM4)) {
         	List<ExtensionDefintion> ext = info.getRequiredExtension();
         	extensions = toSet(null,ext);
         	SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT),
-            	"detected Extensions to install (new;"+doNew+"):"+toList(extensions));
+            	"detected Extensions to install (new;"+updateInfo.updateType+"):"+toList(extensions));
         }
         // if we have an update we update the extension that re installed and we have an older version as defined in the manifest
-        else if(installExtensions && (doNew==XMLConfigFactory.NEW_MINOR || !isRe)) {
+        else if(installExtensions && (updateInfo.updateType==XMLConfigFactory.NEW_MINOR || !isRe)) {
         	extensions = new HashSet<ExtensionDefintion>();
         	Iterator<ExtensionDefintion> it = info.getRequiredExtension().iterator();
         	ExtensionDefintion ed;
         	RHExtension rhe;
         	while(it.hasNext()){
         		ed = it.next();
-        		if(ed.getVersion()==null) continue; // no version definition no update
+        		if(ed.getVersion()==null) {
+        			continue; // no version definition no update
+        		}
         		try{
         			rhe = XMLConfigAdmin.hasRHExtensions(cs, new ExtensionDefintion(ed.getId()));
-        			if(rhe==null) continue; // not installed we do not update
+        			if(rhe==null) {
+        				Version since=ed.getSince();
+        				
+        				if(since==null || updateInfo.oldVersion==null || !Util.isNewerThan(since, updateInfo.oldVersion)) 
+        					continue; // not installed we do not update
+        				extensions.add(ed);
+        			}
         			
         			// if the installed is older than the one defined in the manifest we update (if possible)
-        			if(!rhe.getVersion().equals(ed.getVersion())) 
+        			else if(!rhe.getVersion().equals(ed.getVersion())) 
         				extensions.add(ed);
         		}
         		catch(Throwable t){
-        			t.printStackTrace(); // fails we update
+        			ExceptionUtil.rethrowIfNecessary(t); // fails we update
         			extensions.add(ed);
         		}
         	}
         	SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT),
-                	"detected Extensions to install (minor;"+doNew+"):"+toList(extensions));
+                	"detected Extensions to install (minor;"+updateInfo.updateType+"):"+toList(extensions));
         }
         else {
         	extensions = new HashSet<ExtensionDefintion>();
@@ -450,6 +475,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			log.error("extract-extension", t);
 		}
 		return;
@@ -510,7 +536,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			} 
 		}
 		catch(Throwable t){
-			t.printStackTrace();// TODO log this
+			ExceptionUtil.rethrowIfNecessary(t);// TODO log this
 		}
 		finally {
 			Util.closeEL(zis);
@@ -707,7 +733,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					CompressUtil.compress(CompressUtil.FORMAT_ZIP, railoRoot, p.getRealResource("railo-web-context-old.zip"), false, -1);
 					ResourceUtil.removeEL(railoRoot, true);
 				}
-				catch(Throwable t){t.printStackTrace();}
+				catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
         	}
         	else {
             	try {
@@ -1006,10 +1032,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		            if(configId!=null && !configId.equals(cfmlFactory.getConfigWebImpl().getIdentification().getId())) continue;
 		            	
 		            // scopes
-		            try{cfmlFactory.getScopeContext().clear();}catch(Throwable t){t.printStackTrace();}
+		            try{cfmlFactory.getScopeContext().clear();}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		            
 		            // PageContext
-		            try{cfmlFactory.resetPageContext();}catch(Throwable t){t.printStackTrace();}
+		            try{cfmlFactory.resetPageContext();}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		            
 		            // Query Cache
 		            try{ 
@@ -1020,17 +1046,15 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		            		pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_INCLUDE,null).clear(pc);
 		            	}
 		            	//cfmlFactory.getDefaultQueryCache().clear(null);
-		            }catch(Throwable t){t.printStackTrace();}
+		            }catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		            
 		            
 		            
 		            // Gateway
-		            try{ cfmlFactory.getConfigWebImpl().getGatewayEngine().reset();}catch(Throwable t){t.printStackTrace();}
+		            try{ cfmlFactory.getConfigWebImpl().getGatewayEngine().reset();}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		            
 	        	}
-	        	catch(Throwable t){
-	        		t.printStackTrace();
-	        	}
+	        	catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 	        }
         }
     	finally {
@@ -1149,7 +1173,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				return false;
 			}
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		return controlerState.active();
 	}
 	
@@ -1433,9 +1457,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				else
 					pc.executeCFML(requestURI, true,false);
 			} 
-			catch (Throwable t) {
+			catch(Throwable t) {
 				// we simply ignore exceptions, if the template itself throws an error it will be handled by the error listener
-				t.printStackTrace(); // TODO ignore
+				ExceptionUtil.rethrowIfNecessary(t);
 			}
 			finally {
 				CFMLFactory f = pc.getConfig().getFactory();

@@ -44,9 +44,7 @@ public final class NumberFormat  {
 		DecimalFormat df=getDecimalFormat(locale);
 		df.applyPattern(",0");
 		df.setGroupingSize(3);
-		
-		
-		return df.format(number).replace('\'',',');
+		return df.format(number);
 	}
 
 	/**

@@ -23,6 +23,8 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.TimeZone;
 
+import lucee.print;
+
 public class OtherCast implements Cast {
 	
 	private final int type;

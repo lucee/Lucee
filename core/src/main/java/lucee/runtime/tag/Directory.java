@@ -42,6 +42,7 @@ import lucee.commons.io.res.util.ModeObjectWrap;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.res.util.UDFFilter;
 import lucee.commons.io.res.util.WildcardPatternFilter;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
@@ -482,7 +483,7 @@ public final class Directory extends TagImpl  {
 							throw new ApplicationException("invalid order type ["+col[1]+"]");
 					}
 				}
-				catch(Throwable t) {}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}		
 		}
 		if(query!=null)query.setExecutionTime(System.nanoTime()-startNS);
@@ -764,6 +765,7 @@ public final class Directory extends TagImpl  {
 			directory.moveTo(newdirectory);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 		
@@ -833,6 +835,7 @@ public final class Directory extends TagImpl  {
 			
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new ApplicationException(t.getMessage());
 		}
 		

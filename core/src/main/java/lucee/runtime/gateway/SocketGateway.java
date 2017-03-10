@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.exp.PageException;
@@ -85,7 +86,8 @@ public class SocketGateway implements Gateway {
                     sst.start();
                     sockets.add(sst);
                 }
-                catch (Throwable t) {
+                catch(Throwable t) {
+                	ExceptionUtil.rethrowIfNecessary(t);
                     error("Failed to listen on Socket ["+id+"] on port ["+port+"]: " + t.getMessage());
                 }
             }
@@ -95,6 +97,7 @@ public class SocketGateway implements Gateway {
             serverSocket = null;
         }
         catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
         	state=FAILED;
 		    error("Error in Socet Gateway ["+id+"]: " + e.getMessage());
             e.printStackTrace();
@@ -118,10 +121,10 @@ public class SocketGateway implements Gateway {
 	        serverSocket = null;
 		    state = STOPPED;
 		}
-		catch(Throwable e){
+		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			state=FAILED;
-			error("Error in Socket Gateway ["+id+"]: " + e.getMessage());
-            e.printStackTrace();
+			error("Error in Socket Gateway ["+id+"]: " + t.getMessage());
             //throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
 		}
     }
@@ -130,8 +133,9 @@ public class SocketGateway implements Gateway {
 		try	{
             serverSocket = new ServerSocket(port);
         }
-        catch (Throwable t) {
-            error("Failed to start Socket Gateway ["+id+"] on port ["+port+"] " +t.getMessage());
+        catch(Throwable t) {
+        	ExceptionUtil.rethrowIfNecessary(t);
+        	error("Failed to start Socket Gateway ["+id+"] on port ["+port+"] " +t.getMessage());
             throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(t);
         }
 	}
@@ -188,7 +192,8 @@ public class SocketGateway implements Gateway {
 	                }
 	                //socketRegistry.remove(this.getName());
 	            }
-	            catch (Throwable t)	{
+	            catch(Throwable t)	{
+	            	ExceptionUtil.rethrowIfNecessary(t);
 	                error("Failed to read from Socket Gateway ["+id+"]: " + t.getMessage());
 	            }
 	            finally{
@@ -300,28 +305,28 @@ public class SocketGateway implements Gateway {
 		try{
 			writer.close();
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
     private void close(Reader reader) {
 		if(reader==null) return;
 		try{
 			reader.close();
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
     private void close(Socket socket) {
 		if(socket==null) return;
 		try{
 			socket.close();
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
     private void close(ServerSocket socket) {
 		if(socket==null) return;
 		try{
 			socket.close();
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 }

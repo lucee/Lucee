@@ -130,8 +130,8 @@ function enable(btn,type,id){
 	<h2>Log "#log.name#"</h2>
 	<div class="pageintro">#stText.Settings.logging.detailDesc#</div>
 	
-	<cfform onerror="customError" action="#request.self#?action=#url.action#&action2=create#iif(isDefined('url.name'),de('&name=##url.name##'),de(''))#" method="post">
-		<cfinput type="hidden" name="_name" value="#log.name#" >
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=create#iif(isDefined('url.name'),de('&name=##url.name##'),de(''))#" method="post">
+		<cfinputClassic type="hidden" name="_name" value="#log.name#" >
 		<table class="maintbl">
 			<tbody>
 				<tr>
@@ -218,7 +218,7 @@ function enable(btn,type,id){
 						<th scope="row">#field.getDisplayName()#</th>
 						<td>
 							<cfif type EQ "text" or type EQ "password">
-								<cfinput type="#type#" 
+								<cfinputClassic type="#type#" 
 									name="custom_#_name#_#field.getName()#" 
 									value="#default#" class="large" required="#field.getRequired()#" 
 									message="Missing value for field #field.getDisplayName()#">
@@ -262,19 +262,19 @@ function enable(btn,type,id){
 									</thead>
 									<tbody>
 										<tr>
-											<td><cfinput type="text" 
+											<td><cfinputClassic type="text" 
 												name="custompart_d_#_name#_#field.getName()#" 
 												value="#addZero(d)#" class="number" required="#field.getRequired()#"   validate="integer"
 												message="Missing value for field #field.getDisplayName()#"></td>
-											<td><cfinput type="text" 
+											<td><cfinputClassic type="text" 
 												name="custompart_h_#_name#_#field.getName()#" 
 												value="#addZero(h)#" class="number" required="#field.getRequired()#"  maxlength="2"  validate="integer"
 												message="Missing value for field #field.getDisplayName()#"></td>
-											<td><cfinput type="text" 
+											<td><cfinputClassic type="text" 
 												name="custompart_m_#_name#_#field.getName()#" 
 												value="#addZero(m)#" class="number" required="#field.getRequired()#"  maxlength="2" validate="integer" 
 												message="Missing value for field #field.getDisplayName()#"></td>
-											<td><cfinput type="text" 
+											<td><cfinputClassic type="text" 
 												name="custompart_s_#_name#_#field.getName()#" 
 												value="#addZero(s)#" class="number" required="#field.getRequired()#"  maxlength="2"  validate="integer"
 												message="Missing value for field #field.getDisplayName()#"></td>
@@ -301,7 +301,7 @@ function enable(btn,type,id){
 										<cfloop index="item" list="#field.getValues()#">
 											<li>
 												<label>
-													<cfinput type="#type#" class="#type#" name="custom_#_name#_#field.getName()#" value="#item#" checked="#item EQ default#">
+													<cfinputClassic type="#type#" class="#type#" name="custom_#_name#_#field.getName()#" value="#item#" checked="#item EQ default#">
 													<b>#item#</b>
 												</label>
 												<cfif isStruct(desc) and StructKeyExists(desc,item)>
@@ -312,7 +312,7 @@ function enable(btn,type,id){
 									</ul>
 								<cfelse>
 									<cfset item = field.getValues() />
-									<cfinput type="#type#" class="#type#" name="custom_#_name#_#field.getName()#" value="#item#" checked="#item EQ default#">
+									<cfinputClassic type="#type#" class="#type#" name="custom_#_name#_#field.getName()#" value="#item#" checked="#item EQ default#">
 								</cfif>
 								<cfif isStruct(desc) and StructKeyExists(desc,'_bottom')>
 									<div class="comment">#desc._bottom#</div>
@@ -364,7 +364,7 @@ function enable(btn,type,id){
 				</tr>
 			</tfoot>
 		</table>
-	</cfform>
+	</cfformClassic>
 </cfoutput>
 
 <!---

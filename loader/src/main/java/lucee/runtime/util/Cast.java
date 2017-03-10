@@ -1640,5 +1640,8 @@ public interface Cast {
 
 	public DumpData toDumpTable(Struct sct, String title,
 			PageContext pageContext, int maxlevel, DumpProperties dp);
+	
+	// FUTURE 
+	//public Credentials toCredentials(String username, String password);
 
 }

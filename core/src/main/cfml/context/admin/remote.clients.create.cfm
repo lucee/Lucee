@@ -160,14 +160,14 @@ Error Output--->
 
 	<h2>#stText.remote.detail[actionType]#</h2>
 	<div class="itemintro">#stText.remote.detail[actionType& "Desc"]#</div>
-	<cfform onerror="customError" action="#request.self#?action=#url.action#&action2=create#iif(isDefined('url.url'),de('&url=##url.url##'),de(''))#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=create#iif(isDefined('url.url'),de('&url=##url.url##'),de(''))#" method="post">
 		<input type="hidden" name="run" value="create2">
 		<table class="maintbl">
 			<tbody>
 				<tr>
 					<th scope="row">#stText.remote.label#</th>
 					<td>
-						<cfinput type="text" name="label" value="#rc.label#" class="large" required="yes" message="#stText.remote.LabelMissing#">
+						<cfinputClassic type="text" name="label" value="#rc.label#" class="large" required="yes" message="#stText.remote.LabelMissing#">
 					</td>
 				</tr>
 				<tr>
@@ -201,7 +201,7 @@ Error Output--->
 					<tr>
 						<th scope="row">#stText.remote.urlServer#</th>
 						<td>
-							<cfinput type="text" name="url_server" value="#rc.url_server#" class="large" required="yes" message="#stText.remote.urlServerMissing#">
+							<cfinputClassic type="text" name="url_server" value="#rc.url_server#" class="large" required="yes" message="#stText.remote.urlServerMissing#">
 							<div class="comment">#stText.remote.urlServerDesc#</div>
 						</td>
 					</tr>
@@ -209,7 +209,7 @@ Error Output--->
 					<tr>
 						<th scope="row">#stText.remote.urlPath#</th>
 						<td>
-							<cfinput type="text" name="url_path" value="#rc.url_path#" class="large" required="yes" message="#stText.remote.urlPathMissing#">
+							<cfinputClassic type="text" name="url_path" value="#rc.url_path#" class="large" required="yes" message="#stText.remote.urlPathMissing#">
 							<div class="comment">#stText.remote.urlPathDesc#</div>
 						</td>
 					</tr>
@@ -225,7 +225,7 @@ Error Output--->
 				<tr>
 					<th scope="row">#stText.remote.serverusername#</th>
 					<td>
-						<cfinput type="text" name="serverusername" value="#rc.serverusername#" class="medium">
+						<cfinputClassic type="text" name="serverusername" value="#rc.serverusername#" class="medium">
 						<div class="comment">#stText.remote.serverusernameDesc#</div>
 					</td>
 				</tr>
@@ -233,7 +233,7 @@ Error Output--->
 					<th scope="row">#stText.remote.serverpassword#</th>
 					<td>
 						<input type="hidden" name="serverpasswordh" value="#rc.serverpasswordh#">
-						<cfinput type="password" passthrough='autocomplete="off"' onClick="this.value='';" name="serverpassword" value="#rc.serverpassword#" class="medium">
+						<cfinputClassic type="password" passthrough='autocomplete="off"' onClick="this.value='';" name="serverpassword" value="#rc.serverpassword#" class="medium">
 						<div class="comment">#stText.remote.serverpasswordDesc#</div>
 					</td>
 				</tr>
@@ -248,7 +248,7 @@ Error Output--->
 					<th scope="row">#stText.remote.adminPassword[request.adminType]#</th>
 					<td>
 						<input type="hidden" name="adminPasswordh" value="#rc.adminPasswordh#">
-						<cfinput type="password" passthrough='autocomplete="off"' onClick="this.value='';" name="adminPassword" value="#rc.adminPassword#" class="medium" required="yes" message="#stText.remote.passwordMissing#">
+						<cfinputClassic type="password" passthrough='autocomplete="off"' onClick="this.value='';" name="adminPassword" value="#rc.adminPassword#" class="medium" required="yes" message="#stText.remote.passwordMissing#">
 						<div class="comment">#stText.remote.adminPasswordDesc[request.adminType]#</div>
 					</td>
 				</tr>
@@ -256,7 +256,7 @@ Error Output--->
 					<th scope="row">#stText.remote.securityKey#</th>
 					<td>
 						<input type="hidden" name="securityKeyh" value="#rc.securityKeyh#">
-						<cfinput type="text" name="securityKey" value="#rc.securityKey#" onClick="removeStars(this)" class="large" required="yes" message="#stText.remote.securityKeyMissing#">
+						<cfinputClassic type="text" name="securityKey" value="#rc.securityKey#" onClick="removeStars(this)" class="large" required="yes" message="#stText.remote.securityKeyMissing#">
 						<div class="comment">#stText.remote.securityKeyDesc#</div>
 					</td>
 				</tr>
@@ -270,28 +270,28 @@ Error Output--->
 				<tr>
 					<th scope="row">#stText.remote.proxyServer#</th>
 					<td>
-						<cfinput type="text" name="proxyServer" value="#rc.proxyServer#" class="large">
+						<cfinputClassic type="text" name="proxyServer" value="#rc.proxyServer#" class="large">
 						<div class="comment">#stText.remote.proxyServerDesc#</div>
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">#stText.remote.proxyPort#</th>
 					<td>
-						<cfinput type="text" name="proxyPort" value="#rc.proxyPort#" class="number">
+						<cfinputClassic type="text" name="proxyPort" value="#rc.proxyPort#" class="number">
 						<div class="comment">#stText.remote.proxyPortDesc#</div>
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">#stText.remote.proxyUsername#</th>
 					<td>
-						<cfinput type="text" name="proxyUsername" value="#rc.proxyUsername#" class="medium">
+						<cfinputClassic type="text" name="proxyUsername" value="#rc.proxyUsername#" class="medium">
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">#stText.remote.proxyPassword#</th>
 					<td>
 						<input type="hidden" name="proxyPasswordh" value="#rc.proxyPasswordh#">
-						<cfinput type="password" passthrough='autocomplete="off"' onClick="this.value='';" name="proxyPassword" value="#rc.proxyPassword#" class="medium">
+						<cfinputClassic type="password" passthrough='autocomplete="off"' onClick="this.value='';" name="proxyPassword" value="#rc.proxyPassword#" class="medium">
 					</td>
 				</tr>
 			</tbody>
@@ -304,5 +304,5 @@ Error Output--->
 				</tr>
 			</tfoot>
 		</table>
-	</cfform>
+	</cfformClassic>
 </cfoutput>

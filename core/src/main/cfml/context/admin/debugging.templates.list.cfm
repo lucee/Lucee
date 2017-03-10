@@ -97,7 +97,7 @@ Redirtect to entry --->
 		<cfif qry.recordcount>
 			<h2>#stText.debug.list[k & "title"]#</h2>
 			<div class="itemintro">#stText.debug.list[k & "titleDesc"]#</div>
-			<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 				<table class="maintbl">
 					<thead>
 						<tr>
@@ -151,7 +151,7 @@ Redirtect to entry --->
 						</tfoot>
 					</cfif>
 				</table>
-			</cfform>
+			</cfformClassic>
 		</cfif>
 	</cfloop>
 
@@ -161,12 +161,12 @@ Redirtect to entry --->
 	
 		<cfif listLen(_drivers)>
 			<h2>#stText.debug.createTitle#</h2>
-			<cfform onerror="customError" action="#request.self#?action=#url.action#&action2=create" method="post">
+			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=create" method="post">
 				<table class="maintbl autowidth" style="width:400px;">
 					<tbody>
 						<tr>
 							<th scope="row">#stText.debug.label#</th>
-							<td><cfinput type="text" name="label" value="" class="large" required="yes" 
+							<td><cfinputClassic type="text" name="label" value="" class="large" required="yes" 
 								message="#stText.debug.labelMissing#"></td>
 						</tr>
 						<tr>
@@ -192,7 +192,7 @@ Redirtect to entry --->
 						</tr>
 					</tfoot>
 				</table>   
-			</cfform>
+			</cfformClassic>
 		<cfelse>
 			#stText.debug.noDriver#
 		</cfif>

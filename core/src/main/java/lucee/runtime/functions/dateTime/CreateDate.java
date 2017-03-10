@@ -32,7 +32,13 @@ import lucee.runtime.type.dt.DateTime;
 public final class CreateDate implements Function {
 
 	private static final long serialVersionUID = -8116641467358905335L;
-	
+
+	public static DateTime call(PageContext pc , double year) throws ExpressionException {
+		return _call(pc,year,1,1,pc.getTimeZone());
+	}
+	public static DateTime call(PageContext pc , double year, double month) throws ExpressionException {
+		return _call(pc,year,month,1,pc.getTimeZone());
+	}
 	public static DateTime call(PageContext pc , double year, double month, double day) throws ExpressionException {
 		return _call(pc,year,month,day,pc.getTimeZone());
 	}

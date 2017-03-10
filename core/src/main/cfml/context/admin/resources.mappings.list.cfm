@@ -3,7 +3,7 @@
 	<cfif not hasAccess><cfset noAccess(stText.setting.noAccess)></cfif>
 
 	<div class="pageintro">#stText.Mappings.IntroText#</div>
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl checkboxtbl">
 			<thead>
 				<tr>
@@ -114,29 +114,29 @@ this.mappings=["#mappings.virtual#"]={<cfif len(mappings.strPhysical)>
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 	
 	<cfif hasAccess>
 		<h2>Create new mapping</h2>
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<input type="hidden" name="row_1" value="1">
 			<table class="maintbl">
 				<tbody>
 					<tr>
 						<th scope="row">#stText.Mappings.VirtualHead#</th>
-						<td><cfinput onKeyDown="checkTheBox(this)" type="text" 
+						<td><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
 							name="virtual_1" value="" required="no" class="medium">
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">#stText.Mappings.PhysicalHead#</th>
-						<td><cfinput onKeyDown="checkTheBox(this)" type="text" 
+						<td><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
 							name="physical_1" value="" required="no" class="large">
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">#stText.Mappings.ArchiveHead#</th>
-						<td><cfinput onKeyDown="checkTheBox(this)" type="text" 
+						<td><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
 							name="archive_1" value="" required="no" class="large">
 						</td>
 					</tr>
@@ -179,6 +179,6 @@ this.mappings=["#mappings.virtual#"]={<cfif len(mappings.strPhysical)>
 					</tr>
 				</tfoot>
 			</table>
-		</cfform>
+		</cfformClassic>
 	</cfif>
 </cfoutput>

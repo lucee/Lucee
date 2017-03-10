@@ -34,13 +34,14 @@
 		<cfparam name="form.metaCacheTimeout" default="60000">
 
 		
-
 		<cfadmin action="updateDatasource" type="#request.adminType#" password="#session["password"&request.adminType]#"
 			
 			classname="#driver.getClass()#"
 			dsn="#driver.getDSN()#"
 			customParameterSyntax="#isNull(driver.customParameterSyntax)?nullValue():driver.customParameterSyntax()#"
-						
+			literalTimestampWithTSOffset="#isNull(driver.literalTimestampWithTSOffset)?false:driver.literalTimestampWithTSOffset()#"
+			alwaysSetTimeout="#isNull(driver.alwaysSetTimeout)?false:driver.alwaysSetTimeout()#"
+			
 			name="#form.name#"
 			newName="#form.newName#"
 			
@@ -80,7 +81,7 @@
 
 		<cflocation url="#request.self#?action=#url.action##v#" addtoken="no">
 	</cfif>
-	<cfcatch><cfrethrow>
+	<cfcatch>
 		<cfset driver.onBeforeError(cfcatch)>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
@@ -188,7 +189,7 @@
 
 	<div class="pageintro">#driver.getDescription()#</div>
 	
-	<cfform onerror="customError" action="#request.self#?action=#url.action#&action2=create" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=create" method="post">
 
 		<input type="hidden" name="name" value="#datasource.name#">
 		<input type="hidden" name="type" value="#dbdriver#">
@@ -230,7 +231,11 @@
 				<tr>
 					<th scope="row">Name</th>
 					<td>
-						<cfinput type="text" name="newName" value="#datasource.name#" class="large">
+						<cfif error.message NEQ "" OR error.Detail NEQ "">
+							<cfinputClassic type="text" name="newName" value="#form.newname#" class="large">
+						<cfelse>
+							<cfinputClassic type="text" name="newName" value="#datasource.name#" class="large">
+						</cfif>
 					</td>
 				</tr>
 				
@@ -239,7 +244,7 @@
 					<tr>
 						<th scope="row">#stText.Settings.dbHost#</th>
 						<td>
-							<cfinput type="text" name="host" 
+							<cfinputClassic type="text" name="host" 
 							value="#datasource.host#" class="large" required="#typeHost EQ TYPE_REQUIRED#">
 							<div class="comment">#stText.Settings.dbHostDesc#</div>
 						</td>
@@ -250,7 +255,7 @@
 					<tr>
 						<th scope="row">#stText.Settings.dbDatabase#</th>
 						<td>
-							<cfinput type="text" name="database" 
+							<cfinputClassic type="text" name="database" 
 							value="#datasource.database#" class="large" required="#typeDataBase EQ TYPE_REQUIRED#">
 							<div class="comment">#stText.Settings.dbDatabaseDesc#</div>
 						</td>
@@ -261,7 +266,7 @@
 					<tr>
 						<th scope="row">#stText.Settings.dbPort#</th>
 						<td>
-							<cfinput type="text" name="port" validate="integer" 
+							<cfinputClassic type="text" name="port" validate="integer" 
 							value="#datasource.port#" class="small" required="#typePort EQ TYPE_REQUIRED#">
 							<div class="comment">#stText.Settings.dbPortDesc#</div>
 						</td>
@@ -288,7 +293,7 @@
 					<tr>
 						<th scope="row">#stText.Settings.dbUser#</th>
 						<td>
-							<cfinput type="text" name="username" 
+							<cfinputClassic type="text" name="username" 
 							value="#datasource.username#" class="medium" required="#typeUsername EQ TYPE_REQUIRED#">
 							<div class="comment">#stText.Settings.dbUserDesc#</div>
 						</td>
@@ -299,7 +304,7 @@
 					<tr>
 						<th scope="row">#stText.Settings.dbPass#</th>
 						<td>
-							<cfinput type="password" name="Password"  passthrough='autocomplete="off"'
+							<cfinputClassic type="password" name="Password"  passthrough='autocomplete="off"'
 							value="#datasource.password#" class="medium" onClick="this.value='';" required="#typePassword EQ TYPE_REQUIRED#">
 							<div class="comment">#stText.Settings.dbPassDesc#</div>
 						</td>
@@ -330,7 +335,7 @@
 						<select name="ConnectionTimeout" class="select small">
 							<cfloop index="idx" from="0" to="20"><option  <cfif datasource.ConnectionTimeout EQ idx>selected</cfif>>#idx#</option></cfloop>
 						</select>
-						<!--- <cfinput type="text" name="ConnectionTimeout" 
+						<!--- <cfinputClassic type="text" name="ConnectionTimeout" 
 						validate="integer" value="#datasource.ConnectionTimeout#" style="width:60px"> --->
 						<div class="comment">#stText.Settings.dbConnTimeoutDesc#</div>
 					</td>
@@ -339,7 +344,7 @@
 				<tr>
 					<th scope="row">#stText.Settings.dbValidate#</th>
 					<td>
-						<cfinput type="checkbox" class="checkbox" name="validate" value="yes" checked="#isDefined('datasource.validate') and datasource.validate#">
+						<cfinputClassic type="checkbox" class="checkbox" name="validate" value="yes" checked="#isDefined('datasource.validate') and datasource.validate#">
 						<div class="comment">#stText.Settings.dbValidateDesc#</div>
 					</td>
 				</tr>
@@ -380,7 +385,7 @@
 				<tr>
 					<th scope="row">#stText.Settings.dbBlob#</th>
 					<td>
-						<cfinput type="checkbox" class="checkbox" name="blob" value="yes" checked="#datasource.blob#">
+						<cfinputClassic type="checkbox" class="checkbox" name="blob" value="yes" checked="#datasource.blob#">
 						<div class="comment">#stText.Settings.dbBlobDesc#</div>
 					</td>
 				</tr>
@@ -388,7 +393,7 @@
 				<tr>
 					<th scope="row">#stText.Settings.dbClob#</th>
 					<td>
-						<cfinput type="checkbox" class="checkbox" name="clob" value="yes" checked="#datasource.clob#">
+						<cfinputClassic type="checkbox" class="checkbox" name="clob" value="yes" checked="#datasource.clob#">
 						<div class="comment">#stText.Settings.dbClobDesc#</div>
 					</td>
 				</tr>
@@ -403,15 +408,15 @@
 						</div>
 
 						<ul class="radiolist float">
-							<li class="small"><label><cfinput type="checkbox" class="checkbox" name="allowed_select" value="yes" checked="#datasource.select#"> <b>Select</b></label></li>
-							<li class="small"><label><cfinput type="checkbox" class="checkbox" name="allowed_insert" value="yes" checked="#datasource.insert#"> <b>Insert</b></label></li>
-							<li class="small"><label><cfinput type="checkbox" class="checkbox" name="allowed_update" value="yes" checked="#datasource.update#"> <b>Update</b></label></li>
-							<li class="small"><label><cfinput type="checkbox" class="checkbox" name="allowed_delete" value="yes" checked="#datasource.delete#"> <b>Delete</b></label></li>
-							<li class="small"><label><cfinput type="checkbox" class="checkbox" name="allowed_create" value="yes" checked="#datasource.create#"> <b>Create</b></label></li>
-							<li class="small"><label><cfinput type="checkbox" class="checkbox" name="allowed_drop" value="yes" checked="#datasource.drop#"> <b>Drop</b></label></li>
-							<li class="small"><label><cfinput type="checkbox" class="checkbox" name="allowed_revoke" value="yes" checked="#datasource.revoke#"> <b>Revoke</b></label></li>
-							<li class="small"><label><cfinput type="checkbox" class="checkbox" name="allowed_alter" value="yes" checked="#datasource.alter#"> <b>Alter</b></label></li>
-							<li class="small"><label><cfinput type="checkbox" class="checkbox" name="allowed_grant" value="yes" checked="#datasource.grant#"> <b>Grant</b></label></li>
+							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_select" value="yes" checked="#datasource.select#"> <b>Select</b></label></li>
+							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_insert" value="yes" checked="#datasource.insert#"> <b>Insert</b></label></li>
+							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_update" value="yes" checked="#datasource.update#"> <b>Update</b></label></li>
+							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_delete" value="yes" checked="#datasource.delete#"> <b>Delete</b></label></li>
+							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_create" value="yes" checked="#datasource.create#"> <b>Create</b></label></li>
+							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_drop" value="yes" checked="#datasource.drop#"> <b>Drop</b></label></li>
+							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_revoke" value="yes" checked="#datasource.revoke#"> <b>Revoke</b></label></li>
+							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_alter" value="yes" checked="#datasource.alter#"> <b>Alter</b></label></li>
+							<li class="small"><label><cfinputClassic type="checkbox" class="checkbox" name="allowed_grant" value="yes" checked="#datasource.grant#"> <b>Grant</b></label></li>
 						</ul>
 					</td>
 				</tr>
@@ -419,7 +424,7 @@
 				<tr>
 					<th scope="row">#stText.Settings.dbStorage#</th>
 					<td>
-						<cfinput type="checkbox" class="checkbox" name="storage" value="yes" checked="#isDefined('datasource.storage') and datasource.storage#">
+						<cfinputClassic type="checkbox" class="checkbox" name="storage" value="yes" checked="#isDefined('datasource.storage') and datasource.storage#">
 						<div class="comment">#stText.Settings.dbStorageDesc#</div>
 					</td>
 				</tr>
@@ -466,7 +471,7 @@
 						<th scope="row">#field.getDisplayName()#</th>
 						<td>
 							<cfif type EQ "text" or type EQ "password">
-								<cfinput type="#type#" 
+								<cfinputClassic type="#type#" 
 									name="custom_#field.getName()#" 
 									value="#default#" class="large" required="#field.getRequired()#" 
 									message="Missing value for field #field.getDisplayName()#">
@@ -484,7 +489,7 @@
 							<cfelseif type EQ "radio">
 								<cfif default EQ field.getDefaultValue() and field.getRequired()><cfset default=listGetAt(default,field.getDefaultValueIndex())></cfif>
 								<cfloop index="item" list="#field.getDefaultValue()#">
-									<cfinput type="radio" class="radio" name="custom_#field.getName()#" value="#item#" checked="#item EQ default#">
+									<cfinputClassic type="radio" class="radio" name="custom_#field.getName()#" value="#item#" checked="#item EQ default#">
 									#item#
 								</cfloop>
 							<!--- @todo type checkbox,radio --->
@@ -510,7 +515,7 @@
 				</tr>
 			</tfoot>
 		</table>
-	</cfform>
+	</cfformClassic>
 	
 		
 		<cfif actionType EQ "update">
@@ -526,6 +531,11 @@ if(datasource.metaCacheTimeout NEQ 60000)optional.append(',metaCacheTimeout:#dat
 if(len(datasource.timezone))optional.append("timezone:'#replace(datasource.timezone,"'","''","all")#'");
 if(datasource.storage) optional.append('storage:#datasource.storage# // default: false');
 if(datasource.readOnly) optional.append('readOnly:#datasource.readOnly# // default: false');
+if(!isNull(driver.literalTimestampWithTSOffset) && driver.literalTimestampWithTSOffset()) 
+	optional.append('literalTimestampWithTSOffset:true // default: false');
+if(!isNull(driver.alwaysSetTimeout) && driver.alwaysSetTimeout()) 
+	optional.append('alwaysSetTimeout:true // default: false');
+
 </cfscript>
 
 <cfsavecontent variable="codeSample">

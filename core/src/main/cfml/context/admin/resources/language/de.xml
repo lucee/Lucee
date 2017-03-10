@@ -635,7 +635,7 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
 
 
 	<data key="setting.compiler">Lucee Compiler Einstellungen, dies beeinflusst wie der Lucee Compiler den Source Code übersetzt. Das ändern dieser Einstellungen löscht alle existierenden Class Files.</data>
-	<data key="setting.dotNotation">Dot Notation</data>
+	<data key="setting.dotNotation">Key case</data>
 
 
 	<data key="setting.dotNotationUpperCaseDesc">Konvertiert Struct Keys definiert mit "Dot Notation" als grossgeschrieben (CFML Standard).
@@ -988,6 +988,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="settings.listdatasourcesdescserver">Datenquellen welche hier erstellt wurden, stehen allen Webkontexten zur Verfügung, jedoch kann die Konfiguration der Datenquelle nur hier geändert werden.</data>
 	<data key="settings.dballowed">Erlaubte Operationen</data>
 	<data key="Settings.dbStorage">Storage</data>
+	<data key="Settings.openConn">Offene Verbindungen</data>
 	<data key="Settings.dbStorageDesc">Erlauben die Datenquelle als Storage für den Client/Session Scope zu verwenden.</data>
 	<data key="settings.dbport">Port</data>
 	<data key="settings.preservesinglequotesdescription">Erhält die einfachen Anführungszeichen (&apos;) in den SQL-Statements, die im Tag CFQuery definiert werden.</data>

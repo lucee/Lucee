@@ -868,7 +868,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			} 
 		}
 		catch(Throwable t){
-			t.printStackTrace();// TODO log this
+			if(t instanceof ThreadDeath) throw (ThreadDeath)t;
 		}
 		finally {
 			Util.closeEL(zis);

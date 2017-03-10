@@ -126,7 +126,7 @@ public final class Schedule extends TagImpl {
     private String proxyuser;
     private String proxypassword="";
     
-    private String returnvariable="cfschedule";
+    private String result="cfschedule";
 	private boolean hidden;
 	private boolean readonly;
 	private String serverPassword=null;
@@ -152,10 +152,10 @@ public final class Schedule extends TagImpl {
 	}
 	
     /**
-     * @param returnvariable The returnvariable to set.
+     * @param result The returnvariable to set.
      */
-    public void setReturnvariable(String returnvariable) {
-        this.returnvariable = returnvariable;
+    public void setResult(String result) {
+        this.result = result;
     }
 
     /**
@@ -536,7 +536,7 @@ public final class Schedule extends TagImpl {
 	            
 	            
 	        }
-	        pageContext.setVariable(returnvariable,query);
+	        pageContext.setVariable(result,query);
         } 
         catch (DatabaseException e) {}
         
@@ -588,7 +588,7 @@ public final class Schedule extends TagImpl {
 		proxypassword="";
 		resolveurl=false;
 		publish=false;
-		returnvariable="cfschedule";
+		result="cfschedule";
 		task=null;
 		hidden=false;
 		serverPassword=null;

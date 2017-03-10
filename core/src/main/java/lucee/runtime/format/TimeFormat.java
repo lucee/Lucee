@@ -96,7 +96,39 @@ public final class TimeFormat extends BaseFormat implements Format {
 			char next=(len>pos+1)?mask.charAt(pos+1):(char)0;
 			
 			switch(c) {
-
+			
+			case 'z':{
+				int count=1;
+				while(mask.length()>pos+1 && mask.charAt(pos+1)=='z') {
+					pos++;
+					count++;
+				}
+				formated.append(lucee.runtime.format.DateFormat.z(time,tz,count));
+			}		
+			break;
+			// RFC 822 TimeZone
+			case 'Z':{
+				int count=1;
+				while(mask.length()>pos+1 && mask.charAt(pos+1)=='Z') {
+					pos++;
+					count++;
+				}
+				formated.append(lucee.runtime.format.DateFormat.Z(time,tz));
+			}	
+			break;
+			// ISO 8601 TimeZone
+			case 'X':{
+				int count=1;
+				while(mask.length()>pos+1 && mask.charAt(pos+1)=='X') {
+					pos++;
+					count++;
+				}
+				TimeZone.setDefault(TimeZone.getTimeZone("CET"));
+				formated.append(lucee.runtime.format.DateFormat.X(time,tz,count));
+			}	
+			break;
+			
+			
 			// h: Hours; no leading zero for single-digit hours (12-hour clock) 
 			// hh: Hours; leading zero for single-digit hours. (12-hour clock) 
 				case 'h':
@@ -186,7 +218,7 @@ public final class TimeFormat extends BaseFormat implements Format {
 						formated.append(isAm?"A":"P");
 					}					
 				break;
-				case 'z':
+				/*case 'z':
 				case 'Z':
 					// count next z and jump to last z (max 6)
 					int start=pos;
@@ -197,7 +229,7 @@ public final class TimeFormat extends BaseFormat implements Format {
 					if(pos-start>2)formated.append(tz.getDisplayName(getLocale()));	
 					else formated.append(tz.getID());	
 					
-				break;
+				break;*/
 				
 			// Otherwise
 				default:

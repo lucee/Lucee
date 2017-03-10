@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lock.Lock;
 import lucee.commons.lock.LockException;
 import lucee.commons.lock.LockInterruptedException;
@@ -61,6 +62,7 @@ public class RWKeyLock<K> {
 			throw e;
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			synchronized (locks) {wrap.getLock().dec();}
 			throw new PageRuntimeException(Caster.toPageException(t));
 		}

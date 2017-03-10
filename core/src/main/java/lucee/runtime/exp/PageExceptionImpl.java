@@ -111,28 +111,18 @@ public abstract class PageExceptionImpl extends PageException {
 		this.customType=customType;
         //setAdditional("customType",getCustomTypeAsString());
 	}
-	
+
 	/**
 	 * Class Constructor
 	 * @param e exception
 	 * @param type Type as String
 	 */
 	public PageExceptionImpl(Throwable e,String type) {
-		this(e,type,null);
-	}
-	
-	/**
-	 * Class Constructor
-	 * @param e exception
-	 * @param type Type as String
-	 * @param customType CUstom Type as String
-	 */
-	public PageExceptionImpl(Throwable e,String type, String customType) {
 		super(StringUtil.isEmpty(e.getMessage(),true)?e.getClass().getName():e.getMessage());
 		if(e instanceof InvocationTargetException)e=((InvocationTargetException)e).getTargetException();
         
-        //this.i
-        initCause(e);
+		Throwable cause = e.getCause();
+		if(cause!=null)initCause(cause);
         //this.setStackTrace(e.getStackTrace());
         
 		if(e instanceof IPageException) {
@@ -142,15 +132,10 @@ public abstract class PageExceptionImpl extends PageException {
 			this.setErrorCode(pe.getErrorCode());
 			this.setExtendedInfo(pe.getExtendedInfo());
 		}
-		
-		//else if(e.getCause()!=null)rootCause=e.getCause();
-		//else rootCause=e;
-
 		this.type=type.trim();
-		this.customType=(customType==null)?this.type:customType;
 	}
-    
-    @Override
+
+	@Override
 	public String getDetail() { 
 		if(detail==null || detail.equals(getMessage()))return "";
 		return detail; 

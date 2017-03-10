@@ -26,9 +26,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map.Entry;
 
-import lucee.commons.lang.CFTypes;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.converter.LazyConverter;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpUtil;
@@ -41,22 +40,20 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
-import lucee.runtime.type.Struct;
-import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.it.KeyIterator;
 import lucee.runtime.type.it.StringIterator;
-import lucee.runtime.type.util.ArrayUtil;
-import lucee.runtime.type.util.MemberUtil;
+import lucee.runtime.type.util.ArraySupport;
+import lucee.runtime.type.util.ListIteratorImpl;
 
 /**
  * 
  */
-public class ListAsArray implements Array,List {
+public class ListAsArray extends ArraySupport implements Array,List {
 
 	protected List list;
 	
-	private ListAsArray(List list) {
+	protected ListAsArray(List list) {
 		this.list=list;
 	}
 	
@@ -80,10 +77,11 @@ public class ListAsArray implements Array,List {
 		return o;
 	}
 
-	@Override
+	/*---@Override
 	public boolean containsKey(int index) {
+		super.containsKey(index);
 		return get(index-1,null)!=null;
-	}
+	}*/
 
 	@Override
 	public Object get(int key, Object defaultValue) {
@@ -93,6 +91,7 @@ public class ListAsArray implements Array,List {
 			return rtn;
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -105,6 +104,7 @@ public class ListAsArray implements Array,List {
 			return rtn;
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new ExpressionException("Element at position ["+key+"] does not exist in list",t.getMessage());
 		}
 	}
@@ -120,6 +120,7 @@ public class ListAsArray implements Array,List {
 		list.add(key-1, value);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new ExpressionException("can't insert value to array at position "+key+", array goes from 1 to "+size());
 		}
 		return true;
@@ -158,6 +159,7 @@ public class ListAsArray implements Array,List {
 		return list.remove(key-1);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new ExpressionException("can not remove Element at position ["+key+"]",t.getMessage());
 		}
 	}
@@ -191,6 +193,7 @@ public class ListAsArray implements Array,List {
 			list.set(key-1, value);
 			}
 			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				throw new ExpressionException("can not set Element at position ["+key+"]",t.getMessage());
 			}
 			
@@ -204,16 +207,27 @@ public class ListAsArray implements Array,List {
 
 	@Override
 	public Object setEL(int key, Object value) {
-		try {
-			return setE(key, value);
-		} catch (Throwable t) {}
+		if(key<=size()) {
+			try {
+				list.set(key-1, value);
+			}
+			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				return value;
+			}
+			
+		}
+		else {
+			while(size()<key-1)list.add(null);
+			list.add(value);
+		}
 		return value;
 	}
 
-	@Override
+	/*---@Override
 	public void sort(String sortType, String sortOrder) throws PageException {
 		sortIt(ArrayUtil.toComparator(null, sortType, sortOrder, false));
-	}
+	}*/
 
 	@Override
 	public synchronized void sortIt(Comparator comp) {
@@ -236,15 +250,16 @@ public class ListAsArray implements Array,List {
 		list.clear();
 	}
 
-	@Override
+	/*---@Override
 	public boolean containsKey(String key) {
 		return get(key,null)!=null;
 	}
 
 	@Override
 	public boolean containsKey(Key key) {
+		super.containsKey(key)
 		return get(key,null)!=null;
-	}
+	}*/
 
 	@Override
 	public Collection duplicate(boolean deepCopy) {new ArrayImpl().duplicate(deepCopy);
@@ -356,9 +371,9 @@ public class ListAsArray implements Array,List {
 		return new EntryIterator(this,keys());
 	}
 
-	@Override
+	/*---@Override
     public String castToString() throws PageException {
-        throw new ExpressionException("Can't cast Complex Object Type "+Caster.toClassName(list)+" to String",
+		throw new ExpressionException("Can't cast Complex Object Type "+Caster.toClassName(list)+" to String",
           "Use Built-In-Function \"serialize(Array):String\" to create a String from Array");
     }
 
@@ -418,24 +433,25 @@ public class ListAsArray implements Array,List {
 	@Override
 	public int compareTo(String str) throws PageException {
 		throw new ExpressionException("can't compare Complex Object Type "+Caster.toClassName(list)+" with a String");
-	}
+	}*/
 
-	@Override
+	/*---@Override
 	public String toString() {
 		return LazyConverter.serialize(this);
-	}
+	}*/
 	
-	@Override
+	/*---@Override
 	public Object clone() {
+		super.clone()
 		return duplicate(true);
-	}
+	}*/
 
 	@Override
 	public boolean add(Object o) {
 		return list.add(o);
 	}
 
-	@Override
+	/*---@Override
 	public void add(int index, Object element) {
 		list.add(index, element);
 	}
@@ -443,7 +459,7 @@ public class ListAsArray implements Array,List {
 	@Override
 	public boolean addAll(java.util.Collection c) {
 		return list.addAll(c);
-	}
+	}*/
 
 	@Override
 	public boolean addAll(int index, java.util.Collection c) {
@@ -460,10 +476,10 @@ public class ListAsArray implements Array,List {
 		return list.contains(c);
 	}
 
-	@Override
+	/*---@Override
 	public Object get(int index) {
 		return list.get(index);
-	}
+	}*/
 
 	@Override
 	public int indexOf(Object o) {
@@ -490,7 +506,7 @@ public class ListAsArray implements Array,List {
 		return list.listIterator(index);
 	}
 
-	@Override
+	/*@Override
 	public boolean remove(Object o) {
 		return list.remove(o);
 	}
@@ -513,17 +529,18 @@ public class ListAsArray implements Array,List {
 	@Override
 	public Object set(int index, Object element) {
 		return list.set(index, element);
-	}
+	}*/
 
 	@Override
 	public List subList(int fromIndex, int toIndex) {
 		return list.subList(fromIndex, toIndex);
 	}
 
-	@Override
+	/*---@Override not sure to remove it
 	public Object[] toArray(Object[] a) {
+		super.toArray(a)
 		return list.toArray(a);
-	}
+	}*/
 
 
 	@Override
@@ -532,11 +549,17 @@ public class ListAsArray implements Array,List {
 	}
 
 	@Override
-	public Iterator valueIterator() {
-		return list.iterator();
+	public Iterator<Object> valueIterator() {
+		return new ListIteratorImpl(list, 0);
+		//return list.iterator();
+	}
+	@Override
+	public Iterator<Object> getIterator() {
+		return new ListIteratorImpl(list, 0);
+		//return list.iterator();
 	}
 
-	@Override
+	/*---@Override
 	public Object get(PageContext pc, Key key, Object defaultValue) {
 		return get(key, defaultValue);
 	}
@@ -554,9 +577,9 @@ public class ListAsArray implements Array,List {
 	@Override
 	public Object setEL(PageContext pc, Key propertyName, Object value) {
 		return setEL(propertyName, value);
-	}
+	}*/
 
-	@Override
+	/*@Override
 	public Object call(PageContext pc, Key methodName, Object[] args) throws PageException {
 		return MemberUtil.call(pc, this, methodName, args, CFTypes.TYPE_ARRAY, "array");
 	}
@@ -564,10 +587,10 @@ public class ListAsArray implements Array,List {
 	@Override
 	public Object callWithNamedValues(PageContext pc, Key methodName, Struct args) throws PageException {
 		return MemberUtil.callWithNamedValues(pc,this,methodName,args, CFTypes.TYPE_ARRAY, "array");
-	}
+	}*/
 
-	@Override
+	/*---@Override
 	public java.util.Iterator<Object> getIterator() {
-    	return valueIterator();
-    } 
+		return valueIterator();
+    }*/
 }

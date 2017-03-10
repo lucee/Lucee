@@ -20,14 +20,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testCFDocument(){
 		try {
-			document format="pdf" pagetype="A4" orientation="portrait" filename="test.pdf" overwrite="true" {
+			document format="pdf" pagetype="A4" orientation="portrait" filename="test759.pdf" overwrite="true" {
 				echo("<p>This is where mickey mouse lives</p>");
 			}
-			var info=fileInfo("test.pdf");
+			var info=fileInfo("test759.pdf");
 			assertTrue(info.size>1000);
 		}
 		finally {
-			if(fileExists("test.pdf"))fileDelete("test.pdf");
+			if(fileExists("test759.pdf"))fileDelete("test759.pdf");
 		}
 	}
 

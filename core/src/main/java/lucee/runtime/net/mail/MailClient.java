@@ -443,7 +443,7 @@ public abstract class MailClient {
 				try{
 					filename=Normalizer.normalize(MimeUtility.decodeText(filename),Normalizer.Form.NFC);
 				}
-				catch(Throwable t){}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 				
 				if(bodypart.getHeader("Content-ID") != null) {
 					String[] ids = bodypart.getHeader("Content-ID");

@@ -12,7 +12,7 @@
 
 <cfoutput>
 	<div class="pageintro">#stText.Mappings.editDesc#</div>
-	<cfform onerror="customError" action="#request.self#?virtual=#mapping.virtual#&action=#url.action#&action2=#url.action2#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?virtual=#mapping.virtual#&action=#url.action#&action2=#url.action2#" method="post">
 		<input type="hidden" name="mainAction" value="#stText.Buttons.save#">
 		<input type="hidden"  name="row_#mapping.id#" value="#mapping.id#">
 		<table class="maintbl">
@@ -25,14 +25,14 @@
 				<tr>
 					<th scope="row">#stText.Mappings.PhysicalHead#</th>
 					<cfset css=iif(len(mapping.physical) EQ 0 and len(mapping.strPhysical) NEQ 0,de('Red'),de(''))>
-					<td class="tblContent#css#" nowrap <cfif len(mapping.strPhysical)>title="#mapping.strPhysical##newLine()##mapping.Physical#"</cfif>><cfif mapping.readOnly>#cut(mapping.strPhysical,72)#<cfelse><cfinput onKeyDown="checkTheBox(this)" type="text" 
+					<td class="tblContent#css#" nowrap <cfif len(mapping.strPhysical)>title="#mapping.strPhysical##newLine()##mapping.Physical#"</cfif>><cfif mapping.readOnly>#cut(mapping.strPhysical,72)#<cfelse><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
 							name="physical_#mapping.id#" value="#mapping.strPhysical#" required="no"  
 							style="width:100%" message="#stText.Mappings.PhysicalMissing##mapping.id#)"></cfif></td>
 				</tr>
 				<tr>
 					<th scope="row">#stText.Mappings.ArchiveHead#</th>
 					<cfset css=iif(len(mapping.archive) EQ 0 and len(mapping.strArchive) NEQ 0,de('Red'),de(''))>
-					<td class="tblContent#css#" nowrap <cfif len(mapping.strArchive)>title="#mapping.strArchive##newLine()##mapping.Archive#"</cfif>><cfif mapping.readOnly>#cut(mappings.strArchive,72)#<cfelse><cfinput onKeyDown="checkTheBox(this)" type="text" 
+					<td class="tblContent#css#" nowrap <cfif len(mapping.strArchive)>title="#mapping.strArchive##newLine()##mapping.Archive#"</cfif>><cfif mapping.readOnly>#cut(mappings.strArchive,72)#<cfelse><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
 						name="archive_#mapping.id#" value="#mapping.strArchive#" required="no"  
 						style="width:100%" message="#stText.Mappings.ArchiveMissing##mapping.id#)"></cfif></td>
 				</tr>
@@ -166,7 +166,7 @@ this.mappings["#mapping.virtual#"]=<cfif len(mapping.strPhysical) && !len(mappin
 				</tr>
 			</tfoot>
 		</table>
-	</cfform>
+	</cfformClassic>
 
 
 

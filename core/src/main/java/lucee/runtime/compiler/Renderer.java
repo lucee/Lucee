@@ -26,6 +26,7 @@ import javax.servlet.jsp.tagext.BodyContent;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.MemoryClassLoader;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Page;
@@ -112,6 +113,7 @@ public class Renderer {
 			res.value=loadPage(pc.getConfig(), null, cfml,dialect,ignoreScopes).call(pc);
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 		finally{

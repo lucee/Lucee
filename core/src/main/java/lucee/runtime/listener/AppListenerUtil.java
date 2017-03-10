@@ -18,23 +18,31 @@
  */
 package lucee.runtime.listener;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
+import lucee.runtime.cache.CacheConnection;
+import lucee.runtime.cache.CacheConnectionImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ApplicationDataSource;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DBUtil;
@@ -45,6 +53,8 @@ import lucee.runtime.db.DataSourceImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.net.mail.Server;
+import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Caster;
@@ -85,6 +95,12 @@ public final class AppListenerUtil {
 	public static final Collection.Key READ_ONLY = KeyImpl.intern("readOnly");
 	public static final Collection.Key DATABASE = KeyConstants._database;
 	public static final Collection.Key DISABLE_UPDATE = KeyImpl.intern("disableUpdate"); 
+	
+
+	private static final TimeSpan FIVE_MINUTES = new TimeSpanImpl(0, 0, 5, 0);
+	private static final TimeSpan ONE_MINUTE = new TimeSpanImpl(0, 0, 1, 0);
+	
+	
 	
 	public static PageSource getApplicationPageSource(PageContext pc,PageSource requestedPage, String filename, int mode) {
 		if(mode==ApplicationListener.MODE_CURRENT)return getApplicationPageSourceCurrent(requestedPage, filename);
@@ -145,7 +161,8 @@ public final class AppListenerUtil {
 	public static DataSource[] toDataSources(Config config, Object o,DataSource[] defaultValue,Log log) {
 		try {
 			return toDataSources(config,o,log);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -233,7 +250,11 @@ public final class AppListenerUtil {
 					true, 
 					Caster.toBooleanValue(data.get(STORAGE,null),false), 
 					Caster.toTimeZone(data.get(TIMEZONE,null),null),
-					"",ParamSyntax.toParamSyntax(data,ParamSyntax.DEFAULT),log
+					"",
+					ParamSyntax.toParamSyntax(data,ParamSyntax.DEFAULT),
+					Caster.toBooleanValue(data.get("literalTimestampWithTSOffset",null),false),
+					Caster.toBooleanValue(data.get("alwaysSetTimeout",null),false),
+					log
 				);
 			}
 			catch(Exception cnfe){
@@ -246,7 +267,8 @@ public final class AppListenerUtil {
 	public static Mapping[] toMappings(ConfigWeb cw,Object o,Mapping[] defaultValue, Resource source) { 
 		try {
 			return toMappings(cw, o,source);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -327,7 +349,8 @@ public final class AppListenerUtil {
 	public static Mapping[] toCustomTagMappings(ConfigWeb cw, Object o, Resource source, Mapping[] defaultValue) {
 		try {
 			return toMappings(cw,"custom", o,false,source);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -340,7 +363,8 @@ public final class AppListenerUtil {
 		
 		try {
 			return toMappings(cw,"component", o,true,source);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -477,7 +501,7 @@ public final class AppListenerUtil {
 		Object o = sct.get(KeyConstants._datasource,null);
 		
 		if(o!=null) {
-			o=toDefaultDatasource(config,o,config.getLog("application"));
+			o=toDefaultDatasource(config,o,LogUtil.getLog(pc,"application"));
 			if(o!=null) ac.setORMDataSource(o);
 		}
 	}
@@ -691,4 +715,48 @@ public final class AppListenerUtil {
 		
 		return Caster.toTimespan(obj, defaultValue);
 	}
+	
+
+	public static Server[] toMailServers(Config config,Array data, Server defaultValue) {
+		List<Server> list=new ArrayList<Server>();
+		if(data!=null){ 
+			Iterator<Object> it = data.valueIterator();
+			Struct sct;
+			Server se;
+			while(it.hasNext()) {
+				sct=Caster.toStruct(it.next(),null);
+				if(sct==null) continue;
+				
+				se=toMailServer(config,sct,null);
+				
+				if(se!=null) list.add(se);
+			}
+		}
+		return list.toArray(new Server[list.size()]);
+	}
+	
+	public static Server toMailServer(Config config,Struct data, Server defaultValue) {
+		String hostName = Caster.toString(data.get(KeyConstants._host,null),null);
+		if(StringUtil.isEmpty(hostName,true)) hostName = Caster.toString(data.get(KeyConstants._server,null),null);
+		if(StringUtil.isEmpty(hostName,true)) return defaultValue;
+		
+		int port = Caster.toIntValue(data.get(KeyConstants._port,null),25);
+		
+		String username = Caster.toString(data.get(KeyConstants._username,null),null);
+		if(StringUtil.isEmpty(username,true))username = Caster.toString(data.get(KeyConstants._user,null),null);
+		String password = ConfigWebUtil.decrypt(Caster.toString(data.get(KeyConstants._password,null),null));
+
+		TimeSpan lifeTimespan = Caster.toTimespan(data.get("lifeTimespan",null),null);
+		if(lifeTimespan==null)lifeTimespan = Caster.toTimespan(data.get("life",null),FIVE_MINUTES);
+
+		TimeSpan idleTimespan = Caster.toTimespan(data.get("idleTimespan",null),null);
+		if(idleTimespan==null)idleTimespan = Caster.toTimespan(data.get("idle",null),ONE_MINUTE);
+		
+
+		boolean tls = Caster.toBooleanValue(data.get("tls",null),false);
+		boolean ssl = Caster.toBooleanValue(data.get("ssl",null),false);
+		
+		return new ServerImpl(-1,hostName, port, username, password, lifeTimespan.getMillis(), idleTimespan.getMillis(), tls, ssl, false); // MUST improve store connection somehow
+	}
+
 }

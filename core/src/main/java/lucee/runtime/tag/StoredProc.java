@@ -34,6 +34,7 @@ import javax.servlet.jsp.JspException;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -162,7 +163,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	* @param cachename value to set
 	**/
 	public void setCachename(String cachename)	{
-		DeprecatedUtil.tagAttribute(pageContext,"StoredProc", "cachename");
+		//DeprecatedUtil.tagAttribute(pageContext,"StoredProc", "cachename");
 	}
 
 	/** set the value cachedwithin
@@ -190,7 +191,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	 */
 	@Deprecated
 	public void setBlockfactor(int blockfactor) {
-		DeprecatedUtil.tagAttribute(pageContext,"storedproc","blockfactor");
+		//DeprecatedUtil.tagAttribute(pageContext,"storedproc","blockfactor");
 		this.blockfactor = blockfactor;
 	}
 
@@ -247,10 +248,10 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	 * @param dbvarname the dbvarname to set
 	 */
 	public void setDbvarname(String dbvarname) {
-		DeprecatedUtil.tagAttribute(pageContext,"storedproc","dbvarname");
+		//DeprecatedUtil.tagAttribute(pageContext,"storedproc","dbvarname");
 	}
 	public void setDbtype(String dbtype) {
-		DeprecatedUtil.tagAttribute(pageContext,"storedproc","dbtype");
+		//DeprecatedUtil.tagAttribute(pageContext,"storedproc","dbtype");
 	}
 
 	public void addProcParam(ProcParamBean param) {
@@ -431,6 +432,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			return params.get(index);
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			return null;
 		}
 	}
@@ -610,7 +612,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			    			try{
 			    				value=SQLCaster.toCFType(callStat.getObject(param.getIndex()));
 			    			}
-			    			catch(Throwable t){}
+			    			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			    			value=emptyIfNull(value);
 			    			
 			    			if(param==STATUS_CODE) res.set(STATUSCODE, value);
