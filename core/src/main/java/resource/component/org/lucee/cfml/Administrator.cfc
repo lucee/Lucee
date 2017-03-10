@@ -1004,59 +1004,43 @@
 	* @dbCreate Specifies whether Lucee should automatically generate mapping for the persistent CFCs, possible values are [none,update,dropcreate]
 	* @schema Specifies the default Schema that should be used by ORM.
 	*/
-	public struct function updateORMSetting( boolean autoGenMap=true, boolean eventHandling=false, boolean flushAtRequestEnd=false, boolean logSQL=false, boolean saveMapping=false, boolean useDBForMapping=false, string catalog="", string cfcLocation="", string dbCreate="none", string schema="" ){
-		var res = {};
-		try{
-			var settings = getORMSetting();
-			admin
-				action="updateORMSetting"
-				type="#variables.type#"
-				password="#variables.password#"
+	public void function updateORMSetting( boolean autoGenMap=true, boolean eventHandling=false, boolean flushAtRequestEnd=false, boolean logSQL=false, boolean saveMapping=false, boolean useDBForMapping=false, string catalog="", string cfcLocation="", string dbCreate="none", string schema="" ){
+		var settings = getORMSetting();
+		admin
+			action="updateORMSetting"
+			type="#variables.type#"
+			password="#variables.password#"
 
-				autogenmap="#arguments.autoGenMap#"
-				eventHandling="#arguments.eventHandling#"
-				flushatrequestend="#arguments.flushAtRequestEnd#"
-				logSQL="#arguments.logSQL#"
-				savemapping="#arguments.saveMapping#"
-				useDBForMapping="#arguments.useDBForMapping#"
+			autogenmap="#arguments.autoGenMap#"
+			eventHandling="#arguments.eventHandling#"
+			flushatrequestend="#arguments.flushAtRequestEnd#"
+			logSQL="#arguments.logSQL#"
+			savemapping="#arguments.saveMapping#"
+			useDBForMapping="#arguments.useDBForMapping#"
 
-				catalog="#arguments.catalog#"
-				cfclocation="#arguments.cfcLocation#"
-				dbcreate="#arguments.dbCreate#"
-				schema="#arguments.schema#"
+			catalog="#arguments.catalog#"
+			cfclocation="#arguments.cfcLocation#"
+			dbcreate="#arguments.dbCreate#"
+			schema="#arguments.schema#"
 
-				sqlscript="#settings.sqlScript#"
-				cacheconfig="#settings.cacheConfig#"
-				cacheProvider="#settings.cacheProvider#"
-				ormConfig="#settings.ormConfig#"
-				secondarycacheenabled="#settings.secondaryCacheEnabled#"
+			sqlscript="#settings.sqlScript#"
+			cacheconfig="#settings.cacheConfig#"
+			cacheProvider="#settings.cacheProvider#"
+			ormConfig="#settings.ormConfig#"
+			secondarycacheenabled="#settings.secondaryCacheEnabled#"
 
-				remoteClients="#variables.remoteClients#";
-			res.label = "OK";
-		}catch( any e ){
-			res.label = "Error";
-			res.exception = e;
-		}
-		return res;
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
 	* @hint resets the ORM settings
 	*/
-	public struct function resetORMSetting(){
-		var res = {};
-		try{
-			admin
-				action="resetORMSetting"
-				type="#variables.type#"
-				password="#variables.password#"
-				remoteClients="#variables.remoteClients#";
-			res.label = "OK";
-		}catch( any e ){
-			res.label = "Error";
-			res.exception = e;
-		}
-		return res;
+	public void function resetORMSetting(){
+		admin
+			action="resetORMSetting"
+			type="#variables.type#"
+			password="#variables.password#"
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
@@ -1122,34 +1106,24 @@
 	* @componentPathCache component path is cached and not resolved again
 	* @componentDeepSearchDesc Search for CFCs in the subdirectories of the "Additional Resources" below.
 	*/
-	public struct function updateComponent(string baseComponentTemplateCFML="", string baseComponentTemplateLucee="", string componentDumpTemplate="", string componentDataMemberDefaultAccess="public", boolean triggerDataMember=false, boolean useShadow=true, string componentDefaultImport="org.lucee.cfml.*", boolean componentLocalSearch=false, boolean componentPathCache=false, boolean componentDeepSearchDesc=false){
-		var res = {};
-		try{
-			admin
-				action="updateComponent"
-				type="#variables.type#"
-				password="#variables.password#"
+	public void function updateComponent(string baseComponentTemplateCFML="", string baseComponentTemplateLucee="", string componentDumpTemplate="", string componentDataMemberDefaultAccess="public", boolean triggerDataMember=false, boolean useShadow=true, string componentDefaultImport="org.lucee.cfml.*", boolean componentLocalSearch=false, boolean componentPathCache=false, boolean componentDeepSearchDesc=false){
+		admin
+			action="updateComponent"
+			type="#variables.type#"
+			password="#variables.password#"
 
-				baseComponentTemplateCFML="#arguments.baseComponentTemplateCFML#"
-				baseComponentTemplateLucee="#arguments.baseComponentTemplateLucee#"
-				componentDumpTemplate="#arguments.componentDumpTemplate#"
-				componentDataMemberDefaultAccess="#arguments.componentDataMemberDefaultAccess#"
-				triggerDataMember="#arguments.triggerDataMember#"
-				useShadow="#arguments.useShadow#"
-				componentDefaultImport="#arguments.componentDefaultImport#"
-				componentLocalSearch="#arguments.componentLocalSearch#"
-				componentPathCache="#arguments.componentPathCache#"
-				deepSearch="#arguments.componentDeepSearchDesc#"
+			baseComponentTemplateCFML="#arguments.baseComponentTemplateCFML#"
+			baseComponentTemplateLucee="#arguments.baseComponentTemplateLucee#"
+			componentDumpTemplate="#arguments.componentDumpTemplate#"
+			componentDataMemberDefaultAccess="#arguments.componentDataMemberDefaultAccess#"
+			triggerDataMember="#arguments.triggerDataMember#"
+			useShadow="#arguments.useShadow#"
+			componentDefaultImport="#arguments.componentDefaultImport#"
+			componentLocalSearch="#arguments.componentLocalSearch#"
+			componentPathCache="#arguments.componentPathCache#"
+			deepSearch="#arguments.componentDeepSearchDesc#"
 
-				remoteClients="#variables.remoteClients#";
-
-			res.label = "OK";
-		}catch( any e ){
-			res.label = "Error";
-			res.exception = e;
-		}
-
-		return res;
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
@@ -1582,19 +1556,6 @@
 	}
 
 	/**
-	* @hint removes the gateway entry
-	* @id id of the gateway to be removed
-	*/
-	public void function removeGatewayEntry( required string id ){
-		admin
-			action="removeGatewayEntry"
-			type="#variables.type#"
-			password="#variables.password#"
-			id="#trim(arguments.id)#"
-			remoteClients="#variables.remoteClients#";
-	}
-
-	/**
 	* @hint returns the details about gateway
 	* @id specifies the gateway id
 	* @gatewayAction specifies the action of gateway
@@ -1606,6 +1567,19 @@
 			password="#variables.password#"
 			id="#arguments.id#"
 			gatewayAction="#arguments.gatewayAction#";
+	}
+
+	/**
+	* @hint removes the gateway entry
+	* @id id of the gateway to be removed
+	*/
+	public void function removeGatewayEntry( required string id ){
+		admin
+			action="removeGatewayEntry"
+			type="#variables.type#"
+			password="#variables.password#"
+			id="#trim(arguments.id)#"
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
@@ -3117,16 +3091,16 @@
 
 	/**
 	* @hint updates the update details
-	* @updatetype specifies the type of the update
-	* @updatelocation specifies the location to update
+	* @type specifies the type of the update
+	* @location specifies the location to update
 	*/
-	public void function updateUpdate(required string updatetype, required string updatelocation){
+	public void function updateUpdate(required string type, required string location){
 		admin
 			action="updateUpdate"
 			type="#variables.type#"
 			password="#variables.password#"
-			updatetype="#arguments.updatetype#"
-			updatelocation="#arguments.updatelocation#";
+			updatetype="#arguments.type#"
+			updatelocation="#arguments.location#";
 	}
 
 	/**
@@ -3136,7 +3110,8 @@
 		admin
 			action="runUpdate"
 			type="#variables.type#"
-			password="#variables.password#";
+			password="#variables.password#"
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
