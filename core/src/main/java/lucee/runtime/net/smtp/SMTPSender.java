@@ -18,10 +18,16 @@
  **/
 package lucee.runtime.net.smtp;
 
+import javax.mail.Address;
+import javax.mail.SendFailedException;
 import javax.mail.Transport;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.runtime.config.Config;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.net.smtp.SMTPClient.MimeMessageAndSession;
 
 
@@ -61,7 +67,13 @@ public final class SMTPSender extends Thread {
 			mmas.message.saveChanges();  
 			transport.sendMessage(mmas.message, mmas.message.getAllRecipients());
 			isSent = true;
-		} 
+		}
+        catch(SendFailedException sfe) {
+        	Address[] valid = sfe.getValidSentAddresses();
+        	// a soon the mail was send to one reciever we do no longer block it
+        	if(valid!=null && valid.length>0) isSent=true;
+        	this.throwable=sfe;
+        }
 		catch(Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			this.throwable=t;
