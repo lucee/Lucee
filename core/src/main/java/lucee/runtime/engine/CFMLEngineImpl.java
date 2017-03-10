@@ -126,6 +126,7 @@ import lucee.runtime.op.IOImpl;
 import lucee.runtime.op.JavaProxyUtilImpl;
 import lucee.runtime.op.OperationImpl;
 import lucee.runtime.op.StringsImpl;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -295,24 +296,33 @@ public final class CFMLEngineImpl implements CFMLEngine {
         	Iterator<ExtensionDefintion> it = info.getRequiredExtension().iterator();
         	ExtensionDefintion ed;
         	RHExtension rhe;
+        	Version edVersion,rheVersion;
         	while(it.hasNext()){
         		ed = it.next();
+        		edVersion = OSGiUtil.toVersion(ed.getVersion(), null);
         		if(ed.getVersion()==null) {
         			continue; // no version definition no update
         		}
         		try{
         			rhe = XMLConfigAdmin.hasRHExtensions(cs, new ExtensionDefintion(ed.getId()));
+        			
         			if(rhe==null) {
+        				rheVersion=null;
         				Version since=ed.getSince();
         				
         				if(since==null || updateInfo.oldVersion==null || !Util.isNewerThan(since, updateInfo.oldVersion)) 
         					continue; // not installed we do not update
         				extensions.add(ed);
         			}
-        			
+        			else rheVersion=OSGiUtil.toVersion(rhe.getVersion(), null);
         			// if the installed is older than the one defined in the manifest we update (if possible)
-        			else if(!rhe.getVersion().equals(ed.getVersion())) 
+        			//print.e("----- "+ed.getId()+" ------");
+        			//print.e(ed.getVersion()+"->"+edVersion);
+        			//if(rhe!=null)print.e(rhe.getVersion()+"->"+rheVersion);
+        			//print.e(rheVersion!=null && OSGiUtil.isNewerThan(edVersion,rheVersion));
+        			if(rheVersion!=null && OSGiUtil.isNewerThan(edVersion,rheVersion)) { // TODO do none OSGi version number comparsion
         				extensions.add(ed);
+        			}
         		}
         		catch(Throwable t){
         			ExceptionUtil.rethrowIfNecessary(t); // fails we update

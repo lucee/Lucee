@@ -612,6 +612,10 @@ public class OSGiUtil {
     		throw new BundleException("The OSGi Bundle with name ["+name+"] in version ["+version+"] is not available locally or from the update provider.");
     	throw new BundleException("The OSGi Bundle with name ["+name+"] is not available locally or from the update provider.");
     }
+
+	public static boolean isNewerThan(Version left, Version right) {
+		return Util.isNewerThan(left, right);
+	}
 	
 	public static BundleFile getBundleFile(String name, Version version,Identification id, boolean downloadIfNecessary, BundleFile defaultValue) {
 		name=name.trim();
