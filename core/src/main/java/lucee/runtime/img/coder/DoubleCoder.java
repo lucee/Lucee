@@ -42,8 +42,7 @@ class DoubleCoder extends Coder {
 		try {
 			return first.toBufferedImage(res, format);
 		}
-		catch(Throwable t){
-			ExceptionUtil.rethrowIfNecessary(t);
+		catch(IOException ioe){
 			return second.toBufferedImage(res, format);
 		}
 	}
@@ -53,8 +52,7 @@ class DoubleCoder extends Coder {
 		try {
 			return first.toBufferedImage(bytes, format);
 		}
-		catch(Throwable t){
-			ExceptionUtil.rethrowIfNecessary(t);
+		catch(IOException ioe){
 			return second.toBufferedImage(bytes, format);
 		}
 	}
