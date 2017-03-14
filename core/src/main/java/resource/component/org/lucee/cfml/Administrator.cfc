@@ -454,22 +454,14 @@
 	* @dbusername username of the database
 	* @dbpassword password of the database
 	*/
-	public struct function verifyDatasource( required string name, required string dbusername, required string dbpassword ){
-		var tmpStruct = {};
-		try{
-			admin
-				action="verifyDatasource"
-				type="#variables.type#"
-				password="#variables.password#"
-				name="#arguments.name#"
-				dbusername="#arguments.dbusername#"
-				dbpassword="#arguments.dbpassword#";
-				tmpStruct.label = "Ok";
-		} catch ( any e ){
-			tmpStruct.label = "Error";
-			tmpStruct.message = e.message;
-		}
-		return tmpStruct;
+	public void function verifyDatasource( required string name, required string dbusername, required string dbpassword ){
+		admin
+			action="verifyDatasource"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#"
+			dbusername="#arguments.dbusername#"
+			dbpassword="#arguments.dbpassword#";
 	}
 
 	/**
@@ -533,23 +525,15 @@
 	* @mailusername username of the mail
 	* @mailpassword password of the mail
 	*/
-	public struct function verifyMailServer( required string hostname, required string port, required string mailusername, required string mailpassword ){
-		local.stVeritfyMessages={};
-		try{
-			admin
-				action="verifyMailServer"
-				type="#variables.type#"
-				password="#variables.password#"
-				hostname="#arguments.hostname#"
-				port="#arguments.port#"
-				mailusername="#arguments.mailusername#"
-				mailpassword="#arguments.mailpassword#";
-				stVeritfyMessages.label="ok"
-		}catch( any e ){
-			stVeritfyMessages.label="error";
-			stVeritfyMessages.catch=e.message;
-		}
-		return stVeritfyMessages;
+	public void function verifyMailServer( required string hostname, required string port, required string mailusername, required string mailpassword ){
+		admin
+			action="verifyMailServer"
+			type="#variables.type#"
+			password="#variables.password#"
+			hostname="#arguments.hostname#"
+			port="#arguments.port#"
+			mailusername="#arguments.mailusername#"
+			mailpassword="#arguments.mailpassword#";
 	}
 
 
@@ -925,20 +909,12 @@
 	* @hint verifies whether it is an extension provider or not
 	* @url URL to the Extension Provider (Example: http://www.myhost.com)
 	*/
-	public struct function verifyExtensionProvider( required string url ){
-		local.verifyExtensionProvider={};
-		try{
-			admin
-				action="verifyExtensionProvider"
-				type="#variables.type#"
-				password="#variables.password#"
-				url="#arguments.url#";
-			verifyExtensionProvider.label="ok";
-		}catch( any e ){
-			verifyExtensionProvider.label="error";
-			verifyExtensionProvider.catch=e.message;
-		}
-		return verifyExtensionProvider;
+	public void function verifyExtensionProvider( required string url ){
+		admin
+			action="verifyExtensionProvider"
+			type="#variables.type#"
+			password="#variables.password#"
+			url="#arguments.url#";
 	}
 
 	/**
@@ -1382,24 +1358,18 @@
 	* @url specifies the url path of the remote client
 	* @adminPassword specifies the administrator password for remote client
 	* @securityKey specifies the security key for the remote
+	* @usage specifies the usage action to verify
 	*/
-	public struct function verifyRemoteClient( required string label, required string url, required string adminPassword, required string securityKey ){
-		var tmpStruct = {};
-		try{
-			admin
-				action="verifyRemoteClient"
-				type="#variables.type#"
-				password="#variables.password#"
-				label="#arguments.label#"
-				url="#arguments.url#"
-				adminPassword="#arguments.adminPassword#"
-				securityKey="#arguments.securityKey#"
-			tmpStruct.label = "Ok";
-		} catch ( any e ) {
-			tmpStruct.label = "Error";
-			tmpStruct.message = e.message;
-		}
-		return tmpStruct;
+	public void function verifyRemoteClient( required string label, required string url, required string adminPassword, required string securityKey, required string usage ){
+		admin
+			action="verifyRemoteClient"
+			type="#variables.type#"
+			password="#variables.password#"
+			label="#arguments.label#"
+			url="#arguments.url#"
+			adminPassword="#arguments.adminPassword#"
+			securityKey="#arguments.securityKey#"
+			usage="#arguments.usage#";
 	}
 
 	/**
@@ -1852,6 +1822,20 @@
 	}
 
 	/**
+	* @hint update the context directories
+	* @source specifies the source path to get data
+	* @destination specifies the destination filename
+	*/
+	public void function updateContext( required string source, required string destination ){
+		admin
+			action="updateContext"
+			type="#variables.type#"
+			password="#variables.password#"
+			source="#arguments.source#"
+			destination="/lucee/admin/resources/language/#arguments.destination#";
+	}
+
+	/**
 	* @hints updates the label for a web context
 	* @label new label for the web context.
 	* @hash hash for the web context to be updated.
@@ -1864,20 +1848,6 @@
 
 			label="#arguments.label#"
 			hash="#arguments.hash#";
-	}
-
-	/**
-	* @hint update the context directories
-	* @source specifies the source path to get data
-	* @destination specifies the destination filename
-	*/
-	public void function updateContext( required string source, required string destination ){
-		admin
-			action="updateContext"
-			type="#variables.type#"
-			password="#variables.password#"
-			source="#arguments.source#"
-			destination="/lucee/admin/resources/language/#arguments.destination#";
 	}
 
 	/**
@@ -1991,20 +1961,12 @@
 	* @hint verifies whether it is CFX tag or not
 	* @name specifies the name of the tag to verify
 	*/
-	public struct function verifyCFX( required string name ){
-		local.verifyCFX={};
-		try{
-			admin
-				action="verifyCFX"
-				type="#variables.type#"
-				password="#variables.password#"
-				name="#arguments.name#";
-			verifyJavaCFX.label="ok";
-		}catch( any e ){
-			local.verifyCFX.label="error";
-			local.verifyCFX.catch=e.message;
-		}
-		return local.verifyCFX;
+	public void function verifyCFX( required string name ){
+		admin
+			action="verifyCFX"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#";
 	}
 
 	/**
@@ -2056,23 +2018,15 @@
 	* @bundleName bundle name for the javaCFX
 	* @bundleVersion bundle version for the javaCFX
 	*/
-	public struct function verifyJavaCFX( required string name, required string class, string bundleName, string bundleVersion ){
-		local.verifyJavaCFX={};
-		try{
-			admin
-				action="verifyJavaCFX"
-				type="#variables.type#"
-				password="#variables.password#"
-				name="#arguments.name#"
-				class="#arguments.class#"
-				bundleName="#arguments.bundleName#"
-				bundleVersion="#arguments.bundleVersion#";
-			verifyJavaCFX.label="ok";
-		}catch( any e ){
-			verifyJavaCFX.label="error";
-			verifyJavaCFX.catch=e.message;
-		}
-		return verifyJavaCFX;
+	public void function verifyJavaCFX( required string name, required string class, string bundleName, string bundleVersion ){
+		admin
+			action="verifyJavaCFX"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#"
+			class="#arguments.class#"
+			bundleName="#arguments.bundleName#"
+			bundleVersion="#arguments.bundleVersion#";
 	}
 
 	/**
@@ -2119,22 +2073,14 @@
 	* @captcha Use Captcha in the login to make sure the form is submitted by a human.
 	* @delay Sets the delay between login attempts. This is a global setting for all user requests.
 	*/
-	public struct function updateLoginSettings( boolean rememberMe=false, boolean captcha=false, numeric delay=0  ){
-		var res = {};
-		try{
-			admin
-				action="updateLoginSettings"
-				type="#variables.type#"
-				password="#variables.password#"
-				rememberme="#arguments.rememberme#"
-				captcha="#arguments.captcha#"
-				delay="#arguments.delay#";
-			res.label = "OK";
-		}catch( any e ){
-			res.label = "Error";
-			res.exception = e;
-		}
-		return res;
+	public void function updateLoginSettings( boolean rememberMe=false, boolean captcha=false, numeric delay=0  ){
+		admin
+			action="updateLoginSettings"
+			type="#variables.type#"
+			password="#variables.password#"
+			rememberme="#arguments.rememberme#"
+			captcha="#arguments.captcha#"
+			delay="#arguments.delay#";
 	}
 
 	/**
@@ -2157,25 +2103,17 @@
 	* @appenderArgs specifies the structure of appender class
 	* @layoutArgs specifies the structure of layout class
 	*/
-	public struct function updateLogSettings( required string level, required string appenderClass, required string layoutClass, required string name, struct appenderArgs={}, struct layoutArgs={} ){
-		local.updateLogSettings={};
-		try{
-			admin
-					action="updateLogSettings"
-					type="#variables.type#"
-					password="#variables.password#"
-					name="#arguments.name#"
-					level="#arguments.level#"
-					appenderClass="#arguments.appenderClass#"
-					appenderArgs="#arguments.appenderArgs#"
-					layoutClass="#arguments.layoutClass#"
-					layoutArgs="#arguments.layoutArgs#";
-			updateLogSettings.label="ok"
-		}catch( any e ){
-			updateLogSettings.label="error";
-			updateLogSettings.catch=e.message;
-		}
-		return updateLogSettings;
+	public void function updateLogSettings( required string level, required string appenderClass, required string layoutClass, required string name, struct appenderArgs={}, struct layoutArgs={} ){
+		admin
+				action="updateLogSettings"
+				type="#variables.type#"
+				password="#variables.password#"
+				name="#arguments.name#"
+				level="#arguments.level#"
+				appenderClass="#arguments.appenderClass#"
+				appenderArgs="#arguments.appenderArgs#"
+				layoutClass="#arguments.layoutClass#"
+				layoutArgs="#arguments.layoutArgs#";
 	}
 
 	/**
@@ -2205,16 +2143,16 @@
 
 	/**
 	* @hint updates the application listener
-	* @listenerType specifies the type of listener to update
-	* @listenerMode specifies the mode of the listener
+	* @type specifies the type of listener to update
+	* @mode specifies the mode of the listener
 	*/
-	public void function updateApplicationListener( required string listenerType, required string listenerMode ){
+	public void function updateApplicationListener( required string type, required string mode ){
 		admin
 			action="updateApplicationListener"
 			type="#variables.type#"
 			password="#variables.password#"
-			listenerType="#arguments.listenerType#"
-			listenerMode="#arguments.listenerMode#"
+			listenerType="#arguments.type#"
+			listenerMode="#arguments.mode#"
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -2422,45 +2360,26 @@
 	* @physical physical directory for the rest mapping
 	* @default Whether this mapping is default for rest
 	*/
-	public struct function updateRestMapping( required string virtual, required string physical, boolean default=false ){
-		var res = {};
-		try{
-			admin
-				action="updateRestMapping"
-				type="#variables.type#"
-				password="#variables.password#"
-				virtual="#arguments.virtual#"
-				physical="#arguments.physical#"
-				default="#arguments.default#";
-
-			res.label = "OK";
-		}catch( any e ){
-			res.label = "Error";
-			res.exception = e;
-		}
-
-		return res;
+	public void function updateRestMapping( required string virtual, required string physical, boolean default=false ){
+		admin
+			action="updateRestMapping"
+			type="#variables.type#"
+			password="#variables.password#"
+			virtual="#arguments.virtual#"
+			physical="#arguments.physical#"
+			default="#arguments.default#";
 	}
 
 	/**
 	* @hint updates a rest mapping
 	* @virtual virtual name for the rest mapping to be removed
 	*/
-	public struct function removeRestMapping( required string virtual ){
-		var res = {};
-		try{
-			admin
-				action="removeRestMapping"
-				type="#variables.type#"
-				password="#variables.password#"
-				virtual="#arguments.virtual#";
-			res.label = "OK";
-		}catch( any e ){
-			res.label = "Error";
-			res.exception = e;
-		}
-
-		return res;
+	public void function removeRestMapping( required string virtual ){
+		admin
+			action="removeRestMapping"
+			type="#variables.type#"
+			password="#variables.password#"
+			virtual="#arguments.virtual#";
 	}
 
 	/**
@@ -2538,17 +2457,6 @@
 			timeout="#arguments.timeout#"
 			enable="#arguments.enable#"
 
-			remoteClients="#variables.remoteClients#";
-	}
-
-	public void function resetQueueSetting(){
-		admin
-			action="updateQueueSetting"
-			type="#variables.type#"
-			password="#variables.password#"
-			max=""
-			timeout=""
-			enable=""
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -3135,46 +3043,14 @@
 			version="#arguments.version#"
 	}
 
-	// /**
-	// * @hint returns the serial number for lucee
-	// */
-	// public string function getSerial(){
-		// admin
-			// action="getSerial"
-			// type="#variables.type#"
-			// password="#variables.password#"
-			// returnVariable="local.providers";
-		// return providers;
-	// }
-
-	// /**
-	// * @hint updates the serial number
-	// * @serial specifies the serial number to update
-	// */
-	// public void function updateSerial(required string serial){
-		// admin
-			// action="updateSerial"
-			// type="#variables.type#"
-			// password="#variables.password#"
-			// serial="#arguments.serial#";
-	// }
-
 	/**
 	* @hint reset the ID
 	*/
-	public struct function resetId(){
-		local.resetId={};
-		try{
-			admin
-				action="resetId"
-				type="#variables.type#"
-				password="#variables.password#";
-			resetId.label="ok";
-		}catch( any e ){
-			resetId.label="error";
-			resetId.catch=e.message;
-		}
-		return resetId;
+	public void function resetId(){
+		admin
+			action="resetId"
+			type="#variables.type#"
+			password="#variables.password#";
 	}
 
 	/**
