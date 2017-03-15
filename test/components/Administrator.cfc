@@ -20,8 +20,6 @@
 
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	 function beforeAll(){
-		request.WebAdminPassword = "password";
-		request.ServerAdminPassword = "password";
 		variables.admin=new org.lucee.cfml.Administrator("server",request.ServerAdminPassword);
 		variables.adminWeb=new org.lucee.cfml.Administrator("web", request.WebAdminPassword);
 	}
@@ -370,7 +368,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking updateMapping()", body=function( currentSpec ) {
 					var tmpStrt = {};
 					tmpStrt.virtual = "/TestArchive";
-					tmpStrt.physical = "#expandPath('./LDEV1159/TestArchive')#";
+					tmpStrt.physical = "#expandPath('./Administrator/TestArchive')#";
 					tmpStrt.archive = "#expandPath('./')#TestArchive.lar";
 					tmpStrt.primary = "Resources";
 					tmpStrt.inspect = "Once";
@@ -393,12 +391,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					adminWeb.compileComponentMapping('/TestArchive');
 				});
 
-				xit(title="checking createArchiveFromMapping()", body=function( currentSpec ) {
+				it(title="checking createArchiveFromMapping()", body=function( currentSpec ) {
 					var tmpStrt = {};
 					tmpStrt.virtual = "/TestArchive";
 					tmpStrt.addCFMLFile = false;
 					tmpStrt.addNonCFMLFile = false;
-					tmpStrt.target = "#expandPath('./LDEV1159/TestArchive.lar')#";
+					tmpStrt.target = "#expandPath('./Administrator/TestArchive.lar')#";
 					adminWeb.createArchiveFromMapping(argumentCollection = tmpStrt);
 					var getMappings = adminWeb.getMappings();
 					var result = QueryExecute(
@@ -579,9 +577,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(listSort(structKeyList(ORMEngine),'textnocase'),'bundleName,bundleVersion,class');
 				});
 
-				xit(title="checking updateORMEngine()", body=function( currentSpec ) {
-					var ORMEngine = adminWeb.getORMEngine();
-					assertEquals(isstruct(ORMEngine) ,true);
+				it(title="checking updateORMEngine()", body=function( currentSpec ) {
 					var tmpstruct = {};
 					tmpstruct.class = "lucee.runtime.orm.ORMEngine";
 					tmpstruct.bundleName = "";
@@ -590,11 +586,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var updatedORMEngine = adminWeb.getORMEngine();
 					assertEquals(isstruct(updatedORMEngine) ,true);
 					assertEquals(updatedORMEngine.class EQ 'lucee.runtime.orm.ORMEngine' ,true);
-					adminWeb.updateORMEngine(argumentCollection=ORMEngine);
 				});
 
-				xit(title="checking removeORMEngine()", body=function( currentSpec ) {
-					// adminWeb.removeORMEngine();
+				it(title="checking removeORMEngine()", body=function( currentSpec ) {
+					adminWeb.removeORMEngine();
 				});
 			});
 
@@ -623,7 +618,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking updateComponentMapping()", body=function( currentSpec ) {
 					var tmpStrt = {};
 					tmpStrt.virtual = "/TestCompArchive";
-					tmpStrt.physical = "#expandPath('./LDEV1159/TestCompArchive\Admin.cfc')#";
+					tmpStrt.physical = "#expandPath('./Administrator/TestCompArchive/Admin.cfc')#";
 					tmpStrt.archive = "#expandPath('./')#TestCompArchive.lar";
 					tmpStrt.primary = "archive";
 					tmpStrt.inspect = "once";
@@ -636,9 +631,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				xit(title="checking createComponentArchive()", body=function( currentSpec ) {
 					var tmpStrt = {};
 					tmpStrt.virtual = "/TestCompArchive";
-					tmpStrt.file = "#expandPath('./LDEV1159/TestCompArchive.lar')#";
+					tmpStrt.file = "#expandPath('./Administrator/TestCompArchive.lar')#";
 					tmpStrt.addCFMLFile = true;
-					tmpStrt.addCFMLFile = true;
+					tmpStrt.addNonCFMLFile = true;
 
 					adminWeb.createComponentArchive(argumentCollection=tmpStrt);
 				});
@@ -753,10 +748,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking verifyRemoteClient()", body=function( currentSpec ) {
 					var tmpStrt = {};
 					tmpStrt.label = "test";
-					tmpStrt.url = "#CGI.SERVER_NAME#/lucee/admin.cfc?wsdl";
-					tmpStrt.adminPassword = "Test";
-					tmpStrt.securityKey = "Test";
-					tmpStrt.usage = "Test";
+					tmpStrt.url = "http://#CGI.SERVER_NAME#/lucee/admin.cfc?wsdl";
+					tmpStrt.adminPassword = "";
+					tmpStrt.securityKey = "";
+					tmpStrt.usage = "";
 					adminWeb.verifyRemoteClient(argumentCollection = tmpStrt);
 				});
 			});
@@ -877,7 +872,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking gateway()", body=function( currentSpec ) {
 					adminweb.gateway( id="testDirectorygateway", gatewayAction="stop" );
 					var gatewayEntry = adminweb.getGatewayentry('testdirectorygateway');
-					assertEquals( listFindNoCase("stopped,stopping",gatewayEntry.state) NEQ 0, true );
+					assertEquals( listFindNoCase("stopped,stopping", gatewayEntry.state) NEQ 0, true );
 				});
 
 				it(title="checking removeGatewayEntry()", body=function( currentSpec ) {
@@ -1019,7 +1014,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isquery(SSLCertificate), true);
 				});
 
-				xit(title="checking updateSSLCertificate()", body=function( currentSpec ) {
+				it(title="checking updateSSLCertificate()", body=function( currentSpec ) {
 					var hostName = 'localHost';
 					var hasError = false;
 					try{
@@ -1027,7 +1022,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					} catch ( any e ){
 						hasError = true;
 					}
-					// assertEquals(hasError, false);
+					assertEquals(hasError, false);
 				});
 			});
 
@@ -1051,9 +1046,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(listSort(structKeyList(getContexts),'textnocase'), 'clientElements,clientSize,config_file,hash,hasOwnSecContext,id,label,path,sessionElements,sessionSize,url');
 				});
 				
-				xit(title="checking updateContext()", body=function( currentSpec ) {
+				it(title="checking updateContext()", body=function( currentSpec ) {
 					var tmpStruct={};
-					tmpStruct.source="#expandPath('./en.xml')#";
+					tmpStruct.source="#expandPath('./Administrator/en.xml')#";
 					tmpStruct.destination="en.xml";
 					admin.updateContext(argumentCollection=tmpStruct);
 				});
@@ -1253,7 +1248,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(listFindNoCase(valueList(logsettings.name),"testLOG") NEQ 0 ,true);
 				});
 
-				xit(title="checking removeLogSetting()", body=function( currentSpec ) {
+				it(title="checking removeLogSetting()", body=function( currentSpec ) {
 					adminweb.removeLogSetting(name="testlog");
 					var logsettings = adminweb.getLogSettings();
 					assertEquals(isQuery(logsettings) ,true);
@@ -1419,12 +1414,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="checking updateRestSettings()", body=function( currentSpec ) {
 					var tmpStrt = {};
-					tmpStrt.list = "false";
+					tmpStrt.list = "true";
 					adminWeb.updateRestSettings(argumentCollection=tmpStrt);
-
 					var restSettings = adminWeb.getRestSettings();
 					assertEquals(isStruct(restSettings) ,true);
-					assertEquals(restSettings.list EQ 'false' ,true);
+					assertEquals(restSettings.list EQ 'true' ,true);
 				});
 
 				it(title="checking resetRestSettings()", body=function( currentSpec ) {
@@ -1615,15 +1609,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				beforeEach(function( currentSpec ){
 					if(currentSpec == 'checking getError()'){
 						errorGet=adminWeb.getError();
-						template = {};
-						template.template404 = errorGet.templates.404;
-						template.template500 = errorGet.templates.500;
+						errorTemplate = {};
+						errorTemplate.template404 = errorGet.templates.404;
+						errorTemplate.template500 = errorGet.templates.500;
 					}
 				});
 
 				afterEach(function( currentSpec ){
 					if(currentSpec == 'checking updateError()' || currentSpec == 'checking resetError()'){
-						adminWeb.updateError(argumentCollection=template);
+						adminWeb.updateError(argumentCollection=errorTemplate);
 					}
 				});
 
@@ -1639,13 +1633,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var tmpstruct = {};
 					tmpstruct.template500 = "/lucee/templates/error/test.cfm";
 					tmpstruct.template404 = "/lucee/templates/error/test.cfm";
-					tmpstruct.statuscode = false;
+					tmpstruct.statuscode = true;
 					adminWeb.updateError(argumentCollection=tmpstruct);
 					var updatedError = adminWeb.getError();
 					assertEquals(isStruct(updatedError) ,true);
 					assertEquals(updatedError.str[404] EQ "/lucee/templates/error/test.cfm", true);
 					assertEquals(updatedError.str[500] EQ "/lucee/templates/error/test.cfm", true);
-					assertEquals(updatedError.doStatusCode EQ false, true);
+					assertEquals(updatedError.doStatusCode EQ true, true);
 				});
 
 				it(title="checking resetError()", body=function( currentSpec ) {

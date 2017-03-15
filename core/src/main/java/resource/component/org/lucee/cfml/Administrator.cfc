@@ -1776,7 +1776,7 @@
 	* @host specifies the host server name
 	* @port specifies the port number of the host server
 	*/
-	public query function updateSSLCertificate( required string host, numeric port = 443 ){
+	public void function updateSSLCertificate( required string host, numeric port = 443 ){
 		admin
 			action="updateSSLCertificate"
 			type="#variables.type#"
@@ -2959,8 +2959,8 @@
 			password="#variables.password#"
 			virtual="#arguments.virtual#"
 			file="#arguments.file#"
-			addCFMLFiles="#arguments.addCFMLFiles#"
-			addNonCFMLFiles="#arguments.addNonCFMLFiles#"
+			addCFMLFiles="#arguments.addCFMLFile#"
+			addNonCFMLFiles="#arguments.addNonCFMLFile#"
 			append="true"
 			remoteClients="#variables.remoteClients#";
 	}
