@@ -36,6 +36,18 @@
 								<li class=" ">
 									<a href="categories.cfm">Categories</a>
 								</li>
+								<li class=" ">
+									<a href="components.cfm">Components</a>
+									<span class="menu-collapse-toggle collapsed" data-target="##reference" data-toggle="collapse" aria-expanded="0">
+										<i class="icon icon-close menu-collapse-toggle-close"></i>
+										<i class="icon icon-add menu-collapse-toggle-default"></i>
+									</span>
+									<ul class="menu-collapse collapse" id="reference">
+										<cfloop array="#request.componentDetails.cfcs#" index="currComp">
+											<li><a href="components.cfm?item=#currComp#" title="#currComp#">#currComp#</a></li>
+										</cfloop>
+									</ul>
+								</li>
 							</ul>
 						</div>
 					</div>
