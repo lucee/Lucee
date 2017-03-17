@@ -24,6 +24,13 @@
 		.tt-suggestion.tt-selectable p{
 			margin: 0px !important;
 		}
+		.tt-suggestion.tt-selectable{
+			cursor: pointer;
+		}
+		.tt-suggestion.tt-selectable:hover{
+			background-color: #01798A;
+			color: #FFFFFF;
+		}
 	</style>
 	<script src="assets/js/jquery-1.9.min.js.cfm" type="text/javascript"></script>
 	<script src="assets/js/typeahead.min.js.cfm"></script>

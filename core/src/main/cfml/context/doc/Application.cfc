@@ -47,6 +47,25 @@ component {
 
 		param name="URL.item"   default="";
 		param name="URL.format" default="html";
+
+		// getting available component packages
+		request.componentDetails={};
+		try{
+			request.componentDetails.pack=getPackages();
+		}
+		catch(e) {
+			request.componentDetails.pack="org.lucee.cfml";
+		}
+
+		request.componentDetails.cfcs=[];
+		loop array="#request.componentDetails.pack#" item="currPack"{
+			var tmpComponents=ComponentListPackage(currPack);
+			for(i=1;i<=tmpComponents.len();i++){
+				tmpComponents[i]=currPack&"."&tmpComponents[i];
+			}
+			arrayAppend(request.componentDetails.cfcs, tmpComponents, true);
+		}
+		arraySort(request.componentDetails.cfcs, "textnocase");
 	}
 
 	function onMissingTemplate( target ) {
@@ -54,6 +73,38 @@ component {
 		if ( variables.isDebug )	onApplicationStart();		// disable cache for debug/develop
 
 		Application.objects.missingTemplateHandler.onMissingTemplate( target );
+	}
+
+	// Private functions
+	function toPackage(required string root,required string path) localmode=true {
+		path=replace(path,root,'');// TODO make this better
+		path=listTrim(path,'\/');
+		path=replace(path,'\','.','all');
+		path=replace(path,'/','.','all');
+		return path;
+	}
+	function getPackages() localmode=true {
+		pc=getPageContext();
+		config=pc.getConfig();
+		mappings=config.getComponentMappings();
+		sct={};
+		for(m in mappings) {
+			path=m.getPhysical().getAbsolutePath();
+			directory
+				recurse=true
+				action="list"
+				directory=path
+				name="list";
+			loop query=list {
+				if(list.type=='file')
+					sct[toPackage(path,list.directory)]='';
+			}
+		}
+		arr=[];
+		loop struct=sct index='k' {
+			arrayAppend(arr,k);
+		}
+		return arr;
 	}
 
 }
