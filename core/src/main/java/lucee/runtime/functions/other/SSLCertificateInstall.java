@@ -33,7 +33,6 @@ public final class SSLCertificateInstall implements Function {
     }
     
     public static String call(PageContext pc, String host, double port) throws PageException {
-    	DeprecatedUtil.function(pc, "SSLCertificateInstall");
     	Admin.updateSSLCertificate(pc.getConfig(), host, (int)port);
 		return "";
     }
