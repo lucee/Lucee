@@ -3674,7 +3674,7 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<type>string</type>
 			<name>type</name>
 			<rtexprvalue>true</rtexprvalue>
-			<default>URL</default>
+			<default-value>URL</default-value>
 			<values>body,CGI,cookie,file,form,formfield,header,URL,XML</values>
 			<description>valid values are:
 - header: specifies an HTTP header.
