@@ -89,7 +89,7 @@ public final class HttpParamBean {
 	 * @return Returns the type.
 	 */
 	public String getType() {
-		return type;
+		return type==null?"URL":type;
 	}
 	
 	/**
