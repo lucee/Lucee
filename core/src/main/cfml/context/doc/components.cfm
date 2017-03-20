@@ -3,6 +3,7 @@
 <cfsetting showDebugOutput=false>
 <cfset arrAllItems = request.componentDetails.cfcs>
 <cfset arrAllPacks=request.componentDetails.pack>
+
 <cfinclude template="/lucee/admin/resources/text.cfm">
 
 <cfif len( url.item )>
@@ -113,25 +114,25 @@
 							<ul class="breadcrumb margin-no-top margin-right margin-no-bottom margin-left">
 								<li><a href="index.cfm">Home</a></li>
 								<li><a href="components.cfm">Components</a></li>
-								<li class="active">#lCase( url.item )#</li>
+								<li class="active">#data.fullName#</li>
 							</ul>
 						</div>
 					</div>
 
-					<h2>Component <em>#lCase( url.item )#</em></h2>
+					<h2>Component <em>#data.fullName#</em></h2>
 
 					<!--- desc/hint --->
-					<div class="text">
+					<span style="padding-left: 2em;">
 						<cfif !data.keyExists( "hint" ) || !len( data.hint )>
 							<em>No description/hint found</em>
 						<cfelse>
 							#data.hint#
 						</cfif>
-					</div>
+					</span>
 
 					<!--- Properties of the component --->
-					<h2>Properties</h2>
-					<div class="text">
+					<h3 style="padding-left: 1em; margin-top: 24px;">Component properties</h3>
+					<div class="text" style="width: 90%; margin: 0 auto;">
 						<table class="maintbl">
 							<thead>
 								<tr>
@@ -140,8 +141,11 @@
 								</tr>
 							</thead>
 							<tbody>
-								<cfset propertiesArray = ['accessors','persistent','synchronized','extends']>
+								<cfset propertiesArray = ['type','accessors','persistent','synchronized','extends']>
 								<cfloop array="#propertiesArray#" index="key">
+									<cfif !structKeyExists(data, key)>
+										<cfcontinue>
+									</cfif>
 									<tr>
 										<td>#key#</td>
 										<cfif key EQ "extends">
@@ -156,60 +160,81 @@
 					</div>
 
 					<!--- functions --->
-					<h2>Functions</h2>
-					<cfset functionsArr = data.functions>
-					<div class="tile-wrap tile-wrap-animation">
-						<cfloop array="#functionsArr#" item="currFunc">
-							<div class="tile tile-collapse tile-collapse-full">
-								<div class="tile-toggle" data-target="##api-#lCase(currFunc.name)#" data-toggle="tile">
-									<div class="tile-inner">
-										<div class="text-overflow"><strong>#(currFunc.name)#</strong></div>
+					<cfif structKeyExists(data, "functions")>
+						<h2>Functions</h2>
+						<cfset functionsArr = data.functions>
+						<div class="tile-wrap tile-wrap-animation">
+							<cfloop array="#functionsArr#" item="currFunc">
+								<div class="tile tile-collapse tile-collapse-full">
+									<div class="tile-toggle" data-target="##api-#lCase(currFunc.name)#" data-toggle="tile">
+										<div class="tile-inner">
+											<div class="text-overflow"><strong>#(currFunc.name)#</strong></div>
+										</div>
 									</div>
-								</div>
-								<div class="tile-active-show collapse" id="api-#lCase(currFunc.name)#">
-									<!--- properties for the function --->
-									<h3 style="padding-left: 1em; margin-top: 24px;">Properties</h3>
-									<div class="text">
-										<table class="maintbl">
-											<thead>
-												<tr>
-													<th width="50%">#stText.doc.attr.name#</th>
-													<th width="50%"><!--- #stText.doc.attr.value# --->Value</th>
-												</tr>
-											</thead>
-											<tbody>
-												<cfloop list="access,closure,description,hint,modifier,returnType,returnFormat" index="currProp">
+									<div class="tile-active-show collapse" id="api-#lCase(currFunc.name)#">
+										<!--- desc/hint --->
+										<cfif structKeyExists(currFunc, "hint")>
+											<span style="padding-left: 3em;">#currFunc.hint#</span>
+										</cfif>
+										<!--- properties for the function --->
+										<h3 style="padding-left: 1em; margin-top: 24px;">Properties</h3>
+										<div class="text" style="width: 90%; margin: 0 auto;">
+											<table class="maintbl">
+												<thead>
 													<tr>
-														<td>#currProp#</td>
-														<td>#currFunc[currProp]#</td>
+														<th width="50%">#stText.doc.attr.name#</th>
+														<th width="50%"><!--- #stText.doc.attr.value# --->Value</th>
 													</tr>
-												</cfloop>
-											</tbody>
-										</table>
-									</div>
-									<!--- arguments for the function --->
-									<h3 style="padding-left: 1em; margin-top: 24px;">Arguments</h3>
-									<div class="text">
-										<cfloop array="#currFunc.parameters#" index="currArg">
-											<h4 style="padding-left: 1.5em; margin: 24px 0px 0px 0px;">- #ucFirst(currArg.name)#</h4>
-											<cfloop collection="#currArg#" item="currAttr">
-												<cfif lCase(currAttr) EQ "name">
-													<cfcontinue>
-												</cfif>
-												<span style="padding-left: 2em;">#currAttr# : #currArg[currAttr]#</span><br>
-											</cfloop>
-										</cfloop><br>
+												</thead>
+												<tbody>
+													<cfloop list="access,closure,description,modifier,returnType" index="currProp">
+														<tr>
+															<td>#currProp#</td>
+															<td>#currFunc[currProp]#</td>
+														</tr>
+													</cfloop>
+												</tbody>
+											</table>
+										</div>
+										<!--- arguments for the function --->
+										<cfif !currFunc.parameters.isEmpty()>
+											<h3 style="padding-left: 1em; margin-top: 24px;">Arguments</h3>
+											<span style="padding-left: 3em;">The arguments for this function are set. You can not use other arguments except the following ones.</span>
+											<div class="text" style="width: 90%; margin: 0 auto;">
+												<table class="maintbl">
+													<thead>
+														<tr>
+															<th width="25%">#stText.doc.attr.name#</th>
+															<th width="25%">#stText.doc.attr._type#</th>
+															<th width="25%">#stText.doc.attr.required#</th>
+															<th width="25%">#stText.doc.attr.description#</th>
+														</tr>
+													</thead>
+													<tbody>
+														<cfloop array="#currFunc.parameters#" index="currArg">
+															<tr>
+																<td>#currArg.name#</td>
+																<td>#currArg.type#</td>
+																<td>#currArg.required#</td>
+																<td><cfif structKeyExists(currArg, "hint")>#currArg.hint#</cfif></td>
+															</tr>
+														</cfloop>
+													</tbody>
+												</table>
+											</div>
+										</cfif>
 									</div>
 								</div>
-							</div>
-						</cfloop>
-					</div>
+							</cfloop>
+						</div>
+					</cfif>
 				</cfsavecontent>
 				<cfcatch type="any">
 					<cfset hasError = true>
 					<div class="alert alert-danger m-t-15">
 						<strong>Error!</strong> We are not able to give detailed information about this component, because this component cannot be loaded without an exception: <br>
 						<strong>#cfcatch.message#</strong>
+						<!--- <cfdump var="#cfcatch#" expand="true" /> --->
 					</div>
 					<center>Back to <a href="index.cfm" class="alert-link">Home</a> or <a href="components.cfm" class="alert-link">Components</a>.</center>
 				</cfcatch>
