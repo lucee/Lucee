@@ -1,5 +1,4 @@
-<cfcomponent>
-<cfscript>
+component {
 	/**
 	** @hint constructor of the component
 	* @type type contex type, valid values are "server" or "web"
@@ -166,10 +165,10 @@
 
 	/**
 	* @hint updates output settings for this context
-	* @cfmlWriter an argument for Whitespace management in lucee Output settings
-	* @suppressContent an argument for suppressContent in lucee Output settings
-	* @allowCompression an argument for allowCompression in lucee Output settings
-	* @bufferOutput an argument for bufferOutput in lucee Output settings
+	* @cfmlWriter CFMLWriter is the class handling the output sended back to client, the writer used can for example influence white space handling.  Name of a class that extends JSPWriter (https://tomcat.apache.org/tomcat-7.0-doc/jspapi/javax/servlet/jsp/JspWriter.html)
+	* @suppressContent 	Suppress content written to response stream when a Component is invoked remotely. Only works if the content was not flushed before.
+	* @allowCompression Compression (GZip) for the Lucee Response stream for text-based responses when supported by the client
+	* @bufferOutput The output written to the body of the tag is buffered and is also outputted in case of an exception.
 	*/
 	public void function updateOutputSetting( required string cfmlWriter, boolean suppressContent, boolean allowCompression, boolean bufferOutput ){
 		admin
@@ -499,7 +498,7 @@
 	* @life Overall timeout for the connections established to the mail server.
 	* @idle Idle timeout for the connections established to the mail server.
 	*/
-	public void function updateMailServer( required string host, required string port, required string username, required string password, required boolean tls, required boolean ssl, required string life, required string idle ){
+	public void function updateMailServer( required string host, required string port, string username="", string password="", boolean tls=false, boolean ssl=false, timespan life=CreateTimeSpan(0, 0, 1, 0), timespan idle=CreateTimeSpan(0, 0, 0, 10) ){
 		admin
 			action="updateMailServer"
 			type="#variables.type#"
@@ -567,11 +566,11 @@
 
 	/**
 	* @hint updates the mail settings for this context
+	* @defaultEncoding Default encoding used for mail servers
 	* @spoolenable If enabled the mails are sent in a background thread and the main request does not have to wait until the mails are sent.
 	* @timeout Time in seconds that the Task Manager waits to send a single mail, when the time is reached the Task Manager stops the thread and the mail gets moved to unsent folder, where the Task Manager will pick it up later to try to send it again.
-	* @defaultEncoding Default encoding used for mail servers
 	*/
-	public void function updateMailSetting( required boolean spoolEnable, required numeric timeOut, required string defaultEncoding ){
+	public void function updateMailSetting( string defaultEncoding="UTF-8", boolean spoolEnable=true, numeric timeOut=30 ){
 		admin
 			action="updateMailSetting"
 			type="#variables.type#"
@@ -710,7 +709,7 @@
 	* @addCFMLFile Add all CFML Source Templates as well (.cfm,.cfc,.cfml).
 	* @addNonCFMLFile Add all Non CFML Source Templates as well (.js,.css,.gif,.png ...)
 	*/
-	public void function createArchiveFromMapping(required string virtual, boolean addCFMLFile=true, boolean addNonCFMLFile=true, required string target){
+	public void function createArchiveFromMapping(required string virtual, required string target, boolean addCFMLFile=true, boolean addNonCFMLFile=true){
 		var ext="lar";
 		var filename=arguments.virtual;
 		filename=mid(filename,2,len(filename));
@@ -720,11 +719,11 @@
 			filename="archive-root."&ext;
 		}
 		filename=Replace(filename,"/","-","all");
-		var target=expandPath("#cgi.context_path#/lucee/archives/"&filename);
+		var target=expandPath("#cgi.context_path#/lucee/"&filename);
 		count=0;
 		while(fileExists(target)){
 			count=count+1;
-			target="#cgi.context_path#/lucee/archives/"&filename;
+			target="#cgi.context_path#/lucee/"&filename;
 			target=replace(target,'.'&ext,count&'.'&ext);
 			target=expandPath(target);
 		}
@@ -1238,141 +1237,6 @@
 	}
 
 	/**
-	* @hint returns the list of remote clients
-	*/
-	public query function getRemoteClients(){
-		admin
-			action="getRemoteClients"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint returns the details of a remote client
-	* @url specifies the URL of the remote client
-	*/
-	public struct function getRemoteClient( required string url ){
-		admin
-			action="getRemoteClient"
-			type="#variables.type#"
-			password="#variables.password#"
-			url = "#arguments.url#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint updates the details for a remote client
-	* @url url for the remote client, combination of url_server & url_path
-	* @securityKey remote security key for remote client
-	* @serverUsername username for http access authentication
-	* @serverPassword password for http access authentication
-	* @adminPassword password for the access to the remote Lucee Server Administrator
-	* @label name or label for the remote client
-	* @usage Define for what the Remote Client is used
-	* @proxyServer host name of the proxy server
-	* @proxyUsername username for the proxy server
-	* @proxyPassword password for the proxy server
-	* @proxyPort port for the proxy server
-	*/
-	public void function updateRemoteClient( required string url, required string securityKey, string serverUsername="", string serverPassword="", required string adminPassword, required string label, string usage="", string proxyServer="", string proxyUsername="", string proxyPassword="", string proxyPort="" ){
-		admin
-			action="updateRemoteClient"
-			type="#variables.type#"
-			remotetype="#variables.type#"
-			password="#variables.password#"
-
-			attributeCollection="#arguments#";
-	}
-
-	/**
-	* @hint removes/deletes a remote client
-	* @url url of the remote client to be removed
-	*/
-	public void function removeRemoteClient( required string url ){
-		admin
-			action="removeRemoteClient"
-			type="#variables.type#"
-			password="#variables.password#"
-
-			url="#arguments.url#";
-	}
-
-	/**
-	* @hint returns whether the client usage has remote connection
-	*/
-	public boolean function hasRemoteClientUsage(){
-		admin
-			action="hasRemoteClientUsage"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint returns the list of remote client usage
-	*/
-	public query function getRemoteClientUsage(){
-		admin
-			action="getRemoteClientUsage"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint updates the details for a remote client usage
-	* @code specifies the code of the remote client
-	* @displayName specifies the name of the remote client usage
-	*/
-	public void function updateRemoteClientUsage( required string code, required string displayName ){
-		admin
-			action="updateRemoteClientUsage"
-			type="#variables.type#"
-			remotetype="#variables.type#"
-			password="#variables.password#"
-			code="#arguments.code#"
-			displayname="#arguments.displayName#";
-	}
-
-	/**
-	* @hint removes/deletes a remote client usage
-	* @code specifies the code of the remote client
-	*/
-	public void function removeRemoteClientUsage( required string code ){
-		admin
-			action="removeRemoteClientUsage"
-			type="#variables.type#"
-			password="#variables.password#"
-
-			code="#arguments.code#";
-	}
-
-	/**
-	* @hint verifies whether it is remote client
-	* @label specifies name of the remote client
-	* @url specifies the url path of the remote client
-	* @adminPassword specifies the administrator password for remote client
-	* @securityKey specifies the security key for the remote
-	* @usage specifies the usage action to verify
-	*/
-	public void function verifyRemoteClient( required string label, required string url, required string adminPassword, required string securityKey, required string usage ){
-		admin
-			action="verifyRemoteClient"
-			type="#variables.type#"
-			password="#variables.password#"
-			label="#arguments.label#"
-			url="#arguments.url#"
-			adminPassword="#arguments.adminPassword#"
-			securityKey="#arguments.securityKey#"
-			usage="#arguments.usage#";
-	}
-
-	/**
 	* @hint returns the details of compiler settings
 	*/
 	public struct function getCompilerSettings(){
@@ -1875,9 +1739,9 @@
 	}
 
 	/**
-	* @hint returns the list of spooler tasks
+	* @hint returns the list of tasks
 	*/
-	public query function getSpoolerTasks(){
+	public query function getTasks(){
 		admin
 			action="getSpoolerTasks"
 			type="#variables.type#"
@@ -1887,10 +1751,10 @@
 	}
 
 	/**
-	* @hint executes the spooler task of given id
-	* @id specifies the id of spooler task to execute
+	* @hint executes the task of given id
+	* @id specifies the id of task to execute
 	*/
-	public void function executeSpoolerTask(required string id){
+	public void function executeTask(required string id){
 		admin
 			action="executeSpoolerTask"
 			type="#variables.type#"
@@ -1899,10 +1763,10 @@
 	}
 
 	/**
-	* @hint removes the spooler task of given id
-	* @id specifies the id of spooler task to remove
+	* @hint removes the task of given id
+	* @id specifies the id of task to remove
 	*/
-	public void function removeSpoolerTask(required string id){
+	public void function removeTask(required string id){
 		admin
 			action="removeSpoolerTask"
 			type="#variables.type#"
@@ -1911,9 +1775,9 @@
 	}
 
 	/**
-	* @hint removes all the spooler task
+	* @hint removes all the task
 	*/
-	public void function removeAllSpoolerTask(){
+	public void function removeAllTask(){
 		admin
 			action="removeAllSpoolerTask"
 			type="#variables.type#"
@@ -1969,35 +1833,6 @@
 			name="#arguments.name#";
 	}
 
-	/**
-	* @hint returns the list of CPPCFX tags
-	*/
-	public query function getCPPCfxTags(){
-		admin
-			action="getCPPCfxTags"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.providers";
-			return providers;
-	}
-
-	/**
-	* @hint updates the CPPCFX tags
-	* @name specifies the name of the CPPCFX tag
-	* @procedure specifies the procedures to update
-	* @serverLibrary specifies the server library to update
-	* @keepAlive specified whether the tag active or not
-	*/
-	public void function updateCPPCfx(required string name, required string procedure, required string serverLibrary, required boolean keepAlive){
-		admin
-			action="updateCPPCfx"
-			type="#variables.type#"
-			password="#variables.password#"
-			name="#arguments.name#"
-			procedure="#arguments.procedure#"
-			serverLibrary="#arguments.serverLibrary#"
-			keepAlive="#arguments.keepAlive#";
-	}
 
 	/**
 	* @hint returns the list of javaCFX tags
@@ -2170,63 +2005,6 @@
 	}
 
 	/**
-	* @hint returns the proxy details
-	*/
-	public struct function getProxy(){
-		admin
-			action="getProxy"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-			return rtn;
-	}
-
-	/**
-	* @hint updates the proxy settings
-	* @proxyenabled specifies whether the proxy is enable or not
-	* @proxyserver specifies the proxy server
-	* @proxyport specifies the port of proxy host server
-	* @proxyusername specifies the username of the proxy to access
-	* @proxypassword specifies the password of the proxy to access
-	*/
-	public void function updateProxy( boolean proxyenabled, string proxyserver="testProxy", numeric proxyport=443, string proxyusername="admin", string proxypassword="password" ){
-		admin
-			action="updateProxy"
-			type="#variables.type#"
-			password="#variables.password#"
-			proxyenabled="#arguments.proxyenabled#"
-			proxyserver="#arguments.proxyserver#"
-			proxyport="#arguments.proxyport#"
-			proxyusername="#arguments.proxyusername#"
-			proxypassword="#arguments.proxypassword#";
-	}
-
-	/**
-	* @hint enables the proxy settings
-	* @proxyserver specifies the proxy server
-	* @proxyport specifies the port of proxy host server
-	* @proxyusername specifies the username of the proxy to access
-	* @proxypassword specifies the password of the proxy to access
-	*/
-	public void function enableProxy( string proxyserver="testProxy", numeric proxyport=443, string proxyusername="admin", string proxypassword="password" ){
-		arguments.proxyenabled = true;
-		updateProxy(argumentCollection=arguments);
-	}
-
-	/**
-	* @hint disables the proxy settings
-	*/
-	public void function disableProxy(){
-		var tmpStruct={};
-		tmpStruct.proxyenabled=false;
-		tmpStruct.proxyServer="";
-		tmpStruct.proxyPort="80";
-		tmpStruct.proxyUsername="";
-		tmpStruct.proxyPassword="";
-		updateProxy(argumentCollection=tmpStruct);
-	}
-
-	/**
 	* @hint returns the details of scopes
 	*/
 	public struct function getScope(){
@@ -2256,26 +2034,27 @@
 	* @localMode Defines how the local scope of a function is invoked when a variable with no scope definition is used, can be either [classic,modern]
 	* @cgiReadonly Defines whether the CGI Scope is read only or not.
 	*/
-	public void function updateScope( required string scopeCascadingType, required boolean allowImplicidQueryCall, required boolean mergeFormAndUrl, required boolean sessionManagement, required boolean clientManagement, required boolean domainCookies, required boolean clientCookies, required timespan clientTimeout, required timespan sessionTimeout, required string clientStorage, required string sessionStorage, required timespan applicationTimeout, required string sessionType, required string localMode, required boolean cgiReadonly ){
+	public void function updateScope( string scopeCascadingType, boolean allowImplicidQueryCall, boolean mergeFormAndUrl, boolean sessionManagement, boolean clientManagement, boolean domainCookies, boolean clientCookies, timespan clientTimeout, timespan sessionTimeout, string clientStorage, string sessionStorage, timespan applicationTimeout, string sessionType, string localMode, boolean cgiReadonly ){
+		var existing = getScope();
 		admin
 			action="updateScope"
 			type="#variables.type#"
 			password="#variables.password#"
-			scopeCascadingType="#arguments.scopeCascadingType#"
-			allowImplicidQueryCall="#arguments.allowImplicidQueryCall#"
-			mergeFormAndUrl="#arguments.mergeFormAndUrl#"
-			sessionManagement="#arguments.sessionManagement#"
-			clientManagement="#arguments.clientManagement#"
-			domainCookies="#arguments.domainCookies#"
-			clientCookies="#arguments.clientCookies#"
-			clientTimeout="#arguments.clientTimeout#"
-			sessionTimeout="#arguments.sessionTimeout#"
-			clientStorage="#arguments.clientStorage#"
-			sessionStorage="#arguments.sessionStorage#"
-			applicationTimeout="#arguments.applicationTimeout#"
-			sessionType="#arguments.sessionType#"
-			localMode="#arguments.localMode#"
-			cgiReadonly="#arguments.cgiReadonly#"
+			scopeCascadingType=isNull(arguments.scopeCascadingType) || isEmpty(arguments.scopeCascadingType) ? existing.scopeCascadingType : argument.scopeCascadingType;
+			allowImplicidQueryCall=isNull(arguments.allowImplicidQueryCall) || isEmpty(arguments.allowImplicidQueryCall) ? existing.allowImplicidQueryCall : argument.allowImplicidQueryCall;
+			mergeFormAndUrl=isNull(arguments.mergeFormAndUrl) || isEmpty(arguments.mergeFormAndUrl) ? existing.mergeFormAndUrl : argument.mergeFormAndUrl;
+			sessionManagement=isNull(arguments.sessionManagement) || isEmpty(arguments.sessionManagement) ? existing.sessionManagement : argument.sessionManagement;
+			clientManagement=isNull(arguments.clientManagement) || isEmpty(arguments.clientManagement) ? existing.clientManagement : argument.clientManagement;
+			domainCookies=isNull(arguments.domainCookies) || isEmpty(arguments.domainCookies) ? existing.domainCookies : argument.domainCookies;
+			clientCookies=isNull(arguments.clientCookies) || isEmpty(arguments.clientCookies) ? existing.clientCookies : argument.clientCookies;
+			clientTimeout=isNull(arguments.clientTimeout) || isEmpty(arguments.clientTimeout) ? existing.clientTimeout : argument.clientTimeout;
+			sessionTimeout=isNull(arguments.sessionTimeout) || isEmpty(arguments.sessionTimeout) ? existing.sessionTimeout : argument.sessionTimeout;
+			clientStorage=isNull(arguments.clientStorage) || isEmpty(arguments.clientStorage) ? existing.clientStorage : argument.clientStorage;
+			sessionStorage=isNull(arguments.sessionStorage) || isEmpty(arguments.sessionStorage) ? existing.sessionStorage : argument.sessionStorage;
+			applicationTimeout=isNull(arguments.applicationTimeout) || isEmpty(arguments.applicationTimeout) ? existing.applicationTimeout : argument.applicationTimeout;
+			sessionType=isNull(arguments.sessionType) || isEmpty(arguments.sessionType) ? existing.sessionType : argument.sessionType;
+			localMode=isNull(arguments.localMode) || isEmpty(arguments.localMode) ? existing.localMode : argument.localMode;
+			cgiReadonly=isNull(arguments.cgiReadonly) || isEmpty(arguments.cgiReadonly) ? existing.cgiReadonly : argument.cgiReadonly;
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -3152,11 +2931,9 @@
 			throw http.fileContent;
 		}
 	}
-</cfscript>
-<cffunction name="downloadFile" access="private" returntype="void">
-	<cfargument name="target" type="string" required="true">
 
-	<cfset filename = listLast(listLast(arguments.target, "/"), "\")>
-	<CFHEADER NAME="Content-Disposition" VALUE="inline; filename=#filename#"><cfcontent file="#arguments.target#" deletefile="yes" type="application/unknow">
-</cffunction>
-</cfcomponent>
+	private void function downloadFile( required string target ){
+		var filename = listLast(listLast(arguments.target, "/"), "\");
+		HEADER NAME="Content-Disposition" VALUE="inline; filename=#filename#"; content file="#arguments.target#" deletefile="yes" type="application/unknow";
+	}
+}

@@ -685,77 +685,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
-			describe( title="test remoteclient functions", body=function() {
-				it(title="checking getRemoteClients", body=function( currentSpec ) {
-					var remoteClients = adminWeb.getRemoteClients();
-					assertEquals(isquery(remoteClients) ,true);
-				});
-
-				it(title="checking updateRemoteClient", body=function( currentSpec ) {
-					var tmpStruct = {};
-					tmpStruct.url = "#CGI.SERVER_NAME#/lucee/admin.cfc?wsdl";
-					tmpStruct.securityKey = "Test";
-					tmpStruct.serverUsername = "Test";
-					tmpStruct.serverPassword = "Test";
-					tmpStruct.adminPassword = "Test";
-					tmpStruct.label = "TestRemoteClient";
-					tmpStruct.usage = "";
-					tmpStruct.proxyServer = "";
-					tmpStruct.proxyUsername = "";
-					tmpStruct.proxyPassword = "";
-					tmpStruct.proxyPort = "";
-					adminWeb.updateRemoteClient(argumentCollection=tmpStruct);
-				});
-
-				it(title="checking getRemoteClient()", body=function( currentSpec ) {
-					var remoteClient = adminWeb.getRemoteClient("#CGI.SERVER_NAME#/lucee/admin.cfc?wsdl");
-					assertEquals(isstruct(remoteClient) ,true);
-					assertEquals(listSort(structKeyList(remoteClient),'textnocase'),'adminPassword,label,proxyPassword,proxyPort,proxyServer,proxyUsername,securityKey,ServerPassword,ServerUsername,type,url,usage');
-				});
-
-				it(title="checking removeRemoteClient", body=function( currentSpec ) {
-					adminWeb.removeRemoteClient("#CGI.SERVER_NAME#/lucee/admin.cfc?wsdl");
-				});
-
-				it(title="checking hasRemoteClientUsage()", body=function( currentSpec ) {
-					var hasRemoteClientUsage = adminWeb.hasRemoteClientUsage();
-					assertEquals(isBoolean(hasRemoteClientUsage) ,true);
-				});
-
-				it(title="checking getRemoteClientUsage()", body=function( currentSpec ) {
-					var getremoteclient = adminWeb.getRemoteClientUsage();
-					assertEquals(isQuery(getremoteclient) ,true);
-					assertEquals(listSort(structKeyList(getremoteclient),'textnocase'), 'code,displayname');
-				});
-
-				it(title="checking updateRemoteClientUsage", body=function( currentSpec ) {
-					var tmpStruct = {};
-					tmpStruct.code = "testRemoteCode";
-					tmpStruct.displayName = "Test";
-					adminWeb.updateRemoteClientUsage(argumentCollection=tmpStruct);
-					var getremoteclient = adminWeb.getRemoteClientUsage();
-					assertEquals(isQuery(getremoteclient) ,true);
-					assertEquals( listFindNoCase(valueList(getremoteclient.code), "testRemoteCode"), true );
-				});
-
-				it(title="checking removeRemoteClientUsage", body=function( currentSpec ) {
-					adminWeb.removeRemoteClientUsage("testRemoteCode");
-					var getremoteclient = adminWeb.getRemoteClientUsage();
-					assertEquals(isQuery(getremoteclient) ,true);
-					assertEquals( listFindNoCase(valueList(getremoteclient.code), "testRemoteCode"), false );
-				});
-
-				it(title="checking verifyRemoteClient()", body=function( currentSpec ) {
-					var tmpStrt = {};
-					tmpStrt.label = "test";
-					tmpStrt.url = "http://#CGI.SERVER_NAME#/lucee/admin.cfc?wsdl";
-					tmpStrt.adminPassword = "";
-					tmpStrt.securityKey = "";
-					tmpStrt.usage = "";
-					adminWeb.verifyRemoteClient(argumentCollection = tmpStrt);
-				});
-			});
-
 			describe( title="test CompilerSettings functions", body=function() {
 				beforeEach(function( currentSpec ){
 					getCompilerSettings = adminWeb.getCompilerSettings();
@@ -1096,26 +1025,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					}
 				});
 
-				it(title="checking getSpoolerTasks()", body=function( currentSpec ) {
-					var spoolertask = adminWeb.getSpoolerTasks();
+				it(title="checking getTasks()", body=function( currentSpec ) {
+					var spoolertask = adminWeb.getTasks();
 					assertEquals(isQuery(spoolertask) ,true);
 					assertEquals(listSort(structKeyList(spoolertask),'textnocase'), 'closed,detail,exceptions,id,lastExecution,name,nextExecution,tries,triesmax,type');
 				});
 
-				it(title="checking executeSpoolerTask()", body=function( currentSpec ) {
-					adminWeb.executeSpoolerTask(id="testSpooler");
+				it(title="checking executeTask()", body=function( currentSpec ) {
+					adminWeb.executeTask(id="testSpooler");
 				});
 
-				it(title="checking removeSpoolerTask()", body=function( currentSpec ) {
-					adminWeb.removeSpoolerTask(id="testSpooler");
-					var spoolertask = adminWeb.getSpoolerTasks();
+				it(title="checking removeTask()", body=function( currentSpec ) {
+					adminWeb.removeTask(id="testSpooler");
+					var spoolertask = adminWeb.getTasks();
 					assertEquals(isQuery(spoolertask) ,true);
 					assertEquals(listFindNocase(valueList(spoolertask.id),"testSpooler") EQ 0 ,true);
 				});
 
-				it(title="checking removeAllSpoolerTask()", body=function( currentSpec ) {
-					adminWeb.removeAllSpoolerTask();
-					var spoolertask = adminWeb.getSpoolerTasks();
+				it(title="checking removeAllTask()", body=function( currentSpec ) {
+					adminWeb.removeAllTask();
+					var spoolertask = adminWeb.getTasks();
 					assertEquals(isQuery(spoolertask) ,true);
 					assertEquals(spoolertask.recordcount EQ 0 ,true);
 				});
@@ -1146,25 +1075,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			describe( title="test CfxTags functions", body=function() {
 				it(title="checking verifyCFX()", body=function( currentSpec ) {
 					adminWeb.verifyCFX(name="helloworld");
-				});
-
-				it(title="checking getCPPCfxTags()", body=function( currentSpec ) {
-					var CPPCfxTags = adminWeb.getCPPCfxTags();
-					assertEquals(isquery(CPPCfxTags) ,true);
-					var strctKeylist = structKeyList(CPPCfxTags);
-					assertEquals(FindNocase('isvalid',strctKeylist) GT 0, true);
-				});
-
-				it(title="checking updateCPPCfx()", body=function( currentSpec ) {
-					var tmpstruct = {};
-					tmpstruct.name = "testCPPCFX";
-					tmpstruct.procedure = "testProc";
-					tmpstruct.serverLibrary = "#expandPath("./")#";
-					tmpstruct.keepAlive = true;
-					adminWeb.updateCPPCfx(argumentCollection=tmpstruct);
-					var CPPCfxTags = adminWeb.getCPPCfxTags();
-					assertEquals(isquery(CPPCfxTags) ,true);
-					assertEquals(listFindNocase(valueList(CPPCfxTags.name),"testCPPCFX") GT 0, true);
 				});
 
 				it(title="checking getJavaCfxTags()", body=function( currentSpec ) {
@@ -1290,51 +1200,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isStruct(adminWebAppListner) ,true);
 					assertEquals(adminWebAppListner.mode EQ adminAppListner.mode,true);
 					assertEquals(adminWebAppListner.type EQ adminAppListner.type,true);
-				});
-			});
-
-			describe( title="test proxy functions", body=function() {
-				beforeEach(function( currentSpec ){
-					if(currentSpec == 'checking getproxy()'){
-						InitProxy = admin.getproxy();
-					}
-				});
-				afterEach(function( currentSpec ){
-					if(currentSpec == 'checking disableProxy()'){
-						admin.updateProxy(argumentCollection=InitProxy,proxyenabled=true);
-					}
-				});
-
-				it(title="checking getproxy()", body=function( currentSpec ) {
-					assertEquals(isStruct(InitProxy) ,true);
-					assertEquals(listSort(structKeyList(InitProxy),'textnocase'),'password,port,server,username');
-				});
-
-				it(title="checking updateProxy()", body=function( currentSpec ) {
-					var tmpstruct = {};
-					tmpstruct.proxyenabled = false;
-					tmpstruct.proxyserver = "testProxy";
-					tmpstruct.proxyport = "443";
-					tmpstruct.proxyusername = "server";
-					tmpstruct.proxypassword = "password";
-					admin.updateProxy(argumentCollection=tmpstruct);
-					var updatedProxy = admin.getproxy();
-					assertEquals(isstruct(updatedProxy) ,true);
-					assertEquals(updatedProxy.server EQ "testProxy" ,true);
-					assertEquals(updatedProxy.port EQ 443 ,true);
-				});
-
-				it(title="checking enableProxy()", body=function( currentSpec ) {
-					var tmpstruct = {};
-					tmpstruct.proxyserver = "testProxy1";
-					tmpstruct.proxyport = "443";
-					tmpstruct.proxyusername = "server";
-					tmpstruct.proxypassword = "password";
-					admin.enableProxy(argumentCollection=tmpstruct);
-				});
-
-				it(title="checking disableProxy()", body=function( currentSpec ) {
-					admin.disableProxy();
 				});
 			});
 
