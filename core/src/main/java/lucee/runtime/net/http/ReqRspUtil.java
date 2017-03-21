@@ -512,9 +512,9 @@ public final class ReqRspUtil {
 
 
 	public static String getRootPath(ServletContext sc) {
-		if(sc==null) throw new RuntimeException("cannot determine webcontext root, because the ServletContext is null");
+		if(sc==null) throw new RuntimeException("cannot determinate webcontext root, because the ServletContext is null");
 		String root = sc.getRealPath("/");
-		if(root==null) throw new RuntimeException("cannot determinae webcontext root, the ServletContext from class ["+sc.getClass().getName()+"] is returning null for the method call sc.getRealPath(\"/\"), possibly due to configuration problem.");
+		if(root==null) throw new RuntimeException("cannot determinate webcontext root, the ServletContext from class ["+sc.getClass().getName()+"] is returning null for the method call sc.getRealPath(\"/\"), possibly due to configuration problem.");
 		return root;
 	}
 
