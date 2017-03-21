@@ -70,10 +70,10 @@ public final class SQLCaster {
     
 	public static Object toSqlType(SQLItem item) throws PageException, DatabaseException {
         Object value=item.getValue();
-        
-    	try {
+        try {
+        	
 	        if(item.isNulls() || value==null) {
-	            return null;
+	            return null; 
 	        }
 	    	int type=item.getType();
 	    	switch(type) {
@@ -376,7 +376,7 @@ public final class SQLCaster {
 			}
 		// int types
 			else if(type==Types.BIGINT || type==Types.INTEGER || type==Types.SMALLINT || type==Types.BIGINT || type==Types.TINYINT) {
-				return Caster.toString(Caster.toIntValue(item.getValue()));
+				return Caster.toString(Caster.toLongValue(item.getValue()));
 			}
 		// numeric types
 			else if(type==Types.DECIMAL || type==Types.NUMERIC || type==Types.DOUBLE || type==Types.FLOAT) {
