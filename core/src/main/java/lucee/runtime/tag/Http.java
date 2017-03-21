@@ -629,10 +629,10 @@ public final class Http extends BodyTagImpl {
 	@Override
 	public int doStartTag() throws PageException	{
 		if(addtoken) {
-			setParam("cookie","cfid",pageContext.getCFID());
-			setParam("cookie","cftoken",pageContext.getCFToken());
+			setParam(HttpParamBean.TYPE_COOKIE,"cfid",pageContext.getCFID());
+			setParam(HttpParamBean.TYPE_COOKIE,"cftoken",pageContext.getCFToken());
 			String jsessionid = pageContext.getJSessionId();
-			if(jsessionid!=null)setParam("cookie","jsessionid",jsessionid);
+			if(jsessionid!=null)setParam(HttpParamBean.TYPE_COOKIE,"jsessionid",jsessionid);
 		}
 
 		// cache within
@@ -644,7 +644,7 @@ public final class Http extends BodyTagImpl {
 		return EVAL_BODY_INCLUDE;
 	}
 
-	private void setParam(String type, String name, String value) {
+	private void setParam(int type, String name, String value) {
 		HttpParamBean hpb = new HttpParamBean();
 		hpb.setType(type);
 		hpb.setName(name);
@@ -703,7 +703,7 @@ public final class Http extends BodyTagImpl {
     	// check if has fileUploads
     		boolean doUploadFile=false;
     		for(int i=0;i<this.params.size();i++) {
-    			if((this.params.get(i)).getType().equalsIgnoreCase("file")) {
+    			if((this.params.get(i)).getType()==HttpParamBean.TYPE_FILE) {
     				doUploadFile=true;
     				break;
     			}
@@ -714,9 +714,9 @@ public final class Http extends BodyTagImpl {
     		StringBuilder sbQS=new StringBuilder();
     		for(int i=0;i<len;i++) {
     			HttpParamBean param=this.params.get(i);
-    			String type=param.getType();
+    			int type=param.getType();
     		// URL
-    			if(type.equals("url")) {
+    			if(type==HttpParamBean.TYPE_URL) {
     				if(sbQS.length()>0)sbQS.append('&');
     				sbQS.append(param.getEncoded()?urlenc(param.getName(),charset):param.getName());
     				sbQS.append('=');
@@ -813,14 +813,14 @@ public final class Http extends BodyTagImpl {
 
     		for(int i=0;i<len;i++) {
     			HttpParamBean param=this.params.get(i);
-    			String type=param.getType();
+    			int type=param.getType();
 
     		// URL
-    			if(type.equals("url")) {
+    			if(type==HttpParamBean.TYPE_URL) {
     				//listQS.add(new BasicNameValuePair(translateEncoding(param.getName(), http.charset),translateEncoding(param.getValueAsString(), http.charset)));
     			}
     		// Form
-    			else if(type.equals("formfield") || type.equals("form")) {
+    			else if(type==HttpParamBean.TYPE_FORM) {
     				hasForm=true;
     				if(this.method==METHOD_GET) throw new ApplicationException("httpparam with type formfield can only be used when the method attribute of the parent http tag is set to post");
     				if(post!=null){
@@ -842,7 +842,7 @@ public final class Http extends BodyTagImpl {
     				//else if(multi!=null)multi.addParameter(param.getName(),param.getValueAsString());
     			}
     		// CGI
-    			else if(type.equals("cgi")) {
+    			else if(type==HttpParamBean.TYPE_CGI) {
     				if(param.getEncoded())
     					req.addHeader(
     							urlenc(param.getName(),charset),
@@ -851,7 +851,7 @@ public final class Http extends BodyTagImpl {
                         req.addHeader(param.getName(),param.getValueAsString());
     			}
             // Header
-                else if(type.startsWith("head")) {
+                else if(type==HttpParamBean.TYPE_HEADER) {
                 	if(param.getName().equalsIgnoreCase("content-type")) hasContentType=true;
 
                 	if(param.getName().equalsIgnoreCase("Content-Length")) {}
@@ -862,11 +862,11 @@ public final class Http extends BodyTagImpl {
                 	else req.addHeader(param.getName(),headerValue(param.getValueAsString()));
                 }
     		// Cookie
-    			else if(type.equals("cookie")) {
+    			else if(type==HttpParamBean.TYPE_COOKIE) {
     				HTTPEngine4Impl.addCookie(cookieStore,host,param.getName(),param.getValueAsString(),"/",charset);
     			}
     		// File
-    			else if(type.equals("file")) {
+    			else if(type==HttpParamBean.TYPE_FILE) {
     				hasForm=true;
     				if(this.method==METHOD_GET) throw new ApplicationException("httpparam type file can't only be used, when method of the tag http equal post");
     				//if(param.getFile()==null) throw new ApplicationException("httpparam type file can't only be used, when method of the tag http equal post");
@@ -895,7 +895,7 @@ public final class Http extends BodyTagImpl {
     				}
     			}
     		// XML
-    			else if(type.equals("xml")) {
+    			else if(type==HttpParamBean.TYPE_XML) {
     				ContentType ct = HTTPUtil.toContentType(param.getMimeType(),null);
 
     				String mt="text/xml";
@@ -911,7 +911,7 @@ public final class Http extends BodyTagImpl {
     			    HTTPEngine4Impl.setBody(eem, param.getValueAsString(),mt,cs);
     			}
     		// Body
-    			else if(type.equals("body")) {
+    			else if(type==HttpParamBean.TYPE_BODY) {
     				ContentType ct = HTTPUtil.toContentType(param.getMimeType(),null);
 
     				String mt=null;
