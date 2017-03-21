@@ -374,9 +374,13 @@ public final class SQLCaster {
 			if(type==Types.VARCHAR ||type==Types.LONGVARCHAR || type==Types.CHAR || type==Types.CLOB || type==Types.NVARCHAR) {
 				return (matchString(item));
 			}
-		// int types
-			else if(type==Types.BIGINT || type==Types.INTEGER || type==Types.SMALLINT || type==Types.BIGINT || type==Types.TINYINT) {
+		// long types
+			else if(type==Types.BIGINT) {
 				return Caster.toString(Caster.toLongValue(item.getValue()));
+			}
+		// int types
+			else if(type==Types.INTEGER || type==Types.SMALLINT || type==Types.TINYINT) {
+				return Caster.toString(Caster.toIntValue(item.getValue()));
 			}
 		// numeric types
 			else if(type==Types.DECIMAL || type==Types.NUMERIC || type==Types.DOUBLE || type==Types.FLOAT) {
