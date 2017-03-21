@@ -54,9 +54,10 @@ component {
 			request.componentDetails.pack=getPackages();
 		}
 		catch(e) {
-			request.componentDetails.pack="org.lucee.cfml";
+			request.componentDetails.pack=["org.lucee.cfml"];
 		}
 
+		arraySort(request.componentDetails.pack, "textnocase");
 		request.componentDetails.cfcs=[];
 		loop array="#request.componentDetails.pack#" item="currPack"{
 			var tmpComponents=ComponentListPackage(currPack);
