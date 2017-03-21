@@ -1140,6 +1140,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="doc.attr.minmax">This tag must have at least {min} attributes but the most {max}.</data>
 	<data key="doc.attr.min">This tag must have at least {min} attributes.</data>
 	<data key="doc.attr._type">Type</data>
+	<data key="doc.attr.value">Value</data>
 	<data key="doc.attr.required">Required</data>
 	<data key="doc.attr.zero">This tag has no attributes</data>
 	<data key="doc.attr.type.noname">This tag only allows one attribute value (no name).</data>
