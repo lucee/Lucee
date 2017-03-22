@@ -285,7 +285,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking updateMailserver()", body=function( currentSpec ) {
 					var mailservers = adminWeb.getMailservers();
 					var tmpStrt = {};
-					tmpStrt.host = "TestSmtp.gmail.com";
+					tmpStrt.host = "Smtp.gmail.com";
 					tmpStrt.port = "587";
 					tmpStrt.username = "test1";
 					tmpStrt.password = "test";
@@ -304,7 +304,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="checking removeMailserver()", body=function( currentSpec ) {
 					var tmpStrt = {};
-					tmpStrt.host = "TestSmtp.gmail.com";
+					tmpStrt.host = "Smtp.gmail.com";
 					tmpStrt.username = "test1";
 					adminWeb.removeMailServer(argumentCollection = #tmpStrt#);
 					var mailservers = adminWeb.getMailservers();
@@ -457,15 +457,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					adminWeb.removeExtension('2BCD080F-4E1E-48F5-BEFE794232A21AF6');
 				});
 
-				it(title="checking getRHExtensions()", body=function( currentSpec ) {
-					var getRHExtensions = adminWeb.getRHExtensions();
-					assertEquals(isquery(getRHExtensions) ,true);
-					assertEquals(listSort(structKeyList(getRHExtensions),'textnocase'),'applications,archives,bundles,categories,components,config,contexts,description,eventGateways,flds,functions,id,image,name,plugins,releaseType,startBundles,tags,tlds,trial,version,webcontexts');
-
-				});
-
-				it(title="checking getRHServerExtensions()", body=function( currentSpec ) {
-					var getRHServerExtensions = adminWeb.getRHServerExtensions();
+				it(title="checking getServerExtensions()", body=function( currentSpec ) {
+					var getRHServerExtensions = adminWeb.getServerExtensions();
 					assertEquals(isquery(getRHServerExtensions) ,true);
 					assertEquals(listSort(structKeyList(getRHServerExtensions),'textnocase'),'applications,archives,bundles,categories,components,config,contexts,description,eventGateways,flds,functions,id,image,name,plugins,releaseType,startBundles,tags,tlds,trial,version,webcontexts');
 				});
@@ -504,24 +497,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="checking verifyExtensionProvider()", body=function( currentSpec ) {
 					adminWeb.verifyExtensionProvider(url="http://extension.lucee.org");
-				});
-
-				it(title="checking getRHExtensionProviders()", body=function( currentSpec ) {
-					var getRHExtensionsProvider = adminWeb.getRHExtensionProviders();
-					assertEquals(isquery(getRHExtensionsProvider) ,true);
-					assertEquals(listSort(structKeyList(getRHExtensionsProvider),'textnocase'),'readonly,url');
-				});
-
-				it(title="checking updateRHExtensionProvider()", body=function( currentSpec ) {
-					adminWeb.updateRHExtensionProvider('http://www.myhost.com');
-					var getRHExtensionsProvider = adminWeb.getRHExtensionProviders();
-					assertEquals((isquery(getRHExtensionsProvider) && FindNocase( 'http://www.myhost.com',valueList(getRHExtensionsProvider.url)) GT 0) ,true);
-				});
-
-				it(title="checking removeRHExtensionProvider()", body=function( currentSpec ) {
-					adminWeb.removeRHExtensionProvider('http://www.myhost.com');
-					var getRHExtensionsProvider = adminWeb.getRHExtensionProviders();
-					assertEquals((isquery(getRHExtensionsProvider) && FindNocase( 'http://www.myhost.com',valueList(getRHExtensionsProvider.url)) EQ 0) ,true);
 				});
 			});
 
@@ -1206,7 +1181,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			describe( title="test scope functions", body=function() {
 				beforeEach(function( currentSpec ){
 					getScope = adminWeb.getScope();
-					assertEquals(isStruct(getScope), true);
 				});
 
 				afterEach(function( currentSpec ){
@@ -1674,7 +1648,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			describe( title="test restart functions", body=function() {
 				it(title="checking restart()", body=function( currentSpec ) {
-					admin.restart();
+					//admin.restart();
 				});
 			});
 

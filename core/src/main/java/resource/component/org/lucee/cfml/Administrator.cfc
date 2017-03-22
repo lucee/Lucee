@@ -2,7 +2,7 @@ component {
 	/**
 	** @hint constructor of the component
 	* @type type contex type, valid values are "server" or "web"
-	* @password password for this context
+	* @password password for current context
 	*/
 	function init(required string type,required string password, string remoteClients){
 		variables.type=arguments.type;
@@ -11,7 +11,7 @@ component {
 	}
 
 	/**
-	* @hint returns reginal information about this context, this includes the locale, the timezone,a timeserver address and if the timeserver is used or not
+	* @hint returns reginal information about current context, this includes the locale, the timezone,a timeserver address and if the timeserver is used or not
 	*/
 	public struct function getRegional(){
 		admin
@@ -23,7 +23,7 @@ component {
 	}
 
 	/**
-	* @hint updates the regional settings of this context
+	* @hint updates the regional settings of current context
 	* @timezone timezone used for this context, this can be for example "gmt+1" or "Europe/Zurich", use the function "getAvailableTimeZones" to get a list of available timezones
 	* @locale the locale used for this context, this can be for example "de_ch", use the function getAvailableLocales() to get a list of all possible locales.
 	* @timeserver timeserver used for this context, this can be for example "swisstime.ethz.ch"
@@ -86,7 +86,7 @@ component {
 	}
 
 	/**
-	* @hint returns charset information about this context
+	* @hint returns charset information about current context
 	*/
 	public struct function getCharset(){
 		admin
@@ -98,7 +98,7 @@ component {
 	}
 
 	/**
-	* @hint updates the charset settings of this context
+	* @hint updates the charset settings of current context
 	* @resourceCharset default charset used for read/write resources (cffile,wilewrite ...)
 	* @templateCharset default charset used for read CFML Templates (cfm,cfc)
 	* @webCharset default charset used for the response stream and for reading data from request
@@ -152,7 +152,7 @@ component {
 	}
 
 	/**
-	* @hint returns output settings for this context
+	* @hint returns output settings for current context
 	*/
 	public struct function getOutputSetting(){
 		admin
@@ -164,29 +164,29 @@ component {
 	}
 
 	/**
-	* @hint updates output settings for this context
-	* @cfmlWriter CFMLWriter is the class handling the output sended back to client, the writer used can for example influence white space handling.  Name of a class that extends JSPWriter (https://tomcat.apache.org/tomcat-7.0-doc/jspapi/javax/servlet/jsp/JspWriter.html)
-	* @suppressContent 	Suppress content written to response stream when a Component is invoked remotely. Only works if the content was not flushed before.
-	* @allowCompression Compression (GZip) for the Lucee Response stream for text-based responses when supported by the client
-	* @bufferOutput The output written to the body of the tag is buffered and is also outputted in case of an exception.
+	* @hint updates output settings for current context
+	* @cfmlWriter  Whitespace management in lucee Output settings
+	* @suppressContent  suppressContent in lucee Output settings
+	* @allowCompression  allowCompression in lucee Output settings
+	* @bufferOutput  bufferOutput in lucee Output settings
 	*/
 	public void function updateOutputSetting( required string cfmlWriter, boolean suppressContent, boolean allowCompression, boolean bufferOutput ){
+		var existing = getOutputSetting();
 		admin
 			action="updateOutputSetting"
 			type="#variables.type#"
 			password="#variables.password#"
-
 			cfmlWriter="#arguments.cfmlWriter#"
-			suppressContent="#isDefined('arguments.suppressContent') and arguments.suppressContent#"
-			allowCompression="#isDefined('arguments.allowCompression') and arguments.allowCompression#"
-			bufferOutput="#isDefined('arguments.bufferOutput') and arguments.bufferOutput#"
+			suppressContent=isNull(arguments.suppressContent) || isEmpty(arguments.suppressContent) ? existing.suppressContent : arguments.suppressContent
+			allowCompression=isNull(arguments.allowCompression) || isEmpty(arguments.allowCompression) ? existing.allowCompression : arguments.allowCompression
+			bufferOutput=isNull(arguments.bufferOutput) || isEmpty(arguments.bufferOutput) ? existing.bufferOutput : arguments.allowCompression
 			contentLength=""
 
 			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
-	* @hint resets output settings for this context
+	* @hint resets output settings for current context
 	*/
 	public void function resetOutputSetting() {
 		admin
@@ -230,7 +230,7 @@ component {
 	}
 
 	/**
-	* @hint returns the Preserve single quotes setting from datasource page
+	* @hint returns Preserve single quotes (") settings
 	*/
 	public struct function getDatasourceSetting() {
 		admin
@@ -257,7 +257,7 @@ component {
 	}
 
 	/**
-	* @hint resets the Preserve single quotes setting from datasource page
+	* @hint resets the Preserve single quotes setting
 	*/
 	public void function resetDatasourceSetting(){
 		admin
@@ -270,7 +270,7 @@ component {
 	}
 
 	/**
-	* @hint returns the all the datasources defined for this context
+	* @hint returns the all the datasources defined for current context
 	*/
 	public query function getDatasources(){
 		admin
@@ -282,7 +282,7 @@ component {
 	}
 
 	/**
-	* @hint returns the datasource information
+	* @hint returns the datasource information for for current context
 	* @name Specifies the name of the datasource
 	*/
 	public struct function getDatasource( required string name ){
@@ -296,7 +296,7 @@ component {
 	}
 
 	/**
-	* @hint updates a specific datasource defined for this context
+	* @hint updates a specific datasource defined for current context
 	* @name name of the datasouce to be updated
 	* @type type of the datasource to be updated
 	* @newName target name to be replaced with current datasource name
@@ -434,8 +434,8 @@ component {
 	}
 
 	/**
-	* @hint removes a specific datasource defined for this context
-	* @dsn name of the datasource to be removed from this context
+	* @hint removes a specific datasource defined for current context
+	* @dsn name of the datasource to be removed from current context
 	*/
 	public void function removeDatasource( required string dsn ){
 		admin
@@ -476,7 +476,7 @@ component {
 	}
 
 	/**
-	* @hint returns a list mail servers defined for this context
+	* @hint returns a list mail servers defined for current context
 	*/
 	public query function getMailservers(){
 		admin
@@ -488,7 +488,7 @@ component {
 	}
 
 	/**
-	* @hint updates a specific mail server defined for this context
+	* @hint updates a specific mail server defined for current context
 	* @host Mail server host name (for example smtp.gmail.com).
 	* @port Port of the mail server (for example 587).
 	* @username Username of the mail server.
@@ -499,21 +499,33 @@ component {
 	* @idle Idle timeout for the connections established to the mail server.
 	*/
 	public void function updateMailServer( required string host, required string port, string username="", string password="", boolean tls=false, boolean ssl=false, timespan life=CreateTimeSpan(0, 0, 1, 0), timespan idle=CreateTimeSpan(0, 0, 0, 10) ){
+
+		var mailServers = getMailservers();
+		if( structKeyExists(arguments, 'username') && arguments.username == ''  ){
+			query name="existing" dbtype="query"{
+				echo("SELECT * FROM mailservers WHERE hostName = '#arguments.host#' and port = '#arguments.port#' ")
+			}
+		} else{
+			query name="existing" dbtype="query"{
+				echo("SELECT * FROM mailservers WHERE hostName = '#arguments.host#' and port = '#arguments.port#' and username = '#arguments.username#' ")
+			}
+		}
+
 		admin
 			action="updateMailServer"
 			type="#variables.type#"
 			password="#variables.password#"
 
 			hostname="#arguments.host#"
-			dbusername="#arguments.username#"
-			dbpassword="#arguments.password#"
-			life="#arguments.life#"
-			idle="#arguments.idle#"
+			dbusername=isNull(arguments.username) || isEmpty(arguments.username) ? existing.username : arguments.username
+			dbpassword=isNull(arguments.password) || isEmpty(arguments.password) ? existing.password : arguments.password
+			life=isNull(arguments.life) || isEmpty(arguments.life) ? existing.life : arguments.life
+			idle=isNull(arguments.idle) || isEmpty(arguments.idle) ? existing.idle : arguments.idle
 
 			port="#arguments.port#"
 			id="new"
-			tls="#arguments.tls#"
-			ssl="#arguments.ssl#"
+			tls=isNull(arguments.tls) || isEmpty(arguments.tls) ? existing.tls : arguments.tls
+			ssl=isNull(arguments.ssl) || isEmpty(arguments.ssl) ? existing.ssl : arguments.ssl
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -537,7 +549,7 @@ component {
 
 
 	/**
-	* @hint removes a specific mailserver defined for this context.
+	* @hint removes a specific mailserver defined for current context.
 	* @host hostname for the mail server to be removed.
 	* @username username of the mail server to be removed.
 	*/
@@ -553,7 +565,7 @@ component {
 	}
 
 	/**
-	* @hint returns mail settings for this context.
+	* @hint returns mail settings for current context.
 	*/
 	public struct function getMailSetting(){
 		admin
@@ -565,7 +577,7 @@ component {
 	}
 
 	/**
-	* @hint updates the mail settings for this context
+	* @hint updates the mail settings for current context
 	* @defaultEncoding Default encoding used for mail servers
 	* @spoolenable If enabled the mails are sent in a background thread and the main request does not have to wait until the mails are sent.
 	* @timeout Time in seconds that the Task Manager waits to send a single mail, when the time is reached the Task Manager stops the thread and the mail gets moved to unsent folder, where the Task Manager will pick it up later to try to send it again.
@@ -583,7 +595,7 @@ component {
 	}
 
 	/**
-	* @hint resets the mail settings for this context
+	* @hint resets the mail settings for current context
 	*/
 	public void function resetMailSetting(){
 		admin
@@ -598,7 +610,7 @@ component {
 	}
 
 	/**
-	* @hint returns the list of mappings defined for this context
+	* @hint returns the list of mappings defined for current context
 	*/
 	public query function getMappings(){
 		admin
@@ -624,7 +636,7 @@ component {
 	}
 
 	/**
-	* @hint updates/inserts a specific mapping for this context
+	* @hint updates/inserts a specific mapping for current context
 	* @virtual virtual name for the mapping
 	* @physical physical path for the mapping
 	* @archive archive path for the mapping, if needed.
@@ -647,7 +659,7 @@ component {
 	}
 
 	/**
-	* @hint removes a mapping defined in this context
+	* @hint removes a mapping defined in current context
 	* @virtual virtual name for the mapping to be removed.
 	*/
 	public void function removeMapping(required string virtual){
@@ -755,7 +767,7 @@ component {
 	}
 
 	/**
-	* @hint returns the list of extensions for this context.
+	* @hint returns the list of extensions for current context.
 	*/
 	public query function getExtensions(){
 		admin
@@ -816,22 +828,11 @@ component {
 			id="#arguments.id#";
 	}
 
-	/**
-	* @hint returns the list of RH extensions
-	*/
-	public query function getRHExtensions(){
-		admin
-			action="getRHExtensions"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-		return rtn;
-	}
 
 	/**
-	* @hint returns the list of RH server extension
+	* @hint returns the list of server extension
 	*/
-	public query function getRHServerExtensions(){
+	public query function getServerExtensions(){
 		admin
 			action="getRHServerExtensions"
 			type="#variables.type#"
@@ -867,7 +868,7 @@ component {
 	}
 
 	/**
-	* @hint returns the list of extension providers for this context.
+	* @hint returns the list of extension providers for current context.
 	*/
 	public query function getExtensionProviders(){
 		admin
@@ -878,31 +879,6 @@ component {
 		return local.providers;
 	}
 
-	/**
-	* @hint updates the extension provider for this context.
-	* @url URL to the Extension Provider (Example: http://www.myhost.com)
-	*/
-	public void function updateExtensionProvider( required string url ){
-		admin
-			action="updateExtensionProvider"
-			type="#variables.type#"
-			password="#variables.password#"
-
-			url="#trim(arguments.url)#";
-	}
-
-	/**
-	* @hint removes the extension provider for this context.
-	* @url URL to the Extension Provider (Example: http://www.myhost.com)
-	*/
-	public void function removeExtensionProvider( required string url ){
-		admin
-			action="removeExtensionProvider"
-			type="#variables.type#"
-			password="#variables.password#"
-
-			url="#trim(arguments.url)#";
-	}
 
 	/**
 	* @hint verifies whether it is an extension provider or not
@@ -917,9 +893,9 @@ component {
 	}
 
 	/**
-	* @hint returns the list of extension providers for this context.
+	* @hint returns the list of extension providers for current context.
 	*/
-	public query function getRHExtensionProviders(){
+	public query function getExtensionProviders(){
 		admin
 			action="getRHExtensionProviders"
 			type="#variables.type#"
@@ -929,10 +905,10 @@ component {
 	}
 
 	/**
-	* @hint updates RH extension provider for this context.
+	* @hint updates extension provider for current context.
 	* @url URL to the Extension Provider (Example: http://www.myhost.com)
 	*/
-	public void function updateRHExtensionProvider( required string url ){
+	public void function updateExtensionProvider( required string url ){
 		admin
 			action="updateRHExtensionProvider"
 			type="#variables.type#"
@@ -942,10 +918,10 @@ component {
 	}
 
 	/**
-	* @hint removes the extension provider for this context.
+	* @hint removes the extension provider for current context.
 	* @url URL to the Extension Provider (Example: http://www.myhost.com)
 	*/
-	public void function removeRHExtensionProvider( required string url ){
+	public void function removeExtensionProvider( required string url ){
 		admin
 			action="removeRHExtensionProvider"
 			type="#variables.type#"
@@ -2040,21 +2016,21 @@ component {
 			action="updateScope"
 			type="#variables.type#"
 			password="#variables.password#"
-			scopeCascadingType=isNull(arguments.scopeCascadingType) || isEmpty(arguments.scopeCascadingType) ? existing.scopeCascadingType : argument.scopeCascadingType;
-			allowImplicidQueryCall=isNull(arguments.allowImplicidQueryCall) || isEmpty(arguments.allowImplicidQueryCall) ? existing.allowImplicidQueryCall : argument.allowImplicidQueryCall;
-			mergeFormAndUrl=isNull(arguments.mergeFormAndUrl) || isEmpty(arguments.mergeFormAndUrl) ? existing.mergeFormAndUrl : argument.mergeFormAndUrl;
-			sessionManagement=isNull(arguments.sessionManagement) || isEmpty(arguments.sessionManagement) ? existing.sessionManagement : argument.sessionManagement;
-			clientManagement=isNull(arguments.clientManagement) || isEmpty(arguments.clientManagement) ? existing.clientManagement : argument.clientManagement;
-			domainCookies=isNull(arguments.domainCookies) || isEmpty(arguments.domainCookies) ? existing.domainCookies : argument.domainCookies;
-			clientCookies=isNull(arguments.clientCookies) || isEmpty(arguments.clientCookies) ? existing.clientCookies : argument.clientCookies;
-			clientTimeout=isNull(arguments.clientTimeout) || isEmpty(arguments.clientTimeout) ? existing.clientTimeout : argument.clientTimeout;
-			sessionTimeout=isNull(arguments.sessionTimeout) || isEmpty(arguments.sessionTimeout) ? existing.sessionTimeout : argument.sessionTimeout;
-			clientStorage=isNull(arguments.clientStorage) || isEmpty(arguments.clientStorage) ? existing.clientStorage : argument.clientStorage;
-			sessionStorage=isNull(arguments.sessionStorage) || isEmpty(arguments.sessionStorage) ? existing.sessionStorage : argument.sessionStorage;
-			applicationTimeout=isNull(arguments.applicationTimeout) || isEmpty(arguments.applicationTimeout) ? existing.applicationTimeout : argument.applicationTimeout;
-			sessionType=isNull(arguments.sessionType) || isEmpty(arguments.sessionType) ? existing.sessionType : argument.sessionType;
-			localMode=isNull(arguments.localMode) || isEmpty(arguments.localMode) ? existing.localMode : argument.localMode;
-			cgiReadonly=isNull(arguments.cgiReadonly) || isEmpty(arguments.cgiReadonly) ? existing.cgiReadonly : argument.cgiReadonly;
+			scopeCascadingType=isNull(arguments.scopeCascadingType) || isEmpty(arguments.scopeCascadingType) ? existing.scopeCascadingType : arguments.scopeCascadingType
+			allowImplicidQueryCall=isNull(arguments.allowImplicidQueryCall) || isEmpty(arguments.allowImplicidQueryCall) ? existing.allowImplicidQueryCall : arguments.allowImplicidQueryCall
+			mergeFormAndUrl=isNull(arguments.mergeFormAndUrl) || isEmpty(arguments.mergeFormAndUrl) ? existing.mergeFormAndUrl : arguments.mergeFormAndUrl
+			sessionManagement=isNull(arguments.sessionManagement) || isEmpty(arguments.sessionManagement) ? existing.sessionManagement : arguments.sessionManagement
+			clientManagement=isNull(arguments.clientManagement) || isEmpty(arguments.clientManagement) ? existing.clientManagement : arguments.clientManagement
+			domainCookies=isNull(arguments.domainCookies) || isEmpty(arguments.domainCookies) ? existing.domainCookies : arguments.domainCookies
+			clientCookies=isNull(arguments.clientCookies) || isEmpty(arguments.clientCookies) ? existing.clientCookies : arguments.clientCookies
+			clientTimeout=isNull(arguments.clientTimeout) || isEmpty(arguments.clientTimeout) ? existing.clientTimeout : arguments.clientTimeout
+			sessionTimeout=isNull(arguments.sessionTimeout) || isEmpty(arguments.sessionTimeout) ? existing.sessionTimeout : arguments.sessionTimeout
+			clientStorage=isNull(arguments.clientStorage) || isEmpty(arguments.clientStorage) ? existing.clientStorage : arguments.clientStorage
+			sessionStorage=isNull(arguments.sessionStorage) || isEmpty(arguments.sessionStorage) ? existing.sessionStorage : arguments.sessionStorage
+			applicationTimeout=isNull(arguments.applicationTimeout) || isEmpty(arguments.applicationTimeout) ? existing.applicationTimeout : arguments.applicationTimeout
+			sessionType=isNull(arguments.sessionType) || isEmpty(arguments.sessionType) ? existing.sessionType : arguments.sessionType
+			localMode=isNull(arguments.localMode) || isEmpty(arguments.localMode) ? existing.localMode : arguments.localMode
+			cgiReadonly=isNull(arguments.cgiReadonly) || isEmpty(arguments.cgiReadonly) ? existing.cgiReadonly : arguments.cgiReadonly
 			remoteClients="#variables.remoteClients#";
 	}
 
