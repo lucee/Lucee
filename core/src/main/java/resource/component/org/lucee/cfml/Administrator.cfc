@@ -1884,14 +1884,15 @@ component {
 	* @captcha Use Captcha in the login to make sure the form is submitted by a human.
 	* @delay Sets the delay between login attempts. This is a global setting for all user requests.
 	*/
-	public void function updateLoginSettings( boolean rememberMe=false, boolean captcha=false, numeric delay=0  ){
+	public void function updateLoginSettings( boolean rememberMe, boolean captcha, numeric delay ){
+		var existing = getLoginSettings();
 		admin
 			action="updateLoginSettings"
 			type="#variables.type#"
 			password="#variables.password#"
-			rememberme="#arguments.rememberme#"
-			captcha="#arguments.captcha#"
-			delay="#arguments.delay#";
+			rememberme=isNull(arguments.rememberme) || isEmpty(arguments.rememberme) ? existing.rememberme : arguments.rememberme
+			captcha=isNull(arguments.captcha) || isEmpty(arguments.captcha) ? existing.captcha : arguments.captcha
+			delay=isNull(arguments.delay) || isEmpty(arguments.delay) ? existing.delay : arguments.delay;
 	}
 
 	/**
@@ -1914,17 +1915,28 @@ component {
 	* @appenderArgs specifies the structure of appender class
 	* @layoutArgs specifies the structure of layout class
 	*/
-	public void function updateLogSettings( required string level, required string appenderClass, required string layoutClass, required string name, struct appenderArgs={}, struct layoutArgs={} ){
+	public void function updateLogSettings(
+		  required string name
+		,          string level
+		,          string appenderClass
+		,          string layoutClass
+		,          struct appenderArgs={}
+		,          struct layoutArgs={}
+	){
+		var LogSettings = getLogSettings();
+		query name="existing" dbtype="query"{
+			echo("SELECT * FROM LogSettings WHERE name = '#arguments.name#' ");
+		}
 		admin
-				action="updateLogSettings"
-				type="#variables.type#"
-				password="#variables.password#"
-				name="#arguments.name#"
-				level="#arguments.level#"
-				appenderClass="#arguments.appenderClass#"
-				appenderArgs="#arguments.appenderArgs#"
-				layoutClass="#arguments.layoutClass#"
-				layoutArgs="#arguments.layoutArgs#";
+			action="updateLogSettings"
+			type="#variables.type#"
+			password="#variables.password#"
+			name="#arguments.name#"
+			level=isNull(arguments.level) || isEmpty(arguments.level) ? existing.level : arguments.level
+			appenderClass=isNull(arguments.appenderClass) || isEmpty(arguments.appenderClass) ? existing.appenderClass : arguments.appenderClass
+			appenderArgs=isNull(arguments.appenderArgs) || isEmpty(arguments.appenderArgs) ? existing.appenderArgs : arguments.appenderArgs
+			layoutClass=isNull(arguments.layoutClass) || isEmpty(arguments.layoutClass) ? existing.layoutClass : arguments.layoutClass
+			layoutArgs=isNull(arguments.layoutArgs) || isEmpty(arguments.layoutArgs) ? existing.layoutArgs : arguments.layoutArgs;
 	}
 
 	/**
@@ -1957,13 +1969,14 @@ component {
 	* @type specifies the type of listener to update
 	* @mode specifies the mode of the listener
 	*/
-	public void function updateApplicationListener( required string type, required string mode ){
+	public void function updateApplicationListener( string type, string mode ){
+		var existing = getApplicationListener();
 		admin
 			action="updateApplicationListener"
 			type="#variables.type#"
 			password="#variables.password#"
-			listenerType="#arguments.type#"
-			listenerMode="#arguments.mode#"
+			listenerType=isNull(arguments.type) || isEmpty(arguments.type) ? existing.type : arguments.type
+			listenerMode=isNull(arguments.mode) || isEmpty(arguments.mode) ? existing.mode : arguments.mode
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -2155,16 +2168,16 @@ component {
 	* @scriptProtect secures your system from "cross-site scripting"
 	* @allowURLRequestTimeout Whether lucee needs to obey the URL parameter RequestTimeout or not
 	*/
-	public void function updateApplicationSetting( required timespan requestTimeout, required string scriptProtect, required boolean allowURLRequestTimeout ){
+	public void function updateApplicationSetting( timespan requestTimeout, string scriptProtect, boolean allowURLRequestTimeout ){
+		var existing = getApplicationSetting();
 		admin
 			action="updateApplicationSetting"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			scriptProtect="#arguments.scriptProtect#"
-			allowURLRequestTimeout="#arguments.allowURLRequestTimeout#"
-			requestTimeout="#arguments.requestTimeout#"
-
+			scriptProtect=isNull(arguments.scriptProtect) || isEmpty(arguments.scriptProtect) ? existing.scriptProtect : arguments.scriptProtect
+			allowURLRequestTimeout=isNull(arguments.allowURLRequestTimeout) || isEmpty(arguments.allowURLRequestTimeout) ? existing.AllowURLRequestTimeout : arguments.allowURLRequestTimeout
+			requestTimeout=isNull(arguments.requestTimeout) || isEmpty(arguments.requestTimeout) ? existing.requestTimeout : arguments.requestTimeout
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -2202,15 +2215,16 @@ component {
 	* @timeout timeout for a request in concurrent request queue.
 	* @enable enable or disable concurrent request queue.
 	*/
-	public void function updateQueueSetting( required numeric max, required numeric timeout, required boolean enable ){
+	public void function updateQueueSetting( numeric max, numeric timeout, boolean enable ){
+		var existing = getQueueSetting();
 		admin
 			action="updateQueueSetting"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			max="#arguments.max#"
-			timeout="#arguments.timeout#"
-			enable="#arguments.enable#"
+			max=isNull(arguments.max) || isEmpty(arguments.max) ? existing.max : arguments.max
+			timeout=isNull(arguments.timeout) || isEmpty(arguments.timeout) ? existing.timeout : arguments.timeout
+			enable=isNull(arguments.enable) || isEmpty(arguments.enable) ? existing.enable : arguments.enable
 
 			remoteClients="#variables.remoteClients#";
 	}
@@ -2304,16 +2318,17 @@ component {
 	* @component path is cached and not resolved again
 	* @extensions These are the extensions used for Custom Tags, in the order they are searched.
 	*/
-	public void function updateCustomTagSetting( required boolean deepSearch, required boolean localSearch, required customTagPathCache, required string extensions ) {
+	public void function updateCustomTagSetting( required boolean deepSearch, required boolean localSearch, required boolean customTagPathCache, required string extensions ) {
+		var existing = getCustomTagSetting();
 		admin
 			action="updateCustomTagSetting"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			deepSearch="#arguments.deepSearch#"
-			localSearch="#arguments.localSearch#"
-			customTagPathCache="#arguments.customTagPathCache#"
-			extensions="#arguments.extensions#"
+			deepSearch=isNull(arguments.deepSearch) || isEmpty(arguments.deepSearch) ? existing.customTagDeepSearch : arguments.deepSearch
+			localSearch=isNull(arguments.localSearch) || isEmpty(arguments.localSearch) ? existing.customTagLocalSearch : arguments.localSearch
+			customTagPathCache=isNull(arguments.customTagPathCache) || isEmpty(arguments.customTagPathCache) ? existing.customTagPathCache : arguments.customTagPathCache
+			extensions=isNull(arguments.extensions) || isEmpty(arguments.extensions) ? arrayToList(existing.extensions) : arguments.extensions
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -2370,14 +2385,14 @@ component {
 	* @template404 specifies template that will be invoked in case of a missing error
 	* @statuscode specifies status code to enable or not
 	*/
-	public void function updateError(required string template500, required string template404, boolean statuscode=false){
+	public void function updateError( string template500, string template404, boolean statuscode ){
 		admin
 			action="updateError"
 			type="#variables.type#"
 			password="#variables.password#"
-			template500="#arguments.template500#"
-			template404="#arguments.template404#"
-			statuscode="#arguments.statuscode#"
+			template500=isNull(arguments.template500) || isEmpty(arguments.template500) ? (existing.str.500 ?: existing.templates.500) : arguments.template500
+			template404=isNull(arguments.template404) || isEmpty(arguments.template404) ? (existing.str.404 ?: existing.templates.404) : arguments.template404
+			statuscode=isNull(arguments.statuscode) || isEmpty(arguments.statuscode) ? existing.doStatusCode : arguments.statuscode
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -2476,58 +2491,59 @@ component {
 	*/
 	public void function updateSecurityManager(
 		required string  id,
-		required boolean setting,
-		required string  file,
-		required boolean direct_java_access,
-		required boolean mail,
-		required string  datasource,
-		required boolean mapping,
-		required boolean remote,
-		required boolean custom_tag,
-		required boolean cfx_setting,
-		required boolean cfx_usage,
-		required boolean debugging,
-		required boolean tag_execute,
-		required boolean tag_import,
-		required boolean tag_object,
-		required boolean tag_registry,
-		required boolean cache,
-		required boolean gateway,
-		required boolean orm,
-		required string  access_read,
-		required string  access_write,
-		         boolean search=yes,
-		         boolean scheduled_task=yes,
-		         array   file_access=[] ) {
+				 boolean setting,
+				 string  file,
+				 boolean direct_java_access,
+				 boolean mail,
+				 string  datasource,
+				 boolean mapping,
+				 boolean remote,
+				 boolean custom_tag,
+				 boolean cfx_setting,
+				 boolean cfx_usage,
+				 boolean debugging,
+				 boolean tag_execute,
+				 boolean tag_import,
+				 boolean tag_object,
+				 boolean tag_registry,
+				 boolean cache,
+				 boolean gateway,
+				 boolean orm,
+				 string  access_read,
+				 string  access_write,
+		         boolean search,
+		         boolean scheduled_task,
+		         array   file_access ) {
+		var existing = getSecurityManager( arguments.id );
 		admin
 			action="updateSecurityManager"
 			type="#variables.type#"
 			password="#variables.password#"
 
 			id="#arguments.id#"
-			setting="#arguments.setting#"
-			file="#arguments.file#"
-			file_access="#arguments.file_access#"
-			direct_java_access="#arguments.direct_java_access#"
-			mail="#arguments.mail#"
-			datasource="#arguments.datasource#"
-			mapping="#arguments.mapping#"
-			remote="#arguments.remote#"
-			custom_tag="#arguments.custom_tag#"
-			cfx_setting="#arguments.cfx_setting#"
-			cfx_usage="#arguments.cfx_usage#"
-			debugging="#arguments.debugging#"
-			search="#arguments.search#"
-			scheduled_task="#arguments.scheduled_task#"
-			tag_execute="#arguments.tag_execute#"
-			tag_import="#arguments.tag_import#"
-			tag_object="#arguments.tag_object#"
-			tag_registry="#arguments.tag_registry#"
-			cache="#arguments.cache#"
-			gateway="#arguments.gateway#"
-			orm="#arguments.orm#"
-			access_read="#arguments.access_read#"
-			access_write="#arguments.access_write#";
+			setting=isNull(arguments.setting) || isEmpty(arguments.setting) ? existing.setting : arguments.setting
+			file=isNull(arguments.file) || isEmpty(arguments.file) ? existing.file : arguments.file
+			file_access=isNull(arguments.file_access) || isEmpty(arguments.file_access) ? existing.file_access : arguments.file_access
+			direct_java_access=isNull(arguments.direct_java_access) || isEmpty(arguments.direct_java_access) ? existing.direct_java_access : arguments.direct_java_access
+			mail=isNull(arguments.mail) || isEmpty(arguments.mail) ? existing.mail : arguments.mail
+			datasource=isNull(arguments.datasource) || isEmpty(arguments.datasource) ? existing.datasource : arguments.datasource
+			mapping=isNull(arguments.mapping) || isEmpty(arguments.mapping) ? existing.mapping : arguments.mapping
+			remote=isNull(arguments.remote) || isEmpty(arguments.remote) ? existing.remote : arguments.remote
+			custom_tag=isNull(arguments.custom_tag) || isEmpty(arguments.custom_tag) ? existing.custom_tag : arguments.custom_tag
+			cfx_setting=isNull(arguments.cfx_setting) || isEmpty(arguments.cfx_setting) ? existing.cfx_setting : arguments.cfx_setting
+			cfx_usage=isNull(arguments.cfx_usage) || isEmpty(arguments.cfx_usage) ? existing.cfx_usage : arguments.cfx_usage
+			debugging=isNull(arguments.debugging) || isEmpty(arguments.debugging) ? existing.debugging : arguments.debugging
+			search=isNull(arguments.search) || isEmpty(arguments.search) ? existing.search : arguments.search
+			scheduled_task=isNull(arguments.scheduled_task) || isEmpty(arguments.scheduled_task) ? existing.scheduled_task : arguments.scheduled_task
+			tag_execute=isNull(arguments.tag_execute) || isEmpty(arguments.tag_execute) ? existing.tag_execute : arguments.tag_execute
+			tag_import=isNull(arguments.tag_import) || isEmpty(arguments.tag_import) ? existing.tag_import : arguments.tag_import
+			tag_object=isNull(arguments.tag_object) || isEmpty(arguments.tag_object) ? existing.tag_object : arguments.tag_object
+			tag_registry=isNull(arguments.tag_registry) || isEmpty(arguments.tag_registry) ? existing.tag_registry : arguments.tag_registry
+			cache=isNull(arguments.cache) || isEmpty(arguments.cache) ? existing.cache : arguments.cache
+			gateway=isNull(arguments.gateway) || isEmpty(arguments.gateway) ? existing.gateway : arguments.gateway
+			orm=isNull(arguments.orm) || isEmpty(arguments.orm) ? existing.orm : arguments.orm
+			access_read=isNull(arguments.access_read) || isEmpty(arguments.access_read) ? existing.access_read : arguments.access_read
+			access_write=isNull(arguments.access_write) || isEmpty(arguments.access_write) ? existing.access_write : arguments.access_write;
 	}
 
 	/**
@@ -2583,57 +2599,58 @@ component {
 	* @file_access define additional directories where file access is allowed
 	*/
 	public void function updateDefaultSecurityManager(
-		required boolean setting,
-		required string  file,
-		required boolean direct_java_access,
-		required boolean mail,
-		required string  datasource,
-		required boolean mapping,
-		required boolean remote,
-		required boolean custom_tag,
-		required boolean cfx_setting,
-		required boolean cfx_usage,
-		required boolean debugging,
-		required boolean tag_execute,
-		required boolean tag_import,
-		required boolean tag_object,
-		required boolean tag_registry,
-		required boolean cache,
-		required boolean gateway,
-		required boolean orm,
-		required string  access_read,
-		required string  access_write,
-		         boolean search=yes,
-		         boolean scheduled_task=yes,
-		         array   file_access=[] ) {
+		boolean setting,
+		string  file,
+		boolean direct_java_access,
+		boolean mail,
+		string  datasource,
+		boolean mapping,
+		boolean remote,
+		boolean custom_tag,
+		boolean cfx_setting,
+		boolean cfx_usage,
+		boolean debugging,
+		boolean tag_execute,
+		boolean tag_import,
+		boolean tag_object,
+		boolean tag_registry,
+		boolean cache,
+		boolean gateway,
+		boolean orm,
+		string  access_read,
+		string  access_write,
+		boolean search,
+		boolean scheduled_task,
+		array   file_access ) {
+		var existing = getDefaultSecurityManager();
 		admin
 			action="updateDefaultSecurityManager"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			setting="#arguments.setting#"
-			file="#arguments.file#"
-			file_access="#arguments.file_access#"
-			direct_java_access="#arguments.direct_java_access#"
-			mail="#arguments.mail#"
-			datasource="#arguments.datasource#"
-			mapping="#arguments.mapping#"
-			remote="#arguments.remote#"
-			custom_tag="#arguments.custom_tag#"
-			cfx_setting="#arguments.cfx_setting#"
-			cfx_usage="#arguments.cfx_usage#"
-			debugging="#arguments.debugging#"
-			search="#arguments.search#"
-			scheduled_task="#arguments.scheduled_task#"
-			tag_execute="#arguments.tag_execute#"
-			tag_import="#arguments.tag_import#"
-			tag_object="#arguments.tag_object#"
-			tag_registry="#arguments.tag_registry#"
-			cache="#arguments.cache#"
-			gateway="#arguments.gateway#"
-			orm="#arguments.orm#"
-			access_read="#arguments.access_read#"
-			access_write="#arguments.access_write#";
+			setting=isNull(arguments.setting) || isEmpty(arguments.setting) ? existing.setting : arguments.setting
+			file=isNull(arguments.file) || isEmpty(arguments.file) ? existing.file : arguments.file
+			file_access=isNull(arguments.file_access) || isEmpty(arguments.file_access) ? existing.file_access : arguments.file_access
+			direct_java_access=isNull(arguments.direct_java_access) || isEmpty(arguments.direct_java_access) ? existing.direct_java_access : arguments.direct_java_access
+			mail=isNull(arguments.mail) || isEmpty(arguments.mail) ? existing.mail : arguments.mail
+			datasource=isNull(arguments.datasource) || isEmpty(arguments.datasource) ? existing.datasource : arguments.datasource
+			mapping=isNull(arguments.mapping) || isEmpty(arguments.mapping) ? existing.mapping : arguments.mapping
+			remote=isNull(arguments.remote) || isEmpty(arguments.remote) ? existing.remote : arguments.remote
+			custom_tag=isNull(arguments.custom_tag) || isEmpty(arguments.custom_tag) ? existing.custom_tag : arguments.custom_tag
+			cfx_setting=isNull(arguments.cfx_setting) || isEmpty(arguments.cfx_setting) ? existing.cfx_setting : arguments.cfx_setting
+			cfx_usage=isNull(arguments.cfx_usage) || isEmpty(arguments.cfx_usage) ? existing.cfx_usage : arguments.cfx_usage
+			debugging=isNull(arguments.debugging) || isEmpty(arguments.debugging) ? existing.debugging : arguments.debugging
+			search=isNull(arguments.search) || isEmpty(arguments.search) ? existing.search : arguments.search
+			scheduled_task=isNull(arguments.scheduled_task) || isEmpty(arguments.scheduled_task) ? existing.scheduled_task : arguments.scheduled_task
+			tag_execute=isNull(arguments.tag_execute) || isEmpty(arguments.tag_execute) ? existing.tag_execute : arguments.tag_execute
+			tag_import=isNull(arguments.tag_import) || isEmpty(arguments.tag_import) ? existing.tag_import : arguments.tag_import
+			tag_object=isNull(arguments.tag_object) || isEmpty(arguments.tag_object) ? existing.tag_object : arguments.tag_object
+			tag_registry=isNull(arguments.tag_registry) || isEmpty(arguments.tag_registry) ? existing.tag_registry : arguments.tag_registry
+			cache=isNull(arguments.cache) || isEmpty(arguments.cache) ? existing.cache : arguments.cache
+			gateway=isNull(arguments.gateway) || isEmpty(arguments.gateway) ? existing.gateway : arguments.gateway
+			orm=isNull(arguments.orm) || isEmpty(arguments.orm) ? existing.orm : arguments.orm
+			access_read=isNull(arguments.access_read) || isEmpty(arguments.access_read) ? existing.access_read : arguments.access_read
+			access_write=isNull(arguments.access_write) || isEmpty(arguments.access_write) ? existing.access_write : arguments.access_write;
 	}
 
 	/**
@@ -2788,7 +2805,7 @@ component {
 	}
 
 	/**
-	* @hint to update the current version
+	* @hint change the current version to specific version
 	*/
 	public void function changeVersionTo( required string version ){
 		admin
@@ -2799,7 +2816,7 @@ component {
 	}
 
 	/**
-	* @hint reset the ID
+	* @hint reset the Security Key( In case this server is to be synchronized by another server, you have to enter the security key below in the distant definition of the remote client. )
 	*/
 	public void function resetId(){
 		admin
@@ -2809,7 +2826,7 @@ component {
 	}
 
 	/**
-	* @hint restart the application
+	* @hint Restart the Lucee engine.
 	*/
 	public void function restart(){
 		admin
