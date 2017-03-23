@@ -226,7 +226,7 @@ public final class ReqRspUtil {
 	public static String getScriptName(PageContext pc,HttpServletRequest req) {
 		String sn = StringUtil.emptyIfNull(req.getContextPath())+StringUtil.emptyIfNull(req.getServletPath());
 		if(pc==null)pc=ThreadLocalPageContext.get();
-		if(pc!=null & (
+		if(pc!=null && (
 				(pc.getApplicationContext().getScriptProtect()&ApplicationContext.SCRIPT_PROTECT_URL)>0 || 
 				(pc.getApplicationContext().getScriptProtect()&ApplicationContext.SCRIPT_PROTECT_CGI)>0
 				)) {
