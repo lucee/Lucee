@@ -582,15 +582,16 @@ component {
 	* @spoolenable If enabled the mails are sent in a background thread and the main request does not have to wait until the mails are sent.
 	* @timeout Time in seconds that the Task Manager waits to send a single mail, when the time is reached the Task Manager stops the thread and the mail gets moved to unsent folder, where the Task Manager will pick it up later to try to send it again.
 	*/
-	public void function updateMailSetting( string defaultEncoding="UTF-8", boolean spoolEnable=true, numeric timeOut=30 ){
+	public void function updateMailSetting( string defaultEncoding="UTF-8", boolean spoolEnable, numeric timeOut ){
+		var existing = getMailSetting();
 		admin
 			action="updateMailSetting"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			spoolEnable="#arguments.spoolEnable#"
-			timeout="#arguments.timeOut#"
-			defaultEncoding="#arguments.defaultEncoding#"
+			spoolEnable=isNull(arguments.spoolEnable) || isEmpty(arguments.spoolEnable) ? existing.spoolEnable : arguments.spoolEnable
+			timeout=isNull(arguments.timeout) || isEmpty(arguments.timeout) ? existing.timeout : arguments.timeout
+			defaultEncoding=isNull(arguments.defaultEncoding) || isEmpty(arguments.defaultEncoding) ? existing.defaultEncoding : arguments.defaultEncoding
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -651,9 +652,9 @@ component {
 
 			virtual="#arguments.virtual#"
 			physical="#arguments.physical#"
-			archive="#arguments.archive#"
-			primary="#arguments.primary#"
-			inspect="#arguments.inspect#"
+			archive=isNull(arguments.physical) || isEmpty(arguments.physical) ? existing.physical : arguments.physical
+			primary=isNull(arguments.primary) || isEmpty(arguments.primary) ? existing.primary : arguments.primary
+			inspect=isNull(arguments.inspect) || isEmpty(arguments.inspect) ? existing.inspect : arguments.inspect
 			toplevel="yes"
 			remoteClients="#variables.remoteClients#";
 	}
@@ -955,30 +956,31 @@ component {
 	* @dbCreate Specifies whether Lucee should automatically generate mapping for the persistent CFCs, possible values are [none,update,dropcreate]
 	* @schema Specifies the default Schema that should be used by ORM.
 	*/
-	public void function updateORMSetting( boolean autoGenMap=true, boolean eventHandling=false, boolean flushAtRequestEnd=false, boolean logSQL=false, boolean saveMapping=false, boolean useDBForMapping=false, string catalog="", string cfcLocation="", string dbCreate="none", string schema="" ){
-		var settings = getORMSetting();
+	public void function updateORMSetting( boolean autoGenMap, boolean eventHandling, boolean flushAtRequestEnd, boolean logSQL, boolean, boolean useDBForMapping, string catalog, string cfcLocation, string dbCreate, string schema ){
+		var existing = getORMSetting();
+
 		admin
 			action="updateORMSetting"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			autogenmap="#arguments.autoGenMap#"
-			eventHandling="#arguments.eventHandling#"
-			flushatrequestend="#arguments.flushAtRequestEnd#"
-			logSQL="#arguments.logSQL#"
-			savemapping="#arguments.saveMapping#"
-			useDBForMapping="#arguments.useDBForMapping#"
+			autogenmap=isNull(arguments.autogenmap) || isEmpty(arguments.autogenmap) ? existing.autogenmap : arguments.autogenmap
+			eventHandling=isNull(arguments.eventHandling) || isEmpty(arguments.eventHandling) ? existing.eventHandling : arguments.eventHandling
+			flushatrequestend=isNull(arguments.flushatrequestend) || isEmpty(arguments.flushatrequestend) ? existing.flushatrequestend : arguments.flushatrequestend
+			logSQL=isNull(arguments.logSQL) || isEmpty(arguments.logSQL) ? existing.logSQL : arguments.logSQL
+			savemapping=isNull(arguments.savemapping) || isEmpty(arguments.savemapping) ? existing.savemapping : arguments.savemapping
+			useDBForMapping=isNull(arguments.useDBForMapping) || isEmpty(arguments.useDBForMapping) ? existing.useDBForMapping : arguments.useDBForMapping
 
-			catalog="#arguments.catalog#"
-			cfclocation="#arguments.cfcLocation#"
-			dbcreate="#arguments.dbCreate#"
-			schema="#arguments.schema#"
+			catalog=isNull(arguments.catalog) || isEmpty(arguments.catalog) ? existing.catalog : arguments.catalog
+			cfclocation=isNull(arguments.cfclocation) || isEmpty(arguments.cfclocation) ? ArrayToList(existing.cfclocation) : arguments.cfclocation
+			dbcreate=isNull(arguments.dbcreate) || isEmpty(arguments.dbcreate) ? existing.dbcreate : arguments.dbcreate
+			schema=isNull(arguments.schema) || isEmpty(arguments.schema) ? existing.schema : arguments.schema
 
-			sqlscript="#settings.sqlScript#"
-			cacheconfig="#settings.cacheConfig#"
-			cacheProvider="#settings.cacheProvider#"
-			ormConfig="#settings.ormConfig#"
-			secondarycacheenabled="#settings.secondaryCacheEnabled#"
+			sqlscript=isNull(arguments.sqlscript) || isEmpty(arguments.sqlscript) ? existing.sqlscript : arguments.sqlscript
+			cacheconfig=isNull(arguments.cacheconfig) || isEmpty(arguments.cacheconfig) ? existing.cacheconfig : arguments.cacheconfig
+			cacheProvider=isNull(arguments.cacheProvider) || isEmpty(arguments.cacheProvider) ? existing.cacheProvider : arguments.cacheProvider
+			ormConfig=isNull(arguments.ormConfig) || isEmpty(arguments.ormConfig) ? existing.ormConfig : arguments.ormConfig
+			secondarycacheenabled=isNull(arguments.secondarycacheenabled) || isEmpty(arguments.secondarycacheenabled) ? existing.secondarycacheenabled : arguments.secondarycacheenabled
 
 			remoteClients="#variables.remoteClients#";
 	}
@@ -1159,13 +1161,18 @@ component {
 	public void function updateCacheConnection(
 		required string class,
 		required string name,
-		struct custom={},
-		string bundleName= "",
-		string bundleVersion="",
-		string default="",
-		boolean readonly=false,
-		boolean storage=false
+		struct custom,
+		string bundleName,
+		string bundleVersion,
+		string default,
+		boolean readonly,
+		boolean storage
 	){
+		var connections =  getCacheConnections()
+		query name="existing" dbtype="query"{
+			echo("SELECT * FROM connections WHERE class = '#arguments.class#' and name = '#arguments.name#' ")
+		}
+
 		admin
 			action="updateCacheConnection"
 			type="#variables.type#"
@@ -1173,12 +1180,12 @@ component {
 
 			class="#arguments.class#"
 			name="#arguments.name#"
-			custom="#arguments.custom#"
-			bundleName="#arguments.bundleName#"
-			bundleVersion="#arguments.bundleVersion#"
-			default="#arguments.default#"
-			readonly="#getArguments('readonly', false)#"
-			storage="#getArguments('storage', false)#"
+			custom=isNull(arguments.custom) || isEmpty(arguments.custom) ? isEmpty(existing.custom)  ? {} : existing.custom  : arguments.custom
+			bundleName=isNull(arguments.bundleName) || isEmpty(arguments.bundleName) ? existing.bundleName ?: "" : arguments.bundleName
+			bundleVersion=isNull(arguments.bundleVersion) || isEmpty(arguments.bundleVersion) ? existing.bundleVersion ?: "" : arguments.bundleVersion
+			default=isNull(arguments.default) || isEmpty(arguments.default) ? existing.default ?: false : arguments.default
+			readonly=isNull(arguments.readonly) || isEmpty(arguments.readonly) ? existing.readonly ?: false : arguments.readonly
+			storage=isNull(arguments.storage) || isEmpty(arguments.storage) ? existing.storage ?: false : arguments.storage
 
 			remoteClients="#variables.remoteClients#";
 	}
@@ -1233,22 +1240,23 @@ component {
 	* @handleUnquotedAttrValueAsString Handle unquoted tag attribute values as strings.
 	* @externalizeStringGTE Externalize strings from generated class files to separate files.
 	*/
-	public void function updateCompilerSettings( required string templateCharset, required string dotNotationUpperCase, boolean nullSupport=false, boolean suppressWSBeforeArg=true, boolean handleUnquotedAttrValueAsString=true, numeric externalizeStringGTE=-1 ){
+	public void function updateCompilerSettings( required string templateCharset, required string dotNotationUpperCase, boolean nullSupport, boolean suppressWSBeforeArg, boolean handleUnquotedAttrValueAsString, numeric externalizeStringGTE){
 		var dotNotUpper=true;
 		if(isDefined('arguments.dotNotationUpperCase') and arguments.dotNotationUpperCase EQ "oc"){
 			dotNotUpper=false;
 		}
+		var existing = getCompilerSettings();
 		admin
 			action="updateCompilerSettings"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			nullSupport="#arguments.nullSupport#"
-			dotNotationUpperCase="#dotNotUpper#"
-			suppressWSBeforeArg="#arguments.suppressWSBeforeArg#"
-			handleUnquotedAttrValueAsString="#arguments.handleUnquotedAttrValueAsString#"
 			templateCharset="#arguments.templateCharset#"
-			externalizeStringGTE="#arguments.externalizeStringGTE#"
+			dotNotationUpperCase="#dotNotUpper#"
+			nullSupport=isNull(arguments.nullSupport) || isEmpty(arguments.nullSupport) ? existing.nullSupport  : arguments.nullSupport
+			suppressWSBeforeArg=isNull(arguments.suppressWSBeforeArg) || isEmpty(arguments.suppressWSBeforeArg) ? existing.suppressWSBeforeArg : arguments.suppressWSBeforeArg
+			handleUnquotedAttrValueAsString=isNull(arguments.handleUnquotedAttrValueAsString) || isEmpty(arguments.handleUnquotedAttrValueAsString) ? existing.handleUnquotedAttrValueAsString  : arguments.handleUnquotedAttrValueAsString
+			externalizeStringGTE=isNull(arguments.externalizeStringGTE) || isEmpty(arguments.externalizeStringGTE) ? existing.externalizeStringGTE  : arguments.externalizeStringGTE
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -1287,14 +1295,15 @@ component {
 	* @inspectTemplate sets the type of inspection for files inside the template cache
 	* @typeChecking If disabled Lucee ignores type definitions with function arguments and return values
 	*/
-	public void function updatePerformanceSettings( required string inspectTemplate, boolean typeChecking=false ){
+	public void function updatePerformanceSettings( required string inspectTemplate, boolean typeChecking){
+		var existing = getPerformanceSettings();
 		admin
 			action="updatePerformanceSettings"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			typeChecking="#arguments.typeChecking#"
 			inspectTemplate="#arguments.inspectTemplate#"
+			typeChecking=isNull(arguments.typeChecking) || isEmpty(arguments.typeChecking) ? existing.typeChecking : arguments.typeChecking
 
 			remoteClients="#variables.remoteClients#";
 	}
@@ -1349,18 +1358,22 @@ component {
 	* @startupMode mode of operation at startup, possible values are [automatic,manual,disabled]
 	* @custom structure contains custom fields for the specific gateway
 	*/
-	public void function updateGatewayEntry( required string id, string class="", string cfcPath="", string listenerCfcPath="", required string startupMode, struct custom={} ){
+	public void function updateGatewayEntry( required string id, required string startupMode, string class, string cfcPath, string listenerCfcPath,  struct custom ){
+		var getGatewayEntries = getGatewayEntries();
+		query name="existing" dbtype="query"{
+			echo("SELECT * FROM getGatewayEntries WHERE id = '#arguments.id#' and startupMode = '#arguments.startupMode#' ")
+		}
 		admin
 			action="updateGatewayEntry"
 			type="#variables.type#"
 			password="#variables.password#"
 
 			id="#trim(arguments.id)#"
-			class="#trim(arguments.class)#"
-			cfcPath="#trim(arguments.cfcPath)#"
-			listenerCfcPath="#trim(arguments.listenerCfcPath)#"
 			startupMode="#trim(arguments.startupMode)#"
-			custom="#arguments.custom#"
+			class=isNull(arguments.class) || isEmpty(arguments.class) ? existing.class ?: "" : arguments.class
+			cfcPath=isNull(arguments.cfcPath) || isEmpty(arguments.cfcPath) ? existing.cfcPath ?: "" : arguments.cfcPath
+			listenerCfcPath=isNull(arguments.listenerCfcPath) || isEmpty(arguments.listenerCfcPath) ? existing.listenerCfcPath ?: "" : arguments.listenerCfcPath
+			custom=isNull(arguments.custom) || isEmpty(arguments.custom) ? isEmpty(existing.custom) ? {} : existing.custom  : arguments.custom
 
 			remoteClients="#variables.remoteClients#";
 	}
@@ -1449,7 +1462,7 @@ component {
 	* @ipRange ip range for the debugging template entry
 	* @custom a struct contains all the custom fields for debugging template entry
 	*/
-	public void function updateDebugEntry( required string label, required string type, required string ipRange, required struct custom ){
+	public void function updateDebugEntry( required string label, string type, string ipRange, struct custom ){
 		// load available drivers
 		var driverNames=structnew("linked");
 		driverNames=ComponentListPackageAsStruct("lucee-server.admin.debug",driverNames);
@@ -1468,17 +1481,21 @@ component {
 
 		var driver=drivers[trim(arguments.type)];
 		var meta=getMetaData(driver);
+		var debugEntry = getDebugEntry();
+		query name="existing" dbtype="query"{
+			echo("SELECT * FROM debugEntry WHERE label = '#arguments.label#' ");
+		}
 		admin
 			action="updateDebugEntry"
 			type="#variables.type#"
 			password="#variables.password#"
 
 			label="#arguments.label#"
-			debugtype="#arguments.type#"
-			iprange="#arguments.ipRange#"
+			debugtype=isNull(arguments.type) || isEmpty(arguments.type) ? (existing.type ?: "lucee-classic") : arguments.type
+			iprange=isNull(arguments.iprange) || isEmpty(arguments.iprange) ? (existing.iprange ?: "*") : arguments.iprange
 			fullname="#meta.fullName#"
 			path="#contractPath(meta.path)#"
-			custom="#arguments.custom#"
+			custom=isNull(arguments.custom) || isEmpty(arguments.custom) ? isEmpty(existing.custom)? {} : (existing.custom ?: {bgcolor:"white", color:"black", font:"Times New Roman, Times, serif", general:"true", highlight:"250000", minimal:"0", scopes:"Application,CGI,Client,Cookie,Form,Request,Server,Session,URL", size:"medium"}) : arguments.custom
 
 			remoteClients="#variables.remoteClients#";
 	}
@@ -1556,20 +1573,21 @@ component {
 	* @timer this option sets to show timer event information.
 	* @implicitAccess this option sets to log all accesses to scopes, queries and threads that happens implicit (cascaded).
 	*/
-	public void function updateDebug( boolean debug=false, boolean database=false, boolean queryUsage=false, boolean exception=false, boolean tracing=false, boolean dump=false, boolean timer=false, boolean implicitAccess=false ){
+	public void function updateDebug( boolean debug, boolean database, boolean queryUsage, boolean exception, boolean tracing, boolean dump, boolean timer, boolean implicitAccess ){
+		var existing = getDebug();
 		admin
 			action="updateDebug"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			debug="#arguments.debug#"
-			database="#arguments.database#"
-			exception="#arguments.exception#"
-			tracing="#arguments.tracing#"
-			dump="#arguments.dump#"
-			timer="#arguments.timer#"
-			implicitAccess="#arguments.implicitAccess#"
-			queryUsage="#arguments.queryUsage#"
+			debug=isNull(arguments.debug) || isEmpty(arguments.debug) ? existing.debug : arguments.debug
+			database=isNull(arguments.database) || isEmpty(arguments.database) ? existing.database : arguments.database
+			exception=isNull(arguments.exception) || isEmpty(arguments.exception) ? existing.exception : arguments.exception
+			tracing=isNull(arguments.tracing) || isEmpty(arguments.tracing) ? existing.tracing : arguments.tracing
+			dump=isNull(arguments.dump) || isEmpty(arguments.dump) ? existing.dump : arguments.dump
+			timer=isNull(arguments.timer) || isEmpty(arguments.timer) ? existing.timer : arguments.timer
+			implicitAccess=isNull(arguments.implicitAccess) || isEmpty(arguments.implicitAccess) ? existing.implicitAccess : arguments.implicitAccess
+			queryUsage=isNull(arguments.queryUsage) || isEmpty(arguments.queryUsage) ? existing.queryUsage : arguments.queryUsage
 
 			debugTemplate=""
 			remoteClients="#variables.remoteClients#";
@@ -1927,6 +1945,7 @@ component {
 		query name="existing" dbtype="query"{
 			echo("SELECT * FROM LogSettings WHERE name = '#arguments.name#' ");
 		}
+
 		admin
 			action="updateLogSettings"
 			type="#variables.type#"
@@ -1934,9 +1953,9 @@ component {
 			name="#arguments.name#"
 			level=isNull(arguments.level) || isEmpty(arguments.level) ? existing.level : arguments.level
 			appenderClass=isNull(arguments.appenderClass) || isEmpty(arguments.appenderClass) ? existing.appenderClass : arguments.appenderClass
-			appenderArgs=isNull(arguments.appenderArgs) || isEmpty(arguments.appenderArgs) ? existing.appenderArgs : arguments.appenderArgs
+			appenderArgs=isNull(arguments.appenderArgs) || isEmpty(arguments.appenderArgs) ? isEmpty(existing.appenderArgs) ? {} : existing.appenderArgs : arguments.appenderArgs
 			layoutClass=isNull(arguments.layoutClass) || isEmpty(arguments.layoutClass) ? existing.layoutClass : arguments.layoutClass
-			layoutArgs=isNull(arguments.layoutArgs) || isEmpty(arguments.layoutArgs) ? existing.layoutArgs : arguments.layoutArgs;
+			layoutArgs=isNull(arguments.layoutArgs) || isEmpty(arguments.layoutArgs) ? isEmpty(existing.layoutArgs) ? {} : existing.layoutArgs : arguments.layoutArgs;
 	}
 
 	/**
@@ -2386,6 +2405,7 @@ component {
 	* @statuscode specifies status code to enable or not
 	*/
 	public void function updateError( string template500, string template404, boolean statuscode ){
+		var existing = getError();
 		admin
 			action="updateError"
 			type="#variables.type#"

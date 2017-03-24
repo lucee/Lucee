@@ -254,13 +254,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(datasource.name EQ 'TestDSN1', true);
 				});
 
-				it(title="testremoveDatasource()", body=function( currentSpec ) {
-					adminWeb.removeDatasource('testDSN1');
-					var datasource = adminWeb.getDatasources();
-					var ListOfDSNName = valueList(datasource.name);
-					assertEquals((findnoCase('testDSN1', ListOfDSNName) EQ 0), true);
-				});
-
 				it(title="checking verifyDatasource()", body=function( currentSpec ) {
 					var datasource = adminWeb.getDatasources();
 					assertEquals(IsQuery(datasource), true);
@@ -268,6 +261,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					tmpStrt.dbusername = datasource.username;
 					tmpStrt.dbpassword = datasource.password;
 					adminWeb.verifyDatasource(argumentCollection = #tmpStrt#);
+				});
+
+				it(title="testremoveDatasource()", body=function( currentSpec ) {
+					adminWeb.removeDatasource('testDSN1');
+					var datasource = adminWeb.getDatasources();
+					var ListOfDSNName = valueList(datasource.name);
+					assertEquals((findnoCase('testDSN1', ListOfDSNName) EQ 0), true);
 				});
 
 				it(title="checking getDatasourceDriverList()", body=function( currentSpec ) {
@@ -379,18 +379,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(Find("/TestArchive", ListOfvirtual) GT 0, true);
 				});
 
-				it(title="checking compileMapping()", body=function( currentSpec ) {
-					adminWeb.compileMapping('/TestArchive', true);
-				});
-
-				it(title="checking compileCTMapping()", body=function( currentSpec ) {
-					adminWeb.compileCTMapping('/TestArchive');
-				});
-
-				it(title="checking compileComponentMapping()", body=function( currentSpec ) {
-					adminWeb.compileComponentMapping('/TestArchive');
-				});
-
 				it(title="checking createArchiveFromMapping()", body=function( currentSpec ) {
 					var tmpStrt = {};
 					tmpStrt.virtual = "/TestArchive";
@@ -406,6 +394,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						{dbtype="query"}
 					);
 					assertEquals(result.recordcount EQ 1,true);
+				});
+
+				it(title="checking compileMapping()", body=function( currentSpec ) {
+					adminWeb.compileMapping('/TestArchive', true);
+				});
+
+				it(title="checking compileCTMapping()", body=function( currentSpec ) {
+					adminWeb.compileCTMapping('/TestArchive');
+				});
+
+				it(title="checking compileComponentMapping()", body=function( currentSpec ) {
+					adminWeb.compileComponentMapping('/TestArchive');
 				});
 
 				it(title="checking getCustomTagMappings()", body=function( currentSpec ) {
@@ -480,7 +480,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking getExtensionProviders()", body=function( currentSpec ) {
 					var getExtensionsProvider = adminWeb.getExtensionProviders();
 					assertEquals(isquery(getExtensionsProvider) ,true);
-					assertEquals(listSort(structKeyList(getExtensionsProvider),'textnocase'),'isreadonly,url');
+					assertEquals(listSort(structKeyList(getExtensionsProvider),'textnocase'),'readonly,url');
 				});
 
 				it(title="checking updateExtensionProvider()", body=function( currentSpec ) {
@@ -662,8 +662,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			describe( title="test CompilerSettings functions", body=function() {
 				beforeEach(function( currentSpec ){
-					getCompilerSettings = adminWeb.getCompilerSettings();
-					assertEquals(isStruct(getCompilerSettings), true);
+					if( currentSpec == 'checking getCompilerSettings()' ){
+						getCompilerSettings = adminWeb.getCompilerSettings();
+						assertEquals(isStruct(getCompilerSettings), true);
+					}
 				});
 
 				afterEach(function( currentSpec ){
@@ -949,7 +951,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isQuery(getContexts), true);
 					assertEquals(listSort(structKeyList(getContexts),'textnocase'), 'clientElements,clientSize,config_file,hash,hasOwnSecContext,id,label,path,sessionElements,sessionSize,url');
 				});
-				
+
 				it(title="checking updateContext()", body=function( currentSpec ) {
 					var tmpStruct={};
 					tmpStruct.source="#expandPath('./Administrator/en.xml')#";
@@ -1071,17 +1073,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var javaCfxTags = adminWeb.getJavaCfxTags();
 					assertEquals(isquery(javaCfxTags) ,true);
 					assertEquals(listFindNocase(valueList(javaCfxTags.name),"testJavaCFX") GT 0, true);
-				});
-
-				it(title="checking removecfx()", body=function( currentSpec ) {
-					adminWeb.removecfx("testCPPCFX");
-					adminWeb.removecfx("testJavaCFX");
-					var CPPCfxTags = adminWeb.getCPPCfxTags();
-					assertEquals(isquery(CPPCfxTags) ,true);
-					var javaCfxTags = adminWeb.getJavaCfxTags();
-					assertEquals(isquery(javaCfxTags) ,true);
-					assertEquals(listFindNocase(valueList(CPPCfxTags.name),"testCPPCFX") EQ 0, true);
-					assertEquals(listFindNocase(valueList(javaCfxTags.name),"testJavaCFX") EQ 0, true);
 				});
 			});
 
@@ -1537,10 +1528,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					SecurityManager.id=context;
 					SecurityManager.datasource=SecurityManager.datasource != -1 ? SecurityManager.datasource : "yes";
 					updateSecurityManager=SecurityManager;
-					updateSecurityManager.mail=!SecurityManager.mail;
+					updateSecurityManager.tag_registry=!SecurityManager.tag_registry;
 					admin.updateSecurityManager(argumentCollection=updateSecurityManager);
 					updatedSecurityManager=admin.getSecurityManager(id=context);
-					assertEquals( val(updatedSecurityManager.mail) == val(!SecurityManager.mail), true);
+					assertEquals( val(updatedSecurityManager.tag_registry) == val(!SecurityManager.tag_registry), true);
 				});
 
 				it(title="checking removeSecurityManager()", body=function( currentSpec ) {
@@ -1557,22 +1548,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(listSort(structKeyList(defaultSecurityManager),'textnocase'), 'access_read,access_write,cache,cfx_setting,cfx_usage,custom_tag,datasource,debugging,direct_java_access,file,file_access,gateway,mail,mapping,orm,remote,scheduled_task,search,setting,tag_execute,tag_import,tag_object,tag_registry');
 				});
 
-				it(title="checking updateDefaultSecurityManager()", body=function( currentSpec ) {
+				xit(title="checking updateDefaultSecurityManager()", body=function( currentSpec ) {
 					var updateDefaultSecurityManager={};
 					var defaultSecurityManager=admin.getDefaultSecurityManager();
 
 					defaultSecurityManager.datasource=defaultSecurityManager.datasource != -1 ? defaultSecurityManager.datasource : "yes";
 					updateDefaultSecurityManager=defaultSecurityManager;
-					updateDefaultSecurityManager.mail=!defaultSecurityManager.mail;
+					updateDefaultSecurityManager.tag_registry=!defaultSecurityManager.tag_registry;
 
 					admin.updateDefaultSecurityManager(argumentCollection=updateDefaultSecurityManager);
 					updatedDefaultSecurityManager=admin.getDefaultSecurityManager();
-
-					assertEquals( val(updatedDefaultSecurityManager.mail) == val(!defaultSecurityManager.mail), true);
-					admin.updateDefaultSecurityManager(argumentCollection=defaultSecurityManager);
+					assertEquals( val(updatedDefaultSecurityManager.tag_registry) == val(!defaultSecurityManager.tag_registry), true);
 				});
 			});
-			
+
 			describe( title="test storage functions", body=function() {
 				it(title="checking storageSet()", body=function( currentSpec ) {
 					adminWeb.storageSet( key="test", value="result" );
@@ -1696,7 +1685,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					adminWeb.connect();
 				});
 			});
-
 		});
 	}
 }
