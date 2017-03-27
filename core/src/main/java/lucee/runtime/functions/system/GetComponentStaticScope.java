@@ -19,18 +19,19 @@
 package lucee.runtime.functions.system;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.scope.Scope;
 
-public class GetBuiltInFunction extends BIF {
-	
-	private static final long serialVersionUID = 5639839935753070955L;
+public class GetComponentStaticScope extends BIF {
 
-	public static Object call(PageContext pc , String name) throws PageException {
+	public static Struct call(PageContext pc , String componentPath) throws PageException {
 		
-		return new lucee.runtime.type.BIF(pc,name);
+		return ComponentLoader.searchComponent(pc,null,componentPath,null,null,false,false).staticScope();
 	}
 	
     @Override
@@ -38,7 +39,7 @@ public class GetBuiltInFunction extends BIF {
     	if(args.length==1)
 			return call(pc, Caster.toString(args[0]));
     	
-		throw new FunctionException(pc, "GetBuiltInFunction", 1, 1, args.length);
+		throw new FunctionException(pc, "GetComponentStaticScope", 1, 1, args.length);
 	}
 
 }

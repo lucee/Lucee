@@ -5391,6 +5391,23 @@ Example Values:
 		</return>
 	</function>
 	
+	<!-- GetComponentStaticScope -->
+	<function>
+		<name>GetComponentStaticScope</name>
+		<class>lucee.runtime.functions.system.GetComponentStaticScope</class>
+		<description>returns the static scope of a specific component, of course access rules aply.</description>
+		<argument>
+			<name>component</name>
+			<alias>name,componentName,cfc</alias>
+			<type>string</type>
+			<required>yes</required>
+			<description>name of the component to get static scope, for example "org.lucee.cfml.Query".</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
 	<!-- GetCanonicalPath -->
 	<function>
 		<name>GetCanonicalPath</name>
