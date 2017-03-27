@@ -119,7 +119,7 @@
 						</div>
 					</div>
 
-					<h2>Component <em>#data.fullName#</em></h2>
+					<h2>Component <em>#ucFirst(listLast(data.fullName, "."))#</em></h2>
 
 					<!--- desc/hint --->
 					<span style="padding-left: 2em;">
@@ -171,7 +171,7 @@
 											<div class="text-overflow"><strong>#(currFunc.name)#</strong></div>
 										</div>
 									</div>
-									<div class="tile-active-show collapse" id="api-#lCase(currFunc.name)#">
+									<div class="tile-active-show collapse" id="api-#lCase(currFunc.name)#" style="padding: 0em 2em;">
 										<!--- desc/hint --->
 										<cfif structKeyExists(currFunc, "hint")>
 											<span style="padding-left: 3em;">#currFunc.hint#</span>
@@ -204,10 +204,10 @@
 												<table class="maintbl">
 													<thead>
 														<tr>
-															<th width="25%">#stText.doc.attr.name#</th>
-															<th width="25%">#stText.doc.attr._type#</th>
-															<th width="25%">#stText.doc.attr.required#</th>
-															<th width="25%">#stText.doc.attr.description#</th>
+															<th>#stText.doc.attr.name#</th>
+															<th width="10%">#stText.doc.attr._type#</th>
+															<th width="10%">#stText.doc.attr.required#</th>
+															<th width="50%">#stText.doc.attr.description#</th>
 														</tr>
 													</thead>
 													<tbody>
@@ -258,7 +258,7 @@
 
 		<cfset qryAllItems = queryNew("component")>
 		<cfloop array="#arrAllItems#" index="ai">
-			<cfset QueryAddRow(qryAllItems, ["#lCase(ai)#"])>
+			<cfset QueryAddRow(qryAllItems, ["#UcFirst(ai)#"])>
 		</cfloop>
 
 		<cfoutput>
