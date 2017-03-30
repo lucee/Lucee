@@ -1,10 +1,10 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
-		variables.uri = createURI("LDEV1255");
+		variables.uri = createURI("Parser");
 	}
 
 	function run( testResults , testBox ) {
-		describe( "Test suite for LDEV-1255", function() {
+		describe( "Test suite for Parser", function() {
 			describe( "Checking array and structure with invalid variable notation", function() {
 				it( title='Checking array value with invalid variable notation', body=function( currentSpec ) {
 					local.result = _InternalRequest(
