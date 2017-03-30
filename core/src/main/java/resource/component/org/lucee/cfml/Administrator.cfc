@@ -11,7 +11,7 @@ component {
 	}
 
 	/**
-	* @hint returns reginal information about current context, this includes the locale, the timezone,a timeserver address and if the timeserver is used or not
+	* @hint returns Regional information about current context, this includes the locale, the timezone,a timeserver address and if the timeserver is used or not
 	*/
 	public struct function getRegional(){
 		admin
@@ -72,7 +72,9 @@ component {
 	* @hint remove web specific regional settings and set back to server context settings, this function only works with type "web" and is ignored with type "server"
 	*/
 	public void function resetRegional(){
-		if(variables.type != "web") return;
+		if(variables.type != "web") {
+			throw "reset Regional function supports only in web";
+		}
 
 		admin
 			action="updateRegional"
@@ -99,7 +101,7 @@ component {
 
 	/**
 	* @hint updates the charset settings of current context
-	* @resourceCharset default charset used for read/write resources (cffile,wilewrite ...)
+	* @resourceCharset default charset used for read/write resources (cffile,filewrite ...)
 	* @templateCharset default charset used for read CFML Templates (cfm,cfc)
 	* @webCharset default charset used for the response stream and for reading data from request
 	*/
@@ -139,7 +141,9 @@ component {
 	* @hint remove web specific charset settings and set back to server context settings, this function only works with type "web" and is ignored with type "server"
 	*/
 	public void function resetCharset(){
-		if(variables.type != "web") return;
+		if(variables.type != "web") {
+			throw "reset resetCharset function supports only in web";
+		}
 
 		admin
 			action="updateCharset"
@@ -246,13 +250,14 @@ component {
 	* @hint update general datasource settings
 	* @psq if set to true, lucee preserves all single quotes within a query tag and escapes them
 	*/
-	public void function updateDatasourceSetting( required boolean psq ){
+	public void function updateDatasourceSetting(boolean psq ){
+		var existing = getDatasourceSetting();
 		admin
 			action="updatePSQ"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			psq="#arguments.psq#"
+			psq=isNull(arguments.psq) || isEmpty(arguments.psq) ? existing.psq : arguments.psq
 			remoteClients="#variables.remoteClients#";
 	}
 
