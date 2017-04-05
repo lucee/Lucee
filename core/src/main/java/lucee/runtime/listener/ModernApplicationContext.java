@@ -49,6 +49,7 @@ import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheConnectionImpl;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.component.Member;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -1698,4 +1699,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		logs=initLog(sct);
 		initLog=true;
 	}
+	
+	public static void releaseInitCacheConnections() {
+		if(initCacheConnections!=null) {
+			for(CacheConnection cc:initCacheConnections.values()) {
+				CacheUtil.releaseEL(cc);
+			}
+		}
+	}
+	
 }
