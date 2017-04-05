@@ -118,7 +118,9 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
+import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.EnvClassLoader;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.rest.RestSettingImpl;
 import lucee.runtime.rest.RestSettings;
@@ -154,7 +156,10 @@ import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 
 /**
@@ -3551,12 +3556,30 @@ public abstract class ConfigImpl implements Config {
     	 return ((ConfigWeb)config).getConfigServer(password);
 	}
 
-	protected void setExtensionBundleDefintions( Map<String, BundleDefinition> extensionBundles) {
-		this.extensionBundles=extensionBundles;
-	}
 	public Collection<BundleDefinition> getExtensionBundleDefintions() {
-		return this.extensionBundles.values();
+		if(this.extensionBundles==null) {
+			RHExtension[] rhes = getRHExtensions();
+			Map<String, BundleDefinition> extensionBundles=new HashMap<String,BundleDefinition>();
+			
+			for(RHExtension rhe:rhes) {
+				BundleInfo[] bis;
+				try {
+					bis = rhe.getBundles();
+					
+				}
+				catch (Exception e) {
+					continue;
+				}
+				for(BundleInfo bi:bis) {
+					extensionBundles.put(bi.getSymbolicName()+"|"+bi.getVersionAsString(), bi.toBundleDefinition());
+				}
+			}
+			this.extensionBundles=extensionBundles;
+		}
+		return extensionBundles.values();
 	}
+	
+	
 	
 	/**
 	 * get the extension bundle defintion not only from this context, get it from all contexts, including the server context
@@ -3652,7 +3675,7 @@ public abstract class ConfigImpl implements Config {
 		return DeployHandler.deployExtension(this, ed, getLog("deploy"),true);
 	}
 
-	public abstract List<RHExtension> loadLocalExtensions();
+	public abstract List<ExtensionDefintion> loadLocalExtensions();
 
 	private Map<String,ClassDefinition> cacheDefinitions;
 	public void setCacheDefinitions(Map<String,ClassDefinition> caches) {

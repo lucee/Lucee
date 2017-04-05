@@ -90,6 +90,7 @@ import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigServer;
@@ -197,12 +198,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
     	this.bundleCollection=bc;
 
     	// log the startup process
-    	String logDir=SystemUtil.getSystemPropOrEnvVar("startlogdirectory", null);
+    	String logDir=SystemUtil.getSystemPropOrEnvVar("startlogdirectory", null);//"/Users/mic/Tmp/");
     	if(logDir!=null) {
     		File f = new File(logDir);
     		if(f.isDirectory()) {
 	    		String logName=SystemUtil.getSystemPropOrEnvVar("logName", "stacktrace");
-	    		int timeRange=Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("timeRange", "stacktrace"),10);
+	    		int timeRange=Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("timeRange", "stacktrace"),1);
 	    		LogST._do(f, logName, timeRange);
     		}
     	}
@@ -419,7 +420,23 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	private void deployBundledExtension(ConfigServerImpl cs) {
 		Resource dir = cs.getLocalExtensionProviderDirectory();
-		List<RHExtension> existing = DeployHandler.getLocalExtensions(cs);
+		List<ExtensionDefintion> existing = DeployHandler.getLocalExtensions(cs);
+		Map<String,ExtensionDefintion> existingMap=new HashMap<String, ExtensionDefintion>();
+		
+		{
+			Iterator<ExtensionDefintion> it = existing.iterator();
+			ExtensionDefintion ed;
+			while(it.hasNext()) {
+				ed=it.next();
+				try {
+					existingMap.put(ed.getSource().getName(), ed);
+				}
+				catch (ApplicationException e) {}
+			}
+		}
+		
+		
+		
 		
 		Log log = cs.getLog("deploy");
 		
@@ -442,16 +459,22 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			String[] names = lucee.runtime.type.util.ListUtil.listToStringArray(index, ';');
 			String name;
 			Resource temp=null;
-			RHExtension rhe,exist;
-			Iterator<RHExtension> it;
+			RHExtension rhe;
+			ExtensionDefintion exist;
+			Iterator<ExtensionDefintion> it;
 			
 			for(int i=0;i<names.length;i++){
 				name=names[i];
-				log.info("extract-extension", "add extension ["+name+"]");
-				
-				
 				if(StringUtil.isEmpty(name,true)) continue;
 				name=name.trim();
+				
+				// does it already exist?
+				if(existingMap.containsKey(name)) {
+					continue;
+				}
+				
+				
+				
 				is = cl.getResourceAsStream("extensions/"+name);
 				if(is==null)is = cl.getResourceAsStream("/extensions/"+name);
 				if(is==null) {
@@ -460,24 +483,46 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				}
 				
 				try {
-					temp=SystemUtil.getTempFile("lex", true);
+					
+					temp=SystemUtil.getTempDirectory().getRealResource(name);
+					ResourceUtil.touch(temp);
 					Util.copy(is, temp.getOutputStream(),false,true);
 					rhe = new RHExtension(cs, temp, false);
-					boolean alreadyExists=false;
+					ExtensionDefintion alreadyExists=null;
 					it = existing.iterator();
 					while(it.hasNext()){
 						exist = it.next();
 						if(exist.equals(rhe)) {
-							alreadyExists=true;
+							alreadyExists=exist;
 							break;
 						}
 					}
-					if(!alreadyExists) {
-						temp.moveTo(dir.getRealResource(name));
+					String trgName=rhe.getId()+"-"+rhe.getVersion()+".lex";
+					if(alreadyExists==null) {
+						temp.moveTo(dir.getRealResource(trgName));
 						log.info("extract-extension", "added ["+name+"] to ["+dir+"]");
-						
+					
+					}
+					else if(!alreadyExists.getSource().getName().equals(trgName)) {
+						log.info("extract-extension", "rename ["+alreadyExists.getSource()+"] to ["+trgName+"]");
+						alreadyExists.getSource().moveTo(
+								alreadyExists.getSource().getParentResource().getRealResource(trgName)
+							);
 					}
 					
+					// now we check all extension name (for extension no longer delivered by lucee)
+					it = existing.iterator();
+					while(it.hasNext()){
+						exist = it.next();
+						trgName=exist.getId()+"-"+exist.getVersion()+".lex";
+						if(!trgName.equals(exist.getSource().getName())) {
+							exist.getSource().moveTo(
+									exist.getSource().getParentResource().getRealResource(trgName)
+								);
+							log.info("extract-extension", "rename ["+exist.getSource()+"] to ["+trgName+"]");
+							
+						}
+					}
 				}
 				finally {
 					if(temp!=null && temp.exists())temp.delete();
@@ -493,7 +538,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	private void deployBundledExtensionZip(ConfigServerImpl cs) {
 		Resource dir = cs.getLocalExtensionProviderDirectory();
-		List<RHExtension> existing = DeployHandler.getLocalExtensions(cs);
+		List<ExtensionDefintion> existing = DeployHandler.getLocalExtensions(cs);
 		String sub="extensions/";
 		// MUST this does not work on windows! we need to add an index
 		ZipEntry entry;
@@ -509,8 +554,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			int index;
 			Resource temp;
 			RHExtension rhe;
-			Iterator<RHExtension> it;
-			RHExtension exist;
+			Iterator<ExtensionDefintion> it;
+			ExtensionDefintion exist;
 			while ((entry = zis.getNextEntry())!= null) {
 				path = entry.getName();
 				if(path.startsWith(sub) && path.endsWith(".lex")) { // ignore non lex files or file from else where
@@ -519,7 +564,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 						name=path.substring(index);
 						temp=null;
 						try {
-							temp=SystemUtil.getTempFile("lex", true);
+							temp = SystemUtil.getTempDirectory().getRealResource(name);
+							ResourceUtil.touch(temp);
 							Util.copy(zis, temp.getOutputStream(),false,true);
 							rhe = new RHExtension(cs, temp, false);
 							boolean alreadyExists=false;
@@ -1031,6 +1077,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
     public void reset(String configId) {
         getControler().close();
 		RetireOutputStreamFactory.close();
+		
+		
+        releaseCache(getConfigServerImpl());
     	
         CFMLFactoryImpl cfmlFactory;
         //ScopeContext scopeContext;
@@ -1040,7 +1089,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	        	try {
 		            cfmlFactory=(CFMLFactoryImpl) contextes.get(it.next());
 		            if(configId!=null && !configId.equals(cfmlFactory.getConfigWebImpl().getIdentification().getId())) continue;
-		            	
+		            
 		            // scopes
 		            try{cfmlFactory.getScopeContext().clear();}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		            
@@ -1063,6 +1112,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		            // Gateway
 		            try{ cfmlFactory.getConfigWebImpl().getGatewayEngine().reset();}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		            
+		            // Cache
+		            releaseCache(cfmlFactory.getConfigWebImpl());
+		            
 	        	}
 	        	catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 	        }
@@ -1073,7 +1125,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
     	}
     }
     
-    @Override
+    public static void releaseCache(Config config) {
+    	CacheUtil.releaseAll(config);
+		if(config instanceof ConfigServer)CacheUtil.releaseAllApplication();
+	}
+
+	@Override
     public Cast getCastUtil() {
         return CastImpl.getInstance();
     }

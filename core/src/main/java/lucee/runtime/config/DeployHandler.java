@@ -163,8 +163,8 @@ public class DeployHandler {
 		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		// check if a local extension is matching our id
-		Iterator<RHExtension> it = getLocalExtensions(config).iterator();
-		RHExtension ext=null,tmp;
+		Iterator<ExtensionDefintion> it = getLocalExtensions(config).iterator();
+		ExtensionDefintion ext=null,tmp;
 		
 		log.info("extension", "installing the extension "+ed);
 		while(it.hasNext()){
@@ -179,8 +179,9 @@ public class DeployHandler {
 		if(ext!=null && ed.getVersion()!=null) {
 			try{
 				log.info("extension", "installing the extension "+ed+" from local provider");
-				Resource res = SystemUtil.getTempFile("lex", true);
-				IOUtil.copy(ext.getExtensionFile(), res);
+				Resource res = SystemUtil.getTempDirectory().getRealResource(ed.getId()+"-"+ed.getVersion()+".lex");
+				ResourceUtil.touch(res);
+				IOUtil.copy(ext.getSource(), res);
 				XMLConfigAdmin._updateRHExtension((ConfigImpl) config, res, reload);
 				return true;
 			}
@@ -220,8 +221,10 @@ public class DeployHandler {
 						log.info("extension", "installing the extension "+ed+" from local provider");
 						
 						// avoid that the exzension from provider get removed
-						Resource res = SystemUtil.getTempFile("lex", true);
-						IOUtil.copy(ext.getExtensionFile(), res);
+						Resource res = SystemUtil.getTempDirectory().getRealResource(ed.getId()+"-"+ed.getVersion()+".lex");
+						ResourceUtil.touch(res);
+						
+						IOUtil.copy(ext.getSource(), res);
 						XMLConfigAdmin._updateRHExtension((ConfigImpl) config, res, reload);
 						return true;
 					}
@@ -234,8 +237,10 @@ public class DeployHandler {
 		if(ext!=null) {
 			try{
 				log.info("extension", "installing the extension "+ed+" from local provider");
-				Resource res = SystemUtil.getTempFile("lex", true);
-				IOUtil.copy(ext.getExtensionFile(), res);
+				Resource res = SystemUtil.getTempDirectory().getRealResource(ext.getSource().getName());
+				ResourceUtil.touch(res);
+				
+				IOUtil.copy(ext.getSource(), res);
 				XMLConfigAdmin._updateRHExtension((ConfigImpl) config, res, reload);
 				return true;
 			}
@@ -281,7 +286,8 @@ public class DeployHandler {
 					throw new IOException("failed to load extension: "+ed);
 				
 				// copy it locally
-				Resource res = SystemUtil.getTempFile("lex", true);
+				Resource res = SystemUtil.getTempDirectory().getRealResource(ed.getId()+"-"+ed.getVersion()+".lex");
+				ResourceUtil.touch(res);
 				IOUtil.copy(rsp.getContentAsStream(), res, true);
 				
 				return res;
@@ -307,14 +313,18 @@ public class DeployHandler {
 
 	public static Resource getExtension(Config config, ExtensionDefintion ed, Log log) {
 		// local
-		RHExtension ext = getLocalExtension(config, ed,null);
-		if(ext!=null && ext.getExtensionFile().exists()) {
+		ExtensionDefintion ext = getLocalExtension(config, ed,null);
+		if(ext!=null) {
 			try {
-				Resource res = SystemUtil.getTempFile("lex", true);
-				IOUtil.copy(ext.getExtensionFile(), res);
-				return res;
+				Resource src=ext.getSource();
+				if(src.exists()) {
+					Resource res = SystemUtil.getTempDirectory().getRealResource(ed.getId()+"-"+ed.getVersion()+".lex");
+					ResourceUtil.touch(res);
+					IOUtil.copy(ext.getSource(), res);
+					return res;
+				}
 			}
-			catch(IOException ioe){}
+			catch(Exception e){}
 		}
 		
 		// remote
@@ -322,9 +332,9 @@ public class DeployHandler {
 	}
 	
 	
-	public static RHExtension getLocalExtension(Config config, ExtensionDefintion ed, RHExtension defaultValue) {
-		Iterator<RHExtension> it = getLocalExtensions(config).iterator();
-		RHExtension ext;
+	public static ExtensionDefintion getLocalExtension(Config config, ExtensionDefintion ed, ExtensionDefintion defaultValue) {
+		Iterator<ExtensionDefintion> it = getLocalExtensions(config).iterator();
+		ExtensionDefintion ext;
 		while(it.hasNext()){
 			ext=it.next();
 			if(ed.equals(ext)) {
@@ -334,7 +344,7 @@ public class DeployHandler {
 		return defaultValue;
 	}
 
-	public static List<RHExtension> getLocalExtensions(Config config) {
+	public static List<ExtensionDefintion> getLocalExtensions(Config config) {
 		return ((ConfigImpl)config).loadLocalExtensions();
 	}
 }

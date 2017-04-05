@@ -31,6 +31,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
+
+import lucee.print;
 import lucee.commons.collection.LinkedHashMapMaxSize;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Hash;
@@ -56,6 +60,7 @@ import lucee.runtime.engine.ThreadQueue;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.monitor.ActionMonitor;
 import lucee.runtime.monitor.ActionMonitorCollector;
@@ -64,6 +69,7 @@ import lucee.runtime.monitor.RequestMonitor;
 import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.security.SecurityManager;
@@ -118,9 +124,12 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	final TagLib luceeCoreTLDs;
 	final FunctionLib cfmlCoreFLDs;
 	final FunctionLib luceeCoreFLDs;
+
+	private ServletConfig srvConfig;
 	 
 	/**
      * @param engine 
+	 * @param srvConfig 
      * @param initContextes
      * @param contextes
      * @param configDir
@@ -128,7 +137,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	 * @throws TagLibException 
 	 * @throws FunctionLibException 
      */
-	protected ConfigServerImpl(CFMLEngineImpl engine,Map<String,CFMLFactory> initContextes, Map<String,CFMLFactory> contextes, Resource configDir, Resource configFile) throws TagLibException, FunctionLibException {
+	protected ConfigServerImpl(CFMLEngineImpl engine, Map<String,CFMLFactory> initContextes, Map<String,CFMLFactory> contextes, Resource configDir, Resource configFile) throws TagLibException, FunctionLibException {
 		super(configDir, configFile);
 		this.cfmlCoreTLDs=TagLibFactory.loadFromSystem(CFMLEngine.DIALECT_CFML,id);
 		this.luceeCoreTLDs=TagLibFactory.loadFromSystem(CFMLEngine.DIALECT_LUCEE,id);
@@ -197,6 +206,15 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
             ConfigWebImpl cw=((CFMLFactoryImpl)initContextes.get(it.next())).getConfigWebImpl();
             if(ReqRspUtil.getRootPath(cw.getServletContext()).equals(realpath))
                 return cw;
+        }
+        return null;
+    }
+    
+    public ServletContext getServletContext() {
+    	Iterator<String> it = initContextes.keySet().iterator();
+        while(it.hasNext()) {
+            ConfigWebImpl cw=((CFMLFactoryImpl)initContextes.get(it.next())).getConfigWebImpl();
+            return cw.getServletContext();
         }
         return null;
     }
@@ -689,7 +707,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
 	private Map<String, String> amfEngineArgs;
 
-	private List<RHExtension> localExtensions;
+	private List<ExtensionDefintion> localExtensions;
 
 	private long localExtHash;
 	
@@ -845,25 +863,45 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	}
 
 	@Override
-	public List<RHExtension> loadLocalExtensions() {
+	public List<ExtensionDefintion> loadLocalExtensions() {
 		Resource[] locReses = getLocalExtensionProviderDirectory().listResources(new ExtensionResourceFilter(".lex"));
-
 		if(localExtensions==null || localExtensions.size()!=locReses.length || extHash(locReses)==localExtHash) {
-			localExtensions=new ArrayList<RHExtension>();
+			localExtensions=new ArrayList<ExtensionDefintion>();
 			Map<String,String> map=new HashMap<String,String>();
 			RHExtension ext;
-			String v;
+			String v,fileName,uuid,version;
+			ExtensionDefintion ed;
 			for(int i=0;i<locReses.length;i++) {
-				try {
-					ext=new RHExtension(this,locReses[i],false);
+				ed=null;
+				// we stay happy with the file name when it has the right pattern (uuid-version.lex)
+				fileName=locReses[i].getName();
+				if(fileName.length()>39) {
+					uuid=fileName.substring(0, 35);
+					version=fileName.substring(36, fileName.length()-4);
+					if(Decision.isUUId(uuid)) {
+						ed = new ExtensionDefintion(uuid, version);
+						ed.setSource(this,locReses[i]);
+					}
+				}
+				if(ed==null) {	
+					try {
+						ext=new RHExtension(this,locReses[i],false);
+						ed = new ExtensionDefintion(ext.getId(), ext.getVersion());
+						ed.setSource(ext);
+						
+					} 
+					catch(Exception e) {e.printStackTrace();}
+				}
+				
+				if(ed!=null) {
 					// check if we already have an extension with the same id to avoid having more than once
-					v=map.get(ext.getId());
-					if(v!=null && v.compareToIgnoreCase(ext.getId())>0) continue;
+					v=map.get(ed.getId());
+					if(v!=null && v.compareToIgnoreCase(ed.getId())>0) continue;
 					
-					map.put(ext.getId(), ext.getVersion());
-					localExtensions.add(ext);
-				} 
-				catch(Exception e) {e.printStackTrace();}
+					map.put(ed.getId(), ed.getVersion());
+					localExtensions.add(ed);
+				}
+				
 			}
 			localExtHash=extHash(locReses);
 		}

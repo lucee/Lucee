@@ -632,7 +632,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		}
 
 		@Override
-		public List<RHExtension> loadLocalExtensions() {
+		public List<ExtensionDefintion> loadLocalExtensions() {
 			return configServer.loadLocalExtensions();
 		}
 }

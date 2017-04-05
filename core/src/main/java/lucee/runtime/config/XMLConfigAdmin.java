@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.jar.Attributes;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -1343,7 +1344,7 @@ public final class XMLConfigAdmin {
     	}
     	return false;
     }
-    
+    // MUST remove
     public static boolean fixPSQ(Document doc) {
     	
     	Element datasources=XMLConfigWebFactory.getChildByName(doc.getDocumentElement(),"data-sources",false,true);
@@ -2428,9 +2429,10 @@ public final class XMLConfigAdmin {
   	    	if(n!=null && n.equalsIgnoreCase(name)) {
   	    		Map<String, CacheConnection> conns = config.getCacheConnections();
   	    		CacheConnection cc= conns.get(n.toLowerCase());
-
-                if ( cc != null )
-                	CacheUtil.removeEL( config instanceof ConfigWeb ? (ConfigWeb) config : null, cc );
+  	    		if ( cc != null ) {
+  	    			CacheUtil.releaseEL(cc);
+                	//CacheUtil.removeEL( config instanceof ConfigWeb ? (ConfigWeb) config : null, cc );
+  	    		}
 
                 parent.removeChild(children[i]);
   			}
@@ -4603,7 +4605,8 @@ public final class XMLConfigAdmin {
 		for(int i=0;i<children.length;i++) {
 			child=children[i];
 			try{
-				rhe = new RHExtension(config, child);
+				rhe=new RHExtension(config, child);
+				//ed=ExtensionDefintion.getInstance(config,child);
 			}
 			catch(Throwable t){
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -6303,7 +6306,7 @@ public final class XMLConfigAdmin {
   		return null;
 	}
 	
-	public static void cleanBundles(RHExtension rhe,ConfigImpl config, BundleDefinition[] candiatesToRemove) throws BundleException {
+	public static void cleanBundles(RHExtension rhe,ConfigImpl config, BundleDefinition[] candiatesToRemove) throws BundleException, ApplicationException, IOException {
 		if(ArrayUtil.isEmpty(candiatesToRemove)) return;
 		
 		BundleCollection coreBundles = ConfigWebUtil.getEngine(config).getBundleCollection();
@@ -6383,8 +6386,9 @@ public final class XMLConfigAdmin {
 	 * @return the bundles used before when this was a update, if it is a new extension then null is returned
 	 * @throws IOException
 	 * @throws BundleException
+	 * @throws ApplicationException 
 	 */
-	public BundleDefinition[] _updateExtension(ConfigImpl config,RHExtension ext) throws IOException, BundleException {
+	public BundleDefinition[] _updateExtension(ConfigImpl config,RHExtension ext) throws IOException, BundleException, ApplicationException {
 		if(!Decision.isUUId(ext.getId())) throw new IOException("id ["+ext.getId()+"] is invalid, it has to be a UUID"); 
 		Element extensions=_getRootElement("extensions");
 		Element[] children = XMLConfigWebFactory.getChildren(extensions,"rhextension");// LuceeHandledExtensions
@@ -6427,18 +6431,7 @@ public final class XMLConfigAdmin {
 		}
 		return list.toArray(new BundleDefinition[list.size()]); 
 	}
-	
 
-	/*public Query getRHExtensionsAsQuery(ConfigImpl config) throws PageException {
-		Element extensions=_getRootElement("extensions");
-		Element[] children = XMLConfigWebFactory.getChildren(extensions,"rhextension");// LuceeHandledExtensions
-      	try {
-			return RHExtension.toQuery(config,children);
-		} catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
-	}*/
-	
 	private RHExtension getRHExtension(ConfigImpl config, String id, RHExtension defaultValue) {
 		Element extensions=_getRootElement("extensions");
 		Element[] children = XMLConfigWebFactory.getChildren(extensions,"rhextension");// LuceeHandledExtensions
@@ -6446,10 +6439,9 @@ public final class XMLConfigAdmin {
 		if(children!=null)for(int i=0;i<children.length;i++) {
 			if(!id.equals(children[i].getAttribute("id"))) continue;
 			try {
-				return new RHExtension(config,children[i]);
+				return new RHExtension(config, children[i]);
 			}
-			catch(Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
+			catch(Exception e) {
 				return defaultValue;
 			}
       	}
@@ -6475,17 +6467,11 @@ public final class XMLConfigAdmin {
 		
 		Element extensions=_getRootElement("extensions");
 		Element[] children = XMLConfigWebFactory.getChildren(extensions,"rhextension");// LuceeHandledExtensions
-		RHExtension rhe;
+		RHExtension tmp;
 		try {
 			for(int i=0;i<children.length;i++){
-				try {
-					rhe = new RHExtension(config,children[i]);
-				}
-				catch(Throwable t){
-					ExceptionUtil.rethrowIfNecessary(t);
-					continue;
-				}
-				if(ed.equals(rhe)) return rhe;
+				tmp=new RHExtension(config,children[i]);
+				if(tmp!=null && ed.equals(tmp)) return tmp;
 			}
 			return null;
 		}
@@ -6670,18 +6656,26 @@ public final class XMLConfigAdmin {
         scope.setAttribute("cgi-readonly",Caster.toString(cgiReadonly,""));
     }
 
-
-	public static void fixOldExtensionLocation(ConfigImpl config) {
-		Resource dir = config.getExtensionDirectory();
-		// move old to new location
-		Resource[] children = dir.getParentResource().listResources(new ExtensionResourceFilter(".lex"));
-		if(children!=null) {
-			for(int i=0;i<children.length;i++){
-				try {
-					children[i].moveTo(dir.getRealResource(children[i].getName()));
-				}
-				catch (IOException e) {}
+    public static boolean fixExtension(Config config,Document doc) {
+    	Element parent=XMLConfigWebFactory.getChildByName(doc.getDocumentElement(),"extensions",false,true);
+        Element[] extensions = XMLConfigWebFactory.getChildren(parent,"rhextension");
+        
+        // replace extension class with core class
+        boolean fixed=false;
+        for(int i=0;i<extensions.length;i++) {
+        	if(extensions[i].hasAttribute("start-bundles")) continue;
+        	// this will load the data from the .lex file
+        	try {
+        		Manifest mf = RHExtension.getManifestFromFile(config, RHExtension.toResource(config, extensions[i]));
+        		if(mf!=null) {
+        			RHExtension.populate(extensions[i],mf);
+        			fixed=true;
+        		}
 			}
-		}
+        	catch (Exception e) {
+				e.printStackTrace();
+			}
+        }
+        return fixed;
 	}
 }

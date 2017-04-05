@@ -36,14 +36,14 @@ public final class ServletInputStreamDummy extends ServletInputStream
      * @param data
      */
     public ServletInputStreamDummy(byte[] data) {
-        stream = new ByteArrayInputStream(data);
+        stream = new ByteArrayInputStream(data==null?new byte[0]:data);
     }
     
     /**
      * @param barr
      */
     public ServletInputStreamDummy(InputStream is) {
-        stream = is;
+    	stream = is==null?new ByteArrayInputStream(new byte[0]):is;
     }
         
     @Override

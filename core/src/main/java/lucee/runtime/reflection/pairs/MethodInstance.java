@@ -67,4 +67,8 @@ public final class MethodInstance {
     public Method getMethod() {
         return method;
     }
+    
+    public void setAccessible(boolean b) {
+    	method.setAccessible(b);
+    }
 }

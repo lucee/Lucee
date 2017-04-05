@@ -63,13 +63,20 @@ public class BundleInfo implements Serializable {
 	private final String requireBundle;
 	private final String fragementHost;
 	private final Map<String, Object> headers;
+	private final static Map<String, BundleInfo> bundles=new HashMap<String, BundleInfo>();
 	
-	public static BundleInfo newInstance(InputStream is, boolean closeStream) throws IOException, BundleException {
+	
+	
+	public static BundleInfo getInstance(String id, InputStream is, boolean closeStream) throws IOException, BundleException {
+		BundleInfo bi = bundles.get(id);
+		if(bi!=null) return bi;
+		
 		File tmp = File.createTempFile("temp-extension", "lex");
+		
 		try {
 			IOUtil.copy(is, new FileOutputStream(tmp), closeStream,true);
-			
-			return new BundleInfo(tmp);
+			bundles.put(id, bi = new BundleInfo(tmp));
+			return bi;
 		}
 		finally {
 			tmp.delete();
