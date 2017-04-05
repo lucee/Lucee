@@ -1117,11 +1117,16 @@ public final class Reflector {
 	}
 	
 	public static Object getField(Object obj, String prop, Object defaultValue) {
+	    return getField(obj, prop, false, defaultValue);
+	}
+	
+	public static Object getField(Object obj, String prop, boolean accessible, Object defaultValue) {
 	    if(obj==null) return defaultValue;
 		Field[] fields = getFieldsIgnoreCase(obj.getClass(),prop,null);
 		if(ArrayUtil.isEmpty(fields)) return defaultValue;
 		
 		try {
+			if(accessible)fields[0].setAccessible(true);
 			return fields[0].get(obj);
 		} catch(Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
