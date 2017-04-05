@@ -650,7 +650,8 @@ public class OSGiUtil {
 			if(version!=null){
 				File[] jars = new File[]{ 
 						new File(dir, name + "-"+ version.toString() + (".jar")),
-						new File(dir, name + "-"+ version.toString().replace('.', '-') + (".jar"))
+						new File(dir, name + "-"+ version.toString().replace('.', '-') + (".jar")),
+						new File(dir, name.replace('.', '-') + "-"+ version.toString().replace('.', '-') + (".jar"))
 				};
 				for(int i=0;i<jars.length;i++) {
 					File jar=jars[i];
@@ -666,7 +667,6 @@ public class OSGiUtil {
 			}
 			
 			File[] children = dir.listFiles(JAR_EXT_FILTER);
-	    	
 			// now we make a closer filename test
 			String curr;
 			if(version!=null) {

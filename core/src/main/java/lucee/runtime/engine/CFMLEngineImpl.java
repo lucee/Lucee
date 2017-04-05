@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -374,7 +376,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
     }
 
 	public static Set<ExtensionDefintion> toSet(Set<ExtensionDefintion> set, List<ExtensionDefintion> list) {
-		HashMap<String, ExtensionDefintion> map=new HashMap<String, ExtensionDefintion>();
+		LinkedHashMap<String, ExtensionDefintion> map=new LinkedHashMap<String, ExtensionDefintion>();
 		ExtensionDefintion ed;
 			
 		// set > map
@@ -396,7 +398,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		}
 		
 		// to Set
-		HashSet<ExtensionDefintion> rtn = new HashSet<ExtensionDefintion>();
+		LinkedHashSet<ExtensionDefintion> rtn = new LinkedHashSet<ExtensionDefintion>();
 		Iterator<ExtensionDefintion> it = map.values().iterator();
 		while(it.hasNext()){
 			ed = it.next();
