@@ -40,6 +40,7 @@ import lucee.runtime.config.Constants;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.PasswordImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.op.Caster;
@@ -282,7 +283,6 @@ public class CacheUtil {
 		Cache c = cc.getInstance(config);
 		// FUTURE no reflection needed
 		
-		
 		Method remove=null;
 		try{
 			remove = c.getClass().getMethod("remove", new Class[0]);
@@ -299,6 +299,45 @@ public class CacheUtil {
 		catch (InvocationTargetException e) {
 			throw e.getTargetException();
 		}
+	}
+	
+	public static void releaseEL(CacheConnection cc)  {
+		try {
+			release(cc);
+		} catch (IOException e) {}
+	}
+	
+	public static void release(CacheConnection cc) throws IOException {
+		Cache c = ((CacheConnectionPlus)cc).getLoadedInstance();
+		if(c==null) return;
+		
+		// FUTURE no reflection needed
+		Method release=null;
+		try{
+			release = c.getClass().getMethod("release", new Class[]{});
+			
+		}
+		catch(Exception e){
+			return;
+		}
+		
+		try {
+			if(release!=null)release.invoke(c, new Object[]{});
+		}
+		catch (Exception e) {
+			throw ExceptionUtil.toIOException(e);
+		}
+	}
+
+	public static void releaseAll(Config config) {
+		// Config
+		for(CacheConnection cc:config.getCacheConnections().values()) {
+			releaseEL(cc);
+		}
+	}
+	public static void releaseAllApplication() {
+		// application defined caches (modern and classic)
+		ModernApplicationContext.releaseInitCacheConnections();
 	}
 
 	private static String toStringType(int type, String defaultValue) {

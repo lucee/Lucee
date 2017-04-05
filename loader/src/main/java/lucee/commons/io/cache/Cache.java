@@ -36,6 +36,9 @@ public interface Cache {
 	public void init(Config config, String cacheName, Struct arguments)
 			throws IOException;
 
+	
+	// FUTURE public void release() throws IOException;
+	
 	/**
 	 * return cache entry that match the key, throws a CacheException when entry
 	 * does not exist or is stale
