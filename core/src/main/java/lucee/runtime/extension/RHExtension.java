@@ -657,6 +657,16 @@ public class RHExtension implements Serializable {
 			throw new ApplicationException("Extension ["+fileName+"] was not found at ["+res+"]");
 		return res;
 	}
+	
+
+	public static Resource toResource(Config config, Element el, Resource defaultValue) {
+		String fileName = el.getAttribute("file-name");
+		if(StringUtil.isEmpty(fileName)) return defaultValue;
+		Resource res=getExtensionDir(config).getRealResource(fileName);
+		if(!res.exists())
+			return defaultValue;
+		return res;
+	}
 
 	private static Resource getExtensionFile(Config config, Resource ext, String id,String name, String version) {
 		String fileName=toHash(id, name, version, ResourceUtil.getExtension(ext, "lex"));
