@@ -6666,7 +6666,9 @@ public final class XMLConfigAdmin {
         	if(extensions[i].hasAttribute("start-bundles")) continue;
         	// this will load the data from the .lex file
         	try {
-        		Manifest mf = RHExtension.getManifestFromFile(config, RHExtension.toResource(config, extensions[i]));
+        		
+        		Resource res = RHExtension.toResource(config, extensions[i],null);
+        		Manifest mf = (res==null) ? null : RHExtension.getManifestFromFile(config, res);
         		if(mf!=null) {
         			RHExtension.populate(extensions[i],mf);
         			fixed=true;
