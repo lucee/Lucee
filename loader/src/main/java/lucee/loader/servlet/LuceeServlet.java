@@ -39,15 +39,7 @@ public class LuceeServlet extends AbsServlet {
 	@Override
 	public void init(final ServletConfig sg) throws ServletException {
 		super.init(sg);
-		//CFMLEngineFactory.log(Log.LEVEL_INFO, "init servlet");
-		try {
-			engine = CFMLEngineFactory.getInstance(sg, this);
-		} catch (final ServletException se) {
-			se.printStackTrace();// TEMP remove stacktrace
-			throw se;
-		} catch (final Throwable t) {
-			t.printStackTrace();// TEMP remove stacktrace
-		}
+		engine = CFMLEngineFactory.getInstance(sg, this);
 	}
 
 	/**
@@ -55,17 +47,7 @@ public class LuceeServlet extends AbsServlet {
 	 *      javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
-	protected void service(final HttpServletRequest req,
-			final HttpServletResponse rsp) throws ServletException, IOException {
-		//CFMLEngineFactory.log(Log.LEVEL_INFO, "service CFML");
-		try {
-			engine.service(this, req, rsp);
-		} catch (final ServletException se) {
-			se.printStackTrace();// TEMP remove stacktrace
-			throw se;
-		} catch (final Throwable t) {
-			t.printStackTrace();// TEMP remove stacktrace
-		}
-
+	protected void service(final HttpServletRequest req, final HttpServletResponse rsp) throws ServletException, IOException {
+		engine.service(this, req, rsp);
 	}
 }

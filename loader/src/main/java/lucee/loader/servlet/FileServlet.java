@@ -47,8 +47,7 @@ public class FileServlet extends AbsServlet {
 	 *      javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
-	protected void service(final HttpServletRequest req,
-			final HttpServletResponse rsp) throws ServletException, IOException {
+	protected void service(final HttpServletRequest req, final HttpServletResponse rsp) throws ServletException, IOException {
 		engine.serviceFile(this, req, rsp);
 	}
 }
