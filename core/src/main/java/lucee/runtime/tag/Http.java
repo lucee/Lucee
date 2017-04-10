@@ -1451,6 +1451,8 @@ public final class Http extends BodyTagImpl {
 		cfhttp.setEL(KeyConstants._mimetype,"Unable to determine MIME type of file.");
 		cfhttp.setEL(RESPONSEHEADER,new StructImpl());
 		cfhttp.setEL(STATUSCODE,"Connection Failure. Status code unavailable.");
+		cfhttp.setEL(STATUS_CODE,new Double(0));
+        cfhttp.setEL(STATUS_TEXT,"Connection Failure");
 		cfhttp.setEL(KeyConstants._text,Boolean.TRUE);
 	}
 
