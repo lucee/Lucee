@@ -214,7 +214,8 @@ public class SystemUtilImpl implements SystemUtil {
 
 	@Override
 	public void stop(PageContext pc, Throwable t,Log log) {
-		lucee.commons.io.SystemUtil.stop(pc, t,log);
+		// FUTURE remove argument Throwable t
+		lucee.commons.io.SystemUtil.stop(pc,log);
 	}
 
 	@Override

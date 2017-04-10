@@ -1166,7 +1166,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract ORMSession getORMSession(boolean create)
 			throws PageException;
 
-	public abstract Throwable getRequestTimeoutException();
+	public abstract Throwable getRequestTimeoutException(); // FUTURE deprecate
 
 	/**
 	 * if set to true Lucee ignores all scope names and handles them as regular
