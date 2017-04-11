@@ -8,7 +8,7 @@ component {
 	variables.default.browser="html";
 	variables.default.console="text";
 	variables.supportedFormats=["simple","text","html","classic"];
-	
+
 	// Meta data
 	this.metadata.hint="Outputs the elements, variables and values of most kinds of CFML objects. Useful for debugging. You can display the contents of simple and complex variables, objects, components, user-defined functions, and other elements.";
 	this.metadata.attributetype="fixed";
@@ -131,9 +131,11 @@ component {
 		
 		if (arguments.attrib.output EQ "browser") {
 
-			echo(variables.NEWLINE & '<!-- ==start== dump #now()# format: #arguments.attrib.format# -->' & variables.NEWLINE);
-			echo('<div id="#dumpID#" class="-lucee-dump">#result#</div>' & variables.NEWLINE);
-			echo('<!-- ==stop== dump -->' & variables.NEWLINE);
+			// echo(variables.NEWLINE & '<!-- ==start== dump #now()# format: #arguments.attrib.format# -->' & variables.NEWLINE);
+			// echo('<div id="#dumpID#" class="-lucee-dump">#result#</div>' & variables.NEWLINE);
+			// echo('<!-- ==stop== dump -->' & variables.NEWLINE);
+			echo('#result#');
+			// echo('#result#');
 		}
 		else if (arguments.attrib.output EQ "console") {
 			systemOutput(result,true);
@@ -210,56 +212,49 @@ component {
 
 			}
 
+		if(!arguments.level)
+			rtn&= '<script language="JavaScript" type="text/javascript">' & "var dumpData={};" & variables.NEWLINE;
+		var tempStruct={};
+		tempStruct.id=id;
+		tempStruct.width=width;
+		tempStruct.height=height;
+		tempStruct.title=title;
+		tempStruct.meta={};
 
+		if(structKeyExists(arguments.meta, 'title')){
+			tempStruct.meta.id=arguments.hasReference && structKeyExists(arguments.meta,'id') ? ' [#arguments.meta.id#]' : '';
+			tempStruct.meta.comment=structKeyExists(arguments.meta,'comment') ? "<br />" & (left(arguments.meta.comment,4)=="<img"?arguments.meta.comment:replace(HTMLEditFormat(arguments.meta.comment),chr(10),' <br>','all')) : '';
+			tempStruct.meta.title=arguments.meta.title;
+			tempStruct.meta.tdClass="luceeH#variables.colorKeys[arguments.meta.colorId]#";
+			tempStruct.meta.onClick="dumpOC('#id#');";
+		}else{
+			tempStruct.id="";
+		}
 
-
-			rtn&=('<table#width##height##title#>' );
-
-			// title
-			if(structKeyExists(arguments.meta, 'title')){
-				var metaID = arguments.hasReference && structKeyExists(arguments.meta,'id') ? ' [#arguments.meta.id#]' : '';
-				var comment = structKeyExists(arguments.meta,'comment') ? "<br />" & (left(arguments.meta.comment,4)=="<img"?arguments.meta.comment:replace(HTMLEditFormat(arguments.meta.comment),chr(10),' <br>','all')) : '';
-				
-				rtn&=('<tr>');
-				rtn&=('<td class="luceeH#variables.colorKeys[arguments.meta.colorId]#" onclick="dumpOC(''#id#'');" colspan="#columnCount#" style="cursor:pointer;">');
-				rtn&=('<span>#arguments.meta.title##metaID#</span>');
-				rtn&=(comment & '</td>');
-				rtn&=('</tr>');
-			}
-			else {
-				id = "";
-			}
-
-			// data
-			if(columnCount) {
-				loop query="arguments.meta.data" {
-					var c = 1;
-					var nodeID = len(id) ? ' name="#id#"' : '';
-					var hidden = !arguments.expand && len(id) ? ' style="display:none"' : '';
-
-					rtn&=('<tr#nodeID##hidden#>');
-					
-					for(var col=1; col LTE columnCount-1; col++) {
-						var node = arguments.meta.data["data" & col];
-
-						if(isStruct(node)) {
-							var value = this.html(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level+1,arguments.dumpID,arguments.cssColors);
-
-							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">');
-							rtn&=(value);
-							rtn&=('</td>');
-						}
-						else {
-							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>' );
-						}
-						c *= 2;
+		tempStruct.meta.data=[];
+		if(columnCount){
+			loop query="arguments.meta.data"{
+				var c = 1;
+				tempStruct.meta.data[arguments.meta.data.currentRow].nodeID=len(id) ? id : '';
+				tempStruct.meta.data[arguments.meta.data.currentRow].hidden=!arguments.expand && len(id) ? ' style="display:none"' : '';
+				tempStruct.meta.data[arguments.meta.data.currentRow].nodeData=[];
+				for(var col=1; col LTE columnCount-1; col++){
+					var node = arguments.meta.data["data" & col];
+					tempStruct.meta.data[arguments.meta.data.currentRow].nodeData[col].class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#";
+					if(isStruct(node)){
+						tempStruct.meta.data[arguments.meta.data.currentRow].nodeData[col].content='#this.html(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level+1,arguments.dumpID,arguments.cssColors)#';
+					}else{
+						tempStruct.meta.data[arguments.meta.data.currentRow].nodeData[col].content='#node#';
 					}
-					rtn&=('</tr>');
+					c*=2;
 				}
 			}
-			rtn&=('</table>');
+		}
 
-
+		if(!arguments.level){
+			rtn&="dumpData['#id#']=#serializeJSON(tempStruct)#;console.log(dumpData);";
+			rtn&="</script>";
+		}
 
 		return head&rtn;
 	}
