@@ -104,7 +104,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
     private CIPage baseComponentPageLucee;
     private MappingImpl serverTagMapping;
 	private MappingImpl serverFunctionMapping;
-	private KeyLock<String> contextLock;
+	private KeyLock<String> contextLock=new KeyLockImpl<String>();
 	private GatewayEngineImpl gatewayEngine;
     private DebuggerPool debuggerPool;
 	private final CFMLFactoryImpl factory; 
@@ -143,7 +143,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
     	super.reset();
     	factory.resetPageContext();
     	tagHandlerPool.reset();
-    	contextLock=null;
+    	contextLock=new KeyLockImpl<String>();
     	baseComponentPageCFML=null;
     	baseComponentPageLucee=null;
     }
@@ -345,9 +345,6 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		}
 
 		public KeyLock<String> getContextLock() {
-			if(contextLock==null) {
-				contextLock=new KeyLockImpl<String>();
-			}
 			return contextLock;
 		}
 
