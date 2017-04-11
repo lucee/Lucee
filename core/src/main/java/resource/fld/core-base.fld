@@ -2420,7 +2420,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<argument>
 			<name>cfc</name>
 			<alias>cfcName,component,componentName</alias>
-			<type>object</type>
+			<type>string</type>
 			<required>Yes</required>
 			<description>component or component name</description>
 	    </argument>

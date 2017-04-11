@@ -36,6 +36,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				);
 				expect(local.result.filecontent.trim()).toBe("displays before call static function/displays after call static function");
 			});
+
+			it( title='Checking static function will gives result when set output="true" via modern customTag/module', body=function( currentSpec ) {
+				local.result = _InternalRequest(
+					template:"#variables.uri#/test.cfm",
+					forms:{Scene=5}
+				);
+				expect(local.result.filecontent.trim()).toBe("displays before call static function/displays after call static function");
+			});
+
+			it( title='Checking static function will gives result when set output="false" via modern customTag/module', body=function( currentSpec ) {
+				local.result = _InternalRequest(
+					template:"#variables.uri#/test.cfm",
+					forms:{Scene=6}
+				);
+				expect(local.result.filecontent.trim()).toBe("displays before call static function/displays after call static function");
+			});
 		});
 	}
 

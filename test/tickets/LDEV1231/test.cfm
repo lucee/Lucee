@@ -22,4 +22,18 @@
 		a = testing1::something();
 		writeoutput(a);
 	}
+
+	else if(form.scene EQ 5){
+		module template='./customtags/sometag2.cfc' {
+			writeoutput("displays before call static function/");
+			a = testing::something();
+			writeoutput(a);
+		}
+	}else if(form.scene EQ 6){
+		module template='./customtags/sometag2.cfc' {
+			writeoutput("displays before call static function/");
+			a = testing1::something();
+			writeoutput(a);
+		}
+	}
 </cfscript>
