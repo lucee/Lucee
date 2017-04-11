@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -107,6 +109,7 @@ import lucee.runtime.config.XMLConfigFactory;
 import lucee.runtime.config.XMLConfigFactory.UpdateInfo;
 import lucee.runtime.config.XMLConfigServerFactory;
 import lucee.runtime.config.XMLConfigWebFactory;
+import lucee.runtime.engine.listener.CFMLServletContextListener;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -192,13 +195,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private ScriptEngineFactory luceeScriptEngine;
 	private ScriptEngineFactory luceeTagEngine;
 	private Controler controler;
+	private CFMLServletContextListener scl;
     
     //private static CFMLEngineImpl engine=new CFMLEngineImpl();
 
     private CFMLEngineImpl(CFMLEngineFactory factory, BundleCollection bc) {
     	this.factory=factory; 
     	this.bundleCollection=bc;
-
+    	
     	// log the startup process
     	String logDir=SystemUtil.getSystemPropOrEnvVar("startlogdirectory", null);//"/Users/mic/Tmp/");
     	if(logDir!=null) {
@@ -271,8 +275,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
         	// start the controller
             SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT), "Start CFML Controller");
         	controler.start();
-        }        
-        
+        }
+   
         boolean isRe=configDir==null?false:XMLConfigFactory.isRequiredExtension(this, configDir);
         boolean installExtensions=Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.extensions.install",null),true);
         
@@ -644,12 +648,84 @@ public final class CFMLEngineImpl implements CFMLEngine {
     
     @Override
     public void addServletConfig(ServletConfig config) throws ServletException {
+    	
+    	// FUTURE remove
+    	if("LuceeServletContextListener".equals(config.getServletName())) {
+    		try {
+				//Method m = config.getClass().getMethod("getServletContextEvent", new Class[0]);
+				//ServletContextEvent sce=(ServletContextEvent) m.invoke(config, new Object[0]);
+    			String status=config.getInitParameter("status");
+				if("release".equalsIgnoreCase(status)) reset();
+			}
+    		catch (Exception e) {
+				e.printStackTrace();
+			}
+    		return;
+    	}
+    
+    	// add EventListener
+    	if(scl==null) {
+    		addEventListener(config.getServletContext());
+    	}
+    	
+    	
     	servletConfigs.add(config);
     	String real=ReqRspUtil.getRootPath(config.getServletContext());
     	if(!initContextes.containsKey(real)) {
         	CFMLFactory jspFactory = loadJSPFactory(getConfigServerImpl(),config,initContextes.size());
             initContextes.put(real,jspFactory);
         }        
+    }
+    
+    private void addEventListener(ServletContext sc) {
+    	// TOMCAT
+    	if("org.apache.catalina.core.ApplicationContextFacade".equals(sc.getClass().getName())) {
+    		Object obj=extractServletContext(sc);
+    		obj=extractServletContext(obj);
+    		if("org.apache.catalina.core.StandardContext".equals(obj.getClass().getName())) {
+    			Method m=null;
+    			try {
+    				// TODO check if we already have a listener (lucee.loader.servlet.LuceeServletContextListener), if so we do nothing
+    	    		//sc.getApplicationLifecycleListeners();
+    				m=obj.getClass().getMethod("addApplicationLifecycleListener", new Class[]{Object.class});
+					CFMLServletContextListener tmp;
+					m.invoke(obj, new Object[]{tmp=new CFMLServletContextListener(this)});
+					scl=tmp;
+					return;
+				}
+    			catch (Exception e) {}
+    			
+    		}
+    	}
+    	
+    	// GENERAL try add Event method directly (does not work with tomcat)
+    	try{
+	    	CFMLServletContextListener tmp = new CFMLServletContextListener(this);
+	    	sc.addListener(tmp);
+	    	scl=tmp;
+	    	return;
+    	}
+    	catch(Exception e) {}
+    	
+    	SystemOut.printDate("Lucee was not able to register an event listener with "+(sc==null?"null":sc.getClass().getName()));
+	}
+    
+    private Object extractServletContext(Object sc) {
+    	Class<?> clazz = sc.getClass();
+    	Field f=null;
+    	try {
+			f = clazz.getDeclaredField("context");
+		}catch (Exception e) {}
+    	if(f!=null) {
+    		f.setAccessible(true);
+    		Object obj=null;
+    		try {
+				obj = f.get(sc);
+			}
+    		catch (Exception e) {}
+    		return obj;
+    	}
+    	return null;
     }
     
     @Override
@@ -1077,6 +1153,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
     
     @Override
     public void reset(String configId) {
+    	SystemOut.printDate("reset CFML Engine");
         getControler().close();
 		RetireOutputStreamFactory.close();
 		
