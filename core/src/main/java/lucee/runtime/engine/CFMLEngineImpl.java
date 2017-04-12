@@ -58,6 +58,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 
 import lucee.Info;
+import lucee.print;
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.CharsetUtil;
@@ -163,6 +164,7 @@ import lucee.runtime.util.ZipUtilImpl;
 import lucee.runtime.video.VideoUtil;
 import lucee.runtime.video.VideoUtilImpl;
 
+import org.apache.commons.net.telnet.TerminalTypeOptionHandler;
 import org.apache.felix.framework.Felix;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -174,8 +176,7 @@ import org.osgi.framework.Version;
  * The CFMl Engine
  */
 public final class CFMLEngineImpl implements CFMLEngine {
-	
-	
+
 	private static Map<String,CFMLFactory> initContextes=MapFactory.<String,CFMLFactory>getConcurrentMap();
     private static Map<String,CFMLFactory> contextes=MapFactory.<String,CFMLFactory>getConcurrentMap();
     private ConfigServerImpl configServer=null;
@@ -987,67 +988,63 @@ public final class CFMLEngineImpl implements CFMLEngine {
     
     @Override
     public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
-    	CFMLFactory factory=getCFMLFactory(servlet.getServletConfig(), req);
-    	
-    	// is Lucee dialect enabled?
-    	if(!((ConfigImpl)factory.getConfig()).allowLuceeDialect()){
-    		try {
-				PageContextImpl.notSupported();
-			} catch (ApplicationException e) {
-				throw new PageServletException(e);
-			}
-    	}
-        PageContext pc = factory.getLuceePageContext(servlet,req,rsp,null,false,-1,false,true,-1,true,false);
-        ThreadQueue queue = factory.getConfig().getThreadQueue();
-        queue.enter(pc);
-        try {
-        	pc.execute(pc.getHttpServletRequest().getServletPath(),false,true);
-        } 
-        catch (PageException pe) {
-			throw new PageServletException(pe);
-		}
-        finally {
-        	queue.exit(pc);
-            factory.releaseLuceePageContext(pc,true);
-            //FDControllerFactory.notifyPageComplete();
-        }
+    	_service(servlet, req, rsp, Request.TYPE_LUCEE);
     }
     
     @Override
     public void serviceCFML(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
-    	CFMLFactory factory=getCFMLFactory(servlet.getServletConfig(), req);
-    	
-        PageContext pc = factory.getLuceePageContext(servlet,req,rsp,null,false,-1,false,true,-1,true,false);
-        ThreadQueue queue = factory.getConfig().getThreadQueue();
-        queue.enter(pc);
-        try {
-        	/*print.out("INCLUDE");
-        	print.out("servlet_path:"+req.getAttribute("javax.servlet.include.servlet_path"));
-        	print.out("request_uri:"+req.getAttribute("javax.servlet.include.request_uri"));
-        	print.out("context_path:"+req.getAttribute("javax.servlet.include.context_path"));
-        	print.out("path_info:"+req.getAttribute("javax.servlet.include.path_info"));
-        	print.out("query_string:"+req.getAttribute("javax.servlet.include.query_string"));
-        	print.out("FORWARD");
-        	print.out("servlet_path:"+req.getAttribute("javax.servlet.forward.servlet_path"));
-        	print.out("request_uri:"+req.getAttribute("javax.servlet.forward.request_uri"));
-        	print.out("context_path:"+req.getAttribute("javax.servlet.forward.context_path"));
-        	print.out("path_info:"+req.getAttribute("javax.servlet.forward.path_info"));
-        	print.out("query_string:"+req.getAttribute("javax.servlet.forward.query_string"));
-        	print.out("---");
-        	print.out(req.getServletPath());
-        	print.out(pc.getHttpServletRequest().getServletPath());
-        	*/
-        	
-        	pc.executeCFML(pc.getHttpServletRequest().getServletPath(),false,true);
-        } 
-        catch (PageException pe) {
-			throw new PageServletException(pe);
-		}
-        finally {
-        	queue.exit(pc);
-            factory.releaseLuceePageContext(pc,true);
-            //FDControllerFactory.notifyPageComplete();
-        }
+    	_service(servlet, req, rsp, Request.TYPE_CFML);
+    }
+    
+    @Override
+	public void serviceRest(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
+		_service(servlet, new HTTPServletRequestWrap(req), rsp, Request.TYPE_REST);
+	}
+
+    private void _service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, short type) throws ServletException, IOException {
+        CFMLFactoryImpl factory=(CFMLFactoryImpl) getCFMLFactory(servlet.getServletConfig(), req);
+        // is Lucee dialect enabled?
+    	if(type==Request.TYPE_LUCEE) {
+	        if(!((ConfigImpl)factory.getConfig()).allowLuceeDialect()){
+	    		try {
+					PageContextImpl.notSupported();
+				} catch (ApplicationException e) {
+					throw new PageServletException(e);
+				}
+	    	}
+    	}
+        
+        PageContextImpl pc = factory.getPageContextImpl(servlet,req,rsp,null,false,-1,false,false,false,-1,true,false);
+    	try {
+    		Request r=new Request(pc,type);
+	    	r.start();
+	    	long ended=-1;
+	    	do {
+	    		SystemUtil.wait(Thread.currentThread(),1000);
+	    		// done?
+	    		if(r.isDone()) {
+	    			//print.e("mas-done:"+System.currentTimeMillis());
+	    			break;
+	    		}
+	    		// reach request timeout
+	    		else if(ended==-1 && (pc.getStartTime()+pc.getRequestTimeout())<System.currentTimeMillis()) {
+	    			//print.e("req-time:"+System.currentTimeMillis());
+	    			CFMLFactoryImpl.terminate(pc,false);
+	    			ended=System.currentTimeMillis();
+	    			// break; we do not break here, we give the thread itself the chance to end we need the exception output
+	    		}
+	    		// the thread itself seem blocked, so we release this thread
+	    		else if(ended>-1 && ended+10000<=System.currentTimeMillis()) {
+	    			//print.e("give-up:"+System.currentTimeMillis());
+	    			break;
+	    		}
+	    	}
+	    	while(true);
+	    	//print.e("done: "+System.currentTimeMillis());
+    	}
+    	finally {
+    		factory.releaseLuceePageContext(pc,false);
+    	}
     }
 
 	@Override
@@ -1074,31 +1071,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
     		}
     	}
 	}
-	
-
-	@Override
-	public void serviceRest(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
-		req=new HTTPServletRequestWrap(req);
-		CFMLFactory factory=getCFMLFactory(servlet.getServletConfig(), req);
-        
-		PageContext pc = factory.getLuceePageContext(servlet,req,rsp,null,false,-1,false,true,-1,true,false);
-        ThreadQueue queue = factory.getConfig().getThreadQueue();
-        queue.enter(pc);
-        try {
-        	pc.executeRest(pc.getHttpServletRequest().getServletPath(),false);
-        } 
-        catch (PageException pe) {
-			throw new PageServletException(pe);
-		}
-        finally {
-        	queue.exit(pc);
-            factory.releaseLuceePageContext(pc,true);
-            //FDControllerFactory.notifyPageComplete();
-        }
-		
-		
-	}
-    
 
     /*private String getContextList() {
         return List.arrayToList((String[])contextes.keySet().toArray(new String[contextes.size()]),", ");

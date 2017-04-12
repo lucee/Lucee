@@ -1164,10 +1164,10 @@ public final class SystemUtil {
 			}*/
 		}
 	}
-
 	
-	public static void stop(PageContext pc, Log log) {
-		new StopThread(pc,log).start();
+	public static void stop(PageContext pc, Log log, boolean async) {
+		if(async)new StopThread(pc,log).start();
+		else new StopThread(pc,log).run();
 	}
 
 
@@ -1394,23 +1394,6 @@ class StopThread extends Thread {
 		if(thread.isAlive()) {
 				pci.setTimeoutStackTrace();
 				thread.stop();
-				/*try{
-					thread.stop(t);
-				}
-				catch(UnsupportedOperationException uoe){
-					LogUtil.log(log, Log.LEVEL_INFO, "", "Thread.stop(Throwable) is not supported by this JVM and failed with UnsupportedOperationException", thread.getStackTrace());
-					try {
-						// This is a private, native method on the java.lang.Thread object directly
-						Method m = Thread.class.getDeclaredMethod("stop0", new Class[]{Object.class});
-						m.setAccessible(true); // allow to access private method
-						m.invoke(thread, new Object[]{t});
-					}
-					catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | 
-							NoSuchMethodException | SecurityException e) {
-						LogUtil.log(log, Log.LEVEL_ERROR, "", t);
-						thread.stop();
-					}
-				}*/
 		}
 	}
 }

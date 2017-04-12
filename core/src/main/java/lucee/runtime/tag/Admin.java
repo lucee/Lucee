@@ -3252,7 +3252,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         while(it.hasNext()) {
         	pc=it.next();
             if(pc.getId()==id){
-            	CFMLFactoryImpl.terminate(pc);
+            	CFMLFactoryImpl.terminate(pc,true);
             	return true;
             }
         }
