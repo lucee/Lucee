@@ -2429,6 +2429,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
+	<!-- _GetSuperStaticScope -->
+	<function>
+		<name>_GetSuperStaticScope</name>
+		<class>lucee.runtime.functions.other._GetSuperStaticScope</class>
+		<status>hidden</status>
+		<description></description>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
 	<!-- WebserviceNew -->
 	<function>
 		<name>WebserviceNew</name>
