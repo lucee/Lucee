@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
-		describe( "Test suite for LDEV-1266", function() {
-			it( title="checking createObject(), with containing jar directory", body=function( currentSpec ) {
+		describe( "Test suite for LDEV-1269", function() {
+			it( title="checking QoQ oprations", body=function( currentSpec ) {
 				var uri = createURI("LDEV1269/test.cfm");
 				var result = _InternalRequest(
 						template:uri
