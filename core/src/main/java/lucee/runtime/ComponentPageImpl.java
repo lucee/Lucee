@@ -361,15 +361,23 @@ public abstract class ComponentPageImpl extends ComponentPage {
 						}
 					}
 				} 
-				catch (PageException pe) {}
+				catch (PageException pe) {
+					pc.getConfig().getLog("rest").error("REST",pe);
+				}
 			}
 		}
-		if(status==404)
+		if(status==404) {
 			RestUtil.setStatus(pc,404,"no rest service for ["+path+"] found");
-		else if(status==405)
+			pc.getConfig().getLog("rest").error("REST","404; no rest service for ["+path+"] found");
+		}
+		else if(status==405) {
 			RestUtil.setStatus(pc,405,"Unsupported Media Type");
-		else if(status==406)
+			pc.getConfig().getLog("rest").error("REST","405; Unsupported Media Type");
+		}
+		else if(status==406) {
 			RestUtil.setStatus(pc,406,"Not Acceptable");
+			pc.getConfig().getLog("rest").error("REST","406; Not Acceptable");
+		}
 		
     	
 	}

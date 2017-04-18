@@ -2172,7 +2172,7 @@ public final class PageContextImpl extends PageContext {
 		// charset
 		try{
 			String charset=HTTPUtil.splitMimeTypeAndCharset(req.getContentType(),new String[]{"",""})[1];
-		if(StringUtil.isEmpty(charset))charset=getWebCharset().name();
+			if(StringUtil.isEmpty(charset))charset=getWebCharset().name();
 			java.net.URL reqURL = new java.net.URL(req.getRequestURL().toString());
 			String path=ReqRspUtil.decode(reqURL.getPath(),charset,true);
 			String srvPath=req.getServletPath();
@@ -2314,6 +2314,7 @@ public final class PageContextImpl extends PageContext {
 		
 		if(mapping==null || mapping.getPhysical()==null){
 			RestUtil.setStatus(this,404,"no rest service for ["+pathInfo+"] found");
+			getConfig().getLog("rest").error("REST", "no rest service for ["+pathInfo+"] found");
 		}
 		else {
 			base=config.toPageSource(null, mapping.getPhysical(), null);
