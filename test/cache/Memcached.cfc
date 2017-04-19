@@ -53,33 +53,32 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		wasFound = !isNull(theValue);
 		assertFalse(wasFound);		
 	}
-
 	private string function defineCache(){
 		application action="update" 
 			caches="#{memcached:this.cache.connections["mem"] = {
-	  class: 'org.lucee.extension.io.cache.memcache.MemCacheRaw'
-	, bundleName: 'memcached.extension'
-	, bundleVersion: '3.0.2.28'
-	, storage: false
-	, custom: {
-		"socket_timeout":"30",
-		"initial_connections":"1",
-		"alive_check":"true",
-		"buffer_size":"1",
-		"max_spare_connections":"32",
-		"storage_format":"Binary",
-		"socket_connect_to":"3",
-		"min_spare_connections":"1",
-		"maint_thread_sleep":"5",
-		"failback":"true",
-		"max_idle_time":"600",
-		"max_busy_time":"30",
-		"nagle_alg":"true",
-		"failover":"true",
-		"servers":"localhost"
-	}
-	, default: ''
-};}#";
+						  class: 'org.lucee.extension.io.cache.memcache.MemCacheRaw'
+						, bundleName: 'memcached.extension'
+						, bundleVersion: '3.0.2.28'
+						, storage: false
+						, custom: {
+							"socket_timeout":"30",
+							"initial_connections":"1",
+							"alive_check":"true",
+							"buffer_size":"1",
+							"max_spare_connections":"32",
+							"storage_format":"Binary",
+							"socket_connect_to":"3",
+							"min_spare_connections":"1",
+							"maint_thread_sleep":"5",
+							"failback":"true",
+							"max_idle_time":"600",
+							"max_busy_time":"30",
+							"nagle_alg":"true",
+							"failover":"true",
+							"servers":"localhost"
+						}
+						, default: ''
+					}}#";
 
 
 
