@@ -55,7 +55,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 	private string function defineCache(){
 		application action="update" 
-			caches="#{memcached:this.cache.connections["mem"] = {
+			caches="#{memcached:{
 						  class: 'org.lucee.extension.io.cache.memcache.MemCacheRaw'
 						, bundleName: 'memcached.extension'
 						, bundleVersion: '3.0.2.28'
