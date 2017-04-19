@@ -6,6 +6,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		createMapping();
 	}
 
+	function afterAll(){
+		removeMapping();
+	}
+	
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-1197", function() {
 			describe( "checking server Mapping", function() {
@@ -47,7 +51,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		return baseURI&""&calledName;
 	}
 
-	private string function createMapping(string calledName){
+	private string function createMapping(){
 		 admin
 			action="updateMapping"
 			type="web"
@@ -73,6 +77,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			inspect=""
 			toplevel="yes"
 			remoteClients="";
+	}
 
+	private string function removeMapping(){
+		 admin
+			action="removeMapping"
+			type="web"
+			password="#variables.Webadmin#"
+			virtual="/w1197"
+			remoteClients="";
+
+		admin
+			action="removeMapping"
+			type="server"
+			password="#variables.serveradmin#"
+			virtual="/s1197"
+			remoteClients="";
 	}
 }
