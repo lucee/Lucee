@@ -75,7 +75,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 							"max_busy_time":"30",
 							"nagle_alg":"true",
 							"failover":"true",
-							"servers":"localhost"
+							"servers":"localhost:11211"
 						}
 						, default: ''
 					}}#";
