@@ -23,17 +23,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	//public function afterTests(){}
 	
 	public function setUp(){
-		defineCache();
+		variables.has=defineCache();
 	}
 
-	public void function test(){
+	public boolean function isNotSupported() {
+		if(isNull(variables.has)) setUp();
+		return !variables.has;
+	}
+
+	public void function test() skip="isNotSupported" {
 		cachePut(id:'abc', value:'AAA', cacheName:variables.cacheName);
 		var val=cacheget(id:'abc', cacheName:variables.cacheName);
 		assertEquals("AAA",val);
 		
 	}
 
-	private void function testTimespan() {
+	private void function testTimespan() skip="isNotSupported" {
 		
 		var rightNow = Now();
 		var testData = {"time": rightNow};
@@ -56,8 +61,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	private string function defineCache(){
-		application action="update" 
-			caches="#{memcached:{
+		try {
+			application action="update" 
+				caches="#{memcached:{
 						  class: 'org.lucee.extension.io.cache.memcache.MemCacheRaw'
 						, bundleName: 'memcached.extension'
 						, bundleVersion: '3.0.2.28'
@@ -81,13 +87,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 						}
 						, default: ''
 					}}#";
+			cachePut(id='abcd', value=1234, cacheName=variables.cacheName);
+			return true;
+		}
+		catch(e) {
+
+		}
+
 
 
 
 
 
 	
-	return true;
+		return false;
 	}
 
 } 
