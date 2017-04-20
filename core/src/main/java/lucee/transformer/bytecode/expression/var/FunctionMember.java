@@ -18,6 +18,7 @@
  **/
 package lucee.transformer.bytecode.expression.var;
 
+import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.var.Member;
 import lucee.transformer.expression.var.Variable;
 
@@ -27,6 +28,7 @@ public abstract class FunctionMember implements Member {
 	private boolean _hasNamedArgs;
 	private Variable parent;
 	private boolean safeNavigated;
+	private Expression safeNavigatedValue;
 
 
 	public final void setParent(Variable parent) {
@@ -70,5 +72,15 @@ public abstract class FunctionMember implements Member {
 	@Override
 	public boolean getSafeNavigated() {
 		return this.safeNavigated;
+	}
+
+	@Override
+	public void setSafeNavigatedValue(Expression safeNavigatedValue) {
+		this.safeNavigatedValue=safeNavigatedValue;
+	}
+
+	@Override
+	public Expression getSafeNavigatedValue() {
+		return safeNavigatedValue;
 	}
 }

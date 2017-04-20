@@ -367,9 +367,21 @@ public abstract class AbstrCFMLExprTransformer {
             	Expression right = assignOp(data);
         		
         		if(!(expr instanceof Variable) )
-        			throw new TemplateException(data.srcCode,"left operant of the Elvis operator has to be a variable or a function call");
-        		
-        		return OpElvis.toExpr((Variable)expr, right);
+					throw new TemplateException(data.srcCode,"left operant of the Elvis operator has to be a variable or a function call");
+
+				Variable left = (Variable)expr;
+				/* LDEV-1201
+				List<Member> members = left.getMembers();
+				Member last=null;
+				for(Member m:members) {
+					last=m;
+					m.setSafeNavigated(true);
+				}
+				if(last!=null) {
+					last.setSafeNavigatedValue(right);
+				}
+				return left;*/
+				return OpElvis.toExpr(left, right);
         	}
         	
         	Expression left = assignOp(data);
