@@ -114,6 +114,7 @@ import lucee.runtime.exp.SecurityException;
 import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.extension.Extension;
+import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.ExtensionImpl;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
@@ -2690,13 +2691,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		boolean asBinary=getBoolV("asBinary", false);
 		
 		if(asBinary) {
-			Iterator<RHExtension> it = DeployHandler.getLocalExtensions(config).iterator();
-			RHExtension ext;
+			Iterator<ExtensionDefintion> it = DeployHandler.getLocalExtensions(config).iterator();
+			ExtensionDefintion ext;
 			while(it.hasNext()){
 				ext=it.next();
 				if(id.equalsIgnoreCase(ext.getId())) {
 					try {
-						pageContext.setVariable(getString("admin",action,"returnVariable"),IOUtil.toBytes(ext.getExtensionFile()));
+						pageContext.setVariable(getString("admin",action,"returnVariable"),IOUtil.toBytes(ext.getSource()));
 						return;
 					} catch (IOException e) {
 						throw Caster.toPageException(e);
@@ -2708,7 +2709,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			
 		}
 		else {
-			List<RHExtension> locals = DeployHandler.getLocalExtensions(config);
+			List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config));
 			Query qry = RHExtension.toQuery(config, locals.toArray(new RHExtension[locals.size()]));
 			int rows=qry.getRecordcount();
 			String _id;
@@ -2726,7 +2727,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 	
 	private void doGetLocalExtensions() throws PageException {
-		List<RHExtension> locals = DeployHandler.getLocalExtensions(config);
+		List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config));
 		Query qry = RHExtension.toQuery(config, locals.toArray(new RHExtension[locals.size()]));
 		pageContext.setVariable(getString("admin",action,"returnVariable"),qry);
 	}
@@ -3253,7 +3254,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         while(it.hasNext()) {
         	pc=it.next();
             if(pc.getId()==id){
-            	CFMLFactoryImpl.terminate(pc);
+            	CFMLFactoryImpl.terminate(pc,true);
             	return true;
             }
         }

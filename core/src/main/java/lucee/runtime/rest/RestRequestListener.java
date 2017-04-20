@@ -62,6 +62,7 @@ public class RestRequestListener implements RequestListener {
 		
 		if(result==null) {
 			RestUtil.setStatus(pc,404,"no rest service for ["+path+"] found in mapping ["+mapping.getVirtual()+"]");
+			pc.getConfig().getLog("rest").error("REST", "no rest service for ["+path+"] found in mapping ["+mapping.getVirtual()+"]");
 			return null;
 		}
 		

@@ -638,7 +638,7 @@ public final class Application extends TagImpl {
 					}
 					// cache definition
 					else if((sct=Caster.toStruct(e.getValue(),null))!=null) {
-						CacheConnection cc = ModernApplicationContext.toCacheConnection(pageContext.getConfig(), e.getKey().getString(), sct, null);
+						CacheConnection cc = ModernApplicationContext.toCacheConnection(pageContext.getConfig(), e.getKey().getString(), sct);
 						if(cc!=null) {
 							acs.setCacheConnection(e.getKey().getString(), cc);
 							name=e.getKey().getString();

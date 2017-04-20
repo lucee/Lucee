@@ -426,7 +426,7 @@ component {
 				var comment = structKeyExists(arguments.meta,'comment') ? "<br />" & replace(HTMLEditFormat(arguments.meta.comment),chr(10),' <br>','all') : '';
 
 				rtn&=('<tr>');
-				rtn&=('<td onclick="dumpOC(''#id#'');" colspan="#columnCount#" class="h1#variables.colorKeys[arguments.meta.colorId]#">');
+				rtn&=('<td onclick="dumpOC(''#id#'');" colspan="#columnCount#" class="luceeH1#variables.colorKeys[arguments.meta.colorId]#">');
 				rtn&=('<span>#arguments.meta.title##metaID#</span>');
 				rtn&=(comment & '</td>');
 				rtn&=('</tr>');
@@ -450,12 +450,12 @@ component {
 						if(isStruct(node)) {
 							var value = this.classic(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level+1);
 
-							rtn&=('<td class="#doHighlight(arguments.meta,c)?'h2':'n'##variables.colorKeys[arguments.meta.colorId]#">');
+							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH2':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">');
 							rtn&=(value);
 							rtn&=( '</td>');
 						}
 						else {
-							rtn&=('<td class="#doHighlight(arguments.meta,c)?'h2':'n'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>');
+							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH2':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>');
 						}
 						c *= 2;
 					}

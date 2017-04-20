@@ -154,7 +154,7 @@ public final class HSQLDBHandler {
 						else if(type==DOUBLE)
 							prepStat.setDouble(i+1,(value.equals(""))?0:Caster.toDoubleValue(query.getAt(keys[i],y+1)));
 						else if(type==INT)
-							prepStat.setLong(i+1,(value.equals(""))?0:Caster.toIntValue(query.getAt(keys[i],y+1)));
+							prepStat.setLong(i+1,(value.equals(""))?0:Caster.toLongValue(query.getAt(keys[i],y+1)));
 						else if(type==STRING)
 							prepStat.setObject(i+1,Caster.toString(value));
 					}

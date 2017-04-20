@@ -64,7 +64,11 @@ public class NativeException extends PageExceptionImpl {
 	}
 	
 	public static NativeException newInstance(Throwable t) {
-		if(t instanceof ThreadDeath) // never ever catch this
+		return newInstance(t, true);
+	}
+	
+	public static NativeException newInstance(Throwable t, boolean rethrowIfNecessary) {
+		if(rethrowIfNecessary && t instanceof ThreadDeath) // never ever catch this
 			throw (ThreadDeath)t;
 		return new NativeException(t);
 	}

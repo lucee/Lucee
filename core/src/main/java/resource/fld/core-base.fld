@@ -2420,10 +2420,21 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<argument>
 			<name>cfc</name>
 			<alias>cfcName,component,componentName</alias>
-			<type>object</type>
+			<type>string</type>
 			<required>Yes</required>
 			<description>component or component name</description>
 	    </argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
+	<!-- _GetSuperStaticScope -->
+	<function>
+		<name>_GetSuperStaticScope</name>
+		<class>lucee.runtime.functions.other._GetSuperStaticScope</class>
+		<status>hidden</status>
+		<description></description>
 		<return>
 			<type>struct</type>
 		</return>
@@ -5411,6 +5422,23 @@ Example Values:
 		</argument>
 		<return>
 			<type>any</type>
+		</return>
+	</function>
+	
+	<!-- GetComponentStaticScope -->
+	<function>
+		<name>GetComponentStaticScope</name>
+		<class>lucee.runtime.functions.system.GetComponentStaticScope</class>
+		<description>returns the static scope of a specific component, of course access rules aply.</description>
+		<argument>
+			<name>component</name>
+			<alias>name,componentName,cfc</alias>
+			<type>string</type>
+			<required>yes</required>
+			<description>name of the component to get static scope, for example "org.lucee.cfml.Query".</description>
+		</argument>
+		<return>
+			<type>struct</type>
 		</return>
 	</function>
 	

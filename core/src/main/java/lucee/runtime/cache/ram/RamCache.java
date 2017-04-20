@@ -101,6 +101,17 @@ public class RamCache extends CacheSupport {
 		return this;
 	}
 	
+	public void release() {
+		entries.clear();
+		missCount=0;
+		hitCount=0;
+		idleTime=0;
+		until=0;
+		controlInterval=DEFAULT_CONTROL_INTERVAL*1000;
+		decouple=false;
+		if(controller!=null && controller.isAlive())controller.interrupt();
+	} 
+	
 	@Override
 	public boolean contains(String key) {
 		return _getQuiet(key,null)!=null;

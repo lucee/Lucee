@@ -837,7 +837,14 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	@Override
 	public Object getAt(Collection.Key key, int row, Object defaultValue) {
 		int index=getIndexFromKey(key);
-		if(index!=-1) {
+		if(index!=-1 ) {
+			// we only return default value if row exists
+			/* LDEV-1201
+			if(row>0 && row<=recordcount)
+				return columns[index].get(row, NullSupportHelper.full()?null:"");
+			else
+				return defaultValue;
+			*/
 			return columns[index].get(row,defaultValue);
 		}
 		if(key.length()>=10) {

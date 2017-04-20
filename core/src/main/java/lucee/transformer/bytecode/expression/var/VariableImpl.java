@@ -217,8 +217,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		return _writeOut(bc, mode, asCollection);
 	}
 	private Type _writeOut(BytecodeContext bc, int mode,Boolean asCollection) throws TransformerException {
-		
-		
+
 		GeneratorAdapter adapter = bc.getAdapter();
 		final int count=countFM+countDM;
 		
@@ -263,7 +262,9 @@ public class VariableImpl extends ExpressionBase implements Variable {
 						// safe nav
 						int type;
 						if(member.getSafeNavigated()) {
-							ASMConstants.NULL(adapter);
+							Expression val = member.getSafeNavigatedValue();
+							if(val==null)ASMConstants.NULL(adapter);
+							else val.writeOut(bc, mode);
 							type=THREE;
 						}
 						else type=TWO;
@@ -275,7 +276,9 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					// safe nav
 					int type;
 					if(member.getSafeNavigated()) {
-						ASMConstants.NULL(adapter);
+						Expression val = member.getSafeNavigatedValue();
+						if(val==null)ASMConstants.NULL(adapter);
+						else val.writeOut(bc, mode);
 						type=THREE;
 					}
 					else type=TWO;
@@ -293,22 +296,14 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	}
 	
 	private Type _writeOutCallerUtil(BytecodeContext bc, int mode) throws TransformerException {
-		
-		
+
 		GeneratorAdapter adapter = bc.getAdapter();
 		final int count=countFM+countDM;
 		
 		// count 0
         if(count==0) return _writeOutEmpty(bc);
        
-    	
-    	//boolean last;
-    	/*for(int i=doOnlyScope?0:1;i<count;i++) {
-			adapter.loadArg(0);
-    	}*/
-    	
         // pc
-        //adapter.loadArg(0);
         adapter.loadArg(0);
         
         // collection
@@ -638,7 +633,9 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		int type;
 		if(udf.getSafeNavigated()) {
 			type=THREE;
-			ASMConstants.NULL(bc.getAdapter());
+			Expression val = udf.getSafeNavigatedValue();
+			if(val==null)ASMConstants.NULL(bc.getAdapter());
+			else val.writeOut(bc, Expression.MODE_REF);
 		}
 		else type=TWO;
 		
@@ -713,13 +710,11 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					_last?METHOD_SCOPE_GET_COLLECTION_KEY:METHOD_SCOPE_GET_KEY);
 		}
 		else {
-			ASMConstants.NULL(adapter);
+			Expression val = member.getSafeNavigatedValue();
+			if(val==null)ASMConstants.NULL(bc.getAdapter());
+			else val.writeOut(bc, Expression.MODE_REF);
 			adapter.invokeVirtual(Types.PAGE_CONTEXT,_last?GET_COLLECTION[THREE]:GET[THREE]);
 		}
-		
-		
-		
-		
 		return Types.OBJECT;
 	}
 

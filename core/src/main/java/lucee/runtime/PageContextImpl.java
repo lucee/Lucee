@@ -120,6 +120,7 @@ import lucee.runtime.exp.MissingIncludeException;
 import lucee.runtime.exp.NoLongerSupported;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
+import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.functions.dynamicEvaluation.Serialize;
 import lucee.runtime.functions.owasp.ESAPIEncode;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
@@ -337,7 +338,7 @@ public final class PageContextImpl extends PageContext {
 	private Password serverPassword;
 
 	private PageException pe;
-    private Throwable requestTimeoutException;
+    //private Throwable requestTimeoutException;
 
 	private int currentTemplateDialect=CFMLEngine.DIALECT_LUCEE;
 	private int requestDialect=CFMLEngine.DIALECT_LUCEE;
@@ -346,6 +347,8 @@ public final class PageContextImpl extends PageContext {
 	private int appListenerType=ApplicationListener.TYPE_NONE;
 
 	private ThreadsImpl currentThread;
+
+	private StackTraceElement[] timeoutStacktrace;
 
 
 	/** 
@@ -392,11 +395,18 @@ public final class PageContextImpl extends PageContext {
 	 * @return
 	 */
 	public Throwable getRequestTimeoutException() {
-		return requestTimeoutException;
+		throw new RuntimeException("method no longer supported");
+		//return requestTimeoutException;
 	}
-	public void setRequestTimeoutException(Throwable requestTimeoutException) {
+	/*public void setRequestTimeoutException(Throwable requestTimeoutException) {
 		this.requestTimeoutException=requestTimeoutException;
 		
+	}*/
+	public StackTraceElement[] getTimeoutStackTrace() {
+		return timeoutStacktrace;
+	}
+	public void setTimeoutStackTrace() {
+		this.timeoutStacktrace=thread.getStackTrace();
 	}
 
 	
@@ -493,12 +503,12 @@ public final class PageContextImpl extends PageContext {
 		 request.initialize(this);
 		 
 		 if(config.mergeFormAndURL()) {
-			 url=urlForm;
-			 form=urlForm;
+			url=urlForm;
+			form=urlForm;
 		 }
 		 else {
-			 url=_url;
-			 form=_form;
+			url=_url;
+			form=_form;
 		 }
 		 //url.initialize(this);
 		 //form.initialize(this);
@@ -515,6 +525,7 @@ public final class PageContextImpl extends PageContext {
 			debugger.init(config);
 		
 		undefined.initialize(this);
+		timeoutStacktrace=null;
 		return this;
 	 }
 	
@@ -1943,10 +1954,9 @@ public final class PageContextImpl extends PageContext {
 	}
 	
 	public void handlePageException(PageException pe, boolean setHeader) {
-	
 		if(!Abort.isSilentAbort(pe)) {
-			if(requestTimeoutException!=null)
-				pe=Caster.toPageException(requestTimeoutException);
+			//if(requestTimeoutException!=null)
+			//	pe=Caster.toPageException(requestTimeoutException);
 			
 			int statusCode=getStatusCode(pe);
 				
@@ -2162,7 +2172,7 @@ public final class PageContextImpl extends PageContext {
 		// charset
 		try{
 			String charset=HTTPUtil.splitMimeTypeAndCharset(req.getContentType(),new String[]{"",""})[1];
-		if(StringUtil.isEmpty(charset))charset=getWebCharset().name();
+			if(StringUtil.isEmpty(charset))charset=getWebCharset().name();
 			java.net.URL reqURL = new java.net.URL(req.getRequestURL().toString());
 			String path=ReqRspUtil.decode(reqURL.getPath(),charset,true);
 			String srvPath=req.getServletPath();
@@ -2304,6 +2314,7 @@ public final class PageContextImpl extends PageContext {
 		
 		if(mapping==null || mapping.getPhysical()==null){
 			RestUtil.setStatus(this,404,"no rest service for ["+pathInfo+"] found");
+			getConfig().getLog("rest").error("REST", "no rest service for ["+pathInfo+"] found");
 		}
 		else {
 			base=config.toPageSource(null, mapping.getPhysical(), null);
@@ -2389,13 +2400,19 @@ public final class PageContextImpl extends PageContext {
 		ApplicationListener listener=getRequestDialect()==CFMLEngine.DIALECT_CFML?
 				(gatewayContext?config.getApplicationListener():((MappingImpl)ps.getMapping()).getApplicationListener())
 				:ModernAppListener.getInstance();
+		Throwable _t=null;
 		try {
 			initallog();
 			listener.onRequest(this,ps,null);
 			log(false);
 		}
 		catch(Throwable t) {
-			PageException pe = Caster.toPageException(t);
+			PageException pe;
+			if(t instanceof ThreadDeath && getTimeoutStackTrace()!=null) {
+				t=pe=new RequestTimeoutException(this);
+			}
+			else pe = Caster.toPageException(t,false);
+			_t=t;
 			if(!Abort.isSilentAbort(pe)){
 				this.pe=pe;
 				log(true);
@@ -2419,11 +2436,14 @@ public final class PageContextImpl extends PageContext {
 				try {
 					listener.onDebug(this);
 				} 
-				catch (PageException pe) {
+				catch (Exception e) {
+					pe=Caster.toPageException(e);
 					if(!Abort.isSilentAbort(pe))listener.onError(this,pe);
+					ExceptionUtil.rethrowIfNecessary(e);
 				}
 			}
 			ps=null;
+			if(_t!=null)ExceptionUtil.rethrowIfNecessary(_t);
 		}
 	}
 	

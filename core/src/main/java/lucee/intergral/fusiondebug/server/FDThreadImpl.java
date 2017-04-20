@@ -68,7 +68,7 @@ public class FDThreadImpl implements IFDThread {
 	@Override
 	public void stop() {
 		Log log = pc.getConfig().getLog("application");
-		SystemUtil.stop(pc,log);
+		SystemUtil.stop(pc,log,true);
 	}
 	
 	@Override

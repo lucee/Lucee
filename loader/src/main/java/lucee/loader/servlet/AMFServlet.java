@@ -47,8 +47,7 @@ public class AMFServlet extends AbsServlet {
 	 *      javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
-	protected void service(final HttpServletRequest req,
-			final HttpServletResponse rsp) throws ServletException, IOException {
+	protected void service(final HttpServletRequest req, final HttpServletResponse rsp) throws ServletException, IOException {
 		if (engine == null)
 			engine = CFMLEngineFactory.getInstance(getServletConfig(), this);
 		engine.serviceAMF(this, req, rsp);

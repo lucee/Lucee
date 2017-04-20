@@ -15,6 +15,7 @@ services:
   - mysql # server:"127.0.0.1"; user:"root"; password:""
   - postgresql "9.6" # server:"127.0.0.1"; user:"postgres"; password:""
   - mongodb #  server:"127.0.0.1" user/pass see below
+  - memcached # Memcached uses the default configuration and binds to localhost.
 
 before_install:
   - mysql -e "create database IF NOT EXISTS test;" -uroot

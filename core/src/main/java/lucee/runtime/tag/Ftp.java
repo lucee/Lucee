@@ -56,12 +56,15 @@ import org.apache.commons.net.ftp.FTPFile;
 public final class Ftp extends TagImpl {
     
     private static final String ASCCI_EXT_LIST="txt;htm;html;cfm;cfml;shtm;shtml;css;asp;asa";
+    private static final int PORT_FTP=21;
+    private static final int PORT_SFTP=22;
 
 	private static final Key SUCCEEDED = KeyImpl.intern("succeeded");
 	private static final Key ERROR_CODE = KeyImpl.intern("errorCode");
 	private static final Key ERROR_TEXT = KeyImpl.intern("errorText");
 	private static final Key RETURN_VALUE = KeyImpl.intern("returnValue");
 	private static final Key CFFTP = KeyImpl.intern("cfftp");
+	
 	/*private static final Key  = KeyImpl.getInstance();
 	private static final Key  = KeyImpl.getInstance();
 	private static final Key  = KeyImpl.getInstance();
@@ -76,7 +79,7 @@ public final class Ftp extends TagImpl {
 	private String password;
 	private String server;
 	private int timeout=30;
-	private int port=21;
+	private int port=-1;
 	private String connectionName;
 	private int retrycount=1;
 	private int count=0;
@@ -115,7 +118,7 @@ public final class Ftp extends TagImpl {
 		this.password=null;
 		this.server=null;
 		this.timeout=30;
-		this.port=21;
+		this.port=-1;
 		this.connectionName=null;
 		this.proxyserver=null;
 		this.proxyport=80;
@@ -142,13 +145,17 @@ public final class Ftp extends TagImpl {
     	recursive=false;
     	
 	}
+    
+	public void setAction(String action) {
+		this.action=action.trim().toLowerCase();
+	}
 
 	/**
 	 * sets the attribute action
 	 * @param action
 	 */
-	public void setAction(String action) {
-		this.action=action.trim().toLowerCase();
+	public void setSecure(boolean secure) {
+		this.secure=secure;
 	}
 
 	@Override
@@ -709,7 +716,7 @@ public final class Ftp extends TagImpl {
      * @return return a new FTP Connection Object
      */
     private FTPConnection _createConnection() {
-        return new FTPConnectionImpl(connectionName,server,username,password,port,timeout,transferMode,passive,
+        return new FTPConnectionImpl(connectionName,server,username,password,getPort(),timeout,transferMode,passive,
         		proxyserver,proxyport,proxyuser,proxypassword,
         		fingerprint,stoponerror,secure);
     }
@@ -743,6 +750,10 @@ public final class Ftp extends TagImpl {
      */
     public void setPort(double port) {
         this.port = (int)port;
+    }
+    public int getPort() {
+    	if(port!=-1) return port;
+        return secure?PORT_SFTP:PORT_FTP;
     }
     /**
      * @param connection The connection to set.
@@ -880,10 +891,6 @@ public final class Ftp extends TagImpl {
      */
     public void setResult(String result) {
         this.result = result;
-    }
-
-    public void setSecure(boolean secure) {
-        this.secure = secure;
     }
 
     public void setFingerprint(String fingerprint) {

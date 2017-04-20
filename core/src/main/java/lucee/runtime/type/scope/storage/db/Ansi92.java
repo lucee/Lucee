@@ -79,27 +79,43 @@ public class Ansi92 extends SQLExecutorSupport {
 		}
 		catch (DatabaseException de) {
 			if(dc==null || !createTableIfNotExist) throw de;
+			// table does not exist???
 			try {
 				SQL sql = createSQL(dc,DataSourceUtil.isMySQL(dc)?"longtext":"ntext",strType);
 				ScopeContext.info(log,sql.toString());
 				new QueryImpl(pc,dc,sql,-1,-1,null,"query");
 			}
 			catch (DatabaseException _de) {
+				// don't like "ntext", try text
 				try {
 					SQL sql = createSQL(dc,"text",strType);
 					ScopeContext.info(log,sql.toString());
 					new QueryImpl(pc,dc,sql,-1,-1,null,"query");
 				}
 				catch (DatabaseException __de) {
+					// don't like text, try "memo"
 					try {
 						SQL sql = createSQL(dc,"memo",strType);
 						ScopeContext.info(log,sql.toString());
 						new QueryImpl(pc,dc,sql,-1,-1,null,"query");
 					}
 					catch (DatabaseException ___de) {
-						SQL sql = createSQL(dc,"clob",strType);
-						ScopeContext.info(log,sql.toString());
-						new QueryImpl(pc,dc,sql,-1,-1,null,"query");
+						// don't like "memo", try clob
+						try {
+							SQL sql = createSQL(dc,"clob",strType);
+							ScopeContext.info(log,sql.toString());
+							new QueryImpl(pc,dc,sql,-1,-1,null,"query");
+						}
+						catch (DatabaseException ____de) {
+							___de.initCause(__de);
+							__de.initCause(_de);
+							_de.initCause(de);
+							// we could not create the table, so there seem to be an other ecception we cannot solve
+							DatabaseException exp= new DatabaseException("Unable to select from your client storage database, and was also unable to create the tables. Here's the exceptions we encountered.", null, null, dc);
+							exp.initCause(de);
+							throw exp;
+							
+						}
 					}
 				}
 			}

@@ -79,6 +79,7 @@ import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheConnectionImpl;
+import lucee.runtime.cache.CacheConnectionPlus;
 import lucee.runtime.cache.ServerCacheConnection;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.request.RequestCacheHandler;
@@ -114,6 +115,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.extension.Extension;
+import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.ExtensionImpl;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.ExtensionProviderImpl;
@@ -383,8 +385,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if(LOG)SystemOut.printDate("fixed PSQ");
 		if(XMLConfigAdmin.fixLogging(cs,config,doc)) reload=true;
 		if(LOG)SystemOut.printDate("fixed logging");
-		XMLConfigAdmin.fixOldExtensionLocation(config);
-		if(LOG)SystemOut.printDate("fixed old extension location");
+		if(XMLConfigAdmin.fixExtension(config,doc)) reload=true;
+		if(LOG)SystemOut.printDate("fixed Extension");
 		
 		// delete to big felix.log (there is also code in the loader to do this, but if the loader is not updated ...)
 		if(config instanceof ConfigServerImpl) {
@@ -4269,39 +4271,22 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		Element parent = getChildByName(doc.getDocumentElement(), "extensions");
 		Element[] children = getChildren(parent, "rhextension");
 		String strBundles;
-		Map<String, BundleDefinition> extensionBundles=new HashMap<String,BundleDefinition>();
 		List<RHExtension> extensions=new ArrayList<RHExtension>();
 		
-		for(Element child:children){
-			RHExtension rhe;
+		RHExtension rhe;
+		for(Element child:children) {
+			BundleInfo[] bfsq;
 			try {
-				rhe = new RHExtension(config,child);
+				rhe=new RHExtension(config, child);
+				
 				if(rhe.getStartBundles()) rhe.deployBundles(config);
 				extensions.add(rhe);
 			} catch (Exception e) {
 				log.error("load-extension", e);
 				continue;
 			}
-
-			BundleInfo[] bfs = rhe.getBundles();
-			BundleInfo bf;
-			BundleDefinition bd;
-			for(int i=0;i<bfs.length;i++) {
-				bf=bfs[i];
-				extensionBundles.put(bf.getSymbolicName()+"|"+bf.getVersionAsString(), bd=bf.toBundleDefinition());
-				try {
-					if(rhe.getStartBundles()) {
-						Bundle b = bd.getBundle(config);
-						OSGiUtil.startIfNecessary(b);
-					}
-				} 
-				catch (BundleException e) {
-					log.error("OSGi", e);
-				}
-			}
 		}
 		config.setExtensions(extensions.toArray(new RHExtension[extensions.size()]));
-		config.setExtensionBundleDefintions(extensionBundles);
 	}
 
 	private static void loadExtensions(ConfigServerImpl configServer, ConfigImpl config, Document doc) {

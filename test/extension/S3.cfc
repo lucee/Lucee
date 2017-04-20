@@ -46,8 +46,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if(!fileExists(sub))
 			fileWrite(sub, "");
 
-		assertFalse(directoryExists(sub));
-		assertTrue(fileExists(sub));
+		assertTrue(directoryExists(sub));
+		assertFalse(fileExists(sub));
 
 		// because previous file is empty it is accepted as directory
 		var subsub=sub & "/foo.txt";

@@ -1,6 +1,6 @@
-/**
+<!--- 
  *
- * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
+ * Copyright (c) 2015, Lucee Assosication Switzerland. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,19 +15,11 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- **/
-package lucee.runtime.exp;
+ ---><cfscript>
+component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
-public class StopException extends Abort implements Stop {
-	private StackTraceElement[] stacktrace;
+	public void function testLoadingClassicExternalJarsUsingContextClassloaderToLoadRes(){
+		include "LDEV0219/test.cfm";
 
-	public StopException(Thread t){
-		super(SCOPE_REQUEST,"Thread forced to stop!");
-		this.stacktrace=t!=null?t.getStackTrace():null;
-	}
-	
-	@Override
-	public StackTraceElement[] getStackTrace() {
-		return stacktrace;
-	}
-}
+} 
+</cfscript>

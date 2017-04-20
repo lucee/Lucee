@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
@@ -158,7 +159,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	@Override
 	public void releaseConnection(PageContext pc,DatasourceConnection dc) {
 		if(autoCommit) {
-			config.getDatasourceConnectionPool().releaseDatasourceConnection(dc,pc!=null && pc.getRequestTimeoutException()!=null);
+			config.getDatasourceConnectionPool().releaseDatasourceConnection(dc,pc!=null && ((PageContextImpl)pc).getTimeoutStackTrace()!=null);
 		}
 	}
 	

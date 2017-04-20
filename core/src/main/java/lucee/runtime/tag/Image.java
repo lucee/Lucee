@@ -512,10 +512,6 @@ public final class Image extends TagImpl {
 		}
 		// link destination
 		if(StringUtil.isEmpty(name))writeLink(path);
-		
-		
-		
-		
 	}
 
 
