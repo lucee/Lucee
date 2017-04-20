@@ -10,8 +10,8 @@ public class QueryArrayItem extends QueryResultCacheItem {
 
 	public final QueryArray queryArray;
 
-	public QueryArrayItem(QueryArray queryArray){
-		super(queryArray);
+	public QueryArrayItem(QueryArray queryArray, String[] tags){
+		super(queryArray,tags);
 		this.queryArray=queryArray;
 	}
 
@@ -28,7 +28,7 @@ public class QueryArrayItem extends QueryResultCacheItem {
 
 	@Override
 	public Object duplicate(boolean deepCopy) {
-		return new QueryArrayItem((QueryArray)queryArray.duplicate(true));
+		return new QueryArrayItem((QueryArray)queryArray.duplicate(true),getTags());
 	}
 
 }

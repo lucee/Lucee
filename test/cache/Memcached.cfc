@@ -86,7 +86,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 						, default: ''
 					}}#";
 			cachePut(id='abcd', value=1234, cacheName=variables.cacheName);
-			return true;
+			return !isNull(cacheget(id:'abcd', cacheName:variables.cacheName));
 		}
 		catch(e) {}
 		return false;
