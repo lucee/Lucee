@@ -17,7 +17,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var result = _InternalRequest(
 						template:"#variables.uri#/server/import.cfm"
 					);
-					expect(result.filecontent.trim()).toBe('false');
+					expect(result.filecontent.trim()).toBe('<span style="color:red">Mapping in server work fine on cfimport</span>');
 				});
 
 				it( title='checking server mapping with create object', body=function( currentSpec ) {
@@ -33,7 +33,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var result = _InternalRequest(
 						template:"#variables.uri#/web/import.cfm"
 					);
-					expect(result.filecontent.trim()).toBe('false');
+					expect(result.filecontent.trim()).toBe('<span style="color:red">Mapping in web work fine on cfimport</span>');
 				});
 
 				it( title='checking web mapping with create object', body=function( currentSpec ) {

@@ -1,8 +1,7 @@
 <cftry>
 	<cfimport taglib="/s1197/lib" prefix="t">
-	<cfset Error = "false">
+	<t:redden message="Mapping in server work fine on cfimport">
 	<cfcatch type="any" >
-		<cfset Error = cfcatch.message>
+		<cfoutput>#cfcatch.message#</cfoutput>
 	</cfcatch>
-	<cfoutput>#Error#</cfoutput>
 </cftry>
