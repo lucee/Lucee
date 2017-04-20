@@ -41,7 +41,7 @@
 		<cfargument name="description" required="false" type="string" default="">
 		<cfargument name="type" required="false" type="string" default="text">
 		<cfargument name="defaultValueIndex" required="false" type="number" default="1">
-		<cfreturn createObject("component","types.Field").init(arguments.displayName,arguments.name,arguments.defaultValue,arguments.required,arguments.description,arguments.type,arguments.defaultValueIndex)>
+		<cfreturn createObject("component","Field").init(arguments.displayName,arguments.name,arguments.defaultValue,arguments.required,arguments.description,arguments.type,arguments.defaultValueIndex)>
 	</cffunction>
 	
 	
