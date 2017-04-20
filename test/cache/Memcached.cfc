@@ -18,6 +18,7 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
+	variables.cacheName='memcached';
 	
 	//public function afterTests(){}
 	
@@ -26,33 +27,34 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function test(){
-		cachePut(id:'abc', value:'AAA', cacheName:'memcached');
-		var val=cacheget(id:'abc', cacheName:'memcached');
+		cachePut(id:'abc', value:'AAA', cacheName:variables.cacheName);
+		var val=cacheget(id:'abc', cacheName:variables.cacheName);
 		assertEquals("AAA",val);
 		
 	}
 
-	public void function testTimespan() {
+	private void function testTimespan() {
 		
 		var rightNow = Now();
 		var testData = {"time": rightNow};
 		var cacheId='jkijhiiuhkj';
-		var cacheName='memcached';
+		 
 
 		// first we store the data
-		cachePut(id=cacheId, value=testData, cacheName=cacheName);
+		cachePut(id=cacheId, value=testData, cacheName=variables.cacheName);
 
 		// getting back without waiting on it
-		theValue = cacheGet(id=cacheId, cacheName=cacheName);
+		theValue = cacheGet(id=cacheId, cacheName=variables.cacheName);
 		wasFound = !isNull(theValue);
 		assertTrue(wasFound);
 
 		// getting back after at least a second
 		sleep(1500); // take a nap
-		theValue = cacheGet(id=cacheId, cacheName=cacheName);
+		theValue = cacheGet(id=cacheId, cacheName=variables.cacheName);
 		wasFound = !isNull(theValue);
 		assertFalse(wasFound);		
 	}
+
 	private string function defineCache(){
 		application action="update" 
 			caches="#{memcached:{
