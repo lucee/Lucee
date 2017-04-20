@@ -31,6 +31,7 @@
 <![CDATA[
 if(execute) {
 request.WEBADMINPASSWORD="webweb";
+request.SERVERADMINPASSWORD="serverserver";
 
 NL="
 ";
