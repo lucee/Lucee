@@ -66,7 +66,7 @@ function mem(type) {
 				action="updatePassword"
 				type="server"
 				oldPassword=""
-				newPassword="#request.WEBADMINPASSWORD#";
+				newPassword="#request.SERVERADMINPASSWORD#";
 		}
 		catch(e){}// may exist from previous execution
 
