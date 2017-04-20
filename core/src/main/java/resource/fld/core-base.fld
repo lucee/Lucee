@@ -1690,11 +1690,16 @@ sort direction:
 		<class>lucee.runtime.functions.cache.CacheClear</class>
 		<description>Flushes the cache</description>
 		<argument>
-			<name>filter</name>
-			<alias>filterOrTags,tags,tag</alias>
+			<name>filterOrTags</name>
+			<alias>filter,tags,tag</alias>
 			<type>any</type>
 			<required>No</required>
-			<description>You can specify a key filter for the elements in the cache to flush, the filter follow the same rules as for cfdirectory-filter</description>
+			<description>
+			You can define 2 different things here:
+			
+			1. a String containing a key filter for the elements in the cache to flush, the filter follow the same rules as for cfdirectory-filter.
+			2. an Array containing tags defined when put the element to the cache
+			</description>
 		</argument>
 		<argument>
 			<name>cacheName</name>
