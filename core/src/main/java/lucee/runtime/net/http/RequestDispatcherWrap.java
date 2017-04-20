@@ -48,7 +48,6 @@ public class RequestDispatcherWrap implements RequestDispatcher {
 			return;
 		}
 		
-		
 		realPath=HTTPUtil.optimizeRealPath(pc,realPath);
 		
 		try{
@@ -60,24 +59,6 @@ public class RequestDispatcherWrap implements RequestDispatcher {
 		}
 	}
 
-	/*public void include(ServletRequest req, ServletResponse rsp)throws ServletException, IOException {
-		PageContext pc = ThreadLocalPageContext.get();
-		if(pc==null){
-			this.req.getOriginalRequestDispatcher(realPath).include(req, rsp);
-			return;
-		}
-		try{
-			realPath=HTTPUtil.optimizeRealPath(pc,realPath);
-			RequestDispatcher disp = this.req.getOriginalRequestDispatcher(realPath);
-	        disp.include(req,rsp);
-		}
-		finally{
-	        ThreadLocalPageContext.register(pc);
-		}
-	}*/
-	
-	
-
 	@Override
 	public void include(ServletRequest req, ServletResponse rsp)throws ServletException, IOException {
 		PageContext pc = ThreadLocalPageContext.get();
@@ -85,25 +66,6 @@ public class RequestDispatcherWrap implements RequestDispatcher {
 			this.req.getOriginalRequestDispatcher(realPath).include(req, rsp);
 			return;
 		}
-		//rsp.getWriter().flush();
-		//print.out("abc:"+rsp);
 		HTTPUtil.include(pc,req, rsp,realPath);
-		
-		/*
-		realPath=HTTPUtil.optimizeRealPath(pc,realPath);
-		ByteArrayOutputStream baos=new ByteArrayOutputStream();
-			
-		try{
-			HttpServletResponse drsp=new HttpServletResponseWrap(pc.getHttpServletResponse(),baos);
-			RequestDispatcher disp = pc.getServletContext().getRequestDispatcher(realPath);
-			if(disp==null)
-        		throw new PageServletException(new ApplicationException("Page "+realPath+" not found"));
-        	disp.include(req,drsp);
-        	if(!drsp.isCommitted())drsp.flushBuffer();
-	        pc.write(IOUtil.toString(baos.toByteArray(), drsp.getCharacterEncoding()));
-		}
-		finally{
-	        ThreadLocalPageContext.register(pc);
-		}*/
 	}
 }
