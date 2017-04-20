@@ -35,7 +35,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		cachePut(id:'abc', value:'AAA', cacheName:variables.cacheName);
 		var val=cacheget(id:'abc', cacheName:variables.cacheName);
 		assertEquals("AAA",val);
-		
 	}
 
 	private void function testTimespan() skip="isNotSupported" {
@@ -44,7 +43,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var testData = {"time": rightNow};
 		var cacheId='jkijhiiuhkj';
 		 
-
 		// first we store the data
 		cachePut(id=cacheId, value=testData, cacheName=variables.cacheName);
 
@@ -90,16 +88,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			cachePut(id='abcd', value=1234, cacheName=variables.cacheName);
 			return true;
 		}
-		catch(e) {
-
-		}
-
-
-
-
-
-
-	
+		catch(e) {}
 		return false;
 	}
 
