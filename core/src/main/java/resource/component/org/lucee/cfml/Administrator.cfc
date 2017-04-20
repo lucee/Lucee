@@ -878,13 +878,12 @@ component {
 	*/
 	public query function getExtensionProviders(){
 		admin
-			action="getExtensionProviders"
+			action="getRHExtensionProviders"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.providers";
 		return local.providers;
 	}
-
 
 	/**
 	* @hint verifies whether it is an extension provider or not
@@ -896,18 +895,6 @@ component {
 			type="#variables.type#"
 			password="#variables.password#"
 			url="#arguments.url#";
-	}
-
-	/**
-	* @hint returns the list of extension providers for current context.
-	*/
-	public query function getExtensionProviders(){
-		admin
-			action="getRHExtensionProviders"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.providers";
-		return local.providers;
 	}
 
 	/**
@@ -1886,7 +1873,8 @@ component {
 			action="removecfx"
 			type="#variables.type#"
 			password="#variables.password#"
-			name="#arguments.name#";
+			name="#arguments.name#"
+			remoteClients="#variables.remoteClients#";
 	}
 
 	/**
@@ -2435,14 +2423,6 @@ component {
 			remoteClients="#variables.remoteClients#";
 	}
 
-	public void function getErrorList(){
-		admin
-			action="getErrorList"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.rtn";
-	}
-
 	/**
 	* @hints checks whether the current user has access
 	* @secType area for which access needs to be checked
@@ -2776,8 +2756,8 @@ component {
 			password="#variables.password#"
 			virtual="#arguments.virtual#"
 			file="#arguments.file#"
-			addCFMLFiles="#arguments.addCFMLFiles#"
-			addNonCFMLFiles="#arguments.addNonCFMLFiles#"
+			addCFMLFiles="#arguments.addCFMLFile#"
+			addNonCFMLFiles="#arguments.addNonCFMLFile#"
 			append="true"
 			remoteClients="#variables.remoteClients#";
 	}

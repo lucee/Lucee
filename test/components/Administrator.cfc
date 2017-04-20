@@ -415,7 +415,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(FindNocase('readonly',strctKeylist) GT 0, true);
 				});
 
-				// createCTArchive
+				xit(title="checking createCTArchive()", body=function( currentSpec ) {
+					var tmpStrt = {};
+					tmpStrt.virtual = "/TestCTArchive";
+					tmpStrt.file = "#expandPath('./Administrator/TestCTArchive.lar')#";
+					tmpStrt.addCFMLFile = true;
+					tmpStrt.addNonCFMLFile = true;
+					adminWeb.createCTArchive(argumentCollection=tmpStrt);
+				});
 
 				it(title="checking remove mapping()", body=function( currentSpec ) {
 					var virtual = "/TestArchive";
@@ -1074,6 +1081,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isquery(javaCfxTags) ,true);
 					assertEquals(listFindNocase(valueList(javaCfxTags.name),"testJavaCFX") GT 0, true);
 				});
+
+				it(title="checking removecfx()", body=function( currentSpec ) {
+					adminWeb.removecfx(name="helloworld");
+				});
 			});
 
 			describe( title="test LoginSettings functions", body=function() {
@@ -1548,7 +1559,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(listSort(structKeyList(defaultSecurityManager),'textnocase'), 'access_read,access_write,cache,cfx_setting,cfx_usage,custom_tag,datasource,debugging,direct_java_access,file,file_access,gateway,mail,mapping,orm,remote,scheduled_task,search,setting,tag_execute,tag_import,tag_object,tag_registry');
 				});
 
-				xit(title="checking updateDefaultSecurityManager()", body=function( currentSpec ) {
+				it(title="checking updateDefaultSecurityManager()", body=function( currentSpec ) {
 					var updateDefaultSecurityManager={};
 					var defaultSecurityManager=admin.getDefaultSecurityManager();
 
