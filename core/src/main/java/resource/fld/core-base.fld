@@ -1691,7 +1691,8 @@ sort direction:
 		<description>Flushes the cache</description>
 		<argument>
 			<name>filter</name>
-			<type>string</type>
+			<alias>filterOrTags,tags,tag</alias>
+			<type>any</type>
 			<required>No</required>
 			<description>You can specify a key filter for the elements in the cache to flush, the filter follow the same rules as for cfdirectory-filter</description>
 		</argument>

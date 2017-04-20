@@ -823,20 +823,28 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 				
 			}
 			
-			
 			sct=Caster.toStruct(e.getValue(),null);
 			if(sct==null) continue;
 			
 			cc=toCacheConnection(config,e.getKey().getString(),sct,null);
 			
-			
-			if(cc!=null) cacheConnections.put(e.getKey(),cc);
+			if(cc!=null) {
+				cacheConnections.put(e.getKey(),cc);
+				Key def = Caster.toKey(sct.get(KeyConstants._default,null),null);
+				if(def!=null) {
+					String n=e.getKey().getString().trim();
+					if(KeyConstants._function.equals(def)) 		defaultCaches.put(Config.CACHE_TYPE_FUNCTION, n);
+					else if(KeyConstants._query.equals(def)) 	defaultCaches.put(Config.CACHE_TYPE_QUERY, n);
+					else if(KeyConstants._template.equals(def))	defaultCaches.put(Config.CACHE_TYPE_TEMPLATE, n);
+					else if(KeyConstants._object.equals(def))	defaultCaches.put(Config.CACHE_TYPE_OBJECT, n);
+					else if(KeyConstants._include.equals(def))	defaultCaches.put(Config.CACHE_TYPE_INCLUDE, n);
+					else if(KeyConstants._resource.equals(def))	defaultCaches.put(Config.CACHE_TYPE_RESOURCE, n);
+					else if(KeyConstants._http.equals(def))		defaultCaches.put(Config.CACHE_TYPE_HTTP, n);
+					else if(KeyConstants._file.equals(def))		defaultCaches.put(Config.CACHE_TYPE_FILE, n);
+					else if(KeyConstants._webservice.equals(def)) defaultCaches.put(Config.CACHE_TYPE_WEBSERVICE, n);
+				}
+			}
 		}
-	}
-
-	private void _initCache(Iterator<Entry<Key, Object>> it) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	private boolean initDefaultCache(Struct data, int type, Key key) {

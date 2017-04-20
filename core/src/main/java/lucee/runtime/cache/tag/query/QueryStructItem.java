@@ -10,8 +10,8 @@ public class QueryStructItem extends QueryResultCacheItem {
 
 	public final QueryStruct queryStruct;
 
-	public QueryStructItem(QueryStruct queryStruct){
-		super(queryStruct);
+	public QueryStructItem(QueryStruct queryStruct, String[] tags){
+		super(queryStruct,tags);
 		this.queryStruct=queryStruct;
 	}
 
@@ -28,7 +28,7 @@ public class QueryStructItem extends QueryResultCacheItem {
 
 	@Override
 	public Object duplicate(boolean deepCopy) {
-		return new QueryStructItem((QueryStruct)queryStruct.duplicate(true));
+		return new QueryStructItem((QueryStruct)queryStruct.duplicate(true),getTags());
 	}
 
 }
