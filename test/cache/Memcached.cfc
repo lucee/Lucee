@@ -52,6 +52,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertFalse(isNull(val));
 		assertEquals(1,val.a);
 	}
+	public void function testComplexValueMap() skip="isNotSupported" {
+		var map = createObject('java','java.util.HashMap').init();
+		map.A=1;
+		cachePut(id:'sctMap', value:map, cacheName:variables.cacheName);
+		var val=cacheget(id:'sctMap', cacheName:variables.cacheName);
+		assertFalse(isNull(val));
+		assertEquals(1,val.A);
+	}
 
 	private void function testTimespan() skip="isNotSupported" {
 		var rightNow = Now();
