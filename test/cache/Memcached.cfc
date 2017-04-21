@@ -44,8 +44,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertFalse(isNull(val));
 	}
 
-
-
 	private void function testTimespan() skip="isNotSupported" {
 		
 		var rightNow = Now();
