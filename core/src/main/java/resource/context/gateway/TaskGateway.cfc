@@ -98,7 +98,7 @@ component {
 
     public function sendMessage( struct data={} ) {
 
-        return "ERROR: sendMessage not supported";
+        return "sendGatewayMessage() has not been implemented for the event gateway [TaskGateway]. If you want to modify it, please edit the following CFC:"& expandpath("./") & "TaskGateway.cfc";
     }
 
 
