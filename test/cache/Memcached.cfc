@@ -45,7 +45,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	private void function testTimespan() skip="isNotSupported" {
-		
 		var rightNow = Now();
 		var testData = {"time": rightNow};
 		var cacheId='jkijhiiuhkj';
@@ -55,7 +54,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		// getting back without waiting on it
 		theValue = cacheGet(id=cacheId, cacheName=variables.cacheName);
-		wasFound = !isNull(theValue);
+		wasFound=!isNull(theValue);
 		assertTrue(wasFound);
 
 		// getting back after at least a second
