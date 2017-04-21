@@ -29,13 +29,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public boolean function isNotSupported() {
 		if(isNull(variables.has)) setUp();
 		return !variables.has;
-	}
+	} 
 
-	public void function test() skip="isNotSupported" {
+	public void function testSimpleValue() skip="isNotSupported" {
 		cachePut(id:'abc', value:'AAA', cacheName:variables.cacheName);
 		var val=cacheget(id:'abc', cacheName:variables.cacheName);
 		assertEquals("AAA",val);
 	}
+
+	public void function testComplexValue() skip="isNotSupported" {
+		var qry = queryNew("name,age","varchar,numeric",{name:["Susi","Urs"],age:[20,24]});
+		cachePut(id:'qryVal', value:qry, cacheName:variables.cacheName);
+		var val=cacheget(id:'qryVal', cacheName:variables.cacheName);
+		assertFalse("AAA",isNull(val));
+	}
+
+
 
 	private void function testTimespan() skip="isNotSupported" {
 		
