@@ -45,7 +45,6 @@ import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.log.log4j.Log4jUtil;
-import lucee.commons.io.log.log4j.LogAdapter;
 import lucee.commons.io.log.log4j.layout.ClassicLayout;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -120,7 +119,6 @@ import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.EnvClassLoader;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.rest.RestSettingImpl;
 import lucee.runtime.rest.RestSettings;
@@ -154,13 +152,8 @@ import lucee.transformer.library.tag.TagLibTagAttr;
 import org.apache.commons.collections4.map.ReferenceMap;
 import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 
 /**
  * Hold the definitions of the Lucee configuration.
