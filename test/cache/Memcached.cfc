@@ -41,7 +41,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var qry = queryNew("name,age","varchar,numeric",{name:["Susi","Urs"],age:[20,24]});
 		cachePut(id:'qryVal', value:qry, cacheName:variables.cacheName);
 		var val=cacheget(id:'qryVal', cacheName:variables.cacheName);
-		assertFalse("AAA",isNull(val));
+		assertFalse(isNull(val));
 	}
 
 
