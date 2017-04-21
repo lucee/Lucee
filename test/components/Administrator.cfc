@@ -214,16 +214,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="testUpdateDataSource", body=function( currentSpec ) {
+					var mySQL = getCredencials();
 					var tmpStrt = {};
 					tmpStrt.name = "TestDSN";
-					tmpStrt.type = "MSSQL";
+					tmpStrt.type = "MYSQL";
 					tmpStrt.newName = "TestDSN1";
-					tmpStrt.host = "localhost";
-					tmpStrt.database = "TestDB";
-					tmpStrt.port = 1433;
+					tmpStrt.host = mySQL.server;
+					tmpStrt.database = mySQL.database;
+					tmpStrt.port = mySQL.port;
 					tmpStrt.timezone = "";
-					tmpStrt.username = "sa";
-					tmpStrt.password = "sqlPwd@12##";
+					tmpStrt.username = mySQL.username;
+					tmpStrt.password = mySQL.password;
 					tmpStrt.connectionLimit = "10";
 					tmpStrt.connectionTimeout = "0";
 					tmpStrt.metaCacheTimeout = "60000";
@@ -255,8 +256,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking verifyDatasource()", body=function( currentSpec ) {
-					var datasource = adminWeb.getDatasources();
-					assertEquals(IsQuery(datasource), true);
+					var datasource = adminWeb.getDatasource('TestDSN1');
+					assertEquals(isstruct(datasource), true);
 					tmpStrt.name = datasource.name;
 					tmpStrt.dbusername = datasource.username;
 					tmpStrt.dbpassword = datasource.password;
@@ -366,10 +367,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking updateMapping()", body=function( currentSpec ) {
+					var path = "#expandpath('../../')#test\components\Administrator\TestArchive";
 					var tmpStrt = {};
 					tmpStrt.virtual = "/TestArchive";
-					tmpStrt.physical = "#expandPath('./Administrator/TestArchive')#";
-					tmpStrt.archive = "#expandPath('./')#TestArchive.lar";
+					tmpStrt.physical = path;
+					tmpStrt.archive = "";
 					tmpStrt.primary = "Resources";
 					tmpStrt.inspect = "Once";
 					tmpStrt.toplevel = true;
@@ -380,11 +382,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking createArchiveFromMapping()", body=function( currentSpec ) {
+					var path = "#expandpath('../../')#test\components\Administrator\TestArchive";
 					var tmpStrt = {};
 					tmpStrt.virtual = "/TestArchive";
 					tmpStrt.addCFMLFile = false;
 					tmpStrt.addNonCFMLFile = false;
-					tmpStrt.target = "#expandPath('./Administrator/TestArchive.lar')#";
+					tmpStrt.target = "#path#\TestArchive.lar";
 					adminWeb.createArchiveFromMapping(argumentCollection = tmpStrt);
 					var getMappings = adminWeb.getMappings();
 					var result = QueryExecute(
@@ -413,15 +416,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isquery(customTagMappings) ,true);
 					var strctKeylist = structKeyList(customTagMappings);
 					assertEquals(FindNocase('readonly',strctKeylist) GT 0, true);
-				});
-
-				xit(title="checking createCTArchive()", body=function( currentSpec ) {
-					var tmpStrt = {};
-					tmpStrt.virtual = "/TestCTArchive";
-					tmpStrt.file = "#expandPath('./Administrator/TestCTArchive.lar')#";
-					tmpStrt.addCFMLFile = true;
-					tmpStrt.addNonCFMLFile = true;
-					adminWeb.createCTArchive(argumentCollection=tmpStrt);
 				});
 
 				it(title="checking remove mapping()", body=function( currentSpec ) {
@@ -598,11 +592,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking updateComponentMapping()", body=function( currentSpec ) {
+					var path = "#expandpath('../../')#test\components\Administrator\TestArchive";
 					var tmpStrt = {};
 					tmpStrt.virtual = "/TestCompArchive";
-					tmpStrt.physical = "#expandPath('./Administrator/TestCompArchive/Admin.cfc')#";
-					tmpStrt.archive = "#expandPath('./')#TestCompArchive.lar";
-					tmpStrt.primary = "archive";
+					tmpStrt.physical = path;
+					tmpStrt.archive = "";
+					tmpStrt.primary = "";
 					tmpStrt.inspect = "once";
 					adminWeb.updateComponentMapping(argumentCollection=tmpStrt);
 					var getCompMap = adminWeb.getComponentMappings();
@@ -610,10 +605,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(findNoCase("/TestCompArchive",valueList(getCompMap.virtual)) NEQ 0,true);
 				});
 
-				xit(title="checking createComponentArchive()", body=function( currentSpec ) {
+				it(title="checking createComponentArchive()", body=function( currentSpec ) {
+					var path = "#expandpath('../../')#test\components\Administrator\TestArchive";
 					var tmpStrt = {};
 					tmpStrt.virtual = "/TestCompArchive";
-					tmpStrt.file = "#expandPath('./Administrator/TestCompArchive.lar')#";
+					tmpStrt.file = "#path#\TestCompArchive.lar";
 					tmpStrt.addCFMLFile = true;
 					tmpStrt.addNonCFMLFile = true;
 
@@ -922,20 +918,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			describe( title="test Certificate functions", body=function() {
 				it(title="checking getSSLCertificate()", body=function( currentSpec ) {
-					var hostName = 'localHost';
+					var hostName = cgi.local_host;
 					var SSLCertificate = admin.getSSLCertificate(hostName);
 					assertEquals(isquery(SSLCertificate), true);
 				});
 
 				it(title="checking updateSSLCertificate()", body=function( currentSpec ) {
-					var hostName = 'localHost';
+					var hostName = cgi.local_host;
 					var hasError = false;
 					try{
 						admin.updateSSLCertificate(hostName);
 					} catch ( any e ){
 						hasError = true;
 					}
-					assertEquals(hasError, false);
+					assertEquals(hasError EQ false, true);
 				});
 			});
 
@@ -960,8 +956,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking updateContext()", body=function( currentSpec ) {
+					var path = "#expandpath('../../')#test\components\Administrator\en.xml";
 					var tmpStruct={};
-					tmpStruct.source="#expandPath('./Administrator/en.xml')#";
+					tmpStruct.source=path;
 					tmpStruct.destination="en.xml";
 					admin.updateContext(argumentCollection=tmpStruct);
 				});
@@ -1368,6 +1365,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking updatePassword()", body=function( currentSpec ) {
 					admin.updatePassword(oldPassword="#request.ServerAdminPassword#", newPassword="server" );
 					try{
+						// This fails, if prev statement updates the password for server admin.
 						admin.updatePassword(oldPassword="#request.ServerAdminPassword#", newPassword="server" );
 					}catch( any e ){
 						assertEquals( e.message, 'No access, password is invalid' );
@@ -1433,10 +1431,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking updatecustomtag()", body=function( currentSpec ) {
-					adminWeb.updatecustomtag( virtual="/testcustomtag", physical="#getcurrentTemplatepath()#", archive="", primary="Resource", inspect="");
+					var path = "#expandpath('../../')#test\components\Administrator\TestArchive";
+					adminWeb.updatecustomtag( virtual="/testcustomtag", physical=path, archive="", primary="Resource", inspect="");
 					var customTagMappings = adminWeb.getCustomTagMappings();
 					assertEquals(isQuery(customTagMappings) ,true);
 					assertEquals( listFindNoCase(valueList(customTagMappings.virtual), "/testcustomtag") NEQ 0, true );
+				});
+
+				it(title="checking createCTArchive()", body=function( currentSpec ) {
+					var path = "#expandpath('../../')#test\components\Administrator\TestArchive";
+					var tmpStrt = {};
+					tmpStrt.virtual = "/testcustomtag";
+					tmpStrt.file = "#path#\TestCTArchive.lar";
+					tmpStrt.addCFMLFile = true;
+					tmpStrt.addNonCFMLFile = true;
+					adminWeb.createCTArchive(argumentCollection=tmpStrt);
 				});
 
 				it(title="checking removecustomtag()", body=function( currentSpec ) {
@@ -1697,5 +1706,36 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 		});
+	}
+
+	private struct function getCredencials() {
+		// getting the credetials from the enviroment variables
+		var mySQL={};
+		if(
+			!isNull(server.system.environment.MYSQL_SERVER) && 
+			!isNull(server.system.environment.MYSQL_USERNAME) && 
+			!isNull(server.system.environment.MYSQL_PASSWORD) && 
+			!isNull(server.system.environment.MYSQL_PORT) && 
+			!isNull(server.system.environment.MYSQL_DATABASE)) {
+			mySQL.server=server.system.environment.MYSQL_SERVER;
+			mySQL.username=server.system.environment.MYSQL_USERNAME;
+			mySQL.password=server.system.environment.MYSQL_PASSWORD;
+			mySQL.port=server.system.environment.MYSQL_PORT;
+			mySQL.database=server.system.environment.MYSQL_DATABASE;
+		}
+		// getting the credetials from the system variables
+		else if(
+			!isNull(server.system.properties.MYSQL_SERVER) && 
+			!isNull(server.system.properties.MYSQL_USERNAME) && 
+			!isNull(server.system.properties.MYSQL_PASSWORD) && 
+			!isNull(server.system.properties.MYSQL_PORT) && 
+			!isNull(server.system.properties.MYSQL_DATABASE)) {
+			mySQL.server=server.system.properties.MYSQL_SERVER;
+			mySQL.username=server.system.properties.MYSQL_USERNAME;
+			mySQL.password=server.system.properties.MYSQL_PASSWORD;
+			mySQL.port=server.system.properties.MYSQL_PORT;
+			mySQL.database=server.system.properties.MYSQL_DATABASE;
+		}
+		return mysql;
 	}
 }
