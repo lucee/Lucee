@@ -1759,7 +1759,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	}
 	
 	private static void loadLoggers(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean isReload) {
-		
+		config.clearLoggers(Boolean.FALSE);
 		Element parent = getChildByName(doc.getDocumentElement(), "logging");
 		Element[] children = getChildren(parent, "logger");
 		Element child;
@@ -1797,10 +1797,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				Map<String, String> appArgs = cssStringToMap(appenderArgs, true,true);
 				if(cdLayout.hasClass()) {
 					Map<String, String> layArgs = cssStringToMap(layoutArgs, true,true);
-					config.addLogger(name,level,cdAppender,appArgs,cdLayout,layArgs,readOnly);
+					config.addLogger(name,level,cdAppender,appArgs,cdLayout,layArgs,readOnly,false);
 				}
 				else
-					config.addLogger(name,level,cdAppender,appArgs,null,null,readOnly);
+					config.addLogger(name,level,cdAppender,appArgs,null,null,readOnly,false);
 			}
 		}
 		
@@ -1816,7 +1816,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					data = e.getValue();
 					config.addLogger(e.getKey(), data.getLevel(), 
 							data.getAppenderClassDefinition(), data.getAppenderArgs(), 
-							data.getLayoutClassDefinition(), data.getLayoutArgs(),true);
+							data.getLayoutClassDefinition(), data.getLayoutArgs(),true,false);
 				}
 			}
 			

@@ -3422,21 +3422,35 @@ public abstract class ConfigImpl implements Config {
 	}
 
 
-	protected void clearLoggers() {
+	protected void clearLoggers(Boolean dyn) {
 		if(loggers.size()==0) return;
+		List<String> list=dyn!=null?new ArrayList<String>():null;
 		try{
-			Iterator<LoggerAndSourceData> it = loggers.values().iterator();
+			Iterator<Entry<String, LoggerAndSourceData>> it = loggers.entrySet().iterator();
+			Entry<String, LoggerAndSourceData> e;
 			while(it.hasNext()){
-				it.next().close();
+				e = it.next();
+				if(dyn==null || dyn.booleanValue()==e.getValue().getDyn()) {
+					e.getValue().close();
+					if(list!=null)list.add(e.getKey());
+				}
+				
 			}
 		}
-		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
-		loggers.clear();
+		catch(Exception e) {}
+		
+		if(list==null) loggers.clear();
+		else {
+			Iterator<String> it = list.iterator();
+			while(it.hasNext()) {
+				loggers.remove(it.next());
+			}
+		}
 	}
 	
 	protected LoggerAndSourceData addLogger(String name, Level level,
 			ClassDefinition appender, Map<String, String> appenderArgs, 
-			ClassDefinition layout, Map<String, String> layoutArgs, boolean readOnly) {
+			ClassDefinition layout, Map<String, String> layoutArgs, boolean readOnly, boolean dyn) {
 		LoggerAndSourceData existing = loggers.get(name.toLowerCase());
 		String id=LoggerAndSourceData.id(name.toLowerCase(), appender,appenderArgs,layout,layoutArgs,level,readOnly);
 		
@@ -3448,7 +3462,8 @@ public abstract class ConfigImpl implements Config {
 		}
 		
 		
-		LoggerAndSourceData las = new LoggerAndSourceData(this,id,name.toLowerCase(), appender,appenderArgs,layout,layoutArgs,level,readOnly);
+		LoggerAndSourceData las = new LoggerAndSourceData(this,id,name.toLowerCase(), appender,appenderArgs,layout,layoutArgs,
+				level,readOnly,dyn);
 		loggers.put(name.toLowerCase(),las);
 		return las;
 	}
@@ -3478,7 +3493,8 @@ public abstract class ConfigImpl implements Config {
 		LoggerAndSourceData las = loggers.get(name.toLowerCase());
 		if(las==null) {
 			if(!createIfNecessary) return null;
-			return addLogger(name, Level.ERROR, Log4jUtil.appenderClassDefintion("console"), null, Log4jUtil.layoutClassDefintion("pattern"), null,true);
+			return addLogger(name, Level.ERROR, Log4jUtil.appenderClassDefintion("console"), null, 
+					Log4jUtil.layoutClassDefintion("pattern"), null,true,true);
 		}
 		return las;
 	}

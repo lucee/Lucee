@@ -3431,7 +3431,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				new String[]{"name","level"
 						,"appenderClass","appenderBundleName","appenderBundleVersion","appenderArgs"
 						,"layoutClass","layoutBundleName","layoutBundleVersion","layoutArgs","readonly"},
-				loggers.size(),lucee.runtime.type.util.ListUtil.last("logs", '.'));
+				0,lucee.runtime.type.util.ListUtil.last("logs", '.'));
         int row=0;
         Iterator<Entry<String, LoggerAndSourceData>> it = loggers.entrySet().iterator();
         Entry<String, LoggerAndSourceData> e;
@@ -3439,7 +3439,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         while(it.hasNext()){
         	e = it.next();
         	logger = e.getValue();
-        	row++;
+        	if(logger.getDyn()) continue;
+        	row=qry.addRow();
+        	//row++;
         	qry.setAtEL("name", row, e.getKey());
     		qry.setAtEL("level", row,logger.getLevel().toString());
     		qry.setAtEL("appenderClass", row, logger.getAppenderClassDefinition().getClassName());
