@@ -34,14 +34,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public void function testSimpleValue() skip="isNotSupported" {
 		cachePut(id:'abc', value:'AAA', cacheName:variables.cacheName);
 		var val=cacheget(id:'abc', cacheName:variables.cacheName);
+		assertFalse(isNull(val));
 		assertEquals("AAA",val);
 	}
 
-	public void function testComplexValue() skip="isNotSupported" {
+	public void function testComplexValueQuery() skip="isNotSupported" {
 		var qry = queryNew("name,age","varchar,numeric",{name:["Susi","Urs"],age:[20,24]});
 		cachePut(id:'qryVal', value:qry, cacheName:variables.cacheName);
 		var val=cacheget(id:'qryVal', cacheName:variables.cacheName);
 		assertFalse(isNull(val));
+	}
+
+	public void function testComplexValueStruct() skip="isNotSupported" {
+		var sct = {a:1};
+		cachePut(id:'sctVal', value:sct, cacheName:variables.cacheName);
+		var val=cacheget(id:'sctVal', cacheName:variables.cacheName);
+		assertFalse(isNull(val));
+		assertEquals(1,val.a);
 	}
 
 	private void function testTimespan() skip="isNotSupported" {
