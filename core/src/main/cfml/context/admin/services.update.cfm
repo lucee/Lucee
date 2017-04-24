@@ -117,17 +117,24 @@ include "services.update.functions.cfm";
 
 
 
-curr=server.lucee.version;
-updateData=getAvailableVersion();
-updateData.qryOtherVersions=queryNew('version,versionSortable');
-queryAddRow(updateData.qryOtherVersions,updateData.otherVersions.len());
-loop array=updateData.otherVersions item="v" index="i" {
-	updateData.qryOtherVersions.version[i]=v;
-	updateData.qryOtherVersions.versionSortable[i]=toVersionSortable(v);
+	curr=server.lucee.version;
+	updateData=getAvailableVersion();
+try{
+	updateData.qryOtherVersions=queryNew('version,versionSortable');
+	queryAddRow(updateData.qryOtherVersions,updateData.otherVersions.len());
+	loop array=updateData.otherVersions item="v" index="i" {
+		updateData.qryOtherVersions.version[i]=v;
+		updateData.qryOtherVersions.versionSortable[i]=toVersionSortable(v);
+	}
+} catch (any e){
+	error.message=cfcatch.message;
+	error.detail=cfcatch.Detail;
+	error.exception = cfcatch;
 }
-querySort(updateData.qryOtherVersions,'versionSortable','desc');
-hasAccess=1;
-hasUpdate=structKeyExists(updateData,"available");
+printError(error);
+	querySort(updateData.qryOtherVersions,'versionSortable','desc');
+	hasAccess=1;
+	hasUpdate=structKeyExists(updateData,"available");
 </cfscript>
 
 
@@ -324,7 +331,8 @@ stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{ve
 									<option value="#qry.version#">#btn# #qry.version#</option>
 								</cfloop>
 							</select>
-							<input type="button" class="button submit" name="mainAction" value="#stText.services.update.downup#" onclick="changeVersion(this)">
+							<input type="button" class="button submit" name="mainAction" value="#stText.services.update.downup#"
+							 onclick="changeVersion(this)">
 
 						</td>
 					</tr>
