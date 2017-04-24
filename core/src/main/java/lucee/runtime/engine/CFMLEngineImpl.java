@@ -1113,9 +1113,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
     @Override
 	public void serviceAMF(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
-    	req=new HTTPServletRequestWrap(req);
-    	getCFMLFactory(servlet.getServletConfig(), req)
-    		.getConfig().getAMFEngine().service(servlet,new HTTPServletRequestWrap(req),rsp);
+    	throw new ServletException("AMFServlet is no longer supported, use BrokerServlet instead.");
+    	//req=new HTTPServletRequestWrap(req);
+    	//getCFMLFactory(servlet.getServletConfig(), req).getConfig().getAMFEngine().service(servlet,new HTTPServletRequestWrap(req),rsp);
     }
 
     @Override
