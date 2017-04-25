@@ -839,13 +839,13 @@ public class QueryImpl implements Query,Objects,QueryResult {
 		int index=getIndexFromKey(key);
 		if(index!=-1 ) {
 			// we only return default value if row exists
-			/* LDEV-1201
+			// LDEV-1201
 			if(row>0 && row<=recordcount)
 				return columns[index].get(row, NullSupportHelper.full()?null:"");
 			else
 				return defaultValue;
-			*/
-			return columns[index].get(row,defaultValue);
+			//*/
+			//return columns[index].get(row,defaultValue);
 		}
 		if(key.length()>=10) {
 	        if(key.equals(KeyConstants._RECORDCOUNT)) return new Double(getRecordcount());

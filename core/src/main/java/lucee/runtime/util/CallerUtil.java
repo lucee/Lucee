@@ -51,10 +51,10 @@ public class CallerUtil {
 				coll=vu.getCollection(pc, coll, keys[i], Null.NULL);
 			break;
 			case TYPE_UDF_ARGS:
-				coll=vu.callFunctionWithoutNamedValues(pc, coll, keys[i], args[i], Null.NULL);
+				coll=vu.callFunctionWithoutNamedValues(pc, coll, keys[i], args[i], false, Null.NULL);
 			break;
 			case TYPE_UDF_NAMED_ARGS:
-				coll=vu.callFunctionWithNamedValues(pc, coll, keys[i], args[i], Null.NULL);
+				coll=vu.callFunctionWithNamedValues(pc, coll, keys[i], args[i], false, Null.NULL);
 			break;
 			case TYPE_BIF:
 				coll=null;//TODO

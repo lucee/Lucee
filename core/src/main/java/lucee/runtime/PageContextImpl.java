@@ -26,7 +26,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -57,16 +56,12 @@ import javax.servlet.jsp.tagext.BodyTag;
 import javax.servlet.jsp.tagext.Tag;
 import javax.servlet.jsp.tagext.TryCatchFinally;
 
-import org.objectweb.asm.Type;
-
-import lucee.print;
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.BodyContentStack;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.lang.ExceptionUtil;
@@ -132,7 +127,6 @@ import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.ModernAppListener;
 import lucee.runtime.listener.ModernAppListenerException;
-import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.monitor.RequestMonitor;
@@ -213,7 +207,6 @@ import lucee.runtime.util.VariableUtilImpl;
 import lucee.runtime.writer.BodyContentUtil;
 import lucee.runtime.writer.CFMLWriter;
 import lucee.runtime.writer.DevNullBodyContent;
-import lucee.transformer.bytecode.util.Types;
 
 /**
  * page context for every page object. 
@@ -1710,8 +1703,14 @@ public final class PageContextImpl extends PageContext {
 
 	// FUTURE add to interface
 	public Object getFunction(Object coll, Key key, Object[] args, Object defaultValue) {
-		return variableUtil.callFunctionWithoutNamedValues(this,coll,key,args,defaultValue);
+		return variableUtil.callFunctionWithoutNamedValues(this,coll,key,args,false,defaultValue);
 	}
+	public Object getFunction2(Object coll, Key key, Object[] args, Object defaultValue) {
+		return variableUtil.callFunctionWithoutNamedValues(this,coll,key,args,true,defaultValue);
+	}
+
+	
+	
 	
 	@Override
 	public Object getFunctionWithNamedValues(Object coll, String key, Object[] args) throws PageException {
@@ -1725,7 +1724,10 @@ public final class PageContextImpl extends PageContext {
 	
 	// FUTURE add to interface
 	public Object getFunctionWithNamedValues(Object coll, Key key, Object[] args, Object defaultValue) {
-		return variableUtil.callFunctionWithNamedValues(this,coll,key,args,defaultValue);
+		return variableUtil.callFunctionWithNamedValues(this,coll,key,args,false,defaultValue);
+	}
+	public Object getFunctionWithNamedValues2(Object coll, Key key, Object[] args, Object defaultValue) {
+		return variableUtil.callFunctionWithNamedValues(this,coll,key,args,true,defaultValue);
 	}
 
 	@Override
