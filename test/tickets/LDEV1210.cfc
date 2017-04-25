@@ -72,7 +72,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						}
 						, default: ''
 					}}#";
-			return true;
+			cachePut(id='abcd', value=1234, cacheName='memcached');
+			return !isNull(cacheget(id:'abcd', cacheName:'memcached'));
 		}
 		catch(e) {}
 		return false;
