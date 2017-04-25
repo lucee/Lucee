@@ -119,7 +119,7 @@
 						</div>
 					</div>
 
-					<h2>Component <em>#data.fullName#</em></h2>
+					<h2>Component <em>#ucFirst(listLast(data.fullName, "."))#</em></h2>
 
 					<!--- desc/hint --->
 					<span style="padding-left: 2em;">
@@ -141,7 +141,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								<cfset propertiesArray = ['type','accessors','persistent','synchronized','extends']>
+								<cfset propertiesArray = ['accessors','persistent','synchronized','extends']>
 								<cfloop array="#propertiesArray#" index="key">
 									<cfif !structKeyExists(data, key)>
 										<cfcontinue>
@@ -171,31 +171,26 @@
 											<div class="text-overflow"><strong>#(currFunc.name)#</strong></div>
 										</div>
 									</div>
-									<div class="tile-active-show collapse" id="api-#lCase(currFunc.name)#">
+									<div class="tile-active-show collapse" id="api-#lCase(currFunc.name)#" style="padding: 0em 2em;">
 										<!--- desc/hint --->
 										<cfif structKeyExists(currFunc, "hint")>
 											<span style="padding-left: 3em;">#currFunc.hint#</span>
 										</cfif>
 										<!--- properties for the function --->
-										<h3 style="padding-left: 1em; margin-top: 24px;">Properties</h3>
-										<div class="text" style="width: 90%; margin: 0 auto;">
-											<table class="maintbl">
-												<thead>
-													<tr>
-														<th width="50%">#stText.doc.attr.name#</th>
-														<th width="50%"><!--- #stText.doc.attr.value# --->Value</th>
-													</tr>
-												</thead>
-												<tbody>
-													<cfloop list="access,closure,description,modifier,returnType" index="currProp">
-														<tr>
-															<td>#currProp#</td>
-															<td>#currFunc[currProp]#</td>
-														</tr>
-													</cfloop>
-												</tbody>
-											</table>
-										</div>
+										<cfset functionProperties = "#currFunc['access']# #currFunc['returnType']# #currFunc['name']#(" >
+										<cfif !currFunc.parameters.isEmpty()>
+											<cfloop from="1" to="#arrayLen(currFunc.parameters)#" index="i">
+												<cfif i!=1>
+													<cfset functionProperties = functionProperties & ", " >
+												</cfif>
+												<cfset currArg = currFunc.parameters[i]>
+												<cfset functionArgs = currArg.required ? "required ":"" >
+												<cfset functionArgs = functionArgs & "#currArg.type# #currArg.name#" >
+												<cfset functionProperties = functionProperties & functionArgs >
+											</cfloop>
+										</cfif>
+										<cfset functionProperties = functionProperties & ")" >
+										<div style="font-weight: bold; padding: 2em 3em;">#functionProperties#</div>
 										<!--- arguments for the function --->
 										<cfif !currFunc.parameters.isEmpty()>
 											<h3 style="padding-left: 1em; margin-top: 24px;">Arguments</h3>
@@ -204,10 +199,10 @@
 												<table class="maintbl">
 													<thead>
 														<tr>
-															<th width="25%">#stText.doc.attr.name#</th>
-															<th width="25%">#stText.doc.attr._type#</th>
-															<th width="25%">#stText.doc.attr.required#</th>
-															<th width="25%">#stText.doc.attr.description#</th>
+															<th>#stText.doc.attr.name#</th>
+															<th width="10%">#stText.doc.attr._type#</th>
+															<th width="10%">#stText.doc.attr.required#</th>
+															<th width="50%">#stText.doc.attr.description#</th>
 														</tr>
 													</thead>
 													<tbody>
@@ -258,7 +253,7 @@
 
 		<cfset qryAllItems = queryNew("component")>
 		<cfloop array="#arrAllItems#" index="ai">
-			<cfset QueryAddRow(qryAllItems, ["#lCase(ai)#"])>
+			<cfset QueryAddRow(qryAllItems, ["#UcFirst(ai)#"])>
 		</cfloop>
 
 		<cfoutput>
