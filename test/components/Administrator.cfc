@@ -367,7 +367,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking updateMapping()", body=function( currentSpec ) {
-					var path = "#expandpath('../')#test\components\Administrator\TestArchive";
+					//var path = "#expandpath('../')#test\components\Administrator\TestArchive";
+					var curr=getDirectoryFromPath(getCurrentContext());
+					var path = curr&"/Administrator/TestArchive";
+
 					var tmpStrt = {};
 					tmpStrt.virtual = "/TestArchive";
 					tmpStrt.physical = path;
@@ -382,7 +385,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking createArchiveFromMapping()", body=function( currentSpec ) {
-					var path = "#expandpath('../')#test\components\Administrator\TestArchive";
+					//var path = "#expandpath('../')#test\components\Administrator\TestArchive";
+					var curr=getDirectoryFromPath(getCurrentContext());
+					var path = curr&"/Administrator/TestArchive";
+
 					var tmpStrt = {};
 					tmpStrt.virtual = "/TestArchive";
 					tmpStrt.addCFMLFile = false;
@@ -593,7 +599,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking updateComponentMapping()", body=function( currentSpec ) {
-					var path = "#expandpath('../')#test\components\Administrator\TestArchive";
+					//var path = "#expandpath('../')#test\components\Administrator\TestArchive";
+					var curr=getDirectoryFromPath(getCurrentContext());
+					var path = curr&"/Administrator/TestArchive";
 					var tmpStrt = {};
 					tmpStrt.virtual = "/TestCompArchive";
 					tmpStrt.physical = path;
@@ -607,7 +615,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking createComponentArchive()", body=function( currentSpec ) {
-					var path = "#expandpath('../')#test\components\Administrator\TestArchive";
+					//var path = "#expandpath('../')#test\components\Administrator\TestArchive";
+					var curr=getDirectoryFromPath(getCurrentContext());
+					var path = curr&"/Administrator/TestArchive";
+
 					var tmpStrt = {};
 					tmpStrt.virtual = "/TestCompArchive";
 					tmpStrt.file = "#path#\..\TestCompArchive.lar";
@@ -957,7 +968,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking updateContext()", body=function( currentSpec ) {
-					var path = "#expandpath('../')#test\components\Administrator\en.xml";
+					//var path = "#expandpath('../')#test\components\Administrator\en.xml";
+					var curr=getDirectoryFromPath(getCurrentContext());
+					var path = curr&"/Administrator/en.xml";
 					var tmpStruct={};
 					tmpStruct.source=path;
 					tmpStruct.destination="en.xml";
@@ -1278,10 +1291,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking updateRestMapping()", body=function( currentSpec ) {
+
+					var curr=getDirectoryFromPath(getCurrentContext());
 					var tmpStrt = {};
 					tmpStrt.default = "true";
 					tmpStrt.virtual = "/testRestMapping";
-					tmpStrt.physical = "#expandPath('./testRestMapping')#";
+					tmpStrt.physical = curr&('/testRestMapping');
 					adminWeb.updateRestMapping(argumentCollection=tmpStrt);
 					var restMappings = adminWeb.getRestMappings();
 					assertEquals((isquery(restMappings) && findNocase( "/testRestMapping", valueList(restMappings.virtual)) EQ 1) ,true);
@@ -1433,7 +1448,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking updatecustomtag()", body=function( currentSpec ) {
-					var path = "#expandpath('../')#test\components\Administrator\TestArchive";
+					//var path = "#expandpath('../')#test\components\Administrator\TestArchive";
+					var curr=getDirectoryFromPath(getCurrentContext());
+					var path = curr&"/Administrator/TestArchive";
+
 					adminWeb.updatecustomtag( virtual="/testcustomtag", physical=path, archive="", primary="Resource", inspect="");
 					var customTagMappings = adminWeb.getCustomTagMappings();
 					assertEquals(isQuery(customTagMappings) ,true);
@@ -1441,7 +1459,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking createCTArchive()", body=function( currentSpec ) {
-					var path = "#expandpath('../')#test\components\Administrator\TestArchive";
+					//var path = "#expandpath('../')#test\components\Administrator\TestArchive";
+					var curr=getDirectoryFromPath(getCurrentContext());
+					var path = curr&"/Administrator/TestArchive";
+
 					var tmpStrt = {};
 					tmpStrt.virtual = "/testcustomtag";
 					tmpStrt.file = "#path#\..\TestCTArchive.lar";
