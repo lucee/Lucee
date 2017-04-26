@@ -77,6 +77,13 @@
 				window.location.href = "functions.cfm?item=" + datum.toString();
 			}
 		});
+
+		$(".tile.tile-collapse.tile-collapse-full").on("click", function(event){
+			$(".tile.tile-collapse.tile-collapse-full").not($(this)).removeClass("active");
+			$(".tile.tile-collapse.tile-collapse-full").not($(this)).find(".tile-toggle").each(function(idx,elem){
+				$($(elem).data("target")).removeClass("in");
+			});
+		});
 	</script>
 </cfsavecontent>
 

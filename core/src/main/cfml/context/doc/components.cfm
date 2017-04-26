@@ -91,11 +91,32 @@
 				window.location.href = "components.cfm?item=" + datum.toString();
 			}
 
-			$(".tile.tile-collapse.tile-collapse-full").on("click", function(){
-				$(".tile.tile-collapse.tile-collapse-full").not($(this)).removeClass("active");
-				$(".tile.tile-collapse.tile-collapse-full").not($(this)).find(".tile-toggle").each(function(idx,elem){
-					$($(elem).data("target")).removeClass("in");
-				});
+			$(".tile.tile-collapse.tile-collapse-full,body").on("click", function(event){
+				var clickedOn = $(event.target);
+				if (clickedOn.parents().andSelf().is('.tile.tile-collapse.tile-collapse-full')){
+					if($(this).prop("tagName") == "DIV"){
+						$(".tile.tile-collapse.tile-collapse-full").not($(this)).removeClass("active");
+						$(".tile.tile-collapse.tile-collapse-full").not($(this)).find(".tile-toggle").each(function(idx,elem){
+							$($(elem).data("target")).removeClass("in");
+						});
+						// toggle prop and name for currently clicked accordion
+						$(this).find("div.funcName").toggle();
+						$(this).find("div.funcProp").toggle();
+						// show name and hide prop for other accordions
+						$(".tile.tile-collapse.tile-collapse-full").not($(this)).each(function(idx,elem){
+							$(elem).find("div.funcName").show();
+							$(elem).find("div.funcProp").hide();
+						});
+					}
+				}else{
+					$(".tile.tile-collapse.tile-collapse-full").removeClass("active");
+					$(".tile.tile-collapse.tile-collapse-full").find(".tile-toggle").each(function(idx,elem){
+						$($(elem).data("target")).removeClass("in");
+					});
+						// show name and hide prop for all accordions
+					$(".tile.tile-collapse.tile-collapse-full").find("div.funcName").show();
+					$(".tile.tile-collapse.tile-collapse-full").find("div.funcProp").hide();
+				}
 			});
 		});
 	</script>
@@ -165,10 +186,25 @@
 						<cfset functionsArr = data.functions>
 						<div class="tile-wrap tile-wrap-animation">
 							<cfloop array="#functionsArr#" item="currFunc">
+								<!--- properties for the function --->
+								<cfset functionProperties = "#currFunc['access']# #currFunc['returnType']# #currFunc['name']#(" >
+								<cfif !currFunc.parameters.isEmpty()>
+									<cfloop from="1" to="#arrayLen(currFunc.parameters)#" index="i">
+										<cfif i!=1>
+											<cfset functionProperties = functionProperties & ", " >
+										</cfif>
+										<cfset currArg = currFunc.parameters[i]>
+										<cfset functionArgs = currArg.required ? "required ":"" >
+										<cfset functionArgs = functionArgs & "#currArg.type# #currArg.name#" >
+										<cfset functionProperties = functionProperties & functionArgs >
+									</cfloop>
+								</cfif>
+								<cfset functionProperties = functionProperties & ")" >
 								<div class="tile tile-collapse tile-collapse-full">
 									<div class="tile-toggle" data-target="##api-#lCase(currFunc.name)#" data-toggle="tile">
 										<div class="tile-inner">
-											<div class="text-overflow"><strong>#(currFunc.name)#</strong></div>
+											<div class="text-overflow funcName"><strong>#(currFunc.name)#</strong></div>
+											<div class="text-overflow funcProp" style="display: none;"><strong>#functionProperties#</strong></div>
 										</div>
 									</div>
 									<div class="tile-active-show collapse" id="api-#lCase(currFunc.name)#" style="padding: 0em 2em;">
@@ -176,21 +212,6 @@
 										<cfif structKeyExists(currFunc, "hint")>
 											<span style="padding-left: 3em;">#currFunc.hint#</span>
 										</cfif>
-										<!--- properties for the function --->
-										<cfset functionProperties = "#currFunc['access']# #currFunc['returnType']# #currFunc['name']#(" >
-										<cfif !currFunc.parameters.isEmpty()>
-											<cfloop from="1" to="#arrayLen(currFunc.parameters)#" index="i">
-												<cfif i!=1>
-													<cfset functionProperties = functionProperties & ", " >
-												</cfif>
-												<cfset currArg = currFunc.parameters[i]>
-												<cfset functionArgs = currArg.required ? "required ":"" >
-												<cfset functionArgs = functionArgs & "#currArg.type# #currArg.name#" >
-												<cfset functionProperties = functionProperties & functionArgs >
-											</cfloop>
-										</cfif>
-										<cfset functionProperties = functionProperties & ")" >
-										<div style="font-weight: bold; padding: 2em 3em;">#functionProperties#</div>
 										<!--- arguments for the function --->
 										<cfif !currFunc.parameters.isEmpty()>
 											<h3 style="padding-left: 1em; margin-top: 24px;">Arguments</h3>
@@ -281,6 +302,5 @@
 				</cfloop>
 			</div>
 		</cfoutput>
-		<a href="#">Add package</a>
 	</cfif>
 </cfmodule>
