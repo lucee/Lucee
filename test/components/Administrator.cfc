@@ -26,6 +26,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 	function run( testResults , testBox ) {
 		describe( title="test case for Administrator", body=function() {
+
+		// Regional
 			describe( title="test-Regional functions", body=function() {
 				beforeEach(function( currentSpec ){
 					getRegional = adminweb.getRegional();
@@ -76,6 +78,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+
+		// Charset
 			describe( title="test-Charset functions", body=function() {
 				beforeEach(function( currentSpec ){
 					getCharset = adminWeb.getCharset();
@@ -121,6 +125,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+		// OutputSetting
 			describe( title="test-Output Setting functions", body=function() {
 				beforeEach(function( currentSpec ){
 					getOutputSetting = adminWeb.getOutputSetting();
@@ -165,6 +170,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+		// available Timezone/Locale
 			describe( title="test-timezone functions", body=function() {
 				it(title="testGetAvailableTimeZones()", body=function( currentSpec ) {
 					var timezones=adminWeb.getAvailableTimeZones();
@@ -178,6 +184,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+		// Datasource Setting
 			describe( title="test-dataSource setting functions", body=function() {
 				beforeEach(function( currentSpec ){
 					getDatasourceSetting = adminWeb.getDatasourceSetting();
@@ -207,6 +214,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+		// Datasource
 			describe( title="test-dataSource functions", body=function() {
 				it(title="testgetDatasources()", body=function( currentSpec ) {
 					var datasource = adminWeb.getDatasources();
@@ -215,60 +223,69 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="testUpdateDataSource", body=function( currentSpec ) {
 					var mySQL = getCredencials();
-					var tmpStrt = {};
-					tmpStrt.name = "TestDSN";
-					tmpStrt.type = "MYSQL";
-					tmpStrt.newName = "TestDSN1";
-					tmpStrt.host = mySQL.server;
-					tmpStrt.database = mySQL.database;
-					tmpStrt.port = mySQL.port;
-					tmpStrt.timezone = "";
-					tmpStrt.username = mySQL.username;
-					tmpStrt.password = mySQL.password;
-					tmpStrt.connectionLimit = "10";
-					tmpStrt.connectionTimeout = "0";
-					tmpStrt.metaCacheTimeout = "60000";
-					tmpStrt.blob = false;
-					tmpStrt.clob = false;
-					tmpStrt.validate = false;
-					tmpStrt.storage = false;
-					tmpStrt.allowedSelect = false;
-					tmpStrt.allowedInsert = false;
-					tmpStrt.allowedUpdate = false;
-					tmpStrt.allowedDelete = false;
-					tmpStrt.allowedAlter = false;
-					tmpStrt.allowedDrop = false;
-					tmpStrt.allowedRevoke = false;
-					tmpStrt.allowedCreate = false;
-					tmpStrt.allowedGrant = false;
-					tmpStrt.verify = false;
-					adminWeb.updateDatasource(argumentCollection = #tmpStrt#);
-					var datasource = adminWeb.getDatasources();
-					assertEquals(IsQuery(datasource), true);
-					var ListOfDSNName = valueList(datasource.name);
-					assertEquals((findnoCase('testDSN1', ListOfDSNName) GT 0), true);
+					if(structCount(mySQL)) {
+						var tmpStrt = {};
+						tmpStrt.name = "TestDSN";
+						tmpStrt.type = "MYSQL";
+						tmpStrt.newName = "TestDSN1";
+						tmpStrt.host = mySQL.server;
+						tmpStrt.database = mySQL.database;
+						tmpStrt.port = mySQL.port;
+						tmpStrt.timezone = "";
+						tmpStrt.username = mySQL.username;
+						tmpStrt.password = mySQL.password;
+						tmpStrt.connectionLimit = "10";
+						tmpStrt.connectionTimeout = "0";
+						tmpStrt.metaCacheTimeout = "60000";
+						tmpStrt.blob = false;
+						tmpStrt.clob = false;
+						tmpStrt.validate = false;
+						tmpStrt.storage = false; // TODO remove all allow functions from Admin.cfc amd this testcase
+						tmpStrt.allowedSelect = false;
+						tmpStrt.allowedInsert = false;
+						tmpStrt.allowedUpdate = false;
+						tmpStrt.allowedDelete = false;
+						tmpStrt.allowedAlter = false;
+						tmpStrt.allowedDrop = false;
+						tmpStrt.allowedRevoke = false;
+						tmpStrt.allowedCreate = false;
+						tmpStrt.allowedGrant = false;
+						tmpStrt.verify = false;
+						adminWeb.updateDatasource(argumentCollection = tmpStrt);
+						var datasource = adminWeb.getDatasources();
+						assertEquals(IsQuery(datasource), true);
+						var ListOfDSNName = valueList(datasource.name);
+						assertEquals((findnoCase('testDSN1', ListOfDSNName) GT 0), true);
+					}
+
 				});
 
 				it(title="testgetDatasource()", body=function( currentSpec ) {
-					var datasource = adminWeb.getDatasource('TestDSN1');
-					assertEquals(isstruct(datasource) ,true);
-					assertEquals(datasource.name EQ 'TestDSN1', true);
+					if(structCount(getCredencials())) {
+						var datasource = adminWeb.getDatasource('TestDSN1');
+						assertEquals(isstruct(datasource) ,true);
+						assertEquals(datasource.name EQ 'TestDSN1', true);
+					}
 				});
 
 				it(title="checking verifyDatasource()", body=function( currentSpec ) {
-					var datasource = adminWeb.getDatasource('TestDSN1');
-					assertEquals(isstruct(datasource), true);
-					tmpStrt.name = datasource.name;
-					tmpStrt.dbusername = datasource.username;
-					tmpStrt.dbpassword = datasource.password;
-					adminWeb.verifyDatasource(argumentCollection = #tmpStrt#);
+					if(structCount(getCredencials())) {
+						var datasource = adminWeb.getDatasource('TestDSN1');
+						assertEquals(isstruct(datasource), true);
+						tmpStrt.name = datasource.name;
+						tmpStrt.dbusername = datasource.username;
+						tmpStrt.dbpassword = datasource.password;
+						adminWeb.verifyDatasource(argumentCollection = #tmpStrt#);
+					}
 				});
 
 				it(title="testremoveDatasource()", body=function( currentSpec ) {
-					adminWeb.removeDatasource('testDSN1');
-					var datasource = adminWeb.getDatasources();
-					var ListOfDSNName = valueList(datasource.name);
-					assertEquals((findnoCase('testDSN1', ListOfDSNName) EQ 0), true);
+					if(structCount(getCredencials())) {
+						adminWeb.removeDatasource('testDSN1');
+						var datasource = adminWeb.getDatasources();
+						var ListOfDSNName = valueList(datasource.name);
+						assertEquals((findnoCase('testDSN1', ListOfDSNName) EQ 0), true);
+					}
 				});
 
 				it(title="checking getDatasourceDriverList()", body=function( currentSpec ) {
@@ -277,6 +294,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+
+			// Mail
 			describe( title="test-mail server functions", body=function() {
 				it(title="checking getMailservers()", body=function( currentSpec ) {
 					var mailservers = adminWeb.getMailservers();
@@ -313,6 +332,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+			// Mail Setting
 			describe( title="test-mail setting functions", body=function() {
 				beforeEach(function( currentSpec ){
 					getMailSetting = adminWeb.getMailSetting();
@@ -351,7 +371,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(adminWebMailSettings.timeout EQ adminMailSettings.timeout,true);
 				});
 			});
-
+/*
+			// Mapping
 			describe( title="test-mapping settings function", body=function() {
 				it(title="checking getMappings()", body=function( currentSpec ) {
 					var getMappings = adminWeb.getMappings();
@@ -432,8 +453,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(Find("/TestArchive", ListOfvirtual) EQ 0, true);
 				});
 			});
-
-			describe( title="test-Extension functions", body=function() {
+*/
+			// Extension
+			/*describe( title="test-Extension functions", body=function() {
 				it(title="checking getExtensions()", body=function( currentSpec ) {
 					var getExtensions = adminWeb.getExtensions();
 					assertEquals(isquery(getExtensions) ,true);
@@ -483,6 +505,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+			// Extension Provider
 			describe( title="test-extension providers functions", body=function() {
 				it(title="checking getExtensionProviders()", body=function( currentSpec ) {
 					var getExtensionsProvider = adminWeb.getExtensionProviders();
@@ -506,9 +529,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var getExtensionsProvider = adminWeb.getExtensionProviders();
 					adminWeb.verifyExtensionProvider(url=getExtensionsProvider.url);
 				});
-			});
+			});*/
 
-			describe( title="test ORM function()", body=function() {
+			// ORM
+			/*describe( title="test ORM function()", body=function() {
 				beforeEach(function( currentSpec ){
 					ORMSettingList = "checking getORMSetting(),checking updateORMSetting(),checking resetORMSetting()";
 					ORMEngineList = "checking getORMEngine(),checking updateORMEngine(),checking removeORMEngine()";
@@ -574,9 +598,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking removeORMEngine()", body=function( currentSpec ) {
 					adminWeb.removeORMEngine();
 				});
-			});
+			});*/
 
-			describe( title="test Component functions", body=function() {
+			// Component
+			/*describe( title="test Component functions", body=function() {
 				it(title="checking getComponent()", body=function( currentSpec ) {
 					var getComp = adminWeb.getComponent();
 					assertEquals(isstruct(getComp) ,true);
@@ -599,7 +624,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking updateComponentMapping()", body=function( currentSpec ) {
-					//var path = "#expandpath('../')#test\components\Administrator\TestArchive";
+
 					var curr=getDirectoryFromPath(GetCurrentTemplatePath());
 					var path = curr&"/Administrator/TestArchive";
 					var tmpStrt = {};
@@ -634,8 +659,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isQuery(getCompMap) ,true);
 					assertEquals(findNoCase("/TestCompArchive",valueList(getCompMap.virtual)) EQ 0,true);
 				});
-			});
+			});*/
 
+			// Cache
 			describe( title="test cache functions", body=function() {
 				it(title="checking getCacheConnections()", body=function( currentSpec ) {
 					var getCacheConnections = adminWeb.getCacheConnections();
@@ -675,6 +701,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+			// Compiler
 			describe( title="test CompilerSettings functions", body=function() {
 				beforeEach(function( currentSpec ){
 					if( currentSpec == 'checking getCompilerSettings()' ){
@@ -719,6 +746,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+			// Performance
 			describe( title="test performance functions", body=function() {
 				beforeEach(function( currentSpec ){
 					getPerformanceSettings = adminWeb.getPerformanceSettings();
@@ -759,6 +787,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+			// Gateway
 			describe( title="test gateway functions", body=function() {
 				it(title="checking getGatewayentries()", body=function( currentSpec ) {
 					var gatewayEntries = adminweb.getGatewayentries();
@@ -803,6 +832,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+			// Bundles
 			describe( title="test bundles functions", body=function() {
 				it(title="checking getBundles()", body=function( currentSpec ) {
 					var bundles = adminWeb.getBundles();
@@ -817,6 +847,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+			// Debug
 			describe( title="test debugging functions", body=function() {
 				beforeEach(function( currentSpec ){
 					debugSettingList = "checking getDebugSetting(),checking updateDebugSetting(),checking resetDebugSetting()";
@@ -928,25 +959,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
-			xdescribe( title="test Certificate functions", body=function() {
-				it(title="checking getSSLCertificate()", body=function( currentSpec ) {
-					var hostName = cgi.local_host;
-					var SSLCertificate = admin.getSSLCertificate(hostName);
-					assertEquals(isquery(SSLCertificate), true);
-				});
-
-				it(title="checking updateSSLCertificate()", body=function( currentSpec ) {
-					var hostName = cgi.local_host;
-					var hasError = false;
-					try{
-						admin.updateSSLCertificate(hostName);
-					} catch ( any e ){
-						hasError = true;
-					}
-					assertEquals(hasError EQ false, true);
-				});
-			});
-
+			// Plugin 
 			describe( title="test plugin functions", body=function() {
 				it(title="checking getPluginDirectory()", body=function( currentSpec ) {
 					var pluginDirectory = adminWeb.getPluginDirectory();
@@ -1283,6 +1296,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+
 			describe( title="test restMappings functions", body=function() {
 				it(title="checking getRestMappings()", body=function( currentSpec ) {
 					var restMappings = adminWeb.getRestMappings();
@@ -1526,7 +1540,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(adminWebError.doStatusCode EQ adminError.doStatusCode, true);
 				});
 			});
-
+			
+			// security manager
 			describe( title="test securityManager functions", body=function() {
 				beforeEach(function( currentSpec ){
 					if(currentSpec == 'checking createSecurityManager()'){
@@ -1605,6 +1620,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+			// storage
 			describe( title="test storage functions", body=function() {
 				it(title="checking storageSet()", body=function( currentSpec ) {
 					adminWeb.storageSet( key="test", value="result" );
@@ -1617,7 +1633,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(getStorage EQ 'result', true);
 				});
 			});
-
+			
+			// API key
 			describe( title="test API functions", body=function() {
 				it(title="checking updateAPIkey()", body=function( currentSpec ) {
 					variables.APIkey=createGUid();
@@ -1636,7 +1653,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
-			describe( title="test update functions", body=function() {
+			// update
+			/*describe( title="test update functions", body=function() {
 				beforeEach(function( currentSpec ){
 					if(currentSpec == 'checking getUpdate()'){
 						update = admin.getUpdate();
@@ -1670,27 +1688,33 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking removeUpdate()", body=function( currentSpec ) {
 					// admin.removeUpdate();
 				});
-			});
+			});*/
 
+			// reset id
 			describe( title="test resetId functions", body=function() {
 				it(title="checking resetId()", body=function( currentSpec ) {
 					adminWeb.resetId();
 				});
 			});
-
-			describe( title="test restart functions", body=function() {
+			
+			
+			// restart
+			/*describe( title="test restart functions", body=function() {
 				it(title="checking restart()", body=function( currentSpec ) {
 					//admin.restart();
 				});
-			});
+			});*/
 
+			// min version
 			describe( title="test getMinVersion functions", body=function() {
 				it(title="checking getMinVersion()", body=function( currentSpec ) {
 					var minVersion = admin.getMinVersion();
 					assertEquals(len(minVersion) GT 0,true);
 				});
 			});
+		
 
+			// Patches
 			describe( title="test listPatches functions", body=function() {
 				it(title="checking listPatches()", body=function( currentSpec ) {
 					var listPatches = admin.listPatches();
@@ -1698,6 +1722,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+			// Update
 			describe( title="test changeVersionTo function", body=function() {
 				it(title="checking changeVersionTo()", body=function( currentSpec ) {
 					restBasePath="/rest/update/provider/";
