@@ -402,7 +402,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						options=
 						{dbtype="query"}
 					);
-					assertEquals(result.recordcount EQ 1,true);
+					assertEquals(1,result.recordcount);
 				});
 
 				it(title="checking compileMapping()", body=function( currentSpec ) {
