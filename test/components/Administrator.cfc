@@ -368,7 +368,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="checking updateMapping()", body=function( currentSpec ) {
 					//var path = "#expandpath('../')#test\components\Administrator\TestArchive";
-					var curr=getDirectoryFromPath(getCurrentContext());
+					var curr=getDirectoryFromPath(GetCurrentTemplatePath());
 					var path = curr&"/Administrator/TestArchive";
 
 					var tmpStrt = {};
@@ -386,7 +386,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="checking createArchiveFromMapping()", body=function( currentSpec ) {
 					//var path = "#expandpath('../')#test\components\Administrator\TestArchive";
-					var curr=getDirectoryFromPath(getCurrentContext());
+					var curr=getDirectoryFromPath(GetCurrentTemplatePath());
 					var path = curr&"/Administrator/TestArchive";
 
 					var tmpStrt = {};
@@ -600,7 +600,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="checking updateComponentMapping()", body=function( currentSpec ) {
 					//var path = "#expandpath('../')#test\components\Administrator\TestArchive";
-					var curr=getDirectoryFromPath(getCurrentContext());
+					var curr=getDirectoryFromPath(GetCurrentTemplatePath());
 					var path = curr&"/Administrator/TestArchive";
 					var tmpStrt = {};
 					tmpStrt.virtual = "/TestCompArchive";
@@ -616,7 +616,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="checking createComponentArchive()", body=function( currentSpec ) {
 					//var path = "#expandpath('../')#test\components\Administrator\TestArchive";
-					var curr=getDirectoryFromPath(getCurrentContext());
+					var curr=getDirectoryFromPath(GetCurrentTemplatePath());
 					var path = curr&"/Administrator/TestArchive";
 
 					var tmpStrt = {};
@@ -969,7 +969,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="checking updateContext()", body=function( currentSpec ) {
 					//var path = "#expandpath('../')#test\components\Administrator\en.xml";
-					var curr=getDirectoryFromPath(getCurrentContext());
+					var curr=getDirectoryFromPath(GetCurrentTemplatePath());
 					var path = curr&"/Administrator/en.xml";
 					var tmpStruct={};
 					tmpStruct.source=path;
@@ -1292,7 +1292,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="checking updateRestMapping()", body=function( currentSpec ) {
 
-					var curr=getDirectoryFromPath(getCurrentContext());
+					var curr=getDirectoryFromPath(GetCurrentTemplatePath());
 					var tmpStrt = {};
 					tmpStrt.default = "true";
 					tmpStrt.virtual = "/testRestMapping";
@@ -1449,7 +1449,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="checking updatecustomtag()", body=function( currentSpec ) {
 					//var path = "#expandpath('../')#test\components\Administrator\TestArchive";
-					var curr=getDirectoryFromPath(getCurrentContext());
+					var curr=getDirectoryFromPath(GetCurrentTemplatePath());
 					var path = curr&"/Administrator/TestArchive";
 
 					adminWeb.updatecustomtag( virtual="/testcustomtag", physical=path, archive="", primary="Resource", inspect="");
@@ -1460,7 +1460,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="checking createCTArchive()", body=function( currentSpec ) {
 					//var path = "#expandpath('../')#test\components\Administrator\TestArchive";
-					var curr=getDirectoryFromPath(getCurrentContext());
+					var curr=getDirectoryFromPath(GetCurrentTemplatePath());
 					var path = curr&"/Administrator/TestArchive";
 
 					var tmpStrt = {};
