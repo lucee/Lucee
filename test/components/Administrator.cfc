@@ -1510,6 +1510,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
+			// Error
 			describe( title="test error functions", body=function() {
 				beforeEach(function( currentSpec ){
 					if(currentSpec == 'checking getError()'){
