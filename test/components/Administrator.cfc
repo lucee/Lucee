@@ -371,9 +371,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(adminWebMailSettings.timeout EQ adminMailSettings.timeout,true);
 				});
 			});
-/**/
+
 			// Mapping
-			describe( title="test-mapping settings function", body=function() {
+			/*describe( title="test-mapping settings function", body=function() {
 				it(title="checking getMappings()", body=function( currentSpec ) {
 					var getMappings = adminWeb.getMappings();
 					assertEquals(isquery(getMappings) ,true);
@@ -456,7 +456,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var ListOfvirtual = valueList(getMappings.virtual);
 					assertEquals(Find("/TestArchive", ListOfvirtual) EQ 0, true);
 				});
-			});
+			});*/
 
 			// Extension
 			describe( title="test-Extension functions", body=function() {
