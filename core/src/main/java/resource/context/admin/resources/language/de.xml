@@ -1088,6 +1088,8 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="overview.bugreport">Fehlerreport</data>
 	<data key="overview.Docs">Documentation</data>
 	<data key="overview.DocsDesc">If you have any questions about Lucee please take a look at the documentation in the first instance.</data>
+	<data key="overview.onlineDocsLink">Online Documentation</data>
+	<data key="overview.localRefLink">Local Reference</data>
 	<data key="overview.issuetracker">Issue Tracker</data>
 	<data key="overview.issuetrackerDesc">If you think you've found a bug, please take the time to report it via our bug tracking system.</data>
 	<data key="overview.book">Book (Lucee 3 Beginner's Guide)</data>
