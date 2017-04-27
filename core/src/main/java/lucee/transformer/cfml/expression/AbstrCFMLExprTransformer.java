@@ -370,7 +370,7 @@ public abstract class AbstrCFMLExprTransformer {
 					throw new TemplateException(data.srcCode,"left operant of the Elvis operator has to be a variable or a function call");
 
 				Variable left = (Variable)expr;
-				/* LDEV-1201
+				/// LDEV-1201
 				List<Member> members = left.getMembers();
 				Member last=null;
 				for(Member m:members) {
@@ -380,8 +380,8 @@ public abstract class AbstrCFMLExprTransformer {
 				if(last!=null) {
 					last.setSafeNavigatedValue(right);
 				}
-				return left;*/
-				return OpElvis.toExpr(left, right);
+				return left;
+				//return OpElvis.toExpr(left, right);
         	}
         	
         	Expression left = assignOp(data);

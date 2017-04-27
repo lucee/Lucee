@@ -29,16 +29,39 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public boolean function isNotSupported() {
 		if(isNull(variables.has)) setUp();
 		return !variables.has;
-	}
+	} 
 
-	public void function test() skip="isNotSupported" {
+	public void function testSimpleValue() skip="isNotSupported" {
 		cachePut(id:'abc', value:'AAA', cacheName:variables.cacheName);
 		var val=cacheget(id:'abc', cacheName:variables.cacheName);
+		assertFalse(isNull(val));
 		assertEquals("AAA",val);
 	}
 
+	public void function testComplexValueQuery() skip="isNotSupported" {
+		var qry = queryNew("name,age","varchar,numeric",{name:["Susi","Urs"],age:[20,24]});
+		cachePut(id:'qryVal', value:qry, cacheName:variables.cacheName);
+		var val=cacheget(id:'qryVal', cacheName:variables.cacheName);
+		assertFalse(isNull(val));
+	}
+
+	public void function testComplexValueStruct() skip="isNotSupported" {
+		var sct = {a:1};
+		cachePut(id:'sctVal', value:sct, cacheName:variables.cacheName);
+		var val=cacheget(id:'sctVal', cacheName:variables.cacheName);
+		assertFalse(isNull(val));
+		assertEquals(1,val.a);
+	}
+	public void function testComplexValueMap() skip="isNotSupported" {
+		var map = createObject('java','java.util.HashMap').init();
+		map.A=1;
+		cachePut(id:'sctMap', value:map, cacheName:variables.cacheName);
+		var val=cacheget(id:'sctMap', cacheName:variables.cacheName);
+		assertFalse(isNull(val));
+		assertEquals(1,val.A);
+	}
+
 	private void function testTimespan() skip="isNotSupported" {
-		
 		var rightNow = Now();
 		var testData = {"time": rightNow};
 		var cacheId='jkijhiiuhkj';
@@ -48,7 +71,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		// getting back without waiting on it
 		theValue = cacheGet(id=cacheId, cacheName=variables.cacheName);
-		wasFound = !isNull(theValue);
+		wasFound=!isNull(theValue);
 		assertTrue(wasFound);
 
 		// getting back after at least a second
@@ -64,7 +87,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				caches="#{memcached:{
 						  class: 'org.lucee.extension.io.cache.memcache.MemCacheRaw'
 						, bundleName: 'memcached.extension'
-						, bundleVersion: '3.0.2.28'
+						, bundleVersion: '3.0.2.29'
 						, storage: false
 						, custom: {
 							"socket_timeout":"30",

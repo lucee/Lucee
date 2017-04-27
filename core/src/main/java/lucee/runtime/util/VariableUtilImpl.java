@@ -30,6 +30,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.xml.XmlSearch;
@@ -803,11 +804,16 @@ public final class VariableUtilImpl implements VariableUtil {
 	}
 	
 	// FUTURE add to interface
-	public Object callFunctionWithoutNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args, Object defaultValue) {
+	public Object callFunctionWithoutNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args, boolean noNull,Object defaultValue) {
 		// MUST make an independent impl for performance reasons
 		try {
-			return callFunctionWithoutNamedValues(pc, coll, key, args);
-		} catch(Throwable t) {
+			if(!noNull || NullSupportHelper.full())
+				return callFunctionWithoutNamedValues(pc, coll, key, args);
+			Object obj = callFunctionWithoutNamedValues(pc, coll, key, args);
+			return obj==null?defaultValue:obj;
+			
+		}
+		catch(Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
@@ -844,10 +850,13 @@ public final class VariableUtilImpl implements VariableUtil {
 	}
 	
 	// FUTURE add to interface
-	public Object callFunctionWithNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args, Object defaultValue) {
+	public Object callFunctionWithNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args, boolean noNull, Object defaultValue) {
 		// MUST make an independent impl for performance reasons
 		try {
-			return callFunctionWithNamedValues(pc, coll, key, args);
+			if(!noNull || NullSupportHelper.full())
+				return callFunctionWithNamedValues(pc, coll, key, args);
+			Object obj = callFunctionWithNamedValues(pc, coll, key, args);
+			return obj==null?defaultValue:obj;
 		}
 		catch(Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
