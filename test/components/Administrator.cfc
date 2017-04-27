@@ -504,7 +504,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(listSort(structKeyList(localExtension),'textnocase'),'applications,archives,bundles,categories,components,config,contexts,description,eventGateways,flds,functions,id,image,name,plugins,releaseType,startBundles,tags,tlds,trial,version,webcontexts');
 				});
 			});
-
+*/
 			// Extension Provider
 			describe( title="test-extension providers functions", body=function() {
 				it(title="checking getExtensionProviders()", body=function( currentSpec ) {
@@ -529,7 +529,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var getExtensionsProvider = adminWeb.getExtensionProviders();
 					adminWeb.verifyExtensionProvider(url=getExtensionsProvider.url);
 				});
-			});*/
+			});
 
 			// ORM
 			/*describe( title="test ORM function()", body=function() {
