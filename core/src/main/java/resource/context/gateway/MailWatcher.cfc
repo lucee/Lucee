@@ -121,7 +121,7 @@
 
 	<cffunction name="sendMessage" access="public" output="no" returntype="string">
 		<cfargument name="data" required="false" type="struct">
-		<cfreturn "ERROR: sendMessage not supported">
+		<cfreturn "sendGatewayMessage() has not been implemented for the event gateway [MailWatcher]. If you want to modify it, please edit the following CFC:"& expandpath("./") & "MailWatcher.cfc">
 	</cffunction>
 
 </cfcomponent>
