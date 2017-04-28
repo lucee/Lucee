@@ -87,12 +87,15 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 
 public class HTTPEngine4Impl {
+
+	private static PoolingHttpClientConnectionManager connMan;
 
 	/**
 	 * does a http get request
@@ -237,12 +240,36 @@ public class HTTPEngine4Impl {
 		if(header instanceof HeaderWrap) return ((HeaderWrap)header).header;
 		return new HeaderImpl(header.getName(), header.getValue());
 	}
+	
+	public static HttpClientBuilder getHttpClientBuilder() {
+		HttpClientBuilder builder = HttpClients.custom();
+		
+		if(connMan==null) {
+			connMan = new PoolingHttpClientConnectionManager();
+			// Increase max total connection to 200
+			connMan.setMaxTotal(200);
+			// Increase default max connection per route to 20
+			connMan.setDefaultMaxPerRoute(20);
+			// Increase max connections for localhost:80 to 50
+			//HttpHost localhost = new HttpHost("locahost", 80);
+			//cm.setMaxPerRoute(new HttpRoute(localhost), 50);
+		}
+		builder.setConnectionManager(connMan);
+		return builder;
+	}
+	
+	public static void releaseConnectionManager() {
+		if(connMan!=null) {
+			connMan.close();
+			connMan=null;
+		}
+	}
 
 	private static HTTPResponse _invoke(URL url,HttpUriRequest request,String username,String password, long timeout, boolean redirect,
             String charset, String useragent,
             ProxyData proxy, lucee.commons.net.http.Header[] headers, Map<String,String> formfields) throws IOException {
 
-		HttpClientBuilder builder = HttpClients.custom();
+		HttpClientBuilder builder = getHttpClientBuilder();
 
     	// redirect
     	if(redirect)  builder.setRedirectStrategy(new DefaultRedirectStrategy());

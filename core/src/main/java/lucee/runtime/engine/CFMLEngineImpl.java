@@ -82,6 +82,7 @@ import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.commons.net.HTTPUtil;
+import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.intergral.fusiondebug.server.FDControllerImpl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -1129,6 +1130,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
         getControler().close();
 		RetireOutputStreamFactory.close();
 		
+		// release HTTP Pool
+		HTTPEngine4Impl.releaseConnectionManager();
 		
         releaseCache(getConfigServerImpl());
     	

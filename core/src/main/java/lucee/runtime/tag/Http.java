@@ -675,7 +675,7 @@ public final class Http extends BodyTagImpl {
 
 	private void _doEndTag() throws PageException, IOException	{
 		long start=System.nanoTime();
-		HttpClientBuilder builder = HttpClients.custom();
+		HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder();
 		ssl(builder);
 		
     	// redirect
