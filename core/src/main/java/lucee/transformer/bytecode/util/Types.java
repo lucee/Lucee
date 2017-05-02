@@ -84,6 +84,7 @@ import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.CallerUtil;
 import lucee.runtime.util.NumberRange;
+import lucee.runtime.util.PageContextUtil;
 import lucee.runtime.util.VariableUtilImpl;
 import lucee.runtime.writer.BodyContentUtil;
 import lucee.transformer.TransformerException;
@@ -178,6 +179,7 @@ public final class Types {
 
     public static final Type PAGE_CONTEXT=Type.getType(PageContext.class);
     public static final Type PAGE_CONTEXT_IMPL=Type.getType(PageContextImpl.class);
+    public static final Type PAGE_CONTEXT_UTIL=Type.getType(PageContextUtil.class);
 
 
     public final static Type QUERY=Type.getType(lucee.runtime.type.Query.class);

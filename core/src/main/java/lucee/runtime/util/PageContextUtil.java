@@ -31,6 +31,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.tagext.BodyContent;
 
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.Method;
+
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -54,6 +57,7 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+import lucee.transformer.bytecode.util.Types;
 
 public class PageContextUtil {
 
@@ -200,4 +204,12 @@ public class PageContextUtil {
 		}
 		return str;
 	}
+
+	public static Object getFunction(PageContext pc, Object coll, Object[] args) throws PageException {
+    	return Caster.toFunction(coll).call(pc, args, true);
+    }
+    
+    public static Object getFunctionWithNamedValues(PageContext pc, Object coll, Object[] args) throws PageException {
+    	return Caster.toFunction(coll).callWithNamedValues(pc, Caster.toFunctionValues(args), true);
+    }
 }
