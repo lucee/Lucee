@@ -371,7 +371,7 @@ public abstract class AbstrCFMLExprTransformer {
 
 				Variable left = (Variable)expr;
 				/// LDEV-1201
-				List<Member> members = left.getMembers();
+				/*List<Member> members = left.getMembers();
 				Member last=null;
 				for(Member m:members) {
 					last=m;
@@ -380,8 +380,8 @@ public abstract class AbstrCFMLExprTransformer {
 				if(last!=null) {
 					last.setSafeNavigatedValue(right);
 				}
-				return left;
-				//return OpElvis.toExpr(left, right);
+				return left;*/
+				return OpElvis.toExpr(left, right);
         	}
         	
         	Expression left = assignOp(data);

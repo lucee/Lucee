@@ -268,7 +268,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 						if(member.getSafeNavigated()) {
 							Expression val = member.getSafeNavigatedValue();
 							if(val==null)ASMConstants.NULL(adapter);
-							else val.writeOut(bc, mode);
+							else val.writeOut(bc, Expression.MODE_REF);
 							type=THREE;
 						}
 						else type=TWO;
@@ -282,7 +282,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					if(member.getSafeNavigated()) {
 						Expression val = member.getSafeNavigatedValue();
 						if(val==null)ASMConstants.NULL(adapter);
-						else val.writeOut(bc, mode);
+						else val.writeOut(bc, Expression.MODE_REF);
 						type=THREE;
 					}
 					else type=TWO;
