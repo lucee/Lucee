@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.print;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
@@ -1239,11 +1240,11 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	private Statement cftagStatement(ExprData data, Body parent) throws TemplateException {
 		if(data.ep==null) return null; // that is because cfloop-contition evaluator does not pass this
 		
-		int start = data.srcCode.getPos();
+		final int start = data.srcCode.getPos();
 		
 		// namespace and separator
-		TagLib tagLib=CFMLTransformer.nameSpace(data);
-		if(tagLib==null) return null;
+		final TagLib tagLib=CFMLTransformer.nameSpace(data);
+		if(tagLib==null || !tagLib.isCore()) return null;
 		
 		//print.e("namespace:"+tagLib.getNameSpaceAndSeparator());
 		
@@ -1260,8 +1261,11 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		String appendix=null;
 		TagLibTag tlt=tagLib.getTag(id);
 		
-		//print.e("tlt:"+tlt);
-		
+		/*Iterator<TagLibTag> it = tagLib.getTags().values().iterator();
+		while(it.hasNext()) {
+			TagLibTag tmp = it.next();
+			if(tmp.getScript()==null) print.e(tmp.getFullName());
+		}*/
 		
 		// get taglib
 		if(tlt==null)	{
@@ -1277,7 +1281,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			 }
 			appendix=StringUtil.removeStartingIgnoreCase(id,tlt.getName());
 		}
-		if(tagLib.isCore() && tlt.getScript()==null) {
+		if(tlt.getScript()==null) {
 			data.srcCode.setPos(start);
 			return null;
 		}
