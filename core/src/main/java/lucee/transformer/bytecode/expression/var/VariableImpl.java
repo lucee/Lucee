@@ -30,7 +30,6 @@ import lucee.runtime.exp.TemplateException;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.UDFUtil;
-import lucee.runtime.util.PageContextUtil;
 import lucee.transformer.Context;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
@@ -222,7 +221,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	}
 	private Type _writeOut(BytecodeContext bc, int mode,Boolean asCollection) throws TransformerException {
 
-		GeneratorAdapter adapter = bc.getAdapter();
+		final GeneratorAdapter adapter = bc.getAdapter();
 		final int count=countFM+countDM;
 		
 		// count 0
@@ -268,7 +267,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 						if(member.getSafeNavigated()) {
 							Expression val = member.getSafeNavigatedValue();
 							if(val==null)ASMConstants.NULL(adapter);
-							else val.writeOut(bc, mode);
+							else val.writeOut(bc, Expression.MODE_REF);
 							type=THREE;
 						}
 						else type=TWO;
@@ -282,7 +281,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					if(member.getSafeNavigated()) {
 						Expression val = member.getSafeNavigatedValue();
 						if(val==null)ASMConstants.NULL(adapter);
-						else val.writeOut(bc, mode);
+						else val.writeOut(bc, Expression.MODE_REF);
 						type=THREE;
 					}
 					else type=TWO;
@@ -719,9 +718,10 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					_last?METHOD_SCOPE_GET_COLLECTION_KEY:METHOD_SCOPE_GET_KEY);
 		}
 		else {
-			Expression val = member.getSafeNavigatedValue();
+			Expression val = member.getSafeNavigatedValue(); // LDEV-1201
 			if(val==null)ASMConstants.NULL(bc.getAdapter());
 			else val.writeOut(bc, Expression.MODE_REF);
+			
 			adapter.invokeVirtual(Types.PAGE_CONTEXT,_last?GET_COLLECTION[THREE]:GET[THREE]);
 		}
 		return Types.OBJECT;

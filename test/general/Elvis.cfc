@@ -30,6 +30,36 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 
+	public void function testNumberDefault(){
+		assertEquals(0,ssfih?:0);
+	}
+	public void function testBooleanDefault(){
+		assertEquals(true,ssfih?:true);
+	}
+	public void function testDateDefault(){
+		var d=now();
+		assertEquals(d,ssfih?:d);
+	}
+
+	public void function testUseResultAsPrimitiveValue(){
+		assertEquals(2, (ssfih?:1)+1 );
+	}
+
+	public void function testDefaultUDF(){
+		assertEquals(123, ddjhwedkjewh?:_test() );
+	}
+	private function _test(){
+		return 123;
+	}
+
+
+
+	public void function testNullValue(){
+		assertEquals(1, nullValue()?:1 );
+	}
+
+
+
 	public void function testFuncNotExisting(){
 		assertEquals('NotExisting',ljkl.jljl.ghu()?:'NotExisting');
 		assertEquals('NotExisting',ljklkju()?:'NotExisting');
