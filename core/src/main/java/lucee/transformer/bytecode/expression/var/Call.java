@@ -8,15 +8,6 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
-import lucee.runtime.PageContextImpl;
-import lucee.runtime.exp.TemplateException;
-import lucee.runtime.interpreter.VariableInterpreter;
-import lucee.runtime.type.Collection.Key;
-import lucee.runtime.util.PageContextUtil;
-import lucee.runtime.util.VariableUtilImpl;
-import lucee.transformer.Context;
-import lucee.transformer.Factory;
-import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
