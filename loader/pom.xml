@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.3.0.0-ALPHA</version>
+  <version>5.3.0.0-ALPHA-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -93,7 +93,7 @@
         <plugin>
      <groupId>org.sonatype.plugins</groupId>
      <artifactId>nexus-staging-maven-plugin</artifactId>
-     <version>1.6.3</version>
+     <version>1.6.6</version>
           <extensions>true</extensions>
           <configuration>
             <serverId>ossrh</serverId>
@@ -758,7 +758,7 @@
   <distributionManagement>
     <repository>
     <id>ossrh</id>
-      <url>https://oss.sonatype.org/content/repositories/releases</url>
+    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
   </repository>
     <snapshotRepository>
       <id>ossrh</id>
