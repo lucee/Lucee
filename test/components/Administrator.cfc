@@ -1742,7 +1742,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			// Update
-			describe( title="test changeVersionTo function", body=function() {
+			/*TODO ADD describe( title="test changeVersionTo function", body=function() {
 				it(title="checking changeVersionTo()", body=function( currentSpec ) {
 					restBasePath="/rest/update/provider/";
 					var getUpdate = admin.getUpdate();
@@ -1765,7 +1765,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						return false;
 					}
 				});
-			});
+			});*/
 
 			describe( title="test connect function", body=function() {
 				it(title="checking connect()", body=function( currentSpec ) {

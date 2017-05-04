@@ -176,7 +176,14 @@
         	<cfset language.__action=trim(xml.xmlRoot.XmlAttributes.action)>
         	<cfset language.__position=StructKeyExists(xml.xmlRoot.XmlAttributes,"position")?xml.xmlRoot.XmlAttributes.position:0>
         </cfif>
-        <cfset xml = XmlSearch(xml, "/languages/language[@key='#lCase(trim(arguments.lang))#']")[1]>
+        <cftry>
+				<cfset xml = XmlSearch(xml, "/languages/language[@key='#lCase(trim(arguments.lang))#']")[1]>
+			<cfcatch>
+				<!--- fallback to english --->
+				<cfset xml = XmlSearch(xml, "/languages/language[@key='en']")[1]>
+			</cfcatch>
+		</cftry>
+        
         
 		<cfset language.__group=StructKeyExists(xml,"group")?xml.group.XmlText:UCFirst(language.__action)>
 		<cfset language.title=xml.title.XmlText>
