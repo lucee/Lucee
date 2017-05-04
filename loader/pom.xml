@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.2.2.2-SNAPSHOT</version>
+  <version>5.3.0.0-ALPHA</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -758,7 +758,7 @@
   <distributionManagement>
     <repository>
     <id>ossrh</id>
-    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
   </repository>
     <snapshotRepository>
       <id>ossrh</id>
