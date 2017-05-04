@@ -35,7 +35,7 @@ public class GetBuiltInFunction extends BIF {
 	
     @Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-    	if(args.length==2)
+    	if(args.length==1)
 			return call(pc, Caster.toString(args[0]));
     	
 		throw new FunctionException(pc, "GetBuiltInFunction", 1, 1, args.length);

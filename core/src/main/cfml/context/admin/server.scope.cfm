@@ -408,7 +408,35 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.Scopes.sessionStorage#</th>
 					<td>
-						<cfinputClassic type="text" name="sessionStorage" value="#scope.sessionStorage#">
+						<cfset stText.Scopes.memory="memory">
+						<cfset stText.Scopes.file="file">
+						<cfset stText.Scopes.cookie="cookie">
+						<cfset datasources=getPageContext().getConfig().getDatasources()>
+						<cfset cacheConnections = getPageContext().getConfig().getCacheConnections().keySet().toArray()>
+						<select name="sessionStorage" class="medium">
+							<option value="memory" <cfif scope.sessionStorage EQ "memory">selected</cfif>>#ucFirst(stText.Scopes.memory)#</option>
+							<option value="file" <cfif scope.sessionStorage EQ "file">selected</cfif>>#ucFirst(stText.Scopes.file)#</option>
+							<option value="cookie" <cfif scope.sessionStorage EQ "cookie">selected</cfif>>#ucFirst(stText.Scopes.cookie)#</option>
+							<cfloop from="1" to="#arrayLen(cacheConnections)#" index="key">
+								<cfif key EQ 1>
+									<optgroup label="Cache">
+								</cfif>
+								<option value="#cacheConnections[key]#" <cfif scope.sessionStorage EQ cacheConnections[key]>selected</cfif>>cache: #cacheConnections[key]#</option>
+								<cfif key EQ arrayLen(cacheConnections)>
+									</optgroup>
+								</cfif>
+							</cfloop>
+							<cfloop from="1" to="#arrayLen(datasources)#" index="key">
+								<cfif key EQ 1>
+									<optgroup label="Datasources">
+								</cfif>
+								<option value="#datasources[key].getName()#" <cfif scope.sessionStorage EQ datasources[key].getName()>selected</cfif>>dsn: #datasources[key].getName()#</option>
+								<cfif key EQ arrayLen(datasources)>
+									</optgroup>
+								</cfif>
+							</cfloop>
+						</select>
+						<!--- <cfinputClassic type="text" name="sessionStorage" value="#scope.sessionStorage#"> --->
 						<div class="comment">#stText.Scopes.sessionStorageDesc#</div>
 
 						<cfsavecontent variable="codeSample">
@@ -422,7 +450,30 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.Scopes.clientStorage#</th>
 					<td>
-						<cfinputClassic type="text" name="clientStorage" value="#scope.clientStorage#">
+						<select name="clientStorage" class="medium">
+							<option value="memory" <cfif scope.clientStorage EQ "memory">selected</cfif>>#ucFirst(stText.Scopes.memory)#</option>
+							<option value="file" <cfif scope.clientStorage EQ "file">selected</cfif>>#ucFirst(stText.Scopes.file)#</option>
+							<option value="cookie" <cfif scope.clientStorage EQ "cookie">selected</cfif>>#ucFirst(stText.Scopes.cookie)#</option>
+							<cfloop from="1" to="#arrayLen(cacheConnections)#" index="key">
+								<cfif key EQ 1>
+									<optgroup label="Cache">
+								</cfif>
+								<option value="#cacheConnections[key]#" <cfif scope.sessionStorage EQ cacheConnections[key]>selected</cfif>>cache: #cacheConnections[key]#</option>
+								<cfif key EQ arrayLen(cacheConnections)>
+									</optgroup>
+								</cfif>
+							</cfloop>
+							<cfloop from="1" to="#arrayLen(datasources)#" index="key">
+								<cfif key EQ 1>
+									<optgroup label="Datasources">
+								</cfif>
+								<option value="#datasources[key].getName()#" <cfif scope.clientStorage EQ datasources[key].getName()>selected</cfif>>dsn: #datasources[key].getName()#</option>
+								<cfif key EQ arrayLen(datasources)>
+									</optgroup>
+								</cfif>
+							</cfloop>
+						</select>
+						<!--- <cfinputClassic type="text" name="clientStorage" value="#scope.clientStorage#"> --->
 						<div class="comment">#stText.Scopes.clientStorageDesc#</div>
 
 						<cfsavecontent variable="codeSample">

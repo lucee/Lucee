@@ -47,8 +47,7 @@ public class RestServlet extends AbsServlet {
 	 *      javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
-	protected void service(final HttpServletRequest req,
-			final HttpServletResponse rsp) throws ServletException, IOException {
+	protected void service(final HttpServletRequest req, final HttpServletResponse rsp) throws ServletException, IOException {
 		engine.serviceRest(this, req, rsp);
 	}
 }

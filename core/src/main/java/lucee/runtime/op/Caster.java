@@ -3173,6 +3173,9 @@ public final class Caster {
      * @return casted PageException Object
      */
     public static PageException toPageException(Throwable t) {
+    	return toPageException(t, true);
+    }
+    public static PageException toPageException(Throwable t, boolean rethrowIfNecessary) {
         if(t instanceof PageException)
             return (PageException)t;
         else if(t instanceof PageExceptionBox)
@@ -3195,7 +3198,7 @@ public final class Caster {
         	}
         	//Throwable cause = t.getCause();
         	//if(cause!=null && cause!=t) return toPageException(cause);
-        	return NativeException.newInstance(t);
+        	return NativeException.newInstance(t,rethrowIfNecessary);
         }
     }
     
@@ -4547,6 +4550,10 @@ public final class Caster {
 		if(value instanceof ObjectWrap) {
 			return ((ObjectWrap)value).getEmbededObject();
 		}
+		if(value instanceof JavaObject) {
+			return ((JavaObject)value).getEmbededObject();
+		}
+		
 		return value;
 	}
 	
@@ -4554,6 +4561,9 @@ public final class Caster {
 		if(value==null) return null;
 		if(value instanceof ObjectWrap) {
 			return ((ObjectWrap)value).getEmbededObject(defaultValue);
+		}
+		if(value instanceof JavaObject) {
+			return ((JavaObject)value).getEmbededObject(defaultValue);
 		}
 		return value;
 	}

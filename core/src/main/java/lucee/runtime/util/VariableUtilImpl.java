@@ -30,13 +30,16 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.functions.xml.XmlSearch;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.text.xml.XMLUtil;
+import lucee.runtime.text.xml.struct.XMLStruct;
 import lucee.runtime.text.xml.struct.XMLStructFactory;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -761,31 +764,33 @@ public final class VariableUtilImpl implements VariableUtil {
 		}
 	    // Strings
 	    if(coll instanceof String) {
-			return MemberUtil.call(pc,coll,key,args, CFTypes.TYPE_STRING, "string");
+			return MemberUtil.call(pc,coll,key,args, new short[]{CFTypes.TYPE_STRING}, new String[]{"string"});
 	    }
 	    // Locale
 	    if(coll instanceof Locale) {
-			return MemberUtil.call(pc,coll,key,args, CFTypes.TYPE_LOCALE, "locale");
+			return MemberUtil.call(pc,coll,key,args, new short[]{CFTypes.TYPE_LOCALE}, new String[]{"locale"});
 	    }
 	    // TimeZone
 	    if(coll instanceof TimeZone) {
-			return MemberUtil.call(pc,coll,key,args, CFTypes.TYPE_TIMEZONE, "timezone");
+			return MemberUtil.call(pc,coll,key,args, new short[]{CFTypes.TYPE_TIMEZONE}, new String[]{"timezone"});
 	    }
 	    // Boolean
 	    if(coll instanceof Boolean) {
-	    	return MemberUtil.call(pc, coll, key, args, CFTypes.TYPE_BOOLEAN, "boolean");
+	    	return MemberUtil.call(pc, coll, key, args, new short[]{CFTypes.TYPE_BOOLEAN}, new String[]{"boolean"});
 	    }
-	    // Map
+	    // Map || XML
 	    if(coll instanceof Map) {
-	    	return MemberUtil.call(pc, coll, key, args, CFTypes.TYPE_STRUCT, "struct");
+	    	if(coll instanceof Node) 
+	    		return MemberUtil.call(pc, coll, key, args, new short[]{CFTypes.TYPE_XML,CFTypes.TYPE_STRUCT}, new String[]{"xml","struct"});
+	    	return MemberUtil.call(pc, coll, key, args, new short[]{CFTypes.TYPE_STRUCT}, new String[]{"struct"});
 	    }
 	    // List
 	    if(coll instanceof List) {
-	    	return MemberUtil.call(pc, coll, key, args, CFTypes.TYPE_ARRAY, "array");
+	    	return MemberUtil.call(pc, coll, key, args, new short[]{CFTypes.TYPE_ARRAY}, new String[]{"array"});
 	    }
 	    // Date
 	    if(coll instanceof Date) {
-	    	return MemberUtil.call(pc, coll, key, args, CFTypes.TYPE_DATETIME, "date");
+	    	return MemberUtil.call(pc, coll, key, args, new short[]{CFTypes.TYPE_DATETIME}, new String[]{"date"});
 	    }
 	    
 	    
@@ -799,11 +804,16 @@ public final class VariableUtilImpl implements VariableUtil {
 	}
 	
 	// FUTURE add to interface
-	public Object callFunctionWithoutNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args, Object defaultValue) {
+	public Object callFunctionWithoutNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args, boolean noNull,Object defaultValue) {
 		// MUST make an independent impl for performance reasons
 		try {
-			return callFunctionWithoutNamedValues(pc, coll, key, args);
-		} catch(Throwable t) {
+			if(!noNull || NullSupportHelper.full())
+				return callFunctionWithoutNamedValues(pc, coll, key, args);
+			Object obj = callFunctionWithoutNamedValues(pc, coll, key, args);
+			return obj==null?defaultValue:obj;
+			
+		}
+		catch(Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
@@ -840,10 +850,13 @@ public final class VariableUtilImpl implements VariableUtil {
 	}
 	
 	// FUTURE add to interface
-	public Object callFunctionWithNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args, Object defaultValue) {
+	public Object callFunctionWithNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args, boolean noNull, Object defaultValue) {
 		// MUST make an independent impl for performance reasons
 		try {
-			return callFunctionWithNamedValues(pc, coll, key, args);
+			if(!noNull || NullSupportHelper.full())
+				return callFunctionWithNamedValues(pc, coll, key, args);
+			Object obj = callFunctionWithNamedValues(pc, coll, key, args);
+			return obj==null?defaultValue:obj;
 		}
 		catch(Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

@@ -114,16 +114,7 @@ Error Output --->
 								<cfif structKeyExists(session,"passwordserver")>
 									<cfdirectory action="LIST" directory="../templates/error/" name="err_templates" serverpassword="#session.passwordserver#">
 								<cfelse>
-									<cftry>
-										<cfdirectory action="LIST" directory="../templates/error/" name="err_templates">
-										<cfcatch type="security">
-											<cfadmin 
-												action="getErrorList"
-												type="#request.adminType#"
-												password="#session["password"&request.adminType]#"
-												returnVariable="err_templates">			
-										</cfcatch>		
-									</cftry>
+									<cfdirectory action="LIST" directory="../templates/error/" name="err_templates">
 								</cfif>
 								<cfset isFromTemplate=false>
 								<cfset path=GetDirectoryFromPath(mid(GetDirectoryFromPath(cgi.SCRIPT_NAME),1,len(GetDirectoryFromPath(cgi.SCRIPT_NAME))-1))>

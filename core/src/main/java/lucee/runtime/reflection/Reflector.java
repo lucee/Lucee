@@ -591,7 +591,6 @@ public final class Reflector {
     		e=eit.next();
     		coll.setEL(e.getKey(), _clean(done,e.getValue()));
     	}
-    	
     	return coll;
     }
     
@@ -1118,11 +1117,16 @@ public final class Reflector {
 	}
 	
 	public static Object getField(Object obj, String prop, Object defaultValue) {
+	    return getField(obj, prop, false, defaultValue);
+	}
+	
+	public static Object getField(Object obj, String prop, boolean accessible, Object defaultValue) {
 	    if(obj==null) return defaultValue;
 		Field[] fields = getFieldsIgnoreCase(obj.getClass(),prop,null);
 		if(ArrayUtil.isEmpty(fields)) return defaultValue;
 		
 		try {
+			if(accessible)fields[0].setAccessible(true);
 			return fields[0].get(obj);
 		} catch(Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -1414,7 +1418,7 @@ public final class Reflector {
 	
 	public static Method[] getGetters(Class clazz) {
 		Method[] methods = clazz.getMethods();
-		ArrayList list=new ArrayList();
+		List<Method> list=new ArrayList<Method>();
 		for(int i=0;i<methods.length;i++) {
 			if(isGetter(methods[i])) list.add(methods[i]);
 		}

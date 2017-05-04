@@ -153,6 +153,7 @@ public abstract class AbstrCFMLExprTransformer {
 	private static final short STATIC=0;
 	private static final short DYNAMIC=1;
 	private static FunctionLibFunction GET_STATIC_SCOPE = null;
+	private static FunctionLibFunction GET_SUPER_STATIC_SCOPE = null;
 	private static FunctionLibFunction JSON_ARRAY = null;
 	protected static FunctionLibFunction JSON_STRUCT = null;
 
@@ -268,6 +269,7 @@ public abstract class AbstrCFMLExprTransformer {
 		if(JSON_ARRAY==null)JSON_ARRAY=getFLF(data,"_literalArray");
 		if(JSON_STRUCT==null)JSON_STRUCT=getFLF(data,"_literalStruct");
 		if(GET_STATIC_SCOPE==null)GET_STATIC_SCOPE=getFLF(data,"_getStaticScope");
+		if(GET_SUPER_STATIC_SCOPE==null)GET_SUPER_STATIC_SCOPE=getFLF(data,"_getSuperStaticScope");
 		//print.e(""+(GET_STATIC_SCOPE==null));
 		return data;
 		//this.allowLowerThan=allowLowerThan;
@@ -365,9 +367,21 @@ public abstract class AbstrCFMLExprTransformer {
             	Expression right = assignOp(data);
         		
         		if(!(expr instanceof Variable) )
-        			throw new TemplateException(data.srcCode,"left operant of the Elvis operator has to be a variable or a function call");
-        		
-        		return OpElvis.toExpr((Variable)expr, right);
+					throw new TemplateException(data.srcCode,"left operant of the Elvis operator has to be a variable or a function call");
+
+				Variable left = (Variable)expr;
+				/// LDEV-1201
+				/*List<Member> members = left.getMembers();
+				Member last=null;
+				for(Member m:members) {
+					last=m;
+					m.setSafeNavigated(true);
+				}
+				if(last!=null) {
+					last.setSafeNavigatedValue(right);
+				}
+				return left;*/
+				return OpElvis.toExpr(left, right);
         	}
         	
         	Expression left = assignOp(data);
@@ -1492,10 +1506,19 @@ public abstract class AbstrCFMLExprTransformer {
         	
         	comments(data);
     		
+        	BIF bif=null;
+        	if(componentPath instanceof LitString) {
+        		LitString ls = (LitString)componentPath;
+        		if("super".equalsIgnoreCase(ls.getString())) {
+        			bif=ASMUtil.createBif(data,GET_SUPER_STATIC_SCOPE);
+        		}	
+        	}
         	
         	// now we generate a _getStaticScope function call with that path
-        	BIF bif=ASMUtil.createBif(data,GET_STATIC_SCOPE);
-        	bif.addArgument(new Argument(componentPath,"string"));
+        	if(bif==null) {
+        		bif=ASMUtil.createBif(data,GET_STATIC_SCOPE);
+        		bif.addArgument(new Argument(componentPath,"string"));
+        	}
 				
     		Variable var=data.factory.createVariable(old.getStart(),data.srcCode.getPosition());
     		var.addMember(bif);

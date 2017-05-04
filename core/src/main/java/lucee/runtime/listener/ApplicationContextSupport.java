@@ -367,7 +367,8 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 			existing.close();
 		}
 
-		LoggerAndSourceData las = new LoggerAndSourceData(null,id,name.getLowerString(), appender,appenderArgs,layout,layoutArgs,level,readOnly);
+		LoggerAndSourceData las = new LoggerAndSourceData(null,id,name.getLowerString(), 
+				appender,appenderArgs,layout,layoutArgs,level,readOnly,true);
 		_loggers.put(name,las);
 		return las;
 	}

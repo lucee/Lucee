@@ -48,7 +48,7 @@ public class NativeException extends PageExceptionImpl {
         
         // set stacktrace
         
-        StackTraceElement[] st = getRootCause(t).getStackTrace();
+        /*StackTraceElement[] st = getRootCause(t).getStackTrace();
         if(hasLuceeRuntime(st))setStackTrace(st);
         else {
         	StackTraceElement[] cst = Thread.currentThread().getStackTrace();
@@ -60,12 +60,15 @@ public class NativeException extends PageExceptionImpl {
         		setStackTrace(mst);
         	}
         	else setStackTrace(st);
-        }
-        setAdditional(KeyConstants._Cause, t.getClass().getName()); // FUTURE 5.2 disable
+        }*/
 	}
 	
 	public static NativeException newInstance(Throwable t) {
-		if(t instanceof ThreadDeath) // never ever catch this
+		return newInstance(t, true);
+	}
+	
+	public static NativeException newInstance(Throwable t, boolean rethrowIfNecessary) {
+		if(rethrowIfNecessary && t instanceof ThreadDeath) // never ever catch this
 			throw (ThreadDeath)t;
 		return new NativeException(t);
 	}
@@ -105,5 +108,9 @@ public class NativeException extends PageExceptionImpl {
 	@Override
 	public void setAdditional(Collection.Key key, Object value) {
 		super.setAdditional(key, value);
+	}
+
+	public Throwable getException() {
+		return t;
 	}
 }

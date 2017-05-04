@@ -210,7 +210,7 @@ public final class DateTimeImpl extends DateTime implements SimpleValue,Objects 
 
 	@Override
 	public Object call(PageContext pc, Key methodName, Object[] args) throws PageException {
-		return MemberUtil.call(pc, this, methodName, args, CFTypes.TYPE_DATETIME, "datetime");
+		return MemberUtil.call(pc, this, methodName, args, new short[]{CFTypes.TYPE_DATETIME}, new String[]{"datetime"});
 	}
 
 	@Override

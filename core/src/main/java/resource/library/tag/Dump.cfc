@@ -8,7 +8,7 @@ component {
 	variables.default.browser="html";
 	variables.default.console="text";
 	variables.supportedFormats=["simple","text","html","classic"];
-	
+
 	// Meta data
 	this.metadata.hint="Outputs the elements, variables and values of most kinds of CFML objects. Useful for debugging. You can display the contents of simple and complex variables, objects, components, user-defined functions, and other elements.";
 	this.metadata.attributetype="fixed";
@@ -147,7 +147,7 @@ component {
 	/* ==================================================================================================
 	   html                                                                                             =
 	================================================================================================== */
-	string function html( required struct meta,
+	any function html( required struct meta,
 						  required string context,
 						  required string expand,
 						  required string output,
@@ -159,9 +159,9 @@ component {
 		var id = createId();
 		var rtn = "";
 		var columnCount = structKeyExists(arguments.meta,'data') ? listLen(arguments.meta.data.columnlist) : 0;
-		var title = !arguments.level ? ' title="#arguments.context#"' : '';
-		var width = structKeyExists(arguments.meta,'width') ? ' width="' & arguments.meta.width & '"' : '';
-		var height = structKeyExists(arguments.meta,'height') ? ' height="' & arguments.meta.height & '"' : '';
+		var title = !arguments.level ? arguments.context : '';
+		var width = structKeyExists(arguments.meta,'width') ? arguments.meta.width : '';
+		var height = structKeyExists(arguments.meta,'height') ? arguments.meta.height : '';
 		var indent = repeatString(variables.TAB, arguments.level);
 
 
@@ -185,6 +185,127 @@ component {
 				head&=("else s.display='none';");
 				head&=("}");
 				head&=("}"& variables.NEWLINE);
+
+				head&='if(typeof(parseDumpJSON)!="function"){' & variables.NEWLINE;
+				head&='function parseDumpJSON(dump, level, containerId){' & variables.NEWLINE;
+					// level start
+					head&='if(!level){' & variables.NEWLINE;
+						head&='var dumpList=Object.keys(dump);' & variables.NEWLINE;
+						head&='for(var i=0;i<dumpList.length;i++){' & variables.NEWLINE;
+							head&='var body = document.getElementById(dumpList[i]);' & variables.NEWLINE;
+							head&='var tbdy = document.createElement("tbody");' & variables.NEWLINE;
+							head&='var currDumpObj=dump[dumpList[i]];' & variables.NEWLINE;
+							head&='var tbl = document.createElement("table");' & variables.NEWLINE;
+							head&='if(currDumpObj.WIDTH!="")' & variables.NEWLINE;
+								head&='tbl.style.width=currDumpObj.WIDTH;' & variables.NEWLINE;
+							head&='if(currDumpObj.HEIGHT!="")' & variables.NEWLINE;
+								head&='tbl.style.height=currDumpObj.HEIGHT;' & variables.NEWLINE;
+							head&='if(currDumpObj.TITLE!="")' & variables.NEWLINE;
+								head&='tbl.title=currDumpObj.TITLE;' & variables.NEWLINE;
+							// titleTR Start
+							head&='if(typeof(currDumpObj.META.TITLE)!="undefined"){' & variables.NEWLINE;
+								head&='var titleTR=document.createElement("tr");' & variables.NEWLINE;
+								head&='var titleTD=document.createElement("td");' & variables.NEWLINE;
+								// meta start
+								head&='if(typeof(currDumpObj.META)!="undefined"){' & variables.NEWLINE;
+									// onclick start
+									head&='if(typeof(currDumpObj.META.ONCLICK) != "undefined"){' & variables.NEWLINE;
+										head&='titleTD.setAttribute("onclick", currDumpObj.META.ONCLICK );' & variables.NEWLINE;
+									head&='}' & variables.NEWLINE;
+									// onclick end
+									head&='titleTD.colSpan=currDumpObj.META.COLSPAN;' & variables.NEWLINE;
+									head&='titleTD.className=currDumpObj.META.TDCLASS;' & variables.NEWLINE;
+									head&='titleTD.innerHTML="<span>" + currDumpObj.META.TITLE + currDumpObj.META.ID + "</span>";' & variables.NEWLINE;
+									head&='titleTD.style.cursor="pointer";' & variables.NEWLINE;
+								head&='}' & variables.NEWLINE;
+								// meta end
+								head&='titleTR.appendChild(titleTD);' & variables.NEWLINE;
+								head&='tbdy.appendChild(titleTR);' & variables.NEWLINE;
+							head&='}' & variables.NEWLINE;
+							// titleTR end
+							head&='if(typeof(currDumpObj.META)!="undefined"){' & variables.NEWLINE;
+								head&='var tbdyTRs=[];' & variables.NEWLINE;
+								head&='for(var j=0;j<currDumpObj.META.DATA.length;j++){' & variables.NEWLINE;
+									head&='tbdyTRs[j]=document.createElement("tr");' & variables.NEWLINE;
+									head&='if(typeof(currDumpObj.META.DATA[j].NODEID) != "undefined"){' & variables.NEWLINE;
+										head&='tbdyTRs[j].setAttribute("name", currDumpObj.META.DATA[j].NODEID);' & variables.NEWLINE;
+									head&='}' & variables.NEWLINE;
+									head&='if(currDumpObj.META.DATA[j].HIDDEN && typeof(currDumpObj.META.DATA[j].TITLE) != "undefined")' & variables.NEWLINE;
+										head&='tbdyTRs[j].style.display="none";' & variables.NEWLINE;
+									head&='var tbdyTDs=[];' & variables.NEWLINE;
+									head&='for(var k=0;k<currDumpObj.META.DATA[j].NODEDATA.length;k++){' & variables.NEWLINE;
+										head&='tbdyTDs[k]=document.createElement("td");' & variables.NEWLINE;
+										head&='tbdyTDs[k].className=currDumpObj.META.DATA[j].NODEDATA[k].CLASS;' & variables.NEWLINE;
+										head&='if(typeof(currDumpObj.META.DATA[j].NODEDATA[k].CONTENT)=="object"){' & variables.NEWLINE;
+											head&='tbdyTDs[k].appendChild(parseDumpJSON(currDumpObj.META.DATA[j].NODEDATA[k].CONTENT, level+1,currDumpObj.META.DATA[j].NODEID));' & variables.NEWLINE;
+										head&='}else' & variables.NEWLINE;
+											head&='tbdyTDs[k].innerHTML=currDumpObj.META.DATA[j].NODEDATA[k].CONTENT;' & variables.NEWLINE;
+										head&='tbdyTRs[j].appendChild(tbdyTDs[k]);' & variables.NEWLINE;
+									head&='}' & variables.NEWLINE;
+									head&='tbdy.appendChild(tbdyTRs[j]);' & variables.NEWLINE;
+								head&='}' & variables.NEWLINE;
+							head&='}' & variables.NEWLINE;
+						head&='}' & variables.NEWLINE;
+						head&='tbl.appendChild(tbdy);' & variables.NEWLINE;
+						head&='body.appendChild(tbl);' & variables.NEWLINE;
+					// level else
+					head&='}else{' & variables.NEWLINE;
+						head&='var tbl = document.createElement("table");' & variables.NEWLINE;
+						head&='var tbdy = document.createElement("tbody");' & variables.NEWLINE;
+						head&='var currDumpObj=dump;' & variables.NEWLINE;
+						head&='if(currDumpObj.WIDTH!="")' & variables.NEWLINE;
+							head&='tbl.style.width=currDumpObj.WIDTH;' & variables.NEWLINE;
+						head&='if(currDumpObj.HEIGHT!="")' & variables.NEWLINE;
+							head&='tbl.style.height=currDumpObj.HEIGHT;' & variables.NEWLINE;
+						head&='if(currDumpObj.TITLE!="")' & variables.NEWLINE;
+							head&='tbl.title=currDumpObj.TITLE;' & variables.NEWLINE;
+						head&='if(typeof(currDumpObj.META.TITLE)!="undefined"){' & variables.NEWLINE;
+							head&='var titleTR=document.createElement("tr");' & variables.NEWLINE;
+							head&='var titleTD=document.createElement("td");' & variables.NEWLINE;
+							// meta start
+							head&='if(typeof(currDumpObj.META)!="undefined"){' & variables.NEWLINE;
+								// onclick start
+								head&='if(typeof(currDumpObj.META.ONCLICK) != "undefined"){' & variables.NEWLINE;
+									head&='titleTD.setAttribute("onclick", currDumpObj.META.ONCLICK );' & variables.NEWLINE;
+								head&='}' & variables.NEWLINE;
+								// onclick end
+								head&='titleTD.colSpan=currDumpObj.META.COLSPAN;' & variables.NEWLINE;
+								head&='titleTD.className=currDumpObj.META.TDCLASS;' & variables.NEWLINE;
+								head&='titleTD.innerHTML="<span>" + currDumpObj.META.TITLE + currDumpObj.META.ID + "</span>";' & variables.NEWLINE;
+								head&='titleTD.style.cursor="pointer";' & variables.NEWLINE;
+							head&='}' & variables.NEWLINE;
+							// meta end
+							head&='titleTR.appendChild(titleTD);' & variables.NEWLINE;
+							head&='tbdy.appendChild(titleTR);' & variables.NEWLINE;
+						head&='}' & variables.NEWLINE;
+						head&='if(typeof(currDumpObj.META)!="undefined"){' & variables.NEWLINE;
+							head&='var tbdyTRs=[];' & variables.NEWLINE;
+							head&='for(var j=0;j<currDumpObj.META.DATA.length;j++){' & variables.NEWLINE;
+								head&='tbdyTRs[j]=document.createElement("tr");' & variables.NEWLINE;
+								head&='if(typeof(currDumpObj.META.DATA[j].NODEID) != "undefined"){' & variables.NEWLINE;
+									head&='tbdyTRs[j].setAttribute("name", currDumpObj.META.DATA[j].NODEID);' & variables.NEWLINE;
+								head&='}' & variables.NEWLINE;
+								head&='if(currDumpObj.META.DATA[j].HIDDEN && typeof(currDumpObj.META.DATA[j].TITLE) != "undefined")' & variables.NEWLINE;
+									head&='tbdyTRs[j].style.display="none";' & variables.NEWLINE;
+								head&='var tbdyTDs=[];' & variables.NEWLINE;
+								head&='for(var k=0;k<currDumpObj.META.DATA[j].NODEDATA.length;k++){' & variables.NEWLINE;
+									head&='tbdyTDs[k]=document.createElement("td");' & variables.NEWLINE;
+									head&='tbdyTDs[k].className=currDumpObj.META.DATA[j].NODEDATA[k].CLASS;' & variables.NEWLINE;
+									head&='if(typeof(currDumpObj.META.DATA[j].NODEDATA[k].CONTENT)=="object")' & variables.NEWLINE;
+										head&='tbdyTDs[k].appendChild(parseDumpJSON(currDumpObj.META.DATA[j].NODEDATA[k].CONTENT, level+1,currDumpObj.META.DATA[j].NODEID));' & variables.NEWLINE;
+									head&='else' & variables.NEWLINE;
+										head&='tbdyTDs[k].innerHTML=currDumpObj.META.DATA[j].NODEDATA[k].CONTENT;' & variables.NEWLINE;
+									head&='tbdyTRs[j].appendChild(tbdyTDs[k]);' & variables.NEWLINE;
+								head&='}' & variables.NEWLINE;
+								head&='tbdy.appendChild(tbdyTRs[j]);' & variables.NEWLINE;
+							head&='}' & variables.NEWLINE;
+						head&='}' & variables.NEWLINE;
+						head&='tbl.appendChild(tbdy);' & variables.NEWLINE;
+						head&='return tbl;' & variables.NEWLINE;
+					head&='}' & variables.NEWLINE;
+					// level end
+				head&='}' & variables.NEWLINE;
+				head&='}' & variables.NEWLINE;
 				head&=("</script>" & variables.NEWLINE);
 
 				// styles
@@ -210,58 +331,59 @@ component {
 
 			}
 
+		if(!arguments.level)
+			rtn&= '<script language="JavaScript" type="text/javascript">' & "var dumpData={};" & variables.NEWLINE;
+		var tempStruct={};
+		tempStruct.id=arguments.dumpID;
+		tempStruct.width=width;
+		tempStruct.height=height;
+		tempStruct.title=title;
+		tempStruct.meta={};
 
+		if(structKeyExists(arguments.meta, 'title')){
+			tempStruct.meta.id=arguments.hasReference && structKeyExists(arguments.meta,'id') ? ' [#arguments.meta.id#]' : '';
+			tempStruct.meta.comment=structKeyExists(arguments.meta,'comment') ? "<br />" & (left(arguments.meta.comment,4)=="<img"?arguments.meta.comment:replace(HTMLEditFormat(arguments.meta.comment),chr(10),' <br>','all')) : '';
+			tempStruct.meta.title=arguments.meta.title;
+			tempStruct.meta.tdClass="luceeH#variables.colorKeys[arguments.meta.colorId]#";
+			tempStruct.meta.onClick="dumpOC('#id#')";
+			tempStruct.meta.colspan=columnCount;
+		}else{
+			tempStruct.id="";
+		}
 
-
-			rtn&=('<table#width##height##title#>' );
-
-			// title
-			if(structKeyExists(arguments.meta, 'title')){
-				var metaID = arguments.hasReference && structKeyExists(arguments.meta,'id') ? ' [#arguments.meta.id#]' : '';
-				var comment = structKeyExists(arguments.meta,'comment') ? "<br />" & (left(arguments.meta.comment,4)=="<img"?arguments.meta.comment:replace(HTMLEditFormat(arguments.meta.comment),chr(10),' <br>','all')) : '';
-				
-				rtn&=('<tr>');
-				rtn&=('<td class="luceeH#variables.colorKeys[arguments.meta.colorId]#" onclick="dumpOC(''#id#'');" colspan="#columnCount#" style="cursor:pointer;">');
-				rtn&=('<span>#arguments.meta.title##metaID#</span>');
-				rtn&=(comment & '</td>');
-				rtn&=('</tr>');
-			}
-			else {
-				id = "";
-			}
-
-			// data
-			if(columnCount) {
-				loop query="arguments.meta.data" {
-					var c = 1;
-					var nodeID = len(id) ? ' name="#id#"' : '';
-					var hidden = !arguments.expand && len(id) ? ' style="display:none"' : '';
-
-					rtn&=('<tr#nodeID##hidden#>');
-					
-					for(var col=1; col LTE columnCount-1; col++) {
-						var node = arguments.meta.data["data" & col];
-
-						if(isStruct(node)) {
-							var value = this.html(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level+1,arguments.dumpID,arguments.cssColors);
-
-							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">');
-							rtn&=(value);
-							rtn&=('</td>');
-						}
-						else {
-							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>' );
-						}
-						c *= 2;
+		tempStruct.meta.data=[];
+		if(columnCount){
+			loop query="arguments.meta.data"{
+				var c = 1;
+				tempStruct.meta.data[arguments.meta.data.currentRow].nodeID=len(id) ? id : '';
+				tempStruct.meta.data[arguments.meta.data.currentRow].hidden=!arguments.expand && len(id) ? true : false;
+				tempStruct.meta.data[arguments.meta.data.currentRow].nodeData=[];
+				for(var col=1; col LTE columnCount-1; col++){
+					var node = arguments.meta.data["data" & col];
+					tempStruct.meta.data[arguments.meta.data.currentRow].nodeData[col].class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#";
+					if(isStruct(node)){
+						tempStruct.meta.data[arguments.meta.data.currentRow].title="";
+						var value=this.html(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level+1,arguments.dumpID,arguments.cssColors);
+						tempStruct.meta.data[arguments.meta.data.currentRow].nodeData[col].content=value;
+					}else{
+						tempStruct.meta.data[arguments.meta.data.currentRow].nodeData[col].content='#node#';
 					}
-					rtn&=('</tr>');
+					c*=2;
 				}
 			}
-			rtn&=('</table>');
+		}
 
+		if(!arguments.level){
+			rtn&="dumpData['#arguments.dumpID#']=#serializeJSON(tempStruct)#;";
+			rtn&="</script>";
+			head&='<script language="JavaScript" type="text/javascript">' & variables.NEWLINE;
+			head&="parseDumpJSON(dumpData,0);" & variables.NEWLINE;
+			head&="</script>";
+			return rtn&head;
+		}else{
+			return tempStruct;
+		}
 
-
-		return head&rtn;
 	}
 
 
@@ -339,7 +461,7 @@ component {
 				var comment = structKeyExists(arguments.meta,'comment') ? "<br />" & replace(HTMLEditFormat(arguments.meta.comment),chr(10),' <br>','all') : '';
 
 				rtn&=('<tr>');
-				rtn&=('<td onclick="dumpOC(''#id#'');" colspan="#columnCount#" class="h1#variables.colorKeys[arguments.meta.colorId]#">');
+				rtn&=('<td onclick="dumpOC(''#id#'');" colspan="#columnCount#" class="luceeH1#variables.colorKeys[arguments.meta.colorId]#">');
 				rtn&=('<span>#arguments.meta.title##metaID#</span>');
 				rtn&=(comment & '</td>');
 				rtn&=('</tr>');
@@ -363,12 +485,12 @@ component {
 						if(isStruct(node)) {
 							var value = this.classic(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level+1);
 
-							rtn&=('<td class="#doHighlight(arguments.meta,c)?'h2':'n'##variables.colorKeys[arguments.meta.colorId]#">');
+							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH2':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">');
 							rtn&=(value);
 							rtn&=( '</td>');
 						}
 						else {
-							rtn&=('<td class="#doHighlight(arguments.meta,c)?'h2':'n'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>');
+							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH2':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>');
 						}
 						c *= 2;
 					}

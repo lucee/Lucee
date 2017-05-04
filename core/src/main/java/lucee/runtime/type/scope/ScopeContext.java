@@ -88,7 +88,7 @@ public final class ScopeContext {
 	private static final long SESSION_MEMORY_TIMESPAN =  5*MINUTE;
 	private static final boolean INVIDUAL_STORAGE_KEYS;
 	static {
-		INVIDUAL_STORAGE_KEYS=Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("individualStorageKeys", null),false);
+		INVIDUAL_STORAGE_KEYS=true;//Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("individualStorageKeys", null),false);
 	}
 
 	private Map<String,Map<String,Scope>> cfSessionContextes=MapFactory.<String,Map<String,Scope>>getConcurrentMap();

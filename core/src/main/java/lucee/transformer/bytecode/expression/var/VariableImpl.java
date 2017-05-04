@@ -30,6 +30,7 @@ import lucee.runtime.exp.TemplateException;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.UDFUtil;
+import lucee.runtime.util.PageContextUtil;
 import lucee.transformer.Context;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
@@ -81,6 +82,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 
     private static final int TWO=0;
     private static final int THREE=1;
+    private static final int THREE2=2;
 	
     // Object getCollection (Object,Key[,Object])
     private final static Method[] GET_COLLECTION =new Method[]{ 
@@ -98,13 +100,15 @@ public class VariableImpl extends ExpressionBase implements Variable {
     
     private final static Method[] GET_FUNCTION = new Method[]{
 		new Method("getFunction",Types.OBJECT,new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT_ARRAY}),
-		new Method("getFunction",Types.OBJECT,new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT_ARRAY,Types.OBJECT})
-    };
+		new Method("getFunction",Types.OBJECT,new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT_ARRAY,Types.OBJECT}),
+		new Method("getFunction2",Types.OBJECT,new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT_ARRAY,Types.OBJECT})
+	};
     // Object getFunctionWithNamedValues (Object,String,Object[])
     private final static Method[] GET_FUNCTION_WITH_NAMED_ARGS =  new Method[]{
 		new Method("getFunctionWithNamedValues",Types.OBJECT,new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT_ARRAY}),
-		new Method("getFunctionWithNamedValues",Types.OBJECT,new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT_ARRAY,Types.OBJECT})
-    };
+		new Method("getFunctionWithNamedValues",Types.OBJECT,new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT_ARRAY,Types.OBJECT}),
+		new Method("getFunctionWithNamedValues2",Types.OBJECT,new Type[]{Types.OBJECT,Types.COLLECTION_KEY,Types.OBJECT_ARRAY,Types.OBJECT})
+	 };
 	
 	
     private static final Method RECORDCOUNT = new Method("recordcount",
@@ -217,8 +221,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		return _writeOut(bc, mode, asCollection);
 	}
 	private Type _writeOut(BytecodeContext bc, int mode,Boolean asCollection) throws TransformerException {
-		
-		
+
 		GeneratorAdapter adapter = bc.getAdapter();
 		final int count=countFM+countDM;
 		
@@ -263,7 +266,9 @@ public class VariableImpl extends ExpressionBase implements Variable {
 						// safe nav
 						int type;
 						if(member.getSafeNavigated()) {
-							ASMConstants.NULL(adapter);
+							Expression val = member.getSafeNavigatedValue();
+							if(val==null)ASMConstants.NULL(adapter);
+							else val.writeOut(bc, Expression.MODE_REF);
 							type=THREE;
 						}
 						else type=TWO;
@@ -275,7 +280,9 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					// safe nav
 					int type;
 					if(member.getSafeNavigated()) {
-						ASMConstants.NULL(adapter);
+						Expression val = member.getSafeNavigatedValue();
+						if(val==null)ASMConstants.NULL(adapter);
+						else val.writeOut(bc, Expression.MODE_REF);
 						type=THREE;
 					}
 					else type=TWO;
@@ -293,22 +300,14 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	}
 	
 	private Type _writeOutCallerUtil(BytecodeContext bc, int mode) throws TransformerException {
-		
-		
+
 		GeneratorAdapter adapter = bc.getAdapter();
 		final int count=countFM+countDM;
 		
 		// count 0
         if(count==0) return _writeOutEmpty(bc);
        
-    	
-    	//boolean last;
-    	/*for(int i=doOnlyScope?0:1;i<count;i++) {
-			adapter.loadArg(0);
-    	}*/
-    	
         // pc
-        //adapter.loadArg(0);
         adapter.loadArg(0);
         
         // collection
@@ -638,10 +637,17 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		int type;
 		if(udf.getSafeNavigated()) {
 			type=THREE;
-			ASMConstants.NULL(bc.getAdapter());
+			Expression val = udf.getSafeNavigatedValue();
+			if(val==null) {
+				ASMConstants.NULL(bc.getAdapter());
+				type=THREE;
+			}
+			else {
+				val.writeOut(bc, Expression.MODE_REF);
+				type=THREE2;
+			}
 		}
 		else type=TWO;
-		
 		bc.getAdapter().invokeVirtual(udf.getSafeNavigated()?Types.PAGE_CONTEXT_IMPL:Types.PAGE_CONTEXT,
 				udf.hasNamedArgs()?GET_FUNCTION_WITH_NAMED_ARGS[type]:GET_FUNCTION[type]);
 		return Types.OBJECT;
@@ -713,13 +719,11 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					_last?METHOD_SCOPE_GET_COLLECTION_KEY:METHOD_SCOPE_GET_KEY);
 		}
 		else {
-			ASMConstants.NULL(adapter);
+			Expression val = member.getSafeNavigatedValue();
+			if(val==null)ASMConstants.NULL(bc.getAdapter());
+			else val.writeOut(bc, Expression.MODE_REF);
 			adapter.invokeVirtual(Types.PAGE_CONTEXT,_last?GET_COLLECTION[THREE]:GET[THREE]);
 		}
-		
-		
-		
-		
 		return Types.OBJECT;
 	}
 

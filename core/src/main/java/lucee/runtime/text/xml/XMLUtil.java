@@ -227,14 +227,8 @@ public final class XMLUtil {
         
         if(!isHtml) {
         	// try to load org.apache.xerces.jaxp.DocumentBuilderFactoryImpl, oracle impl sucks
-        	DocumentBuilderFactory factory = null;
-        	try{
-        		factory = new DocumentBuilderFactoryImpl();
-        	}
-        	catch(Throwable t) {
-        		ExceptionUtil.rethrowIfNecessary(t);
-        		factory = DocumentBuilderFactory.newInstance();
-        	}
+        	DocumentBuilderFactory factory = newDocumentBuilderFactory();
+        	
         	
         	//print.o(factory);
             if(validator==null) {
@@ -285,6 +279,11 @@ public final class XMLUtil {
         }
     }
 	
+	private static DocumentBuilderFactory newDocumentBuilderFactory() {
+		return new DocumentBuilderFactoryImpl();
+    	// we do not use DocumentBuilderFactory.newInstance(); because it is unpredictable
+	}
+
 	private static void setAttributeEL(DocumentBuilderFactory factory,String name, Object value) {
 		try{
 			factory.setAttribute(name, value);
@@ -806,7 +805,7 @@ public final class XMLUtil {
 	 */
 	public static Document newDocument() throws ParserConfigurationException, FactoryConfigurationError {
 		if(docBuilder==null) {
-			docBuilder=DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			docBuilder=newDocumentBuilderFactory().newDocumentBuilder();
 		}
 		return docBuilder.newDocument();
 	}

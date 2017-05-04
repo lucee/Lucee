@@ -1,3 +1,4 @@
+<cfsetting showDebugOutput=false>
 <cfinclude template="/lucee/admin/resources/text.cfm">
 <cfset stText.doc.attr.default="Default Value">
 
@@ -6,59 +7,102 @@
 
 
 <cfif len( url.item )>
-
-	<cfif !arrAllItems.findNoCase( url.item )>
-
+	<cfset itemPos = arrAllItems.findNoCase( url.item )>
+	<cfif !itemPos>
 		<cfset url.item = "">
 	</cfif>
+	<cfset prevLinkItem = itemPos GT 1 ? arrAllItems[itemPos-1] : "">
+	<cfset nextLinkItem = itemPos NEQ arrAllItems.len() ? arrAllItems[itemPos+1] : "">
+<cfelse>
+	<cfset prevLinkItem = "">
+	<cfset nextLinkItem = "">
 </cfif>
 
 
 <cfsavecontent variable="Request.htmlBody">
+	<style type="text/css">
+		.tt-suggestion.tt-selectable p{
+			margin: 0px !important;
+		}
+		.tt-suggestion.tt-selectable{
+			cursor: pointer;
+		}
+		.tt-suggestion.tt-selectable:hover{
+			background-color: #01798A;
+			color: #FFFFFF;
+		}
+	</style>
+	<script src="assets/js/jquery-1.9.min.js.cfm" type="text/javascript"></script>
+	<script src="assets/js/typeahead.min.js.cfm"></script>
 
 	<script type="text/javascript">
 
 		<cfoutput>
-
 			var typeaheadData = #serializeJson( arrAllItems )#;
 		</cfoutput>
 
+		var substringMatcher = function(strs) {
+			return function findMatches(q, cb) {
+				var matches, substringRegex;
+
+				// an array that will be populated with substring matches
+				matches = [];
+
+				// regex used to determine if a string contains the substring `q`
+				substrRegex = new RegExp(q, 'i');
+
+				// iterate through the pool of strings and for any string that
+				// contains the substring `q`, add it to the `matches` array
+				$.each(strs, function(i, str) {
+					if (substrRegex.test(str)) {
+						matches.push(str);
+					}
+				});
+
+				cb(matches);
+			};
+		};
+
 		$( function() {
+			$( '#lucee-docs-search-input' ).typeahead(
+				{
+					hint: true,
+					highlight: true,
+					minLength: 1
+				},
+				{ source: substringMatcher(typeaheadData) }
+			).on('typeahead:selected', typeaheadSelected);
 
-			$( '#search-item' ).typeahead( {
+			function typeaheadSelected($e, datum){
+				window.location.href = "functions.cfm?item=" + datum.toString();
+			}
+		});
 
-				source: typeaheadData
+		$(".tile.tile-collapse.tile-collapse-full").on("click", function(event){
+			$(".tile.tile-collapse.tile-collapse-full").not($(this)).removeClass("active");
+			$(".tile.tile-collapse.tile-collapse-full").not($(this)).find(".tile-toggle").each(function(idx,elem){
+				$($(elem).data("target")).removeClass("in");
 			});
 		});
 	</script>
 </cfsavecontent>
 
 
-<cfmodule template="doc_layout.cfm" title="Lucee Function Reference">
-
+<cfmodule template="doc_layout.cfm" title="Lucee Function Reference" prevLinkItem="#prevLinkItem#" nextLinkItem="#nextLinkItem#">
 
 <cfoutput>
-
-
-	<form id="form-item-selector" action="#CGI.SCRIPT_NAME#">
-		<div class="centered x-large">
-
-			#stText.doc.chooseFunction#:
-			<input type="text" name="item" id="search-item" autocomplete="off">
-
-			<input type="submit" value="#stText.Buttons.OK#">
-		</div>
-		<cfif len( url.item )>
-
-			<div class="centered" style="padding: 0.5em;"><a href="#CGI.SCRIPT_NAME#">see all functions</a></div>
-		</cfif>
-	</form>
-
-
-
 	<cfif len( url.item )>
 
 		<cfset data = getFunctionData( url.item )>
+		<div class="tile-wrap">
+			<div class="tile">
+				<ul class="breadcrumb margin-no-top margin-right margin-no-bottom margin-left">
+					<li><a href="index.cfm">Home</a></li>
+					<li><a href="functions.cfm">Lucee functions</a></li>
+					<li class="active">#data.name#</li>
+				</ul>
+			</div>
+		</div>
 
 		<h2>Function <em>#uCase( url.item )#</em></h2>
 		<cfif data.status EQ "deprecated">
@@ -76,8 +120,13 @@
 		<cfset first=true>
 		<cfset optCount=0>
 		<h2>#stText.doc.example#</h2>
-		<pre><span class="syntaxFunc">#data.name#(</span><cfloop array="#data.arguments#" index="item"><cfif item.status EQ "hidden"><cfcontinue></cfif><cfif not first><span class="syntaxFunc">,</span></cfif><cfif not item.required><cfset optCount=optCount+1><span class="syntaxFunc">[</span></cfif><span class="syntaxType">#item.type#</span> <span class="syntaxText">#item.name#</span><cfset first=false></cfloop><span class="syntaxFunc">#RepeatString(']',optCount)#):</span><span class="syntaxType">#data.returntype#</span></pre>
+		<pre><span class="nf">#data.name#</span><span class="p">(</snap><cfloop array="#data.arguments#" index="item"><cfif item.status EQ "hidden"><cfcontinue></cfif><cfif not first><span class="nv">,</span></cfif><cfif not item.required><cfset optCount=optCount+1><span class="nv">[</span></cfif><span class="nv">#item.type#</span> <span class="nv">#item.name#</span><cfset first=false></cfloop><span class="syntaxFunc">#RepeatString(']',optCount)#):</span><span class="syntaxType">#data.returntype#</span></pre>
 
+		<!--- Category --->
+		<cfif structKeyExists(data, "keywords") AND !arrayIsEmpty(data.keywords)>
+			<h2>#stText.doc.category#</h2>
+			<div class="text">#arraytolist(data.keywords)#</div>
+		</cfif>
 		<!--- Argumente --->
 		<h2>#stText.doc.argTitle#</h2>
 		<cfif data.argumentType EQ "fixed" and not arraylen(data.arguments)>
@@ -136,20 +185,49 @@
 	<cfelse><!--- len( url.item) !--->
 
 		<!--- render index !--->
-		<br>
 
-		<cfset lastPrefix = left( arrAllItems[ 1 ], 1 )>
+		<div class="tile-wrap">
+			<div class="tile">
+				<ul class="breadcrumb margin-no-top margin-right margin-no-bottom margin-left">
+					<li><a href="index.cfm">Home</a></li>
+					<li class="active">Lucee functions</li>
+				</ul>
+			</div>
+		</div>
+
+		<p>Functions are at the core of Lucee Server's templating language. You can check out every Functions that has been created using the A-Z index below.</p>
+
+		<cfset qryAllItems = queryNew("Functions")>
 		<cfloop array="#arrAllItems#" index="ai">
-
-			<cfif left( ai, 1 ) != lastPrefix>
-
-				<div style="height: 0.65em;"></div>
-				<cfset lastPrefix = left( ai, 1 )>
-			</cfif>
-
-			<a href="#CGI.SCRIPT_NAME#?item=#ai#" class="index-item">#ai#</a>
+			<cfset QueryAddRow(qryAllItems, ["#lCase(ai)#"])>
 		</cfloop>
 
+		<cfset list = "A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z">
+		<cfset myarray= {}>
+
+		<div class="tile-wrap tile-wrap-animation">
+			<cfloop index="i"  list="#list#">
+					<cfquery name="queryList" dbtype="query">
+						SELECT functions FROM qryAllItems  WHERE functions LIKE '#i#%';
+					</cfquery>
+				<div class="tile tile-collapse tile-collapse-full">
+					<div class="tile-toggle" data-target="##function-#lCase(i)#" data-toggle="tile">
+						<div class="tile-inner">
+							<div class="text-overflow"><strong>#uCase(i)#</strong></div>
+						</div>
+					</div>
+					<div class="tile-active-show collapse" id="function-#lCase(i)#">
+						<cfloop list="#valueList(queryList.functions)#" index="currFunc">
+							<span class="tile">
+								<div class="tile-inner">
+									<div class="text-overflow"><a href="functions.cfm?item=#currFunc#">#currFunc#</a></div>
+								</div>
+							</span>
+						</cfloop>
+					</div>
+				</div>
+			</cfloop>
+		</div>
 	</cfif><!--- len( url.item) !--->
 
 </cfoutput>

@@ -3673,8 +3673,8 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 		<attribute>
 			<type>string</type>
 			<name>type</name>
-			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
+			<default-value>URL</default-value>
 			<values>body,CGI,cookie,file,form,formfield,header,URL,XML</values>
 			<description>valid values are:
 - header: specifies an HTTP header.
@@ -3979,6 +3979,13 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Password that corresponds to user name.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>secure</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>enables SSL for pop requests</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -5847,6 +5854,13 @@ Lucee uses the number of characters in the file.</description>
 			<description>Password that corresponds to user name.</description>
 		</attribute>
 		<attribute>
+			<type>boolean</type>
+			<name>secure</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>enables SSL for pop requests</description>
+		</attribute>
+		<attribute>
 			<type>string</type>
 			<name>action</name>
 			<values>getHeaderOnly,getAll,delete</values>
@@ -6428,6 +6442,15 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<rtexprvalue>true</rtexprvalue>
 			<status>deprecated</status>
 			<description>This attribute has been deprecated and is non-functional.</description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>tags</name>
+			<alias>tag</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<status>hidden</status>
+			<description>tags stored with the cache.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -8787,6 +8810,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<tag-class>lucee.runtime.tag.CFXTag</tag-class>
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<status>hidden</status>
 		<description>Creates a CFX Tag</description>
 		<attribute-type>dynamic</attribute-type>
 	</tag>
@@ -8796,6 +8820,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<appendix>true</appendix>
 		<tag-class>lucee.runtime.tag.CFTag</tag-class>
 		<att-default-value>boolean:true</att-default-value>
+		<status>hidden</status>
 		<handle-exception>true</handle-exception>
 		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
@@ -8810,6 +8835,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<handle-exception>true</handle-exception>
 		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<status>hidden</status>
 		<description>Creates a Custom Tag based on a CF Component (CFC)</description>
 		<attribute-type>dynamic</attribute-type>
 	</tag>-->

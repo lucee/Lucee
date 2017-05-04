@@ -114,6 +114,7 @@ import lucee.runtime.exp.SecurityException;
 import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.extension.Extension;
+import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.ExtensionImpl;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
@@ -2437,7 +2438,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     private void doUpdateMailServer() throws PageException {
         
         admin.updateMailServer(
-                getString("admin",action,"hostname"),
+        		getInt("id",-1),
+        		getString("admin",action,"hostname"),
                 getString("admin",action,"dbusername"),
                 getString("admin",action,"dbpassword"),
                 Caster.toIntValue(getString("admin",action,"port")),
@@ -2516,7 +2518,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         
 
         Server[] servers = config.getMailServers();
-        lucee.runtime.type.Query qry=new QueryImpl(new String[]{"id","hostname","password","passwordEncrypted","username","port","authentication","readonly","tls","ssl","life","idle"},servers.length,"query");
+        lucee.runtime.type.Query qry=new QueryImpl(new String[]{"id","hostname","password","passwordEncrypted","username","port","authentication","readonly","tls","ssl","life","idle","type"},servers.length,"query");
         
         
         for(int i=0;i<servers.length;i++) {
@@ -2530,10 +2532,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
             qry.setAt("port",row,Caster.toInteger(s.getPort()));
             qry.setAt("readonly",row,Caster.toBoolean(s.isReadOnly()));
             qry.setAt("authentication",row,Caster.toBoolean(s.hasAuthentication()));
-            if(s instanceof ServerImpl) {
+            qry.setAt("ssl",row,Caster.toBoolean(s.isSSL()));
+	        qry.setAt("tls",row,Caster.toBoolean(s.isTLS()));
+	        if(s instanceof ServerImpl) {
             	ServerImpl si = (ServerImpl)s;
-	            qry.setAt("ssl",row,Caster.toBoolean(si.isSSL()));
-	            qry.setAt("tls",row,Caster.toBoolean(si.isTLS()));
+            	qry.setAt("type",row,si.getType()==ServerImpl.TYPE_GLOBAL?"global":"local");
 	            qry.setAt("life",row,(si.getLifeTimeSpan()/1000));
 	            qry.setAt("idle",row,(si.getIdleTimeSpan()/1000));
             }
@@ -2688,13 +2691,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		boolean asBinary=getBoolV("asBinary", false);
 		
 		if(asBinary) {
-			Iterator<RHExtension> it = DeployHandler.getLocalExtensions(config).iterator();
-			RHExtension ext;
+			Iterator<ExtensionDefintion> it = DeployHandler.getLocalExtensions(config).iterator();
+			ExtensionDefintion ext;
 			while(it.hasNext()){
 				ext=it.next();
 				if(id.equalsIgnoreCase(ext.getId())) {
 					try {
-						pageContext.setVariable(getString("admin",action,"returnVariable"),IOUtil.toBytes(ext.getExtensionFile()));
+						pageContext.setVariable(getString("admin",action,"returnVariable"),IOUtil.toBytes(ext.getSource()));
 						return;
 					} catch (IOException e) {
 						throw Caster.toPageException(e);
@@ -2706,7 +2709,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			
 		}
 		else {
-			List<RHExtension> locals = DeployHandler.getLocalExtensions(config);
+			List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config));
 			Query qry = RHExtension.toQuery(config, locals.toArray(new RHExtension[locals.size()]));
 			int rows=qry.getRecordcount();
 			String _id;
@@ -2724,7 +2727,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 	
 	private void doGetLocalExtensions() throws PageException {
-		List<RHExtension> locals = DeployHandler.getLocalExtensions(config);
+		List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config));
 		Query qry = RHExtension.toQuery(config, locals.toArray(new RHExtension[locals.size()]));
 		pageContext.setVariable(getString("admin",action,"returnVariable"),qry);
 	}
@@ -3251,7 +3254,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         while(it.hasNext()) {
         	pc=it.next();
             if(pc.getId()==id){
-            	CFMLFactoryImpl.terminate(pc);
+            	CFMLFactoryImpl.terminate(pc,true);
             	return true;
             }
         }
@@ -3430,7 +3433,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				new String[]{"name","level"
 						,"appenderClass","appenderBundleName","appenderBundleVersion","appenderArgs"
 						,"layoutClass","layoutBundleName","layoutBundleVersion","layoutArgs","readonly"},
-				loggers.size(),lucee.runtime.type.util.ListUtil.last("logs", '.'));
+				0,lucee.runtime.type.util.ListUtil.last("logs", '.'));
         int row=0;
         Iterator<Entry<String, LoggerAndSourceData>> it = loggers.entrySet().iterator();
         Entry<String, LoggerAndSourceData> e;
@@ -3438,7 +3441,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         while(it.hasNext()){
         	e = it.next();
         	logger = e.getValue();
-        	row++;
+        	if(logger.getDyn()) continue;
+        	row=qry.addRow();
+        	//row++;
         	qry.setAtEL("name", row, e.getKey());
     		qry.setAtEL("level", row,logger.getLevel().toString());
     		qry.setAtEL("appenderClass", row, logger.getAppenderClassDefinition().getClassName());

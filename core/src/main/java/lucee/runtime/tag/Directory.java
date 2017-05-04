@@ -873,7 +873,7 @@ public final class Directory extends TagImpl  {
 		else if("dir".equals(strType)) return TYPE_DIR;
 		else if("directory".equals(strType)) return TYPE_DIR;
 		else if("file".equals(strType)) return TYPE_FILE;
-		else throw new ApplicationException("invalid type ["+strType+"], valid types are");
+		else throw new ApplicationException("invalid type ["+strType+"], valid types are [all,directory,file]");
 	}
 
 }

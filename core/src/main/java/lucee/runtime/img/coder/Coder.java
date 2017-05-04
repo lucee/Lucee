@@ -38,11 +38,10 @@ public abstract class Coder {
 			// try to load Sanselan, does not load when lib not exist
 			try{
 				SanselanCoder sanselan = new SanselanCoder();
-				instance=new DoubleCoder(sanselan, instance);
-				SystemOut.printDate("use Sanselan and JRE Image Coder ");
+				instance=new DoubleCoder(instance,sanselan); // used JRE first because Sanselan has troubles with JPG (inverted colors)
+				SystemOut.printDate("use JRE and Sanselan Image Coder ");
 			}
-			catch(Throwable t){
-				ExceptionUtil.rethrowIfNecessary(t);
+			catch(Exception e){
 				SystemOut.printDate("use JRE Image Coder ");
 			}
 		} 

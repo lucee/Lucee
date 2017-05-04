@@ -1,6 +1,5 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
-		var mode = "ACFcompatibility";
 		describe( "Test suite for LDEV-388", function() {
 			describe(title="checking listreduce() working in member function", body = function( currentSpec ) {
 				
@@ -19,8 +18,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					expect(ReducedVal).toBe(55);
 				});
 
-				/* FUTURE enable in 5.2 it(title="without list as prefix", body = function( currentSpec ) {
+				it(title="without list as prefix", body = function( currentSpec ) {
 					var mylist = "1,2,3,4,5,6,7,8,9,10";
+					var expMsg="";
 					try{
 						var ReducedVal = mylist.Reduce(
 							function(prev, val){
@@ -29,13 +29,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 							0
 						);
 					} catch ( any e){
-						var ReducedVal = e.message;
+						expMsg = e.message;
 					}
-					if ( mode == "ACFcompatibility")
-						expect(ReducedVal).toBe("The Reduce method was not found.");
-					else 
-						expect(ReducedVal).toBe(55);
-				});*/
+					expect(expMsg GT 0).toBe(true);
+
+				});
 			});
 
 			describe(title="checking listFilter() working in member function", body = function( currentSpec ) {
@@ -52,21 +50,27 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					expect(filteredVal).toBe("apple|mango");
 				});
 
-				/* FUTURE enable in 5.2 it(title="without list as prefix", body = function( currentSpec ) {
+				it(title="without list as prefix", body = function( currentSpec ) {
 					var mylist = "apple|orange|mango";
-					var filteredVal = mylist.Filter(
-						function(elem, idx){
-							if(elem != "orange" ){
-								return true;
-							}
-							return  false;
-						}, "|"
-					);
-					if ( mode == "ACFcompatibility")
-						expect(filteredVal).toBe("The Filter method was not found.");
-				 	else 
-						expect(filteredVal).toBe("apple|mango");
-				});*/
+					var expMsg="";
+					try {
+						var filteredVal = mylist.Filter(
+							function(elem, idx){
+								if(elem != "orange" ){
+									return true;
+								}
+								return  false;
+							}, "|"
+						);
+					} catch ( any e){
+						expMsg = e.message;
+					}
+					expect(expMsg GT 0).toBe(true);
+				 
+				});
+
+
+
 			});
 		});
 	}

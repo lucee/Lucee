@@ -32,6 +32,10 @@ import lucee.runtime.op.Caster;
 public final class ServerImpl implements Server,Serializable {
 	
 	private static final long serialVersionUID = -3352908216814744100L;
+
+
+	public static final int TYPE_GLOBAL = 1;
+	public static final int TYPE_LOCAL = 2;
 	
 	
 	private final int id;
@@ -45,6 +49,7 @@ public final class ServerImpl implements Server,Serializable {
 	private final boolean reuse;
 	private final long life;
 	private final long idle;
+	private final int type;
 
 	
 	public static ServerImpl getInstance(String host, int defaultPort,String defaultUsername,String defaultPassword, long defaultLifeTimespan, long defaultIdleTimespan, boolean defaultTls, boolean defaultSsl) throws MailException {
@@ -84,7 +89,7 @@ public final class ServerImpl implements Server,Serializable {
 		else host=host.trim();
 
 			
-		return new ServerImpl(-1,host,port,user,pass,defaultLifeTimespan, defaultIdleTimespan, defaultTls,defaultSsl,true);
+		return new ServerImpl(-1,host,port,user,pass,defaultLifeTimespan, defaultIdleTimespan, defaultTls,defaultSsl,true,TYPE_LOCAL);
 	}
 	
 
@@ -93,7 +98,8 @@ public final class ServerImpl implements Server,Serializable {
 		this.port=port;
 	}*/
 	
-	public ServerImpl(int id, String hostName,int port,String username,String password, long lifeTimespan, long idleTimespan, boolean tls, boolean ssl, boolean reuseConnections) {
+	public ServerImpl(int id, String hostName,int port,String username,String password, long lifeTimespan, 
+			long idleTimespan, boolean tls, boolean ssl, boolean reuseConnections, int type) {
 		this.id=id;
 		this.hostName=hostName;
 		this.username=username;
@@ -104,6 +110,7 @@ public final class ServerImpl implements Server,Serializable {
 		this.tls=tls;
 		this.ssl=ssl;
 		this.reuse=reuseConnections;
+		this.type=type;
 	}
 
 	@Override
@@ -143,7 +150,7 @@ public final class ServerImpl implements Server,Serializable {
 	
     @Override
     public Server cloneReadOnly() {
-        ServerImpl s = new ServerImpl(id,hostName, port,username, password,life,idle,tls,ssl,reuse);
+        ServerImpl s = new ServerImpl(id,hostName, port,username, password,life,idle,tls,ssl,reuse,type);
         s.readOnly=true;
         return s;
     }
@@ -186,6 +193,10 @@ public final class ServerImpl implements Server,Serializable {
 	
 	public int getId() { // FUTURE add to interface
 		return id;
+	}
+	
+	public int getType() { // FUTURE add to interface
+		return type;
 	}
 
 

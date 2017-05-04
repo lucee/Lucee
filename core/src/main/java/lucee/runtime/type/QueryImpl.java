@@ -837,8 +837,15 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	@Override
 	public Object getAt(Collection.Key key, int row, Object defaultValue) {
 		int index=getIndexFromKey(key);
-		if(index!=-1) {
-			return columns[index].get(row,defaultValue);
+		if(index!=-1 ) {
+			// we only return default value if row exists
+			// LDEV-1201
+			if(row>0 && row<=recordcount)
+				return columns[index].get(row, NullSupportHelper.full()?null:"");
+			else
+				return defaultValue;
+			//*/
+			//return columns[index].get(row,defaultValue);
 		}
 		if(key.length()>=10) {
 	        if(key.equals(KeyConstants._RECORDCOUNT)) return new Double(getRecordcount());
@@ -1761,7 +1768,8 @@ public class QueryImpl implements Query,Objects,QueryResult {
 
 	@Override
 	public Object call(PageContext pc, Key methodName, Object[] arguments) throws PageException {
-		return MemberUtil.call(pc, this, methodName, arguments, lucee.commons.lang.CFTypes.TYPE_QUERY, "query");
+		return MemberUtil.call(pc, this, methodName, arguments, new short[]{lucee.commons.lang.CFTypes.TYPE_QUERY}, new String[]{"query"});
+		//return Reflector.callMethod(this,methodName,arguments);
 	}
 
 	@Override

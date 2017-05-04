@@ -32,12 +32,16 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.osgi.framework.BundleException;
+
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
@@ -49,6 +53,7 @@ import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheConnectionImpl;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.component.Member;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -56,6 +61,7 @@ import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -817,20 +823,28 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 				
 			}
 			
-			
 			sct=Caster.toStruct(e.getValue(),null);
 			if(sct==null) continue;
 			
 			cc=toCacheConnection(config,e.getKey().getString(),sct,null);
 			
-			
-			if(cc!=null) cacheConnections.put(e.getKey(),cc);
+			if(cc!=null) {
+				cacheConnections.put(e.getKey(),cc);
+				Key def = Caster.toKey(sct.get(KeyConstants._default,null),null);
+				if(def!=null) {
+					String n=e.getKey().getString().trim();
+					if(KeyConstants._function.equals(def)) 		defaultCaches.put(Config.CACHE_TYPE_FUNCTION, n);
+					else if(KeyConstants._query.equals(def)) 	defaultCaches.put(Config.CACHE_TYPE_QUERY, n);
+					else if(KeyConstants._template.equals(def))	defaultCaches.put(Config.CACHE_TYPE_TEMPLATE, n);
+					else if(KeyConstants._object.equals(def))	defaultCaches.put(Config.CACHE_TYPE_OBJECT, n);
+					else if(KeyConstants._include.equals(def))	defaultCaches.put(Config.CACHE_TYPE_INCLUDE, n);
+					else if(KeyConstants._resource.equals(def))	defaultCaches.put(Config.CACHE_TYPE_RESOURCE, n);
+					else if(KeyConstants._http.equals(def))		defaultCaches.put(Config.CACHE_TYPE_HTTP, n);
+					else if(KeyConstants._file.equals(def))		defaultCaches.put(Config.CACHE_TYPE_FILE, n);
+					else if(KeyConstants._webservice.equals(def)) defaultCaches.put(Config.CACHE_TYPE_WEBSERVICE, n);
+				}
+			}
 		}
-	}
-
-	private void _initCache(Iterator<Entry<Key, Object>> it) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	private boolean initDefaultCache(Struct data, int type, Key key) {
@@ -859,42 +873,46 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	
 	public static CacheConnection toCacheConnection(Config config,String name,Struct data, CacheConnection defaultValue) {
 		try{
-			// class definition
-			String className = Caster.toString(data.get(KeyConstants._class,null),null);
-			if(StringUtil.isEmpty(className)) return defaultValue;
-			ClassDefinition cd=new ClassDefinitionImpl(
-				className
-				, Caster.toString(data.get(KeyConstants._bundleName,null),null)
-				, Caster.toString(data.get(KeyConstants._bundleVersion,null),null)
-				, config.getIdentification()
-			);
-			
-			
-			CacheConnectionImpl cc = new CacheConnectionImpl(config,name,cd
-					,Caster.toStruct(data.get(KeyConstants._custom,null),null)
-					,Caster.toBooleanValue(data.get(KeyConstants._readonly,null),false)
-					,Caster.toBooleanValue(data.get(KeyConstants._storage,null),false)
-			);
-			String id=cc.id();
-			CacheConnection icc = initCacheConnections.get(id);
-			if(icc!=null)return icc;
-			try {
-				Method m = cd.getClazz().getMethod("init", new Class[] { Config.class, String[].class, Struct[].class });
-				if(Modifier.isStatic(m.getModifiers()))
-					m.invoke(null, new Object[] { config, new String[]{cc.getName()},new Struct[]{cc.getCustom()}});
-				else
-					SystemOut.print(config.getErrWriter(), "method [init(Config,String[],Struct[]):void] for class [" + cd.toString() + "] is not static");
-				
-				initCacheConnections.put(id,cc);
-			}
-			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
-			
-			return cc;
+			return toCacheConnection(config, name, data);
 		}
-		catch(Throwable t){
-			ExceptionUtil.rethrowIfNecessary(t);
+		catch(Exception e) {
 			return defaultValue;
 		}
+	}
+	
+	public static CacheConnection toCacheConnection(Config config,String name,Struct data) throws ApplicationException, CacheException, ClassException, BundleException {
+		// class definition
+		String className = Caster.toString(data.get(KeyConstants._class,null),null);
+		if(StringUtil.isEmpty(className)) throw new ApplicationException("missing key class in struct the defines a cachec connection");
+		ClassDefinition cd=new ClassDefinitionImpl(
+			className
+			, Caster.toString(data.get(KeyConstants._bundleName,null),null)
+			, Caster.toString(data.get(KeyConstants._bundleVersion,null),null)
+			, config.getIdentification()
+		);
+		
+		
+		CacheConnectionImpl cc = new CacheConnectionImpl(config,name,cd
+				,Caster.toStruct(data.get(KeyConstants._custom,null),null)
+				,Caster.toBooleanValue(data.get(KeyConstants._readonly,null),false)
+				,Caster.toBooleanValue(data.get(KeyConstants._storage,null),false)
+		);
+		String id=cc.id();
+		CacheConnection icc = initCacheConnections.get(id);
+		if(icc!=null)return icc;
+		try {
+			Method m = cd.getClazz().getMethod("init", new Class[] { Config.class, String[].class, Struct[].class });
+			if(Modifier.isStatic(m.getModifiers()))
+				m.invoke(null, new Object[] { config, new String[]{cc.getName()},new Struct[]{cc.getCustom()}});
+			else
+				SystemOut.print(config.getErrWriter(), "method [init(Config,String[],Struct[]):void] for class [" + cd.toString() + "] is not static");
+			
+			initCacheConnections.put(id,cc);
+		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+		
+		return cc;
+		
 	}
 
 	@Override
@@ -1698,4 +1716,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		logs=initLog(sct);
 		initLog=true;
 	}
+	
+	public static void releaseInitCacheConnections() {
+		if(initCacheConnections!=null) {
+			for(CacheConnection cc:initCacheConnections.values()) {
+				CacheUtil.releaseEL(cc);
+			}
+		}
+	}
+	
 }

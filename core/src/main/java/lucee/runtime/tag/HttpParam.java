@@ -18,9 +18,22 @@
  **/
 package lucee.runtime.tag;
 
+import java.io.FileNotFoundException;
+
 import javax.servlet.jsp.tagext.Tag;
 
+import org.apache.http.entity.mime.FormBodyPart;
+import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.message.BasicNameValuePair;
+
+import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.mimetype.ContentType;
+import lucee.commons.net.HTTPUtil;
+import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
+import lucee.commons.net.http.httpclient.ResourceBody;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.ext.tag.TagImpl;
 
@@ -68,9 +81,30 @@ public final class HttpParam extends TagImpl {
 	/** set the value type
 	*  The transaction type.
 	* @param type value to set
+	 * @throws ApplicationException 
 	**/
-	public void setType(String type)	{
-		param.setType(type);
+	public void setType(String type) throws ApplicationException	{
+		if(StringUtil.isEmpty(type,true)) return;
+		type=type.toLowerCase().trim();
+		
+		if(type.equals("url")) 
+			param.setType(HttpParamBean.TYPE_URL);
+		else if(type.equals("formfield") || type.equals("form"))
+			param.setType(HttpParamBean.TYPE_FORM);
+		else if(type.equals("cgi")) 
+			param.setType(HttpParamBean.TYPE_CGI);
+        else if(type.startsWith("head") || type.startsWith("header"))
+			param.setType(HttpParamBean.TYPE_HEADER);
+		else if(type.equals("cookie"))
+			param.setType(HttpParamBean.TYPE_COOKIE);
+		else if(type.equals("file"))
+			param.setType(HttpParamBean.TYPE_FILE);
+		else if(type.equals("xml")) 
+			param.setType(HttpParamBean.TYPE_XML);
+		else if(type.equals("body"))
+			param.setType(HttpParamBean.TYPE_BODY);
+        else 
+            throw new ApplicationException("invalid type ["+type+"], valid types are [body,cgi,cookie,file,form,head,url,xml]");
 	}
 
 	/** set the value file
@@ -92,13 +126,13 @@ public final class HttpParam extends TagImpl {
 
 	@Override
 	public int doStartTag() throws ApplicationException	{
-        if(param.getName()==null &&
-                (!"body".equalsIgnoreCase(param.getType()) &&
-                !"xml".equalsIgnoreCase(param.getType()))) {
+        if(	StringUtil.isEmpty(param.getName()) &&
+        	HttpParamBean.TYPE_BODY!=param.getType() &&
+        	HttpParamBean.TYPE_XML!=param.getType()) {
             throw new ApplicationException("attribute [name] is required for tag [httpparam] if type is not [body or xml]");
         }
         
-        if("file".equalsIgnoreCase(param.getType()) && param.getFile()==null)
+        if(HttpParamBean.TYPE_FILE==param.getType() && param.getFile()==null)
         	throw new ApplicationException("attribute [file] is required for tag [httpparam] if type is [file]");
         
 		// get HTTP Tag

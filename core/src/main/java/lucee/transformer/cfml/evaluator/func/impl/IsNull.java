@@ -18,26 +18,33 @@
  **/
 package lucee.transformer.cfml.evaluator.func.impl;
 
+import java.util.List;
+
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.bytecode.expression.var.Argument;
 import lucee.transformer.bytecode.expression.var.BIF;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.FunctionEvaluator;
 import lucee.transformer.expression.Expression;
+import lucee.transformer.expression.var.Member;
 import lucee.transformer.expression.var.Variable;
 import lucee.transformer.library.function.FunctionLibFunction;
 
-public class IsNull implements FunctionEvaluator{
+public class IsNull implements FunctionEvaluator {
 
 	@Override
 	public void execute(BIF bif, FunctionLibFunction flf) throws TemplateException {
 		Argument arg = bif.getArguments()[0];
 		Expression value = arg.getValue();
 		
-		
-		
+		// set all member to safe navigated
 		if(value instanceof Variable){
-			((Variable)value).setDefaultValue(value.getFactory().createNull());
+			Variable var = ((Variable)value);
+			/* LDEV-1201 List<Member> members = var.getMembers();
+			for(Member m:members) {
+				m.setSafeNavigated(true);
+			}*/
+			var.setDefaultValue(value.getFactory().createNull());
 		}
 	}
 

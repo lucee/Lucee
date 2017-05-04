@@ -1690,10 +1690,16 @@ sort direction:
 		<class>lucee.runtime.functions.cache.CacheClear</class>
 		<description>Flushes the cache</description>
 		<argument>
-			<name>filter</name>
-			<type>string</type>
+			<name>filterOrTags</name>
+			<alias>filter,tags,tag</alias>
+			<type>any</type>
 			<required>No</required>
-			<description>You can specify a key filter for the elements in the cache to flush, the filter follow the same rules as for cfdirectory-filter</description>
+			<description>
+			You can define 2 different things here:
+			
+			1. a String containing a key filter for the elements in the cache to flush, the filter follow the same rules as for cfdirectory-filter.
+			2. an Array containing tags defined when put the element to the cache
+			</description>
 		</argument>
 		<argument>
 			<name>cacheName</name>
@@ -2420,10 +2426,21 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<argument>
 			<name>cfc</name>
 			<alias>cfcName,component,componentName</alias>
-			<type>object</type>
+			<type>string</type>
 			<required>Yes</required>
 			<description>component or component name</description>
 	    </argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
+	<!-- _GetSuperStaticScope -->
+	<function>
+		<name>_GetSuperStaticScope</name>
+		<class>lucee.runtime.functions.other._GetSuperStaticScope</class>
+		<status>hidden</status>
+		<description></description>
 		<return>
 			<type>struct</type>
 		</return>
@@ -4859,6 +4876,29 @@ If omitted, the file's attributes are maintained.</description>
 			<type>void</type>
 		</return>
 	</function>
+
+	<!-- fileTouch -->
+	<function>
+		<name>fileTouch</name>
+		<class>lucee.runtime.functions.file.FileTouch</class>
+		<description>Touches given file, creates the file if not already exists.</description>
+		<argument>
+			<name>file</name>
+			<type>any</type>
+			<required>Yes</required>
+		<description>file to touch.</description>
+    	</argument>
+		<argument>
+			<name>createPath</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>if set to false, expects all parent directories to exist, true (default) will generate necessary directories</description>
+		</argument>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
+	
 	<!-- FileDelete -->
 	<function>
 		<name>FileDelete</name>
@@ -5388,6 +5428,23 @@ Example Values:
 		</argument>
 		<return>
 			<type>any</type>
+		</return>
+	</function>
+	
+	<!-- GetComponentStaticScope -->
+	<function>
+		<name>GetComponentStaticScope</name>
+		<class>lucee.runtime.functions.system.GetComponentStaticScope</class>
+		<description>returns the static scope of a specific component, of course access rules aply.</description>
+		<argument>
+			<name>component</name>
+			<alias>name,componentName,cfc</alias>
+			<type>string</type>
+			<required>yes</required>
+			<description>name of the component to get static scope, for example "org.lucee.cfml.Query".</description>
+		</argument>
+		<return>
+			<type>struct</type>
 		</return>
 	</function>
 	
@@ -11230,7 +11287,7 @@ The following things are considered to be empty:
 	<function>
 		<name>listFilter</name>
 		<class>lucee.runtime.functions.list.ListFilter</class>
-		<member-name>listFilter,filter</member-name>
+		<member-name>listFilter</member-name>
 		<keywords>list,string,iterator</keywords>
 		<description>This function creates a new string list that returns all entries from an string list that match the given filter.</description>
 		<argument>
@@ -14898,7 +14955,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>ListReduce</name>
 		<class>lucee.runtime.functions.list.ListReduce</class>
-		<member-name>listReduce,reduce</member-name>
+		<member-name>listReduce</member-name>
 		<keywords>array,iterator</keywords>
 		<description>Iterates over every entry of the given array and calls the closure with every element. 
 		This function will reduce the array to a single value and will return the value.</description>
@@ -16243,6 +16300,7 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>xmlChildPos</name>
 		<class>lucee.runtime.functions.xml.XmlChildPos</class>
+		<member-name>childPos</member-name>
 		<keywords>XML</keywords>
 		<description>Gets the position of a child element within an XML document
         object.
@@ -16275,6 +16333,7 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>xmlElemNew</name>
 		<class>lucee.runtime.functions.xml.XmlElemNew</class>
+		<member-name>elemNew</member-name>
 		<keywords>XML</keywords>
 		<description>Creates an XML document object element</description>
 		<argument>
@@ -16323,6 +16382,7 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>XmlGetNodeType</name>
 		<class>lucee.runtime.functions.xml.XmlGetNodeType</class>
+		<member-name>getNodeType</member-name>
 		<keywords>XML</keywords>
 		<description>Determines the type of an XML document object node.</description>
 		<argument>
@@ -16413,6 +16473,7 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>xmlSearch</name>
 		<class>lucee.runtime.functions.xml.XmlSearch</class>
+		<member-name>search</member-name>
 		<keywords>XML</keywords>
 		<description>Uses an XPath language expression to search an XML document object.</description>
 		<argument>
@@ -16437,6 +16498,9 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>xmlTransform</name>
 		<class>lucee.runtime.functions.xml.XmlTransform</class>
+		<member-name>transform</member-name>
+		<member-type>xml</member-type>
+		
 		<keywords>XML,string</keywords>
 		<description>Applies an Extensible Stylesheet Language Transformation (XSLT)
         to an XML document object that is represented as a string

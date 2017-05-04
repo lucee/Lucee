@@ -38,6 +38,7 @@ import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.Component;
+import lucee.runtime.ComponentImpl;
 import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -109,14 +110,11 @@ public class ModernAppListener extends AppListenerSupport {
 		if(appPS!=null) {
 			String callPath=appPS.getComponentName();
 			
-			
 			Component app = ComponentLoader.loadComponent(pci,appPS, callPath, false,false);
-			
 			// init
-			initApplicationContext(pci,app);
-	    	
-			
-			apps.put(pc.getApplicationContext().getName(), app);
+			ModernApplicationContext appContext = initApplicationContext(pci,app);
+
+			apps.put(appContext.getName(), app);
 
 			if(!pci.initApplicationContext(this)) return;
 			
@@ -432,7 +430,7 @@ public class ModernAppListener extends AppListenerSupport {
 		}
 	}
 
-	private void initApplicationContext(PageContextImpl pc, Component app) throws PageException {
+	private ModernApplicationContext initApplicationContext(PageContextImpl pc, Component app) throws PageException {
 		
 		// use existing app context
 		RefBoolean throwsErrorWhileInit=new RefBooleanImpl(false);
@@ -443,9 +441,8 @@ public class ModernAppListener extends AppListenerSupport {
 		
 		// scope cascading
 		if(pc.getRequestDialect()==CFMLEngine.DIALECT_CFML && ((UndefinedImpl)pc.undefinedScope()).getScopeCascadingType()!=appContext.getScopeCascading()) {
-        	pc.undefinedScope().initialize(pc);
-        }
-        
+			pc.undefinedScope().initialize(pc);
+		}
 		
 		// ORM
 		if(appContext.isORMEnabled()) {
@@ -458,6 +455,7 @@ public class ModernAppListener extends AppListenerSupport {
 				if(hasError)pc.removeLastPageSource(true);
 			}
 		}
+		return appContext;
 	}
 
 

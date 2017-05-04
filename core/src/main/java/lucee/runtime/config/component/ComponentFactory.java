@@ -55,7 +55,8 @@ public class ComponentFactory {
 		Resource testDir = dir.getRealResource("test");
 		String testPath = path+"test/";
 		if(!testDir.exists())testDir.mkdirs();
-		deploy(testDir,testPath,doNew,"AdministratorTest");
+		
+		delete(testDir,"AdministratorTest");
 		deploy(testDir,testPath,doNew,"LuceeTestSuite");
 		deploy(testDir,testPath,doNew,"LuceeTestSuiteRunner");
 		deploy(testDir,testPath,doNew,"LuceeTestCase");
@@ -74,5 +75,9 @@ public class ComponentFactory {
 	private static void deploy(Resource dir, String path,boolean doNew, String name) {
 		Resource f = dir.getRealResource(name+".cfc");
         if(!f.exists() || doNew)XMLConfigFactory.createFileFromResourceEL(path+name+".cfc",f);
+	}
+	private static void delete(Resource dir, String name) {
+		Resource f = dir.getRealResource(name+".cfc");
+        if(f.exists()) f.delete();
 	}
 }

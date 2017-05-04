@@ -17,23 +17,27 @@ import lucee.runtime.type.query.QueryStruct;
 public abstract class QueryResultCacheItem  implements CacheItem, Dumpable, Serializable,Duplicable {
 
 	private static final long serialVersionUID = -2322582053856364084L;
-
+	private static final String[] EMPTY=new String[0];
+	
 	private QueryResult queryResult;
 	private final long creationDate;
 
-	protected QueryResultCacheItem(QueryResult qr) {
+	private String[] tags;
+
+	protected QueryResultCacheItem(QueryResult qr, String[] tags) {
 		this.queryResult=qr;
 		this.creationDate=System.currentTimeMillis();
+		this.tags=tags==null?EMPTY:tags;
 	}
 	
 
-	public static CacheItem newInstance(QueryResult qr, CacheItem defaultValue) {
+	public static CacheItem newInstance(QueryResult qr, String[] tags, CacheItem defaultValue) {
 		if(qr instanceof Query)
-			return new QueryCacheItem((Query) qr);
+			return new QueryCacheItem((Query) qr,tags);
 		else if(qr instanceof QueryArray)
-			return new QueryArrayItem((QueryArray) qr);
+			return new QueryArrayItem((QueryArray) qr,tags);
 		else if(qr instanceof QueryStruct)
-			return new QueryStructItem((QueryStruct) qr);
+			return new QueryStructItem((QueryStruct) qr,tags);
 		return defaultValue;
 	}
 	
@@ -61,6 +65,10 @@ public abstract class QueryResultCacheItem  implements CacheItem, Dumpable, Seri
 	@Override
 	public final long getExecutionTime() {
 		return queryResult.getExecutionTime();
+	}
+	
+	public final String[] getTags() {
+		return tags;
 	}
 	
 

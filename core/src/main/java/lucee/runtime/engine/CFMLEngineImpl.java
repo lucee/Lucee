@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -34,6 +36,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -54,6 +58,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 
 import lucee.Info;
+import lucee.print;
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.CharsetUtil;
@@ -90,6 +95,7 @@ import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigServer;
@@ -104,6 +110,7 @@ import lucee.runtime.config.XMLConfigFactory;
 import lucee.runtime.config.XMLConfigFactory.UpdateInfo;
 import lucee.runtime.config.XMLConfigServerFactory;
 import lucee.runtime.config.XMLConfigWebFactory;
+import lucee.runtime.engine.listener.CFMLServletContextListener;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -126,6 +133,7 @@ import lucee.runtime.op.IOImpl;
 import lucee.runtime.op.JavaProxyUtilImpl;
 import lucee.runtime.op.OperationImpl;
 import lucee.runtime.op.StringsImpl;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -156,6 +164,7 @@ import lucee.runtime.util.ZipUtilImpl;
 import lucee.runtime.video.VideoUtil;
 import lucee.runtime.video.VideoUtilImpl;
 
+import org.apache.commons.net.telnet.TerminalTypeOptionHandler;
 import org.apache.felix.framework.Felix;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -167,8 +176,7 @@ import org.osgi.framework.Version;
  * The CFMl Engine
  */
 public final class CFMLEngineImpl implements CFMLEngine {
-	
-	
+
 	private static Map<String,CFMLFactory> initContextes=MapFactory.<String,CFMLFactory>getConcurrentMap();
     private static Map<String,CFMLFactory> contextes=MapFactory.<String,CFMLFactory>getConcurrentMap();
     private ConfigServerImpl configServer=null;
@@ -188,20 +196,21 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private ScriptEngineFactory luceeScriptEngine;
 	private ScriptEngineFactory luceeTagEngine;
 	private Controler controler;
+	private CFMLServletContextListener scl;
     
     //private static CFMLEngineImpl engine=new CFMLEngineImpl();
 
     private CFMLEngineImpl(CFMLEngineFactory factory, BundleCollection bc) {
     	this.factory=factory; 
     	this.bundleCollection=bc;
-
+    	
     	// log the startup process
-    	String logDir=SystemUtil.getSystemPropOrEnvVar("startlogdirectory", null);
+    	String logDir=SystemUtil.getSystemPropOrEnvVar("startlogdirectory", null);//"/Users/mic/Tmp/");
     	if(logDir!=null) {
     		File f = new File(logDir);
     		if(f.isDirectory()) {
 	    		String logName=SystemUtil.getSystemPropOrEnvVar("logName", "stacktrace");
-	    		int timeRange=Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("timeRange", "stacktrace"),10);
+	    		int timeRange=Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("timeRange", "stacktrace"),1);
 	    		LogST._do(f, logName, timeRange);
     		}
     	}
@@ -267,8 +276,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
         	// start the controller
             SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT), "Start CFML Controller");
         	controler.start();
-        }        
-        
+        }
+   
         boolean isRe=configDir==null?false:XMLConfigFactory.isRequiredExtension(this, configDir);
         boolean installExtensions=Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.extensions.install",null),true);
         
@@ -295,24 +304,33 @@ public final class CFMLEngineImpl implements CFMLEngine {
         	Iterator<ExtensionDefintion> it = info.getRequiredExtension().iterator();
         	ExtensionDefintion ed;
         	RHExtension rhe;
+        	Version edVersion,rheVersion;
         	while(it.hasNext()){
         		ed = it.next();
+        		edVersion = OSGiUtil.toVersion(ed.getVersion(), null);
         		if(ed.getVersion()==null) {
         			continue; // no version definition no update
         		}
         		try{
         			rhe = XMLConfigAdmin.hasRHExtensions(cs, new ExtensionDefintion(ed.getId()));
+        			
         			if(rhe==null) {
+        				rheVersion=null;
         				Version since=ed.getSince();
         				
         				if(since==null || updateInfo.oldVersion==null || !Util.isNewerThan(since, updateInfo.oldVersion)) 
         					continue; // not installed we do not update
         				extensions.add(ed);
         			}
-        			
+        			else rheVersion=OSGiUtil.toVersion(rhe.getVersion(), null);
         			// if the installed is older than the one defined in the manifest we update (if possible)
-        			else if(!rhe.getVersion().equals(ed.getVersion())) 
+        			//print.e("----- "+ed.getId()+" ------");
+        			//print.e(ed.getVersion()+"->"+edVersion);
+        			//if(rhe!=null)print.e(rhe.getVersion()+"->"+rheVersion);
+        			//print.e(rheVersion!=null && OSGiUtil.isNewerThan(edVersion,rheVersion));
+        			if(rheVersion!=null && OSGiUtil.isNewerThan(edVersion,rheVersion)) { // TODO do none OSGi version number comparsion
         				extensions.add(ed);
+        			}
         		}
         		catch(Throwable t){
         			ExceptionUtil.rethrowIfNecessary(t); // fails we update
@@ -363,7 +381,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
     }
 
 	public static Set<ExtensionDefintion> toSet(Set<ExtensionDefintion> set, List<ExtensionDefintion> list) {
-		HashMap<String, ExtensionDefintion> map=new HashMap<String, ExtensionDefintion>();
+		LinkedHashMap<String, ExtensionDefintion> map=new LinkedHashMap<String, ExtensionDefintion>();
 		ExtensionDefintion ed;
 			
 		// set > map
@@ -385,7 +403,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		}
 		
 		// to Set
-		HashSet<ExtensionDefintion> rtn = new HashSet<ExtensionDefintion>();
+		LinkedHashSet<ExtensionDefintion> rtn = new LinkedHashSet<ExtensionDefintion>();
 		Iterator<ExtensionDefintion> it = map.values().iterator();
 		while(it.hasNext()){
 			ed = it.next();
@@ -409,7 +427,23 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	private void deployBundledExtension(ConfigServerImpl cs) {
 		Resource dir = cs.getLocalExtensionProviderDirectory();
-		List<RHExtension> existing = DeployHandler.getLocalExtensions(cs);
+		List<ExtensionDefintion> existing = DeployHandler.getLocalExtensions(cs);
+		Map<String,ExtensionDefintion> existingMap=new HashMap<String, ExtensionDefintion>();
+		
+		{
+			Iterator<ExtensionDefintion> it = existing.iterator();
+			ExtensionDefintion ed;
+			while(it.hasNext()) {
+				ed=it.next();
+				try {
+					existingMap.put(ed.getSource().getName(), ed);
+				}
+				catch (ApplicationException e) {}
+			}
+		}
+		
+		
+		
 		
 		Log log = cs.getLog("deploy");
 		
@@ -432,16 +466,22 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			String[] names = lucee.runtime.type.util.ListUtil.listToStringArray(index, ';');
 			String name;
 			Resource temp=null;
-			RHExtension rhe,exist;
-			Iterator<RHExtension> it;
+			RHExtension rhe;
+			ExtensionDefintion exist;
+			Iterator<ExtensionDefintion> it;
 			
 			for(int i=0;i<names.length;i++){
 				name=names[i];
-				log.info("extract-extension", "add extension ["+name+"]");
-				
-				
 				if(StringUtil.isEmpty(name,true)) continue;
 				name=name.trim();
+				
+				// does it already exist?
+				if(existingMap.containsKey(name)) {
+					continue;
+				}
+				
+				
+				
 				is = cl.getResourceAsStream("extensions/"+name);
 				if(is==null)is = cl.getResourceAsStream("/extensions/"+name);
 				if(is==null) {
@@ -450,24 +490,46 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				}
 				
 				try {
-					temp=SystemUtil.getTempFile("lex", true);
+					
+					temp=SystemUtil.getTempDirectory().getRealResource(name);
+					ResourceUtil.touch(temp);
 					Util.copy(is, temp.getOutputStream(),false,true);
 					rhe = new RHExtension(cs, temp, false);
-					boolean alreadyExists=false;
+					ExtensionDefintion alreadyExists=null;
 					it = existing.iterator();
 					while(it.hasNext()){
 						exist = it.next();
 						if(exist.equals(rhe)) {
-							alreadyExists=true;
+							alreadyExists=exist;
 							break;
 						}
 					}
-					if(!alreadyExists) {
-						temp.moveTo(dir.getRealResource(name));
+					String trgName=rhe.getId()+"-"+rhe.getVersion()+".lex";
+					if(alreadyExists==null) {
+						temp.moveTo(dir.getRealResource(trgName));
 						log.info("extract-extension", "added ["+name+"] to ["+dir+"]");
-						
+					
+					}
+					else if(!alreadyExists.getSource().getName().equals(trgName)) {
+						log.info("extract-extension", "rename ["+alreadyExists.getSource()+"] to ["+trgName+"]");
+						alreadyExists.getSource().moveTo(
+								alreadyExists.getSource().getParentResource().getRealResource(trgName)
+							);
 					}
 					
+					// now we check all extension name (for extension no longer delivered by lucee)
+					it = existing.iterator();
+					while(it.hasNext()){
+						exist = it.next();
+						trgName=exist.getId()+"-"+exist.getVersion()+".lex";
+						if(!trgName.equals(exist.getSource().getName())) {
+							exist.getSource().moveTo(
+									exist.getSource().getParentResource().getRealResource(trgName)
+								);
+							log.info("extract-extension", "rename ["+exist.getSource()+"] to ["+trgName+"]");
+							
+						}
+					}
 				}
 				finally {
 					if(temp!=null && temp.exists())temp.delete();
@@ -483,7 +545,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	private void deployBundledExtensionZip(ConfigServerImpl cs) {
 		Resource dir = cs.getLocalExtensionProviderDirectory();
-		List<RHExtension> existing = DeployHandler.getLocalExtensions(cs);
+		List<ExtensionDefintion> existing = DeployHandler.getLocalExtensions(cs);
 		String sub="extensions/";
 		// MUST this does not work on windows! we need to add an index
 		ZipEntry entry;
@@ -499,8 +561,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			int index;
 			Resource temp;
 			RHExtension rhe;
-			Iterator<RHExtension> it;
-			RHExtension exist;
+			Iterator<ExtensionDefintion> it;
+			ExtensionDefintion exist;
 			while ((entry = zis.getNextEntry())!= null) {
 				path = entry.getName();
 				if(path.startsWith(sub) && path.endsWith(".lex")) { // ignore non lex files or file from else where
@@ -509,7 +571,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 						name=path.substring(index);
 						temp=null;
 						try {
-							temp=SystemUtil.getTempFile("lex", true);
+							temp = SystemUtil.getTempDirectory().getRealResource(name);
+							ResourceUtil.touch(temp);
 							Util.copy(zis, temp.getOutputStream(),false,true);
 							rhe = new RHExtension(cs, temp, false);
 							boolean alreadyExists=false;
@@ -586,12 +649,84 @@ public final class CFMLEngineImpl implements CFMLEngine {
     
     @Override
     public void addServletConfig(ServletConfig config) throws ServletException {
+    	
+    	// FUTURE remove
+    	if("LuceeServletContextListener".equals(config.getServletName())) {
+    		try {
+				//Method m = config.getClass().getMethod("getServletContextEvent", new Class[0]);
+				//ServletContextEvent sce=(ServletContextEvent) m.invoke(config, new Object[0]);
+    			String status=config.getInitParameter("status");
+				if("release".equalsIgnoreCase(status)) reset();
+			}
+    		catch (Exception e) {
+				e.printStackTrace();
+			}
+    		return;
+    	}
+    
+    	// add EventListener
+    	if(scl==null) {
+    		addEventListener(config.getServletContext());
+    	}
+    	
+    	
     	servletConfigs.add(config);
     	String real=ReqRspUtil.getRootPath(config.getServletContext());
     	if(!initContextes.containsKey(real)) {
         	CFMLFactory jspFactory = loadJSPFactory(getConfigServerImpl(),config,initContextes.size());
             initContextes.put(real,jspFactory);
         }        
+    }
+    
+    private void addEventListener(ServletContext sc) {
+    	// TOMCAT
+    	if("org.apache.catalina.core.ApplicationContextFacade".equals(sc.getClass().getName())) {
+    		Object obj=extractServletContext(sc);
+    		obj=extractServletContext(obj);
+    		if("org.apache.catalina.core.StandardContext".equals(obj.getClass().getName())) {
+    			Method m=null;
+    			try {
+    				// TODO check if we already have a listener (lucee.loader.servlet.LuceeServletContextListener), if so we do nothing
+    	    		//sc.getApplicationLifecycleListeners();
+    				m=obj.getClass().getMethod("addApplicationLifecycleListener", new Class[]{Object.class});
+					CFMLServletContextListener tmp;
+					m.invoke(obj, new Object[]{tmp=new CFMLServletContextListener(this)});
+					scl=tmp;
+					return;
+				}
+    			catch (Exception e) {}
+    			
+    		}
+    	}
+    	
+    	// GENERAL try add Event method directly (does not work with tomcat)
+    	try{
+	    	CFMLServletContextListener tmp = new CFMLServletContextListener(this);
+	    	sc.addListener(tmp);
+	    	scl=tmp;
+	    	return;
+    	}
+    	catch(Exception e) {}
+    	
+    	SystemOut.printDate("Lucee was not able to register an event listener with "+(sc==null?"null":sc.getClass().getName()));
+	}
+    
+    private Object extractServletContext(Object sc) {
+    	Class<?> clazz = sc.getClass();
+    	Field f=null;
+    	try {
+			f = clazz.getDeclaredField("context");
+		}catch (Exception e) {}
+    	if(f!=null) {
+    		f.setAccessible(true);
+    		Object obj=null;
+    		try {
+				obj = f.get(sc);
+			}
+    		catch (Exception e) {}
+    		return obj;
+    	}
+    	return null;
     }
     
     @Override
@@ -853,67 +988,63 @@ public final class CFMLEngineImpl implements CFMLEngine {
     
     @Override
     public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
-    	CFMLFactory factory=getCFMLFactory(servlet.getServletConfig(), req);
-    	
-    	// is Lucee dialect enabled?
-    	if(!((ConfigImpl)factory.getConfig()).allowLuceeDialect()){
-    		try {
-				PageContextImpl.notSupported();
-			} catch (ApplicationException e) {
-				throw new PageServletException(e);
-			}
-    	}
-        PageContext pc = factory.getLuceePageContext(servlet,req,rsp,null,false,-1,false,true,-1,true,false);
-        ThreadQueue queue = factory.getConfig().getThreadQueue();
-        queue.enter(pc);
-        try {
-        	pc.execute(pc.getHttpServletRequest().getServletPath(),false,true);
-        } 
-        catch (PageException pe) {
-			throw new PageServletException(pe);
-		}
-        finally {
-        	queue.exit(pc);
-            factory.releaseLuceePageContext(pc,true);
-            //FDControllerFactory.notifyPageComplete();
-        }
+    	_service(servlet, req, rsp, Request.TYPE_LUCEE);
     }
     
     @Override
     public void serviceCFML(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
-    	CFMLFactory factory=getCFMLFactory(servlet.getServletConfig(), req);
-    	
-        PageContext pc = factory.getLuceePageContext(servlet,req,rsp,null,false,-1,false,true,-1,true,false);
-        ThreadQueue queue = factory.getConfig().getThreadQueue();
-        queue.enter(pc);
-        try {
-        	/*print.out("INCLUDE");
-        	print.out("servlet_path:"+req.getAttribute("javax.servlet.include.servlet_path"));
-        	print.out("request_uri:"+req.getAttribute("javax.servlet.include.request_uri"));
-        	print.out("context_path:"+req.getAttribute("javax.servlet.include.context_path"));
-        	print.out("path_info:"+req.getAttribute("javax.servlet.include.path_info"));
-        	print.out("query_string:"+req.getAttribute("javax.servlet.include.query_string"));
-        	print.out("FORWARD");
-        	print.out("servlet_path:"+req.getAttribute("javax.servlet.forward.servlet_path"));
-        	print.out("request_uri:"+req.getAttribute("javax.servlet.forward.request_uri"));
-        	print.out("context_path:"+req.getAttribute("javax.servlet.forward.context_path"));
-        	print.out("path_info:"+req.getAttribute("javax.servlet.forward.path_info"));
-        	print.out("query_string:"+req.getAttribute("javax.servlet.forward.query_string"));
-        	print.out("---");
-        	print.out(req.getServletPath());
-        	print.out(pc.getHttpServletRequest().getServletPath());
-        	*/
-        	
-        	pc.executeCFML(pc.getHttpServletRequest().getServletPath(),false,true);
-        } 
-        catch (PageException pe) {
-			throw new PageServletException(pe);
-		}
-        finally {
-        	queue.exit(pc);
-            factory.releaseLuceePageContext(pc,true);
-            //FDControllerFactory.notifyPageComplete();
-        }
+    	_service(servlet, req, rsp, Request.TYPE_CFML);
+    }
+    
+    @Override
+	public void serviceRest(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
+		_service(servlet, new HTTPServletRequestWrap(req), rsp, Request.TYPE_REST);
+	}
+
+    private void _service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, short type) throws ServletException, IOException {
+        CFMLFactoryImpl factory=(CFMLFactoryImpl) getCFMLFactory(servlet.getServletConfig(), req);
+        // is Lucee dialect enabled?
+    	if(type==Request.TYPE_LUCEE) {
+	        if(!((ConfigImpl)factory.getConfig()).allowLuceeDialect()){
+	    		try {
+					PageContextImpl.notSupported();
+				} catch (ApplicationException e) {
+					throw new PageServletException(e);
+				}
+	    	}
+    	}
+        
+        PageContextImpl pc = factory.getPageContextImpl(servlet,req,rsp,null,false,-1,false,false,false,-1,true,false);
+    	try {
+    		Request r=new Request(pc,type);
+	    	r.start();
+	    	long ended=-1;
+	    	do {
+	    		SystemUtil.wait(Thread.currentThread(),1000);
+	    		// done?
+	    		if(r.isDone()) {
+	    			//print.e("mas-done:"+System.currentTimeMillis());
+	    			break;
+	    		}
+	    		// reach request timeout
+	    		else if(ended==-1 && (pc.getStartTime()+pc.getRequestTimeout())<System.currentTimeMillis()) {
+	    			//print.e("req-time:"+System.currentTimeMillis());
+	    			CFMLFactoryImpl.terminate(pc,false);
+	    			ended=System.currentTimeMillis();
+	    			// break; we do not break here, we give the thread itself the chance to end we need the exception output
+	    		}
+	    		// the thread itself seem blocked, so we release this thread
+	    		else if(ended>-1 && ended+10000<=System.currentTimeMillis()) {
+	    			//print.e("give-up:"+System.currentTimeMillis());
+	    			break;
+	    		}
+	    	}
+	    	while(true);
+	    	//print.e("done: "+System.currentTimeMillis());
+    	}
+    	finally {
+    		factory.releaseLuceePageContext(pc,false);
+    	}
     }
 
 	@Override
@@ -940,31 +1071,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
     		}
     	}
 	}
-	
-
-	@Override
-	public void serviceRest(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
-		req=new HTTPServletRequestWrap(req);
-		CFMLFactory factory=getCFMLFactory(servlet.getServletConfig(), req);
-        
-		PageContext pc = factory.getLuceePageContext(servlet,req,rsp,null,false,-1,false,true,-1,true,false);
-        ThreadQueue queue = factory.getConfig().getThreadQueue();
-        queue.enter(pc);
-        try {
-        	pc.executeRest(pc.getHttpServletRequest().getServletPath(),false);
-        } 
-        catch (PageException pe) {
-			throw new PageServletException(pe);
-		}
-        finally {
-        	queue.exit(pc);
-            factory.releaseLuceePageContext(pc,true);
-            //FDControllerFactory.notifyPageComplete();
-        }
-		
-		
-	}
-    
 
     /*private String getContextList() {
         return List.arrayToList((String[])contextes.keySet().toArray(new String[contextes.size()]),", ");
@@ -1007,9 +1113,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
     @Override
 	public void serviceAMF(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
-    	req=new HTTPServletRequestWrap(req);
-    	getCFMLFactory(servlet.getServletConfig(), req)
-    		.getConfig().getAMFEngine().service(servlet,new HTTPServletRequestWrap(req),rsp);
+    	throw new ServletException("AMFServlet is no longer supported, use BrokerServlet instead.");
+    	//req=new HTTPServletRequestWrap(req);
+    	//getCFMLFactory(servlet.getServletConfig(), req).getConfig().getAMFEngine().service(servlet,new HTTPServletRequestWrap(req),rsp);
     }
 
     @Override
@@ -1019,8 +1125,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
     
     @Override
     public void reset(String configId) {
+    	SystemOut.printDate("reset CFML Engine");
         getControler().close();
 		RetireOutputStreamFactory.close();
+		
+		
+        releaseCache(getConfigServerImpl());
     	
         CFMLFactoryImpl cfmlFactory;
         //ScopeContext scopeContext;
@@ -1030,7 +1140,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	        	try {
 		            cfmlFactory=(CFMLFactoryImpl) contextes.get(it.next());
 		            if(configId!=null && !configId.equals(cfmlFactory.getConfigWebImpl().getIdentification().getId())) continue;
-		            	
+		            
 		            // scopes
 		            try{cfmlFactory.getScopeContext().clear();}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		            
@@ -1053,6 +1163,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		            // Gateway
 		            try{ cfmlFactory.getConfigWebImpl().getGatewayEngine().reset();}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		            
+		            // Cache
+		            releaseCache(cfmlFactory.getConfigWebImpl());
+		            
 	        	}
 	        	catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 	        }
@@ -1063,7 +1176,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
     	}
     }
     
-    @Override
+    public static void releaseCache(Config config) {
+    	CacheUtil.releaseAll(config);
+		if(config instanceof ConfigServer)CacheUtil.releaseAllApplication();
+	}
+
+	@Override
     public Cast getCastUtil() {
         return CastImpl.getInstance();
     }

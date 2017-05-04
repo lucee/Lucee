@@ -443,7 +443,8 @@
 	<data key="mail.portDesc">Port of the mail server (for example 587).</data>
 	<data key="mail.missingencoding">Please enter a value for the default encoding</data>
 	<data key="mail.logfile">Log file</data>
-	<data key="mail.mailservers">Mail server connections</data>
+	<data key="mail.mailservers.local">Mail server connections</data>
+	<data key="mail.mailservers.global">Mail server connections (Connections from Server Administrator)</data>
 	<data key="mail.defaultencodingdescription">This is the default encoding used</data>
 	<data key="mail.spoolinterval">Spool interval</data>
 	<data key="mail.server">Server (SMTP)</data>
@@ -451,7 +452,13 @@
 	<data key="mail.porterrorlast">) of type number</data>
 	<data key="mail.spoolenabled">Spool enable</data>
 	<data key="mail.settings">Mail settings</data>
-	<data key="mail.mailserversdescription">You can define more than one mail server connection. When sending an email, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</data>
+	<data key="mail.mailserversdescription.local">You can define more than one mail server connection. When sending an email, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</data>
+	<data key="mail.mailserversdescription.global">These connections have been created in the Server Administrator and are shared with ALL web contexts. 
+		You cannot modify these mail servers in the Web Administrator.
+		You can define more than one mail server connection. When sending an email, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</data>
+
+
+
 	<data key="mail.createnewMailServerConn">New connection</data>
 	<data key="mail.createnewMailServerConnDesc">Create a new mail server connection.</data>
 	<data key="mail.editMailServerConn">Edit connection</data>
@@ -1133,6 +1140,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="doc.attr.minmax">This tag must have at least {min} attributes but the most {max}.</data>
 	<data key="doc.attr.min">This tag must have at least {min} attributes.</data>
 	<data key="doc.attr._type">Type</data>
+	<data key="doc.attr.value">Value</data>
 	<data key="doc.attr.required">Required</data>
 	<data key="doc.attr.zero">This tag has no attributes</data>
 	<data key="doc.attr.type.noname">This tag only allows one attribute value (no name).</data>
@@ -1141,6 +1149,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="doc.attr.type.dynamic">There is no restriction for attributes for this tag.</data>
 	<data key="doc.attr.max">Only the number of attributes is restricted to {max}.</data>
 	<data key="doc.attr.description">Description</data>
+	<data key="doc.attr.default">Default Value</data>
 	<data key="doc.attrdesc">Attributes, supported by the tag.</data>
 	<data key="doc.attrtitle">Attributes</data>
 	<data key="doc.argtitle">Arguments</data>
@@ -1153,6 +1162,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="doc.example">Example</data>
 	<data key="doc.chooseTag">Choose a tag</data>
 	<data key="doc.chooseFunction">Choose a function</data>
+	<data key="doc.category">Category</data>
 	<data key="help.logotitle">Lucee help</data>
 	<data key="help.closewindow">Close window</data>
 	<data key="help.videohelp">Lucee - online video help</data>

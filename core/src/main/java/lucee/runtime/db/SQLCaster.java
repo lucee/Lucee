@@ -70,10 +70,10 @@ public final class SQLCaster {
     
 	public static Object toSqlType(SQLItem item) throws PageException, DatabaseException {
         Object value=item.getValue();
-        
-    	try {
+        try {
+        	
 	        if(item.isNulls() || value==null) {
-	            return null;
+	            return null; 
 	        }
 	    	int type=item.getType();
 	    	switch(type) {
@@ -374,8 +374,12 @@ public final class SQLCaster {
 			if(type==Types.VARCHAR ||type==Types.LONGVARCHAR || type==Types.CHAR || type==Types.CLOB || type==Types.NVARCHAR) {
 				return (matchString(item));
 			}
+		// long types
+			else if(type==Types.BIGINT) {
+				return Caster.toString(Caster.toLongValue(item.getValue()));
+			}
 		// int types
-			else if(type==Types.BIGINT || type==Types.INTEGER || type==Types.SMALLINT || type==Types.BIGINT || type==Types.TINYINT) {
+			else if(type==Types.INTEGER || type==Types.SMALLINT || type==Types.TINYINT) {
 				return Caster.toString(Caster.toIntValue(item.getValue()));
 			}
 		// numeric types
@@ -444,8 +448,12 @@ public final class SQLCaster {
 			else if(type==Types.CHAR || type==Types.NCHAR) {
 				return Caster.toString(item.getValue());
 			}
+		// long types
+			else if(type==Types.BIGINT) {
+				return Caster.toLong(item.getValue());
+			}
 		// int types
-			else if(type==Types.BIGINT || type==Types.INTEGER || type==Types.SMALLINT || type==Types.BIGINT || type==Types.TINYINT) {
+			else if(type==Types.INTEGER || type==Types.SMALLINT || type==Types.TINYINT) {
 				return Caster.toInteger(item.getValue());
 			}
 		// numeric types
@@ -524,8 +532,12 @@ public final class SQLCaster {
 			else if(type==Types.CHAR || type==Types.NCHAR) {
 				return Caster.toString(value);
 			}
+		// long types
+			else if(type==Types.BIGINT) {
+				return Caster.toLong(value);
+			}
 		// int types
-			else if(type==Types.BIGINT || type==Types.INTEGER || type==Types.SMALLINT || type==Types.BIGINT || type==Types.TINYINT) {
+			else if(type==Types.INTEGER || type==Types.SMALLINT || type==Types.TINYINT) {
 				return Caster.toInteger(value);
 			}
 		// numeric types

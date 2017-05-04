@@ -37,7 +37,7 @@ import lucee.runtime.type.StructImpl;
 import org.osgi.framework.BundleException;
 
 
-public class CacheConnectionImpl implements CacheConnection  {
+public class CacheConnectionImpl implements CacheConnectionPlus  {
 
 
 
@@ -70,6 +70,10 @@ public class CacheConnectionImpl implements CacheConnection  {
 				cache=(Cache) ClassUtil.loadInstance(clazz);
 				cache.init(config,getName(), getCustom());
 			}
+			return cache;
+		}
+		
+		public Cache getLoadedInstance() {
 			return cache;
 		}
 

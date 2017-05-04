@@ -70,7 +70,6 @@ import lucee.runtime.config.Config;
 import lucee.runtime.engine.InfoImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
-import lucee.runtime.exp.StopException;
 import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
@@ -1156,21 +1155,19 @@ public final class SystemUtil {
 	@Deprecated
 	public static void stop(Thread thread) {
 		if(thread.isAlive()){
-			try{
+			thread.stop();
+			/*try{
 				thread.stop(new StopException(thread));
 			}
 			catch(UnsupportedOperationException uoe){// Java 8 does not support Thread.stop(Throwable)
 				thread.stop();
-			}
+			}*/
 		}
 	}
-
-	public static void stop(PageContext pc,Log log) {
-		stop(pc,new StopException(pc.getThread()),log);
-	}
 	
-	public static void stop(PageContext pc, Throwable t,Log log) {
-		new StopThread(pc,t,log).start();
+	public static void stop(PageContext pc, Log log, boolean async) {
+		if(async)new StopThread(pc,log).start();
+		else new StopThread(pc,log).run();
 	}
 
 
@@ -1383,12 +1380,10 @@ class Ref {
 class StopThread extends Thread {
 	
 	private final PageContext pc;
-	private final Throwable t;
 	private final Log log; 
 
-	public StopThread(PageContext pc, Throwable t, Log log) {
+	public StopThread(PageContext pc, Log log) {
 		this.pc=pc;
-		this.t=t;
 		this.log=log;
 	}
 
@@ -1396,35 +1391,9 @@ class StopThread extends Thread {
 		PageContextImpl pci=(PageContextImpl) pc;
 		Thread thread = pc.getThread();
 		if(thread==null) return;
-		pci.setRequestTimeoutException(t);
-		//int count=0;
 		if(thread.isAlive()) {
-			//// do{
-				//// if(count>10) break; // should never happen
-				//if(count>0 && log!=null) LogUtil.log(log, Log.LEVEL_ERROR, "", "could not stop the thread, trying again", thread.getStackTrace());
-				
-				try{
-					thread.stop(t);
-				}
-				catch(UnsupportedOperationException uoe){
-					LogUtil.log(log, Log.LEVEL_INFO, "", "Thread.stop(Throwable) is not supported by this JVM and failed with UnsupportedOperationException", thread.getStackTrace());
-					try {
-						// This is a private, native method on the java.lang.Thread object directly
-						Method m = Thread.class.getDeclaredMethod("stop0", new Class[]{Object.class});
-						m.setAccessible(true); // allow to access private method
-						m.invoke(thread, new Object[]{t});
-					}
-					catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | 
-							NoSuchMethodException | SecurityException e) {
-						LogUtil.log(log, Log.LEVEL_ERROR, "", t);
-						thread.stop();
-					}
-				}
-				//// SystemUtil.sleep(1000);
-				//count++;
-			////}while(thread.isAlive() && pci.isInitialized());
+				pci.setTimeoutStackTrace();
+				thread.stop();
 		}
-		
-		//if(count>10 && log!=null) LogUtil.log(log, Log.LEVEL_ERROR, "", "could not stop the thread, giving up", thread.getStackTrace());
 	}
 }

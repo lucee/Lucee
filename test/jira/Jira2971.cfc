@@ -74,7 +74,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 		// member functions
-		res=list.Filter(function( value ){
+		res=list.listFilter(function( value ){
  							return value EQ 'b';
  
                         },',',false,true,parallel);

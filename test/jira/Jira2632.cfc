@@ -18,7 +18,7 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
-	variables.serverAdminPassword=request.WEBADMINPASSWORD;
+	variables.serverAdminPassword=request.SERVERADMINPASSWORD;
 	variables.webAdminPassword=request.WEBADMINPASSWORD;
 	
 	

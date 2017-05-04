@@ -619,49 +619,22 @@ public final class Application extends TagImpl {
 					e = it.next();
 					// default value by name
 					if(!StringUtil.isEmpty(name=Caster.toString(e.getValue(),null))) {
-						if(KeyConstants._function.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_FUNCTION, name);
-						else if(KeyConstants._object.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_OBJECT, name);
-						else if(KeyConstants._query.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_QUERY, name);
-						else if(KeyConstants._resource.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_RESOURCE, name);
-						else if(KeyConstants._template.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_TEMPLATE, name);
-						else if(KeyConstants._include.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_INCLUDE, name);
-						else if(KeyConstants._http.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_HTTP, name);
-						else if(KeyConstants._file.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_FILE, name);
-						else if(KeyConstants._webservice.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE, name);
+						setDefault(ac,e.getKey(),name);
 					}
 					// cache definition
 					else if((sct=Caster.toStruct(e.getValue(),null))!=null) {
-						CacheConnection cc = ModernApplicationContext.toCacheConnection(pageContext.getConfig(), e.getKey().getString(), sct, null);
+						CacheConnection cc = ModernApplicationContext.toCacheConnection(pageContext.getConfig(), e.getKey().getString(), sct);
 						if(cc!=null) {
-							acs.setCacheConnection(e.getKey().getString(), cc);
 							name=e.getKey().getString();
-							if(KeyConstants._function.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_FUNCTION, name);
-							else if(KeyConstants._object.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_OBJECT, name);
-							else if(KeyConstants._query.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_QUERY, name);
-							else if(KeyConstants._resource.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_RESOURCE, name);
-							else if(KeyConstants._template.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_TEMPLATE, name);
-							else if(KeyConstants._include.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_INCLUDE, name);
-							else if(KeyConstants._http.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_HTTP, name);
-							else if(KeyConstants._file.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_FILE, name);
-							else if(KeyConstants._webservice.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE, name);
+							acs.setCacheConnection(name, cc);
+							
+							// key is a cache type
+							setDefault(ac,e.getKey(),name);
+							
+							// default key
+							Key def = Caster.toKey(sct.get(KeyConstants._default,null),null);
+							if(def!=null) setDefault(ac,def,name);
+							
 						}
 					}
 				}
@@ -736,6 +709,27 @@ public final class Application extends TagImpl {
 		
 		
 		return initORM;
+	}
+
+	private static void setDefault(ApplicationContext ac, Key type, String cacheName) {
+		if(KeyConstants._function.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_FUNCTION, cacheName);
+		else if(KeyConstants._object.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_OBJECT, cacheName);
+		else if(KeyConstants._query.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_QUERY, cacheName);
+		else if(KeyConstants._resource.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_RESOURCE, cacheName);
+		else if(KeyConstants._template.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_TEMPLATE, cacheName);
+		else if(KeyConstants._include.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_INCLUDE, cacheName);
+		else if(KeyConstants._http.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_HTTP, cacheName);
+		else if(KeyConstants._file.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_FILE, cacheName);
+		else if(KeyConstants._webservice.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE, cacheName);
 	}
 
 	@Override

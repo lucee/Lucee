@@ -28,15 +28,18 @@ public class QueryCacheItem extends QueryResultCacheItem {
 	private static final long serialVersionUID = 7327671003736543783L;
 
 	public final Query query;
+	private String hash;
 
-	public QueryCacheItem(Query query){
-		super((QueryResult)query);
+	public QueryCacheItem(Query query, String[] tags){
+		super((QueryResult)query,tags);
 		this.query=query;
 	}
 
 	@Override
 	public String getHashFromValue() {
-		return Long.toString(HashUtil.create64BitHash(UDFArgConverter.serialize(query)));
+		// TODO faster impl
+		if(hash==null) hash= Long.toString(HashUtil.create64BitHash(UDFArgConverter.serialize(query)));
+		return hash;
 	}
 	
 
@@ -47,7 +50,7 @@ public class QueryCacheItem extends QueryResultCacheItem {
 
 	@Override
 	public Object duplicate(boolean deepCopy) {
-		return new QueryCacheItem((Query)query.duplicate(true));
+		return new QueryCacheItem((Query)query.duplicate(true),getTags());
 	}
 
 }

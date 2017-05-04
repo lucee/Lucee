@@ -371,6 +371,7 @@ public class OSGiUtil {
 	
 	public static Bundle loadBundleByPackage(String packageName, List<VersionDefinition> versionDefinitions, 
 			Set<Bundle> loadedBundles, boolean startIfNecessary, Set<Bundle> parents) throws BundleException, IOException {
+		
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
     	CFMLEngineFactory factory = engine.getCFMLEngineFactory();
     	
@@ -612,6 +613,10 @@ public class OSGiUtil {
     		throw new BundleException("The OSGi Bundle with name ["+name+"] in version ["+version+"] is not available locally or from the update provider.");
     	throw new BundleException("The OSGi Bundle with name ["+name+"] is not available locally or from the update provider.");
     }
+
+	public static boolean isNewerThan(Version left, Version right) {
+		return Util.isNewerThan(left, right);
+	}
 	
 	public static BundleFile getBundleFile(String name, Version version,Identification id, boolean downloadIfNecessary, BundleFile defaultValue) {
 		name=name.trim();
@@ -646,7 +651,8 @@ public class OSGiUtil {
 			if(version!=null){
 				File[] jars = new File[]{ 
 						new File(dir, name + "-"+ version.toString() + (".jar")),
-						new File(dir, name + "-"+ version.toString().replace('.', '-') + (".jar"))
+						new File(dir, name + "-"+ version.toString().replace('.', '-') + (".jar")),
+						new File(dir, name.replace('.', '-') + "-"+ version.toString().replace('.', '-') + (".jar"))
 				};
 				for(int i=0;i<jars.length;i++) {
 					File jar=jars[i];
@@ -662,7 +668,6 @@ public class OSGiUtil {
 			}
 			
 			File[] children = dir.listFiles(JAR_EXT_FILTER);
-	    	
 			// now we make a closer filename test
 			String curr;
 			if(version!=null) {
@@ -915,110 +920,125 @@ public class OSGiUtil {
 		}
 		catch(BundleException be){
 			// check if required related bundles are missing and load them if necessary
-			List<BundleDefinition> listBundles = getRequiredBundles(bundle);
-			List<PackageQuery> listPackages = getRequiredPackages(bundle);
-			List<BundleDefinition> failedBD = null;
-			List<PackageQuery> failedPD = null;
+			final List<BundleDefinition> failedBD = new ArrayList<OSGiUtil.BundleDefinition>();
 			Set<Bundle> loadedBundles = new HashSet<Bundle>();
 			loadedBundles.add(bundle);
+			if(parents==null) parents=new HashSet<Bundle>();
 			
-			// load bundles
-			{
-				Bundle b;
-				BundleDefinition bd;
-				Iterator<BundleDefinition> it = listBundles.iterator();
-				List<StartFailedException> secondChance = null;
-				while(it.hasNext()) {
-					bd=it.next();
-					b=exists(loadedBundles, bd);
-					if(b!=null) {
-						startIfNecessary(b);
-						continue;
-					}
-					try{
-						if(parents==null) parents=new HashSet<Bundle>();
-						parents.add(bundle);
-						
-						b=_loadBundle(
-								bd.name, 
-								bd.getVersion(), 
-								ThreadLocalPageContext
-								.getConfig()
-								.getIdentification(), true,parents);
-						loadedBundles.add(b);
-					}
-					catch(StartFailedException sfe) {
-						sfe.setBundleDefinition(bd);
-						if(secondChance==null) secondChance=new ArrayList<StartFailedException>();
-						secondChance.add(sfe);
-					}
-					catch(BundleException _be) {
-						if(failedBD==null) failedBD=new ArrayList<OSGiUtil.BundleDefinition>();
-						failedBD.add(bd);
-						log(_be);
-					}
-				}
-				// we do this because it maybe was relaying on other bundles now loaded
-				// TODO rewrite the complete impl so didd is not necessary
-				if(secondChance!=null) {
-					Iterator<StartFailedException> _it = secondChance.iterator();
-					StartFailedException sfe;
-					while(_it.hasNext()) {
-						sfe = _it.next();
-						try {
-							start(sfe.bundle);
-							loadedBundles.add(sfe.bundle);
-						}
-						catch(BundleException _be) {
-							if(failedBD==null) failedBD=new ArrayList<OSGiUtil.BundleDefinition>();
-							failedBD.add(sfe.getBundleDefinition());
-							log(_be);
-						}
-					}
-				}
-			}
+			loadBundles(parents,loadedBundles,bundle,failedBD);
 			
-			// load packages
-			{
-				PackageQuery pq;
-				Iterator<PackageQuery> it = listPackages.iterator();
-				while(it.hasNext()){
-					pq=it.next();
-					try{
-						if(parents==null) parents=new HashSet<Bundle>();
-						parents.add(bundle);
-						loadBundleByPackage(pq.getName(),pq.getVersionDefinitons(),loadedBundles,true,parents);
-					}
-					catch(Exception _be){
-						if(failedPD==null) failedPD=new ArrayList<OSGiUtil.PackageQuery>();
-						failedPD.add(pq);
-						log(_be);
-					}
-				}
-			}
 			
 			try {
 				//startIfNecessary(loadedBundles.toArray(new Bundle[loadedBundles.size()]));
 				BundleUtil.start(bundle);
 			}
 			catch(BundleException be2) {
-				if(failedBD!=null) {
-					Iterator<BundleDefinition> itt = failedBD.iterator();
-					BundleDefinition _bd;
-					StringBuilder sb=new StringBuilder(" Lucee was not able to download the following bundles [");
-					while(itt.hasNext()){
-						_bd=itt.next();
-						sb.append(_bd.name+":"+_bd.getVersionAsString()).append(';');
-					}
-					sb.append("]");
-					throw new BundleException(be2.getMessage()+sb,be2.getCause());
-				} 
-				throw be2;
+				List<PackageQuery> listPackages = getRequiredPackages(bundle);
+				List<PackageQuery> failedPD = new ArrayList<PackageQuery>();
+				loadPackages(parents,loadedBundles,listPackages,bundle,failedPD);
+				try {
+					//startIfNecessary(loadedBundles.toArray(new Bundle[loadedBundles.size()]));
+					BundleUtil.start(bundle);
+				}
+				catch(BundleException be3) {
+					if(failedBD.size()>0) {
+						Iterator<BundleDefinition> itt = failedBD.iterator();
+						BundleDefinition _bd;
+						StringBuilder sb=new StringBuilder(" Lucee was not able to download the following bundles [");
+						while(itt.hasNext()){
+							_bd=itt.next();
+							sb.append(_bd.name+":"+_bd.getVersionAsString()).append(';');
+						}
+						sb.append("]");
+						throw new BundleException(be2.getMessage()+sb,be2.getCause());
+					} 
+					throw be3;
+				}
 			}
 			
 		}
 		return bundle;
 	}
+ 
+	private static void loadPackages(final Set<Bundle> parents, final Set<Bundle> loadedBundles, List<PackageQuery> listPackages, 
+			final Bundle bundle, final List<PackageQuery> failedPD) {
+		PackageQuery pq;
+		Iterator<PackageQuery> it = listPackages.iterator();
+		while(it.hasNext()){
+			pq=it.next();
+			try{
+				//if(parents==null) parents=new HashSet<Bundle>();
+				parents.add(bundle);
+				loadBundleByPackage(pq.getName(),pq.getVersionDefinitons(),loadedBundles,true,parents);
+			}
+			catch(Exception _be){
+				//if(failedPD==null) failedPD=new ArrayList<OSGiUtil.PackageQuery>();
+				failedPD.add(pq);
+				log(_be);
+			}
+		}
+	}
+
+
+
+	private static void loadBundles(final Set<Bundle> parents, final Set<Bundle> loadedBundles,
+			final Bundle bundle, final List<BundleDefinition> failedBD) throws BundleException {
+		List<BundleDefinition> listBundles = getRequiredBundles(bundle);
+		Bundle b;
+		BundleDefinition bd;
+		Iterator<BundleDefinition> it = listBundles.iterator();
+		List<StartFailedException> secondChance = null;
+		while(it.hasNext()) {
+			bd=it.next();
+			b=exists(loadedBundles, bd);
+			if(b!=null) {
+				startIfNecessary(b);
+				continue;
+			}
+			try{
+				//if(parents==null) parents=new HashSet<Bundle>();
+				parents.add(bundle);
+				
+				b=_loadBundle(
+						bd.name, 
+						bd.getVersion(), 
+						ThreadLocalPageContext
+						.getConfig()
+						.getIdentification(), true,parents);
+				loadedBundles.add(b);
+			}
+			catch(StartFailedException sfe) {
+				sfe.setBundleDefinition(bd);
+				if(secondChance==null) secondChance=new ArrayList<StartFailedException>();
+				secondChance.add(sfe);
+			}
+			catch(BundleException _be) {
+				//if(failedBD==null) failedBD=new ArrayList<OSGiUtil.BundleDefinition>();
+				failedBD.add(bd);
+				log(_be);
+			}
+		}
+		// we do this because it maybe was relaying on other bundles now loaded
+		// TODO rewrite the complete impl so didd is not necessary
+		if(secondChance!=null) {
+			Iterator<StartFailedException> _it = secondChance.iterator();
+			StartFailedException sfe;
+			while(_it.hasNext()) {
+				sfe = _it.next();
+				try {
+					start(sfe.bundle);
+					loadedBundles.add(sfe.bundle);
+				}
+				catch(BundleException _be) {
+					//if(failedBD==null) failedBD=new ArrayList<OSGiUtil.BundleDefinition>();
+					failedBD.add(sfe.getBundleDefinition());
+					log(_be);
+				}
+			}
+		}
+	}
+
+
 
 	public static void stopIfNecessary(Bundle bundle) throws BundleException {
 		if(isFragment(bundle) || bundle.getState()!=Bundle.ACTIVE) return;

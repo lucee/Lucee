@@ -79,7 +79,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals('{"result":"merge:","value":"a","index":1,"4":"a,b","5":","}{"result":"","value":"b","index":2,"4":"a,b","5":","}',c);
 
 		// member function
-		res=list.Reduce(function( result,value,index){return result&";"&index&":"&value;},"merge:");
+		res=list.listReduce(function( result,value,index){return result&";"&index&":"&value;},"merge:");
 		assertEquals("merge:;1:a;2:b;3:c",res);
 	}
 

@@ -1209,6 +1209,12 @@ public final class Page extends BodyBase implements Root {
 		adapter.loadArg(2);
 		Label afterIf = new Label();
 		adapter.visitJumpInsn(Opcodes.IFNE, afterIf);
+		
+		adapter.loadArg(0);
+		adapter.loadLocal(localBC);
+		adapter.invokeStatic(Types.BODY_CONTENT_UTIL, CLEAR_AND_POP);
+		
+		
 		adapter.visitInsn(Opcodes.RETURN);
 		adapter.visitLabel(afterIf);
 		

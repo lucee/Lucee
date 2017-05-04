@@ -1,6 +1,6 @@
-/**
+<!--- 
  *
- * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
+ * Copyright (c) 2015, Lucee Assosication Switzerland. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,19 +15,20 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- **/
-package lucee.runtime.exp;
+ ---><cfscript>
+component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
-public class StopException extends Abort implements Stop {
-	private StackTraceElement[] stacktrace;
+	public void function testCFDocument(){
+		try {
+			document format="pdf" pagetype="A4" orientation="portrait" filename="test1038.pdf" overwrite="true" {
+				echo("<p>This is where mickey mouse lives</p>");
+			}
+			pdf action="protect" encrypt="AES_128" source="test1038.pdf" newUserPassword="PDFPassword";
+		}
+		finally {
+			if(fileExists("test1038.pdf")) fileDelete("test1038.pdf");
+		}
+	}
 
-	public StopException(Thread t){
-		super(SCOPE_REQUEST,"Thread forced to stop!");
-		this.stacktrace=t!=null?t.getStackTrace():null;
-	}
-	
-	@Override
-	public StackTraceElement[] getStackTrace() {
-		return stacktrace;
-	}
-}
+} 
+</cfscript>

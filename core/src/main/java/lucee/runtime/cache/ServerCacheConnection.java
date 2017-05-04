@@ -24,9 +24,11 @@ import lucee.commons.io.cache.Cache;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.db.ClassDefinition;
+import lucee.runtime.engine.ThreadLocalConfig;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.type.Struct;
 
-public class ServerCacheConnection implements CacheConnection {
+public class ServerCacheConnection implements CacheConnectionPlus {
 
 	private CacheConnection cc;
 	private ConfigServerImpl cs;
@@ -43,7 +45,7 @@ public class ServerCacheConnection implements CacheConnection {
 
 	@Override
 	public CacheConnection duplicate(Config config) throws IOException {
-		return new ServerCacheConnection(cs,cc.duplicate(config));
+		return new ServerCacheConnection(cs,(CacheConnectionPlus) cc.duplicate(config));
 	}
 
 	@Override
@@ -75,5 +77,13 @@ public class ServerCacheConnection implements CacheConnection {
 	public boolean isStorage() {
 		return cc.isStorage();
 	}
-
+	
+	@Override
+	public Cache getLoadedInstance() {
+		if(cc instanceof CacheConnectionPlus)  return ((CacheConnectionPlus)cc).getLoadedInstance();
+		try {
+			return cc.getInstance(null);
+		} catch (Exception e) {}
+		return null;
+	}
 }

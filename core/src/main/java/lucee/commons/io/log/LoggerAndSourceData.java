@@ -51,9 +51,11 @@ public final class LoggerAndSourceData {
 	private Config config;
 	private final boolean readOnly;
 	private final String id;
+	private boolean dyn;
 
  
-    public LoggerAndSourceData(Config config,String id,String name,ClassDefinition appender, Map<String, String> appenderArgs, ClassDefinition layout, Map<String, String> layoutArgs, Level level, boolean readOnly) {
+    public LoggerAndSourceData(Config config,String id,String name,ClassDefinition appender, Map<String, String> appenderArgs, 
+    		ClassDefinition layout, Map<String, String> layoutArgs, Level level, boolean readOnly, boolean dyn) {
     	//this.log=new LogAdapter(logger);
     	this.config=config;
     	this.id=id;
@@ -64,6 +66,7 @@ public final class LoggerAndSourceData {
     	this.layoutArgs=layoutArgs;
     	this.level=level;
     	this.readOnly=readOnly;
+    	this.dyn=dyn;
     }
 
 	public String id() {
@@ -71,6 +74,9 @@ public final class LoggerAndSourceData {
 	}
 	public String getName() {
 		return name;
+	}
+	public boolean getDyn() {
+		return dyn;
 	}
 	
 	public ClassDefinition getAppenderClassDefinition() {

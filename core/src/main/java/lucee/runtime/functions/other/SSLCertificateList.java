@@ -34,7 +34,6 @@ public final class SSLCertificateList implements Function {
     }
     
     public static Query call(PageContext pc, String host, double port) throws PageException {
-    	DeprecatedUtil.function(pc, "SSLCertificateList");
     	return Admin.getSSLCertificate(pc.getConfig(), host, (int)port);
     }
 

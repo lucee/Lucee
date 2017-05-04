@@ -19,7 +19,9 @@
 package lucee.runtime.tag;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.TimeZone;
 
 import lucee.commons.io.log.Log;
@@ -171,6 +173,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	private boolean literalTimestampWithTSOffset;
 	private boolean previousLiteralTimestampWithTSOffset;
 	
+	private String[] tags=null;
+	
 	@Override
 	public void release()	{
 		super.release();
@@ -205,8 +209,29 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		columnName=null;
 		literalTimestampWithTSOffset=false;
 		previousLiteralTimestampWithTSOffset=false;
+		tags=null;
 	}
 	
+
+	public void setTags(Object oTags) throws PageException {
+		if(StringUtil.isEmpty(oTags)) return;
+		
+		// to Array
+		Array arr;
+		if(Decision.isArray(oTags)) arr = Caster.toArray(oTags);
+		else arr = ListUtil.listToArrayRemoveEmpty(Caster.toString(oTags), ',');
+		
+		// to String[]
+		Iterator<Object> it = arr.valueIterator();
+		List<String> list=new ArrayList<String>();
+		String str;
+		while(it.hasNext()) {
+			str = Caster.toString(it.next());
+			if(!StringUtil.isEmpty(str)) list.add(str);
+		}
+		
+		tags=list.toArray(new String[list.size()]);
+	}
 	
 	public void setOrmoptions(Struct ormoptions) {
 		this.ormoptions = ormoptions;
@@ -630,7 +655,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 					String id = CacheHandlerCollectionImpl.createId(sql,datasource!=null?datasource.getName():null,username,password,returntype);
 					CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY,null).getInstanceMatchingObject(cachedWithin,null);
 					if(ch!=null) {
-						CacheItem ci = QueryResultCacheItem.newInstance(qr,null);
+						CacheItem ci = QueryResultCacheItem.newInstance(qr,tags,null);
 						if(ci!=null)ch.set(pageContext, id,cachedWithin,ci);
 					}
 				}

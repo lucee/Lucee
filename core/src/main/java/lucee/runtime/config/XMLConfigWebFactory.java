@@ -79,6 +79,7 @@ import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheConnectionImpl;
+import lucee.runtime.cache.CacheConnectionPlus;
 import lucee.runtime.cache.ServerCacheConnection;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.request.RequestCacheHandler;
@@ -114,6 +115,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.extension.Extension;
+import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.ExtensionImpl;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.ExtensionProviderImpl;
@@ -383,8 +385,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if(LOG)SystemOut.printDate("fixed PSQ");
 		if(XMLConfigAdmin.fixLogging(cs,config,doc)) reload=true;
 		if(LOG)SystemOut.printDate("fixed logging");
-		XMLConfigAdmin.fixOldExtensionLocation(config);
-		if(LOG)SystemOut.printDate("fixed old extension location");
+		if(XMLConfigAdmin.fixExtension(config,doc)) reload=true;
+		if(LOG)SystemOut.printDate("fixed Extension");
 		
 		// delete to big felix.log (there is also code in the loader to do this, but if the loader is not updated ...)
 		if(config instanceof ConfigServerImpl) {
@@ -1757,7 +1759,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	}
 	
 	private static void loadLoggers(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean isReload) {
-		
+		config.clearLoggers(Boolean.FALSE);
 		Element parent = getChildByName(doc.getDocumentElement(), "logging");
 		Element[] children = getChildren(parent, "logger");
 		Element child;
@@ -1795,10 +1797,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				Map<String, String> appArgs = cssStringToMap(appenderArgs, true,true);
 				if(cdLayout.hasClass()) {
 					Map<String, String> layArgs = cssStringToMap(layoutArgs, true,true);
-					config.addLogger(name,level,cdAppender,appArgs,cdLayout,layArgs,readOnly);
+					config.addLogger(name,level,cdAppender,appArgs,cdLayout,layArgs,readOnly,false);
 				}
 				else
-					config.addLogger(name,level,cdAppender,appArgs,null,null,readOnly);
+					config.addLogger(name,level,cdAppender,appArgs,null,null,readOnly,false);
 			}
 		}
 		
@@ -1814,7 +1816,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					data = e.getValue();
 					config.addLogger(e.getKey(), data.getLevel(), 
 							data.getAppenderClassDefinition(), data.getAppenderArgs(), 
-							data.getLayoutClassDefinition(), data.getLayoutArgs(),true);
+							data.getLayoutClassDefinition(), data.getLayoutArgs(),true,false);
 				}
 			}
 			
@@ -3854,7 +3856,15 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		boolean hasCS = configServer != null;
 		Element mail = getChildByName(doc.getDocumentElement(), "mail");
-
+		
+		// Send partial 
+		String strSendPartial = mail.getAttribute("send-partial");
+		if (!StringUtil.isEmpty(strSendPartial) && hasAccess) {
+			config.setMailSendPartial(toBoolean(strSendPartial, false));
+		}
+		else if (hasCS)
+			config.setMailSendPartial(configServer.isMailSendPartial());
+		
 		// Spool Interval
 		String strSpoolInterval = getAttr(mail,"spool-interval");
 		if (!StringUtil.isEmpty(strSpoolInterval) && hasAccess) {
@@ -3887,23 +3897,23 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		// Servers
 		int index = 0;
-		Server[] servers = null;
+		//Server[] servers = null;
 		Element[] elServers = getChildren(mail, "server");
+		List<Server> servers=new ArrayList<Server>();
 		if (hasCS) {
 			Server[] readOnlyServers = configServer.getMailServers();
-			servers = new Server[readOnlyServers.length + (hasAccess ? elServers.length : 0)];
 			for (int i = 0; i < readOnlyServers.length; i++) {
-				servers[i] = readOnlyServers[index++].cloneReadOnly();
+				servers.add(readOnlyServers[index++].cloneReadOnly());
 			}
 		}
-		else {
+		/*else {
 			servers = new Server[elServers.length];
-		}
+		}*/
 		if (hasAccess) {
 			for (int i = 0; i < elServers.length; i++) {
 				Element el = elServers[i];
 				if (el.getNodeName().equals("server"))
-					servers[index++] = new ServerImpl(
+					servers.add(i, new ServerImpl(
 							Caster.toIntValue(getAttr(el,"id"), i+1), 
 							getAttr(el,"smtp"), 
 							Caster.toIntValue(getAttr(el,"port"), 25), 
@@ -3913,11 +3923,12 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							toLong(el.getAttribute("idle"), 1000*60*1),
 							toBoolean(getAttr(el,"tls"), false), 
 							toBoolean(getAttr(el,"ssl"), false), 
-							toBoolean(getAttr(el,"reuse-connection"), true));
-
+							toBoolean(getAttr(el,"reuse-connection"), true),
+							hasCS?ServerImpl.TYPE_LOCAL:ServerImpl.TYPE_GLOBAL)
+					);
 			}
 		}
-		config.setMailServers(servers);
+		config.setMailServers(servers.toArray(new Server[servers.size()]));
 	}
 
 	private static void loadMonitors(ConfigServerImpl configServer, ConfigImpl config, Document doc) throws IOException {
@@ -4260,39 +4271,22 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		Element parent = getChildByName(doc.getDocumentElement(), "extensions");
 		Element[] children = getChildren(parent, "rhextension");
 		String strBundles;
-		Map<String, BundleDefinition> extensionBundles=new HashMap<String,BundleDefinition>();
 		List<RHExtension> extensions=new ArrayList<RHExtension>();
 		
-		for(Element child:children){
-			RHExtension rhe;
+		RHExtension rhe;
+		for(Element child:children) {
+			BundleInfo[] bfsq;
 			try {
-				rhe = new RHExtension(config,child);
+				rhe=new RHExtension(config, child);
+				
 				if(rhe.getStartBundles()) rhe.deployBundles(config);
 				extensions.add(rhe);
 			} catch (Exception e) {
 				log.error("load-extension", e);
 				continue;
 			}
-
-			BundleInfo[] bfs = rhe.getBundles();
-			BundleInfo bf;
-			BundleDefinition bd;
-			for(int i=0;i<bfs.length;i++) {
-				bf=bfs[i];
-				extensionBundles.put(bf.getSymbolicName()+"|"+bf.getVersionAsString(), bd=bf.toBundleDefinition());
-				try {
-					if(rhe.getStartBundles()) {
-						Bundle b = bd.getBundle(config);
-						OSGiUtil.startIfNecessary(b);
-					}
-				} 
-				catch (BundleException e) {
-					log.error("OSGi", e);
-				}
-			}
 		}
 		config.setExtensions(extensions.toArray(new RHExtension[extensions.size()]));
-		config.setExtensionBundleDefintions(extensionBundles);
 	}
 
 	private static void loadExtensions(ConfigServerImpl configServer, ConfigImpl config, Document doc) {

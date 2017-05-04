@@ -313,7 +313,7 @@ public class ComponentScopeShadow extends StructSupport implements ComponentScop
 			if(m instanceof UDFPlus) return ((UDFPlus)m).call(pc,key, arguments, false);
 		}
 
-		return MemberUtil.call(pc, this, key, arguments, CFTypes.TYPE_STRUCT, "struct");
+		return MemberUtil.call(pc, this, key, arguments, new short[]{CFTypes.TYPE_STRUCT}, new String[]{"struct"});
 		//throw ComponentUtil.notFunction(component, key, m!=null?m.getValue():null,access);
 	}
 

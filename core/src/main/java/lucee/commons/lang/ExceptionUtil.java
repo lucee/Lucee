@@ -147,8 +147,15 @@ public final class ExceptionUtil {
 		return new RuntimeException(t);
 	}
 
+	private static Throwable unwrap(Throwable t) {
+		if(t instanceof NativeException) return unwrap(((NativeException)t).getException());
+		Throwable cause = t.getCause();
+		if(cause!=null && cause!=t) return unwrap(cause);
+		return t;
+	}
 
 	public static void rethrowIfNecessary(Throwable t) {
-		if(t instanceof ThreadDeath) throw (ThreadDeath)t; // never catch this rethrow
+		if(unwrap(t) instanceof ThreadDeath) throw (ThreadDeath)t; // never catch this rethrow
 	}
+	
 }

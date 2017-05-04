@@ -80,11 +80,11 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 		setEL(TAG_CONTEXT, new SpecialItem(pe, TAG_CONTEXT));
 		setEL(KeyConstants._type, new SpecialItem(pe, KeyConstants._type));
 		setEL(STACK_TRACE, new SpecialItem(pe, STACK_TRACE));
-		// setEL(CAUSE, new SpecialItem(pe, CAUSE));  // FUTURE 5.2 disable
+		setEL(CAUSE, new SpecialItem(pe, CAUSE));
 		
 		
-		/*if(pe instanceof NativeException){
-			Throwable throwable = ((NativeException)pe).getRootCause();
+		if(pe instanceof NativeException) {
+			Throwable throwable = ((NativeException)pe).getException();
 			Method[] mGetters = Reflector.getGetters(throwable.getClass());
 			Method getter;
 			Collection.Key key;
@@ -95,14 +95,14 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 						continue;
 					}
 					key=KeyImpl.init(Reflector.removeGetterPrefix(getter.getName()));
-					if(STACK_TRACE.equalsIgnoreCase(key)) continue;
+					if(STACK_TRACE.equalsIgnoreCase(key)) 
+						continue;
 					setEL(key,new Pair(throwable,key, getter,false));
 				}
 			}
-		}*/
+		}
 	}
 
-	
 	class SpecialItem {
 		private PageExceptionImpl pe;
 		private Key key;
@@ -120,7 +120,7 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 			if(key==EXTENDED_INFO) return StringUtil.emptyIfNull(pe.getExtendedInfo());
 			if(key==KeyConstants._type) return StringUtil.emptyIfNull(pe.getTypeAsString());
 			if(key==STACK_TRACE) return StringUtil.emptyIfNull(pe.getStackTraceAsString());
-			// if(key==CAUSE) return getCauseAsCatchBlock();  // FUTURE 5.2 disable
+			if(key==CAUSE) return getCauseAsCatchBlock();
 			if(key==ADDITIONAL) return pe.getAdditional();
 			if(key==TAG_CONTEXT) return pe.getTagContext(ThreadLocalPageContext.getConfig());
 			return null;
@@ -411,13 +411,13 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 
 	public Object call(PageContext pc, String methodName, Object[] arguments) throws PageException {
 		Object obj=exception;
-		if(exception instanceof NativeException) obj=((NativeException)exception).getRootCause();
+		if(exception instanceof NativeException) obj=((NativeException)exception).getException();
 		if("dump".equalsIgnoreCase(methodName)){
 			print(pc);
 			return null;
 		}
 		
-		return MemberUtil.call(pc, this, KeyImpl.init(methodName), arguments, CFTypes.TYPE_STRUCT, "struct");
+		return MemberUtil.call(pc, this, KeyImpl.init(methodName), arguments, new short[]{CFTypes.TYPE_STRUCT}, new String[]{"struct"});
 		
 		/*try{
 			return Reflector.callMethod(obj, methodName, arguments);
