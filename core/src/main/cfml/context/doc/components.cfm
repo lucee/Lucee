@@ -140,7 +140,7 @@
 						</div>
 					</div>
 
-					<h2>Component <em>#ucFirst(listLast(data.fullName, "."))#</em></h2>
+					<h2>Component <em>#(listLast(data.fullName, "."))#</em></h2>
 
 					<!--- desc/hint --->
 					<span style="padding-left: 2em;">
@@ -274,15 +274,12 @@
 
 		<cfset qryAllItems = queryNew("component")>
 		<cfloop array="#arrAllItems#" index="ai">
-			<cfset QueryAddRow(qryAllItems, ["#UcFirst(ai)#"])>
+			<cfset QueryAddRow(qryAllItems, ["#(ai)#"])>
 		</cfloop>
 
 		<cfoutput>
 			<div class="tile-wrap tile-wrap-animation">
 				<cfloop array="#arrAllPacks#" index="i">
-					<cfquery name="queryList" dbtype="query">
-						SELECT component FROM qryAllItems  WHERE component LIKE '#i#.%'
-					</cfquery>
 					<div class="tile tile-collapse tile-collapse-full">
 						<div class="tile-toggle" data-target="##api-#lCase(replaceNoCase(i, '.', '-','ALL'))#" data-toggle="tile">
 							<div class="tile-inner">
@@ -290,10 +287,14 @@
 							</div>
 						</div>
 						<div class="tile-active-show collapse" id="api-#lCase(replaceNoCase(i, '.', '-','ALL'))#">
-							<cfloop list="#valueList(queryList.component)#" index="currComp">
+							<cfloop query="#qryAllItems#">
+								<cfset comp=qryAllItems.component>
+								<cfset pack=reverse(listRest(reverse(comp),'.'))>
+								<cfif i!=pack><cfcontinue></cfif>
+
 								<span class="tile">
 									<div class="tile-inner">
-										<div class="text-overflow"><a href="components.cfm?item=#currComp#">#listLast(currComp, ".")#</a></div>
+										<div class="text-overflow"><a href="components.cfm?item=#comp#">#listLast(comp, ".")#</a></div>
 									</div>
 								</span>
 							</cfloop>
