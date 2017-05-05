@@ -53,21 +53,15 @@ public class ComponentFactory {
 		// test
 		{
 		Resource testDir = dir.getRealResource("test");
-		String testPath = path+"test/";
-		if(!testDir.exists())testDir.mkdirs();
-		
-		delete(testDir,"AdministratorTest");
-		deploy(testDir,testPath,doNew,"LuceeTestSuite");
-		deploy(testDir,testPath,doNew,"LuceeTestSuiteRunner");
-		deploy(testDir,testPath,doNew,"LuceeTestCase");
+		delete(testDir,"LuceeTestSuite");
+		delete(testDir,"LuceeTestSuiteRunner");
+		delete(testDir,"LuceeTestCase");
 		}
 		// reporter
-		
+		{
 		Resource repDir = dir.getRealResource("test/reporter");
-		String repPath = path+"test/reporter/";
-		/*{if(!repDir.exists())repDir.mkdirs();
-		deploy(repDir,repPath,doNew,"HTMLReporter");
-		}*/
+		delete(repDir,"HTMLReporter");
+		}
 		
 		
 	}
