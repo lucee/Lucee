@@ -184,8 +184,15 @@
 					<cfif structKeyExists(data, "functions")>
 						<h2>Functions</h2>
 						<cfset functionsArr = data.functions>
+						<cfset functionsStruct = {}>
+						<cfloop array="#functionsArr#" index="ai">
+							<cfset functionsStruct[lCase(ai.name)] = ai>
+						</cfloop>
+						<cfset allCompFunctionsArr = structKeyArray(functionsStruct)>
+						<cfset ArraySort(allCompFunctionsArr, "textnocase" , "asc")>
 						<div class="tile-wrap tile-wrap-animation">
-							<cfloop array="#functionsArr#" item="currFunc">
+							<cfloop array="#allCompFunctionsArr#" item="currFuncName">
+								<cfset currFunc = functionsStruct[currFuncName]>
 								<!--- properties for the function --->
 								<cfset functionProperties = "#currFunc['access']# #currFunc['returnType']# #currFunc['name']#(" >
 								<cfif !currFunc.parameters.isEmpty()>
