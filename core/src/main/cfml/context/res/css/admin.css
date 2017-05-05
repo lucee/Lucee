@@ -13,14 +13,14 @@ html, body {
 body {
 	min-width:600px;
 	background-color:#3399cc;
-	background-image: url('../img/bg-web.gif.cfm');
+	background-image: url('../img/bg_web.gif.cfm');
 	background-repeat: no-repeat;
 	margin:0;
 	padding:0;
 }
 body.server {
 	background-color:#bf4f36;
-	background-image: url('../img/bg-web-server.gif.cfm');
+	background-image: url('../img/bg_server.gif.cfm');
 }
 body, td, th {
 	font-family:Arial, Helvetica, sans-serif;
