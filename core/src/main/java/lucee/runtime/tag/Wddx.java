@@ -197,7 +197,7 @@ public final class Wddx extends TagImpl {
 		JSConverter converter =new JSConverter();
 		return converter.serialize(input,toplevelvariable);
 	}
-	private String wddx2js(String input) throws ConverterException, IOException, FactoryConfigurationError {
+	private String wddx2js(String input) throws ConverterException, IOException, FactoryConfigurationError, ApplicationException {
 		if(toplevelvariable==null)throw missingTopLevelVariable();
 		JSConverter converter =new JSConverter();
 		return converter.serialize(wddx2cfml(input),toplevelvariable);
