@@ -5,15 +5,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var newImage = ImageNew("", 1, 1);
 				var result = IsValid("string", newImage);
 
-				assertEquals(result,false);
+				assertEquals(result,true);
 			});
 
 			it( title='Checking isValid() for saved image object', body=function( currentSpec ) {
 				var uri = createURI("LDEV1230/mitrah.jpg");
 				var savedImage = ImageNew(uri);
 				var result = IsValid("string", savedImage);
-
-				assertEquals(result,false);
+				assertEquals(result,true);
 			});
 		});
 	}

@@ -10704,7 +10704,14 @@ The following things are considered to be empty:
 		<name>isValid</name>
 		<class>lucee.runtime.functions.decision.IsValid</class>
 		<keywords>decision,binary,array,boolean,component,date,email,query,string,struct,regex</keywords>
-		<description>Tests whether a value meets a validation or data type rule.</description>
+		<description>
+			Tests whether a value meets a validation or data type rule.
+			Attention: this function does not test if an object is of a certain type, it tests if an object can be converted to that type.
+			Because of that all the following example will return true:
+			- isValid("String",true); // boolean
+			- isValid("String",123); // number
+			- isValid("String",ImageNew( "", 1, 1)); // image!
+		</description>
 		<argument>
 			<name>type</name>
 			<type>string</type>
