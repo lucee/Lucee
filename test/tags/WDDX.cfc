@@ -29,7 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testCFML2WDDX() localmode=true {
 		sct={string:'Susi',random:createObject('java','java.util.Random').init()};
-		wddx topLevelVariable="susi" action="cfml2js" input="#sct#" output="res";
+		wddx topLevelVariable="susi" action="cfml2wddx" input="#sct#" output="res";
 		assertEquals(
 			"<wddxPacket version='1.0'><header/><data><struct><var name='RANDOM'><struct type='Ljava.util.Random;'></struct></var><var name='STRING'><string>Susi</string></var></struct></data></wddxPacket>"
 			,res);
