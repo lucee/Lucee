@@ -822,7 +822,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					adminweb.updateGatewayEntry(argumentCollection = tmpstruct);
 				});
 
-				it(title="checking getGatewayentry()", body=function( currentSpec ) {
+				/*it(title="checking getGatewayentry()", body=function( currentSpec ) {
 					var gatewayEntry = adminweb.getGatewayentry('testDirectorygateway');
 					assertEquals(isStruct(gatewayEntry) ,true);
 					assertEquals(listSort(structKeyList(gatewayEntry),'textnocase'), 'bundleName,bundleVersion,cfcPath,class,custom,id,listenerCfcPath,readOnly,startupMode,state');
@@ -838,7 +838,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					adminweb.removeGatewayEntry( id="testDirectorygateway" );
 					var gatewayEntry = adminweb.getGatewayentries();
 					assertEquals( listFindNoCase(valueList(gatewayEntry.id), "testDirectorygateway") EQ 0, false );
-				});
+				});*/
 			});
 
 			// Bundles
