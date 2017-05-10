@@ -377,16 +377,26 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 		}
 		if(LOG)SystemOut.printDate("fixed LFI");
+		
 		if(XMLConfigAdmin.fixSalt(doc)) reload=true;
 		if(LOG)SystemOut.printDate("fixed salt");
+		
 		if(XMLConfigAdmin.fixS3(doc)) reload=true;
 		if(LOG)SystemOut.printDate("fixed S3");
+		
 		if(XMLConfigAdmin.fixPSQ(doc)) reload=true;
 		if(LOG)SystemOut.printDate("fixed PSQ");
+		
 		if(XMLConfigAdmin.fixLogging(cs,config,doc)) reload=true;
 		if(LOG)SystemOut.printDate("fixed logging");
+		
 		if(XMLConfigAdmin.fixExtension(config,doc)) reload=true;
 		if(LOG)SystemOut.printDate("fixed Extension");
+		
+		if(XMLConfigAdmin.fixComponentMappings(config,doc)) reload=true;
+		if(LOG)SystemOut.printDate("fixed component mappings");
+		
+		
 		
 		// delete to big felix.log (there is also code in the loader to do this, but if the loader is not updated ...)
 		if(config instanceof ConfigServerImpl) {
@@ -414,6 +424,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 		config.setLastModified();
 		if(config instanceof ConfigWeb)ConfigWebUtil.deployWebContext(cs,(ConfigWeb)config,false);
+		if(config instanceof ConfigWeb)ConfigWebUtil.deployWeb(cs,(ConfigWeb)config,false);
 		if(LOG)SystemOut.printDate("deploy web context");
 		loadConfig(cs, config, doc);
 		int mode = config.getMode();
@@ -4601,7 +4612,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			MappingImpl m = new MappingImpl(config, "/default", "{lucee-web}/components/", null, ConfigImpl.INSPECT_UNDEFINED, true, false, false, true, false, true, null,-1,-1);
 			config.setComponentMappings(new Mapping[] { m.cloneReadOnly(config) });
 		}
-
+		
+		
 	}
 
 	private static void loadProxy(ConfigServerImpl configServer, ConfigImpl config, Document doc) {

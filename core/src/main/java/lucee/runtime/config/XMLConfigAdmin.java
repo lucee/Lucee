@@ -1535,6 +1535,28 @@ public final class XMLConfigAdmin {
         }
         return fixed;
 	}
+    
+    public static boolean fixComponentMappings(ConfigImpl config, Document doc) {
+    	if(!(config instanceof ConfigServer)) return false;
+    	
+    	Element parent=XMLConfigWebFactory.getChildByName(doc.getDocumentElement(),"component",false,true);
+        Element[] mappings = XMLConfigWebFactory.getChildren(parent,"mapping");
+        
+        for(Element mapping:mappings) {
+        	if("/default-server".equalsIgnoreCase(mapping.getAttribute("/default-server"))) 
+        		return false;
+        }
+        
+        // ADD MAPPING
+        Element mapping = doc.createElement("mapping");
+        parent.appendChild(mapping);
+        mapping.setAttribute("virtual", "/default-server");
+        mapping.setAttribute("physical", "{lucee-server}/components/");
+        mapping.setAttribute("primary", "physical");
+        mapping.setAttribute("inspect-template", "never");
+        mapping.setAttribute("readonly", "true");
+        return true;
+	}
 
     public void verifyCFX(String name) throws PageException {
     	CFXTagPool pool=config.getCFXTagPool();
@@ -4881,7 +4903,6 @@ public final class XMLConfigAdmin {
         			updateEventGateway(zis, sub,false); 
 				}
 
-				
 				// context
 				String realpath;
 				if(!entry.isDirectory() && startsWith(path,type,"context") && !StringUtil.startsWith(fileName(entry), '.')) {
@@ -4890,14 +4911,20 @@ public final class XMLConfigAdmin {
 	        		updateContext(zis, realpath,false,false);
 				}
 				// web contextS
-				if(!entry.isDirectory() && (startsWith(path,type,"webcontexts")) && !StringUtil.startsWith(fileName(entry), '.')) {
-					realpath=path.substring(12);
+				boolean first;
+				if(!entry.isDirectory() && ((first=startsWith(path,type,"webcontexts")) || startsWith(path,type,"web.contexts")) && !StringUtil.startsWith(fileName(entry), '.')) {
+					realpath=path.substring(first?12:13);
 	        		logger.log(Log.LEVEL_INFO,"extension","deploy webcontext "+realpath);
 	        		updateWebContexts(zis, realpath,false,false);
 				}
 				// applications
-				if(!entry.isDirectory() && (startsWith(path,type,"applications")) && !StringUtil.startsWith(fileName(entry), '.')) {
-					realpath=path.substring(13);
+				if(!entry.isDirectory() && (startsWith(path,type,"applications") || startsWith(path,type,"web.applications") || startsWith(path,type,"web")) && !StringUtil.startsWith(fileName(entry), '.')) {
+					int index;
+					if(startsWith(path,type,"applications")) index=13;
+					else if(startsWith(path,type,"web.applications")) index=17;
+					else index=4; // web
+					
+					realpath=path.substring(index);
 	        		logger.log(Log.LEVEL_INFO,"extension","deploy application "+realpath);
 	        		updateApplication( zis, realpath,false);
 				}
@@ -6171,14 +6198,24 @@ public final class XMLConfigAdmin {
 
 	Resource[] updateApplication(InputStream is,String realpath, boolean closeStream) throws PageException, IOException, SAXException {
     	List<Resource> filesDeployed=new ArrayList<Resource>();
-    	deployFilesFromStream(config,config.getRootDirectory(), is, realpath, closeStream, filesDeployed);
+    	Resource dir;
+    	// server context
+    	if(config instanceof ConfigServer)
+    		dir=config.getConfigDir().getRealResource("web-deployment");
+    	// if web context we simply deploy to that webcontext, that's all
+    	else 
+    		dir=config.getRootDirectory();
+    	
+    	deployFilesFromStream(config,dir, is, realpath, closeStream, filesDeployed);
+    	
     	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
     }
 	
 
 
-	private void deployFilesFromStream(Config config,Resource root, InputStream is,String realpath, boolean closeStream,List<Resource> filesDeployed) throws PageException, IOException, SAXException {
-    	if(config instanceof ConfigServer) {
+	private static void deployFilesFromStream(Config config,Resource root, InputStream is,String realpath, boolean closeStream,List<Resource> filesDeployed) throws PageException, IOException, SAXException {
+    	// MUST this makes no sense at this point
+		if(config instanceof ConfigServer) {
     		ConfigWeb[] webs = ((ConfigServer)config).getConfigWebs();
     		if(webs.length==0) return;
     		if(webs.length==1) {

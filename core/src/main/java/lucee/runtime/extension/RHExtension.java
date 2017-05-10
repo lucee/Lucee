@@ -352,18 +352,18 @@ public class RHExtension implements Serializable {
 				else if(!entry.isDirectory() && startsWith(path,type,"context") && !StringUtil.startsWith(fileName(entry), '.')) 
 					contexts.add(sub);
 
+				// web contextS
+				else if(!entry.isDirectory() && (startsWith(path,type,"webcontexts") || startsWith(path,type,"web.contexts")) && !StringUtil.startsWith(fileName(entry), '.')) 
+					webContexts.add(sub);
+				
 				// config
 				else if(!entry.isDirectory() && startsWith(path,type,"config") && !StringUtil.startsWith(fileName(entry), '.')) 
 					configs.add(sub);
 				
-				// web contextS
-				else if(!entry.isDirectory() && startsWith(path,type,"webcontexts") && !StringUtil.startsWith(fileName(entry), '.')) 
-					webContexts.add(sub);
-				
 				// applications
-				else if(!entry.isDirectory() && (startsWith(path,type,"applications")) && !StringUtil.startsWith(fileName(entry), '.'))
-					applications.add(sub);
-				else if(!entry.isDirectory() && (startsWith(path,type,"web")) && !StringUtil.startsWith(fileName(entry), '.'))
+				else if(!entry.isDirectory() && (
+						startsWith(path,type,"web.applications") || startsWith(path,type,"applications") || startsWith(path,type,"web")
+						) && !StringUtil.startsWith(fileName(entry), '.'))
 					applications.add(sub);
 				
 				// components
