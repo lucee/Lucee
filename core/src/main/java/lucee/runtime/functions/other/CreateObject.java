@@ -135,80 +135,8 @@ public final class CreateObject implements Function {
 	 
     public static Object doJava(PageContext pc, String className, Object pathsOrBundleName, String delimiterOrBundleVersion) throws PageException {
         return JavaProxy.call(pc, className,pathsOrBundleName,delimiterOrBundleVersion);
-    	
-    	/*if(pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS)==SecurityManager.VALUE_YES) {
-        	PageContextImpl pci = (PageContextImpl)pc;
-        	java.util.List<Resource> resources=new ArrayList<Resource>();
-        	
-        	// get java settings from application . cfc
-        	//java.util.List<Resource> resources=getJavaSettings(pc);
-        	
-        	// load resources
-	        if (pathsOrBundleName instanceof String) {
-
-		        String strp = ((String)pathsOrBundleName).trim();
-		        if(!strp.isEmpty()) {
-
-			        if(StringUtil.isEmpty(delimiterOrBundleVersion))delimiterOrBundleVersion=",";
-			        String[] arrPaths = ListUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty( strp, delimiterOrBundleVersion ) ));
-
-			        for(int i=0;i<arrPaths.length;i++) {
-				        resources.add(ResourceUtil.toResourceExisting(pc,arrPaths[i]));
-			        }
-		        }
-	        }
-	        else if (Decision.isArray( pathsOrBundleName )) {
-
-				Array arrp = Caster.toArray(pathsOrBundleName);
-		        Iterator it = arrp.valueIterator();
-		        while (it.hasNext()) {
-			        resources.add(ResourceUtil.toResourceExisting(pc, Caster.toString( it.next() )));
-		        }
-	        }
-        	
-        	// load class
-        	try	{
-        		ClassLoader cl = resources.size()==0?pci.getClassLoader():pci.getClassLoader(resources.toArray(new Resource[resources.size()]));
-        		Class clazz=null;
-        		try{
-    				clazz = ClassUtil.loadClass(cl,className);
-    			}
-    			catch(ClassException ce) {
-    				// try java.lang if no package definition
-    				if(className.indexOf('.')==-1) {
-    					try{
-    	    				clazz = ClassUtil.loadClass(cl,"java.lang."+className);
-    	    			}
-    	    			catch(ClassException e) {
-    	    				throw ce;
-    	    			}
-    				}
-				    else throw ce;
-    			}
-    			
-        		return new JavaObject((pc).getVariableUtil(),clazz);
-	        } 
-			catch (Exception e) {
-				throw Caster.toPageException(e);
-			}
-        }
-        throw new SecurityException("Can't create Java object ["+className+"]: direct Java access is denied by the Security Manager");
-        */
 	} 
-    
-    /*public static java.util.List<Resource> getJavaSettings(PageContext pc) {
-    	java.util.List<Resource> resources=new ArrayList<Resource>();
-    	
-    	// get Resources from application context
-    	JavaSettings settings=pc.getApplicationContext().getJavaSettings();
-    	Resource[] _resources = settings==null?null:settings.getResources();
-    	if(_resources!=null)for(int i=0;i<_resources.length;i++){
-    		resources.add(ResourceUtil.getCanonicalResourceEL(_resources[i]));
-    	}
-    	
-		return resources;
-	}*/
-    
+
 	public static Object doCOM(PageContext pc,String className) {
 		return new COMObject(className);
 	} 
