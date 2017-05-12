@@ -126,6 +126,12 @@ public final class Reflector {
         if(clazz==null) return false;
         return isInstaneOf(src,clazz);
     }
+    
+    public static boolean isInstaneOf(ClassLoader cl, Class src, String trgClassName) {
+    	Class clazz = ClassUtil.loadClass(cl, trgClassName, null);
+        if(clazz==null) return false;
+        return isInstaneOf(src,clazz);
+    }
 	
     
     public static boolean isInstaneOfIgnoreCase(Class src ,String trg) {

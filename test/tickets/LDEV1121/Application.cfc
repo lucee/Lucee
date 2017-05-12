@@ -5,10 +5,10 @@ component {
     path = getDirectoryFromPath(getCurrenttemplatepath());
 
 	this.javasettings={
-    	LoadPaths = ["#path#"], 
+    	LoadPaths = [path&'lib/ldev1121.jar'], 
     	loadColdFusionClassPath = true, 
     	reloadOnChange= true, 
-    	watchInterval = 100, 
+    	watchInterval = 10000, 
     	watchExtensions = "jar,class,xml"
 	};
 }

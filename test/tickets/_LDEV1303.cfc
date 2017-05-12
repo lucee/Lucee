@@ -37,7 +37,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		admin
 			action="updateCacheConnection"
 			type="web"
-			password="nousername"
+			password=request.webadminpassword
 			name="#arguments.name#"
 			class="org.lucee.extension.cache.eh.EHCache"
 			storage="false"
@@ -50,7 +50,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			admin
 				action="verifyCacheConnection"
 				type="web"
-				password="nousername"
+				password=request.webadminpassword
 				name="#arguments.name#";
 			hasError = "false"
 		} catch( any e ){
@@ -63,7 +63,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		admin
 			action="removeCacheConnection"
 			type="web"
-			password="nousername"
+			password=request.webadminpassword
 			name="#arguments.name#";
 	}
 }

@@ -7,7 +7,7 @@
 					var result = _InternalRequest(
 						template:uri
 					);
-					expect(result.filecontent.trim()).toBe("true");
+					expect(result.filecontent.trim()).toBe("true-true");
 				});
 			});
 		}
