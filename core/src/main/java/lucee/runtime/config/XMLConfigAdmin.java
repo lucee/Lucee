@@ -5468,7 +5468,7 @@ public final class XMLConfigAdmin {
 		}
 		//Object o = 
 			CreateObject.doWebService(null, strUrl+"?wsdl");
-			
+		HTTPEngine.closeEL(method);
 	}
 
 

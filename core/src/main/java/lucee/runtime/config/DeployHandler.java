@@ -200,6 +200,7 @@ public class DeployHandler {
 		if(ext!=null) {
 			String content;
 			for(int i=0;i<providers.length;i++) {
+				HTTPResponse rsp=null;
 				try{
 					url=providers[i].getURL();
 					StringBuilder qs=new StringBuilder();
@@ -208,7 +209,7 @@ public class DeployHandler {
 					if(apiKey!=null)qs.append("&ioid=").append(apiKey);
 					
 					url=new URL(url,"/rest/extension/provider/info/"+ed.getId()+qs);
-					HTTPResponse rsp = HTTPEngine.get(url, null, null, -1, false, "UTF-8", "", null, new Header[]{new HeaderImpl("accept","application/json")});
+					rsp = HTTPEngine.get(url, null, null, -1, false, "UTF-8", "", null, new Header[]{new HeaderImpl("accept","application/json")});
 					
 					if(rsp.getStatusCode()!=200) continue;
 					
@@ -230,6 +231,9 @@ public class DeployHandler {
 					}
 				}
 				catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
+				finally {
+					HTTPEngine.closeEL(rsp);
+				}
 			}
 		}
 		
@@ -269,6 +273,7 @@ public class DeployHandler {
 		URL url;
 		RHExtensionProvider[] providers = ((ConfigImpl)config).getRHExtensionProviders();
 		for(int i=0;i<providers.length;i++){
+			HTTPResponse rsp=null;
 			try{
 				url=providers[i].getURL();
 				
@@ -281,7 +286,7 @@ public class DeployHandler {
 				
 				
 				
-				HTTPResponse rsp = HTTPEngine.get(url, null, null, -1, false, "UTF-8", "", null, new Header[]{new HeaderImpl("accept","application/cfml")});
+				rsp = HTTPEngine.get(url, null, null, -1, false, "UTF-8", "", null, new Header[]{new HeaderImpl("accept","application/cfml")});
 				if(rsp.getStatusCode()!=200)
 					throw new IOException("failed to load extension: "+ed);
 				
@@ -295,6 +300,9 @@ public class DeployHandler {
 			catch(Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
 				if(log!=null)log.error("extension", t);
+			}
+			finally {
+				HTTPEngine.closeEL(rsp);
 			}
 		}
 		return null;

@@ -107,7 +107,8 @@ class ExecutionThread extends Thread {
         // execute
         try {
         	rsp = HTTPEngine.get(new URL(url), user, pass, task.getTimeout(),true, charset, null, proxy, headers);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
         	
             LogUtil.log(log,Log.LEVEL_ERROR,logName,e);
             hasError=true;
@@ -161,6 +162,7 @@ class ExecutionThread extends Thread {
                     hasError=true;
                 }
 	        }
+	        HTTPEngine.closeEL(rsp);
         }
         if(!hasError)log.log(Log.LEVEL_INFO,logName,"executed");
 	}

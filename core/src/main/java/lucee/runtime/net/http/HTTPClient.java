@@ -175,9 +175,9 @@ public class HTTPClient implements Objects, Iteratorable {
 		if(meta==null) {
 			pc=ThreadLocalPageContext.get(pc);
 			InputStream is=null;
-			
+			HTTPResponse rsp=null;
 			try{
-				HTTPResponse rsp = HTTPEngine.get(metaURL, username, password, -1, false, "UTF-8", createUserAgent(pc), proxyData, null);
+				rsp = HTTPEngine.get(metaURL, username, password, -1, false, "UTF-8", createUserAgent(pc), proxyData, null);
 				MimeType mt = getMimeType(rsp,null);
 				int format = MimeType.toFormat(mt, -1);
 				if(format==-1) throw new ApplicationException("cannot convert response with mime type ["+mt+"] to a CFML Object");
@@ -203,6 +203,7 @@ public class HTTPClient implements Objects, Iteratorable {
 			}
 			finally {
 				IOUtil.closeEL(is);
+				HTTPEngine.closeEL(rsp);
 			}
 		}
 		return meta;
@@ -301,11 +302,11 @@ public class HTTPClient implements Objects, Iteratorable {
 		
 		Map<String,String> headers=new HashMap<String, String>();
 		headers.put("accept", "application/cfml,application/json"); // application/java disabled for the moment, it is not working when we have different lucee versions
-		
+		HTTPResponse rsp=null;
 		InputStream is=null;
 		try {
 			// call remote cfc
-			HTTPResponse rsp = HTTPEngine.post(url, username, password, -1, false, "UTF-8", createUserAgent(pc), proxyData,headers, formfields);
+			rsp = HTTPEngine.post(url, username, password, -1, false, "UTF-8", createUserAgent(pc), proxyData,headers, formfields);
 			
 			// read result
 			Header[] rspHeaders = rsp.getAllHeaders();
@@ -337,6 +338,7 @@ public class HTTPClient implements Objects, Iteratorable {
 		}
 		finally {
 			IOUtil.closeEL(is);
+			HTTPEngine.closeEL(rsp);
 		}
 	}
 
