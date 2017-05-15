@@ -7,7 +7,7 @@ component {
 	variables.default={};
 	variables.default.browser="html";
 	variables.default.console="text";
-	variables.supportedFormats=["simple","text","html","classic"];
+	variables.supportedFormats=["simple","text","html","classic", "javascript", "js"];
 
 	// Meta data
 	this.metadata.hint="Outputs the elements, variables and values of most kinds of CFML objects. Useful for debugging. You can display the contents of simple and complex variables, objects, components, user-defined functions, and other elements.";
@@ -30,7 +30,9 @@ component {
 - simple: - a simple html output (no javascript or css)
 - text (default when output equal console): plain text output (no html)
 - html (default when output  equal ""browser""): regular output with html/css/javascript
-- classic: classic view with html/css/javascript"},
+- classic: classic view with html/css/javascript
+- javascript or js: regular output with javascript"
+},
 		abort:{required:false,type:"boolean",default:false,hint="stops further processing of request."},
 		contextlevel:{required:false,type:"number",default:2,hidden:true},
 		async:{required:false, type="boolean", default=false, hint="if true and output is not to browser, Lucee builds the output in a new thread that runs in parallel to the thread that called the dump.  please note that if the calling thread modifies the data before the dump takes place, it is possible that the dump will show the modified data."}
@@ -83,6 +85,10 @@ component {
 		// format
 		attrib['format'] = trim(attrib.format);
 
+		if(attrib.format == "js"){
+			attrib.format = "javascript";
+		}
+
 		if(len(attrib.format) EQ 0) {
 			if(attrib.output EQ "console")      attrib['format'] = variables.default.console;
 			else if(attrib.output EQ "browser") attrib['format'] = variables.default.browser;
@@ -99,7 +105,7 @@ component {
 		catch(e) {
 			var meta = dumpStruct(structKeyExists(attrib,'var') ? attrib.var : nullValue(), attrib.top, attrib.show, attrib.hide, attrib.keys, attrib.metaInfo, attrib.showUDFs);
 		}
-		
+
 
 		if ( attrib.async && ( attrib.output NEQ "browser" ) ) {
 
@@ -145,9 +151,9 @@ component {
 
 
 	/* ==================================================================================================
-	   html                                                                                             =
+	   javascript                                                                                             =
 	================================================================================================== */
-	any function html( required struct meta,
+	any function javascript( required struct meta,
 						  required string context,
 						  required string expand,
 						  required string output,
@@ -363,7 +369,7 @@ component {
 					tempStruct.meta.data[arguments.meta.data.currentRow].nodeData[col].class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#";
 					if(isStruct(node)){
 						tempStruct.meta.data[arguments.meta.data.currentRow].title="";
-						var value=this.html(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level+1,arguments.dumpID,arguments.cssColors);
+						var value=this.javascript(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level+1,arguments.dumpID,arguments.cssColors);
 						tempStruct.meta.data[arguments.meta.data.currentRow].nodeData[col].content=value;
 					}else{
 						tempStruct.meta.data[arguments.meta.data.currentRow].nodeData[col].content='#node#';
@@ -383,10 +389,123 @@ component {
 		}else{
 			return tempStruct;
 		}
-
 	}
 
+	/* ==================================================================================================
+	   html                                                                                             =
+	================================================================================================== */
+	string function html( required struct meta,
+						  required string context,
+						  required string expand,
+						  required string output,
+						  required string hasReference ,
+						  required string level ,
+						  required string dumpID,
+						  struct cssColors={}) {
+		var NEWLINE=variables.NEWLINE;
+		var id = createId();
+		var rtn = "";
+		var columnCount = structKeyExists(arguments.meta,'data') ? listLen(arguments.meta.data.columnlist) : 0;
+		var title = !arguments.level ? ' title="#arguments.context#"' : '';
+		var width = structKeyExists(arguments.meta,'width') ? ' width="' & arguments.meta.width & '"' : '';
+		var height = structKeyExists(arguments.meta,'height') ? ' height="' & arguments.meta.height & '"' : '';
+		var indent = repeatString(variables.TAB, arguments.level);
 
+			// Header
+			var variables.colorKeys={};
+			var head="";
+			if(arguments.level EQ 0){
+				var colors=arguments.meta.colors[arguments.meta.colorId];
+
+				// javascript
+				head=('<script language="JavaScript" type="text/javascript">' & variables.NEWLINE);
+				head&=("function dumpOC(name){");
+				head&=("var tds=document.all?document.getElementsByTagName('tr'):document.getElementsByName(name);");
+				head&=("var s=null;");
+				head&=("name=name;");
+				head&=("for(var i=0;i<tds.length;i++) {");
+				head&=("if(document.all && tds[i].name!=name)continue;");
+				head&=("s=tds[i].style;");
+				head&=("if(s.display=='none') s.display='';");
+				head&=("else s.display='none';");
+				head&=("}");
+				head&=("}"& variables.NEWLINE);
+				head&=("</script>" & variables.NEWLINE);
+
+				// styles
+				var prefix="div###arguments.dumpID#";
+				head&=('<style type="text/css">' & variables.NEWLINE);
+				head&=('#prefix# table {font-family:Verdana, Geneva, Arial, Helvetica, sans-serif; font-size:11px; empty-cells:show; color:#colors.fontColor#; border-collapse:collapse;}' & variables.NEWLINE);
+				head&=('#prefix# td {border:1px solid #colors.borderColor#; vertical-align:top; padding:2px; empty-cells:show;}' & variables.NEWLINE);
+				head&=('#prefix# td span {font-weight:bold;}' & variables.NEWLINE);
+				var count=0;
+				loop struct="#arguments.meta.colors#" index="local.k" item="local.v" {
+					variables.colorKeys[k]=count++;
+					var bc=darkenColor(darkenColor(v.highLightColor));
+					var fc=(bc);
+					head&="#prefix# td.luceeN#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.normalColor#;}"& variables.NEWLINE;
+					head&="#prefix# td.luceeH#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.highLightColor#;}"& variables.NEWLINE;
+				}
+
+
+				/*loop collection="#arguments.cssColors#" item="local.key" {
+					head&="td.#key# {background-color:#arguments.cssColors[key]#;}"& variables.NEWLINE;
+				}*/
+				head&=('</style>' & variables.NEWLINE);
+
+			}
+
+
+
+			rtn&=('<table#width##height##title#>' );
+
+			// title
+			if(structKeyExists(arguments.meta, 'title')){
+				var metaID = arguments.hasReference && structKeyExists(arguments.meta,'id') ? ' [#arguments.meta.id#]' : '';
+				var comment = structKeyExists(arguments.meta,'comment') ? "<br />" & (left(arguments.meta.comment,4)=="<img"?arguments.meta.comment:replace(HTMLEditFormat(arguments.meta.comment),chr(10),' <br>','all')) : '';
+
+				rtn&=('<tr>');
+				rtn&=('<td class="luceeH#variables.colorKeys[arguments.meta.colorId]#" onclick="dumpOC(''#id#'');" colspan="#columnCount#" style="cursor:pointer;">');
+				rtn&=('<span>#arguments.meta.title##metaID#</span>');
+				rtn&=(comment & '</td>');
+				rtn&=('</tr>');
+			}
+			else {
+				id = "";
+			}
+
+
+			// data
+			if(columnCount) {
+				loop query="arguments.meta.data" {
+					var c = 1;
+					var nodeID = len(id) ? ' name="#id#"' : '';
+					var hidden = !arguments.expand && len(id) ? ' style="display:none"' : '';
+
+					rtn&=('<tr#nodeID##hidden#>');
+
+					for(var col=1; col LTE columnCount-1; col++) {
+						var node = arguments.meta.data["data" & col];
+
+						if(isStruct(node)) {
+							var value = this.html(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level+1,arguments.dumpID,arguments.cssColors);
+
+							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">');
+							rtn&=(value);
+							rtn&=('</td>');
+						}
+						else {
+							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>' );
+						}
+						c *= 2;
+					}
+					rtn&=('</tr>');
+				}
+			}
+			rtn&=('</table>');
+
+		return head&rtn;
+	}
 	/* ==================================================================================================
 	   classic                                                                                          =
 	================================================================================================== */
