@@ -2279,7 +2279,7 @@ public final class PageContextImpl extends PageContext {
 			hasFormatExtension=true;
 		}
 		else {
-			format = getApplicationContext().getRestSettings().getReturnFormat();
+			format = getApplicationContext()==null?null:getApplicationContext().getRestSettings().getReturnFormat();
 			//MimeType mt=MimeType.toMimetype(format);
 			//if(mt!=null)accept.add(mt);
 		}
@@ -2717,7 +2717,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public Locale getLocale() {
-		Locale l = getApplicationContext().getLocale();
+		Locale l = getApplicationContext()==null?null:getApplicationContext().getLocale();
 		if(l!=null) return l;
 		if(locale!=null) return locale;
 		return config.getLocale();
@@ -2725,8 +2725,8 @@ public final class PageContextImpl extends PageContext {
 	
 	@Override
 	public void setLocale(Locale locale) {
-		
-		getApplicationContext().setLocale(locale);
+		if(getApplicationContext()!=null)
+			getApplicationContext().setLocale(locale);
 		this.locale=locale;
 		HttpServletResponse rsp = getHttpServletResponse();
 		
@@ -3257,7 +3257,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public TimeZone getTimeZone() {
-		TimeZone tz = getApplicationContext().getTimeZone();
+		TimeZone tz = getApplicationContext()==null?null: getApplicationContext().getTimeZone();
 		if(tz!=null) return tz;
 		if(timeZone!=null) return timeZone;
 		return config.getTimeZone();
@@ -3265,7 +3265,8 @@ public final class PageContextImpl extends PageContext {
 	
 	@Override
 	public void setTimeZone(TimeZone timeZone) {
-		getApplicationContext().setTimeZone(timeZone);
+		if(getApplicationContext()!=null)
+			getApplicationContext().setTimeZone(timeZone);
 		this.timeZone=timeZone;
 	}
 
@@ -3387,7 +3388,7 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public DataSource getDataSource(String datasource) throws PageException {
 
-		DataSource ds = getApplicationContext().getDataSource(datasource,null);
+		DataSource ds = getApplicationContext()==null?null:getApplicationContext().getDataSource(datasource,null);
 		if(ds!=null) return ds;
 		ds=getConfig().getDataSource(datasource,null);
 		if(ds!=null) return ds;
@@ -3397,7 +3398,7 @@ public final class PageContextImpl extends PageContext {
 		
 	@Override
 	public DataSource getDataSource(String datasource, DataSource defaultValue) {
-		DataSource ds = getApplicationContext().getDataSource(datasource,null);
+		DataSource ds = getApplicationContext()==null?null:getApplicationContext().getDataSource(datasource,null);
 		if(ds==null) ds=getConfig().getDataSource(datasource,defaultValue);
 		return ds;
 	}
@@ -3454,14 +3455,14 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public Charset getResourceCharset() {
-		Charset cs = getApplicationContext().getResourceCharset();
+		Charset cs = getApplicationContext()==null?null:getApplicationContext().getResourceCharset();
 		if(cs!=null) return cs;
 		return config.getResourceCharset();
 	}
 
 	@Override
 	public Charset getWebCharset() {
-		Charset cs = getApplicationContext().getWebCharset();
+		Charset cs = getApplicationContext()==null?null:getApplicationContext().getWebCharset();
 		if(cs!=null) return cs;
 		return config.getWebCharset();
 	}
