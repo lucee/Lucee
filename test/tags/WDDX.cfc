@@ -17,10 +17,7 @@
  * 
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
-	
-	variables.suffix="Query";
 
-	
 	public void function testCFML2JS() localmode=true {
 		sct={string:'Susi',random:createObject('java','java.util.Random').init()};
 		wddx topLevelVariable="susi" action="cfml2js" input="#sct#" output="res";
@@ -35,7 +32,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			,res);
 	}
 
+	public void function testWDDX2CFML() localmode=true {
+		sct={string:'Susi',random:createObject('java','java.util.Random').init()};
+		wddx topLevelVariable="susi" action="cfml2wddx" input="#sct#" output="res";
+		wddx topLevelVariable="susi" action="wddx2cfml" input="#res#" output="res2";
+		assertEquals({RANDOM: "", STRING: "susi"}, res2);
+	}
 
-	// TODO add testcases for missing actions
-} 
+	public void function testWDDX2JS() localmode=true {
+		sct={string:'Susi',random:createObject('java','java.util.Random').init()};
+		wddx topLevelVariable="susi" action="cfml2wddx" input="#sct#" output="res";
+		wddx topLevelVariable="susi" action="wddx2js" input="#res#" output="res2";
+		assertEquals('susi=new Object();susi["random"]="";susi["string"]="Susi";',res2);
+	}
+}
 </cfscript>
