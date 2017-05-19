@@ -21,8 +21,10 @@ package lucee.runtime.schedule;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.CFMLEngineImpl;
@@ -68,14 +70,29 @@ public final class SchedulerImpl implements Scheduler {
     	this.charset=charset;
     	this.config=config;
     	
-    	initFile(schedulerDir);
-        doc=su.loadDocument(schedulerFile);
+    	boolean newFile=initFile(schedulerDir);
+    	try {
+    		doc=su.loadDocument(schedulerFile);
+    	}
+    	catch(Exception e) {
+    		if(newFile) rethrow(e); 
+    		config.getLog("scheduler").log(Log.LEVEL_FATAL,"startup","could not load "+schedulerFile, e);
+    		reinitFile(schedulerDir);
+    		doc=su.loadDocument(schedulerFile);
+    	}
+        
         tasks=readInAllTasks();
         init();
     }
     
 
-    /**
+    private void rethrow(Exception e) throws IOException, SAXException {
+		if(e instanceof IOException) throw (IOException)e;
+		if(e instanceof SAXException) throw (SAXException)e;
+	}
+
+
+	/**
      * creates a empty Scheduler, used for event gateway context
      * @param engine
      * @param config
@@ -95,12 +112,24 @@ public final class SchedulerImpl implements Scheduler {
     }
     
     
+
+	private boolean reinitFile(Resource schedulerDir) throws IOException {
+		Resource src = schedulerDir.getRealResource("scheduler.xml");
+		if(src.exists()) {
+			Resource trg = schedulerDir.getRealResource("scheduler.xml.buggy");
+			if(trg.exists()) trg.delete();
+			src.moveTo(trg);
+		}
+		return initFile(schedulerDir);
+	}
     
-    
-	private void initFile(Resource schedulerDir) throws IOException {
+	private boolean initFile(Resource schedulerDir) throws IOException {
 		this.schedulerFile=schedulerDir.getRealResource("scheduler.xml");
-		if(!schedulerFile.exists()) su.loadFile(schedulerFile,"/resource/schedule/default.xml");
-		//this.log=log;  
+		if(!schedulerFile.exists()) {
+			su.loadFile(schedulerFile,"/resource/schedule/default.xml");
+			return true;
+		}
+		return false;
 	}
 	
     /**

@@ -982,8 +982,6 @@ public class Image extends StructSupport implements Cloneable,Struct {
 		//IIOMetadata meta = noMeta?null:metadata(format);
 		IIOMetadata meta = noMeta?null:getMetaData(null);
 		
-		
-		
 		ImageWriter writer = null;
     	ImageTypeSpecifier type =ImageTypeSpecifier.createFromRenderedImage(im);
     	Iterator<ImageWriter> iter = ImageIO.getImageWriters(type, format);
@@ -995,22 +993,14 @@ public class Image extends StructSupport implements Cloneable,Struct {
     	if (writer == null) throw new IOException("no writer for format ["+format+"] available, available writer formats are ["+ListUtil.arrayToList(ImageUtil.getWriterFormatNames(), ",")+"]");
     	
     	
-		ImageWriteParam iwp=null;
-    	if("jpg".equalsIgnoreCase(format)) {
-    		ColorModel cm = im.getColorModel();
-    		if(cm.hasAlpha())im=jpgImage(im);
-    		JPEGImageWriteParam jiwp = new JPEGImageWriteParam(Locale.getDefault());
-    		jiwp.setOptimizeHuffmanTables(true);
-    		iwp=jiwp;
-    	}
-    	else iwp = writer.getDefaultWriteParam();
+		ImageWriteParam iwp=getImageWriteParam(im,writer,quality);
+		
     	
-		setCompressionModeEL(iwp,ImageWriteParam.MODE_EXPLICIT);
-    	setCompressionQualityEL(iwp,quality);
-    	writer.setOutput(ios);
-    	try {
+		writer.setOutput(ios);
+    	
+		
+		try {
     		writer.write(meta, new IIOImage(im, null, meta), iwp);
-    		
     	} 
     	finally {
     		writer.dispose();
@@ -1018,6 +1008,24 @@ public class Image extends StructSupport implements Cloneable,Struct {
     	}
 	}
 	
+	private ImageWriteParam getImageWriteParam(BufferedImage im, ImageWriter writer, float quality) {
+		ImageWriteParam iwp;
+		/*if("jpg".equalsIgnoreCase(format)) {
+    		ColorModel cm = im.getColorModel();
+    		if(cm.hasAlpha())im=jpgImage(im);
+    		JPEGImageWriteParam jiwp = new JPEGImageWriteParam(Locale.getDefault());
+    		jiwp.setOptimizeHuffmanTables(true);
+    		iwp = jiwp;
+    	}
+		else */
+			iwp = writer.getDefaultWriteParam();
+    	
+    	setCompressionModeEL(iwp,ImageWriteParam.MODE_EXPLICIT);
+    	setCompressionQualityEL(iwp,quality);
+    	
+    	return iwp;
+	}
+
 	private BufferedImage jpgImage(BufferedImage src) {
         int w = src.getWidth();
         int h = src.getHeight();

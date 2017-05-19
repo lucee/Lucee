@@ -340,39 +340,39 @@ component {
 		if(!arguments.level)
 			rtn&= '<script language="JavaScript" type="text/javascript">' & "var dumpData={};" & variables.NEWLINE;
 		var tempStruct={};
-		tempStruct.id=arguments.dumpID;
-		tempStruct.width=width;
-		tempStruct.height=height;
-		tempStruct.title=title;
-		tempStruct.meta={};
+		tempStruct.ID=arguments.dumpID;
+		tempStruct.WIDTH=width;
+		tempStruct.HEIGHT=height;
+		tempStruct.TITLE=title;
+		tempStruct.META={};
 
 		if(structKeyExists(arguments.meta, 'title')){
-			tempStruct.meta.id=arguments.hasReference && structKeyExists(arguments.meta,'id') ? ' [#arguments.meta.id#]' : '';
-			tempStruct.meta.comment=structKeyExists(arguments.meta,'comment') ? "<br />" & (left(arguments.meta.comment,4)=="<img"?arguments.meta.comment:replace(HTMLEditFormat(arguments.meta.comment),chr(10),' <br>','all')) : '';
-			tempStruct.meta.title=arguments.meta.title;
-			tempStruct.meta.tdClass="luceeH#variables.colorKeys[arguments.meta.colorId]#";
-			tempStruct.meta.onClick="dumpOC('#id#')";
-			tempStruct.meta.colspan=columnCount;
+			tempStruct.META.ID=arguments.hasReference && structKeyExists(arguments.meta,'id') ? ' [#arguments.meta.id#]' : '';
+			tempStruct.META.COMMENT=structKeyExists(arguments.meta,'comment') ? "<br />" & (left(arguments.meta.comment,4)=="<img"?arguments.meta.comment:replace(HTMLEditFormat(arguments.meta.comment),chr(10),' <br>','all')) : '';
+			tempStruct.META.TITLE=arguments.meta.title;
+			tempStruct.META.TDCLASS="luceeH#variables.colorKeys[arguments.meta.colorId]#";
+			tempStruct.META.ONCLICK="dumpOC('#id#')";
+			tempStruct.META.COLSPAN=columnCount;
 		}else{
-			tempStruct.id="";
+			tempStruct.ID="";
 		}
 
-		tempStruct.meta.data=[];
+		tempStruct.META.DATA=[];
 		if(columnCount){
 			loop query="arguments.meta.data"{
 				var c = 1;
-				tempStruct.meta.data[arguments.meta.data.currentRow].nodeID=len(id) ? id : '';
-				tempStruct.meta.data[arguments.meta.data.currentRow].hidden=!arguments.expand && len(id) ? true : false;
-				tempStruct.meta.data[arguments.meta.data.currentRow].nodeData=[];
+				tempStruct.META.DATA[arguments.meta.data.currentRow].NODEID=len(id) ? id : '';
+				tempStruct.META.DATA[arguments.meta.data.currentRow].HIDDEN=!arguments.expand && len(id) ? true : false;
+				tempStruct.META.DATA[arguments.meta.data.currentRow].NODEDATA=[];
 				for(var col=1; col LTE columnCount-1; col++){
 					var node = arguments.meta.data["data" & col];
-					tempStruct.meta.data[arguments.meta.data.currentRow].nodeData[col].class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#";
+					tempStruct.META.DATA[arguments.meta.data.currentRow].NODEDATA[col].CLASS="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#";
 					if(isStruct(node)){
-						tempStruct.meta.data[arguments.meta.data.currentRow].title="";
+						tempStruct.META.DATA[arguments.meta.data.currentRow].TITLE="";
 						var value=this.javascript(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level+1,arguments.dumpID,arguments.cssColors);
-						tempStruct.meta.data[arguments.meta.data.currentRow].nodeData[col].content=value;
+						tempStruct.META.DATA[arguments.meta.data.currentRow].NODEDATA[col].CONTENT=value;
 					}else{
-						tempStruct.meta.data[arguments.meta.data.currentRow].nodeData[col].content='#node#';
+						tempStruct.META.DATA[arguments.meta.data.currentRow].NODEDATA[col].CONTENT='#node#';
 					}
 					c*=2;
 				}

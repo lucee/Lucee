@@ -243,7 +243,7 @@ public class HTTPEngine4Impl {
 	
 	public static HttpClientBuilder getHttpClientBuilder() {
 		HttpClientBuilder builder = HttpClients.custom();
-		
+		/*
 		if(connMan==null) {
 			connMan = new PoolingHttpClientConnectionManager();
 			// Increase max total connection to 200
@@ -255,14 +255,15 @@ public class HTTPEngine4Impl {
 			//cm.setMaxPerRoute(new HttpRoute(localhost), 50);
 		}
 		builder.setConnectionManager(connMan);
+		*/
 		return builder;
 	}
 	
 	public static void releaseConnectionManager() {
-		if(connMan!=null) {
+		/*if(connMan!=null) {
 			connMan.close();
 			connMan=null;
-		}
+		}*/
 	}
 
 	private static HTTPResponse _invoke(URL url,HttpUriRequest request,String username,String password, long timeout, boolean redirect,
