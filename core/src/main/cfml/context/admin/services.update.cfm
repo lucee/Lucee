@@ -75,7 +75,7 @@
 
 <!---
 Redirtect to entry --->
-<cfif cgi.request_method EQ "POST" and error.message EQ "">
+<cfif url.action2 NEQ "none" and error.message EQ "">
 	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 </cfif>
 
