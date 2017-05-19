@@ -137,6 +137,11 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T> {
 		return className;
 	}
 	
+	@Override
+	public int hashCode() {
+		return toString().hashCode();
+	}
+	
 	public static ClassDefinition toClassDefinition(String className,Identification id,Attributes attributes) {
 		if(StringUtil.isEmpty(className,true)) return null;
 		
