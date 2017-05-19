@@ -175,6 +175,11 @@ Error Output --->
 				The REST Servlet is not configured in your enviroment!
 			</div>
 		</cfif>
+		<cfif listGetAt(server.java.version,2,'.') EQ 7>
+			<div class="warning nofocus">
+				Java 7 has been End-of-Life'd since April 2015. You should upgrade to Java 8 for performance and security reasons.
+			</div>
+		</cfif>
 	</cfif>
 
 
