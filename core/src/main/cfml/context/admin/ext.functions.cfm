@@ -491,7 +491,7 @@
 				return result;
 			}
 	    }
-		catch(e){rethrow;
+		catch(e){
 			session.rhcfcstries[provider]=now(); // set last try
 			result={status_code=500};
 			local.result.error=e.message;
