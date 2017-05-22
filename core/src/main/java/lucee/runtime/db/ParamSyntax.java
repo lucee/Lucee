@@ -43,7 +43,7 @@ public class ParamSyntax {
 	public static ParamSyntax toParamSyntax(Struct sct, ParamSyntax defaultValue) {
 		String del = Caster.toString(sct.get("param_delimiter",null),null);
 		String sep=Caster.toString(sct.get("param_separator",null),null);
-		if(del==null || sep==null) 
+		if(StringUtil.isEmpty(del) || StringUtil.isEmpty(sep)) 
 			return defaultValue;
 		
 		String ledel = Caster.toString(sct.get("param_leadingDelimiter",null),null);
