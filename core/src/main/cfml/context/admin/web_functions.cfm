@@ -16,7 +16,7 @@ function ComponentListPackageAsStruct(string package, cfcNames=structnew("linked
 * @param strFile string to cast
 * @return File Object
 */
-function printError(error,boolean longversion=true) {
+function printError(error,boolean longversion=false) {
 	if(IsSimpleValue(arguments.error))arguments.error=struct(message:arguments.error);
 	if(not StructKeyExists(arguments.error,'detail'))arguments.error.detail="";
 	else if(arguments.error.message EQ arguments.error.detail)arguments.error.detail="";
