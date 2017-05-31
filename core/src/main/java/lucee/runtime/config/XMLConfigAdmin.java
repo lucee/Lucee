@@ -1542,10 +1542,18 @@ public final class XMLConfigAdmin {
     	Element parent=XMLConfigWebFactory.getChildByName(doc.getDocumentElement(),"component",false,true);
         Element[] mappings = XMLConfigWebFactory.getChildren(parent,"mapping");
         
+        int count=0;
         for(Element mapping:mappings) {
-        	if("/default-server".equalsIgnoreCase(mapping.getAttribute("/default-server"))) 
-        		return false;
+        	if("/default-server".equalsIgnoreCase(mapping.getAttribute("virtual"))) {
+        		count++;
+        		if(count>1) {
+        			parent.removeChild(mapping);
+        		}
+        	}
         }
+        
+        if(count>0) return false;
+        
         
         // ADD MAPPING
         Element mapping = doc.createElement("mapping");
