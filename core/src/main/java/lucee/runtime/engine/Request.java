@@ -1,8 +1,12 @@
 package lucee.runtime.engine;
 
+import java.io.IOException;
+
 import lucee.print;
 import lucee.commons.io.SystemUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.exp.PageException;
 
 public class Request extends Thread {
 
@@ -24,24 +28,29 @@ public class Request extends Thread {
 	}
 	
 	public void run() {
+    	try {
+        	exe(pc,type,false);
+        } 
+        catch (Throwable _t) {}
+        done=true;
+        SystemUtil.notify(parent);
+	}
+	
+	public static void exe(PageContext pc, short type, boolean throwExcpetion) throws IOException, PageException {
     	ThreadQueue queue = null;
-        
         try {
         	ThreadLocalPageContext.register(pc);
         	ThreadQueue tmp = pc.getConfig().getThreadQueue();
 	        tmp.enter(pc);
 	        queue=tmp;
-        	if(type==TYPE_CFML)pc.executeCFML(pc.getHttpServletRequest().getServletPath(),false,true);
-        	else if(type==TYPE_LUCEE) pc.execute(pc.getHttpServletRequest().getServletPath(),false,true);
-        	else pc.executeRest(pc.getHttpServletRequest().getServletPath(),false);
+        	if(type==TYPE_CFML)pc.executeCFML(pc.getHttpServletRequest().getServletPath(),throwExcpetion,true);
+        	else if(type==TYPE_LUCEE) pc.execute(pc.getHttpServletRequest().getServletPath(),throwExcpetion,true);
+        	else pc.executeRest(pc.getHttpServletRequest().getServletPath(),throwExcpetion);
         } 
-        catch (Throwable _t) {}
         finally {
         	if(queue!=null)queue.exit(pc);
             ThreadLocalPageContext.release();
         }
-        done=true;
-        SystemUtil.notify(parent);
 	}
 
 	public boolean isDone() {

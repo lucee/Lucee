@@ -113,9 +113,11 @@ import lucee.runtime.config.XMLConfigServerFactory;
 import lucee.runtime.config.XMLConfigWebFactory;
 import lucee.runtime.engine.listener.CFMLServletContextListener;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.PageServletException;
+import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.other.CreateUniqueId;
@@ -198,6 +200,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private ScriptEngineFactory luceeTagEngine;
 	private Controler controler;
 	private CFMLServletContextListener scl;
+	private Boolean asyncReqHandle;
     
     //private static CFMLEngineImpl engine=new CFMLEngineImpl();
 
@@ -1018,30 +1021,47 @@ public final class CFMLEngineImpl implements CFMLEngine {
         PageContextImpl pc = factory.getPageContextImpl(servlet,req,rsp,null,false,-1,false,false,false,-1,true,false);
     	try {
     		Request r=new Request(pc,type);
-	    	r.start();
-	    	long ended=-1;
-	    	do {
-	    		SystemUtil.wait(Thread.currentThread(),1000);
-	    		// done?
-	    		if(r.isDone()) {
-	    			//print.e("mas-done:"+System.currentTimeMillis());
-	    			break;
+	    	if(exeRequestAsync()) {
+	    		r.start();
+		    	long ended=-1;
+		    	do {
+		    		SystemUtil.wait(Thread.currentThread(),1000);
+		    		// done?
+		    		if(r.isDone()) {
+		    			//print.e("mas-done:"+System.currentTimeMillis());
+		    			break;
+		    		}
+		    		// reach request timeout
+		    		else if(ended==-1 && (pc.getStartTime()+pc.getRequestTimeout())<System.currentTimeMillis()) {
+		    			//print.e("req-time:"+System.currentTimeMillis());
+		    			CFMLFactoryImpl.terminate(pc,false);
+		    			ended=System.currentTimeMillis();
+		    			// break; we do not break here, we give the thread itself the chance to end we need the exception output
+		    		}
+		    		// the thread itself seem blocked, so we release this thread
+		    		else if(ended>-1 && ended+10000<=System.currentTimeMillis()) {
+		    			//print.e("give-up:"+System.currentTimeMillis());
+		    			break;
+		    		}
+		    	}
+		    	while(true);
+    		}
+	    	// run in thread coming from servlet engine
+	    	else {
+	    		try {
+					Request.exe(pc, type,true);
+				}
+	    		catch(RequestTimeoutException rte) {
+	    			if(rte.getThreadDeath()!=null) throw rte.getThreadDeath();
 	    		}
-	    		// reach request timeout
-	    		else if(ended==-1 && (pc.getStartTime()+pc.getRequestTimeout())<System.currentTimeMillis()) {
-	    			//print.e("req-time:"+System.currentTimeMillis());
-	    			CFMLFactoryImpl.terminate(pc,false);
-	    			ended=System.currentTimeMillis();
-	    			// break; we do not break here, we give the thread itself the chance to end we need the exception output
+	    		catch(NativeException ne) {
+	    			if(ne.getCause() instanceof ThreadDeath) throw (ThreadDeath)ne.getCause();
 	    		}
-	    		// the thread itself seem blocked, so we release this thread
-	    		else if(ended>-1 && ended+10000<=System.currentTimeMillis()) {
-	    			//print.e("give-up:"+System.currentTimeMillis());
-	    			break;
+	    		catch(ThreadDeath td) {
+	    			throw td;
 	    		}
+	    		catch(Throwable t) {}
 	    	}
-	    	while(true);
-	    	//print.e("done: "+System.currentTimeMillis());
     	}
     	finally {
     		factory.releaseLuceePageContext(pc,false);
@@ -1588,6 +1608,15 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				//ThreadLocalPageContext.register(oldPC);
 			}
 		}
+	}
+	
+	/*
+	 * execute request coming from the servlet engine in a separate thread or not
+	 */
+	public boolean exeRequestAsync() {
+		if(asyncReqHandle==null)
+			asyncReqHandle=Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.async.request.handle", null),Boolean.FALSE);
+		return asyncReqHandle;
 	}
 	
 }

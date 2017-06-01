@@ -223,7 +223,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		//synchronized (runningPcs) {
             //int len=runningPcs.size();
 			// we only terminate child threads
-            Iterator<Entry<Integer, PageContextImpl>> it = runningChildPcs.entrySet().iterator();
+            Iterator<Entry<Integer, PageContextImpl>> it = (engine.exeRequestAsync()?runningChildPcs:runningPcs).entrySet().iterator();
             PageContextImpl pc;
             Entry<Integer, PageContextImpl> e;
             while(it.hasNext()) {
