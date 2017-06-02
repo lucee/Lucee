@@ -13,12 +13,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(local.result.filecontent.trim()).toBe("success");
 			});
 
+			it( title='Checking imageWrite produce missing huffman code error 2', body=function( currentSpec ) {
+				var uploadImage ="./LDEV1342/assets/images/testImage1.jpg";
+				var img = imageRead(uploadImage);
+				var imgNew = "./LDEV1342/assets/images/newTestImage1.jpg";
+				imageWrite(img, imgNew);
+			});
+
 			it( title='Checking imageWrite not producing any error', body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test.cfm",
 					forms:{Scene=2}
 				);
 				expect(local.result.filecontent.trim()).toBe("success");
+			});
+
+			it( title='Checking imageWrite not producing any error 2', body=function( currentSpec ) {
+				var uploadImage ="./LDEV1342/assets/images/testImage2.jpg";
+				var img = imageRead(uploadImage);
+				var imgNew = "./LDEV1342/assets/images/newTestImage2.jpg";
+				imageWrite(img, imgNew);
 			});
 		});
 	}
