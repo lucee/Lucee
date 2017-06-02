@@ -16,10 +16,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					template:uri,
 					forms:{Scene=2}
 				);
-				expect(result.filecontent.trim()).toBe("An error occurred while Transforming an XML document");
+				expect(result.filecontent.trim()).toBe("javax.xml.transform.TransformerException: oracle.xml.parser.v2.XMLParseException; lineNumber: 1; columnNumber: 1; Start of root element expected.");
 			});
 		});
 	}
+
 	// private Function//
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
