@@ -138,7 +138,8 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 		    return s;
 	    }
 	    catch(Exception e){
-	    	return null;
+	    	ScopeContext.error(log,e);
+            return null;
 	    }
 	}
 

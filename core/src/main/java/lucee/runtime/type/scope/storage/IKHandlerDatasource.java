@@ -59,22 +59,23 @@ public class IKHandlerDatasource implements IKHandler {
 	    	ScopeContext.info(log,"create new "+strType+" scope for "+pc.getApplicationContext().getName()+"/"+pc.getCFID()+" in datasource ["+name+"]");
 			return null;
 	    }
-	    String str=Caster.toString(query.get(KeyConstants._data));
+	    String str=Caster.toString(query.getAt(KeyConstants._data,1));
 	    
 	    if(str.startsWith("struct:")) return null;
 	    try{
 		    IKStorageValue data=(IKStorageValue) JavaConverter.deserialize(str);
 		    ScopeContext.info(log,"load existing data from ["+name+"."+PREFIX+"_"+strType+"_data] to create "+strType+" scope for "+pc.getApplicationContext().getName()+"/"+pc.getCFID());
-			
 		    return data;
 	    }
 	    catch(Exception e) {
-	    	throw Caster.toPageException(e);
+	    	ScopeContext.error(log, e);
+	    	return null;
+	    	//throw Caster.toPageException(e);
 	    }
 	}
 
 	@Override
-	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, String cfid,
+	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, final String name, String cfid,
 			MapPro<Key, IKStorageScopeItem> data, Log log) {
 		DatasourceConnection dc = null;
 		ConfigImpl ci = (ConfigImpl)ThreadLocalPageContext.getConfig(pc);
