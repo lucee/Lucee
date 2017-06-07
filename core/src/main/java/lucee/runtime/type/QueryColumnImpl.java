@@ -134,13 +134,13 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 
 	@Override
 	public Object remove(Collection.Key key) throws PageException {
-		resetType();
+		resetTypeSync();
 		return set(Caster.toIntValue(key.getString()),"");
 	}
 
 	@Override
 	public Object remove(Collection.Key key, Object defaultValue) {
-		resetType();
+		resetTypeSync();
 		try {
 			return set(Caster.toIntValue(key.getString()),"");
 		}
@@ -152,7 +152,7 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 	@Override
 	public Object remove(int row) throws DatabaseException {
         // query.disconnectCache();
-        resetType();
+        resetTypeSync();
 		return set(row,"");
 	}
 	
@@ -160,20 +160,19 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 	@Override
 	public Object removeEL(Collection.Key key) {
         // query.disconnectCache();
-        resetType();
+        resetTypeSync();
 		return setEL(Caster.toIntValue(key.getString(),-1),"");
 	}
 
 	@Override
 	public Object removeEL(int row) {
         // query.disconnectCache();
-        resetType();
+        resetTypeSync();
 		return setEL(row,"");
 	}
 
 	@Override
 	public synchronized void clear() {
-        // query.disconnectCache();
         resetType();
 		data=new Object[CAPACITY];
 		size=0;
@@ -309,13 +308,12 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 	    	if(size==0)throw new DatabaseException("cannot set a value to a empty query, you first have to add a row",null,null,null);
 	    	throw new DatabaseException("invalid row number ["+row+"]","valid row numbers goes from 1 to "+size,null,null);
 	    }
-	    
-	    value=reDefineType(value);
+		value=reDefineType(value);
 	    data[row-1]=value;
 	    return value;
 	}
 	@Override
-	public synchronized Object setEL(String key, Object value) {
+	public Object setEL(String key, Object value) {
 	    int index=Caster.toIntValue(key,Integer.MIN_VALUE);
 		if(index==Integer.MIN_VALUE) query.setEL(key,value);
 	    return setEL(index, value);
@@ -333,10 +331,9 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 	public synchronized Object setEL(int row, Object value) {
         // query.disconnectCache();
         if(row<1 || row>size) return value;
-	    
 	    value=reDefineType(value);
-	    data[row-1]=value;
-	    return value;
+		data[row-1]=value;
+		return value;
 	}
 
     @Override
@@ -391,7 +388,7 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 		return DumpUtil.toDumpData(QueryUtil.getValue(this,query.getCurrentrow(pageContext.getId())), pageContext,maxlevel,dp);
 	}	
 	
-    private synchronized void growTo(int row) {
+    private void growTo(int row) {
         
         int newSize=(data.length+1)*2;
         while(newSize<=row) {
@@ -410,9 +407,9 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
         return QueryColumnUtil.reDefineType(this,value);
     }
     
-    private synchronized void resetType() {
-        QueryColumnUtil.resetType(this);
-    }
+    private synchronized void resetTypeSync() {QueryColumnUtil.resetType(this);}
+    
+    private void resetType() {QueryColumnUtil.resetType(this);}
     
     private synchronized void reOrganizeType() {
         QueryColumnUtil.reOrganizeType(this);
@@ -537,39 +534,39 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 	}
 
     @Override
-    public synchronized Object clone() {
-        return duplicate(true);
+    public Object clone() {
+        return cloneColumnImpl(true);
     }
 
     @Override
-	public synchronized Collection duplicate(boolean deepCopy) {
-        return cloneColumn(query,deepCopy);
-    }
-    
-    @Override
-	public synchronized QueryColumnPro cloneColumn(Query query, boolean deepCopy) {
+	public Collection duplicate(boolean deepCopy) {
         return cloneColumnImpl(deepCopy);
     }
     
-    public synchronized QueryColumnImpl cloneColumnImpl(boolean deepCopy) {
+    @Override
+	public QueryColumnPro cloneColumn(boolean deepCopy) {
+        return cloneColumnImpl(deepCopy);
+    }
+    
+    public QueryColumnImpl cloneColumnImpl(boolean deepCopy) {
         QueryColumnImpl clone=new QueryColumnImpl();
-        populate(this, clone, deepCopy);
+        populate(clone, deepCopy);
         return clone;
     }
     
-    protected static void populate(QueryColumnImpl src,QueryColumnImpl trg, boolean deepCopy) {
+    protected synchronized void populate(QueryColumnImpl trg, boolean deepCopy) {
         
-        boolean inside=ThreadLocalDuplication.set(src, trg);
+        boolean inside=ThreadLocalDuplication.set(this, trg);
         try{
-	        trg.key=src.key;
-	        trg.query=src.query;
-	        trg.size=src.size;
-	        trg.type=src.type;
-	        trg.key=src.key;
+	        trg.key=this.key;
+	        trg.query=this.query;
+	        trg.size=this.size;
+	        trg.type=this.type;
+	        trg.key=this.key;
 	        
-	        trg.data=new Object[src.data.length];
-	        for(int i=0;i<src.data.length;i++) {
-	            trg.data[i]=deepCopy?Duplicator.duplicate(src.data[i],true):src.data[i];
+	        trg.data=new Object[this.data.length];
+	        for(int i=0;i<this.data.length;i++) {
+	            trg.data[i]=deepCopy?Duplicator.duplicate(this.data[i],true):this.data[i];
 	        }
         }
         finally {
