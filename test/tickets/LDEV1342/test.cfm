@@ -1,7 +1,8 @@
 <cfparam name="form.scene" default="1">
 
 <cfscript>
-	result = "";
+result = "";
+try {
 	if(form.scene EQ 1){
 		uploadImage ="./assets/images/testImage1.jpg";
 		img = imageRead(uploadImage);
@@ -24,4 +25,8 @@
 		}
 	}
 	writeOutput(result);
+}
+finally {
+	if(!isNull(imgNew) && fileExists(imgNew))fileDelete(imgNew);
+}
 </cfscript>

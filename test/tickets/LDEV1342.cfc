@@ -14,10 +14,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it( title='Checking imageWrite produce missing huffman code error 2', body=function( currentSpec ) {
-				var uploadImage ="./LDEV1342/assets/images/testImage1.jpg";
-				var img = imageRead(uploadImage);
-				var imgNew = "./LDEV1342/assets/images/newTestImage1.jpg";
-				imageWrite(img, imgNew);
+				try {
+					var uploadImage ="./LDEV1342/assets/images/testImage1.jpg";
+					var img = imageRead(uploadImage);
+					var imgNew = "./LDEV1342/assets/images/newTestImage1.jpg";
+					imageWrite(img, imgNew);
+				}
+				finally {
+					if(!isNull(imgNew) && fileExists(imgNew))fileDelete(imgNew);
+				}
 			});
 
 			it( title='Checking imageWrite not producing any error', body=function( currentSpec ) {
@@ -29,10 +34,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it( title='Checking imageWrite not producing any error 2', body=function( currentSpec ) {
-				var uploadImage ="./LDEV1342/assets/images/testImage2.jpg";
-				var img = imageRead(uploadImage);
-				var imgNew = "./LDEV1342/assets/images/newTestImage2.jpg";
-				imageWrite(img, imgNew);
+				try{
+					var uploadImage ="./LDEV1342/assets/images/testImage2.jpg";
+					var img = imageRead(uploadImage);
+					var imgNew = "./LDEV1342/assets/images/newTestImage2.jpg";
+					imageWrite(img, imgNew);
+				}
+				finally {
+					if(!isNull(imgNew) && fileExists(imgNew))fileDelete(imgNew);
+				}
 			});
 		});
 	}
