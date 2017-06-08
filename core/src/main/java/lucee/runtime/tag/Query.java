@@ -584,7 +584,11 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			String cacheId=null;
 			if(hasCached) {
 				String id = CacheHandlerCollectionImpl.createId(sql,datasource!=null?datasource.getName():null,username,password,returntype);
-				CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY,null).getInstanceMatchingObject(cachedWithin,null);
+				CacheHandlerCollectionImpl coll = (CacheHandlerCollectionImpl) pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY,null);
+				CacheHandler ch = coll.getInstanceMatchingObject(cachedWithin,null);
+				if(ch==null && cachedAfter!=null) ch = coll.getTimespanInstance(null);
+				
+				
 				if(ch!=null) {
 					cacheId=ch.id();
 					CacheItem ci = ch.get(pageContext, id);
