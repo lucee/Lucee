@@ -158,17 +158,16 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * @return Singelton Instance of the Factory
 	 * @throws ServletException
 	 */
-	public static CFMLEngine getInstance(final ServletConfig config)
+	public synchronized static CFMLEngine getInstance(final ServletConfig config)
 			throws ServletException {
-
+		
 		if (singelton != null) {
 			if (factory == null)
 				factory = singelton.getCFMLEngineFactory(); // not sure if this ever is done, but it does not hurt
 			return singelton;
 		}
-
-		if (factory == null)
-			factory = new CFMLEngineFactory(config);
+		
+		if (factory == null) factory = new CFMLEngineFactory(config);
 
 		// read init param from config
 		factory.readInitParam(config);
@@ -687,7 +686,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		// before we download we check if we have it bundled
 		File jar = deployBundledBundle(jarDir,symbolicName,symbolicVersion);
 		if(jar!=null && jar.isFile()) return jar;
-		
+		if(jar!=null) printDate(jar+" should exist but does not (exist?"+jar.exists()+";file?"+jar.isFile()+";hidden?"+jar.isHidden()+")");
 		
 		jar = new File(jarDir, symbolicName.replace('.', '-') + "-"
 				+ symbolicVersion.replace('.', '-') + (".jar"));
@@ -703,7 +702,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 						+ (id == null ? "?" : "&")+"allowRedirect=true"
 						
 				);
-		System.out.println("download " + symbolicName + ":" + symbolicVersion +" from "+updateUrl+" and copy to "+jar); // MUST remove
+		printDate("download " + symbolicName + ":" + symbolicVersion +" from "+updateUrl+" and copy to "+jar); // MUST remove
 		log(Logger.LOG_DEBUG, "download bundle [" + symbolicName + ":"+ symbolicVersion + "] from " + updateUrl+" and copy to "+jar);
 
 		int code;
@@ -714,6 +713,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			conn.connect();
 			code = conn.getResponseCode();
 		} catch (UnknownHostException e) {
+			printDate("could not download the bundle  [" + symbolicName + ":"+ symbolicVersion + "] from " + updateUrl+" and copy to "+jar); // MUST remove
 			throw new IOException("could not download the bundle  [" + symbolicName + ":"+ symbolicVersion + "] from " + updateUrl+" and copy to "+jar, e);
 		}
 		//System.out.println("SC:" + code+"->"+conn.getFollowRedirects());
@@ -775,22 +775,30 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		// first we look for a exact match
 		InputStream is = getClass().getResourceAsStream("bundles/"+osgiFileName);
 		if(is==null) is = getClass().getResourceAsStream("/bundles/"+osgiFileName);
-		System.out.println("found "+osgiFileName+":"+(is!=null));
+		
+		if(is!=null) printDate("found /bundles/"+osgiFileName+" in lucee.jar");
+		else printDate("could not find /bundles/"+osgiFileName+" in lucee.jar");
+		
 		if(is==null) {
 			is = getClass().getResourceAsStream("bundles/"+osgiFileName+pack20Ext);
 			if(is==null)is = getClass().getResourceAsStream("/bundles/"+osgiFileName+pack20Ext);
 			isPack200=true;
+
+			if(is!=null) printDate("found /bundles/"+osgiFileName+pack20Ext+" in lucee.jar");
+			else printDate("could not find /bundles/"+osgiFileName+pack20Ext+" in lucee.jar");
 		}
 		if(is!=null) {
 			File temp=null;
 			try {
 				// copy to temp file
 				temp=File.createTempFile("bundle", ".tmp");
+				printDate("copy lucee.jar!/bundles/"+osgiFileName+pack20Ext+" to "+temp);
 				Util.copy(new BufferedInputStream(is), new FileOutputStream(temp),true,true);
 				
 				if(isPack200) {
 					File temp2 = File.createTempFile("bundle", ".tmp2");
 					Pack200Util.pack2Jar(temp, temp2);
+					printDate("unpack "+temp+" to "+temp2);
 					temp.delete();
 					temp=temp2;
 				}
@@ -800,12 +808,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				temp.renameTo(trg);
 				printDate("adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
 				log(Logger.LOG_DEBUG, "adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
-
 				return trg;
-				
-				
 			}
-			catch(IOException ioe){}
+			catch(IOException ioe){
+				ioe.printStackTrace();
+			}
 			finally {
 				if(temp!=null && temp.exists())temp.delete();
 			}
@@ -881,7 +888,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		return os.startsWith("windows");
 	}
 
-	private void printDate(String value) {
+	public void printDate(String value) {
 		long millis=System.currentTimeMillis();
     	System.out.println(
     			new Date(millis)

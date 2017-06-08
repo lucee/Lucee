@@ -185,8 +185,7 @@ public class BundleLoader {
 		}
 	}
 
-	private static Map<String, File> loadAvailableBundles(
-			final File jarDirectory) {
+	private static Map<String, File> loadAvailableBundles(final File jarDirectory) {
 		final Map<String, File> rtn = new HashMap<String, File>();
 		final File[] jars = jarDirectory.listFiles();
 		if(jars!=null)for (int i = 0; i < jars.length; i++) {
@@ -195,7 +194,8 @@ public class BundleLoader {
 			try {
 				rtn.put(loadBundleInfo(jars[i]), jars[i]);
 			} 
-			catch (final Throwable t) {
+			catch (final IOException ioe) {
+				ioe.printStackTrace();
 			}
 		}
 		return rtn;
