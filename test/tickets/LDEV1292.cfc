@@ -2,7 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	// skip closure
 	function isNotSupported() {
 		var mySql = getCredentials();
-		if(!isNull(mysql)){
+		if(!isNull(mysql.server)){
 			return false;
 		} else{
 			return true;
