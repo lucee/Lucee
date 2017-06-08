@@ -66,7 +66,7 @@ public final class PageSourcePool implements Dumpable {
 	 * @param updateAccesTime define if do update access time
 	 * @return page
 	 */
-	public PageSource getPageSource(String key,boolean updateAccesTime) {
+	public PageSource getPageSource(String key,boolean updateAccesTime) { // DO NOT CHANGE INTERFACE (used by Argus Monitor)
 		PageSource ps=pageSources.get(key.toLowerCase());
 		if(ps==null) return null;
 		if(updateAccesTime)ps.setLastAccessTime();
