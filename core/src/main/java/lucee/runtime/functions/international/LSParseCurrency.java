@@ -24,6 +24,7 @@ package lucee.runtime.functions.international;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.ParsePosition;
+import java.util.Currency;
 import java.util.Locale;
 import java.util.WeakHashMap;
 
@@ -52,22 +53,32 @@ public final class LSParseCurrency implements Function {
 	}
 	
 	public static synchronized double toDoubleValue(Locale locale,String str, boolean strict) throws PageException {
-		str=str.trim();
+
+		str = str.trim();
+
 		NumberFormat cnf=getCurrencyInstance(locale);
+		Currency currency = cnf.getCurrency();
+
+		if (currency.getCurrencyCode().equals("XXX"))
+			throw new ExpressionException("Unknown currency [" + locale.toString() + "]");
+
 		cnf.setParseIntegerOnly(false);
 		try {
 			return cnf.parse(str).doubleValue();
 		} 
 		catch (ParseException e) {
-			String stripped=str.replaceFirst(cnf.getCurrency().getCurrencyCode(),"").trim();
-			NumberFormat nf=getInstance(locale);
-			
+
+			String stripped = str.replace(currency.getSymbol(locale), "")
+					.replace(currency.getCurrencyCode(), "");
+
+			NumberFormat nf = getInstance(locale);
 			ParsePosition pp = new ParsePosition(0);
-			double d = nf.parse(stripped,pp).doubleValue();
-			if (pp.getIndex() == 0 || (strict && stripped.length()!=pp.getIndex())) 
-	            throw new ExpressionException("Unparseable number [" + str + "]");
+			Number n = nf.parse(stripped, pp);
+
+			if (n == null || pp.getIndex() == 0 || (strict && stripped.length()!=pp.getIndex()))
+	            throw new ExpressionException(String.format("Unparseable value [%s] for currency %s", str, locale.toString()));
 			
-			return d;
+			return n.doubleValue();
 		}
 	}
 	
