@@ -5347,10 +5347,11 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
+
 	<!-- GenerateSecretKey -->
 	<function>
 		<name>GenerateSecretKey</name>
-		<class>lucee.runtime.functions.conversion.GenerateSecretKey</class>
+		<class>lucee.runtime.functions.other.GenerateSecretKey</class>
 		<description>Gets a secure key value for use in the encrypt function.</description>
 		<argument>
 			<name>algorithm</name>
@@ -5368,6 +5369,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
+
 	<!-- GeneratePBKDFKey -->
 	<function>
 		<name>GeneratePBKDFKey</name>
@@ -5419,6 +5421,23 @@ Example Values:
 			<type>string</type>
 		</return>
 	</function>
+
+	<!-- generate3DesKey !-->
+	<function>
+		<name>generate3DesKey</name>
+		<class>lucee.runtime.functions.other.Generate3DesKey</class>
+		<description>Generates a secure key value for use in the encrypt function with the 3DES algorithm.</description>
+		<argument>
+			<name>input</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>A string input off of which the key will be based</description>
+		</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+
 	<!-- getAuthUser -->
 	<function>
 		<name>getAuthUser</name>
