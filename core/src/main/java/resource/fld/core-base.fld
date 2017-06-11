@@ -3509,13 +3509,15 @@ type of the result returned:
 	<function>
 		<name>duplicate</name>
 		<class>lucee.runtime.functions.struct.Duplicate</class>
+		<member-name>duplicate</member-name>
+		<member-type>struct</member-type>
 		<description>Returns a new duplicated version of the given object, removing all references to the old one</description>
 		<argument>
 			<name>object</name>
 			<alias>variable_name,obj</alias>
 			<type>any</type>
 			<required>Yes</required>
-		<description>Name of a variable to duplicate</description>
+		<description>The object to duplicate</description>
     </argument>
 		<argument>
 			<name>deepcopy</name>
@@ -3528,7 +3530,83 @@ type of the result returned:
 			<type>any</type>
 		</return>
 	</function>
-	
+
+	<!-- arrayDuplicate !-->
+	<function>
+		<name>__arrayDuplicate</name>
+		<class>lucee.runtime.functions.struct.Duplicate</class>
+		<member-name>duplicate</member-name>
+		<description>Returns a new duplicated version of the given Array</description>
+		<status>hidden</status>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>The array object to duplicate</description>
+		</argument>
+		<argument>
+			<name>deepcopy</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>if set to true (default) also the child elements are cloned, otherwise the child elements are still the same as in the original object</description>
+		</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+
+	<!-- queryDuplicate !-->
+	<function>
+		<name>__queryDuplicate</name>
+		<class>lucee.runtime.functions.struct.Duplicate</class>
+		<member-name>duplicate</member-name>
+		<description>Returns a new duplicated version of the given Query object</description>
+		<status>hidden</status>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>The query object to duplicate</description>
+		</argument>
+		<argument>
+			<name>deepcopy</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>if set to true (default) also the child elements are cloned, otherwise the child elements are still the same as in the original object</description>
+		</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+
+	<!-- dateTimeDuplicate !-->
+	<function>
+		<name>__dateTimeDuplicate </name>
+		<class>lucee.runtime.functions.struct.Duplicate</class>
+		<member-name>duplicate</member-name>
+		<description>Returns a new duplicated version of the given DateTime object</description>
+		<status>hidden</status>
+		<argument>
+			<name>datetime</name>
+			<type>datetime</type>
+			<required>Yes</required>
+			<description>The query object to duplicate</description>
+		</argument>
+		<argument>
+			<name>deepcopy</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>if set to true (default) also the child elements are cloned, otherwise the child elements are still the same as in the original object</description>
+		</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+
+
 	<!-- GetSafeHTML
 	<function>
 		<name>GetSafeHTML</name>
