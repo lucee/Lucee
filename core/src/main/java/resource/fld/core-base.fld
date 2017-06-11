@@ -5430,7 +5430,7 @@ Example Values:
 		<argument>
 			<name>input</name>
 			<type>string</type>
-			<required>Yes</required>
+			<required>no</required>
 			<description>A string input off of which the key will be based</description>
 		</argument>
 		<return>

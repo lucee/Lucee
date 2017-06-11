@@ -12,6 +12,11 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class Generate3DesKey implements Function {
 
+    public static String call(PageContext pc) throws PageException {
+
+        return GenerateSecretKey.call(pc, "DESede");
+    }
+
     public static String call(PageContext pc, String input) throws PageException {
 
         SecretKeySpec keySpec = new SecretKeySpec(input.getBytes(), "DESede");
