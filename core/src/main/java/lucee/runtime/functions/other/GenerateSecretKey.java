@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.runtime.functions.conversion;
+package lucee.runtime.functions.other;
 
 
 import javax.crypto.KeyGenerator;

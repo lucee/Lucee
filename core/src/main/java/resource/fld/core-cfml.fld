@@ -371,6 +371,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>dateTimeFormat</name>
 		<class>lucee.runtime.functions.displayFormatting.DateTimeFormat</class>
+		<member-name>dateTimeFormat</member-name>
+		<member-type>date</member-type>
 		<keywords>date,string,formatting</keywords>
 		<description>Formats a date/time string to a given output</description>
 		<argument>
@@ -1438,6 +1440,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>lSTimeFormat</name>
 		<class>lucee.runtime.functions.international.LSTimeFormat</class>
+		<member-name>lSTimeFormat</member-name>
+		<member-type>date</member-type>
 		<keywords>date,string,formatting</keywords>
 		<description>Formats a time string to a given output using the current locale.</description>
 		<argument>
@@ -2521,6 +2525,8 @@ The following things are considered to be empty:
 	<function>
 		<name>lSDateTimeFormat</name>
 		<class>lucee.runtime.functions.international.LSDateTimeFormat</class>
+		<member-name>lSDateTimeFormat</member-name>
+		<member-type>date</member-type>
 		<keywords>date,string,formatting</keywords>
 		<description>Formats a date string to a given output using the current locale</description>
 		<argument>

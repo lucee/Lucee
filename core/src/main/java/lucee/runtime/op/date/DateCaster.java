@@ -445,7 +445,9 @@ public final class DateCaster {
             return ((Castable)o).castToDateTime(defaultValue);
         }
         else if(o instanceof String)    {
-        	if(advanced)return toDateAdvanced(o.toString(),convertingType, timeZone,defaultValue);
+        	if (advanced)
+        		return toDateAdvanced(o.toString(), convertingType, timeZone, defaultValue);
+
         	return toDateSimple(o.toString(),convertingType,true, timeZone,defaultValue);
         }
         else if(o instanceof Number){
@@ -1067,9 +1069,8 @@ public final class DateCaster {
 		hour=h;
 	}
 	
-	if(hour>12) return defaultValue;
-	if(minute>59) return defaultValue;
-	if(hour==12 && minute>0) return defaultValue;
+	if (minute > 59) return defaultValue;
+	if (hour > 14 || (hour == 14 && minute > 0)) return defaultValue;
 	
 	long offset = hour*60L*60L*1000L;
 	offset+=minute*60*1000;
