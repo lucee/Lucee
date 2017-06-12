@@ -1145,12 +1145,31 @@ public class CFMLExpressionInterpreter {
 			        cfml.previous();
                 }
             }
-            
-            
             // read right side of the dot
             if(before==cfml.getPos())
                 throw new InterpreterException("Number can't end with [.]");
         }
+
+		// scientific notation
+		else if(cfml.forwardIfCurrent('e')) {
+			Boolean expOp=null;
+			if(cfml.forwardIfCurrent('+')) expOp=Boolean.TRUE;
+			else if(cfml.forwardIfCurrent('-')) expOp=Boolean.FALSE;
+			
+			if(cfml.isCurrentBetween('0','9')) {
+				rtn.append('e');
+				if(expOp==Boolean.FALSE) rtn.append('-');
+				else if(expOp==Boolean.TRUE) rtn.append('+');
+		        digit(rtn);
+		    }
+		    else {
+		    	if(expOp!=null) cfml.previous();
+		        cfml.previous();
+		    }
+		}
+        
+        
+        
         cfml.removeSpace();
         mode=STATIC;
         return new LNumber(rtn.toString());
