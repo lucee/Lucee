@@ -42,7 +42,7 @@ import lucee.runtime.type.Struct;
 public class ThreadUtil {
 	
 
-	public static  PageContextImpl clonePageContext(PageContext pc, OutputStream os, boolean stateless,boolean register2Thread,boolean register2RunningThreads,boolean isChild)  {
+	public static  PageContextImpl clonePageContext(PageContext pc, OutputStream os, boolean stateless,boolean register2Thread,boolean register2RunningThreads)  {
 		// TODO stateless
 		CFMLFactoryImpl factory = (CFMLFactoryImpl) pc.getConfig().getFactory();
         HttpServletRequest	req=new HTTPServletRequestWrap(cloneHttpServletRequest(pc));
@@ -50,7 +50,7 @@ public class ThreadUtil {
         
         // copy state
         PageContextImpl pci = (PageContextImpl) pc;
-		PageContextImpl dest = factory.getPageContextImpl(factory.getServlet(), req, rsp, null, false, -1, false,register2Thread, isChild,pc.getRequestTimeout(),register2RunningThreads,false);
+		PageContextImpl dest = factory.getPageContextImpl(factory.getServlet(), req, rsp, null, false, -1, false,register2Thread, true,pc.getRequestTimeout(),register2RunningThreads,false);
 		pci.copyStateTo(dest);
 		return dest;
 	}

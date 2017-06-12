@@ -203,15 +203,15 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	 * @param pc
 	 */
 	@Override
-	public void releaseLuceePageContext(PageContext pc, boolean unregister) {
+	public void releaseLuceePageContext(PageContext pc, boolean unregisterFromThread) {
 		if(pc.getId()<0)return;
-		pc.release();
-		if(unregister)ThreadLocalPageContext.release();
+		if(unregisterFromThread)ThreadLocalPageContext.release();
+		//if(!pc.hasFamily())
+			pc.release();
 		runningPcs.remove(Integer.valueOf(pc.getId()));
 		if(pc.getParentPageContext()!=null)runningChildPcs.remove(Integer.valueOf(pc.getId()));
-		
-		if(pcs.size()<100 && ((PageContextImpl)pc).getTimeoutStackTrace()==null)// not more than 100 PCs
-		pcs.push(pc);
+		if(pcs.size()<100 && !pc.hasFamily() && ((PageContextImpl)pc).getTimeoutStackTrace()==null)// not more than 100 PCs
+			pcs.push(pc);
 	}
 
     /**

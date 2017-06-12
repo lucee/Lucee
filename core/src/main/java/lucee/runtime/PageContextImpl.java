@@ -442,6 +442,7 @@ public final class PageContextImpl extends PageContext {
 			 int bufferSize, 
 			 boolean autoFlush,
 			 boolean isChild, boolean ignoreScopes) {
+		parent=null;
 		appListenerType=ApplicationListener.TYPE_NONE;
 		this.ignoreScopes=ignoreScopes;
 
@@ -981,7 +982,6 @@ public final class PageContextImpl extends PageContext {
 		return includePathList.get(index-1);
 	}
 	public synchronized void copyStateTo(PageContextImpl other) {
-		
 		// cfid (we do this that way, otherwise we only have the same cfid if the current pc has defined cfid in cookie or url)
 		getCFID(); 
 		other.cfid=cfid;
@@ -994,7 +994,6 @@ public final class PageContextImpl extends PageContext {
 		other.fdEnabled=fdEnabled;
 		other.useSpecialMappings=useSpecialMappings;
 		other.serverPassword=serverPassword;
-		
 		
 		hasFamily=true;
 		other.hasFamily=true;
@@ -1052,8 +1051,6 @@ public final class PageContextImpl extends PageContext {
 		
 		// initialize stuff
 		other.undefined.initialize(other);
-		
-		
 	}
 	
 	public int getCurrentLevel() {

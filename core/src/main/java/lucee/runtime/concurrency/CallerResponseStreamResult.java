@@ -42,7 +42,7 @@ public abstract class CallerResponseStreamResult implements Callable<String> {
 	public CallerResponseStreamResult(PageContext parent) {
 		this.parent = parent;
 		this.baos = new ByteArrayOutputStream();
-		this.pc=ThreadUtil.clonePageContext(parent, baos, false, false, false, true);
+		this.pc=ThreadUtil.clonePageContext(parent, baos, false, false, false);
 	}
 	
 	@Override
