@@ -24,16 +24,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(dupArray).toBeTypeOf("Array");
 			});
 
-			it(title="checking duplicate function on string", body = function( currentSpec ) {
-				var str = "lucee";
-				var dupStr = str.duplicate();
-				expect(dupStr).toBeTypeOf("String");
-			});
-
 			it(title="checking duplicate function on dateTime", body = function( currentSpec ) {
 				var date = now();
 				var dupDate = date.duplicate();
 				expect(dupDate).toBeTypeOf("date");
+			});
+
+			/*
+			it(title="checking duplicate function on string", body = function( currentSpec ) {
+				var str = "lucee";
+				var dupStr = str.duplicate();
+				expect(dupStr).toBeTypeOf("String");
 			});
 
 			it(title="checking duplicate function on number", body = function( currentSpec ) {
@@ -47,6 +48,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var dupBln= bln.duplicate();
 				expect(dupBln).toBeTypeOf("boolean");
 			});
+			//*/
 		});
 	}
 }
