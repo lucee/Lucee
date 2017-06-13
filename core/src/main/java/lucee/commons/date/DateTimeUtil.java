@@ -34,7 +34,17 @@ public abstract class DateTimeUtil {
 	
 	private final static SimpleDateFormat HTTP_TIME_STRING_FORMAT_OLD;
 	private final static SimpleDateFormat HTTP_TIME_STRING_FORMAT;
+
+	public final static SimpleDateFormat DATETIME_FORMAT_GMT;
+	public final static SimpleDateFormat DATETIME_FORMAT_LOCAL;
+
 	static {
+
+		DATETIME_FORMAT_GMT = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");
+		DATETIME_FORMAT_GMT.setTimeZone(TimeZone.getTimeZone("GMT"));
+
+		DATETIME_FORMAT_LOCAL = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");
+
 		HTTP_TIME_STRING_FORMAT_OLD = new SimpleDateFormat("EE, dd MMM yyyy HH:mm:ss zz",Locale.ENGLISH);
 		HTTP_TIME_STRING_FORMAT_OLD.setTimeZone(TimeZone.getTimeZone("GMT"));
 		
