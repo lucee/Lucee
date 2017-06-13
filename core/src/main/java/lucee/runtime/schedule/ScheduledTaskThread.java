@@ -89,6 +89,10 @@ public class ScheduledTaskThread extends Thread {
 		try{
 		_run();
 		}
+		catch (Throwable t) {
+			log(Log.LEVEL_ERROR,"Error running task - see System.err log for details");
+			t.printStackTrace();
+		}
 		finally{
 			task.setValid(false);
 			try {
@@ -126,15 +130,22 @@ public class ScheduledTaskThread extends Thread {
 		while(true){
 			sleepEL(execution,today);
 			
-			if(!engine.isRunning()) break;
+			if(!engine.isRunning()){
+				log(Log.LEVEL_ERROR,"Engine is not running");
+				break;
+			}
 			
 			today=System.currentTimeMillis();
 			long todayTime=util.getMilliSecondsInDay(null,today);
 			long todayDate=today-todayTime;
 			
-			if(!task.isValid()) break;
+			if(!task.isValid()){
+				log(Log.LEVEL_ERROR,"Task is not valid");
+				break;
+			} 
 			if(!task.isPaused()){
 				if(endDate<todayDate && endTime<todayTime) {
+					log(Log.LEVEL_ERROR,"End date has passed: " + new DateTimeImpl(endDate+endTime,false).castToString(timeZone) + " - today: " + new DateTimeImpl(todayDate+todayTime,false).castToString(timeZone) );
 					break;
 				}
 				execute();
