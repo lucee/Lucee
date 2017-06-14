@@ -24,9 +24,12 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import lucee.commons.lang.StringUtil;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.functions.displayFormatting.DateTimeFormat;
+import lucee.runtime.functions.international.LSDateTimeFormat;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 
@@ -35,21 +38,16 @@ public abstract class DateTimeUtil {
 	private final static SimpleDateFormat HTTP_TIME_STRING_FORMAT_OLD;
 	private final static SimpleDateFormat HTTP_TIME_STRING_FORMAT;
 
-	public final static SimpleDateFormat DATETIME_FORMAT_GMT;
-	public final static SimpleDateFormat DATETIME_FORMAT_LOCAL;
+	//public final static SimpleDateFormat DATETIME_FORMAT_LOCAL;
 
 	static {
-
-		DATETIME_FORMAT_GMT = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");
-		DATETIME_FORMAT_GMT.setTimeZone(TimeZone.getTimeZone("GMT"));
-
-		DATETIME_FORMAT_LOCAL = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");
+		//DATETIME_FORMAT_LOCAL = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");
 
 		HTTP_TIME_STRING_FORMAT_OLD = new SimpleDateFormat("EE, dd MMM yyyy HH:mm:ss zz",Locale.ENGLISH);
 		HTTP_TIME_STRING_FORMAT_OLD.setTimeZone(TimeZone.getTimeZone("GMT"));
 		
 		HTTP_TIME_STRING_FORMAT = new SimpleDateFormat("EE, dd-MMM-yyyy HH:mm:ss zz",Locale.ENGLISH);
-		HTTP_TIME_STRING_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
+		HTTP_TIME_STRING_FORMAT.setTimeZone(TimeZoneConstants.UTC);
 	}
 	
     private static final double DAY_MILLIS = 86400000D;
@@ -278,6 +276,12 @@ public abstract class DateTimeUtil {
 			return StringUtil.replace(HTTP_TIME_STRING_FORMAT.format(date),"+00:00","",true);
 		}
 	}
-
+	
+	public static String format(long time,Locale l,TimeZone tz) {
+		return DateTimeFormat.invoke(
+				new DateTimeImpl(time, false), null,
+				ThreadLocalPageContext.getLocale(l),
+				ThreadLocalPageContext.getTimeZone(tz));
+	}
 
 }

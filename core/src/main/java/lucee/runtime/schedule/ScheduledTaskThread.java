@@ -30,7 +30,6 @@ import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.type.dt.DateTimeImpl;
-import static lucee.commons.date.DateTimeUtil.DATETIME_FORMAT_LOCAL;
 
 
 public class ScheduledTaskThread extends Thread {
@@ -123,7 +122,7 @@ public class ScheduledTaskThread extends Thread {
 		else execution = calculateNextExecution(today,false);
 		//long sleep=execution-today;
 		
-		log(Log.LEVEL_INFO,"First execution runs at " + DATETIME_FORMAT_LOCAL.format(execution));
+		log(Log.LEVEL_INFO,"First execution");
 
 		while(true){
 
@@ -145,8 +144,9 @@ public class ScheduledTaskThread extends Thread {
 			if(!task.isPaused()){
 				if(endDate<todayDate && endTime<todayTime) {
 					log(Log.LEVEL_ERROR, String.format("End date %s has passed; now: %s"
-							, DATETIME_FORMAT_LOCAL.format(endDate + endTime)
-							, DATETIME_FORMAT_LOCAL.format(todayDate + todayTime)));
+							, DateTimeUtil.format(endDate + endTime, null, timeZone)
+							, DateTimeUtil.format(todayDate + todayTime, null, timeZone))
+					);
 					break;
 				}
 				execute();
@@ -156,7 +156,7 @@ public class ScheduledTaskThread extends Thread {
 			execution=calculateNextExecution(today,true);
 
 			if (!task.isPaused())
-				log(Log.LEVEL_INFO, "next execution runs at " + DATETIME_FORMAT_LOCAL.format(execution));
+				log(Log.LEVEL_INFO, "next execution runs at " +DateTimeUtil.format(execution, null, timeZone));
 			//sleep=execution-today;
 		}
 	}

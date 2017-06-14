@@ -69,14 +69,22 @@ public final class DateTimeFormat extends BIF {
 	public static String call(PageContext pc , Object object, String mask,TimeZone tz) throws ExpressionException {
 		return invoke(pc,object,mask, Locale.US,tz==null?ThreadLocalPageContext.getTimeZone(pc):tz);
 	}
-	
 	public static String invoke(PageContext pc , Object object, String mask,Locale locale,TimeZone tz) throws ExpressionException {
-		if(locale==null) locale=Locale.US;
+		return invoke(object, mask, locale, tz);// FUTURE remove this method
+	}
+	
+	public static String invoke(Object object, String mask,Locale locale,TimeZone tz) throws ExpressionException  {
 		DateTime datetime = Caster.toDate(object,true,tz,null);
 		if(datetime==null) {
 		    if(object.toString().trim().length()==0) return "";
 		    throw new ExpressionException("can't convert value "+object+" to a datetime value");
 		}
+		return invoke(datetime, mask, locale, tz);
+	}
+	
+	public static String invoke(DateTime datetime, String mask,Locale locale,TimeZone tz)  {
+		
+		if(locale==null) locale=Locale.US;
 		java.text.DateFormat format=null;
 		
 		if("short".equalsIgnoreCase(mask)) 

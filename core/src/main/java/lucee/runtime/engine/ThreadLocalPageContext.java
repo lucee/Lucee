@@ -101,6 +101,15 @@ public final class ThreadLocalPageContext {
 	    return DEFAULT_TIMEZONE;
 	}
 	
+	public static Locale getLocale() {
+		return getLocale((PageContext)null);
+	}
+	
+	public static Locale getLocale(Locale l) {
+		if(l!=null) return l;
+		return getLocale((PageContext)null);
+	}
+	
 	public static Locale getLocale(PageContext pc) {
 		// pc
 		pc = get(pc);
