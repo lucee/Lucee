@@ -272,7 +272,7 @@ public class QueryParamConverter {
 			
 			// nulls (optional), "nulls" seems to be a typo that was left over for backward compatibility?
 			Object oNulls=sct.get(KeyConstants._nulls,null);
-			if(oNulls==null)oNulls=sct.get(KeyConstants._null,null);
+			//if(oNulls==null)oNulls=sct.get(KeyConstants._null,null);
 			
 			if(oNulls!=null) {
 				item.setNulls(Caster.toBooleanValue(oNulls));
