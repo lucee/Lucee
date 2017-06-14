@@ -92,7 +92,7 @@
 		<cfif request.admintype eq "server">
 			<cfset local.datadir = expandPath("{lucee-server}/userdata") & server.separator.file />
 		<cfelse>
-			<cfset local.datadir = expandPath("{lucee-web}/userdata") & server.separator.file />
+			<cfset local.datadir = expandPath("{lucee-web}/admin/userdata") & server.separator.file />
 		</cfif>
 		<cfif not directoryExists(datadir)>
 			<cfdirectory action="create" directory="#datadir#" />
