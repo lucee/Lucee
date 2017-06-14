@@ -30,7 +30,6 @@ import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.type.dt.DateTimeImpl;
-
 import static lucee.commons.date.DateTimeUtil.DATETIME_FORMAT_LOCAL;
 
 
@@ -89,15 +88,16 @@ public class ScheduledTaskThread extends Thread {
 		try{
 			_run();
 		}
-		catch (Throwable t) {
-			log(Log.LEVEL_ERROR,"Error running task - see System.err log for more details " + t.getMessage());
-			t.printStackTrace();
+		catch(Exception e) {
+			log(Log.LEVEL_ERROR,e);
+			if(e instanceof RuntimeException) throw (RuntimeException)e;
+			throw new RuntimeException(e);
 		}
-		finally{
+		finally {
 			task.setValid(false);
 			try {
 				scheduler.removeIfNoLonerValid(task);
-			} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+			} catch(Exception e) {}
 		}
 		
 	}
@@ -165,6 +165,10 @@ public class ScheduledTaskThread extends Thread {
 	private void log(int level, String msg) {
 		String logName="schedule task:"+task.getTask();
 		((ConfigImpl)config).getLog("scheduler").log(level,logName, msg);
+	}
+	private void log(int level, Exception e) {
+		String logName="schedule task:"+task.getTask();
+		((ConfigImpl)config).getLog("scheduler").log(level,logName, e);
 	}
 
 
