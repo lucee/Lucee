@@ -92,6 +92,14 @@ public abstract class XMLConfigFactory {
 			this.updateType=updateType;
 		}
 		
+		public String getUpdateTypeAsString() {
+			if(updateType==XMLConfigWebFactory.NEW_NONE) return "new-none";
+			if(updateType==XMLConfigWebFactory.NEW_FRESH) return "new-fresh";
+			if(updateType==XMLConfigWebFactory.NEW_FROM4) return "new-from4";
+			if(updateType==XMLConfigWebFactory.NEW_MINOR) return "new-minor";
+			return "unkown:"+updateType;
+		}
+		
 	}
 	
 	public static void updateRequiredExtension(CFMLEngine engine, Resource contextDir) {
@@ -103,7 +111,7 @@ public abstract class XMLConfigFactory {
 			IOUtil.write(res, str, SystemUtil.getCharset(), false);
 			
 		}
-		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+		catch(Exception e) {}
 	}
 
 	public static boolean isRequiredExtension(CFMLEngine engine, Resource contextDir) {
@@ -114,10 +122,9 @@ public abstract class XMLConfigFactory {
 			
 			String writtenVersion=IOUtil.toString(res,SystemUtil.getCharset());
 			String currVersion = info.getVersion() + "-" + info.getRealeaseTime();
-			
 			return writtenVersion.equals(currVersion);
 		}
-		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+		catch(Exception e) {}
 		return false;
 	}
 

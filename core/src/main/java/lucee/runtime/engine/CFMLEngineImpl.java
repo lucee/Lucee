@@ -58,7 +58,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 
 import lucee.Info;
-import lucee.print;
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.CharsetUtil;
@@ -300,7 +299,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
         	List<ExtensionDefintion> ext = info.getRequiredExtension();
         	extensions = toSet(null,ext);
         	SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT),
-            	"detected Extensions to install (new;"+updateInfo.updateType+"):"+toList(extensions));
+            	"detected Extensions to install (new;"+updateInfo.getUpdateTypeAsString()+"):"+toList(extensions));
         }
         // if we have an update we update the extension that re installed and we have an older version as defined in the manifest
         else if(installExtensions && (updateInfo.updateType==XMLConfigFactory.NEW_MINOR || !isRe)) {
@@ -317,21 +316,15 @@ public final class CFMLEngineImpl implements CFMLEngine {
         		}
         		try{
         			rhe = XMLConfigAdmin.hasRHExtensions(cs, new ExtensionDefintion(ed.getId()));
-        			
         			if(rhe==null) {
         				rheVersion=null;
         				Version since=ed.getSince();
-        				
         				if(since==null || updateInfo.oldVersion==null || !Util.isNewerThan(since, updateInfo.oldVersion)) 
         					continue; // not installed we do not update
         				extensions.add(ed);
         			}
         			else rheVersion=OSGiUtil.toVersion(rhe.getVersion(), null);
         			// if the installed is older than the one defined in the manifest we update (if possible)
-        			//print.e("----- "+ed.getId()+" ------");
-        			//print.e(ed.getVersion()+"->"+edVersion);
-        			//if(rhe!=null)print.e(rhe.getVersion()+"->"+rheVersion);
-        			//print.e(rheVersion!=null && OSGiUtil.isNewerThan(edVersion,rheVersion));
         			if(rheVersion!=null && OSGiUtil.isNewerThan(edVersion,rheVersion)) { // TODO do none OSGi version number comparsion
         				extensions.add(ed);
         			}
@@ -341,13 +334,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
         			extensions.add(ed);
         		}
         	}
-        	SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT),
-                	"detected Extensions to install (minor;"+updateInfo.updateType+"):"+toList(extensions));
+        	if(!extensions.isEmpty())
+        		SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT),"detected Extensions to install (minor;"+updateInfo.getUpdateTypeAsString()+"):"+toList(extensions));
         }
         else {
         	extensions = new HashSet<ExtensionDefintion>();
-        	SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT),
-                	"no update");
+        	//SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT),"no update");
         }
         // XMLConfigAdmin.hasRHExtensions(ci, ed)
         

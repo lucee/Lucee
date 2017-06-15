@@ -3823,7 +3823,7 @@ public final class XMLConfigAdmin {
 	        				localPath=patch;
 	        			}
 	        			// delete newer files
-	        			else if(Util.isNewerThan(v,version)) {
+	        			else if(OSGiUtil.isNewerThan(v,version)) {
 	        				patch.delete();
 	        			}
         			}
