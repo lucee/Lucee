@@ -333,5 +333,44 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		db["test2"].drop();				
 	}
+
+
+
+	public void function testCacheAsScope(){
+		local.id=createUniqueId();
+		local.uri=createURI("mongodb/index.cfm");
+
+		// on the first request everything is equal
+		local.result=_InternalRequest(template:uri,urls:{appName:id},addtoken:true);
+		local.sct=evaluate(result.filecontent);
+		loop list="client,session" item="scp" {
+			assertEquals(sct[scp].lastvisit&"",sct[scp].timecreated&"");
+		}
+
+		sleep(1000);
+
+		// on the second request time is different
+		local.result=_InternalRequest(template:uri,urls:{appName:id},addtoken:true);
+		local.sct=evaluate(result.filecontent);
+		loop list="client,session" item="scp" {
+			assertEquals(sct[scp].lastvisit&"",sct[scp].timecreated&"");
+		}
+
+		sleep(1000);
+
+		// on the third everything is different
+		local.result=_InternalRequest(template:uri,urls:{appName:id},addtoken:true);
+		local.sct=evaluate(result.filecontent);
+		loop list="client,session" item="scp" {
+			assertNotEquals(sct[scp].lastvisit&"",sct[scp].timecreated&"");
+		}
+	}
+
+	private string function createURI(string calledName){
+		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
+		return baseURI&""&calledName;
+	}
+
+
 }
 </cfscript>
