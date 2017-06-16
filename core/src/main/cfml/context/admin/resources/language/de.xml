@@ -629,6 +629,7 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
 	<data key="debug.templates.editIP">Edit IP address</data>
 	<data key="debug.templates.ipList">IP List</data>
 	<data key="debug.templates.iperror">Invalid IP</data>
+	<data key="debug.templates.ipExists">IP Already Exits</data>
 	<data key="general.enabled">Enabled</data>
 
 	<data key="compiler.nullSupport">Null Support</data>

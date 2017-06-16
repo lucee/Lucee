@@ -1,7 +1,9 @@
 <cfoutput>
-<cfinclude template="debugging.templates.readIP.cfm">
+<cfif url.action2 EQ "ipedit">
+	<cfinclude template="debugging.templates.readIP.cfm">
+</cfif>
 <cfif url.action2 EQ "ipEdit">
-	<cfset ipEdit = XmlSearch(xmlObj, '//*[  @id=''#url.id#'' and local-name()=''IPsList'' ]')>
+	<cfset ipStruct = deserializeJSON(xmlElem[1].xmlText)>
 	<h2>#stText.debug.templates.editIP#</h2>
 <cfelse>
 	<h2>#stText.debug.templates.addIP#</h2>
@@ -12,8 +14,13 @@
 			<tr>
 				<th scope="row">#stText.debug.templates.ip#</th>
 				<td>
-					<cfinputClassic type="hidden" name="id" value="#ipEdit[1].XmlAttributes.id#">
-					<cfinputClassic type="text" name="ip" value="#ipEdit[1].XmlText#" class="large">
+					<cfif url.action2 EQ "ipEdit">
+						<cfinputClassic type="hidden" name="id" value="#url.id#">
+						<cfinputClassic type="text" name="ip" value="#ipStruct[url.id]#" class="large">
+					<cfelse>
+						<cfinputClassic type="hidden" name="id" value="">
+						<cfinputClassic type="text" name="ip" value="" class="large">
+					</cfif>
 				</td>
 			</tr>
 		</tbody>

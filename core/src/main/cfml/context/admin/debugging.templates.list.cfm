@@ -1,39 +1,41 @@
-<cfoutput>
+.<cfoutput>
 	<!--- For reading/adding/editing/deleting tips to white list --->
 	<cfinclude template="debugging.templates.readIP.cfm">
+	<cfset regexMatch = "^\d+(\.\d+)*$" >
 	<cfif structKeyExists(form, "EditIP") && form.EditIP EQ stText.buttons.EditIP>
-		<cfset regexMatch = "^\d+(\.\d+)*$" >
 		<cfif isValid("regex","#form.ip#",regexMatch)>
-			<cfset xmlChild = XmlSearch(xmlObj, '//*[  @id=''#form.id#'' and local-name()=''IPsList'' ]')>
-			<cfset xmlChild[1].xmlText = form.ip>
-			<cfset fileWrite(filePath, toString(xmlObj))>
+			<cfset tempStruct = deserializeJSON(xmlElem[1].xmlText)>
+			<cfset ipExist =  structFindValue(tempStruct, "#form.ip#")>
+			<cfif !arrayLen(ipExist)>
+				<cfset structUpdate(tempStruct, form.id, form.ip)>
+				<cfset xmlElem[1].xmlText = serializeJSON(tempStruct)>
+				<cfset fileWrite(filePath, toString(xmlObj))>
+			<cfelse>
+				<cfset error.message = stText.debug.templates.ipExists>
+			</cfif>
 		<cfelse>
 			<cfset error.message = stText.debug.templates.iperror>
 		</cfif>
 	<cfelseif structKeyExists(form, "addIP") && form.addIP EQ stText.buttons.addIP>
-		<cfset regexMatch = "^\d+(\.\d+)*$" >
 		<cfif isValid("regex","#form.ip#",regexMatch)>
-			<cfset xmlElemNew = xmlElem[1]>
-			<cfset newIPElem = XmlElemNew(xmlElemNew,"IPsList")>
-			<cfset newIPElem.xmlText = form.ip>
-			<cfset structInsert(newIPElem.XmlAttributes, "id", createUUID())>
-			<cfset arrayAppend(xmlElemNew.XmlChildren, newIPElem)>
-			<cfset fileWrite(filePath, toString(xmlObj))>
+			<cfset tempStruct = deserializeJSON(xmlElem[1].xmlText)>
+			<cfset ipExist =  structFindValue(tempStruct, "#form.ip#")>
+			<cfif !arrayLen(ipExist)>
+				<cfset structInsert(tempStruct, createUUID(), form.ip)>
+				<cfset xmlElem[1].xmlText = serializeJSON(tempStruct)>
+				<cfset fileWrite(filePath, toString(xmlObj))>
+			<cfelse>
+				<cfset error.message = stText.debug.templates.ipExists>
+			</cfif>
 		<cfelse>
 			<cfset error.message = stText.debug.templates.iperror>
 		</cfif>
 	<cfelseif structKeyExists(form, "deleteIP") && form.deleteIP EQ stText.Buttons.Delete>
-		<cfset ipElm = XmlSearch(xmlObj, '//*[ local-name()=''ipresrtriction'' ]')>
-		<cfloop list="#form.id#" index="list">
-			<cfset count= 1>
-			<cfloop array="#ipElm[1].XmlChildren#" index="i">
-				<cfif i.XmlAttributes.id EQ list>
-					<cfset pos = count>
-				</cfif>
-				<cfset count = count + 1>
-			</cfloop>
-			<cfset arrayDeleteAt(ipElm[1].XmlChildren, pos)>
+		<cfset tempStruct = deserializeJSON(xmlElem[1].xmlText)>
+		<cfloop list="#form.id#" index="i">
+			<cfset structDelete(tempStruct, i)>
 		</cfloop>
+		<cfset xmlElem[1].xmlText = serializeJSON(tempStruct)>
 		<cfset fileWrite(filePath, toString(xmlObj))>
 	</cfif>
 </cfoutput>
