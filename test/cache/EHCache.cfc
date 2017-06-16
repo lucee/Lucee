@@ -84,7 +84,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		// on the first request everything is equal
 		local.result=_InternalRequest(template:uri,urls:{appName:id},addtoken:true);
-		local.sct=evaluate(result);
+		local.sct=evaluate(result.filecontent);
 		loop list="client,session" item="scp" {
 			assertEquals(sct[scp].startTime&"",sct[scp].timecreated&"");
 			assertEquals(sct[scp].lastTime&"",sct[scp].lastvisit&"");
@@ -96,7 +96,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		// on the second request time is different
 		local.result=_InternalRequest(template:uri,urls:{appName:id},addtoken:true);
-		local.sct=evaluate(result);
+		local.sct=evaluate(result.filecontent);
 		loop list="client,session" item="scp" {
 			assertEquals(sct[scp].startTime&"",sct[scp].timecreated&"");
 			assertEquals(sct[scp].lastTime&"",sct[scp].lastvisit&"");
@@ -109,7 +109,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		// on the third everything is different
 		local.result=_InternalRequest(template:uri,urls:{appName:id},addtoken:true);
-		local.sct=evaluate(result);
+		local.sct=evaluate(result.filecontent);
 		loop list="client,session" item="scp" {
 			assertEquals(sct[scp].startTime&"",sct[scp].timecreated&"");
 			assertEquals(sct[scp].lastTime&"",sct[scp].lastvisit&"");
