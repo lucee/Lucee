@@ -86,10 +86,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		local.result=_InternalRequest(template:uri,urls:{appName:id},addtoken:true);
 		local.sct=evaluate(result.filecontent);
 		loop list="client,session" item="scp" {
-			assertEquals(sct[scp].startTime&"",sct[scp].timecreated&"");
-			assertEquals(sct[scp].lastTime&"",sct[scp].lastvisit&"");
-			assertEquals(sct[scp].time&"",sct[scp].lastvisit&"");
-			assertEquals(sct[scp].time&"",sct[scp].timecreated&"");
+			assertEquals(sct[scp].lastvisit&"",sct[scp].timecreated&"");
 		}
 
 		sleep(1000);
@@ -98,10 +95,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		local.result=_InternalRequest(template:uri,urls:{appName:id},addtoken:true);
 		local.sct=evaluate(result.filecontent);
 		loop list="client,session" item="scp" {
-			assertEquals(sct[scp].startTime&"",sct[scp].timecreated&"");
-			assertEquals(sct[scp].lastTime&"",sct[scp].lastvisit&"");
-
-			assertNotEquals(sct[scp].time&"",sct[scp].lastvisit&"");
 			assertEquals(sct[scp].lastvisit&"",sct[scp].timecreated&"");
 		}
 
@@ -111,11 +104,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		local.result=_InternalRequest(template:uri,urls:{appName:id},addtoken:true);
 		local.sct=evaluate(result.filecontent);
 		loop list="client,session" item="scp" {
-			assertEquals(sct[scp].startTime&"",sct[scp].timecreated&"");
-			assertEquals(sct[scp].lastTime&"",sct[scp].lastvisit&"");
-
-			assertNotEquals(sct[scp].time&"",sct[scp].lastvisit&"");
-			assertNOTEquals(sct[scp].lastvisit&"",sct[scp].timecreated&"");
+			assertNotEquals(sct[scp].lastvisit&"",sct[scp].timecreated&"");
 		}
 
 	}
