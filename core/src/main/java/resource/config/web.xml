@@ -233,4 +233,5 @@ for every argument defined lucee tries to call a matching setter method
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/application.log" level="info" layout="classic" name="application"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/exception.log" level="info" layout="classic" name="exception"/>	
 	</logging>		
+	<ipresrtriction><IPsList id="1">127.0.0.1</IPsList><IPsList id="2">0:0:0:0:0:0:0:1</IPsList></ipresrtriction>
 </cfLuceeConfiguration>

@@ -589,7 +589,7 @@
 	<data key="login.delay">Delay</data>
 	<data key="login.delayDesc">Sets the delay between login attempts. This is a global setting for all user requests.</data>
 
-
+	<data key="login.restricted.ip">Access Restricted for this IP</data>
 	<data key="login.changepassword">Change password</data>
 	<data key="login.d">one Day</data>
 	<data key="login.changepassworddescription">Change the password for this administrator</data>
@@ -647,6 +647,11 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.settings.timerDesc">Select this option to show timer event information. Timers let a developer track the execution time of the code between the start and end tags of the CFTIMER tag.</data>
 	<data key="debug.settings.implicitAccess">Implicit variable Access</data>
 	<data key="debug.settings.implicitAccessDesc">Select this option to log all accesses to scopes, queries and threads that happens implicit (cascaded).</data>
+	<data key="debug.templates.ip">IP</data>
+	<data key="debug.templates.addIP">Add New IP address</data>
+	<data key="debug.templates.editIP">Edit IP address</data>
+	<data key="debug.templates.ipList">IP List</data>
+	<data key="debug.templates.iperror">Invalid IP</data>
 	<data key="general.enabled">Enabled</data>
 	<data key="scopes.sessiontimeoutdescription">Sets the amount of time Lucee will keep the session scope alive. This behaviour can be overridden by the tag cfapplication.</data>
 	<data key="scopes.sessiontype_application">Application</data>
@@ -837,6 +842,8 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="buttons.installFull">Install Full Version</data>
 	<data key="buttons.updateTrial">Update as Trial</data>
 	<data key="buttons.updateFull">Update as Full Version</data>
+	<data key="buttons.addIP">Add IP</data>
+	<data key="buttons.editIP">Edit IP</data>
 
 	<data key="video.web.installed">The video components are installed on your system.</data>
 	<data key="video.web.installedbut">The video components are installed but they can not be executed properly.Just switch to the Lucee Server Administrator, in order to repair it:</data>
