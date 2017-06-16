@@ -76,5 +76,55 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	return true;
 	}
 
+
+
+	public void function testCacheAsScope(){
+		local.id=createUniqueId();
+		local.uri=createURI("ehcache/index.cfm");
+
+		// on the first request everything is equal
+		local.result=_InternalRequest(template:uri,urls:{appName:id},addtoken:true);
+		local.sct=evaluate(result);
+		loop list="client,session" item="scp" {
+			assertEquals(sct[scp].startTime&"",sct[scp].timecreated&"");
+			assertEquals(sct[scp].lastTime&"",sct[scp].lastvisit&"");
+			assertEquals(sct[scp].time&"",sct[scp].lastvisit&"");
+			assertEquals(sct[scp].time&"",sct[scp].timecreated&"");
+		}
+
+		sleep(1000);
+
+		// on the second request time is different
+		local.result=_InternalRequest(template:uri,urls:{appName:id},addtoken:true);
+		local.sct=evaluate(result);
+		loop list="client,session" item="scp" {
+			assertEquals(sct[scp].startTime&"",sct[scp].timecreated&"");
+			assertEquals(sct[scp].lastTime&"",sct[scp].lastvisit&"");
+
+			assertNotEquals(sct[scp].time&"",sct[scp].lastvisit&"");
+			assertEquals(sct[scp].lastvisit&"",sct[scp].timecreated&"");
+		}
+
+		sleep(1000);
+
+		// on the third everything is different
+		local.result=_InternalRequest(template:uri,urls:{appName:id},addtoken:true);
+		local.sct=evaluate(result);
+		loop list="client,session" item="scp" {
+			assertEquals(sct[scp].startTime&"",sct[scp].timecreated&"");
+			assertEquals(sct[scp].lastTime&"",sct[scp].lastvisit&"");
+
+			assertNotEquals(sct[scp].time&"",sct[scp].lastvisit&"");
+			assertNOTEquals(sct[scp].lastvisit&"",sct[scp].timecreated&"");
+		}
+
+	}
+
+	private string function createURI(string calledName){
+		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
+		return baseURI&""&calledName;
+	}
+
+
 } 
 </cfscript>
