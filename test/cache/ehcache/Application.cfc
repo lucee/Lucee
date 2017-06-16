@@ -6,7 +6,7 @@
 	this.cache.connections["perAppCache"] = {
 		class: 'org.lucee.extension.cache.eh.EHCache'
 		, bundleName: 'ehcache.extension'
-		, bundleVersion: '2.10.0.21'
+		//, bundleVersion: '2.10.0.21'
 		, storage: true
 		, custom:
 			{ "bootstrapAsynchronously":"true", 
@@ -20,10 +20,10 @@
 				"memoryevictionpolicy":"LRU", 
 				"replicatePutsViaCopy":"true", 
 				"timeToIdleSeconds":"86400", 
+				"timeToLiveSeconds":"86400",
 				"maximumChunkSizeBytes":"5000000", 
 				"automatic_multicastGroupPort":"4446", 
-				"listener_socketTimeoutMillis":"120000", 
-				"timeToLiveSeconds":"86400", 
+				"listener_socketTimeoutMillis":"120000",
 				"diskpersistent":"true", 
 				"manual_addional":"", 
 				"replicateRemovals":"true", 
@@ -41,6 +41,8 @@
 		}
 		, default: ''
 	};
+
+
 
 	THIS.applicationTimeout = createTimeSpan( 60, 0, 0, 0 );
 	THIS.sessionManagement = true;
