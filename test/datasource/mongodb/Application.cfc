@@ -12,12 +12,12 @@
 		, custom:
 			{
 			"collection":"testsession",
-			"password":mongoDB.password,
+			"password":mongoDB.pass,
 			"connectionsPerHost":"10",
 			"database":"test",
 			"hosts":mongoDB.server&":"&mongoDB.port,
 			"persist":"true",
-			"username":mongoDB.username
+			"username":mongoDB.user
 			}
 		, default: ''
 	};
