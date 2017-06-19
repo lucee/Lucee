@@ -845,10 +845,8 @@ public final class FileTag extends BodyTagImpl {
 		boolean fileWasAppended=false;
 		boolean fileExisted=false;
 		boolean fileWasOverwritten=false;
-		
-		
-		String contentType=formItem.getContentType();
-		
+
+		String contentType = ResourceUtil.getMimeType(formItem.getResource(), ResourceUtil.MIMETYPE_CHECK_HEADER, formItem.getContentType());
 		
 		// set cffile struct
 		Struct cffile=new StructImpl();
@@ -868,7 +866,7 @@ public final class FileTag extends BodyTagImpl {
 			strClientFile=strClientFile.replace('\\','/');
 		Resource clientFile=pageContext.getConfig().getResource(strClientFile);
 		String clientFileName=clientFile.getName();
-		
+
 		// check file type
 		checkContentType(contentType,accept,getFileExtension(clientFile),strict);
 		
@@ -1002,8 +1000,8 @@ public final class FileTag extends BodyTagImpl {
 		else ext=null;
 		
 		if(StringUtil.isEmpty(accept,true)) return;
-		
-		
+
+
 		MimeType mt = MimeType.getInstance(contentType),sub;
 		
 		Array whishedTypes=ListUtil.listToArrayRemoveEmpty(accept,',');
