@@ -9,6 +9,7 @@ import java.io.Serializable;
 
 import lucee.commons.collection.MapPro;
 import lucee.commons.io.IOUtil;
+import lucee.commons.lang.NumberUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
@@ -19,13 +20,28 @@ public class IKStorageValue implements Serializable {
 	private static final byte[] EMPTY = new byte[0];
 	
 	private transient MapPro<Collection.Key,IKStorageScopeItem> value;
-	private long lastModified;
+	private final long lastModified;
 	private final byte[] barr;
 
 	public IKStorageValue(MapPro<Collection.Key,IKStorageScopeItem> value) throws PageException {
 		this.value=value;
 		this.barr=serialize(value);
 		this.lastModified=System.currentTimeMillis();
+	}
+
+	public IKStorageValue(byte[][] barrr) throws PageException {
+		this.barr=barrr[0];
+		this.lastModified=NumberUtil.byteArrayToLong(barrr[0]);
+	}
+
+	public static byte[][] toByteRepresentation(MapPro<Collection.Key,IKStorageScopeItem> value) throws PageException {
+		byte[] barr=serialize(value);
+		return new byte[][]{barr,NumberUtil.longToByteArray(System.currentTimeMillis())};
+	}
+
+	public static byte[][] toByteRepresentation(IKStorageValue val) throws PageException {
+		byte[] barr=val.barr;
+		return new byte[][]{barr,NumberUtil.longToByteArray(val.lastModified)};
 	}
 	
 	public long lastModified() {

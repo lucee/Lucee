@@ -23,7 +23,11 @@ public class IKHandlerCache implements IKHandler {
 		String key=getKey(pc.getCFID(),appName,strType);
 		Object val = cache.getValue(key,null);
 
-		if(val instanceof IKStorageValue) {
+		if(val instanceof byte[][]) {
+			ScopeContext.info(log,"load existing data from  cache ["+name+"] to create "+strType+" scope for "+pc.getApplicationContext().getName()+"/"+pc.getCFID());
+			return new IKStorageValue((byte[][])val);
+		}
+		else if(val instanceof IKStorageValue) {
 			ScopeContext.info(log,"load existing data from  cache ["+name+"] to create "+strType+" scope for "+pc.getApplicationContext().getName()+"/"+pc.getCFID());
 			return (IKStorageValue)val;
 		}
@@ -43,7 +47,7 @@ public class IKHandlerCache implements IKHandler {
 			Object existingVal = cache.getValue(key,null);
 			cache.put(
 					key, 
-					new IKStorageValue(IKStorageScopeSupport.prepareToStore(data,existingVal,storageScope.lastModified())),
+					IKStorageValue.toByteRepresentation(IKStorageScopeSupport.prepareToStore(data,existingVal,storageScope.lastModified())),
 					new Long(storageScope.getTimeSpan()), null);
 		} 
 		catch (Exception pe) {pe.printStackTrace();}
