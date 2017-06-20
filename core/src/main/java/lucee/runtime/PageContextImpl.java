@@ -3322,14 +3322,18 @@ public final class PageContextImpl extends PageContext {
 	}
 	
 	public ClassLoader getClassLoader(Resource[] reses) throws IOException{
-		return getResourceClassLoader().getCustomResourceClassLoader(reses);
+
+		ResourceClassLoader rcl = getResourceClassLoader();
+		return rcl.getCustomResourceClassLoader(reses);
 	}
 	
 	private ResourceClassLoader getResourceClassLoader() throws IOException {
+
 		JavaSettingsImpl js = (JavaSettingsImpl) applicationContext.getJavaSettings();
-		if(js!=null) {
+
+		if (js != null)
 			return config.getResourceClassLoader().getCustomResourceClassLoader(js.getResourcesTranslated());
-		}
+
 		return config.getResourceClassLoader();
 	}
 	
