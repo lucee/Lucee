@@ -32,7 +32,7 @@ public final class ThreadLocalConfig {
 	 * register a Config for he current thread
 	 * @param config Config to register
 	 */
-	public static void register(Config config) {
+	public static void register(Config config) {// DO NOT CHANGE, used in Ortus extension via reflection
 		cThreadLocal.set(config);
 	}
 
@@ -47,7 +47,7 @@ public final class ThreadLocalConfig {
 	/**
 	 * release the pagecontext for the current thread
 	 */
-	public static void release() {
+	public static void release() {// DO NOT CHANGE, used in Ortus extension via reflection
 		cThreadLocal.set(null);
 	}
 }
