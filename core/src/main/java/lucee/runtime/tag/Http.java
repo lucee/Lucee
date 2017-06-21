@@ -23,18 +23,22 @@ import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 
@@ -677,7 +681,7 @@ public final class Http extends BodyTagImpl {
 		long start=System.nanoTime();
 		HttpClientBuilder builder = HttpClients.custom();
 		ssl(builder);
-		
+
     	// redirect
     	if(redirect)  builder.setRedirectStrategy(new DefaultRedirectStrategy());
     	else builder.disableRedirectHandling();
@@ -685,11 +689,6 @@ public final class Http extends BodyTagImpl {
     	// cookies
     	BasicCookieStore cookieStore = new BasicCookieStore();
     	builder.setDefaultCookieStore(cookieStore);
-
-		// clientCert
-		if(this.clientCert!=null) {
-			HTTPEngine4Impl.setClientSSL(pageContext,builder, this.clientCert, this.clientCertPassword);
-		}
 
     	ConfigWeb cw = pageContext.getConfig();
     	HttpRequestBase req=null;
@@ -1081,9 +1080,9 @@ public final class Http extends BodyTagImpl {
 
 			rsp=e.response;
 
-			
+
 			if(!e.done){
-				req.abort();	
+				req.abort();
 				if(throwonerror)
 					throw new HTTPException("408 Request Time-out","a timeout occurred in tag http",408,"Time-out",rsp==null?null:rsp.getURL());
 				setRequestTimeout(cfhttp);
@@ -1325,7 +1324,7 @@ public final class Http extends BodyTagImpl {
 				String id = createId();
 				CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_HTTP,null).getInstanceMatchingObject(cachedWithin,null);
 				if(ch!=null){
-					
+
 					if(statCode>=200 && statCode<300)
 						ch.set(pageContext, id,cachedWithin,new HTTPCacheItem(cfhttp,url,System.nanoTime()-start));
 				}
@@ -1336,19 +1335,37 @@ public final class Http extends BodyTagImpl {
 			if(client!=null)client.close();
 		}
 	}
-	
-	private void ssl(HttpClientBuilder builder) {
-		SSLContext sslcontext = SSLContexts.createSystemDefault();
-		
-		final SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactoryImpl(sslcontext,new DefaultHostnameVerifierImpl());
-		builder.setSSLSocketFactory(sslsf);
-		Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create()
-        .register("http", PlainConnectionSocketFactory.getSocketFactory())
-        .register("https", sslsf)
-        .build();
-		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(
-				new DefaultHttpClientConnectionOperatorImpl(reg), null, -1, TimeUnit.MILLISECONDS); // TODO review -1 setting
-		builder.setConnectionManager(cm);
+
+	private void ssl(HttpClientBuilder builder) throws PageException {
+		try {
+			// SSLContext sslcontext = SSLContexts.createSystemDefault();
+			SSLContext sslcontext = SSLContext.getInstance("TLSv1.2");
+			if(!StringUtil.isEmpty(this.clientCert)) {
+				if(this.clientCertPassword==null)this.clientCertPassword="";
+				File ksFile = new File(this.clientCert);
+				KeyStore clientStore = KeyStore.getInstance("PKCS12");
+				clientStore.load(new FileInputStream(ksFile), this.clientCertPassword.toCharArray());
+
+				KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+				kmf.init(clientStore, this.clientCertPassword.toCharArray());
+
+				sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
+			} else {
+				sslcontext.init(null, null, new java.security.SecureRandom());
+			}
+			final SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactoryImpl(sslcontext,new DefaultHostnameVerifierImpl());
+			builder.setSSLSocketFactory(sslsf);
+			Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create()
+	        .register("http", PlainConnectionSocketFactory.getSocketFactory())
+	        .register("https", sslsf)
+	        .build();
+			PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(
+					new DefaultHttpClientConnectionOperatorImpl(reg), null, -1, TimeUnit.MILLISECONDS); // TODO review -1 setting
+			builder.setConnectionManager(cm);
+		}
+		catch(Exception e){
+			throw Caster.toPageException(e);
+		}
 	}
 
 	private TimeSpan checkRemainingTimeout() throws RequestTimeoutException {
@@ -2054,10 +2071,10 @@ public final class Http extends BodyTagImpl {
 
 	public static void setTimeout(HttpClientBuilder builder, TimeSpan timeout) {
 		if(timeout==null || timeout.getMillis()<=0) return;
-		
+
 		int ms=(int)timeout.getMillis();
 		if(ms<0)ms=Integer.MAX_VALUE;
-		
+
 		//builder.setConnectionTimeToLive(ms, TimeUnit.MILLISECONDS);
     	SocketConfig sc=SocketConfig.custom()
     			.setSoTimeout(ms)
@@ -2068,7 +2085,7 @@ public final class Http extends BodyTagImpl {
 }
 
 class Executor4 extends PageContextThread {
-	
+
 	 final Http http;
 	 private final CloseableHttpClient client;
 	 final boolean redirect;
