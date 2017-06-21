@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lucee.print;
 import lucee.commons.collection.MapPro;
 import lucee.commons.collection.concurrent.ConcurrentHashMapPro;
 import lucee.commons.io.log.Log;
@@ -615,6 +614,19 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 			IKStorageValue storage=(IKStorageValue) oStorage;
 			if(storage.lastModified()>lastModified) {
 				MapPro<Key, IKStorageScopeItem> trg = storage.getValue();
+				IKStorageScopeSupport.merge(local,trg);
+				return trg;
+			}
+			else {
+				return IKStorageScopeSupport.cleanRemoved(local);
+				
+			}
+		}
+		else if(oStorage instanceof byte[][]) {
+			byte[][] barrr=(byte[][]) oStorage;
+			if(IKStorageValue.toLong(barrr[1])>lastModified) {
+				if(barrr[0]==null || barrr[0].length==0) return local;
+				MapPro<Key, IKStorageScopeItem> trg = IKStorageValue.deserialize(barrr[0]);
 				IKStorageScopeSupport.merge(local,trg);
 				return trg;
 			}

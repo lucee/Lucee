@@ -31,22 +31,26 @@ public class IKStorageValue implements Serializable {
 
 	public IKStorageValue(byte[][] barrr) throws PageException {
 		this.barr=barrr[0];
-		this.lastModified=NumberUtil.byteArrayToLong(barrr[0]);
+		this.lastModified=toLong(barrr[1]);
 	}
 
 	public static byte[][] toByteRepresentation(MapPro<Collection.Key,IKStorageScopeItem> value) throws PageException {
-		byte[] barr=serialize(value);
-		return new byte[][]{barr,NumberUtil.longToByteArray(System.currentTimeMillis())};
+		return new byte[][]{serialize(value),NumberUtil.longToByteArray(System.currentTimeMillis())};
 	}
 
 	public static byte[][] toByteRepresentation(IKStorageValue val) throws PageException {
-		byte[] barr=val.barr;
-		return new byte[][]{barr,NumberUtil.longToByteArray(val.lastModified)};
+		return new byte[][]{val.barr,NumberUtil.longToByteArray(val.lastModified)};
 	}
 	
 	public long lastModified() {
 		return lastModified;
 	}
+	
+	public static long toLong(byte[] barr) {
+		return NumberUtil.byteArrayToLong(barr);
+	}
+	
+	
 	public MapPro<Collection.Key,IKStorageScopeItem> getValue() throws PageException {
 		if(value==null) {
 			if(barr.length==0) return null;
@@ -55,7 +59,7 @@ public class IKStorageValue implements Serializable {
 		return value;
 	}
 	
-	private static MapPro<Collection.Key,IKStorageScopeItem> deserialize(byte[] barr) throws PageException {
+	public static MapPro<Collection.Key,IKStorageScopeItem> deserialize(byte[] barr) throws PageException {
 		if(barr==null || barr.length==0) return null;
 		
 		ObjectInputStream ois=null;

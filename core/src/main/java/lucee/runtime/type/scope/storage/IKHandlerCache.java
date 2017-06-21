@@ -22,7 +22,6 @@ public class IKHandlerCache implements IKHandler {
 		Cache cache = getCache(pc,name);
 		String key=getKey(pc.getCFID(),appName,strType);
 		Object val = cache.getValue(key,null);
-
 		if(val instanceof byte[][]) {
 			ScopeContext.info(log,"load existing data from  cache ["+name+"] to create "+strType+" scope for "+pc.getApplicationContext().getName()+"/"+pc.getCFID());
 			return new IKStorageValue((byte[][])val);
@@ -48,6 +47,7 @@ public class IKHandlerCache implements IKHandler {
 			cache.put(
 					key, 
 					IKStorageValue.toByteRepresentation(IKStorageScopeSupport.prepareToStore(data,existingVal,storageScope.lastModified())),
+					//new IKStorageValue(IKStorageScopeSupport.prepareToStore(data,existingVal,storageScope.lastModified())),
 					new Long(storageScope.getTimeSpan()), null);
 		} 
 		catch (Exception pe) {pe.printStackTrace();}
