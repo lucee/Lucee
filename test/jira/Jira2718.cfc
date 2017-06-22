@@ -76,7 +76,7 @@
 		assertEquals(false,initVal == tagFunctionCreateTimespan());
 	}
 
-	// createTimeSpan(0,0,0,0,8)
+	// createTimeSpan(0,0,0,0,17)
 	function testTagFunctionDouble(){
 		var initVal=tagFunctionDouble();
 		sleep(2);
