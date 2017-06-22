@@ -35,6 +35,7 @@ import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.query.QueryResultCacheItem;
+import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
@@ -604,7 +605,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 				if (cacheHandler != null){
 
-					if (cachedWithin != null && Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
+					if ((cacheHandler instanceof TimespanCacheHandler) && cachedWithin != null && Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
 						// remove from cache
 						cacheHandler.remove(pageContext, cacheId);
 					}

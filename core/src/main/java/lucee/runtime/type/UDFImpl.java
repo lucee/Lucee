@@ -37,6 +37,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheItem;
+import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.cache.tag.udf.UDFCacheItem;
 import lucee.runtime.component.MemberSupport;
 import lucee.runtime.config.Config;
@@ -249,7 +250,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 
 		if (cacheHandler != null){
 
-			if (cachedWithin != null && Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
+			if ((cacheHandler instanceof TimespanCacheHandler) && cachedWithin != null && Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
 				// remove item from cache
 				cacheHandler.remove(pc, cacheId);
 			}

@@ -49,6 +49,7 @@ import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.file.FileCacheItem;
+import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.ApplicationException;
@@ -611,7 +612,7 @@ public final class FileTag extends BodyTagImpl {
 
 			if (cacheHandler != null){
 
-				if (Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
+				if ((cacheHandler instanceof TimespanCacheHandler) && Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
 					// remove from cache
 					cacheHandler.remove(pageContext, cacheId);
 				}

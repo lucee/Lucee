@@ -48,6 +48,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheItem;
+import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.cache.tag.webservice.WebserviceCacheItem;
 import lucee.runtime.config.Config;
 import lucee.runtime.dump.DumpData;
@@ -221,7 +222,7 @@ final class Axis1Client extends WSClient {
 
     	if (cacheHandler != null){
 
-			if (cachedWithin != null && Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
+			if ((cacheHandler instanceof TimespanCacheHandler) && cachedWithin != null && Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
 				// remove item from cache
 				cacheHandler.remove(pc, cacheId);
 			}
