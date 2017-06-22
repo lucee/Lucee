@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
@@ -54,14 +54,11 @@ import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.JspEngineInfoImpl;
-import lucee.runtime.engine.Request;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionImpl;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.functions.string.Hash;
-import lucee.runtime.lock.LockManager;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -82,7 +79,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	
 	private static JspEngineInfo info=new JspEngineInfoImpl("1.0");
 	private ConfigWebImpl config;
-	Stack<PageContext> pcs=new Stack<PageContext>();
+	ConcurrentLinkedDeque<PageContext> pcs=new ConcurrentLinkedDeque<PageContext>();
 	private final Map<Integer,PageContextImpl> runningPcs=new ConcurrentHashMap<Integer, PageContextImpl>();
 	private final Map<Integer,PageContextImpl> runningChildPcs=new ConcurrentHashMap<Integer, PageContextImpl>();
     
@@ -105,11 +102,9 @@ public final class CFMLFactoryImpl extends CFMLFactory {
      * reset the PageContexes
      */
     @Override
-	public void resetPageContext() {
+	public void resetPageContext() { 
         SystemOut.printDate(config.getOutWriter(),"Reset "+pcs.size()+" Unused PageContexts");
-        synchronized(pcs) {
-            pcs.clear();
-        }
+        pcs.clear();
         Iterator<PageContextImpl> it = runningPcs.values().iterator();
         while(it.hasNext()){
         	it.next().reset();
@@ -125,7 +120,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		boolean needsSession,
 		int bufferSize,
 		boolean autoflush) {
-			return getPageContextImpl((HttpServlet)servlet,(HttpServletRequest)req,(HttpServletResponse)rsp,errorPageURL,needsSession,bufferSize,autoflush,true,false,-1,true,false);
+			return getPageContextImpl((HttpServlet)servlet,(HttpServletRequest)req,(HttpServletResponse)rsp,errorPageURL,needsSession,bufferSize,autoflush,true,false,-1,true,false,false);
 	}
 	
 	@Override
@@ -139,7 +134,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		int bufferSize,
 		boolean autoflush)  {
         //runningCount++;
-        return getPageContextImpl(servlet, req, rsp, errorPageURL, needsSession, bufferSize, autoflush,true,false,-1,true,false);
+        return getPageContextImpl(servlet, req, rsp, errorPageURL, needsSession, bufferSize, autoflush,true,false,-1,true,false,false);
 	}
 
 	@Override
@@ -153,7 +148,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		boolean autoflush,boolean register, long timeout,boolean register2RunningThreads, boolean ignoreScopes)  {
         //runningCount++;
         return getPageContextImpl(servlet, req, rsp, errorPageURL, needsSession, bufferSize, autoflush,register,false,timeout,
-        		register2RunningThreads,ignoreScopes);
+        		register2RunningThreads,ignoreScopes,false);
 	}
 	
 	public PageContextImpl getPageContextImpl(
@@ -163,28 +158,34 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		        String errorPageURL,
 				boolean needsSession,
 				int bufferSize,
-				boolean autoflush,boolean register2Thread,boolean isChild,long timeout,boolean register2RunningThreads,boolean ignoreScopes) {
-		        PageContextImpl pc; 
-				synchronized (pcs) {
-					if(pcs.isEmpty()) pc=new PageContextImpl(scopeContext,config,idCounter++,servlet,ignoreScopes);
-		            else pc=((PageContextImpl)pcs.pop());
-		            if(timeout>0)pc.setRequestTimeout(timeout);
-		            if(register2RunningThreads){
-		            	runningPcs.put(Integer.valueOf(pc.getId()),pc);
-		            	if(isChild)runningChildPcs.put(Integer.valueOf(pc.getId()),pc);
-		            	
-		            }
-		            this._servlet=servlet;
-		            if(register2Thread)ThreadLocalPageContext.register(pc);
+				boolean autoflush,boolean register2Thread,
+				boolean isChild,
+				long timeout,
+				boolean register2RunningThreads,
+				boolean ignoreScopes,
+				boolean createNew) {
+		        PageContextImpl pc;
+		        
+				if(createNew || pcs.isEmpty()) pc=new PageContextImpl(scopeContext,config,idCounter++,servlet,ignoreScopes);
+	            else pc=((PageContextImpl)pcs.pop());
+				
+	            if(timeout>0)pc.setRequestTimeout(timeout);
+	            if(register2RunningThreads){
+	            	runningPcs.put(Integer.valueOf(pc.getId()),pc);
+	            	if(isChild)runningChildPcs.put(Integer.valueOf(pc.getId()),pc);
+	            	
+	            }
+	            this._servlet=servlet;
+	            if(register2Thread)ThreadLocalPageContext.register(pc);
 		    		
-		        }
+		        
 		        pc.initialize(servlet,req,rsp,errorPageURL,needsSession,bufferSize,autoflush,isChild,ignoreScopes);
 		        return pc;
 			}
 
     @Override
 	public void releasePageContext(javax.servlet.jsp.PageContext pc) {
-		releaseLuceePageContext((PageContext)pc);
+		releaseLuceePageContext((PageContext)pc,true);
 	}
 
     @Override
@@ -289,9 +290,9 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	public int getUsedPageContextLength() { 
 		int length=0;
 		try{
-		Iterator it = runningPcs.values().iterator();
+		Iterator<PageContextImpl> it = runningPcs.values().iterator();
 		while(it.hasNext()){
-			PageContextImpl pc=(PageContextImpl) it.next();
+			PageContextImpl pc = it.next();
 			if(!pc.isGatewayContext()) length++;
 		}
 		}
@@ -408,7 +409,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				} catch (PageException e2) {}
 
                 try {
-					data.setEL("id", Hash.call(pc, pc.getId()+":"+pc.getStartTime()));
+					data.setEL(KeyConstants._id, Hash.call(pc, pc.getId()+":"+pc.getStartTime()));
 				} catch (PageException e1) {}
                 data.setEL("requestid", pc.getId());
 

@@ -575,9 +575,7 @@ public final class PageContextImpl extends PageContext {
 			if(!isChild){
 				req.disconnect(this);
 			}
-			
 			close();
-			thread=null;
 			base=null;
 			if(children!=null) children.clear();
 			
@@ -594,10 +592,7 @@ public final class PageContextImpl extends PageContext {
 		}
 		else {
 			close();
-			thread=null;
 			base=null;
-			
-			
 			if(variables.isBind()) {
 				variables=null;
 				variablesRoot=null;
