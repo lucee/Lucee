@@ -16,49 +16,54 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.scope.ScopeContext;
 
 public class IKHandlerCache implements IKHandler {
+
 	@Override
-	public IKStorageValue loadData(PageContext pc, String appName, String name, String strType, 
-			int type, Log log) throws PageException	{
+	public IKStorageValue loadData(PageContext pc, String appName, String name, String strType, int type, Log log) throws PageException	{
 		Cache cache = getCache(pc,name);
 		String key=getKey(pc.getCFID(),appName,strType);
-		Object val = cache.getValue(key,null);
-		if(val instanceof byte[][]) {
-			ScopeContext.info(log,"load existing data from  cache ["+name+"] to create "+strType+" scope for "+pc.getApplicationContext().getName()+"/"+pc.getCFID());
-			return new IKStorageValue((byte[][])val);
+		synchronized (cache) { // sync necessary?
+			Object val = cache.getValue(key,null);
+			if(val instanceof byte[][]) {
+				ScopeContext.info(log,"load existing data from  cache ["+name+"] to create "+strType+" scope for "+pc.getApplicationContext().getName()+"/"+pc.getCFID());
+				return new IKStorageValue((byte[][])val);
+			}
+			else if(val instanceof IKStorageValue) {
+				ScopeContext.info(log,"load existing data from  cache ["+name+"] to create "+strType+" scope for "+pc.getApplicationContext().getName()+"/"+pc.getCFID());
+				return (IKStorageValue)val;
+			}
+			else {
+				ScopeContext.info(log,"create new "+strType+" scope for "+pc.getApplicationContext().getName()+"/"+pc.getCFID()+" in cache ["+name+"]");
+			}
+			return null;
 		}
-		else if(val instanceof IKStorageValue) {
-			ScopeContext.info(log,"load existing data from  cache ["+name+"] to create "+strType+" scope for "+pc.getApplicationContext().getName()+"/"+pc.getCFID());
-			return (IKStorageValue)val;
-		}
-		else {
-			ScopeContext.info(log,"create new "+strType+" scope for "+pc.getApplicationContext().getName()+"/"+pc.getCFID()+" in cache ["+name+"]");
-		}
-		return null;
 	}
 	
 	@Override
-	public synchronized void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, String cfid,
+	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, String cfid,
 			MapPro<Collection.Key,IKStorageScopeItem> data, Log log) {
 		try {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), name);
 			String key=getKey(cfid, appName, storageScope.getTypeAsString());
 			
-			Object existingVal = cache.getValue(key,null);
-			cache.put(
-					key, 
-					IKStorageValue.toByteRepresentation(IKStorageScopeSupport.prepareToStore(data,existingVal,storageScope.lastModified())),
-					//new IKStorageValue(IKStorageScopeSupport.prepareToStore(data,existingVal,storageScope.lastModified())),
-					new Long(storageScope.getTimeSpan()), null);
+			synchronized (cache) {
+				Object existingVal = cache.getValue(key,null);
+				cache.put(
+						key, 
+						IKStorageValue.toByteRepresentation(IKStorageScopeSupport.prepareToStore(data,existingVal,storageScope.lastModified())),
+						//new IKStorageValue(IKStorageScopeSupport.prepareToStore(data,existingVal,storageScope.lastModified())),
+						new Long(storageScope.getTimeSpan()), null);
+			}
 		} 
 		catch (Exception pe) {pe.printStackTrace();}
 	}
 	
 	@Override
-	public synchronized void unstore(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, String cfid, Log log) {
+	public void unstore(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, String cfid, Log log) {
 		try {
 			Cache cache = getCache(pc, name);
 			String key=getKey(cfid, appName, storageScope.getTypeAsString());
-			cache.remove(key);
+			
+			synchronized (cache) {cache.remove(key);}
 		} 
 		catch (Exception pe) {}
 	}
