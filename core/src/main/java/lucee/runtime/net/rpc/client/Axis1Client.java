@@ -203,31 +203,47 @@ final class Axis1Client extends WSClient {
     private boolean hasCachedWithin(PageContext pc) {
 		return pc.getCachedWithin(Config.CACHEDWITHIN_WEBSERVICE)!=null;
 	}
-    private Object getCachedWithin(PageContext pc) {
+
+	private Object getCachedWithin(PageContext pc) {
 		//if(this.properties.cachedWithin!=null) return this.properties.cachedWithin;
     	return pc.getCachedWithin(Config.CACHEDWITHIN_WEBSERVICE);
 	}
     
-    private Object _callCachedWithin(PageContext pc,Config secondChanceConfig,String methodName, Struct namedArguments,Object[] arguments) throws PageException, RemoteException, ServiceException {
+    private Object _callCachedWithin(PageContext pc, Config secondChanceConfig, String methodName, Struct namedArguments, Object[] arguments) throws PageException, RemoteException, ServiceException {
     	
     	// no pc no cache!
-    	if(pc==null) return _call(pc, secondChanceConfig, methodName, namedArguments, arguments);
-    	
-    	String id=CacheHandlerCollectionImpl.createId(wsdlUrl,username,password,proxyData,methodName,arguments,namedArguments);
-    	CacheHandler ch = pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_WEBSERVICE,null).getInstanceMatchingObject( getCachedWithin(pc),null);
-		CacheItem ci=ch!=null?ch.get(pc, id):null;
-		
-		// get from cache
-		if(ci instanceof WebserviceCacheItem ) {
-			WebserviceCacheItem entry = (WebserviceCacheItem)ci;
-			return entry.getData();
+    	if (pc == null)
+    		return _call(pc, secondChanceConfig, methodName, namedArguments, arguments);
+
+		Object cachedWithin = getCachedWithin(pc);
+    	String cacheId = CacheHandlerCollectionImpl.createId(wsdlUrl, username, password, proxyData, methodName, arguments,namedArguments);
+    	CacheHandler cacheHandler = pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_WEBSERVICE,null).getInstanceMatchingObject(cachedWithin,null);
+
+    	if (cacheHandler != null){
+
+			if (cachedWithin != null && Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
+				// remove item from cache
+				cacheHandler.remove(pc, cacheId);
+			}
+			else {
+				// check cache
+				CacheItem cacheItem = cacheHandler.get(pc, cacheId);
+
+				if (cacheItem instanceof WebserviceCacheItem ) {
+					WebserviceCacheItem entry = (WebserviceCacheItem)cacheItem;
+					return entry.getData();
+				}
+			}
 		}
-    	
+
+		// cached item not found, process and cache result if needed
 		long start = System.nanoTime();
     	Object rtn = _call(pc, secondChanceConfig, methodName, namedArguments, arguments);
-    	if(ch!=null)ch.set(pc, id,getCachedWithin(pc),new WebserviceCacheItem(rtn,wsdlUrl,methodName,System.nanoTime()-start));
+
+    	if (cacheHandler != null)
+    		cacheHandler.set(pc, cacheId, cachedWithin, new WebserviceCacheItem(rtn, wsdlUrl, methodName, System.nanoTime()-start));
+
 		return rtn;
-		
     }
 
     private Object _call(PageContext pc,Config secondChanceConfig,String methodName, Struct namedArguments,Object[] arguments) throws PageException, ServiceException, RemoteException {
@@ -705,13 +721,6 @@ final class Axis1Client extends WSClient {
 		return ((ServiceEntry)symTabEntry).getService();
 	}
 
-	/**
-     * returns the WSDL Port
-	 * @param service
-	 * @return WSDL Port
-	 * @throws RPCException
-	 */
-	
 
 	private Object getArgumentData(TypeMapping tm,TimeZone tz, Parameter p, Object arg) throws PageException {
 		//print.e("ArgumentData");

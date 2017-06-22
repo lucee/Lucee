@@ -555,32 +555,52 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		    	}
 		    	index++;
 			}
-	// cache
-		    boolean isFromCache=false;
-		    boolean hasCached=cachedWithin!=null || cachedafter!=null;
-		    Object cacheValue=null;
-		    String dsn = ds instanceof DataSource?((DataSource)ds).getName():Caster.toString(ds);
-			if(hasCached) {
-				String id = CacheHandlerCollectionImpl.createId(_sql,dsn,username,password,Query.RETURN_TYPE_STORED_PROC);
-				CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY,null)
-						.getInstanceMatchingObject(cachedWithin,null);
-				
-				CacheItem ci = ch!=null?ch.get(pageContext, id):null;
-				if(ci!=null)cacheValue=((StoredProcCacheItem)ci).getStruct();
-				//cacheValue = pageContext.getQueryCache().get(pageContext,_sql,dsn,username,password,cachedafter);
+
+			String dsn = (ds instanceof DataSource) ? ((DataSource)ds).getName() : Caster.toString(ds);
+
+			// cache
+			boolean isFromCache = false;
+			Object cacheValue = null;
+			boolean useCache = (cachedWithin != null) || (cachedafter != null);
+			String cacheId = null;
+			CacheHandler cacheHandler = null;
+
+			if (useCache) {
+
+				cacheId = CacheHandlerCollectionImpl.createId(_sql, dsn, username, password, Query.RETURN_TYPE_STORED_PROC);
+				cacheHandler = pageContext.getConfig()
+						.getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null)
+						.getInstanceMatchingObject(cachedWithin, null);
+
+				if (cacheHandler != null){
+
+					if (cachedWithin != null && Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
+						// remove from cache
+						cacheHandler.remove(pageContext, cacheId);
+					}
+					else {
+						// check cache
+						CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
+
+						if (cacheItem != null)
+							cacheValue = ((StoredProcCacheItem)cacheItem).getStruct();
+						//cacheValue = pageContext.getQueryCache().get(pageContext,_sql,dsn,username,password,cachedafter);
+					}
+				}
 			}
+
 			int count=0;
 			long start=System.currentTimeMillis();
 			if(cacheValue==null){
 				// execute
-				boolean isResult=callStat.execute();
+				boolean isResult = callStat.execute();
 				
-			    Struct cache=hasCached?new StructImpl():null;
+			    Struct cacheStruct = useCache ? new StructImpl() : null;
 	
 			    // resultsets
 			    ProcResultBean result;
 			    
-			    index=1;
+			    index = 1;
 				do {
 				    if(isResult){
 			    		ResultSet rs=callStat.getResultSet();
@@ -591,7 +611,9 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 									lucee.runtime.type.Query q = new QueryImpl(rs,result.getMaxrows(),result.getName(),pageContext.getTimeZone());	
 									count+=q.getRecordcount();
 									setVariable(result.getName(), q);
-									if(hasCached)cache.set(KeyImpl.getInstance(result.getName()), q);
+
+									if (useCache)
+										cacheStruct.set(KeyImpl.getInstance(result.getName()), q);
 								}
 							}
 							finally{
@@ -617,19 +639,19 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			    			
 			    			if(param==STATUS_CODE) res.set(STATUSCODE, value);
 			    			else setVariable(param.getVariable(), value);
-			    			if(hasCached)cache.set(KeyImpl.getInstance(param.getVariable()), value);
+
+			    			if (useCache)
+			    				cacheStruct.set(KeyImpl.getInstance(param.getVariable()), value);
 			    		}
 			    	}
 				}
-			    if(hasCached){
-			    	cache.set(COUNT, Caster.toDouble(count));
-			    	String id = CacheHandlerCollectionImpl.createId(_sql,dsn,username,password,Query.RETURN_TYPE_STORED_PROC);
-					CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY,null)
-							.getInstanceMatchingObject(cachedWithin,null);
-					if(ch!=null)ch.set(pageContext, id, cachedWithin, new StoredProcCacheItem(cache,procedure, System.currentTimeMillis()-start));
+
+			    if (cacheHandler != null){
+
+			    	cacheStruct.set(COUNT, Caster.toDouble(count));
+					cacheHandler.set(pageContext, cacheId, cachedWithin, new StoredProcCacheItem(cacheStruct, procedure, System.currentTimeMillis()-start));
 			    	//pageContext.getQueryCache().set(pageContext,_sql,dsn,username,password,cache,cachedbefore);
 			    }
-			    
 			}
 			else if(cacheValue instanceof Struct) {
 				Struct sctCache = (Struct) cacheValue;

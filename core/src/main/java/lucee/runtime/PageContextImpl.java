@@ -851,29 +851,43 @@ public final class PageContextImpl extends PageContext {
 		}
 		
 		// get cached data
-		String id=CacheHandlerCollectionImpl.createId(sources);
-		CacheHandler ch = config.getCacheHandlerCollection(Config.CACHE_TYPE_INCLUDE,null).getInstanceMatchingObject(cachedWithin,null);
-		CacheItem ci=ch!=null?ch.get(this, id):null;
-		if(ci instanceof IncludeCacheItem) {
-			try {
-				write(((IncludeCacheItem)ci).getOutput());
-				return;
-			} catch (IOException e) {
-				throw Caster.toPageException(e);
+		String cacheId = CacheHandlerCollectionImpl.createId(sources);
+		CacheHandler cacheHandler = config.getCacheHandlerCollection(Config.CACHE_TYPE_INCLUDE, null).getInstanceMatchingObject(cachedWithin, null);
+
+		if (cacheHandler != null){
+
+			if (Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
+				// remove item from cache
+				cacheHandler.remove(this, cacheId);
+			}
+			else {
+				// check cache
+				CacheItem cacheItem = cacheHandler.get(this, cacheId);
+
+				if(cacheItem instanceof IncludeCacheItem) {
+					try {
+						write(((IncludeCacheItem)cacheItem).getOutput());
+						return;
+					} catch (IOException e) {
+						throw Caster.toPageException(e);
+					}
+				}
 			}
 		}
+
+		// cached item not found, process and cache result if needed
 		long start = System.nanoTime();
-		
 		BodyContent bc =  pushBody();
 		
 		try {
 			_doInclude(sources, runOnce);
 			String out = bc.getString();
-			if(ch!=null)ch.set(this, id,cachedWithin,new IncludeCacheItem(
-					out
-					,ArrayUtil.isEmpty(sources)?null:sources[0]
-					,System.nanoTime()-start));
-			return;
+
+			if (cacheHandler != null) {
+				CacheItem cacheItem = new IncludeCacheItem(out, ArrayUtil.isEmpty(sources) ? null : sources[0],System.nanoTime() - start);
+				cacheHandler.set(this, cacheId, cachedWithin, cacheItem);
+				return;
+			}
 		}
 		finally {
 			BodyContentUtil.flushAndPop(this,bc);

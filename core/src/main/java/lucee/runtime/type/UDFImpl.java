@@ -237,27 +237,43 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 	}
     
 
-    private Object _callCachedWithin(PageContext pc,Collection.Key calledName, Object[] args, Struct values,boolean doIncludePath) throws PageException {
-    	PageContextImpl pci=(PageContextImpl) pc;
-    	String id=CacheHandlerCollectionImpl.createId(this,args,values);
-    	CacheHandler ch = pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FUNCTION,null).getInstanceMatchingObject(getCachedWithin(pc),null);
-		CacheItem ci=ch!=null?ch.get(pc, id):null;
-		
-		// get from cache
-		if(ci instanceof UDFCacheItem ) {
-			UDFCacheItem entry = (UDFCacheItem)ci;
-			//if(entry.creationdate+properties.cachedWithin>=System.currentTimeMillis()) {
-				try {
-					pc.write(entry.output);
-				} catch (IOException e) {
-					throw Caster.toPageException(e);
+    private Object _callCachedWithin(PageContext pc, Collection.Key calledName, Object[] args, Struct values, boolean doIncludePath) throws PageException {
+
+		PageContextImpl pci = (PageContextImpl)pc;
+
+		Object cachedWithin = getCachedWithin(pc);
+		String cacheId = CacheHandlerCollectionImpl.createId(this, args, values);
+		CacheHandler cacheHandler = pc.getConfig()
+				.getCacheHandlerCollection(Config.CACHE_TYPE_FUNCTION, null)
+				.getInstanceMatchingObject(getCachedWithin(pc), null);
+
+		if (cacheHandler != null){
+
+			if (cachedWithin != null && Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
+				// remove item from cache
+				cacheHandler.remove(pc, cacheId);
+			}
+			else {
+				// check cache
+				CacheItem cacheItem = cacheHandler.get(pc, cacheId);
+
+				if (cacheItem instanceof UDFCacheItem ) {
+
+					UDFCacheItem entry = (UDFCacheItem)cacheItem;
+					//if(entry.creationdate+properties.cachedWithin>=System.currentTimeMillis()) {
+					try {
+						pc.write(entry.output);
+					} catch (IOException e) {
+						throw Caster.toPageException(e);
+					}
+					return entry.returnValue;
+					//}
+					//cache.remove(id);
 				}
-				return entry.returnValue;
-			//}
-			
-			//cache.remove(id);
+			}
 		}
-    	
+
+		// cached item not found, process and cache result if needed
 		long start = System.nanoTime();
     	
 		// execute the function
@@ -266,9 +282,9 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 	    try {
 	    	Object rtn = _call(pci,calledName, args, values, doIncludePath);
 	    	
-	    	if(ch!=null){
+	    	if (cacheHandler != null){
 	    		String out = bc.getString();
-	    		ch.set(pc, id,getCachedWithin(pc),new UDFCacheItem(out, rtn,getFunctionName(),getSource(),System.nanoTime()-start));
+	    		cacheHandler.set(pc, cacheId, cachedWithin, new UDFCacheItem(out, rtn, getFunctionName(), getSource(), System.nanoTime()-start));
 	    	}
 			// cache.put(id, new UDFCacheEntry(out, rtn),properties.cachedWithin,properties.cachedWithin);
 	    	return rtn;

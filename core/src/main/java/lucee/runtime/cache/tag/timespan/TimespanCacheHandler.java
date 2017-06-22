@@ -59,7 +59,8 @@ public class TimespanCacheHandler implements CacheHandler {
 
 	@Override
 	public CacheItem get(PageContext pc, String id) {
-		return CacheHandlerCollectionImpl.toCacheItem(getCache(pc).getValue(id,null),null);
+		Object cachedValue = getCache(pc).getValue(id, null);
+		return CacheHandlerCollectionImpl.toCacheItem(cachedValue, null);
 	}
 	
 	@Override
@@ -74,23 +75,13 @@ public class TimespanCacheHandler implements CacheHandler {
 
 	@Override
 	public void set(PageContext pc, String id, Object cachedWithin, CacheItem value) throws PageException {
+
 		long timeSpan;
-		if(Decision.isDate(cachedWithin, false) && !(cachedWithin instanceof TimeSpan))
-			timeSpan=Caster.toDate(cachedWithin, null).getTime()-System.currentTimeMillis();
+		if (Decision.isDate(cachedWithin, false) && !(cachedWithin instanceof TimeSpan))
+			timeSpan = Caster.toDate(cachedWithin, null).getTime() - System.currentTimeMillis();
 		else
 			timeSpan = Caster.toTimespan(cachedWithin).getMillis();
-		
-		// clear when timespan smaller or equal to 0
-		if(timeSpan<=0) {
-			try {
-				getCache(pc).remove(id);
-			} 
-			catch (IOException e) {
-				throw Caster.toPageException(e);
-			}
-			return;
-		}
-		
+
 		try {
 			getCache(pc).put(id, value, Long.valueOf(timeSpan), Long.valueOf(timeSpan));
 		} catch (IOException e) {
@@ -137,20 +128,26 @@ public class TimespanCacheHandler implements CacheHandler {
 			return 0;
 		}
 	}
-	
 
 	private Cache getCache(PageContext pc) {
-		Cache c = CacheUtil.getDefault(pc,cacheType,null);
-		if(c==null) {
-			if(defaultCache==null){
+
+		Cache cache = CacheUtil.getDefault(pc, cacheType, null);
+
+		if (cache == null) {
+
+			if (defaultCache == null){
 				RamCache rm = new RamCache().init(0, 0, RamCache.DEFAULT_CONTROL_INTERVAL);
 				rm.decouple();
-				defaultCache=rm;
+				defaultCache = rm;
 			}
+
 			return defaultCache;
 		}
-		if(c instanceof CachePro) return ((CachePro) c).decouple();
-		return c;
+
+		if (cache instanceof CachePro)
+			return ((CachePro)cache).decouple();
+
+		return cache;
 	}
 
 	@Override
