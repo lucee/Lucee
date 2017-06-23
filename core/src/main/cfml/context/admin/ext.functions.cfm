@@ -200,13 +200,16 @@
 
 		<!--- shrink images if needed --->
 		<cfif img.height GT arguments.height or img.width GT arguments.width>
-			<cfif img.height GT arguments.height >
-				<cfimage action="resize" source="#img#" height="#arguments.height#" name="img">
-			</cfif>
-			<cfif img.width GT arguments.width>
-				<cfimage action="resize" source="#img#" width="#arguments.width#" name="img">
-			</cfif>
-			<cfset data=toBinary(img)>
+			<cftry>
+				<cfif img.height GT arguments.height >
+					<cfimage action="resize" source="#img#" height="#arguments.height#" name="img">
+				</cfif>
+				<cfif img.width GT arguments.width>
+					<cfimage action="resize" source="#img#" width="#arguments.width#" name="img">
+				</cfif>
+				<cfset data=toBinary(img)>
+				<cfcatch></cfcatch>
+			</cftry>
 		</cfif>
 
 		<cftry>
