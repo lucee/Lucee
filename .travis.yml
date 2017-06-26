@@ -3,12 +3,18 @@ language: java
 jdk:
   - oraclejdk8
 
+# build only commits to branch master or where pattern matches "n.n" (where n is a number), e.g. 5.2
+branches:
+  only:
+    - master
+    - /\d+\.\d+$/
+
 #os:
 #  - linux
 #  - osx
 
 # copy the settings.xml for maven from the "travis" branch
-before_install: 
+before_install:
 # - "git clone -b travis `git config --get remote.origin.url` target/travis"
 
 services:
@@ -25,7 +31,7 @@ before_install:
   # for more see https://docs.travis-ci.com/user/database-setup
 
 
-script: 
+script:
 # maven deploy process (builds lucee and deploys to sonatype)
  - mvn -e -f loader/pom.xml clean deploy --settings travis-settings.xml #target/travis/settings.xml
 
