@@ -203,18 +203,18 @@ public final class DebuggerImpl implements Debugger {
 	
 
 	public static boolean debugQueryUsage(PageContext pageContext, QueryResult qr) {
-		if(pageContext.getConfig().debug() && qr instanceof QueryImpl) {
+		if(pageContext.getConfig().debug() && qr instanceof Query) {
 			if(((ConfigWebImpl)pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_QUERY_USAGE)){
-				((QueryImpl)qr).enableShowQueryUsage();
+				((Query)qr).enableShowQueryUsage();
 				return true;
 			}
 		}
 		return false;
 	}
 	public static boolean debugQueryUsage(PageContext pageContext, Query qry) {
-		if(pageContext.getConfig().debug() && qry instanceof QueryImpl) {
+		if(pageContext.getConfig().debug() && qry instanceof Query) {
 			if(((ConfigWebImpl)pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_QUERY_USAGE)){
-				((QueryImpl)qry).enableShowQueryUsage();
+				qry.enableShowQueryUsage();
 				return true;
 			}
 		}
