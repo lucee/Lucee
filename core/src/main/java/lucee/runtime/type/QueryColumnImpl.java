@@ -554,7 +554,7 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
         return clone;
     }
     
-    protected synchronized void populate(QueryColumnImpl trg, boolean deepCopy) {
+    protected void populate(QueryColumnImpl trg, boolean deepCopy) {
         
         boolean inside=ThreadLocalDuplication.set(this, trg);
         try{
@@ -564,9 +564,11 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 	        trg.type=this.type;
 	        trg.key=this.key;
 	        
-	        trg.data=new Object[this.data.length];
-	        for(int i=0;i<this.data.length;i++) {
-	            trg.data[i]=deepCopy?Duplicator.duplicate(this.data[i],true):this.data[i];
+	     // we first get data local, because length of the object cannot be changed, the safes us from modifications from outside
+	        Object[] data=this.data;
+        	trg.data=new Object[data.length];
+	        for(int i=0;i<data.length;i++) {
+	            trg.data[i]=deepCopy?Duplicator.duplicate(data[i],true):data[i];
 	        }
         }
         finally {

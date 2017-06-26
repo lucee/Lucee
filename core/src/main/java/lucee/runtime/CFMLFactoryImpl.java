@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
@@ -79,7 +80,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	
 	private static JspEngineInfo info=new JspEngineInfoImpl("1.0");
 	private ConfigWebImpl config;
-	ConcurrentLinkedDeque<PageContext> pcs=new ConcurrentLinkedDeque<PageContext>();
+	ConcurrentLinkedDeque<PageContextImpl> pcs=new ConcurrentLinkedDeque<PageContextImpl>();
 	private final Map<Integer,PageContextImpl> runningPcs=new ConcurrentHashMap<Integer, PageContextImpl>();
 	private final Map<Integer,PageContextImpl> runningChildPcs=new ConcurrentHashMap<Integer, PageContextImpl>();
     
@@ -166,9 +167,19 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				boolean createNew) {
 		        PageContextImpl pc;
 		        
-				if(createNew || pcs.isEmpty()) pc=new PageContextImpl(scopeContext,config,idCounter++,servlet,ignoreScopes);
-	            else pc=((PageContextImpl)pcs.pop());
-				
+		        if(createNew || pcs.isEmpty()) {
+		        	pc=null;
+		        }
+		        else {
+			        try{
+			        	pc=pcs.pop();
+			        }
+			        catch(NoSuchElementException nsee) {
+			        	pc=null;
+			        }
+		        }
+		        if(pc==null) pc=new PageContextImpl(scopeContext,config,idCounter++,servlet,ignoreScopes);
+	            
 	            if(timeout>0)pc.setRequestTimeout(timeout);
 	            if(register2RunningThreads){
 	            	runningPcs.put(Integer.valueOf(pc.getId()),pc);
@@ -212,7 +223,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		runningPcs.remove(Integer.valueOf(pc.getId()));
 		if(pc.getParentPageContext()!=null)runningChildPcs.remove(Integer.valueOf(pc.getId()));
 		if(pcs.size()<100 && !pc.hasFamily() && ((PageContextImpl)pc).getTimeoutStackTrace()==null)// not more than 100 PCs
-			pcs.push(pc);
+			pcs.push((PageContextImpl) pc);
 	}
 
     /**
