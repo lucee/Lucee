@@ -8,6 +8,7 @@ import lucee.commons.io.log.Log;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
+import lucee.runtime.cache.ram.RamCache;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -47,9 +48,15 @@ public class IKHandlerCache implements IKHandler {
 			
 			synchronized (cache) {
 				Object existingVal = cache.getValue(key,null);
+				
+				// FUTURE add IKStorageValue to loader and then the byte array impl is no longer needed
 				cache.put(
 						key, 
-						IKStorageValue.toByteRepresentation(IKStorageScopeSupport.prepareToStore(data,existingVal,storageScope.lastModified())),
+						deserializeIKStorageValueSupported(cache)?
+							new IKStorageValue(IKStorageScopeSupport.prepareToStore(data,existingVal,storageScope.lastModified()))
+							:IKStorageValue.toByteRepresentation(IKStorageScopeSupport.prepareToStore(data,existingVal,storageScope.lastModified())),
+								
+						
 						//new IKStorageValue(IKStorageScopeSupport.prepareToStore(data,existingVal,storageScope.lastModified())),
 						new Long(storageScope.getTimeSpan()), null);
 			}
@@ -57,6 +64,14 @@ public class IKHandlerCache implements IKHandler {
 		catch (Exception pe) {pe.printStackTrace();}
 	}
 	
+	private boolean deserializeIKStorageValueSupported(Cache cache) {
+		// FUTURE extend Cache interface to make sure it can handle serilasation
+		if(cache==null) return false;
+		if(cache instanceof RamCache) return true;
+		if(cache.getClass().getName().equals("org.lucee.extension.cache.eh.EHCache")) return true;
+		return false;
+	}
+
 	@Override
 	public void unstore(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, String cfid, Log log) {
 		try {

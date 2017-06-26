@@ -19,14 +19,17 @@ public class IKStorageValue implements Serializable {
 	private static final long serialVersionUID = 2728185742217909233L;
 	private static final byte[] EMPTY = new byte[0];
 	
-	private transient MapPro<Collection.Key,IKStorageScopeItem> value;
-	private final long lastModified;
-	private final byte[] barr;
+	transient MapPro<Collection.Key,IKStorageScopeItem> value;
+	final long lastModified;
+	final byte[] barr;
 
 	public IKStorageValue(MapPro<Collection.Key,IKStorageScopeItem> value) throws PageException {
+		this(value,serialize(value),System.currentTimeMillis());
+	}
+	public IKStorageValue(MapPro<Collection.Key,IKStorageScopeItem> value, byte[] barr, long lastModified) {
 		this.value=value;
-		this.barr=serialize(value);
-		this.lastModified=System.currentTimeMillis();
+		this.barr=barr;
+		this.lastModified=lastModified;
 	}
 
 	public IKStorageValue(byte[][] barrr) throws PageException {
@@ -77,7 +80,7 @@ public class IKStorageValue implements Serializable {
 		return data;
 	}
 	
-	private static byte[] serialize(MapPro<Collection.Key,IKStorageScopeItem> data) throws PageException {
+	static byte[] serialize(MapPro<Collection.Key,IKStorageScopeItem> data) throws PageException {
 		if(data==null) return EMPTY;
 		
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
