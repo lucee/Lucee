@@ -27,7 +27,7 @@
 	<cffunction name="tagFunctionCreateTimespan" cachedWithin="#createTimespan(0,0,0,0,20)#" access="private">
 		<cfreturn getTickCount()>
 	</cffunction>
-	<cffunction name="tagFunctionDouble" cachedWithin="0.0000002" access="private">
+	<cffunction name="tagFunctionDouble" cachedWithin="0.0000003" access="private">
 		<cfreturn getTickCount()>
 	</cffunction>
 	<cffunction name="tagFunctionRequest" cachedWithin="request" access="private">
@@ -40,7 +40,7 @@
 	private function scriptFunctionCreateTimespan() cachedWithin="#createTimespan(0,0,0,0,20)#"{
 		return getTickCount();
 	}
-	private function scriptFunctionDouble() cachedWithin="0.0000002"{
+	private function scriptFunctionDouble() cachedWithin="0.0000003"{
 		return getTickCount();
 	}
 	private function scriptFunctionRequest() cachedWithin="request"{
@@ -76,19 +76,19 @@
 		assertEquals(false,initVal == tagFunctionCreateTimespan());
 	}
 
-	// createTimeSpan(0,0,0,0,17)
+	// createTimeSpan(0,0,0,0,25)
 	function testTagFunctionDouble(){
 		var initVal=tagFunctionDouble();
 		sleep(2);
 		assertEquals(true,initVal == tagFunctionDouble());
-		sleep(20);
+		sleep(30);
 		assertEquals(false,initVal == tagFunctionDouble());
 	}
 	function testScriptFunctionDouble(){
 		var initVal=scriptFunctionDouble();
 		sleep(2);
 		assertEquals(true,initVal == scriptFunctionDouble());
-		sleep(20);
+		sleep(30);
 		assertEquals(false,initVal == scriptFunctionDouble());
 	}
 
