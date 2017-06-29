@@ -943,11 +943,11 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="settings.gateway.type">Type</data>
 	<data key="settings.gateway.titleexisting">List of existing gateway instances</data>
 	<data key="settings.gateway.state">State</data>
-	<data key="settings.gateway.descreadonly">Readonly cache connections are generated within the &quot;server administrator&quot; for all web instances and can not be modified by the &quot;web administrator&quot;.</data>
+	<data key="settings.gateway.descreadonly">Readonly gateway instances are generated within the &quot;server administrator&quot; for all web instances and can not be modified by the &quot;web administrator&quot;.</data>
 	<data key="settings.gateway.titlecreate">Create a new Gateway instance</data>
 	<data key="settings.gateway.noaccess">no access to create gateway instances</data>
 	<data key="settings.gateway.class">Class</data>
-	<data key="settings.gateway.titlereadonly">Readonly cache connections</data>
+	<data key="settings.gateway.titlereadonly">Readonly gateway instances</data>
 	<data key="settings.gateway.nodefault">no default cache</data>
 	<data key="settings.gateway.id">ID</data>
 	<data key="settings.gateway.nodriver">There is no Gateway Type Available</data>

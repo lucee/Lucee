@@ -4063,7 +4063,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     }
 	
 	private void doRemoveGatewayEntry() throws PageException {
-		admin.removeCacheGatewayEntry(getString("admin",action,"id"));
+		admin.removeGatewayEntry(getString("admin",action,"id"));
         store();
         adminSync.broadcast(attributes, config);
     }

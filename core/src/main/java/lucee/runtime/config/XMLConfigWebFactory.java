@@ -122,6 +122,7 @@ import lucee.runtime.extension.ExtensionProviderImpl;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.functions.other.ObjectSave;
+import lucee.runtime.gateway.GatewayEngine;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.gateway.GatewayEntryImpl;
@@ -2369,24 +2370,34 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	private static void loadGateway(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
 		boolean hasCS = configServer != null;
-		if (!hasCS)
-			return;
-		ConfigWebImpl cw = (ConfigWebImpl) config;
+		
+		//ConfigWebImpl cw = (ConfigWebImpl) config;
 
+		GatewayEngineImpl engine = hasCS?((ConfigWebImpl)config).getGatewayEngine():null;
 		Map<String, GatewayEntry> mapGateways = new HashMap<String, GatewayEntry>();
-
+		
+		
+		// get from server context
+		if(hasCS) {
+			Map<String, GatewayEntry> entries = configServer.getGatewayEntries();
+			if(entries!=null && !entries.isEmpty()) {
+				Iterator<Entry<String, GatewayEntry>> it = entries.entrySet().iterator();
+				Entry<String, GatewayEntry> e;
+				while(it.hasNext()) {
+					e = it.next();
+					mapGateways.put(e.getKey(), ((GatewayEntryImpl)e.getValue()).duplicateReadOnly(engine));
+				}
+			}
+		}
+		
 		Element eGateWay = getChildByName(doc.getDocumentElement(), "gateways");
-
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_GATEWAY);
-
 		GatewayEntry ge;
-
 		// cache connections
 		Element[] gateways = getChildren(eGateWay, "gateway");
 
 		// if(hasAccess) {
 		String id;
-		GatewayEngineImpl engine = cw.getGatewayEngine();
 		// engine.reset();
 
 		// caches
@@ -2408,10 +2419,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				else
 					SystemOut.print(config.getErrWriter(), "missing id");
 			}
-			cw.setGatewayEntries(mapGateways);
+			config.setGatewayEntries(mapGateways);
 		}
-		else {
-			cw.getGatewayEngine().clear();
+		else if(hasCS) {
+			((ConfigWebImpl)config).getGatewayEngine().clear();
 		}
 	}
 
