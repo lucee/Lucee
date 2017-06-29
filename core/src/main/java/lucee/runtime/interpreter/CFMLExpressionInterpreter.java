@@ -224,11 +224,12 @@ public class CFMLExpressionInterpreter {
 
     
     private void init(PageContext pc) {
-    	this.pc=ThreadLocalPageContext.get(pc);
+    	this.pc=pc=ThreadLocalPageContext.get(pc);
+    	
     	int dialect=CFMLEngine.DIALECT_CFML;
     	if(this.pc!=null) {
-    		this.config=(ConfigImpl) pc.getConfig();
-    		dialect=pc.getCurrentTemplateDialect();
+    		this.config=(ConfigImpl) this.pc.getConfig();
+    		dialect=this.pc.getCurrentTemplateDialect();
     	}
     	else {
     		this.config = (ConfigImpl)ThreadLocalPageContext.getConfig();
