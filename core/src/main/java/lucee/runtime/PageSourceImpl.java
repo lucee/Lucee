@@ -82,7 +82,7 @@ public final class PageSourceImpl implements PageSource {
 	private long lastAccess;	
 	private RefIntegerSync accessCount=new RefIntegerSync();
 	private boolean flush=false;
-	private Object sync=new Object();
+	private final Object sync=new Object();
 
     private PageSourceImpl() {
     	mapping=null;
