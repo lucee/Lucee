@@ -1044,20 +1044,6 @@ public final class PageContextImpl extends PageContext {
 		other.psq=psq;
 		other.gatewayContext=gatewayContext;
 		
-		// thread
-		/*if(threads!=null){
-			synchronized (threads) {
-				
-				java.util.Iterator<Entry<Key, Object>> it2 = threads.entryIterator();
-				Entry<Key, Object> entry;
-				while(it2.hasNext()) {
-					entry = it2.next();
-					other.setThreadScope(entry.getKey(), (Threads)entry.getValue());
-				}
-			}
-		}*/
-		
-		
 		// initialize stuff
 		other.undefined.initialize(other);
 	}
@@ -3114,7 +3100,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	@Override
-	public synchronized void compile(PageSource pageSource) throws PageException {
+	public void compile(PageSource pageSource) throws PageException {
 		Resource classRootDir = pageSource.getMapping().getClassRootDirectory();
 		int dialect=getCurrentTemplateDialect();
         

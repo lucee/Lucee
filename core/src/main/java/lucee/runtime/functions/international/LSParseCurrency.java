@@ -48,11 +48,11 @@ public final class LSParseCurrency implements Function {
 		return Caster.toString(toDoubleValue(locale==null?pc.getLocale():locale,string,false));
 	}
 
-	public static synchronized double toDoubleValue(Locale locale,String str) throws PageException {
+	public static double toDoubleValue(Locale locale,String str) throws PageException {
 		return toDoubleValue(locale, str, false);
 	}
 	
-	public static synchronized double toDoubleValue(Locale locale,String str, boolean strict) throws PageException {
+	public static double toDoubleValue(Locale locale,String str, boolean strict) throws PageException {
 
 		str = str.trim();
 

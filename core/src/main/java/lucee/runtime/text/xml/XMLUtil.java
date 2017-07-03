@@ -843,15 +843,17 @@ public final class XMLUtil {
 	 * @param type Type Definition to remove (Constant value from class Node)
 	 * @param deep remove also in sub nodes
 	 */
-	private synchronized static void removeChildren(Node node, short type, boolean deep) {
-		NodeList list = node.getChildNodes();
-		
-		for(int i=list.getLength();i>=0;i--) {
-			Node n=list.item(i);
-			if(n ==null )continue;
+	private static void removeChildren(Node node, short type, boolean deep) {
+		synchronized(node.getOwnerDocument()){
+			NodeList list = node.getChildNodes();
 			
-			if(n.getNodeType()==type || type==UNDEFINED_NODE)node.removeChild(XMLCaster.toRawNode(n));
-			else if(deep)removeChildren(n,type,deep);
+			for(int i=list.getLength();i>=0;i--) {
+				Node n=list.item(i);
+				if(n ==null )continue;
+				
+				if(n.getNodeType()==type || type==UNDEFINED_NODE)node.removeChild(XMLCaster.toRawNode(n));
+				else if(deep)removeChildren(n,type,deep);
+			}
 		}
 	}
 	
@@ -861,15 +863,17 @@ public final class XMLUtil {
 	 * @param type
 	 * @param deep
 	 */
-	private synchronized static void removeChildCharacterData(Node node, boolean deep) {
-		NodeList list = node.getChildNodes();
+	private static void removeChildCharacterData(Node node, boolean deep) {
+		synchronized(node.getOwnerDocument()){
+			NodeList list = node.getChildNodes();
 		
-		for(int i=list.getLength();i>=0;i--) {
-			Node n=list.item(i);
-			if(n ==null )continue;
-			
-			if(n instanceof CharacterData)node.removeChild(XMLCaster.toRawNode(n));
-			else if(deep)removeChildCharacterData(n,deep);
+			for(int i=list.getLength();i>=0;i--) {
+				Node n=list.item(i);
+				if(n ==null )continue;
+				
+				if(n instanceof CharacterData)node.removeChild(XMLCaster.toRawNode(n));
+				else if(deep)removeChildCharacterData(n,deep);
+			}
 		}
 	}
 
@@ -881,27 +885,29 @@ public final class XMLUtil {
 	 * @param caseSensitive 
 	 * @return all matching child node
 	 */
-	public synchronized static ArrayNodeList getChildNodes(Node node, short type) {
+	public static ArrayNodeList getChildNodes(Node node, short type) {
 		return getChildNodes(node, type, false, null);
 	}
 	
 
-	public synchronized static int childNodesLength(Node node, short type, boolean caseSensitive, String filter) {
-		NodeList nodes=node.getChildNodes();
-		int len=nodes.getLength();
-		Node n;
-		int count=0;
-		for(int i=0;i<len;i++) {
-			try {
-				n=nodes.item(i);
-				if(n!=null && (type==UNDEFINED_NODE || n.getNodeType()==type)){
-					if(filter==null || (caseSensitive?filter.equals(n.getLocalName()):filter.equalsIgnoreCase(n.getLocalName())))
-					count++;
+	public static int childNodesLength(Node node, short type, boolean caseSensitive, String filter) {
+		synchronized(node.getOwnerDocument()){
+			NodeList nodes=node.getChildNodes();
+			int len=nodes.getLength();
+			Node n;
+			int count=0;
+			for(int i=0;i<len;i++) {
+				try {
+					n=nodes.item(i);
+					if(n!=null && (type==UNDEFINED_NODE || n.getNodeType()==type)){
+						if(filter==null || (caseSensitive?filter.equals(n.getLocalName()):filter.equalsIgnoreCase(n.getLocalName())))
+						count++;
+					}
 				}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
-			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+			return count;
 		}
-		return count;
 	}
 	
 	public synchronized static ArrayNodeList getChildNodes(Node node, short type, boolean caseSensitive, String filter) {
@@ -922,43 +928,47 @@ public final class XMLUtil {
 		return rtn;
 	}
 	
-	public synchronized static List<Node> getChildNodesAsList(Node node, short type, boolean caseSensitive, String filter) {
-		List<Node> rtn=new ArrayList<Node>();
-		NodeList nodes=node.getChildNodes();
-		int len=nodes.getLength();
-		Node n;
-		for(int i=0;i<len;i++) {
-			try {
-				n=nodes.item(i);
-				if(n!=null && (n.getNodeType()==type|| type==UNDEFINED_NODE)){
-					if(filter==null || (caseSensitive?filter.equals(n.getLocalName()):filter.equalsIgnoreCase(n.getLocalName())))
-					rtn.add(n);
+	public static List<Node> getChildNodesAsList(Node node, short type, boolean caseSensitive, String filter) {
+		synchronized(node.getOwnerDocument()){
+			List<Node> rtn=new ArrayList<Node>();
+			NodeList nodes=node.getChildNodes();
+			int len=nodes.getLength();
+			Node n;
+			for(int i=0;i<len;i++) {
+				try {
+					n=nodes.item(i);
+					if(n!=null && (n.getNodeType()==type|| type==UNDEFINED_NODE)){
+						if(filter==null || (caseSensitive?filter.equals(n.getLocalName()):filter.equalsIgnoreCase(n.getLocalName())))
+						rtn.add(n);
+					}
 				}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
-			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+			return rtn;
 		}
-		return rtn;
 	}
 	
 
-	public synchronized static Node getChildNode(Node node, short type, boolean caseSensitive, String filter, int index) {
-		NodeList nodes=node.getChildNodes();
-		int len=nodes.getLength();
-		Node n;
-		int count=0;
-		for(int i=0;i<len;i++) {
-			try {
-				n=nodes.item(i);
-				if(n!=null && (type==UNDEFINED_NODE || n.getNodeType()==type)){
-					if(filter==null || (caseSensitive?filter.equals(n.getLocalName()):filter.equalsIgnoreCase(n.getLocalName()))) {
-						if(count==index) return n;
-						count++;
+	public static Node getChildNode(Node node, short type, boolean caseSensitive, String filter, int index) {
+		synchronized(node.getOwnerDocument()){
+			NodeList nodes=node.getChildNodes();
+			int len=nodes.getLength();
+			Node n;
+			int count=0;
+			for(int i=0;i<len;i++) {
+				try {
+					n=nodes.item(i);
+					if(n!=null && (type==UNDEFINED_NODE || n.getNodeType()==type)){
+						if(filter==null || (caseSensitive?filter.equals(n.getLocalName()):filter.equalsIgnoreCase(n.getLocalName()))) {
+							if(count==index) return n;
+							count++;
+						}
 					}
 				}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
-			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+			return null;
 		}
-		return null;
 	}
 	
 	
@@ -1084,11 +1094,13 @@ public final class XMLUtil {
         }
     }
 
-	public synchronized static Element getChildWithName(String name, Element el) {
-		Element[] children = XMLUtil.getChildElementsAsArray(el);
-		for(int i=0;i<children.length;i++) {
-			if(name.equalsIgnoreCase(children[i].getNodeName()))
-				return children[i];
+	public static Element getChildWithName(String name, Element el) {
+		synchronized(el.getOwnerDocument()){
+			Element[] children = XMLUtil.getChildElementsAsArray(el);
+			for(int i=0;i<children.length;i++) {
+				if(name.equalsIgnoreCase(children[i].getNodeName()))
+					return children[i];
+			}
 		}
 		return null;
 	}

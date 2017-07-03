@@ -66,11 +66,8 @@ public class IPSettings {
 	 * @param doCheck
 	 */
 	public synchronized void put( IPRangeNode<Map> ipr, boolean doCheck ) {
-
 		IPRangeNode parent = ipr.isV4() ? ipv4 : ipv6;
-
 		parent.addChild( ipr, doCheck );
-
 		version++;
 		isSorted = false;
 	}

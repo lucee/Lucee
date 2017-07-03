@@ -56,9 +56,8 @@ public final class GetFunctionList implements Function {
 		return _call(pc, dialect);
 	}
 	
-	private synchronized static lucee.runtime.type.Struct _call(PageContext pc, int dialect) throws PageException {
+	private static lucee.runtime.type.Struct _call(PageContext pc, int dialect) throws PageException {
 		
-		//if(functions==null) {
 			Struct sct=new StructImpl();
 			//synchronized(sct) {
 				//hasSet=true;
@@ -79,9 +78,6 @@ public final class GetFunctionList implements Function {
 						sct.set(e.getKey(),"");
 				}
 			}
-			//functions=sct;
-			//}
-		//}
 		return sct;
 	}
 }

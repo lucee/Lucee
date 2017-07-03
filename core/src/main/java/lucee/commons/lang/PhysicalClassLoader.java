@@ -165,7 +165,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	public synchronized Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
 		Class<?> clazz=null;
 		try {
-			clazz = loadClass(name);
+			clazz = loadClass(name,false);
 		} catch (ClassNotFoundException cnf) {}
 		  		
 		// if class already exists
@@ -182,7 +182,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		return _loadClass(name, barr);
 	}
 	
-	private synchronized Class<?> _loadClass(String name, byte[] barr) {
+	private Class<?> _loadClass(String name, byte[] barr) {
 		Class<?> clazz = defineClass(name,barr,0,barr.length);
 		if (clazz != null) {
 			loadedClasses.add(name);

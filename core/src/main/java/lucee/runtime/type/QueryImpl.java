@@ -918,12 +918,12 @@ public class QueryImpl implements Query,Objects,QueryResult {
 	}
 
     @Override
-    public synchronized QueryColumn removeColumnEL(String key) {
+    public  QueryColumn removeColumnEL(String key) {
         return removeColumnEL(KeyImpl.init(key));
     }
 
-	public QueryColumn removeColumnEL(Collection.Key key) {
-		//disconnectCache();
+	public synchronized QueryColumn removeColumnEL(Collection.Key key) {
+		// TODO should in that case not all method accessing columnNames,columns been locked down?
 
         int index=getIndexFromKey(key);
         if(index!=-1) {

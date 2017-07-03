@@ -37,14 +37,16 @@ public final class WeakFieldStorage {
 	 * @param fieldname Name of the Field to get
 	 * @return matching Fields as Array
 	 */
-	public synchronized Field[] getFields(Class clazz,String fieldname) {
-		Object o=map.get(clazz);
+	public Field[] getFields(Class clazz,String fieldname) {
 		Struct fieldMap;
-		if(o==null) {
-			fieldMap=store(clazz);
+		Object o;
+		synchronized (map) {
+			o=map.get(clazz);
+			if(o==null) {
+				fieldMap=store(clazz);
+			}
+			else fieldMap=(Struct) o;	
 		}
-		else fieldMap=(Struct) o;
-		
 		o=fieldMap.get(fieldname,null);
 		if(o==null) return null;
 		return (Field[]) o;

@@ -100,8 +100,6 @@ public class EnvClassLoader extends URLClassLoader {
 						obj=_load(caller.fromBootDelegation.getClassLoader(),name,type);
 					}
 				}
-				
-				
 			}
 			if(obj==null && caller.fromBundle!=null) {
 				if(caller.fromBundle.getClassLoader()!=null)
@@ -144,10 +142,8 @@ public class EnvClassLoader extends URLClassLoader {
 				}
 			}
 			if(obj!=null){
-				//print.e("found in extensions:"+name+"->");
 				return obj;
 			}
-			
 		}
 		
 		

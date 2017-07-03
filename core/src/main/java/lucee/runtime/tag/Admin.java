@@ -5568,7 +5568,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
      * @throws PageException
      * 
      */
-    private synchronized void store() throws PageException {
+    private void store() throws PageException {
         try {
             admin.storeAndReload();
         } catch (Exception e) {

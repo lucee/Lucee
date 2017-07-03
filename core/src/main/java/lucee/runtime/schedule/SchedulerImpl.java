@@ -23,6 +23,7 @@ import java.util.ArrayList;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.loader.engine.CFMLEngine;
@@ -52,6 +53,7 @@ public final class SchedulerImpl implements Scheduler {
     private StorageUtil su=new StorageUtil();
 	private String charset;
 	private final Config config;
+	private final Object sync=new SerializableObject();
 	//private String md5;
 
 	private CFMLEngineImpl engine;
@@ -347,59 +349,60 @@ public final class SchedulerImpl implements Scheduler {
 	}
 
 	@Override
-	public synchronized void removeScheduleTask(String name, boolean throwWhenNotExist) throws IOException, ScheduleException {
-	    
-	    int pos=-1;
-	    for(int i=0;i<tasks.length;i++) {
-	        if(tasks[i].getTask().equalsIgnoreCase(name)) {
-	        	tasks[i].setValid(false);
-	            pos=i;
-	        }
-	    }
-	    if(pos!=-1) {
-		    ScheduleTaskImpl[] newTasks=new ScheduleTaskImpl[tasks.length-1];
-		    int count=0;
+	public void removeScheduleTask(String name, boolean throwWhenNotExist) throws IOException, ScheduleException {
+	    synchronized (sync) {
+			int pos=-1;
 		    for(int i=0;i<tasks.length;i++) {
-		        if(i!=pos)newTasks[count++]=tasks[i];
-		        
+		        if(tasks[i].getTask().equalsIgnoreCase(name)) {
+		        	tasks[i].setValid(false);
+		            pos=i;
+		        }
 		    }
-		    tasks=newTasks;
-	    }
-	    
-	    
-	    NodeList list = doc.getDocumentElement().getChildNodes();
-	    Element el=su.getElement(list,"name", name);
-	    if(el!=null) {
-	        el.getParentNode().removeChild(el);
-	    }
-	    else if(throwWhenNotExist) throw new ScheduleException("can't delete schedule task ["+name+"], task doesn't exist");
-	    
-	    //init();
-	    su.store(doc,schedulerFile);
+		    if(pos!=-1) {
+			    ScheduleTaskImpl[] newTasks=new ScheduleTaskImpl[tasks.length-1];
+			    int count=0;
+			    for(int i=0;i<tasks.length;i++) {
+			        if(i!=pos)newTasks[count++]=tasks[i];
+			        
+			    }
+			    tasks=newTasks;
+		    }
+	
+		    NodeList list = doc.getDocumentElement().getChildNodes();
+		    Element el=su.getElement(list,"name", name);
+		    if(el!=null) {
+		        el.getParentNode().removeChild(el);
+		    }
+		    else if(throwWhenNotExist) throw new ScheduleException("can't delete schedule task ["+name+"], task doesn't exist");
+		    
+		    //init();
+		    su.store(doc,schedulerFile);
+		}
 	}
 	
-	public synchronized void removeIfNoLonerValid(ScheduleTask task) throws IOException {
-		ScheduleTaskImpl sti=(ScheduleTaskImpl) task;
-		if(sti.isValid() || !sti.isAutoDelete()) return;
-		
-		
-		try {
-			removeScheduleTask(task.getTask(), false);
-		} catch (ScheduleException e) {}
+	public void removeIfNoLonerValid(ScheduleTask task) throws IOException {
+		synchronized (sync) {
+			ScheduleTaskImpl sti=(ScheduleTaskImpl) task;
+			if(sti.isValid() || !sti.isAutoDelete()) return;
+			
+			
+			try {
+				removeScheduleTask(task.getTask(), false);
+			} catch (ScheduleException e) {}
+		}
 	}
 	
 
 	@Override
-	public synchronized void runScheduleTask(String name, boolean throwWhenNotExist) throws IOException, ScheduleException {
-	    ScheduleTask task = getScheduleTask(name);
-	    
-	    if(task!=null) {
-	        execute(task);
-	    }
-	    else if(throwWhenNotExist) throw new ScheduleException("can't run schedule task ["+name+"], task doesn't exist");
-	    
-	    
-	    su.store(doc,schedulerFile);
+	public void runScheduleTask(String name, boolean throwWhenNotExist) throws IOException, ScheduleException {
+		synchronized (sync) {
+			ScheduleTask task = getScheduleTask(name);
+		    if(task!=null) {
+		        execute(task);
+		    }
+		    else if(throwWhenNotExist) throw new ScheduleException("can't run schedule task ["+name+"], task doesn't exist");
+		    su.store(doc,schedulerFile);
+		}
 	}
     
     public void execute(ScheduleTask task) {

@@ -140,26 +140,27 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 	
 
 	@Override
-	public synchronized void store(PageContext pc) {
+	public void store(PageContext pc) {
 		try {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), cacheName);
 			String key=getKey(cfid, appName, getTypeAsString());
-			
-			Object existingVal = cache.getValue(key,null);
-			// cached data changed in meantime
-			
-			if(existingVal instanceof StorageValue && ((StorageValue)existingVal).lastModified()>lastModified()) {
-				Struct trg=((Struct)((StorageValue)existingVal).getValue());
-				StructUtil.copy(sct, trg, true);
-				sct=trg;
+			synchronized(cache) {
+				Object existingVal = cache.getValue(key,null);
+				// cached data changed in meantime
+				
+				if(existingVal instanceof StorageValue && ((StorageValue)existingVal).lastModified()>lastModified()) {
+					Struct trg=((Struct)((StorageValue)existingVal).getValue());
+					StructUtil.copy(sct, trg, true);
+					sct=trg;
+				}
+				cache.put(key, new StorageValue(sct),new Long(getTimeSpan()), null);
 			}
-			cache.put(key, new StorageValue(sct),new Long(getTimeSpan()), null);
 		} 
 		catch (Exception pe) {pe.printStackTrace();}
 	}
 
 	@Override
-	public synchronized void unstore(PageContext pc) {
+	public void unstore(PageContext pc) {
 		try {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), cacheName);
 			String key=getKey(cfid, appName, getTypeAsString());

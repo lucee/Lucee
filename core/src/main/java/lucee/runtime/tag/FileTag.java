@@ -852,7 +852,7 @@ public final class FileTag extends BodyTagImpl {
 		return arr;
 	}
 	
-	private static synchronized Struct _actionUpload(PageContext pageContext, lucee.runtime.security.SecurityManager securityManager, 
+	private static Struct _actionUpload(PageContext pageContext, lucee.runtime.security.SecurityManager securityManager, 
 			FormItem formItem,String strDestination,int nameconflict,String accept,boolean strict,int mode,String attributes,Object acl,String serverPassword) throws PageException {
 		if(nameconflict==NAMECONFLICT_UNDEFINED) nameconflict=NAMECONFLICT_ERROR;
 
@@ -884,23 +884,17 @@ public final class FileTag extends BodyTagImpl {
 
 		// check file type
 		checkContentType(contentType,accept,getFileExtension(clientFile),strict);
-		
-			
-			//String dir=clientFile.getParent();
-			//dir=correctDirectory(dir);
-		
-			cffile.set("clientdirectory",getParent(clientFile));
-			cffile.set("clientfile",clientFile.getName());
-			cffile.set("clientfileext",getFileExtension(clientFile));
-			cffile.set("clientfilename",getFileName(clientFile));
+	
+		cffile.set("clientdirectory",getParent(clientFile));
+		cffile.set("clientfile",clientFile.getName());
+		cffile.set("clientfileext",getFileExtension(clientFile));
+		cffile.set("clientfilename",getFileName(clientFile));
 		
 	    // check destination
 	    if(StringUtil.isEmpty(strDestination))
 	    	throw new ApplicationException("attribute destination is not defined in tag file");
 
-	    
 	    Resource destination=toDestination(pageContext,strDestination,null);
-	    
 		securityManager.checkFileLocation(pageContext.getConfig(),destination,serverPassword);
 		
 	    if(destination.isDirectory()) 

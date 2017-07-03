@@ -210,7 +210,6 @@ public final class PageSourcePool implements Dumpable {
 	 * @param cl 
 	 */
 	public void clearPages(ClassLoader cl) {
-		synchronized(pageSources){
 			Iterator<PageSource> it = this.pageSources.values().iterator();
 			PageSourceImpl entry;
 			while(it.hasNext()) {
@@ -218,7 +217,6 @@ public final class PageSourcePool implements Dumpable {
 				if(cl!=null)entry.clear(cl);
 				else entry.clear();
 			}
-		}
 	}
 
 	public void clear() {

@@ -28,7 +28,7 @@ import lucee.runtime.db.DataSourceSupport;
 
 public class DatasourceFlushMetaCache {
 
-    public synchronized static boolean call(PageContext pc) {
+    public static boolean call(PageContext pc) {
     	return call(pc, null);
 	}
 

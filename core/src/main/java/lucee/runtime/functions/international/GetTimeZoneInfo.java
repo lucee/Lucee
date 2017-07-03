@@ -36,13 +36,13 @@ public final class GetTimeZoneInfo implements Function {
 
 	private static final long serialVersionUID = -5462276373169138909L;
 	
-	public synchronized static lucee.runtime.type.Struct call(PageContext pc ) {
+	public static lucee.runtime.type.Struct call(PageContext pc ) {
 		return call(pc,null,null);
 	}
-	public synchronized static lucee.runtime.type.Struct call(PageContext pc, TimeZone tz) {
+	public static lucee.runtime.type.Struct call(PageContext pc, TimeZone tz) {
 		return call(pc, tz,null);
 	}
-	public synchronized static lucee.runtime.type.Struct call(PageContext pc, TimeZone tz, Locale dspLocale) {
+	public static lucee.runtime.type.Struct call(PageContext pc, TimeZone tz, Locale dspLocale) {
 		if(tz==null) tz=pc.getTimeZone();
 		if(dspLocale==null) dspLocale=pc.getLocale();
 		//Date date = ;

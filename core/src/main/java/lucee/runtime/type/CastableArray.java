@@ -46,7 +46,7 @@ public final class CastableArray extends ArrayImpl {
 	}
 
 	@Override
-	public synchronized Collection duplicate(boolean deepCopy) {
+	public Collection duplicate(boolean deepCopy) {
 		return duplicate(new CastableArray(value),deepCopy);
 	}
 
