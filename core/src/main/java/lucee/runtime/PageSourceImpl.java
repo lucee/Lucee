@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import lucee.aprint;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -52,6 +51,7 @@ import lucee.runtime.functions.system.GetDirectoryFromPath;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
+import lucee.transformer.util.PageSourceCode;
 
 /**
  * represent a cfml file on the runtime system
@@ -259,10 +259,22 @@ public final class PageSourceImpl implements PageSource {
 	// Page exists    
 		if(page!=null) {
 		//if(page!=null && !recompileAlways) {
-			if(srcLastModified!=page.getSourceLastModified()) {
-				this.page=page=compile(config,mapping.getClassRootDirectory(),page,false,pc.ignoreScopes());
-            	page.setPageSource(this);
-				page.setLoadType(LOAD_PHYSICAL);
+			if(srcLastModified!=page.getSourceLastModified() ) {
+				
+				// same size, maybe the content has not changed?
+				boolean same=false;
+				if(page instanceof PagePro && ((PagePro)page).getSourceLength() == srcFile.length()) {
+					PagePro pp = (PagePro)page;
+					try {
+						same=pp.getHash()==PageSourceCode.toString(this, config.getTemplateCharset()).hashCode();
+					} catch (IOException e) {}
+					
+				} 
+				if(!same) {
+					this.page=page=compile(config,mapping.getClassRootDirectory(),page,false,pc.ignoreScopes());
+	            	page.setPageSource(this);
+					page.setLoadType(LOAD_PHYSICAL);
+				}
 			}
 	    	
 		}

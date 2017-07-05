@@ -33,13 +33,11 @@ import java.util.Set;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
-import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.functions.other.CreateObject;
 import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.runtime.type.util.ArrayUtil;
 
@@ -108,6 +106,9 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+		return loadClass(name, resolve, true);
+	}
+	protected synchronized Class<?> loadClass(String name, boolean resolve, boolean loadFromFS) throws ClassNotFoundException {
 		if (loadedClasses.contains(name) || unavaiClasses.contains(name)) {
 			return super.loadClass(name,false); // Use default CL cache
 		}
@@ -120,19 +121,11 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 					c = p.loadClass(name);
 					break;
 				} 
-				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+				catch(Exception e) {}
 			}
 			if(c==null) {
-				c = findClass(name);
-				/*try {
-					c = findClass(name);
-				}
-				catch(ClassNotFoundException cnf) {
-					return SystemUtil.getLoaderClassLoader().loadClass(name);
-				}
-				catch(NoClassDefFoundError cfdfe) {
-					return SystemUtil.getLoaderClassLoader().loadClass(name);
-				}*/
+				if(loadFromFS)c = findClass(name);
+				else throw new ClassNotFoundException(name);
 			}
 		}
 		if (resolve)resolveClass(c);
@@ -165,9 +158,9 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	public synchronized Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
 		Class<?> clazz=null;
 		try {
-			clazz = loadClass(name,false);
+			clazz = loadClass(name,false,false); // we do not load existing class from disk
 		} catch (ClassNotFoundException cnf) {}
-		  		
+		
 		// if class already exists
 		if(clazz!=null) {
 			try {

@@ -38,6 +38,7 @@ public class SourceCode {
 	protected final  Integer[] lines; // TODO to int[]
 	private final boolean writeLog;
 	private final int dialect;
+	private int hash;
 	
 	/**
 	 * Constructor of the class
@@ -46,6 +47,7 @@ public class SourceCode {
 	 */
 	public SourceCode(String strText,boolean writeLog, int dialect) {
 		this.text=strText.toCharArray();
+		this.hash=strText.hashCode();
 		this.dialect=dialect;
 		lcText=new char[text.length];
 		
@@ -881,5 +883,11 @@ public class SourceCode {
 
 	public int getDialect() {
 		return dialect;
+	}
+	
+
+	@Override
+	public int hashCode() {
+		return hash;
 	}
 }

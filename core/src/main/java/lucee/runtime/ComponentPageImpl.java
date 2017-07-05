@@ -87,7 +87,7 @@ import lucee.runtime.type.util.UDFUtil;
 /**
  * A Page that can produce Components
  */
-public abstract class ComponentPageImpl extends ComponentPage {
+public abstract class ComponentPageImpl extends ComponentPage implements PagePro {
 	
 	public static final Collection.Key ACCEPT_ARG_COLL_FORMATS = KeyImpl.getInstance("acceptedArgumentCollectionFormats");
 
@@ -1010,7 +1010,7 @@ public abstract class ComponentPageImpl extends ComponentPage {
     		ComponentController.release();
     	}
     }
-    
+
     /**
 	 * default implementation of the static constructor, that does nothing
 	 */
