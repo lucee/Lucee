@@ -163,7 +163,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	}
 	
 	
-	public static Scope getInstance(int scope, IKHandler handler, String appName, String name, PageContext pc, Scope existing, Log log) throws PageException {
+	public synchronized static Scope getInstance(int scope, IKHandler handler, String appName, String name, PageContext pc, Scope existing, Log log) throws PageException {
 		IKStorageValue sv=null;
 		if(Scope.SCOPE_SESSION==scope)		sv= handler.loadData(pc, appName,name, "session",Scope.SCOPE_SESSION, log);
 		else if(Scope.SCOPE_CLIENT==scope)	sv= handler.loadData(pc, appName,name, "client",Scope.SCOPE_CLIENT, log);
@@ -208,7 +208,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	}
 
 	
-	public static boolean hasInstance(int scope, IKHandler handler, String appName, String name, PageContext pc) {
+	public synchronized static boolean hasInstance(int scope, IKHandler handler, String appName, String name, PageContext pc) {
 		try {
 			if(Scope.SCOPE_SESSION==scope)		return handler.loadData(pc, appName,name, "session",Scope.SCOPE_SESSION, null)!=null;
 			else if(Scope.SCOPE_CLIENT==scope)	return handler.loadData(pc, appName,name, "client",Scope.SCOPE_CLIENT, null)!=null;

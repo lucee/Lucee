@@ -164,7 +164,10 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 		try {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), cacheName);
 			String key=getKey(cfid, appName, getTypeAsString());
-			cache.remove(key);
+			synchronized (cache) {
+				cache.remove(key);
+			}
+			
 		} 
 		catch (Exception pe) {}
 	}
