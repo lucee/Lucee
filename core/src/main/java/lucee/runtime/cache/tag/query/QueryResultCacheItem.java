@@ -14,30 +14,29 @@ import lucee.runtime.type.query.QueryArray;
 import lucee.runtime.type.query.QueryResult;
 import lucee.runtime.type.query.QueryStruct;
 
-public abstract class QueryResultCacheItem  implements CacheItem, Dumpable, Serializable,Duplicable {
+public abstract class QueryResultCacheItem  implements CacheItem, Dumpable, Serializable, Duplicable {
 
 	private static final long serialVersionUID = -2322582053856364084L;
-	private static final String[] EMPTY=new String[0];
-	
-	private QueryResult queryResult;
-	private final long creationDate;
+	private static final String[] EMPTY = new String[0];
 
+	private final long creationDate;
+	private QueryResult queryResult;
 	private String[] tags;
 
-	protected QueryResultCacheItem(QueryResult qr, String[] tags) {
-		this.queryResult=qr;
-		this.creationDate=System.currentTimeMillis();
-		this.tags=tags==null?EMPTY:tags;
+	protected QueryResultCacheItem(QueryResult qr, String[] tags, long creationDate) {
+
+		this.queryResult = qr;
+		this.creationDate = creationDate;
+		this.tags = (tags == null) ? EMPTY : tags;
 	}
-	
 
 	public static CacheItem newInstance(QueryResult qr, String[] tags, CacheItem defaultValue) {
 		if(qr instanceof Query)
-			return new QueryCacheItem((Query) qr,tags);
+			return new QueryCacheItem((Query) qr, tags);
 		else if(qr instanceof QueryArray)
-			return new QueryArrayItem((QueryArray) qr,tags);
+			return new QueryArrayItem((QueryArray) qr, tags);
 		else if(qr instanceof QueryStruct)
-			return new QueryStructItem((QueryStruct) qr,tags);
+			return new QueryStructItem((QueryStruct) qr, tags);
 		return defaultValue;
 	}
 	
@@ -70,7 +69,10 @@ public abstract class QueryResultCacheItem  implements CacheItem, Dumpable, Seri
 	public final String[] getTags() {
 		return tags;
 	}
-	
+
+	public final long getCreationDate(){
+		return creationDate;
+	}
 
 	@Override
 	public final DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties properties) {
