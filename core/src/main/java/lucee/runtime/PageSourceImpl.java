@@ -267,7 +267,7 @@ public final class PageSourceImpl implements PageSource {
 					PagePro pp = (PagePro)page;
 					try {
 						same=pp.getHash()==PageSourceCode.toString(this, config.getTemplateCharset()).hashCode();
-					} catch (IOException e) {}
+					} catch (IOException e) {/*in case this exception happen, the following compile process will fail as well and report the error*/}
 					
 				} 
 				if(!same) {
