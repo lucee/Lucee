@@ -41,6 +41,7 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
+import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.query.StoredProcCacheItem;
 import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
@@ -573,20 +574,20 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 						.getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null)
 						.getInstanceMatchingObject(cachedWithin, null);
 
-				if (cacheHandler != null){
+				if (cacheHandler instanceof CacheHandlerPro){
 
-					if ((cacheHandler instanceof TimespanCacheHandler) && cachedWithin != null && Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
-						// remove from cache
-						cacheHandler.remove(pageContext, cacheId);
-					}
-					else {
-						// check cache
-						CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
+					CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pageContext, cacheId, cachedWithin);
 
-						if (cacheItem != null)
-							cacheValue = ((StoredProcCacheItem)cacheItem).getStruct();
-						//cacheValue = pageContext.getQueryCache().get(pageContext,_sql,dsn,username,password,cachedafter);
-					}
+					if (cacheItem != null)
+						cacheValue = ((StoredProcCacheItem) cacheItem).getStruct();
+				}
+				else if (cacheHandler != null){		// TODO this else block can be removed when all cache handlers implement CacheHandlerPro
+
+					CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
+
+					if (cacheItem != null)
+						cacheValue = ((StoredProcCacheItem)cacheItem).getStruct();
+					//cacheValue = pageContext.getQueryCache().get(pageContext,_sql,dsn,username,password,cachedafter);
 				}
 			}
 

@@ -47,6 +47,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
+import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.file.FileCacheItem;
 import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
@@ -610,20 +611,22 @@ public final class FileTag extends BodyTagImpl {
 					.getCacheHandlerCollection(Config.CACHE_TYPE_FILE,null)
 					.getInstanceMatchingObject(cachedWithin,null);
 
-			if (cacheHandler != null){
+			if (cacheHandler instanceof CacheHandlerPro){
 
-				if ((cacheHandler instanceof TimespanCacheHandler) && Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
-					// remove from cache
-					cacheHandler.remove(pageContext, cacheId);
+				CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pageContext, cacheId, cachedWithin);
+
+				if (cacheItem instanceof FileCacheItem) {
+					pageContext.setVariable(variable, ((FileCacheItem)cacheItem).getData());
+					return;
 				}
-				else {
-					// check cache
-					CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
+			}
+			else if (cacheHandler != null){		// TODO this else block can be removed when all cache handlers implement CacheHandlerPro
 
-					if (cacheItem instanceof FileCacheItem) {
-						pageContext.setVariable(variable, ((FileCacheItem)cacheItem).getData());
-						return;
-					}
+				CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
+
+				if (cacheItem instanceof FileCacheItem) {
+					pageContext.setVariable(variable, ((FileCacheItem)cacheItem).getData());
+					return;
 				}
 			}
 		}

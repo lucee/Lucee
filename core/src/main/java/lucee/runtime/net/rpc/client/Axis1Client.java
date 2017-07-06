@@ -47,6 +47,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
+import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.cache.tag.webservice.WebserviceCacheItem;
@@ -211,29 +212,31 @@ final class Axis1Client extends WSClient {
 	}
     
     private Object _callCachedWithin(PageContext pc, Config secondChanceConfig, String methodName, Struct namedArguments, Object[] arguments) throws PageException, RemoteException, ServiceException {
-    	
-    	// no pc no cache!
-    	if (pc == null)
-    		return _call(pc, secondChanceConfig, methodName, namedArguments, arguments);
+
+		// no pc no cache!
+		if (pc == null)
+			return _call(pc, secondChanceConfig, methodName, namedArguments, arguments);
 
 		Object cachedWithin = getCachedWithin(pc);
-    	String cacheId = CacheHandlerCollectionImpl.createId(wsdlUrl, username, password, proxyData, methodName, arguments,namedArguments);
-    	CacheHandler cacheHandler = pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_WEBSERVICE,null).getInstanceMatchingObject(cachedWithin,null);
+		String cacheId = CacheHandlerCollectionImpl.createId(wsdlUrl, username, password, proxyData, methodName, arguments, namedArguments);
+		CacheHandler cacheHandler = pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_WEBSERVICE, null).getInstanceMatchingObject(cachedWithin, null);
 
-    	if (cacheHandler != null){
+		if (cacheHandler instanceof CacheHandlerPro){
 
-			if ((cacheHandler instanceof TimespanCacheHandler) && cachedWithin != null && Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
-				// remove item from cache
-				cacheHandler.remove(pc, cacheId);
+			CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pc, cacheId, cachedWithin);
+
+			if (cacheItem instanceof WebserviceCacheItem) {
+				WebserviceCacheItem entry = (WebserviceCacheItem)cacheItem;
+				return entry.getData();
 			}
-			else {
-				// check cache
-				CacheItem cacheItem = cacheHandler.get(pc, cacheId);
+		}
+    	else if (cacheHandler != null){		// TODO this else block can be removed when all cache handlers implement CacheHandlerPro
 
-				if (cacheItem instanceof WebserviceCacheItem ) {
-					WebserviceCacheItem entry = (WebserviceCacheItem)cacheItem;
-					return entry.getData();
-				}
+			CacheItem cacheItem = cacheHandler.get(pc, cacheId);
+
+			if (cacheItem instanceof WebserviceCacheItem) {
+				WebserviceCacheItem entry = (WebserviceCacheItem)cacheItem;
+				return entry.getData();
 			}
 		}
 

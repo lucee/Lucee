@@ -33,6 +33,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
+import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.query.QueryResultCacheItem;
 import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
@@ -598,19 +599,22 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				cacheId = CacheHandlerCollectionImpl.createId(sql, datasource != null ? datasource.getName() : null, username, password, returntype);
 
 				CacheHandlerCollectionImpl coll = (CacheHandlerCollectionImpl)pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY,null);
-				cacheHandler = coll.getInstanceMatchingObject(cachedWithin,null);
+				cacheHandler = coll.getInstanceMatchingObject(cachedWithin, null);
 
 				if (cacheHandler == null && cachedAfter != null)
 					cacheHandler = coll.getTimespanInstance(null);
 
 				if (cacheHandler != null){
 
-					if ((cacheHandler instanceof TimespanCacheHandler) && cachedWithin != null && Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
-						// remove from cache
-						cacheHandler.remove(pageContext, cacheId);
+					if (cacheHandler instanceof CacheHandlerPro){
+
+						CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pageContext, cacheId, (cachedWithin != null) ? cachedWithin : cachedAfter);
+
+						if (cacheItem instanceof QueryResultCacheItem)
+							queryResult = ((QueryResultCacheItem) cacheItem).getQueryResult();
 					}
-					else {
-						// check cache
+					else {		// TODO this else block can be removed when all cache handlers implement CacheHandlerPro
+
 						cacheHandlerId = cacheHandler.id();
 						CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
 

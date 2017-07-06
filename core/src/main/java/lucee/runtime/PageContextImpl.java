@@ -80,6 +80,7 @@ import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
+import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.include.IncludeCacheItem;
 import lucee.runtime.component.ComponentLoader;
@@ -849,23 +850,29 @@ public final class PageContextImpl extends PageContext {
 		String cacheId = CacheHandlerCollectionImpl.createId(sources);
 		CacheHandler cacheHandler = config.getCacheHandlerCollection(Config.CACHE_TYPE_INCLUDE, null).getInstanceMatchingObject(cachedWithin, null);
 
-		if (cacheHandler != null){
+		if (cacheHandler instanceof CacheHandlerPro){
 
-			if (Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
-				// remove item from cache
-				cacheHandler.remove(this, cacheId);
+			CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(this, cacheId, cachedWithin);
+
+			if (cacheItem instanceof IncludeCacheItem) {
+				try {
+					write(((IncludeCacheItem)cacheItem).getOutput());
+					return;
+				} catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
 			}
-			else {
-				// check cache
-				CacheItem cacheItem = cacheHandler.get(this, cacheId);
+		}
+		else if (cacheHandler != null){		// TODO this else block can be removed when all cache handlers implement CacheHandlerPro
 
-				if(cacheItem instanceof IncludeCacheItem) {
-					try {
-						write(((IncludeCacheItem)cacheItem).getOutput());
-						return;
-					} catch (IOException e) {
-						throw Caster.toPageException(e);
-					}
+			CacheItem cacheItem = cacheHandler.get(this, cacheId);
+
+			if(cacheItem instanceof IncludeCacheItem) {
+				try {
+					write(((IncludeCacheItem)cacheItem).getOutput());
+					return;
+				} catch (IOException e) {
+					throw Caster.toPageException(e);
 				}
 			}
 		}

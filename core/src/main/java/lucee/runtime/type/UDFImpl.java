@@ -36,6 +36,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
+import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.cache.tag.udf.UDFCacheItem;
@@ -248,29 +249,40 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 				.getCacheHandlerCollection(Config.CACHE_TYPE_FUNCTION, null)
 				.getInstanceMatchingObject(getCachedWithin(pc), null);
 
-		if (cacheHandler != null){
 
-			if ((cacheHandler instanceof TimespanCacheHandler) && cachedWithin != null && Caster.toTimeSpan(cachedWithin).getMillis() <= 0){
-				// remove item from cache
-				cacheHandler.remove(pc, cacheId);
-			}
-			else {
-				// check cache
-				CacheItem cacheItem = cacheHandler.get(pc, cacheId);
+		if (cacheHandler instanceof CacheHandlerPro){
 
-				if (cacheItem instanceof UDFCacheItem ) {
+			CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pc, cacheId, cachedWithin);
 
-					UDFCacheItem entry = (UDFCacheItem)cacheItem;
-					//if(entry.creationdate+properties.cachedWithin>=System.currentTimeMillis()) {
-					try {
-						pc.write(entry.output);
-					} catch (IOException e) {
-						throw Caster.toPageException(e);
-					}
-					return entry.returnValue;
-					//}
-					//cache.remove(id);
+			if (cacheItem instanceof UDFCacheItem ) {
+
+				UDFCacheItem entry = (UDFCacheItem)cacheItem;
+
+				try {
+					pc.write(entry.output);
+				} catch (IOException e) {
+					throw Caster.toPageException(e);
 				}
+
+				return entry.returnValue;
+			}
+		}
+		else if (cacheHandler != null){		// TODO this else block can be removed when all cache handlers implement CacheHandlerPro
+
+			CacheItem cacheItem = cacheHandler.get(pc, cacheId);
+
+			if (cacheItem instanceof UDFCacheItem ) {
+
+				UDFCacheItem entry = (UDFCacheItem)cacheItem;
+				//if(entry.creationdate+properties.cachedWithin>=System.currentTimeMillis()) {
+				try {
+					pc.write(entry.output);
+				} catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
+				return entry.returnValue;
+				//}
+				//cache.remove(id);
 			}
 		}
 
@@ -437,8 +449,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 
 
 	/**
-	 * @param componentImpl the componentImpl to set
-	 * @param injected 
+	 * @param component the componentImpl to set
 	 */
 	@Override
 	public void setOwnerComponent(Component component) {
