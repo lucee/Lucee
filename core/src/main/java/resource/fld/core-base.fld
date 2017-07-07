@@ -14339,6 +14339,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<argument>
 			<name>options</name>
 			<type>any</type>
+			<alias>serializeQueryByColumns</alias>
 			<required>No</required>
 			<description>Either a Boolean value that specifies whether to serialize CFML queries by Column, or a string with the value "struct".</description>
 		</argument>

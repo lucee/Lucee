@@ -47,10 +47,12 @@ public final class SerializeJSON implements Function {
 		return _call(pc, var, false, pc.getWebCharset());
 	}
 
+	// FUTURE remove, this methods are only used by compiled code in archives older than 5.2.3
 	public static String call(PageContext pc, Object var, boolean serializeQueryByColumns) throws PageException {
 		return _call(pc, var, serializeQueryByColumns, pc.getWebCharset());
 	}
 
+	// FUTURE remove, this methods are only used by compiled code in archives older than 5.2.3
 	public static String call(PageContext pc, Object var, boolean serializeQueryByColumns, String strCharset) throws PageException {
 		Charset cs=StringUtil.isEmpty(strCharset)?pc.getWebCharset():CharsetUtil.toCharset(strCharset);
 		return _call(pc, var, serializeQueryByColumns, cs);
@@ -66,39 +68,28 @@ public final class SerializeJSON implements Function {
 	}
 
 	private static String _call(PageContext pc, Object var, Object options, Charset charset) throws PageException {
-
 		try {
-
 			JSONConverter json = new JSONConverter(true, charset);
-
-			if (Decision.isBoolean(options))
+			if(Decision.isBoolean(options))
 				return json.serialize(pc, var, Caster.toBoolean(options));
 
-			if (Decision.isQuery(var)){
-
+			if(Decision.isQuery(var)){
 				if (Decision.isSimpleValue(options)) {
-
 					String opt = Caster.toString(options);
 					if ("struct".equalsIgnoreCase(opt)) {
-
 						Array arr = new ArrayImpl();
 						ForEachQueryIterator it = new ForEachQueryIterator((Query) var, pc.getId());
-
 						try {
-
 							while (it.hasNext()) {
-
 								arr.append(it.next());    // append each record from the query as a struct
 							}
 						} finally {
 							it.reset();
 						}
-
 						return json.serialize(pc, arr, false);
 					}
 				}
 				else if (Decision.isBoolean(options)) {
-
 					return json.serialize(pc, var, Caster.toBoolean(options));
 				}
 				else throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 2, "options", "When var is a Query, argument [options] must be either a boolean value or a string with the value of [struct]");
@@ -106,7 +97,8 @@ public final class SerializeJSON implements Function {
 
 			// var is not a query so options doesn't make a difference here
 			return json.serialize(pc, var, false);
-        } catch (ConverterException e) {
+        }
+		catch (ConverterException e) {
             throw Caster.toPageException(e);
         }
 	}
