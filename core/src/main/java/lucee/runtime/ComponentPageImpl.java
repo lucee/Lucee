@@ -103,6 +103,14 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 	public abstract ComponentImpl newInstance(PageContext pc,String callPath,boolean isRealPath, boolean isExtendedComponent, boolean executeConstr)
 		throws lucee.runtime.exp.PageException; 
+
+	public int getHash(){
+		return 0;
+	}
+	
+	public long getSourceLength(){
+		return 0;
+	}
 	
 	@Override
 	public Object call(PageContext pc) throws PageException {
