@@ -485,142 +485,143 @@ public final class JSONConverter extends ConverterSupport {
 	 * @param done 
 	 * @throws ConverterException
 	 */
-	private void _serialize(PageContext pc,Set test,Object object, StringBuilder sb, boolean serializeQueryByColumns, Set<Object> done) throws ConverterException {
+	private void _serialize(PageContext pc, Set test, Object object, StringBuilder sb, boolean serializeQueryByColumns, Set done) throws ConverterException {
 		
 		// NULL
-		if(object==null || object==NULL) {
+		if (object==null || object==NULL) {
 		    sb.append(goIn());
 		    sb.append("null");
 		    return;
 		}
 		// String
-		if(object instanceof String || object instanceof StringBuilder) {
+		if (object instanceof String || object instanceof StringBuilder) {
 		    sb.append(goIn());
 		    sb.append(StringUtil.escapeJS(object.toString(),'"',charsetEncoder));
 		    return;
 		}
 		// Character
-		if(object instanceof Character) {
+		if (object instanceof Character) {
 		    sb.append(goIn());
 		    sb.append(StringUtil.escapeJS(String.valueOf(((Character)object).charValue()),'"',charsetEncoder));
 		    return;
 		}
 		// Number
-		if(object instanceof Number) {
+		if (object instanceof Number) {
 		    sb.append(goIn());
 		    sb.append(Caster.toString(((Number)object)));
 		    return;
 		}
 		// Boolean
-		if(object instanceof Boolean) {
+		if (object instanceof Boolean) {
 		    sb.append(goIn());
 		    sb.append(Caster.toString(((Boolean)object).booleanValue()));
 		    return;
 		}
 		// DateTime
-		if(object instanceof DateTime) {
+		if (object instanceof DateTime) {
 			_serializeDateTime((DateTime)object,sb);
 		    return;
 		}
 		// Date
-		if(object instanceof Date) {
+		if (object instanceof Date) {
 			_serializeDate((Date)object,sb);
 		    return;
 		}
         // XML
-        if(object instanceof Node) {
+        if (object instanceof Node) {
         	_serializeXML((Node)object,sb);
 		    return;
         }
         // Timespan
-        if(object instanceof TimeSpan) {
+        if (object instanceof TimeSpan) {
         	_serializeTimeSpan((TimeSpan) object,sb);
 		    return;
         }
 		// File
-		if(object instanceof File) {
+		if (object instanceof File) {
 			_serialize(pc,test, ((File)object).getAbsolutePath(), sb, serializeQueryByColumns,done);
 		    return;
 		}
 		// String Converter
-		if(object instanceof ScriptConvertable) {
+		if (object instanceof ScriptConvertable) {
 		    sb.append(((ScriptConvertable)object).serialize());
 		    return;
 		}
 		Object raw = LazyConverter.toRaw(object);
-		if(done.contains(raw)){
+		if (done.contains(raw)){
 			sb.append(goIn());
 		    sb.append("null");
 		    return;
 		}
 		
-		
 		done.add(raw);
-		try{
-		        // Component
-		        if(object instanceof Component) {
-		            _serializeComponent(pc,test,(Component)object,sb,serializeQueryByColumns,done);
-				    return;
-		        }
-		        // UDF
-		        if(object instanceof UDF) {
-		            _serializeUDF(pc,test,(UDF)object,sb,serializeQueryByColumns,done);
-				    return;
-		        }
-		        // Struct
-		        if(object instanceof Struct) {
-		        	_serializeStruct(pc,test,(Struct)object,sb,serializeQueryByColumns,true,done);
-				    return;
-		        }
-		        // Map
-		        if(object instanceof Map) {
-		            _serializeMap(pc,test,(Map)object,sb,serializeQueryByColumns,done);
-				    return;
-		        }
-				// Array
-				if(object instanceof Array) {
-					_serializeArray(pc,test,(Array)object,sb,serializeQueryByColumns,done);
-				    return;
+
+		try {
+			// Component
+			if (object instanceof Component) {
+				_serializeComponent(pc,test,(Component)object,sb,serializeQueryByColumns,done);
+				return;
+			}
+			// UDF
+			if (object instanceof UDF) {
+				_serializeUDF(pc,test,(UDF)object,sb,serializeQueryByColumns,done);
+				return;
+			}
+			// Struct
+			if (object instanceof Struct) {
+				_serializeStruct(pc,test,(Struct)object,sb,serializeQueryByColumns,true,done);
+				return;
+			}
+			// Map
+			if (object instanceof Map) {
+				_serializeMap(pc,test,(Map)object,sb,serializeQueryByColumns,done);
+				return;
+			}
+			// Array
+			if (object instanceof Array) {
+				_serializeArray(pc,test,(Array)object,sb,serializeQueryByColumns,done);
+				return;
+			}
+			// List
+			if (object instanceof List) {
+				_serializeList(pc,test,(List)object,sb,serializeQueryByColumns,done);
+				return;
+			}
+			// Query
+			if (object instanceof Query) {
+				_serializeQuery(pc,test,(Query)object,sb,serializeQueryByColumns,done);
+				return;
+			}
+			// Native Array
+			if (Decision.isNativeArray(object)){
+				if (object instanceof char[])
+					_serialize(pc,test,new String((char[])object), sb, serializeQueryByColumns,done);
+				else {
+					_serializeArray(pc,test,ArrayUtil.toReferenceType(object,ArrayUtil.OBJECT_EMPTY), sb, serializeQueryByColumns,done);
 				}
-				// List
-				if(object instanceof List) {
-					_serializeList(pc,test,(List)object,sb,serializeQueryByColumns,done);
-				    return;
+				return;
+			}
+			// ObjectWrap
+			if (object instanceof ObjectWrap) {
+				try {
+					_serialize(pc,test,((ObjectWrap)object).getEmbededObject(), sb, serializeQueryByColumns,done);
 				}
-		        // Query
-		        if(object instanceof Query) {
-		            _serializeQuery(pc,test,(Query)object,sb,serializeQueryByColumns,done);
-				    return;
-		        }
-				// Native Array
-				if(Decision.isNativeArray(object)){
-					if(object instanceof char[])
-						_serialize(pc,test,new String((char[])object), sb, serializeQueryByColumns,done);
-					else {
-						_serializeArray(pc,test,ArrayUtil.toReferenceType(object,ArrayUtil.OBJECT_EMPTY), sb, serializeQueryByColumns,done);
+				catch (PageException e) {
+					if(object instanceof JavaObject){
+						_serializeClass(pc,test,((JavaObject)object).getClazz(),null,sb,serializeQueryByColumns,done);
 					}
-				    return;
-						
+					else throw new ConverterException("can't serialize Object of type [ "+Caster.toClassName(object)+" ]");
 				}
-				// ObjectWrap
-				if(object instanceof ObjectWrap) {
-					try {
-						_serialize(pc,test,((ObjectWrap)object).getEmbededObject(), sb, serializeQueryByColumns,done);
-					} catch (PageException e) {
-						if(object instanceof JavaObject){
-							_serializeClass(pc,test,((JavaObject)object).getClazz(),null,sb,serializeQueryByColumns,done);
-						}
-						else throw new ConverterException("can't serialize Object of type [ "+Caster.toClassName(object)+" ]");
-					}
-				    return;
-				}
-				
-				_serializeClass(pc,test,object.getClass(),object,sb,serializeQueryByColumns,done);
+				return;
+			}
+
+			_serializeClass(pc,test,object.getClass(),object,sb,serializeQueryByColumns,done);
 		}
-		finally{
+		finally {
 			done.remove(raw);
 		}
 	}
+
 
 	private void _serializeXML(Node node, StringBuilder sb) {
     	node=XMLCaster.toRawNode(node);
@@ -651,9 +652,10 @@ public final class JSONConverter extends ConverterSupport {
 	 * @return serialized wddx package
 	 * @throws ConverterException
 	 */
-	public String serialize(PageContext pc,Object object, boolean serializeQueryByColumns) throws ConverterException {
-		StringBuilder sb=new StringBuilder();
-		_serialize(pc,null,object,sb,serializeQueryByColumns,new HashSet<Object>());
+	public String serialize(PageContext pc, Object object, boolean serializeQueryByColumns) throws ConverterException {
+
+		StringBuilder sb = new StringBuilder();
+		_serialize(pc, null, object, sb, serializeQueryByColumns, new HashSet());
 		return sb.toString();
 	}
 
