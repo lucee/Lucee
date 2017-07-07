@@ -33,7 +33,7 @@ import lucee.runtime.config.ConfigServer;
 public class MemoryControler {
 	private final static Map<String,MemoryType> types=new HashMap<String, MemoryType>();
 	private static boolean init;
-	public static void init(ConfigServer cs){
+	public synchronized static void init(ConfigServer cs){
 	      if(init) return;
 			// set level
 	      for (MemoryPoolMXBean pool : ManagementFactory.getMemoryPoolMXBeans()) {
