@@ -104,7 +104,8 @@ public final class SerializeJSON implements Function {
 				else throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 2, "options", "When var is a Query, argument [options] must be either a boolean value or a string with the value of [struct]");
 			}
 
-			return json.serialize(pc, var, Caster.toBoolean(options));
+			// var is not a query so options doesn't make a difference here
+			return json.serialize(pc, var, false);
         } catch (ConverterException e) {
             throw Caster.toPageException(e);
         }
