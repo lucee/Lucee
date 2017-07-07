@@ -30,6 +30,9 @@ import lucee.runtime.type.util.KeyConstants;
  * A Page that can produce Components
  */
 public abstract class InterfacePageImpl extends InterfacePage implements PagePro {
+
+	public int getHash(){return 0;}
+	public long getSourceLength(){return 0;}
 	
 	@Override
 	public Object call(PageContext pc) throws PageException {
