@@ -615,14 +615,16 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 						CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
 
 						if (cacheItem instanceof QueryResultCacheItem) {
-
 							QueryResultCacheItem queryCachedItem = (QueryResultCacheItem) cacheItem;
+							if (cacheHandler instanceof TimespanCacheHandler){
+								Date cacheLimit = cachedAfter;
+								if (cacheLimit == null)
+									cacheLimit = new Date(System.currentTimeMillis() - Caster.toTimeSpan(cachedWithin).getMillis());
 
-							Date cacheLimit = cachedAfter;
-							if (cacheLimit == null)
-								cacheLimit = new Date(System.currentTimeMillis() - Caster.toTimeSpan(cachedWithin).getMillis());
-
-							if (queryCachedItem.isCachedAfter(cacheLimit))
+								if (queryCachedItem.isCachedAfter(cacheLimit))
+									queryResult = queryCachedItem.getQueryResult();
+							}
+							else
 								queryResult = queryCachedItem.getQueryResult();
 						}
 					}
