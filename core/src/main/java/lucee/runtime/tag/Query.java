@@ -606,6 +606,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 				if (cacheHandler != null){
 
+					cacheHandlerId = cacheHandler.id();		// cacheHandlerId specifies to queryResult the cacheType and therefore whether the query is cached or not
+
 					if (cacheHandler instanceof CacheHandlerPro){
 
 						CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pageContext, cacheId, (cachedWithin != null) ? cachedWithin : cachedAfter);
@@ -615,7 +617,6 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 					}
 					else {		// TODO this else block can be removed when all cache handlers implement CacheHandlerPro
 
-						cacheHandlerId = cacheHandler.id();
 						CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
 
 						if (cacheItem instanceof QueryResultCacheItem) {
