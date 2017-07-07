@@ -175,7 +175,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		return _loadClass(name, barr);
 	}
 	
-	private Class<?> _loadClass(String name, byte[] barr) {
+	private synchronized Class<?> _loadClass(String name, byte[] barr) {
 		Class<?> clazz = defineClass(name,barr,0,barr.length);
 		if (clazz != null) {
 			loadedClasses.add(name);

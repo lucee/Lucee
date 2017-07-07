@@ -100,7 +100,7 @@ public final class MemoryClassLoader extends ExtendableClassLoader {
 		return _loadClass(name, barr);
 	}
 	
-	private Class<?> _loadClass(String name, byte[] barr) {
+	private synchronized Class<?> _loadClass(String name, byte[] barr) {
 		size+=barr.length;
 		// class not exists yet
 		try {
