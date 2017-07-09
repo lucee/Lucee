@@ -7,7 +7,7 @@
 	<uri>http://www.lucee.org/cf-fld-3-1</uri>
 	<display-name>Lucee Core Function Library</display-name>
 	<description>All build in Functions of Lucee</description>
-	
+
 
 	<!-- AjaxLink -->
 	<function>
@@ -26,7 +26,7 @@
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- AjaxOnLoad -->
 	<function>
 		<name>AjaxOnLoad</name>
@@ -38,13 +38,13 @@
 			<name>functionName</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>The name of the function to run when the page loads. The specified function does not take a parameter.</description>
-    </argument>
+			<description>The name of the function to run when the page loads. The specified function does not take a parameter.</description>
+		</argument>
 		<return>
 			<type>void</type>
 		</return>
 	</function>
-	
+
 	<!-- array -->
 	<function>
 		<name>array</name>
@@ -56,7 +56,7 @@
 			<type>array</type>
 		</return>
 	</function>
-	
+
 	<!-- ArrayIsDefined -->
 	<function>
 		<name>ArrayIsDefined</name>
@@ -93,50 +93,52 @@
 			<required>no</required>
 			<default>1</default>
 			<description>Number of dimensions in new array: 1, 2, or 3</description>
-    	</argument>
-    	<argument>
+		</argument>
+		<argument>
 			<name>synchronized</name>
 			<alias>isSynchronized</alias>
 			<type>boolean</type>
 			<required>no</required>
 			<default>true</default>
 			<description>Number of dimensions in new array: 1, 2, or 3</description>
-    	</argument>
+		</argument>
 		<return>
 			<type>array</type>
 		</return>
 	</function>
-	
+
 	<!-- beat -->
 	<function>
 		<name>beat</name>
 		<class>lucee.runtime.functions.dateTime.Beat</class>
 		<description>
-		Outputs the actuell swatch time.
-		It is a new system of time developed by Swatch, the Swiss watch maker.  
-		It involves setting the current day into 1000 "beats" instead of 24 hours.  
-		Internet Time eliminates the need for geographical time zones, perfect for the internet.
+			Outputs the actuell swatch time.
+			It is a new system of time developed by Swatch, the Swiss watch maker.
+			It involves setting the current day into 1000 "beats" instead of 24 hours.
+			Internet Time eliminates the need for geographical time zones, perfect for the internet.
 		</description>
 		<argument>
 			<name>time</name>
 			<type>any</type>
 			<required>No</required>
 			<description>
-			the local time to geat beat time from
+				the local time to geat beat time from
 			</description>
 		</argument>
 		<return>
 			<type>number</type>
 		</return>
 	</function>
-	
+
 	<!-- CacheSetProperties -->
 	<function>
 		<name>CacheSetProperties</name>
 		<class>lucee.runtime.functions.cache.CacheSetProperties</class>
 		<description>
-		This function is not supported by Lucee, because we see this as a security risk, you can modifie cache configuration without a password,
-you can use tag cfadmin instead. we will add support for this function in a future release, but then you can enable,disable this  function in admin for every single cache instance.</description>
+			This function is not supported by Lucee, because we see this as a security risk, you can modifie cache configuration
+			without a password,
+			you can use tag cfadmin instead. we will add support for this function in a future release, but then you can
+			enable,disable this function in admin for every single cache instance.</description>
 		<argument>
 			<name>propsSruct</name>
 			<alias>properties,props</alias>
@@ -148,7 +150,7 @@ you can use tag cfadmin instead. we will add support for this function in a futu
 			<type>void</type>
 		</return>
 	</function>
-	
+
 	<!-- componentInfo -->
 	<function>
 		<name>componentInfo</name>
@@ -159,13 +161,13 @@ you can use tag cfadmin instead. we will add support for this function in a futu
 			<name>component</name>
 			<type>component</type>
 			<required>Yes</required>
-		<description>component to return info for it</description>
-    </argument>
+			<description>component to return info for it</description>
+		</argument>
 		<return>
 			<type>struct</type>
 		</return>
 	</function>
-	
+
 	<!-- componentCacheClear -->
 	<function>
 		<name>componentCacheClear</name>
@@ -175,7 +177,7 @@ you can use tag cfadmin instead. we will add support for this function in a futu
 			<type>void</type>
 		</return>
 	</function>
-	
+
 	<!-- componentCacheList -->
 	<function>
 		<name>componentCacheList</name>
@@ -193,65 +195,68 @@ you can use tag cfadmin instead. we will add support for this function in a futu
 		<class>lucee.runtime.functions.other.CreateObject</class>
 		<modified>5.0.0.0</modified>
 		<description>
-		The CreateObject function takes different arguments depending on the value of the first argument:
-        CreateObject('com', class, context, serverName)
-        CreateObject('component', component-name)
-        CreateObject('java', class, ...)
-        CreateObject('webservice', urltowsdl, [, portname])</description>
+			The CreateObject function takes different arguments depending on the value of the first argument:
+			CreateObject('com', class, context, serverName)
+			CreateObject('component', component-name)
+			CreateObject('java', class, ...)
+			CreateObject('webservice', urltowsdl, [, portname])</description>
 		<argument>
 			<name>type</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>one of the following:
-- java: for loading a java object
-- webservice: for loading a remote webservice 
-- component: for loading a Component (this functions does not call the init method of the component)
-- com: for loading a com Object</description>
-    </argument>
+			<description>one of the following:
+				- java: for loading a java object
+				- webservice: for loading a remote webservice
+				- component: for loading a Component (this functions does not call the init method of the component)
+				- com: for loading a com Object</description>
+		</argument>
 		<argument>
 			<name>classname</name>
 			<alias>component,class</alias>
 			<type>string</type>
 			<required>no</required>
-		<description>
-the usage of this argument depend on type defined with argument "type":
-- java: java class to load
-- webservice: WSDL url to call
-- component: The CFC name; corresponds to the name of the file that defines the component
-- com: Component ProgID for the object to invoke.
-		</description>
-    </argument>
+			<description>
+				the usage of this argument depend on type defined with argument "type":
+				- java: java class to load
+				- webservice: WSDL url to call
+				- component: The CFC name; corresponds to the name of the file that defines the component
+				- com: Component ProgID for the object to invoke.
+			</description>
+		</argument>
 		<argument>
 			<name>context</name>
 			<alias>bundleName,name,webservice</alias>
 			<type>object</type>
 			<required>No</required>
-		<description>
-the usage of this argument depend on type defined with argument "type":
-- com: not used (ignored)
-- java: "classpath" or "bundleName" used to load the defined class, 
-this can be a list of multiple paths (directories containing class files or jar files) as string list or array or a name of an OSGi bundle (Lucee can download OSGi bundles automatically if necessary)
-- webservice: a struct containing the following optional keys (username,password,proxyServer,proxyPort,proxyUser,proxyPassword) 
-- component: not used (ignored)
-</description>
-    </argument>
+			<description>
+				the usage of this argument depend on type defined with argument "type":
+				- com: not used (ignored)
+				- java: "classpath" or "bundleName" used to load the defined class,
+				this can be a list of multiple paths (directories containing class files or jar files) as string list or array or a name
+				of an OSGi bundle (Lucee can download OSGi bundles automatically if necessary)
+				- webservice: a struct containing the following optional keys
+				(username,password,proxyServer,proxyPort,proxyUser,proxyPassword)
+				- component: not used (ignored)
+			</description>
+		</argument>
 		<argument>
 			<name>delimiterOrVersion</name>
 			<alias>delimiter,version,bundleVersion</alias>
 			<type>object</type>
 			<required>No</required>
-		<description>
-the usage of this argument depend on type defined with argument "type":
-- java: delimiter used for the classpath (default comma) or bundle version when the previous argument was a bundle name
-- webservice: not used (ignored)
-- component: not used (ignored)
-- com: not used (ignored)</description>
-    </argument>
+			<description>
+				the usage of this argument depend on type defined with argument "type":
+				- java: delimiter used for the classpath (default comma) or bundle version when the previous argument was a bundle
+				name
+				- webservice: not used (ignored)
+				- component: not used (ignored)
+				- com: not used (ignored)</description>
+		</argument>
 		<return>
 			<type>any</type>
 		</return>
 	</function>
-	
+
 	<!-- createODBCDate -->
 	<function>
 		<name>createODBCDate</name>
@@ -263,12 +268,12 @@ the usage of this argument depend on type defined with argument "type":
 			<type>datetime</type>
 			<required>Yes</required>
 			<description>date object</description>
-    	</argument>
+		</argument>
 		<return>
 			<type>datetime</type>
 		</return>
 	</function>
-	
+
 	<!-- createODBCDateTime -->
 	<function>
 		<name>createODBCDateTime</name>
@@ -279,13 +284,13 @@ the usage of this argument depend on type defined with argument "type":
 			<name>date</name>
 			<type>datetime</type>
 			<required>Yes</required>
-		<description>date object</description>
-    </argument>
+			<description>date object</description>
+		</argument>
 		<return>
 			<type>datetime</type>
 		</return>
 	</function>
-	
+
 	<!-- createODBCTime -->
 	<function>
 		<name>createODBCTime</name>
@@ -295,19 +300,19 @@ the usage of this argument depend on type defined with argument "type":
 			<name>date</name>
 			<type>datetime</type>
 			<required>Yes</required>
-		<description>date object</description>
-    </argument>
+			<description>date object</description>
+		</argument>
 		<return>
 			<type>datetime</type>
 		</return>
 	</function>
-	
+
 	<!-- dateFormat -->
 	<function>
 		<name>dateFormat</name>
 		<member-name>dateFormat</member-name>
-        <member-type>date</member-type>
-        
+		<member-type>date</member-type>
+
 		<class>lucee.runtime.functions.displayFormatting.DateFormat</class>
 		<keywords>date,string,formatting</keywords>
 		<description>Formats a date string to a given output</description>
@@ -315,58 +320,64 @@ the usage of this argument depend on type defined with argument "type":
 			<name>date</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>Date object</description>
-    </argument>
+			<description>Date object</description>
+		</argument>
 		<argument>
 			<name>mask</name>
 			<type>string</type>
 			<required>No</required>
 			<default>dd-mmm-yy</default>
-		<description>
-Characters that show how Lucee displays a date:
-- d: Day of the month as digits; no leading zero for single-digit days.
-- dd: Day of the month as digits; leading zero for single-digit days.
-- ddd: Day of the week as a three-letter abbreviation.
-- dddd: Day of the week as its full name.
-- m: Month as digits; no leading zero for single-digit months.
-- mm: Month as digits; leading zero for single-digit months.
-- mmm: Month as a three-letter abbreviation.
-- mmmm: Month as its full name.
-- yy: Year as last two digits; leading zero for years less than 10.
-- yyyy: Year represented by four digits.
-- gg: Period/era string. Ignored. Reserved. The following masks tell how to format the full date and cannot be combined with other masks:
-- z: Time zone in literal format, for example, IST
-- Z: Time zone in hours of offset (RFC 822 TimeZone), for example, +0530
-- X: Time zone in hours of offset in ISO 8601 format. The following are the three ways of using 'X':
-         X: +05
-         XX: +0530
-         XXX: +5:30
+			<description>
+				Characters that show how Lucee displays a date:
+				- d: Day of the month as digits; no leading zero for single-digit days.
+				- dd: Day of the month as digits; leading zero for single-digit days.
+				- ddd: Day of the week as a three-letter abbreviation.
+				- dddd: Day of the week as its full name.
+				- m: Month as digits; no leading zero for single-digit months.
+				- mm: Month as digits; leading zero for single-digit months.
+				- mmm: Month as a three-letter abbreviation.
+				- mmmm: Month as its full name.
+				- yy: Year as last two digits; leading zero for years less than 10.
+				- yyyy: Year represented by four digits.
+				- gg: Period/era string. Ignored. Reserved. The following masks tell how to format the full date and cannot be
+				combined with other masks:
+				- z: Time zone in literal format, for example, IST
+				- Z: Time zone in hours of offset (RFC 822 TimeZone), for example, +0530
+				- X: Time zone in hours of offset in ISO 8601 format. The following are the three ways of using 'X':
+				X: +05
+				XX: +0530
+				XXX: +5:30
 
-- short: equivalent to m/d/y
-- medium: equivalent to mmm d, yyyy
-- long: equivalent to mmmm d, yyyy
-- full: equivalent to dddd, mmmm d, yyyy</description>
-    </argument>
+				- short: equivalent to m/d/y
+				- medium: equivalent to mmm d, yyyy
+				- long: equivalent to mmmm d, yyyy
+				- full: equivalent to dddd, mmmm d, yyyy</description>
+		</argument>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
 			<required>No</required>
-		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
-This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
-For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
-You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
-       - AGT (for time in Argentina)
-       - Europe/Zurich (for time in Zurich/Switzerland)
-       - HST (Hawaiian Standard Time in the USA)
-		</description>
-    </argument>
+			<description>
+				A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00
+				UTC (Coordinated Universal Time).
+				This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a
+				hour or which day it is since those calculations depend on the timezone.
+				For these calculations, a timezone must be specified in order to translate the date object to something else. If you do
+				not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator
+				(Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+				You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid
+				timezones:
+				- AGT (for time in Argentina)
+				- Europe/Zurich (for time in Zurich/Switzerland)
+				- HST (Hawaiian Standard Time in the USA)
+			</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
-	
+
+
 	<!-- dateTimeFormat -->
 	<function>
 		<name>dateTimeFormat</name>
@@ -380,87 +391,94 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>date</alias>
 			<type>any</type>
 			<required>Yes</required>
-		<description>Datetime object</description>
-    </argument>
+			<description>Datetime object</description>
+		</argument>
 		<argument>
 			<name>mask</name>
 			<type>string</type>
 			<required>No</required>
 			<default>dd-MMM-yyyy HH:nn:ss</default>
-		<description>
-Mask that has to be used for formatting. 
-the following characters are pattern letters (case sensitive) representing the components of a datetime string. All other characters are not interpreted
-- a,..,aaaa: AM/PM marker (see also "t" and "tt"; Example:AM)
-- d: Day in month, no leading zero for single-digit days (Example:3)
-- dd: Day in month, leading zero for single-digit days (Example:03)
-- D: Day in year, no leading zero for single-digit days (Example:4)
-- DD: Day in month, leading zero for single-digit days (Example:04)
-- DDD: Day in month, 2 leading zero for single-digit days (Example:004)
-- E,EE,EEE: Day of week as a three-letter abbreviation (Example:Tue)
-- EEEE: Day of week as its full name (Example:Tuesday)
-- F: Day of week in month, no leading zero for single-digit days (Example:4)
-- FF: Day of week in month, leading zero for single-digit days (Example:04)
-- G,GG: Era designator (Example:AD)
-- h: Hour in am/pm (1-12), no leading zero for single-digit hours (Example:3)
-- hh: Hour in am/pm (1-12), leading zero for single-digit hours (Example:03)
-- H: Hour in day (0-23), no leading zero for single-digit hours (Example:14)
-- HH: Hour in day (00-23), leading zero for single-digit hours (Example:14)
-- k: Hour in day (1-24), no leading zero for single-digit hours (Example:15)
-- kk: Hour in day (1-24), leading zero for single-digit hours (Example:15)
-- K: Hour in am/pm (0-11), no leading zero for single-digit hours (Example:2)
-- KK: Hour in am/pm (0-11), leading zero for single-digit hours (Example:02)
-- l,L: milliseconds, with no leading zeros (Example:3)
-- ll,LL: milliseconds, leading zero for single-digit days (Example:03)
-- lll,LLL: milliseconds,  2 leading zero for single-digit days (Example:003)
-- m,M: Month as digits, no leading zero for single-digit months (Example:6)
-- mm,MM: Month as digits, leading zero for single-digit months (Example:06)
-- mmm,MMM: Month as a three-letter abbreviation (Example:Jun)
-- mmmm,MMMM: Month as its full name (Example:June)
-- n,N: minutes in hour, no leading zero for single-digit minutes (Example:3)
-- nn,NN: minutes in hour, leading zero for single-digit minutes (Example:03)
-- s,S: seconds in minute, no leading zero for single-digit seconds (Example:3)
-- ss,SS: seconds in minute, leading zero for single-digit seconds (Example:03)
-- t,T: one-character time marker string (Example:P)
-- tt,TT: multiple-character time marker string (Example:PM)
-- w: Week in year, no leading zero for single-digit hours (Example:27)
-- ww: Week in year, leading zero for single-digit hours (Example:27)
-- W: Week in month, no leading zero for single-digit hours (Example:2)
-- WW: Week in month, leading zero for single-digit hours (Example:02)
-- y,yy,yyy: Year as last two digits, leading zero for single-digit (Example:09)
-- yyyy: Year represented by four digits (Example:2009)
-- z,zz,zzz: General time zone as a 3 to 4 lettesr abbreviation (Example:PST)
-- zzzz: General time zone as its full name (Example:Pacific Standard Time)
-- Z,..,ZZZZ: RFC 822 time zone (Example:-0800)
-  
-The following masks can be used to format the full date and time and may not be combined with other masks:
-- short: equivalent to "m/d/y h:mm tt"
-- medium: equivalent to "mmm d, yyyy h:mm:ss tt"
-- long: medium followed by three-letter time zone; i.e. "mmmm d, yyyy h:mm:ss tt zzz"
-- full: equivalent to "dddd, mmmm d, yyyy h:mm:ss tt zz"
-- ISO8601: equivalent to "yyyy-mm-dd'T'HH:nn:ss'Z'Z"
+			<description>
+				Mask that has to be used for formatting.
+				the following characters are pattern letters (case sensitive) representing the components of a datetime string. All
+				other characters are not interpreted
+				- a,..,aaaa: AM/PM marker (see also "t" and "tt"; Example:AM)
+				- d: Day in month, no leading zero for single-digit days (Example:3)
+				- dd: Day in month, leading zero for single-digit days (Example:03)
+				- D: Day in year, no leading zero for single-digit days (Example:4)
+				- DD: Day in month, leading zero for single-digit days (Example:04)
+				- DDD: Day in month, 2 leading zero for single-digit days (Example:004)
+				- E,EE,EEE: Day of week as a three-letter abbreviation (Example:Tue)
+				- EEEE: Day of week as its full name (Example:Tuesday)
+				- F: Day of week in month, no leading zero for single-digit days (Example:4)
+				- FF: Day of week in month, leading zero for single-digit days (Example:04)
+				- G,GG: Era designator (Example:AD)
+				- h: Hour in am/pm (1-12), no leading zero for single-digit hours (Example:3)
+				- hh: Hour in am/pm (1-12), leading zero for single-digit hours (Example:03)
+				- H: Hour in day (0-23), no leading zero for single-digit hours (Example:14)
+				- HH: Hour in day (00-23), leading zero for single-digit hours (Example:14)
+				- k: Hour in day (1-24), no leading zero for single-digit hours (Example:15)
+				- kk: Hour in day (1-24), leading zero for single-digit hours (Example:15)
+				- K: Hour in am/pm (0-11), no leading zero for single-digit hours (Example:2)
+				- KK: Hour in am/pm (0-11), leading zero for single-digit hours (Example:02)
+				- l,L: milliseconds, with no leading zeros (Example:3)
+				- ll,LL: milliseconds, leading zero for single-digit days (Example:03)
+				- lll,LLL: milliseconds, 2 leading zero for single-digit days (Example:003)
+				- m,M: Month as digits, no leading zero for single-digit months (Example:6)
+				- mm,MM: Month as digits, leading zero for single-digit months (Example:06)
+				- mmm,MMM: Month as a three-letter abbreviation (Example:Jun)
+				- mmmm,MMMM: Month as its full name (Example:June)
+				- n,N: minutes in hour, no leading zero for single-digit minutes (Example:3)
+				- nn,NN: minutes in hour, leading zero for single-digit minutes (Example:03)
+				- s,S: seconds in minute, no leading zero for single-digit seconds (Example:3)
+				- ss,SS: seconds in minute, leading zero for single-digit seconds (Example:03)
+				- t,T: one-character time marker string (Example:P)
+				- tt,TT: multiple-character time marker string (Example:PM)
+				- w: Week in year, no leading zero for single-digit hours (Example:27)
+				- ww: Week in year, leading zero for single-digit hours (Example:27)
+				- W: Week in month, no leading zero for single-digit hours (Example:2)
+				- WW: Week in month, leading zero for single-digit hours (Example:02)
+				- y,yy,yyy: Year as last two digits, leading zero for single-digit (Example:09)
+				- yyyy: Year represented by four digits (Example:2009)
+				- z,zz,zzz: General time zone as a 3 to 4 lettesr abbreviation (Example:PST)
+				- zzzz: General time zone as its full name (Example:Pacific Standard Time)
+				- Z,..,ZZZZ: RFC 822 time zone (Example:-0800)
 
-The function follows Java date time mask.  For details, see the section Date and Time Patterns at http://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
-</description>
-    </argument>
+				The following masks can be used to format the full date and time and may not be combined with other masks:
+				- short: equivalent to "m/d/y h:mm tt"
+				- medium: equivalent to "mmm d, yyyy h:mm:ss tt"
+				- long: medium followed by three-letter time zone; i.e. "mmmm d, yyyy h:mm:ss tt zzz"
+				- full: equivalent to "dddd, mmmm d, yyyy h:mm:ss tt zz"
+				- ISO8601: equivalent to "yyyy-mm-dd'T'HH:nn:ss'Z'Z"
+
+				The function follows Java date time mask. For details, see the section Date and Time Patterns at
+				http://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
+			</description>
+		</argument>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
 			<required>No</required>
-		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
-This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
-For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
-You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
-       - AGT (for time in Argentina)
-       - Europe/Zurich (for time in Zurich/Switzerland)
-       - HST (Hawaiian Standard Time in the USA)
-		</description>
-    </argument>
+			<description>
+				A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00
+				UTC (Coordinated Universal Time).
+				This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a
+				hour or which day it is since those calculations depend on the timezone.
+				For these calculations, a timezone must be specified in order to translate the date object to something else. If you do
+				not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator
+				(Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+				You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid
+				timezones:
+				- AGT (for time in Argentina)
+				- Europe/Zurich (for time in Zurich/Switzerland)
+				- HST (Hawaiian Standard Time in the USA)
+			</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- datePart -->
 	<function>
 		<name>datePart</name>
@@ -473,44 +491,49 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>part</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description>one of the following:
-- yyyy: Year
-- q: Quarter
-- m: Month
-- y: Day of year
-- d: Day
-- w: Weekday
-- ww: Week
-- h: Hour
-- n: Minute
-- s: Second
-- l: Millisecond
-</description>
-    </argument>
+			<description>one of the following:
+				- yyyy: Year
+				- q: Quarter
+				- m: Month
+				- y: Day of year
+				- d: Day
+				- w: Weekday
+				- ww: Week
+				- h: Hour
+				- n: Minute
+				- s: Second
+				- l: Millisecond
+			</description>
+		</argument>
 		<argument>
 			<name>date</name>
 			<type>datetime</type>
 			<required>Yes</required>
-		<description>dateobject the get part from</description>
-    </argument>
+			<description>dateobject the get part from</description>
+		</argument>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
 			<required>No</required>
-		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
-This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
-For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
-You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
-       - AGT (for time in Argentina)
-       - Europe/Zurich (for time in Zurich/Switzerland)
-       - HST (Hawaiian Standard Time in the USA)
-		</description>
-    </argument>
+			<description>
+				A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00
+				UTC (Coordinated Universal Time).
+				This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a
+				hour or which day it is since those calculations depend on the timezone.
+				For these calculations, a timezone must be specified in order to translate the date object to something else. If you do
+				not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator
+				(Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+				You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid
+				timezones:
+				- AGT (for time in Argentina)
+				- Europe/Zurich (for time in Zurich/Switzerland)
+				- HST (Hawaiian Standard Time in the USA)
+			</description>
+		</argument>
 		<return>
 			<type>number</type>
 		</return>
-	</function>	
+	</function>
 
 	<!-- dayOfWeek -->
 	<function>
@@ -522,27 +545,32 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>date</name>
 			<type>datetime</type>
 			<required>Yes</required>
-		<description>Date/time object</description>
-    </argument>
+			<description>Date/time object</description>
+		</argument>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
 			<required>no</required>
-		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
-This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
-For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
-You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
-       - AGT (for time in Argentina)
-       - Europe/Zurich (for time in Zurich/Switzerland)
-       - HST (Hawaiian Standard Time in the USA)
-		</description>
-    </argument>
+			<description>
+				A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00
+				UTC (Coordinated Universal Time).
+				This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a
+				hour or which day it is since those calculations depend on the timezone.
+				For these calculations, a timezone must be specified in order to translate the date object to something else. If you do
+				not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator
+				(Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+				You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid
+				timezones:
+				- AGT (for time in Argentina)
+				- Europe/Zurich (for time in Zurich/Switzerland)
+				- HST (Hawaiian Standard Time in the USA)
+			</description>
+		</argument>
 		<return>
 			<type>number</type>
 		</return>
 	</function>
-	
+
 	<!-- lsdayOfWeek -->
 	<function>
 		<name>lsdayOfWeek</name>
@@ -553,33 +581,38 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>date</name>
 			<type>datetime</type>
 			<required>Yes</required>
-		<description>datetime object</description>
-    </argument>
+			<description>datetime object</description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>no</required>
-		<description>Locale to use instead of the locale of the page when processing the function</description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
 			<required>no</required>
-		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
-This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
-For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
-You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
-       - AGT (for time in Argentina)
-       - Europe/Zurich (for time in Zurich/Switzerland)
-       - HST (Hawaiian Standard Time in the USA)
-		</description>
-    </argument>
+			<description>
+				A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00
+				UTC (Coordinated Universal Time).
+				This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a
+				hour or which day it is since those calculations depend on the timezone.
+				For these calculations, a timezone must be specified in order to translate the date object to something else. If you do
+				not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator
+				(Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+				You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid
+				timezones:
+				- AGT (for time in Argentina)
+				- Europe/Zurich (for time in Zurich/Switzerland)
+				- HST (Hawaiian Standard Time in the USA)
+			</description>
+		</argument>
 		<return>
 			<type>number</type>
 		</return>
 	</function>
-	
+
 	<!-- dayOfYear -->
 	<function>
 		<name>dayOfYear</name>
@@ -590,46 +623,51 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>date</name>
 			<type>datetime</type>
 			<required>Yes</required>
-		<description>Date/time object</description>
-    </argument>
+			<description>Date/time object</description>
+		</argument>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
 			<required>no</required>
-		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
-This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
-For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
-You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
-       - AGT (for time in Argentina)
-       - Europe/Zurich (for time in Zurich/Switzerland)
-       - HST (Hawaiian Standard Time in the USA)
-		</description>
-    </argument>
+			<description>
+				A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00
+				UTC (Coordinated Universal Time).
+				This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a
+				hour or which day it is since those calculations depend on the timezone.
+				For these calculations, a timezone must be specified in order to translate the date object to something else. If you do
+				not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator
+				(Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+				You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid
+				timezones:
+				- AGT (for time in Argentina)
+				- Europe/Zurich (for time in Zurich/Switzerland)
+				- HST (Hawaiian Standard Time in the USA)
+			</description>
+		</argument>
 		<return>
 			<type>number</type>
 		</return>
 	</function>
-	
+
 	<!-- dE -->
 	<function>
 		<name>dE</name>
 		<class>lucee.runtime.functions.dynamicEvaluation.DE</class>
 		<description>Postpones evaluation of a string as an expression, when it is
-        passed as a parameter to the IIf or Evaluate functions. Escapes
-        any double quotation marks in the parameter and wraps the
-        result in double quotation marks.</description>
+			passed as a parameter to the IIf or Evaluate functions. Escapes
+			any double quotation marks in the parameter and wraps the
+			result in double quotation marks.</description>
 		<argument>
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>String to evaluate, after delay</description>
-    </argument>
+			<description>String to evaluate, after delay</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- decimalFormat -->
 	<function>
 		<name>decimalFormat</name>
@@ -640,13 +678,13 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>number</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>Number to format</description>
-    </argument>
+			<description>Number to format</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- decrementValue -->
 	<function>
 		<name>decrementValue</name>
@@ -657,8 +695,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>number</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>Number to decrement</description>
-    </argument>
+			<description>Number to decrement</description>
+		</argument>
 		<return>
 			<type>number</type>
 		</return>
@@ -670,18 +708,18 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.displayFormatting.DollarFormat</class>
 		<keywords>currency,string,formatting</keywords>
 		<description>Formats a string in U.S. format. (For other currencies, use
-        LSCurrencyFormat)</description>
+			LSCurrencyFormat)</description>
 		<argument>
 			<name>number</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Number to format</description>
-    </argument>
+			<description>Number to format</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- cfusion_encrypt -->
 	<function>
 		<name>cfusion_encrypt</name>
@@ -691,14 +729,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>string to encrypt</description>
-    </argument>
+			<description>string to encrypt</description>
+		</argument>
 		<argument>
 			<name>key</name>
 			<type>string</type>
 			<required>yes</required>
-		<description>key to use for encryption</description>
-    </argument>
+			<description>key to use for encryption</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -713,19 +751,19 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>string to decrypt</description>
-    </argument>
+			<description>string to decrypt</description>
+		</argument>
 		<argument>
 			<name>key</name>
 			<type>string</type>
 			<required>yes</required>
-		<description>key to use for decryption</description>
-    </argument>
+			<description>key to use for decryption</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- GetApplicationMetadata -->
 	<function>
 		<name>GetApplicationMetadata</name>
@@ -735,7 +773,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>struct</type>
 		</return>
 	</function>
-	
+
 	<!-- GetPrinterList -->
 	<function>
 		<name>GetPrinterList</name>
@@ -753,7 +791,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- GetUserRoles -->
 	<function>
 		<name>GetUserRoles</name>
@@ -763,7 +801,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- getK2ServerDocCount (Deprecated) -->
 	<function>
 		<name>getK2ServerDocCount</name>
@@ -774,7 +812,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>number</type>
 		</return>
 	</function>
-	
+
 	<!-- getK2ServerDocCountLimit (Deprecated) -->
 	<function>
 		<name>getK2ServerDocCountLimit</name>
@@ -785,42 +823,44 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>number</type>
 		</return>
 	</function>
-	
+
 	<!-- hash40 -->
 	<function>
 		<name>hash40</name>
 		<class>lucee.runtime.functions.string.Hash40</class>
-		<description>This function only exists for backward compstibility to Lucee 4.0 or older version that has produced a incorrect result for non us-ascii caharacters,
-		Only use this function for backward compatibility.
-		
-		Converts a variable-length string to a 32-byte, hexadecimal
-        string, using the MD5 algorithm. (It is not possible to convert
-        the hash result back to the source string.)
-        32-byte, hexadecimal string</description>
+		<description>This function only exists for backward compstibility to Lucee 4.0 or older version that has produced a
+			incorrect result for non us-ascii caharacters,
+			Only use this function for backward compatibility.
+
+			Converts a variable-length string to a 32-byte, hexadecimal
+			string, using the MD5 algorithm. (It is not possible to convert
+			the hash result back to the source string.)
+			32-byte, hexadecimal string</description>
 		<argument>
 			<name>input</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>String to hash.</description>
-    </argument>
+			<description>String to hash.</description>
+		</argument>
 		<argument>
 			<name>algorithm</name>
 			<type>string</type>
 			<required>No</required>
-		<description>The algorithm to use to hash the string. Supported are the following algorithms:
-- CFMX_COMPAT: generating a hash string using classic CFML algorithm.
-- MD5: (default) Generates a 32-character, hexadecimal string, using the MD5 algorithm.
-- SHA: Generates a 28-character string using the Secure Hash Standard SHA-1 algorithm specified by Nation Institute of Standards and Technology (NIST) FIPS-180-2.
-- SHA-256: Generates a 44-character string using the SHA-256 algorithm specified by FIPS-180-2.
-- SHA-384: Generates a 64-character string using the SHA-384 algorithm specified by FIPS-180-2.
-- SHA-512: Generates an 88-character string using the SHA-1 algorithm specified by FIPS-180-2.</description>
-    </argument>
+			<description>The algorithm to use to hash the string. Supported are the following algorithms:
+				- CFMX_COMPAT: generating a hash string using classic CFML algorithm.
+				- MD5: (default) Generates a 32-character, hexadecimal string, using the MD5 algorithm.
+				- SHA: Generates a 28-character string using the Secure Hash Standard SHA-1 algorithm specified by Nation Institute
+				of Standards and Technology (NIST) FIPS-180-2.
+				- SHA-256: Generates a 44-character string using the SHA-256 algorithm specified by FIPS-180-2.
+				- SHA-384: Generates a 64-character string using the SHA-384 algorithm specified by FIPS-180-2.
+				- SHA-512: Generates an 88-character string using the SHA-1 algorithm specified by FIPS-180-2.</description>
+		</argument>
 		<argument>
 			<name>encoding</name>
 			<type>string</type>
 			<required>No</required>
 			<description>A string specifying the encoding to use when converting
-            the string to byte data used by the hash algorithm.</description>
+				the string to byte data used by the hash algorithm.</description>
 		</argument>
 		<argument>
 			<name>numIterations</name>
@@ -832,69 +872,71 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- iIf -->
 	<function>
 		<name>iIf</name>
 		<class>lucee.runtime.functions.dynamicEvaluation.IIf</class>
 		<description>Evaluates a Boolean conditional dynamic expression. Depending
-        on whether the expression is true or false, dynamically
-        evaluates one of two string expressions and returns the result.</description>
+			on whether the expression is true or false, dynamically
+			evaluates one of two string expressions and returns the result.</description>
 		<argument>
 			<name>condition</name>
 			<type>boolean</type>
 			<required>Yes</required>
-		<description>An expression that can be evaluated as a Boolean.</description>
-    </argument>
+			<description>An expression that can be evaluated as a Boolean.</description>
+		</argument>
 		<argument>
 			<name>string_expression1</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Expression to evaluate and return if condition is true.</description>
-    </argument>
+			<description>Expression to evaluate and return if condition is true.</description>
+		</argument>
 		<argument>
 			<name>string_expression2</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Expression to evaluate and return if condition is false.</description>
-    </argument>
+			<description>Expression to evaluate and return if condition is false.</description>
+		</argument>
 		<return>
 			<type>any</type>
 		</return>
 	</function>
-	
+
 	<!-- Invoke -->
 	<function>
 		<name>Invoke</name>
 		<class>lucee.runtime.functions.dynamicEvaluation.Invoke</class>
-		<description>invokes a function/operation of the given object and if given object is a string, Lucee tries to load as component.</description>
+		<description>invokes a function/operation of the given object and if given object is a string, Lucee tries to load as
+			component.</description>
 		<argument>
 			<name>object</name>
 			<alias>cfcinstance,obj,value,variable</alias>
 			<type>any</type>
 			<required>Yes</required>
-			<description>a component, struct or scope that holds a function, can also be the name of a component, in this case the component get loaded.</description>
-	    </argument>
+			<description>a component, struct or scope that holds a function, can also be the name of a component, in this case
+				the component get loaded.</description>
+		</argument>
 		<argument>
 			<name>name</name>
 			<alias>methodname,method,functionname,function</alias>
 			<type>string</type>
 			<required>Yes</required>
 			<description>name of the function/operation</description>
-	    </argument>
+		</argument>
 		<argument>
 			<name>arguments</name>
 			<alias>args,argumentcollection</alias>
 			<type>any</type>
 			<required>no</required>
 			<description>arguments to pass to the function/operation</description>
-	    </argument>
-		
+		</argument>
+
 		<return>
 			<type>object</type>
 		</return>
 	</function>
-	
+
 	<!-- isDefined -->
 	<function>
 		<name>isDefined</name>
@@ -903,18 +945,18 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<keywords>decision</keywords>
 		<status>deprecated</status>
 		<description>Evaluates a string value to determine whether the variable
-        named in it exists.</description>
+			named in it exists.</description>
 		<argument>
 			<name>variable</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>String, enclosed in quotation marks. Name of variable to test for.</description>
-    </argument>
+			<description>String, enclosed in quotation marks. Name of variable to test for.</description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
-	
+
 
 	<!-- incrementValue -->
 	<function>
@@ -926,8 +968,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>number</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>Number to increment</description>
-    </argument>
+			<description>Number to increment</description>
+		</argument>
 		<return>
 			<type>number</type>
 		</return>
@@ -939,18 +981,18 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.decision.IsDate</class>
 		<keywords>decision,date</keywords>
 		<description>Determines whether a string or Java object can be converted
-        to a date/time value.</description>
+			to a date/time value.</description>
 		<argument>
 			<name>string</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>A string or a variable that contains one. </description>
-    </argument>
+			<description>A string or a variable that contains one. </description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
-	
+
 	<!-- isK2ServerABroker (Deprecated) -->
 	<function>
 		<name>isK2ServerABroker</name>
@@ -961,29 +1003,29 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>boolean</type>
 		</return>
 	</function>
-	
-	<!-- isK2ServerDocCountExceeded  (Deprecated)-->
+
+	<!-- isK2ServerDocCountExceeded (Deprecated) -->
 	<function>
 		<name>isK2ServerDocCountExceeded</name>
 		<class>lucee.runtime.functions.decision.IsK2ServerDocCountExceeded</class>
-			<status>hidden</status>
+		<status>hidden</status>
 		<description>This function is deprecated. </description>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
-	
+
 	<!-- isK2ServerOnline (Deprecated) -->
 	<function>
 		<name>isK2ServerOnline</name>
 		<class>lucee.runtime.functions.decision.IsK2ServerOnline</class>
-			<status>hidden</status>
+		<status>hidden</status>
 		<description>This function is deprecated.</description>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
-	
+
 	<!-- isNull -->
 	<function>
 		<name>isNull</name>
@@ -995,8 +1037,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>object</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>Object for which you perform the null check. </description>
-    </argument>
+			<description>Object for which you perform the null check. </description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -1012,8 +1054,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>string</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>A string or a variable that contains one. </description>
-    </argument>
+			<description>A string or a variable that contains one. </description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -1025,32 +1067,32 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.decision.IsNumericDate</class>
 		<keywords>decision,number,date</keywords>
 		<description>Evaluates whether a real number is a valid representation of a
-        date (date/time object).</description>
+			date (date/time object).</description>
 		<argument>
 			<name>number</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>A real number</description>
-    </argument>
+			<description>A real number</description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
-	
+
 	<!-- isUserInRole -->
 	<function>
 		<name>isUserInRole</name>
 		<class>lucee.runtime.functions.decision.IsUserInRole</class>
 		<keywords>decision</keywords>
 		<description>Determines whether an authenticated user belongs to the
-        specified Role.</description>
+			specified Role.</description>
 		<argument>
 			<name>role_name</name>
 			<alias>rolename,role,name</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>Name of a security role</description>
-	    </argument>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -1068,7 +1110,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 			<required>No</required>
 			<description>A comma-delimited list of one or more roles to be tested.</description>
-	    </argument>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -1084,7 +1126,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>boolean</type>
 		</return>
 	</function>
-	
+
 	<!-- lSCurrencyFormat -->
 	<function>
 		<name>lSCurrencyFormat</name>
@@ -1096,26 +1138,26 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>currency_number</alias>
 			<type>object</type>
 			<required>Yes</required>
-		<description>Currency value</description>
-    </argument>
+			<description>Currency value</description>
+		</argument>
 		<argument>
 			<name>type</name>
 			<type>string</type>
 			<required>No</required>
 			<default>local</default>
-		<description></description>
-    </argument>
+			<description></description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
-		<description>Locale to use instead of the locale of the page when processing the function</description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- LSDateFormat -->
 	<function>
 		<name>LSDateFormat</name>
@@ -1128,40 +1170,45 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>date</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>date object</description>
-    </argument>
+			<description>date object</description>
+		</argument>
 		<argument>
 			<name>mask</name>
 			<type>string</type>
 			<required>No</required>
 			<default>medium</default>
-		<description></description>
-    </argument>
+			<description></description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
-		<description>Locale to use instead of the locale of the page when processing the function</description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
 			<required>No</required>
-		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
-This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
-For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
-You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
-       - AGT (for time in Argentina)
-       - Europe/Zurich (for time in Zurich/Switzerland)
-       - HST (Hawaiian Standard Time in the USA)
-		</description>
-    </argument>
+			<description>
+				A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00
+				UTC (Coordinated Universal Time).
+				This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a
+				hour or which day it is since those calculations depend on the timezone.
+				For these calculations, a timezone must be specified in order to translate the date object to something else. If you do
+				not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator
+				(Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+				You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid
+				timezones:
+				- AGT (for time in Argentina)
+				- Europe/Zurich (for time in Zurich/Switzerland)
+				- HST (Hawaiian Standard Time in the USA)
+			</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- lSEuroCurrencyFormat -->
 	<function>
 		<name>lSEuroCurrencyFormat</name>
@@ -1182,10 +1229,10 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<default>local</default>
 			<required>No</required>
 			<description>
-			one of the following:
-			- local (the currency format used in the locale. (default) )
-			- international (the international standard currency format of the locale)
-			- none (the currency format used in the locale; no currency symbol)</description>
+				one of the following:
+				- local (the currency format used in the locale. (default) )
+				- international (the international standard currency format of the locale)
+				- none (the currency format used in the locale; no currency symbol)</description>
 		</argument>
 		<argument>
 			<name>locale</name>
@@ -1197,67 +1244,72 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- lSIsCurrency -->
 	<function>
 		<name>lSIsCurrency</name>
 		<class>lucee.runtime.functions.international.LSIsCurrency</class>
 		<keywords>currency,string,formatting</keywords>
 		<description>Determines whether a string is a valid representation of a
-        currency amount in the current locale.</description>
+			currency amount in the current locale.</description>
 		<argument>
 			<name>number</name>
 			<alias>string,currency_number</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description>A currency string</description>
-    </argument>
+			<description>A currency string</description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
-		<description></description>
-    </argument>
+			<description></description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
-	
-	
+
+
 	<!-- LSIsDate -->
 	<function>
 		<name>LSIsDate</name>
 		<class>lucee.runtime.functions.international.LSIsDate</class>
 		<description>Determines whether a string is a valid representation of a
-        date/time value in the current locale.</description>
+			date/time value in the current locale.</description>
 		<argument>
 			<name>date</name>
 			<alias>string</alias>
 			<type>any</type>
 			<alias>date</alias>
 			<required>Yes</required>
-		<description>A string or a variable that contains one </description>
-    </argument>
+			<description>A string or a variable that contains one </description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>no</required>
-		<description>Locale to use instead of the locale of the page when processing the function</description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
 			<required>no</required>
-		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
-This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
-For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
-You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
-       - AGT (for time in Argentina)
-       - Europe/Zurich (for time in Zurich/Switzerland)
-       - HST (Hawaiian Standard Time in the USA)
-		</description>
-    </argument>
+			<description>
+				A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00
+				UTC (Coordinated Universal Time).
+				This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a
+				hour or which day it is since those calculations depend on the timezone.
+				For these calculations, a timezone must be specified in order to translate the date object to something else. If you do
+				not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator
+				(Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+				You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid
+				timezones:
+				- AGT (for time in Argentina)
+				- Europe/Zurich (for time in Zurich/Switzerland)
+				- HST (Hawaiian Standard Time in the USA)
+			</description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -1268,25 +1320,25 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>lSIsNumeric</name>
 		<class>lucee.runtime.functions.international.LSIsNumeric</class>
 		<description>Determines whether a string is a valid representation of a
-        number in the current locale.</description>
+			number in the current locale.</description>
 		<argument>
 			<name>number</name>
 			<alias>string</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description>A string or a variable that contains one</description>
-    </argument>
+			<description>A string or a variable that contains one</description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
-		<description>Locale to use instead of the locale of the page when processing the function</description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
-	
+
 	<!-- lSNumberFormat -->
 	<function>
 		<name>lSNumberFormat</name>
@@ -1297,20 +1349,20 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>number</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>Number to format</description>
-    </argument>
+			<description>Number to format</description>
+		</argument>
 		<argument>
 			<name>mask</name>
 			<type>string</type>
 			<required>No</required>
-		<description></description>
-    </argument>
+			<description></description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
-		<description>Locale to use instead of the locale of the page when processing the function</description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -1321,22 +1373,22 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.international.LSParseCurrency</class>
 		<keywords>currency,string,parsing</keywords>
 		<description>Converts a locale-specific currency string into a formatted
-        number. Attempts conversion by comparing the string with each
-        the three supported currency formats (none, local,
-        international) and using the first that matches.</description>
+			number. Attempts conversion by comparing the string with each
+			the three supported currency formats (none, local,
+			international) and using the first that matches.</description>
 		<argument>
 			<name>string</name>
 			<alias>currency,number</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description>A locale-specific string</description>
-    </argument>
+			<description>A locale-specific string</description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
-		<description>Locale to use instead of the locale of the page when processing the function</description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -1346,47 +1398,53 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>lSParseDateTime</name>
 		<class>lucee.runtime.functions.international.LSParseDateTime</class>
 		<description>Converts a string that is a valid date/time representation in
-        the current locale into a date/time object.</description>
+			the current locale into a date/time object.</description>
 		<argument>
 			<name>date</name>
 			<type>object</type>
 			<required>Yes</required>
-		<description>A string in a format that is readable in the current locale. </description>
-    </argument>
+			<description>A string in a format that is readable in the current locale. </description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
 			<description>Locale to use instead of the locale of the page when processing the function</description>
-	    </argument>
+		</argument>
 		<argument>
 			<name>timezone</name>
 			<alias>timezone</alias>
 			<type>string</type>
 			<required>No</required>
-		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
-This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
-For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
-You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
-       - AGT (for time in Argentina)
-       - Europe/Zurich (for time in Zurich/Switzerland)
-       - HST (Hawaiian Standard Time in the USA)
+			<description>
+				A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00
+				UTC (Coordinated Universal Time).
+				This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a
+				hour or which day it is since those calculations depend on the timezone.
+				For these calculations, a timezone must be specified in order to translate the date object to something else. If you do
+				not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator
+				(Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+				You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid
+				timezones:
+				- AGT (for time in Argentina)
+				- Europe/Zurich (for time in Zurich/Switzerland)
+				- HST (Hawaiian Standard Time in the USA)
 			</description>
-	    </argument>
-	    
+		</argument>
+
 		<argument>
 			<name>format</name>
 			<type>string</type>
 			<required>No</required>
-		<description>The format (Java Syntax) of the string. This string is used to parse the given date string to date time object.
-		For details see: http://docs.oracle.com/javase/1.4.2/docs/api/java/text/SimpleDateFormat.html</description>
-    </argument>
+			<description>The format (Java Syntax) of the string. This string is used to parse the given date string to date time
+				object.
+				For details see: http://docs.oracle.com/javase/1.4.2/docs/api/java/text/SimpleDateFormat.html</description>
+		</argument>
 		<return>
 			<type>datetime</type>
 		</return>
 	</function>
-	
+
 	<!-- lSParseEuroCurrency -->
 	<function>
 		<name>lSParseEuroCurrency</name>
@@ -1399,39 +1457,39 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>string,currency_number</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Locale-specific string</description>
-    </argument>
+			<description>Locale-specific string</description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
-		<description>Locale to use instead of the locale of the page when processing the function</description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- lSParseNumber -->
 	<function>
 		<name>lSParseNumber</name>
 		<class>lucee.runtime.functions.international.LSParseNumber</class>
 		<keywords>number,string,parsing</keywords>
 		<description>Converts a string that is a valid numeric representation in
-        the current locale into a formatted number.</description>
+			the current locale into a formatted number.</description>
 		<argument>
 			<name>number</name>
 			<alias>string</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description>A string or a variable that contains one</description>
-    </argument>
+			<description>A string or a variable that contains one</description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
-		<description>Locale to use instead of the locale of the page when processing the function</description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<return>
 			<type>number</type>
 		</return>
@@ -1448,40 +1506,45 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>time</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>date object</description>
-    </argument>
+			<description>date object</description>
+		</argument>
 		<argument>
 			<name>mask</name>
 			<type>string</type>
 			<required>No</required>
 			<default>short</default>
-		<description></description>
-    </argument>
+			<description></description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
-		<description>Locale to use instead of the locale of the page when processing the function</description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
 			<required>No</required>
-		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
-This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
-For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
-You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
-       - AGT (for time in Argentina)
-       - Europe/Zurich (for time in Zurich/Switzerland)
-       - HST (Hawaiian Standard Time in the USA)
-		</description>
-    </argument>
+			<description>
+				A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00
+				UTC (Coordinated Universal Time).
+				This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a
+				hour or which day it is since those calculations depend on the timezone.
+				For these calculations, a timezone must be specified in order to translate the date object to something else. If you do
+				not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator
+				(Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+				You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid
+				timezones:
+				- AGT (for time in Argentina)
+				- Europe/Zurich (for time in Zurich/Switzerland)
+				- HST (Hawaiian Standard Time in the USA)
+			</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- monthShortAsString -->
 	<function>
 		<name>monthShortAsString</name>
@@ -1492,19 +1555,19 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>number</type>
 			<required>Yes</required>
 			<description></description>
-    	</argument>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
 			<introduced>5.0.0.0</introduced>
 			<description>Locale to use instead of the locale of the page when processing the function</description>
-    	</argument>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- newLine -->
 	<function>
 		<name>newLine</name>
@@ -1514,13 +1577,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- nowServer -->
 	<function>
 		<name>nowServer</name>
 		<class>lucee.runtime.functions.dateTime.NowServer</class>
 		<status>deprecated</status>
-		<description>this function is deprecated, returns the current time on the server independend on lucee timezone definition</description>
+		<description>this function is deprecated, returns the current time on the server independend on lucee timezone
+			definition</description>
 		<return>
 			<type>datetime</type>
 		</return>
@@ -1532,33 +1596,33 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.displayFormatting.NumberFormat</class>
 		<keywords>number,string,formatting</keywords>
 		<description>Creates a custom-formatted number value. For international
-        number formatting use LSNumberFormat.
-        [mask - quicky]
-        _,9 Digit placeholder; . decimal point; 0 Pads with zeros;
-        ( ) less than zero, puts parentheses around the mask
-        + plus sign before positive number minus before negative
-        - a space before positive minus sign before negative
-        , Separates every third decimal place with a comma.
-        L,C Left-justifies or center-justifies number
-        $ dollar sign before formatted number.
-        ^ Separates left and right formatting.</description>
+			number formatting use LSNumberFormat.
+			[mask - quicky]
+			_,9 Digit placeholder; . decimal point; 0 Pads with zeros;
+			( ) less than zero, puts parentheses around the mask
+			+ plus sign before positive number minus before negative
+			- a space before positive minus sign before negative
+			, Separates every third decimal place with a comma.
+			L,C Left-justifies or center-justifies number
+			$ dollar sign before formatted number.
+			^ Separates left and right formatting.</description>
 		<argument>
 			<name>number</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>A number.</description>
-    </argument>
+			<description>A number.</description>
+		</argument>
 		<argument>
 			<name>mask</name>
 			<type>string</type>
 			<required>No</required>
-		<description></description>
-    </argument>
+			<description></description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- nullValue -->
 	<function>
 		<name>nullValue</name>
@@ -1568,7 +1632,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>any</type>
 		</return>
 	</function>
-	
+
 	<!-- pagePoolClear -->
 	<function>
 		<name>pagePoolClear</name>
@@ -1578,7 +1642,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>boolean</type>
 		</return>
 	</function>
-	
+
 	<!-- pagePoolList -->
 	<function>
 		<name>pagePoolList</name>
@@ -1588,7 +1652,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>array</type>
 		</return>
 	</function>
-	
+
 	<!-- parameterExists -->
 	<function>
 		<name>parameterExists</name>
@@ -1598,8 +1662,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>parameter</name>
 			<type>variablestring</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description></description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -1610,54 +1674,59 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.string.ParseDateTime</class>
 		<keywords>date,string,parsing</keywords>
 		<description>Parses a date/time string according to the English (U.S.)
-        locale conventions. (To format a date/time string for other
-        locales, use the LSParseDateTime function.)</description>
-        <member-name>parseDateTime</member-name>
-        <member-type>string</member-type>
+			locale conventions. (To format a date/time string for other
+			locales, use the LSParseDateTime function.)</description>
+		<member-name>parseDateTime</member-name>
+		<member-type>string</member-type>
 		<argument>
 			<name>date</name>
 			<type>object</type>
 			<required>Yes</required>
 			<description>A string containing a date/time value formatted according to U.S. locale conventions.</description>
-    	</argument>
+		</argument>
 		<argument>
 			<name>popConversion</name>
 			<type>string</type>
 			<required>No</required>
 			<description></description>
-    	</argument>
+		</argument>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
 			<required>No</required>
-		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
-This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
-For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
-You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
-       - AGT (for time in Argentina)
-       - Europe/Zurich (for time in Zurich/Switzerland)
-       - HST (Hawaiian Standard Time in the USA)
-		</description>
-    </argument>
+			<description>
+				A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00
+				UTC (Coordinated Universal Time).
+				This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a
+				hour or which day it is since those calculations depend on the timezone.
+				For these calculations, a timezone must be specified in order to translate the date object to something else. If you do
+				not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator
+				(Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+				You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid
+				timezones:
+				- AGT (for time in Argentina)
+				- Europe/Zurich (for time in Zurich/Switzerland)
+				- HST (Hawaiian Standard Time in the USA)
+			</description>
+		</argument>
 		<return>
 			<type>datetime</type>
 		</return>
 	</function>
-	
+
 	<!-- parseNumber -->
 	<function>
 		<name>parseNumber</name>
 		<class>lucee.runtime.functions.string.ParseNumber</class>
 		<description>
-		Parses the string argument as a numeric value. 
+			Parses the string argument as a numeric value.
 		</description>
 		<argument>
 			<name>number</name>
 			<type>string</type>
 			<required>Yes</required>
 			<description>
-			the String containing the numeric representation to be parsed
+				the String containing the numeric representation to be parsed
 			</description>
 		</argument>
 		<argument>
@@ -1665,60 +1734,62 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 			<required>No</required>
 			<description>
-			the radix to be used while parsing (bin,oct,dec,hex)
+				the radix to be used while parsing (bin,oct,dec,hex)
 			</description>
 		</argument>
 		<return>
 			<type>number</type>
 		</return>
 	</function>
-	
+
 	<!-- preserveSingleQuotes -->
 	<function>
 		<name>preserveSingleQuotes</name>
 		<class>lucee.runtime.functions.other.PreserveSingleQuotes</class>
-		<description>Returns back string without letting the engine escape the single quotes. Used within CFQUERY blocks usually</description>
+		<description>Returns back string without letting the engine escape the single quotes. Used within CFQUERY blocks
+			usually</description>
 		<argument>
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Variable that contains a string in which to preserve single-quotation marks.</description>
-    </argument>
+			<description>Variable that contains a string in which to preserve single-quotation marks.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- QueryConvertForGrid -->
 	<function>
 		<name>QueryConvertForGrid</name>
 		<class>lucee.runtime.functions.query.QueryConvertForGrid</class>
 		<status>deprecated</status>
 		<keywords>query</keywords>
-		<description>Use instead the function QuerySlice. Converts query data to a structure that contains a paged subset of the query.</description>
+		<description>Use instead the function QuerySlice. Converts query data to a structure that contains a paged subset of
+			the query.</description>
 		<argument>
 			<name>query</name>
 			<type>query</type>
 			<required>Yes</required>
-		<description>Name of the query whose data is returned.</description>
-    </argument>	
+			<description>Name of the query whose data is returned.</description>
+		</argument>
 		<argument>
 			<name>page</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>		
+			<description></description>
+		</argument>
 		<argument>
 			<name>pageSize</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>	
+			<description></description>
+		</argument>
 		<return>
 			<type>struct</type>
 		</return>
 	</function>
-	
+
 	<!-- rand -->
 	<function>
 		<name>rand</name>
@@ -1729,35 +1800,37 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>algorithm</name>
 			<type>string</type>
 			<required>No</required>
-		<description>The algorithm to use to generate the random number.</description>
-    </argument>
+			<description>The algorithm to use to generate the random number.</description>
+		</argument>
 		<return>
 			<type>number</type>
 		</return>
 	</function>
-	
+
 	<!-- sizeOf -->
 	<function>
 		<name>sizeOf</name>
 		<class>lucee.runtime.functions.system.SizeOf</class>
-		<description>this function is experimentell, to not use in productive enviroment. this function returns the size in bytes of a given object.</description>
+		<description>this function is experimentell, to not use in productive enviroment. this function returns the size in
+			bytes of a given object.</description>
 		<argument>
 			<name>obj</name>
 			<type>object</type>
 			<required>Yes</required>
 			<description>object to get size for</description>
-	    </argument>
-	    <argument>
+		</argument>
+		<argument>
 			<name>complex</name>
 			<type>boolean</type>
 			<required>No</required>
-			<description>if set to false, the size is returned, if set to true a struct containing the element count and the size is returned</description>
-	    </argument>
+			<description>if set to false, the size is returned, if set to true a struct containing the element count and the size
+				is returned</description>
+		</argument>
 		<return>
 			<type>any</type>
 		</return>
 	</function>
-	
+
 	<!-- spanExcluding -->
 	<function>
 		<name>spanExcluding</name>
@@ -1765,21 +1838,21 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<member-name>spanExcluding</member-name>
 		<keywords>string</keywords>
 		<description>Gets characters from a string, from the beginning to a
-        character that is in a specified set of characters. The
-        search is case-sensitive.</description>
+			character that is in a specified set of characters. The
+			search is case-sensitive.</description>
 		<argument>
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>A string or a variable that contains one</description>
-    </argument>
+			<description>A string or a variable that contains one</description>
+		</argument>
 		<argument>
 			<name>set</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>A string or a variable that contains a set of characters.
-            Must contain one or more characters</description>
-    </argument>
+			<description>A string or a variable that contains a set of characters.
+				Must contain one or more characters</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -1792,26 +1865,26 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<member-name>spanIncluding</member-name>
 		<keywords>string</keywords>
 		<description>Gets characters from a string, from the beginning to a
-        character that is not in a specified set of characters. The
-        search is case-sensitive.</description>
+			character that is not in a specified set of characters. The
+			search is case-sensitive.</description>
 		<argument>
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>A string or a variable that contains the search string.</description>
-    </argument>
+			<description>A string or a variable that contains the search string.</description>
+		</argument>
 		<argument>
 			<name>set</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>A string or a variable that contains a set of characters.
-            Must contain one or more characters</description>
-    </argument>
+			<description>A string or a variable that contains a set of characters.
+				Must contain one or more characters</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- struct -->
 	<function>
 		<name>struct</name>
@@ -1823,7 +1896,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>struct</type>
 		</return>
 	</function>
-	
+
 	<!-- SystemCacheClear -->
 	<function>
 		<name>SystemCacheClear</name>
@@ -1834,28 +1907,28 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>cache,region</alias>
 			<type>string</type>
 			<required>No</required>
-		<description>Name of the cache to clear, if not defined all caches will be cleared:
-      the following cache Names are supported:
-      - all: clear all caches
-      - template: clears the template cache
-      - component: clears the component path cache
-      - customtag: clears the custom tag path cache
-      - query: clears the query cache
-      - tag: clears the cfml/cfc based built in tag cache
-      - function: clears the cfml based built in function cache
-		</description>
-    </argument>
+			<description>Name of the cache to clear, if not defined all caches will be cleared:
+				the following cache Names are supported:
+				- all: clear all caches
+				- template: clears the template cache
+				- component: clears the component path cache
+				- customtag: clears the custom tag path cache
+				- query: clears the query cache
+				- tag: clears the cfml/cfc based built in tag cache
+				- function: clears the cfml based built in function cache
+			</description>
+		</argument>
 		<return>
 			<type>void</type>
 		</return>
 	</function>
-	
+
 	<!-- timeFormat -->
 	<function>
 		<name>timeFormat</name>
 		<member-name>timeFormat</member-name>
-        <member-type>date</member-type>
-        
+		<member-type>date</member-type>
+
 		<class>lucee.runtime.functions.displayFormatting.TimeFormat</class>
 		<keywords>date,string,formatting</keywords>
 		<description>Formats a time string to a given output</description>
@@ -1863,59 +1936,64 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>time</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>A date/time value or string to convert</description>
-    </argument>
+			<description>A date/time value or string to convert</description>
+		</argument>
 		<argument>
 			<name>mask</name>
 			<type>string</type>
 			<required>No</required>
 			<default>hh:mm tt</default>
-		<description>
-Characters that show how Lucee displays a time:
-- h: hours; no leading zero for single-digit hours (12-hour clock)
-- hh: hours; leading zero for single-digit hours (12-hour clock)
-- H: hours; no leading zero for single-digit hours (24-hour clock)
-- HH: hours; leading zero for single-digit hours (24-hour clock)
-- m: minutes; no leading zero for single-digit minutes
-- mm: minutes; a leading zero for single-digit minutes
-- s: seconds; no leading zero for single-digit seconds
-- ss: seconds; leading zero for single-digit seconds
-- l or L: milliseconds, with no leading zeros
-- t: one-character time marker string, such as A or P
-- tt: multiple-character time marker string, such as AM or PM
-- z: Time zone in literal format, for example, IST
-- Z: Time zone in hours of offset (RFC 822 TimeZone), for example, +0530
-- X: Time zone in hours of offset in ISO 8601 format. The following are the three ways of using 'X':
-         X: +05
-         XX: +0530
-         XXX: +5:30
+			<description>
+				Characters that show how Lucee displays a time:
+				- h: hours; no leading zero for single-digit hours (12-hour clock)
+				- hh: hours; leading zero for single-digit hours (12-hour clock)
+				- H: hours; no leading zero for single-digit hours (24-hour clock)
+				- HH: hours; leading zero for single-digit hours (24-hour clock)
+				- m: minutes; no leading zero for single-digit minutes
+				- mm: minutes; a leading zero for single-digit minutes
+				- s: seconds; no leading zero for single-digit seconds
+				- ss: seconds; leading zero for single-digit seconds
+				- l or L: milliseconds, with no leading zeros
+				- t: one-character time marker string, such as A or P
+				- tt: multiple-character time marker string, such as AM or PM
+				- z: Time zone in literal format, for example, IST
+				- Z: Time zone in hours of offset (RFC 822 TimeZone), for example, +0530
+				- X: Time zone in hours of offset in ISO 8601 format. The following are the three ways of using 'X':
+				X: +05
+				XX: +0530
+				XXX: +5:30
 
-- short: equivalent to h:mm tt
-- medium: equivalent to h:mm:ss tt
-- long: equivalent to h:mm:ss tt {timezone-3-letters}
-- full: equivalent to h:mm:ss tt {timezone-3-letters}
-		
-		</description>
-    </argument>
+				- short: equivalent to h:mm tt
+				- medium: equivalent to h:mm:ss tt
+				- long: equivalent to h:mm:ss tt {timezone-3-letters}
+				- full: equivalent to h:mm:ss tt {timezone-3-letters}
+
+			</description>
+		</argument>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
 			<required>No</required>
-		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
-This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
-For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
-You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
-       - AGT (for time in Argentina)
-       - Europe/Zurich (for time in Zurich/Switzerland)
-       - HST (Hawaiian Standard Time in the USA)
-		</description>
-    </argument>
+			<description>
+				A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00
+				UTC (Coordinated Universal Time).
+				This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a
+				hour or which day it is since those calculations depend on the timezone.
+				For these calculations, a timezone must be specified in order to translate the date object to something else. If you do
+				not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator
+				(Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+				You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid
+				timezones:
+				- AGT (for time in Argentina)
+				- Europe/Zurich (for time in Zurich/Switzerland)
+				- HST (Hawaiian Standard Time in the USA)
+			</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- uRLEncodedFormat -->
 	<function>
 		<name>uRLEncodedFormat</name>
@@ -1923,34 +2001,34 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<member-name>uRLEncodedFormat</member-name>
 		<keywords>string,formatting</keywords>
 		<description>Generates a URL-encoded string. For example, it replaces spaces
-        with %20, and non-alphanumeric characters with equivalent
-        hexadecimal escape sequences. Passes arbitrary strings within a
-        URL.</description>
+			with %20, and non-alphanumeric characters with equivalent
+			hexadecimal escape sequences. Passes arbitrary strings within a
+			URL.</description>
 		<argument>
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>A string or a variable that contains one</description>
-    </argument>
+			<description>A string or a variable that contains one</description>
+		</argument>
 		<argument>
 			<name>charset</name>
 			<type>string</type>
 			<required>No</required>
 			<default>utf-8</default>
-		<description>The character encoding in which the string is encoded.</description>
-    </argument>
+			<description>The character encoding in which the string is encoded.</description>
+		</argument>
 		<argument>
 			<name>force</name>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
-		<description></description>
-    </argument>
+			<description></description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- valueArray -->
 	<function>
 		<name>valueArray</name>
@@ -1959,18 +2037,18 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<status>deprecated</status>
 		<keywords>query</keywords>
 		<description>Returns a array of all the values, for a given column within the query.
-		this function is deprecated, use instead the function queryColumnData</description>
+			this function is deprecated, use instead the function queryColumnData</description>
 		<argument>
 			<name>query_column</name>
 			<type>queryColumn</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description></description>
+		</argument>
 		<return>
 			<type>array</type>
 		</return>
 	</function>
-	
+
 	<!-- valueList -->
 	<function>
 		<name>valueList</name>
@@ -1979,27 +2057,27 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<status>deprecated</status>
 		<keywords>query</keywords>
 		<description>Returns a list of all the values, for a given column within the query, delimited by the value given.
-		this function is deprecated, use instead the function queryColumnData</description>
+			this function is deprecated, use instead the function queryColumnData</description>
 		<argument>
 			<name>query_column</name>
 			<type>queryColumn</type>
 			<required>Yes</required>
-		<description>Name of an executed query and column. Separate query name and column name with a period.</description>
-    </argument>
+			<description>Name of an executed query and column. Separate query name and column name with a period.</description>
+		</argument>
 		<argument>
 			<name>delimiter</name>
 			<alias>delimiters</alias>
 			<type>string</type>
 			<required>No</required>
 			<default>,</default>
-		<description>A delimiter character to separate column data items.
-            Default: comma (,).</description>
-    </argument>
+			<description>A delimiter character to separate column data items.
+				Default: comma (,).</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- valueList (Member) -->
 	<function>
 		<name>_valueList</name>
@@ -2013,27 +2091,27 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>query</type>
 			<required>Yes</required>
 			<description>query object do get data from</description>
-	    </argument>	
+		</argument>
 		<argument>
 			<name>columnName</name>
 			<type>string</type>
 			<required>Yes</required>
 			<description>name of the column returned</description>
-	    </argument>	
+		</argument>
 		<argument>
 			<name>delimiter</name>
 			<alias>delimiters</alias>
 			<type>string</type>
 			<required>No</required>
 			<default>,</default>
-		<description>A delimiter character to separate column data items.
-            Default: comma (,).</description>
-    </argument>
+			<description>A delimiter character to separate column data items.
+				Default: comma (,).</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- VerifyClient -->
 	<function>
 		<name>VerifyClient</name>
@@ -2043,112 +2121,123 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>void</type>
 		</return>
 	</function>
-	
-	
+
+
 	<!-- week -->
 	<function>
 		<name>week</name>
 		<class>lucee.runtime.functions.dateTime.Week</class>
 		<member-name>week</member-name>
 		<description>From a date/time object, determines the week number within
-        the year. An integer in the range 1-53; the ordinal of the
-        week, within the year.</description>
+			the year. An integer in the range 1-53; the ordinal of the
+			week, within the year.</description>
 		<argument>
 			<name>date</name>
 			<type>datetime</type>
 			<required>Yes</required>
-		<description>date object</description>
-    </argument>
+			<description>date object</description>
+		</argument>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
 			<required>no</required>
-		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
-This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
-For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
-You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
-       - AGT (for time in Argentina)
-       - Europe/Zurich (for time in Zurich/Switzerland)
-       - HST (Hawaiian Standard Time in the USA)
-		</description>
-    </argument>
+			<description>
+				A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00
+				UTC (Coordinated Universal Time).
+				This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a
+				hour or which day it is since those calculations depend on the timezone.
+				For these calculations, a timezone must be specified in order to translate the date object to something else. If you do
+				not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator
+				(Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+				You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid
+				timezones:
+				- AGT (for time in Argentina)
+				- Europe/Zurich (for time in Zurich/Switzerland)
+				- HST (Hawaiian Standard Time in the USA)
+			</description>
+		</argument>
 		<return>
 			<type>number</type>
 		</return>
 	</function>
-	
+
 	<!-- lsweek -->
 	<function>
 		<name>lsweek</name>
 		<class>lucee.runtime.functions.international.LSWeek</class>
-		<description>Returns the week number in the year of the date referenced, based on the loal influence. not everywhere the wekk begins on Monday by defintion.</description>
+		<description>Returns the week number in the year of the date referenced, based on the loal influence. not everywhere
+			the wekk begins on Monday by defintion.</description>
 		<argument>
 			<name>date</name>
 			<type>datetime</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description></description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>no</required>
-		<description>Locale to use instead of the locale of the page when processing the function</description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
 			<required>no</required>
-		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
-This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
-For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
-You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
-       - AGT (for time in Argentina)
-       - Europe/Zurich (for time in Zurich/Switzerland)
-       - HST (Hawaiian Standard Time in the USA)
-		</description>
-    </argument>
+			<description>
+				A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00
+				UTC (Coordinated Universal Time).
+				This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a
+				hour or which day it is since those calculations depend on the timezone.
+				For these calculations, a timezone must be specified in order to translate the date object to something else. If you do
+				not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator
+				(Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+				You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid
+				timezones:
+				- AGT (for time in Argentina)
+				- Europe/Zurich (for time in Zurich/Switzerland)
+				- HST (Hawaiian Standard Time in the USA)
+			</description>
+		</argument>
 		<return>
 			<type>number</type>
 		</return>
 	</function>
-	
+
 	<!-- writeOutput -->
 	<function>
 		<name>writeOutput</name>
 		<class>lucee.runtime.functions.other.WriteOutput</class>
 		<description>Writes the given string to the main response buffer regardless of
-        conditions established by the cfsetting tag.</description>
+			conditions established by the cfsetting tag.</description>
 		<argument>
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>A string to write to the buffer.</description>
-    </argument>
-    <argument>
+			<description>A string to write to the buffer.</description>
+		</argument>
+		<argument>
 			<name>encodeFor</name>
 			<type>string</type>
 			<required>no</required>
 			<description>encode for what, valid values are:
-- css: for output inside Cascading Style Sheets (CSS)
-- dn: for output in LDAP Distinguished Names
-- html: for output inside HTML
-- html_attr: for output inside HTML Attributes
-- javascript: for output inside Javascript
-- ldap: for output in LDAP queries
-- url: for output in URL
-- vbscript: for output inside vbscript
-- xml: for output inside XML
-- xml_attr: for output inside XML Attributes
-- xpath: for output in XPath</description>
-	    </argument>
-    
+				- css: for output inside Cascading Style Sheets (CSS)
+				- dn: for output in LDAP Distinguished Names
+				- html: for output inside HTML
+				- html_attr: for output inside HTML Attributes
+				- javascript: for output inside Javascript
+				- ldap: for output in LDAP queries
+				- url: for output in URL
+				- vbscript: for output inside vbscript
+				- xml: for output inside XML
+				- xml_attr: for output inside XML Attributes
+				- xpath: for output in XPath</description>
+		</argument>
+
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
-	
+
 	<!-- yesNoFormat -->
 	<function>
 		<name>yesNoFormat</name>
@@ -2167,7 +2256,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- trueFalseFormat -->
 	<function>
 		<name>trueFalseFormat</name>
@@ -2184,14 +2273,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- booleanFormat -->
 	<function>
 		<name>booleanFormat</name>
 		<class>lucee.runtime.functions.displayFormatting.TrueFalseFormat</class>
 		<member-name>booleanFormat</member-name>
-        <member-type>boolean</member-type>
-        <keywords>boolean,formatting</keywords>
+		<member-type>boolean</member-type>
+		<keywords>boolean,formatting</keywords>
 		<description>True, for a non-zero value; False, otherwise.</description>
 		<argument>
 			<name>value</name>
@@ -2203,10 +2292,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
-	
-		<!-- unserializeJava 
-	deprecated replaced with evaluteJava
-	-->
+
+	<!-- unserializeJava deprecated replaced with evaluteJava -->
 	<function>
 		<name>unserializeJava</name>
 		<class>lucee.runtime.functions.dynamicEvaluation.UnserializeJava</class>
@@ -2216,66 +2303,67 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description></description>
+		</argument>
 		<return>
 			<type>any</type>
 		</return>
 	</function>
-	
+
 	<!-- quotedValueList -->
 	<function>
 		<name>quotedValueList</name>
 		<class>lucee.runtime.functions.other.QuotedValueList</class>
 		<status>deprecated</status>
-		<description>Returns a quoted list of all the values, for a given column within the query, delimited by the value given.
-		this function is deprecated, use instead the function queryColumnData</description>
+		<description>Returns a quoted list of all the values, for a given column within the query, delimited by the value
+			given.
+			this function is deprecated, use instead the function queryColumnData</description>
 		<argument>
 			<name>query_column</name>
 			<type>queryColumn</type>
 			<required>Yes</required>
-		<description>Name of an executed query and column. Separate query name and column name with a period.</description>
-    </argument>
+			<description>Name of an executed query and column. Separate query name and column name with a period.</description>
+		</argument>
 		<argument>
 			<name>delimiter</name>
 			<alias>delimiters</alias>
 			<type>string</type>
 			<required>No</required>
 			<default>,</default>
-		<description></description>
-    </argument>
+			<description></description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- QueryGetRow -->
-    	<function>
-    		<name>QueryGetRow</name>
-    		<class>lucee.runtime.functions.query.QueryRowData</class>
-    		<member-name>getRow</member-name>
-    		<keywords>query</keywords>
-			<status>deprecated</status>
-			<description>this function is deprecated, use function QueryRowData instead.</description>
-	
-    		<argument>
-    			<name>query</name>
-    			<type>query</type>
-    			<required>Yes</required>
-    			<description>query object do get data from</description>
-    	    </argument>
-    		<argument>
-    			<name>rowNumber</name>
-    			<type>number</type>
-    			<required>Yes</required>
-    			<description>position of the row to be returned</description>
-    	    </argument>
-    		<return>
-    			<type>struct</type>
-    		</return>
-    	</function>
-    	
-    <!-- listTrim -->
+	<function>
+		<name>QueryGetRow</name>
+		<class>lucee.runtime.functions.query.QueryRowData</class>
+		<member-name>getRow</member-name>
+		<keywords>query</keywords>
+		<status>deprecated</status>
+		<description>this function is deprecated, use function QueryRowData instead.</description>
+
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query object do get data from</description>
+		</argument>
+		<argument>
+			<name>rowNumber</name>
+			<type>number</type>
+			<required>Yes</required>
+			<description>position of the row to be returned</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+
+	<!-- listTrim -->
 	<function>
 		<name>listTrim</name>
 		<class>lucee.runtime.functions.list.ListTrim</class>
@@ -2300,43 +2388,44 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- ImageDrawImage -->
 	<function>
 		<name>ImageDrawImage</name>
 		<class>lucee.runtime.functions.image.ImageDrawImage</class>
 		<status>deprecated</status>
 		<keywords>image</keywords>
-		<description>this function is deprecated, use ImagePaste instead. Draws a image on a image with the baseline of the first character positioned at (x,y) in the image.</description>
+		<description>this function is deprecated, use ImagePaste instead. Draws a image on a image with the baseline of the
+			first character positioned at (x,y) in the image.</description>
 		<argument>
 			<name>name</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>the image to draw on it</description>
-    </argument>
+			<description>the image to draw on it</description>
+		</argument>
 		<argument>
 			<name>image</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>the image to draw</description>
-    </argument>
+			<description>the image to draw</description>
+		</argument>
 		<argument>
 			<name>x</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>The x coordinate of the of the top left corner of the image to draw.</description>
-    </argument>
+			<description>The x coordinate of the of the top left corner of the image to draw.</description>
+		</argument>
 		<argument>
 			<name>y</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>The y coordinate of the of the top left corner of the image to draw.</description>
-    </argument>
+			<description>The y coordinate of the of the top left corner of the image to draw.</description>
+		</argument>
 		<return>
 			<type>void</type>
 		</return>
 	</function>
-	
+
 	<!-- getMetricData -->
 	<function>
 		<name>getMetricData</name>
@@ -2347,144 +2436,150 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>monitor_name</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>name of the monitor</description>
-    </argument>
+			<description>name of the monitor</description>
+		</argument>
 		<return>
 			<type>any</type>
 		</return>
 	</function>
-	
+
 	<!-- Empty -->
 	<function>
 		<name>Empty</name>
 		<class>lucee.runtime.functions.system.Empty</class>
 		<status>deprecated</status>
 		<description>this function is deprcated, use instead "IsEmpty".
-		this function returns true if a value exists and is not "empty". 
-The following things are considered to be empty:
-- string:"" (an empty string)
-- number:return always false
-- boolean: return always false
-- array: [] (an empty array)
-- struct: {} (an empty struct)
-		 </description>
+			this function returns true if a value exists and is not "empty".
+			The following things are considered to be empty:
+			- string:"" (an empty string)
+			- number:return always false
+			- boolean: return always false
+			- array: [] (an empty array)
+			- struct: {} (an empty struct)
+		</description>
 		<argument>
 			<name>variable</name>
 			<alias>variableName,object</alias>
 			<type>variablestring</type>
 			<required>Yes</required>
 			<description></description>
-    	</argument>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
 
-    <!-- CacheRegionExists -->
-    <function>
-        <name>CacheRegionExists</name>
-        <class>lucee.runtime.functions.cache.CacheRegionExists</class>
-        <status>deprecated</status>
-        <introduced>5.0.0.0</introduced>
-		<description>this function exists solely for the purpose of compatibility with other CFML Engines.  we strongly recommend not to use this function.
-        it is recommended to use the Administrator interface in order to add or remove cache connections.
+	<!-- CacheRegionExists -->
+	<function>
+		<name>CacheRegionExists</name>
+		<class>lucee.runtime.functions.cache.CacheRegionExists</class>
+		<status>deprecated</status>
+		<introduced>5.0.0.0</introduced>
+		<description>this function exists solely for the purpose of compatibility with other CFML Engines. we strongly
+			recommend not to use this function.
+			it is recommended to use the Administrator interface in order to add or remove cache connections.
 
-        this functions returns true if a cache connection with the passed cacheName exists.</description>
-        <argument>
-            <name>cacheName</name>
-            <alias>cache,region</alias>
-            <type>string</type>
-            <required>yes</required>
-            <description>the name of the cache connection to check (also known as Region in other CFML engines).</description>
-        </argument>
-        <argument>
-            <name>password</name>
-            <alias>webAdminPassword</alias>
-            <type>string</type>
-            <required>No</required>
-            <description>the password for the web administrator is required to interact with Cache Connections.
-            you can optionally set it for your Application in Application.cfc using the variable [this.webAdminPassword].</description>
-        </argument>
-        <return>
-            <type>boolean</type>
-        </return>
-    </function>
+			this functions returns true if a cache connection with the passed cacheName exists.</description>
+		<argument>
+			<name>cacheName</name>
+			<alias>cache,region</alias>
+			<type>string</type>
+			<required>yes</required>
+			<description>the name of the cache connection to check (also known as Region in other CFML engines).</description>
+		</argument>
+		<argument>
+			<name>password</name>
+			<alias>webAdminPassword</alias>
+			<type>string</type>
+			<required>No</required>
+			<description>the password for the web administrator is required to interact with Cache Connections.
+				you can optionally set it for your Application in Application.cfc using the variable [this.webAdminPassword].</description>
+		</argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
 
-    <!-- CacheRegionRemove -->
-    <function>
-        <name>CacheRegionRemove</name>
-        <class>lucee.runtime.functions.cache.CacheRegionRemove</class>
-        <status>deprecated</status>
-        <introduced>5.0.0.0</introduced>
-		<description>this function exists solely for the purpose of compatibility with other CFML Engines.  we strongly recommend not to use this function.
-        it is recommended to use the Administrator interface in order to remove a cache connection.</description>
-        <argument>
-            <name>cacheName</name>
-            <alias>cache,region</alias>
-            <type>string</type>
-            <required>yes</required>
-            <description>the name of the cache connection to remove (also known as Region in other CFML engines).</description>
-        </argument>
-        <argument>
-            <name>password</name>
-            <alias>webAdminPassword</alias>
-            <type>string</type>
-            <required>no</required>
-            <description>the password for the web administrator is required to interact with Cache Connections.
-            you can optionally set it for your Application in Application.cfc using the variable [this.webAdminPassword].</description>
-        </argument>
-        <return>
-            <type>void</type>
-        </return>
-    </function>
+	<!-- CacheRegionRemove -->
+	<function>
+		<name>CacheRegionRemove</name>
+		<class>lucee.runtime.functions.cache.CacheRegionRemove</class>
+		<status>deprecated</status>
+		<introduced>5.0.0.0</introduced>
+		<description>this function exists solely for the purpose of compatibility with other CFML Engines. we strongly
+			recommend not to use this function.
+			it is recommended to use the Administrator interface in order to remove a cache connection.</description>
+		<argument>
+			<name>cacheName</name>
+			<alias>cache,region</alias>
+			<type>string</type>
+			<required>yes</required>
+			<description>the name of the cache connection to remove (also known as Region in other CFML engines).</description>
+		</argument>
+		<argument>
+			<name>password</name>
+			<alias>webAdminPassword</alias>
+			<type>string</type>
+			<required>no</required>
+			<description>the password for the web administrator is required to interact with Cache Connections.
+				you can optionally set it for your Application in Application.cfc using the variable [this.webAdminPassword].</description>
+		</argument>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
 
-    <!-- CacheRegionNew -->
-    <function>
-        <name>CacheRegionNew</name>
-        <class>lucee.runtime.functions.cache.CacheRegionNew</class>
-        <status>deprecated</status>
-        <introduced>5.0.0.0</introduced>
-		<description>this function exists solely for the purpose of compatibility with other CFML Engines.  we strongly recommend not to use this function.
-        to create a cache connection either declare it in your Application.cfc or create it via the in the Administrator interface.</description>
-        <argument>
-            <name>cacheName</name>
-            <alias>cache,region</alias>
-            <type>string</type>
-            <required>yes</required>
-            <description>the name of the cache connection to create (also known as Region in other CFML engines).</description>
-        </argument>
-        <argument>
-            <name>properties</name>
-            <alias>propsSruct,props</alias>
-            <type>any</type>
-            <required>no</required>
-            <description>a structure specifying the cache properties</description>
-        </argument>
-        <argument>
-            <name>throwOnError</name>
-            <type>any</type>
-            <required>no</required>
-            <description>specifies whether the function should throw an exception if a cache connection with that name already exists (default is true)</description>
-        </argument>
-        <argument>
-            <name>password</name>
-            <alias>webAdminPassword</alias>
-            <type>string</type>
-            <required>no</required>
-            <description>the password for the web administrator is required to interact with Cache Connections.
-            you can optionally set it for your Application in Application.cfc using the variable [this.webAdminPassword].</description>
-        </argument>
-        <return>
-            <type>void</type>
-        </return>
-    </function>
-	
+	<!-- CacheRegionNew -->
+	<function>
+		<name>CacheRegionNew</name>
+		<class>lucee.runtime.functions.cache.CacheRegionNew</class>
+		<status>deprecated</status>
+		<introduced>5.0.0.0</introduced>
+		<description>this function exists solely for the purpose of compatibility with other CFML Engines. we strongly
+			recommend not to use this function.
+			to create a cache connection either declare it in your Application.cfc or create it via the in the Administrator
+			interface.</description>
+		<argument>
+			<name>cacheName</name>
+			<alias>cache,region</alias>
+			<type>string</type>
+			<required>yes</required>
+			<description>the name of the cache connection to create (also known as Region in other CFML engines).</description>
+		</argument>
+		<argument>
+			<name>properties</name>
+			<alias>propsSruct,props</alias>
+			<type>any</type>
+			<required>no</required>
+			<description>a structure specifying the cache properties</description>
+		</argument>
+		<argument>
+			<name>throwOnError</name>
+			<type>any</type>
+			<required>no</required>
+			<description>specifies whether the function should throw an exception if a cache connection with that name already
+				exists (default is true)</description>
+		</argument>
+		<argument>
+			<name>password</name>
+			<alias>webAdminPassword</alias>
+			<type>string</type>
+			<required>no</required>
+			<description>the password for the web administrator is required to interact with Cache Connections.
+				you can optionally set it for your Application in Application.cfc using the variable [this.webAdminPassword].</description>
+		</argument>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
+
 	<!-- CacheKeyExists -->
 	<function>
 		<name>CacheKeyExists</name>
 		<class>lucee.runtime.functions.cache.CacheKeyExists</class>
 		<status>deprecated</status>
-		<description>this function is deprecated, use instead CacheIdExists. Returns true/false whether the cache contains an element with the certain keyname.</description>
+		<description>this function is deprecated, use instead CacheIdExists. Returns true/false whether the cache contains an
+			element with the certain keyname.</description>
 		<argument>
 			<name>key</name>
 			<alias>name,id</alias>
@@ -2497,13 +2592,14 @@ The following things are considered to be empty:
 			<alias>cache,region</alias>
 			<type>string</type>
 			<required>No</required>
-			<description>definition of the cache used by name, when not set the "default Object Cache" defined in Lucee Administrator is used instead.</description>
+			<description>definition of the cache used by name, when not set the "default Object Cache" defined in Lucee
+				Administrator is used instead.</description>
 		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
-	
+
 	<!-- CacheRemoveAll -->
 	<function>
 		<name>CacheRemoveAll</name>
@@ -2515,7 +2611,8 @@ The following things are considered to be empty:
 			<alias>cache,region</alias>
 			<type>string</type>
 			<required>No</required>
-			<description>definition of the cache used by name, when not set the "default Object Cache" defined in Lucee Administrator is used instead.</description>
+			<description>definition of the cache used by name, when not set the "default Object Cache" defined in Lucee
+				Administrator is used instead.</description>
 		</argument>
 		<return>
 			<type>number</type>
@@ -2533,37 +2630,43 @@ The following things are considered to be empty:
 			<name>date</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>date object</description>
-    </argument>
+			<description>date object</description>
+		</argument>
 		<argument>
 			<name>mask</name>
 			<type>string</type>
 			<required>No</required>
 			<default>dd-MMM-yyyy HH:nn:ss</default>
-		<description>
-		Mask that has to be used for formatting. The function follows Java date time mask. For details, see the section Date and Time Patterns at the following URL: http://docs.oracle.com/javase/1.4.2/docs/api/java/text/SimpleDateFormat.html
-		</description>
-    </argument>
+			<description>
+				Mask that has to be used for formatting. The function follows Java date time mask. For details, see the section Date and
+				Time Patterns at the following URL: http://docs.oracle.com/javase/1.4.2/docs/api/java/text/SimpleDateFormat.html
+			</description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
-		<description>Locale to use instead of the locale of the page when processing the function</description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
 			<required>No</required>
-		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
-This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
-For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
-You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
-       - AGT (for time in Argentina)
-       - Europe/Zurich (for time in Zurich/Switzerland)
-       - HST (Hawaiian Standard Time in the USA)
-		</description>
-    </argument>
+			<description>
+				A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00
+				UTC (Coordinated Universal Time).
+				This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a
+				hour or which day it is since those calculations depend on the timezone.
+				For these calculations, a timezone must be specified in order to translate the date object to something else. If you do
+				not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator
+				(Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+				You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid
+				timezones:
+				- AGT (for time in Argentina)
+				- Europe/Zurich (for time in Zurich/Switzerland)
+				- HST (Hawaiian Standard Time in the USA)
+			</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>

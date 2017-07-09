@@ -14,9 +14,9 @@
 	<el>
 		<el-class>lucee.transformer.cfml.expression.CFMLExprTransformer</el-class>
 	</el>
-	
-	
-	<!-- Application-->
+
+
+	<!-- Application -->
 	<tag>
 		<name>application</name>
 		<tag-class>lucee.runtime.tag.Application</tag-class>
@@ -28,8 +28,10 @@
 		</script>
 		<description>
 			Defines scoping for a application, enables or disables storing client variables,
-			and specifies a client variable storage mechanism.
-			By default, client variables are disabled. Also, enables session variables and sets timeouts
+			and specifies a client
+			variable storage mechanism.
+			By default, client variables are disabled. Also, enables session variables and sets
+			timeouts
 			for session and application variables. Session and application variables are stored in memory.
 		</description>
 		<attribute-type>fixed</attribute-type>
@@ -39,7 +41,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of your application. This name can be up to 64 characters long.
-   		Required for application and session variables, optional for client variables</description>
+				Required for application and session variables, optional for client variables</description>
 		</attribute>
 		<attribute>
 			<type>object</type>
@@ -94,8 +96,8 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>action for the data set:
-			- create (default): creates a new application context and overwrite the existing
-			- update: update the existing application context when there is already one, otherwise a new one is created</description>
+				- create (default): creates a new application context and overwrite the existing
+				- update: update the existing application context when there is already one, otherwise a new one is created</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -104,9 +106,9 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-			storage for the login data:
-			- cookie: store login information in the Cookie scope
-			- session: store login information in the Session scope
+				storage for the login data:
+				- cookie: store login information in the Cookie scope
+				- session: store login information in the Session scope
 			</description>
 		</attribute>
 		<attribute>
@@ -122,11 +124,12 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-Specifies how Lucee stores client variables:
-- memory: the session is only kept in memory
-- cookie: the session is stored in the client cookie
-- file (default): the session is stored in a local file
-- "datasource-name"|"cache-name": when you select a name of an available datasource or cache, the client scope will be stored in there</description>
+				Specifies how Lucee stores client variables:
+				- memory: the session is only kept in memory
+				- cookie: the session is stored in the client cookie
+				- file (default): the session is stored in a local file
+				- "datasource-name"|"cache-name": when you select a name of an available datasource or cache, the client scope will
+				be stored in there</description>
 		</attribute>
 
 		<attribute>
@@ -135,41 +138,46 @@ Specifies how Lucee stores client variables:
 			<values>application,jee</values>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-<description>
-Lucee provide 2 kind of sessions:
-- application: session handled by Lucee
-- jee: session handled by the Servlet Engine used
-Default value is defined in the Lucee Web Administrator. "jee" can not use a session storage.
-</description>
+			<description>
+				Lucee provide 2 kind of sessions:
+				- application: session handled by Lucee
+				- jee: session handled by the Servlet Engine used
+				Default value is defined in the Lucee Web Administrator. "jee" can not use a session storage.
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>sessionStorage</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-<description>
-Specifies how Lucee stores session variables:
-- memory (default): the session is only kept in memory
-- cookie: the session is stored in the client cookie
-- file: the session is stored in a local file
-- "datasource-name"|"cache-name": when you select a name of an available datasource or cache, the session scope will be stored in there
-</description>
+			<description>
+				Specifies how Lucee stores session variables:
+				- memory (default): the session is only kept in memory
+				- cookie: the session is stored in the client cookie
+				- file: the session is stored in a local file
+				- "datasource-name"|"cache-name": when you select a name of an available datasource or cache, the session scope will
+				be stored in there
+			</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>clientCluster</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>if set to true, lucee uses the storage backend for the client scope as master and Lucee checks for changes in the storage backend with every request,
-			if set to false (default), the storage is only used as slave, lucee only initially gets the data from the storage. Ignored for storage type "memory".</description>
+			<description>if set to true, lucee uses the storage backend for the client scope as master and Lucee checks for
+				changes in the storage backend with every request,
+				if set to false (default), the storage is only used as slave, lucee only initially gets the data from the storage.
+				Ignored for storage type "memory".</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>sessionCluster</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>if set to true, lucee uses the storage backend for the session scope as master and Lucee checks for changes in the storage backend with every request,
-			if set to false (default), the storage is only used as slave, lucee only initially gets the data from the storage. Ignored for storage type "memory".</description>
+			<description>if set to true, lucee uses the storage backend for the session scope as master and Lucee checks for
+				changes in the storage backend with every request,
+				if set to false (default), the storage is only used as slave, lucee only initially gets the data from the storage.
+				Ignored for storage type "memory".</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -177,8 +185,8 @@ Specifies how Lucee stores session variables:
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Yes or No. Yes enables client cookies. Default is Yes. If you set this attribute to
-		"No", Lucee does not automatically send the CFID and CFTOKEN cookies to the client browser;
-		you must manually code CFID and CFTOKEN on the URL for every page that uses Session or Client variables.</description>
+				"No", Lucee does not automatically send the CFID and CFTOKEN cookies to the client browser;
+				you must manually code CFID and CFTOKEN on the URL for every page that uses Session or Client variables.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -193,8 +201,8 @@ Specifies how Lucee stores session variables:
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Enter the CreateTimeSpan function and values in days, hours, minutes, and seconds, separated
-		by commas, to specify the lifespan of session variables. The default value is specified in the
-		Variables page of the Lucee Administrator.</description>
+				by commas, to specify the lifespan of session variables. The default value is specified in the
+				Variables page of the Lucee Administrator.</description>
 		</attribute>
 		<attribute>
 			<type>timespan</type>
@@ -202,8 +210,8 @@ Specifies how Lucee stores session variables:
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Enter the CreateTimeSpan function and values in days, hours, minutes, and seconds, separated
-		by commas, to specify the lifespan of client variables. The default value is specified in the
-		Variables page of the Lucee Administrator.</description>
+				by commas, to specify the lifespan of client variables. The default value is specified in the
+				Variables page of the Lucee Administrator.</description>
 		</attribute>
 		<attribute>
 			<type>timespan</type>
@@ -211,8 +219,8 @@ Specifies how Lucee stores session variables:
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Enter the CreateTimeSpan function and values in days, hours, minutes, and seconds, separated
-		by commas, to specify the lifespan of application variables. The default value is specified in
-		the Variables page of the Lucee Administrator.</description>
+				by commas, to specify the lifespan of application variables. The default value is specified in
+				the Variables page of the Lucee Administrator.</description>
 		</attribute>
 		<attribute>
 			<type>timespan</type>
@@ -220,7 +228,8 @@ Specifies how Lucee stores session variables:
 			<alias>timeout</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Sets the amount of time Lucee will wait for a request to finish before a request timeout will be raised. This means that the execution of the request will be stopped.</description>
+			<description>Sets the amount of time Lucee will wait for a request to finish before a request timeout will be raised.
+				This means that the execution of the request will be stopped.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -228,7 +237,7 @@ Specifies how Lucee stores session variables:
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Yes or No. Sets the CFID and CFTOKEN cookies for a domain, not just a single host.
-		Applications that are running on clusters must set this value to Yes. The default is No.</description>
+				Applications that are running on clusters must set this value to Yes. The default is No.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -243,7 +252,7 @@ Specifies how Lucee stores session variables:
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>A structure that contains mappings. Each element in the structure consists of a key and a value.
-			The logical path is the key and the absolute path is the value.</description>
+				The logical path is the key and the absolute path is the value.</description>
 		</attribute>
 		<attribute>
 			<type>any</type>
@@ -264,8 +273,9 @@ Specifies how Lucee stores session variables:
 			<name>secureJson</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A Boolean value that specifies whether to add a security prefix in front of the value that a function returns in JSON-format
-			in response to a remote call.</description>
+			<description>A Boolean value that specifies whether to add a security prefix in front of the value that a function
+				returns in JSON-format
+				in response to a remote call.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -273,8 +283,8 @@ Specifies how Lucee stores session variables:
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>webservice type used, this can be one of the following values
-- Axis1 (default): The Apache Axis 1 implementation is used
-- CXF: The CXF implementation is used</description>
+				- Axis1 (default): The Apache Axis 1 implementation is used
+				- CXF: The CXF implementation is used</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -289,23 +299,26 @@ Specifies how Lucee stores session variables:
 			<name>compression</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Enable compression (GZip) for the Lucee Response stream for text-based responses when supported by the client (Web Browser).</description>
+			<description>Enable compression (GZip) for the Lucee Response stream for text-based responses when supported by the
+				client (Web Browser).</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>suppressRemoteComponentContent</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Suppress content written to response stream when a Component is invoked remotely. Only works if the content was not flushed before.</description>
+			<description>Suppress content written to response stream when a Component is invoked remotely. Only works if the
+				content was not flushed before.</description>
 		</attribute>
-		
-		
+
+
 		<attribute>
 			<type>string</type>
 			<name>secureJsonPrefix</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The security prefix to put in front of the value that a function returns in JSON-format in response to a remote call if the secureJSON setting is true.</description>
+			<description>The security prefix to put in front of the value that a function returns in JSON-format in response to a
+				remote call if the secureJSON setting is true.</description>
 		</attribute>
 
 		<attribute>
@@ -314,7 +327,7 @@ Specifies how Lucee stores session variables:
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>tags/attributes default value in the following structure:
-#{location:{addtoken=false}}#</description>
+				#{location:{addtoken=false}}#</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -329,30 +342,64 @@ Specifies how Lucee stores session variables:
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-A struct that defines all the ORM settings, the following keys are supported:
-- autogenmap(default:true): Specifies whether Lucee should automatically generate mapping for the persistent CFCs. If autogenmap=false, mapping should be provided in the form of "{cfc-name}.cfc.hbm.xml" files.
-- automanageSession(default:true; not supported yet): Lets you specify if Lucee must manage Hibernate session automatically. If enabled: Lucee manages the session completely. That is, it decides when to flush the session, when to clear the session, and when to close the session. If disabled: The application is responsible for managing flushing, clearing, or closing of the session. The only exception is (in the case of transaction), when the transaction commits, the application flushes the session. Lucee closes the ORM session at the end of request irrespective of this flag being enabled or disabled.
-- cacheconfig: Specifies the location of the configuration file that should be used by the secondary cache provider.This setting is used only when secondarycacheenabled=true.
-- cacheprovider: Specifies the cache provider that should be used by ORM as secondary cache.
-- catalog: Specifies the default Catalog that should be used by ORM.
-- cfclocation: Specifies the directory (or array of directories) that should be used by Lucee to search for persistent CFCs to generate the mapping. If cfclocation is set, Lucee looks at only the paths specified in it. If it is not set, Lucee looks at the application directory, its sub-directories, and its mapped directories to search for persistent CFCs.
-- datasource: Specifies the data source that should be used by ORM. If it is not specified here, then the data source specified for the application is picked up.
-- dbcreate(default:none): Hibernate can automatically create the tables for your application in the database. dbCreate takes the following values:
--- update: Setting this value creates the table if it does not exist or update the table if it exists.
--- dropcreate: Setting this value drops the table if it exists and then creates it.
--- none: Setting this value does not change anything in the database schema.
-- dialect: Specifies the dialect.Lucee supports the following dialects: [Cache 2007.1, Cache71, Cache 2007.1, DB2, DB2/390, DB2/400, DB2390, DB2400, DB2AS400, DB2OS390, DataDirectOracle9, Derby, Firebird, FrontBase, H2, H2DB, HSQL, HSQLDB, Informix, Ingres, Interbase, JDataStore, MSSQL, Mckoi, MckoiSQL, MicrosoftSQLServer, Mimer, MimerSQL, MySQL, MySQL/InnoDB, MySQL/MyISAM, MySQL5, MySQL5/InnoDB, MySQL5InnoDB, MySQLInnoDB, MySQLMyISAM, MySQLwithInnoDB, MySQLwithMyISAM, Oracle, Oracle10g, Oracle8i, Oracle9, Oracle9i, Pointbase, PostgreSQL, PostgresPlus, Progress, SAPDB, SQLServer, Sybase, Sybase11, SybaseASE15, SybaseAnywhere, com.ddtek.jdbc.db2.DB2Driver, com.microsoft.jdbc.sqlserver.SQLServerDriver, oracle.jdbc.driver.OracleDriver, org.firebirdsql.jdbc.FBDriver, org.gjt.mm.mysql.Driver, org.h2.Driver, org.hsqldb.jdbcDriver, org.postgresql.Driver]
-- eventHandling(default:false): Specifies whether ORM Event callbacks should be given.
-- flushatrequestend(default:true): Specifies whether ormflush should be called automatically at request end. If flushatrequestend is false, ormflush is not called automatically at request end.
-- logSQL(default:false): Specifies whether the SQL queries that are executed by ORM will be logged. If LogSQL=true, the SQL queries are logged to the console.
-- ormconfig: The Hibernate configuration file. This file contains various configuration parameters like, dialect, cache settings, and mapping files that are required for the application. For more details, see www.hibernate.org/hib_docs/reference/en/html/session-configuration.html. The settings defined in the ormsettings override the settings defined in the Hibernate Configuration XML file.The connection information in the Hibernate Configuration XML file is however ignored because Lucee uses its own connection pool. You will need to use this only when you need to use a hibernate setting that is not available using ormsetting.
-- savemapping(default:false): Specifies whether the generated Hibernate mapping file has to be saved to disc. If you set the value to true, the Hibernate mapping XML file is saved with the filename "CFC name".hbm.xml in the same directory as the CFC. If any value of savemapping is specified in CFC, it will override the value specified in the ormsetting.
-- schema: Specifies the default Schema that should be used by ORM.
-- secondarycacheenabled(default:false): Specifies whether secondary caching should be enabled
-- skipCFCWithError(default:false;not implemented yet): Lets you specify if Lucee must skip the CFCs that have errors. If set to true, Lucee ignores the CFCs that have errors.
-- sqlscript: Path to the SQL script file that gets executed after ORM is initialized. This applies if dbcreate is set to dropcreate. This must be the absolute file path or the path relative to the application.The SQL script file lets you populate the tables before the application is accessed.
-- useDBForMapping(default:true): Specifies whether the database has to be inspected to identify the missing information required to generate the Hibernate mapping. The database is inspected to get the column data type, primary key and foreign key information.
-</description>
+				A struct that defines all the ORM settings, the following keys are supported:
+				- autogenmap(default:true): Specifies whether Lucee should automatically generate mapping for the persistent CFCs. If
+				autogenmap=false, mapping should be provided in the form of "{cfc-name}.cfc.hbm.xml" files.
+				- automanageSession(default:true; not supported yet): Lets you specify if Lucee must manage Hibernate session
+				automatically. If enabled: Lucee manages the session completely. That is, it decides when to flush the session, when
+				to clear the session, and when to close the session. If disabled: The application is responsible for managing
+				flushing, clearing, or closing of the session. The only exception is (in the case of transaction), when the
+				transaction commits, the application flushes the session. Lucee closes the ORM session at the end of request
+				irrespective of this flag being enabled or disabled.
+				- cacheconfig: Specifies the location of the configuration file that should be used by the secondary cache
+				provider.This setting is used only when secondarycacheenabled=true.
+				- cacheprovider: Specifies the cache provider that should be used by ORM as secondary cache.
+				- catalog: Specifies the default Catalog that should be used by ORM.
+				- cfclocation: Specifies the directory (or array of directories) that should be used by Lucee to search for
+				persistent CFCs to generate the mapping. If cfclocation is set, Lucee looks at only the paths specified in it. If it
+				is not set, Lucee looks at the application directory, its sub-directories, and its mapped directories to search for
+				persistent CFCs.
+				- datasource: Specifies the data source that should be used by ORM. If it is not specified here, then the data source
+				specified for the application is picked up.
+				- dbcreate(default:none): Hibernate can automatically create the tables for your application in the database.
+				dbCreate takes the following values:
+				-- update: Setting this value creates the table if it does not exist or update the table if it exists.
+				-- dropcreate: Setting this value drops the table if it exists and then creates it.
+				-- none: Setting this value does not change anything in the database schema.
+				- dialect: Specifies the dialect.Lucee supports the following dialects: [Cache 2007.1, Cache71, Cache 2007.1, DB2,
+				DB2/390, DB2/400, DB2390, DB2400, DB2AS400, DB2OS390, DataDirectOracle9, Derby, Firebird, FrontBase, H2, H2DB, HSQL,
+				HSQLDB, Informix, Ingres, Interbase, JDataStore, MSSQL, Mckoi, MckoiSQL, MicrosoftSQLServer, Mimer, MimerSQL, MySQL,
+				MySQL/InnoDB, MySQL/MyISAM, MySQL5, MySQL5/InnoDB, MySQL5InnoDB, MySQLInnoDB, MySQLMyISAM, MySQLwithInnoDB,
+				MySQLwithMyISAM, Oracle, Oracle10g, Oracle8i, Oracle9, Oracle9i, Pointbase, PostgreSQL, PostgresPlus, Progress,
+				SAPDB, SQLServer, Sybase, Sybase11, SybaseASE15, SybaseAnywhere, com.ddtek.jdbc.db2.DB2Driver,
+				com.microsoft.jdbc.sqlserver.SQLServerDriver, oracle.jdbc.driver.OracleDriver, org.firebirdsql.jdbc.FBDriver,
+				org.gjt.mm.mysql.Driver, org.h2.Driver, org.hsqldb.jdbcDriver, org.postgresql.Driver]
+				- eventHandling(default:false): Specifies whether ORM Event callbacks should be given.
+				- flushatrequestend(default:true): Specifies whether ormflush should be called automatically at request end. If
+				flushatrequestend is false, ormflush is not called automatically at request end.
+				- logSQL(default:false): Specifies whether the SQL queries that are executed by ORM will be logged. If LogSQL=true,
+				the SQL queries are logged to the console.
+				- ormconfig: The Hibernate configuration file. This file contains various configuration parameters like, dialect,
+				cache settings, and mapping files that are required for the application. For more details, see
+				www.hibernate.org/hib_docs/reference/en/html/session-configuration.html. The settings defined in the ormsettings
+				override the settings defined in the Hibernate Configuration XML file.The connection information in the Hibernate
+				Configuration XML file is however ignored because Lucee uses its own connection pool. You will need to use this only
+				when you need to use a hibernate setting that is not available using ormsetting.
+				- savemapping(default:false): Specifies whether the generated Hibernate mapping file has to be saved to disc. If you
+				set the value to true, the Hibernate mapping XML file is saved with the filename "CFC name".hbm.xml in the same
+				directory as the CFC. If any value of savemapping is specified in CFC, it will override the value specified in the
+				ormsetting.
+				- schema: Specifies the default Schema that should be used by ORM.
+				- secondarycacheenabled(default:false): Specifies whether secondary caching should be enabled
+				- skipCFCWithError(default:false;not implemented yet): Lets you specify if Lucee must skip the CFCs that have errors.
+				If set to true, Lucee ignores the CFCs that have errors.
+				- sqlscript: Path to the SQL script file that gets executed after ORM is initialized. This applies if dbcreate is set
+				to dropcreate. This must be the absolute file path or the path relative to the application.The SQL script file lets
+				you populate the tables before the application is accessed.
+				- useDBForMapping(default:true): Specifies whether the database has to be inspected to identify the missing
+				information required to generate the Hibernate mapping. The database is inspected to get the column data type,
+				primary key and foreign key information.
+			</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>
@@ -360,27 +407,29 @@ A struct that defines all the ORM settings, the following keys are supported:
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-A struct that defines default S3 settings, this settings can be overwritten as part of the S3 file path, the following keys are supported:
-- accessKeyId: S3 access key id
-- awsSecretKey: AWS (Amazon Web Service) Secret Key
-- defaultLocation(default:us): region for the bucket, possible values are [eu,us,us-west]
-- host(default:"s3.amazonaws.com"): hostname of the service
-</description>
+				A struct that defines default S3 settings, this settings can be overwritten as part of the S3 file path, the
+				following keys are supported:
+				- accessKeyId: S3 access key id
+				- awsSecretKey: AWS (Amazon Web Service) Secret Key
+				- defaultLocation(default:us): region for the bucket, possible values are [eu,us,us-west]
+				- host(default:"s3.amazonaws.com"): hostname of the service
+			</description>
 		</attribute>
-		
+
 		<attribute>
 			<type>boolean</type>
 			<name>triggerDataMember</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>???If there is no accessible data member (property, element of the this scope) inside a component, 
-			Lucee searches for available matching &amp;quot;getters&amp;quot; or &amp;quot;setters&amp;quot; for the requested property. 
-			The following example should clarify this behaviour. 
-			&amp;quot;somevar = myComponent.properyName&amp;quot;. 
-			If &amp;quot;myComponent&amp;quot; has no accessible data member named &amp;quot;propertyName&amp;quot;, 
-			Lucee searches for a function member (method) named &amp;quot;getPropertyName&amp;quot;.</description>
+			<description>???If there is no accessible data member (property, element of the this scope) inside a component,
+				Lucee searches for available matching &amp;quot;getters&amp;quot; or &amp;quot;setters&amp;quot; for the requested
+				property.
+				The following example should clarify this behaviour.
+				&amp;quot;somevar = myComponent.properyName&amp;quot;.
+				If &amp;quot;myComponent&amp;quot; has no accessible data member named &amp;quot;propertyName&amp;quot;,
+				Lucee searches for a function member (method) named &amp;quot;getPropertyName&amp;quot;.</description>
 		</attribute>
-		
+
 		<attribute>
 			<type>boolean</type>
 			<name>InvokeImplicitAccessor</name>
@@ -388,7 +437,7 @@ A struct that defines default S3 settings, this settings can be overwritten as p
 			<rtexprvalue>true</rtexprvalue>
 			<description>???alias for triggerDataMember</description>
 		</attribute>
-		
+
 		<attribute>
 			<type>string</type>
 			<name>cacheObject</name>
@@ -465,9 +514,9 @@ A struct that defines default S3 settings, this settings can be overwritten as p
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Sets the country/language locale for CFML processing. The locale value
-        determines the default format of date, time, number, and
-        currency values, according to language and regional
-        conventions.</description>
+				determines the default format of date, time, number, and
+				currency values, according to language and regional
+				conventions.</description>
 		</attribute>
 		<attribute>
 			<type>timezone</type>
@@ -481,7 +530,8 @@ A struct that defines default S3 settings, this settings can be overwritten as p
 			<name>webcharset</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>character set used for output streams, form-, url-, and cgi scope variables and reading/writing the header</description>
+			<description>character set used for output streams, form-, url-, and cgi scope variables and reading/writing the
+				header</description>
 		</attribute>
 		<attribute>
 			<type>String</type>
@@ -496,10 +546,12 @@ A struct that defines default S3 settings, this settings can be overwritten as p
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-Depending on this setting Lucee scans certain scopes to find a variable called from the CFML source. This will only happen, when the variable is called without a scope. (Example: #myVar# instead of #variables.myVar#), the following values are supported:
-- strict: scans only the variables scope
-- small: scans the scopes variables,url,form
-- standard: scans the scopes variables,cgi,url,form,cookie
+				Depending on this setting Lucee scans certain scopes to find a variable called from the CFML source. This will only happen,
+				when the variable is called without a scope. (Example: #myVar# instead of #variables.myVar#), the following values
+				are supported:
+				- strict: scans only the variables scope
+				- small: scans the scopes variables,url,form
+				- standard: scans the scopes variables,cgi,url,form,cookie
 			</description>
 		</attribute>
 		<attribute>
@@ -507,8 +559,9 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>searchImplicitScopes</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>alias to the attribute "scopecascading", takes a boolean value where true is equal to "standard" and false is equal to "struct" scope cascading mode.
-			For details see the description for the attribute "scopecascading".</description>
+			<description>alias to the attribute "scopecascading", takes a boolean value where true is equal to "standard" and
+				false is equal to "struct" scope cascading mode.
+				For details see the description for the attribute "scopecascading".</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>
@@ -524,8 +577,8 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<rtexprvalue>true</rtexprvalue>
 			<description>session cookie behaviour</description>
 		</attribute>
-	</tag>	
-	
+	</tag>
+
 	<!-- Argument -->
 	<tag>
 		<name>argument</name>
@@ -580,8 +633,8 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<description>hint to the argument (only used by components)</description>
 		</attribute>
 	</tag>
-	
-	
+
+
 	<!-- Class -->
 	<tag>
 		<name>class</name>
@@ -596,7 +649,9 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<rtexprvalue>false</rtexprvalue>
 			<context>component</context>
 		</script>
-		<description>Creates and defines a component object; encloses functionality that you build in CFML and enclose within cffunction tags. This tag contains one or more cffunction tags that define methods. Code within the body of this tag, other than cffunction tags, is executed when the component is instantiated. </description>
+		<description>Creates and defines a component object; encloses functionality that you build in CFML and enclose within
+			cffunction tags. This tag contains one or more cffunction tags that define methods. Code within the body of this tag,
+			other than cffunction tags, is executed when the component is instantiated. </description>
 		<att-class>lucee.transformer.cfml.attributes.impl.Component</att-class>
 		<attribute-type>mixed</attribute-type>
 		<attribute>
@@ -604,7 +659,8 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>synchronized</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>If set to true all calls to an instance of a component are synchronized. This setting allows a method to be executed only by one single thread at a time.</description>
+			<description>If set to true all calls to an instance of a component are synchronized. This setting allows a method to
+				be executed only by one single thread at a time.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -627,17 +683,18 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>A string to be displayed when using introspection to show
-            information about the CFC. The information appears on the
-            heading, following the component name.
-            If the style attribute is set to document, the displayname
-            attribute is used as the name of the service element in the WSDL.</description>
+				information about the CFC. The information appears on the
+				heading, following the component name.
+				If the style attribute is set to document, the displayname
+				attribute is used as the name of the service element in the WSDL.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>hint</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Text that displays when you use introspection to show information about the CFC. The hint attribute value appears below the component name heading. Use this attribute to describe the purpose of the component.</description>
+			<description>Text that displays when you use introspection to show information about the CFC. The hint attribute
+				value appears below the component name heading. Use this attribute to describe the purpose of the component.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -662,12 +719,12 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>namespace</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>Specifies the namespace used in the WSDL when
-            using the CFC as a document-literal style web service.
-            If you don't specify this attribute, Lucee
-            derives the namespace from the CFC class name.
-            This attribute applies only when style="document".</description>
+				using the CFC as a document-literal style web service.
+				If you don't specify this attribute, Lucee
+				derives the namespace from the CFC class name.
+				This attribute applies only when style="document".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -676,7 +733,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
 			<description>Specifies the name of the port element in the WSDL.
-            This attribute applies only when style="document".</description>
+				This attribute applies only when style="document".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -684,8 +741,10 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
-			<description>Specifies the SOAP URL of the web service. If you don't specify this attribute, Lucee uses the URL of the CFC in the WSDL service description.
-			Use this attribute to specify the protocol, for example, by specifying a URL that starts with https://. This attribute applies only for web services.</description>
+			<description>Specifies the SOAP URL of the web service. If you don't specify this attribute, Lucee uses the URL of
+				the CFC in the WSDL service description.
+				Use this attribute to specify the protocol, for example, by specifying a URL that starts with https://. This attribute
+				applies only for web services.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -694,7 +753,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
 			<description>Specifies the name of the porttype element in the WSDL.
-            This attribute applies only when style="document".</description>
+				This attribute applies only when style="document".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -702,24 +761,24 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies the name of the binding element in the WSDL.
-            This attribute applies only when style="document".</description>
+				This attribute applies only when style="document".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>wsdlfile</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>A properly formatted WSDL file to be used instead of
-            WSDL generated by Lucee.
-            This attribute applies only when style="document".</description>
+				WSDL generated by Lucee.
+				This attribute applies only when style="document".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>alias</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description></description>
 		</attribute>
 		<attribute>
@@ -727,11 +786,11 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>mappedSuperClass</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description></description>
 		</attribute>
 	</tag>
-	
+
 	<!-- Function -->
 	<tag>
 		<name>function</name>
@@ -764,7 +823,8 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>roles</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>This attribute is used only for a component. If this attribute is omitted, all roles can invoke the method.</description>
+			<description>This attribute is used only for a component. If this attribute is omitted, all roles can invoke the
+				method.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -772,7 +832,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>This attribute is used only for a component.
-The client security context from which the method can be invoked</description>
+				The client security context from which the method can be invoked</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -781,8 +841,9 @@ The client security context from which the method can be invoked</description>
 			<rtexprvalue>true</rtexprvalue>
 			<description>This attribute is used only for a component.
 
-yes: the function is processed as if it were within a cfoutput tag
-no: the function is processed as if it were within a cfsilent tag </description>
+				yes: the function is processed as if it were within a cfoutput tag
+				no: the function is processed as if it were within a cfsilent tag
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -831,30 +892,33 @@ no: the function is processed as if it were within a cfsilent tag </description>
 			<name>secureJson</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A Boolean value that specifies whether to add a security prefix in front of any value that the function returns in JSON-format in response to a remote call.</description>
+			<description>A Boolean value that specifies whether to add a security prefix in front of any value that the function
+				returns in JSON-format in response to a remote call.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>verifyClient</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A Boolean value that specifies whether to require remote function calls to include an encrypted security token. For use with AJAX applications only.</description>
+			<description>A Boolean value that specifies whether to require remote function calls to include an encrypted security
+				token. For use with AJAX applications only.</description>
 		</attribute>
-		
+
 		<attribute>
 			<type>object</type>
 			<name>cachedWithin</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>
-possible values are:
-String "request": If original content was created within the current request, cached content data isused.
-a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data isused. 
+			<description>
+				possible values are:
+				String "request": If original content was created within the current request, cached content data isused.
+				a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached
+				content data isused.
 
-To use cached data, the function must be called with the exact same arguments.</description>
-    </attribute>
+				To use cached data, the function must be called with the exact same arguments.</description>
+		</attribute>
 	</tag>
-	
+
 	<!-- Header -->
 	<tag>
 		<name>ResponseHeader</name>
@@ -895,8 +959,8 @@ To use cached data, the function must be called with the exact same arguments.</
 			<rtexprvalue>true</rtexprvalue>
 			<description>The character encoding in which to encode the header value.
 
-            For more information on character encodings, see:
-            www.w3.org/International/O-charset.html.</description>
+				For more information on character encodings, see:
+				www.w3.org/International/O-charset.html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -904,7 +968,7 @@ To use cached data, the function must be called with the exact same arguments.</
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Text that explains the status code. This attribute is used in conjunction with the
-	statusCode attribute.</description>
+				statusCode attribute.</description>
 		</attribute>
 	</tag>
 	<!-- Output -->
@@ -924,20 +988,20 @@ To use cached data, the function must be called with the exact same arguments.</
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>encode for what, valid values are:
-- css: for output inside Cascading Style Sheets (CSS)
-- dn: for output in LDAP Distinguished Names
-- html: for output inside HTML
-- html_attr: for output inside HTML Attributes
-- javascript: for output inside Javascript
-- ldap: for output in LDAP queries
-- url: for output in URL
-- vbscript: for output inside vbscript
-- xml: for output inside XML
-- xml_attr: for output inside XML Attributes
-- xpath: for output in XPath</description>
+				- css: for output inside Cascading Style Sheets (CSS)
+				- dn: for output in LDAP Distinguished Names
+				- html: for output inside HTML
+				- html_attr: for output inside HTML Attributes
+				- javascript: for output inside Javascript
+				- ldap: for output in LDAP queries
+				- url: for output in URL
+				- vbscript: for output inside vbscript
+				- xml: for output inside XML
+				- xml_attr: for output inside XML Attributes
+				- xpath: for output in XPath</description>
 		</attribute>
 	</tag>
-	
+
 	<!-- ScriptX -->
 	<tag>
 		<name>Script</name>
@@ -956,7 +1020,7 @@ To use cached data, the function must be called with the exact same arguments.</
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 	</tag>
-	
+
 	<!-- Silent -->
 	<tag>
 		<name>Silent</name>
