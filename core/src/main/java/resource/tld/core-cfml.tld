@@ -9,20 +9,19 @@
 	<display-name>Lucee Core Tag Library</display-name>
 	<description></description>
 	<name-space>cf</name-space>
-	<name-space-separator />
+	<name-space-separator/>
 	<ignore-unknow-tags>false</ignore-unknow-tags>
 	<el>
 		<el-class>lucee.transformer.cfml.expression.CFMLExprTransformer</el-class>
 	</el>
 
-	<!-- ajaximport -->
+<!-- ajaximport -->
 	<tag>
 		<name>ajaximport</name>
 		<tag-class>lucee.runtime.tag.AjaxImport</tag-class>
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
-		<description>Controls the JavaScript files that are imported for use on pages that use ColdFusion AJAX tags and
-			features.</description>
+		<description>Controls the JavaScript files that are imported for use on pages that use ColdFusion AJAX tags and features.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -49,8 +48,7 @@
 		<tag-class>lucee.runtime.tag.AjaxProxy</tag-class>
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
-		<description>Creates a JavaScript proxy for a ColdFusion component, for use in an AJAX client. Alternatively, creates
-			a proxy for a single CFC method, JavaScript function, or URL that is bound to one or more control attribute values.</description>
+		<description>Creates a JavaScript proxy for a ColdFusion component, for use in an AJAX client. Alternatively, creates a proxy for a single CFC method, JavaScript function, or URL that is bound to one or more control attribute values.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -83,8 +81,8 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 	</tag>
-
-
+	
+	
 	<!-- Applet -->
 	<tag>
 		<name>applet</name>
@@ -94,8 +92,7 @@
 		<status>deprecated</status>
 		<description>
 			Used in a cfform tag, cfapplet lets you reference custom Java applets that you have registered
-			using the
-			Lucee Administrator.
+			using the Lucee Administrator.
 		</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
@@ -152,8 +149,7 @@
 			<name>notSupported</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The text to display if a page containing a Java applet-based cfform control is opened by a browser that
-				does not support Java or has Java support disabled.</description>
+			<description>The text to display if a page containing a Java applet-based cfform control is opened by a browser that does not support Java or has Java support disabled.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -163,9 +159,9 @@
 			<description>The name of a registered parameter for the applet. </description>
 		</attribute>
 	</tag>
-
-
-	<!-- Application -->
+	
+	
+	<!-- Application-->
 	<tag>
 		<name>application</name>
 		<tag-class>lucee.runtime.tag.Application</tag-class>
@@ -177,10 +173,8 @@
 		</script>
 		<description>
 			Defines scoping for a application, enables or disables storing client variables,
-			and specifies a client
-			variable storage mechanism.
-			By default, client variables are disabled. Also, enables session variables and sets
-			timeouts
+			and specifies a client variable storage mechanism.
+			By default, client variables are disabled. Also, enables session variables and sets timeouts
 			for session and application variables. Session and application variables are stored in memory.
 		</description>
 		<attribute-type>fixed</attribute-type>
@@ -190,7 +184,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of your application. This name can be up to 64 characters long.
-				Required for application and session variables, optional for client variables</description>
+   		Required for application and session variables, optional for client variables</description>
 		</attribute>
 		<attribute>
 			<type>object</type>
@@ -199,7 +193,7 @@
 			<rtexprvalue>true</rtexprvalue>
 			<description>alias for default datasource</description>
 		</attribute>
-
+		
 		<attribute>
 			<type>object</type>
 			<name>defaultdatasource</name>
@@ -246,8 +240,8 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>action for the data set:
-				- create (default): creates a new application context and overwrite the existing
-				- update: update the existing application context when there is already one, otherwise a new one is created</description>
+			- create (default): creates a new application context and overwrite the existing
+			- update: update the existing application context when there is already one, otherwise a new one is created</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -256,9 +250,9 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-				storage for the login data:
-				- cookie: store login information in the Cookie scope
-				- session: store login information in the Session scope
+			storage for the login data:
+			- cookie: store login information in the Cookie scope
+			- session: store login information in the Session scope
 			</description>
 		</attribute>
 		<attribute>
@@ -274,12 +268,11 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-				Specifies how Lucee stores client variables:
-				- memory: the session is only kept in memory
-				- cookie: the session is stored in the client cookie
-				- file (default): the session is stored in a local file
-				- "datasource-name"|"cache-name": when you select a name of an available datasource or cache, the client scope will
-				be stored in there</description>
+Specifies how Lucee stores client variables:
+- memory: the session is only kept in memory
+- cookie: the session is stored in the client cookie
+- file (default): the session is stored in a local file
+- "datasource-name"|"cache-name": when you select a name of an available datasource or cache, the client scope will be stored in there</description>
 		</attribute>
 
 		<attribute>
@@ -288,46 +281,41 @@
 			<values>cfml,j2ee</values>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>
-				Lucee provide 2 kind of sessions:
-				- cfml: session handled by Lucee
-				- j2ee: session handled by the Servlet Engine used
-				Default value is defined in the Lucee Web Administrator. "j2ee" can not use a session storage.
-			</description>
+<description>
+Lucee provide 2 kind of sessions:
+- cfml: session handled by Lucee
+- j2ee: session handled by the Servlet Engine used
+Default value is defined in the Lucee Web Administrator. "j2ee" can not use a session storage.
+</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>sessionStorage</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>
-				Specifies how Lucee stores session variables:
-				- memory (default): the session is only kept in memory
-				- cookie: the session is stored in the client cookie
-				- file: the session is stored in a local file
-				- "datasource-name"|"cache-name": when you select a name of an available datasource or cache, the session scope will
-				be stored in there
-			</description>
+<description>
+Specifies how Lucee stores session variables:
+- memory (default): the session is only kept in memory
+- cookie: the session is stored in the client cookie
+- file: the session is stored in a local file
+- "datasource-name"|"cache-name": when you select a name of an available datasource or cache, the session scope will be stored in there
+</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>clientCluster</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>if set to true, lucee uses the storage backend for the client scope as master and Lucee checks for
-				changes in the storage backend with every request,
-				if set to false (default), the storage is only used as slave, lucee only initially gets the data from the storage.
-				Ignored for storage type "memory".</description>
+			<description>if set to true, lucee uses the storage backend for the client scope as master and Lucee checks for changes in the storage backend with every request,
+			if set to false (default), the storage is only used as slave, lucee only initially gets the data from the storage. Ignored for storage type "memory".</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>sessionCluster</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>if set to true, lucee uses the storage backend for the session scope as master and Lucee checks for
-				changes in the storage backend with every request,
-				if set to false (default), the storage is only used as slave, lucee only initially gets the data from the storage.
-				Ignored for storage type "memory".</description>
+			<description>if set to true, lucee uses the storage backend for the session scope as master and Lucee checks for changes in the storage backend with every request,
+			if set to false (default), the storage is only used as slave, lucee only initially gets the data from the storage. Ignored for storage type "memory".</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -335,8 +323,8 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Yes or No. Yes enables client cookies. Default is Yes. If you set this attribute to
-				"No", Lucee does not automatically send the CFID and CFTOKEN cookies to the client browser;
-				you must manually code CFID and CFTOKEN on the URL for every page that uses Session or Client variables.</description>
+		"No", Lucee does not automatically send the CFID and CFTOKEN cookies to the client browser;
+		you must manually code CFID and CFTOKEN on the URL for every page that uses Session or Client variables.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -351,9 +339,8 @@
 			<name>bufferOutput</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>if set to true (default) the output written to the body of the tag is buffered and in case of a
-				exception also outputted.
-				if set to false the content to body is ignored and not disabled when a failure in the body of the tag occur.</description>
+			<description>if set to true (default) the output written to the body of the tag is buffered and in case of a exception also outputted.
+			if set to false the content to body is ignored and not disabled when a failure in the body of the tag occur.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -368,8 +355,8 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Enter the CreateTimeSpan function and values in days, hours, minutes, and seconds, separated
-				by commas, to specify the lifespan of session variables. The default value is specified in the
-				Variables page of the Lucee Administrator.</description>
+		by commas, to specify the lifespan of session variables. The default value is specified in the
+		Variables page of the Lucee Administrator.</description>
 		</attribute>
 		<attribute>
 			<type>timespan</type>
@@ -377,8 +364,8 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Enter the CreateTimeSpan function and values in days, hours, minutes, and seconds, separated
-				by commas, to specify the lifespan of client variables. The default value is specified in the
-				Variables page of the Lucee Administrator.</description>
+		by commas, to specify the lifespan of client variables. The default value is specified in the
+		Variables page of the Lucee Administrator.</description>
 		</attribute>
 		<attribute>
 			<type>timespan</type>
@@ -386,8 +373,8 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Enter the CreateTimeSpan function and values in days, hours, minutes, and seconds, separated
-				by commas, to specify the lifespan of application variables. The default value is specified in
-				the Variables page of the Lucee Administrator.</description>
+		by commas, to specify the lifespan of application variables. The default value is specified in
+		the Variables page of the Lucee Administrator.</description>
 		</attribute>
 		<attribute>
 			<type>timespan</type>
@@ -395,8 +382,7 @@
 			<alias>timeout</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Sets the amount of time Lucee will wait for a request to finish before a request timeout will be raised.
-				This means that the execution of the request will be stopped.</description>
+			<description>Sets the amount of time Lucee will wait for a request to finish before a request timeout will be raised. This means that the execution of the request will be stopped.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -404,7 +390,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Yes or No. Sets the CFID and CFTOKEN cookies for a domain, not just a single host.
-				Applications that are running on clusters must set this value to Yes. The default is No.</description>
+		Applications that are running on clusters must set this value to Yes. The default is No.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -419,7 +405,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>A structure that contains mappings. Each element in the structure consists of a key and a value.
-				The logical path is the key and the absolute path is the value.</description>
+			The logical path is the key and the absolute path is the value.</description>
 		</attribute>
 		<attribute>
 			<type>any</type>
@@ -440,9 +426,8 @@
 			<name>secureJson</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A Boolean value that specifies whether to add a security prefix in front of the value that a function
-				returns in JSON-format
-				in response to a remote call.</description>
+			<description>A Boolean value that specifies whether to add a security prefix in front of the value that a function returns in JSON-format
+			in response to a remote call.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -450,8 +435,8 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>webservice type used, this can be one of the following values
-				- Axis1 (default): The Apache Axis 1 implementation is used
-				- CXF: The CXF implementation is used</description>
+- Axis1 (default): The Apache Axis 1 implementation is used
+- CXF: The CXF implementation is used</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -466,36 +451,32 @@
 			<name>compression</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Enable compression (GZip) for the Lucee Response stream for text-based responses when supported by the
-				client (Web Browser).</description>
+			<description>Enable compression (GZip) for the Lucee Response stream for text-based responses when supported by the client (Web Browser).</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>suppressRemoteComponentContent</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Suppress content written to response stream when a Component is invoked remotely. Only works if the
-				content was not flushed before.</description>
+			<description>Suppress content written to response stream when a Component is invoked remotely. Only works if the content was not flushed before.</description>
 		</attribute>
-
-
+		
+		
 		<attribute>
 			<type>string</type>
 			<name>secureJsonPrefix</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The security prefix to put in front of the value that a function returns in JSON-format in response to a
-				remote call if the secureJSON setting is true.</description>
+			<description>The security prefix to put in front of the value that a function returns in JSON-format in response to a remote call if the secureJSON setting is true.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>localmode</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Defines how the local scope of a function is invoked when a variable with no scope definition is used
-				(default value set in the Lucee administrator).
-				- modern: the local scope is always invoked
-				- classic (CFML standard): the local scope is only invoked when the key already exists in it</description>
+			<description>Defines how the local scope of a function is invoked when a variable with no scope definition is used (default value set in the Lucee administrator).
+- modern: the local scope is always invoked
+- classic (CFML standard): the local scope is only invoked when the key already exists in it</description>
 		</attribute>
 
 		<attribute>
@@ -504,7 +485,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>tags/attributes default value in the following structure:
-				#{location:{addtoken=false}}#</description>
+#{location:{addtoken=false}}#</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -519,64 +500,30 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-				A struct that defines all the ORM settings, the following keys are supported:
-				- autogenmap(default:true): Specifies whether Lucee should automatically generate mapping for the persistent CFCs. If
-				autogenmap=false, mapping should be provided in the form of "{cfc-name}.cfc.hbm.xml" files.
-				- automanageSession(default:true; not supported yet): Lets you specify if Lucee must manage Hibernate session
-				automatically. If enabled: Lucee manages the session completely. That is, it decides when to flush the session, when
-				to clear the session, and when to close the session. If disabled: The application is responsible for managing
-				flushing, clearing, or closing of the session. The only exception is (in the case of transaction), when the
-				transaction commits, the application flushes the session. Lucee closes the ORM session at the end of request
-				irrespective of this flag being enabled or disabled.
-				- cacheconfig: Specifies the location of the configuration file that should be used by the secondary cache
-				provider.This setting is used only when secondarycacheenabled=true.
-				- cacheprovider: Specifies the cache provider that should be used by ORM as secondary cache.
-				- catalog: Specifies the default Catalog that should be used by ORM.
-				- cfclocation: Specifies the directory (or array of directories) that should be used by Lucee to search for
-				persistent CFCs to generate the mapping. If cfclocation is set, Lucee looks at only the paths specified in it. If it
-				is not set, Lucee looks at the application directory, its sub-directories, and its mapped directories to search for
-				persistent CFCs.
-				- datasource: Specifies the data source that should be used by ORM. If it is not specified here, then the data source
-				specified for the application is picked up.
-				- dbcreate(default:none): Hibernate can automatically create the tables for your application in the database.
-				dbCreate takes the following values:
-				-- update: Setting this value creates the table if it does not exist or update the table if it exists.
-				-- dropcreate: Setting this value drops the table if it exists and then creates it.
-				-- none: Setting this value does not change anything in the database schema.
-				- dialect: Specifies the dialect.Lucee supports the following dialects: [Cache 2007.1, Cache71, Cache 2007.1, DB2,
-				DB2/390, DB2/400, DB2390, DB2400, DB2AS400, DB2OS390, DataDirectOracle9, Derby, Firebird, FrontBase, H2, H2DB, HSQL,
-				HSQLDB, Informix, Ingres, Interbase, JDataStore, MSSQL, Mckoi, MckoiSQL, MicrosoftSQLServer, Mimer, MimerSQL, MySQL,
-				MySQL/InnoDB, MySQL/MyISAM, MySQL5, MySQL5/InnoDB, MySQL5InnoDB, MySQLInnoDB, MySQLMyISAM, MySQLwithInnoDB,
-				MySQLwithMyISAM, Oracle, Oracle10g, Oracle8i, Oracle9, Oracle9i, Pointbase, PostgreSQL, PostgresPlus, Progress,
-				SAPDB, SQLServer, Sybase, Sybase11, SybaseASE15, SybaseAnywhere, com.ddtek.jdbc.db2.DB2Driver,
-				com.microsoft.jdbc.sqlserver.SQLServerDriver, oracle.jdbc.driver.OracleDriver, org.firebirdsql.jdbc.FBDriver,
-				org.gjt.mm.mysql.Driver, org.h2.Driver, org.hsqldb.jdbcDriver, org.postgresql.Driver]
-				- eventHandling(default:false): Specifies whether ORM Event callbacks should be given.
-				- flushatrequestend(default:true): Specifies whether ormflush should be called automatically at request end. If
-				flushatrequestend is false, ormflush is not called automatically at request end.
-				- logSQL(default:false): Specifies whether the SQL queries that are executed by ORM will be logged. If LogSQL=true,
-				the SQL queries are logged to the console.
-				- ormconfig: The Hibernate configuration file. This file contains various configuration parameters like, dialect,
-				cache settings, and mapping files that are required for the application. For more details, see
-				www.hibernate.org/hib_docs/reference/en/html/session-configuration.html. The settings defined in the ormsettings
-				override the settings defined in the Hibernate Configuration XML file.The connection information in the Hibernate
-				Configuration XML file is however ignored because Lucee uses its own connection pool. You will need to use this only
-				when you need to use a hibernate setting that is not available using ormsetting.
-				- savemapping(default:false): Specifies whether the generated Hibernate mapping file has to be saved to disc. If you
-				set the value to true, the Hibernate mapping XML file is saved with the filename "CFC name".hbm.xml in the same
-				directory as the CFC. If any value of savemapping is specified in CFC, it will override the value specified in the
-				ormsetting.
-				- schema: Specifies the default Schema that should be used by ORM.
-				- secondarycacheenabled(default:false): Specifies whether secondary caching should be enabled
-				- skipCFCWithError(default:false;not implemented yet): Lets you specify if Lucee must skip the CFCs that have errors.
-				If set to true, Lucee ignores the CFCs that have errors.
-				- sqlscript: Path to the SQL script file that gets executed after ORM is initialized. This applies if dbcreate is set
-				to dropcreate. This must be the absolute file path or the path relative to the application.The SQL script file lets
-				you populate the tables before the application is accessed.
-				- useDBForMapping(default:true): Specifies whether the database has to be inspected to identify the missing
-				information required to generate the Hibernate mapping. The database is inspected to get the column data type,
-				primary key and foreign key information.
-			</description>
+A struct that defines all the ORM settings, the following keys are supported:
+- autogenmap(default:true): Specifies whether Lucee should automatically generate mapping for the persistent CFCs. If autogenmap=false, mapping should be provided in the form of "{cfc-name}.cfc.hbm.xml" files.
+- automanageSession(default:true; not supported yet): Lets you specify if Lucee must manage Hibernate session automatically. If enabled: Lucee manages the session completely. That is, it decides when to flush the session, when to clear the session, and when to close the session. If disabled: The application is responsible for managing flushing, clearing, or closing of the session. The only exception is (in the case of transaction), when the transaction commits, the application flushes the session. Lucee closes the ORM session at the end of request irrespective of this flag being enabled or disabled.
+- cacheconfig: Specifies the location of the configuration file that should be used by the secondary cache provider.This setting is used only when secondarycacheenabled=true.
+- cacheprovider: Specifies the cache provider that should be used by ORM as secondary cache.
+- catalog: Specifies the default Catalog that should be used by ORM.
+- cfclocation: Specifies the directory (or array of directories) that should be used by Lucee to search for persistent CFCs to generate the mapping. If cfclocation is set, Lucee looks at only the paths specified in it. If it is not set, Lucee looks at the application directory, its sub-directories, and its mapped directories to search for persistent CFCs.
+- datasource: Specifies the data source that should be used by ORM. If it is not specified here, then the data source specified for the application is picked up.
+- dbcreate(default:none): Hibernate can automatically create the tables for your application in the database. dbCreate takes the following values:
+-- update: Setting this value creates the table if it does not exist or update the table if it exists.
+-- dropcreate: Setting this value drops the table if it exists and then creates it.
+-- none: Setting this value does not change anything in the database schema.
+- dialect: Specifies the dialect.Lucee supports the following dialects: [Cache 2007.1, Cache71, Cache 2007.1, DB2, DB2/390, DB2/400, DB2390, DB2400, DB2AS400, DB2OS390, DataDirectOracle9, Derby, Firebird, FrontBase, H2, H2DB, HSQL, HSQLDB, Informix, Ingres, Interbase, JDataStore, MSSQL, Mckoi, MckoiSQL, MicrosoftSQLServer, Mimer, MimerSQL, MySQL, MySQL/InnoDB, MySQL/MyISAM, MySQL5, MySQL5/InnoDB, MySQL5InnoDB, MySQLInnoDB, MySQLMyISAM, MySQLwithInnoDB, MySQLwithMyISAM, Oracle, Oracle10g, Oracle8i, Oracle9, Oracle9i, Pointbase, PostgreSQL, PostgresPlus, Progress, SAPDB, SQLServer, Sybase, Sybase11, SybaseASE15, SybaseAnywhere, com.ddtek.jdbc.db2.DB2Driver, com.microsoft.jdbc.sqlserver.SQLServerDriver, oracle.jdbc.driver.OracleDriver, org.firebirdsql.jdbc.FBDriver, org.gjt.mm.mysql.Driver, org.h2.Driver, org.hsqldb.jdbcDriver, org.postgresql.Driver]
+- eventHandling(default:false): Specifies whether ORM Event callbacks should be given.
+- flushatrequestend(default:true): Specifies whether ormflush should be called automatically at request end. If flushatrequestend is false, ormflush is not called automatically at request end.
+- logSQL(default:false): Specifies whether the SQL queries that are executed by ORM will be logged. If LogSQL=true, the SQL queries are logged to the console.
+- ormconfig: The Hibernate configuration file. This file contains various configuration parameters like, dialect, cache settings, and mapping files that are required for the application. For more details, see www.hibernate.org/hib_docs/reference/en/html/session-configuration.html. The settings defined in the ormsettings override the settings defined in the Hibernate Configuration XML file.The connection information in the Hibernate Configuration XML file is however ignored because Lucee uses its own connection pool. You will need to use this only when you need to use a hibernate setting that is not available using ormsetting.
+- savemapping(default:false): Specifies whether the generated Hibernate mapping file has to be saved to disc. If you set the value to true, the Hibernate mapping XML file is saved with the filename "CFC name".hbm.xml in the same directory as the CFC. If any value of savemapping is specified in CFC, it will override the value specified in the ormsetting.
+- schema: Specifies the default Schema that should be used by ORM.
+- secondarycacheenabled(default:false): Specifies whether secondary caching should be enabled
+- skipCFCWithError(default:false;not implemented yet): Lets you specify if Lucee must skip the CFCs that have errors. If set to true, Lucee ignores the CFCs that have errors.
+- sqlscript: Path to the SQL script file that gets executed after ORM is initialized. This applies if dbcreate is set to dropcreate. This must be the absolute file path or the path relative to the application.The SQL script file lets you populate the tables before the application is accessed.
+- useDBForMapping(default:true): Specifies whether the database has to be inspected to identify the missing information required to generate the Hibernate mapping. The database is inspected to get the column data type, primary key and foreign key information.
+</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>
@@ -584,29 +531,27 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-				A struct that defines default S3 settings, this settings can be overwritten as part of the S3 file path, the
-				following keys are supported:
-				- accessKeyId: S3 access key id
-				- awsSecretKey: AWS (Amazon Web Service) Secret Key
-				- defaultLocation(default:us): region for the bucket, possible values are [eu,us,us-west]
-				- host(default:"s3.amazonaws.com"): hostname of the service
-			</description>
+A struct that defines default S3 settings, this settings can be overwritten as part of the S3 file path, the following keys are supported:
+- accessKeyId: S3 access key id
+- awsSecretKey: AWS (Amazon Web Service) Secret Key
+- defaultLocation(default:us): region for the bucket, possible values are [eu,us,us-west]
+- host(default:"s3.amazonaws.com"): hostname of the service
+</description>
 		</attribute>
-
+		
 		<attribute>
 			<type>boolean</type>
 			<name>triggerDataMember</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>If there is no accessible data member (property, element of the this scope) inside a component,
-				Lucee searches for available matching &amp;quot;getters&amp;quot; or &amp;quot;setters&amp;quot; for the requested
-				property.
-				The following example should clarify this behaviour.
-				&amp;quot;somevar = myComponent.properyName&amp;quot;.
-				If &amp;quot;myComponent&amp;quot; has no accessible data member named &amp;quot;propertyName&amp;quot;,
-				Lucee searches for a function member (method) named &amp;quot;getPropertyName&amp;quot;.</description>
+			<description>If there is no accessible data member (property, element of the this scope) inside a component, 
+			Lucee searches for available matching &amp;quot;getters&amp;quot; or &amp;quot;setters&amp;quot; for the requested property. 
+			The following example should clarify this behaviour. 
+			&amp;quot;somevar = myComponent.properyName&amp;quot;. 
+			If &amp;quot;myComponent&amp;quot; has no accessible data member named &amp;quot;propertyName&amp;quot;, 
+			Lucee searches for a function member (method) named &amp;quot;getPropertyName&amp;quot;.</description>
 		</attribute>
-
+		
 		<attribute>
 			<type>boolean</type>
 			<name>InvokeImplicitAccessor</name>
@@ -614,7 +559,7 @@
 			<rtexprvalue>true</rtexprvalue>
 			<description>alias for triggerDataMember</description>
 		</attribute>
-
+		
 		<attribute>
 			<type>string</type>
 			<name>cacheObject</name>
@@ -694,9 +639,9 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Sets the country/language locale for CFML processing. The locale value
-				determines the default format of date, time, number, and
-				currency values, according to language and regional
-				conventions.</description>
+        determines the default format of date, time, number, and
+        currency values, according to language and regional
+        conventions.</description>
 		</attribute>
 		<attribute>
 			<type>timezone</type>
@@ -710,8 +655,7 @@
 			<name>webcharset</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>character set used for output streams, form-, url-, and cgi scope variables and reading/writing the
-				header</description>
+			<description>character set used for output streams, form-, url-, and cgi scope variables and reading/writing the header</description>
 		</attribute>
 		<attribute>
 			<type>String</type>
@@ -726,12 +670,10 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-				Depending on this setting Lucee scans certain scopes to find a variable called from the CFML source. This will only happen
-				when the variable is called without a scope. (Example: #myVar# instead of #variables.myVar#), the following values
-				are supported:
-				- strict: scans only the variables scope
-				- small: scans the scopes variables,url,form
-				- standard: scans the scopes variables,cgi,url,form,cookie
+Depending on this setting Lucee scans certain scopes to find a variable called from the CFML source. This will only happen when the variable is called without a scope. (Example: #myVar# instead of #variables.myVar#), the following values are supported:
+- strict: scans only the variables scope
+- small: scans the scopes variables,url,form
+- standard: scans the scopes variables,cgi,url,form,cookie
 			</description>
 		</attribute>
 		<attribute>
@@ -739,9 +681,8 @@
 			<name>searchImplicitScopes</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>alias to the attribute "scopecascading", takes a boolean value where true is equal to "standard" and
-				false is equal to "struct" scope cascading mode.
-				For details see the description for the attribute "scopecascading".</description>
+			<description>alias to the attribute "scopecascading", takes a boolean value where true is equal to "standard" and false is equal to "struct" scope cascading mode.
+			For details see the description for the attribute "scopecascading".</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>
@@ -816,13 +757,13 @@
 			<name>passby</name>
 			<values>reference,value</values>
 			<default-value>reference</default-value>
-
+			
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>should the argument passed as reference (default) or as a value</description>
 		</attribute>
 	</tag>
-
+	
 	<!-- Col -->
 	<tag>
 		<name>col</name>
@@ -843,9 +784,8 @@
 			<name>width</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The width of the column in characters (the default is 20). If the length of the data displayed exceeds
-				the width value,
-				the data is truncated to fit.</description>
+			<description>The width of the column in characters (the default is 20). If the length of the data displayed exceeds the width value,
+		the data is truncated to fit.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -860,9 +800,9 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Double-quote delimited text that determines what displays in the column. The rules for the text
-				attribute are identical to the rules for cfoutput sections; it can consist of a combination of
-				literal text, HTML tags, and query record set field references. You can embed hyperlinks, image
-				references, and input controls in columns.</description>
+		attribute are identical to the rules for cfoutput sections; it can consist of a combination of
+		literal text, HTML tags, and query record set field references. You can embed hyperlinks, image
+		references, and input controls in columns.</description>
 		</attribute>
 	</tag>
 
@@ -873,8 +813,7 @@
 		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<status>unimplemented</status>
-		<description>Creates an HTML div tag or other HTML container tag and lets you use asynchronous form submission or a
-			bind expression to dynamically control the tag contents.</description>
+		<description>Creates an HTML div tag or other HTML container tag and lets you use asynchronous form submission or a bind expression to dynamically control the tag contents.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -912,8 +851,8 @@
 			<description></description>
 		</attribute>
 	</tag>
-
-
+	
+	
 	<!-- Error -->
 	<tag>
 		<name>error</name>
@@ -925,7 +864,7 @@
 			<rtexprvalue>true</rtexprvalue>
 		</script>
 		<description>Enables the display of customized HTML pages when errors occur. This lets you maintain a
-			consistent look and feel within your application, even when errors occur.</description>
+  consistent look and feel within your application, even when errors occur.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -948,7 +887,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The e-mail address of the administrator to notify of the error. The value
-				is available to your custom error page in the MailTo property of the error object.</description>
+	is available to your custom error page in the MailTo property of the error object.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -958,7 +897,7 @@
 			<description>Type of exception. Required if type = "exception" or "monitor".</description>
 		</attribute>
 	</tag>
-
+	
 	<!-- Function -->
 	<tag>
 		<name>function</name>
@@ -991,17 +930,15 @@
 			<name>bufferoutput</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>this attribute is only used when output of the function is set to false. if this attribute is set to
-				true (default) the output written to the body of the function is buffered and in case of a exception also outputted.
-				if set to false the content to body is ignored and not disabled when a failure in the body of the tag occur.</description>
+			<description>this attribute is only used when output of the function is set to false. if this attribute is set to true (default) the output written to the body of the function is buffered and in case of a exception also outputted.
+			if set to false the content to body is ignored and not disabled when a failure in the body of the tag occur.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>roles</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>This attribute is used only for a component. If this attribute is omitted, all roles can invoke the
-				method.</description>
+			<description>This attribute is used only for a component. If this attribute is omitted, all roles can invoke the method.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1009,7 +946,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>This attribute is used only for a component.
-				The client security context from which the method can be invoked</description>
+The client security context from which the method can be invoked</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -1018,9 +955,8 @@
 			<rtexprvalue>true</rtexprvalue>
 			<description>This attribute is used only for a component.
 
-				yes: the function is processed as if it were within a cfoutput tag
-				no: the function is processed as if it were within a cfsilent tag
-			</description>
+yes: the function is processed as if it were within a cfoutput tag
+no: the function is processed as if it were within a cfsilent tag </description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1055,8 +991,7 @@
 			<name>returnFormat</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The format in which to return values to a remote caller. Possible values are [wddx], json, plain (text),
-				serialize (cfml, cfm), xml, and java.</description>
+			<description>The format in which to return values to a remote caller. Possible values are [wddx], json, plain (text), serialize (cfml, cfm), xml, and java.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1070,42 +1005,38 @@
 			<name>secureJson</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A Boolean value that specifies whether to add a security prefix in front of any value that the function
-				returns in JSON-format in response to a remote call.</description>
+			<description>A Boolean value that specifies whether to add a security prefix in front of any value that the function returns in JSON-format in response to a remote call.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>verifyClient</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A Boolean value that specifies whether to require remote function calls to include an encrypted security
-				token. For use with AJAX applications only.</description>
+			<description>A Boolean value that specifies whether to require remote function calls to include an encrypted security token. For use with AJAX applications only.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>localMode</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Defines how the local scope of this function is invoked when a variable with no scope definition is
-				used. Accepted values include:
+			<description>Defines how the local scope of this function is invoked when a variable with no scope definition is used.  Accepted values include:  
 
-				- classic (default): The local scope is only invoked when the key already exists in it.
-				- modern: The local scope is always invoked.</description>
+- classic (default): The local scope is only invoked when the key already exists in it.
+- modern: The local scope is always invoked.</description>
 		</attribute>
-
+		
 		<attribute>
 			<type>object</type>
 			<name>cachedWithin</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>
-				possible values are:
-				String "request": If original content was created within the current request, cached content data isused.
-				a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached
-				content data isused.
+		<description>
+possible values are:
+String "request": If original content was created within the current request, cached content data isused.
+a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data isused. 
 
-				To use cached data, the function must be called with the exact same arguments.</description>
-		</attribute>
+To use cached data, the function must be called with the exact same arguments.</description>
+    </attribute>
 	</tag>
 	<!-- Header -->
 	<tag>
@@ -1147,8 +1078,8 @@
 			<rtexprvalue>true</rtexprvalue>
 			<description>The character encoding in which to encode the header value.
 
-				For more information on character encodings, see:
-				www.w3.org/International/O-charset.html.</description>
+            For more information on character encodings, see:
+            www.w3.org/International/O-charset.html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1156,7 +1087,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Text that explains the status code. This attribute is used in conjunction with the
-				statusCode attribute.</description>
+	statusCode attribute.</description>
 		</attribute>
 	</tag>
 	<!-- Login -->
@@ -1171,16 +1102,15 @@
 			<rtexprvalue>true</rtexprvalue>
 		</script>
 		<description>A container for user login and authentication code.
-			Lucee runs the code in this tag if a user is not already logged in.
-			You put code in the tag that authenticates the user and identifies the user with a set of roles. Used with cfloginuser
-			tag.</description>
+		Lucee runs the code in this tag if a user is not already logged in.
+		You put code in the tag that authenticates the user and identifies the user with a set of roles. Used with cfloginuser tag.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>number</type>
 			<name>idletimeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<status>unimplemented</status>
+		    <status>unimplemented</status>
 			<description>Time interval, in seconds, after which Lucee logs off the user.</description>
 		</attribute>
 		<attribute>
@@ -1188,20 +1118,16 @@
 			<name>applicationtoken</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<status>unimplemented</status>
-			<description>The login that applies to the application. To let users log in to only one application, specify a unique
-				value for that application. To let users log in to multiple applications, specify the same value for those
-				applications. If you do not set a value for the applicationtoken attribute, the default value is
-				CFAUTHORIZATION_applicationname.</description>
+		    <status>unimplemented</status>
+			<description>The login that applies to the application. To let users log in to only one application, specify a unique value for that application. To let users log in to multiple applications, specify the same value for those applications. If you do not set a value for the applicationtoken attribute, the default value is CFAUTHORIZATION_applicationname.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>cookiedomain</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<status>unimplemented</status>
-			<description>Domain of the cookie that is used to mark a user as logged in. Use this attribute to enable a user login
-				cookie to work with multiple clustered servers in the same domain.</description>
+		    <status>unimplemented</status>
+			<description>Domain of the cookie that is used to mark a user as logged in. Use this attribute to enable a user login cookie to work with multiple clustered servers in the same domain.</description>
 		</attribute>
 	</tag>
 	<!-- Loginuser -->
@@ -1214,8 +1140,7 @@
 			<type>multiple</type>
 			<rtexprvalue>true</rtexprvalue>
 		</script>
-		<description>Identifies an authenticated user to ColdFusion. Specifies the user ID and roles. Used within a cflogin
-			tag.</description>
+		<description>Identifies an authenticated user to ColdFusion. Specifies the user ID and roles. Used within a cflogin tag.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -1250,7 +1175,7 @@
 			<rtexprvalue>true</rtexprvalue>
 		</script>
 		<description>Logs the current user out. Removes knowledge of the user ID, password, and roles from the server.
-			If you do not use this tag, the user is automatically logged out when the session ends.</description>
+		If you do not use this tag, the user is automatically logged out when the session ends.</description>
 		<attribute-type>fixed</attribute-type>
 	</tag>
 	<!-- NTauthenticate -->
@@ -1260,8 +1185,7 @@
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<status>unimplemented</status>
-		<description>Authenticates a user name and password against the Windows NT domain on which the ColdFusion server is
-			running, and optionally retrieves the user's groups.</description>
+		<description>Authenticates a user name and password against the Windows NT domain on which the ColdFusion server is running, and optionally retrieves the user's groups.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -1283,7 +1207,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Domain against which to authenticate the user. The
-				server must be running on this domain.</description>
+            server must be running on this domain.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1291,7 +1215,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Name of the variable in which to return the results.
-				Default: cfntauthenticate</description>
+            Default: cfntauthenticate</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -1299,9 +1223,9 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Boolean value specifying whether to Include a
-				comma-delimited list of the user's groups in the
-				result structure.
-				Default: false</description>
+            comma-delimited list of the user's groups in the
+            result structure.
+            Default: false</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -1309,11 +1233,11 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Boolean value specifying whether to throw an
-				exception if the validation fails. If this attribute is true,
-				Lucee throws an error if the user name or password is
-				invalid; the application must handle such errors in a
-				try/catch block or Lucee error handler page.
-				Default: false</description>
+            exception if the validation fails. If this attribute is true,
+            Lucee throws an error if the user name or password is
+            invalid; the application must handle such errors in a
+            try/catch block or Lucee error handler page.
+            Default: false</description>
 		</attribute>
 	</tag>
 	<!-- Object -->
@@ -1342,8 +1266,7 @@
 			<name>type</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The object type. You can omit this attribute or specify component. Lucee automatically sets the type to
-				component.</description>
+			<description>The object type. You can omit this attribute or specify component. Lucee automatically sets the type to component.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1352,27 +1275,26 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-				- create: instantiates a COM object (typically, a DLL) before invoking methods or properties.
-				- connect: connects to a COM object (typically, an EXE) running on server.</description>
+- create: instantiates a COM object (typically, a DLL) before invoking methods or properties.
+- connect: connects to a COM object (typically, an EXE) running on server.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>class</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Component ProgID for the object to invoke. When using Java stubs to connect to the COM object, the class
-				must be the ProgID of the COM object.</description>
+			<description>Component ProgID for the object to invoke. When using Java stubs to connect to the COM object, the class must be the ProgID of the COM object.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>context</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>- inproc
-				- local
-				- remote
+			<description>-  inproc
+    - local
+    - remote
 
-				In Windows, if not specified, uses Registry setting.</description>
+In Windows, if not specified, uses Registry setting.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1386,14 +1308,13 @@
 			<name>server</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Server name, using Universal Naming Convention (UNC) or Domain Name Serve (DNS) convention, in one of
-				these forms:
+			<description>Server name, using Universal Naming Convention (UNC) or Domain Name Serve (DNS) convention, in one of these forms:
 
-				* \\lanserver
-				* lanserver
-				* http://www.servername.com
-				* www.servername.com
-				* 127.0.0.1</description>
+    * \\lanserver
+    * lanserver
+    * http://www.servername.com
+    * www.servername.com
+    * 127.0.0.1</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1401,11 +1322,10 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-				Sets arguments for a call to init_orb. Use this attribute only for VisiBroker ORBs. It is available on C++, Version 3.2.
-				The value must be in the form:
-				locale = " -ORBagentAddr 199.99.129.33 -ORBagentPort 19000"
+Sets arguments for a call to init_orb. Use this attribute only for VisiBroker ORBs. It is available on C++, Version 3.2. The value must be in the form:
+locale = " -ORBagentAddr 199.99.129.33 -ORBagentPort 19000"
 
-				Each type-value pair must start with a hyphen.</description>
+Each type-value pair must start with a hyphen.</description>
 		</attribute>
 
 		<!-- webservice -->
@@ -1421,16 +1341,14 @@
 			<name>username</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The user name to use to access the web service. If the webservice attribute specifies a web service
-				configured name in the Lucee Administrator, overrides any user name specified in the Administrator entry.</description>
+			<description>The user name to use to access the web service. If the webservice attribute specifies a web service configured name in the Lucee Administrator, overrides any user name specified in the Administrator entry.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>password</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The password to use to access the web service. If the webservice attribute specifies a web service name
-				configured in the Lucee Administrator, overrides any password specified in the Administrator entry.</description>
+			<description>The password to use to access the web service. If the webservice attribute specifies a web service name configured in the Lucee Administrator, overrides any password specified in the Administrator entry.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1461,8 +1379,8 @@
 			<description>The user's password on the proxy server.</description>
 		</attribute>
 	</tag>
-
-
+	
+	
 	<!-- Tree -->
 	<tag>
 		<name>tree</name>
@@ -1471,8 +1389,8 @@
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<status>unimplemented</status>
 		<description>This Tag is not supported yet.
-			Lets you put a tree control in a cfform. Validates user selections. Tree items are created with
-			cftreeitem tags inside the cftree tag block. You can use a CFML query to supply data to the tree.</description>
+		Lets you put a tree control in a cfform. Validates user selections. Tree items are created with
+  cftreeitem tags inside the cftree tag block. You can use a CFML query to supply data to the tree.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -1501,8 +1419,8 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Yes passes the root level of the treename.path form variable when the cftree is submitted. If
-				omitted or No, the root level of this form variable is not included. You must set this attribute to
-				Yes for the preserveData attribute of cfform to work with the tree.</description>
+	omitted or No, the root level of this form variable is not included. You must set this attribute to
+	Yes for the preserveData attribute of cfform to work with the tree.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -1510,8 +1428,8 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Yes or No. When used with href, Yes passes the CFTREEITEMKEY variable along with the value of
-				the selected tree item in the URL to the application page specified in the cfform action attribute.
-				The default is Yes.</description>
+	the selected tree item in the URL to the application page specified in the cfform action attribute.
+	The default is Yes.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1519,8 +1437,8 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of a valid JavaScript function used to validate user input. The form object, input
-				object, and input object value are passed to the specified routine, which should return true if
-				validation succeeds and false otherwise.</description>
+	object, and input object value are passed to the specified routine, which should return true if
+	validation succeeds and false otherwise.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1626,7 +1544,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Text to display if the page containing a Java applet-based cfform control is opened by a
-				browser that does not support Java or has Java support disabled.</description>
+	browser that does not support Java or has Java support disabled.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1648,16 +1566,16 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>- applet: displays the tree using a Java applet in the
-				browser,
-				- flash: displays the tree using a Flash control
-				- object: returns the tree as a Lucee structure with the
-				name specified by the name attribute, For details of the
-				structure contents, see "object format", below.
-				- xml: Generates an XMLrepresentation of the tree.
-				In XML format forms, includes the generated XML in the
-				form. and puts the XML in a string variable with the name
-				specified by the name attribute.
-				Default: applet</description>
+              browser,
+            - flash: displays the tree using a Flash control
+            - object: returns the tree as a Lucee structure with the
+              name specified by the name attribute, For details of the
+              structure contents, see "object format", below.
+            - xml: Generates an XMLrepresentation of the tree.
+              In XML format forms, includes the generated XML in the
+              form. and puts the XML in a string variable with the name
+              specified by the name attribute.
+            Default: applet</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1665,10 +1583,10 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Flash only: ActionScript to run when the control changes due to user action.
-				If you specify an onChange event handler, the Form scope of
-				the Lucee action page does not automatically get
-				information about selected items. The ActionScript onChange
-				event handler must handle all changes and selections.</description>
+            If you specify an onChange event handler, the Form scope of
+            the Lucee action page does not automatically get
+            information about selected items. The ActionScript onChange
+            event handler must handle all changes and selections.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1676,8 +1594,8 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Flash only: Must be a style specification in CSS format, with the same
-				syntax and contents as used in Macromedia Flex for the
-				corresponding Flash element.</description>
+            syntax and contents as used in Macromedia Flex for the
+            corresponding Flash element.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1685,7 +1603,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Flash only: Text to display when the mouse pointer
-				hovers over the control.</description>
+            hovers over the control.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -1693,9 +1611,9 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Flash only: Boolean value specifying whether to
-				show the control. Space that would be occupied by an
-				invisible control is blank.
-				Default: true</description>
+            show the control. Space that would be occupied by an
+            invisible control is blank.
+            Default: true</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1703,8 +1621,8 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Flash only: Boolean value specifying whether the
-				control is enabled. A disabled control appears in light gray.
-				Default: true</description>
+            control is enabled. A disabled control appears in light gray.
+            Default: true</description>
 		</attribute>
 	</tag>
 	<!-- TreeItem -->
@@ -1715,7 +1633,7 @@
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<status>unimplemented</status>
 		<description>Populates a tree control, created with cftree, with elements. You can use the img values
-			supplied with CFML or reference your own icons.</description>
+  supplied with CFML or reference your own icons.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -1723,7 +1641,7 @@
 			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Value passed when the cfform is submitted. When populating a cftree with data from a
-				cfquery, columns are specified in a comma-separated list.</description>
+	cfquery, columns are specified in a comma-separated list.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1731,7 +1649,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The label for the tree item. Default is value. When populating a cftree with data from a
-				cfquery, display names are specified in a comma-separated list.</description>
+	cfquery, display names are specified in a comma-separated list.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1746,7 +1664,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Image name or filename for the tree item. When populating a cftree with data from a cfquery,
-				images or filenames for each level of the tree are specified in a comma-separated list.</description>
+	images or filenames for each level of the tree are specified in a comma-separated list.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1761,17 +1679,16 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>URL to associate with the tree item or a query column for a tree that is populated from a query.
-				If href is a query column, the href value is the value populated by the query. If href is not
-				recognized as a query column, it is assumed that the href text is an actual HTML href.</description>
+	If href is a query column, the href value is the value populated by the query. If href is not
+	recognized as a query column, it is assumed that the href text is an actual HTML href.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>target</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Target attribute for href URL. When populating a cftree with data from a cfquery, targets are specified
-				in a
-				comma-separated list.</description>
+			<description>Target attribute for href URL. When populating a cftree with data from a cfquery, targets are specified in a
+	comma-separated list.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1786,8 +1703,8 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Yes or No. Defines specified query as the root level. As in Example 1, this option avoids
-				having to create an additional parent cftreeitem. If you specify a text string other than Yes or
-				No, the tag uses the text as the root text.</description>
+	having to create an additional parent cftreeitem. If you specify a text string other than Yes or
+	No, the tag uses the text as the root text.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -1795,17 +1712,17 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Yes or No. Yes expands tree to show tree item children. No keeps tree item collapsed.
-				Default is Yes</description>
+	Default is Yes</description>
 		</attribute>
 	</tag>
 	<!-- Slider -->
 	<tag>
 		<name>Slider</name>
-		<tag-class>lucee.runtime.tag.Slider</tag-class>
+		<tag-class  >lucee.runtime.tag.Slider</tag-class>
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<description>Used inside cfform, cfslider lets you place a slider control in a CFML form. A slider
-			control is like a sliding volume control. The slider groove is the area over which the slider moves.</description>
+  control is like a sliding volume control. The slider groove is the area over which the slider moves.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -1834,7 +1751,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The values of the left and right slider range. The slider value displays as the slider is moved.
-				Separate values by a comma.</description>
+    Separate values by a comma.</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -1849,7 +1766,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The starting slider setting. Must be within the values specified in range. Defaults to the
-				minimum value specified in range.</description>
+		minimum value specified in range.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1857,7 +1774,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of a valid JavaScript function used to validate user input; in this case,
-				a change to the default slider value.</description>
+		a change to the default slider value.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1927,14 +1844,14 @@
 			<name>tickMarkImages</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>image used for tickmarks</description>
+		<description>image used for tickmarks</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>tickMarkLabels</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>label used for tickmarks</description>
+		<description>label used for tickmarks</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1949,7 +1866,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Yes renders the slider in the browser vertically. No renders the slider horizontally.
-				This is the default.</description>
+	This is the default.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1966,7 +1883,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Slider label text color. Valid entries are: black, magenta,
-				cyan, orange, darkgray, pink, gray, white, lightgray, yellow.</description>
+	cyan, orange, darkgray, pink, gray, white, lightgray, yellow.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -2002,10 +1919,10 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The text to display if a page containing a Java applet-based cfform control is opened by a
-				browser that does not support Java or has Java support disabled.</description>
+		browser that does not support Java or has Java support disabled.</description>
 		</attribute>
 	</tag>
-
+	
 	<!-- Registry -->
 	<tag>
 		<name>registry</name>
@@ -2013,7 +1930,7 @@
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<description>Reads, writes, and deletes keys and values in the system registry. The cfregistry tag is supported
-			on all platforms, including Linux, Solaris, and HP-UX.</description>
+  on all platforms, including Linux, Solaris, and HP-UX.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -2036,10 +1953,9 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>string: return string values
-				dWord: return DWord values
-				key: return keys
-				any: return keys and values
-			</description>
+dWord: return DWord values
+key: return keys
+any: return keys and values </description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -2054,13 +1970,12 @@
 			<name>sort</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Sorts query column data (case-insensitive). Sorts on Entry, Type, and Value columns as text. Specify a
-				combination of columns from query output, in a comma-delimited list. For example:
-				sort = "value desc, entry asc"
+			<description>Sorts query column data (case-insensitive). Sorts on Entry, Type, and Value columns as text. Specify a combination of columns from query output, in a comma-delimited list. For example:
+sort = "value desc, entry asc"
 
-				asc: ascending (a to z) sort order
-				desc: descending (z to a) sort order
-			</description>
+asc: ascending (a to z) sort order
+desc: descending (z to a) sort order
+</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -2083,11 +1998,11 @@
 			<rtexprvalue>true</rtexprvalue>
 			<description>Value data to set. If you omit this attribute, cfregistry creates default value, as follows:
 
-				string: creates an empty string: ""
-				dWord: creates a value of 0 (zero)</description>
+string: creates an empty string: ""
+dWord: creates a value of 0 (zero)</description>
 		</attribute>
 	</tag>
-
+	
 	<!-- Output -->
 	<tag>
 		<name>Output</name>
@@ -2097,8 +2012,7 @@
 		<allow-removing-literal>yes</allow-removing-literal>
 		<body-content>must</body-content>
 		<body-rtexprvalue>true</body-rtexprvalue>
-		<description>Displays the results of a database query or other operation. To nest cfoutput tags, see the "Usage"
-			section. </description>
+		<description>Displays the results of a database query or other operation. To nest cfoutput tags, see the "Usage" section. </description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>object</type>
@@ -2113,11 +2027,11 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies the query column to use when you group sets of records together. Use this attribute
-				if you have retrieved a record set ordered on a certain query column. For example, if a record set is
-				ordered according to "CustomerID" in the cfquery tag, you can group the output on "CustomerID." The
-				group attribute, which is case sensitive, eliminates adjacent duplicates when the data is sorted by
-				the specified field. See the groupCaseSensitive attribute for information about specifying a case
-				insensitive grouping.</description>
+		if you have retrieved a record set ordered on a certain query column. For example, if a record set is
+		ordered according to "CustomerID" in the cfquery tag, you can group the output on "CustomerID." The
+		group attribute, which is case sensitive, eliminates adjacent duplicates when the data is sorted by
+		the specified field. See the groupCaseSensitive attribute for information about specifying a case
+		insensitive grouping.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -2125,8 +2039,8 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Boolean indicating whether to group by case. The default value is YES; case is considered while
-				grouping. If the query attribute specifies a query object that was generated by a case-insensitive
-				SQL query, set the groupCaseSensitive attribute to NO to keep the recordset intact.</description>
+		grouping. If the query attribute specifies a query object that was generated by a case-insensitive
+		SQL query, set the groupCaseSensitive attribute to NO to keep the recordset intact.</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -2140,8 +2054,7 @@
 			<name>maxRows</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the maximum number of rows to display in the output section. You cannot use this attribute
-				together with the attribute endRow.</description>
+			<description>Specifies the maximum number of rows to display in the output section. You cannot use this attribute together with the attribute endRow.</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -2156,20 +2069,20 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>encode for what, valid values are:
-				- css: for output inside Cascading Style Sheets (CSS)
-				- dn: for output in LDAP Distinguished Names
-				- html: for output inside HTML
-				- html_attr: for output inside HTML Attributes
-				- javascript: for output inside Javascript
-				- ldap: for output in LDAP queries
-				- url: for output in URL
-				- vbscript: for output inside vbscript
-				- xml: for output inside XML
-				- xml_attr: for output inside XML Attributes
-				- xpath: for output in XPath</description>
+- css: for output inside Cascading Style Sheets (CSS)
+- dn: for output in LDAP Distinguished Names
+- html: for output inside HTML
+- html_attr: for output inside HTML Attributes
+- javascript: for output inside Javascript
+- ldap: for output in LDAP queries
+- url: for output in URL
+- vbscript: for output inside vbscript
+- xml: for output inside XML
+- xml_attr: for output inside XML Attributes
+- xpath: for output in XPath</description>
 		</attribute>
 	</tag>
-
+	
 	<!-- Script -->
 	<tag>
 		<name>Script</name>
@@ -2188,7 +2101,7 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 	</tag>
-
+	
 	<!-- Servlet -->
 	<tag>
 		<name>Servlet</name>
@@ -2281,7 +2194,7 @@
 			<description>This attribute has been deprecated and is non-functional.</description>
 		</attribute>
 	</tag>
-
+	
 	<!-- Silent -->
 	<tag>
 		<name>Silent</name>
@@ -2304,9 +2217,8 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<script-support>optional</script-support>
-			<description>if set to true (default) the output written to the body of the tag is buffered and in case of a
-				exception also outputted.
-				if set to false the content to body is ignored and not disabled when a failure in the body of the tag occur.</description>
+			<description>if set to true (default) the output written to the body of the tag is buffered and in case of a exception also outputted.
+			if set to false the content to body is ignored and not disabled when a failure in the body of the tag occur.</description>
 		</attribute>
 	</tag>
 
@@ -2318,9 +2230,9 @@
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<handle-exception>true</handle-exception>
 		<description>Builds a table in a CFML page. Use the cfcol tag to define table column and row
-			characteristics. The cftable tag renders data either as preformatted text, or, with the HTMLTable
-			attribute, as an HTML table. Use cftable to create tables if you don't want to write HTML table tag
-			code, or if your data can be well presented as preformatted text.</description>
+  characteristics. The cftable tag renders data either as preformatted text, or, with the HTMLTable
+  attribute, as an HTML table. Use cftable to create tables if you don't want to write HTML table tag
+  code, or if your data can be well presented as preformatted text.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -2349,7 +2261,7 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Number of lines to use for the table header. The default is 2, which leaves one line between
-				the headers and the first row of the table.</description>
+		the headers and the first row of the table.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
