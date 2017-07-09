@@ -1,3 +1,44 @@
+.<cfoutput>
+	<!--- For reading/adding/editing/deleting tips to white list --->
+	<cfinclude template="debugging.templates.readIP.cfm">
+	<cfset regexMatch = "^\d+(\.\d+)*$" >
+	<cfif structKeyExists(form, "EditIP") && form.EditIP EQ stText.buttons.EditIP>
+		<cfif isValid("regex","#form.ip#",regexMatch)>
+			<cfset tempStruct = deserializeJSON(xmlElem[1].xmlText)>
+			<cfset ipExist =  structFindValue(tempStruct, "#form.ip#")>
+			<cfif !arrayLen(ipExist)>
+				<cfset structUpdate(tempStruct, form.id, form.ip)>
+				<cfset xmlElem[1].xmlText = serializeJSON(tempStruct)>
+				<cfset fileWrite(filePath, toString(xmlObj))>
+			<cfelse>
+				<cfset error.message = stText.debug.templates.ipExists>
+			</cfif>
+		<cfelse>
+			<cfset error.message = stText.debug.templates.iperror>
+		</cfif>
+	<cfelseif structKeyExists(form, "addIP") && form.addIP EQ stText.buttons.addIP>
+		<cfif isValid("regex","#form.ip#",regexMatch)>
+			<cfset tempStruct = deserializeJSON(xmlElem[1].xmlText)>
+			<cfset ipExist =  structFindValue(tempStruct, "#form.ip#")>
+			<cfif !arrayLen(ipExist)>
+				<cfset structInsert(tempStruct, createUUID(), form.ip)>
+				<cfset xmlElem[1].xmlText = serializeJSON(tempStruct)>
+				<cfset fileWrite(filePath, toString(xmlObj))>
+			<cfelse>
+				<cfset error.message = stText.debug.templates.ipExists>
+			</cfif>
+		<cfelse>
+			<cfset error.message = stText.debug.templates.iperror>
+		</cfif>
+	<cfelseif structKeyExists(form, "deleteIP") && form.deleteIP EQ stText.Buttons.Delete>
+		<cfset tempStruct = deserializeJSON(xmlElem[1].xmlText)>
+		<cfloop list="#form.id#" index="i">
+			<cfset structDelete(tempStruct, i)>
+		</cfloop>
+		<cfset xmlElem[1].xmlText = serializeJSON(tempStruct)>
+		<cfset fileWrite(filePath, toString(xmlObj))>
+	</cfif>
+</cfoutput>
 <cftry>
 	<cfset stVeritfyMessages = StructNew()>
 	<cfswitch expression="#form.mainAction#">
@@ -44,6 +85,7 @@
 	<cfcatch>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
+		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
 <!--- 
@@ -108,7 +150,7 @@ Redirtect to entry --->
 							</cfif>
 							<th width="25%">#stText.debug.label#</th>
 							<th>#stText.debug.ipRange#</th>
-							<th width="15%"># stText.debug.type#</td>
+							<th width="15%">#stText.debug.type#</td>
 							<cfif isWeb>
 								<th width="3%"></th>
 							</cfif>
@@ -199,4 +241,8 @@ Redirtect to entry --->
 	<cfelse>
 		<cfset noAccess(stText.debug.noAccess)>
 	</cfif>
+
+	<!--- For listing & adding ips --->
+	<cfinclude template="debugging.templates.iplist.cfm">
+	<cfinclude template="debugging.templates.ipedit.cfm">
 </cfoutput>

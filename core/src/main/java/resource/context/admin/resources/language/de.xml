@@ -567,7 +567,7 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="login.rememberMeEnableDesc">"Eingeloggt bleiben" Funktion anbieten, so dass nicht nach Ablauf der Session neu eingeloggt werden muss.</data>
 	<data key="login.delay">Verzögerung</data>
 	<data key="login.delayDesc">Die Verzögerungszeit zwischen Loginversuchen. Diese Einstellung gilt für alle Benutzer.</data>
-
+	<data key="login.restricted.ip">Access Restricted for this IP</data>
 	<data key="login.changepassword">Passwort ändern</data>
 	<data key="login.d">einen Tag</data>
 	<data key="login.changepassworddescription">Passwort für diesen Administrator ändern.</data>
@@ -624,6 +624,12 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
 	<data key="debug.settings.timerDesc">Select this option to show timer event information. Timers let a developer track the execution time of the code between the start and end tags of the CFTIMER tag.</data>
 	<data key="debug.settings.implicitAccess">Implicit variable Access</data>
 	<data key="debug.settings.implicitAccessDesc">Select this option to log all accesses to scopes, queries and threads that happens implicit (cascaded).</data>
+	<data key="debug.templates.ip">IP</data>
+	<data key="debug.templates.addIP">Add New IP address</data>
+	<data key="debug.templates.editIP">Edit IP address</data>
+	<data key="debug.templates.ipList">IP List</data>
+	<data key="debug.templates.iperror">Invalid IP</data>
+	<data key="debug.templates.ipExists">IP Already Exits</data>
 	<data key="general.enabled">Enabled</data>
 
 	<data key="compiler.nullSupport">Null Support</data>
@@ -832,6 +838,8 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="buttons.installFull">Vollversion installieren</data>
 	<data key="buttons.updateTrial">Update als Trial</data>
 	<data key="buttons.updateFull">Update als Vollversion</data>
+	<data key="buttons.addIP">Add IP</data>
+	<data key="buttons.editIP">Edit IP</data>
 
 	<data key="schedule.executiontimedescmonthly">Definert die Zeit bei welcher der Task monatlich ausgeführt werden soll.</data>
 	<data key="schedule.username">Username</data>
