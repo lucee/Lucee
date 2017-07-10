@@ -40,7 +40,7 @@
 	private function scriptFunctionCreateTimespan() cachedWithin="#createTimespan(0,0,0,0,20)#"{
 		return getTickCount();
 	}
-	private function scriptFunctionDouble() cachedWithin="0.0000005"{
+	private function scriptFunctionDouble() cachedWithin="0.0000003"{
 		return getTickCount();
 	}
 	private function scriptFunctionRequest() cachedWithin="request"{
