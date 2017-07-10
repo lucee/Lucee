@@ -16,7 +16,7 @@
 		else homeQS="";
 	</cfscript>
 	<cfset request.mode="full">
-	
+
 <cfcontent reset="yes" /><!DOCTYPE HTML>
 <!--[if lt IE 9]> <style> body.full #header #logo.sprite { background-image: url(resources/img/server-lucee-small.png.cfm); background-position: 0 0; margin-top: 16px; } </style> <![endif]-->	<!--- remove once IE9 is the min version to be supported !--->
 <cfoutput>
@@ -117,51 +117,27 @@
 		</table>
 	</div>
 
-	<!--- TODO: move to reusable script in /res/js/admin.js !--->
+	<script src="../res/js/util.min.js.cfm"></script>
 	<script>
-		var getDomObject = function( obj ) {	// returns the element if it is an object, or finds the object by id */
+		$(function(){
 
-			if ( typeof obj == 'string' || obj instanceof String )
-				return document.getElementById( obj );
-
-			return obj;
-		}
-
-		var selectText = function( obj ) {
-
-	        if ( document.selection ) {
-
-	            var range = document.body.createTextRange();
-	            range.moveToElementText( getDomObject( obj ) );
-	            range.select();
-	        } else if ( window.getSelection ) {
-
-	            var range = document.createRange();
-	            range.selectNode( getDomObject( obj ) );
-	            window.getSelection().addRange( range );
-	        }
-	    }
-
-
-		$( function(){
-
-			$( '.coding-tip-trigger-#request.adminType#' ).click( 
-				function(){ 
+			$('.coding-tip-trigger-#request.adminType#').click(
+				function(){
 					var $this = $(this);
-					$this.next( '.coding-tip-#request.adminType#' ).slideDown();
+					$this.next('.coding-tip-#request.adminType#').slideDown();
 					$this.hide();
 				}
 			);
 
-			$( '.coding-tip-#request.adminType# code' ).click( 
-				function(){ 					
-					selectText(this);					
+			$('.coding-tip-#request.adminType# code').click(
+				function(){
+					__LUCEE.util.selectText(this);
 				}
 			).prop("title", "Click to select the text");
 		});
 	</script>
 
-	<cfif isDefined( "Request.htmlBody" )>#Request.htmlBody#</cfif>
+	<cfif isDefined("Request.htmlBody")>#Request.htmlBody#</cfif>
 </body>
 </html>
 </cfoutput>

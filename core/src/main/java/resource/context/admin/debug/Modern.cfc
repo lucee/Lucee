@@ -120,7 +120,7 @@
 
 		<cfset this.allSections = this.buildSectionStruct()>
 		<cfset var isExecOrder  = this.isSectionOpen( "ExecOrder" )>
-		
+
 		<cfif isExecOrder>
 
 			<cfset querySort(pages,"id","asc") />
@@ -141,11 +141,11 @@
 			,microsecond:"µs"
 			,nanosecond:"ns"
 			} />
-			
+
 		<cfset var ordermap={}>
 		<cfloop query="#arguments.debugging.history#">
 			<cfif !structkeyExists(ordermap, arguments.debugging.history.id)><cfset ordermap[ arguments.debugging.history.id ]=structCount(ordermap)+1></cfif>
-		</cfloop>	
+		</cfloop>
 		<cfset var prettify=structKeyExists(arguments.custom,'timeformat') and arguments.custom.timeformat EQ "natural">
 		</cfsilent>
 		<cfif arguments.context EQ "web">
@@ -532,7 +532,7 @@
 							</tr>
 						</table>
 					</cfif>
-					
+
 					<!--- Dumps --->
 					<cfif dumps.recordcount>
 
@@ -541,7 +541,7 @@
 
 						<div class="section-title">Dumps</div>
 
-						
+
 						<table>
 
 							<cfset renderSectionHeadTR( sectionId, "#dumps.recordcount# Dump#( dumps.recordcount GT 1 ) ? 's' : ''#" )>
@@ -567,7 +567,7 @@
 							</tr>
 						</table>
 					</cfif>
-					
+
 
 					<!--- Queries --->
 					<cfif queries.recordcount>
@@ -591,8 +591,8 @@
 
 							<tr>
 								<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-									
-									
+
+
 									<table><tr><td>
 										<b>General</b>
 										<table class="details">
@@ -622,7 +622,7 @@
 													<th>Datasource</th>
 													<th>Source</th>
 													<cfif hasCachetype><th>Cache Type</th></cfif>
-													
+
 												</tr>
 												<tr>
 													<th></th>
@@ -671,7 +671,7 @@
 													<cfset local.arrLenN = arrayLen( arr )>
 													<cfif arrLenN>
 														<tr class="red">
-															<td colspan="7"> 
+															<td colspan="7">
 																Unused:
 																<cfloop from="1" to="#arrLenN#" index="local.ii">
 																	#arr[ ii ]# <cfif ii LT arrLenN>, </cfif>
@@ -772,8 +772,8 @@
 
 
 		<script>
-			<cfset this.includeFileInline( "/lucee/res/js/util.min.js" )>
-			
+			<cfset this.includeInline( "/lucee/res/js/util.min.js" )>
+
 			var __LUCEE = __LUCEE || {};
 
 			__LUCEE.debug = {
@@ -821,20 +821,7 @@
 					return !isOpen;					// returns true if section is open after the operation
 				}
 
-				, selectText: 	function( id ) {
-
-			        if ( document.selection ) {
-
-			            var range = document.body.createTextRange();
-			            range.moveToElementText( document.getElementById( id ) );
-			            range.select();
-			        } else if ( window.getSelection ) {
-
-			            var range = document.createRange();
-			            range.selectNode( document.getElementById( id ) );
-			            window.getSelection().addRange( range );
-			        }
-			    }
+				, selectText:	__LUCEE.util.selectText
 			};
 		</script>
 
@@ -870,7 +857,7 @@
 			if ( !arguments.prettify ) {
 				return NumberFormat( arguments.time / 1000000, ",0.000" );
 			}
-			
+
 			// display 0 digits right to the point when more or equal to 100ms
 			if ( arguments.time >= 100000000 )
 				return int( arguments.time / 1000000 );
@@ -885,7 +872,7 @@
 
 			// display 3 digits right to the point
 			return ( int( arguments.time / 1000 ) / 1000 );
-			
+
 		}
 
 
@@ -902,10 +889,10 @@
 			return arguments.size & 'B';
 		}
 
+		/** reads the file contents and writes it to the output stream */
+		function includeInline(filename) cachedWithin=createTimeSpan(0,1,0,0) {
 
-		function includeFileInline( filename ) cachedWithin=createTimeSpan(0, 1, 0, 0) {
-
-			echo( fileRead( expandPath( arguments.filename ) ) );
+			echo(fileRead(expandPath(arguments.filename)));
 		}
 
 	</cfscript>
