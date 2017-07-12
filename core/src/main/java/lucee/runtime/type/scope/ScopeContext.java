@@ -26,7 +26,6 @@ import java.util.UUID;
 import javax.servlet.http.HttpSession;
 
 import lucee.commons.collection.MapFactory;
-import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SizeOf;
@@ -92,9 +91,9 @@ public final class ScopeContext {
 		INVIDUAL_STORAGE_KEYS = true;// Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("individualStorageKeys", null),false);
 	}
 
-	private Map<String, Map<String, Scope>> cfSessionContextes = MapFactory.<String, Map<String, Scope>> getConcurrentMap();
-	private Map<String, Map<String, Scope>> cfClientContextes = MapFactory.<String, Map<String, Scope>> getConcurrentMap();
-	private Map<String, Application> applicationContextes = MapFactory.<String, Application> getConcurrentMap();
+	private Map<String, Map<String, Scope>> cfSessionContexts = MapFactory.<String, Map<String, Scope>> getConcurrentMap();
+	private Map<String, Map<String, Scope>> cfClientContexts = MapFactory.<String, Map<String, Scope>> getConcurrentMap();
+	private Map<String, Application> applicationContexts = MapFactory.<String, Application> getConcurrentMap();
 
 	private int maxSessionTimeout = 0;
 
@@ -217,7 +216,7 @@ public final class ScopeContext {
 	public Client getClientScope(PageContext pc) throws PageException {
 		ApplicationContext appContext = pc.getApplicationContext();
 		// get Context
-		Map<String, Scope> context = getSubMap(cfClientContextes, appContext.getName());
+		Map<String, Scope> context = getSubMap(cfClientContexts, appContext.getName());
 
 		// get Client
 		boolean isMemory = false;
@@ -323,7 +322,7 @@ public final class ScopeContext {
 
 	/*
 	 * public ClientPlus getClientScopeEL(PageContext pc) { ClientPlus client=null; ApplicationContext appContext = pc.getApplicationContext(); // get Context
-	 * Map context=getSubMap(cfClientContextes,appContext.getName());
+	 * Map context=getSubMap(cfClientContexts,appContext.getName());
 	 *
 	 * // get Client String storage = appContext.getClientstorage(); if(!StringUtil.isEmpty(storage))storage=storage.toLowerCase(); else storage="";
 	 *
@@ -342,7 +341,7 @@ public final class ScopeContext {
 	 */
 
 	/**
-	 * return the session count of all application contextes
+	 * return the session count of all application contexts
 	 *
 	 * @return
 	 */
@@ -350,7 +349,7 @@ public final class ScopeContext {
 		if(pc.getSessionType() == Config.SESSION_TYPE_JEE)
 			return 0;
 
-		Iterator<Entry<String, Map<String, Scope>>> it = cfSessionContextes.entrySet().iterator();
+		Iterator<Entry<String, Map<String, Scope>>> it = cfSessionContexts.entrySet().iterator();
 		Entry<String, Map<String, Scope>> entry;
 		int count = 0;
 		while(it.hasNext()) {
@@ -370,7 +369,7 @@ public final class ScopeContext {
 		if(pc.getSessionType() == Config.SESSION_TYPE_JEE)
 			return 0;
 
-		Map<String, Scope> context = getSubMap(cfSessionContextes, appContext.getName());
+		Map<String, Scope> context = getSubMap(cfSessionContexts, appContext.getName());
 		return getSessionCount(context);
 	}
 
@@ -400,33 +399,33 @@ public final class ScopeContext {
 
 	public Struct getAllApplicationScopes() {
 		Struct trg = new StructImpl();
-		StructImpl.copy(MapAsStruct.toStruct(applicationContextes, true), trg, false);
+		StructImpl.copy(MapAsStruct.toStruct(applicationContexts, true), trg, false);
 		return trg;
 	}
 
 	public Struct getAllCFSessionScopes() {
 		Struct trg = new StructImpl();
-		StructImpl.copy(MapAsStruct.toStruct(this.cfSessionContextes, true), trg, false);
+		StructImpl.copy(MapAsStruct.toStruct(this.cfSessionContexts, true), trg, false);
 		return trg;
 	}
 
 	/**
-	 * return the size in bytes of all session contextes
+	 * return the size in bytes of all session contexts
 	 *
 	 * @return size in bytes
 	 * @throws ExpressionException
 	 */
 	public long getScopesSize(int scope) throws ExpressionException {
 		if(scope == Scope.SCOPE_APPLICATION)
-			return SizeOf.size(applicationContextes);
+			return SizeOf.size(applicationContexts);
 		if(scope == Scope.SCOPE_CLUSTER)
 			return SizeOf.size(cluster);
 		if(scope == Scope.SCOPE_SERVER)
 			return SizeOf.size(server);
 		if(scope == Scope.SCOPE_SESSION)
-			return SizeOf.size(this.cfSessionContextes);
+			return SizeOf.size(this.cfSessionContexts);
 		if(scope == Scope.SCOPE_CLIENT)
-			return SizeOf.size(this.cfClientContextes);
+			return SizeOf.size(this.cfClientContexts);
 
 		throw new ExpressionException("can only return information of scope that are not request dependent");
 	}
@@ -452,7 +451,7 @@ public final class ScopeContext {
 	 */
 	public Struct getAllSessionScopes(String appName) {
 		// if(pc.getSessionType()==Config.SESSION_TYPE_J2EE)return new StructImpl();
-		return getAllSessionScopes(getSubMap(cfSessionContextes, appName), appName);
+		return getAllSessionScopes(getSubMap(cfSessionContexts, appName), appName);
 	}
 
 	private Struct getAllSessionScopes(Map<String, Scope> context, String appName) {
@@ -500,13 +499,13 @@ public final class ScopeContext {
 
 	private boolean hasExistingCFSessionScope(PageContext pc, String cfid) {
 		ApplicationContext appContext = pc.getApplicationContext();
-		Map<String, Scope> context = getSubMap(cfSessionContextes, appContext.getName());
+		Map<String, Scope> context = getSubMap(cfSessionContexts, appContext.getName());
 		return context.containsKey(cfid);
 	}
 
 	private boolean hasExistingClientScope(PageContext pc, String cfid) {
 		ApplicationContext appContext = pc.getApplicationContext();
-		Map<String, Scope> context = getSubMap(cfClientContextes, appContext.getName());
+		Map<String, Scope> context = getSubMap(cfClientContexts, appContext.getName());
 		return context.containsKey(cfid);
 	}
 
@@ -520,7 +519,7 @@ public final class ScopeContext {
 
 		ApplicationContext appContext = pc.getApplicationContext();
 		// get Context
-		Map<String, Scope> context = getSubMap(cfSessionContextes, appContext.getName());
+		Map<String, Scope> context = getSubMap(cfSessionContexts, appContext.getName());
 
 		// get Session
 		String storage = appContext.getSessionstorage();
@@ -574,7 +573,7 @@ public final class ScopeContext {
 
 		ApplicationContext appContext = pc.getApplicationContext();
 		// get Context
-		Map<String, Scope> context = getSubMap(cfSessionContextes, appContext.getName());
+		Map<String, Scope> context = getSubMap(cfSessionContexts, appContext.getName());
 
 		// get Session
 		boolean isMemory = false;
@@ -687,7 +686,7 @@ public final class ScopeContext {
 	public void removeCFSessionScope(PageContext pc) throws PageException {
 		Session sess = getCFSessionScope(pc, new RefBooleanImpl());
 		ApplicationContext appContext = pc.getApplicationContext();
-		Map<String, Scope> context = getSubMap(cfSessionContextes, appContext.getName());
+		Map<String, Scope> context = getSubMap(cfSessionContexts, appContext.getName());
 		if(context != null) {
 			context.remove(pc.getCFID());
 			if(sess instanceof StorageScope)
@@ -698,7 +697,7 @@ public final class ScopeContext {
 	public void removeClientScope(PageContext pc) throws PageException {
 		Client cli = getClientScope(pc);
 		ApplicationContext appContext = pc.getApplicationContext();
-		Map<String, Scope> context = getSubMap(cfClientContextes, appContext.getName());
+		Map<String, Scope> context = getSubMap(cfClientContexts, appContext.getName());
 		if(context != null) {
 			context.remove(pc.getCFID());
 			if(cli != null)
@@ -707,8 +706,8 @@ public final class ScopeContext {
 	}
 
 	public boolean remove(int type, String appName, String cfid) {
-		Map<String, Map<String, Scope>> contextes = type == Scope.SCOPE_CLIENT ? cfClientContextes : cfSessionContextes;
-		Map<String, Scope> context = getSubMap(contextes, appName);
+		Map<String, Map<String, Scope>> contexts = type == Scope.SCOPE_CLIENT ? cfClientContexts : cfSessionContexts;
+		Map<String, Scope> context = getSubMap(contexts, appName);
 		Object res = context.remove(cfid);
 		getLog().log(Log.LEVEL_INFO, "scope-context",
 				"remove " + VariableInterpreter.scopeInt2String(type) + " scope " + appName + "/" + cfid + " from memory");
@@ -739,7 +738,7 @@ public final class ScopeContext {
 			session = httpSession.getAttribute(appContext.getName());
 		}
 		else {
-			Map<String, Scope> context = getSubMap(cfSessionContextes, appContext.getName());
+			Map<String, Scope> context = getSubMap(cfSessionContexts, appContext.getName());
 			session = context.get(pc.getCFID());
 		}
 
@@ -773,7 +772,7 @@ public final class ScopeContext {
 			jSession = new JSession();
 			httpSession.setAttribute(appContext.getName(), jSession);
 			isNew.setValue(true);
-			Map<String, Scope> context = getSubMap(cfSessionContextes, appContext.getName());
+			Map<String, Scope> context = getSubMap(cfSessionContexts, appContext.getName());
 			context.put(pc.getCFID(), jSession);
 		}
 		jSession.touchBeforeRequest(pc);
@@ -792,7 +791,7 @@ public final class ScopeContext {
 		ApplicationContext appContext = pc.getApplicationContext();
 		// getApplication Scope from Context
 		ApplicationImpl application;
-		Object objApp = applicationContextes.get(appContext.getName());
+		Object objApp = applicationContexts.get(appContext.getName());
 		if(objApp != null) {
 			application = (ApplicationImpl)objApp;
 			if(application.isExpired()) {
@@ -802,7 +801,7 @@ public final class ScopeContext {
 		}
 		else {
 			application = new ApplicationImpl();
-			applicationContextes.put(appContext.getName(), application);
+			applicationContexts.put(appContext.getName(), application);
 			isNew.setValue(true);
 		}
 		application.touchBeforeRequest(pc);
@@ -812,7 +811,7 @@ public final class ScopeContext {
 	}
 
 	public void removeApplicationScope(PageContext pc) {
-		applicationContextes.remove(pc.getApplicationContext().getName());
+		applicationContexts.remove(pc.getApplicationContext().getName());
 	}
 
 	/**
@@ -868,7 +867,7 @@ public final class ScopeContext {
 			// Map context;
 
 			// release all session scopes
-			Iterator<Entry<String, Map<String, Scope>>> sit = cfSessionContextes.entrySet().iterator();
+			Iterator<Entry<String, Map<String, Scope>>> sit = cfSessionContexts.entrySet().iterator();
 			Entry<String, Map<String, Scope>> sentry;
 			Map<String, Scope> context;
 			Iterator<Entry<String, Scope>> itt;
@@ -884,17 +883,17 @@ public final class ScopeContext {
 					scope.release(pc);
 				}
 			}
-			cfSessionContextes.clear();
+			cfSessionContexts.clear();
 
 			// release all application scopes
-			Iterator<Entry<String, Application>> ait = applicationContextes.entrySet().iterator();
+			Iterator<Entry<String, Application>> ait = applicationContexts.entrySet().iterator();
 			Entry<String, Application> aentry;
 			while(ait.hasNext()) {
 				aentry = ait.next();
 				scope = aentry.getValue();
 				scope.release(pc);
 			}
-			applicationContextes.clear();
+			applicationContexts.clear();
 
 			// release server scope
 			if(server != null) {
@@ -909,20 +908,20 @@ public final class ScopeContext {
 	}
 
 	private void storeUnusedStorageScope(CFMLFactoryImpl cfmlFactory, int type) {
-		Map<String, Map<String, Scope>> contextes = type == Scope.SCOPE_CLIENT ? cfClientContextes : cfSessionContextes;
+		Map<String, Map<String, Scope>> contexts = type == Scope.SCOPE_CLIENT ? cfClientContexts : cfSessionContexts;
 		long timespan = type == Scope.SCOPE_CLIENT ? CLIENT_MEMORY_TIMESPAN : SESSION_MEMORY_TIMESPAN;
 		String strType = VariableInterpreter.scopeInt2String(type);
 
-		if(contextes.size() == 0)
+		if(contexts.size() == 0)
 			return;
 		long now = System.currentTimeMillis();
-		Object[] arrContextes = contextes.keySet().toArray();
+		Object[] arrContexts = contexts.keySet().toArray();
 		Object applicationName, cfid, o;
 		Map<String, Scope> fhm;
-		for (int i = 0; i < arrContextes.length; i++) {
+		for (int i = 0; i < arrContexts.length; i++) {
 
-			applicationName = arrContextes[i];
-			fhm = contextes.get(applicationName);
+			applicationName = arrContexts[i];
+			fhm = contexts.get(applicationName);
 			if(fhm.size() > 0) {
 				Object[] arrClients = fhm.keySet().toArray();
 				int count = arrClients.length;
@@ -941,7 +940,7 @@ public final class ScopeContext {
 					}
 				}
 				if(count == 0)
-					contextes.remove(arrContextes[i]);
+					contexts.remove(arrContexts[i]);
 			}
 		}
 	}
@@ -951,18 +950,18 @@ public final class ScopeContext {
 	 *
 	 */
 	private void clearUnusedMemoryScope(CFMLFactoryImpl cfmlFactory, int type) {
-		Map<String, Map<String, Scope>> contextes = type == Scope.SCOPE_CLIENT ? cfClientContextes : cfSessionContextes;
-		if(contextes.size() == 0)
+		Map<String, Map<String, Scope>> contexts = type == Scope.SCOPE_CLIENT ? cfClientContexts : cfSessionContexts;
+		if(contexts.size() == 0)
 			return;
 
-		Object[] arrContextes = contextes.keySet().toArray();
+		Object[] arrContexts = contexts.keySet().toArray();
 		ApplicationListener listener = cfmlFactory.getConfig().getApplicationListener();
 		Object applicationName, cfid, o;
 		Map<String, Scope> fhm;
 
-		for (int i = 0; i < arrContextes.length; i++) {
-			applicationName = arrContextes[i];
-			fhm = contextes.get(applicationName);
+		for (int i = 0; i < arrContexts.length; i++) {
+			applicationName = arrContexts[i];
+			fhm = contexts.get(applicationName);
 
 			if(fhm.size() > 0) {
 				Object[] cfids = fhm.keySet().toArray();
@@ -976,7 +975,7 @@ public final class ScopeContext {
 					// close
 					if(scope.isExpired()) {
 						// TODO macht das sinn? ist das nicht kopierleiche?
-						ApplicationImpl application = (ApplicationImpl)applicationContextes.get(applicationName);
+						ApplicationImpl application = (ApplicationImpl) applicationContexts.get(applicationName);
 						long appLastAccess = 0;
 						if(application != null) {
 							appLastAccess = application.getLastAccess();
@@ -1003,34 +1002,34 @@ public final class ScopeContext {
 					}
 				}
 				if(count == 0)
-					contextes.remove(arrContextes[i]);
+					contexts.remove(arrContexts[i]);
 			}
 		}
 	}
 
 	private void clearUnusedApplications(CFMLFactoryImpl jspFactory) {
 
-		if(applicationContextes.size() == 0)
+		if(applicationContexts.size() == 0)
 			return;
 
 		long now = System.currentTimeMillis();
-		Object[] arrContextes = applicationContextes.keySet().toArray();
+		Object[] arrContexts = applicationContexts.keySet().toArray();
 		ApplicationListener listener = jspFactory.getConfig().getApplicationListener();
-		for (int i = 0; i < arrContextes.length; i++) {
-			Application application = applicationContextes.get(arrContextes[i]);
+		for (int i = 0; i < arrContexts.length; i++) {
+			Application application = applicationContexts.get(arrContexts[i]);
 
 			if(application.getLastAccess() + application.getTimeSpan() < now) {
 				// SystemOut .printDate(jspFactory.getConfigWebImpl().getOut(),"Clear application
-				// scope:"+arrContextes[i]+"-"+this);
+				// scope:"+arrContexts[i]+"-"+this);
 				application.touch();
 				try {
-					listener.onApplicationEnd(jspFactory, (String)arrContextes[i]);
+					listener.onApplicationEnd(jspFactory, (String)arrContexts[i]);
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
 					ExceptionHandler.log(jspFactory.getConfig(), Caster.toPageException(t));
 				} finally {
-					applicationContextes.remove(arrContextes[i]);
+					applicationContexts.remove(arrContexts[i]);
 					application.release(ThreadLocalPageContext.get());
 				}
 
@@ -1040,13 +1039,13 @@ public final class ScopeContext {
 
 	public void clearApplication(PageContext pc) throws PageException {
 
-		if(applicationContextes.size() == 0)
+		if(applicationContexts.size() == 0)
 			throw new ApplicationException("there is no application context defined");
 
 		String name = pc.getApplicationContext().getName();
 		CFMLFactoryImpl jspFactory = (CFMLFactoryImpl)pc.getCFMLFactory();
 
-		Application application = applicationContextes.get(name);
+		Application application = applicationContexts.get(name);
 		if(application == null)
 			throw new ApplicationException("there is no application context defined with name [" + name + "]");
 		ApplicationListener listener = PageContextUtil.getApplicationListener(pc);
@@ -1054,7 +1053,7 @@ public final class ScopeContext {
 		try {
 			listener.onApplicationEnd(jspFactory, name);
 		} finally {
-			applicationContextes.remove(name);
+			applicationContexts.remove(name);
 			application.release(pc);
 		}
 	}
@@ -1078,9 +1077,9 @@ public final class ScopeContext {
 		RefBoolean isNew = new RefBooleanImpl();
 
 		// get in memory scopes
-		Map<String, Scope> clientContext = getSubMap(cfClientContextes, appContext.getName());
+		Map<String, Scope> clientContext = getSubMap(cfClientContexts, appContext.getName());
 		UserScope oldClient = (UserScope)clientContext.get(pc.getCFID());
-		Map<String, Scope> sessionContext = getSubMap(cfSessionContextes, appContext.getName());
+		Map<String, Scope> sessionContext = getSubMap(cfSessionContexts, appContext.getName());
 		UserScope oldSession = (UserScope)sessionContext.get(pc.getCFID());
 
 		// remove Scopes completly
