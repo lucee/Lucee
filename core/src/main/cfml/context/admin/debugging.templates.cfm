@@ -19,6 +19,8 @@
 You can define IPv4 or IPv6 IPs, a IPv4 can not be converted to a IPv6 and visa versa.">
 <cfset stText.debug.ipRangeMIssing="Missing IP Range defintion">
 <cfset stText.debug.addMyIp="Add my IP">
+	
+<cfset stText.debug.templates.allowIpDesc = "<br>Allow Local IP to access admin <br>Default: Allow Local Ip's set true">
 
 <cfset stText.debug.list.serverTitle="Readonly Debug Templates">
 <cfset stText.debug.list.webTitle="Debug Templates">
