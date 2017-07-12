@@ -42,27 +42,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				if(find('cfid=',entry)) str=entry;
 			}
 		}
-
-
-		systemOutput(serialize(arr),1,1);
-		systemOutput(str,1,1);
-
-		/*
-
-		assertTrue(len(str)>0);
-		local.sct=toStruct(str);
-		assertFalse(structKeyExists(sct,'HTTPOnly'));
-		assertTrue(structKeyExists(sct,'Secure'));
-		assertTrue(structKeyExists(sct,'Domain'));
-		assertEquals('.domain.com',sct.domain);
-		assertTrue(structKeyExists(sct,'Expires'));
-		local.res=parseDateTime(sct.expires);
-		local.d1=dateAdd('s',10,now());
-		local.d2=dateAdd('s',11,now());
-		assertTrue(d1==res || d2==res);
-		//assertTrue(dateAdd('s',10,now())==res || dateAdd('s',11,now())==res);
-
-		*/
 	}
 
 

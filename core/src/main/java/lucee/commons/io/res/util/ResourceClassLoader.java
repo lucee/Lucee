@@ -94,14 +94,14 @@ public final class ResourceClassLoader extends URLClassLoader implements Closeab
 	@Override
 	public void close(){}
 
-	public synchronized void addResourcesX(Resource[] reses) throws IOException {
+	/*public synchronized void addResources(Resource[] reses) throws IOException {
 		for(int i=0;i<reses.length;i++){
 			if(!this.resources.contains(reses[i])){
 				this.resources.add(reses[i]);
 				addURL(doURL(reses[i]));
 			}
 		}
-	}
+	}*/
 	
 
 	public ResourceClassLoader getCustomResourceClassLoader(Resource[] resources) throws IOException{

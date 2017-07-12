@@ -2817,7 +2817,7 @@ component {
 			action="changeVersionTo"
 			type="#variables.type#"
 			password="#variables.password#"
-			version="#arguments.version#"
+			version="#arguments.version#";
 	}
 
 	/**

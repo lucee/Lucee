@@ -80,6 +80,7 @@ import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
+import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.include.IncludeCacheItem;
 import lucee.runtime.component.ComponentLoader;
@@ -575,9 +576,7 @@ public final class PageContextImpl extends PageContext {
 			if(!isChild){
 				req.disconnect(this);
 			}
-			
 			close();
-			thread=null;
 			base=null;
 			if(children!=null) children.clear();
 			
@@ -594,10 +593,7 @@ public final class PageContextImpl extends PageContext {
 		}
 		else {
 			close();
-			thread=null;
 			base=null;
-			
-			
 			if(variables.isBind()) {
 				variables=null;
 				variablesRoot=null;
@@ -851,29 +847,49 @@ public final class PageContextImpl extends PageContext {
 		}
 		
 		// get cached data
-		String id=CacheHandlerCollectionImpl.createId(sources);
-		CacheHandler ch = config.getCacheHandlerCollection(Config.CACHE_TYPE_INCLUDE,null).getInstanceMatchingObject(cachedWithin,null);
-		CacheItem ci=ch!=null?ch.get(this, id):null;
-		if(ci instanceof IncludeCacheItem) {
-			try {
-				write(((IncludeCacheItem)ci).getOutput());
-				return;
-			} catch (IOException e) {
-				throw Caster.toPageException(e);
+		String cacheId = CacheHandlerCollectionImpl.createId(sources);
+		CacheHandler cacheHandler = config.getCacheHandlerCollection(Config.CACHE_TYPE_INCLUDE, null).getInstanceMatchingObject(cachedWithin, null);
+
+		if (cacheHandler instanceof CacheHandlerPro){
+
+			CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(this, cacheId, cachedWithin);
+
+			if (cacheItem instanceof IncludeCacheItem) {
+				try {
+					write(((IncludeCacheItem)cacheItem).getOutput());
+					return;
+				} catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
 			}
 		}
+		else if (cacheHandler != null){		// TODO this else block can be removed when all cache handlers implement CacheHandlerPro
+
+			CacheItem cacheItem = cacheHandler.get(this, cacheId);
+
+			if(cacheItem instanceof IncludeCacheItem) {
+				try {
+					write(((IncludeCacheItem)cacheItem).getOutput());
+					return;
+				} catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
+			}
+		}
+
+		// cached item not found, process and cache result if needed
 		long start = System.nanoTime();
-		
 		BodyContent bc =  pushBody();
 		
 		try {
 			_doInclude(sources, runOnce);
 			String out = bc.getString();
-			if(ch!=null)ch.set(this, id,cachedWithin,new IncludeCacheItem(
-					out
-					,ArrayUtil.isEmpty(sources)?null:sources[0]
-					,System.nanoTime()-start));
-			return;
+
+			if (cacheHandler != null) {
+				CacheItem cacheItem = new IncludeCacheItem(out, ArrayUtil.isEmpty(sources) ? null : sources[0],System.nanoTime() - start);
+				cacheHandler.set(this, cacheId, cachedWithin, cacheItem);
+				return;
+			}
 		}
 		finally {
 			BodyContentUtil.flushAndPop(this,bc);
@@ -1034,20 +1050,6 @@ public final class PageContextImpl extends PageContext {
 		
 		other.psq=psq;
 		other.gatewayContext=gatewayContext;
-		
-		// thread
-		/*if(threads!=null){
-			synchronized (threads) {
-				
-				java.util.Iterator<Entry<Key, Object>> it2 = threads.entryIterator();
-				Entry<Key, Object> entry;
-				while(it2.hasNext()) {
-					entry = it2.next();
-					other.setThreadScope(entry.getKey(), (Threads)entry.getValue());
-				}
-			}
-		}*/
-		
 		
 		// initialize stuff
 		other.undefined.initialize(other);
@@ -3105,7 +3107,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	@Override
-	public synchronized void compile(PageSource pageSource) throws PageException {
+	public void compile(PageSource pageSource) throws PageException {
 		Resource classRootDir = pageSource.getMapping().getClassRootDirectory();
 		int dialect=getCurrentTemplateDialect();
         

@@ -41,19 +41,23 @@ public class DebuggerPool {
 		//this.storage=storage;
 	}
 	
-	public synchronized void store(PageContext pc,Debugger debugger) {
+	public void store(PageContext pc,Debugger debugger) {
 		if(ReqRspUtil.getScriptName(pc,pc.getHttpServletRequest()).indexOf("/lucee/")==0)return;
-		try {
-			queue.add((Struct) Duplicator.duplicate(debugger.getDebuggingData(pc, true),true));
-		} catch (PageException e) {}
-		
-		while(queue.size()>((ConfigWebImpl)pc.getConfig()).getDebugMaxRecordsLogged())
-			queue.poll();
+		synchronized(queue) {
+			try {
+				queue.add((Struct) Duplicator.duplicate(debugger.getDebuggingData(pc, true),true));
+			} catch (PageException e) {}
+			
+			while(queue.size()>((ConfigWebImpl)pc.getConfig()).getDebugMaxRecordsLogged())
+				queue.poll();
+		}
 	}
 
 	public Array getData(PageContext pc) {
-		
-		Iterator<Struct> it = queue.iterator();
+		Iterator<Struct> it;
+		synchronized(queue) {
+			it = queue.iterator();
+		}
 		Array arr=new ArrayImpl();
 		while(it.hasNext()){
 			arr.appendEL(it.next());

@@ -14337,10 +14337,11 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>A CFML data value or variable that represents one.</description>
 		</argument>
 		<argument>
-			<name>serializeQueryByColumns</name>
-			<type>boolean</type>
+			<name>options</name>
+			<type>any</type>
+			<alias>serializeQueryByColumns</alias>
 			<required>No</required>
-			<description>A Boolean value that specifies how to serialize CFML queries.</description>
+			<description>Either a Boolean value that specifies whether to serialize CFML queries by Column, or a string with the value "struct".</description>
 		</argument>
 		<argument>
 			<name>charset</name>

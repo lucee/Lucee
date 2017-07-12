@@ -41,6 +41,7 @@ import lucee.runtime.InterfacePageImpl;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
@@ -149,6 +150,7 @@ public final class Types {
     public static final Type COMPONENT=Type.getType(lucee.runtime.Component.class);
 
     public final static Type PAGE=Type.getType(Page.class);
+    public final static Type PAGE_IMPL=Type.getType(PageImpl.class);
     public final static Type PAGE_SOURCE=Type.getType(PageSource.class);
     public static final Type COMPONENT_PAGE_IMPL=Type.getType(lucee.runtime.ComponentPageImpl.class);
 	public static final Type INTERFACE_PAGE_IMPL = Type.getType(InterfacePageImpl.class);

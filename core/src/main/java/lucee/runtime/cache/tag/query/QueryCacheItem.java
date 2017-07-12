@@ -30,9 +30,13 @@ public class QueryCacheItem extends QueryResultCacheItem {
 	public final Query query;
 	private String hash;
 
-	public QueryCacheItem(Query query, String[] tags){
-		super((QueryResult)query,tags);
+	public QueryCacheItem(Query query, String[] tags, long cacheTime){
+		super((QueryResult)query, tags, cacheTime);
 		this.query=query;
+	}
+
+	public QueryCacheItem(Query query, String[] tags){
+		this(query, tags, System.currentTimeMillis());
 	}
 
 	@Override
@@ -50,7 +54,7 @@ public class QueryCacheItem extends QueryResultCacheItem {
 
 	@Override
 	public Object duplicate(boolean deepCopy) {
-		return new QueryCacheItem((Query)query.duplicate(true),getTags());
+		return new QueryCacheItem((Query)query.duplicate(true), getTags(), getCreationDate());
 	}
 
 }

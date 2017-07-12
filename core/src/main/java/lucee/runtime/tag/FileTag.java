@@ -47,8 +47,10 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
+import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.file.FileCacheItem;
+import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.ApplicationException;
@@ -588,48 +590,64 @@ public final class FileTag extends BodyTagImpl {
 	 * read source file
 	 * @throws PageException
 	 */
-	private void actionRead(boolean binary) throws PageException {
-		if(variable==null)
+	private void actionRead(boolean isBinary) throws PageException {
+
+		if (variable == null)
 			throw new ApplicationException("attribute variable is not defined for tag file");
 		
-		// CACHE
-		if(StringUtil.isEmpty(cachedWithin)){
+		// check if we can use cache
+		if (StringUtil.isEmpty(cachedWithin)){
 			Object tmp = ((PageContextImpl)pageContext).getCachedWithin(ConfigWeb.CACHEDWITHIN_FILE);
-			if(tmp!=null)setCachedwithin(tmp);
+			if (tmp != null)
+				setCachedwithin(tmp);
 		}
-		if(cachedWithin!=null) {
-			CacheHandler ch =pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FILE,null)
+
+		String cacheId = createCacheId(isBinary);
+		CacheHandler cacheHandler = null;
+
+		if (cachedWithin != null) {
+
+			cacheHandler = pageContext.getConfig()
+					.getCacheHandlerCollection(Config.CACHE_TYPE_FILE,null)
 					.getInstanceMatchingObject(cachedWithin,null);
-			CacheItem ci = ch!=null?ch.get(pageContext, createId(binary)):null;
-			if(ci instanceof FileCacheItem) {
-				pageContext.setVariable(variable,((FileCacheItem)ci).getData());
-				return;
+
+			if (cacheHandler instanceof CacheHandlerPro){
+
+				CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pageContext, cacheId, cachedWithin);
+
+				if (cacheItem instanceof FileCacheItem) {
+					pageContext.setVariable(variable, ((FileCacheItem)cacheItem).getData());
+					return;
+				}
+			}
+			else if (cacheHandler != null){		// TODO this else block can be removed when all cache handlers implement CacheHandlerPro
+
+				CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
+
+				if (cacheItem instanceof FileCacheItem) {
+					pageContext.setVariable(variable, ((FileCacheItem)cacheItem).getData());
+					return;
+				}
 			}
 		}
-		
+
+		// cache not found, process and cache result if needed
 		checkFile(pageContext, securityManager, file, serverPassword,false,false,true,false);
-		
-		
+
 		try {
 			long start = System.nanoTime();
-            Object data=binary?IOUtil.toBytes(file):IOUtil.toString(file,CharsetUtil.toCharset(charset));
-			pageContext.setVariable(variable,data);
-            
-            if(cachedWithin!=null) {
-				String id = createId(binary);
-				CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FILE,null).getInstanceMatchingObject(cachedWithin,null);
-				if(ch!=null)ch.set(pageContext, id,cachedWithin,FileCacheItem.getInstance(file.getAbsolutePath(),data,System.nanoTime()-start));
-				
-			}
-            
-            
-            
+            Object data = isBinary ? IOUtil.toBytes(file) : IOUtil.toString(file, CharsetUtil.toCharset(charset));
+			pageContext.setVariable(variable, data);
+
+			if (cacheHandler != null)
+				cacheHandler.set(pageContext, cacheId, cachedWithin, FileCacheItem.getInstance(file.getAbsolutePath(), data, System.nanoTime()-start));
+
 		}catch (IOException e) {
 			throw new ApplicationException("can't read file ["+file.toString()+"]",e.getMessage());
 		}
 	}
 	
-    private String createId(boolean binary) {
+    private String createCacheId(boolean binary) {
 		return CacheHandlerCollectionImpl.createId(file,binary);
 	}
 
@@ -837,7 +855,7 @@ public final class FileTag extends BodyTagImpl {
 		return arr;
 	}
 	
-	private static synchronized Struct _actionUpload(PageContext pageContext, lucee.runtime.security.SecurityManager securityManager, 
+	private static Struct _actionUpload(PageContext pageContext, lucee.runtime.security.SecurityManager securityManager, 
 			FormItem formItem,String strDestination,int nameconflict,String accept,boolean strict,int mode,String attributes,Object acl,String serverPassword) throws PageException {
 		if(nameconflict==NAMECONFLICT_UNDEFINED) nameconflict=NAMECONFLICT_ERROR;
 
@@ -869,23 +887,17 @@ public final class FileTag extends BodyTagImpl {
 
 		// check file type
 		checkContentType(contentType,accept,getFileExtension(clientFile),strict);
-		
-			
-			//String dir=clientFile.getParent();
-			//dir=correctDirectory(dir);
-		
-			cffile.set("clientdirectory",getParent(clientFile));
-			cffile.set("clientfile",clientFile.getName());
-			cffile.set("clientfileext",getFileExtension(clientFile));
-			cffile.set("clientfilename",getFileName(clientFile));
+	
+		cffile.set("clientdirectory",getParent(clientFile));
+		cffile.set("clientfile",clientFile.getName());
+		cffile.set("clientfileext",getFileExtension(clientFile));
+		cffile.set("clientfilename",getFileName(clientFile));
 		
 	    // check destination
 	    if(StringUtil.isEmpty(strDestination))
 	    	throw new ApplicationException("attribute destination is not defined in tag file");
 
-	    
 	    Resource destination=toDestination(pageContext,strDestination,null);
-	    
 		securityManager.checkFileLocation(pageContext.getConfig(),destination,serverPassword);
 		
 	    if(destination.isDirectory()) 

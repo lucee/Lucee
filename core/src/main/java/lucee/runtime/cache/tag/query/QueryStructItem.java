@@ -11,7 +11,7 @@ public class QueryStructItem extends QueryResultCacheItem {
 	public final QueryStruct queryStruct;
 
 	public QueryStructItem(QueryStruct queryStruct, String[] tags){
-		super(queryStruct,tags);
+		super(queryStruct, tags, System.currentTimeMillis());
 		this.queryStruct=queryStruct;
 	}
 

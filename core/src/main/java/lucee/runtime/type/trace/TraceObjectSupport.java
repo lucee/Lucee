@@ -79,7 +79,7 @@ public class TraceObjectSupport implements TraceObject {
 		try{log(debugger,type,category,text,varName.toString(),varValue.toString());}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
-	public synchronized static void log(Debugger debugger,int type,String category,String text,String varName,String varValue) {
+	public static void log(Debugger debugger,int type,String category,String text,String varName,String varValue) {
 		
 		StackTraceElement[] traces = Thread.currentThread().getStackTrace();
 		

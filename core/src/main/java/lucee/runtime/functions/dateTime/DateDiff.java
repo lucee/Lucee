@@ -62,7 +62,7 @@ public final class DateDiff extends BIF {
 	 * @return
 	 * @throws ExpressionException
 	 */
-	public synchronized static double call(PageContext pc , String datePart, DateTime left, DateTime right) throws ExpressionException	{
+	public static double call(PageContext pc , String datePart, DateTime left, DateTime right) throws ExpressionException	{
 		long msLeft = left.getTime();
 		long msRight = right.getTime();
 		TimeZone tz =ThreadLocalPageContext.getTimeZone(pc);

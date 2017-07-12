@@ -26,6 +26,7 @@ import java.nio.charset.Charset;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.retirement.RetireListener;
 import lucee.commons.io.retirement.RetireOutputStream;
+import lucee.commons.lang.SerializableObject;
 
 import org.apache.log4j.Layout;
 import org.apache.log4j.RollingFileAppender;
@@ -62,7 +63,9 @@ public class ResourceAppender extends WriterAppender implements AppenderState {
 
   private final int timeout;
 
-private final RetireListener listener; 
+private final RetireListener listener;
+
+private Object sync=new SerializableObject(); 
 
   /**
      Instantiate a FileAppender and open the file designated by
@@ -184,7 +187,7 @@ private final RetireListener listener;
   /**
     <p>Sets and <i>opens</i> the file where the log output will
     go. The specified file must be writable.
-
+	
     <p>If there was already an opened file, then the previous file
     is closed first.
 
@@ -195,25 +198,27 @@ private final RetireListener listener;
     @param fileName The path to the log file.
     @param append   If true will append to fileName. Otherwise will
         truncate fileName.  */
-  protected synchronized void setFile(boolean append) throws IOException {
-    LogLog.debug("setFile called: "+res+", "+append);
-
-    // It does not make sense to have immediate flush and bufferedIO.
-    if(bufferedIO) {
-      setImmediateFlush(false);
-    }
-
-    reset();
-    Resource parent = res.getParentResource();
-    if(!parent.exists()) parent.createDirectory(true);
-    boolean writeHeader = !append || res.length()==0;// this must happen before we open the stream
-    Writer fw = createWriter(new RetireOutputStream(res, append, timeout,listener));
-    if(bufferedIO) {
-      fw = new BufferedWriter(fw, bufferSize);
-    }
-    this.setQWForFiles(fw);
-    if(writeHeader) writeHeader();
-    LogLog.debug("setFile ended");
+  protected void setFile(boolean append) throws IOException {
+	synchronized (sync) {
+	    LogLog.debug("setFile called: "+res+", "+append);
+	
+	    // It does not make sense to have immediate flush and bufferedIO.
+	    if(bufferedIO) {
+	      setImmediateFlush(false);
+	    }
+	
+	    reset();
+	    Resource parent = res.getParentResource();
+	    if(!parent.exists()) parent.createDirectory(true);
+	    boolean writeHeader = !append || res.length()==0;// this must happen before we open the stream
+	    Writer fw = createWriter(new RetireOutputStream(res, append, timeout,listener));
+	    if(bufferedIO) {
+	      fw = new BufferedWriter(fw, bufferSize);
+	    }
+	    this.setQWForFiles(fw);
+	    if(writeHeader) writeHeader();
+	    LogLog.debug("setFile ended");
+	}
   }
 
 

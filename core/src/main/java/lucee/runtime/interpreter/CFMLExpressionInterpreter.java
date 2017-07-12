@@ -202,8 +202,8 @@ public class CFMLExpressionInterpreter {
     public Object interpret(PageContext pc,String str, boolean preciseMath) throws PageException { 
     	this.cfml=new ParserString(str);
     	this.preciseMath = preciseMath;
-    	init();
-
+    	init(pc);
+    	
         if(LITERAL_ARRAY==null)LITERAL_ARRAY=fld.getFunction("_literalArray");
         if(LITERAL_STRUCT==null)LITERAL_STRUCT=fld.getFunction("_literalStruct");
         if(JSON_ARRAY==null)JSON_ARRAY=fld.getFunction("_jsonArray");
@@ -223,12 +223,13 @@ public class CFMLExpressionInterpreter {
     }
 
     
-    private void init() {
-    	this.pc=ThreadLocalPageContext.get(pc);
+    private void init(PageContext pc) {
+    	this.pc=pc=ThreadLocalPageContext.get(pc);
+    	
     	int dialect=CFMLEngine.DIALECT_CFML;
     	if(this.pc!=null) {
-    		this.config=(ConfigImpl) pc.getConfig();
-    		dialect=pc.getCurrentTemplateDialect();
+    		this.config=(ConfigImpl) this.pc.getConfig();
+    		dialect=this.pc.getCurrentTemplateDialect();
     	}
     	else {
     		this.config = (ConfigImpl)ThreadLocalPageContext.getConfig();
@@ -256,7 +257,7 @@ public class CFMLExpressionInterpreter {
     
     protected Object interpretPart(PageContext pc,ParserString cfml) throws PageException { 
         this.cfml = cfml;
-        init();
+        init(pc);
         
         cfml.removeSpace();
         return assignOp().getValue(pc);

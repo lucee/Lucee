@@ -66,12 +66,6 @@ public final class Hash implements Function {
 		return invoke( pc.getConfig(), input, algorithm, encoding, (int)numIterations );
 	}
 
-    /*/	this method signature was called from ConfigWebAdmin.createUUID(), comment this comment to enable
-    public synchronized static String invoke(Config config, Object input, String algorithm, String encoding) throws PageException {
-    	
-    	return invoke(config, input, algorithm, encoding, 1);
-    }	//*/
-    
     public static String invoke(Config config, Object input, String algorithm, String encoding, int numIterations) throws PageException {
 		
     	if(StringUtil.isEmpty(algorithm))algorithm="md5";

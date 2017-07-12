@@ -62,9 +62,8 @@ public final class ClientCache extends StorageScopeCache implements Client {
 	 * @throws PageException
 	 */
 	public synchronized static Client getInstance(String cacheName, String appName, PageContext pc, Client existing, Log log) throws PageException {
-		StorageValue sv = _loadData(pc, cacheName, appName,"client", log);
 		if(appName!=null && appName.startsWith("no-in-memory-cache-")) existing=null;
-
+		StorageValue sv = _loadData(pc, cacheName, appName,"client", log);
 		if(sv!=null) {
 			long time = sv.lastModified();
 			

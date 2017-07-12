@@ -173,7 +173,7 @@ public class SuperComponent extends MemberSupport implements Component, Member {
 	}
 
 	@Override
-	public synchronized Collection duplicate(boolean deepCopy) {
+	public Collection duplicate(boolean deepCopy) {
 		return new SuperComponent((ComponentImpl) Duplicator.duplicate(comp,deepCopy));
 	}
 
@@ -257,7 +257,7 @@ public class SuperComponent extends MemberSupport implements Component, Member {
 	}
 
 	@Override
-	public synchronized Struct getMetaData(PageContext pc) throws PageException {
+	public Struct getMetaData(PageContext pc) throws PageException {
 		return comp.getMetaData(pc);
 	}
 

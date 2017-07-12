@@ -40,13 +40,13 @@ public final class LSDateFormat extends BIF implements Function {
 	public static String call(PageContext pc , Object object) throws PageException {
 		return _call(pc, object, "medium", pc.getLocale(),pc.getTimeZone());
 	}
-	public static synchronized String call(PageContext pc , Object object, String mask) throws PageException {
+	public static String call(PageContext pc , Object object, String mask) throws PageException {
 		return _call(pc, object, mask, pc.getLocale(),pc.getTimeZone());
 	}
-	public static synchronized String call(PageContext pc , Object object, String mask, Locale locale) throws PageException {
+	public static String call(PageContext pc , Object object, String mask, Locale locale) throws PageException {
 		return _call(pc, object, mask, locale,pc.getTimeZone());
 	}
-	public static synchronized String call(PageContext pc , Object object, String mask,Locale locale,TimeZone tz) throws PageException {
+	public static String call(PageContext pc , Object object, String mask,Locale locale,TimeZone tz) throws PageException {
 		return _call(pc, object, mask, 
 				locale==null?pc.getLocale():locale,
 				tz==null?pc.getTimeZone():tz);
@@ -67,7 +67,7 @@ public final class LSDateFormat extends BIF implements Function {
 	}
 	
 	
-	private static synchronized String _call(PageContext pc , Object object, String mask,Locale locale,TimeZone tz) throws PageException {
+	private static String _call(PageContext pc , Object object, String mask,Locale locale,TimeZone tz) throws PageException {
 		if(StringUtil.isEmpty(object)) return "";
 		
 		return new lucee.runtime.format.DateFormat(locale).

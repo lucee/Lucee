@@ -145,7 +145,7 @@ public final class DateCaster {
 		timeZone=ThreadLocalPageContext.getTimeZone(timeZone);
 		DateTime dt=toDateSimple(str,convertingType,true,timeZone,defaultValue);
 		if(dt==null) {	
-	    	DateFormat[] formats = FormatUtil.getCFMLFormats(timeZone, true);
+	    	final DateFormat[] formats = FormatUtil.getCFMLFormats(timeZone, true);
 		    synchronized(formats){
 		    	Date d;
 		    	ParsePosition pp=new ParsePosition(0);
@@ -157,7 +157,6 @@ public final class DateCaster {
 						if (pp.getIndex() == 0 || d==null || pp.getIndex()<str.length()) continue;	
 						dt= new DateTimeImpl(d.getTime(),false);
 						return dt;
-					//}catch (ParseException e) {}
 				}
 	    	}
 		    dt=toDateTime(Locale.US, str, timeZone,defaultValue, false);
@@ -198,81 +197,62 @@ public final class DateCaster {
      * @param defaultValue 
      * @return datetime object
      */
-    public synchronized static DateTime toDateTime(Locale locale,String str, TimeZone tz, DateTime defaultValue,boolean useCommomDateParserAsWell) {
-    	str=str.trim();
-    	tz=ThreadLocalPageContext.getTimeZone(tz);
-    	DateFormat[] df;
+    public static DateTime toDateTime(Locale locale,String str, TimeZone tz, DateTime defaultValue,boolean useCommomDateParserAsWell) {
+		str=str.trim();
+		tz=ThreadLocalPageContext.getTimeZone(tz);
+		DateFormat[] df;
 
-    	// get Calendar
-        Calendar c=JREDateTimeUtil.getThreadCalendar(locale,tz);
-        //synchronized(c){
-        	
-	        // datetime
-        	ParsePosition pp=new ParsePosition(0);
-	        df=FormatUtil.getDateTimeFormats(locale,tz,false);//dfc[FORMATS_DATE_TIME];
-	        Date d;
-    		//print.e(locale.getDisplayName(Locale.ENGLISH));
-	    	for(int i=0;i<df.length;i++) {
-	    		//print.e(df[i].format(new Date()));
-	    		pp.setErrorIndex(-1);
-				pp.setIndex(0);
-				//try {
-            	df[i].setTimeZone(tz);
-            	d = df[i].parse(str,pp);
-            	if (pp.getIndex() == 0 || d==null || pp.getIndex()<str.length()) continue;	
-				
-            	synchronized(c) {
-	            	optimzeDate(c,tz,d);
-	            	return new DateTimeImpl(c.getTime());
-            	}
-	            //}catch (ParseException e) {}
-	        }
-	        // date
-	        df=FormatUtil.getDateFormats(locale,tz,false);//dfc[FORMATS_DATE];
-	        //print.e(locale.getDisplayName(Locale.ENGLISH));
-	    	for(int i=0;i<df.length;i++) {
-	    		//print.e(df[i].format(new Date()));
-	    		pp.setErrorIndex(-1);
-				pp.setIndex(0);
-				//try {
-            	df[i].setTimeZone(tz);
-				d=df[i].parse(str,pp);
-            	if (pp.getIndex() == 0 || d==null || pp.getIndex()<str.length()) continue;	
-            	
-				synchronized(c) {
-	            	optimzeDate(c,tz,d);
-	            	return new DateTimeImpl(c.getTime());
-            	}
-				//}catch (ParseException e) {}
-	        }
-	    	
-	        // time
-	        df=FormatUtil.getTimeFormats(locale,tz,false);//dfc[FORMATS_TIME];
-	        //print.e(locale.getDisplayName(Locale.ENGLISH));
-	    	for(int i=0;i<df.length;i++) {
-	        	//print.e(df[i].format(new Date()));
-		    	pp.setErrorIndex(-1);
-				pp.setIndex(0);
-				//try {
-            	df[i].setTimeZone(tz);
-            	d=df[i].parse(str,pp);
-            	if (pp.getIndex() == 0 || d==null || pp.getIndex()<str.length()) continue;	
-            	synchronized(c) {
-	            	c.setTimeZone(tz);
-	            	c.setTime(d);
-	            	c.set(Calendar.YEAR,1899);
-	                c.set(Calendar.MONTH,11);
-	                c.set(Calendar.DAY_OF_MONTH,30);
-	            	c.setTimeZone(tz);
-            	}
-                return new DateTimeImpl(c.getTime());
-	            //}catch (ParseException e) {}
-	        }
-        //}
-        if(useCommomDateParserAsWell)return DateCaster.toDateSimple(str, CONVERTING_TYPE_NONE,true, tz, defaultValue);
-        return defaultValue;
+		// get Calendar
+		Calendar c=JREDateTimeUtil.getThreadCalendar(locale,tz);
+
+		// datetime
+		ParsePosition pp=new ParsePosition(0);
+		df=FormatUtil.getDateTimeFormats(locale,tz,false);//dfc[FORMATS_DATE_TIME];
+		Date d;
+		for(int i=0;i<df.length;i++) {
+			pp.setErrorIndex(-1);
+			pp.setIndex(0);
+			df[i].setTimeZone(tz);
+			d = df[i].parse(str,pp);
+			if (pp.getIndex() == 0 || d==null || pp.getIndex()<str.length()) continue;	
+
+			optimzeDate(c,tz,d);
+			return new DateTimeImpl(c.getTime());
+		}
+
+		// date
+		df=FormatUtil.getDateFormats(locale,tz,false);
+		for(int i=0;i<df.length;i++) {
+			pp.setErrorIndex(-1);
+			pp.setIndex(0);
+			df[i].setTimeZone(tz);
+			d=df[i].parse(str,pp);
+			if (pp.getIndex() == 0 || d==null || pp.getIndex()<str.length()) continue;	
+			optimzeDate(c,tz,d);
+			return new DateTimeImpl(c.getTime());
+		}
+
+		// time
+		df=FormatUtil.getTimeFormats(locale,tz,false);//dfc[FORMATS_TIME];
+		for(int i=0;i<df.length;i++) {
+			pp.setErrorIndex(-1);
+			pp.setIndex(0);
+			df[i].setTimeZone(tz);
+			d=df[i].parse(str,pp);
+			if (pp.getIndex() == 0 || d==null || pp.getIndex()<str.length()) continue;	
+			c.setTimeZone(tz);
+			c.setTime(d);
+			c.set(Calendar.YEAR,1899);
+			c.set(Calendar.MONTH,11);
+			c.set(Calendar.DAY_OF_MONTH,30);
+			c.setTimeZone(tz);
+			return new DateTimeImpl(c.getTime());
+		}
+
+		if(useCommomDateParserAsWell)return DateCaster.toDateSimple(str, CONVERTING_TYPE_NONE,true, tz, defaultValue);
+		return defaultValue;
     }
-    
+
     private static void optimzeDate(Calendar c, TimeZone tz, Date d) {
     	c.setTimeZone(tz);
     	c.setTime(d);

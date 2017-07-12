@@ -1751,18 +1751,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					url="#getUpdate.location##restBasePath#info/#server.lucee.version#"
 					method="get" resolveurl="no" result="local.http";
 
-					if(isJson(http.filecontent)) {
-						updateAvailable=deserializeJson(http.filecontent);
-					} else{
-						return false;
-					}
+					assertEquals(isJson(http.filecontent), true);
+					updateAvailable=deserializeJson(http.filecontent);
 
 					LatestVersion = ArrayLast(updateAvailable.otherVersions);
-					if( ReplaceNocase(replaceNocase(LatestVersion, ".", "ALL"), "-SNAPSHOT", "") GT ReplaceNocase(replaceNocase(server.lucee.version, ".", "ALL"), "-SNAPSHOT", "") ){
-						admin.changedVersoinTo(LatestVersion);
-						assertEquals(server.lucee.version EQ LatestVersion, true);
-					} else{
-						return false;
+					if( ReplaceNocase(replaceNocase(LatestVersion, ".", "", "ALL"), "-SNAPSHOT", "") GT ReplaceNocase(replaceNocase(server.lucee.version, ".", "", "ALL"), "-SNAPSHOT", "") ){
+						admin.changeVersionTo(LatestVersion);
 					}
 				});
 			});

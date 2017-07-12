@@ -1372,13 +1372,13 @@ public final class Decision {
 		return _isCastableTo(pc,strType, o);
 	}
 
-    public synchronized static boolean isDate(String str,Locale locale, TimeZone tz,boolean lenient) {
+    public static boolean isDate(String str,Locale locale, TimeZone tz,boolean lenient) {
     	str=str.trim();
     	tz=ThreadLocalPageContext.getTimeZone(tz);
     	DateFormat[] df;
 
     	// get Calendar
-        Calendar c=JREDateTimeUtil.getThreadCalendar(locale,tz);
+        //Calendar c=JREDateTimeUtil.getThreadCalendar(locale,tz);
         
         // datetime
         ParsePosition pp=new ParsePosition(0);
@@ -1407,7 +1407,7 @@ public final class Decision {
         }
 		
         // time
-        df=FormatUtil.getTimeFormats(locale,tz,false);//dfc[FORMATS_TIME];
+        df=FormatUtil.getTimeFormats(locale,tz,false);
         for(int i=0;i<df.length;i++) {
         	pp.setErrorIndex(-1);
 			pp.setIndex(0);

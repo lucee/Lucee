@@ -222,15 +222,17 @@ public class GatewayEngineImpl implements GatewayEngine {
 		}
 	}
 
-	public synchronized void clear() {
-		Iterator<Entry<String, GatewayEntry>> it = entries.entrySet().iterator();
-		Entry<String, GatewayEntry> entry;
-		while(it.hasNext()){
-			entry = it.next();
-			if(entry.getValue().getGateway().getState()==Gateway.RUNNING) 
-				stop(entry.getValue().getGateway());
+	public void clear() {
+		synchronized (entries) {
+			Iterator<Entry<String, GatewayEntry>> it = entries.entrySet().iterator();
+			Entry<String, GatewayEntry> entry;
+			while(it.hasNext()){
+				entry = it.next();
+				if(entry.getValue().getGateway().getState()==Gateway.RUNNING) 
+					stop(entry.getValue().getGateway());
+			}
+			entries.clear();
 		}
-		entries.clear();
 	}
 	
 	/**

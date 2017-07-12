@@ -140,9 +140,7 @@ public final class BlowfishEasy {
     long lCBCIV;
 
     synchronized (m_rndGen) {
-
       lCBCIV = m_rndGen.nextLong();
-
     }
 
 

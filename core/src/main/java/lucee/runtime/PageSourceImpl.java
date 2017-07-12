@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import lucee.aprint;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -52,6 +51,7 @@ import lucee.runtime.functions.system.GetDirectoryFromPath;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
+import lucee.transformer.util.PageSourceCode;
 
 /**
  * represent a cfml file on the runtime system
@@ -82,6 +82,7 @@ public final class PageSourceImpl implements PageSource {
 	private long lastAccess;	
 	private RefIntegerSync accessCount=new RefIntegerSync();
 	private boolean flush=false;
+	private final Object sync=new Object();
 
     private PageSourceImpl() {
     	mapping=null;
@@ -226,12 +227,10 @@ public final class PageSourceImpl implements PageSource {
         try {
             Class clazz=mapping.getArchiveClass(getClassName());
             page=newInstance(clazz);
-            synchronized(this) {
-                page.setPageSource(this);
-                page.setLoadType(LOAD_ARCHIVE);
-            	this.page=page;
-            }
-    		return page;
+            page.setPageSource(this);
+            page.setLoadType(LOAD_ARCHIVE);
+            this.page=page;
+            return page;
         } 
         catch (Exception e) {
         	// MUST print.e(e); is there a better way?
@@ -260,10 +259,22 @@ public final class PageSourceImpl implements PageSource {
 	// Page exists    
 		if(page!=null) {
 		//if(page!=null && !recompileAlways) {
-			if(srcLastModified!=page.getSourceLastModified()) {
-				this.page=page=compile(config,mapping.getClassRootDirectory(),page,false,pc.ignoreScopes());
-            	page.setPageSource(this);
-				page.setLoadType(LOAD_PHYSICAL);
+			if(srcLastModified!=page.getSourceLastModified() ) {
+				
+				// same size, maybe the content has not changed?
+				boolean same=false;
+				if(page instanceof PagePro && ((PagePro)page).getSourceLength() == srcFile.length()) {
+					PagePro pp = (PagePro)page;
+					try {
+						same=pp.getHash()==PageSourceCode.toString(this, config.getTemplateCharset()).hashCode();
+					} catch (IOException e) {/*in case this exception happen, the following compile process will fail as well and report the error*/}
+					
+				} 
+				if(!same) {
+					this.page=page=compile(config,mapping.getClassRootDirectory(),page,false,pc.ignoreScopes());
+	            	page.setPageSource(this);
+					page.setLoadType(LOAD_PHYSICAL);
+				}
 			}
 	    	
 		}
@@ -349,21 +360,19 @@ public final class PageSourceImpl implements PageSource {
 		long now;
 		if((getPhyscalFile().lastModified()+10000)>(now=System.currentTimeMillis()))
 			cwi.getCompiler().watch(this,now);//SystemUtil.get
+		Result result;
+		result = cwi.getCompiler().
+			compile(cwi,this,cwi.getTLDs(dialect),cwi.getFLDs(dialect),classRootDir,returnValue,ignoreScopes);
 		
-		synchronized(this) {
-			Result result = cwi.getCompiler().
-				compile(cwi,this,cwi.getTLDs(dialect),cwi.getFLDs(dialect),classRootDir,returnValue,ignoreScopes);
-			
-			try {
-				Class<?> clazz = mapping.getPhysicalClass(getClassName(), result.barr);
-				return newInstance(clazz);
-			}
-			catch(Throwable t){
-				ExceptionUtil.rethrowIfNecessary(t);
-				PageException pe = Caster.toPageException(t);
-				pe.setExtendedInfo("failed to load template "+getDisplayPath());
-				throw pe;
-			}
+		try {
+			Class<?> clazz = mapping.getPhysicalClass(getClassName(), result.barr);
+			return newInstance(clazz);
+		}
+		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
+			PageException pe = Caster.toPageException(t);
+			pe.setExtendedInfo("failed to load template "+getDisplayPath());
+			throw pe;
 		}
 	}
 
@@ -621,12 +630,11 @@ public final class PageSourceImpl implements PageSource {
 			javaName.append('/');
 			javaName.append(varName);
 		}
-		synchronized (this) {
-			this.packageName=packageName.toString().toLowerCase();
-			this.javaName=javaName.toString().toLowerCase();
-			this.fileName=fileName;
-			this.className=className;
-		}
+		
+		this.packageName=packageName.toString().toLowerCase();
+		this.javaName=javaName.toString().toLowerCase();
+		this.fileName=fileName;
+		this.className=className;
 	}
 	
 	
@@ -672,10 +680,7 @@ public final class PageSourceImpl implements PageSource {
 			}
 			else compName.append(arr[i]);
 		}
-		synchronized (this) {
-			this.compName=compName.toString();
-		}
-		
+		this.compName=compName.toString();
 	}
 
     @Override

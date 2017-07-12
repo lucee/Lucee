@@ -37,6 +37,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagSupport;
+import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.functions.string.JSStringFormat;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -98,7 +99,6 @@ public class VideoPlayerJW extends BodyTagSupport {
 	private boolean download;
 	private String id;
 	private String align;
-	private static int _id=0;
 
 	public VideoPlayerJW()  {
 		
@@ -425,10 +425,7 @@ public class VideoPlayerJW extends BodyTagSupport {
 	}
 
 	private synchronized String getId() {
-		if(!StringUtil.isEmpty(id)) return id;
-		_id++;
-		if(_id<0) _id=1;
-		return ""+_id; 
+		return CreateUniqueId.invoke(); 
 	}
 
 	private boolean hasImages() {

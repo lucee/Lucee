@@ -1,107 +1,101 @@
-/*! LUCEE.util version 1.0 */
+/*! LUCEE.util version 1.1 */
 
 var __LUCEE = __LUCEE || {};
 
 
-__LUCEE.util = 	{
+__LUCEE.util = {
 
-	getCookie: 			function( name, def ) {
+	 getCookie:			function(name, def) {
 
-		var cookies = document.cookie.split( '; ' );
+		var cookies = document.cookie.split('; ');
 		var len = cookies.length;
 		var parts;
 
-		for ( var i=0; i<len; i++ ) {
+		for (var i=0; i<len; i++) {
 
-			parts = cookies[ i ].split( '=' );
+			parts = cookies[i].split('=');
 
-			if ( parts[ 0 ] == name )
-				return unescape( parts[ 1 ] );
+			if (parts[0] == name)
+				return unescape(parts[1]);
 		}
 
 		return def;
 	}
 
-	, getCookieNames:	function() {
+	,getCookieNames:	function() {
 
 		var result = [];
-		var cookies = document.cookie.split( '; ' );
+		var cookies = document.cookie.split('; ');
 		var len = cookies.length;
 		var parts;
 
-		for ( var i=0; i<len; i++ ) {
+		for (var i=0; i<len; i++) {
 
-			parts = cookies[ i ].split( '=' );
-			result.push( parts[ 0 ] );
+			parts = cookies[i].split('=');
+			result.push(parts[0]);
 		}
 
 		return result;
 	}
 
-	, setCookie: 		function( name, value, expires ) {
+	,setCookie:			function(name, value, expires) {
 
-		document.cookie = name + "=" + escape( value ) + ( (expires) ? "; expires=" + expires.toGMTString() : "" ) + "; path=/";
+		document.cookie = name + "=" + escape(value) + ((expires) ? "; expires=" + expires.toGMTString() : "") + "; path=/";
 	}
 
-	, removeCookie: 	function( name ) {
+	,removeCookie:		function(name) {
 
-		__LUCEE.util.setCookie( name, "", new Date( 0 ) );
+		__LUCEE.util.setCookie(name, "", new Date(0));
 	}
 
-	, getDomObject: 	function( obj ) {			// returns the element if it is an object, or finds the object by id */
+	,getDomObject:		function(obj) {			// returns the element if it is an object, or finds the object by id */
 
-		if ( typeof obj == 'string' || obj instanceof String )
-			return document.getElementById( obj );
+		if (typeof obj == 'string' || obj instanceof String)
+			return document.getElementById(obj);
 
 		return obj;
 	}
 
-	, hasClass: 		function( obj, cls ) {
+	,hasClass:			function(obj, cls) {
 
-		obj = __LUCEE.util.getDomObject( obj );
-		return ( obj.className.indexOf( cls ) > -1 );
+		obj = __LUCEE.util.getDomObject(obj);
+		return (obj.className.indexOf(cls) > -1);
 	}
 
-	, addClass: 		function( obj, cls ) {
+	,addClass:			function(obj, cls) {
 
-		if ( __LUCEE.util.hasClass( obj, cls ) )
+		if (__LUCEE.util.hasClass(obj, cls))
 			return;
 
-		obj = __LUCEE.util.getDomObject( obj );
+		obj = __LUCEE.util.getDomObject(obj);
 		obj.className += " " + cls;
 	}
 
-	, removeClass: 		function( obj, cls ) {
+	,removeClass:		function(obj, cls) {
 
-		obj = __LUCEE.util.getDomObject( obj );
-		obj.className = obj.className.replace( cls, "" );
+		obj = __LUCEE.util.getDomObject(obj);
+		obj.className = obj.className.replace(cls, "");
 	}
 
-	, toggleClass: 		function( obj, cls ) {
+	,toggleClass:		function(obj, cls) {
 
-		obj = __LUCEE.util.getDomObject( obj );
+		var Util = __LUCEE.util;
+		obj = Util.getDomObject(obj);
 
-		if ( __LUCEE.util.hasClass( obj, cls ) )
-			__LUCEE.util.removeClass( obj, cls );
+		if (Util.hasClass(obj, cls))
+			Util.removeClass(obj, cls);
 		else
-			__LUCEE.util.addClass( obj, cls );
+			Util.addClass(obj, cls);
 
-		return ( __LUCEE.util.hasClass( obj, cls ) );
+		return (Util.hasClass(obj, cls));
 	}
 
-	, selectText: 	function( id ) {
+	,selectText:		function(id) {
 
-        if ( document.selection ) {
+		if (window.getSelection) {
 
-            var range = document.body.createTextRange();
-            range.moveToElementText( getDomObject( obj ) );
-            range.select();
-        } else if ( window.getSelection ) {
+			window.getSelection().selectAllChildren(__LUCEE.util.getDomObject(id));
+		}
+	}
 
-            var range = document.createRange();
-            range.selectNodeContents( getDomObject( obj ) );
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange( range );
-        }
-    }
 };
