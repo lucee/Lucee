@@ -431,5 +431,5 @@ for every argument defined lucee tries to call a matching setter method
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/memory.log" layout="classic" name="memory"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/datasource.log" layout="classic" name="datasource"/>
 	</logging>
-	<ipresrtriction>{"1":"127.0.0.1","2":"0:0:0:0:0:0:0:1","34A70FB6-52CE-4A40-B794FD10EE355F18":"127.0.0.12"}</ipresrtriction>
+	<ipresrtriction>{"addedIP":{},"allowLocalIP":"true"}</ipresrtriction>
 </cfLuceeConfiguration>

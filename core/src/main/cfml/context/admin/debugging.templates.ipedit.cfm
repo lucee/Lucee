@@ -1,9 +1,8 @@
 <cfoutput>
-<cfif url.action2 EQ "ipedit">
-	<cfinclude template="debugging.templates.readIP.cfm">
-</cfif>
+<cfinclude template="debugging.templates.readIP.cfm">
+<cfset ipStruct = deserializeJSON(xmlElem[1].xmlText)>
 <cfif url.action2 EQ "ipEdit">
-	<cfset ipStruct = deserializeJSON(xmlElem[1].xmlText)>
+	<cfinclude template="debugging.templates.readIP.cfm">
 	<h2>#stText.debug.templates.editIP#</h2>
 <cfelse>
 	<h2>#stText.debug.templates.addIP#</h2>
@@ -16,11 +15,18 @@
 				<td>
 					<cfif url.action2 EQ "ipEdit">
 						<cfinputClassic type="hidden" name="id" value="#url.id#">
-						<cfinputClassic type="text" name="ip" value="#ipStruct[url.id]#" class="large">
+						<cfinputClassic type="text" name="ip" value="#ipStruct.addedIp[url.id]#" class="large">
 					<cfelse>
 						<cfinputClassic type="hidden" name="id" value="">
 						<cfinputClassic type="text" name="ip" value="" class="large">
 					</cfif>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row">Allow Local IP's</th>
+				<td>
+					<input type="checkbox" class="checkbox" name="allowLocalIp" value=true <cfif ipStruct.allowLocalIP>checked</cfif>>
+					<!--- <div class="comment">#stText.Security.SettingsDescription#</div> --->
 				</td>
 			</tr>
 		</tbody>
