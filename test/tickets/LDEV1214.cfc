@@ -9,9 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				local.result=_InternalRequest(
 					template:uri
 				);
-				systemOutput(result.filecontent,1,1);
 				assertEquals("Random Entity",unwrap(result.filecontent));
-
 			});
 		});
 	}

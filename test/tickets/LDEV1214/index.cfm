@@ -16,6 +16,4 @@
 	result = OrmExecuteQuery( "FROM RandomEntity where name=:name",{name='Random Entity'}, true );
 
 	echo(serialize(result.getName()));
-
-	//echo(entityLoadByPK( 'RandomEntity', 1 ).getId());
 </cfscript>
