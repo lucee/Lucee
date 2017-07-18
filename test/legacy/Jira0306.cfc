@@ -162,6 +162,7 @@
 		application action="update" 
 			datasource="#{
 	  		class: 'org.h2.Driver'
+	  		, bundleName: 'org.h2'
 			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/jira306;MODE=MySQL'
 		}#";
 	}
