@@ -512,8 +512,17 @@ public class OSGiUtil {
     	// if not found try to download
     	{
 	    	try{
-	    		Resource f = downloadBundle(factory,name, version==null?null:version.toString(),id);
-		    	Bundle b = _loadBundle(bc, f);
+	    		Bundle b;
+	    		if(version!=null) {
+	    			File f = factory.downloadBundle(name, version.toString(),id);
+	    			b = _loadBundle(bc, f);
+	    		}
+	    		else {
+	    			// MUST find out why this breaks at startup with commandbox if version exists
+	    			Resource r = downloadBundle(factory,name, null,id);
+	    			b = _loadBundle(bc, r);
+	    		}
+	    		
 		    	if(startIfNecessary){
 		    		try{
 						_start(b,parents);
