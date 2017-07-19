@@ -53,6 +53,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("a",code.getCode());
 
 	}
+
+	public void function testMany2Many(){
+		local.uri=createURI("many2many/index.cfm");
+		local.result=_InternalRequest(uri);
+		assertEquals(200,result.status);
+		assertEquals("moduleLangs:1;2;Tags:1;2;",trim(result.fileContent));
+	}
 	
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
