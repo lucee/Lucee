@@ -556,21 +556,8 @@ public final class PageContextImpl extends PageContext {
 		}
 		
 		// ORM
-		if(ormSession!=null){
-			// flush orm session
-			try {
-				ORMEngine engine=ormSession.getEngine();
-				ORMConfiguration config=engine.getConfiguration(this);
-				if(config==null || (config.flushAtRequestEnd() && config.autoManageSession())){
-					ormSession.flushAll(this);
-				}
-				ormSession.closeAll(this);
-			} 
-			catch(Exception e) {}
-			ormSession=null;
-		}
+		//if(ormSession!=null)releaseORM();
 		
-
 		// Scopes
 		if(hasFamily) {
 			if(!isChild){
@@ -612,14 +599,6 @@ public final class PageContextImpl extends PageContext {
 		local=localUnsupportedScope;
 		
 		cookie.release(this);
-		//if(cluster!=null)cluster.release();
-		
-		//client=null;
-		//session=null;
-		
-		
-		
-		
 		application=null;// not needed at the moment -> application.releaseAfterRequest();
 		applicationContext=null;
 		
@@ -647,9 +626,7 @@ public final class PageContextImpl extends PageContext {
 			lazyStats.clear();
 			lazyStats=null;
 		}
-		
-		
-		
+
 		pathList.clear();
 		includePathList.clear();
 		executionTime=0;
@@ -687,6 +664,18 @@ public final class PageContextImpl extends PageContext {
 		includeOnce.clear();
 		pe=null;
 		this.literalTimestampWithTSOffset=false;
+	}
+
+	private void releaseORM() throws PageException {
+		manager.releaseORM();
+		// flush orm session
+		ORMEngine engine=ormSession.getEngine();
+		ORMConfiguration config=engine.getConfiguration(this);
+		if(config==null || (config.flushAtRequestEnd() && config.autoManageSession())){
+			ormSession.flushAll(this);
+		}
+		ormSession.closeAll(this);
+		ormSession=null;
 	}
 
 	@Override
@@ -2405,6 +2394,7 @@ public final class PageContextImpl extends PageContext {
 		try {
 			initallog();
 			listener.onRequest(this,ps,null);
+			releaseORM();
 			log(false);
 		}
 		catch(Throwable t) {

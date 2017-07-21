@@ -29,17 +29,17 @@ public class Request extends Thread {
 	
 	public void run() {
     	try {
-        	exe(pc,type,false);
+        	exe(pc,type,false,true);
         } 
         catch (Throwable _t) {}
         done=true;
         SystemUtil.notify(parent);
 	}
 	
-	public static void exe(PageContext pc, short type, boolean throwExcpetion) throws IOException, PageException {
+	public static void exe(PageContext pc, short type, boolean throwExcpetion, boolean registerWithThread) throws IOException, PageException {
     	ThreadQueue queue = null;
         try {
-        	ThreadLocalPageContext.register(pc);
+        	if(registerWithThread)ThreadLocalPageContext.register(pc);
         	ThreadQueue tmp = pc.getConfig().getThreadQueue();
 	        tmp.enter(pc);
 	        queue=tmp;
@@ -49,7 +49,7 @@ public class Request extends Thread {
         } 
         finally {
         	if(queue!=null)queue.exit(pc);
-            ThreadLocalPageContext.release();
+            if(registerWithThread)ThreadLocalPageContext.release();
         }
 	}
 

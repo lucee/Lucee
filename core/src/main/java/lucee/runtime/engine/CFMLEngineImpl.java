@@ -1009,12 +1009,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				}
 	    	}
     	}
-        
-        PageContextImpl pc = factory.getPageContextImpl(servlet,req,rsp,null,false,-1,false,false,false,-1,true,false,false);
+        boolean exeReqAsync=exeRequestAsync();
+        PageContextImpl pc = factory.getPageContextImpl(servlet,req,rsp,null,false,-1,false,!exeReqAsync,false,-1,true,false,false);
     	try {
-    		Request r=new Request(pc,type);
-	    	if(exeRequestAsync()) {
-	    		r.start();
+			Request r=new Request(pc,type);
+			if(exeReqAsync) {
+				r.start();
 		    	long ended=-1;
 		    	do {
 		    		SystemUtil.wait(Thread.currentThread(),1000);
@@ -1041,7 +1041,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	    	// run in thread coming from servlet engine
 	    	else {
 	    		try {
-					Request.exe(pc, type,true);
+					Request.exe(pc, type,true,false);
 				}
 	    		catch(RequestTimeoutException rte) {
 	    			if(rte.getThreadDeath()!=null) throw rte.getThreadDeath();
@@ -1056,7 +1056,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	    	}
     	}
     	finally {
-    		factory.releaseLuceePageContext(pc,false);
+    		factory.releaseLuceePageContext(pc,!exeReqAsync);
     	}
     }
 
