@@ -2394,7 +2394,7 @@ public final class PageContextImpl extends PageContext {
 		try {
 			initallog();
 			listener.onRequest(this,ps,null);
-			releaseORM();
+			if(ormSession!=null)releaseORM();
 			log(false);
 		}
 		catch(Throwable t) {
