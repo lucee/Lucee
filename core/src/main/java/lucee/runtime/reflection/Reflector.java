@@ -912,7 +912,7 @@ public final class Reflector {
 		return new ExpressionException("No matching Method/Function for "+Type.getName(obj)+"."+methodName+"("+getDspMethods(getClasses(args))+") found");
 	}
 	public static ExpressionException throwCall(Object obj,Collection.Key methodName, Object[] args) {
-		return new ExpressionException("No matching Method/Function for "+Type.getName(obj)+"."+methodName+"("+getDspMethods(getClasses(args))+") found");
+		return throwCall(obj, methodName.getString(), args);
 	}
 
 	/**

@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var result = _InternalRequest(
 					template:uri
 				);
-				expect(result.filecontent.trim()).toBe("AppA");
+				expect(result.filecontent.trim()).toBe("AppA549");
 			});
 
 			it(title="checking RamCache with  the name 'default' ", body = function( currentSpec ) {
@@ -14,7 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var result = _InternalRequest(
 					template:uri
 				);
-				expect(result.filecontent.trim()).toBe("AppB");
+				expect(result.filecontent.trim()).toBe("AppB549");
 			});
 		});
 	}

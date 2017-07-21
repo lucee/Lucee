@@ -566,7 +566,7 @@ public final class PageContextImpl extends PageContext {
 				}
 				ormSession.closeAll(this);
 			} 
-			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+			catch(Exception e) {}
 			ormSession=null;
 		}
 		

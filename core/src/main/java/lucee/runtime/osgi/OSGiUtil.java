@@ -23,6 +23,9 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -43,6 +46,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringList;
 import lucee.commons.lang.StringUtil;
@@ -60,6 +64,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
 
+import org.apache.felix.framework.Logger;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -505,10 +510,19 @@ public class OSGiUtil {
     	}
     	
     	// if not found try to download
-    	if(version!=null) {
+    	{
 	    	try{
-	    		File f = factory.downloadBundle(name, version.toString(),id);
-		    	Bundle b = _loadBundle(bc, f);
+	    		Bundle b;
+	    		if(version!=null) {
+	    			File f = factory.downloadBundle(name, version.toString(),id);
+	    			b = _loadBundle(bc, f);
+	    		}
+	    		else {
+	    			// MUST find out why this breaks at startup with commandbox if version exists
+	    			Resource r = downloadBundle(factory,name, null,id);
+	    			b = _loadBundle(bc, r);
+	    		}
+	    		
 		    	if(startIfNecessary){
 		    		try{
 						_start(b,parents);
@@ -519,7 +533,9 @@ public class OSGiUtil {
 		    	}
 		    	return b;
 	    	}
-	    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+	    	catch(Exception e) {
+	    		log(e);
+	    	}
 		}
     	
     	String localDir="";
@@ -537,6 +553,93 @@ public class OSGiUtil {
     		throw new BundleException("The OSGi Bundle with name ["+name+"] in version ["+version+"] is not available locally"+localDir+" or from the update provider"+upLoc+".");
     	throw new BundleException("The OSGi Bundle with name ["+name+"] is not available locally"+localDir+" or from the update provider"+upLoc+".");
     }
+	
+	private static Resource downloadBundle(CFMLEngineFactory factory, final String symbolicName, String symbolicVersion, Identification id) throws IOException, BundleException {
+		
+		final Resource jarDir = ResourceUtil.toResource(factory.getBundleDirectory());
+		final URL updateProvider = factory.getUpdateLocation();
+		if(symbolicVersion==null) symbolicVersion="latest";
+		final URL updateUrl = new URL(updateProvider,
+				"/rest/update/provider/download/" + symbolicName + "/"+symbolicVersion+"/"
+						+ (id != null ? id.toQueryString() : "")
+						+ (id == null ? "?" : "&")+"allowRedirect=true"
+						
+				);
+		log(Logger.LOG_DEBUG, "download bundle [" + symbolicName +":"+symbolicVersion+ "] ");
+
+		int code;
+		HttpURLConnection conn;
+		try {
+			conn = (HttpURLConnection) updateUrl.openConnection();
+			conn.setRequestMethod("GET");
+			conn.connect();
+			code = conn.getResponseCode();
+		} catch (UnknownHostException e) {
+			throw new IOException("could not download the bundle  [" + symbolicName + ":"+ symbolicVersion + "] from " + updateUrl, e);
+		}
+		//System.out.println("SC:" + code+"->"+conn.getFollowRedirects());
+		// the update provider is not providing a download for this
+		if (code != 200) {
+			
+			// the update provider can also provide a different (final) location for this
+			if(code==302) {
+				String location = conn.getHeaderField("Location");
+				// just in case we check invalid names
+				if(location==null)location = conn.getHeaderField("location");
+				if(location==null)location = conn.getHeaderField("LOCATION");
+				System.out.println("download redirected:" + location); // MUST remove
+				
+				conn.disconnect();
+				URL url = new URL(location);
+				try {
+					conn = (HttpURLConnection) url.openConnection();
+					conn.setRequestMethod("GET");
+					conn.connect();
+					code = conn.getResponseCode();
+				} catch (final UnknownHostException e) {
+					log(e);
+					throw new IOException("could not download the bundle  [" + symbolicName + ":"+ symbolicVersion + "] from " + location, e);
+				}
+			}
+			
+			// no download available!
+			if(code != 200){
+				final String msg = "Lucee is not able do download the bundle for ["
+					+ symbolicName + "] in version [" + symbolicVersion
+					+ "] from " + updateUrl
+					+ ", please donwload manually and copy to [" + jarDir + "]";
+				log(Logger.LOG_ERROR, msg);
+				conn.disconnect();
+				throw new IOException(msg);
+			}
+			
+		}
+		
+		// extract version if necessary
+		if("latest".equals(symbolicVersion)) {
+			// copy to temp file
+			Resource temp = SystemUtil.getTempFile("jar", false);
+			IOUtil.copy((InputStream) conn.getContent(), temp,true);
+			try{
+				conn.disconnect();
+				
+				// extract version and create file with correct name
+				BundleFile bf = new BundleFile(temp);
+				Resource jar=jarDir.getRealResource(symbolicName+"-"+bf.getVersionAsString()+".jar");
+				IOUtil.copy(temp, jar);
+				return jar;
+			}
+			finally {
+				temp.delete();
+			}
+		}
+		else {
+			Resource jar=jarDir.getRealResource(symbolicName+"-"+symbolicVersion+".jar");
+			IOUtil.copy((InputStream) conn.getContent(), jar,true);
+			conn.disconnect();
+			return jar;
+		}
+	}
 	
 
 	private static List<PackageDefinition> toPackageDefinitions(String str, String filterPackageName, List<VersionDefinition> versionDefinitions) {
@@ -1304,6 +1407,10 @@ public class OSGiUtil {
 
 	private static Bundle _loadBundle(BundleContext context, File bundle) throws IOException, BundleException {
 		return _loadBundle(context, bundle.getAbsolutePath(),new FileInputStream(bundle),true);
+	}
+	
+	private static Bundle _loadBundle(BundleContext context, Resource bundle) throws IOException, BundleException {
+		return _loadBundle(context, bundle.getAbsolutePath(),bundle.getInputStream(),true);
 	}
 	
 	
