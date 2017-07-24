@@ -556,12 +556,7 @@ public final class PageContextImpl extends PageContext {
 		}
 		
 		// ORM
-		if(ormSession!=null){
-			try {
-				releaseORM();
-			}
-			catch (PageException e) {}
-		}
+		//if(ormSession!=null)releaseORM();
 		
 		// Scopes
 		if(hasFamily) {
@@ -672,15 +667,19 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	private void releaseORM() throws PageException {
-		manager.releaseORM();
-		// flush orm session
-		ORMEngine engine=ormSession.getEngine();
-		ORMConfiguration config=engine.getConfiguration(this);
-		if(config==null || (config.flushAtRequestEnd() && config.autoManageSession())){
-			ormSession.flushAll(this);
+		try{
+			// flush orm session
+			ORMEngine engine=ormSession.getEngine();
+			ORMConfiguration config=engine.getConfiguration(this);
+			if(config==null || (config.flushAtRequestEnd() && config.autoManageSession())){
+				ormSession.flushAll(this);
+			}
+			ormSession.closeAll(this);
+			manager.releaseORM();
 		}
-		ormSession.closeAll(this);
-		ormSession=null;
+		finally {
+			ormSession=null;
+		}
 	}
 
 	@Override
@@ -2399,7 +2398,10 @@ public final class PageContextImpl extends PageContext {
 		try {
 			initallog();
 			listener.onRequest(this,ps,null);
-			//if(ormSession!=null)releaseORM();
+			if(ormSession!=null){
+				releaseORM();
+				removeLastPageSource(true);
+			}
 			log(false);
 		}
 		catch(Throwable t) {

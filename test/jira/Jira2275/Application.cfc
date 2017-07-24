@@ -41,6 +41,9 @@
 	this.ormsettings.cfclocation = "orm";
 	this.ormsettings.dbcreate = "dropcreate";
 	this.ormsettings.savemapping = true;
+	
+	this.ormsettings.skipCFCWithError=false;
+	this.ormsettings.flushatrequestend=false;
 	</cfscript>
 
 
