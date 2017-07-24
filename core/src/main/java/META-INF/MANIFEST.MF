@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
-Bundle-Version: 5.0.0.200
-Built-Date: 2015-03-01 00:00:00
+Bundle-Version: 5.2.0.200
+Built-Date: 2017-03-01 00:00:00
 Minor-Name: Kabang
 Minor-Name-Explanation: https://en.wikipedia.org/wiki/Kabang
 State: beta
