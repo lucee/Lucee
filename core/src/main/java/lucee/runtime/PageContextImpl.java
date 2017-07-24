@@ -556,7 +556,12 @@ public final class PageContextImpl extends PageContext {
 		}
 		
 		// ORM
-		//if(ormSession!=null)releaseORM();
+		if(ormSession!=null){
+			try {
+				releaseORM();
+			}
+			catch (PageException e) {}
+		}
 		
 		// Scopes
 		if(hasFamily) {
@@ -2394,7 +2399,7 @@ public final class PageContextImpl extends PageContext {
 		try {
 			initallog();
 			listener.onRequest(this,ps,null);
-			if(ormSession!=null)releaseORM();
+			//if(ormSession!=null)releaseORM();
 			log(false);
 		}
 		catch(Throwable t) {
