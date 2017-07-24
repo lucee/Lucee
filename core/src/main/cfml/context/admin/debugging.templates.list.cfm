@@ -1,13 +1,20 @@
-.<cfoutput>
+<cfoutput>
+	<cfparam name="form.allowLocalIp" default="false">
 	<!--- For reading/adding/editing/deleting tips to white list --->
 	<cfinclude template="debugging.templates.readIP.cfm">
-	<cfset regexMatch = "^\d+(\.\d+)*$" >
-	<cfif structKeyExists(form, "EditIP") && form.EditIP EQ stText.buttons.EditIP>
-		<cfif isValid("regex","#form.ip#",regexMatch)>
-			<cfset tempStruct = deserializeJSON(xmlElem[1].xmlText)>
+	<cfset tempStruct = deserializeJSON(xmlElem[1].xmlText)>
+	<cfif structKeyExists(form, "ip")>
+		<cfset ipregex = '(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))'>
+		<cfif isValid("regex","#form.ip#",ipregex)>
 			<cfset ipExist =  structFindValue(tempStruct, "#form.ip#")>
 			<cfif !arrayLen(ipExist)>
-				<cfset structUpdate(tempStruct, form.id, form.ip)>
+				<cfif structKeyExists(form,"EditIP") && form.EditIP EQ stText.buttons.EditIP>
+					<cfset structUpdate(tempStruct.addedIP, form.id, form.ip)>
+					<cfset structUpdate(tempStruct, "allowLocalIp", form.allowLocalIp)>
+				<cfelse>
+					<cfset structInsert(tempStruct.addedIP, createUUID(), form.ip)>
+					<cfset structInsert(tempStruct, "allowLocalIp", form.allowLocalIp, true)>
+				</cfif>
 				<cfset xmlElem[1].xmlText = serializeJSON(tempStruct)>
 				<cfset fileWrite(filePath, toString(xmlObj))>
 			<cfelse>
@@ -16,24 +23,10 @@
 		<cfelse>
 			<cfset error.message = stText.debug.templates.iperror>
 		</cfif>
-	<cfelseif structKeyExists(form, "addIP") && form.addIP EQ stText.buttons.addIP>
-		<cfif isValid("regex","#form.ip#",regexMatch)>
-			<cfset tempStruct = deserializeJSON(xmlElem[1].xmlText)>
-			<cfset ipExist =  structFindValue(tempStruct, "#form.ip#")>
-			<cfif !arrayLen(ipExist)>
-				<cfset structInsert(tempStruct, createUUID(), form.ip)>
-				<cfset xmlElem[1].xmlText = serializeJSON(tempStruct)>
-				<cfset fileWrite(filePath, toString(xmlObj))>
-			<cfelse>
-				<cfset error.message = stText.debug.templates.ipExists>
-			</cfif>
-		<cfelse>
-			<cfset error.message = stText.debug.templates.iperror>
-		</cfif>
-	<cfelseif structKeyExists(form, "deleteIP") && form.deleteIP EQ stText.Buttons.Delete>
-		<cfset tempStruct = deserializeJSON(xmlElem[1].xmlText)>
+	</cfif>
+	<cfif structKeyExists(form, "deleteIP") && form.deleteIP EQ stText.Buttons.Delete>
 		<cfloop list="#form.id#" index="i">
-			<cfset structDelete(tempStruct, i)>
+			<cfset structDelete(tempStruct.addedIP, i)>
 		</cfloop>
 		<cfset xmlElem[1].xmlText = serializeJSON(tempStruct)>
 		<cfset fileWrite(filePath, toString(xmlObj))>
@@ -46,14 +39,14 @@
 		<cfcase value="#stText.Buttons.Update#">
 
 			<cfif form.debug == "resetServerAdmin">
-				
+
 				<cfadmin action="updateDebug"
 					type="#request.adminType#"
-					password="#session["password"&request.adminType]#"					
+					password="#session["password"&request.adminType]#"
 	                debug=""
-					debugTemplate=""	                
+					debugTemplate=""
 					remoteClients="#request.getRemoteClients()#">
-			
+
 			<cfelse>
 
 				<cfadmin action="updateDebug"

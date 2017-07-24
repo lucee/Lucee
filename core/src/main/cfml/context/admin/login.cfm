@@ -33,20 +33,16 @@
 			document.forms.login.login_password#request.adminType#.select();
 		}
 	</script>
-	<cfif request.adminType EQ "web">
-		<cfset filePath = getPageContext().getConfig().getConfigDir().getRealResource("lucee-web.xml.cfm")>
-	<cfelse>
-		<cfset filePath = "#replaceNocase(expandPath("/lucee-server"), "\context\context", "\context")#\lucee-server.xml" />
-	</cfif>
 	<cfformClassic name="login" action="#request.self#" method="post"><!--- onerror="customError"--->
-		<cfset xmlObj = xmlParse(fileRead(filePath))>
-		<cfset ipElem = XmlSearch(xmlObj, '//*[ local-name()=''IPsList'' ]')>
-		<cfset IpList = "">
-		<cfloop array="#ipElem#" index="i">
-			<cfset ipList = listAppend(Iplist, "#i.xmlText#")>
-		</cfloop>
+		<cfset localIPs = GetLocalHostIP(true)>
+		<cfinclude template="debugging.templates.readIP.cfm" >
+		<cfset tempStruct = deserializeJSON(xmlElem[1].xmlText)>
+			<cfset Iplist = "">
+			<cfloop collection="#tempStruct.addedIP#" item="i">
+				<cfset ipList = listAppend(Iplist, "#tempStruct.addedIP[i]#")>
+			</cfloop>
 			<table class="maintbl autowidth">
-				<cfif listContains(Iplist, CGI.remote_addr) || CGI.remote_addr LTE "127.0.0.255" &&  CGI.remote_addr GTE "127.0.0.0" || CGI.remote_addr EQ "0:0:0:0:0:0:0:1">
+				<cfif ArrayFindNoCase(localIPs,CGI.remote_addr) || ListFindNoCase(ipList,CGI.remote_addr)>
 					<tbody>
 						<tr>
 							<th scope="row" class="right">#stText.Login.Password#</th>
