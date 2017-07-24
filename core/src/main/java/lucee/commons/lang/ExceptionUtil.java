@@ -164,9 +164,16 @@ public final class ExceptionUtil {
 		return t;
 	}
 
+	/**
+	 * A java.lang.ThreadDeath must never be caught, so any catch(Throwable t)
+	 * must go through this method in order to ensure that the throwable is not
+	 * of type ThreadDeath
+	 *
+	 * @param t the thrown Throwable
+	 */
 	public static void rethrowIfNecessary(Throwable t) {
 		if(unwrap(t) instanceof ThreadDeath)
-			throw (ThreadDeath)t; // never catch this rethrow
+			throw (ThreadDeath)t; // never catch a ThreadDeath
 	}
 
 }
