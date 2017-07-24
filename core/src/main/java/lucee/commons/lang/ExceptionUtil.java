@@ -34,31 +34,31 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 public final class ExceptionUtil {
-	
+
 	public static String getStacktrace(Throwable t, boolean addMessage) {
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		t.printStackTrace(pw);
 		pw.close();
 		String st = sw.toString();
-		String msg=t.getMessage();
+		String msg = t.getMessage();
 		if(addMessage && !StringUtil.isEmpty(msg) && !st.startsWith(msg.trim()))
-			st=msg+"\n"+st;
+			st = msg + "\n" + st;
 		return st;
-		
+
 	}
-	
 
 	public static String getMessage(Throwable t) {
-		String msg=t.getMessage();
-		if(StringUtil.isEmpty(msg,true)) msg=t.getClass().getName();
-		
-		StringBuilder sb=new StringBuilder(msg);
-		
-		if(t instanceof PageException){
-			PageException pe=(PageException)t;
+		String msg = t.getMessage();
+		if(StringUtil.isEmpty(msg, true))
+			msg = t.getClass().getName();
+
+		StringBuilder sb = new StringBuilder(msg);
+
+		if(t instanceof PageException) {
+			PageException pe = (PageException)t;
 			String detail = pe.getDetail();
-			if(!StringUtil.isEmpty(detail,true)) {
+			if(!StringUtil.isEmpty(detail, true)) {
 				sb.append('\n');
 				sb.append(detail);
 			}
@@ -66,80 +66,88 @@ public final class ExceptionUtil {
 		return sb.toString();
 	}
 
-	public static PageException addHint(PageExceptionImpl pe,String hint) {
+	public static PageException addHint(PageExceptionImpl pe, String hint) {
 		pe.setAdditional(KeyConstants._Hint, hint);
 		return pe;
 	}
-	
-	
+
 	/**
 	 * creates a message for key not found with soundex check for similar key
+	 * 
 	 * @param keys
 	 * @param keyLabel
 	 * @return
 	 */
-	public static String similarKeyMessage(Collection.Key[] _keys,String keySearched, String keyLabel, String keyLabels,String in, boolean listAll) {
-		String inThe=StringUtil.isEmpty(in,true)?"":" in the "+in;
-		
-		boolean empty=_keys.length==0;
-		if(listAll && (_keys.length>50 || empty)) {
-			listAll=false;
+	public static String similarKeyMessage(Collection.Key[] _keys, String keySearched, String keyLabel, String keyLabels, String in, boolean listAll) {
+		String inThe = StringUtil.isEmpty(in, true) ? "" : " in the " + in;
+
+		boolean empty = _keys.length == 0;
+		if(listAll && (_keys.length > 50 || empty)) {
+			listAll = false;
 		}
-		
-		String list=null;
+
+		String list = null;
 		if(listAll) {
 			Arrays.sort(_keys);
-			list=ListUtil.arrayToList(_keys, ",");
+			list = ListUtil.arrayToList(_keys, ",");
 		}
-		String keySearchedSoundex=StringUtil.soundex(keySearched);
-		
-		for(int i=0;i<_keys.length;i++){
+		String keySearchedSoundex = StringUtil.soundex(keySearched);
+
+		for (int i = 0; i < _keys.length; i++) {
 			if(StringUtil.soundex(_keys[i].getString()).equals(keySearchedSoundex)) {
 				String appendix;
-				if(listAll) appendix=". Here is a complete list of all available "+keyLabels+": ["+list+"].";
-				else if(empty) appendix=". The structure is empty";
-				else appendix=".";
-				
-				return "The "+keyLabel+" ["+keySearched+"] does not exist "+inThe+", but there is a similar "+keyLabel+" with name ["+_keys[i].getString()+"] available"+appendix;
+				if(listAll)
+					appendix = ". Here is a complete list of all available " + keyLabels + ": [" + list + "].";
+				else if(empty)
+					appendix = ". The structure is empty";
+				else
+					appendix = ".";
+
+				return "The " + keyLabel + " [" + keySearched + "] does not exist " + inThe + ", but there is a similar " + keyLabel + " with name ["
+						+ _keys[i].getString() + "] available" + appendix;
 			}
 		}
 		String appendix;
-		if(listAll) appendix=", only the following "+keyLabels+" are available: ["+list+"].";
-		else if(empty) appendix=", the structure is empty";
-		else appendix=".";
-		return "The "+keyLabel+" ["+keySearched+"] does not exist"+inThe+appendix;
+		if(listAll)
+			appendix = ", only the following " + keyLabels + " are available: [" + list + "].";
+		else if(empty)
+			appendix = ", the structure is empty";
+		else
+			appendix = ".";
+		return "The " + keyLabel + " [" + keySearched + "] does not exist" + inThe + appendix;
 	}
-	
 
-	public static String similarKeyMessage(Collection coll,String keySearched, String keyLabel, String keyLabels, String in, boolean listAll) {
-		return similarKeyMessage(CollectionUtil.keys(coll), keySearched, keyLabel, keyLabels,in,listAll);
+	public static String similarKeyMessage(Collection coll, String keySearched, String keyLabel, String keyLabels, String in, boolean listAll) {
+		return similarKeyMessage(CollectionUtil.keys(coll), keySearched, keyLabel, keyLabels, in, listAll);
 	}
 
 	public static IOException toIOException(Throwable t) {
 		rethrowIfNecessary(t);
-    	if(t instanceof IOException) return (IOException) t;
-		if(t instanceof InvocationTargetException) return toIOException(((InvocationTargetException) t).getCause());
-		if(t instanceof NativeException) return toIOException(((NativeException)t).getCause());
-		
-		IOException ioe = new IOException(t.getClass().getName()+":"+t.getMessage());
+		if(t instanceof IOException)
+			return (IOException)t;
+		if(t instanceof InvocationTargetException)
+			return toIOException(((InvocationTargetException)t).getCause());
+		if(t instanceof NativeException)
+			return toIOException(((NativeException)t).getCause());
+
+		IOException ioe = new IOException(t.getClass().getName() + ":" + t.getMessage());
 		ioe.setStackTrace(t.getStackTrace());
 		return ioe;
 	}
 
-
 	public static String createSoundexDetail(String name, Iterator<String> it, String keyName) {
-		StringBuilder sb=new StringBuilder();
-		String k ,sname=StringUtil.soundex(name);
-		while(it.hasNext()){
+		StringBuilder sb = new StringBuilder();
+		String k, sname = StringUtil.soundex(name);
+		while(it.hasNext()) {
 			k = it.next();
 			if(StringUtil.soundex(k).equals(sname))
-				return "did you mean ["+k+"]";
-			if(sb.length()!=0)sb.append(',');
+				return "did you mean [" + k + "]";
+			if(sb.length() != 0)
+				sb.append(',');
 			sb.append(k);
 		}
-		return "available "+keyName+" are ["+sb+"]";
+		return "available " + keyName + " are [" + sb + "]";
 	}
-
 
 	public static RuntimeException toRuntimeException(Throwable t) {
 		rethrowIfNecessary(t);
@@ -148,14 +156,17 @@ public final class ExceptionUtil {
 	}
 
 	private static Throwable unwrap(Throwable t) {
-		if(t instanceof NativeException) return unwrap(((NativeException)t).getException());
+		if(t instanceof NativeException)
+			return unwrap(((NativeException)t).getException());
 		Throwable cause = t.getCause();
-		if(cause!=null && cause!=t) return unwrap(cause);
+		if(cause != null && cause != t)
+			return unwrap(cause);
 		return t;
 	}
 
 	public static void rethrowIfNecessary(Throwable t) {
-		if(unwrap(t) instanceof ThreadDeath) throw (ThreadDeath)t; // never catch this rethrow
+		if(unwrap(t) instanceof ThreadDeath)
+			throw (ThreadDeath)t; // never catch this rethrow
 	}
-	
+
 }
