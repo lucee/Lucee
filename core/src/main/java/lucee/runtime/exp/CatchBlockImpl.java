@@ -138,8 +138,8 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 		private CatchBlock getCauseAsCatchBlock() {
 			Throwable cause = pe.getCause();
 			if(cause==null || pe==cause) return null;
+			if(pe instanceof NativeException && ((NativeException)pe).getException()==cause) return null;
 			return new CatchBlockImpl(NativeException.newInstance(cause),level+1);
-			
 		}
 
 		public void set(Object o){
