@@ -514,7 +514,7 @@ public final class ReqRspUtil {
 				return obj;
 			}
 			catch (Exception e) {
-				pc.getConfig().getLog("application").info("request", e.toString());
+				pc.getConfig().getLog("application").error("request", e);
 				return defaultValue;
 			} finally {
 				IOUtil.closeEL(is);
