@@ -514,12 +514,13 @@ public final class ReqRspUtil {
 				return obj;
 			}
 			catch (Exception e) {
+				pc.getConfig().getLog("application").info("request", e.toString());
 				return defaultValue;
 			} finally {
 				IOUtil.closeEL(is);
 			}
 		}
-		
+
 		return defaultValue;
 	}
 
