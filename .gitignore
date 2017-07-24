@@ -19,3 +19,11 @@ target/*
 *.cfc.hbm.xml
 /cache
 WEB-INF
+
+
+.classpath
+**/.settings/**
+*.eml
+*.iml
+*.ipr
+*.iws
