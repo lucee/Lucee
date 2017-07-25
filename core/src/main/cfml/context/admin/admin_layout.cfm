@@ -137,7 +137,6 @@
 		});
 	</script>
 
-	<cfif isDefined("Request.htmlBody")>#Request.htmlBody#</cfif>
 	<cfhtmlbody action="flush">
 </body>
 </html>

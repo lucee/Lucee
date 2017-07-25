@@ -409,8 +409,9 @@
 					$('.submit,.menu_inactive,.menu_active').click(__blockUI);
 				});
 			</script>
-			<cfoutput>#strNav#</cfoutput>
 		</cfhtmlbody>
+
+		<cfoutput>#strNav#</cfoutput>
 
     	<cfmodule template="admin_layout.cfm" width="960" navigation="#strNav#" right="#context#" title="#current.label#" favorites="#favoriteLis#">
 			<cfoutput>#content#</cfoutput>
