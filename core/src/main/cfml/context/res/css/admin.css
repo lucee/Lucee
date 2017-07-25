@@ -155,7 +155,7 @@ td#logintd {
 	background-color: #efede5;
 	border-radius: 7px;
 	margin: 0px;
-	
+
 }
 
 #login {
@@ -180,13 +180,13 @@ td#logintd {
 	margin: 10px 0 0 8px;
 	width: 120px;
 	height: 22px;
-	border-color:#333; 
-	color:#333; 
+	border-color:#333;
+	color:#333;
 }
 
 
-.admin-web #navsearch  		{ background-color: #3399cc; } 
-.admin-server #navsearch  		{ background-color: #bf4f36; } 
+.admin-web #navsearch  		{ background-color: #3399cc; }
+.admin-server #navsearch  		{ background-color: #bf4f36; }
 
 
 #contenttd {
@@ -216,10 +216,10 @@ td#logintd {
 	color:#efede5;
 }
 #copyrighttd {
-	
+
 }
 
-/* page title */	
+/* page title */
 #layouttbl {
 	font-size : 8pt;
 	/*height:29px;
@@ -316,11 +316,11 @@ td#logintd {
 	display:block;
 }
 
-.admin-server #favorites a  { background-position: -125px -20px;} 
+.admin-server #favorites a  { background-position: -125px -20px;}
 .admin-web  #favorites a  { background-position: -105px -20px;}
 
-.admin-server #favorites a.favorite_inactive  { background-position: -125px 0px;} 
-.admin-web  #favorites a.favorite_inactive  { background-position: -105px 0px;} 
+.admin-server #favorites a.favorite_inactive  { background-position: -125px 0px;}
+.admin-web  #favorites a.favorite_inactive  { background-position: -105px 0px;}
 
 
 #logouts {
@@ -330,12 +330,12 @@ td#logintd {
 }
 
 #logouts > a {
-	width: 19px; height: 19px; 
-	display:block;  
+	width: 19px; height: 19px;
+	display:block;
 }
 
-.admin-server #logouts a  { background-position: -125px -60px;} 
-.admin-web  #logouts a  { background-position: -125px -40px;} 
+.admin-server #logouts a  { background-position: -125px -60px;}
+.admin-web  #logouts a  { background-position: -125px -40px;}
 
 
 
@@ -343,7 +343,7 @@ td#logintd {
 div.pageintro {
 	margin: 0 0 20px 0;
 }
-/* intro text for a section (i.e. under an h2; above a table) */	
+/* intro text for a section (i.e. under an h2; above a table) */
 .itemintro {
 	font-style:italic;
 	margin: -3px 0 10px 0;
@@ -475,50 +475,29 @@ div.ok {
 
 
 
-.coding-tip-trigger-server { 
-	cursor: pointer; 
+
+.coding-tip-trigger {
+	cursor: pointer;
 	color: #9c0000;
 }
 
-.coding-tip-trigger-web { 
-	cursor: pointer; 
-	color: #3399cc;
-}
-
-.coding-tip-server { 
-
-	display: none; 
+.coding-tip {
+	display: none;
 	box-sizing: border-box;
+	margin: 0.25em;
+	padding: 0.5em;
+	border: 0px;
+	border-radius: 0.5em;
+	max-width: 680px;
 	background-color: #bf4f36;
 	color: #efede5;
-	margin: 0.25em;
-	padding: 0.5em;
-	border: 0px;
-	border-radius: 0.5em;
-	max-width: 680px;
 }
 
-.coding-tip-web { 
-
-	display: none; 
-	box-sizing: border-box;
-	background-color: #3399cc;
-	color: #efede5;
-	margin: 0.25em;
-	padding: 0.5em;
-	border: 0px;
-	border-radius: 0.5em;
-	max-width: 680px;
-}
-
-.coding-tip-server.expanded { 
-	display: block;
-}
-.coding-tip-web.expanded { 
+.coding-tip.expanded {
 	display: block;
 }
 
-.coding-tip-server code ,.coding-tip-web code {
+.coding-tip code {
 
 	white-space: pre-wrap;
 	tab-size: 4;
@@ -529,6 +508,15 @@ div.ok {
 	display: block;
 	cursor: pointer;
 }
+
+.admin-web .coding-tip-trigger {
+	color: #3399cc;
+}
+
+.admin-web .coding-tip {
+	background-color: #3399cc;
+}
+
 
 
 /* unorganized */
@@ -557,7 +545,7 @@ td.tabtop {border-style:solid;border-color:#dcdad3;border-width:0px 0px 1px 0px 
 
 
 input {
-	
+
 	background-color:#fff;
 	padding:3px 2px 3px 3px;
 	margin:3px 1px 3px 1px;
@@ -565,7 +553,7 @@ input {
 	border:1px solid;
 	border-color: #e2e0da;
 	height:19;
-	
+
 }
 
 
@@ -633,7 +621,7 @@ input,select,textarea {
 }
 .bs {
 	margin-left: -5px;
-} 
+}
 
 .button:hover:enabled,.reset:hover:enabled {
 	color:#efede5;
@@ -683,8 +671,8 @@ a.edit {
 }
 
 
-.admin-web .btn-search  		{ background-position: -125px -80px; } 
-.admin-server .btn-search  		{ background-position: -125px -100px; } 
+.admin-web .btn-search  		{ background-position: -125px -80px; }
+.admin-server .btn-search  		{ background-position: -125px -100px; }
 
 
 
@@ -746,7 +734,7 @@ label:hover {
 }
 
 .checkbox:checked:after {
-	
+
 	content: ' ';
 	width: 8px;
 	height: 8px;
@@ -827,10 +815,10 @@ label:hover {
 }
 #menu li a:hover, #menu li.collapsed a:hover {
 	color:#efede5;
-	
+
 }
 #menu > li a {
-	
+
 }
 #menu > li a:hover {
 }
@@ -936,7 +924,7 @@ div.percentagebar span {
 	-moz-border-radius: 5px;
 	border-radius: 5px;
 	margin:2px 4px 2px 2px;
-	
+
 }
 .filterform ul {
 	list-style:none;
@@ -989,7 +977,7 @@ tbody#extproviderlist td {
 	text-decoration:none !important;
 	border: 1px solid #dcdad3;
 	background-color:#fff;
-	
+
 
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
@@ -1154,17 +1142,17 @@ div.tooltip {
 	position: fixed;
 	width: 100%;
 	height: 100%;
-	z-index: 99;	
+	z-index: 99;
 }
 .tooltip form {
-	margin: 10px 10px 10px 10px;	
+	margin: 10px 10px 10px 10px;
 }
 .tooltip table {
 	color: #efede5;
-	width: 100%;	
+	width: 100%;
 }
 .tooltip table tr td:first-child {
-	font-weight: bold;	
+	font-weight: bold;
 }
 .tooltip table td {
 	padding: 5px 3px;
@@ -1201,7 +1189,7 @@ body 	{ margin: 0; padding: 0; }
 .clearfix 	{ *zoom: 1; /** IE 6/7 fix */ }
 
 .pos-l		{ position: absolute; left: 0; }
-.pos-r		{ position: absolute; right: 0; }			
+.pos-r		{ position: absolute; right: 0; }
 .pos-b		{ position: absolute; bottom: 0; }
 
 
@@ -1220,7 +1208,7 @@ body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 
 #admin-tabs	a 	{ display: block; width: 60px; height: 33px; float: left; }
 
 .sprite,#sprite			{ background-image: url( '../img/admin_sprite.png.cfm' ); background-repeat: no-repeat; }
-			
+
 
 #resizewin 		{ display:block; width:19px; height:19px; text-indent: -9999px; }
 
@@ -1229,7 +1217,7 @@ body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 
 /** server-specific values */
 .-admin-server #header				{ background-color: #F33; }
 
-/*.admin-server #logo 				{ background-position: -22px -69px; }*/			
+/*.admin-server #logo 				{ background-position: -22px -69px; }*/
 .admin-server #admin-tabs .server 	{ background-position: 0px -88px; }
 .admin-server #admin-tabs .web 		{ background-position: -63px -88px; }
 .admin-web #admin-tabs .server 		{ background-position: 0px -54px; }
@@ -1242,8 +1230,8 @@ body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 
 /*.admin-web #logo					{ background-position: 0px 0; }*/
 
 /* resizewin */
-.admin-web #resizewin  		{ background-position: -85px 0px; } 
-.admin-server #resizewin  		{ background-position: -85px -20px; } 
+.admin-web #resizewin  		{ background-position: -85px 0px; }
+.admin-server #resizewin  		{ background-position: -85px -20px; }
 
 
 .icon		{ background-image: url( '../img/admin-sprite.png.cfm' ); margin: 3px; width: 9px; height: 9px; cursor: pointer; }

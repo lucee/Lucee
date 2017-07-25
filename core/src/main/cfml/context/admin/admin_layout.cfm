@@ -121,15 +121,15 @@
 	<script>
 		$(function(){
 
-			$('.coding-tip-trigger-#request.adminType#').click(
+			$(".coding-tip-trigger").click(
 				function(){
 					var $this = $(this);
-					$this.next('.coding-tip-#request.adminType#').slideDown();
+					$this.next(".coding-tip").slideDown();
 					$this.hide();
 				}
 			);
 
-			$('.coding-tip-#request.adminType# code').click(
+			$(".coding-tip code").click(
 				function(){
 					__LUCEE.util.selectText(this);
 				}
