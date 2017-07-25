@@ -25,7 +25,7 @@ function printError(error,boolean longversion=false) {
 		writeOutput('<div class="error">');
 		writeOutput(br(arguments.error.message));
 		if(StructKeyExists(arguments.error.cfcatch.cause,'StackTrace') and arguments.error.cfcatch.cause.StackTrace NEQ ""){
-			savecontent variable="test" {
+			savecontent variable="StackTraceError" {
 				echo('<span>
 				<button onclick="ErrorDetails()" id="button">View Details</button>
 				</span>
@@ -45,7 +45,7 @@ function printError(error,boolean longversion=false) {
 				echo(arguments.error.cfcatch.cause.StackTrace);
 				echo('</div>');
 			}
-			writeOutput(test);
+			writeOutput(StackTraceError);
 		}
 		writeOutput('<br>');
 		writeOutput(br(arguments.error.detail));
