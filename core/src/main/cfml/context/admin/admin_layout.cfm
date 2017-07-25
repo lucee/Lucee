@@ -15,20 +15,19 @@
 		homeQS = URL.keyExists("action") ? "?action=" & url.action : "";
 
 		request.mode="full";
+
+		resNameAppendix = hash(server.lucee.version&server.lucee['release-date'],'quick');
 	</cfscript>
 <cfcontent reset="yes"><!DOCTYPE HTML>
 <!--[if lt IE 9]> <style> body.full #header #logo.sprite { background-image: url(resources/img/server-lucee-small.png.cfm); background-position: 0 0; margin-top: 16px; } </style> <![endif]-->	<!--- remove once IE9 is the min version to be supported !--->
 <cfoutput>
-<cfset nameAppendix=hash(server.lucee.version&server.lucee['release-date'],'quick')>
 <html>
 <head>
 	<title>Lucee #ucFirst(request.adminType)# Administrator</title>
-	<link rel="stylesheet" href="../res/css/admin-#nameAppendix#.css.cfm" type="text/css">
+	<link rel="stylesheet" href="../res/css/admin-#resNameAppendix#.css.cfm" type="text/css">
 
 	<!--- TODO: move scripts to bottom, but must first remove all jQuery refs from head --->
-	<script src="resources/js/jquery-1.7.2.min.js.cfm" type="text/javascript"></script>
-	<script src="resources/js/jquery.blockUI.js.cfm" type="text/javascript"></script>
-	<script src="resources/js/admin.js.cfm" type="text/javascript"></script>
+	<script src="../res/js/jquery-1.12.4.min.js.cfm" type="text/javascript"></script>
 
 	<cfhtmlhead action="flush">
 </head>
@@ -119,7 +118,9 @@
 		</table>
 	</div>
 
-	<script src="../res/js/util-#nameAppendix#.min.js.cfm"></script>
+	<script src="../res/js/jquery.blockUI-#resNameAppendix#.js.cfm" type="text/javascript"></script>
+	<script src="../res/js/admin-#resNameAppendix#.js.cfm" type="text/javascript"></script>
+	<script src="../res/js/util-#resNameAppendix#.min.js.cfm"></script>
 	<script>
 		$(function(){
 
