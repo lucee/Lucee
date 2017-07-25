@@ -1,34 +1,36 @@
-<cfif thistag.executionmode EQ "end" or not thistag.hasendtag>
-
-	<cfparam name="session.lucee_admin_lang" default="en">
-	<cfset variables.stText = application.stText[session.lucee_admin_lang] />
-	<cfparam name="attributes.navigation" default="">
-	<cfparam name="attributes.title" default="">
-	<cfparam name="attributes.content" default="">
-	<cfparam name="attributes.right" default="">
-	<cfparam name="attributes.width" default="780">
-
+<cfif (thisTag.executionMode == "end" || !thisTag.hasEndTag)>
 	<cfscript>
+
+		param name="session.lucee_admin_lang" default="en";
+		param name="attributes.navigation"    default="";
+		param name="attributes.title"         default="";
+		param name="attributes.content"       default="";
+		param name="attributes.right"         default="";
+		param name="attributes.width"         default="780";
+
+		variables.stText = application.stText[session.lucee_admin_lang];
 		ad=request.adminType;
 		hasNavigation=len(attributes.navigation) GT 0;
-		home=request.adminType&".cfm"
-		if(structKeyExists(url,'action'))homeQS="?action="&url.action;
-		else homeQS="";
-	</cfscript>
-	<cfset request.mode="full">
+		home=request.adminType&".cfm";
+		homeQS = URL.keyExists("action") ? "?action=" & url.action : "";
 
-<cfcontent reset="yes" /><!DOCTYPE HTML>
+		request.mode="full";
+	</cfscript>
+<cfcontent reset="yes"><!DOCTYPE HTML>
 <!--[if lt IE 9]> <style> body.full #header #logo.sprite { background-image: url(resources/img/server-lucee-small.png.cfm); background-position: 0 0; margin-top: 16px; } </style> <![endif]-->	<!--- remove once IE9 is the min version to be supported !--->
 <cfoutput>
+<cfset nameAppendix=hash(server.lucee.version&server.lucee['release-date'],'quick')>
 <html>
 <head>
 	<title>Lucee #ucFirst(request.adminType)# Administrator</title>
-	<cfset nameAppendix=hash(server.lucee.version&server.lucee['release-date'],'quick')>
-	<link rel="stylesheet" href="../res/css/admin-#nameAppendix#.css.cfm?#getTickCount()#" type="text/css">
+	<link rel="stylesheet" href="../res/css/admin-#nameAppendix#.css.cfm" type="text/css">
 
+	<!--- TODO: move scripts to bottom, but must first remove all jQuery refs from head --->
 	<script src="resources/js/jquery-1.7.2.min.js.cfm" type="text/javascript"></script>
 	<script src="resources/js/jquery.blockUI.js.cfm" type="text/javascript"></script>
 	<script src="resources/js/admin.js.cfm" type="text/javascript"></script>
+
+	<cfhtmlhead action="flush">
 </head>
 
 <cfparam name="attributes.onload" default="">
@@ -117,7 +119,7 @@
 		</table>
 	</div>
 
-	<script src="../res/js/util.min.js.cfm"></script>
+	<script src="../res/js/util-#nameAppendix#.min.js.cfm"></script>
 	<script>
 		$(function(){
 
@@ -138,6 +140,7 @@
 	</script>
 
 	<cfif isDefined("Request.htmlBody")>#Request.htmlBody#</cfif>
+	<cfhtmlbody action="flush">
 </body>
 </html>
 </cfoutput>
