@@ -705,7 +705,7 @@ public final class Decision {
 		if(o instanceof Node) {
 			Node n=(Node)o;
 			if(n instanceof XMLStruct)n=((XMLStruct)n).toNode();
-			return n.getOwnerDocument()!=null && n.getOwnerDocument().getDocumentElement()==n;
+			return XMLUtil.getDocument(n)!=null && XMLUtil.getDocument(n).getDocumentElement()==n;
 		}
 		return false;
 	}

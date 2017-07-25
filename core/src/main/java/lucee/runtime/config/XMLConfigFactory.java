@@ -235,7 +235,7 @@ public abstract class XMLConfigFactory {
 		if (doNotCreate)
 			return null;
 
-		Element newEl = parent.getOwnerDocument().createElement(nodeName);
+		Element newEl = XMLUtil.getDocument(parent).createElement(nodeName);
 		if (insertBefore)
 			parent.insertBefore(newEl, parent.getFirstChild());
 		else
