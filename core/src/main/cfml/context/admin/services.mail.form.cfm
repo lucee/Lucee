@@ -13,6 +13,10 @@ loop struct=driverNames index="name" item="componentPath" {
 </cfscript>
 
 <cfoutput>
+
+
+<cfhtmlbody>
+
 <script type="text/javascript">
 	active={};
 	var bodies={};
@@ -30,10 +34,12 @@ loop struct=driverNames index="name" item="componentPath" {
 		});
 	}
 </script>
-	
 
-<!--- NEW Server --->	
-	
+</cfhtmlbody>
+
+
+<!--- NEW Server --->
+
 		<cfif hasAccess>
 			<cfset count=0>
 			<cfset len=structCount(drivers)>
@@ -112,7 +118,7 @@ loop struct=driverNames index="name" item="componentPath" {
 						<th scope="row">#stText.Mail.port#</th>
 						<td>
 							<cfinputClassic type="text" name="port_#ms.recordcount+1#" value="#data.port#" required="yes"
-							validate="integer" 
+							validate="integer"
 							message="#stText.Mail.PortErrorFirst#">
 							<div class="comment">#stText.mail.portDesc#</div>
 						</td>
@@ -180,22 +186,22 @@ loop struct=driverNames index="name" item="componentPath" {
 								</tr>
 							</thead>
 							<tbody>
-								
+
 									<tr>
-										<td><cfinputClassic type="text" name="life_days_#ms.recordcount+1#" value="#data.life.days#" 
-											class="number" required="yes" validate="integer" 
+										<td><cfinputClassic type="text" name="life_days_#ms.recordcount+1#" value="#data.life.days#"
+											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutDaysValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinputClassic type="text" name="life_hours_#ms.recordcount+1#" value="#data.life.hours#" 
-											class="number" required="yes" validate="integer" 
+										<td><cfinputClassic type="text" name="life_hours_#ms.recordcount+1#" value="#data.life.hours#"
+											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutHoursValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinputClassic type="text" name="life_minutes_#ms.recordcount+1#" value="#data.life.minutes#" 
-											class="number" required="yes" validate="integer" 
+										<td><cfinputClassic type="text" name="life_minutes_#ms.recordcount+1#" value="#data.life.minutes#"
+											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutMinutesValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinputClassic type="text" name="life_seconds_#ms.recordcount+1#" value="#data.life.seconds#" 
-											class="number" required="yes" validate="integer" 
+										<td><cfinputClassic type="text" name="life_seconds_#ms.recordcount+1#" value="#data.life.seconds#"
+											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutSecondsValue#request#stText.Scopes.TimeoutEndValue#"></td>
 									</tr>
-								
+
 							</tbody>
 
 						</table>
@@ -218,22 +224,22 @@ loop struct=driverNames index="name" item="componentPath" {
 								</tr>
 							</thead>
 							<tbody>
-								
+
 									<tr>
-										<td><cfinputClassic type="text" name="idle_days_#ms.recordcount+1#" value="#data.idle.days#" 
-											class="number" required="yes" validate="integer" 
+										<td><cfinputClassic type="text" name="idle_days_#ms.recordcount+1#" value="#data.idle.days#"
+											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutDaysValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinputClassic type="text" name="idle_hours_#ms.recordcount+1#" value="#data.idle.hours#" 
-											class="number" required="yes" validate="integer" 
+										<td><cfinputClassic type="text" name="idle_hours_#ms.recordcount+1#" value="#data.idle.hours#"
+											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutHoursValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinputClassic type="text" name="idle_minutes_#ms.recordcount+1#" value="#data.idle.minutes#" 
-											class="number" required="yes" validate="integer" 
+										<td><cfinputClassic type="text" name="idle_minutes_#ms.recordcount+1#" value="#data.idle.minutes#"
+											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutMinutesValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinputClassic type="text" name="idle_seconds_#ms.recordcount+1#" value="#data.idle.seconds#" 
-											class="number" required="yes" validate="integer" 
+										<td><cfinputClassic type="text" name="idle_seconds_#ms.recordcount+1#" value="#data.idle.seconds#"
+											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutSecondsValue#request#stText.Scopes.TimeoutEndValue#"></td>
 									</tr>
-								
+
 							</tbody>
 
 						</table>
@@ -260,6 +266,10 @@ loop struct=driverNames index="name" item="componentPath" {
 			<div id="group_Connection">
 				#hiddenFormContents#
 			</div>
+
+
+			<cfhtmlbody>
+
 			<script>
 				<cfloop collection="#drivers#" index="driverClass" item="driver">
 					<cfset _name = driver.getShortName()>
@@ -278,6 +288,9 @@ loop struct=driverNames index="name" item="componentPath" {
 					</cfif>
 				</cfloop>
 			</script>
+
+			</cfhtmlbody>
+
 	</cfif>
 <cfif url.action2 EQ "edit">
 <cfsavecontent variable="codeSample">
@@ -287,9 +300,9 @@ loop struct=driverNames index="name" item="componentPath" {
 	, username: '#replace(data.username,"'","''","all")#'
 	, password: '#data.passwordEncrypted?:''#'
 	, ssl: #data.ssl?:false#
-	, tls: #data.tls?:false#<cfif 
+	, tls: #data.tls?:false#<cfif
 	!isNull(data.life)>
-	, lifeTimespan: createTimeSpan(#data.life.days#,#data.life.hours#,#data.life.minutes#,#data.life.seconds#)</cfif><cfif 
+	, lifeTimespan: createTimeSpan(#data.life.days#,#data.life.hours#,#data.life.minutes#,#data.life.seconds#)</cfif><cfif
 	!isNull(data.idle)>
 	, idleTimespan: createTimeSpan(#data.idle.days#,#data.idle.hours#,#data.idle.minutes#,#data.idle.seconds#)</cfif>
 }];

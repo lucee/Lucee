@@ -404,7 +404,7 @@ Error Output --->
 				<br><br>
 				<div id="updateInfoDesc"><div style="text-align: center;"><img src="../res/img/spinner16.gif.cfm"></div></div>
 
-				<cfsavecontent variable="Request.htmlBody" append="true">
+				<cfhtmlbody>
 					<script type="text/javascript">
 
 						$( function() {
@@ -412,7 +412,7 @@ Error Output --->
 							$('##updateInfoDesc').load('update.cfm?#session.urltoken#&adminType=#request.admintype#');
 						} );
 					</script>
-				</cfsavecontent>
+				</cfhtmlbody>
 
 					<!--- Memory Usage --->
 					<cftry>

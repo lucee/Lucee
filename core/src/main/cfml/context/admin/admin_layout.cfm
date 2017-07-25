@@ -19,15 +19,11 @@
 		resNameAppendix = hash(server.lucee.version&server.lucee['release-date'],'quick');
 	</cfscript>
 <cfcontent reset="yes"><!DOCTYPE HTML>
-<!--[if lt IE 9]> <style> body.full #header #logo.sprite { background-image: url(resources/img/server-lucee-small.png.cfm); background-position: 0 0; margin-top: 16px; } </style> <![endif]-->	<!--- remove once IE9 is the min version to be supported !--->
 <cfoutput>
 <html>
 <head>
 	<title>Lucee #ucFirst(request.adminType)# Administrator</title>
 	<link rel="stylesheet" href="../res/css/admin-#resNameAppendix#.css.cfm" type="text/css">
-
-	<!--- TODO: move scripts to bottom, but must first remove all jQuery refs from head --->
-	<script src="../res/js/jquery-1.12.4.min.js.cfm" type="text/javascript"></script>
 
 	<cfhtmlhead action="flush">
 </head>
@@ -56,15 +52,15 @@
 					<td id="navtd" class="lotd">
 						<div id="nav">
 							<a href="##" id="resizewin" class="sprite" title="resize window"></a>
-							<cfif hasNavigation>
+
 								<form method="get" action="#cgi.SCRIPT_NAME#">
 									<input type="hidden" name="action" value="admin.search" />
 									<input type="text" name="q" size="15" id="navsearch" placeholder="#stText.buttons.search.ucase()#" />
 									<button type="submit" class="sprite  btn-search"><!--- <span>#stText.buttons.search# ---></span></button>
 									<!--- btn-mini title="#stText.buttons.search#" --->
 								</form>
+
 								#attributes.navigation#
-							</cfif>
 						</div>
 					</td>
 				</cfif>
@@ -118,6 +114,7 @@
 		</table>
 	</div>
 
+	<script src="../res/js/jquery-1.12.4.min.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/jquery.blockUI-#resNameAppendix#.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/admin-#resNameAppendix#.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/util-#resNameAppendix#.min.js.cfm"></script>
@@ -148,5 +145,5 @@
 	<cfset thistag.generatedcontent="">
 </cfif>
 
-<cfparam name="url.showdebugoutput" default="no">
-<cfsetting showdebugoutput="#url.showdebugoutput#">
+<cfparam name="url.debug" default="no">
+<cfsetting showdebugoutput="#url.debug#">

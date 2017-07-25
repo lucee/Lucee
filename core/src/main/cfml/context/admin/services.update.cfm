@@ -141,6 +141,8 @@ printError(error);
 
 
 <cfoutput>
+
+<cfhtmlbody>
 <script type="text/javascript">
 	var submitted = false;
 	function changeVersion(field) {
@@ -153,11 +155,11 @@ printError(error);
 		$(document).ready(function(){
 			$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
 			disableBlockUI=true;
-			
+
 
 	 		$.get(url, function(response) {
 	      		field.disabled = false;
-	 			
+
 	 			if((response+"").trim()=="")
 					window.location=('#request.self#?action=#url.action#'); //$('##updateInfoDesc').html("<p>#stText.services.update.restartOKDesc#</p>");
 				else
@@ -167,10 +169,8 @@ printError(error);
 	 		});
 		});
 	}
-
-
 	</script>
-
+</cfhtmlbody>
 
 
 	<div class="pageintro">#stText.services.update.desc#</div>
@@ -211,7 +211,7 @@ printError(error);
 									<input id="customtextinput" type="text" class="text" name="locationCustom" size="40" value="<cfif isCustom>#updateData.provider.location#</cfif>">
 									<div class="comment">#stText.services.update.location_customDesc#</div>
 
-									<cfsavecontent variable="headText">
+									<cfhtmlbody>
 										<script type="text/javascript">
 											function sp_clicked()
 											{
@@ -223,8 +223,8 @@ printError(error);
 												sp_clicked();
 											});
 										</script>
-									</cfsavecontent>
-									<cfhtmlhead text="#headText#" />
+									</cfhtmlbody>
+
 								</li>
 							</ul>
 						<cfelse>
@@ -299,7 +299,7 @@ stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{ve
 						<td>
 							<cfset currVS=toVersionSortable(server.lucee.version)>
 							<cfset minVS=toVersionSortable(minVersion)>
-							
+
 							<p>#replace(stText.services.update.downUpSub,'{version}',"<b>"&server.lucee.version&"</b>") #</p>
 							<select name="version"  class="large" style="margin-top:8px">
 								<cfset qry=updateData.qryotherVersions>
@@ -314,7 +314,7 @@ stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{ve
 										</cfif>
 									</cfif>
 									<cfset btn="">
-									
+
 									<cfset comp=compare(currVS,qry.versionSortable)>
 									<cfif compare(minVS,qry.versionSortable) GT 0>
 										<cfcontinue>
@@ -368,7 +368,7 @@ stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{ve
 		<div class="text">#updateData.message#</div>
 	</cfif>
 
-<!--- 
+<!---
 	<cfif hasUpdate>
 		run update
 		<h2>#stText.services.update.exe#</h2>
