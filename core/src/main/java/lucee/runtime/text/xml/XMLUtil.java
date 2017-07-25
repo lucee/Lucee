@@ -844,7 +844,7 @@ public final class XMLUtil {
 	 * @param deep remove also in sub nodes
 	 */
 	private static void removeChildren(Node node, short type, boolean deep) {
-		synchronized(node.getOwnerDocument()){
+		synchronized(sync(node)){
 			NodeList list = node.getChildNodes();
 			
 			for(int i=list.getLength();i>=0;i--) {
@@ -864,7 +864,7 @@ public final class XMLUtil {
 	 * @param deep
 	 */
 	private static void removeChildCharacterData(Node node, boolean deep) {
-		synchronized(node.getOwnerDocument()){
+		synchronized(sync(node)){
 			NodeList list = node.getChildNodes();
 		
 			for(int i=list.getLength();i>=0;i--) {
@@ -891,7 +891,7 @@ public final class XMLUtil {
 	
 
 	public static int childNodesLength(Node node, short type, boolean caseSensitive, String filter) {
-		synchronized(node.getOwnerDocument()){
+		synchronized(sync(node)){
 			NodeList nodes=node.getChildNodes();
 			int len=nodes.getLength();
 			Node n;
@@ -929,7 +929,7 @@ public final class XMLUtil {
 	}
 	
 	public static List<Node> getChildNodesAsList(Node node, short type, boolean caseSensitive, String filter) {
-		synchronized(node.getOwnerDocument()){
+		synchronized(sync(node)){
 			List<Node> rtn=new ArrayList<Node>();
 			NodeList nodes=node.getChildNodes();
 			int len=nodes.getLength();
@@ -950,7 +950,7 @@ public final class XMLUtil {
 	
 
 	public static Node getChildNode(Node node, short type, boolean caseSensitive, String filter, int index) {
-		synchronized(node.getOwnerDocument()){
+		synchronized(sync(node)){
 			NodeList nodes=node.getChildNodes();
 			int len=nodes.getLength();
 			Node n;
@@ -1095,7 +1095,7 @@ public final class XMLUtil {
     }
 
 	public static Element getChildWithName(String name, Element el) {
-		synchronized(el.getOwnerDocument()){
+		synchronized(sync(el)){
 			Element[] children = XMLUtil.getChildElementsAsArray(el);
 			for(int i=0;i<children.length;i++) {
 				if(name.equalsIgnoreCase(children[i].getNodeName()))
@@ -1202,5 +1202,11 @@ public final class XMLUtil {
 			ExceptionUtil.rethrowIfNecessary(t);
 			return XMLReaderFactory.createXMLReader();
 		}
+	}
+	
+	public static Object sync(Node node) {
+		Document d = getDocument(node);
+		if(d!=null) return d;
+		return node;
 	}
 }
