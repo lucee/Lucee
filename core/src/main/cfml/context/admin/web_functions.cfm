@@ -24,28 +24,29 @@ function printError(error,boolean longversion=false) {
 	if(StructKeyExists(arguments.error,'message') and arguments.error.message NEQ "") {
 		writeOutput('<div class="error">');
 		writeOutput(br(arguments.error.message));
-		if(StructKeyExists(arguments.error.cfcatch.cause,'StackTrace') and arguments.error.cfcatch.cause.StackTrace NEQ ""){
-			savecontent variable="StackTraceError" {
-				echo('<span>
-				<button onclick="ErrorDetails()" id="button">View Details</button>
-				</span>
-				<script>
-				function ErrorDetails(){
-					var div = document.getElementById("StackTrace");
-					if(div.style.display === "block"){
-						div.style.display =  "None";
-						document.getElementById("button").innerHTML = "View Details";
-					} else {
-				        div.style.display = "block";
-				        document.getElementById("button").innerHTML = "Hide Details";
-				    }
-				}
-				</script>
-				<div id="StackTrace"  style="display: none;"> <br>');
-				echo(arguments.error.cfcatch.cause.StackTrace);
-				echo('</div>');
+
+		if(StructKeyExists(arguments.error,'exception') and StructKeyExists(arguments.error.exception,'StackTrace') and arguments.error.exception.StackTrace NEQ ""){
+			echo('<span>
+			<button id="errorDetails">View Details</button>
+			</span>
+			<div id="stackTrace"  style="display: none;"> <br>');
+			echo(arguments.error.exception.StackTrace);
+			echo('</div>');
+
+			cfhtmlbody(){
+				echo(
+				'<script>
+					$("##errorDetails").click(function(){
+						if($(this).text() == "View Details"){
+							$(this).text("Hide Details");
+						} else{
+							$(this).text("View Details");
+						}
+						$("##stackTrace").toggle();
+					});
+				</script>'
+				);
 			}
-			writeOutput(StackTraceError);
 		}
 		writeOutput('<br>');
 		writeOutput(br(arguments.error.detail));
