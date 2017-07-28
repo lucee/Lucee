@@ -334,8 +334,8 @@ public final class PageContextImpl extends PageContext {
 	private PageException pe;
     //private Throwable requestTimeoutException;
 
-	private int currentTemplateDialect=CFMLEngine.DIALECT_LUCEE;
-	private int requestDialect=CFMLEngine.DIALECT_LUCEE;
+	private int currentTemplateDialect=CFMLEngine.DIALECT_CFML;
+	private int requestDialect=CFMLEngine.DIALECT_CFML;
 	private boolean ignoreScopes=false;
 	
 	private int appListenerType=ApplicationListener.TYPE_NONE;
@@ -1003,6 +1003,10 @@ public final class PageContextImpl extends PageContext {
 		other.fdEnabled=fdEnabled;
 		other.useSpecialMappings=useSpecialMappings;
 		other.serverPassword=serverPassword;
+		other.requestDialect=requestDialect;
+		other.currentTemplateDialect=currentTemplateDialect;
+		
+		
 		
 		hasFamily=true;
 		other.hasFamily=true;
