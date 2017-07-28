@@ -24,6 +24,30 @@ function printError(error,boolean longversion=false) {
 	if(StructKeyExists(arguments.error,'message') and arguments.error.message NEQ "") {
 		writeOutput('<div class="error">');
 		writeOutput(br(arguments.error.message));
+
+		if(StructKeyExists(arguments.error,'exception') and StructKeyExists(arguments.error.exception,'StackTrace') and arguments.error.exception.StackTrace NEQ ""){
+			echo('<span>
+			<button id="errorDetails">View Details</button>
+			</span>
+			<div id="stackTrace"  style="display: none;"> <br>');
+			echo(arguments.error.exception.StackTrace);
+			echo('</div>');
+
+			cfhtmlbody(){
+				echo(
+				'<script>
+					$("##errorDetails").click(function(){
+						if($(this).text() == "View Details"){
+							$(this).text("Hide Details");
+						} else{
+							$(this).text("View Details");
+						}
+						$("##stackTrace").toggle();
+					});
+				</script>'
+				);
+			}
+		}
 		writeOutput('<br>');
 		writeOutput(br(arguments.error.detail));
 		
