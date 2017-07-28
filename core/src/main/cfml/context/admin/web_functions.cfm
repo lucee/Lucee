@@ -8,9 +8,9 @@ function ComponentListPackageAsStruct(string package, cfcNames=structnew("linked
 	}
 	catch(e){}
 	return cfcNames;
-	
+
 }
-	
+
 /**
 * cast a String to a File Object
 * @param strFile string to cast
@@ -25,24 +25,22 @@ function printError(error,boolean longversion=false) {
 		writeOutput('<div class="error">');
 		writeOutput(br(arguments.error.message));
 
-		if(StructKeyExists(arguments.error,'exception') and StructKeyExists(arguments.error.exception,'StackTrace') and arguments.error.exception.StackTrace NEQ ""){
-			echo('<span>
-			<button id="errorDetails">View Details</button>
-			</span>
-			<div id="stackTrace"  style="display: none;"> <br>');
-			echo(arguments.error.exception.StackTrace);
-			echo('</div>');
+		if (!isNull(arguments.error.exception.StackTrace) && !isEmpty(arguments.error.exception.StackTrace)) {
 
-			cfhtmlbody(){
+			echo('<p>
+			<button id="error-details">Show Details</button>
+			<div id="stack-trace" style="display: none;">#arguments.error.exception.StackTrace#</div>');
+
+			htmlbody {
 				echo(
 				'<script>
-					$("##errorDetails").click(function(){
-						if($(this).text() == "View Details"){
+					$("##error-details").click(function(){
+						if($(this).text() == "Show Details"){
 							$(this).text("Hide Details");
 						} else{
-							$(this).text("View Details");
+							$(this).text("Show Details");
 						}
-						$("##stackTrace").toggle();
+						$("##stack-trace").toggle();
 					});
 				</script>'
 				);
@@ -50,12 +48,12 @@ function printError(error,boolean longversion=false) {
 		}
 		writeOutput('<br>');
 		writeOutput(br(arguments.error.detail));
-		
+
 		if(longversion) {
 			if(StructKeyExists(error,"TagContext")){
 				loop array="#error.TagContext#" index="local.i" item="local.tc" {
 					writeOutput('<br><span class="comment">');
-					
+
 					if(i==1) writeOutput('error occured in ');
 					else writeOutput('called by ');
 					writeOutput(error.TagContext[i].template&':'&error.TagContext[i].line&"</span>");
@@ -149,13 +147,13 @@ function toStructInterval(raw) {
 	interval.second=arguments.raw;
 	interval.minute=0;
 	interval.hour=0;
-		
+
 	if(interval.second GTE 60*60) {
 		interval.hour=int(interval.second/(60*60));
 		var _hour=interval.hour*60*60;
 		interval.second=interval.second-_hour;
 	}
-		
+
 	if(interval.second GTE 60) {
 		interval.minute=int(interval.second/60);
 		_minute=interval.minute*60;
@@ -176,37 +174,37 @@ function getForm(formKey, default) {
 }
 
 function go(action,action2='',others=struct()) {
-	
+
 	var qsArr=listToArray(cgi.query_string,'&');
 	var rtn=request.self&"?action="&action;
 	if(len(action2)) rtn=rtn&"&action2="&action2;
 	var item="";
 	var oKeys=structKeyArray(others);
-	
+
 	for(var i=1; i LTE arrayLen(qsArr); i=i+1) {
 		item=listToArray(qsArr[i],'=');
 		if(not structKeyExists(others,item[1]) and item[1] NEQ "action" and item[1] NEQ "action2") {
 			rtn=rtn&'&'&item[1]&"="&item[2];
 		}
 	}
-	
+
 	for(i=1; i LTE arrayLen(oKeys); i=i+1) {
 		rtn=rtn&'&'&oKeys[i]&"="&others[oKeys[i]];
 	}
-	
-	
+
+
 	return rtn;
 }
 function byteFormat(numeric raw){
 	if(raw EQ 0) return "0b";
-    
+
 	var b=raw;
     var rtn="";
    	var kb=int(b/1024);
     var mb=0;
     var gb=0;
     var tb=0;
-    
+
     if(kb GT 0) {
     	b-=kb*1024;
         mb=int(kb/1024);
@@ -222,7 +220,7 @@ function byteFormat(numeric raw){
             }
         }
     }
-    
+
     if(tb) rtn&=tb&"tb ";
     if(gb) rtn&=gb&"gb ";
     if(mb) rtn&=mb&"mb ";
@@ -234,14 +232,14 @@ function byteFormat(numeric raw){
 
 function byteFormatShort(numeric raw, string preference='' ){
 	if(raw EQ 0) return "0b";
-    
+
 	var b=raw;
     var rtn="";
    	var kb=int(b/1024);
     var mb=0;
     var gb=0;
     var tb=0;
-    
+
     if(kb GT 0) {
     	b-=kb*1024;
         mb=int(kb/1024);
@@ -257,17 +255,17 @@ function byteFormatShort(numeric raw, string preference='' ){
             }
         }
     }
-	
+
 	if(preference EQ "tb") return _byteFormatShort(tb,gb,"tb");
 	if(preference EQ "gb") return _byteFormatShort(gb,mb,"gb");
 	if(preference EQ "mb") return _byteFormatShort(mb,kb,"mb");
 	if(preference EQ "kb") return _byteFormatShort(kb,b,"kb");
-    
+
     if(tb) return _byteFormatShort(tb,gb,"tb");
 	if(gb) return _byteFormatShort(gb,mb,"gb");
 	if(mb) return _byteFormatShort(mb,kb,"mb");
 	if(kb) return _byteFormatShort(kb,b,"kb");
-	
+
     return b&"b ";
 }
 
@@ -275,9 +273,9 @@ function _byteFormatShort(numeric left,numeric right,string suffix){
 	var rtn=left&".";
 	right=int(right/1024*1000)&"";
 	while(stringlen(right) lt 3) right="0"&right;
-	
+
 	right=left(right,2);
-	
+
 	return rtn&right&suffix;
 }
 
@@ -287,28 +285,28 @@ function _byteFormatShort(numeric left,numeric right,string suffix){
 <cffunction name="createUIDFolder" output="no"
     	hint="create a new step cfc">
     	<cfargument name="uid" type="string">
-        
+
         <cfset var info="">
         <cfset var data.directory="">
-        <cfadmin 
+        <cfadmin
             action="getExtensionInfo"
             type="#request.adminType#"
             password="#session["password"&request.adminType]#"
             returnVariable="info">
         <cfset data.directory=info.directory>
-        
+
         <!--- create directory --->
 		<cfset var dest=data.directory>
         <cfif not DirectoryExists(dest)>
             <cfdirectory directory="#dest#" action="create" mode="777">
         </cfif>
-        
+
         <!--- uid --->
         <cfset dest=dest&"/"&arguments.uid>
         <cfif not DirectoryExists(dest)>
             <cfdirectory directory="#dest#" action="create" mode="777">
         </cfif>
-        
+
         <cfreturn dest>
     </cffunction>
 
@@ -317,12 +315,12 @@ function _byteFormatShort(numeric left,numeric right,string suffix){
 	<cfargument name="codeSample"   default="">
 	<cfargument name="text"         default="">
 	<cfargument name="isExpand"     default="#false#" type="boolean">
-	
+
 	<cfset var stText= application.stText[session.lucee_admin_lang]>
 	<cfset var desc  = len( arguments.text ) ? arguments.text : stText.settings.appcfcdesc>
 
 	<cfif !arguments.isExpand>
-		<div class="coding-tip-trigger-#request.adminType#">&lt;?/&gt;<!--- #stText.settings.tip#---></div>		
+		<div class="coding-tip-trigger-#request.adminType#">&lt;?/&gt;<!--- #stText.settings.tip#---></div>
 	</cfif>
 	<div class="coding-tip-#request.adminType# #arguments.isExpand ? 'expanded' : ''#">
 		<div><cfif !(isBoolean(desc) && !desc)>#desc#:</cfif></div>
@@ -332,6 +330,6 @@ function _byteFormatShort(numeric left,numeric right,string suffix){
 
 <cffunction name="renderEditButton" output="true">
 	<cfargument name="href"   default="">
-	
+
 	<a class="btn-mini sprite edit" title="Edit" href="#arguments.href#"><span>Edit</span></a>
 </cffunction>
