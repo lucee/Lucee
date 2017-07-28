@@ -36,7 +36,7 @@ component {
 			, WOFF: "application/font-woff"
 		};
 
-		this.basePath = getDirectoryFromPath( expandPath( getCurrentTemplatePath() ) );
+		this.basePath = getDirectoryFromPath( getCurrentTemplatePath() );
 
 		return this;
 	}
