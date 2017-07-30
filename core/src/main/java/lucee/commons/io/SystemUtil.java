@@ -493,7 +493,7 @@ public final class SystemUtil {
 		// java.ext.dirs
 		ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
 
-		// pathes from system properties
+		// paths from system properties
 		String strPathes = System.getProperty("java.class.path");
 		if(strPathes != null) {
 			Array arr = ListUtil.listToArrayRemoveEmpty(strPathes, pathSeperator);
@@ -505,7 +505,7 @@ public final class SystemUtil {
 			}
 		}
 
-		// pathes from url class Loader (dynamic loaded classes)
+		// paths from url class Loader (dynamic loaded classes)
 		ClassLoader cl = InfoImpl.class.getClassLoader();
 		if(cl instanceof URLClassLoader)
 			getClassPathesFromClassLoader((URLClassLoader)cl, pathes);
