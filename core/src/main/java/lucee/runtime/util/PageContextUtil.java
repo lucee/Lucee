@@ -150,8 +150,19 @@ public class PageContextUtil {
 			}
 			else {
 				if(servletConfig == null) {
+
 					ServletConfig[] configs = engine.getServletConfigs();
-					servletConfig = configs[0];
+					String rootDir = contextRoot.getAbsolutePath();
+
+					for (ServletConfig conf : configs){
+						if (lucee.commons.io.SystemUtil.isSamePath(rootDir, conf.getServletContext().getRealPath("/"))){
+							servletConfig = conf;
+							break;
+						}
+					}
+
+					if (servletConfig == null)
+						servletConfig = configs[0];
 				}
 
 				factory = engine.getCFMLFactory(servletConfig, req);

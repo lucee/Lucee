@@ -1449,6 +1449,32 @@ public final class SystemUtil {
 		return logs;
 	}
 
+
+	/**
+	 * checks if both paths are the same ignoring CaSe, file separator type, and whether one path ends with a
+	 * separator while the other does not.  if either path is empty then false is returned.
+	 *
+	 * @param path1
+	 * @param path2
+	 * @return true if neither path is empty and the paths are the same ignoring case, separator, and whether
+	 * either path ends with a separator.
+	 */
+	public static boolean isSamePath(String path1, String path2){
+
+		if (StringUtil.isEmpty(path1, true) || StringUtil.isEmpty(path2, true))
+			return false;
+
+		String p1 = path1.replace('\\', '/');
+		String p2 = path2.replace('\\', '/');
+
+		if (p1.endsWith("/") && !p2.endsWith("/"))
+			p2 = p2 + "/";
+		else if (p2.endsWith("/") && !p1.endsWith("/"))
+			p1 = p1 + "/";
+
+		return p1.equalsIgnoreCase(p2);
+	}
+
 }
 
 class Ref {
