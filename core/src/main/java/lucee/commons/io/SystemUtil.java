@@ -1459,7 +1459,7 @@ public final class SystemUtil {
 	 * @return true if neither path is empty and the paths are the same ignoring case, separator, and whether
 	 * either path ends with a separator.
 	 */
-	public static boolean isSamePath(String path1, String path2){
+	public static boolean arePathsSame(String path1, String path2){
 
 		if (StringUtil.isEmpty(path1, true) || StringUtil.isEmpty(path2, true))
 			return false;
