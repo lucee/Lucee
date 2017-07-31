@@ -116,24 +116,27 @@ include "services.update.functions.cfm";
 
 // get info for the update location
 
-
-
 	curr=server.lucee.version;
 	updateData=getAvailableVersion();
 try{
+	if(isNull(updateData.port) || updateData.port==404)
+		cfthrow(message="Could not reach update provider [#updateData.provider.location#].",detail=updateData.message);
+	else if(updateData.port!=200)
+		cfthrow(message="Invalid response from [#updateData.provider.location#].",detail=updateData.message);
+	
 	updateData.qryOtherVersions=queryNew('version,versionSortable');
 	queryAddRow(updateData.qryOtherVersions,updateData.otherVersions.len());
 	loop array=updateData.otherVersions item="v" index="i" {
 		updateData.qryOtherVersions.version[i]=v;
 		updateData.qryOtherVersions.versionSortable[i]=toVersionSortable(v);
 	}
-} catch (any e){
+} catch (any e){ 
 	error.message=cfcatch.message;
 	error.detail=cfcatch.Detail;
 	error.exception = cfcatch;
 }
 printError(error);
-	querySort(updateData.qryOtherVersions,'versionSortable','desc');
+	if(structKeyExists(updateData,"qryOtherVersions"))querySort(updateData.qryOtherVersions,'versionSortable','desc');
 	hasAccess=1;
 	hasUpdate=structKeyExists(updateData,"available");
 </cfscript>
@@ -288,7 +291,7 @@ stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{ve
 </cfscript>
 
 	<!--- downgrade/upgrade --->
-	<cfif updateData.qryotherVersions.recordcount>
+	<cfif structKeyExists(updateData,"qryOtherVersions") && updateData.qryotherVersions.recordcount>
 		<h2>#stText.services.update.downUpTitle#</h2>
 		<div id="updateInfoDesc" style="text-align: center;"></div>
 		<div class="itemintro">#stText.services.update.downUpDesc#</div>
