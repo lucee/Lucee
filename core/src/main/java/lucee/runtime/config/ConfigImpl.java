@@ -673,9 +673,11 @@ public abstract class ConfigImpl implements Config {
 
     }
     
+    // do not remove, ised in Hibernate extension
     public ClassLoader getClassLoaderEnv() {
     	return new EnvClassLoader(this);
     }
+    
     public ClassLoader getClassLoaderCore() {
     	return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
     }
