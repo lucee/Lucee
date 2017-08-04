@@ -76,6 +76,9 @@
 				returnVariable="hashedPassword">     
 			<cfset session["password"&request.adminType]=hashedPassword>
             <cfset session.lucee_admin_lang=form.lang>
+            <cfif request.adminType == 'server' && !structKeyExists(application, "updateprovider")>
+				<cfinclude template="updateprovider.cfm">
+			</cfif>
             <cfcookie expires="NEVER" name="lucee_admin_lang" value="#session.lucee_admin_lang#">
             <cfif form.rememberMe NEQ "s">
                 <cfcookie 
@@ -86,6 +89,9 @@
                 <cfcookie expires="Now" name="lucee_admin_pw_#ad#" value="">
             </cfif>
             <cfif isDefined("cookie.lucee_admin_lastpage") and cookie.lucee_admin_lastpage neq "logout">
+            	<cfif cookie.lucee_admin_lastpage eq "services.update">
+            		<cfset sleep(3000)>
+            	</cfif>
                 <cfset url.action = cookie.lucee_admin_lastpage>
             </cfif>
         </cfif>
@@ -111,7 +117,10 @@
 			    pw="#form.new_password#"
 				returnVariable="hashedPassword">
 		<cfset session["password"&request.adminType]=hashedPassword>
-	</cfif> 
+		  <cfif request.adminType == 'server' && !structKeyExists(application, "updateprovider") >
+			<cfinclude template="updateprovider.cfm">
+		</cfif>
+	</cfif>
 </cfif>
 
 <!--- cookie ---->
