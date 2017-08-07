@@ -1343,6 +1343,7 @@ public final class SystemUtil {
 
 		clazz = null;
 		if(rtn.fromBootDelegation != null) {
+			index = new RefIntegerImpl(3);
 			clazz = _getCallerClass(ref.context, caller, index, false, true);
 			if(clazz == null)
 				return rtn;
@@ -1364,7 +1365,6 @@ public final class SystemUtil {
 
 	private static Class<?> _getCallerClass(Class<?>[] context, Class<?> caller, RefInteger index, boolean acceptBootDelegation, boolean acceptSystem) {
 		Class<?> callerCaller;
-
 		do {
 			callerCaller = context[index.toInt()];
 			index.plus(1);
@@ -1378,7 +1378,8 @@ public final class SystemUtil {
 			else if(callerCaller != null && !acceptBootDelegation && OSGiUtil.isClassInBootelegation(callerCaller.getName())) {
 				callerCaller = null;
 			}
-		} while(callerCaller == null && index.toInt() < context.length);
+		}
+		while(callerCaller == null && index.toInt() < context.length);
 		return callerCaller;
 	}
 
