@@ -115,8 +115,6 @@ include "services.update.functions.cfm";
 
 // get info for the update location
 
-
-
 	curr=server.lucee.version;
 	updateData=getAvailableVersion();
 	if(updateData.provider.location EQ "http://release.lucee.org"){
@@ -126,24 +124,26 @@ include "services.update.functions.cfm";
 	} else{
 		version = "custom";
 	}
-	realaseStruct = application.updateProvider.RELEASES;
+	releaseStruct = application.updateProvider.RELEASES;
 	snapShotsStruct = application.updateProvider.snapShot;
-	realaseArray = [];
-	snapShotsArry = [];
+	releaseArray = [];
+	snapShotsArray = [];
 	customArray = [];
-	if(realaseStruct.type == "warning" || realaseStruct.code != 200 || !structKeyExists(realaseStruct, "otherversions")){
-		error.message = "For Release: "& realaseStruct.message;
+	// error message while not reached the server
+	if(releaseStruct.type == "warning" || releaseStruct.code != 200 || !structKeyExists(releaseStruct, "otherversions")){
+		error.message = "For Release: "& releaseStruct.message;
 		printError(error);
 	}else{
-		realaseArray = qrySort(realaseStruct.otherversions);
+		releaseArray = qrySort(releaseStruct.otherversions);
 	}
 	if(snapShotsStruct.type == "warning" || snapShotsStruct.code != 200 || !structKeyExists(snapShotsStruct, "otherversions")){
 		error.message = "For snapShot: " &snapShotsStruct.message;
 		printError(error);
-		snapShotsArry = [];
+		snapShotsArray = [];
 	}else{
-		snapShotsArry = qrySort(snapShotsStruct.otherversions);
+		snapShotsArray = qrySort(snapShotsStruct.otherversions);
 	}
+	// for custom url
 	if(version == 'custom'){
 		if(!structKeyExists(updateData, "otherVersions")|| isNull(updateData.port) || updateData.port==400){
 			if(isNull(updateData.port) || updateData.port==404){
@@ -161,6 +161,7 @@ include "services.update.functions.cfm";
 	hasAccess=1;
 	hasUpdate=structKeyExists(updateData,"available");
 	private function qrySort( arry ){
+		// sort to desc order of versions
 		error.message="";
 		try {
 			updateData.qryOtherVersions=queryNew('version,versionSortable');
@@ -170,12 +171,13 @@ include "services.update.functions.cfm";
 				updateData.qryOtherVersions.versionSortable[i]=toVersionSortable(v);
 			}
 			querySort(updateData.qryOtherVersions,'versionSortable','desc');
-			arr = [];
+			versionArray = [];
+			//compare to current version
 			for(qry in updateData.qryOtherVersions){
 				if(toVersionSortable(qry.version) LTE toVersionSortable(server.lucee.version)){
 					break;
 				}
-				arr.append(qry.version);
+				versionArray.append(qry.version);
 			}
 		}catch (any e){
 			error.message=cfcatch.message;
@@ -183,7 +185,8 @@ include "services.update.functions.cfm";
 			error.exception = cfcatch;
 		}
 		printError(error);
-		return arr;
+		// array of version greater than the current version
+		return versionArray;
 	}
 </cfscript>
 
@@ -205,7 +208,7 @@ include "services.update.functions.cfm";
 						<cfif hasAccess>
 							<cfset isCustom=true>
 							<ul class="radiolist" id="updatelocations">
-								<!--- Release --->
+								<!--- custom --->
 								<li>
 									<label>
 										<input type="checkbox" id="sp_radio_custom" name="location"<cfif  version EQ 'custom'> checked</cfif> value="cutsomVersion" />
@@ -214,13 +217,6 @@ include "services.update.functions.cfm";
 									</label>
 									<input id="customtextinput" type="text" class="text" name="locationCustom" size="40" value="<cfif  version EQ 'custom'>#updateData.provider.location#</cfif>" disabled>
 									<div class="comment">#stText.services.update.location_customDesc#</div>
-									<cfif version EQ 'custom'>
-										<cfhtmlbody>
-											<script type="text/javascript">
-												$( '##customURL input' ).attr( 'disabled', false);
-											</script>
-										</cfhtmlbody>
-									</cfif>
 								</li>
 							</ul>
 						<cfelse>
@@ -267,6 +263,7 @@ include "services.update.functions.cfm";
 				<th scope="row">Lucee Update Provider</th>
 				<td>
 				<ul class="radiolist">
+					<!--- release --->
 					<li>
 						<label>
 							<input type="radio" class="radio" name="location" value="releaseVersion" <cfif version eq 'release'>checked</cfif> />
@@ -339,11 +336,11 @@ stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{ve
 							<cfset versions.releaseVersion = 0>
 							<cfset versions.snapShotVersion = 0>
 							<cfset versions.cutsomVersion = 0>
-							<cfif len(realaseArray)>
-								<cfset versions.releaseVersion =  len(realaseArray)>
+							<cfif len(releaseArray)>
+								<cfset versions.releaseVersion =  len(releaseArray)>
 							</cfif>
-							<cfif len(snapShotsArry)>
-								<cfset versions.snapShotVersion =  len(snapShotsArry)>
+							<cfif len(snapShotsArray)>
+								<cfset versions.snapShotVersion =  len(snapShotsArray)>
 							</cfif>
 							<cfif len(customArray)>
 								<cfset versions.cutsomVersion =  len(customArray)>
@@ -352,14 +349,16 @@ stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{ve
 							<input type="hidden" value='#sezJSON#' id="versionsLen">
 							<select name="version" id="version"  class="large" style="margin-top:8px">
 								<option>select</option>
-								<cfif len(realaseArray)>
-									<cfloop array="#realaseArray#" index="i">
+								<cfif len(releaseArray)>
+									<cfloop array="#releaseArray#" index="i">
 										<option class="releaseVersion" value="#i#">#i#</option>
 									</cfloop>
 								</cfif>
-								<cfloop array="#snapShotsArry#" index="i">
-									<option class="snapShotVersion" value="#i#">#i#</option>
-								</cfloop>
+								<cfif len(snapShotsArray)>
+									<cfloop array="#snapShotsArray#" index="i">
+										<option class="snapShotVersion" value="#i#">#i#</option>
+									</cfloop>
+								</cfif>
 								<cfif version eq 'custom' and len(customArray)>
 									<cfloop array="#customArray#" index="i">
 										<option class="cutsomVersion" value="#i#">#i#</option>
@@ -434,6 +433,7 @@ stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{ve
 			});
 
 			$('##sp_radio_custom').change(function(){
+				// enable / disable custom URL field
 				if($(this).prop("checked")){
 					$( '##customtextinput' ).attr( 'disabled', false);
 				} else{
@@ -451,12 +451,14 @@ stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{ve
 				var len = obj[val.toUpperCase()];
 				if(len == 0){
 					$('##version').prop('disabled', true);
-					$('##errorMessage').html('<div class="error" id="errorMsg"><span>No update ' + val + ' available to your version</span></dib>')
+					//  error message while there is no update available
+					$('##errorMessage').html('<div class="error" id="errorMsg"><span> Currently no  <b>' + val + ' </b> update for your version </span></div>')
 				} else{
 					$('##version').prop('disabled', false);
 					$('##errorMsg').html('');
 					$('##errorMessage').html('');
 				}
+				// show versions only for selected radio button
 				$('##version option:selected').prop('selected', false);
 				$('##version option').hide();
 				$('##version option.'+val).show();

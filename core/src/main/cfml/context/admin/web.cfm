@@ -76,6 +76,7 @@
 				returnVariable="hashedPassword">     
 			<cfset session["password"&request.adminType]=hashedPassword>
             <cfset session.lucee_admin_lang=form.lang>
+            <!--- Thread operation for update provider --->
             <cfif request.adminType == 'server' && !structKeyExists(application, "updateprovider")>
 				<cfinclude template="updateprovider.cfm">
 			</cfif>
@@ -117,6 +118,7 @@
 			    pw="#form.new_password#"
 				returnVariable="hashedPassword">
 		<cfset session["password"&request.adminType]=hashedPassword>
+		 <!--- Thread operation for update provider --->
 		  <cfif request.adminType == 'server' && !structKeyExists(application, "updateprovider") >
 			<cfinclude template="updateprovider.cfm">
 		</cfif>
