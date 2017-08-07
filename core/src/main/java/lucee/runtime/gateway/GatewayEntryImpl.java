@@ -39,17 +39,29 @@ import org.osgi.framework.BundleException;
 
 public class GatewayEntryImpl implements GatewayEntry {
 
-	private String id;
-	private Struct custom;
-	private boolean readOnly;
-	private String listenerCfcPath;
-	private int startupMode;
+	private final String id;
+	private final Struct custom;
+	private final boolean readOnly;
+	private final String listenerCfcPath;
+	private final int startupMode;
+	private final String cfcPath;
+	private final ClassDefinition classDefintion;
+	private final GatewayEngine engine;
+	
 	private Gateway gateway;
-	private String cfcPath;
-	private ClassDefinition classDefintion;
-	private GatewayEngine engine;
 
 	public GatewayEntryImpl(GatewayEngine engine,String id, ClassDefinition cd, String cfcPath, String listenerCfcPath, String startupMode,Struct custom, boolean readOnly) {
+		this(engine, id, cd, cfcPath, listenerCfcPath, toStartupMode(startupMode), custom, readOnly);
+	}
+	
+	private static int toStartupMode(String startupMode) {
+		startupMode=startupMode.trim().toLowerCase();
+		if("manual".equals(startupMode))return STARTUP_MODE_MANUAL;
+		else if("disabled".equals(startupMode))return STARTUP_MODE_DISABLED;
+		else return STARTUP_MODE_AUTOMATIC;
+	}
+
+	private GatewayEntryImpl(GatewayEngine engine,String id, ClassDefinition cd, String cfcPath, String listenerCfcPath, int startupMode,Struct custom, boolean readOnly) {
 		this.engine=engine;
 		this.id=id;
 		this.listenerCfcPath=listenerCfcPath;
@@ -57,10 +69,7 @@ public class GatewayEntryImpl implements GatewayEntry {
 		this.custom=custom;
 		this.readOnly=readOnly;
 		this.cfcPath=cfcPath;
-		startupMode=startupMode.trim().toLowerCase();
-		if("manual".equals(startupMode))this.startupMode=STARTUP_MODE_MANUAL;
-		else if("disabled".equals(startupMode))this.startupMode=STARTUP_MODE_DISABLED;
-		else this.startupMode=STARTUP_MODE_AUTOMATIC;
+		this.startupMode=startupMode;
 	}
 	
 
@@ -201,5 +210,10 @@ public class GatewayEntryImpl implements GatewayEntry {
 		if(left==null && right==null) return true;
 		if(left!=null && right!=null) return left.equals(right);
 		return false;
+	}
+
+
+	public GatewayEntry duplicateReadOnly(GatewayEngine engine) {
+		return new GatewayEntryImpl(engine, id, classDefintion, cfcPath, listenerCfcPath, startupMode, custom, true);
 	}
 }

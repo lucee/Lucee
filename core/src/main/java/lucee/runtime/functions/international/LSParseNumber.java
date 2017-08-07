@@ -47,7 +47,7 @@ public final class LSParseNumber implements Function {
 	}
 	
 	
-	public synchronized static double toDoubleValue(Locale locale,String str) throws PageException {
+	public static double toDoubleValue(Locale locale,String str) throws PageException {
 		Object o=whm.get(locale);
 		NumberFormat nf=null;
 		if(o==null) {

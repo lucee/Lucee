@@ -34,6 +34,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.tag.query.QueryCacheItem;
+import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.cache.tag.udf.UDFArgConverter;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
@@ -88,6 +89,16 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 		while(it.hasNext()){
 			ch = it.next();
 			if(ch.acceptCachedWithin(cachedWithin)) return ch;
+		}
+		return defaultValue;
+	}
+
+	public CacheHandler getTimespanInstance(CacheHandler defaultValue) {
+		Iterator<CacheHandler> it = handlers.values().iterator();
+		CacheHandler ch;
+		while(it.hasNext()){
+			ch = it.next();
+			if(ch instanceof TimespanCacheHandler) return ch;
 		}
 		return defaultValue;
 	}

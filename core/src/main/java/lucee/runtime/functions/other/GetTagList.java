@@ -50,7 +50,7 @@ public final class GetTagList implements Function {
 		return _call(pc, dialect);
 	}
 	
-	private synchronized static lucee.runtime.type.Struct _call(PageContext pc, int dialect) throws PageException {
+	private static lucee.runtime.type.Struct _call(PageContext pc, int dialect) throws PageException {
 		Struct sct=new StructImpl();
 			//synchronized(sct) {
 				//hasSet=true;

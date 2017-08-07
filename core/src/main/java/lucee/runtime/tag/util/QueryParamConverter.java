@@ -270,7 +270,7 @@ public class QueryParamConverter {
 				item.setType(SQLCaster.toSQLType(Caster.toString(oType)));
 			}
 			
-			// nulls (optional)
+			// nulls (optional), "nulls" seems to be a typo that was left over for backward compatibility?
 			Object oNulls=sct.get(KeyConstants._nulls,null);
 			//if(oNulls==null)oNulls=sct.get(KeyConstants._null,null);
 			

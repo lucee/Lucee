@@ -80,13 +80,16 @@ public final class SoftMethodStorage {
 	 * @param method
 	 * @param methodsMap
 	 */
-	private synchronized void storeMethod(Method method, Map<Key,Array> methodsMap) {
+	private void storeMethod(Method method, Map<Key,Array> methodsMap) {
 		Key methodName = KeyImpl.init(method.getName());
 		
-		Array methodArgs=methodsMap.get(methodName);
-		if(methodArgs==null) {
-			methodArgs=new ArrayImpl();
-			methodsMap.put(methodName,methodArgs);
+		Array methodArgs;
+		synchronized (methodsMap) {
+			methodArgs=methodsMap.get(methodName);
+			if(methodArgs==null) {
+				methodArgs=new ArrayImpl();
+				methodsMap.put(methodName,methodArgs);
+			}
 		}
 		
 		storeArgs(method,methodArgs);
@@ -101,19 +104,21 @@ public final class SoftMethodStorage {
 	private void storeArgs(Method method, Array methodArgs) {
 		
 		Class[] pmt = method.getParameterTypes();
-		Object o=methodArgs.get(pmt.length+1,null);
 		Method[] args;
-		if(o==null) {
-			args=new Method[1];
-			methodArgs.setEL(pmt.length+1,args);
-		}
-		else {
-			Method[] ms = (Method[]) o;
-			args = new Method[ms.length+1];
-			for(int i=0;i<ms.length;i++) {
-				args[i]=ms[i];
+		synchronized (methodArgs) {
+			Object o=methodArgs.get(pmt.length+1,null);
+			if(o==null) {
+				args=new Method[1];
+				methodArgs.setEL(pmt.length+1,args);
 			}
-			methodArgs.setEL(pmt.length+1,args);
+			else {
+				Method[] ms = (Method[]) o;
+				args = new Method[ms.length+1];
+				for(int i=0;i<ms.length;i++) {
+					args[i]=ms[i];
+				}
+				methodArgs.setEL(pmt.length+1,args);
+			}
 		}
 		args[args.length-1]=method;
 	}

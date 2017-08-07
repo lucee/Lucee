@@ -81,6 +81,7 @@ Defaults --->
 		<cfcatch>
 			<cfset error.message=cfcatch.message>
 			<cfset error.detail=cfcatch.Detail>
+			<cfset error.cfcatch=cfcatch>
 		</cfcatch>
 	</cftry>
 </cfif>
@@ -458,7 +459,7 @@ Error Output --->
 								<cfif key EQ 1>
 									<optgroup label="Cache">
 								</cfif>
-								<option value="#cacheConnections[key]#" <cfif scope.sessionStorage EQ cacheConnections[key]>selected</cfif>>cache: #cacheConnections[key]#</option>
+								<option value="#cacheConnections[key]#" <cfif scope.clientStorage EQ cacheConnections[key]>selected</cfif>>cache: #cacheConnections[key]#</option>
 								<cfif key EQ arrayLen(cacheConnections)>
 									</optgroup>
 								</cfif>

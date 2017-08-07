@@ -13,7 +13,7 @@ import lucee.runtime.type.Query;
 
 public class RequestMonitorProImpl implements RequestMonitorPro {
 	
-	private RequestMonitor monitor;
+	private RequestMonitor monitor;// do not change that name, used by Argus Monitor
 	private Method init;
 
 	public RequestMonitorProImpl(RequestMonitor monitor) {

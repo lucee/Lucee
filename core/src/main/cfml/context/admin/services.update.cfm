@@ -70,12 +70,13 @@
 	<cfcatch>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
+		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
 
 <!---
 Redirtect to entry --->
-<cfif cgi.request_method EQ "POST" and error.message EQ "">
+<cfif url.action2 NEQ "none" and error.message EQ "">
 	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 </cfif>
 
@@ -115,24 +116,27 @@ include "services.update.functions.cfm";
 
 // get info for the update location
 
-
-
 	curr=server.lucee.version;
 	updateData=getAvailableVersion();
 try{
+	if(isNull(updateData.port) || updateData.port==404)
+		cfthrow(message="Could not reach update provider [#updateData.provider.location#].",detail=updateData.message);
+	else if(updateData.port!=200)
+		cfthrow(message="Invalid response from [#updateData.provider.location#].",detail=updateData.message);
+	
 	updateData.qryOtherVersions=queryNew('version,versionSortable');
 	queryAddRow(updateData.qryOtherVersions,updateData.otherVersions.len());
 	loop array=updateData.otherVersions item="v" index="i" {
 		updateData.qryOtherVersions.version[i]=v;
 		updateData.qryOtherVersions.versionSortable[i]=toVersionSortable(v);
 	}
-} catch (any e){
+} catch (any e){ 
 	error.message=cfcatch.message;
 	error.detail=cfcatch.Detail;
 	error.exception = cfcatch;
 }
 printError(error);
-	querySort(updateData.qryOtherVersions,'versionSortable','desc');
+	if(structKeyExists(updateData,"qryOtherVersions"))querySort(updateData.qryOtherVersions,'versionSortable','desc');
 	hasAccess=1;
 	hasUpdate=structKeyExists(updateData,"available");
 </cfscript>
@@ -140,6 +144,8 @@ printError(error);
 
 
 <cfoutput>
+
+<cfhtmlbody>
 <script type="text/javascript">
 	var submitted = false;
 	function changeVersion(field) {
@@ -152,11 +158,11 @@ printError(error);
 		$(document).ready(function(){
 			$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
 			disableBlockUI=true;
-			
+
 
 	 		$.get(url, function(response) {
 	      		field.disabled = false;
-	 			
+
 	 			if((response+"").trim()=="")
 					window.location=('#request.self#?action=#url.action#'); //$('##updateInfoDesc').html("<p>#stText.services.update.restartOKDesc#</p>");
 				else
@@ -166,10 +172,8 @@ printError(error);
 	 		});
 		});
 	}
-
-
 	</script>
-
+</cfhtmlbody>
 
 
 	<div class="pageintro">#stText.services.update.desc#</div>
@@ -210,7 +214,7 @@ printError(error);
 									<input id="customtextinput" type="text" class="text" name="locationCustom" size="40" value="<cfif isCustom>#updateData.provider.location#</cfif>">
 									<div class="comment">#stText.services.update.location_customDesc#</div>
 
-									<cfsavecontent variable="headText">
+									<cfhtmlbody>
 										<script type="text/javascript">
 											function sp_clicked()
 											{
@@ -222,8 +226,8 @@ printError(error);
 												sp_clicked();
 											});
 										</script>
-									</cfsavecontent>
-									<cfhtmlhead text="#headText#" />
+									</cfhtmlbody>
+
 								</li>
 							</ul>
 						<cfelse>
@@ -287,7 +291,7 @@ stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{ve
 </cfscript>
 
 	<!--- downgrade/upgrade --->
-	<cfif updateData.qryotherVersions.recordcount>
+	<cfif structKeyExists(updateData,"qryOtherVersions") && updateData.qryotherVersions.recordcount>
 		<h2>#stText.services.update.downUpTitle#</h2>
 		<div id="updateInfoDesc" style="text-align: center;"></div>
 		<div class="itemintro">#stText.services.update.downUpDesc#</div>
@@ -298,7 +302,7 @@ stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{ve
 						<td>
 							<cfset currVS=toVersionSortable(server.lucee.version)>
 							<cfset minVS=toVersionSortable(minVersion)>
-							
+
 							<p>#replace(stText.services.update.downUpSub,'{version}',"<b>"&server.lucee.version&"</b>") #</p>
 							<select name="version"  class="large" style="margin-top:8px">
 								<cfset qry=updateData.qryotherVersions>
@@ -313,7 +317,7 @@ stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{ve
 										</cfif>
 									</cfif>
 									<cfset btn="">
-									
+
 									<cfset comp=compare(currVS,qry.versionSortable)>
 									<cfif compare(minVS,qry.versionSortable) GT 0>
 										<cfcontinue>
@@ -367,7 +371,7 @@ stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{ve
 		<div class="text">#updateData.message#</div>
 	</cfif>
 
-<!--- 
+<!---
 	<cfif hasUpdate>
 		run update
 		<h2>#stText.services.update.exe#</h2>

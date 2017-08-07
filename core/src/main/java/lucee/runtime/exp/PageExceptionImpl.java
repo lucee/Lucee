@@ -121,10 +121,11 @@ public abstract class PageExceptionImpl extends PageException {
 		super(StringUtil.isEmpty(e.getMessage(),true)?e.getClass().getName():e.getMessage());
 		if(e instanceof InvocationTargetException)e=((InvocationTargetException)e).getTargetException();
         
-		Throwable cause = e.getCause();
-		if(cause!=null)initCause(cause);
-        //this.setStackTrace(e.getStackTrace());
-        
+		//Throwable cause = e.getCause();
+		//if(cause!=null)initCause(cause);
+		initCause(e);
+        setStackTrace(e.getStackTrace());
+		
 		if(e instanceof IPageException) {
             IPageException pe=(IPageException)e;
 			this.additional=pe.getAdditional();

@@ -259,7 +259,7 @@ public class DatasourceConnectionPool {
 			return stack;
 		}
 	}
-	
+	// do not change interface, used by argus monitor
 	public Map<String,Integer> openConnections() {
 		Map<String,Integer> map=new HashMap<String, Integer>();
 		Iterator<DCStack> it = dcs.values().iterator();

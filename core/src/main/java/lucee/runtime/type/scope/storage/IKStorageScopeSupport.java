@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lucee.print;
 import lucee.commons.collection.MapPro;
 import lucee.commons.collection.concurrent.ConcurrentHashMapPro;
 import lucee.commons.io.log.Log;
@@ -119,8 +118,10 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		// !!! do not store the pagecontext or config object, this object is Serializable !!!
 		Config config = ThreadLocalPageContext.getConfig(pc);
 		this.data=data;
+		
 		timecreated=doNowIfNull(config,Caster.toDate(data.g(TIMECREATED,null),false,pc.getTimeZone(),null));
 		_lastvisit=doNowIfNull(config,Caster.toDate(data.g(LASTVISIT,null),false,pc.getTimeZone(),null));
+		
 		if(_lastvisit==null) _lastvisit=timecreated;
 		lastvisit=_lastvisit==null?0:_lastvisit.getTime();
 		
@@ -167,11 +168,14 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		if(Scope.SCOPE_SESSION==scope)		sv= handler.loadData(pc, appName,name, "session",Scope.SCOPE_SESSION, log);
 		else if(Scope.SCOPE_CLIENT==scope)	sv= handler.loadData(pc, appName,name, "client",Scope.SCOPE_CLIENT, log);
 		
+		
+		
 		if(sv!=null) {
 			long time = sv.lastModified();
 			
 			if(existing instanceof IKStorageScopeSupport) {
-				if(((IKStorageScopeSupport)existing).lastModified()>=time) {
+				IKStorageScopeSupport tmp = ((IKStorageScopeSupport)existing);
+				if(tmp.lastModified()>=time && name.equalsIgnoreCase(tmp.getStorage())) {
 					return existing;
 				}
 			}
@@ -179,8 +183,11 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 			if(Scope.SCOPE_SESSION==scope) 		return new IKStorageScopeSession(pc,handler,appName,name,sv.getValue(),time);
 			else if(Scope.SCOPE_CLIENT==scope)	return new IKStorageScopeClient(pc,handler,appName,name,sv.getValue(),time);
 		}
-		else if(existing!=null) {
-			return existing;
+		else if(existing instanceof IKStorageScopeSupport) {
+			IKStorageScopeSupport tmp = ((IKStorageScopeSupport)existing);
+			if(name.equalsIgnoreCase(tmp.getStorage())) {
+				return existing;
+			}
 		}
 		
 		IKStorageScopeSupport rtn=null;
@@ -457,7 +464,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 	@Override
 	public final DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-		return StructUtil.toDumpTable(this, StringUtil.ucFirst(getTypeAsString())+" Scope (IK "+getStorageType()+")", pageContext, maxlevel, dp);
+		return StructUtil.toDumpTable(this, StringUtil.ucFirst(getTypeAsString())+" Scope ("+getStorageType()+")", pageContext, maxlevel, dp);
 	}
 	
 
@@ -607,6 +614,19 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 			IKStorageValue storage=(IKStorageValue) oStorage;
 			if(storage.lastModified()>lastModified) {
 				MapPro<Key, IKStorageScopeItem> trg = storage.getValue();
+				IKStorageScopeSupport.merge(local,trg);
+				return trg;
+			}
+			else {
+				return IKStorageScopeSupport.cleanRemoved(local);
+				
+			}
+		}
+		else if(oStorage instanceof byte[][]) {
+			byte[][] barrr=(byte[][]) oStorage;
+			if(IKStorageValue.toLong(barrr[1])>lastModified) {
+				if(barrr[0]==null || barrr[0].length==0) return local;
+				MapPro<Key, IKStorageScopeItem> trg = IKStorageValue.deserialize(barrr[0]);
 				IKStorageScopeSupport.merge(local,trg);
 				return trg;
 			}

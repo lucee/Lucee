@@ -28,7 +28,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.functions.displayFormatting.NumberFormat;
 import lucee.runtime.util.InvalidMaskException;
 
 public final class LSNumberFormat implements Function {
@@ -49,10 +48,16 @@ public final class LSNumberFormat implements Function {
 	}
 	
 	private static String _call(PageContext pc , Object object, String mask, Locale locale) throws PageException {
+
 		try {
-            if(mask==null) 
-            	return new lucee.runtime.util.NumberFormat().format(locale,NumberFormat.toNumber(pc,object));
-			return new lucee.runtime.util.NumberFormat().format(locale,NumberFormat.toNumber(pc,object),mask);
+
+			lucee.runtime.util.NumberFormat formatter = new lucee.runtime.util.NumberFormat();
+			double number = lucee.runtime.functions.displayFormatting.NumberFormat.toNumber(pc, object);
+
+            if (mask == null)
+            	return formatter.format(locale, number);
+
+			return formatter.format(locale, number, mask);
         } 
         catch (InvalidMaskException e) {
             throw new FunctionException(pc,"lsnumberFormat",1,"number",e.getMessage());

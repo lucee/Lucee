@@ -3509,13 +3509,15 @@ type of the result returned:
 	<function>
 		<name>duplicate</name>
 		<class>lucee.runtime.functions.struct.Duplicate</class>
+		<member-name>duplicate</member-name>
+		<member-type>struct</member-type>
 		<description>Returns a new duplicated version of the given object, removing all references to the old one</description>
 		<argument>
 			<name>object</name>
 			<alias>variable_name,obj</alias>
 			<type>any</type>
 			<required>Yes</required>
-		<description>Name of a variable to duplicate</description>
+		<description>The object to duplicate</description>
     </argument>
 		<argument>
 			<name>deepcopy</name>
@@ -3528,7 +3530,83 @@ type of the result returned:
 			<type>any</type>
 		</return>
 	</function>
-	
+
+	<!-- arrayDuplicate !-->
+	<function>
+		<name>__arrayDuplicate</name>
+		<class>lucee.runtime.functions.struct.Duplicate</class>
+		<member-name>duplicate</member-name>
+		<description>Returns a new duplicated version of the given Array</description>
+		<status>hidden</status>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>The array object to duplicate</description>
+		</argument>
+		<argument>
+			<name>deepcopy</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>if set to true (default) also the child elements are cloned, otherwise the child elements are still the same as in the original object</description>
+		</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+
+	<!-- queryDuplicate !-->
+	<function>
+		<name>__queryDuplicate</name>
+		<class>lucee.runtime.functions.struct.Duplicate</class>
+		<member-name>duplicate</member-name>
+		<description>Returns a new duplicated version of the given Query object</description>
+		<status>hidden</status>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>The query object to duplicate</description>
+		</argument>
+		<argument>
+			<name>deepcopy</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>if set to true (default) also the child elements are cloned, otherwise the child elements are still the same as in the original object</description>
+		</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+
+	<!-- dateTimeDuplicate !-->
+	<function>
+		<name>__dateTimeDuplicate </name>
+		<class>lucee.runtime.functions.struct.Duplicate</class>
+		<member-name>duplicate</member-name>
+		<description>Returns a new duplicated version of the given DateTime object</description>
+		<status>hidden</status>
+		<argument>
+			<name>datetime</name>
+			<type>datetime</type>
+			<required>Yes</required>
+			<description>The query object to duplicate</description>
+		</argument>
+		<argument>
+			<name>deepcopy</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>if set to true (default) also the child elements are cloned, otherwise the child elements are still the same as in the original object</description>
+		</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+
+
 	<!-- GetSafeHTML
 	<function>
 		<name>GetSafeHTML</name>
@@ -5269,10 +5347,11 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
+
 	<!-- GenerateSecretKey -->
 	<function>
 		<name>GenerateSecretKey</name>
-		<class>lucee.runtime.functions.conversion.GenerateSecretKey</class>
+		<class>lucee.runtime.functions.other.GenerateSecretKey</class>
 		<description>Gets a secure key value for use in the encrypt function.</description>
 		<argument>
 			<name>algorithm</name>
@@ -5290,6 +5369,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
+
 	<!-- GeneratePBKDFKey -->
 	<function>
 		<name>GeneratePBKDFKey</name>
@@ -5341,6 +5421,23 @@ Example Values:
 			<type>string</type>
 		</return>
 	</function>
+
+	<!-- generate3DesKey !-->
+	<function>
+		<name>generate3DesKey</name>
+		<class>lucee.runtime.functions.other.Generate3DesKey</class>
+		<description>Generates a secure key value for use in the encrypt function with the 3DES algorithm.</description>
+		<argument>
+			<name>input</name>
+			<type>string</type>
+			<required>no</required>
+			<description>A string input off of which the key will be based</description>
+		</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+
 	<!-- getAuthUser -->
 	<function>
 		<name>getAuthUser</name>
@@ -10704,7 +10801,14 @@ The following things are considered to be empty:
 		<name>isValid</name>
 		<class>lucee.runtime.functions.decision.IsValid</class>
 		<keywords>decision,binary,array,boolean,component,date,email,query,string,struct,regex</keywords>
-		<description>Tests whether a value meets a validation or data type rule.</description>
+		<description>
+			Tests whether a value meets a validation or data type rule.
+			Attention: this function does not test if an object is of a certain type, it tests if an object can be converted to that type.
+			Because of that all the following example will return true:
+			- isValid("String",true); // boolean
+			- isValid("String",123); // number
+			- isValid("String",ImageNew( "", 1, 1)); // image!
+		</description>
 		<argument>
 			<name>type</name>
 			<type>string</type>
@@ -14233,10 +14337,11 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>A CFML data value or variable that represents one.</description>
 		</argument>
 		<argument>
-			<name>serializeQueryByColumns</name>
-			<type>boolean</type>
+			<name>options</name>
+			<type>any</type>
+			<alias>serializeQueryByColumns</alias>
 			<required>No</required>
-			<description>A Boolean value that specifies how to serialize CFML queries.</description>
+			<description>Either a Boolean value that specifies whether to serialize CFML queries by Column, or a string with the value "struct".</description>
 		</argument>
 		<argument>
 			<name>charset</name>

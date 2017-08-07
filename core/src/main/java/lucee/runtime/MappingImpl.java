@@ -23,7 +23,6 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.instrument.UnmodifiableClassException;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.ServletContext;
@@ -33,6 +32,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.MappingUtil;
+import lucee.commons.lang.PCLCollection;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -61,7 +61,7 @@ public final class MappingImpl implements Mapping {
 	private short inspect;
 	private boolean physicalFirst;
 	private PhysicalClassLoader pcl;
-	//private Map<String,PhysicalClassLoader> pcls=new HashMap<String, PhysicalClassLoader>();
+	private PCLCollection pcoll;
 	private Resource archive;
 	
 	private boolean hasArchive;
@@ -79,8 +79,6 @@ public final class MappingImpl implements Mapping {
 	private String lcVirtualWithSlash;
 	private Map<String,Object> customTagPath=new ReferenceMap<String,Object>(SOFT,SOFT);
 	
-	
-
 	private boolean appMapping;
 	private boolean ignoreVirtual;
 
@@ -90,8 +88,8 @@ public final class MappingImpl implements Mapping {
 
 	private long archMod;
 
-	private static int listenerMode;
-	private static int listenerType;
+	private int listenerMode;
+	private int listenerType;
 
 	/**
 	 * constructor of the class
@@ -217,50 +215,47 @@ public final class MappingImpl implements Mapping {
 		return null;
 	}
 
-
+	public PCLCollection touchClassLoader() throws IOException {
+		if(pcoll==null){
+			pcoll=new PCLCollection(this,getClassRootDirectory(),getConfig().getClassLoader(),100);
+		}
+		return pcoll;
+	}
+	
+	private PhysicalClassLoader touchPhysicalClassLoader() throws IOException {
+		if(pcl==null){
+			pcl=new PhysicalClassLoader(config,getClassRootDirectory());
+		}
+		return pcl;
+	}
 	
 	@Override
 	public Class<?> getPhysicalClass(String className) throws ClassNotFoundException,IOException {
-		//PhysicalClassLoader pcl = pcls.get(className);
-		if(pcl==null){
-			pcl=new PhysicalClassLoader(config,getClassRootDirectory());
-			//pcls.put(className, pcl);
-		}
-		return pcl.loadClass(className);
+		return touchPhysicalClassLoader().loadClass(className);
+		//return touchClassLoader().loadClass(className);
 	}
 	
 	public Class<?> getPhysicalClass(String className, Class<?> defaultValue) {
-		//PhysicalClassLoader pcl = pcls.get(className);
-		if(pcl==null)return null;
 		try {
-			return pcl.loadClass(className);
-		} catch(Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			return null;
+			return getPhysicalClass(className);
+		} catch(Exception e) {
+			return defaultValue;
 		}
 	}
 	
-	@Override
 	public Class<?> getPhysicalClass(String className, byte[] code) throws IOException {
-		if(pcl==null) pcl=new PhysicalClassLoader(config,getClassRootDirectory());
-		/*PhysicalClassLoader pcl = pcls.get(className);
-		// flush
-		if(pcl!=null) {
-			
-			pageSourcePool.remove(className);
-			//this.pageSourcePool.remove(key);
-		}
 		
-		// MUST is that ok
-		pcl = new PhysicalClassLoader(config,getClassRootDirectory());
-		
-		pcls.put(className, pcl);*/
 		try {
-			return pcl.loadClass(className,code);
+			return touchPhysicalClassLoader().loadClass(className,code);
 		} catch (UnmodifiableClassException e) {
 			throw new IOException(e);
 		}
+
+		//boolean isCFC = className.indexOf("_cfc$")!=-1;//aaaa ResourceUtil.getExtension(ps.getRealpath(), "").equalsIgnoreCase("cfc"); 
+		//return touchClassLoader().loadClass(className,code,isCFC);
 	}
+
+
 
 	
 	

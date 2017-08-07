@@ -943,11 +943,11 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="settings.gateway.type">Type</data>
 	<data key="settings.gateway.titleexisting">List of existing gateway instances</data>
 	<data key="settings.gateway.state">State</data>
-	<data key="settings.gateway.descreadonly">Readonly cache connections are generated within the &quot;server administrator&quot; for all web instances and can not be modified by the &quot;web administrator&quot;.</data>
+	<data key="settings.gateway.descreadonly">Readonly gateway instances are generated within the &quot;server administrator&quot; for all web instances and can not be modified by the &quot;web administrator&quot;.</data>
 	<data key="settings.gateway.titlecreate">Create a new Gateway instance</data>
 	<data key="settings.gateway.noaccess">no access to create gateway instances</data>
 	<data key="settings.gateway.class">Class</data>
-	<data key="settings.gateway.titlereadonly">Readonly cache connections</data>
+	<data key="settings.gateway.titlereadonly">Readonly gateway instances</data>
 	<data key="settings.gateway.nodefault">no default cache</data>
 	<data key="settings.gateway.id">ID</data>
 	<data key="settings.gateway.nodriver">There is no Gateway Type Available</data>
@@ -1055,6 +1055,8 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.bugreport">Bug report</data>
 	<data key="overview.Docs">Documentation</data>
 	<data key="overview.DocsDesc">If you have any questions about Lucee please take a look at the documentation in the first instance.</data>
+	<data key="overview.onlineDocsLink">Online Documentation</data>
+	<data key="overview.localRefLink">Local Reference</data>
 	<data key="overview.issuetracker">Issue Tracker</data>
 	<data key="overview.issuetrackerDesc">If you think you've found a bug, please take the time to report it via our bug tracking system.</data>
 	<data key="overview.book">Book (Lucee 3 Beginner's Guide)</data>

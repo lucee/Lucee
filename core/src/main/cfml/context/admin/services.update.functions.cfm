@@ -36,6 +36,7 @@ stText.services.update.serverFailed="server {url} failed to return a valid respo
 			else {
 				rsp={"type":"warning","message":replace(stText.services.update.serverFailed,'{url}',update.location)&" "&http.filecontent};
 			}
+			rsp.code=http.status_code?:404;
 		}
 		catch(e){
 			rsp={"type":"warning","message":replace(stText.services.update.serverFailed,'{url}',update.location)&" "&e.message};

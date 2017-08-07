@@ -163,15 +163,13 @@ public class StructImpl extends StructSupport {
 			try{	
 				map = new lucee.commons.collection.SyncMap(map);
 				Set<Key> set = map.keySet();
-				Collection.Key[] keys = new Collection.Key[size()];
-				synchronized(map){
-					Iterator<Key> it = set.iterator();
-					int count=0;
-					while(it.hasNext() && keys.length>count) {
-						keys[count++]=KeyImpl.toKey(it.next(), null);
-					}
-					return keys;
+				Collection.Key[] keys = new Collection.Key[set.size()];
+				Iterator<Key> it = set.iterator();
+				int count=0;
+				while(it.hasNext() && keys.length>count) {
+					keys[count++]=KeyImpl.toKey(it.next(), null);
 				}
+				return keys;
 			}
 			finally {
 				map=old;

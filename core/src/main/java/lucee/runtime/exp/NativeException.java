@@ -45,7 +45,6 @@ public class NativeException extends PageExceptionImpl {
 	protected NativeException(Throwable t) {
         super(t,t.getClass().getName());
         this.t=t;
-        
         // set stacktrace
         
         /*StackTraceElement[] st = getRootCause(t).getStackTrace();

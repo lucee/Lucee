@@ -66,7 +66,7 @@ public final class PageSourcePool implements Dumpable {
 	 * @param updateAccesTime define if do update access time
 	 * @return page
 	 */
-	public PageSource getPageSource(String key,boolean updateAccesTime) {
+	public PageSource getPageSource(String key,boolean updateAccesTime) { // DO NOT CHANGE INTERFACE (used by Argus Monitor)
 		PageSource ps=pageSources.get(key.toLowerCase());
 		if(ps==null) return null;
 		if(updateAccesTime)ps.setLastAccessTime();
@@ -210,7 +210,6 @@ public final class PageSourcePool implements Dumpable {
 	 * @param cl 
 	 */
 	public void clearPages(ClassLoader cl) {
-		synchronized(pageSources){
 			Iterator<PageSource> it = this.pageSources.values().iterator();
 			PageSourceImpl entry;
 			while(it.hasNext()) {
@@ -218,7 +217,6 @@ public final class PageSourcePool implements Dumpable {
 				if(cl!=null)entry.clear(cl);
 				else entry.clear();
 			}
-		}
 	}
 
 	public void clear() {

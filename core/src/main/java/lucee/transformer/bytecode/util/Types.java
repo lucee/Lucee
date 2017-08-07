@@ -41,6 +41,7 @@ import lucee.runtime.InterfacePageImpl;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
@@ -84,6 +85,7 @@ import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.CallerUtil;
 import lucee.runtime.util.NumberRange;
+import lucee.runtime.util.PageContextUtil;
 import lucee.runtime.util.VariableUtilImpl;
 import lucee.runtime.writer.BodyContentUtil;
 import lucee.transformer.TransformerException;
@@ -148,6 +150,7 @@ public final class Types {
     public static final Type COMPONENT=Type.getType(lucee.runtime.Component.class);
 
     public final static Type PAGE=Type.getType(Page.class);
+    public final static Type PAGE_IMPL=Type.getType(PageImpl.class);
     public final static Type PAGE_SOURCE=Type.getType(PageSource.class);
     public static final Type COMPONENT_PAGE_IMPL=Type.getType(lucee.runtime.ComponentPageImpl.class);
 	public static final Type INTERFACE_PAGE_IMPL = Type.getType(InterfacePageImpl.class);
@@ -178,6 +181,7 @@ public final class Types {
 
     public static final Type PAGE_CONTEXT=Type.getType(PageContext.class);
     public static final Type PAGE_CONTEXT_IMPL=Type.getType(PageContextImpl.class);
+    public static final Type PAGE_CONTEXT_UTIL=Type.getType(PageContextUtil.class);
 
 
     public final static Type QUERY=Type.getType(lucee.runtime.type.Query.class);

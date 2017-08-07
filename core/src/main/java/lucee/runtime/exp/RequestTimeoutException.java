@@ -32,10 +32,12 @@ public class RequestTimeoutException extends Abort implements Stop {
 	private static final long serialVersionUID = -37886162001453270L;
 	
 	private StackTraceElement[] stacktrace;
-	
 
-	public RequestTimeoutException(PageContextImpl pc) {
+	private ThreadDeath threadDeath; 
+
+	public RequestTimeoutException(PageContextImpl pc, ThreadDeath td) {
 		this(pc,pc.getTimeoutStackTrace());
+		this.threadDeath=td;
 	}
 	
 	public RequestTimeoutException(PageContext pc, StackTraceElement[] stacktrace) {
@@ -82,4 +84,7 @@ public class RequestTimeoutException extends Abort implements Stop {
 		}
 	}
 
+	public ThreadDeath getThreadDeath() {
+		return threadDeath;
+	}
 }

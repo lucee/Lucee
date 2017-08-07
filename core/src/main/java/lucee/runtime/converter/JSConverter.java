@@ -325,7 +325,7 @@ public final class JSConverter extends ConverterSupport {
 	 * @param sb
 	 * @throws ConverterException
 	 */
-	private synchronized void _serializeDateTime(DateTime dateTime, StringBuilder sb) {
+	private void _serializeDateTime(DateTime dateTime, StringBuilder sb) {
 	   
 		Calendar c = JREDateTimeUtil.getThreadCalendar(ThreadLocalPageContext.getTimeZone());
 		c.setTime(dateTime);

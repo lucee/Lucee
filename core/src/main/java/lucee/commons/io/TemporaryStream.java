@@ -26,6 +26,7 @@ import java.io.OutputStream;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.SerializableObject;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 public final class TemporaryStream extends OutputStream {
@@ -101,6 +102,7 @@ public final class TemporaryStream extends OutputStream {
 
 		private TemporaryStream ts;
 		private InputStream is;
+		private final Object sync=new SerializableObject();
 
 		public InpuStreamWrap(TemporaryStream ts) throws IOException {
 			this.ts=ts;
@@ -137,8 +139,10 @@ public final class TemporaryStream extends OutputStream {
 		}
 
 		@Override
-		public synchronized void mark(int readlimit) {
-			is.mark(readlimit);
+		public void mark(int readlimit) {
+			synchronized (sync) {
+				is.mark(readlimit);
+			}
 		}
 
 		@Override
@@ -157,8 +161,10 @@ public final class TemporaryStream extends OutputStream {
 		}
 
 		@Override
-		public synchronized void reset() throws IOException {
-			is.reset();
+		public void reset() throws IOException {
+			synchronized (sync) {
+				is.reset();
+			}
 		}
 
 		@Override

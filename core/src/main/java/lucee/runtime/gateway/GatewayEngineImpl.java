@@ -41,6 +41,7 @@ import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Constants;
@@ -185,6 +186,17 @@ public class GatewayEngineImpl implements GatewayEngine {
 		executeThread(gateway,GatewayThread.STOP);
 	}
 	
+	/**
+	 * stop all entries
+	 */
+	public void stopAll() {
+		Iterator<GatewayEntry> it = getEntries().values().iterator();
+		Gateway g;
+		while(it.hasNext()) {
+			g = it.next().getGateway();
+			if(g!=null)stop(g);
+		}
+	}
 	
 
 
@@ -210,15 +222,17 @@ public class GatewayEngineImpl implements GatewayEngine {
 		}
 	}
 
-	public synchronized void clear() {
-		Iterator<Entry<String, GatewayEntry>> it = entries.entrySet().iterator();
-		Entry<String, GatewayEntry> entry;
-		while(it.hasNext()){
-			entry = it.next();
-			if(entry.getValue().getGateway().getState()==Gateway.RUNNING) 
-				stop(entry.getValue().getGateway());
+	public void clear() {
+		synchronized (entries) {
+			Iterator<Entry<String, GatewayEntry>> it = entries.entrySet().iterator();
+			Entry<String, GatewayEntry> entry;
+			while(it.hasNext()){
+				entry = it.next();
+				if(entry.getValue().getGateway().getState()==Gateway.RUNNING) 
+					stop(entry.getValue().getGateway());
+			}
+			entries.clear();
 		}
-		entries.clear();
 	}
 	
 	/**

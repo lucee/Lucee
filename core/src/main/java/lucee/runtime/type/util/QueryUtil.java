@@ -222,7 +222,7 @@ public class QueryUtil {
 			comment.append( " (showing top " ).append( Caster.toString( top ) ).append( ")" );
 		comment.append("\n");
 		comment.append("Cached: ").append(query.isCached()?"Yes\n":"No\n");
-		if(query.isCached() && query instanceof QueryImpl) {
+		if(query.isCached() && query instanceof Query) {
 			comment.append("Cache Type: ").append(query.getCacheType()).append("\n");
 		}
 		

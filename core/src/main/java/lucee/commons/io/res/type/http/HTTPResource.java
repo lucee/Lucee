@@ -109,11 +109,15 @@ public class HTTPResource extends ReadOnlyResourceSupport {
 	}
 	
 	public int statusCode() {
+		HTTPResponse rsp=null;
 		try {
 			provider.read(this);
-			return getHTTPResponse(false).getStatusCode();
+			return (rsp=getHTTPResponse(false)).getStatusCode();
 		} catch (IOException e) {
 			return 0;
+		}
+		finally {
+			HTTPEngine.closeEL(rsp);
 		}
 	}
 
@@ -129,6 +133,9 @@ public class HTTPResource extends ReadOnlyResourceSupport {
 		catch (IOException e) {
 			//provider.unlock(this);
 			throw e;
+		}
+		finally {
+			HTTPEngine.closeEL(method);
 		}
 	}
 
@@ -194,22 +201,30 @@ public class HTTPResource extends ReadOnlyResourceSupport {
 	@Override
 	public long lastModified() {
 		int last=0;
+		HTTPResponse rsp=null;
 		try {
-			Header cl=getHTTPResponse(false).getLastHeaderIgnoreCase("last-modified");
+			Header cl=(rsp=getHTTPResponse(false)).getLastHeaderIgnoreCase("last-modified");
 			if(cl!=null && exists()) last=Caster.toIntValue(cl.getValue(),0);
 		}
 		catch (IOException e) {}
+		finally {
+			HTTPEngine.closeEL(rsp);
+		}
 		return last;
 	}
 
 	@Override
 	public long length() {
+		HTTPResponse rsp=null;
 		try {
 			if(!exists()) return 0;
-			return getHTTPResponse(false).getContentLength();	
+			return (rsp=getHTTPResponse(false)).getContentLength();	
 		}
 		catch (IOException e) {
 			return 0;
+		}
+		finally {
+			HTTPEngine.closeEL(rsp);
 		}
 	}
 

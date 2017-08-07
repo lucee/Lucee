@@ -1490,12 +1490,12 @@ public final class ComponentImpl extends StructSupport implements Externalizable
     }
 
     @Override
-    public synchronized Struct getMetaData(PageContext pc) throws PageException {
+    public Struct getMetaData(PageContext pc) throws PageException {
     	return getMetaData(ACCESS_PRIVATE,pc,top,false);
     }
     
 
-    public synchronized Object getMetaStructItem(Collection.Key name) {
+    public Object getMetaStructItem(Collection.Key name) {
     	if(top.properties.meta!=null) {
         	return top.properties.meta.get(name,null);
         }
@@ -1642,7 +1642,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
      * @return value set
      * @throws ExpressionException 
      */
-    private synchronized Object _set(PageContext pc,Collection.Key key, Object value) throws ExpressionException {
+    private Object _set(PageContext pc,Collection.Key key, Object value) throws ExpressionException {
     	if(value instanceof Member) {
     		if(value instanceof UDFPlus) {
             	UDFPlus udf = (UDFPlus)((UDFPlus)value).duplicate();

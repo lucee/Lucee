@@ -21,11 +21,15 @@ package lucee.commons.io.log.log4j.appender;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
+import lucee.commons.lang.SerializableObject;
+
 import org.apache.log4j.Layout;
 import org.apache.log4j.WriterAppender;
 
 public class ConsoleAppender extends WriterAppender implements AppenderState {
 	
+	private Object sync=new SerializableObject();
+
 	public ConsoleAppender() {
 	}
 
@@ -51,10 +55,12 @@ public class ConsoleAppender extends WriterAppender implements AppenderState {
 	}
 	
 	@Override
-	public synchronized void close() {
-		if(isClosed()) return;
-		this.closed = true;
-		writeFooter();
+	public void close() {
+		synchronized (sync) {
+			if(isClosed()) return;
+			this.closed = true;
+			writeFooter();	
+		}
 		// reset();
 	}
 }

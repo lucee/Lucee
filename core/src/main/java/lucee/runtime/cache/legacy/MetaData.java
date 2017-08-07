@@ -66,14 +66,14 @@ public class MetaData implements Serializable {
 		return instance;
 	}
 	
-	public synchronized void add(String name, String raw) throws IOException {
+	public void add(String name, String raw) throws IOException {
 		synchronized (data) {
 			data.put(name, raw);
 			JavaConverter.serialize(data, file);
 		}
 	}
 	
-	public synchronized List<String> get(String wildcard) throws IOException {
+	public List<String> get(String wildcard) throws IOException {
 		synchronized (data) {
 			List<String> list=new ArrayList<String>();
 			Iterator<Entry<String, String>> it = data.entrySet().iterator();

@@ -149,6 +149,7 @@ public class RHExtension implements Serializable {
 	private List<Map<String, String>> amfs;
 	private List<Map<String, String>> jdbcs;
 	private List<Map<String, String>> mappings;
+	private List<Map<String, Object>> eventGatewayInstances;
 	
 	private Resource extensionFile;
 
@@ -176,6 +177,8 @@ public class RHExtension implements Serializable {
 	private String jdbcsJson;
 
 	private String mappingsJson;
+	
+	private String eventGatewayInstancesJson;
 
 	private boolean loaded;
 
@@ -352,18 +355,18 @@ public class RHExtension implements Serializable {
 				else if(!entry.isDirectory() && startsWith(path,type,"context") && !StringUtil.startsWith(fileName(entry), '.')) 
 					contexts.add(sub);
 
+				// web contextS
+				else if(!entry.isDirectory() && (startsWith(path,type,"webcontexts") || startsWith(path,type,"web.contexts")) && !StringUtil.startsWith(fileName(entry), '.')) 
+					webContexts.add(sub);
+				
 				// config
 				else if(!entry.isDirectory() && startsWith(path,type,"config") && !StringUtil.startsWith(fileName(entry), '.')) 
 					configs.add(sub);
 				
-				// web contextS
-				else if(!entry.isDirectory() && startsWith(path,type,"webcontexts") && !StringUtil.startsWith(fileName(entry), '.')) 
-					webContexts.add(sub);
-				
 				// applications
-				else if(!entry.isDirectory() && (startsWith(path,type,"applications")) && !StringUtil.startsWith(fileName(entry), '.'))
-					applications.add(sub);
-				else if(!entry.isDirectory() && (startsWith(path,type,"web")) && !StringUtil.startsWith(fileName(entry), '.'))
+				else if(!entry.isDirectory() && (
+						startsWith(path,type,"web.applications") || startsWith(path,type,"applications") || startsWith(path,type,"web")
+						) && !StringUtil.startsWith(fileName(entry), '.'))
 					applications.add(sub);
 				
 				// components
@@ -445,6 +448,7 @@ public class RHExtension implements Serializable {
 		readCacheHandler(label,StringUtil.unwrap(attr.getValue("cache-handler")),logger);	
 		readJDBC(label,StringUtil.unwrap(attr.getValue("jdbc")),logger);
 		readMapping(label,StringUtil.unwrap(attr.getValue("mapping")),logger);
+		readEventGatewayInstances(label,StringUtil.unwrap(attr.getValue("event-gateway-instance")),logger);
 	}
 	
 	private void readManifestConfig(Element el, String label, String _img) throws ApplicationException {
@@ -480,6 +484,7 @@ public class RHExtension implements Serializable {
 		readCacheHandler(label,el.getAttribute("cache-handler"),logger);
 		readJDBC(label,el.getAttribute("jdbc"),logger);
 		readMapping(label,el.getAttribute("mapping"),logger);
+		readEventGatewayInstances(label,el.getAttribute("event-gateway-instance"),logger);
 	}
 
 	private void readMapping(String label, String str, Log logger) {
@@ -488,6 +493,14 @@ public class RHExtension implements Serializable {
 			mappingsJson=str;
 		}
 		if(mappings==null) mappings=new ArrayList<Map<String, String>>();
+	}
+
+	private void readEventGatewayInstances(String label, String str, Log logger) {
+		if(!StringUtil.isEmpty(str,true)) {
+			eventGatewayInstances = toSettingsObj(logger,str);
+			eventGatewayInstancesJson=str;
+		}
+		if(eventGatewayInstances==null) eventGatewayInstances=new ArrayList<Map<String, Object>>();
 	}
 
 	private void readJDBC(String label, String str, Log logger) {
@@ -730,6 +743,7 @@ public class RHExtension implements Serializable {
 		pop(el,attr,"cache-handler",null);
 		pop(el,attr,"jdbc",null);
 		pop(el,attr,"mapping",null);
+		pop(el,attr,"event-gateway-instance",null);
 	}
 	
 	private static void pop(Element el, Attributes attr, String name,String defaultValue) {
@@ -834,6 +848,11 @@ public class RHExtension implements Serializable {
 		if(!StringUtil.isEmpty(mappingsJson))
 			el.setAttribute("mapping", toStringForAttr(mappingsJson));
 		else el.removeAttribute("mapping");
+		
+		// event-gateway-instances
+		if(!StringUtil.isEmpty(eventGatewayInstancesJson))
+			el.setAttribute("event-gateway-instances", toStringForAttr(eventGatewayInstancesJson));
+		else el.removeAttribute("event-gateway-instances");
 	}
 	
 	private String toStringForAttr(String str) {
@@ -983,45 +1002,56 @@ public class RHExtension implements Serializable {
 		}
 	}
 	
-	public static ClassDefinition<?> toClassDefinition(Config config, Map<String, String> map) {
-		String _class=map.get("class");
+	public static ClassDefinition<?> toClassDefinition(Config config, Map<String, ?> map, ClassDefinition<?> defaultValue) {
+		String _class=Caster.toString(map.get("class"),null);
 		
-		String _name=map.get("bundle-name");
-		if(StringUtil.isEmpty(_name)) _name=map.get("bundleName");
-		if(StringUtil.isEmpty(_name)) _name=map.get("bundlename");
-		if(StringUtil.isEmpty(_name)) _name=map.get("name");
+		String _name=Caster.toString(map.get("bundle-name"),null);
+		if(StringUtil.isEmpty(_name)) _name=Caster.toString(map.get("bundleName"),null);
+		if(StringUtil.isEmpty(_name)) _name=Caster.toString(map.get("bundlename"),null);
+		if(StringUtil.isEmpty(_name)) _name=Caster.toString(map.get("name"),null);
 		
-		String _version=map.get("bundle-version");
-		if(StringUtil.isEmpty(_version)) _version=map.get("bundleVersion");
-		if(StringUtil.isEmpty(_version)) _version=map.get("bundleversion");
-		if(StringUtil.isEmpty(_version)) _version=map.get("version");
-		
+		String _version=Caster.toString(map.get("bundle-version"),null);
+		if(StringUtil.isEmpty(_version)) _version=Caster.toString(map.get("bundleVersion"),null);
+		if(StringUtil.isEmpty(_version)) _version=Caster.toString(map.get("bundleversion"),null);
+		if(StringUtil.isEmpty(_version)) _version=Caster.toString(map.get("version"),null);
+		if(StringUtil.isEmpty(_class)) return defaultValue;
 		return new lucee.transformer.library.ClassDefinitionImpl(
 				_class
 				,_name
 				,_version
 				,config.getIdentification());
-		
 	}
 
-	private static List<Map<String,String>> toSettings(Log log, String str) {
+	
+
+	private static List<Map<String, String>> toSettings(Log log, String str) {
+		List<Map<String,String>> list = new ArrayList<>();
+		_toSettings(list, log, str, true);
+		return list;
+	}
+
+	private static List<Map<String, Object>> toSettingsObj(Log log, String str) {
+		List<Map<String,Object>> list = new ArrayList<>();
+		_toSettings(list, log, str, false);
+		return list;
+	}
+
+	private static void _toSettings(List list,Log log, String str, boolean valueAsString) {
 		try {
 			Object res = DeserializeJSON.call(null, str);
 			// only a single row
 			if(!Decision.isArray(res) && Decision.isStruct(res)) {
-				List<Map<String,String>> list = new ArrayList<>();
-				_toSetting(list, Caster.toMap(res));
-				return list;
+				_toSetting(list, Caster.toMap(res),valueAsString);
+				return;
 			}
 			// multiple rows
 			if(Decision.isArray(res)) {
 				List tmpList=Caster.toList(res);
 				Iterator it = tmpList.iterator();
-				List<Map<String,String>> list=new ArrayList<>();
 				while(it.hasNext()) {
-					_toSetting(list,Caster.toMap(it.next()));
+					_toSetting(list,Caster.toMap(it.next()),valueAsString);
 				}
-				return list;
+				return;
 			}
 			
 		} 
@@ -1030,15 +1060,18 @@ public class RHExtension implements Serializable {
 			log.error("Extension Installation", t);
 		}
 		
-		return null;
+		return;
 	}
-	private static void _toSetting(List<Map<String, String>> list, Map src) throws PageException {
+	private static void _toSetting(List list, Map src,boolean valueAsString) throws PageException {
 		Entry e;
 		Iterator<Entry> it = src.entrySet().iterator();
-		Map<String,String> map=new HashMap<String,String>();
+		Map map=new HashMap();
 		while(it.hasNext()){
 			e = it.next();
-			map.put(Caster.toString(e.getKey()), Caster.toString(e.getValue()));
+			map.put(
+					Caster.toString(e.getKey()), 
+					valueAsString?Caster.toString(e.getValue()):e.getValue()
+			);
 		}
 		list.add(map);
 	}
@@ -1194,6 +1227,10 @@ public class RHExtension implements Serializable {
 	}
 	public List<Map<String, String>> getMappings() {
 		return mappings;
+	}
+	
+	public List<Map<String, Object>> getEventGatewayInstances() {
+		return eventGatewayInstances;
 	}
 
 	public Resource getExtensionFile() {

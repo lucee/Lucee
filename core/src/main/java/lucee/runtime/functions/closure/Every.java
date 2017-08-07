@@ -118,7 +118,12 @@ public class Every extends BIF {
 	}
 
 	private static boolean invoke(PageContext pc, Array arr, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws CasterException, PageException {
+
 		Iterator<Entry<Key, Object>> it = arr.entryIterator();
+
+		if (!it.hasNext())
+			return false;				// array is empty or has only null values
+
 		Entry<Key, Object> e;
 		boolean async=es!=null;
 		Object res;

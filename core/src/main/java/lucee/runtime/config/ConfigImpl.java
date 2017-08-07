@@ -107,6 +107,7 @@ import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.functions.system.ContractPath;
+import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
@@ -3701,4 +3702,8 @@ public abstract class ConfigImpl implements Config {
 	public Resource getAntiSamyPolicy() {
 		return getConfigDir().getRealResource("security/antisamy-basic.xml");
 	}
+
+	protected abstract void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries);
+	
+	public abstract Map<String, GatewayEntry> getGatewayEntries();
 }

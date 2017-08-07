@@ -23,22 +23,24 @@ import lucee.transformer.expression.var.Member;
 import lucee.transformer.expression.var.Variable;
 
 
-public abstract class FunctionMember implements Member {
+public abstract class FunctionMember implements Member,Func {
 	private Argument[] arguments=new Argument[0];
 	private boolean _hasNamedArgs;
 	private Variable parent;
 	private boolean safeNavigated;
 	private Expression safeNavigatedValue;
 
-
+	@Override
 	public final void setParent(Variable parent) {
 		this.parent = parent;
 	}
 
+	@Override
 	public final Variable getParent() {
 		return parent;
 	}
 	
+	@Override
 	public void addArgument(Argument argument) {
 		if(argument instanceof NamedArgument)_hasNamedArgs=true;
 		Argument[] tmp=new Argument[arguments.length+1];

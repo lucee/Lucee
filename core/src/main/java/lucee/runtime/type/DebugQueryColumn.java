@@ -96,11 +96,25 @@ public final class DebugQueryColumn extends QueryColumnImpl implements QueryColu
 		used=true;
     	return super.get(row,defaultValue);
 	}
-	
+
+    @Override
+    public Object clone() {
+        return cloneColumnImpl(true);
+    }
+
+    @Override
+    public Collection duplicate(boolean deepCopy) {
+        return cloneColumnImpl(deepCopy);
+    }
     
-	public synchronized QueryColumnPro cloneColumn(QueryImpl query, boolean deepCopy) {
+    @Override
+    public QueryColumnPro cloneColumn(boolean deepCopy) {
+        return cloneColumnImpl(deepCopy);
+    }
+    
+	public DebugQueryColumn cloneColumnImpl(boolean deepCopy) {
         DebugQueryColumn clone=new DebugQueryColumn();
-        populate(this, clone, deepCopy);
+        populate(clone, deepCopy);
         return clone;
     }
 

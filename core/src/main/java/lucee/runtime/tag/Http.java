@@ -36,7 +36,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
@@ -59,8 +58,10 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
+import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.http.HTTPCacheItem;
+import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
@@ -110,7 +111,6 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.config.Lookup;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
@@ -127,7 +127,6 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
@@ -672,10 +671,10 @@ public final class Http extends BodyTagImpl {
 	}
 
 
-
 	private void _doEndTag() throws PageException, IOException	{
+
 		long start=System.nanoTime();
-		HttpClientBuilder builder = HttpClients.custom();
+		HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder();
 		ssl(builder);
 		
     	// redirect
@@ -694,11 +693,14 @@ public final class Http extends BodyTagImpl {
     	ConfigWeb cw = pageContext.getConfig();
     	HttpRequestBase req=null;
     	HttpContext httpContext=null;
+
+		CacheHandler cacheHandler = null;
+		String cacheId = null;
+
 		//HttpRequestBase req = init(pageContext.getConfig(),this,client,params,url,port);
     	{
     		if(StringUtil.isEmpty(charset,true)) charset=((PageContextImpl)pageContext).getWebCharset().name();
     		else charset=charset.trim();
-
 
     	// check if has fileUploads
     		boolean doUploadFile=false;
@@ -744,17 +746,36 @@ public final class Http extends BodyTagImpl {
     			throw Caster.toPageException(mue);
     		}
 
-    	// cache
-    		if(cachedWithin!=null) {
-    			CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_HTTP,null).getInstanceMatchingObject(cachedWithin,null);
-    			if(ch!=null) {
-	    			CacheItem ci = ch.get(pageContext, createId());
-	    			if(ci instanceof HTTPCacheItem) {
-	    				pageContext.setVariable(result,((HTTPCacheItem)ci).getData());
-	    				return;
-	    			}
+    		// cache
+    		if (cachedWithin != null) {
+
+				cacheId = createCacheId();
+
+    			cacheHandler = pageContext.getConfig()
+						.getCacheHandlerCollection(Config.CACHE_TYPE_HTTP, null)
+						.getInstanceMatchingObject(cachedWithin, null);
+
+				if (cacheHandler instanceof CacheHandlerPro){
+
+					CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pageContext, cacheId, cachedWithin);
+
+					if (cacheItem instanceof HTTPCacheItem) {
+						pageContext.setVariable(result, ((HTTPCacheItem)cacheItem).getData());
+						return;
+					}
+				}
+				else if (cacheHandler != null) {	// TODO this else block can be removed when all cache handlers implement CacheHandlerPro
+
+					CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
+
+					if (cacheItem instanceof HTTPCacheItem) {
+						pageContext.setVariable(result, ((HTTPCacheItem)cacheItem).getData());
+						return;
+					}
     			}
     		}
+
+			// cache not found, process and cache result if needed
 
     	// select best matching method (get,post, post multpart (file))
 
@@ -762,7 +783,6 @@ public final class Http extends BodyTagImpl {
     		boolean doMultiPart=doUploadFile || this.multiPart;
     		HttpEntityEnclosingRequest post=null;
     		HttpEntityEnclosingRequest eem=null;
-
 
     		if(this.method==METHOD_GET) {
     			req=new HttpGet(url);
@@ -945,8 +965,6 @@ public final class Http extends BodyTagImpl {
     		}
 			req.setHeader("Accept-Encoding",acceptEncoding.toString());
 
-
-
     		// multipart
     		if(doMultiPart && eem!=null) {
     			hasContentType=true;
@@ -978,8 +996,6 @@ public final class Http extends BodyTagImpl {
     			}
     				//eem.setRequestEntity(new MultipartRequestEntityFlex(parts.toArray(new Part[parts.size()]), eem.getParams(),http.multiPartType));
     		}
-
-
 
     		if(hasBody && hasForm)
     			throw new ApplicationException("mixing httpparam  type file/formfield and body/XML is not allowed");
@@ -1030,9 +1046,6 @@ public final class Http extends BodyTagImpl {
 
     	}
 
-
-
-
     	CloseableHttpClient client=null;
     	try {
     	if(httpContext==null)httpContext = new BasicHttpContext();
@@ -1062,7 +1075,8 @@ public final class Http extends BodyTagImpl {
 				throw toPageException(t,rsp);
 
 			}
-		} else {
+		}
+		else {
 			e.start();
 			try {
 				synchronized(this){//print.err(timeout);
@@ -1320,23 +1334,19 @@ public final class Http extends BodyTagImpl {
 	            	throw new HTTPException(msg,null,rsp.getStatusCode(),rsp.getStatusText(),rsp.getURL());
 	            }
 	        }
-	     // add to cache
-	    	if(cachedWithin!=null && rsp.getStatusCode()==200) {
-				String id = createId();
-				CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_HTTP,null).getInstanceMatchingObject(cachedWithin,null);
-				if(ch!=null){
-					
-					if(statCode>=200 && statCode<300)
-						ch.set(pageContext, id,cachedWithin,new HTTPCacheItem(cfhttp,url,System.nanoTime()-start));
-				}
 
+	        // TODO: check if we can use statCode instead of rsp.getStatusCode() everywhere and cleanup the code
+			if (cacheHandler != null && rsp.getStatusCode() == 200){
+				// add to cache
+				cacheHandler.set(pageContext, cacheId, cachedWithin, new HTTPCacheItem(cfhttp, url, System.nanoTime()-start));
 			}
     	}
 		finally {
 			if(client!=null)client.close();
 		}
 	}
-	
+
+
 	private void ssl(HttpClientBuilder builder) {
 		SSLContext sslcontext = SSLContexts.createSystemDefault();
 		
@@ -1360,7 +1370,7 @@ public final class Http extends BodyTagImpl {
 	}
 
 
-	private String createId() {
+	private String createCacheId() {
 		return CacheHandlerCollectionImpl.createId(url,addtoken?pageContext.getURLToken():"",method,params,username,password,this.port
 				,proxyserver,proxyport,proxyuser,proxypassword,useragent);
 	}
@@ -1436,11 +1446,6 @@ public final class Http extends BodyTagImpl {
 		}
 		return pe;
 	}
-
-
-
-
-
 
 
 	private void setUnknownHost(Struct cfhttp,Throwable t) {
@@ -1874,14 +1879,14 @@ public final class Http extends BodyTagImpl {
     }
 
     /**
-     * @param multipart The multipart to set.
+     * @param multiPart The multipart to set.
      */
     public void setMultipart(boolean multiPart) {
         this.multiPart = multiPart;
     }
 
     /**
-     * @param multipart The multipart to set.
+     * @param multiPartType The multipart to set.
      * @throws ApplicationException
      */
     public void setMultiparttype(String multiPartType) throws ApplicationException {

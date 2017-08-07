@@ -36,6 +36,8 @@ public final class FTPResourceClient extends FTPClient {
 	private final FTPConnectionData ftpConnectionData;
 	private long lastAccess;
 	private final Object token=new SerializableObject();
+	private final Object sync=new SerializableObject();
+	
 	private final Map<String,FTPFileWrap> files=MapFactory.<String,FTPFileWrap>getConcurrentMap();
 	private final int cacheTimeout;
 
@@ -112,7 +114,7 @@ public final class FTPResourceClient extends FTPClient {
 		boolean isRoot=res.isRoot();
 		String path=isRoot?res.getInnerPath():res.getInnerParent();
 		
-		synchronized(getToken()){ 
+		synchronized(sync){ 
 			changeWorkingDirectory(path);
 			children = listFiles();
 		}

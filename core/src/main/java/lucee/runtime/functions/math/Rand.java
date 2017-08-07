@@ -46,7 +46,7 @@ public final class Rand implements Function {
         return getRandom( algorithm, Double.NaN ).nextDouble();
 	}
 
-    static synchronized Random getRandom(String algorithm, Double seed) throws ExpressionException {
+    static Random getRandom(String algorithm, Double seed) throws ExpressionException {
 
         algorithm = algorithm.toLowerCase();
 

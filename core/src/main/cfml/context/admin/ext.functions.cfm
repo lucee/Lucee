@@ -200,13 +200,16 @@
 
 		<!--- shrink images if needed --->
 		<cfif img.height GT arguments.height or img.width GT arguments.width>
-			<cfif img.height GT arguments.height >
-				<cfimage action="resize" source="#img#" height="#arguments.height#" name="img">
-			</cfif>
-			<cfif img.width GT arguments.width>
-				<cfimage action="resize" source="#img#" width="#arguments.width#" name="img">
-			</cfif>
-			<cfset data=toBinary(img)>
+			<cftry>
+				<cfif img.height GT arguments.height >
+					<cfimage action="resize" source="#img#" height="#arguments.height#" name="img">
+				</cfif>
+				<cfif img.width GT arguments.width>
+					<cfimage action="resize" source="#img#" width="#arguments.width#" name="img">
+				</cfif>
+				<cfset data=toBinary(img)>
+				<cfcatch></cfcatch>
+			</cftry>
 		</cfif>
 
 		<cftry>
@@ -417,7 +420,6 @@
 
 
 	function getProviderInfo(required string provider, boolean forceReload=false, numeric timeSpan=60){
-
 		if(provider=="local" || provider=="") {
 			local.provider={};
 			provider.meta.title="Local Extension Provider";
@@ -426,7 +428,6 @@
 			provider.lastModified=now();
 			return provider;
 		}
-
 
     	// request (within request we only try once to load the data)
         if(!forceReload and
@@ -458,9 +459,10 @@
 
 
 			http url="#uri#?coreVersion=#server.lucee.version#" result="local.http" {
-				httpparam type="header" name="accept" value="application/cfml";
+				httpparam type="header" name="accept" value="application/json";
 				if(!isNull(apikey))httpparam type="url" name="ioid" value="#apikey#";
 			}
+
 			if(isNull(http.status_code)){
 				session.rhcfcstries[provider]=now(); // set last try
 				local.result.error=http.fileContent;
@@ -469,9 +471,11 @@
 				result.provider=uri;
 				return result;
 			}
+
 			// sucessfull
 			if(http.status_code==200) { // if(isDefined("http.responseheader['Return-Format']"))
-				local.result=evaluate(http.fileContent);
+				local.result=deserializeJson(http.fileContent,false);
+				
 				result.lastModified=now();
 				result.provider=uri;
 				result.status_code=http.status_code;

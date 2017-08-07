@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
@@ -289,13 +290,6 @@ public class BodyBase extends StatementBaseNoFinal implements Body {
     	
 		a.returnValue();
 		a.endMethod();
-	}
-
-
-	public static synchronized String id() {
-		counter++;
-		if(counter<0) counter=1;
-		return Long.toString(counter, Character.MAX_RADIX);
 	}
 
 	/**

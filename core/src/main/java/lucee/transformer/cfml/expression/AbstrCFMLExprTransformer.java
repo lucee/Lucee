@@ -42,7 +42,9 @@ import lucee.transformer.bytecode.expression.FunctionAsExpression;
 import lucee.transformer.bytecode.expression.var.Argument;
 import lucee.transformer.bytecode.expression.var.Assign;
 import lucee.transformer.bytecode.expression.var.BIF;
+import lucee.transformer.bytecode.expression.var.Call;
 import lucee.transformer.bytecode.expression.var.DynAssign;
+import lucee.transformer.bytecode.expression.var.Func;
 import lucee.transformer.bytecode.expression.var.FunctionMember;
 import lucee.transformer.bytecode.expression.var.NamedArgument;
 import lucee.transformer.bytecode.expression.var.UDF;
@@ -64,6 +66,7 @@ import lucee.transformer.cfml.evaluator.EvaluatorPool;
 import lucee.transformer.cfml.script.DocComment;
 import lucee.transformer.cfml.script.DocCommentTransformer;
 import lucee.transformer.cfml.tag.CFMLTransformer;
+import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
@@ -353,6 +356,17 @@ public abstract class AbstrCFMLExprTransformer {
 					throw new TemplateException(data.srcCode,"invalid assignment left-hand side ("+expr.getClass().getName()+")");
 			}
 		}
+
+		// patch for test()();  only works at the end of an expression!
+        comments(data);
+        while(data.srcCode.isCurrent('(')) {
+        	comments(data);
+        	Call call=new Call(expr);
+        	getFunctionMemberAttrs(data,null,false,call,null);
+        	call.setEnd(data.srcCode.getPosition());
+        	comments(data);
+        	expr = call;
+		}
 		return expr;
 	}
 	
@@ -363,11 +377,15 @@ public abstract class AbstrCFMLExprTransformer {
         	comments(data);
         	// Elvis
         	if(data.srcCode.forwardIfCurrent(':')) {
+        		
         		comments(data);
             	Expression right = assignOp(data);
+
+         		if (expr instanceof ExprBoolean)
+         			return expr;
         		
-        		if(!(expr instanceof Variable) )
-					throw new TemplateException(data.srcCode,"left operant of the Elvis operator has to be a variable or a function call");
+        		if (!(expr instanceof Variable) )
+					throw new TemplateException(data.srcCode, "left operand of the Elvis operator has to be a variable or a function call");
 
 				Variable left = (Variable)expr;
 				/// LDEV-1201
@@ -1225,9 +1243,7 @@ public abstract class AbstrCFMLExprTransformer {
 	private Expression dynamic(ExprData data) throws TemplateException {
 		// Die Implementation weicht ein wenig von der Grammatik ab, 
 		// aber nicht in der Logik sondern rein wie es umgesetzt wurde.
-		
-	    
-	    
+
 		// get First Element of the Variable
 		Position line = data.srcCode.getPosition();
 		Identifier id = identifier(data,false,true);
@@ -1837,61 +1853,9 @@ public abstract class AbstrCFMLExprTransformer {
 			else {
 				fm = new UDF(name);
 			}
-			
-			
-			
-	
-			// Function Attributes
-			ArrayList<FunctionLibFunctionArg> arrFuncLibAtt = null;
-			//int libLen = 0;
-			if (checkLibrary) {
-				arrFuncLibAtt = flf.getArg();
-				//libLen = arrFuncLibAtt.size();
-			}
-			int count = 0;
-			do {
-				data.srcCode.next();
-	            comments(data);
-	
-				// finish
-				if (count==0 && data.srcCode.isCurrent(')'))
-					break;
-	
-				//Argument arg;
-				if (checkLibrary && flf.getArgType()!=FunctionLibFunction.ARG_DYNAMIC) {
-					// current attribues from library
-						String _type;
-						try{
-							_type = arrFuncLibAtt.get(count).getTypeAsString();
-						}
-						catch(IndexOutOfBoundsException e) {
-							_type=null;
-						}
-						fm.addArgument(functionArgument(data,_type,false));
-					
-				} 
-				else {
-					fm.addArgument(functionArgument(data,false));
-				}
-	
-	            comments(data);
-				count++;
-				if (data.srcCode.isCurrent(')'))
-					break;
-			} 
-			while (data.srcCode.isCurrent(','));
-	
-			// end with ) ??		
-			if (!data.srcCode.forwardIfCurrent(')'))
-				throw new TemplateException(
-					data.srcCode,
-					"Invalid Syntax Closing [)] for function ["
-						+ (flf!=null?flf.getName():ASMUtil.display(name))
-						+ "] not found");
-			
-	
-	       
-	        
+
+			int count=getFunctionMemberAttrs(data,name,checkLibrary,fm,flf);
+
 	        if (checkLibrary) {
 	        	 // pre
 		        if(flf.hasTteClass()){
@@ -1957,6 +1921,63 @@ public abstract class AbstrCFMLExprTransformer {
 		return fm;
 	}
 	
+	private int getFunctionMemberAttrs(ExprData data, ExprString name, boolean checkLibrary, 
+			Func fm, FunctionLibFunction flf) throws TemplateException {
+		// Function Attributes
+		ArrayList<FunctionLibFunctionArg> arrFuncLibAtt = null;
+		//int libLen = 0;
+		if (checkLibrary) {
+			arrFuncLibAtt = flf.getArg();
+			//libLen = arrFuncLibAtt.size();
+		}
+		int count = 0;
+		do {
+			data.srcCode.next();
+            comments(data);
+
+			// finish
+			if (count==0 && data.srcCode.isCurrent(')'))
+				break;
+
+			//Argument arg;
+			if (checkLibrary && flf.getArgType()!=FunctionLibFunction.ARG_DYNAMIC) {
+				// current attribues from library
+					String _type;
+					try{
+						_type = arrFuncLibAtt.get(count).getTypeAsString();
+					}
+					catch(IndexOutOfBoundsException e) {
+						_type=null;
+					}
+					fm.addArgument(functionArgument(data,_type,false));
+				
+			} 
+			else {
+				fm.addArgument(functionArgument(data,false));
+			}
+
+            comments(data);
+			count++;
+			if (data.srcCode.isCurrent(')'))
+				break;
+		} 
+		while (data.srcCode.isCurrent(','));
+		
+		if (!data.srcCode.forwardIfCurrent(')')) {
+			if(name!=null) {
+				throw new TemplateException(
+					data.srcCode,
+					"Invalid Syntax Closing [)] for function ["
+						+ (flf!=null?flf.getName():ASMUtil.display(name))
+						+ "] not found");
+			}
+			throw new TemplateException(data.srcCode,"Invalid Syntax Closing [)] not found");
+		}
+		return count;
+	}
+
+
+
 	/**
 	 * Sharps (#) die innerhalb von Expressions auftauchen haben in CFML keine weitere Beteutung 
 	 * und werden durch diese Methode einfach entfernt.

@@ -1,5 +1,5 @@
 component {
-	this.name = 'AppB';
+	this.name = 'AppB549';
 	this.cache.connections["default"] = {
 		 class: 'lucee.runtime.cache.ram.RamCache'
 		, storage: true

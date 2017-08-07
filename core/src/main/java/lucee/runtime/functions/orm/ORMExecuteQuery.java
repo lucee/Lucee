@@ -18,6 +18,9 @@
  **/
 package lucee.runtime.functions.orm;
 
+import java.util.List;
+import java.util.Map;
+
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
@@ -26,6 +29,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMSession;
 import lucee.runtime.orm.ORMUtil;
+import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
@@ -61,16 +65,24 @@ public class ORMExecuteQuery {
 		if(StringUtil.isEmpty(dsn,true)) dsn=ORMUtil.getDefaultDataSource(pc).getName();
 		
 		if(params==null)
-			return session.executeQuery(pc,dsn,hql,new ArrayImpl(),unique,queryOptions);
+			return toCFML(session.executeQuery(pc,dsn,hql,new ArrayImpl(),unique,queryOptions));
 		else if(Decision.isStruct(params))
-			return session.executeQuery(pc,dsn,hql,Caster.toStruct(params),unique,queryOptions);
+			return toCFML(session.executeQuery(pc,dsn,hql,Caster.toStruct(params),unique,queryOptions));
 		else if(Decision.isArray(params))
-			return session.executeQuery(pc,dsn,hql,Caster.toArray(params),unique,queryOptions);
+			return toCFML(session.executeQuery(pc,dsn,hql,Caster.toArray(params),unique,queryOptions));
 		else if(Decision.isCastableToStruct(params))
-			return session.executeQuery(pc,dsn,hql,Caster.toStruct(params),unique,queryOptions);
+			return toCFML(session.executeQuery(pc,dsn,hql,Caster.toStruct(params),unique,queryOptions));
 		else if(Decision.isCastableToArray(params))
-			return session.executeQuery(pc,dsn,hql,Caster.toArray(params),unique,queryOptions);
+			return toCFML(session.executeQuery(pc,dsn,hql,Caster.toArray(params),unique,queryOptions));
 		else
 			throw new FunctionException(pc, "ORMExecuteQuery", 2, "params", "cannot convert the params to a array or a struct");
+		
+	}
+	private static Object toCFML(Object obj) throws PageException {
+		if(obj instanceof List<?> && !(obj instanceof Array))
+			return Caster.toArray(obj);
+		if(obj instanceof Map<?,?> && !(obj instanceof Struct))
+			return Caster.toStruct(obj,false);
+		return obj;
 	}
 }

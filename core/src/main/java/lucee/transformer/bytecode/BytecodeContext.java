@@ -171,12 +171,14 @@ public class BytecodeContext implements Context {
 	}
 
 	public synchronized int registerKey(LitString lit)  {
-		int index = keys.indexOf(lit);
-		if(index!=-1)return index;// calls the toString method of litString
-		
-		keys.add(lit);
-		
-		return keys.size()-1;
+		//synchronized (keys) {
+			int index = keys.indexOf(lit);
+			if(index!=-1)return index;// calls the toString method of litString
+			
+			keys.add(lit);
+			
+			return keys.size()-1;	
+		//}
 	}
 
 	public List<LitString> getKeys() {

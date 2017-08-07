@@ -78,11 +78,11 @@ public final class CFXTagPoolImpl implements CFXTagPool {
 	}
 
 	@Override
-	public synchronized void releaseCustomTag(CustomTag ct) {
+	public void releaseCustomTag(CustomTag ct) {
 		//table.put(ct.getClass().toString(),ct);
 	}
 	@Override
-	public synchronized void releaseTag(Object tag) {
+	public void releaseTag(Object tag) {
 		//table.put(ct.getClass().toString(),ct);
 	}
 }

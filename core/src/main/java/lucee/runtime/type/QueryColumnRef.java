@@ -28,6 +28,7 @@ import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -38,6 +39,7 @@ import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.it.KeyIterator;
 import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.util.CollectionUtil;
+import lucee.runtime.type.util.ListUtil;
 
 /**
  * Recordcount Query Column
@@ -386,7 +388,22 @@ public final class QueryColumnRef implements QueryColumn {
 		if(!(obj instanceof Collection)) return false;
 		return CollectionUtil.equals(this,(Collection)obj);
 	}
-	
+
+
+    /**
+     * This method was added for ACF compatibility per LDEV-1142 and should be avoided if cross engine code is not
+     * required.  Use instead Query.columnArray() or Query.columnList().listToArray().
+     * @return an Array of the names of columns
+     * @throws PageException
+     */
+	public Array listToArray() throws PageException {
+
+	    if (this.query instanceof QueryImpl)
+    	    return ListUtil.listToArray(((QueryImpl) this.query).getColumnlist(false), ",");
+
+	    throw new ApplicationException("Query is not of type QueryImpl. Use instead Query.columnArray() or Query.columnList().listToArray().");
+    }
+
 	/*@Override
 	public int hashCode() {
 		return CollectionUtil.hashCode(this);

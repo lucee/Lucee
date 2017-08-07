@@ -73,7 +73,6 @@ public final class _Execute extends PageContextThread {
         } catch (Exception e) {}
     }
      void _run(PageContext pc) {
-    	//synchronized(monitor){
 			try {
 
 				process = Command.createProcess(command,true);
