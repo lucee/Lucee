@@ -1755,9 +1755,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					updateAvailable=deserializeJson(http.filecontent);
 
 					LatestVersion = ArrayLast(updateAvailable.otherVersions);
-					if( ReplaceNocase(replaceNocase(LatestVersion, ".", "", "ALL"), "-SNAPSHOT", "") GT ReplaceNocase(replaceNocase(server.lucee.version, ".", "", "ALL"), "-SNAPSHOT", "") ){
+					/*if( ReplaceNocase(replaceNocase(LatestVersion, ".", "", "ALL"), "-SNAPSHOT", "") GT ReplaceNocase(replaceNocase(server.lucee.version, ".", "", "ALL"), "-SNAPSHOT", "") ){
 						admin.changeVersionTo(LatestVersion);
 					}
+					changing the version breaks testing for all following testcases!!!!
+					*/
 				});
 			});
 
