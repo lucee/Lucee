@@ -13,7 +13,19 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
- ---><cfif request.admintype EQ "web"><cflocation url="#request.self#" addtoken="no"></cfif>
+ --->
+
+<cfscript>
+
+max=100;
+count=0;
+while(!structKeyExists(application.updateProvider, "release") && !structKeyExists(application.updateProvider, "snapshot") && count++ < max ) {
+   sleep(100);
+}
+if(count==max) throw "failed to load ..."
+</cfscript>
+
+ <cfif request.admintype EQ "web"><cflocation url="#request.self#" addtoken="no"></cfif>
 <cfinclude template="ext.functions.cfm">
 
 <cfparam name="url.action2" default="none">

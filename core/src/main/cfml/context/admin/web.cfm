@@ -90,15 +90,9 @@
                 <cfcookie expires="Now" name="lucee_admin_pw_#ad#" value="">
             </cfif>
             <cfif isDefined("cookie.lucee_admin_lastpage") and cookie.lucee_admin_lastpage neq "logout">
-            	<cfif cookie.lucee_admin_lastpage eq "services.update">
-            		<cfset sleep(3000)>
-            	</cfif>
                 <cfset url.action = cookie.lucee_admin_lastpage>
             </cfif>
         </cfif>
-		
-		
-        
     </cfif>
 </cfif>
 <!--- new pw Form --->
