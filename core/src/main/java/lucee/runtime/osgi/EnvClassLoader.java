@@ -120,7 +120,7 @@ public class EnvClassLoader extends URLClassLoader {
 		}
 		
 		// now we check extension bundles
-		if(caller.isEmpty() || /*PATCH LDEV-1312*/(name.indexOf("net.sf.ehcache")!=-1 && ThreadLocalPageContext.get()==null)/* if we are in a child threads*/ || caller.fromBundle!=null) {
+		if(caller.isEmpty() || /*PATCH LDEV-1312*/(ThreadLocalPageContext.get()==null)/* if we are in a child threads*/ || caller.fromBundle!=null) {
 			Bundle[] bundles = ConfigWebUtil.getEngine(config).getBundleContext().getBundles();
 			Bundle b=null;
 			for(int i=0;i<bundles.length;i++) {
