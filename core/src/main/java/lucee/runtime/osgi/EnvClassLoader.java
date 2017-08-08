@@ -10,6 +10,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 
+import lucee.print;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.Caller;
 import lucee.commons.lang.ExceptionUtil;
@@ -86,6 +87,7 @@ public class EnvClassLoader extends URLClassLoader {
 	}
 
 	private synchronized Object load(String name, short type, boolean doLog) {
+		if(name.equals("lucee.runtime.tag.Property")) print.ds();
 		Object obj=null;
 		
 		// first we check the callers classpath
@@ -118,7 +120,7 @@ public class EnvClassLoader extends URLClassLoader {
 		}
 		
 		// now we check extension bundles
-		if(caller.isEmpty() ||  caller.fromBundle!=null) {
+		if(caller.isEmpty() || /*PATCH LDEV-1312*/(name.indexOf("net.sf.ehcache")!=-1 && ThreadLocalPageContext.get()==null)/* if we are in a child threads*/ || caller.fromBundle!=null) {
 			Bundle[] bundles = ConfigWebUtil.getEngine(config).getBundleContext().getBundles();
 			Bundle b=null;
 			for(int i=0;i<bundles.length;i++) {
