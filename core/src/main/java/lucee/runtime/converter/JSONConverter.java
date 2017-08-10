@@ -44,6 +44,7 @@ import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -547,6 +548,11 @@ public final class JSONConverter extends ConverterSupport {
 		    sb.append(((ScriptConvertable)object).serialize());
 		    return;
 		}
+		// byte[]
+		if (object instanceof byte[]) {
+			sb.append("\""+Base64Coder.encode((byte[])object)+"\"");
+		    return;
+		}
 		Object raw = LazyConverter.toRaw(object);
 		if (done.contains(raw)){
 			sb.append(goIn());
@@ -671,6 +677,12 @@ public final class JSONConverter extends ConverterSupport {
 	 */
 	private String goIn() {
 	    return "";
+	}
+
+
+	public static String serialize(PageContext pc, Object o) throws ConverterException {
+		JSONConverter converter = new JSONConverter(false, null);
+		return converter.serialize(pc, o, false);
 	}
 
 
