@@ -168,6 +168,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			} 
 			catch (ClassNotFoundException e) {
 				// the documentation clearly sais that this exception only exists for backward compatibility and never happen
+				throw new RuntimeException(e);
 			}
 			return clazz;
 		}
