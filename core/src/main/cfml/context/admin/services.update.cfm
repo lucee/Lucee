@@ -119,9 +119,9 @@ include "services.update.functions.cfm";
 	curr=server.lucee.version;
 	updateData=getAvailableVersion();
 try{
-	if(isNull(updateData.port) || updateData.port==404)
+	if(isNull(updateData.code) || updateData.code==404)
 		cfthrow(message="Could not reach update provider [#updateData.provider.location#].",detail=updateData.message);
-	else if(updateData.port!=200)
+	else if(updateData.code!=200)
 		cfthrow(message="Invalid response from [#updateData.provider.location#].",detail=updateData.message);
 	
 	updateData.qryOtherVersions=queryNew('version,versionSortable');
@@ -134,6 +134,7 @@ try{
 	error.message=cfcatch.message;
 	error.detail=cfcatch.Detail;
 	error.exception = cfcatch;
+	error.cfcatch = cfcatch;
 }
 printError(error);
 	if(structKeyExists(updateData,"qryOtherVersions"))querySort(updateData.qryOtherVersions,'versionSortable','desc');
