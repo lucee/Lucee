@@ -207,8 +207,8 @@ public class JavaProxyFactory {
 
 	public static Object createProxy(PageContext pc, Component cfc, Class extendz,Class... interfaces) throws PageException, IOException {
 		PageContextImpl pci=(PageContextImpl) pc;
-		
-		ClassLoader[] parents = extractClassLoaders(((ConfigImpl)pci.getConfig()).getClassLoaderEnv(),interfaces);
+		//((ConfigImpl)pci.getConfig()).getClassLoaderEnv()
+		ClassLoader[] parents = extractClassLoaders(null,interfaces);
 		
 		if(extendz==null) extendz=Object.class;
 		if(interfaces==null) interfaces=new Class[0];
@@ -322,8 +322,10 @@ public class JavaProxyFactory {
 
 	private static ClassLoader[] extractClassLoaders(ClassLoader cl, Class[] classes) {
 		List<ClassLoader> list=new ArrayList<ClassLoader>();
-		list.add(cl);
-		cl=null;
+		if(cl!=null) {
+			list.add(cl);
+			cl=null;
+		}
 		ClassLoader tmp;
 		Iterator<ClassLoader> it;
 		if(classes!=null)outer:for(int i=0; i<classes.length; i++) {
