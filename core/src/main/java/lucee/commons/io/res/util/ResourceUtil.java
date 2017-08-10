@@ -988,7 +988,7 @@ public final class ResourceUtil {
         if(src.isDirectory()) {
         	if(!trg.exists())trg.createDirectory(true);
         	Resource[] files=filter==null?src.listResources():src.listResources(filter);
-            for(int i=0;i<files.length;i++) {
+            if(files!=null)for(int i=0;i<files.length;i++) {
             	copyRecursive(files[i],trg.getRealResource(files[i].getName()),filter);
             }
         }
