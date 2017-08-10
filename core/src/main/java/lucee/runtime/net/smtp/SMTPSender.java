@@ -34,7 +34,7 @@ import lucee.runtime.net.smtp.SMTPClient.MimeMessageAndSession;
 public final class SMTPSender extends Thread {
 
 	private boolean isSent = false;
-	private Throwable throwable;
+	private Exception throwable;
 	private Object lock;
 	private String host;
 	private int port;
@@ -74,9 +74,8 @@ public final class SMTPSender extends Thread {
         	if(valid!=null && valid.length>0) isSent=true;
         	this.throwable=sfe;
         }
-		catch(Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			this.throwable=t;
+		catch(Exception e) {
+			this.throwable=e;
 		}
 		finally {
 			try {

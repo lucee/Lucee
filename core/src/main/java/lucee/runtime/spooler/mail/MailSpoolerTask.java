@@ -28,8 +28,10 @@ import lucee.runtime.net.mail.MailException;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.smtp.SMTPClient;
 import lucee.runtime.op.Caster;
+import lucee.runtime.spooler.CFMLSpoolerTaskListener;
 import lucee.runtime.spooler.ExecutionPlan;
 import lucee.runtime.spooler.ExecutionPlanImpl;
+import lucee.runtime.spooler.SpoolerTaskListener;
 import lucee.runtime.spooler.SpoolerTaskSupport;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -46,11 +48,13 @@ public class MailSpoolerTask extends SpoolerTaskSupport {
 	
 	private SMTPClient client;
 	private Server[] servers;
+	private SpoolerTaskListener listener;
 
 	private MailSpoolerTask(ExecutionPlan[] plans,SMTPClient client,Server[] servers, long sendTime) {
 		super(plans, sendTime);
 		this.client=client;
 		this.servers=servers;
+		this.listener=listener;
 	}
 
 	public MailSpoolerTask(SMTPClient client,Server[] servers, long sendTime) {
@@ -110,6 +114,7 @@ public class MailSpoolerTask extends SpoolerTaskSupport {
 		
 		return per+" ("+addr+")";
 	}
+	
 	@Override
 	public Object execute(Config config) throws PageException {
 		try {
@@ -119,6 +124,15 @@ public class MailSpoolerTask extends SpoolerTaskSupport {
 			throw Caster.toPageException(e);
 		}
 		return null;
+	}
+
+	@Override
+	public SpoolerTaskListener getListener() {
+		return listener;
+	}
+
+	public void setListener(SpoolerTaskListener listener) {
+		this.listener=listener;
 	}
 
 }

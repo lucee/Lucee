@@ -128,6 +128,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 
 	private Map<Key, Pair<Log,Struct>> logs;
 
+	private Object mailListener;
+
     
     /**
      * constructor of the class
@@ -907,6 +909,16 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
 		if(pair==null) return null;
 		return (Struct)pair.getValue().duplicate(false);
+	}
+
+	@Override
+	public Object getMailListener() {
+		return mailListener;
+	}
+
+	@Override
+	public void setMailListener(Object mailListener) {
+		this.mailListener=mailListener;
 	}
 
 }

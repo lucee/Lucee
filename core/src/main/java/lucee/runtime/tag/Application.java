@@ -98,6 +98,7 @@ public final class Application extends TagImpl {
     private String name="";
 	private int action=ACTION_CREATE;
 	private int localMode=-1;
+	private Object mailListener=null;
 	private Locale locale;
 	private TimeZone timeZone;
 	private CharSet webCharset;
@@ -168,6 +169,7 @@ public final class Application extends TagImpl {
         this.name="";
         action=ACTION_CREATE;
         localMode=-1;
+        mailListener=null;
         locale=null;
         timeZone=null;
         webCharset=null;
@@ -266,9 +268,13 @@ public final class Application extends TagImpl {
 	public void setCaches(Struct caches) {
 		this.caches = caches;
 	}
-	
+
 	public void setLocalmode(String strLocalMode) throws ApplicationException {
 		this.localMode = AppListenerUtil.toLocalMode(strLocalMode);
+		
+	}
+	public void setMaillistener(Object mailListener) throws ApplicationException {
+		this.mailListener = mailListener;
 		
 	}
 	
@@ -657,6 +663,7 @@ public final class Application extends TagImpl {
 		if(setDomainCookies!=null)				ac.setSetDomainCookies(setDomainCookies.booleanValue());
 		if(setSessionManagement!=null)			ac.setSetSessionManagement(setSessionManagement.booleanValue());
 		if(localMode!=-1) 						ac.setLocalMode(localMode);
+		if(mailListener!=null) 					((ApplicationContextSupport) ac).setMailListener(mailListener);
 		if(locale!=null) 						ac.setLocale(locale);
 		if(timeZone!=null) 						ac.setTimeZone(timeZone);
 		if(webCharset!=null) 					ac.setWebCharset(webCharset.toCharset());

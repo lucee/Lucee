@@ -478,7 +478,14 @@ Specifies how Lucee stores session variables:
 - modern: the local scope is always invoked
 - classic (CFML standard): the local scope is only invoked when the key already exists in it</description>
 		</attribute>
-
+		<attribute>
+			<type>any</type>
+			<name>mailListener</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<status>hidden</status>
+			<description></description>
+		</attribute>
 		<attribute>
 			<type>struct</type>
 			<name>tag</name>

@@ -5351,6 +5351,14 @@ Lucee uses the number of characters in the file.</description>
 		is MIME-encoded.</description>
 		</attribute>
 		<attribute>
+			<type>any</type>
+			<name>listener</name>
+			<required>false</required>
+			<status>hidden</status>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
 			<type>string</type>
 			<name>query</name>
 			<required>false</required>

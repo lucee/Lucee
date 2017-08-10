@@ -428,4 +428,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract java.util.Collection<Collection.Key> getLogNames();
 	public abstract Log getLog(String name);
 	public abstract Struct getLogMetaData(String string);
+	public abstract Object getMailListener();
+	public abstract void setMailListener(Object mailListener);
+	
 }
