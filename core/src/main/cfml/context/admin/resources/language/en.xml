@@ -33,6 +33,17 @@
 	<data key="services.update.remove">Remove installed patches</data>
 	<data key="services.update.exerun">execute update</data>
 	<data key="services.update.typedesc">Define how Lucee will be patched. &quot;Automatic&quot; means that Lucee searches automatically for updates once a day. &quot;Manual&quot; means that you can update Lucee only manually here.</data>
+
+	<data key="services.update.snapShot">SnapShot</data>
+	<data key="services.update.beta">Alpha/ beta Release</data>
+	<data key="services.update.release">Release</data>
+	<data key="services.update.upgrade">Upgrade</data>
+	<data key="services.update.downgrade">Downgrade</data>
+	<data key="services.update.snapShotDesc">Snapshots are generated automatically with every push to the repository, when all bundled test cases pass successfully. Snapshots are NOT recommended for production environments.</data>
+	<data key="services.update.betaDesc">Alpha/ beta Release (description)</data>
+	<data key="services.update.releaseDesc">Releases are heavily tested and are recommended for production environments.</data>
+	<data key="services.update.titleDesc">Upgrade or Downgrade snapshots and a release available for your current version</data>
+
 	<data key="services.certificate.desc">List SSL Certificates for a specific Host or install them.</data>
 	<data key="services.certificate.host">Host</data>
 	<data key="services.certificate.hostDesc">The host server, for example "www.lucee.org"</data>
