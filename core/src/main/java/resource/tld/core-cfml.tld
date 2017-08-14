@@ -1966,8 +1966,7 @@ any: return keys and values </description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>variable</name>
-			<alias>name</alias>
+			<name>name</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Name of record set to contain returned keys and values.</description>
