@@ -14,6 +14,30 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  --->
+
+
+ <!--- <cftry> 
+<cfswitch expression="#url.action2#">
+	<cfcase value="settings">
+		<cfif !structKeyExists(form, "locationCustom") || form.locationCustom eq "" || !structKeyExists(form, "location")>
+			<cfset form.locationCustom = "http://release.lucee.org">
+		</cfif>
+		<cfadmin
+			action="UpdateUpdate"
+			type="#request.adminType#"
+			password="#session["password"&request.adminType]#"
+
+			updateType="#form.type#"
+			updateLocation="#form.locationCustom#"
+			remoteClients="#request.getRemoteClients()#">
+	</cfcase>
+</cfswitch>
+<cfcatch>
+		<cfset error.message=cfcatch.message>
+		<cfset error.detail=cfcatch.Detail>
+		<cfset error.cfcatch=cfcatch>
+	</cfcatch>
+</cftry> --->
  <cfif request.admintype EQ "web"><cflocation url="#request.self#" addtoken="no"></cfif>
 <cfset error.message="">
 <cfset error.detail="">
@@ -21,7 +45,7 @@
 
 	max=100;
 	count=0;
-	while(!structKeyExists(application, "luceeUpdateProvider") && count++ < max ) {
+	while(!structKeyExists(application.luceeUpdateProvider, "versions") && count++ < max ) {
 	   sleep(100);
 	}
 	if(count==max) throw "failed to load ..."
@@ -40,16 +64,18 @@
 		http = application.luceeUpdateProvider;
 		if(isNull(http.versions.otherVersions) || http.type == 'warning'){
 			error.message = "Couldn't able to reach the server. Please try after some times";
+			result.otherVersions = [];
+		} else{
+			result = http.versions;
 		}
 		versionsStr = {};
 		versionsStr.snapShot = {};
 		versionsStr.beta= {};
 		versionsStr.release = {};
-		for( type in versionsStr){
+		for(type in versionsStr){
 			versionsStr[type].upgrade = [];
 			versionsStr[type].downgrade = [];
 		}
-		result = http.versions;
 		if(len(result.otherVersions)){
 			for(versions in result.otherVersions ){
 				if(FindNoCase("SNAPSHOT", versions)){
@@ -80,7 +106,7 @@
 			}
 		}
 
-		printError(error);
+	printError(error);
 </cfscript>
 
 
@@ -211,6 +237,63 @@
 			</div>
 		</form>
 	</div>
+
+<!--- for custom --->
+<!--- 	<cfformClassic onerror="customError" action="#go(url.action,"settings")#" method="post">
+		<table class="maintbl">
+			<tbody>
+				<tr>
+					<th scope="row">#stText.services.update.provider#</th>
+					<td>
+						<cfif hasAccess>
+							<cfset isCustom=true>
+							<ul class="radiolist" id="updatelocations">
+								<!--- custom --->
+								<li>
+									<label>
+										<input type="checkbox" id="sp_radio_custom" name="location"<cfif  version EQ 'custom'>checked</cfif> value="cutsomVersion" />
+										<input type="hidden" value="#updateData.provider.location#" name="updatedInfo">
+										<b>#stText.services.update.location_custom#</b>
+									</label>
+									<input id="customtextinput" type="text" class="text" name="locationCustom" size="40" value="<cfif  version EQ 'custom'>#updateData.provider.location#</cfif>" disabled>
+									<div class="comment">#stText.services.update.location_customDesc#</div>
+								</li>
+							</ul>
+						<cfelse>
+							<b>#updateData.provider.location#</b>
+						</cfif>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">#stText.services.update.type#</th>
+					<td>
+						<cfif hasAccess>
+							<select name="type">
+								<option value="manual" <cfif updateData.provider.type EQ "manual">selected</cfif>>#stText.services.update.type_manually#</option>
+								<option value="auto" <cfif updateData.provider.type EQ "auto">selected</cfif>>#stText.services.update.type_auto#</option>
+							</select>
+						<cfelse>
+							<b>#updateData.provider.type#</b>
+						</cfif>
+						<div class="comment">#stText.services.update.typeDesc#</div>
+					</td>
+				</tr>
+				<cfif hasAccess>
+					<cfmodule template="remoteclients.cfm" colspan="2">
+				</cfif>
+			</tbody>
+			<cfif hasAccess>
+				<tfoot>
+					<tr>
+						<td colspan="2">
+							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Update#">
+							<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
+						</td>
+					</tr>
+				</tfoot>
+			</cfif>
+		</table>
+	</cfformClassic> --->
 	<cfhtmlbody>
 		<script type="text/javascript">
 			$(document).ready(function(){

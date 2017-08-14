@@ -18,14 +18,14 @@
 				if(isJson(http.filecontent)) {
 					rsp = {"type":"info", "versions":"#deserializeJson(http.filecontent)#", "message" : "success"};
 				}else if(http.status_code==404) {
-					rsp={"type":"warning","message":replace(stText.services.update.serverNotReachable,'{url}',provider)};
+					rsp={"type":"warning", "versions":[], "message":replace(stText.services.update.serverNotReachable,'{url}',provider)};
 				}
 				else {
-					rsp={"type":"warning","message":replace(stText.services.update.serverNotReachable,'{url}',provider)&" "&http.filecontent};
+					rsp={"type":"warning", "versions":[], "message":replace(stText.services.update.serverNotReachable,'{url}',provider)&" "&http.filecontent};
 				}
 				rsp.code=http.status_code?:404;
 			}catch(e){
-				rsp={"type":"warning","message":replace(stText.services.update.serverNotReachable,'{url}',provider)&" "&e.message};
+				rsp={"type":"warning", "versions":[], "message":replace(stText.services.update.serverNotReachable,'{url}',provider)&" "&e.message};
 			}
 			// update thread value in application scope
 			structUpdate(Application, "luceeUpdateProvider", rsp);
