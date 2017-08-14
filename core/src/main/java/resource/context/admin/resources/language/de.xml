@@ -34,6 +34,16 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="services.update.remove">Installierte Patches entfernen</data>
 	<data key="services.update.typedesc">Definieren Sie hier wie Lucee gepatcht werden soll, &apos;Automatisch&apos; steht dafür, dass Lucee automatisch, täglich nach updates sucht. &apos;Manuell&apos; bedeutet, dass ein Update nur manuell ausgeführt werden kann.</data>
 
+	<data key="services.update.snapShot">SnapShot</data>
+	<data key="services.update.beta">Alpha/ beta Release</data>
+	<data key="services.update.release">Release</data>
+	<data key="services.update.upgrade">Upgrade</data>
+	<data key="services.update.downgrade">Downgrade</data>
+	<data key="services.update.snapShotDesc">Snapshots are generated automatically with every push to the repository, when all bundled test cases pass successfully. Snapshots are NOT recommended for production environments.</data>
+	<data key="services.update.betaDesc">Alpha/ beta Release (description)</data>
+	<data key="services.update.releaseDesc">Releases are heavily tested and are recommended for production environments.</data>
+	<data key="services.update.titleDesc">Upgrade or Downgrade snapshots and a release available for your current version</data>
+
 		<data key="services.update.lib">Update JAR's</data>
 	<data key="services.update.libDesc">Ihre JAR's sind nicht mehr aktuell. Um Ihre JAR's auf den aktuellsten stand zu bringen, klicken sie bitte auf den folgenden Button. Das funktioniert unter Umständen nicht, wenn sie keine saubere Internetverbindung haben. Falls dies fehlschlägt holen Sie sich die aktiuellen JAR's von unserer Webseite und frischen Sie dies manuell auf. Dieses Update benötigt ein restart der kompletten Servlet Engine.</data>
 	<data key="services.certificate.desc">Liste SSL Zertifikate für einen bestimmten Host oder installiere diese.</data>
