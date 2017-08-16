@@ -1742,7 +1742,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			// Update
-			/*TODO ADD describe( title="test changeVersionTo function", body=function() {
+			describe( title="test changeVersionTo function", body=function() {
 				it(title="checking changeVersionTo()", body=function( currentSpec ) {
 					restBasePath="/rest/update/provider/";
 					var getUpdate = admin.getUpdate();
@@ -1761,7 +1761,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					changing the version breaks testing for all following testcases!!!!
 					*/
 				});
-			});*/
+			});
 
 			describe( title="test connect function", body=function() {
 				it(title="checking connect()", body=function( currentSpec ) {
