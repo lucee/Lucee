@@ -71,7 +71,7 @@ public class QueryStruct extends StructImpl implements QueryResult {
 	}
 	
 	@Override
-	public synchronized Collection duplicate(boolean deepCopy) {
+	public Collection duplicate(boolean deepCopy) {
 		QueryStruct qa = new QueryStruct(name,sql,template);
 		qa.cacheType=cacheType;
 		qa.columnNames=columnNames;

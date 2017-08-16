@@ -100,7 +100,7 @@ public class IPRangeNode<T> implements Comparable<IPRangeNode>, Comparator<IPRan
 	 * @return - true if the child was added
 	 */
 	synchronized boolean addChild( IPRangeNode child, boolean doCheck ) {
-
+		
 		if ( !this.containsRange( child ) )
 			return false;
 
@@ -112,7 +112,6 @@ public class IPRangeNode<T> implements Comparable<IPRangeNode>, Comparator<IPRan
 		// TODO: check for eqaulity of new child and found parent
 
 		parent.children.add( child, doCheck );
-
 		return true;
 	}
 

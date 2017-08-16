@@ -62,6 +62,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
+import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.monitor.ActionMonitor;
 import lucee.runtime.monitor.ActionMonitorCollector;
 import lucee.runtime.monitor.IntervallMonitor;
@@ -710,6 +711,8 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	private List<ExtensionDefintion> localExtensions;
 
 	private long localExtHash;
+
+	private Map<String, GatewayEntry> gatewayEntries;
 	
 	protected void setFullNullSupport(boolean fullNullSupport) {
 		this.fullNullSupport=fullNullSupport;
@@ -916,5 +919,12 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		return HashUtil.create64BitHash(sb);
 	}
 	
+
+	protected void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries){
+		this.gatewayEntries=gatewayEntries;
+	}
 	
+	public Map<String, GatewayEntry> getGatewayEntries() {
+		return gatewayEntries;
+	}
 }

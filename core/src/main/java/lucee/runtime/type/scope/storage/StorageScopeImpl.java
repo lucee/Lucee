@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import lucee.commons.lang.RandomUtil;
+import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
@@ -102,6 +103,7 @@ public abstract class StorageScopeImpl extends StructSupport implements StorageS
 	private long timeSpan=-1;
 	private String storage;
 	private Map<String, String> tokens; 
+	private final Object sync=new SerializableObject();
 	
 	
 	/**
@@ -512,27 +514,31 @@ public abstract class StorageScopeImpl extends StructSupport implements StorageS
 	}
 	
 	@Override
-	public synchronized String generateToken(String key, boolean forceNew) {
-        if(tokens==null) 
-        	tokens = new HashMap<String,String>();
-        
-        // get existing
-        String token;
-        if(!forceNew) {
-        	token = tokens.get(key);
-        	if(token!=null) return token;
-        }
-        
-        // create new one
-        token = RandomUtil.createRandomStringLC(40);
-        tokens.put(key, token);
-        return token;
+	public String generateToken(String key, boolean forceNew) {
+		synchronized (sync) {
+	        if(tokens==null) 
+	        	tokens = new HashMap<String,String>();
+	        
+	        // get existing
+	        String token;
+	        if(!forceNew) {
+	        	token = tokens.get(key);
+	        	if(token!=null) return token;
+	        }
+	        
+	        // create new one
+	        token = RandomUtil.createRandomStringLC(40);
+	        tokens.put(key, token);
+	        return token;	
+		}
     }
 	
 	@Override
-	public synchronized boolean verifyToken(String token, String key) {
-		if(tokens==null) return false;
-        String _token = tokens.get(key);
-        return _token!=null && _token.equalsIgnoreCase(token);
+	public boolean verifyToken(String token, String key) {
+		synchronized (sync) {
+	        if(tokens==null) return false;
+	        String _token = tokens.get(key);
+	        return _token!=null && _token.equalsIgnoreCase(token);
+		}
     }
 }

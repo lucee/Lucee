@@ -5,7 +5,7 @@
 <cfoutput>
 	<cfformClassic name="login" action="#request.self#" method="post"><!--- onerror="customError"--->
 		<table class="maintbl" style="width:300px">
-			<tbody> 
+			<tbody>
 				<tr>
 					<th scope="row" class="right" nowrap="nowrap">#stText.Login.Password#</th>
 					<td><cfinputClassic type="password" name="new_password" id="new_password" value="" passthrough='autocomplete="off"'
@@ -54,8 +54,12 @@
 	</cfformClassic>
 </cfoutput>
 
-<script type="text/javascript">
-	$( function() {
-		$( '#new_password' ).focus();
-	});
-</script>
+<cfhtmlbody>
+
+	<script type="text/javascript">
+		$( function() {
+			$( '#new_password' ).focus();
+		});
+	</script>
+
+</cfhtmlbody>

@@ -20,8 +20,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import lucee.print;
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.IOUtil;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.ResourceProvider;
+import lucee.commons.io.res.ResourcesImpl;
 import lucee.runtime.coder.CoderException;
+import lucee.runtime.functions.string.ToBase64;
+import lucee.runtime.op.Caster;
 
 public class Base64Encoder {
 
@@ -110,7 +117,30 @@ public class Base64Encoder {
 	}
 	
 	
-	
+	public static void main(String[] args) throws Exception {
+		ResourceProvider p = ResourcesImpl.getFileResourceProvider();
+		Resource f1 = p.getResource("/Users/mic/Test/test/webapps/ROOT/test/testcases/LDEV1393/originalImg.png");
+		Resource f2 = p.getResource("/Users/mic/Test/test/webapps/ROOT/test/testcases/LDEV1393/image_code.base64");
+		
+		byte[] bytes = IOUtil.toBytes(f1);
+		String str1=encode(bytes);
+		String str2=IOUtil.toString(f2, "UTF-8");
+		String str3=Caster.toBase64(bytes,"UTF-8");
+		print.e(str1.length());
+		print.e(str2.length());
+		print.e(str3.length());
+		
+		int len=21;
+		int tmp=4-(len-(len/4*4));
+		print.e("tmp:"+tmp);
+		print.e(str1.substring(str1.length()-40));
+		print.e(str2.substring(str2.length()-40));
+		decode(str1);
+		bytes=decode(str2);
+		
+		Resource f3 = p.getResource("/Users/mic/test.png");
+		IOUtil.write(f3, bytes);
+	}
 	
 	/**
      * Translates the specified Base64 string into a byte array.
@@ -126,8 +156,15 @@ public class Base64Encoder {
 		data=data.trim();
 		final int len=data.length();
 		if(len==0) return new byte[0];// we accept a empty string as a empty binary!
-		if(len % 4 != 0 || len < 4)
-    		throw new CoderException("can't decode the the base64 input string"+printString(data)+", because the input string has an invalid length");
+		int tmp=4-(len-(len/4*4));
+		if(tmp!=4) {
+			for(int i=0;i<tmp;i++) {
+				data+="=";
+			}
+			return decode(data);
+    		//throw new CoderException((len % 4)+"can't decode the the base64 input string"+printString(data)+", because the input string has an invalid length");
+		}
+		
 		
 		
 		for (int position=0; position < len; ) {

@@ -66,6 +66,7 @@ import lucee.transformer.cfml.evaluator.EvaluatorPool;
 import lucee.transformer.cfml.script.DocComment;
 import lucee.transformer.cfml.script.DocCommentTransformer;
 import lucee.transformer.cfml.tag.CFMLTransformer;
+import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
@@ -376,11 +377,15 @@ public abstract class AbstrCFMLExprTransformer {
         	comments(data);
         	// Elvis
         	if(data.srcCode.forwardIfCurrent(':')) {
+        		
         		comments(data);
             	Expression right = assignOp(data);
+
+         		if (expr instanceof ExprBoolean)
+         			return expr;
         		
-        		if(!(expr instanceof Variable) )
-					throw new TemplateException(data.srcCode,"left operant of the Elvis operator has to be a variable or a function call");
+        		if (!(expr instanceof Variable) )
+					throw new TemplateException(data.srcCode, "left operand of the Elvis operator has to be a variable or a function call");
 
 				Variable left = (Variable)expr;
 				/// LDEV-1201

@@ -71,7 +71,7 @@ public final class NumberFormat  {
 		
 		
 		
-		StringBuffer maskBuffer = new StringBuffer(mask);
+		StringBuilder maskBuffer = new StringBuilder(mask);
 		
 			String mod=StringUtil.replace(mask, ",", "", true);
 			if(StringUtil.startsWith(mod, '_'))symbolsFirst = true;
@@ -178,7 +178,7 @@ public final class NumberFormat  {
 		df.setRoundingMode(RoundingMode.HALF_UP);
 		
 		String formattedNum = df.format(StrictMath.abs(number));
-		StringBuffer formattedNumBuffer = new StringBuffer(formattedNum);
+		StringBuilder formattedNumBuffer = new StringBuilder(formattedNum);
 		if(symbolsFirst) {
 			int widthBefore = formattedNumBuffer.length();
 			applySymbolics(formattedNumBuffer, number, usePlus, useMinus, useDollar, useBrackets);
@@ -195,7 +195,7 @@ public final class NumberFormat  {
 		else {
 			int widthBefore = formattedNumBuffer.length();
 			
-			StringBuffer temp = new StringBuffer(formattedNumBuffer.toString());
+			StringBuilder temp = new StringBuilder(formattedNumBuffer.toString());
 			applySymbolics(temp, number, usePlus, useMinus, useDollar, useBrackets);
 			int offset = temp.length() - widthBefore;
 			
@@ -225,41 +225,44 @@ public final class NumberFormat  {
 	
 
 
-	private void applyJustification(StringBuffer _buffer, int _just, int padding) {
+	private void applyJustification(StringBuilder _buffer, int _just, int padding) {
 		if(_just == CENTER)		centerJustify(_buffer, padding);
 		else if(_just == LEFT)	leftJustify(_buffer, padding);
 		else					rightJustify(_buffer, padding);
 	}
 
-	private void applySymbolics(StringBuffer _buffer, double _no, boolean _usePlus, boolean _useMinus, boolean _useDollar, boolean _useBrackets) {
-		if(_useBrackets && _no < 0.0D) {
+	private void applySymbolics(StringBuilder _buffer, double _no, boolean _usePlus, boolean _useMinus, boolean _useDollar, boolean _useBrackets) {
+
+		if (_useBrackets && _no < 0.0D) {
 			_buffer.insert(0, '(');
 			_buffer.append(')');
 		}
-		if(_usePlus)
-			_buffer.insert(0, _no <= 0.0D ? '-' : '+');
-		if(_no < 0.0D && !_useBrackets && !_usePlus)
+
+		if (_usePlus)
+			_buffer.insert(0, _no < 0.0D ? '-' : '+');
+
+		if (_no < 0.0D && !_useBrackets && !_usePlus)
 			_buffer.insert(0, '-');
-		else
-		if(_useMinus)
+		else if (_useMinus)
 			_buffer.insert(0, ' ');
-		if(_useDollar)
+
+		if (_useDollar)
 			_buffer.insert(0, '$');
 	}
 
-	private void centerJustify(StringBuffer _src, int _padding) {
+	private void centerJustify(StringBuilder _src, int _padding) {
 		int padSplit = _padding / 2 + 1;
 		rightJustify(_src, padSplit);
 		leftJustify(_src, padSplit);
 	}
 
-	private void rightJustify(StringBuffer _src, int _padding) {
+	private void rightJustify(StringBuilder _src, int _padding) {
 		for(int x = 0; x < _padding; x++)
 			_src.insert(0, ' ');
 
 	}
 
-	private void leftJustify(StringBuffer _src, int _padding) {
+	private void leftJustify(StringBuilder _src, int _padding) {
 		for(int x = 0; x < _padding; x++)
 			_src.append(' ');
 

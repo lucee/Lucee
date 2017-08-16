@@ -435,9 +435,9 @@ public final class Operator {
     	if(Decision.isNumber(left)) {
             if(left.length()>9) {
             	try{
-            		return new BigDecimal(left).compareTo(new BigDecimal(right));
+            		return new BigDecimal(left).compareTo(new BigDecimal(Caster.toString(right)));
             	}
-            	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+            	catch(Exception e) {}
             }
     		return compare(Caster.toDoubleValue(left,Double.NaN),right); 
     	}

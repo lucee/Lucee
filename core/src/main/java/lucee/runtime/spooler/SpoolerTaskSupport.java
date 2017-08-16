@@ -29,7 +29,7 @@ import lucee.runtime.type.StructImpl;
 
 
 
-public abstract class SpoolerTaskSupport implements SpoolerTask {
+public abstract class SpoolerTaskSupport implements SpoolerTaskPro {
 
 	private long creation;
 	private long lastExecution;
@@ -164,4 +164,8 @@ public abstract class SpoolerTaskSupport implements SpoolerTask {
 		this.lastExecution=lastExecution;
 	}
 
+	@Override
+	public SpoolerTaskListener getListener() {
+		return null; // not supported
+	}
 }

@@ -203,12 +203,12 @@ public final class SVArray extends ArrayImpl implements Reference {
 	}
 
 	@Override
-	public synchronized Object clone() {
+	public Object clone() {
 		return duplicate(true);
 	}
 
 	@Override
-	public synchronized Collection duplicate(boolean deepCopy) {
+	public Collection duplicate(boolean deepCopy) {
 		SVArray sva = new SVArray();
 		duplicate(sva,deepCopy);
 		sva.position=position;

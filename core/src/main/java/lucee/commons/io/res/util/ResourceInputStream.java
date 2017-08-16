@@ -74,7 +74,7 @@ public class ResourceInputStream extends InputStream {
 	}
 
 	@Override
-	public synchronized void reset() throws IOException {
+	public void reset() throws IOException {
 		is.reset();
 	}
 

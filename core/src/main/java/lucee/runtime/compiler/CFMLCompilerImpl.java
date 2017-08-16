@@ -129,7 +129,6 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 	        	page.setSplitIfNecessary(false);
 	        	try {
 	        		result=new Result(page,page.execute(className));
-	        		//barr = page.execute(className);
 	        	}
 	        	catch(RuntimeException re) {
 	        		String msg=StringUtil.emptyIfNull(re.getMessage());

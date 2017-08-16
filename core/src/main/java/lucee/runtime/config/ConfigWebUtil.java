@@ -95,6 +95,26 @@ public final class ConfigWebUtil {
 		return "encrypted:" + new BlowfishEasy("sdfsdfs").encryptString(str);
 	}
 	
+	/**
+	 * deploys all content in "web-deployment" to a web context, used for new context mostly or update existings
+	 * @param cs
+	 * @param cw
+	 * @param throwError
+	 * @throws IOException
+	 */
+	public static void deployWeb(ConfigServer cs, ConfigWeb cw, boolean throwError) throws IOException  {
+		Resource deploy = cs.getConfigDir().getRealResource("web-deployment"),trg;
+		if(!deploy.isDirectory()) return;
+
+		trg=cw.getRootDirectory();
+		try {
+			_deploy(cw,deploy,trg);	
+		}
+		catch (IOException ioe) {
+			if(throwError) throw ioe;
+			SystemOut.printDate(cw.getErrWriter(), ExceptionUtil.getStacktrace(ioe, true));
+		}
+	}
 
 	/**
 	 * deploys all content in "web-context-deployment" to a web context, used for new context mostly or update existings
@@ -108,7 +128,7 @@ public final class ConfigWebUtil {
         if(!deploy.isDirectory()) return;
 			trg=cw.getConfigDir().getRealResource("context");
         	try {
-				_deployWebContext(cw,deploy,trg);	
+				_deploy(cw,deploy,trg);	
 			}
 			catch (IOException ioe) {
 				if(throwError) throw ioe;
@@ -116,7 +136,7 @@ public final class ConfigWebUtil {
 			}
 	}
 
-	private static void _deployWebContext(ConfigWeb cw,Resource src, Resource trg) throws IOException {
+	private static void _deploy(ConfigWeb cw,Resource src, Resource trg) throws IOException {
 		if(!src.isDirectory())return;
 		if(trg.isFile()) trg.delete();
 		if(!trg.exists()) trg.mkdirs();
@@ -128,7 +148,7 @@ public final class ConfigWebUtil {
 			_src=children[i];
 			_trg=trg.getRealResource(_src.getName());
 			if(_src.isDirectory()) 
-				_deployWebContext(cw,_src,_trg);
+				_deploy(cw,_src,_trg);
 			if(_src.isFile()) {
 				if(_src.length()!=_trg.length()) {
 					_src.copyTo(_trg, false);

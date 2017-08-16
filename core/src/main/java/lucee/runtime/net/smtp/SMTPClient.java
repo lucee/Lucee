@@ -62,6 +62,7 @@ import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
@@ -70,6 +71,7 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.mail.MailException;
@@ -82,7 +84,11 @@ import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.net.smtp.SMTPConnectionPool.SessionAndTransport;
 import lucee.runtime.op.Caster;
+import lucee.runtime.spooler.CFMLSpoolerTaskListener;
+import lucee.runtime.spooler.ComponentSpoolerTaskListener;
+import lucee.runtime.spooler.UDFSpoolerTaskListener;
 import lucee.runtime.spooler.mail.MailSpoolerTask;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 
@@ -153,6 +159,8 @@ public final class SMTPClient implements Serializable  {
 	private TimeZone timeZone;
 	private long lifeTimespan=100*60*5;
 	private long idleTimespan=100*60*1;
+
+	private Object listener;
 
 	
 	
@@ -335,9 +343,14 @@ public final class SMTPClient implements Serializable  {
 	public void setSubject(String subject) {
 		this.subject=subject;
 	}
-	
+
 	public void setXMailer(String xmailer) {
 		this.xmailer=xmailer;
+	}
+	public void setListener(Object listener) throws ApplicationException {
+		if(!(listener instanceof UDF) && !(listener instanceof Component))
+			throw new ApplicationException("Listener must be a Function or a Component.");
+		this.listener=listener;
 	}
 
 	/**
@@ -715,7 +728,13 @@ public final class SMTPClient implements Serializable  {
 			throw new MailException("no SMTP Server defined");
 
 		if(spool==SPOOL_YES || (spool==SPOOL_UNDEFINED && config.isMailSpoolEnable())) {
-			config.getSpoolerEngine().add(new MailSpoolerTask(this, servers, sendTime));
+			MailSpoolerTask mst = new MailSpoolerTask(this, servers, sendTime);
+			if(listener instanceof Component)
+				mst.setListener(new ComponentSpoolerTaskListener(mst,(Component)listener));
+			else if(listener instanceof UDF)
+				mst.setListener(new UDFSpoolerTaskListener(mst,(UDF)listener));
+			
+			config.getSpoolerEngine().add(mst);
         }
 		else
 			_send(config,servers);

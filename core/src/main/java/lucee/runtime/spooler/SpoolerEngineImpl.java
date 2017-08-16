@@ -66,6 +66,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	private static final Collection.Key TRIES = KeyImpl.intern("tries");
 	private static final Collection.Key TRIES_MAX = KeyImpl.intern("triesmax");
 
+
 	
 	private String label;
 	
@@ -235,6 +236,17 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 		boolean exists=persis.exists();
 		if(exists) persis.delete(); 
 	}
+	
+	private void log(SpoolerTask task, Exception e) {
+		if(task instanceof SpoolerTaskPro) {
+			SpoolerTaskPro taskp=(SpoolerTaskPro)task;
+			SpoolerTaskListener listener=taskp.getListener();
+			if(listener!=null)listener.listen(config, e);
+		}
+		if(e==null) log.log(Log.LEVEL_INFO,"remote-client", "sucessfully executed: "+task.subject());
+		else LogUtil.log(log,Log.LEVEL_ERROR,"remote-client", "failed to execute: "+task.subject(),e);
+	}
+
 	private Resource getFile(SpoolerTask task) {
 		Resource dir = persisDirectory.getRealResource(task.closed()?"closed":"open");
 		dir.mkdirs();
@@ -441,7 +453,6 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 					if(task==null) continue;
 					
 					if(task.nextExecution()<=System.currentTimeMillis()) {
-						//print.o("- execute " + task.getId());
 						tt=new TaskThread(engine,task);
 						tt.start();
 						runningTasks.add(tt);
@@ -587,32 +598,30 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 				((SpoolerTaskSupport)task)._execute(config);
 			else 
 				task.execute(config);
-			
 			unstore(task);
-			log.log(Log.LEVEL_INFO,"remote-client", task.subject());
+			
 			task.setLastExecution(System.currentTimeMillis());
 			task.setNextExecution(-1);
-			
 			task.setClosed(true);
+			log(task,null);
 			task=null;
 		} 
-		catch(Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		catch(Exception e) {
 			task.setLastExecution(System.currentTimeMillis());
 			task.setNextExecution(calculateNextExecution(task));
-			LogUtil.log(log,Log.LEVEL_ERROR,"remote-client", task.subject(),t);
+			
 			if(task.nextExecution()==-1) {
-				//openTasks.remove(task);
-				//if(!closedTasks.contains(task))closedTasks.add(task);
 				unstore(task);
 				task.setClosed(true);
+				log(task,e);
 				store(task);
 				task=null;
 			}
 			else 
+				log(task,e);
 				store(task);
 			
-			return Caster.toPageException(t);
+			return Caster.toPageException(e);
 		}
 		return null;
 	}

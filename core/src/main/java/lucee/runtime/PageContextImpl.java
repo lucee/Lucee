@@ -80,6 +80,7 @@ import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
+import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.include.IncludeCacheItem;
 import lucee.runtime.component.ComponentLoader;
@@ -333,8 +334,8 @@ public final class PageContextImpl extends PageContext {
 	private PageException pe;
     //private Throwable requestTimeoutException;
 
-	private int currentTemplateDialect=CFMLEngine.DIALECT_LUCEE;
-	private int requestDialect=CFMLEngine.DIALECT_LUCEE;
+	private int currentTemplateDialect=CFMLEngine.DIALECT_CFML;
+	private int requestDialect=CFMLEngine.DIALECT_CFML;
 	private boolean ignoreScopes=false;
 	
 	private int appListenerType=ApplicationListener.TYPE_NONE;
@@ -442,6 +443,7 @@ public final class PageContextImpl extends PageContext {
 			 int bufferSize, 
 			 boolean autoFlush,
 			 boolean isChild, boolean ignoreScopes) {
+		parent=null;
 		appListenerType=ApplicationListener.TYPE_NONE;
 		this.ignoreScopes=ignoreScopes;
 
@@ -554,29 +556,14 @@ public final class PageContextImpl extends PageContext {
 		}
 		
 		// ORM
-		if(ormSession!=null){
-			// flush orm session
-			try {
-				ORMEngine engine=ormSession.getEngine();
-				ORMConfiguration config=engine.getConfiguration(this);
-				if(config==null || (config.flushAtRequestEnd() && config.autoManageSession())){
-					ormSession.flushAll(this);
-				}
-				ormSession.closeAll(this);
-			} 
-			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
-			ormSession=null;
-		}
+		//if(ormSession!=null)releaseORM();
 		
-
 		// Scopes
 		if(hasFamily) {
 			if(!isChild){
 				req.disconnect(this);
 			}
-			
 			close();
-			thread=null;
 			base=null;
 			if(children!=null) children.clear();
 			
@@ -593,10 +580,7 @@ public final class PageContextImpl extends PageContext {
 		}
 		else {
 			close();
-			thread=null;
 			base=null;
-			
-			
 			if(variables.isBind()) {
 				variables=null;
 				variablesRoot=null;
@@ -615,14 +599,6 @@ public final class PageContextImpl extends PageContext {
 		local=localUnsupportedScope;
 		
 		cookie.release(this);
-		//if(cluster!=null)cluster.release();
-		
-		//client=null;
-		//session=null;
-		
-		
-		
-		
 		application=null;// not needed at the moment -> application.releaseAfterRequest();
 		applicationContext=null;
 		
@@ -650,9 +626,7 @@ public final class PageContextImpl extends PageContext {
 			lazyStats.clear();
 			lazyStats=null;
 		}
-		
-		
-		
+
 		pathList.clear();
 		includePathList.clear();
 		executionTime=0;
@@ -690,6 +664,23 @@ public final class PageContextImpl extends PageContext {
 		includeOnce.clear();
 		pe=null;
 		this.literalTimestampWithTSOffset=false;
+		thread=null;
+	}
+
+	private void releaseORM() throws PageException {
+		try{
+			// flush orm session
+			ORMEngine engine=ormSession.getEngine();
+			ORMConfiguration config=engine.getConfiguration(this);
+			if(config==null || (config.flushAtRequestEnd() && config.autoManageSession())){
+				ormSession.flushAll(this);
+			}
+			ormSession.closeAll(this);
+			manager.releaseORM();
+		}
+		finally {
+			ormSession=null;
+		}
 	}
 
 	@Override
@@ -850,29 +841,49 @@ public final class PageContextImpl extends PageContext {
 		}
 		
 		// get cached data
-		String id=CacheHandlerCollectionImpl.createId(sources);
-		CacheHandler ch = config.getCacheHandlerCollection(Config.CACHE_TYPE_INCLUDE,null).getInstanceMatchingObject(cachedWithin,null);
-		CacheItem ci=ch!=null?ch.get(this, id):null;
-		if(ci instanceof IncludeCacheItem) {
-			try {
-				write(((IncludeCacheItem)ci).getOutput());
-				return;
-			} catch (IOException e) {
-				throw Caster.toPageException(e);
+		String cacheId = CacheHandlerCollectionImpl.createId(sources);
+		CacheHandler cacheHandler = config.getCacheHandlerCollection(Config.CACHE_TYPE_INCLUDE, null).getInstanceMatchingObject(cachedWithin, null);
+
+		if (cacheHandler instanceof CacheHandlerPro){
+
+			CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(this, cacheId, cachedWithin);
+
+			if (cacheItem instanceof IncludeCacheItem) {
+				try {
+					write(((IncludeCacheItem)cacheItem).getOutput());
+					return;
+				} catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
 			}
 		}
+		else if (cacheHandler != null){		// TODO this else block can be removed when all cache handlers implement CacheHandlerPro
+
+			CacheItem cacheItem = cacheHandler.get(this, cacheId);
+
+			if(cacheItem instanceof IncludeCacheItem) {
+				try {
+					write(((IncludeCacheItem)cacheItem).getOutput());
+					return;
+				} catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
+			}
+		}
+
+		// cached item not found, process and cache result if needed
 		long start = System.nanoTime();
-		
 		BodyContent bc =  pushBody();
 		
 		try {
 			_doInclude(sources, runOnce);
 			String out = bc.getString();
-			if(ch!=null)ch.set(this, id,cachedWithin,new IncludeCacheItem(
-					out
-					,ArrayUtil.isEmpty(sources)?null:sources[0]
-					,System.nanoTime()-start));
-			return;
+
+			if (cacheHandler != null) {
+				CacheItem cacheItem = new IncludeCacheItem(out, ArrayUtil.isEmpty(sources) ? null : sources[0],System.nanoTime() - start);
+				cacheHandler.set(this, cacheId, cachedWithin, cacheItem);
+				return;
+			}
 		}
 		finally {
 			BodyContentUtil.flushAndPop(this,bc);
@@ -981,7 +992,6 @@ public final class PageContextImpl extends PageContext {
 		return includePathList.get(index-1);
 	}
 	public synchronized void copyStateTo(PageContextImpl other) {
-		
 		// cfid (we do this that way, otherwise we only have the same cfid if the current pc has defined cfid in cookie or url)
 		getCFID(); 
 		other.cfid=cfid;
@@ -994,6 +1004,9 @@ public final class PageContextImpl extends PageContext {
 		other.fdEnabled=fdEnabled;
 		other.useSpecialMappings=useSpecialMappings;
 		other.serverPassword=serverPassword;
+		other.requestDialect=requestDialect;
+		other.currentTemplateDialect=currentTemplateDialect;
+		
 		
 		
 		hasFamily=true;
@@ -1036,24 +1049,8 @@ public final class PageContextImpl extends PageContext {
 		other.psq=psq;
 		other.gatewayContext=gatewayContext;
 		
-		// thread
-		/*if(threads!=null){
-			synchronized (threads) {
-				
-				java.util.Iterator<Entry<Key, Object>> it2 = threads.entryIterator();
-				Entry<Key, Object> entry;
-				while(it2.hasNext()) {
-					entry = it2.next();
-					other.setThreadScope(entry.getKey(), (Threads)entry.getValue());
-				}
-			}
-		}*/
-		
-		
 		// initialize stuff
 		other.undefined.initialize(other);
-		
-		
 	}
 	
 	public int getCurrentLevel() {
@@ -2279,7 +2276,7 @@ public final class PageContextImpl extends PageContext {
 			hasFormatExtension=true;
 		}
 		else {
-			format = getApplicationContext().getRestSettings().getReturnFormat();
+			format = getApplicationContext()==null?null:getApplicationContext().getRestSettings().getReturnFormat();
 			//MimeType mt=MimeType.toMimetype(format);
 			//if(mt!=null)accept.add(mt);
 		}
@@ -2406,12 +2403,16 @@ public final class PageContextImpl extends PageContext {
 		try {
 			initallog();
 			listener.onRequest(this,ps,null);
+			if(ormSession!=null){
+				releaseORM();
+				removeLastPageSource(true);
+			}
 			log(false);
 		}
 		catch(Throwable t) {
 			PageException pe;
 			if(t instanceof ThreadDeath && getTimeoutStackTrace()!=null) {
-				t=pe=new RequestTimeoutException(this);
+				t=pe=new RequestTimeoutException(this,(ThreadDeath)t);
 			}
 			else pe = Caster.toPageException(t,false);
 			_t=t;
@@ -2717,7 +2718,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public Locale getLocale() {
-		Locale l = getApplicationContext().getLocale();
+		Locale l = getApplicationContext()==null?null:getApplicationContext().getLocale();
 		if(l!=null) return l;
 		if(locale!=null) return locale;
 		return config.getLocale();
@@ -2725,8 +2726,8 @@ public final class PageContextImpl extends PageContext {
 	
 	@Override
 	public void setLocale(Locale locale) {
-		
-		getApplicationContext().setLocale(locale);
+		if(getApplicationContext()!=null)
+			getApplicationContext().setLocale(locale);
 		this.locale=locale;
 		HttpServletResponse rsp = getHttpServletResponse();
 		
@@ -3108,7 +3109,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	@Override
-	public synchronized void compile(PageSource pageSource) throws PageException {
+	public void compile(PageSource pageSource) throws PageException {
 		Resource classRootDir = pageSource.getMapping().getClassRootDirectory();
 		int dialect=getCurrentTemplateDialect();
         
@@ -3257,7 +3258,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public TimeZone getTimeZone() {
-		TimeZone tz = getApplicationContext().getTimeZone();
+		TimeZone tz = getApplicationContext()==null?null: getApplicationContext().getTimeZone();
 		if(tz!=null) return tz;
 		if(timeZone!=null) return timeZone;
 		return config.getTimeZone();
@@ -3265,7 +3266,8 @@ public final class PageContextImpl extends PageContext {
 	
 	@Override
 	public void setTimeZone(TimeZone timeZone) {
-		getApplicationContext().setTimeZone(timeZone);
+		if(getApplicationContext()!=null)
+			getApplicationContext().setTimeZone(timeZone);
 		this.timeZone=timeZone;
 	}
 
@@ -3324,14 +3326,18 @@ public final class PageContextImpl extends PageContext {
 	}
 	
 	public ClassLoader getClassLoader(Resource[] reses) throws IOException{
-		return getResourceClassLoader().getCustomResourceClassLoader(reses);
+
+		ResourceClassLoader rcl = getResourceClassLoader();
+		return rcl.getCustomResourceClassLoader(reses);
 	}
 	
 	private ResourceClassLoader getResourceClassLoader() throws IOException {
+
 		JavaSettingsImpl js = (JavaSettingsImpl) applicationContext.getJavaSettings();
-		if(js!=null) {
+
+		if (js != null)
 			return config.getResourceClassLoader().getCustomResourceClassLoader(js.getResourcesTranslated());
-		}
+
 		return config.getResourceClassLoader();
 	}
 	
@@ -3387,7 +3393,7 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public DataSource getDataSource(String datasource) throws PageException {
 
-		DataSource ds = getApplicationContext().getDataSource(datasource,null);
+		DataSource ds = getApplicationContext()==null?null:getApplicationContext().getDataSource(datasource,null);
 		if(ds!=null) return ds;
 		ds=getConfig().getDataSource(datasource,null);
 		if(ds!=null) return ds;
@@ -3397,7 +3403,7 @@ public final class PageContextImpl extends PageContext {
 		
 	@Override
 	public DataSource getDataSource(String datasource, DataSource defaultValue) {
-		DataSource ds = getApplicationContext().getDataSource(datasource,null);
+		DataSource ds = getApplicationContext()==null?null:getApplicationContext().getDataSource(datasource,null);
 		if(ds==null) ds=getConfig().getDataSource(datasource,defaultValue);
 		return ds;
 	}
@@ -3454,14 +3460,14 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public Charset getResourceCharset() {
-		Charset cs = getApplicationContext().getResourceCharset();
+		Charset cs = getApplicationContext()==null?null:getApplicationContext().getResourceCharset();
 		if(cs!=null) return cs;
 		return config.getResourceCharset();
 	}
 
 	@Override
 	public Charset getWebCharset() {
-		Charset cs = getApplicationContext().getWebCharset();
+		Charset cs = getApplicationContext()==null?null:getApplicationContext().getWebCharset();
 		if(cs!=null) return cs;
 		return config.getWebCharset();
 	}

@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.SerializableObject;
 
 public class RetireOutputStream extends OutputStream {
 	
@@ -31,6 +32,7 @@ public class RetireOutputStream extends OutputStream {
 	private long lastAccess=0;
 	private long retireRange;
 	private RetireListener listener;
+	private final Object sync=new SerializableObject();
 
 	/**
 	 * 
@@ -59,65 +61,75 @@ public class RetireOutputStream extends OutputStream {
 		return os;
 	}
 	
-	public synchronized boolean retire() throws IOException{
-		if(os==null || (lastAccess+retireRange)>System.currentTimeMillis()) {
-			//print.e("not retire "+res);
-			return false;
+	public boolean retire() throws IOException{
+		synchronized (sync) {
+			if(os==null || (lastAccess+retireRange)>System.currentTimeMillis()) {
+				//print.e("not retire "+res);
+				return false;
+			}
+			//print.e("retire "+res);
+			append=true;
+			close();
+			return true;
 		}
-		//print.e("retire "+res);
-		append=true;
-		close();
-		
-		return true;
 	}
-	public synchronized boolean retireNow() throws IOException{
-		if(os==null)return false;
-		append=true;
-		close();
-		return true;
-	}
-
-	@Override
-	public synchronized void close() throws IOException {
-		if(os!=null){
-			if(listener!=null) listener.retire(this);
-			try{
-				os.close();
-			}
-			finally{
-				RetireOutputStreamFactory.list.remove(this);
-				os=null;
-			}
+	public boolean retireNow() throws IOException{
+		synchronized (sync) {
+			if(os==null)return false;
+			append=true;
+			close();
+			return true;
 		}
 	}
 
 	@Override
-	public synchronized void flush() throws IOException {
-		if(os!=null){
-			getOutputStream().flush();
-			if(retireRange==0) retireNow();
+	public void close() throws IOException {
+		synchronized (sync) {
+			if(os!=null){
+				if(listener!=null) listener.retire(this);
+				try{
+					os.close();
+				}
+				finally{
+					RetireOutputStreamFactory.list.remove(this);
+					os=null;
+				}
+			}
+		}
+	}
+
+	@Override
+	public void flush() throws IOException {
+		synchronized (sync) {
+			if(os!=null){
+				getOutputStream().flush();
+				if(retireRange==0) retireNow();
+			}
 		}
 	}
 	
 	@Override
-	public synchronized void write(int b) throws IOException {
-		//print.e("write:"+((char)b));
-		getOutputStream().write(b);
-		if(retireRange==0) retireNow();
+	public void write(int b) throws IOException {
+		synchronized (sync) {
+			getOutputStream().write(b);
+			if(retireRange==0) retireNow();
+		}
 	}
 
 	@Override
-	public synchronized void write(byte[] b) throws IOException {
-		//print.e("write.barr:"+b.length);
-		getOutputStream().write(b);
-		if(retireRange==0) retireNow();
+	public void write(byte[] b) throws IOException {
+		synchronized (sync) {
+			getOutputStream().write(b);
+			if(retireRange==0) retireNow();
+		}
 	}
 
 	@Override
-	public synchronized void write(byte[] b, int off, int len) throws IOException {
-		//print.e("write.barr:"+b.length+":"+off+":"+len);
-		getOutputStream().write(b, off, len);
-		if(retireRange==0) retireNow();
+	public void write(byte[] b, int off, int len) throws IOException {
+		synchronized (sync) {
+			getOutputStream().write(b, off, len);
+			if(retireRange==0) retireNow();
+		}
 	}
 
 }

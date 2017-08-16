@@ -51,7 +51,7 @@ public class UDFCaller2<P> implements Callable<Data<P>> {
 	private UDFCaller2(PageContext parent) {
 		this.parent = parent;
 		this.baos = new ByteArrayOutputStream();
-		this.pc=ThreadUtil.clonePageContext(parent, baos, false, false, false,true);
+		this.pc=ThreadUtil.clonePageContext(parent, baos, false, false, false);
 	}
 	
 	public UDFCaller2(PageContext parent, UDF udf, Object[] arguments,P passed, boolean doIncludePath) {

@@ -3,11 +3,11 @@
 <cfparam name="request.setCFApplication" default="true" type="boolean">
 
 <cfif request.setCFApplication>
-	<cfapplication 
-		name="webadmin#server.lucee.version#" 
-		sessionmanagement="yes" 
-		clientmanagement="no" 
-		setclientcookies="yes" 
+	<cfapplication
+		name="webadmin#server.lucee.version#"
+		sessionmanagement="yes"
+		clientmanagement="no"
+		setclientcookies="yes"
 		setdomaincookies="no"
 		clientStorage="file"
 		sessionStorage="memory"
@@ -18,9 +18,6 @@
 		webcharset="utf-8"
 		>
 </cfif>
-
-
-
 
 <!--- todo: remember screenwidth, so images have the correct width etc. --->
 <!--- PK: instead of session.screenWidth, we now have:
@@ -50,30 +47,30 @@
 
 <!--- Form --->
 <cfif StructKeyExists(form,"login_password"&request.adminType)>
-	<cfadmin 
+	<cfadmin
         action="getLoginSettings"
         type="#request.adminType#"
    		returnVariable="loginSettings">
 
 	<cfset loginPause=loginSettings.delay>
-    	
-    
-    
+
+
+
 	<cfif loginPause and StructKeyExists(application,'lastTryToLogin') and IsDate(application.lastTryToLogin) and DateDiff("s",application.lastTryToLogin,now()) LT loginPause>
     	<cfset login_error="Login disabled until #lsDateFormat(DateAdd("s",loginPause,application.lastTryToLogin))# #lsTimeFormat(DateAdd("s",loginPause,application.lastTryToLogin),'hh:mm:ss')#">
     <cfelse>
         <cfset application.lastTryToLogin=now()>
         <cfparam name="form.captcha" default="">
-            
+
         <cfif loginSettings.captcha and structKeyExists(session,"cap") and form.captcha NEQ session.cap>
     		<cfset login_error="Invalid security code (captcha) definition">
-        	
-        <cfelse>       
-        	<cfadmin 
+
+        <cfelse>
+        	<cfadmin
 			    action="hashPassword"
 			    type="#request.adminType#"
 			    pw="#form["login_password"&ad]#"
-				returnVariable="hashedPassword">     
+				returnVariable="hashedPassword">
 			<cfset session["password"&request.adminType]=hashedPassword>
             <cfset session.lucee_admin_lang=form.lang>
             <!--- Thread operation for update provider --->
@@ -82,9 +79,9 @@
 			</cfif>
             <cfcookie expires="NEVER" name="lucee_admin_lang" value="#session.lucee_admin_lang#">
             <cfif form.rememberMe NEQ "s">
-                <cfcookie 
-                	expires="#DateAdd(form.rememberMe,1,now())#" 
-                	name="lucee_admin_pw_#ad#" 
+                <cfcookie
+                	expires="#DateAdd(form.rememberMe,1,now())#"
+                	name="lucee_admin_pw_#ad#"
                 	value="#hashedPassword#">
             <cfelse>
                 <cfcookie expires="Now" name="lucee_admin_pw_#ad#" value="">
@@ -102,11 +99,11 @@
 	<cfelseif form.new_password NEQ form.new_password_re>
 		<cfset login_error="password and password retype are not equal">
 	<cfelse>
-		<cfadmin 
+		<cfadmin
 			action="updatePassword"
 			type="#request.adminType#"
 			newPassword="#form.new_password#">
-		<cfadmin 
+		<cfadmin
 			    action="hashPassword"
 			    type="#request.adminType#"
 			    pw="#form.new_password#"
@@ -132,17 +129,17 @@
 <!--- Session --->
 <cfif StructKeyExists(session,"password"&request.adminType)>
 	<cftry>
-		<cfadmin 
+		<cfadmin
 			action="connect"
 			type="#request.adminType#"
 			password="#session["password"&request.adminType]#">
-		
+
 		 <cfcatch>
 		 	<cfset login_error=cfcatch.message>
 			<cfset StructDelete(session,"password"&request.adminType)>
 		</cfcatch>
 	</cftry>
-</cfif> 
+</cfif>
 
 <cfif not StructKeyExists(session,'lucee_admin_lang')>
 	<cfset session.lucee_admin_lang ='en'>
@@ -163,7 +160,7 @@
 	<cfargument name="pluginDir">
 	<cfargument name="pluginName">
 	<cfargument name="lang" type="string" default="#session.lucee_admin_lang#">
-    
+
     <cfset var fileLanguage="#pluginDir#/#pluginName#/language.xml">
     <cfif arguments.lang EQ "en">
 		<cfset var language=struct(__action:'plugin',title:ucFirst(pluginName),text:'')>
@@ -172,7 +169,7 @@
 	</cfif>
 	<cfset var txtLanguage="">
     <cfset var xml="">
-    
+
 	<cfif fileExists(fileLanguage)>
 		<cffile action="read" file="#fileLanguage#" variable="txtLanguage" charset="utf-8">
 		<cfxml casesensitive="no" variable="xml"><cfoutput>#txtLanguage#</cfoutput></cfxml>
@@ -204,26 +201,25 @@
 </cffunction>
 
 
-
-
 <cfset navigation = stText.MenuStruct[request.adminType]>
+
 
 <cfset plugins=array()>
 <cfif StructKeyExists(session,"password"&request.adminType)>
 	<cftry>
-    <cfadmin 
+    <cfadmin
 	    action="getPluginDirectory"
 	    type="#request.adminType#"
 	    password="#session["password"&request.adminType]#"
-	    returnVariable="pluginDir">	
+	    returnVariable="pluginDir">
 	<cfset mappings['/lucee_plugin_directory/']=pluginDir>
 	<cfapplication action="update" mappings="#mappings#">
-	
+
     <cfset hasPlugin=false>
     <cfloop array="#navigation#" index="el">
     	<cfif el.action EQ "plugin"><cfset hasPlugin=true></cfif>
     </cfloop>
-    	
+
 	<cfif not hasPlugin or (structKeyExists(session,"alwaysNew") and session.alwaysNew)>
     	<cfif not hasPlugin>
         <cfset plugin=struct(
@@ -233,12 +229,12 @@
         )>
     	<cfset navigation[arrayLen(navigation)+1]=plugin>
         </cfif>
-    	
+
         <cfset sctNav={}>
         <cfloop array="#navigation#" index="item">
         	<cfset sctNav[item.action]=item>
         </cfloop>
-    	
+
         <cfdirectory directory="#plugindir#" action="list" name="plugindirs" recurse="no">
         <cfloop query="plugindirs">
             <cfif plugindirs.type EQ "dir">
@@ -247,15 +243,15 @@
 				<cfset _group=_lang.__group>
 				<cfset _pos=_lang.__position>
 				<cfset StructDelete(_lang,"__action",false)>
-				
+
 				<cfset application.pluginLanguage[session.lucee_admin_lang][plugindirs.name]=_lang>
-                
+
                 <cfset item=struct(
                     label:_lang.title,
                     action:plugindirs.name,
                     _action:'plugin&plugin='&plugindirs.name
                 )>
-                
+
                 <cfif not StructKeyExists(sctNav,_act)>
                 	<cfset sctNav[_act]=struct(
 						label:_group,
@@ -272,9 +268,9 @@
                     <cfelse>
                     	<cfset navigation[arrayLen(navigation)+1]=sctNav[_act]>
                     </cfif>
-                    
+
                 </cfif>
-                
+
                 <cfset children=sctNav[_act].children>
                 <cfset isUpdate=false>
                 <cfloop from="1" to="#arrayLen(children)#" index="i">
@@ -286,7 +282,7 @@
                 <cfif not isUpdate>
                 	<cfset children[arrayLen(children)+1]=item>
     </cfif>
-    
+
 </cfif>
         </cfloop>
     </cfif>
@@ -390,7 +386,7 @@
 </cfscript>
 
 <cfif not StructKeyExists(session,"password"&request.adminType)>
-		<cfadmin 
+		<cfadmin
 			action="hasPassword"
 			type="#request.adminType#"
 			returnVariable="hasPassword">
@@ -414,23 +410,24 @@
 			invalid action definition
 		</cfif>
 	</cfsavecontent>
-	
+
 	<cfif request.disableFrame>
     	<cfoutput>#content#</cfoutput>
     <cfelse>
-		<cfsavecontent variable="strNav">
+		<cfhtmlbody>
 			<script type="text/javascript">
-				$(function() { 
+				$(function() {
 					initMenu();
 					__blockUI=function() {
 						setTimeout(createWaitBlockUI(<cfoutput>"#JSStringFormat(stText.general.wait)#"</cfoutput>),1000);
 					}
 					$('.submit,.menu_inactive,.menu_active').click(__blockUI);
-				}); 
+				});
 			</script>
-			<cfoutput>#strNav#</cfoutput>
-		</cfsavecontent>
-		
+		</cfhtmlbody>
+
+		<cfoutput>#strNav#</cfoutput>
+
     	<cfmodule template="admin_layout.cfm" width="960" navigation="#strNav#" right="#context#" title="#current.label#" favorites="#favoriteLis#">
 			<cfoutput>#content#</cfoutput>
         </cfmodule>

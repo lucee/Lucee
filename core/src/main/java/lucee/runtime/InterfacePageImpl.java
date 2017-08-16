@@ -29,7 +29,10 @@ import lucee.runtime.type.util.KeyConstants;
 /**
  * A Page that can produce Components
  */
-public abstract class InterfacePageImpl extends InterfacePage {
+public abstract class InterfacePageImpl extends InterfacePage implements PagePro {
+
+	public int getHash(){return 0;}
+	public long getSourceLength(){return 0;}
 	
 	@Override
 	public Object call(PageContext pc) throws PageException {
@@ -95,5 +98,5 @@ public abstract class InterfacePageImpl extends InterfacePage {
 
 	public abstract InterfaceImpl newInstance(PageContext pc, String callPath, boolean isRealPath)
 		throws lucee.runtime.exp.PageException;
-
+	
 }

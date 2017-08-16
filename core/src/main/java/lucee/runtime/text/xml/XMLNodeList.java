@@ -78,7 +78,7 @@ public final class XMLNodeList extends ArraySupport implements NodeList, XMLObje
             this.parent=parent;
             this.caseSensitive=caseSensitive;
         }
-        this.doc=this.parent.getOwnerDocument();
+        this.doc=XMLUtil.getDocument(this.parent);
     }
 
 	@Override

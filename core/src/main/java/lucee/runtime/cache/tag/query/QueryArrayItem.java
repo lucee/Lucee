@@ -11,7 +11,7 @@ public class QueryArrayItem extends QueryResultCacheItem {
 	public final QueryArray queryArray;
 
 	public QueryArrayItem(QueryArray queryArray, String[] tags){
-		super(queryArray,tags);
+		super(queryArray, tags, System.currentTimeMillis());
 		this.queryArray=queryArray;
 	}
 

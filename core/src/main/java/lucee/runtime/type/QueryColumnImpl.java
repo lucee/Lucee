@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.SerializableObject;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.dump.DumpData;
@@ -68,6 +69,7 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
     protected boolean typeChecked=false;
     protected QueryImpl query;
     protected Collection.Key key;
+    private final Object sync=new SerializableObject();
 
 	/**
 	 * constructor with type
@@ -134,13 +136,13 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 
 	@Override
 	public Object remove(Collection.Key key) throws PageException {
-		resetType();
+		resetTypeSync();
 		return set(Caster.toIntValue(key.getString()),"");
 	}
 
 	@Override
 	public Object remove(Collection.Key key, Object defaultValue) {
-		resetType();
+		resetTypeSync();
 		try {
 			return set(Caster.toIntValue(key.getString()),"");
 		}
@@ -152,7 +154,7 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 	@Override
 	public Object remove(int row) throws DatabaseException {
         // query.disconnectCache();
-        resetType();
+        resetTypeSync();
 		return set(row,"");
 	}
 	
@@ -160,23 +162,24 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 	@Override
 	public Object removeEL(Collection.Key key) {
         // query.disconnectCache();
-        resetType();
+        resetTypeSync();
 		return setEL(Caster.toIntValue(key.getString(),-1),"");
 	}
 
 	@Override
 	public Object removeEL(int row) {
         // query.disconnectCache();
-        resetType();
+        resetTypeSync();
 		return setEL(row,"");
 	}
 
 	@Override
-	public synchronized void clear() {
-        // query.disconnectCache();
-        resetType();
-		data=new Object[CAPACITY];
-		size=0;
+	public void clear() {
+		synchronized (sync) {
+			resetType();
+			data=new Object[CAPACITY];
+			size=0;
+		}
 	}
 	
 	@Override
@@ -302,20 +305,21 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 	}
 
     @Override
-	public synchronized Object set(int row, Object value) throws DatabaseException {
+	public Object set(int row, Object value) throws DatabaseException {
         // query.disconnectCache();
         if(row<1) throw new DatabaseException("invalid row number ["+row+"]","valid row numbers a greater or equal to one",null,null);
 	    if(row>size) {
 	    	if(size==0)throw new DatabaseException("cannot set a value to a empty query, you first have to add a row",null,null,null);
 	    	throw new DatabaseException("invalid row number ["+row+"]","valid row numbers goes from 1 to "+size,null,null);
 	    }
-	    
-	    value=reDefineType(value);
-	    data[row-1]=value;
-	    return value;
+	    synchronized (sync) {
+	        value=reDefineType(value);
+	        data[row-1]=value;
+	        return value;
+	    }
 	}
 	@Override
-	public synchronized Object setEL(String key, Object value) {
+	public Object setEL(String key, Object value) {
 	    int index=Caster.toIntValue(key,Integer.MIN_VALUE);
 		if(index==Integer.MIN_VALUE) query.setEL(key,value);
 	    return setEL(index, value);
@@ -330,47 +334,54 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 	}
 
 	@Override
-	public synchronized Object setEL(int row, Object value) {
+	public Object setEL(int row, Object value) {
         // query.disconnectCache();
         if(row<1 || row>size) return value;
-	    
-	    value=reDefineType(value);
-	    data[row-1]=value;
-	    return value;
+        synchronized (sync) {
+		    value=reDefineType(value);
+			data[row-1]=value;
+        }
+		return value;
 	}
 
     @Override
-	public synchronized void add(Object value) {
+	public void add(Object value) {
+    	synchronized (sync) {
         // query.disconnectCache();
-        if(data.length<=size) growTo(size);
-	    data[size++]=value;
+	        if(data.length<=size) growTo(size);
+		    data[size++]=value;
+    	}
 	}
 
     @Override
-    public synchronized void cutRowsTo(int maxrows) {
-        // query.disconnectCache();
-        if(maxrows>-1 && maxrows<size)size=maxrows;
+    public void cutRowsTo(int maxrows) {
+    	synchronized (sync) {
+	        if(maxrows>-1 && maxrows<size)size=maxrows;
+    	}
     }
 
 	@Override
-	public synchronized void addRow(int count) {	    
-        // query.disconnectCache();
-        if(data.length<(size+count)) growTo(size+count);
-	    for(int i=0;i<count;i++)size++;
+	public void addRow(int count) {	    
+		synchronized (sync) {
+	        if(data.length<(size+count)) growTo(size+count);
+	        for(int i=0;i<count;i++)size++;
+		}
 	}
 
     @Override
-	public synchronized Object removeRow(int row) throws DatabaseException {
+	public Object removeRow(int row) throws DatabaseException {
         // query.disconnectCache();
         if(row<1 || row>size) 
             throw new DatabaseException("invalid row number ["+row+"]","valid rows goes from 1 to "+size,null,null);
-        Object o=data[row-1];
-        for(int i=row;i<size;i++) {
-            data[i-1]=data[i];
+        synchronized (sync) {
+	        Object o=data[row-1];
+	        for(int i=row;i<size;i++) {
+	            data[i-1]=data[i];
+	        }
+	        size--;
+	        if(NullSupportHelper.full()) return o;
+	        return o==null?"":o;
         }
-        size--;
-        if(NullSupportHelper.full()) return o;
-        return o==null?"":o;
     }
 
 	@Override
@@ -391,7 +402,7 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 		return DumpUtil.toDumpData(QueryUtil.getValue(this,query.getCurrentrow(pageContext.getId())), pageContext,maxlevel,dp);
 	}	
 	
-    private synchronized void growTo(int row) {
+    private void growTo(int row) {
         
         int newSize=(data.length+1)*2;
         while(newSize<=row) {
@@ -410,12 +421,18 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
         return QueryColumnUtil.reDefineType(this,value);
     }
     
-    private synchronized void resetType() {
-        QueryColumnUtil.resetType(this);
+    private void resetTypeSync() {
+    	synchronized (sync) {
+	        QueryColumnUtil.resetType(this);
+    	}
     }
     
-    private synchronized void reOrganizeType() {
-        QueryColumnUtil.reOrganizeType(this);
+    private void resetType() {QueryColumnUtil.resetType(this);}
+    
+    private void reOrganizeType() {
+    	synchronized (sync) {
+	        QueryColumnUtil.reOrganizeType(this);
+    	}
     }
 
     @Override
@@ -537,39 +554,41 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 	}
 
     @Override
-    public synchronized Object clone() {
-        return duplicate(true);
+    public Object clone() {
+        return cloneColumnImpl(true);
     }
 
     @Override
-	public synchronized Collection duplicate(boolean deepCopy) {
-        return cloneColumn(query,deepCopy);
-    }
-    
-    @Override
-	public synchronized QueryColumnPro cloneColumn(Query query, boolean deepCopy) {
+	public Collection duplicate(boolean deepCopy) {
         return cloneColumnImpl(deepCopy);
     }
     
-    public synchronized QueryColumnImpl cloneColumnImpl(boolean deepCopy) {
+    @Override
+	public QueryColumnPro cloneColumn(boolean deepCopy) {
+        return cloneColumnImpl(deepCopy);
+    }
+    
+    public QueryColumnImpl cloneColumnImpl(boolean deepCopy) {
         QueryColumnImpl clone=new QueryColumnImpl();
-        populate(this, clone, deepCopy);
+        populate(clone, deepCopy);
         return clone;
     }
     
-    protected static void populate(QueryColumnImpl src,QueryColumnImpl trg, boolean deepCopy) {
+    protected void populate(QueryColumnImpl trg, boolean deepCopy) {
         
-        boolean inside=ThreadLocalDuplication.set(src, trg);
+        boolean inside=ThreadLocalDuplication.set(this, trg);
         try{
-	        trg.key=src.key;
-	        trg.query=src.query;
-	        trg.size=src.size;
-	        trg.type=src.type;
-	        trg.key=src.key;
+	        trg.key=this.key;
+	        trg.query=this.query;
+	        trg.size=this.size;
+	        trg.type=this.type;
+	        trg.key=this.key;
 	        
-	        trg.data=new Object[src.data.length];
-	        for(int i=0;i<src.data.length;i++) {
-	            trg.data[i]=deepCopy?Duplicator.duplicate(src.data[i],true):src.data[i];
+	     // we first get data local, because length of the object cannot be changed, the safes us from modifications from outside
+	        Object[] data=this.data;
+        	trg.data=new Object[data.length];
+	        for(int i=0;i<data.length;i++) {
+	            trg.data[i]=deepCopy?Duplicator.duplicate(data[i],true):data[i];
 	        }
         }
         finally {

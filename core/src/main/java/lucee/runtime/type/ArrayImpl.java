@@ -55,8 +55,6 @@ public class ArrayImpl extends ListAsArray {
 	}
 
 	public ArrayImpl(boolean sync, int initalCap) {
-		//super(new CopyOnWriteArrayList());
-		//super(Collections.synchronizedList(new ArrayList(initalCap)));
 		super(sync?new Vector(initalCap):new ArrayList(initalCap));
 	}
 	
@@ -75,7 +73,7 @@ public class ArrayImpl extends ListAsArray {
 	
 
 	@Override
-	public synchronized Collection duplicate(boolean deepCopy) {
+	public Collection duplicate(boolean deepCopy) {
 		return duplicate(new ArrayImpl(),deepCopy);
 	}
 	

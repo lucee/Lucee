@@ -31,9 +31,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.tagext.BodyContent;
 
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.Method;
-
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -57,159 +54,177 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
-import lucee.transformer.bytecode.util.Types;
 
 public class PageContextUtil {
 
 	public static ApplicationListener getApplicationListener(PageContext pc) {
 		PageSource ps = pc.getBasePageSource();
-		if(ps!=null) {
-			MappingImpl mapp=(MappingImpl) ps.getMapping();
-			if(mapp!=null) return mapp.getApplicationListener();
+		if(ps != null) {
+			MappingImpl mapp = (MappingImpl)ps.getMapping();
+			if(mapp != null)
+				return mapp.getApplicationListener();
 		}
 		return pc.getConfig().getApplicationListener();
 	}
 
-
 	public static String getCookieDomain(PageContext pc) {
-		if(!pc.getApplicationContext().isSetDomainCookies()) return null;
+		if(!pc.getApplicationContext().isSetDomainCookies())
+			return null;
 
-		String result = Caster.toString(pc.cgiScope().get(KeyConstants._server_name, null),null);
+		String result = Caster.toString(pc.cgiScope().get(KeyConstants._server_name, null), null);
 
 		if(!StringUtil.isEmpty(result)) {
 
 			String listLast = ListUtil.last(result, '.');
-			if ( !lucee.runtime.op.Decision.isNumber(listLast) ) {    // if it's numeric then must be IP address
+			if(!lucee.runtime.op.Decision.isNumber(listLast)) { // if it's numeric then must be IP address
 				int numparts = 2;
-				int listLen = ListUtil.len( result, '.', true );
+				int listLen = ListUtil.len(result, '.', true);
 
-				if ( listLen > 2 ) {
-					if ( listLast.length() == 2 || !StringUtil.isAscii(listLast) ) {      // country TLD
+				if(listLen > 2) {
+					if(listLast.length() == 2 || !StringUtil.isAscii(listLast)) { // country TLD
 
-						int tldMinus1 = ListUtil.getAt( result, '.', listLen - 1, true, "" ).length();
+						int tldMinus1 = ListUtil.getAt(result, '.', listLen - 1, true, "").length();
 
-						if ( tldMinus1 == 2 || tldMinus1 == 3 )                             // domain is in country like, example.co.uk or example.org.il
+						if(tldMinus1 == 2 || tldMinus1 == 3) // domain is in country like, example.co.uk or example.org.il
 							numparts++;
 					}
 				}
 
-				if ( listLen > numparts )
-					result = result.substring( result.indexOf( '.' ) );
-				else if ( listLen == numparts )
+				if(listLen > numparts)
+					result = result.substring(result.indexOf('.'));
+				else if(listLen == numparts)
 					result = "." + result;
 			}
 		}
 
 		return result;
 	}
-	
-	
 
-	public static PageContext getPageContext(Config config,ServletConfig servletConfig,File contextRoot, String host, String scriptName, String queryString
-			, Cookie[] cookies,Map<String, Object> headers,Map<String, String> parameters, 
-			Map<String, Object> attributes, OutputStream os, boolean register, long timeout, boolean ignoreScopes) throws ServletException {
-		boolean callOnStart=ThreadLocalPageContext.callOnStart.get();
+	public static PageContext getPageContext(Config config, ServletConfig servletConfig, File contextRoot, String host, String scriptName, String queryString,
+			Cookie[] cookies, Map<String, Object> headers, Map<String, String> parameters, Map<String, Object> attributes, OutputStream os, boolean register,
+			long timeout, boolean ignoreScopes) throws ServletException {
+		boolean callOnStart = ThreadLocalPageContext.callOnStart.get();
 		try {
 			ThreadLocalPageContext.callOnStart.set(false);
-			
-			if(contextRoot==null)contextRoot=new File(".");
+
+			if(contextRoot == null)
+				contextRoot = new File(".");
 			// Engine
-			CFMLEngine engine=null;
-			try{
+			CFMLEngine engine = null;
+			try {
 				engine = CFMLEngineFactory.getInstance();
 			}
-			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
-			if(engine==null) throw new ServletException("there is no ServletContext");
-	
-			if(headers==null) headers=new HashMap<String, Object>();
-			if(parameters==null) parameters=new HashMap<String, String>();
-			if(attributes==null) attributes=new HashMap<String, Object>();
-			
-			
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
+			if(engine == null)
+				throw new ServletException("there is no ServletContext");
+
+			if(headers == null)
+				headers = new HashMap<String, Object>();
+			if(parameters == null)
+				parameters = new HashMap<String, String>();
+			if(attributes == null)
+				attributes = new HashMap<String, Object>();
+
 			// Request
-			HttpServletRequest req = CreationImpl.getInstance(engine).createHttpServletRequest(contextRoot, host, scriptName, queryString,
-					cookies, headers,parameters, attributes,
-					null); 
-			
+			HttpServletRequest req = CreationImpl.getInstance(engine).createHttpServletRequest(contextRoot, host, scriptName, queryString, cookies, headers,
+					parameters, attributes, null);
+
 			// Response
 			HttpServletResponse rsp = CreationImpl.getInstance(engine).createHttpServletResponse(os);
-			
-			if(config==null) config = ThreadLocalPageContext.getConfig();
-			
-			CFMLFactory factory=null;
+
+			if(config == null)
+				config = ThreadLocalPageContext.getConfig();
+
+			CFMLFactory factory = null;
 			HttpServlet servlet;
 			if(config instanceof ConfigWeb) {
-				ConfigWeb cw=(ConfigWeb)config;
-				factory=cw.getFactory();
-				servlet=factory.getServlet();
+				ConfigWeb cw = (ConfigWeb)config;
+				factory = cw.getFactory();
+				servlet = factory.getServlet();
 			}
-			else {		
-				if(servletConfig==null) {
+			else {
+				if(servletConfig == null) {
+
 					ServletConfig[] configs = engine.getServletConfigs();
-					servletConfig=configs[0];
+					String rootDir = contextRoot.getAbsolutePath();
+
+					for (ServletConfig conf : configs){
+						if (lucee.commons.io.SystemUtil.arePathsSame(rootDir, conf.getServletContext().getRealPath("/"))){
+							servletConfig = conf;
+							break;
+						}
+					}
+
+					if (servletConfig == null)
+						servletConfig = configs[0];
 				}
-				
-				
+
 				factory = engine.getCFMLFactory(servletConfig, req);
-				servlet=new HTTPServletImpl(servletConfig, servletConfig.getServletContext(), servletConfig.getServletName());
+				servlet = new HTTPServletImpl(servletConfig, servletConfig.getServletContext(), servletConfig.getServletName());
 			}
-			
-			return factory.getLuceePageContext(servlet,req,rsp,null,false,-1,false,register,timeout,false,ignoreScopes);
-		}
-		finally {
+
+			return factory.getLuceePageContext(servlet, req, rsp, null, false, -1, false, register, timeout, false, ignoreScopes);
+		} finally {
 			ThreadLocalPageContext.callOnStart.set(callOnStart);
 		}
 	}
-	
-	
+
 	public static void releasePageContext(PageContext pc, boolean register) {
-		if(pc!=null)pc.getConfig().getFactory().releaseLuceePageContext(pc,register);
+		if(pc != null)
+			pc.getConfig().getFactory().releaseLuceePageContext(pc, register);
 		ThreadLocalPageContext.register(null);
 	}
 
 	public static TimeSpan remainingTime(PageContext pc, boolean throwWhenAlreadyTimeout) throws RequestTimeoutException {
-		long ms = pc.getRequestTimeout()-(System.currentTimeMillis()-pc.getStartTime());
-		if(ms>0) {
-			if(ms<5);
-			else if(ms<10) ms=ms-1;
-			else if(ms<50) ms=ms-5;
-			else if(ms<200) ms=ms-10;
-			else if(ms<1000) ms=ms-50;
-			else ms=ms-100;
-			
+		long ms = pc.getRequestTimeout() - (System.currentTimeMillis() - pc.getStartTime());
+		if(ms > 0) {
+			if(ms < 5)
+				;
+			else if(ms < 10)
+				ms = ms - 1;
+			else if(ms < 50)
+				ms = ms - 5;
+			else if(ms < 200)
+				ms = ms - 10;
+			else if(ms < 1000)
+				ms = ms - 50;
+			else
+				ms = ms - 100;
+
 			return TimeSpanImpl.fromMillis(ms);
 		}
 
 		if(throwWhenAlreadyTimeout)
 			throw CFMLFactoryImpl.createRequestTimeoutException(pc);
-		
-		return TimeSpanImpl.fromMillis(0);		
+
+		return TimeSpanImpl.fromMillis(0);
 	}
 
-
 	public static String getHandlePageException(PageContextImpl pc, PageException pe) throws PageException {
-		BodyContent bc=null;
-		String str=null;
-		try{
+		BodyContent bc = null;
+		String str = null;
+		try {
 			bc = pc.pushBody();
-			pc.handlePageException(pe,false);
+			pc.handlePageException(pe, false);
 		}
-		catch(Throwable t){
+		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
-		}
-		finally{
-			if(bc!=null)str=bc.getString();
+		} finally {
+			if(bc != null)
+				str = bc.getString();
 			pc.popBody();
 		}
 		return str;
 	}
 
 	public static Object getFunction(PageContext pc, Object coll, Object[] args) throws PageException {
-    	return Caster.toFunction(coll).call(pc, args, true);
-    }
-    
-    public static Object getFunctionWithNamedValues(PageContext pc, Object coll, Object[] args) throws PageException {
-    	return Caster.toFunction(coll).callWithNamedValues(pc, Caster.toFunctionValues(args), true);
-    }
+		return Caster.toFunction(coll).call(pc, args, true);
+	}
+
+	public static Object getFunctionWithNamedValues(PageContext pc, Object coll, Object[] args) throws PageException {
+		return Caster.toFunction(coll).callWithNamedValues(pc, Caster.toFunctionValues(args), true);
+	}
 }

@@ -347,7 +347,10 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		public KeyLock<String> getContextLock() {
 			return contextLock;
 		}
-
+		
+		public Map<String, GatewayEntry> getGatewayEntries() {
+			return getGatewayEngine().getEntries();	
+		}
 
 		protected void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries) {
 			try {

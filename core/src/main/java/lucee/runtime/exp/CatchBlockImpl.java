@@ -65,22 +65,25 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 	public static final Key ADDITIONAL = KeyImpl.intern("additional");
 	private static final Object NULL = new Object();
 	
-	private PageExceptionImpl exception;
+	private PageException exception;
 	
 
-	public CatchBlockImpl(PageExceptionImpl pe) {
+	public CatchBlockImpl(PageException pe) {
+		this(pe,0);
+	}
+	private CatchBlockImpl(PageException pe, int level) {
 		this.exception=pe;
 
-		setEL(KeyConstants._Message, new SpecialItem(pe, KeyConstants._Message));
-		setEL(KeyConstants._Detail, new SpecialItem(pe, KeyConstants._Detail));
-		setEL(ERROR_CODE, new SpecialItem(pe, ERROR_CODE));
-		setEL(EXTENDEDINFO, new SpecialItem(pe, EXTENDEDINFO));
-		setEL(EXTENDED_INFO, new SpecialItem(pe, EXTENDED_INFO));
-		setEL(ADDITIONAL, new SpecialItem(pe, ADDITIONAL));
-		setEL(TAG_CONTEXT, new SpecialItem(pe, TAG_CONTEXT));
-		setEL(KeyConstants._type, new SpecialItem(pe, KeyConstants._type));
-		setEL(STACK_TRACE, new SpecialItem(pe, STACK_TRACE));
-		setEL(CAUSE, new SpecialItem(pe, CAUSE));
+		setEL(KeyConstants._Message, new SpecialItem(pe, KeyConstants._Message,level));
+		setEL(KeyConstants._Detail, new SpecialItem(pe, KeyConstants._Detail,level));
+		setEL(ERROR_CODE, new SpecialItem(pe, ERROR_CODE,level));
+		setEL(EXTENDEDINFO, new SpecialItem(pe, EXTENDEDINFO,level));
+		setEL(EXTENDED_INFO, new SpecialItem(pe, EXTENDED_INFO,level));
+		setEL(ADDITIONAL, new SpecialItem(pe, ADDITIONAL,level));
+		setEL(TAG_CONTEXT, new SpecialItem(pe, TAG_CONTEXT,level));
+		setEL(KeyConstants._type, new SpecialItem(pe, KeyConstants._type,level));
+		setEL(STACK_TRACE, new SpecialItem(pe, STACK_TRACE,level));
+		setEL(CAUSE, new SpecialItem(pe, CAUSE,level));
 		
 		
 		if(pe instanceof NativeException) {
@@ -104,15 +107,23 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 	}
 
 	class SpecialItem {
-		private PageExceptionImpl pe;
+		private static final int MAX = 10;
+		private PageException pe;
 		private Key key;
+		private int level;
 		
-		public SpecialItem(PageExceptionImpl pe, Key key) {
+		public SpecialItem(PageException pe, Key key, int level) {
 			this.pe=pe;
 			this.key=key;
+			this.level=level;
 		}
 		
 		public Object get() {
+			if(level<MAX) {
+				if(key==CAUSE) return getCauseAsCatchBlock();
+				if(key==ADDITIONAL) return pe.getAdditional();
+				
+			}
 			if(key==KeyConstants._Message) return StringUtil.emptyIfNull(pe.getMessage());
 			if(key==KeyConstants._Detail) return StringUtil.emptyIfNull(pe.getDetail());
 			if(key==ERROR_CODE) return StringUtil.emptyIfNull(pe.getErrorCode());
@@ -120,17 +131,15 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 			if(key==EXTENDED_INFO) return StringUtil.emptyIfNull(pe.getExtendedInfo());
 			if(key==KeyConstants._type) return StringUtil.emptyIfNull(pe.getTypeAsString());
 			if(key==STACK_TRACE) return StringUtil.emptyIfNull(pe.getStackTraceAsString());
-			if(key==CAUSE) return getCauseAsCatchBlock();
-			if(key==ADDITIONAL) return pe.getAdditional();
-			if(key==TAG_CONTEXT) return pe.getTagContext(ThreadLocalPageContext.getConfig());
+			if(key==TAG_CONTEXT && pe instanceof PageExceptionImpl) return ((PageExceptionImpl)pe).getTagContext(ThreadLocalPageContext.getConfig());
 			return null;
 		}
 		
 		private CatchBlock getCauseAsCatchBlock() {
 			Throwable cause = pe.getCause();
-			if(cause==null) return null;
-			return new CatchBlockImpl(NativeException.newInstance(cause));
-			
+			if(cause==null || pe==cause) return null;
+			if(pe instanceof NativeException && ((NativeException)pe).getException()==cause) return null;
+			return new CatchBlockImpl(NativeException.newInstance(cause),level+1);
 		}
 
 		public void set(Object o){

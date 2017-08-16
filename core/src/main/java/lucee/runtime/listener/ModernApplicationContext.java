@@ -176,7 +176,6 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private String sessionStorage;
 	private String secureJsonPrefix="//";
 	private boolean secureJson; 
-	private Mapping[] mappings;
 	private Mapping[] ctmappings;
 	private Mapping[] cmappings;
 	private DataSource[] dataSources;
@@ -191,8 +190,12 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean cgiScopeReadonly;
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
+	private Object mailListener;
 	
+	private Mapping[] mappings;
+	private boolean initMappings;
 	private boolean initCustomTypes;
+	private boolean initMailListener;
 	private boolean initCachedWithins;
 	
 	private boolean initApplicationTimeout;
@@ -217,7 +220,6 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initSessionType;
 	private boolean initWSType;
 	private boolean initTriggerComponentDataMember;
-	private boolean initMappings;
 	private boolean initDataSources;
 	private boolean initCache;
 	private boolean initCTMappings;
@@ -930,7 +932,17 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 	
 	
-	
+	@Override
+	public Object getMailListener() {
+		if(!initMailListener) {
+			Struct mail = Caster.toStruct(get(component,KeyConstants._mail,null),null);
+			if(mail!=null) 
+				mailListener=mail.get(KeyConstants._listener,null);
+			
+			initMailListener=true; 
+		}
+		return mailListener;
+	}
 
 	@Override
 	public Mapping[] getMappings() {
@@ -1231,6 +1243,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		initMappings=true;
 		this.mappings=mappings;
 	}
+
+	@Override
+	public void setMailListener(Object mailListener) {
+		initMailListener=true;
+		this.mailListener=mailListener;
+	}
+	
 	@Override
 	public void setDataSources(DataSource[] dataSources) {
 		initDataSources=true;

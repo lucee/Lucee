@@ -86,6 +86,7 @@
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
 		<cfset error.exception = cfcatch>
+		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
 

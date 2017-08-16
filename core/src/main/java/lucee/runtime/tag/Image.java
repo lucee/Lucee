@@ -439,7 +439,7 @@ public final class Image extends TagImpl {
 		required("source", source);
 		required("destination", destination);
 		
-		source.convert(ImageUtil.getFormat(destination));
+		//source.convert(ImageUtil.getFormat(destination));
 		write();
 	}
 

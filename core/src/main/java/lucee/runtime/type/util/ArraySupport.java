@@ -234,7 +234,7 @@ public abstract class ArraySupport extends AbstractList implements Array,List,Ob
 	}
 	
 	@Override
-	public synchronized Object clone() {
+	public Object clone() {
 		return duplicate(true);
 	}
 
@@ -350,7 +350,7 @@ public abstract class ArraySupport extends AbstractList implements Array,List,Ob
     } 
 
 	@Override
-	public synchronized void sort(String sortType, String sortOrder) throws PageException {
+	public void sort(String sortType, String sortOrder) throws PageException {
 		if(getDimension()>1)
 			throw new ExpressionException("only 1 dimensional arrays can be sorted");
 		sortIt(ArrayUtil.toComparator(null, sortType, sortOrder,false));

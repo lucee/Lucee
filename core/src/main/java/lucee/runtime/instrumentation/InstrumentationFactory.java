@@ -71,8 +71,6 @@ public class InstrumentationFactory {
         
     	// agent already exist
     	if (instr!=null) return instr;
-        
-        
 
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             @Override

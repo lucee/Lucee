@@ -31,6 +31,7 @@ import lucee.commons.io.res.ResourceProviderPro;
 import lucee.commons.io.res.Resources;
 import lucee.commons.io.res.util.ResourceLockImpl;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.net.proxy.Proxy;
 import lucee.runtime.op.Caster;
@@ -47,6 +48,7 @@ public final class FTPResourceProvider implements ResourceProviderPro {
 	private FTPResourceClientCloser closer=null;
 	private final ResourceLockImpl lock=new ResourceLockImpl(lockTimeout,true);
 	private Map arguments;
+	private final Object sync=new SerializableObject();
 
 	@Override
 	public ResourceProvider init(String scheme, Map arguments) {
@@ -127,12 +129,13 @@ public final class FTPResourceProvider implements ResourceProviderPro {
 		return client;
 	}
 		
-	private synchronized void startCloser() {
-		if(closer==null || !closer.isAlive()) {
-			closer=new FTPResourceClientCloser(this);
-			closer.start();
+	private void startCloser() {
+		synchronized (sync) {
+			if(closer==null || !closer.isAlive()) {
+				closer=new FTPResourceClientCloser(this);
+				closer.start();
+			}
 		}
-		
 	}
 	private void connect(FTPResourceClient client, FTPConnectionData data) throws SocketException, IOException {
 		if(data.port>0)client.connect(data.host,data.port);

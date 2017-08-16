@@ -28,9 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.TemporaryStream;
 import lucee.commons.io.res.Resource;
@@ -76,7 +73,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -243,7 +239,7 @@ public class HTTPEngine4Impl {
 	
 	public static HttpClientBuilder getHttpClientBuilder() {
 		HttpClientBuilder builder = HttpClients.custom();
-		
+		/*
 		if(connMan==null) {
 			connMan = new PoolingHttpClientConnectionManager();
 			// Increase max total connection to 200
@@ -255,14 +251,15 @@ public class HTTPEngine4Impl {
 			//cm.setMaxPerRoute(new HttpRoute(localhost), 50);
 		}
 		builder.setConnectionManager(connMan);
+		*/
 		return builder;
 	}
 	
 	public static void releaseConnectionManager() {
-		if(connMan!=null) {
+		/*if(connMan!=null) {
 			connMan.close();
 			connMan=null;
-		}
+		}*/
 	}
 
 	private static HTTPResponse _invoke(URL url,HttpUriRequest request,String username,String password, long timeout, boolean redirect,
@@ -361,33 +358,6 @@ public class HTTPEngine4Impl {
         }
 	}
 
-    public static void setClientSSL(PageContext pc, HttpClientBuilder builder, String clientCert, String clientCertPassword) {
-        if(!StringUtil.isEmpty(clientCert,true)) {
-            if(clientCertPassword==null)clientCertPassword="";
-            try {
-            	Resource ks = ResourceUtil.toResourceExisting(pc, clientCert, pc.getConfig().allowRealPath());
-                pc.getConfig().getSecurityManager().checkFileLocation(ks);
-                KeyStore clientStore = KeyStore.getInstance("PKCS12");
-                clientStore.load(ks.getInputStream(), clientCertPassword.toCharArray());
-
-                KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-                kmf.init(clientStore, clientCertPassword.toCharArray());
-
-                SSLContext sslContext = SSLContext.getInstance("SSL");
-                sslContext.init(kmf.getKeyManagers(), null, null);//new SecureRandom()
-
-                // Allow TLSv1 protocol only
-                SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
-                    sslContext,
-                    new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" },
-                    null,
-                    SSLConnectionSocketFactory.getDefaultHostnameVerifier());
-
-                builder.setSSLSocketFactory(sslsf);
-            } catch(Exception e) {}
-        }
-    }
-
     public static void setBody(HttpEntityEnclosingRequest req, Object body, String mimetype,String charset) throws IOException {
     	if(body!=null)req.setEntity(toHttpEntity(body,mimetype,charset));
 	}
@@ -457,7 +427,7 @@ public class HTTPEngine4Impl {
 				if(str.equals("<empty>")) {
 					return new EmptyHttpEntity(ct);
 				}
-				if(wasNull && !StringUtil.isEmpty(charset,true)) 
+				if(wasNull && !StringUtil.isEmpty(charset,true))
 					return new StringEntity(str,charset.trim());
 				else return new StringEntity(str,ct);
 			}

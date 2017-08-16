@@ -57,14 +57,27 @@ component {
 			request.componentDetails.pack=["org.lucee.cfml"];
 		}
 
+
 		arraySort(request.componentDetails.pack, "textnocase");
 		request.componentDetails.cfcs=[];
-		loop array="#request.componentDetails.pack#" item="currPack"{
-			var tmpComponents=ComponentListPackage(currPack);
+		for(index=request.componentDetails.pack.len();index>0;index--) {
+			currPack=request.componentDetails.pack[index];
+			try{
+				var tmpComponents=ComponentListPackage(currPack);
+			}
+			catch(e) {
+				arrayDeleteAt(request.componentDetails.pack,index);
+				continue;
+			}
+			
 			for(i=1;i<=tmpComponents.len();i++){
 				tmpComponents[i]=currPack&"."&tmpComponents[i];
 			}
-			arrayAppend(request.componentDetails.cfcs, tmpComponents, true);
+			if(tmpComponents.len()==0) {
+				arrayDeleteAt(request.componentDetails.pack,index);
+				continue;
+			}
+			else arrayAppend(request.componentDetails.cfcs, tmpComponents, true);
 		}
 		arraySort(request.componentDetails.cfcs, "textnocase");
 	}
@@ -93,12 +106,16 @@ component {
 			path=m.getPhysical().getAbsolutePath();
 			directory
 				recurse=true
+				type="file"
 				action="list"
 				directory=path
 				name="list";
 			loop query=list {
-				if(list.type=='file')
-					sct[toPackage(path,list.directory)]='';
+				if(list.type=='file'){
+					p=toPackage(path,list.directory);
+					if(p.isEmpty()) continue;
+					sct[p]='';
+				}
 			}
 		}
 		arr=[];

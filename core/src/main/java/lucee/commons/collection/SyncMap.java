@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import lucee.commons.lang.SerializableObject;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.util.StructUtil;
 
@@ -43,7 +44,7 @@ public class SyncMap<K,V>
         public SyncMap(MapPro<K,V> m) {
             if (m==null) this.m = new HashMapPro<K, V>();
             else this.m = m;
-            mutex = this;
+            mutex = new SerializableObject();
         }
 
         SyncMap(MapPro<K,V> m, Serializable mutex) {

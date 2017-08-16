@@ -23,6 +23,7 @@ import java.util.Map;
 
 import lucee.commons.collection.LinkedHashMapMaxSize;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.SerializableObject;
 import lucee.runtime.PageSource;
 
 public class ResourceSnippetsMap {
@@ -30,6 +31,7 @@ public class ResourceSnippetsMap {
 	/* methods that access these Map objects should take care of synchronization */
 	private final Map<String, String> sources;
 	private final Map<String, ResourceSnippet> snippets;
+	private final Object sync=new SerializableObject();
 
 	public ResourceSnippetsMap( int maxSnippets, int maxSources ) {
 
@@ -46,28 +48,23 @@ public class ResourceSnippetsMap {
 	 * @param charset
 	 * @return
 	 */
-	public synchronized ResourceSnippet getSnippet( PageSource ps, int startPos, int endPos, String charset ) {
-
+	public ResourceSnippet getSnippet( PageSource ps, int startPos, int endPos, String charset ) {
 		String keySnp = calcKey( ps, startPos, endPos );
-
-		ResourceSnippet snippet = snippets.get( keySnp );
-
-		if ( snippet == null ) {
-
-			Resource res = ps.getResource();
-			String keyRes = calcKey( res );
-			String src = sources.get( keyRes );
-
-			if ( src == null ) {
-				src = ResourceSnippet.getContents( res, charset );
-				sources.put( keyRes, src );
+		synchronized (sync) {
+			ResourceSnippet snippet = snippets.get( keySnp );
+			if ( snippet == null ) {
+				Resource res = ps.getResource();
+				String keyRes = calcKey( res );
+				String src = sources.get( keyRes );
+				if ( src == null ) {
+					src = ResourceSnippet.getContents( res, charset );
+					sources.put( keyRes, src );
+				}
+				snippet = ResourceSnippet.createResourceSnippet( src, startPos, endPos );
+				snippets.put( keySnp, snippet );
 			}
-
-			snippet = ResourceSnippet.createResourceSnippet( src, startPos, endPos );
-			snippets.put( keySnp, snippet );
+			return snippet;	
 		}
-
-		return snippet;
 	}
 
 	public static String calcKey( Resource res ) {
@@ -76,7 +73,6 @@ public class ResourceSnippetsMap {
 	}
 
 	public static String calcKey( PageSource ps, int startPos, int endPos ) {
-
 		return ps.getDisplayPath()   + "@" + ps.getLastAccessTime() + ":" + startPos + "-" + endPos;
 	}
 }

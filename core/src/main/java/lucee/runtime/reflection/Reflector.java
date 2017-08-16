@@ -126,6 +126,12 @@ public final class Reflector {
         if(clazz==null) return false;
         return isInstaneOf(src,clazz);
     }
+    
+    public static boolean isInstaneOf(ClassLoader cl, Class src, String trgClassName) {
+    	Class clazz = ClassUtil.loadClass(cl, trgClassName, null);
+        if(clazz==null) return false;
+        return isInstaneOf(src,clazz);
+    }
 	
     
     public static boolean isInstaneOfIgnoreCase(Class src ,String trg) {
@@ -906,7 +912,7 @@ public final class Reflector {
 		return new ExpressionException("No matching Method/Function for "+Type.getName(obj)+"."+methodName+"("+getDspMethods(getClasses(args))+") found");
 	}
 	public static ExpressionException throwCall(Object obj,Collection.Key methodName, Object[] args) {
-		return new ExpressionException("No matching Method/Function for "+Type.getName(obj)+"."+methodName+"("+getDspMethods(getClasses(args))+") found");
+		return throwCall(obj, methodName.getString(), args);
 	}
 
 	/**

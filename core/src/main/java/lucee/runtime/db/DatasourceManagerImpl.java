@@ -24,7 +24,9 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import lucee.print;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.ConfigImpl;
@@ -34,6 +36,7 @@ import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.ExceptionHandler;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.orm.ORMConnection;
 import lucee.runtime.orm.ORMDatasourceConnection;
 import lucee.runtime.orm.ORMSession;
 
@@ -263,28 +266,46 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 	@Override
 	public void end() {
+		end(false);
+	}
+	public void end(boolean onlyORM) {
 		autoCommit=true;
+        PageRuntimeException pre=null;
         if(transConns.size()>0) {
-        	Iterator<DatasourceConnection> it = this.transConns.values().iterator();
+        	Map<DataSource,DatasourceConnection> tmp=null;
+        	if(onlyORM)tmp=new HashMap<DataSource,DatasourceConnection>();
+        	Iterator<Entry<DataSource, DatasourceConnection>> it = this.transConns.entrySet().iterator();
         	DatasourceConnection dc;
-        	while(it.hasNext()){
-    			dc = it.next();
-	        	try {
+        	Entry<DataSource, DatasourceConnection> entry;
+        	while(it.hasNext()) {
+        		entry = it.next();
+    			dc = entry.getValue();
+    			try {
+	    			if(onlyORM && !(dc.getConnection() instanceof ORMConnection)){
+	    				tmp.put(entry.getKey(), entry.getValue());
+	    				continue;
+	    			}
 	            	dc.getConnection().setAutoCommit(true);
 	            } 
-	            catch (SQLException e) {
+	            catch (Exception e) {
+	            	if(onlyORM) pre=new PageRuntimeException(e);
 	                ExceptionHandler.printStackTrace(e);
 	            }
 	        	releaseConnection(null, dc);
     		}
             transConns.clear();
+            if(onlyORM)transConns=tmp;
         }
 		this.isolation=Connection.TRANSACTION_NONE;
+		if(pre!=null) throw pre;
 	}
 
     @Override
     public void release() {
-        end();
+        end(false);
+    }
+    public void releaseORM() {
+        end(true);
     }
     
     

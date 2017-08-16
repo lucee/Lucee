@@ -141,11 +141,14 @@ public class SMTPConnectionPool {
 	
 	
 
-	private static synchronized Stack<SessionAndTransport> getSATStack(String key) {
-		Stack<SessionAndTransport> stack=sessions.get(key);
-		if(stack==null) {
-			stack=new Stack<SessionAndTransport>();
-			sessions.put(key, stack);
+	private static Stack<SessionAndTransport> getSATStack(String key) {
+		Stack<SessionAndTransport>  stack;
+		synchronized (sessions) {
+			stack=sessions.get(key);
+			if(stack==null) {
+				stack=new Stack<SessionAndTransport>();
+				sessions.put(key, stack);
+			}
 		}
 		return stack;
 	}

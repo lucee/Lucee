@@ -61,7 +61,9 @@
 	<cftry>
 		<cfset rtnAction= plugin.component._display(dspFile,lang,app,req)>
 		<cfcatch>
-			<cfset printError(cfcatch,!findNoCase("trial",cfcatch.message))>
+			<cfset sct=duplicate(cfcatch)>
+			<cfset sct.cfcatch=cfcatch>
+			<cfset printError(sct,!findNoCase("trial",cfcatch.message))>
 		</cfcatch>
 	</cftry>
 </cfif>

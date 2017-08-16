@@ -202,8 +202,8 @@ public class CFMLExpressionInterpreter {
     public Object interpret(PageContext pc,String str, boolean preciseMath) throws PageException { 
     	this.cfml=new ParserString(str);
     	this.preciseMath = preciseMath;
-    	init();
-
+    	init(pc);
+    	
         if(LITERAL_ARRAY==null)LITERAL_ARRAY=fld.getFunction("_literalArray");
         if(LITERAL_STRUCT==null)LITERAL_STRUCT=fld.getFunction("_literalStruct");
         if(JSON_ARRAY==null)JSON_ARRAY=fld.getFunction("_jsonArray");
@@ -223,12 +223,13 @@ public class CFMLExpressionInterpreter {
     }
 
     
-    private void init() {
-    	this.pc=ThreadLocalPageContext.get(pc);
+    private void init(PageContext pc) {
+    	this.pc=pc=ThreadLocalPageContext.get(pc);
+    	
     	int dialect=CFMLEngine.DIALECT_CFML;
     	if(this.pc!=null) {
-    		this.config=(ConfigImpl) pc.getConfig();
-    		dialect=pc.getCurrentTemplateDialect();
+    		this.config=(ConfigImpl) this.pc.getConfig();
+    		dialect=this.pc.getCurrentTemplateDialect();
     	}
     	else {
     		this.config = (ConfigImpl)ThreadLocalPageContext.getConfig();
@@ -256,7 +257,7 @@ public class CFMLExpressionInterpreter {
     
     protected Object interpretPart(PageContext pc,ParserString cfml) throws PageException { 
         this.cfml = cfml;
-        init();
+        init(pc);
         
         cfml.removeSpace();
         return assignOp().getValue(pc);
@@ -1145,12 +1146,31 @@ public class CFMLExpressionInterpreter {
 			        cfml.previous();
                 }
             }
-            
-            
             // read right side of the dot
             if(before==cfml.getPos())
                 throw new InterpreterException("Number can't end with [.]");
         }
+
+		// scientific notation
+		else if(cfml.forwardIfCurrent('e')) {
+			Boolean expOp=null;
+			if(cfml.forwardIfCurrent('+')) expOp=Boolean.TRUE;
+			else if(cfml.forwardIfCurrent('-')) expOp=Boolean.FALSE;
+			
+			if(cfml.isCurrentBetween('0','9')) {
+				rtn.append('e');
+				if(expOp==Boolean.FALSE) rtn.append('-');
+				else if(expOp==Boolean.TRUE) rtn.append('+');
+		        digit(rtn);
+		    }
+		    else {
+		    	if(expOp!=null) cfml.previous();
+		        cfml.previous();
+		    }
+		}
+        
+        
+        
         cfml.removeSpace();
         mode=STATIC;
         return new LNumber(rtn.toString());

@@ -25,6 +25,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.image.BufferedImage;
 import java.util.Iterator;
 
+import lucee.commons.lang.SerializableObject;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Array;
@@ -34,28 +35,30 @@ public class FontUtil {
 
 	private static Array fonts;
 	private static Graphics2D graphics;
+	private static Object sync=new SerializableObject();
 
-	public synchronized static Array getAvailableFontsAsStringArray() {
-		 Iterator<Object> it = getAvailableFonts(false).valueIterator();
+	public static Array getAvailableFontsAsStringArray() {
+		Iterator<Object> it = getAvailableFonts(false).valueIterator();
 		Array arr=new ArrayImpl();
 		while(it.hasNext()) {
 			arr.appendEL(((Font)it.next()).getFontName());
 		}
 		return arr;
 	}
-	private synchronized static Array getAvailableFonts(boolean duplicate) {
-		if (fonts == null) {
-    	    
-			fonts = new ArrayImpl();
-    	    	GraphicsEnvironment graphicsEvn = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    	    	Font[] availableFonts = graphicsEvn.getAllFonts();
-    	    	for (int i = 0; i < availableFonts.length; i++) {
-    				fonts.appendEL(availableFonts[i]);
-    	    	}
-    		
+	private static Array getAvailableFonts(boolean duplicate) {
+		synchronized (sync) {
+			if (fonts == null) {
+				fonts = new ArrayImpl();
+					GraphicsEnvironment graphicsEvn = GraphicsEnvironment.getLocalGraphicsEnvironment();
+					Font[] availableFonts = graphicsEvn.getAllFonts();
+					for (int i = 0; i < availableFonts.length; i++) {
+						fonts.appendEL(availableFonts[i]);
+					}
+				
+			}
+			if(!duplicate) return fonts;
+			return (Array) Duplicator.duplicate(fonts,false);
 		}
-		if(!duplicate) return fonts;
-		return (Array) Duplicator.duplicate(fonts,false);
 	}
 
 	public static String toString(Font font) {

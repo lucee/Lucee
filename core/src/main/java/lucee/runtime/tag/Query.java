@@ -19,9 +19,9 @@
 package lucee.runtime.tag;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.TimeZone;
 
 import lucee.commons.io.log.Log;
@@ -33,8 +33,10 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
+import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.query.QueryResultCacheItem;
+import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
@@ -334,8 +336,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	* @param cachedafter value to set
 	**/
 	public void setCachedafter(DateTime cachedafter)	{
-		//lucee.print.ln("cachedafter:"+cachedafter);
-		this.cachedAfter=cachedafter;
+		this.cachedAfter = cachedafter;
 	}
 
 	/** set the value cachename
@@ -352,10 +353,12 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	}
 	
 
-	
-	public void setCachedwithin(Object cachedwithin)	{
-		if(StringUtil.isEmpty(cachedwithin)) return;
-		this.cachedWithin=cachedwithin;
+	public void setCachedwithin(Object cachedwithin) {
+
+		if (StringUtil.isEmpty(cachedwithin))
+			return;
+
+		this.cachedWithin = cachedwithin;
 	}
 	
 	
@@ -530,9 +533,11 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		PageContextImpl pci = ((PageContextImpl)pageContext);
 		
 		// cache within
-		if(StringUtil.isEmpty(cachedWithin)){
-			Object tmp = ((PageContextImpl)pageContext).getCachedWithin(ConfigWeb.CACHEDWITHIN_QUERY);
-			if(tmp!=null)setCachedwithin(tmp);
+		if (StringUtil.isEmpty(cachedWithin)){
+
+			Object tmp = (pageContext).getCachedWithin(ConfigWeb.CACHEDWITHIN_QUERY);
+			if (tmp != null)
+				setCachedwithin(tmp);
 		}
 		
 		// literal timestamp with TSOffset
@@ -549,88 +554,129 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	@Override
 	public int doEndTag() throws PageException	{
-		if(hasChangedPSQ)pageContext.setPsq(orgPSQ);
-		String strSQL=bodyContent.getString();
-		// no SQL String defined
-		if(strSQL.length()==0) 
+
+		if (hasChangedPSQ)
+			pageContext.setPsq(orgPSQ);
+
+		String strSQL = bodyContent.getString().trim();
+		if (strSQL.isEmpty())
 			throw new DatabaseException("no sql string defined, inside query tag",null,null,null);
 		
 		try {
 		
-			strSQL=strSQL.trim();
 			// cannot use attribute params and queryparam tag
-			if(items.size()>0 && params!=null)
-				throw new DatabaseException("you cannot use the attribute params and sub tags queryparam at the same time",null,null,null);
+			if (!items.isEmpty() && params != null)
+				throw new DatabaseException("you cannot use the attribute params and sub tags queryparam at the same time", null, null, null);
+
 			// create SQL
 			SQL sql;
-			if(params!=null) {
-				if(params instanceof Argument)
-					sql=QueryParamConverter.convert(strSQL, (Argument) params);
-				else if(Decision.isArray(params))
-					sql=QueryParamConverter.convert(strSQL, Caster.toArray(params));
-				else if(Decision.isStruct(params))
-					sql=QueryParamConverter.convert(strSQL, Caster.toStruct(params));
+			if (params != null) {
+				if (params instanceof Argument)
+					sql = QueryParamConverter.convert(strSQL, (Argument)params);
+				else if (Decision.isArray(params))
+					sql = QueryParamConverter.convert(strSQL, Caster.toArray(params));
+				else if (Decision.isStruct(params))
+					sql = QueryParamConverter.convert(strSQL, Caster.toStruct(params));
 				else
-					throw new DatabaseException("value of the attribute [params] has to be a struct or a array",null,null,null);
+					throw new DatabaseException("value of the attribute [params] has to be a struct or a array", null, null, null);
 			}
-			else sql=items.size()>0?new SQLImpl(strSQL,items.toArray(new SQLItem[items.size()])):new SQLImpl(strSQL);
-			
+			else {
 
-			QueryResult qr=null;
-			
+				sql = items.isEmpty() ? new SQLImpl(strSQL) : new SQLImpl(strSQL, items.toArray(new SQLItem[items.size()]));
+			}
+
 			//lucee.runtime.type.Query query=null;
-			long exe=0;
-			boolean hasCached=cachedWithin!=null || cachedAfter!=null;
-			String cacheId=null;
-			if(hasCached) {
-				String id = CacheHandlerCollectionImpl.createId(sql,datasource!=null?datasource.getName():null,username,password,returntype);
-				CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY,null).getInstanceMatchingObject(cachedWithin,null);
-				if(ch!=null) {
-					cacheId=ch.id();
-					CacheItem ci = ch.get(pageContext, id);
-					if(ci instanceof QueryResultCacheItem) {
-						QueryResultCacheItem ce = (QueryResultCacheItem) ci;
-						if(ce.isCachedAfter(cachedAfter))
-							qr= ce.getQueryResult();
+			QueryResult queryResult = null;
+			String cacheHandlerId = null;
+			String cacheId = null;
+
+			long exe = 0;
+			boolean useCache = (cachedWithin != null) || (cachedAfter != null);
+			CacheHandler cacheHandler = null;
+
+			if (useCache) {
+
+				cacheId = CacheHandlerCollectionImpl.createId(sql, datasource != null ? datasource.getName() : null, username, password, returntype);
+
+				CacheHandlerCollectionImpl coll = (CacheHandlerCollectionImpl)pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY,null);
+				cacheHandler = coll.getInstanceMatchingObject(cachedWithin, null);
+
+				if (cacheHandler == null && cachedAfter != null)
+					cacheHandler = coll.getTimespanInstance(null);
+
+				if (cacheHandler != null){
+
+					cacheHandlerId = cacheHandler.id();		// cacheHandlerId specifies to queryResult the cacheType and therefore whether the query is cached or not
+
+					if (cacheHandler instanceof CacheHandlerPro){
+
+						CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pageContext, cacheId, (cachedWithin != null) ? cachedWithin : cachedAfter);
+
+						if (cacheItem instanceof QueryResultCacheItem)
+							queryResult = ((QueryResultCacheItem) cacheItem).getQueryResult();
+					}
+					else {		// TODO this else block can be removed when all cache handlers implement CacheHandlerPro
+
+						CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
+
+						if (cacheItem instanceof QueryResultCacheItem) {
+
+							QueryResultCacheItem queryCachedItem = (QueryResultCacheItem) cacheItem;
+
+							Date cacheLimit = cachedAfter;
+							if (cacheLimit == null)
+								cacheLimit = new Date(System.currentTimeMillis() - Caster.toTimeSpan(cachedWithin).getMillis());
+
+							if (queryCachedItem.isCachedAfter(cacheLimit))
+								queryResult = queryCachedItem.getQueryResult();
+						}
 					}
 				}
 				else {
-					List<String> patterns = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY,null).getPatterns();
-					throw new ApplicationException("cachedwithin value ["+cachedWithin+"] is invalid, valid values are for example ["+ListUtil.listToList(patterns, ", ")+"]");
+					List<String> patterns = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null).getPatterns();
+					throw new ApplicationException("cachedwithin value [" + cachedWithin + "] is invalid, valid values are for example [" + ListUtil.listToList(patterns, ", ") + "]");
 				}
 				//query=pageContext.getQueryCache().getQuery(pageContext,sql,datasource!=null?datasource.getName():null,username,password,cachedafter);
 			}
-			
-			if(qr==null) {
+
+			// cache not found, process and cache result if needed
+			if (queryResult == null) {
 				// QoQ
-				if("query".equals(dbtype)) {
+				if ("query".equals(dbtype)) {
 					lucee.runtime.type.Query q=executeQoQ(sql);
 					if(returntype==RETURN_TYPE_ARRAY)
-						qr=QueryArray.toQueryArray(q); // TODO this should be done in queryExecute itself so we not have to convert afterwards
+						queryResult=QueryArray.toQueryArray(q); // TODO this should be done in queryExecute itself so we not have to convert afterwards
 					else if(returntype==RETURN_TYPE_STRUCT){
 						if(columnName==null) throw new ApplicationException("attribute columnKey is required when return type is set to struct");
-						qr=QueryStruct.toQueryStruct(q,columnName); // TODO this should be done in queryExecute itself so we not have to convert afterwards
+						queryResult=QueryStruct.toQueryStruct(q,columnName); // TODO this should be done in queryExecute itself so we not have to convert afterwards
 					}
-					else qr=(QueryResult)q;
+					else queryResult=(QueryResult)q;
 				}
 				// ORM and Datasource
-				else  	{ 
-					long start=System.nanoTime();
-					Object obj = 
-							("orm".equals(dbtype) || "hql".equals(dbtype))?
-									executeORM(sql,returntype,ormoptions):
-									executeDatasoure(sql,result!=null,pageContext.getTimeZone());
+				else {
 
-					if(obj instanceof QueryResult)
-						qr=(QueryResult)obj;
+					long start=System.nanoTime();
+					Object obj;
+
+					if ("orm".equals(dbtype) || "hql".equals(dbtype))
+						obj = executeORM(sql,returntype,ormoptions);
+					else
+						obj = executeDatasoure(sql,result!=null,pageContext.getTimeZone());
+
+					if (obj instanceof QueryResult){
+
+						queryResult = (QueryResult)obj;
+					}
 					else {
-						if(setReturnVariable){
-							rtn=obj;
+
+						if (setReturnVariable){
+							rtn = obj;
 						}
-						else if(!StringUtil.isEmpty(name)) {
+						else if (!StringUtil.isEmpty(name)) {
 							pageContext.setVariable(name,obj);
 						}
-						if(result!=null){
+
+						if (result != null){
 							Struct sct=new StructImpl();
 							sct.setEL(KeyConstants._cached, Boolean.FALSE);
 							long time=System.nanoTime()-start;
@@ -646,61 +692,64 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 						}
 						else
 							setExecutionTime((System.nanoTime()-start)/1000000);
+
 						return EVAL_PAGE;
 					}
 				}
 				//else query=executeDatasoure(sql,result!=null,pageContext.getTimeZone());
 				
-				if(cachedWithin!=null) {
-					String id = CacheHandlerCollectionImpl.createId(sql,datasource!=null?datasource.getName():null,username,password,returntype);
-					CacheHandler ch = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY,null).getInstanceMatchingObject(cachedWithin,null);
-					if(ch!=null) {
-						CacheItem ci = QueryResultCacheItem.newInstance(qr,tags,null);
-						if(ci!=null)ch.set(pageContext, id,cachedWithin,ci);
-					}
+				if (cachedWithin != null) {
+
+					CacheItem cacheItem = QueryResultCacheItem.newInstance(queryResult, tags, null);
+					if (cacheItem != null)
+						cacheHandler.set(pageContext, cacheId, cachedWithin, cacheItem);
 				}
-				exe=qr.getExecutionTime();
+
+				exe=queryResult.getExecutionTime();
 			}
-			else qr.setCacheType(cacheId);
+			else {
+
+				queryResult.setCacheType(cacheHandlerId);
+			}
 			
 			if(pageContext.getConfig().debug() && debug) {
 				boolean logdb=((ConfigImpl)pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DATABASE);
 				if(logdb){
-					boolean debugUsage=DebuggerImpl.debugQueryUsage(pageContext,qr);
+					boolean debugUsage=DebuggerImpl.debugQueryUsage(pageContext,queryResult);
 					DebuggerImpl di=(DebuggerImpl) pageContext.getDebugger();
-					di.addQuery(debugUsage?qr:null,datasource!=null?datasource.getName():null,name,sql,qr.getRecordcount(),getPageSource(),exe);
+					di.addQuery(debugUsage?queryResult:null,datasource!=null?datasource.getName():null,name,sql,queryResult.getRecordcount(),getPageSource(),exe);
 				}
 			}
 			if(setReturnVariable){
-				rtn=qr;
+				rtn=queryResult;
 			}
-			else if((qr.getColumncount()+qr.getRecordcount())>0 && !StringUtil.isEmpty(name)) {
-				pageContext.setVariable(name,qr);
+			else if((queryResult.getColumncount()+queryResult.getRecordcount())>0 && !StringUtil.isEmpty(name)) {
+				pageContext.setVariable(name,queryResult);
 			}
 			
 			// Result
 			if(result!=null) {
 				
 				Struct sct=new StructImpl();
-				sct.setEL(KeyConstants._cached, Caster.toBoolean(qr.isCached()));
-				if((qr.getColumncount()+qr.getRecordcount())>0){
+				sct.setEL(KeyConstants._cached, Caster.toBoolean(queryResult.isCached()));
+				if((queryResult.getColumncount()+queryResult.getRecordcount())>0){
 					String list = ListUtil.arrayToList(
-							qr instanceof lucee.runtime.type.Query?
-							((lucee.runtime.type.Query)qr).getColumnNamesAsString():
-							CollectionUtil.toString(qr.getColumnNames(), false)
+							queryResult instanceof lucee.runtime.type.Query?
+							((lucee.runtime.type.Query)queryResult).getColumnNamesAsString():
+							CollectionUtil.toString(queryResult.getColumnNames(), false)
 							,",");
 					sct.setEL(KeyConstants._COLUMNLIST, list);
 				}
-				int rc=qr.getRecordcount();
-				if(rc==0)rc=qr.getUpdateCount();
+				int rc=queryResult.getRecordcount();
+				if(rc==0)rc=queryResult.getUpdateCount();
 				sct.setEL(KeyConstants._RECORDCOUNT, Caster.toDouble(rc));
-				sct.setEL(KeyConstants._executionTime, Caster.toDouble(qr.getExecutionTime()/1000000));
-				sct.setEL(KeyConstants._executionTimeNano, Caster.toDouble(qr.getExecutionTime()));
+				sct.setEL(KeyConstants._executionTime, Caster.toDouble(queryResult.getExecutionTime()/1000000));
+				sct.setEL(KeyConstants._executionTimeNano, Caster.toDouble(queryResult.getExecutionTime()));
 				
 				sct.setEL(KeyConstants._SQL, sql.getSQLString());
 				
 				// GENERATED KEYS
-				lucee.runtime.type.Query qi = Caster.toQuery(qr,null);
+				lucee.runtime.type.Query qi = Caster.toQuery(queryResult,null);
 				if(qi !=null){
 					lucee.runtime.type.Query qryKeys = qi.getGeneratedKeys();
 					if(qryKeys!=null){
@@ -733,9 +782,9 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 					sct.setEL(SQL_PARAMETERS, arr); 
 					for(int i=0;i<params.length;i++) {
 						arr.append(params[i].getValue());
-						
 					}
 				}
+
 				pageContext.setVariable(result, sct);
 			}
 			// cfquery.executiontime
@@ -747,7 +796,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			
 			// listener
 			((ConfigWebImpl)pageContext.getConfig()).getActionMonitorCollector()
-				.log(pageContext, "query", "Query", exe, qr);
+				.log(pageContext, "query", "Query", exe, queryResult);
 			
 
 			// log

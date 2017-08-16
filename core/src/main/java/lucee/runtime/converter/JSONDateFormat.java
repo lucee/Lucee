@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import lucee.commons.lang.SerializableObject;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 import org.apache.commons.collections4.map.ReferenceMap;
@@ -34,17 +35,19 @@ public class JSONDateFormat {
 	private static ReferenceMap<String,DateFormat> map=new ReferenceMap<String,DateFormat>();
 	//private static DateFormat format=null;
 	private static Locale locale=Locale.ENGLISH;
+	private final static Object sync=new SerializableObject();
 	
-	public synchronized static  String format(Date date, TimeZone tz) {
+	public static String format(Date date, TimeZone tz) {
 		tz=ThreadLocalPageContext.getTimeZone(tz);
 		String id=locale.hashCode()+"-"+tz.getID();
-		DateFormat format = (DateFormat) map.get(id);
-		if(format==null){
-			format=new SimpleDateFormat("MMMM, dd yyyy HH:mm:ss Z",locale);
-			format.setTimeZone(tz);
-			map.put(id, format);
+		synchronized (sync) {
+			DateFormat format = (DateFormat) map.get(id);
+			if(format==null){
+				format=new SimpleDateFormat("MMMM, dd yyyy HH:mm:ss Z",locale);
+				format.setTimeZone(tz);
+				map.put(id, format);
+			}
+			return format.format(date);	
 		}
-		
-		return format.format(date);
 	}
 }

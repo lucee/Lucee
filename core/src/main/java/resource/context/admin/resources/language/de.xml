@@ -446,7 +446,9 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="mail.serverDesc">Mail server host name (z.B. smtp.gmail.com)</data>
 	<data key="mail.porterrorlast">) vom Typ Nummer an.</data>
 	<data key="mail.spoolenabled">Spooler an</data>
-	<data key="mail.mailserversdescription">Sie können mehrere Mailsserververbindungen definieren. Wenn Sie eine Mail absenden, versucht Lucee die Mail der Reihe nach über einen der angegebenen Mailserver zu versenden.</data>
+	<data key="mail.mailserversdescription.local">You can define more than one mail server connection. When sending an email, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</data>
+	<data key="mail.mailserversdescription.global">These connections have been created in the Server Administrator and are shared with ALL web contexts. You cannot modify these mail servers in the Web Administrator.
+	You can define more than one mail server connection. When sending an email, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</data>
 	<data key="mail.settings">Mail Einstellungen</data>
 	<data key="mail.createnewMailServerConn">Neue Mailserververbindung</data>
 	<data key="mail.createnewMailServerConnDesc">Erstelle eine neue Mailserververbindung.</data>
@@ -1098,6 +1100,8 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="overview.bugreport">Fehlerreport</data>
 	<data key="overview.Docs">Documentation</data>
 	<data key="overview.DocsDesc">If you have any questions about Lucee please take a look at the documentation in the first instance.</data>
+	<data key="overview.onlineDocsLink">Online Documentation</data>
+	<data key="overview.localRefLink">Local Reference</data>
 	<data key="overview.issuetracker">Issue Tracker</data>
 	<data key="overview.issuetrackerDesc">If you think you've found a bug, please take the time to report it via our bug tracking system.</data>
 	<data key="overview.book">Book (Lucee 3 Beginner's Guide)</data>

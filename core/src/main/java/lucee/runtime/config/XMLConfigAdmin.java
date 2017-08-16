@@ -1535,6 +1535,36 @@ public final class XMLConfigAdmin {
         }
         return fixed;
 	}
+    
+    public static boolean fixComponentMappings(ConfigImpl config, Document doc) {
+    	if(!(config instanceof ConfigServer)) return false;
+    	
+    	Element parent=XMLConfigWebFactory.getChildByName(doc.getDocumentElement(),"component",false,true);
+        Element[] mappings = XMLConfigWebFactory.getChildren(parent,"mapping");
+        
+        int count=0;
+        for(Element mapping:mappings) {
+        	if("/default-server".equalsIgnoreCase(mapping.getAttribute("virtual"))) {
+        		count++;
+        		if(count>1) {
+        			parent.removeChild(mapping);
+        		}
+        	}
+        }
+        
+        if(count>0) return false;
+        
+        
+        // ADD MAPPING
+        Element mapping = doc.createElement("mapping");
+        parent.appendChild(mapping);
+        mapping.setAttribute("virtual", "/default-server");
+        mapping.setAttribute("physical", "{lucee-server}/components/");
+        mapping.setAttribute("primary", "physical");
+        mapping.setAttribute("inspect-template", "never");
+        mapping.setAttribute("readonly", "true");
+        return true;
+	}
 
     public void verifyCFX(String name) throws PageException {
     	CFXTagPool pool=config.getCFXTagPool();
@@ -1858,7 +1888,7 @@ public final class XMLConfigAdmin {
     	if(StringUtil.isEmpty(id))
             throw new ExpressionException("id can't be a empty value");
     	
-    	if(StringUtil.isEmpty(cd.getClassName()) && StringUtil.isEmpty(componentPath))
+    	if((cd==null || StringUtil.isEmpty(cd.getClassName())) && StringUtil.isEmpty(componentPath))
     		throw new ExpressionException("you must define className or componentPath");
     	
         
@@ -2277,6 +2307,7 @@ public final class XMLConfigAdmin {
 
 
 	private static String toStringURLStyle(Struct sct) {
+		if(sct==null) return "";
         Iterator<Entry<Key, Object>> it = sct.entryIterator();
 		Entry<Key, Object> e;
 		StringBuilder rtn=new StringBuilder();
@@ -2473,14 +2504,18 @@ public final class XMLConfigAdmin {
     }
 
 
-	public void removeCacheGatewayEntry(String name) throws PageException {
+	public void removeGatewayEntry(String name) throws PageException {
 		checkWriteAccess();
         
-		boolean hasAccess=ConfigWebUtil.hasAccess(config,SecurityManagerImpl.TYPE_GATEWAY);
+        boolean hasAccess=ConfigWebUtil.hasAccess(config,SecurityManagerImpl.TYPE_GATEWAY);
         if(!hasAccess)
             throw new SecurityException("no access to remove gateway entry");
         
-        if(StringUtil.isEmpty(name))
+        _removeGatewayEntry(name);_removeAMFEngine();
+	}
+
+	protected void _removeGatewayEntry(String name) throws PageException {
+		if(StringUtil.isEmpty(name))
             throw new ExpressionException("name for Gateway Id can be a empty value");
         
         Element parent=_getRootElement("gateways");
@@ -3793,7 +3828,7 @@ public final class XMLConfigAdmin {
 	        				localPath=patch;
 	        			}
 	        			// delete newer files
-	        			else if(Util.isNewerThan(v,version)) {
+	        			else if(OSGiUtil.isNewerThan(v,version)) {
 	        				patch.delete();
 	        			}
         			}
@@ -4881,7 +4916,6 @@ public final class XMLConfigAdmin {
         			updateEventGateway(zis, sub,false); 
 				}
 
-				
 				// context
 				String realpath;
 				if(!entry.isDirectory() && startsWith(path,type,"context") && !StringUtil.startsWith(fileName(entry), '.')) {
@@ -4890,14 +4924,20 @@ public final class XMLConfigAdmin {
 	        		updateContext(zis, realpath,false,false);
 				}
 				// web contextS
-				if(!entry.isDirectory() && (startsWith(path,type,"webcontexts")) && !StringUtil.startsWith(fileName(entry), '.')) {
-					realpath=path.substring(12);
+				boolean first;
+				if(!entry.isDirectory() && ((first=startsWith(path,type,"webcontexts")) || startsWith(path,type,"web.contexts")) && !StringUtil.startsWith(fileName(entry), '.')) {
+					realpath=path.substring(first?12:13);
 	        		logger.log(Log.LEVEL_INFO,"extension","deploy webcontext "+realpath);
 	        		updateWebContexts(zis, realpath,false,false);
 				}
 				// applications
-				if(!entry.isDirectory() && (startsWith(path,type,"applications")) && !StringUtil.startsWith(fileName(entry), '.')) {
-					realpath=path.substring(13);
+				if(!entry.isDirectory() && (startsWith(path,type,"applications") || startsWith(path,type,"web.applications") || startsWith(path,type,"web")) && !StringUtil.startsWith(fileName(entry), '.')) {
+					int index;
+					if(startsWith(path,type,"applications")) index=13;
+					else if(startsWith(path,type,"web.applications")) index=17;
+					else index=4; // web
+					
+					realpath=path.substring(index);
 	        		logger.log(Log.LEVEL_INFO,"extension","deploy application "+realpath);
 	        		updateApplication( zis, realpath,false);
 				}
@@ -4940,8 +4980,8 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
-					if(cd.isBundle()) {
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					if(cd!=null && cd.isBundle()) {
 						_updateCache(cd);
 						reloadNecessary=true;
 					}
@@ -4955,9 +4995,9 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
 					String _id=map.get("id");
-					if(!StringUtil.isEmpty(_id) && cd.hasClass()) {
+					if(!StringUtil.isEmpty(_id) && cd!=null && cd.hasClass()) {
 						_updateCacheHandler(_id,cd);
 						reloadNecessary=true;
 					}
@@ -4971,8 +5011,8 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
-					if(cd.hasClass()) {	
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					if(cd!=null && cd.hasClass()) {	
 						_updateAMFEngine(cd,map.get("caster"),map.get("configuration"));
 						reloadNecessary=true;
 					}
@@ -4986,8 +5026,8 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
-					if(cd.hasClass()) {
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					if(cd!=null && cd.hasClass()) {
 						_updateSearchEngine(cd);
 						reloadNecessary=true;
 					}
@@ -5001,9 +5041,9 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
 					String scheme = map.get("scheme");
-					if(cd.hasClass() && !StringUtil.isEmpty(scheme)) {
+					if(cd!=null && cd.hasClass() && !StringUtil.isEmpty(scheme)) {
 						Struct args=new StructImpl();
 						copyButIgnoreClassDef(map,args);
 						args.remove("scheme");
@@ -5020,9 +5060,9 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
 					
-					if(cd.hasClass()) {
+					if(cd!=null && cd.hasClass()) {
 						_updateORMEngine(cd);
 						reloadNecessary=true;
 					}
@@ -5036,9 +5076,8 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
-					
-					if(cd.hasClass()) {
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					if(cd!=null && cd.hasClass()) {
 						_updateMonitorEnabled(true);
 						_updateMonitor(cd, map.get("type"), map.get("name"), true);
 						reloadNecessary=true;
@@ -5053,16 +5092,16 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
 					String _label=map.get("label");
-					if(cd.isBundle()) {
+					if(cd!=null && cd.isBundle()) {
 						_updateJDBCDriver(_label,cd);
 						reloadNecessary=true;
 					}
 					logger.info("extension", "update JDBC Driver ["+_label+":"+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
 			}
-			   
+
 			// update mapping
 			if(!ArrayUtil.isEmpty(rhext.getMappings())) {
 				Iterator<Map<String, String>> itl = rhext.getMappings().iterator();
@@ -5091,6 +5130,49 @@ public final class XMLConfigAdmin {
 					reloadNecessary=true;
 					
 					logger.info("extension", "update Mapping ["+virtual+"]");
+				}
+			}
+			
+			// update event-gateway-instance
+			
+			if(!ArrayUtil.isEmpty(rhext.getEventGatewayInstances())) {
+				Iterator<Map<String, Object>> itl = rhext.getEventGatewayInstances().iterator();
+				Map<String, Object> map;
+				while(itl.hasNext()){
+					map = itl.next();
+					// id
+					String id=Caster.toString(map.get("id"),null);
+					// class
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					// component path
+					String cfcPath=Caster.toString(map.get("cfc-path"),null);
+					if(StringUtil.isEmpty(cfcPath)) 
+						cfcPath=Caster.toString(map.get("component-path"),null);
+					// listener component path
+					String listenerCfcPath=Caster.toString(map.get("listener-cfc-path"),null);
+					if(StringUtil.isEmpty(listenerCfcPath)) 
+						listenerCfcPath=Caster.toString(map.get("listener-component-path"),null);
+					// startup mode
+					String strStartupMode=Caster.toString(map.get("startup-mode"),"automatic");
+					int startupMode = GatewayEntryImpl.toStartup(strStartupMode,GatewayEntryImpl.STARTUP_MODE_AUTOMATIC);
+					// read only
+					boolean readOnly=Caster.toBooleanValue(map.get("read-only"),false);
+					// custom
+					Struct custom=Caster.toStruct(map.get("custom"),null);
+					/*
+					print.e("::::::::::::::::::::::::::::::::::::::::::");
+					print.e("id:"+id);
+					print.e("cd:"+cd);
+					print.e("cfc:"+cfcPath);
+					print.e("listener:"+listenerCfcPath);
+					print.e("startupMode:"+startupMode);
+					print.e(custom);*/
+					
+					if(!StringUtil.isEmpty(id) && (!StringUtil.isEmpty(cfcPath) || (cd!=null && cd.hasClass()))) {
+						_updateGatewayEntry(id, cd, cfcPath, listenerCfcPath, startupMode, custom, readOnly);
+					}
+					
+					logger.info("extension", "update event gateway entry ["+id+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
 			}
 
@@ -5197,10 +5279,10 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
 					String _id=map.get("id");
 					
-					if(!StringUtil.isEmpty(_id) && cd.hasClass()) {
+					if(!StringUtil.isEmpty(_id) && cd!=null && cd.hasClass()) {
 						_removeCacheHandler(_id);
 						//reload=true;
 					}
@@ -5214,8 +5296,8 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
-					if(cd.isBundle()) {
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					if(cd!=null && cd.isBundle()) {
 						_removeCache(cd);
 						//reload=true;
 					}
@@ -5229,8 +5311,8 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
-					if(cd.hasClass()) {
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					if(cd!=null && cd.hasClass()) {
 						_removeSearchEngine();
 						//reload=true;
 					}
@@ -5244,9 +5326,9 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
 					String scheme=map.get("scheme");
-					if(cd.hasClass()) {
+					if(cd!=null && cd.hasClass()) {
 						_removeResourceProvider(scheme);
 					}
 					logger.info("extension", "remove resource ["+cd+"] from extension ["+rhe.getName()+":"+rhe.getVersion()+"]");
@@ -5259,8 +5341,8 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
-					if(cd.hasClass()) {
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					if(cd!=null && cd.hasClass()) {
 						_removeAMFEngine();
 						//reload=true;
 					}
@@ -5274,9 +5356,9 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
 					
-					if(cd.hasClass()) {
+					if(cd!=null && cd.hasClass()) {
 						_removeORMEngine();
 						//reload=true;
 					}
@@ -5308,14 +5390,13 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
-					if(cd.isBundle()) {
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					if(cd!=null && cd.isBundle()) {
 						_removeJDBCDriver(cd);
 					}
 					logger.info("extension", "remove JDBC Driver ["+cd+"] from extension ["+rhe.getName()+":"+rhe.getVersion()+"]");
 				}
 			}
-			
 
 			// remove mapping
 			if(!ArrayUtil.isEmpty(rhe.getMappings())) {
@@ -5330,7 +5411,21 @@ public final class XMLConfigAdmin {
 				}
 			}
 			
-			
+			// remove event-gateway-instance
+			if(!ArrayUtil.isEmpty(rhe.getEventGatewayInstances())) {
+				Iterator<Map<String, Object>> itl = rhe.getEventGatewayInstances().iterator();
+				Map<String, Object> map;
+				String id;
+				while(itl.hasNext()){
+					map = itl.next();
+					id=Caster.toString(map.get("id"),null);
+					if(!StringUtil.isEmpty(id)) {
+						_removeGatewayEntry(id);
+						logger.info("extension", "remove event gateway entry ["+id+"]");
+					}
+				}
+			}
+
 			// Loop Files
 			ZipInputStream zis = new ZipInputStream( IOUtil.toBufferedInputStream(rhe.getExtensionFile().getInputStream()) ) ;	
 			String type=ci instanceof ConfigWeb?"web":"server";
@@ -5441,7 +5536,7 @@ public final class XMLConfigAdmin {
 		}
 		//Object o = 
 			CreateObject.doWebService(null, strUrl+"?wsdl");
-			
+		HTTPEngine.closeEL(method);
 	}
 
 
@@ -6171,14 +6266,24 @@ public final class XMLConfigAdmin {
 
 	Resource[] updateApplication(InputStream is,String realpath, boolean closeStream) throws PageException, IOException, SAXException {
     	List<Resource> filesDeployed=new ArrayList<Resource>();
-    	deployFilesFromStream(config,config.getRootDirectory(), is, realpath, closeStream, filesDeployed);
+    	Resource dir;
+    	// server context
+    	if(config instanceof ConfigServer)
+    		dir=config.getConfigDir().getRealResource("web-deployment");
+    	// if web context we simply deploy to that webcontext, that's all
+    	else 
+    		dir=config.getRootDirectory();
+    	
+    	deployFilesFromStream(config,dir, is, realpath, closeStream, filesDeployed);
+    	
     	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
     }
 	
 
 
-	private void deployFilesFromStream(Config config,Resource root, InputStream is,String realpath, boolean closeStream,List<Resource> filesDeployed) throws PageException, IOException, SAXException {
-    	if(config instanceof ConfigServer) {
+	private static void deployFilesFromStream(Config config,Resource root, InputStream is,String realpath, boolean closeStream,List<Resource> filesDeployed) throws PageException, IOException, SAXException {
+    	// MUST this makes no sense at this point
+		if(config instanceof ConfigServer) {
     		ConfigWeb[] webs = ((ConfigServer)config).getConfigWebs();
     		if(webs.length==0) return;
     		if(webs.length==1) {
@@ -6593,7 +6698,7 @@ public final class XMLConfigAdmin {
 
 
 	private static void setClass(Element el,Class instanceOfClass, String prefix, ClassDefinition cd) throws PageException {
-		if(StringUtil.isEmpty(cd.getClassName())) return;
+		if(cd==null || StringUtil.isEmpty(cd.getClassName())) return;
 		
 		// validate class
 		try {

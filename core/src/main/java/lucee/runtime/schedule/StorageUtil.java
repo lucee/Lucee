@@ -133,7 +133,7 @@ public final class StorageUtil {
 	 * @param file 
 	 * @throws IOException
      */
-    public synchronized void store(Document doc,File file) throws IOException {
+    public void store(Document doc,File file) throws IOException {
     	store(doc, ResourceUtil.toResource(file));
     }
     
@@ -143,7 +143,7 @@ public final class StorageUtil {
 	 * @param res 
 	 * @throws IOException
      */
-    public synchronized void store(Document doc,Resource res) throws IOException {
+    public void store(Document doc,Resource res) throws IOException {
         OutputFormat format = new OutputFormat(doc, null, true);
 		format.setLineSeparator("\r\n");
 		format.setLineWidth(72);

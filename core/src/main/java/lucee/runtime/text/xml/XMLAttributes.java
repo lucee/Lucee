@@ -64,7 +64,7 @@ public final class XMLAttributes extends StructSupport implements Struct,NamedNo
 	 * @param nodeMap
 	 */
 	public XMLAttributes(Node parent, boolean caseSensitive) {
-		this.owner=parent.getOwnerDocument();
+		this.owner=XMLUtil.getDocument(parent);
 		this.parent=parent;
 		this.nodeMap=parent.getAttributes();
 		this.caseSensitive=caseSensitive;

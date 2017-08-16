@@ -43,6 +43,7 @@ Defaults --->
 
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
+		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
 
@@ -173,6 +174,11 @@ Error Output --->
 		<cfif !ArrayContainsNoCase(names,"Rest")>
 			<div class="warning nofocus">
 				The REST Servlet is not configured in your enviroment!
+			</div>
+		</cfif>
+		<cfif listGetAt(server.java.version,2,'.') EQ 7>
+			<div class="warning nofocus">
+				Java 7 has been End-of-Life'd since April 2015. You should upgrade to Java 8 for performance and security reasons.
 			</div>
 		</cfif>
 	</cfif>
@@ -398,7 +404,7 @@ Error Output --->
 				<br><br>
 				<div id="updateInfoDesc"><div style="text-align: center;"><img src="../res/img/spinner16.gif.cfm"></div></div>
 
-				<cfsavecontent variable="Request.htmlBody" append="true">
+				<cfhtmlbody>
 					<script type="text/javascript">
 
 						$( function() {
@@ -406,7 +412,7 @@ Error Output --->
 							$('##updateInfoDesc').load('update.cfm?#session.urltoken#&adminType=#request.admintype#');
 						} );
 					</script>
-				</cfsavecontent>
+				</cfhtmlbody>
 
 					<!--- Memory Usage --->
 					<cftry>
@@ -427,9 +433,15 @@ Error Output --->
 
 					<!--- Docs --->
 					<h3>
-						<a href="http://docs.lucee.org" target="_blank">#stText.Overview.Docs#</a>
+						#stText.Overview.Docs#
 					</h3>
-					<div class="comment">#stText.Overview.DocsDesc#</div>
+					<div class="comment">
+						#stText.Overview.DocsDesc#
+						<div style="margin-left:10px;">
+							<p><a href="http://docs.lucee.org" target="_blank">#stText.Overview.onlineDocsLink#</a></p>
+							<p><a href="../doc/index.cfm" target="_blank">#stText.Overview.localRefLink#</a></p>
+						</div>
+					</div>
 
 					<!--- Mailing list --->
 					<h3>
