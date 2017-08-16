@@ -145,12 +145,17 @@ public abstract class CacheSupport implements CachePro {
 		if(CacheUtil.allowAll(filter)) return values();
 
 		List<String> keys = keys();
+		
 		List<Object> list=new ArrayList<Object>();
 		Iterator<String> it = keys.iterator();
 		String key;
 		while(it.hasNext()){
 			key=it.next();
-			if(filter.accept(key))list.add(getQuiet(key,null).getValue());
+			if(filter.accept(key)) {
+				CacheEntry ce = getQuiet(key,null);
+				if(ce!=null) // possible that the entry is gone since keys(); call above
+					list.add(ce.getValue());
+			}
 		}
 		return list;
 	}
