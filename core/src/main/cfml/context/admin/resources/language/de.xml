@@ -437,7 +437,7 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="mail.porterrorlast">) vom Typ Nummer an.</data>
 	<data key="mail.spoolenabled">Spooler an</data>
 	<data key="mail.mailserversdescription.local">You can define more than one mail server connection. When sending an email, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</data>
-	<data key="mail.mailserversdescription.global">These connections have been created in the Server Administrator and are shared with ALL web contexts.You cannot modify these mail servers in the Web Administrator.
+	<data key="mail.mailserversdescription.global">These connections have been created in the Server Administrator and are shared with ALL web contexts. You cannot modify these mail servers in the Web Administrator.
 	You can define more than one mail server connection. When sending an email, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</data>
 	<data key="mail.settings">Mail Einstellungen</data>
 	<data key="mail.createnewMailServerConn">Neue Mailserververbindung</data>
