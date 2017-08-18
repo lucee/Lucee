@@ -59,7 +59,7 @@ notifications:
 after_success:
 # - version=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version | egrep -v '^\[|Downloading:' | tr -d ' \n')
 - curl "http://stable.lucee.org/rest/update/provider/buildLatest"
-- curl "http://preview.lucee.org/download/?resetAsync=true"
+- curl "http://download.lucee.org/?reset=1"
 
 
 
