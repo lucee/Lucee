@@ -217,22 +217,22 @@ div.panel {
 					<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 						<div>
 							<h3 class="pdTop">#stText.services.update.upgrade# :</h3>
-							<select name="UPDATE_#key#" id="" class="large">
+							<select name="UPDATE_#key#"  class="large">
 								<cfloop array="#versionsStr[key].upgrade#" index="i">
 									<option value="#i#">#i#</option>
 								</cfloop>
 							</select>
-							<input type="button" class="smBtn"  onclick="changeVersion(this, UPDATE_#key#)" name="mainAction" value="#stText.menu.services.update#">
+							<input type="button" class="smBtn" id="btn_UPDATE_#key#"  onclick="changeVersion(this, UPDATE_#key#)" name="mainAction" value="#stText.menu.services.update#">
 							<div id="UPDATE_#key#"></div>
 						</div>
 						<div>
 							<h3 class="pdTop">#stText.services.update.downgrade# :</h3>
-							<select name="DOWNGRADE_#key#" id="" class="large">
+							<select name="DOWNGRADE_#key#"  class="large">
 								<cfloop array="#versionsStr[key].downgrade#" index="i">
 									<option value="#i#">#i#</option>
 								</cfloop>
 							</select>
-							<input type="button" class="smBtn" onclick="changeVersion(this, DOWNGRADE_#key#)" name="mainAction" value="#stText.services.update.downgrade#">
+							<input type="button" class="smBtn" id="btn_DOWNGRADE_#key#" onclick="changeVersion(this, DOWNGRADE_#key#)" name="mainAction" value="#stText.services.update.downgrade#">
 							<div id="DOWNGRADE_#key#"></div>
 						</div>
 					</cfformClassic>
@@ -306,7 +306,7 @@ div.panel {
 					var len = obj[k];
 					if(len == 0){
 						$("select[name="+ k +"]").prop('disabled', true);
-						// $( "select[name="+ k.toLowerCase() +"]" ).next().prop('disabled', true);
+						$( "##btn_"+k ).prop('disabled', true);
 						$("##"+k).html('<div class="alertMsg"><span> Currently no  <b>' + k.split('_')[1] + ' </b>' + k.split('_')[0].toLowerCase() + ' available for your version </span></div>');
 					}
 				});
