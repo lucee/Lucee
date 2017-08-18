@@ -41,6 +41,7 @@
  <cfif request.admintype EQ "web"><cflocation url="#request.self#" addtoken="no"></cfif>
 <cfset error.message="">
 <cfset error.detail="">
+
  <cfscript>
 
 	max=100;
@@ -98,9 +99,12 @@
 				}
 			}
 		}
+		minVersion=createObject('java','lucee.VersionInfo').getIntVersion().toString();
+		minVs = toVersionSortable(minVersion);
 		if(len(result.otherVersions)){
 			for(versions in result.otherVersions ){
 				if(versions EQ server.lucee.version) cfcontinue;
+				if(  toVersionSortable(versions) LTE minVS) cfcontinue;
 				if(FindNoCase("SNAPSHOT", versions)){
 					if(toVersionSortable(versions) LTE toVersionSortable(server.lucee.version)){
 						arrayPrepend(versionsStr.SNAPSHOT.downgrade, versions);
