@@ -58,6 +58,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 
 import lucee.Info;
+import lucee.print;
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.CharsetUtil;
@@ -88,6 +89,7 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.engine.CFMLEngineFactorySupport;
 import lucee.loader.engine.CFMLEngineWrapper;
 import lucee.loader.osgi.BundleCollection;
+import lucee.loader.osgi.BundleUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
@@ -102,6 +104,7 @@ import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
@@ -169,6 +172,7 @@ import lucee.runtime.video.VideoUtilImpl;
 import org.apache.commons.net.telnet.TerminalTypeOptionHandler;
 import org.apache.felix.framework.Felix;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 
@@ -1210,10 +1214,26 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					ExceptionUtil.rethrowIfNecessary(t);
 				}
 			}
-		} finally {
+			
+			// release felix itself
+			shutdownFelix();
+			
+		} 
+		finally {
 			// Controller
 			controlerState.setActive(false);
 		}
+	}
+
+	private void shutdownFelix() {
+		CFMLEngineFactory f = getCFMLEngineFactory();
+		try {
+			Method m = f.getClass().getMethod("shutdownFelix", new Class[0]);
+			m.invoke(f, new Object[0]);
+		}
+		// FUTURE do not use reflection
+		// this will for sure fail if CFMLEngineFactory does not have this method
+		catch (Exception e) {}
 	}
 
 	public static void releaseCache(Config config) {
