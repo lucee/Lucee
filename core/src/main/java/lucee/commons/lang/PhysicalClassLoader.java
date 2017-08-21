@@ -43,7 +43,6 @@ import lucee.runtime.type.util.ArrayUtil;
 
 import org.apache.commons.collections4.map.ReferenceMap;
 
-
 /**
  * Directory ClassLoader
  */
@@ -162,7 +161,6 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			return _loadClass(name, barr);
 		}
 	}
-	
 
 	@Override
 	public synchronized Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
