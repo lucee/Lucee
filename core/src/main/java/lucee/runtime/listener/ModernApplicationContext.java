@@ -102,6 +102,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Collection.Key LOGIN_STORAGE = KeyImpl.intern("loginStorage");
 	private static final Collection.Key SESSION_TYPE = KeyImpl.intern("sessionType");
 	private static final Collection.Key WS_SETTINGS = KeyImpl.intern("wssettings");
+	private static final Collection.Key WS_SETTING = KeyImpl.intern("wssetting");
 	private static final Collection.Key TRIGGER_DATA_MEMBER = KeyImpl.intern("triggerDataMember");
 	private static final Collection.Key INVOKE_IMPLICIT_ACCESSOR = KeyImpl.intern("InvokeImplicitAccessor");
 	private static final Collection.Key SESSION_MANAGEMENT = KeyImpl.intern("sessionManagement");
@@ -168,6 +169,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean suppressContent;
 	private short sessionType;
 	private short wstype;
+	private boolean wsMaintainSession=false;
 	private boolean sessionCluster;
 	private boolean clientCluster;
 	
@@ -218,7 +220,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initClientCluster;
 	private boolean initLoginStorage;
 	private boolean initSessionType;
-	private boolean initWSType;
+	private boolean initWS;
 	private boolean initTriggerComponentDataMember;
 	private boolean initDataSources;
 	private boolean initCache;
@@ -614,23 +616,48 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public short getWSType() {
-		if(!initWSType) {
+		initWS();
+		return wstype;
+	}
+	
+	@Override
+	public boolean getWSMaintainSession() {
+		initWS();
+		return wsMaintainSession;
+	}
+	
+	@Override
+	public void setWSMaintainSession(boolean wsMaintainSession) {
+		initWS=true;
+		this.wsMaintainSession = wsMaintainSession;
+	}
+	
+	public void initWS() {
+		if(!initWS) {
 			Object o = get(component,WS_SETTINGS,null);
+			if(o==null) o = get(component,WS_SETTING,null);
 			if(o instanceof Struct){ 
 				Struct sct= (Struct) o;
+				
+				// type
 				o=sct.get(KeyConstants._type,null);
 				if(o instanceof String){ 
 					wstype=AppListenerUtil.toWSType(Caster.toString(o,null), WS_TYPE_AXIS1);
 				}
+				
+				// MaintainSession
+				o=sct.get("MaintainSession",null);
+				if(o !=null){ 
+					wsMaintainSession=Caster.toBooleanValue(o,false);
+				}
 			}
-			initWSType=true; 
+			initWS=true; 
 		}
-		return wstype;
 	}
 
 	@Override
 	public void setWSType(short wstype) {
-		initWSType=true;
+		initWS=true;
 		this.wstype=wstype;
 	}
 

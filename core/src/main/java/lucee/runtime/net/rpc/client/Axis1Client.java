@@ -60,6 +60,7 @@ import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.net.proxy.Proxy;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.rpc.AxisCaster;
@@ -252,12 +253,11 @@ final class Axis1Client extends WSClient {
 
     private Object _call(PageContext pc,Config secondChanceConfig,String methodName, Struct namedArguments,Object[] arguments) throws PageException, ServiceException, RemoteException {
         
+    	ApplicationContextSupport acs=(ApplicationContextSupport) pc.getApplicationContext();
 		javax.wsdl.Service service = getWSDLService();
 		
 		Service axisService = new Service(parser, service.getQName());
-		//TypeMappingRegistry tmr = axisService.getTypeMappingRegistry();
-		//TypeMappingDelegate dtm = (TypeMappingDelegate) tmr.getDefaultTypeMapping();
-		//dtm.setDoAutoTypes(true);
+		axisService.setMaintainSession(acs.getWSMaintainSession());
 		
 		TypeMappingUtil.registerDefaults(axisService.getTypeMappingRegistry());
 		Port port = WSUtil.getSoapPort(service);
