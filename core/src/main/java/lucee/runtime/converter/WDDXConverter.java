@@ -825,10 +825,10 @@ public final class WDDXConverter extends ConverterSupport {
 			}
 		}
 
-		if(struct.size() == 0 && type != null && type.length() > 0) {
-			return "";
-		}
-		
+//		if(struct.size() == 0 && type != null && type.length() > 0) {
+//			return "";
+//		}
+
 		return struct;
 	}
 
