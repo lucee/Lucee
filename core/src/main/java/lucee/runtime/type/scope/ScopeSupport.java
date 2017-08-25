@@ -193,12 +193,15 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 			}
 			// MUST valueStruct
 			if(name.indexOf('.') != -1) {
+
 				StringList list = ListUtil.listToStringListRemoveEmpty(name, '.');
-				Struct parent = this;
-				while(list.hasNextNext()) {
-					parent = _fill(parent, list.next(), new CastableStruct(Struct.TYPE_LINKED), false, scriptProteced, sameAsArray);
+				if (list.size() > 0){
+					Struct parent = this;
+					while(list.hasNextNext()) {
+						parent = _fill(parent, list.next(), new CastableStruct(Struct.TYPE_LINKED), false, scriptProteced, sameAsArray);
+					}
+					_fill(parent, list.next(), value, true, scriptProteced, sameAsArray);
 				}
-				_fill(parent, list.next(), value, true, scriptProteced, sameAsArray);
 			}
 			// else
 			_fill(this, name, value, true, scriptProteced, sameAsArray);
