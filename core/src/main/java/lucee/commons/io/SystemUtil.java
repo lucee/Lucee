@@ -1476,6 +1476,10 @@ public final class SystemUtil {
 		return p1.equalsIgnoreCase(p2);
 	}
 
+	public static double millis() {
+		return System.nanoTime()/1000000d;
+	}
+
 }
 
 class Ref {

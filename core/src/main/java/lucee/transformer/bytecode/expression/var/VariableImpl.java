@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
@@ -390,7 +391,8 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	}
 	
 	static Type _writeOutFirstBIF(BytecodeContext bc, BIF bif, int mode,boolean last,Position line) throws TransformerException {
-    	GeneratorAdapter adapter = bc.getAdapter();
+		double start=SystemUtil.millis();
+		GeneratorAdapter adapter = bc.getAdapter();
 		adapter.loadArg(0);
 		// class
 		ClassDefinition bifCD = bif.getClassDefinition();
@@ -408,7 +410,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		Argument[] args = bif.getArguments();
 		Type[] argTypes;
 		boolean core=bif.getFlf().isCore(); // MUST setting this to false need to work !!!
-		
+
 		if(bif.getArgType()==FunctionLibFunction.ARG_FIX && !bifCD.isBundle() && core)	{
 			if(isNamed(bif.getFlf().getName(),args)) {
 				NamedArgument[] nargs=toNamedArguments(args);
@@ -463,7 +465,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					for(int i=0;i<argTypes.length;i++){
 						tmp[i]=argTypes[i];
 					}
-					
+
 					// get the rest with default values
 					FunctionLibFunctionArg flfa;
 					VT def;
@@ -479,16 +481,10 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					argTypes=tmp;
 				}
 			}
-			
 		}
 		// Arg Type DYN or bundle based
 		else {
-			
-			
-
 			///////////////////////////////////////////////////////////////
-			
-			
 			if(bif.getArgType()==FunctionLibFunction.ARG_FIX) {
 				if(isNamed(bif.getFlf().getName(),args)) {
 					NamedArgument[] nargs=toNamedArguments(args);
@@ -529,19 +525,13 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					args=tmpArgs.toArray(new Argument[tmpArgs.size()]);
 				}
 			}
-			
 			///////////////////////////////////////////////////////////////
-			
-			
-			
-			
-			
-			
 			argTypes=new Type[2];
 			argTypes[0]=Types.PAGE_CONTEXT;
 			argTypes[1]=Types.OBJECT_ARRAY;
 			ExpressionUtil.writeOutExpressionArray(bc, Types.OBJECT, args);
 		}
+
 		// core
 		if(core && !bifCD.isBundle()) {
 			adapter.invokeStatic(Type.getType(clazz),new Method("call",rtnType,argTypes));
@@ -569,12 +559,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		}
 		return rtnType;
 	}
-		
-	
 
-	
-
-	
 	/**
 	 * checks if a method exists
 	 * @param clazz
@@ -586,13 +571,11 @@ public class VariableImpl extends ExpressionBase implements Variable {
 
 	private static Boolean methodExists(Class clazz, String methodName, Type[] args, Type returnType)  {
 		try {
-			//Class _clazz=Types.toClass(clazz);
 			Class<?>[] _args=new Class[args.length];
 			for(int i=0;i<_args.length;i++){
 				_args[i]=Types.toClass(args[i]);
 			}
 			Class<?> rtn = Types.toClass(returnType);
-		
 			try {
 				java.lang.reflect.Method m = clazz.getMethod(methodName, _args);
 				return m.getReturnType()==rtn;
@@ -600,7 +583,6 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			catch (Exception e) {
 				return false;
 			}
-			
 		}
 		catch (Exception e) {e.printStackTrace();
 			return null;

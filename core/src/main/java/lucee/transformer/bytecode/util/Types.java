@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.tagext.BodyContent;
@@ -71,11 +72,13 @@ import lucee.runtime.type.FunctionValueImpl;
 import lucee.runtime.type.Iteratorable;
 import lucee.runtime.type.Lambda;
 import lucee.runtime.type.Query;
+import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.UDFImpl;
 import lucee.runtime.type.UDFProperties;
 import lucee.runtime.type.UDFPropertiesImpl;
+import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.ref.Reference;
 import lucee.runtime.type.ref.VariableReference;
 import lucee.runtime.type.scope.Scope;
@@ -91,6 +94,7 @@ import lucee.runtime.writer.BodyContentUtil;
 import lucee.transformer.TransformerException;
 
 import org.objectweb.asm.Type;
+import org.w3c.dom.Node;
 
 public final class Types {
 
@@ -348,6 +352,7 @@ public final class Types {
             if("long".equals(type))									return LONG_VALUE;
             if("long".equals(lcType))								return LONG;
             if("locale".equals(lcType))								return LOCALE;
+            if("lucee.runtime.type.Collection$Key".equals(type))	return COLLECTION_KEY;
         break;
         case 'n':
             if("node".equals(lcType))								return NODE;
@@ -460,19 +465,25 @@ public final class Types {
 	}
 
 	public static Class toClass(Type type) throws ClassException {
-		if(Types.STRING==type) return String.class;
-		if(Types.BOOLEAN_VALUE==type) return boolean.class;
-		if(Types.DOUBLE_VALUE==type) return double.class;
-		if(Types.PAGE_CONTEXT==type) return PageContext.class;
-		if(Types.OBJECT==type) return Object.class;
-		if(Types.STRUCT==type) return Struct.class;
-		if(Types.ARRAY==type) return Array.class;
-		if(Types.COLLECTION_KEY==type) return Collection.Key.class;
-		if(Types.COLLECTION_KEY_ARRAY==type) return Collection.Key[].class;
-		if(Types.QUERY==type) return Query.class;
-		if(Types.DATE_TIME==type) return lucee.runtime.type.dt.DateTime.class;
-		
-		
+		if(Types.STRING.equals(type)) return String.class;
+		if(Types.BOOLEAN_VALUE.equals(type)) return boolean.class;
+		if(Types.DOUBLE_VALUE.equals(type)) return double.class;
+		if(Types.PAGE_CONTEXT.equals(type)) return PageContext.class;
+		if(Types.OBJECT.equals(type)) return Object.class;
+		if(Types.STRUCT.equals(type)) return Struct.class;
+		if(Types.ARRAY.equals(type)) return Array.class;
+		if(Types.COLLECTION_KEY.equals(type)) return Collection.Key.class;
+		if(Types.COLLECTION_KEY_ARRAY.equals(type)) return Collection.Key[].class;
+		if(Types.QUERY.equals(type)) return Query.class;
+		if(Types.DATE_TIME.equals(type)) return lucee.runtime.type.dt.DateTime.class;
+		if(Types.TIMESPAN.equals(type)) return TimeSpan.class;
+		if(Types.QUERY_COLUMN.equals(type)) return QueryColumn.class;
+		if(Types.NODE.equals(type)) return Node.class;
+		if(Types.TIMEZONE.equals(type)) return TimeZone.class;
+		if(Types.LOCALE.equals(type)) return Locale.class;
+		if(Types.UDF.equals(type)) return UDF.class;
+		if(Types.IMAGE.equals(type)) return Image.class;
+		if(Types.BYTE_VALUE_ARRAY.equals(type)) return byte[].class;
 		return ClassUtil.toClass(type.getClassName());
 	}
 	
