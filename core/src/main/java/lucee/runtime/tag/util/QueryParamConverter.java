@@ -103,12 +103,14 @@ public class QueryParamConverter {
 	}
 
 	private static SQLItems<NamedSQLItem> toNamedSQLItem(String name, Object value) throws PageException {
+
 		if(Decision.isStruct(value)) {
 			Struct sct = (Struct)value;
-			// value (required)
-			value = sct.get(KeyConstants._value);
+			// value (required if not null)
+			value = isParamNull(sct) ? "" : sct.get(KeyConstants._value);
 			return new SQLItems<NamedSQLItem>(new NamedSQLItem(name, value, Types.VARCHAR), sct);
 		}
+
 		return new SQLItems<NamedSQLItem>(new NamedSQLItem(name, value, Types.VARCHAR));
 	}
 
@@ -206,6 +208,20 @@ public class QueryParamConverter {
 		throw new ApplicationException("no param with name [" + name + "] found");
 	}
 
+	private static boolean isParamNull(Struct param) throws PageException {
+
+		Object oNulls = param.get(KeyConstants._null, null);
+
+		// "nulls" seems to be a typo that is currently left for backward compatibility; deprecate?
+		if(oNulls == null)
+			oNulls = param.get(KeyConstants._nulls, null);
+
+		if(oNulls != null)
+			return Caster.toBooleanValue(oNulls);
+
+		return false;
+	}
+
 	private static class NamedSQLItem extends SQLItemImpl {
 		public final String name;
 
@@ -280,15 +296,7 @@ public class QueryParamConverter {
 				item.setType(SQLCaster.toSQLType(Caster.toString(oType)));
 			}
 
-			Object oNulls = sct.get(KeyConstants._null, null);
-
-			// "nulls" seems to be a typo that is currently left for backward compatibility; deprecate?
-			if(oNulls == null)
-				oNulls = sct.get(KeyConstants._nulls, null);
-
-			if(oNulls != null) {
-				item.setNulls(Caster.toBooleanValue(oNulls));
-			}
+			item.setNulls(isParamNull(sct));
 
 			// scale (optional)
 			Object oScale = sct.get(KeyConstants._scale, null);
