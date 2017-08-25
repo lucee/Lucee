@@ -87,7 +87,6 @@ public class EnvClassLoader extends URLClassLoader {
 	}
 
 	private synchronized Object load(String name, short type, boolean doLog) {
-		if(name.equals("lucee.runtime.tag.Property")) print.ds();
 		Object obj=null;
 		
 		// first we check the callers classpath
