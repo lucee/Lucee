@@ -116,32 +116,6 @@ public class Base64Encoder {
 		return new String(decode(data),CharsetUtil.UTF8);
 	}
 	
-	
-	public static void main(String[] args) throws Exception {
-		ResourceProvider p = ResourcesImpl.getFileResourceProvider();
-		Resource f1 = p.getResource("/Users/mic/Test/test/webapps/ROOT/test/testcases/LDEV1393/originalImg.png");
-		Resource f2 = p.getResource("/Users/mic/Test/test/webapps/ROOT/test/testcases/LDEV1393/image_code.base64");
-		
-		byte[] bytes = IOUtil.toBytes(f1);
-		String str1=encode(bytes);
-		String str2=IOUtil.toString(f2, "UTF-8");
-		String str3=Caster.toBase64(bytes,"UTF-8");
-		print.e(str1.length());
-		print.e(str2.length());
-		print.e(str3.length());
-		
-		int len=21;
-		int tmp=4-(len-(len/4*4));
-		print.e("tmp:"+tmp);
-		print.e(str1.substring(str1.length()-40));
-		print.e(str2.substring(str2.length()-40));
-		decode(str1);
-		bytes=decode(str2);
-		
-		Resource f3 = p.getResource("/Users/mic/test.png");
-		IOUtil.write(f3, bytes);
-	}
-	
 	/**
      * Translates the specified Base64 string into a byte array.
      *
