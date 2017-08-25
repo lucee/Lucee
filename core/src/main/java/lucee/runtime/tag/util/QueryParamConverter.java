@@ -253,20 +253,33 @@ public class QueryParamConverter {
 		}
 
 		public SQLItems(T item, Struct sct) throws PageException {
+
 			T filledItem = fillSQLItem(item, sct);
 			Object oList = sct.get(KeyConstants._list, null);
-			if(oList != null && Caster.toBooleanValue(oList)) {
-				Object oSeparator = sct.get(KeyConstants._separator, null);
-				String separator = ",";
-				T clonedItem;
-				if(oSeparator != null) {
-					separator = Caster.toString(oSeparator);
+			Object value = filledItem.getValue();
+			boolean isList = Decision.isArray(value) || (oList != null && Caster.toBooleanValue(oList));
+
+			if(isList) {
+
+				Array values;
+
+				if (Decision.isArray(value)){
+					values = Caster.toArray(value);
 				}
-				String v = Caster.toString(filledItem.getValue());
-				Array values = ListUtil.listToArrayRemoveEmpty(v, separator);
+				else {
+					Object oSeparator = sct.get(KeyConstants._separator, null);
+					String separator = ",";
+
+					if(oSeparator != null)
+						separator = Caster.toString(oSeparator);
+
+					String v = Caster.toString(filledItem.getValue());
+					values = ListUtil.listToArrayRemoveEmpty(v, separator);
+				}
+
 				int len = values.size();
 				for (int i = 1; i <= len; i++) {
-					clonedItem = (T)filledItem.clone(values.getE(i));
+					T clonedItem = (T)filledItem.clone(values.getE(i));
 					add(clonedItem);
 				}
 			}
