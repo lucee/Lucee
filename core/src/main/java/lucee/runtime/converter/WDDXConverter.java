@@ -830,6 +830,10 @@ public final class WDDXConverter extends ConverterSupport {
 			}
 		}
 
+		/**
+		 * java objects are serialized as empty struct with a type that denotes the class, so
+		 * if it's not a known struct-type it is not a struct
+		 */
 		if(struct.isEmpty() && !StringUtil.isEmpty(type) && !KNOWN_STRUCT_TYPES.contains(type))
 			return "";
 
