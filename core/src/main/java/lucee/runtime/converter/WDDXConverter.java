@@ -18,23 +18,9 @@
  **/
 package lucee.runtime.converter;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.Writer;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-
-import javax.xml.parsers.FactoryConfigurationError;
-
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.lang.NumberUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
@@ -66,7 +52,6 @@ import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
-
 import org.apache.xerces.parsers.DOMParser;
 import org.w3c.dom.CharacterData;
 import org.w3c.dom.Document;
@@ -75,11 +60,31 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+import javax.xml.parsers.FactoryConfigurationError;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.Writer;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimeZone;
+
 /**
  * class to serialize and desirilize WDDX Packes
  */
 public final class WDDXConverter extends ConverterSupport {
+
 	private static final Collection.Key REMOTING_FETCH = KeyImpl.intern("remotingFetch");
+
+	private static final List<String> KNOWN_STRUCT_TYPES = Arrays.asList( new String[]{
+		"coldfusion.server.ConfigMap"
+	});
 
 	private int deep = 1;
 	private boolean xmlConform;
@@ -825,9 +830,8 @@ public final class WDDXConverter extends ConverterSupport {
 			}
 		}
 
-//		if(struct.size() == 0 && type != null && type.length() > 0) {
-//			return "";
-//		}
+		if(struct.isEmpty() && !StringUtil.isEmpty(type) && !KNOWN_STRUCT_TYPES.contains(type))
+			return "";
 
 		return struct;
 	}
