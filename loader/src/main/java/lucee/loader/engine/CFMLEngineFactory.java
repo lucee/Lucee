@@ -73,7 +73,9 @@ import org.apache.felix.framework.Felix;
 import org.apache.felix.framework.Logger;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.Version;
+import org.osgi.framework.launch.Framework;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -278,6 +280,55 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (singelton == null)
 			initEngine();
 	}
+	
+
+	public void shutdownFelix() throws BundleException {
+		System.out.println("---- Shutdown Felix ----");
+		
+		BundleCollection bc = singelton.getBundleCollection();
+		if(bc==null || bc.felix==null) return;
+		
+		// stop
+		BundleLoader.removeBundles(bc);
+		
+		// we give it some time
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {}
+		
+		BundleUtil.stop(felix, false);
+		
+		
+		/*int count=0;
+		while(dumpThreads()) {
+			System.err.println(new Date());
+			if(count++>100) break;
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}*/
+	}
+
+	/*private boolean dumpThreads() {
+		Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
+		Iterator<Entry<Thread, StackTraceElement[]>> it = map.entrySet().iterator();
+		Thread t;
+		System.err.println("-------- threads "+System.currentTimeMillis()+" ---------");
+		boolean has=false;
+		while(it.hasNext()) {
+			Entry<Thread, StackTraceElement[]> e = it.next();
+			if(e.getKey().getName().toLowerCase().indexOf("felixresolver")!=-1) {
+				System.err.println("- "+e.getKey().getName());
+				
+				
+				has=true;
+			}
+		}
+		return has;
+	}*/
 
 	private void initEngine() throws ServletException {
 		final Version coreVersion = VersionInfo.getIntVersion();

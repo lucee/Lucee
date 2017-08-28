@@ -43,11 +43,14 @@ import lucee.runtime.type.util.ArrayUtil;
 
 import org.apache.commons.collections4.map.ReferenceMap;
 
-
 /**
  * Directory ClassLoader
  */
 public final class PhysicalClassLoader extends ExtendableClassLoader {
+	
+	static {
+		boolean res=registerAsParallelCapable();
+	}
 	
 	private Resource directory;
 	private ConfigImpl config; 
@@ -70,7 +73,6 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	public PhysicalClassLoader(Config c,Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL) throws IOException {
 		super(parentClassLoaders==null || parentClassLoaders.length==0?c.getClassLoader():parentClassLoaders[0]);
-		
 		config = (ConfigImpl)c;
 
 		//ClassLoader resCL = parent!=null?parent:config.getResourceClassLoader(null);
@@ -101,14 +103,19 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	public Class<?> loadClass(String name) throws ClassNotFoundException   {
-		return loadClass(name, false);
+		synchronized (getClassLoadingLock(name)) {
+			return loadClass(name, false);
+		}
 	}
 
 	@Override
-	protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		return loadClass(name, resolve, true);
+	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+		synchronized (getClassLoadingLock(name)) {
+			return loadClass(name, resolve, true);
+		}
 	}
-	protected synchronized Class<?> loadClass(String name, boolean resolve, boolean loadFromFS) throws ClassNotFoundException {
+	
+	private Class<?> loadClass(String name, boolean resolve, boolean loadFromFS) throws ClassNotFoundException {
 		if (loadedClasses.contains(name) || unavaiClasses.contains(name)) {
 			return super.loadClass(name,false); // Use default CL cache
 		}
@@ -134,35 +141,41 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {//if(name.indexOf("sub")!=-1)print.ds(name);
-		Resource res=directory
-		.getRealResource(
-				name.replace('.','/')
-				.concat(".class"));
-		
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		try {
-			IOUtil.copy(res,baos,false);
-		} 
-		catch (IOException e) {
-			this.unavaiClasses.add(name);
-			throw new ClassNotFoundException("class "+name+" is invalid or doesn't exist");
+		synchronized (getClassLoadingLock(name)) {
+			Resource res=directory
+			.getRealResource(
+					name.replace('.','/')
+					.concat(".class"));
+			
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			try {
+				IOUtil.copy(res,baos,false);
+			} 
+			catch (IOException e) {
+				this.unavaiClasses.add(name);
+				throw new ClassNotFoundException("class "+name+" is invalid or doesn't exist");
+			}
+			
+			byte[] barr=baos.toByteArray();
+			IOUtil.closeEL(baos);
+			return _loadClass(name, barr);
 		}
-		
-		byte[] barr=baos.toByteArray();
-		IOUtil.closeEL(baos);
-		return _loadClass(name, barr);
 	}
-	
 
 	@Override
 	public synchronized Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
 		Class<?> clazz=null;
-		try {
-			clazz = loadClass(name,false,false); // we do not load existing class from disk
-		} catch (ClassNotFoundException cnf) {}
 		
-		// if class already exists
-		if(clazz!=null) {
+		synchronized (getClassLoadingLock(name)) {
+		
+			// new class , not in memoyr yet
+			try {
+				clazz = loadClass(name,false,false); // we do not load existing class from disk
+			}
+			catch (ClassNotFoundException cnf) {}
+			if(clazz==null) return _loadClass(name, barr);
+		
+		// update	
 			try {
 				InstrumentationFactory.getInstrumentation(config).redefineClasses(new ClassDefinition(clazz,barr));
 			} 
@@ -172,11 +185,9 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			}
 			return clazz;
 		}
-		// class not exists yet
-		return _loadClass(name, barr);
 	}
 	
-	private synchronized Class<?> _loadClass(String name, byte[] barr) {
+	private Class<?> _loadClass(String name, byte[] barr) {
 		Class<?> clazz = defineClass(name,barr,0,barr.length);
 		if (clazz != null) {
 			loadedClasses.add(name);
@@ -221,7 +232,6 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	}
 	
 	public boolean isClassLoaded(String className) {
-		//print.o("isClassLoaded:"+className+"-"+(findLoadedClass(className)!=null));
 		return findLoadedClass(className)!=null;
 	}
 

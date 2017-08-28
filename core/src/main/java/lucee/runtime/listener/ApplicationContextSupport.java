@@ -430,5 +430,8 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract Struct getLogMetaData(String string);
 	public abstract Object getMailListener();
 	public abstract void setMailListener(Object mailListener);
+
+	public abstract boolean getWSMaintainSession();
+	public abstract void setWSMaintainSession(boolean maintainSession);
 	
 }

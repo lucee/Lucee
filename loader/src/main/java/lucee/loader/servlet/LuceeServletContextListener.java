@@ -1,6 +1,7 @@
 package lucee.loader.servlet;
 
 import java.util.Enumeration;
+import java.util.HashSet;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -9,6 +10,7 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebListener;
 
+import lucee.cli.util.EnumerationWrapper;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 
@@ -19,7 +21,7 @@ public class LuceeServletContextListener implements ServletContextListener {
 	public void contextInitialized(ServletContextEvent sce) {
 		try {
 			CFMLEngine engine = CFMLEngineFactory.getInstance();
-			// FUTURE add addServletContextEvent
+			// FUTURE add exeServletContextEvent
 			engine.addServletConfig(new LuceeServletContextListenerImpl(sce,"init"));
 		}
 		catch (Exception se) {
@@ -56,7 +58,7 @@ public class LuceeServletContextListener implements ServletContextListener {
 
 		@Override
 		public ServletContext getServletContext() {
-			return null;
+			return sce.getServletContext();
 		}
 		
 		public ServletContextEvent getServletContextEvent() {
@@ -71,7 +73,9 @@ public class LuceeServletContextListener implements ServletContextListener {
 
 		@Override
 		public Enumeration<String> getInitParameterNames() {
-			return null;
+			HashSet<String> set=new HashSet<String>();
+			set.add("status");
+			return new EnumerationWrapper<String>(set);
 		}
 		
 	}

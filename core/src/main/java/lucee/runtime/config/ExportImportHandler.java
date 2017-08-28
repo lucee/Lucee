@@ -189,9 +189,6 @@ public class ExportImportHandler {
 					Resource phyDir = dir.getRealResource("physical/"+id);
 					phyDir.mkdirs();
 					m.put("physical", pathAppendix+"physical/"+id);
-					print.e("+++++");
-					print.e(physical);
-					print.e(phyDir);
 					ResourceFilter f =null;
 					if(!StringUtil.isEmpty(filter)){
 						f=new OrResourceFilter(new ResourceFilter[]{new WildcardPatternFilter(filter, ","),DirectoryResourceFilter.FILTER});

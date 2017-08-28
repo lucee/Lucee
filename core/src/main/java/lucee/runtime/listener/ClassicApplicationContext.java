@@ -130,6 +130,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 
 	private Object mailListener;
 
+	private boolean wsMaintainSession;
+
     
     /**
      * constructor of the class
@@ -919,6 +921,16 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setMailListener(Object mailListener) {
 		this.mailListener=mailListener;
+	}
+
+	@Override
+	public boolean getWSMaintainSession() {
+		return wsMaintainSession;
+	}
+
+	@Override
+	public void setWSMaintainSession(boolean wsMaintainSession) {
+		this.wsMaintainSession=wsMaintainSession;
 	}
 
 }

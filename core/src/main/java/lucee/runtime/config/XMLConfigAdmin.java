@@ -148,7 +148,6 @@ import lucee.transformer.library.tag.TagLibException;
 
 import org.apache.felix.framework.Logger;
 import org.apache.log4j.Level;
-import org.apache.xerces.parsers.DOMParser;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
@@ -251,7 +250,7 @@ public final class XMLConfigAdmin {
     private XMLConfigAdmin(ConfigImpl config, Password password) throws SAXException, IOException {
     	this.config=config;
     	this.password=password;
-        doc=loadDocument(config.getConfigFile());
+        doc=XMLUtil.createDocument(config.getConfigFile(),false);
         //setId(config.getId());
     } 
     
@@ -296,28 +295,6 @@ public final class XMLConfigAdmin {
     	el.setAttribute("scheme", scheme);
     	el.setAttribute("arguments", arguments);
 	}
-
-
-	/**
-     * load XML Document from XML File
-     * @param xmlFile XML File to read
-     * @return returns the Document
-     * @throws SAXException
-     * @throws IOException
-     */
-    private static Document loadDocument(Resource xmlFile) throws SAXException, IOException {
-        DOMParser parser = new DOMParser();
-        InputStream is=null;
-        try {
-        	is = IOUtil.toBufferedInputStream(xmlFile.getInputStream());
-    	    InputSource source = new InputSource(is);
-    	    parser.parse(source);
-        }
-        finally {
-        	IOUtil.closeEL(is);
-        }
-	    return parser.getDocument();
-    }
     
     public static synchronized void _storeAndReload(ConfigImpl config) throws PageException, SAXException, ClassException, IOException, TagLibException, FunctionLibException, BundleException  {
     	XMLConfigAdmin admin = new XMLConfigAdmin(config, null);

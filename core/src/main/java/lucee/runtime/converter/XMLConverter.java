@@ -59,7 +59,6 @@ import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 
-import org.apache.xerces.parsers.DOMParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -473,65 +472,7 @@ public final class XMLConverter extends ConverterSupport {
 		deep--;
 		return sb.toString();
 	}
-	
 
-	/**
-	 * deserialize a WDDX Package (XML String Representation) to a runtime object
-	 * @param strWddx
-	 * @param validate
-	 * @return Object represent WDDX Package
-	 * @throws ConverterException
-	 * @throws IOException
-	 * @throws FactoryConfigurationError
-	 */
-	public Object deserialize(String strWddx, boolean validate) throws ConverterException, IOException, FactoryConfigurationError {
-		try {
-			DOMParser parser = new DOMParser();
-			if(validate) parser.setEntityResolver(new WDDXEntityResolver());
-			
-            parser.parse(new InputSource(new StringReader(strWddx)));
-            Document doc=parser.getDocument();
-		    
-		    // WDDX Package
-		    NodeList docChldren = doc.getChildNodes();
-		    Node wddxPacket=doc;
-		    int len = docChldren.getLength();
-		    for(int i = 0; i < len; i++) {
-		    	Node node=docChldren.item(i);
-		    	if(node.getNodeName().equalsIgnoreCase("wddxPacket")) {
-		    		wddxPacket=node;
-		    		break;
-		    	}
-		    }
-
-			NodeList nl = wddxPacket.getChildNodes();
-			int n = nl.getLength();
-
-			
-			for(int i = 0; i < n; i++) {
-				Node data = nl.item(i);
-				if(data.getNodeName().equals("data")) {
-					NodeList list=data.getChildNodes();
-					len=list.getLength();
-					for(int y=0;y<len;y++) {
-						Node node=list.item(y);
-						if(node instanceof Element)
-							return _deserialize((Element)node);
-						
-					}
-				}
-			}
-			
-			throw new IllegalArgumentException("Invalid WDDX Format: node 'data' not found in WDD packet");
-
-		}
-		catch(org.xml.sax.SAXException sxe) {
-			throw new IllegalArgumentException("XML Error: " + sxe.toString());
-		}
-	}
-	
-	
-	
 	/**
 	 * deserialize a WDDX Package (XML Element) to a runtime object
 	 * @param element
@@ -548,13 +489,6 @@ public final class XMLConverter extends ConverterSupport {
 		// String
 		else if(nodeName.equals("string")) {
 			return _deserializeString(element);
-			/*Node data=element.getFirstChild();
-			if(data==null) return "";
-			
-			String value=data.getNodeValue();
-			
-			if(value==null) return "";
-			return XMLUtil.unescapeXMLString(value);*/
 		}
 		// Number
 		else if(nodeName.equals("number")) {

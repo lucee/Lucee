@@ -191,13 +191,14 @@ Defaults --->
 								mailusername="#data.usernames[idx]#"
 								mailpassword="#toPassword(data.hosts[idx],data.passwords[idx], ms)#">
 							<cfset stVeritfyMessages[data.hosts[idx]].Label = "OK">
-							<cfset stVeritfyMessages[data.hosts[idx]].contextType = contextType>
-							
 							<cfcatch>
 								<cfset stVeritfyMessages[data.hosts[idx]].Label = "Error">
 								<cfset stVeritfyMessages[data.hosts[idx]].message = cfcatch.message>
 							</cfcatch>
 						</cftry>
+						<cfloop list="#request.adminType=='server'?'global':'global,local'#" index="contextType">
+							<cfset stVeritfyMessages[data.hosts[idx]].contextType = contextType>
+						</cfloop>
 					</cfif>
 				</cfloop>
 			</cfif>
