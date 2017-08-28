@@ -30,6 +30,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.commons.lang.types.RefIntegerSync;
@@ -948,7 +949,8 @@ public final class PageSourceImpl implements PageSource {
 	public static boolean isTemplate(PageContext pc,PageSource ps, boolean defaultValue) {
 		try {
 			return !(ps.loadPage(pc, false) instanceof CIPage);
-		} catch (PageException e) {e.printStackTrace();
+		} catch (PageException e) {
+            SystemOut.printDate(e);
 			return defaultValue;
 		}
 	}
