@@ -591,6 +591,12 @@
 			if(sct.qualifier_appendix=="SNAPSHOT")sct.qualifier_appendix_nbr=0;
 			else if(sct.qualifier_appendix=="BETA")sct.qualifier_appendix_nbr=50;
 			else sct.qualifier_appendix_nbr=75; // every other appendix is better than SNAPSHOT
+		}else if(qArr.len()==3 && isNumeric(qArr[1])) {
+			sct.qualifier=qArr[1]+0;
+			sct.qualifier_appendix1=qArr[2];
+			sct.qualifier_appendix2=qArr[3];
+			if(sct.qualifier_appendix1 =="ALPHA" || sct.qualifier_appendix2 == 'SNAPSHOT' )sct.qualifier_appendix_nbr=25;
+			else sct.qualifier_appendix_nbr=75; // every other appendix is better than SNAPSHOT
 		}
 		else throw "version number ["&arguments.version&"] is invalid";
 		sct.pure=

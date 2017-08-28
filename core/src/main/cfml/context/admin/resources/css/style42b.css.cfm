@@ -919,14 +919,14 @@ div.tooltip {
     text-decoration: none;
     width: auto;
 }
-.pgTop{
-    padding-top: 10%;
+.pdTop{
+    padding-top: 3%;
 }
 .fs {
     font-size: 13px !important;
 }
 .alertMsg{
-	color: #BF4F36;
+	color: red;
     font-size: 11px;
     font-weight: bold;
     margin: 5px 0 ;
