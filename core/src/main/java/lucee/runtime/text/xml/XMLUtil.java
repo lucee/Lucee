@@ -71,7 +71,6 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 
 import org.apache.xalan.processor.TransformerFactoryImpl;
-import org.apache.xerces.jaxp.DocumentBuilderFactoryImpl;
 import org.ccil.cowan.tagsoup.Parser;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
@@ -212,6 +211,7 @@ public final class XMLUtil {
     public static TransformerFactory getTransformerFactory() {
     	Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
 		
+    	//if(transformerFactory==null)transformerFactory=TransformerFactory.newInstance();
     	if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
         return transformerFactory;
     }
@@ -235,22 +235,15 @@ public final class XMLUtil {
         throws SAXException, IOException {
         
         if(!isHtml) {
-        	// try to load org.apache.xerces.jaxp.DocumentBuilderFactoryImpl, oracle impl sucks
         	DocumentBuilderFactory factory = newDocumentBuilderFactory();
-        	
-        	
-        	//print.o(factory);
-            if(validator==null) {
+        	if(validator==null) {
             	XMLUtil.setAttributeEL(factory,XMLConstants.NON_VALIDATING_DTD_EXTERNAL, Boolean.FALSE);
             	XMLUtil.setAttributeEL(factory,XMLConstants.NON_VALIDATING_DTD_GRAMMAR, Boolean.FALSE);
             }
             else {
             	XMLUtil.setAttributeEL(factory,XMLConstants.VALIDATION_SCHEMA, Boolean.TRUE);
-            	XMLUtil.setAttributeEL(factory,XMLConstants.VALIDATION_SCHEMA_FULL_CHECKING, Boolean.TRUE);
-            
-                
+            	XMLUtil.setAttributeEL(factory,XMLConstants.VALIDATION_SCHEMA_FULL_CHECKING, Boolean.TRUE);   
             }
-            
             
             factory.setNamespaceAware(true);
             factory.setValidating(validator!=null);
@@ -264,12 +257,6 @@ public final class XMLUtil {
             catch (ParserConfigurationException e) {
 				throw new SAXException(e);
 			}
-            
-	        /*DOMParser parser = new DOMParser();
-	        print.out("parse");
-	        parser.setEntityResolver(new XMLEntityResolverDefaultHandler(validator));
-	        parser.parse(xml);
-	        return parser.getDocument();*/
         }
         
         XMLReader reader = new Parser();
@@ -289,7 +276,8 @@ public final class XMLUtil {
     }
 	
 	private static DocumentBuilderFactory newDocumentBuilderFactory() {
-		return new DocumentBuilderFactoryImpl();
+		return DocumentBuilderFactory.newInstance();
+		//return new DocumentBuilderFactoryImpl();
     	// we do not use DocumentBuilderFactory.newInstance(); because it is unpredictable
 	}
 
@@ -1211,7 +1199,7 @@ public final class XMLUtil {
 			optionalDefaultSaxParser=DEFAULT_SAX_PARSER;
 			
 		try{
-			return XMLReaderFactory.createXMLReader(optionalDefaultSaxParser);
+			return XMLReaderFactory.createXMLReader();
 		}
 		catch(Throwable t){
 			ExceptionUtil.rethrowIfNecessary(t);
