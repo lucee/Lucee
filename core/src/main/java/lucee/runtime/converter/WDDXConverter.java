@@ -52,17 +52,14 @@ import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
-import org.apache.xerces.parsers.DOMParser;
 import org.w3c.dom.CharacterData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 import javax.xml.parsers.FactoryConfigurationError;
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.Date;

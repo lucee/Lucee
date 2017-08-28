@@ -64,8 +64,6 @@ public class EnvClassLoader extends URLClassLoader {
 			System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration", value);
 			return new ByteArrayInputStream(value.getBytes());
 		}
-		//	return (InputStream) load("org/apache/xerces/parsers/org.apache.xerces.xni.parser.XMLParserConfiguration", STREAM,true);
-		
 		return null;
 	}
 
