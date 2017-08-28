@@ -105,6 +105,14 @@
 			    pw="#form.new_password#"
 				returnVariable="hashedPassword">
 		<cfset session["password"&request.adminType]=hashedPassword>
+		 <cfif form.rememberMe NEQ "s">
+	        <cfcookie
+	        	expires="#DateAdd(form.rememberMe,1,now())#"
+	        	name="lucee_admin_pw_#ad#"
+	        	value="#hashedPassword#">
+	    <cfelse>
+	        <cfcookie expires="Now" name="lucee_admin_pw_#ad#" value="">
+	    </cfif>
 	</cfif>
 </cfif>
 
