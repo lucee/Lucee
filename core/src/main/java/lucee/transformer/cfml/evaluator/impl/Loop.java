@@ -171,7 +171,7 @@ public final class Loop extends EvaluatorSupport {
 				
 				tag.addAttribute(new Attribute(false,"condition",page.getFactory().toExprBoolean(expr),"boolean"));
 			}
-			catch (Exception e) {e.printStackTrace();
+			catch (Exception e) {
 				throw new EvaluatorException(e.getMessage());
 			}
 			loop.setType(TagLoop.TYPE_CONDITION);

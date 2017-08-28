@@ -25,6 +25,7 @@ import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
@@ -184,7 +185,7 @@ public class ScheduledTaskThread extends Thread {
 			}
 		} 
 		catch (InterruptedException e) {
-			e.printStackTrace();
+            SystemOut.printDate(e);
 		}
 
 	}

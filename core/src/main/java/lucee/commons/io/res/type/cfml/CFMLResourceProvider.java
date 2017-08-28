@@ -34,6 +34,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
@@ -182,7 +183,7 @@ public class CFMLResourceProvider implements ResourceProviderPro {
 			if(allowNull && res==null) return null;
 			return new CFMLResource(this,Caster.toComponent(res));
 		} 
-		catch (PageException pe) {pe.printStackTrace();
+		catch (PageException pe) {
 			throw new PageRuntimeException(pe);
 		} 
 	}

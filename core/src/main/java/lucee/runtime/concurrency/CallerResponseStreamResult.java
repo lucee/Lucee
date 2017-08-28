@@ -25,6 +25,7 @@ import java.util.concurrent.Callable;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -65,10 +66,8 @@ public abstract class CallerResponseStreamResult implements Callable<String> {
 			pc.getConfig().getFactory().releasePageContext(pc);
 				str=IOUtil.toString((new ByteArrayInputStream(baos.toByteArray())), cs); // TODO add support for none string content
 			} 
-			catch (Throwable e) {
-				ExceptionUtil.rethrowIfNecessary(e);
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			catch (Exception e) {
+				SystemOut.printDate(e);
 			}
 		}
 		return str;

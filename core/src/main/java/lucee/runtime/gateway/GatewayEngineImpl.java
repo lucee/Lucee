@@ -328,8 +328,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 					return true;
 			} 
 			catch (PageException e) {
-				e.printStackTrace();
-				log(gatewayId,LOGLEVEL_ERROR, e.getMessage());
+				log(gatewayId,LOGLEVEL_ERROR, e.getMessage(),e);
 			}
 		}
 		else
@@ -459,8 +458,11 @@ public class GatewayEngineImpl implements GatewayEngine {
 	public void log(Gateway gateway, int level, String message) {
 		log(gateway.getId(), level, message);
 	}
-	
+
 	public void log(String gatewayId, int level, String message) {
+		log(gatewayId, level, message,null);
+	}
+	public void log(String gatewayId, int level, String message, Exception e) {
 		int l=level;
 		switch(level){
 		case LOGLEVEL_INFO:l=Log.LEVEL_INFO;
@@ -476,7 +478,8 @@ public class GatewayEngineImpl implements GatewayEngine {
 		case LOGLEVEL_TRACE:l=Log.LEVEL_TRACE;
 		break;
 		}
-		log.log(l, "Gateway:"+gatewayId, message);
+		if(e==null)log.log(l, "Gateway:"+gatewayId, message);
+		else log.log(l, "Gateway:"+gatewayId, message,e);
 	}
 	
 

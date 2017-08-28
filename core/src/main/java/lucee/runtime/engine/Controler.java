@@ -263,8 +263,8 @@ public final class Controler extends Thread {
 					ThreadLocalConfig.register(config);
 					
 					// double check templates
-					try{((ConfigWebImpl)config).getCompiler().checkWatched();}catch(Throwable t){
-						ExceptionUtil.rethrowIfNecessary(t);t.printStackTrace();}
+					try{((ConfigWebImpl)config).getCompiler().checkWatched();}catch(Exception e){
+						SystemOut.printDate(e);}
 					
 					// deploy extensions, archives ...
 					try{DeployHandler.deploy(config);}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}

@@ -1576,9 +1576,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 					//print.e(res+"->"+(res!=null && res.exists()));
 					if(res!=null) list.add(res);
 				}
-				catch(Throwable t){
-					ExceptionUtil.rethrowIfNecessary(t);
-					t.printStackTrace();
+				catch(Exception e){
+		            SystemOut.printDate(e);
 				}
 			}
 			return list;

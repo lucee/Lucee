@@ -893,7 +893,9 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 						ed.setSource(ext);
 						
 					} 
-					catch(Exception e) {e.printStackTrace();}
+					catch(Exception e) {
+						SystemOut.printDate(e);
+					}
 				}
 				
 				if(ed!=null) {

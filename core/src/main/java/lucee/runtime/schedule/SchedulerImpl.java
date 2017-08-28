@@ -25,6 +25,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
@@ -205,7 +206,8 @@ public final class SchedulerImpl implements Scheduler {
                     su.toBoolean(el,"paused",false),
                     su.toBoolean(el,"autoDelete",false));
             return st;
-        } catch (Exception e) {e.printStackTrace();
+        } catch (Exception e) {
+            SystemOut.printDate(e);
             throw Caster.toPageException(e);
         }
     }

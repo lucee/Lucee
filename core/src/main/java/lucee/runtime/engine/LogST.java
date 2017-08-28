@@ -15,6 +15,7 @@ import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.SystemOut;
 
 public class LogST extends Thread {
 	
@@ -58,7 +59,7 @@ public class LogST extends Thread {
 			}
 		}
 		catch (IOException e) {
-			e.printStackTrace();
+			SystemOut.printDate(e);
 		}
 		finally {
 			IOUtil.closeEL(ps);

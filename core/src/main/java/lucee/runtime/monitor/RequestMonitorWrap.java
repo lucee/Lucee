@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.PageException;
@@ -87,8 +88,8 @@ public class RequestMonitorWrap extends MonitorWrap implements RequestMonitor {
 				getDataRaw=monitor.getClass().getMethod("getDataRaw", new Class[]{ConfigWeb.class,long.class,long.class});
 			}
 			return (Query) getDataRaw.invoke(monitor, new Object[]{config,new Long(minAge),new Long(maxAge)});
-		} catch (Exception e) {e.printStackTrace();
-			throw ExceptionUtil.toIOException(e);
+		} catch (Exception e) {
+            throw ExceptionUtil.toIOException(e);
 		} 
 	}*/
 }

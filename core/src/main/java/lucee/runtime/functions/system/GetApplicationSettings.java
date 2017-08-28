@@ -33,6 +33,7 @@ import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.log.log4j.LogAdapter;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.Mapping;
@@ -321,7 +322,9 @@ public class GetApplicationSettings {
 		            if(!sct.containsKey(key))sct.setEL(key, value);
 				}
 			} 
-			catch (PageException e) {e.printStackTrace();}
+			catch (PageException e) {
+				SystemOut.printDate(e);
+			}
 		}
 		return sct;
 	}

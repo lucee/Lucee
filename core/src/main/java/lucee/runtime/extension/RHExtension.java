@@ -44,6 +44,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -198,7 +199,7 @@ public class RHExtension implements Serializable {
 				_softLoaded=true;
 			}
 			catch(ApplicationException ae) {
-				ae.printStackTrace();
+				SystemOut.printDate(ae);
 				init(toResource(config,el),false);
 				_softLoaded=false;
 			}

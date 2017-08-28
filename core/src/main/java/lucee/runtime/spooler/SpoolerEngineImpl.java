@@ -38,6 +38,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.exp.DatabaseException;
@@ -225,7 +226,9 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	        oos = new ObjectOutputStream(persis.getOutputStream());
 	        oos.writeObject(task);
         } 
-        catch (IOException e) {e.printStackTrace();}
+        catch (IOException e) {
+            SystemOut.printDate(e);
+        }
         finally {
         	IOUtil.closeEL(oos);
         }

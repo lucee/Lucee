@@ -650,7 +650,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					reset();
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 			return;
 		}
@@ -664,7 +664,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				}
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 			return;
 		}*/
@@ -762,7 +762,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				configServer = XMLConfigServerFactory.newInstance(this, initContextes, contextes, context);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 		}
 		return configServer;
@@ -996,7 +996,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				((CFMLFactoryImpl)factory).setURL(new URL(req.getScheme(), req.getServerName(), req.getServerPort(), cp));
 			}
 			catch (MalformedURLException e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 		}
 		return factory;

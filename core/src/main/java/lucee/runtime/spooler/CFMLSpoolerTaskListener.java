@@ -6,6 +6,7 @@ import javax.servlet.http.Cookie;
 
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.lang.Pair;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -71,7 +72,7 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 			_listen(pc,args);
 		}
 		catch (PageException pe) {
-			pe.printStackTrace();
+            SystemOut.printDate(pe);
 		}
 		finally {
 			if(pcCreated) ThreadLocalPageContext.release();

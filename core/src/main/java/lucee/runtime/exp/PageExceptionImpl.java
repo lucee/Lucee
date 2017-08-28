@@ -271,7 +271,6 @@ public abstract class PageExceptionImpl extends PageException {
 				}	
 			} 
 			catch (Throwable th) {
-				//th.printStackTrace();
 			}
 			
 			// check last
@@ -281,7 +280,6 @@ public abstract class PageExceptionImpl extends PageException {
 					if(last.get(KeyConstants._Raw_Trace).equals(trace.toString()))continue;
 				} 
 				catch (Exception e) {
-					//e.printStackTrace();
 				}
 			}
 			

@@ -443,7 +443,6 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 				barr=IOUtil.toBytes(req.getInputStream(),true);
 			}
 			catch (IOException e) {
-				// e.printStackTrace();
 			}
 		}
 		disconnected=true;

@@ -27,6 +27,7 @@ import java.util.Map;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.exp.CacheException;
+import lucee.commons.lang.SystemOut;
 import lucee.loader.util.Util;
 import lucee.runtime.cache.util.CacheKeyFilterAll;
 import lucee.runtime.cache.util.WildCardFilter;
@@ -98,7 +99,9 @@ public class CacheEngine {
 				sct.setEL(entry.getKey(), entry.getValue());
 			}
 		} 
-		catch (Exception e) {e.printStackTrace();}
+		catch (Exception e) {
+			SystemOut.printDate(e);
+		}
 		return sct;
 	}
 

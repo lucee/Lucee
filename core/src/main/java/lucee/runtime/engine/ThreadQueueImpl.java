@@ -24,6 +24,7 @@ import java.util.List;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.SerializableObject;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigImpl;
 
@@ -105,7 +106,7 @@ public class ThreadQueueImpl implements ThreadQueue {
 				queue.exit(name);
 			}
 			catch (IOException e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 			
 			

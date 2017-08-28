@@ -15,6 +15,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.Caller;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
+import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;
@@ -193,8 +194,7 @@ public class EnvClassLoader extends URLClassLoader {
 					ClassLoader cl = clazz.getClassLoader();
 					print.e("-=>"+cl+":"+cl.hashCode());
 				} catch (ClassNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+            		SystemOut.printDate(e);
 				}
 			}
 				

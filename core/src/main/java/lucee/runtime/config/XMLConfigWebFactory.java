@@ -1036,11 +1036,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			createFileFromResourceCheckSizeDiff(resource, file);
 		}
-		catch (Throwable e) {
-			ExceptionUtil.rethrowIfNecessary(e);
+		catch (Exception e) {
 			aprint.err(resource);
 			aprint.err(file);
-			e.printStackTrace();
+			SystemOut.printDate(e);
 		}
 	}
 
@@ -1901,9 +1900,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					}
 				}
 			}
-			catch (Throwable e) {
-				ExceptionUtil.rethrowIfNecessary(e);
-				e.printStackTrace();
+			catch (Exception e) {
+				SystemOut.printDate(e);
 				clazz = ConsoleExecutionLog.class;
 			}
 			if (clazz != null)
@@ -2319,11 +2317,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 				catch (InvocationTargetException e) {
 					log.error("Cache", e.getTargetException());
-					//e.getTargetException().printStackTrace();
 				}
 				catch (RuntimeException e) {
 					log.error("Cache", e);
-					//e.printStackTrace();
 				}
 				catch (NoSuchMethodException e) {
 					log.error("Cache", "missing method [public static init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] ");
@@ -2332,7 +2328,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				catch (Throwable e) {
 					ExceptionUtil.rethrowIfNecessary(e);
 					log.error("Cache", e);
-					//e.printStackTrace();
 				}
 			}
 		}
@@ -3049,7 +3044,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					src.copyTo(trg, false);
 				}
 				catch (IOException e) {
-					e.printStackTrace();
+					SystemOut.printDate(e);
 				}
 			}
 
@@ -3105,7 +3100,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 		}
 		else if (hasCS)
@@ -3604,7 +3599,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 				}
 				catch (Exception e) {
-					e.printStackTrace();
+					SystemOut.printDate(e);
 				}
 
 			}
@@ -4337,7 +4332,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						providers.put(new RHExtensionProvider(strProvider.trim(),false), "");
 					}
 					catch (MalformedURLException e) {
-						e.printStackTrace();
+						SystemOut.printDate(e);
 					}
 				}
 			}
@@ -4961,7 +4956,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 		}
 		else if (hasCS)

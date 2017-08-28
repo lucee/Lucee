@@ -41,6 +41,7 @@ import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.commons.lock.KeyLock;
 import lucee.commons.lock.KeyLockImpl;
 import lucee.loader.engine.CFMLEngine;
@@ -356,7 +357,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 			try {
 				getGatewayEngine().addEntries(this,gatewayEntries);
 			} catch (Exception e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}	
 		}
 		public GatewayEngineImpl getGatewayEngine() {

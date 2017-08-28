@@ -6563,7 +6563,7 @@ public final class XMLConfigAdmin {
 			}
 			return null;
 		}
-		catch (Exception e) {e.printStackTrace();
+		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
@@ -6763,7 +6763,7 @@ public final class XMLConfigAdmin {
         		}
 			}
         	catch (Exception e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
         }
         return fixed;

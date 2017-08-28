@@ -38,6 +38,7 @@ import java.util.Set;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
@@ -120,7 +121,7 @@ public final class JSONConverter extends ConverterSupport {
 				try {
 					sct.setEL(field.getName(), testRecusrion(test,field.get(obj)));
 				} catch (Exception e) {
-					e.printStackTrace();
+					SystemOut.printDate(e);
 				}
     	}
     	if(obj !=null){
@@ -309,7 +310,6 @@ public final class JSONConverter extends ConverterSupport {
 			try {
 				return Caster.toString(c.call(pc, TO_JSON, new Object[0]));
 			} catch (PageException e) {
-				e.printStackTrace();
 				throw toConverterException(e);
 			}
 		}
