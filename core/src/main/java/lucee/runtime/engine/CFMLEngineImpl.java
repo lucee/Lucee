@@ -642,11 +642,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	@Override
 	public void addServletConfig(ServletConfig config) throws ServletException {
 
-		// FUTURE remove
+		// FUTURE remove and add a new method for it (search:FUTURE add exeServletContextEvent)
 		if("LuceeServletContextListener".equals(config.getServletName())) {
 			try {
-				// Method m = config.getClass().getMethod("getServletContextEvent", new Class[0]);
-				// ServletContextEvent sce=(ServletContextEvent) m.invoke(config, new Object[0]);
 				String status = config.getInitParameter("status");
 				if("release".equalsIgnoreCase(status))
 					reset();
@@ -656,6 +654,20 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 			return;
 		}
+		
+		// FUTURE remove and add a new method for it (search:FUTURE add exeFilter)
+		/*FUTUREX if("LuceeFilter".equals(config.getServletName())) {
+			try {
+				String status = config.getInitParameter("status");
+				if("filter".equalsIgnoreCase(status)) {
+					filter(config.getServletRequest(),config.getServletResponse(),config.getFilterChain());
+				}
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+			return;
+		}*/
 
 		// add EventListener
 		if(scl == null) {
