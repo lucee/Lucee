@@ -4,7 +4,7 @@
   <property name="version" value="5.2.4.23-SNAPSHOT"/>
 
   <path id="maven-ant-tasks.classpath" path="../ant/lib/maven-ant-tasks-2.1.3.jar" />
-  <typedef resource="org/apache/ma4en/artifact/ant/antlib.xml"
+  <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
            uri="antlib:org.apache.maven.artifact.ant"
            classpathref="maven-ant-tasks.classpath" />
 
