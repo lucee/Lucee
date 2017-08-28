@@ -61,7 +61,6 @@ public final class XMLEventParser extends DefaultHandler {
 	/**
 	 * Field <code>DEFAULT_SAX_PARSER</code>
 	 */
-	public final static String DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
 	
 	/**
 	 * constructor of the class
@@ -98,7 +97,7 @@ public final class XMLEventParser extends DefaultHandler {
 	 * @throws PageException
 	 */
 	public void start(Resource xmlFile) throws PageException {
-		start(xmlFile,DEFAULT_SAX_PARSER);
+		start(xmlFile,null);
 	}
 	
 	/**

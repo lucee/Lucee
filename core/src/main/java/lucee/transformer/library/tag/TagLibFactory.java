@@ -56,11 +56,6 @@ import org.xml.sax.helpers.DefaultHandler;
  * Die Klasse kann sowohl einzelne Files oder gar ganze Verzeichnisse von TLD laden.
  */
 public final class TagLibFactory extends DefaultHandler {
-	
-	/**
-	 * Standart Sax Parser
-	 */
-	public final static String DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
 	/**
 	 * Field <code>TYPE_CFML</code>
 	 */
@@ -107,14 +102,14 @@ public final class TagLibFactory extends DefaultHandler {
 	 * @throws TagLibException
 	 * @throws IOException 
 	 */
-	private TagLibFactory(String saxParser, TagLib lib,Resource res, Identification id) throws TagLibException {
+	private TagLibFactory(TagLib lib,Resource res, Identification id) throws TagLibException {
 		this.id=id;
 		this.lib=lib==null?new TagLib():lib;
 		Reader r=null;
 		try {
 			InputSource is=new InputSource(r=IOUtil.getReader(res.getInputStream(), (Charset)null));
 			is.setSystemId(res.getPath());
-			init(saxParser,is);
+			init(is);
 		} catch (IOException e) {
 			throw new TagLibException(e);
 		}
@@ -129,13 +124,13 @@ public final class TagLibFactory extends DefaultHandler {
 	 * @param file File Objekt auf die TLD.
 	 * @throws TagLibException
 	 */
-	private TagLibFactory(String saxParser, TagLib lib,InputStream stream, Identification id) throws TagLibException {
+	private TagLibFactory(TagLib lib,InputStream stream, Identification id) throws TagLibException {
 		this.id=id;
 		this.lib=lib==null?new TagLib():lib;
 		try {
 			InputSource is=new InputSource(IOUtil.getReader(stream, SystemUtil.getCharset()));
 			//is.setSystemId(file.toString());
-			init(saxParser,is);
+			init(is);
 		} catch (IOException e) {
 			throw new TagLibException(e);
 		}
@@ -146,11 +141,11 @@ public final class TagLibFactory extends DefaultHandler {
 	 * @param saxParser String Klassenpfad zum Sax Parser.
 	 * @throws TagLibException
 	 */
-	private TagLibFactory(String saxParser, TagLib lib, String systemTLD, Identification id) throws TagLibException {
+	private TagLibFactory(TagLib lib, String systemTLD, Identification id) throws TagLibException {
 		this.id=id;
 		this.lib=lib==null?new TagLib():lib;
 		InputSource is=new InputSource(this.getClass().getResourceAsStream(systemTLD) );
-		init(saxParser,is);		
+		init(is);		
 		this.lib.setIsCore(true);
 	}
 	
@@ -160,10 +155,10 @@ public final class TagLibFactory extends DefaultHandler {
 	 * @param  is InputStream auf die TLD.
 	 * @throws TagLibException
 	 */
-	private void init(String saxParser,InputSource is) throws TagLibException	{
+	private void init(InputSource is) throws TagLibException	{
 		//print.dumpStack();
 		try {
-			xmlReader=XMLUtil.createXMLReader(saxParser);
+			xmlReader=XMLUtil.createXMLReader(null);
 			xmlReader.setContentHandler(this);
 			xmlReader.setErrorHandler(this);
 			xmlReader.setEntityResolver(new TagLibEntityResolver());
@@ -501,7 +496,7 @@ public final class TagLibFactory extends DefaultHandler {
 		// Read in XML
 	    TagLib lib=TagLibFactory.getHashLib(FunctionLibFactory.id(res));
 		if(lib==null)	{
-		    lib=new TagLibFactory(DEFAULT_SAX_PARSER,null,res,id).getLib();
+		    lib=new TagLibFactory(null,res,id).getLib();
 			TagLibFactory.hashLib.put(FunctionLibFactory.id(res),lib);
 		}
 		lib.setSource(res.toString());
@@ -515,7 +510,7 @@ public final class TagLibFactory extends DefaultHandler {
 	 * @throws TagLibException
 	 */
 	public static TagLib loadFromStream(InputStream is,Identification id) throws TagLibException	{
-        return new TagLibFactory(DEFAULT_SAX_PARSER,null,is,id).getLib();
+        return new TagLibFactory(null,is,id).getLib();
 	}
 	
 	/**
@@ -527,10 +522,10 @@ public final class TagLibFactory extends DefaultHandler {
 	private static TagLib[] loadFromSystem(Identification id) throws TagLibException	{
 		
 		if(systemTLDs[CFMLEngine.DIALECT_CFML]==null) {
-			TagLib cfml = new TagLibFactory(DEFAULT_SAX_PARSER,null,TLD_BASE,id).getLib();
+			TagLib cfml = new TagLibFactory(null,TLD_BASE,id).getLib();
 			TagLib lucee = cfml.duplicate(false);
-			systemTLDs[CFMLEngine.DIALECT_CFML] = new TagLibFactory(DEFAULT_SAX_PARSER,cfml,TLD_CFML,id).getLib();
-			systemTLDs[CFMLEngine.DIALECT_LUCEE] = new TagLibFactory(DEFAULT_SAX_PARSER,lucee,TLD_LUCEE,id).getLib();
+			systemTLDs[CFMLEngine.DIALECT_CFML] = new TagLibFactory(cfml,TLD_CFML,id).getLib();
+			systemTLDs[CFMLEngine.DIALECT_LUCEE] = new TagLibFactory(lucee,TLD_LUCEE,id).getLib();
 		}
 		return systemTLDs;
 	}

@@ -39,7 +39,6 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.Time;
 import lucee.runtime.type.dt.TimeImpl;
 
-import org.apache.xerces.parsers.DOMParser;
 import org.apache.xml.serialize.OutputFormat;
 import org.apache.xml.serialize.XMLSerializer;
 import org.w3c.dom.Document;
@@ -75,38 +74,6 @@ public final class StorageUtil {
 		InputStream is = InfoImpl.class.getResourceAsStream(resourcePath);
         IOUtil.copy(is,res,true);
 	}
-
-    /**
-     * load a XML Document as DOM representation
-     * @param file XML File to load
-     * @return DOM Object
-     * @throws SAXException
-     * @throws IOException
-     */
-    public Document loadDocument(Resource file) throws SAXException, IOException {
-        DOMParser parser = new DOMParser();
-	    
-		InputStream in = null;
-		try {
-			in = file.getInputStream();
-			InputSource source = new InputSource(in);
-			parser.parse(source);
-		}
-		finally {
-			IOUtil.closeEL(in);
-		}
-    	
-    	return parser.getDocument();
-    }
-    
-    public Document loadDocument(String content) throws SAXException, IOException {
-        DOMParser parser = new DOMParser();
-	    
-		InputSource source = new InputSource(content);
-		parser.parse(source);
-		
-    	return parser.getDocument();
-    }
 
     /**
      * return XML Element matching name

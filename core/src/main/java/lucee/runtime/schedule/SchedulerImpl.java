@@ -33,6 +33,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
+import lucee.runtime.text.xml.XMLUtil;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -74,13 +75,13 @@ public final class SchedulerImpl implements Scheduler {
     	
     	boolean newFile=initFile(schedulerDir);
     	try {
-    		doc=su.loadDocument(schedulerFile);
+    		doc=XMLUtil.createDocument(schedulerFile,false);
     	}
     	catch(Exception e) {
     		if(newFile) rethrow(e); 
     		config.getLog("scheduler").log(Log.LEVEL_FATAL,"startup","could not load "+schedulerFile, e);
     		reinitFile(schedulerDir);
-    		doc=su.loadDocument(schedulerFile);
+    		doc=XMLUtil.createDocument(schedulerFile,false);
     	}
         
         tasks=readInAllTasks();
@@ -107,7 +108,7 @@ public final class SchedulerImpl implements Scheduler {
     	this.engine=(CFMLEngineImpl) engine;
     	this.config=config;
     	try {
-			doc=su.loadDocument(xml);
+			doc=XMLUtil.createDocument(xml,false);
 		} catch (Exception e) {}
     	tasks=new ScheduleTaskImpl[0];
         init();

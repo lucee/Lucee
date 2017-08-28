@@ -529,13 +529,8 @@ public final class WDDXConverter extends ConverterSupport {
 	 */
 	public Object deserialize(String strWddx, boolean validate) throws ConverterException, IOException, FactoryConfigurationError {
 		try {
-			DOMParser parser = new DOMParser();
-			if(validate)
-				parser.setEntityResolver(new WDDXEntityResolver());
-
-			parser.parse(new InputSource(new StringReader(strWddx)));
-			Document doc = parser.getDocument();
-
+			Document doc=XMLUtil.parse(XMLUtil.toInputSource(strWddx),null,validate?new WDDXEntityResolver():null,false);
+			
 			// WDDX Package
 			NodeList docChldren = doc.getChildNodes();
 			Node wddxPacket = doc;

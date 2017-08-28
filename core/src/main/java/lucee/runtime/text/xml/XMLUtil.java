@@ -20,6 +20,7 @@ package lucee.runtime.text.xml;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -82,6 +83,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
+import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -93,6 +95,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
 public final class XMLUtil {
 	
 	public static final short UNDEFINED_NODE=-1;
+	public final static String DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
 	
     public static final Collection.Key XMLCOMMENT = KeyImpl.intern("xmlcomment");
     public static final Collection.Key XMLTEXT = KeyImpl.intern("xmltext");
@@ -213,6 +216,12 @@ public final class XMLUtil {
         return transformerFactory;
     }
     
+
+    public static final Document parse(InputSource xml,InputSource validator,  boolean isHtml) 
+        throws SAXException, IOException {
+    	return parse(xml, validator, new XMLEntityResolverDefaultHandler(validator), isHtml);
+    }
+    
     /**
      * parse XML/HTML String to a XML DOM representation
      * @param xml XML InputSource
@@ -222,7 +231,7 @@ public final class XMLUtil {
      * @throws IOException
      * @throws ParserConfigurationException 
      */
-    public static final Document parse(InputSource xml,InputSource validator, boolean isHtml) 
+    public static final Document parse(InputSource xml,InputSource validator,  EntityResolver entRes, boolean isHtml) 
         throws SAXException, IOException {
         
         if(!isHtml) {
@@ -248,7 +257,7 @@ public final class XMLUtil {
             
             try {
 				DocumentBuilder builder = factory.newDocumentBuilder();
-	            builder.setEntityResolver(new XMLEntityResolverDefaultHandler(validator));
+	            if(entRes!=null)builder.setEntityResolver(entRes);
 	            builder.setErrorHandler(new ThrowingErrorHandler(true,true,false));
 	            return  builder.parse(xml);
 			} 
@@ -1014,7 +1023,7 @@ public final class XMLUtil {
      * @throws IOException
      */
     public static String transform(InputSource xml, InputSource xsl) throws TransformerException, SAXException, IOException {
-    	return transform( parse( xml, null , false ), xsl, null );
+    	return transform( parse( xml, null ,false ), xsl, null );
     }
     
     /**
@@ -1028,7 +1037,7 @@ public final class XMLUtil {
      * @throws IOException
      */
     public static String transform(InputSource xml, InputSource xsl, Map<String,Object> parameters) throws TransformerException, SAXException, IOException {
-    	return transform( parse( xml, null , false ), xsl, parameters );
+    	return transform( parse( xml, null, false ), xsl, parameters );
     }
 
     /**
@@ -1197,13 +1206,93 @@ public final class XMLUtil {
 		else parent.appendChild(node);
 	}
 
-	public static XMLReader createXMLReader(String oprionalDefaultSaxParser) throws SAXException {
+	public static XMLReader createXMLReader(String optionalDefaultSaxParser) throws SAXException {
+		if(optionalDefaultSaxParser==null)
+			optionalDefaultSaxParser=DEFAULT_SAX_PARSER;
+			
 		try{
-			return XMLReaderFactory.createXMLReader(oprionalDefaultSaxParser);
+			return XMLReaderFactory.createXMLReader(optionalDefaultSaxParser);
 		}
 		catch(Throwable t){
 			ExceptionUtil.rethrowIfNecessary(t);
 			return XMLReaderFactory.createXMLReader();
 		}
 	}
+	
+    public static Document createDocument(Resource res, boolean isHTML) throws SAXException, IOException {
+        InputStream is=null;
+    	try {
+            return parse(toInputSource(res, null),null,isHTML);
+        }
+        finally {
+        	IOUtil.closeEL(is);
+        }
+    }
+
+    
+    public static Document createDocument(String xml, boolean isHTML) throws SAXException, IOException {
+        return parse(toInputSource(xml),null,isHTML);
+    }
+
+    
+    public static Document createDocument(InputStream is, boolean isHTML) throws SAXException, IOException {
+        return parse(new InputSource(is),null,isHTML);
+    }
+    
+	
+	public static InputSource toInputSource(Object value) throws IOException {
+		if(value instanceof InputSource) {
+	        return (InputSource) value;
+	    }
+		if(value instanceof String) {
+	        return toInputSource((String)value);
+	    }
+		if(value instanceof StringBuffer) {
+	        return toInputSource(value.toString());
+	    }
+
+		if(value instanceof Resource) {
+	    	String str = IOUtil.toString(((Resource)value), (Charset)null);
+	    	return new InputSource(new StringReader(str));
+	    }
+		if(value instanceof File) {
+			FileInputStream fis = new FileInputStream((File)value);
+			try {
+				return toInputSource(fis);
+			}
+			finally {
+				IOUtil.closeEL(fis);
+			}
+	    }
+		if(value instanceof InputStream) {
+			InputStream is = (InputStream)value;
+			try {
+				String str = IOUtil.toString(is, (Charset)null);
+	        	return new InputSource(new StringReader(str));
+			}
+			finally {
+				IOUtil.closeEL(is);
+			}
+	    }
+		if(value instanceof Reader) {
+			Reader reader = (Reader)value;
+			try {
+				String str = IOUtil.toString(reader);
+	        	return new InputSource(new StringReader(str));
+			}
+			finally {
+				IOUtil.closeEL(reader);
+			}
+	    }
+		if(value instanceof byte[]) {
+			return new InputSource(new ByteArrayInputStream((byte[])value));
+	    }
+		throw new IOException("cat cast object of type ["+value+"] to a Input for xml parser");
+	}
+	
+	
+	public static InputSource toInputSource(String xml) throws IOException {
+		return new InputSource(new StringReader(xml.trim()));
+	}
+
 }
