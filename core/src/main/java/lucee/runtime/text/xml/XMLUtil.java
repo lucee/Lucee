@@ -94,7 +94,6 @@ import org.xml.sax.helpers.XMLReaderFactory;
 public final class XMLUtil {
 	
 	public static final short UNDEFINED_NODE=-1;
-	//public final static String DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
 	
     public static final Collection.Key XMLCOMMENT = KeyImpl.intern("xmlcomment");
     public static final Collection.Key XMLTEXT = KeyImpl.intern("xmltext");
