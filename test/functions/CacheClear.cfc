@@ -5,19 +5,65 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	variables.parentFolder=getDirectoryFromPath(getCurrentTemplatePath())&"/datasource/";
 	variables.datasourceFolder=variables.parentFolder&"cacheClear/";
 
-	private void function defineDatasource(id){
-		admin 
-			action="updateCacheConnection"
-			type="web"
-			password="#request.webadminpassword#"
-			name="_cacheClear"&id 
-			class="lucee.runtime.cache.ram.RamCache" 
-			storage="false"
-			default="object" 
-			custom="#{timeToLiveSeconds:86400,timeToIdleSeconds:86400}#";
+
+	private struct function getMongoDBCredentials() {
+		// getting the credetials from the enviroment variables
+		var mongoDB={};
+		if(!isNull(server.system.environment.MONGODB_SERVER) && !isNull(server.system.environment.MONGODB_PORT) && !isNull(server.system.environment.MONGODB_USERNAME) && !isNull(server.system.environment.MONGODB_PASSWORD)) {
+			mongoDB.server=server.system.environment.MONGODB_SERVER;
+			mongoDB.port=server.system.environment.MONGODB_PORT;
+			mongoDB.user=server.system.environment.MONGODB_USERNAME;
+			mongoDB.pass=server.system.environment.MONGODB_PASSWORD;
+		}
+		// getting the credetials from the system variables
+		else if(!isNull(server.system.properties.MONGODB_SERVER) && !isNull(server.system.properties.MONGODB_PORT) && !isNull(server.system.properties.MONGODB_USERNAME) && !isNull(server.system.properties.MONGODB_PASSWORD)) {
+			mongoDB.server=server.system.properties.MONGODB_SERVER;
+			mongoDB.port=server.system.properties.MONGODB_PORT;
+			mongoDB.user=server.system.properties.MONGODB_USERNAME;
+			mongoDB.pass=server.system.properties.MONGODB_PASSWORD;
+		}
+		return mongoDB;
+	}
+
+	private void function defineDatasource(id, boolean asMongo=false){
+		var credentials=getMongoDBCredentials();
+		if(asMongo && structCount(credentials)) {
+			systemOutput("testing as mongo",1,1);
+			
+			admin 
+				action="updateCacheConnection"
+				type="web"
+				password="#request.webadminpassword#"
+				name="_cacheClear"&id 
+				class= 'org.lucee.mongodb.cache.MongoDBCache'
+				bundleName= 'mongodb.extension'
+				storage="false"
+				default="object" 
+				custom="#{
+						"collection":"testsession",
+						"password":credentials.pass,
+						"connectionsPerHost":"10",
+						"database":"test",
+						"hosts":credentials.server&":"&credentials.port,
+						"persist":"true",
+						"username":credentials.user
+						}#";
+		}
+		else {
+			admin 
+				action="updateCacheConnection"
+				type="web"
+				password="#request.webadminpassword#"
+				name="_cacheClear"&id 
+				class="lucee.runtime.cache.ram.RamCache" 
+				storage="false"
+				default="object" 
+				custom="#{timeToLiveSeconds:86400,timeToIdleSeconds:86400}#";
+		}
+
+
 
 		if(!directoryExists(variables.datasourceFolder)) directoryCreate(variables.datasourceFolder);
-		
 		application 
 			action="update" 
 			cache={
@@ -40,10 +86,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		}#";
 	}
 
-	function testCacheClearTags() localmode=true {
+
+	function testCacheClearTagsRAM() localmode=true {
+		testCacheClearTags(false);
+	}
+	function testCacheClearTagsMongo() localmode=true {
+		testCacheClearTags(true);
+	}
+
+	private function testCacheClearTags(boolean asMongo=false) localmode=true {
 		var id=createUniqueId();
 		try {
-			defineDatasource(id);
+			defineDatasource(id,asMongo);
 			
 			idsBefore=cacheGetAllIds(cacheName:"_cacheClear"&id);
 			before=arrayLen(idsBefore);
