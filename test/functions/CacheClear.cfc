@@ -2,41 +2,43 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	
 	variables.cacheName="Test"&ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".");
 
+	variables.parentFolder=getDirectoryFromPath(getCurrentTemplatePath())&"/datasource/";
+	variables.datasourceFolder=variables.parentFolder&"cacheClear/";
+
 	private void function defineDatasource(id){
 		admin 
 			action="updateCacheConnection"
 			type="web"
 			password="#request.webadminpassword#"
-			
-			
 			name="_cacheClear"&id 
 			class="lucee.runtime.cache.ram.RamCache" 
 			storage="false"
 			default="object" 
-			custom="#{timeToLiveSeconds:86400
-				,timeToIdleSeconds:86400}#";
+			custom="#{timeToLiveSeconds:86400,timeToIdleSeconds:86400}#";
 
+		if(!directoryExists(variables.datasourceFolder)) directoryCreate(variables.datasourceFolder);
+		
 		application 
 			action="update" 
 			cache={
 				query:"_cacheClear"&id
 			}
-			datasources="#{
-				'cacheClear_1':{
-			  		class: 'org.hsqldb.jdbcDriver'
-					, bundleName: 'org.hsqldb.hsqldb'
-					, bundleVersion: '2.3.2'
-					, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/cacheClear_1'&id
-				}
-				,'cacheClear_2':{
-			  		class: 'org.hsqldb.jdbcDriver'
-					, bundleName: 'org.hsqldb.hsqldb'
-					, bundleVersion: '2.3.2'
-					, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/cacheClear_2'&id
-				}
-			}#";
+			
+		datasources="#{
+			'cacheClear_1':{
+		  		class: 'org.hsqldb.jdbcDriver'
+				, bundleName: 'org.hsqldb.hsqldb'
+				, bundleVersion: '2.3.2'
+				, connectionString: 'jdbc:hsqldb:file:#variables.datasourceFolder#/cacheClear_1'&id
+			}
+			,'cacheClear_2':{
+		  		class: 'org.hsqldb.jdbcDriver'
+				, bundleName: 'org.hsqldb.hsqldb'
+				, bundleVersion: '2.3.2'
+				, connectionString: 'jdbc:hsqldb:file:#variables.datasourceFolder#/cacheClear_2'&id
+			}
+		}#";
 	}
-
 
 	function testCacheClearTags() localmode=true {
 		var id=createUniqueId();
@@ -70,7 +72,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			
 			cacheClear(['tables2'],"_cacheClear"&id);
 			idsAfter.c=cacheGetAllIds(cacheName:"_cacheClear"&id);
-			SystemOutput(idsAfter,1,1);
+			//SystemOutput(idsAfter,1,1);
 			assertEquals(2,arrayLen(idsAfter.c)-before);
 			
 
@@ -81,6 +83,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		}
 		finally {
 			cacheClear(cacheName:"_cacheClear"&id);
+			directoryDelete(variables.datasourceFolder,true);
 		}
 	}
 
