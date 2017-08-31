@@ -90,9 +90,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function testCacheClearTagsRAM() localmode=true {
 		testCacheClearTags(false);
 	}
-	function testCacheClearTagsMongo() localmode=true {
+	/*function testCacheClearTagsMongo() localmode=true {
 		testCacheClearTags(true);
-	}
+	}*/
 
 	private function testCacheClearTags(boolean asMongo=false) localmode=true {
 		var id=createUniqueId();
