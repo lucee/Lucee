@@ -141,7 +141,7 @@ public final class FunctionLibFactory extends DefaultHandler {
 		
 		try {
 
-			xmlReader=XMLUtil.createXMLReader(null);
+			xmlReader=XMLUtil.createXMLReader();
 			xmlReader.setContentHandler(this);
 			xmlReader.setErrorHandler(this);
 			xmlReader.setEntityResolver(new FunctionLibEntityResolver());

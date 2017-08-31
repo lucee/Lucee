@@ -142,7 +142,7 @@ public final class RSSHandler extends DefaultHandler {
 	private void init(InputSource is) throws SAXException, IOException, DatabaseException	{
 		properties=new StructImpl();
 		items=new QueryImpl(COLUMNS,0,"query");
-		xmlReader=XMLUtil.createXMLReader(null);
+		xmlReader=XMLUtil.createXMLReader();
 		xmlReader.setContentHandler(this);
 		xmlReader.setErrorHandler(this);
 		

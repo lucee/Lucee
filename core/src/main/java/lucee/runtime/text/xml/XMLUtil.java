@@ -94,7 +94,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
 public final class XMLUtil {
 	
 	public static final short UNDEFINED_NODE=-1;
-	public final static String DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
+	//public final static String DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
 	
     public static final Collection.Key XMLCOMMENT = KeyImpl.intern("xmlcomment");
     public static final Collection.Key XMLTEXT = KeyImpl.intern("xmltext");
@@ -1194,8 +1194,8 @@ public final class XMLUtil {
 		else parent.appendChild(node);
 	}
 
-	public static XMLReader createXMLReader(String optionalDefaultSaxParser) throws SAXException {
-		if(optionalDefaultSaxParser==null)
+	public static XMLReader createXMLReader() throws SAXException {
+		/*if(optionalDefaultSaxParser==null)
 			optionalDefaultSaxParser=DEFAULT_SAX_PARSER;
 			
 		try{
@@ -1204,7 +1204,8 @@ public final class XMLUtil {
 		catch(Throwable t){
 			ExceptionUtil.rethrowIfNecessary(t);
 			return XMLReaderFactory.createXMLReader();
-		}
+		}*/
+		return XMLReaderFactory.createXMLReader();
 	}
 	
     public static Document createDocument(Resource res, boolean isHTML) throws SAXException, IOException {

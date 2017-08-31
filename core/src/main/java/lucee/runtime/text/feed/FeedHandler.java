@@ -109,7 +109,7 @@ public final class FeedHandler extends DefaultHandler {
 		//print.out("is:"+is);
 		hasDC=false;
 		data=new FeedStruct();
-		xmlReader=XMLUtil.createXMLReader(null);
+		xmlReader=XMLUtil.createXMLReader();
 		xmlReader.setContentHandler(this);
 		xmlReader.setErrorHandler(this);
 		xmlReader.setDTDHandler(new DummyDTDHandler());

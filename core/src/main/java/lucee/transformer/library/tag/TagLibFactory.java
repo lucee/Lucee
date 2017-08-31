@@ -158,7 +158,7 @@ public final class TagLibFactory extends DefaultHandler {
 	private void init(InputSource is) throws TagLibException	{
 		//print.dumpStack();
 		try {
-			xmlReader=XMLUtil.createXMLReader(null);
+			xmlReader=XMLUtil.createXMLReader();
 			xmlReader.setContentHandler(this);
 			xmlReader.setErrorHandler(this);
 			xmlReader.setEntityResolver(new TagLibEntityResolver());
