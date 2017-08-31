@@ -40,7 +40,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				storage="false"
 				default="object" 
 				custom="#{
-						"collection":"testsession",
+						"collection":"testcacheclear",
 						"password":credentials.pass,
 						"connectionsPerHost":"10",
 						"database":"test",
@@ -101,8 +101,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			
 			idsBefore=cacheGetAllIds(cacheName:"_cacheClear"&id);
 			before=arrayLen(idsBefore);
-			assertEquals(0,before);
-			
 			
 			query cachedwithin=createTimeSpan(0,0,1,0) name="qry1" datasource="cacheClear_1" tags=['tables'] {
 				echo('SELECT top 1 TABLE_NAME as tn,''cacheClear_1'' as ds FROM  INFORMATION_SCHEMA.SYSTEM_TABLES');
