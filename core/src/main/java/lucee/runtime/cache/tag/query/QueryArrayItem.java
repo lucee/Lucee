@@ -2,6 +2,7 @@ package lucee.runtime.cache.tag.query;
 
 import lucee.commons.digest.HashUtil;
 import lucee.runtime.cache.tag.udf.UDFArgConverter;
+import lucee.runtime.db.DataSource;
 import lucee.runtime.type.query.QueryArray;
 
 public class QueryArrayItem extends QueryResultCacheItem {
@@ -10,8 +11,8 @@ public class QueryArrayItem extends QueryResultCacheItem {
 
 	public final QueryArray queryArray;
 
-	public QueryArrayItem(QueryArray queryArray, String[] tags){
-		super(queryArray, tags, System.currentTimeMillis());
+	public QueryArrayItem(QueryArray queryArray, String[] tags,String datasourceName){
+		super(queryArray, tags, datasourceName, System.currentTimeMillis());
 		this.queryArray=queryArray;
 	}
 
@@ -28,7 +29,7 @@ public class QueryArrayItem extends QueryResultCacheItem {
 
 	@Override
 	public Object duplicate(boolean deepCopy) {
-		return new QueryArrayItem((QueryArray)queryArray.duplicate(true),getTags());
+		return new QueryArrayItem((QueryArray)queryArray.duplicate(true),getTags(),getDatasourceName());
 	}
 
 }

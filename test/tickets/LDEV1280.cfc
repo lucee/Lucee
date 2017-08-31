@@ -40,8 +40,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertFalse(qry.isCached());
 	}
 
-
-
 	private function exeQuery() localmode=true {
 		q=query(a:[1,2,3,4]);
 		query name="qry" cachedwithin=createTimespan(0,0,0,10) dbtype="query" tags=['susi','urs'] {
@@ -49,8 +47,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		return qry;
 	}
-
-
 
 	public function setUp() {
 		application action="update" 

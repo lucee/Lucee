@@ -17,6 +17,8 @@
  */
 package lucee.transformer.library;
 
+import java.io.Serializable;
+
 import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
@@ -30,7 +32,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.xml.sax.Attributes;
 
-public class ClassDefinitionImpl<T> implements ClassDefinition<T> {
+public class ClassDefinitionImpl<T> implements ClassDefinition<T>,Serializable {
 
 	/**
 	 * do not use to load class!!!

@@ -699,8 +699,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				//else query=executeDatasoure(sql,result!=null,pageContext.getTimeZone());
 				
 				if (cachedWithin != null) {
-
-					CacheItem cacheItem = QueryResultCacheItem.newInstance(queryResult, tags, null);
+					CacheItem cacheItem = QueryResultCacheItem.newInstance(queryResult, tags, datasource, null);
 					if (cacheItem != null)
 						cacheHandler.set(pageContext, cacheId, cachedWithin, cacheItem);
 				}
