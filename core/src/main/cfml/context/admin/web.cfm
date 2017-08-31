@@ -80,7 +80,7 @@
                 	name="lucee_admin_pw_#server.lucee.version#_#ad#"
                 	value="#hashedPassword#">
             <cfelse>
-                <cfcookie expires="Now" name="lucee_admin_pw_#server.lucee.version#_#server.lucee.version#_#ad#" value="">
+                <cfcookie expires="Now" name="lucee_admin_pw_#server.lucee.version#_#ad#" value="">
             </cfif>
             <cfif isDefined("cookie.lucee_admin_lastpage") and cookie.lucee_admin_lastpage neq "logout">
                 <cfset url.action = cookie.lucee_admin_lastpage>
