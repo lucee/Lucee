@@ -664,6 +664,7 @@ public final class PageContextImpl extends PageContext {
 		includeOnce.clear();
 		pe=null;
 		this.literalTimestampWithTSOffset=false;
+		thread=null;
 	}
 
 	private void releaseORM() throws PageException {

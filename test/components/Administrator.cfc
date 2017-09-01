@@ -1754,10 +1754,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isJson(http.filecontent), true);
 					updateAvailable=deserializeJson(http.filecontent);
 
-					LatestVersion = ArrayLast(updateAvailable.otherVersions);
-					if( ReplaceNocase(replaceNocase(LatestVersion, ".", "", "ALL"), "-SNAPSHOT", "") GT ReplaceNocase(replaceNocase(server.lucee.version, ".", "", "ALL"), "-SNAPSHOT", "") ){
-						admin.changeVersionTo(LatestVersion);
-					}
 				});
 			});
 
