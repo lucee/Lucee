@@ -36,7 +36,7 @@ public class EnvClassLoader extends URLClassLoader {
 
 	
 	public EnvClassLoader(ConfigImpl config) {
-		super(new URL[0],config.getClassLoaderCore());
+		super(new URL[0],config!=null?config.getClassLoaderCore():new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader());
 		this.config=config;
 		
 	}

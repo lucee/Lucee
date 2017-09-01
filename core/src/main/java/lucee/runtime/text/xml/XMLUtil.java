@@ -123,6 +123,7 @@ public final class XMLUtil {
 	private static DocumentBuilder docBuilder;
 	//private static DocumentBuilderFactory factory;
     private static TransformerFactory transformerFactory;
+	private static DocumentBuilderFactory documentBuilderFactory;
 	
 
     public static String unescapeXMLString(String str) {
@@ -208,9 +209,11 @@ public final class XMLUtil {
      * @return returns a singelton TransformerFactory
      */
     public static TransformerFactory getTransformerFactory() {
-    	Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
-		
-    	//if(transformerFactory==null)transformerFactory=TransformerFactory.newInstance();
+    	
+    	/*if(transformerFactory==null){
+    		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
+    		transformerFactory=TransformerFactory.newInstance();
+    	}*/
     	if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
         return transformerFactory;
     }
@@ -232,7 +235,7 @@ public final class XMLUtil {
      */
     public static final Document parse(InputSource xml,InputSource validator,  EntityResolver entRes, boolean isHtml) 
         throws SAXException, IOException {
-        
+    	
         if(!isHtml) {
         	DocumentBuilderFactory factory = newDocumentBuilderFactory();
         	if(validator==null) {
@@ -251,7 +254,7 @@ public final class XMLUtil {
 				DocumentBuilder builder = factory.newDocumentBuilder();
 	            if(entRes!=null)builder.setEntityResolver(entRes);
 	            builder.setErrorHandler(new ThrowingErrorHandler(true,true,false));
-	            return  builder.parse(xml);
+	            return builder.parse(xml);
 			} 
             catch (ParserConfigurationException e) {
 				throw new SAXException(e);
@@ -275,9 +278,11 @@ public final class XMLUtil {
     }
 	
 	private static DocumentBuilderFactory newDocumentBuilderFactory() {
-		return DocumentBuilderFactory.newInstance();
-		//return new DocumentBuilderFactoryImpl();
-    	// we do not use DocumentBuilderFactory.newInstance(); because it is unpredictable
+		if(documentBuilderFactory==null) {
+			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
+			documentBuilderFactory=DocumentBuilderFactory.newInstance();
+		}
+		return documentBuilderFactory;
 	}
 
 	private static void setAttributeEL(DocumentBuilderFactory factory,String name, Object value) {
