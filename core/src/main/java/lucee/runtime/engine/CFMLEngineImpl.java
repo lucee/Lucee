@@ -48,9 +48,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import javax.script.ScriptEngineFactory;
+import javax.servlet.FilterChain;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -656,11 +659,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		}
 		
 		// FUTURE remove and add a new method for it (search:FUTURE add exeFilter)
-		/*FUTUREX if("LuceeFilter".equals(config.getServletName())) {
+		/*if("LuceeFilter".equals(config.getServletName())) {
 			try {
 				String status = config.getInitParameter("status");
 				if("filter".equalsIgnoreCase(status)) {
-					filter(config.getServletRequest(),config.getServletResponse(),config.getFilterChain());
+					filter(
+							(ServletRequest)_get(config,"getServletRequest"),
+							(ServletResponse)_get(config,"getServletResponse"),
+							(FilterChain)_get(config,"getFilterChain"));
 				}
 			}
 			catch (Exception e) {
@@ -679,6 +685,20 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if(!initContextes.containsKey(real)) {
 			CFMLFactory jspFactory = loadJSPFactory(getConfigServerImpl(), config, initContextes.size());
 			initContextes.put(real, jspFactory);
+		}
+	}
+
+	private void filter(ServletRequest req, ServletResponse rsp, FilterChain fc) {
+		// TODO get filter defined in Config
+	}
+
+	private Object _get(Object obj, String msg) throws PageException {
+		try {
+			Method m = obj.getClass().getMethod(msg, new Class[0]);
+			return m.invoke(obj, new Object[0]);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
 		}
 	}
 
