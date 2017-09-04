@@ -449,14 +449,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if(LOG)SystemOut.printDate("loaded lib");
 		loadSystem(cs, config, doc);
 		if(LOG)SystemOut.printDate("loaded system");
+		loadResourceProvider(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded resource providers");
 		loadFilesystem(cs, config, doc, doNew); // load this before execute any code, what for example loadxtension does (json)
 		if(LOG)SystemOut.printDate("loaded filesystem");
 		loadExtensionBundles(cs,config,doc,log);
 		if(LOG)SystemOut.printDate("loaded extension bundles");
 		loadORM(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded orm");
-		loadResourceProvider(cs, config, doc);
-		if(LOG)SystemOut.printDate("loaded resource providers");
 		loadCacheHandler(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded cache handlers");
 		loadCharset(cs, config, doc);
@@ -2847,7 +2847,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		// Deploy Dir
 		Resource dd = ConfigWebUtil.getFile(configDir, strDeployDirectory, "cfclasses", configDir, FileUtil.TYPE_DIR, config);
 		config.setDeployDirectory(dd);
-
+		
 	// TAG
 		
 		// init TLDS
