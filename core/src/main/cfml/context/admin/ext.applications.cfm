@@ -23,7 +23,11 @@ stText.ext.uninstallDesc="Uninstall this version";
 stText.Buttons.go="go";
 
 stText.Buttons.upDown="update / downgrade";
-
+max=100;
+count=0;
+while(!structKeyExists(application, "external") && application.external.RecordCount  && count++ < max ) {
+	sleep(100);
+}
 </cfscript>
 
 
