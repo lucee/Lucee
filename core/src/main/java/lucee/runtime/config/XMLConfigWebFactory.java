@@ -88,7 +88,7 @@ import lucee.runtime.cfx.customtag.CFXTagClass;
 import lucee.runtime.cfx.customtag.CPPCFXTagClass;
 import lucee.runtime.cfx.customtag.JavaCFXTagClass;
 import lucee.runtime.component.ImportDefintion;
-import lucee.runtime.config.ajax.AjaxFactory;
+//import lucee.runtime.config.ajax.AjaxFactory;
 import lucee.runtime.config.component.ComponentFactory;
 import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.db.ClassDefinition;
@@ -2965,7 +2965,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 
 			// AJAX
-			AjaxFactory.deployTags(dir, doNew);
+			//AjaxFactory.deployTags(dir, doNew);
 
 		}
 	}
@@ -3024,7 +3024,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			if (!f.exists() || doNew)
 				createFileFromResourceEL("/resource/library/function/writeLog."+TEMPLATE_EXTENSION, f);
 
-			AjaxFactory.deployFunctions(dir, doNew);
+			//AjaxFactory.deployFunctions(dir, doNew);
 
 		}
 	}
