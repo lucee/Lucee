@@ -156,11 +156,11 @@
 			<cfcontinue>
 		</cfif>
 		<span><input <cfif count EQ 1>
-		class="bl button alignLeft" <cfelseif count EQ StructCount(versionsStr)> class="br button" <cfelse> class="bm button" </cfif>  name="changeConnection" id="btn_#UcFirst(Lcase(key))#" value="#key#" onclick="enableVersion('#UcFirst(Lcase(key))#');"  type="button"></span>
+		class="bl button alignLeft" <cfelseif count EQ StructCount(versionsStr)> class="br button" <cfelse> class="bm button" </cfif>  name="changeConnection" id="btn_#UcFirst(Lcase(key))#" value="#key#s" onclick="enableVersion('#UcFirst(Lcase(key))#');"  type="button"></span>
 		<cfsavecontent variable="tmpContent">
 			<div id="div_#UcFirst(Lcase(key))#" class="topBottomSpace">
 				<div class="whitePanel">
-					<h1 class="">#key#<cfif key EQ "pre_Release"> (<span>#stText.services.update.alphaBetaRelease#</span>)</cfif></h1>
+					<h1 class="">#key#s<cfif key EQ "pre_Release"> (#stText.services.update.alphaBetaRelease#)</cfif></h1>
 					<div class="itemintro">#stText.services.update[key&"Desc"]#</div>
 					<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 						<div>
