@@ -396,6 +396,14 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	public long getPageContextsSize() {
 		return SizeOf.size(pcs);
 	}
+	
+	public long getActiveRequests() {
+		return runningPcs.size();
+	}
+	
+	public long getActiveThreads() {
+		return runningChildPcs.size();
+	}
 
 	public Array getInfo() {
 		Array info = new ArrayImpl();

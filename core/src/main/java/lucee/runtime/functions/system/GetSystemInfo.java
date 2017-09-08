@@ -18,16 +18,38 @@
  **/
 package lucee.runtime.functions.system;
 
+import lucee.runtime.CFMLFactory;
+import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.db.DatasourceManagerImpl;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 
 public final class GetSystemInfo implements Function {
     
     public static Struct call(PageContext pc) throws PageException {
-        throw new ExpressionException("the function getSystemInfo is no longer supported");
+    	Struct sct=new StructImpl();
+    	ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
+    	CFMLFactoryImpl factory = (CFMLFactoryImpl) config.getFactory();
     	
+    	// threads/requests
+    	sct.put("activeRequests", factory.getActiveRequests());
+    	sct.put("activeThreads", factory.getActiveThreads());
+    	sct.put("queueRequests", config.getThreadQueue().size());
+    	
+    	// Datasource connections
+    	sct.put("activeDatasourceConnections", config.getDatasourceConnectionPool().openConnections().size());
+    	
+    	// tasks
+    	sct.put("tasksOpen", config.getSpoolerEngine().getOpenTaskCount());
+    	sct.put("tasksClosed", config.getSpoolerEngine().getClosedTaskCount());
+    	
+    	
+        return sct;
     }
 }
