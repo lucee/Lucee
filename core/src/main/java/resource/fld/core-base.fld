@@ -6105,9 +6105,9 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 			<type>string</type>
 		</return>
 	</function>
-	<!-- GetSystemInfo -->
+	<!-- GetSystemMetrics -->
 	<function>
-		<name>GetSystemInfo</name>
+		<name>GetSystemMetrics</name>
 		<class>lucee.runtime.functions.system.GetSystemInfo</class>
 		<status>hidden</status>
 		<description></description>
