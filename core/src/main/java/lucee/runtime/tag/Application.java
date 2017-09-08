@@ -695,7 +695,7 @@ public final class Application extends TagImpl {
 		ac.setClientCluster(clientCluster);
 		ac.setSessionCluster(sessionCluster);
 		ac.setCGIScopeReadonly(cgiReadOnly);
-		if(s3!=null) 							ac.setS3(AppListenerUtil.toS3(s3));
+		if(s3!=null) ac.setS3(AppListenerUtil.toS3(s3));
 		
 		// Scope cascading
 		if(scopeCascading!=-1) ac.setScopeCascading(scopeCascading);

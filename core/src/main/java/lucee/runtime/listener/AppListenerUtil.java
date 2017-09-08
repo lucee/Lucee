@@ -77,6 +77,7 @@ public final class AppListenerUtil {
 	public static final Collection.Key ACCESS_KEY_ID = KeyImpl.intern("accessKeyId");
 	public static final Collection.Key AWS_SECRET_KEY = KeyImpl.intern("awsSecretKey");
 	public static final Collection.Key DEFAULT_LOCATION = KeyImpl.intern("defaultLocation");
+	public static final Collection.Key ACL = KeyImpl.intern("acl");
 	public static final Collection.Key CONNECTION_STRING = KeyImpl.intern("connectionString");
 	
 	public static final Collection.Key BLOB = KeyImpl.intern("blob");
@@ -472,16 +473,18 @@ public final class AppListenerUtil {
 				Caster.toString(sct.get(ACCESS_KEY_ID,null),null),
 				Caster.toString(sct.get(AWS_SECRET_KEY,null),null),
 				Caster.toString(sct.get(DEFAULT_LOCATION,null),null),
-				host
+				host,
+				Caster.toString(sct.get(ACL,null),null)
 			);
 	}
 
-	public static Properties toS3(String accessKeyId, String awsSecretKey, String defaultLocation, String host) {
+	public static Properties toS3(String accessKeyId, String awsSecretKey, String defaultLocation, String host, String acl) {
 		PropertiesImpl s3 = new PropertiesImpl();
 		if(!StringUtil.isEmpty(accessKeyId))s3.setAccessKeyId(accessKeyId);
 		if(!StringUtil.isEmpty(awsSecretKey))s3.setSecretAccessKey(awsSecretKey);
 		if(!StringUtil.isEmpty(defaultLocation))s3.setDefaultLocation(defaultLocation);
 		if(!StringUtil.isEmpty(host))s3.setHost(host);
+		if(!StringUtil.isEmpty(acl))s3.setACL(acl);
 		return s3;
 	}
 
