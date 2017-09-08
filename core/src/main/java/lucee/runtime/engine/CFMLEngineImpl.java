@@ -61,7 +61,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 
 import lucee.Info;
-import lucee.print;
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.CharsetUtil;
@@ -92,7 +91,6 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.engine.CFMLEngineFactorySupport;
 import lucee.loader.engine.CFMLEngineWrapper;
 import lucee.loader.osgi.BundleCollection;
-import lucee.loader.osgi.BundleUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
@@ -107,7 +105,6 @@ import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
-import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
@@ -172,10 +169,8 @@ import lucee.runtime.util.ZipUtilImpl;
 import lucee.runtime.video.VideoUtil;
 import lucee.runtime.video.VideoUtilImpl;
 
-import org.apache.commons.net.telnet.TerminalTypeOptionHandler;
 import org.apache.felix.framework.Felix;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 

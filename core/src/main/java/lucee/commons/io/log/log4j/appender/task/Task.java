@@ -24,7 +24,6 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.spooler.ExecutionPlan;
-import lucee.runtime.spooler.SpoolerTask;
 import lucee.runtime.spooler.SpoolerTaskListener;
 import lucee.runtime.spooler.SpoolerTaskPro;
 import lucee.runtime.type.Array;

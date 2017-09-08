@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;

@@ -33,7 +33,6 @@ import lucee.runtime.search.SearchData;
 import lucee.runtime.search.SearchEngine;
 import lucee.runtime.search.SearchException;
 import lucee.runtime.search.SuggestionItem;
-import lucee.runtime.tag.util.DeprecatedUtil;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;

@@ -18,13 +18,13 @@
  **/
 package lucee.runtime.functions.other;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
 
 public class URLEncode {

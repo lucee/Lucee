@@ -1,9 +1,6 @@
 package lucee.runtime.type.query;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.io.Reader;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -30,15 +27,12 @@ import lucee.runtime.PageContext;
 import lucee.runtime.db.SQL;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
-import lucee.runtime.exp.DatabaseException;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Objects;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
-import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.DateTime;
 

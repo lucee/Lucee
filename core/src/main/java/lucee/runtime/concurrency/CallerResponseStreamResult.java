@@ -24,7 +24,6 @@ import java.nio.charset.Charset;
 import java.util.concurrent.Callable;
 
 import lucee.commons.io.IOUtil;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;

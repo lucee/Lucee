@@ -18,7 +18,6 @@
  **/
 package lucee.runtime.exp;
 
-import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;

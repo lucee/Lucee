@@ -2,7 +2,6 @@ package lucee.runtime.cache.util;
 
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CacheEntryFilter;
-import lucee.commons.io.cache.CacheFilter;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.cache.tag.query.QueryResultCacheItem;
 import lucee.runtime.type.Struct;

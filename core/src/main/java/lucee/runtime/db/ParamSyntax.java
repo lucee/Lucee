@@ -2,14 +2,12 @@ package lucee.runtime.db;
 
 import java.net.URLDecoder;
 
-import org.w3c.dom.Element;
-
-import lucee.print;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.net.URLEncoder;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
+
+import org.w3c.dom.Element;
 
 public class ParamSyntax {
 

@@ -85,7 +85,6 @@ import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.net.smtp.SMTPConnectionPool.SessionAndTransport;
 import lucee.runtime.op.Caster;
-import lucee.runtime.spooler.CFMLSpoolerTaskListener;
 import lucee.runtime.spooler.ComponentSpoolerTaskListener;
 import lucee.runtime.spooler.UDFSpoolerTaskListener;
 import lucee.runtime.spooler.mail.MailSpoolerTask;

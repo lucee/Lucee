@@ -26,7 +26,6 @@ import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Query;
-import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;

@@ -44,7 +44,6 @@ import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.ConfigWebImpl;

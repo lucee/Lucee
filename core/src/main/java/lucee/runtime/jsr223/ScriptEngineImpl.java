@@ -30,7 +30,6 @@ import javax.script.SimpleScriptContext;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.compiler.Renderer;
 import lucee.runtime.compiler.Renderer.Result;

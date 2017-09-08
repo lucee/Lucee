@@ -10,12 +10,10 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 
-import lucee.print;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.Caller;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
-import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;

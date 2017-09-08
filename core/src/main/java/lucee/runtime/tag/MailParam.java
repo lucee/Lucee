@@ -23,7 +23,6 @@ import java.io.IOException;
 
 import javax.servlet.jsp.tagext.Tag;
 
-import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
@@ -34,7 +33,6 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.functions.other.CreateUniqueId;
-import lucee.runtime.functions.string.Hash;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ListUtil;
 

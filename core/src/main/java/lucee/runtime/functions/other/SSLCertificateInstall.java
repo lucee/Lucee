@@ -22,7 +22,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.tag.Admin;
-import lucee.runtime.tag.util.DeprecatedUtil;
 
 public final class SSLCertificateInstall implements Function {
 

@@ -28,7 +28,6 @@ import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -48,7 +47,6 @@ import javax.servlet.ServletContext;
 
 import lucee.commons.digest.MD5;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;

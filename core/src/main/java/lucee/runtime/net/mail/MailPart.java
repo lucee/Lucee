@@ -27,9 +27,6 @@ import java.nio.charset.Charset;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.CharSet;
 import lucee.runtime.net.smtp.StringDataSource;
-import lucee.runtime.op.Caster;
-import lucee.runtime.type.Array;
-import lucee.runtime.type.util.ListUtil;
 
 
 /**

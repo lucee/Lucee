@@ -23,11 +23,7 @@ import javax.mail.SendFailedException;
 import javax.mail.Transport;
 
 import lucee.commons.io.SystemUtil;
-import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.runtime.config.Config;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.net.smtp.SMTPClient.MimeMessageAndSession;
 
 

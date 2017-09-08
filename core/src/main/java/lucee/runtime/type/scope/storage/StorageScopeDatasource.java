@@ -24,7 +24,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DatasourceConnection;

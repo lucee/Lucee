@@ -25,7 +25,6 @@ import lucee.runtime.db.SQLCaster;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.ext.tag.TagSupport;
-import lucee.runtime.tag.util.DeprecatedUtil;
 
 public class ProcParam extends TagSupport {
 

@@ -24,8 +24,6 @@ import lucee.commons.io.cache.Cache;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.db.ClassDefinition;
-import lucee.runtime.engine.ThreadLocalConfig;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.type.Struct;
 
 public class ServerCacheConnection implements CacheConnectionPlus {

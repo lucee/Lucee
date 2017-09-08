@@ -18,8 +18,6 @@
  */
 package lucee.runtime.listener;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -30,14 +28,11 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
-import lucee.runtime.cache.CacheConnection;
-import lucee.runtime.cache.CacheConnectionImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
@@ -46,10 +41,10 @@ import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ApplicationDataSource;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DBUtil;
-import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.db.DBUtil.DataSourceDefintion;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
+import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;

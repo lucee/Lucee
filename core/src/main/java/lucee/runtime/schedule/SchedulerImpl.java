@@ -26,7 +26,6 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
-import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.CFMLEngineImpl;

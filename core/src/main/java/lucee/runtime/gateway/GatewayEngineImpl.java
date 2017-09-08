@@ -41,7 +41,6 @@ import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Constants;

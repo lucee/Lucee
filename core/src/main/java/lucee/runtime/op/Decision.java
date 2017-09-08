@@ -35,7 +35,6 @@ import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 import lucee.commons.date.DateTimeUtil;
-import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;

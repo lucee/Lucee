@@ -25,7 +25,6 @@ import lucee.runtime.config.Config;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Query;
-import lucee.runtime.type.Struct;
 import lucee.runtime.type.scope.storage.StorageScopeEngine;
 import lucee.runtime.type.scope.storage.StorageScopeListener;
 import lucee.runtime.type.scope.storage.clean.DatasourceStorageScopeCleaner;

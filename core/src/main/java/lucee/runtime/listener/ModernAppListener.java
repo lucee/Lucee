@@ -38,7 +38,6 @@ import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.Component;
-import lucee.runtime.ComponentImpl;
 import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;

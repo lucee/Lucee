@@ -35,7 +35,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 

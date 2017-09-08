@@ -35,7 +35,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import lucee.Info;
-import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -78,7 +77,6 @@ import lucee.runtime.type.util.ListUtil;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 
 
 /**

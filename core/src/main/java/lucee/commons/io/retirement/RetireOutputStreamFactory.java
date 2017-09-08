@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lucee.commons.io.SystemUtil;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SystemOut;
 
 public class RetireOutputStreamFactory {

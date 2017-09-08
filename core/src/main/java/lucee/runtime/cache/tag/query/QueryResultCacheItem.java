@@ -6,7 +6,6 @@ import java.util.Date;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.db.DataSource;
-import lucee.runtime.db.DataSourceImpl;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.Dumpable;

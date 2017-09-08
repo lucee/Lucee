@@ -38,7 +38,6 @@ import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
-import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.cache.tag.udf.UDFCacheItem;
 import lucee.runtime.component.MemberSupport;
 import lucee.runtime.config.Config;
@@ -70,7 +69,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 	private static final long serialVersionUID = -7288148349256615519L; // do not change
 	
 	protected Component ownerComponent;
-	protected UDFPropertiesBase properties;
+	public UDFPropertiesBase properties;
     
 	/**
 	 * DO NOT USE THIS CONSTRUCTOR!

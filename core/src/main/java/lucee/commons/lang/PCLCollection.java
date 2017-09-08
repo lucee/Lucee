@@ -26,7 +26,6 @@ import java.util.Map;
 
 import lucee.commons.io.res.Resource;
 import lucee.runtime.MappingImpl;
-import lucee.runtime.PageSourceImpl;
 import lucee.runtime.type.util.StructUtil;
 
 /**

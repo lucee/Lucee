@@ -39,7 +39,6 @@ import lucee.commons.net.http.Header;
 import lucee.commons.net.http.httpclient.HeaderImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
-import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.functions.conversion.DeserializeJSON;
 import lucee.runtime.net.http.ReqRspUtil;

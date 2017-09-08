@@ -20,7 +20,6 @@ package lucee.runtime.interpreter.ref.op;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.interpreter.InterpreterException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
 import lucee.runtime.op.Caster;

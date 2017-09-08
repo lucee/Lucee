@@ -21,33 +21,17 @@ package lucee.commons.lang;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.instrument.ClassDefinition;
-import java.lang.instrument.Instrumentation;
-import java.lang.instrument.UnmodifiableClassException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.print;
-import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
-import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.util.ResourceClassLoader;
-import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.functions.other.CreateObject;
-import lucee.runtime.instrumentation.InstrumentationFactory;
-import lucee.runtime.type.util.ArrayUtil;
-
-import org.apache.commons.collections4.map.ReferenceMap;
 
 
 /**

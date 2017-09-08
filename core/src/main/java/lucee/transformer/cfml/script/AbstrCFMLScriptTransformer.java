@@ -24,10 +24,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import lucee.print;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngine;

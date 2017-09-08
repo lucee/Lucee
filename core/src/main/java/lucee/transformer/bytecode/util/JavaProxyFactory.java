@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -44,7 +43,6 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;

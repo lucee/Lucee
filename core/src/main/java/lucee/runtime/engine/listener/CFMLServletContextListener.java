@@ -3,9 +3,6 @@ package lucee.runtime.engine.listener;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import lucee.print;
-import lucee.loader.engine.CFMLEngine;
-import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.engine.CFMLEngineImpl;
 
 public class CFMLServletContextListener implements ServletContextListener {

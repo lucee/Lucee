@@ -34,7 +34,6 @@ import java.util.Map;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 
-import lucee.print;
 import lucee.commons.collection.LinkedHashMapMaxSize;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Hash;

@@ -49,7 +49,6 @@ import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
-import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.cache.tag.webservice.WebserviceCacheItem;
 import lucee.runtime.config.Config;
 import lucee.runtime.dump.DumpData;

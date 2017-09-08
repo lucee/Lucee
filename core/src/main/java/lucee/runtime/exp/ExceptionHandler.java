@@ -25,7 +25,6 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 

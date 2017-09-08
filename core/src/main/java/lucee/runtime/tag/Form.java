@@ -34,7 +34,6 @@ import lucee.runtime.functions.string.JSStringFormat;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.tag.util.DeprecatedUtil;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;

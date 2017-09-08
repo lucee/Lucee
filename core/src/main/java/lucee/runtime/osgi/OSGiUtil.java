@@ -62,7 +62,6 @@ import lucee.runtime.config.Identification;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
 
 import org.apache.felix.framework.Logger;

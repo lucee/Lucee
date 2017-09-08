@@ -7,13 +7,11 @@ import lucee.runtime.db.SQL;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
-import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
-import lucee.runtime.type.Collection.Key;
 
 public class QueryStruct extends StructImpl implements QueryResult {
 	

@@ -20,12 +20,12 @@ package lucee.commons.io.log;
 
 import java.io.PrintStream;
 
-import org.apache.log4j.Logger;
-
 import lucee.commons.io.log.log4j.LogAdapter;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+
+import org.apache.log4j.Logger;
 
 /**
  * Helper class for the logs

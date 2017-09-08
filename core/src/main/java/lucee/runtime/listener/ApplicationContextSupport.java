@@ -18,22 +18,12 @@
  */
 package lucee.runtime.listener;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.HTMLLayout;
-import org.apache.log4j.Level;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.xml.XMLLayout;
-import org.osgi.framework.Version;
-
-import lucee.print;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.log.log4j.Log4jUtil;
@@ -44,17 +34,14 @@ import lucee.commons.io.log.log4j.layout.ClassicLayout;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.XMLConfigWebFactory;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.functions.dynamicEvaluation.GetVariable;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.osgi.OSGiUtil;
@@ -67,6 +54,12 @@ import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
+
+import org.apache.log4j.HTMLLayout;
+import org.apache.log4j.Level;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.xml.XMLLayout;
+import org.osgi.framework.Version;
 
 public abstract class ApplicationContextSupport implements ApplicationContext {
 

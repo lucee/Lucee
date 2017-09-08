@@ -34,7 +34,6 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;

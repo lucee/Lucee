@@ -46,7 +46,6 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.PageServletException;
-import lucee.runtime.exp.TemplateException;
 import lucee.runtime.ext.tag.AppendixTag;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
 import lucee.runtime.ext.tag.DynamicAttributes;

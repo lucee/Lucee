@@ -2,7 +2,6 @@ package lucee.runtime.cache.tag.query;
 
 import lucee.commons.digest.HashUtil;
 import lucee.runtime.cache.tag.udf.UDFArgConverter;
-import lucee.runtime.db.DataSource;
 import lucee.runtime.type.query.QueryArray;
 
 public class QueryArrayItem extends QueryResultCacheItem {

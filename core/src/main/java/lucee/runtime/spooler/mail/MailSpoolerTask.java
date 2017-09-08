@@ -28,7 +28,6 @@ import lucee.runtime.net.mail.MailException;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.smtp.SMTPClient;
 import lucee.runtime.op.Caster;
-import lucee.runtime.spooler.CFMLSpoolerTaskListener;
 import lucee.runtime.spooler.ExecutionPlan;
 import lucee.runtime.spooler.ExecutionPlanImpl;
 import lucee.runtime.spooler.SpoolerTaskListener;

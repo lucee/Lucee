@@ -22,7 +22,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.TimeZone;
 
-import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.reflection.Reflector;

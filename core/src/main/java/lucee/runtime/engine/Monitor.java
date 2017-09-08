@@ -18,7 +18,6 @@
  **/
 package lucee.runtime.engine;
 
-import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;

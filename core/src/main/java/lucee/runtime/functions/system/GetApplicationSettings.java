@@ -18,19 +18,11 @@
  */
 package lucee.runtime.functions.system;
 
-import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.Logger;
-
 import lucee.commons.date.TimeZoneUtil;
-import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
-import lucee.commons.io.log.log4j.Log4jUtil;
-import lucee.commons.io.log.log4j.LogAdapter;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
@@ -64,7 +56,6 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
-import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Undefined;

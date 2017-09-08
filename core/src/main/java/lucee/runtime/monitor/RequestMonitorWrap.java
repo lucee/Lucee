@@ -23,7 +23,6 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.PageException;
