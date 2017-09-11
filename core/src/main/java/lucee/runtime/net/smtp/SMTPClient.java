@@ -62,6 +62,7 @@ import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -84,7 +85,6 @@ import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.net.smtp.SMTPConnectionPool.SessionAndTransport;
 import lucee.runtime.op.Caster;
-import lucee.runtime.spooler.CFMLSpoolerTaskListener;
 import lucee.runtime.spooler.ComponentSpoolerTaskListener;
 import lucee.runtime.spooler.UDFSpoolerTaskListener;
 import lucee.runtime.spooler.mail.MailSpoolerTask;
@@ -846,7 +846,8 @@ public final class SMTPClient implements Serializable  {
                 	listener(config,server,log,null,System.nanoTime()-start);
                 	break;
 				} 
-	            catch (Exception e) {e.printStackTrace();
+	            catch (Exception e) {
+	                SystemOut.printDate(e);
 					if(i+1==servers.length) {
 						
 						listener(config,server,log,e,System.nanoTime()-start);

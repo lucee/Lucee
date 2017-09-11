@@ -18,7 +18,6 @@
  */
 package lucee.runtime.type.scope.storage.db;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -31,7 +30,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
-import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.db.DataSourceUtil;

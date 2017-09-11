@@ -32,8 +32,6 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.osgi.framework.BundleException;
-
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.cache.exp.CacheException;
@@ -90,6 +88,8 @@ import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
+
+import org.osgi.framework.BundleException;
 
 public class ModernApplicationContext extends ApplicationContextSupport {
 
@@ -1576,9 +1576,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 					//print.e(res+"->"+(res!=null && res.exists()));
 					if(res!=null) list.add(res);
 				}
-				catch(Throwable t){
-					ExceptionUtil.rethrowIfNecessary(t);
-					t.printStackTrace();
+				catch(Exception e){
+		            SystemOut.printDate(e);
 				}
 			}
 			return list;

@@ -21,7 +21,6 @@ package lucee.runtime.thread;
 import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
 import java.util.ConcurrentModificationException;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.Map.Entry;
 

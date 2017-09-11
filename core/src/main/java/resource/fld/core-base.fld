@@ -6066,6 +6066,13 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 		<description>Makes HTTP request headers and body available to CFML pages.
         Useful for capturing SOAP request data, which can be delivered
         in an HTTP header.</description>
+		<argument>
+			<name>includeBody</name>
+			<type>boolean</type>
+			<required>false</required>
+			<default>true</default>
+			<description>You wanna retrieve the body of the request as well (true or false). Default is true.</description>
+	    </argument>
 		<return>
 			<type>struct</type>
 		</return>
@@ -6096,6 +6103,16 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
         the SetLocale function.</description>
 		<return>
 			<type>string</type>
+		</return>
+	</function>
+	<!-- GetSystemMetrics -->
+	<function>
+		<name>GetSystemMetrics</name>
+		<class>lucee.runtime.functions.system.GetSystemInfo</class>
+		<status>hidden</status>
+		<description></description>
+		<return>
+			<type>struct</type>
 		</return>
 	</function>
 	<!-- GetMemoryUsage -->

@@ -48,9 +48,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import javax.script.ScriptEngineFactory;
+import javax.servlet.FilterChain;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -58,7 +61,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 
 import lucee.Info;
-import lucee.print;
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.CharsetUtil;
@@ -89,7 +91,6 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.engine.CFMLEngineFactorySupport;
 import lucee.loader.engine.CFMLEngineWrapper;
 import lucee.loader.osgi.BundleCollection;
-import lucee.loader.osgi.BundleUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
@@ -104,7 +105,6 @@ import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
-import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
@@ -169,10 +169,8 @@ import lucee.runtime.util.ZipUtilImpl;
 import lucee.runtime.video.VideoUtil;
 import lucee.runtime.video.VideoUtilImpl;
 
-import org.apache.commons.net.telnet.TerminalTypeOptionHandler;
 import org.apache.felix.framework.Felix;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 
@@ -650,21 +648,24 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					reset();
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 			return;
 		}
 		
 		// FUTURE remove and add a new method for it (search:FUTURE add exeFilter)
-		/*FUTUREX if("LuceeFilter".equals(config.getServletName())) {
+		/*if("LuceeFilter".equals(config.getServletName())) {
 			try {
 				String status = config.getInitParameter("status");
 				if("filter".equalsIgnoreCase(status)) {
-					filter(config.getServletRequest(),config.getServletResponse(),config.getFilterChain());
+					filter(
+							(ServletRequest)_get(config,"getServletRequest"),
+							(ServletResponse)_get(config,"getServletResponse"),
+							(FilterChain)_get(config,"getFilterChain"));
 				}
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 			return;
 		}*/
@@ -679,6 +680,20 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if(!initContextes.containsKey(real)) {
 			CFMLFactory jspFactory = loadJSPFactory(getConfigServerImpl(), config, initContextes.size());
 			initContextes.put(real, jspFactory);
+		}
+	}
+
+	private void filter(ServletRequest req, ServletResponse rsp, FilterChain fc) {
+		// TODO get filter defined in Config
+	}
+
+	private Object _get(Object obj, String msg) throws PageException {
+		try {
+			Method m = obj.getClass().getMethod(msg, new Class[0]);
+			return m.invoke(obj, new Object[0]);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
 		}
 	}
 
@@ -762,7 +777,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				configServer = XMLConfigServerFactory.newInstance(this, initContextes, contextes, context);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 		}
 		return configServer;
@@ -996,7 +1011,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				((CFMLFactoryImpl)factory).setURL(new URL(req.getScheme(), req.getServerName(), req.getServerPort(), cp));
 			}
 			catch (MalformedURLException e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 		}
 		return factory;

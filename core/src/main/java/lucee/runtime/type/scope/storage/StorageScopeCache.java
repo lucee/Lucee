@@ -23,6 +23,7 @@ import java.io.IOException;
 
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
@@ -156,7 +157,9 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 				cache.put(key, new StorageValue(sct),new Long(getTimeSpan()), null);
 			}
 		} 
-		catch (Exception pe) {pe.printStackTrace();}
+		catch (Exception pe) {
+            SystemOut.printDate(pe);
+        }
 	}
 
 	@Override

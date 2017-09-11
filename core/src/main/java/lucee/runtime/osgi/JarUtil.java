@@ -27,6 +27,7 @@ import java.util.zip.ZipInputStream;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.SystemOut;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -78,7 +79,7 @@ public class JarUtil {
 			}
 		}
 		catch(IOException ioe) {
-			ioe.printStackTrace();
+            SystemOut.printDate(ioe);
 		}
 		finally {
 			IOUtil.closeEL(zis);

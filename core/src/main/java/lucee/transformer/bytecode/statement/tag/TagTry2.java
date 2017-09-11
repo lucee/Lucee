@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import lucee.commons.lang.StringUtil;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
@@ -34,8 +33,6 @@ import lucee.transformer.bytecode.statement.FlowControlFinal;
 import lucee.transformer.bytecode.statement.FlowControlFinalImpl;
 import lucee.transformer.bytecode.statement.FlowControlRetry;
 import lucee.transformer.bytecode.statement.TryCatchFinally;
-import lucee.transformer.bytecode.util.ASMConstants;
-import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.OnFinally;

@@ -244,8 +244,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 			ResourceUtil.deleteEmptyFolders(wcdDir);
 		}
 		catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			SystemOut.printDate(e);
 		}
 		
 		// Mail Server Drivers

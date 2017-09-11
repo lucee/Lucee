@@ -26,7 +26,6 @@ import lucee.runtime.dump.DumpTable;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.util.KeyConstants;
 
 
 /**

@@ -40,7 +40,6 @@ import javax.mail.Part;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Store;
-import javax.mail.UIDFolder;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 

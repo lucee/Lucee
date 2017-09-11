@@ -24,7 +24,7 @@ import java.nio.charset.Charset;
 import java.util.concurrent.Callable;
 
 import lucee.commons.io.IOUtil;
-import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -94,10 +94,8 @@ public class UDFCaller2<P> implements Callable<Data<P>> {
 			pc.getConfig().getFactory().releasePageContext(pc);
 				str=IOUtil.toString((new ByteArrayInputStream(baos.toByteArray())), cs); // TODO add support for none string content
 			} 
-			catch (Throwable e) {
-				ExceptionUtil.rethrowIfNecessary(e);
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			catch (Exception e) {
+				SystemOut.printDate(e);
 			}
 		}
 		return new Data<P>(str,result,passed);

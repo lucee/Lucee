@@ -79,7 +79,6 @@ import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheConnectionImpl;
-import lucee.runtime.cache.CacheConnectionPlus;
 import lucee.runtime.cache.ServerCacheConnection;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.request.RequestCacheHandler;
@@ -90,7 +89,6 @@ import lucee.runtime.cfx.customtag.JavaCFXTagClass;
 import lucee.runtime.component.ImportDefintion;
 //import lucee.runtime.config.ajax.AjaxFactory;
 import lucee.runtime.config.component.ComponentFactory;
-import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
@@ -115,14 +113,11 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.extension.Extension;
-import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.ExtensionImpl;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.ExtensionProviderImpl;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
-import lucee.runtime.functions.other.ObjectSave;
-import lucee.runtime.gateway.GatewayEngine;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.gateway.GatewayEntryImpl;
@@ -156,8 +151,6 @@ import lucee.runtime.orm.DummyORMEngine;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.osgi.BundleInfo;
-import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.reflection.pairs.ConstructorInstance;
 import lucee.runtime.search.DummySearchEngine;
@@ -186,7 +179,6 @@ import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibException;
 
 import org.apache.log4j.Level;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -449,14 +441,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if(LOG)SystemOut.printDate("loaded lib");
 		loadSystem(cs, config, doc);
 		if(LOG)SystemOut.printDate("loaded system");
+		loadResourceProvider(cs, config, doc);
+		if(LOG)SystemOut.printDate("loaded resource providers");
 		loadFilesystem(cs, config, doc, doNew); // load this before execute any code, what for example loadxtension does (json)
 		if(LOG)SystemOut.printDate("loaded filesystem");
 		loadExtensionBundles(cs,config,doc,log);
 		if(LOG)SystemOut.printDate("loaded extension bundles");
 		loadORM(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded orm");
-		loadResourceProvider(cs, config, doc);
-		if(LOG)SystemOut.printDate("loaded resource providers");
 		loadCacheHandler(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded cache handlers");
 		loadCharset(cs, config, doc);
@@ -1036,11 +1028,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			createFileFromResourceCheckSizeDiff(resource, file);
 		}
-		catch (Throwable e) {
-			ExceptionUtil.rethrowIfNecessary(e);
+		catch (Exception e) {
 			aprint.err(resource);
 			aprint.err(file);
-			e.printStackTrace();
+			SystemOut.printDate(e);
 		}
 	}
 
@@ -1901,9 +1892,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					}
 				}
 			}
-			catch (Throwable e) {
-				ExceptionUtil.rethrowIfNecessary(e);
-				e.printStackTrace();
+			catch (Exception e) {
+				SystemOut.printDate(e);
 				clazz = ConsoleExecutionLog.class;
 			}
 			if (clazz != null)
@@ -2319,11 +2309,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 				catch (InvocationTargetException e) {
 					log.error("Cache", e.getTargetException());
-					//e.getTargetException().printStackTrace();
 				}
 				catch (RuntimeException e) {
 					log.error("Cache", e);
-					//e.printStackTrace();
 				}
 				catch (NoSuchMethodException e) {
 					log.error("Cache", "missing method [public static init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] ");
@@ -2332,7 +2320,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				catch (Throwable e) {
 					ExceptionUtil.rethrowIfNecessary(e);
 					log.error("Cache", e);
-					//e.printStackTrace();
 				}
 			}
 		}
@@ -2852,7 +2839,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		// Deploy Dir
 		Resource dd = ConfigWebUtil.getFile(configDir, strDeployDirectory, "cfclasses", configDir, FileUtil.TYPE_DIR, config);
 		config.setDeployDirectory(dd);
-
+		
 	// TAG
 		
 		// init TLDS
@@ -3049,7 +3036,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					src.copyTo(trg, false);
 				}
 				catch (IOException e) {
-					e.printStackTrace();
+					SystemOut.printDate(e);
 				}
 			}
 
@@ -3105,7 +3092,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 		}
 		else if (hasCS)
@@ -3604,7 +3591,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 				}
 				catch (Exception e) {
-					e.printStackTrace();
+					SystemOut.printDate(e);
 				}
 
 			}
@@ -4337,7 +4324,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						providers.put(new RHExtensionProvider(strProvider.trim(),false), "");
 					}
 					catch (MalformedURLException e) {
-						e.printStackTrace();
+						SystemOut.printDate(e);
 					}
 				}
 			}
@@ -4961,7 +4948,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 		}
 		else if (hasCS)

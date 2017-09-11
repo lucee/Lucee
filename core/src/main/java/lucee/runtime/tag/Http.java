@@ -20,11 +20,11 @@ package lucee.runtime.tag;
 
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -65,7 +65,6 @@ import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.http.HTTPCacheItem;
-import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
@@ -135,7 +134,6 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.ssl.SSLContexts;
 
 // MUST change behavor of mltiple headers now is a array, it das so?
 

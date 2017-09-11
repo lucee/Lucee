@@ -18,22 +18,10 @@
  **/
 package lucee.runtime.tag;
 
-import java.io.FileNotFoundException;
-
 import javax.servlet.jsp.tagext.Tag;
 
-import org.apache.http.entity.mime.FormBodyPart;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.message.BasicNameValuePair;
-
-import lucee.commons.io.CharsetUtil;
-import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.mimetype.ContentType;
-import lucee.commons.net.HTTPUtil;
-import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
-import lucee.commons.net.http.httpclient.ResourceBody;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.ext.tag.TagImpl;
 

@@ -10,7 +10,6 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 
-import lucee.print;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.Caller;
 import lucee.commons.lang.ExceptionUtil;
@@ -35,7 +34,7 @@ public class EnvClassLoader extends URLClassLoader {
 
 	
 	public EnvClassLoader(ConfigImpl config) {
-		super(new URL[0],config.getClassLoaderCore());
+		super(new URL[0],config!=null?config.getClassLoaderCore():new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader());
 		this.config=config;
 		
 	}
@@ -63,8 +62,6 @@ public class EnvClassLoader extends URLClassLoader {
 			System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration", value);
 			return new ByteArrayInputStream(value.getBytes());
 		}
-		//	return (InputStream) load("org/apache/xerces/parsers/org.apache.xerces.xni.parser.XMLParserConfiguration", STREAM,true);
-		
 		return null;
 	}
 
@@ -193,8 +190,7 @@ public class EnvClassLoader extends URLClassLoader {
 					ClassLoader cl = clazz.getClassLoader();
 					print.e("-=>"+cl+":"+cl.hashCode());
 				} catch (ClassNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+            		SystemOut.printDate(e);
 				}
 			}
 				

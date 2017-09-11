@@ -24,6 +24,7 @@ import java.util.List;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.runtime.db.ClassDefinition;
@@ -400,8 +401,8 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		try {
 			clazz = bifCD.getClazz();
 		} 
-		catch (Exception e) {e.printStackTrace();
-			//throw new TransformerException(e,line);
+		catch (Exception e) {
+            SystemOut.printDate(e);
 		}
 		Type rtnType=Types.toType(bif.getReturnType());
 		if(rtnType==Types.VOID)rtnType=Types.STRING;
@@ -584,7 +585,8 @@ public class VariableImpl extends ExpressionBase implements Variable {
 				return false;
 			}
 		}
-		catch (Exception e) {e.printStackTrace();
+		catch (Exception e) {
+            SystemOut.printDate(e);
 			return null;
 		}
 	}

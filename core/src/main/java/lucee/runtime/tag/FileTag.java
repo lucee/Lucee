@@ -50,7 +50,6 @@ import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.file.FileCacheItem;
-import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.ApplicationException;
@@ -472,7 +471,8 @@ public final class FileTag extends BodyTagImpl {
 			else throw new ApplicationException("destiniation file ["+destination.toString()+"] already exist");
 		}
 			
-        
+
+		setACL(pageContext,destination,acl);
 		try {
 			source.moveTo(destination);
 				
@@ -481,7 +481,7 @@ public final class FileTag extends BodyTagImpl {
 			ExceptionUtil.rethrowIfNecessary(t);
 			throw new ApplicationException(t.getMessage());
 		}
-		setACL(pageContext,destination,acl);
+		
 		setMode(destination,mode);
         setAttributes(destination,attributes);
 	}
@@ -535,6 +535,8 @@ public final class FileTag extends BodyTagImpl {
 			else throw new ApplicationException("destiniation file ["+destination.toString()+"] already exist");
 		}
 		
+
+		setACL(pageContext,destination,acl);
         try {
             IOUtil.copy(source,destination);			
 		}
@@ -544,7 +546,7 @@ public final class FileTag extends BodyTagImpl {
             ae.setStackTrace(e.getStackTrace());
             throw ae;
 		}
-		setACL(pageContext,destination,acl);
+
 		setMode(destination,mode);
         setAttributes(destination,attributes);
 	}
@@ -659,7 +661,8 @@ public final class FileTag extends BodyTagImpl {
         if(output==null)
             throw new ApplicationException("attribute output is not defined for tag file");
         checkFile(pageContext, securityManager, file, serverPassword,createPath,true,false,true);
-        
+
+        setACL(pageContext,file,acl);
         try {
         	if(output instanceof InputStream)	{
         		IOUtil.copy(
@@ -689,7 +692,6 @@ public final class FileTag extends BodyTagImpl {
             
             throw new ApplicationException("can't write file "+file.getAbsolutePath(),e.getMessage());
         }
-        setACL(pageContext,file,acl);
         setMode(file,mode);
         setAttributes(file,attributes);
     }
@@ -706,6 +708,7 @@ public final class FileTag extends BodyTagImpl {
     		Resource file, String serverPassword, boolean createPath, Object acl, int mode, String attributes) throws PageException {
         checkFile(pageContext, securityManager, file, serverPassword,createPath,true,true,true);
         
+        setACL(pageContext,file,acl);
         try {
             ResourceUtil.touch(file);
         } 
@@ -713,8 +716,6 @@ public final class FileTag extends BodyTagImpl {
             
             throw new ApplicationException("can't touch file "+file.getAbsolutePath(),e.getMessage());
         }
-        
-        setACL(pageContext,file,acl);
         setMode(file,mode);
         setAttributes(file,attributes);
     }
@@ -730,8 +731,8 @@ public final class FileTag extends BodyTagImpl {
 			throw new ApplicationException("attribute output is not defined for tag file");
 		checkFile(pageContext, securityManager, file, serverPassword,createPath,true,false,true);
 		
+        setACL(pageContext,file,acl);
         try {
-
             if(!file.exists()) file.createNewFile();
             String content=Caster.toString(output);
             if(fixnewline)content=doFixNewLine(content);
@@ -745,7 +746,6 @@ public final class FileTag extends BodyTagImpl {
         catch (IOException e) {
             throw new ApplicationException("can't write file",e.getMessage());
         }
-        setACL(pageContext,file,acl);
 		setMode(file,mode);
         setAttributes(file,attributes);
 	}
@@ -973,28 +973,29 @@ public final class FileTag extends BodyTagImpl {
 	    	
 	    }
 	    
-			try {
-				destination.createNewFile();
-				IOUtil.copy(formItem.getResource(),destination);
-			}
-			catch(Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				throw Caster.toPageException(t);
-			}
-			
-			// Set cffile/file struct
-			
-			cffile.set("fileexisted",Caster.toBoolean(fileExisted));
-			cffile.set("filewasappended",Caster.toBoolean(fileWasAppended));
-			cffile.set("filewasoverwritten",Caster.toBoolean(fileWasOverwritten));
-			cffile.set("filewasrenamed",Caster.toBoolean(fileWasRenamed));
-			cffile.set("filewassaved",Boolean.TRUE);
-			
+	    
+		setACL(pageContext,destination,acl);
+		try {
+			destination.createNewFile();
+			IOUtil.copy(formItem.getResource(),destination);
+		}
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			throw Caster.toPageException(t);
+		}
+		
+		// Set cffile/file struct
+		
+		cffile.set("fileexisted",Caster.toBoolean(fileExisted));
+		cffile.set("filewasappended",Caster.toBoolean(fileWasAppended));
+		cffile.set("filewasoverwritten",Caster.toBoolean(fileWasOverwritten));
+		cffile.set("filewasrenamed",Caster.toBoolean(fileWasRenamed));
+		cffile.set("filewassaved",Boolean.TRUE);
+		
 
-			setACL(pageContext,destination,acl);
-			setMode(destination,mode);
-	        setAttributes(destination, attributes);
-	        return cffile;
+		setMode(destination,mode);
+        setAttributes(destination, attributes);
+        return cffile;
 	}
 
 	/**

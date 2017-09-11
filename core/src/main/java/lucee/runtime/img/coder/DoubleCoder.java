@@ -22,7 +22,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import lucee.commons.io.res.Resource;
-import lucee.commons.lang.ExceptionUtil;
 
 class DoubleCoder extends Coder {
 

@@ -46,7 +46,6 @@ import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.date.DateCaster;
-import lucee.runtime.security.CredentialImpl;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;

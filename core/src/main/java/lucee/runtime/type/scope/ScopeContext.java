@@ -50,10 +50,10 @@ import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
-import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.scope.client.ClientCache;
 import lucee.runtime.type.scope.client.ClientCookie;
 import lucee.runtime.type.scope.client.ClientDatasource;
@@ -349,12 +349,28 @@ public final class ScopeContext {
 		if(pc.getSessionType() == Config.SESSION_TYPE_JEE)
 			return 0;
 
+		return getSessionCount();
+	}
+	
+	public int getSessionCount() {
 		Iterator<Entry<String, Map<String, Scope>>> it = cfSessionContexts.entrySet().iterator();
 		Entry<String, Map<String, Scope>> entry;
 		int count = 0;
 		while(it.hasNext()) {
 			entry = it.next();
-			count += getSessionCount(entry.getValue());
+			count += getCount(entry.getValue());
+		}
+		return count;
+	}
+	
+
+	public int getClientCount() {
+		Iterator<Entry<String, Map<String, Scope>>> it = cfClientContexts.entrySet().iterator();
+		Entry<String, Map<String, Scope>> entry;
+		int count = 0;
+		while(it.hasNext()) {
+			entry = it.next();
+			count += getCount(entry.getValue());
 		}
 		return count;
 	}
@@ -370,10 +386,14 @@ public final class ScopeContext {
 			return 0;
 
 		Map<String, Scope> context = getSubMap(cfSessionContexts, appContext.getName());
-		return getSessionCount(context);
+		return getCount(context);
+	}
+	
+	public int getAppContextCount() {
+		return this.applicationContexts.size();
 	}
 
-	private int getSessionCount(Map<String, Scope> context) {
+	private int getCount(Map<String, Scope> context) {
 		Iterator<Entry<String, Scope>> it = context.entrySet().iterator();
 		Entry<String, Scope> entry;
 		int count = 0;

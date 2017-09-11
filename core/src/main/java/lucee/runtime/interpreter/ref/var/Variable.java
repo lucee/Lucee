@@ -19,7 +19,6 @@
 package lucee.runtime.interpreter.ref.var;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.InterpreterException;
 import lucee.runtime.interpreter.ref.Ref;

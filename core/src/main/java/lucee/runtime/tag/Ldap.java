@@ -30,7 +30,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.net.ldap.LDAPClient;
 import lucee.runtime.op.Caster;
-import lucee.runtime.tag.util.DeprecatedUtil;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;

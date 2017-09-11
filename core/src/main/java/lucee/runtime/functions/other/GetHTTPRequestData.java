@@ -37,9 +37,11 @@ import lucee.runtime.type.util.KeyConstants;
 public final class GetHTTPRequestData implements Function {
 
 	private static final long serialVersionUID = 1365182999286292317L;
-
+	
 	public static Struct call(PageContext pc ) throws PageException {
-		
+		return call(pc,true);
+	}
+	public static Struct call(PageContext pc, boolean includeBody) throws PageException {
 		Struct sct=new StructImpl();
 		Struct headers=new StructImpl();
 		HttpServletRequest req = pc.getHttpServletRequest();
@@ -53,7 +55,7 @@ public final class GetHTTPRequestData implements Function {
 		sct.set(KeyConstants._headers, headers);
 		sct.set(KeyConstants._protocol,req.getProtocol());
 		sct.set(KeyConstants._method,req.getMethod());
-		sct.set(KeyConstants._content,ReqRspUtil.getRequestBody(pc,false,""));
+		if(includeBody)sct.set(KeyConstants._content,ReqRspUtil.getRequestBody(pc,false,""));
 		return sct;
 	}
 }

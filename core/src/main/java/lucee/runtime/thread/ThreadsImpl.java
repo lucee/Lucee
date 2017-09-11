@@ -23,10 +23,8 @@ import java.io.InputStream;
 import java.lang.Thread.State;
 import java.util.Iterator;
 
-import lucee.print;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;

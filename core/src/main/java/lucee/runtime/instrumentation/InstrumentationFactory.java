@@ -39,6 +39,7 @@ import lucee.commons.io.res.type.file.FileResource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngine;
@@ -130,7 +131,8 @@ public class InstrumentationFactory {
         		throw new PageRuntimeException(new ApplicationException(Constants.NAME+" was not able to load a Agent dynamically! " +
         				"You need to load one manually by adding the following to your JVM arguments [-javaagent:\""+(agentJar)+"\"]"));
         	}
-        	catch(IOException ioe){ioe.printStackTrace();}
+        	catch(IOException ioe){
+                SystemOut.printDate(ioe);}
         }
         return instr;
     }

@@ -1,20 +1,12 @@
 package lucee.runtime.engine;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.Set;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
-import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.SystemOut;
 
 public class LogST extends Thread {
 	
@@ -58,7 +50,7 @@ public class LogST extends Thread {
 			}
 		}
 		catch (IOException e) {
-			e.printStackTrace();
+			SystemOut.printDate(e);
 		}
 		finally {
 			IOUtil.closeEL(ps);

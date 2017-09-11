@@ -36,7 +36,6 @@ import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.query.QueryResultCacheItem;
-import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
@@ -699,8 +698,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				//else query=executeDatasoure(sql,result!=null,pageContext.getTimeZone());
 				
 				if (cachedWithin != null) {
-
-					CacheItem cacheItem = QueryResultCacheItem.newInstance(queryResult, tags, null);
+					CacheItem cacheItem = QueryResultCacheItem.newInstance(queryResult, tags, datasource, null);
 					if (cacheItem != null)
 						cacheHandler.set(pageContext, cacheId, cachedWithin, cacheItem);
 				}

@@ -32,13 +32,13 @@ import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
 import lucee.commons.net.http.httpclient.HeaderImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
-import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.functions.conversion.DeserializeJSON;
 import lucee.runtime.net.http.ReqRspUtil;
@@ -185,10 +185,9 @@ public class DeployHandler {
 				XMLConfigAdmin._updateRHExtension((ConfigImpl) config, res, reload);
 				return true;
 			}
-			catch(Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
+			catch(Exception e) {
 				ext=null;
-				t.printStackTrace();
+				SystemOut.printDate(e);
 			}
 		}
 		

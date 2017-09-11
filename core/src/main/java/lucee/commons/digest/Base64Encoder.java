@@ -20,15 +20,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import lucee.print;
 import lucee.commons.io.CharsetUtil;
-import lucee.commons.io.IOUtil;
-import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.ResourceProvider;
-import lucee.commons.io.res.ResourcesImpl;
 import lucee.runtime.coder.CoderException;
-import lucee.runtime.functions.string.ToBase64;
-import lucee.runtime.op.Caster;
 
 public class Base64Encoder {
 

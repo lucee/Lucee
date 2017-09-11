@@ -227,9 +227,7 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 			_pageSource=PageSourceImpl.best(cw.getPageSources(pc,null, path, false,true,true));
 			
 		} 
-		catch (Throwable e) {
-			ExceptionUtil.rethrowIfNecessary(e);
-			e.printStackTrace();
+		catch (Exception e) {
 			throw ExceptionUtil.toIOException(e);
 		}
 		

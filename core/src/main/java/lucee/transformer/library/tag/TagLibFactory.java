@@ -158,7 +158,7 @@ public final class TagLibFactory extends DefaultHandler {
 	private void init(InputSource is) throws TagLibException	{
 		//print.dumpStack();
 		try {
-			xmlReader=XMLUtil.createXMLReader(null);
+			xmlReader=XMLUtil.createXMLReader();
 			xmlReader.setContentHandler(this);
 			xmlReader.setErrorHandler(this);
 			xmlReader.setEntityResolver(new TagLibEntityResolver());
@@ -172,7 +172,6 @@ public final class TagLibFactory extends DefaultHandler {
 			throw new TagLibException(e);
 		} 
 		catch (SAXException e) {
-			e.printStackTrace();
 			//String fileName=is.getSystemId();
 			//String message="SAXException: ";
 			//if(fileName!=null) message+="In File ["+fileName+"], ";

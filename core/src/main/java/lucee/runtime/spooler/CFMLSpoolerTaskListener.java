@@ -1,21 +1,17 @@
 package lucee.runtime.spooler;
 
-import java.util.Date;
-
 import javax.servlet.http.Cookie;
 
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.lang.Pair;
-import lucee.runtime.Component;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.CatchBlockImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -71,7 +67,7 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 			_listen(pc,args);
 		}
 		catch (PageException pe) {
-			pe.printStackTrace();
+            SystemOut.printDate(pe);
 		}
 		finally {
 			if(pcCreated) ThreadLocalPageContext.release();

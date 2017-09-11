@@ -40,8 +40,10 @@
 				});
 
 				it(title="checking cffile, with attribute storeAcl = 'private' ", skip=isNotSupported(), body=function( currentSpec ){
-					cffile (action="write", file=baseWithBucketName & "/test.txt", output="Sample s3 text", storeAcl="private");
-					var acl = StoreGetACL( baseWithBucketName & "/test.txt" );
+					cffile (action="write", file=baseWithBucketName & "/teskt.txt", output="Sample s3 text", storeAcl="private");
+					var acl = StoreGetACL( baseWithBucketName & "/teskt.txt" );
+					removeFullControl(acl);
+					
 					expect(arrayisEmpty(acl)).toBe(true);
 				});
 
@@ -49,9 +51,20 @@
 					arr=[{'group':"all",'permission':"read"}];
 					cffile (action="write", file=baseWithBucketName & "/test.txt", output="Sample s3 text", storeAcl="#arr#");
 					var acl = StoreGetACL( baseWithBucketName & "/test.txt" );
+					removeFullControl(acl);
 					expect(acl[1].permission).toBe("read");
 				});
 			});
+		}
+
+		private function removeFullControl(acl) {
+			index=0;
+			loop array=acl index="local.i" item="local.el" {
+				if(el.permission=="FULL_CONTROL")
+					local.index=i;
+				
+			}
+			if(index>0)ArrayDeleteAt( acl, index );
 		}
 
 		// Private functions

@@ -1160,7 +1160,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="overview.Hash">Hash</data>
 	<data key="overview.config">Konfigurationsfile</data>
 	<data key="overview.webroot">Webroot</data>
-	<data key="overview.info">General Info</data>
+	<data key="overview.info">System Information</data>
 	<data key="overview.featurerequest">Feature Anfragen</data>
 	<data key="overview.contextcount">Anzahl Kontexte</data>
 	<data key="help.logotitle">Lucee Hilfe</data>

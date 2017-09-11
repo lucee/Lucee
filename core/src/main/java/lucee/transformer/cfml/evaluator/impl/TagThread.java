@@ -16,7 +16,6 @@
  **/
 package lucee.transformer.cfml.evaluator.impl;
 
-import lucee.print;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.statement.tag.Tag;
 import lucee.transformer.cfml.evaluator.EvaluatorException;

@@ -27,7 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.Pair;
@@ -45,7 +44,6 @@ import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
-import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.rest.RestSettings;

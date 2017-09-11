@@ -21,11 +21,10 @@ package lucee.runtime.net.pop;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.UIDFolder;
-
-import com.sun.mail.pop3.POP3Folder;
 
 import lucee.runtime.net.mail.MailClient;
+
+import com.sun.mail.pop3.POP3Folder;
 
 
 public final class PopClient extends MailClient {

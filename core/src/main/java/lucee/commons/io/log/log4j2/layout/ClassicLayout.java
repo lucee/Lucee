@@ -16,16 +16,6 @@
  **/
 package lucee.commons.io.log.log4j2.layout;
 
-import java.nio.charset.Charset;
-import java.util.Locale;
-import java.util.TimeZone;
-
-import lucee.commons.io.CharsetUtil;
-import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.StringUtil;
-import lucee.runtime.format.DateFormat;
-import lucee.runtime.format.TimeFormat;
-import lucee.runtime.op.Caster;
 
 //import org.apache.logging.log4j.core.LogEvent;
 //import org.apache.logging.log4j.core.layout.AbstractStringLayout;

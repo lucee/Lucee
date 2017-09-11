@@ -71,7 +71,6 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 
 import org.apache.xalan.processor.TransformerFactoryImpl;
-import org.apache.xerces.jaxp.DocumentBuilderFactoryImpl;
 import org.ccil.cowan.tagsoup.Parser;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
@@ -95,7 +94,6 @@ import org.xml.sax.helpers.XMLReaderFactory;
 public final class XMLUtil {
 	
 	public static final short UNDEFINED_NODE=-1;
-	public final static String DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
 	
     public static final Collection.Key XMLCOMMENT = KeyImpl.intern("xmlcomment");
     public static final Collection.Key XMLTEXT = KeyImpl.intern("xmltext");
@@ -125,6 +123,7 @@ public final class XMLUtil {
 	private static DocumentBuilder docBuilder;
 	//private static DocumentBuilderFactory factory;
     private static TransformerFactory transformerFactory;
+	private static DocumentBuilderFactory documentBuilderFactory;
 	
 
     public static String unescapeXMLString(String str) {
@@ -210,8 +209,11 @@ public final class XMLUtil {
      * @return returns a singelton TransformerFactory
      */
     public static TransformerFactory getTransformerFactory() {
-    	Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
-		
+    	
+    	/*if(transformerFactory==null){
+    		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
+    		transformerFactory=TransformerFactory.newInstance();
+    	}*/
     	if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
         return transformerFactory;
     }
@@ -233,24 +235,17 @@ public final class XMLUtil {
      */
     public static final Document parse(InputSource xml,InputSource validator,  EntityResolver entRes, boolean isHtml) 
         throws SAXException, IOException {
-        
+    	
         if(!isHtml) {
-        	// try to load org.apache.xerces.jaxp.DocumentBuilderFactoryImpl, oracle impl sucks
         	DocumentBuilderFactory factory = newDocumentBuilderFactory();
-        	
-        	
-        	//print.o(factory);
-            if(validator==null) {
+        	if(validator==null) {
             	XMLUtil.setAttributeEL(factory,XMLConstants.NON_VALIDATING_DTD_EXTERNAL, Boolean.FALSE);
             	XMLUtil.setAttributeEL(factory,XMLConstants.NON_VALIDATING_DTD_GRAMMAR, Boolean.FALSE);
             }
             else {
             	XMLUtil.setAttributeEL(factory,XMLConstants.VALIDATION_SCHEMA, Boolean.TRUE);
-            	XMLUtil.setAttributeEL(factory,XMLConstants.VALIDATION_SCHEMA_FULL_CHECKING, Boolean.TRUE);
-            
-                
+            	XMLUtil.setAttributeEL(factory,XMLConstants.VALIDATION_SCHEMA_FULL_CHECKING, Boolean.TRUE);   
             }
-            
             
             factory.setNamespaceAware(true);
             factory.setValidating(validator!=null);
@@ -259,17 +254,11 @@ public final class XMLUtil {
 				DocumentBuilder builder = factory.newDocumentBuilder();
 	            if(entRes!=null)builder.setEntityResolver(entRes);
 	            builder.setErrorHandler(new ThrowingErrorHandler(true,true,false));
-	            return  builder.parse(xml);
+	            return builder.parse(xml);
 			} 
             catch (ParserConfigurationException e) {
 				throw new SAXException(e);
 			}
-            
-	        /*DOMParser parser = new DOMParser();
-	        print.out("parse");
-	        parser.setEntityResolver(new XMLEntityResolverDefaultHandler(validator));
-	        parser.parse(xml);
-	        return parser.getDocument();*/
         }
         
         XMLReader reader = new Parser();
@@ -289,8 +278,11 @@ public final class XMLUtil {
     }
 	
 	private static DocumentBuilderFactory newDocumentBuilderFactory() {
-		return new DocumentBuilderFactoryImpl();
-    	// we do not use DocumentBuilderFactory.newInstance(); because it is unpredictable
+		if(documentBuilderFactory==null) {
+			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
+			documentBuilderFactory=DocumentBuilderFactory.newInstance();
+		}
+		return documentBuilderFactory;
 	}
 
 	private static void setAttributeEL(DocumentBuilderFactory factory,String name, Object value) {
@@ -1206,17 +1198,18 @@ public final class XMLUtil {
 		else parent.appendChild(node);
 	}
 
-	public static XMLReader createXMLReader(String optionalDefaultSaxParser) throws SAXException {
-		if(optionalDefaultSaxParser==null)
+	public static XMLReader createXMLReader() throws SAXException {
+		/*if(optionalDefaultSaxParser==null)
 			optionalDefaultSaxParser=DEFAULT_SAX_PARSER;
 			
 		try{
-			return XMLReaderFactory.createXMLReader(optionalDefaultSaxParser);
+			return XMLReaderFactory.createXMLReader();
 		}
 		catch(Throwable t){
 			ExceptionUtil.rethrowIfNecessary(t);
 			return XMLReaderFactory.createXMLReader();
-		}
+		}*/
+		return XMLReaderFactory.createXMLReader();
 	}
 	
     public static Document createDocument(Resource res, boolean isHTML) throws SAXException, IOException {

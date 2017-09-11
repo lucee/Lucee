@@ -19,7 +19,6 @@
 package lucee.runtime.converter;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.Writer;
 import java.util.Date;
 import java.util.HashMap;
@@ -28,8 +27,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.TimeZone;
-
-import javax.xml.parsers.FactoryConfigurationError;
 
 import lucee.commons.lang.NumberUtil;
 import lucee.runtime.Component;
@@ -59,11 +56,9 @@ import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 /**
  * class to serialize and desirilize WDDX Packes

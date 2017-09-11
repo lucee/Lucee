@@ -2,10 +2,8 @@ package lucee.runtime.engine;
 
 import java.io.IOException;
 
-import lucee.print;
 import lucee.commons.io.SystemUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.PageException;
 
 public class Request extends Thread {

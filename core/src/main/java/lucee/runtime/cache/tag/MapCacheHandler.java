@@ -23,11 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.cache.tag.CacheHandler;
-import lucee.runtime.cache.tag.CacheHandlerFilter;
-import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 
 public abstract class MapCacheHandler implements CacheHandler {

@@ -34,7 +34,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.coder.CoderException;
 
-
+// FUTURE make this available to loader
 
 /**
  * 

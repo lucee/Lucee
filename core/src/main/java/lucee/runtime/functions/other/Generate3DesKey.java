@@ -1,11 +1,11 @@
 package lucee.runtime.functions.other;
 
+import javax.crypto.spec.SecretKeySpec;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-
-import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Generates a 3DES key

@@ -59,7 +59,6 @@ public class PortChecker {
 	        socket = new ServerSocket(port);
 	    } 
 	    catch (IOException e) {
-	    	//e.printStackTrace();
 	        return true;
 	    } 
 	    finally {

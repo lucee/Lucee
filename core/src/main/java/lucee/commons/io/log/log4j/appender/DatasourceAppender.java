@@ -22,6 +22,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.db.DataSource;
@@ -99,7 +100,7 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 				closed=true;
 			}
 			catch (PageException e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 		}
 		if(!closed) 

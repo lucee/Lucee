@@ -39,7 +39,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.jar.Attributes;
-import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -56,7 +55,6 @@ import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
-import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.FileWrapper;
@@ -73,10 +71,8 @@ import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
-import lucee.loader.engine.CFMLEngineFactorySupport;
 import lucee.loader.osgi.BundleCollection;
 import lucee.loader.util.ExtensionFilter;
-import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
@@ -85,8 +81,8 @@ import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.db.ClassDefinition;
-import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -146,7 +142,6 @@ import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLibException;
 
-import org.apache.felix.framework.Logger;
 import org.apache.log4j.Level;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
@@ -154,7 +149,6 @@ import org.osgi.framework.Version;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.allaire.cfx.CustomTag;
@@ -6563,7 +6557,7 @@ public final class XMLConfigAdmin {
 			}
 			return null;
 		}
-		catch (Exception e) {e.printStackTrace();
+		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
@@ -6763,7 +6757,7 @@ public final class XMLConfigAdmin {
         		}
 			}
         	catch (Exception e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
         }
         return fixed;

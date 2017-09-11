@@ -167,8 +167,7 @@ public class ScriptEngineImpl implements ScriptEngine {
 	private Variables toVariables(Bindings bindings) {
 		if(bindings instanceof VariablesBinding) return ((VariablesBinding) bindings).getVaraibles();
 		RuntimeException t = new RuntimeException("not supported! "+bindings.getClass().getName());
-		t.printStackTrace();
-		throw t;
+        throw t;
 		//return new BindingsAsVariables(bindings);
 	}
 	

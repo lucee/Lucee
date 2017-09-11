@@ -23,7 +23,6 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import lucee.commons.collection.LongKeyList;
@@ -36,7 +35,6 @@ import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.Dumpable;
 import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.type.dt.DateTimeImpl;
-import lucee.runtime.type.util.ArrayUtil;
 
 import org.apache.commons.collections4.map.ReferenceMap;
 

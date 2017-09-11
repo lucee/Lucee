@@ -40,7 +40,6 @@ import lucee.runtime.config.Constants;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.PasswordImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.op.Caster;

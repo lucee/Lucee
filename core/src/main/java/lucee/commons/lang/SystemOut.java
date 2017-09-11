@@ -47,6 +47,15 @@ public final class SystemOut {
     			+" "+value+"\n");
     	pw.flush();
     }
+    
+    public static void printDate(PrintWriter pw,Exception e) {
+    	long millis=System.currentTimeMillis();
+    	pw.write(FORMAT.format(new Date(millis))+"\n");
+    	e.printStackTrace(pw);
+    	pw.write("\n");
+    	pw.flush();
+    }
+    
     /**
      * logs a value 
      * @param value
@@ -82,8 +91,16 @@ public final class SystemOut {
     	printDate(value,OUT);
     }
     
+    public static void printDate(Exception e) { 
+    	printDate(getPrinWriter(ERR),e);
+    }
+    
     public static void printDate(String value,int type) {
     	printDate(getPrinWriter(type),value);
+    }
+    
+    public static void printDate(Exception e,int type) {
+    	printDate(getPrinWriter(type),e);
     }
     
 

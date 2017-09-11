@@ -18,11 +18,9 @@
  **/
 package lucee.transformer.bytecode.statement.tag;
 
-import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.ExpressionException;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;

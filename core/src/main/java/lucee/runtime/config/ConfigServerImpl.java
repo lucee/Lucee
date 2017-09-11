@@ -34,7 +34,6 @@ import java.util.Map;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 
-import lucee.print;
 import lucee.commons.collection.LinkedHashMapMaxSize;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Hash;
@@ -893,7 +892,9 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 						ed.setSource(ext);
 						
 					} 
-					catch(Exception e) {e.printStackTrace();}
+					catch(Exception e) {
+						SystemOut.printDate(e);
+					}
 				}
 				
 				if(ed!=null) {

@@ -33,7 +33,6 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Query;
-import lucee.runtime.type.Struct;
 import lucee.runtime.type.it.ForEachQueryIterator;
 
 /**

@@ -21,6 +21,7 @@ package lucee.runtime.functions.cache;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CacheEntryFilter;
 import lucee.commons.io.cache.CacheKeyFilter;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.util.QueryTagFilter;
@@ -32,7 +33,9 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 /**
@@ -69,9 +72,31 @@ public final class CacheClear extends BIF implements Function,CacheKeyFilter {
 		try {
 			Object filter=FILTER;
 			// tags
-			if(Decision.isArray(filterOrTags)) {
-				String[] arr = ListUtil.toStringArray(Caster.toArray(filterOrTags));
-				filter=new QueryTagFilter(arr);
+			boolean isArray=false;
+			String dsn=null;
+			if((isArray=Decision.isArray(filterOrTags)) || Decision.isStruct(filterOrTags)) {
+				
+				// read tags from collection and datasource (optional)
+				String[] tags;
+				if(!isArray) {
+					Struct sct=Caster.toStruct(filterOrTags); 
+					Array arr = Caster.toArray(sct.get("tags",null),null);
+					if(arr==null) throw new FunctionException(pc, "CacheClear", 1, "tags","if you pass the tags within a struct, that struct need to have a key [tags] containing the tags in an array.");
+					tags=ListUtil.toStringArray(arr);
+					dsn=Caster.toString(sct.get(KeyConstants._datasource,null),null);
+				}
+				else {
+					tags = ListUtil.toStringArray(Caster.toArray(filterOrTags));
+				}
+				
+				// get default datasource
+				if(StringUtil.isEmpty(dsn)) {
+					Object tmp=pc.getApplicationContext().getDefDataSource();
+					dsn=tmp instanceof CharSequence?Caster.toString(tmp,null):null;
+				}
+				
+				
+				filter=new QueryTagFilter(tags,StringUtil.isEmpty(dsn)?null:dsn);
 			}
 			// filter
 			else {

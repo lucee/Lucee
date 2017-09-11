@@ -63,6 +63,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.IDGenerator;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.commons.surveillance.HeapDumper;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.osgi.BundleCollection;
@@ -95,18 +96,17 @@ import lucee.runtime.config.RemoteClient;
 import lucee.runtime.config.RemoteClientImpl;
 import lucee.runtime.config.XMLConfigAdmin;
 import lucee.runtime.db.ClassDefinition;
-import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
 import lucee.runtime.db.DataSourceManager;
 import lucee.runtime.db.DatasourceConnectionImpl;
 import lucee.runtime.db.JDBCDriver;
+import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.debug.Debugger;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ExecutionLogFactory;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionImpl;
@@ -1112,9 +1112,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
                     //pageContext.compile(ps);
                 }
                 catch (PageException pe) {
-                	pe.printStackTrace();
-                	//PageException pe = pse.getPageException();
-                    
+                    SystemOut.printDate(pe);
                     String template=ps.getDisplayPath();
                     StringBuilder msg=new StringBuilder(pe.getMessage());
                     msg.append(", Error Occurred in File [");
@@ -1150,7 +1148,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     private void doResetPassword() throws PageException {
     	try {
             admin.removePassword(getString("contextPath",null));
-        }catch (Exception e) {e.printStackTrace();} 
+        }catch (Exception e) {
+            SystemOut.printDate(e);
+        } 
         store();
     }
     
@@ -5132,7 +5132,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     	try {
     		relatedPackages=JarUtil.getExternalImports(jar, new String[0]);// OSGiUtil.getBootdelegation()
 		} catch (IOException e1) {
-			e1.printStackTrace();
+            SystemOut.printDate(e1);
 		}
     	if(relatedPackages==null) relatedPackages=new HashSet<String>();
     	
