@@ -15,74 +15,7 @@
 		<el-class>lucee.transformer.cfml.expression.CFMLExprTransformer</el-class>
 	</el>
 
-<!-- ajaximport -->
-	<tag>
-		<name>ajaximport</name>
-		<tag-class>lucee.runtime.tag.AjaxImport</tag-class>
-		<body-content>empty</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<description>Controls the JavaScript files that are imported for use on pages that use ColdFusion AJAX tags and features.</description>
-		<attribute-type>fixed</attribute-type>
-		<attribute>
-			<type>string</type>
-			<name>cssSrc</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>scriptSrc</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>tags</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-	</tag>
-	<!-- ajaxProxy -->
-	<tag>
-		<name>ajaxProxy</name>
-		<tag-class>lucee.runtime.tag.AjaxProxy</tag-class>
-		<body-content>empty</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<description>Creates a JavaScript proxy for a ColdFusion component, for use in an AJAX client. Alternatively, creates a proxy for a single CFC method, JavaScript function, or URL that is bound to one or more control attribute values.</description>
-		<attribute-type>fixed</attribute-type>
-		<attribute>
-			<type>string</type>
-			<name>bind</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>cfc</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>jsClassName</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>onError</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>onSuccess</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-	</tag>
-	
-	
+
 	<!-- Applet -->
 	<tag>
 		<name>applet</name>
@@ -813,51 +746,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 		</attribute>
 	</tag>
 
-	<!-- Div -->
-	<tag>
-		<name>Div</name>
-		<tag-class>lucee.runtime.tag.Div</tag-class>
-		<body-content>free</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<status>unimplemented</status>
-		<description>Creates an HTML div tag or other HTML container tag and lets you use asynchronous form submission or a bind expression to dynamically control the tag contents.</description>
-		<attribute-type>fixed</attribute-type>
-		<attribute>
-			<type>string</type>
-			<name>bind</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>bindOnLoad</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>id</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>onBindError</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>tagName</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-	</tag>
+	
 	
 	
 	<!-- Error -->
