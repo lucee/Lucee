@@ -18,6 +18,12 @@
  **/
 package lucee.runtime.functions.system;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+
+import lucee.commons.io.SystemUtil;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
@@ -29,6 +35,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.scope.ScopeContext;
 
 public final class GetSystemInfo implements Function {
     
@@ -36,7 +43,9 @@ public final class GetSystemInfo implements Function {
     	Struct sct=new StructImpl();
     	ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
     	CFMLFactoryImpl factory = (CFMLFactoryImpl) config.getFactory();
-    	
+    	ScopeContext sc = factory.getScopeContext();
+    	OperatingSystemMXBean osBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+		
     	// threads/requests
     	sct.put("activeRequests", factory.getActiveRequests());
     	sct.put("activeThreads", factory.getActiveThreads());
@@ -49,6 +58,14 @@ public final class GetSystemInfo implements Function {
     	sct.put("tasksOpen", config.getSpoolerEngine().getOpenTaskCount());
     	sct.put("tasksClosed", config.getSpoolerEngine().getClosedTaskCount());
     	
+    	// scopes
+    	sct.put("sessionCount", sc.getSessionCount());
+    	sct.put("clientCount", sc.getClientCount());
+    	sct.put("applicationContextCount", sc.getAppContextCount());
+    	
+    	// cpu
+    	sct.put("cpuSystem", SystemUtil.getSystemCPU());
+    	sct.put("cpuProcess", SystemUtil.getProcessCPU());
     	
         return sct;
     }

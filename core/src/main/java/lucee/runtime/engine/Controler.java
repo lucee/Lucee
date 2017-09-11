@@ -69,7 +69,7 @@ public final class Controler extends Thread {
 	//private ScheduleThread scheduleThread;
 	private final ConfigServer configServer;
 	//private final ShutdownHook shutdownHook;
-	private ControllerState state; 
+	private ControllerState state;
 
 	/**
 	 * @param contextes
@@ -131,8 +131,7 @@ public final class Controler extends Thread {
 		while(state.active()) {
 			// sleep
 	        SystemUtil.sleep(interval);
-	        
-            factories=toFactories(factories,contextes);
+	        factories=toFactories(factories,contextes);
             // start the thread that calls control
             ControlerThread ct = new ControlerThread(this,factories,firstRun,configServer.getLog("application"));
             ct.start();
@@ -141,6 +140,7 @@ public final class Controler extends Thread {
             if(threads.size()>10 && lastMinuteInterval+60000<System.currentTimeMillis())
             	configServer.getLog("application").info("controller", threads.size()+" active controller threads");
             
+            SystemUtil.logCPU();
             
             // now we check all threads we have 
             Iterator<ControlerThread> it = threads.iterator();
@@ -180,10 +180,6 @@ public final class Controler extends Thread {
 	    }    
 	}
 
-	
-	
-	
-	
 	private void control(CFMLFactoryImpl[] factories, boolean firstRun) {
 		long now = System.currentTimeMillis();
         boolean do10Seconds=last10SecondsInterval+10000<now;
@@ -200,7 +196,6 @@ public final class Controler extends Thread {
 			ScopeContext.getClusterScope(configServer,true).broadcast();
 		} 
         catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
-        
 
         // every 10 seconds
         if(do10Seconds) {
@@ -222,7 +217,6 @@ public final class Controler extends Thread {
             control(factories[i], do10Seconds, doMinute, doHour,firstRun);
         }
 	}
-
 
 	private void control(CFMLFactoryImpl cfmlFactory, boolean do10Seconds, boolean doMinute, boolean doHour, boolean firstRun) {
 		try {
@@ -509,6 +503,5 @@ public final class Controler extends Thread {
 			}
 			return false;
 		}
-    	
-    }
+	}
 }
