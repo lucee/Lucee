@@ -58,6 +58,7 @@ public class ComponentLoader {
 	private static final short RETURN_TYPE_COMPONENT=3;
 
     private static final ResourceFilter DIR_OR_EXT=new OrResourceFilter(new ResourceFilter[]{DirectoryResourceFilter.FILTER,new ExtensionResourceFilter(Constants.getComponentExtensions())});
+	private static final ImportDefintion[] EMPTY_ID = new ImportDefintion[0];
 
     /**
      * 
@@ -93,14 +94,26 @@ public class ComponentLoader {
 
     private static Object _search(PageContext pc,PageSource loadingLocation,String rawPath, Boolean searchLocal, 
     		Boolean searchRoot, boolean executeConstr, short returnType, final boolean isExtendedComponent) throws PageException  {
-    	PageSource currPS = pc.getCurrentPageSource();
-    	Page currP=currPS==null?null:currPS.loadPage(pc,false);
+    	PageSource currPS = pc.getCurrentPageSource(null);
+    	
+    	ImportDefintion[] importDefintions=null;
+    	if(currPS!=null) {
+    		Page currP;
+    		Component cfc = pc.getActiveComponent();
+	    	if(cfc instanceof ComponentImpl && currPS.equals(cfc.getPageSource())) {
+	    		importDefintions = ((ComponentImpl)cfc)._getImportDefintions();
+	    	}
+	    	else if((currP=currPS.loadPage(pc,false,null))!=null) {
+	    		importDefintions=currP.getImportDefintions();
+	    	}
+    	}
+    	
     	int dialect = currPS==null?pc.getCurrentTemplateDialect():currPS.getDialect();
     	// first try for the current dialect
-    	Object obj= _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, returnType,currP, dialect, isExtendedComponent);
+    	Object obj= _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, returnType,currPS,importDefintions, dialect, isExtendedComponent);
     	// then we try the opposite dialect
     	if(obj==null && ((ConfigImpl)pc.getConfig()).allowLuceeDialect()) { // only when the lucee dialect is enabled we have to check the opposite
-    		obj= _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, returnType,currP, dialect==CFMLEngine.DIALECT_CFML?CFMLEngine.DIALECT_LUCEE:CFMLEngine.DIALECT_CFML, isExtendedComponent);
+    		obj= _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, returnType,currPS,importDefintions, dialect==CFMLEngine.DIALECT_CFML?CFMLEngine.DIALECT_LUCEE:CFMLEngine.DIALECT_CFML, isExtendedComponent);
     	}
 
     	if(obj==null)throw new ExpressionException("invalid "+toStringType(returnType,dialect)+" definition, can't find "+toStringType(returnType,dialect)+" ["+rawPath+"]");
@@ -109,7 +122,7 @@ public class ComponentLoader {
     
     
     private static Object _search(PageContext pc,PageSource loadingLocation,String rawPath, Boolean searchLocal, 
-    		Boolean searchRoot, boolean executeConstr, short returnType, Page currP, int dialect, final boolean isExtendedComponent) throws PageException  {
+    		Boolean searchRoot, boolean executeConstr, short returnType, PageSource currPS,ImportDefintion[] importDefintions, int dialect, final boolean isExtendedComponent) throws PageException  {
     	ConfigImpl config=(ConfigImpl) pc.getConfig();
     	
     	if(dialect==CFMLEngine.DIALECT_LUCEE && !config.allowLuceeDialect())PageContextImpl.notSupported();
@@ -165,8 +178,8 @@ public class ComponentLoader {
     // CACHE
     	// check local in cache
 	    String localCacheName=null;
-	    if(searchLocal && isRealPath && currP!=null){
-		    localCacheName=currP.getPageSource().getDisplayPath().replace('\\', '/');
+	    if(searchLocal && isRealPath && currPS!=null){
+		    localCacheName=currPS.getDisplayPath().replace('\\', '/');
 	    	localCacheName=localCacheName.substring(0,localCacheName.lastIndexOf('/')+1).concat(pathWithCFC);
 	    	if(doCache){
 	    		page=config.getCachedPage(pc, localCacheName);
@@ -179,7 +192,7 @@ public class ComponentLoader {
     	// check import cache
     	if(doCache && isRealPath){
     		ImportDefintion impDef = config.getComponentDefaultImport();
-	    	ImportDefintion[] impDefs=currP==null?new ImportDefintion[0]:currP.getImportDefintions();
+	    	ImportDefintion[] impDefs=importDefintions==null?EMPTY_ID:importDefintions;
 	    	int i=-1;
 	    	do{
 	    		
@@ -222,7 +235,7 @@ public class ComponentLoader {
     	if(isRealPath){
 
     		ImportDefintion impDef = config.getComponentDefaultImport();
-	    	ImportDefintion[] impDefs=currP==null?new ImportDefintion[0]:currP.getImportDefintions();
+	    	ImportDefintion[] impDefs=importDefintions==null?EMPTY_ID:importDefintions;
 	    	PageSource[] arr;
 
     		
@@ -338,7 +351,7 @@ public class ComponentLoader {
     	if(StringUtil.startsWithIgnoreCase(rawPath, "cfide.")) {
     		String rpm=Constants.DEFAULT_PACKAGE+"."+rawPath.substring(6);
     		try{
-    			return _search(pc,loadingLocation,rpm, searchLocal, searchRoot,executeConstr,returnType,currP,dialect,false);
+    			return _search(pc,loadingLocation,rpm, searchLocal, searchRoot,executeConstr,returnType,currPS,importDefintions,dialect,false);
         	}
         	catch(ExpressionException ee){
         		return null;
