@@ -46,6 +46,11 @@ Defaults --->
 		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
+<cfadmin 
+	action="surveillance" 
+	type="#request.adminType#" 
+	password="#session["password"&request.adminType]#" 
+	returnVariable="surveillance">
 
 <!---
 Redirtect to entry --->
@@ -57,13 +62,51 @@ Redirtect to entry --->
 Error Output --->
 <cfset printError(error)>
 
+<cfset stText.setting.info="System Metrics">
+
+<cfset stText.setting.memory="Memory">
+<cfset stText.setting.memoryDesc="Memory used by the JVM, heap and non heap.">
+<cfset stText.setting.request="Request/Threads">
+<cfset stText.setting.requestDesc="Request and threads (started by &lt;cfthread>) currently running on the system.">
+
+<cfset stText.setting.req="Requests">
+<cfset stText.setting.reqDesc="Web requests running at the moment.">
+<cfset stText.setting.queued="Queued Requests">
+<cfset stText.setting.queuedDesc="Request in queued waiting to execute.">
+<cfset stText.setting.thread="Threads">
+<cfset stText.setting.threadDesc="Threads (started by &lt;cfthread>) currently running.">
+
+<cfset stText.setting.scopes="Scopes in Memory">
+<cfset stText.setting.scopesDesc="Scopes actually hold in Memory (a Scope not necessary is kept in Memory for it's hole life time).">
+<cfset stText.setting.scopeSession="Session">
+<cfset stText.setting.scopeApplication="Application">
+<cfset stText.setting.scopeClient="Client">
+
+<cfset stText.setting.cpu="CPU">
+<cfset stText.setting.cpuDesc="Average CPU load of the last 20 seconds on the whole system and this Java Virtual Machine (Lucee Process).">
+<cfset stText.setting.cpuProcess="Lucee Process">
+<cfset stText.setting.cpuSystem="Whole System">
+
+
+
+<cfset stText.setting.datasource="Datasource Connections">
+<cfset stText.setting.datasourceDesc="Datasource Connection open at the Moment.">
+<cfset stText.setting.task="Task Spooler">
+<cfset stText.setting.taskDesc="Active and closed tasks in Task Spooler. This includes for exampe tasks to send mails.">
+<cfset stText.setting.taskOpen="Open">
+<cfset stText.setting.taskClose="Close">
+
+
+				<cfset stText.Overview.resources="External Resources">
+				<cfset stText.Overview.onlineDocsDesc="Lucee online documentation.">
+				<cfset stText.Overview.localRefDesc="Local reference for tags, functions and components.">
 
 
 <cfset pool['HEAP']="Heap">
 <cfset pool['NON_HEAP']="Non-Heap">
 
-<cfset pool['HEAP_desc']="The JVM (Java Virtual Machine) has a heap that is the runtime data area from which memory for all objects are allocated.">
-<cfset pool['NON_HEAP_desc']="Also, the JVM has memory other than the heap, referred to as non-heap memory. It stores all cfc/cfm templates, java classes, interned Strings and meta-data.">
+<cfset pool['HEAP_desc']="Memory used for all objects that are allocated.">
+<cfset pool['NON_HEAP_desc']="Memory used to store all cfc/cfm templates, java classes, interned Strings and meta-data.">
 
 <cfset pool["Par Eden Space"]="The pool from which memory is initially allocated for most objects.">
 <cfset pool["Par Survivor Space"]="The pool containing objects that have survived the garbage collection of the Eden space.">
@@ -83,42 +126,54 @@ Error Output --->
 <cfset pool["Tenured Gen"]=pool["CMS Old Gen"]>
 <cfset pool["PS Old Gen"]=pool["CMS Old Gen"]>
 
+<cffunction name="printBar" returntype="string">
+	<cfargument name="used" type="numeric" required="yes">
+	<cfargument name="comment" type="string" default="" required="false">
+    <cfsavecontent variable="local.ret"><cfoutput>
+			
+			<div class="percentagebar tooltipMe"><!---
+				---><div style="width:#used#%"><span>#used#%</span></div><!---
+			---></div>
+		<cfif len(comment)><div class="comment">#comment#</div></cfif>
+	</cfoutput>
+	</cfsavecontent>
+	<cfreturn ret />
+</cffunction>
+
+
 
 <cffunction name="printMemory" returntype="string">
 	<cfargument name="usage" type="query" required="yes">
+	<cfargument name="showTitle" type="boolean" default="true" required="false">
     <cfset var height=12>
     <cfset var width=100>
-    	<cfset var used=evaluate(ValueList(arguments.usage.used,'+'))>
-    	<cfset var max=evaluate(ValueList(arguments.usage.max,'+'))>
-    	<cfset var init=evaluate(ValueList(arguments.usage.init,'+'))>
+	<cfset var used=evaluate(ValueList(arguments.usage.used,'+'))>
+	<cfset var max=evaluate(ValueList(arguments.usage.max,'+'))>
+	<cfset var init=evaluate(ValueList(arguments.usage.init,'+'))>
 
-		<cfset var qry=QueryNew(arguments.usage.columnlist)>
-		<cfset QueryAddRow(qry)>
-        <cfset QuerySetCell(qry,"type",arguments.usage.type)>
-        <cfset QuerySetCell(qry,"name",variables.pool[arguments.usage.type])>
-        <cfset QuerySetCell(qry,"init",init,qry.recordcount)>
-        <cfset QuerySetCell(qry,"max",max,qry.recordcount)>
-        <cfset QuerySetCell(qry,"used",used,qry.recordcount)>
+	<cfset var qry=QueryNew(arguments.usage.columnlist)>
+	<cfset QueryAddRow(qry)>
+    <cfset QuerySetCell(qry,"type",arguments.usage.type)>
+    <cfset QuerySetCell(qry,"name",variables.pool[arguments.usage.type])>
+    <cfset QuerySetCell(qry,"init",init,qry.recordcount)>
+    <cfset QuerySetCell(qry,"max",max,qry.recordcount)>
+    <cfset QuerySetCell(qry,"used",used,qry.recordcount)>
+    <cfset arguments.usage=qry>
+	<cfsavecontent variable="local.ret"><cfoutput>
+			<cfif arguments.showTitle><b>#pool[usage.type]#</b></cfif>
+		<cfloop query="usage">
+   			<cfset local._used=int(width/arguments.usage.max*arguments.usage.used)>
+    		<cfset local._free=width-_used>
+			<cfset local.pused=int(100/arguments.usage.max*arguments.usage.used)>
+   			<cfset local.pfree=100-pused>
+    		#printBar(pused,pool[usage.type& "_desc"]?:'')#
+		</cfloop>
+	</cfoutput></cfsavecontent>
+	<cfreturn ret />
+</cffunction>
 
-        <cfset arguments.usage=qry>
-		<cfset var ret = "" />
-		<cfsavecontent variable="ret"><cfoutput>
-   			<b>#pool[usage.type]#</b>
-			<cfloop query="usage">
-       			<cfset local._used=int(width/arguments.usage.max*arguments.usage.used)>
-        		<cfset local._free=width-_used>
-				<cfset local.pused=int(100/arguments.usage.max*arguments.usage.used)>
-       			<cfset local.pfree=100-pused>
-        		<div class="percentagebar tooltipMe" title="#pfree#% available (#round((usage.max-usage.used)/1024/1024)#mb), #pused#% in use (#round(usage.used/1024/1024)#mb)"><!---
-					---><div style="width:#pused#%"><span>#pused#%</span></div><!---
-				---></div>
-    		</cfloop>
-        	<cfif StructKeyExists(pool,usage.type& "_desc")>
-				<div class="comment">#pool[usage.type& "_desc"]#</div>
-			</cfif>
-		</cfoutput></cfsavecontent>
-		<cfreturn ret />
-	</cffunction>
+
+
 
 <cfset total=query(
 	name:["Total"],
@@ -182,93 +237,169 @@ Error Output --->
 			</div>
 		</cfif>
 	</cfif>
-
+	<cfset systemInfo=GetSystemMetrics()>
 
 	<table>
 		<tr>
-			<td valign="top" width="65%">
+			<div id="updateInfoDesc"><div style="text-align: center;"><img src="../res/img/spinner16.gif.cfm"></div></div>
+				<cfhtmlbody>
+					<script type="text/javascript">
+						$( function() {
 
-				<h2>#stText.overview.langPerf#</h2>
+							$('##updateInfoDesc').load('update.cfm?#session.urltoken#&adminType=#request.admintype#');
+						} );
+					</script>
+				</cfhtmlbody>
+		</tr>
+		<tr>
+			<td valign="top" width="50%">
+
+				<h2>#stText.setting.info#</h2>
+
+				
+				<!--- Memory --->
 				<table class="maintbl">
 					<tbody>
 							<tr>
-								<th scope="row">#stText.setting.inspectTemplate#</th>
-								<td <cfif performance.inspectTemplate EQ "always">style="color:##cc0000"</cfif>>
-									<cfif performance.inspectTemplate EQ "never">
-										#stText.setting.inspectTemplateNever#
-									<cfelseif performance.inspectTemplate EQ "once">
-										#stText.setting.inspectTemplateOnce#
-									<cfelseif performance.inspectTemplate EQ "always">
-										#stText.setting.inspectTemplateAlways#
-									</cfif>
+								<th colspan="2" scope="row">
+									#stText.setting.memory#<br>
+									<span class="comment">#stText.setting.memoryDesc#</span>
+								</th>
+							</tr>
+							<tr>
+								<td width="50%"><b>#pool['heap']#</b><br>
+									#printMemory(getmemoryUsage("heap"),false)#
 								</td>
-							</tr>
-							<tr>
-								<th scope="row">#stText.compiler.nullSupport#</th>
-								<td <cfif !compiler.nullSupport>style="color:##cc0000"</cfif>>
-									<cfif compiler.nullSupport>
-										#stText.compiler.nullSupportFull#
-									<cfelse>
-										#stText.compiler.nullSupportPartial#
-									</cfif>
-							</td>
-							</tr>
-							<tr>
-								<th scope="row">#stText.setting.dotNotation#</th>
-								<td <cfif compiler.DotNotationUpperCase>style="color:##cc0000"</cfif>>
-									<cfif compiler.DotNotationUpperCase>#stText.setting.dotNotationUpperCase#<cfelse>#stText.setting.dotNotationOriginalCase#</cfif>
-								</td>
-							</tr>
-							<!---<tr>
-								<th scope="row">#stText.setting.suppressWSBeforeArg#</th>
-								<td <cfif !compiler.suppressWSBeforeArg>style="color:##cc0000"</cfif>>#yesNoFormat(compiler.suppressWSBeforeArg)#</td>
-							</tr> --->
-
-							<tr>
-								<th scope="row">#stText.Scopes.LocalMode#</th>
-								<td <cfif scope.localMode EQ "classic">style="color:##cc0000"</cfif>>
-									<cfif scope.localMode EQ "modern">#stText.Scopes.LocalModeModern#<cfelse>#stText.Scopes.LocalModeClassic#</cfif>
+								<td width="50%"><b>#pool['non_heap']#</b><br>
+									#printMemory(getmemoryUsage("non_heap"),false)#
 								</td>
 							</tr>
 
 					</tbody>
 				</table>
-				<cfset stText.io.title="Lucee IO">
-				<cfset stText.io.desc="Lucee.io is your one stop shop to all that is Lucee. From managing your Extension Store licenses, to monitoring your servers and keeping all your settings in sync and everything in between.">
-				<cfset stText.io.id="Lucee.ID">
-				<cfset stText.io.idDesc="To interact with LuceeIO, you need a Lucee.ID, you can get this ID from <a target=""top"" href=""http://beta.lucee.io/index.cfm/account"">here</a>">
-				<!---<h2>#stText.io.title#</h2>
-				#stText.io.desc#
-
+				
+				<!--- CPU --->
 				<table class="maintbl">
 					<tbody>
-						<!--- has api key --->
-						<cfif !isNull(apiKey) && len(apiKey)>
 							<tr>
-								<cfformClassic onerror="customError" action="#request.self#" method="post">
-								<th scope="row">#stText.io.id#</th>
-								<td><input type="text" style="width:250px" name="apiKey" value="#apiKey#"/><input class="button submit" type="submit" name="mainAction" value="#stText.Buttons.ok#"><br>
-								<span class="comment">#stText.io.idDesc#</span></td>
-								</cfformClassic>
+								<th colspan="3" scope="row">
+									#stText.setting.cpu#<br>
+									<span class="comment">#stText.setting.cpuDesc#</span>
+								</th>
 							</tr>
-						</cfif>
+							<tr>
+								<cfset nbr=int(systemInfo.cpuSystem*100)>
+								<td width="50%"><b>#stText.setting.cpuSystem#</b><br>
+								#printBar(nbr)#</td>
+								<cfset nbr=int(systemInfo.cpuProcess*100)>
+								<td width="50%"><b>#stText.setting.cpuProcess#</b><br>
+								#printBar(nbr)#
+								</td>
+							</tr>
 
 					</tbody>
-				</table>--->
+				</table>
+				
+				<!--- Scopes --->
+				<table class="maintbl">
+					<tbody>
+							<tr>
+								<th colspan="3" scope="row">
+									#stText.setting.scopes#<br>
+									<span class="comment">#stText.setting.scopesDesc#</span>
+								</th>
+							</tr>
+							<tr>
+								<td align="center" width="33%"><b>#stText.setting.scopeApplication#</b></td>
+								<td align="center"><b>#stText.setting.scopeSession#</b></td>
+								<td align="center" width="33%"><b>#stText.setting.scopeClient#</b></td>
+							</tr>
+							<tr>
+								<td align="center">#systemInfo.applicationContextCount#</td>
+								<td align="center">#systemInfo.sessionCount#</td>
+								<td align="center">#systemInfo.clientCount#</td>
+							</tr>
 
+					</tbody>
+				</table>
+				
+				<!--- Request --->
+				<table class="maintbl">
+					<tbody>
+							<tr>
+								<th colspan="3" scope="row">
+									#stText.setting.request#<br>
+									<span class="comment">#stText.setting.requestDesc#</span>
+								</th>
+							</tr>
+							<tr>
+								<td align="center" width="33%"><b>#stText.setting.req#</b></td>
+								<td align="center"><b>#stText.setting.queued#</b></td>
+								<td align="center" width="33%"systemInfo.sessionCount><b>#stText.setting.thread#</b></td>
+							</tr>
+							<tr>
+								<cfset nbr=systemInfo.activeRequests>
+								<td align="center" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+								<cfset nbr=systemInfo.activeThreads>
+								<td align="center" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td>
+								<cfset nbr=systemInfo.queueRequests>
+								<td align="center" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+							</tr>
+
+					</tbody>
+				</table>
+				
+				<!--- Datasource --->
+				<table class="maintbl">
+					<tbody>
+							<tr>
+								<th scope="row">
+									#stText.setting.datasource#<br>
+									<span class="comment">#stText.setting.datasourceDesc#</span>
+								</th>
+							</tr>
+							<tr>
+								<cfset nbr=systemInfo.activeDatasourceConnections>
+								<td align="center" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+							</tr>
+
+
+					</tbody>
+				</table>
+				
+				<!--- Tasks --->
+				<table class="maintbl">
+					<tbody>
+							<tr>
+								<th colspan="3" scope="row">
+									#stText.setting.task#<br>
+									<span class="comment">#stText.setting.taskDesc#</span>
+								</th>
+							</tr>
+							<tr>
+								<td align="center"><b>#stText.setting.taskOpen#</b></td>
+								<td align="center"><b>#stText.setting.taskClose#</b></td>
+							</tr>
+							<tr>
+								<cfset nbr=systemInfo.tasksOpen>
+								<td align="center" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+								<cfset nbr=systemInfo.tasksClosed>
+								<td align="center" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td>
+							</tr>
+
+					</tbody>
+				</table>
+				
+			</td>
+			<td width="2%"></td>
+			<td valign="top" width="50%">
+				
+				
+					
+				<!--- Info --->
 				<h2>#stText.Overview.Info#</h2>
 				<table class="maintbl">
 					<tbody>
-						<cfif request.adminType EQ "web">
-							<tr>
-								<th scope="row">#stText.Overview.label#</th>
-								<td>#info.label#</td>
-							</tr>
-							<tr>
-								<th scope="row">#stText.Overview.hash#</th>
-								<td>#info.hash#</td>
-							</tr>
-						</cfif>
 						<tr>
 							<th scope="row">#stText.Overview.Version#</th>
 							<td>Lucee #server.lucee.version#</td>
@@ -289,6 +420,7 @@ Error Output --->
 						</tr>
 					</tbody>
 				</table>
+
 				<br />
 				<table class="maintbl">
 					<tbody>
@@ -337,16 +469,7 @@ Error Output --->
 							<th scope="row">#stText.overview.servletContainer#</th>
 							<td>#server.servlet.name#</td>
 						</tr>
-						<!---<tr>
-							<th scope="row">#stText.overview.luceeID#</th>
-							<td>#getLuceeId().server.id#</td>
-						</tr>
 
-						<tr>
-							<th scope="row">#stText.overview.luceeID#</th>
-							<td>#getLuceeId().server.ioid#</td>
-						</tr>
-						--->
 						<cfif request.adminType EQ "web">
 							<tr>
 								<th scope="row">#stText.Overview.InstalledTLs#</th>
@@ -364,7 +487,7 @@ Error Output --->
 									</cfloop>
 								</td>
 							</tr>
-
+							<!---
 							<tr>
 								<th scope="row">#stText.Overview.DateTime#</th>
 								<td>
@@ -380,6 +503,7 @@ Error Output --->
 									#lstimeFormat(time:now(),timezone:"jvm")#
 								</td>
 							</tr>
+							--->
 						</cfif>
 						<tr>
 							<th scope="row">Java</th>
@@ -396,80 +520,127 @@ Error Output --->
 								</td>
 							</tr>
 						</cfif>
+							<cfif request.adminType EQ "web">
+							<tr>
+								<th scope="row">#stText.Overview.label#</th>
+								<td>#info.label#</td>
+							</tr>
+							<tr>
+								<th scope="row">#stText.Overview.hash#</th>
+								<td>#info.hash#</td>
+							</tr>
+						</cfif>
 					</tbody>
 				</table>
+
+				
+
+				<!---<h2>#stText.overview.langPerf#</h2>--->
+				<table class="maintbl">
+					<tbody>
+							<tr>
+								<th scope="row">#stText.setting.inspectTemplate#</th>
+								<td <cfif performance.inspectTemplate EQ "always">style="color:##cc0000"</cfif>>
+									<cfif performance.inspectTemplate EQ "never">
+										#stText.setting.inspectTemplateNever#
+									<cfelseif performance.inspectTemplate EQ "once">
+										#stText.setting.inspectTemplateOnce#
+									<cfelseif performance.inspectTemplate EQ "always">
+										#stText.setting.inspectTemplateAlways#
+									</cfif>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">#stText.compiler.nullSupport#</th>
+								<td <cfif !compiler.nullSupport>style="color:##cc0000"</cfif>>
+									<cfif compiler.nullSupport>
+										#stText.compiler.nullSupportFull#
+									<cfelse>
+										#stText.compiler.nullSupportPartial#
+									</cfif>
+							</td>
+							</tr>
+							<tr>
+								<th scope="row">#stText.setting.dotNotation#</th>
+								<td <cfif compiler.DotNotationUpperCase>style="color:##cc0000"</cfif>>
+									<cfif compiler.DotNotationUpperCase>#stText.setting.dotNotationUpperCase#<cfelse>#stText.setting.dotNotationOriginalCase#</cfif>
+								</td>
+							</tr>
+							<!---<tr>
+								<th scope="row">#stText.setting.suppressWSBeforeArg#</th>
+								<td <cfif !compiler.suppressWSBeforeArg>style="color:##cc0000"</cfif>>#yesNoFormat(compiler.suppressWSBeforeArg)#</td>
+							</tr> --->
+
+							<tr>
+								<th scope="row">#stText.Scopes.LocalMode#</th>
+								<td <cfif scope.localMode EQ "classic">style="color:##cc0000"</cfif>>
+									<cfif scope.localMode EQ "modern">#stText.Scopes.LocalModeModern#<cfelse>#stText.Scopes.LocalModeClassic#</cfif>
+								</td>
+							</tr>
+
+					</tbody>
+				</table>
+				
 			</td>
-			<td width="2%"></td>
-			<td valign="top" width="33%">
-				<br><br>
-				<div id="updateInfoDesc"><div style="text-align: center;"><img src="../res/img/spinner16.gif.cfm"></div></div>
-
-				<cfhtmlbody>
-					<script type="text/javascript">
-
-						$( function() {
-
-							$('##updateInfoDesc').load('update.cfm?#session.urltoken#&adminType=#request.admintype#');
-						} );
-					</script>
-				</cfhtmlbody>
-
-					<!--- Memory Usage --->
-					<cftry>
-						<cfsavecontent variable="memoryInfo">
-							<h3>Memory Usage</h3>
-							#printMemory(getmemoryUsage("heap"))#
-							#printMemory(getmemoryUsage("non_heap"))#
-						</cfsavecontent>
-						#memoryInfo#
-						<cfcatch></cfcatch>
-					</cftry>
-
-					<!--- Professional --->
-					<h3>
-						<a href="http://lucee.org/support.html" target="_blank">#stText.Overview.Professional#</a>
-					</h3>
-					<div class="comment">#stText.Overview.ProfessionalDesc#</div>
-
-					<!--- Docs --->
-					<h3>
-						#stText.Overview.Docs#
-					</h3>
-					<div class="comment">
-						#stText.Overview.DocsDesc#
-						<div style="margin-left:10px;">
-							<p><a href="http://docs.lucee.org" target="_blank">#stText.Overview.onlineDocsLink#</a></p>
-							<p><a href="../doc/index.cfm" target="_blank">#stText.Overview.localRefLink#</a></p>
-						</div>
-					</div>
-
-					<!--- Mailing list --->
-					<h3>
-						<a href="http://groups.google.com/group/lucee" target="_blank">#stText.Overview.Mailinglist#</a>
-					</h3>
-					<div class="comment">#stText.Overview.MailinglistDesc#</div>
-
-
-					<!--- Jira --->
-					<h3>
-						<a href="http://issues.lucee.org/" target="_blank">#stText.Overview.issueTracker#</a>
-					</h3>
-					<div class="comment">#stText.Overview.issueTrackerDesc#</div>
-
-					<!--- Blog --->
-					<h3>
-						<a href="http://blog.lucee.org/" target="_blank">#stText.Overview.blog#</a>
-					</h3>
-					<div class="comment">#stText.Overview.blogDesc#</div>
-
-
-
-					<!--- Twitter --->
-					<h3>
-						<a href="https://twitter.com/##!/lucee_server" target="_blank">#stText.Overview.twitter#</a>
-					</h3>
-					<div class="comment">#stText.Overview.twitterDesc#</div>
-
+		</tr>
+		<tr>
+			<td colspan="3">
+				<br>
+				<!--- Resources 
+				<h2>#stText.Overview.resources#</h2>--->
+				<table class="maintbl">
+					<tbody>
+						<!--- Prof Support --->
+						<tr>
+							<td>
+								<a href="http://lucee.org/support.html" target="_blank">#stText.Overview.Professional#</a>
+								<div class="comment">#stText.Overview.ProfessionalDesc#</div>
+							</td>
+						</tr>
+						<!--- Doc --->
+						<tr>
+							<td>
+								<a href="http://docs.lucee.org" target="_blank">#stText.Overview.onlineDocsLink#</a>
+								<div class="comment">#stText.Overview.onlineDocsDesc#</div>
+							</td>
+						</tr>
+						<!--- Reference --->
+						<tr>
+							<td>
+								<a href="../doc/index.cfm" target="_blank">#stText.Overview.localRefLink#</a>
+								<div class="comment">#stText.Overview.localRefDesc#</div>
+							</td>
+						</tr>
+						<!--- Mailing List --->
+						<tr>
+							<td>
+								<a href="http://groups.google.com/group/lucee" target="_blank">#stText.Overview.Mailinglist#</a>
+								<div class="comment">#stText.Overview.MailinglistDesc#</div>
+							</td>
+						</tr>
+						<!--- Jira --->
+						<tr>
+							<td>
+								<a href="http://issues.lucee.org/" target="_blank">#stText.Overview.issueTracker#</a>
+								<div class="comment">#stText.Overview.issueTrackerDesc#</div>
+							</td>
+						</tr>
+						<!--- Blog --->
+						<tr>
+							<td>
+								<a href="http://blog.lucee.org/" target="_blank">#stText.Overview.blog#</a>
+								<div class="comment">#stText.Overview.blogDesc#</div>
+							</td>
+						</tr>
+						<!--- Twitter --->
+						<tr>
+							<td>
+								<a href="https://twitter.com/##!/lucee_server" target="_blank">#stText.Overview.twitter#</a>
+								<div class="comment">#stText.Overview.twitterDesc#</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
 			</td>
 		</tr>
 	</table>
