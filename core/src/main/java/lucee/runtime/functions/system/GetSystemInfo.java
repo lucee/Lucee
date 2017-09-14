@@ -63,10 +63,6 @@ public final class GetSystemInfo implements Function {
     	sct.put("clientCount", sc.getClientCount());
     	sct.put("applicationContextCount", sc.getAppContextCount());
     	
-    	// cpu
-    	sct.put("cpuSystem", SystemUtil.getSystemCPU());
-    	sct.put("cpuProcess", SystemUtil.getProcessCPU());
-    	
         return sct;
     }
 }

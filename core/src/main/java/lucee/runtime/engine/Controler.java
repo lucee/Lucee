@@ -139,9 +139,7 @@ public final class Controler extends Thread {
             
             if(threads.size()>10 && lastMinuteInterval+60000<System.currentTimeMillis())
             	configServer.getLog("application").info("controller", threads.size()+" active controller threads");
-            
-            SystemUtil.logCPU();
-            
+
             // now we check all threads we have 
             Iterator<ControlerThread> it = threads.iterator();
             long time;
