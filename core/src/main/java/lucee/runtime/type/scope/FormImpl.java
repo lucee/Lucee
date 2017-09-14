@@ -34,6 +34,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ByteNameValuePair;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.commons.net.URLItem;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigImpl;
@@ -206,6 +207,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		}
 		catch (Exception e) {
 
+			SystemOut.printDate(e);
 			// throw new PageRuntimeException(Caster.toPageException(e));
 			fillDecodedEL(new URLItem[0], encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM));
 			initException = e;
