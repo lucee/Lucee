@@ -18,6 +18,7 @@
  */
 package lucee.runtime;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,6 +51,7 @@ import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.functions.system.GetDirectoryFromPath;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.util.PageSourceCode;
@@ -63,6 +65,8 @@ public final class PageSourceImpl implements PageSource {
 	//public static final byte LOAD_NONE=1;
     public static final byte LOAD_ARCHIVE=2;
     public static final byte LOAD_PHYSICAL=3;
+	private static final long MAX = 1024*1024*100;
+	public static File logAccessDirectory;
     
     //private byte load=LOAD_NONE;
 
@@ -116,7 +120,7 @@ public final class PageSourceImpl implements PageSource {
 			}
 		}
 		this.relPath=realPath;
-	    
+		if(logAccessDirectory!=null)dump();
 	}
 	
 	
@@ -134,10 +138,41 @@ public final class PageSourceImpl implements PageSource {
 	    this.isOutSide=isOutSide;
 	    if(realPath.indexOf("//")!=-1) {
         	realPath=StringUtil.replace(realPath, "//", "/",false);
-        }this.relPath=realPath;
-		
+        }
+	    this.relPath=realPath;
+	    if(logAccessDirectory!=null)dump();
 	}
 	
+    private void dump() {
+    	Resource res=getResource();
+    	if(res!=null && res.isFile()) {
+    		try{
+    			File file=createPath();
+    			IOUtil.write(file, new DateTimeImpl()+" "+res.getAbsolutePath()+"\n", "UTF-8",true);
+    		}
+    		catch(IOException ioe) {ioe.printStackTrace();}
+    	}
+	}
+    
+    private static File createPath() throws IOException {
+		File log = new File(logAccessDirectory,"access.log");
+    		
+		if(log.isFile()) {
+			if(log.length()>MAX) {
+				File backup;
+				int count=0;
+				do {
+					backup=new File(logAccessDirectory,"access-"+(++count)+".log");
+				}
+				while(backup.isFile());
+				log.renameTo(backup);
+				(log=new File(logAccessDirectory,"access.log")).createNewFile();
+			} 
+		}
+		else log.createNewFile();
+		return log;
+	}
+
 	/**
 	 * return page when already loaded, otherwise null
 	 * @param pc
