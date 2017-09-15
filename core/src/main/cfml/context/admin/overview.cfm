@@ -176,9 +176,14 @@ Error Output --->
 				The REST Servlet is not configured in your enviroment!
 			</div>
 		</cfif>
-		<cfif listGetAt(server.java.version,2,'.') EQ 7>
+		<cfif getJavaVersion() EQ 7>
 			<div class="warning nofocus">
 				Java 7 has been End-of-Life'd since April 2015. You should upgrade to Java 8 for performance and security reasons.
+			</div>
+		</cfif>
+		<cfif getJavaVersion() GT 8 >
+			<div class="warning nofocus">
+				You are running Lucee with Java #server.java.version# Lucee does not formally support this version of Java. Consider updating to the latest Java version for security and performance reasons.
 			</div>
 		</cfif>
 	</cfif>
@@ -532,3 +537,10 @@ Error Output --->
 		</cfformClassic>
 	</cfif>
 </cfoutput>
+<cfscript>
+	function getJavaVersion() {
+		var verArr=listToArray(server.java.version,'.');
+		if(verArr[1]>2) return verArr[1];
+		return verArr[2];
+	}
+</cfscript>
