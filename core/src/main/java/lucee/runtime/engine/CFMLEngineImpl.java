@@ -98,6 +98,7 @@ import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
+import lucee.runtime.PageSourceImpl;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -639,7 +640,18 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	@Override
 	public void addServletConfig(ServletConfig config) throws ServletException {
-
+		if(PageSourceImpl.logAccessDirectory==null) {
+			String str=config.getInitParameter("lucee-log-access-directory");
+			if(!StringUtil.isEmpty(str)) {
+				File file=new File(str.trim());
+				file.mkdirs();
+				if(file.isDirectory()) {
+					PageSourceImpl.logAccessDirectory=file;
+				}
+			}
+		}
+		
+		
 		// FUTURE remove and add a new method for it (search:FUTURE add exeServletContextEvent)
 		if("LuceeServletContextListener".equals(config.getServletName())) {
 			try {
