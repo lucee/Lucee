@@ -7,7 +7,7 @@
 	}
 
 	thread name="providers" action="run"{
-		while(true){
+		while(structKeyExists(application, "luceeUpdateProvider")){
 			rsp = {};
 			provider = "http://update.lucee.org/rest/update/provider/info/5.2.1.0"
 			try{

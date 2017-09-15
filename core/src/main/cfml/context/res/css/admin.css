@@ -1086,7 +1086,7 @@ tbody#extproviderlist td {
     font-size: 13px !important;
 }
 .alertMsg{
-	color: red;
+	color: black;
     font-size: 11px;
     font-weight: bold;
     margin: 5px 0 ;
@@ -1189,6 +1189,26 @@ div.tooltip {
 .tooltip table td {
 	padding: 5px 3px;
 }
+
+	div.whitePanel {
+		padding : 2%;
+	    border: 1px solid #fff;
+	    margin-left: 3% ;
+	}
+	.maintbl.alignLeft{ 
+	    margin-left: 3% ;
+	}
+	.bl.alignLeft {
+	    margin-left: 3% ;
+	}
+	.leftSpace{
+		padding-left: 3%;
+	}
+	.topBottomSpace{
+		padding-bottom: 3%;
+	   	padding-top: 2%;
+	}
+
 
 /* css for tag, object, and function documentation */
 .syntaxTag, .syntaxFunc{color:#993300;}

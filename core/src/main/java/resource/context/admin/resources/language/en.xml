@@ -35,12 +35,13 @@
 	<data key="services.update.typedesc">Define how Lucee will be patched. &quot;Automatic&quot; means that Lucee searches automatically for updates once a day. &quot;Manual&quot; means that you can update Lucee only manually here.</data>
 
 	<data key="services.update.snapShot">SnapShot</data>
-	<data key="services.update.beta">Alpha/ beta Release</data>
+	<data key="services.update.pre_Release">Pre-Releases</data>
 	<data key="services.update.release">Release</data>
 	<data key="services.update.upgrade">Upgrade</data>
 	<data key="services.update.downgrade">Downgrade</data>
+	<data key="services.update.alertMessage">Currently no update available for your version</data>
 	<data key="services.update.snapShotDesc">Snapshots are generated automatically with every push to the repository, when all bundled test cases pass successfully. Snapshots are NOT recommended for production environments.</data>
-	<data key="services.update.betaDesc">Alpha/ beta Release (description)</data>
+	<data key="services.update.pre_ReleaseDesc">Pre releases a preview on upcoming releases. This version are in testing to get releases as soon they pass the testing process.</data>
 	<data key="services.update.releaseDesc">Releases are heavily tested and are recommended for production environments.</data>
 	<data key="services.update.titleDesc">Upgrade or Downgrade snapshots and a release available for your current version</data>
 
@@ -1311,6 +1312,9 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="services.update.location_releaseDesc">Releases are heavily tested and are recommended for production environments.</data>
 
 	<data key="services.update.provider">Update Provider</data>
+	<data key="services.update.customProvider">Custom Update Provider</data>
+	<data key="services.update.luceeProvider">Lucee Update Provider</data>
+	<data key="services.update.alphaBetaRelease">Alpha, Beta, Release Candidate</data>
 	<data key="services.update.location_www">Stable releases</data>
 	<data key="services.update.location_wwwDesc">This Update Provider (release.lucee.org ) returns only stable versions. The versions found here are deeply tested. This source is recommended for production environments.</data>
 	<data key="services.update.location_preview">Preview releases</data>
@@ -1318,8 +1322,9 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="services.update.location_dev">Development releases (Bleeding Edge)</data>
 	<data key="services.update.location_devDesc">This Update Provider (dev.lucee.org) returns ""Bleeding Edge"" versions. Usually only a small amount of testing has been performed on these versions. This source should NOT be used for production environments.</data>
 	<data key="services.update.location_custom">Custom</data>
-	<data key="services.update.location_customDesc">Here you can define your own Update Provider. This is a URL of the form ""http://my.domainname.org""</data>
-		<data key="services.update.lib">Update JAR's</data>
+	<data key="services.update.location_customDesc">Lucee allows you to define your own update provider by simply defining the URL to the rest service providing the necessary data. Please consult the Lucee Documentation on {url} for more details on how to define a custom update provider</data>
+	
+	<data key="services.update.lib">Update JAR's</data>
 	<data key="services.update.libDesc">Your JAR's are out of date. In order to update your JAR's, please click the button below. This might not work if you do not have a proper internet connection. If the download did not succeed, please download the latest JAR's from our download section and update the JAR's manually. You have to restart your Servlet engine, so that the changes take effect.</data>
 	<data key="settings.gateway.ListenerCfcPath">Listener Component</data>
 	<data key="settings.gateway.ListenerCfcPathDesc">Path to the Component that is listening to the Gateways action</data>

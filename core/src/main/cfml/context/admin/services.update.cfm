@@ -54,6 +54,7 @@
 	include template="ext.functions.cfm";
 	include template="services.update.functions.cfm";
 	stText.services.update.downUpTitle="Update Lucee Version";
+	stText.services.update.luceeProvider = "Lucee Update Provider";
 	stText.services.update.downUpSub="Current version: {version}";
 	stText.services.update.downUpDesc="Upgrade or downgrade your current version.";
 	stText.services.update.downgradeTo="Downgrade to";
@@ -81,7 +82,7 @@
 		}
 		versionsStr = {};
 		versionsStr.snapShot = {};
-		versionsStr.beta= {};
+		versionsStr.pre_Release= {};
 		versionsStr.release = {};
 		if(version eq 'custom'){
 			versionsStr.custom = {};
@@ -90,7 +91,7 @@
 			versionsStr[type].upgrade = [];
 			versionsStr[type].downgrade = [];
 		}
-		if(version eq 'custom' && structKeyExists(updateData, "PROVIDER") && Len(updateData.otherVersions)){
+		if(version eq 'custom' && structKeyExists(updateData, "otherVersions") && Len(updateData.otherVersions)){
 			for(versions in updateData.otherVersions){
 				if(toVersionSortable(versions) LTE toVersionSortable(server.lucee.version)){
 						arrayPrepend(versionsStr.custom.downgrade, versions);
@@ -113,15 +114,15 @@
 					}
 				} else if(FindNoCase("BETA", versions)){
 					if(toVersionSortable(versions) LTE toVersionSortable(server.lucee.version)){
-						arrayPrepend(versionsStr.BETA.downgrade, versions);
+						arrayPrepend(versionsStr.pre_Release.downgrade, versions);
 					} else{
-						arrayPrepend(versionsStr.BETA.upgrade, versions);
+						arrayPrepend(versionsStr.pre_Release.upgrade, versions);
 					}
 				} else if(FindNoCase("RC", versions)){
 					if(toVersionSortable(versions) LTE toVersionSortable(server.lucee.version)){
-						arrayPrepend(versionsStr.BETA.downgrade, versions);
+						arrayPrepend(versionsStr.pre_Release.downgrade, versions);
 					} else{
-						arrayPrepend(versionsStr.BETA.upgrade, versions);
+						arrayPrepend(versionsStr.pre_Release.upgrade, versions);
 					}
 				} else{
 					if(toVersionSortable(versions) LTE toVersionSortable(server.lucee.version)){
@@ -135,25 +136,77 @@
 	printError(error);
 </cfscript>
 <cfoutput>
+
 <style>
-.btn {
-	color:white;
-	background-color:##CC0000;
-}
-div.panel {
-	padding : 0 2% 2%;
-    border: 1px solid ##fff;
-}
+	.btn {
+		color:white;
+		background-color:##CC0000;
+	}
 </style>
-<cfhtmlbody>
-<script type="text/javascript">
+
+	<p class="fs">#replace(stText.services.update.downUpSub,'{version}',"<b>"&server.lucee.version&"</b>") #</p>
 	
-</script>
-</cfhtmlbody>
-	<p class="fs">#stText.services.update.titleDesc#</p>
+	<h1>#stText.services.update.luceeProvider#</h1>
+	<p class="fs leftSpace">#stText.services.update.titleDesc#</p>
+	<cfset hiddenFormContents = "" >
+	<cfset count = 1>
+
+	<cfloop list="Release,Pre_Release,SnapShot,Custom" index="key">
+		<cfif key EQ 'custom' && !structKeyExists(versionsStr, "custom")>
+			<cfcontinue>
+		</cfif>
+		<span><input <cfif count EQ 1>
+		class="bl button alignLeft" <cfelseif count EQ StructCount(versionsStr)> class="br button" <cfelse> class="bm button" </cfif>  name="changeConnection" id="btn_#UcFirst(Lcase(key))#" value="#key#s" onclick="enableVersion('#UcFirst(Lcase(key))#');"  type="button"></span>
+		<cfsavecontent variable="tmpContent">
+			<div id="div_#UcFirst(Lcase(key))#" class="topBottomSpace">
+				<div class="whitePanel">
+					<h1 class="">#key#s<cfif key EQ "pre_Release"> (#stText.services.update.alphaBetaRelease#)</cfif></h1>
+					<div class="itemintro">#stText.services.update[key&"Desc"]#</div>
+					<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
+						<div>
+							<h3 class="pdTop">#stText.services.update.upgrade# :</h3>
+							<cfif len(versionsStr[key].upgrade)>
+								<select name="UPDATE_#key#"  class="large">
+									<cfloop array="#versionsStr[key].upgrade#" index="i">
+										<option value="#i#">#i#</option>
+									</cfloop>
+								</select>
+								<input type="button" class="smBtn" id="btn_UPDATE_#key#"  onclick="changeVersion(this, UPDATE_#key#)" name="mainAction" value="#stText.menu.services.update#">
+							<cfelse>
+								<div class="alertMsg">#replace("#stText.services.update.alertMessage#","update","#key#&nbsp#Lcase(stText.services.update.upgrade)#")#</div>
+							</cfif>
+						</div>
+						<div>
+							<h3 class="pdTop">#stText.services.update.downgrade# :</h3>	
+							<cfif len(versionsStr[key].downgrade)>
+								<select name="DOWNGRADE_#key#"  class="large">
+									<cfloop array="#versionsStr[key].downgrade#" index="i">
+										<option value="#i#">#i#</option>
+									</cfloop>
+								</select>
+								<input type="button" class="smBtn" id="btn_DOWNGRADE_#key#" onclick="changeVersion(this, DOWNGRADE_#key#)" name="mainAction" value="#stText.services.update.downgrade#">
+							<cfelse>
+								<div class="alertMsg">#replace("#stText.services.update.alertMessage#","update","#key#&nbsp#Lcase(stText.services.update.downgrade)#")#</div>
+							</cfif>
+						</div>
+					</cfformClassic>
+				</div>
+			</div>
+		</cfsavecontent>
+		<cfset hiddenFormContents &= tmpContent>
+		<cfset count = count+1>
+	</cfloop>
+
+	<div id="updateInfoDesc" style="text-align: center;"></div>
+	<div id="group_Connection">
+		<input type="hidden" value='#UcFirst(Lcase(version))#' id="versionsLen">
+		#hiddenFormContents#
+	</div>
+
 	<!--- for custom --->
 	<cfformClassic onerror="customError" action="#go(url.action,"settings")#" method="post">
-		<table class="maintbl">
+		<h1>#stText.services.update.customProvider#</h1>
+		<table class="maintbl alignLeft"> 
 			<tbody>
 				<tr>
 					<th scope="row">#stText.services.update.provider#</th>
@@ -167,7 +220,7 @@ div.panel {
 									<b>#stText.services.update.location_custom#</b>
 								</label>
 								<input id="customtextinput" type="text" class="text" name="locationCustom" size="40" value="<cfif  version EQ 'custom'>#updateData.provider.location#</cfif>" disabled>
-								<div class="comment">#stText.services.update.location_customDesc#</div>
+								<div class="comment">#replace("#stText.services.update.location_customDesc#","{url}","<a href=""http://docs.lucee.org"">http://docs.lucee.org</a>")#</div>
 								<cfif version EQ 'custom'>
 									<cfhtmlbody>
 										<script type="text/javascript">
@@ -201,90 +254,19 @@ div.panel {
 		</table>
 	</cfformClassic>
 
-	<p class="fs">#replace(stText.services.update.downUpSub,'{version}',"<b>"&server.lucee.version&"</b>") #</p>
-	
-
-	<cfset hiddenFormContents = "" >
-	<cfset count = 1>
-	<cfloop collection="#versionsStr#" item="key">
-		<input <cfif count EQ 1>
-		class="bl button" <cfelseif count EQ StructCount(versionsStr)> class="br button" <cfelse> class="bm button" </cfif>  name="changeConnection" id="btn_#key#" value="#UcFirst(Lcase(key))#" onclick="enableVersion(this, '#key#');"  type="button">
-		<cfsavecontent variable="tmpContent">
-			<div id="div_#key#">
-				<div class="panel">
-				<h1 class="">#stText.services.update[key]#</h1>
-				<div class="itemintro">#stText.services.update[key&"Desc"]#</div>
-					<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
-						<div>
-							<h3 class="pdTop">#stText.services.update.upgrade# :</h3>
-							<select name="UPDATE_#key#"  class="large">
-								<cfloop array="#versionsStr[key].upgrade#" index="i">
-									<option value="#i#">#i#</option>
-								</cfloop>
-							</select>
-							<input type="button" class="smBtn" id="btn_UPDATE_#key#"  onclick="changeVersion(this, UPDATE_#key#)" name="mainAction" value="#stText.menu.services.update#">
-							<div id="UPDATE_#key#"></div>
-						</div>
-						<div>
-							<h3 class="pdTop">#stText.services.update.downgrade# :</h3>
-							<select name="DOWNGRADE_#key#"  class="large">
-								<cfloop array="#versionsStr[key].downgrade#" index="i">
-									<option value="#i#">#i#</option>
-								</cfloop>
-							</select>
-							<input type="button" class="smBtn" id="btn_DOWNGRADE_#key#" onclick="changeVersion(this, DOWNGRADE_#key#)" name="mainAction" value="#stText.services.update.downgrade#">
-							<div id="DOWNGRADE_#key#"></div>
-						</div>
-					</cfformClassic>
-				</div>
-			</div>
-		</cfsavecontent>
-		<cfset hiddenFormContents &= tmpContent>
-		<cfset count = count+1>
-	</cfloop>
-	<div id="updateInfoDesc" style="text-align: center;"></div>
-	<div id="group_Connection">
-		<cfset tmpStr = {}>
-		<cfset tmpStr.update_snapshot = len(versionsStr.snapshot.upgrade)>
-		<cfset tmpStr.update_release = len(versionsStr.release.upgrade)>
-		<cfset tmpStr.update_beta = len(versionsStr.beta.upgrade)>
-		<cfset tmpStr.downgrade_snapshot = len(versionsStr.snapshot.downgrade)>
-		<cfset tmpStr.downgrade_release = len(versionsStr.release.downgrade)>
-		<cfset tmpStr.downgrade_beta = len(versionsStr.beta.downgrade)>
-		<cfif version EQ 'custom' && structKeyExists(versionsStr, "custom")>
-			<cfset tmpStr.downgrade_custom = len(versionsStr.custom.downgrade)>
-			<cfset tmpStr.update_custom = len(versionsStr.custom.upgrade)>
-		</cfif>
-		<cfset tmpStr.version = version>
-		<cfset sezJson = serializeJSON(tmpStr)>
-		<input type="hidden" value='#sezJson#' id="versionsLen">
-		#hiddenFormContents#
-	</div>
-
 	<cfhtmlbody>
 		<script type="text/javascript">
 			$(document).ready(function(){
-				lenghtVersion();
-
 				if($('##sp_radio_custom').prop("checked")){
 					$( '##customtextinput' ).attr( 'disabled', false);
 					$('##customURL').attr( 'disabled', false);
 				}
-				var json = $('##versionsLen').val();
-				var obj = $.parseJSON(json);
-				version = obj.VERSION.toUpperCase();
-				$("##group_Connection").find('div').each(function(index) {
-					var xx = $(this).attr('id');
-					if(xx != 'div_'+version){
-						$('##'+xx).hide();
-					}
-					$('##UPDATE_'+version).show();
-					$('##DOWNGRADE_'+version).show();
-				});
+				var version = $('##versionsLen').val();
+				enableVersion(version);
 				$("##btn_"+version).addClass("btn");
 			});
 
-			function enableVersion(k, v){
+			function enableVersion(v){
 				$("##group_Connection").find('div').each(function(index) {
 					var xx = $(this).attr('id');
 					$('##'+xx).show();
@@ -292,24 +274,8 @@ div.panel {
 						$('##'+xx).hide();
 					}
   				});
-				$('##UPDATE_'+v).show();
-				$('##DOWNGRADE_'+v).show();
 		  		$(".btn").removeClass('btn');
 		  		$("##btn_"+v).addClass("btn");
-			}
-
-			function lenghtVersion(){
-				//disable select box while it has no value
-				var json = $('##versionsLen').val();
-				var obj = $.parseJSON(json);
-				$.each(obj, function(k, v) {
-					var len = obj[k];
-					if(len == 0){
-						$("select[name="+ k +"]").prop('disabled', true);
-						$( "##btn_"+k ).prop('disabled', true);
-						$("##"+k).html('<div class="alertMsg"><span> Currently no  <b>' + k.split('_')[1] + ' </b>' + k.split('_')[0].toLowerCase() + ' available for your version </span></div>');
-					}
-				});
 			}
 
 			function changeVersion(field, frm) {
