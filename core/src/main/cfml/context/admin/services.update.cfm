@@ -19,7 +19,7 @@
  <cftry>
 <cfswitch expression="#url.action2#">
 	<cfcase value="settings">
-		<cfif !structKeyExists(form, "location") OR !structKeyExists(form, "locationCustom")>
+		<cfif !structKeyExists(form, "location") && !structKeyExists(form, "locationCustom") || isValid('URL', form.locationCustom) eq 'false' >
 			<cfset form.locationCustom = "http://release.lucee.org">
 		</cfif>
 		<cfadmin
@@ -42,8 +42,8 @@
 <cfset error.message="">
 <cfset error.detail="">
 
- <cfscript>
 
+ <cfscript>
 	max=100;
 	count=0;
 	while(!structKeyExists(application.luceeUpdateProvider, "versions") && count++ < max ) {
@@ -209,13 +209,13 @@
 		<table class="maintbl alignLeft"> 
 			<tbody>
 				<tr>
-					<th scope="row">#stText.services.update.provider#</th>
+					<th scope="row">#stText.services.update.luceeProvider#</th>
 					<td>
 						<ul class="radiolist" id="updatelocations">
 							<!--- Release --->
 							<li>
 								<label>
-									<input type="checkbox" id="sp_radio_custom" name="location"<cfif  version EQ 'custom'> checked</cfif> value="cutsomVersion" />
+									<input type="radio" id="sp_radio_custom" name="location"<cfif  version EQ 'custom'> checked</cfif> value="cutsomVersion" />
 									<input type="hidden" value="#updateData.provider.location#" name="updatedInfo">
 									<b>#stText.services.update.location_custom#</b>
 								</label>
