@@ -71,6 +71,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 
 import org.apache.xalan.processor.TransformerFactoryImpl;
+import org.apache.xerces.jaxp.DocumentBuilderFactoryImpl;
 import org.ccil.cowan.tagsoup.Parser;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
@@ -108,6 +109,9 @@ public final class XMLUtil {
     public static final Collection.Key XMLTYPE = KeyImpl.intern("xmltype");
     public static final Collection.Key XMLVALUE = KeyImpl.intern("xmlvalue");
     public static final Collection.Key XMLATTRIBUTES = KeyImpl.intern("xmlattributes");
+    
+    public final static String DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
+    
 	/*
 	private static final Collection.Key  = KeyImpl.getInstance();
 	private static final Collection.Key  = KeyImpl.getInstance();
@@ -280,7 +284,8 @@ public final class XMLUtil {
 	private static DocumentBuilderFactory newDocumentBuilderFactory() {
 		if(documentBuilderFactory==null) {
 			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
-			documentBuilderFactory=DocumentBuilderFactory.newInstance();
+			//documentBuilderFactory=DocumentBuilderFactory.newInstance();
+			documentBuilderFactory=new DocumentBuilderFactoryImpl();
 		}
 		return documentBuilderFactory;
 	}
@@ -1209,7 +1214,7 @@ public final class XMLUtil {
 			ExceptionUtil.rethrowIfNecessary(t);
 			return XMLReaderFactory.createXMLReader();
 		}*/
-		return XMLReaderFactory.createXMLReader();
+		return XMLReaderFactory.createXMLReader(DEFAULT_SAX_PARSER);
 	}
 	
     public static Document createDocument(Resource res, boolean isHTML) throws SAXException, IOException {
