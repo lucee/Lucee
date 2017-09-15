@@ -142,6 +142,7 @@ public final class DateCaster {
 	public static DateTime toDateAdvanced(String str,short convertingType,TimeZone timeZone, DateTime defaultValue) {
 		str=str.trim();
 		if(StringUtil.isEmpty(str)) return defaultValue;
+		if(!hasDigits(str)) return defaultValue; // every format has digits
 		timeZone=ThreadLocalPageContext.getTimeZone(timeZone);
 		DateTime dt=toDateSimple(str,convertingType,true,timeZone,defaultValue);
 		if(dt==null) {	
@@ -163,10 +164,16 @@ public final class DateCaster {
 	    }
 	    return dt;
 	}
-	
 
-    
-    /**
+	private static boolean hasDigits(String str) {
+		for (int i=str.length()-1; i >= 0; i--) {
+			if (Character.isDigit(str.charAt(i)))
+				return true;
+		}
+		return false;
+	}
+
+	/**
      * parse a string to a Datetime Object
      * @param locale 
      * @param str String representation of a locale Date

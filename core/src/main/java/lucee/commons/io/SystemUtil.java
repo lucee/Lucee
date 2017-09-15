@@ -27,10 +27,8 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
-import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.NetworkInterface;
@@ -42,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Stack;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -204,60 +201,6 @@ public final class SystemUtil {
 
 	private static ClassLoader loaderCL;
 	private static ClassLoader coreCL;
-	
-	private static Stack<Double> cpuProcess=new Stack<Double>(); 
-	private static Stack<Double> cpuSystem=new Stack<Double>(); 
-	
-	public static double getProcessCPU() {
-		return getCPU(cpuProcess);
-	}
-	public static double getSystemCPU() {
-		return getCPU(cpuSystem);
-	}
-	public static void logCPU() {
-		OperatingSystemMXBean mxBean = ManagementFactory.getOperatingSystemMXBean();
-		// need to use reflection as the impl class is not visible
-		for (Method method : mxBean.getClass().getDeclaredMethods()) {
-			method.setAccessible(true);
-			String methodName = method.getName();
-			if(
-					methodName.startsWith("get") && 
-					methodName.contains("Cpu") && 
-					methodName.contains("Load") && 
-					Modifier.isPublic(method.getModifiers())) {
-				
-				Double value=1d;
-				try {
-					value = (Double)method.invoke(mxBean);
-				}
-				catch (Exception e) {}
-				if(value>0) {
-					if("getSystemCpuLoad".equals(methodName)) {
-						if(cpuSystem.size()>4) cpuSystem.remove(0);
-						cpuSystem.add(value);
-						//print.e("system: "+getSystemCPU());
-					}
-					if("getProcessCpuLoad".equals(methodName)) {
-						if(cpuProcess.size()>4) cpuProcess.remove(0);
-						cpuProcess.add(value);
-						//print.e("process: "+getProcessCPU());
-					}
-				}
-			}
-		}
-	}
-		
-	private static double getCPU(Stack<Double> stack) {
-		int count=0;
-		double total=0d;
-		Iterator<Double> it = stack.iterator();
-		while(it.hasNext()) {
-			count++;
-			total+=it.next();
-		}
-		if(count==0) return 0;
-		return total/count;
-	}
 
 	public static ClassLoader getLoaderClassLoader() {
 		if(loaderCL == null)
