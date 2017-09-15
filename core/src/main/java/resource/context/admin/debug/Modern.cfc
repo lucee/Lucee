@@ -209,6 +209,11 @@
 					<cfif isEnabled( arguments.custom, 'general' )>
 
 						<div class="section-title">Debugging Information</div>
+						 <cfif getJavaVersion() GT 8 >
+							<div style="color:red">
+								You are running Lucee with Java #server.java.version# Lucee does not formally support this version of Java. Consider updating to the latest Java version for security and performance reasons.
+							</div>
+					    </cfif>
 
 						<cfset sectionId = "Info">
 						<cfset isOpen = this.isSectionOpen( sectionId )>
@@ -893,6 +898,12 @@
 		function includeInline(filename) cachedWithin=createTimeSpan(0,1,0,0) {
 
 			echo(fileRead(expandPath(arguments.filename)));
+		}
+
+		function getJavaVersion() {
+			var verArr=listToArray(server.java.version,'.');
+			if(verArr[1]>2) return verArr[1];
+			return verArr[2];
 		}
 
 	</cfscript>
