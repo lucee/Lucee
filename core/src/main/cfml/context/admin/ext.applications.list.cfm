@@ -1,5 +1,5 @@
 <cfset hasAccess=true />
-<cfset external=getExternalData(providerURLs,true)>
+<cfset external=application.external>
 <cfset existing=struct() />
 <!--- if user declined the agreement, show a msg --->
 <cfif structKeyExists(session, "extremoved")>

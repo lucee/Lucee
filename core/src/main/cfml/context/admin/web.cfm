@@ -89,6 +89,8 @@
             <cfif isDefined("cookie.lucee_admin_lastpage") and cookie.lucee_admin_lastpage neq "logout">
                 <cfset url.action = cookie.lucee_admin_lastpage>
             </cfif>
+	    	<!--- Thread operations for extension update --->
+	    	<cfinclude template="extensionUpdate.cfm">
         </cfif>
     </cfif>
 </cfif>
@@ -113,6 +115,8 @@
 		  <cfif request.adminType == 'server' && !structKeyExists(application, "updateprovider") >
 			<cfinclude template="updateprovider.cfm">
 		</cfif>
+		<!--- Thread operations for extension update --->
+	    	<cfinclude template="extensionUpdate.cfm">
 	</cfif>
 </cfif>
 
