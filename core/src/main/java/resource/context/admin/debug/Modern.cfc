@@ -210,7 +210,7 @@
 					<cfif isEnabled( arguments.custom, 'general' )>
 
 						<div class="section-title">Debugging Information</div>
-					    <cfif getJavaVersion() GT 8 >
+					    <cfif getJavaVersion() LT 8 >
 							<div class="warning">
 								You are running Lucee with Java #server.java.version# Lucee does not formally support this version of Java. Consider updating to the latest Java version for security and performance reasons.
 							</div>

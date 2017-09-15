@@ -176,14 +176,12 @@ Error Output --->
 				The REST Servlet is not configured in your enviroment!
 			</div>
 		</cfif>
-		<cfif getJavaVersion() EQ 7>
-			<div class="warning nofocus">
-				Java 7 has been End-of-Life'd since April 2015. You should upgrade to Java 8 for performance and security reasons.
-			</div>
-		</cfif>
-		<cfif getJavaVersion() GT 8 >
+		<cfif getJavaVersion() LT 8>
 			<div class="warning nofocus">
 				You are running Lucee with Java #server.java.version# Lucee does not formally support this version of Java. Consider updating to the latest Java version for security and performance reasons.
+				<cfif getJavaVersion() EQ 7>
+					Java 7 has been End-of-Life'd since April 2015.
+				</cfif>
 			</div>
 		</cfif>
 	</cfif>
