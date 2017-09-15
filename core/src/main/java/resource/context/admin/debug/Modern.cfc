@@ -186,6 +186,7 @@
 			#-lucee-debug a 	{ cursor: pointer; }
 			#-lucee-debug td a 	{ color: #25A; }
 			#-lucee-debug td a:hover	{ color: #58C; text-decoration: underline; }
+			#-lucee-debug .warning{ color: red; }
 			#-lucee-debug pre 	{ background-color: #EEE; padding: 1em; border: solid 1px #333; border-radius: 1em; white-space: pre-wrap; word-break: break-all; word-wrap: break-word; tab-size: 2; }
 
 			.-lucee-icon-plus 	{ background: url(data:image/gif;base64,R0lGODlhCQAJAIABAAAAAP///yH5BAEAAAEALAAAAAAJAAkAAAIRhI+hG7bwoJINIktzjizeUwAAOw==) no-repeat left center; padding: 4px 0 4px 16px; }
@@ -210,7 +211,7 @@
 
 						<div class="section-title">Debugging Information</div>
 						 <cfif getJavaVersion() GT 8 >
-							<div style="color:red">
+							<div class="warning">
 								You are running Lucee with Java #server.java.version# Lucee does not formally support this version of Java. Consider updating to the latest Java version for security and performance reasons.
 							</div>
 					    </cfif>
