@@ -74,7 +74,7 @@
 			<cfset session["password"&request.adminType]=hashedPassword>
             <cfset session.lucee_admin_lang=form.lang>
             <!--- Thread operation for update provider --->
-            <cfif request.adminType == 'server' && !structKeyExists(application, "updateprovider")>
+            <cfif request.adminType == 'server' && !structKeyExists(application, "luceeUpdateProvider")>
 				<cfinclude template="updateprovider.cfm">
 			</cfif>
             <cfcookie expires="NEVER" name="lucee_admin_lang" value="#session.lucee_admin_lang#">
@@ -110,7 +110,7 @@
 				returnVariable="hashedPassword">
 		<cfset session["password"&request.adminType]=hashedPassword>
 		 <!--- Thread operation for update provider --->
-		  <cfif request.adminType == 'server' && !structKeyExists(application, "updateprovider") >
+		<cfif request.adminType == 'server' && !structKeyExists(application, "luceeUpdateProvider") >
 			<cfinclude template="updateprovider.cfm">
 		</cfif>
 	</cfif>
@@ -402,6 +402,9 @@
 		</cfmodule>
 	</cfif>
 <cfelse>
+	<cfif request.adminType == 'server' && !structKeyExists(application, "luceeUpdateProvider") >
+		<cfinclude template="updateprovider.cfm">
+	</cfif>
 	<cfsavecontent variable="content">
 		<cfif not FindOneOf("\/",current.action)>
 			<cfinclude template="#current.action#.cfm">
