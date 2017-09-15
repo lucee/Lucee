@@ -406,8 +406,7 @@ public final class Decision {
 	
 	public static boolean isDateAdvanced(Object value,boolean alsoNumbers) {
 	    //return DateCaster.toDateEL(value)!=null;
-		if(value instanceof DateTime) 		return true;
-		else if(value instanceof Date) 		return true;
+		if(value instanceof Date) 		return true;
 		// wrong timezone but this isent importend because date will not be importend
 		else if(value instanceof String) 	return DateCaster.toDateAdvanced(value.toString(),alsoNumbers?DateCaster.CONVERTING_TYPE_OFFSET:DateCaster.CONVERTING_TYPE_NONE,TimeZone.getDefault(),null)!=null;
 		else if(value instanceof Castable) 	{
