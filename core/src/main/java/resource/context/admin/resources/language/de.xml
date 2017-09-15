@@ -43,7 +43,7 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="services.update.snapShotDesc">Snapshots are generated automatically with every push to the repository, when all bundled test cases pass successfully. Snapshots are NOT recommended for production environments.</data>
 	<data key="services.update.pre_ReleaseDesc">Pre releases a preview on upcoming releases. This version are in testing to get releases as soon they pass the testing process.</data>
 	<data key="services.update.releaseDesc">Releases are heavily tested and are recommended for production environments.</data>
-	<data key="services.update.titleDesc">Upgrade or Downgrade snapshots and a release available for your current version</data>
+	<data key="services.update.titleDesc">Upgrade or Downgrade snapshots and a release available for your current version {version}</data>
 	<data key="services.update.provider">Update Provider</data>
 	<data key="services.update.customProvider">Custom Update Provider</data>
 	<data key="services.update.luceeProvider">Lucee Update Provider</data>

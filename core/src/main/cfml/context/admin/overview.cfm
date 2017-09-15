@@ -281,7 +281,7 @@ Error Output --->
 					</tbody>
 				</table>
 				
-				<!--- CPU --->
+				<!--- CPU 
 				<table class="maintbl">
 					<tbody>
 							<tr>
@@ -301,7 +301,7 @@ Error Output --->
 							</tr>
 
 					</tbody>
-				</table>
+				</table>--->
 				
 				<!--- Scopes --->
 				<table class="maintbl">

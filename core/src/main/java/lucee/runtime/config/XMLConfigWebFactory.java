@@ -3061,12 +3061,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				String location = getAttr(update,"location");
 				if(location!=null) {
 					location=location.trim();
-					if("http://dev.lucee.org".equals(location)) location="http://snapshot.lucee.org";
-					if("http://preview.lucee.org".equals(location)) location="http://snapshot.lucee.org";
-					if("http://www.lucee.org".equals(location)) location="http://release.lucee.org";
-					if("http://stable.lucee.org".equals(location)) location="http://release.lucee.org";
+					if("http://snapshot.lucee.org".equals(location)) location="http://update.lucee.org";
+					if("http://release.lucee.org".equals(location)) location="http://update.lucee.org";
 				}
-				cs.setUpdateLocation(location, null);
 			}
 		}
 	}

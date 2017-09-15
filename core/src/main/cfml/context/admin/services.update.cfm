@@ -43,16 +43,15 @@
 <cfset error.detail="">
 
  <cfscript>
-
-	max=100;
-	count=0;
-	while(!structKeyExists(application.luceeUpdateProvider, "versions") && count++ < max ) {
-	   sleep(100);
-	}
-	if(count==max) throw "failed to load ..."
-
 	include template="ext.functions.cfm";
 	include template="services.update.functions.cfm";
+
+	ud=getUpdateData();
+	if(isNull(application.UpdateProvider[ud.location]))  {
+		application.UpdateProvider[ud.location]=getAvailableVersion();
+	}
+	updateData = application.UpdateProvider[ud.location];
+	
 	stText.services.update.downUpTitle="Update Lucee Version";
 	stText.services.update.luceeProvider = "Lucee Update Provider";
 	stText.services.update.downUpSub="Current version: {version}";
@@ -65,19 +64,20 @@
 	stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{version}',server.lucee.version);
 
 
-		luceeProvider = application.luceeUpdateProvider;
-		if(isNull(luceeProvider.versions.otherVersions) || luceeProvider.type == 'warning'){
+		
+		/*if(isNull(providerData.message) || providerData.type == 'warning'){
 			error.message = "Couldn't able to reach the server. Please try after some times";
 			result.otherVersions = [];
 		} else{
-			result = luceeProvider.versions;
+			result = providerData;
 		}
-		updateData=getAvailableVersion();
-		if(updateData.provider.location EQ "http://release.lucee.org"){
-			version = "release";
-		} else if( updateData.provider.location EQ "http://snapshot.lucee.org" ){
-			version = "snapShot";
-		} else{
+		updateData=getAvailableVersion();*/
+
+
+		if(updateData.provider.location EQ "http://update.lucee.org"){
+			version = "lucee";
+		} 
+		else{
 			version = "custom";
 		}
 		versionsStr = {};
@@ -102,30 +102,30 @@
 		}
 		minVersion=createObject('java','lucee.VersionInfo').getIntVersion().toString();
 		minVs = toVersionSortable(minVersion);
-		if(len(result.otherVersions)){
-			for(versions in result.otherVersions ){
+
+		if(len(updateData.otherVersions)){
+
+			for(versions in updateData.otherVersions ){
 				if(versions EQ server.lucee.version) cfcontinue;
-				if(  toVersionSortable(versions) LTE minVS) cfcontinue;
+				vs=toVersionSortable(versions);
+				if(vs LTE minVS) cfcontinue;
+				;
 				if(FindNoCase("SNAPSHOT", versions)){
-					if(toVersionSortable(versions) LTE toVersionSortable(server.lucee.version)){
+					if(vs LTE toVersionSortable(server.lucee.version)){
 						arrayPrepend(versionsStr.SNAPSHOT.downgrade, versions);
 					} else{
 						arrayPrepend(versionsStr.SNAPSHOT.upgrade, versions);
 					}
-				} else if(FindNoCase("BETA", versions)){
-					if(toVersionSortable(versions) LTE toVersionSortable(server.lucee.version)){
+				} 
+				else if(FindNoCase("ALPHA", versions) || FindNoCase("BETA", versions) || FindNoCase("RC", versions)){
+					if(vs LTE toVersionSortable(server.lucee.version)){
 						arrayPrepend(versionsStr.pre_Release.downgrade, versions);
 					} else{
 						arrayPrepend(versionsStr.pre_Release.upgrade, versions);
 					}
-				} else if(FindNoCase("RC", versions)){
-					if(toVersionSortable(versions) LTE toVersionSortable(server.lucee.version)){
-						arrayPrepend(versionsStr.pre_Release.downgrade, versions);
-					} else{
-						arrayPrepend(versionsStr.pre_Release.upgrade, versions);
-					}
-				} else{
-					if(toVersionSortable(versions) LTE toVersionSortable(server.lucee.version)){
+				}
+				else{
+					if(vs LTE toVersionSortable(server.lucee.version)){
 						arrayPrepend(versionsStr.release.downgrade, versions);
 					} else{
 						arrayPrepend(versionsStr.release.upgrade, versions);
@@ -133,6 +133,8 @@
 				}
 			}
 		}
+		//dump(var:versionsStr,expand:false);
+		//dump(var:updateData,expand:false);
 	printError(error);
 </cfscript>
 <cfoutput>
@@ -144,51 +146,65 @@
 	}
 </style>
 
-	<p class="fs">#replace(stText.services.update.downUpSub,'{version}',"<b>"&server.lucee.version&"</b>") #</p>
-	
-	<h1>#stText.services.update.luceeProvider#</h1>
-	<p class="fs leftSpace">#stText.services.update.titleDesc#</p>
+	<cfset stText.services.update.release="Releases">
+	<cfset stText.services.update.pre_release="Pre Releases (Alpha, Beta, Release Candidate)">
+	<cfset stText.services.update.snapshot="Snapshots">
+
+	<cfset stText.services.update.short.release="Releases">
+	<cfset stText.services.update.short.pre_release="Pre Releases">
+	<cfset stText.services.update.short.snapshot="Snapshots">
+
+	<cfset stText.services.update.downgradeTo="Downgrade to">
+	<cfset stText.services.update.upgradeTo="Upgrade to">
+	<cfset stText.services.update.downUpDesc="Upgrade or downgrade your current version.">
+	<cfset stText.services.update.downup="Upgrade / Downgrade">
+	<cfset stText.services.update.downupBtn="Execute">
+	<cfset stText.services.update.noUpdateDesc="There are currently no {type} available for your version.">
+	<cfset stText.services.update.titleDesc="Upgrade (or Downgrade) your Lucee version ({version}) to any version * you like. ">
+	<cfset stText.services.update.titleDesc2="You cannot downgrade below {min-version} because your lucee.jar has bundled this version. To go below this version you need to replace your lucee.jar with an older version.">
+
+
+
+	<!--- <h1>#stText.services.update.luceeProvider#</h1>--->
+	<p>
+		#replace(stText.services.update.titleDesc,'{version}',"<b>"&server.lucee.version&"</b>") #
+	</p>
 	<cfset hiddenFormContents = "" >
 	<cfset count = 1>
 
-	<cfloop list="Release,Pre_Release,SnapShot,Custom" index="key">
-		<cfif key EQ 'custom' && !structKeyExists(versionsStr, "custom")>
-			<cfcontinue>
-		</cfif>
+	<cfloop list="Release,Pre_Release,SnapShot" index="key">
+		
 		<span><input <cfif count EQ 1>
-		class="bl button alignLeft" <cfelseif count EQ StructCount(versionsStr)> class="br button" <cfelse> class="bm button" </cfif>  name="changeConnection" id="btn_#UcFirst(Lcase(key))#" value="#key#s" onclick="enableVersion('#UcFirst(Lcase(key))#');"  type="button"></span>
+		class="bl button alignLeft" <cfelseif count EQ StructCount(versionsStr)> class="br button" <cfelse> class="bm button" </cfif>  name="changeConnection" id="btn_#UcFirst(Lcase(key))#" value="#stText.services.update.short[key]# (#len(versionsStr[key].upgrade)#)" onclick="enableVersion('#UcFirst(Lcase(key))#');"  type="button"></span>
 		<cfsavecontent variable="tmpContent">
 			<div id="div_#UcFirst(Lcase(key))#" class="topBottomSpace">
 				<div class="whitePanel">
-					<h1 class="">#key#s<cfif key EQ "pre_Release"> (#stText.services.update.alphaBetaRelease#)</cfif></h1>
+					<h1 class="">#stText.services.update[key]#</h1>
 					<div class="itemintro">#stText.services.update[key&"Desc"]#</div>
 					<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
-						<div>
-							<h3 class="pdTop">#stText.services.update.upgrade# :</h3>
-							<cfif len(versionsStr[key].upgrade)>
+						
+							<cfif len(versionsStr[key].upgrade)+len(versionsStr[key].downgrade) GT 0>
+								<div><h3 class="pdTop">#stText.services.update.downUp# </h3>
+								<div class="itemintro">#stText.services.update.downUpDesc#</div>
 								<select name="UPDATE_#key#"  class="large">
 									<cfloop array="#versionsStr[key].upgrade#" index="i">
-										<option value="#i#">#i#</option>
+										<option value="#i#">#stText.services.update.upgradeTo# #i#</option>
 									</cfloop>
-								</select>
-								<input type="button" class="smBtn" id="btn_UPDATE_#key#"  onclick="changeVersion(this, UPDATE_#key#)" name="mainAction" value="#stText.menu.services.update#">
-							<cfelse>
-								<div class="alertMsg">#replace("#stText.services.update.alertMessage#","update","#key#&nbsp#Lcase(stText.services.update.upgrade)#")#</div>
-							</cfif>
-						</div>
-						<div>
-							<h3 class="pdTop">#stText.services.update.downgrade# :</h3>	
-							<cfif len(versionsStr[key].downgrade)>
-								<select name="DOWNGRADE_#key#"  class="large">
 									<cfloop array="#versionsStr[key].downgrade#" index="i">
-										<option value="#i#">#i#</option>
+										<option value="#i#">#stText.services.update.downgradeTo# #i#</option>
 									</cfloop>
 								</select>
-								<input type="button" class="smBtn" id="btn_DOWNGRADE_#key#" onclick="changeVersion(this, DOWNGRADE_#key#)" name="mainAction" value="#stText.services.update.downgrade#">
-							<cfelse>
-								<div class="alertMsg">#replace("#stText.services.update.alertMessage#","update","#key#&nbsp#Lcase(stText.services.update.downgrade)#")#</div>
-							</cfif>
-						</div>
+								<input type="button" class="button submit"
+									onclick="changeVersion(this, UPDATE_#key#)" 
+									name="mainAction" 
+									value="#stText.services.update.downUpBtn#">
+							</div>
+						<cfelse>
+							<div class="error">
+								#replace(stText.services.update.noUpdateDesc,"{type}",stText.services.update.short[key])#
+							</div>
+						</cfif>
+						
 					</cfformClassic>
 				</div>
 			</div>
@@ -199,7 +215,6 @@
 
 	<div id="updateInfoDesc" style="text-align: center;"></div>
 	<div id="group_Connection">
-		<input type="hidden" value='#UcFirst(Lcase(version))#' id="versionsLen">
 		#hiddenFormContents#
 	</div>
 
@@ -261,7 +276,8 @@
 					$( '##customtextinput' ).attr( 'disabled', false);
 					$('##customURL').attr( 'disabled', false);
 				}
-				var version = $('##versionsLen').val();
+				var version = 'Release';
+
 				enableVersion(version);
 				$("##btn_"+version).addClass("btn");
 			});
@@ -308,4 +324,7 @@
 			});
 		</script>
 	</cfhtmlbody>
+
+	<p class="comment">* #replace(stText.services.update.titleDesc2,'{min-version}',"<b>"&minVersion&"</b>") #</p>
+	
 </cfoutput>

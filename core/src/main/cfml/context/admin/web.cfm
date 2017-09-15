@@ -74,9 +74,6 @@
 			<cfset session["password"&request.adminType]=hashedPassword>
             <cfset session.lucee_admin_lang=form.lang>
             <!--- Thread operation for update provider --->
-            <cfif request.adminType == 'server' && !structKeyExists(application, "updateprovider")>
-				<cfinclude template="updateprovider.cfm">
-			</cfif>
             <cfcookie expires="NEVER" name="lucee_admin_lang" value="#session.lucee_admin_lang#">
             <cfif form.rememberMe NEQ "s">
                 <cfcookie
@@ -92,6 +89,8 @@
         </cfif>
     </cfif>
 </cfif>
+
+
 <!--- new pw Form --->
 <cfif StructKeyExists(form,"new_password") and StructKeyExists(form,"new_password_re")>
 	<cfif len(form.new_password) LT 6>
@@ -436,3 +435,20 @@
 <cfif current.action neq "overview">
 	<cfcookie name="lucee_admin_lastpage" value="#current.action#" expires="NEVER">
 </cfif>
+
+
+<!--- <cftry>
+<cfscript>
+if(request.adminType == 'server'){
+	include "services.update.functions.cfm";
+	ud=getUpdateData();
+	if(isNull(application.UpdateProvider[ud.location])) {
+		thread name="providers" action="run" location=ud.location {
+			application.UpdateProvider[ud.location]=getAvailableVersion();
+			systemOutput("done!",1,1);
+		}
+	}
+}
+</cfscript>
+<cfcatch></cfcatch>
+</cftry> --->
