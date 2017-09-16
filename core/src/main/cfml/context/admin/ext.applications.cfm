@@ -18,15 +18,9 @@ stText.ext.uninstall="Uninstall";
 stText.ext.installDesc="Choose the version you would like to install.";
 stText.ext.upDownDesc="Update or downgrade your already installed version.";
 stText.ext.uninstallDesc="Uninstall this version";
-
-
 stText.Buttons.go="go";
-
 stText.Buttons.upDown="update / downgrade";
-
 </cfscript>
-
-
 
 <cfparam name="inc" default="">
 <cfparam name="url.action2" default="list">
@@ -65,33 +59,7 @@ stText.Buttons.upDown="update / downgrade";
 	    type="#request.adminType#"
 	    password="#session["password"&request.adminType]#"
 	    returnVariable="serverExtensions">
-	<!---<cfset extensions=queryNew(serverExtensions.columnlist&",installLocation")>
-	<cfset ids={}>
-	 server
-	<cfloop query=serverExtensions>
-		<cfset row=queryAddrow(extensions)>
-		<cfset ids[serverExtensions.id]="">
-		<cfset extensions.installLocation[row]="server">
-		<cfloop array="#queryColumnArray(serverExtensions)#" item="col">
-			<cfset extensions[col][row]=serverExtensions[col]>
-		</cfloop>
-	</cfloop>--->
-	<!--- web
-	<cfloop query=webExtensions>
-		<cfif !isNull(ids[webExtensions.id])>
-			<cfcontinue>
-		</cfif>
-		<cfset row=queryAddrow(extensions)>
-		<cfset extensions.installLocation[row]="web">
-		<cfloop array="#queryColumnArray(webExtensions)#" item="col">
-			<cfset extensions[col][row]=webExtensions[col]>
-		</cfloop>
-	</cfloop> --->
-
 </cfif>
-
-
-
 
 <cfparam name="error" default="#struct(message:"",detail:"")#">
 
@@ -116,36 +84,6 @@ stText.Buttons.upDown="update / downgrade";
                 <cfset session.extFilter2.provider=trim(form.providerFilter2)>
             </cfif>
 		</cfcase>
-		<!---
-        <cfcase value="#stText.Buttons.install#,#stText.Buttons.installFull#">
-        	<cfadmin
-			    action="updateRHExtension"
-			    type="#request.adminType#"
-			    password="#session["password"&request.adminType]#"
-			    source="#downloadFull(form.provider,form.id)#">
-		</cfcase>
-        <cfcase value="#stText.Buttons.update#,#stText.Buttons.updateFull#">
-			<cfadmin
-			    action="updateRHExtension"
-			    type="#request.adminType#"
-			    password="#session["password"&request.adminType]#"
-			    source="#downloadFull(form.provider,form.id)#">
-		</cfcase>
-        <cfcase value="#stText.Buttons.installTrial#">
-        	<cfadmin
-			    action="updateRHExtension"
-			    type="#request.adminType#"
-			    password="#session["password"&request.adminType]#"
-			    source="#downloadTrial(form.provider,form.id)#">
-		</cfcase>
-        <cfcase value="#stText.Buttons.updateTrial#">
-        	<cfadmin
-			    action="updateRHExtension"
-			    type="#request.adminType#"
-			    password="#session["password"&request.adminType]#"
-			    source="#downloadTrial(form.provider,form.id)#">
-		</cfcase>--->
-
 		<cfcase value="#stText.Buttons.install#">
         	<cfadmin
 			    action="updateRHExtension"
