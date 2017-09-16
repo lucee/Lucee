@@ -745,7 +745,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				"/rest/update/provider/download/" + symbolicName + "/"
 						+ symbolicVersion + "/"
 						+ (id != null ? id.toQueryString() : "")
-						+ (id == null ? "?" : "&")+"allowRedirect=true"
+						+ (id == null ? "?" : "&")+"allowRedirect=true&jv="+System.getProperty("java.version")
 						
 				);
 		printDate("download " + symbolicName + ":" + symbolicVersion +" from "+updateUrl+" and copy to "+jar); // MUST remove
