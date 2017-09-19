@@ -44,6 +44,9 @@
 	<data key="services.update.pre_ReleaseDesc">Pre releases a preview on upcoming releases. This version are in testing to get releases as soon they pass the testing process.</data>
 	<data key="services.update.releaseDesc">Releases are heavily tested and are recommended for production environments.</data>
 	<data key="services.update.titleDesc">Upgrade or Downgrade snapshots and a release available for your current version {version}</data>
+	<data key="services.update.short.release">Releases</data>
+	<data key="services.update.short.pre_release">Pre Releases</data>
+	<data key="services.update.short.snapshot">Snapshots</data>
 
 	<data key="services.certificate.desc">List SSL Certificates for a specific Host or install them.</data>
 	<data key="services.certificate.host">Host</data>
@@ -308,6 +311,8 @@
 	<data key="ext.noConfigXMLInExtension">There is no config.xml file available in the extension!</data>
 	<data key="ext.configNotParsed">The Config xml file within the extension could not be parsed</data>
 	<data key="ext.configHasNoInfoTag">The Config xml file within the extension does not contain the necessary [info] section within the [config] tag.</data>
+	<data key="ext.noUpdateDesc">There are currently no {type} extensions available for your version.</data>
+	<data key="ext.detail.noUpdateDesc">There are currently no {type} version available for this extension.</data>
 	<data key="ext.reviewdocumentation">Please review the documentation for creating Lucee Extensions.</data>
 	<data key="ext.requiredKeyMissing">The required field [config.info.$key$] does not exist within the Config xml file of the extension.</data>
 	<data key="ext.requiredKeyEmpty">The required field [config.info.$key$] does not contain a value within the Config xml file of the extension.</data>
