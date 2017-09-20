@@ -20,7 +20,7 @@ package lucee.runtime.functions.decision;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.net.rpc.AxisUtil;
+import lucee.runtime.net.rpc.WSHandler;
 
 /**
  * 
@@ -30,6 +30,6 @@ public final class IsSOAPRequest implements Function {
 	private static final long serialVersionUID = 5616044662863702066L;
 
 	public static boolean call(PageContext pc) {
-		return AxisUtil.isSOAPRequest();
+		return WSHandler.getInstance().isSOAPRequest();
 	}
 }

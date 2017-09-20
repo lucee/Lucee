@@ -16,10 +16,13 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.runtime.net.rpc.client;
+package lucee.runtime.net.rpc.cxf.client;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
+
+import javax.xml.rpc.Call;
+import javax.xml.soap.SOAPHeaderElement;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
@@ -27,14 +30,13 @@ import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.proxy.ProxyData;
+import lucee.runtime.net.rpc.client.WSClient;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.DateTime;
 
-import org.apache.axis.client.Call;
-import org.apache.axis.message.SOAPHeaderElement;
 
-final class CXFClient extends WSClient {
+public final class CXFClient implements WSClient {
 	
 
 	public CXFClient(String strWsdlUrl, String username, String password, ProxyData proxyData) {
@@ -475,13 +477,13 @@ final class CXFClient extends WSClient {
 
 	@Override
 	public void addHeader(SOAPHeaderElement header) throws ApplicationException {
-		throw new ApplicationException("not supported with CXF Client, use instead the Axis Client");
+		throw new ApplicationException("not supported with CXF Client");
 	}
 
 
 	@Override
 	public Call getLastCall() throws ApplicationException {
-		throw new ApplicationException("not supported with CXF Client, use instead the Axis Client");
+		throw new ApplicationException("not supported with CXF Client");
 	}
 	
 

@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.runtime.net.rpc.client;
+package lucee.runtime.net.rpc.jaxws.client;
 
 import java.net.URL;
 import java.util.Iterator;
@@ -38,6 +38,8 @@ import javax.wsdl.WSDLException;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
+import javax.xml.rpc.Call;
+import javax.xml.soap.SOAPHeaderElement;
 
 import lucee.commons.net.HTTPUtil;
 import lucee.runtime.PageContext;
@@ -51,15 +53,14 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.rpc.RPCException;
+import lucee.runtime.net.rpc.client.WSClient;
+import lucee.runtime.net.rpc.client.WSUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.DateTime;
 
-import org.apache.axis.client.Call;
-import org.apache.axis.message.SOAPHeaderElement;
-
-public class JaxWSClient extends WSClient {
+public class JaxWSClient implements WSClient {
 	
 	private URL url;
 	private Definition wsdl;

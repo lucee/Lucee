@@ -26,6 +26,7 @@ import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
+import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.net.rpc.client.WSClient;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
@@ -248,7 +249,7 @@ public final class Invoke  extends BodyTagImpl implements DynamicAttributes {
             if(password==null)password = "";
         }
         ProxyData pd=StringUtil.isEmpty(proxy.getServer())?null:proxy;
-        WSClient ws = username!=null?WSClient.getInstance(pageContext,webservice,username,password,pd):WSClient.getInstance(pageContext,webservice,null,null,pd);
+        WSClient ws = username!=null?WSHandler.getInstance().getWSClient(webservice,username,password,pd):WSHandler.getInstance().getWSClient(webservice,null,null,pd);
         Object rtn = ws.callWithNamedValues(pageContext,KeyImpl.init(method),data);
         
         // return

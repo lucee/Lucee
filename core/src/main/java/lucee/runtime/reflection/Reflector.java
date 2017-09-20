@@ -53,8 +53,8 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.java.JavaObject;
-import lucee.runtime.net.rpc.AxisCaster;
 import lucee.runtime.net.rpc.Pojo;
+import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Duplicator;
@@ -393,8 +393,8 @@ public final class Reflector {
 			try{
 				Pojo pojo=(Pojo) trgClass.newInstance();
 				if(sct instanceof Component)
-					return AxisCaster.toPojo(pojo, null, null, null, (Component)sct, new HashSet<Object>());
-				return AxisCaster.toPojo(pojo, null, null, null,sct, new HashSet<Object>());
+					return WSHandler.getInstance().toPojo(pojo, (Component)sct, new HashSet<Object>());
+				return WSHandler.getInstance().toPojo(pojo, sct, new HashSet<Object>());
 			}
 			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}

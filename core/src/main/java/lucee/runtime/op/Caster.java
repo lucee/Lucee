@@ -90,8 +90,8 @@ import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.img.Image;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.java.JavaObject;
-import lucee.runtime.net.rpc.AxisCaster;
 import lucee.runtime.net.rpc.Pojo;
+import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.op.validators.ValidateCreditCard;
 import lucee.runtime.reflection.Reflector;
@@ -3751,7 +3751,7 @@ public final class Caster {
             throw new ExpressionException("can't cast Component of Type ["+comp.getAbsName()+"] to ["+strType+"]");
         }
         if(o instanceof Pojo) {
-        	Component cfc = AxisCaster.toComponent(pc,((Pojo)o),strType,null);
+        	Component cfc = WSHandler.getInstance().toComponent(pc,((Pojo)o),strType,null);
         	if(cfc!=null) return cfc;
         	throw new ExpressionException("can't cast Pojo of Type ["+o.getClass().getName()+"] to ["+strType+"]");
         }

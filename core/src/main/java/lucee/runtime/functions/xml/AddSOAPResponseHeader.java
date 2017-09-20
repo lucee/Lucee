@@ -20,10 +20,8 @@ package lucee.runtime.functions.xml;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.net.rpc.AxisUtil;
+import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.Caster;
-
-import org.apache.axis.AxisFault;
 
 public class AddSOAPResponseHeader {
 	public static boolean call(PageContext pc, String nameSpace, String name, Object value) throws PageException {
@@ -31,9 +29,9 @@ public class AddSOAPResponseHeader {
 	}
 	public static boolean call(PageContext pc, String nameSpace, String name, Object value, boolean mustUnderstand) throws PageException {
 		try {
-			AxisUtil.addSOAPResponseHeader(nameSpace, name, value, mustUnderstand);
+			WSHandler.getInstance().addSOAPResponseHeader(nameSpace, name, value, mustUnderstand);
 		} 
-		catch (AxisFault e) {
+		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 		return true;

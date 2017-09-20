@@ -49,8 +49,8 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.img.Image;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.net.mail.MailUtil;
-import lucee.runtime.net.rpc.AxisCaster;
 import lucee.runtime.net.rpc.Pojo;
+import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.op.validators.ValidateCreditCard;
 import lucee.runtime.text.xml.XMLCaster;
@@ -1319,7 +1319,7 @@ public final class Decision {
         }
         if(o instanceof Pojo) {
         	pcMaybeNull = ThreadLocalPageContext.get(pcMaybeNull);
-			return pcMaybeNull!=null && AxisCaster.toComponent(pcMaybeNull,((Pojo)o),type,null)!=null;
+			return pcMaybeNull!=null && WSHandler.getInstance().toComponent(pcMaybeNull,((Pojo)o),type,null)!=null;
         }
         
         if(isArrayType(type) && isArray(o)){

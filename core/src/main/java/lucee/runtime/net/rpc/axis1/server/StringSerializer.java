@@ -16,14 +16,14 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.runtime.net.rpc.server;
+package lucee.runtime.net.rpc.axis1.server;
 
 import javax.xml.namespace.QName;
 
 import org.apache.axis.encoding.SerializationContext;
 import org.apache.axis.encoding.ser.SimpleSerializer;
 
-public class StringSerializer extends SimpleSerializer {
+ class StringSerializer extends SimpleSerializer {
 	/*protected static String xmlCodeForChar(char c) {
 		StringBuilder buff = new StringBuilder();
 		buff.append("&#x");

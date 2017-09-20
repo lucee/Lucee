@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.runtime.net.rpc.server;
+package lucee.runtime.net.rpc.axis1.server;
 
 import javax.xml.rpc.encoding.TypeMapping;
 
@@ -26,8 +26,10 @@ import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.net.rpc.AxisCaster;
-import lucee.runtime.net.rpc.TypeMappingUtil;
+import lucee.runtime.net.rpc.WSHandler;
+import lucee.runtime.net.rpc.axis1.AxisCaster;
+import lucee.runtime.net.rpc.axis1.TypeMappingUtil;
+import lucee.runtime.net.rpc.server.WSServer;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.FunctionArgument;
@@ -36,87 +38,92 @@ import lucee.runtime.type.UDF;
 import org.apache.axis.AxisFault;
 import org.apache.axis.MessageContext;
 
-/**
- * 
- */
-public final class ComponentController {
+ final class ComponentController {
 
-	private static ThreadLocal<Component> component=new ThreadLocal<Component>();
-	private static ThreadLocal<PageContext> pagecontext=new ThreadLocal<PageContext>();
-	private static ThreadLocal<MessageContext> messageContext=new ThreadLocal<MessageContext>();
+	private static ThreadLocal<Component> component = new ThreadLocal<Component>();
+	private static ThreadLocal<PageContext> pagecontext = new ThreadLocal<PageContext>();
+	private static ThreadLocal<MessageContext> messageContext = new ThreadLocal<MessageContext>();
 
 	/**
 	 * invokes thread local component
+	 * 
 	 * @param name
 	 * @param args
 	 * @return
-	 * @throws AxisFault 
+	 * @throws AxisFault
 	 * @throws PageException
 	 */
 	public static Object invoke(String name, Object[] args) throws AxisFault {
 		try {
 			return _invoke(name, args);
-		} 
-		catch(Throwable t) {
+		} catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			throw AxisFault.makeFault((Caster.toPageException(t)));
 		}
 	}
-	public static Object _invoke(String name, Object[] args) throws PageException {
+
+	public static Object _invoke(String name, Object[] args)
+			throws PageException {
 		Key key = Caster.toKey(name);
-		Component c=component.get();
-		PageContext p=pagecontext.get();
+		Component c = component.get();
+		PageContext p = pagecontext.get();
 		MessageContext mc = messageContext.get();
-		if(c==null) throw new ApplicationException("missing component");
-		if(p==null) throw new ApplicationException("missing pagecontext");
-		
-		UDF udf = Caster.toFunction(c.get(p,key,null),null);
-		FunctionArgument[] fa=null;
-		if(udf!=null) fa = udf.getFunctionArguments();
-		
-		for(int i=0;i<args.length;i++) {
-			if(fa!=null && i<fa.length && fa[i].getType()==CFTypes.TYPE_UNKNOW) {
-				args[i]=AxisCaster.toLuceeType(p,fa[i].getTypeAsString(),args[i]);
-			}
-			else
-				args[i]=AxisCaster.toLuceeType(p,args[i]);
+		if (c == null)
+			throw new ApplicationException("missing component");
+		if (p == null)
+			throw new ApplicationException("missing pagecontext");
+
+		UDF udf = Caster.toFunction(c.get(p, key, null), null);
+		FunctionArgument[] fa = null;
+		if (udf != null)
+			fa = udf.getFunctionArguments();
+
+		for (int i = 0; i < args.length; i++) {
+			if (fa != null && i < fa.length
+					&& fa[i].getType() == CFTypes.TYPE_UNKNOW) {
+				args[i] = AxisCaster.toLuceeType(p, fa[i].getTypeAsString(),
+						args[i]);
+			} else
+				args[i] = AxisCaster.toLuceeType(p, args[i]);
 		}
-			
-		
+
 		// return type
-		String rtnType=udf!=null?udf.getReturnTypeAsString():"any";
-		
-		
+		String rtnType = udf != null ? udf.getReturnTypeAsString() : "any";
+
 		Object rtn = c.call(p, key, args);
-		
+
 		// cast return value to Axis type
 		try {
-			RPCServer server = RPCServer.getInstance(p.getId(),p,p.getServletContext());
-			TypeMapping tm = mc!=null?mc.getTypeMapping():TypeMappingUtil.getServerTypeMapping(server.getEngine().getTypeMappingRegistry());
-			rtn=Caster.castTo(p, rtnType, rtn, false);
+			WSServer server = WSHandler.getInstance().getWSServer(p);
+			TypeMapping tm = mc != null ? mc.getTypeMapping() : TypeMappingUtil
+					.getServerTypeMapping(((Axis1Server)server).getEngine()
+							.getTypeMappingRegistry());
+			rtn = Caster.castTo(p, rtnType, rtn, false);
 			Class<?> clazz = Caster.cfTypeToClass(rtnType);
-			return AxisCaster.toAxisType(tm,rtn,clazz.getComponentType()!=null?clazz:null);
-		} 
-		catch(Throwable t) {
+			return AxisCaster.toAxisType(tm, rtn,
+					clazz.getComponentType() != null ? clazz : null);
+		} catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 	}
 
 	/**
-	 * removes PageContext and Component
-	 * sets component and pageContext to invoke
+	 * removes PageContext and Component sets component and pageContext to
+	 * invoke
+	 * 
 	 * @param p
 	 * @param c
 	 */
-	public static void set(PageContext p,Component c) {
+	public static void set(PageContext p, Component c) {
 		pagecontext.set(p);
 		component.set(c);
 	}
+
 	public static void set(MessageContext mc) {
 		messageContext.set(mc);
 	}
-	
+
 	/**
 	 * 
 	 */

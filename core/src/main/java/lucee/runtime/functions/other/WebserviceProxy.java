@@ -29,6 +29,7 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.net.http.HTTPClient;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
+import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.net.rpc.client.WSClient;
 import lucee.runtime.op.Caster;
 import lucee.runtime.security.SecurityManager;
@@ -65,12 +66,12 @@ public final class WebserviceProxy implements Function {
     
     public static Object doWebService(PageContext pc,String wsdlUrl) throws PageException {
     	// TODO CF8 impl. all new attributes for wsdl
-    	return WSClient.getInstance(pc, wsdlUrl, null, null, null);
+    	return WSHandler.getInstance().getWSClient(wsdlUrl, null, null, null);
     } 
 
     public static Object doWebService(PageContext pc,String wsdlUrl,String username,String password, ProxyData proxy) throws PageException {
     	// TODO CF8 impl. all new attributes for wsdl
-    	return WSClient.getInstance(pc,wsdlUrl,username,password,proxy);
+    	return WSHandler.getInstance().getWSClient(wsdlUrl,username,password,proxy);
     } 
     public static Object doHTTP(PageContext pc,String httpUrl) throws PageException {
     	return new HTTPClient(httpUrl,null,null,null);

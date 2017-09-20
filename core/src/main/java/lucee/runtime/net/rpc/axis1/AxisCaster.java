@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  */
-package lucee.runtime.net.rpc;
+package lucee.runtime.net.rpc.axis1;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -55,6 +55,9 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.rpc.Pojo;
+import lucee.runtime.net.rpc.PojoIterator;
+import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.date.DateCaster;
@@ -511,7 +514,7 @@ public final class AxisCaster {
     			TypeEntry childTE=null;
     			QName childT=null;
     			if(typeEntry!=null) {
-	    			childTE = AxisUtil.getContainedElement(typeEntry,p.getName(),null);
+	    			childTE = ((Axis1Handler)WSHandler.getInstance()).getContainedElement(typeEntry,p.getName(),null);
 	    			if(childTE!=null) childT=childTE.getQName();
 	    			
     			}

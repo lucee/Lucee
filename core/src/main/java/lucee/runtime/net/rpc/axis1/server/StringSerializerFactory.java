@@ -16,16 +16,25 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.runtime.net.rpc.server;
+package lucee.runtime.net.rpc.axis1.server;
 
-import lucee.runtime.Component;
-import lucee.runtime.PageContext;
+import javax.xml.namespace.QName;
+import javax.xml.rpc.JAXRPCException;
+import javax.xml.rpc.encoding.Serializer;
 
-public final class Constants {
+import org.apache.axis.encoding.ser.SimpleSerializerFactory;
 
-	public static final String PAGE_CONTEXT = PageContext.class.getName();
-	public static final String COMPONENT = Component.class.getName();
- 
-	
+public class StringSerializerFactory extends SimpleSerializerFactory {
+	public StringSerializerFactory(Class javaType, QName xmlType) {
+		super(javaType, xmlType);
+	}
 
+	@Override
+	public Serializer getSerializerAs(String mechanismType) throws JAXRPCException {
+        if (javaType == String.class) {
+            return new StringSerializer(javaType, xmlType);
+        }
+
+        return super.getSerializerAs(mechanismType);
+    }
 }

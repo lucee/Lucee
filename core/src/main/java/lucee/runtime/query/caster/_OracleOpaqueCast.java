@@ -43,7 +43,7 @@ public class _OracleOpaqueCast {
 		if(o==null) return null;
 		
 		// we do not have oracle.sql.OPAQUE in the core, so we need reflection for this
-		try{
+		/*try{
 			String typeName=Caster.toString(Reflector.callMethod(o, "getSQLTypeName", ZERO_ARGS),null);
 			
 			//OPAQUE opaque = ((oracle.sql.OPAQUE)o);
@@ -56,7 +56,7 @@ public class _OracleOpaqueCast {
 		}
 		catch(PageException pe){
 			throw ExceptionUtil.toIOException(pe);
-		}
+		}*/
 		return o;
 	}
 

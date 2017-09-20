@@ -16,14 +16,15 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.runtime.net.rpc;
+package lucee.runtime.net.rpc.axis1;
 
 import javax.xml.namespace.QName;
 import javax.xml.rpc.encoding.TypeMapping;
 import javax.xml.rpc.encoding.TypeMappingRegistry;
 
-import lucee.runtime.net.rpc.server.StringDeserializerFactory;
-import lucee.runtime.net.rpc.server.StringSerializerFactory;
+import lucee.runtime.net.rpc.RPCConstants;
+import lucee.runtime.net.rpc.axis1.server.StringDeserializerFactory;
+import lucee.runtime.net.rpc.axis1.server.StringSerializerFactory;
 
 import org.apache.axis.encoding.ser.ArrayDeserializerFactory;
 import org.apache.axis.encoding.ser.ArraySerializerFactory;

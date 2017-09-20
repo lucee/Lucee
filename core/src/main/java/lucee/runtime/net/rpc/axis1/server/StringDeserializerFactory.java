@@ -16,8 +16,24 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.runtime.net.rpc.server;
+package lucee.runtime.net.rpc.axis1.server;
 
-public final class Unknow {
+import javax.xml.namespace.QName;
+import javax.xml.rpc.encoding.Deserializer;
 
+import org.apache.axis.encoding.ser.SimpleDeserializerFactory;
+
+public class StringDeserializerFactory extends SimpleDeserializerFactory {
+	public StringDeserializerFactory(Class javaType, QName xmlType) {
+		super(javaType, xmlType);
+	}
+	
+	@Override
+	public Deserializer getDeserializerAs(String mechanismType) {
+		if (javaType == String.class) {
+			return new StringDeserializer(javaType, xmlType);
+		}
+		
+		return super.getDeserializerAs(mechanismType);
+	}
 }

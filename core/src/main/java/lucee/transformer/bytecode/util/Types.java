@@ -58,7 +58,6 @@ import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.functions.FunctionHandlerPool;
 import lucee.runtime.img.Image;
 import lucee.runtime.interpreter.VariableInterpreter;
-import lucee.runtime.net.rpc.server.ComponentController;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;
 import lucee.runtime.op.Operator;
@@ -264,7 +263,6 @@ public final class Types {
 	public static final Type CLASS_LOADER = Type.getType(ClassLoader.class);
 	public static final Type BIG_DECIMAL = Type.getType(BigDecimal.class);
 	
-	public static final Type COMPONENT_CONTROLLER = Type.getType(ComponentController.class); 
 	public static final Type FUNCTION_VALUE_IMPL=Type.getType(FunctionValueImpl.class);
 	public static final Type CALLER_UTIL = Type.getType(CallerUtil.class);
 	public static final Type VARIABLE_UTIL_IMPL = Type.getType(VariableUtilImpl.class);

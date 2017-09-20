@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.runtime.net.rpc.client;
+package lucee.runtime.net.rpc.axis1.client;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,7 +44,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
-public class SOAPUtil {
+final class SOAPUtil {
 	
 	private static QName[] SOAP=new QName[]{
 		Constants.SOAP_ARRAY
@@ -125,7 +125,7 @@ public class SOAPUtil {
 	};
 	
 	
-	public static Vector getTypes(Element body, SymbolTable st ) throws ApplicationException {
+	public static Vector getTypes(Element body, SymbolTable st) throws ApplicationException {
 		
 		
 		// get the data

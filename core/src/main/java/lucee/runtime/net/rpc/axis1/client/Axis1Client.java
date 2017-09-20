@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  */
-package lucee.runtime.net.rpc.client;
+package lucee.runtime.net.rpc.axis1.client;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -38,6 +38,7 @@ import javax.wsdl.Port;
 import javax.xml.namespace.QName;
 import javax.xml.rpc.ServiceException;
 import javax.xml.rpc.encoding.TypeMapping;
+import javax.xml.soap.SOAPHeaderElement;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.ClassUtil;
@@ -62,9 +63,11 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.net.proxy.Proxy;
 import lucee.runtime.net.proxy.ProxyData;
-import lucee.runtime.net.rpc.AxisCaster;
 import lucee.runtime.net.rpc.RPCException;
-import lucee.runtime.net.rpc.TypeMappingUtil;
+import lucee.runtime.net.rpc.axis1.AxisCaster;
+import lucee.runtime.net.rpc.axis1.TypeMappingUtil;
+import lucee.runtime.net.rpc.client.WSClient;
+import lucee.runtime.net.rpc.client.WSUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Collection;
@@ -90,7 +93,6 @@ import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
 import org.apache.axis.configuration.EngineConfigurationFactoryFinder;
 import org.apache.axis.configuration.SimpleProvider;
-import org.apache.axis.message.SOAPHeaderElement;
 import org.apache.axis.transport.http.CommonsHTTPSender;
 import org.apache.axis.wsdl.gen.Parser;
 import org.apache.axis.wsdl.symbolTable.BindingEntry;
@@ -113,7 +115,7 @@ import org.xml.sax.InputSource;
 /**
  * Wrapper for a Webservice
  */
-final class Axis1Client extends WSClient {
+public final class Axis1Client implements WSClient {
 
 	private static final long serialVersionUID = 1L;
 	private Parser parser = new Parser();
@@ -383,7 +385,7 @@ final class Axis1Client extends WSClient {
         if(headers!=null && !headers.isEmpty()) {
         	Iterator<SOAPHeaderElement> it = headers.iterator();
         	while(it.hasNext()){
-        		call.addHeader(it.next());
+        		call.addHeader((org.apache.axis.message.SOAPHeaderElement) it.next());
         	}
         }
         

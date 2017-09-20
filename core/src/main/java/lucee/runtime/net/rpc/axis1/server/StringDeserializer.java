@@ -16,13 +16,13 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.runtime.net.rpc.server;
+package lucee.runtime.net.rpc.axis1.server;
 
 import javax.xml.namespace.QName;
 
 import org.apache.axis.encoding.ser.SimpleDeserializer;
 
-public class StringDeserializer extends SimpleDeserializer {
+ class StringDeserializer extends SimpleDeserializer {
 	/*private static final Map<Pattern, String> replacements;
 	static {
 		replacements = new HashMap<Pattern, String>();

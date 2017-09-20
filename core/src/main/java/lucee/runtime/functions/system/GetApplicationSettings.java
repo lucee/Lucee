@@ -45,6 +45,7 @@ import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
+import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMConfiguration;
@@ -146,7 +147,7 @@ public class GetApplicationSettings {
 		// ws settings
 		{
 		Struct wssettings=new StructImpl();
-		wssettings.put(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(),"Axis1"));
+		wssettings.setEL(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(),WSHandler.getInstance().getTypeAsString()));
 		sct.setEL("wssettings", wssettings);
 		}
 		

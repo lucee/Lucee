@@ -34,7 +34,7 @@ import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
-import lucee.runtime.net.rpc.AxisCaster;
+import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.dt.TimeSpanImpl;
@@ -680,7 +680,7 @@ public final class ASMUtil {
      * @throws PageException
      */
     public static Type toType(Class type, boolean axistype) {
-		if(axistype)type=AxisCaster.toAxisTypeClass(type);
+		if(axistype)type=WSHandler.getInstance().toWSTypeClass(type);
 		return Type.getType(type);	
 	}
     

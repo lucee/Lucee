@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.runtime.net.rpc.server;
+package lucee.runtime.net.rpc.axis1.server;
 
 import java.lang.reflect.Method;
 
@@ -25,12 +25,13 @@ import javax.xml.rpc.encoding.TypeMapping;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.net.rpc.AxisCaster;
+import lucee.runtime.net.rpc.axis1.AxisCaster;
+import lucee.runtime.net.rpc.server.WSServer;
 
 import org.apache.axis.MessageContext;
 import org.apache.axis.providers.java.RPCProvider;
 
-public final class ComponentProvider extends RPCProvider {
+ final class ComponentProvider extends RPCProvider {
 
 	public static final String PAGE_CONTEXT = PageContext.class.getName();
 	public static final String COMPONENT = Component.class.getName();
@@ -41,7 +42,7 @@ public final class ComponentProvider extends RPCProvider {
 		PageContext pc=(PageContext) mc.getProperty(Constants.PAGE_CONTEXT);
 		Component c= (Component) mc.getProperty(Constants.COMPONENT);
         
-		RPCServer server = RPCServer.getInstance(pc.getId(),pc,pc.getServletContext());
+		WSServer server = Axis1Server.getInstance(pc);
 		TypeMapping tm =mc.getTypeMapping();//TypeMappingUtil.getServerTypeMapping(server.getEngine().getTypeMappingRegistry());
 		
 		return AxisCaster.toAxisType(tm,c.call(pc,method.getName(),toLuceeType(pc,args)),null);

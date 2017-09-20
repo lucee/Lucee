@@ -18,49 +18,21 @@
  **/
 package lucee.runtime.net.rpc.client;
 
-import lucee.commons.io.log.Log;
-import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.listener.ApplicationContext;
-import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Iteratorable;
 import lucee.runtime.type.Objects;
 import lucee.runtime.type.Struct;
 
-import org.apache.axis.client.Call;
-import org.apache.axis.message.SOAPHeaderElement;
+import javax.xml.rpc.Call;
+import javax.xml.soap.SOAPHeaderElement;
 
-public abstract class WSClient implements Objects, Iteratorable {
-	
-	public static WSClient getInstance(PageContext pc,String wsdlUrl, String username, String password, ProxyData proxyData) throws PageException {
-		pc=ThreadLocalPageContext.get(pc);
-		if(pc!=null) {
-			Log l = pc.getConfig().getLog("application");
-			ApplicationContext ac = pc.getApplicationContext();
-			if(ac!=null) {
-				if(ApplicationContext.WS_TYPE_JAX_WS==ac.getWSType()) {
-					l.info("RPC","using JAX WS Client");
-					return new JaxWSClient(wsdlUrl, username, password, proxyData);
-				}
-				if(ApplicationContext.WS_TYPE_CXF==ac.getWSType()) {
-					l.info("RPC","using CXF Client");
-					return new CXFClient(wsdlUrl, username, password, proxyData);
-				}
-			}
-			l.info("RPC","using Axis 1 RPC Client");
-		}
-		return new Axis1Client(wsdlUrl,username,password,proxyData);
-	}
-	
-	
-	
-	public abstract void addHeader(SOAPHeaderElement header) throws PageException;
-	public abstract Call getLastCall()throws PageException;
-	public abstract Object callWithNamedValues(Config config, Collection.Key methodName, Struct arguments) throws PageException;
-	@Override
-	public abstract Object callWithNamedValues(PageContext pc, Collection.Key methodName, Struct arguments) throws PageException;
-	    
+public interface WSClient extends Objects, Iteratorable {
+
+	public void addHeader(SOAPHeaderElement header) throws PageException;
+	public Call getLastCall()throws PageException;
+	public Object callWithNamedValues(Config config, Collection.Key methodName, Struct arguments) throws PageException;
+	//@Override
+	//public Object callWithNamedValues(PageContext pc, Collection.Key methodName, Struct arguments) throws PageException;
 }
