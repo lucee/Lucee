@@ -640,6 +640,7 @@
     <!-- compie the source -->
     <javac 
       srcdir="${srcLoader}" 
+      source="1.7" 
       target="1.7" 
       destdir="${temp}/loader"
       debug="true" debuglevel="lines,vars,source" classpath="${dependencies}">
@@ -675,6 +676,7 @@
     <!-- compile the core -->
     <javac 
       srcdir="${srcCore}" 
+      source="1.7" 
       target="1.7" 
       destdir="${core}"
       debug="true" debuglevel="lines,vars,source">
