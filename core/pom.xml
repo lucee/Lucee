@@ -484,18 +484,19 @@
       <version>1.1.0</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
+    <!-- <dependency>
       <groupId>xdb</groupId>
       <artifactId>xdb</artifactId>
       <version>1.0.0</version>
       <scope>provided</scope>
     </dependency>
+    
     <dependency>
       <groupId>xmlparserv2</groupId>
       <artifactId>xmlparserv2</artifactId>
       <version>1.2.2</version>
       <scope>provided</scope>
-    </dependency>
+    </dependency> -->
     <dependency>
       <groupId>xmpcore</groupId>
       <artifactId>xmpcore</artifactId>

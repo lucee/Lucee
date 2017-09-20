@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.3.0.7-ALPHA</version>
+  <version>5.3.0.8-ALPHA</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -691,7 +691,7 @@
     <version>1.1.0</version>
     <scope>provided</scope>
   </dependency>
-  <dependency>
+  <!-- <dependency>
     <groupId>xdb</groupId>
     <artifactId>xdb</artifactId>
     <version>1.0.0</version>
@@ -702,7 +702,7 @@
     <artifactId>xmlparserv2</artifactId>
     <version>1.2.2</version>
     <scope>provided</scope>
-  </dependency>
+  </dependency> -->
   <dependency>
     <groupId>xmpcore</groupId>
     <artifactId>xmpcore</artifactId>
