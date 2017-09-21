@@ -1,25 +1,6 @@
 <cfinclude template="ext.functions.cfm">
 
 <cfscript>
-stText.ext.installedInServer="Extension installed in the Server Administrator";
-stText.ext.minLuceeVersion="Lucee Version";
-stText.ext.minLuceeVersionDesc="Minimal Lucee Version needed for this Extension.";
-stText.ext.toSmallVersion="You need at least the Lucee {version} to install this Extension";
-
-stText.ext.availableVersions="Available Versions";
-stText.ext.updateTo="update to";
-stText.ext.updateTrialTo="update as trial to";
-stText.ext.updateFullTo="update as full version to";
-stText.ext.downgradeTo="downgrade to";
-
-stText.ext.install="Install";
-stText.ext.upDown="Update / Downgrade / Uninstall";
-stText.ext.uninstall="Uninstall";
-stText.ext.installDesc="Choose the version you would like to install.";
-stText.ext.upDownDesc="Update or downgrade your already installed version.";
-stText.ext.uninstallDesc="Uninstall this version";
-stText.Buttons.go="go";
-stText.Buttons.upDown="update / downgrade";
 </cfscript>
 
 <cfparam name="inc" default="">

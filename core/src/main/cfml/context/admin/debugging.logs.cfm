@@ -5,36 +5,6 @@
 <cfparam name="session.debugFilter.total" default="">
 
 
-    
-
-<cfset stText.debug.path="Path">
-<cfset stText.debug.reqTime="Request Time">
-<cfset stText.debug.exeTime="Execution Timespan (ms)">
-<cfset stText.debug.exeTimeQuery="Query">
-<cfset stText.debug.exeTimeTotal="Total">
-<cfset stText.debug.exeTimeApp="App">
-<cfset stText.debug.maxLogs="Maximum Logged Requests">
-<cfset stText.debug.minExeTime="Minimal Execution Time (ms)">
-<cfset stText.debug.minExeTimeDesc="Minimal Execution Time that Lucee outputs the debugger information of a request.">
-<cfset stText.debug.pathRestriction="Path Restriction">
-<cfset stText.debug.pathRestrictionDesc="Path that should not be outputted, sperated path by line break.">
-
-<cfset stText.debug.settingTitle="Settings">
-<cfset stText.debug.settingDesc="Define how Lucee Log the debugging information.">
-
-<cfset stText.debug.outputTitle="Output">
-<cfset stText.debug.outputDesc="Debugging information logged by Lucee.">
-
-
-
-<cfset stText.debug.filter="Filter">
-<cfset stText.debug.filterTitle="Output Filters">
-<cfset stText.debug.filterPath="Only Outputs records where the path match the following pattern.">
-
-
-<cfset stText.debug.detailTitle="Detail">
-<cfset stText.debug.detailDesc="Detailed information about a single Request">
-
 <cffunction name="doFilter" returntype="string" output="false">
 	<cfargument name="filter" required="yes" type="string">
 	<cfargument name="value" required="yes" type="string">

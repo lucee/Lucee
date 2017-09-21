@@ -120,8 +120,6 @@
 list all mappings and display necessary edit fields --->
 
 <cfoutput>
-	<cfset stText.ext.prov.title="Title">
-	<cfset stText.ext.prov.mode="Mode">
 	
 	<cfset doMode=false>
 	<cfloop query="providers">

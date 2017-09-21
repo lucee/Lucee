@@ -16,7 +16,6 @@ Defaults --->
 <cfparam name="form.mainAction" default="none">
 <cfparam name="form.subAction" default="none">
 
-<cfset stText.setting.handleUnquotedAttrValueAsString="Tag attribute values">
 <cfset stText.setting.handleUnquotedAttrValueAsStringDesc='Handle unquoted tag attribute values as strings.
 <br>Example:<br>
 &lt;cfmail subject=sub from="##f##" to="##t##"/><br>

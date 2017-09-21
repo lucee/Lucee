@@ -51,20 +51,12 @@
 		application.UpdateProvider[ud.location]=getAvailableVersion();
 	}
 	updateData = application.UpdateProvider[ud.location];
-	
-	stText.services.update.downUpTitle="Update Lucee Version";
-	stText.services.update.luceeProvider = "Lucee Update Provider";
-	stText.services.update.downUpSub="Current version: {version}";
-	stText.services.update.downUpDesc="Upgrade or downgrade your current version.";
-	stText.services.update.downgradeTo="Downgrade to";
-	stText.services.update.updateTo="Upgrade to";
-	stText.services.update.downup="update";
-	stText.services.update.custom="Custom";
-	stText.services.update.customDesc="Versions came from custom URL given by the user";
+
+
 	stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{version}',server.lucee.version);
 
 
-		
+
 		/*if(isNull(providerData.message) || providerData.type == 'warning'){
 			error.message = "Couldn't able to reach the server. Please try after some times";
 			result.otherVersions = [];
@@ -145,24 +137,6 @@
 		background-color:##CC0000;
 	}
 </style>
-
-	<cfset stText.services.update.release="Releases">
-	<cfset stText.services.update.pre_release="Pre Releases (Alpha, Beta, Release Candidate)">
-	<cfset stText.services.update.snapshot="Snapshots">
-
-	<cfset stText.services.update.short.release="Releases">
-	<cfset stText.services.update.short.pre_release="Pre Releases">
-	<cfset stText.services.update.short.snapshot="Snapshots">
-
-	<cfset stText.services.update.downgradeTo="Downgrade to">
-	<cfset stText.services.update.upgradeTo="Upgrade to">
-	<cfset stText.services.update.downUpDesc="Upgrade or downgrade your current version.">
-	<cfset stText.services.update.downup="Upgrade / Downgrade">
-	<cfset stText.services.update.downupBtn="Execute">
-	<cfset stText.services.update.noUpdateDesc="There are currently no {type} available for your version.">
-	<cfset stText.services.update.titleDesc="Upgrade (or Downgrade) your Lucee version ({version}) to any version * you like. ">
-	<cfset stText.services.update.titleDesc2="You cannot downgrade below {min-version} because your lucee.jar has bundled this version. To go below this version you need to replace your lucee.jar with an older version.">
-
 
 
 	<!--- <h1>#stText.services.update.luceeProvider#</h1>--->
