@@ -96,7 +96,13 @@ public class DatasourceConnectionPool {
 				
 				// create a new instance
 				if(rtn==null) {
-					rtn=loadDatasourceConnection(config,datasource, user, pass);
+					try {
+						rtn=loadDatasourceConnection(config,datasource, user, pass);
+					}
+					catch (PageException pe) {
+						_dec(stack,datasource,user,pass);
+						throw pe;
+					}
 					if(rtn instanceof DatasourceConnectionImpl) ((DatasourceConnectionImpl)rtn).using();
 					return rtn;
 				}
