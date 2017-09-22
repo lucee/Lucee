@@ -299,7 +299,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		// group is not implemented yet!		
 	}
 
-	/*public void function testMapReduce() skip="isNotSupported" {
+	public void function testMapReduce() skip="isNotSupported" {
 		if(isNotSupported()) return;
 		var coll = resetTestCollection();
 		var fMap = "function() {
@@ -315,11 +315,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					}
 				});
 				return outs;
-			};";
+			}";
 
 		coll.mapReduce(fMap, fRed, "testmapreduce", {});
 		$assert.isEqual(5, db.getCollection("testmapreduce").count());
-	}*/
+	}
 
 	public void function testRename() skip="isNotSupported" {
 		if(isNotSupported()) return;
