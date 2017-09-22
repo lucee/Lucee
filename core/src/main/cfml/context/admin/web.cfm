@@ -85,6 +85,9 @@
             <cfif isDefined("cookie.lucee_admin_lastpage") and cookie.lucee_admin_lastpage neq "logout">
                 <cfset url.action = cookie.lucee_admin_lastpage>
             </cfif>
+    	    <cfif !structKeyExists(Application, "pluginUpdatedInfo")>
+	    		<cfset Application.pluginUpdatedInfo = dateTimeFormat(now())>
+	    	</cfif>
         </cfif>
     </cfif>
 </cfif>
@@ -105,6 +108,9 @@
 			    pw="#form.new_password#"
 				returnVariable="hashedPassword">
 		<cfset session["password"&request.adminType]=hashedPassword>
+		<cfif !structKeyExists(Application, "pluginUpdatedInfo")>
+	    	<cfset Application.pluginUpdatedInfo = dateTimeFormat(now())>
+	    </cfif>
 	</cfif>
 </cfif>
 
@@ -204,6 +210,17 @@
     <cfloop array="#navigation#" index="el">
     	<cfif el.action EQ "plugin"><cfset hasPlugin=true></cfif>
     </cfloop>
+	<cfdirectory directory="#plugindir#" action="list" name="plugindirs" recurse="no">
+	<cfif plugindirs.recordCount>
+		<cfquery name="dir" dbtype="query">
+			select * from plugindirs order by dateLastModified desc
+		</cfquery>
+		<cfset lastDirUpdate = dateTimeFormat(dir.dateLastModified)>
+		<cfif dateCompare( application.pluginUpdatedInfo, lastDirUpdate) EQ -1>
+			<cfset application.pluginUpdatedInfo = lastDirUpdate>
+			<cfset session.alwaysNew = 1>
+		</cfif>
+	</cfif>
 
 	<cfif not hasPlugin or (structKeyExists(session,"alwaysNew") and session.alwaysNew)>
     	<cfif not hasPlugin>
