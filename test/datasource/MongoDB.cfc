@@ -299,31 +299,27 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		// group is not implemented yet!		
 	}
 
-	public void function testMapReduce() skip="isNotSupported" {
+	/*public void function testMapReduce() skip="isNotSupported" {
 		if(isNotSupported()) return;
 		var coll = resetTestCollection();
-		var fMap = "
-			function(){
-				var output = { id:this._id, name:this.name };
+		var fMap = "function() {
+				var output = {id:this._id, name:this.name};
 				emit(this._id,output);
-			}		
-		";
+			}";
 
-		var fRed = "
-			function(key, values) {
-				var outs = { name:null };
-				values.forEach(function(v){
-					if (outs.name===null) {
+		var fRed = "function(key, values) {
+				var outs = {name:null };
+				values.forEach(function(v) {
+					if(outs.name===null) {
 						outs.name = v.name;
 					}
 				});
 				return outs;
-			};
-		"
+			};";
 
 		coll.mapReduce(fMap, fRed, "testmapreduce", {});
 		$assert.isEqual(5, db.getCollection("testmapreduce").count());
-	}
+	}*/
 
 	public void function testRename() skip="isNotSupported" {
 		if(isNotSupported()) return;

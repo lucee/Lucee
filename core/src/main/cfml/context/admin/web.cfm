@@ -78,10 +78,10 @@
             <cfif form.rememberMe NEQ "s">
                 <cfcookie
                 	expires="#DateAdd(form.rememberMe,1,now())#"
-                	name="lucee_admin_pw_#ad#"
+                	name="lucee_admin_pw_#server.lucee.version#_#ad#"
                 	value="#hashedPassword#">
             <cfelse>
-                <cfcookie expires="Now" name="lucee_admin_pw_#ad#" value="">
+                <cfcookie expires="Now" name="lucee_admin_pw_#server.lucee.version#_#ad#" value="">
             </cfif>
             <cfif isDefined("cookie.lucee_admin_lastpage") and cookie.lucee_admin_lastpage neq "logout">
                 <cfset url.action = cookie.lucee_admin_lastpage>
@@ -108,19 +108,23 @@
 			    pw="#form.new_password#"
 				returnVariable="hashedPassword">
 		<cfset session["password"&request.adminType]=hashedPassword>
-		 <!--- Thread operation for update provider --->
-		  <cfif request.adminType == 'server' && !structKeyExists(application, "updateprovider") >
-			<cfinclude template="updateprovider.cfm">
-		</cfif>
+		 <cfif form.rememberMe NEQ "s">
+	        <cfcookie
+	        	expires="#DateAdd(form.rememberMe,1,now())#"
+	        	name="lucee_admin_pw_#server.lucee.version#_#ad#"
+	        	value="#hashedPassword#">
+	    <cfelse>
+	        <cfcookie expires="Now" name="lucee_admin_pw_#server.lucee.version#_#ad#" value="">
+	    </cfif>
 	</cfif>
 </cfif>
 
 <!--- cookie ---->
 <cfset fromCookie=false>
-<cfif not StructKeyExists(session,"password"&request.adminType) and StructKeyExists(cookie,'lucee_admin_pw_#ad#')>
+<cfif not StructKeyExists(session,"password"&request.adminType) and StructKeyExists(cookie,'lucee_admin_pw_#server.lucee.version#_#ad#')>
 	<cfset fromCookie=true>
     <cftry>
-		<cfset session["password"&ad]=cookie['lucee_admin_pw_#ad#']>
+		<cfset session["password"&ad]=cookie['lucee_admin_pw_#server.lucee.version#_#ad#']>
     	<cfcatch></cfcatch>
     </cftry>
 </cfif>

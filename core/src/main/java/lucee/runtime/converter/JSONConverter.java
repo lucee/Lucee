@@ -67,6 +67,7 @@ import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.dt.TimeSpan;
+import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.ComponentUtil;
@@ -635,19 +636,13 @@ public final class JSONConverter extends ConverterSupport {
 	}
 
 
-	private void _serializeTimeSpan(TimeSpan span, StringBuilder sb) {
-    	
-	        sb.append(goIn());
-		    sb.append("createTimeSpan(");
-		    sb.append(span.getDay());
-		    sb.append(',');
-		    sb.append(span.getHour());
-		    sb.append(',');
-		    sb.append(span.getMinute());
-		    sb.append(',');
-		    sb.append(span.getSecond());
-		    sb.append(')');
-		
+	private void _serializeTimeSpan(TimeSpan ts, StringBuilder sb) throws ConverterException {
+        sb.append(goIn());
+        try {
+			sb.append(ts.castToDoubleValue());
+		} catch (PageException e) {// should never happen because TimeSpanImpl does not throw an exception
+			throw new ConverterException(e.getMessage());
+		}
 	}
 
     /**

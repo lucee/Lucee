@@ -67,8 +67,8 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="services.update.location_customDesc">Lucee allows you to define your own update provider by simply defining the URL to the rest service providing the necessary data. Please consult the Lucee Documentation on {url} for more details on how to define a custom update provider</data>
 
 	<data key="services.update.lib">Update JAR's</data>
-
-		<data key="services.update.lib">Update JAR's</data>
+	<data key="services.update.downgradeVersion">To downgrade your version below {minVersion} you need to replace your lucee.jar with an older version one you can download {url}. This is because the luee.jars always bundles a version itself and it will always use at least that version.</data>
+	<data key="services.update.lib">Update JAR's</data>
 	<data key="services.update.libDesc">Ihre JAR's sind nicht mehr aktuell. Um Ihre JAR's auf den aktuellsten stand zu bringen, klicken sie bitte auf den folgenden Button. Das funktioniert unter Umständen nicht, wenn sie keine saubere Internetverbindung haben. Falls dies fehlschlägt holen Sie sich die aktiuellen JAR's von unserer Webseite und frischen Sie dies manuell auf. Dieses Update benötigt ein restart der kompletten Servlet Engine.</data>
 	<data key="services.certificate.desc">Liste SSL Zertifikate für einen bestimmten Host oder installiere diese.</data>
 	<data key="services.certificate.host">Host</data>

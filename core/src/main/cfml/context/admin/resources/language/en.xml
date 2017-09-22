@@ -33,7 +33,6 @@
 	<data key="services.update.remove">Remove installed patches</data>
 	<data key="services.update.exerun">execute update</data>
 	<data key="services.update.typedesc">Define how Lucee will be patched. &quot;Automatic&quot; means that Lucee searches automatically for updates once a day. &quot;Manual&quot; means that you can update Lucee only manually here.</data>
-
 	<data key="services.update.snapShot">SnapShots</data>
 	<data key="services.update.pre_Release">Pre-Releases</data>
 	<data key="services.update.release">Releases</data>
@@ -65,7 +64,7 @@
 	<data key="services.update.noUpdateDesc">There are currently no {type} available for your version.</data>
 	<data key="services.update.titleDesc">Upgrade (or Downgrade) your Lucee version ({version}) to any version * you like.</data>
 	<data key="services.update.titleDesc2">You cannot downgrade below {min-version} because your lucee.jar has bundled this version. To go below this version you need to replace your lucee.jar with an older version.</data>
-
+	<data key="services.update.downgradeVersion">To downgrade your version below {minVersion} you need to replace your lucee.jar with an older version one you can download {url}. This is because the luee.jars always bundles a version itself and it will always use at least that version.</data>
 	<data key="services.certificate.desc">List SSL Certificates for a specific Host or install them.</data>
 	<data key="services.certificate.host">Host</data>
 	<data key="services.certificate.hostDesc">The host server, for example "www.lucee.org"</data>
