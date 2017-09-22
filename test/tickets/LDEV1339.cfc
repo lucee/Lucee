@@ -17,7 +17,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					forms:{Scene=2}
 				);
 				var res=result.filecontent.trim();
-				expect(find("lineNumber: 1; columnNumber: 1",res)).toBe(true);
+				expect(find("lineNumber: 1; columnNumber: 1",res)>0).toBe(true);
 			});
 		});
 	}
