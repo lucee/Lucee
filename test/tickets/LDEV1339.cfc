@@ -16,10 +16,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					template:uri,
 					forms:{Scene=2}
 				);
-				expect(result.filecontent.trim()).toBe("javax.xml.transform.TransformerException: oracle.xml.parser.v2.XMLParseException; lineNumber: 1; columnNumber: 1; Start of root element expected.");
+				var res=result.filecontent.trim();
+				expect(find("lineNumber: 1; columnNumber: 1",res)).toBe(true);
 			});
 		});
 	}
+//javax.xml.transform.TransformerException: oracle.xml.parser.v2.XMLParseException; lineNumber: 1; columnNumber: 1; Start of [secure] element expected.
+//javax.xml.transform.TransformerException: org.xml.sax.SAXParseException;          lineNumber: 1; columnNumber: 1; Vorzeitiges Dateiende.]
+
+
 
 	// private Function//
 	private string function createURI(string calledName){
