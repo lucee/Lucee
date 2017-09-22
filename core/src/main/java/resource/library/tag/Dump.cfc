@@ -4,10 +4,11 @@ component {
 	variables.NEWLINE="
 ";
 	variables.TAB = chr(9);
-	variables.default={};
-	variables.default.browser="html";
-	variables.default.console="text";
-	variables.supportedFormats=["simple","text","html","classic", "javascript", "js"];
+	variables.default={
+		 browser : "html"
+		,console : "text"
+	};
+	variables.supportedFormats=["simple", "text", "html", "classic", "javascript", "js"];
 
 	// Meta data
 	this.metadata.hint="Outputs the elements, variables and values of most kinds of CFML objects. Useful for debugging. You can display the contents of simple and complex variables, objects, components, user-defined functions, and other elements.";
@@ -40,16 +41,14 @@ component {
 
 
 	/* ==================================================================================================
-	   INIT invoked after tag is constructed                                                            =
+	   INIT invoked after tag is constructed															=
 	================================================================================================== */
-	void function init(required boolean hasEndTag, component parent) {
-
-		if(server.lucee.version LT "3.1.1.011")
-			throw message="you need at least version [3.1.1.011] to execute this tag";
+	function init(required boolean hasEndTag, component parent) {
+		return this;
 	}
 
 	/* ==================================================================================================
-	   onStartTag                                                                                       =
+	   onStartTag																					   =
 	================================================================================================== */
 	boolean function onStartTag(required struct attributes, required struct caller) {
 		// inital settings
@@ -74,7 +73,7 @@ component {
 		var context = GetCurrentContext();
 		var contextLevel = structKeyExists(attrib,'contextLevel') ? attrib.contextLevel : 2;
 		contextLevel = min(contextLevel,arrayLen(context));
-		if ( contextLevel gt 0 ) {
+		if (contextLevel > 0) {
 			context = context[contextLevel].template & ":" &
 					context[contextLevel].line;
 		}
@@ -83,18 +82,18 @@ component {
 		}
 
 		// format
-		attrib['format'] = trim(attrib.format);
+		attrib.format = trim(attrib.format);
 
 		if(attrib.format == "js"){
 			attrib.format = "javascript";
 		}
 
-		if(len(attrib.format) EQ 0) {
-			if(attrib.output EQ "console")      attrib['format'] = variables.default.console;
-			else if(attrib.output EQ "browser") attrib['format'] = variables.default.browser;
-			else                                attrib['format'] = variables.default.console;
+		if(len(attrib.format) == 0) {
+			if(attrib.output == "console")	  attrib.format = variables.default.console;
+			else if(attrib.output == "browser") attrib.format = variables.default.browser;
+			else								attrib.format = variables.default.console;
 		}
-		else if( !arrayFindNoCase( variables.supportedFormats, attrib.format ) ) {
+		else if(!arrayFindNoCase(variables.supportedFormats, attrib.format)) {
 			throw message="format [#attrib.format#] is not supported, supported formats are [#arrayToList(variables.supportedFormats)#]";
 		}
 
@@ -107,41 +106,41 @@ component {
 		}
 
 
-		if ( attrib.async && ( attrib.output NEQ "browser" ) ) {
+		if (attrib.async && (attrib.output NEQ "browser")) {
 
 			thread name="dump-#createUUID()#" attrib="#attrib#" meta="#meta#" context="#context#" caller="#arguments.caller#" {
 
-				doOutput( attrib, meta, context, caller );
+				doOutput(attrib, meta, context, caller);
 			}
 		} else {
 
-			doOutput( attrib, meta, context, arguments.caller );
+			doOutput(attrib, meta, context, arguments.caller);
 		}
 
 
-		if( attrib.abort )
+		if (attrib.abort)
 			abort;
 
 		return true;
 	}
 
 
-	function doOutput( attrib, meta, context, caller  ) {
+	function doOutput(attrib, meta, context, caller ) {
 
 		var dumpID = createId();
 
-		var hasReference = structKeyExists( arguments.meta,'hasReference' ) && arguments.meta.hasReference;
-		var result = this[ arguments.attrib.format ]( arguments.meta, arguments.context, arguments.attrib.expand, arguments.attrib.output, hasReference, 0, dumpID );
+		var hasReference = structKeyExists(arguments.meta,'hasReference') && arguments.meta.hasReference;
+		var result = this[ arguments.attrib.format ](arguments.meta, arguments.context, arguments.attrib.expand, arguments.attrib.output, hasReference, 0, dumpID);
 
-		// sleep( 5000 );	// simulate long process to test async=true
-		
-		if (arguments.attrib.output EQ "browser") {
+		// sleep(5000);	// simulate long process to test async=true
+
+		if (arguments.attrib.output == "browser") {
 
 			echo(variables.NEWLINE & '<!-- ==start== dump #now()# format: #arguments.attrib.format# -->' & variables.NEWLINE);
 			echo('<div id="#dumpID#" class="-lucee-dump">#result#</div>' & variables.NEWLINE);
 			echo('<!-- ==stop== dump -->' & variables.NEWLINE);
 		}
-		else if (arguments.attrib.output EQ "console") {
+		else if (arguments.attrib.output == "console") {
 			systemOutput(result,true);
 		}
 		else {
@@ -151,9 +150,9 @@ component {
 
 
 	/* ==================================================================================================
-	   javascript                                                                                             =
+	   javascript																							 =
 	================================================================================================== */
-	any function javascript( required struct meta,
+	any function javascript(required struct meta,
 						  required string context,
 						  required string expand,
 						  required string output,
@@ -170,14 +169,12 @@ component {
 		var height = structKeyExists(arguments.meta,'height') ? arguments.meta.height : '';
 		var indent = repeatString(variables.TAB, arguments.level);
 
-
-
 			// Header
 			var variables.colorKeys={};
 			var head="";
-			if(arguments.level EQ 0){
+			if(arguments.level == 0){
 				var colors=arguments.meta.colors[arguments.meta.colorId];
-		
+
 				// javascript
 				head=('<script language="JavaScript" type="text/javascript">' & variables.NEWLINE);
 				head&=("function dumpOC(name){");
@@ -216,7 +213,7 @@ component {
 								head&='if(typeof(currDumpObj.META)!="undefined"){' & variables.NEWLINE;
 									// onclick start
 									head&='if(typeof(currDumpObj.META.ONCLICK) != "undefined"){' & variables.NEWLINE;
-										head&='titleTD.setAttribute("onclick", currDumpObj.META.ONCLICK );' & variables.NEWLINE;
+										head&='titleTD.setAttribute("onclick", currDumpObj.META.ONCLICK);' & variables.NEWLINE;
 									head&='}' & variables.NEWLINE;
 									// onclick end
 									head&='titleTD.colSpan=currDumpObj.META.COLSPAN;' & variables.NEWLINE;
@@ -272,7 +269,7 @@ component {
 							head&='if(typeof(currDumpObj.META)!="undefined"){' & variables.NEWLINE;
 								// onclick start
 								head&='if(typeof(currDumpObj.META.ONCLICK) != "undefined"){' & variables.NEWLINE;
-									head&='titleTD.setAttribute("onclick", currDumpObj.META.ONCLICK );' & variables.NEWLINE;
+									head&='titleTD.setAttribute("onclick", currDumpObj.META.ONCLICK);' & variables.NEWLINE;
 								head&='}' & variables.NEWLINE;
 								// onclick end
 								head&='titleTD.colSpan=currDumpObj.META.COLSPAN;' & variables.NEWLINE;
@@ -329,7 +326,7 @@ component {
 					head&="#prefix# td.luceeH#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.highLightColor#;}"& variables.NEWLINE;
 				}
 
-				
+
 				/*loop collection="#arguments.cssColors#" item="local.key" {
 					head&="td.#key# {background-color:#arguments.cssColors[key]#;}"& variables.NEWLINE;
 				}*/
@@ -364,7 +361,7 @@ component {
 				tempStruct.META.DATA[arguments.meta.data.currentRow].NODEID=len(id) ? id : '';
 				tempStruct.META.DATA[arguments.meta.data.currentRow].HIDDEN=!arguments.expand && len(id) ? true : false;
 				tempStruct.META.DATA[arguments.meta.data.currentRow].NODEDATA=[];
-				for(var col=1; col LTE columnCount-1; col++){
+				for(var col=1; col <= columnCount-1; col++){
 					var node = arguments.meta.data["data" & col];
 					tempStruct.META.DATA[arguments.meta.data.currentRow].NODEDATA[col].CLASS="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#";
 					if(isStruct(node)){
@@ -391,10 +388,11 @@ component {
 		}
 	}
 
+
 	/* ==================================================================================================
-	   html                                                                                             =
+	   html																							 =
 	================================================================================================== */
-	string function html( required struct meta,
+	string function html(required struct meta,
 						  required string context,
 						  required string expand,
 						  required string output,
@@ -402,7 +400,8 @@ component {
 						  required string level ,
 						  required string dumpID,
 						  struct cssColors={}) {
-		var NEWLINE=variables.NEWLINE;
+
+		var NL = variables.NEWLINE;
 		var id = createId();
 		var rtn = "";
 		var columnCount = structKeyExists(arguments.meta,'data') ? listLen(arguments.meta.data.columnlist) : 0;
@@ -411,111 +410,157 @@ component {
 		var height = structKeyExists(arguments.meta,'height') ? ' height="' & arguments.meta.height & '"' : '';
 		var indent = repeatString(variables.TAB, arguments.level);
 
-			// Header
-			var variables.colorKeys={};
-			var head="";
-			if(arguments.level EQ 0){
-				var colors=arguments.meta.colors[arguments.meta.colorId];
+		// Header
+		var variables.colorKeys={};
+		var head="";
 
-				// javascript
-				head=('<script language="JavaScript" type="text/javascript">' & variables.NEWLINE);
-				head&=("function dumpOC(name){");
-				head&=("var tds=document.all?document.getElementsByTagName('tr'):document.getElementsByName(name);");
-				head&=("var s=null;");
-				head&=("name=name;");
-				head&=("for(var i=0;i<tds.length;i++) {");
-				head&=("if(document.all && tds[i].name!=name)continue;");
-				head&=("s=tds[i].style;");
-				head&=("if(s.display=='none') s.display='';");
-				head&=("else s.display='none';");
-				head&=("}");
-				head&=("}"& variables.NEWLINE);
-				head&=("</script>" & variables.NEWLINE);
+		if (arguments.level == 0){
 
-				// styles
-				var prefix="div###arguments.dumpID#";
-				head&=('<style type="text/css">' & variables.NEWLINE);
-				head&=('#prefix# table {font-family:Verdana, Geneva, Arial, Helvetica, sans-serif; font-size:11px; empty-cells:show; color:#colors.fontColor#; border-collapse:collapse;}' & variables.NEWLINE);
-				head&=('#prefix# td {border:1px solid #colors.borderColor#; vertical-align:top; padding:2px; empty-cells:show;}' & variables.NEWLINE);
-				head&=('#prefix# td span {font-weight:bold;}' & variables.NEWLINE);
-				var count=0;
-				loop struct="#arguments.meta.colors#" index="local.k" item="local.v" {
-					variables.colorKeys[k]=count++;
-					var bc=darkenColor(darkenColor(v.highLightColor));
-					var fc=(bc);
-					head&="#prefix# td.luceeN#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.normalColor#;}"& variables.NEWLINE;
-					head&="#prefix# td.luceeH#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.highLightColor#;}"& variables.NEWLINE;
-				}
+			var colors = arguments.meta.colors[arguments.meta.colorId];
 
-
-				/*loop collection="#arguments.cssColors#" item="local.key" {
-					head&="td.#key# {background-color:#arguments.cssColors[key]#;}"& variables.NEWLINE;
-				}*/
-				head&=('</style>' & variables.NEWLINE);
-
+htmlbody id="__Lucee_dump" {
+	echo('
+<style>
+	.-lucee-dump .disp-none { display: none; }
+</style>
+<script>
+window.__Lucee = {
+	 initialized	   : false
+	,addEventListeners : function(selector, event, handler, useCapture){
+		useCapture = useCapture || false;
+		Array.prototype.forEach.call(
+			 document.querySelectorAll(selector)
+			,function(el, ix) {
+			  el.addEventListener(event, handler, useCapture);
 			}
-
-
-
-			rtn&=('<table#width##height##title#>' );
-
-			// title
-			if(structKeyExists(arguments.meta, 'title')){
-				var metaID = arguments.hasReference && structKeyExists(arguments.meta,'id') ? ' [#arguments.meta.id#]' : '';
-				var comment = structKeyExists(arguments.meta,'comment') ? "<br />" & (left(arguments.meta.comment,4)=="<img"?arguments.meta.comment:replace(HTMLEditFormat(arguments.meta.comment),chr(10),' <br>','all')) : '';
-
-				rtn&=('<tr>');
-				rtn&=('<td class="luceeH#variables.colorKeys[arguments.meta.colorId]#" onclick="dumpOC(''#id#'');" colspan="#columnCount#" style="cursor:pointer;">');
-				rtn&=('<span>#arguments.meta.title##metaID#</span>');
-				rtn&=(comment & '</td>');
-				rtn&=('</tr>');
-			}
-			else {
-				id = "";
-			}
-
-
-			// data
-			if(columnCount) {
-				loop query="arguments.meta.data" {
-					var c = 1;
-					var nodeID = len(id) ? ' name="#id#"' : '';
-					var hidden = !arguments.expand && len(id) ? ' style="display:none"' : '';
-
-					rtn&=('<tr#nodeID##hidden#>');
-
-					for(var col=1; col LTE columnCount-1; col++) {
-						var node = arguments.meta.data["data" & col];
-
-						if(isStruct(node)) {
-							var value = this.html(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level+1,arguments.dumpID,arguments.cssColors);
-
-							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">');
-							rtn&=(value);
-							rtn&=('</td>');
-						}
-						else {
-							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>' );
-						}
-						c *= 2;
-					}
-					rtn&=('</tr>');
-				}
-			}
-			rtn&=('</table>');
-
-		return head&rtn;
+		);
 	}
+	,getNextSiblings   : function(el){
+		var  orig = el
+			,result = [];
+		while (el && el.nodeType === Node.ELEMENT_NODE) {
+			if (el !== orig)
+				result.push(el);
+			el = el.nextElementSibling || el.nextSibling;
+		}
+		return result;
+	}
+	,onDocumentReady		   : function(){
+		var L = window.__Lucee;
+		if (L.initialized)
+			return;
+		L.addEventListeners(".collapse-trigger", "click", function(evt){
+			var tr = evt.target.closest("tr");
+			var siblings = L.getNextSiblings(tr);
+			siblings.forEach(function(el, ix){
+				el.classList.toggle("disp-none");
+			});
+			console.log(tr, siblings);
+		});
+		L.initialized = true;
+	}
+}
+
+document.addEventListener("DOMContentLoaded", __Lucee.onDocumentReady);
+</script>
+');
+}
+
+			// styles
+			var prefix="div###arguments.dumpID#";
+			head&=('<style type="text/css">' & NL);
+			head&=('#prefix# table {font-family:Verdana, Geneva, Arial, Helvetica, sans-serif; font-size:11px; empty-cells:show; color:#colors.fontColor#; border-collapse:collapse;}' & NL);
+			head&=('#prefix# td {border:1px solid #colors.borderColor#; vertical-align:top; padding:2px; empty-cells:show;}' & NL);
+			head&=('#prefix# td span {font-weight:bold;}' & NL);
+			var count=0;
+			loop struct="#arguments.meta.colors#" index="local.k" item="local.v" {
+				variables.colorKeys[k]=count++;
+				var bc=darkenColor(darkenColor(v.highLightColor));
+				var fc=(bc);
+				head&="#prefix# td.luceeN#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.normalColor#;}"& NL;
+				head&="#prefix# td.luceeH#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.highLightColor#;}"& NL;
+			}
+
+
+			/*loop collection="#arguments.cssColors#" item="local.key" {
+				head&="td.#key# {background-color:#arguments.cssColors[key]#;}"& NL;
+			}*/
+			head&=('</style>' & NL);
+
+		}
+
+		var rows = [];
+		arrayAppend(rows, '<table#width##height##title#>');
+
+		if (structKeyExists(arguments.meta, 'title')){
+
+			var metaID = arguments.hasReference && structKeyExists(arguments.meta, "id") ? " [#arguments.meta.id#]" : "";
+			var comment = structKeyExists(arguments.meta, "comment") ?
+				"<br>" & (left(arguments.meta.comment, 4) == "<img" ?
+					arguments.meta.comment : replace(HTMLEditFormat(arguments.meta.comment), chr(10), " <br>", "all"))
+				: '';
+
+			arrayAppend(rows, '<tr>');
+			arrayAppend(rows, '<td class="collapse-trigger luceeH#variables.colorKeys[arguments.meta.colorId]#" colspan="#columnCount#" style="cursor:pointer;">');
+
+			arrayAppend(rows, '<span>#arguments.meta.title##metaID#</span>');
+			arrayAppend(rows, comment & '</td>');
+			arrayAppend(rows, '</tr>');
+		}
+		else {
+			id = "";
+		}
+
+		// data
+		if (columnCount) {
+
+			loop query=arguments.meta.data {
+				var c = 1;
+				// var nodeID = len(id) ? ' name="#id#"' : '';
+				var hidden = !arguments.expand && len(id) ? ' style="display:none"' : '';
+
+				// arrayAppend(rows, '<tr#nodeID##hidden#>');
+				arrayAppend(rows, '<tr#hidden#>');
+
+				for (var col=1; col <= columnCount-1; col++) {
+					var node = arguments.meta.data["data" & col];
+
+					if (isStruct(node)) {
+
+						var value = this.html(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level + 1,arguments.dumpID, arguments.cssColors);
+
+						arrayAppend(rows, '<td class="#doHighlight(arguments.meta, c) ? 'luceeH' : 'luceeN'##variables.colorKeys[arguments.meta.colorId]#">');
+						arrayAppend(rows, value);
+						arrayAppend(rows, '</td>');
+					}
+					else {
+
+						arrayAppend(rows, '<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>');
+					}
+
+					c *= 2;
+				}
+
+				arrayAppend(rows, '</tr>');
+			}
+		}
+
+		arrayAppend(rows, '</table>');
+
+		return head & arrayToList(rows, "");
+	}
+
+
 	/* ==================================================================================================
-	   classic                                                                                          =
+	   classic																						  =
 	================================================================================================== */
-	string function classic( required struct meta,
+	string function classic(required struct meta,
 							 string context = "",
 							 string expand = "",
 							 string output = "",
 							 string hasReference = false,
 							 string level = 0,
-							 string dumpID = "" ) {
+							 string dumpID = "") {
 
 		var id =  createId();
 		var rtn = "";
@@ -526,42 +571,42 @@ component {
 		var indent = repeatString(variables.TAB, arguments.level);
 
 		// define colors
-		if(arguments.level EQ 0){
+		if(arguments.level == 0){
 				variables.colors=arguments.meta.colors[arguments.meta.colorId];
 		}
-		var borderColor = darkenColor( colors.highLightColor );
+		var borderColor = darkenColor(colors.highLightColor);
 		//_dump(borderColor&"-"&colors.highLightColor);
 		var normalColor = "white";
 
 
-			if(arguments.level EQ 0){
+			if(arguments.level == 0){
 				// javascript
 				rtn&=('<script language="JavaScript" type="text/javascript">' & variables.NEWLINE);
 				rtn&=("function dumpOC(name){");
-				rtn&=("var tds=document.all?document.getElementsByTagName('tr'):document.getElementsByName(name);" );
+				rtn&=("var tds=document.all?document.getElementsByTagName('tr'):document.getElementsByName(name);");
 				rtn&=("var s=null;");
 				rtn&=("name=name;");
-				rtn&=("for(var i=0;i<tds.length;i++) {" );
+				rtn&=("for(var i=0;i<tds.length;i++) {");
 				rtn&=("if(document.all && tds[i].name!=name)continue;");
 				rtn&=("s=tds[i].style;" & variables.NEWLINE);
 				rtn&=("if(s.display=='none') s.display='';");
 				rtn&=("else s.display='none';");
-				rtn&=("}" );
+				rtn&=("}");
 				rtn&=("}" & variables.NEWLINE);
 				rtn&=("</script>" & variables.NEWLINE);
 
 				// styles
 				var prefix="div###arguments.dumpID#";
 				rtn&=('<style type="text/css">' & variables.NEWLINE);
-				rtn&=( '#prefix# table {font-family:Verdana, Geneva, Arial, Helvetica, sans-serif; font-size:11px; empty-cells:show; color:#colors.fontColor#; border: 2px solid black; border-collapse:collapse;}' & variables.NEWLINE);
-				rtn&=( '#prefix# td {border:2px solid black; vertical-align:top; padding:2px; empty-cells:show;}' & variables.NEWLINE);
+				rtn&=('#prefix# table {font-family:Verdana, Geneva, Arial, Helvetica, sans-serif; font-size:11px; empty-cells:show; color:#colors.fontColor#; border: 2px solid black; border-collapse:collapse;}' & variables.NEWLINE);
+				rtn&=('#prefix# td {border:2px solid black; vertical-align:top; padding:2px; empty-cells:show;}' & variables.NEWLINE);
 				rtn&=('#prefix# td span {font-weight:bold;}' & variables.NEWLINE);
-				
+
 				var count=0;
 				loop struct="#arguments.meta.colors#" index="local.k" item="local.v" {
 					var h1Color = darkenColor(v.highLightColor);
 					var h2Color = (v.normalColor);
-					var borderColor = darkenColor( darkenColor( v.highLightColor ));
+					var borderColor = darkenColor(darkenColor(v.highLightColor));
 					variables.colorKeys[k]=count++;
 					rtn&="#prefix# td.luceeN#variables.colorKeys[k]# {background-color:white;border-color:#borderColor#; color:black;cursor:pointer;}"& variables.NEWLINE;
 					rtn&="#prefix# td.luceeH1#variables.colorKeys[k]# {background-color:#h1Color#;border-color:#borderColor#; color:white;cursor:pointer;}"& variables.NEWLINE;
@@ -598,7 +643,7 @@ component {
 
 					rtn&=('<tr#nodeID##hidden#>');
 
-					for(var col=1; col LTE columnCount-1; col++) {
+					for(var col=1; col <= columnCount-1; col++) {
 						var node = arguments.meta.data["data" & col];
 
 						if(isStruct(node)) {
@@ -606,7 +651,7 @@ component {
 
 							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH2':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">');
 							rtn&=(value);
-							rtn&=( '</td>');
+							rtn&=('</td>');
 						}
 						else {
 							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH2':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>');
@@ -622,14 +667,14 @@ component {
 	}
 
 	/* ==================================================================================================
-	   simple                                                                                           =
+	   simple																						   =
 	================================================================================================== */
-	string function simple( required struct meta,
+	string function simple(required struct meta,
 							string context = "",
 							string expand = "",
 							string output = "",
 							string hasReference = false,
-							string level = 0 ) {
+							string level = 0) {
 
 		var rtn = "";
 		var col = 0;
@@ -639,10 +684,10 @@ component {
 		var indent = repeatString(variables.TAB, arguments.level);
 
 		// define colors
-		if(arguments.level EQ 0){
+		if(arguments.level == 0){
 				variables.colors=arguments.meta.colors[arguments.meta.colorId];
 		}
-			rtn&=( '<table cellpadding="1" cellspacing="0" border="1" title="#arguments.context#"#width##height#>');
+			rtn&=('<table cellpadding="1" cellspacing="0" border="1" title="#arguments.context#"#width##height#>');
 
 			// title
 			if(structKeyExists(arguments.meta, 'title')){
@@ -664,13 +709,13 @@ component {
 
 					rtn&=('<tr>');
 
-					for(col=1; col LTE columnCount-1; col++) {
+					for(col=1; col <= columnCount-1; col++) {
 						var node = arguments.meta.data["data" & col];
 
 						if(isStruct(node)) {
 							var value = this.simple(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level+1);
 
-							rtn&=('<td bgcolor="#doHighlight(arguments.meta,c)?variables.colors.highLightColor:variables.colors.normalColor#">' );
+							rtn&=('<td bgcolor="#doHighlight(arguments.meta,c)?variables.colors.highLightColor:variables.colors.normalColor#">');
 							rtn&=(value);
 							rtn&=('</td>');
 						}
@@ -688,19 +733,19 @@ component {
 	}
 
 	/* ==================================================================================================
-	   text                                                                                             =
+	   text																							 =
 	================================================================================================== */
-	string function text( required struct meta,
+	string function text(required struct meta,
 						  string context = "",
 						  string expand = "",
 						  string output = "",
 						  string hasReference = false,
 						  string level = 0,
-						  string parentIndent = "" ) {
+						  string parentIndent = "") {
 
 		var rtn = "";
 		var dataCount = structKeyExists(arguments.meta,'data') ? listLen(arguments.meta.data.columnlist) - 1 : 0;
-		var indent = repeatString("    ", arguments.level);
+		var indent = repeatString("	", arguments.level);
 		var type = structKeyExists(arguments.meta,'type') ? arguments.meta.type : '';
 
 		// title
@@ -712,32 +757,32 @@ component {
 		}
 
 		// data
-		if(dataCount GT 0) {
+		if(dataCount > 0) {
 			var qRecords = arguments.meta.data;
 
 			loop query="qRecords" {
 				var needNewLine = true;
 
-				for(var x=1; x LTE dataCount; x++) {
+				for(var x=1; x <= dataCount; x++) {
 					var node = qRecords["data" & x];
 
-					if(type EQ "udf") {
+					if(type == "udf") {
 						if(needNewLine) {
 							rtn &= variables.NEWLINE & arguments.parentIndent;
-							rtn &= len(trim(node)) EQ 0 ? "[blank] " : node & " ";
+							rtn &= len(trim(node)) == 0 ? "[blank] " : node & " ";
 							needNewLine = false;
 						}
 						else {
-							rtn &= len(trim(node)) EQ 0 ? "[blank] " : node & " ";
+							rtn &= len(trim(node)) == 0 ? "[blank] " : node & " ";
 						}
 					}
 					else if(isStruct(node)) {
 						rtn &= this.text(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level+1, indent) & variables.NEWLINE;
 					}
-					else if(len(trim(node)) GT 0) {
+					else if(len(trim(node)) > 0) {
 						var test = asc(right(rtn, 1));
 
-						if( test EQ 10 || test EQ 13) {
+						if(test == 10 || test == 13) {
 							rtn &= node & " ";
 						}
 						else {
@@ -749,7 +794,7 @@ component {
 				}
 			}
 		}
-		if(arguments.output NEQ "console" && arguments.level EQ 0) {
+		if(arguments.output NEQ "console" && arguments.level == 0) {
 			return "<pre>" & rtn & "</pre>";
 		}
 
@@ -757,21 +802,22 @@ component {
 	}
 
 	/* ==================================================================================================
-	   helper functions                                                                                 =
+	   helper functions																				 =
 	================================================================================================== */
-	boolean function doHighlight( required struct meta, required numeric c) {
+	boolean function doHighlight(required struct meta, required numeric c) {
 
-		
+
 		// all highlight
-		if(arguments.meta.data.highlight EQ -1) return true;
+		if(arguments.meta.data.highlight == -1) return true;
 		// none highlight
-		else if(arguments.meta.data.highlight EQ 0) return false;
-		
+		else if(arguments.meta.data.highlight == 0) return false;
+
 		return bitand(arguments.meta.data.highlight, arguments.c)==true;
 	}
 
+
 	string function createId(){
-		return  "x"&(server.lucee.version GTE "3.3.0.010"?createUniqueId():hash(createUUID()));
+		return  "x" & createUniqueId();
 	}
 
 
@@ -787,21 +833,21 @@ component {
 
 
 	/** darkens a hex color */
-	function darkenColor( color, delta=3 ) {
+	function darkenColor(color, delta=3) {
 
-		if ( (len( arguments.color ) != 7 && len( arguments.color ) != 4) || left( arguments.color, 1 ) != '##' )
+		if ((len(arguments.color) != 7 && len(arguments.color) != 4) || left(arguments.color, 1) != '##')
 			return arguments.color;
 
-		if(len( arguments.color ) ==4) {
+		if(len(arguments.color) ==4) {
 			arguments.color="##"&arguments.color[2]&arguments.color[2]&arguments.color[3]&arguments.color[3]&arguments.color[4]&arguments.color[4];
 		}
 		var result = "##";
 
-		for ( var i=2; i<=7; i++ ) {
+		for (var i=2; i<=7; i++) {
 
-			var ch = inputBaseN( mid( arguments.color, i, 1 ), 16 );
-			ch = max( 0, ch - arguments.delta );
-			result &= formatBaseN( ch, 16 );
+			var ch = inputBaseN(mid(arguments.color, i, 1), 16);
+			ch = max(0, ch - arguments.delta);
+			result &= formatBaseN(ch, 16);
 		}
 
 		return result;
@@ -809,18 +855,18 @@ component {
 
 
 	/** brightens a hex color */
-	function brightenColor( color, delta=3 ) {
+	function brightenColor(color, delta=3) {
 
-		if ( len( arguments.color ) != 7 || left( arguments.color, 1 ) != '##' )
+		if (len(arguments.color) != 7 || left(arguments.color, 1) != '##')
 			return arguments.color;
 
 		var result = "##";
 
-		for ( var i=2; i<=7; i++ ) {
+		for (var i=2; i<=7; i++) {
 
-			var ch = inputBaseN( mid( arguments.color, i, 1 ), 16 );
-			ch = min( 15, ch + arguments.delta );
-			result &= formatBaseN( ch, 16 );
+			var ch = inputBaseN(mid(arguments.color, i, 1), 16);
+			ch = min(15, ch + arguments.delta);
+			result &= formatBaseN(ch, 16);
 		}
 
 		return result;
