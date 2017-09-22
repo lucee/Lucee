@@ -42,6 +42,9 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="services.update.alertMessage">Currently no update available for your version</data>
 	<data key="services.update.snapShotDesc">Snapshots are generated automatically with every push to the repository, when all bundled test cases pass successfully. Snapshots are NOT recommended for production environments.</data>
 	<data key="services.update.pre_ReleaseDesc">Pre releases a preview on upcoming releases. This version are in testing to get releases as soon they pass the testing process.</data>
+	<data key="services.update.short.release">Releases</data>
+	<data key="services.update.short.pre_release">Pre Releases</data>
+	<data key="services.update.short.snapshot">Snapshots</data>
 	<data key="services.update.releaseDesc">Releases are heavily tested and are recommended for production environments.</data>
 	<data key="services.update.titleDesc">Upgrade or Downgrade snapshots and a release available for your current version {version}</data>
 	<data key="services.update.provider">Update Provider</data>
@@ -312,6 +315,8 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="ext.uninstallmethodexception">Die Applikation kann nicht deinstalliert werden, da sie folgende Fehlermeldung wirft [{message}]. Bitte deinstallieren sie die Applikation manuell.</data>
 	<data key="ext.appprice">Preis</data>
 	<data key="ext.category">Kategorie</data>
+	<data key="ext.noUpdateDesc">There are currently no {type} extensions available for your version.</data>
+	<data key="ext.detail.noUpdateDesc">There are currently no {type} version available for this extension.</data>
 	<data key="ext.uninstalldone">Deinstallation komplett</data>
 	<data key="ext.availableversion">Verfügbare Version</data>
 	<data key="ext.provider">Provider</data>
