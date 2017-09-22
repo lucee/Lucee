@@ -125,43 +125,90 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 			</ul>
 			<div class="clear"></div>
 		</cfformClassic>
-	</div>
+	</div><br>
 </cfoutput>
+	<cfset existingIds = structKeyList(existing)>
+	<cfquery name="unInstalledExt" dbtype="query">
+		Select * from external where 1=1
+		<cfif ListLen(existingIds)>
+			AND id not in (<cfqueryparam value="#existingIds#" list="true">)
+		</cfif>
+	</cfquery>
+	<cfset VersionStr = {}>
+	<cfquery dbtype="query" name="VersionStr.Pre_Release">
+		Select * from unInstalledExt where version LIKE '%ALPHA%' OR version LIKE '%BETA%' OR version LIKE '%RC%'
+	</cfquery>
+	<cfquery dbtype="query" name="VersionStr.SnapShot">
+		Select * from unInstalledExt where version LIKE '%SnapShot%'
+	</cfquery>
+	<cfset id = "">
+	<cfif VersionStr.Pre_Release.recordcount>
+		<cfset id = ListAppend(id,valueList(VersionStr.Pre_Release.id))>
+	</cfif>
+	<cfif VersionStr.SnapShot.recordcount>
+		<cfset id = ListAppend(id,valueList(VersionStr.SnapShot.id))>
+	</cfif>
+	<cfquery dbtype="query" name="VersionStr.release">
+		Select * from unInstalledExt where 1=1
+		<cfif ListLen(id)>
+			AND id not in (<cfqueryparam value="#id#" list="true">)
+		</cfif>
+	</cfquery>
+<cfoutput>
 
-<cfif isQuery(external)>
-	<div class="extensionlist">
-		<cfoutput query="#external#" group="id">
-			<cfif !StructKeyExists(existing,external.id)
-			and (isnull(external.releaseType) 
-				or external.releaseType EQ "" 
-				or external.releaseType EQ "all" 
-				or external.releaseType EQ request.adminType
-			) 
-			and (
-				session.extFilter.filter2 eq ""
-				or doFilter(session.extFilter.filter2,external.name,false)
-				or doFilter(session.extFilter.filter2,external.category,false)
-				or doFilter(session.extFilter.filter2,info.title?:'',false)
-			)
-			>
-			
-				<cfset link="#request.self#?action=#url.action#&action2=detail&id=#external.id#">
-				<cfset dn=getDumpNail(external.image,130,50)>
-				<div class="extensionthumb">
-					<a href="#link#" title="#stText.ext.viewdetails#">
-						<div class="extimg">
-							<cfif len(dn)>
+ <cfif isQuery(external)>
+	<cfset hiddenFormContents = "" >
+	<cfset count = 1>
+	<cfloop list="Release,Pre_Release,SnapShot" index="key">
+		<span><input <cfif count EQ 1>
+		class="bl button" <cfelseif count EQ 3> class="br button" <cfelse> class="bm button" </cfif>  name="changeConnection" id="btn_#UcFirst(Lcase(key))#" value="#stText.services.update.short[key]# (#versionStr[key].RecordCount#)" onclick="enableVersion('#UcFirst(Lcase(key))#');"  type="button"></span>
+		<cfsavecontent variable="tmpContent">
+			<div id="div_#UcFirst(Lcase(key))#" class="topBottomSpace">
+				<cfif versionStr[key].RecordCount>
+					<cfloop query="#versionStr[key]#" group="id">
+						<cfif !StructKeyExists(existing,versionStr[key].id)
+						and (isnull(external.releaseType) 
+							or versionStr[key].releaseType EQ "" 
+							or versionStr[key].releaseType EQ "all" 
+							or versionStr[key].releaseType EQ request.adminType
+						) 
+						and (
+							session.extFilter.filter2 eq ""
+							or doFilter(session.extFilter.filter2,versionStr[key].name,false)
+							or doFilter(session.extFilter.filter2,versionStr[key].category,false)
+							or doFilter(session.extFilter.filter2,info.title?:'',false)
+						)
+						>
+								<cfset link="#request.self#?action=#url.action#&action2=detail&id=#versionStr[key].id#">
+								<cfset dn=getDumpNail(versionStr[key].image,130,50)>
+								<div class="extensionthumb">
+									<a href="#link#" title="#stText.ext.viewdetails#">
+										<div class="extimg">
+											<cfif len(dn)>
 
-								<img src="#dn#" alt="#stText.ext.extThumbnail#" />
+												<img src="#dn#" alt="#stText.ext.extThumbnail#" />
+											</cfif>
+										</div>
+										<b title="#versionStr[key].name#">#cut(versionStr[key].name,30)#</b><br />
+										<!------>
+										<cfif structKeyExists(versionStr[key],"price") and versionStr[key].price GT 0>#versionStr[key].price# <cfif structKeyExists(versionStr[key],"currency")>#versionStr[key].currency#<cfelse>USD</cfif><cfelse>#stText.ext.free#</cfif>
+									</a>
+								</div>
 							</cfif>
-						</div>
-						<b title="#external.name#">#cut(external.name,30)#</b><br />
-						<!------>
-						<cfif isDefined("external.price") and external.price GT 0>#external.price# <cfif structKeyExists(external,"currency")>#external.currency#<cfelse>USD</cfif><cfelse>#stText.ext.free#</cfif>
-					</a>
-				</div>
-			</cfif>
-		</cfoutput>
+					</cfloop>
+				<cfelse>
+					<div>
+						#replace(stText.ext.noUpdateDesc,"{type}","<b>#stText.services.update.short[key]#</b>")#
+					</div>
+				</cfif>
+			</div>
+			</cfsavecontent>
+			<cfset hiddenFormContents &= tmpContent>
+			<cfset count = count+1>
+	</cfloop>
+
+	<div id="extList" class="extensionlist">
+		#hiddenFormContents#
 		<div class="clear"></div>
 	</div>
 	
@@ -170,7 +217,7 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 
 
 <!--- upload own extension --->
-<cfoutput>
+
 	<h2>#stText.ext.uploadExtension#</h2>
 	<div class="itemintro">#stText.ext.uploadExtensionDesc#</div>
 	<cfif structKeyExists(url, 'noextfile')>
@@ -202,4 +249,32 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 			</tfoot>
 		</table>
 	</cfformClassic>
+
+<cfhtmlbody>
+<script type="text/javascript">
+	$(document).ready(function(){
+		var version = 'Release';
+		enableVersion(version);
+		$("##btn_"+version).addClass("btn");
+	});
+
+	function enableVersion(v){
+		$("##extList").find('div').each(function(index) {
+			var xx = $(this).attr('id');
+			$('##'+xx).show();
+			if("div_"+v != xx){
+				$('##'+xx).hide();
+			}
+			});
+  		$(".btn").removeClass('btn');
+  		$("##btn_"+v).addClass("btn");
+	}
+	</script>
+	<style>
+		.btn {
+			color:white;
+			background-color:##CC0000;
+		}
+	</style>
+	</cfhtmlbody>
 </cfoutput>
