@@ -157,7 +157,7 @@ public abstract class HtmlHeadBodyBase extends BodyTagTryCatchFinallyImpl {
 
 		boolean result = !m.containsKey(id);
 
-		if (!result)
+		if (result)
 			m.put(id, Boolean.TRUE);
 
 		return result;
