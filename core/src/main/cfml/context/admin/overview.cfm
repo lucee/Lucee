@@ -62,46 +62,6 @@ Redirtect to entry --->
 Error Output --->
 <cfset printError(error)>
 
-<cfset stText.setting.info="System Metrics">
-
-<cfset stText.setting.memory="Memory">
-<cfset stText.setting.memoryDesc="Memory used by the JVM, heap and non heap.">
-<cfset stText.setting.request="Request/Threads">
-<cfset stText.setting.requestDesc="Request and threads (started by &lt;cfthread>) currently running on the system.">
-
-<cfset stText.setting.req="Requests">
-<cfset stText.setting.reqDesc="Web requests running at the moment.">
-<cfset stText.setting.queued="Queued Requests">
-<cfset stText.setting.queuedDesc="Request in queued waiting to execute.">
-<cfset stText.setting.thread="Threads">
-<cfset stText.setting.threadDesc="Threads (started by &lt;cfthread>) currently running.">
-
-<cfset stText.setting.scopes="Scopes in Memory">
-<cfset stText.setting.scopesDesc="Scopes actually hold in Memory (a Scope not necessary is kept in Memory for it's hole life time).">
-<cfset stText.setting.scopeSession="Session">
-<cfset stText.setting.scopeApplication="Application">
-<cfset stText.setting.scopeClient="Client">
-
-<cfset stText.setting.cpu="CPU">
-<cfset stText.setting.cpuDesc="Average CPU load of the last 20 seconds on the whole system and this Java Virtual Machine (Lucee Process).">
-<cfset stText.setting.cpuProcess="Lucee Process">
-<cfset stText.setting.cpuSystem="Whole System">
-
-
-
-<cfset stText.setting.datasource="Datasource Connections">
-<cfset stText.setting.datasourceDesc="Datasource Connection open at the Moment.">
-<cfset stText.setting.task="Task Spooler">
-<cfset stText.setting.taskDesc="Active and closed tasks in Task Spooler. This includes for exampe tasks to send mails.">
-<cfset stText.setting.taskOpen="Open">
-<cfset stText.setting.taskClose="Close">
-
-
-				<cfset stText.Overview.resources="External Resources">
-				<cfset stText.Overview.onlineDocsDesc="Lucee online documentation.">
-				<cfset stText.Overview.localRefDesc="Local reference for tags, functions and components.">
-
-
 <cfset pool['HEAP']="Heap">
 <cfset pool['NON_HEAP']="Non-Heap">
 

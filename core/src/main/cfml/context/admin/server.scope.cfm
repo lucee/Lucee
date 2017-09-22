@@ -389,8 +389,6 @@ Error Output --->
 					</td>
 				</tr>
 				
-				<cfset stText.Scopes.SessionStorage="Session Storage">
-				<cfset stText.Scopes.ClientStorage="Client Storage">
 				<cfset stText.Scopes.SessionStorageDesc="Default Storage for Session, possible values are:<br>
 						- memory: the data are only in the memory, so in fact no persistent storage<br>
 						- file: the data are stored in the local filesystem<br>
@@ -409,9 +407,6 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.Scopes.sessionStorage#</th>
 					<td>
-						<cfset stText.Scopes.memory="memory">
-						<cfset stText.Scopes.file="file">
-						<cfset stText.Scopes.cookie="cookie">
 						<cfset datasources=getPageContext().getConfig().getDatasources()>
 						<cfset cacheConnections = getPageContext().getConfig().getCacheConnections().keySet().toArray()>
 						<select name="sessionStorage" class="medium">

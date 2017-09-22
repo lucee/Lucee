@@ -1,5 +1,4 @@
 <cfscript>
-stText.Settings.noDriver="There is no driver available for this type, please install a matching Extension for this type.";
 
 error.message="";
 error.detail="";

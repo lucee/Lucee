@@ -5,9 +5,6 @@
 	NL="
 ";
 
-stText.doc.attr.values="the following values are supported:
-<values>";
-stText.doc.attr.default="Default Value";
 
 	function formatDesc(required attr ){
 		var arr=listToArray(trim(attr.description),NL);

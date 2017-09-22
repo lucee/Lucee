@@ -1,8 +1,6 @@
 <cfparam name="url.func" default="">
 <cfparam name="url.keyword" default="">
 
-<cfset stText.doc.filterByKeyword="Filter by Keyword">
-<cfset stText.doc.attr.default="Default Value">
 <cfset funcList=getFunctionList()>
 <cfset keywords=getFunctionKeywords()>
 

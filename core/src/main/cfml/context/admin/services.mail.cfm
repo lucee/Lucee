@@ -1,15 +1,3 @@
-<cfset stText.mail.LogFileDesc="Destination file where the log information get stored.">
-<cfset stText.mail.LogLevelDesc="Log level used for the log file.">
-<cfset stText.mail.SpoolEnabledDesc="If enabled the mails are sent in a background thread and the main request does not have to wait until the mails are sent.">
-<cfset stText.mail.maxThreads="Maximum concurrent threads">
-<cfset stText.mail.maxThreadsDesc="This setting can be changed on page ""Services/Taks"". Maximum number of threads that are executed at the same time to send the mails, fewer threads will take longer to send all the mail, more threads will add more load to the system.">
-<cfset stText.mail.TimeoutDesc="Time in seconds that the Task Manager waits to send a single mail, when the time is reached the Task Manager stops the thread and the mail gets moved to unsent folder, where the Task Manager will pick it up later to try to send it again.">
-<cfset stText.mail.seconds="Seconds">
-
-
-
-
-
 <!--- 
 Defaults --->
 <cfparam name="form.mainAction" default="none">
