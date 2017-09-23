@@ -327,7 +327,7 @@
 										<cfif pages.avg LT arguments.custom.minimal * 1000>
 											<cfcontinue>
 										</cfif>
-										<cfset bad=pages.avg GTE arguments.custom.highlight * 1000>
+										<cfset var bad=pages.avg GTE arguments.custom.highlight * 1000>
 										<cfif bad>
 											<cfset hasBad = true>
 										</cfif>
@@ -412,7 +412,7 @@
 											<th>Var</th>
 											<th>Count</th>
 										</tr>
-										<cfset total=0 />
+										<cfset var total=0 />
 										<cfloop query="implicitAccess">
 											<tr>
 												<td>#implicitAccess.template#</td>
@@ -591,8 +591,6 @@
 
 							<tr>
 								<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-
-
 									<table><tr><td>
 										<b>General</b>
 										<table class="details">
@@ -609,84 +607,81 @@
 										</tr>
 										</cfloop>
 										</table>
-									<cfset hasCachetype=ListFindNoCase(queries.columnlist,"cachetype") gt 0>
+									<cfset var hasCachetype=ListFindNoCase(queries.columnlist,"cachetype") gt 0>
 									<br><b>SQL Queries</b>
+										<table class="details">
+										<tr>
+											<th></th>
+											<th>Name</th>
+											<th>Records</th>
+											<th>Time (ms)</th>
+											<th>Datasource</th>
+											<th>Source</th>
+											<cfif hasCachetype><th>Cache Type</th></cfif>
+										</tr>
 										<cfloop query="queries">
+											<cfset var bad=queries.time gt (arguments.custom.highlight * 1000)>
+											<tr class="sql-result #bad ? 'red' : ''#" onclick="__LUCEE.debug.toggleClass('query-id-#queries.currentRow#')">
+												<th></th>
+												<td><a>#queries.name#</a></td>
+												<td class="txt-r">#queries.count#</td>
+												<td class="txt-r">#unitFormat(arguments.custom.unit, queries.time,prettify)#</td>
+												<td>#queries.datasource#</td>
+												<td>#queries.src#</td>
+												<cfif hasCachetype><td>#isEmpty(queries.cacheType)?"none":queries.cacheType#</td></cfif>
+											</tr>
+											<tr class="sql #bad ? '' : 'collapsed'#" id="-lucee-debug-query-id-#queries.currentRow#">
+												<th class="label">SQL:</th>
+												<td id="-lucee-debug-query-sql-#queries.currentRow#" colspan="6" oncontextmenu="__LUCEE.debug.selectText( this.id );"><pre>#trim( queries.sql )#</pre></td>
+											</tr>
 
-											<table class="details">
+											<cfif listFindNoCase(queries.columnlist, 'usage') && isStruct(queries.usage)>
+
+												<cfset local.usage=queries.usage>
+												<cfset local.usageNotRead = []>
+												<cfset local.usageRead  = []>
+
+												<cfloop collection="#usage#" index="local.item" item="local.value">
+													<cfif !value>
+														<cfset arrayAppend( usageNotRead, item )>
+													<cfelse>
+														<cfset arrayAppend( usageRead, item )>
+													</cfif>
+												</cfloop>
+
 												<tr>
-													<th></th>
-													<th>Name</th>
-													<th>Records</th>
-													<th>Time (ms)</th>
-													<th>Datasource</th>
-													<th>Source</th>
-													<cfif hasCachetype><th>Cache Type</th></cfif>
-
-												</tr>
-												<tr>
-													<th></th>
-													<td>#queries.name#</td>
-													<td class="txt-r">#queries.count#</td>
-													<td class="txt-r">#unitFormat(arguments.custom.unit, queries.time,prettify)#</td>
-													<td>#queries.datasource#</td>
-													<td>#queries.src#</td>
-													<cfif hasCachetype><td>#isEmpty(queries.cacheType)?"none":queries.cacheType#</td></cfif>
-												</tr>
-												<tr>
-													<th class="label">SQL:</th>
-													<td id="-lucee-debug-query-sql-#queries.currentRow#" colspan="6" oncontextmenu="__LUCEE.debug.selectText( this.id );"><pre>#trim( queries.sql )#</pre></td>
+													<th colspan="7"><b>Query usage within the request</b></th>
 												</tr>
 
-												<cfif listFindNoCase(queries.columnlist, 'usage') && isStruct(queries.usage)>
-
-													<cfset local.usage=queries.usage>
-													<cfset local.usageNotRead = []>
-													<cfset local.usageRead  = []>
-
-													<cfloop collection="#usage#" index="local.item" item="local.value">
-														<cfif !value>
-															<cfset arrayAppend( usageNotRead, item )>
-														<cfelse>
-															<cfset arrayAppend( usageRead, item )>
-														</cfif>
-													</cfloop>
-
+												<cfset local.arr = usageRead>
+												<cfset local.arrLenU = arrayLen( arr )>
+												<cfif arrLenU>
 													<tr>
-														<th colspan="7"><b>Query usage within the request</b></th>
+														<td colspan="7">
+															Used:<cfloop from="1" to="#arrLenU#" index="local.ii">
+																#arr[ ii ]# <cfif ii LT arrLenU>, </cfif>
+															</cfloop>
+														</td>
 													</tr>
-
-													<cfset local.arr = usageRead>
-													<cfset local.arrLenU = arrayLen( arr )>
-													<cfif arrLenU>
-														<tr>
-															<td colspan="7">
-																Used:<cfloop from="1" to="#arrLenU#" index="local.ii">
-																	#arr[ ii ]# <cfif ii LT arrLenU>, </cfif>
-																</cfloop>
-															</td>
-														</tr>
-													</cfif>
-													<cfset local.arr = usageNotRead>
-													<cfset local.arrLenN = arrayLen( arr )>
-													<cfif arrLenN>
-														<tr class="red">
-															<td colspan="7">
-																Unused:
-																<cfloop from="1" to="#arrLenN#" index="local.ii">
-																	#arr[ ii ]# <cfif ii LT arrLenN>, </cfif>
-																</cfloop>
-															</td>
-														</tr>
-														<tr class="red">
-															<td colspan="7"><b>#arrLenU ? numberFormat( arrLenU / ( arrLenU + arrLenN ) * 100, "999.9" ) : 100# %</b></td>
-														</tr>
-													</cfif>
 												</cfif>
-
-											</table>
-
+												<cfset local.arr = usageNotRead>
+												<cfset local.arrLenN = arrayLen( arr )>
+												<cfif arrLenN>
+													<tr class="red">
+														<td colspan="7">
+															Unused:
+															<cfloop from="1" to="#arrLenN#" index="local.ii">
+																#arr[ ii ]# <cfif ii LT arrLenN>, </cfif>
+															</cfloop>
+														</td>
+													</tr>
+													<tr class="red">
+														<td colspan="7"><b>#arrLenU ? numberFormat( arrLenU / ( arrLenU + arrLenN ) * 100, "999.9" ) : 100# %</b></td>
+													</tr>
+												</cfif>
+											</cfif>
 										</cfloop>
+										</table>
 
 									</tr></td></table>
 								</td><!--- #-lucee-debug-#sectionId# !--->
@@ -798,8 +793,14 @@
 					return value;
 				}
 
-				, toggleSection: 	function( name ) {
+				, toggleClass: 	function( name , toggleClass ) {
+					if (!toggleClass)
+						toggleClass =  "collapsed";
+					var obj = __LUCEE.util.getDomObject( "-lucee-debug-" + name );
+					__LUCEE.util.toggleClass( obj, toggleClass);
+				}
 
+				, toggleSection: 	function( name ) {
 					var btn = __LUCEE.util.getDomObject( "-lucee-debug-btn-" + name );
 					var obj = __LUCEE.util.getDomObject( "-lucee-debug-" + name );
 					var isOpen = ( __LUCEE.util.getCookie( __LUCEE.debug.cookieName, 0 ) & __LUCEE.debug.allSections[ name ] ) > 0;
