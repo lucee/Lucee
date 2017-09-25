@@ -1,4 +1,6 @@
 <cfscript>
+	stText.services.update.serverFailed = "server {url} failed to return a valid response.";
+	stText.services.update.serverNotReachable = "Could not reach server {url}.";
 	function getUpdateData() {
 		admin
 			action="getUpdate"

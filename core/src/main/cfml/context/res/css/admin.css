@@ -1208,7 +1208,16 @@ div.tooltip {
 		padding-bottom: 3%;
 	   	padding-top: 2%;
 	}
-
+	.lftBtn{
+		border-radius: 5px 0 0 5px;
+		margin-left: 2px;
+		margin-right: 2px;
+	}
+	.mdlBtn{
+		border-radius: 0;
+		margin-left: -1px;
+		margin-right: 2px;
+	}
 
 /* css for tag, object, and function documentation */
 .syntaxTag, .syntaxFunc{color:#993300;}

@@ -67,9 +67,14 @@
 		
 			<cfset request.adminType=url.adminType>
 			<cfset external=getAllExternalData()>
-
+			<cfquery dbtype="query" name="result">
+				SElect id from external where 1=1 AND version LIKE '%BETA%' OR version LIKE '%ALPHA%' OR version LIKE '%SNAPSHOT%' OR version LIKE '%RC%'
+			</cfquery>
 			<cfsavecontent variable="ext" trim="true">
 				<cfloop query="extensions">
+					<cfif listFindNoCase(ValueList(result.id), extensions.id) NEQ 0>
+						<cfcontinue>
+					</cfif>
 					<cfset sct={}>
 					<cfloop list="#extensions.columnlist()#" item="key">
 						<cfset sct[key]=extensions[key]>
