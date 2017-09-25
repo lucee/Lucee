@@ -76,7 +76,7 @@
 
 		function buildSectionStruct() {
 
-			var otherSections = [ "ALL", "Dump", "ExecTime", "ExecOrder", "Exceptions", "ImpAccess", "Info", "Query", "Timer", "Trace", "More" ];
+			var otherSections = [ "ALL", "Dump", "ExecTime", "ExecOrder", "Exceptions", "ImpAccess", "Info", "Query", "Timer", "Trace", "More", "Query-sql" ];
 			var i = 0;
 
 			var result = {};
@@ -580,6 +580,8 @@
 
 						<cfset sectionId = "Query">
 						<cfset isOpen = this.isSectionOpen( sectionId )>
+						<cfset var sqlSectionId = "Query-sql">
+						<cfset var isSqlExpanded = this.isSectionOpen(sqlSectionId)>
 						<cfset local.total  =0>
 						<cfset local.records=0>
 						<cfset local.openConns=0>
@@ -617,8 +619,9 @@
 									<cfset var hasCachetype=ListFindNoCase(queries.columnlist,"cachetype") gt 0>
 									<br><b>SQL Queries</b>
 										<table class="details">
+										<cfset renderToggleDetailHeadTR( sqlSectionId, "Expand all SQL statements", "-lucee-debug-#sectionId#", "sql", (hasCachetype ? 6 : 5) )>
+
 										<tr>
-											<th></th>
 											<th>Name</th>
 											<th>Records</th>
 											<th>Time (ms)</th>
@@ -629,7 +632,6 @@
 										<cfloop query="queries">
 											<cfset var bad=queries.time gt (arguments.custom.highlight * 1000)>
 											<tr class="sql-result #bad ? 'red' : ''#" onclick="__LUCEE.debug.toggleClass('query-id-#queries.currentRow#')">
-												<th></th>
 												<td><a>#queries.name#</a></td>
 												<td class="txt-r">#queries.count#</td>
 												<td class="txt-r">#unitFormat(arguments.custom.unit, queries.time,prettify)#</td>
@@ -637,7 +639,7 @@
 												<td>#queries.src#</td>
 												<cfif hasCachetype><td>#isEmpty(queries.cacheType)?"none":queries.cacheType#</td></cfif>
 											</tr>
-											<tr class="sql #bad ? '' : 'collapsed'#" id="-lucee-debug-query-id-#queries.currentRow#">
+											<tr class="sql #bad ? '' : (isSqlExpanded ? "" : 'collapsed')#" id="-lucee-debug-query-id-#queries.currentRow#">
 												<th class="label">SQL:</th>
 												<td id="-lucee-debug-query-sql-#queries.currentRow#" colspan="6" oncontextmenu="__LUCEE.debug.selectText( this.id );"><pre>#trim( queries.sql )#</pre></td>
 											</tr>
@@ -800,26 +802,45 @@
 					return value;
 				}
 
-				, toggleSection: 	function( name ) {
+				, toggleClass: 	function( name , toggleClass ) {
+ 					if (!toggleClass)
+ 						toggleClass =  "collapsed";
+ 					var obj = __LUCEE.util.getDomObject( "-lucee-debug-" + name );
+ 					__LUCEE.util.toggleClass( obj, toggleClass);
+ 				}
+
+ 				, toggleDetail: 	function( name , parent, targetClass ) {
+ 					var detail = __LUCEE.util.getDomObject(parent).getElementsByClassName(targetClass);
+ 					__LUCEE.debug.toggleSection( name, detail);
+ 				}
+
+				, toggleSection: 	function( name, objs ) {
 
 					var btn = __LUCEE.util.getDomObject( "-lucee-debug-btn-" + name );
-					var obj = __LUCEE.util.getDomObject( "-lucee-debug-" + name );
+					if (!objs)
+						var obj = __LUCEE.util.getDomObject( "-lucee-debug-" + name );
 					var isOpen = ( __LUCEE.util.getCookie( __LUCEE.debug.cookieName, 0 ) & __LUCEE.debug.allSections[ name ] ) > 0;
 
 					if ( isOpen ) {
-
 						__LUCEE.util.removeClass( btn, '-lucee-icon-minus' );
 						__LUCEE.util.addClass( btn, '-lucee-icon-plus' );
-						__LUCEE.util.addClass( obj, 'collapsed' );
+						if (objs){
+							for (var i = 0; i < objs.length; i++)
+								__LUCEE.util.addClass( objs[i], 'collapsed' );
+						} else {
+							__LUCEE.util.addClass( obj, 'collapsed' );
+						}
 						__LUCEE.debug.clearFlag( name );
 					} else {
-
 						__LUCEE.util.removeClass( btn, '-lucee-icon-plus' );
 						__LUCEE.util.addClass( btn, '-lucee-icon-minus' );
-						__LUCEE.util.removeClass( obj, 'collapsed' );
+						if (objs){
+							for (var i = 0; i < objs.length; i++)
+								__LUCEE.util.removeClass( objs[i], 'collapsed' );
+						} else {
+							__LUCEE.util.addClass( obj, 'collapsed' );							}
 						__LUCEE.debug.setFlag( name );
 					}
-
 					return !isOpen;					// returns true if section is open after the operation
 				}
 
@@ -837,19 +858,31 @@
 
 	</cffunction>
 
-
 	<cffunction name="renderSectionHeadTR" output="#true#">
-
 		<cfargument name="sectionId">
 		<cfargument name="label1">
 		<cfargument name="label2" default="">
 
 		<cfset var isOpen = this.isSectionOpen( arguments.sectionId )>
-
 		<tr>
 			<td><a id="-lucee-debug-btn-#arguments.sectionId#" class="-lucee-icon-#isOpen ? 'minus' : 'plus'#" onclick="__LUCEE.debug.toggleSection( '#arguments.sectionId#' );">
 				#arguments.label1#</a></td>
 			<td class="pad"><a onclick="__LUCEE.debug.toggleSection( '#arguments.sectionId#' );">#arguments.label2#</a></td>
+		</tr>
+	</cffunction>
+
+	<cffunction name="renderToggleDetailHeadTR" output="#true#">
+		<cfargument name="sectionId">
+		<cfargument name="label">
+		<cfargument name="parentId">
+		<cfargument name="targetClass">
+		<cfargument name="colspan" default="1">
+
+		<cfset var isOpen = this.isSectionOpen( arguments.sectionId )>
+		<tr>
+			<td colspan="#arguments.colspan#"> <a id="-lucee-debug-btn-#arguments.sectionId#" class="-lucee-icon-#isOpen ? 'minus' : 'plus'#"
+				onclick="__LUCEE.debug.toggleDetail( '#arguments.sectionId#', '#arguments.parentId#', '#arguments.targetClass#');">
+				#arguments.label#</a></td>
 		</tr>
 	</cffunction>
 
