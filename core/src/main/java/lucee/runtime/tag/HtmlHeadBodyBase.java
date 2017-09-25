@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
@@ -149,6 +150,9 @@ public abstract class HtmlHeadBodyBase extends BodyTagTryCatchFinallyImpl {
 	 * @return - true if the id was not set or was set and was not used yet in the request. if it was not set -- register it for future calls of the tag
 	 */
 	protected boolean isValid() {
+
+		if (pageContext instanceof PageContextImpl && ((PageContextImpl)pageContext).isSilent())
+			return false;
 
 		if (StringUtil.isEmpty(id))
 			return true;

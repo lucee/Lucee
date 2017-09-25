@@ -2130,6 +2130,15 @@ public final class PageContextImpl extends PageContext {
 		}
 	}
 
+	/**
+	 * FUTURE - add to interface
+	 *
+	 * @return true if the Request is in silent mode via cfslient
+	 */
+	public boolean isSilent(){
+		return bodyContentStack.getDevNull();
+	}
+
 	@Override
 	public boolean setSilent() {
 		boolean before=bodyContentStack.getDevNull();
