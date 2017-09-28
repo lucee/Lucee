@@ -286,8 +286,6 @@
 						local.q=0;
 					</cfscript>
 
-					<cfdump var=#pages#>
-
 					<cfloop query="pages">
 						<cfset tot=tot+pages.total>
 						<cfset q=q+pages.query>
