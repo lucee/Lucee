@@ -779,6 +779,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<!-- info.bundle.cfm -->
 	<data key="info.bundles.subject">Bundle</data>
 	<data key="info.bundles.version">Version</data>
+	<data key="info.bundles.updated">Updated</data>	
 	<data key="info.bundles.vendor">Vendor</data>
 	<data key="info.bundles.type">Type</data>
 	<data key="info.bundles.state">State</data>
