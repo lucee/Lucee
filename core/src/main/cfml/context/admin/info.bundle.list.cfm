@@ -3,6 +3,20 @@
 	password="#session["password"&request.adminType]#" 
 	action="getBundles" 
 	returnvariable="bundles">
+	
+<cffunction name="getBundleLastModified">
+	<cfargument name="bundle">
+	<cfscript>
+		var files;
+		zip action="list" file=bundle name="files";
+	</cfscript>
+	<Cfquery name="files" dbtype="query">
+		select 	max(dateLastModified) dateLastModified
+		from 	files
+		where 	name <> 'META-INF/MANIFEST.MF'
+	</Cfquery>
+	<cfreturn files.dateLastModified>
+</cffunction>	
 
 <cfoutput>
 	<cfif not hasAccess><cfset noAccess(stText.setting.noAccess)></cfif>
@@ -13,6 +27,7 @@
 					<th width="3%"><cfif hasAccess><input type="checkbox" class="checkbox" name="rro" onclick="selectAll(this)"></cfif></th>
 					<th>#stText.info.bundles.subject#</th>
 					<th>#stText.info.bundles.version#</th>
+					<th>#stText.info.bundles.updated#</th>
 					<th>#stText.info.bundles.fileName#</th>
 					<th>#stText.info.bundles.vendor#</th>
 					<th>#stText.info.bundles.usedBy#</th>
@@ -41,6 +56,14 @@
 							<td nowrap="nowrap">
 								#bundles.version#
 							</td>
+							
+							<!--- updated --->
+							<td nowrap="nowrap">
+								<Cfif fileExists(bundles.path)>
+									#dateFormat(getBundleLastModified(bundles.path))#
+								</cfif>
+							</td>
+							
 							<!--- path --->
 							<td title="#bundles.path#">
 							#listLast(bundles.path,"\/")#
