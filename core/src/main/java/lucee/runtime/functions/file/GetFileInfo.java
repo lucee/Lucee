@@ -42,8 +42,8 @@ public class GetFileInfo {
 		sct.set(KeyConstants._name, src.getName());
 		sct.set(KeyConstants._parent, src.getParent());
 		sct.set(KeyConstants._path, src.getAbsolutePath());
-		sct.set(KeyConstants._size, Caster.toDouble(src.length()));
-		
+		sct.set(KeyConstants._size, Long.valueOf(src.length()));
+
 		if(src.isDirectory())
 			sct.set(KeyConstants._type, "directory");
 		else if(src.isFile())
