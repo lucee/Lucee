@@ -332,7 +332,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 
-	public void function testCacheAsScope() skip="isNotSupported" {
+	private void function testCacheAsScope() skip="isNotSupported" {
 		local.id=createUniqueId();
 		local.uri=createURI("mongodb/index.cfm");
 
