@@ -61,7 +61,7 @@
         <activation>
             <property>
                 <name>performRelease</name>
-                <value>true</value>
+                <value>false</value>
             </property>
         </activation>
         <build>
