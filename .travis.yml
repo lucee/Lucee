@@ -33,8 +33,8 @@ before_install:
 
 
 script:
-# maven deploy process (builds lucee and deploys to sonatype)
- - mvn -e -f loader/pom.xml -DperformRelease=false clean deploy --settings travis-settings.xml #target/travis/settings.xml
+# maven deploy process (builds lucee and deploys to sonatype) 
+ - mvn -e -f loader/pom.xml clean install --settings travis-settings.xml #target/travis/settings.xml
 
 ############ increment maven version (not working) ###########
 # - mvn --batch-mode -f loader/pom.xml release:update-versions
