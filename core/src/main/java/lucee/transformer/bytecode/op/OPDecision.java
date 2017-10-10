@@ -35,11 +35,7 @@ import org.objectweb.asm.commons.Method;
 
 public final class OPDecision extends ExpressionBase implements ExprBoolean {
     
-    private Expression right;
-    private Expression left;
-    private int operation;
-
-    public static final int LT=GeneratorAdapter.LT;
+	public static final int LT=GeneratorAdapter.LT;
     public static final int LTE=GeneratorAdapter.LE;
     public static final int GTE=GeneratorAdapter.GE;
     public static final int GT=GeneratorAdapter.GT;
@@ -49,6 +45,11 @@ public final class OPDecision extends ExpressionBase implements ExprBoolean {
     public static final int NCT = 1001;
     public static final int EEQ = 1002;
     public static final int NEEQ = 1003;
+    
+    private final Expression left;
+    private final Expression right;
+    private final int operation;
+
     // int compare (Object, Object)
     final public static Method METHOD_COMPARE = new Method("compare",
 			Types.INT_VALUE,
@@ -124,4 +125,15 @@ public final class OPDecision extends ExpressionBase implements ExprBoolean {
         return Types.BOOLEAN_VALUE;
     }
 
+	public Expression getLeft() {
+		return left;
+	}
+
+    public Expression getRight() {
+		return right;
+	}
+
+	public int getOperation() {
+		return operation;
+	}
 }
