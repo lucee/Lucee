@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.print;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
@@ -39,6 +40,7 @@ import lucee.runtime.functions.system.CFFunction;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
+import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Body;
@@ -50,6 +52,9 @@ import lucee.transformer.bytecode.cast.CastBoolean;
 import lucee.transformer.bytecode.cast.CastOther;
 import lucee.transformer.bytecode.expression.FunctionAsExpression;
 import lucee.transformer.bytecode.expression.var.Assign;
+import lucee.transformer.bytecode.expression.var.VariableString;
+import lucee.transformer.bytecode.op.OPDecision;
+import lucee.transformer.bytecode.op.OpDouble;
 import lucee.transformer.bytecode.statement.Argument;
 import lucee.transformer.bytecode.statement.Condition;
 import lucee.transformer.bytecode.statement.Condition.Pair;
@@ -64,6 +69,7 @@ import lucee.transformer.bytecode.statement.While;
 import lucee.transformer.bytecode.statement.tag.Attribute;
 import lucee.transformer.bytecode.statement.tag.Tag;
 import lucee.transformer.bytecode.statement.tag.TagComponent;
+import lucee.transformer.bytecode.statement.tag.TagLoop;
 import lucee.transformer.bytecode.statement.tag.TagOther;
 import lucee.transformer.bytecode.statement.tag.TagParam;
 import lucee.transformer.bytecode.statement.udf.Closure;
@@ -72,12 +78,15 @@ import lucee.transformer.bytecode.statement.udf.FunctionImpl;
 import lucee.transformer.bytecode.statement.udf.Lambda;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
+import lucee.transformer.cfml.evaluator.impl.Loop;
 import lucee.transformer.cfml.evaluator.impl.ProcessingDirectiveException;
 import lucee.transformer.cfml.expression.AbstrCFMLExprTransformer;
 import lucee.transformer.cfml.tag.CFMLTransformer;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
+import lucee.transformer.expression.literal.LitDouble;
+import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.var.Variable;
 import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.tag.TagLib;
@@ -687,7 +696,12 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 					throw new TemplateException(data.srcCode,"invalid syntax in for statement, for statement must end with a [)]");
 				// ex block
 				statement(data,body,CTX_FOR);
-		
+				
+				// performance improvment in special constellation
+				/*if(isLoopConform(data.factory,left,cont,update,body,line,data.srcCode.getPosition(),id)!=null) {
+					
+				}*/
+				
 				return new For(data.factory,left,cont,update,body,line,data.srcCode.getPosition(),id);					
 			}
 		// middle foreach
@@ -712,6 +726,64 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				throw new TemplateException(data.srcCode,"invalid syntax in for statement");
 	}
 	
+	private TagLoop isLoopConform(Factory factory, Expression left, Expression middle, Expression right,
+			Body body, Position start, Position end, String label) {
+		print.e(".........................................");
+		
+		if(!(left instanceof Assign)) return null;
+		print.e("left:"+left.getClass().getName());
+		Assign l=(Assign) left;
+		
+		if(!(middle instanceof OPDecision)) return null;
+		print.e("middle:"+middle.getClass().getName());
+		OPDecision m=(OPDecision) middle;
+		print.e(m.getOperation());
+		if(m.getOperation()!=OPDecision.LT && m.getOperation()!=OPDecision.LTE) return null;
+		
+		if(!(right instanceof Assign)) return null;
+		print.e("right:"+right.getClass().getName());
+		Assign r=(Assign) right;
+		if(!(r.getValue() instanceof OpDouble)) return null;
+		OpDouble v=(OpDouble) r.getValue();
+		if(!(v.getLeft() instanceof Variable)) return null;
+		
+		// is it i=i+x;
+		String var=null;
+		try {
+			var=VariableString.variableToString(r.getVariable(),false);
+			if(!var.equals(VariableString.variableToString((Variable)v.getLeft(),false))) return null;
+			
+			print.e("->"+var);
+			print.e("->"+VariableString.variableToString((Variable)v.getLeft(),false));
+		}
+		catch (TransformerException e) {
+			return null;
+		}
+		
+		if(!(v.getRight() instanceof LitDouble)) return null;
+		print.e("**");
+		LitDouble vr=(LitDouble) v.getRight();
+		print.e("***"+vr.getDoubleValue());
+		TagLoop tl=new TagLoop(factory, start, end);
+		tl.setBody(body);
+		// id
+		tl.addAttribute(new Attribute(false, "id",
+				factory.createLitString(var,r.getVariable().getStart(),r.getVariable().getEnd()), "string")
+		);
+		// from
+		
+		
+		
+		//addAttribute(new Attribute(false, "name",bc.getFactory().createLitString("thread"+RandomUtil.createRandomStringLC(20)), "string"));
+		
+		
+		
+		print.e(r.getVariable());
+		print.e(r.getValue());
+		
+		return tl;
+	}
+
 	/**
 	 * Liest ein function Statement ein.
 	 * <br />
