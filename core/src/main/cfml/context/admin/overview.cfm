@@ -85,59 +85,6 @@ Error Output --->
 
 <cfset pool["Tenured Gen"]=pool["CMS Old Gen"]>
 <cfset pool["PS Old Gen"]=pool["CMS Old Gen"]>
-
-<cffunction name="printBar" returntype="string">
-	<cfargument name="used" type="numeric" required="yes">
-	<cfargument name="comment" type="string" default="" required="false">
-    <cfsavecontent variable="local.ret"><cfoutput>
-			
-			<div class="percentagebar tooltipMe"><!---
-				---><div style="width:#used#%"><span>#used#%</span></div><!---
-			---></div>
-		<cfif len(comment)><div class="comment">#comment#</div></cfif>
-	</cfoutput>
-	</cfsavecontent>
-	<cfreturn ret />
-</cffunction>
-
-<!--- <cffunction name="sysMetric" returnType="JSON" access="remote">
-	<cfset systemInfo=GetSystemMetrics()>
-	<cfset nonHeap = printMemory(getmemoryUsage("non_heap"),false)>
-	<cfset heap = printMemory(getmemoryUsage("heap"),false)>
-	<cfset result = {
-		"heap":heap,
-		"non_heap":nonHeap
-	}>
-	<cfreturn result>
-</cffunction> --->
-<!--- <cfinclude template="testNew.cfm"> --->
-<cffunction name="printMemory" returntype="string">
-	<cfargument name="usage" type="query" required="yes">
-	<cfargument name="showTitle" type="boolean" default="true" required="false">
-    <cfset var width=100>
-	<cfset var used=evaluate(ValueList(arguments.usage.used,'+'))>
-	<cfset var max=evaluate(ValueList(arguments.usage.max,'+'))>
-	<cfset var init=evaluate(ValueList(arguments.usage.init,'+'))>
-	<cfset var qry=QueryNew(arguments.usage.columnlist)>
-	<cfset QueryAddRow(qry)>
-    <cfset QuerySetCell(qry,"type",arguments.usage.type)>
-    <cfset QuerySetCell(qry,"name",variables.pool[arguments.usage.type])>
-    <cfset QuerySetCell(qry,"init",init,qry.recordcount)>
-    <cfset QuerySetCell(qry,"max",max,qry.recordcount)>
-    <cfset QuerySetCell(qry,"used",used,qry.recordcount)>
-    <cfset arguments.usage=qry>
-	<cfsavecontent variable="local.ret"><cfoutput>
-			<cfif arguments.showTitle><b>#pool[usage.type]#</b></cfif>
-		<cfloop query="usage">
-   			<cfset local._used=int(width/arguments.usage.max*arguments.usage.used)>
-    		<cfset local._free=width-_used>
-			<cfset local.pused=int(100/arguments.usage.max*arguments.usage.used)>
-   			<cfset local.pfree=100-pused>
-    		#printBar(pused,pool[usage.type& "_desc"]?:'')#
-		</cfloop>
-	</cfoutput></cfsavecontent>
-	<cfreturn ret />
-</cffunction>
 <cfhtmlbody>
 	<script src="../res/js/highChart.js.cfm" type="text/javascript"></script>
 	<script>
@@ -179,7 +126,7 @@ Error Output --->
 				return Highcharts.chart(cName, {
 					chart: {
 						type: cType,
-						animation: Highcharts.svg, // don't animate in old IE
+						animation: Highcharts.svg,
 						marginRight: 10,
 						backgroundColor: "#EFEDE5"
 					},
