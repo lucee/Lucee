@@ -448,7 +448,7 @@ Error Output --->
 
 					<!--- Mailing list --->
 					<h3>
-						<a href="http://groups.google.com/group/lucee" target="_blank">#stText.Overview.Mailinglist#</a>
+						<a href="https://dev.lucee.org" target="_blank">#stText.Overview.Mailinglist#</a>
 					</h3>
 					<div class="comment">#stText.Overview.MailinglistDesc#</div>
 
