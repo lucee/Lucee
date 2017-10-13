@@ -111,7 +111,7 @@ Error Output --->
 					nonheapchart.series[0].addPoint([x, y_nonheap], true, shift_nonheap);
 					cpuSystemChart.series[0].addPoint([x, y_cpuSys], true, shift_cpuSystem);
 					cpuProcessChart.series[0].addPoint([x, y_cpuProcess], true, shift_cpuProcess);
-					setTimeout(requestData, 3000);
+					setTimeout(requestData, 1000);
 				}
 			})
 		}
@@ -139,13 +139,14 @@ Error Output --->
 						tickPixelInterval: 150
 					},
 					yAxis: {
+						min: 0,
+   						max: 100,
 						title: {
 							text: ""
 						},
 						plotLines: [{
 							value: 0,
-							width: 1,
-							color: '#808080'
+							width: 15
 						}]
 					},
 					tooltip: {
@@ -279,13 +280,13 @@ Error Output --->
 						</tr>
 						<tr>
 							<td><b>#pool['heap']#</b><br>
-								<div id="heap" style="min-width: 100px; height: 200px; margin: 0 auto"></div>
+								<div id="heap" style="min-width: 100px; height: 120px; margin: 0 auto"></div>
 							</td>
 						</tr>
 						<br>
 						<tr>
 							<td><b>#pool['non_heap']#</b><br>
-								<div id="nonheap" style="min-width: 100px; height: 200px; margin: 0 auto"></div>
+								<div id="nonheap" style="min-width: 100px; height: 120px; margin: 0 auto"></div>
 							</td>
 						</tr>
 
@@ -303,12 +304,12 @@ Error Output --->
 							</tr>
 							<tr>
 								<td width="50%"><b>#stText.setting.cpuSystem#</b>
-									<div id="cpuSystem" style="min-width: 100px; height: 200px; margin: 0 auto"></div>
+									<div id="cpuSystem" style="min-width: 100px; height: 100px; margin: 0 auto"></div>
 								</td>
 							</tr>
 							<tr>
 								<td width="50%"><b>#stText.setting.cpuProcess#</b><br>
-									<div id="cpuProcess" style="min-width: 100px; height: 200px; margin: 0 auto"></div>
+									<div id="cpuProcess" style="min-width: 100px; height: 100px; margin: 0 auto"></div>
 								</td>
 							</tr>
 
