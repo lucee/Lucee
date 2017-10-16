@@ -14,9 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						file action="write" output="#binimg#" file="LDEV1476\#targetImg#";
 
 						result = imageRead("LDEV1476\#targetImg#");
-					} catch(any e){
-						result = e.message;
-					}
+					} 
 					finally {
 						fileDelete("LDEV1476\#targetImg#");
 					}
