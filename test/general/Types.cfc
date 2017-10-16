@@ -18,10 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var sct=[=];
 		assertEquals('',structKeyList(sct));
 	}
-	public void function testLiteralOrderedStruct(){
-		var sct=[a:1,b:2];
-		assertEquals('a,b',structKeyList(sct));
-	}
+	
 	public void function testLiteralArray(){
 		var arr=['a','b'];
 		assertEquals('a,b',arrayToList(arr));
