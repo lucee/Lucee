@@ -647,6 +647,12 @@ public abstract class ConfigImpl implements Config {
     public boolean isMailSendPartial() {
         return sendPartial;
     }
+    // FUTURE add to interface and impl
+    public boolean isUserset() {
+        return true;
+    }
+    
+    
 
     
     @Override

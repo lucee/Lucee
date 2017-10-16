@@ -395,7 +395,7 @@ public final class SMTPClient implements Serializable  {
 	
 	private MimeMessageAndSession createMimeMessage(lucee.runtime.config.Config config,String hostName, int port, 
 			String username, String password,long lifeTimesan, long idleTimespan,
-			boolean tls,boolean ssl,boolean sendPartial, boolean newConnection) throws MessagingException {
+			boolean tls,boolean ssl,boolean sendPartial, boolean newConnection, boolean userset) throws MessagingException {
 		
 	      Properties props = (Properties) System.getProperties().clone();
 	      String strTimeout = Caster.toString(getTimeout(config));
@@ -404,7 +404,7 @@ public final class SMTPClient implements Serializable  {
 	      props.put("mail.smtp.timeout", strTimeout);
 	      props.put("mail.smtp.connectiontimeout", strTimeout);
 	      props.put("mail.smtp.sendpartial", Caster.toString(sendPartial));
-	      props.put("mail.smtp.userset", true);
+	      props.put("mail.smtp.userset", userset);
 
 	      if(port>0){
 	    	  props.put("mail.smtp.port", Caster.toString(port));
@@ -808,7 +808,7 @@ public final class SMTPClient implements Serializable  {
 				try {
 					msgSess = createMimeMessage(config,server.getHostName(),server.getPort(),_username,_password,
 							((ServerImpl)server).getLifeTimeSpan(),((ServerImpl)server).getIdleTimeSpan(),_tls,_ssl,
-							((ConfigImpl)config).isMailSendPartial(),!recyleConnection);
+							((ConfigImpl)config).isMailSendPartial(),!recyleConnection,((ConfigImpl)config).isUserset());
 				} catch (MessagingException e) {
 					// listener
 					listener(config,server,log,e,System.nanoTime()-start);
