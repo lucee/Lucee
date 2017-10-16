@@ -11,7 +11,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1323", body=function() {
-			it( title='Checking cftransaction with savepoint attribute',skip=isNotSupported(),body=function( currentSpec ) {
+			it( title='Checking cftransaction with savepoint attribute and setsavepoint action',skip=isNotSupported(),body=function( currentSpec ) {
 				var uri = createURI("LDEV1323");
 				var result = _InternalRequest(
 					template:"#uri#/test.cfm"
