@@ -83,6 +83,7 @@ import lucee.transformer.cfml.evaluator.impl.ProcessingDirectiveException;
 import lucee.transformer.cfml.expression.AbstrCFMLExprTransformer;
 import lucee.transformer.cfml.tag.CFMLTransformer;
 import lucee.transformer.expression.ExprBoolean;
+import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
 import lucee.transformer.expression.literal.LitDouble;
@@ -698,9 +699,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				statement(data,body,CTX_FOR);
 				
 				// performance improvment in special constellation
-				/*if(isLoopConform(data.factory,left,cont,update,body,line,data.srcCode.getPosition(),id)!=null) {
-					
-				}*/
+				//TagLoop loop = asLoop(data.factory,left,cont,update,body,line,data.srcCode.getPosition(),id);
+				//if(loop!=null) return loop;
 				
 				return new For(data.factory,left,cont,update,body,line,data.srcCode.getPosition(),id);					
 			}
@@ -726,62 +726,113 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				throw new TemplateException(data.srcCode,"invalid syntax in for statement");
 	}
 	
-	private TagLoop isLoopConform(Factory factory, Expression left, Expression middle, Expression right,
+	private TagLoop asLoop(Factory factory, Expression expLeft, Expression expMiddle, Expression expRight,
 			Body body, Position start, Position end, String label) {
 		print.e(".........................................");
 		
-		if(!(left instanceof Assign)) return null;
-		print.e("left:"+left.getClass().getName());
-		Assign l=(Assign) left;
+	// LEFT
+		// left must be an assignment
+		if(!(expLeft instanceof Assign)) return null;
+		print.e("left:"+expLeft.getClass().getName());
+		Assign left=(Assign) expLeft;
+		String leftVarName=toVariableName(left.getVariable());
+		if(leftVarName==null) return null;
+		if(!"susi".equalsIgnoreCase(leftVarName)) return null;
 		
-		if(!(middle instanceof OPDecision)) return null;
-		print.e("middle:"+middle.getClass().getName());
-		OPDecision m=(OPDecision) middle;
-		print.e(m.getOperation());
-		if(m.getOperation()!=OPDecision.LT && m.getOperation()!=OPDecision.LTE) return null;
+	// MIDDLE
+		// midfdle must be an operation
+		if(!(expMiddle instanceof OPDecision)) return null;
+		print.e("middle:"+expMiddle.getClass().getName());
+		OPDecision middle=(OPDecision) expMiddle;
 		
-		if(!(right instanceof Assign)) return null;
-		print.e("right:"+right.getClass().getName());
-		Assign r=(Assign) right;
-		if(!(r.getValue() instanceof OpDouble)) return null;
-		OpDouble v=(OpDouble) r.getValue();
-		if(!(v.getLeft() instanceof Variable)) return null;
+		// middle must be an operation LT or LTE
+		boolean isLT=middle.getOperation()==OPDecision.LT;
+		if(!isLT && middle.getOperation()!=OPDecision.LTE) return null;
 		
-		// is it i=i+x;
-		String var=null;
+		// middle variable need to be the same as the left variable
+		if(!leftVarName.equals(toVariableName(middle.getLeft()))) return null;
+		
+	// RIGHT
+		// right need to be an assignment (i=i+1 what is the same as i++)
+		if(!(expRight instanceof Assign)) return null;
+		print.e("right:"+expRight.getClass().getName());
+		Assign right=(Assign) expRight;
+		
+		// increment need to be a literal number
+		if(!(right.getValue() instanceof OpDouble)) return null;
+		OpDouble opRight=(OpDouble) right.getValue();
+		
+		// must be an increment of the same variable (i on both sides)
+		if(!leftVarName.equals(toVariableName(right.getVariable()))) return null;
+		if(!leftVarName.equals(toVariableName(opRight.getLeft()))) return null;
+		
+		// must be a literal number
+		if(!(opRight.getRight() instanceof LitDouble)) return null;
+		LitDouble rightIncValue=(LitDouble) opRight.getRight();
+		if(opRight.getOperation()!=OpDouble.PLUS) return null;
+		
+		
+		print.e("***"+rightIncValue.getDoubleValue());
+		
+		// create loop tag
+		TagLoop tl=new TagLoop(factory, start, end);
+		tl.setBody(body);
+		tl.setType(TagLoop.TYPE_FROM_TO);
+		
+		// id
+		tl.addAttribute(
+			new Attribute(
+				false, 
+				"index",
+				factory.createLitString(leftVarName,right.getVariable().getStart(),right.getVariable().getEnd()),
+				"string"
+			)
+		);
+		// from
+if(left.getValue() instanceof LitDouble) print.e("- from:"+((LitDouble)left.getValue()).getDoubleValue());
+		tl.addAttribute(
+			new Attribute(
+				false, 
+				"from",
+				factory.toExprDouble(left.getValue()),
+				"number"
+			)
+		);
+		// to
+		ExprDouble val = isLT?OpDouble.toExprDouble(middle.getLeft(), factory.createLitDouble(1), OpDouble.MINUS):factory.toExprDouble(middle.getLeft());
+		print.e("- lt?"+isLT);
+		if(middle.getLeft() instanceof LitDouble) print.e("- to:"+((LitDouble)middle.getLeft()).getDoubleValue());
+
+		tl.addAttribute(
+			new Attribute(
+				false, 
+				"to",
+				val,
+				"number"
+			)
+		);
+		// step
+if(rightIncValue instanceof LitDouble) print.e("- step:"+((LitDouble)rightIncValue).getDoubleValue());
+		tl.addAttribute(
+			new Attribute(
+				false, 
+				"step",
+				factory.toExprDouble(rightIncValue),
+				"number"
+			)
+		);
+		
+		return tl;
+	}
+
+	private String toVariableName(Expression variable) {
+		if(!(variable instanceof Variable)) return null;
 		try {
-			var=VariableString.variableToString(r.getVariable(),false);
-			if(!var.equals(VariableString.variableToString((Variable)v.getLeft(),false))) return null;
-			
-			print.e("->"+var);
-			print.e("->"+VariableString.variableToString((Variable)v.getLeft(),false));
+			return VariableString.variableToString((Variable)variable,false);
 		}
 		catch (TransformerException e) {
 			return null;
 		}
-		
-		if(!(v.getRight() instanceof LitDouble)) return null;
-		print.e("**");
-		LitDouble vr=(LitDouble) v.getRight();
-		print.e("***"+vr.getDoubleValue());
-		TagLoop tl=new TagLoop(factory, start, end);
-		tl.setBody(body);
-		// id
-		tl.addAttribute(new Attribute(false, "id",
-				factory.createLitString(var,r.getVariable().getStart(),r.getVariable().getEnd()), "string")
-		);
-		// from
-		
-		
-		
-		//addAttribute(new Attribute(false, "name",bc.getFactory().createLitString("thread"+RandomUtil.createRandomStringLC(20)), "string"));
-		
-		
-		
-		print.e(r.getVariable());
-		print.e(r.getValue());
-		
-		return tl;
 	}
 
 	/**
