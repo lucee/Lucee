@@ -23,6 +23,7 @@ component {
 		show:{required:false,type:"string",default:"all",hint="show column or keys."},
 		output:{required:false,type:"string",default:"browser",hint="Where to send the results:
 - console: the result is written to the console (System.out).
+- debug: the result is send to the debug output.
 - browser (default): the result is written the the browser response stream."},
 		metainfo:{required:false,type:"boolean",default:true,hint="Includes information about the query in the cfdump results."},
 		keys:{required:false,type:"number",default:9999,hint="For a structure, number of keys to display."},
@@ -143,6 +144,9 @@ component {
 		else if (arguments.attrib.output == "console") {
 			systemOutput(result,true);
 		}
+		else if (arguments.attrib.output == "debug") {
+				admin action="addDump" dump="#result#";
+		} 
 		else {
 			file action="write" addnewline="yes" file="#arguments.attrib.output#" output="<div id=""#dumpID#"" class=""-lucee-dump"">#result#</div>";
 		}

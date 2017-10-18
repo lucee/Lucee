@@ -86,6 +86,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.file.FileStreamWrapper;
+import lucee.runtime.functions.other.ToBinary;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.img.Image;
 import lucee.runtime.interpreter.VariableInterpreter;
@@ -2743,21 +2744,24 @@ public final class Caster {
      * @return to Base64 String
      */
     public static String toBase64(Object o,String charset,String defaultValue) {
-        byte[] b;
-        if(o instanceof byte[])b=(byte[]) o;
+        ;
+        if(o instanceof byte[])return toB64((byte[]) o,defaultValue);
         else if(o instanceof String)return toB64((String)o, charset,defaultValue);
         else if(o instanceof ObjectWrap) {
             return toBase64(((ObjectWrap)o).getEmbededObject(defaultValue),charset,defaultValue);
         }
-        else if(o == null) return toBase64("",charset,defaultValue);
-        else {
-        	String str = toString(o,null);
-        	if(str!=null)return toBase64(str,charset,defaultValue);
-        	
-        	b=toBinary(o,null);
-        	if(b==null)return defaultValue;
+        else if(o == null) {
+        	return toBase64("",charset,defaultValue);
         }
-        return toB64(b,defaultValue);
+        else {
+        	byte[] b=toBinary(o,null);
+        	if(b!=null) return toB64(b,defaultValue);
+        	else {
+        		String str = toString(o,null);
+        		if(str!=null)return toBase64(str,charset,defaultValue);
+        		else return defaultValue;
+        	}
+        }
     }
 
 
@@ -2782,8 +2786,7 @@ public final class Caster {
     public static String toB64(byte[] b, String defaultValue) {
         try {
 			return Base64Coder.encode(b);
-		} catch(Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		} catch(Exception e) {
 			return defaultValue;
 		}
     }
