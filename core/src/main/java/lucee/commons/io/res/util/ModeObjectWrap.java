@@ -30,6 +30,8 @@ import lucee.runtime.type.dt.DateTime;
 
 public final class ModeObjectWrap implements ObjectWrap,Castable {
 	
+	private static final long serialVersionUID = -1630745501422006978L;
+	
 	private final Resource res;
 	private String mode=null;
 	

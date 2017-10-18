@@ -32,6 +32,7 @@ import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.UnknownHostException;
@@ -68,17 +69,24 @@ import lucee.runtime.config.Config;
 import lucee.runtime.engine.InfoImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Operator;
+import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
@@ -1088,26 +1096,38 @@ public final class SystemUtil {
 	}
 
 	public static String getMacAddress(String defaultValue) {
+		try {
+			return getMacAddress();
+		} catch (Exception e) {
+			return defaultValue;
+		}
+	}
+	
+	/**
+	 * loading Mac address is very slow, this method loads only a wrapper that then loads the mac address itself on demand
+	 * @return
+	 */
+	public static MacAddressWrap getMacAddressAsWrap() {
+		return new MacAddressWrap();
+	}
+
+	public static String getMacAddress() throws UnknownHostException, SocketException {
 		if(!hasMacAddress) {
-			try {
-				InetAddress ip = InetAddress.getLocalHost();
-				NetworkInterface network = NetworkInterface.getByInetAddress(ip);
-				if(network == null) {
-					hasMacAddress = true;
-					return null;
-				}
-
-				byte[] mac = network.getHardwareAddress();
-
-				StringBuilder sb = new StringBuilder();
-				for (int i = 0; i < mac.length; i++) {
-					sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
-				}
-				macAddress = sb.toString();
+			
+			InetAddress ip = InetAddress.getLocalHost();
+			NetworkInterface network = NetworkInterface.getByInetAddress(ip);
+			if(network == null) {
+				hasMacAddress = true;
+				return null;
 			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
+
+			byte[] mac = network.getHardwareAddress();
+
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < mac.length; i++) {
+				sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
 			}
+			macAddress = sb.toString();
 			hasMacAddress = true;
 		}
 		return macAddress;
@@ -1504,5 +1524,103 @@ class StopThread extends Thread {
 			pci.setTimeoutStackTrace();
 			thread.stop();
 		}
+	}
+}
+
+class MacAddressWrap implements ObjectWrap, Castable {
+
+	private static final long serialVersionUID = 8707984359031327783L;
+
+	@Override
+	public Object getEmbededObject() throws PageException {
+		try {
+			return SystemUtil.getMacAddress();
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	@Override
+	public Object getEmbededObject(Object defaultValue) {
+		String address = SystemUtil.getMacAddress(null);
+		if(address==null) return defaultValue;
+		return address;
+	}
+	
+
+	@Override
+	public boolean castToBooleanValue() throws PageException {
+		return Caster.toBooleanValue(toString());
+	}
+    
+    @Override
+    public Boolean castToBoolean(Boolean defaultValue) {
+    	Object obj=getEmbededObject(null);
+    	if(obj==null) return defaultValue;
+        return Caster.toBoolean(obj.toString(),defaultValue);
+    }
+
+	@Override
+	public DateTime castToDateTime() throws PageException {
+		return Caster.toDatetime(toString(),null);
+	}
+    
+    @Override
+    public DateTime castToDateTime(DateTime defaultValue) {
+    	Object obj=getEmbededObject(null);
+    	if(obj==null) return defaultValue;
+        return DateCaster.toDateAdvanced(obj.toString(),DateCaster.CONVERTING_TYPE_OFFSET,null,defaultValue);
+    }
+
+	@Override
+	public double castToDoubleValue() throws PageException {
+		return Caster.toDoubleValue(toString());
+	}
+    
+    @Override
+    public double castToDoubleValue(double defaultValue) {
+    	Object obj=getEmbededObject(null);
+    	if(obj==null) return defaultValue;
+        return Caster.toDoubleValue(obj.toString(),defaultValue);
+    }
+
+	@Override
+	public String castToString() throws PageException {
+		return toString();
+	}
+
+	@Override
+	public String toString() {
+		try {
+			return getEmbededObject().toString();
+		} catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
+	}
+
+	@Override
+	public String castToString(String defaultValue) {
+		return (String)getEmbededObject(defaultValue);
+	}
+
+	@Override
+	public int compareTo(String str) throws PageException {
+		return Operator.compare(toString(), str);
+	}
+
+	@Override
+	public int compareTo(boolean b) throws PageException {
+		return Operator.compare(castToBooleanValue(), b);
+	}
+
+	@Override
+	public int compareTo(double d) throws PageException {
+		return Operator.compare(castToDoubleValue(), d);
+	}
+
+	@Override
+	public int compareTo(DateTime dt) throws PageException {
+		return Operator.compare(toString(), dt.castToString());
 	}
 }
