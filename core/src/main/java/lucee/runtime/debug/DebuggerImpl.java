@@ -65,6 +65,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.query.QueryResult;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.ListUtil;
 
 
 /**
@@ -74,6 +75,7 @@ public final class DebuggerImpl implements Debugger {
 	private static final long serialVersionUID = 3957043879267494311L;
 
 	private static final Collection.Key IMPLICIT_ACCESS= KeyImpl.intern("implicitAccess");
+	private static final Collection.Key GENERIC_DATA= KeyImpl.intern("genericData");
 	private static final Collection.Key PAGE_PARTS= KeyImpl.intern("pageParts");
 	//private static final Collection.Key OUTPUT_LOG= KeyImpl.intern("outputLog");
 
@@ -113,6 +115,7 @@ public final class DebuggerImpl implements Debugger {
 		if(partEntries!=null)partEntries.clear();
 		queries.clear();
 		implicitAccesses.clear();
+		if(genericData!=null)genericData.clear();
 		timers.clear();
 		traces.clear();
 		dumps.clear();
@@ -449,6 +452,8 @@ public final class DebuggerImpl implements Debugger {
 
 			qrySize = Math.min( filteredPartEntries.size(), MAX_PARTS );
 		}
+		
+		
 
 		Query qryPart = new QueryImpl(
             new Collection.Key[]{
@@ -520,7 +525,44 @@ public final class DebuggerImpl implements Debugger {
 	        	}
 			
         }
-
+        
+        // generic data
+        Map<String, Map<String, List<String>>> genData = getGenericData();
+        Query qryGenData = new QueryImpl(
+                new Collection.Key[]{
+                        KeyConstants._category
+                       ,KeyConstants._name
+                       ,KeyConstants._value
+                   }, 0, "query" );
+        if(genData.size()>0){
+        	
+        	
+        	Iterator<Entry<String, Map<String, List<String>>>> it = genData.entrySet().iterator();
+        	Entry<String, Map<String, List<String>>> e;
+        	Iterator<Entry<String, List<String>>> itt;
+        	Entry<String, List<String>> ee;
+        	String cat;
+        	int r;
+        	List<String> list;
+        	Object val;
+        	while(it.hasNext()) {
+        		e=it.next();
+        		cat=e.getKey();
+        		itt = e.getValue().entrySet().iterator();
+        		while(itt.hasNext()) {
+        			ee = itt.next();
+        			r=qryGenData.addRow();
+        			list = ee.getValue();
+        			if(list.size()==1) val=list.get(0);
+        			else val=ListUtil.listToListEL(list, ", ");
+        			qryGenData.setAtEL(KeyConstants._category, r, cat);
+        			qryGenData.setAtEL(KeyConstants._name, r, ee.getKey());
+        			qryGenData.setAtEL(KeyConstants._value, r, val);
+        		}
+        	}
+        	
+        }
+        
 		// output log
         //Query qryOutputLog=getOutputText();
         
@@ -660,6 +702,7 @@ public final class DebuggerImpl implements Debugger {
 		debugging.setEL(KeyConstants._traces,qryTraces);
 		debugging.setEL("dumps",qryDumps);
 		debugging.setEL(IMPLICIT_ACCESS,qryImplicitAccesseses);
+		debugging.setEL(GENERIC_DATA,qryGenData);
 		//debugging.setEL(OUTPUT_LOG,qryOutputLog);
 		
 		
@@ -831,13 +874,13 @@ public final class DebuggerImpl implements Debugger {
     		e = it.next();
     		entry = cat.get(e.getKey());
     		if(entry==null) {
-    			cat.put(e.getKey(), entry=createAndFillList(cat));
+    			cat.put(e.getKey(), entry=new ArrayList<String>());
     		}
     		entry.add(e.getValue());
     	}
     }
     
-    private List<String> createAndFillList(Map<String, List<String>> cat) {
+    /*private List<String> createAndFillList(Map<String, List<String>> cat) {
 		Iterator<List<String>> it = cat.values().iterator();
 		int size=0;
 		while(it.hasNext()){
@@ -850,7 +893,7 @@ public final class DebuggerImpl implements Debugger {
 		for(int i=0;i<size;i++)list.add("");
 		
 		return list;
-	}
+	}*/
 
 	@Override
     public Map<String,Map<String,List<String>>> getGenericData(){

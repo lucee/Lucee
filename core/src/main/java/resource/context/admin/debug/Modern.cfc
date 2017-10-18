@@ -772,6 +772,24 @@
 						</table>
 					</cfif>
 
+<!--- Generic Data --->
+
+	<cfif !isNull(arguments.debugging.genericData) &&  arguments.debugging.genericData.recordcount>
+		<cfset qry=arguments.debugging.genericData>
+	<cfoutput query="#qry#" group="category">
+	<div class="section-title">#qry.category#</div>
+	
+		<table>
+			<cfoutput>
+			<tr>
+				<td class="pad txt-r"><b>#qry.name#</b></td>
+				<td class="pad">#qry.value#</td>
+			</tr>
+			</cfoutput>
+		</table>
+	</cfoutput>
+	</cfif>
+
 				</div><!--- #-lucee-debug-ALL !--->
 			</fieldset><!--- #-lucee-debug !--->
 		</cfoutput>

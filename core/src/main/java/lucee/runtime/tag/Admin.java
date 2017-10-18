@@ -304,6 +304,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
             doAddDump();
             return SKIP_BODY;
         }
+        if(action.equals("addgenericdata")) {
+            doAddGenericData();
+            return SKIP_BODY;
+        }
         if(action.equals("getloginsettings")) {
         	doGetLoginSettings();
             return SKIP_BODY;
@@ -350,6 +354,25 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Debugger debugger=pageContext.getDebugger();
 		PageSource ps = pageContext.getCurrentTemplatePageSource();
 		if(ps!=null)debugger.addDump(ps, getString("admin",action,"dump",true));
+	}
+	
+	private void doAddGenericData() throws PageException {
+		Debugger debugger=pageContext.getDebugger();
+		debugger.addGenericData(
+			getString("admin",action,"category",true), 
+			toMapStrStr(getStruct("admin", action, "data"))
+		);
+	}
+
+	private Map<String, String> toMapStrStr(Struct struct) throws PageException {
+		Iterator<Entry<Key, Object>> it = struct.entryIterator();
+		Map<String,String> map=new HashMap<String, String>();
+		Entry<Key, Object> e;
+		while(it.hasNext()) {
+			e = it.next();
+			map.put(e.getKey().getString(), Caster.toString(e.getValue()));
+		}
+		return map;
 	}
 
 	private short toType(String strType, boolean throwError) throws ApplicationException {
