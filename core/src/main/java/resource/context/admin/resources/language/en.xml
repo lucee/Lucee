@@ -33,6 +33,7 @@
 	<data key="services.update.remove">Remove installed patches</data>
 	<data key="services.update.exerun">execute update</data>
 	<data key="services.update.typedesc">Define how Lucee will be patched. &quot;Automatic&quot; means that Lucee searches automatically for updates once a day. &quot;Manual&quot; means that you can update Lucee only manually here.</data>
+
 	<data key="services.update.snapShot">SnapShots</data>
 	<data key="services.update.pre_Release">Pre-Releases</data>
 	<data key="services.update.release">Releases</data>
