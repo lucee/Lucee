@@ -1,9 +1,9 @@
 <!---
 Defaults --->
+
 <cfset error.message="">
 <cfset error.detail="">
 <cfparam name="form.mainAction" default="none">
-
 <!--- load asynchron all extension providers  --->
 <cfparam name="application[request.admintype].preloadedExtensionProviders" default="false" type="boolean">
 <cfif !application[request.admintype].preloadedExtensionProviders>
@@ -85,55 +85,104 @@ Error Output --->
 
 <cfset pool["Tenured Gen"]=pool["CMS Old Gen"]>
 <cfset pool["PS Old Gen"]=pool["CMS Old Gen"]>
+<cfhtmlbody>
+	<script src="../res/js/highChart.js.cfm" type="text/javascript"></script>
+	<script>
+		function requestData(){
+			$.ajax({
+				type: "POST",
+				url: "./server.cfm?action=chartAjax",
+				success: function(data){
+					var series_heap = heapchart.series[0];
+					var series_nonheap = nonheapchart.series[0];
+					var series_cpuSystem = cpuSystemChart.series[0];
+					var series_cpuProcess = cpuProcessChart.series[0];
+					var shift_heap = series_heap.data.length > 20; // shift the chart if more than 20 entries available
+					var shift_nonheap = series_nonheap.data.length > 20; // shift the chart if more than 20 entries available
+					var shift_cpuSystem = series_cpuSystem.data.length > 20; // shift the chart if more than 20 entries available
+					var shift_cpuProcess = series_cpuProcess.data.length > 20; // shift the chart if more than 20 entries available
+					var x = (new Date()).getTime(); // current time
+					var x = (new Date()).getTime(); // current time
+					var y_heap = data.heap;
+					var y_nonheap = data.non_heap;
+					var y_cpuSys = data.cpuSystem;
+					var y_cpuProcess = data.cpuProcess;
+					heapchart.series[0].addPoint([x, y_heap], true, shift_heap);
+					nonheapchart.series[0].addPoint([x, y_nonheap], true, shift_nonheap);
+					cpuSystemChart.series[0].addPoint([x, y_cpuSys], true, shift_cpuSystem);
+					cpuProcessChart.series[0].addPoint([x, y_cpuProcess], true, shift_cpuProcess);
+					setTimeout(requestData, 1000);
+				}
+			})
+		}
+		$(document).ready(function() {
+			Highcharts.setOptions({
+			    global: {
+			        useUTC: false
+			    }
+			});
 
-<cffunction name="printBar" returntype="string">
-	<cfargument name="used" type="numeric" required="yes">
-	<cfargument name="comment" type="string" default="" required="false">
-    <cfsavecontent variable="local.ret"><cfoutput>
-			
-			<div class="percentagebar tooltipMe"><!---
-				---><div style="width:#used#%"><span>#used#%</span></div><!---
-			---></div>
-		<cfif len(comment)><div class="comment">#comment#</div></cfif>
-	</cfoutput>
-	</cfsavecontent>
-	<cfreturn ret />
-</cffunction>
+			function initiateNewChart(cName, cType, sName){
+				return Highcharts.chart(cName, {
+					chart: {
+						type: cType,
+						animation: Highcharts.svg,
+						marginRight: 10,
+						backgroundColor: "#EFEDE5"
+					},
+					colors: ["#BF4F36"],
+					title: {
+						text: ""
+					},
+					xAxis: {
+						type: 'datetime',
+						tickPixelInterval: 150
+					},
+					yAxis: {
+						min: 0,
+   						max: 100,
+						title: {
+							text: ""
+						},
+						plotLines: [{
+							value: 0,
+							width: 15
+						}]
+					},
+					tooltip: {
+						formatter: function () {
+							return '<b>' + this.series.name + '</b><br/>' +
+							Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+							Highcharts.numberFormat(this.y, 2);
+						}
+					},
+					legend: {
+						enabled: false
+					},
+					exporting: {
+						enabled: false
+					},
+					credits: {
+						enabled: false
+					},
+					series: [{
+						name: sName,
+						data: []
+					}]
+				});
+			}
 
+			// charts
+			heapchart = initiateNewChart("heap", "spline", "HeapMemorySeries");
+			nonheapchart = initiateNewChart("nonheap", "spline",  "Non-HeapSeries");
+			cpuSystemChart = initiateNewChart("cpuSystem", "spline", "WholeSystemSeries");
+			cpuProcessChart = initiateNewChart("cpuProcess", "spline", "luceeProcessSeries");
 
-
-<cffunction name="printMemory" returntype="string">
-	<cfargument name="usage" type="query" required="yes">
-	<cfargument name="showTitle" type="boolean" default="true" required="false">
-    <cfset var height=12>
-    <cfset var width=100>
-	<cfset var used=evaluate(ValueList(arguments.usage.used,'+'))>
-	<cfset var max=evaluate(ValueList(arguments.usage.max,'+'))>
-	<cfset var init=evaluate(ValueList(arguments.usage.init,'+'))>
-
-	<cfset var qry=QueryNew(arguments.usage.columnlist)>
-	<cfset QueryAddRow(qry)>
-    <cfset QuerySetCell(qry,"type",arguments.usage.type)>
-    <cfset QuerySetCell(qry,"name",variables.pool[arguments.usage.type])>
-    <cfset QuerySetCell(qry,"init",init,qry.recordcount)>
-    <cfset QuerySetCell(qry,"max",max,qry.recordcount)>
-    <cfset QuerySetCell(qry,"used",used,qry.recordcount)>
-    <cfset arguments.usage=qry>
-	<cfsavecontent variable="local.ret"><cfoutput>
-			<cfif arguments.showTitle><b>#pool[usage.type]#</b></cfif>
-		<cfloop query="usage">
-   			<cfset local._used=int(width/arguments.usage.max*arguments.usage.used)>
-    		<cfset local._free=width-_used>
-			<cfset local.pused=int(100/arguments.usage.max*arguments.usage.used)>
-   			<cfset local.pfree=100-pused>
-    		#printBar(pused,pool[usage.type& "_desc"]?:'')#
-		</cfloop>
-	</cfoutput></cfsavecontent>
-	<cfreturn ret />
-</cffunction>
-
-
-
+			// initiating the ajax data get process
+			requestData();
+		});
+	</script>
+</cfhtmlbody>
 
 <cfset total=query(
 	name:["Total"],
@@ -205,14 +254,14 @@ Error Output --->
 	<table>
 		<tr>
 			<div id="updateInfoDesc"><div style="text-align: center;"><img src="../res/img/spinner16.gif.cfm"></div></div>
-				<cfhtmlbody>
-					<script type="text/javascript">
-						$( function() {
+			<cfhtmlbody>
+				<script type="text/javascript">
+					$( function() {
 
-							$('##updateInfoDesc').load('update.cfm?#session.urltoken#&adminType=#request.admintype#');
-						} );
-					</script>
-				</cfhtmlbody>
+						$('##updateInfoDesc').load('update.cfm?#session.urltoken#&adminType=#request.admintype#');
+					} );
+				</script>
+			</cfhtmlbody>
 		</tr>
 		<tr>
 			<td valign="top" width="50%">
@@ -223,20 +272,23 @@ Error Output --->
 				<!--- Memory --->
 				<table class="maintbl">
 					<tbody>
-							<tr>
-								<th colspan="2" scope="row">
-									#stText.setting.memory#<br>
-									<span class="comment">#stText.setting.memoryDesc#</span>
-								</th>
-							</tr>
-							<tr>
-								<td width="50%"><b>#pool['heap']#</b><br>
-									#printMemory(getmemoryUsage("heap"),false)#
-								</td>
-								<td width="50%"><b>#pool['non_heap']#</b><br>
-									#printMemory(getmemoryUsage("non_heap"),false)#
-								</td>
-							</tr>
+						<tr>
+							<th colspan="2" scope="row">
+								#stText.setting.memory#<br>
+								<span class="comment">#stText.setting.memoryDesc#</span>
+							</th>
+						</tr>
+						<tr>
+							<td><b>#pool['heap']#</b><br>
+								<div id="heap" style="min-width: 100px; height: 120px; margin: 0 auto"></div>
+							</td>
+						</tr>
+						<br>
+						<tr>
+							<td><b>#pool['non_heap']#</b><br>
+								<div id="nonheap" style="min-width: 100px; height: 120px; margin: 0 auto"></div>
+							</td>
+						</tr>
 
 					</tbody>
 				</table>
@@ -251,12 +303,13 @@ Error Output --->
 								</th>
 							</tr>
 							<tr>
-								<cfset nbr=int(systemInfo.cpuSystem*100)>
-								<td width="50%"><b>#stText.setting.cpuSystem#</b><br>
-								#printBar(nbr)#</td>
-								<cfset nbr=int(systemInfo.cpuProcess*100)>
+								<td width="50%"><b>#stText.setting.cpuSystem#</b>
+									<div id="cpuSystem" style="min-width: 100px; height: 100px; margin: 0 auto"></div>
+								</td>
+							</tr>
+							<tr>
 								<td width="50%"><b>#stText.setting.cpuProcess#</b><br>
-								#printBar(nbr)#
+									<div id="cpuProcess" style="min-width: 100px; height: 100px; margin: 0 auto"></div>
 								</td>
 							</tr>
 
@@ -352,13 +405,10 @@ Error Output --->
 
 					</tbody>
 				</table>
-				
 			</td>
 			<td width="2%"></td>
 			<td valign="top" width="50%">
-				
-				
-					
+
 				<!--- Info --->
 				<h2>#stText.Overview.Info#</h2>
 				<table class="maintbl">
