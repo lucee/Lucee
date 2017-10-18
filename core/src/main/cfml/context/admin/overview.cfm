@@ -97,10 +97,10 @@ Error Output --->
 					var series_nonheap = nonheapchart.series[0];
 					var series_cpuSystem = cpuSystemChart.series[0];
 					var series_cpuProcess = cpuProcessChart.series[0];
-					var shift_heap = series_heap.data.length > 20; // shift the chart if more than 20 entries available
-					var shift_nonheap = series_nonheap.data.length > 20; // shift the chart if more than 20 entries available
-					var shift_cpuSystem = series_cpuSystem.data.length > 20; // shift the chart if more than 20 entries available
-					var shift_cpuProcess = series_cpuProcess.data.length > 20; // shift the chart if more than 20 entries available
+					var shift_heap = series_heap.data.length > 100; // shift the chart if more than 100 entries available
+					var shift_nonheap = series_nonheap.data.length > 100; // shift the chart if more than 100 entries available
+					var shift_cpuSystem = series_cpuSystem.data.length > 100; // shift the chart if more than 100 entries available
+					var shift_cpuProcess = series_cpuProcess.data.length > 100; // shift the chart if more than 100 entries available
 					var x = (new Date()).getTime(); // current time
 					var x = (new Date()).getTime(); // current time
 					var y_heap = data.heap;
@@ -128,21 +128,37 @@ Error Output --->
 						type: cType,
 						animation: Highcharts.svg,
 						marginRight: 10,
+						marginBottom: 20,
 						backgroundColor: "#EFEDE5"
 					},
-					colors: ["#BF4F36"],
+					plotOptions: {
+						series: {
+							marker: {
+								enabled: false
+							}
+						}
+					},
+					colors: ["<cfoutput>#request.adminType EQ "server" ? '##3399CC': '##BF4F36'#</cfoutput>"],
 					title: {
 						text: ""
 					},
 					xAxis: {
 						type: 'datetime',
-						tickPixelInterval: 150
+						tickPixelInterval: 150,
+						labels: {
+							y: 15
+						}
 					},
 					yAxis: {
 						min: 0,
    						max: 100,
 						title: {
 							text: ""
+						},
+						labels: {
+							formatter: function() {
+								return this.value + "%";
+							}
 						},
 						plotLines: [{
 							value: 0,
@@ -152,8 +168,8 @@ Error Output --->
 					tooltip: {
 						formatter: function () {
 							return '<b>' + this.series.name + '</b><br/>' +
-							Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
-							Highcharts.numberFormat(this.y, 2);
+							Highcharts.dateFormat('%H:%M:%S', this.x) + '<br/>' +
+							Highcharts.numberFormat(this.y, 0)+"%";
 						}
 					},
 					legend: {
@@ -173,10 +189,10 @@ Error Output --->
 			}
 
 			// charts
-			heapchart = initiateNewChart("heap", "spline", "HeapMemorySeries");
-			nonheapchart = initiateNewChart("nonheap", "spline",  "Non-HeapSeries");
-			cpuSystemChart = initiateNewChart("cpuSystem", "spline", "WholeSystemSeries");
-			cpuProcessChart = initiateNewChart("cpuProcess", "spline", "luceeProcessSeries");
+			heapchart = initiateNewChart("heap", "areaspline", "HeapMemorySeries");
+			nonheapchart = initiateNewChart("nonheap", "areaspline",  "Non-HeapSeries");
+			cpuSystemChart = initiateNewChart("cpuSystem", "areaspline", "WholeSystemSeries");
+			cpuProcessChart = initiateNewChart("cpuProcess", "areaspline", "luceeProcessSeries");
 
 			// initiating the ajax data get process
 			requestData();
@@ -264,150 +280,7 @@ Error Output --->
 			</cfhtmlbody>
 		</tr>
 		<tr>
-			<td valign="top" width="50%">
-
-				<h2>#stText.setting.info#</h2>
-
-				
-				<!--- Memory --->
-				<table class="maintbl">
-					<tbody>
-						<tr>
-							<th colspan="2" scope="row">
-								#stText.setting.memory#<br>
-								<span class="comment">#stText.setting.memoryDesc#</span>
-							</th>
-						</tr>
-						<tr>
-							<td><b>#pool['heap']#</b><br>
-								<div id="heap" style="min-width: 100px; height: 120px; margin: 0 auto"></div>
-							</td>
-						</tr>
-						<br>
-						<tr>
-							<td><b>#pool['non_heap']#</b><br>
-								<div id="nonheap" style="min-width: 100px; height: 120px; margin: 0 auto"></div>
-							</td>
-						</tr>
-
-					</tbody>
-				</table>
-				
-				<!--- CPU --->
-				<table class="maintbl">
-					<tbody>
-							<tr>
-								<th colspan="3" scope="row">
-									#stText.setting.cpu#<br>
-									<span class="comment">#stText.setting.cpuDesc#</span>
-								</th>
-							</tr>
-							<tr>
-								<td width="50%"><b>#stText.setting.cpuSystem#</b>
-									<div id="cpuSystem" style="min-width: 100px; height: 100px; margin: 0 auto"></div>
-								</td>
-							</tr>
-							<tr>
-								<td width="50%"><b>#stText.setting.cpuProcess#</b><br>
-									<div id="cpuProcess" style="min-width: 100px; height: 100px; margin: 0 auto"></div>
-								</td>
-							</tr>
-
-					</tbody>
-				</table>
-				
-				<!--- Scopes --->
-				<table class="maintbl">
-					<tbody>
-							<tr>
-								<th colspan="3" scope="row">
-									#stText.setting.scopes#<br>
-									<span class="comment">#stText.setting.scopesDesc#</span>
-								</th>
-							</tr>
-							<tr>
-								<td align="center" width="33%"><b>#stText.setting.scopeApplication#</b></td>
-								<td align="center"><b>#stText.setting.scopeSession#</b></td>
-								<td align="center" width="33%"><b>#stText.setting.scopeClient#</b></td>
-							</tr>
-							<tr>
-								<td align="center">#systemInfo.applicationContextCount#</td>
-								<td align="center">#systemInfo.sessionCount#</td>
-								<td align="center">#systemInfo.clientCount#</td>
-							</tr>
-
-					</tbody>
-				</table>
-				
-				<!--- Request --->
-				<table class="maintbl">
-					<tbody>
-							<tr>
-								<th colspan="3" scope="row">
-									#stText.setting.request#<br>
-									<span class="comment">#stText.setting.requestDesc#</span>
-								</th>
-							</tr>
-							<tr>
-								<td align="center" width="33%"><b>#stText.setting.req#</b></td>
-								<td align="center"><b>#stText.setting.queued#</b></td>
-								<td align="center" width="33%"systemInfo.sessionCount><b>#stText.setting.thread#</b></td>
-							</tr>
-							<tr>
-								<cfset nbr=systemInfo.activeRequests>
-								<td align="center" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
-								<cfset nbr=systemInfo.activeThreads>
-								<td align="center" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td>
-								<cfset nbr=systemInfo.queueRequests>
-								<td align="center" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
-							</tr>
-
-					</tbody>
-				</table>
-				
-				<!--- Datasource --->
-				<table class="maintbl">
-					<tbody>
-							<tr>
-								<th scope="row">
-									#stText.setting.datasource#<br>
-									<span class="comment">#stText.setting.datasourceDesc#</span>
-								</th>
-							</tr>
-							<tr>
-								<cfset nbr=systemInfo.activeDatasourceConnections>
-								<td align="center" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
-							</tr>
-
-
-					</tbody>
-				</table>
-				
-				<!--- Tasks --->
-				<table class="maintbl">
-					<tbody>
-							<tr>
-								<th colspan="3" scope="row">
-									#stText.setting.task#<br>
-									<span class="comment">#stText.setting.taskDesc#</span>
-								</th>
-							</tr>
-							<tr>
-								<td align="center"><b>#stText.setting.taskOpen#</b></td>
-								<td align="center"><b>#stText.setting.taskClose#</b></td>
-							</tr>
-							<tr>
-								<cfset nbr=systemInfo.tasksOpen>
-								<td align="center" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
-								<cfset nbr=systemInfo.tasksClosed>
-								<td align="center" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td>
-							</tr>
-
-					</tbody>
-				</table>
-			</td>
-			<td width="2%"></td>
-			<td valign="top" width="50%">
+			<td valign="top" colspan="3">
 
 				<!--- Info --->
 				<h2>#stText.Overview.Info#</h2>
@@ -546,8 +419,6 @@ Error Output --->
 					</tbody>
 				</table>
 
-				
-
 				<!---<h2>#stText.overview.langPerf#</h2>--->
 				<table class="maintbl">
 					<tbody>
@@ -594,6 +465,136 @@ Error Output --->
 					</tbody>
 				</table>
 				
+			</td>
+		</tr>
+		<tr>
+			<td valign="top" colspan="3">
+				<h2>#stText.setting.info#</h2>
+			
+				<!--- Memory --->
+				<table class="maintbl">
+					<tbody>
+						<tr>
+							<th colspan="2" scope="row">
+								#stText.setting.memory#<br>
+								<span class="comment">#stText.setting.memoryDesc#</span>
+							</th>
+						</tr>
+						<tr>
+							<td width="50%"><b>#pool['heap']#</b>
+								<div id="heap" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
+							</td>
+							<td width="50%"><b>#pool['non_heap']#</b><br>
+								<div id="nonheap" style="min-width: 100px; height: 150px; margin: 0 auto"></div>
+							</td>
+						</tr>
+
+					</tbody>
+				</table>
+				
+				<!--- CPU --->
+				<table class="maintbl">
+					<tbody>
+							<tr>
+								<th colspan="2" scope="row">
+									#stText.setting.cpu#<br>
+									<span class="comment">#stText.setting.cpuDesc#</span>
+								</th>
+							</tr>
+							<tr>
+								<td width="50%"><b>#stText.setting.cpuSystem#</b>
+									<div id="cpuSystem" style="min-width: 100px; height: 150px; margin: 0 auto"></div>
+								</td>
+								<td width="50%"><b>#stText.setting.cpuProcess#</b><br>
+									<div id="cpuProcess" style="min-width: 100px; height: 150px; margin: 0 auto"></div>
+								</td>
+							</tr>
+
+					</tbody>
+				</table>
+				<br>
+				<!--- Scopes --->
+				<table class="maintbl">
+					<tbody>
+						<tr>
+							<th rowspan="3" scope="row" style="width:50%">
+								#stText.setting.scopes#<br>
+								<span class="comment">#stText.setting.scopesDesc#</span>
+							</th>
+							<td style="width:35%"><b>#stText.setting.scopeApplication#</b></td>
+							<td align="right" style="width:15%">#systemInfo.applicationContextCount#</td>
+						</tr>
+						<tr>
+							<td><b>#stText.setting.scopeSession#</b></td>
+							<td align="right">#systemInfo.sessionCount#</td>
+						</tr>
+						<tr>
+							<td><b>#stText.setting.scopeClient#</b></td>
+							<td align="right">#systemInfo.clientCount#</td>
+						</tr>
+
+					</tbody>
+				</table>
+				<table class="maintbl">
+					<tbody>
+
+						<tr>
+							<th rowspan="3" scope="row" style="width:50%">
+								#stText.setting.request#<br>
+								<span class="comment">#stText.setting.requestDesc#</span>
+							</th>
+							<td style="width:35%"><b>#stText.setting.req#</b></td>
+							<cfset nbr=systemInfo.activeRequests>
+							<td align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+						</tr>
+						<tr>
+							<td><b>#stText.setting.queued#</b></td>
+							<cfset nbr=systemInfo.activeThreads>
+							<td align="right" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td>
+						</tr>
+						<tr>
+							<td><b>#stText.setting.thread#</b></td>
+							<cfset nbr=systemInfo.queueRequests>
+							<td align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+						</tr>
+
+					</tbody>
+				</table>
+				<table class="maintbl">
+					<tbody>
+
+						<tr>
+							<th scope="row" style="width:50%">
+								#stText.setting.datasource#<br>
+								<span class="comment">#stText.setting.datasourceDesc#</span>
+							</th>
+							<cfset nbr=systemInfo.activeDatasourceConnections>
+							<td style="width:35%">&nbsp;</td>
+							<td align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+						</tr>
+
+					</tbody>
+				</table>
+				<table class="maintbl">
+					<tbody>
+
+						<tr>
+							<th rowspan="2" scope="row" style="width:50%">
+								#stText.setting.task#<br>
+								<span class="comment">#stText.setting.taskDesc#</span>
+							</th>
+							<td style="width:35%"><b>#stText.setting.taskOpen#</b></td>
+							<cfset nbr=systemInfo.tasksOpen>
+							<td align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+						</tr>
+						<tr>
+							<td><b>#stText.setting.taskClose#</b></td>
+							<cfset nbr=systemInfo.tasksClosed>
+							<td align="right" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td>
+						</tr>
+
+					</tbody>
+				</table>
 			</td>
 		</tr>
 		<tr>
