@@ -91,7 +91,7 @@ Error Output --->
 		function requestData(){
 			$.ajax({
 				type: "POST",
-				url: "./server.cfm?action=chartAjax",
+				<cfoutput>url: "./#request.self#?action=chartAjax",</cfoutput>
 				success: function(data){
 					var series_heap = heapchart.series[0];
 					var series_nonheap = nonheapchart.series[0];
