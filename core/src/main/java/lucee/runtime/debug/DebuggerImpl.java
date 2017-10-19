@@ -527,16 +527,14 @@ public final class DebuggerImpl implements Debugger {
         }
         
         // generic data
-        Map<String, Map<String, List<String>>> genData = getGenericData();
         Query qryGenData = new QueryImpl(
                 new Collection.Key[]{
                         KeyConstants._category
                        ,KeyConstants._name
                        ,KeyConstants._value
                    }, 0, "query" );
-        if(genData.size()>0){
-        	
-        	
+        Map<String, Map<String, List<String>>> genData = getGenericData();
+        if(genData!=null && genData.size()>0) {
         	Iterator<Entry<String, Map<String, List<String>>>> it = genData.entrySet().iterator();
         	Entry<String, Map<String, List<String>>> e;
         	Iterator<Entry<String, List<String>>> itt;
@@ -560,7 +558,6 @@ public final class DebuggerImpl implements Debugger {
         			qryGenData.setAtEL(KeyConstants._value, r, val);
         		}
         	}
-        	
         }
         
 		// output log
