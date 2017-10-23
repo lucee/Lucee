@@ -42,7 +42,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 	
 	
-	public void function testValidRanges(){
+	public void function testValidRanges2(){
 		
 		sct=QueryConvertForGrid(qry,1,-10);
 		assertEquals('',valueList(sct.query.a));

@@ -69,47 +69,46 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testAll(){
 		var meta=getMetaData(new modifiers.All());
-		meta1=meta.functions[1];
-		meta2=meta.functions[2];
-		meta3=meta.functions[3];
-		meta4=meta.functions[4];
-		meta5=meta.functions[5];
+	
+		var funcs={};
+		loop array=meta.functions item="local.sct" {
+			funcs[sct.name]=sct;
+		}
 		
-		assertEquals("package",meta1.access);
-		assertEquals(true,meta1.output);
-		assertEquals("final",meta1.name);
-		assertEquals("whatever",meta1.returntype);
-		assertEquals("final",meta1.modifier); 
+		var m=funcs.final;
+		assertEquals("package",m.access);
+		assertEquals(true,m.output);
+		assertEquals("final",m.name);
+		assertEquals("whatever",m.returntype);
+		assertEquals("final",m.modifier); 
 
-		assertEquals("package",meta2.access);
-		assertEquals(true,meta2.output);
-		assertEquals("public",meta2.name);
-		assertEquals("whatever",meta2.returntype);
-		assertEquals("final",meta2.modifier);  
+		var m=funcs.public;
+		assertEquals("package",m.access);
+		assertEquals(true,m.output);
+		assertEquals("public",m.name);
+		assertEquals("whatever",m.returntype);
+		assertEquals("final",m.modifier);  
 
-		assertEquals("package",meta3.access);
-		assertEquals(true,meta3.output);
-		assertEquals("package",meta3.name);
-		assertEquals("whatever",meta3.returntype);
-		assertEquals("final",meta3.modifier); 
+		var m=funcs.package;
+		assertEquals("package",m.access);
+		assertEquals(true,m.output);
+		assertEquals("package",m.name);
+		assertEquals("whatever",m.returntype);
+		assertEquals("final",m.modifier); 
 
-		assertEquals("package",meta3.access);
-		assertEquals(true,meta3.output);
-		assertEquals("package",meta3.name);
-		assertEquals("whatever",meta3.returntype);
-		assertEquals("final",meta3.modifier);  
+		var m=funcs.private;
+		assertEquals("package",m.access);
+		assertEquals(true,m.output);
+		assertEquals("private",m.name);
+		assertEquals("function",m.returntype);
+		assertEquals("final",m.modifier); 
 
-		assertEquals("package",meta4.access);
-		assertEquals(true,meta4.output);
-		assertEquals("private",meta4.name);
-		assertEquals("function",meta4.returntype);
-		assertEquals("final",meta4.modifier); 
-
-		assertEquals("package",meta5.access);
-		assertEquals(true,meta5.output);
-		assertEquals("test",meta5.name);
-		assertEquals("private",meta5.returntype);
-		assertEquals("final",meta5.modifier); 
+		var m=funcs.test;
+		assertEquals("package",m.access);
+		assertEquals(true,m.output);
+		assertEquals("test",m.name);
+		assertEquals("private",m.returntype);
+		assertEquals("final",m.modifier); 
 
 	}
 

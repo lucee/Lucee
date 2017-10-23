@@ -29,7 +29,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -1620,39 +1619,27 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	
 	private static void metaUDFs(PageContext pc,ComponentImpl comp,Struct sct, int access) throws PageException {
-		ArrayImpl arr=new ArrayImpl();
 		// UDFs
-		Page page = comp._getPageSource().loadPage(pc, false);
-		// Page page = ((PageSourceImpl)comp._getPageSource()).getPage();
-		if(page!=null && page.udfs!=null) {
-			for(int i=0;i<page.udfs.length;i++){
-				if(page.udfs[i].getAccess()>access) continue;
-				arr.append(ComponentUtil.getMetaData(pc,(UDFPropertiesBase) page.udfs[i]));
+		/*ArrayImpl arr1=new ArrayImpl();
+		{
+			Page page = comp._getPageSource().loadPage(pc, false);
+			// Page page = ((PageSourceImpl)comp._getPageSource()).getPage();
+			if(page!=null && page.udfs!=null) {
+				for(int i=0;i<page.udfs.length;i++){
+					if(page.udfs[i].getAccess()>access) continue;
+					print.e(">>"+((UDFPropertiesBase)page.udfs[i]).getFunctionName());
+					arr1.append(ComponentUtil.getMetaData(pc,(UDFPropertiesBase) page.udfs[i]));
+				}
 			}
-		}
-    	
-    	/*print.e(" has udfs: "+(comp._udfs!=null));
-    	if(comp._udfs!=null){
-    		Iterator<UDF> it = comp._udfs.values().iterator();
-    		print.e(" udfs length: "+(comp._udfs.size()));
-    		UDFImpl udf;
-    		while(it.hasNext()) {
-    			udf = (UDFImpl) it.next();
-    			print.e("++++++++ "+udf.getFunctionName()+" ++++++++");
-    			print.e("- access: "+(udf.getAccess()>access));
-    			if(udf.getAccess()>access) continue;
-    			
-    			print.e("- udf: "+udf.getPageSource().getDisplayPath());
-    			print.e("- comp:"+comp._getPageSource().getDisplayPath());
-    			print.e("- equal:"+(udf.getPageSource().equals(comp.getPageSource())));
-    			if(!udf.getPageSource().equals(comp._getPageSource())) continue;
-    			
-    			
-    			
-    			
-        		arr.append(ComponentUtil.getMetaData(pc,(UDFPropertiesBase) udf.properties));
-    		}
     	}*/
+		
+		ArrayImpl arr=new ArrayImpl();
+		if(comp.absFin!=null) {
+			// we not to add abstract separately because they are not real Methods, more a rule
+			if(comp.absFin.hasAbstractUDFs()) 
+				getUDFs(pc,comp.absFin.getAbstractUDFs().values().iterator(),comp,access,arr);
+		}
+		if(comp._udfs!=null) getUDFs(pc,comp._udfs.values().iterator(),comp,access,arr);
     	
     	// property functions
     	Iterator<Entry<Key, UDF>> it = comp._udfs.entrySet().iterator();
@@ -1669,7 +1656,28 @@ public final class ComponentImpl extends StructSupport implements Externalizable
             	arr.append(udf.getMetaData(pc));
             
         }
-        if(arr.size()!=0)sct.set(KeyConstants._functions,arr);
+        if(arr.size()!=0){
+        	Collections.sort(arr,new ComparatorImpl());
+        	sct.set(KeyConstants._functions,arr);
+        }
+	}
+
+	private static class ComparatorImpl implements Comparator {
+		@Override
+		public int compare(Object o1, Object o2) {
+			return ((String)((Struct)o1).get(KeyConstants._name,"")).compareTo((String)((Struct)o2).get(KeyConstants._name,""));
+		}
+	}
+
+	private static void getUDFs(PageContext pc, Iterator<UDF> it, ComponentImpl comp, int access, ArrayImpl arr) throws PageException {
+		UDF udf;
+		while(it.hasNext()) {
+			udf =  it.next();
+			if(udf instanceof UDFGSProperty) continue;
+			if(udf.getAccess()>access) continue;
+			if(!udf.getPageSource().equals(comp._getPageSource())) continue;
+			arr.append(ComponentUtil.getMetaData(pc,(UDFPropertiesBase) ((UDFImpl)udf).properties));
+		}
 	}
 
 	public boolean isInitalized() {

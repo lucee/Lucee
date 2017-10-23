@@ -120,10 +120,12 @@ public class AbstractFinal {
 		absUDFs=new HashMap<Collection.Key,UDF>();
 		return tmp;
 	}
+
+	public Map<Collection.Key,UDF> getAbstractUDFs() {
+		return absUDFs;
+	}
 	
 	public Map<Collection.Key,UDF> getFinalUDFs() {
-		//Map<Key, UDF> tmp = finUDFs;
-		//finUDFs=new HashMap<Collection.Key,UDF>();
 		return finUDFs;
 	}
 
