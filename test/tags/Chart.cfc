@@ -134,25 +134,6 @@
 	</cffunction>
 
 
-	<cffunction name="testPie" localmode="true">
-		<cfsilent><cfchart showborder="ccc" 
-         format="png"
-         scalefrom="0"
-         scaleto="1200000"
-         pieslicestyle="solid">
-	<cfchartseries
-	             type="pie"
-	             serieslabel="Website Traffic 2006"
-	             seriescolor="blue">
-		<cfchartdata item="January" value="503100">
-		<cfchartdata item="February" value="720310">
-		<cfchartdata item="March" value="688700">
-		<cfchartdata item="April" value="986500">
-		<cfchartdata item="May" value="1063911">
-		<cfchartdata item="June" value="1125123">
-	</cfchartseries>
-</cfchart></cfsilent>
-	</cffunction>
 <cfscript>
 	public function beforeTests(){
 		

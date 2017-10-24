@@ -140,7 +140,7 @@ public final class ServerImpl extends ScopeSupport implements Server,SharedScope
 		ReadOnlyStruct os=new ReadOnlyStruct();
 			os.setEL(KeyConstants._name,System.getProperty("os.name") );
 			os.setEL(ARCH,System.getProperty("os.arch") );
-			os.setEL(MAC_ADDRESS,SystemUtil.getMacAddress(null));
+			os.setEL(MAC_ADDRESS,SystemUtil.getMacAddressAsWrap());
 			int arch=SystemUtil.getOSArch();
 			if(arch!=SystemUtil.ARCH_UNKNOW)os.setEL(ARCH_MODEL,new Double(arch) );
 			os.setEL(KeyConstants._version,System.getProperty("os.version") );
