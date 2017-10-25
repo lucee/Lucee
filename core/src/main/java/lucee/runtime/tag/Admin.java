@@ -1533,8 +1533,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
         
         if(config instanceof ConfigWebImpl){
         	ConfigWebImpl cw=(ConfigWebImpl) config;
+        	sct.setEL(KeyConstants._id, cw.getIdentification().getId());
         	sct.setEL(KeyConstants._label, cw.getLabel());
         	sct.setEL(KeyConstants._hash, cw.getHash());
+        	
         	sct.setEL(KeyConstants._root, cw.getRootDirectory().getAbsolutePath());
             sct.setEL("configServerDir", cw.getConfigServerDir().getAbsolutePath());
             sct.setEL("configWebDir", cw.getConfigDir().getAbsolutePath());
