@@ -122,8 +122,7 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.FormBodyPart;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.BasicCookieStore;
@@ -1032,14 +1031,22 @@ public final class Http extends BodyTagImpl {
 						doIt = false;
 					}
 				}
+
 				if(doIt) {
-					MultipartEntity mpe = new MultipartEntity(HttpMultipartMode.STRICT);
+
+					MultipartEntityBuilder mpeBuilder = MultipartEntityBuilder.create().setStrictMode();
+
+					// enabling the line below will append charset=... to the Content-Type header
+//					if (!StringUtil.isEmpty(charset, true))
+//						mpeBuilder.setCharset(CharsetUtil.toCharset(charset));
+
 					Iterator<FormBodyPart> it = parts.iterator();
 					while(it.hasNext()) {
 						FormBodyPart part = it.next();
-						mpe.addPart(part.getName(), part.getBody());
+						mpeBuilder.addPart(part);
 					}
-					eem.setEntity(mpe);
+
+					eem.setEntity(mpeBuilder.build());
 				}
 				// eem.setRequestEntity(new MultipartRequestEntityFlex(parts.toArray(new Part[parts.size()]), eem.getParams(),http.multiPartType));
 			}
