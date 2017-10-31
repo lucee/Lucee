@@ -610,14 +610,19 @@ public final class Zip extends BodyTagImpl {
 	}
 
 	private void addDir(ZipOutputStream zos, Resource dir, String parent, ResourceFilter filter) throws IOException {
-		Resource[] children = filter == null ? dir.listResources() : dir.listResources(filter);
 
-		for (int i = 0; i < children.length; i++) {
+		Resource[] children = (filter == null) ? dir.listResources() : dir.listResources(filter);
 
-			if(children[i].isDirectory())
-				addDir(zos, children[i], parent + children[i].getName() + "/", filter);
-			else {
-				add(zos, children[i].getInputStream(), parent + children[i].getName(), children[i].lastModified(), true);
+		if (children.length == 0){
+			zos.putNextEntry(new ZipEntry(parent));
+		}
+		else {
+			for (int i = 0; i < children.length; i++) {
+				if (children[i].isDirectory())
+					addDir(zos, children[i], parent + children[i].getName() + "/", filter);
+				else {
+					add(zos, children[i].getInputStream(), parent + children[i].getName(), children[i].lastModified(), true);
+				}
 			}
 		}
 	}
