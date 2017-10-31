@@ -19,6 +19,8 @@
 package lucee.runtime.tag;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.servlet.jsp.tagext.Tag;
 
@@ -35,6 +37,8 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.util.ListUtil;
 
+import static java.sql.Types.*;
+
 /**
  * Checks the data type of a query parameter. The cfqueryparam tag is nested within a cfquery tag. It is embedded within the query SQL statement. If you specify
  * its optional parameters, cfqueryparam also performs data validation.
@@ -43,6 +47,9 @@ import lucee.runtime.type.util.ListUtil;
  *
  **/
 public final class QueryParam extends TagImpl {
+
+	public static final List<Integer> ARRAY_TYPES = Arrays.asList(BIGINT, BOOLEAN, CHAR, DATE, DECIMAL, DOUBLE, FLOAT, INTEGER, NCHAR, NUMERIC, NVARCHAR, REAL,
+			SMALLINT, TIME, TIMESTAMP, TINYINT, VARCHAR);
 
 	private SQLItemImpl item = new SQLItemImpl();
 
@@ -163,7 +170,7 @@ public final class QueryParam extends TagImpl {
 				throw new ApplicationException("attribute value from tag queryparam is required if attribute null is false");
 
 			Object value = item.getValue();
-			if(list || Decision.isArray(value)) {
+			if(list || (Decision.isArray(value) && ARRAY_TYPES.contains(item.getType()))) {
 
 				Array arr;
 
