@@ -731,9 +731,9 @@ public final class SMTPClient implements Serializable  {
 		if(spool==SPOOL_YES || (spool==SPOOL_UNDEFINED && config.isMailSpoolEnable())) {
 			MailSpoolerTask mst = new MailSpoolerTask(this, servers, sendTime);
 			if(listener instanceof Component)
-				mst.setListener(new ComponentSpoolerTaskListener(mst,(Component)listener));
+				mst.setListener(new ComponentSpoolerTaskListener(SystemUtil.getCurrentContext(),mst,(Component)listener));
 			else if(listener instanceof UDF)
-				mst.setListener(new UDFSpoolerTaskListener(mst,(UDF)listener));
+				mst.setListener(new UDFSpoolerTaskListener(SystemUtil.getCurrentContext(),mst,(UDF)listener));
 			
 			config.getSpoolerEngine().add(mst);
         }
