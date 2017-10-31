@@ -34,7 +34,7 @@
 	</cfloop>
 
 	<cfset searchresults = {} />
-	<cfdirectory action="list" directory="#luceeArchiveZipPath#/admin" filter="*.*.cfm" name="qFiles" sort="name" />
+	<cfdirectory action="list" directory="#luceeArchiveZipPath#" filter="*.*.cfm" name="qFiles" sort="name" />
 
 	<cfloop query="qFiles">
 		<cfset currFile = qFiles.directory & "/" & qFiles.name />
