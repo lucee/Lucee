@@ -123,8 +123,10 @@ public final class DateTimeFormat extends BIF {
 	}
 
 	private static String convertMask(String mask) {
+
 		if(mask == null)
 			return DEFAULT_MASK;
+
 		mask = StringUtil.replace(mask, "''", ZEROZERO, false);
 		boolean inside = false;
 		char[] carr = mask.toCharArray();
@@ -242,6 +244,8 @@ public final class DateTimeFormat extends BIF {
 				case 'h':
 				case 'K':
 				case 'k':
+				case 'x':
+				case 'X':
 				case 'Z':
 				case 'z':
 				case 's':
