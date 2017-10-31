@@ -30,6 +30,7 @@ import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.util.ListUtil;
@@ -154,19 +155,30 @@ public final class QueryParam extends TagImpl {
 		while(parent != null && !(parent instanceof Query)) {
 			parent = parent.getParent();
 		}
+
 		if(parent instanceof Query) {
 			Query query = (Query)parent;
+
 			if(!item.isNulls() && !item.isValueSet())
 				throw new ApplicationException("attribute value from tag queryparam is required if attribute null is false");
-			if(list) {
-				String v = Caster.toString(item.getValue());
-				Array arr = null;
-				if(StringUtil.isEmpty(v)) {
-					arr = new ArrayImpl();
-					arr.append("");
+
+			Object value = item.getValue();
+			if(list || Decision.isArray(value)) {
+
+				Array arr;
+
+				if (Decision.isArray(value)){
+					arr = Caster.toArray(value);
 				}
-				else
-					arr = ListUtil.listToArrayRemoveEmpty(v, separator);
+				else {
+					String v = Caster.toString(value);
+					if(StringUtil.isEmpty(v)) {
+						arr = new ArrayImpl();
+						arr.append("");
+					}
+					else
+						arr = ListUtil.listToArrayRemoveEmpty(v, separator);
+				}
 
 				int len = arr.size();
 				StringBuffer sb = new StringBuffer();
