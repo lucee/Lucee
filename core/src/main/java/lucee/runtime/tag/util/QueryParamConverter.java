@@ -140,9 +140,8 @@ public class QueryParamConverter {
 
 				if(c == '?') {
 
-					if (i < sqlLen && sql.charAt(i + 1) == '?'){
-						sb.append(c);
-						sb.append(c);
+					if (i < (sqlLen - 1) && sql.charAt(i + 1) == '?'){
+						sb.append(c).append(c);			// '?' is escaped, add both characters so that it's handled later
 						i++;
 						continue;
 					}
@@ -152,8 +151,8 @@ public class QueryParamConverter {
 				}
 				else if(c == ':') {
 
-					if (i < sqlLen && sql.charAt(i + 1) == ':'){
-						sb.append(c);
+					if (i < (sqlLen - 1) && sql.charAt(i + 1) == ':'){
+						sb.append(c);					// ':' is escaped, append it and skip parameter resolution
 						i++;
 						continue;
 					}
