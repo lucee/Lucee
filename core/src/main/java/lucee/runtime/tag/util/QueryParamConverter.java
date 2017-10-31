@@ -119,30 +119,45 @@ public class QueryParamConverter {
 
 		StringBuilder sb = new StringBuilder();
 		int sqlLen = sql.length(), initialParamSize = items.size();
-		char c, del = 0;
-		boolean inside = false;
+		char c, quoteType = 0;
+		boolean inQuotes = false;
 		int qm = 0, _qm = 0;
 		for (int i = 0; i < sqlLen; i++) {
 			c = sql.charAt(i);
 
 			if(c == '"' || c == '\'') {
-				if(inside) {
-					if(c == del) {
-						inside = false;
+				if(inQuotes) {
+					if(c == quoteType) {
+						inQuotes = false;
 					}
 				}
 				else {
-					del = c;
-					inside = true;
+					quoteType = c;
+					inQuotes = true;
 				}
 			}
-			else if(!inside) {
+			else if(!inQuotes) {
 
 				if(c == '?') {
+
+					if (i < sqlLen && sql.charAt(i + 1) == '?'){
+						sb.append(c);
+						sb.append(c);
+						i++;
+						continue;
+					}
+
 					if(++_qm > initialParamSize)
 						throw new ApplicationException("there are more question marks in the SQL than params defined");
 				}
 				else if(c == ':') {
+
+					if (i < sqlLen && sql.charAt(i + 1) == ':'){
+						sb.append(c);
+						i++;
+						continue;
+					}
+
 					StringBuilder name = new StringBuilder();
 					char cc;
 					int y = i + 1;
@@ -183,7 +198,8 @@ public class QueryParamConverter {
 		SQLItems<SQLItem> finalItems = new SQLItems<SQLItem>();
 		Iterator<SQLItems<SQLItem>> listsToFlatten = items.iterator();
 		while(listsToFlatten.hasNext()) {
-			finalItems.addAll(listsToFlatten.next());
+			List<SQLItem> sqlItems = listsToFlatten.next();
+			finalItems.addAll(sqlItems);
 		}
 		return finalItems;
 	}
@@ -263,7 +279,7 @@ public class QueryParamConverter {
 
 				Array values;
 
-				if (Decision.isArray(value)){
+				if(Decision.isArray(value)) {
 					values = Caster.toArray(value);
 				}
 				else {
