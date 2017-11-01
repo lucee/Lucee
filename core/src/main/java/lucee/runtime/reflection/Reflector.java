@@ -53,7 +53,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.java.JavaObject;
-import lucee.runtime.net.rpc.Pojo;
+import lucee.runtime.type.Pojo;
 import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;

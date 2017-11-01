@@ -55,7 +55,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.AppListenerUtil;
-import lucee.runtime.net.rpc.Pojo;
+import lucee.runtime.type.Pojo;
 import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.net.rpc.server.WSServer;
 import lucee.runtime.net.rpc.server.WSUtil;

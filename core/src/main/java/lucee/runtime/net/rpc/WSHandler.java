@@ -12,6 +12,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.rpc.client.WSClient;
 import lucee.runtime.net.rpc.server.WSServer;
+import lucee.runtime.type.Pojo;
 import lucee.runtime.type.Struct;
 
 public abstract class WSHandler {

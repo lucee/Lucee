@@ -49,7 +49,7 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.img.Image;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.net.mail.MailUtil;
-import lucee.runtime.net.rpc.Pojo;
+import lucee.runtime.type.Pojo;
 import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.op.validators.ValidateCreditCard;

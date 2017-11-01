@@ -20,7 +20,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.net.proxy.ProxyData;
-import lucee.runtime.net.rpc.Pojo;
+import lucee.runtime.type.Pojo;
 import lucee.runtime.net.rpc.PojoIterator;
 import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.net.rpc.axis1.client.Axis1Client;
