@@ -47,7 +47,7 @@ import lucee.runtime.tag.HttpParamBean;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.KeyConstants;
-
+// DO NOT CHANGE interface used by extension axis
 public class CacheHandlerCollectionImpl implements CacheHandlerCollection { 
 
 	public static final char CACHE_DEL = ';';

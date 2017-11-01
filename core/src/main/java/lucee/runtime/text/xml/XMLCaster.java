@@ -743,7 +743,7 @@ public final class XMLCaster {
 	 * @param caseSensitive
 	 * @return xmlstruct from node
 	 */
-	public static XMLStruct toXMLStruct(Node node, boolean caseSensitive) { // do not change, this method is used in the flex extension
+	public static XMLStruct toXMLStruct(Node node, boolean caseSensitive) { // do not change, this method is used in the flex,axis extension
 	    return XMLStructFactory.newInstance(node,caseSensitive);
 	}
 	

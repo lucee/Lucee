@@ -85,7 +85,8 @@ public class DumpUtil {
 		MAX_LEVEL_REACHED = new DumpTable("Max Level Reached","#e0e0e0","#ffcc99","#888888");
 		((DumpTable)MAX_LEVEL_REACHED).appendRow( new DumpRow(1, new SimpleDumpData("[Max Dump Level Reached]") ) );
 	}
-
+	
+	// FUTURE add to interface
 	public static DumpData toDumpData(Object o, PageContext pageContext, int maxlevel, DumpProperties props) {
 		if(maxlevel<0)
 			return MAX_LEVEL_REACHED;

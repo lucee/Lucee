@@ -424,7 +424,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract Object getMailListener();
 	public abstract void setMailListener(Object mailListener);
 
-	public abstract boolean getWSMaintainSession();
+	public abstract boolean getWSMaintainSession(); // used in extension Axis1
 	public abstract void setWSMaintainSession(boolean maintainSession);
 	
 }
