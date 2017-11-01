@@ -95,17 +95,27 @@ public final class SQLImpl implements SQL, Serializable {
 		int pos;
 		int last = 0;
 		for (int i = 0; i < items.length; i++) {
+
 			pos = strSQL.indexOf('?', last);
 			if(pos == -1) {
 				sb.append(strSQL.substring(last));
 				break;
 			}
-			sb.append(strSQL.substring(last, pos));
-			if(items[i].isNulls())
-				sb.append("null");
-			else
-				sb.append(SQLCaster.toString(items[i]));
-			last = pos + 1;
+
+			if (pos < (strSQL.length() - 1) && strSQL.charAt(pos + 1) == '?'){
+				// the '?' is escaped
+				sb.append(strSQL.substring(last, pos + 1));
+				last = pos + 2;									// skip 2 chars to account for the escape char
+				i--;											// keep i unchanged for the next iteration
+			}
+			else {
+				sb.append(strSQL.substring(last, pos));
+				if (items[i].isNulls())
+					sb.append("null");
+				else
+					sb.append(SQLCaster.toString(items[i]));
+				last = pos + 1;
+			}
 		}
 		sb.append(strSQL.substring(last));
 		return sb.toString();
