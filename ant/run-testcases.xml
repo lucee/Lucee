@@ -117,13 +117,13 @@ function mem(type) {
 
 					// get parent
 					var p = getDirectoryFromPath(arguments.path);
-					p = left(p,p.len()-1);
-					p = listTrim(p,"\/");
+					p = left(p, p.len() - 1);
+					p = listTrim(p, "\/");
 
 					// get grand parent
 					var pp = getDirectoryFromPath(p);
-					pp = left(pp,pp.len()-1);
-					pp = listTrim(pp,"\/");
+					pp = left(pp, pp.len() - 1);
+					pp = listTrim(pp, "\/");
 
 					// only testcases in sub directory of "test" are allowed
 					var _test = listTrim(test,"\/");
@@ -193,7 +193,12 @@ function mem(type) {
 											systemOutput(TAB & st.template & ":" & st.line, true);
 									}
 								}
-							}
+							} // if !isNull
+
+							if (!isNull(specStat.error) && !isEmpty(specStat.error)){
+
+								systemOutput(NL & TAB & "Errored: " & specStat.name & " --> " & serialize(specStat.error), true);
+							} // if !isNull
 						}
 					}
 				}
@@ -255,8 +260,9 @@ Begin Stack Trace
 
 			echo(NL);
 			for (el in failedTestCases){
-				echo(TAB & el.type & ": " & el.bundle & " @ " & el.testCase & " ---> " & el.errMessage & NL);
+				echo(TAB & el.type & ": " & el.bundle & "." & el.testCase & " ---> " & el.errMessage & NL);
 			}
+			echo(NL);
 		}
 
  		if ((result.getTotalFail() + result.getTotalError()) > 0) {
