@@ -37,7 +37,7 @@ NL = "
 TAB = "	";
 
 fixCase = {};
-for (el in ["bundleId", "debugBuffer", "endTime", "error", "failOrigin", "globalException", "name", "parentId", "path", "specStats", "startTime", "status", "suiteId", "suiteStats", "totalDuration", "totalError", "totalFail", "totalPass", "totalSkipped", "totalSpecs", "totalSuites"
+for (el in ["bundleId", "debugBuffer", "endTime", "error", "failMessage", "failOrigin", "globalException", "name", "parentId", "path", "specStats", "startTime", "status", "suiteId", "suiteStats", "totalDuration", "totalError", "totalFail", "totalPass", "totalSkipped", "totalSpecs", "totalSuites"
 ]) {
 	fixCase[ucase(el)] = el;
 }
@@ -167,31 +167,46 @@ function mem(type) {
 			if (!isNull(bundle.suiteStats)) {
 				loop array=bundle.suiteStats item="local.suiteStat" {
 					if(!isNull(suiteStat.specStats)) {
-						loop array=suiteStat.specStats item="local.specStats" {
-							if(!isNull(specStats.failMessage) && len(trim(specStats.failMessage))) {
+						loop array=suiteStat.specStats item="local.specStat" {
+
+							if (!isNull(specStat.failMessage) && len(trim(specStat.failMessage))) {
 
 								failedTestCases.append(
 									{
 										 type       : "Failed"
 										,bundle     : bundle.name
-										,testCase   : specStats.name
-										,errMessage : specStats.failMessage
+										,testCase   : specStat.name
+										,errMessage : specStat.failMessage
 									}
 								);
 
-								systemOutput(NL & TAB & "Failed: " & specStats.name & " --> " & specStats.failMessage, true);
+								systemOutput(NL & TAB & "Failed: " & specStat.name & " --> " & specStat.failMessage, true);
 
-								if (!isNull(specStats.failOrigin) && !isEmpty(specStats.failOrigin)){
+								if (!isNull(specStat.failOrigin) && !isEmpty(specStat.failOrigin)){
 
-									testboxPath = getDirectoryFromPath(specStats.failOrigin[1].template);
+									testboxPath = getDirectoryFromPath(specStat.failOrigin[1].template);
 
 									systemOutput(TAB & TAB & "at", true);
 
-									loop array=specStats.failOrigin item="local.st" {
+									loop array=specStat.failOrigin item="local.st" {
 										if (!st.template.hasPrefix(testboxPath))
 											systemOutput(TAB & st.template & ":" & st.line, true);
 									}
 								}
+							}
+
+							if (!isNull(specStat.error) && !isEmpty(specStat.error)) {
+
+								failedTestCases.append(
+									{
+										 type       : "Error"
+										,bundle     : bundle.name
+										,testCase   : specStat.name
+										,errMessage : specStat.error.message
+									}
+								);
+
+								systemOutput(NL & TAB & "Error: " & specStat.name & " --> " & specStat.error.message, true);
 							}
 						}
 					}
