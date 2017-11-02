@@ -195,14 +195,14 @@ function mem(type) {
 								}
 							}
 
-							if (0&& !isNull(specStat.error) && !isEmpty(specStat.error)) {
+							if (!isNull(specStat.error) && !isEmpty(specStat.error)) {
 
 								failedTestCases.append(
 									{
 										 type       : "Error"
-										,bundle     : bundle.name
-										,testCase   : specStat.name
-										,errMessage : specStat.error.message
+										,bundle     : bundle.name             ?: "<unknown>"
+										,testCase   : specStat.name           ?: "<unknown>"
+										,errMessage : specStat.error.message  ?: "<unknown>"
 									}
 								);
 
