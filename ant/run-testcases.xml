@@ -37,7 +37,7 @@ NL = "
 TAB = "	";
 
 fixCase = {};
-for (el in ["bundleId", "debugBuffer", "endTime", "failOrigin", "id", "name", "parentId", "path", "specStats", "startTime", "status", "suiteStats", "totalDuration", "totalError", "totalFail", "totalPass", "totalSkipped", "totalSpecs", "totalSuites"
+for (el in ["bundleId", "debugBuffer", "endTime", "error", "failOrigin", "globalException", "name", "parentId", "path", "specStats", "startTime", "status", "suiteId", "suiteStats", "totalDuration", "totalError", "totalFail", "totalPass", "totalSkipped", "totalSpecs", "totalSuites"
 ]) {
 	fixCase[ucase(el)] = el;
 }
@@ -157,8 +157,6 @@ function mem(type) {
 		// we have an error
 		if ((bundle.totalFail + bundle.totalError) > 0) {
 
-			failedTestCases.append(bundle);
-
 			systemOutput("	Suites/Specs: #bundle.totalSuites#/#bundle.totalSpecs#
 	Failures: #bundle.totalFail#
 	Errors:   #bundle.totalError#
@@ -169,28 +167,36 @@ function mem(type) {
 			if (!isNull(bundle.suiteStats)) {
 				loop array=bundle.suiteStats item="local.suiteStat" {
 					if(!isNull(suiteStat.specStats)) {
-						loop array=suiteStat.specStats item="local.specstats" {
-							if(!isNull(specstats.failMessage) && len(trim(specstats.failMessage))) {
-								systemOutput(NL & TAB & TAB & specstats.name & " --> " & specstats.failMessage, true);
+						loop array=suiteStat.specStats item="local.specStats" {
+							if(!isNull(specStats.failMessage) && len(trim(specStats.failMessage))) {
+
+								failedTestCases.append(
+									{
+										 testCase   : specStats.name
+										,errMessage : specStats.failMessage
+									}
+								);
+
+								systemOutput(NL & TAB & specStats.name & " --> " & specStats.failMessage, true);
 
 								if (!isNull(specStats.failOrigin) && !isEmpty(specStats.failOrigin)){
 
 									testboxPath = getDirectoryFromPath(specStats.failOrigin[1].template);
+
+									systemOutput(TAB & TAB & "at", true);
+
 									loop array=specStats.failOrigin item="local.st" {
 										if (!st.template.hasPrefix(testboxPath))
 											systemOutput(TAB & st.template & ":" & st.line, true);
 									}
 								}
-
-							//	systemOutput(TAB & TAB & specstats.path, true);
-							//	systemOutput(TAB & TAB & serialize(specstats.failOrigin ?: []), true);
 							}
 						}
 					}
 				}
 			}
 
-			systemOutput(NL & NL & replace(serialize(bundle), fixCase), true);
+			systemOutput(NL & replace(serialize(bundle), fixCase), true);
 		}
 
 	// exceptions
@@ -238,9 +244,17 @@ Begin Stack Trace
 	echo("=============================================================" & NL);
 	echo("->[Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#]" & NL);
 	echo("->[Pass:     #result.getTotalPass()#]" & NL);
+	echo("->[Skipped:  #result.getTotalSkipped()#]" & NL);
 	echo("->[Failures: #result.getTotalFail()#]" & NL);
 	echo("->[Errors:   #result.getTotalError()#]" & NL);
-	echo("->[Skipped:  #result.getTotalSkipped()#]" & NL);
+
+		if (!isEmpty(failedTestCases)){
+
+			echo(NL);
+			for (el in failedTestCases){
+				echo(TAB & el.testCase & " ---> " & el.errMessage & NL);
+			}
+		}
 
  		if ((result.getTotalFail() + result.getTotalError()) > 0) {
  			throw "TestBox could not sucessfully execute all testcases: #result.getTotalFail()# tests failed; #result.getTotalError()# tests errored.";
