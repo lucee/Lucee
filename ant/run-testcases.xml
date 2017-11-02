@@ -36,6 +36,12 @@ NL = "
 ";
 TAB = "	";
 
+fixCase = {};
+for (el in ["bundleId", "debugBuffer", "endTime", "failOrigin", "id", "name", "parentId", "path", "specStats", "startTime", "status", "suiteStats", "totalDuration", "totalError", "totalFail", "totalPass", "totalSkipped", "totalSpecs", "totalSuites"
+]) {
+	fixCase[ucase(el)] = el;
+}
+
 failedTestCases = [];
 
 try {
@@ -169,8 +175,10 @@ function mem(type) {
 
 								if (!isNull(specStats.failOrigin) && !isEmpty(specStats.failOrigin)){
 
+									testboxPath = getDirectoryFromPath(specStats.failOrigin[1].template);
 									loop array=specStats.failOrigin item="local.st" {
-										systemOutput(TAB & TAB & st.template & ":" & st.line, true);
+										if (!st.template.hasPrefix(testboxPath))
+											systemOutput(TAB & st.template & ":" & st.line, true);
 									}
 								}
 
@@ -181,7 +189,8 @@ function mem(type) {
 					}
 				}
 			}
-			systemOutput(NL & NL & serialize(bundle), true);
+
+			systemOutput(NL & NL & replace(serialize(bundle), fixCase), true);
 		}
 
 	// exceptions
