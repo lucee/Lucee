@@ -269,7 +269,7 @@ Begin Stack Trace
 
 			echo(NL);
 			for (el in failedTestCases){
-				echo(TAB & el.bundle & " @ " & el.testCase & " ---> " & el.errMessage & NL);
+				echo(TAB & el.type & ": " & el.bundle & " @ " & el.testCase & " ---> " & el.errMessage & NL);
 			}
 		}
 
