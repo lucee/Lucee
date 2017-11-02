@@ -197,7 +197,10 @@ function mem(type) {
 
 							if (!isNull(specStat.error) && !isEmpty(specStat.error)){
 
-								systemOutput(NL & TAB & "Errored: " & specStat.name & " --> " & serialize(specStat.error), true);
+								systemOutput(NL & TAB & "Errored: " & specStat.name & " --> " & specStat.error.Message, true);
+
+								systemOutput(NL & serialize(specStat.error), true);
+
 							} // if !isNull
 						}
 					}
