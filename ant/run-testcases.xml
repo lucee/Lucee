@@ -194,22 +194,6 @@ function mem(type) {
 									}
 								}
 							}
-
-							/*
-							if (!isNull(specStat.error) && !isEmpty(specStat.error)) {
-
-								failedTestCases.append(
-									{
-										 type       : "Error"
-										,bundle     : bundle.name             ?: "<unknown>"
-										,testCase   : specStat.name           ?: "<unknown>"
-										,errMessage : specStat.error.message  ?: "<unknown>"
-									}
-								);
-
-							//	systemOutput(NL & TAB & "Error: " & specStat.name & " --> " & specStat.error.message, true);
-							}
-							//*/
 						}
 					}
 				}
