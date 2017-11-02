@@ -206,7 +206,7 @@ function mem(type) {
 									}
 								);
 
-								systemOutput(NL & TAB & "Error: " & specStat.name & " --> " & specStat.error.message, true);
+							//	systemOutput(NL & TAB & "Error: " & specStat.name & " --> " & specStat.error.message, true);
 							}
 						}
 					}
