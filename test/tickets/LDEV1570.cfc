@@ -12,9 +12,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				assertEquals(
 					"2017-11-01T13:35:08-0500" ,
 					dateTimeFormat(time, "ISO8601", "America/Chicago"));
-
-				// Temporarily testing Travis output:
-				assertEquals(false, true);
 			});
 		});
 	}

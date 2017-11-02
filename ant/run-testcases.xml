@@ -166,7 +166,7 @@ function mem(type) {
 						loop array=suiteStat.specStats item="local.specstats" {
 							if(!isNull(specstats.failMessage) && len(trim(specstats.failMessage))) {
 								systemOutput(NL & TAB & TAB & specstats.name & " --> " & specstats.failMessage, true);
-								systemOutput(TAB & TAB & specstats.path, true);
+							//	systemOutput(TAB & TAB & specstats.path, true);
 							//	systemOutput(TAB & TAB & serialize(specstats.failOrigin ?: []), true);
 							}
 						}
