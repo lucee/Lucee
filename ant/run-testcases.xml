@@ -15,235 +15,223 @@
 <target name="run">
 
 <echo><![CDATA[
-  _____         _   ____            
+  _____         _   ____
  |_   _|__  ___| |_| __ )  _____  __
    | |/ _ \/ __| __|  _ \ / _ \ \/ /
-   | |  __/\__ \ |_| |_) | (_) >  < 
+   | |  __/\__ \ |_| |_) | (_) >  <
    |_|\___||___/\__|____/ \___/_/\_\
 
 ]]></echo>
 <echots message="start TestBox testcases"/>
 
 
-
-	
 <script language="CFML">
 <![CDATA[
-if(execute) {
-request.WEBADMINPASSWORD="webweb";
-request.SERVERADMINPASSWORD="webweb";
+if (execute) {
 
-NL="
+request.WEBADMINPASSWORD = "webweb";
+request.SERVERADMINPASSWORD = "webweb";
+
+NL = "
 ";
+TAB = "	";
+
 try {
 
-	
 function mem(type) {
-    var qry=getMemoryUsage(type);
+    var qry = getMemoryUsage(type);
     loop query=qry {
-        var perc=int(100/qry.max*qry.used);
-        if(qry.max<0 || qry.used<0 || perc<90) continue;
-        systemOutput("	"&replace(ucFirst(type),'_',' ')&" "&qry.name&": "&perc&"%",true);
+        var perc = int(100 / qry.max * qry.used);
+        if(qry.max<0 || qry.used<0 || perc<90)
+        	continue;
+        systemOutput(TAB & replace(ucFirst(type), '_', ' ') & " " & qry.name & ": " & perc & "%", true);
     }
 }
 
+// set a password for the admin
+	try {
+		admin
+			action="updatePassword"
+			type="web"
+			oldPassword=""
+			newPassword="#request.WEBADMINPASSWORD#";
+	}
+	catch(e){}	// may exist from previous execution
 
+	try {
+		admin
+			action="updatePassword"
+			type="server"
+			oldPassword=""
+			newPassword="#request.SERVERADMINPASSWORD#";
+	}
+	catch(e){}	// may exist from previous execution
 
-
-
-	// set a password for the admin
-		try {
-		    admin 
-				action="updatePassword"
-				type="web"
-				oldPassword=""
-				newPassword="#request.WEBADMINPASSWORD#";
-		}
-		catch(e){}// may exist from previous execution
-
-		try {
-		    admin 
-				action="updatePassword"
-				type="server"
-				oldPassword=""
-				newPassword="#request.SERVERADMINPASSWORD#";
-		}
-		catch(e){}// may exist from previous execution
-
-		systemOutput("set password #dateTimeFormat(now())#",true);
+	systemOutput("set password #dateTimeFormat(now())#", true);
 
 	// create "/test" mapping
-		admin 
-			action="updateMapping"
-			type="web"
-			password="#request.WEBADMINPASSWORD#"
-			virtual="/test"
-			physical="#test#"
-			toplevel="true"
-			archive=""
-			primary="physical"
-			trusted="no";
+	admin
+		action="updateMapping"
+		type="web"
+		password="#request.WEBADMINPASSWORD#"
+		virtual="/test"
+		physical="#test#"
+		toplevel="true"
+		archive=""
+		primary="physical"
+		trusted="no";
 
-	systemOutput("set /test mapping #dateTimeFormat(now())#",true);
+	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
 
 
 	// set the testbox mapping
- 	
-		application 
-			action="update" 
-			componentpaths = "#[{archive:testboxArchive}]#"; 
+	application
+		action="update"
+		componentpaths = "#[{archive:testboxArchive}]#";
 
-	systemOutput("update componentpaths #dateTimeFormat(now())#",true);
-	
- 		// load testbox
- 		SystemOut=createObject('java','lucee.commons.lang.SystemOut');
- 		out=SystemOut.setOut(nullValue());
- 		//err=SystemOut.setErr(nullValue());
+	systemOutput("update componentpaths #dateTimeFormat(now())#", true);
 
- 		silent {
- 		try {
-	 		tb=new testbox.system.TestBox(directory={ mapping="/test", recurse=true, filter=function(path){
-	 		
-//	 		echo(arguments.path&"
-//");
-			var name=listLast(arguments.path,"\/");
-	 		
-	 		// get parent
-	 		var p=getDirectoryFromPath(arguments.path);
-	 		p=left(p,p.len()-1);
-	 		p=listTrim(p,"\/");
-	 		
-	 		// get grand parent
-	 		var pp=getDirectoryFromPath(p);
-	 		pp=left(pp,pp.len()-1);
-	 		pp=listTrim(pp,"\/");
-	 		
-	 		// only testcases in sub directory of "test" are allowed
-	 		var _test=listTrim(test,"\/");
-	 		return (_test==pp || _test==p) && left(name,1)!="_";
+	// load testbox
+	SystemOut=createObject('java','lucee.commons.lang.SystemOut');
+	out=SystemOut.setOut(nullValue());
+	//err=SystemOut.setErr(nullValue());
 
-	 		}},reporter:"console");
-	 		// execute
-	 		report=tb.run(callbacks:{
-	onBundleStart 	= function( cfc, testResults ){
-		var meta=getComponentMetadata(cfc);
-		SystemOut.setOut(out);
- 		//SystemOut.setErr(err);
-
-		systemOutput("=============================================================
-#meta.name#",false);
-		SystemOut.setOut(nullValue());
- 		//SystemOut.setErr(nullValue());
-	}
-	,onBundleEnd 	= function( cfc, testResults ){
-			
-		var bundle=arrayLast(testResults.getBundleStats());
-
+	silent {
 		try {
+
+			dir = {
+				 mapping : "/test"
+				,recurse : true
+				,filter  : function(path){
+		//			echo(arguments.path&"
+		//");
+					var name=listLast(arguments.path,"\/");
+
+					// get parent
+					var p = getDirectoryFromPath(arguments.path);
+					p = left(p,p.len()-1);
+					p = listTrim(p,"\/");
+
+					// get grand parent
+					var pp = getDirectoryFromPath(p);
+					pp = left(pp,pp.len()-1);
+					pp = listTrim(pp,"\/");
+
+					// only testcases in sub directory of "test" are allowed
+					var _test = listTrim(test,"\/");
+					return (_test == pp || _test == p) && left(name, 1) != "_";
+				}
+			};
+
+			tb = new testbox.system.TestBox(directory=dir, reporter="console");
+
+			// execute
+			report = tb.run(callbacks=
+{
+	 onBundleStart = function(cfc, testResults){
+		var meta = getComponentMetadata(cfc);
 		SystemOut.setOut(out);
- 		//SystemOut.setErr(err);
+		//SystemOut.setErr(err);
+		systemOutput("=============================================================" & NL & meta.name, false);
+		SystemOut.setOut(nullValue());
+		//SystemOut.setErr(nullValue());
+	} // onBundleStart = function
+	,onBundleEnd = function(cfc, testResults){
+		var bundle = arrayLast(testResults.getBundleStats());
+		try {
+			SystemOut.setOut(out);
+			//SystemOut.setErr(err);
 
-
- 		systemOutput(" (#bundle.totalPass# tests passed in #bundle.totalDuration# ms)",true);
-		mem("non_heap");
-		mem("heap");
+			systemOutput(" (#bundle.totalPass# tests passed in #bundle.totalDuration# ms)",true);
+			mem("non_heap");
+			mem("heap");
 
 		// we have an error
-		if(bundle.totalFail+bundle.totalError>0) {
+		if (bundle.totalFail+bundle.totalError>0) {
 			systemOutput("	Suites/Specs: #bundle.totalSuites#/#bundle.totalSpecs#
 	Pass: #bundle.totalPass#
 	Failures: #bundle.totalFail#
 	Errors: #bundle.totalError#
 	Skipped: #bundle.totalSkipped#",true);
 
-			if(!isNull(bundle.SUITESTATS)) {
-		    	loop array=bundle.SUITESTATS item="local.suitestat" {
-		    		if(!isNull(suitestat.SPECSTATS)) {
-		        		loop array=suitestat.SPECSTATS item="local.specstats" {
-		            		if(!isNull(specstats.FAILMESSAGE) && len(trim(specstats.FAILMESSAGE))) {
-		   						systemOutput("		#specstats.name#:#specstats.FAILMESSAGE#",true);
-		            		}
-		        		}
-		    		}
-		    	}
+			if (!isNull(bundle.suiteStats)) {
+				loop array=bundle.suiteStats item="local.suitestat" {
+					if(!isNull(suitestat.specStats)) {
+						loop array=suitestat.specStats item="local.specstats" {
+							if(!isNull(specstats.failMessage) && len(trim(specstats.failMessage))) {
+								systemOutput("		#specstats.name#:#specstats.failMessage#", true);
+							}
+						}
+					}
+				}
 			}
-			systemOutput("
-
-
-"&serialize(bundle),true);
-
-
-
-
-
+			systemOutput(NL & NL & serialize(bundle), true);
 		}
-		
 
-
-
-		// exceptions
-		if(!isSimpleValue( bundle.globalException )) {
-	systemOutput("GLOBAL BUNDLE EXCEPTION
-	#bundle.globalException.type#:#bundle.globalException.message#:#bundle.globalException.detail#
+	// exceptions
+	if (!isSimpleValue(bundle.globalException)) {
+		systemOutput("Global Bundle Exception
+		#bundle.globalException.type#
+		#bundle.globalException.message#
+		#bundle.globalException.detail#
 =============================================================
-STACKTRACE
+Begin Stack Trace
 =============================================================
 #bundle.globalException.stacktrace#
 =============================================================
-END STACKTRACE
-=============================================================",true);
-		}
-
+  End Stack Trace
+=============================================================", true);
+	}
 
 //systemOutput("=============================================================",true);
-		}
+		} // try
 		finally {
 			SystemOut.setOut(nullValue());
-	 		//SystemOut.setErr(nullValue());
-		}
-		
-	}
+			//SystemOut.setErr(nullValue());
+		} // finally
+	} // onBundleEnd = function
 	/*,onSuiteStart 	= function( bundle, testResults, suite ){}
 	,onSuiteEnd		= function( bundle, testResults, suite ){}
 	,onSpecStart		= function( bundle, testResults, suite, spec ){}
 	,onSpecEnd 		= function( bundle, testResults, suite, spec ){}*/
-}); 
-
+} // callbacks
+			); // report = tb.run
 
 	 		// get the result
-	 		result=tb.getResult();
+	 		result = tb.getResult();
  		}
  		finally {
  			//SystemOut.setOut(out);
  			//SystemOut.setErr(err);
- 		}
- 		}
- 		
+ 		} // try
+	} // silent
 
-		echo("============================================================="&NL);
-		echo("TestBox Version: #tb.getVersion()#"&NL);
-		echo("Global Stats (#result.getTotalDuration()# ms)"&NL);
-		echo("============================================================="&NL);
-		echo("->[Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#]"&NL);
-		echo("->[Pass: #result.getTotalPass()#]"&NL);
-		echo("->[Failures: #result.getTotalFail()#]"&NL);
-		echo("->[Errors: #result.getTotalError()#]"&NL);
-		echo("->[Skipped: #result.getTotalSkipped()#]"&NL);
+
+	echo("=============================================================" & NL);
+	echo("TestBox Version: #tb.getVersion()#" & NL);
+	echo("Global Stats (#result.getTotalDuration()# ms)" & NL);
+	echo("=============================================================" & NL);
+	echo("->[Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#]" & NL);
+	echo("->[Pass: #result.getTotalPass()#]" & NL);
+	echo("->[Failures: #result.getTotalFail()#]" & NL);
+	echo("->[Errors: #result.getTotalError()#]" & NL);
+	echo("->[Skipped: #result.getTotalSkipped()#]" & NL);
 
  		if(result.getTotalFail()+result.getTotalError()>0) {
  			throw "testbox could not sucessfull execute all testcases: failed #result.getTotalFail()#;error #result.getTotalError()#";
  		}
 	}
 	catch(e){
-		echo("-------------------------------------------------------"&NL);
-		echo("Testcase failed"&NL);
-		echo(e.message&NL);
-		echo(serialize(e)&NL);
-		echo("-------------------------------------------------------"&NL);
+		echo("-------------------------------------------------------" & NL);
+		echo("Testcase failed" & NL);
+		echo(e.message & NL);
+		echo(serialize(e) & NL);
+		echo("-------------------------------------------------------" & NL);
 		rethrow;
 	}
-}
- ]]>
+
+} // if (execute)
+]]>
   </script>
 
 </target>
