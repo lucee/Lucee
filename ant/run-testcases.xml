@@ -92,7 +92,7 @@ function mem(type) {
 	systemOutput("update componentpaths #dateTimeFormat(now())#", true);
 
 	// load testbox
-	SystemOut=createObject('java','lucee.commons.lang.SystemOut');
+	SystemOut=createObject("java", "lucee.commons.lang.SystemOut");
 	out=SystemOut.setOut(nullValue());
 	//err=SystemOut.setErr(nullValue());
 
@@ -142,24 +142,27 @@ function mem(type) {
 			SystemOut.setOut(out);
 			//SystemOut.setErr(err);
 
-			systemOutput(" (#bundle.totalPass# tests passed in #bundle.totalDuration# ms)",true);
+			systemOutput(" (#bundle.totalPass# tests passed in #LSNumberFormat(bundle.totalDuration, ',')# ms)",true);
 			mem("non_heap");
 			mem("heap");
 
 		// we have an error
-		if (bundle.totalFail+bundle.totalError>0) {
+		if ((bundle.totalFail + bundle.totalError) > 0) {
 			systemOutput("	Suites/Specs: #bundle.totalSuites#/#bundle.totalSpecs#
-	Pass: #bundle.totalPass#
 	Failures: #bundle.totalFail#
-	Errors: #bundle.totalError#
-	Skipped: #bundle.totalSkipped#",true);
+	Errors:   #bundle.totalError#
+	Pass:     #bundle.totalPass#
+	Skipped:  #bundle.totalSkipped#"
+			, true);
 
 			if (!isNull(bundle.suiteStats)) {
-				loop array=bundle.suiteStats item="local.suitestat" {
-					if(!isNull(suitestat.specStats)) {
-						loop array=suitestat.specStats item="local.specstats" {
+				loop array=bundle.suiteStats item="local.suiteStat" {
+					if(!isNull(suiteStat.specStats)) {
+						loop array=suiteStat.specStats item="local.specstats" {
 							if(!isNull(specstats.failMessage) && len(trim(specstats.failMessage))) {
-								systemOutput("		#specstats.name#:#specstats.failMessage#", true);
+								systemOutput(NL & TAB & TAB & specstats.name & " --> " & specstats.failMessage, true);
+								systemOutput(TAB & TAB & specstats.path, true);
+								systemOutput(TAB & TAB & specstats.failOrigin ?: [], true);
 							}
 						}
 					}
@@ -217,13 +220,13 @@ Begin Stack Trace
 	echo("->[Errors: #result.getTotalError()#]" & NL);
 	echo("->[Skipped: #result.getTotalSkipped()#]" & NL);
 
- 		if(result.getTotalFail()+result.getTotalError()>0) {
- 			throw "testbox could not sucessfull execute all testcases: failed #result.getTotalFail()#;error #result.getTotalError()#";
+ 		if ((result.getTotalFail() + result.getTotalError()) > 0) {
+ 			throw "TestBox could not sucessfully execute all testcases: #result.getTotalFail()# tests failed; #result.getTotalError()# tests errored.";
  		}
 	}
 	catch(e){
 		echo("-------------------------------------------------------" & NL);
-		echo("Testcase failed" & NL);
+		echo("Testcase failed:" & NL);
 		echo(e.message & NL);
 		echo(serialize(e) & NL);
 		echo("-------------------------------------------------------" & NL);
