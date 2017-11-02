@@ -36,6 +36,8 @@ NL = "
 ";
 TAB = "	";
 
+failedTestCases = [];
+
 try {
 
 function mem(type) {
@@ -148,6 +150,9 @@ function mem(type) {
 
 		// we have an error
 		if ((bundle.totalFail + bundle.totalError) > 0) {
+
+			failedTestCases.append(bundle);
+
 			systemOutput("	Suites/Specs: #bundle.totalSuites#/#bundle.totalSpecs#
 	Failures: #bundle.totalFail#
 	Errors:   #bundle.totalError#
@@ -162,7 +167,7 @@ function mem(type) {
 							if(!isNull(specstats.failMessage) && len(trim(specstats.failMessage))) {
 								systemOutput(NL & TAB & TAB & specstats.name & " --> " & specstats.failMessage, true);
 								systemOutput(TAB & TAB & specstats.path, true);
-								systemOutput(TAB & TAB & serialize(specstats.failOrigin ?: []), true);
+							//	systemOutput(TAB & TAB & serialize(specstats.failOrigin ?: []), true);
 							}
 						}
 					}
@@ -215,10 +220,10 @@ Begin Stack Trace
 	echo("Global Stats (#result.getTotalDuration()# ms)" & NL);
 	echo("=============================================================" & NL);
 	echo("->[Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#]" & NL);
-	echo("->[Pass: #result.getTotalPass()#]" & NL);
+	echo("->[Pass:     #result.getTotalPass()#]" & NL);
 	echo("->[Failures: #result.getTotalFail()#]" & NL);
-	echo("->[Errors: #result.getTotalError()#]" & NL);
-	echo("->[Skipped: #result.getTotalSkipped()#]" & NL);
+	echo("->[Errors:   #result.getTotalError()#]" & NL);
+	echo("->[Skipped:  #result.getTotalSkipped()#]" & NL);
 
  		if ((result.getTotalFail() + result.getTotalError()) > 0) {
  			throw "TestBox could not sucessfully execute all testcases: #result.getTotalFail()# tests failed; #result.getTotalError()# tests errored.";
