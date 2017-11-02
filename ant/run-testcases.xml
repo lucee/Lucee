@@ -172,12 +172,14 @@ function mem(type) {
 
 								failedTestCases.append(
 									{
-										 testCase   : specStats.name
+										 type       : "Failed"
+										,bundle     : bundle.name
+										,testCase   : specStats.name
 										,errMessage : specStats.failMessage
 									}
 								);
 
-								systemOutput(NL & TAB & specStats.name & " --> " & specStats.failMessage, true);
+								systemOutput(NL & TAB & "Failed: " & specStats.name & " --> " & specStats.failMessage, true);
 
 								if (!isNull(specStats.failOrigin) && !isEmpty(specStats.failOrigin)){
 
@@ -252,7 +254,7 @@ Begin Stack Trace
 
 			echo(NL);
 			for (el in failedTestCases){
-				echo(TAB & el.testCase & " ---> " & el.errMessage & NL);
+				echo(TAB & el.bundle & " @ " & el.testCase & " ---> " & el.errMessage & NL);
 			}
 		}
 
