@@ -184,11 +184,12 @@ function mem(type) {
 
 								if (!isNull(specStat.failOrigin) && !isEmpty(specStat.failOrigin)){
 
-									testboxPath = getDirectoryFromPath(specStat.failOrigin[1].template);
+									stackTrace = specStat.failOrigin;
+									testboxPath = getDirectoryFromPath(stackTrace[1].template);
 
 									systemOutput(TAB & TAB & "at", true);
 
-									loop array=specStat.failOrigin item="local.st" {
+									loop array=stackTrace item="local.st" {
 										if (!st.template.hasPrefix(testboxPath))
 											systemOutput(TAB & st.template & ":" & st.line, true);
 									}
@@ -197,9 +198,31 @@ function mem(type) {
 
 							if (!isNull(specStat.error) && !isEmpty(specStat.error)){
 
+								failedTestCases.append(
+									{
+										 type       : "Errored"
+										,bundle     : bundle.name
+										,testCase   : specStat.name
+										,errMessage : specStat.error.Message
+									}
+								);
+
 								systemOutput(NL & TAB & "Errored: " & specStat.name & " --> " & specStat.error.Message, true);
 
-								systemOutput(NL & serialize(specStat.error), true);
+								if (!isNull(specStat.error.TagContext) && !isEmpty(specStat.error.TagContext)){
+
+									stackTrace = specStat.error.TagContext;
+									testboxPath = getDirectoryFromPath(stackTrace[1].template);
+
+									systemOutput(TAB & TAB & "at", true);
+
+									loop array=stackTrace item="local.st" {
+										if (!st.template.hasPrefix(testboxPath))
+											systemOutput(TAB & st.template & ":" & st.line, true);
+									}
+								}
+
+							//	systemOutput(NL & serialize(specStat.error), true);
 
 							} // if !isNull
 						}
