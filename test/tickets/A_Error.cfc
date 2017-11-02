@@ -27,9 +27,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public void function test(){
 
 		// Temporarily testing Travis output:
-		setting requesttimeout=1;
-		sleep(1234);
-		sleep(1234);
+		throw("Test error from A_Error.cfc");
 	}
 }
 </cfscript>
