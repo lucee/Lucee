@@ -192,8 +192,9 @@ function mem(type) {
 									loop array=rawStackTrace item="local.st" {
 
 										if (!st.template.hasPrefix(testboxPath)){
-											failedTestCase.stackTrace.append(st.template & ":" & st.line);
-											systemOutput(TAB & st.template & ":" & st.line, true);
+											var frame = st.template & ":" & st.line;
+											failedTestCase.stackTrace.append(frame);
+											systemOutput(TAB & frame, true);
 										}
 									}
 								}
@@ -220,8 +221,9 @@ function mem(type) {
 
 									loop array=rawStackTrace item="local.st" {
 
-										failedTestCase.stackTrace.append(st.template & ":" & st.line);
-										systemOutput(TAB & st.template & ":" & st.line, true);
+										var frame = st.template & ":" & st.line;
+										failedTestCase.stackTrace.append(frame);
+										systemOutput(TAB & frame, true);
 									}
 								}
 
@@ -290,6 +292,14 @@ Begin Stack Trace
 			echo(NL);
 			for (el in failedTestCases){
 				echo(TAB & el.type & ": " & el.bundle & "." & el.testCase & " ---> " & el.errMessage & NL);
+				if (!isEmpty(el.stackTrace)){
+
+					echo(TAB & TAB & "at" & NL);
+					for (frame in el.stackTrace){
+						echo(TAB & TAB & frame & NL);
+					}
+				}
+				echo(NL);
 			}
 			echo(NL);
 		}
