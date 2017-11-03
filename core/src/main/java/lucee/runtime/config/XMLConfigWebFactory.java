@@ -2955,6 +2955,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			
 			// /resource/library/tag/build/jquery
 			Resource jquery = build.getRealResource("jquery");
+			if(!jquery.isDirectory()) jquery.mkdirs();
 			names = new String[] { "jquery-1.12.4.min.js" };
 			for (int i = 0; i < names.length; i++) {
 				f = jquery.getRealResource(names[i]);
