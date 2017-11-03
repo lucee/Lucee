@@ -30,6 +30,7 @@ before_install:
   - psql -c "ALTER USER $POSTGRE_USERNAME WITH PASSWORD '$POSTGRE_PASSWORD';" -U $POSTGRE_USERNAME
   - sleep 15 # necessary for the mongodb command to work because it does not accept intermittent connections
   - mongo test --eval "db.createUser({user:'$MONGODB_USERNAME',pwd:'$MONGODB_PASSWORD',roles:['readWrite']});"
+  - mongo admin --eval "db.createUser({user:'$MONGODB_USERNAME',pwd:'$MONGODB_PASSWORD',roles:['readWrite']});"
   # - mongo test --eval 'db.addUser("travis", "test");'
   # for more see https://docs.travis-ci.com/user/database-setup
 
