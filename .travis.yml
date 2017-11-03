@@ -24,10 +24,12 @@ services:
   - memcached # Memcached uses the default configuration and binds to localhost.
 
 before_install:
-  - mysql -e "create database IF NOT EXISTS $MYSQL_DATABASE;" -u$MYSQL_USERNAME
+  - mysql -e "create database IF NOT EXISTS $MYSQL_DATABASE;" -u $MYSQL_USERNAME
+  - mysql -e "USE mysql;\nUPDATE user SET password=PASSWORD('$MYSQL_PASSWORD') WHERE user='$MYSQL_USERNAME';\nFLUSH PRIVILEGES;\n" -u $MYSQL_USERNAME
   - psql -c "create database $POSTGRE_DATABASE;" -U $POSTGRE_USERNAME
+  - psql -c "ALTER USER $POSTGRE_USERNAME WITH PASSWORD '$POSTGRE_PASSWORD';" -U $POSTGRE_USERNAME
   - sleep 15 # necessary for the mongodb command to work because it does not accept intermittent connections
-  - mongo test --eval "db.createUser({user:\"$MONGODB_USERNAME\",pwd:\"$MONGODB_PASSWORD\",roles:['readWrite']});"
+  - mongo test --eval "db.createUser({user:'$MONGODB_USERNAME',pwd:'$MONGODB_PASSWORD',roles:['readWrite']});"
   # - mongo test --eval 'db.addUser("travis", "test");'
   # for more see https://docs.travis-ci.com/user/database-setup
 
