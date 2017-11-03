@@ -50,12 +50,12 @@
 			return !len(arrayToList(queryColumnData(qry,columnName),""));
 		}
 
-		function isSectionOpen( string name ) {
+		function isSectionOpen( string name, string section = "debugging" ) {
 			try{
-			if ( arguments.name == "ALL" && !structKeyExists( Cookie, variables.cookieName ) )
+			if ( arguments.name == "ALL" && !structKeyExists( Cookie, variables["cookieName_" & section] ) )
 				return true;
 
-			var cookieValue = structKeyExists( Cookie, variables.cookieName ) ? Cookie[ variables.cookieName ] : 0;
+			var cookieValue = structKeyExists( Cookie, variables["cookieName_" & section] ) ? Cookie[ variables["cookieName_" & section] ] : 0;
 
 			return cookieValue && ( bitAnd( cookieValue, this.allSections[ arguments.name ] ) );
 			}
@@ -70,13 +70,15 @@
 		}
 
 
-		variables.cookieName = "lucee_debug_modern";
+		variables.cookieName_debugging = "lucee_debug_modern";
+		variables.cookieName_metrics = "lucee_metrics_modern";
+		variables.cookieName_docs = "lucee_docs_modern";
 
 		variables.scopeNames = [ "Application", "CGI", "Client", "Cookie", "Form", "Request", "Server", "Session", "URL" ];
 
 		function buildSectionStruct() {
 
-			var otherSections = [ "ALL", "Dump", "ExecTime", "ExecOrder", "Exceptions", "ImpAccess", "Info", "Query", "Timer", "Trace", "More" ];
+			var otherSections = [ "ALL", "Dump", "ExecTime", "ExecOrder", "Exceptions", "ImpAccess", "Info", "Query", "Timer", "Trace", "More", "memChart", "cpuChart", "docs_Info", "tags", "functions", "components" ];
 			var i = 0;
 
 			var result = {};
@@ -185,36 +187,88 @@
 			#-lucee-debug .pad 	{ padding-left: 16px; }
 			#-lucee-debug a 	{ cursor: pointer; }
 			#-lucee-debug td a 	{ color: #25A; }
-			#-lucee-debug .warning{ color: red; }
 			#-lucee-debug td a:hover	{ color: #58C; text-decoration: underline; }
 			#-lucee-debug pre 	{ background-color: #EEE; padding: 1em; border: solid 1px #333; border-radius: 1em; white-space: pre-wrap; word-break: break-all; word-wrap: break-word; tab-size: 2; }
 
 			.-lucee-icon-plus 	{ background: url(data:image/gif;base64,R0lGODlhCQAJAIABAAAAAP///yH5BAEAAAEALAAAAAAJAAkAAAIRhI+hG7bwoJINIktzjizeUwAAOw==) no-repeat left center; padding: 4px 0 4px 16px; }
 			.-lucee-icon-minus 	{ background: url(data:image/gif;base64,R0lGODlhCQAJAIABAAAAAP///yH5BAEAAAEALAAAAAAJAAkAAAIQhI+hG8brXgPzTHllfKiDAgA7)     no-repeat left center; padding: 4px 0 4px 16px; }
+			
+			.tt-suggestion.tt-selectable p{margin: 0px !important;}
+			.tt-suggestion.tt-selectable{cursor: pointer;}
+			.tt-suggestion.tt-selectable:hover{background-color: ##01798A; color: ##FFFFFF}
+			.tt-menu.tt-open{ background-color: #B3B3B3 !important; width: 121% !important; font-size:15px !important;  padding:2% 1% 2% 1% !important; left: 4% !important; border-radius: 3%;}
+			.tt-suggestion.tt-selectable:hover{ background-color: #request.adminType=="web"?'##39c':'##BF4F36'# !impor }
+			.tt-menu.tt-open.moreResults{ font-size: 10px; font-style: italic;}
+			.container{padding : 1%;}
+			.InputSearch { margin-left: 4%; margin-top: -16%;}
+			.container>.access-hide{ font-size:14px ; font-weight: bold;}
+			td a.value1 { padding-left: 25%; font-size: 13px;}
+			.leftPart td { padding-left: 5%;}
+			.leftPart{ float: left; width: 84%;}
+			.rightPart{ float: right; width: 16%;}
+			.paddingLeft{ padding-left: 60px;}
+			.Desc{padding-left: 3%;}
+			button.buttonStyle{ background-color: #B3B3B3; color: white; font-size: 13px; border-radius: 6px 6px 6px 6px; font-weight: bold;  padding-right: 15px; padding-left: 20px; display: inline-block;}
+			button.btnActive{background-color: blue;  color: white; font-size: 13px; border-radius: 6px 6px 6px 6px; font-weight: bold; padding-right: 15px; padding-left: 20px;}
+			.chartsAlign {padding-left: 32px;}
+			#-lucee-metrics-memChart td {padding-left: 32px;}
+			#-lucee-metrics-cpuChart td {padding-left: 32px;}
 		</style>
-
+		
 		<cfoutput>
-
+			<cfset str = {}>
+			<cfset str.functions  = getAllFunctions()>
+			<cfset str.tags = getAllTags()>
+			<cfset str.components = getAllComponents()>
+			<cfset allArryItem = []>
+			<cfloop collection="#str#" index="lst">
+				<cfloop array=#str[lst]# index="i">
+					<cfset arrayAppend(allArryItem, i)>
+				</cfloop>
+			</cfloop>
 			<cfset var sectionId = "ALL">
-			<cfset var isOpen = this.isSectionOpen( sectionId )>
+			<cfset var isOpen = this.isSectionOpen( sectionId, "debugging" ) OR this.isSectionOpen( sectionId, "metrics" )>
 
 			<!-- Lucee Debug Output !-->
-			<fieldset id="-lucee-debug" class="#arguments.custom.size# #isOpen ? '' : 'collapsed'#">
+			<fieldset id="-lucee-debug" class="#arguments.custom.size#">
 
-				<legend><a id="-lucee-debug-btn-#sectionId#" class="-lucee-icon-#isOpen ? 'minus' : 'plus'#" onclick="__LUCEE.debug.toggleSection( '#sectionId#' ) ? __LUCEE.util.removeClass('-lucee-debug', 'collapsed') : __LUCEE.util.addClass('-lucee-debug', 'collapsed');">
-				 Lucee Debug Output</a> <span>(#this.getLabel()#)</span></legend>
+				<legend>
+					<cfset isdebugOpen = this.isSectionOpen( sectionId )>
+					<cfset ismetricsOpen = this.isSectionOpen( sectionId, "metrics" )>
+					<cfset isdocsOpen = this.isSectionOpen( sectionId, "docs" )>
+					<cfif isdebugOpen && ismetricsOpen && isdocsOpen>
+						<cfset isdebugOpen = false>
+						<cfset ismetricsOpen = false>
+						<cfset isdocsOpen = false>
+					</cfif>
+					<button id="-lucee-debug-btn-#sectionId#" class="-lucee-icon-#isdebugOpen ? 'minus' : 'plus' # #isdebugOpen ? 'btnActive' : 'buttonStyle' #  test" onclick="__LUCEE.debug.toggleSection( '#sectionId#' );">
+						<!--- Lucee Debug Output --->
+						Debugging
+					</button>
+					<!--- <span>(#this.getLabel()#)</span> --->
+					<button id="-lucee-metrics-btn-#sectionId#" class="-lucee-icon-#ismetricsOpen ? 'minus' : 'plus'# #ismetricsOpen ? 'btnActive' : 'buttonStyle' #  test" onclick="__LUCEE.debug.toggleSection( '#sectionId#', 'metrics' );">
+						Metrics
+					</button>
+					<button id="-lucee-docs-btn-#sectionId#" class="-lucee-icon-#isdocsOpen ? 'minus' : 'plus'# #isdocsOpen ? 'btnActive' : 'buttonStyle' #  test" onclick="__LUCEE.debug.toggleSection( '#sectionId#', 'docs' );">
+						Documentation
+					</button>
+				</legend>
 
-				<div id="-lucee-debug-ALL" class="#isOpen ? '' : 'collapsed'#">
+				<cfset var sectionId = "ALL">
+				<cfset var isDebugAllOpen = this.isSectionOpen( sectionId )>
+				<cfset isMetricAllOpen = this.isSectionOpen( sectionId, "metrics" )>
+				<cfset isDocsAllOpen = this.isSectionOpen( sectionId, "docs" )>
+				<cfif isDebugAllOpen && isMetricAllOpen && isDocsAllOpen>
+					<cfset isDebugAllOpen = false>
+					<cfset isMetricAllOpen = false>
+					<cfset isDocsAllOpen = false>
+				</cfif>
+				<div id="-lucee-debug-ALL" class="#isDebugAllOpen ? '' : 'collapsed'#">
 
 					<!--- General --->
 					<cfif isEnabled( arguments.custom, 'general' )>
 
 						<div class="section-title">Debugging Information</div>
-					    <cfif getJavaVersion() LT 8 >
-							<div class="warning">
-								You are running Lucee with Java #server.java.version# Lucee does not formally support this version of Java. Consider updating to the latest Java version for security and performance reasons.
-							</div>
-					    </cfif>
 
 						<cfset sectionId = "Info">
 						<cfset isOpen = this.isSectionOpen( sectionId )>
@@ -772,30 +826,145 @@
 						</table>
 					</cfif>
 
-<!--- Generic Data --->
-
-	<cfif !isNull(arguments.debugging.genericData) &&  arguments.debugging.genericData.recordcount>
-		<cfset qry=arguments.debugging.genericData>
-	<cfoutput query="#qry#" group="category">
-	<div class="section-title">#qry.category#</div>
-	
-		<table>
-			<cfoutput>
-			<tr>
-				<td class="pad txt-r"><b>#qry.name#</b></td>
-				<td class="pad">#qry.value#</td>
-			</tr>
-			</cfoutput>
-		</table>
-	</cfoutput>
-	</cfif>
-
 				</div><!--- #-lucee-debug-ALL !--->
+
+
+				<div id="-lucee-metrics-ALL" class="#isMetricAllOpen ? '' : 'collapsed'#">
+					<div class="section-title">System Metrics</div>
+					<!--- <div class="section-title">Debugging Information</div> --->
+					<table>
+					<tr>
+						<td class="chartsAlign">					
+							<cfset sectionId = "memChart">
+							<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
+							<table>
+								<cfset renderSectionHeadTR2( "#sectionId#", "Memory Chart", "", "metrics" )>
+								<tr>
+									<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
+										<table>
+											<tr>
+												<td>Memory Used By java</td>
+											</tr>
+										</table>
+										<table>
+											<th>Heap Chart</th>
+											<th>Non Heap Chart</th>
+											<tr>
+												<td><div id="heap" style="min-width: 300px; height: 150px; margin: 0 auto;"></div></td>
+												<td><div id="nonheap" style="min-width: 300px; height: 150px; margin: 0 auto;"></div></td>
+											</tr>
+										</table>
+									</td>
+								</tr>
+							</table>
+					
+							<cfset sectionId = "cpuChart">
+							<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
+							<table>
+								<cfset renderSectionHeadTR2( "#sectionId#", "CPU Chart", "", "metrics" )>
+								<tr>
+									<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
+										<table>
+											<tr>
+												<td>Average CPU load of the last 20 seconds on the whole system and this Java Virtual Machine (Lucee Process).</td>
+											</tr>
+										</table>
+										<table>
+											<th>Whole System</th>
+											<th>Lucee Process</th>
+											<tr>
+												<td><div id="cpuSystem" style="min-width: 300px; height: 150px; margin: 0 auto;"></div></td>
+												<td><div id="cpuProcess" style="min-width: 300px; height: 150px; margin: 0 auto;"></td>
+											</tr>
+										</table>
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+					</table>
+				</div><!--- #-lucee-metrics-ALL !--->
+				<div id="-lucee-docs-ALL" class="#isDocsAllOpen ? '' : 'collapsed'#">
+					<!--- <div class="section-title">Debugging Information</div> --->
+					<cfset sectionId = "docs_Info">
+					<cfset isOpen = this.isSectionOpen( sectionId, "docs" )>
+					<div class="section-title">Documentation</div>
+					<table>
+						<tr>
+						<td>
+							<div class="leftPart">
+								<table>
+									<tr>
+										<td>
+											The documentation here aims to provide a thorough reference for the Lucee Server. You will find reference material on Lucee <a href="#cgi.hostName#/lucee/doc/tags.cfm">tags</a>, <a href="#cgi.hostName#/lucee/doc/functions.cfm">functions</a>, <a href="#cgi.hostName#/lucee/doc/components.cfm">components</a> and <a href="#cgi.hostName#/lucee/doc/objects.cfm">objects</a>. <span>You can reach the online version of the Lucee Server documentation <a href="http://docs.lucee.org/">here</a>.</span>
+										</td>
+									</tr>
+								</table>
+							</div>
+							<div class="rightPart">
+								<table>
+									<tr>
+										<td>
+											<div class="container">
+												<input class="InputSearch menu-search-focus" id="lucee-docs-search-input" placeholder="Search" type="search">
+											</div>
+										</td>
+									</tr>
+								</table>
+							</div>
+						</td>
+						</tr>
+					</table>
+
+					<table>
+						<!--- <cfset renderSectionHeadTR2( "#sectionId#", "Documentation", "", "docs" )> --->
+						<tr>
+							<td >
+
+								<cfset docsDesc = {}>
+								<cfset docsDesc.tags = "Tags are at the core of Lucee Server's templating language. You can check out every tag that has been listed below.">
+								<cfset docsDesc.functions = "Functions are at the core of Lucee Server's templating language. You can check out every Functions that has been listed below.">
+								<cfset docsDesc.components = 'The packages listed here are based on the component mappings defined in the Lucee Administartor under "Archives & Resources/Component". Add your own packages here by register your components with a component mapping. What makes it easier to access your components.'>
+								
+								<table>
+									<tr>
+										<td class="paddingLeft">
+											<cfloop collection="#Str#" index="key">
+												<cfset sectionId = key>
+												<cfset isOpen = this.isSectionOpen( sectionId, "docs" )>
+												<table>
+													<cfset renderSectionHeadTR2( "#Lcase(sectionId)#", "#key#", "", "docs" )>
+													<tr>
+														<td id="-lucee-docs-#Lcase(sectionId)#" class="#isOpen ? '' : 'collapsed'#" >
+															<table>
+																<tr>
+																	<td class="Desc">#docsDesc[key]#</td>
+																</tr>
+															</table>
+															<table>
+																<cfloop array=#str[key]# index="i">
+																	<tr>
+																		<td><a class="value1" href="http://#cgi.host#/lucee/doc/#key#.cfm?item=#i#">#i#</a></td>
+																	</tr>
+																</cfloop>
+															</table>
+														</td>
+													</tr>
+												</table>
+											</cfloop>
+										</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					</table>
+				</div>
 			</fieldset><!--- #-lucee-debug !--->
 		</cfoutput>
 
 
 		<script>
+			<cfset this.includeInline( "/lucee/res/js/jquery-1.12.4.min.js" )>
 			<cfset this.includeInline( "/lucee/res/js/util.min.js" )>
 
 			var __LUCEE = __LUCEE || {};
@@ -803,50 +972,274 @@
 			__LUCEE.debug = {
 
 				<cfoutput>
-				  cookieName: 	"#variables.cookieName#"
+				  cookieName_debugging: 	"#variables.cookieName_debugging#"
+				, cookieName_metrics: 	"#variables.cookieName_metrics#"
+				, cookieName_docs: 	"#variables.cookieName_docs#"
 				, bitmaskAll: 	Math.pow( 2, 31 ) - 1
 				, allSections: 	#serializeJSON( this.allSections )#
 				</cfoutput>
 
-				, setFlag: 		function( name ) {
+				, setFlag: 		function( name, section ) {
+					if(typeof(section) == 'undefined'){
+						var section = "debugging";
+					}
 
-					var value = __LUCEE.util.getCookie( __LUCEE.debug.cookieName, __LUCEE.debug.allSections.ALL ) | __LUCEE.debug.allSections[ name ];
-					__LUCEE.util.setCookie( __LUCEE.debug.cookieName, value );
+					var value = __LUCEE.util.getCookie( __LUCEE.debug["cookieName_"+section], __LUCEE.debug.allSections.ALL ) | __LUCEE.debug.allSections[ name ];
+					__LUCEE.util.setCookie( __LUCEE.debug["cookieName_"+section], value );
 					return value;
 				}
 
-				, clearFlag: 	function( name ) {
+				, clearFlag: 	function( name, section ) {
+					if(typeof(section) == 'undefined'){
+						var section = "debugging";
+					}
 
-					var value = __LUCEE.util.getCookie( __LUCEE.debug.cookieName, 0 ) & ( __LUCEE.debug.bitmaskAll - __LUCEE.debug.allSections[ name ] );
-					__LUCEE.util.setCookie( __LUCEE.debug.cookieName, value );
+					var value = __LUCEE.util.getCookie( __LUCEE.debug["cookieName_"+section], 0 ) & ( __LUCEE.debug.bitmaskAll - __LUCEE.debug.allSections[ name ] );
+					__LUCEE.util.setCookie( __LUCEE.debug["cookieName_"+section], value );
 					return value;
 				}
 
-				, toggleSection: 	function( name ) {
+				, toggleSection: 	function( name, section ) {
+					if(typeof(section) == 'undefined'){
+						var section = "debugging";
+					}
 
-					var btn = __LUCEE.util.getDomObject( "-lucee-debug-btn-" + name );
-					var obj = __LUCEE.util.getDomObject( "-lucee-debug-" + name );
-					var isOpen = ( __LUCEE.util.getCookie( __LUCEE.debug.cookieName, 0 ) & __LUCEE.debug.allSections[ name ] ) > 0;
+					if(section == "debugging"){
+						var sectionClass = "debug";
+					}else if(section == "metrics"){
+						var sectionClass = "metrics";
+					} else if(section == "docs"){
+						var sectionClass = "docs";
+					}
 
+					// All main sections
+					var allMainSections = ["debugging","metrics","docs"];
+					var otherMainSections = ["debugging","metrics","docs"];
+					// Find and remove item from an array
+					var i = otherMainSections.indexOf(section);
+					if(i != -1) {
+						otherMainSections.splice(i, 1);
+					}
+
+					var btn = __LUCEE.util.getDomObject( "-lucee-" + sectionClass + "-btn-" + name );
+					var obj = __LUCEE.util.getDomObject( "-lucee-" + sectionClass + "-" + name );
+					var isOpen = ( __LUCEE.util.getCookie( __LUCEE.debug["cookieName_"+section], 0 ) & __LUCEE.debug.allSections[ name ] ) > 0;
 					if ( isOpen ) {
-
 						__LUCEE.util.removeClass( btn, '-lucee-icon-minus' );
 						__LUCEE.util.addClass( btn, '-lucee-icon-plus' );
 						__LUCEE.util.addClass( obj, 'collapsed' );
-						__LUCEE.debug.clearFlag( name );
+						__LUCEE.debug.clearFlag( name, section );
+						__LUCEE.util.removeClass( btn, 'btnActive' );
 					} else {
-
 						__LUCEE.util.removeClass( btn, '-lucee-icon-plus' );
+						__LUCEE.util.addClass( btn, 'btnActive' );
 						__LUCEE.util.addClass( btn, '-lucee-icon-minus' );
 						__LUCEE.util.removeClass( obj, 'collapsed' );
-						__LUCEE.debug.setFlag( name );
+						__LUCEE.debug.setFlag( name, section );
 					}
 
-					return !isOpen;					// returns true if section is open after the operation
+					// collapse other main sections -- start
+					for( x in otherMainSections ){
+						if(otherMainSections[x] == "debugging"){
+							var sectionClass = "debug";
+						}else if(otherMainSections[x] == "metrics"){
+							var sectionClass = "metrics";
+						} else if(otherMainSections[x] == "docs"){
+							var sectionClass = "docs";
+						}
+						var btn = __LUCEE.util.getDomObject( "-lucee-" + sectionClass + "-btn-" + name );
+						var obj = __LUCEE.util.getDomObject( "-lucee-" + sectionClass + "-" + name );
+						__LUCEE.util.removeClass( btn, '-lucee-icon-minus' );
+						__LUCEE.util.addClass( btn, 'buttonStyle' );
+						__LUCEE.util.removeClass( btn, 'btnActive' );
+						__LUCEE.util.addClass( btn, '-lucee-icon-plus' );
+						__LUCEE.util.addClass( obj, 'collapsed' );
+						__LUCEE.debug.clearFlag( name, otherMainSections[x] );
+					}
+					return !isOpen;
 				}
 
 				, selectText:	__LUCEE.util.selectText
 			};
+			<cfset this.includeInline( "/lucee/res/js/highChart.js" )>
+
+			document.querySelector('#-lucee-docs-btn-ALL').addEventListener('click', function () {
+			  	document.getElementById('lucee-docs-search-input').focus();
+			});
+
+			$(document).ready(function() {
+			    $('#-lucee-docs-btn-ALL').on('click', function() {
+					$('.tt-hint').hide();
+			    });
+			});
+
+
+			function requestData(){
+				$.ajax({
+					type: "POST",
+					<cfoutput>url: "/lucee-server/admin/debug/chartProcess.cfc?method=sysMetric",</cfoutput>
+					success: function(data){
+						var series_heap = heapchart.series[0];
+						var series_nonheap = nonheapchart.series[0];
+						var series_cpuSystem = cpuSystemChart.series[0];
+						var series_cpuProcess = cpuProcessChart.series[0];
+						var shift_heap = series_heap.data.length > 100; // shift the chart if more than 100 entries available
+						var shift_nonheap = series_nonheap.data.length > 100; // shift the chart if more than 100 entries available
+						var shift_cpuSystem = series_cpuSystem.data.length > 100; // shift the chart if more than 100 entries available
+						var shift_cpuProcess = series_cpuProcess.data.length > 100; // shift the chart if more than 100 entries available
+						var x = (new Date()).getTime(); // current time
+						var x = (new Date()).getTime(); // current time
+						var y_heap = data.heap;
+						var y_nonheap = data.non_heap;
+						var y_cpuSys = data.cpuSystem;
+						var y_cpuProcess = data.cpuProcess;
+						heapchart.series[0].addPoint([x, y_heap], true, shift_heap);
+						nonheapchart.series[0].addPoint([x, y_nonheap], true, shift_nonheap);
+						cpuSystemChart.series[0].addPoint([x, y_cpuSys], true, shift_cpuSystem);
+						cpuProcessChart.series[0].addPoint([x, y_cpuProcess], true, shift_cpuProcess);
+						setTimeout(requestData, 1000);
+					}
+				})
+			}
+			function chartsData() {
+				Highcharts.setOptions({
+				    global: {
+				        useUTC: false
+				    }
+				});
+
+				function initiateNewChart(cName, cType, sName){
+					return Highcharts.chart(cName, {
+						chart: {
+							type: cType,
+							animation: Highcharts.svg,
+							marginRight: 10,
+							marginBottom: 20,
+							backgroundColor: "#EFEDE5"
+						},
+						plotOptions: {
+							series: {
+								marker: {
+									enabled: false
+								}
+							}
+						},
+						colors: ['##3399CC'],
+						title: {
+							text: ""
+						},
+						xAxis: {
+							type: 'datetime',
+							tickPixelInterval: 150,
+							labels: {
+								y: 15
+							}
+						},
+						yAxis: {
+							min: 0,
+	   						max: 100,
+							title: {
+								text: ""
+							},
+							labels: {
+								formatter: function() {
+									return this.value + "%";
+								}
+							},
+							plotLines: [{
+								value: 0,
+								width: 15
+							}]
+						},
+						tooltip: {
+							formatter: function () {
+								return '<b>' + this.series.name + '</b><br/>' +
+								Highcharts.dateFormat('%H:%M:%S', this.x) + '<br/>' +
+								Highcharts.numberFormat(this.y, 0)+"%";
+							}
+						},
+						legend: {
+							enabled: false
+						},
+						exporting: {
+							enabled: false
+						},
+						credits: {
+							enabled: false
+						},
+						series: [{
+							name: sName,
+							data: []
+						}]
+					});
+				}
+
+				// charts
+				heapchart = initiateNewChart("heap", "areaspline", "HeapMemorySeries");
+				nonheapchart = initiateNewChart("nonheap", "areaspline",  "Non-HeapSeries");
+				cpuSystemChart = initiateNewChart("cpuSystem", "areaspline", "WholeSystemSeries");
+				cpuProcessChart = initiateNewChart("cpuProcess", "areaspline", "luceeProcessSeries");
+
+				// initiating the ajax data get process
+				requestData();
+			}
+			chartsData();
+		</script>
+		<cfoutput>
+			<script>
+				
+				<cfset this.includeInline( "/lucee/res/js/typeahead.min.js" )>
+				<cfset this.includeInline( "/lucee/res/js/base.min.js" )>
+				var allArr = #serializeJson(allArryItem)#;
+				var types = #serializeJson(str)#;
+				var substringMatcher = function(strs) {
+					return function findMatches(q, cb) {
+						var matches, substringRegex;
+
+						// an array that will be populated with substring matches
+						matches = [];
+
+						// regex used to determine if a string contains the substring `q`
+						substrRegex = new RegExp(q, 'i');
+
+						// iterate through the pool of strings and for any string that
+						// contains the substring `q`, add it to the `matches` array
+						$.each(strs, function(i, str) {
+							if (substrRegex.test(str)) {
+							matches.push(str);
+							}
+						});
+
+						cb(matches);
+					};
+				};
+				$( function() {
+					$( '##lucee-docs-search-input' ).typeahead(
+						{
+							hint: true,
+							highlight: true,
+							minLength: 1
+						},
+						{
+						  name: 'keyWords',
+						  source: substringMatcher(allArr),
+						   templates: {
+							    empty:  '<div class="moreResults"><span onclick="moreInfo()">No Results Found</span></div>'
+					  	}
+					}
+				).on('typeahead:selected', typeaheadSelected);
+					function typeaheadSelected($e, datum){
+						$.each(types, function(i, data) {
+							$.each(data, function(x, y){
+								if(datum.toString() == y){
+									window.location = "http://#cgi.host#/lucee/doc/"+i+".cfm?item=" + datum.toString();
+								}
+							});
+						});
+					}
+				});
+			</script>
+		</cfoutput>
 		</script>
 
 	</cffunction><!--- output() !--->
@@ -874,6 +1267,23 @@
 			<td class="pad"><a onclick="__LUCEE.debug.toggleSection( '#arguments.sectionId#' );">#arguments.label2#</a></td>
 		</tr>
 	</cffunction>
+
+	<cffunction name="renderSectionHeadTR2" output="#true#">
+
+		<cfargument name="sectionId">
+		<cfargument name="label1">
+		<cfargument name="label2" default="">
+		<cfargument name="section" default="">
+
+		<cfset var isOpen = this.isSectionOpen( "#arguments.sectionId#", "#section#" )>
+
+		<tr>
+			<td><a id="-lucee-#section#-btn-#arguments.sectionId#" class="-lucee-icon-#isOpen ? 'minus' : 'plus'#" onclick="__LUCEE.debug.toggleSection( '#arguments.sectionId#', '#section#' );">
+				#arguments.label1#</a></td>
+			<td class="pad"><a onclick="__LUCEE.debug.toggleSection( '#arguments.sectionId#', '#section#' );">#arguments.label2#</a></td>
+		</tr>
+	</cffunction>
+
 
 	<cfscript>
 
@@ -919,11 +1329,70 @@
 			echo(fileRead(expandPath(arguments.filename)));
 		}
 
-		function getJavaVersion() {
-	        var verArr=listToArray(server.java.version,'.');
-	        if(verArr[1]>2) return verArr[1];
-	        return verArr[2];
-	    }
+		function getAllFunctions() {
+
+			var result = getFunctionList().keyArray().sort( 'textnocase' ).filter( function( el ) { return left( el, 1 ) != '_'; } );
+
+			return result;
+		}
+
+
+		function getAllTags() {
+
+			var result = [];
+
+			var itemList = getTagList();
+
+			for ( local.ns in itemList.keyArray() ) {
+
+				for ( local.key in itemList[ ns ].keyArray() ) {
+				
+					result.append( ns & key );
+				}
+			}
+			
+			result.sort( 'textnocase' );
+
+			return result;
+		}
+
+		function  getAllComponents() {
+
+			// getting available component packages
+			tmpStr.componentDetails={};
+			try{
+				tmpStr.componentDetails.pack=getPackages();
+			}
+			catch(e) {
+				tmpStr.componentDetails.pack=["org.lucee.cfml"];
+			}
+
+
+			arraySort(tmpStr.componentDetails.pack, "textnocase");
+			tmpStr.componentDetails.cfcs=[];
+			for(index=tmpStr.componentDetails.pack.len();index>0;index--) {
+				currPack=tmpStr.componentDetails.pack[index];
+				try{
+					var tmpComponents=ComponentListPackage(currPack);
+				}
+				catch(e) {
+					arrayDeleteAt(tmpStr.componentDetails.pack,index);
+					continue;
+				}
+				
+				for(i=1;i<=tmpComponents.len();i++){
+					tmpComponents[i]=currPack&"."&tmpComponents[i];
+				}
+				if(tmpComponents.len()==0) {
+					arrayDeleteAt(tmpStr.componentDetails.pack,index);
+					continue;
+				}
+				else arrayAppend(tmpStr.componentDetails.cfcs, tmpComponents, true);
+			}
+			arraySort(tmpStr.componentDetails.cfcs, "textnocase");
+
+			return tmpStr.componentDetails.cfcs;
+		}
 
 	</cfscript>
 

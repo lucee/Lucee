@@ -347,48 +347,52 @@ public final class DebuggerImpl implements Debugger {
 		
 		//queries
         List<QueryEntry> queries = getQueries();
+        int len = queries.size();
 	    Struct qryExe=new StructImpl();
 	    ListIterator<QueryEntry> qryIt = queries.listIterator();
-        Collection.Key[] cols = new Collection.Key[]{
-        		KeyConstants._name,
-        		KeyConstants._time,
-        		KeyConstants._sql,
-        		KeyConstants._src,
-        		KeyConstants._count,
-        		KeyConstants._datasource,
-        		KeyConstants._usage,
-        		CACHE_TYPE};
-        String[] types = new String[]{"VARCHAR","DOUBLE","VARCHAR","VARCHAR","DOUBLE","VARCHAR","ANY","VARCHAR"};
-        
-        Query qryQueries=null;
-        try {
-            qryQueries = new QueryImpl(cols,types,queries.size(),"query");
-        } catch (DatabaseException e) {
-            qryQueries = new QueryImpl(cols,queries.size(),"query");
-        }
-		int row=0;
-		try {
-			QueryEntry qe;
-		    while(qryIt.hasNext()) {
-		        row++;
-		        qe= qryIt.next();
-				qryQueries.setAt(KeyConstants._name,row,qe.getName()==null?"":qe.getName());
-		        qryQueries.setAt(KeyConstants._time,row,Long.valueOf(qe.getExecutionTime()));
-		        qryQueries.setAt(KeyConstants._sql,row,qe.getSQL().toString());
-				qryQueries.setAt(KeyConstants._src,row,qe.getSrc());
-                qryQueries.setAt(KeyConstants._count,row,Integer.valueOf(qe.getRecordcount()));
-                qryQueries.setAt(KeyConstants._datasource,row,qe.getDatasource());
-                qryQueries.setAt(CACHE_TYPE,row,qe.getCacheType());
-                
-                Struct usage = getUsage(qe);
-                if(usage!=null) qryQueries.setAt(KeyConstants._usage,row,usage);
+	    if(len > 0){
 
-		        Object o=qryExe.get(KeyImpl.init(qe.getSrc()),null);
-		        if(o==null) qryExe.setEL(KeyImpl.init(qe.getSrc()),Long.valueOf(qe.getExecutionTime()));
-		        else qryExe.setEL(KeyImpl.init(qe.getSrc()),Long.valueOf(((Long)o).longValue()+qe.getExecutionTime()));
-		    }
-		}
-		catch(PageException dbe) {}
+	        Collection.Key[] cols = new Collection.Key[]{
+	        		KeyConstants._name,
+	        		KeyConstants._time,
+	        		KeyConstants._sql,
+	        		KeyConstants._src,
+	        		KeyConstants._count,
+	        		KeyConstants._datasource,
+	        		KeyConstants._usage,
+	        		CACHE_TYPE};
+	        String[] types = new String[]{"VARCHAR","DOUBLE","VARCHAR","VARCHAR","DOUBLE","VARCHAR","ANY","VARCHAR"};
+        
+	        Query qryQueries=null;
+	        try {
+	            qryQueries = new QueryImpl(cols,types,queries.size(),"query");
+	        } catch (DatabaseException e) {
+	            qryQueries = new QueryImpl(cols,queries.size(),"query");
+	        }
+			int row=0;
+			try {
+				QueryEntry qe;
+			    while(qryIt.hasNext()) {
+			        row++;
+			        qe= qryIt.next();
+					qryQueries.setAt(KeyConstants._name,row,qe.getName()==null?"":qe.getName());
+			        qryQueries.setAt(KeyConstants._time,row,Long.valueOf(qe.getExecutionTime()));
+			        qryQueries.setAt(KeyConstants._sql,row,qe.getSQL().toString());
+					qryQueries.setAt(KeyConstants._src,row,qe.getSrc());
+	                qryQueries.setAt(KeyConstants._count,row,Integer.valueOf(qe.getRecordcount()));
+	                qryQueries.setAt(KeyConstants._datasource,row,qe.getDatasource());
+	                qryQueries.setAt(CACHE_TYPE,row,qe.getCacheType());
+	                
+	                Struct usage = getUsage(qe);
+	                if(usage!=null) qryQueries.setAt(KeyConstants._usage,row,usage);
+
+			        Object o=qryExe.get(KeyImpl.init(qe.getSrc()),null);
+			        if(o==null) qryExe.setEL(KeyImpl.init(qe.getSrc()),Long.valueOf(qe.getExecutionTime()));
+			        else qryExe.setEL(KeyImpl.init(qe.getSrc()),Long.valueOf(((Long)o).longValue()+qe.getExecutionTime()));
+			    }
+			}
+			catch(PageException dbe) {}
+	    }
 		
 	    // Pages
 	    // src,load,app,query,total
