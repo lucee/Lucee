@@ -27,7 +27,7 @@ before_install:
   - mysql -e "create database IF NOT EXISTS $MYSQL_DATABASE;" -uroot
   - psql -c "create database $POSTGRE_DATABASE;" -U postgres
   - sleep 15 # necessary for the mongodb command to work because it does not accept intermittent connections
-  - mongo test --eval 'db.createUser({user:"travis_mongo",pwd:"mongo_pass",roles:["readWrite"]});'
+  - mongo test --eval "db.createUser({user:'$MONGODB_USERNAME',pwd:'$MONGODB_PASSWORD',roles:['readWrite']});"
   # - mongo test --eval 'db.addUser("travis", "test");'
   # for more see https://docs.travis-ci.com/user/database-setup
 
