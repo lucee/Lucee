@@ -16,10 +16,12 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  **/
-
-
 component extends="org.lucee.cfml.test.LuceeTestCase"{
-	 function beforeAll(){
+
+	function beforeAll(){
+
+		setting requesttimeout=300;
+
 		variables.admin=new org.lucee.cfml.Administrator("server",request.ServerAdminPassword);
 		variables.adminWeb=new org.lucee.cfml.Administrator("web", request.WebAdminPassword);
 	}
@@ -968,7 +970,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
-			// Plugin 
+			// Plugin
 			describe( title="test plugin functions", body=function() {
 				it(title="checking getPluginDirectory()", body=function( currentSpec ) {
 					var pluginDirectory = adminWeb.getPluginDirectory();
@@ -1559,7 +1561,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(adminWebError.doStatusCode EQ adminError.doStatusCode, true);
 				});
 			});
-			
+
 			// security manager
 			describe( title="test securityManager functions", body=function() {
 				beforeEach(function( currentSpec ){
@@ -1652,7 +1654,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(getStorage EQ 'result', true);
 				});
 			});
-			
+
 			// API key
 			describe( title="test API functions", body=function() {
 				it(title="checking updateAPIkey()", body=function( currentSpec ) {
@@ -1715,8 +1717,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					adminWeb.resetId();
 				});
 			});
-			
-			
+
+
 			// restart
 			/*describe( title="test restart functions", body=function() {
 				it(title="checking restart()", body=function( currentSpec ) {
@@ -1731,7 +1733,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(len(minVersion) GT 0,true);
 				});
 			});
-		
+
 
 			// Patches
 			describe( title="test listPatches functions", body=function() {
@@ -1775,10 +1777,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		// getting the credetials from the enviroment variables
 		var mySQL={};
 		if(
-			!isNull(server.system.environment.MYSQL_SERVER) && 
-			!isNull(server.system.environment.MYSQL_USERNAME) && 
-			!isNull(server.system.environment.MYSQL_PASSWORD) && 
-			!isNull(server.system.environment.MYSQL_PORT) && 
+			!isNull(server.system.environment.MYSQL_SERVER) &&
+			!isNull(server.system.environment.MYSQL_USERNAME) &&
+			!isNull(server.system.environment.MYSQL_PASSWORD) &&
+			!isNull(server.system.environment.MYSQL_PORT) &&
 			!isNull(server.system.environment.MYSQL_DATABASE)) {
 			mySQL.server=server.system.environment.MYSQL_SERVER;
 			mySQL.username=server.system.environment.MYSQL_USERNAME;
@@ -1788,10 +1790,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		}
 		// getting the credetials from the system variables
 		else if(
-			!isNull(server.system.properties.MYSQL_SERVER) && 
-			!isNull(server.system.properties.MYSQL_USERNAME) && 
-			!isNull(server.system.properties.MYSQL_PASSWORD) && 
-			!isNull(server.system.properties.MYSQL_PORT) && 
+			!isNull(server.system.properties.MYSQL_SERVER) &&
+			!isNull(server.system.properties.MYSQL_USERNAME) &&
+			!isNull(server.system.properties.MYSQL_PASSWORD) &&
+			!isNull(server.system.properties.MYSQL_PORT) &&
 			!isNull(server.system.properties.MYSQL_DATABASE)) {
 			mySQL.server=server.system.properties.MYSQL_SERVER;
 			mySQL.username=server.system.properties.MYSQL_USERNAME;

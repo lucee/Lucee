@@ -2930,6 +2930,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			Resource f = dir.getRealResource("MediaPlayer."+COMPONENT_EXTENSION);
 			if (!f.exists() || doNew)
 				createFileFromResourceEL("/resource/library/tag/MediaPlayer."+COMPONENT_EXTENSION, f);
+			
+			// /resource/library/tag/build
 			Resource build = dir.getRealResource("build");
 			if (!build.exists())
 				build.mkdirs();
@@ -2950,7 +2952,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					createFileFromResourceEL("/resource/library/tag/build/" + names[i], f);
 
 			}
-
+			
+			// /resource/library/tag/build/jquery
+			Resource jquery = build.getRealResource("jquery");
+			names = new String[] { "jquery-1.12.4.min.js" };
+			for (int i = 0; i < names.length; i++) {
+				f = jquery.getRealResource(names[i]);
+				if (!f.exists() || doNew)
+					createFileFromResourceEL("/resource/library/tag/build/jquery/" + names[i], f);
+			}
+			
 			// AJAX
 			//AjaxFactory.deployTags(dir, doNew);
 
