@@ -166,7 +166,7 @@ function mem(type) {
 
 			if (!isNull(bundle.suiteStats)) {
 				loop array=bundle.suiteStats item="local.suiteStat" {
-					if(!isNull(suiteStat.specStats)) {
+					if (!isNull(suiteStat.specStats)) {
 						loop array=suiteStat.specStats item="local.specStat" {
 
 							if (!isNull(specStat.failMessage) && len(trim(specStat.failMessage))) {
