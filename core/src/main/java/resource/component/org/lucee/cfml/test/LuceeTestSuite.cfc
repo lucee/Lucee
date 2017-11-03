@@ -24,7 +24,7 @@ component extends="testbox.system.compat.framework.TestSuite" {
         	try {
 	        	var templ=getTemplatePath();
 	        	if(templ.len()>1) {
-	        		packageName=listTrim(replace(replace(getDirectoryfrompath(contractPath(templ[templ.len()-1])),'/','.','all'),'\','.','all'),'.')&"."&packageName;
+	        		packageName=ListCompact(replace(replace(getDirectoryfrompath(contractPath(templ[templ.len()-1])),'/','.','all'),'\','.','all'),'.')&"."&packageName;
 	        		var names=componentListPackage(packageName);
 	        	}
         	}
