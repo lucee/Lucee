@@ -171,54 +171,57 @@ function mem(type) {
 
 							if (!isNull(specStat.failMessage) && len(trim(specStat.failMessage))) {
 
-								failedTestCases.append(
-									{
-										 type       : "Failed"
-										,bundle     : bundle.name
-										,testCase   : specStat.name
-										,errMessage : specStat.failMessage
-									}
-								);
+								var failedTestCase = {
+									 type       : "Failed"
+									,bundle     : bundle.name
+									,testCase   : specStat.name
+									,errMessage : specStat.failMessage
+									,stackTrace : []
+								};
+								failedTestCases.append(failedTestCase);
 
 								systemOutput(NL & TAB & "Failed: " & specStat.name & " --> " & specStat.failMessage, true);
 
 								if (!isNull(specStat.failOrigin) && !isEmpty(specStat.failOrigin)){
 
-									stackTrace = specStat.failOrigin;
-									testboxPath = getDirectoryFromPath(stackTrace[1].template);
+									var rawStackTrace = specStat.failOrigin;
+									var testboxPath = getDirectoryFromPath(rawStackTrace[1].template);
 
 									systemOutput(TAB & TAB & "at", true);
 
-									loop array=stackTrace item="local.st" {
-										if (!st.template.hasPrefix(testboxPath))
+									loop array=rawStackTrace item="local.st" {
+
+										if (!st.template.hasPrefix(testboxPath)){
+											failedTestCase.stackTrace.append(st.template & ":" & st.line);
 											systemOutput(TAB & st.template & ":" & st.line, true);
+										}
 									}
 								}
 							} // if !isNull
 
 							if (!isNull(specStat.error) && !isEmpty(specStat.error)){
 
-								failedTestCases.append(
-									{
-										 type       : "Errored"
-										,bundle     : bundle.name
-										,testCase   : specStat.name
-										,errMessage : specStat.error.Message
-									}
-								);
+								var failedTestCase = {
+									 type       : "Failed"
+									,bundle     : bundle.name
+									,testCase   : specStat.name
+									,errMessage : specStat.error.Message
+									,stackTrace : []
+								};
+								failedTestCases.append(failedTestCase);
 
 								systemOutput(NL & TAB & "Errored: " & specStat.name & " --> " & specStat.error.Message, true);
 
 								if (!isNull(specStat.error.TagContext) && !isEmpty(specStat.error.TagContext)){
 
-									stackTrace = specStat.error.TagContext;
-									testboxPath = getDirectoryFromPath(stackTrace[1].template);
+									var rawStackTrace = specStat.error.TagContext;
 
 									systemOutput(TAB & TAB & "at", true);
 
-									loop array=stackTrace item="local.st" {
-										if (!st.template.hasPrefix(testboxPath))
-											systemOutput(TAB & st.template & ":" & st.line, true);
+									loop array=rawStackTrace item="local.st" {
+
+										failedTestCase.stackTrace.append(st.template & ":" & st.line);
+										systemOutput(TAB & st.template & ":" & st.line, true);
 									}
 								}
 
