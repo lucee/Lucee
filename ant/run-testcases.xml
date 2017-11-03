@@ -203,7 +203,7 @@ function mem(type) {
 							if (!isNull(specStat.error) && !isEmpty(specStat.error)){
 
 								var failedTestCase = {
-									 type       : "Failed"
+									 type       : "Errored"
 									,bundle     : bundle.name
 									,testCase   : specStat.name
 									,errMessage : specStat.error.Message
