@@ -25,7 +25,7 @@ services:
 
 before_install:
   - mysql -e "create database IF NOT EXISTS test;" -uroot
-  - psql -c "create database test;" -U postgres
+  - psql -c 'create database test;' -U postgres
   - sleep 15 # necessary for the mongodb command to work because it does not accept intermittent connections
   - mongo test --eval 'db.createUser({user:"travis",pwd:"test",roles:["readWrite"]});'
   # - mongo test --eval 'db.addUser("travis", "test");'
@@ -48,7 +48,7 @@ script:
 # - git push origin master
 
 #deploy:
-#	skip_cleanup: true
+# skip_cleanup: true
 
 notifications:
   slack: luceeserver:ZTfbu4bVSLFmakRcLInrNZIT
