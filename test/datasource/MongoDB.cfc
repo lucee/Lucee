@@ -73,7 +73,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var uri = "mongodb://#variables.mongoDB.server#:#variables.mongoDB.port#";
 		if (!isempty(variables.mongoDB.user) && !isEmpty(variables.mongoDB.pass))
 			uri = "mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.server#:#variables.mongoDB.port#";
-
+		systemOutput(uri,1,1);
 		db = MongoDBConnect("test",uri);
 	}
 	
