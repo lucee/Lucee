@@ -1,2 +1,2 @@
 <cfset systemInfo=GetSystemMetrics()>
-<cfoutput>isStruct(systemInfo)</cfoutput>
+<cfoutput>#isStruct(systemInfo)#</cfoutput>
