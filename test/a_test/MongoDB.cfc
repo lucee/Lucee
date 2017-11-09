@@ -76,6 +76,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if (!isempty(variables.mongoDB.user) && !isEmpty(variables.mongoDB.pass))
 			uri = "mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.server#:#variables.mongoDB.port#";
 		systemOutput(uri,1,1);
+
+		try {
+			http url=uri & "/" & variables.mongoDB.db result="local.httpRes";
+			systemOutput("OOO#chr(10)#" & httpRes.fileContent, true);
+		}
+		catch (ex){
+			systemOutput("XXX#chr(10)#" & ex.toString(), true);
+		}
+
 		db = MongoDBConnect(variables.mongoDB.db, uri);
  	}
 
@@ -95,14 +104,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			uri = "mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.server#:#variables.mongoDB.port#";
 
 		var mongo = MongoDBConnect(variables.mongoDB.db, uri);
- 		assertEquals("test",mongo.getName());
+ 		assertEquals(variables.mongoDB.db, mongo.getName());
 	}
 
 	// skip until authenticate is implemented
 	public void function testAuthenticate() skip="true" {
 		if(isNotSupported()) return;
 		var mongo = MongoDBConnect(variables.mongoDB.db, variables.mongoDB.server, variables.mongoDB.port);
-		mongo.authenticate(variables.mongoDB.user,variables.mongoDB.pass);
+		mongo.authenticate(variables.mongoDB.user, variables.mongoDB.pass);
 	}
 
 	public void function testIdConversion() skip="isNotSupported" {
