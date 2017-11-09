@@ -17,6 +17,7 @@ branches:
 before_install:
 # - "git clone -b travis `git config --get remote.origin.url` target/travis"
 
+### for more see https://docs.travis-ci.com/user/database-setup
 services:
   - mysql # server:"127.0.0.1"; user:"root"; password:""
   - postgresql "9.6" # server:"127.0.0.1"; user:"postgres"; password:""
@@ -26,13 +27,12 @@ services:
 before_script:
   - mysql -e "create database IF NOT EXISTS testdb;" -uroot
   - psql -c 'create database testdb;' -U postgres
-  - sleep 15 # necessary for the mongodb because it does not accept connections immediately
-  - mongo --host $MONGODB_SERVER --port $MONGODB_PORT testdb --eval "printjson(db.version())"
-  - mongo --host $MONGODB_SERVER --port $MONGODB_PORT testdb --eval 'db.createUser({user:"travis", pwd:"testpw", roles:["readWrite"]});'
-  - mongo --host $MONGODB_SERVER --port $MONGODB_PORT testdb --eval 'db.auth({user:"travis", pwd:"testpw"})'
-  # - mongo test --eval 'db.addUser("travis", "test");'
-  # for more see https://docs.travis-ci.com/user/database-setup
 
+### enable the below only if authentication is implemented in MongoDB extension
+  # - sleep 15 # necessary for the mongodb because it does not accept connections immediately
+  # - mongo testdb --eval "printjson(db.version())"
+  # - mongo testdb --eval 'db.createUser({user:"travis", pwd:"testpw", roles:["readWrite"]});'
+  # - mongo testdb --eval 'db.auth({user:"travis", pwd:"testpw"})'
 
 script:
 # maven deploy process (builds lucee and deploys to sonatype)
