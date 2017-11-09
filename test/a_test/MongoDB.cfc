@@ -78,7 +78,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		systemOutput(uri,1,1);
 
 		try {
-			http url=uri & "/" & variables.mongoDB.db result="local.httpRes";
+			http method="GET" url="#replace(uri, 'mongodb', 'http')#/#variables.mongoDB.db#" result="local.httpRes";
 			systemOutput("OOO#chr(10)#" & httpRes.fileContent, true);
 		}
 		catch (ex){
