@@ -29,7 +29,7 @@ before_script:
   - sleep 15 # necessary for the mongodb because it does not accept connections immediately
   - mongo testdb --eval 'db.createUser({user:"travis", pwd:"testpw", roles:["readWrite"]});'
   - mongo testdb --eval "printjson(db.version())"
-  - mongo testdb --eval "db.auth({user:"travis", pwd:"testpw"})"
+  - mongo testdb --eval 'db.auth({user:"travis", pwd:"testpw"})'
   # - mongo test --eval 'db.addUser("travis", "test");'
   # for more see https://docs.travis-ci.com/user/database-setup
 
