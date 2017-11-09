@@ -1,21 +1,21 @@
-<!--- 
+<!---
  *
  * Copyright (c) 2015, Lucee Assosication Switzerland. All rights reserved.
  * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
@@ -25,7 +25,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if(!isNull(variables.mongodb.server)) {
 			variables.supported=true;
 		}
-		else 
+		else
 			variables.supported=false;
 
 		return !variables.supported;
@@ -63,9 +63,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		coll.drop();
 		coll.insert(docs);
 
-		return coll;		
+		return coll;
 	}
-	
+
 	// public function setUp(){}
 
 	public function beforeTests() skip="isNotSupported" {
@@ -74,15 +74,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if (!isempty(variables.mongoDB.user) && !isEmpty(variables.mongoDB.pass))
 			uri = "mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.server#:#variables.mongoDB.port#";
 		systemOutput(uri,1,1);
-		db = MongoDBConnect("test",uri);
-	}
-	
+		db = MongoDBConnect("testdb", uri);
+ 	}
+
 	//public function afterTests(){}
-	
+
 
 	public void function testConnectByArgs() skip="isNotSupported" {
 		if(isNotSupported()) return;
-		var mongo = MongoDBConnect("test",variables.mongoDB.server,variables.mongoDB.port);
+		var mongo = MongoDBConnect("testdb", variables.mongoDB.server, variables.mongoDB.port);
 		assertEquals("test",mongo.getName());
 	}
 
@@ -92,14 +92,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if (!isempty(variables.mongoDB.user) && !isEmpty(variables.mongoDB.pass))
 			uri = "mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.server#:#variables.mongoDB.port#";
 
-		var mongo = MongoDBConnect("test",uri);
-		assertEquals("test",mongo.getName());
+		var mongo = MongoDBConnect("testdb", uri);
+ 		assertEquals("test",mongo.getName());
 	}
 
 	// skip until authenticate is implemented
 	public void function testAuthenticate() skip="true" {
 		if(isNotSupported()) return;
-		var mongo = MongoDBConnect("test",variables.mongoDB.server,variables.mongoDB.port);
+		var mongo = MongoDBConnect("testdb", variables.mongoDB.server, variables.mongoDB.port);
 		mongo.authenticate(variables.mongoDB.user,variables.mongoDB.pass);
 	}
 
@@ -107,11 +107,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if(isNotSupported()) return;
 		var content = {'name':'Susi'};
 		db.getCollection("test").insert(content);
-		
+
 		//Get by Name
 		var id = db['test'].findOne({'name':'Susi'});
 		assertEquals("Susi",id.name)
-		
+
 		//Get by Id : fails
 		var byid = db['test'].findOne({'_id':id});
 		assertEquals(isNull(byid),true)
@@ -127,7 +127,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var dateSeed = now().add("d",-1)
 		id = MongoDBID(dateSeed);
 		$assert.isEqual(dateSeed,id.getDate());
-	
+
 		var idSeed = "56be2538ddd75f08acde1e46";
 		id = MongoDBID(idSeed);
 		$assert.isEqual(idSeed,id.toString());
@@ -183,17 +183,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		// reset data
 		coll = resetTestCollection();
 
-		// single update, no criteria 
+		// single update, no criteria
 		coll.update({},{"$set":{"updated":true}});
 		$assert.isEqual(1, coll.find({"updated":true}).size());
 
 		// reset data
 		coll = resetTestCollection();
 
-		// multi update, no criteria 
+		// multi update, no criteria
 		coll.update({},{"$set":{"updated":true}},false,true);
 		$assert.isEqual(5, coll.find({"updated":true}).size());
-	
+
 		// find and modify
 		var doc = coll.findAndModify({"_id":1},{"$set":{"modified":true}});
 		$assert.isEqual(1, coll.find({"modified":true}).size());
@@ -287,8 +287,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var coll = resetTestCollection();
 
 		$assert.typeOf("struct", coll.stats());
-		$assert.typeOf("numeric", coll.dataSize());		
-		$assert.typeOf("numeric", coll.storageSize());		
+		$assert.typeOf("numeric", coll.dataSize());
+		$assert.typeOf("numeric", coll.storageSize());
 	}
 
 	public void function testGroupAndDistinct() skip="isNotSupported" {
@@ -296,7 +296,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var coll = resetTestCollection();
 		$assert.isEqual(2, coll.distinct("grp").len());
 
-		// group is not implemented yet!		
+		// group is not implemented yet!
 	}
 
 	public void function testMapReduce() skip="isNotSupported" {
@@ -327,7 +327,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		coll.rename("test2");
 		$assert.isEqual(5, db["test2"].count());
 
-		db["test2"].drop();				
+		db["test2"].drop();
 	}
 
 

@@ -28,6 +28,7 @@ before_script:
   - psql -c 'create database testdb;' -U postgres
   - sleep 15 # necessary for the mongodb because it does not accept connections immediately
   - mongo testdb --eval 'db.createUser({user:"travis",pwd:"testpw",roles:["readWrite"]});'
+  - mongo testdb --eval "printjson(db.getCollectionNames())"
   # - mongo test --eval 'db.addUser("travis", "test");'
   # for more see https://docs.travis-ci.com/user/database-setup
 
