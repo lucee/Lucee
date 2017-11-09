@@ -26,7 +26,7 @@ services:
 
 before_script:
   - mysql -e "CREATE DATABASE IF NOT EXISTS testdb;" -uroot
-  - psql -c 'CREATE DATABASE IF NOT EXISTS testdb;' -U postgres
+  - psql -c 'CREATE DATABASE testdb;' -U postgres
 
 ### enable the below only if authentication is implemented in MongoDB extension
   # - sleep 15 # necessary for the mongodb because it does not accept connections immediately
