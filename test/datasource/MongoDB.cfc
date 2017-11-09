@@ -105,7 +105,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public void function testConnectByArgs() skip="isNotSupported" {
 		if(isNotSupported()) return;
 		var mongo = MongoDBConnect(variables.mongoDB.db, variables.mongoDB.server, variables.mongoDB.port);
-		assertEquals("test",mongo.getName());
+		assertEquals(variables.mongoDB.db, mongo.getName());
 	}
 
 	public void function testConnectByURI() skip="isNotSupported" {
