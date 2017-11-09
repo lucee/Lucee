@@ -37,17 +37,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if(!isNull(server.system.environment.MONGODB_SERVER) && !isNull(server.system.environment.MONGODB_PORT) && !isNull(server.system.environment.MONGODB_USERNAME) && !isNull(server.system.environment.MONGODB_PASSWORD)) {
 			mongoDB.server=server.system.environment.MONGODB_SERVER;
 			mongoDB.port=server.system.environment.MONGODB_PORT;
-			mongoDB.user=server.system.environment.MONGODB_USERNAME;
-			mongoDB.pass=server.system.environment.MONGODB_PASSWORD;
 			mongoDB.db=server.system.environment.MONGODB_DATABASE;
+
+			// mongoDB.user=server.system.environment.MONGODB_USERNAME;
+			// mongoDB.pass=server.system.environment.MONGODB_PASSWORD;
+			mongoDB.user="";
+			mongoDB.pass="";
 		}
 		// getting the credetials from the system variables
 		else if(!isNull(server.system.properties.MONGODB_SERVER) && !isNull(server.system.properties.MONGODB_PORT) && !isNull(server.system.properties.MONGODB_USERNAME) && !isNull(server.system.properties.MONGODB_PASSWORD)) {
 			mongoDB.server=server.system.properties.MONGODB_SERVER;
 			mongoDB.port=server.system.properties.MONGODB_PORT;
-			mongoDB.user=server.system.properties.MONGODB_USERNAME;
-			mongoDB.pass=server.system.properties.MONGODB_PASSWORD;
 			mongoDB.db=server.system.properties.MONGODB_DATABASE;
+
+			// mongoDB.user=server.system.properties.MONGODB_USERNAME;
+			// mongoDB.pass=server.system.properties.MONGODB_PASSWORD;
+			mongoDB.user="";
+			mongoDB.pass="";
 		}
 		return mongoDB;
 	}
@@ -75,15 +81,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var uri = "mongodb://#variables.mongoDB.server#:#variables.mongoDB.port#";
 		if (!isempty(variables.mongoDB.user) && !isEmpty(variables.mongoDB.pass))
 			uri = "mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.server#:#variables.mongoDB.port#";
-		systemOutput(uri,1,1);
 
+		systemOutput("MongoDB URI: " & uri, true, true);
+
+		// test host/port via http, should return: "It looks like you are trying to access MongoDB over HTTP on the native driver port."
+		/*
 		try {
 			http method="GET" url="http://#variables.mongoDB.server#:#variables.mongoDB.port#/#variables.mongoDB.db#" result="local.httpRes";
 			systemOutput("OOO#chr(10)#" & httpRes.fileContent, true, true);
 		}
 		catch (ex){
 			systemOutput("XXX#chr(10)#" & ex.toString(), true, true);
-		}
+		} //*/
 
 		db = MongoDBConnect(variables.mongoDB.db, uri);
  	}
