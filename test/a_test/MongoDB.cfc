@@ -78,11 +78,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		systemOutput(uri,1,1);
 
 		try {
-			http method="GET" url="#replace(uri, 'mongodb', 'http')#/#variables.mongoDB.db#" result="local.httpRes";
-			systemOutput("OOO#chr(10)#" & httpRes.fileContent, true);
+			http method="GET" url="http://#variables.mongoDB.server#:#variables.mongoDB.port#/#variables.mongoDB.db#" result="local.httpRes";
+			systemOutput("OOO#chr(10)#" & httpRes.fileContent, true, true);
 		}
 		catch (ex){
-			systemOutput("XXX#chr(10)#" & ex.toString(), true);
+			systemOutput("XXX#chr(10)#" & ex.toString(), true, true);
 		}
 
 		db = MongoDBConnect(variables.mongoDB.db, uri);
