@@ -13,6 +13,13 @@ branches:
 #  - linux
 #  - osx
 
+env:
+  - MONGODB_SERVER=127.0.0.1
+  - MONGODB_PORT=27017
+  - MONGODB_DATABASE=testdb
+  - MONGODB_USERNAME=travis
+  - MONGODB_PASSWORD=testpw
+
 # copy the settings.xml for maven from the "travis" branch
 before_install:
 # - "git clone -b travis `git config --get remote.origin.url` target/travis"
