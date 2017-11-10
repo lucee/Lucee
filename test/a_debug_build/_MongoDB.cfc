@@ -39,11 +39,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			mongoDB.port=server.system.environment.MONGODB_PORT;
 			mongoDB.db=server.system.environment.MONGODB_DATABASE;
 
-			mongoDB.user="";
-			mongoDB.pass="";
-			// TODO: re-enable after MongoDB authentication is implemented
 			// mongoDB.user=server.system.environment.MONGODB_USERNAME;
 			// mongoDB.pass=server.system.environment.MONGODB_PASSWORD;
+			mongoDB.user="";
+			mongoDB.pass="";
 		}
 		// getting the credetials from the system variables
 		else if(!isNull(server.system.properties.MONGODB_SERVER) && !isNull(server.system.properties.MONGODB_PORT) && !isNull(server.system.properties.MONGODB_USERNAME) && !isNull(server.system.properties.MONGODB_PASSWORD)) {
@@ -51,11 +50,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			mongoDB.port=server.system.properties.MONGODB_PORT;
 			mongoDB.db=server.system.properties.MONGODB_DATABASE;
 
-			mongoDB.user="";
-			mongoDB.pass="";
-			// TODO: re-enable after MongoDB authentication is implemented
 			// mongoDB.user=server.system.properties.MONGODB_USERNAME;
 			// mongoDB.pass=server.system.properties.MONGODB_PASSWORD;
+			mongoDB.user="";
+			mongoDB.pass="";
 		}
 		return mongoDB;
 	}
@@ -105,7 +103,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public void function testConnectByArgs() skip="isNotSupported" {
 		if(isNotSupported()) return;
 		var mongo = MongoDBConnect(variables.mongoDB.db, variables.mongoDB.server, variables.mongoDB.port);
-		assertEquals(variables.mongoDB.db, mongo.getName());
+		assertEquals("test",mongo.getName());
 	}
 
 	public void function testConnectByURI() skip="isNotSupported" {
