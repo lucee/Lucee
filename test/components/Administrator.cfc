@@ -18,9 +18,9 @@
  **/
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 
-	function beforeAll(){
+	setting requesttimeout=300;
 
-		setting requesttimeout=300;
+	function beforeAll(){
 
 		variables.admin=new org.lucee.cfml.Administrator("server",request.ServerAdminPassword);
 		variables.adminWeb=new org.lucee.cfml.Administrator("web", request.WebAdminPassword);
