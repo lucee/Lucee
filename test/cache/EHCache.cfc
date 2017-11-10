@@ -54,11 +54,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertFalse(wasFound);		
 	}
 
+
+	/*public void function testLDEV1579() {
+
+
+		var rightNow = Now();
+		var testData = {"time": rightNow};
+		var cacheId='jkijhiiuhkj';
+		var cacheName='ehcache';
+		
+		cachePut(id="testString", value=11111, cacheName=cacheName);
+		cachePut(id="testNow", value=now(), cacheName=cacheName);
+		CacheGetAll(cacheName=cacheName);	
+	}*/
+
 	private string function defineCache(){
 		application action="update" 
 			caches="#{ehcache: {
 	  class: 'org.lucee.extension.cache.eh.EHCache'
 	, bundleName: 'ehcache.extension'
+	, bundleversion: '2.10.0.27-SNAPSHOT'
 	, storage: false
 	, custom: {"bootstrapAsynchronously":"true","replicatePuts":"true","automatic_hostName":"",
 		"bootstrapType":"on","maxelementsinmemory":"10000","manual_rmiUrls":"","distributed":"off",
@@ -78,12 +93,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 
-	public void function testCacheAsScope(){
+	public void function testCacheAsScopeLatest(){
+		testCacheAsScope("2.10.0.27-SNAPSHOT");
+	}
+	public void function testCacheAsScopeLatest(){
+		testCacheAsScope("2.10.0.25");
+	}
+
+	private void function testCacheAsScope(version){
 		local.id=createUniqueId();
+		local.urls={appName:id};
+		if(version.len())urls['version']=version;
 		local.uri=createURI("ehcache/index.cfm");
 
 		// on the first request everything is equal
-		local.result=_InternalRequest(template:uri,urls:{appName:id},addtoken:true);
+		local.result=_InternalRequest(template:uri,urls:urls,addtoken:true);
 		local.sct=evaluate(result.filecontent);
 		loop list="client,session" item="scp" {
 			assertEquals(sct[scp].lastvisit&"",sct[scp].timecreated&"");
@@ -92,7 +116,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		sleep(1000);
 
 		// on the second request time is different
-		local.result=_InternalRequest(template:uri,urls:{appName:id},addtoken:true);
+		local.result=_InternalRequest(template:uri,urls:urls,addtoken:true);
 		local.sct=evaluate(result.filecontent);
 		loop list="client,session" item="scp" {
 			assertEquals(sct[scp].lastvisit&"",sct[scp].timecreated&"");
@@ -101,12 +125,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		sleep(1000);
 
 		// on the third everything is different
-		local.result=_InternalRequest(template:uri,urls:{appName:id},addtoken:true);
+		local.result=_InternalRequest(template:uri,urls:urls,addtoken:true);
 		local.sct=evaluate(result.filecontent);
 		loop list="client,session" item="scp" {
 			assertNotEquals(sct[scp].lastvisit&"",sct[scp].timecreated&"");
 		}
-
 	}
 
 	private string function createURI(string calledName){
