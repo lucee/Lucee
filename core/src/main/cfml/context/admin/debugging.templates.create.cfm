@@ -27,6 +27,7 @@
 	<cfswitch expression="#form.mainAction#">
 	<!--- UPDATE --->
 		<cfcase value="#stText.Buttons.submit#">
+			
 
 			<cfset custom=struct()>
 		
@@ -42,23 +43,42 @@
 					<cfset custom[mid(key,8,10000)]=form[key]>
 				</cfif>
 			</cfloop>
-
+			<cfset error.message = "">
 			<cfset driver.onBeforeUpdate(custom)>
 			<cfset meta=getMetaData(driver)>
-			<cfadmin 
-				action="updateDebugEntry"
+			<cfif form.type EQ "lucee-modern-extended" && structKeyExists(form, "custom_ajaxCall") && form.custom_ajaxCall EQ "Enabled">
+				
+				<cfadmin 
+				action="getCacheConnections"
 				type="#request.adminType#"
 				password="#session["password"&request.adminType]#"
-				 
-				label="#form.label#" 
-				debugtype="#form.type#" 
-				iprange="#form.iprange#"
-				fullname="#meta.fullname#"
-				path="#contractPath(meta.path)#"
-				custom="#custom#"
-				
-				remoteClients="#request.getRemoteClients()#">
-					
+				returnVariable="connections">
+				<cfif connections.RecordCount>
+					<cfquery dbtype="query" name="cacheConnection">
+						select * from connections where default = 'object'
+					</cfquery>
+					<cfif cacheConnection.recordCount EQ 0>
+						<cfset error.message = "Please make cache default value as object">
+					</cfif>
+				<cfelse>
+					<cfset error.message = "Please create a cache default value as object ">
+				</cfif>
+			</cfif>
+			<cfif error.message EQ "">
+				<cfadmin
+					action="updateDebugEntry"
+					type="#request.adminType#"
+					password="#session["password"&request.adminType]#"
+					label="#form.label#" 
+					debugtype="#form.type#" 
+					iprange="#form.iprange#"
+					fullname="#meta.fullname#"
+					path="#contractPath(meta.path)#"
+					custom="#custom#"
+
+					remoteClients="#request.getRemoteClients()#">
+			</cfif>
+
 		</cfcase>
 	</cfswitch>
 	<cfcatch>
