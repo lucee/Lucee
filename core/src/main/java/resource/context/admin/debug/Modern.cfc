@@ -1040,6 +1040,92 @@
 								</td>
 							</tr>
 						</table>
+
+					<div class="chartDetails">
+						<cfset systemInfo=GetSystemMetrics()>
+						<div class="chartTitle">Scopes in Memory</div>
+						<table class="maintbl">
+							<tbody>
+								<tr>
+									<th rowspan="3" scope="row" style="width: 39%;">
+										Scopes in Memory<br>
+										<span class="comment">Scopes actually hold in Memory (a Scope not necessary is kept in Memory for it's hole life time).</span>
+									</th>
+									<td style="width:30%"><b>Application</b></td>
+									<td style="width:10%" align="right">#systemInfo.applicationContextCount#</td>
+								</tr>
+								<tr>
+									<td style="width:30%"><b>Session</b></td>
+									<td style="width:10%" align="right">#systemInfo.sessionCount#</td>
+								</tr>
+								<tr>
+									<td style="width:30%"><b>Client</b></td>
+									<td style="width:10%" align="right">#systemInfo.clientCount#</td>
+								</tr>
+							</tbody>
+						</table>
+						<div class="chartTitle">Request/Threads</div>
+						<table class="maintbl">
+							<tbody>
+								<tr>
+									<th rowspan="3" scope="row" style="width: 39%;">
+										Request/Threads<br>
+										<span class="comment">Request and threads (started by &lt;cfthread&gt;) currently running on the system.</span>
+									</th>
+									<td style="width:30%"><b>Requests</b></td>
+									<cfset nbr=systemInfo.activeRequests>
+									<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+								</tr>
+								<tr>
+									<td style="width:30%"><b>Queued Requests</b></td>
+									<cfset nbr=systemInfo.activeThreads>
+									 <td style="width:10%" align="right" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td>
+								</tr>
+								<tr>
+									<td style="width:30%"><b>Threads</b></td>
+									<cfset nbr=systemInfo.queueRequests>
+									<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+								</tr>
+							</tbody>
+						</table>
+						<div class="chartTitle">Datasource Connections</div>
+						<table class="maintbl">
+							<tbody>
+								<tr>
+									<th rowspan="2" scope="row" style="width: 39%;">
+										Datasource Connections<br>
+										<span class="comment">Datasource Connection open at the Moment.</span>
+									</th>
+									<td style="width:30%">&nbsp;</td>
+									<td style="width:10%">&nbsp;</td> 
+								</tr>
+								<tr>
+									<td style="width:30%">&nbsp;</td>
+									<cfset nbr=systemInfo.activeDatasourceConnections>
+									<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td> 
+								</tr>
+							</tbody>
+						</table>
+						<div class="chartTitle">Task Spooler</div>
+						<table class="maintbl">
+							<tbody>
+								<tr>
+									<th rowspan="2" scope="row" style="width: 39%;">
+										Task Spooler<br>
+										<span class="comment">Active and closed tasks in Task Spooler. This includes for exampe tasks to send mails.</span>
+									</th>
+									<td style="width:30%"><b>Open</b></td>
+									<cfset nbr=systemInfo.tasksOpen>
+									<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+								</tr>
+								<tr>
+									<td style="width:30%"><b>Close</b></td>
+									<cfset nbr=systemInfo.tasksClosed>
+									<td style="width:10%" align="right" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td> 
+								</tr>
+							</tbody>
+						</table>
+					</div>
 					</div><!--- #-lucee-metrics-ALL !--->
 				</cfif>
 				<cfif enableTab("Reference")>

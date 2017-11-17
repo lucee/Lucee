@@ -43,7 +43,7 @@
 		<cfset data = getFunctionData( url.item )>
 		<cfsavecontent variable="result">
 			<cfoutput>
-				<h1 class="header" style="text-align: center; color:##585857;">Lucee Functions</h1>
+				<h1 class="header" style="text-align: center;">Lucee Functions</h1>
 				<h2 class="header"><em>#uCase( url.item )#()</em></h2>
 				<cfif data.status EQ "deprecated">
 					<div class="warning">Deprecated Function</div>
@@ -60,7 +60,7 @@
 				<cfset first=true>
 				<cfset optCount=0>
 				<h2 class="header">Example</h2>
-				<pre class="panel"><span class="nf">#data.name#</span><span class="p">(</snap><cfloop array="#data.arguments#" index="item"><cfif item.status EQ "hidden"><cfcontinue></cfif><cfif not first><span class="nv">,</span></cfif><cfif not item.required><cfset optCount=optCount+1><span class="nv">[</span></cfif><span class="nv">#item.type#</span> <span class="nv">#item.name#</span><cfset first=false></cfloop><span class="syntaxFunc">#RepeatString(']',optCount)#):</span><span class="syntaxType">#data.returntype#</span></pre>
+				<pre class="panel"><span>#data.name#</span><span>(</snap><cfloop array="#data.arguments#" index="item"><cfif item.status EQ "hidden"><cfcontinue></cfif><cfif not first><span class="nv">,</span></cfif><cfif not item.required><cfset optCount=optCount+1><span class="nv">[</span></cfif><span class="nv">#item.type#</span> <span class="nv">#item.name#</span><cfset first=false></cfloop><span class="syntaxFunc">#RepeatString(']',optCount)#):</span><span class="syntaxType">#data.returntype#</span></pre>
 
 				<!--- Category --->
 				<cfif structKeyExists(data, "keywords") AND !arrayIsEmpty(data.keywords)>
@@ -134,7 +134,7 @@
 				<cfparam name="data.attributes" default="#{}#">
 				<cfparam name="data.attributetype" default="fixed">
 				
-				<h1 class="header" style="text-align: center; color:##585857;">Lucee Tags </h1>
+				<h1 class="header" style="text-align: center;">Lucee Tags </h1>
 				<h2 class="header"><em>&lt;#uCase( tagName )#&gt;</em></h2>
 
 				<cfif data.status == "deprecated">
@@ -323,7 +323,7 @@
 		<cfsavecontent variable="result">
 			<cfoutput>
 				<cfset data = getComponentMetaData(url.item)>
-					<h1 class="header" style="text-align: center; color:##585857;">Lucee Components</h1>
+					<h1 class="header" style="text-align: center;">Lucee Components</h1>
 				<h2 class="header"><em>#(listLast(data.fullName, "."))#</em></h2>
 				<!--- desc/hint --->
 				<div class="text">
