@@ -1,4 +1,4 @@
-<cftry>
+<cfsetting showdebugoutput="false"><cftry>
 	<cfset hasError = true>
 	<cfset testObj = new test(alice = 'james', bob = true)>
 

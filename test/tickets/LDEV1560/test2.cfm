@@ -1,4 +1,4 @@
-<cfscript>
+<cfsetting showdebugoutput="false"><cfscript>
 	testObj = new test( 
 		alice = 12,
 		bob = false
