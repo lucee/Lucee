@@ -67,6 +67,7 @@ public final class Hash implements Function {
 	}
 
     public static String invoke(Config config, Object input, String algorithm, String encoding, int numIterations) throws PageException {
+		if(numIterations<1) numIterations=1;
 		
     	if(StringUtil.isEmpty(algorithm))algorithm="md5";
 		else algorithm=algorithm.trim().toLowerCase();
