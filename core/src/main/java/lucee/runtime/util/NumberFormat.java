@@ -40,7 +40,6 @@ public final class NumberFormat  {
 	 * @return formatted number as string
 	 */
 	public String format(Locale locale,double number) {
-		
 		DecimalFormat df=getDecimalFormat(locale);
 		df.applyPattern(",0");
 		df.setGroupingSize(3);
@@ -165,15 +164,13 @@ public final class NumberFormat  {
 		}
 
 		if(addZero)
-			maskBuffer.insert(0, '0');
+			addSymbol(maskBuffer, '0');
 		
 		
 		mask = new String(maskBuffer);
 		maskLen=mask.length();
 		DecimalFormat df = getDecimalFormat(locale);//(mask);
-		int gs=df.getGroupingSize();
 		df.applyPattern(mask);
-		df.setGroupingSize(gs);
 		df.setGroupingUsed(useComma);
 		df.setRoundingMode(RoundingMode.HALF_UP);
 		
@@ -188,9 +185,6 @@ public final class NumberFormat  {
 				int padding = (maskLen + offset) - formattedNumBuffer.length();
 				applyJustification(formattedNumBuffer,justification, padding);
 			}
-				
-				
-			
 		} 
 		else {
 			int widthBefore = formattedNumBuffer.length();
@@ -205,25 +199,8 @@ public final class NumberFormat  {
 			}
 			applySymbolics(formattedNumBuffer, number, usePlus, useMinus, useDollar, useBrackets);
 		}
-		/*/ TODO better impl, this is just a quick fix
-		formattedNum=formattedNumBuffer.toString();
-		 
-		int index=formattedNum.indexOf('.');
-		if(index==0) {
-			formattedNumBuffer.insert(0, '0');
-			formattedNum=formattedNumBuffer.toString();
-		}
-		else if(index>0){
-			
-		}
-			
-		String tmp=formattedNum.trim();
-		if(tmp.length()>0 && tmp.charAt(0)=='.')
-		*/
 		return formattedNumBuffer.toString();
 	}
-	
-
 
 	private void applyJustification(StringBuilder _buffer, int _just, int padding) {
 		if(_just == CENTER)		centerJustify(_buffer, padding);
@@ -231,23 +208,24 @@ public final class NumberFormat  {
 		else					rightJustify(_buffer, padding);
 	}
 
-	private void applySymbolics(StringBuilder _buffer, double _no, boolean _usePlus, boolean _useMinus, boolean _useDollar, boolean _useBrackets) {
-
-		if (_useBrackets && _no < 0.0D) {
-			_buffer.insert(0, '(');
-			_buffer.append(')');
+	private void applySymbolics(StringBuilder sb, double no, boolean usePlus, boolean useMinus, boolean useDollar, boolean useBrackets) {
+		if (useBrackets && no < 0.0D) {
+			addSymbol(sb, '(');
+			sb.append(')');
 		}
+		if (usePlus) addSymbol(sb, no < 0.0D ? '-' : '+');
+		if (no < 0.0D && !useBrackets && !usePlus) addSymbol(sb, '-');
+		else if (useMinus) addSymbol(sb, ' ');
+		if (useDollar) addSymbol(sb, '$');
+	}
 
-		if (_usePlus)
-			_buffer.insert(0, _no < 0.0D ? '-' : '+');
-
-		if (_no < 0.0D && !_useBrackets && !_usePlus)
-			_buffer.insert(0, '-');
-		else if (_useMinus)
-			_buffer.insert(0, ' ');
-
-		if (_useDollar)
-			_buffer.insert(0, '$');
+	private void addSymbol(StringBuilder sb, char symbol) {
+		
+		int offset=0;
+		while(sb.length()>offset && Character.isWhitespace(sb.charAt(offset))) {
+			offset++;
+		}
+		sb.insert(offset, symbol);
 	}
 
 	private void centerJustify(StringBuilder _src, int _padding) {
