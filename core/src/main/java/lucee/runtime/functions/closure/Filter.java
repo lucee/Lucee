@@ -39,6 +39,7 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.ArrayPro;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Iteratorable;
@@ -49,6 +50,8 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.it.ForEachQueryIterator;
+import lucee.runtime.type.scope.Argument;
+import lucee.runtime.type.scope.ArgumentImpl;
 import lucee.runtime.type.scope.ArgumentIntKey;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StringListData;
@@ -124,31 +127,34 @@ public class Filter extends BIF {
 
 	private static Collection invoke(PageContext pc, Array arr, UDF udf, ExecutorService es, List<Future<Data<Pair<Object, Object>>>> futures) throws CasterException, PageException {
 		Array rtn=new ArrayImpl();
-		Iterator<Entry<Key, Object>> it = arr.entryIterator();
-		Entry<Key, Object> e;
 		boolean async=es!=null;
+		
+		Iterator it = (arr instanceof ArrayPro?((ArrayPro)arr).entryArrayIterator(): arr.entryIterator());
+		Entry e;
 		Object res;
-		while(it.hasNext()){
-			e = it.next();
-			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey().getString()),arr},e.getKey(),e.getValue(), es, futures);
+		while(it.hasNext()) {
+			e = (Entry)it.next();
+			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey()),arr},e.getKey(),e.getValue(), es, futures);
 			if(!async && Caster.toBooleanValue(res)) {
 				rtn.append(e.getValue());
 			}
 		}
 		return rtn;
+		
 	}
 	
 	private static Collection invoke(PageContext pc, StringListData sld, UDF udf, ExecutorService es, List<Future<Data<Pair<Object, Object>>>> futures) throws CasterException, PageException {
 		Array arr = ListUtil.listToArray(sld.list, sld.delimiter,sld.includeEmptyFieldsx,sld.multiCharacterDelimiter);
 		
 		Array rtn=new ArrayImpl();
-		Iterator<Entry<Key, Object>> it = arr.entryIterator();
-		Entry<Key, Object> e;
+		Iterator it = (arr instanceof ArrayPro?((ArrayPro)arr).entryArrayIterator(): arr.entryIterator());
+		Entry e;KeyImpl k=null;
+		
 		boolean async=es!=null;
 		Object res;
 		while(it.hasNext()){
-			e = it.next();
-			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey().getString()),sld.list,sld.delimiter},e.getKey(),e.getValue(), es, futures);
+			e = (Entry)it.next();
+			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey()),sld.list,sld.delimiter},e.getKey(),e.getValue(), es, futures);
 			if(!async && Caster.toBooleanValue(res)) {
 				rtn.append(e.getValue());
 			}

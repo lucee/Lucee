@@ -41,6 +41,7 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.ArrayPro;
 import lucee.runtime.type.Iteratorable;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.UDF;
@@ -154,12 +155,11 @@ public final class Each extends BIF {
 		}
 	}
 	public static void invoke(PageContext pc , Array array, UDF udf,ExecutorService execute,List<Future<Data<Object>>> futures) throws PageException {
-		Iterator<Entry<Key, Object>> it = array.entryIterator();
-		Entry<Key, Object> e;
+		Iterator it = (array instanceof ArrayPro?((ArrayPro)array).entryArrayIterator(): array.entryIterator());
+		Entry e;
 		while(it.hasNext()){
-			e=it.next();
-			_call(pc,udf,new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey().getString()),array},execute,futures);
-			//udf.call(pc, new Object[]{it.next()}, true);
+			e=(Entry)it.next();
+			_call(pc,udf,new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey()),array},execute,futures);
 		}
 	}
 
@@ -168,7 +168,6 @@ public final class Each extends BIF {
 		ForEachQueryIterator it=new ForEachQueryIterator(qry, pid);
 		try{
 			Object row;
-			//Entry<Key, Object> e;
 			while(it.hasNext()){
 				row=it.next();
 				_call(pc,udf,new Object[]{row,Caster.toDoubleValue(qry.getCurrentrow(pid)),qry},execute,futures);
@@ -192,12 +191,12 @@ public final class Each extends BIF {
 	private static void invoke(PageContext pc, StringListData sld, UDF udf, ExecutorService execute, List<Future<Data<Object>>> futures) throws PageException {
 		Array arr = ListUtil.listToArray(sld.list, sld.delimiter,sld.includeEmptyFieldsx,sld.multiCharacterDelimiter);
 			
+		Iterator it = (arr instanceof ArrayPro?((ArrayPro)arr).entryArrayIterator(): arr.entryIterator());
+		Entry e;
 		
-		Iterator<Entry<Key, Object>> it = arr.entryIterator();
-		Entry<Key, Object> e;
 		while(it.hasNext()){
-			e=it.next();
-			_call(pc,udf,new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey().getString()),sld.list,sld.delimiter},execute,futures);
+			e=(Entry)it.next();
+			_call(pc,udf,new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey()),sld.list,sld.delimiter},execute,futures);
 		}
 		
 	}

@@ -38,6 +38,7 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.ArrayPro;
 import lucee.runtime.type.Iteratorable;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
@@ -119,17 +120,17 @@ public class Every extends BIF {
 
 	private static boolean invoke(PageContext pc, Array arr, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws CasterException, PageException {
 
-		Iterator<Entry<Key, Object>> it = arr.entryIterator();
-
+		Iterator it =(arr instanceof ArrayPro?((ArrayPro)arr).entryArrayIterator(): arr.entryIterator());
+		Entry e;
+		
 		if (!it.hasNext())
 			return false;				// array is empty or has only null values
 
-		Entry<Key, Object> e;
 		boolean async=es!=null;
 		Object res;
 		while(it.hasNext()){
-			e = it.next();
-			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey().getString()),arr},e.getKey(),e.getValue(), es, futures);
+			e = (Entry)it.next();
+			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey()),arr},e.getKey(),e.getValue(), es, futures);
 			if(!async && !Caster.toBooleanValue(res)) {
 				return false;
 			}
@@ -163,13 +164,13 @@ public class Every extends BIF {
 	private static boolean invoke(PageContext pc, StringListData sld, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws CasterException, PageException {
 		Array arr = ListUtil.listToArray(sld.list, sld.delimiter,sld.includeEmptyFieldsx,sld.multiCharacterDelimiter);
 
-		Iterator<Entry<Key, Object>> it = arr.entryIterator();
-		Entry<Key, Object> e;
+		Iterator it = (arr instanceof ArrayPro?((ArrayPro)arr).entryArrayIterator(): arr.entryIterator());
+		Entry e;
 		boolean async=es!=null;
 		Object res;
 		while(it.hasNext()){
-			e = it.next();
-			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey().getString()),sld.list,sld.delimiter},e.getKey(),e.getValue(), es, futures);
+			e = (Entry)it.next();
+			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey()),sld.list,sld.delimiter},e.getKey(),e.getValue(), es, futures);
 			if(!async && !Caster.toBooleanValue(res)) {
 				return false;
 			}

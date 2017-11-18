@@ -41,6 +41,7 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.ArrayPro;
 import lucee.runtime.type.Iteratorable;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
@@ -127,28 +128,28 @@ public class Map extends BIF {
 		Array arr = ListUtil.listToArray(sld.list, sld.delimiter,sld.includeEmptyFieldsx,sld.multiCharacterDelimiter);
 		
 		Array rtn=new ArrayImpl();
-		Iterator<Entry<Key, Object>> it = arr.entryIterator();
-		Entry<Key, Object> e;
+		Iterator it = (arr instanceof ArrayPro?((ArrayPro)arr).entryArrayIterator(): arr.entryIterator());
+		Entry e;
 		boolean async=es!=null;
 		Object res;
 		while(it.hasNext()){
-			e = it.next();
-			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey().getString()),sld.list,sld.delimiter},e.getKey(), es, futures);
-			if(!async) rtn.set(e.getKey(),res);
+			e = (Entry)it.next();
+			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey()),sld.list,sld.delimiter},e.getKey(), es, futures);
+			if(!async) rtn.set(Caster.toString(e.getKey()),res);
 		}
 		return rtn;
 	}
 
 	private static Collection invoke(PageContext pc, Array arr, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws CasterException, PageException {
 		Array rtn=new ArrayImpl();
-		Iterator<Entry<Key, Object>> it = arr.entryIterator();
-		Entry<Key, Object> e;
+		Iterator it =(arr instanceof ArrayPro?((ArrayPro)arr).entryArrayIterator(): arr.entryIterator());
+		Entry e;
 		boolean async=es!=null;
 		Object res;
 		while(it.hasNext()){
-			e = it.next();
-			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey().getString()),arr},e.getKey(), es, futures);
-			if(!async) rtn.set(e.getKey(),res);
+			e =(Entry)it.next();
+			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey()),arr},e.getKey(), es, futures);
+			if(!async) rtn.set(Caster.toString(e.getKey()),res);
 		}
 		return rtn;
 	}

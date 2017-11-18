@@ -445,7 +445,6 @@ public final class Caster {
         else if(o instanceof Date) return DateTimeUtil.getInstance().toDoubleValue(((Date)o).getTime());
         else if(o instanceof Calendar) return DateTimeUtil.getInstance().toDoubleValue(((Calendar)o).getTimeInMillis());
         else if(o instanceof Character) return (double)(((Character)o).charValue());
-        
         throw new CasterException(o,"number");
     }
 
