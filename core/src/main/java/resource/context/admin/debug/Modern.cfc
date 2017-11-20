@@ -88,6 +88,7 @@
 		}
 	</cfscript>
 
+
 	<cffunction name="output" returntype="void">
 		<cfif !directoryExists("#expandPath('/lucee')#\applogs\")>
 			<cfdirectory action="create" directory="#expandPath('/lucee')#\applogs">
