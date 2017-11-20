@@ -27,24 +27,6 @@
 		</return>
 	</function>
 	
-	<!-- AjaxOnLoad -->
-	<function>
-		<name>AjaxOnLoad</name>
-		<class>lucee.runtime.functions.displayFormatting.AjaxOnLoad</class>
-		<keywords>ajax</keywords>
-		<status>unimplemeted</status>
-		<description>Causes the specified JavaScript function to run when the page loads.</description>
-		<argument>
-			<name>functionName</name>
-			<type>string</type>
-			<required>Yes</required>
-		<description>The name of the function to run when the page loads. The specified function does not take a parameter.</description>
-    </argument>
-		<return>
-			<type>void</type>
-		</return>
-	</function>
-	
 	<!-- array -->
 	<function>
 		<name>array</name>
