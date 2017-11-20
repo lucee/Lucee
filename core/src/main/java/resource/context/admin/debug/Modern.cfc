@@ -16,7 +16,7 @@
 			,group("Custom Debugging Output with AJAX")
 			,field("AjaxCall","ajaxCall","Enabled",false,"Enable to load the tabs via ajax call","checkbox","Enabled")
 			,field("Tabs","ajaxTabs","Debug,Metrics,Reference",false,"Select the tab to show on debugOutput","checkbox","Debug,Metrics,Reference")
-			,field("Charts","metrics_charts","heapchart,non_heapChart,wholeSystem,lucee_Process",false,"Select the chart to show on metrics Tab","checkbox","Heapchart,Non_HeapChart,WholeSystem,Lucee_Process")
+			,field("Charts","metrics_charts","heapchart,non_heapChart,wholeSystem,lucee_Process",false,"Select the chart to show on metrics Tab. It will show only if the metrics tabs is enabled","checkbox","Heapchart,Non_HeapChart,WholeSystem,Lucee_Process")
 		);
 
 		string function getLabel(){
@@ -79,7 +79,7 @@
 		variables.cookieName_docs = "lucee_docs_modern";
 
 		function buildSectionStruct() {
-			var otherSections = [ "ALL", "Dump", "ExecTime", "ExecOrder", "Exceptions", "ImpAccess", "Info", "Query", "Timer", "Trace", "More", "Expression", "memChart", "cpuChart", "docs_Info", "tags", "functions", "components" ];
+			var otherSections = [ "ALL", "Dump", "ExecTime", "ExecOrder", "Exceptions", "ImpAccess", "Info", "Query", "Timer", "Trace", "More", "Expression", "memChart", "cpuChart", "docs_Info", "tags", "functions", "components", "scopesInMemory", "request_Threads", "datasource_connection", "task_Spooler" ];
 			var i = 0;
 			var result = {};
 			for ( var k in otherSections )
@@ -87,7 +87,6 @@
 			return result;
 		}
 	</cfscript>
-
 
 	<cffunction name="output" returntype="void">
 		<cfif !directoryExists("#expandPath('/lucee')#\applogs\")>
@@ -266,7 +265,7 @@
 					</cfif>
 					<!--- <span>(#this.getLabel()#)</span> --->
 					<cfif enableTab("Metrics")>
-						<button id="-lucee-metrics-btn-#sectionId#" class="#ismetricsOpen ? 'btnActive' : 'buttonStyle' #  test" onclick=" __LUCEE.debug.toggleSection( '#sectionId#', 'metrics' );">
+						<button id="-lucee-metrics-btn-#sectionId#" class="#ismetricsOpen ? 'btnActive' : 'buttonStyle' #  test" onclick="clickAjax('metrics');  __LUCEE.debug.toggleSection( '#sectionId#', 'metrics' );">
 							Metrics
 						</button> 
 						<cfif enableTab("Reference")>
@@ -985,7 +984,6 @@
 				<cfif enableTab("metrics")>
 					<div id="-lucee-metrics-ALL" class="#isMetricAllOpen ? '' : 'collapsed'#">
 						<div class="section-title">System Metrics</div>
-						<!--- <div class="section-title">Debugging Information</div> --->
 						<table>
 							<tr>
 								<td class="leftPadding">
@@ -1041,92 +1039,128 @@
 								</td>
 							</tr>
 						</table>
-
-					<div class="chartDetails">
-						<cfset systemInfo=GetSystemMetrics()>
-						<div class="chartTitle">Scopes in Memory</div>
-						<table class="maintbl">
-							<tbody>
-								<tr>
-									<th rowspan="3" scope="row" style="width: 39%;">
-										Scopes in Memory<br>
-										<span class="comment">Scopes actually hold in Memory (a Scope not necessary is kept in Memory for it's hole life time).</span>
-									</th>
-									<td style="width:30%"><b>Application</b></td>
-									<td style="width:10%" align="right">#systemInfo.applicationContextCount#</td>
-								</tr>
-								<tr>
-									<td style="width:30%"><b>Session</b></td>
-									<td style="width:10%" align="right">#systemInfo.sessionCount#</td>
-								</tr>
-								<tr>
-									<td style="width:30%"><b>Client</b></td>
-									<td style="width:10%" align="right">#systemInfo.clientCount#</td>
-								</tr>
-							</tbody>
-						</table>
-						<div class="chartTitle">Request/Threads</div>
-						<table class="maintbl">
-							<tbody>
-								<tr>
-									<th rowspan="3" scope="row" style="width: 39%;">
-										Request/Threads<br>
-										<span class="comment">Request and threads (started by &lt;cfthread&gt;) currently running on the system.</span>
-									</th>
-									<td style="width:30%"><b>Requests</b></td>
-									<cfset nbr=systemInfo.activeRequests>
-									<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
-								</tr>
-								<tr>
-									<td style="width:30%"><b>Queued Requests</b></td>
-									<cfset nbr=systemInfo.activeThreads>
-									 <td style="width:10%" align="right" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td>
-								</tr>
-								<tr>
-									<td style="width:30%"><b>Threads</b></td>
-									<cfset nbr=systemInfo.queueRequests>
-									<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
-								</tr>
-							</tbody>
-						</table>
-						<div class="chartTitle">Datasource Connections</div>
-						<table class="maintbl">
-							<tbody>
-								<tr>
-									<th rowspan="2" scope="row" style="width: 39%;">
-										Datasource Connections<br>
-										<span class="comment">Datasource Connection open at the Moment.</span>
-									</th>
-									<td style="width:30%">&nbsp;</td>
-									<td style="width:10%">&nbsp;</td> 
-								</tr>
-								<tr>
-									<td style="width:30%">&nbsp;</td>
-									<cfset nbr=systemInfo.activeDatasourceConnections>
-									<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td> 
-								</tr>
-							</tbody>
-						</table>
-						<div class="chartTitle">Task Spooler</div>
-						<table class="maintbl">
-							<tbody>
-								<tr>
-									<th rowspan="2" scope="row" style="width: 39%;">
-										Task Spooler<br>
-										<span class="comment">Active and closed tasks in Task Spooler. This includes for exampe tasks to send mails.</span>
-									</th>
-									<td style="width:30%"><b>Open</b></td>
-									<cfset nbr=systemInfo.tasksOpen>
-									<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
-								</tr>
-								<tr>
-									<td style="width:30%"><b>Close</b></td>
-									<cfset nbr=systemInfo.tasksClosed>
-									<td style="width:10%" align="right" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td> 
-								</tr>
-							</tbody>
-						</table>
-					</div>
+						<div id="-lucee-metrics-data" class="#ismetricsOpen ? '' : 'collapsed'# chartDetails">Loading Metrics data...</div>
+						<cfsavecontent variable="local.sContent.tab2" trim="true">
+							<cfoutput>
+								<cfset systemInfo=GetSystemMetrics()>
+								<cfset sectionId = "scopesInMemory">
+								<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
+								<table>
+									<cfset renderSectionHeadTR2( "#sectionId#", "Scopes in Memory", "", "metrics" )>
+									<tr>
+										<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
+											<table class="maintbl">
+												<tbody>
+													<tr>
+														<th rowspan="3" scope="row" style="width: 39%;">
+															Scopes in Memory<br>
+															<span class="comment">Scopes actually hold in Memory (a Scope not necessary is kept in Memory for it's hole life time).</span>
+														</th>
+														<td style="width:30%"><b>Application</b></td>
+														<td style="width:10%" align="right">#systemInfo.applicationContextCount#</td>
+													</tr>
+													<tr>
+														<td style="width:30%"><b>Session</b></td>
+														<td style="width:10%" align="right">#systemInfo.sessionCount#</td>
+													</tr>
+													<tr>
+														<td style="width:30%"><b>Client</b></td>
+														<td style="width:10%" align="right">#systemInfo.clientCount#</td>
+													</tr>
+												</tbody>
+											</table>
+										</td>
+									</tr>
+								</table>
+								<cfset sectionId = "request_Threads">
+								<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
+								<table>
+									<cfset renderSectionHeadTR2( "#sectionId#", "Request/Threads", "", "metrics" )>
+									<tr>
+										<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
+											<table class="maintbl">
+												<tbody>
+													<tr>
+														<th rowspan="3" scope="row" style="width: 39%;">
+															Request/Threads<br>
+															<span class="comment">Request and threads (started by &lt;cfthread&gt;) currently running on the system.</span>
+														</th>
+														<td style="width:30%"><b>Requests</b></td>
+														<cfset nbr=systemInfo.activeRequests>
+														<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+													</tr>
+													<tr>
+														<td style="width:30%"><b>Queued Requests</b></td>
+														<cfset nbr=systemInfo.activeThreads>
+														 <td style="width:10%" align="right" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td>
+													</tr>
+													<tr>
+														<td style="width:30%"><b>Threads</b></td>
+														<cfset nbr=systemInfo.queueRequests>
+														<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+													</tr>
+												</tbody>
+											</table>
+										</td>
+									</tr>
+								</table>
+								<cfset sectionId = "datasource_connection">
+								<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
+								<table>
+									<cfset renderSectionHeadTR2( "#sectionId#", "Datasource Connections", "", "metrics" )>
+									<tr>
+										<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
+											<table class="maintbl">
+												<tbody>
+													<tr>
+														<th rowspan="2" scope="row" style="width: 39%;">
+															Datasource Connections<br>
+															<span class="comment">Datasource Connection open at the Moment.</span>
+														</th>
+														<td style="width:30%">&nbsp;</td>
+														<td style="width:10%">&nbsp;</td> 
+													</tr>
+													<tr>
+														<td style="width:30%">&nbsp;</td>
+														<cfset nbr=systemInfo.activeDatasourceConnections>
+														<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td> 
+													</tr>
+												</tbody>
+											</table>
+										</tr>
+									</tr>
+								</table>
+								<cfset sectionId = "task_Spooler">
+								<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
+								<table>
+									<cfset renderSectionHeadTR2( "#sectionId#", "Task Spooler", "", "metrics" )>
+									<tr>
+										<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
+											<table class="maintbl">
+												<tbody>
+													<tr>
+														<th rowspan="2" scope="row" style="width: 39%;">
+															Task Spooler<br>
+															<span class="comment">Active and closed tasks in Task Spooler. This includes for exampe tasks to send mails.</span>
+														</th>
+														<td style="width:30%"><b>Open</b></td>
+														<cfset nbr=systemInfo.tasksOpen>
+														<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+													</tr>
+													<tr>
+														<td style="width:30%"><b>Close</b></td>
+														<cfset nbr=systemInfo.tasksClosed>
+														<td style="width:10%" align="right" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td> 
+													</tr>
+												</tbody>
+											</table>
+										</td>
+									</tr>
+								</table>
+							</cfoutput>
+						</cfsavecontent>
+						<cfset metricsAllInfo = replace(sContent.tab2, chr(9), "", "ALL")>
+						<cfset cachePut(sFileName_Metrics, metricsAllInfo, 0.001)>
 					</div><!--- #-lucee-metrics-ALL !--->
 				</cfif>
 				<cfif enableTab("Reference")>
@@ -1382,9 +1416,13 @@
 							oAjax.onreadystatechange = function() {
 								if(this.readyState == 4 && this.status == 200) {
 									//var result = $.parseHTML(this.responseText);
-									$("##-lucee-"+section+"-ALL").html(this.responseText);
-									if(section == 'docs'){
-										bindTypeaheadJS();
+									if(section == 'metrics'){
+										$("##-lucee-"+section+"-data").html(this.responseText);
+									} else{
+										$("##-lucee-"+section+"-ALL").html(this.responseText);
+										if(section == 'docs'){
+											bindTypeaheadJS();
+										}
 									}
 								}
 							};
@@ -1574,13 +1612,17 @@
 
 				</script>
 			</cfif>
-			<cfif isdebugOpen && enableTab("debug") || isdocsOpen && enableTab("Reference")>
+			<cfif isdebugOpen && enableTab("debug") || ismetricsOpen && enableTab("metrics")  ||  isdocsOpen && enableTab("Reference")>
 				<script>
 					var isdebugOpen = #isdebugOpen#;
+					var ismetricsOpen = #ismetricsOpen#;
 					var isdocsOpen = #isdocsOpen#;
 					if(isdebugOpen ){
 						section = "debug";
-					}else{
+					}else if(ismetricsOpen){
+						section = "metrics";
+					}
+					else{
 						section = "docs";
 					}
 					clickAjax(section);
