@@ -48,21 +48,21 @@ import lucee.runtime.type.scope.ArgumentIntKey;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StringListData;
 
-public class Some extends BIF {
+public class Some extends BIF implements ClosureFunc {
 
 	private static final long serialVersionUID = -5940580562772523622L;
 
 	public static boolean call(PageContext pc , Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf, false,20);
+		return _call(pc, obj, udf, false,20,TYPE_UNDEFINED);
 	}
 	public static boolean call(PageContext pc , Object obj, UDF udf, boolean parallel) throws PageException {
-		return _call(pc, obj, udf, parallel, 20);
+		return _call(pc, obj, udf, parallel, 20,TYPE_UNDEFINED);
 	}
 	public static boolean call(PageContext pc , Object obj, UDF udf, boolean parallel, double maxThreads) throws PageException {
-		return _call(pc, obj, udf, parallel, (int)maxThreads);
+		return _call(pc, obj, udf, parallel, (int)maxThreads,TYPE_UNDEFINED);
 	}
 	
-	public static boolean _call(PageContext pc , Object obj, UDF udf, boolean parallel, int maxThreads) throws PageException { 
+	public static boolean _call(PageContext pc , Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException { 
 		
 		ExecutorService execute=null;
 		List<Future<Data<Object>>> futures=null;
@@ -74,7 +74,19 @@ public class Some extends BIF {
 		boolean res;
 
 		// Array
-		if(obj instanceof Array) {
+		if(type==TYPE_ARRAY) {
+			res=invoke(pc, (Array)obj, udf,execute,futures);
+		}
+		// Query
+		else if(type==TYPE_QUERY) {
+			res=invoke(pc, (Query)obj, udf,execute,futures);
+		}
+		// Struct
+		else if(type==TYPE_STRUCT) {
+			res=invoke(pc, (Struct)obj, udf,execute,futures);
+		}
+		// Array
+		else if(obj instanceof Array) {
 			res=invoke(pc, (Array)obj, udf,execute,futures);
 		}
 		// Query

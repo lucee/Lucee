@@ -54,22 +54,22 @@ import lucee.runtime.type.scope.ArgumentIntKey;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StringListData;
 
-public class Map extends BIF {
+public class Map extends BIF implements ClosureFunc {
 
 	private static final long serialVersionUID = -1435100019820996876L;
 
 
 	public static Object call(PageContext pc , Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf, false,20,null);
+		return _call(pc, obj, udf, false,20,null,TYPE_UNDEFINED);
 	}
 	public static Object call(PageContext pc , Object obj, UDF udf, boolean parallel) throws PageException {
-		return _call(pc, obj, udf, parallel, 20,null);
+		return _call(pc, obj, udf, parallel, 20,null,TYPE_UNDEFINED);
 	}
 	public static Object call(PageContext pc , Object obj, UDF udf, boolean parallel, double maxThreads) throws PageException {
-		return _call(pc, obj, udf, parallel, (int)maxThreads,null);
+		return _call(pc, obj, udf, parallel, (int)maxThreads,null,TYPE_UNDEFINED);
 	}
 	
-	public static Collection _call(PageContext pc , Object obj, UDF udf, boolean parallel, int maxThreads, Query resQry) throws PageException { 
+	public static Collection _call(PageContext pc , Object obj, UDF udf, boolean parallel, int maxThreads, Query resQry, short type) throws PageException { 
 		
 		ExecutorService execute=null;
 		List<Future<Data<Object>>> futures=null;
@@ -79,9 +79,22 @@ public class Map extends BIF {
 		}
 		
 		Collection coll;
-		
+
+		// !!!! Don't combine the first 3 ifs with the ifs below, type overrules instanceof check
 		// Array
-		if(obj instanceof Array) {
+		if(type==TYPE_ARRAY) {
+			coll=invoke(pc, (Array)obj, udf,execute,futures);
+		}
+		// Query
+		else if(type==TYPE_QUERY) {
+			coll=invoke(pc, (Query)obj, udf,execute,futures,resQry);
+		}
+		// Struct
+		else if(type==TYPE_STRUCT) {
+			coll=invoke(pc, (Struct)obj, udf,execute,futures);
+		}
+		// Array
+		else if(obj instanceof Array) {
 			coll=invoke(pc, (Array)obj, udf,execute,futures);
 		}
 		// Query

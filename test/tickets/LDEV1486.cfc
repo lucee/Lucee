@@ -3,12 +3,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		describe( "Test suite for LDEV-1484", function() {
 			it( title='Checking structFilter() with arguments scope calling via UDF', body=function( currentSpec ) {
 			    local.result = udfWithoutParameter('foo,bar');
-				expect(local.result).toBe('foo,bar');
+			    expect(local.result["1"]).toBe('foo,bar');
 			});
 
 			it( title='Checking structFilter() with arguments scope calling via UDF has declared parameters ', body=function( currentSpec ) {
 				local.result = udfWithParameter('foo,bar');
-				expect(local.result).toBe('foo,bar');
+				expect(local.result.foo).toBe('foo,bar');
 			});
 
 			it( title='Checking structFilter() member function with arguments scope', body=function( currentSpec ) {
@@ -32,8 +32,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 	function udfWithParameter(foo,bar) {
 		try{
-		    var result =  structFilter( arguments, function() {
-				return true;
+		    var result =  structFilter( arguments, function(name,value) {
+				return !isNull(value);
 			});
 		}catch(any e) {
 			result = e.message;

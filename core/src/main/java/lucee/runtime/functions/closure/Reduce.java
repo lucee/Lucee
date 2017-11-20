@@ -42,25 +42,38 @@ import lucee.runtime.type.scope.ArgumentIntKey;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StringListData;
 
-public class Reduce extends BIF {
+public class Reduce extends BIF implements ClosureFunc {
 
 	private static final long serialVersionUID = -5940580562772523622L;
 
 	public static Object call(PageContext pc , Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf,null);
+		return _call(pc, obj, udf,null,TYPE_UNDEFINED);
 	}
 	
 	public static Object call(PageContext pc , Object obj, UDF udf, Object initalValue) throws PageException {
-		return _call(pc, obj, udf,initalValue);
+		return _call(pc, obj, udf,initalValue,TYPE_UNDEFINED);
 	}
 	
-	public static Object _call(PageContext pc , Object obj, UDF udf, Object initalValue) throws PageException { 
+	public static Object _call(PageContext pc , Object obj, UDF udf, Object initalValue, short type) throws PageException { 
 		
 		
 		Object value;
 		
+		// !!!! Don't combine the first 3 ifs with the ifs below, type overrules instanceof check
 		// Array
-		if(obj instanceof Array) {
+		if(type==TYPE_ARRAY) {
+			value=invoke(pc, (Array)obj, udf,initalValue);
+		}
+		// Query
+		else if(type==TYPE_QUERY) {
+			value=invoke(pc, (Query)obj, udf,initalValue);
+		}
+		// Struct
+		else if(type==TYPE_STRUCT) {
+			value=invoke(pc, (Struct)obj, udf,initalValue);
+		}
+		// Array
+		else if(obj instanceof Array) {
 			value=invoke(pc, (Array)obj, udf,initalValue);
 		}
 		// Query

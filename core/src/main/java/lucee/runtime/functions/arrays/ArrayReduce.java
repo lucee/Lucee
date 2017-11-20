@@ -25,6 +25,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
+import lucee.runtime.functions.closure.ClosureFunc;
 import lucee.runtime.functions.closure.Reduce;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
@@ -36,11 +37,11 @@ public final class ArrayReduce extends BIF {
 	private static final long serialVersionUID = 7832440197492225852L;
 
 	public static Object call(PageContext pc , Array array, UDF udf) throws PageException {
-		return Reduce._call(pc, array, udf,null);
+		return Reduce._call(pc, array, udf,null,ClosureFunc.TYPE_ARRAY);
 	}
 	
 	public static Object call(PageContext pc , Array array, UDF udf, Object initValue) throws PageException {
-		return Reduce._call(pc, array, udf,initValue);
+		return Reduce._call(pc, array, udf,initValue,ClosureFunc.TYPE_ARRAY);
 	}
 	
 	@Override

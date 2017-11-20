@@ -50,21 +50,21 @@ import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StringListData;
 
 
-public final class Each extends BIF {
+public final class Each extends BIF implements ClosureFunc {
 
 	private static final long serialVersionUID = 1955185705863596525L;
 
 	public static String call(PageContext pc , Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf, false,20);
+		return _call(pc, obj, udf, false,20,TYPE_UNDEFINED);
 	}
 	public static String call(PageContext pc , Object obj, UDF udf, boolean parallel) throws PageException {
-		return _call(pc, obj, udf, parallel, 20);
+		return _call(pc, obj, udf, parallel, 20,TYPE_UNDEFINED);
 	}
 	public static String call(PageContext pc , Object obj, UDF udf, boolean parallel, double maxThreads) throws PageException {
-		return _call(pc, obj, udf, parallel, (int)maxThreads);
+		return _call(pc, obj, udf, parallel, (int)maxThreads,TYPE_UNDEFINED);
 	}
 	
-	private static String _call(PageContext pc , Object obj, UDF udf, boolean parallel, int maxThreads) throws PageException {
+	private static String _call(PageContext pc , Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
 		ExecutorService execute=null;
 		List<Future<Data<Object>>> futures=null;
 		if(parallel) {
@@ -72,17 +72,26 @@ public final class Each extends BIF {
 			futures=new ArrayList<Future<Data<Object>>>();
 		}
 		
+
+		// !!!! Don't combine the first 2 ifs with the ifs below, type overrules instanceof check
 		// Array
-		if(obj instanceof Array) {
+		if(type==TYPE_ARRAY) {
 			invoke(pc, (Array)obj, udf,execute,futures);
 		}
-
+		// Query
+		else if(type==TYPE_QUERY) {
+			invoke(pc, (Query)obj, udf,execute,futures);
+		}
+		
+		// Array
+		else if(obj instanceof Array) {
+			invoke(pc, (Array)obj, udf,execute,futures);
+		}
 		// Query
 		else if(obj instanceof Query) {
 			invoke(pc, (Query)obj, udf,execute,futures);
 		}
 		
-
 		// other Iteratorable
 		else if(obj instanceof Iteratorable) {
 			invoke(pc, (Iteratorable)obj, udf,execute,futures);
