@@ -14,7 +14,7 @@
 	<cfreturn ret />
 </cffunction>
 
-<cfset luceeArchivePath = expandPath("{lucee-web}/context/lucee-context.lar") />
+<cfset luceeArchivePath = expandPath("{lucee-web}/context/lucee-admin.lar") />
 <cfset luceeArchiveZipPath = "zip://" & luceeArchivePath & "!" />
 <cfset dataDir = expandPath("{lucee-server}/searchdata") & server.separator.file />
 
