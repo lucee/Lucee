@@ -1039,13 +1039,13 @@
 								</td>
 							</tr>
 						</table>
-						<div id="-lucee-metrics-data" class="#ismetricsOpen ? '' : 'collapsed'# chartDetails">Loading Metrics data...</div>
+						<div id="-lucee-metrics-data" class="#ismetricsOpen ? '' : 'collapsed'# ">Loading Metrics data...</div>
 						<cfsavecontent variable="local.sContent.tab2" trim="true">
 							<cfoutput>
 								<cfset systemInfo=GetSystemMetrics()>
 								<cfset sectionId = "scopesInMemory">
 								<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
-								<table>
+								<table class="chartDetails">
 									<cfset renderSectionHeadTR2( "#sectionId#", "Scopes in Memory", "", "metrics" )>
 									<tr>
 										<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
@@ -1053,7 +1053,7 @@
 												<tbody>
 													<tr>
 														<th rowspan="3" scope="row" style="width: 39%;">
-															Scopes in Memory<br>
+															<span class="chartTitle">Scopes in Memory</span><br>
 															<span class="comment">Scopes actually hold in Memory (a Scope not necessary is kept in Memory for it's hole life time).</span>
 														</th>
 														<td style="width:30%"><b>Application</b></td>
@@ -1074,7 +1074,7 @@
 								</table>
 								<cfset sectionId = "request_Threads">
 								<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
-								<table>
+								<table class="chartDetails">
 									<cfset renderSectionHeadTR2( "#sectionId#", "Request/Threads", "", "metrics" )>
 									<tr>
 										<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
@@ -1082,7 +1082,7 @@
 												<tbody>
 													<tr>
 														<th rowspan="3" scope="row" style="width: 39%;">
-															Request/Threads<br>
+															<span class="chartTitle">Request/Threads</span><br>
 															<span class="comment">Request and threads (started by &lt;cfthread&gt;) currently running on the system.</span>
 														</th>
 														<td style="width:30%"><b>Requests</b></td>
@@ -1106,7 +1106,7 @@
 								</table>
 								<cfset sectionId = "datasource_connection">
 								<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
-								<table>
+								<table class="chartDetails">
 									<cfset renderSectionHeadTR2( "#sectionId#", "Datasource Connections", "", "metrics" )>
 									<tr>
 										<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
@@ -1114,7 +1114,7 @@
 												<tbody>
 													<tr>
 														<th rowspan="2" scope="row" style="width: 39%;">
-															Datasource Connections<br>
+															<span class="chartTitle">Datasource Connections</span><br>
 															<span class="comment">Datasource Connection open at the Moment.</span>
 														</th>
 														<td style="width:30%">&nbsp;</td>
@@ -1132,7 +1132,7 @@
 								</table>
 								<cfset sectionId = "task_Spooler">
 								<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
-								<table>
+								<table class="chartDetails">
 									<cfset renderSectionHeadTR2( "#sectionId#", "Task Spooler", "", "metrics" )>
 									<tr>
 										<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
@@ -1140,7 +1140,7 @@
 												<tbody>
 													<tr>
 														<th rowspan="2" scope="row" style="width: 39%;">
-															Task Spooler<br>
+															<span class="chartTitle">Task Spooler</span><br>
 															<span class="comment">Active and closed tasks in Task Spooler. This includes for exampe tasks to send mails.</span>
 														</th>
 														<td style="width:30%"><b>Open</b></td>
@@ -1417,7 +1417,8 @@
 								if(this.readyState == 4 && this.status == 200) {
 									//var result = $.parseHTML(this.responseText);
 									if(section == 'metrics'){
-										$("##-lucee-"+section+"-data").html(this.responseText);
+										$("##-lucee-"+section+"-data").removeClass('collapsed');
+										$("##-lucee-"+section+"-data").html(this.responseText);	
 									} else{
 										$("##-lucee-"+section+"-ALL").html(this.responseText);
 										if(section == 'docs'){
@@ -1586,9 +1587,7 @@
 								});
 							}
 						});
-						document.querySelector('##-lucee-docs-btn-ALL').addEventListener('click', function () {
-					  		document.getElementById('lucee-docs-search-input').focus();
-						});
+						
 
 						$(document).ready(function() {
 						    $('##-lucee-docs-btn-ALL').on('click', function() {
@@ -1598,6 +1597,8 @@
 						     	$('.icon-close').hide();
 						     });
 						});
+
+						$('##lucee-docs-search-input').focus();
 					}
 
 					function callDesc(type, item){
@@ -1606,6 +1607,10 @@
 							url: "/lucee-server/admin/debug/chartProcess.cfc?method="+type+"&item="+item,
 							success: function(data){
 								$( ".modal-body" ).html(data).modal('show');
+								$('.close-modal').on('click', function() {
+									$('##lucee-docs-search-input').val('');
+								});
+
 							}
 						});
 					}
@@ -1614,9 +1619,9 @@
 			</cfif>
 			<cfif isdebugOpen && enableTab("debug") || ismetricsOpen && enableTab("metrics")  ||  isdocsOpen && enableTab("Reference")>
 				<script>
-					var isdebugOpen = #isdebugOpen#;
-					var ismetricsOpen = #ismetricsOpen#;
-					var isdocsOpen = #isdocsOpen#;
+					var isdebugOpen = #isdebugOpen# && #enableTab("debug")#;
+					var ismetricsOpen = #ismetricsOpen# && #enableTab("metrics")#;
+					var isdocsOpen = #isdocsOpen# && #enableTab("Reference")#;
 					if(isdebugOpen ){
 						section = "debug";
 					}else if(ismetricsOpen){
