@@ -978,7 +978,7 @@ public final class StringUtil {
      * @param str
      * @return return if a String is "Empty", that means NULL or String with length 0 (whitespaces will not counted) 
      */
-    public static boolean isEmpty(String str) {
+    public static boolean isEmpty(CharSequence str) {
         return str==null || str.length()==0;
     }
     /**
@@ -1051,10 +1051,8 @@ public final class StringUtil {
 	
 	public static boolean isEmpty(Object obj) {
 		if(obj==null) return true;
-		if(obj instanceof String)return isEmpty((String)obj);
+		if(obj instanceof CharSequence)return isEmpty(((CharSequence)obj));
 		if(obj instanceof Collection.Key)return isEmpty(((Collection.Key)obj).getString());
-		if(obj instanceof StringBuffer)return isEmpty((StringBuffer)obj);
-		if(obj instanceof StringBuilder)return isEmpty((StringBuilder)obj);
 		return false;
 	}
 
