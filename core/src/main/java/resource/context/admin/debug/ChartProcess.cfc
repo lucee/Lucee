@@ -44,14 +44,14 @@
 		<cfsavecontent variable="result">
 			<cfoutput>
 				<h1 class="header" style="text-align: center;">Lucee Functions</h1>
-				<h2 class="header"><em>#uCase( url.item )#()</em></h2>
+				<h2 class="header"><span>#uCase( url.item )#()</span></h2>
 				<cfif data.status EQ "deprecated">
 					<div class="warning">Deprecated Function</div>
 				</cfif>
 				<!--- Desc --->
 				<div class="text">
 					<cfif not StructKeyExists(data, "description")>
-						<em>No decription found</em>
+						<span>No decription found</span>
 					<cfelse>
 						#replace( replace( data.description, '	', '&nbsp;&nbsp;&nbsp;', 'all' ), chr(10), '<br>', 'all' )#
 					</cfif>
@@ -135,7 +135,7 @@
 				<cfparam name="data.attributetype" default="fixed">
 				
 				<h1 class="header" style="text-align: center;">Lucee Tags </h1>
-				<h2 class="header"><em>&lt;#uCase( tagName )#&gt;</em></h2>
+				<h2 class="header"><span>&lt;#uCase( tagName )#&gt;</span></h2>
 
 				<cfif data.status == "deprecated">
 					<div class="warning">Depreciated Tag</div>
@@ -144,7 +144,7 @@
 				<!--- Desc --->
 				<div class="text">
 					<cfif !data.keyExists( "description" ) || !len( data.description )>
-						<em>No decription found</em>
+						<span>No decription found</span>
 					<cfelse>
 						#data.description#
 					</cfif>
@@ -324,11 +324,11 @@
 			<cfoutput>
 				<cfset data = getComponentMetaData(url.item)>
 					<h1 class="header" style="text-align: center;">Lucee Components</h1>
-				<h2 class="header"><em>#(listLast(data.fullName, "."))#</em></h2>
+				<h2 class="header"><span>#(listLast(data.fullName, "."))#</span></h2>
 				<!--- desc/hint --->
 				<div class="text">
 					<cfif !data.keyExists( "hint" ) || !len( data.hint )>
-						<em>No description/hint found</em>
+						<span>No description/hint found</span>
 					<cfelse>
 						#data.hint#
 					</cfif>

@@ -244,7 +244,8 @@
 			<cfset var sectionId = "ALL">
 			<cfset var isOpen = this.isSectionOpen( sectionId, "debugging" ) OR this.isSectionOpen( sectionId, "metrics" ) OR this.isSectionOpen( sectionId, "docs" )>
 			<!-- Lucee Debug Output !-->
-			<fieldset id="-lucee-debug" class="#arguments.custom.size# #isOpen ? '' : 'collapsed'#">
+			<!--- <fieldset> --->
+			<div id="-lucee-debug" class="#arguments.custom.size# #isOpen ? '' : 'collapsed'#">
 				<cfset isdebugOpen = this.isSectionOpen( sectionId )>
 				<cfset ismetricsOpen = this.isSectionOpen( sectionId, "metrics" )>
 				<cfset isdocsOpen = this.isSectionOpen( sectionId, "docs" )>
@@ -253,14 +254,14 @@
 					<cfset ismetricsOpen = false>
 					<cfset isdocsOpen = false>
 				</cfif>
-				<legend>
+				<div class="legend"><!--- <legend> --->
 					<cfif enableTab("debug")>
 						<button id="-lucee-debug-btn-#sectionId#" class="#isdebugOpen ? 'btnActive' : 'buttonStyle' #  test" onclick="clickAjax('debug'); __LUCEE.debug.toggleSection( '#sectionId#' );">
 							<!--- Lucee Debug Output --->
 							Debugging
 						</button>
 						<cfif enableTab("Metrics")>
-							<span class="dashColor"> - </span>
+							<!--- <span class="dashColor"> - </span> --->
 						</cfif>
 					</cfif>
 					<!--- <span>(#this.getLabel()#)</span> --->
@@ -269,7 +270,7 @@
 							Metrics
 						</button> 
 						<cfif enableTab("Reference")>
-							<span class="dashColor"> - </span>
+							<!--- <span class="dashColor"> - </span> --->
 						</cfif>
 					</cfif>
 
@@ -278,7 +279,7 @@
 							Reference
 						</button>
 					</cfif>
-				</legend>
+				</div><!--- </legend> --->
 				<cfif enableTab("debug")>
 					<div id="-lucee-debug-ALL" class="#isdebugOpen ? '' : 'collapsed'#">Loading debugging data...</div>
 				 	<cfsavecontent variable="local.sContent.tab1" trim="true">
@@ -286,7 +287,7 @@
 						<div id="debugContainer">
 							<cfoutput>
 							<cfif isEnabled( arguments.custom, 'general' )>
-								<div class="section-title">Debugging Information</div>
+								<div class="section-title" style="padding-top:23px;">Debugging Information</div>
 								<cfset sectionId = "Info">
 								<cfset isOpen = this.isSectionOpen( sectionId )>
 								<table>
@@ -983,62 +984,72 @@
 				</cfif>
 				<cfif enableTab("metrics")>
 					<div id="-lucee-metrics-ALL" class="#isMetricAllOpen ? '' : 'collapsed'#">
-						<div class="section-title">System Metrics</div>
+						<div class="section-title" style="padding-bottom:5px; padding-top:23px;">System Metrics</div>
 						<table>
 							<tr>
-								<td class="leftPadding">
+								<td class="metricsCharts" >
 									<table>
-										<span class="titleStyle">Memory Chart & CPU Chart</span>
+										<span class="titleStyle">Memory Chart</span>
 										<tr>
-											<td <!--- id="-lucee-metrics-#sectionId#"  --->class=" metricsCharts" >
-												<table>
-													<tr>
-														<td>Memory Used By java & Average CPU load of the last 20 seconds on the whole system and this Java Virtual Machine (Lucee Process).</td>
-														<td></td>
-													</tr>
-												</table>
-												<table>
-													<cfif structKeyExists(variables.chartStr, "heapchart")><th>Heap Chart</th></cfif>
-													<cfif structKeyExists(variables.chartStr, "non_heapChart")><th>Non Heap Chart</th></cfif>
-													<cfif structKeyExists(variables.chartStr, "wholeSystem")><th>Whole System</th></cfif>
-													<cfif structKeyExists(variables.chartStr, "lucee_Process")><th>Lucee Process</th></cfif>
-													<tr>
-														<cfif structKeyExists(variables.chartStr, "heapchart")>
-															<td>
-																<div style="min-width: 250px; height: 130px; padding:7px; border-radius: 25px; border: 2px solid ##898989;">
-																	<div id="heap" style="min-width: 250px; height: 130px; margin: 0 auto;"></div>
-																</div>
-															</td>
-														</cfif>
-														<cfif structKeyExists(variables.chartStr, "non_heapChart")>
-															<td>
-																<div style="min-width: 250px; height: 130px; padding:7px; border-radius: 25px; border: 2px solid ##898989;">
-																	<div id="nonheap" style="min-width: 250px; height: 130px; margin: 0 auto;"></div>
-																</div>
-															</td>
-														</cfif>
-														<cfif structKeyExists(variables.chartStr, "wholeSystem")>
-															<td>
-																<div style="min-width: 250px; height: 130px; padding:7px; border-radius: 25px; border: 2px solid ##898989;">
-																	<div id="cpuSystem" style="min-width: 250px; height: 130px; margin: 0 auto;"></div>
-																</div>
-															</td>
-														</cfif>
-														<cfif structKeyExists(variables.chartStr, "lucee_Process")>
-															<td>
-																<div style="min-width: 250px; height: 130px; padding:7px; border-radius: 25px; border: 2px solid ##898989;">
-																	<div id="cpuProcess" style="min-width: 250px; height: 130px; margin: 0 auto;"></div>
-																</div>
-															</td>
-														</cfif>
-													</tr>
-												</table>
-											</td>
+											<td>Memory Used By java</td>
+										</tr>
+									</table>
+									<table>
+										<cfif structKeyExists(variables.chartStr, "heapchart")><th>Heap Chart</th></cfif>
+										<cfif structKeyExists(variables.chartStr, "non_heapChart")><th>Non Heap Chart</th></cfif>
+										<tr>
+											<cfif structKeyExists(variables.chartStr, "heapchart")>
+												<td>
+													<div style="min-width: 320px; height: 175px; padding:7px; border-radius: 25px; border: 2px solid ##898989;">
+														<div id="heap" style="min-width: 320px; height: 175px; margin: 0 auto;"></div>
+													</div>
+												</td>
+											</cfif>
+											<cfif structKeyExists(variables.chartStr, "non_heapChart")>
+												<td>
+													<div style="min-width: 320px; height: 175px; padding:7px; border-radius: 25px; border: 2px solid ##898989;">
+														<div id="nonheap" style="min-width: 320px; height: 175px; margin: 0 auto;"></div>
+													</div>
+												</td>
+											</cfif>
 										</tr>
 									</table>
 								</td>
 							</tr>
 						</table>
+						<table>
+							<tr>
+								<td class="metricsCharts" >
+									<table>
+										<span class="titleStyle">CPU Chart</span>
+										<tr>
+											<td>Average CPU load of the last 20 seconds on the whole system and this Java Virtual Machine (Lucee Process).</td>
+										</tr>
+									</table>
+									<table>
+										<cfif structKeyExists(variables.chartStr, "wholeSystem")><th>Whole System</th></cfif>
+										<cfif structKeyExists(variables.chartStr, "lucee_Process")><th>Lucee Process</th></cfif>
+										<tr>
+											<cfif structKeyExists(variables.chartStr, "wholeSystem")>
+												<td>
+													<div style="min-width: 320px; height: 175px; padding:7px; border-radius: 25px; border: 2px solid ##898989;">
+														<div id="cpuSystem" style="min-width: 320px; height: 175px; margin: 0 auto;"></div>
+													</div>
+												</td>
+											</cfif>
+											<cfif structKeyExists(variables.chartStr, "lucee_Process")>
+												<td>
+													<div style="min-width: 320px; height: 175px; padding:7px; border-radius: 25px; border: 2px solid ##898989;">
+														<div id="cpuProcess" style="min-width: 320px; height: 175px; margin: 0 auto;"></div>
+													</div>
+												</td>
+											</cfif>
+										</tr>
+									</table>
+								</td>
+							</tr>
+						</table>
+
 						<div id="-lucee-metrics-data" class="#ismetricsOpen ? '' : 'collapsed'# ">Loading Metrics data...</div>
 						<cfsavecontent variable="local.sContent.tab2" trim="true">
 							<cfoutput>
@@ -1048,7 +1059,7 @@
 								<table class="chartDetails">
 									<cfset renderSectionHeadTR2( "#sectionId#", "Scopes in Memory", "", "metrics" )>
 									<tr>
-										<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
+										<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
 											<table class="maintbl">
 												<tbody>
 													<tr>
@@ -1248,7 +1259,7 @@
 					<cfset docsScontent = replace(sContent.tab3, chr(9), "", "ALL")>
 					<cfset cachePut(sFileName_Docs, docsScontent , 0.001)>
 				</cfif>
-			</fieldset><!--- #-lucee-debug !--->
+			</div></fieldset><!--- #-lucee-debug !--->
 			<cfif enableTab("Reference")>
 				<div id="ex1" class="modal">
 					<div class="modal-body">
@@ -1477,7 +1488,7 @@
 										}
 									}
 								},
-								colors: ['##B3B3B3'],
+								colors: ['##CB7661'],
 								title: {
 									text: ""
 								},
@@ -1966,4 +1977,4 @@
 	</cfscript>
 
 
-</cfcomponent>
+</cfcomponent>1
