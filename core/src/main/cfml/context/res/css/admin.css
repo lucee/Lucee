@@ -671,10 +671,11 @@ a.edit {
 }
 
 
-.admin-web .btn-search  		{ background-position: -125px -80px; }
-.admin-server .btn-search  		{ background-position: -125px -100px; }
+.admin-web .btn-search  		{ background-position: -125px -80px; margin-left: -6%; padding-bottom: 9%;}
+.admin-server .btn-search  		{ background-position: -125px -100px; margin-left: -6%; padding-bottom: 9%;}
 
-
+.tt-hint{ width: 88% ;}
+.tt-input{ width: 88% ;}
 
 .btn-mini span {
 	display:none;
