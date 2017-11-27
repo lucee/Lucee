@@ -1077,7 +1077,7 @@
 			function requestData(){
 				$.ajax({
 					type: "POST",
-					<cfoutput>url: "/lucee-server/admin/debug/chartProcess.cfc?method=sysMetric",</cfoutput>
+					<cfoutput>url: "/lucee-server/admin/debug/ChartProcess.cfc?method=sysMetric",</cfoutput>
 					success: function(data){
 						var series_heap = heapchart.series[0];
 						var series_nonheap = nonheapchart.series[0];
