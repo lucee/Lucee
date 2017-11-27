@@ -103,14 +103,12 @@ public class QueryParamConverter {
 	}
 
 	private static SQLItems<NamedSQLItem> toNamedSQLItem(String name, Object value) throws PageException {
-
 		if(Decision.isStruct(value)) {
 			Struct sct = (Struct)value;
 			// value (required if not null)
 			value = isParamNull(sct) ? "" : sct.get(KeyConstants._value);
-			return new SQLItems<NamedSQLItem>(new NamedSQLItem(name, value, Types.VARCHAR), sct);
+			return new SQLItems<NamedSQLItem>(new NamedSQLItem(name, value, Types.VARCHAR), sct); // extracting the type is not necessary, that will happen inside SQLItems
 		}
-
 		return new SQLItems<NamedSQLItem>(new NamedSQLItem(name, value, Types.VARCHAR));
 	}
 
@@ -272,10 +270,9 @@ public class QueryParamConverter {
 			T filledItem = fillSQLItem(item, sct);
 			Object oList = sct.get(KeyConstants._list, null);
 			Object value = filledItem.getValue();
-			boolean isList = Decision.isArray(value) || (oList != null && Caster.toBooleanValue(oList));
-
+			boolean isList = (Decision.isArray(value) && !(value instanceof byte[])) || (oList != null && Caster.toBooleanValue(oList));
+			
 			if(isList) {
-
 				Array values;
 
 				if(Decision.isArray(value)) {

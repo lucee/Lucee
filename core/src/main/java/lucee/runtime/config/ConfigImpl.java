@@ -3588,12 +3588,11 @@ public abstract class ConfigImpl implements Config {
 				BundleInfo[] bis;
 				try {
 					bis = rhe.getBundles();
-					
 				}
 				catch (Exception e) {
 					continue;
 				}
-				for(BundleInfo bi:bis) {
+				if(bis!=null)for(BundleInfo bi:bis) {
 					extensionBundles.put(bi.getSymbolicName()+"|"+bi.getVersionAsString(), bi.toBundleDefinition());
 				}
 			}

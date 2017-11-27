@@ -42,12 +42,14 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.ArrayPro;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Null;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDFPlus;
+import lucee.runtime.type.it.EntryArrayIterator;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.MemberUtil;
 import lucee.runtime.type.wrap.ArrayAsList;
@@ -55,7 +57,7 @@ import lucee.runtime.type.wrap.ArrayAsList;
 /**
  * implementation of the argument scope 
  */
-public final class ArgumentImpl extends ScopeSupport implements Argument {
+public final class ArgumentImpl extends ScopeSupport implements Argument,ArrayPro {
 		
 	private boolean bind;
 	private Set functionArgumentNames;
@@ -522,5 +524,10 @@ public final class ArgumentImpl extends ScopeSupport implements Argument {
 		}
 		return MemberUtil.callWithNamedValues(pc,this,methodName,args, CFTypes.TYPE_STRUCT, "struct");
 		//return MemberUtil.callWithNamedValues(pc,this,methodName,args, CFTypes.TYPE_ARRAY, "array");
+	}
+
+	@Override
+	public Iterator<Entry<Integer, Object>> entryArrayIterator() {
+		return new EntryArrayIterator(this, intKeys());
 	}
 }

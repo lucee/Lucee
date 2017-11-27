@@ -352,6 +352,7 @@ public final class ComponentUtil {
 			throw Caster.toPageException(e);
 		}
 	}
+	// FUTURE add this methid to loader, maybe make ASMProperty visible in loader
 	/*
 	 * does not include the application context javasettings 
 	 * @param pc

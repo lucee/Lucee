@@ -41,6 +41,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalConfig;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -75,10 +76,10 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	//private LinkedList<SpoolerTask> openTaskss=new LinkedList<SpoolerTask>();
 	//private LinkedList<SpoolerTask> closedTasks=new LinkedList<SpoolerTask>();
 	private SimpleThread simpleThread;
-	private SerializableObject token=new SerializableObject();
+	private final SerializableObject token=new SerializableObject();
 	private SpoolerThread thread;
 	//private ExecutionPlan[] plans;
-	private Resource persisDirectory;
+	private Resource _persisDirectory;
 	private long count=0;
 	private Log log;
 	private Config config; 
@@ -92,7 +93,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	
 	public SpoolerEngineImpl(Config config,Resource persisDirectory,String label, Log log, int maxThreads) {
 		this.config=config;
-		this.persisDirectory=persisDirectory;
+		this._persisDirectory=persisDirectory;
 
 		closedDirectory = persisDirectory.getRealResource("closed");
 		openDirectory = persisDirectory.getRealResource("open");
@@ -251,13 +252,15 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	}
 
 	private Resource getFile(SpoolerTask task) {
-		Resource dir = persisDirectory.getRealResource(task.closed()?"closed":"open");
+		Resource dir = getPersisDirectory().getRealResource(
+				task.closed()?"closed":"open");
 		dir.mkdirs();
 		return dir.getRealResource(task.getId()+".tsk");
 	}
 	
 	private String createId(SpoolerTask task) {
-		Resource dir = persisDirectory.getRealResource(task.closed()?"closed":"open");
+		Resource dir = getPersisDirectory().getRealResource(
+				task.closed()?"closed":"open");
 		dir.mkdirs();
 		
 		String id=null;
@@ -634,7 +637,13 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	}
 
 	public void setPersisDirectory(Resource persisDirectory) {
-		this.persisDirectory = persisDirectory;
+		this._persisDirectory = persisDirectory;
+	}
+	public Resource getPersisDirectory() {
+		if(_persisDirectory==null) {
+			_persisDirectory=config.getRemoteClientDirectory();
+		}
+		return _persisDirectory;
 	}
 
 	public void setLog(Log log) {
