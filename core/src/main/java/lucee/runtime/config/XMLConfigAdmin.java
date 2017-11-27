@@ -1969,6 +1969,11 @@ public final class XMLConfigAdmin {
         removeClass(orm,"engine-");
         removeClass(orm,"");// in the beginning we had no prefix
     }
+
+	private void _removeWebserviceHandler() {
+    	Element orm=_getRootElement("webservice");
+        removeClass(orm,"");
+    }
 	
 	public void removeORMEngine() throws SecurityException {
 		checkWriteAccess();
@@ -1980,16 +1985,18 @@ public final class XMLConfigAdmin {
     	_updateORMEngine(cd);
         
     }
+	
 	private void _updateORMEngine(ClassDefinition cd) throws PageException {
     	Element orm=_getRootElement("orm");
     	removeClass(orm,"");// in the beginning we had no prefix
         setClass(orm,ORMEngine.class,"engine-",cd);
     }
 	
-
-
-
-
+	private void _updateWebserviceHandler(ClassDefinition cd) throws PageException {
+    	Element orm=_getRootElement("webservice");
+    	setClass(orm,null,"",cd);
+    }
+	
 	public void updateCacheConnection(String name, ClassDefinition cd, int _default, Struct custom,boolean readOnly,boolean storage) throws PageException {
     	
 		checkWriteAccess();
@@ -5041,6 +5048,22 @@ public final class XMLConfigAdmin {
 				}
 			}
 			   
+			// update webservice
+			if(!ArrayUtil.isEmpty(rhext.getWebservices())) {
+				Iterator<Map<String, String>> itl = rhext.getWebservices().iterator();
+				Map<String, String> map;
+				while(itl.hasNext()){
+					map = itl.next();
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					
+					if(cd!=null && cd.hasClass()) {
+						_updateWebserviceHandler(cd);
+						reloadNecessary=true;
+					}
+					logger.info("extension", "update webservice handler ["+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
+				}
+			}
+			   
 			// update monitor
 			if(!ArrayUtil.isEmpty(rhext.getMonitors())) {
 				Iterator<Map<String, String>> itl = rhext.getMonitors().iterator();
@@ -5334,6 +5357,22 @@ public final class XMLConfigAdmin {
 						//reload=true;
 					}
 					logger.info("extension", "remove orm engine ["+cd+"] from extension ["+rhe.getName()+":"+rhe.getVersion()+"]");
+				}
+			}
+			
+			// remove webservice
+			if(!ArrayUtil.isEmpty(rhe.getWebservices())) {
+				Iterator<Map<String, String>> itl = rhe.getWebservices().iterator();
+				Map<String, String> map;
+				while(itl.hasNext()){
+					map = itl.next();
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					
+					if(cd!=null && cd.hasClass()) {
+						_removeWebserviceHandler();
+						//reload=true;
+					}
+					logger.info("extension", "remove webservice handler ["+cd+"] from extension ["+rhe.getName()+":"+rhe.getVersion()+"]");
 				}
 			}
 			
@@ -6673,9 +6712,7 @@ public final class XMLConfigAdmin {
 		
 		// validate class
 		try {
-			
-			
-        	Class clazz=cd.getClazz();
+			Class clazz=cd.getClazz();
         	
         	if(instanceOfClass!=null && !Reflector.isInstaneOf(clazz, instanceOfClass))
 				throw new ApplicationException("class ["+clazz.getName()+"] is not of type ["+instanceOfClass.getName()+"]");

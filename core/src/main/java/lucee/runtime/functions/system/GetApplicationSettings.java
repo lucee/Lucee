@@ -33,9 +33,11 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.listener.AppListenerUtil;
@@ -65,11 +67,11 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 public class GetApplicationSettings {
-	public static Struct call(PageContext pc) {
+	public static Struct call(PageContext pc) throws PageException {
 		return call(pc, false);
 	}
 	
-	public static Struct call(PageContext pc, boolean suppressFunctions) {
+	public static Struct call(PageContext pc, boolean suppressFunctions) throws PageException {
 		ApplicationContext ac = pc.getApplicationContext();
 		Component cfc = null;
 		if(ac instanceof ModernApplicationContext)cfc= ((ModernApplicationContext)ac).getComponent();
@@ -147,7 +149,7 @@ public class GetApplicationSettings {
 		// ws settings
 		{
 		Struct wssettings=new StructImpl();
-		wssettings.setEL(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(),WSHandler.getInstance().getTypeAsString()));
+		wssettings.setEL(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(),((ConfigImpl)ThreadLocalPageContext.getConfig(pc)).getWSHandler().getTypeAsString()));
 		sct.setEL("wssettings", wssettings);
 		}
 		

@@ -83,7 +83,7 @@ public final class CFTypes {
     /**
      * Field <code>TYPE_UNKNOW</code>
      */
-    public static final short TYPE_UNKNOW=-1;
+    public static final short TYPE_UNKNOW=-1; // do not change used in extension
     /**
      * Field <code>TYPE_UNKNOW</code>
      */

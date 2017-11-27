@@ -142,6 +142,7 @@ public class RHExtension implements Serializable {
 	private List<Map<String, String>> caches;
 	private List<Map<String, String>> cacheHandlers;
 	private List<Map<String, String>> orms;
+	private List<Map<String, String>> webservices;
 	private List<Map<String, String>> monitors;
 	private List<Map<String, String>> searchs;
 	private List<Map<String, String>> resources;
@@ -166,6 +167,7 @@ public class RHExtension implements Serializable {
 	private String searchsJson;
 
 	private String ormsJson;
+	private String webservicesJson;
 
 	private String monitorsJson;
 
@@ -442,6 +444,7 @@ public class RHExtension implements Serializable {
 		readResource(label,StringUtil.unwrap(attr.getValue("resource")),logger);
 		readSearch(label,StringUtil.unwrap(attr.getValue("search")),logger);
 		readORM(label,StringUtil.unwrap(attr.getValue("orm")),logger);	
+		readWebservice(label,StringUtil.unwrap(attr.getValue("webservice")),logger);	
 		readMonitor(label,StringUtil.unwrap(attr.getValue("monitor")),logger);
 		readCache(label,StringUtil.unwrap(attr.getValue("cache")),logger);
 		readCacheHandler(label,StringUtil.unwrap(attr.getValue("cache-handler")),logger);	
@@ -478,6 +481,7 @@ public class RHExtension implements Serializable {
 		readResource(label,el.getAttribute("resource"),logger);
 		readSearch(label,el.getAttribute("search"),logger);
 		readORM(label,el.getAttribute("orm"),logger);
+		readWebservice(label,el.getAttribute("webservice"),logger);
 		readMonitor(label,el.getAttribute("monitor"),logger);
 		readCache(label,el.getAttribute("cache"),logger);
 		readCacheHandler(label,el.getAttribute("cache-handler"),logger);
@@ -541,6 +545,16 @@ public class RHExtension implements Serializable {
 		}
 		if(orms==null) orms=new ArrayList<Map<String, String>>();
 	}
+
+	private void readWebservice(String label, String str, Log logger) {
+		if(!StringUtil.isEmpty(str,true)) {
+			webservices = toSettings(logger,str);
+			webservicesJson=str;
+		}
+		if(webservices==null) webservices=new ArrayList<Map<String, String>>();
+	}
+	
+	
 
 	private void readSearch(String label, String str, Log logger) {
 		if(!StringUtil.isEmpty(str,true)) {
@@ -737,6 +751,7 @@ public class RHExtension implements Serializable {
 		pop(el,attr,"resource",null);
 		pop(el,attr,"search",null);
 		pop(el,attr,"orm",null);
+		pop(el,attr,"webservice",null);
 		pop(el,attr,"monitor",null);
 		pop(el,attr,"cache",null);
 		pop(el,attr,"cache-handler",null);
@@ -822,6 +837,11 @@ public class RHExtension implements Serializable {
 		if(!StringUtil.isEmpty(ormsJson))
 			el.setAttribute("orm", toStringForAttr(ormsJson));
 		else el.removeAttribute("orm");
+		
+		// webservice
+		if(!StringUtil.isEmpty(webservicesJson))
+			el.setAttribute("webservice", toStringForAttr(webservicesJson));
+		else el.removeAttribute("webservice");
 		
 		// monitor
 		if(!StringUtil.isEmpty(monitorsJson))
@@ -1206,6 +1226,9 @@ public class RHExtension implements Serializable {
 
 	public List<Map<String, String>> getOrms() {
 		return orms;
+	}
+	public List<Map<String, String>> getWebservices() {
+		return webservices;
 	}
 	public List<Map<String, String>> getMonitors() {
 		return monitors;

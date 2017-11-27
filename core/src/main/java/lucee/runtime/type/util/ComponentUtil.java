@@ -50,6 +50,7 @@ import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -90,7 +91,11 @@ public final class ComponentUtil {
 	
 
 	private final static Method CONSTRUCTOR_OBJECT = Method.getMethod("void <init> ()");
-	private static final Method INVOKE = new Method("invoke",Types.OBJECT,new Type[]{Types.STRING,Types.OBJECT_ARRAY});
+	private static final Method INVOKE = new Method("invoke",
+			Types.OBJECT,
+			new Type[]{
+				Types.STRING,Types.OBJECT_ARRAY
+			});
 
 	public static final Type SERVER_WSUTIL = Type.getType(WSUtil.class); 
 	
@@ -267,7 +272,7 @@ public final class ComponentUtil {
      */
     private static Class registerTypeMapping(Class clazz) throws PageException {
     	PageContext pc = ThreadLocalPageContext.get();
-    	WSServer server=WSHandler.getInstance().getWSServer(pc);
+    	WSServer server=((ConfigImpl)ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc);
 		return registerTypeMapping(server, clazz);
     }
     /**
@@ -568,7 +573,7 @@ public final class ComponentUtil {
 
 	private static Type toType(String cfType, boolean axistype) throws PageException {
 		Class clazz=Caster.cfTypeToClass(cfType);
-		if(axistype)clazz=WSHandler.getInstance().toWSTypeClass(clazz);
+		if(axistype)clazz=((ConfigImpl)ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(clazz);
 		return Type.getType(clazz);
 		
 	}

@@ -19,6 +19,8 @@
 package lucee.runtime.functions.xml;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.net.rpc.WSHandler;
@@ -35,6 +37,6 @@ public final class GetSOAPRequestHeader implements Function {
 	}
 	
 	public static Object call(PageContext pc, String namespace, String name, boolean asXML) throws PageException {
-		return WSHandler.getInstance().getSOAPRequestHeader(pc, namespace, name, asXML);
+		return ((ConfigImpl)ThreadLocalPageContext.getConfig(pc)).getWSHandler().getSOAPRequestHeader(pc, namespace, name, asXML);
 	}
 }

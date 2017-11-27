@@ -144,6 +144,9 @@ import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
+import lucee.runtime.net.rpc.DummyWSHandler;
+import lucee.runtime.net.rpc.WSHandler;
+import lucee.runtime.net.rpc.ref.WSHandlerReflector;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.date.DateCaster;
@@ -447,6 +450,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if(LOG)SystemOut.printDate("loaded filesystem");
 		loadExtensionBundles(cs,config,doc,log);
 		if(LOG)SystemOut.printDate("loaded extension bundles");
+		loadWS(cs, config, doc,log);
+		if(LOG)SystemOut.printDate("loaded webservice");
 		loadORM(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded orm");
 		loadCacheHandler(cs, config, doc,log);
@@ -2224,7 +2229,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 				
 				
-				try {
+				 {
 					Struct custom = toStruct(getAttr(eConnection,"custom"));
 					
 					// Workaround for old EHCache class defintions
@@ -2255,18 +2260,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						SystemOut.print(config.getErrWriter(), "missing cache name");
 
 				}
-				catch (ClassException ce) {
-					log.error("Cache", ce);
-					//SystemOut.print(config.getErrWriter(), ExceptionUtil.getStacktrace(ce, true));
-				}
-				catch (BundleException be) {
-					log.error("Cache", be);
-					//SystemOut.print(config.getErrWriter(), ExceptionUtil.getStacktrace(be, true));
-				}
-				catch (IOException e) {
-					log.error("Cache", e);
-					//SystemOut.print(config.getErrWriter(), ExceptionUtil.getStacktrace(e, true));
-				}
+				
 			}
 		// }
 
@@ -3524,7 +3518,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			config.setLocale(Locale.US);
 
 	}
+	
 
+	private static void loadWS(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		Element el =getChildByName(doc.getDocumentElement(), "webservice") ;
+		ClassDefinition cd = getClassDefinition(el, "", config.getIdentification());
+
+		if(cd!=null && !StringUtil.isEmpty(cd.getClassName()))	
+			config.setWSHandlerClassDefinition(cd);
+	}
+	
 	private static void loadORM(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_ORM);
 
@@ -3551,15 +3554,15 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			else cd = cdDefault;
 		}
 
-		// load class
-		try {
+		// load class (removed because this unnecessary loads the orm engine)
+		/*try {
 			cd.getClazz();
 			// TODO check interface as well
 		}
 		catch (Exception e) {
 			log.error("ORM", e);
 			cd=cdDefault;
-		}
+		}*/
 		
 		config.setORMEngineClass(cd);
 

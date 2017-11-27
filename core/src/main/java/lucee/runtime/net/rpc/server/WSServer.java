@@ -6,11 +6,12 @@ import javax.servlet.http.HttpServletResponse;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.net.rpc.WSHandler;
 
 public interface WSServer {
-	public void doGet(HttpServletRequest request, HttpServletResponse response, Component component) throws PageException;
+	public void doGet(PageContext pc, HttpServletRequest request, HttpServletResponse response, Component component) throws PageException;
 	public void doPost(PageContext pc,HttpServletRequest req, HttpServletResponse res, Component component) throws PageException;
 	public Object invoke(String name, Object[] args) throws PageException;
-	//public void doPost(HttpServletRequest req, HttpServletResponse res, Component component) throws ServletException, IOException;
 	public void registerTypeMapping(Class clazz);
+	public WSHandler getWSHandler();
 }

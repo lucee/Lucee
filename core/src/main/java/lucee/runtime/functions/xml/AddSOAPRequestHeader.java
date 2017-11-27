@@ -19,6 +19,8 @@
 package lucee.runtime.functions.xml;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -34,7 +36,7 @@ public class AddSOAPRequestHeader implements Function {
 	public static boolean call(PageContext pc, Object client,String nameSpace, String name, Object value, boolean mustUnderstand) throws PageException {
 		if(!(client instanceof WSClient))
 			throw new FunctionException(pc, "addSOAPRequestHeader", 1, "webservice", "value must be a webservice Object generated with createObject/<cfobject>");
-		WSHandler.getInstance().addSOAPRequestHeader((WSClient) client, nameSpace, name, value, mustUnderstand);
+		((WSClient) client).addSOAPRequestHeader(nameSpace, name, value, mustUnderstand);
 		return true;
 	}
 }

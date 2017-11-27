@@ -41,6 +41,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Util;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -1321,7 +1322,7 @@ public final class Decision {
         }
         if(o instanceof Pojo) {
         	pcMaybeNull = ThreadLocalPageContext.get(pcMaybeNull);
-			return pcMaybeNull!=null && WSHandler.getInstance().toComponent(pcMaybeNull,((Pojo)o),type,null)!=null;
+			return pcMaybeNull!=null && Caster.toComponent(pcMaybeNull,((Pojo)o),type,null)!=null;
         }
 
         if(isArrayType(type) && isArray(o)){

@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 
+import lucee.print;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
@@ -114,6 +115,9 @@ import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.ntp.NtpClient;
 import lucee.runtime.net.proxy.ProxyData;
+import lucee.runtime.net.rpc.DummyWSHandler;
+import lucee.runtime.net.rpc.WSHandler;
+import lucee.runtime.net.rpc.ref.WSHandlerReflector;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
@@ -139,6 +143,7 @@ import lucee.runtime.type.scope.ClusterNotSupported;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.video.VideoExecuterNotSupported;
+import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.function.FunctionLibFactory;
@@ -3714,4 +3719,17 @@ public abstract class ConfigImpl implements Config {
 	protected abstract void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries);
 	
 	public abstract Map<String, GatewayEntry> getGatewayEntries();
+
+	private ClassDefinition wsHandlerCD;
+	protected void setWSHandlerClassDefinition(ClassDefinition cd) {
+		this.wsHandlerCD=cd;
+	}
+	protected ClassDefinition getWSHandlerClassDefinition() {
+		return wsHandlerCD;
+	}
+	public abstract WSHandler getWSHandler() throws PageException;
+	
+	boolean isEmpty(ClassDefinition cd) {
+		return cd==null || StringUtil.isEmpty(cd.getClassName());
+	}
 }
