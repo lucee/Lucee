@@ -232,12 +232,6 @@
 		</script>
 		<style>
 			<cfset this.includeFileInline( "/lucee/res/css/modernDebug.css" )>
-			input.InputSearch { margin-top: 12px;}
-			.tt-menu.tt-open{ background-color: #B3B3B3 !important; width: 14% !important; 
-			font-size:14px !important;  padding:1% 1% 1% 1% !important; left: 84% !important;}
-			/*.tt-suggestion.tt-selectable p{
-				margin : 0;
-			}*/
 		</style>
 
 		<cfset local.sFileName_Debug = createUUID() & "_debug.cfm">
