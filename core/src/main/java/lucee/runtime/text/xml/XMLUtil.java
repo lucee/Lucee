@@ -71,7 +71,6 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 
-import org.apache.xalan.processor.TransformerFactoryImpl;
 import org.ccil.cowan.tagsoup.Parser;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
@@ -216,11 +215,11 @@ public final class XMLUtil {
      */
     public static TransformerFactory getTransformerFactory() {
     	
-    	/*if(transformerFactory==null){
+    	if(transformerFactory==null){
     		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
     		transformerFactory=TransformerFactory.newInstance();
-    	}*/
-    	if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
+    	}
+    	//if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
         return transformerFactory;
     }
     
@@ -285,7 +284,7 @@ public final class XMLUtil {
 	
 	private static DocumentBuilderFactory newDocumentBuilderFactory() {
 		if(documentBuilderFactory==null) {
-			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
+			//MUSTTTT Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
 			documentBuilderFactory=DocumentBuilderFactory.newInstance();
 			//documentBuilderFactory=new DocumentBuilderFactoryImpl();
 		}
@@ -1202,10 +1201,7 @@ public final class XMLUtil {
 		return toInputSource(pc, res);
 	}
 	
-	public static Struct validate(InputSource xml, InputSource schema, String strSchema) throws XMLException {
-    	return new XMLValidator(schema,strSchema).validate(xml);
-    }
-
+	
 	/**
 	 * adds a child at the first place 
 	 * @param parent
@@ -1301,5 +1297,10 @@ public final class XMLUtil {
 	public static InputSource toInputSource(String xml) throws IOException {
 		return new InputSource(new StringReader(xml.trim()));
 	}
+	
+	public static Struct validate(InputSource xml, InputSource schema, String strSchema) throws XMLException {
+    	return new XMLValidator(schema,strSchema).validate(xml);
+    }
+
 
 }

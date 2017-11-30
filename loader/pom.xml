@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.3.0.23-ALPHA</version>
+  <version>5.3.0.24-ALPHA</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -449,6 +449,7 @@
 		<version>1.2.17</version>
     <scope>provided</scope>
   </dependency>
+  <!--
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>xalan</artifactId>
@@ -461,18 +462,21 @@
   	<version>2.7.2</version>
     <scope>provided</scope>
   </dependency>
+  -->
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>portlet</artifactId>
   	<version>1.0.0</version>
-    <scope>provided</scope>
+    <scope>provided</scope>  
   </dependency>
+  <!--
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>xml-xerces</artifactId>
   	<version>2.11.0</version>
     <scope>provided</scope>
   </dependency>
+  -->
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>xml-apis</artifactId>
@@ -503,12 +507,14 @@
   	<version>2.1.0.1</version>
     <scope>provided</scope>
   </dependency>
-  <dependency>
+  <!-- used by esapi for parsing in ConfigurationParser, so it is optional (dynamic import) and we do not use it
+    <dependency>
 	  <groupId>xom</groupId>
 	  <artifactId>xom</artifactId>
 	  <version>1.2.5</version>
     <scope>provided</scope>
   </dependency>
+  -->
   <dependency>
     <groupId>fusiondebug.api</groupId>
     <artifactId>server</artifactId>

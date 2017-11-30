@@ -56,8 +56,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Struct;
 
-import org.apache.xalan.processor.TransformerFactoryImpl;
-import org.apache.xerces.jaxp.DocumentBuilderFactoryImpl;
 import org.ccil.cowan.tagsoup.Parser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -70,6 +68,9 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
+
+
+// FUTURE all this needs to come from core
 
 /**
  * 
@@ -186,7 +187,10 @@ public final class XMLUtilImpl implements XMLUtil {
     
     @Override
     public TransformerFactory getTransformerFactory() {
-    	if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
+    	if(transformerFactory==null){
+    		transformerFactory=TransformerFactory.newInstance();
+    	}
+    	//if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
         return transformerFactory;
     }
     
@@ -254,12 +258,7 @@ public final class XMLUtilImpl implements XMLUtil {
     }
 	
 	private DocumentBuilderFactory newDocumentBuilderFactory() {
-		try{
-    		return new DocumentBuilderFactoryImpl();
-    	}
-    	catch(Throwable t) {
-    		return DocumentBuilderFactory.newInstance();
-    	}
+		return DocumentBuilderFactory.newInstance();
 	}
 
 	private static void setAttributeEL(DocumentBuilderFactory factory,String name, Object value) {
