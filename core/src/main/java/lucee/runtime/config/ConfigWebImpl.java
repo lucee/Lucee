@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspWriter;
 
+import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.SystemUtil;
@@ -55,6 +56,7 @@ import lucee.runtime.cache.tag.CacheHandlerCollection;
 import lucee.runtime.cache.tag.CacheHandlerCollections;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.compiler.CFMLCompilerImpl;
+import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.debug.DebuggerPool;
 import lucee.runtime.engine.ThreadQueue;
 import lucee.runtime.exp.ApplicationException;
@@ -74,6 +76,9 @@ import lucee.runtime.monitor.RequestMonitor;
 import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.net.amf.AMFEngineDummy;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.rpc.DummyWSHandler;
+import lucee.runtime.net.rpc.WSHandler;
+import lucee.runtime.net.rpc.ref.WSHandlerReflector;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.search.SearchEngine;
@@ -635,5 +640,23 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		@Override
 		public List<ExtensionDefintion> loadLocalExtensions() {
 			return configServer.loadLocalExtensions();
+		}
+		
+		private WSHandler wsHandler;
+		public WSHandler getWSHandler() throws PageException {
+			if(wsHandler==null) {
+				ClassDefinition cd = getWSHandlerClassDefinition();
+				if(isEmpty(cd)) cd=configServer.getWSHandlerClassDefinition();
+				try{
+					if(isEmpty(cd)) return new DummyWSHandler();
+					Object obj = cd.getClazz().newInstance();
+					if(obj instanceof WSHandler) wsHandler=(WSHandler) obj;
+					else wsHandler=new WSHandlerReflector(obj);
+				}
+				catch(Exception e) {
+					throw Caster.toPageException(e);
+				}
+			}
+			return wsHandler;
 		}
 }

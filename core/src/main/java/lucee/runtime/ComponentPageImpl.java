@@ -40,6 +40,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.component.StaticStruct;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.converter.BinaryConverter;
 import lucee.runtime.converter.ConverterException;
@@ -51,6 +52,7 @@ import lucee.runtime.converter.XMLConverter;
 import lucee.runtime.converter.bin.ImageConverter;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.DumpWriter;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -1114,18 +1116,16 @@ public abstract class ComponentPageImpl extends ComponentPage implements
 		}
 		// create a wsdl file
 		else {
-			WSHandler
-					.getInstance()
+			((ConfigImpl)ThreadLocalPageContext.getConfig(pc)).getWSHandler()
 					.getWSServer(pc)
-					.doGet(pc.getHttpServletRequest(),
+					.doGet(pc,pc.getHttpServletRequest(),
 							pc.getHttpServletResponse(), component);
 		}
 	}
 
 	private void callWebservice(PageContext pc, Component component)
 			throws IOException, ServletException, PageException {
-		WSHandler
-				.getInstance()
+		((ConfigImpl)ThreadLocalPageContext.getConfig(pc)).getWSHandler()
 				.getWSServer(pc)
 				.doPost(pc, pc.getHttpServletRequest(),
 						pc.getHttpServletResponse(), component);

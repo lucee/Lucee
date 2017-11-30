@@ -22,6 +22,7 @@ import java.util.Map;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.system.GetApplicationSettings;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.type.Collection;
@@ -93,8 +94,9 @@ public final class ApplicationImpl extends ScopeSupport implements Application,S
 	/**
 	 * undocumented Feature in ACF
 	 * @return
+	 * @throws PageException 
 	 */
-	public Map getApplicationSettings(){
+	public Map getApplicationSettings() throws PageException{
 		return GetApplicationSettings.call(ThreadLocalPageContext.get());
 	}
 

@@ -45,6 +45,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.runtime.Component;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -393,8 +394,8 @@ public final class Reflector {
 			try{
 				Pojo pojo=(Pojo) trgClass.newInstance();
 				if(sct instanceof Component)
-					return WSHandler.getInstance().toPojo(pojo, (Component)sct, new HashSet<Object>());
-				return WSHandler.getInstance().toPojo(pojo, sct, new HashSet<Object>());
+					return Caster.toPojo(pojo, (Component)sct, new HashSet<Object>());
+				return Caster.toPojo(pojo, sct, new HashSet<Object>());
 			}
 			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}

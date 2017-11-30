@@ -19,6 +19,8 @@
 package lucee.runtime.functions.xml;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -38,6 +40,6 @@ public final class GetSOAPResponseHeader implements Function {
 	public static Object call(PageContext pc, Object webservice, String namespace, String name, boolean asXML) throws PageException {
 		if(!(webservice instanceof WSClient))
 			throw new FunctionException(pc, "getSOAPResponse", 1, "webservice", "value must be a webservice Object generated with createObject/<cfobject>");
-		return WSHandler.getInstance().getSOAPResponseHeader(pc, (WSClient) webservice, namespace, name, asXML);
+		return ((WSClient) webservice).getSOAPResponseHeader(pc, namespace, name, asXML);
 	}
 }

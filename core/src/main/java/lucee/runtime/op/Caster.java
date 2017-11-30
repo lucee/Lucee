@@ -66,15 +66,21 @@ import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
 import lucee.runtime.Component;
+import lucee.runtime.ComponentScope;
+import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.coder.CoderException;
 import lucee.runtime.component.Member;
+import lucee.runtime.component.Property;
+import lucee.runtime.component.PropertyImpl;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -89,6 +95,7 @@ import lucee.runtime.functions.file.FileStreamWrapper;
 import lucee.runtime.functions.other.ToBinary;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.img.Image;
+import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.type.Pojo;
@@ -445,7 +452,6 @@ public final class Caster {
         else if(o instanceof Date) return DateTimeUtil.getInstance().toDoubleValue(((Date)o).getTime());
         else if(o instanceof Calendar) return DateTimeUtil.getInstance().toDoubleValue(((Calendar)o).getTimeInMillis());
         else if(o instanceof Character) return (double)(((Character)o).charValue());
-        
         throw new CasterException(o,"number");
     }
 
@@ -3754,7 +3760,7 @@ public final class Caster {
             throw new ExpressionException("can't cast Component of Type ["+comp.getAbsName()+"] to ["+strType+"]");
         }
         if(o instanceof Pojo) {
-        	Component cfc = WSHandler.getInstance().toComponent(pc,((Pojo)o),strType,null);
+        	Component cfc = toComponent(pc,((Pojo)o),strType,null);
         	if(cfc!=null) return cfc;
         	throw new ExpressionException("can't cast Pojo of Type ["+o.getClass().getName()+"] to ["+strType+"]");
         }
@@ -3785,6 +3791,37 @@ public final class Caster {
 	    }
         throw new CasterException(o,strType);
     }
+    
+    public static Component toComponent(PageContext pc, Pojo pojo, String compPath , Component defaultValue) {
+		try {
+			Component cfc = pc.loadComponent(compPath);
+			Property[] props = cfc.getProperties(false, true, false, false);
+			lucee.runtime.net.rpc.PojoIterator it=new lucee.runtime.net.rpc.PojoIterator(pojo);
+			// only when the same amount of properties
+			if(props.length==it.size()) {
+				Map<Collection.Key, Property> propMap = toMap(props);
+				Property p;
+				lucee.commons.lang.Pair<Collection.Key,Object> pair;
+				ComponentScope scope = cfc.getComponentScope();
+				while(it.hasNext()){
+					pair=it.next();
+					p=propMap.get(pair.getName());
+					if(p==null) return defaultValue;
+					Object val = null;
+					try {
+						val = Caster.castTo(pc, p.getType(), pair.getValue(), false);
+					} catch (PageException e) { 	}
+					
+					// store in variables and this scope
+					scope.setEL(pair.getName(), val);
+					cfc.setEL(pair.getName(), val);
+				}
+				return cfc;
+			}
+		}
+		catch (PageException e) {}
+		return defaultValue;
+	}
     
     /**
      * cast a value to a value defined by type argument
@@ -4581,6 +4618,122 @@ public final class Caster {
 	}
 
 
+	public static Pojo toPojo(Pojo pojo, Component comp, Set<Object> done) throws PageException {
+    	PageContext pc = ThreadLocalPageContext.get(); 
+	    try {
+	    	return _toPojo(pc,pojo, comp,done);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
 	
+	private static Pojo _toPojo(PageContext pc, Pojo pojo, Component comp, Set<Object> done) throws PageException {//print.ds();System.exit(0);
+    	comp=ComponentSpecificAccess.toComponentSpecificAccess(Component.ACCESS_PRIVATE,comp);
+		ComponentScope scope = comp.getComponentScope();
+    	
+		// create Pojo
+		if(pojo==null) {
+	    	try {
+				pojo = (Pojo) ClassUtil.loadInstance(ComponentUtil.getComponentPropertiesClass(pc,comp));
+			} catch (ClassException e) {
+				throw Caster.toPageException(e);
+			}
+		}
+    	
+    	// initialize Pojo
+		Property[] props=comp.getProperties(false, true, false, false);
+		_initPojo(pc,pojo,props,scope,comp,done);
+
+    	return pojo;
+    }
 	
+	public static Pojo toPojo(Pojo pojo, Struct sct, Set<Object> done) throws PageException {
+    	PageContext pc = ThreadLocalPageContext.get(); 
+	    try {
+	    	return _toPojo(pc,pojo, sct,done);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	private static Pojo _toPojo(PageContext pc, Pojo pojo, Struct sct, Set<Object> done) throws PageException {//print.ds();System.exit(0);
+		if(pojo==null) {
+			try {
+				PhysicalClassLoader cl=(PhysicalClassLoader) pc.getConfig().getRPCClassLoader(false);
+	    		pojo = (Pojo) ClassUtil.loadInstance(ComponentUtil.getStructPropertiesClass(pc,sct,cl));
+			}
+			catch (ClassException e) {
+				throw Caster.toPageException(e);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
+		}
+    	
+    	// initialize
+		List<Property> props=new ArrayList<Property>();
+		Iterator<Entry<Key, Object>> it = sct.entryIterator();
+		Entry<Key, Object> e;
+		PropertyImpl p;
+		while(it.hasNext()){
+			e = it.next();
+			p=new PropertyImpl();
+			p.setAccess(Component.ACCESS_PUBLIC);
+			p.setName(e.getKey().getString());
+			p.setType(e.getValue()==null?"any":Caster.toTypeName(e.getValue())); 
+			props.add(p);
+		}
+		
+		_initPojo(pc,pojo,props.toArray(new Property[props.size()]),sct,null,done);
+
+    	return pojo;
+    }
+	
+	private static void _initPojo(PageContext pc, Pojo pojo, Property[] props, Struct sct, Component comp, Set<Object> done) throws PageException {
+    	Property p;
+    	Object v;
+    	Collection.Key k;
+		CFMLExpressionInterpreter interpreter = new CFMLExpressionInterpreter(false);
+		
+		
+		
+    	for(int i=0;i<props.length;i++){
+    		p=props[i];
+    		k=Caster.toKey(p.getName());
+    	// value
+    		v=sct.get(k,null);
+    		if(v==null && comp!=null)v=comp.get(k, null);
+    		
+    	// default
+    		
+    		if(v!=null)v=Caster.castTo(pc, p.getType(), v, false);
+    		else{
+	    		if(!StringUtil.isEmpty(p.getDefault())){
+	    			try {
+	    				v=Caster.castTo(pc, p.getType(), p.getDefault(), false);
+	    				
+	    			}
+	        		catch(PageException pe) {
+	        			try {
+	        				v=interpreter.interpret(pc, p.getDefault());
+	        				v=Caster.castTo(pc, p.getType(), v, false);
+	        			}
+	            		catch(PageException pe2) {
+	        				throw new ExpressionException("can not use default value ["+p.getDefault()+"] for property ["+p.getName()+"] with type ["+p.getType()+"]");
+	            		}
+	        		}
+	    		}
+    		}
+    		
+    	// set or throw
+    		if(v==null) {
+    			if(p.isRequired())throw new ExpressionException("required property ["+p.getName()+"] is not defined");
+    		}
+    		else {
+    			Reflector.callSetter(pojo, p.getName().toLowerCase(), v);	
+    		}
+    	}
+	}
 }

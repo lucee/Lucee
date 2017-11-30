@@ -20,8 +20,6 @@ package coldfusion.server;
 
 import java.util.Map;
 
-import javax.xml.rpc.Stub;
-
 
 public interface XmlRpcService extends Service {
 
@@ -39,7 +37,7 @@ public interface XmlRpcService extends Service {
 			String arg2, String arg3, int arg4, String arg5, String arg6,
 			String arg7, String arg8);
 
-	public abstract Stub getWebService(String arg0, String arg1, String arg2,
+	public abstract Object getWebService(String arg0, String arg1, String arg2,
 			int arg3, String arg4, String arg5, String arg6, String arg7,
 			String arg8);
 

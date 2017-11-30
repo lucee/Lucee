@@ -34,6 +34,7 @@ import java.util.Map;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 
+import lucee.print;
 import lucee.commons.collection.LinkedHashMapMaxSize;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Hash;
@@ -68,6 +69,9 @@ import lucee.runtime.monitor.IntervallMonitor;
 import lucee.runtime.monitor.RequestMonitor;
 import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.rpc.DummyWSHandler;
+import lucee.runtime.net.rpc.WSHandler;
+import lucee.runtime.net.rpc.ref.WSHandlerReflector;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
@@ -927,5 +931,23 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	
 	public Map<String, GatewayEntry> getGatewayEntries() {
 		return gatewayEntries;
+	}
+
+	private WSHandler wsHandler;
+	@Override // that method normally should not be used, maybe in rthe future
+	public WSHandler getWSHandler() throws PageException {
+		if(wsHandler==null) {
+			ClassDefinition cd = getWSHandlerClassDefinition();
+			try{
+				if(isEmpty(cd)) return new DummyWSHandler();
+				Object obj = cd.getClazz().newInstance();
+				if(obj instanceof WSHandler) wsHandler=(WSHandler) obj;
+				else wsHandler=new WSHandlerReflector(obj);
+			}
+			catch(Exception e) {
+				throw Caster.toPageException(e);
+			}
+		}
+		return wsHandler;
 	}
 }

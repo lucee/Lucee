@@ -3,6 +3,7 @@ package lucee.runtime.spooler;
 import javax.servlet.http.Cookie;
 
 import lucee.commons.io.DevNullOutputStream;
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
@@ -21,9 +22,11 @@ import lucee.runtime.type.util.KeyConstants;
 public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 
 	private final SpoolerTask task;
+	private TemplateLine currTemplate;
 	
-	public CFMLSpoolerTaskListener(SpoolerTask task) {
+	public CFMLSpoolerTaskListener(TemplateLine currTemplate, SpoolerTask task) {
 		this.task=task;
+		this.currTemplate=currTemplate;
 	}
 
 	@Override
@@ -58,6 +61,11 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 			args.set("passed", e==null);
 			if(e!=null) args.set("exception", new CatchBlockImpl(Caster.toPageException(e)));
 
+			Struct curr=new StructImpl();
+			args.set("caller", curr);
+			curr.set("template", currTemplate.template);
+			curr.set("line", new Double(currTemplate.line));
+			
 			Struct adv=new StructImpl();
 			args.set("advanced", adv);
 			adv.set("exceptions", task.getExceptions());

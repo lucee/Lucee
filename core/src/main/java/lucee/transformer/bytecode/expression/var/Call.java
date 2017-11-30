@@ -62,7 +62,7 @@ public class Call extends ExpressionBase implements Func {
 		Iterator<Argument> it = args.iterator();
 		boolean named=it.next() instanceof NamedArgument;
 		while(it.hasNext()) {
-			if( named != (it.next()  instanceof NamedArgument) );
+			if( named != (it.next()  instanceof NamedArgument) )
 				throw new TransformerException("You cannot mix named and unnamed arguments in function calls",getEnd());
 		}
 		

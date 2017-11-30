@@ -22,6 +22,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
+import lucee.runtime.functions.closure.ClosureFunc;
 import lucee.runtime.functions.closure.Reduce;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.UDF;
@@ -52,7 +53,7 @@ public final class ListReduce extends BIF {
 			, boolean includeEmptyFields, boolean multiCharacterDelimiter) throws PageException {
 		StringListData data=new StringListData(list,delimiter,includeEmptyFields,multiCharacterDelimiter);
 		
-		return Reduce._call(pc, data, udf,initValue);
+		return Reduce._call(pc, data, udf,initValue,ClosureFunc.TYPE_UNDEFINED);
 	}
 
 	@Override

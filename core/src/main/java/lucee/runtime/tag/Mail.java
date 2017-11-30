@@ -176,7 +176,8 @@ public final class Mail extends BodyTagImpl {
 	 * @throws PageException 
 	**/
 	public void setFrom(Object from) throws PageException	{
-		if(StringUtil.isEmpty(from)) return;
+		if(StringUtil.isEmpty(from,true)) 
+			throw new ApplicationException("attribute [from] cannot be empty");
 		try {
 			smtp.setFrom(from);
 		} catch (Exception e) {

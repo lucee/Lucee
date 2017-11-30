@@ -92,7 +92,7 @@ component {
 	// Private functions
 	function toPackage(required string root,required string path) localmode=true {
 		path=replace(path,root,'');// TODO make this better
-		path=listTrim(path,'\/');
+		path=ListCompact(path,'\/');
 		path=replace(path,'\','.','all');
 		path=replace(path,'/','.','all');
 		return path;

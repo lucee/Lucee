@@ -41,6 +41,7 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.ArrayPro;
 import lucee.runtime.type.Iteratorable;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
@@ -53,22 +54,22 @@ import lucee.runtime.type.scope.ArgumentIntKey;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StringListData;
 
-public class Map extends BIF {
+public class Map extends BIF implements ClosureFunc {
 
 	private static final long serialVersionUID = -1435100019820996876L;
 
 
 	public static Object call(PageContext pc , Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf, false,20,null);
+		return _call(pc, obj, udf, false,20,null,TYPE_UNDEFINED);
 	}
 	public static Object call(PageContext pc , Object obj, UDF udf, boolean parallel) throws PageException {
-		return _call(pc, obj, udf, parallel, 20,null);
+		return _call(pc, obj, udf, parallel, 20,null,TYPE_UNDEFINED);
 	}
 	public static Object call(PageContext pc , Object obj, UDF udf, boolean parallel, double maxThreads) throws PageException {
-		return _call(pc, obj, udf, parallel, (int)maxThreads,null);
+		return _call(pc, obj, udf, parallel, (int)maxThreads,null,TYPE_UNDEFINED);
 	}
 	
-	public static Collection _call(PageContext pc , Object obj, UDF udf, boolean parallel, int maxThreads, Query resQry) throws PageException { 
+	public static Collection _call(PageContext pc , Object obj, UDF udf, boolean parallel, int maxThreads, Query resQry, short type) throws PageException { 
 		
 		ExecutorService execute=null;
 		List<Future<Data<Object>>> futures=null;
@@ -78,9 +79,22 @@ public class Map extends BIF {
 		}
 		
 		Collection coll;
-		
+
+		// !!!! Don't combine the first 3 ifs with the ifs below, type overrules instanceof check
 		// Array
-		if(obj instanceof Array) {
+		if(type==TYPE_ARRAY) {
+			coll=invoke(pc, (Array)obj, udf,execute,futures);
+		}
+		// Query
+		else if(type==TYPE_QUERY) {
+			coll=invoke(pc, (Query)obj, udf,execute,futures,resQry);
+		}
+		// Struct
+		else if(type==TYPE_STRUCT) {
+			coll=invoke(pc, (Struct)obj, udf,execute,futures);
+		}
+		// Array
+		else if(obj instanceof Array) {
 			coll=invoke(pc, (Array)obj, udf,execute,futures);
 		}
 		// Query
@@ -127,28 +141,28 @@ public class Map extends BIF {
 		Array arr = ListUtil.listToArray(sld.list, sld.delimiter,sld.includeEmptyFieldsx,sld.multiCharacterDelimiter);
 		
 		Array rtn=new ArrayImpl();
-		Iterator<Entry<Key, Object>> it = arr.entryIterator();
-		Entry<Key, Object> e;
+		Iterator it = (arr instanceof ArrayPro?((ArrayPro)arr).entryArrayIterator(): arr.entryIterator());
+		Entry e;
 		boolean async=es!=null;
 		Object res;
 		while(it.hasNext()){
-			e = it.next();
-			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey().getString()),sld.list,sld.delimiter},e.getKey(), es, futures);
-			if(!async) rtn.set(e.getKey(),res);
+			e = (Entry)it.next();
+			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey()),sld.list,sld.delimiter},e.getKey(), es, futures);
+			if(!async) rtn.set(Caster.toString(e.getKey()),res);
 		}
 		return rtn;
 	}
 
 	private static Collection invoke(PageContext pc, Array arr, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws CasterException, PageException {
 		Array rtn=new ArrayImpl();
-		Iterator<Entry<Key, Object>> it = arr.entryIterator();
-		Entry<Key, Object> e;
+		Iterator it =(arr instanceof ArrayPro?((ArrayPro)arr).entryArrayIterator(): arr.entryIterator());
+		Entry e;
 		boolean async=es!=null;
 		Object res;
 		while(it.hasNext()){
-			e = it.next();
-			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey().getString()),arr},e.getKey(), es, futures);
-			if(!async) rtn.set(e.getKey(),res);
+			e =(Entry)it.next();
+			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey()),arr},e.getKey(), es, futures);
+			if(!async) rtn.set(Caster.toString(e.getKey()),res);
 		}
 		return rtn;
 	}

@@ -23,7 +23,8 @@
 		<cfargument name="extends" required="false" type="boolean" default="false" />
 		<cfset var result = {}/>
 		<cfset var access = "" />
-		<cfset var meta = getComponentmetadata(arguments.cfc)/>		
+		<cfset local.cfc = replaceNoCase((listDeleteAt(CGI.SCRIPT_NAME, listFindNoCase(CGI.SCRIPT_NAME, listLast(CGI.SCRIPT_NAME, "/"), "/"), "/") & "/" & arguments.cfc), "/", ".", "All")>
+		<cfset var meta = getComponentmetadata(local.cfc)/>
 		<cfset result.functions = createObject('java','java.util.ArrayList').init() />
 		<cfif structKeyExists(meta,'FUNCTIONS')>
 			<cfset var methods = filterFunction(meta.functions,arguments.methods) />
