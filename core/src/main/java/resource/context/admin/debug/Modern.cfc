@@ -1,4 +1,4 @@
-﻿<cfcomponent extends="Debug" output="no">
+<cfcomponent extends="Debug" output="no">
 	<cfscript>
 		fields=array(
 			group("Execution Time","Execution times for templates, includes, modules, custom tags, and component method calls. Template execution times over this minimum highlight time appear in red.",3)
@@ -17,6 +17,8 @@
 			,field("AjaxCall","ajaxCall","Enabled",false,"Enable to load the tabs via ajax call","checkbox","Enabled")
 			,field("Tabs","ajaxTabs","Debug,Metrics,Reference",false,"Select the tab to show on debugOutput","checkbox","Debug,Metrics,Reference")
 			,field("Charts","metrics_charts","heapchart,non_heapChart,wholeSystem,lucee_Process",false,"Select the chart to show on metrics Tab. It will show only if the metrics tabs is enabled","checkbox","Heapchart,Non_HeapChart,WholeSystem,Lucee_Process")
+			,field("Number of charts in a line","no_of_charts","2",true,{_appendix:"Charts",_bottom:"Enter a count(1 to 4), Number of charts should be displayed in a row."},"text50","1,2,3,4")
+			,field("Sort Order charts ","sort_charts","1,2,3,4",false,{_bottom:"Enter the numbers of sort_order (1 to 4), For Example:2431 "},"text50")
 		);
 
 		string function getLabel(){
@@ -111,19 +113,32 @@
 			<cfset arguments.custom.colorHighlight      = arguments.custom.keyExists('colorHighlight')>
 			<cfset arguments.custom.displayPercentages  = arguments.custom.keyExists('displayPercentages')>
 			<cfset arguments.custom.sessionSize         = (arguments.custom.sessionSize ?: 100) * 1024>
+			<cfset arguments.custom.no_of_charts         = (arguments.custom.no_of_charts ?: 2)>
+			<!--- <cfset arguments.custom.sort_charts 		= (arguments.custom.sort_charts ?: '1,2,3,4')> --->
 			<cfset variables.tabsPresent = arguments.custom.ajaxTabs ?: "">
-			<cfset variables.chartStr = {}>
-			<cfloop list="#arguments.custom.metrics_Charts#" index="i">
-				<cfif i EQ "Heapchart">
-					<cfset variables.chartStr[i] = "heap">
-				<cfelseif i EQ "Non_HeapChart">
-					<cfset variables.chartStr[i] = "nonheap">
-				<cfelseif i EQ "WholeSystem">
-					<cfset variables.chartStr[i] = "cpuSystem">
-				<cfelseif i EQ "Lucee_Process">
-					<cfset variables.chartStr[i] = "cpuProcess">
+			<cfset variables.chartsAvl = arguments.custom.metrics_charts ?: "">
+
+			<cfset variables.chartStr = structNew("ordered")>
+			<cfloop list="#arguments.custom.sort_charts#" index="i">
+				<cfif i EQ "1">
+					<cfif listFindNoCase("#variables.chartsAvl#", "Heapchart") GT 0 >
+						<cfset variables.chartStr.heapchart = "heap">
+					</cfif>
+				<cfelseif i EQ "2">
+					<cfif listFindNoCase("#variables.chartsAvl#", "Non_HeapChart") GT 0 >
+						<cfset variables.chartStr.non_heapChart = "nonheap">
+					</cfif>
+				<cfelseif i EQ "3">
+					<cfif listFindNoCase("#variables.chartsAvl#", "WholeSystem") GT 0 >
+						<cfset variables.chartStr.wholeSystem = "cpuSystem">
+					</cfif>
+				<cfelseif i EQ "4">
+					<cfif listFindNoCase("#variables.chartsAvl#", "Lucee_Process") GT 0 >
+						<cfset variables.chartStr.lucee_process = "cpuProcess">
+					</cfif>
 				</cfif>
 			</cfloop>
+
 			<cfset variables.tbsStr = {}>
 			<cfloop list="#arguments.custom.ajaxTabs#" index="i">
 				<cfif i EQ "Debug">
@@ -217,6 +232,12 @@
 		</script>
 		<style>
 			<cfset this.includeFileInline( "/lucee/res/css/modernDebug.css" )>
+			input.InputSearch { margin-top: 12px;}
+			.tt-menu.tt-open{ background-color: #B3B3B3 !important; width: 14% !important; 
+			font-size:14px !important;  padding:1% 1% 1% 1% !important; left: 84% !important;}
+			/*.tt-suggestion.tt-selectable p{
+				margin : 0;
+			}*/
 		</style>
 
 		<cfset local.sFileName_Debug = createUUID() & "_debug.cfm">
@@ -902,7 +923,6 @@
 									</tr>
 								</table>
 							</cfif>
-							
 							<!--- Dumps --->
 							<cfif dumps.recordcount>
 
@@ -911,7 +931,6 @@
 
 								<div class="section-title">Dumps</div>
 
-								
 								<table>
 
 									<cfset renderSectionHeadTR( sectionId, "#dumps.recordcount# Dump#( dumps.recordcount GT 1 ) ? 's' : ''#" )>
@@ -937,7 +956,7 @@
 									</tr>
 								</table>
 							</cfif>
-							
+
 							<!--- Expression --->
 							<cfif isEnabled( arguments.custom, "expression" )>
 								<cfset sectionId = "Expression">
@@ -982,73 +1001,18 @@
 					<cfset debuAllInfo = replace(sContent.tab1, chr(9), "", "ALL")>
 					<cfset cachePut(sFileName_Debug, debuAllInfo, 0.001)>
 				</cfif>
+				
+				<cfset no_of_charts = arguments.custom.no_of_charts>
 				<cfif enableTab("metrics")>
+					<cfset chartCount = 0>
 					<div id="-lucee-metrics-ALL" class="#isMetricAllOpen ? '' : 'collapsed'#">
 						<div class="section-title" style="padding-bottom:5px; padding-top:23px;">System Metrics</div>
-						<table>
-							<tr>
-								<td class="metricsCharts" >
-									<table>
-										<span class="titleStyle">Memory Chart</span>
-										<tr>
-											<td>Memory Used By java</td>
-										</tr>
-									</table>
-									<table>
-										<cfif structKeyExists(variables.chartStr, "heapchart")><th>Heap Chart</th></cfif>
-										<cfif structKeyExists(variables.chartStr, "non_heapChart")><th>Non Heap Chart</th></cfif>
-										<tr>
-											<cfif structKeyExists(variables.chartStr, "heapchart")>
-												<td>
-													<div style="min-width: 320px; height: 175px; padding:7px; border-radius: 25px; border: 2px solid ##898989;">
-														<div id="heap" style="min-width: 320px; height: 175px; margin: 0 auto;"></div>
-													</div>
-												</td>
-											</cfif>
-											<cfif structKeyExists(variables.chartStr, "non_heapChart")>
-												<td>
-													<div style="min-width: 320px; height: 175px; padding:7px; border-radius: 25px; border: 2px solid ##898989;">
-														<div id="nonheap" style="min-width: 320px; height: 175px; margin: 0 auto;"></div>
-													</div>
-												</td>
-											</cfif>
-										</tr>
-									</table>
-								</td>
-							</tr>
-						</table>
-						<table>
-							<tr>
-								<td class="metricsCharts" >
-									<table>
-										<span class="titleStyle">CPU Chart</span>
-										<tr>
-											<td>Average CPU load of the last 20 seconds on the whole system and this Java Virtual Machine (Lucee Process).</td>
-										</tr>
-									</table>
-									<table>
-										<cfif structKeyExists(variables.chartStr, "wholeSystem")><th>Whole System</th></cfif>
-										<cfif structKeyExists(variables.chartStr, "lucee_Process")><th>Lucee Process</th></cfif>
-										<tr>
-											<cfif structKeyExists(variables.chartStr, "wholeSystem")>
-												<td>
-													<div style="min-width: 320px; height: 175px; padding:7px; border-radius: 25px; border: 2px solid ##898989;">
-														<div id="cpuSystem" style="min-width: 320px; height: 175px; margin: 0 auto;"></div>
-													</div>
-												</td>
-											</cfif>
-											<cfif structKeyExists(variables.chartStr, "lucee_Process")>
-												<td>
-													<div style="min-width: 320px; height: 175px; padding:7px; border-radius: 25px; border: 2px solid ##898989;">
-														<div id="cpuProcess" style="min-width: 320px; height: 175px; margin: 0 auto;"></div>
-													</div>
-												</td>
-											</cfif>
-										</tr>
-									</table>
-								</td>
-							</tr>
-						</table>
+						<div class="titleStyle">Memory Chart & CPU Chart</div>
+						<div class="metricsCharts">Memory Used By java & Average CPU load of the last 20 seconds on the whole system and this Java Virtual Machine (Lucee Process).</div>
+						<div class="Chart_container">
+							<cfset chartStruct = variables.chartStr> 
+							<cfset loadCharts("#chartStruct#","#no_of_charts#")>
+						</div>
 
 						<div id="-lucee-metrics-data" class="#ismetricsOpen ? '' : 'collapsed'# ">Loading Metrics data...</div>
 						<cfsavecontent variable="local.sContent.tab2" trim="true">
@@ -1059,7 +1023,7 @@
 								<table class="chartDetails">
 									<cfset renderSectionHeadTR2( "#sectionId#", "Scopes in Memory", "", "metrics" )>
 									<tr>
-										<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+										<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
 											<table class="maintbl">
 												<tbody>
 													<tr>
@@ -1191,9 +1155,7 @@
 						<cfoutput>
 							<cfset sectionId = "docs_Info">
 							<cfset isOpen = this.isSectionOpen( sectionId, "docs" )>
-							<div class="container">
-								<input class="InputSearch menu-search-focus" id="lucee-docs-search-input" placeholder="Search" type="search">
-							</div>
+							<input class="InputSearch menu-search-focus" id="lucee-docs-search-input" placeholder="Search" type="search">
 							<div class="section-title" style="padding-bottom:4px;">Reference</div>
 							<table>
 								<tr>
@@ -1262,6 +1224,7 @@
 			</div></fieldset><!--- #-lucee-debug !--->
 			<cfif enableTab("Reference")>
 				<div id="ex1" class="modal">
+					<!--- <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button> --->
 					<div class="modal-body">
 					</div>
 				</div>
@@ -1275,6 +1238,7 @@
 				<cfset this.includeFileInline( "/lucee/res/js/jquery.modal.min.js" )>
 				var __LUCEE = __LUCEE || {};
 				var oLastObj = false;
+				sectionArray = [];
 
 				__LUCEE.debug = {
 
@@ -1420,30 +1384,33 @@
 
 				function clickAjax(section){
 					var lcl = #serializeJson(local)#;
-					$.each(lcl, function(i, data) {
-						if(i=="SFILENAME_"+section.toUpperCase()){
-							var fileName =  lcl[i];
-							var oAjax = new XMLHttpRequest();
-							oAjax.onreadystatechange = function() {
-								if(this.readyState == 4 && this.status == 200) {
-									//var result = $.parseHTML(this.responseText);
-									if(section == 'metrics'){
-										$("##-lucee-"+section+"-data").removeClass('collapsed');
-										$("##-lucee-"+section+"-data").html(this.responseText);	
-									} else{
-										$("##-lucee-"+section+"-ALL").html(this.responseText);
-										if(section == 'docs'){
-											bindTypeaheadJS();
+					var i = sectionArray.indexOf(section);
+					if(i == -1){
+						sectionArray.push(section);
+						$.each(lcl, function(i, data) {
+							if(i=="SFILENAME_"+section.toUpperCase()){
+								var fileName =  lcl[i];
+								var oAjax = new XMLHttpRequest();
+								oAjax.onreadystatechange = function() {
+									if(this.readyState == 4 && this.status == 200) {
+										//var result = $.parseHTML(this.responseText);
+										if(section == 'metrics'){
+											$("##-lucee-"+section+"-data").removeClass('collapsed');
+											$("##-lucee-"+section+"-data").html(this.responseText);
+										} else{
+											$("##-lucee-"+section+"-ALL").html(this.responseText);
+											if(section == 'docs'){
+												bindTypeaheadJS();
+											}
 										}
 									}
-								}
-							};
-							oAjax.open("GET", "/lucee/appLogs/readDebug.cfm?sHash="+fileName, true);
-							oAjax.send();
-						}
-					});
+								};
+								oAjax.open("GET", "/lucee/appLogs/readDebug.cfm?sHash="+fileName, true);
+								oAjax.send();
+							}
+						});
+					}
 				}
-
 			</script>
 			<cfif enableTab("metrics")>
 				<script>
@@ -1452,6 +1419,7 @@
 							type: "POST",
 							url: "/lucee-server/admin/debug/chartProcess.cfc?method=sysMetric",
 							success: function(data){
+
 								var x = (new Date()).getTime();
 								$.each(#serializeJSON( variables.chartStr )#, function(i, chrt){
 									//chart value were only displayed for enable charts in admin
@@ -1598,34 +1566,34 @@
 								});
 							}
 						});
-						
 
 						$(document).ready(function() {
 						    $('##-lucee-docs-btn-ALL').on('click', function() {
 								$('.tt-hint').hide();
 						    });
-						     $('.tt-menu').on('click', function(){
-						     	$('.icon-close').hide();
-						     });
+							$('.tt-menu').on('click', function(){
+								$('.icon-close').hide();
+							});
 						});
 
 						$('##lucee-docs-search-input').focus();
 					}
 
 					function callDesc(type, item){
+						var docURL = "/lucee/doc/" + type + ".cfm?isAjaxRequest=true&item=" + item;
 						$.ajax({
-							type: "POST",
-							url: "/lucee-server/admin/debug/chartProcess.cfc?method="+type+"&item="+item,
+							type: "get",
+							url: docURL,
 							success: function(data){
-								$( ".modal-body" ).html(data).modal('show');
+								$( ".modal-body" ).html(""+data.toString() +"");
+								$(".modal").modal('show');
 								$('.close-modal').on('click', function() {
 									$('##lucee-docs-search-input').val('');
+									$(".modal-body").html("");
 								});
-
 							}
 						});
 					}
-
 				</script>
 			</cfif>
 			<cfif isdebugOpen && enableTab("debug") || ismetricsOpen && enableTab("metrics")  ||  isdocsOpen && enableTab("Reference")>
@@ -1645,7 +1613,6 @@
 				</script>
 			</cfif>
 		</cfoutput>
-
 	</cffunction><!--- output() !--->
 
 
@@ -1654,7 +1621,6 @@
 		<cfargument name="debugging" type="struct" required="#true#">
 		<cfargument name="context"   type="string" default="web">
 	</cffunction>
-
 
 	<cffunction name="renderSectionHeadTR" output="#true#">
 
@@ -1687,6 +1653,22 @@
 		</tr>
 	</cffunction>
 
+	<cffunction name="loadCharts" output="true">
+		<cfargument name="chartStruct">
+		<cfargument name="no_of_charts">
+
+		<cfset countChart = 0>
+		<cfloop item="i" collection="#arguments.chartStruct#">
+			<cfset countChart = countChart + 1>
+			<div class="chart_margin <cfif no_of_charts EQ 1>oneChart<cfelseif no_of_charts EQ 3>threeCharts<cfelse>fourCharts</cfif>" >
+				<div style="text-align:center;  width: 290px; height: 185px; padding:7px; border-radius: 25px; border: 2px solid ##898989;">
+					<div style="font-size: 14px;font-weight: bold;">#i#</div>
+					<div id="#StructFind(arguments.chartStruct,"#i#")#" style="width: 270px; height: 150px; margin: 0 auto;"></div>
+				</div>
+			</div>
+			<cfif no_of_charts EQ 2 AND structcount(arguments.chartStruct) GTE 2 AND countChart EQ 2 ><br style="clear:both" /></cfif>
+		</cfloop>
+	</cffunction>
 
 	<cfscript>
 
@@ -1975,6 +1957,4 @@
 			return stRet;
 		}
 	</cfscript>
-
-
-</cfcomponent>1
+</cfcomponent>

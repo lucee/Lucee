@@ -3,19 +3,30 @@
 <cfparam name="Attributes.nextLinkItem" default="">
 <cfoutput>
 <cfif thistag.executionmode EQ "start">
-	<cfset currPath = expandpath(getDirectoryfromPath(CGI.SCRIPT_NAME))>
-	<!DOCTYPE html>
-	<html>
-		<head>
-			<title>Lucee documentation :: #Attributes.Title#</title>
-			<base href="">
-			<meta content="Welcome to the official Lucee Server documentation website." name="description">
-			<meta content="initial-scale=1.0, width=device-width" name="viewport">
+	<cfif !structKeyExists(url, "isAjaxRequest")> <!--- iAR1 start --->
+		<cfset currPath = expandpath(getDirectoryfromPath(CGI.SCRIPT_NAME))>
+		<!DOCTYPE html>
+		<html>
+			<head>
+				<title>Lucee documentation :: #Attributes.Title#</title>
+				<base href="">
+				<meta content="Welcome to the official Lucee Server documentation website." name="description">
+				<meta content="initial-scale=1.0, width=device-width" name="viewport">
+			</head>
 
-			<link href="assets/css/base.min.css.cfm" rel="stylesheet">
-			<link href="assets/css/highlight.css.cfm" rel="stylesheet">
-			<link rel="icon" type="image/png" href="assets/images/favicon.png.cfm">
-		</head>
+	</cfif> <!--- iAR1 end --->
+	<link href="/lucee/doc/assets/css/base.min.css.cfm" rel="stylesheet">
+	<link href="/lucee/doc/assets/css/highlight.css.cfm" rel="stylesheet">
+	<cfif structKeyExists(url, "isAjaxRequest")>
+		<style type="text/css">
+			.modal{
+				position: relative !important;
+			}
+		</style>
+	</cfif>
+
+	<cfif !structKeyExists(url, "isAjaxRequest")> <!--- iAR2 start --->
+		<link rel="icon" type="image/png" href="assets/images/favicon.png.cfm">
 
 		<body class="homepage">
 			<nav class="menu menu-left nav-drawer" id="menu">
@@ -124,7 +135,9 @@
 					<div class="container">
 						<div class="row">
 							<div class="col-lg-10 col-lg-push-1 body">
+	</cfif><!--- iAR2 end --->
 </cfif>
+<cfif !structKeyExists(url, "isAjaxRequest")> <!--- iAR3 start --->
 <cfif thistag.executionmode EQ "end" or not thistag.hasendtag>
 							</div>
 						</div>
@@ -145,5 +158,6 @@
 			<script src="assets/js/base.min.js.cfm" type="text/javascript"></script>
 		</body>
 	</html>
+</cfif> <!--- iAR3 end --->
 </cfif>
 </cfoutput>

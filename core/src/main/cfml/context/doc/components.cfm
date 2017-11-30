@@ -130,15 +130,19 @@
 				<cfsavecontent variable="compDetailsBody">
 					<cfset data = getComponentMetaData(url.item)>
 
-					<div class="tile-wrap">
-						<div class="tile">
-							<ul class="breadcrumb margin-no-top margin-right margin-no-bottom margin-left">
-								<li><a href="index.cfm">Home</a></li>
-								<li><a href="components.cfm">Components</a></li>
-								<li class="active">#data.fullName#</li>
-							</ul>
+					<cfif !structKeyExists(url, "isAjaxRequest")>
+						<div class="tile-wrap">
+								<div class="tile">
+										<ul class="breadcrumb margin-no-top margin-right margin-no-bottom margin-left">
+											<li><a href="index.cfm">Home</a></li>
+											<li><a href="components.cfm">Components</a></li>
+											<li class="active">#data.fullName#</li>
+										</ul>
+								</div>
 						</div>
-					</div>
+					<cfelse>
+						<h2 style="text-align: center;">Lucee Components</h2>
+					</cfif>
 
 					<h2>Component <em>#(listLast(data.fullName, "."))#</em></h2>
 
@@ -154,7 +158,7 @@
 					<!--- Properties of the component --->
 					<h3 style="padding-left: 1em; margin-top: 24px;">Component properties</h3>
 					<div class="text" style="width: 90%; margin: 0 auto;">
-						<table class="maintbl">
+						<table class="table maintbl">
 							<thead>
 								<tr>
 									<th width="50%">#stText.doc.attr.name#</th>
@@ -190,66 +194,132 @@
 						</cfloop>
 						<cfset allCompFunctionsArr = structKeyArray(functionsStruct)>
 						<cfset ArraySort(allCompFunctionsArr, "textnocase" , "asc")>
-						<div class="tile-wrap tile-wrap-animation">
-							<cfloop array="#allCompFunctionsArr#" item="currFuncName">
-								<cfset currFunc = functionsStruct[currFuncName]>
-								<!--- properties for the function --->
-								<cfset functionProperties = "#currFunc['access']# #currFunc['returnType']# #currFunc['name']#(" >
-								<cfif !currFunc.parameters.isEmpty()>
-									<cfloop from="1" to="#arrayLen(currFunc.parameters)#" index="i">
-										<cfif i!=1>
-											<cfset functionProperties = functionProperties & ", " >
-										</cfif>
-										<cfset currArg = currFunc.parameters[i]>
-										<cfset functionArgs = currArg.required ? "required ":"" >
-										<cfset functionArgs = functionArgs & "#currArg.type# #currArg.name#" >
-										<cfset functionProperties = functionProperties & functionArgs >
-									</cfloop>
-								</cfif>
-								<cfset functionProperties = functionProperties & ")" >
-								<div class="tile tile-collapse tile-collapse-full">
-									<div class="tile-toggle" data-target="##api-#lCase(currFunc.name)#" data-toggle="tile">
-										<div class="tile-inner">
-											<div class="text-overflow funcName"><strong>#(currFunc.name)#</strong></div>
-											<div class="text-overflow funcProp" style="display: none;"><strong>#functionProperties#</strong></div>
+						<cfif !structKeyExists(url, "isAjaxRequest")>
+							<div class="tile-wrap tile-wrap-animation">
+								<cfloop array="#allCompFunctionsArr#" item="currFuncName">
+									<cfset currFunc = functionsStruct[currFuncName]>
+									<!--- properties for the function --->
+									<cfset functionProperties = "#currFunc['access']# #currFunc['returnType']# #currFunc['name']#(" >
+									<cfif !currFunc.parameters.isEmpty()>
+										<cfloop from="1" to="#arrayLen(currFunc.parameters)#" index="i">
+											<cfif i!=1>
+												<cfset functionProperties = functionProperties & ", " >
+											</cfif>
+											<cfset currArg = currFunc.parameters[i]>
+											<cfset functionArgs = currArg.required ? "required ":"" >
+											<cfset functionArgs = functionArgs & "#currArg.type# #currArg.name#" >
+											<cfset functionProperties = functionProperties & functionArgs >
+										</cfloop>
+									</cfif>
+									<cfset functionProperties = functionProperties & ")" >
+									<div class="tile tile-collapse tile-collapse-full">
+										<div class="tile-toggle" data-target="##api-#lCase(currFunc.name)#" data-toggle="tile">
+											<div class="tile-inner">
+												<div class="text-overflow funcName"><strong>#(currFunc.name)#</strong></div>
+												<div class="text-overflow funcProp" style="display: none;"><strong>#functionProperties#</strong></div>
+											</div>
+										</div>
+										<div class="tile-active-show collapse" id="api-#lCase(currFunc.name)#" style="padding: 0em 2em;">
+											<!--- desc/hint --->
+											<cfif structKeyExists(currFunc, "hint")>
+												<span style="padding-left: 3em;">#currFunc.hint#</span>
+											</cfif>
+											<!--- arguments for the function --->
+											<cfif !currFunc.parameters.isEmpty()>
+												<h3 style="padding-left: 1em; margin-top: 24px;">Arguments</h3>
+												<span style="padding-left: 3em;">The arguments for this function are set. You can not use other arguments except the following ones.</span>
+												<div class="text" style="width: 90%; margin: 0 auto;">
+													<table class="maintbl">
+														<thead>
+															<tr>
+																<th>#stText.doc.attr.name#</th>
+																<th width="10%">#stText.doc.attr._type#</th>
+																<th width="10%">#stText.doc.attr.required#</th>
+																<th width="50%">#stText.doc.attr.description#</th>
+															</tr>
+														</thead>
+														<tbody>
+															<cfloop array="#currFunc.parameters#" index="currArg">
+																<tr>
+																	<td>#currArg.name#</td>
+																	<td>#currArg.type#</td>
+																	<td>#currArg.required#</td>
+																	<td><cfif structKeyExists(currArg, "hint")>#currArg.hint#</cfif></td>
+																</tr>
+															</cfloop>
+														</tbody>
+													</table>
+												</div>
+											</cfif>
 										</div>
 									</div>
-									<div class="tile-active-show collapse" id="api-#lCase(currFunc.name)#" style="padding: 0em 2em;">
-										<!--- desc/hint --->
-										<cfif structKeyExists(currFunc, "hint")>
-											<span style="padding-left: 3em;">#currFunc.hint#</span>
-										</cfif>
-										<!--- arguments for the function --->
-										<cfif !currFunc.parameters.isEmpty()>
-											<h3 style="padding-left: 1em; margin-top: 24px;">Arguments</h3>
-											<span style="padding-left: 3em;">The arguments for this function are set. You can not use other arguments except the following ones.</span>
-											<div class="text" style="width: 90%; margin: 0 auto;">
-												<table class="maintbl">
-													<thead>
-														<tr>
-															<th>#stText.doc.attr.name#</th>
-															<th width="10%">#stText.doc.attr._type#</th>
-															<th width="10%">#stText.doc.attr.required#</th>
-															<th width="50%">#stText.doc.attr.description#</th>
-														</tr>
-													</thead>
-													<tbody>
-														<cfloop array="#currFunc.parameters#" index="currArg">
-															<tr>
-																<td>#currArg.name#</td>
-																<td>#currArg.type#</td>
-																<td>#currArg.required#</td>
-																<td><cfif structKeyExists(currArg, "hint")>#currArg.hint#</cfif></td>
-															</tr>
-														</cfloop>
-													</tbody>
-												</table>
+								</cfloop>
+							</div>
+						<cfelse>
+							<style type="text/css">
+							.modal { overflow: auto !important;}
+							</style>
+							<div class="tile-wrap">
+								<cfloop array="#allCompFunctionsArr#" item="currFuncName">
+									<cfset currFunc = functionsStruct[currFuncName]>
+									<!--- properties for the function --->
+									<cfset functionProperties = "#currFunc['access']# #currFunc['returnType']# #currFunc['name']#(" >
+									<cfif !currFunc.parameters.isEmpty()>
+										<cfloop from="1" to="#arrayLen(currFunc.parameters)#" index="i">
+											<cfif i!=1>
+												<cfset functionProperties = functionProperties & ", " >
+											</cfif>
+											<cfset currArg = currFunc.parameters[i]>
+											<cfset functionArgs = currArg.required ? "required ":"" >
+											<cfset functionArgs = functionArgs & "#currArg.type# #currArg.name#" >
+											<cfset functionProperties = functionProperties & functionArgs >
+										</cfloop>
+									</cfif>
+									<cfset functionProperties = functionProperties & ")" >
+									<div class="tile tile-collapse">
+										<div class="tile-toggle" data-toggle="tile">
+											<div class="tile-inner">
+												<div class="text-overflow funcName"><strong>#(currFunc.name)#</strong></div>
+												<div class="text-overflow funcProp"><strong>#functionProperties#</strong></div>
 											</div>
-										</cfif>
+										</div>
+										<div class="tile-active-show"  style="padding: 0em 2em;">
+											<!--- desc/hint --->
+											<cfif structKeyExists(currFunc, "hint")>
+												<span style="padding-left: 3em;">#currFunc.hint#</span>
+											</cfif>
+											<!--- arguments for the function --->
+											<cfif !currFunc.parameters.isEmpty()>
+												<h3 style="padding-left: 1em; margin-top: 24px;">Arguments</h3>
+												<span style="padding-left: 3em;">The arguments for this function are set. You can not use other arguments except the following ones.</span>
+												<div class="text" style="width: 90%; margin: 0 auto;">
+													<table class="table maintbl">
+														<thead>
+															<tr>
+																<th>#stText.doc.attr.name#</th>
+																<th width="10%">#stText.doc.attr._type#</th>
+																<th width="10%">#stText.doc.attr.required#</th>
+																<th width="50%">#stText.doc.attr.description#</th>
+															</tr>
+														</thead>
+														<tbody>
+															<cfloop array="#currFunc.parameters#" index="currArg">
+																<tr>
+																	<td>#currArg.name#</td>
+																	<td>#currArg.type#</td>
+																	<td>#currArg.required#</td>
+																	<td><cfif structKeyExists(currArg, "hint")>#currArg.hint#</cfif></td>
+																</tr>
+															</cfloop>
+														</tbody>
+													</table>
+												</div>
+											</cfif>
+										</div>
 									</div>
-								</div>
-							</cfloop>
-						</div>
+								</cfloop>
+							</div>
+						</cfif>
 					</cfif>
 				</cfsavecontent>
 				<cfcatch type="any">
