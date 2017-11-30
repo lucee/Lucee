@@ -19,6 +19,8 @@
 package lucee.runtime.functions.xml;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.Caster;
@@ -29,7 +31,7 @@ public class AddSOAPResponseHeader {
 	}
 	public static boolean call(PageContext pc, String nameSpace, String name, Object value, boolean mustUnderstand) throws PageException {
 		try {
-			WSHandler.getInstance().addSOAPResponseHeader(nameSpace, name, value, mustUnderstand);
+			((ConfigImpl)ThreadLocalPageContext.getConfig(pc)).getWSHandler().addSOAPResponseHeader(nameSpace, name, value, mustUnderstand);
 		} 
 		catch (Exception e) {
 			throw Caster.toPageException(e);

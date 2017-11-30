@@ -20,7 +20,9 @@ package lucee.runtime.spooler;
 
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.RemoteClient;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.net.rpc.client.WSClient;
@@ -41,7 +43,7 @@ public abstract class SpoolerTaskWS extends SpoolerTaskSupport {
 	@Override
 	public final Object execute(Config config) throws PageException {
 		try {
-			WSClient rpc = WSHandler.getInstance().getWSClient(client.getUrl(),
+			WSClient rpc = ((ConfigImpl)ThreadLocalPageContext.getConfig(config)).getWSHandler().getWSClient(client.getUrl(),
 					client.getServerUsername(), client.getServerPassword(),
 					client.getProxyData());
 

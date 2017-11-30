@@ -38,6 +38,7 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.ArrayPro;
 import lucee.runtime.type.Iteratorable;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
@@ -47,21 +48,21 @@ import lucee.runtime.type.scope.ArgumentIntKey;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StringListData;
 
-public class Every extends BIF {
+public class Every extends BIF implements ClosureFunc {
 
 	private static final long serialVersionUID = -5940580562772523622L;
 
 	public static boolean call(PageContext pc , Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf, false,20);
+		return _call(pc, obj, udf, false,20,TYPE_UNDEFINED);
 	}
 	public static boolean call(PageContext pc , Object obj, UDF udf, boolean parallel) throws PageException {
-		return _call(pc, obj, udf, parallel, 20);
+		return _call(pc, obj, udf, parallel, 20,TYPE_UNDEFINED);
 	}
 	public static boolean call(PageContext pc , Object obj, UDF udf, boolean parallel, double maxThreads) throws PageException {
-		return _call(pc, obj, udf, parallel, (int)maxThreads);
+		return _call(pc, obj, udf, parallel, (int)maxThreads,TYPE_UNDEFINED);
 	}
 	
-	public static boolean _call(PageContext pc , Object obj, UDF udf, boolean parallel, int maxThreads) throws PageException { 
+	public static boolean _call(PageContext pc , Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException { 
 		
 		ExecutorService execute=null;
 		List<Future<Data<Object>>> futures=null;
@@ -71,9 +72,23 @@ public class Every extends BIF {
 		}
 		
 		boolean res;
-		 
+
+		// !!!! Don't combine the first 3 ifs with the ifs below, type overrules instanceof check
 		// Array
-		if(obj instanceof Array) {
+		if(type==TYPE_ARRAY) {
+			res=invoke(pc, (Array)obj, udf,execute,futures);
+		}
+		// Query
+		else if(type==TYPE_QUERY) {
+			res=invoke(pc, (Query)obj, udf,execute,futures);
+		}
+		// Struct
+		else if(type==TYPE_STRUCT) {
+			res=invoke(pc, (Struct)obj, udf,execute,futures);
+		}
+		
+		// Array
+		else if(obj instanceof Array) {
 			res=invoke(pc, (Array)obj, udf,execute,futures);
 		}
 		 
@@ -119,17 +134,17 @@ public class Every extends BIF {
 
 	private static boolean invoke(PageContext pc, Array arr, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws CasterException, PageException {
 
-		Iterator<Entry<Key, Object>> it = arr.entryIterator();
-
+		Iterator it =(arr instanceof ArrayPro?((ArrayPro)arr).entryArrayIterator(): arr.entryIterator());
+		Entry e;
+		
 		if (!it.hasNext())
 			return false;				// array is empty or has only null values
 
-		Entry<Key, Object> e;
 		boolean async=es!=null;
 		Object res;
 		while(it.hasNext()){
-			e = it.next();
-			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey().getString()),arr},e.getKey(),e.getValue(), es, futures);
+			e = (Entry)it.next();
+			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey()),arr},e.getKey(),e.getValue(), es, futures);
 			if(!async && !Caster.toBooleanValue(res)) {
 				return false;
 			}
@@ -163,13 +178,13 @@ public class Every extends BIF {
 	private static boolean invoke(PageContext pc, StringListData sld, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws CasterException, PageException {
 		Array arr = ListUtil.listToArray(sld.list, sld.delimiter,sld.includeEmptyFieldsx,sld.multiCharacterDelimiter);
 
-		Iterator<Entry<Key, Object>> it = arr.entryIterator();
-		Entry<Key, Object> e;
+		Iterator it = (arr instanceof ArrayPro?((ArrayPro)arr).entryArrayIterator(): arr.entryIterator());
+		Entry e;
 		boolean async=es!=null;
 		Object res;
 		while(it.hasNext()){
-			e = it.next();
-			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey().getString()),sld.list,sld.delimiter},e.getKey(),e.getValue(), es, futures);
+			e = (Entry)it.next();
+			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey()),sld.list,sld.delimiter},e.getKey(),e.getValue(), es, futures);
 			if(!async && !Caster.toBooleanValue(res)) {
 				return false;
 			}

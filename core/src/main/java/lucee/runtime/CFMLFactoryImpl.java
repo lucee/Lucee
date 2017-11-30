@@ -415,8 +415,10 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		Struct data, sctThread, scopes;
 		Thread thread;
 		Entry<Integer, PageContextImpl> e;
+		ConfigWebImpl cw;
 		while(it.hasNext()) {
 			pc = it.next();
+			cw = (ConfigWebImpl) pc.getConfig();
 			data = new StructImpl();
 			sctThread = new StructImpl();
 			scopes = new StructImpl();
@@ -453,9 +455,15 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			try {
 				data.setEL(KeyConstants._id, Hash.call(pc, pc.getId() + ":" + pc.getStartTime()));
 			}
-			catch (PageException e1) {
-			}
-			data.setEL("requestid", pc.getId());
+			catch (PageException e1) {}
+			
+			data.setEL(KeyConstants._hash, cw.getHash());
+			data.setEL("contextId", cw.getIdentification().getId());
+			data.setEL(KeyConstants._label, cw.getLabel());
+        	
+			
+			
+			data.setEL("requestId", pc.getId());
 
 			// Scopes
 			scopes.setEL(KeyConstants._name, pc.getApplicationContext().getName());

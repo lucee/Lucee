@@ -461,7 +461,6 @@ public class OSGiUtil {
 	}
 	public static Bundle _loadBundle(String name, Version version,Identification id, boolean startIfNecessary, Set<String> parents) throws BundleException, StartFailedException {
 		name=name.trim();
-		
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
     	CFMLEngineFactory factory = engine.getCFMLEngineFactory();
     	

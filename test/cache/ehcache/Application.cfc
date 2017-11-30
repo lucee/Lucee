@@ -3,10 +3,10 @@
 	THIS.name=url.appName;
 
 
-	this.cache.connections["perAppCache"] = {
+	variables.conn={
 		class: 'org.lucee.extension.cache.eh.EHCache'
 		, bundleName: 'ehcache.extension'
-		//, bundleVersion: '2.10.0.21'
+		//, bundleVersion: '2.10.0.27-SNAPSHOT'
 		, storage: true
 		, custom:
 			{ "bootstrapAsynchronously":"true", 
@@ -41,6 +41,9 @@
 		}
 		, default: ''
 	};
+	if(!isNull(url.version)) variables.conn.bundleVersion=url.version;
+
+	this.cache.connections["perAppCache"] = conn;
 
 
 

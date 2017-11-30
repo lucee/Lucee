@@ -407,6 +407,9 @@
         <!-- Form -->
         <not><isset property="extForm"/></not>
         <not><isset property="extFormVersion"/></not>
+        <!-- Webservice -->
+        <not><isset property="extAxis"/></not>
+        <not><isset property="extAxisVersion"/></not>
         </or>
     </condition>
     </fail>
@@ -506,6 +509,7 @@
     <available file="${cache}/${extLucene}-${extLuceneVersion}.lex" property="lucene.present"/>
     <available file="${cache}/${extPDF}-${extPDFVersion}.lex" property="pdf.present"/>
     <available file="${cache}/${extForm}-${extFormVersion}.lex" property="form.present"/>
+    <available file="${cache}/${extAxis}-${extAxisVersion}.lex" property="axis.present"/>
   </target>
 
 
@@ -548,12 +552,15 @@
   <target name="check-form" depends="check-cache" unless="form.present">
       <get src="${extURL}${extForm}?version=${extFormVersion}" dest="${cache}/${extForm}-${extFormVersion}.lex"/>
   </target>
+  <target name="check-axis" depends="check-cache" unless="axis.present">
+      <get src="${extURL}${extAxis}?version=${extAxisVersion}" dest="${cache}/${extAxis}-${extAxisVersion}.lex"/>
+  </target>
   <target name="check-testbox" depends="check-cache" unless="testbox.present">
       <get src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
   </target> 
 
 
-  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-testbox">
+  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-axis,check-testbox">
     
     <mkdir dir="${temp}/loader/extensions/"/>
 
@@ -1040,6 +1047,18 @@
       tofile="${goal}/extensions/${ext_form.filename}"/>
     <echo>add:${goal}/extensions/${ext_form.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_form.filename};</echo>
+
+    <!-- add extension Webservice -->
+    <loadmf jar="${cache}/${extAxis}-${extAxisVersion}.lex" prefix="ext_axis."/>
+    <toFileName id="${ext_axis.id}" name="${ext_axis.name}" version="${ext_axis.version}" property="ext_axis.filename"/>
+    <copy 
+      file="${cache}/${extAxis}-${extAxisVersion}.lex" 
+      todir="${goal}/extensions/"/>
+    <move 
+      file="${goal}/extensions/${extAxis}-${extAxisVersion}.lex" 
+      tofile="${goal}/extensions/${ext_axis.filename}"/>
+    <echo>add:${goal}/extensions/${ext_axis.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_axis.filename};</echo>
 
   </target>
 

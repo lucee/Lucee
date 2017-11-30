@@ -397,12 +397,14 @@ public final class ScopeContext {
 		Iterator<Entry<String, Scope>> it = context.entrySet().iterator();
 		Entry<String, Scope> entry;
 		int count = 0;
-		Session s;
+		StorageScope s;
 		while(it.hasNext()) {
 			entry = it.next();
-			s = (Session)entry.getValue();
-			if(!s.isExpired())
-				count++;
+			if(entry.getValue() instanceof StorageScope) {
+				s = (StorageScope)entry.getValue();
+				if(!s.isExpired())
+					count++;
+			}
 		}
 		return count;
 	}

@@ -49,6 +49,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimePart;
+import javax.mail.internet.MimeUtility;
 
 import lucee.commons.activation.ResourceDataSource;
 import lucee.commons.digest.MD5;
@@ -688,8 +689,15 @@ public final class SMTPClient implements Serializable  {
 			mbp.setDataHandler(new DataHandler(new ResourceDataSource(config.getResource(strRes))));
 		}
 		else mbp.setDataHandler(new DataHandler(new URLDataSource2(att.getURL())));
-		
-		mbp.setFileName(att.getFileName());
+		// 
+		String fileName=att.getFileName();
+		if(!StringUtil.isAscii(fileName)) {
+			try {
+				fileName=MimeUtility.encodeText(fileName, "UTF-8", null);
+			} 
+			catch (UnsupportedEncodingException e) {} // that should never happen!
+		}
+		mbp.setFileName(fileName);
 		if(!StringUtil.isEmpty(att.getType())) mbp.setHeader("Content-Type", att.getType());
 
 		String disposition = att.getDisposition();
@@ -731,9 +739,9 @@ public final class SMTPClient implements Serializable  {
 		if(spool==SPOOL_YES || (spool==SPOOL_UNDEFINED && config.isMailSpoolEnable())) {
 			MailSpoolerTask mst = new MailSpoolerTask(this, servers, sendTime);
 			if(listener instanceof Component)
-				mst.setListener(new ComponentSpoolerTaskListener(mst,(Component)listener));
+				mst.setListener(new ComponentSpoolerTaskListener(SystemUtil.getCurrentContext(),mst,(Component)listener));
 			else if(listener instanceof UDF)
-				mst.setListener(new UDFSpoolerTaskListener(mst,(UDF)listener));
+				mst.setListener(new UDFSpoolerTaskListener(SystemUtil.getCurrentContext(),mst,(UDF)listener));
 			
 			config.getSpoolerEngine().add(mst);
         }

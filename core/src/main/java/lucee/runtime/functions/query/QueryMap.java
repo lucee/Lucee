@@ -23,6 +23,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
+import lucee.runtime.functions.closure.ClosureFunc;
 import lucee.runtime.functions.closure.Map;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Query;
@@ -49,7 +50,7 @@ public class QueryMap extends BIF {
 	}
 
 	private static Query _call(PageContext pc , Query qry, UDF udf, Query resQuery, boolean parallel, int maxThreads) throws PageException {
-		return (Query) Map._call(pc, qry, udf, parallel, maxThreads,resQuery);
+		return (Query) Map._call(pc, qry, udf, parallel, maxThreads,resQuery,ClosureFunc.TYPE_QUERY);
 	}
 	
 	@Override

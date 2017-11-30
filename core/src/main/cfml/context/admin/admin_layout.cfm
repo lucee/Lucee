@@ -55,8 +55,8 @@
 
 								<form method="get" action="#cgi.SCRIPT_NAME#">
 									<input type="hidden" name="action" value="admin.search" />
-									<input type="text" name="q" size="15" id="navsearch" placeholder="#stText.buttons.search.ucase()#" />
-									<button type="submit" class="sprite  btn-search"><!--- <span>#stText.buttons.search# ---></span></button>
+									<input type="text" name="q" size="15"  id="lucee-admin-search-input" placeholder="#stText.buttons.search.ucase()#" />
+									<button type="submit" class="sprite  btn-search" ><!--- <span>#stText.buttons.search# ---></span></button>
 									<!--- btn-mini title="#stText.buttons.search#" --->
 								</form>
 
@@ -113,6 +113,7 @@
 			</tbody>
 		</table>
 	</div>
+	<cfinclude template="navigation.cfm">
 
 	<script src="../res/js/jquery-1.12.4.min.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/jquery.blockUI-#resNameAppendix#.js.cfm" type="text/javascript"></script>

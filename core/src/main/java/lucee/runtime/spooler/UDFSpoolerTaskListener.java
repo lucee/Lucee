@@ -1,5 +1,6 @@
 package lucee.runtime.spooler;
 
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Struct;
@@ -10,8 +11,8 @@ public class UDFSpoolerTaskListener extends CFMLSpoolerTaskListener {
 	private static final long serialVersionUID = 1262226524494987654L;
 	private UDF udf;
 
-	public UDFSpoolerTaskListener(SpoolerTask task, UDF udf) {
-		super(task);
+	public UDFSpoolerTaskListener(TemplateLine currTemplate, SpoolerTask task, UDF udf) {
+		super(currTemplate,task);
 		this.udf=udf;
 	}
 

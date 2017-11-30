@@ -27,16 +27,16 @@
 <cfif server.ColdFusion.ProductName EQ "lucee">
 <cfset arr=listToArray('aaa,bbb,ccc,ddd,eee')>
  
-<cfset valueEquals(left="#listTrim(ArrayToList(arraySlice(arr,2)))#", right="bbb,ccc,ddd,eee")>
-<cfset valueEquals(left="#listTrim(ArrayToList(arraySlice(arr,0)))#", right="eee")>
-<cfset valueEquals(left="#listTrim(ArrayToList(arraySlice(arr,-1)))#", right="ddd,eee")>
-<cfset valueEquals(left="#listTrim(ArrayToList(arraySlice(arr,-3)))#", right="bbb,ccc,ddd,eee")>
+<cfset valueEquals(left="#ListCompact(ArrayToList(arraySlice(arr,2)))#", right="bbb,ccc,ddd,eee")>
+<cfset valueEquals(left="#ListCompact(ArrayToList(arraySlice(arr,0)))#", right="eee")>
+<cfset valueEquals(left="#ListCompact(ArrayToList(arraySlice(arr,-1)))#", right="ddd,eee")>
+<cfset valueEquals(left="#ListCompact(ArrayToList(arraySlice(arr,-3)))#", right="bbb,ccc,ddd,eee")>
 
-<cfset valueEquals(left="#listTrim(ArrayToList(arraySlice(arr,2,1)))#", right="bbb")>
-<cfset valueEquals(left="#listTrim(ArrayToList(arraySlice(arr,2,3)))#", right="bbb,ccc,ddd")>
+<cfset valueEquals(left="#ListCompact(ArrayToList(arraySlice(arr,2,1)))#", right="bbb")>
+<cfset valueEquals(left="#ListCompact(ArrayToList(arraySlice(arr,2,3)))#", right="bbb,ccc,ddd")>
 
-<cfset valueEquals(left="#listTrim(ArrayToList(arraySlice(arr,2,0)))#", right="bbb,ccc,ddd,eee")>
-<cfset valueEquals(left="#listTrim(ArrayToList(arraySlice(arr,2,-1)))#", right="bbb,ccc,ddd")>
+<cfset valueEquals(left="#ListCompact(ArrayToList(arraySlice(arr,2,0)))#", right="bbb,ccc,ddd,eee")>
+<cfset valueEquals(left="#ListCompact(ArrayToList(arraySlice(arr,2,-1)))#", right="bbb,ccc,ddd")>
 
 </cfif>
 
