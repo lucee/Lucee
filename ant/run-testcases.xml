@@ -80,6 +80,19 @@ function mem(type) {
 
 	systemOutput("set password #dateTimeFormat(now())#", true);
 
+	// output deploy log
+	pc=getPageContext();
+	config=pc.getConfig();
+	configDir=config.getConfigServerDir();
+	logsDir=configDir&server.separator.file&"logs";
+	deployLog=logsDir&server.separator.file&"deploy.log";
+	dump(deployLog);
+	content=fileRead(deployLog);
+	systemOutput("-------------- Deploy Log ------------",true);
+	systemOutput(content,true);
+	systemOutput("--------------------------------------",true);
+
+
 	// create "/test" mapping
 	admin
 		action="updateMapping"
