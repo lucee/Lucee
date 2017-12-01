@@ -3,7 +3,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function isNotSupported(){
 		variables.mySQL= getCredentials();
 		// Admin password
-		variables.adminPassword = "password";
+		variables.adminPassword = request.WEBADMINPASSWORD;
+		
 		return structisEmpty(variables.mySQL);
 	}
 

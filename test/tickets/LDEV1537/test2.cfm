@@ -7,7 +7,7 @@
 	</cfcatch>
 </cftry>
 
-<cfadmin action="getSpoolerTasks" type="web" password="password" startrow="1" maxrow="1000" result="result" returnVariable="tasks">
+<cfadmin action="getSpoolerTasks" type="web" password="#server.WEBADMINPASSWORD#" startrow="1" maxrow="1000" result="result" returnVariable="tasks">
 
 <cfloop query="tasks">
 	<cfset taskDetail = tasks.detail>
