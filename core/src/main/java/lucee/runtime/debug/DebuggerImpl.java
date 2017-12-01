@@ -688,9 +688,9 @@ public final class DebuggerImpl implements Debugger {
 		
 		if(addAddionalInfo) {
 			debugging.setEL(KeyConstants._cgi,pc.cgiScope());
-			debugging.setEL(KeyImpl.init("starttime"),new DateTimeImpl(starttime,false));
-			debugging.setEL(KeyConstants._id,pc.getId());
 		}
+		debugging.setEL(KeyImpl.init("starttime"),new DateTimeImpl(starttime,false));
+		debugging.setEL(KeyConstants._id,pc.getId());
 
 		debugging.setEL(KeyConstants._pages,qryPage);
 		debugging.setEL(PAGE_PARTS,qryPart);
