@@ -107,15 +107,19 @@
 		<cfparam name="data.attributes" default="#{}#">
 		<cfparam name="data.attributetype" default="fixed">
 
-		<div class="tile-wrap">
-			<div class="tile">
-				<ul class="breadcrumb margin-no-top margin-right margin-no-bottom margin-left">
-					<li><a href="index.cfm">Home</a></li>
-					<li><a href="tags.cfm">Lucee tags</a></li>
-					<li class="active">&lt;#lCase( tagName )#&gt;</li>
-				</ul>
+		<cfif !structKeyExists(url, "isAjaxRequest")>
+			<div class="tile-wrap">
+				<div class="tile">
+					<ul class="margin-no-top margin-right margin-no-bottom margin-left">
+						<li><a href="index.cfm">Home</a></li>
+						<li><a href="tags.cfm">Lucee tags</a></li>
+						<li class="active">&lt;#lCase( tagName )#&gt;</li>
+					</ul>
+				</div>
 			</div>
-		</div>
+		<cfelse>
+			<h2 style="text-align: center;">Lucee Tags</h2>
+		</cfif>
 		<h2>Tag <em>&lt;#uCase( tagName )#&gt;</em></h2>
 
 		<cfif data.status == "deprecated">
@@ -256,7 +260,7 @@
 		</cfif>
 		<cfset isdefault = Findnocase('defaultValue', serializeJSON(data))>
 		<cfif ( data.attributeType == "fixed" || data.attributeType == "mixed" ) && arrayLen( arrAttrNames )>
-			<table class="maintbl">
+			<table class="table maintbl">
 				<thead>
 					<tr>
 						<th width="21%">#stText.doc.attr.name#</th>

@@ -1,4 +1,4 @@
-<cfcomponent output="false">
+<cfcomponent output="true">
 
 	<cffunction name="printMemory" returntype="struct">
 		<cfset pool['HEAP']="Heap">
@@ -32,12 +32,11 @@
 		<cfset nonHeap = printMemory(getmemoryUsage("non_heap"),false)>
 		<cfset result = {
 			"heap":heap.pused ?: 0,
-			"non_heap":nonHeap.pused ?: 0,
+			"nonheap":nonHeap.pused ?: 0,
 			"cpuSystem": int((systemInfo.cpuSystem ?: 0) * 100),
 			"cpuProcess": int((systemInfo.cpuProcess ?: 0) *100)
 		}>
 		<cfreturn result>
 	</cffunction>
-
 </cfcomponent>
 

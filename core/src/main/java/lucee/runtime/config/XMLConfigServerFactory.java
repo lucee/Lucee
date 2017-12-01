@@ -207,7 +207,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 				,"Classic.cfc"
 				,"Modern.cfc"
 				,"Comment.cfc"
-				,"chartProcess.cfc"
+				,"ChartProcess.cfc"
 				},debug,doNew);
 		
 		
