@@ -141,6 +141,7 @@ import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Duplicator;
+import lucee.runtime.op.Operator;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
@@ -1700,13 +1701,25 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doGetLoggedDebugData() throws PageException {
-
 		if(config instanceof ConfigServer)
 			return;
 
 		ConfigWebImpl cw = (ConfigWebImpl)config;
-
-		pageContext.setVariable(getString("admin", action, "returnVariable"), cw.getDebuggerPool().getData(pageContext));
+		String id=getString("id",null);
+		Array data = cw.getDebuggerPool().getData(pageContext);
+		
+		if(StringUtil.isEmpty(id))
+			pageContext.setVariable(getString("admin", action, "returnVariable"), data);
+		
+		Iterator<Object> it = data.valueIterator();
+		Struct sct;
+		while(it.hasNext()) {
+			sct=(Struct) it.next();
+			if(Operator.equalsEL(id, sct.get(KeyConstants._id,""), false, true)) {
+				pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
+				return;
+			}
+		}
 	}
 
 	private void doGetInfo() throws PageException {
