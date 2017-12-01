@@ -8,7 +8,7 @@
 <cfadmin 
 	action="getSpoolerTasks"
 	type="web"
-	password="password"
+	password="#server.WEBADMINPASSWORD#"
 	startrow="1"
 	maxrow="1000"
 	result="result"
