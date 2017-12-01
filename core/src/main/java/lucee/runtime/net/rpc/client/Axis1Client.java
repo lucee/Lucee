@@ -476,8 +476,11 @@ final class Axis1Client extends WSClient {
 	}
 
 	private Class map(PageContext pc,SymbolTable symbolTable, Config secondChanceConfig,org.apache.axis.encoding.TypeMapping tm, TypeEntry type) throws PageException {
-		//print.e("MAP");
-		//print.e(type.getQName());
+		
+		TypeEntry ref = type.getRefType();
+		if(ref!=null && ref!=type) {
+			map(pc, symbolTable, secondChanceConfig, tm, ref);
+		}
 		
 		// Simple Type
 		if(type.getContainedElements()==null) return null;
