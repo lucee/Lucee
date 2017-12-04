@@ -70,6 +70,8 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
@@ -974,6 +976,47 @@ public class RHExtension implements Serializable {
   	    		qryBundles.setAt(KeyConstants._version, i+1, bfs[i].getVersionAsString());
   	    }
   	    qry.setAt(BUNDLES, row,qryBundles);
+	}
+	
+	public Struct toStruct() throws PageException {
+		Struct sct=new StructImpl();
+		sct.set(KeyConstants._id, getId());
+  	    sct.set(KeyConstants._name, name);
+  	    sct.set(KeyConstants._image, getImage());
+  	  	sct.set(KeyConstants._description, description);
+  	  	sct.set(KeyConstants._version, getVersion()==null?null:getVersion().toString());
+  	  	sct.set(TRIAL, isTrial());
+  	  	sct.set(RELEASE_TYPE, toReleaseType(getReleaseType(),"all"));
+  	  	//sct.set(JARS, row,Caster.toArray(getJars()));
+  	  	try {
+	  	  	sct.set(FLDS, Caster.toArray(getFlds()));
+		    sct.set(TLDS, Caster.toArray(getTlds()));
+		    sct.set(FUNCTIONS, Caster.toArray(getFunctions()));
+		    sct.set(ARCHIVES, Caster.toArray(getArchives()));
+	  	    sct.set(TAGS, Caster.toArray(getTags()));
+	  	    sct.set(CONTEXTS, Caster.toArray(getContexts()));
+	  	    sct.set(WEBCONTEXTS, Caster.toArray(getWebContexts()));
+	  	  	sct.set(CONFIG, Caster.toArray(getConfigs()));
+		  	sct.set(EVENT_GATEWAYS, Caster.toArray(getEventGateways()));
+		    sct.set(CATEGORIES, Caster.toArray(getCategories()));
+		    sct.set(APPLICATIONS, Caster.toArray(getApplications()));
+		    sct.set(COMPONENTS, Caster.toArray(getComponents()));
+	  		sct.set(PLUGINS, Caster.toArray(getPlugins()));
+		    sct.set(START_BUNDLES, Caster.toBoolean(getStartBundles()));
+	  	    
+	  	    BundleInfo[] bfs = getBundles();
+	  	    Query qryBundles=new QueryImpl(new Key[]{KeyConstants._name,KeyConstants._version}, bfs.length, "bundles");
+	  	    for(int i=0;i<bfs.length;i++){
+	  	    	qryBundles.setAt(KeyConstants._name, i+1, bfs[i].getSymbolicName());
+	  	    	if(bfs[i].getVersion()!=null)
+	  	    		qryBundles.setAt(KeyConstants._version, i+1, bfs[i].getVersionAsString());
+	  	    }
+	  	    sct.set(BUNDLES,qryBundles);
+  	  	}
+  	  	catch(Exception e) {
+  	  		throw Caster.toPageException(e);
+  	  	}
+  	    return sct;
 	}
 	
 

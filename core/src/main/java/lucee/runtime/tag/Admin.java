@@ -530,6 +530,19 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doGetCluster();
 			return;
 		}
+		
+		if(action.equals("getextension")) {
+			doGetRHExtension();
+			return;
+		}
+		if(action.equals("getextensions") || action.equals("getrhextensions")) {
+			doGetRHExtensions();
+			return;
+		}
+		if(action.equals("getserverextensions") || action.equals("getrhserverextensions")) {
+			doGetRHServerExtensions();
+			return;
+		}
 
 		if(check("hashpassword", ACCESS_FREE)) {
 			String raw = getString("admin", action, "pw");
@@ -700,10 +713,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doGetFLDs();
 		else if(check("getTlds", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetTLDs();
-		else if((check("getRHExtensions", ACCESS_FREE) || check("getExtensions", ACCESS_FREE)) && check2(ACCESS_READ))
-			doGetRHExtensions();
-		else if((check("getRHServerExtensions", ACCESS_NOT_WHEN_SERVER) || check("getServerExtensions", ACCESS_NOT_WHEN_SERVER)) && check2(ACCESS_READ))
-			doGetRHServerExtensions();
 		else if(check("getLocalExtension", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetLocalExtension();
 		else if(check("getLocalExtensions", ACCESS_FREE) && check2(ACCESS_READ))
@@ -2741,6 +2750,21 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("source", i + 1, StringUtil.emptyIfNull(libs[i].getSource()));
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
+	}
+
+	private void doGetRHExtension() throws PageException {
+		String id=getString("admin", action, "id");
+		if(StringUtil.isEmpty(id,true)) throw new ApplicationException("id cannot be empty");
+		RHExtension[] extensions = config.getRHExtensions();
+		for(RHExtension ext:extensions) {
+			if(id.equals(ext.getId())) {
+				pageContext.setVariable(
+						getString("admin", action, "returnVariable"), 
+						ext.toStruct());
+				return;
+			}
+		}
+		throw new ApplicationException("there is no Extension with ID ["+id+"]");
 	}
 
 	private void doGetRHExtensions() throws PageException {
