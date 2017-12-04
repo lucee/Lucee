@@ -95,6 +95,7 @@ import lucee.runtime.config.PasswordImpl;
 import lucee.runtime.config.RemoteClient;
 import lucee.runtime.config.RemoteClientImpl;
 import lucee.runtime.config.XMLConfigAdmin;
+import lucee.runtime.config.XMLConfigFactory;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
@@ -699,9 +700,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doGetFLDs();
 		else if(check("getTlds", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetTLDs();
-		else if(check("getRHExtensions", ACCESS_FREE) && check2(ACCESS_READ))
+		else if((check("getRHExtensions", ACCESS_FREE) || check("getExtensions", ACCESS_FREE)) && check2(ACCESS_READ))
 			doGetRHExtensions();
-		else if(check("getRHServerExtensions", ACCESS_NOT_WHEN_SERVER) && check2(ACCESS_READ))
+		else if((check("getRHServerExtensions", ACCESS_NOT_WHEN_SERVER) || check("getServerExtensions", ACCESS_NOT_WHEN_SERVER)) && check2(ACCESS_READ))
 			doGetRHServerExtensions();
 		else if(check("getLocalExtension", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetLocalExtension();
@@ -721,11 +722,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doGetRestMappings();
 		else if(check("getRestSettings", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetRestSettings();
-		else if(check("getExtensions", ACCESS_FREE) && check2(ACCESS_READ))
-			doGetExtensions();
-		else if(check("getExtensionProviders", ACCESS_FREE) && check2(ACCESS_READ))
-			doGetExtensionProviders();
-		else if(check("getRHExtensionProviders", ACCESS_FREE) && check2(ACCESS_READ))
+		//else if(check("getExtensions", ACCESS_FREE) && check2(ACCESS_READ))
+		//	doGetExtensions();
+		//else if(check("getExtensionProviders", ACCESS_FREE) && check2(ACCESS_READ))
+		//	doGetExtensionProviders();
+		else if((check("getRHExtensionProviders", ACCESS_FREE) || check("getExtensionProviders", ACCESS_FREE)) && check2(ACCESS_READ))
 			doGetRHExtensionProviders();
 		else if(check("getExtensionInfo", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetExtensionInfo();
@@ -847,15 +848,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doUpdateError();
 		else if(check("updateCustomTagSetting", ACCESS_FREE) && check2(ACCESS_WRITE))
 			doUpdateCustomTagSetting();
-		else if(check("updateExtension", ACCESS_FREE) && check2(ACCESS_WRITE))
-			doUpdateExtension();
-		else if(check("updateRHExtension", ACCESS_FREE) && check2(ACCESS_WRITE))
+		//else if(check("updateExtension", ACCESS_FREE) && check2(ACCESS_WRITE))
+		//	doUpdateExtension();
+		else if((check("updateRHExtension", ACCESS_FREE) || check("updateExtension", ACCESS_FREE)) && check2(ACCESS_WRITE))
 			doUpdateRHExtension();
-		else if(check("removeRHExtension", ACCESS_FREE) && check2(ACCESS_WRITE))
+		else if((check("removeRHExtension", ACCESS_FREE) || check("removeExtension", ACCESS_FREE)) && check2(ACCESS_WRITE))
 			doRemoveRHExtension();
 		else if(check("updateExtensionProvider", ACCESS_FREE) && check2(ACCESS_WRITE))
 			doUpdateExtensionProvider();
-		else if(check("updateRHExtensionProvider", ACCESS_FREE) && check2(ACCESS_WRITE))
+		else if((check("updateRHExtensionProvider", ACCESS_FREE) || check("updateExtensionProvider", ACCESS_FREE)) && check2(ACCESS_WRITE))
 			doUpdateRHExtensionProvider();
 		else if(check("updateExtensionInfo", ACCESS_FREE) && check2(ACCESS_WRITE))
 			doUpdateExtensionInfo();
@@ -2333,7 +2334,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 
-	private void doGetExtensionProviders() throws PageException {
+	/*private void doGetExtensionProviders() throws PageException {
 		ExtensionProvider[] providers = config.getExtensionProviders();
 		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "url", "isReadOnly" }, providers.length, "query");
 
@@ -2347,7 +2348,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			// qry.setAt("cacheTimeout",row,Caster.toDouble(provider.getCacheTimeout()/1000));
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
-	}
+	}*/
 
 	private void doGetExtensionInfo() throws PageException {
 		Resource ed = config.getExtensionDirectory();
@@ -2358,7 +2359,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 	}
 
-	private void doGetExtensions() throws PageException {
+	/*private void doGetExtensions() throws PageException {
 		Extension[] extensions = config.getExtensions();
 		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "type", "provider", "id", "config", "version", "category", "description", "image", "label",
 				"name", "author", "codename", "video", "support", "documentation", "forum", "mailinglist", "network", "created" }, 0, "query");
@@ -2406,7 +2407,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
-	}
+	}*/
 
 	private void doGetMappings() throws PageException {
 
@@ -4530,6 +4531,19 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateRHExtension() throws PageException {
+		
+		// ID
+		String id = getString("id", null);
+		if(!StringUtil.isEmpty(id)) {
+			ExtensionDefintion ed;
+			String version = getString("version", null);
+			if(!StringUtil.isEmpty(version, true))ed=new ExtensionDefintion(id,version);
+			else ed = RHExtension.toExtensionDefinition(id);
+			
+			DeployHandler.deployExtension(config,ed, null,true);
+			return;
+		}
+		
 		// this can be a binary that represent the extension or a string that is a path to the extension
 		Object obj = getObject("admin", "UpdateRHExtensions", "source");
 
@@ -4564,7 +4578,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		store();
 	}
 
-	private void doUpdateExtension() throws PageException {
+	/*private void doUpdateExtension() throws PageException {
 
 		admin.updateExtension(pageContext,
 				new ExtensionImpl(getStruct("config", null), getString("admin", "UpdateExtensions", "id"), getString("admin", "UpdateExtensions", "provider"),
@@ -4577,7 +4591,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		store();
 		// adminSync.broadcast(attributes, config);
-	}
+	}*/
 
 	private void doUpdateExtensionProvider() throws PageException {
 		admin.updateExtensionProvider(getString("admin", "UpdateExtensionProvider", "url"));

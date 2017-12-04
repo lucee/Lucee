@@ -1318,25 +1318,31 @@ public class RHExtension implements Serializable {
 		
 		String[] arr = ListUtil.trimItems(ListUtil.listToStringArray(str, ','));
 		if(ArrayUtil.isEmpty(arr)) return rtn;
+		ExtensionDefintion ed;
+		for(int i=0;i<arr.length;i++){
+			ed=toExtensionDefinition(arr[i]);
+			if(ed!=null)rtn.add(ed);
+		}
+		return rtn;
+	}
+	
+	public static ExtensionDefintion toExtensionDefinition(String s) {
+		if(StringUtil.isEmpty(s,true))return null;
+		s=s.trim();
 		
 		String[] arrr;
 		int index;
-		ExtensionDefintion ed;
-		String s;
-		for(int i=0;i<arr.length;i++){
-			s=arr[i];
-			arrr = ListUtil.trimItems(ListUtil.listToStringArray(s, ';'));
-			ed=new ExtensionDefintion();
-			for(String ss:arrr){
-				index=ss.indexOf('=');
-				if(index!=-1) {
-					ed.setParam(ss.substring(0,index).trim(),ss.substring(index+1).trim());
-				}
-				else ed.setId(ss);
+		arrr = ListUtil.trimItems(ListUtil.listToStringArray(s, ';'));
+		ExtensionDefintion ed=new ExtensionDefintion();
+		for(String ss:arrr){
+			index=ss.indexOf('=');
+			if(index!=-1) {
+				ed.setParam(ss.substring(0,index).trim(),ss.substring(index+1).trim());
 			}
-			rtn.add(ed);
+			else ed.setId(ss);
 		}
-		return rtn;
+		
+		return ed;
 	}
 
 	public static List<RHExtension> toRHExtensions(List<ExtensionDefintion> eds) throws PageException {

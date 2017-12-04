@@ -3693,9 +3693,9 @@ public abstract class ConfigImpl implements Config {
 	}
 	
 
-	public boolean installExtension(ExtensionDefintion ed) {
+	/*public boolean installExtension(ExtensionDefintion ed) throws PageException {
 		return DeployHandler.deployExtension(this, ed, getLog("deploy"),true);
-	}
+	}*/
 
 	public abstract List<ExtensionDefintion> loadLocalExtensions();
 

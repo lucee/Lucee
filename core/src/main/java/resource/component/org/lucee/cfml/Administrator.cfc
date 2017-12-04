@@ -797,18 +797,6 @@ component {
 	}
 
 	/**
-	* @hint updates the extension information.
-	* @enabled enable or disable to update the extension information.
-	*/
-	public void function updateExtensionInfo(boolean enabled=false){
-		admin
-			action="updateExtensionInfo"
-			type="#variables.type#"
-			password="#variables.password#"
-			enabled="#arguments.enabled#";
-	}
-
-	/**
 	* @hint updates(install/upgrade/downgrade) a specific extension.
 	* @provider provider of the extension
 	* @id id of the extension
