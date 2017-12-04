@@ -379,4 +379,4 @@ Require-Extension: 7E673D15-D87C-41A6-8B5F1956528C605F;name=MySQL;label=MySQL;ve
  EFDEB172-F52E-4D84-9CD1A1F561B3DFC8;name=Lucene;label=Lucene;version=2.4.1.30,
  66E312DD-D083-27C0-64189D16753FD6F0;name=PDF;label=PDF;version=1.0.0.66,
  FAD67145-E3AE-30F8-1C11A6CCF544F0B7;name=Form;label=Form tags;version=1.0.0.7;since=5.1.0.21,
- DF28D0A4-6748-44B9-A2FDC12E4E2E4D38;name=Axis;label=Axis 1;version=1.4.0.23-ALPHA;since=5.3.0.20
+ DF28D0A4-6748-44B9-A2FDC12E4E2E4D38;name=Axis;label=Axis 1;version=1.4.0.24-ALPHA;since=5.3.0.20
