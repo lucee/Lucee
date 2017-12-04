@@ -287,6 +287,20 @@
 <cfif structKeyExists(url,"action") and url.action EQ "plugin" && not structKeyExists(url,"plugin")>
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
+<cfif request.adminType EQ "web">
+	
+<cfadmin
+   action="getRHServerExtensions"
+   type="#request.adminType#"
+   password="#session["password"&request.adminType]#"
+   returnVariable="serverExtensions">
+
+
+  <cfquery name="LuceneExtInstl" dbtype="query">
+  	select * from serverExtensions where ID = 'EFDEB172-F52E-4D84-9CD1A1F561B3DFC8'
+  </cfquery>
+</cfif>
+
 <cfscript>
 	isRestrictedLevel=server.ColdFusion.ProductLevel EQ "community" or server.ColdFusion.ProductLevel EQ "professional";
 	isRestricted=isRestrictedLevel and request.adminType EQ "server";
@@ -314,6 +328,14 @@
 			for(iCld=1; iCld lte ArrayLen(stNavi.children); iCld=iCld+1) {
 				stCld = stNavi.children[iCld];
 				isActive=current.action eq stNavi.action & '.' & stCld.action or (current.action eq 'plugin' and stCld.action EQ url.plugin);
+				if(request.adminType EQ "web" && stCld.action EQ "search"){
+					isLuceneInstalled = LuceneExtInstl.recordCount;
+					if(LuceneExtInstl.recordCount EQ 0){
+						stCld.hidden = true;
+					} else{
+						stCld.hidden = false;
+					}
+				}
 				if(isActive) {
 					hasActiveItem = true;
 					current.label = stNavi.label & ' - ' & stCld.label;
