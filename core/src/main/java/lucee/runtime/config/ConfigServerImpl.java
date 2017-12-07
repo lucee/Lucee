@@ -913,7 +913,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 			}
 			localExtHash=extHash(locReses);
 			localExtSize=locReses.length; // we store the size because localExtensions size could be smaller because of duplicates
-			
 		}
 		return localExtensions;
 	}
