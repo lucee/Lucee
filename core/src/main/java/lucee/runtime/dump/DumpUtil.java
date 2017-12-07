@@ -624,24 +624,24 @@ public class DumpUtil {
 			// Bundle Info
 			ClassLoader cl = clazz.getClassLoader();
 			if(cl instanceof BundleClassLoader) {
-				BundleClassLoader bcl=(BundleClassLoader) cl;
-				Bundle b=bcl.getBundle();
-				Struct sct=new StructImpl();
-				sct.setEL(KeyConstants._id, b.getBundleId());
-				sct.setEL(KeyConstants._name, b.getSymbolicName());
-				sct.setEL("location", b.getLocation());
-				sct.setEL(KeyConstants._version, b.getVersion().toString());
-				
-				DumpTable bd = new DumpTable("#6289a3","#dee3e9","#000000");
-				bd.appendRow(1,new SimpleDumpData("id"),new SimpleDumpData(b.getBundleId()));
-				bd.appendRow(1,new SimpleDumpData("symbolic-name"),new SimpleDumpData(b.getSymbolicName()));
-				bd.appendRow(1,new SimpleDumpData("version"),new SimpleDumpData(b.getVersion().toString()));
-				bd.appendRow(1,new SimpleDumpData("location"),new SimpleDumpData(b.getLocation()));
-				requiredBundles(bd,b);
-				
-				
-				
-				table.appendRow(1,new SimpleDumpData("bundle-info"),bd);
+				try{
+					BundleClassLoader bcl=(BundleClassLoader) cl;
+					Bundle b=bcl.getBundle();
+					Struct sct=new StructImpl();
+					sct.setEL(KeyConstants._id, b.getBundleId());
+					sct.setEL(KeyConstants._name, b.getSymbolicName());
+					sct.setEL("location", b.getLocation());
+					sct.setEL(KeyConstants._version, b.getVersion().toString());
+					
+					DumpTable bd = new DumpTable("#6289a3","#dee3e9","#000000");
+					bd.appendRow(1,new SimpleDumpData("id"),new SimpleDumpData(b.getBundleId()));
+					bd.appendRow(1,new SimpleDumpData("symbolic-name"),new SimpleDumpData(b.getSymbolicName()));
+					bd.appendRow(1,new SimpleDumpData("version"),new SimpleDumpData(b.getVersion().toString()));
+					bd.appendRow(1,new SimpleDumpData("location"),new SimpleDumpData(b.getLocation()));
+					requiredBundles(bd,b);
+					table.appendRow(1,new SimpleDumpData("bundle-info"),bd);
+				}
+				catch(Exception e) {}
 			}
 			
 			return setId(id,table);

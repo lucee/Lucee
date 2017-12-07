@@ -886,6 +886,22 @@ public class RHExtension implements Serializable {
 		return ListUtil.listToStringArray(str.trim(), ',');
 	}
 	
+	public static Query toQuery(Config config,List<RHExtension> children) throws PageException {
+		Log log = config.getLog("deploy");
+		Query qry = createQuery();
+		Iterator<RHExtension> it = children.iterator();
+		while(it.hasNext()) {
+			try{
+				it.next().populate(qry); // ,i+1
+			}
+			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
+				log.error("extension", t);
+			}
+      	}
+		return qry;
+	}
+	
 	public static Query toQuery(Config config,RHExtension[] children) throws PageException {
 		Log log = config.getLog("deploy");
 		Query qry = createQuery();

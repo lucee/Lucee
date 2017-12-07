@@ -10,6 +10,7 @@
 	</cfoutput>
 	<cfset structDelete(session, "extremoved", false) />
 </cfif>
+<cfset extCount=(serverExtensions.recordcount?:0)+extensions.recordcount>
 
 <cfif extensions.recordcount || (!isNull(serverExtensions) && serverExtensions.recordcount)>
 	<cfoutput>
@@ -17,7 +18,10 @@
 		<h2>#stText.ext.installed#</h2>
 		<div class="itemintro">#stText.ext.installeddesc#</div>
 
+		<!--- Filter --->
+		<cfif extCount GT 30>
 		<div class="filterform">
+	
 			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 				<ul>
 					<li>
@@ -30,7 +34,9 @@
 				</ul>
 				<div class="clear"></div>
 			</cfformClassic>
-		</div>	
+		</div>
+		</cfif>
+
 		<cfloop list="#request.adminType=="web"?"server,web":"web"#" item="type">
 			<cfset _extensions=type=="web"?extensions:serverExtensions>
 		<cfif type=="server">
@@ -104,13 +110,35 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 
 
 
-
-
-
 <!---  Not Installed Applications --->
 <cfoutput>
 	<h2>#stText.ext.notInstalled#</h2>
 	<div class="itemintro">#stText.ext.notInstalleddesc#</div>
+	
+
+<cfscript>
+	existingIds = structKeyArray(existing);
+	unInstalledExt=external;
+
+	for(row=unInstalledExt.recordcount;row>=1;row--) {
+
+		rt = unInstalledExt.releaseType[row];
+		id = unInstalledExt.id[row];
+		// not for this admin type
+		if(!isnull(rt) and !isEmpty(rt) and rt != "all" and rt != request.adminType) {
+			queryDeleteRow(unINstalledExt,row);
+		}
+		// remove if already installed
+		if(arrayFindNoCase(existingIds,id)) {
+			queryDeleteRow(unINstalledExt,row);
+		}
+	}
+
+</cfscript>
+
+
+<!--- FILTER --->
+	<cfif unInstalledExt.recordcount GT 30>
 
 	<div class="filterform">
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
@@ -126,34 +154,33 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 			<div class="clear"></div>
 		</cfformClassic>
 	</div><br>
+</cfif>
 </cfoutput>
-	<cfset existingIds = structKeyList(existing)>
-	<cfquery name="unInstalledExt" dbtype="query">
-		Select * from external where 1=1
-		<cfif ListLen(existingIds)>
-			AND id not in (<cfqueryparam value="#existingIds#" list="true">)
-		</cfif>
-	</cfquery>
-	<cfset VersionStr = {}>
-	<cfquery dbtype="query" name="VersionStr.Pre_Release">
-		Select * from unInstalledExt where version LIKE '%ALPHA%' OR version LIKE '%BETA%' OR version LIKE '%RC%'
-	</cfquery>
-	<cfquery dbtype="query" name="VersionStr.SnapShot">
-		Select * from unInstalledExt where version LIKE '%SnapShot%'
-	</cfquery>
-	<cfset id = "">
-	<cfif VersionStr.Pre_Release.recordcount>
-		<cfset id = ListAppend(id,valueList(VersionStr.Pre_Release.id))>
-	</cfif>
-	<cfif VersionStr.SnapShot.recordcount>
-		<cfset id = ListAppend(id,valueList(VersionStr.SnapShot.id))>
-	</cfif>
-	<cfquery dbtype="query" name="VersionStr.release">
-		Select * from unInstalledExt where 1=1
-		<cfif ListLen(id)>
-			AND id not in (<cfqueryparam value="#id#" list="true">)
-		</cfif>
-	</cfquery>
+
+<cfscript>
+	VersionStr = {
+		'pre_release':queryNew(unInstalledExt.columnlist),
+		'snapshot':queryNew(unInstalledExt.columnlist),
+		'release':queryNew(unInstalledExt.columnlist)
+	};
+
+	loop query=unInstalledExt {
+		if(findNoCase("-ALPHA",unInstalledExt.version) || findNoCase("-BETA",unInstalledExt.version) || findNoCase("-RC",unInstalledExt.version)) 
+			addRow(unInstalledExt,VersionStr.pre_release,unInstalledExt.currentrow);
+		else if(findNoCase("-SNAPSHOT",unInstalledExt.version)) 
+			addRow(unInstalledExt,VersionStr.snapshot,unInstalledExt.currentrow);
+		else
+			addRow(unInstalledExt,VersionStr.release,unInstalledExt.currentrow);
+	}
+
+	function addRow(src,trg,srcRow) {
+		var trgRow=queryAddRow(trg);
+		loop array=queryColumnArray(src) item="local.col" {
+			querySetCell(trg,col,queryGetCell(src,col,srcRow),trgRow);
+		}
+	}
+</cfscript>
+
 <cfoutput>
 
  <cfif isQuery(external)>
@@ -166,13 +193,7 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 			<div id="div_#UcFirst(Lcase(key))#" class="topBottomSpace">
 				<cfif versionStr[key].RecordCount>
 					<cfloop query="#versionStr[key]#" group="id">
-						<cfif !StructKeyExists(existing,versionStr[key].id)
-						and (isnull(external.releaseType) 
-							or versionStr[key].releaseType EQ "" 
-							or versionStr[key].releaseType EQ "all" 
-							or versionStr[key].releaseType EQ request.adminType
-						) 
-						and (
+						<cfif  (
 							session.extFilter.filter2 eq ""
 							or doFilter(session.extFilter.filter2,versionStr[key].name,false)
 							or doFilter(session.extFilter.filter2,versionStr[key].category,false)

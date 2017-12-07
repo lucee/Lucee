@@ -242,10 +242,12 @@
 	*/
 	function getExternalData(required string[] providers, boolean forceReload=false, numeric timeSpan=60, boolean useLocalProvider=true) {
 		var datas={};
+
 		providers.each(parallel:true,closure:function(value){
 				var data=getProviderInfo(arguments.value,forceReload,timespan);
 				datas[arguments.value]=data;
 			});
+
 		var qry=queryNew("id,name,provider,lastModified");
 
 		if(useLocalProvider) {
@@ -253,8 +255,7 @@
 			    action="getLocalExtensions"
 			    type="#request.adminType#"
 			    password="#session["password"&request.adminType]#"
-			    returnVariable="local.locals";
-
+			    returnVariable="local.locals" ;
 			// add column if necessary
 			loop list="#locals.columnlist()#" item="local.k" {
                 if(!qry.columnExists(k)) qry.addColumn(k,[]);
@@ -448,21 +449,17 @@
 
 			// get info from remote
 			var uri=provider&"/rest/extension/provider/info";
-			//dump("get:"&uri);
-			//SystemOutput(uri&"<print-stack-trace>",true,true);
 
 			admin
 				action="getAPIKey"
 				type="#request.adminType#"
 				password="#session["password"&request.adminType]#"
 				returnVariable="apiKey";
-
-
-			http url="#uri#?type=all&coreVersion=#server.lucee.version#" result="local.http" {
+			http url="#uri#?type=all&coreVersion=#server.lucee.version#" cachedWithin=createTimespan(0,0,5,0) result="local.http" {
 				httpparam type="header" name="accept" value="application/json";
 				if(!isNull(apikey))httpparam type="url" name="ioid" value="#apikey#";
 			}
-
+			
 			if(isNull(http.status_code)){
 				session.rhcfcstries[provider]=now(); // set last try
 				local.result.error=http.fileContent;
@@ -539,11 +536,12 @@
 			return local.ext;
 		}
 		else {
-			http url="#uri#?type=all&coreVersion=#server.lucee.version##len(arguments.version)?'&version='&arguments.version:''#" result="local.http" {
+			http url="#uri#?type=all&coreVersion=#server.lucee.version##len(arguments.version)?'&version='&arguments.version:''#" result="local.http"  cachedWithin=createTimespan(0,0,5,0) {
 				httpparam type="header" name="accept" value="application/cfml";
 				if(!isNull(apiKey))httpparam type="url" name="ioid" value="#apikey#";
 
 			}
+			
 			if(!isNull(http.status_code) && http.status_code==200) {
 				return http.fileContent;
 			}
