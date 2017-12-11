@@ -51,6 +51,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.Resources;
 import lucee.commons.io.res.ResourcesImpl;
+import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.type.compress.Compress;
 import lucee.commons.io.res.type.compress.CompressResource;
@@ -2163,33 +2164,13 @@ public abstract class ConfigImpl implements Config {
 	}
 	
 	protected void addResourceProvider(String strProviderScheme, ClassDefinition cd, Map arguments) throws ClassException, BundleException {
-		Object o=ClassUtil.loadInstance(cd.getClazz());
-		
-		if(o instanceof ResourceProvider) {
-			ResourceProvider rp=(ResourceProvider) o;
-			rp.init(strProviderScheme,arguments);
-			addResourceProvider(rp);
-		}
-		else 
-			throw new ClassException("object ["+Caster.toClassName(o)+"] must implement the interface "+ResourceProvider.class.getName());
+		((ResourcesImpl)resources).registerResourceProvider(strProviderScheme,cd,arguments);
 	}
 	
 
-	protected void addResourceProvider(String strProviderScheme, Class providerClass, Map arguments) throws ClassException {
-		Object o=ClassUtil.loadInstance(providerClass);
-		
-		if(o instanceof ResourceProvider) {
-			ResourceProvider rp=(ResourceProvider) o;
-			rp.init(strProviderScheme,arguments);
-			addResourceProvider(rp);
-		}
-		else 
-			throw new ClassException("object ["+Caster.toClassName(o)+"] must implement the interface "+ResourceProvider.class.getName());
-	}
-
-	protected void addResourceProvider(ResourceProvider provider) {
-		resources.registerResourceProvider(provider);
-	}
+	/*protected void addResourceProvider(ResourceProvider provider) {
+		((ResourcesImpl)resources).registerResourceProvider(provider);
+	}*/
 	
 
 	public void clearResourceProviders() {
@@ -2203,18 +2184,25 @@ public abstract class ConfigImpl implements Config {
 		return resources.getResourceProviders();
 	}
 	
+	/**
+	 * @return return the resource providers
+	 */
+	public ResourceProviderFactory[] getResourceProviderFactories() {
+		return ((ResourcesImpl)resources).getResourceProviderFactories();
+	}
+	
 
 	public boolean hasResourceProvider(String scheme) {
-		ResourceProvider[] providers = resources.getResourceProviders();
-		for(int i=0;i<providers.length;i++){
-			if(providers[i].getScheme().equalsIgnoreCase(scheme)) return true;
+		ResourceProviderFactory[] factories = ((ResourcesImpl)resources).getResourceProviderFactories();
+		for(int i=0;i<factories.length;i++){
+			if(factories[i].getScheme().equalsIgnoreCase(scheme)) return true;
 		}
 		return false;
 	}
 
-	protected void setResourceProviders(ResourceProvider[] resourceProviders) {
-		for(int i=0;i<resourceProviders.length;i++) {
-			resources.registerResourceProvider(resourceProviders[i]);
+	protected void setResourceProviderFactories(ResourceProviderFactory[] resourceProviderFactories) {
+		for(int i=0;i<resourceProviderFactories.length;i++) {
+			((ResourcesImpl)resources).registerResourceProvider(resourceProviderFactories[i]);
 		}
 	}
 

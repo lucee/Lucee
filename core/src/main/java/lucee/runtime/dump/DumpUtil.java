@@ -51,6 +51,7 @@ import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.i18n.LocaleFactory;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.OSGiUtil;
@@ -624,9 +625,8 @@ public class DumpUtil {
 			// Bundle Info
 			ClassLoader cl = clazz.getClassLoader();
 			if(cl instanceof BundleClassLoader) {
-				try{
-					BundleClassLoader bcl=(BundleClassLoader) cl;
-					Bundle b=bcl.getBundle();
+				Bundle b=getBundle(cl);
+				if(b!=null){	
 					Struct sct=new StructImpl();
 					sct.setEL(KeyConstants._id, b.getBundleId());
 					sct.setEL(KeyConstants._name, b.getSymbolicName());
@@ -641,7 +641,6 @@ public class DumpUtil {
 					requiredBundles(bd,b);
 					table.appendRow(1,new SimpleDumpData("bundle-info"),bd);
 				}
-				catch(Exception e) {}
 			}
 			
 			return setId(id,table);
@@ -652,6 +651,17 @@ public class DumpUtil {
 		}
 	}
 	
+	private static Bundle getBundle(ClassLoader cl) {
+		try {
+			Method m = cl.getClass().getMethod("getBundle", new Class[0]);
+			return (Bundle)m.invoke(cl, new Object[0]);
+		} 
+		catch (Exception e) {
+			return null;
+		}
+	}
+
+
 	private static void requiredBundles(DumpTable parent, Bundle b) {
 		try {
 			List<BundleDefinition> list = OSGiUtil.getRequiredBundles(b);
