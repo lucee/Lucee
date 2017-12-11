@@ -44,6 +44,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.jsp.tagext.Tag;
 
 import lucee.VersionInfo;
+import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
@@ -149,6 +150,7 @@ import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.BundleBuilderFactory;
 import lucee.runtime.osgi.BundleFile;
+import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.JarUtil;
 import lucee.runtime.osgi.ManifestUtil;
 import lucee.runtime.osgi.OSGiUtil;
@@ -3788,26 +3790,60 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private String _usedBy(String name, Version version, BundleCollection coreBundles, java.util.Collection<BundleDefinition> extBundles) {
+		Set<String> extensions=new HashSet<String>();
+		
 		// core
-		if(_eq(name, version, coreBundles.core.getSymbolicName(), coreBundles.core.getVersion()))
-			return "core";
+		if(_eq(name, version, coreBundles.core.getSymbolicName(), coreBundles.core.getVersion())) {
+			extensions.add("Lucee");
+			//return "Lucee";
+		}
 		Iterator<Bundle> it = coreBundles.getSlaves();
 		Bundle b;
 		while(it.hasNext()) {
 			b = it.next();
-			if(_eq(name, version, b.getSymbolicName(), b.getVersion()))
-				return "core";
+			if(_eq(name, version, b.getSymbolicName(), b.getVersion())) {
+				extensions.add("Lucee");
+				//return "Lucee";
+				break;
+			}
 		}
 
 		Iterator<BundleDefinition> itt = extBundles.iterator();
 		BundleDefinition bd;
 		while(itt.hasNext()) {
 			bd = itt.next();
-			if(_eq(name, version, bd.getName(), bd.getVersion()))
-				return "extension";
+			if(_eq(name, version, bd.getName(), bd.getVersion())) {
+				findExtension(extensions,bd);
+			}
 		}
+		
+		if(extensions.size()==0)
+			return "";
+		if(extensions.size()==1)
+			return extensions.iterator().next();
+		
+		return ListUtil.arrayToList(extensions.toArray(new String[extensions.size()]), ", ");
+	}
 
-		return null;
+	private void findExtension(Set<String> extensions, BundleDefinition bd) {
+		ConfigImpl ci=(ConfigImpl) config;
+		_findExtension(ci.getRHExtensions(),bd,extensions);
+		_findExtension(ci.getServerRHExtensions(),bd,extensions);
+	}
+
+	private void _findExtension(RHExtension[] extensions, BundleDefinition bd,Set set) {
+		BundleInfo[] bundles;
+		for(RHExtension e:extensions) {
+			try {
+				bundles = e.getBundles();
+				for(BundleInfo b:bundles) {
+					if(_eq(bd.getName(), bd.getVersion(), b.getSymbolicName(), b.getVersion())) {
+						set.add(e.getName());
+					}
+				}
+			}
+			catch(Exception ex) {}
+		}
 	}
 
 	private boolean _eq(String lName, Version lVersion, String rName, Version rVersion) {
