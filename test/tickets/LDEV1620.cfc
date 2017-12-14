@@ -8,7 +8,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				} catch ( any e ){
 					hasError = true;
 				}
-				expect(hasError).toBe('true');
+				expect(hasError).toBe(false);
 			});
 		});
 	}
