@@ -101,8 +101,10 @@ component {
 		pc=getPageContext();
 		config=pc.getConfig();
 		mappings=config.getComponentMappings();
+
 		sct={};
 		for(m in mappings) {
+			if(isNull(m.getPhysical())) continue;
 			path=m.getPhysical().getAbsolutePath();
 			directory
 				recurse=true
