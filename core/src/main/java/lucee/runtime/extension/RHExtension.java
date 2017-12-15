@@ -1406,10 +1406,12 @@ public class RHExtension implements Serializable {
 
 	public static List<RHExtension> toRHExtensions(List<ExtensionDefintion> eds) throws PageException {
 		try {
-			List<RHExtension> rtn=new ArrayList<RHExtension>();
+			final List<RHExtension> rtn=new ArrayList<RHExtension>();
 			Iterator<ExtensionDefintion> it = eds.iterator();
+			ExtensionDefintion ed;
 			while(it.hasNext()) {
-				rtn.add(it.next().toRHExtension());
+				ed = it.next();
+				if(ed!=null)rtn.add(ed.toRHExtension());
 			}
 			return rtn;
 		}

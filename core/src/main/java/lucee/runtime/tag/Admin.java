@@ -1722,17 +1722,20 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String id=getString("id",null);
 		Array data = cw.getDebuggerPool().getData(pageContext);
 		
-		if(StringUtil.isEmpty(id))
+		if(StringUtil.isEmpty(id)) {
 			pageContext.setVariable(getString("admin", action, "returnVariable"), data);
-		
-		Iterator<Object> it = data.valueIterator();
-		Struct sct;
-		while(it.hasNext()) {
-			sct=(Struct) it.next();
-			if(Operator.equalsEL(id, sct.get(KeyConstants._id,""), false, true)) {
-				pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
-				return;
+		}
+		else {
+			Iterator<Object> it = data.valueIterator();
+			Struct sct;
+			while(it.hasNext()) {
+				sct=(Struct) it.next();
+				if(Operator.equalsEL(id, sct.get(KeyConstants._id,""), false, true)) {
+					pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
+					return;
+				}
 			}
+			throw new ApplicationException("no debugging data with id ["+id+"] found.");
 		}
 	}
 
