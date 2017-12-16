@@ -215,6 +215,11 @@ td#logintd {
 #copyright a {
 	color:#efede5;
 }
+.linkContext a {
+	color:#efede5;
+	text-decoration:none;
+
+}
 #copyrighttd {
 
 }

@@ -1,47 +1,38 @@
+<cfparam name="url.col" default="title">
+<cfparam name="url.dir" default="asc">
 <cfadmin 
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#" 
 	action="getBundles" 
 	returnvariable="bundles">
 <cfscript>
-	function byteFormat(numeric bytes){
-
-	kb=bytes/1024;
-	if(kb<1) return bytes&"b";
-
-	mb=kb/1024;
-	if(mb<1) return rround(kb)&"kb";
-
-	gb=mb/1024;
-	if(gb<1) return rround(mb)&"mb";
-
-	tb=gb/1024;
-	if(tb<1) return rround(gb)&"gb";
-
-	return rround(tb)&"tb";
-}
-
-function rround(nbr) {
-	if(nbr>99) return round(nbr);
-	if(nbr>9) return round(nbr*10)/10;
-	return round(nbr*100)/100;
-}
-
+	queryAddColumn(bundles,"size");
+	queryAddColumn(bundles,"sizeAsString");
+	loop query=bundles {
+		p=bundles.path&"";
+		if(fileExists(p)){
+			s=fileInfo(p).size;
+			querySetCell(bundles,"size",s,bundles.currentrow);
+			querySetCell(bundles,"sizeAsString",byteFormat(s),bundles.currentrow);
+		}
+	}
+	querySort(bundles,url.col,url.dir);
 </cfscript>
+
 <cfoutput>
 	<cfif not hasAccess><cfset noAccess(stText.setting.noAccess)></cfif>
 	<div class="pageintro">#stText.bundles.introText#</div>
 		<table class="maintbl checkboxtbl">
 			<thead>
 				<tr>
-					<th width="3%"><cfif hasAccess><input type="checkbox" class="checkbox" name="rro" onclick="selectAll(this)"></cfif></th>
-					<th>#stText.info.bundles.subject#</th>
-					<th>#stText.info.bundles.version#</th>
-					<th>#stText.info.bundles.fileName#</th>
-					<th>#stText.info.bundles.vendor#</th>
-					<th>#stText.info.bundles.usedBy#</th>
-					<th>#stText.info.bundles.size?:"Size"#</th>
-					<th>#stText.info.bundles.state#</th>
+					<!---<th width="3%"><cfif hasAccess><input type="checkbox" class="checkbox" name="rro" onclick="selectAll(this)"></cfif></th>--->
+					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=title&dir=#url.col=='title'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.subject#</a></th>
+					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=version&dir=#url.col=='version'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.version#</a></th>
+					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=size&dir=#url.col=='size'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.size?:"Size"#</a></th>
+					<!--- <th>#stText.info.bundles.fileName#</th> --->
+					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=vendor&dir=#url.col=='vendor'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.vendor#</a></th>
+					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=usedBy&dir=#url.col=='usedBy'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.usedBy#</a></th>
+					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=state&dir=#url.col=='state'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.state#</a></th>
 					<th></th>
 				</tr>
 			</thead>
@@ -49,12 +40,12 @@ function rround(nbr) {
 				<cfloop query="bundles">
 						<!--- and now display --->
 						<tr>
-							<!--- checkbox ---->
+							<!--- checkbox
 							<td>
 								<input type="hidden" name="stopOnError_#bundles.currentrow#" value="yes">
 								<input type="checkbox" class="checkbox" name="row_#bundles.currentrow#" value="#bundles.currentrow#">
 								
-							</td>
+							</td> ---->
 							<!--- subject --->
 							<td>
 								<input type="hidden" name="virtual_#bundles.currentrow#" value="#bundles.title#">
@@ -66,10 +57,14 @@ function rround(nbr) {
 							<td nowrap="nowrap">
 								#bundles.version#
 							</td>
-							<!--- path --->
+							<!--- Size --->
+							<td nowrap="nowrap">
+								#bundles.sizeAsString#
+							</td>
+							<!--- path
 							<td title="#bundles.path#">
 							#listLast(bundles.path,"\/")#
-							</td>
+							</td> --->
 							<!--- vendor --->
 							<td >
 							#bundles.vendor#
@@ -77,13 +72,7 @@ function rround(nbr) {
 
 							<!--- usedBy --->
 							<td nowrap="nowrap">
-								#bundles.usedBy#
-							</td>
-							<!--- Size --->
-							<td nowrap="nowrap">
-								<cfset p=bundles.path&"">
-								<cfif fileExists(p)>#byteFormat(fileInfo(p).size)#</cfif>
-								
+								#replace(bundles.usedBy,',','<br>','all')#
 							</td>
 
 							<!--- state --->

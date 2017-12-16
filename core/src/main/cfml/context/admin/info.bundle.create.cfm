@@ -23,6 +23,13 @@
 					<td><cfif !isNull(bundle.path)>#bundle.path#</cfif></td>
 				</tr>
 				<tr>
+					<th scope="row">#stText.info.bundles.size?:"Size"#</th>
+					<td>
+						<cfset p=bundle.path&"">
+						<cfif fileExists(p)>#byteFormat(fileInfo(p).size)#</cfif>
+					</td>
+				</tr>
+				<tr>
 					<th scope="row">#stText.info.bundles.vendor#</th>
 					<td><cfif !isNull(bundle.vendor)>#bundle.vendor#</cfif></td>
 				</tr>
