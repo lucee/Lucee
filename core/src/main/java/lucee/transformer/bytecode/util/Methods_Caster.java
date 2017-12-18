@@ -33,10 +33,10 @@ public final class Methods_Caster {
 			Types.ARRAY,
 			new Type[]{Types.OBJECT});
     
-    final public static Method TO_IMAGE = new Method("toImage",
-			Types.IMAGE,
+    /* ext.img final public static Method TO_IMAGE = new Method("toImage",
+			ImageUtil.getImageType(),
 			new Type[]{Types.OBJECT,Types.PAGE_CONTEXT});
-    
+    */
     // String toBase64 (Object)
     final public static Method TO_BASE64 = new Method("toBase64",
 			Types.STRING,
