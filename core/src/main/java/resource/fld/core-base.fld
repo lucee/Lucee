@@ -2990,7 +2990,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>Version of the Extension.</description>
 	    </argument>
 		<return>
-			<type>string</type>
+			<type>boolean</type>
 		</return>
 	</function>
 	

@@ -23,7 +23,7 @@ public class ExtensionExists extends BIF implements Function {
 		if(find(id,version,((ConfigWebImpl)pc.getConfig()).getRHExtensions())) return true;
 		return false;
 	}
-
+	
 	private static boolean find(String id, String version, RHExtension[] extensions) {
 		for(RHExtension ext:extensions) {
 			if(ext.getId().equalsIgnoreCase(id)) {
@@ -33,6 +33,9 @@ public class ExtensionExists extends BIF implements Function {
 		}
 		return false;
 	}
+	
+	
+	
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
