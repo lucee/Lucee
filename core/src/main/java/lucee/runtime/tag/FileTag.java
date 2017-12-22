@@ -57,7 +57,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.functions.list.ListFirst;
 import lucee.runtime.functions.list.ListLast;
-import lucee.runtime.img.ImageUtil;
+import lucee.runtime.image.ImageUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.security.SecurityManager;
@@ -786,7 +786,7 @@ public final class FileTag extends BodyTagImpl {
 		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		
-		try { 		
+		/*try {
 			BufferedImage bi = ImageUtil.toBufferedImage(file, null);
             if(bi!=null) {
 	            Struct img =new StructImpl();
@@ -795,7 +795,7 @@ public final class FileTag extends BodyTagImpl {
 	            sct.setEL(KeyConstants._img,img);
             }
         } 
-		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+		catch(Exception e) {}*/
 		return sct;
 	}
 

@@ -54,9 +54,10 @@ import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ExceptionHandler;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.functions.FunctionHandlerPool;
-import lucee.runtime.img.Image;
+import lucee.runtime.image.ImageUtil;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;
@@ -139,7 +140,7 @@ public final class Types {
     public static final Type FLOAT = Type.getType(Float.class);
     public static final Type FLOAT_VALUE = Type.getType(float.class);
 
-    public static final Type IMAGE = Type.getType(Image.class);
+    //public static final Type IMAGE = Type.getType(Image.class);
     public static final Type INTEGER = Type.getType(Integer.class);
     public static final Type INT_VALUE = Type.getType(int.class);
 
@@ -329,7 +330,7 @@ public final class Types {
         case 'i':
             if("int".equals(lcType))								return INT_VALUE;
             else if("integer".equals(lcType))						return INTEGER;
-            else if("image".equals(lcType))							return IMAGE;
+            // ext.img else if("image".equals(lcType))							return ImageUtil.getImageType();
         break;
         case 'j':
             if("java.lang.boolean".equals(lcType))					return BOOLEAN;
@@ -480,7 +481,11 @@ public final class Types {
 		if(Types.TIMEZONE.equals(type)) return TimeZone.class;
 		if(Types.LOCALE.equals(type)) return Locale.class;
 		if(Types.UDF.equals(type)) return UDF.class;
-		if(Types.IMAGE.equals(type)) return Image.class;
+		/*if(Types.IMAGE.equals(type)) {
+			Class clazz = ImageUtil.getImageClass();
+	    	if(clazz!=null) return clazz;
+	    	throw new PageRuntimeException("Cannot provide Image class, you neeed to install the Image Extension to do so.");
+		}*/
 		if(Types.BYTE_VALUE_ARRAY.equals(type)) return byte[].class;
 		return ClassUtil.toClass(type.getClassName());
 	}

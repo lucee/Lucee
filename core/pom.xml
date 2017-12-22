@@ -125,14 +125,6 @@
   		<version>0.1.53</version>
     	<scope>provided</scope>
   	</dependency>
-	
-    <dependency>
-         <groupId>org.apache.commons</groupId>
-         <artifactId>image</artifactId>
-         <type>jar</type>
-         <version>1.0.0.R1534292</version>
-         <scope>provided</scope>
-      </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
@@ -360,12 +352,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>metadata</groupId>
-      <artifactId>extractor</artifactId>
-      <version>2.8.1.0002L</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
 	    <groupId>org.ow2.asm</groupId>
 	    <artifactId>asm-all</artifactId>
 	    <version>4.2</version>
@@ -399,18 +385,6 @@
       <groupId>stax</groupId>
       <artifactId>api</artifactId>
       <version>1.0.1.0002L</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>sun.jai</groupId>
-      <artifactId>codec</artifactId>
-      <version>1.1.2.0003L</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>sun.jai</groupId>
-      <artifactId>core</artifactId>
-      <version>1.2.1.0003L</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

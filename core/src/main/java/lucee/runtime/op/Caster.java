@@ -29,7 +29,9 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
@@ -81,6 +83,7 @@ import lucee.runtime.component.Property;
 import lucee.runtime.component.PropertyImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.Identification;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -94,7 +97,7 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.file.FileStreamWrapper;
 import lucee.runtime.functions.other.ToBinary;
 import lucee.runtime.i18n.LocaleFactory;
-import lucee.runtime.img.Image;
+import lucee.runtime.image.ImageUtil;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.java.JavaObject;
@@ -138,6 +141,8 @@ import lucee.runtime.type.wrap.ListAsArray;
 import lucee.runtime.type.wrap.MapAsStruct;
 import lucee.runtime.util.ForEachUtil;
 
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -2671,11 +2676,12 @@ public final class Caster {
             }
             return barr.toByteArray();            
         }
-        else if(o instanceof Image) {
-        	return ((Image)o).getImageBytes(null);
+    	// depending on extension Image
+        else if(o!=null && o.getClass().getName().equals("org.lucee.extension.image.Image")) {
+        	return ImageUtil.getImageBytes(o,null);
         }
         else if(o instanceof BufferedImage) {
-        	return new Image(((BufferedImage)o)).getImageBytes("png");
+        	return ImageUtil.getImageBytes((BufferedImage)o);
         }
         else if(o instanceof ByteArrayOutputStream) {
         	return ((ByteArrayOutputStream)o).toByteArray();
@@ -2703,7 +2709,10 @@ public final class Caster {
             throw new CasterException(o,"binary");
         }
     }
-    /**
+
+    
+
+	/**
      * cast a Object to a Binary
      * @param o Object to cast
      * @param defaultValue 
@@ -3688,7 +3697,7 @@ public final class Caster {
 
     public static Object castTo(PageContext pc, short type, String strType, Object o, Object defaultValue) {
 //   	 TODO weitere typen siehe bytecode.cast.Cast
-    Object res;
+    Object res=null;
    	if(type==CFTypes.TYPE_ANY)                 return o;
        else if(type==CFTypes.TYPE_ARRAY)          res= toArray(o,null);
        else if(type==CFTypes.TYPE_BOOLEAN)        res= toBoolean(o,null);
@@ -3706,17 +3715,20 @@ public final class Caster {
        else if(type==CFTypes.TYPE_VOID)           res= toVoid(o,null);
        else if(type==CFTypes.TYPE_XML)            res= toXML(o,null);
        else if(type==CFTypes.TYPE_FUNCTION)       res= toFunction(o,null);
-       else if(type==CFTypes.TYPE_IMAGE)          res= Image.toImage(pc,o,true,null);
+       //ext.img else if(type==CFTypes.TYPE_IMAGE)          res= ImageUtil.toImage(pc,o,true,null);
        else if(type==CFTypes.TYPE_LOCALE)         res= toLocale(o,null);
        else if(type==CFTypes.TYPE_TIMEZONE)       res= toTimeZone(o,null);
-
+   	
+   	if(res!=null) return res;
+   	
    	try {
 		return _castTo(pc, strType, o);
 	} catch (PageException e) {
 		return defaultValue;
 	}
    }  
-    
+   
+
 	/**
      * cast a value to a value defined by type argument
      * @param pc
@@ -3745,7 +3757,7 @@ public final class Caster {
         else if(type==CFTypes.TYPE_VOID)           return toVoid(o);
         else if(type==CFTypes.TYPE_XML)            return toXML(o);
         else if(type==CFTypes.TYPE_FUNCTION)       return toFunction(o);
-        else if(type==CFTypes.TYPE_IMAGE)          return Image.toImage(pc,o);
+        //ext.img else if(type==CFTypes.TYPE_IMAGE)          return ImageUtil.toImage(pc,o,true);
         else if(type==CFTypes.TYPE_LOCALE)         return toLocale(o);
         else if(type==CFTypes.TYPE_TIMEZONE)       return toTimeZone(o);
 
@@ -3849,7 +3861,7 @@ public final class Caster {
         else if(type==CFTypes.TYPE_VOID)           return toVoid(o);
         else if(type==CFTypes.TYPE_FUNCTION)       return toFunction(o);
         else if(type==CFTypes.TYPE_XML)            return toXML(o);
-        else if(type==CFTypes.TYPE_IMAGE)            return Image.toImage(pc,o);
+        //ext.img else if(type==CFTypes.TYPE_IMAGE)          return ImageUtil.toImage(pc,o,true);
 
         if(type==CFTypes.TYPE_UNDEFINED)
             throw new ExpressionException("type isn't defined (TYPE_UNDEFINED)");

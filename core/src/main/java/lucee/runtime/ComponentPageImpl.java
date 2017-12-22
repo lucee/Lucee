@@ -49,12 +49,10 @@ import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.converter.XMLConverter;
-import lucee.runtime.converter.bin.ImageConverter;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.DumpWriter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
@@ -609,7 +607,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements
 			throws PageException, IOException, ConverterException {
 		// TODO miemtype mapping with converter defintion from external file
 		// Images
-		if (mt.same(MimeType.IMAGE_GIF))
+		/*if (mt.same(MimeType.IMAGE_GIF))
 			writeOut(pc, obj, mt, new ImageConverter("gif"));
 		else if (mt.same(MimeType.IMAGE_JPG))
 			writeOut(pc, obj, mt, new ImageConverter("jpeg"));
@@ -637,9 +635,9 @@ public abstract class ComponentPageImpl extends ComponentPage implements
 			writeOut(pc, obj, mt, new ImageConverter("psd"));
 		else if (mt.same(MimeType.IMAGE_ASTERIX))
 			writeOut(pc, obj, MimeType.IMAGE_PNG, new ImageConverter("png"));
-
+		*/
 		// Application
-		else if (mt.same(MimeType.APPLICATION_JAVA))
+		if (mt.same(MimeType.APPLICATION_JAVA))
 			writeOut(pc, obj, mt, new JavaConverter());
 		// if("application".equalsIgnoreCase(mt.getType()))
 

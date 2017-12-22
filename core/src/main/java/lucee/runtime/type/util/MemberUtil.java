@@ -84,6 +84,7 @@ public class MemberUtil {
 		return match;
 	}
 	
+	// used in extension Image
 	public static Object call(PageContext pc, Object coll,Collection.Key methodName, Object[] args, short[] types, String[] strTypes) throws PageException {
 		
 		// look for members
@@ -163,6 +164,8 @@ public class MemberUtil {
 		}
 	}
 
+	
+	// used in extension image
 	public static Object callWithNamedValues(PageContext pc,Object coll, Collection.Key methodName, Struct args,short type, String strType) throws PageException {
 		Map<Key, FunctionLibFunction> members = getMembers(pc, type);
 		FunctionLibFunction member=members.get(methodName); 

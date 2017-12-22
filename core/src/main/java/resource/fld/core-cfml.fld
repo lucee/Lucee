@@ -2301,42 +2301,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
-	<!-- ImageDrawImage -->
-	<function>
-		<name>ImageDrawImage</name>
-		<class>lucee.runtime.functions.image.ImageDrawImage</class>
-		<status>deprecated</status>
-		<keywords>image</keywords>
-		<description>this function is deprecated, use ImagePaste instead. Draws a image on a image with the baseline of the first character positioned at (x,y) in the image.</description>
-		<argument>
-			<name>name</name>
-			<type>any</type>
-			<required>Yes</required>
-		<description>the image to draw on it</description>
-    </argument>
-		<argument>
-			<name>image</name>
-			<type>any</type>
-			<required>Yes</required>
-		<description>the image to draw</description>
-    </argument>
-		<argument>
-			<name>x</name>
-			<type>number</type>
-			<required>Yes</required>
-		<description>The x coordinate of the of the top left corner of the image to draw.</description>
-    </argument>
-		<argument>
-			<name>y</name>
-			<type>number</type>
-			<required>Yes</required>
-		<description>The y coordinate of the of the top left corner of the image to draw.</description>
-    </argument>
-		<return>
-			<type>void</type>
-		</return>
-	</function>
-	
 	<!-- getMetricData -->
 	<function>
 		<name>getMetricData</name>

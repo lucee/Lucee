@@ -410,6 +410,9 @@
         <!-- Webservice -->
         <not><isset property="extAxis"/></not>
         <not><isset property="extAxisVersion"/></not>
+        <!-- Image -->
+        <not><isset property="extImage"/></not>
+        <not><isset property="extImageVersion"/></not>
         </or>
     </condition>
     </fail>
@@ -510,6 +513,7 @@
     <available file="${cache}/${extPDF}-${extPDFVersion}.lex" property="pdf.present"/>
     <available file="${cache}/${extForm}-${extFormVersion}.lex" property="form.present"/>
     <available file="${cache}/${extAxis}-${extAxisVersion}.lex" property="axis.present"/>
+    <available file="${cache}/${extImage}-${extImageVersion}.lex" property="image.present"/>
   </target>
 
 
@@ -555,12 +559,15 @@
   <target name="check-axis" depends="check-cache" unless="axis.present">
       <get src="${extURL}${extAxis}?version=${extAxisVersion}" dest="${cache}/${extAxis}-${extAxisVersion}.lex"/>
   </target>
+  <target name="check-image" depends="check-cache" unless="image.present">
+      <get src="${extURL}${extImage}?version=${extImageVersion}" dest="${cache}/${extImage}-${extImageVersion}.lex"/>
+  </target>
   <target name="check-testbox" depends="check-cache" unless="testbox.present">
       <get src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
   </target> 
 
 
-  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-axis,check-testbox">
+  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-axis,check-image,check-testbox">
     
     <mkdir dir="${temp}/loader/extensions/"/>
 
@@ -1059,6 +1066,18 @@
       tofile="${goal}/extensions/${ext_axis.filename}"/>
     <echo>add:${goal}/extensions/${ext_axis.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_axis.filename};</echo>
+
+    <!-- add extension Image -->
+    <loadmf jar="${cache}/${extImage}-${extImageVersion}.lex" prefix="ext_image."/>
+    <toFileName id="${ext_image.id}" name="${ext_image.name}" version="${ext_image.version}" property="ext_image.filename"/>
+    <copy 
+      file="${cache}/${extImage}-${extImageVersion}.lex" 
+      todir="${goal}/extensions/"/>
+    <move 
+      file="${goal}/extensions/${extImage}-${extImageVersion}.lex" 
+      tofile="${goal}/extensions/${ext_image.filename}"/>
+    <echo>add:${goal}/extensions/${ext_image.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_image.filename};</echo>
 
   </target>
 

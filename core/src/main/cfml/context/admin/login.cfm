@@ -62,13 +62,13 @@
 						</select>
 					</td>
 				</tr>
-				<cfif loginSettings.captcha>
+				<cfif loginSettings.captcha and extensionExists("extension.image")>
 					<cfset cap=createRandomText(6)>
 					<cfset session.cap=cap>
 					<tr>
 						<th scope="row" class="right">#stText.login.captchaHelp#</th>
 						<td>
-							<cfimage action="captcha" width="180" height="35" text="#cap#" difficulty="medium">
+							<cfset ImageWriteToBrowser(imageCaptcha(cap,180,35,"medium"))>
 							<a style="font-size : 10px" href="#request.self#<cfif structKeyExists(url,"action")>?action=#url.action#</cfif>">Reload</a><br />
 							<cfinputClassic type="text" name="captcha" value="" passthrough='autocomplete="off"'
 								class="medium" required="yes" message="#stText.login.captchaHelpMiss#">

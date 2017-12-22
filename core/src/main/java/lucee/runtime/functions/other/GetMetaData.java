@@ -21,12 +21,13 @@
  */
 package lucee.runtime.functions.other;
 
+import java.lang.reflect.Method;
+
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.img.Image;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
@@ -76,10 +77,14 @@ public final class GetMetaData implements Function {
 	        else if(object instanceof Query) {
 	            return ((Query)object).getMetaDataSimple();
 	        }
-			// Image
-	        else if(object instanceof Image) {
-	            return ((Image)object).info();
-	        }
+			
+			// FUTURE add interface with getMetaData
+			try {
+			Method m = object.getClass().getMethod("info", new Class[]{});
+			return (Struct)m.invoke(object, new Object[]{});
+			}
+			catch(Exception e) {}
+			
 			if(object==null) throw new FunctionException(pc,"GetMetaData",1,"object","value is null");
 			return object.getClass();
 		}

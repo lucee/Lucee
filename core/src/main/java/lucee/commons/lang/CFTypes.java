@@ -104,7 +104,7 @@ public final class CFTypes {
 
     public static final short TYPE_FUNCTION = 23;
     public static final short TYPE_QUERY_COLUMN=24;
-    public static final short TYPE_IMAGE=25;
+    public static final short TYPE_IMAGE=25; // used in extension image
     public static final short TYPE_LOCALE=26;
     public static final short TYPE_TIMEZONE=27;
     

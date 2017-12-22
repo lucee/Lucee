@@ -42,17 +42,20 @@
 				<cfcatch><cfset systemOutput(e,true,true)></cfcatch>
 			</cftry>
 		</cfif>
-		<cfimage action="read" source="#data#" name="img">
 
-		<!--- shrink images if needed --->
-		<cfif img.height GT url.height or img.width GT url.width>
-			<cfif img.height GT url.height >
-				<cfimage action="resize" source="#img#" height="#url.height#" name="img">
+		<cfif extensionExists("extension.image")>
+			<cfset img=imageRead(data)>
+			
+			<!--- shrink images if needed --->
+			<cfif img.height GT url.height or img.width GT url.width>
+				<cfif img.height GT url.height >
+					<cfset imageResize(img,"",url.height)>
+				</cfif>
+				<cfif img.width GT url.width>
+					<cfset imageResize(img,url.width,"")>
+				</cfif>
+				<cfset data=toBinary(img)>
 			</cfif>
-			<cfif img.width GT url.width>
-				<cfimage action="resize" source="#img#" width="#url.width#" name="img">
-			</cfif>
-			<cfset data=toBinary(img)>
 		</cfif>
 		
 		<cftry>
