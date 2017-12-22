@@ -51,6 +51,7 @@ import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.i18n.LocaleFactory;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.OSGiUtil;
@@ -624,24 +625,22 @@ public class DumpUtil {
 			// Bundle Info
 			ClassLoader cl = clazz.getClassLoader();
 			if(cl instanceof BundleClassLoader) {
-				BundleClassLoader bcl=(BundleClassLoader) cl;
-				Bundle b=bcl.getBundle();
-				Struct sct=new StructImpl();
-				sct.setEL(KeyConstants._id, b.getBundleId());
-				sct.setEL(KeyConstants._name, b.getSymbolicName());
-				sct.setEL("location", b.getLocation());
-				sct.setEL(KeyConstants._version, b.getVersion().toString());
-				
-				DumpTable bd = new DumpTable("#6289a3","#dee3e9","#000000");
-				bd.appendRow(1,new SimpleDumpData("id"),new SimpleDumpData(b.getBundleId()));
-				bd.appendRow(1,new SimpleDumpData("symbolic-name"),new SimpleDumpData(b.getSymbolicName()));
-				bd.appendRow(1,new SimpleDumpData("version"),new SimpleDumpData(b.getVersion().toString()));
-				bd.appendRow(1,new SimpleDumpData("location"),new SimpleDumpData(b.getLocation()));
-				requiredBundles(bd,b);
-				
-				
-				
-				table.appendRow(1,new SimpleDumpData("bundle-info"),bd);
+				Bundle b=getBundle(cl);
+				if(b!=null){	
+					Struct sct=new StructImpl();
+					sct.setEL(KeyConstants._id, b.getBundleId());
+					sct.setEL(KeyConstants._name, b.getSymbolicName());
+					sct.setEL("location", b.getLocation());
+					sct.setEL(KeyConstants._version, b.getVersion().toString());
+					
+					DumpTable bd = new DumpTable("#6289a3","#dee3e9","#000000");
+					bd.appendRow(1,new SimpleDumpData("id"),new SimpleDumpData(b.getBundleId()));
+					bd.appendRow(1,new SimpleDumpData("symbolic-name"),new SimpleDumpData(b.getSymbolicName()));
+					bd.appendRow(1,new SimpleDumpData("version"),new SimpleDumpData(b.getVersion().toString()));
+					bd.appendRow(1,new SimpleDumpData("location"),new SimpleDumpData(b.getLocation()));
+					requiredBundles(bd,b);
+					table.appendRow(1,new SimpleDumpData("bundle-info"),bd);
+				}
 			}
 			
 			return setId(id,table);
@@ -652,6 +651,17 @@ public class DumpUtil {
 		}
 	}
 	
+	private static Bundle getBundle(ClassLoader cl) {
+		try {
+			Method m = cl.getClass().getMethod("getBundle", new Class[0]);
+			return (Bundle)m.invoke(cl, new Object[0]);
+		} 
+		catch (Exception e) {
+			return null;
+		}
+	}
+
+
 	private static void requiredBundles(DumpTable parent, Bundle b) {
 		try {
 			List<BundleDefinition> list = OSGiUtil.getRequiredBundles(b);

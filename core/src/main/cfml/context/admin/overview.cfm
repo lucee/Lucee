@@ -267,6 +267,30 @@ Error Output --->
 	</cfif>
 	<cfset systemInfo=GetSystemMetrics()>
 
+
+	<!--- installed libs --->
+	<cfif request.adminType EQ "web">	
+		<cfadmin
+			action="getTLDs"
+			type="#request.adminType#"
+			password="#session["password"&request.adminType]#"
+			returnVariable="tlds">
+		<cfadmin
+			action="getFLDs"
+			type="#request.adminType#"
+			password="#session["password"&request.adminType]#"
+			returnVariable="flds">
+
+		<cfif isQuery(tlds)>
+			<cfset tlds=listToArray(valueList(tlds.displayname))>
+		</cfif>
+		<cfif isQuery(flds)>
+			<cfset flds=listToArray(valueList(flds.displayname))>
+		</cfif>
+	</cfif>
+
+
+
 	<table>
 		<tr>
 			<div id="updateInfoDesc"><div style="text-align: center;"><img src="../res/img/spinner16.gif.cfm"></div></div>
@@ -279,198 +303,11 @@ Error Output --->
 				</script>
 			</cfhtmlbody>
 		</tr>
-		<tr>
-			<td valign="top" colspan="3">
 
-				<!--- Info --->
-				<h2>#stText.Overview.Info#</h2>
-				<table class="maintbl">
-					<tbody>
-						<tr>
-							<th scope="row">#stText.Overview.Version#</th>
-							<td>Lucee #server.lucee.version#</td>
-						</tr>
-						<cfif StructKeyExists(server.lucee,'versionName')>
-							<tr>
-								<th scope="row">#stText.Overview.VersionName#</th>
-								<td><a href="#server.lucee.versionNameExplanation#" target="_blank">#server.lucee.versionName#</a></td>
-							</tr>
-						</cfif>
-						<tr>
-							<th scope="row">#stText.Overview.ReleaseDate#</th>
-							<td>#lsDateFormat(server.lucee['release-date'])#</td>
-						</tr>
-						<tr>
-							<th scope="row">#stText.Overview.CFCompatibility#</th>
-							<td>#replace(server.ColdFusion.ProductVersion,',','.','all')#</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<br />
-				<table class="maintbl">
-					<tbody>
-						<tr>
-							<th scope="row">#stText.Overview.config#</th>
-							<td>#info.config#</td>
-						</tr>
-						<cfif request.adminType EQ "web">
-							<tr>
-								<th scope="row">#stText.Overview.webroot#</th>
-								<td>#info.root#</td>
-							</tr>
-
-							<cfadmin
-								action="getTLDs"
-								type="#request.adminType#"
-								password="#session["password"&request.adminType]#"
-								returnVariable="tlds">
-							<cfadmin
-								action="getFLDs"
-								type="#request.adminType#"
-								password="#session["password"&request.adminType]#"
-								returnVariable="flds">
-
-							<cfif isQuery(tlds)>
-								<cfset tlds=listToArray(valueList(tlds.displayname))>
-							</cfif>
-							<cfif isQuery(flds)>
-								<cfset flds=listToArray(valueList(flds.displayname))>
-							</cfif>
-						</cfif>
-
-						<tr>
-							<th scope="row">#stText.Overview.OS#</th>
-							<td>#server.OS.Name# (#server.OS.Version#)<cfif structKeyExists(server.os,"archModel")> #server.os.archModel#bit</cfif></td>
-						</tr>
-						<tr>
-							<th scope="row">#stText.Overview.remote_addr#</th>
-							<td>#cgi.remote_addr#</td>
-						</tr>
-						<tr>
-							<th scope="row">#stText.Overview.server_name#</th>
-							<td>#cgi.server_name#</td>
-						</tr>
-						<tr>
-							<th scope="row">#stText.overview.servletContainer#</th>
-							<td>#server.servlet.name#</td>
-						</tr>
-
-						<cfif request.adminType EQ "web">
-							<tr>
-								<th scope="row">#stText.Overview.InstalledTLs#</th>
-								<td>
-									<cfloop index="idx" from="1" to="#arrayLen(tlds)#">
-										- #tlds[idx]# <!--- ( #iif(tlds[idx].type EQ "cfml",de('lucee'),de('jsp'))# ) ---><br>
-									</cfloop>
-								</td>
-							</tr>
-							<tr>
-								<th scope="row">#stText.Overview.InstalledFLs#</th>
-								<td>
-									<cfloop index="idx" from="1" to="#arrayLen(flds)#">
-										- #flds[idx]#<br>
-									</cfloop>
-								</td>
-							</tr>
-							<!---
-							<tr>
-								<th scope="row">#stText.Overview.DateTime#</th>
-								<td>
-									#lsdateFormat(now())#
-									#lstimeFormat(now())#
-								</td>
-							</tr>
-							<tr>
-								<th scope="row">#stText.Overview.ServerTime#</th>
-								<td>
-
-									#lsdateFormat(date:now(),timezone:"jvm")#
-									#lstimeFormat(time:now(),timezone:"jvm")#
-								</td>
-							</tr>
-							--->
-						</cfif>
-						<tr>
-							<th scope="row">Java</th>
-							<td>
-								<!--- <cfset serverNow=createObject('java','java.util.Date')> --->
-								#server.java.version# (#server.java.vendor#)<cfif structKeyExists(server.java,"archModel")> #server.java.archModel#bit</cfif>
-							</td>
-						</tr>
-						<cfif StructKeyExists(server.os,"archModel") and StructKeyExists(server.java,"archModel")>
-							<tr>
-								<th scope="row">Architecture</th>
-								<td>
-									<cfif server.os.archModel NEQ server.os.archModel>OS #server.os.archModel#bit/JRE #server.java.archModel#bit<cfelse>#server.os.archModel#bit</cfif>
-								</td>
-							</tr>
-						</cfif>
-							<cfif request.adminType EQ "web">
-							<tr>
-								<th scope="row">#stText.Overview.label#</th>
-								<td>#info.label#</td>
-							</tr>
-							<tr>
-								<th scope="row">#stText.Overview.hash#</th>
-								<td>#info.hash#</td>
-							</tr>
-						</cfif>
-					</tbody>
-				</table>
-
-				<!---<h2>#stText.overview.langPerf#</h2>--->
-				<table class="maintbl">
-					<tbody>
-							<tr>
-								<th scope="row">#stText.setting.inspectTemplate#</th>
-								<td <cfif performance.inspectTemplate EQ "always">style="color:##cc0000"</cfif>>
-									<cfif performance.inspectTemplate EQ "never">
-										#stText.setting.inspectTemplateNever#
-									<cfelseif performance.inspectTemplate EQ "once">
-										#stText.setting.inspectTemplateOnce#
-									<cfelseif performance.inspectTemplate EQ "always">
-										#stText.setting.inspectTemplateAlways#
-									</cfif>
-								</td>
-							</tr>
-							<tr>
-								<th scope="row">#stText.compiler.nullSupport#</th>
-								<td <cfif !compiler.nullSupport>style="color:##cc0000"</cfif>>
-									<cfif compiler.nullSupport>
-										#stText.compiler.nullSupportFull#
-									<cfelse>
-										#stText.compiler.nullSupportPartial#
-									</cfif>
-							</td>
-							</tr>
-							<tr>
-								<th scope="row">#stText.setting.dotNotation#</th>
-								<td <cfif compiler.DotNotationUpperCase>style="color:##cc0000"</cfif>>
-									<cfif compiler.DotNotationUpperCase>#stText.setting.dotNotationUpperCase#<cfelse>#stText.setting.dotNotationOriginalCase#</cfif>
-								</td>
-							</tr>
-							<!---<tr>
-								<th scope="row">#stText.setting.suppressWSBeforeArg#</th>
-								<td <cfif !compiler.suppressWSBeforeArg>style="color:##cc0000"</cfif>>#yesNoFormat(compiler.suppressWSBeforeArg)#</td>
-							</tr> --->
-
-							<tr>
-								<th scope="row">#stText.Scopes.LocalMode#</th>
-								<td <cfif scope.localMode EQ "classic">style="color:##cc0000"</cfif>>
-									<cfif scope.localMode EQ "modern">#stText.Scopes.LocalModeModern#<cfelse>#stText.Scopes.LocalModeClassic#</cfif>
-								</td>
-							</tr>
-
-					</tbody>
-				</table>
-				
-			</td>
-		</tr>
 		<tr>
 			<td valign="top" colspan="3">
 				<h2>#stText.setting.info#</h2>
-			
+			<table width="100%"><tr><td>
 				<!--- Memory --->
 				<table class="maintbl">
 					<tbody>
@@ -595,8 +432,192 @@ Error Output --->
 
 					</tbody>
 				</table>
+				</td></tr></table>
 			</td>
 		</tr>
+
+
+
+		<tr>
+			<td valign="top" colspan="3">
+				<br>
+				<!--- Info --->
+				<h2>#stText.Overview.Info#</h2>
+				<table width="100%">
+				
+				<tr>
+					<td width="50%">
+						<table class="maintbl">
+							<tbody>
+
+								<tr>
+									<th scope="row">#stText.Overview.Version#</th>
+									<td>Lucee #server.lucee.version#</td>
+								</tr>
+								<tr>
+									<th scope="row">#stText.Overview.VersionName#</th>
+									<td><a href="#server.lucee.versionNameExplanation#" target="_blank">#server.lucee.versionName#</a></td>
+								</tr>
+								<tr>
+									<th nowrap="nowrap" scope="row">#stText.Overview.ReleaseDate#</th>
+									<td>#lsDateFormat(server.lucee['release-date'])#</td>
+								</tr>
+								<cfif request.adminType EQ "web">
+								<tr>
+									<th nowrap="nowrap" scope="row">#stText.Overview.label#</th>
+									<td>#info.label#</td>
+								</tr>
+								</cfif>
+
+								<cfif request.adminType EQ "web">
+								<tr>
+									<th nowrap="nowrap" scope="row">#stText.Overview.InstalledTLs#</th>
+									<td>
+										<cfloop index="idx" from="1" to="#arrayLen(tlds)#">
+											- #tlds[idx]# <!--- ( #iif(tlds[idx].type EQ "cfml",de('lucee'),de('jsp'))# ) ---><br>
+										</cfloop>
+									</td>
+								</tr>
+								</cfif>
+								<cfif request.adminType EQ "web">
+								<tr>
+									<th nowrap="nowrap" scope="row">#stText.Overview.InstalledFLs#</th>
+									<td>
+										<cfloop index="idx" from="1" to="#arrayLen(flds)#">
+											- #flds[idx]#<br>
+										</cfloop>
+									</td>
+								</tr>
+								</cfif>
+
+							</tbody>
+						</table>
+					</td>
+					<td width="50%">
+						<table class="maintbl">
+							<tbody>
+								<tr>
+									<th scope="row">#stText.Overview.remote_addr#</th>
+									<td>#cgi.remote_addr#</td>
+								</tr>
+								<tr>
+									<th scope="row">#stText.overview.servletContainer#</th>
+									<td>#server.servlet.name#</td>
+								</tr>
+								<tr>
+									<th scope="row">Java</th>
+									<td>
+										<!--- <cfset serverNow=createObject('java','java.util.Date')> --->
+										#server.java.version# (#server.java.vendor#)<cfif structKeyExists(server.java,"archModel")> #server.java.archModel#bit</cfif>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row">#stText.Overview.server_name#</th>
+									<td>#cgi.server_name#</td>
+								</tr>
+								<tr>
+									<th scope="row">#stText.Overview.OS#</th>
+									<td>#server.OS.Name# (#server.OS.Version#)<cfif structKeyExists(server.os,"archModel")> #server.os.archModel#bit</cfif></td>
+								</tr>
+								<tr>
+									<th scope="row">Architecture</th>
+									<td>
+									<cfif StructKeyExists(server.os,"archModel") and StructKeyExists(server.java,"archModel")>
+									<cfif server.os.archModel NEQ server.os.archModel>OS #server.os.archModel#bit/JRE #server.java.archModel#bit<cfelse>#server.os.archModel#bit</cfif>
+									</cfif>
+									</td>
+								</tr>
+								<cfif request.adminType EQ "web">
+									<tr>
+										<th scope="row">#stText.Overview.hash#</th>
+										<td>#info.hash#</td>
+									</tr>
+								</cfif>
+
+							</tbody>
+						</table>
+					</td>
+				</tr>
+				<tr>
+					<td width="50%">
+						<table class="maintbl">
+							<tbody>
+								<tr>
+									<th scope="row">#stText.setting.inspectTemplate#</th>
+									<td <cfif performance.inspectTemplate EQ "always">style="color:##cc0000"</cfif>>
+										<cfif performance.inspectTemplate EQ "never">
+											#stText.setting.inspectTemplateNever#
+										<cfelseif performance.inspectTemplate EQ "once">
+											#stText.setting.inspectTemplateOnce#
+										<cfelseif performance.inspectTemplate EQ "always">
+											#stText.setting.inspectTemplateAlways#
+										</cfif>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row">#stText.setting.dotNotation#</th>
+									<td <cfif compiler.DotNotationUpperCase>style="color:##cc0000"</cfif>>
+										<cfif compiler.DotNotationUpperCase>#stText.setting.dotNotationUpperCase#<cfelse>#stText.setting.dotNotationOriginalCase#</cfif>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</td>
+					<td width="50%">
+						<table class="maintbl">
+							<tbody>
+								<tr>
+									<th scope="row">#stText.compiler.nullSupport#</th>
+									<td <cfif !compiler.nullSupport>style="color:##cc0000"</cfif>>
+										<cfif compiler.nullSupport>
+											#stText.compiler.nullSupportFull#
+										<cfelse>
+											#stText.compiler.nullSupportPartial#
+										</cfif>
+								</td>
+								</tr>
+							<tr>
+								<th scope="row">#stText.Scopes.LocalMode#</th>
+								<td <cfif scope.localMode EQ "classic">style="color:##cc0000"</cfif>>
+									<cfif scope.localMode EQ "modern">#stText.Scopes.LocalModeModern#<cfelse>#stText.Scopes.LocalModeClassic#</cfif>
+								</td>
+							</tr>
+							</tbody>
+						</table>
+					</td>
+				</tr>
+
+				<tr>
+					<td colspan="2">
+						<table class="maintbl">
+							<tbody>
+								
+									
+								<tr>
+								</tr>
+								
+
+								<tr>
+									<th scope="row">#stText.Overview.config#</th>
+									<td>#info.config#</td>
+								</tr>
+								<cfif !isNull(info.root)>
+								<tr>
+									<th scope="row">#stText.Overview.webroot#</th>
+									<td>#info.root?:''#</td>
+								</tr>
+								</cfif>
+							</tbody>
+						</table>
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+
+
+
+
 		<tr>
 			<td colspan="3">
 				<br>

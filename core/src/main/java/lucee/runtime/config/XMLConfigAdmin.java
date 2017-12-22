@@ -4769,9 +4769,8 @@ public final class XMLConfigAdmin {
 			XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
 	    	admin.updateRHExtension(config,ext,reload);
 		}
-		catch(Throwable t){
-			ExceptionUtil.rethrowIfNecessary(t);
-			throw Caster.toPageException(t);
+		catch(Exception e){
+			throw Caster.toPageException(e);
 		}
 	}
 	

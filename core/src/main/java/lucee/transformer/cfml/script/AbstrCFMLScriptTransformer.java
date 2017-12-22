@@ -728,12 +728,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	
 	private TagLoop asLoop(Factory factory, Expression expLeft, Expression expMiddle, Expression expRight,
 			Body body, Position start, Position end, String label) {
-		print.e(".........................................");
 		
 	// LEFT
 		// left must be an assignment
 		if(!(expLeft instanceof Assign)) return null;
-		print.e("left:"+expLeft.getClass().getName());
 		Assign left=(Assign) expLeft;
 		String leftVarName=toVariableName(left.getVariable());
 		if(leftVarName==null) return null;
@@ -742,7 +740,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	// MIDDLE
 		// midfdle must be an operation
 		if(!(expMiddle instanceof OPDecision)) return null;
-		print.e("middle:"+expMiddle.getClass().getName());
 		OPDecision middle=(OPDecision) expMiddle;
 		
 		// middle must be an operation LT or LTE
@@ -755,7 +752,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	// RIGHT
 		// right need to be an assignment (i=i+1 what is the same as i++)
 		if(!(expRight instanceof Assign)) return null;
-		print.e("right:"+expRight.getClass().getName());
 		Assign right=(Assign) expRight;
 		
 		// increment need to be a literal number
@@ -770,9 +766,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		if(!(opRight.getRight() instanceof LitDouble)) return null;
 		LitDouble rightIncValue=(LitDouble) opRight.getRight();
 		if(opRight.getOperation()!=OpDouble.PLUS) return null;
-		
-		
-		print.e("***"+rightIncValue.getDoubleValue());
 		
 		// create loop tag
 		TagLoop tl=new TagLoop(factory, start, end);
@@ -789,7 +782,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			)
 		);
 		// from
-if(left.getValue() instanceof LitDouble) print.e("- from:"+((LitDouble)left.getValue()).getDoubleValue());
 		tl.addAttribute(
 			new Attribute(
 				false, 
@@ -800,9 +792,6 @@ if(left.getValue() instanceof LitDouble) print.e("- from:"+((LitDouble)left.getV
 		);
 		// to
 		ExprDouble val = isLT?OpDouble.toExprDouble(middle.getLeft(), factory.createLitDouble(1), OpDouble.MINUS):factory.toExprDouble(middle.getLeft());
-		print.e("- lt?"+isLT);
-		if(middle.getLeft() instanceof LitDouble) print.e("- to:"+((LitDouble)middle.getLeft()).getDoubleValue());
-
 		tl.addAttribute(
 			new Attribute(
 				false, 
@@ -812,7 +801,6 @@ if(left.getValue() instanceof LitDouble) print.e("- from:"+((LitDouble)left.getV
 			)
 		);
 		// step
-if(rightIncValue instanceof LitDouble) print.e("- step:"+((LitDouble)rightIncValue).getDoubleValue());
 		tl.addAttribute(
 			new Attribute(
 				false, 

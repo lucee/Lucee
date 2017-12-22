@@ -789,6 +789,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="info.bundles.states.notinstalled">not loaded</data>
 	<data key="info.bundles.states.resolved">resolved</data>
 	<data key="info.bundles.usedBy">Used by</data>
+	<data key="info.bundles.size">Size</data>
 	<data key="info.bundles.isFragment">Fragment?</data>
 	<data key="info.bundles.fileName">File name</data>
 	<data key="info.bundles.path">Path</data>

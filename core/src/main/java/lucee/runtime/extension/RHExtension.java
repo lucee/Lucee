@@ -70,6 +70,8 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
@@ -884,6 +886,22 @@ public class RHExtension implements Serializable {
 		return ListUtil.listToStringArray(str.trim(), ',');
 	}
 	
+	public static Query toQuery(Config config,List<RHExtension> children) throws PageException {
+		Log log = config.getLog("deploy");
+		Query qry = createQuery();
+		Iterator<RHExtension> it = children.iterator();
+		while(it.hasNext()) {
+			try{
+				it.next().populate(qry); // ,i+1
+			}
+			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
+				log.error("extension", t);
+			}
+      	}
+		return qry;
+	}
+	
 	public static Query toQuery(Config config,RHExtension[] children) throws PageException {
 		Log log = config.getLog("deploy");
 		Query qry = createQuery();
@@ -974,6 +992,47 @@ public class RHExtension implements Serializable {
   	    		qryBundles.setAt(KeyConstants._version, i+1, bfs[i].getVersionAsString());
   	    }
   	    qry.setAt(BUNDLES, row,qryBundles);
+	}
+	
+	public Struct toStruct() throws PageException {
+		Struct sct=new StructImpl();
+		sct.set(KeyConstants._id, getId());
+  	    sct.set(KeyConstants._name, name);
+  	    sct.set(KeyConstants._image, getImage());
+  	  	sct.set(KeyConstants._description, description);
+  	  	sct.set(KeyConstants._version, getVersion()==null?null:getVersion().toString());
+  	  	sct.set(TRIAL, isTrial());
+  	  	sct.set(RELEASE_TYPE, toReleaseType(getReleaseType(),"all"));
+  	  	//sct.set(JARS, row,Caster.toArray(getJars()));
+  	  	try {
+	  	  	sct.set(FLDS, Caster.toArray(getFlds()));
+		    sct.set(TLDS, Caster.toArray(getTlds()));
+		    sct.set(FUNCTIONS, Caster.toArray(getFunctions()));
+		    sct.set(ARCHIVES, Caster.toArray(getArchives()));
+	  	    sct.set(TAGS, Caster.toArray(getTags()));
+	  	    sct.set(CONTEXTS, Caster.toArray(getContexts()));
+	  	    sct.set(WEBCONTEXTS, Caster.toArray(getWebContexts()));
+	  	  	sct.set(CONFIG, Caster.toArray(getConfigs()));
+		  	sct.set(EVENT_GATEWAYS, Caster.toArray(getEventGateways()));
+		    sct.set(CATEGORIES, Caster.toArray(getCategories()));
+		    sct.set(APPLICATIONS, Caster.toArray(getApplications()));
+		    sct.set(COMPONENTS, Caster.toArray(getComponents()));
+	  		sct.set(PLUGINS, Caster.toArray(getPlugins()));
+		    sct.set(START_BUNDLES, Caster.toBoolean(getStartBundles()));
+	  	    
+	  	    BundleInfo[] bfs = getBundles();
+	  	    Query qryBundles=new QueryImpl(new Key[]{KeyConstants._name,KeyConstants._version}, bfs.length, "bundles");
+	  	    for(int i=0;i<bfs.length;i++){
+	  	    	qryBundles.setAt(KeyConstants._name, i+1, bfs[i].getSymbolicName());
+	  	    	if(bfs[i].getVersion()!=null)
+	  	    		qryBundles.setAt(KeyConstants._version, i+1, bfs[i].getVersionAsString());
+	  	    }
+	  	    sct.set(BUNDLES,qryBundles);
+  	  	}
+  	  	catch(Exception e) {
+  	  		throw Caster.toPageException(e);
+  	  	}
+  	    return sct;
 	}
 	
 
@@ -1318,33 +1377,41 @@ public class RHExtension implements Serializable {
 		
 		String[] arr = ListUtil.trimItems(ListUtil.listToStringArray(str, ','));
 		if(ArrayUtil.isEmpty(arr)) return rtn;
+		ExtensionDefintion ed;
+		for(int i=0;i<arr.length;i++){
+			ed=toExtensionDefinition(arr[i]);
+			if(ed!=null)rtn.add(ed);
+		}
+		return rtn;
+	}
+	
+	public static ExtensionDefintion toExtensionDefinition(String s) {
+		if(StringUtil.isEmpty(s,true))return null;
+		s=s.trim();
 		
 		String[] arrr;
 		int index;
-		ExtensionDefintion ed;
-		String s;
-		for(int i=0;i<arr.length;i++){
-			s=arr[i];
-			arrr = ListUtil.trimItems(ListUtil.listToStringArray(s, ';'));
-			ed=new ExtensionDefintion();
-			for(String ss:arrr){
-				index=ss.indexOf('=');
-				if(index!=-1) {
-					ed.setParam(ss.substring(0,index).trim(),ss.substring(index+1).trim());
-				}
-				else ed.setId(ss);
+		arrr = ListUtil.trimItems(ListUtil.listToStringArray(s, ';'));
+		ExtensionDefintion ed=new ExtensionDefintion();
+		for(String ss:arrr){
+			index=ss.indexOf('=');
+			if(index!=-1) {
+				ed.setParam(ss.substring(0,index).trim(),ss.substring(index+1).trim());
 			}
-			rtn.add(ed);
+			else ed.setId(ss);
 		}
-		return rtn;
+		
+		return ed;
 	}
 
 	public static List<RHExtension> toRHExtensions(List<ExtensionDefintion> eds) throws PageException {
 		try {
-			List<RHExtension> rtn=new ArrayList<RHExtension>();
+			final List<RHExtension> rtn=new ArrayList<RHExtension>();
 			Iterator<ExtensionDefintion> it = eds.iterator();
+			ExtensionDefintion ed;
 			while(it.hasNext()) {
-				rtn.add(it.next().toRHExtension());
+				ed = it.next();
+				if(ed!=null)rtn.add(ed.toRHExtension());
 			}
 			return rtn;
 		}

@@ -26,21 +26,23 @@ import java.io.OutputStream;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.security.Credentials;
 import lucee.commons.security.CredentialsImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.InfoImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
+import lucee.runtime.text.xml.XMLCaster;
+import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.dt.Date;
 import lucee.runtime.type.dt.DateImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.Time;
 import lucee.runtime.type.dt.TimeImpl;
 
-import org.apache.xml.serialize.OutputFormat;
-import org.apache.xml.serialize.XMLSerializer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -109,7 +111,13 @@ public final class StorageUtil {
 	 * @throws IOException
      */
     public void store(Document doc,Resource res) throws IOException {
-        OutputFormat format = new OutputFormat(doc, null, true);
+    	try {
+			XMLCaster.writeTo(doc, res);
+		} catch (PageException e) {
+			throw ExceptionUtil.toIOException(e);
+		}
+    	
+        /*OutputFormat format = new OutputFormat(doc, null, true);
 		format.setLineSeparator("\r\n");
 		format.setLineWidth(72);
 		
@@ -120,7 +128,7 @@ public final class StorageUtil {
 		}
 		finally {
 			IOUtil.closeEL(os);
-		}
+		}*/
     }
 
     

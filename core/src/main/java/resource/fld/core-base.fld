@@ -5438,6 +5438,16 @@ Example Values:
 		</return>
 	</function>
 
+	<!-- GenerateRSAKeys -->
+	<function>
+		<name>GenerateRSAKeys</name>
+		<class>lucee.runtime.functions.other.GenerateRSAKeys</class>
+		<description>Generates a secure keys (private and public) for use in the encrypt function with the RSA algorithm.</description>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+
 	<!-- getAuthUser -->
 	<function>
 		<name>getAuthUser</name>

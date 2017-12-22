@@ -571,10 +571,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				config.setDefaultResourceProvider(CFMLResourceProvider.class, args);
 			}
 		}
-
 		// Resource Provider
 		if (hasCS)
-			config.setResourceProviders(configServer.getResourceProviders());
+			config.setResourceProviderFactories(configServer.getResourceProviderFactories());
 		if (providers != null && providers.length > 0) {
 			ClassDefinition prov;
 			String strProviderCFC;
@@ -617,7 +616,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						strProviderScheme = strProviderScheme.trim().toLowerCase();
 						Map<String, String> args = toArguments(getAttr(providers[i],"arguments"), true);
 						args.put("component", strProviderCFC);
-						config.addResourceProvider(strProviderScheme, CFMLResourceProvider.class, args);
+						config.addResourceProvider(strProviderScheme, new ClassDefinitionImpl(CFMLResourceProvider.class), args);
 					}
 				}
 				catch(Throwable t){ // TODO log the exception

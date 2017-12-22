@@ -118,6 +118,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.functions.dynamicEvaluation.Serialize;
+import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.functions.owasp.ESAPIEncode;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
@@ -219,7 +220,7 @@ public final class PageContextImpl extends PageContext {
 	
 	private static final RefBoolean DUMMY_BOOL = new RefBooleanImpl(false);
 	
-	private static int counter=0;
+	private static int counter=1;
 	
 	/** 
 	 * Field <code>pathList</code>
@@ -281,7 +282,6 @@ public final class PageContextImpl extends PageContext {
 	private String cfid;
 	private String cftoken;
 
-	private int id;
 	private int requestId;
 	
 	
@@ -353,12 +353,10 @@ public final class PageContextImpl extends PageContext {
 	 * @param id identity of the pageContext
 	 * @param servlet
 	 */
-	public PageContextImpl(ScopeContext scopeContext, ConfigWebImpl config, int id,HttpServlet servlet, boolean jsr223) {
+	public PageContextImpl(ScopeContext scopeContext, ConfigWebImpl config, HttpServlet servlet, boolean jsr223) {
 		// must be first because is used after
 		tagHandlerPool=config.getTagHandlerPool();
 		this.servlet=servlet;
-		this.id=id;
-		//this.factory=factory;
 		
 		bodyContentStack=new BodyContentStack();
 		devNull=bodyContentStack.getDevNullBodyContent();
@@ -443,11 +441,11 @@ public final class PageContextImpl extends PageContext {
 			 int bufferSize, 
 			 boolean autoFlush,
 			 boolean isChild, boolean ignoreScopes) {
+		requestId=getCount();
 		parent=null;
 		appListenerType=ApplicationListener.TYPE_NONE;
 		this.ignoreScopes=ignoreScopes;
-
-		requestId=counter++;
+		
 		ReqRspUtil.setContentType(rsp,"text/html; charset="+config.getWebCharset().name());
 		this.isChild=isChild;
 		
@@ -2701,7 +2699,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public int getId() {
-		return id;
+		return requestId;
 	}
 
 	/**
@@ -3280,13 +3278,6 @@ public final class PageContextImpl extends PageContext {
 		this.timeZone=timeZone;
 	}
 
-	/**
-	 * @return the requestId
-	 */
-	public int getRequestId() {
-		return requestId;
-	}
-
 	private Set<String> pagesUsed=new HashSet<String>();
 
 	private Stack<ActiveQuery> activeQueries=new Stack<ActiveQuery>();
@@ -3615,5 +3606,11 @@ public final class PageContextImpl extends PageContext {
 	
 	public boolean getTimestampWithTSOffset() {
 		return literalTimestampWithTSOffset;
+	}
+	
+	private static synchronized int getCount() {
+		counter++;
+		if(counter<1) counter=1;
+		return counter;
 	}
 }

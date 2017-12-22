@@ -628,9 +628,9 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 			return amfEngine;
 		}
 
-		public boolean installServerExtension(ExtensionDefintion ed) {
+		/*public boolean installServerExtension(ExtensionDefintion ed) throws PageException {
 			return configServer.installExtension(ed);
-		}
+		}*/
 
 		@Override
 		public RHExtension[] getServerRHExtensions() {

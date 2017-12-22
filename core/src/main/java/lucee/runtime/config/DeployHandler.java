@@ -37,6 +37,7 @@ import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
 import lucee.commons.net.http.httpclient.HeaderImpl;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtensionProvider;
@@ -128,22 +129,27 @@ public class DeployHandler {
 		
 	}
 
-	
-	
 	public static boolean deployExtensions(Config config, ExtensionDefintion[] eds, Log log) {
 		boolean allSucessfull=true;
 		if(!ArrayUtil.isEmpty(eds)) {
 	    	ExtensionDefintion ed;
+	    	boolean sucess;
 			for(int i=0;i<eds.length;i++){
 				ed=eds[i];
 				if(StringUtil.isEmpty(ed.getId(),true)) continue;
-	    		if(!deployExtension(config, ed,log,i+1==eds.length))
+				try {
+					sucess=deployExtension(config, ed,log,i+1==eds.length);
+				}
+				catch (PageException e) {
+					sucess=false;
+				}
+	    		if(!sucess)
 	    			allSucessfull=false;
 	    	}
 	    }
 		return allSucessfull;
 	}
-
+	
 	/**
 	 * install a extension based on the given id and version
 	 * @param config
@@ -153,20 +159,23 @@ public class DeployHandler {
 	 * @throws IOException 
 	 * @throws PageException 
 	 */
-	public static boolean deployExtension(Config config, ExtensionDefintion ed, Log log, boolean reload) {
+	public static boolean deployExtension(Config config, ExtensionDefintion ed, Log log, boolean reload) throws PageException {
 		ConfigImpl ci=(ConfigImpl) config;
 		
 		// is the extension already installed
 		try {
 			if(XMLConfigAdmin.hasRHExtensions(ci, ed)!=null) return false;
 		} 
-		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+		catch(Exception e) {
+			if(log!=null)log.error("extension", e);
+			else throw Caster.toPageException(e);
+		}
 		
 		// check if a local extension is matching our id
 		Iterator<ExtensionDefintion> it = getLocalExtensions(config).iterator();
 		ExtensionDefintion ext=null,tmp;
 		
-		log.info("extension", "installing the extension "+ed);
+		if(log!=null)log.info("extension", "installing the extension "+ed);
 		while(it.hasNext()){
 			tmp=it.next();
 			if(ed.equals(tmp)) {
@@ -178,7 +187,7 @@ public class DeployHandler {
 		// if we have one and also the defined version matches, there is no need to check online
 		if(ext!=null && ed.getVersion()!=null) {
 			try{
-				log.info("extension", "installing the extension "+ed+" from local provider");
+				if(log!=null)log.info("extension", "installing the extension "+ed+" from local provider");
 				Resource res = SystemUtil.getTempDirectory().getRealResource(ed.getId()+"-"+ed.getVersion()+".lex");
 				ResourceUtil.touch(res);
 				IOUtil.copy(ext.getSource(), res);
@@ -218,7 +227,7 @@ public class DeployHandler {
 					
 					// the local version is as good as the remote
 					if(remoteVersion!=null && remoteVersion.compareTo(ext.getVersion())<=0) {
-						log.info("extension", "installing the extension "+ed+" from local provider");
+						if(log!=null)log.info("extension", "installing the extension "+ed+" from local provider");
 						
 						// avoid that the exzension from provider get removed
 						Resource res = SystemUtil.getTempDirectory().getRealResource(ed.getId()+"-"+ed.getVersion()+".lex");
@@ -229,7 +238,9 @@ public class DeployHandler {
 						return true;
 					}
 				}
-				catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
+				catch(Exception e){
+					if(log!=null)log.error("extension",e);
+				}
 				finally {
 					HTTPEngine.closeEL(rsp);
 				}
@@ -239,7 +250,7 @@ public class DeployHandler {
 		// if we have an ext at this stage this mean the remote providers was not acessible or have not this extension
 		if(ext!=null) {
 			try{
-				log.info("extension", "installing the extension "+ed+" from local provider");
+				if(log!=null)log.info("extension", "installing the extension "+ed+" from local provider");
 				Resource res = SystemUtil.getTempDirectory().getRealResource(ext.getSource().getName());
 				ResourceUtil.touch(res);
 				
@@ -247,23 +258,25 @@ public class DeployHandler {
 				XMLConfigAdmin._updateRHExtension((ConfigImpl) config, res, reload);
 				return true;
 			}
-			catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
+			catch(Exception e){
+				if(log!=null)log.error("extension",e);
+			}
 		}
 		
 		// if not we try to download it
-		log.info("extension", "installing the extension "+ed+" from remote extension provider");
+		if(log!=null)log.info("extension", "installing the extension "+ed+" from remote extension provider");
 		Resource res = downloadExtension(ci, ed, log);
 		if(res!=null) {
 			try {
 				XMLConfigAdmin._updateRHExtension((ConfigImpl) config, res,reload);
 				return true;
 			}
-			catch(Throwable t){
-				ExceptionUtil.rethrowIfNecessary(t);
-				log.error("extension", t);
+			catch(Exception e){
+				if(log!=null)log.error("extension",e);
+				else throw Caster.toPageException(e);
 			}
 		}
-		return false;
+		throw new ApplicationException("was not able to install extension "+ed.getId());
 	}
 	
 	public static Resource downloadExtension(Config config, ExtensionDefintion ed, Log log){

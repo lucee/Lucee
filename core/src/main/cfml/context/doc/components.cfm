@@ -156,36 +156,76 @@
 					</span>
 
 					<!--- Properties of the component --->
-					<h3 style="padding-left: 1em; margin-top: 24px;">Component properties</h3>
+					<cfscript>
+					tmp = ['accessors':false,'persistent':false,'synchronized':false,'extends':'lucee.Component'];
+					propertiesStruct=structNew('linked');
+					loop struct=tmp index="key" item="def" {
+						if(!structKeyExists(data, key)) continue;
+						if(key EQ "extends") val=data[key].fullname;
+						else val=data[key];
+						if(def!=val) propertiesStruct[key]=val;
+					}
+					</cfscript>
+								
+
+					<cfset stText.doc.attr.type="Type">
+					<cfset stText.doc.attr.value="Value">
+					<cfset stText.doc.attr.hint="Hint">
+					<cfset stText.doc.attr.access="Access">
+					<cfset stText.doc.attr.required="Required">
+					<cfif structCount(propertiesStruct)>
 					<div class="text" style="width: 90%; margin: 0 auto;">
 						<table class="table maintbl">
 							<thead>
 								<tr>
 									<th width="50%">#stText.doc.attr.name#</th>
-									<th width="50%"><!--- #stText.doc.attr.value# --->Value</th>
+									<th width="50%">#stText.doc.attr.value#</th>
 								</tr>
 							</thead>
 							<tbody>
-								<cfset propertiesArray = ['accessors','persistent','synchronized','extends']>
-								<cfloop array="#propertiesArray#" index="key">
-									<cfif !structKeyExists(data, key)>
-										<cfcontinue>
-									</cfif>
+								<cfloop struct="#propertiesStruct#" index="key" item="val">
 									<tr>
 										<td>#key#</td>
-										<cfif key EQ "extends">
-											<td>#data[key].fullname#</td>
-										<cfelse>
-											<td>#data[key]#</td>
-										</cfif>
+										<td>#val#</td>
 									</tr>
 								</cfloop>
 							</tbody>
 						</table>
 					</div>
-
+					</cfif>
+					<!--- properties --->
+					<cfif structKeyExists(data, "properties") and arrayLen(data.properties)>
+					<h2>Properties</h2>
+					
+					<div class="text">
+						<table class="table maintbl">
+							<thead>
+								<tr>
+									<th>#stText.doc.attr.access#</th>
+									<th>#stText.doc.attr.required#</th>
+									<th>#stText.doc.attr.name#</th>
+									<th>#stText.doc.attr.type#</th>
+									<th>#stText.doc.attr.hint#</th>
+								</tr>
+							</thead>
+							<tbody>
+								<cfloop array="#data.properties#" item="prop">
+									<tr>
+										<td><cfif structKeyExists(prop, "access")>#prop.access#<cfelse>public</cfif></td>
+										<td><cfif structKeyExists(prop, "required")>#prop.required#<cfelse>no</cfif></td>
+										<td>#prop.name#</td>
+										<td>#prop.type#</td>
+										<td><cfif structKeyExists(prop, "hint")>#prop.hint#</cfif></td>
+										
+									</tr>
+								</cfloop>
+							</tbody>
+						</table>
+					</div>
+						
+					</cfif>
 					<!--- functions --->
-					<cfif structKeyExists(data, "functions")>
+					<cfif structKeyExists(data, "functions") and arrayLen(data.functions)>
 						<h2>Functions</h2>
 						<cfset functionsArr = data.functions>
 						<cfset functionsStruct = {}>
@@ -322,7 +362,7 @@
 						</cfif>
 					</cfif>
 				</cfsavecontent>
-				<cfcatch type="any">
+				<cfcatch type="any"><cfrethrow>
 					<cfset hasError = true>
 					<div class="alert alert-danger m-t-15">
 						<strong>Error!</strong> We are not able to give detailed information about this component, because this component cannot be loaded without an exception: <br>

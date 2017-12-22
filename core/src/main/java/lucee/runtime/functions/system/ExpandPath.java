@@ -26,11 +26,13 @@ import java.io.IOException;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
+import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.ConfigWebUtil;
@@ -152,10 +154,10 @@ public final class ExpandPath implements Function {
 		// virtual file system path
 		int index=path.indexOf("://");
 		if(index!=-1) {
-			ResourceProvider[] providers = pc.getConfig().getResourceProviders();
+			ResourceProviderFactory[] factories = ((ConfigImpl)pc.getConfig()).getResourceProviderFactories();
 			String scheme=path.substring(0,index).toLowerCase().trim();
-			for(int i=0;i<providers.length;i++) {
-				if(scheme.equalsIgnoreCase(providers[i].getScheme()))
+			for(int i=0;i<factories.length;i++) {
+				if(scheme.equalsIgnoreCase(factories[i].getScheme()))
 					return scheme+"://"+StringUtil.replace(path.substring(index+3), "//", "/", false);
 			}
 		}

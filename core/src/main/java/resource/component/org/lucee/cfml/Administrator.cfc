@@ -797,29 +797,35 @@ component {
 	}
 
 	/**
-	* @hint updates the extension information.
-	* @enabled enable or disable to update the extension information.
-	*/
-	public void function updateExtensionInfo(boolean enabled=false){
-		admin
-			action="updateExtensionInfo"
-			type="#variables.type#"
-			password="#variables.password#"
-			enabled="#arguments.enabled#";
-	}
-
-	/**
 	* @hint updates(install/upgrade/downgrade) a specific extension.
-	* @provider provider of the extension
 	* @id id of the extension
 	* @version version of the extension
 	*/
-	public void function updateExtension( required string provider, required string id , required string version ){
-		admin
-			action="updateRHExtension"
-			type="#variables.type#"
-			password="#variables.password#"
-			source="#downloadFull(arguments.provider,arguments.id,arguments.version)#";
+	public void function updateExtension(required string id , string version ) {
+		if(isValid('uuid',id)) {
+			if(!isNull(arguments.version) && !isEmpty(arguments.version)) {
+				admin
+					action="updateRHExtension"
+					type=variables.type
+					password=variables.password
+					id=arguments.id
+					version=arguments.version;
+			}
+			else {
+				admin
+					action="updateRHExtension"
+					type=variables.type
+					password=variables.password
+					id=arguments.id;
+			}
+		}
+		else {
+			admin
+				action="updateRHExtension"
+				type=variables.type
+				password=variables.password
+				source=arguments.id;
+		}
 	}
 
 	/**

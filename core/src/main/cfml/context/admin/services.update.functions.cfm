@@ -24,7 +24,7 @@
 			
 			var update=getUpdateData();
 
-			http
+			http cachedWithin=createTimespan(0,0,5,0)
 			url="#update.location##restBasePath#info/#server.lucee.version#"
 			method="get" resolveurl="no" result="local.http" {
 				if(!isNull(apiKey))httpparam type="header" name="ioid" value="#apikey#";

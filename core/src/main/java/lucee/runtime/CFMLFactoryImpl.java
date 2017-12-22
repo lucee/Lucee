@@ -85,7 +85,6 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	private final Map<Integer, PageContextImpl> runningPcs = new ConcurrentHashMap<Integer, PageContextImpl>();
 	private final Map<Integer, PageContextImpl> runningChildPcs = new ConcurrentHashMap<Integer, PageContextImpl>();
 
-	int idCounter = 1;
 	private ScopeContext scopeContext = new ScopeContext(this);
 	private HttpServlet _servlet;
 	private URL url = null;
@@ -154,7 +153,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			}
 		}
 		if(pc == null)
-			pc = new PageContextImpl(scopeContext, config, idCounter++, servlet, ignoreScopes);
+			pc = new PageContextImpl(scopeContext, config, servlet, ignoreScopes);
 
 		if(timeout > 0)
 			pc.setRequestTimeout(timeout);

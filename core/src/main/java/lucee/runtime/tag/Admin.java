@@ -44,6 +44,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.jsp.tagext.Tag;
 
 import lucee.VersionInfo;
+import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
@@ -95,6 +96,7 @@ import lucee.runtime.config.PasswordImpl;
 import lucee.runtime.config.RemoteClient;
 import lucee.runtime.config.RemoteClientImpl;
 import lucee.runtime.config.XMLConfigAdmin;
+import lucee.runtime.config.XMLConfigFactory;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
@@ -141,12 +143,14 @@ import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Duplicator;
+import lucee.runtime.op.Operator;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.BundleBuilderFactory;
 import lucee.runtime.osgi.BundleFile;
+import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.JarUtil;
 import lucee.runtime.osgi.ManifestUtil;
 import lucee.runtime.osgi.OSGiUtil;
@@ -528,6 +532,21 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doGetCluster();
 			return;
 		}
+		
+		if(action.equals("getextension")) {
+			if(type == TYPE_SERVER) doGetRHServerExtension();
+			else doGetRHExtension();
+			return;
+		}
+		if(action.equals("getextensions") || action.equals("getrhextensions")) {
+			if(type == TYPE_SERVER) doGetRHServerExtensions();
+			else doGetRHExtensions();
+			return;
+		}
+		if(action.equals("getserverextensions") || action.equals("getrhserverextensions")) {
+			doGetRHServerExtensions();
+			return;
+		}
 
 		if(check("hashpassword", ACCESS_FREE)) {
 			String raw = getString("admin", action, "pw");
@@ -698,10 +717,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doGetFLDs();
 		else if(check("getTlds", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetTLDs();
-		else if(check("getRHExtensions", ACCESS_FREE) && check2(ACCESS_READ))
-			doGetRHExtensions();
-		else if(check("getRHServerExtensions", ACCESS_NOT_WHEN_SERVER) && check2(ACCESS_READ))
-			doGetRHServerExtensions();
 		else if(check("getLocalExtension", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetLocalExtension();
 		else if(check("getLocalExtensions", ACCESS_FREE) && check2(ACCESS_READ))
@@ -720,11 +735,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doGetRestMappings();
 		else if(check("getRestSettings", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetRestSettings();
-		else if(check("getExtensions", ACCESS_FREE) && check2(ACCESS_READ))
-			doGetExtensions();
-		else if(check("getExtensionProviders", ACCESS_FREE) && check2(ACCESS_READ))
-			doGetExtensionProviders();
-		else if(check("getRHExtensionProviders", ACCESS_FREE) && check2(ACCESS_READ))
+		//else if(check("getExtensions", ACCESS_FREE) && check2(ACCESS_READ))
+		//	doGetExtensions();
+		//else if(check("getExtensionProviders", ACCESS_FREE) && check2(ACCESS_READ))
+		//	doGetExtensionProviders();
+		else if((check("getRHExtensionProviders", ACCESS_FREE) || check("getExtensionProviders", ACCESS_FREE)) && check2(ACCESS_READ))
 			doGetRHExtensionProviders();
 		else if(check("getExtensionInfo", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetExtensionInfo();
@@ -846,15 +861,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doUpdateError();
 		else if(check("updateCustomTagSetting", ACCESS_FREE) && check2(ACCESS_WRITE))
 			doUpdateCustomTagSetting();
-		else if(check("updateExtension", ACCESS_FREE) && check2(ACCESS_WRITE))
-			doUpdateExtension();
-		else if(check("updateRHExtension", ACCESS_FREE) && check2(ACCESS_WRITE))
+		//else if(check("updateExtension", ACCESS_FREE) && check2(ACCESS_WRITE))
+		//	doUpdateExtension();
+		else if((check("updateRHExtension", ACCESS_FREE) || check("updateExtension", ACCESS_FREE)) && check2(ACCESS_WRITE))
 			doUpdateRHExtension();
-		else if(check("removeRHExtension", ACCESS_FREE) && check2(ACCESS_WRITE))
+		else if((check("removeRHExtension", ACCESS_FREE) || check("removeExtension", ACCESS_FREE)) && check2(ACCESS_WRITE))
 			doRemoveRHExtension();
 		else if(check("updateExtensionProvider", ACCESS_FREE) && check2(ACCESS_WRITE))
 			doUpdateExtensionProvider();
-		else if(check("updateRHExtensionProvider", ACCESS_FREE) && check2(ACCESS_WRITE))
+		else if((check("updateRHExtensionProvider", ACCESS_FREE) || check("updateExtensionProvider", ACCESS_FREE)) && check2(ACCESS_WRITE))
 			doUpdateRHExtensionProvider();
 		else if(check("updateExtensionInfo", ACCESS_FREE) && check2(ACCESS_WRITE))
 			doUpdateExtensionInfo();
@@ -1700,13 +1715,28 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doGetLoggedDebugData() throws PageException {
-
 		if(config instanceof ConfigServer)
 			return;
 
 		ConfigWebImpl cw = (ConfigWebImpl)config;
-
-		pageContext.setVariable(getString("admin", action, "returnVariable"), cw.getDebuggerPool().getData(pageContext));
+		String id=getString("id",null);
+		Array data = cw.getDebuggerPool().getData(pageContext);
+		
+		if(StringUtil.isEmpty(id)) {
+			pageContext.setVariable(getString("admin", action, "returnVariable"), data);
+		}
+		else {
+			Iterator<Object> it = data.valueIterator();
+			Struct sct;
+			while(it.hasNext()) {
+				sct=(Struct) it.next();
+				if(Operator.equalsEL(id, sct.get(KeyConstants._id,""), false, true)) {
+					pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
+					return;
+				}
+			}
+			throw new ApplicationException("no debugging data with id ["+id+"] found.");
+		}
 	}
 
 	private void doGetInfo() throws PageException {
@@ -2320,7 +2350,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 
-	private void doGetExtensionProviders() throws PageException {
+	/*private void doGetExtensionProviders() throws PageException {
 		ExtensionProvider[] providers = config.getExtensionProviders();
 		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "url", "isReadOnly" }, providers.length, "query");
 
@@ -2334,7 +2364,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			// qry.setAt("cacheTimeout",row,Caster.toDouble(provider.getCacheTimeout()/1000));
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
-	}
+	}*/
 
 	private void doGetExtensionInfo() throws PageException {
 		Resource ed = config.getExtensionDirectory();
@@ -2345,7 +2375,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 	}
 
-	private void doGetExtensions() throws PageException {
+	/*private void doGetExtensions() throws PageException {
 		Extension[] extensions = config.getExtensions();
 		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "type", "provider", "id", "config", "version", "category", "description", "image", "label",
 				"name", "author", "codename", "video", "support", "documentation", "forum", "mailinglist", "network", "created" }, 0, "query");
@@ -2393,7 +2423,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
-	}
+	}*/
 
 	private void doGetMappings() throws PageException {
 
@@ -2729,6 +2759,28 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 
+	private void doGetRHServerExtension() throws PageException {
+		_doGetRHExtension(config.getServerRHExtensions());
+	}
+
+	private void doGetRHExtension() throws PageException {
+		_doGetRHExtension(config.getRHExtensions());
+	}
+
+	private void _doGetRHExtension(RHExtension[] extensions) throws PageException {
+		String id=getString("admin", action, "id");
+		if(StringUtil.isEmpty(id,true)) throw new ApplicationException("id cannot be empty");
+		for(RHExtension ext:extensions) {
+			if(id.equals(ext.getId())) {
+				pageContext.setVariable(
+						getString("admin", action, "returnVariable"), 
+						ext.toStruct());
+				return;
+			}
+		}
+		throw new ApplicationException("there is no Extension with ID ["+id+"]");
+	}
+
 	private void doGetRHExtensions() throws PageException {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), RHExtension.toQuery(config, config.getRHExtensions()));
 	}
@@ -2740,7 +2792,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetLocalExtension() throws PageException {
 		String id = getString("admin", action, "id");
 		boolean asBinary = getBoolV("asBinary", false);
-
 		if(asBinary) {
 			Iterator<ExtensionDefintion> it = DeployHandler.getLocalExtensions(config).iterator();
 			ExtensionDefintion ext;
@@ -2755,14 +2806,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 						throw Caster.toPageException(e);
 					}
 				}
-
 			}
 			throw new ApplicationException("there is no local extension with id " + id);
 
 		}
 		else {
 			List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config));
-			Query qry = RHExtension.toQuery(config, locals.toArray(new RHExtension[locals.size()]));
+			Query qry = RHExtension.toQuery(config, locals);
 			int rows = qry.getRecordcount();
 			String _id;
 			int row = 0;
@@ -2781,7 +2831,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetLocalExtensions() throws PageException {
 		List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config));
-		Query qry = RHExtension.toQuery(config, locals.toArray(new RHExtension[locals.size()]));
+		Query qry = RHExtension.toQuery(config, locals);
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 
@@ -3743,26 +3793,60 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private String _usedBy(String name, Version version, BundleCollection coreBundles, java.util.Collection<BundleDefinition> extBundles) {
+		Set<String> extensions=new HashSet<String>();
+		
 		// core
-		if(_eq(name, version, coreBundles.core.getSymbolicName(), coreBundles.core.getVersion()))
-			return "core";
+		if(_eq(name, version, coreBundles.core.getSymbolicName(), coreBundles.core.getVersion())) {
+			extensions.add("Lucee");
+			//return "Lucee";
+		}
 		Iterator<Bundle> it = coreBundles.getSlaves();
 		Bundle b;
 		while(it.hasNext()) {
 			b = it.next();
-			if(_eq(name, version, b.getSymbolicName(), b.getVersion()))
-				return "core";
+			if(_eq(name, version, b.getSymbolicName(), b.getVersion())) {
+				extensions.add("Lucee");
+				//return "Lucee";
+				break;
+			}
 		}
 
 		Iterator<BundleDefinition> itt = extBundles.iterator();
 		BundleDefinition bd;
 		while(itt.hasNext()) {
 			bd = itt.next();
-			if(_eq(name, version, bd.getName(), bd.getVersion()))
-				return "extension";
+			if(_eq(name, version, bd.getName(), bd.getVersion())) {
+				findExtension(extensions,bd);
+			}
 		}
+		
+		if(extensions.size()==0)
+			return "";
+		if(extensions.size()==1)
+			return extensions.iterator().next();
+		
+		return ListUtil.arrayToList(extensions.toArray(new String[extensions.size()]), ", ");
+	}
 
-		return null;
+	private void findExtension(Set<String> extensions, BundleDefinition bd) {
+		ConfigImpl ci=(ConfigImpl) config;
+		_findExtension(ci.getRHExtensions(),bd,extensions);
+		_findExtension(ci.getServerRHExtensions(),bd,extensions);
+	}
+
+	private void _findExtension(RHExtension[] extensions, BundleDefinition bd,Set set) {
+		BundleInfo[] bundles;
+		for(RHExtension e:extensions) {
+			try {
+				bundles = e.getBundles();
+				for(BundleInfo b:bundles) {
+					if(_eq(bd.getName(), bd.getVersion(), b.getSymbolicName(), b.getVersion())) {
+						set.add(e.getName());
+					}
+				}
+			}
+			catch(Exception ex) {}
+		}
 	}
 
 	private boolean _eq(String lName, Version lVersion, String rName, Version rVersion) {
@@ -4517,6 +4601,19 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateRHExtension() throws PageException {
+		
+		// ID
+		String id = getString("id", null);
+		if(!StringUtil.isEmpty(id)) {
+			ExtensionDefintion ed;
+			String version = getString("version", null);
+			if(!StringUtil.isEmpty(version, true))ed=new ExtensionDefintion(id,version);
+			else ed = RHExtension.toExtensionDefinition(id);
+			
+			DeployHandler.deployExtension(config,ed, null,true);
+			return;
+		}
+		
 		// this can be a binary that represent the extension or a string that is a path to the extension
 		Object obj = getObject("admin", "UpdateRHExtensions", "source");
 
@@ -4551,7 +4648,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		store();
 	}
 
-	private void doUpdateExtension() throws PageException {
+	/*private void doUpdateExtension() throws PageException {
 
 		admin.updateExtension(pageContext,
 				new ExtensionImpl(getStruct("config", null), getString("admin", "UpdateExtensions", "id"), getString("admin", "UpdateExtensions", "provider"),
@@ -4564,7 +4661,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		store();
 		// adminSync.broadcast(attributes, config);
-	}
+	}*/
 
 	private void doUpdateExtensionProvider() throws PageException {
 		admin.updateExtensionProvider(getString("admin", "UpdateExtensionProvider", "url"));
