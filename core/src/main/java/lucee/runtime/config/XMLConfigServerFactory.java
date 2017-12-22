@@ -279,13 +279,6 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
         Resource res = create("/resource/security/","cacerts",secDir,false);
 		System.setProperty("javax.net.ssl.trustStore",res.toString());
 		
-        // ESAPI
-        Resource propDir = configDir.getRealResource("properties");
-        if(!propDir.exists())propDir.mkdirs();
-        create("/resource/properties/","ESAPI.properties",propDir,doNew);
-		System.setProperty("org.owasp.esapi.resources", propDir.toString());
-
-
 		// Jacob
 		if (SystemUtil.isWindows()) {
 

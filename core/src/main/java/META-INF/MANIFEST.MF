@@ -334,7 +334,6 @@ Require-Bundle: org.apache.commons.codec;bundle-version=1.9.0,
  backport.util.concurrent;bundle-version=2.2.0,
  org.lucee.oswego-concurrent;bundle-version=1.3.4,
  org.lucee.jta;bundle-version=1.1.0,
- org.lucee.esapi;bundle-version=2.1.0.1,
  fusiondebug.api.server;bundle-version=1.0.20,
  org.lucee.httpcomponents.httpclient;bundle-version=4.5.2,
  org.lucee.httpcomponents.httpcore;bundle-version=4.4.4,
@@ -376,4 +375,5 @@ Require-Extension: 7E673D15-D87C-41A6-8B5F1956528C605F;name=MySQL;label=MySQL;ve
  66E312DD-D083-27C0-64189D16753FD6F0;name=PDF;label=PDF;version=1.0.0.66,
  FAD67145-E3AE-30F8-1C11A6CCF544F0B7;name=Form;label=Form tags;version=1.0.0.7;since=5.1.0.21,
  DF28D0A4-6748-44B9-A2FDC12E4E2E4D38;name=Axis;label=Axis 1;version=1.4.0.24-ALPHA;since=5.3.0.20-ALPHA,
- B737ABC4-D43F-4D91-8E8E973E37C40D1B;name=Image;label=Image;version=1.0.0.18-ALPHA;since=5.3.0.35-ALPHA
+ B737ABC4-D43F-4D91-8E8E973E37C40D1B;name=Image;label=Image;version=1.0.0.18-ALPHA;since=5.3.0.35-ALPHA,
+ 37C61C0A-5D7E-4256-8572639BE0CF5838;name=Esapi;label=ESAPI;version=2.1.0.16-ALPHA;since=5.3.0.37-ALPHA

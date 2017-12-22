@@ -21,8 +21,7 @@ package lucee.transformer.cfml.evaluator.impl;
 
 import java.util.Iterator;
 
-import lucee.runtime.functions.owasp.ESAPIEncode;
-import lucee.runtime.functions.owasp.EncodeForCSS;
+import lucee.runtime.esapi.ESAPIUtil;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.Statement;
 import lucee.transformer.bytecode.cast.CastOther;
@@ -51,11 +50,8 @@ import lucee.transformer.library.tag.TagLibTag;
  */
 public final class Output extends EvaluatorSupport {
 
-	private static String ENCODE_FOR = EncodeForCSS.class.getName();
-	static {
-		// remove CSS
-		ENCODE_FOR=ENCODE_FOR.substring(0, ENCODE_FOR.length()-3);
-	}
+	private static String ENCODE_FOR_ = "org.lucee.extension.esapi.functions.EncodeFor";//EncodeForCSS.class.getName();
+	private static String ESAPI_ENCODE = "org.lucee.extension.esapi.functions.ESAPIEncode";
 
 	@Override
 	public void evaluate(Tag tag, TagLibTag libTag, FunctionLib[] flibs) throws EvaluatorException { 
@@ -69,16 +65,15 @@ public final class Output extends EvaluatorSupport {
 		Attribute encodeFor = tag.getAttribute("encodefor");
 		if(encodeFor!=null) {
 			Expression encodeForValue = CastString.toExprString(encodeFor.getValue());
-			if(encodeForValue instanceof Literal) {
+			/*if(encodeForValue instanceof Literal) {
 				Literal l=(Literal)encodeForValue;
 				short df=(short)-1;
-				short encType = ESAPIEncode.toEncodeType( l.getString(),df);
+				short encType = ESAPIUtil.toEncodeType( l.getString(),df);
 				if(encType!=df)encodeForValue=encodeForValue.getFactory().createLitInteger(encType);
-			}
+			}*/
 			addEncodeToChildren(
 				tag.getBody().getStatements().iterator(),
-				encodeForValue,
-				getEncodeForFunction(flibs)
+				encodeForValue
 			);
 		}
 		
@@ -118,7 +113,7 @@ public final class Output extends EvaluatorSupport {
         
 	}
 	
-	private FunctionLibFunction getEncodeForFunction(FunctionLib[] flibs) throws EvaluatorException {
+	/*private FunctionLibFunction getEncodeForFunction(FunctionLib[] flibs) throws EvaluatorException {
 		FunctionLibFunction f;
 		if(flibs!=null)for(int i=0;i<flibs.length;i++) {
 			f = flibs[i].getFunction("ESAPIEncode");
@@ -126,7 +121,7 @@ public final class Output extends EvaluatorSupport {
 		}
 		// should never happen
 		throw new EvaluatorException("could not find function ESAPIEncode ("+(flibs==null?"null":""+flibs.length)+")");
-	}
+	}*/
 
 	public static TagOutput getParentTagOutput(TagOutput stat) {
 		Statement parent = stat;
@@ -139,7 +134,7 @@ public final class Output extends EvaluatorSupport {
 		}
 	}
 	
-	private void addEncodeToChildren(Iterator it, Expression encodeForValue, FunctionLibFunction encodeForBIF) { 
+	private void addEncodeToChildren(Iterator it, Expression encodeForValue) { 
 		Statement stat;
 		while(it.hasNext()) {
 			stat=(Statement) it.next();
@@ -153,7 +148,7 @@ public final class Output extends EvaluatorSupport {
 							BIF bif=(BIF) member;
 							String cn = bif.getClassDefinition().getClassName();
 							
-							if(cn.startsWith(ENCODE_FOR) || cn.equals(ESAPIEncode.class.getName())) {
+							if(cn.startsWith(ENCODE_FOR_) || cn.equals(ESAPI_ENCODE)) {
 								continue;
 							}
 						}
@@ -165,10 +160,10 @@ public final class Output extends EvaluatorSupport {
 			else if(stat instanceof Tag){
 				Body b=((Tag)stat).getBody();
 				if(b!=null) 
-					addEncodeToChildren(b.getStatements().iterator(),encodeForValue,encodeForBIF);
+					addEncodeToChildren(b.getStatements().iterator(),encodeForValue);
 			}
 			else if(stat instanceof Body){
-				addEncodeToChildren(((Body)stat).getStatements().iterator(),encodeForValue,encodeForBIF);
+				addEncodeToChildren(((Body)stat).getStatements().iterator(),encodeForValue);
 			}
 		}
 	}

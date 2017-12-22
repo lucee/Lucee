@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.3.0.36-ALPHA</version>
+  <version>5.3.0.37-ALPHA</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -494,20 +494,6 @@
   	<version>1.1.0</version>
     <scope>provided</scope>
   </dependency>
-  <dependency>
-  	<groupId>org.lucee</groupId>
-  	<artifactId>esapi</artifactId>
-  	<version>2.1.0.1</version>
-    <scope>provided</scope>
-  </dependency>
-  <!-- used by esapi for parsing in ConfigurationParser, so it is optional (dynamic import) and we do not use it
-    <dependency>
-	  <groupId>xom</groupId>
-	  <artifactId>xom</artifactId>
-	  <version>1.2.5</version>
-    <scope>provided</scope>
-  </dependency>
-  -->
   <dependency>
     <groupId>fusiondebug.api</groupId>
     <artifactId>server</artifactId>

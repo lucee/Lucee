@@ -413,6 +413,9 @@
         <!-- Image -->
         <not><isset property="extImage"/></not>
         <not><isset property="extImageVersion"/></not>
+        <!-- Esapi -->
+        <not><isset property="extEsapi"/></not>
+        <not><isset property="extEsapiVersion"/></not>
         </or>
     </condition>
     </fail>
@@ -514,6 +517,7 @@
     <available file="${cache}/${extForm}-${extFormVersion}.lex" property="form.present"/>
     <available file="${cache}/${extAxis}-${extAxisVersion}.lex" property="axis.present"/>
     <available file="${cache}/${extImage}-${extImageVersion}.lex" property="image.present"/>
+    <available file="${cache}/${extEsapi}-${extEsapiVersion}.lex" property="esapi.present"/>
   </target>
 
 
@@ -562,12 +566,15 @@
   <target name="check-image" depends="check-cache" unless="image.present">
       <get src="${extURL}${extImage}?version=${extImageVersion}" dest="${cache}/${extImage}-${extImageVersion}.lex"/>
   </target>
+  <target name="check-esapi" depends="check-cache" unless="esapi.present">
+      <get src="${extURL}${extEsapi}?version=${extEsapiVersion}" dest="${cache}/${extEsapi}-${extEsapiVersion}.lex"/>
+  </target>
   <target name="check-testbox" depends="check-cache" unless="testbox.present">
       <get src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
   </target> 
 
 
-  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-axis,check-image,check-testbox">
+  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-axis,check-image,check-esapi,check-testbox">
     
     <mkdir dir="${temp}/loader/extensions/"/>
 
@@ -1078,6 +1085,18 @@
       tofile="${goal}/extensions/${ext_image.filename}"/>
     <echo>add:${goal}/extensions/${ext_image.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_image.filename};</echo>
+
+    <!-- add extension Esapi -->
+    <loadmf jar="${cache}/${extEsapi}-${extEsapiVersion}.lex" prefix="ext_esapi."/>
+    <toFileName id="${ext_esapi.id}" name="${ext_esapi.name}" version="${ext_esapi.version}" property="ext_esapi.filename"/>
+    <copy 
+      file="${cache}/${extEsapi}-${extEsapiVersion}.lex" 
+      todir="${goal}/extensions/"/>
+    <move 
+      file="${goal}/extensions/${extEsapi}-${extEsapiVersion}.lex" 
+      tofile="${goal}/extensions/${ext_esapi.filename}"/>
+    <echo>add:${goal}/extensions/${ext_esapi.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_esapi.filename};</echo>
 
   </target>
 

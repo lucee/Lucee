@@ -419,20 +419,17 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			pc = it.next();
 			cw = (ConfigWebImpl) pc.getConfig();
 			data = new StructImpl();
-			sctThread = new StructImpl();
 			scopes = new StructImpl();
-			data.setEL("thread", sctThread);
 			data.setEL("scopes", scopes);
 
 			if(pc.isGatewayContext())
 				continue;
 			thread = pc.getThread();
-			if(thread == Thread.currentThread())
+			if(thread == Thread.currentThread() || thread==null)
 				continue;
 
-			thread = pc.getThread();
-			if(thread == Thread.currentThread())
-				continue;
+			sctThread = new StructImpl();
+			data.setEL("thread", sctThread);
 
 			data.setEL("startTime", new DateTimeImpl(pc.getStartTime(), false));
 			data.setEL("endTime", new DateTimeImpl(pc.getStartTime() + pc.getRequestTimeout(), false));

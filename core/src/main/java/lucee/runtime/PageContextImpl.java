@@ -106,6 +106,7 @@ import lucee.runtime.engine.ExecutionLog;
 import lucee.runtime.err.ErrorPage;
 import lucee.runtime.err.ErrorPageImpl;
 import lucee.runtime.err.ErrorPagePool;
+import lucee.runtime.esapi.ESAPIUtil;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CasterException;
@@ -119,7 +120,6 @@ import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.functions.dynamicEvaluation.Serialize;
 import lucee.runtime.functions.other.CreateUniqueId;
-import lucee.runtime.functions.owasp.ESAPIEncode;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.listener.ApplicationContext;
@@ -701,12 +701,8 @@ public final class PageContextImpl extends PageContext {
 		}
 	} 
 
-	// FUTURE add both method to interface
 	public void writeEncodeFor(String value, String encodeType) throws IOException, PageException { // FUTURE keyword:encodefore add to interface
-		write(ESAPIEncode.call(this, encodeType, value,false));
-	}
-	public void writeEncodeFor(String value, short encodeType) throws IOException, PageException { // FUTURE keyword:encodefore add to interface
-		write(ESAPIEncode.encode(value, encodeType, false));
+		write(ESAPIUtil.esapiEncode(this,encodeType, value));
 	}
 	
 	@Override

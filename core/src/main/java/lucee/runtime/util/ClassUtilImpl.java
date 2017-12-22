@@ -74,8 +74,19 @@ public class ClassUtilImpl implements ClassUtil {
 			 flf= flds[i].getFunction(name);
 			 if(flf!=null) return flf.getBIF();
 		}
-		
-		
+		return null;
+	}
+	
+	// FUTURE add to loader
+	public BIF loadBIF(PageContext pc, String name, String bundleName, Version bundleVersion) throws InstantiationException, IllegalAccessException, ClassException, BundleException {
+		// first of all we chek if itis a class
+		Class<?> res = lucee.commons.lang.ClassUtil.loadClassByBundle(name, bundleName, bundleVersion, pc.getConfig().getIdentification());
+		if(res!=null) {
+			if(Reflector.isInstaneOf(res, BIF.class)) {
+				return (BIF) res.newInstance();
+			}
+			return new BIFProxy(res);
+		}
 		return null;
 	}
 
