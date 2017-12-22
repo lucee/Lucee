@@ -1,26 +1,24 @@
 <cfcomponent extends="Debug" output="no">
 	<cfscript>
-		fields=array(
-			group("Execution Time","Execution times for templates, includes, modules, custom tags, and component method calls. Template execution times over this minimum highlight time appear in red.",3)
-			,field("Minimal Execution Time","minimal","0",true,{_appendix:"microseconds",_bottom:"Execution times for templates, includes, modules, custom tags, and component method calls. Outputs only templates taking longer than the time (in microseconds) defined above."},"text40")
-			,field("Highlight","highlight","250000",true,{_appendix:"microseconds",_bottom:"Highlight templates taking longer than the following (in microseconds) in red."},"text50")
-			,group("Custom Debugging Output","Define what is outputted",3)
-			,field("Expression","expression","Enabled",false,"Enter expression to evaluate","checkbox","Enabled")
-			,field("General Debug Information ","general","Enabled",false,
-			"Select this option to show general information about this request. General items are Lucee Version, Template, Time Stamp, User Locale, User Agent, User IP, and Host Name. ",
-			"checkbox","Enabled")
-			,field("Display callstack","callStack","Enabled",false,"Display callstack for templates","checkbox","Enabled")
-			,field("Display percentages","displayPercentages","Enabled",false,"Display percentages for each entry","checkbox","Enabled")
-			,field("Highlight colored","colorHighlight","Enabled",true,"Color the output based on the overall percentages","checkbox","Enabled")
-			,field("Warn Session size","sessionSize","100",true,{_appendix:"KB",_bottom:"Warn in debugging, if the current session is above the following (in KB) size."},"text50")
-			,group("Custom Debugging Output with AJAX")
-			,field("AjaxCall","ajaxCall","Enabled",false,"Enable to load the tabs via ajax call","checkbox","Enabled")
-			,field("Tabs","ajaxTabs","Debug,Metrics,Reference",false,"Select the tab to show on debugOutput","checkbox","Debug,Metrics,Reference")
-			,field("Charts","metrics_charts","heapchart,non_heapChart,wholeSystem,lucee_Process",false,"Select the chart to show on metrics Tab. It will show only if the metrics tabs is enabled","checkbox","Heapchart,Non_HeapChart,WholeSystem,Lucee_Process")
-			,field("Number of charts in a line","no_of_charts","2",true,{_appendix:"Charts",_bottom:"Enter a count(1 to 4), Number of charts should be displayed in a row."},"text50","1,2,3,4")
-			,field("Sort Order charts ","sort_charts","1,2,3,4",false,{_bottom:"Enter the numbers of sort_order (1 to 4), For Example:2431 "},"text50")
-		);
-
+	  fields=array(
+group("Debugging Tab","Debugging tag includes execution time,Custom debugging output",2)
+,field("Debugging","Tab_Debug","Enabled",true,"Select the Debugging tab to show on DebugOutput","checkbox","Enabled")
+,field("Minimal Execution Time","minimal","0",true,{_appendix:"microseconds",_bottom:"Execution times for templates, includes, modules, custom tags, and component method calls. Outputs only templates taking longer than the time (in microseconds) defined above."},"text40")
+,field("Highlight","highlight","250000",true,{_appendix:"microseconds",_bottom:"Highlight templates taking longer than the following (in microseconds) in red."},"text50")
+,field("Expression","expression","Enabled",false,"Enter expression to evaluate","checkbox","Enabled")
+,field("General Debug Information ","general","Enabled",false,
+"Select this option to show general information about this request. General items are Lucee Version, Template, Time Stamp, User Locale, User Agent, User IP, and Host Name. ",
+"checkbox","Enabled")
+,field("Display callstack","callStack","Enabled",false,"Display callstack for templates","checkbox","Enabled")
+,field("Display percentages","displayPercentages","Enabled",false,"Display percentages for each entry","checkbox","Enabled")
+,field("Highlight colored","colorHighlight","Enabled",true,"Color the output based on the overall percentages","checkbox","Enabled")
+,field("Warn Session size","sessionSize","100",true,{_appendix:"KB",_bottom:"Warn in debugging, if the current session is above the following (in KB) size."},"text50")
+,group("Metrics Tab","",2)
+,field("Metrics","tab_Metrics","Enabled",true,"Select the Metrics tab to show on debugOutput","checkbox","Enabled")
+,field("Charts","metrics_charts","HeapChart,NonHeapChart,WholeSystem,LuceeProcess",false,"Select the chart to show on metrics Tab. It will show only if the metrics tabs is enabled","checkbox","HeapChart,NonHeapChart,WholeSystem,LuceeProcess")
+,group("Reference Tab","",2)
+,field("Reference","tab_Reference","Enabled",true,"Select the Reference tab to show on DebugOutput","checkbox","Enabled")
+);
 		string function getLabel(){
 			return "Modern - Extended - AJAX";
 		}
@@ -91,142 +89,44 @@
 	</cfscript>
 
 	<cffunction name="output" returntype="void">
-		<cfif !directoryExists("#expandPath('/lucee')#\applogs\")>
-			<cfdirectory action="create" directory="#expandPath('/lucee')#\applogs">
-				<cfset fileName = "#expandPath('/lucee')#\applogs\readDebug.cfm">
-				<cfset fileWrite( fileName, '<cfscript>setting showdebugoutput="false";echo(cacheGet(url.sHash));</cfscript>' ) >
-		</cfif>
-
+		<cfargument name="custom" required="true" type="struct" />
 		<cfargument name="debugging" required="true" type="struct" />
 		<cfargument name="context" type="string" default="web" />
-		<cfsilent>
-			<cfset local.stStats = filterByTemplates(arguments.debugging)>
-			<cfset arguments.debugging.minimal          = arguments.custom.minimal ?: 0>
-			<cfset arguments.debugging.highlight        = arguments.custom.highlight ?: 250000>
-			<cfset arguments.debugging.expression       = arguments.custom.expression ?: false>
-			<cfset arguments.debugging.timers           = arguments.debugging.timers ?: queryNew('label,time,template')>
-			<cfset arguments.debugging.traces           = arguments.debugging.traces ?: queryNew('type,category,text,template,line,var,total,trace')>
-			<cfset arguments.debugging.dumps            = arguments.debugging.dumps ?: queryNew('output,template,line')>
-			<cfset arguments.custom.general             = arguments.custom.keyExists('general')>
-			<cfset arguments.custom.callStack           = arguments.custom.keyExists('callStack')>
-			<cfset arguments.custom.displayStats        = arguments.custom.keyExists('displayStats')>
-			<cfset arguments.custom.colorHighlight      = arguments.custom.keyExists('colorHighlight')>
-			<cfset arguments.custom.displayPercentages  = arguments.custom.keyExists('displayPercentages')>
-			<cfset arguments.custom.sessionSize         = (arguments.custom.sessionSize ?: 100) * 1024>
-			<cfset arguments.custom.no_of_charts         = (arguments.custom.no_of_charts ?: 2)>
-			<!--- <cfset arguments.custom.sort_charts 		= (arguments.custom.sort_charts ?: '1,2,3,4')> --->
-			<cfset variables.tabsPresent = arguments.custom.ajaxTabs ?: "">
-			<cfset variables.chartsAvl = arguments.custom.metrics_charts ?: "">
-
-			<cfset variables.chartStr = structNew("ordered")>
-			<cfloop list="#arguments.custom.sort_charts#" index="i">
-				<cfif i EQ "1">
-					<cfif listFindNoCase("#variables.chartsAvl#", "Heapchart") GT 0 >
-						<cfset variables.chartStr.heapchart = "heap">
-					</cfif>
-				<cfelseif i EQ "2">
-					<cfif listFindNoCase("#variables.chartsAvl#", "Non_HeapChart") GT 0 >
-						<cfset variables.chartStr.non_heapChart = "nonheap">
-					</cfif>
-				<cfelseif i EQ "3">
-					<cfif listFindNoCase("#variables.chartsAvl#", "WholeSystem") GT 0 >
-						<cfset variables.chartStr.wholeSystem = "cpuSystem">
-					</cfif>
-				<cfelseif i EQ "4">
-					<cfif listFindNoCase("#variables.chartsAvl#", "Lucee_Process") GT 0 >
-						<cfset variables.chartStr.lucee_process = "cpuProcess">
-					</cfif>
+		<cfparam name="arguments.custom.size" default="medium">
+		<cfset this.allSections  = this.buildSectionStruct()>
+		<cfset variables.tabsPresent = "">
+		<cfloop list="#structKeyList(arguments.CUSTOM)#" index="i">
+			<cfif i EQ "Tab_Debug">
+				<cfset variables.tabsPresent = listAppend(variables.tabsPresent, "debug")>
+			<cfelseif i EQ "tab_Metrics">
+				<cfset variables.tabsPresent = listAppend(variables.tabsPresent, "metrics")>
+			<cfelseif i EQ "tab_Reference">
+				<cfset variables.tabsPresent =  listAppend(variables.tabsPresent, "reference")>
+			</cfif>
+		</cfloop>
+		<cfset variables.chartStr = {}>
+			<cfloop list="#arguments.custom.metrics_Charts#" index="i">
+				<cfif i EQ "HeapChart">
+					<cfset variables.chartStr[i] = "heap">
+				<cfelseif i EQ "NonHeapChart">
+					<cfset variables.chartStr[i] = "nonheap">
+				<cfelseif i EQ "WholeSystem">
+					<cfset variables.chartStr[i] = "cpuSystem">
+				<cfelseif i EQ "LuceeProcess">
+					<cfset variables.chartStr[i] = "cpuProcess">
 				</cfif>
 			</cfloop>
 
-			<cfset variables.tbsStr = {}>
-			<cfloop list="#arguments.custom.ajaxTabs#" index="i">
-				<cfif i EQ "Debug">
-					<cfset variables.tbsStr[i] = "debugging">
-				<cfelseif i EQ "metrics">
-					<cfset variables.tbsStr[i] = "metrics">
-				<cfelseif i EQ "reference">
-					<cfset variables.tbsStr[i] = "docs">
-				</cfif>
-			</cfloop>
-			<cfset var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi />
-			<cfset var pages=arguments.debugging.pages />
-			<cfset var queries=arguments.debugging.queries />
-			<cfif not isDefined('arguments.debugging.timers')>
-				<cfset arguments.debugging.timers=queryNew('label,time,template') />
+		<cfset variables.tbsStr = {}>
+		<cfloop list="#variables.tabsPresent#" index="i">
+			<cfif i EQ "Debug">
+				<cfset variables.tbsStr[i] = "debugging">
+			<cfelseif i EQ "metrics">
+				<cfset variables.tbsStr[i] = "metrics">
+			<cfelseif i EQ "reference">
+				<cfset variables.tbsStr[i] = "docs">
 			</cfif>
-			<cfif not isDefined('arguments.debugging.traces')>
-				<cfset arguments.debugging.traces=queryNew('type,category,text,template,line,var,total,trace') />
-			</cfif>
-			<cfif not isDefined('arguments.debugging.dumps')>
-				<cfset arguments.debugging.traces=queryNew('output,template,line') />
-			</cfif>
-			<cfset var timers=arguments.debugging.timers />
-			<cfset var traces=arguments.debugging.traces />
-			<cfset var dumps=arguments.debugging.dumps />
-
-			<!---  calculate totals  --->
-			<cfset local.loa      = 0>
-			<cfset local.tot      = 0>
-			<cfset local.totLucee = 0>
-			<cfset local.totCnt   = 0>
-			<cfset local.q        = 0>
-			<cfset local.totAvg   = 0>
-			<cfset queryAddColumn(pages, "method")>
-			<cfset queryAddColumn(pages, "path")>
-			<cfloop query="pages">
-				<cfset querySetCell(pages, "total", pages.app + pages.load + pages.query, pages.currentRow)>
-				<cfset querySetCell(pages, "avg", (pages.app + pages.load + pages.query) / pages.count, pages.currentRow)>
-				<cfset aPage = listToArray(pages.src, '$')>
-				<cfset querySetCell(pages, "path", pages.src, pages.currentRow)>
-				<cfset querySetCell(pages, "src", contractPath(aPage[1]), pages.currentRow)>
-				<cfset querySetCell(pages, "method", !isEmpty(aPage[2] ?: '') ? aPage[2] : '', pages.currentRow)>
-				<cfset tot      += pages.total />
-				<cfset totCnt   += pages.count />
-				<cfset totLucee += pages.app>
-				<cfset q        += pages.query />
-				<cfset loa      += pages.load />
-				<cfset totAvg   += pages.avg />
-				<cfif pages.avg LT arguments.custom.minimal*1000>
-					<cfcontinue>
-				</cfif>
-				<cfset local.bad=pages.avg GTE arguments.custom.highlight*1000 />
-			</cfloop>
-			<cfset local.iTotalTime  = tot>
-			<cfset local.iTotalCount = totCnt>
-			<cfset local.iTotalQuery = max(q, 0.01)><!--- To prevent division by zero, if the sum of queries is 0  --->
-			<cfset local.iTotalLucee = totLucee>
-			<cfset local.iTotalAvg   = totAvg>
-
-			<cfset this.allSections  = this.buildSectionStruct()>
-			<cfset var isExecOrder   = this.isSectionOpen( "ExecOrder" )>
-			<cfset local.sCookieSort = cookie[variables.cookieSortOrder] ?: ' '>
-			<cfif structKeyExists(pages, sCookieSort)>
-				<cfif listFind("id,src", sCookieSort)>
-					<cfset querySort(pages, sCookieSort,"asc")>
-				<cfelse>
-					<cfset querySort(pages, sCookieSort,"desc")>
-				</cfif>
-			</cfif>
-
-			<cfset var implicitAccess=arguments.debugging.implicitAccess />
-			<cfset querySort(implicitAccess,"template,line,count","asc,asc,desc") />
-			<cfparam name="arguments.custom.unit" default=" ms">
-			<cfparam name="arguments.custom.color" default="black">
-			<cfparam name="arguments.custom.bgcolor" default="white">
-			<cfparam name="arguments.custom.font" default="Times New Roman">
-			<cfparam name="arguments.custom.size" default="medium">
-			<cfset var unit={
-				millisecond:"ms"
-				,microsecond:"s"
-				,nanosecond:"ns"
-				} />
-			<cfset var ordermap={}>
-			<cfloop query="#arguments.debugging.history#">
-				<cfif !structkeyExists(ordermap, arguments.debugging.history.id)><cfset ordermap[ arguments.debugging.history.id ]=structCount(ordermap)+1></cfif>
-			</cfloop>
-			<cfset var prettify=structKeyExists(arguments.custom,'timeformat') and arguments.custom.timeformat EQ "natural">
-		</cfsilent>
+		</cfloop>
 		<script>
 			<cfset this.includeFileInline( "/lucee/res/js/jquery-1.12.4.min.js" )>
 		</script>
@@ -259,8 +159,9 @@
 			<cfset var sectionId = "ALL">
 			<cfset var isOpen = this.isSectionOpen( sectionId, "debugging" ) OR this.isSectionOpen( sectionId, "metrics" ) OR this.isSectionOpen( sectionId, "docs" )>
 			<!-- Lucee Debug Output !-->
-			<!--- <fieldset> --->
-			<div id="-lucee-debug" class="#arguments.custom.size# #isOpen ? '' : 'collapsed'#">
+			
+			<fieldset id="-lucee-debug" class="#arguments.custom.size# #isOpen ? '' : 'collapsed'#">
+				<!--- Lucee Debug Output --->
 				<cfset isdebugOpen = this.isSectionOpen( sectionId )>
 				<cfset ismetricsOpen = this.isSectionOpen( sectionId, "metrics" )>
 				<cfset isdocsOpen = this.isSectionOpen( sectionId, "docs" )>
@@ -269,735 +170,39 @@
 					<cfset ismetricsOpen = false>
 					<cfset isdocsOpen = false>
 				</cfif>
-				<div class="legend"><!--- <legend> --->
+				<legend style="line-height: 20px !important; margin: auto !important; width:auto !important;">
 					<cfif enableTab("debug")>
-						<button id="-lucee-debug-btn-#sectionId#" class="#isdebugOpen ? 'btnActive' : 'buttonStyle' #  test" onclick="clickAjax('debug'); __LUCEE.debug.toggleSection( '#sectionId#' );">
+						<button id="-lucee-debug-btn-#sectionId#" class="#isdebugOpen ? 'btnActive' : 'buttonStyle' # btnOvr" onclick="clickAjax('debug'); __LUCEE.debug.toggleSection( '#sectionId#' );">
 							<!--- Lucee Debug Output --->
 							Debugging
 						</button>
 						<cfif enableTab("Metrics")>
-							<!--- <span class="dashColor"> - </span> --->
+							<span class="dashColor"> - </span>
 						</cfif>
 					</cfif>
 					<!--- <span>(#this.getLabel()#)</span> --->
 					<cfif enableTab("Metrics")>
-						<button id="-lucee-metrics-btn-#sectionId#" class="#ismetricsOpen ? 'btnActive' : 'buttonStyle' #  test" onclick="clickAjax('metrics');  __LUCEE.debug.toggleSection( '#sectionId#', 'metrics' );">
+						<button id="-lucee-metrics-btn-#sectionId#" class="#ismetricsOpen ? 'btnActive' : 'buttonStyle' # btnOvr" onclick="clickAjax('metrics');  __LUCEE.debug.toggleSection( '#sectionId#', 'metrics' );">
 							Metrics
 						</button> 
 						<cfif enableTab("Reference")>
-							<!--- <span class="dashColor"> - </span> --->
+							<span class="dashColor"> - </span>
 						</cfif>
 					</cfif>
 
 					<cfif enableTab("Reference")>
-						<button id="-lucee-docs-btn-#sectionId#" class="#isdocsOpen ? 'btnActive' : 'buttonStyle' #  test" onclick="clickAjax('docs'); __LUCEE.debug.toggleSection( '#sectionId#', 'docs' ); ">
+						<button id="-lucee-docs-btn-#sectionId#" class="#isdocsOpen ? 'btnActive' : 'buttonStyle' # btnOvr" onclick="clickAjax('docs'); __LUCEE.debug.toggleSection( '#sectionId#', 'docs' ); ">
 							Reference
 						</button>
 					</cfif>
-				</div><!--- </legend> --->
+				</legend>
 				<cfif enableTab("debug")>
 					<div id="-lucee-debug-ALL" class="#isdebugOpen ? '' : 'collapsed'#">Loading debugging data...</div>
-				 	<cfsavecontent variable="local.sContent.tab1" trim="true">
-						<!--- General --->
-						<div id="debugContainer">
-							<cfoutput>
-							<cfif isEnabled( arguments.custom, 'general' )>
-								<div class="section-title" style="padding-top:23px;">Debugging Information</div>
-								<cfset sectionId = "Info">
-								<cfset isOpen = this.isSectionOpen( sectionId )>
-								<table>
-									<cfset renderSectionHeadTR( sectionId, "Template:", "#HTMLEditFormat(_cgi.SCRIPT_NAME)# (#HTMLEditFormat(expandPath(_cgi.SCRIPT_NAME))#)" )>
-									<tr>
-										<td class="pad label">User Agent:</td>
-										<td class="pad">#_cgi.http_user_agent#</td>
-									</tr>
-									<tr>
-										<td colspan="2" id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-											<table class="ml14px">
-												<tr>
-													<td class="label" colspan="2">
-														#server.coldfusion.productname#
-														<cfif StructKeyExists(server.lucee,'versionName')>(<a href="#server.lucee.versionNameExplanation#" target="_blank">#server.lucee.versionName#</a>)
-														</cfif>
-														#ucFirst(server.coldfusion.productlevel)# #uCase(server.lucee.state)# #server.lucee.version# (CFML Version #server.ColdFusion.ProductVersion#)
-													</td>
-												</tr>
-												<tr>
-													<td class="label">Time Stamp</td>
-													<td class="cfdebug">#LSDateFormat(now())# #LSTimeFormat(now())#</td>
-												</tr>
-												<tr>
-													<td class="label">Time Zone</td>
-													<td class="cfdebug">#getTimeZone()#</td>
-												</tr>
-												<tr>
-													<td class="label">Locale</td>
-													<td class="cfdebug">#ucFirst(GetLocale())#</td>
-												</tr>
-												<tr>
-													<td class="label">Remote IP</td>
-													<td class="cfdebug">#_cgi.remote_addr#</td>
-												</tr>
-												<tr>
-													<td class="label">Host Name</td>
-													<td class="cfdebug">#_cgi.server_name#</td>
-												</tr>
-												<tr>
-													<td class="label">Debugging Template</td>
-													<td class="cfdebug">#getCurrentTemplatePath()#</td>
-												</tr>
-												<cfif StructKeyExists(server.os,"archModel") and StructKeyExists(server.java,"archModel")>
-													<tr>
-														<td class="label">Architecture</td>
-														<td class="cfdebug">
-															<cfif server.os.archModel NEQ server.os.archModel>
-																OS #server.os.archModel#bit/JRE #server.java.archModel#bit
-															<cfelse>
-																#server.os.archModel#bit
-															</cfif>
-														</td>
-													</tr>
-												</cfif>
-											</table>
-										</td>
-									</tr>
-								</table>
-							</cfif>
 
-							<!--- Filter information on top --->
-							<cfif stStats.filterActive>
-								<div class="section-title" style="color:red"><b>Debugging Filter active!</b></div>
-								<table>
-									<tr><td><table class="details" cellpadding="2" cellspacing="0">
-										<tr>
-											<th>Section</th>
-											<th>Filtered</th>
-											<th>of</th>
-											<th>Filtered time</th>
-											<th>of Total</th>
-										</tr>
-
-										<cfloop list="pages,queries,implicitAccess,timers,traces,exceptions,dumps" index="local.lst">
-											<tr>
-												<td>#UCFirst(lCase(lst))#:</td>
-												<td class="txt-r">#stStats[lst].filtered#</td>
-												<td class="txt-r">#stStats[lst].initial#</td>
-												<td class="txt-r">
-													<cfif stStats[lst].filtered and stStats[lst].keyExists("sumFilteredTime")>
-														#unitFormat(arguments.custom.unit, stStats[lst].sumFilteredTime ?: 0)#
-													<cfelse>
-														&nbsp;
-													</cfif>
-												</td>
-												<td class="txt-r">
-													<cfif stStats[lst].initial and stStats[lst].keyExists("sumTime")>
-														#unitFormat(arguments.custom.unit, stStats[lst].sumTime ?: 0)#
-													<cfelse>
-														&nbsp;
-													</cfif>
-												</td>
-											</tr>
-										</cfloop>
-										<tr><th colspan="5"><b>Filtered templates:</b></th></tr>
-										<tr>
-											<th colspan="4" align="left">Template</th>
-											<th>Recursive</th>
-										</tr>
-										<cfloop collection="#stStats.stTemplates#" index="local.sTemplate" item="local.stRecurse">
-											<cfif sTemplate neq 'undefined'>
-												<tr>
-													<td colspan="4">
-														#sTemplate#
-													</td>
-													<td align="center"><b>#stRecurse.recurse ? 'Yes' : 'No'#</b></td>
-												</tr>
-											</cfif>
-										</cfloop>
-										<tr><td colspan="5" align="center"><a onClick="__LUCEE.debug.setTemplateFilter('')">Reset Filter</a></td></tr>
-									</table></td></tr>
-								</table>
-
-							</cfif>
-
-							<!--- Execution Time --->
-							<cfset sectionId = "ExecTime">
-							<cfset isOpen = this.isSectionOpen( sectionId )>
-
-							<div class="section-title">Execution Time</div>
-							<cfset local.loa=0>
-							<cfset local.tot=0>
-							<cfset local.q=0>
-							<cfset local.bDisplayLongExec = false>
-
-							<cfloop query="pages">
-								<cfset tot=tot+pages.total>
-								<cfset q=q+pages.query>
-								<cfif pages.avg LT arguments.custom.minimal*1000>
-									<cfcontinue>
-								</cfif>
-								<cfset local.bad=pages.avg GTE arguments.custom.highlight*1000>
-								<cfset loa=loa+pages.load />
-							</cfloop>
-
-							<table>
-								<cfset renderSectionHeadTR( sectionId
-									, "#unitFormat( arguments.custom.unit, tot-q-loa, prettify )#
-										&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Application" )>
-								<tr><td><table>
-									<tr>
-										<td class="pad txt-r">#unitFormat( arguments.custom.unit, loa,prettify )#</td>
-										<td class="pad">Startup/Compilation</td>
-									</tr>
-									<tr>
-										<td class="pad txt-r">#unitFormat( arguments.custom.unit, q,prettify )#</td>
-										<td class="pad">Query</td>
-									</tr>
-									<tr>
-										<td class="pad txt-r bold">#unitFormat( arguments.custom.unit, tot, prettify )#</td>
-										<td class="pad bold">Total</td>
-									</tr>
-								</table></td></tr>
-								<tr>
-									<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-										<table class="details" cellpadding="2" cellspacing="0">
-											<tr>
-												<th>
-													<cfif (sCookieSort ?: '-') neq 'id'>
-														<a onclick="__LUCEE.debug.setSortOrder(this, 'id')" class="sortby" title="Order by ID (starting with the next request)">ID</a>
-													<cfelse>
-														ID
-													</cfif>
-												</th>
-												<cfset local.stColumns = [
-													{title:'Total time', field:'total'},
-													{title:'Query',      field:'query'},
-													{title:'CFML time',  field:'app'},
-													{title:'Count',      field:'count'},
-													{title:'Avg time',   field:'avg'}
-												]>
-												<cfloop collection="#stColumns#" index="local.lstHead" item="local.stColumn">
-													<th align="center">
-														<cfif (sCookieSort ?: '-') neq stColumn.field>
-															<a onclick="__LUCEE.debug.setSortOrder(this, '#stColumn.field#')" class="sortby" title="Order by #stColumn.title# (starting with the next request)">#stColumn.title#</a>
-														<cfelse>
-															#stColumn.title#
-														</cfif>
-													</th>
-													<cfif arguments.custom.displayPercentages><th align="center">%</th></cfif>
-												</cfloop>
-												<th>
-													<cfif (sCookieSort ?: '-') neq 'src'>
-														<a onclick="__LUCEE.debug.setSortOrder(this, 'src')" class="sortby" title="Order by Template (starting with the next request)">Template</a>
-													<cfelse>
-														Template
-													</cfif>
-												</th>
-												<th>Method 
-													<cfif arguments.custom.callStack> / Stack
-														<cfset local.stPages = {}>
-														<cfloop query="pages">
-															<cfset local.sMethod = !isEmpty(pages.method) ? ':#pages.method#()' : ''>
-															<cfset stPages[pages.id].src = '<span title="#pages.src##sMethod#">' & listLast(pages.src, '/\') & "<b>#sMethod#</b></span>">
-														</cfloop>
-														<cfloop from="#arguments.debugging.history.recordCount#" to="1" step="-1" index="local.iRec">
-															<cfset stPages[arguments.debugging.history.id[iRec]].iHistPos = iRec>
-														</cfloop>
-													</cfif>
-												</th>
-												<th>Filter</th>
-											</tr>
-											<cfset loa=0 />
-											<cfset tot=0 />
-											<cfset q=0 />
-											<cfloop query="pages">
-												<cfset tot += pages.total - (pages.count * pages.avg) />
-												<cfset q += pages.query />
-												<cfif pages.avg LT arguments.custom.minimal*1000>
-													<cfcontinue>
-												</cfif>
-												<cfset bad = pages.avg GTE arguments.custom.highlight*1000 />
-												<cfset loa += pages.load />
-												<cfset local.iPctTotal = pages.total / (iTotalTime eq 0 ? 1 : iTotalTime)>
-												<cfset local.iPctCount = pages.count / (iTotalCount eq 0 ? 1 : iTotalCount)>
-												<cfset local.iPctQuery = pages.query / (iTotalQuery eq 0 ? 1 : iTotalQuery)>
-												<cfset local.iPctLucee = pages.app / (iTotalLucee eq 0 ? 1 : iTotalLucee)>
-												<cfset local.iPctAvg   = pages.avg / (iTotalAvg eq 0 ? 1 : iTotalAvg)>
-												<cfset local.sColor    = RGBtoHex(255 * iPctTotal, 160 * (1 - iPctTotal), 0)>
-												<cfset sStyle = ''>
-												<cfif arguments.custom.colorHighlight>
-													<cfset sStyle = sColor>
-												</cfif>
-												<cfif bad><cfset sStyle = "red"></cfif>
-												<tr class="#bad ? 'red': ''#">
-													<td class="txt-r faded #sCookieSort eq 'id' ? 'sorted' : ''#" title="#pages.id#">#ordermap[pages.id]#</td>
-													<td align="right" class="tblContent #sCookieSort eq 'total' ? 'sorted' : ''#">
-														<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.app + pages.query)#</font>
-														<cfif !bDisplayLongExec AND bad>
-															<cfset bDisplayLongExec = true>
-														</cfif>
-													</td>
-													<cfif arguments.custom.displayPercentages>
-														<td align="right" class="tblContent" style="#sStyle#">
-															<font color="#sStyle#">#numberFormat(iPctTotal*100, '999.9')#</font>
-														</td>
-													</cfif>
-													<td align="right" class="tblContent #sCookieSort eq 'query' ? 'sorted' : ''#" style="#sStyle#">
-														<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.query)#</font>
-													</td>
-													<cfif arguments.custom.displayPercentages>
-														<td align="right" class="tblContent" style="#sStyle#">
-															<font color="#sStyle#">#numberFormat(iPctQuery*100, '999.9')#</font>
-														</td>
-													</cfif>
-													<td align="right" class="tblContent #sCookieSort eq 'app' ? 'sorted' : ''#" style="#sStyle#">
-														<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.app)#</font>
-													</td>
-													<cfif arguments.custom.displayPercentages>
-														<td align="right" class="tblContent" style="#sStyle#">
-															<font color="#sStyle#">#numberFormat(iPctLucee*100, '999.9')#</font>
-														</td>
-													</cfif>
-													<td align="center" class="tblContent #sCookieSort eq 'count' ? 'sorted' : ''#" style="#sStyle#">
-														<font color="#sStyle#">#pages.count#</font>
-													</td>
-													<cfif arguments.custom.displayPercentages>
-														<td align="right" class="tblContent" style="#sStyle#">
-															<font color="#sStyle#">#numberFormat(iPctCount*100, '999.9')#</font>
-														</td>
-													</cfif>
-													<td align="right" class="tblContent #sCookieSort eq 'avg' ? 'sorted' : ''#" style="#sStyle#">
-														<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.avg)#</font>
-													</td>
-													<cfif arguments.custom.displayPercentages>
-														<td align="right" class="tblContent" style="#sStyle#">
-															<font color="#sStyle#">#numberFormat(iPctAvg*100, '999.9')#</font>
-														</td>
-													</cfif>
-													<td align="left" class="tblContent #sCookieSort eq 'src' ? 'sorted' : ''#" style="#sStyle#" title="#pages.path#">
-														<font color="#sStyle#">#listFirst(pages.src, "$")#</font>
-													</td>
-													<td align="left" class="tblContent" style="#sStyle#">
-														<font color="#sStyle#">
-															<cfif arguments.custom.callStack>
-																<div style="width:80px;float:left"><b>Stacktrace:</b></div>
-																<div style="float:left">#dspCallStackTrace(pages.id, stPages, arguments.debugging.history)#</div>
-															</cfif>
-															<cfif listLen(pages.src, "$") gt 1><br>
-																<div style="width:80px;float:left"><b>Method:</b></div>
-																<div style="float:left">#listLast(pages.src, "$")#</div>
-															</cfif>
-														</font>
-													</td>
-													<cfset local.sPage = replace(listFirst(pages.path, '$'), '\', '/', 'ALL')>
-													<td>
-														<a onClick="__LUCEE.debug.setTemplateFilter('#sPage#', 0)" title="Debug this file only.">
-															<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98KEwgeMjUl220AAAEISURBVDjLxZM9SgNxEMV/M/nASEDFLJJOPIO92wmWsbdZNugRRLCwySXcxtia1jIL6g08RbLgVlFh9z8Wi8JKSGATyGuHefPemxnYBHauXji4fAOgXoWgkWXkTgDQVdUsJfCCGC+Ie5UJUEB58sLxNZj8LwtAJ4gBzqxmE3W2r0JqQptcugCmMgQw7GF367OffrW+cUIS+UWIUui4k5xXp3qM2btDDlU5LU+Ti4/Z9lHDaS9TN60WolKyUQcwB8Ct1Zioc88qpCLWJpfHkgVjuNeahb8W/jJYuIUwLnqNm+T+ZABinXBMKYOFKNSdJ5E/mldeSjCNfIBR9TtY9RLnodnMQGU9n/kD+19X1oivU2EAAAAASUVORK5CYII="/>
-														</a>
-														&nbsp;
-														<a onClick="__LUCEE.debug.setTemplateFilter('#sPage#', 1)" title="Debug this file and all included ones.">
-															<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98KEwglA1hJNG8AAAGuSURBVDjL3ZI9aFNhFIaf80WDQ7c0QjepuKc4FCnFm9LJUekQbTE2iSCKIJihmFAtpqAp+EuX9NafNjYiKU4OLt5iFQfBDp0KtkJ1aTpER02+41BuG+mtq+A7Hc7hvN9zXj741xK/aE95J8TwQi0Dm67zanR2UScXGgBccvYzeqZHggyMX2hIN7C6oiHdAJhcaDCXjZFLdPLQ+wVAOjWsMzNPtdVg37aT1Yg1ptNYGwHIdDdIFJcAON/doFCCKXdaptzpYAIj1I3qVyPUAcbT/TJy5B3f7nTdyg10Hd4rg50ThDYrclCFNr/3symYcLj//uvVz9GMp9GMp4XKh+ATaEqHMbTTlI7WjB/cu3t0YuUYc9kYy+vfKVTWADiXPKvHnfgOQZCa1nIlOyIXew2J4hKFyhoXerZmjx4/kWQyKRJNeScxVHdtW05dPvS2ms/n5W+PmJrrzFtLrrWpqtdqrjPvb068/KR+BrerHzX4I6XflEXktGLLm6W+QYCxG9f1QDhEcbWXZ1djLK/XGX/+hVrJkaGhQY3H+/7EiQx7P4Iwb5bfbxOMzS4q/5d+A67apf+Ijp6WAAAAAElFTkSuQmCC"/>
-														</a>
-													</td>
-												</tr>
-											</cfloop>
-										</table>
-										<cfif bDisplayLongExec>
-											<font color="red">
-												red = over #unitFormat(arguments.custom.unit,arguments.custom.highlight*1000)# average execution time
-											</font>
-											<br>
-										</cfif>
-									</td><!--- #-lucee-debug-#sectionId# !--->
-								</tr>
-							</table>
-
-
-							<cfset this.doMore( arguments.custom, arguments.debugging, arguments.context )>
-
-							<!--- Queries --->
-							<cfif queries.recordcount>
-								<cfset sectionId = "Query">
-								<cfset isOpen = this.isSectionOpen( sectionId )>
-								<cfset local.total  =0>
-								<cfset local.records=0>
-								<cfloop query="queries">
-									<cfset total   += queries.time>
-									<cfset records += queries.count>
-								</cfloop>
-
-								<div class="section-title">SQL Queries</div>
-								<table>
-									<cfset renderSectionHeadTR( sectionId, "#queries.recordcount# Quer#queries.recordcount GT 1 ? 'ies' : 'y'# Executed (Total Records: #records#; Total Time: #unitFormat( arguments.custom.unit, total ,prettify)#)" )>
-
-									<tr>
-										<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-											<table><tr><td>
-												<cfset hasCachetype=ListFindNoCase(queries.columnlist,"cachetype") gt 0>
-												<cfset local.bUsage = listFindNoCase(queries.columnlist, 'usage') && isStruct(queries.usage)>
-												<table class="details">
-													<tr>
-														<th></th>
-														<th>Name</th>
-														<th>Records</th>
-														<th>Time</th>
-														<th>%</th>
-														<cfif bUsage>
-															<th>Usage</th>
-														</cfif>
-														<th>Datasource</th>
-														<th>Source</th>
-														<cfif hasCachetype><th>Cache Type</th></cfif>
-													</tr>
-													<cfloop query="queries">
-														<cfif bUsage>
-															<cfset local.usage=queries.usage>
-															<cfset local.usageNotRead = []>
-															<cfset local.usageRead  = []>
-															<cfif not isStruct(queries.usage)>
-																<cfset stUsage = {}>
-															<cfelse>
-																<cfset stUsage = queries.usage>
-															</cfif>
-															<cfloop collection="#stUsage#" index="local.item" item="local.value">
-																<cfif !value>
-																	<cfset arrayAppend( usageNotRead, item )>
-																<cfelse>
-																	<cfset arrayAppend( usageRead, item )>
-																</cfif>
-															</cfloop>
-															<cfset local.iRSp = (arrayLen(usageRead) ? 1 : 0) + (arrayLen(usageNotRead) ? 1 : 0)>
-															<cfset local.arrLenU = arrayLen( usageRead )>
-															<cfset local.arrLenN = arrayLen( usageNotRead )>
-															<cfset local.iPct    = arrLenU+arrLenN eq 0 ? 0 : arrLenU/(arrLenU+arrLenN) * 100>
-														</cfif>
-
-														<tr>
-															<cfset isOpen = this.isSectionOpen( queries.currentRow )>
-															<th>
-																<a id="-lucee-debug-btn-qry-#queries.currentRow#" 
-																	class="-lucee-icon-#isOpen ? 'minus' : 'plus'#" 
-																	onclick="__LUCEE.debug.toggleSection( 'qry-#queries.currentRow#' );">&nbsp;</a>
-															</th>
-															<td>#queries.name#</td>
-															<td class="txt-r">#queries.count#</td>
-															<td class="txt-r">#unitFormat(arguments.custom.unit, queries.time,prettify)#</td>
-															<td class="txt-r">
-															<cfif total neq 0>
-																#unitFormat(arguments.custom.unit, queries.time / total * 100,prettify)#
-															<cfelse>
-																#unitFormat(arguments.custom.unit, 0,prettify)#
-															</cfif>
-															</td>
-															<cfif bUsage>
-																<td class="txt-r" style="color:#getPctColor(iPct)#">
-																	<cfif iPct gte 0>
-																		#numberFormat(iPct, "999.9")# %
-																	<cfelseif iPct lt -1>
-																		Empty
-																	<cfelse>
-																		DDL SQL
-																	</cfif>
-																</td>
-															</cfif>
-															<td>#queries.datasource#</td>
-															<td title="#queries.src#">#contractPath(queries.src)#</td>
-															<cfif hasCachetype><td>#isEmpty(queries.cacheType)?"none":queries.cacheType#</td></cfif>
-														</tr>
-														<tr id="-lucee-debug-qry-#queries.currentRow#" class="#isOpen ? '' : 'collapsed'#">
-															<th>&nbsp;</th><td colspan="8">
-															<table>
-																<cfif arrLenU ?: 0>
-																	<tr>
-																		<th>Used:</th>
-																		<td colspan="8">#arrayToList(usageRead, ', ')#</td>
-																	</tr>
-																</cfif>
-																<cfif arrLenN ?: 0>
-																	<tr>
-																		<th>Not Used:</th>
-																		<td colspan="8" class="red">#arrayToList(usageNotRead, ', ')#</td>
-																	</tr>
-																</cfif>
-																<tr>
-																	<th class="label">SQL:</th>
-																	<td id="-lucee-debug-query-sql-#queries.currentRow#" colspan="8" onclick="__LUCEE.debug.selectText( this.id );">
-																		<cfset local.sSQL = replace(queries.sql, chr(9), "&nbsp;&nbsp;", "ALL")>
-																		<cfset sSQL = replace(sSQL, chr(10), "<br>", "ALL")>
-																		<div class="__sql">#trim( sSQL )#</div>
-																	</td>
-																</tr>
-															</table>
-														</td></tr>
-													</cfloop>
-												</table>
-
-											</tr></td></table>
-										</td><!--- #-lucee-debug-#sectionId# !--->
-									</tr>
-								</table>
-							</cfif>
-
-							<!--- Exceptions --->
-							<cfif structKeyExists( arguments.debugging, "exceptions" ) && arrayLen( arguments.debugging.exceptions )>
-
-								<cfset sectionId = "Exceptions">
-								<cfset isOpen = this.isSectionOpen( sectionId )>
-
-								<div class="section-title">Caught Exceptions</div>
-								<table>
-
-									<cfset renderSectionHeadTR( sectionId, "#arrayLen(arguments.debugging.exceptions)# Exception#arrayLen( arguments.debugging.exceptions ) GT 1 ? 's' : ''# Caught" )>
-
-									<tr>
-										<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-											<table class="details">
-
-												<tr>
-													<th>Type</th>
-													<th>Message</th>
-													<th>Detail</th>
-													<th>Template</th>
-													<th>Line</th>
-												</tr>
-												<cfloop array="#arguments.debugging.exceptions#" index="local.exp">
-													<tr>
-														<td>#exp.type#</td>
-														<td>#exp.message#</td>
-														<td>#exp.detail#</td>
-														<td>#exp.TagContext[1].template#</td>
-														<td class="txt-r">#exp.TagContext[1].line#</td>
-													</tr>
-												</cfloop>
-
-											</table>
-										</td><!--- #-lucee-debug-#sectionId# !--->
-									</tr>
-								</table>
-							</cfif>
-
-							<!--- Implicit variable Access --->
-							<cfif implicitAccess.recordcount>
-
-								<cfset sectionId = "ImpAccess">
-								<cfset isOpen = this.isSectionOpen( sectionId )>
-
-								<div class="section-title">Implicit Variable Access</div>
-
-								<table>
-									<cfset renderSectionHeadTR( sectionId, "#implicitAccess.recordcount# Implicit Variable Access#( implicitAccess.recordcount GT 1 ) ? 'es' : ''#" )>
-
-									<tr>
-										<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-											<table class="details">
-
-												<tr>
-													<th>Template</th>
-													<th>Line</th>
-													<th>Scope</th>
-													<th>Var</th>
-													<th>Count</th>
-												</tr>
-												<cfset total=0 />
-												<cfloop query="implicitAccess">
-													<tr>
-														<td>#implicitAccess.template#</td>
-														<td class="txt-r">#implicitAccess.line#</td>
-														<td>#implicitAccess.scope#</td>
-														<td>#implicitAccess.name#</td>
-														<td class="txt-r">#implicitAccess.count#</td>
-													</tr>
-												</cfloop>
-
-											</table>
-										</td><!--- #-lucee-debug-#sectionId# !--->
-									</tr>
-								</table>
-							</cfif>
-
-							<!--- Timers --->
-							<cfif timers.recordcount>
-
-								<cfset sectionId = "Timer">
-								<cfset isOpen = this.isSectionOpen( sectionId )>
-
-								<div class="section-title">CFTimer Times</div>
-
-								<table>
-
-									<cfset renderSectionHeadTR( sectionId, "#timers.recordcount# Timer#( timers.recordcount GT 1 ) ? 's' : ''# Set" )>
-
-									<tr>
-										<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-											<table class="details">
-
-												<tr>
-													<th align="center">Label</th>
-													<th>Time</th>
-													<th>Template</th>
-												</tr>
-												<cfloop query="timers">
-													<tr>
-														<td class="txt-r">#timers.label#</td>
-														<td class="txt-r">#unitFormat( arguments.custom.unit, timers.time * 1000000,prettify )#</td>
-														<td class="txt-r">#timers.template#</td>
-													</tr>
-												</cfloop>
-
-											</table>
-										</td><!--- #-lucee-debug-#sectionId# !--->
-									</tr>
-								</table>
-							</cfif>
-
-							<!--- Traces --->
-							<cfif traces.recordcount>
-
-								<cfset sectionId = "Trace">
-								<cfset isOpen = this.isSectionOpen( sectionId )>
-
-								<div class="section-title">Trace Points</div>
-
-								<cfset hasAction=!isColumnEmpty(traces,'action') />
-								<cfset hasCategory=!isColumnEmpty(traces,'category') />
-
-								<table>
-
-									<cfset renderSectionHeadTR( sectionId, "#traces.recordcount# Trace Point#( traces.recordcount GT 1 ) ? 's' : ''#" )>
-
-									<tr>
-										<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-											<table class="details">
-												<tr>
-													<th>Type</th>
-													<cfif hasCategory>
-														<th>Category</th>
-													</cfif>
-													<th>Text</th>
-													<th>Template</th>
-													<th>Line</th>
-													<cfif hasAction>
-														<th>Action</th>
-													</cfif>
-													<th>Var</th>
-													<th>Total Time</th>
-													<th>Trace Slot Time</th>
-												</tr>
-												<cfset total=0 />
-												<cfloop query="traces">
-													<cfset total=total+traces.time />
-													<tr>
-														<td>#traces.type#</td>
-														<cfif hasCategory>
-															<td>#traces.category#&nbsp;</td>
-														</cfif>
-														<td>#traces.text#&nbsp;</td>
-														<td>#traces.template#</td>
-														<td class="txt-r">#traces.line#</td>
-														<cfif hasAction>
-															<td>#traces.action#</td>
-														</cfif>
-														<td>
-															<cfif len(traces.varName)>
-																#traces.varName#
-																<cfif structKeyExists(traces,'varValue')>
-																	= #traces.varValue#
-																</cfif>
-															<cfelse>
-																&nbsp;
-																<br />
-															</cfif>
-														</td>
-														<td class="txt-r">#unitFormat(arguments.custom.unit, total,prettify)#</td>
-														<td class="txt-r">#unitFormat(arguments.custom.unit, traces.time,prettify)#</td>
-													</tr>
-												</cfloop>
-
-											</table>
-										</td><!--- #-lucee-debug-#sectionId# !--->
-									</tr>
-								</table>
-							</cfif>
-							<!--- Dumps --->
-							<cfif dumps.recordcount>
-
-								<cfset sectionId = "Dump">
-								<cfset isOpen = this.isSectionOpen( sectionId )>
-
-								<div class="section-title">Dumps</div>
-
-								<table>
-
-									<cfset renderSectionHeadTR( sectionId, "#dumps.recordcount# Dump#( dumps.recordcount GT 1 ) ? 's' : ''#" )>
-
-									<tr>
-										<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-											<table class="details">
-												<tr>
-													<th>Output</th>
-													<th>Template</th>
-													<th>Line</th>
-												</tr>
-												<cfset total=0 />
-												<cfloop query="dumps">
-													<tr>
-														<td>#dumps.output#</td>
-														<td>#dumps.template#</td>
-														<td class="txt-r">#dumps.line#</td>
-													</tr>
-												</cfloop>
-											</table>
-										</td>
-									</tr>
-								</table>
-							</cfif>
-
-							<!--- Expression --->
-							<cfif isEnabled( arguments.custom, "expression" )>
-								<cfset sectionId = "Expression">
-								<cfset isOpen = this.isSectionOpen( sectionId )>
-								<div class="section-title">Expressions</div>
-								<cfset cookie[cookieExpressions] = cookie[cookieExpressions] ?: ''>
-								<cfset local.aExpressions = listToArray(cookie[cookieExpressions], "|")>
-								<table>
-									<cfset renderSectionHeadTR( sectionId, "#aExpressions.len()# Expression#( aExpressions.len() neq 1 ) ? 's' : ''#" )>
-									<tr>
-										<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-											New expression: <input type="text" id="expr_newValue">&nbsp;
-											<a onClick="__LUCEE.debug.addExpression()">Add</a><br>
-											<table class="details">
-												<tr>
-													<th>Expression</th>
-													<th>Value</th>
-												</tr>
-												<cfset total=0 />
-												<cfloop array="#aExpressions#" index="local.iEx">
-													<tr>
-														<td>#iEx#</td>
-														<td>
-															<cftry>
-																#dump(evaluate(iEx))#
-																<cfcatch>
-																	<span style="color:red">Error retreiving value</span>
-																</cfcatch>
-															</cftry>
-														</td>
-													</tr>
-												</cfloop>
-											</table>
-											<a onClick="__LUCEE.debug.clearExpressions()">Clear all</a>
-										</td>
-									</tr>
-								</table>
-							</cfif>
-							</cfoutput>
-						</div>
-					</cfsavecontent>
-					<cfset debuAllInfo = replace(sContent.tab1, chr(9), "", "ALL")>
-					<cfset cachePut(sFileName_Debug, debuAllInfo, 0.001)>
 				</cfif>
 				
-				<cfset no_of_charts = arguments.custom.no_of_charts>
 				<cfif enableTab("metrics")>
+					<div class="wholeContainer">
 					<cfset chartCount = 0>
 					<div id="-lucee-metrics-ALL" class="#isMetricAllOpen ? '' : 'collapsed'#">
 						<div class="section-title" style="padding-bottom:5px; padding-top:23px;">System Metrics</div>
@@ -1005,218 +210,35 @@
 						<div class="metricsCharts">Memory Used By java & Average CPU load of the last 20 seconds on the whole system and this Java Virtual Machine (Lucee Process).</div>
 						<div class="Chart_container">
 							<cfset chartStruct = variables.chartStr> 
-							<cfset loadCharts("#chartStruct#","#no_of_charts#")>
+							<cfset loadCharts("#chartStruct#")>
 						</div>
 
 						<div id="-lucee-metrics-data" class="#ismetricsOpen ? '' : 'collapsed'# ">Loading Metrics data...</div>
-						<cfsavecontent variable="local.sContent.tab2" trim="true">
-							<cfoutput>
-								<cfset systemInfo=GetSystemMetrics()>
-								<cfset sectionId = "scopesInMemory">
-								<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
-								<table class="chartDetails">
-									<cfset renderSectionHeadTR2( "#sectionId#", "Scopes in Memory", "", "metrics" )>
-									<tr>
-										<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
-											<table class="maintbl">
-												<tbody>
-													<tr>
-														<th rowspan="3" scope="row" style="width: 39%;">
-															<span class="chartTitle">Scopes in Memory</span><br>
-															<span class="comment">Scopes actually hold in Memory (a Scope not necessary is kept in Memory for it's hole life time).</span>
-														</th>
-														<td style="width:30%"><b>Application</b></td>
-														<td style="width:10%" align="right">#systemInfo.applicationContextCount#</td>
-													</tr>
-													<tr>
-														<td style="width:30%"><b>Session</b></td>
-														<td style="width:10%" align="right">#systemInfo.sessionCount#</td>
-													</tr>
-													<tr>
-														<td style="width:30%"><b>Client</b></td>
-														<td style="width:10%" align="right">#systemInfo.clientCount#</td>
-													</tr>
-												</tbody>
-											</table>
-										</td>
-									</tr>
-								</table>
-								<cfset sectionId = "request_Threads">
-								<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
-								<table class="chartDetails">
-									<cfset renderSectionHeadTR2( "#sectionId#", "Request/Threads", "", "metrics" )>
-									<tr>
-										<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
-											<table class="maintbl">
-												<tbody>
-													<tr>
-														<th rowspan="3" scope="row" style="width: 39%;">
-															<span class="chartTitle">Request/Threads</span><br>
-															<span class="comment">Request and threads (started by &lt;cfthread&gt;) currently running on the system.</span>
-														</th>
-														<td style="width:30%"><b>Requests</b></td>
-														<cfset nbr=systemInfo.activeRequests>
-														<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
-													</tr>
-													<tr>
-														<td style="width:30%"><b>Queued Requests</b></td>
-														<cfset nbr=systemInfo.activeThreads>
-														 <td style="width:10%" align="right" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td>
-													</tr>
-													<tr>
-														<td style="width:30%"><b>Threads</b></td>
-														<cfset nbr=systemInfo.queueRequests>
-														<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
-													</tr>
-												</tbody>
-											</table>
-										</td>
-									</tr>
-								</table>
-								<cfset sectionId = "datasource_connection">
-								<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
-								<table class="chartDetails">
-									<cfset renderSectionHeadTR2( "#sectionId#", "Datasource Connections", "", "metrics" )>
-									<tr>
-										<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
-											<table class="maintbl">
-												<tbody>
-													<tr>
-														<th rowspan="2" scope="row" style="width: 39%;">
-															<span class="chartTitle">Datasource Connections</span><br>
-															<span class="comment">Datasource Connection open at the Moment.</span>
-														</th>
-														<td style="width:30%">&nbsp;</td>
-														<td style="width:10%">&nbsp;</td> 
-													</tr>
-													<tr>
-														<td style="width:30%">&nbsp;</td>
-														<cfset nbr=systemInfo.activeDatasourceConnections>
-														<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td> 
-													</tr>
-												</tbody>
-											</table>
-										</tr>
-									</tr>
-								</table>
-								<cfset sectionId = "task_Spooler">
-								<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
-								<table class="chartDetails">
-									<cfset renderSectionHeadTR2( "#sectionId#", "Task Spooler", "", "metrics" )>
-									<tr>
-										<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
-											<table class="maintbl">
-												<tbody>
-													<tr>
-														<th rowspan="2" scope="row" style="width: 39%;">
-															<span class="chartTitle">Task Spooler</span><br>
-															<span class="comment">Active and closed tasks in Task Spooler. This includes for exampe tasks to send mails.</span>
-														</th>
-														<td style="width:30%"><b>Open</b></td>
-														<cfset nbr=systemInfo.tasksOpen>
-														<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
-													</tr>
-													<tr>
-														<td style="width:30%"><b>Close</b></td>
-														<cfset nbr=systemInfo.tasksClosed>
-														<td style="width:10%" align="right" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td> 
-													</tr>
-												</tbody>
-											</table>
-										</td>
-									</tr>
-								</table>
-							</cfoutput>
-						</cfsavecontent>
-						<cfset metricsAllInfo = replace(sContent.tab2, chr(9), "", "ALL")>
-						<cfset cachePut(sFileName_Metrics, metricsAllInfo, 0.001)>
+
+						<!--- <cfset metricsAllInfo = replace(sContent.tab2, chr(9), "", "ALL")>
+						<cfset cachePut(sFileName_Metrics, metricsAllInfo, 0.001)> --->
 					</div><!--- #-lucee-metrics-ALL !--->
+					</div>
 				</cfif>
 				<cfif enableTab("Reference")>
 					<div id="-lucee-docs-ALL" class="#isDocsAllOpen ? '' : 'collapsed'#">Loading Doucuments data...</div>
-					<cfsavecontent  variable="local.sContent.tab3" trim="true">
-						<cfset str = {}>
-						<cfset str.functions  = getAllFunctions()>
-						<cfset str.tags = getAllTags()>
-						<cfset str.components = getAllComponents()>
-						<cfset allArryItem = []>
-						<cfloop collection="#str#" index="lst">
-							<cfloop array=#str[lst]# index="i">
-								<cfset arrayAppend(allArryItem, i)>
-							</cfloop>
+					<cfset str = {}>
+					<cfset str.functions  = getAllFunctions()>
+					<cfset str.tags = getAllTags()>
+					<cfset str.components = getAllComponents()>
+					<cfset allArryItem = []>
+					<cfloop collection="#str#" index="lst">
+						<cfloop array=#str[lst]# index="i">
+							<cfset arrayAppend(allArryItem, i)>
 						</cfloop>
-						<!--- <div class="section-title">Debugging Information</div> --->
-						<cfoutput>
-							<cfset sectionId = "docs_Info">
-							<cfset isOpen = this.isSectionOpen( sectionId, "docs" )>
-							<input class="InputSearch menu-search-focus" id="lucee-docs-search-input" placeholder="Search" type="search">
-							<div class="section-title" style="padding-bottom:4px;">Reference</div>
-							<table>
-								<tr>
-								<td>
-									<div class="leftPart">
-										<table>
-											<tr>
-												<td>
-													The documentation here aims to provide a thorough reference for the Lucee Server. You will find reference material on Lucee <a href="#cgi.hostName#/lucee/doc/tags.cfm">tags</a>, <a href="#cgi.hostName#/lucee/doc/functions.cfm">functions</a>, <a href="#cgi.hostName#/lucee/doc/components.cfm">components</a> and <a href="#cgi.hostName#/lucee/doc/objects.cfm">objects</a>. <span>You can reach the online version of the Lucee Server documentation <a href="http://docs.lucee.org/">here</a>.</span>
-												</td>
-											</tr>
-										</table>
-									</div>
-								</td>
-								</tr>
-							</table>
+					</cfloop>
 
-							<table>
-								<tr>
-									<td >
-										<cfset docsDesc = {}>
-										<cfset docsDesc.tags = "Tags are at the core of Lucee Server's templating language. You can check out every tag that has been listed below.">
-										<cfset docsDesc.functions = "Functions are at the core of Lucee Server's templating language. You can check out every Functions that has been listed below.">
-										<cfset docsDesc.components = 'The packages listed here are based on the component mappings defined in the Lucee Administartor under "Archives & Resources/Component". Add your own packages here by register your components with a component mapping. What makes it easier to access your components.'>
-										<table>
-											<tr>
-												<td class="paddingLeft">
-													<cfloop collection="#Str#" index="key">
-														<cfset sectionId = key>
-														<cfset isOpen = this.isSectionOpen( sectionId, "docs" )>
-														<table>
-															<cfset renderSectionHeadTR2( "#Lcase(sectionId)#", "#key#", "", "docs" )>
-															<tr>
-																<td id="-lucee-docs-#Lcase(sectionId)#" class="#isOpen ? '' : 'collapsed'#" >
-																	<table>
-																		<tr>
-																			<td class="Desc">#docsDesc[key]#</td>
-																		</tr>
-																	</table>
-																	<table border="2" class="refTbl">
-																		<cfset count = 0>
-																		<cfloop array=#str[key]# index="i">
-																			<cfif count eq 0><tr></cfif>
-																				<td>
-																					<a class="search_input" onclick="return callDesc('#key#', '#i#')">#i#</a>
-																					<cfset count = count +1>
-																				</td>
-																			<cfif count EQ 6><cfset count = 0></tr></cfif>
-																		</cfloop>
-																	</table>
-																</td>
-															</tr>
-														</table>
-													</cfloop>
-												</td>
-											</tr>
-										</table>
-									</td>
-								</tr>
-							</table>
-						</cfoutput>
-					</cfsavecontent>
-					<cfset docsScontent = replace(sContent.tab3, chr(9), "", "ALL")>
-					<cfset cachePut(sFileName_Docs, docsScontent , 0.001)>
+					<!--- <cfset docsScontent = replace(sContent.tab3, chr(9), "", "ALL")>
+					<cfset cachePut(sFileName_Docs, docsScontent , 0.001)> --->
 				</cfif>
-			</div></fieldset><!--- #-lucee-debug !--->
-			<cfif enableTab("Reference")>
+			</fieldset><!--- #-lucee-debug !--->
+
+			<cfif enableTab("Reference") AND ( !structKeyExists(request, "fromAdmin") )>
 				<div id="ex1" class="modal">
 					<!--- <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button> --->
 					<div class="modal-body">
@@ -1229,7 +251,9 @@
 				<cfset this.includeFileInline( "/lucee/res/js/highChart.js" )>
 				<cfset this.includeFileInline( "/lucee/res/js/typeahead.min.js" )>
 				<cfset this.includeFileInline( "/lucee/res/js/base.min.js" )>
+				<cfif !structKeyExists(url, "isAjaxRequest")>
 				<cfset this.includeFileInline( "/lucee/res/js/jquery.modal.min.js" )>
+				</cfif>
 				var __LUCEE = __LUCEE || {};
 				var oLastObj = false;
 				sectionArray = [];
@@ -1399,7 +423,11 @@
 										}
 									}
 								};
-								oAjax.open("GET", "/lucee/appLogs/readDebug.cfm?sHash="+fileName, true);
+								var ajaxURL = "/lucee/appLogs/readDebug.cfm?TAB="+section;
+								<cfif structKeyExists(request, "fromAdmin") AND request.fromAdmin EQ true>
+									ajaxURL += "&fromAdmin=true";
+								</cfif>
+								oAjax.open("GET", ajaxURL, true);
 								oAjax.send();
 							}
 						});
@@ -1450,7 +478,7 @@
 										}
 									}
 								},
-								colors: ['##CB7661'],
+								colors: ['##0000FF'],
 								title: {
 									text: ""
 								},
@@ -1574,16 +602,22 @@
 					}
 
 					function callDesc(type, item){
-						var docURL = "/lucee/doc/" + type + ".cfm?isAjaxRequest=true&item=" + item;
+						var docURL = "/lucee/doc/" + type + ".cfm?isAjaxRequest=true&fromAdmin=#structKeyExists(request, 'fromAdmin')#&item=" + item;
 						$.ajax({
 							type: "get",
 							url: docURL,
 							success: function(data){
-								$( ".modal-body" ).html(""+data.toString() +"");
-								$(".modal").modal('show');
+								$( ".modal-body" ).html("" + data.toString() + "");
+								$('<div class="blocker"></div>').appendTo(document.body);
+								$("##ex1").show();
+								$("##ex1").modal('show');
 								$('.close-modal').on('click', function() {
 									$('##lucee-docs-search-input').val('');
+									$("div.blocker").remove();
 									$(".modal-body").html("");
+									$("##ex1").hide();
+									$("btnOvr").addClass("button.buttonStyle");
+									$("btnOvr").addClass("button.btnActive");
 								});
 							}
 						});
@@ -1616,6 +650,1008 @@
 		<cfargument name="context"   type="string" default="web">
 	</cffunction>
 
+	<cffunction name="readDebug" returntype="void"  >
+		<cfargument name="custom" required="true" type="struct" />
+		<cfargument name="debugging" required="true" type="struct" />
+		<cfargument name="context" type="string" default="web" />
+		<cfsilent>
+			<cfset local.stStats = filterByTemplates(arguments.debugging)>
+			<cfset arguments.debugging.minimal          = arguments.custom.minimal ?: 0>
+			<cfset arguments.debugging.highlight        = arguments.custom.highlight ?: 250000>
+			<cfset arguments.debugging.expression       = arguments.custom.expression ?: false>
+			<cfset arguments.debugging.timers           = arguments.debugging.timers ?: queryNew('label,time,template')>
+			<cfset arguments.debugging.traces           = arguments.debugging.traces ?: queryNew('type,category,text,template,line,var,total,trace')>
+			<cfset arguments.debugging.dumps            = arguments.debugging.dumps ?: queryNew('output,template,line')>
+			<cfset arguments.custom.general             = arguments.custom.keyExists('general')>
+			<cfset arguments.custom.callStack           = arguments.custom.keyExists('callStack')>
+			<cfset arguments.custom.displayStats        = arguments.custom.keyExists('displayStats')>
+			<cfset arguments.custom.colorHighlight      = arguments.custom.keyExists('colorHighlight')>
+			<cfset arguments.custom.displayPercentages  = arguments.custom.keyExists('displayPercentages')>
+			<cfset arguments.custom.sessionSize         = (arguments.custom.sessionSize ?: 100) * 1024>
+			<cfset arguments.custom.no_of_charts         = (arguments.custom.no_of_charts ?: 2)>
+			<!--- <cfset arguments.custom.sort_charts 		= (arguments.custom.sort_charts ?: '1,2,3,4')> --->
+
+
+			<cfset var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi />
+			<cfset var pages=arguments.debugging.pages />
+			<cfset var queries=arguments.debugging.queries />
+			<cfif not isDefined('arguments.debugging.timers')>
+				<cfset arguments.debugging.timers=queryNew('label,time,template') />
+			</cfif>
+			<cfif not isDefined('arguments.debugging.traces')>
+				<cfset arguments.debugging.traces=queryNew('type,category,text,template,line,var,total,trace') />
+			</cfif>
+			<cfif not isDefined('arguments.debugging.dumps')>
+				<cfset arguments.debugging.traces=queryNew('output,template,line') />
+			</cfif>
+			<cfset var timers=arguments.debugging.timers />
+			<cfset var traces=arguments.debugging.traces />
+			<cfset var dumps=arguments.debugging.dumps />
+
+			<!---  calculate totals  --->
+			<cfset local.loa      = 0>
+			<cfset local.tot      = 0>
+			<cfset local.totLucee = 0>
+			<cfset local.totCnt   = 0>
+			<cfset local.q        = 0>
+			<cfset local.totAvg   = 0>
+			<cfset queryAddColumn(pages, "method")>
+			<cfset queryAddColumn(pages, "path")>
+			<cfloop query="pages">
+				<cfset querySetCell(pages, "total", pages.app + pages.load + pages.query, pages.currentRow)>
+				<cfset querySetCell(pages, "avg", (pages.app + pages.load + pages.query) / pages.count, pages.currentRow)>
+				<cfset aPage = listToArray(pages.src, '$')>
+				<cfset querySetCell(pages, "path", pages.src, pages.currentRow)>
+				<cfset querySetCell(pages, "src", contractPath(aPage[1]), pages.currentRow)>
+				<cfset querySetCell(pages, "method", !isEmpty(aPage[2] ?: '') ? aPage[2] : '', pages.currentRow)>
+				<cfset tot      += pages.total />
+				<cfset totCnt   += pages.count />
+				<cfset totLucee += pages.app>
+				<cfset q        += pages.query />
+				<cfset loa      += pages.load />
+				<cfset totAvg   += pages.avg />
+				<cfif pages.avg LT arguments.custom.minimal*1000>
+					<cfcontinue>
+				</cfif>
+				<cfset local.bad=pages.avg GTE arguments.custom.highlight*1000 />
+			</cfloop>
+			<cfset local.iTotalTime  = tot>
+			<cfset local.iTotalCount = totCnt>
+			<cfset local.iTotalQuery = max(q, 0.01)><!--- To prevent division by zero, if the sum of queries is 0  --->
+			<cfset local.iTotalLucee = totLucee>
+			<cfset local.iTotalAvg   = totAvg>
+
+			<cfset this.allSections  = this.buildSectionStruct()>
+			<cfset var isExecOrder   = this.isSectionOpen( "ExecOrder" )>
+			<cfset local.sCookieSort = cookie[variables.cookieSortOrder] ?: ' '>
+			<cfif structKeyExists(pages, sCookieSort)>
+				<cfif listFind("id,src", sCookieSort)>
+					<cfset querySort(pages, sCookieSort,"asc")>
+				<cfelse>
+					<cfset querySort(pages, sCookieSort,"desc")>
+				</cfif>
+			</cfif>
+
+			<cfset var implicitAccess=arguments.debugging.implicitAccess />
+			<cfset querySort(implicitAccess,"template,line,count","asc,asc,desc") />
+			<cfparam name="arguments.custom.unit" default=" ms">
+			<cfparam name="arguments.custom.color" default="black">
+			<cfparam name="arguments.custom.bgcolor" default="white">
+			<cfparam name="arguments.custom.font" default="Times New Roman">
+			<cfparam name="arguments.custom.size" default="medium">
+			<cfset var unit={
+				millisecond:"ms"
+				,microsecond:"s"
+				,nanosecond:"ns"
+				} />
+			<cfset var ordermap={}>
+			<cfloop query="#arguments.debugging.history#">
+				<cfif !structkeyExists(ordermap, arguments.debugging.history.id)><cfset ordermap[ arguments.debugging.history.id ]=structCount(ordermap)+1></cfif>
+			</cfloop>
+			<cfset var prettify=structKeyExists(arguments.custom,'timeformat') and arguments.custom.timeformat EQ "natural">
+		</cfsilent>
+		<!--- General --->
+		<div id="debugContainer">
+			<cfoutput>
+			<cfif isEnabled( arguments.custom, 'general' )>
+				<div class="section-title" style="padding-top:23px;">Debugging Information</div>
+				<cfset sectionId = "Info">
+				<cfset isOpen = this.isSectionOpen( sectionId )>
+				<table>
+					<cfset renderSectionHeadTR( sectionId, "Template:", "#HTMLEditFormat(_cgi.SCRIPT_NAME)# (#HTMLEditFormat(expandPath(_cgi.SCRIPT_NAME))#)" )>
+					<tr>
+						<td class="pad label">User Agent:</td>
+						<td class="pad">#_cgi.http_user_agent#</td>
+					</tr>
+					<tr>
+						<td colspan="2" id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<table class="ml14px">
+								<tr>
+									<td class="label" colspan="2">
+										#server.coldfusion.productname#
+										<cfif StructKeyExists(server.lucee,'versionName')>(<a href="#server.lucee.versionNameExplanation#" target="_blank">#server.lucee.versionName#</a>)
+										</cfif>
+										#ucFirst(server.coldfusion.productlevel)# #uCase(server.lucee.state)# #server.lucee.version# (CFML Version #server.ColdFusion.ProductVersion#)
+									</td>
+								</tr>
+								<tr>
+									<td class="label">Time Stamp</td>
+									<td class="cfdebug">#LSDateFormat(now())# #LSTimeFormat(now())#</td>
+								</tr>
+								<tr>
+									<td class="label">Time Zone</td>
+									<td class="cfdebug">#getTimeZone()#</td>
+								</tr>
+								<tr>
+									<td class="label">Locale</td>
+									<td class="cfdebug">#ucFirst(GetLocale())#</td>
+								</tr>
+								<tr>
+									<td class="label">Remote IP</td>
+									<td class="cfdebug">#_cgi.remote_addr#</td>
+								</tr>
+								<tr>
+									<td class="label">Host Name</td>
+									<td class="cfdebug">#_cgi.server_name#</td>
+								</tr>
+								<tr>
+									<td class="label">Debugging Template</td>
+									<td class="cfdebug">#getCurrentTemplatePath()#</td>
+								</tr>
+								<cfif StructKeyExists(server.os,"archModel") and StructKeyExists(server.java,"archModel")>
+									<tr>
+										<td class="label">Architecture</td>
+										<td class="cfdebug">
+											<cfif server.os.archModel NEQ server.os.archModel>
+												OS #server.os.archModel#bit/JRE #server.java.archModel#bit
+											<cfelse>
+												#server.os.archModel#bit
+											</cfif>
+										</td>
+									</tr>
+								</cfif>
+							</table>
+						</td>
+					</tr>
+				</table>
+			</cfif>
+
+			<!--- Filter information on top --->
+			<cfif stStats.filterActive>
+				<div class="section-title" style="color:red"><b>Debugging Filter active!</b></div>
+				<table>
+					<tr><td><table class="details" cellpadding="2" cellspacing="0">
+						<tr>
+							<th>Section</th>
+							<th>Filtered</th>
+							<th>of</th>
+							<th>Filtered time</th>
+							<th>of Total</th>
+						</tr>
+
+						<cfloop list="pages,queries,implicitAccess,timers,traces,exceptions,dumps" index="local.lst">
+							<tr>
+								<td>#UCFirst(lCase(lst))#:</td>
+								<td class="txt-r">#stStats[lst].filtered#</td>
+								<td class="txt-r">#stStats[lst].initial#</td>
+								<td class="txt-r">
+									<cfif stStats[lst].filtered and stStats[lst].keyExists("sumFilteredTime")>
+										#unitFormat(arguments.custom.unit, stStats[lst].sumFilteredTime ?: 0)#
+									<cfelse>
+										&nbsp;
+									</cfif>
+								</td>
+								<td class="txt-r">
+									<cfif stStats[lst].initial and stStats[lst].keyExists("sumTime")>
+										#unitFormat(arguments.custom.unit, stStats[lst].sumTime ?: 0)#
+									<cfelse>
+										&nbsp;
+									</cfif>
+								</td>
+							</tr>
+						</cfloop>
+						<tr><th colspan="5"><b>Filtered templates:</b></th></tr>
+						<tr>
+							<th colspan="4" align="left">Template</th>
+							<th>Recursive</th>
+						</tr>
+						<cfloop collection="#stStats.stTemplates#" index="local.sTemplate" item="local.stRecurse">
+							<cfif sTemplate neq 'undefined'>
+								<tr>
+									<td colspan="4">
+										#sTemplate#
+									</td>
+									<td align="center"><b>#stRecurse.recurse ? 'Yes' : 'No'#</b></td>
+								</tr>
+							</cfif>
+						</cfloop>
+						<tr><td colspan="5" align="center"><a onClick="__LUCEE.debug.setTemplateFilter('')">Reset Filter</a></td></tr>
+					</table></td></tr>
+				</table>
+
+			</cfif>
+
+			<!--- Execution Time --->
+			<cfset sectionId = "ExecTime">
+			<cfset isOpen = this.isSectionOpen( sectionId )>
+
+			<div class="section-title">Execution Time</div>
+			<cfset local.loa=0>
+			<cfset local.tot=0>
+			<cfset local.q=0>
+			<cfset local.bDisplayLongExec = false>
+
+			<cfloop query="pages">
+				<cfset tot=tot+pages.total>
+				<cfset q=q+pages.query>
+				<cfif pages.avg LT arguments.custom.minimal*1000>
+					<cfcontinue>
+				</cfif>
+				<cfset local.bad=pages.avg GTE arguments.custom.highlight*1000>
+				<cfset loa=loa+pages.load />
+			</cfloop>
+
+			<table>
+				<cfset renderSectionHeadTR( sectionId
+					, "#unitFormat( arguments.custom.unit, tot-q-loa, prettify )#
+						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Application" )>
+				<tr><td><table>
+					<tr>
+						<td class="pad txt-r">#unitFormat( arguments.custom.unit, loa,prettify )#</td>
+						<td class="pad">Startup/Compilation</td>
+					</tr>
+					<tr>
+						<td class="pad txt-r">#unitFormat( arguments.custom.unit, q,prettify )#</td>
+						<td class="pad">Query</td>
+					</tr>
+					<tr>
+						<td class="pad txt-r bold">#unitFormat( arguments.custom.unit, tot, prettify )#</td>
+						<td class="pad bold">Total</td>
+					</tr>
+				</table></td></tr>
+				<tr>
+					<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+						<table class="details" cellpadding="2" cellspacing="0">
+							<tr>
+								<th>
+									<cfif (sCookieSort ?: '-') neq 'id'>
+										<a onclick="__LUCEE.debug.setSortOrder(this, 'id')" class="sortby" title="Order by ID (starting with the next request)">ID</a>
+									<cfelse>
+										ID
+									</cfif>
+								</th>
+								<cfset local.stColumns = [
+									{title:'Total time', field:'total'},
+									{title:'Query',      field:'query'},
+									{title:'CFML time',  field:'app'},
+									{title:'Count',      field:'count'},
+									{title:'Avg time',   field:'avg'}
+								]>
+								<cfloop collection="#stColumns#" index="local.lstHead" item="local.stColumn">
+									<th align="center">
+										<cfif (sCookieSort ?: '-') neq stColumn.field>
+											<a onclick="__LUCEE.debug.setSortOrder(this, '#stColumn.field#')" class="sortby" title="Order by #stColumn.title# (starting with the next request)">#stColumn.title#</a>
+										<cfelse>
+											#stColumn.title#
+										</cfif>
+									</th>
+									<cfif arguments.custom.displayPercentages><th align="center">%</th></cfif>
+								</cfloop>
+								<th>
+									<cfif (sCookieSort ?: '-') neq 'src'>
+										<a onclick="__LUCEE.debug.setSortOrder(this, 'src')" class="sortby" title="Order by Template (starting with the next request)">Template</a>
+									<cfelse>
+										Template
+									</cfif>
+								</th>
+								<th>Method 
+									<cfif arguments.custom.callStack> / Stack
+										<cfset local.stPages = {}>
+										<cfloop query="pages">
+											<cfset local.sMethod = !isEmpty(pages.method) ? ':#pages.method#()' : ''>
+											<cfset stPages[pages.id].src = '<span title="#pages.src##sMethod#">' & listLast(pages.src, '/\') & "<b>#sMethod#</b></span>">
+										</cfloop>
+										<cfloop from="#arguments.debugging.history.recordCount#" to="1" step="-1" index="local.iRec">
+											<cfset stPages[arguments.debugging.history.id[iRec]].iHistPos = iRec>
+										</cfloop>
+									</cfif>
+								</th>
+								<th>Filter</th>
+							</tr>
+							<cfset loa=0 />
+							<cfset tot=0 />
+							<cfset q=0 />
+							<cfloop query="pages">
+								<cfset tot += pages.total - (pages.count * pages.avg) />
+								<cfset q += pages.query />
+								<cfif pages.avg LT arguments.custom.minimal*1000>
+									<cfcontinue>
+								</cfif>
+								<cfset bad = pages.avg GTE arguments.custom.highlight*1000 />
+								<cfset loa += pages.load />
+								<cfset local.iPctTotal = pages.total / (iTotalTime eq 0 ? 1 : iTotalTime)>
+								<cfset local.iPctCount = pages.count / (iTotalCount eq 0 ? 1 : iTotalCount)>
+								<cfset local.iPctQuery = pages.query / (iTotalQuery eq 0 ? 1 : iTotalQuery)>
+								<cfset local.iPctLucee = pages.app / (iTotalLucee eq 0 ? 1 : iTotalLucee)>
+								<cfset local.iPctAvg   = pages.avg / (iTotalAvg eq 0 ? 1 : iTotalAvg)>
+								<cfset local.sColor    = RGBtoHex(255 * iPctTotal, 160 * (1 - iPctTotal), 0)>
+								<cfset sStyle = ''>
+								<cfif arguments.custom.colorHighlight>
+									<cfset sStyle = sColor>
+								</cfif>
+								<cfif bad><cfset sStyle = "red"></cfif>
+								<tr class="#bad ? 'red': ''#">
+									<td class="txt-r faded #sCookieSort eq 'id' ? 'sorted' : ''#" title="#pages.id#">#ordermap[pages.id]#</td>
+									<td align="right" class="tblContent #sCookieSort eq 'total' ? 'sorted' : ''#">
+										<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.app + pages.query)#</font>
+										<cfif !bDisplayLongExec AND bad>
+											<cfset bDisplayLongExec = true>
+										</cfif>
+									</td>
+									<cfif arguments.custom.displayPercentages>
+										<td align="right" class="tblContent" style="#sStyle#">
+											<font color="#sStyle#">#numberFormat(iPctTotal*100, '999.9')#</font>
+										</td>
+									</cfif>
+									<td align="right" class="tblContent #sCookieSort eq 'query' ? 'sorted' : ''#" style="#sStyle#">
+										<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.query)#</font>
+									</td>
+									<cfif arguments.custom.displayPercentages>
+										<td align="right" class="tblContent" style="#sStyle#">
+											<font color="#sStyle#">#numberFormat(iPctQuery*100, '999.9')#</font>
+										</td>
+									</cfif>
+									<td align="right" class="tblContent #sCookieSort eq 'app' ? 'sorted' : ''#" style="#sStyle#">
+										<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.app)#</font>
+									</td>
+									<cfif arguments.custom.displayPercentages>
+										<td align="right" class="tblContent" style="#sStyle#">
+											<font color="#sStyle#">#numberFormat(iPctLucee*100, '999.9')#</font>
+										</td>
+									</cfif>
+									<td align="center" class="tblContent #sCookieSort eq 'count' ? 'sorted' : ''#" style="#sStyle#">
+										<font color="#sStyle#">#pages.count#</font>
+									</td>
+									<cfif arguments.custom.displayPercentages>
+										<td align="right" class="tblContent" style="#sStyle#">
+											<font color="#sStyle#">#numberFormat(iPctCount*100, '999.9')#</font>
+										</td>
+									</cfif>
+									<td align="right" class="tblContent #sCookieSort eq 'avg' ? 'sorted' : ''#" style="#sStyle#">
+										<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.avg)#</font>
+									</td>
+									<cfif arguments.custom.displayPercentages>
+										<td align="right" class="tblContent" style="#sStyle#">
+											<font color="#sStyle#">#numberFormat(iPctAvg*100, '999.9')#</font>
+										</td>
+									</cfif>
+									<td align="left" class="tblContent #sCookieSort eq 'src' ? 'sorted' : ''#" style="#sStyle#" title="#pages.path#">
+										<font color="#sStyle#">#listFirst(pages.src, "$")#</font>
+									</td>
+									<td align="left" class="tblContent" style="#sStyle#">
+										<font color="#sStyle#">
+											<cfif arguments.custom.callStack>
+												<div style="width:80px;float:left"><b>Stacktrace:</b></div>
+												<div style="float:left">#dspCallStackTrace(pages.id, stPages, arguments.debugging.history)#</div>
+											</cfif>
+											<cfif listLen(pages.src, "$") gt 1><br>
+												<div style="width:80px;float:left"><b>Method:</b></div>
+												<div style="float:left">#listLast(pages.src, "$")#</div>
+											</cfif>
+										</font>
+									</td>
+									<cfset local.sPage = replace(listFirst(pages.path, '$'), '\', '/', 'ALL')>
+									<td>
+										<a onClick="__LUCEE.debug.setTemplateFilter('#sPage#', 0)" title="Debug this file only.">
+											<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98KEwgeMjUl220AAAEISURBVDjLxZM9SgNxEMV/M/nASEDFLJJOPIO92wmWsbdZNugRRLCwySXcxtia1jIL6g08RbLgVlFh9z8Wi8JKSGATyGuHefPemxnYBHauXji4fAOgXoWgkWXkTgDQVdUsJfCCGC+Ie5UJUEB58sLxNZj8LwtAJ4gBzqxmE3W2r0JqQptcugCmMgQw7GF367OffrW+cUIS+UWIUui4k5xXp3qM2btDDlU5LU+Ti4/Z9lHDaS9TN60WolKyUQcwB8Ct1Zioc88qpCLWJpfHkgVjuNeahb8W/jJYuIUwLnqNm+T+ZABinXBMKYOFKNSdJ5E/mldeSjCNfIBR9TtY9RLnodnMQGU9n/kD+19X1oivU2EAAAAASUVORK5CYII="/>
+										</a>
+										&nbsp;
+										<a onClick="__LUCEE.debug.setTemplateFilter('#sPage#', 1)" title="Debug this file and all included ones.">
+											<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98KEwglA1hJNG8AAAGuSURBVDjL3ZI9aFNhFIaf80WDQ7c0QjepuKc4FCnFm9LJUekQbTE2iSCKIJihmFAtpqAp+EuX9NafNjYiKU4OLt5iFQfBDp0KtkJ1aTpER02+41BuG+mtq+A7Hc7hvN9zXj741xK/aE95J8TwQi0Dm67zanR2UScXGgBccvYzeqZHggyMX2hIN7C6oiHdAJhcaDCXjZFLdPLQ+wVAOjWsMzNPtdVg37aT1Yg1ptNYGwHIdDdIFJcAON/doFCCKXdaptzpYAIj1I3qVyPUAcbT/TJy5B3f7nTdyg10Hd4rg50ThDYrclCFNr/3symYcLj//uvVz9GMp9GMp4XKh+ATaEqHMbTTlI7WjB/cu3t0YuUYc9kYy+vfKVTWADiXPKvHnfgOQZCa1nIlOyIXew2J4hKFyhoXerZmjx4/kWQyKRJNeScxVHdtW05dPvS2ms/n5W+PmJrrzFtLrrWpqtdqrjPvb068/KR+BrerHzX4I6XflEXktGLLm6W+QYCxG9f1QDhEcbWXZ1djLK/XGX/+hVrJkaGhQY3H+/7EiQx7P4Iwb5bfbxOMzS4q/5d+A67apf+Ijp6WAAAAAElFTkSuQmCC"/>
+										</a>
+									</td>
+								</tr>
+							</cfloop>
+						</table>
+						<cfif bDisplayLongExec>
+							<font color="red">
+								red = over #unitFormat(arguments.custom.unit,arguments.custom.highlight*1000)# average execution time
+							</font>
+							<br>
+						</cfif>
+					</td><!--- #-lucee-debug-#sectionId# !--->
+				</tr>
+			</table>
+
+
+			<cfset this.doMore( arguments.custom, arguments.debugging, arguments.context )>
+
+			<!--- Queries --->
+			<cfif queries.recordcount>
+				<cfset sectionId = "Query">
+				<cfset isOpen = this.isSectionOpen( sectionId )>
+				<cfset local.total  =0>
+				<cfset local.records=0>
+				<cfloop query="queries">
+					<cfset total   += queries.time>
+					<cfset records += queries.count>
+				</cfloop>
+
+				<div class="section-title">SQL Queries</div>
+				<table>
+					<cfset renderSectionHeadTR( sectionId, "#queries.recordcount# Quer#queries.recordcount GT 1 ? 'ies' : 'y'# Executed (Total Records: #records#; Total Time: #unitFormat( arguments.custom.unit, total ,prettify)#)" )>
+
+					<tr>
+						<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<table><tr><td>
+								<cfset hasCachetype=ListFindNoCase(queries.columnlist,"cachetype") gt 0>
+								<cfset local.bUsage = listFindNoCase(queries.columnlist, 'usage') && isStruct(queries.usage)>
+								<table class="details">
+									<tr>
+										<th></th>
+										<th>Name</th>
+										<th>Records</th>
+										<th>Time</th>
+										<th>%</th>
+										<cfif bUsage>
+											<th>Usage</th>
+										</cfif>
+										<th>Datasource</th>
+										<th>Source</th>
+										<cfif hasCachetype><th>Cache Type</th></cfif>
+									</tr>
+									<cfloop query="queries">
+										<cfif bUsage>
+											<cfset local.usage=queries.usage>
+											<cfset local.usageNotRead = []>
+											<cfset local.usageRead  = []>
+											<cfif not isStruct(queries.usage)>
+												<cfset stUsage = {}>
+											<cfelse>
+												<cfset stUsage = queries.usage>
+											</cfif>
+											<cfloop collection="#stUsage#" index="local.item" item="local.value">
+												<cfif !value>
+													<cfset arrayAppend( usageNotRead, item )>
+												<cfelse>
+													<cfset arrayAppend( usageRead, item )>
+												</cfif>
+											</cfloop>
+											<cfset local.iRSp = (arrayLen(usageRead) ? 1 : 0) + (arrayLen(usageNotRead) ? 1 : 0)>
+											<cfset local.arrLenU = arrayLen( usageRead )>
+											<cfset local.arrLenN = arrayLen( usageNotRead )>
+											<cfset local.iPct    = arrLenU+arrLenN eq 0 ? 0 : arrLenU/(arrLenU+arrLenN) * 100>
+										</cfif>
+
+										<tr>
+											<cfset isOpen = this.isSectionOpen( queries.currentRow )>
+											<th>
+												<a id="-lucee-debug-btn-qry-#queries.currentRow#" 
+													class="-lucee-icon-#isOpen ? 'minus' : 'plus'#" 
+													onclick="__LUCEE.debug.toggleSection( 'qry-#queries.currentRow#' );">&nbsp;</a>
+											</th>
+											<td>#queries.name#</td>
+											<td class="txt-r">#queries.count#</td>
+											<td class="txt-r">#unitFormat(arguments.custom.unit, queries.time,prettify)#</td>
+											<td class="txt-r">
+											<cfif total neq 0>
+												#unitFormat(arguments.custom.unit, queries.time / total * 100,prettify)#
+											<cfelse>
+												#unitFormat(arguments.custom.unit, 0,prettify)#
+											</cfif>
+											</td>
+											<cfif bUsage>
+												<td class="txt-r" style="color:#getPctColor(iPct)#">
+													<cfif iPct gte 0>
+														#numberFormat(iPct, "999.9")# %
+													<cfelseif iPct lt -1>
+														Empty
+													<cfelse>
+														DDL SQL
+													</cfif>
+												</td>
+											</cfif>
+											<td>#queries.datasource#</td>
+											<td title="#queries.src#">#contractPath(queries.src)#</td>
+											<cfif hasCachetype><td>#isEmpty(queries.cacheType)?"none":queries.cacheType#</td></cfif>
+										</tr>
+										<tr id="-lucee-debug-qry-#queries.currentRow#" class="#isOpen ? '' : 'collapsed'#">
+											<th>&nbsp;</th><td colspan="8">
+											<table>
+												<cfif arrLenU ?: 0>
+													<tr>
+														<th>Used:</th>
+														<td colspan="8">#arrayToList(usageRead, ', ')#</td>
+													</tr>
+												</cfif>
+												<cfif arrLenN ?: 0>
+													<tr>
+														<th>Not Used:</th>
+														<td colspan="8" class="red">#arrayToList(usageNotRead, ', ')#</td>
+													</tr>
+												</cfif>
+												<tr>
+													<th class="label">SQL:</th>
+													<td id="-lucee-debug-query-sql-#queries.currentRow#" colspan="8" onclick="__LUCEE.debug.selectText( this.id );">
+														<cfset local.sSQL = replace(queries.sql, chr(9), "&nbsp;&nbsp;", "ALL")>
+														<cfset sSQL = replace(sSQL, chr(10), "<br>", "ALL")>
+														<div class="__sql">#trim( sSQL )#</div>
+													</td>
+												</tr>
+											</table>
+										</td></tr>
+									</cfloop>
+								</table>
+
+							</tr></td></table>
+						</td><!--- #-lucee-debug-#sectionId# !--->
+					</tr>
+				</table>
+			</cfif>
+
+			<!--- Exceptions --->
+			<cfif structKeyExists( arguments.debugging, "exceptions" ) && arrayLen( arguments.debugging.exceptions )>
+
+				<cfset sectionId = "Exceptions">
+				<cfset isOpen = this.isSectionOpen( sectionId )>
+
+				<div class="section-title">Caught Exceptions</div>
+				<table>
+
+					<cfset renderSectionHeadTR( sectionId, "#arrayLen(arguments.debugging.exceptions)# Exception#arrayLen( arguments.debugging.exceptions ) GT 1 ? 's' : ''# Caught" )>
+
+					<tr>
+						<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<table class="details">
+
+								<tr>
+									<th>Type</th>
+									<th>Message</th>
+									<th>Detail</th>
+									<th>Template</th>
+									<th>Line</th>
+								</tr>
+								<cfloop array="#arguments.debugging.exceptions#" index="local.exp">
+									<tr>
+										<td>#exp.type#</td>
+										<td>#exp.message#</td>
+										<td>#exp.detail#</td>
+										<td>#exp.TagContext[1].template#</td>
+										<td class="txt-r">#exp.TagContext[1].line#</td>
+									</tr>
+								</cfloop>
+
+							</table>
+						</td><!--- #-lucee-debug-#sectionId# !--->
+					</tr>
+				</table>
+			</cfif>
+
+			<!--- Implicit variable Access --->
+			<cfif implicitAccess.recordcount>
+
+				<cfset sectionId = "ImpAccess">
+				<cfset isOpen = this.isSectionOpen( sectionId )>
+
+				<div class="section-title">Implicit Variable Access</div>
+
+				<table>
+					<cfset renderSectionHeadTR( sectionId, "#implicitAccess.recordcount# Implicit Variable Access#( implicitAccess.recordcount GT 1 ) ? 'es' : ''#" )>
+
+					<tr>
+						<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<table class="details">
+
+								<tr>
+									<th>Template</th>
+									<th>Line</th>
+									<th>Scope</th>
+									<th>Var</th>
+									<th>Count</th>
+								</tr>
+								<cfset total=0 />
+								<cfloop query="implicitAccess">
+									<tr>
+										<td>#implicitAccess.template#</td>
+										<td class="txt-r">#implicitAccess.line#</td>
+										<td>#implicitAccess.scope#</td>
+										<td>#implicitAccess.name#</td>
+										<td class="txt-r">#implicitAccess.count#</td>
+									</tr>
+								</cfloop>
+
+							</table>
+						</td><!--- #-lucee-debug-#sectionId# !--->
+					</tr>
+				</table>
+			</cfif>
+
+			<!--- Timers --->
+			<cfif timers.recordcount>
+
+				<cfset sectionId = "Timer">
+				<cfset isOpen = this.isSectionOpen( sectionId )>
+
+				<div class="section-title">CFTimer Times</div>
+
+				<table>
+
+					<cfset renderSectionHeadTR( sectionId, "#timers.recordcount# Timer#( timers.recordcount GT 1 ) ? 's' : ''# Set" )>
+
+					<tr>
+						<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<table class="details">
+
+								<tr>
+									<th align="center">Label</th>
+									<th>Time</th>
+									<th>Template</th>
+								</tr>
+								<cfloop query="timers">
+									<tr>
+										<td class="txt-r">#timers.label#</td>
+										<td class="txt-r">#unitFormat( arguments.custom.unit, timers.time * 1000000,prettify )#</td>
+										<td class="txt-r">#timers.template#</td>
+									</tr>
+								</cfloop>
+
+							</table>
+						</td><!--- #-lucee-debug-#sectionId# !--->
+					</tr>
+				</table>
+			</cfif>
+
+			<!--- Traces --->
+			<cfif traces.recordcount>
+
+				<cfset sectionId = "Trace">
+				<cfset isOpen = this.isSectionOpen( sectionId )>
+
+				<div class="section-title">Trace Points</div>
+
+				<cfset hasAction=!isColumnEmpty(traces,'action') />
+				<cfset hasCategory=!isColumnEmpty(traces,'category') />
+
+				<table>
+
+					<cfset renderSectionHeadTR( sectionId, "#traces.recordcount# Trace Point#( traces.recordcount GT 1 ) ? 's' : ''#" )>
+
+					<tr>
+						<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<table class="details">
+								<tr>
+									<th>Type</th>
+									<cfif hasCategory>
+										<th>Category</th>
+									</cfif>
+									<th>Text</th>
+									<th>Template</th>
+									<th>Line</th>
+									<cfif hasAction>
+										<th>Action</th>
+									</cfif>
+									<th>Var</th>
+									<th>Total Time</th>
+									<th>Trace Slot Time</th>
+								</tr>
+								<cfset total=0 />
+								<cfloop query="traces">
+									<cfset total=total+traces.time />
+									<tr>
+										<td>#traces.type#</td>
+										<cfif hasCategory>
+											<td>#traces.category#&nbsp;</td>
+										</cfif>
+										<td>#traces.text#&nbsp;</td>
+										<td>#traces.template#</td>
+										<td class="txt-r">#traces.line#</td>
+										<cfif hasAction>
+											<td>#traces.action#</td>
+										</cfif>
+										<td>
+											<cfif len(traces.varName)>
+												#traces.varName#
+												<cfif structKeyExists(traces,'varValue')>
+													= #traces.varValue#
+												</cfif>
+											<cfelse>
+												&nbsp;
+												<br />
+											</cfif>
+										</td>
+										<td class="txt-r">#unitFormat(arguments.custom.unit, total,prettify)#</td>
+										<td class="txt-r">#unitFormat(arguments.custom.unit, traces.time,prettify)#</td>
+									</tr>
+								</cfloop>
+
+							</table>
+						</td><!--- #-lucee-debug-#sectionId# !--->
+					</tr>
+				</table>
+			</cfif>
+			<!--- Dumps --->
+			<cfif dumps.recordcount>
+
+				<cfset sectionId = "Dump">
+				<cfset isOpen = this.isSectionOpen( sectionId )>
+
+				<div class="section-title">Dumps</div>
+
+				<table>
+
+					<cfset renderSectionHeadTR( sectionId, "#dumps.recordcount# Dump#( dumps.recordcount GT 1 ) ? 's' : ''#" )>
+
+					<tr>
+						<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<table class="details">
+								<tr>
+									<th>Output</th>
+									<th>Template</th>
+									<th>Line</th>
+								</tr>
+								<cfset total=0 />
+								<cfloop query="dumps">
+									<tr>
+										<td>#dumps.output#</td>
+										<td>#dumps.template#</td>
+										<td class="txt-r">#dumps.line#</td>
+									</tr>
+								</cfloop>
+							</table>
+						</td>
+					</tr>
+				</table>
+			</cfif>
+
+			<!--- Expression --->
+			<cfif isEnabled( arguments.custom, "expression" )>
+				<cfset sectionId = "Expression">
+				<cfset isOpen = this.isSectionOpen( sectionId )>
+				<div class="section-title">Expressions</div>
+				<cfset cookie[cookieExpressions] = cookie[cookieExpressions] ?: ''>
+				<cfset local.aExpressions = listToArray(cookie[cookieExpressions], "|")>
+				<table>
+					<cfset renderSectionHeadTR( sectionId, "#aExpressions.len()# Expression#( aExpressions.len() neq 1 ) ? 's' : ''#" )>
+					<tr>
+						<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							New expression: <input type="text" id="expr_newValue">&nbsp;
+							<a onClick="__LUCEE.debug.addExpression()">Add</a><br>
+							<table class="details">
+								<tr>
+									<th>Expression</th>
+									<th>Value</th>
+								</tr>
+								<cfset total=0 />
+								<cfloop array="#aExpressions#" index="local.iEx">
+									<tr>
+										<td>#iEx#</td>
+										<td>
+											<cftry>
+												#dump(evaluate(iEx))#
+												<cfcatch>
+													<span style="color:red">Error retreiving value</span>
+												</cfcatch>
+											</cftry>
+										</td>
+									</tr>
+								</cfloop>
+							</table>
+							<a onClick="__LUCEE.debug.clearExpressions()">Clear all</a>
+						</td>
+					</tr>
+				</table>
+			</cfif>
+			</cfoutput>
+		</div>
+	</cffunction>
+
+	<cffunction name="readMetrics" returntype="void"  >
+		<cfoutput>
+			<cfset systemInfo=GetSystemMetrics()>
+			<cfset sectionId = "scopesInMemory">
+			<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
+			<table class="chartDetails">
+				<cfset renderSectionHeadTR2( "#sectionId#", "Scopes in Memory", "", "metrics" )>
+				<tr>
+					<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
+						<table class="maintbl">
+							<tbody>
+								<tr>
+									<th rowspan="3" scope="row" style="width: 39%;">
+										<span class="chartTitle">Scopes in Memory</span><br>
+										<span class="comment_debugInfo">Scopes actually hold in Memory (a Scope not necessary is kept in Memory for it's hole life time).</span>
+									</th>
+									<td style="width:30%"><b>Application</b></td>
+									<td style="width:10%" align="right">#systemInfo.applicationContextCount#</td>
+								</tr>
+								<tr>
+									<td style="width:30%"><b>Session</b></td>
+									<td style="width:10%" align="right">#systemInfo.sessionCount#</td>
+								</tr>
+								<tr>
+									<td style="width:30%"><b>Client</b></td>
+									<td style="width:10%" align="right">#systemInfo.clientCount#</td>
+								</tr>
+							</tbody>
+						</table>
+					</td>
+				</tr>
+			</table>
+			<cfset sectionId = "request_Threads">
+			<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
+			<table class="chartDetails">
+				<cfset renderSectionHeadTR2( "#sectionId#", "Request/Threads", "", "metrics" )>
+				<tr>
+					<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
+						<table class="maintbl">
+							<tbody>
+								<tr>
+									<th rowspan="3" scope="row" style="width: 39%;">
+										<span class="chartTitle">Request/Threads</span><br>
+										<span class="comment_debugInfo">Request and threads (started by &lt;cfthread&gt;) currently running on the system.</span>
+									</th>
+									<td style="width:30%"><b>Requests</b></td>
+									<cfset nbr=systemInfo.activeRequests>
+									<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+								</tr>
+								<tr>
+									<td style="width:30%"><b>Queued Requests</b></td>
+									<cfset nbr=systemInfo.activeThreads>
+									 <td style="width:10%" align="right" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td>
+								</tr>
+								<tr>
+									<td style="width:30%"><b>Threads</b></td>
+									<cfset nbr=systemInfo.queueRequests>
+									<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+								</tr>
+							</tbody>
+						</table>
+					</td>
+				</tr>
+			</table>
+			<cfset sectionId = "datasource_connection">
+			<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
+			<table class="chartDetails">
+				<cfset renderSectionHeadTR2( "#sectionId#", "Datasource Connections", "", "metrics" )>
+				<tr>
+					<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
+						<table class="maintbl">
+							<tbody>
+								<tr>
+									<th rowspan="2" scope="row" style="width: 39%;">
+										<span class="chartTitle">Datasource Connections</span><br>
+										<span class="comment_debugInfo">Datasource Connection open at the Moment.</span>
+									</th>
+									<td style="width:30%">&nbsp;</td>
+									<td style="width:10%">&nbsp;</td> 
+								</tr>
+								<tr>
+									<td style="width:30%">&nbsp;</td>
+									<cfset nbr=systemInfo.activeDatasourceConnections>
+									<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td> 
+								</tr>
+							</tbody>
+						</table>
+					</tr>
+				</tr>
+			</table>
+			<cfset sectionId = "task_Spooler">
+			<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
+			<table class="chartDetails">
+				<cfset renderSectionHeadTR2( "#sectionId#", "Task Spooler", "", "metrics" )>
+				<tr>
+					<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
+						<table class="maintbl">
+							<tbody>
+								<tr>
+									<th rowspan="2" scope="row" style="width: 39%;">
+										<span class="chartTitle">Task Spooler</span><br>
+										<span class="comment_debugInfo">Active and closed tasks in Task Spooler. This includes for exampe tasks to send mails.</span>
+									</th>
+									<td style="width:30%"><b>Open</b></td>
+									<cfset nbr=systemInfo.tasksOpen>
+									<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+								</tr>
+								<tr>
+									<td style="width:30%"><b>Close</b></td>
+									<cfset nbr=systemInfo.tasksClosed>
+									<td style="width:10%" align="right" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td> 
+								</tr>
+							</tbody>
+						</table>
+					</td>
+				</tr>
+			</table>
+		</cfoutput>
+	</cffunction>
+
+	<cffunction name="readDocs" returntype="void"  >
+		<cfset str = {}>
+		<cfset str.functions  = getAllFunctions()>
+		<cfset str.tags = getAllTags()>
+		<cfset str.components = getAllComponents()>
+		<cfset allArryItem = []>
+		<cfloop collection="#str#" index="lst">
+			<cfloop array=#str[lst]# index="i">
+				<cfset arrayAppend(allArryItem, i)>
+			</cfloop>
+		</cfloop>
+		<cfif structKeyExists(url, "fromAdmin") AND url.fromAdmin EQ true>
+			<cfset maxCols = 4>
+			<cfset searchClass = "SearchField1">
+		<cfelse>
+			<cfset maxCols = 6>
+			<cfset searchClass = "SearchField2">
+		</cfif>
+		<!--- <div class="section-title">Debugging Information</div> --->
+		<cfoutput>
+			<cfset sectionId = "docs_Info">
+			<cfset isOpen = this.isSectionOpen( sectionId, "docs" )>
+			<input class="InputSearch #searchClass# menu-search-focus" id="lucee-docs-search-input" placeholder="Search" type="search">
+			<div class="section-title" style="padding-bottom:4px;">Reference</div>
+			<table>
+				<tr>
+				<td>
+					<div class="leftPart">
+						<table>
+							<tr>
+								<td>
+									The documentation here aims to provide a thorough reference for the Lucee Server. You will find reference material on Lucee <a href="#cgi.hostName#/lucee/doc/tags.cfm">tags</a>, <a href="#cgi.hostName#/lucee/doc/functions.cfm">functions</a>, <a href="#cgi.hostName#/lucee/doc/components.cfm">components</a> and <a href="#cgi.hostName#/lucee/doc/objects.cfm">objects</a>. <span>You can reach the online version of the Lucee Server documentation <a href="http://docs.lucee.org/">here</a>.#structKeyExists(url, "fromAdmin")#</span>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</td>
+				</tr>
+			</table>
+
+			<cfset docsDesc = {}>
+			<cfset docsDesc.tags = "Tags are at the core of Lucee Server's templating language. You can check out every tag that has been listed below.">
+			<cfset docsDesc.functions = "Functions are at the core of Lucee Server's templating language. You can check out every Functions that has been listed below.">
+			<cfset docsDesc.components = 'The packages listed here are based on the component mappings defined in the Lucee Administartor under "Archives & Resources/Component". Add your own packages here by register your components with a component mapping. What makes it easier to access your components. Test'>
+
+			<table>
+				<tr>
+					<td >
+						<table>
+							<tr>
+								<td class="paddingLeft">
+									<cfloop collection="#Str#" index="key">
+										<cfset sectionId = key>
+										<cfset isOpen = this.isSectionOpen( sectionId, "docs" )>
+										<table>
+											<cfset renderSectionHeadTR2( "#Lcase(sectionId)#", "#key#", "", "docs" )>
+											<tr>
+												<td id="-lucee-docs-#Lcase(sectionId)#" class="#isOpen ? '' : 'collapsed'#" >
+													<table>
+														<tr>
+															<td class="Desc">#docsDesc[key]#</td>
+														</tr>
+													</table>
+													<table border="2" class="refTbl">
+														<cfset count = 0>
+														<cfloop array=#str[key]# index="i">
+															<cfif count eq 0><tr></cfif>
+																<td>
+																	<a class="search_input" onclick="return callDesc('#key#', '#i#')">#i#</a>
+																	<cfset count = count +1>
+																</td>
+															<cfif count EQ maxCols><cfset count = 0></tr></cfif>
+														</cfloop>
+													</table>
+												</td>
+											</tr>
+										</table>
+									</cfloop>
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+			</table>
+		</cfoutput>
+	</cffunction>
+
 	<cffunction name="renderSectionHeadTR" output="#true#">
 
 		<cfargument name="sectionId">
@@ -1645,22 +1681,24 @@
 				#arguments.label1#</a></td>
 			<td class="pad"><a onclick="__LUCEE.debug.toggleSection( '#arguments.sectionId#', '#section#' );">#arguments.label2#</a></td>
 		</tr>
-	</cffunction>
+	</cffunction> 
 
 	<cffunction name="loadCharts" output="true">
 		<cfargument name="chartStruct">
-		<cfargument name="no_of_charts">
 
-		<cfset countChart = 0>
+		<cfif structKeyExists(request, "fromAdmin") AND request.fromAdmin EQ true>
+			<cfset chartClass = "twoCharts">
+		<cfelse>
+			<cfset chartClass = "fourCharts">
+		</cfif>
+
 		<cfloop item="i" collection="#arguments.chartStruct#">
-			<cfset countChart = countChart + 1>
-			<div class="chart_margin <cfif no_of_charts EQ 1>oneChart<cfelseif no_of_charts EQ 3>threeCharts<cfelse>fourCharts</cfif>" >
-				<div style="text-align:center;  width: 290px; height: 185px; padding:7px; border-radius: 25px; border: 2px solid ##898989;">
+			<div class="chart_margin #chartClass#">
+				<div style="text-align:center;  width: 245px; height: 165px; padding:7px; border-radius: 25px; border: 2px solid ##898989;">
 					<div style="font-size: 14px;font-weight: bold;">#i#</div>
-					<div id="#StructFind(arguments.chartStruct,"#i#")#" style="width: 270px; height: 150px; margin: 0 auto;"></div>
+					<div id="#StructFind(arguments.chartStruct,"#i#")#" style="width: 220px; height: 130px; margin: 0 auto;"></div>
 				</div>
 			</div>
-			<cfif no_of_charts EQ 2 AND structcount(arguments.chartStruct) GTE 2 AND countChart EQ 2 ><br style="clear:both" /></cfif>
 		</cfloop>
 	</cffunction>
 

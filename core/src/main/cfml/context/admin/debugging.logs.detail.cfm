@@ -1,3 +1,4 @@
+<script type="text/javascript">disableBlockUI=true;</script>
 <cfoutput>
 
 
@@ -16,10 +17,10 @@
     <cfset drivers[trim(tmp.getId())]=tmp>
 </cfloop>
 	
-    <cfset driver=drivers["lucee-modern"]>
+    <cfset driver=drivers["lucee-modern-extended"]>
 	<cfset entry={}>
 	<cfloop query="entries">
-		<cfif entries.type EQ "lucee-modern">
+		<cfif entries.type EQ "lucee-modern-extended">
         	<cfset entry=querySlice(entries, entries.currentrow ,1)>
         </cfif>    
     </cfloop>
@@ -37,7 +38,10 @@
     
     <table width="100%">
     <tr>
-    	<td><cfif !isSimpleValue(log)>
+    	<td>
+            <!--- <cfset log = logs[1]> --->
+            <cfset request.fromAdmin = true>
+            <cfif !isSimpleValue(log)>
 			<cfset c=structKeyExists(entry,'custom')?entry.custom:{}>
 			<cfset c.scopes=false>
 			<cfset driver.output(c,log,"admin")><cfelse>Data no longer available</cfif> </td>
