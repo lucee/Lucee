@@ -191,6 +191,24 @@ Defaults --->
 				</cfloop>
 			</cfif>
 		</cfcase>
+		<cfcase value="Send test mail">
+			<cftry>
+				<cfset data = queryRowData(ms,url.row)>
+				<!--- <cfdump var="#data#" /><cfabort /> --->
+				<cfmail from="#data.username#" to="#form.toMail#" subject="Test email from Lucee" server="#data.hostname#" username="#data.username#" password="#data.password#" port="#data.port#" usetls="#data.tls#" usessl="#data.ssl#">
+					Hi this is a test email from your lucee server instance.
+				</cfmail>
+				<cfset stVeritfyMessages[data.hostname].Label = "OK">
+				<cfset stVeritfyMessages[data.hostname].contextType = (request.adminType=='server'?'global':'global,local')>
+				<cfset stVeritfyMessages[data.hostname].message = "Test mail has been sent successfully using [ #data.hostname# ].">
+				<cfset doNotRedirect = true>
+				<cfcatch type="any">
+					<cfset stVeritfyMessages[data.hostname].Label = "Error">
+					<cfset stVeritfyMessages[data.hostname].message = cfcatch.message>
+					<cfset stVeritfyMessages[data.hostname].contextType = (request.adminType=='server'?'global':'global,local')>
+				</cfcatch>
+			</cftry>
+		</cfcase>
 	</cfswitch>
 	<cfcatch>
 		<cfset error.message=cfcatch.message>
@@ -212,6 +230,8 @@ Defaults --->
 
 <cfif url.action2 EQ "edit">
 	<cfinclude template="services.mail.edit.cfm">
+<cfelseif url.action2 EQ "sendTestmail">
+	<cfinclude template="services.mail.sendTestmail.cfm">
 <cfelse>
 	<cfinclude template="services.mail.list.cfm">
 </cfif>
