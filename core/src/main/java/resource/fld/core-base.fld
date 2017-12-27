@@ -224,6 +224,12 @@ All elements in the array must contain values that can be converted to numeric.<
 			<required>Yes</required>
 			<description>The substring to search for (not case sensitive)</description>
 		</argument>
+		<argument>
+		    <name>substringMatch</name>
+		    <type>boolean</type>
+		    <required>false</required>
+		    <description>If set to true then if a then a substring match will also return true. This will only work with simple values. Passing true with complex objects will throw an exception.</description>
+		</argument>
 		<return>
 			<type>number</type>
 		</return>
