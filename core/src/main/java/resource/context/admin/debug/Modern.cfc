@@ -161,7 +161,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<!-- Lucee Debug Output !-->
 			
 			<fieldset id="-lucee-debug" class="#arguments.custom.size# #isOpen ? '' : 'collapsed'#">
-				<!--- Lucee Debug Output --->
 				<cfset isdebugOpen = this.isSectionOpen( sectionId )>
 				<cfset ismetricsOpen = this.isSectionOpen( sectionId, "metrics" )>
 				<cfset isdocsOpen = this.isSectionOpen( sectionId, "docs" )>
@@ -170,7 +169,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					<cfset ismetricsOpen = false>
 					<cfset isdocsOpen = false>
 				</cfif>
-				<legend style="line-height: 20px !important; margin: auto !important; width:auto !important;">
+				<!--- Lucee Debug Output --->
+				<legend style="line-height: 20px !important; width:auto !important;">
 					<cfif enableTab("debug")>
 						<button id="-lucee-debug-btn-#sectionId#" class="#isdebugOpen ? 'btnActive' : 'buttonStyle' # btnOvr" onclick="clickAjax('debug'); __LUCEE.debug.toggleSection( '#sectionId#' );">
 							<!--- Lucee Debug Output --->
@@ -198,12 +198,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				</legend>
 				<cfif enableTab("debug")>
 					<div id="-lucee-debug-ALL" class="#isdebugOpen ? '' : 'collapsed'#">Loading debugging data...</div>
-
 				</cfif>
 				
 				<cfif enableTab("metrics")>
 					<div class="wholeContainer">
-					<cfset chartCount = 0>
 					<div id="-lucee-metrics-ALL" class="#isMetricAllOpen ? '' : 'collapsed'#">
 						<div class="section-title" style="padding-bottom:5px; padding-top:23px;">System Metrics</div>
 						<div class="titleStyle">Memory Chart & CPU Chart</div>
@@ -1454,11 +1452,11 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				<cfset renderSectionHeadTR2( "#sectionId#", "Scopes in Memory", "", "metrics" )>
 				<tr>
 					<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
-						<table class="maintbl">
+						<table class="details" style="text-align: left;">
 							<tbody>
 								<tr>
 									<th rowspan="3" scope="row" style="width: 39%;">
-										<span class="chartTitle">Scopes in Memory</span><br>
+										<span class="chartTitle"><b>Scopes in Memory</b></span><br>
 										<span class="comment_debugInfo">Scopes actually hold in Memory (a Scope not necessary is kept in Memory for it's hole life time).</span>
 									</th>
 									<td style="width:30%"><b>Application</b></td>
@@ -1483,11 +1481,11 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				<cfset renderSectionHeadTR2( "#sectionId#", "Request/Threads", "", "metrics" )>
 				<tr>
 					<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
-						<table class="maintbl">
+						<table class="details" style="text-align: left;">
 							<tbody>
 								<tr>
 									<th rowspan="3" scope="row" style="width: 39%;">
-										<span class="chartTitle">Request/Threads</span><br>
+										<span class="chartTitle"><b>Request/Threads</b></span><br>
 										<span class="comment_debugInfo">Request and threads (started by &lt;cfthread&gt;) currently running on the system.</span>
 									</th>
 									<td style="width:30%"><b>Requests</b></td>
@@ -1515,11 +1513,11 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				<cfset renderSectionHeadTR2( "#sectionId#", "Datasource Connections", "", "metrics" )>
 				<tr>
 					<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
-						<table class="maintbl">
+						<table class="details" style="text-align: left;">
 							<tbody>
 								<tr>
 									<th rowspan="2" scope="row" style="width: 39%;">
-										<span class="chartTitle">Datasource Connections</span><br>
+										<span class="chartTitle"><b>Datasource Connections</b></span><br>
 										<span class="comment_debugInfo">Datasource Connection open at the Moment.</span>
 									</th>
 									<td style="width:30%">&nbsp;</td>
@@ -1541,11 +1539,11 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				<cfset renderSectionHeadTR2( "#sectionId#", "Task Spooler", "", "metrics" )>
 				<tr>
 					<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
-						<table class="maintbl">
+						<table class="details" style="text-align: left;">
 							<tbody>
 								<tr>
 									<th rowspan="2" scope="row" style="width: 39%;">
-										<span class="chartTitle">Task Spooler</span><br>
+										<span class="chartTitle"><b>Task Spooler</b></span><br>
 										<span class="comment_debugInfo">Active and closed tasks in Task Spooler. This includes for exampe tasks to send mails.</span>
 									</th>
 									<td style="width:30%"><b>Open</b></td>
@@ -1577,10 +1575,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			</cfloop>
 		</cfloop>
 		<cfif structKeyExists(url, "fromAdmin") AND url.fromAdmin EQ true>
-			<cfset maxCols = 4>
+			<cfset maxCols = 3>
 			<cfset searchClass = "SearchField1">
 		<cfelse>
-			<cfset maxCols = 6>
+			<cfset maxCols = 5>
 			<cfset searchClass = "SearchField2">
 		</cfif>
 		<!--- <div class="section-title">Debugging Information</div> --->
@@ -1812,6 +1810,44 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			return tmpStr.componentDetails.cfcs;
 		}
 
+		function toPackage(required string root,required string path) localmode=true {
+			path=replace(path,root,'');// TODO make this better
+			path=ListCompact(path,'\/');
+			path=replace(path,'\','.','all');
+			path=replace(path,'/','.','all');
+			return path;
+		}
+
+		function getPackages() localmode=true {
+			pc=getPageContext();
+			config=pc.getConfig();
+			mappings=config.getComponentMappings();
+
+			sct={};
+			for(m in mappings) {
+				if(isNull(m.getPhysical())) continue;
+				path=m.getPhysical().getAbsolutePath();
+				directory
+				recurse=true
+				type="file"
+				action="list"
+				directory=path
+				name="list";
+				loop query=list {
+					if(list.type=='file'){
+						p=toPackage(path,list.directory);
+						if(p.isEmpty()) continue;
+						sct[p]='';
+					}
+				}
+			}
+			arr=[];
+			loop struct=sct index='k' {
+				arrayAppend(arr,k);
+			}
+			return arr;
+		}
+
 	    private string function getPctColor(required numeric iPct) {
     		local.iPct = 1 - arguments.iPct / 100;
     		return RGBtoHex(255 * iPct, 160 * (1 - iPct), 0);
@@ -1990,3 +2026,4 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		}
 	</cfscript>
 </cfcomponent>
+
