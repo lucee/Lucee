@@ -419,12 +419,12 @@ public class Input extends TagImpl {
     	if(Caster.toBooleanValue(checked,true)) attributes.setEL("checked","checked");
     } 
     /**
-     * @param daynames The daynames to set.
+     * @param listDaynames The daynames to set.
      * @throws ApplicationException 
      */
     public void setDaynames(String listDaynames) throws ApplicationException {
     	String[] arr = ListUtil.listToStringArray(listDaynames, ',');
-    	if(arr.length==7)
+    	if(arr.length!=7)
     		throw new ApplicationException("value of attribute [daynames] must contain a string list with 7 values, now there are "+arr.length+" values");
     	this.daynames=arr;
     }
