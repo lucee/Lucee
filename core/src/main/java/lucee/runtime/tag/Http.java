@@ -986,8 +986,8 @@ public final class Http extends BodyTagImpl {
 						cs = ct.getCharset();
 
 					hasBody = true;
-					if(eem == null)
-						throw new ApplicationException("type body is only supported for type post and put");
+//					if(eem == null)
+//						throw new ApplicationException("type body is only supported for type post and put");
 					HTTPEngine4Impl.setBody(eem, param.getValue(), mt, cs);
 
 				}
@@ -1037,8 +1037,8 @@ public final class Http extends BodyTagImpl {
 					MultipartEntityBuilder mpeBuilder = MultipartEntityBuilder.create().setStrictMode();
 
 					// enabling the line below will append charset=... to the Content-Type header
-//					if (!StringUtil.isEmpty(charset, true))
-//						mpeBuilder.setCharset(CharsetUtil.toCharset(charset));
+					// if (!StringUtil.isEmpty(charset, true))
+					// mpeBuilder.setCharset(CharsetUtil.toCharset(charset));
 
 					Iterator<FormBodyPart> it = parts.iterator();
 					while(it.hasNext()) {
