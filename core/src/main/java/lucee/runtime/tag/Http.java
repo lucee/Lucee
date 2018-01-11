@@ -986,8 +986,8 @@ public final class Http extends BodyTagImpl {
 						cs = ct.getCharset();
 
 					hasBody = true;
-//					if(eem == null)
-//						throw new ApplicationException("type body is only supported for type post and put");
+					if(eem == null)
+						throw new ApplicationException("type body is only supported for type post and put");
 					HTTPEngine4Impl.setBody(eem, param.getValue(), mt, cs);
 
 				}
