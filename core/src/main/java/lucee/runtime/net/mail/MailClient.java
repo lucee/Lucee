@@ -43,6 +43,7 @@ import javax.mail.Store;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -51,11 +52,15 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.functions.string.Hash;
 import lucee.runtime.net.imap.ImapClient;
 import lucee.runtime.net.pop.PopClient;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Operator;
+import lucee.runtime.pool.Pool;
+import lucee.runtime.pool.PoolItem;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -65,10 +70,31 @@ import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
-public abstract class MailClient {
+public abstract class MailClient implements PoolItem {
 	
+	@Override
+	public boolean isValid() {
+		if(_store==null && !_store.isConnected()) {
+			// goal is to be valid if requested so we try to be
+			try {
+				start();
+			} catch (MessagingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return _store!=null && _store.isConnected();
+	}
+
+	private static final Collection.Key FULLNAME = KeyImpl.init("FULLNAME");
+	private static final Collection.Key UNREAD = KeyImpl.init("UNREAD");
+	private static final Collection.Key PARENT = KeyImpl.init("PARENT");
+	private static final Collection.Key TOTALMESSAGES = KeyImpl.init("TOTALMESSAGES");
+	private static final Collection.Key NEW = KeyImpl.init("NEW");
+		
 	/**
 	 * Simple authenicator implmentation
 	 */
@@ -118,8 +144,8 @@ public abstract class MailClient {
 	private String server = null;
 	private String username = null;
 	private String password = null;
-	private Session _fldtry = null;
-	private Store _fldelse = null;
+	private Session _session = null;
+	private Store _store = null;
 	private int port = 0;
 	private int timeout = 0;
 	private int startrow = 0;
@@ -127,16 +153,44 @@ public abstract class MailClient {
 	private boolean uniqueFilenames = false;
 	private Resource attachmentDirectory = null;
 	private final boolean secure;
-
+	private static Pool pool=new Pool(60000,100,5000);
 	
-	public static MailClient getInstance(int type,String server, int port, String username, String password, boolean secure){
-		if(TYPE_POP3==type)
-			return new PopClient(server,port,username,password,secure);
-		if(TYPE_IMAP==type)
-			return new ImapClient(server,port,username,password,secure);
-		return null;
+	public static MailClient getInstance(int type,String server, int port, String username, String password, boolean secure, String name, String id) throws Exception{
+		String uid;
+		if(StringUtil.isEmpty(name)) uid=createName(type,server,port,username,password,secure);
+		else uid=name;
+		uid=type+";"+uid+";"+id;
+
+		PoolItem item = pool.get(uid);
+		if(item==null) {
+			if(StringUtil.isEmpty(server)) {
+				if(StringUtil.isEmpty(name))
+					throw new ApplicationException("missing server information");
+				else
+					throw new ApplicationException("there is no connection available with name ["+name+"]");
+			}
+			if(TYPE_POP3==type)
+				pool.put(uid, item=new PopClient(server,port,username,password,secure));
+			if(TYPE_IMAP==type)
+				pool.put(uid, item=new ImapClient(server,port,username,password,secure));
+		}
+		return (MailClient) item;
+	}
+
+	public static void removeInstance(MailClient client) throws Exception {
+		pool.remove(client); // this will also call the stop method of the 
 	}
 	
+	private static String createName(int type, String server, int port, String username, String password, boolean secure) {
+		return HashUtil.create64BitHashAsString(new StringBuilder()
+		.append(server).append(';')
+		.append(port).append(';')
+		.append(username).append(';')
+		.append(password).append(';')
+		.append(secure).append(';')
+		, 16);
+	}
+
 	/**
 	 * constructor of the class
 	 * @param server
@@ -198,7 +252,7 @@ public abstract class MailClient {
      * connects to pop server
      * @throws MessagingException
      */
-    public void connect() throws MessagingException {
+    public void start() throws MessagingException {
 		Properties properties = new Properties();
 		String type=getTypeAsString();
 		properties.put("mail."+type+".host", server);
@@ -214,16 +268,11 @@ public abstract class MailClient {
 		if(TYPE_IMAP==getType()){
 			properties.put("mail.imap.partialfetch", "false" );
 		}
-		if(TYPE_POP3==getType()){
-			
-		}
-		
-		
-		
-		_fldtry = username != null ? Session.getInstance(properties, new _Authenticator(username, password)) : Session.getInstance(properties);
-		_fldelse = _fldtry.getStore(type);
-		if(!StringUtil.isEmpty(username))_fldelse.connect(server,username,password);
-		else _fldelse.connect();
+		//if(TYPE_POP3==getType()){}
+		_session = username != null ? Session.getInstance(properties, new _Authenticator(username, password)) : Session.getInstance(properties);
+		_store = _session.getStore(type);
+		if(!StringUtil.isEmpty(username))_store.connect(server,username,password);
+		else _store.connect();
 	}
 
     protected abstract String getTypeAsString();
@@ -240,7 +289,7 @@ public abstract class MailClient {
     public void deleteMails(String as[], String as1[]) throws MessagingException, IOException {
 		Folder folder;
 		Message amessage[];
-		folder = _fldelse.getFolder("INBOX");
+		folder = _store.getFolder("INBOX");
 		folder.open(2);
 		Map<String, Message> map = getMessages(null,folder, as1, as, startrow, maxrows,false);
 		Iterator<String> iterator = map.keySet().iterator();
@@ -268,7 +317,7 @@ public abstract class MailClient {
      */
     public Query getMails(String[] messageNumbers, String[] uids, boolean all) throws MessagingException, IOException {
 		Query qry = new QueryImpl(all ? _fldnew : _flddo, 0, "query");
-		Folder folder = _fldelse.getFolder("INBOX");
+		Folder folder = _store.getFolder("INBOX");
 		folder.open(Folder.READ_ONLY);
 		try {
 			getMessages(qry,folder, uids, messageNumbers, startrow, maxrows,all);
@@ -627,10 +676,187 @@ public abstract class MailClient {
 	/**
      * disconnect without a exception
      */
-	public void disconnectEL() {
+	public void end() {
 		try {
-			if(_fldelse != null)_fldelse.close();
+			if(_store != null)_store.close();
 		}
 		catch(Exception exception) {}
 	}
+	
+	
+	// IMAP only
+	public void createFolder(String folderName) throws MessagingException, ApplicationException {
+		if(folderExists(folderName)) 
+			throw new ApplicationException("cannot create folder ["+folderName+"], folder already exists.");
+		
+		Folder folder=getFolder(folderName, null, false, true);
+		if(!folder.exists()) folder.create(Folder.HOLDS_MESSAGES);
+	}
+
+	private boolean folderExists(String folderName) throws MessagingException {
+		String[] folderNames=toFolderNames(folderName);
+		Folder folder=null;
+		for(int i=0;i<folderNames.length;i++) {
+			folder = folder==null?_store.getFolder(folderNames[i]):folder.getFolder(folderNames[i]);
+			if (!folder.exists()) return false;
+		}
+		return true;
+	}
+
+	private String[] toFolderNames(String folderName) {
+		if(StringUtil.isEmpty(folderName)) return new String[0];
+		return ListUtil.trimItems(ListUtil.trim(ListUtil.listToStringArray(folderName, '/')));
+	}
+
+	public void deleteFolder(String folderName) throws MessagingException, ApplicationException {
+		
+		if(folderName.equalsIgnoreCase("INBOX") || folderName.equalsIgnoreCase("OUTBOX")) 
+			throw new ApplicationException("cannot delete folder ["+folderName+"], this folder is protected.");
+		
+		String[] folderNames = toFolderNames(folderName);
+		Folder folder = _store.getFolder(folderNames[0]);
+		if (!folder.exists()) {
+			throw new ApplicationException("there is no folder with name ["+folderName+"].");
+		}
+		folder.delete(true);
+	}
+	
+	public void renameFolder(String srcFolderName, String trgFolderName) throws MessagingException, ApplicationException {
+		if(srcFolderName.equalsIgnoreCase("INBOX") || srcFolderName.equalsIgnoreCase("OUTBOX")) 
+			throw new ApplicationException("cannot rename folder ["+srcFolderName+"], this folder is protected.");
+		if(trgFolderName.equalsIgnoreCase("INBOX") || trgFolderName.equalsIgnoreCase("OUTBOX")) 
+			throw new ApplicationException("cannot rename folder to ["+trgFolderName+"], this folder name is protected.");
+		
+		
+		Folder src = getFolder(srcFolderName,true,true,false);
+		Folder trg = getFolder(trgFolderName,null,false,true);
+		
+		if(!src.renameTo(trg))
+			 throw new ApplicationException("cannot rename folder ["+srcFolderName+"] to ["+trgFolderName+"].");
+	}
+	
+	public Query listAllFolder(String folderName, boolean recurse, int startrow, int maxrows) throws MessagingException, PageException {
+		Query qry=new QueryImpl(new Collection.Key[]{ FULLNAME, KeyConstants._NAME, TOTALMESSAGES, UNREAD,PARENT, NEW}, 0, "folders");
+		//if(StringUtil.isEmpty(folderName)) folderName="INBOX";
+		Folder folder=(StringUtil.isEmpty(folderName))?_store.getDefaultFolder():_store.getFolder(folderName);
+		//Folder folder=_store.getFolder(folderName);
+		if(!folder.exists())
+			throw new ApplicationException("there is no folder with name ["+folderName+"].");
+
+		list(folder, qry, recurse,startrow,maxrows,0);
+		return qry;
+	}
+	
+	public void moveMail(String srcFolderName, String trgFolderName) throws MessagingException, ApplicationException {
+		if(StringUtil.isEmpty(srcFolderName, true)) srcFolderName = "INBOX";
+		
+		Folder srcFolder = null;
+		Folder trgFolder = null;
+		try {
+			srcFolder = _store.getFolder(srcFolderName);
+			trgFolder = _store.getFolder(trgFolderName);
+			if(srcFolder.exists()) throw new ApplicationException("there is no folder with name ["+srcFolderName+"].");
+			if(trgFolder.exists()) throw new ApplicationException("there is no folder with name ["+srcFolderName+"].");
+			
+			srcFolder.open(2);
+			trgFolder.open(2);
+			Message[] msgs = srcFolder.getMessages();
+			srcFolder.copyMessages(msgs, trgFolder);
+			srcFolder.setFlags(msgs, new Flags(Flags.Flag.DELETED), true);
+		}
+		finally {
+			IOUtil.closeEL(srcFolder);
+			IOUtil.closeEL(trgFolder);
+		}
+	}
+	
+	public void markRead(String folderName) throws MessagingException, ApplicationException {
+		if (StringUtil.isEmpty(folderName)) folderName = "INBOX";
+		
+		
+		Folder folder = null;
+		try {
+			folder = getFolder(folderName,true,true,false);
+			folder.open(2);
+			Message[] msgs = folder.getMessages();
+			folder.setFlags(msgs, new Flags(Flags.Flag.SEEN), true);
+		}
+		finally {
+			IOUtil.closeEL(folder);
+		}
+	}
+	
+	private Folder getFolder(String folderName, Boolean existingParent, Boolean existing, boolean createParentIfNotExists) throws MessagingException, ApplicationException {
+		String[] folderNames = toFolderNames(folderName);
+		Folder folder = null;
+		String fn;
+		for(int i=0;i<folderNames.length;i++) {
+			fn=folderNames[i];
+			folder=folder==null?_store.getFolder(fn):folder.getFolder(fn);
+			
+			// top
+			if(i+1==folderNames.length) {
+				if(existing!=null) {
+					if(existing.booleanValue() && !folder.exists())
+						throw new ApplicationException("there is no folder with name ["+folderName+"].");
+					if(!existing.booleanValue() && folder.exists())
+						throw new ApplicationException("there is alredy a folder with name ["+folderName+"].");
+				}
+			}
+			// parent
+			else {
+				if(existingParent!=null) {
+					if(existingParent.booleanValue() && !folder.exists())
+						throw new ApplicationException("there is no parent folder for folder with name ["+folderName+"].");
+					if(!existingParent.booleanValue() && folder.exists())
+						throw new ApplicationException("there is alredy a parent folder for folder with name ["+folderName+"].");
+				}
+				if(createParentIfNotExists && !folder.exists()) {
+					folder.create(Folder.HOLDS_MESSAGES);
+				}
+			}
+		}
+		return folder;
+	}
+
+	private void list(Folder folder, Query qry, boolean recurse, int startrow, int maxrows, int rowsMissed) throws MessagingException, PageException {
+		Folder[] folders = folder.list();
+		if (ArrayUtil.isEmpty(folders))return;
+		
+		for (Folder f : folders) {
+			// start row
+			if((startrow-1)>rowsMissed) {
+				rowsMissed++;
+				continue;
+			}
+			// max rows
+			if(maxrows>0 && qry.getRecordcount()>=maxrows) break;
+			
+			
+			int row=qry.addRow();
+			
+			Folder p=null;
+			try {
+				p = f.getParent();
+			}
+			catch(MessagingException me) {}
+			
+			qry.setAt(KeyConstants._NAME, row, f.getName());
+			qry.setAt(FULLNAME, row, f.getFullName());
+			qry.setAt(UNREAD, row, Caster.toDouble(f.getUnreadMessageCount()));
+			qry.setAt(TOTALMESSAGES, row, Caster.toDouble(f.getMessageCount()));
+			qry.setAt(NEW, row, Caster.toDouble(f.getNewMessageCount()));
+			qry.setAt(PARENT, row, p!=null?p.getName():null);
+			if (recurse)list(f, qry, recurse,startrow, maxrows,rowsMissed);
+		}
+	}
+	
+	
+	/**
+	 * Open: Initiates an open session or connection with the IMAP server.
+
+Close: Terminates the open session or connection with the IMAP server.
+
+	 */
+	
 }

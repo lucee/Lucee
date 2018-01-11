@@ -18,10 +18,15 @@
  **/
 package lucee.runtime.tag;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
+import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.net.mail.MailClient;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ArrayUtil;
@@ -32,7 +37,10 @@ import lucee.runtime.type.util.ListUtil;
  */
 public abstract class _Mail extends TagImpl {
     
-    private String server;
+    public class Credential {
+
+	}
+	private String server;
     private int port=-1;
 
     private String username;
@@ -47,9 +55,20 @@ public abstract class _Mail extends TagImpl {
     private int maxrows=-1;
     private boolean generateUniqueFilenames=false;
     private boolean secure=false;
+	private String folder;
+	private String newfolder;
+	private boolean recurse;
+	private String connection;
+	private String id;
+	private List<Credential> credentials=new ArrayList<_Mail.Credential>();
+	
+	public _Mail() {
+		this.id=CreateUniqueId.invoke();
+	}
     
     @Override
     public void release() {
+    	server=null;
         port=-1;
         username=null;
         password=null;
@@ -63,8 +82,11 @@ public abstract class _Mail extends TagImpl {
         maxrows=-1;
         generateUniqueFilenames=false;
         secure=false;
+        folder=null;
+        newfolder=null;
+        recurse=false;
+        connection=null;
         super.release();
-        
     }
 
     /**
@@ -80,6 +102,21 @@ public abstract class _Mail extends TagImpl {
     public void setPort(double port) {
         this.port = (int)port;
     }
+
+    public void setFolder(String folder) {
+        this.folder = folder;
+    }
+    public void setNewfolder(String newfolder) {
+        this.newfolder = newfolder;
+    }
+    public void setRecurse(boolean recurse) {
+        this.recurse = recurse;
+    }
+    
+    public void setConnection(String connection) {
+        this.connection = connection;
+    }
+
     public void setSecure(boolean secure) {
         this.secure = secure;
     }
@@ -194,9 +231,24 @@ public abstract class _Mail extends TagImpl {
     	
     	// check attrs
     	if(port==-1)port=getDefaultPort();
-    	
+
+    	checkConnection();
+
     	//PopClient client = new PopClient(server,port,username,password);
-    	MailClient client = MailClient.getInstance(getType(),server,port,username,password,secure);
+    	MailClient client;
+    	try {
+    		client = MailClient.getInstance(getType(),server,port,username,password,secure,connection,id);
+    	}
+    	catch(Exception e) {
+    		throw Caster.toPageException(e);
+    	}
+    	// store connection  data
+    	if(!StringUtil.isEmpty(connection) && StringUtil.isEmpty(server)) {
+    		
+    	}
+    	
+    	
+    	
         client.setTimeout(timeout*1000);
         client.setMaxrows(maxrows);
         if(startrow>1)client.setStartrow(startrow-1);
@@ -206,7 +258,7 @@ public abstract class _Mail extends TagImpl {
         if(uid!=null)messageNumber=null;
         
         try {
-            client.connect();
+            //client.connect();
             
             if(action.equals("getheaderonly")) {
                 required(getTagName(),action,"name",name);
@@ -219,16 +271,55 @@ public abstract class _Mail extends TagImpl {
             else if(action.equals("delete")) {
                 client.deleteMails(messageNumber,uid);
             }
-            else throw new ApplicationException("invalid value for attribute action, valid values are [getHeaderOnly,getAll,delete]");
+            
+            // imap only
+            else if(getType()==MailClient.TYPE_IMAP && action.equals("open")) {
+            	// no action necessary, because getting a client above already does the trick
+            }
+            else if(getType()==MailClient.TYPE_IMAP && action.equals("close")) {
+            	MailClient.removeInstance(client);
+            	// no action necessary, because getting a client above already does the trick
+            }
+            else if(getType()==MailClient.TYPE_IMAP && action.equals("markread")) {
+            	client.markRead(folder);
+            }
+            else if(getType()==MailClient.TYPE_IMAP && action.equals("createfolder")) {
+            	required(getTagName(),action,"folder",folder);
+                client.createFolder(folder);
+            }
+            else if(getType()==MailClient.TYPE_IMAP && action.equals("deletefolder")) {
+            	required(getTagName(),action,"folder",folder);
+                client.deleteFolder(folder);
+            }
+            else if(getType()==MailClient.TYPE_IMAP && action.equals("renamefolder")) {
+            	required(getTagName(),action,"folder",folder);
+            	required(getTagName(),action,"newfolder",newfolder);
+                client.renameFolder(folder, newfolder);
+            }
+            else if(getType()==MailClient.TYPE_IMAP && action.equals("listallfolders")) {
+            	pageContext.setVariable(name,client.listAllFolder(folder, recurse,startrow,maxrows));
+            }
+            else {
+            	String actions="getHeaderOnly,getAll,delete";
+            	if(getType()==MailClient.TYPE_IMAP) actions+="open,close,markread,createfolder,deletefolder,renamefolder,listallfolders";
+            	
+            	throw new ApplicationException("invalid value for attribute action, valid values are ["+actions+"]");
+            }
         }
         catch(Exception e) {
             throw Caster.toPageException(e);
         }
         finally{
-            client.disconnectEL();
+            //client.disconnectEL();
         }
         return SKIP_BODY;
     }
+
+	private void checkConnection() throws ApplicationException {
+		if(StringUtil.isEmpty(connection) && StringUtil.isEmpty(server)) {
+        	throw new ApplicationException("you need to define the attribute [connection] or [server].");
+		}
+	}
 
 	protected abstract int getType();
 	protected abstract int getDefaultPort();
