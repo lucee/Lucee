@@ -18,29 +18,6 @@
  */
 package lucee.runtime.tag;
 
-import java.io.ByteArrayInputStream;
-import java.io.EOFException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.security.KeyStore;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.zip.GZIPInputStream;
-
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -100,13 +77,12 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.PageContextUtil;
 import lucee.runtime.util.URLResolver;
-
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
 import org.apache.http.client.methods.HttpPost;
@@ -133,6 +109,29 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import java.io.ByteArrayInputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.security.KeyStore;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPInputStream;
 
 // MUST change behavor of mltiple headers now is a array, it das so?
 
@@ -831,14 +830,16 @@ public final class Http extends BodyTagImpl {
 			HttpEntityEnclosingRequest eeReq = null;
 
 			if(this.method == METHOD_GET) {
-				req = new HttpGet(url);
+				req = new HttpGetWithBody(url);
+				eeReq = (HttpEntityEnclosingRequest) req;
 			}
 			else if(this.method == METHOD_HEAD) {
 				req = new HttpHead(url);
 			}
 			else if(this.method == METHOD_DELETE) {
 				isBinary = true;
-				req = new HttpDelete(url);
+				req = new HttpDeleteWithBody(url);
+				eeReq = (HttpEntityEnclosingRequest) req;
 			}
 			else if(this.method == METHOD_PUT) {
 				isBinary = true;
@@ -971,7 +972,7 @@ public final class Http extends BodyTagImpl {
 					hasContentType = true;
 					req.addHeader("Content-type", mt + "; charset=" + cs);
 					if(eeReq == null)
-						throw new ApplicationException("type xml is only supported for type post and put");
+						throw new ApplicationException("type xml is only supported for methods get, delete, post, and put");
 					HTTPEngine4Impl.setBody(eeReq, param.getValueAsString(), mt, cs);
 				}
 				// Body
@@ -988,7 +989,7 @@ public final class Http extends BodyTagImpl {
 
 					hasBody = true;
 					if(eeReq == null)
-						throw new ApplicationException("type body is only supported for type post and put");
+						throw new ApplicationException("type body is only supported for methods get, delete, post, and put");
 					HTTPEngine4Impl.setBody(eeReq, param.getValue(), mt, cs);
 
 				}
@@ -2023,4 +2024,28 @@ class Executor4 extends PageContextThread {
 		return response = new HTTPResponse4Impl(null, context, req, client.execute(req, context));
 	}
 
+}
+
+
+@NotThreadSafe
+class HttpDeleteWithBody extends HttpEntityEnclosingRequestBase {
+	public static final String METHOD_NAME = "DELETE";
+	public String getMethod() { return METHOD_NAME; }
+
+	public HttpDeleteWithBody(final String uri) {
+		super();
+		setURI(URI.create(uri));
+	}
+}
+
+
+@NotThreadSafe
+class HttpGetWithBody extends HttpEntityEnclosingRequestBase {
+	public static final String METHOD_NAME = "GET";
+	public String getMethod() { return METHOD_NAME; }
+
+	public HttpGetWithBody(final String uri) {
+		super();
+		setURI(URI.create(uri));
+	}
 }
