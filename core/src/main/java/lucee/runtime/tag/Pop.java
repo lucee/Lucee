@@ -40,5 +40,4 @@ public final class Pop extends _Mail {
 	protected int getType() {
 		return MailClient.TYPE_POP3;
 	}
-    
 }

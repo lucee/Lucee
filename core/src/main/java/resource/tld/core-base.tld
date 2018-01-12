@@ -3761,10 +3761,24 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
+			<name>connection</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>label for a connection.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
 			<name>server</name>
-			<required>true</required>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Host name biff.upperlip.com or IP address 192.1.2.225 of the Imap server.</description>
+		</attribute>
+		<attribute>
+			<type>number</type>
+			<name>port</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defaults to the standard Imap port, 143.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3773,13 +3787,6 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<rtexprvalue>true</rtexprvalue>
 		<description>Specifies the unique ID or a comma-delimited list of Uids to retrieve or delete. If you set invalid Uids, then they are ignored.</description>
     </attribute>
-		<attribute>
-			<type>number</type>
-			<name>port</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Defaults to the standard Imap port, 143.</description>
-		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>username</name>
@@ -3871,6 +3878,27 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<rtexprvalue>true</rtexprvalue>
 			<description>Boolean indicating whether to generate unique filenames for the files attached to an e-mail
 		message to avoid naming conflicts when the files are saved. Default is NO.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>folder</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>newfolder</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>recurse</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
 		</attribute>
 	</tag>
 
@@ -5649,8 +5677,16 @@ Lucee uses the number of characters in the file.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
+			<name>connection</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>label for a connection.</description>
+		</attribute>
+		
+		<attribute>
+			<type>string</type>
 			<name>server</name>
-			<required>true</required>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Host name biff.upperlip.com or IP address 192.1.2.225 of the POP server.</description>
 		</attribute>

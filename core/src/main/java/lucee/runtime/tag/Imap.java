@@ -37,5 +37,4 @@ public class Imap extends _Mail {
 	protected int getType() {
 		return MailClient.TYPE_IMAP;
 	}
-
 }
