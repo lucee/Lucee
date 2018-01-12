@@ -46,24 +46,6 @@
 			<cfset error.message = "">
 			<cfset driver.onBeforeUpdate(custom)>
 			<cfset meta=getMetaData(driver)>
-			<cfif form.type EQ "lucee-modern-extended" && structKeyExists(form, "custom_ajaxCall") && form.custom_ajaxCall EQ "Enabled">
-				
-				<cfadmin 
-				action="getCacheConnections"
-				type="#request.adminType#"
-				password="#session["password"&request.adminType]#"
-				returnVariable="connections">
-				<cfif connections.RecordCount>
-					<cfquery dbtype="query" name="cacheConnection">
-						select * from connections where default = 'object'
-					</cfquery>
-					<cfif cacheConnection.recordCount EQ 0>
-						<cfset error.message = "Please make cache default value as object">
-					</cfif>
-				<cfelse>
-					<cfset error.message = "Please create a cache default value as object ">
-				</cfif>
-			</cfif>
 			<cfif error.message EQ "">
 				<cfadmin
 					action="updateDebugEntry"

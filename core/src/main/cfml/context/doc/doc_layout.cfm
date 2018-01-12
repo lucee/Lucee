@@ -15,14 +15,27 @@
 			</head>
 
 	</cfif> <!--- iAR1 end --->
-	<link href="/lucee/doc/assets/css/base.min.css.cfm" rel="stylesheet">
-	<link href="/lucee/doc/assets/css/highlight.css.cfm" rel="stylesheet">
+	<link href="/lucee/doc/assets/css/base.min.css.cfm" rel="stylesheet" >
+	<link href="/lucee/doc/assets/css/highlight.css.cfm" rel="stylesheet" >
 	<cfif structKeyExists(url, "isAjaxRequest")>
-		<style type="text/css">
-			.modal{
-				position: relative !important;
-			}
-		</style>
+		<cfif !structKeyExists(url, "fromAdmin") OR url.fromAdmin NEQ true>
+			<style type="text/css">
+				.modal{
+					height: 98% !important;
+					position: relative !important;
+					top: 2% !important;
+				}
+			</style>
+		<cfelse>
+			<style type="text/css">
+				.modal{
+					height: 95% !important;
+					position: fixed !important;
+					top: 3%;
+					left: 20%;
+				}
+			</style>
+		</cfif>
 	</cfif>
 
 	<cfif !structKeyExists(url, "isAjaxRequest")> <!--- iAR2 start --->

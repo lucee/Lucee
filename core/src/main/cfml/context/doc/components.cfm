@@ -20,6 +20,7 @@
 </cfif>
 
 <cfsavecontent variable="Request.htmlBody">
+	<cfif !structKeyExists(url, "isAjaxRequest")>
 	<style type="text/css">
 		.tt-suggestion.tt-selectable p{
 			margin: 0px !important;
@@ -120,6 +121,7 @@
 			});
 		});
 	</script>
+	</cfif>
 </cfsavecontent>
 
 <cfmodule template="doc_layout.cfm" title="Components" prevLinkItem="#prevLinkItem#" nextLinkItem="#nextLinkItem#">

@@ -113,9 +113,16 @@
 			</tbody>
 		</table>
 	</div>
+	<div id="blockerContainer" class="jquery-modal current">
+		<div id="ex1" class="modal">
+			<a href="##close-modal" rel="modal:close" class="close-modal ">Close</a>
+			<div class="modal-body"></div>
+		</div>
+	</div>
 	<cfinclude template="navigation.cfm">
 
 	<script src="../res/js/jquery-1.12.4.min.js.cfm" type="text/javascript"></script>
+	<script src="../res/js/jquery.modal.min.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/jquery.blockUI-#resNameAppendix#.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/admin-#resNameAppendix#.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/util-#resNameAppendix#.min.js.cfm"></script>
