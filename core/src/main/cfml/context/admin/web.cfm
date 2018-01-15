@@ -289,19 +289,32 @@
 </cfif>
 <cfif request.adminType EQ "web">
 	
-<cfadmin
-   action="getRHServerExtensions"
-   type="#request.adminType#"
-   password="#session["password"&request.adminType]#"
-   returnVariable="serverExtensions">
-
-
-  <cfquery name="LuceneExtInstl" dbtype="query">
-  	select * from serverExtensions where ID = 'EFDEB172-F52E-4D84-9CD1A1F561B3DFC8'
-  </cfquery>
 </cfif>
 
 <cfscript>
+	function isLuceneInstalled() {
+		//if(!isNull(session._isLuceneInstalled)) return session._isLuceneInstalled;
+
+		try{
+			admin
+			   action="getRHServerExtensions"
+			   type="#request.adminType#"
+			   password="#session["password"&request.adminType]#"
+			   returnVariable="local.qry";
+
+			var qry = qry.filter(function(row, rowNumber, qryData){
+			    return row.id=='EFDEB172-F52E-4D84-9CD1A1F561B3DFC8';
+			});
+			session._isLuceneInstalled=qry.recordCount>0;
+			return qry.recordCount>0;
+
+		}
+		catch(e) {//systemOutput(e,1,1);
+			return false;
+		}
+	}
+
+
 	isRestrictedLevel=server.ColdFusion.ProductLevel EQ "community" or server.ColdFusion.ProductLevel EQ "professional";
 	isRestricted=isRestrictedLevel and request.adminType EQ "server";
 
@@ -329,12 +342,7 @@
 				stCld = stNavi.children[iCld];
 				isActive=current.action eq stNavi.action & '.' & stCld.action or (current.action eq 'plugin' and stCld.action EQ url.plugin);
 				if(request.adminType EQ "web" && stCld.action EQ "search"){
-					isLuceneInstalled = LuceneExtInstl.recordCount;
-					if(LuceneExtInstl.recordCount EQ 0){
-						stCld.hidden = true;
-					} else{
-						stCld.hidden = false;
-					}
+					stCld.hidden=!isLuceneInstalled();
 				}
 				if(isActive) {
 					hasActiveItem = true;
