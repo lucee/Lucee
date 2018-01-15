@@ -1,4 +1,15 @@
 <cfif request.admintype EQ "server"><cflocation url="#request.self#" addtoken="no"></cfif>
+<cfadmin
+   action="getRHServerExtensions"
+   type="#request.adminType#"
+   password="#session["password"&request.adminType]#"
+   returnVariable="serverExtensions">
+
+
+  <cfquery name="LuceneExtInstl" dbtype="query">
+  	select * from serverExtensions where ID = 'EFDEB172-F52E-4D84-9CD1A1F561B3DFC8'
+  </cfquery>
+<cfif LuceneExtInstl.recordcount EQ 0><cflocation url="#request.self#" addtoken="no"></cfif>
 
 <cfparam name="form.run" default="none">
 <cfparam name="error" default="#struct(message:"",detail:"")#">
