@@ -689,7 +689,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doGetDatasourceDriverList();
 		else if(check("getDebuggingList", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetDebuggingList();
-		else if(check("getLoggedDebugData", ACCESS_FREE) && check2(ACCESS_READ))
+		else if(check("getLoggedDebugData", ACCESS_FREE)) // no password necessary for this
 			doGetLoggedDebugData();
 		else if(check("getDebugSetting", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetDebugSetting();
@@ -756,7 +756,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doGetJavaCFXTags();
 		else if(check("getDebug", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetDebug();
-		else if(check("getDebugEntry", ACCESS_FREE) && check2(ACCESS_READ))
+		else if(check("getDebugEntry", ACCESS_FREE))
 			doGetDebugEntry();
 		else if(check("getError", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetError();
