@@ -1906,7 +1906,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			try {
 				tlt.getEvaluator().execute(data.config, tag, tlt,data.flibs, data);
 			} catch (EvaluatorException e) {
-				throw new TemplateException(e.getMessage());
+				throw new TemplateException(data.srcCode,e.getMessage());
 			}
 			data.ep.add(tlt, tag, data.flibs, data.srcCode);
 		}
