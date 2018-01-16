@@ -77,7 +77,6 @@ import lucee.runtime.PageSourceImpl;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cfx.customtag.CFXTagClass;
-import lucee.runtime.cfx.customtag.CPPCFXTagClass;
 import lucee.runtime.cfx.customtag.JavaCFXTagClass;
 import lucee.runtime.config.AdminSync;
 import lucee.runtime.config.Config;
@@ -709,8 +708,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doGetComponentMappings();
 		else if(check("getCfxTags", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetCFXTags();
-		else if(check("getCPPCfxTags", ACCESS_FREE) && check2(ACCESS_READ))
-			doGetCPPCFXTags();
 		else if(check("getJavaCfxTags", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetJavaCFXTags();
 		else if(check("getDebug", ACCESS_FREE) && check2(ACCESS_READ))
@@ -807,8 +804,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		else if(check("updatejavacfx", ACCESS_FREE) && check2(ACCESS_WRITE))
 			doUpdateJavaCFX();
-		else if(check("updatecppcfx", ACCESS_FREE) && check2(ACCESS_WRITE))
-			doUpdateCPPCFX();
 		else if(check("updatedebug", ACCESS_FREE) && check2(ACCESS_WRITE))
 			doUpdateDebug();
 		else if(check("updatedebugentry", ACCESS_FREE) && check2(ACCESS_WRITE))
@@ -1995,19 +1990,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.verifyCFX(name);
 	}
 
-	private void doUpdateCPPCFX() throws PageException {
-		String name = getString("admin", action, "name");
-		String procedure = getString("admin", action, "procedure");
-		String serverLibrary = getString("admin", action, "serverLibrary");
-		boolean keepAlive = getBool("admin", action, "keepAlive");
-
-		if(StringUtil.startsWithIgnoreCase(name, "cfx_"))
-			name = name.substring(4);
-		admin.updateCPPCFX(name, procedure, serverLibrary, keepAlive);
-		store();
-		adminSync.broadcast(attributes, config);
-	}
-
 	/**
 	 * @throws PageException
 	 * 
@@ -2055,32 +2037,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 
-	private void doGetCPPCFXTags() throws PageException {
-		Map map = config.getCFXTagPool().getClasses();
-		lucee.runtime.type.Query qry = new QueryImpl(new Collection.Key[] { KeyConstants._displayname, KeyConstants._sourcename, KeyConstants._readonly,
-				PROCEDURE, KeyConstants._name, KeyConstants._isvalid, SERVER_LIBRARY, KEEP_ALIVE }, 0, "query");
-		Iterator it = map.keySet().iterator();
-
-		int row = 0;
-		while(it.hasNext()) {
-			CFXTagClass tag = (CFXTagClass)map.get(it.next());
-			if(tag instanceof CPPCFXTagClass) {
-				row++;
-				qry.addRow(1);
-				CPPCFXTagClass ctag = (CPPCFXTagClass)tag;
-				qry.setAt(KeyConstants._displayname, row, tag.getDisplayType());
-				qry.setAt(KeyConstants._sourcename, row, tag.getSourceName());
-				qry.setAt(KeyConstants._readonly, row, Caster.toBoolean(tag.isReadOnly()));
-				qry.setAt(KeyConstants._isvalid, row, Caster.toBoolean(tag.isValid()));
-				qry.setAt(KeyConstants._name, row, ctag.getName());
-				qry.setAt(PROCEDURE, row, ctag.getProcedure());
-				qry.setAt(SERVER_LIBRARY, row, ctag.getServerLibrary());
-				qry.setAt(KEEP_ALIVE, row, Caster.toBoolean(ctag.getKeepAlive()));
-			}
-
-		}
-		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
-	}
 
 	/**
 	 * @throws PageException
@@ -2102,13 +2058,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("readonly", row, Caster.toBoolean(tag.isReadOnly()));
 			qry.setAt("isvalid", row, Caster.toBoolean(tag.isValid()));
 
-			if(tag instanceof CPPCFXTagClass) {
-				CPPCFXTagClass ctag = (CPPCFXTagClass)tag;
-				qry.setAt(KeyConstants._name, row, ctag.getName());
-				qry.setAt("procedure_class", row, ctag.getProcedure());
-				qry.setAt("keepalive", row, Caster.toBoolean(ctag.getKeepAlive()));
-			}
-			else if(tag instanceof JavaCFXTagClass) {
+
+
+			if(tag instanceof JavaCFXTagClass) {
 				JavaCFXTagClass jtag = (JavaCFXTagClass)tag;
 				qry.setAt(KeyConstants._name, row, jtag.getName());
 				qry.setAt("procedure_class", row, jtag.getClassDefinition().getClassName());
