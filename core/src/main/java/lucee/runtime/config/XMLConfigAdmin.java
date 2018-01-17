@@ -2872,7 +2872,8 @@ public final class XMLConfigAdmin {
         if(!hasAccess) throw new SecurityException("no access to update scope setting");
         
         Element scope=_getRootElement("setting");
-        scope.setAttribute("buffer-output",Caster.toString(value,""));
+        scope.setAttribute("buffering-output",Caster.toString(value,""));
+        if(scope.hasAttribute("buffer-output"))scope.removeAttribute("buffer-output");
 	}
     
     /**
