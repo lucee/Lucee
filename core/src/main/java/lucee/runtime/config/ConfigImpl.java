@@ -3364,12 +3364,6 @@ public abstract class ConfigImpl implements Config {
 	private JDBCDriver[] drivers;
 	private Resource logDir;
 	
-	
-
-	
-
-
-
 	public boolean getBufferOutput() {
 		return bufferOutput;
 	}
