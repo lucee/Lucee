@@ -3349,7 +3349,7 @@ public abstract class ConfigImpl implements Config {
 		return writerType;
 	}
 
-	private boolean bufferOutput=true;
+	private boolean bufferOutput=false;
 
 
 	private int externalizeStringGTE=-1;
@@ -3357,12 +3357,6 @@ public abstract class ConfigImpl implements Config {
 	private JDBCDriver[] drivers;
 	private Resource logDir;
 	
-	
-
-	
-
-
-
 	public boolean getBufferOutput() {
 		return bufferOutput;
 	}

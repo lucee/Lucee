@@ -831,14 +831,13 @@ public final class ClassUtil {
 			try {
 				return cl.loadClass(className);
 			}
-			catch(Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
+			catch(Exception e) {
 				try {
 					return Class.forName(className, false, cl);
 				}
-				catch (Throwable t2) {ExceptionUtil.rethrowIfNecessary(t2);
+				catch (Exception e2) {
 					if(exceptions!=null) {
-						exceptions.add(t2);
+						exceptions.add(e2);
 					}
 					return defaultValue;
 				}

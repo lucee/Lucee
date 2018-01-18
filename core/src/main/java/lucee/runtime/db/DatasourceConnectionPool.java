@@ -152,7 +152,8 @@ public class DatasourceConnectionPool {
 			boolean closeIt) {
 		if (dc == null)
 			return;
-
+		if(!closeIt && dc.getDatasource().getConnectionTimeout()==0) closeIt=true; // smaller than 0 is infiniti
+		
 		DCStack stack = getDCStack(dc.getDatasource(), dc.getUsername(),
 				dc.getPassword());
 		synchronized (stack) {

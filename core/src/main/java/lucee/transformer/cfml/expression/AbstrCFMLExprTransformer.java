@@ -404,7 +404,7 @@ public abstract class AbstrCFMLExprTransformer {
         	
         	Expression left = assignOp(data);
         	comments(data);
-        	if(!data.srcCode.forwardIfCurrent(':'))throw new TemplateException("invalid conditional operator");
+        	if(!data.srcCode.forwardIfCurrent(':'))throw new TemplateException(data.srcCode,"invalid conditional operator");
         	comments(data); 
         	Expression right = assignOp(data);
         	

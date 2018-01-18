@@ -320,9 +320,8 @@ public final class FunctionLibFunction {
 		try {
 			eval = (FunctionEvaluator) tteCD.getClazz().newInstance();
 		} 
-		catch(Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			throw new TemplateException(t.getMessage());
+		catch(Exception e) {
+			throw new TemplateException(e.getMessage());
 		} 
 		return eval;
 	}
