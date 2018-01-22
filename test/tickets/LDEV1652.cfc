@@ -20,6 +20,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				}
 				expect(result).toBe("{ts '2018-01-04 23:40:00'}");
 			});
+			it( title='Checking parseDateTime(), input without any spaces or punctuation',body=function( currentSpec ) {
+				try{
+					var ts = "20180112";
+					var result = ParseDateTime(ts, "yyyyMMdd");
+				} catch( any e ){
+					var result = e.message;
+				}
+				expect(result).toBe("{ts '2018-01-12 00:00:00'}");
+			});
 		});
 	}
 }
+
