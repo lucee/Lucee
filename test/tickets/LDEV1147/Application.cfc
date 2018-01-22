@@ -17,6 +17,37 @@
 			, password: orc.password
 		};
 
+
+		function onRequestStart(){
+			setting showdebugOutput=false;
+			//  create package
+			query {
+		        echo("CREATE OR REPLACE package lucee_bug_test as PROCEDURE testproc;
+						PROCEDURE testproc2(p1 varchar2);
+					end;"
+				);
+			}
+			//  create package body
+			query {
+		        echo("CREATE OR REPLACE package body lucee_bug_test as
+					PROCEDURE testproc IS
+					BEGIN
+						NULL;
+					END;
+						procedure testproc2(p1 varchar2) is
+					begin
+						null;
+					end;
+					END;"
+				);
+			}
+			//  create Synonym for package
+			query {
+		        echo("create or replace synonym bu## for lucee_bug_test"
+				);
+			}
+		}
+
 		private struct function getCredencials() {
 			var orc={};
 
