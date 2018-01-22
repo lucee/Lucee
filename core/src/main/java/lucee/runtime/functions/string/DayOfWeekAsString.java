@@ -29,9 +29,12 @@ import lucee.commons.i18n.DateFormatPool;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
-public final class DayOfWeekAsString implements Function {
+public final class DayOfWeekAsString extends BIF {
 
 	private static final long serialVersionUID = 4067032942689404733L;
 	private static final int DAY=1000*60*60*24;
@@ -64,5 +67,12 @@ public final class DayOfWeekAsString implements Function {
 				1,"dayOfWeek",
 				"must be between 1 and 7 now ["+dayOfWeek+"]");
 		//throw new ExpressionException("invalid dayOfWeek definition in function DayOfWeekAsString, must be between 1 and 7 now ["+dayOfWeek+"]");
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length==1)	return call(pc, Caster.toDoubleValue(args[0]));
+		if(args.length==2)	return call(pc, Caster.toDoubleValue(args[0]), Caster.toLocale(args[1]));
+		throw new FunctionException(pc, "DayOfWeekAsString", 1, 2, args.length);
 	}
 }
