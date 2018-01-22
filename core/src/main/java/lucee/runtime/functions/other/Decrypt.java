@@ -21,8 +21,7 @@
  */
 package lucee.runtime.functions.other;
 
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.Key;
 
 import lucee.commons.digest.RSA;
 import lucee.commons.lang.ExceptionUtil;
@@ -60,8 +59,7 @@ public final class Decrypt implements Function {
     public static String invoke( String input, String key, String algorithm, String encoding, Object ivOrSalt, int iterations ) throws PageException {
         try {
         	if ("RSA".equalsIgnoreCase(algorithm)) {
-        		PublicKey publicKey = RSA.toPublicKey(key);
-        		return new String(RSA.decrypt(Coder.decode( encoding, input ), publicKey,0),Cryptor.DEFAULT_CHARSET);
+        		return new String(RSA.decrypt(Coder.decode( encoding, input ), RSA.toKey(key),0),Cryptor.DEFAULT_CHARSET);
         	}
             else if ( CFMXCompat.isCfmxCompat( algorithm ) )
                 return new String( invoke( Coder.decode( encoding, input ), key, algorithm, null, 0 ), Cryptor.DEFAULT_CHARSET );
