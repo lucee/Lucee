@@ -331,13 +331,11 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 							_catalog = proc.getString(1);
 							_scheme = proc.getString(2);
 							_name = proc.getString(3);
-							if(_name.equalsIgnoreCase(name) && (catalog == null || _catalog == null || catalog.equalsIgnoreCase(_catalog)) // second option is
-																																			// very unlikely to
-																																			// ever been the
-																																			// case, but does
-																																			// not hurt to test
-									&& (scheme == null || _scheme == null || scheme.equalsIgnoreCase(_scheme)) // second option is very unlikely to ever been
-																												// the case, but does not hurt to test
+							if(_name.equalsIgnoreCase(name)
+									// second option is very unlikely to ever been the case, but does not hurt to test
+									&& (catalog == null || _catalog == null || catalog.equalsIgnoreCase(_catalog))
+									// second option is very unlikely to ever been the case, but does not hurt to test
+									&& (scheme == null || _scheme == null || scheme.equalsIgnoreCase(_scheme))
 							) {
 								available = true;
 								break;
@@ -401,7 +399,10 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 									params.add(index, param);
 							}
 							else {
-								ProcParamBean param = params.get(index);
+								ProcParamBean param = null;
+								if (params.size() > index)
+									param = params.get(index);
+
 								if(param != null && pm.dataType != Types.OTHER && pm.dataType != param.getType()) {
 									param.setType(pm.dataType);
 								}
