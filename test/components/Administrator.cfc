@@ -18,7 +18,7 @@
  **/
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 
-	setting requesttimeout=300;
+	setting requesttimeout=1800;
 
 	function beforeAll(){
 
