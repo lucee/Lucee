@@ -34,6 +34,9 @@ public final class DirectoryExists implements Function {
 	}
 	public static boolean call(PageContext pc , String path,Object oAllowRealPath) throws PageException {
 		Resource file;
+		if(path.trim().length() == 0){
+			return false;
+		}
 		if(oAllowRealPath==null) return call(pc, path);
 		boolean allowRealPath = Caster.toBooleanValue(oAllowRealPath);
 		if(allowRealPath) {
