@@ -58,7 +58,8 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 	//public static int STORAGE_TYPE_DATASOURCE=1;
 	//public static int STORAGE_TYPE_CACHE=2;
-	
+	private static SerializableObject token=new SerializableObject();
+
 	public static Collection.Key CFID=KeyConstants._cfid;
 	public static Collection.Key CFTOKEN=KeyConstants._cftoken;
 	public static Collection.Key URLTOKEN=KeyConstants._urltoken;
@@ -163,40 +164,42 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	}
 	
 	
-	public synchronized static Scope getInstance(int scope, IKHandler handler, String appName, String name, PageContext pc, Scope existing, Log log) throws PageException {
-		IKStorageValue sv=null;
-		if(Scope.SCOPE_SESSION==scope)		sv= handler.loadData(pc, appName,name, "session",Scope.SCOPE_SESSION, log);
-		else if(Scope.SCOPE_CLIENT==scope)	sv= handler.loadData(pc, appName,name, "client",Scope.SCOPE_CLIENT, log);
-		
-		
-		
-		if(sv!=null) {
-			long time = sv.lastModified();
+	public static Scope getInstance(int scope, IKHandler handler, String appName, String name, PageContext pc, Scope existing, Log log) throws PageException {
+		synchronized (token) {
+			IKStorageValue sv=null;
+			if(Scope.SCOPE_SESSION==scope)		sv= handler.loadData(pc, appName,name, "session",Scope.SCOPE_SESSION, log);
+			else if(Scope.SCOPE_CLIENT==scope)	sv= handler.loadData(pc, appName,name, "client",Scope.SCOPE_CLIENT, log);
 			
-			if(existing instanceof IKStorageScopeSupport) {
+			
+			
+			if(sv!=null) {
+				long time = sv.lastModified();
+				
+				if(existing instanceof IKStorageScopeSupport) {
+					IKStorageScopeSupport tmp = ((IKStorageScopeSupport)existing);
+					if(tmp.lastModified()>=time && name.equalsIgnoreCase(tmp.getStorage())) {
+						return existing;
+					}
+				}
+				
+				if(Scope.SCOPE_SESSION==scope) 		return new IKStorageScopeSession(pc,handler,appName,name,sv.getValue(),time);
+				else if(Scope.SCOPE_CLIENT==scope)	return new IKStorageScopeClient(pc,handler,appName,name,sv.getValue(),time);
+			}
+			else if(existing instanceof IKStorageScopeSupport) {
 				IKStorageScopeSupport tmp = ((IKStorageScopeSupport)existing);
-				if(tmp.lastModified()>=time && name.equalsIgnoreCase(tmp.getStorage())) {
+				if(name.equalsIgnoreCase(tmp.getStorage())) {
 					return existing;
 				}
 			}
 			
-			if(Scope.SCOPE_SESSION==scope) 		return new IKStorageScopeSession(pc,handler,appName,name,sv.getValue(),time);
-			else if(Scope.SCOPE_CLIENT==scope)	return new IKStorageScopeClient(pc,handler,appName,name,sv.getValue(),time);
+			IKStorageScopeSupport rtn=null;
+			ConcurrentHashMapPro<Key, IKStorageScopeItem> map = new ConcurrentHashMapPro<Collection.Key,IKStorageScopeItem>();
+			if(Scope.SCOPE_SESSION==scope) rtn= new IKStorageScopeSession(pc,handler,appName,name,map,0);
+			else if(Scope.SCOPE_CLIENT==scope) rtn= new IKStorageScopeClient(pc,handler,appName,name,map,0);
+			
+			rtn.store(pc);
+			return rtn;
 		}
-		else if(existing instanceof IKStorageScopeSupport) {
-			IKStorageScopeSupport tmp = ((IKStorageScopeSupport)existing);
-			if(name.equalsIgnoreCase(tmp.getStorage())) {
-				return existing;
-			}
-		}
-		
-		IKStorageScopeSupport rtn=null;
-		ConcurrentHashMapPro<Key, IKStorageScopeItem> map = new ConcurrentHashMapPro<Collection.Key,IKStorageScopeItem>();
-		if(Scope.SCOPE_SESSION==scope) rtn= new IKStorageScopeSession(pc,handler,appName,name,map,0);
-		else if(Scope.SCOPE_CLIENT==scope) rtn= new IKStorageScopeClient(pc,handler,appName,name,map,0);
-		
-		rtn.store(pc);
-		return rtn;
 	}
 	
 	public static Scope getInstance(int scope, IKHandler handler, String appName, String name, PageContext pc, Session existing, Log log, Session defaultValue) {
@@ -208,7 +211,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	}
 
 	
-	public synchronized static boolean hasInstance(int scope, IKHandler handler, String appName, String name, PageContext pc) {
+	public static boolean hasInstance(int scope, IKHandler handler, String appName, String name, PageContext pc) {
 		try {
 			if(Scope.SCOPE_SESSION==scope)		return handler.loadData(pc, appName,name, "session",Scope.SCOPE_SESSION, null)!=null;
 			else if(Scope.SCOPE_CLIENT==scope)	return handler.loadData(pc, appName,name, "client",Scope.SCOPE_CLIENT, null)!=null;
