@@ -34,6 +34,7 @@ import javax.servlet.jsp.JspException;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
@@ -523,6 +524,9 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		SQLImpl _sql = new SQLImpl(sql.toString());
 		CallableStatement callStat = null;
 		try {
+			// log entry added to troubleshoot LDEV-1147; TODO: change level to debug
+			LogUtil.getLog(pageContext,"datasource").error("LDEV1147", sql.toString());
+
 			callStat = dc.getConnection().prepareCall(sql.toString());
 			if(blockfactor > 0)
 				callStat.setFetchSize(blockfactor);
