@@ -261,8 +261,8 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 
 	public void addProcParam(ProcParamBean param) {
 		Log log = pageContext.getConfig().getLog("datasource");
-		// log entry added to troubleshoot LDEV-1147; TODO: change level to debug
-		log.error("LDEV1147", String.format("  param %s = %s", param.getVariable(), param.getValue()));
+		// log entry added to troubleshoot LDEV-1147
+		log.debug("LDEV1147", String.format("  param %s = %s", param.getVariable(), param.getValue()));
 		params.add(param);
 	}
 
@@ -529,8 +529,8 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 
 			Log log = pageContext.getConfig().getLog("datasource");
 
-			// log entry added to troubleshoot LDEV-1147; TODO: change level to debug
-			log.error("LDEV1147", sql + " [" + params.size() + " params]");
+			// log entry added to troubleshoot LDEV-1147
+			log.debug("LDEV1147", sql + " [" + params.size() + " params]");
 
 			callStat = dc.getConnection().prepareCall(sql);
 			if(blockfactor > 0)
