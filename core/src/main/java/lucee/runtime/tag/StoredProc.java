@@ -260,6 +260,9 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	}
 
 	public void addProcParam(ProcParamBean param) {
+		Log log = pageContext.getConfig().getLog("datasource");
+		// log entry added to troubleshoot LDEV-1147; TODO: change level to debug
+		log.error("LDEV1147", String.format("  param %s = %s", param.getVariable(), param.getValue()));
 		params.add(param);
 	}
 
@@ -513,22 +516,23 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		// create returnValue
 		returnValue(dc);
 
-		// create SQL
-		StringBuilder sql = createSQL();
+		String sql = createSQL();
 
 		// add returnValue to params
 		if(returnValue != null) {
 			params.add(0, returnValue);
 		}
 
-		SQLImpl _sql = new SQLImpl(sql.toString());
+		SQLImpl _sql = new SQLImpl(sql);
 		CallableStatement callStat = null;
 		try {
-			// log entry added to troubleshoot LDEV-1147; TODO: change level to debug
-			LogUtil.getLog(pageContext,"datasource")
-					.error("LDEV1147", sql.toString() + " [" + params.size() + " params]");
 
-			callStat = dc.getConnection().prepareCall(sql.toString());
+			Log log = pageContext.getConfig().getLog("datasource");
+
+			// log entry added to troubleshoot LDEV-1147; TODO: change level to debug
+			log.error("LDEV1147", sql + " [" + params.size() + " params]");
+
+			callStat = dc.getConnection().prepareCall(sql);
 			if(blockfactor > 0)
 				callStat.setFetchSize(blockfactor);
 			if(timeout > 0)
@@ -677,16 +681,15 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			}
 
 			// log
-			Log log = pageContext.getConfig().getLog("datasource");
 			if(log.getLogLevel() >= Log.LEVEL_INFO) {
-				log.info("storedproc tag", "executed [" + sql.toString().trim() + "] in " + DecimalFormat.call(pageContext, exe / 1000000D) + " ms");
+				log.info("storedproc tag", "executed [" + sql.trim() + "] in " + DecimalFormat.call(pageContext, exe / 1000000D) + " ms");
 			}
 
 		}
 		catch (SQLException e) {
 			// log
 			pageContext.getConfig().getLog("datasource").error("storedproc tag", e);
-			throw new DatabaseException(e, new SQLImpl(sql.toString()), dc);
+			throw new DatabaseException(e, new SQLImpl(sql), dc);
 		}
 		catch (PageException pe) {
 			// log
@@ -709,25 +712,27 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		pageContext.setVariable(name, value);
 	}
 
-	private StringBuilder createSQL() {
-		StringBuilder sql = new StringBuilder();
-		if(returnValue != null)
-			sql.append("{? = call ");
-		else
-			sql.append("{ call ");
-		sql.append(procedure);
-		sql.append('(');
-		int incount = params.size();
+	private String createSQL() {
+		StringBuilder sb = new StringBuilder();
 
+		if(returnValue != null)
+			sb.append("{? = call ");
+		else
+			sb.append("{ call ");
+
+		sb.append(procedure);
+		sb.append('(');
+
+		int incount = params.size();
 		for (int i = 0; i < incount; i++) {
 			if(i == 0)
-				sql.append('?');
+				sb.append('?');
 			else
-				sql.append(",?");
+				sb.append(",?");
 		}
-		sql.append(") }");
-		return sql;
+		sb.append(") }");
 
+		return sb.toString();
 	}
 
 	private Object emptyIfNull(Object object) {
