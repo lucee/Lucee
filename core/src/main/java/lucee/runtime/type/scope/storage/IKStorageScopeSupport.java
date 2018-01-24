@@ -29,6 +29,7 @@ import lucee.commons.collection.MapPro;
 import lucee.commons.collection.concurrent.ConcurrentHashMapPro;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.RandomUtil;
+import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
