@@ -19,6 +19,7 @@
 package lucee.runtime.type.scope.session;
 
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.SerializableObject;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection;
@@ -31,6 +32,7 @@ import lucee.runtime.type.scope.storage.StorageValue;
 public final class SessionCache extends StorageScopeCache implements Session {
 	
 	private static final long serialVersionUID = -875719423763891692L;
+	private static SerializableObject token=new SerializableObject();
 
 	private SessionCache(PageContext pc,String cacheName, String appName,Struct sct, long lastStored) { 
 		super(pc,cacheName,appName,"session",SCOPE_SESSION,sct, lastStored);
@@ -57,26 +59,28 @@ public final class SessionCache extends StorageScopeCache implements Session {
 	 * @return client datasource scope
 	 * @throws PageException
 	 */
-	public synchronized static Session getInstance(String cacheName, String appName, PageContext pc, Session existing, Log log) throws PageException {
-		StorageValue sv = _loadData(pc, cacheName, appName,"session", log);
-		if(appName!=null && appName.startsWith("no-in-memory-cache-")) existing=null;
-		if(sv!=null) {
-			long time = sv.lastModified();
-			
-			if(existing instanceof StorageScopeCache) {
-				if(((StorageScopeCache)existing).lastModified()>=time) {
-					return existing;
+	public static Session getInstance(String cacheName, String appName, PageContext pc, Session existing, Log log) throws PageException {
+		synchronized (token) {
+			StorageValue sv = _loadData(pc, cacheName, appName,"session", log);
+			if(appName!=null && appName.startsWith("no-in-memory-cache-")) existing=null;
+			if(sv!=null) {
+				long time = sv.lastModified();
+				
+				if(existing instanceof StorageScopeCache) {
+					if(((StorageScopeCache)existing).lastModified()>=time) {
+						return existing;
+					}
 				}
+				return new SessionCache(pc,cacheName,appName,sv.getValue(),time);
 			}
-			return new SessionCache(pc,cacheName,appName,sv.getValue(),time);
+			else if(existing!=null) {
+				return  existing;
+			}
+	
+			SessionCache session = new SessionCache(pc,cacheName,appName,new StructImpl(),0);
+			session.store(pc);
+			return session;
 		}
-		else if(existing!=null) {
-			return  existing;
-		}
-
-		SessionCache session = new SessionCache(pc,cacheName,appName,new StructImpl(),0);
-		session.store(pc);
-		return session;
 	}
 
 	public static Session getInstance(String cacheName, String appName, PageContext pc, Session existing, Log log, Session defaultValue) {
