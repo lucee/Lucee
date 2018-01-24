@@ -21,6 +21,7 @@ package lucee.runtime.tag;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -291,7 +292,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			String name = this.procedure.toUpperCase().trim();
 
 			// split procedure definition
-			String catalog = null, scheme = null;
+			String catalog = null, schema = null;
 			{
 				int index = name.lastIndexOf('.');
 				if(index != -1) {
@@ -300,14 +301,14 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 
 					index = catalog.lastIndexOf('.');
 					if(index != -1) {
-						scheme = catalog.substring(0, index).trim();
+						schema = catalog.substring(0, index).trim();
 						catalog = catalog.substring(index + 1).trim();
-						// scheme=catalog.substring(index+1);
+						// schema=catalog.substring(index+1);
 						// catalog=catalog.substring(0,index);
 					}
 				}
-				if(StringUtil.isEmpty(scheme))
-					scheme = null;
+				if(StringUtil.isEmpty(schema))
+					schema = null;
 				if(StringUtil.isEmpty(catalog))
 					catalog = null;
 			}
@@ -318,54 +319,42 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 				DataSourceSupport d = ((DataSourceSupport)dc.getDatasource());
 				long cacheTimeout = d.getMetaCacheTimeout();
 				Map<String, ProcMetaCollection> procedureColumnCache = d.getProcedureColumnCache();
-				String id = procedure.toLowerCase();
-				ProcMetaCollection coll = procedureColumnCache.get(id);
+				String cacheId = procedure.toLowerCase();
+				ProcMetaCollection coll = procedureColumnCache.get(cacheId);
 
 				if(coll == null || (cacheTimeout >= 0 && (coll.created + cacheTimeout) < System.currentTimeMillis())) {
-					DatabaseMetaData md = conn.getMetaData();
-					String _catalog = null, _scheme = null, _name = null;
-					boolean available = false;
-					/*
-					 * print.e("pro:"+procedure); print.e("cat:"+catalog); print.e("sch:"+scheme); print.e("nam:"+name);
-					 */
-					ResultSet proc = md.getProcedures(null, null, name);
-					try {
-						while(proc.next()) {
-							_catalog = proc.getString(1);
-							_scheme = proc.getString(2);
-							_name = proc.getString(3);
-							if(
-									_name.equalsIgnoreCase(name)
-									// second option is very unlikely to ever been the case, but does not hurt to test
-									&& (catalog == null || _catalog == null || catalog.equalsIgnoreCase(_catalog))
-									// second option is very unlikely to ever been the case, but does not hurt to test
-									&& (scheme == null || _scheme == null || scheme.equalsIgnoreCase(_scheme))
-							) {
-								available = true;
-								break;
-							}
-							else {
-								Log log = pageContext.getConfig().getLog("datasource");
-								if(log.getLogLevel() >= Log.LEVEL_DEBUG)	// log entry added to troubleshoot LDEV-1147
-									log.debug("LDEV1147", String.format("name=[%s] scheme=[%s] catalog=[%s] _name=[%s] _scheme=[%s] _catalog=[%s]", name, scheme, catalog, _name, _scheme, _catalog));
-							}
-						}
-					} finally {
-						IOUtil.closeEL(proc);
-					}
 
-					if(available) {
-						/*
-						 * print.e("---------------"); print.e("_pro:"+procedure); print.e("_cat:"+_catalog); print.e("_sch:"+_scheme); print.e("_nam:"+_name);
-						 */
-						ResultSet res = md.getProcedureColumns(_catalog, _scheme, _name, "%");
+					// get PROC information and resolve synonym if needed per LDEV-1147
+					String sql = "SELECT  PROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME \n" +
+							"FROM    ALL_PROCEDURES PROC \n" +
+							"    LEFT JOIN ALL_SYNONYMS SYNO \n" +
+							"       ON PROC.OBJECT_NAME = SYNO.TABLE_NAME AND PROC.OWNER = SYNO.TABLE_OWNER \n" +
+							"WHERE   PROC.PROCEDURE_NAME = ? \n" +
+							"    AND (PROC.OBJECT_NAME = ? OR SYNO.SYNONYM_NAME = ?)";
+
+					PreparedStatement preparedStatement = conn.prepareStatement(sql);
+					preparedStatement.setString(1, name);
+					preparedStatement.setString(2, catalog);
+					preparedStatement.setString(3, catalog);
+					ResultSet resultSet = preparedStatement.executeQuery();
+
+					if(resultSet.next()) {
+						String _schema  = resultSet.getString(1);
+						String _catalog = resultSet.getString(2);
+						String _name    = resultSet.getString(3);
+
+						ResultSet res = conn.getMetaData().getProcedureColumns(_catalog, _schema, _name, "%");
 						coll = createProcMetaCollection(res);
-						procedureColumnCache.put(id, coll);
+						procedureColumnCache.put(cacheId, coll);
+					}
+					else {
+						Log log = pageContext.getConfig().getLog("datasource");
+						if(log.getLogLevel() >= Log.LEVEL_INFO)
+							log.info(StoredProc.class.getSimpleName(), "procedure " + procedure + " not found in view ALL_PROCEDURES");
 					}
 				}
 
-				int index = -1;
-				int ct;
+				int ct, index = -1;
 				if(coll != null) {
 					Iterator<ProcMeta> it = coll.metas.iterator();
 					ProcMeta pm;
@@ -426,7 +415,6 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 				}
 
 				contractTo(params, index + 1);
-
 				// if(res!=null)print.out(new QueryImpl(res,"columns").toString());
 			}
 			catch (SQLException e) {
