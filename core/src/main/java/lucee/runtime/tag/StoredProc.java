@@ -525,7 +525,8 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		CallableStatement callStat = null;
 		try {
 			// log entry added to troubleshoot LDEV-1147; TODO: change level to debug
-			LogUtil.getLog(pageContext,"datasource").error("LDEV1147", sql.toString());
+			LogUtil.getLog(pageContext,"datasource")
+					.error("LDEV1147", sql.toString() + " [" + params.size() + " params]");
 
 			callStat = dc.getConnection().prepareCall(sql.toString());
 			if(blockfactor > 0)
