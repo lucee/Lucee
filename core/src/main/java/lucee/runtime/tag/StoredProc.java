@@ -34,7 +34,6 @@ import javax.servlet.jsp.JspException;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
@@ -261,8 +260,9 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 
 	public void addProcParam(ProcParamBean param) {
 		Log log = pageContext.getConfig().getLog("datasource");
-		// log entry added to troubleshoot LDEV-1147
-		log.debug("LDEV1147", String.format("  param %s = %s", param.getVariable(), param.getValue()));
+		if(log.getLogLevel() >= Log.LEVEL_DEBUG)	// log entry added to troubleshoot LDEV-1147
+			log.debug("LDEV1147", String.format("  param %s = %s", param.getVariable(), param.getValue()));
+
 		params.add(param);
 	}
 
@@ -313,7 +313,6 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			}
 
 			try {
-
 				// if(procedureColumnCache==null)procedureColumnCache=new ReferenceMap();
 				// ProcMetaCollection coll=procedureColumnCache.get(procedure);
 				DataSourceSupport d = ((DataSourceSupport)dc.getDatasource());
@@ -335,7 +334,8 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 							_catalog = proc.getString(1);
 							_scheme = proc.getString(2);
 							_name = proc.getString(3);
-							if(_name.equalsIgnoreCase(name)
+							if(
+									_name.equalsIgnoreCase(name)
 									// second option is very unlikely to ever been the case, but does not hurt to test
 									&& (catalog == null || _catalog == null || catalog.equalsIgnoreCase(_catalog))
 									// second option is very unlikely to ever been the case, but does not hurt to test
@@ -343,6 +343,11 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 							) {
 								available = true;
 								break;
+							}
+							else {
+								Log log = pageContext.getConfig().getLog("datasource");
+								if(log.getLogLevel() >= Log.LEVEL_DEBUG)	// log entry added to troubleshoot LDEV-1147
+									log.debug("LDEV1147", String.format("name=[%s] scheme=[%s] catalog=[%s] _name=[%s] _scheme=[%s] _catalog=[%s]", name, scheme, catalog, _name, _scheme, _catalog));
 							}
 						}
 					} finally {
@@ -380,7 +385,6 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 							if(result != null)
 								param.setVariable(result.getName());
 							returnValue = param;
-
 						}
 						else if(ct == DatabaseMetaData.procedureColumnOut || ct == DatabaseMetaData.procedureColumnInOut) {
 							// review of the code: seems to add an addional column in this case
@@ -523,14 +527,14 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			params.add(0, returnValue);
 		}
 
+		Log log = pageContext.getConfig().getLog("datasource");
+
 		SQLImpl _sql = new SQLImpl(sql);
 		CallableStatement callStat = null;
 		try {
 
-			Log log = pageContext.getConfig().getLog("datasource");
-
-			// log entry added to troubleshoot LDEV-1147
-			log.debug("LDEV1147", sql + " [" + params.size() + " params]");
+			if(log.getLogLevel() >= Log.LEVEL_DEBUG)	// log entry added to troubleshoot LDEV-1147
+				log.debug("LDEV1147", sql + " [" + params.size() + " params]");
 
 			callStat = dc.getConnection().prepareCall(sql);
 			if(blockfactor > 0)
@@ -682,18 +686,17 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 
 			// log
 			if(log.getLogLevel() >= Log.LEVEL_INFO) {
-				log.info("storedproc tag", "executed [" + sql.trim() + "] in " + DecimalFormat.call(pageContext, exe / 1000000D) + " ms");
+				log.info(StoredProc.class.getSimpleName(), "executed [" + sql.trim() + "] in " + DecimalFormat.call(pageContext, exe / 1000000D) + " ms");
 			}
-
 		}
 		catch (SQLException e) {
 			// log
-			pageContext.getConfig().getLog("datasource").error("storedproc tag", e);
+			log.error(StoredProc.class.getSimpleName(), e);
 			throw new DatabaseException(e, new SQLImpl(sql), dc);
 		}
 		catch (PageException pe) {
 			// log
-			pageContext.getConfig().getLog("datasource").error("storedproc tag", pe);
+			log.error(StoredProc.class.getSimpleName(), pe);
 			throw pe;
 		} finally {
 			if(callStat != null) {
