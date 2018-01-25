@@ -529,7 +529,7 @@ public final class Zip extends BodyTagImpl {
 
 		if((params == null || params.isEmpty()) && source != null) {
 			if(entryPaths!=null && entryPaths.length>1) throw new ApplicationException("you can only one set entrypath in this context");
-			setParam(new ZipParamSource(source, entryPaths[0], filter, prefix, recurse));
+			setParam(new ZipParamSource(source, entryPaths==null?null:entryPaths[0], filter, prefix, recurse));
 		}
 
 		if((params == null || params.isEmpty())) {
