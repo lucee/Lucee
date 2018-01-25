@@ -23,14 +23,16 @@ import java.io.IOException;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 /**
  * 
  */
-public final class CacheCount implements Function {
+public final class CacheCount extends BIF {
 	
 	private static final long serialVersionUID = 4192649311671009474L;
 
@@ -45,5 +47,12 @@ public final class CacheCount implements Function {
 		} catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length==0)return call(pc);
+		if(args.length==1)return call(pc, Caster.toString(args[0]));
+		throw new FunctionException(pc, "CacheCount", 0, 1, args.length);
 	}
 }

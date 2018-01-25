@@ -23,14 +23,16 @@ import java.io.IOException;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 /**
  * 
  */
-public final class CacheKeyExists implements Function {
+public final class CacheKeyExists extends BIF {
 	
 	private static final long serialVersionUID = -5656876871645994195L;
 
@@ -45,5 +47,11 @@ public final class CacheKeyExists implements Function {
 			throw Caster.toPageException(e);
 		}
 	}
-	
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length==1)return call(pc, Caster.toString(args[0]));
+		if(args.length==2)return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
+		throw new FunctionException(pc, "CacheKeyExists", 1, 2, args.length);
+	}
 }

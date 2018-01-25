@@ -27,13 +27,14 @@ import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 /**
  * 
  */
-public final class CacheGet implements Function {
+public final class CacheGet extends BIF {
 
 	private static final long serialVersionUID = -7164470356423036571L;
 
@@ -94,5 +95,13 @@ public final class CacheGet implements Function {
 
 	private static Object _call(PageContext pc, String key, boolean throwWhenNotExist,Cache cache) throws IOException {
 		return throwWhenNotExist?cache.getValue(CacheUtil.key(key)):cache.getValue(CacheUtil.key(key),null);
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length==1)return call(pc, Caster.toString(args[0]));
+		if(args.length==2)return call(pc, Caster.toString(args[0]),args[1]);
+		if(args.length==3)return call(pc, Caster.toString(args[0]),args[1],Caster.toString(args[2]));
+		throw new FunctionException(pc, "CacheGet", 1, 3, args.length);
 	}
 }
