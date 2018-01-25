@@ -1620,12 +1620,15 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<required>Yes</required>
 			<description>A string containing a date/time value formatted according to U.S. locale conventions.</description>
     	</argument>
-		<argument>
-			<name>popConversion</name>
+    	<argument>
+			<name>format</name>
+			<alias>popConversion</alias><!-- old name -->
 			<type>string</type>
 			<required>No</required>
-			<description></description>
+			<description>The format (Java Syntax) of the string. This string is used to parse the given date string to date time object.
+				For details see: http://docs.oracle.com/javase/1.4.2/docs/api/java/text/SimpleDateFormat.html</description>
     	</argument>
+    	
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>

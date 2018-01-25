@@ -122,11 +122,13 @@ public final class DateTimeFormat extends BIF {
 		return call(pc, args[0], Caster.toString(args[1]), Caster.toTimeZone(args[2]));
 	}
 
-	private static String convertMask(String mask) {
-
+	public static String convertMask(String mask) {
+		
 		if(mask == null)
 			return DEFAULT_MASK;
-
+		else if("iso8601".equalsIgnoreCase(mask))
+			mask = "yyyy-MM-dd'T'HH:mm:ssZ";
+		
 		mask = StringUtil.replace(mask, "''", ZEROZERO, false);
 		boolean inside = false;
 		char[] carr = mask.toCharArray();
