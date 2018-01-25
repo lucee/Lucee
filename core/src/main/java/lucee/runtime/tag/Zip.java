@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
@@ -64,9 +65,11 @@ public final class Zip extends BodyTagImpl {
 	private String action = "zip";
 	private String charset;
 	private Resource destination;
-	private String entryPath;
+	private LinkedList<String> entryPathList;
+	private String[] entryPaths;
 	private Resource file;
-	private ResourceFilter filter;
+	private LinkedList<ResourceFilter> filters;
+	private ResourceFilter filter=null;
 	private String pattern;
 	private String patternDelimiters;
 	private String name;
@@ -87,8 +90,10 @@ public final class Zip extends BodyTagImpl {
 		action = "zip";
 		charset = null;
 		destination = null;
-		entryPath = null;
+		entryPathList = null;
+		entryPaths = null;
 		file = null;
+		filters = null;
 		filter = null;
 		name = null;
 		overwrite = false;
@@ -154,7 +159,9 @@ public final class Zip extends BodyTagImpl {
 			entryPath = entryPath.substring(1);
 		if(StringUtil.endsWith(entryPath, '/'))
 			entryPath = entryPath.substring(0, entryPath.length() - 1);
-		this.entryPath = entryPath;
+		
+		if(entryPathList==null) entryPathList=new LinkedList<String>();
+		this.entryPathList.add(entryPath);
 	}
 
 	/**
@@ -171,7 +178,6 @@ public final class Zip extends BodyTagImpl {
 	 *            the filter to set
 	 */
 	public void setFilter(Object filter) throws PageException {
-
 		if(filter instanceof UDF)
 			this.setFilter((UDF)filter);
 		else if(filter instanceof String)
@@ -179,14 +185,18 @@ public final class Zip extends BodyTagImpl {
 	}
 
 	public void setFilter(UDF filter) throws PageException {
-
-		this.filter = UDFFilter.createResourceAndResourceNameFilter(filter);
+		_setFilter(UDFFilter.createResourceAndResourceNameFilter(filter));
+	}
+	
+	void _setFilter(ResourceFilter rf) throws PageException {
+		if(filters==null) filters=new LinkedList<ResourceFilter>();
+		filters.add(rf);
 	}
 
 	public void setFilter(String pattern) {
-
 		this.pattern = pattern;
 	}
+	
 
 	public void setFilterdelimiters(String patternDelimiters) {
 
@@ -260,6 +270,11 @@ public final class Zip extends BodyTagImpl {
 
 	@Override
 	public int doStartTag() throws PageException {
+		// filter
+		if (!StringUtil.isEmpty(this.pattern)) {
+			_setFilter(new WildcardPatternFilter(pattern, StringUtil.isEmpty(patternDelimiters)?",":patternDelimiters));
+		}
+		
 		return EVAL_BODY_INCLUDE;
 	}
 
@@ -280,7 +295,7 @@ public final class Zip extends BodyTagImpl {
 			int index;
 			boolean accept;
 
-			if(filter == null && recurse && entryPath == null)
+			if(filter == null && recurse && (entryPaths == null || entryPaths.length==0))
 				throw new ApplicationException("define at least one restriction, can't delete all the entries from a zip file");
 
 			while((entry = zis.getNextEntry()) != null) {
@@ -366,22 +381,26 @@ public final class Zip extends BodyTagImpl {
 	}
 
 	private boolean entryPathMatch(String dir) {
-		if(entryPath == null)
-			return true;
-
-		return dir.equalsIgnoreCase(entryPath) || StringUtil.startsWithIgnoreCase(dir, entryPath + "/");
+		if(entryPaths == null || entryPaths.length==0) return true;
+		
+		for(String ep:entryPaths) {
+			if(dir.equalsIgnoreCase(ep) || StringUtil.startsWithIgnoreCase(dir, ep + "/")) return true;
+		}
+		return false;
 	}
 
 	private void actionRead(boolean binary) throws ZipException, IOException, PageException {
 		required("file", file, true);
 		required("variable", variable);
-		required("entrypath", entryPath);
+		required("entrypath", entryPaths);
 		ZipFile zip = getZip(file);
-
+		
+		if(entryPaths.length>1) throw new ApplicationException("you can only read one entry!");
+			
 		try {
-			ZipEntry ze = getZipEntry(zip, entryPath);
+			ZipEntry ze = getZipEntry(zip, entryPaths[0]);
 			if(ze == null) {
-				String msg = ExceptionUtil.similarKeyMessage(names(zip), entryPath, "entry", "zip file", "in the zip file [" + file + "]", true);
+				String msg = ExceptionUtil.similarKeyMessage(names(zip), entryPaths[0], "entry", "zip file", "in the zip file [" + file + "]", true);
 				throw new ApplicationException(msg);
 				// throw new ApplicationException("zip file ["+file+"] has no entry with name ["+entryPath+"]");
 			}
@@ -404,24 +423,32 @@ public final class Zip extends BodyTagImpl {
 		}
 
 	}
+	
+	/*private List<ZipEntry> getZipEntries(ZipFile zip, String[] pathes) {
+		if(pathes==null || pathes.length==0) return null;
+		List<ZipEntry> entries=new ArrayList<ZipEntry>();
+		for(String p:pathes) {
+			entries.add(getZipEntry(zip, p));
+		}
+		return entries;
+	}*/
 
 	private ZipEntry getZipEntry(ZipFile zip, String path) {
-		ZipEntry ze = zip.getEntry(entryPath);
+		ZipEntry ze = zip.getEntry(path);
 		if(ze != null)
 			return ze;
 
-		ze = zip.getEntry(entryPath + "/");
+		ze = zip.getEntry(path + "/");
 		if(ze != null)
 			return ze;
 
-		ze = zip.getEntry("/" + entryPath);
+		ze = zip.getEntry("/" + path);
 		if(ze != null)
 			return ze;
 
-		ze = zip.getEntry("/" + entryPath + "/");
+		ze = zip.getEntry("/" + path + "/");
 		if(ze != null)
 			return ze;
-
 		return ze;
 	}
 
@@ -501,7 +528,8 @@ public final class Zip extends BodyTagImpl {
 		}
 
 		if((params == null || params.isEmpty()) && source != null) {
-			setParam(new ZipParamSource(source, entryPath, filter, prefix, recurse));
+			if(entryPaths!=null && entryPaths.length>1) throw new ApplicationException("you can only one set entrypath in this context");
+			setParam(new ZipParamSource(source, entryPaths[0], filter, prefix, recurse));
 		}
 
 		if((params == null || params.isEmpty())) {
@@ -567,7 +595,7 @@ public final class Zip extends BodyTagImpl {
 		}
 	}
 
-	private void actionZip(ZipOutputStream zos, ZipParamSource zps) throws IOException {
+	private void actionZip(ZipOutputStream zos, ZipParamSource zps) throws IOException, ApplicationException {
 		// prefix
 		String p = zps.getPrefix();
 		if(StringUtil.isEmpty(p))
@@ -581,7 +609,6 @@ public final class Zip extends BodyTagImpl {
 			p = "";
 
 		if(zps.getSource().isFile()) {
-
 			String ep = zps.getEntryPath();
 			if(ep == null)
 				ep = zps.getSource().getName();
@@ -659,11 +686,19 @@ public final class Zip extends BodyTagImpl {
 
 	@Override
 	public int doEndTag() throws PageException {// print.out("doEndTag"+doCaching+"-"+body);
+		
+		if(filters!=null && filters.size()>0) {
+			if(filters.size()==1) filter=filters.getFirst();
+			else filter=new OrResourceFilter(filters.toArray(new ResourceFilter[filters.size()]));
+		}
+		
+
+		//entryPath
+		if(entryPathList!=null && !entryPathList.isEmpty()) {
+			entryPaths=entryPathList.toArray(new String[entryPathList.size()]);
+		}
+
 		try {
-
-			if(this.filter == null && !StringUtil.isEmpty(this.pattern))
-				this.filter = new WildcardPatternFilter(pattern, patternDelimiters);
-
 			if(action.equals("delete"))
 				actionDelete();
 			else if(action.equals("list"))
@@ -709,6 +744,12 @@ public final class Zip extends BodyTagImpl {
 	 */
 	private void required(String attributeName, String attributValue) throws ApplicationException {
 		if(StringUtil.isEmpty(attributValue))
+			throw new ApplicationException("invalid attribute constellation for the tag zip",
+					"attribute [" + attributeName + "] is required, if action is [" + action + "]");
+	}
+	
+	private void required(String attributeName, String[] attributValue) throws ApplicationException {
+		if(attributValue==null || attributValue.length==0)
 			throw new ApplicationException("invalid attribute constellation for the tag zip",
 					"attribute [" + attributeName + "] is required, if action is [" + action + "]");
 	}
