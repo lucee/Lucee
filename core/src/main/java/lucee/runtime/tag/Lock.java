@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.tag;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.ConfigWebImpl;
@@ -91,6 +92,7 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 	private LockManager manager;
     private LockData data=null;
 	private long start;
+	private String result="cflock";
 
 	@Override
 	public void release() {
@@ -103,6 +105,7 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
         this.data=null;
         id="anonymous";
         timeoutInMillis=0;
+        result="cflock";
 	}
 
 
@@ -188,6 +191,11 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 		this.name = name.trim();
 		if(name.length()==0)throw new ApplicationException("invalid attribute definition","attribute [name] can't be a empty string");
 	}
+	
+	public void setResult(String result) throws ApplicationException {
+		if(StringUtil.isEmpty(result)) return;
+		this.result = result.trim();
+	}
 
 	@Override
 	public int doStartTag() throws PageException {
@@ -237,7 +245,7 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 	    Struct cflock=new StructImpl();
 	    cflock.set("succeeded",Boolean.TRUE);
 	    cflock.set("errortext","");
-	    pageContext.variablesScope().set("cflock",cflock);
+	    pageContext.setVariable(result,cflock);
         start=System.nanoTime();
         try {
 		    ((PageContextImpl)pageContext).setActiveLock(new ActiveLock(type,name,timeoutInMillis)); // this has to be first, otherwise LockTimeoutException has nothing to release

@@ -4962,6 +4962,18 @@ Permits searching collections by title or displaying a separate title from the k
 	A read-only lock allows more than one request to read shared data. An exclusive lock allows only one
 	request to read or write to shared data.</description>
 		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>result</name>
+			<alias>variable,variablename</alias>
+			<required>false</required>
+			<default>cflock</default>
+			<rtexprvalue>true</rtexprvalue>
+			<description>
+				Specifies a name for the structure in which cflock returns the statusCode and ExecutionTime variables.
+				Default variable is is "cflock".
+			</description>
+		</attribute>
 	</tag>
 	<!-- Log -->
 	<tag>
