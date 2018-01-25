@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
@@ -131,7 +132,8 @@ public class StructKeyTranslate extends BIF {
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if(args.length==3) return call(pc,Caster.toStruct(args[0]),Caster.toBooleanValue(args[1]),Caster.toBooleanValue(args[2]));
 		if(args.length==2) return call(pc,Caster.toStruct(args[0]),Caster.toBooleanValue(args[1]));
-		return call(pc,Caster.toStruct(args[0]));
+		if(args.length==1) return call(pc,Caster.toStruct(args[0]));
+		throw new FunctionException(pc, "StructKeyTranslate", 1, 3, args.length);
 	}
 	
 }

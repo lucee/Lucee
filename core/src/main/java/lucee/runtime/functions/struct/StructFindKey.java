@@ -126,6 +126,7 @@ public final class StructFindKey extends BIF {
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if(args.length==3) return call(pc,Caster.toStruct(args[0]),Caster.toString(args[1]),Caster.toString(args[2]));
-		return call(pc,Caster.toStruct(args[0]),Caster.toString(args[1]));
+		if(args.length==2) return call(pc,Caster.toStruct(args[0]),Caster.toString(args[1]));
+		throw new FunctionException(pc, "StructFindKey", 2, 3, args.length);
 	}
 }
