@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.lang.RandomUtil;
 import lucee.commons.lang.SerializableObject;
@@ -102,8 +103,7 @@ public abstract class StorageScopeImpl extends StructSupport implements StorageS
 	private int type;
 	private long timeSpan=-1;
 	private String storage;
-	private Map<String, String> tokens; 
-	private final Object sync=new SerializableObject();
+	private final Map<String, String> tokens=new ConcurrentHashMap<String, String>(); 
 	
 	
 	/**
@@ -515,10 +515,6 @@ public abstract class StorageScopeImpl extends StructSupport implements StorageS
 	
 	@Override
 	public String generateToken(String key, boolean forceNew) {
-		synchronized (sync) {
-	        if(tokens==null) 
-	        	tokens = new HashMap<String,String>();
-	        
 	        // get existing
 	        String token;
 	        if(!forceNew) {
@@ -530,15 +526,12 @@ public abstract class StorageScopeImpl extends StructSupport implements StorageS
 	        token = RandomUtil.createRandomStringLC(40);
 	        tokens.put(key, token);
 	        return token;	
-		}
     }
 	
 	@Override
 	public boolean verifyToken(String token, String key) {
-		synchronized (sync) {
-	        if(tokens==null) return false;
-	        String _token = tokens.get(key);
-	        return _token!=null && _token.equalsIgnoreCase(token);
-		}
+	    if(tokens==null) return false;
+        String _token = tokens.get(key);
+        return _token!=null && _token.equalsIgnoreCase(token);
     }
 }
