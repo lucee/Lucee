@@ -41,6 +41,7 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.db.SQL;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.tag.HttpParamBean;
@@ -64,6 +65,7 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 	 * 
 	 * @param cw config object this Factory is related
 	 * @param cacheType type of the cache, see Config.CACHE_TYPE_XXX
+	 * @throws PageException 
 	 */
 	protected CacheHandlerCollectionImpl(ConfigWeb cw, int cacheType) {
 		this.cw=cw;
@@ -77,8 +79,11 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 				ch=e.getValue().newInstance();
 				ch.init(cw,e.getKey(),cacheType);
 				handlers.put(e.getKey(), ch);
-			} catch (Exception ex) {}
-			
+			}
+			catch (Exception pe) {
+				cw.getLog("application").error("cache-handler:"+e.getKey(), pe);
+				throw new PageRuntimeException(Caster.toPageException(pe));
+			}
 		}
 	}
 	

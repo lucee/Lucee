@@ -42,6 +42,8 @@ public class UDFCacheItem implements CacheItem, Serializable, Dumpable {
 
 	private final long payload;
 
+	private String hash;
+
 	
 	public UDFCacheItem(String output, Object returnValue, String udfName, String meta, long executionTimeNS) {
 		this.output = output;
@@ -49,7 +51,7 @@ public class UDFCacheItem implements CacheItem, Serializable, Dumpable {
 		this.udfName = udfName;
 		this.meta = meta;
 		this.executionTimeNS=executionTimeNS;
-		this.payload=lucee.commons.lang.SizeOf.size(returnValue)+output.length();
+		this.payload=output==null?0:output.length();
 	}
 
 	@Override
@@ -68,7 +70,8 @@ public class UDFCacheItem implements CacheItem, Serializable, Dumpable {
 
 	@Override
 	public String getHashFromValue() {
-		return Long.toString(HashUtil.create64BitHash(output+":"+UDFArgConverter.serialize(returnValue)));
+		if(hash==null)hash = Long.toString(HashUtil.create64BitHash(output+":"+UDFArgConverter.serialize(returnValue)));
+		return hash;
 	}
 
 	@Override
