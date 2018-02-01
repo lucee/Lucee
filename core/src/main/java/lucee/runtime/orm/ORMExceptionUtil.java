@@ -24,6 +24,7 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.Component;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
@@ -35,7 +36,7 @@ public class ORMExceptionUtil {
 
 	
 	public static PageException createException(ORMSession session,Component cfc,Throwable t) {
-		PageException pe = CFMLEngineFactory.getInstance().getExceptionUtil().createApplicationException(t.getMessage());
+		PageException pe = Caster.toPageException(t);//CFMLEngineFactory.getInstance().getExceptionUtil().createApplicationException(t.getMessage());
 		pe.setStackTrace(t.getStackTrace());
 		if(session!=null)setAddional(session,pe);
 		if(cfc!=null)setContext(pe,cfc);

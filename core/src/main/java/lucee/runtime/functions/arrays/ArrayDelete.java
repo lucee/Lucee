@@ -22,6 +22,7 @@
 package lucee.runtime.functions.arrays;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
@@ -42,7 +43,8 @@ public final class ArrayDelete extends BIF {
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if(args.length==2)return _call(pc,Caster.toArray(args[0]),args[1],null,true);
-		return _call(pc,Caster.toArray(args[0]),args[1],Caster.toString(args[2]),true);
+		else if(args.length==3)return _call(pc,Caster.toArray(args[0]),args[1],Caster.toString(args[2]),true);
+		else throw new FunctionException(pc, "ArrayDelete", 2, 3, args.length);
 	}
 	
 	static boolean _call(PageContext pc , Array array, Object value, String scope, boolean caseSensitive) throws PageException {

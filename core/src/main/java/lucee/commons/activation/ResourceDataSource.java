@@ -79,16 +79,7 @@ public final class ResourceDataSource implements DataSource {
 	 */
 	@Override
 	public String getContentType() {
-		InputStream is=null;
-		try {
-			return IOUtil.getMimeType(is=_file.getInputStream(), "application/unknow");
-		} catch (IOException e) {
-			return "application/unknow";
-		}
-		finally {
-			IOUtil.closeEL(is);
-		}
-		
+		return IOUtil.getMimeType(_file, "application/unknow");
 	}
 
 	/**

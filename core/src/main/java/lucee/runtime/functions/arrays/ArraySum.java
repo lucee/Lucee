@@ -23,6 +23,7 @@ package lucee.runtime.functions.arrays;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
@@ -39,6 +40,7 @@ public final class ArraySum extends BIF {
 	
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		return call(pc,Caster.toArray(args[0]));
+		if(args.length==1)return call(pc,Caster.toArray(args[0]));
+		else throw new FunctionException(pc, "ArraySum", 1, 1, args.length);
 	}
 }

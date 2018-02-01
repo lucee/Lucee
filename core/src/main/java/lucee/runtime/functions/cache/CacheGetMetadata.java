@@ -25,7 +25,9 @@ import lucee.commons.io.cache.CacheEntry;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
@@ -37,7 +39,7 @@ import lucee.runtime.type.util.KeyConstants;
 /**
  * 
  */
-public final class CacheGetMetadata implements Function {
+public final class CacheGetMetadata extends BIF {
 	
 	private static final long serialVersionUID = -470089623854482521L;
 	
@@ -75,5 +77,12 @@ public final class CacheGetMetadata implements Function {
 		} catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length==1)return call(pc, Caster.toString(args[0]));
+		if(args.length==2)return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
+		throw new FunctionException(pc, "CacheGetMetadata", 1, 2, args.length);
 	}
 }

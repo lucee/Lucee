@@ -18,7 +18,7 @@
  **/
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 
-	setting requesttimeout=300;
+	setting requesttimeout=1800;
 
 	function beforeAll(){
 
@@ -1756,7 +1756,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isJson(http.filecontent), true);
 					updateAvailable=deserializeJson(http.filecontent);
 
-					LatestVersion = ArrayLast(updateAvailable.otherVersions);
+					if (arrayIsEmpty(updateAvailable.otherVersions)){
+
+						systemOutput("WARNING: updateAvailable.otherVersions is empty", true, true);
+					}
+					else {
+
+						LatestVersion = ArrayLast(updateAvailable.otherVersions);
+					}
+
 					/*if( ReplaceNocase(replaceNocase(LatestVersion, ".", "", "ALL"), "-SNAPSHOT", "") GT ReplaceNocase(replaceNocase(server.lucee.version, ".", "", "ALL"), "-SNAPSHOT", "") ){
 						admin.changeVersionTo(LatestVersion);
 					}

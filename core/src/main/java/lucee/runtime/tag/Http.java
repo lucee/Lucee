@@ -1886,7 +1886,7 @@ public final class Http extends BodyTagImpl {
 	private static String getContentType(HttpParamBean param) {
 		String mimeType = param.getMimeType();
 		if(StringUtil.isEmpty(mimeType, true)) {
-			mimeType = ResourceUtil.getMimeType(param.getFile(), ResourceUtil.MIMETYPE_CHECK_EXTENSION + ResourceUtil.MIMETYPE_CHECK_HEADER, null);
+			mimeType = ResourceUtil.getMimeType(param.getFile(), null);
 		}
 		return mimeType;
 	}
