@@ -94,7 +94,7 @@ public final class ResourceUtil {
      */
     public static final short LEVEL_GRAND_PARENT_FILE=2;
     
-    private static final HashMap<String, String> EXT_MT=new HashMap<String, String>();
+    public static final HashMap<String, String> EXT_MT=new HashMap<String, String>();
     static {
     	EXT_MT.put("ai","application/postscript");
     	EXT_MT.put("aif","audio/x-aiff");
@@ -813,37 +813,7 @@ public final class ResourceUtil {
      * @return mime type of the file
      */
     public static String getMimeType(Resource res, String defaultValue) {
-        return getMimeType(res, MIMETYPE_CHECK_HEADER,defaultValue);
-    }
-    
-    public static String getMimeType(Resource res, int checkingType, String defaultValue) {
-        
-    	// check Extension
-    	if((checkingType&MIMETYPE_CHECK_EXTENSION)!=0) {
-        	String ext = getExtension(res, null);
-			if(!StringUtil.isEmpty(ext)){
-        		String mt=EXT_MT.get(ext.trim().toLowerCase());
-        		if(mt!=null) return mt;
-			}
-        }
-    	
-    	// check mimetype
-    	if((checkingType&MIMETYPE_CHECK_HEADER)!=0) {
-    		InputStream is=null;
-    		try {
-    			is = res.getInputStream();
-    			return IOUtil.getMimeType(is, defaultValue);
-			} 
-    		catch(Throwable t) {
-    			ExceptionUtil.rethrowIfNecessary(t);
-            	return defaultValue;
-			}
-    		finally {
-    			IOUtil.closeEL(is);
-    		}
-    	}
-    	
-    	return defaultValue;
+        return IOUtil.getMimeType(res, defaultValue);
     }
 
     

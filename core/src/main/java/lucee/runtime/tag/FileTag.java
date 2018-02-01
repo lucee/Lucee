@@ -864,7 +864,7 @@ public final class FileTag extends BodyTagImpl {
 		boolean fileExisted=false;
 		boolean fileWasOverwritten=false;
 
-		String contentType = ResourceUtil.getMimeType(formItem.getResource(), ResourceUtil.MIMETYPE_CHECK_HEADER, formItem.getContentType());
+		String contentType = ResourceUtil.getMimeType(formItem.getResource(), formItem.getContentType());
 		
 		// set cffile struct
 		Struct cffile=new StructImpl();
