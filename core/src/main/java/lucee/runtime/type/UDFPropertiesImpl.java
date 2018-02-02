@@ -43,7 +43,6 @@ import lucee.runtime.type.util.UDFUtil;
 public final class UDFPropertiesImpl extends UDFPropertiesBase {
 	private static final long serialVersionUID = 8679484452640746605L; // do not change
 
-	
 	public  String functionName;
 	public  int returnType;
 	public  String strReturnType;
@@ -51,8 +50,6 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 	public  Boolean bufferOutput;
 	public String hint;
 	public String displayName;
-	//public Page page;
-	public PageSource _pageSource;
 	public int index;
 	public FunctionArgument[] arguments;
 	public Struct meta;
@@ -67,19 +64,14 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 	public Integer localMode;
 	public int modifier;
 
-
-	private String id;
-
-
-	private Page page;
-
 	/**
 	 * NEVER USE THIS CONSTRUCTOR, this constructor is only for deserialize this object from stream
 	 */
 	public UDFPropertiesImpl(){
 		
 	}
-
+	
+	// FUTURE remove, only used in archives maybe
 	public UDFPropertiesImpl(
 			Page page,
 			PageSource pageSource,
@@ -100,11 +92,36 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 	        Integer localMode,
 	        int modifier,
 	        StructImpl meta) {
-		this(page,pageSource,arguments,index,functionName,CFTypes.toShortStrict(strReturnType,CFTypes.TYPE_UNKNOW),strReturnType,strReturnFormat,output,access
+		this(page,pageSource,0,0,arguments,index,functionName,CFTypes.toShortStrict(strReturnType,CFTypes.TYPE_UNKNOW),strReturnType,strReturnFormat,output,access
 				,bufferOutput,displayName,description,hint,secureJson,verifyClient,cachedWithin,localMode,modifier,meta);
-		
+	}
+	public UDFPropertiesImpl(
+			Page page,
+			PageSource pageSource,
+			int startLine,
+			int endLine,
+	        FunctionArgument[] arguments,
+			int index,
+	        String functionName, 
+	        String strReturnType, 
+	        String strReturnFormat, 
+	        boolean output,
+	        int access, 
+	        Boolean bufferOutput,
+	        String displayName, 
+	        String description, 
+	        String hint, 
+	        Boolean secureJson,
+	        Boolean verifyClient,
+	        Object cachedWithin,
+	        Integer localMode,
+	        int modifier,
+	        StructImpl meta) {
+		this(page,pageSource,startLine,endLine,arguments,index,functionName,CFTypes.toShortStrict(strReturnType,CFTypes.TYPE_UNKNOW),strReturnType,strReturnFormat,output,access
+				,bufferOutput,displayName,description,hint,secureJson,verifyClient,cachedWithin,localMode,modifier,meta);
 	}
 	
+	// FUTURE remove, only used in archives maybe
 	public UDFPropertiesImpl(
 			Page page,
 			PageSource pageSource,
@@ -125,55 +142,91 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 	        Integer localMode,
 	        int modifier,
 	        StructImpl meta) {
-		this(page,pageSource,arguments,index,functionName,returnType,CFTypes.toString(returnType,"any"),strReturnFormat,output,access
+		this(page,pageSource,0,0,arguments,index,functionName,returnType,CFTypes.toString(returnType,"any"),strReturnFormat,output,access
 				,bufferOutput,displayName,description,hint,secureJson,verifyClient,cachedWithin,localMode,modifier,meta);
 	}
-
 	public UDFPropertiesImpl(
 			Page page,
 			PageSource pageSource,
+			int startLine,
+			int endLine,
 	        FunctionArgument[] arguments,
+			int index,
+	        String functionName, 
+	        short returnType, 
+	        String strReturnFormat, 
+	        boolean output, 
+	        int access, 
+	        Boolean bufferOutput,
+	        String displayName, 
+	        String description, 
+	        String hint, 
+	        Boolean secureJson,
+	        Boolean verifyClient,
+	        Object cachedWithin,
+	        Integer localMode,
+	        int modifier,
+	        StructImpl meta) {
+		this(page,pageSource,startLine,endLine,arguments,index,functionName,returnType,CFTypes.toString(returnType,"any"),strReturnFormat,output,access
+				,bufferOutput,displayName,description,hint,secureJson,verifyClient,cachedWithin,localMode,modifier,meta);
+	}
+
+	// FUTURE remove, only used in archives maybe
+	public UDFPropertiesImpl(
+			Page page,
+			PageSource pageSource,
+			FunctionArgument[] arguments,
 			int index,
 	        String functionName, 
 	        short returnType, 
 	        String strReturnFormat, 
 	        boolean output, 
 	        int access) {
-		this(page,pageSource, arguments, index, functionName, returnType,strReturnFormat, output, access, null,
+		this(page,pageSource, 0,0,arguments, index, functionName, returnType,CFTypes.toString(returnType,"any"),strReturnFormat, output, access, null,
+				"","", "", null, null, null, null,Component.MODIFIER_NONE, null);
+	}
+	public UDFPropertiesImpl(
+			Page page,
+			PageSource pageSource,
+			int startLine,
+			int endLine,
+			FunctionArgument[] arguments,
+			int index,
+	        String functionName, 
+	        short returnType, 
+	        String strReturnFormat, 
+	        boolean output, 
+	        int access) {
+		this(page,pageSource, startLine,endLine, arguments, index, functionName, returnType,CFTypes.toString(returnType,"any"),strReturnFormat, output, access, null,
 				"","", "", null, null, null, null,Component.MODIFIER_NONE, null);
 	}
 	
 
 	private UDFPropertiesImpl(
-	        Page page,
+			Page page,
 			PageSource pageSource,
-	        FunctionArgument[] arguments,
+			int startLine,
+			int endLine,
+			FunctionArgument[] arguments,
 			int index,
-	        String functionName, 
-	        short returnType, 
-	        String strReturnType, 
-	        String strReturnFormat, 
-	        boolean output, 
-	        int access, 
-	        Boolean bufferOutput,
-	        String displayName, 
-	        String description, 
-	        String hint, 
-	        Boolean secureJson,
-	        Boolean verifyClient,
-	        Object cachedWithin,
-	        Integer localMode,
-	        int modifier,
-	        StructImpl meta) {
-		
+			String functionName, 
+			short returnType, 
+			String strReturnType, 
+			String strReturnFormat, 
+			boolean output, 
+			int access, 
+			Boolean bufferOutput,
+			String displayName, 
+			String description, 
+			String hint, 
+			Boolean secureJson,
+			Boolean verifyClient,
+			Object cachedWithin,
+			Integer localMode,
+			int modifier,
+			StructImpl meta) {
+		super(page,pageSource,startLine,endLine);
 		// this happens when an active is based on older source code
-		if(pageSource==null){
-			pageSource = ThreadLocalPageSource.get();
-			if(pageSource==null && page!=null){
-				pageSource=page.getPageSource();
-			}
-		}
-		this.page=page;
 		
 		if(arguments.length>0){
 			this.argumentsSet=new HashSet<Collection.Key>();
@@ -192,7 +245,6 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 		this.meta = meta;
 		this.output = output;
 		this.bufferOutput = bufferOutput;
-		this._pageSource = pageSource;
 		
 		this.strReturnType=strReturnType;
 		this.returnType=returnType;
@@ -224,12 +276,14 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 			PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
 			ConfigWebImpl cw = (ConfigWebImpl) ThreadLocalPageContext.getConfig(pc);
 			String path=ExternalizableUtil.readString(in);
-			_pageSource=PageSourceImpl.best(cw.getPageSources(pc,null, path, false,true,true));
+			ps=PageSourceImpl.best(cw.getPageSources(pc,null, path, false,true,true));
 			
 		} 
 		catch (Exception e) {
 			throw ExceptionUtil.toIOException(e);
 		}
+		startLine = in.readInt();
+		endLine = in.readInt();
 		
 		arguments=(FunctionArgument[]) in.readObject();
 		access = in.readInt();
@@ -264,7 +318,9 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 
-		out.writeObject(_pageSource.getRealpathWithVirtual());
+		out.writeObject(getPageSource().getRealpathWithVirtual());
+		out.writeInt(getStartLine());
+		out.writeInt(getEndLine());
 		out.writeObject(arguments);
 		out.writeInt(access);
 		out.writeInt(index);
@@ -332,11 +388,6 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 	}
 
 	@Override
-	public PageSource getPageSource() {
-		return _pageSource;
-	}
-
-	@Override
 	public Object getCachedWithin() {
 		return cachedWithin;
 	}
@@ -380,12 +431,4 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 	public Set<Key> getArgumentsSet() {
 		return argumentsSet;
 	}
-
-	@Override
-	protected Page getPage() {
-		return page;
-	}
-
-
-
 }

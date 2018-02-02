@@ -125,6 +125,8 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 			new Type[]{
 					Types.PAGE,
 					Types.PAGE_SOURCE,
+					Types.INT_VALUE,
+					Types.INT_VALUE,
 					FUNCTION_ARGUMENT_ARRAY,
 					Types.INT_VALUE,
 					Types.STRING,
@@ -150,6 +152,8 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 			new Type[]{
 					Types.PAGE,
 					Types.PAGE_SOURCE,
+					Types.INT_VALUE,
+					Types.INT_VALUE,
 					FUNCTION_ARGUMENT_ARRAY,
 					Types.INT_VALUE,
 					Types.STRING,
@@ -175,6 +179,8 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 			new Type[]{
 					Types.PAGE,
 					Types.PAGE_SOURCE,
+					Types.INT_VALUE,
+					Types.INT_VALUE,
 					FUNCTION_ARGUMENT_ARRAY,
 					Types.INT_VALUE,
 					Types.STRING,
@@ -412,6 +418,10 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 			adapter.invokeVirtual(Types.PAGE, GET_PAGESOURCE);
 		}
 		else adapter.visitVarInsn(ALOAD, 1);
+		
+		// position
+		adapter.push(getStart()==null?0:getStart().line);
+		adapter.push(getEnd()==null?0:getEnd().line);
 		
 		// arguments
 		createArguments(bc);

@@ -774,8 +774,14 @@ public final class ComponentUtil {
         
         if(udf.getPageSource()!=null)
         	func.set(KeyConstants._owner, udf.getPageSource().getDisplayPath());
-        
-	    	   
+
+        if(udf.getStartLine()>0 && udf.getEndLine()>0) {
+        	Struct pos=new StructImpl();
+        	pos.set("start", udf.getStartLine());
+        	pos.set("end", udf.getEndLine());
+        	func.setEL("position", pos);
+        }
+
 	    int format = udf.getReturnFormat();
         if(format<0 || format==UDF.RETURN_FORMAT_WDDX)			func.set(KeyConstants._returnFormat, "wddx");
         else if(format==UDF.RETURN_FORMAT_PLAIN)	func.set(KeyConstants._returnFormat, "plain");

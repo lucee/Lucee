@@ -15,16 +15,13 @@ import lucee.runtime.type.Collection.Key;
 
 public class UDFPropertiesLight extends UDFPropertiesBase  {
 
-	private final Page page;
-	private final PageSource pageSource;
 	private final FunctionArgument[] arguments;
 	private final String functionName;
 	private final short returnType;
 	private HashSet<Key> argumentsSet;
 
 	public UDFPropertiesLight(Page page, PageSource pageSource, FunctionArgument[] arguments, String functionName, short returnType) {
-		this.page=page;
-		this.pageSource=pageSource;
+		super(page,pageSource,0, 0);
 		this.arguments=arguments;
 		this.functionName=functionName;
 		this.returnType=returnType;
@@ -99,11 +96,6 @@ public class UDFPropertiesLight extends UDFPropertiesBase  {
 	}
 
 	@Override
-	public PageSource getPageSource() {
-		return pageSource;
-	}
-
-	@Override
 	public Object getCachedWithin() {
 		return Constants.LONG_ZERO;
 	}
@@ -142,12 +134,6 @@ public class UDFPropertiesLight extends UDFPropertiesBase  {
 	public Integer getLocalMode() {
 		return null;
 	}
-
-	@Override
-	public Page getPage() {
-		return page;
-	}
-
 
 	@Override
 	public Set<Key> getArgumentsSet() {
