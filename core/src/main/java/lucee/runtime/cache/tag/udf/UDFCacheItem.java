@@ -29,16 +29,18 @@ import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.Dumpable;
 import lucee.runtime.dump.SimpleDumpData;
+import lucee.runtime.op.Duplicator;
+import lucee.runtime.type.Duplicable;
 
-public class UDFCacheItem implements CacheItem, Serializable, Dumpable {
+public class UDFCacheItem implements CacheItem, Serializable, Dumpable, Duplicable {
 
 	private static final long serialVersionUID = -3616023500492159529L;
 
 	public final String output;
 	public final Object returnValue;
-	private String udfName;
-	private String meta;
-	private long executionTimeNS;
+	private final String udfName;
+	private final String meta;
+	private final long executionTimeNS;
 
 	private final long payload;
 
@@ -92,6 +94,11 @@ public class UDFCacheItem implements CacheItem, Serializable, Dumpable {
 	@Override
 	public long getExecutionTime() {
 		return executionTimeNS;
+	}
+
+	@Override
+	public Object duplicate(boolean deepCopy) {
+		return new UDFCacheItem(output, Duplicator.duplicate(returnValue,deepCopy), udfName, meta, executionTimeNS);
 	}
 
 }

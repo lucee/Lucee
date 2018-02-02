@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 
 import javax.servlet.jsp.tagext.BodyContent;
 
+import lucee.print;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -244,34 +245,27 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 
 		Object cachedWithin = getCachedWithin(pc);
 		String cacheId = CacheHandlerCollectionImpl.createId(this, args, values);
+
 		CacheHandler cacheHandler = pc.getConfig()
 				.getCacheHandlerCollection(Config.CACHE_TYPE_FUNCTION, null)
 				.getInstanceMatchingObject(getCachedWithin(pc), null);
 
 
-		if (cacheHandler instanceof CacheHandlerPro){
-
+		if(cacheHandler instanceof CacheHandlerPro){
 			CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pc, cacheId, cachedWithin);
-
 			if (cacheItem instanceof UDFCacheItem ) {
-
 				UDFCacheItem entry = (UDFCacheItem)cacheItem;
-
 				try {
 					pc.write(entry.output);
 				} catch (IOException e) {
 					throw Caster.toPageException(e);
 				}
-
 				return entry.returnValue;
 			}
 		}
 		else if (cacheHandler != null){		// TODO this else block can be removed when all cache handlers implement CacheHandlerPro
-
 			CacheItem cacheItem = cacheHandler.get(pc, cacheId);
-
 			if (cacheItem instanceof UDFCacheItem ) {
-
 				UDFCacheItem entry = (UDFCacheItem)cacheItem;
 				//if(entry.creationdate+properties.cachedWithin>=System.currentTimeMillis()) {
 				try {
@@ -298,8 +292,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 	    		String out = bc.getString();
 	    		cacheHandler.set(pc, cacheId, cachedWithin, new UDFCacheItem(out, rtn, getFunctionName(), getSource(), System.nanoTime()-start));
 	    	}
-			// cache.put(id, new UDFCacheEntry(out, rtn),properties.cachedWithin,properties.cachedWithin);
-	    	return rtn;
+			return rtn;
 		}
         finally {
         	BodyContentUtil.flushAndPop(pc,bc);
