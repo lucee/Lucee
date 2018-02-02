@@ -47,6 +47,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.tag.HttpParamBean;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.UDFImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 public class CacheHandlerCollectionImpl implements CacheHandlerCollection { 
@@ -240,14 +241,15 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 		return HashUtil.create64BitHashAsString(sb, Character.MAX_RADIX);
 	}
 
-	public static String createId(UDF udf, Object[] args, Struct values) {
+	public static String createId(UDFImpl udf, Object[] args, Struct values) {
 		String src = udf.getSource();
 		StringBuilder sb=new StringBuilder()
-			.append(HashUtil.create64BitHash(src==null?"":src))
+			.append(src==null?"":src)
 			.append(CACHE_DEL)
-			.append(HashUtil.create64BitHash(udf.getFunctionName()))
+			.append(udf.properties.getStartLine())
+			.append(CACHE_DEL)
+			.append(udf.getFunctionName())
 			.append(CACHE_DEL);
-		
 		
 		createIdArgs(sb,args,values);
 		
@@ -267,10 +269,21 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 			sb.append(_createId(args));
 		}
 	}
+	
 
 	private static String _createId(Object values) {
-		return HashUtil.create64BitHash(UDFArgConverter.serialize(values))+"";
+		return UDFArgConverter.serialize(values);
 	}
+	
+	/*private static String _createId(Object[] values) {
+		if(values==null) return "";
+		
+		StringBuilder sb=new StringBuilder("[");
+		for(Object v:values) {
+			sb.append(UDFArgConverter.serialize(v)).append(',');
+		}
+		return sb.append(']').toString();
+	}*/
 	
 	public static String createId(String url, String urlToken, short method,
 			ArrayList<HttpParamBean> params, String username, String password,
