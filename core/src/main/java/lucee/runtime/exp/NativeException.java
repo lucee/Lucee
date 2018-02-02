@@ -49,7 +49,7 @@ public class NativeException extends PageExceptionImpl {
         /*StackTraceElement[] st = getRootCause(t).getStackTrace();
         if(hasLuceeRuntime(st))setStackTrace(st);
         else {
-        	StackTraceElement[] cst = Thread.currentThread().getStackTrace();
+        	StackTraceElement[] cst = new Exception().getStackTrace();
         	if(hasLuceeRuntime(cst)){
         		StackTraceElement[] mst=new StackTraceElement[st.length+cst.length-1];
         		System.arraycopy(st, 0, mst, 0, st.length);
