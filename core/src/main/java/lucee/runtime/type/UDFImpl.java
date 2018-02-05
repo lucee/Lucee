@@ -27,7 +27,6 @@ import java.util.Map.Entry;
 
 import javax.servlet.jsp.tagext.BodyContent;
 
-import lucee.print;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -245,11 +244,10 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 
 		Object cachedWithin = getCachedWithin(pc);
 		String cacheId = CacheHandlerCollectionImpl.createId(this, args, values);
-
 		CacheHandler cacheHandler = pc.getConfig()
 				.getCacheHandlerCollection(Config.CACHE_TYPE_FUNCTION, null)
 				.getInstanceMatchingObject(getCachedWithin(pc), null);
-
+		
 
 		if(cacheHandler instanceof CacheHandlerPro){
 			CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pc, cacheId, cachedWithin);
