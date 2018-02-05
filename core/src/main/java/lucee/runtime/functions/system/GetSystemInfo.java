@@ -18,8 +18,6 @@
  **/
 package lucee.runtime.functions.system;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
 import java.util.Iterator;
 
 import lucee.runtime.CFMLFactoryImpl;

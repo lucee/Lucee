@@ -30,7 +30,6 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayPro;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;

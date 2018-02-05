@@ -55,7 +55,6 @@ import lucee.commons.net.URLEncoder;
 import lucee.runtime.exp.PageException;
 
 import org.apache.tika.Tika;
-import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 
 /**

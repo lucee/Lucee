@@ -50,8 +50,6 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.it.ForEachQueryIterator;
-import lucee.runtime.type.scope.Argument;
-import lucee.runtime.type.scope.ArgumentImpl;
 import lucee.runtime.type.scope.ArgumentIntKey;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StringListData;

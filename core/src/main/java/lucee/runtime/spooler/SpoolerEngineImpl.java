@@ -41,7 +41,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalConfig;
-import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;

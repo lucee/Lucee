@@ -20,7 +20,6 @@ package lucee.runtime.functions.arrays;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
-import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.type.Array;

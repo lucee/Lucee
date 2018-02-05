@@ -86,7 +86,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.file.FileStreamWrapper;
-import lucee.runtime.functions.other.ToBinary;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.img.Image;
 import lucee.runtime.interpreter.VariableInterpreter;

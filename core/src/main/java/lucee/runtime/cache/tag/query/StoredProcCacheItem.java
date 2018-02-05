@@ -25,7 +25,6 @@ import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.udf.UDFArgConverter;
 import lucee.runtime.type.Duplicable;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.query.QueryStruct;
 
 public class StoredProcCacheItem implements CacheItem, Serializable,Duplicable {
 
