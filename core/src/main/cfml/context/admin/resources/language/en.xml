@@ -597,9 +597,8 @@
 	<data key="login.changepassworddescription">Change the password for this administrator</data>
 	<data key="login.ww">one Week</data>
 	<data key="login.chooseWebContext"> - choose web context</data>
-	<data key="searchlng.arabic">Arabic</data>
-	<data key="searchlng.simplified_chinese">Chinese (simplified)</data>
-	<data key="searchlng.traditional_chinese">Chinese (traditional)</data>
+	
+	<data key="searchlng.chinese">Chinese</data>
 	<data key="searchlng.czech">Czech</data>
 	<data key="searchlng.danish">Danish</data>
 	<data key="searchlng.dutch">Dutch</data>
@@ -608,15 +607,11 @@
 	<data key="searchlng.french">French</data>
 	<data key="searchlng.german">German</data>
 	<data key="searchlng.greek">Greek</data>
-	<data key="searchlng.hebrew">Hebrew</data>
 	<data key="searchlng.hungarian">Hungarian</data>
 	<data key="searchlng.italian">Italian</data>
 	<data key="searchlng.japanese">Japanese</data>
 	<data key="searchlng.korean">Korean</data>
 	<data key="searchlng.norwegian">Norwegian</data>
-	<data key="searchlng.bokmal">Norwegian (Bokmal)</data>
-	<data key="searchlng.nynorsk">Norwegian (Nynorsk)</data>
-	<data key="searchlng.polish">Polish</data>
 	<data key="searchlng.portuguese">Portuguese</data>
 	<data key="searchlng.russian">Russian</data>
 	<data key="searchlng.spanish">Spanish</data>
