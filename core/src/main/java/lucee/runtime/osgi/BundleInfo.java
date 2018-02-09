@@ -50,20 +50,20 @@ public class BundleInfo implements Serializable {
 
 	private static final long serialVersionUID = -8723070772449992030L;
 	
-	private final Version version;
-	private final String name;
-	private final String symbolicName;
-	private final String exportPackage;
-	private final String importPackage;
-	private final String activator;
-	private final int manifestVersion;
-	private final String description;
-	private final String dynamicImportPackage;
-	private final String classPath;
-	private final String requireBundle;
-	private final String fragementHost;
-	private final Map<String, Object> headers;
-	private final static Map<String, BundleInfo> bundles=new HashMap<String, BundleInfo>();
+	private Version version;
+	private String name;
+	private String symbolicName;
+	private String exportPackage;
+	private String importPackage;
+	private String activator;
+	private int manifestVersion;
+	private String description;
+	private String dynamicImportPackage;
+	private String classPath;
+	private String requireBundle;
+	private String fragementHost;
+	private Map<String, Object> headers;
+	private static Map<String, BundleInfo> bundles=new HashMap<String, BundleInfo>();
 	
 	
 	
@@ -91,10 +91,12 @@ public class BundleInfo implements Serializable {
 		JarFile jar=new JarFile(file);
 		try {
 			Manifest manifest = jar.getManifest();
+			if(manifest==null) return;
+			
 			Attributes attrs = manifest.getMainAttributes();
+			if(attrs==null) return;
 			
 			manifestVersion = Caster.toIntValue(attrs.getValue("Bundle-ManifestVersion"),1);
-			
 			name = attrs.getValue("Bundle-Name");
 			symbolicName = attrs.getValue("Bundle-SymbolicName");
 			String tmp = attrs.getValue("Bundle-Version");
@@ -109,7 +111,6 @@ public class BundleInfo implements Serializable {
 			fragementHost = attrs.getValue("Fragment-Host");
 			
 			headers=createHeaders(attrs);
-			
 		}
 		finally {
 			IOUtil.closeEL(jar);
