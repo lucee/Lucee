@@ -17,6 +17,16 @@
  */
 package lucee.runtime.db;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+
+import lucee.commons.io.IOUtil;
+import lucee.runtime.type.util.ListUtil;
+
+import org.osgi.framework.Bundle;
+
 public class JDBCDriver {
 
 	public final String label;
@@ -27,4 +37,20 @@ public class JDBCDriver {
 		this.cd=cd;
 	}
 
+	public static String extractClassName(Bundle bundle) throws IOException {
+		URL url = bundle.getResource("/META-INF/services/java.sql.Driver");
+		
+		BufferedReader br =new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
+		String content = IOUtil.toString(br);
+		return ListUtil.first(content, " \n\t");
+	}
+	
+	public static String extractClassName(Bundle bundle, String defaultValue) {
+		try {
+			return extractClassName(bundle);
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
 }
