@@ -1044,12 +1044,13 @@ public static String toString(Resource file, String charset) throws IOException 
         	if(result.indexOf("tika")!=-1) {
         		String tmp = ResourceUtil.EXT_MT.get(ResourceUtil.getExtension(res, "").toLowerCase());
         		if(!StringUtil.isEmpty(tmp)) return tmp;
+        		if(!StringUtil.isEmpty(defaultValue)) return defaultValue;
         	}
         	return result;
         } 
         catch(Exception e) {
         	String tmp = ResourceUtil.EXT_MT.get(ResourceUtil.getExtension(res, "").toLowerCase());
-    		if(!StringUtil.isEmpty(tmp)) return tmp;
+    		if(tmp.indexOf("tika")==-1 && !StringUtil.isEmpty(tmp)) return tmp;
         	return defaultValue;
         }
 		finally {
