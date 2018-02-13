@@ -86,118 +86,72 @@ Error Output --->
 <cfset pool["Tenured Gen"]=pool["CMS Old Gen"]>
 <cfset pool["PS Old Gen"]=pool["CMS Old Gen"]>
 <cfhtmlbody>
-	<script src="../res/js/highChart.js.cfm" type="text/javascript"></script>
-	<script>
+    <script src="../res/js/echarts-all.js.cfm" type="text/javascript"></script>
+    <script type="text/javascript">
 		function requestData(){
-			$.ajax({
+			jQuery.ajax({
 				type: "POST",
 				<cfoutput>url: "./#request.self#?action=chartAjax",</cfoutput>
-				success: function(data){
-					var series_heap = heapchart.series[0];
-					var series_nonheap = nonheapchart.series[0];
-					var series_cpuSystem = cpuSystemChart.series[0];
-					var series_cpuProcess = cpuProcessChart.series[0];
-					var shift_heap = series_heap.data.length > 100; // shift the chart if more than 100 entries available
-					var shift_nonheap = series_nonheap.data.length > 100; // shift the chart if more than 100 entries available
-					var shift_cpuSystem = series_cpuSystem.data.length > 100; // shift the chart if more than 100 entries available
-					var shift_cpuProcess = series_cpuProcess.data.length > 100; // shift the chart if more than 100 entries available
-					var x = (new Date()).getTime(); // current time
-					var x = (new Date()).getTime(); // current time
-					var y_heap = data.heap;
-					var y_nonheap = data.non_heap;
-					var y_cpuSys = data.cpuSystem;
-					var y_cpuProcess = data.cpuProcess;
-					heapchart.series[0].addPoint([x, y_heap], true, shift_heap);
-					nonheapchart.series[0].addPoint([x, y_nonheap], true, shift_nonheap);
-					cpuSystemChart.series[0].addPoint([x, y_cpuSys], true, shift_cpuSystem);
-					cpuProcessChart.series[0].addPoint([x, y_cpuProcess], true, shift_cpuProcess);
+				success: function(result){
+					var arr =["heap","nonheap", "cpuSystem", "cpuProcess"];
+					console.log(heapChart.series[0].data);
+					console.log(heapChart.xAxis[0].data);
+					$.each(arr,function(index,chrt){
+						window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
+						window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
+						window[chrt+"Chart"].series[0].data = window["series_"+chrt];
+						if(window[chrt+"Chart"].series[0].data.length > 100){
+						window[chrt+"Chart"].series[0].data.shift(); //shift the array
+						}
+						window[chrt+"Chart"].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+						if(window[chrt+"Chart"].xAxis[0].data.length > 15){
+						window[chrt+"Chart"].xAxis[0].data.shift(); //shift the Time value
+						}
+						window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
+					});
 					setTimeout(requestData, 1000);
 				}
 			})
 		}
-		$(document).ready(function() {
-			Highcharts.setOptions({
-			    global: {
-			        useUTC: false
-			    }
-			});
+		var dDate=[new Date().toLocaleTimeString()]; // current time
 
-			function initiateNewChart(cName, cType, sName){
-				return Highcharts.chart(cName, {
-					chart: {
-						type: cType,
-						animation: Highcharts.svg,
-						marginRight: 10,
-						marginBottom: 20,
-						backgroundColor: "#EFEDE5"
-					},
-					plotOptions: {
-						series: {
-							marker: {
-								enabled: false
-							}
-						}
-					},
-					colors: ["<cfoutput>#request.adminType EQ "server" ? '##3399CC': '##BF4F36'#</cfoutput>"],
-					title: {
-						text: ""
-					},
-					xAxis: {
-						type: 'datetime',
-						tickPixelInterval: 150,
-						labels: {
-							y: 15
-						}
-					},
-					yAxis: {
-						min: 0,
-   						max: 100,
-						title: {
-							text: ""
-						},
-						labels: {
-							formatter: function() {
-								return this.value + "%";
-							}
-						},
-						plotLines: [{
-							value: 0,
-							width: 15
-						}]
-					},
-					tooltip: {
-						formatter: function () {
-							return '<b>' + this.series.name + '</b><br/>' +
-							Highcharts.dateFormat('%H:%M:%S', this.x) + '<br/>' +
-							Highcharts.numberFormat(this.y, 0)+"%";
-						}
-					},
-					legend: {
-						enabled: false
-					},
-					exporting: {
-						enabled: false
-					},
-					credits: {
-						enabled: false
-					},
-					series: [{
-						name: sName,
-						data: []
-					}]
-				});
-			}
 
-			// charts
-			heapchart = initiateNewChart("heap", "areaspline", "HeapMemorySeries");
-			nonheapchart = initiateNewChart("nonheap", "areaspline",  "Non-HeapSeries");
-			cpuSystemChart = initiateNewChart("cpuSystem", "areaspline", "WholeSystemSeries");
-			cpuProcessChart = initiateNewChart("cpuProcess", "areaspline", "luceeProcessSeries");
-
-			// initiating the ajax data get process
-			requestData();
+		// intialize charts
+		$.each(["heap","nonheap", "cpuSystem", "cpuProcess"], function(i, data){
+			window[data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
+			window[data+"Chart"] = {
+				backgroundColor: ["#EFEDE5"],
+				tooltip : {'trigger':'axis'},
+				color: ["<cfoutput>#request.adminType EQ "server" ? '##3399CC': '##BF4F36'#</cfoutput>"],
+				grid : {
+					width: '60%',
+					height: '100px'
+				},
+				xAxis : [{
+					'type':'category',
+					'boundaryGap' : false,
+					'data':[0]
+				}],
+				yAxis : [{
+					'type':'value',
+					'min':'0',
+					'max':'100',
+					'splitNumber': 2
+				}],
+				series : [
+					{
+					'name': data +' Memory',
+					'type':'line',
+					smooth:true,
+					itemStyle: {normal: {areaStyle: {type: 'default'}}},
+					'data': [0]
+					}
+				]
+			}; // data
+			window[data].setOption(window[data+"Chart"]); // passed the data into the chats
 		});
-	</script>
+        requestData();
+    </script>
 </cfhtmlbody>
 
 <cfset total=query(
@@ -319,10 +273,10 @@ Error Output --->
 						</tr>
 						<tr>
 							<td width="50%"><b>#pool['heap']#</b>
-								<div id="heap" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
+								<div id="heap" style="min-width: 150px; height: 200px; margin: 0 auto;"></div>
 							</td>
 							<td width="50%"><b>#pool['non_heap']#</b><br>
-								<div id="nonheap" style="min-width: 100px; height: 150px; margin: 0 auto"></div>
+								<div id="nonheap" style="min-width: 150px; height: 200px; margin: 0 auto;"></div>
 							</td>
 						</tr>
 
@@ -340,10 +294,10 @@ Error Output --->
 							</tr>
 							<tr>
 								<td width="50%"><b>#stText.setting.cpuSystem#</b>
-									<div id="cpuSystem" style="min-width: 100px; height: 150px; margin: 0 auto"></div>
+									<div id="cpuSystem" style="min-width: 150px; height: 200px; margin: 0 auto;"></div>
 								</td>
 								<td width="50%"><b>#stText.setting.cpuProcess#</b><br>
-									<div id="cpuProcess" style="min-width: 100px; height: 150px; margin: 0 auto"></div>
+									<div id="cpuProcess" style="min-width: 150px; height: 200px; margin: 0 auto;"></div>
 								</td>
 							</tr>
 
@@ -444,7 +398,6 @@ Error Output --->
 				<!--- Info --->
 				<h2>#stText.Overview.Info#</h2>
 				<table width="100%">
-				
 				<tr>
 					<td width="50%">
 						<table class="maintbl">
@@ -591,12 +544,8 @@ Error Output --->
 					<td colspan="2">
 						<table class="maintbl">
 							<tbody>
-								
-									
 								<tr>
 								</tr>
-								
-
 								<tr>
 									<th scope="row">#stText.Overview.config#</th>
 									<td>#info.config#</td>
