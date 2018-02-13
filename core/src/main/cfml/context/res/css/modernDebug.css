@@ -85,7 +85,7 @@ table.tableStyle { margin-top: 0.5em; border: 1px solid #ddd; margin-left: 9pt; 
 .maintbl{ width: 100%; margin:6px 1px 2px 25px;}
 
 
-.chart_margin{float :left;margin: 15px;}
+.chart_margin{float :left;margin: 5px;}
 .fourCharts{width: 22%}
 .twoCharts{width: 44%}
 .Chart_container{width:100%; overflow:auto;}

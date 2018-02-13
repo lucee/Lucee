@@ -242,7 +242,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 			<script>
 				<cfset this.includeFileInline( "/lucee/res/js/util.min.js" )>
-				<cfset this.includeFileInline( "/lucee/res/js/highChart.js" )>
+				<cfset this.includeFileInline( "/lucee/res/js/echarts-all.js" )>
 				<cfset this.includeFileInline( "/lucee/res/js/typeahead.min.js" )>
 				<cfset this.includeFileInline( "/lucee/res/js/base.min.js" )>
 				<cfif !structKeyExists(url, "isAjaxRequest")>
@@ -429,109 +429,71 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				}
 			</script>
 			<cfif enableTab("metrics")>
-				<script>
-					function requestData(){
-						$.ajax({
-							type: "POST",
-							url: "/lucee-server/admin/debug/chartProcess.cfc?method=sysMetric",
-							success: function(data){
-
-								var x = (new Date()).getTime();
-								$.each(#serializeJSON( variables.chartStr )#, function(i, chrt){
-									//chart value were only displayed for enable charts in admin
-									window["series_"+chrt] =  eval(chrt+"Chart.series[0]");//getting chart data
-									window["shift_"+chrt] = eval("series_"+chrt).data.length > 100; // shift the chart if more than 100 entries available
-									window["y_"+chrt] = eval(data[chrt]);//y axis value get from Ajax
-									eval(chrt+"Chart.series[0]").addPoint([x, eval("y_"+chrt)], true, eval("shift_"+chrt));//add the values into chart series
-								})
-								// TimeOut
-								setTimeout(requestData, 1000);
-							}
-						})
-					}
-					function chartsData() {
-						Highcharts.setOptions({
-						    global: {
-						        useUTC: false
-						    }
-						});
-
-						function initiateNewChart(cName, cType, sName){
-							return Highcharts.chart(cName, {
-								chart: {
-									type: cType,
-									animation: Highcharts.svg,
-									marginRight: 10,
-									marginBottom: 20,
-									backgroundColor: "##FFFFFF",
-									width: 260,
-        							height: 150
-								},
-								plotOptions: {
-									series: {
-										marker: {
-											enabled: false
-										}
-									}
-								},
-								colors: ['##0000FF'],
-								title: {
-									text: ""
-								},
-								xAxis: {
-									type: 'datetime',
-									tickPixelInterval: 150,
-									labels: {
-										y: 15
-									}
-								},
-								yAxis: {
-									min: 0,
-			   						max: 100,
-									title: {
-										text: ""
-									},
-									labels: {
-										formatter: function() {
-											return this.value + "%";
-										}
-									},
-									plotLines: [{
-										value: 0,
-										width: 15
-									}]
-								},
-								tooltip: {
-									formatter: function () {
-										return '<b>' + this.series.name + '</b><br/>' +
-										Highcharts.dateFormat('%H:%M:%S', this.x) + '<br/>' +
-										Highcharts.numberFormat(this.y, 0)+"%";
-									}
-								},
-								legend: {
-									enabled: false
-								},
-								exporting: {
-									enabled: false
-								},
-								credits: {
-									enabled: false
-								},
-								series: [{
-									name: sName,
-									data: []
-								}]
+			<script>
+				function requestData(){
+					jQuery.ajax({
+						type: "POST",
+						url: "/lucee-server/admin/debug/chartProcess.cfc?method=sysMetric",
+						success: function(result){
+							var arr =["heap","nonheap", "cpuSystem", "cpuProcess"];
+							$.each(arr,function(index,chrt){
+								window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
+								window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
+								window[chrt+"Chart"].series[0].data = window["series_"+chrt];
+								if(window[chrt+"Chart"].series[0].data.length > 100){
+								window[chrt+"Chart"].series[0].data.shift(); //shift the array
+								}
+								window[chrt+"Chart"].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+								if(window[chrt+"Chart"].xAxis[0].data.length > 5){
+								window[chrt+"Chart"].xAxis[0].data.shift(); //shift the Time value
+								}
+								window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
 							});
+							setTimeout(requestData, 1000);
 						}
+					})
+				}
+				var dDate=[new Date().toLocaleTimeString()]; // current time
 
-						$.each(#serializeJSON( variables.chartStr )#, function(i, data){
-							// initiating the ajax data get process
-							window[data+"Chart"]= initiateNewChart(data, "areaspline", data+"Series");
-						})
-						requestData();
-					}
-					chartsData();
-				</script>
+
+				// intialize charts
+				$.each(["heap","nonheap", "cpuSystem", "cpuProcess"], function(i, data){
+					window[data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
+					window[data+"Chart"] = {
+						backgroundColor: ["##EFEDE5"],
+						tooltip : {'trigger':'axis'},
+						color: ['##0000FF'],
+						grid : {
+							width: '75%',
+							height: '65%',
+							x:'30px',
+							y:'20px'
+						},
+						xAxis : [{
+							'type':'category',
+							'boundaryGap' : false,
+							'data': [0]
+						}],
+						yAxis : [{
+							'type':'value',
+							'min':'0',
+							'max':'100',
+							'splitNumber': 2
+						}],
+						series : [
+							{
+							'name': data +' Memory',
+							'type':'line',
+							smooth:true,
+							itemStyle: {normal: {areaStyle: {type: 'default'}}},
+							'data': [0]
+							}
+						]
+					}; // data
+					window[data].setOption(window[data+"Chart"]); // passed the data into the chats
+				});
+				requestData();
+			</script>
 			</cfif>
 			<cfif enableTab("Reference")>
 				<script>
