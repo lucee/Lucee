@@ -2835,8 +2835,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				config.getIdentification());
 
 		String label = getString("admin", action, "label");
+		String name = getString("name",null);
 
-		admin.updateJDBCDriver(label, cd);
+		admin.updateJDBCDriver(label, name, cd);
 		store();
 		adminSync.broadcast(attributes, config);
 	}

@@ -151,6 +151,7 @@ import lucee.runtime.orm.DummyORMEngine;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.osgi.BundleInfo;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.reflection.pairs.ConstructorInstance;
 import lucee.runtime.search.DummySearchEngine;
@@ -179,6 +180,7 @@ import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibException;
 
 import org.apache.log4j.Level;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -388,9 +390,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		
 		if(XMLConfigAdmin.fixComponentMappings(config,doc)) reload=true;
 		if(LOG)SystemOut.printDate("fixed component mappings");
-		
-		
-		
+
 		// delete to big felix.log (there is also code in the loader to do this, but if the loader is not updated ...)
 		if(config instanceof ConfigServerImpl) {
 			ConfigServerImpl _cs=(ConfigServerImpl) config;
@@ -1939,39 +1939,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	private static void loadDataSources(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		
 		// load JDBC Driver defintion
-		{
-			Element jdbc = getChildByName(doc.getDocumentElement(), "jdbc");
-			Element[] drivers = getChildren(jdbc, "driver");
-			Map<String,JDBCDriver> map=new HashMap<String,JDBCDriver>();
-			
-
-			// first add the server drivers, so they can be overwritten
-			if(configServer!=null) {
-				JDBCDriver[] sds = configServer.getJDBCDrivers();
-				for(JDBCDriver sd:sds){
-					map.put(sd.cd.toString(), sd);
-				}
-			}
-			
-			ClassDefinition cd;
-			String label;
-			for(Element driver:drivers){
-				cd=getClassDefinition(driver, "", config.getIdentification());
-				label=getAttr(driver,"label");
-				// check if label exists
-				if(StringUtil.isEmpty(label)) {
-					log.error("Datasource", "missing label for jdbc driver ["+cd.getClassName()+"]");
-					continue;
-				}
-				// check if it is a bundle
-				if(!cd.isBundle()) {
-					log.error("Datasource", "jdbc driver ["+label+"] does not describe a bundle");
-					continue;
-				}
-				map.put(cd.toString(), new JDBCDriver(label,cd));
-			}
-			config.setJDBCDrivers(map.values().toArray(new JDBCDriver[map.size()]));
-		}
+		config.setJDBCDrivers(loadJDBCDrivers(configServer,config, doc, log));
+		
 		
 		
 		
@@ -2051,16 +2020,18 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			accessCount = dataSources.length;
 
 		// if(hasAccess) {
+		JDBCDriver jdbc;
 		ClassDefinition cd;
 		for (int i = 0; i < accessCount; i++) {
 			Element dataSource = dataSources[i];
 			if (dataSource.hasAttribute("database")) {
-				
 				try {
 					cd=getClassDefinition(dataSource, "", config.getIdentification());
+					
+					// we only have a class
 					if(!cd.isBundle()) {
-						JDBCDriver jdbc = config.getJDBCDriverByClassName(cd.getClassName(),null);
-						if(jdbc!=null)cd=jdbc.cd;
+						jdbc = config.getJDBCDriverByClassName(cd.getClassName(),null);
+						if(jdbc!=null && jdbc.cd!=null && jdbc.cd.isBundle())cd=jdbc.cd;
 					}
 					
 					setDatasource(config, datasources
@@ -2098,6 +2069,52 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		
 		
 		
+	}
+
+	public static JDBCDriver[] loadJDBCDrivers(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		Map<String,JDBCDriver> map=new HashMap<String,JDBCDriver>();
+		
+
+		// first add the server drivers, so they can be overwritten
+		if(configServer!=null) {
+			JDBCDriver[] sds = configServer.getJDBCDrivers();
+			for(JDBCDriver sd:sds){
+				map.put(sd.cd.toString(), sd);
+			}
+		}
+		
+		
+		Element jdbc = getChildByName(doc.getDocumentElement(), "jdbc");
+		Element[] drivers = getChildren(jdbc, "driver");
+		
+		
+		ClassDefinition cd;
+		String label;
+		for(Element driver:drivers) {
+			cd=getClassDefinition(driver, "", config.getIdentification());
+			if(StringUtil.isEmpty(cd.getClassName()) && !StringUtil.isEmpty(cd.getName())) {
+				try{
+					Bundle bundle = OSGiUtil.loadBundle(cd.getName(), cd.getVersion(), config.getIdentification(), false);
+					String cn=JDBCDriver.extractClassName(bundle);
+					cd=new ClassDefinitionImpl(config.getIdentification(),cn,cd.getName(),cd.getVersion());
+				}
+				catch(Exception e) {}
+			}
+			
+			label=getAttr(driver,"label");
+			// check if label exists
+			if(StringUtil.isEmpty(label)) {
+				if(log!=null)log.error("Datasource", "missing label for jdbc driver ["+cd.getClassName()+"]");
+				continue;
+			}
+			// check if it is a bundle
+			if(!cd.isBundle()) {
+				if(log!=null)log.error("Datasource", "jdbc driver ["+label+"] does not describe a bundle");
+				continue;
+			}
+			map.put(cd.toString(), new JDBCDriver(label,cd));
+		}
+		return map.values().toArray(new JDBCDriver[map.size()]);
 	}
 
 	/*private static ClassDefinition matchJDBCBundle(Config config, ClassDefinition cd) {

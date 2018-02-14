@@ -1791,12 +1791,12 @@ public final class XMLConfigAdmin {
     	if(reload)admin._reload();
 	}*/
 
-	public void updateJDBCDriver(String label, ClassDefinition cd) throws PageException {
+	public void updateJDBCDriver(String label, String name, ClassDefinition cd) throws PageException {
     	checkWriteAccess();
-    	_updateJDBCDriver(label,cd);
+    	_updateJDBCDriver(label,name,cd);
     }
     
-    private void _updateJDBCDriver(String label, ClassDefinition cd) throws PageException {
+    private void _updateJDBCDriver(String label, String name, ClassDefinition cd) throws PageException {
     	
     	// check if label exists
 		if(StringUtil.isEmpty(label)) 
@@ -1824,8 +1824,12 @@ public final class XMLConfigAdmin {
       		child=doc.createElement("driver");
       		parent.appendChild(child);
       	}
-      	
+
       	child.setAttribute("label",label);
+      	if(!StringUtil.isEmpty(name))
+      		child.setAttribute("name",name);
+      	else
+      		child.removeAttribute("name");
       	// make sure the class exists
         setClass(child, null, "", cd);
         
@@ -5066,8 +5070,9 @@ public final class XMLConfigAdmin {
 					map = itl.next();
 					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
 					String _label=map.get("label");
+					String _name=map.get("name");
 					if(cd!=null && cd.isBundle()) {
-						_updateJDBCDriver(_label,cd);
+						_updateJDBCDriver(_label,_name,cd);
 						reloadNecessary=true;
 					}
 					logger.info("extension", "update JDBC Driver ["+_label+":"+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");

@@ -18,6 +18,7 @@
  */
 package lucee.runtime.db;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
@@ -26,12 +27,15 @@ import java.util.TimeZone;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 
 import org.apache.commons.collections4.map.ReferenceMap;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 
 public abstract class DataSourceSupport implements DataSource, Cloneable {
@@ -54,6 +58,8 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 	private Map<String, ProcMetaCollection> procedureColumnCache;
 	private Driver driver;
 	protected final JDBCDriver jdbc;
+
+
 	private final Log log;
 
 	public DataSourceSupport(Config config, JDBCDriver jdbc, String name,
@@ -77,6 +83,10 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 		this.password = password;
 		this.log = log;
 	}
+	
+	public JDBCDriver getJDBCDriver() {
+		return jdbc;
+	}
 
 	@Override
 	public Connection getConnection(Config config, String user, String pass)
@@ -93,6 +103,8 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 			throw new RuntimeException(e);
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException(e);
+		}catch (IOException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -107,11 +119,35 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 		return driver.connect(connStrTrans, props);
 	}
 
-	private Driver initialize(Config config) throws ClassException,
-			BundleException, InstantiationException, IllegalAccessException {
+	private Driver initialize(Config config) throws BundleException, InstantiationException, IllegalAccessException, IOException {
 		if (driver == null) {
-			// cd=_initializeCD(jdbc,cd, config);
-			driver = _initializeDriver(cd, config);
+			try {
+				return driver = _initializeDriver(cd, config);
+			}
+			catch (ClassException ce) {
+				// we have a bundle info, maybe the classname did change?
+				if(!StringUtil.isEmpty(cd.getName())) {
+					Bundle bundle = OSGiUtil.loadBundle(cd.getName(), cd.getVersion(),null , true);
+					String className = JDBCDriver.extractClassName(bundle);
+					if((cd.getClassName()+"").equals(className)) throw ce;
+					cd = new ClassDefinitionImpl(null,className,cd.getName(),cd.getVersion());
+					return driver =  _initializeDriver(cd, config);
+				}
+				
+				// PATCH for MySQL driver that did change the className within the same extension, JDBC extension expect that the className does not change.
+				if("org.gjt.mm.mysql.Driver".equals(cd.getClassName()) || "com.mysql.jdbc.Driver".equals(cd.getClassName()) || "com.mysql.cj.jdbc.Driver".equals(cd.getClassName())) {
+					// first we look for the new version
+					ClassDefinitionImpl tmp = new ClassDefinitionImpl("com.mysql.cj.jdbc.Driver","com.mysql.cj",null,config.getIdentification());
+					Class clazz = tmp.getClazz(null);
+					if(clazz!=null) return driver =  _initializeDriver(tmp, config);
+					
+					// then we look for the old version
+					tmp = new ClassDefinitionImpl("com.mysql.jdbc.Driver","com.mysql.jdbc",null,config.getIdentification());
+					clazz = tmp.getClazz(null);
+					if(clazz!=null) return driver =  _initializeDriver(tmp, config);
+				}
+				throw ce;
+			}
 		}
 		return driver;
 	}
