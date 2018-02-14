@@ -2,21 +2,18 @@
 <cfadmin
 action="getLoggedDebugData"
 type="web"
-password = "password"
 returnVariable="all">
 
 
 <cfadmin
 action="getLoggedDebugData"
 type="web"
-password="password"
 id="#all[arrayLen(all)].id#"
 returnVariable="log">
 
 <cfadmin
 	action="getDebugEntry"
 	type="web"
-	password="password"
 	returnVariable="entries">
 
 <cfset driverNames=structnew("linked")>

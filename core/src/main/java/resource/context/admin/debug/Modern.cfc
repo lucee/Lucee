@@ -20,7 +20,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 ,field("Reference","tab_Reference","Enabled",true,"Select the Reference tab to show on DebugOutput","checkbox","Enabled")
 );
 		string function getLabel(){
-			return "Modern - Extended - AJAX";
+			return "Modern";
 		}
 
 		string function getDescription(){
@@ -105,17 +105,17 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			</cfif>
 		</cfloop>
 		<cfset variables.chartStr = {}>
-			<cfloop list="#arguments.custom.metrics_Charts#" index="i">
-				<cfif i EQ "HeapChart">
-					<cfset variables.chartStr[i] = "heap">
-				<cfelseif i EQ "NonHeapChart">
-					<cfset variables.chartStr[i] = "nonheap">
-				<cfelseif i EQ "WholeSystem">
-					<cfset variables.chartStr[i] = "cpuSystem">
-				<cfelseif i EQ "LuceeProcess">
-					<cfset variables.chartStr[i] = "cpuProcess">
-				</cfif>
-			</cfloop>
+		<cfloop list="#arguments.custom.metrics_Charts#" index="i">
+			<cfif i EQ "HeapChart">
+				<cfset variables.chartStr[i] = "heap">
+			<cfelseif i EQ "NonHeapChart">
+				<cfset variables.chartStr[i] = "nonheap">
+			<cfelseif i EQ "WholeSystem">
+				<cfset variables.chartStr[i] = "cpuSystem">
+			<cfelseif i EQ "LuceeProcess">
+				<cfset variables.chartStr[i] = "cpuProcess">
+			</cfif>
+		</cfloop>
 
 		<cfset variables.tbsStr = {}>
 		<cfloop list="#variables.tabsPresent#" index="i">
@@ -140,11 +140,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		<cfif arguments.context EQ "web">
 			</td></td></td></th></th></th></tr></tr></tr></table></table></table></a></abbrev></acronym></address></applet></au></b></banner></big></blink></blockquote></bq></caption></center></cite></code></comment></del></dfn></dir></div></div></dl></em></fig></fn></font></form></frame></frameset></h1></h2></h3></h4></h5></h6></head></i></ins></kbd></listing></map></marquee></menu></multicol></nobr></noframes></noscript></note></ol></p></param></person></plaintext></pre></q></s></samp></script></select></small></strike></strong></sub></sup></table></td></textarea></th></title></tr></tt></u></ul></var></wbr></xmp>
 		</cfif>
-		<cfif isDefined("session") AND sizeOf(session) gt arguments.custom.sessionSize>
-			<cfoutput>
-				<h2 style="color:red">&nbsp;Your session is larger than #byteFormat(arguments.custom.sessionSize)#. Be aware</h2>
-			</cfoutput>
-		</cfif>
+
 		<cfoutput>
 			<cfset var sectionId = "ALL">
 			<cfset var isDebugAllOpen = this.isSectionOpen( sectionId )>
@@ -246,7 +242,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 			<script>
 				<cfset this.includeFileInline( "/lucee/res/js/util.min.js" )>
-				<cfset this.includeFileInline( "/lucee/res/js/highChart.js" )>
+				<cfset this.includeFileInline( "/lucee/res/js/echarts-all.js" )>
 				<cfset this.includeFileInline( "/lucee/res/js/typeahead.min.js" )>
 				<cfset this.includeFileInline( "/lucee/res/js/base.min.js" )>
 				<cfif !structKeyExists(url, "isAjaxRequest")>
@@ -433,107 +429,71 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				}
 			</script>
 			<cfif enableTab("metrics")>
-				<script>
-					function requestData(){
-						$.ajax({
-							type: "POST",
-							url: "/lucee-server/admin/debug/chartProcess.cfc?method=sysMetric",
-							success: function(data){
-
-								var x = (new Date()).getTime();
-								$.each(#serializeJSON( variables.chartStr )#, function(i, chrt){
-									//chart value were only displayed for enable charts in admin
-									window["series_"+chrt] =  eval(chrt+"Chart.series[0]");//getting chart data
-									window["shift_"+chrt] = eval("series_"+chrt).data.length > 100; // shift the chart if more than 100 entries available
-									window["y_"+chrt] = eval(data[chrt]);//y axis value get from Ajax
-									eval(chrt+"Chart.series[0]").addPoint([x, eval("y_"+chrt)], true, eval("shift_"+chrt));//add the values into chart series
-								})
-								// TimeOut
-								setTimeout(requestData, 1000);
-							}
-						})
-					}
-					function chartsData() {
-						Highcharts.setOptions({
-						    global: {
-						        useUTC: false
-						    }
-						});
-
-						function initiateNewChart(cName, cType, sName){
-							return Highcharts.chart(cName, {
-								chart: {
-									type: cType,
-									animation: Highcharts.svg,
-									marginRight: 10,
-									marginBottom: 20,
-									backgroundColor: "##FFFFFF"
-								},
-								plotOptions: {
-									series: {
-										marker: {
-											enabled: false
-										}
-									}
-								},
-								colors: ['##0000FF'],
-								title: {
-									text: ""
-								},
-								xAxis: {
-									type: 'datetime',
-									tickPixelInterval: 150,
-									labels: {
-										y: 15
-									}
-								},
-								yAxis: {
-									min: 0,
-			   						max: 100,
-									title: {
-										text: ""
-									},
-									labels: {
-										formatter: function() {
-											return this.value + "%";
-										}
-									},
-									plotLines: [{
-										value: 0,
-										width: 15
-									}]
-								},
-								tooltip: {
-									formatter: function () {
-										return '<b>' + this.series.name + '</b><br/>' +
-										Highcharts.dateFormat('%H:%M:%S', this.x) + '<br/>' +
-										Highcharts.numberFormat(this.y, 0)+"%";
-									}
-								},
-								legend: {
-									enabled: false
-								},
-								exporting: {
-									enabled: false
-								},
-								credits: {
-									enabled: false
-								},
-								series: [{
-									name: sName,
-									data: []
-								}]
+			<script>
+				function requestData(){
+					jQuery.ajax({
+						type: "POST",
+						url: "/lucee-server/admin/debug/chartProcess.cfc?method=sysMetric",
+						success: function(result){
+							var arr =["heap","nonheap", "cpuSystem", "cpuProcess"];
+							$.each(arr,function(index,chrt){
+								window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
+								window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
+								window[chrt+"Chart"].series[0].data = window["series_"+chrt];
+								if(window[chrt+"Chart"].series[0].data.length > 100){
+								window[chrt+"Chart"].series[0].data.shift(); //shift the array
+								}
+								window[chrt+"Chart"].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+								if(window[chrt+"Chart"].xAxis[0].data.length > 5){
+								window[chrt+"Chart"].xAxis[0].data.shift(); //shift the Time value
+								}
+								window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
 							});
+							setTimeout(requestData, 1000);
 						}
+					})
+				}
+				var dDate=[new Date().toLocaleTimeString()]; // current time
 
-						$.each(#serializeJSON( variables.chartStr )#, function(i, data){
-							// initiating the ajax data get process
-							window[data+"Chart"]= initiateNewChart(data, "areaspline", data+"Series");
-						})
-						requestData();
-					}
-					chartsData();
-				</script>
+
+				// intialize charts
+				$.each(["heap","nonheap", "cpuSystem", "cpuProcess"], function(i, data){
+					window[data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
+					window[data+"Chart"] = {
+						backgroundColor: ["##EFEDE5"],
+						tooltip : {'trigger':'axis'},
+						color: ['##0000FF'],
+						grid : {
+							width: '75%',
+							height: '65%',
+							x:'30px',
+							y:'20px'
+						},
+						xAxis : [{
+							'type':'category',
+							'boundaryGap' : false,
+							'data': [0]
+						}],
+						yAxis : [{
+							'type':'value',
+							'min':'0',
+							'max':'100',
+							'splitNumber': 2
+						}],
+						series : [
+							{
+							'name': data +' Memory',
+							'type':'line',
+							smooth:true,
+							itemStyle: {normal: {areaStyle: {type: 'default'}}},
+							'data': [0]
+							}
+						]
+					}; // data
+					window[data].setOption(window[data+"Chart"]); // passed the data into the chats
+				});
+				requestData();
+			</script>
 			</cfif>
 			<cfif enableTab("Reference")>
 				<script>
@@ -587,7 +547,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 							}
 						});
 
+
 						$(document).ready(function() {
+							$('##lucee-docs-search-input').focus();
 						    $('##-lucee-docs-btn-ALL').on('click', function() {
 								$('.tt-hint').hide();
 						    });
@@ -596,7 +558,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 							});
 						});
 
-						$('##lucee-docs-search-input').focus();
+						$('##-lucee-docs-btn-ALL').on('click', function() {
+							$('##lucee-docs-search-input').focus();
+					    });
 					}
 
 					function callDesc(type, item){
@@ -749,10 +713,16 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfset var prettify=structKeyExists(arguments.custom,'timeformat') and arguments.custom.timeformat EQ "natural">
 		</cfsilent>
 		<!--- General --->
+
 		<div id="debugContainer">
 			<cfoutput>
 			<cfif isEnabled( arguments.custom, 'general' )>
 				<div class="section-title" style="padding-top:23px;">Debugging Information</div>
+				<cfoutput>
+					<h3 style="color:red" class="section-title">&nbsp;Your session is larger than #byteFormat(arguments.custom.sessionSize)#. Be aware</h2>
+				</cfoutput>
+				<cfif isDefined("session") AND sizeOf(session) gt arguments.custom.sessionSize>
+				</cfif>
 				<cfset sectionId = "Info">
 				<cfset isOpen = this.isSectionOpen( sectionId )>
 				<table>
@@ -1578,7 +1548,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfset maxCols = 3>
 			<cfset searchClass = "SearchField1">
 		<cfelse>
-			<cfset maxCols = 5>
+			<cfset maxCols = 6>
 			<cfset searchClass = "SearchField2">
 		</cfif>
 		<!--- <div class="section-title">Debugging Information</div> --->
@@ -1683,6 +1653,11 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 	<cffunction name="loadCharts" output="true">
 		<cfargument name="chartStruct">
+		<cfset chartsLabel = structNew("linked")>
+		<cfset chartsLabel.HeapChart = "Heap Memory">
+		<cfset chartsLabel.NonHeapChart = "Non Heap Memory">
+		<cfset chartsLabel.WholeSystem = "CPU whole System">
+		<cfset chartsLabel.LuceeProcess = "CPU Process only">
 
 		<cfif structKeyExists(request, "fromAdmin") AND request.fromAdmin EQ true>
 			<cfset chartClass = "twoCharts">
@@ -1690,11 +1665,11 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfset chartClass = "fourCharts">
 		</cfif>
 
-		<cfloop item="i" collection="#arguments.chartStruct#">
+		<cfloop item="i" collection="#chartsLabel#">
 			<div class="chart_margin #chartClass#">
-				<div style="text-align:center;  width: 245px; height: 165px; padding:7px; border-radius: 25px; border: 2px solid ##898989;">
-					<div style="font-size: 14px;font-weight: bold;">#i#</div>
-					<div id="#StructFind(arguments.chartStruct,"#i#")#" style="width: 220px; height: 130px; margin: 0 auto;"></div>
+				<div style="text-align:center;  width: 280px; height: 180px; padding:7px; border-radius: 25px; border: 2px solid ##898989; -moz-box-sizing: unset !important">
+					<div style="font-size: 14px;font-weight: bold;">#chartsLabel[i]#</div>
+					<div id="#StructFind(arguments.chartStruct,"#i#")#" style="width: 250px; height: 130px; margin: 0 auto;"></div>
 				</div>
 			</div>
 		</cfloop>
@@ -1777,12 +1752,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 			// getting available component packages
 			tmpStr.componentDetails={};
-			try{
-				tmpStr.componentDetails.pack=getPackages();
-			}
-			catch(e) {
-				tmpStr.componentDetails.pack=["org.lucee.cfml"];
-			}
+			tmpStr.componentDetails.pack=["org.lucee.cfml"];
+
 
 			arraySort(tmpStr.componentDetails.pack, "textnocase");
 			tmpStr.componentDetails.cfcs=[];
@@ -1808,44 +1779,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			arraySort(tmpStr.componentDetails.cfcs, "textnocase");
 
 			return tmpStr.componentDetails.cfcs;
-		}
-
-		function toPackage(required string root,required string path) localmode=true {
-			path=replace(path,root,'');// TODO make this better
-			path=ListCompact(path,'\/');
-			path=replace(path,'\','.','all');
-			path=replace(path,'/','.','all');
-			return path;
-		}
-
-		function getPackages() localmode=true {
-			pc=getPageContext();
-			config=pc.getConfig();
-			mappings=config.getComponentMappings();
-
-			sct={};
-			for(m in mappings) {
-				if(isNull(m.getPhysical())) continue;
-				path=m.getPhysical().getAbsolutePath();
-				directory
-				recurse=true
-				type="file"
-				action="list"
-				directory=path
-				name="list";
-				loop query=list {
-					if(list.type=='file'){
-						p=toPackage(path,list.directory);
-						if(p.isEmpty()) continue;
-						sct[p]='';
-					}
-				}
-			}
-			arr=[];
-			loop struct=sct index='k' {
-				arrayAppend(arr,k);
-			}
-			return arr;
 		}
 
 	    private string function getPctColor(required numeric iPct) {
