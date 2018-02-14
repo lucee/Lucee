@@ -298,7 +298,6 @@ public final class ClassUtil {
 	 * @return matching Class
 	 */
 	private static Class _loadClass(ClassLoading cl,String className, Class defaultValue, Set<Throwable> exceptions) {
-		double start=SystemUtil.millis();
 		className=className.trim();
 		if(StringUtil.isEmpty(className)) return defaultValue;
 		
