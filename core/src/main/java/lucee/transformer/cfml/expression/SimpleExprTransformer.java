@@ -22,6 +22,7 @@ import lucee.runtime.exp.TemplateException;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.bytecode.Root;
+import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.ExprTransformer;
 import lucee.transformer.cfml.TransfomerSettings;
 import lucee.transformer.cfml.evaluator.EvaluatorPool;
@@ -44,19 +45,19 @@ public final class SimpleExprTransformer implements ExprTransformer {
 	}
 
 	@Override
-	public Expression transformAsString(Factory factory,Root root,EvaluatorPool ep,TagLib[][] tld,FunctionLib[] fld,TagLibTag[] scriptTags, SourceCode cfml, TransfomerSettings settings,boolean allowLowerThan) throws TemplateException {
-		return transform(factory,root,ep,tld,fld,scriptTags, cfml,settings);
+	public Expression transformAsString(Data data) throws TemplateException {
+		return transform(data);
 	}
 	
 	@Override
-	public Expression transform(Factory factory,Root root,EvaluatorPool ep,TagLib[][] tld,FunctionLib[] fld,TagLibTag[] scriptTags, SourceCode cfml, TransfomerSettings settings) throws TemplateException {
+	public Expression transform(Data data) throws TemplateException {
 			Expression expr=null;
 			// String
-				if((expr=string(factory,cfml))!=null) {
+				if((expr=string(data.factory,data.srcCode))!=null) {
 					return expr;
 				}
 			// Simple
-				return simple(factory,cfml);
+				return simple(data.factory,data.srcCode);
 	}
 	/**
 	 * Liest den String ein

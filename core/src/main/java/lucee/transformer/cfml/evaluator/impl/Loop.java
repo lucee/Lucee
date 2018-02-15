@@ -154,20 +154,22 @@ public final class Loop extends EvaluatorSupport {
 			String text=ASMUtil.getAttributeString(tag, "condition");
 
 			try {
-				
 				transformer = tagLib.getExprTransfomer();
 				Page page = ASMUtil.getAncestorPage(tag);
 				ConfigImpl config=(ConfigImpl) page.getConfig();
-				
-				Expression expr=transformer.transform(
-						BytecodeFactory.getInstance(config),
-						page,
-						new EvaluatorPool(),null,flibs,
-						config.getCoreTagLib(page.getSourceCode().getDialect()).getScriptTags(),
-						new SourceCode(text,false,page.getSourceCode().getDialect()),
+				Data data = new Data(
+						BytecodeFactory.getInstance(config), 
+						page, 
+						new SourceCode(text,false,page.getSourceCode().getDialect()), 
+						new EvaluatorPool(), 
 						new TransfomerSettings(
 								page.getSourceCode().getDialect()==CFMLEngine.DIALECT_CFML && config.getDotNotationUpperCase(),
-								page.getSourceCode().getDialect()==CFMLEngine.DIALECT_CFML && config.getHandleUnQuotedAttrValueAsString(),page.ignoreScopes));
+								page.getSourceCode().getDialect()==CFMLEngine.DIALECT_CFML && config.getHandleUnQuotedAttrValueAsString(),page.ignoreScopes), 
+						null, 
+						flibs, 
+						config.getCoreTagLib(page.getSourceCode().getDialect()).getScriptTags(), 
+						false);
+				Expression expr=transformer.transform(data);
 				
 				tag.addAttribute(new Attribute(false,"condition",page.getFactory().toExprBoolean(expr),"boolean"));
 			}
