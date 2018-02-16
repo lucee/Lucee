@@ -100,11 +100,11 @@ Error Output --->
 						window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
 						window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
 						window[chrt+"Chart"].series[0].data = window["series_"+chrt];
-						if(window[chrt+"Chart"].series[0].data.length > 100){
+						if(window[chrt+"Chart"].series[0].data.length > 60){
 						window[chrt+"Chart"].series[0].data.shift(); //shift the array
 						}
 						window[chrt+"Chart"].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
-						if(window[chrt+"Chart"].xAxis[0].data.length > 15){
+						if(window[chrt+"Chart"].xAxis[0].data.length > 60){
 						window[chrt+"Chart"].xAxis[0].data.shift(); //shift the Time value
 						}
 						window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
@@ -124,8 +124,10 @@ Error Output --->
 				tooltip : {'trigger':'axis'},
 				color: ["<cfoutput>#request.adminType EQ "server" ? '##3399CC': '##BF4F36'#</cfoutput>"],
 				grid : {
-					width: '60%',
-					height: '100px'
+					width: '89%',
+					height: '65%',
+					x:'30px',
+					y:'30px'
 				},
 				xAxis : [{
 					'type':'category',
@@ -273,10 +275,10 @@ Error Output --->
 						</tr>
 						<tr>
 							<td width="50%"><b>#pool['heap']#</b>
-								<div id="heap" style="min-width: 150px; height: 200px; margin: 0 auto;"></div>
+								<div id="heap" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
 							</td>
 							<td width="50%"><b>#pool['non_heap']#</b><br>
-								<div id="nonheap" style="min-width: 150px; height: 200px; margin: 0 auto;"></div>
+								<div id="nonheap" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
 							</td>
 						</tr>
 
@@ -294,10 +296,10 @@ Error Output --->
 							</tr>
 							<tr>
 								<td width="50%"><b>#stText.setting.cpuSystem#</b>
-									<div id="cpuSystem" style="min-width: 150px; height: 200px; margin: 0 auto;"></div>
+									<div id="cpuSystem" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
 								</td>
 								<td width="50%"><b>#stText.setting.cpuProcess#</b><br>
-									<div id="cpuProcess" style="min-width: 150px; height: 200px; margin: 0 auto;"></div>
+									<div id="cpuProcess" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
 								</td>
 							</tr>
 
