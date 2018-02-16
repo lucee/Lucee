@@ -718,9 +718,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfoutput>
 			<cfif isEnabled( arguments.custom, 'general' )>
 				<div class="section-title" style="padding-top:23px;">Debugging Information</div>
-				<cfoutput>
-					<h3 style="color:red" class="section-title">&nbsp;Your session is larger than #byteFormat(arguments.custom.sessionSize)#. Be aware</h2>
-				</cfoutput>
 				<cfif isDefined("session") AND sizeOf(session) gt arguments.custom.sessionSize>
 					<cfoutput>
 						<h3 style="color:red" class="section-title">&nbsp;Your session is larger than #byteFormat(arguments.custom.sessionSize)#. Be aware</h2>
