@@ -13,14 +13,14 @@ html, body {
 body {
 	min-width:600px;
 	background-color:#3399cc;
-	background-image: url('../img/bg_web.gif.cfm');
+	background-image: url('../img/bg_web-{appendix}.gif.cfm');
 	background-repeat: no-repeat;
 	margin:0;
 	padding:0;
 }
 body.server {
 	background-color:#bf4f36;
-	background-image: url('../img/bg_server.gif.cfm');
+	background-image: url('../img/bg_server-{appendix}.gif.cfm');
 }
 body, td, th {
 	font-family:Arial, Helvetica, sans-serif;
@@ -309,7 +309,7 @@ td#logintd {
 	content: " ";
 	left:5px;
 	top:8px;
-	background-image: url('../img/admin_sprite.png.cfm');
+	background-image: url('../img/admin_sprite-{appendix}.png.cfm');
 	background-repeat: no-repeat;
 	background-position: -105px -20px;
 }
@@ -1265,7 +1265,7 @@ body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 
 
 #admin-tabs	a 	{ display: block; width: 60px; height: 33px; float: left; }
 
-.sprite,#sprite			{ background-image: url( '../img/admin_sprite.png.cfm' ); background-repeat: no-repeat; }
+.sprite,#sprite			{ background-image: url( '../img/admin_sprite-{appendix}.png.cfm' ); background-repeat: no-repeat; }
 
 
 #resizewin 		{ display:block; width:19px; height:19px; text-indent: -9999px; }
@@ -1292,7 +1292,7 @@ body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 
 .admin-server #resizewin  		{ background-position: -85px -20px; }
 
 
-.icon		{ background-image: url( '../img/admin-sprite.png.cfm' ); margin: 3px; width: 9px; height: 9px; cursor: pointer; }
+.icon		{ background-image: url( '../img/admin-sprite-{appendix}.png.cfm' ); margin: 3px; width: 9px; height: 9px; cursor: pointer; }
 
 .plus		{ background-position: -144px -43px; }
 .minus		{ background-position: -144px -33px; }
