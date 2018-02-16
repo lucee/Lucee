@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.type.util.ListUtil;
 
 import org.osgi.framework.Bundle;
@@ -30,10 +31,12 @@ import org.osgi.framework.Bundle;
 public class JDBCDriver {
 
 	public final String label;
+	public final String id;
 	public final ClassDefinition cd;
 
-	public JDBCDriver(String label, ClassDefinition cd) {
+	public JDBCDriver(String label, String id,ClassDefinition cd) {
 		this.label=label;
+		this.id=StringUtil.isEmpty(id)?null:id.trim();
 		this.cd=cd;
 	}
 

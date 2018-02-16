@@ -3613,6 +3613,16 @@ public abstract class ConfigImpl implements Config {
 		}
 		return defaultValue;
 	}
+	
+	public JDBCDriver getJDBCDriverById(String id, JDBCDriver defaultValue) {
+		if(!StringUtil.isEmpty(id)) {
+			for(JDBCDriver d:drivers){
+				if(d.id!=null && d.id.equalsIgnoreCase(id)) return d;
+			}
+		}
+		return defaultValue;
+	}
+	
 	public JDBCDriver getJDBCDriverByBundle(String bundleName, Version version, JDBCDriver defaultValue) {
 		for(JDBCDriver d:drivers){
 			if(d.cd.getName().equals(bundleName) && (version==null || version.equals(d.cd.getVersion()))) return d;
@@ -3620,10 +3630,10 @@ public abstract class ConfigImpl implements Config {
 		return defaultValue;
 	}
 
-	public JDBCDriver getJDBCDriverById(String id, JDBCDriver defaultValue) {
+	public JDBCDriver getJDBCDriverByCD(ClassDefinition cd, JDBCDriver defaultValue) {
 		for(JDBCDriver d:drivers){
 			
-			if(d.cd.getId().equals(id)) return d;
+			if(d.cd.getId().equals(cd.getId())) return d; // TODO comparing cd objects directly?
 		}
 		return defaultValue;
 	}

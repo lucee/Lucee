@@ -27,15 +27,9 @@ import java.util.TimeZone;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
-import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.osgi.OSGiUtil;
-import lucee.transformer.library.ClassDefinitionImpl;
 
 import org.apache.commons.collections4.map.ReferenceMap;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 
 public abstract class DataSourceSupport implements DataSource, Cloneable {
@@ -57,19 +51,16 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 
 	private Map<String, ProcMetaCollection> procedureColumnCache;
 	private Driver driver;
-	protected final JDBCDriver jdbc;
-
 
 	private final Log log;
 
-	public DataSourceSupport(Config config, JDBCDriver jdbc, String name,
+	public DataSourceSupport(Config config, String name,
 			ClassDefinition cd, String username, String password, boolean blob,
 			boolean clob, int connectionLimit, int connectionTimeout,
 			long metaCacheTimeout, TimeZone timezone, int allow,
 			boolean storage, boolean readOnly, Log log) {
-		this.jdbc = jdbc;
 		this.name = name;
-		this.cd = _initializeCD(jdbc, cd, config);
+		this.cd = cd;//_initializeCD(null, cd, config);
 		this.blob = blob;
 		this.clob = clob;
 		this.connectionLimit = connectionLimit;
@@ -84,10 +75,6 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 		this.log = log;
 	}
 	
-	public JDBCDriver getJDBCDriver() {
-		return jdbc;
-	}
-
 	@Override
 	public Connection getConnection(Config config, String user, String pass)
 			throws ClassException, BundleException, SQLException {
@@ -121,39 +108,12 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 
 	private Driver initialize(Config config) throws BundleException, InstantiationException, IllegalAccessException, IOException {
 		if (driver == null) {
-			try {
-				return driver = _initializeDriver(cd, config);
-			}
-			catch (ClassException ce) {
-				// we have a bundle info, maybe the classname did change?
-				if(!StringUtil.isEmpty(cd.getName())) {
-					Bundle bundle = OSGiUtil.loadBundle(cd.getName(), cd.getVersion(),null , true);
-					String className = JDBCDriver.extractClassName(bundle);
-					if((cd.getClassName()+"").equals(className)) throw ce;
-					cd = new ClassDefinitionImpl(null,className,cd.getName(),cd.getVersion());
-					return driver =  _initializeDriver(cd, config);
-				}
-				
-				// PATCH for MySQL driver that did change the className within the same extension, JDBC extension expect that the className does not change.
-				if("org.gjt.mm.mysql.Driver".equals(cd.getClassName()) || "com.mysql.jdbc.Driver".equals(cd.getClassName()) || "com.mysql.cj.jdbc.Driver".equals(cd.getClassName())) {
-					// first we look for the new version
-					ClassDefinitionImpl tmp = new ClassDefinitionImpl("com.mysql.cj.jdbc.Driver","com.mysql.cj",null,config.getIdentification());
-					Class clazz = tmp.getClazz(null);
-					if(clazz!=null) return driver =  _initializeDriver(tmp, config);
-					
-					// then we look for the old version
-					tmp = new ClassDefinitionImpl("com.mysql.jdbc.Driver","com.mysql.jdbc",null,config.getIdentification());
-					clazz = tmp.getClazz(null);
-					if(clazz!=null) return driver =  _initializeDriver(tmp, config);
-				}
-				throw ce;
-			}
+			return driver = _initializeDriver(cd, config);
 		}
 		return driver;
 	}
 
-	private static ClassDefinition _initializeCD(JDBCDriver jdbc,
-			ClassDefinition cd, Config config) {
+	/*private static ClassDefinition _initializeCD(JDBCDriver jdbc, ClassDefinition cd, Config config) {
 		// try to link the class defintion with a jdbc driver defintion
 		if (!cd.isBundle()) {
 			if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cd
@@ -163,20 +123,17 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 						cd.getName(), cd.getVersionAsString(), null);
 			}
 
-			ConfigImpl ci = ((ConfigImpl) ThreadLocalPageContext
-					.getConfig(config));
-			JDBCDriver tmp = jdbc != null ? ci.getJDBCDriverById(
-					jdbc.cd.getId(), null) : null;
-			if (tmp == null)
-				tmp = ((ConfigImpl) config).getJDBCDriverByClassName(
-						cd.getClassName(), null);
+			ConfigImpl ci = ((ConfigImpl) ThreadLocalPageContext.getConfig(config));
+			JDBCDriver tmp = jdbc != null ? ci.getJDBCDriverByCD(jdbc.cd, null) : null;
+			if (tmp == null) tmp = ((ConfigImpl) config).getJDBCDriverByClassName(cd.getClassName(), null);
+			
 			// we have a matching jdbc driver found
 			if (tmp != null) {
 				cd = tmp.cd;
 			}
 		}
 		return cd;
-	}
+	}*/
 
 	private static Driver _initializeDriver(ClassDefinition cd, Config config)
 			throws ClassException, BundleException, InstantiationException,
@@ -186,12 +143,10 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 		return (Driver) clazz.newInstance();
 	}
 
-	public static void verify(Config config, JDBCDriver jdbc,
-			ClassDefinition cd, String connStrTranslated, String user,
-			String pass) throws ClassException, BundleException, SQLException {
+	public static void verify(Config config, ClassDefinition cd, String connStrTranslated, String user, String pass) throws ClassException, BundleException, SQLException {
 		try {
-			Driver driver = _initializeDriver(_initializeCD(jdbc, cd, config),
-					config);
+			//Driver driver = _initializeDriver(_initializeCD(jdbc, cd, config),config);
+			Driver driver = _initializeDriver(cd,config);
 			_getConnection(config, driver, connStrTranslated, user, pass);
 		} catch (InstantiationException e) {
 			throw new RuntimeException(e);

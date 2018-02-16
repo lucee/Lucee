@@ -227,7 +227,7 @@ public final class AppListenerUtil {
 			DataSourceDefintion dbt = DBUtil.getDataSourceDefintionForType(type, null);
 			if(dbt==null) throw new ApplicationException("no datasource type ["+type+"] found");
 			try {
-				return new DataSourceImpl(config,null,
+				return new DataSourceImpl(config,
 					name, 
 					dbt.classDefinition, 
 					Caster.toString(data.get(KeyConstants._host)), 
