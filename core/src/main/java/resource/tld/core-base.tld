@@ -4731,11 +4731,11 @@ Permits searching collections by title or displaying a separate title from the k
 		<attribute>
 			<type>object</type>
 			<name>timeout</name>
-			<required>true</required>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies the maximum amount of time, in seconds, to wait to obtain a lock. If a lock can be
 		obtained within the specified period, execution continues inside the body of the tag. Otherwise, the
-		behavior depends on the value of the throwOnTimeout attribute.</description>
+		behavior depends on the value of the throwOnTimeout attribute. If not set, the remaing request timeout is used instead.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>

@@ -1617,7 +1617,7 @@ public final class XMLConfigAdmin {
      * @param custom 
      * @throws PageException 
      */
-    public void updateDataSource(String name, String newName, ClassDefinition cd, String dsn, String username, String password,
+    public void updateDataSource(String id,String name, String newName, ClassDefinition cd, String dsn, String username, String password,
             String host, String database, int port, int connectionLimit, int connectionTimeout, long metaCacheTimeout,
             boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver,
             ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout) throws PageException {
@@ -1664,6 +1664,10 @@ public final class XMLConfigAdmin {
 	      		if(!StringUtil.isEmpty(newName) && !newName.equals(name))
 	      			el.setAttribute("name",newName);
 	      		setClass(el, null, "", cd);
+	      		
+	      		if(!StringUtil.isEmpty(id)) el.setAttribute("id",id);
+	      		else if(el.hasAttribute("id")) el.removeAttribute("id");
+	      		
 	      		el.setAttribute("dsn",dsn);
 	      		el.setAttribute("username",username);
 	      		el.setAttribute("password",ConfigWebUtil.encrypt(password));
@@ -1717,6 +1721,10 @@ public final class XMLConfigAdmin {
       		el.setAttribute("name",name);
       	setClass(el, null, "", cd);
   		el.setAttribute("dsn",dsn);
+  		
+  		if(!StringUtil.isEmpty(id)) el.setAttribute("id",id);
+  		else if(el.hasAttribute("id")) el.removeAttribute("id");
+  		
   		if(username.length()>0)el.setAttribute("username",username);
   		if(password.length()>0)el.setAttribute("password",ConfigWebUtil.encrypt(password));
         
@@ -1791,12 +1799,12 @@ public final class XMLConfigAdmin {
     	if(reload)admin._reload();
 	}*/
 
-	public void updateJDBCDriver(String label, ClassDefinition cd) throws PageException {
+	public void updateJDBCDriver(String label, String id, ClassDefinition cd) throws PageException {
     	checkWriteAccess();
-    	_updateJDBCDriver(label,cd);
+    	_updateJDBCDriver(label,id,cd);
     }
     
-    private void _updateJDBCDriver(String label, ClassDefinition cd) throws PageException {
+    private void _updateJDBCDriver(String label, String id, ClassDefinition cd) throws PageException {
     	
     	// check if label exists
 		if(StringUtil.isEmpty(label)) 
@@ -1824,8 +1832,12 @@ public final class XMLConfigAdmin {
       		child=doc.createElement("driver");
       		parent.appendChild(child);
       	}
-      	
+
       	child.setAttribute("label",label);
+      	if(!StringUtil.isEmpty(id))
+      		child.setAttribute("id",id);
+      	else
+      		child.removeAttribute("id");
       	// make sure the class exists
         setClass(child, null, "", cd);
         
@@ -5088,8 +5100,9 @@ public final class XMLConfigAdmin {
 					map = itl.next();
 					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
 					String _label=map.get("label");
+					String _id=map.get("id");
 					if(cd!=null && cd.isBundle()) {
-						_updateJDBCDriver(_label,cd);
+						_updateJDBCDriver(_label,_id,cd);
 						reloadNecessary=true;
 					}
 					logger.info("extension", "update JDBC Driver ["+_label+":"+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");

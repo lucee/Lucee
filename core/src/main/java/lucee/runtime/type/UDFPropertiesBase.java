@@ -5,6 +5,7 @@ import java.util.Set;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
+import lucee.runtime.engine.ThreadLocalPageSource;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection.Key;
@@ -12,47 +13,27 @@ import lucee.runtime.type.util.ComponentUtil;
 
 public abstract class UDFPropertiesBase implements UDFProperties {
 
+	private Page page;
 	private String id;
+	protected PageSource ps;
+	protected int startLine;
+	protected int endLine;
 
-	public abstract String getFunctionName();
-
-	public abstract boolean getOutput();
-
-	public abstract Boolean getBufferOutput();
-
-	public abstract int getReturnType();
-
-	public abstract String getReturnTypeAsString();
-
-	public abstract String getDescription();
-
-	public abstract int getReturnFormat();
-
-	public abstract String getReturnFormatAsString();
-
-	public abstract int getIndex();
-
-	public abstract PageSource getPageSource();
-	protected abstract Page getPage();
-
-	public abstract Object getCachedWithin();
-
-	public abstract Boolean getSecureJson();
-
-	public abstract Boolean getVerifyClient();
-
-	public abstract FunctionArgument[] getFunctionArguments();
-
-	public abstract String getDisplayName();
-
-	public abstract String getHint();
-
-	public abstract Struct getMeta();
-
-	public abstract Integer getLocalMode();
-
-	public abstract Set<Key> getArgumentsSet();
-
+	public UDFPropertiesBase() {}
+	
+	public UDFPropertiesBase(Page page,PageSource ps, int startLine, int endLine) {
+		this.page=page;
+		if(ps==null){
+			ps = ThreadLocalPageSource.get();
+			if(ps==null && page!=null){
+				ps=page.getPageSource();
+			}
+		}
+		this.ps=ps;
+		this.startLine=startLine;
+		this.endLine=endLine;
+	}
+	
 	public final Page getPage(PageContext pc) throws PageException {
 		
 		// MUST no page source
@@ -84,4 +65,57 @@ public abstract class UDFPropertiesBase implements UDFProperties {
 		}
 		return id;
 	}
+	
+
+	protected final Page getPage() {
+		return page;
+	}
+
+	public final PageSource getPageSource() {
+		return ps;
+	}
+
+	public final int getStartLine() {
+		return startLine;
+	}
+
+	public final int getEndLine() {
+		return endLine;
+	}
+
+	public abstract String getFunctionName();
+
+	public abstract boolean getOutput();
+
+	public abstract Boolean getBufferOutput();
+
+	public abstract int getReturnType();
+
+	public abstract String getReturnTypeAsString();
+
+	public abstract String getDescription();
+
+	public abstract int getReturnFormat();
+
+	public abstract String getReturnFormatAsString();
+
+	public abstract int getIndex();
+
+	public abstract Object getCachedWithin();
+
+	public abstract Boolean getSecureJson();
+
+	public abstract Boolean getVerifyClient();
+
+	public abstract FunctionArgument[] getFunctionArguments();
+
+	public abstract String getDisplayName();
+
+	public abstract String getHint();
+
+	public abstract Struct getMeta();
+
+	public abstract Integer getLocalMode();
+
+	public abstract Set<Key> getArgumentsSet();
 }

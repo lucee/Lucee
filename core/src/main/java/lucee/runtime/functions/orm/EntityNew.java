@@ -22,8 +22,6 @@ package lucee.runtime.functions.orm;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import lucee.print;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;

@@ -2051,11 +2051,11 @@ sort direction:
 		</return>
 	</function>
 	
-	<!-- CleanWhiteSpace -->
+	<!-- TrimWhiteSpace -->
 	<function>
-		<name>CleanWhiteSpace</name>
-		<class>lucee.runtime.functions.string.CleanWhiteSpace</class>
-		<member-name>cleanWhiteSpace</member-name>
+		<name>TrimWhiteSpace</name>
+		<class>lucee.runtime.functions.string.TrimWhiteSpace</class>
+		<member-name>trimWhiteSpace</member-name>
 		<status>hidden</status>
 		<keywords>string</keywords>
 		<description>clean white space of the given string</description>

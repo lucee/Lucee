@@ -161,6 +161,7 @@ import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
 import org.apache.log4j.PatternLayout;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
 
 /**
  * Hold the definitions of the Lucee configuration.
@@ -3605,11 +3606,27 @@ public abstract class ConfigImpl implements Config {
 		}
 		return defaultValue;
 	}
-
+	
 	public JDBCDriver getJDBCDriverById(String id, JDBCDriver defaultValue) {
+		if(!StringUtil.isEmpty(id)) {
+			for(JDBCDriver d:drivers){
+				if(d.id!=null && d.id.equalsIgnoreCase(id)) return d;
+			}
+		}
+		return defaultValue;
+	}
+	
+	public JDBCDriver getJDBCDriverByBundle(String bundleName, Version version, JDBCDriver defaultValue) {
+		for(JDBCDriver d:drivers){
+			if(d.cd.getName().equals(bundleName) && (version==null || version.equals(d.cd.getVersion()))) return d;
+		}
+		return defaultValue;
+	}
+
+	public JDBCDriver getJDBCDriverByCD(ClassDefinition cd, JDBCDriver defaultValue) {
 		for(JDBCDriver d:drivers){
 			
-			if(d.cd.getId().equals(id)) return d;
+			if(d.cd.getId().equals(cd.getId())) return d; // TODO comparing cd objects directly?
 		}
 		return defaultValue;
 	}

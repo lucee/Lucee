@@ -1,4 +1,21 @@
 <cfif request.admintype EQ "server"><cflocation url="#request.self#" addtoken="no"></cfif>
+<cfscript>
+	function sortByValue(struct sct) {
+		var tmp=structNew("ordered");
+		loop struct=sct index="local.k" item="local.v" {
+			tmp[v]=k;
+		}
+		local.keys=tmp.keyArray().sort('textnocase');
+		
+		var trg=structNew("ordered");
+		loop array=keys item="local.k" {
+			trg[tmp[k]]=k;
+		}
+
+		return trg;
+	}
+</cfscript>
+
 <cfadmin
    action="getRHServerExtensions"
    type="#request.adminType#"
@@ -216,10 +233,8 @@
 							<th scope="row">#stText.Search.Language#</th>
 							<td>
 								<select name="collLanguage" class="medium">
-									<cfset aLangs = StructKeyArray(stText.SearchLng)>
-									<cfset ArraySort(aLangs, "text")>
-									<cfloop from="1" to="25" index="iLng"> 
-										<option value="#aLangs[iLng]#" <cfif aLangs[iLng] eq "english">selected</cfif>>#stText.SearchLng[aLangs[iLng]]#</option>
+									<cfloop struct="#sortByValue(stText.SearchLng)#" index="key" item="val"> 
+										<option value="#key#" <cfif key eq "english">selected</cfif>>#val#</option>
 									</cfloop>
 								</select>
 							</td>
@@ -308,9 +323,10 @@
 							</tr>
 							<tr>
 								<th scope="row">#stText.Search.Language#</th>
-								<td><select name="language" class="medium">
-									<cfloop collection="#stText.SearchLng#" item="key">
-										<option value="#key#" <cfif key eq "english">selected</cfif>>#stText.SearchLng[key]#</option>
+								<td>
+									<select name="language" class="medium">
+									<cfloop struct="#sortByValue(stText.SearchLng)#" index="key" item="val">
+										<option value="#key#" <cfif key eq "english">selected</cfif>>#val#</option>
 									</cfloop>
 								</select></td>
 							</tr>

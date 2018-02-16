@@ -65,6 +65,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ListUtil;
 
 import org.apache.felix.framework.Logger;
+import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -1821,5 +1822,15 @@ public class OSGiUtil {
 	public static  boolean isFrameworkBundle(Bundle b) {// FELIX specific
 		
 		return "org.apache.felix.framework".equalsIgnoreCase(b.getSymbolicName()); // TODO move to cire util class tha does not exist yet
+	}
+
+
+
+	public static Bundle getBundleFromClass(Class clazz, Bundle defaultValue) {
+		ClassLoader cl = clazz.getClassLoader();
+		if(cl instanceof BundleClassLoader) {
+			return ((BundleClassLoader) cl).getBundle();
+		}
+		return defaultValue;
 	}
 }

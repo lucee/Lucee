@@ -19,43 +19,51 @@
 package lucee.transformer.cfml.script;
 
 import lucee.runtime.exp.TemplateException;
-import lucee.transformer.Factory;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.Page;
-import lucee.transformer.bytecode.Root;
-import lucee.transformer.cfml.TransfomerSettings;
-import lucee.transformer.cfml.evaluator.EvaluatorPool;
+import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.tag.TagDependentBodyTransformer;
 import lucee.transformer.expression.Expression;
-import lucee.transformer.library.function.FunctionLib;
-import lucee.transformer.library.tag.TagLib;
-import lucee.transformer.library.tag.TagLibTag;
-import lucee.transformer.util.SourceCode;
 
 public class CFMLScriptTransformer extends AbstrCFMLScriptTransformer implements TagDependentBodyTransformer {
 	@Override
-	public Body transform(Factory factory,Root root,EvaluatorPool ep
-			,TagLib[][] tlibs, FunctionLib[] fld
-			, String surroundingTagName,TagLibTag[] scriptTags
-			, SourceCode cfml,TransfomerSettings settings) throws TemplateException	{
-		//Page page = ASMUtil.getAncestorPage(tag);
-		boolean isCFC= root instanceof Page && ((Page)root).isComponent();
-		boolean isInterface=  root instanceof Page && ((Page)root).isInterface();
+	public Body transform(Data data, String surroundingTagName) throws TemplateException	{
 		
-		ExprData data = init(factory,root,ep,tlibs,fld,scriptTags,cfml,settings,true);
-
-		data.insideFunction=false; 
-		data.tagName=surroundingTagName;
-		data.isCFC=isCFC;
-		data.isInterface=isInterface;
-		//data.scriptTags=((ConfigImpl) config).getCoreTagLib().getScriptTags();
-
-		//tag.setBody(statements(data));
-		return statements(data);
+	//tag.setBody(tdbt.transform(data.factory,data.root,data.ep,data.tlibs,data.flibs,
+	//		tagLibTag.getFullName(),data.scriptTags,data.srcCode,data.settings));
+	
+	
+		boolean isCFC= data.root instanceof Page && ((Page)data.root).isComponent();
+		boolean isInterface=  data.root instanceof Page && ((Page)data.root).isInterface();
+		
+		Data ed = init(data);
+		
+		boolean oldAllowLowerThan = ed.allowLowerThan;
+		boolean oldInsideFunction=ed.insideFunction=false; 
+		String oldTagName = ed.tagName;
+		boolean oldIsCFC=ed.isCFC;
+		boolean oldIsInterface=ed.isInterface;
+		
+		ed.allowLowerThan=true;
+		ed.insideFunction=false; 
+		ed.tagName=surroundingTagName;
+		ed.isCFC=isCFC;
+		ed.isInterface=isInterface;
+		try {
+			return statements(ed);
+		}
+		finally {
+			ed.allowLowerThan=oldAllowLowerThan;
+			ed.insideFunction=oldInsideFunction;
+			ed.tagName=oldTagName;
+			ed.isCFC=oldIsCFC;
+			ed.isInterface=oldIsInterface;
+			
+		}
 	}
 
 	@Override
-	public final Expression expression(ExprData data) throws TemplateException {
+	public final Expression expression(Data data) throws TemplateException {
 		Expression expr;
 		expr = super.expression(data);
 		comments(data);

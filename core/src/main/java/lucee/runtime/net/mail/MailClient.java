@@ -54,7 +54,6 @@ import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.functions.string.Hash;
 import lucee.runtime.net.imap.ImapClient;
 import lucee.runtime.net.pop.PopClient;
 import lucee.runtime.op.Caster;

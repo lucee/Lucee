@@ -21,6 +21,7 @@ package lucee.commons.io.log.log4j.appender;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.Config;
@@ -45,7 +46,7 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 	private String password;
 	private Config config;
 	private DatasourceConnectionPool pool;
-	private boolean ignore;
+	private boolean ignore=true;
 
 	public DatasourceAppender(Config config, Layout layout, String datasource, String username, String password) throws PageException {
 		this.datasourceName=datasource;
@@ -59,27 +60,45 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 
 	@Override
 	public void append(LoggingEvent event) {
-		if(!ignore) super.append(event);
+		print.ds("--- append ("+ignore+") ----");
+		if(ignore) {
+			print.e("--- append2  ("+ignore+")  ----");
+			try{
+				getConnection();
+				ignore=false;
+				print.e("fine!");
+			}
+			catch(Throwable e) {
+				print.e("xxxxxxxxxxxxxxxxxxxxx");
+				print.e(e);
+			}
+		}
+		
+		try{
+			print.e("--- append3 ("+ignore+") ----");
+			if(!ignore) super.append(event);
+		}
+		catch(Throwable e) {
+			print.e("xxxxxxxxxxxxxxxxxxxxx");
+			print.e(e);
+		}
 	}
 	
 
 	@Override
 	public String getSql() {
 		String sql = super.getSql();
+		print.e("SQL:"+sql);
 		return sql;
 	}
 	
 	@Override
 	protected Connection getConnection() throws SQLException {
-		ignore=true;
 		try {
-			
 			return pool().getDatasourceConnection(config, datasource, username, password);
-		} catch (PageException e) {
-			throw new SQLException(e);
 		}
-		finally {
-			ignore=false;
+		catch (PageException e) {
+			throw new SQLException(e);
 		}
 	}
 	

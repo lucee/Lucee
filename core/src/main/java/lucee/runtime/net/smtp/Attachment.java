@@ -18,8 +18,6 @@
  **/
 package lucee.runtime.net.smtp;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URL;
 

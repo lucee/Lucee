@@ -32,6 +32,7 @@ import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Driver;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -154,6 +155,7 @@ import lucee.runtime.orm.DummyORMEngine;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.osgi.BundleInfo;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.reflection.pairs.ConstructorInstance;
 import lucee.runtime.search.DummySearchEngine;
@@ -182,6 +184,7 @@ import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibException;
 
 import org.apache.log4j.Level;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -391,9 +394,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		
 		if(XMLConfigAdmin.fixComponentMappings(config,doc)) reload=true;
 		if(LOG)SystemOut.printDate("fixed component mappings");
-		
-		
-		
+
 		// delete to big felix.log (there is also code in the loader to do this, but if the loader is not updated ...)
 		if(config instanceof ConfigServerImpl) {
 			ConfigServerImpl _cs=(ConfigServerImpl) config;
@@ -1943,39 +1944,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	private static void loadDataSources(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		
 		// load JDBC Driver defintion
-		{
-			Element jdbc = getChildByName(doc.getDocumentElement(), "jdbc");
-			Element[] drivers = getChildren(jdbc, "driver");
-			Map<String,JDBCDriver> map=new HashMap<String,JDBCDriver>();
-			
-
-			// first add the server drivers, so they can be overwritten
-			if(configServer!=null) {
-				JDBCDriver[] sds = configServer.getJDBCDrivers();
-				for(JDBCDriver sd:sds){
-					map.put(sd.cd.toString(), sd);
-				}
-			}
-			
-			ClassDefinition cd;
-			String label;
-			for(Element driver:drivers){
-				cd=getClassDefinition(driver, "", config.getIdentification());
-				label=getAttr(driver,"label");
-				// check if label exists
-				if(StringUtil.isEmpty(label)) {
-					log.error("Datasource", "missing label for jdbc driver ["+cd.getClassName()+"]");
-					continue;
-				}
-				// check if it is a bundle
-				if(!cd.isBundle()) {
-					log.error("Datasource", "jdbc driver ["+label+"] does not describe a bundle");
-					continue;
-				}
-				map.put(cd.toString(), new JDBCDriver(label,cd));
-			}
-			config.setJDBCDrivers(map.values().toArray(new JDBCDriver[map.size()]));
-		}
+		config.setJDBCDrivers(loadJDBCDrivers(configServer,config, doc, log));
+		
 		
 		
 		
@@ -2055,17 +2025,28 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			accessCount = dataSources.length;
 
 		// if(hasAccess) {
+		JDBCDriver jdbc;
 		ClassDefinition cd;
+		String id;
 		for (int i = 0; i < accessCount; i++) {
 			Element dataSource = dataSources[i];
 			if (dataSource.hasAttribute("database")) {
-				
 				try {
-					cd=getClassDefinition(dataSource, "", config.getIdentification());
-					if(!cd.isBundle()) {
-						JDBCDriver jdbc = config.getJDBCDriverByClassName(cd.getClassName(),null);
-						if(jdbc!=null)cd=jdbc.cd;
+					// do we have an id?
+					jdbc=config.getJDBCDriverById(getAttr(dataSource,"id"),null);
+					if(jdbc!=null && jdbc.cd!=null) {
+						cd=jdbc.cd;
 					}
+					else cd=getClassDefinition(dataSource, "", config.getIdentification());
+					
+					// we only have a class
+					if(!cd.isBundle()) {
+						jdbc = config.getJDBCDriverByClassName(cd.getClassName(),null);
+						if(jdbc!=null && jdbc.cd!=null && jdbc.cd.isBundle())cd=jdbc.cd;
+					}
+					
+					// still no bundle!
+					if(!cd.isBundle())cd=patchJDBCClass(config,cd);
 					
 					setDatasource(config, datasources
 						,getAttr(dataSource,"name")
@@ -2102,6 +2083,88 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		
 		
 		
+	}
+
+	private static ClassDefinition patchJDBCClass(ConfigImpl config, ClassDefinition cd) {
+		// PATCH for MySQL driver that did change the className within the same extension, JDBC extension expect that the className does not change.
+		if("org.gjt.mm.mysql.Driver".equals(cd.getClassName()) || "com.mysql.jdbc.Driver".equals(cd.getClassName()) || "com.mysql.cj.jdbc.Driver".equals(cd.getClassName())) {
+			JDBCDriver jdbc = config.getJDBCDriverById("mysql", null);
+			if(jdbc!=null && jdbc.cd!=null && jdbc.cd.isBundle()) return jdbc.cd;
+			
+			jdbc = config.getJDBCDriverByClassName("com.mysql.cj.jdbc.Driver", null);
+			if(jdbc!=null && jdbc.cd!=null && jdbc.cd.isBundle()) return jdbc.cd;
+			
+			jdbc = config.getJDBCDriverByClassName("com.mysql.jdbc.Driver", null);
+			if(jdbc!=null && jdbc.cd!=null && jdbc.cd.isBundle()) return jdbc.cd;
+			
+			jdbc = config.getJDBCDriverByClassName("org.gjt.mm.mysql.Driver", null);
+			if(jdbc!=null && jdbc.cd!=null && jdbc.cd.isBundle()) return jdbc.cd;
+			
+			ClassDefinitionImpl tmp = new ClassDefinitionImpl("com.mysql.cj.jdbc.Driver","com.mysql.cj",null,config.getIdentification());
+			if(tmp.getClazz(null)!=null) return tmp;
+			
+			tmp = new ClassDefinitionImpl("com.mysql.jdbc.Driver","com.mysql.jdbc",null,config.getIdentification());
+			if(tmp.getClazz(null)!=null) return tmp;
+		}
+		if("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cd.getClassName())) {
+			JDBCDriver jdbc = config.getJDBCDriverById("mssql", null);
+			if(jdbc!=null && jdbc.cd!=null && jdbc.cd.isBundle()) return jdbc.cd;
+			
+			jdbc = config.getJDBCDriverByClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver", null);
+			if(jdbc!=null && jdbc.cd!=null && jdbc.cd.isBundle()) return jdbc.cd;
+			
+			ClassDefinitionImpl tmp = new ClassDefinitionImpl("com.microsoft.sqlserver.jdbc.SQLServerDriver",cd.getName(), cd.getVersionAsString(),config.getIdentification());
+			if(tmp.getClazz(null)!=null) return tmp;
+		}
+		
+		return cd;
+	}
+
+	public static JDBCDriver[] loadJDBCDrivers(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		Map<String,JDBCDriver> map=new HashMap<String,JDBCDriver>();
+		
+
+		// first add the server drivers, so they can be overwritten
+		if(configServer!=null) {
+			JDBCDriver[] sds = configServer.getJDBCDrivers();
+			for(JDBCDriver sd:sds){
+				map.put(sd.cd.toString(), sd);
+			}
+		}
+		
+		
+		Element jdbc = getChildByName(doc.getDocumentElement(), "jdbc");
+		Element[] drivers = getChildren(jdbc, "driver");
+		
+		
+		ClassDefinition cd;
+		String label,id;
+		for(Element driver:drivers) {
+			cd=getClassDefinition(driver, "", config.getIdentification());
+			if(StringUtil.isEmpty(cd.getClassName()) && !StringUtil.isEmpty(cd.getName())) {
+				try{
+					Bundle bundle = OSGiUtil.loadBundle(cd.getName(), cd.getVersion(), config.getIdentification(), false);
+					String cn=JDBCDriver.extractClassName(bundle);
+					cd=new ClassDefinitionImpl(config.getIdentification(),cn,cd.getName(),cd.getVersion());
+				}
+				catch(Exception e) {}
+			}
+
+			label=getAttr(driver,"label");
+			id=getAttr(driver,"id");
+			// check if label exists
+			if(StringUtil.isEmpty(label)) {
+				if(log!=null)log.error("Datasource", "missing label for jdbc driver ["+cd.getClassName()+"]");
+				continue;
+			}
+			// check if it is a bundle
+			if(!cd.isBundle()) {
+				if(log!=null)log.error("Datasource", "jdbc driver ["+label+"] does not describe a bundle");
+				continue;
+			}
+			map.put(cd.toString(), new JDBCDriver(label,id,cd));
+		}
+		return map.values().toArray(new JDBCDriver[map.size()]);
 	}
 
 	/*private static ClassDefinition matchJDBCBundle(Config config, ClassDefinition cd) {
@@ -2452,7 +2515,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax ps, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout) throws BundleException, ClassException, SQLException {
 
 		datasources.put( datasourceName.toLowerCase(),
-				new DataSourceImpl(config,null,datasourceName, cd, server, dsn, databasename, port, user, pass, connectionLimit, connectionTimeout, metaCacheTimeout, blob, clob, allow,
+				new DataSourceImpl(config,datasourceName, cd, server, dsn, databasename, port, user, pass, connectionLimit, connectionTimeout, metaCacheTimeout, blob, clob, allow,
 						custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver,ps,literalTimestampWithTSOffset,alwaysSetTimeout,config.getLog("application")) );
 
 	}

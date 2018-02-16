@@ -6,7 +6,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 
-public class CleanWhiteSpace extends BIF {
+public class TrimWhiteSpace extends BIF {
 	
 	public static final char CHAR_EMPTY=0;
 	public static final char CHAR_NL='\n';
@@ -18,10 +18,9 @@ public class CleanWhiteSpace extends BIF {
 	
 	
 	public static String call(PageContext pc, String input) {
-		int len=input.length();
 		StringBuilder sb=new StringBuilder();
-		char charBuffer=CHAR_EMPTY;
-		char c;
+		int len=input.length();
+		char charBuffer=CHAR_EMPTY,c;
 		for(int i=0;i<len;i++) {
 			c=input.charAt(i);
 			switch(c) {
@@ -35,7 +34,6 @@ public class CleanWhiteSpace extends BIF {
 				case CHAR_TAB:
 					if(charBuffer==CHAR_EMPTY)charBuffer=c;
 				break;
-				
 				default:
 					if(charBuffer!=CHAR_EMPTY) {
 						char b = charBuffer;// muss so bleiben!

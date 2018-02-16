@@ -990,7 +990,7 @@ public final class SystemUtil {
 	}
 
 	public static TemplateLine getCurrentContext() {
-		StackTraceElement[] traces = Thread.currentThread().getStackTrace();
+		StackTraceElement[] traces = new Exception().getStackTrace();
 
 		int line = 0;
 		String template;

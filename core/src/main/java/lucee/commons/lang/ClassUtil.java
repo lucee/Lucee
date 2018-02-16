@@ -150,9 +150,12 @@ public final class ClassUtil {
 			return OSGiUtil.loadBundle(name, version, id, true).loadClass(className);
 		} 
 		catch (ClassNotFoundException e) {
+			String appendix="";
+			if(!StringUtil.isEmpty(e.getMessage(),true)) 
+				appendix=" "+e.getMessage();
 			if(version==null)
-				throw new ClassException("In the OSGi Bundle with the name ["+name+"] was no class with name ["+className+"] found.");
-			throw new ClassException("In the OSGi Bundle with the name ["+name+"] and the version ["+version+"] was no class with name ["+className+"] found.");
+				throw new ClassException("In the OSGi Bundle with the name ["+name+"] was no class with name ["+className+"] found."+appendix);
+			throw new ClassException("In the OSGi Bundle with the name ["+name+"] and the version ["+version+"] was no class with name ["+className+"] found."+appendix);
 		}
 	}
 	
@@ -298,7 +301,6 @@ public final class ClassUtil {
 	 * @return matching Class
 	 */
 	private static Class _loadClass(ClassLoading cl,String className, Class defaultValue, Set<Throwable> exceptions) {
-		double start=SystemUtil.millis();
 		className=className.trim();
 		if(StringUtil.isEmpty(className)) return defaultValue;
 		

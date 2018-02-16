@@ -25,7 +25,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
-import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 public final class FindOneOf extends BIF {

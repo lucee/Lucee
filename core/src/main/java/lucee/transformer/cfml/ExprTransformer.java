@@ -55,7 +55,7 @@ public interface ExprTransformer {
 	 * @throws lucee.runtime.exp.TemplateException 
 	 * @throws TemplateException
 	 */
-	public Expression transform(Factory factory,Root root,EvaluatorPool ep,TagLib[][] tld, FunctionLib[] fld,TagLibTag[] scriptTags,SourceCode cfml, TransfomerSettings settings) throws TemplateException;
+	public Expression transform(Data data) throws TemplateException;
 
 	
 	/**
@@ -73,6 +73,6 @@ public interface ExprTransformer {
 	 * @return Element CFXD Element
 	 * @throws TemplateException
 	 */
-	public Expression transformAsString(Factory factory, Root root,EvaluatorPool ep,TagLib[][] tld, FunctionLib[] fld,TagLibTag[] scriptTags,SourceCode cfml, TransfomerSettings settings,boolean allowLowerThan) throws TemplateException;
-
+	public Expression transformAsString(Data data) throws TemplateException;
+	
 }

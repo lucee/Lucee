@@ -1,6 +1,8 @@
 package lucee.commons.lang;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 /**
@@ -17,12 +19,14 @@ public abstract class PageContextThread extends Thread {
 
 	@Override
 	public final void run() {
+		Thread t = pageContext.getThread();
 		ThreadLocalPageContext.register(pageContext);// register the PageContext to this thread
 		try{
 			run(pageContext);
 		}
 		finally {
 			ThreadLocalPageContext.release();
+			if(t!=null)((PageContextImpl)pageContext).setThread(t);
 		}
 		
 	}

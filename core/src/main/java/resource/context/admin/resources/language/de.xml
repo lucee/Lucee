@@ -611,9 +611,8 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="login.d">einen Tag</data>
 	<data key="login.changepassworddescription">Passwort für diesen Administrator ändern.</data>
 	<data key="login.ww">eine Woche</data>
-	<data key="searchlng.arabic">Arabisch</data>
-	<data key="searchlng.simplified_chinese">Chinesisch (vereinfacht)</data>
-	<data key="searchlng.traditional_chinese">Chinesisch (traditionell)</data>
+	
+	<data key="searchlng.chinese">Chinesisch</data>
 	<data key="searchlng.czech">Tschechisch</data>
 	<data key="searchlng.danish">Dänisch</data>
 	<data key="searchlng.dutch">Holländisch</data>
@@ -622,15 +621,11 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="searchlng.french">Französisch</data>
 	<data key="searchlng.german">Deutsch</data>
 	<data key="searchlng.greek">Griechisch</data>
-	<data key="searchlng.hebrew">Hebräisch</data>
 	<data key="searchlng.hungarian">Ungarisch</data>
 	<data key="searchlng.italian">Italienisch</data>
 	<data key="searchlng.japanese">Japanisch</data>
 	<data key="searchlng.korean">Koreanisch</data>
 	<data key="searchlng.norwegian">Norwegisch</data>
-	<data key="searchlng.bokmal">Norwegisch (Bokmal)</data>
-	<data key="searchlng.nynorsk">Norwegisch (Nynorsk)</data>
-	<data key="searchlng.polish">Polnisch</data>
 	<data key="searchlng.portuguese">Portugesisch</data>
 	<data key="searchlng.russian">Russisch</data>
 	<data key="searchlng.spanish">Spanisch</data>

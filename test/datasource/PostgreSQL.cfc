@@ -34,6 +34,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public void function testConnection94(){
 		_testConnection(defineDatasource94());
 	}
+	public void function testConnection42(){
+		_testConnection(defineDatasource42());
+	}
 	private void function _testConnection(has){
 		if(!has) return;
 
@@ -68,6 +71,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	}
 
+
 	public function testLDEV1063a() skip=true{
 		var has=defineDatasource();
 		if(!has) return;
@@ -91,9 +95,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		assertEquals("2016-11-08", qry.election_date);
 	}
+	private boolean function defineDatasource42(){
+		var pgsql=getCredencials();
+		if(pgsql.count()==0) return false;
+		application action="update"
+			datasource="#{
+	  class: 'org.postgresql.Driver'
+	, bundleName: 'org.postgresql.jdbc42'
+	, bundleVersion: '42.1.4'
+	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
+	, username: pgsql.username
+	, password: pgsql.password
+}#";
+	return true;
+	}
 
-
-	private boolean function defineDatasource83(){
+	private boolean function defineDatasource94(){
 		var pgsql=getCredencials();
 		if(pgsql.count()==0) return false;
 		application action="update"
@@ -109,7 +126,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 
-	private boolean function defineDatasource94(){
+	private boolean function defineDatasource83(){
 		var pgsql=getCredencials();
 		if(pgsql.count()==0) return false;
 		application action="update"

@@ -33,9 +33,9 @@
 		<cfset verify=getForm('verify',false)>
 		<cfparam name="form.metaCacheTimeout" default="60000">
 
-		
 		<cfadmin action="updateDatasource" type="#request.adminType#" password="#session["password"&request.adminType]#"
 			
+			id="#driver.getId()?:''#"
 			classname="#driver.getClass()#"
 			dsn="#driver.getDSN()#"
 			customParameterSyntax="#isNull(driver.customParameterSyntax)?nullValue():driver.customParameterSyntax()#"

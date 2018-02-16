@@ -101,6 +101,7 @@ import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
 import lucee.runtime.db.DataSourceManager;
+import lucee.runtime.db.DataSourceSupport;
 import lucee.runtime.db.DatasourceConnectionImpl;
 import lucee.runtime.db.JDBCDriver;
 import lucee.runtime.db.ParamSyntax;
@@ -2911,8 +2912,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				config.getIdentification());
 
 		String label = getString("admin", action, "label");
+		String id = getString("id",null);
 
-		admin.updateJDBCDriver(label, cd);
+		admin.updateJDBCDriver(label, id, cd);
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -2945,6 +2947,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		boolean literalTimestampWithTSOffset = getBoolV("literalTimestampWithTSOffset", false);
 		boolean alwaysSetTimeout = getBoolV("alwaysSetTimeout", false);
 
+		String id = getString("id",null);
 		String dsn = getString("admin", action, "dsn");
 		String name = getString("admin", action, "name");
 		String newName = getString("admin", action, "newName");
@@ -2968,7 +2971,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// config.getDatasourceConnectionPool().remove(name);
 		DataSource ds = null;
 		try {
-			ds = new DataSourceImpl(config, null, name, cd, host, dsn, database, port, username, password, connLimit, connTimeout, metaCacheTimeout, blob, clob,
+			ds = new DataSourceImpl(config, name, cd, host, dsn, database, port, username, password, connLimit, connTimeout, metaCacheTimeout, blob, clob,
 					allow, custom, false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, config.getLog("application"));
 		}
 		catch (Exception e) {
@@ -2978,7 +2981,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if(verify)
 			_doVerifyDatasource(ds, username, password);
 		// print.out("limit:"+connLimit);
-		admin.updateDataSource(name, newName, cd, dsn, username, password, host, database, port, connLimit, connTimeout, metaCacheTimeout, blob, clob, allow,
+		admin.updateDataSource(id,name, newName, cd, dsn, username, password, host, database, port, connLimit, connTimeout, metaCacheTimeout, blob, clob, allow,
 				validate, storage, timezone, custom, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout);
 		store();
 		adminSync.broadcast(attributes, config);
@@ -3211,7 +3214,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void _doVerifyDatasource(ClassDefinition cd, String connStrTranslated, String user, String pass) throws PageException {
 		try {
-			DataSourceImpl.verify(config, null, cd, connStrTranslated, user, pass);
+			DataSourceImpl.verify(config, cd, connStrTranslated, user, pass);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -4174,6 +4177,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				DataSource d = (DataSource)ds.get(key);
 				Struct sct = new StructImpl();
 				ClassDefinition cd = d.getClassDefinition();
+				
 				sct.setEL(KeyConstants._name, key);
 				sct.setEL(KeyConstants._host, d.getHost());
 				sct.setEL("classname", cd.getClassName());
@@ -4397,11 +4401,14 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		JDBCDriver[] drivers = config.getJDBCDrivers();
 		lucee.runtime.type.Query qry = new QueryImpl(
-				new Key[] { KeyConstants._label, KeyConstants._class, KeyConstants._bundleName, KeyConstants._bundleVersion }, drivers.length, "jdbc");
+				new Key[] { KeyConstants._id, KeyConstants._label, KeyConstants._class, KeyConstants._bundleName, KeyConstants._bundleVersion }, drivers.length, "jdbc");
 
 		JDBCDriver driver;
-		for (int row = 0; row < drivers.length; row++) {
-			driver = drivers[row];
+		int row;
+		for (int i = 0; i < drivers.length; i++) {
+			row=i+1;
+			driver = drivers[i];
+			if(!StringUtil.isEmpty(driver.id)) qry.setAt(KeyConstants._id, row, driver.id);
 			qry.setAt(KeyConstants._label, row, driver.label);
 			qry.setAt(KeyConstants._class, row, driver.cd.getClassName());
 			qry.setAt(KeyConstants._bundleName, row, driver.cd.getName());
@@ -4429,6 +4436,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			Object key = it.next();
 			DataSource d = (DataSource)ds.get(key);
 			row++;
+			
 			qry.setAt(KeyConstants._name, row, key);
 			qry.setAt(KeyConstants._host, row, d.getHost());
 			qry.setAt("classname", row, d.getClassDefinition().getClassName());
