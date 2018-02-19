@@ -12245,12 +12245,13 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>SystemOutput</name>
 		<class>lucee.runtime.functions.other.SystemOutput</class>
-		<description>writes the given string to the output stream</description>
+		<description>writes the given string to the output stream. </description>
 		<argument>
 			<name>obj</name>
 			<type>Object</type>
 			<required>Yes</required>
-		<description></description>
+		<description>Any kind of object. Lucee will serialize all complex objects passed in to a string. If you pass a string you can add &lt;print-stack-trace&gt;, 
+		Lucee will replace with a stacktrace of the current position.</description>
     </argument>
 		<argument>
 			<name>addNewLine</name>
