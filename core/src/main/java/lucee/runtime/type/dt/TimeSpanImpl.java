@@ -27,6 +27,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Operator;
+import lucee.runtime.op.date.DateCaster;
 
 /**
  * TimeSpan Object, represent a timespan
@@ -115,13 +116,13 @@ public final class TimeSpanImpl implements TimeSpan {
 	}
 
 	@Override
-	public boolean castToBooleanValue() throws ExpressionException {
-		throw new ExpressionException("can't cast Timespan to boolean");
+	public boolean castToBooleanValue() {
+		return value!=0;
 	}
     
     @Override
     public Boolean castToBoolean(Boolean defaultValue) {
-        return defaultValue;
+		return value!=0;
     }
 
 	@Override
@@ -136,23 +137,22 @@ public final class TimeSpanImpl implements TimeSpan {
 
 	@Override
 	public DateTime castToDateTime() throws ExpressionException {
-		throw new ExpressionException("can't cast Timespan to date");
+		return DateCaster.toDateSimple(value, null);
 	}
     
     @Override
     public DateTime castToDateTime(DateTime defaultValue) {
-        return defaultValue;
+    	return DateCaster.toDateSimple(value, null);
     }
-
 
 	@Override
 	public int compareTo(boolean b) {
-		return Operator.compare(value, b?1D:0D);
+		return Operator.compare(castToBooleanValue(), b);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare(value, dt.castToDoubleValue());
+		return Operator.compare((java.util.Date)castToDateTime(), (java.util.Date)dt);
 	}
 
 	@Override
