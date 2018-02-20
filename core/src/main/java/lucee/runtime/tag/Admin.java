@@ -2929,6 +2929,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if(startup == -1)
 			throw new ApplicationException("invalid startup mode [" + strStartupMode + "], valid values are [automatic,manual,disabled]");
 		// print.out("doUpdateGatewayEntry");
+		Struct custom = getStruct("admin", action, "custom");
+		String path = Caster.toString(custom.get("directory", null), null);
+		Resource dir = ResourceUtil.toResourceNotExisting(pageContext, path);
+		if(!dir.isDirectory())
+			throw new ApplicationException("Directory [" + path +" ] not exists ");
+
+		Resource listnerCFC = ResourceUtil.toResourceNotExisting(pageContext, getString("admin", action, "listenerCfcPath"));
+		if(!listnerCFC.exists())
+			throw new ApplicationException("invalid [" + listnerCFC +" ] listener CFC");
 
 		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
 				config.getIdentification());
