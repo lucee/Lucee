@@ -114,7 +114,7 @@
 		</table>
 	</div>
 	<div id="blockerContainer" class="jquery-modal current">
-		<div id="ex1" class="modal">
+		<div id="mdlWnd" class="modal">
 			<a href="##close-modal" rel="modal:close" class="close-modal ">Close</a>
 			<div class="modal-body"></div>
 		</div>

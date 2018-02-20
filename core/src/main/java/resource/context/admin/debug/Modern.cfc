@@ -463,9 +463,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						tooltip : {'trigger':'axis'},
 						color: ['##0000FF'],
 						grid : {
-							width: '75%',
+							width: '73%',
 							height: '65%',
-							x:'30px',
+							x:'33px',
 							y:'20px'
 						},
 						xAxis : [{
@@ -1667,7 +1667,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 		<cfloop item="i" collection="#chartsLabel#">
 			<div class="chart_margin #chartClass#">
-				<div style="text-align:center;  width: 280px; height: 180px; padding:7px; border-radius: 25px; border: 2px solid ##898989; -moz-box-sizing: unset !important">
+				<div style="text-align:center; width:264px; height:165px; padding:7px; border-radius: 25px; border: 2px solid ##898989; -moz-box-sizing: unset !important">
 					<div style="font-size: 14px;font-weight: bold;">#chartsLabel[i]#</div>
 					<div id="#StructFind(arguments.chartStruct,"#i#")#" style="width: 250px; height: 130px; margin: 0 auto;"></div>
 				</div>

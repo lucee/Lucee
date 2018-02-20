@@ -124,10 +124,10 @@ Error Output --->
 				tooltip : {'trigger':'axis'},
 				color: ["<cfoutput>#request.adminType EQ "server" ? '##3399CC': '##BF4F36'#</cfoutput>"],
 				grid : {
-					width: '89%',
+					width: '82%',
 					height: '65%',
 					x:'30px',
-					y:'30px'
+					y:'25px'
 				},
 				xAxis : [{
 					'type':'category',
