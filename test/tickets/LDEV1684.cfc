@@ -3,8 +3,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		variables.uri = createURI("LDEV1684");
 		if(directoryExists(variables.uri)){
 			directoryDelete(variables.uri);
-			directoryCreate(variables.uri);
 		}
+		directoryCreate(variables.uri);
 	}
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-1684", function() {
