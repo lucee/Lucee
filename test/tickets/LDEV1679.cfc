@@ -8,19 +8,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run(){
 		describe( title="Test suite for LDEV-1679", body=function(){
 			it(title="Checking invoke function with arguments scope ", body=function(){
-				var dir="#GetDirectoryFromPath(GetCurrentTemplatePath())#LDEV1679\";
-				if(!directoryExists(dir)){
-					Directorycreate(dir);
-				}
-				var testfile = dir&"test.cfc";
-				fileWrite(testfile,"
-					component {
-					function FuncWithArg(test) { 
+				try {
+					var dir="#GetDirectoryFromPath(GetCurrentTemplatePath())#LDEV1679\";
+					if(!directoryExists(dir)){
+						Directorycreate(dir);
 					}
-					}");
-				var testStr = {};
-				var result = invokeTest(testStr);
-				expect(result).toBe('false');
+					var testfile = dir&"test.cfc";
+					fileWrite(testfile,"
+						component {
+						function FuncWithArg(test) { 
+						}
+						}");
+					var testStr = {};
+					var result = invokeTest(testStr);
+					expect(result).toBe('false');
+				}
+				finally {
+					if(!isNull(testfile) && fileExists(testfile)) {
+						fileDelete(testfile);
+					}
+				}
 			});
 		});
 	}

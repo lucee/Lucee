@@ -31,6 +31,7 @@ import lucee.commons.io.log.log4j.appender.ConsoleAppender;
 import lucee.commons.io.log.log4j.appender.DatasourceAppender;
 import lucee.commons.io.log.log4j.appender.RollingResourceAppender;
 import lucee.commons.io.log.log4j.layout.ClassicLayout;
+import lucee.commons.io.log.log4j.layout.DatasourceLayout;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
@@ -380,7 +381,8 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	    	if("datasource".equalsIgnoreCase(className))return new ClassDefinitionImpl( DatasourceAppender.class);
 		}
 		else if(isLayout) {
-	    	if("classic".equalsIgnoreCase(className))return new ClassDefinitionImpl( ClassicLayout.class);
+			if("classic".equalsIgnoreCase(className))return new ClassDefinitionImpl( ClassicLayout.class);
+			if("datasource".equalsIgnoreCase(className))return new ClassDefinitionImpl( DatasourceLayout.class);
 	    	if("html".equalsIgnoreCase(className))return new ClassDefinitionImpl( HTMLLayout.class);
 	    	if("xml".equalsIgnoreCase(className))return new ClassDefinitionImpl( XMLLayout.class);
 	    	if("pattern".equalsIgnoreCase(className))return new ClassDefinitionImpl( PatternLayout.class);
