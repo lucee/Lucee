@@ -35,105 +35,111 @@ public final class MixedAppListener extends ModernAppListener {
 
 	@Override
 	public void onRequest(PageContext pc, PageSource requestedPage, RequestListener rl) throws PageException {
-		RefBoolean isCFC=new RefBooleanImpl(false);
-		
-		PageSource appPS=
-			getApplicationPageSource(pc, requestedPage, mode, isCFC);
-		
-		if(isCFC.toBooleanValue())_onRequest(pc, requestedPage,appPS,rl);
-		else ClassicAppListener._onRequest(pc, requestedPage,appPS,rl);
+
+		RefBoolean isCFC = new RefBooleanImpl(false);
+		PageSource appPS = getApplicationPageSource(pc, requestedPage, mode, isCFC);
+
+		if(isCFC.toBooleanValue())
+			_onRequest(pc, requestedPage, appPS, rl);
+		else
+			ClassicAppListener._onRequest(pc, requestedPage, appPS, rl);
 	}
-	
+
 	@Override
 	public final String getType() {
 		return "mixed";
 	}
-	
-	
-	private static PageSource getApplicationPageSource(PageContext pc,PageSource requestedPage, int mode, RefBoolean isCFC) {
-		if(mode==ApplicationListener.MODE_CURRENT2ROOT)
+
+	private static PageSource getApplicationPageSource(PageContext pc, PageSource requestedPage, int mode, RefBoolean isCFC) {
+		if(mode == ApplicationListener.MODE_CURRENT2ROOT)
 			return getApplicationPageSourceCurrToRoot(pc, requestedPage, isCFC);
-		if(mode==ApplicationListener.MODE_CURRENT_OR_ROOT)
+		if(mode == ApplicationListener.MODE_CURRENT_OR_ROOT)
 			return getApplicationPageSourceCurrOrRoot(pc, requestedPage, isCFC);
-		if(mode==ApplicationListener.MODE_CURRENT)
+		if(mode == ApplicationListener.MODE_CURRENT)
 			return getApplicationPageSourceCurrent(requestedPage, isCFC);
 		return getApplicationPageSourceRoot(pc, isCFC);
 	}
-	
+
 	private static PageSource getApplicationPageSourceCurrent(PageSource requestedPage, RefBoolean isCFC) {
-		PageSource res=requestedPage.getRealPage(Constants.CFML_APPLICATION_EVENT_HANDLER);
-	    if(res.exists()) {
-	    	isCFC.setValue(true);
-	    	return res;
-	    }
-	    res=requestedPage.getRealPage(Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER);
-	    if(res.exists()) return res;
+		PageSource res = requestedPage.getRealPage(Constants.CFML_APPLICATION_EVENT_HANDLER);
+		if(res.exists()) {
+			isCFC.setValue(true);
+			return res;
+		}
+		res = requestedPage.getRealPage(Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER);
+		if(res.exists())
+			return res;
 		return null;
 	}
-	
-	private static PageSource getApplicationPageSourceCurrToRoot(PageContext pc,PageSource requestedPage, RefBoolean isCFC) {
-		PageSource res=getApplicationPageSourceCurrent(requestedPage, isCFC);
-		if(res!=null)return res;
-	    
-	    
-	    Array arr=lucee.runtime.type.util.ListUtil.listToArrayRemoveEmpty(requestedPage.getRealpathWithVirtual(),"/");
-		//Config config = pc.getConfig();
+
+	private static PageSource getApplicationPageSourceCurrToRoot(PageContext pc, PageSource requestedPage, RefBoolean isCFC) {
+		PageSource res = getApplicationPageSourceCurrent(requestedPage, isCFC);
+		if(res != null)
+			return res;
+
+		Array arr = lucee.runtime.type.util.ListUtil.listToArrayRemoveEmpty(requestedPage.getRealpathWithVirtual(), "/");
+		// Config config = pc.getConfig();
 		String path;
-		for(int i=arr.size()-1;i>0;i--) {
-		    StringBuilder sb=new StringBuilder("/");
-			for(int y=1;y<i;y++) {
-			    sb.append((String)arr.get(y,""));
-			    sb.append('/');
+		for (int i = arr.size() - 1; i > 0; i--) {
+			StringBuilder sb = new StringBuilder("/");
+			for (int y = 1; y < i; y++) {
+				sb.append((String)arr.get(y, ""));
+				sb.append('/');
 			}
-			path=sb.toString();
+			path = sb.toString();
 			res = ((PageContextImpl)pc).getPageSourceExisting(path.concat(Constants.CFML_APPLICATION_EVENT_HANDLER));
-			if(res!=null) {
+			if(res != null) {
 				isCFC.setValue(true);
 				return res;
 			}
 			res = ((PageContextImpl)pc).getPageSourceExisting(path.concat(Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER));
-			if(res!=null) return res;
+			if(res != null)
+				return res;
 		}
 		return null;
 	}
-	
-	private static PageSource getApplicationPageSourceCurrOrRoot(PageContext pc,PageSource requestedPage, RefBoolean isCFC) {
-	    // current 
-		PageSource res=getApplicationPageSourceCurrent(requestedPage, isCFC);
-		if(res!=null)return res;
-	    
-	    // root
-	    return getApplicationPageSourceRoot(pc, isCFC);
+
+	private static PageSource getApplicationPageSourceCurrOrRoot(PageContext pc, PageSource requestedPage, RefBoolean isCFC) {
+		// current
+		PageSource res = getApplicationPageSourceCurrent(requestedPage, isCFC);
+		if(res != null)
+			return res;
+
+		// root
+		return getApplicationPageSourceRoot(pc, isCFC);
 	}
-	
+
 	private static PageSource getApplicationPageSourceRoot(PageContext pc, RefBoolean isCFC) {
-		PageSource ps = ((PageContextImpl)pc).getPageSourceExisting("/"+Constants.CFML_APPLICATION_EVENT_HANDLER);
-		if(ps!=null) {
+		PageSource ps = ((PageContextImpl)pc).getPageSourceExisting("/" + Constants.CFML_APPLICATION_EVENT_HANDLER);
+		if(ps != null) {
 			isCFC.setValue(true);
-	    	return ps;
+			return ps;
 		}
-		ps = ((PageContextImpl)pc).getPageSourceExisting("/"+Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER);
-		if(ps!=null) return ps;
+		ps = ((PageContextImpl)pc).getPageSourceExisting("/" + Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER);
+		if(ps != null)
+			return ps;
 		return null;
 	}
 
 	@Override
 	public void onDebug(PageContext pc) throws PageException {
-		if(((PageContextImpl)pc).getAppListenerType()==ApplicationListener.TYPE_CLASSIC) 
+		if(((PageContextImpl)pc).getAppListenerType() == ApplicationListener.TYPE_CLASSIC)
 			ClassicAppListener._onDebug(pc);
-		else super.onDebug(pc);
+		else
+			super.onDebug(pc);
 	}
 
 	@Override
 	public void onError(PageContext pc, PageException pe) {
-		if(((PageContextImpl)pc).getAppListenerType()==ApplicationListener.TYPE_CLASSIC) 
-			ClassicAppListener._onError(pc,pe);
-		else super.onError(pc, pe);
+		if(((PageContextImpl)pc).getAppListenerType() == ApplicationListener.TYPE_CLASSIC)
+			ClassicAppListener._onError(pc, pe);
+		else
+			super.onError(pc, pe);
 	}
 
 	@Override
 	public boolean hasOnSessionStart(PageContext pc) {
-		if(((PageContextImpl)pc).getAppListenerType()==ApplicationListener.TYPE_CLASSIC) 
+		if(((PageContextImpl)pc).getAppListenerType() == ApplicationListener.TYPE_CLASSIC)
 			return ClassicAppListener._hasOnSessionStart(pc);
 		return super.hasOnSessionStart(pc);
 	}
@@ -141,15 +147,16 @@ public final class MixedAppListener extends ModernAppListener {
 	@Override
 	public boolean hasOnApplicationStart() {
 		PageContext pc = ThreadLocalPageContext.get();
-		if(pc!=null && ((PageContextImpl)pc).getAppListenerType()==ApplicationListener.TYPE_CLASSIC) 
+		if(pc != null && ((PageContextImpl)pc).getAppListenerType() == ApplicationListener.TYPE_CLASSIC)
 			return ClassicAppListener._hasOnApplicationStart();
 		return super.hasOnApplicationStart();
 	}
 
 	@Override
 	public void onTimeout(PageContext pc) {
-		if(((PageContextImpl)pc).getAppListenerType()==ApplicationListener.TYPE_CLASSIC) 
+		if(((PageContextImpl)pc).getAppListenerType() == ApplicationListener.TYPE_CLASSIC)
 			ClassicAppListener._onTimeout(pc);
-		else super.onTimeout(pc);
+		else
+			super.onTimeout(pc);
 	}
 }
