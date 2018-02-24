@@ -452,11 +452,6 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		 * else if(headerType==HEADER_MULTIPART_FORM_DATA) { return new FormImplInputStream(this); // TODO }
 		 */
 
-		if(headerType == HEADER_TYPE_UNKNOWN && !SystemUtil.getSystemPropOrEnvVar("lucee.debug.ldev1119", "false").equalsIgnoreCase("false")){
-			// TODO: remove this after LDEV-1119 is resolved
-			return new ServletInputStreamDummy(toBarr(raw, NL));
-		}
-
 		return new ServletInputStreamDummy(new byte[] {});
 	}
 

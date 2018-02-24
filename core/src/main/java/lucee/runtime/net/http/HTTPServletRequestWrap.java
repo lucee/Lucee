@@ -244,12 +244,19 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 	public ServletInputStream getInputStream() throws IOException {
 		// if(ba rr!=null) throw new IllegalStateException();
 		if(barr == null) {
-			if(!firstRead) {
-				PageContext pc = ThreadLocalPageContext.get();
-				if(pc != null) {
-					return pc.formScope().getInputStream();
+			synchronized (this) {
+				if (!firstRead) {
+//					System.out.println("LDEV-1592 not first read; barr is " + ((barr == null) ? "null" : barr.length));
+
+					if (barr != null)
+						return new ServletInputStreamDummy(barr);
+
+					PageContext pc = ThreadLocalPageContext.get();
+					if (pc != null)
+						return pc.formScope().getInputStream();
+
+					return new ServletInputStreamDummy(new byte[]{}); // throw new IllegalStateException();
 				}
-				return new ServletInputStreamDummy(new byte[] {}); // throw new IllegalStateException();
 			}
 
 			firstRead = false;
@@ -260,7 +267,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 			InputStream is = null;
 			try {
 				barr = IOUtil.toBytes(is = req.getInputStream());
-
+//				System.out.println("LDEV-1592 reading input stream into barr");
 				// Resource res = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Temp/multipart.txt");
 				// IOUtil.copy(new ByteArrayInputStream(barr), res, true);
 
