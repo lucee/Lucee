@@ -1,6 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
-		describe( "Test suite for LDEV-1574", function() {
+		describe( "Test suite for LDEV-0574", function() {
 			it( title='Checking dollarformat function round off', body=function( currentSpec ) {
 				assertEquals("$1.99",DollarFormat("01.985"));
 				assertEquals("$11.99",DollarFormat("11.985"));
