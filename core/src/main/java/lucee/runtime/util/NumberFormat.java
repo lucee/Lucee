@@ -24,23 +24,23 @@ import java.util.Locale;
 
 import lucee.commons.lang.StringUtil;
 
-
 /**
  * Number formation class
  */
-public final class NumberFormat  {
+public final class NumberFormat {
 
 	private static byte LEFT = 0;
 	private static byte CENTER = 1;
 	private static byte RIGHT = 2;
-	
+
 	/**
 	 * formats a number
+	 * 
 	 * @param number
 	 * @return formatted number as string
 	 */
-	public String format(Locale locale,double number) {
-		DecimalFormat df=getDecimalFormat(locale);
+	public String format(Locale locale, double number) {
+		DecimalFormat df = getDecimalFormat(locale);
 		df.applyPattern(",0");
 		df.setGroupingSize(3);
 		return df.format(number);
@@ -48,14 +48,15 @@ public final class NumberFormat  {
 
 	/**
 	 * format a number with given mask
+	 * 
 	 * @param number
 	 * @param mask
 	 * @return formatted number as string
 	 * @throws InvalidMaskException
 	 */
-	public String format(Locale locale,double number, String mask) throws InvalidMaskException  {
+	public String format(Locale locale, double number, String mask) throws InvalidMaskException {
 		byte justification = RIGHT;
-		
+
 		boolean useBrackets = false;
 		boolean usePlus = false;
 		boolean useMinus = false;
@@ -63,101 +64,108 @@ public final class NumberFormat  {
 		boolean useComma = false;
 		boolean foundDecimal = false;
 		boolean symbolsFirst = false;
-		boolean foundZero=false;
-		
+		boolean foundZero = false;
+
 		int maskLen = mask.length();
-		if(maskLen == 0) throw new InvalidMaskException("mask can't be a empty value");
-		
-		
-		
+		if(maskLen == 0)
+			throw new InvalidMaskException("mask can't be a empty value");
+
 		StringBuilder maskBuffer = new StringBuilder(mask);
-		
-			String mod=StringUtil.replace(mask, ",", "", true);
-			if(StringUtil.startsWith(mod, '_'))symbolsFirst = true;
-			if(mask.startsWith(",."))	{
-				maskBuffer.replace(0, 1, ",0");
-			}
-			//if(maskBuffer.charAt(0) == '.')maskBuffer.insert(0, '0');
-		//print.out(maskBuffer);
-		boolean addZero=false;
-		for(int i = 0; i < maskBuffer.length();) {
-			
+
+		String mod = StringUtil.replace(mask, ",", "", true);
+		if(StringUtil.startsWith(mod, '_'))
+			symbolsFirst = true;
+		if(mask.startsWith(",.")) {
+			maskBuffer.replace(0, 1, ",0");
+		}
+		// if(maskBuffer.charAt(0) == '.')maskBuffer.insert(0, '0');
+		// print.out(maskBuffer);
+		boolean addZero = false;
+		for (int i = 0; i < maskBuffer.length();) {
+
 			boolean removeChar = false;
-			switch(maskBuffer.charAt(i)) {
-			case '_':
-			case '9':
-				if(foundDecimal || foundZero)	maskBuffer.setCharAt(i, '0');
-				else							maskBuffer.setCharAt(i, '#');// #
-			break;
+			switch (maskBuffer.charAt(i)) {
+				case '_':
+				case '9':
+					if(foundDecimal || foundZero)
+						maskBuffer.setCharAt(i, '0');
+					else
+						maskBuffer.setCharAt(i, '#');// #
+					break;
 
-			case '.':
-				if(i>0 && maskBuffer.charAt(i-1)=='#')maskBuffer.setCharAt(i-1, '0');
-				if(foundDecimal)	removeChar = true;
-				else				foundDecimal = true;
-				if(i==0)addZero=true;
-			break;
+				case '.':
+					if(i > 0 && maskBuffer.charAt(i - 1) == '#')
+						maskBuffer.setCharAt(i - 1, '0');
+					if(foundDecimal)
+						removeChar = true;
+					else
+						foundDecimal = true;
+					if(i == 0)
+						addZero = true;
+					break;
 
-			case '(':
-			case ')':
-				useBrackets = true;
-				removeChar = true;
-			break;
-
-			case '+':
-				usePlus = true;
-				removeChar = true;
-			break;
-
-			case '-':
-				useMinus = true;
-				removeChar = true;
-			break;
-
-			case ',':
-				useComma = true;
-				if(true) {
+				case '(':
+				case ')':
+					useBrackets = true;
 					removeChar = true;
-					maskLen++;
-				}
-			break;
+					break;
 
-			case 'L':
-				justification = LEFT;
-				removeChar = true;
-			break;
+				case '+':
+					usePlus = true;
+					removeChar = true;
+					break;
 
-			case 'C':
-				justification = CENTER;
-				removeChar = true;
-			break;
+				case '-':
+					useMinus = true;
+					removeChar = true;
+					break;
 
-			case '$':
-				useDollar = true;
-				removeChar = true;
-			break;
-
-			case '^':
-				removeChar = true;
-			break;
-
-			case '0':
-				if(!foundDecimal){
-					for(int y = 0; y < i;y++) {
-						if(maskBuffer.charAt(y)=='#')
-							maskBuffer.setCharAt(y, '0');
+				case ',':
+					useComma = true;
+					if(true) {
+						removeChar = true;
+						maskLen++;
 					}
-				}
-				foundZero=true;
-				break;
+					break;
 
-			default:
-			    throw new InvalidMaskException("invalid charcter ["+maskBuffer.charAt(i)+"], valid characters are ['_', '9', '.', '0', '(', ')', '+', '-', ',', 'L', 'C', '$', '^']");
-			
+				case 'L':
+					justification = LEFT;
+					removeChar = true;
+					break;
+
+				case 'C':
+					justification = CENTER;
+					removeChar = true;
+					break;
+
+				case '$':
+					useDollar = true;
+					removeChar = true;
+					break;
+
+				case '^':
+					removeChar = true;
+					break;
+
+				case '0':
+					if(!foundDecimal) {
+						for (int y = 0; y < i; y++) {
+							if(maskBuffer.charAt(y) == '#')
+								maskBuffer.setCharAt(y, '0');
+						}
+					}
+					foundZero = true;
+					break;
+
+				default:
+					throw new InvalidMaskException("invalid charcter [" + maskBuffer.charAt(i)
+							+ "], valid characters are ['_', '9', '.', '0', '(', ')', '+', '-', ',', 'L', 'C', '$', '^']");
+
 			}
 			if(removeChar) {
 				maskBuffer.deleteCharAt(i);
 				maskLen--;
-			} 
+			}
 			else {
 				i++;
 			}
@@ -165,37 +173,36 @@ public final class NumberFormat  {
 
 		if(addZero)
 			addSymbol(maskBuffer, '0');
-		
-		
+
 		mask = new String(maskBuffer);
-		maskLen=mask.length();
-		DecimalFormat df = getDecimalFormat(locale);//(mask);
+		maskLen = mask.length();
+		DecimalFormat df = getDecimalFormat(locale);// (mask);
 		df.applyPattern(mask);
 		df.setGroupingUsed(useComma);
 		df.setRoundingMode(RoundingMode.HALF_UP);
-		
+
 		String formattedNum = df.format(StrictMath.abs(number));
 		StringBuilder formattedNumBuffer = new StringBuilder(formattedNum);
 		if(symbolsFirst) {
 			int widthBefore = formattedNumBuffer.length();
 			applySymbolics(formattedNumBuffer, number, usePlus, useMinus, useDollar, useBrackets);
 			int offset = formattedNumBuffer.length() - widthBefore;
-			
+
 			if(formattedNumBuffer.length() < maskLen + offset) {
 				int padding = (maskLen + offset) - formattedNumBuffer.length();
-				applyJustification(formattedNumBuffer,justification, padding);
+				applyJustification(formattedNumBuffer, justification, padding);
 			}
-		} 
+		}
 		else {
 			int widthBefore = formattedNumBuffer.length();
-			
+
 			StringBuilder temp = new StringBuilder(formattedNumBuffer.toString());
 			applySymbolics(temp, number, usePlus, useMinus, useDollar, useBrackets);
 			int offset = temp.length() - widthBefore;
-			
+
 			if(temp.length() < maskLen + offset) {
 				int padding = (maskLen + offset) - temp.length();
-				applyJustification(formattedNumBuffer,justification, padding);
+				applyJustification(formattedNumBuffer, justification, padding);
 			}
 			applySymbolics(formattedNumBuffer, number, usePlus, useMinus, useDollar, useBrackets);
 		}
@@ -203,26 +210,33 @@ public final class NumberFormat  {
 	}
 
 	private void applyJustification(StringBuilder _buffer, int _just, int padding) {
-		if(_just == CENTER)		centerJustify(_buffer, padding);
-		else if(_just == LEFT)	leftJustify(_buffer, padding);
-		else					rightJustify(_buffer, padding);
+		if(_just == CENTER)
+			centerJustify(_buffer, padding);
+		else if(_just == LEFT)
+			leftJustify(_buffer, padding);
+		else
+			rightJustify(_buffer, padding);
 	}
 
 	private void applySymbolics(StringBuilder sb, double no, boolean usePlus, boolean useMinus, boolean useDollar, boolean useBrackets) {
-		if (useBrackets && no < 0.0D) {
+		if(useBrackets && no < 0.0D) {
 			addSymbol(sb, '(');
 			sb.append(')');
 		}
-		if (usePlus) addSymbol(sb, no < 0.0D ? '-' : '+');
-		if (no < 0.0D && !useBrackets && !usePlus) addSymbol(sb, '-');
-		else if (useMinus) addSymbol(sb, ' ');
-		if (useDollar) addSymbol(sb, '$');
+		if(usePlus)
+			addSymbol(sb, no < 0.0D ? '-' : '+');
+		if(no < 0.0D && !useBrackets && !usePlus)
+			addSymbol(sb, '-');
+		else if(useMinus)
+			addSymbol(sb, ' ');
+		if(useDollar)
+			addSymbol(sb, '$');
 	}
 
 	private void addSymbol(StringBuilder sb, char symbol) {
-		
-		int offset=0;
-		while(sb.length()>offset && Character.isWhitespace(sb.charAt(offset))) {
+
+		int offset = 0;
+		while(sb.length() > offset && Character.isWhitespace(sb.charAt(offset))) {
 			offset++;
 		}
 		sb.insert(offset, symbol);
@@ -235,13 +249,13 @@ public final class NumberFormat  {
 	}
 
 	private void rightJustify(StringBuilder _src, int _padding) {
-		for(int x = 0; x < _padding; x++)
+		for (int x = 0; x < _padding; x++)
 			_src.insert(0, ' ');
 
 	}
 
 	private void leftJustify(StringBuilder _src, int _padding) {
-		for(int x = 0; x < _padding; x++)
+		for (int x = 0; x < _padding; x++)
 			_src.append(' ');
 
 	}
@@ -250,7 +264,7 @@ public final class NumberFormat  {
 		java.text.NumberFormat format = java.text.NumberFormat.getInstance(locale);
 		if(format instanceof DecimalFormat) {
 			return ((DecimalFormat)format);
-			
+
 		}
 		return new DecimalFormat();
 	}
