@@ -100,91 +100,12 @@ public class Base64Encoder {
 	/**
 	 * Translates the specified Base64 string into a byte array.
 	 *
-	 * @param s
-	 *            the Base64 string (not null)
+	 * @param data the Base64 string (not null)
 	 * @return the byte array (not null)
 	 * @throws CoderException
 	 */
-	public static byte[] decode(String data) throws CoderException {
-		byte[] array = new byte[data.length() * 3 / 4];
-		char[] block = new char[4];
-		int length = 0;
-		data = data.trim();
-		final int len = data.length();
-		if(len == 0)
-			return new byte[0];// we accept a empty string as a empty binary!
-		int tmp = 4 - (len - (len / 4 * 4));
-		if(tmp != 4) {
-			for (int i = 0; i < tmp; i++) {
-				data += "=";
-			}
-			return decode(data);
-			// throw new CoderException((len % 4)+"can't decode the the base64 input string"+printString(data)+", because the input string has an invalid
-			// length");
-		}
-
-		for (int position = 0; position < len;) {
-			int p;
-			for (p = 0; p < 4 && position < data.length(); position++) {
-				char c = data.charAt(position);
-				if(!Character.isWhitespace(c)) {
-					block[p] = c;
-					p++;
-				}
-			}
-
-			if(p == 0)
-				break;
-
-			int l = decodeGroup(block, array, length);
-			length += l;
-			if(l < 3)
-				break;
-		}
-		return Arrays.copyOf(array, length);
+	public static byte[] decode(String data) {
+		return org.apache.commons.codec.binary.Base64.decodeBase64(data);
 	}
 
-	/**
-	 * Decode four chars from data into 0-3 bytes of data starting at position in array.
-	 * 
-	 * @return the number of bytes decoded.
-	 */
-	private static int decodeGroup(char[] data, byte[] array, int position) throws CoderException {
-		int b1, b2, b3, b4;
-
-		try {
-			b1 = REVERSE.get(data[0]);
-			b2 = REVERSE.get(data[1]);
-			b3 = REVERSE.get(data[2]);
-			b4 = REVERSE.get(data[3]);
-
-		}
-		catch (NullPointerException e) {
-			// If auto-boxing fails
-			throw new CoderException("Illegal characters in the sequence to be " + "decoded: " + Arrays.toString(data));
-		}
-
-		array[position] = (byte)((b1 << 2) | (b2 >> 4));
-		array[position + 1] = (byte)((b2 << 4) | (b3 >> 2));
-		array[position + 2] = (byte)((b3 << 6) | (b4));
-
-		// Check the amount of data decoded
-		if(data[0] == PAD)
-			return 0;
-		if(data[1] == PAD) {
-			throw new CoderException("Illegal character padding in sequence to be " + "decoded: " + Arrays.toString(data));
-		}
-		if(data[2] == PAD)
-			return 1;
-		if(data[3] == PAD)
-			return 2;
-
-		return 3;
-	}
-
-	private static String printString(String s) {
-		if(s.length() > 50)
-			return " [" + s.substring(0, 50) + " ... truncated]";
-		return " [" + s + "]";
-	}
 }
