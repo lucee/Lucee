@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" localMode=true {
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-0574", function() {
 			it( title='Checking dollarformat function round off', body=function( currentSpec ) {
@@ -23,12 +23,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it( title='Checking lsCurrencyFormat function round off', body=function( currentSpec ) {
+
+				origLocale = getLocale();
+				setLocale("en_US");
+
 				assertEquals("$1.99",lsCurrencyFormat("01.985"));
 				assertEquals("$11.99",lsCurrencyFormat("11.985"));
 				assertEquals("$999.99",lsCurrencyFormat("999.985"));
 				assertEquals("$675.99",lsCurrencyFormat("675.985"));
 				assertEquals("$555.56",lsCurrencyFormat("555.555"));
 				assertEquals("$987.56",lsCurrencyFormat("987.555"));
+
+				setLocale(origLocale);
 			});
 		});
 	}
