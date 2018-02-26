@@ -265,18 +265,29 @@ public final class DebuggerImpl implements Debugger {
 		return queries;
 	}
 
+
+    /**
+     * returns the DebugEntry for the current request's IP address, or null if no template matches the address
+     * @param pc
+     * @return
+     */
+	public static lucee.runtime.config.DebugEntry getDebugEntry(PageContext pc){
+
+        String addr = pc.getHttpServletRequest().getRemoteAddr();
+        lucee.runtime.config.DebugEntry debugEntry = ((ConfigImpl)pc.getConfig()).getDebugEntry(addr, null);
+        return debugEntry;
+    }
+
+
 	@Override
 	public void writeOut(PageContext pc) throws IOException {
 		// stop();
 		if(!output)
 			return;
-		
-		String addr = pc.getHttpServletRequest().getRemoteAddr();
-		lucee.runtime.config.DebugEntry debugEntry = ((ConfigImpl)pc.getConfig()).getDebugEntry(addr, null);
 
-		// no debug File
+        lucee.runtime.config.DebugEntry debugEntry = getDebugEntry(pc);
 
-		if(debugEntry == null) {
+        if(debugEntry == null) {
 			// pc.forceWrite(pc.getConfig().getDefaultDumpWriter().toString(pc,toDumpData(pc, 9999,DumpUtil.toDumpProperties()),true));
 			return;
 		}
