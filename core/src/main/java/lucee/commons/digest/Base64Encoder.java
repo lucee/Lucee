@@ -105,6 +105,7 @@ public class Base64Encoder {
 	 * @throws CoderException
 	 */
 	public static byte[] decode(String data) {
+		// TODO: when we move to Java 8 change to https://docs.oracle.com/javase/8/docs/api/java/util/Base64.Decoder.html
 		return org.apache.commons.codec.binary.Base64.decodeBase64(data);
 	}
 
