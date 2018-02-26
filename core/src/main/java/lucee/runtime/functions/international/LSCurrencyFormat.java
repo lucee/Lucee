@@ -71,7 +71,7 @@ public final class LSCurrencyFormat implements Function {
 	}
 
 	public static String local(Locale locale, double number) {
-		return NumberFormat.getCurrencyInstance(locale).format(number);
+		return NumberFormat.getCurrencyInstance(locale).format(lucee.runtime.util.NumberFormat.fixDouble(number, 2));
 	}
 
 	public static String international(Locale locale, double number) {
