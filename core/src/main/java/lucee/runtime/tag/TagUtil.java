@@ -18,8 +18,11 @@
  */
 package lucee.runtime.tag;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -74,25 +77,50 @@ public class TagUtil {
 	// function, only named arguments are allowed like struct(name:\"value\",name2:\"value2\")";
 
 	public static void setAttributeCollection(PageContext pc, Tag tag, MissingAttribute[] missingAttrs, Struct _attrs, int attrType) throws PageException {
-		// check missing tags
+
+		TagLibTag tlt = null;
+		Key k;
+
+		if(pc.getConfig() instanceof ConfigWebImpl) {
+			ConfigWebImpl cw = (ConfigWebImpl)pc.getConfig();
+
+			List<TagLib> allTlds = new ArrayList();
+			// allTlds.addAll(Arrays.asList(cw.getTLDs(CFMLEngine.DIALECT_CFML)));
+			// allTlds.addAll(Arrays.asList(cw.getTLDs(CFMLEngine.DIALECT_LUCEE)));
+			allTlds.addAll(Arrays.asList(cw.getTLDs(CFMLEngine.DIALECT_BOTH)));
+
+			for (TagLib tld : allTlds) {
+				tlt = tld.getTag(tag.getClass());
+				if(tlt != null)
+					break;
+			}
+		}
+
 		Map<Key, Object> att = new HashMap<Key, Object>();
 		{
 			Iterator<Entry<Key, Object>> it = _attrs.entryIterator();
 			Entry<Key, Object> e;
+			TagLibTagAttr alias = null;
+
 			while(it.hasNext()) {
 				e = it.next();
-				att.put(e.getKey(), e.getValue());
+				k = e.getKey();
+				if(tlt != null) {
+					alias = tlt.getAttributeByAlias(k.toString());
+					if(alias != null)
+						k = KeyImpl.getInstance(alias.getName());		// translate alias to canonical name
+				}
+				att.put(k, e.getValue());
 			}
 		}
 
 		if(!ArrayUtil.isEmpty(missingAttrs)) {
-			Key k;
 			Object value;
 			MissingAttribute miss;
 			for (int i = 0; i < missingAttrs.length; i++) {
 				miss = missingAttrs[i];
 				value = att.get(miss.getName());
-				// check alias
+				// check alias;	TODO: is this still needed?  we now translate aliases above
 				if(value == null && !ArrayUtil.isEmpty(miss.getAlias())) {
 					String[] alias = miss.getAlias();
 					for (int y = 0; y < alias.length; y++) {
@@ -110,6 +138,7 @@ public class TagUtil {
 				att.put(missingAttrs[i].getName(), Caster.castTo(pc, missingAttrs[i].getType(), value, false));
 			}
 		}
+		
 		setAttributes(pc, tag, att, attrType);
 	}
 
