@@ -1,45 +1,21 @@
-/*
- * Copyright (c) 2018, Lucee Assosication Switzerland. All rights reserved.*
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- */
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase"{
+	function run( testResults , testBox ) {
+		describe( "Test suite for LDEV-1064", function() {
+			it( title='checking testAttributeName with attributeCollection', body=function( currentSpec ) {
+				var attr = {
+					name : "qDir1"
+				};
+				directory directory=expandPath('.') attributeCollection=attr;
+				expect(qDir1).toBetypeof("Query");	// writeDump(qDir2);
+			});
 
-	//public function beforeTests(){}
-
-	//public function afterTests(){}
-
-	//public function setUp(){}
-
-
-	public void function testAttributeName() localMode=true {
-
-		attr = {
-			name : "qDir"
-		};
-
-		directory directory=expandPath('.') attributeCollection=attr;
+			it( title='checking testAttributeAlias with attributeCollection', body=function( currentSpec ) {
+				var attr = {
+					variable : "qDir2"
+				};
+				directory directory=expandPath('.') attributeCollection=attr;
+				expect(qDir2).toBetypeof("Query");	// writeDump(qDir2);
+			});
+		});
 	}
-
-
-	public void function testAttributeAlias() localMode=true {
-
-		attr = {
-			variable : "qDir"
-		};
-
-		directory directory=expandPath('.') attributeCollection=attr;
-	}
-
 }
