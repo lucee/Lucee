@@ -156,7 +156,7 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 		.append("name varchar(128) NOT NULL, ")
 		.append("severity varchar(16) NOT NULL, ")
 		.append("threadid varchar(64) NOT NULL, ")
-		.append("time timestamp NOT NULL, ")
+		.append("time datetime NOT NULL, ")
 		.append("application varchar(64) NOT NULL, ")
 		.append("message varchar(512) NOT NULL, ")
 		.append("exception varchar(2048) NOT NULL, ")
