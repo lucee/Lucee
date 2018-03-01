@@ -153,7 +153,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			}
 		}
 		if(pc == null)
-			pc = new PageContextImpl(scopeContext, config, servlet, ignoreScopes);
+			pc = new PageContextImpl(scopeContext, config,servlet, ignoreScopes);
 
 		if(timeout > 0)
 			pc.setRequestTimeout(timeout);

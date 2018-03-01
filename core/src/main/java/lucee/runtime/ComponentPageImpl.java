@@ -791,7 +791,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements
 			}
 		} catch (Throwable t) {
 			PageException pe = Caster.toPageException(t);
-			pe.setExposeMessage(true);
+			if(pc.getConfig().debug())
+				pe.setExposeMessage(true);
 			throw pe;
 		}
 	}

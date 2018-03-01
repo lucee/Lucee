@@ -351,12 +351,11 @@ public final class PageContextImpl extends PageContext {
 	 *            identity of the pageContext
 	 * @param servlet
 	 */
-	public PageContextImpl(ScopeContext scopeContext, ConfigWebImpl config, int id, HttpServlet servlet, boolean jsr223) {
+	public PageContextImpl(ScopeContext scopeContext, ConfigWebImpl config, HttpServlet servlet, boolean jsr223) {
 		// must be first because is used after
 		tagHandlerPool=config.getTagHandlerPool();
 		this.servlet=servlet;
-		this.id=id;
-
+		
 		bodyContentStack=new BodyContentStack();
 		devNull=bodyContentStack.getDevNullBodyContent();
 
@@ -374,7 +373,6 @@ public final class PageContextImpl extends PageContext {
 
 	}
 
-	public boolean isInitialized() {
 	public boolean isInitialized() {
 		return rsp != null;
 	}
