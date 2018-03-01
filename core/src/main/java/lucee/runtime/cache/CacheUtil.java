@@ -260,11 +260,6 @@ public class CacheUtil {
 	 */
 	public static Cache getInstance(CacheConnection cc, Config config) throws IOException {
 		return cc.getInstance(config);
-		/*Cache c = cc.getInstance(config);
-		if("org.lucee.extension.io.cache.memcache.MemCacheRaw".equals(c.getClass().getName())) {
-			return new CacheComplex(cc,c);
-		}
-		return c;*/
 	}
 	
 
