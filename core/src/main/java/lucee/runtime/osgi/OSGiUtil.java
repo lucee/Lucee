@@ -74,15 +74,13 @@ import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.resource.Requirement;
 
 public class OSGiUtil {
-	
 
 	private static final int QUALIFIER_APPENDIX_SNAPSHOT = 1;
 	private static final int QUALIFIER_APPENDIX_BETA = 2;
 	private static final int QUALIFIER_APPENDIX_RC = 3;
 	private static final int QUALIFIER_APPENDIX_OTHER = 4;
 	private static final int QUALIFIER_APPENDIX_STABLE = 5;
-	
-	
+
 	private static final FilenameFilter JAR_EXT_FILTER = new FilenameFilter() {
 				@Override
 				public boolean accept(File dir, String name) {
@@ -90,7 +88,6 @@ public class OSGiUtil {
 				}
 			};
 	private static String[] bootDelegation; 
-
 
 	/**
 	 * only installs a bundle, if the bundle does not already exist, if the bundle exists the existing bundle is unloaded first.
@@ -113,8 +110,6 @@ public class OSGiUtil {
 		return _loadBundle(context, bundle.getAbsolutePath(), bundle.getInputStream(), true);
 	}
 
-	
-	
 	/**
 	 * does not check if the bundle already exists!
 	 * @param context
@@ -141,9 +136,7 @@ public class OSGiUtil {
 			}
 		}
 	}
-	
-	
-	
+
 	/**
 	 * only installs a bundle, if the bundle does not already exist, if the bundle exists the existing bundle is unloaded first.
 	 * the bundle is not stored physically on the system.
@@ -170,8 +163,7 @@ public class OSGiUtil {
 			tmp.delete();
 		}
 	}
-	
-	
+
 	public static Version toVersion(String version, Version defaultValue) {
 		if(StringUtil.isEmpty(version)) return defaultValue;
 		// String[] arr = ListUtil.listToStringArray(version, '.');
@@ -185,8 +177,7 @@ public class OSGiUtil {
 		
 		Integer major,minor,micro;
 		String qualifier;
-		
-		
+
 		if(arr.length==1) {
 			major=Caster.toInteger(arr[0],null);
 			minor=0;
@@ -214,9 +205,7 @@ public class OSGiUtil {
 		
 		if(major==null || minor==null || micro==null)
 			return defaultValue;
-		
-		
-		
+
 		if(qualifier==null) 
 			return new Version(major,minor,micro);
 		return new Version(major,minor,micro,qualifier);
@@ -271,7 +260,6 @@ public class OSGiUtil {
         throw new Exception("Could not find framework factory.");
     }*/
 	
-	
 	/**
 	 * tries to load a class with ni bundle defintion
 	 * @param name
@@ -283,9 +271,6 @@ public class OSGiUtil {
 	 */
 	public static Class loadClass(String className, Class defaultValue) {
 		className=className.trim();
-		
-		
-		
 		
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
 		BundleCollection bc = engine.getBundleCollection();
@@ -326,8 +311,7 @@ public class OSGiUtil {
     	for(Bundle b:bundles){
     		loaded.add(b.getSymbolicName()+"|"+b.getVersion());
     	}
-    	
-    	
+
     	try {
 	    	File dir=factory.getBundleDirectory();
 			File[] children = dir.listFiles(JAR_EXT_FILTER);
@@ -359,7 +343,6 @@ public class OSGiUtil {
 		
 	public static Bundle loadBundle(BundleFile bf, Bundle defaultValue) {
     	if(!bf.isBundle()) return defaultValue;
-    	
 		try {
 			return loadBundle(bf);
 		} catch (Exception e) {
@@ -368,7 +351,6 @@ public class OSGiUtil {
     }
 	
 	public static Bundle loadBundle(BundleFile bf) throws IOException, BundleException {
-    	
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
     	
     	// check in loaded bundles
@@ -425,8 +407,6 @@ public class OSGiUtil {
 		return bf.getSymbolicName()+":"+bf.getVersionAsString();
 	}
 
-
-
 	private static Bundle exists(Set<Bundle> loadedBundles, BundleFile bf) {
 		if(loadedBundles!=null) {
 			Bundle b;
@@ -451,7 +431,6 @@ public class OSGiUtil {
 		return null;
 	}
 
-	
 	public static Bundle loadBundle(String name, Version version,Identification id, boolean startIfNecessary) throws BundleException {
 		try {
 			return _loadBundle(name, version, id, startIfNecessary,null);
@@ -460,6 +439,7 @@ public class OSGiUtil {
 			throw sfe.bundleException;
 		}
 	}
+
 	public static Bundle _loadBundle(String name, Version version,Identification id, boolean startIfNecessary, Set<String> parents) throws BundleException, StartFailedException {
 		name=name.trim();
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
@@ -1115,7 +1095,7 @@ public class OSGiUtil {
 					if(failedBD.size()>0) {
 						Iterator<BundleDefinition> itt = failedBD.iterator();
 						BundleDefinition _bd;
-						StringBuilder sb=new StringBuilder(" Lucee was not able to download the following bundles [");
+						StringBuilder sb=new StringBuilder("Lucee was not able to download/load the following bundles [");
 						while(itt.hasNext()){
 							_bd=itt.next();
 							sb.append(_bd.name+":"+_bd.getVersionAsString()).append(';');

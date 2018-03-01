@@ -18,19 +18,9 @@
  */
 package lucee.runtime.type.scope;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Map;
-
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
-
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ByteNameValuePair;
 import lucee.commons.lang.StringUtil;
@@ -47,7 +37,6 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
-
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
@@ -55,6 +44,16 @@ import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.servlet.ServletRequestContext;
+
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Form Scope
@@ -77,10 +76,12 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 	private URLItem[] raw = empty;
 	private static int count = 1;
 
+	private static final int HEADER_TYPE_UNKNOWN = -1;
 	private static final int HEADER_TEXT_PLAIN = 0;
 	private static final int HEADER_MULTIPART_FORM_DATA = 1;
 	private static final int HEADER_APP_URL_ENC = 2;
-	private int headerType = -1;
+
+	private int headerType = HEADER_TYPE_UNKNOWN;
 
 	/**
 	 * standart class Constructor
@@ -440,6 +441,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 	 */
 	@Override
 	public ServletInputStream getInputStream() {
+
 		if(headerType == HEADER_APP_URL_ENC) {
 			return new ServletInputStreamDummy(toBarr(raw, AMP));
 		}
@@ -449,6 +451,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		/*
 		 * else if(headerType==HEADER_MULTIPART_FORM_DATA) { return new FormImplInputStream(this); // TODO }
 		 */
+
 		return new ServletInputStreamDummy(new byte[] {});
 	}
 

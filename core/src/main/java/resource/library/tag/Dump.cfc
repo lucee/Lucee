@@ -148,7 +148,10 @@ component {
 				admin action="addDump" dump="#result#";
 		} 
 		else {
-			file action="write" addnewline="yes" file="#arguments.attrib.output#" output="<div id=""#dumpID#"" class=""-lucee-dump"">#result#</div>";
+			if(arguments.attrib.format == 'text')
+				file action="write" addnewline="yes" file="#arguments.attrib.output#" output="#result#";
+			else
+				file action="write" addnewline="yes" file="#arguments.attrib.output#" output="<div id=""#dumpID#"" class=""-lucee-dump"">#result#</div>";
 		}
 	}
 
@@ -798,8 +801,8 @@ document.addEventListener("DOMContentLoaded", __Lucee.onDocumentReady);
 				}
 			}
 		}
-		if(arguments.output NEQ "console" && arguments.level == 0) {
-			return "<pre>" & rtn & "</pre>";
+		if(arguments.output NEQ "console" && arguments.level EQ 0) {
+			return rtn;
 		}
 
 		return rTrim(rtn);

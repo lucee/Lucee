@@ -392,7 +392,6 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	}
 	
 	static Type _writeOutFirstBIF(BytecodeContext bc, BIF bif, int mode,boolean last,Position line) throws TransformerException {
-		double start=SystemUtil.millis();
 		GeneratorAdapter adapter = bc.getAdapter();
 		adapter.loadArg(0);
 		// class

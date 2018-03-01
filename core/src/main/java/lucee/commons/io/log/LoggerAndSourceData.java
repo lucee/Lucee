@@ -128,7 +128,7 @@ public final class LoggerAndSourceData {
     public Log getLog() {
     	if(_log==null) {
     		config=ThreadLocalPageContext.getConfig(config);
-    		layout = Log4jUtil.getLayout(cdLayout, layoutArgs);
+    		layout = Log4jUtil.getLayout(cdLayout, layoutArgs,cdAppender,name);
     		_appender = Log4jUtil.getAppender(config, layout,name, cdAppender, appenderArgs);
     		_log=new LogAdapter(Log4jUtil.getLogger(config, _appender, name, level));
     	}

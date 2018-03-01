@@ -5979,18 +5979,6 @@ public final class XMLConfigAdmin {
 	      	el.setAttribute("name",name);
       	}
       	
-      	/*
-      	// appender
-      	if(appenderCD.getClassName().equals(ConsoleAppender.class.getName())) appenderClassName="console";
-      	if(appenderClassName.equals(RollingResourceAppender.class.getName())) appenderClassName="resource";
-      	
-      	// layout
-      	if(layoutClassName.equals(PatternLayout.class.getName())) layoutClassName="pattern";
-      	if(layoutClassName.equals(ClassicLayout.class.getName())) layoutClassName="classic";
-      	if(layoutClassName.equals(HTMLLayout.class.getName())) layoutClassName="html";
-      	if(layoutClassName.equals(XMLLayout.class.getName())) layoutClassName="xml";
-		*/
-      	
       	el.setAttribute("level",level.toString());
       	setClass(el, null, "appender-", appenderCD);
   		el.setAttribute("appender-arguments",toStringCSSStyle(appenderArgs));

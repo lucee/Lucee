@@ -30,10 +30,11 @@ import lucee.runtime.op.Caster;
  */
 public final class BinaryDecode implements Function {
 
-	public static byte[] call(PageContext pc, String encoded_binary,String binaryencoding) throws PageException {
+	public static byte[] call(PageContext pc, String encoded_binary, String binaryencoding) throws PageException {
 		try {
-			return Coder.decode(binaryencoding,encoded_binary);
-		} catch (CoderException e) {
+			return Coder.decode(binaryencoding, encoded_binary);
+		}
+		catch (CoderException e) {
 			throw Caster.toPageException(e);
 		}
 	}

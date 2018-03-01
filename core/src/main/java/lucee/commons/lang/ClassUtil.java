@@ -188,7 +188,6 @@ public final class ClassUtil {
 	 * @throws ClassException 
 	 */
 	public static Class loadClass(String className) throws ClassException {
-		double start=SystemUtil.millis();
 		Set<Throwable> exceptions=new HashSet<Throwable>();
 		// OSGI env
 		Class clazz= _loadClass(new OSGiBasedClassLoading(), className, null,exceptions);
@@ -351,7 +350,7 @@ public final class ClassUtil {
 	}
 	
 	private static Class<?> __loadClass(ClassLoading cl,String className, Class<?> defaultValue, Set<Throwable> exceptions) {
-		double start=SystemUtil.millis();
+		
 		Class<?> clazz = checkPrimaryTypes(className, null);
 		if (clazz != null) return clazz;
 		

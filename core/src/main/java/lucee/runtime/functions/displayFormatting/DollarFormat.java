@@ -31,13 +31,13 @@ import lucee.runtime.functions.international.LSCurrencyFormat;
 import lucee.runtime.op.Caster;
 
 public final class DollarFormat implements Function {
-	public static String call(PageContext pc , String strDollar) throws CasterException {
-		if(StringUtil.isEmpty(strDollar)) strDollar="0";//"$0,00";
+	public static String call(PageContext pc, String strDollar) throws CasterException {
+		if(StringUtil.isEmpty(strDollar))
+			strDollar = "0";// "$0,00";
 		return LSCurrencyFormat.local(Locale.US, Caster.toDoubleValue(strDollar));
-		/*try {
-			return "$"+Caster.toDecimal(Caster.toDoubleValue(strDollar),',','.');
-		} catch (PageException e) {
-			throw new FunctionException(pc,"dollarFormat",1,"number",e.getMessage());
-		}*/
+		/*
+		 * try { return "$"+Caster.toDecimal(Caster.toDoubleValue(strDollar),',','.'); } catch (PageException e) { throw new
+		 * FunctionException(pc,"dollarFormat",1,"number",e.getMessage()); }
+		 */
 	}
 }

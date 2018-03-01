@@ -264,7 +264,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		// Logging/appender
 		Resource app = adminDir.getRealResource("logging/appender");
 		create("/resource/context/admin/logging/appender/",new String[]{
-		"ConsoleAppender.cfc","ResourceAppender.cfc","Appender.cfc","Field.cfc","Group.cfc"}
+		"DatasourceAppender.cfc","ConsoleAppender.cfc","ResourceAppender.cfc","Appender.cfc","Field.cfc","Group.cfc"}
 		,app,doNew);
 		
 		// Logging/layout

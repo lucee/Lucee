@@ -31,36 +31,35 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.util.InvalidMaskException;
 
 public final class LSNumberFormat implements Function {
-	
+
 	private static final long serialVersionUID = -7981883050285346336L;
 
-	public static String call(PageContext pc , Object object) throws PageException {
+	public static String call(PageContext pc, Object object) throws PageException {
 		return _call(pc, object, null, pc.getLocale());
 	}
-	
-	public static String call(PageContext pc , Object object, String mask) throws PageException {
-	    return _call(pc, object, mask, pc.getLocale());
+
+	public static String call(PageContext pc, Object object, String mask) throws PageException {
+		return _call(pc, object, mask, pc.getLocale());
 	}
-	
-	public static String call(PageContext pc , Object object, String mask, Locale locale) throws PageException {
-		return _call(pc, object, mask, 
-				locale==null?pc.getLocale():locale);
+
+	public static String call(PageContext pc, Object object, String mask, Locale locale) throws PageException {
+		return _call(pc, object, mask, locale == null ? pc.getLocale() : locale);
 	}
-	
-	private static String _call(PageContext pc , Object object, String mask, Locale locale) throws PageException {
+
+	private static String _call(PageContext pc, Object object, String mask, Locale locale) throws PageException {
 
 		try {
 
 			lucee.runtime.util.NumberFormat formatter = new lucee.runtime.util.NumberFormat();
 			double number = lucee.runtime.functions.displayFormatting.NumberFormat.toNumber(pc, object);
 
-            if (mask == null)
-            	return formatter.format(locale, number);
+			if(mask == null)
+				return formatter.format(locale, number);
 
 			return formatter.format(locale, number, mask);
-        } 
-        catch (InvalidMaskException e) {
-            throw new FunctionException(pc,"lsnumberFormat",1,"number",e.getMessage());
-        }
+		}
+		catch (InvalidMaskException e) {
+			throw new FunctionException(pc, "lsnumberFormat", 1, "number", e.getMessage());
+		}
 	}
 }

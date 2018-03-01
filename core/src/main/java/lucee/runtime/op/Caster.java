@@ -313,8 +313,7 @@ public final class Caster {
      * @throws PageException 
      */
     public static boolean toBooleanValue(Object o) throws PageException {
-        if(o instanceof Boolean) return ((Boolean)o).booleanValue();
-        else if(o instanceof Double) return toBooleanValue(((Double)o).doubleValue());
+    	if(o instanceof Boolean) return ((Boolean)o).booleanValue();
         else if(o instanceof Number) return toBooleanValue(((Number)o).doubleValue());
         else if(o instanceof String) return toBooleanValue((String)o);
         else if(o instanceof Castable) return ((Castable)o).castToBooleanValue();
@@ -2702,9 +2701,6 @@ public final class Caster {
         try {
 			return Base64Encoder.decode(toString(o));
 		} 
-        catch (CoderException e) {
-			throw new CasterException(e.getMessage(),"binary");
-		}
         catch (PageException e) {
             throw new CasterException(o,"binary");
         }

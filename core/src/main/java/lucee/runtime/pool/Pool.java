@@ -113,17 +113,14 @@ public class Pool {
 			if(controller==null || !controller.isAlive()) {
 				controller=new Controller(this);
 				controller.start();
-				print.e("controller start");
 			}
 		}
 	}
 
 	private void stopControllerIfNecessary() {
-		print.e("map size:"+map.size());
 		if(map.isEmpty()) {
 			if(controller!=null && controller.isAlive()) {
 				controller.interrupt();
-				print.e("controller stop");
 			}
 		}
 	}
@@ -138,7 +135,6 @@ public class Pool {
 		}
 		
 		public void run() { // TODO handle exceptions
-			print.e("--- start ---");
 			while(true) {
 				try {sleep(pool.interval);} catch (InterruptedException e) {e.printStackTrace();}
 				if(isInterrupted()) break;
@@ -151,7 +147,6 @@ public class Pool {
 				if(isInterrupted()) break;
 				
 			}
-			print.e("--- end ---");
 		}
 	}
 }

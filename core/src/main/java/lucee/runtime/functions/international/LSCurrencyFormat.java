@@ -36,52 +36,56 @@ public final class LSCurrencyFormat implements Function {
 
 	private static final long serialVersionUID = -3173006221339130136L;
 
-	public static String call(PageContext pc , Object number) throws PageException {
+	public static String call(PageContext pc, Object number) throws PageException {
 		return format(toDouble(number), "local", pc.getLocale());
 	}
-	public static String call(PageContext pc , Object number, String type) throws PageException {
-		return format( toDouble(number), type, pc.getLocale());
+
+	public static String call(PageContext pc, Object number, String type) throws PageException {
+		return format(toDouble(number), type, pc.getLocale());
 	}
-	public static String call(PageContext pc , Object number, String type,Locale locale) throws PageException {
-		return format(toDouble(number), type, locale==null?pc.getLocale():locale);
+
+	public static String call(PageContext pc, Object number, String type, Locale locale) throws PageException {
+		return format(toDouble(number), type, locale == null ? pc.getLocale() : locale);
 	}
-	
-	public static String format( double number, String type,Locale locale) throws ExpressionException {
-		if(StringUtil.isEmpty(type)) return local(locale,number);
-		type=type.trim().toLowerCase();
-		
-		if(type.equals("none")) 				return none(locale,number);
-		else if(type.equals("local"))			return local(locale,number);
-		else if(type.equals("international"))	return international(locale,number);
+
+	public static String format(double number, String type, Locale locale) throws ExpressionException {
+		if(StringUtil.isEmpty(type))
+			return local(locale, number);
+		type = type.trim().toLowerCase();
+
+		if(type.equals("none"))
+			return none(locale, number);
+		else if(type.equals("local"))
+			return local(locale, number);
+		else if(type.equals("international"))
+			return international(locale, number);
 		else {
-			throw new ExpressionException("invalid type for function lsCurrencyFormat","types are: local, international or none");
+			throw new ExpressionException("invalid type for function lsCurrencyFormat", "types are: local, international or none");
 		}
-		
+
 	}
 
 	public static String none(Locale locale, double number) {
-        NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
-        return StringUtil.replace(nf.format(number),nf.getCurrency().getSymbol(locale),"",false).trim();
+		NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
+		return StringUtil.replace(nf.format(number), nf.getCurrency().getSymbol(locale), "", false).trim();
 	}
-	
+
 	public static String local(Locale locale, double number) {
-		return NumberFormat.getCurrencyInstance(locale).format(number);	
+		return NumberFormat.getCurrencyInstance(locale).format(lucee.runtime.util.NumberFormat.fixDouble(number, 2));
 	}
-	
+
 	public static String international(Locale locale, double number) {
-        NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
-        Currency currency = nf.getCurrency();
-        
-        String str = StringUtil.replace(
-        			nf.format(number),
-        			nf.getCurrency().getSymbol(locale),
-        			"",false).trim();
-        
-        return currency.getCurrencyCode()+" "+str;
+		NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
+		Currency currency = nf.getCurrency();
+
+		String str = StringUtil.replace(nf.format(number), nf.getCurrency().getSymbol(locale), "", false).trim();
+
+		return currency.getCurrencyCode() + " " + str;
 	}
-	
+
 	public static double toDouble(Object number) throws PageException {
-		if(number instanceof String && ((String)number).length()==0) return 0d;
+		if(number instanceof String && ((String)number).length() == 0)
+			return 0d;
 		return Caster.toDoubleValue(number);
 	}
 }
