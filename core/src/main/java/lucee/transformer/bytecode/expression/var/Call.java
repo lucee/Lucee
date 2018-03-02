@@ -4,16 +4,16 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
-import org.objectweb.asm.commons.Method;
-
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.Expression;
+
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
 
 public class Call extends ExpressionBase implements Func {
 	
@@ -62,7 +62,7 @@ public class Call extends ExpressionBase implements Func {
 		Iterator<Argument> it = args.iterator();
 		boolean named=it.next() instanceof NamedArgument;
 		while(it.hasNext()) {
-			if( named != (it.next()  instanceof NamedArgument) );
+			if( named != (it.next()  instanceof NamedArgument) )
 				throw new TransformerException("You cannot mix named and unnamed arguments in function calls",getEnd());
 		}
 		

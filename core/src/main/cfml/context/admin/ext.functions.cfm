@@ -419,7 +419,15 @@
 	}
 
 
-	function getProviderInfo(required string provider, boolean forceReload=false, numeric timeSpan=60){
+
+	function getProviderInfoAsync(required string provider){
+		thread args=arguments {
+			getProviderInfo(args.provider, true, 60, 50);
+		}
+	}
+
+
+	function getProviderInfo(required string provider, boolean forceReload=false, numeric timeSpan=60, timeout=10){
 		if(provider=="local" || provider=="") {
 			local.provider={};
 			provider.meta.title="Local Extension Provider";
@@ -444,8 +452,7 @@
 				return session.rhproviders[provider];
 
 		try {
-			var start=getTickCount();
-
+			
 			// get info from remote
 			var uri=provider&"/rest/extension/provider/info";
 			//dump("get:"&uri);
@@ -457,15 +464,22 @@
 				password="#session["password"&request.adminType]#"
 				returnVariable="apiKey";
 
+			var start=getTickCount();
 
-			http url="#uri#?coreVersion=#server.lucee.version#" result="local.http" {
-				httpparam type="header" name="accept" value="application/json";
-				if(!isNull(apikey))httpparam type="url" name="ioid" value="#apikey#";
+			try{
+				http url="#uri#?coreVersion=#server.lucee.version#" result="local.http" timeout=arguments.timeout {
+					httpparam type="header" name="accept" value="application/json";
+					if(!isNull(apikey))httpparam type="url" name="ioid" value="#apikey#";
+				}
+			}
+			catch(e) {
+				// call it in background
+				getProviderInfoAsync(arguments.provider);
 			}
 
 			if(isNull(http.status_code)){
 				session.rhcfcstries[provider]=now(); // set last try
-				local.result.error=http.fileContent;
+				local.result.error=http.fileContent?:'';
 				result.status_code=404;
 				result.lastModified=now();
 				result.provider=uri;

@@ -41,10 +41,8 @@
 		if(!structKeyExists(data,"dsn")) data.dsn="";
 		
 		fields=array(
-			field("Class","class",data.classname,true,"The class that implement the Driver"),
-			//field("Bundle name","bundleName","",false,"The OSGi bundle name of the Driver, only necessary if the jar is OSGi based."),
-			//field("Bundle version","bundleVersion","",false,"The OSGi bundle version of the Driver, only necessary if the driver is OSGi based."),
-			field("Connection String","dsn",data.dsn,true,"The Datasource Connection String")
+			field("Class","class",data.classname,true,"The JDBC class that implement the Driver."),
+			field("Connection String","dsn",data.dsn,true,"The Datasource Connection String, please consult the documentation of the JDBC Driver for details on the connection string.")
 		);
 		</cfscript>
 		

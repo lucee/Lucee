@@ -105,7 +105,7 @@ public class ThreadQueueImpl implements ThreadQueue {
 				queue.exit(name);
 			}
 			catch (IOException e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 			
 			

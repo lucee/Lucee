@@ -5,6 +5,7 @@ import java.util.Date;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.tag.CacheItem;
+import lucee.runtime.db.DataSource;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.Dumpable;
@@ -22,21 +23,23 @@ public abstract class QueryResultCacheItem  implements CacheItem, Dumpable, Seri
 	private final long creationDate;
 	private QueryResult queryResult;
 	private String[] tags;
+	private final String dsn;
 
-	protected QueryResultCacheItem(QueryResult qr, String[] tags, long creationDate) {
-
+	protected QueryResultCacheItem(QueryResult qr, String[] tags, String datasourceName, long creationDate) {
 		this.queryResult = qr;
 		this.creationDate = creationDate;
 		this.tags = (tags == null) ? EMPTY : tags;
+		this.dsn=datasourceName;
 	}
 
-	public static CacheItem newInstance(QueryResult qr, String[] tags, CacheItem defaultValue) {
+	public static CacheItem newInstance(QueryResult qr, String[] tags, DataSource ds, CacheItem defaultValue) {
+		String dsn=ds==null?null:ds.getName();
 		if(qr instanceof Query)
-			return new QueryCacheItem((Query) qr, tags);
+			return new QueryCacheItem((Query) qr, tags, dsn);
 		else if(qr instanceof QueryArray)
-			return new QueryArrayItem((QueryArray) qr, tags);
+			return new QueryArrayItem((QueryArray) qr, tags, dsn);
 		else if(qr instanceof QueryStruct)
-			return new QueryStructItem((QueryStruct) qr, tags);
+			return new QueryStructItem((QueryStruct) qr, tags, dsn);
 		return defaultValue;
 	}
 	
@@ -68,6 +71,10 @@ public abstract class QueryResultCacheItem  implements CacheItem, Dumpable, Seri
 	
 	public final String[] getTags() {
 		return tags;
+	}
+	
+	public final String getDatasourceName() {
+		return dsn;
 	}
 
 	public final long getCreationDate(){

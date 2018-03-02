@@ -40,9 +40,11 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.it.EntryArrayIterator;
 import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.it.KeyIterator;
 import lucee.runtime.type.it.StringIterator;
+import lucee.runtime.type.scope.ArgumentImpl;
 import lucee.runtime.type.util.ArraySupport;
 import lucee.runtime.type.util.ListIteratorImpl;
 

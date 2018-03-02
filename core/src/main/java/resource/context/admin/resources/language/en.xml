@@ -33,6 +33,8 @@
 	<data key="services.update.remove">Remove installed patches</data>
 	<data key="services.update.exerun">execute update</data>
 	<data key="services.update.typedesc">Define how Lucee will be patched. &quot;Automatic&quot; means that Lucee searches automatically for updates once a day. &quot;Manual&quot; means that you can update Lucee only manually here.</data>
+	<data key="services.update.downgradeVersion">To downgrade your version below {minVersion} you need to replace your lucee.jar with an older version one you can download {url}. This is because the lucee.jars always bundles a version itself and it will always use at least that version.</data>
+
 	<data key="services.certificate.desc">List SSL Certificates for a specific Host or install them.</data>
 	<data key="services.certificate.host">Host</data>
 	<data key="services.certificate.hostDesc">The host server, for example "www.lucee.org"</data>
@@ -1122,7 +1124,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.Hash">Hash</data>
 	<data key="overview.config">Configuration File</data>
 	<data key="overview.webroot">Webroot</data>
-	<data key="overview.info">General Info</data>
+	<data key="overview.info">System Information</data>
 	<data key="overview.featurerequest">Feature request</data>
 	<data key="overview.contextcount">Context count</data>
 	<data key="doc.arg.name">Name</data>

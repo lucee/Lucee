@@ -32,8 +32,6 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.osgi.framework.BundleException;
-
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.cache.exp.CacheException;
@@ -91,6 +89,8 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 
+import org.osgi.framework.BundleException;
+
 public class ModernApplicationContext extends ApplicationContextSupport {
 
 	private static final long serialVersionUID = -8230105685329758613L;
@@ -102,6 +102,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Collection.Key LOGIN_STORAGE = KeyImpl.intern("loginStorage");
 	private static final Collection.Key SESSION_TYPE = KeyImpl.intern("sessionType");
 	private static final Collection.Key WS_SETTINGS = KeyImpl.intern("wssettings");
+	private static final Collection.Key WS_SETTING = KeyImpl.intern("wssetting");
 	private static final Collection.Key TRIGGER_DATA_MEMBER = KeyImpl.intern("triggerDataMember");
 	private static final Collection.Key INVOKE_IMPLICIT_ACCESSOR = KeyImpl.intern("InvokeImplicitAccessor");
 	private static final Collection.Key SESSION_MANAGEMENT = KeyImpl.intern("sessionManagement");
@@ -168,6 +169,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean suppressContent;
 	private short sessionType;
 	private short wstype;
+	private boolean wsMaintainSession=false;
 	private boolean sessionCluster;
 	private boolean clientCluster;
 	
@@ -176,7 +178,6 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private String sessionStorage;
 	private String secureJsonPrefix="//";
 	private boolean secureJson; 
-	private Mapping[] mappings;
 	private Mapping[] ctmappings;
 	private Mapping[] cmappings;
 	private DataSource[] dataSources;
@@ -191,8 +192,12 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean cgiScopeReadonly;
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
+	private Object mailListener;
 	
+	private Mapping[] mappings;
+	private boolean initMappings;
 	private boolean initCustomTypes;
+	private boolean initMailListener;
 	private boolean initCachedWithins;
 	
 	private boolean initApplicationTimeout;
@@ -215,9 +220,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initClientCluster;
 	private boolean initLoginStorage;
 	private boolean initSessionType;
-	private boolean initWSType;
+	private boolean initWS;
 	private boolean initTriggerComponentDataMember;
-	private boolean initMappings;
 	private boolean initDataSources;
 	private boolean initCache;
 	private boolean initCTMappings;
@@ -612,23 +616,48 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public short getWSType() {
-		if(!initWSType) {
+		initWS();
+		return wstype;
+	}
+	
+	@Override
+	public boolean getWSMaintainSession() {
+		initWS();
+		return wsMaintainSession;
+	}
+	
+	@Override
+	public void setWSMaintainSession(boolean wsMaintainSession) {
+		initWS=true;
+		this.wsMaintainSession = wsMaintainSession;
+	}
+	
+	public void initWS() {
+		if(!initWS) {
 			Object o = get(component,WS_SETTINGS,null);
+			if(o==null) o = get(component,WS_SETTING,null);
 			if(o instanceof Struct){ 
 				Struct sct= (Struct) o;
+				
+				// type
 				o=sct.get(KeyConstants._type,null);
 				if(o instanceof String){ 
 					wstype=AppListenerUtil.toWSType(Caster.toString(o,null), WS_TYPE_AXIS1);
 				}
+				
+				// MaintainSession
+				o=sct.get("MaintainSession",null);
+				if(o !=null){ 
+					wsMaintainSession=Caster.toBooleanValue(o,false);
+				}
 			}
-			initWSType=true; 
+			initWS=true; 
 		}
-		return wstype;
 	}
 
 	@Override
 	public void setWSType(short wstype) {
-		initWSType=true;
+		initWS=true;
 		this.wstype=wstype;
 	}
 
@@ -930,7 +959,17 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 	
 	
-	
+	@Override
+	public Object getMailListener() {
+		if(!initMailListener) {
+			Struct mail = Caster.toStruct(get(component,KeyConstants._mail,null),null);
+			if(mail!=null) 
+				mailListener=mail.get(KeyConstants._listener,null);
+			
+			initMailListener=true; 
+		}
+		return mailListener;
+	}
 
 	@Override
 	public Mapping[] getMappings() {
@@ -1231,6 +1270,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		initMappings=true;
 		this.mappings=mappings;
 	}
+
+	@Override
+	public void setMailListener(Object mailListener) {
+		initMailListener=true;
+		this.mailListener=mailListener;
+	}
+	
 	@Override
 	public void setDataSources(DataSource[] dataSources) {
 		initDataSources=true;
@@ -1530,9 +1576,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 					//print.e(res+"->"+(res!=null && res.exists()));
 					if(res!=null) list.add(res);
 				}
-				catch(Throwable t){
-					ExceptionUtil.rethrowIfNecessary(t);
-					t.printStackTrace();
+				catch(Exception e){
+		            SystemOut.printDate(e);
 				}
 			}
 			return list;

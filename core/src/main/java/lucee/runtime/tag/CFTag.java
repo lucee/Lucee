@@ -28,6 +28,7 @@ import javax.servlet.jsp.tagext.Tag;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.Component;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
@@ -45,7 +46,6 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.PageServletException;
-import lucee.runtime.exp.TemplateException;
 import lucee.runtime.ext.tag.AppendixTag;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
 import lucee.runtime.ext.tag.DynamicAttributes;
@@ -734,7 +734,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 			try {
 				source=initFile(pageContext);
 			} catch (PageException e) {
-				e.printStackTrace();
+	            SystemOut.printDate(e);
 			}
 		}
 		return source;

@@ -21,11 +21,15 @@ function printError(error,boolean longversion=false) {
 	if(not StructKeyExists(arguments.error,'detail'))arguments.error.detail="";
 	else if(arguments.error.message EQ arguments.error.detail)arguments.error.detail="";
 
-	if(isNull(error.cfcatch))
-		log type="error" log="application" text=error.message&";"&error.detail;
-	else
-		log type="error" log="application" exception=error.cfcatch;
+	// log to log file
+	if(arguments.error.message NEQ "" && arguments.error.detail NEQ "" || !isNull(error.cfcatch) ){
+		if(isNull(error.cfcatch))
+			log type="error" log="application" text=error.message&";"&error.detail;
+		else
+			log type="error" log="application" exception=error.cfcatch;
+	}
 
+	
 
 	if(StructKeyExists(arguments.error,'message') and arguments.error.message NEQ "") {
 		writeOutput('<div class="error">');
@@ -33,7 +37,7 @@ function printError(error,boolean longversion=false) {
 		writeOutput('<br>');
 		writeOutput(br(arguments.error.detail));
 
-		if(longversion) {
+		if(!isNull(url.debug) || longversion) {
 			if(StructKeyExists(error,"TagContext")){
 				loop array="#error.TagContext#" index="local.i" item="local.tc" {
 					writeOutput('<br><span class="comment">');
@@ -46,6 +50,8 @@ function printError(error,boolean longversion=false) {
 					//dump(error.TagContext[i]);
 				}
 			}
+			if(!isNull(error.cfcatch)) dump(error.cfcatch);
+
 		}
 		//ErrorCode,addional,TagContext,StackTrace,type,Detail,Message,ExtendedInfo
 		writeOutput('</div>');
@@ -168,7 +174,7 @@ function go(action,action2='',others=struct()) {
 	for(var i=1; i LTE arrayLen(qsArr); i=i+1) {
 		item=listToArray(qsArr[i],'=');
 		if(not structKeyExists(others,item[1]) and item[1] NEQ "action" and item[1] NEQ "action2") {
-			rtn=rtn&'&'&item[1]&"="&item[2];
+			rtn=rtn&'&'&item[1]&"="&(item[2]?:"");
 		}
 	}
 

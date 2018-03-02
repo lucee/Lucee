@@ -24,7 +24,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import lucee.print;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
@@ -1907,7 +1906,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			try {
 				tlt.getEvaluator().execute(data.config, tag, tlt,data.flibs, data);
 			} catch (EvaluatorException e) {
-				throw new TemplateException(e.getMessage());
+				throw new TemplateException(data.srcCode,e.getMessage());
 			}
 			data.ep.add(tlt, tag, data.flibs, data.srcCode);
 		}
@@ -1930,7 +1929,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				
 			} 
 			catch (Exception e) {
-				e.printStackTrace();
+            SystemOut.printDate(e);
 				tag= new TagBase(line);
 			}
 		}*/

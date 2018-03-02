@@ -30,21 +30,30 @@ import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.Dumpable;
 import lucee.runtime.dump.SimpleDumpData;
+import lucee.runtime.type.Duplicable;
 
-public class IncludeCacheItem implements CacheItem, Serializable, Dumpable {
+public class IncludeCacheItem implements CacheItem, Serializable, Dumpable, Duplicable {
 
 	private static final long serialVersionUID = -3616023500492159529L;
 
 	public final String output;
-	private long executionTimeNS;
-	private String path;
-	private String name;
+	private final long executionTimeNS;
+	private final String path;
+	private final String name;
 	private final int payload;
 
 	public IncludeCacheItem(String output, PageSource ps, long executionTimeNS) {
 		this.output = output;
 		this.path = ps.getDisplayPath();
 		this.name = ps.getFileName();
+		this.executionTimeNS = executionTimeNS;
+		this.payload = output == null ? 0 : output.length();
+	}
+	
+	public IncludeCacheItem(String output, String path, String name, long executionTimeNS) {
+		this.output = output;
+		this.path = path;
+		this.name = name;
 		this.executionTimeNS = executionTimeNS;
 		this.payload = output == null ? 0 : output.length();
 	}
@@ -93,4 +102,8 @@ public class IncludeCacheItem implements CacheItem, Serializable, Dumpable {
 		return executionTimeNS;
 	}
 
+	@Override
+	public Object duplicate(boolean deepCopy) {
+		return new IncludeCacheItem(output, path,name, executionTimeNS);
+	}
 }

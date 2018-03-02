@@ -37,8 +37,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
-import lucee.commons.lang.ExceptionUtil;
-
 public class ConnectionProxy implements Connection {
 	
 	private Connection conn;

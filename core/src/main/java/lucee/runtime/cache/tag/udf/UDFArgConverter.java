@@ -38,31 +38,27 @@ public class UDFArgConverter {
 	}
 	
 	
-	private static String serialize(Object o,Set<Object> done)  {
+	private static String serialize(Object oo,Set<Object> done)  {
 		
-		if(o==null) return "null";
-		Object raw=toRaw(o);
+		if(oo==null) return "null";
+		Object raw=toRaw(oo);
 		
 		if(done.contains(raw)) return "parent reference";
 		done.add(raw);
 		Collection c=null;
 		Object other=null;
-		try{
-			if((c=Caster.toCollection(o,null))!=null) {
-				if(o!=c){
+		try {
+			if(raw instanceof Object[]) {
+				return serializeArray((Object[])raw,done);
+			}
+			else if((c=Caster.toCollection(raw,null))!=null) {
+				if(raw!=c){
 					done.add(c);
 					other=c;
 				}
 				return serializeCollection(c,done);
 			}
-			/*if(o instanceof String) {
-				return "'"+escape((String)o)+"'";
-			}
-			if(o instanceof SimpleValue || o instanceof Number || o instanceof Boolean)
-				return Caster.toString(o,"");
-			*/
-			
-			return o.toString();
+			return raw.toString();
 		}
 		finally {
 			if(other!=null) done.remove(other);
@@ -74,7 +70,17 @@ public class UDFArgConverter {
 		if(o instanceof XMLStruct)return ((XMLStruct)o).toNode();
 		return o;
 	}
-
+	
+	private static String serializeArray(Object[] arr, Set<Object> done) {
+		StringBuilder sb=new StringBuilder("[");
+		boolean notFirst=false;
+		for(Object o:arr) {
+			if(notFirst)sb.append(",");
+			sb.append(serialize(o,done));
+			notFirst=true;
+		}
+		return sb.append("]").toString();
+	}
 
 	private static String serializeCollection(Collection coll, Set<Object> done) {
 		if(coll instanceof Query) {

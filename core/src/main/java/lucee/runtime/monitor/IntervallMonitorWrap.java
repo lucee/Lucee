@@ -45,8 +45,8 @@ public class IntervallMonitorWrap extends MonitorWrap implements IntervallMonito
 				log=monitor.getClass().getMethod("log", new Class[0]);
 			}
 			log.invoke(monitor, PARAMS_LOG);
-		} catch (Exception e) {e.printStackTrace();
-			throw ExceptionUtil.toIOException(e);
+		} catch (Exception e) {
+            throw ExceptionUtil.toIOException(e);
 		} 
 	}
 

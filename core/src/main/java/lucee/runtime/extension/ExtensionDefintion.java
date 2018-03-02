@@ -1,6 +1,5 @@
 package lucee.runtime.extension;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -9,7 +8,6 @@ import java.util.Map.Entry;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -17,7 +15,6 @@ import lucee.runtime.osgi.OSGiUtil;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
-import org.w3c.dom.Element;
 
 public class ExtensionDefintion {
 

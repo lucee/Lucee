@@ -29,6 +29,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
@@ -47,9 +48,7 @@ public final class Hash implements Function {
     public static String call(PageContext pc , String input, String algorithm, String encoding) throws PageException {
 		return invoke( pc.getConfig(), input, algorithm, encoding, 1 );
 	}
-	//////
-	
-	
+
 	public static String call(PageContext pc, Object input) throws PageException {
 		return invoke( pc.getConfig(), input, null, null, 1 );
 	}
@@ -67,6 +66,7 @@ public final class Hash implements Function {
 	}
 
     public static String invoke(Config config, Object input, String algorithm, String encoding, int numIterations) throws PageException {
+		if(numIterations<1) numIterations=1;
 		
     	if(StringUtil.isEmpty(algorithm))algorithm="md5";
 		else algorithm=algorithm.trim().toLowerCase();

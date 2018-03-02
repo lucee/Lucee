@@ -50,6 +50,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringList;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.osgi.BundleCollection;
@@ -61,7 +62,6 @@ import lucee.runtime.config.Identification;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
 
 import org.apache.felix.framework.Logger;
@@ -494,7 +494,7 @@ public class OSGiUtil {
 			try {
 				b = _loadBundle(bc, bf.getFile());
 			} catch (IOException e) {
-				e.printStackTrace();
+	            SystemOut.printDate(e);
 			}
 			if(b!=null) {
 				if(startIfNecessary){

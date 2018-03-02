@@ -49,7 +49,6 @@ import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
-import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.cache.tag.webservice.WebserviceCacheItem;
 import lucee.runtime.config.Config;
 import lucee.runtime.dump.DumpData;
@@ -60,6 +59,7 @@ import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.net.proxy.Proxy;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.rpc.AxisCaster;
@@ -252,12 +252,11 @@ final class Axis1Client extends WSClient {
 
     private Object _call(PageContext pc,Config secondChanceConfig,String methodName, Struct namedArguments,Object[] arguments) throws PageException, ServiceException, RemoteException {
         
+    	ApplicationContextSupport acs=(ApplicationContextSupport) pc.getApplicationContext();
 		javax.wsdl.Service service = getWSDLService();
 		
 		Service axisService = new Service(parser, service.getQName());
-		//TypeMappingRegistry tmr = axisService.getTypeMappingRegistry();
-		//TypeMappingDelegate dtm = (TypeMappingDelegate) tmr.getDefaultTypeMapping();
-		//dtm.setDoAutoTypes(true);
+		axisService.setMaintainSession(acs.getWSMaintainSession());
 		
 		TypeMappingUtil.registerDefaults(axisService.getTypeMappingRegistry());
 		Port port = WSUtil.getSoapPort(service);
@@ -477,8 +476,11 @@ final class Axis1Client extends WSClient {
 	}
 
 	private Class map(PageContext pc,SymbolTable symbolTable, Config secondChanceConfig,org.apache.axis.encoding.TypeMapping tm, TypeEntry type) throws PageException {
-		//print.e("MAP");
-		//print.e(type.getQName());
+		
+		TypeEntry ref = type.getRefType();
+		if(ref!=null && ref!=type) {
+			map(pc, symbolTable, secondChanceConfig, tm, ref);
+		}
 		
 		// Simple Type
 		if(type.getContainedElements()==null) return null;

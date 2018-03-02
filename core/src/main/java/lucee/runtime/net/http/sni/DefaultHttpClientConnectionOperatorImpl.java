@@ -6,12 +6,12 @@ import java.net.InetSocketAddress;
 import javax.net.ssl.SSLProtocolException;
 
 import org.apache.http.HttpHost;
+import org.apache.http.config.Lookup;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.impl.conn.DefaultHttpClientConnectionOperator;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.config.Lookup;
 
 public class DefaultHttpClientConnectionOperatorImpl extends DefaultHttpClientConnectionOperator {
 

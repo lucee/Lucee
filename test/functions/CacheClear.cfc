@@ -1,93 +1,164 @@
-<!--- 
- *
- * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
- ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
-	<cfset variables.cacheName="Test"&ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".")>
+component extends="org.lucee.cfml.test.LuceeTestCase" {
 	
-	<cffunction name="testCacheClearEHCache" localMode="modern">
-		<cfset createEHCache()>
-		<cfset testCacheClear()>
-		<cfset deleteCache()>
-	</cffunction>
+	variables.cacheName="Test"&ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".");
 
-	<cffunction name="testCacheClearJBossCache" localMode="modern">
-		<cfif !isNull(request.testJBossExtension) and request.testJBossExtension>
-			<cfset createJBossCache()>
-			<cfset testCacheClear()>
-			<cfset deleteCache()>
-		</cfif>
-	</cffunction>
-
-	<cffunction name="testCacheClearRAMCache" localMode="modern">
-		<cfset createRAMCache()>
-		<cfset testCacheClear()>
-		<cfset deleteCache()>
-	</cffunction>
-	
-	<cffunction access="private" name="testCacheClear" localMode="modern">
-
-<!--- begin old test code --->
-<cfif server.ColdFusion.ProductName EQ "lucee">
-<cflock scope="server" timeout="1">
-
-<cfset cacheClear()>
-	<cfset cachePut('abc','123')>
-    <cfset valueEquals(left="#cacheCount()#", right="1")>
-    <cfset cacheClear()>
-    <cfset valueEquals(left="#cacheCount()#", right="0")>
-    
-    <cfset cachePut('abc','123')>
-    <cfset valueEquals(left="#cacheCount()#", right="1")>
-    <cfset cacheClear("*")>
-    <cfset valueEquals(left="#cacheCount()#", right="0")>
-    
-    <cfset cacheClear("",cacheName)>
-    <cfset cachePut('abc','123',CreateTimeSpan(1,1,1,1),CreateTimeSpan(1,1,1,1),cacheName)>
-    <cfset valueEquals(left="#cacheCount(cacheName)#", right="1")>
-    <cfset cacheClear("",cacheName)>
-    <cfset valueEquals(left="#cacheCount(cacheName)#", right="0")>
-    
-    <cfset cachePut('abc','123',CreateTimeSpan(1,1,1,1),CreateTimeSpan(1,1,1,1),cacheName)>
-    <cfset cachePut('abe','456',CreateTimeSpan(1,1,1,1),CreateTimeSpan(1,1,1,1),cacheName)>
-    <cfset cachePut('afg','789',CreateTimeSpan(1,1,1,1),CreateTimeSpan(1,1,1,1),cacheName)>
-
-    <cfset valueEquals(left="#cacheCount(cacheName)#", right="3")>
-    <cfset cacheClear("ab*",cacheName)>
-
-    <cfset valueEquals(left="#cacheCount(cacheName)#", right="1")>
+	variables.parentFolder=getDirectoryFromPath(getCurrentTemplatePath())&"/datasource/";
+	variables.datasourceFolder=variables.parentFolder&"cacheClear/";
 
 
+	private struct function getMongoDBCredentials() {
+		// getting the credetials from the enviroment variables
+		var mongoDB={};
+		if(!isNull(server.system.environment.MONGODB_SERVER) && !isNull(server.system.environment.MONGODB_PORT) && !isNull(server.system.environment.MONGODB_USERNAME) && !isNull(server.system.environment.MONGODB_PASSWORD)) {
+			mongoDB.server=server.system.environment.MONGODB_SERVER;
+			mongoDB.port=server.system.environment.MONGODB_PORT;
+			mongoDB.user=server.system.environment.MONGODB_USERNAME;
+			mongoDB.pass=server.system.environment.MONGODB_PASSWORD;
+		}
+		// getting the credetials from the system variables
+		else if(!isNull(server.system.properties.MONGODB_SERVER) && !isNull(server.system.properties.MONGODB_PORT) && !isNull(server.system.properties.MONGODB_USERNAME) && !isNull(server.system.properties.MONGODB_PASSWORD)) {
+			mongoDB.server=server.system.properties.MONGODB_SERVER;
+			mongoDB.port=server.system.properties.MONGODB_PORT;
+			mongoDB.user=server.system.properties.MONGODB_USERNAME;
+			mongoDB.pass=server.system.properties.MONGODB_PASSWORD;
+		}
+		return mongoDB;
+	}
 
-</cflock>
+	private void function defineDatasource(id, boolean asMongo=false){
+		var credentials=getMongoDBCredentials();
+		if(asMongo && structCount(credentials)) {
+			systemOutput("testing as mongo",1,1);
+			
+			admin 
+				action="updateCacheConnection"
+				type="web"
+				password="#request.webadminpassword#"
+				name="_cacheClear"&id 
+				class= 'org.lucee.mongodb.cache.MongoDBCache'
+				bundleName= 'mongodb.extension'
+				storage="false"
+				default="object" 
+				custom="#{
+						"collection":"testcacheclear",
+						"password":credentials.pass,
+						"connectionsPerHost":"10",
+						"database":"test",
+						"hosts":credentials.server&":"&credentials.port,
+						"persist":"true",
+						"username":credentials.user
+						}#";
+		}
+		else {
+			admin 
+				action="updateCacheConnection"
+				type="web"
+				password="#request.webadminpassword#"
+				name="_cacheClear"&id 
+				class="lucee.runtime.cache.ram.RamCache" 
+				storage="false"
+				default="object" 
+				custom="#{timeToLiveSeconds:86400,timeToIdleSeconds:86400}#";
+		}
 
-</cfif>
 
-<!--- end old test code --->
-	
-		
-		<!--- <cfset assertEquals("","")> --->
-	</cffunction>
-	
-	<cffunction access="private" name="valueEquals">
-		<cfargument name="left">
-		<cfargument name="right">
-		<cfset assertEquals(arguments.right,arguments.left)>
-	</cffunction>
-<cfscript>
+
+		if(!directoryExists(variables.datasourceFolder)) directoryCreate(variables.datasourceFolder);
+		application 
+			action="update" 
+			cache={
+				query:"_cacheClear"&id
+			}
+			
+		datasources="#{
+			'cacheClear_1':{
+		  		class: 'org.hsqldb.jdbcDriver'
+				, bundleName: 'org.hsqldb.hsqldb'
+				, bundleVersion: '2.3.2'
+				, connectionString: 'jdbc:hsqldb:file:#variables.datasourceFolder#/cacheClear_1'&id
+			}
+			,'cacheClear_2':{
+		  		class: 'org.hsqldb.jdbcDriver'
+				, bundleName: 'org.hsqldb.hsqldb'
+				, bundleVersion: '2.3.2'
+				, connectionString: 'jdbc:hsqldb:file:#variables.datasourceFolder#/cacheClear_2'&id
+			}
+		}#";
+	}
+
+
+	function testCacheClearTagsRAM() localmode=true {
+		testCacheClearTags(false);
+	}
+	/*function testCacheClearTagsMongo() localmode=true {
+		testCacheClearTags(true);
+	}*/
+
+	private function testCacheClearTags(boolean asMongo=false) localmode=true {
+		var id=createUniqueId();
+		try {
+			defineDatasource(id,asMongo);
+			
+			idsBefore=cacheGetAllIds(cacheName:"_cacheClear"&id);
+			before=arrayLen(idsBefore);
+			
+			query cachedwithin=createTimeSpan(0,0,1,0) name="qry1" datasource="cacheClear_1" tags=['tables'] {
+				echo('SELECT top 1 TABLE_NAME as tn,''cacheClear_1'' as ds FROM  INFORMATION_SCHEMA.SYSTEM_TABLES');
+			}
+			query cachedwithin=createTimeSpan(0,0,1,0) name="qry1" datasource="cacheClear_2" tags=['tables'] {
+				echo('SELECT top 1 TABLE_NAME as tn,''cacheClear_2'' as ds FROM  INFORMATION_SCHEMA.SYSTEM_TABLES');
+			}
+
+			query cachedwithin=createTimeSpan(0,0,1,0) name="qry1" datasource="cacheClear_1" tags=['tables2'] {
+				echo('SELECT top 1 TABLE_NAME as tn,''cacheClear_111'' as ds FROM  INFORMATION_SCHEMA.SYSTEM_TABLES');
+			}
+			query cachedwithin=createTimeSpan(0,0,1,0) name="qry1" datasource="cacheClear_2" tags=['tables2'] {
+				echo('SELECT top 1 TABLE_NAME as tn,''cacheClear_222'' as ds FROM  INFORMATION_SCHEMA.SYSTEM_TABLES');
+			}
+			idsAfter.a=cacheGetAllIds(cacheName:"_cacheClear"&id);
+			assertEquals(4,arrayLen(idsAfter.a)-before);
+			
+			cacheClear(['invalid'],"_cacheClear"&id);
+			idsAfter.b=cacheGetAllIds(cacheName:"_cacheClear"&id);
+			assertEquals(4,arrayLen(idsAfter.b)-before);
+			
+			cacheClear(['tables2'],"_cacheClear"&id);
+			idsAfter.c=cacheGetAllIds(cacheName:"_cacheClear"&id);
+			//SystemOutput(idsAfter,1,1);
+			assertEquals(2,arrayLen(idsAfter.c)-before);
+			
+
+			cacheClear({datasource:"cacheClear_1",tags:['tables']},"_cacheClear"&id);
+			idsAfter.d=cacheGetAllIds(cacheName:"_cacheClear"&id);
+			assertEquals(1,arrayLen(idsAfter.d)-before);
+			
+		}
+		finally {
+			cacheClear(cacheName:"_cacheClear"&id);
+			directoryDelete(variables.datasourceFolder,true);
+		}
+	}
+
+
+
+	function testCacheClearEHCache() {
+		createEHCache();
+		testCacheClear();
+		deleteCache();
+	}
+	function testCacheClearRAMCache() {
+		createRAMCache();
+		testCacheClear();
+		deleteCache();
+	}
+	function testCacheClearJBossCache() {
+		if(!isNull(request.testJBossExtension) and request.testJBossExtension) {
+			createJBossCache();
+			testCacheClear();
+			deleteCache();
+		}
+	}
+
 	private function createRAMCache(){
 		admin 
 				action="updateCacheConnection"
@@ -152,5 +223,33 @@
 			name="#cacheName#";
 						
 	}
-</cfscript>	
-</cfcomponent>
+
+	private function testCacheClear() localmode=true {
+		lock scope="server" timeout="1" {
+			cacheClear();
+			cachePut('abc','123');
+		    assertEquals("#cacheCount()#", "1");
+		    cacheClear();
+		    assertEquals("#cacheCount()#", "0");
+		    
+		    cachePut('abc','123');
+		    assertEquals("#cacheCount()#", "1");
+		    cacheClear("*");
+		    assertEquals("#cacheCount()#", "0");
+		    
+		    cacheClear("",cacheName);
+		    cachePut('abc','123',CreateTimeSpan(1,1,1,1),CreateTimeSpan(1,1,1,1),cacheName);
+		    assertEquals("#cacheCount(cacheName)#", "1");
+		    cacheClear("",cacheName);
+		    assertEquals("#cacheCount(cacheName)#", "0");
+		    
+		    cachePut('abc','123',CreateTimeSpan(1,1,1,1),CreateTimeSpan(1,1,1,1),cacheName);
+		    cachePut('abe','456',CreateTimeSpan(1,1,1,1),CreateTimeSpan(1,1,1,1),cacheName);
+		    cachePut('afg','789',CreateTimeSpan(1,1,1,1),CreateTimeSpan(1,1,1,1),cacheName);
+
+		    assertEquals("#cacheCount(cacheName)#", "3");
+		    cacheClear("ab*",cacheName);
+		    assertEquals("#cacheCount(cacheName)#", "1");
+    	}
+	}
+}

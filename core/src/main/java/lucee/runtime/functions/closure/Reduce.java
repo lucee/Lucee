@@ -32,6 +32,7 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.ArrayPro;
 import lucee.runtime.type.Iteratorable;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
@@ -41,25 +42,38 @@ import lucee.runtime.type.scope.ArgumentIntKey;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StringListData;
 
-public class Reduce extends BIF {
+public class Reduce extends BIF implements ClosureFunc {
 
 	private static final long serialVersionUID = -5940580562772523622L;
 
 	public static Object call(PageContext pc , Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf,null);
+		return _call(pc, obj, udf,null,TYPE_UNDEFINED);
 	}
 	
 	public static Object call(PageContext pc , Object obj, UDF udf, Object initalValue) throws PageException {
-		return _call(pc, obj, udf,initalValue);
+		return _call(pc, obj, udf,initalValue,TYPE_UNDEFINED);
 	}
 	
-	public static Object _call(PageContext pc , Object obj, UDF udf, Object initalValue) throws PageException { 
+	public static Object _call(PageContext pc , Object obj, UDF udf, Object initalValue, short type) throws PageException { 
 		
 		
 		Object value;
 		
+		// !!!! Don't combine the first 3 ifs with the ifs below, type overrules instanceof check
 		// Array
-		if(obj instanceof Array) {
+		if(type==TYPE_ARRAY) {
+			value=invoke(pc, (Array)obj, udf,initalValue);
+		}
+		// Query
+		else if(type==TYPE_QUERY) {
+			value=invoke(pc, (Query)obj, udf,initalValue);
+		}
+		// Struct
+		else if(type==TYPE_STRUCT) {
+			value=invoke(pc, (Struct)obj, udf,initalValue);
+		}
+		// Array
+		else if(obj instanceof Array) {
 			value=invoke(pc, (Array)obj, udf,initalValue);
 		}
 		// Query
@@ -101,11 +115,11 @@ public class Reduce extends BIF {
 	}
 
 	private static Object invoke(PageContext pc, Array arr, UDF udf, Object initalValue) throws CasterException, PageException {
-		Iterator<Entry<Key, Object>> it = arr.entryIterator();
-		Entry<Key, Object> e;
+		Iterator it =(arr instanceof ArrayPro?((ArrayPro)arr).entryArrayIterator(): arr.entryIterator());
+		Entry e;
 		while(it.hasNext()){
-			e = it.next();
-			initalValue=udf.call(pc, new Object[]{initalValue,e.getValue(),Caster.toDoubleValue(e.getKey().getString()),arr}, true);
+			e = (Entry)it.next();
+			initalValue=udf.call(pc, new Object[]{initalValue,e.getValue(),Caster.toDoubleValue(e.getKey()),arr}, true);
 		}
 		return initalValue;
 	}
@@ -113,11 +127,11 @@ public class Reduce extends BIF {
 	private static Object invoke(PageContext pc, StringListData sld, UDF udf, Object initalValue) throws CasterException, PageException {
 		Array arr = ListUtil.listToArray(sld.list, sld.delimiter,sld.includeEmptyFieldsx,sld.multiCharacterDelimiter);
 		
-		Iterator<Entry<Key, Object>> it = arr.entryIterator();
-		Entry<Key, Object> e;
+		Iterator it = (arr instanceof ArrayPro?((ArrayPro)arr).entryArrayIterator(): arr.entryIterator());
+		Entry e;
 		while(it.hasNext()){
-			e = it.next();
-			initalValue=udf.call(pc, new Object[]{initalValue,e.getValue(),Caster.toDoubleValue(e.getKey().getString()),sld.list,sld.delimiter}, true);
+			e = (Entry)it.next();
+			initalValue=udf.call(pc, new Object[]{initalValue,e.getValue(),Caster.toDoubleValue(e.getKey()),sld.list,sld.delimiter}, true);
 		}
 		return initalValue;
 	}

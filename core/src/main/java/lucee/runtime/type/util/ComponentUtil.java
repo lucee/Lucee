@@ -25,7 +25,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import lucee.commons.digest.MD5;
 import lucee.commons.io.IOUtil;
@@ -44,6 +46,8 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
+import lucee.runtime.component.ImportDefintion;
+import lucee.runtime.component.ImportDefintionImpl;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -341,6 +345,7 @@ public final class ComponentUtil {
 			throw Caster.toPageException(e);
 		}
 	}
+	// FUTURE add this methid to loader, maybe make ASMProperty visible in loader
 	/*
 	 * does not include the application context javasettings 
 	 * @param pc
@@ -769,8 +774,14 @@ public final class ComponentUtil {
         
         if(udf.getPageSource()!=null)
         	func.set(KeyConstants._owner, udf.getPageSource().getDisplayPath());
-        
-	    	   
+
+        if(udf.getStartLine()>0 && udf.getEndLine()>0) {
+        	Struct pos=new StructImpl();
+        	pos.set("start", udf.getStartLine());
+        	pos.set("end", udf.getEndLine());
+        	func.setEL("position", pos);
+        }
+
 	    int format = udf.getReturnFormat();
         if(format<0 || format==UDF.RETURN_FORMAT_WDDX)			func.set(KeyConstants._returnFormat, "wddx");
         else if(format==UDF.RETURN_FORMAT_PLAIN)	func.set(KeyConstants._returnFormat, "plain");
@@ -829,5 +840,13 @@ public final class ComponentUtil {
 		if(Component.MODIFIER_NONE==modifier) return "none";
 		
 		return defaultValue;
+	}
+
+	public static void add(Map<String,ImportDefintion> map, ImportDefintion[] importDefintions) {
+		if(importDefintions!=null) {
+			for(ImportDefintion id:importDefintions) {
+				map.put(id.toString(), id);
+			}
+		}
 	}
 }

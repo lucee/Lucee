@@ -34,7 +34,6 @@ import java.util.Map;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 
-import lucee.print;
 import lucee.commons.collection.LinkedHashMapMaxSize;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Hash;
@@ -711,6 +710,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	private List<ExtensionDefintion> localExtensions;
 
 	private long localExtHash;
+	private int localExtSize=-1;
 
 	private Map<String, GatewayEntry> gatewayEntries;
 	
@@ -868,7 +868,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	@Override
 	public List<ExtensionDefintion> loadLocalExtensions() {
 		Resource[] locReses = getLocalExtensionProviderDirectory().listResources(new ExtensionResourceFilter(".lex"));
-		if(localExtensions==null || localExtensions.size()!=locReses.length || extHash(locReses)==localExtHash) {
+		if(localExtensions==null || localExtSize!=locReses.length || extHash(locReses)!=localExtHash) {
 			localExtensions=new ArrayList<ExtensionDefintion>();
 			Map<String,String> map=new HashMap<String,String>();
 			RHExtension ext;
@@ -893,7 +893,9 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 						ed.setSource(ext);
 						
 					} 
-					catch(Exception e) {e.printStackTrace();}
+					catch(Exception e) {
+						SystemOut.printDate(e);
+					}
 				}
 				
 				if(ed!=null) {
@@ -907,6 +909,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 				
 			}
 			localExtHash=extHash(locReses);
+			localExtSize=locReses.length; // we store the size because localExtensions size could be smaller because of duplicates
 		}
 		return localExtensions;
 	}

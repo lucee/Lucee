@@ -17,6 +17,7 @@ import lucee.commons.lang.PhysicalClassLoader;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 
 import org.osgi.framework.Bundle;
 
@@ -33,7 +34,7 @@ public class EnvClassLoader extends URLClassLoader {
 
 	
 	public EnvClassLoader(ConfigImpl config) {
-		super(new URL[0],config.getClassLoaderCore());
+		super(new URL[0],config!=null?config.getClassLoaderCore():new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader());
 		this.config=config;
 		
 	}
@@ -61,8 +62,6 @@ public class EnvClassLoader extends URLClassLoader {
 			System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration", value);
 			return new ByteArrayInputStream(value.getBytes());
 		}
-		//	return (InputStream) load("org/apache/xerces/parsers/org.apache.xerces.xni.parser.XMLParserConfiguration", STREAM,true);
-		
 		return null;
 	}
 
@@ -110,17 +109,14 @@ public class EnvClassLoader extends URLClassLoader {
 
 		// now we check in the core  for the class (this includes all jars loaded by the core)
 		if((caller.isEmpty() || caller.fromBundle!=null) && caller.fromBundle.getClassLoader()!=getParent()) {
-			//print.e("check core:"+name+"->");
 			obj=_load(getParent(), name, type);
 			if(obj!=null) {
-				//print.e("found in core:"+name+"->");
 				return obj;
-			}			
+			}
 		}
 		
 		// now we check extension bundles
-		if(caller.isEmpty() || caller.fromBundle!=null) {
-			//print.e("check extension:"+name+"->");
+		if(caller.isEmpty() || /*PATCH LDEV-1312*/(ThreadLocalPageContext.get()==null)/* if we are in a child threads*/ || caller.fromBundle!=null) {
 			Bundle[] bundles = ConfigWebUtil.getEngine(config).getBundleContext().getBundles();
 			Bundle b=null;
 			for(int i=0;i<bundles.length;i++) {
@@ -135,8 +131,7 @@ public class EnvClassLoader extends URLClassLoader {
 						}
 						if(obj!=null)break;
 					} 
-					catch(Throwable t) {
-						ExceptionUtil.rethrowIfNecessary(t);
+					catch(Exception e) {
 						obj=null;
 					}
 				}
@@ -156,14 +151,13 @@ public class EnvClassLoader extends URLClassLoader {
 			}
 		}
 		
-		if(obj==null) {
+		/*if(obj==null) {
 			ClassLoader loader = CFMLEngineFactory.class.getClassLoader();
 			Object obj2 = _load(loader, name, type);
 			if(obj2!=null) {
 				//print.e("found in classpath but not used:"+name+"->");
-				
 			}
-		}
+		}*/
 		
 		return obj;
    }
@@ -196,8 +190,7 @@ public class EnvClassLoader extends URLClassLoader {
 					ClassLoader cl = clazz.getClassLoader();
 					print.e("-=>"+cl+":"+cl.hashCode());
 				} catch (ClassNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+            		SystemOut.printDate(e);
 				}
 			}
 				
@@ -239,7 +232,7 @@ public class EnvClassLoader extends URLClassLoader {
 	}
 
 	@Override
-	protected Class<?> findClass(String name) throws ClassNotFoundException {//if(name.indexOf("sub")!=-1)print.ds(name);	
+	protected Class<?> findClass(String name) throws ClassNotFoundException {
 		throw new ClassNotFoundException("class "+name+" not found in the core, the loader and all the extension bundles");
 	}
 	

@@ -77,6 +77,8 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class CFMLFactoryImpl extends CFMLFactory {
 
+	private static final long MAX_AGE = 5*60000; // 5 minutes
+	private static final int MAX_SIZE = 10000;
 	private static JspEngineInfo info = new JspEngineInfoImpl("1.0");
 	private ConfigWebImpl config;
 	ConcurrentLinkedDeque<PageContextImpl> pcs = new ConcurrentLinkedDeque<PageContextImpl>();
@@ -194,7 +196,8 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	@Override
 	public void releaseLuceePageContext(PageContext pc, boolean unregisterFromThread) {
 		if(pc.getId() < 0) return;
-		boolean isChild=pc.getParentPageContext() != null;
+		boolean isChild=pc.getParentPageContext() != null; // we need to get this check before release is executed
+		
 		// when pc was registered with an other thread, we register with this thread when calling release
 		PageContext beforePC = ThreadLocalPageContext.get();
 		boolean tmpRegister=false;
@@ -212,11 +215,25 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		if(unregisterFromThread) ThreadLocalPageContext.release();
 		
 		runningPcs.remove(Integer.valueOf(pc.getId()));
-		if(isChild)
+		if(isChild) {
 			runningChildPcs.remove(Integer.valueOf(pc.getId()));
+		}
 		if(pcs.size() < 100 && !pc.hasFamily() && ((PageContextImpl)pc).getTimeoutStackTrace() == null)// not more than 100 PCs
 			pcs.push((PageContextImpl)pc);
+
+		if(runningPcs.size()>MAX_SIZE) clean(runningPcs);
+		if(runningChildPcs.size()>MAX_SIZE) clean(runningChildPcs);
 		
+	}
+
+	private void clean(Map<Integer, PageContextImpl> map) {
+		Iterator<PageContextImpl> it = map.values().iterator();
+		PageContextImpl pci;
+		long now=System.currentTimeMillis();
+		while(it.hasNext()) {
+			pci=it.next();
+			if(pci.isGatewayContext() || pci.getStartTime()+MAX_AGE>now) continue;
+		}
 	}
 
 	/**
@@ -379,6 +396,14 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	public long getPageContextsSize() {
 		return SizeOf.size(pcs);
 	}
+	
+	public long getActiveRequests() {
+		return runningPcs.size();
+	}
+	
+	public long getActiveThreads() {
+		return runningChildPcs.size();
+	}
 
 	public Array getInfo() {
 		Array info = new ArrayImpl();
@@ -390,8 +415,10 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		Struct data, sctThread, scopes;
 		Thread thread;
 		Entry<Integer, PageContextImpl> e;
+		ConfigWebImpl cw;
 		while(it.hasNext()) {
 			pc = it.next();
+			cw = (ConfigWebImpl) pc.getConfig();
 			data = new StructImpl();
 			sctThread = new StructImpl();
 			scopes = new StructImpl();
@@ -428,9 +455,15 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			try {
 				data.setEL(KeyConstants._id, Hash.call(pc, pc.getId() + ":" + pc.getStartTime()));
 			}
-			catch (PageException e1) {
-			}
-			data.setEL("requestid", pc.getId());
+			catch (PageException e1) {}
+			
+			data.setEL(KeyConstants._hash, cw.getHash());
+			data.setEL("contextId", cw.getIdentification().getId());
+			data.setEL(KeyConstants._label, cw.getLabel());
+        	
+			
+			
+			data.setEL("requestId", pc.getId());
 
 			// Scopes
 			scopes.setEL(KeyConstants._name, pc.getApplicationContext().getName());

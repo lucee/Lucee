@@ -21,6 +21,7 @@ package lucee.runtime.type.util;
 import java.util.AbstractList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import lucee.commons.lang.CFTypes;
 import lucee.runtime.PageContext;
@@ -30,13 +31,15 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayPro;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Objects;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.DateTime;
+import lucee.runtime.type.it.EntryArrayIterator;
 
-public abstract class ArraySupport extends AbstractList implements Array,List,Objects {
+public abstract class ArraySupport extends AbstractList implements ArrayPro,List,Objects {
 
 	
 	public static final short TYPE_OBJECT = 0;
@@ -366,4 +369,10 @@ public abstract class ArraySupport extends AbstractList implements Array,List,Ob
 	public int hashCode() {
 		return CollectionUtil.hashCode(this);
 	}*/
+	
+
+	@Override
+	public Iterator<Entry<Integer, Object>> entryArrayIterator() {
+		return new EntryArrayIterator(this,intKeys());
+	}
 }

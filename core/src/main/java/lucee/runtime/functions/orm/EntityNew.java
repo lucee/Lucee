@@ -22,6 +22,7 @@ package lucee.runtime.functions.orm;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import lucee.print;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
@@ -30,7 +31,9 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMSession;
 import lucee.runtime.orm.ORMUtil;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.KeyConstants;
 
 public class EntityNew {
@@ -61,14 +64,13 @@ public class EntityNew {
 		Entry<Key, Object> e;
 		while(it.hasNext()){
 			e = it.next();
+			Key funcName = KeyImpl.init("set"+e.getKey().getString());
 			if(ignoreNotExisting) {
-				try {
-					c.call(pc, "set"+e.getKey().getString(), new Object[]{e.getValue()});
-				}
-				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+				if(c.get(funcName,null) instanceof UDF);
+					c.call(pc, funcName, new Object[]{e.getValue()});
 			}
 			else {
-				c.call(pc, "set"+e.getKey().getString(), new Object[]{e.getValue()});
+				c.call(pc, funcName, new Object[]{e.getValue()});
 			}
 		}
 	}

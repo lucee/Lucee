@@ -5,6 +5,7 @@ import java.io.IOException;
 import lucee.commons.collection.MapPro;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
@@ -61,7 +62,9 @@ public class IKHandlerCache implements IKHandler {
 						new Long(storageScope.getTimeSpan()), null);
 			}
 		} 
-		catch (Exception pe) {pe.printStackTrace();}
+		catch (Exception pe) {
+            SystemOut.printDate(pe);
+        }
 	}
 	
 	private boolean deserializeIKStorageValueSupported(Cache cache) {

@@ -86,6 +86,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.file.FileStreamWrapper;
+import lucee.runtime.functions.other.ToBinary;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.img.Image;
 import lucee.runtime.interpreter.VariableInterpreter;
@@ -402,6 +403,7 @@ public final class Caster {
      */
     private static final int MAX_SMALL_DOUBLE=10000;
 	private static final Double[] smallDoubles=new Double[MAX_SMALL_DOUBLE];
+	private static final Object DEFAULT = new Object();
 	static {
 		for(int i=0;i<MAX_SMALL_DOUBLE;i++) smallDoubles[i]=new Double(i);
 	}
@@ -444,7 +446,6 @@ public final class Caster {
         else if(o instanceof Date) return DateTimeUtil.getInstance().toDoubleValue(((Date)o).getTime());
         else if(o instanceof Calendar) return DateTimeUtil.getInstance().toDoubleValue(((Calendar)o).getTimeInMillis());
         else if(o instanceof Character) return (double)(((Character)o).charValue());
-        
         throw new CasterException(o,"number");
     }
 
@@ -2743,21 +2744,24 @@ public final class Caster {
      * @return to Base64 String
      */
     public static String toBase64(Object o,String charset,String defaultValue) {
-        byte[] b;
-        if(o instanceof byte[])b=(byte[]) o;
+        ;
+        if(o instanceof byte[])return toB64((byte[]) o,defaultValue);
         else if(o instanceof String)return toB64((String)o, charset,defaultValue);
         else if(o instanceof ObjectWrap) {
             return toBase64(((ObjectWrap)o).getEmbededObject(defaultValue),charset,defaultValue);
         }
-        else if(o == null) return toBase64("",charset,defaultValue);
-        else {
-        	String str = toString(o,null);
-        	if(str!=null)return toBase64(str,charset,defaultValue);
-        	
-        	b=toBinary(o,null);
-        	if(b==null)return defaultValue;
+        else if(o == null) {
+        	return toBase64("",charset,defaultValue);
         }
-        return toB64(b,defaultValue);
+        else {
+        	byte[] b=toBinary(o,null);
+        	if(b!=null) return toB64(b,defaultValue);
+        	else {
+        		String str = toString(o,null);
+        		if(str!=null)return toBase64(str,charset,defaultValue);
+        		else return defaultValue;
+        	}
+        }
     }
 
 
@@ -2782,8 +2786,7 @@ public final class Caster {
     public static String toB64(byte[] b, String defaultValue) {
         try {
 			return Base64Coder.encode(b);
-		} catch(Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		} catch(Exception e) {
 			return defaultValue;
 		}
     }
@@ -3129,20 +3132,6 @@ public final class Caster {
      * @return casted TimeSpan Object
      */
     public static TimeSpan toTimespan(Object o, TimeSpan defaultValue) {
-        try {
-            return toTimespan(o);
-        } catch (PageException e) {
-            return defaultValue;
-        }
-    }
-        
-    /**
-     * cast a Object to a TimeSpan Object (alias for toTimeSpan)
-     * @param o Object to cast
-     * @return casted TimeSpan Object
-     * @throws PageException
-     */
-    public static TimeSpan toTimespan(Object o) throws PageException {
         if(o instanceof TimeSpan) return (TimeSpan)o;
         else if(o instanceof String) {
                 String[] arr=o.toString().split(",");
@@ -3158,13 +3147,30 @@ public final class Caster {
                 }
         }
         else if(o instanceof ObjectWrap) {
-            return toTimespan(((ObjectWrap)o).getEmbededObject());
+        	Object embeded = ((ObjectWrap)o).getEmbededObject(DEFAULT);
+            if(embeded==DEFAULT) return defaultValue;
+        	return toTimespan(embeded,defaultValue);
         }
         
         double dbl = toDoubleValue(o,true,Double.NaN);
         if(!Double.isNaN(dbl))return TimeSpanImpl.fromDays(dbl);
         
-        throw new CasterException(o,"timespan");
+        return defaultValue;
+    }
+    
+    
+        
+    /**
+     * cast a Object to a TimeSpan Object (alias for toTimeSpan)
+     * @param o Object to cast
+     * @return casted TimeSpan Object
+     * @throws PageException
+     */
+    public static TimeSpan toTimespan(Object o) throws PageException {
+        TimeSpan ts = toTimespan(o, null);
+        if(ts!=null) return ts;
+        
+    	throw new CasterException(o,"timespan");
     }
     
     /**

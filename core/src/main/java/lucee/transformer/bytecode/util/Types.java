@@ -352,6 +352,7 @@ public final class Types {
             if("long".equals(type))									return LONG_VALUE;
             if("long".equals(lcType))								return LONG;
             if("locale".equals(lcType))								return LOCALE;
+            if("lucee.runtime.type.Collection$Key".equals(type))	return COLLECTION_KEY;
         break;
         case 'n':
             if("node".equals(lcType))								return NODE;

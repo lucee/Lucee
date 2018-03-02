@@ -23,6 +23,7 @@ package lucee.runtime.functions.struct;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
@@ -53,6 +54,7 @@ public final class StructInsert extends BIF {
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if(args.length==4) return call(pc,Caster.toStruct(args[0]),Caster.toString(args[1]),args[2],Caster.toBooleanValue(args[3]));
-		return call(pc,Caster.toStruct(args[0]),Caster.toString(args[1]),args[2]);
+		if(args.length==3) return call(pc,Caster.toStruct(args[0]),Caster.toString(args[1]),args[2]);
+		throw new FunctionException(pc, "StructInsert", 3, 4, args.length);
 	}
 }

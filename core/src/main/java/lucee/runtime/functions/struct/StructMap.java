@@ -22,6 +22,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
+import lucee.runtime.functions.closure.ClosureFunc;
 import lucee.runtime.functions.closure.Map;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
@@ -42,7 +43,7 @@ public class StructMap extends BIF {
 		return _call(pc, sct, udf, parallel, (int)maxThreads);
 	}
 	private static Struct _call(PageContext pc , Struct sct, UDF udf, boolean parallel, int maxThreads) throws PageException {
-		return (Struct) Map._call(pc, sct, udf, parallel, maxThreads,null);
+		return (Struct) Map._call(pc, sct, udf, parallel, maxThreads,null,ClosureFunc.TYPE_STRUCT);
 	}
 	
 	@Override

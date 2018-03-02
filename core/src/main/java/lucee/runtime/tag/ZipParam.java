@@ -138,9 +138,9 @@ public final class ZipParam extends TagImpl {
 	@Override
 	public int doStartTag() throws PageException	{
 
-		if (this.filter == null && !StringUtil.isEmpty(this.pattern))
+		if (this.filter == null && !StringUtil.isEmpty(this.pattern)) {
 			this.filter = new WildcardPatternFilter(pattern, patternDelimiters);
-		
+		}
 		if(source!=null) {
 			notAllowed("source","charset", charset);
 			notAllowed("source","content", content);
@@ -153,23 +153,23 @@ public final class ZipParam extends TagImpl {
 			notAllowed("content,entrypath","prefix", prefix);
 			notAllowed("content,entrypath","source", source);
 			notAllowed("content,entrypath","recurse", recurse);
-			
 			getZip().setParam(new ZipParamContent(content,entryPath,charset));
 		}
-		/*else if(filter!=null) {
+		else if(filter!=null) {
 			notAllowed("filter","charset", charset);
 			notAllowed("filter","content", content);
 			notAllowed("filter","prefix", prefix);
 			notAllowed("filter","source", source);
-			getZip().setParam(new ZipParamFilter(filter,entryPath,recurse()));
+			getZip()._setFilter(filter);
+			//getZip().setParam(new ZipParamFilter(filter,entryPath,recurse()));
 		}
 		else if(entryPath!=null) {
 			notAllowed("entryPath","charset", charset);
 			notAllowed("entryPath","content", content);
 			notAllowed("entryPath","prefix", prefix);
 			notAllowed("entryPath","source", source);
-			getZip().setParam(new ZipParamFilter(filter,entryPath,recurse()));
-		}*/
+			getZip().setEntrypath(entryPath);
+		}
 		else 
 			throw new ApplicationException("invalid attribute combination");
 			

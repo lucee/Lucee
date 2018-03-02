@@ -30,7 +30,6 @@ import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.DispatcherType;
@@ -443,7 +442,6 @@ public final class HTTPServletRequestWrap implements HttpServletRequest,Serializ
 				barr=IOUtil.toBytes(req.getInputStream(),true);
 			}
 			catch (IOException e) {
-				// e.printStackTrace();
 			}
 		}
 		disconnected=true;

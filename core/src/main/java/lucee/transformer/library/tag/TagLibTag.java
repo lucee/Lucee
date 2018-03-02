@@ -32,6 +32,7 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.op.Caster;
@@ -765,8 +766,7 @@ public final class TagLibTag {
 			setter=m.getName();
 		} 
 		catch (Exception e) {
-			//print.err(setter);
-			e.printStackTrace();
+            SystemOut.printDate(e);
 		}
 		setters.put(attr.getName(), setter);
 		return setter;

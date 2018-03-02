@@ -112,7 +112,7 @@ public final class Header extends TagImpl {
 		
 		HttpServletResponse rsp = pageContext. getHttpServletResponse();
 		if(rsp.isCommitted())
-			throw new TemplateException("can't assign value to header, header is alredy committed");
+			throw new TemplateException("can't assign value to header, header is already committed");
 		
 		// set name value
 		if(name != null) {
@@ -144,7 +144,7 @@ public final class Header extends TagImpl {
     				rsp.setStatus(statuscode,statustext);
     			/*} 
                 catch (IOException e) {
-    				throw new TemplateException("can't assign value to header, header is alredy committed",e.getMessage());
+    				throw new TemplateException("can't assign value to header, header is already committed",e.getMessage());
     			} */
             }
     		else {

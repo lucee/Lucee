@@ -61,7 +61,6 @@ public final class XMLEventParser extends DefaultHandler {
 	/**
 	 * Field <code>DEFAULT_SAX_PARSER</code>
 	 */
-	public final static String DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
 	
 	/**
 	 * constructor of the class
@@ -95,22 +94,13 @@ public final class XMLEventParser extends DefaultHandler {
 	/**
 	 * start execution of the parser
 	 * @param xmlFile
-	 * @throws PageException
-	 */
-	public void start(Resource xmlFile) throws PageException {
-		start(xmlFile,DEFAULT_SAX_PARSER);
-	}
-	
-	/**
-	 * start execution of the parser
-	 * @param xmlFile
 	 * @param saxParserCass
 	 * @throws PageException
 	 */
-	public void start(Resource xmlFile,String saxParserCass) throws PageException {
+	public void start(Resource xmlFile) throws PageException {
 		InputStream is=null;
 		try {
-			XMLReader xmlReader = XMLUtil.createXMLReader(saxParserCass);
+			XMLReader xmlReader = XMLUtil.createXMLReader();
 			xmlReader.setContentHandler(this);
 			xmlReader.setErrorHandler(this);
 			xmlReader.parse(new InputSource(is=IOUtil.toBufferedInputStream(xmlFile.getInputStream())));

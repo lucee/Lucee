@@ -18,6 +18,7 @@
 package lucee.runtime.config;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import lucee.commons.digest.Hash;
 import lucee.commons.io.SystemUtil;
@@ -26,7 +27,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.loader.util.Util;
 
-public abstract class IdentificationImpl implements Identification {
+public abstract class IdentificationImpl implements Identification,Serializable {
 
 	private final String apiKey;
 	private String id;

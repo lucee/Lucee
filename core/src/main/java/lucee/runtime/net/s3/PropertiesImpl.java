@@ -18,6 +18,7 @@
  */
 package lucee.runtime.net.s3;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 
@@ -27,6 +28,7 @@ public final class PropertiesImpl implements Properties {
 	private String secretAccessKey;
 	private String defaultLocation=null;
 	private String host="s3.amazonaws.com";
+	private String acl;
 	
 	
 
@@ -38,6 +40,7 @@ public final class PropertiesImpl implements Properties {
 		sct.setEL("awsSecretKey", secretAccessKey);
 		sct.setEL("defaultLocation", defaultLocation);
 		sct.setEL("host", host);
+		if(!StringUtil.isEmpty(acl))sct.setEL("acl", acl);
 		
 		
 		return sct;
@@ -50,6 +53,17 @@ public final class PropertiesImpl implements Properties {
 	public String getAccessKeyId() {
 		return accessKeyId;
 	}
+	
+	// FUTURE add to interface
+	public String getACL() { 
+		return acl;
+	}
+
+	// FUTURE add to interface
+	public void setACL(String acl) {
+		this.acl = acl;
+	}
+	
 	/**
 	 * @return the host
 	 */

@@ -1,5 +1,5 @@
 component {
-	this.name = "test";
+	this.name = "test3";
 	mySQL= getCredentials();
 	this.datasource = {
 		 type: "mysql"
@@ -45,13 +45,13 @@ component {
 
 	private function createTable() {
 		query {
-	        echo("DROP TABLE IF EXISTS `test`");
+	        echo("DROP TABLE IF EXISTS users1323;");
 		}
 		query {
-	        echo("CREATE TABLE `test` (`id` int,`name` varchar)");
+	        echo("CREATE TABLE users1323 (sNo varchar(50), FirstName varchar(50), Title varchar(50))");
 		}
 		query {
-	        echo("INSERT INTO `test` VALUES (1,'john');");
+	        echo("INSERT INTO users1323 (sNo,FirstName,Title) VALUES (22,'john','test'),(33,'jose','sample');");
 		}
 	}
 }

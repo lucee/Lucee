@@ -48,9 +48,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import javax.script.ScriptEngineFactory;
+import javax.servlet.FilterChain;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -95,6 +98,7 @@ import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
+import lucee.runtime.PageSourceImpl;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -166,7 +170,6 @@ import lucee.runtime.util.ZipUtilImpl;
 import lucee.runtime.video.VideoUtil;
 import lucee.runtime.video.VideoUtilImpl;
 
-import org.apache.commons.net.telnet.TerminalTypeOptionHandler;
 import org.apache.felix.framework.Felix;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -637,21 +640,47 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	@Override
 	public void addServletConfig(ServletConfig config) throws ServletException {
-
-		// FUTURE remove
+		if(PageSourceImpl.logAccessDirectory==null) {
+			String str=config.getInitParameter("lucee-log-access-directory");
+			if(!StringUtil.isEmpty(str)) {
+				File file=new File(str.trim());
+				file.mkdirs();
+				if(file.isDirectory()) {
+					PageSourceImpl.logAccessDirectory=file;
+				}
+			}
+		}
+		
+		
+		// FUTURE remove and add a new method for it (search:FUTURE add exeServletContextEvent)
 		if("LuceeServletContextListener".equals(config.getServletName())) {
 			try {
-				// Method m = config.getClass().getMethod("getServletContextEvent", new Class[0]);
-				// ServletContextEvent sce=(ServletContextEvent) m.invoke(config, new Object[0]);
 				String status = config.getInitParameter("status");
 				if("release".equalsIgnoreCase(status))
 					reset();
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 			return;
 		}
+		
+		// FUTURE remove and add a new method for it (search:FUTURE add exeFilter)
+		/*if("LuceeFilter".equals(config.getServletName())) {
+			try {
+				String status = config.getInitParameter("status");
+				if("filter".equalsIgnoreCase(status)) {
+					filter(
+							(ServletRequest)_get(config,"getServletRequest"),
+							(ServletResponse)_get(config,"getServletResponse"),
+							(FilterChain)_get(config,"getFilterChain"));
+				}
+			}
+			catch (Exception e) {
+				SystemOut.printDate(e);
+			}
+			return;
+		}*/
 
 		// add EventListener
 		if(scl == null) {
@@ -663,6 +692,20 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if(!initContextes.containsKey(real)) {
 			CFMLFactory jspFactory = loadJSPFactory(getConfigServerImpl(), config, initContextes.size());
 			initContextes.put(real, jspFactory);
+		}
+	}
+
+	private void filter(ServletRequest req, ServletResponse rsp, FilterChain fc) {
+		// TODO get filter defined in Config
+	}
+
+	private Object _get(Object obj, String msg) throws PageException {
+		try {
+			Method m = obj.getClass().getMethod(msg, new Class[0]);
+			return m.invoke(obj, new Object[0]);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
 		}
 	}
 
@@ -746,7 +789,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				configServer = XMLConfigServerFactory.newInstance(this, initContextes, contextes, context);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 		}
 		return configServer;
@@ -980,7 +1023,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				((CFMLFactoryImpl)factory).setURL(new URL(req.getScheme(), req.getServerName(), req.getServerPort(), cp));
 			}
 			catch (MalformedURLException e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 		}
 		return factory;
@@ -1210,10 +1253,26 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					ExceptionUtil.rethrowIfNecessary(t);
 				}
 			}
-		} finally {
+			
+			// release felix itself
+			shutdownFelix();
+			
+		} 
+		finally {
 			// Controller
 			controlerState.setActive(false);
 		}
+	}
+
+	private void shutdownFelix() {
+		CFMLEngineFactory f = getCFMLEngineFactory();
+		try {
+			Method m = f.getClass().getMethod("shutdownFelix", new Class[0]);
+			m.invoke(f, new Object[0]);
+		}
+		// FUTURE do not use reflection
+		// this will for sure fail if CFMLEngineFactory does not have this method
+		catch (Exception e) {}
 	}
 
 	public static void releaseCache(Config config) {

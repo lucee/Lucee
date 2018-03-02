@@ -33,7 +33,8 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="services.update.exerun">Update ausführen</data>
 	<data key="services.update.remove">Installierte Patches entfernen</data>
 	<data key="services.update.typedesc">Definieren Sie hier wie Lucee gepatcht werden soll, &apos;Automatisch&apos; steht dafür, dass Lucee automatisch, täglich nach updates sucht. &apos;Manuell&apos; bedeutet, dass ein Update nur manuell ausgeführt werden kann.</data>
-
+	<data key="services.update.downgradeVersion">To downgrade your version below {minVersion} you need to replace your lucee.jar with an older version one you can download {url}. This is because the lucee.jars always bundles a version itself and it will always use at least that version.</data>
+	
 		<data key="services.update.lib">Update JAR's</data>
 	<data key="services.update.libDesc">Ihre JAR's sind nicht mehr aktuell. Um Ihre JAR's auf den aktuellsten stand zu bringen, klicken sie bitte auf den folgenden Button. Das funktioniert unter Umständen nicht, wenn sie keine saubere Internetverbindung haben. Falls dies fehlschlägt holen Sie sich die aktiuellen JAR's von unserer Webseite und frischen Sie dies manuell auf. Dieses Update benötigt ein restart der kompletten Servlet Engine.</data>
 	<data key="services.certificate.desc">Liste SSL Zertifikate für einen bestimmten Host oder installiere diese.</data>
@@ -436,7 +437,9 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="mail.serverDesc">Mail server host name (z.B. smtp.gmail.com)</data>
 	<data key="mail.porterrorlast">) vom Typ Nummer an.</data>
 	<data key="mail.spoolenabled">Spooler an</data>
-	<data key="mail.mailserversdescription">Sie können mehrere Mailsserververbindungen definieren. Wenn Sie eine Mail absenden, versucht Lucee die Mail der Reihe nach über einen der angegebenen Mailserver zu versenden.</data>
+	<data key="mail.mailserversdescription.local">You can define more than one mail server connection. When sending an email, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</data>
+	<data key="mail.mailserversdescription.global">These connections have been created in the Server Administrator and are shared with ALL web contexts. You cannot modify these mail servers in the Web Administrator.
+	You can define more than one mail server connection. When sending an email, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</data>
 	<data key="mail.settings">Mail Einstellungen</data>
 	<data key="mail.createnewMailServerConn">Neue Mailserververbindung</data>
 	<data key="mail.createnewMailServerConnDesc">Erstelle eine neue Mailserververbindung.</data>
@@ -1148,7 +1151,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="overview.Hash">Hash</data>
 	<data key="overview.config">Konfigurationsfile</data>
 	<data key="overview.webroot">Webroot</data>
-	<data key="overview.info">General Info</data>
+	<data key="overview.info">System Information</data>
 	<data key="overview.featurerequest">Feature Anfragen</data>
 	<data key="overview.contextcount">Anzahl Kontexte</data>
 	<data key="help.logotitle">Lucee Hilfe</data>

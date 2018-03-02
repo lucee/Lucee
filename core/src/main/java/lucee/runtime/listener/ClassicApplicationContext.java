@@ -27,7 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.Pair;
@@ -45,7 +44,6 @@ import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
-import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.rest.RestSettings;
@@ -127,6 +125,10 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private AuthCookieData authCookie;
 
 	private Map<Key, Pair<Log,Struct>> logs;
+
+	private Object mailListener;
+
+	private boolean wsMaintainSession;
 
     
     /**
@@ -907,6 +909,26 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
 		if(pair==null) return null;
 		return (Struct)pair.getValue().duplicate(false);
+	}
+
+	@Override
+	public Object getMailListener() {
+		return mailListener;
+	}
+
+	@Override
+	public void setMailListener(Object mailListener) {
+		this.mailListener=mailListener;
+	}
+
+	@Override
+	public boolean getWSMaintainSession() {
+		return wsMaintainSession;
+	}
+
+	@Override
+	public void setWSMaintainSession(boolean wsMaintainSession) {
+		this.wsMaintainSession=wsMaintainSession;
 	}
 
 }

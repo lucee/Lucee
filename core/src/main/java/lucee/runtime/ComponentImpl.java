@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -53,6 +54,7 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.component.AbstractFinal;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.DataMember;
+import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.Member;
 import lucee.runtime.component.MetaDataSoftReference;
 import lucee.runtime.component.MetadataUtil;
@@ -165,6 +167,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 
 	private AbstractFinal absFin;
+
+
+	private ImportDefintion[] importDefintions;
 	
     /**
      * Constructor of the Component, USED ONLY FOR DESERIALIZE
@@ -196,6 +201,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
     	this.properties=new ComponentProperties(dspName,extend.trim(),implement,hint,output,callPath,realPath,_synchronized,null,persistent,accessors,modifier,meta);
     	//this.componentPage=componentPage instanceof ComponentPageProxy?componentPage:PageProxy.toProxy(componentPage);
     	this.pageSource=componentPage.getPageSource();
+    	this.importDefintions=componentPage.getImportDefintions();
     	//if(modifier!=0)
     	if(!StringUtil.isEmpty(style) && !"rpc".equals(style))
     		throw new ApplicationException("style ["+style+"] is not supported, only the following styles are supported: [rpc]");
@@ -1208,6 +1214,23 @@ public final class ComponentImpl extends StructSupport implements Externalizable
     public PageSource _getPageSource() {
     	return pageSource;
 	}
+    
+    public ImportDefintion[] _getImportDefintions() {
+    	return importDefintions;
+	}
+    
+    public ImportDefintion[] getImportDefintions() {
+    	Map<String,ImportDefintion> map=new HashMap<String, ImportDefintion>();
+    	ComponentImpl c = this;
+    	do {
+    		ComponentUtil.add(map,c._getImportDefintions());
+    		c=c.base;
+    	}
+    	while(c!=null);
+    	return map.values().toArray(new ImportDefintion[map.size()]);
+	}
+    
+    
 	
     @Override
     public String getCallName() {
@@ -1504,7 +1527,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
     protected static Struct getMetaData(int access,PageContext pc, ComponentImpl comp, boolean ignoreCache) throws PageException {
     	// Cache
-    	Page page=MetadataUtil.getPageWhenMetaDataStillValid(pc, comp, ignoreCache);
+    	final Page page=MetadataUtil.getPageWhenMetaDataStillValid(pc, comp, ignoreCache);
     	if(page!=null && page.metaData!=null && page.metaData.get()!=null){
     		return page.metaData.get();
     	}
@@ -1588,25 +1611,35 @@ public final class ComponentImpl extends StructSupport implements Externalizable
         	sct.set(KeyConstants._properties,parr);
         }
 
-        page.metaData=new MetaDataSoftReference<Struct>(sct,creationTime);
+        if(page!=null)page.metaData=new MetaDataSoftReference<Struct>(sct,creationTime);
         return sct;
     }    
 
 
 
 	
-
 	private static void metaUDFs(PageContext pc,ComponentImpl comp,Struct sct, int access) throws PageException {
-    	ArrayImpl arr=new ArrayImpl();
-    	//Collection.Key name;
-    	Page page = comp._getPageSource().loadPage(pc, false);
-    	// Page page = ((PageSourceImpl)comp._getPageSource()).getPage();
-    	if(page!=null && page.udfs!=null){
-    		for(int i=0;i<page.udfs.length;i++){
-    			if(page.udfs[i].getAccess()>access) continue;
-        		arr.append(ComponentUtil.getMetaData(pc,(UDFPropertiesBase) page.udfs[i]));
-    		}
-    	}
+		// UDFs
+		/*ArrayImpl arr1=new ArrayImpl();
+		{
+			Page page = comp._getPageSource().loadPage(pc, false);
+			// Page page = ((PageSourceImpl)comp._getPageSource()).getPage();
+			if(page!=null && page.udfs!=null) {
+				for(int i=0;i<page.udfs.length;i++){
+					if(page.udfs[i].getAccess()>access) continue;
+					print.e(">>"+((UDFPropertiesBase)page.udfs[i]).getFunctionName());
+					arr1.append(ComponentUtil.getMetaData(pc,(UDFPropertiesBase) page.udfs[i]));
+				}
+			}
+    	}*/
+		
+		ArrayImpl arr=new ArrayImpl();
+		if(comp.absFin!=null) {
+			// we not to add abstract separately because they are not real Methods, more a rule
+			if(comp.absFin.hasAbstractUDFs()) 
+				getUDFs(pc,comp.absFin.getAbstractUDFs().values().iterator(),comp,access,arr);
+		}
+		if(comp._udfs!=null) getUDFs(pc,comp._udfs.values().iterator(),comp,access,arr);
     	
     	// property functions
     	Iterator<Entry<Key, UDF>> it = comp._udfs.entrySet().iterator();
@@ -1623,7 +1656,28 @@ public final class ComponentImpl extends StructSupport implements Externalizable
             	arr.append(udf.getMetaData(pc));
             
         }
-        if(arr.size()!=0)sct.set(KeyConstants._functions,arr);
+        if(arr.size()!=0){
+        	Collections.sort(arr,new ComparatorImpl());
+        	sct.set(KeyConstants._functions,arr);
+        }
+	}
+
+	private static class ComparatorImpl implements Comparator {
+		@Override
+		public int compare(Object o1, Object o2) {
+			return ((String)((Struct)o1).get(KeyConstants._name,"")).compareTo((String)((Struct)o2).get(KeyConstants._name,""));
+		}
+	}
+
+	private static void getUDFs(PageContext pc, Iterator<UDF> it, ComponentImpl comp, int access, ArrayImpl arr) throws PageException {
+		UDF udf;
+		while(it.hasNext()) {
+			udf =  it.next();
+			if(udf instanceof UDFGSProperty) continue;
+			if(udf.getAccess()>access) continue;
+			if(!udf.getPageSource().equals(comp._getPageSource())) continue;
+			arr.append(ComponentUtil.getMetaData(pc,(UDFPropertiesBase) ((UDFImpl)udf).properties));
+		}
 	}
 
 	public boolean isInitalized() {

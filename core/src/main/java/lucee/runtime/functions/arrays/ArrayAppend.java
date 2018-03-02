@@ -22,6 +22,7 @@
 package lucee.runtime.functions.arrays;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
@@ -51,9 +52,6 @@ public final class ArrayAppend extends BIF {
 		if(merge && Decision.isCastableToArray(object)) {
 			Object[] appends = Caster.toNativeArray(object);
 			
-			//if (array instanceof ArrayImpl) ((ArrayImpl)array).ensureCapacity( array.size() + appends.length );
-			
-			
 			for(int i=0;i<appends.length;i++){
 				array.append(appends[i]);
 			}
@@ -66,6 +64,7 @@ public final class ArrayAppend extends BIF {
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if(args.length==2) return call(pc,Caster.toArray(args[0]),args[1]);
-		return call(pc,Caster.toArray(args[0]),args[1],Caster.toBooleanValue(args[2]));
+		else if(args.length==3) return call(pc,Caster.toArray(args[0]),args[1],Caster.toBooleanValue(args[2]));
+		else throw new FunctionException(pc, "ArrayAppend", 2, 2, args.length);
 	}
 }

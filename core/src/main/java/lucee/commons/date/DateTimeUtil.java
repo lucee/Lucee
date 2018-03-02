@@ -24,12 +24,10 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.functions.displayFormatting.DateTimeFormat;
-import lucee.runtime.functions.international.LSDateTimeFormat;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 

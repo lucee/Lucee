@@ -235,9 +235,11 @@ public final class CFMLTransformer {
 			// we only use that result if it is a component now 
 			if(_p!=null && !_p.isPage()) return _p;
 		}
-		
+
 		if(isCFMLCompExt && !p.isComponent() && !p.isInterface()) {
-			throw new TemplateException("template ["+ps.getDisplayPath()+"] must contain a component or an interface.");
+			String msg="template ["+ps.getDisplayPath()+"] must contain a component or an interface.";
+			if(sc!=null) throw new TemplateException(sc,msg);
+			throw new TemplateException(msg);
 		}
 		
 		return p;

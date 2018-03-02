@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.exp.PageException;
@@ -96,12 +97,10 @@ public class SocketGateway implements Gateway {
             close(serverSocket);
             serverSocket = null;
         }
-        catch (Throwable e) {
-			ExceptionUtil.rethrowIfNecessary(e);
+        catch (Exception e) {
         	state=FAILED;
 		    error("Error in Socet Gateway ["+id+"]: " + e.getMessage());
-            e.printStackTrace();
-            //throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
+            SystemOut.printDate(e);
         }
     }
 	
@@ -256,7 +255,7 @@ public class SocketGateway implements Gateway {
 	        	}
             }
             catch (Exception e)	{
-            	e.printStackTrace();
+                SystemOut.printDate(e);
             	error("Failed to send message with exception: " + e.toString());
                 status = "EXCEPTION";
             }
@@ -297,8 +296,7 @@ public class SocketGateway implements Gateway {
 	
 	public void error(String msg) {
 		engine.log(this,GatewayEngine.LOGLEVEL_ERROR,msg);
-	}
-	    
+	}   
 
     private void close(Writer writer) {
 		if(writer==null) return;

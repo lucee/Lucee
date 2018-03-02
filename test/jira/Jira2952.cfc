@@ -32,8 +32,20 @@
 
 		<cfset assertEquals(5,arrayLen(MyDoc.Mydoc.xmlNodes))>
 
-		<cfset assertEquals('x?xml version="1.0" encoding="utf-8"?>this is a test',replace(trim(MyDoc.Mydoc.xmlNodes[1]&" "),'<','x','all'))>
+		<cfset assertEquals(
+			'<?xmlversion=1.0encoding=utf-8?>thisisatest',
+			_remove(MyDoc.Mydoc.xmlNodes[1]&"")
+		)>
 		<cfset assertEquals("this is a test",MyDoc.Mydoc.xmlNodes[1].xmlText)>
 
 	</cffunction>
+
+	<cfscript>
+	function _remove(str) {
+		str=trim(str);
+		str=replace(str,'"','','all');
+		str=replace(str,'''','','all');
+		return REReplace(str, "[[:space:]]+", "", "ALL");
+	}
+	</cfscript>
 </cfcomponent>

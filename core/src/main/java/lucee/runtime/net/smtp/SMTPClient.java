@@ -49,6 +49,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimePart;
+import javax.mail.internet.MimeUtility;
 
 import lucee.commons.activation.ResourceDataSource;
 import lucee.commons.digest.MD5;
@@ -62,6 +63,8 @@ import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
+import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
@@ -70,6 +73,7 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.mail.MailException;
@@ -82,7 +86,10 @@ import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.net.smtp.SMTPConnectionPool.SessionAndTransport;
 import lucee.runtime.op.Caster;
+import lucee.runtime.spooler.ComponentSpoolerTaskListener;
+import lucee.runtime.spooler.UDFSpoolerTaskListener;
 import lucee.runtime.spooler.mail.MailSpoolerTask;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 
@@ -153,6 +160,8 @@ public final class SMTPClient implements Serializable  {
 	private TimeZone timeZone;
 	private long lifeTimespan=100*60*5;
 	private long idleTimespan=100*60*1;
+
+	private Object listener;
 
 	
 	
@@ -335,9 +344,14 @@ public final class SMTPClient implements Serializable  {
 	public void setSubject(String subject) {
 		this.subject=subject;
 	}
-	
+
 	public void setXMailer(String xmailer) {
 		this.xmailer=xmailer;
+	}
+	public void setListener(Object listener) throws ApplicationException {
+		if(!(listener instanceof UDF) && !(listener instanceof Component))
+			throw new ApplicationException("Listener must be a Function or a Component.");
+		this.listener=listener;
 	}
 
 	/**
@@ -382,7 +396,7 @@ public final class SMTPClient implements Serializable  {
 	
 	private MimeMessageAndSession createMimeMessage(lucee.runtime.config.Config config,String hostName, int port, 
 			String username, String password,long lifeTimesan, long idleTimespan,
-			boolean tls,boolean ssl,boolean sendPartial, boolean newConnection) throws MessagingException {
+			boolean tls,boolean ssl,boolean sendPartial, boolean newConnection, boolean userset) throws MessagingException {
 		
 	      Properties props = (Properties) System.getProperties().clone();
 	      String strTimeout = Caster.toString(getTimeout(config));
@@ -391,6 +405,7 @@ public final class SMTPClient implements Serializable  {
 	      props.put("mail.smtp.timeout", strTimeout);
 	      props.put("mail.smtp.connectiontimeout", strTimeout);
 	      props.put("mail.smtp.sendpartial", Caster.toString(sendPartial));
+	      props.put("mail.smtp.userset", userset);
 
 	      if(port>0){
 	    	  props.put("mail.smtp.port", Caster.toString(port));
@@ -674,8 +689,15 @@ public final class SMTPClient implements Serializable  {
 			mbp.setDataHandler(new DataHandler(new ResourceDataSource(config.getResource(strRes))));
 		}
 		else mbp.setDataHandler(new DataHandler(new URLDataSource2(att.getURL())));
-		
-		mbp.setFileName(att.getFileName());
+		// 
+		String fileName=att.getFileName();
+		if(!StringUtil.isAscii(fileName)) {
+			try {
+				fileName=MimeUtility.encodeText(fileName, "UTF-8", null);
+			} 
+			catch (UnsupportedEncodingException e) {} // that should never happen!
+		}
+		mbp.setFileName(fileName);
 		if(!StringUtil.isEmpty(att.getType())) mbp.setHeader("Content-Type", att.getType());
 
 		String disposition = att.getDisposition();
@@ -715,7 +737,13 @@ public final class SMTPClient implements Serializable  {
 			throw new MailException("no SMTP Server defined");
 
 		if(spool==SPOOL_YES || (spool==SPOOL_UNDEFINED && config.isMailSpoolEnable())) {
-			config.getSpoolerEngine().add(new MailSpoolerTask(this, servers, sendTime));
+			MailSpoolerTask mst = new MailSpoolerTask(this, servers, sendTime);
+			if(listener instanceof Component)
+				mst.setListener(new ComponentSpoolerTaskListener(SystemUtil.getCurrentContext(),mst,(Component)listener));
+			else if(listener instanceof UDF)
+				mst.setListener(new UDFSpoolerTaskListener(SystemUtil.getCurrentContext(),mst,(UDF)listener));
+			
+			config.getSpoolerEngine().add(mst);
         }
 		else
 			_send(config,servers);
@@ -788,7 +816,7 @@ public final class SMTPClient implements Serializable  {
 				try {
 					msgSess = createMimeMessage(config,server.getHostName(),server.getPort(),_username,_password,
 							((ServerImpl)server).getLifeTimeSpan(),((ServerImpl)server).getIdleTimeSpan(),_tls,_ssl,
-							((ConfigImpl)config).isMailSendPartial(),!recyleConnection);
+							((ConfigImpl)config).isMailSendPartial(),!recyleConnection,((ConfigImpl)config).isUserset());
 				} catch (MessagingException e) {
 					// listener
 					listener(config,server,log,e,System.nanoTime()-start);
@@ -827,7 +855,8 @@ public final class SMTPClient implements Serializable  {
                 	listener(config,server,log,null,System.nanoTime()-start);
                 	break;
 				} 
-	            catch (Exception e) {e.printStackTrace();
+	            catch (Exception e) {
+	                SystemOut.printDate(e);
 					if(i+1==servers.length) {
 						
 						listener(config,server,log,e,System.nanoTime()-start);

@@ -28,7 +28,6 @@ import lucee.commons.io.TemporaryStream;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
-import lucee.commons.net.http.httpclient.HTTPResponse4Impl;
 import lucee.commons.net.http.httpclient.HeaderImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.type.util.CollectionUtil;

@@ -109,9 +109,6 @@ public class Base64Encoder {
 		return new String(decode(data),CharsetUtil.UTF8);
 	}
 	
-	
-	
-	
 	/**
      * Translates the specified Base64 string into a byte array.
      *
@@ -126,8 +123,15 @@ public class Base64Encoder {
 		data=data.trim();
 		final int len=data.length();
 		if(len==0) return new byte[0];// we accept a empty string as a empty binary!
-		if(len % 4 != 0 || len < 4)
-    		throw new CoderException("can't decode the the base64 input string"+printString(data)+", because the input string has an invalid length");
+		int tmp=4-(len-(len/4*4));
+		if(tmp!=4) {
+			for(int i=0;i<tmp;i++) {
+				data+="=";
+			}
+			return decode(data);
+    		//throw new CoderException((len % 4)+"can't decode the the base64 input string"+printString(data)+", because the input string has an invalid length");
+		}
+		
 		
 		
 		for (int position=0; position < len; ) {

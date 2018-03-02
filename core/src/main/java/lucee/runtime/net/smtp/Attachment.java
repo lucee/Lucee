@@ -50,14 +50,7 @@ public class Attachment implements Serializable {
 		// type
 		this.type=type;
 		if(StringUtil.isEmpty(type)) {
-			InputStream is=null;
-			try {
-				type = IOUtil.getMimeType(is=resource.getInputStream(),null);
-			} 
-			catch (IOException e) {}
-			finally {
-				IOUtil.closeEL(is);
-			}
+			type = IOUtil.getMimeType(resource,null);
 		}
 	}
 	
@@ -67,11 +60,7 @@ public class Attachment implements Serializable {
 		// filename
 		this. fileName=ListUtil.last(url.toExternalForm(), '/');
 		if(StringUtil.isEmpty(this.fileName))this.fileName = "url.txt";
-		
-		try {
-			type = IOUtil.getMimeType(url.openStream(), null);
-		} catch (IOException e) {}	
-		
+		type = IOUtil.getMimeType(url, null);
 	}
 	
 	

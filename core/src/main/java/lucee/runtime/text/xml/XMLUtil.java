@@ -20,6 +20,7 @@ package lucee.runtime.text.xml;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -82,6 +83,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
+import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -107,6 +109,10 @@ public final class XMLUtil {
     public static final Collection.Key XMLTYPE = KeyImpl.intern("xmltype");
     public static final Collection.Key XMLVALUE = KeyImpl.intern("xmlvalue");
     public static final Collection.Key XMLATTRIBUTES = KeyImpl.intern("xmlattributes");
+    
+    public final static String DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
+  	
+    
 	/*
 	private static final Collection.Key  = KeyImpl.getInstance();
 	private static final Collection.Key  = KeyImpl.getInstance();
@@ -122,6 +128,7 @@ public final class XMLUtil {
 	private static DocumentBuilder docBuilder;
 	//private static DocumentBuilderFactory factory;
     private static TransformerFactory transformerFactory;
+	private static DocumentBuilderFactory documentBuilderFactory;
 	
 
     public static String unescapeXMLString(String str) {
@@ -207,10 +214,19 @@ public final class XMLUtil {
      * @return returns a singelton TransformerFactory
      */
     public static TransformerFactory getTransformerFactory() {
-    	Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
-		
+    	
+    	/*if(transformerFactory==null){
+    		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
+    		transformerFactory=TransformerFactory.newInstance();
+    	}*/
     	if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
         return transformerFactory;
+    }
+    
+
+    public static final Document parse(InputSource xml,InputSource validator,  boolean isHtml) 
+        throws SAXException, IOException {
+    	return parse(xml, validator, new XMLEntityResolverDefaultHandler(validator), isHtml);
     }
     
     /**
@@ -222,45 +238,32 @@ public final class XMLUtil {
      * @throws IOException
      * @throws ParserConfigurationException 
      */
-    public static final Document parse(InputSource xml,InputSource validator, boolean isHtml) 
+    public static final Document parse(InputSource xml,InputSource validator,  EntityResolver entRes, boolean isHtml) 
         throws SAXException, IOException {
-        
+    	
         if(!isHtml) {
-        	// try to load org.apache.xerces.jaxp.DocumentBuilderFactoryImpl, oracle impl sucks
         	DocumentBuilderFactory factory = newDocumentBuilderFactory();
-        	
-        	
-        	//print.o(factory);
-            if(validator==null) {
+        	if(validator==null) {
             	XMLUtil.setAttributeEL(factory,XMLConstants.NON_VALIDATING_DTD_EXTERNAL, Boolean.FALSE);
             	XMLUtil.setAttributeEL(factory,XMLConstants.NON_VALIDATING_DTD_GRAMMAR, Boolean.FALSE);
             }
             else {
             	XMLUtil.setAttributeEL(factory,XMLConstants.VALIDATION_SCHEMA, Boolean.TRUE);
-            	XMLUtil.setAttributeEL(factory,XMLConstants.VALIDATION_SCHEMA_FULL_CHECKING, Boolean.TRUE);
-            
-                
+            	XMLUtil.setAttributeEL(factory,XMLConstants.VALIDATION_SCHEMA_FULL_CHECKING, Boolean.TRUE);   
             }
-            
             
             factory.setNamespaceAware(true);
             factory.setValidating(validator!=null);
             
             try {
 				DocumentBuilder builder = factory.newDocumentBuilder();
-	            builder.setEntityResolver(new XMLEntityResolverDefaultHandler(validator));
+	            if(entRes!=null)builder.setEntityResolver(entRes);
 	            builder.setErrorHandler(new ThrowingErrorHandler(true,true,false));
-	            return  builder.parse(xml);
+	            return builder.parse(xml);
 			} 
             catch (ParserConfigurationException e) {
 				throw new SAXException(e);
 			}
-            
-	        /*DOMParser parser = new DOMParser();
-	        print.out("parse");
-	        parser.setEntityResolver(new XMLEntityResolverDefaultHandler(validator));
-	        parser.parse(xml);
-	        return parser.getDocument();*/
         }
         
         XMLReader reader = new Parser();
@@ -280,8 +283,12 @@ public final class XMLUtil {
     }
 	
 	private static DocumentBuilderFactory newDocumentBuilderFactory() {
-		return new DocumentBuilderFactoryImpl();
-    	// we do not use DocumentBuilderFactory.newInstance(); because it is unpredictable
+		if(documentBuilderFactory==null) {
+			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
+			//documentBuilderFactory=DocumentBuilderFactory.newInstance();
+			documentBuilderFactory=new DocumentBuilderFactoryImpl();
+		}
+		return documentBuilderFactory;
 	}
 
 	private static void setAttributeEL(DocumentBuilderFactory factory,String name, Object value) {
@@ -1014,7 +1021,7 @@ public final class XMLUtil {
      * @throws IOException
      */
     public static String transform(InputSource xml, InputSource xsl) throws TransformerException, SAXException, IOException {
-    	return transform( parse( xml, null , false ), xsl, null );
+    	return transform( parse( xml, null ,false ), xsl, null );
     }
     
     /**
@@ -1028,7 +1035,7 @@ public final class XMLUtil {
      * @throws IOException
      */
     public static String transform(InputSource xml, InputSource xsl, Map<String,Object> parameters) throws TransformerException, SAXException, IOException {
-    	return transform( parse( xml, null , false ), xsl, parameters );
+    	return transform( parse( xml, null, false ), xsl, parameters );
     }
 
     /**
@@ -1197,13 +1204,93 @@ public final class XMLUtil {
 		else parent.appendChild(node);
 	}
 
-	public static XMLReader createXMLReader(String oprionalDefaultSaxParser) throws SAXException {
+	public static XMLReader createXMLReader() throws SAXException {
+		/*if(optionalDefaultSaxParser==null)
+			optionalDefaultSaxParser=DEFAULT_SAX_PARSER;
+			
 		try{
-			return XMLReaderFactory.createXMLReader(oprionalDefaultSaxParser);
+			return XMLReaderFactory.createXMLReader();
 		}
 		catch(Throwable t){
 			ExceptionUtil.rethrowIfNecessary(t);
 			return XMLReaderFactory.createXMLReader();
-		}
+		}*/
+		return XMLReaderFactory.createXMLReader(DEFAULT_SAX_PARSER);
 	}
-}
+	
+    public static Document createDocument(Resource res, boolean isHTML) throws SAXException, IOException {
+        InputStream is=null;
+    	try {
+            return parse(toInputSource(res, null),null,isHTML);
+        }
+        finally {
+        	IOUtil.closeEL(is);
+        }
+    }
+
+    
+    public static Document createDocument(String xml, boolean isHTML) throws SAXException, IOException {
+        return parse(toInputSource(xml),null,isHTML);
+    }
+
+    
+    public static Document createDocument(InputStream is, boolean isHTML) throws SAXException, IOException {
+        return parse(new InputSource(is),null,isHTML);
+    }
+    
+	
+	public static InputSource toInputSource(Object value) throws IOException {
+		if(value instanceof InputSource) {
+	        return (InputSource) value;
+	    }
+		if(value instanceof String) {
+	        return toInputSource((String)value);
+	    }
+		if(value instanceof StringBuffer) {
+	        return toInputSource(value.toString());
+	    }
+
+		if(value instanceof Resource) {
+	    	String str = IOUtil.toString(((Resource)value), (Charset)null);
+	    	return new InputSource(new StringReader(str));
+	    }
+		if(value instanceof File) {
+			FileInputStream fis = new FileInputStream((File)value);
+			try {
+				return toInputSource(fis);
+			}
+			finally {
+				IOUtil.closeEL(fis);
+			}
+	    }
+		if(value instanceof InputStream) {
+			InputStream is = (InputStream)value;
+			try {
+				String str = IOUtil.toString(is, (Charset)null);
+	        	return new InputSource(new StringReader(str));
+			}
+			finally {
+				IOUtil.closeEL(is);
+			}
+	    }
+		if(value instanceof Reader) {
+			Reader reader = (Reader)value;
+			try {
+				String str = IOUtil.toString(reader);
+	        	return new InputSource(new StringReader(str));
+			}
+			finally {
+				IOUtil.closeEL(reader);
+			}
+	    }
+		if(value instanceof byte[]) {
+			return new InputSource(new ByteArrayInputStream((byte[])value));
+	    }
+		throw new IOException("cat cast object of type ["+value+"] to a Input for xml parser");
+	}
+	
+	
+	public static InputSource toInputSource(String xml) throws IOException {
+		return new InputSource(new StringReader(xml.trim()));
+	}
+

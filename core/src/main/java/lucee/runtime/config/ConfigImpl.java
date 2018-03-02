@@ -647,6 +647,12 @@ public abstract class ConfigImpl implements Config {
     public boolean isMailSendPartial() {
         return sendPartial;
     }
+    // FUTURE add to interface and impl
+    public boolean isUserset() {
+        return true;
+    }
+    
+    
 
     
     @Override
@@ -673,9 +679,11 @@ public abstract class ConfigImpl implements Config {
 
     }
     
+    // do not remove, ised in Hibernate extension
     public ClassLoader getClassLoaderEnv() {
     	return new EnvClassLoader(this);
     }
+    
     public ClassLoader getClassLoaderCore() {
     	return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
     }
@@ -3348,7 +3356,7 @@ public abstract class ConfigImpl implements Config {
 		return writerType;
 	}
 
-	private boolean bufferOutput=true;
+	private boolean bufferOutput=false;
 
 
 	private int externalizeStringGTE=-1;
@@ -3356,12 +3364,6 @@ public abstract class ConfigImpl implements Config {
 	private JDBCDriver[] drivers;
 	private Resource logDir;
 	
-	
-
-	
-
-
-
 	public boolean getBufferOutput() {
 		return bufferOutput;
 	}
@@ -3575,12 +3577,11 @@ public abstract class ConfigImpl implements Config {
 				BundleInfo[] bis;
 				try {
 					bis = rhe.getBundles();
-					
 				}
 				catch (Exception e) {
 					continue;
 				}
-				for(BundleInfo bi:bis) {
+				if(bis!=null)for(BundleInfo bi:bis) {
 					extensionBundles.put(bi.getSymbolicName()+"|"+bi.getVersionAsString(), bi.toBundleDefinition());
 				}
 			}

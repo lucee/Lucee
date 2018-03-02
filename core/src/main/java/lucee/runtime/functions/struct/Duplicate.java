@@ -22,6 +22,7 @@
 package lucee.runtime.functions.struct;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
@@ -42,9 +43,7 @@ public final class Duplicate extends BIF {
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if(args.length==2) return call(pc,args[0],Caster.toBooleanValue(args[1]));
-		return call(pc,args[0]);
+		if(args.length==1) return call(pc,args[0]);
+		throw new FunctionException(pc, "Duplicate", 1, 2, args.length);
 	}
-	
-	
-	
 }

@@ -202,7 +202,6 @@ public final class XMLUtilImpl implements XMLUtil {
         throws SAXException, IOException {
         
         if(!isHtml) {
-        	// try to load org.apache.xerces.jaxp.DocumentBuilderFactoryImpl, oracle impl sucks
         	DocumentBuilderFactory factory = newDocumentBuilderFactory();
         	
         	//print.o(factory);

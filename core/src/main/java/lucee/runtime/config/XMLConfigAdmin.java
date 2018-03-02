@@ -39,7 +39,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.jar.Attributes;
-import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -56,7 +55,6 @@ import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
-import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.FileWrapper;
@@ -73,10 +71,8 @@ import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
-import lucee.loader.engine.CFMLEngineFactorySupport;
 import lucee.loader.osgi.BundleCollection;
 import lucee.loader.util.ExtensionFilter;
-import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
@@ -85,8 +81,8 @@ import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.db.ClassDefinition;
-import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -146,16 +142,13 @@ import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLibException;
 
-import org.apache.felix.framework.Logger;
 import org.apache.log4j.Level;
-import org.apache.xerces.parsers.DOMParser;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.allaire.cfx.CustomTag;
@@ -251,7 +244,7 @@ public final class XMLConfigAdmin {
     private XMLConfigAdmin(ConfigImpl config, Password password) throws SAXException, IOException {
     	this.config=config;
     	this.password=password;
-        doc=loadDocument(config.getConfigFile());
+        doc=XMLUtil.createDocument(config.getConfigFile(),false);
         //setId(config.getId());
     } 
     
@@ -296,28 +289,6 @@ public final class XMLConfigAdmin {
     	el.setAttribute("scheme", scheme);
     	el.setAttribute("arguments", arguments);
 	}
-
-
-	/**
-     * load XML Document from XML File
-     * @param xmlFile XML File to read
-     * @return returns the Document
-     * @throws SAXException
-     * @throws IOException
-     */
-    private static Document loadDocument(Resource xmlFile) throws SAXException, IOException {
-        DOMParser parser = new DOMParser();
-        InputStream is=null;
-        try {
-        	is = IOUtil.toBufferedInputStream(xmlFile.getInputStream());
-    	    InputSource source = new InputSource(is);
-    	    parser.parse(source);
-        }
-        finally {
-        	IOUtil.closeEL(is);
-        }
-	    return parser.getDocument();
-    }
     
     public static synchronized void _storeAndReload(ConfigImpl config) throws PageException, SAXException, ClassException, IOException, TagLibException, FunctionLibException, BundleException  {
     	XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
@@ -2901,7 +2872,8 @@ public final class XMLConfigAdmin {
         if(!hasAccess) throw new SecurityException("no access to update scope setting");
         
         Element scope=_getRootElement("setting");
-        scope.setAttribute("buffer-output",Caster.toString(value,""));
+        scope.setAttribute("buffering-output",Caster.toString(value,""));
+        if(scope.hasAttribute("buffer-output"))scope.removeAttribute("buffer-output");
 	}
     
     /**
@@ -6586,7 +6558,7 @@ public final class XMLConfigAdmin {
 			}
 			return null;
 		}
-		catch (Exception e) {e.printStackTrace();
+		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
@@ -6786,7 +6758,7 @@ public final class XMLConfigAdmin {
         		}
 			}
         	catch (Exception e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
         }
         return fixed;

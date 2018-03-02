@@ -100,6 +100,7 @@ public final class StructFindValue extends BIF {
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if(args.length==3) return call(pc,Caster.toStruct(args[0]),Caster.toString(args[1]),Caster.toString(args[2]));
-		return call(pc,Caster.toStruct(args[0]),Caster.toString(args[1]));
+		if(args.length==2) return call(pc,Caster.toStruct(args[0]),Caster.toString(args[1]));
+		throw new FunctionException(pc, "StructFindValue", 2, 3, args.length);
 	}
 }

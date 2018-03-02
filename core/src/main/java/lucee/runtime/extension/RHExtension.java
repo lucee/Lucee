@@ -35,7 +35,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import lucee.Info;
-import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -44,6 +43,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -77,7 +77,6 @@ import lucee.runtime.type.util.ListUtil;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 
 
 /**
@@ -198,7 +197,7 @@ public class RHExtension implements Serializable {
 				_softLoaded=true;
 			}
 			catch(ApplicationException ae) {
-				ae.printStackTrace();
+				SystemOut.printDate(ae);
 				init(toResource(config,el),false);
 				_softLoaded=false;
 			}

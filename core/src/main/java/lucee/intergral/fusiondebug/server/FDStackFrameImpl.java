@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.intergral.fusiondebug.server.type.FDVariable;
 import lucee.intergral.fusiondebug.server.util.FDCaster;
 import lucee.runtime.PageContextImpl;
@@ -150,7 +151,6 @@ public class FDStackFrameImpl implements IFDStackFrame {
 			try {
 				return !(pc.clusterScope() instanceof ClusterNotSupported);
 			} catch (PageException e) {
-				//e.printStackTrace();
 				return false;
 			}
 		}
@@ -166,7 +166,9 @@ public class FDStackFrameImpl implements IFDStackFrame {
 			try {
 				getVariables(this,pc,list, (String)it.next());
 			} 
-			catch (FDLanguageException e) {e.printStackTrace();}
+			catch (FDLanguageException e) {
+				SystemOut.printDate(e);
+			}
 		}
 		return sort(list);
 	}

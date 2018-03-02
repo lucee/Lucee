@@ -19,6 +19,7 @@
 package lucee.runtime.type.scope.client;
 
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.SerializableObject;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection;
@@ -31,6 +32,7 @@ import lucee.runtime.type.scope.storage.StorageValue;
 public final class ClientCache extends StorageScopeCache implements Client {
 	
 	private static final long serialVersionUID = -875719423763891692L;
+	private static SerializableObject token=new SerializableObject();
 
 	private ClientCache(PageContext pc,String cacheName, String appName,Struct sct, long lastStored) { 
 		super(pc,cacheName,appName,"client",SCOPE_CLIENT,sct,lastStored);
@@ -61,23 +63,25 @@ public final class ClientCache extends StorageScopeCache implements Client {
 	 * @return client datasource scope
 	 * @throws PageException
 	 */
-	public synchronized static Client getInstance(String cacheName, String appName, PageContext pc, Client existing, Log log) throws PageException {
+	public static Client getInstance(String cacheName, String appName, PageContext pc, Client existing, Log log) throws PageException {
 		if(appName!=null && appName.startsWith("no-in-memory-cache-")) existing=null;
-		StorageValue sv = _loadData(pc, cacheName, appName,"client", log);
-		if(sv!=null) {
-			long time = sv.lastModified();
-			
-			if(existing instanceof StorageScopeCache) {
-				if(((StorageScopeCache)existing).lastModified()>=time)
-					return existing;
+		synchronized(token) {
+			StorageValue sv = _loadData(pc, cacheName, appName,"client", log);
+			if(sv!=null) {
+				long time = sv.lastModified();
+				
+				if(existing instanceof StorageScopeCache) {
+					if(((StorageScopeCache)existing).lastModified()>=time)
+						return existing;
+				}
+				return new ClientCache(pc,cacheName,appName,sv.getValue(),time);
 			}
-			return new ClientCache(pc,cacheName,appName,sv.getValue(),time);
+			else if(existing!=null) return  existing;
+	
+			ClientCache cc = new ClientCache(pc,cacheName,appName,new StructImpl(),0);
+			cc.store(pc);
+			return cc;
 		}
-		else if(existing!=null) return  existing;
-
-		ClientCache cc = new ClientCache(pc,cacheName,appName,new StructImpl(),0);
-		cc.store(pc);
-		return cc;
 	}
 	
 	public static Client getInstance(String cacheName, String appName, PageContext pc, Client existing, Log log,Client defaultValue) {

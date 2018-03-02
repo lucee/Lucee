@@ -52,9 +52,6 @@ import org.xml.sax.helpers.DefaultHandler;
 
 public final class FeedHandler extends DefaultHandler {
 
-	public final static String DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
-
-	
 	private XMLReader xmlReader;
 
 	//private StringBuffer content=new StringBuffer();
@@ -86,14 +83,14 @@ public final class FeedHandler extends DefaultHandler {
 			InputSource source=new InputSource(is=res.getInputStream());
 			source.setSystemId(res.getPath());
 			
-			init(DEFAULT_SAX_PARSER,source);
+			init(source);
 		} 
 		finally {
 			IOUtil.closeEL(is);
 		}
 	}
 	public FeedHandler(InputSource is) throws IOException, SAXException {
-		init(DEFAULT_SAX_PARSER,is);
+		init(is);
 		
 	}
 
@@ -105,14 +102,14 @@ public final class FeedHandler extends DefaultHandler {
 	 */
 	public FeedHandler(InputStream stream) throws IOException, SAXException {
 		InputSource is=new InputSource(IOUtil.getReader(stream, SystemUtil.getCharset()));
-		init(DEFAULT_SAX_PARSER,is);
+		init(is);
 	}
 	
-	private void init(String saxParser,InputSource is) throws SAXException, IOException	{
+	private void init(InputSource is) throws SAXException, IOException	{
 		//print.out("is:"+is);
 		hasDC=false;
 		data=new FeedStruct();
-		xmlReader=XMLUtil.createXMLReader(saxParser);
+		xmlReader=XMLUtil.createXMLReader();
 		xmlReader.setContentHandler(this);
 		xmlReader.setErrorHandler(this);
 		xmlReader.setDTDHandler(new DummyDTDHandler());

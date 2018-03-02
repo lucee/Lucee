@@ -38,12 +38,13 @@ import java.util.Set;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
+import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -66,6 +67,7 @@ import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.dt.TimeSpan;
+import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.ComponentUtil;
@@ -119,7 +121,7 @@ public final class JSONConverter extends ConverterSupport {
 				try {
 					sct.setEL(field.getName(), testRecusrion(test,field.get(obj)));
 				} catch (Exception e) {
-					e.printStackTrace();
+					SystemOut.printDate(e);
 				}
     	}
     	if(obj !=null){
@@ -308,7 +310,6 @@ public final class JSONConverter extends ConverterSupport {
 			try {
 				return Caster.toString(c.call(pc, TO_JSON, new Object[0]));
 			} catch (PageException e) {
-				e.printStackTrace();
 				throw toConverterException(e);
 			}
 		}
@@ -547,6 +548,11 @@ public final class JSONConverter extends ConverterSupport {
 		    sb.append(((ScriptConvertable)object).serialize());
 		    return;
 		}
+		// byte[]
+		if (object instanceof byte[]) {
+			sb.append("\""+Base64Coder.encode((byte[])object)+"\"");
+		    return;
+		}
 		Object raw = LazyConverter.toRaw(object);
 		if (done.contains(raw)){
 			sb.append(goIn());
@@ -630,19 +636,13 @@ public final class JSONConverter extends ConverterSupport {
 	}
 
 
-	private void _serializeTimeSpan(TimeSpan span, StringBuilder sb) {
-    	
-	        sb.append(goIn());
-		    sb.append("createTimeSpan(");
-		    sb.append(span.getDay());
-		    sb.append(',');
-		    sb.append(span.getHour());
-		    sb.append(',');
-		    sb.append(span.getMinute());
-		    sb.append(',');
-		    sb.append(span.getSecond());
-		    sb.append(')');
-		
+	private void _serializeTimeSpan(TimeSpan ts, StringBuilder sb) throws ConverterException {
+        sb.append(goIn());
+        try {
+			sb.append(ts.castToDoubleValue());
+		} catch (PageException e) {// should never happen because TimeSpanImpl does not throw an exception
+			throw new ConverterException(e.getMessage());
+		}
 	}
 
     /**
@@ -671,6 +671,12 @@ public final class JSONConverter extends ConverterSupport {
 	 */
 	private String goIn() {
 	    return "";
+	}
+
+
+	public static String serialize(PageContext pc, Object o) throws ConverterException {
+		JSONConverter converter = new JSONConverter(false, null);
+		return converter.serialize(pc, o, false);
 	}
 
 

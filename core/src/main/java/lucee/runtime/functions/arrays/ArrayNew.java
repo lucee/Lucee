@@ -23,6 +23,7 @@ package lucee.runtime.functions.arrays;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
@@ -51,7 +52,8 @@ public final class ArrayNew extends BIF {
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if(args.length==0) return call(pc);
-		return call(pc,Caster.toDoubleValue(args[0]));
+		if(args.length==1) return call(pc,Caster.toDoubleValue(args[0]));
+		else throw new FunctionException(pc, "ArrayNew", 0, 1, args.length);
 	}
 	
 }

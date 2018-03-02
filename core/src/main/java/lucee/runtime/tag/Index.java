@@ -35,7 +35,6 @@ import lucee.runtime.search.IndexResult;
 import lucee.runtime.search.SearchCollection;
 import lucee.runtime.search.SearchException;
 import lucee.runtime.search.SearchIndex;
-import lucee.runtime.tag.util.DeprecatedUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;

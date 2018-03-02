@@ -23,18 +23,14 @@ import javax.mail.SendFailedException;
 import javax.mail.Transport;
 
 import lucee.commons.io.SystemUtil;
-import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.runtime.config.Config;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.net.smtp.SMTPClient.MimeMessageAndSession;
 
 
 public final class SMTPSender extends Thread {
 
 	private boolean isSent = false;
-	private Throwable throwable;
+	private Exception throwable;
 	private Object lock;
 	private String host;
 	private int port;
@@ -74,9 +70,8 @@ public final class SMTPSender extends Thread {
         	if(valid!=null && valid.length>0) isSent=true;
         	this.throwable=sfe;
         }
-		catch(Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			this.throwable=t;
+		catch(Exception e) {
+			this.throwable=e;
 		}
 		finally {
 			try {

@@ -38,7 +38,6 @@ import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
-import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.cache.tag.udf.UDFCacheItem;
 import lucee.runtime.component.MemberSupport;
 import lucee.runtime.config.Config;
@@ -70,7 +69,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 	private static final long serialVersionUID = -7288148349256615519L; // do not change
 	
 	protected Component ownerComponent;
-	protected UDFPropertiesBase properties;
+	public UDFPropertiesBase properties;
     
 	/**
 	 * DO NOT USE THIS CONSTRUCTOR!
@@ -248,31 +247,23 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 		CacheHandler cacheHandler = pc.getConfig()
 				.getCacheHandlerCollection(Config.CACHE_TYPE_FUNCTION, null)
 				.getInstanceMatchingObject(getCachedWithin(pc), null);
+		
 
-
-		if (cacheHandler instanceof CacheHandlerPro){
-
+		if(cacheHandler instanceof CacheHandlerPro){
 			CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pc, cacheId, cachedWithin);
-
 			if (cacheItem instanceof UDFCacheItem ) {
-
 				UDFCacheItem entry = (UDFCacheItem)cacheItem;
-
 				try {
 					pc.write(entry.output);
 				} catch (IOException e) {
 					throw Caster.toPageException(e);
 				}
-
 				return entry.returnValue;
 			}
 		}
 		else if (cacheHandler != null){		// TODO this else block can be removed when all cache handlers implement CacheHandlerPro
-
 			CacheItem cacheItem = cacheHandler.get(pc, cacheId);
-
 			if (cacheItem instanceof UDFCacheItem ) {
-
 				UDFCacheItem entry = (UDFCacheItem)cacheItem;
 				//if(entry.creationdate+properties.cachedWithin>=System.currentTimeMillis()) {
 				try {
@@ -299,8 +290,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 	    		String out = bc.getString();
 	    		cacheHandler.set(pc, cacheId, cachedWithin, new UDFCacheItem(out, rtn, getFunctionName(), getSource(), System.nanoTime()-start));
 	    	}
-			// cache.put(id, new UDFCacheEntry(out, rtn),properties.cachedWithin,properties.cachedWithin);
-	    	return rtn;
+			return rtn;
 		}
         finally {
         	BodyContentUtil.flushAndPop(pc,bc);

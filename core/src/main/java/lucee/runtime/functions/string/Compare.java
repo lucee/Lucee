@@ -37,13 +37,11 @@ public final class Compare extends BIF {
 		return compare>0?1:-1;
 	}
 
-    @Override
+	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if(args.length==2)
 			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
 
 		throw new FunctionException(pc, "Compare", 2, 2, args.length);
 	}
-	
-	
 }

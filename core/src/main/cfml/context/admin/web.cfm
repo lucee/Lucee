@@ -77,10 +77,10 @@
             <cfif form.rememberMe NEQ "s">
                 <cfcookie
                 	expires="#DateAdd(form.rememberMe,1,now())#"
-                	name="lucee_admin_pw_#ad#"
+                	name="lucee_admin_pw_#server.lucee.version#_#ad#"
                 	value="#hashedPassword#">
             <cfelse>
-                <cfcookie expires="Now" name="lucee_admin_pw_#ad#" value="">
+                <cfcookie expires="Now" name="lucee_admin_pw_#server.lucee.version#_#ad#" value="">
             </cfif>
             <cfif isDefined("cookie.lucee_admin_lastpage") and cookie.lucee_admin_lastpage neq "logout">
                 <cfset url.action = cookie.lucee_admin_lastpage>
@@ -105,15 +105,23 @@
 			    pw="#form.new_password#"
 				returnVariable="hashedPassword">
 		<cfset session["password"&request.adminType]=hashedPassword>
+		 <cfif form.rememberMe NEQ "s">
+	        <cfcookie
+	        	expires="#DateAdd(form.rememberMe,1,now())#"
+	        	name="lucee_admin_pw_#server.lucee.version#_#ad#"
+	        	value="#hashedPassword#">
+	    <cfelse>
+	        <cfcookie expires="Now" name="lucee_admin_pw_#server.lucee.version#_#ad#" value="">
+	    </cfif>
 	</cfif>
 </cfif>
 
 <!--- cookie ---->
 <cfset fromCookie=false>
-<cfif not StructKeyExists(session,"password"&request.adminType) and StructKeyExists(cookie,'lucee_admin_pw_#ad#')>
+<cfif not StructKeyExists(session,"password"&request.adminType) and StructKeyExists(cookie,'lucee_admin_pw_#server.lucee.version#_#ad#')>
 	<cfset fromCookie=true>
     <cftry>
-		<cfset session["password"&ad]=cookie['lucee_admin_pw_#ad#']>
+		<cfset session["password"&ad]=cookie['lucee_admin_pw_#server.lucee.version#_#ad#']>
     	<cfcatch></cfcatch>
     </cftry>
 </cfif>
@@ -279,7 +287,34 @@
 <cfif structKeyExists(url,"action") and url.action EQ "plugin" && not structKeyExists(url,"plugin")>
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
+<cfif request.adminType EQ "web">
+	
+</cfif>
+
 <cfscript>
+	function isLuceneInstalled() {
+		//if(!isNull(session._isLuceneInstalled)) return session._isLuceneInstalled;
+
+		try{
+			admin
+			   action="getRHServerExtensions"
+			   type="#request.adminType#"
+			   password="#session["password"&request.adminType]#"
+			   returnVariable="local.qry";
+
+			var qry = qry.filter(function(row, rowNumber, qryData){
+			    return row.id=='EFDEB172-F52E-4D84-9CD1A1F561B3DFC8';
+			});
+			session._isLuceneInstalled=qry.recordCount>0;
+			return qry.recordCount>0;
+
+		}
+		catch(e) {//systemOutput(e,1,1);
+			return false;
+		}
+	}
+
+
 	isRestrictedLevel=server.ColdFusion.ProductLevel EQ "community" or server.ColdFusion.ProductLevel EQ "professional";
 	isRestricted=isRestrictedLevel and request.adminType EQ "server";
 
@@ -306,6 +341,9 @@
 			for(iCld=1; iCld lte ArrayLen(stNavi.children); iCld=iCld+1) {
 				stCld = stNavi.children[iCld];
 				isActive=current.action eq stNavi.action & '.' & stCld.action or (current.action eq 'plugin' and stCld.action EQ url.plugin);
+				if(request.adminType EQ "web" && stCld.action EQ "search"){
+					stCld.hidden=!isLuceneInstalled();
+				}
 				if(isActive) {
 					hasActiveItem = true;
 					current.label = stNavi.label & ' - ' & stCld.label;
@@ -322,7 +360,7 @@
 					else _action=stNavi.action & '.' & stCld.action;
 
 					isfavorite = application.adminfunctions.isfavorite(_action);
-					li = '<li' & (isfavorite ? ' class="favorite"':'') & '><a '&(isActive?'id="sprite" class="menu_active"':'class="menu_inactive"')&' href="' & request.self & '?action=' & _action & '"> ' & stCld.label & '</a></li>';
+					li = '<li' & (isfavorite ? ' class="favorite"':'') & '><a '&(isActive?'id="sprite" class="menu_active"':'class="menu_inactive"')&' href="' & request.self & '?action=' &ListCompact( _action,'.') & '"> ' & stCld.label & '</a></li>';
 					if (isfavorite)
 					{
 						favoriteLis &= '<li class="favorite"><a href="#request.self#?action=#_action#">#stNavi.label# - #stCld.label#</a></li>';

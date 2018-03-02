@@ -134,6 +134,7 @@ try{
 	error.message=cfcatch.message;
 	error.detail=cfcatch.Detail;
 	error.exception = cfcatch;
+	error.cfcatch = cfcatch;
 }
 printError(error);
 	if(structKeyExists(updateData,"qryOtherVersions"))querySort(updateData.qryOtherVersions,'versionSortable','desc');
@@ -335,6 +336,13 @@ stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{ve
 									<option value="#qry.version#">#btn# #qry.version#</option>
 								</cfloop>
 							</select>
+							<cfset baseVS=toVersionSortable("5.0.0.252")>
+								<cfif compare(minVS, baseVS) GT 0>
+								<div>
+									<span class="comment">#replace(replace("#stText.services.update.downgradeVersion#","{url}","<a href=""http://lucee.org/"">here</a>"),"{minVersion}","#minVersion#")#</span>
+								</div>
+							</cfif>
+
 							<input type="button" class="button submit" name="mainAction" value="#stText.services.update.downup#"
 							 onclick="changeVersion(this)">
 

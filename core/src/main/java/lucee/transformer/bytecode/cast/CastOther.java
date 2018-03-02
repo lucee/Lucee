@@ -531,6 +531,8 @@ public final class CastOther extends ExpressionBase implements Cast {
             if("long".equals(type))								return Types.LONG_VALUE;
             if("long".equals(lcType))							return Types.LONG;
             if("locale".equals(lcType))							return Types.LOCALE;
+            if("lucee.runtime.type.Collection$Key".equals(type))return Types.COLLECTION_KEY;
+            
         break;
         case 'n':
             if("node".equals(lcType))							return Types.NODE;
@@ -572,6 +574,7 @@ public final class CastOther extends ExpressionBase implements Cast {
         break;
     	}
         try {
+        	
 			return Type.getType(ClassUtil.loadClass(type));
 		} 
         catch (ClassException e) {

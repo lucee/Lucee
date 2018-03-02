@@ -23,6 +23,7 @@ package lucee.runtime.functions.arrays;
 
 
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
@@ -38,6 +39,7 @@ public final class ArrayInsertAt extends BIF {
 	
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		return call(pc,Caster.toArray(args[0]),Caster.toDoubleValue(args[1]),args[2]);
+		if(args.length==3)return call(pc,Caster.toArray(args[0]),Caster.toDoubleValue(args[1]),args[2]);
+		else throw new FunctionException(pc, "ArrayInsertAt", 3, 3, args.length);
 	}
 }

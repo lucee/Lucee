@@ -23,7 +23,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Query;
-import lucee.runtime.type.QueryImpl;
 
 /**
  * Implements the CFML Function querynew

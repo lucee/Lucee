@@ -21,6 +21,7 @@ package lucee.runtime.config;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import lucee.commons.lang.SystemOut;
 import lucee.commons.net.HTTPUtil;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.ExtensionProviderImpl;
@@ -73,7 +74,7 @@ public class Constants {
 		try {
 			DEFAULT_UPDATE_URL= new URL("http://release.lucee.org");
 		} catch (MalformedURLException e) {
-			e.printStackTrace();
+			SystemOut.printDate(e);
 		}
 	}
 	

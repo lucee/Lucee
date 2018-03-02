@@ -65,13 +65,13 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 	public static final Key ADDITIONAL = KeyImpl.intern("additional");
 	private static final Object NULL = new Object();
 	
-	private PageExceptionImpl exception;
+	private PageException exception;
 	
 
-	public CatchBlockImpl(PageExceptionImpl pe) {
+	public CatchBlockImpl(PageException pe) {
 		this(pe,0);
 	}
-	private CatchBlockImpl(PageExceptionImpl pe, int level) {
+	private CatchBlockImpl(PageException pe, int level) {
 		this.exception=pe;
 
 		setEL(KeyConstants._Message, new SpecialItem(pe, KeyConstants._Message,level));
@@ -108,11 +108,11 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 
 	class SpecialItem {
 		private static final int MAX = 10;
-		private PageExceptionImpl pe;
+		private PageException pe;
 		private Key key;
 		private int level;
 		
-		public SpecialItem(PageExceptionImpl pe, Key key, int level) {
+		public SpecialItem(PageException pe, Key key, int level) {
 			this.pe=pe;
 			this.key=key;
 			this.level=level;
@@ -131,7 +131,7 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock,Castable,Ob
 			if(key==EXTENDED_INFO) return StringUtil.emptyIfNull(pe.getExtendedInfo());
 			if(key==KeyConstants._type) return StringUtil.emptyIfNull(pe.getTypeAsString());
 			if(key==STACK_TRACE) return StringUtil.emptyIfNull(pe.getStackTraceAsString());
-			if(key==TAG_CONTEXT) return pe.getTagContext(ThreadLocalPageContext.getConfig());
+			if(key==TAG_CONTEXT && pe instanceof PageExceptionImpl) return ((PageExceptionImpl)pe).getTagContext(ThreadLocalPageContext.getConfig());
 			return null;
 		}
 		

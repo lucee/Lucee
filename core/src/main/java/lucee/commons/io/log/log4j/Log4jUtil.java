@@ -38,6 +38,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.retirement.RetireListener;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebUtil;
@@ -167,7 +168,8 @@ public class Log4jUtil {
 				
 				try {
 					appender = new DatasourceAppender(config, layout, dsn, user, pass);
-				} catch (PageException e) {e.printStackTrace();
+				} catch (PageException e) {
+					SystemOut.printDate(e);
 					appender = null;
 				}
 			}
@@ -212,7 +214,7 @@ public class Log4jUtil {
 					appender=new RollingResourceAppender(layout,res,charset,true,maxfilesize,maxfiles,timeout,null);
 				}
 				catch (IOException e) {
-					e.printStackTrace();
+					SystemOut.printDate(e);
 				}
 			}
 			// class defintion
@@ -241,7 +243,7 @@ public class Log4jUtil {
 							Reflector.callSetter(obj, e.getKey(), e.getValue());
 						}
 						catch (PageException e1) {
-							e1.printStackTrace(); // TODO log
+							SystemOut.printDate(e1); // TODO log
 						}
 					}
 				}
@@ -340,7 +342,7 @@ public class Log4jUtil {
 							Reflector.callSetter(obj, e.getKey(), e.getValue());
 						}
 						catch (PageException e1) {
-							e1.printStackTrace(); // TODO log
+							SystemOut.printDate(e1);// TODO log
 						}
 					}
 					

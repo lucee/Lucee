@@ -182,7 +182,7 @@ public class CFMLResourceProvider implements ResourceProviderPro {
 			if(allowNull && res==null) return null;
 			return new CFMLResource(this,Caster.toComponent(res));
 		} 
-		catch (PageException pe) {pe.printStackTrace();
+		catch (PageException pe) {
 			throw new PageRuntimeException(pe);
 		} 
 	}

@@ -25,6 +25,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.SystemOut;
 
 /**
  * A {@code Method} provides information about, and access to, a single method
@@ -142,13 +143,8 @@ public abstract class ASMMethod  {
 			exceptionTypes=m.getExceptionTypes();
 			returnType=m.getReturnType();
 		}
-		catch (SecurityException e) {
-			// TODO remove block
-			e.printStackTrace();
-		}
-		catch (NoSuchMethodException e) {
-			// TODO remove block
-			e.printStackTrace();
+		catch (Exception e) {
+            SystemOut.printDate(e);
 		}
 		
 	}
