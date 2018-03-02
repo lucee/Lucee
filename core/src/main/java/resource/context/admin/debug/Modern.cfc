@@ -161,7 +161,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				<cfset ismetricsOpen = this.isSectionOpen( sectionId, "metrics" )>
 				<cfset isdocsOpen = this.isSectionOpen( sectionId, "docs" )>
 				<cfif isdebugOpen && ismetricsOpen && isdocsOpen>
-					<cfset isdebugOpen = false>
+					<cfset isdebugOpen = true>
 					<cfset ismetricsOpen = false>
 					<cfset isdocsOpen = false>
 				</cfif>
@@ -233,8 +233,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			</fieldset><!--- #-lucee-debug !--->
 
 			<cfif enableTab("Reference") AND ( !structKeyExists(request, "fromAdmin") )>
-				<div id="ex1" class="modal">
-					<!--- <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button> --->
+				<div id="mdlWnd" class="modal">
 					<div class="modal-body">
 					</div>
 				</div>
@@ -440,11 +439,11 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 								window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
 								window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
 								window[chrt+"Chart"].series[0].data = window["series_"+chrt];
-								if(window[chrt+"Chart"].series[0].data.length > 100){
+								if(window[chrt+"Chart"].series[0].data.length > 60){
 								window[chrt+"Chart"].series[0].data.shift(); //shift the array
 								}
 								window[chrt+"Chart"].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
-								if(window[chrt+"Chart"].xAxis[0].data.length > 5){
+								if(window[chrt+"Chart"].xAxis[0].data.length > 60){
 								window[chrt+"Chart"].xAxis[0].data.shift(); //shift the Time value
 								}
 								window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
@@ -464,9 +463,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						tooltip : {'trigger':'axis'},
 						color: ['##0000FF'],
 						grid : {
-							width: '75%',
+							width: '73%',
 							height: '65%',
-							x:'30px',
+							x:'33px',
 							y:'20px'
 						},
 						xAxis : [{
@@ -531,6 +530,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 								{
 								  name: 'keyWords',
 								  source: substringMatcher(allArr),
+								  limit: 25,
 								   templates: {
 									    empty:  '<div class="moreResults"><span onclick="moreInfo()">No Results Found</span></div>'
 							  	}
@@ -571,13 +571,13 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 							success: function(data){
 								$( ".modal-body" ).html("" + data.toString() + "");
 								$('<div class="blocker"></div>').appendTo(document.body);
-								$("##ex1").show();
-								$("##ex1").modal('show');
-								$('.close-modal').on('click', function() {
+								$("##mdlWnd").show();
+								$("##mdlWnd").modal('show');
+								$('.close-modal, .blocker').on('click', function() {
 									$('##lucee-docs-search-input').val('');
 									$("div.blocker").remove();
 									$(".modal-body").html("");
-									$("##ex1").hide();
+									$("##mdlWnd").hide();
 									$("btnOvr").addClass("button.buttonStyle");
 									$("btnOvr").addClass("button.btnActive");
 								});
@@ -718,10 +718,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfoutput>
 			<cfif isEnabled( arguments.custom, 'general' )>
 				<div class="section-title" style="padding-top:23px;">Debugging Information</div>
-				<cfoutput>
-					<h3 style="color:red" class="section-title">&nbsp;Your session is larger than #byteFormat(arguments.custom.sessionSize)#. Be aware</h2>
-				</cfoutput>
 				<cfif isDefined("session") AND sizeOf(session) gt arguments.custom.sessionSize>
+					<cfoutput>
+						<h3 style="color:red" class="section-title">&nbsp;Your session is larger than #byteFormat(arguments.custom.sessionSize)#. Be aware</h2>
+					</cfoutput>
 				</cfif>
 				<cfset sectionId = "Info">
 				<cfset isOpen = this.isSectionOpen( sectionId )>
@@ -1667,7 +1667,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 		<cfloop item="i" collection="#chartsLabel#">
 			<div class="chart_margin #chartClass#">
-				<div style="text-align:center;  width: 280px; height: 180px; padding:7px; border-radius: 25px; border: 2px solid ##898989; -moz-box-sizing: unset !important">
+				<div style="text-align:center; width:264px; height:165px; padding:7px; border-radius: 25px; border: 2px solid ##898989; -moz-box-sizing: unset !important">
 					<div style="font-size: 14px;font-weight: bold;">#chartsLabel[i]#</div>
 					<div id="#StructFind(arguments.chartStruct,"#i#")#" style="width: 250px; height: 130px; margin: 0 auto;"></div>
 				</div>
