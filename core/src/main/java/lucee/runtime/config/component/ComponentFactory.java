@@ -41,6 +41,8 @@ public class ComponentFactory {
 		deploy(dir,path,doNew,"Query");
 		deploy(dir,path,doNew,"Result");
 		deploy(dir,path,doNew,"Administrator");
+		deploy(dir,path,doNew,"QueryBuilder");
+		deploy(dir,path,doNew,"QB");
 		
 		// orm
 		{
