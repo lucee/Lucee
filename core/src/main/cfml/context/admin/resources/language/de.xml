@@ -1073,9 +1073,6 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="cfx.class">Klasse</data>
 	<data key="cfx.noaccessUsage">Den Zugriff auf die CFX Funktionalität ist für diesen Kontext komplett gesperrt.</data>
 	<data key="cfx.noaccessSetting">Es ist nicht erlaubt in diesem Kontext CFX Tags anzulegen, Tags welche im Server Admin definiert wurden, können jedoch verwendet werden.</data>
-	<data key="cfx.cpp.CFXTags">C++ CFX tags</data>
-	<data key="cfx.cpp.arch">Ihr Betriebssystem und Ihre JRE (Java Runtime Enviroment) laufen in einer {os-arch}bit Umgebung.</data>
-	<data key="cfx.cpp.archDiff">Ihr Betriebssystem läuft in einer {os-arch}bit Umgebung und Ihre JRE (Java Runtime Enviroment) in einer {jre-arch}bit Umgebung.</data>
 	<data key="cfx.procedure">Prozedur</data>
 	<data key="cfx.serverlibrary">Server Library</data>
 	<data key="cfx.keepAlive">Keep Alive</data>

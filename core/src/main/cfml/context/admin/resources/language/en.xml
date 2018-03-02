@@ -1220,9 +1220,6 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="cfx.class">Class</data>
 	<data key="cfx.noaccessUsage">The usage of CFX Tags is completely forbidden for this context.</data>
 	<data key="cfx.noaccessSetting">It is not allowed to create CFX Tags in this context, but it is allowed to use tags defined in the server admin.</data>
-	<data key="cfx.cpp.CFXTags">C++ CFX tags</data>
-	<data key="cfx.cpp.arch">Your Operation System and JRE (Java Runtime Environment) is running in a {os-arch}bit environment.</data>
-	<data key="cfx.cpp.archDiff">Your Operation System is running in a {os-arch}bit environment and your JRE (Java Runtime Environment) in a {jre-arch}bit environment.</data>
 	<data key="cfx.procedure">Procedure</data>
 	<data key="cfx.serverlibrary">Server Library</data>
 	<data key="cfx.keepAlive">Keep Alive</data>

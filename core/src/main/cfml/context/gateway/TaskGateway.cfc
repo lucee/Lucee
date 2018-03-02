@@ -25,7 +25,8 @@ component {
 
         variables.id       = arguments.id;
         variables.config   = arguments.config;
-        variables.listener = arguments.listener;
+        if(structKeyExists(arguments, "listener"))
+            variables.listener = arguments.listener;
 
         variables.interval = arguments.config.sleep * 1000;
 

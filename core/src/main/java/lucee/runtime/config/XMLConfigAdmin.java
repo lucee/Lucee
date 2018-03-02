@@ -1214,54 +1214,6 @@ public final class XMLConfigAdmin {
   		el.setAttribute("type","java");  		
     }
     
-    public void updateCPPCFX(String name, String procedure, String strServerLibrary, boolean keepAlive) throws PageException {
-    	checkWriteAccess();
-    	boolean hasAccess=ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_CFX_SETTING);
-        
-        if(!hasAccess) throw new SecurityException("no access to change cfx settings");
-        
-        // name
-        if(StringUtil.isEmpty(name))
-            throw new ExpressionException("name cannot be a empty value");
-        
-        // serverLibrary
-        if(StringUtil.isEmpty(strServerLibrary)) throw new ExpressionException("serverLibrary cannot be a empty value");
-        Resource serverLibrary = ResourceUtil.toResourceExisting(config, strServerLibrary);
-        
-        // procedure
-        if(StringUtil.isEmpty(procedure)) throw new ExpressionException("procedure cannot be a empty value");
-        
-        renameOldstyleCFX();
-        
-        
-        Element tags=_getRootElement("ext-tags");
-        
-        // Update
-        Element[] children = XMLConfigWebFactory.getChildren(tags,"ext-tag");
-      	for(int i=0;i<children.length;i++) {
-      	    String n=children[i].getAttribute("name");
-      	    
-      	    if(n!=null && n.equalsIgnoreCase(name)) {
-	      		Element el=children[i];
-	      		if(!"cpp".equalsIgnoreCase(el.getAttribute("type"))) throw new ExpressionException("there is already a java cfx tag with this name");
-      	    	el.setAttribute("server-library",serverLibrary.getAbsolutePath());
-      	    	el.setAttribute("procedure",procedure);
-      	    	el.setAttribute("keep-alive",Caster.toString(keepAlive));
-      	    	el.setAttribute("type","cpp");
-	      		return ;
-  			}
-      	    
-      	}
-      	
-      	// Insert
-      	Element el=doc.createElement("ext-tag");
-      	tags.appendChild(el);
-      	el.setAttribute("server-library",serverLibrary.getAbsolutePath());
-    	el.setAttribute("procedure",procedure);
-    	el.setAttribute("keep-alive",Caster.toString(keepAlive));
-    	el.setAttribute("name",name);
-  		el.setAttribute("type","cpp"); 
-	}
     
     private void renameOldstyleCFX() {
     	

@@ -137,6 +137,36 @@
 		background-color:##CC0000;
 	}
 </style>
+<cfhtmlbody>
+<script type="text/javascript">
+	var submitted = false;
+	function changeVersion(field) {
+		field.disabled = true;
+		submitted = true;
+		var versionField=field.form.version;
+		var value = versionField.options[versionField.selectedIndex].value;
+		//alert(value);
+		url='changeto.cfm?#session.urltoken#&adminType=#request.admintype#&version='+value;
+		$(document).ready(function(){
+			$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
+			disableBlockUI=true;
+
+			$.ajax({
+				method: 'get',
+				url: url,
+				success: function(response, status) {
+					if((response+"").trim()=="")
+					window.location=('#request.self#?action=#url.action#'); //$('##updateInfoDesc').html("<p>#stText.services.update.restartOKDesc#</p>");
+					else
+					$('##updateInfoDesc').html('<div class="error">'+response+'</div>');
+					//window.location=('#request.self#?action=#url.action#'); //$('##updateInfoDesc').html(response);
+				},
+				error: function(e) {
+					$('##updateInfoDesc').html('<div class="error">Update Failed Please Try again</div>');
+				}
+			});
+		});
+
 
 
 	<!--- <h1>#stText.services.update.luceeProvider#</h1>--->

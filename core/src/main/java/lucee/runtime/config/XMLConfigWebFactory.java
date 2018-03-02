@@ -4323,17 +4323,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							map.put(name.toLowerCase(), new JavaCFXTagClass(name, cd));
 						}
 					}
-					// C++ CFX Tags
-					else if (type.equalsIgnoreCase("cpp")) {
-						String name = getAttr(cfxTags[i],"name");
-						String serverLibrary = getAttr(cfxTags[i],"server-library");
-						String procedure = getAttr(cfxTags[i],"procedure");
-						boolean keepAlive = Caster.toBooleanValue(getAttr(cfxTags[i],"keep-alive"), false);
-
-						if (!StringUtil.isEmpty(name) && !StringUtil.isEmpty(serverLibrary) && !StringUtil.isEmpty(procedure)) {
-							map.put(name.toLowerCase(), new CPPCFXTagClass(name, serverLibrary, procedure, keepAlive));
-						}
-					}
 				}
 			}
 
