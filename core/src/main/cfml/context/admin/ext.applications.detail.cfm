@@ -44,9 +44,6 @@ isInstalled=installed.count() GT 0;
 		arrayAppend(all,available.version);
 	}
 
-	// remove installed
-	if(isInstalled) removeFromArray(all,installed.version);
-	
 	// order
 	toOrderedArray(all,true);
 	versionStr = {};
@@ -56,12 +53,28 @@ isInstalled=installed.count() GT 0;
 	if(len(all)){
 		for(versions in all ){
 			if(FindNoCase("SNAPSHOT", versions)){
-				arrayprepend(versionStr.snapShot, versions)
+				arrayAppend(versionStr.snapShot, versions)
 			}else if(FindNoCase("ALPHA", versions) || FindNoCase("BETA", versions) || FindNoCase("RC", versions)){
-				arrayprepend(versionStr.pre_release, versions);
+				arrayAppend(versionStr.pre_release, versions);
 			}else{
-				arrayprepend(versionStr.release, versions);
+				arrayAppend(versionStr.release, versions);
 			}
+		}
+	}
+
+	if(isInstalled) {
+		releaseUpgrade = [];
+		releaseDownGrade = [];
+		Vs = toVersionSortable(installed.version);
+		for(vrsn in versionStr.release){
+			if(vs LT toVersionSortable(vrsn)){
+				arrayAppend(releaseUpgrade, vrsn);
+			} else{
+				arrayAppend(releaseDownGrade, vrsn);
+			}
+		}
+		for(type in versionStr){
+			removeFromArray(versionStr[type],installed.version)
 		}
 	}
 </cfscript>
@@ -227,10 +240,10 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 				<cfset count = 1>
 				<cfloop list="Release,Pre_Release,SnapShot" index="key">
 					<span><input <cfif count EQ 1>
-							class="bl button" <cfelseif count EQ 3> class="br button" <cfelse> class="bm button" </cfif>  name="changeConnection" id="btn_#UcFirst(Lcase(key))#" value="#stText.services.update.short[key]# (#arraylen(versionStr[key])#)" onclick="enableVersion('#UcFirst(Lcase(key))#');"  type="button"></span>
+							class="lftBtn button" <cfelseif count EQ 3> class="br button" <cfelse> class="mdlBtn button" </cfif>  name="changeConnection" id="btn_#UcFirst(Lcase(key))#" value="#stText.services.update.short[key]# <cfif isInstalled && key EQ 'Release'> (#arrayLen(releaseUpgrade)#)<cfelse>(#arraylen(versionStr[key])#)</cfif>" onclick="enableVersion('#UcFirst(Lcase(key))#');"  type="button"></span>
 					<cfif arrayLen(versionStr[key])>
 						<td class="td_#UcFirst(Lcase(key))#" >
-							<select name="version"  class="large" style="margin-top:8px">
+							<select name="version" id="td_#UcFirst(Lcase(key))#"  class="large" style="margin-top:8px">
 								<cfloop array="#versionStr[key]#" item="v">
 									<cfset vs=toVersionSortable(v)>
 									<cfset btn="">
@@ -284,8 +297,10 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 		$("##grpConnection").find('td').each(function(index) {
 			var xx = $(this).attr('class');
 			$('.'+xx).show();
+			$('##'+xx).prop('disabled', false);
 			if("td_"+v != xx){
 				$('.'+xx).hide();
+				$('##'+xx).prop('disabled', true);
 			}
 			});
   		$(".btn").removeClass('btn');
