@@ -3557,8 +3557,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 		
 		// this is necessary, otherwise travis has no default 
-		print.e("%%%%-------- "+TimeZone.getDefault()+" ----------");
-		TimeZone.setDefault(config.getTimeZone());
+		if(TimeZone.getDefault()==null)TimeZone.setDefault(config.getTimeZone());
 		
 		// timeserver
 		String strTimeServer = null;
