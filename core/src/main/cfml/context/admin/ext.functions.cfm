@@ -179,11 +179,11 @@
 			</cfif>
 		</cfif>
 
-
+	<cfset cache=true>
 
 	<!--- copy and shrink to local dir --->
 	<cfset tmpfile=expandPath("{temp-directory}/admin-ext-thumbnails/__"&id&"."&ext)>
-	<cfif fileExists(tmpfile)>
+	<cfif cache && fileExists(tmpfile)>
 
 		<cffile action="read" file="#tmpfile#" variable="b64">
 	<cfelseif len(src) ==0>
@@ -196,21 +196,20 @@
 		<cfelse>
 			<cfset data=toBinary(src)>
 		</cfif>
-
-		<cfif extensionExists("extension.image")>
+		<cfif extensionExists("B737ABC4-D43F-4D91-8E8E973E37C40D1B")> <!--- image extension --->
 			<cfset img=imageRead(data)>
 
 			<!--- shrink images if needed --->
 			<cfif img.height GT arguments.height or img.width GT arguments.width>
 				<cftry>
 					<cfif img.height GT arguments.height >
-						<cfset imageResize(img,"",url.height)>
+						<cfset imageResize(img,"",arguments.height)>
 					</cfif>
 					<cfif img.width GT arguments.width>
-						<cfset imageResize(img,url.width,"")>
+						<cfset imageResize(img,arguments.width,"")>
 					</cfif>
 					<cfset data=toBinary(img)>
-					<cfcatch></cfcatch>
+					<cfcatch><cfrethrow></cfcatch>
 				</cftry>
 			</cfif>
 		</cfif>
