@@ -118,7 +118,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.functions.dynamicEvaluation.Serialize;
-import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.listener.ApplicationContext;
@@ -216,10 +215,10 @@ import lucee.runtime.writer.DevNullBodyContent;
 public final class PageContextImpl extends PageContext {
 
 	private static final RefBoolean DUMMY_BOOL = new RefBooleanImpl(false);
-	
-	private static int counter=1;
-	
-	/** 
+
+	private static int counter = 0;
+
+	/**
 	 * Field <code>pathList</code>
 	 */
 	private LinkedList<UDF> udfs = new LinkedList<UDF>();
@@ -278,6 +277,7 @@ public final class PageContextImpl extends PageContext {
 	private String cfid;
 	private String cftoken;
 
+	private int id;
 	private int requestId;
 
 	private boolean psq;
@@ -351,7 +351,7 @@ public final class PageContextImpl extends PageContext {
 	 *            identity of the pageContext
 	 * @param servlet
 	 */
-	public PageContextImpl(ScopeContext scopeContext, ConfigWebImpl config, HttpServlet servlet, boolean jsr223) {
+	public PageContextImpl(ScopeContext scopeContext, ConfigWebImpl config, int id, HttpServlet servlet, boolean jsr223) {
 		// must be first because is used after
 		tagHandlerPool=config.getTagHandlerPool();
 		this.servlet=servlet;
@@ -364,13 +364,10 @@ public final class PageContextImpl extends PageContext {
 
 		this.scopeContext=scopeContext;
 		undefined=new UndefinedImpl(this,getScopeCascadingType());
-
-		//this.compiler=compiler;
-		//tagHandlerPool=config.getTagHandlerPool();
 		server=ScopeContext.getServerScope(this,jsr223);
-
 		defaultApplicationContext=new ClassicApplicationContext(config,"",true,null);
 
+		this.id = id;
 	}
 
 	public boolean isInitialized() {
@@ -418,34 +415,34 @@ public final class PageContextImpl extends PageContext {
 	 * @param autoFlush
 	 */
 	public PageContextImpl initialize(
-			 HttpServlet servlet, 
-			 HttpServletRequest req, 
-			 HttpServletResponse rsp, 
-			 String errorPageURL, 
-			 boolean needsSession, 
-			 int bufferSize, 
-			 boolean autoFlush,
-			 boolean isChild, boolean ignoreScopes) {
+             HttpServlet servlet, 
+			HttpServletRequest req, 
+			HttpServletResponse rsp, 
+			String errorPageURL, 
+			boolean needsSession,
+			int bufferSize, 
+			boolean autoFlush, 
+			boolean isChild, 
+			boolean ignoreScopes) {
 		parent=null;
-		requestId=getCount();
+		requestId=counter++;
 		
 		appListenerType=ApplicationListener.TYPE_NONE;
 		this.ignoreScopes=ignoreScopes;
-		
+
 		ReqRspUtil.setContentType(rsp,"text/html; charset="+config.getWebCharset().name());
 		this.isChild=isChild;
-		
+
 		applicationContext=defaultApplicationContext;
-		
+
 		startTime=System.currentTimeMillis();
 		thread=Thread.currentThread();
-		
-		
+
 		this.req=new HTTPServletRequestWrap(req);
 		this.rsp=rsp;
 		this.servlet=servlet;
 
-		 // Writers
+		// Writers
 		if(config.debugLogOutput()) {
 			CFMLWriter w = config.getCFMLWriter(this, req, rsp);
 			w.setAllowCompression(false);
@@ -683,9 +680,14 @@ public final class PageContextImpl extends PageContext {
 		}
 	}
 
+	// FUTURE add both method to interface
 	public void writeEncodeFor(String value, String encodeType) throws IOException, PageException { // FUTURE keyword:encodefore add to interface
 		write(ESAPIUtil.esapiEncode(this,encodeType, value));
 	}
+
+	/*public void writeEncodeFor(String value, short encodeType) throws IOException, PageException { // FUTURE keyword:encodefore add to interface
+		write(ESAPIUtil.esapiEncode(this,value, encodeType));
+	}*/
 
 	@Override
 	public void flush() {
@@ -2190,7 +2192,7 @@ public final class PageContextImpl extends PageContext {
 			writer = forceWriter;
 		}
 	}
-
+	
 	/**
 	 * FUTURE - add to interface
 	 *
@@ -2772,7 +2774,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public int getId() {
-		return requestId;
+		return id;
 	}
 
 	/**
@@ -3719,11 +3721,5 @@ public final class PageContextImpl extends PageContext {
 
 	public boolean getTimestampWithTSOffset() {
 		return literalTimestampWithTSOffset;
-	}
-	
-	private static synchronized int getCount() {
-		counter++;
-		if(counter<1) counter=1;
-		return counter;
 	}
 }
