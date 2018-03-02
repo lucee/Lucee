@@ -1161,7 +1161,7 @@ public final class XMLUtil {
 		if(value instanceof byte[]) {
 			return new InputSource(new ByteArrayInputStream((byte[])value));
         }
-		throw new ExpressionException("cat cast object of type ["+Caster.toClassName(value)+"] to a Input for xml parser");
+		throw new ExpressionException("can't cast object of type ["+Caster.toClassName(value)+"] to a Input for xml parser");
         	
 	}
 	
@@ -1286,7 +1286,7 @@ public final class XMLUtil {
 		if(value instanceof byte[]) {
 			return new InputSource(new ByteArrayInputStream((byte[])value));
 	    }
-		throw new IOException("cat cast object of type ["+value+"] to a Input for xml parser");
+		throw new IOException("can't cast object of type ["+value+"] to a Input for xml parser");
 	}
 	
 	
