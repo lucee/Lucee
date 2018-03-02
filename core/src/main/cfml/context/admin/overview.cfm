@@ -85,9 +85,11 @@ Error Output --->
 
 <cfset pool["Tenured Gen"]=pool["CMS Old Gen"]>
 <cfset pool["PS Old Gen"]=pool["CMS Old Gen"]>
+
 <cfhtmlbody>
     <script src="../res/js/echarts-all.js.cfm" type="text/javascript"></script>
     <script type="text/javascript">
+    	labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System",'cpuProcess':"Lucee Process"};
 		function requestData(){
 			jQuery.ajax({
 				type: "POST",
@@ -142,7 +144,7 @@ Error Output --->
 				}],
 				series : [
 					{
-					'name': data +' Memory',
+					'name': labels[data] +' Memory',
 					'type':'line',
 					smooth:true,
 					itemStyle: {normal: {areaStyle: {type: 'default'}}},
@@ -328,6 +330,7 @@ Error Output --->
 
 					</tbody>
 				</table>
+				<!--- Requests/Threads ---->
 				<table class="maintbl">
 					<tbody>
 
@@ -353,6 +356,7 @@ Error Output --->
 
 					</tbody>
 				</table>
+				<!--- Datasource ---->
 				<table class="maintbl">
 					<tbody>
 
@@ -368,6 +372,7 @@ Error Output --->
 
 					</tbody>
 				</table>
+				<!--- Tasks ---->
 				<table class="maintbl">
 					<tbody>
 
