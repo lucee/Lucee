@@ -2893,7 +2893,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			}
 		}
 		// listenerCfcPath validation
-		String path = getString("admin", action, "listenerCfcPath");
+		/*String path = getString("admin", action, "listenerCfcPath");
 		if(!StringUtil.isEmpty(path,true)) {
 			path=path.trim().replace('\\','/');
 			if(path.indexOf("./")==-1)path=path.replace('.','/');
@@ -2903,7 +2903,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			Resource listnerCFC = ResourceUtil.toResourceNotExisting(pageContext, path);
 			if(!listnerCFC.exists())
 				throw new ApplicationException("invalid [" + listnerCFC +" ] listener CFC");
-		}
+		}*/
 		
 		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
 				config.getIdentification());
