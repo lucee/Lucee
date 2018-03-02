@@ -48,6 +48,7 @@ import java.util.UUID;
 import javax.servlet.ServletConfig;
 
 import lucee.aprint;
+import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.date.TimeZoneUtil;
@@ -3556,6 +3557,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 		
 		// this is necessary, otherwise travis has no default 
+		print.e("%%%%-------- "+TimeZone.getDefault()+" ----------");
 		TimeZone.setDefault(config.getTimeZone());
 		
 		// timeserver
