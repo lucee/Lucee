@@ -51,11 +51,15 @@
 		application.UpdateProvider[ud.location]=getAvailableVersion();
 	}
 	updateData = application.UpdateProvider[ud.location];
+	
 
-
+	admin
+			action="getUpdate"
+			type="#request.adminType#"
+			password="#session["password"&request.adminType]#"
+			returnvariable="upd";
+	
 	stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{version}',server.lucee.version);
-
-
 
 		/*if(isNull(providerData.message) || providerData.type == 'warning'){
 			error.message = "Couldn't able to reach the server. Please try after some times";
@@ -137,36 +141,6 @@
 		background-color:##CC0000;
 	}
 </style>
-<cfhtmlbody>
-<script type="text/javascript">
-	var submitted = false;
-	function changeVersion(field) {
-		field.disabled = true;
-		submitted = true;
-		var versionField=field.form.version;
-		var value = versionField.options[versionField.selectedIndex].value;
-		//alert(value);
-		url='changeto.cfm?#session.urltoken#&adminType=#request.admintype#&version='+value;
-		$(document).ready(function(){
-			$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
-			disableBlockUI=true;
-
-			$.ajax({
-				method: 'get',
-				url: url,
-				success: function(response, status) {
-					if((response+"").trim()=="")
-					window.location=('#request.self#?action=#url.action#'); //$('##updateInfoDesc').html("<p>#stText.services.update.restartOKDesc#</p>");
-					else
-					$('##updateInfoDesc').html('<div class="error">'+response+'</div>');
-					//window.location=('#request.self#?action=#url.action#'); //$('##updateInfoDesc').html(response);
-				},
-				error: function(e) {
-					$('##updateInfoDesc').html('<div class="error">Update Failed Please Try again</div>');
-				}
-			});
-		});
-
 
 
 	<!--- <h1>#stText.services.update.luceeProvider#</h1>--->
@@ -178,17 +152,23 @@
 
 	<cfloop list="Release,Pre_Release,SnapShot" index="key">
 		
-		<span><input <cfif count EQ 1>
-		class="bl button alignLeft" <cfelseif count EQ StructCount(versionsStr)> class="br button" <cfelse> class="bm button" </cfif>  name="changeConnection" id="btn_#UcFirst(Lcase(key))#" value="#stText.services.update.short[key]# (#len(versionsStr[key].upgrade)#)" onclick="enableVersion('#UcFirst(Lcase(key))#');"  type="button"></span>
+		<span><input 
+				<cfif count EQ 1>class="bl button alignLeft" <cfelseif count EQ StructCount(versionsStr)> class="br button" <cfelse> class="bm button" </cfif>  
+				style="width:180px"
+				name="changeConnection" 
+				id="btn_#UcFirst(Lcase(key))#" 
+				value="#stText.services.update.short[key]# (#len(versionsStr[key].upgrade)#)" 
+				onclick="enableVersion('#UcFirst(Lcase(key))#');"  
+				type="button"></span>
 		<cfsavecontent variable="tmpContent">
 			<div id="div_#UcFirst(Lcase(key))#" class="topBottomSpace">
 				<div class="whitePanel">
-					<h1 class="">#stText.services.update[key]#</h1>
+					<h1 class="">#stText.services.update.short[key]#</h1>
 					<div class="itemintro">#stText.services.update[key&"Desc"]#</div>
 					<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 						
 							<cfif len(versionsStr[key].upgrade)+len(versionsStr[key].downgrade) GT 0>
-								<div><h3 class="pdTop">#stText.services.update.downUp# </h3>
+								<div><h3 class="pdTop">#ucFirst(stText.services.update.downUp)# </h3>
 								<div class="itemintro">#stText.services.update.downUpDesc#</div>
 								<select name="UPDATE_#key#"  class="large">
 									<cfloop array="#versionsStr[key].upgrade#" index="i">
@@ -255,8 +235,8 @@
 					<th scope="row">#stText.services.update.type#</th>
 					<td>
 						<select name="type">
-							<option value="manual" <cfif updateData.provider.type EQ "manual">selected</cfif>>#stText.services.update.type_manually#</option>
-							<option value="auto" <cfif updateData.provider.type EQ "auto">selected</cfif>>#stText.services.update.type_auto#</option>
+							<option value="manual" <cfif upd.type EQ "manual">selected</cfif>>#stText.services.update.type_manually#</option>
+							<option value="auto" <cfif upd.type EQ "auto">selected</cfif>>#stText.services.update.type_auto#</option>
 						</select>
 						<div class="comment">#stText.services.update.typeDesc#</div>
 					</td>

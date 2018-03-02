@@ -222,33 +222,54 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 			
 		<table class="maintbl autowidth">
 		<tbody>
+		<cfset types="Release,Pre_Release,SnapShot">
 		<cfif arrayLen(all)>
+			<tr><td style="padding-left:12px;">
+				<cfset count = 1>
+			<cfloop list="#types#" index="key">
+				<span><input 
+							<cfif count EQ 1>class="bl button" <cfelseif count EQ 3> class="br button" <cfelse> class="bm button" </cfif>  
+							style="width:180px"
+							name="changeConnection" id="btn_#UcFirst(Lcase(key))#" 
+							value="#stText.services.update.short[key]# (#arraylen(versionStr[key])#)" 
+							onclick="enableVersion('#UcFirst(Lcase(key))#');"  
+							type="button"> </span>
+
+					<cfset count++>
+			</cfloop></td>
+			</tr>
 			<tr id="grpConnection">
 				<cfset count = 1>
-				<cfloop list="Release,Pre_Release,SnapShot" index="key">
-					<span><input <cfif count EQ 1>
-							class="bl button" <cfelseif count EQ 3> class="br button" <cfelse> class="bm button" </cfif>  name="changeConnection" id="btn_#UcFirst(Lcase(key))#" value="#stText.services.update.short[key]# (#arraylen(versionStr[key])#)" onclick="enableVersion('#UcFirst(Lcase(key))#');"  type="button"></span>
+				<cfloop list="#types#" index="key">
+					<!---<span><input 
+							<cfif count EQ 1>class="bl button" <cfelseif count EQ 3> class="br button" <cfelse> class="bm button" </cfif>  
+							style="width:180px"
+							name="changeConnection" id="btn_#UcFirst(Lcase(key))#" 
+							value="#stText.services.update.short[key]# (#arraylen(versionStr[key])#)" 
+							onclick="enableVersion('#UcFirst(Lcase(key))#');"  
+							type="button"> </span>--->
 					<cfif arrayLen(versionStr[key])>
-						<td class="td_#UcFirst(Lcase(key))#" >
-							<select name="version"  class="large" style="margin-top:8px">
-								<cfloop array="#versionStr[key]#" item="v">
-									<cfset vs=toVersionSortable(v)>
-									<cfset btn="">
-									<cfif isInstalled>
-										<cfset comp=compare(installedVersion,vs)>
-										<cfif comp GT 0>
-											<cfset btn=stText.ext.downgradeTo>
-										<cfelseif comp LT 0>
-											<cfset btn=stText.ext.updateTo>
-										</cfif>
-									</cfif>
-									<option value="#v#" >#btn# #v#</option>
-								</cfloop>
-							</select>
-						</td>
-						<td class="td_#UcFirst(Lcase(key))#"><input type="submit" class="button submit" name="mainAction" value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#"></td>
-					<cfelse>
 						<td class="td_#UcFirst(Lcase(key))#">
+							<cfset options="">
+							<select name="version_#key#"  class="large" style="margin:8px;width:372px">
+								<cfscript>
+								loop array=versionStr[key] item="v"{
+									vs=toVersionSortable(v);
+									btn="";
+									if(isInstalled) {
+										comp=compare(installedVersion,vs);
+										if(comp GT 0) btn=stText.ext.downgradeTo;
+										else if(comp LT 0) btn=stText.ext.updateTo;
+									}
+									options='<option value="#v#" >#btn# #v#</option>'&options;
+								}
+								</cfscript>
+								#options#
+							</select>
+						<input type="submit" class="button submit" name="mainAction_#key#" value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
+					</td>
+					<cfelse>
+						<td class="td_#UcFirst(Lcase(key))#" style="padding:13px;" align="center">
 							<div>#replace(stText.ext.detail.noUpdateDesc,"{type}","<b>#stText.services.update.short[key]#</b>")#</div>
 						</td>
 					</cfif>

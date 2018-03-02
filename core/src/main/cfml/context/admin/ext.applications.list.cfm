@@ -187,8 +187,14 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 	<cfset hiddenFormContents = "" >
 	<cfset count = 1>
 	<cfloop list="Release,Pre_Release,SnapShot" index="key">
-		<span><input <cfif count EQ 1>
-		class="bl button" <cfelseif count EQ 3> class="br button" <cfelse> class="bm button" </cfif>  name="changeConnection" id="btn_#UcFirst(Lcase(key))#" value="#stText.services.update.short[key]# (#versionStr[key].RecordCount#)" onclick="enableVersion('#UcFirst(Lcase(key))#');"  type="button"></span>
+		<span><input 
+			<cfif count EQ 1>class="bl button" <cfelseif count EQ 3> class="br button" <cfelse> class="bm button" </cfif>
+			style="width:180px"
+			name="changeConnection" 
+			id="btn_#UcFirst(Lcase(key))#" 
+			value="#stText.services.update.short[key]# (#versionStr[key].RecordCount#)" 
+			onclick="enableVersion('#UcFirst(Lcase(key))#');"  
+			type="button"></span>
 		<cfsavecontent variable="tmpContent">
 			<div id="div_#UcFirst(Lcase(key))#" class="topBottomSpace">
 				<cfif versionStr[key].RecordCount>

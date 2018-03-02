@@ -47,7 +47,17 @@
 
 <!--- Action --->
 <cftry>
+<cfscript>
+	
+	loop array=form.keyArray() item="k" {
+		if(left(k,11)=="mainAction_") {
+			form['mainAction']=form[k];
+			type=mid(k,11);
+			form['version']=form['version'&type];
+		}
+	}
 
+</cfscript>
 	<cfswitch expression="#form.mainAction#">
 	<!--- Filter --->
 		<cfcase value="#stText.Buttons.filter#">
@@ -73,7 +83,7 @@
 			    source="#downloadFull(form.provider,form.id,form.version)#">
 		</cfcase>
 		<cfcase value="#stText.Buttons.upDown#">
-        	<cfadmin
+			<cfadmin
 			    action="updateRHExtension"
 			    type="#request.adminType#"
 			    password="#session["password"&request.adminType]#"
@@ -87,6 +97,10 @@
 			    id="#form.id#">
 		</cfcase>
 	</cfswitch>
+
+
+
+
 <cfsavecontent variable="inc"><cfinclude template="#url.action#.#url.action2#.cfm"/></cfsavecontent>
 	<cfcatch>
 		<cfset error.message=cfcatch.message>
