@@ -64,7 +64,7 @@ public class EntityNew {
 			e = it.next();
 			Key funcName = KeyImpl.init("set"+e.getKey().getString());
 			if(ignoreNotExisting) {
-				if(c.get(funcName,null) instanceof UDF);
+				if(c.get(funcName,null) instanceof UDF)
 					c.call(pc, funcName, new Object[]{e.getValue()});
 			}
 			else {

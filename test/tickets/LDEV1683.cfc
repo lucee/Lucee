@@ -24,13 +24,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		describe( "Test suite for LDEV-1683", function() {
 			it( title='Passing component as argument to constructor of another component', body=function( currentSpec ) {
 				var test1 = new LDEV1683.test1();
-				try {
-					var result = new LDEV1683.test2(test1);
-				} catch ( any e ){
-					var result = e.message;
-				}
-				expect(isObject(result)).toBe(true);
+				var result = new LDEV1683.test2(test1);
 			});
+
+			it( title='Passing struct as argument to constructor of another component', body=function( currentSpec ) {
+				var result = new LDEV1683.test2({a:1});
+			});
+
 
 			it( title='Passing component ( having init function as argument to constructor of another component', body=function( currentSpec ) {
 				var test1 = new LDEV1683.test1();
