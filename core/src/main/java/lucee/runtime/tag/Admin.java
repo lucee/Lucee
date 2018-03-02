@@ -119,6 +119,7 @@ import lucee.runtime.extension.ExtensionImpl;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
+import lucee.runtime.functions.other.CreateObject;
 import lucee.runtime.functions.query.QuerySort;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
@@ -2894,6 +2895,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// listenerCfcPath validation
 		String path = getString("admin", action, "listenerCfcPath");
 		if(!StringUtil.isEmpty(path,true)) {
+			path=path.trim().replace('\\','/');
+			if(path.indexOf("./")==-1)path=path.replace('.','/');
+	    	String ext = "."+Constants.getCFMLComponentExtension();
+	    	if(!path.endsWith(ext)) path+=ext;
+	    	
 			Resource listnerCFC = ResourceUtil.toResourceNotExisting(pageContext, path);
 			if(!listnerCFC.exists())
 				throw new ApplicationException("invalid [" + listnerCFC +" ] listener CFC");
