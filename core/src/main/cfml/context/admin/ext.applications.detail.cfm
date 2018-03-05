@@ -240,7 +240,7 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 			</tr>
 			<tr id="grpConnection">
 				<td>
-					<select name="versions" id="versions" class="large" style="margin:8px;width:372px">
+					<select name="version" id="versions" class="large" style="margin:8px;width:372px">
 						<cfloop list="#types#" index="key">
 							<!--- <cfif arrayLen(versionStr[key])> --->
 								<cfset options="">
