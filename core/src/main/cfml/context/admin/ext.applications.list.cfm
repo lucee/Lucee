@@ -196,7 +196,7 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 			onclick="enableVersion('#UcFirst(Lcase(key))#');"  
 			type="button"></span>
 		<cfsavecontent variable="tmpContent">
-			<div id="div_#UcFirst(Lcase(key))#" class="topBottomSpace">
+			<div id="div_#UcFirst(Lcase(key))#" >
 				<cfif versionStr[key].RecordCount>
 					<cfloop query="#versionStr[key]#" group="id">
 						<cfif  (
@@ -234,7 +234,7 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 			<cfset count = count+1>
 	</cfloop>
 
-	<div id="extList" class="extensionlist">
+	<div id="extList" class="extensionlist topBottomSpace">
 		#hiddenFormContents#
 		<div class="clear"></div>
 	</div>
@@ -281,20 +281,32 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 <script type="text/javascript">
 	$(document).ready(function(){
 		var version = 'Release';
-		enableVersion(version);
+		enableVersion(version, "intial");
 		$("##btn_"+version).addClass("btn");
 	});
 
-	function enableVersion(v){
+	function enableVersion(v, i){
 		$("##extList").find('div').each(function(index) {
 			var xx = $(this).attr('id');
-			$('##'+xx).show();
-			if("div_"+v != xx){
-				$('##'+xx).hide();
+			if(i== 'intial'){
+				$('##'+xx).show();
+				if("div_"+v != xx){
+					$('##'+xx).hide();
+				}
+				$(".btn").removeClass('btn');
+				$("##btn_"+v).addClass("btn");
+			} else {
+				if("div_"+v == xx){
+					if($('##'+xx).is(':visible')){
+						$('##'+xx).hide();
+						$("##btn_"+v).removeClass('btn');
+					} else {
+						$('##'+xx).show();
+						$("##btn_"+v).addClass("btn");
+					}
+				}
 			}
-			});
-  		$(".btn").removeClass('btn');
-  		$("##btn_"+v).addClass("btn");
+		});
 	}
 	</script>
 	<style>

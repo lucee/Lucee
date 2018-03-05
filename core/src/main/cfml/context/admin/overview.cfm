@@ -96,8 +96,6 @@ Error Output --->
 				<cfoutput>url: "./#request.self#?action=chartAjax",</cfoutput>
 				success: function(result){
 					var arr =["heap","nonheap", "cpuSystem", "cpuProcess"];
-					console.log(heapChart.series[0].data);
-					console.log(heapChart.xAxis[0].data);
 					$.each(arr,function(index,chrt){
 						window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
 						window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
@@ -123,7 +121,12 @@ Error Output --->
 			window[data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
 			window[data+"Chart"] = {
 				backgroundColor: ["#EFEDE5"],
-				tooltip : {'trigger':'axis'},
+				tooltip : {'trigger':'axis',
+					formatter : function (params) {
+						return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>' +params[0][1] ;
+					}
+				},
+
 				color: ["<cfoutput>#request.adminType EQ "server" ? '##3399CC': '##BF4F36'#</cfoutput>"],
 				grid : {
 					width: '82%',
