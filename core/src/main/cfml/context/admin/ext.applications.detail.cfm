@@ -312,6 +312,12 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 						$("##btn_"+v).addClass("btn");
 					}
 					return false;
+				} else {
+					if($( "##btn_"+v).hasClass( "btn" )){
+						$("##btn_"+v).removeClass('btn');
+					} else {
+						$("##btn_"+v).addClass('btn');
+					}
 				}
 			}
 		});
