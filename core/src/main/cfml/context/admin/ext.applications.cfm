@@ -48,7 +48,6 @@
 <!--- Action --->
 <cftry>
 <cfscript>
-	writeDump(form);
 	loop array=form.keyArray() item="k" {
 		if(left(k,11)=="mainAction_") {
 			form['mainAction']=form[k];
