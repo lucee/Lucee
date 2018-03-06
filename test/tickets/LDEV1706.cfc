@@ -7,7 +7,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 	function run(){
 		describe( title="Test suite for LDEV-1706", body=function(){
-			it(title="Checking invoke function with arguments scope ", body=function(){
+			it(title="Cheching invokeStatic() function", body=function(){
 				var dir="#GetDirectoryFromPath(GetCurrentTemplatePath())#LDEV1706\";
 				if(!directoryExists(dir)){
 					Directorycreate(dir);
