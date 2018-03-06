@@ -1018,14 +1018,22 @@ Remember CFML arrays start at 1 not 0.</description>
 			<name>array</name>
 			<type>array</type>
 			<required>Yes</required>
-		<description>Name of an array</description>
-    </argument>
+			<description>Name of an array</description>
+    	</argument>
 		<argument>
 			<name>value</name>
 			<type>any</type>
 			<required>Yes</required>
 			<description>value to prepend</description>
-    </argument>
+    	</argument>
+    	<argument>
+			<name>merge</name>
+			<type>boolean</type>
+			<required>No</required>
+			<description>This argument only applies when the value is an array.
+			If set to true prepend array elements individually to the source array. 
+			If false (default) the complete array is added as one element at the top, in the source array.</description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
