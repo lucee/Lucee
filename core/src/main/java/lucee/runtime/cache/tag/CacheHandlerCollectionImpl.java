@@ -293,17 +293,7 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 	private static String _createId(Object values) {
 		return UDFArgConverter.serialize(values);
 	}
-	
-	/*private static String _createId(Object[] values) {
-		if(values==null) return "";
-		
-		StringBuilder sb=new StringBuilder("[");
-		for(Object v:values) {
-			sb.append(UDFArgConverter.serialize(v)).append(',');
-		}
-		return sb.append(']').toString();
-	}*/
-	
+
 	public static String createId(String url, String urlToken, short method,
 			ArrayList<HttpParamBean> params, String username, String password,
 			int port, String proxyserver, int proxyport, String proxyuser,

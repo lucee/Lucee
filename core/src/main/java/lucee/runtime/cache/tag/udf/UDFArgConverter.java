@@ -32,31 +32,40 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
 
 public class UDFArgConverter {
-
+	
+	/**
+	 * 
+	 * @param o
+	 * @param max max elements converted
+	 * @return
+	 */
 	public static String serialize(Object o)  {
-		return serialize(o,new HashSet<Object>());
+		return serialize(o,new HashSet<Object>(),100);
 	}
 	
+	public static String serialize(Object o, final int max)  {
+		return serialize(o,new HashSet<Object>(),max);
+	}
 	
-	private static String serialize(Object oo,Set<Object> done)  {
+	private static String serialize(Object oo,Set<Object> done, final int max)  {
 		
 		if(oo==null) return "null";
 		Object raw=toRaw(oo);
-		
+		if(done.size()>=max) return "max reached:"+raw.hashCode();
 		if(done.contains(raw)) return "parent reference";
 		done.add(raw);
 		Collection c=null;
 		Object other=null;
 		try {
 			if(raw instanceof Object[]) {
-				return serializeArray((Object[])raw,done);
+				return serializeArray((Object[])raw,done,max);
 			}
 			else if((c=Caster.toCollection(raw,null))!=null) {
 				if(raw!=c){
 					done.add(c);
 					other=c;
 				}
-				return serializeCollection(c,done);
+				return serializeCollection(c,done,max);
 			}
 			return raw.toString();
 		}
@@ -71,18 +80,18 @@ public class UDFArgConverter {
 		return o;
 	}
 	
-	private static String serializeArray(Object[] arr, Set<Object> done) {
+	private static String serializeArray(Object[] arr, Set<Object> done, final int max) {
 		StringBuilder sb=new StringBuilder("[");
 		boolean notFirst=false;
 		for(Object o:arr) {
 			if(notFirst)sb.append(",");
-			sb.append(serialize(o,done));
+			sb.append(serialize(o,done,max));
 			notFirst=true;
 		}
 		return sb.append("]").toString();
 	}
 
-	private static String serializeCollection(Collection coll, Set<Object> done) {
+	private static String serializeCollection(Collection coll, Set<Object> done, final int max) {
 		if(coll instanceof Query) {
 			Query qry=(Query) coll;
 			StringBuilder sb=new StringBuilder(8192);
@@ -101,9 +110,9 @@ public class UDFArgConverter {
 				    if(doIt)sb.append(',');
 				    doIt=true;
 				    try {
-						sb.append(serialize(qry.getAt(k,y),done));
+						sb.append(serialize(qry.getAt(k,y),done,max));
 					} catch (PageException e) {
-						sb.append(serialize(e.getMessage(),done));
+						sb.append(serialize(e.getMessage(),done,max));
 					}
 				}
 				sb.append(']');
@@ -123,7 +132,7 @@ public class UDFArgConverter {
 			e=it.next();
 			sb.append(e.getKey().getLowerString());
 			sb.append(":");
-			sb.append(serialize(e.getValue(),done));
+			sb.append(serialize(e.getValue(),done,max));
 			notFirst=true;
 		}
 		
