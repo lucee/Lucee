@@ -17,7 +17,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testMemberFunction() localmode="true" {
-		t=createDateTime(2000,1,1,0,0,0);
+		t=createDateTime(2000,1,1,0,0,0,0);
 		assertEquals("{ts '2000-01-01 00:00:00'}",t&"");
 		t.setDay(2);
 		assertEquals("{ts '2000-01-02 00:00:00'}",t&"");
@@ -36,7 +36,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}*/
 	
 	public void function testMethod() localmode="true" {
-		t=createDateTime(2000,1,1,0,0,0);
+		// setDAte does it's job based on UTC, so we have to use UTC
+		TimeZone=createObject('java','java.util.TimeZone');
+		setTimeZone(TimeZone.getDefault().getID());
+		t=createDateTime(2000,1,1,0,0,0,0,TimeZone.getDefault().getID());
 		assertEquals("{ts '2000-01-01 00:00:00'}",t&"");
 		t.setDate(2);
 		assertEquals("{ts '2000-01-02 00:00:00'}",t&"");

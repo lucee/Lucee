@@ -36,7 +36,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}*/
 	
 	public void function testMethod() localmode="true" {
-		t=createDateTime(2000,1,1,0,0,0);
+		TimeZone=createObject('java','java.util.TimeZone');
+		setTimeZone(TimeZone.getDefault().getID());
+		t=createDateTime(2000,1,1,0,0,0,0,TimeZone.getDefault().getID());
 		assertEquals("{ts '2000-01-01 00:00:00'}",t&"");
 		t.setHours(1);
 		assertEquals("{ts '2000-01-01 01:00:00'}",t&"");
