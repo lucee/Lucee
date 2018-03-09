@@ -437,6 +437,8 @@ public abstract class ConfigImpl implements Config {
 	private long queueTimeout=0;
 	private boolean queueEnable=false;
 	
+	public static boolean onlyFirstMatch=false;
+	
 	/**
 	 * @return the allowURLRequestTimeout
 	 */
@@ -902,11 +904,17 @@ public abstract class ConfigImpl implements Config {
     
     @Override
     public PageSource[] getPageSources(PageContext pc,Mapping[] mappings, String realPath,boolean onlyTopLevel,boolean useSpecialMappings, boolean useDefaultMapping) {
-    	return getPageSources(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, false);
+    	return getPageSources(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, onlyFirstMatch);
     }
     
     @Override
-    public PageSource[] getPageSources(PageContext pc,Mapping[] mappings, String realPath,boolean onlyTopLevel,boolean useSpecialMappings, boolean useDefaultMapping, boolean useComponentMappings) {
+    public PageSource[] getPageSources(PageContext pc,Mapping[] mappings, String realPath,
+    		boolean onlyTopLevel,boolean useSpecialMappings, boolean useDefaultMapping, boolean useComponentMappings) {
+    	return getPageSources(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
+    }
+    public PageSource[] getPageSources(PageContext pc,Mapping[] mappings, String realPath,
+    		boolean onlyTopLevel,boolean useSpecialMappings, boolean useDefaultMapping, 
+    		boolean useComponentMappings, boolean onlyFirstMatch) {
         realPath=realPath.replace('\\','/');
         String lcRealPath = StringUtil.toLowerCase(realPath)+'/';
         Mapping mapping;
@@ -919,7 +927,9 @@ public abstract class ConfigImpl implements Config {
 	            mapping = mappings[i];
 	            //print.err(lcRealPath+".startsWith"+(mapping.getStrPhysical()));
 	            if(lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(),0)) {
-	            	list.add(mapping.getPageSource(realPath.substring(mapping.getVirtual().length())));
+	            	ps=mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
+	            	if(onlyFirstMatch) return new PageSource[]{ps}; 
+	            	else list.add(ps);
 	            }
 	        }
         }
@@ -932,7 +942,10 @@ public abstract class ConfigImpl implements Config {
         	if(lcRealPath.startsWith(virtual,0)){
 	        	for(int i=0;i<tagMappings.length;i++) {
 		            ps=tagMappings[i].getPageSource(realPath.substring(virtual.length()));
-		            if(ps.exists()) list.add(ps);
+		            if(ps.exists()) {
+		            	if(onlyFirstMatch) return new PageSource[]{ps}; 
+		            	else list.add(ps);
+		            }
 		        }
         	}
         	
@@ -942,7 +955,10 @@ public abstract class ConfigImpl implements Config {
         	if(lcRealPath.startsWith(virtual,0)){
 	        	for(int i=0;i<tagMappings.length;i++) {
 		            ps=tagMappings[i].getPageSource(realPath.substring(virtual.length()));
-		            if(ps.exists()) list.add(ps);
+		            if(ps.exists()) {
+		            	if(onlyFirstMatch) return new PageSource[]{ps}; 
+		            	else list.add(ps);
+		            }
 		        }
         	}
         }
@@ -954,7 +970,10 @@ public abstract class ConfigImpl implements Config {
 	        	Mapping[] cmappings = getComponentMappings();
 	        	for(int i=0;i<cmappings.length;i++) {
 	        		ps=cmappings[i].getPageSource(realPath);
-	        		if(ps.exists()) list.add(ps);
+	        		if(ps.exists()) {
+	        			if(onlyFirstMatch) return new PageSource[]{ps}; 
+		            	else list.add(ps);
+	        		}
 	            }
         	}
         }
@@ -963,12 +982,17 @@ public abstract class ConfigImpl implements Config {
         for(int i=0;i<this.mappings.length-1;i++) {
             mapping = this.mappings[i];
             if((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(),0)) {
-            	list.add(mapping.getPageSource(realPath.substring(mapping.getVirtual().length())));
+            	ps=mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
+            	if(onlyFirstMatch) return new PageSource[]{ps}; 
+            	else list.add(ps);
             }
         }
         
         if(useDefaultMapping){
-        	list.add(this.mappings[this.mappings.length-1].getPageSource(realPath));
+        	ps=this.mappings[this.mappings.length-1].getPageSource(realPath);
+        	if(onlyFirstMatch) return new PageSource[]{ps}; 
+        	else list.add(ps);
+        	
         }
         return list.toArray(new PageSource[list.size()]); 
     }

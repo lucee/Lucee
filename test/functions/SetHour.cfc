@@ -28,12 +28,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("{ts '2000-01-01 01:00:00'}",t.setHour(1,getTimeZone())&"");
 	}
 
-	public void function testMethod() localmode="true" {
+	/*public void function testMethod() localmode="true" {
 		setTimeZone("UTC");
-		t=createDateTime(2000,1,1,0,0,0,0,"UTC");
-		assertEquals("{ts '2000-01-01 00:00:00'}",t&"");
-		t.setHours(1);
-		assertEquals("{ts '2000-01-01 01:00:00'}",t&"");
-	}
+		var tz=createObject('java','java.util.TimeZone');
+	    var org=tz.getDefault();
+	    tz.setDefault(tz.getTimeZone("UTC"));
+		try {
+
+			t=createDateTime(2000,1,1,0,0,0,0,"UTC");
+			assertEquals("{ts '2000-01-01 00:00:00'}",t&"");
+			t.setHours(1);
+			assertEquals("{ts '2000-01-01 01:00:00'}",t&"");
+		}
+		finally {
+	    	tz.setDefault(org);
+		}
+	}*/
 
 } 
