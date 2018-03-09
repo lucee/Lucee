@@ -38,8 +38,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 					expect(expandPath("/"&rel)).toBe(getCurrentTemplatePath());
 					expect(expandPath("/diff/"&rel)).toBe(curr&rel);
-
-					// /Users/mic/Test/test2/webapps/ROOT/test/testcases/testcases/Mappings.cfc
 				}
 				finally {
 					application action="update" mappings="#org#";
