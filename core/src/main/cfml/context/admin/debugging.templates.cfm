@@ -58,11 +58,11 @@ You can define IPv4 or IPv6 IPs, a IPv4 can not be converted to a IPv6 and visa 
 
 <cfset drivers={}>
     <cfloop collection="#driverNames#" index="n" item="fn">
-    	<cfif n EQ "Debug" or n EQ "Field" or n EQ "Group">
+    	<cfif n EQ "Debug" or n EQ "Field" or n EQ "Group" or n EQ "ChartProcess">
         	<cfcontinue>
         </cfif>
     	<cfset tmp=createObject('component',fn)>
-        <cfset drivers[trim(tmp.getId())]=tmp>
+   		<cfset drivers[trim(tmp.getId())]=tmp>
     </cfloop>	
 <!--- 
 <span class="CheckError">
