@@ -1,23 +1,24 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
 		variables.uri = createURI("LDEV1683");
-		if(!directoryExists(variables.uri)){
-			directoryCreate(variables.uri);
-			fileWrite("#variables.uri#/test1.cfc",'component {
-					this.name = "test1";
-					public any function test() {
-						return this;
-					}
-				}'
-			);
-			fileWrite("#variables.uri#/test2.cfc",'component {}');
-			fileWrite("#variables.uri#/test3.cfc",'component {
-				this.name = "test2";
-				public any function init() {
+		if(!directoryExists(variables.uri)) directoryCreate(variables.uri);
+		
+			
+		fileWrite("#variables.uri#/test1.cfc",'component {
+				this.name = "test1";
+				public any function test() {
 					return this;
 				}
-			}');
-		}
+			}'
+		);
+		fileWrite("#variables.uri#/test2.cfc",'component {}');
+		fileWrite("#variables.uri#/test3.cfc",'component {
+			this.name = "test2";
+			public any function init() {
+				return this;
+			}
+		}');
+		
 	}
 
 	function run( testResults , testBox ) {
@@ -42,6 +43,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(isObject(result)).toBe(true);
 			});
 		});
+	}
+
+	function afterAll() skip="isNotSupported"{
+		variables.uri = createURI("LDEV1683");
+		if(directoryExists(variables.uri)) directoryDelete(variables.uri,true);
 	}
 
 	private string function createURI(string calledName){

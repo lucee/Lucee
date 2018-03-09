@@ -22,25 +22,40 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	//public function afterTests(){}
 	
 	public function setUp(){
-		defineDatasource();
+		
 	}
 
-	public void function testConnection(){
-		
+	public void function testConnection180(){
+		defineDatasource('hypersonic.hsqldb','1.8.0');
+		testConnection();
+	}
+	public void function testConnection232(){
+		defineDatasource('org.hsqldb.hsqldb','2.3.2');
+		testConnection();
+	}
+	public void function testConnection235(){
+		defineDatasource('org.hsqldb.hsqldb','2.3.5');
+		testConnection();
+	}
+	public void function testConnection240(){
+		defineDatasource('org.hsqldb.hsqldb','2.4.0');
+		testConnection();
+	}
+
+	private void function testConnection(){
 		query name="local.qry" {
 			echo("SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS");
 		}
-		// assertEquals("AA",qry.a);
 	}
 
-	private void function defineDatasource(){
+	private void function defineDatasource(bundle,version){
 		application action="update" 
-			datasource="#{
+			datasource={
 	  		class: 'org.hsqldb.jdbcDriver'
-			, bundleName: 'org.hsqldb.hsqldb'
-			, bundleVersion: '2.3.2'
-			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
-		}#";
+			, bundleName: arguments.bundle
+			, bundleVersion: arguments.version
+			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db#replace(arguments.version,'.','_','all')#'
+		};
 	}
 } 
 </cfscript>

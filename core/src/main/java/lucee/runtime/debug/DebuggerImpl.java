@@ -31,6 +31,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.res.util.ResourceSnippet;
 import lucee.commons.io.res.util.ResourceSnippetsMap;
 import lucee.commons.lang.ExceptionUtil;
@@ -80,28 +81,30 @@ public final class DebuggerImpl implements Debugger {
 
 	private static final int MAX_PARTS = 100;
 
-	private Map<String, DebugEntryTemplateImpl> entries = new HashMap<String, DebugEntryTemplateImpl>();
+	private final Map<String, DebugEntryTemplateImpl> entries = new HashMap<String, DebugEntryTemplateImpl>();
 	private Map<String, DebugEntryTemplatePartImpl> partEntries;
 	private ResourceSnippetsMap snippetsMap = new ResourceSnippetsMap(1024, 128);
 
-	private List<QueryEntry> queries = new ArrayList<QueryEntry>();
-	private List<DebugTimerImpl> timers = new ArrayList<DebugTimerImpl>();
-	private List<DebugTraceImpl> traces = new ArrayList<DebugTraceImpl>();
-	private List<DebugDump> dumps = new ArrayList<DebugDump>();
-	private List<CatchBlock> exceptions = new ArrayList<CatchBlock>();
-	private Map<String, ImplicitAccessImpl> implicitAccesses = new HashMap<String, ImplicitAccessImpl>();
+	private final List<QueryEntry> queries = new ArrayList<QueryEntry>();
+	private final List<DebugTimerImpl> timers = new ArrayList<DebugTimerImpl>();
+	private final List<DebugTraceImpl> traces = new ArrayList<DebugTraceImpl>();
+	private final List<DebugDump> dumps = new ArrayList<DebugDump>();
+	private final List<CatchBlock> exceptions = new ArrayList<CatchBlock>();
+	private final Map<String, ImplicitAccessImpl> implicitAccesses = new HashMap<String, ImplicitAccessImpl>();
 
 	private boolean output = true;
 	private long lastEntry;
 	private long lastTrace;
-	private Array historyId = new ArrayImpl();
-	private Array historyLevel = new ArrayImpl();
+	private final Array historyId = new ArrayImpl();
+	private final Array historyLevel = new ArrayImpl();
 
 	private long starttime = System.currentTimeMillis();
 
 	private DebugOutputLog outputLog;
 
 	private Map<String, Map<String, List<String>>> genericData;
+
+	private TemplateLine abort;
 
 	final static Comparator DEBUG_ENTRY_TEMPLATE_COMPARATOR = new DebugEntryTemplateComparator();
 	final static Comparator DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR = new DebugEntryTemplatePartComparator();
@@ -125,6 +128,7 @@ public final class DebuggerImpl implements Debugger {
 		historyLevel.clear();
 		output = true;
 		outputLog = null;
+		abort=null;
 	}
 
 	public DebuggerImpl() {
@@ -651,7 +655,8 @@ public final class DebuggerImpl implements Debugger {
 			catch (PageException dbe) {
 			}
 		}
-
+		
+		// history
 		Query history = new QueryImpl(new Collection.Key[] {}, 0, "history");
 		try {
 			history.addColumn(KeyConstants._id, historyId);
@@ -659,6 +664,14 @@ public final class DebuggerImpl implements Debugger {
 		}
 		catch (PageException e) {
 		}
+		
+		// abort
+        if(abort!=null) {
+        	Struct sct=new StructImpl();
+        	sct.setEL(KeyConstants._template, abort.template);
+        	sct.setEL(KeyConstants._line, new Double(abort.line));
+        	debugging.setEL(KeyConstants._abort, sct);
+        }
 
 		if(addAddionalInfo) {
 			debugging.setEL(KeyConstants._cgi, pc.cgiScope());
@@ -682,6 +695,13 @@ public final class DebuggerImpl implements Debugger {
 		return debugging;
 	}
 
+	public void setAbort(TemplateLine abort) {
+		this.abort=abort;
+	}
+	public TemplateLine getAbort() {
+		return this.abort;
+	}
+	
 	private static Struct getUsage(QueryEntry qe) throws PageException {
 		Query qry = qe.getQry();
 
