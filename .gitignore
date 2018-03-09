@@ -3,9 +3,9 @@ db.properties
 db.script
 *.db
 db*.lck
-db2.log
-db2.properties
-db2.script
+db*.log
+db*.properties
+db*.script
 temp
 **/.DS_Store
 **/.svn/
