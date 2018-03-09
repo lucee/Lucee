@@ -282,7 +282,7 @@ public final class AppListenerUtil {
 			MappingData md=toMappingData(e.getValue(),source);
 			mappings.add(config.getApplicationMapping("application",virtual,md.physical,md.archive,md.physicalFirst,false));
 		}
-		return mappings.toArray(new Mapping[mappings.size()]);
+		return ConfigWebUtil.sort(mappings.toArray(new Mapping[mappings.size()]));
 	}
 	
 

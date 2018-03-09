@@ -1660,26 +1660,7 @@ public abstract class ConfigImpl implements Config {
      * @param mappings The mappings to set.
      */
     protected void setMappings(Mapping[] mappings) {
-        Arrays.sort(mappings,new Comparator(){ 
-            public int compare(Object left, Object right) { 
-                Mapping r = ((Mapping)right);
-            	Mapping l = ((Mapping)left);
-            	int rtn=r.getVirtualLowerCaseWithSlash().length()-l.getVirtualLowerCaseWithSlash().length();
-            	if(rtn==0) return slashCount(r)-slashCount(l);
-            	return rtn; 
-            }
-
-			private int slashCount(Mapping l) {
-				String str=l.getVirtualLowerCaseWithSlash();
-				int count=0,lastIndex=-1;
-				while((lastIndex=str.indexOf('/', lastIndex))!=-1) {
-					count++;
-					lastIndex++;
-				}
-				return count;
-			} 
-        }); 
-        this.mappings = mappings;
+        this.mappings = ConfigWebUtil.sort(mappings);
     }
     
     /**
