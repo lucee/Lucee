@@ -275,6 +275,16 @@
 						</table>
 					</cfif>
 
+					<!--- Abort --->
+					<cfif structKeyExists(debugging,"abort")>
+						<div class="section-title">Abort</div>
+						<table>
+							<tr>
+								<td class="pad txt-r">#debugging.abort.template#:#debugging.abort.line#</td>
+							</tr>
+						</table>
+					</cfif>
+
 					<!--- Execution Time --->
 					<cfset sectionId = "ExecTime">
 					<cfset isOpen = this.isSectionOpen( sectionId )>
