@@ -3356,7 +3356,7 @@ public abstract class ConfigImpl implements Config {
 		return writerType;
 	}
 
-	private boolean bufferOutput=false;
+	private boolean bufferOutput=true;
 
 
 	private int externalizeStringGTE=-1;

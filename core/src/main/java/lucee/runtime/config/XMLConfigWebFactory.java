@@ -3196,6 +3196,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		str = null;
 		if (setting != null) {
 			str = getAttr(setting,"buffering-output");
+			if(StringUtil.isEmpty(str))str = getAttr(setting,"buffer-output");
 		}
 		Boolean b = Caster.toBoolean(str, null);
 		if (b != null && hasAccess) {
