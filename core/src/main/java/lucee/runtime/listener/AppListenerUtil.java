@@ -282,7 +282,7 @@ public final class AppListenerUtil {
 			MappingData md=toMappingData(e.getValue(),source);
 			mappings.add(config.getApplicationMapping("application",virtual,md.physical,md.archive,md.physicalFirst,false));
 		}
-		return mappings.toArray(new Mapping[mappings.size()]);
+		return ConfigWebUtil.sort(mappings.toArray(new Mapping[mappings.size()]));
 	}
 	
 
@@ -292,16 +292,18 @@ public final class AppListenerUtil {
 		if(Decision.isStruct(value)) {
 			Struct map=Caster.toStruct(value);
 			
-			
+			// allowRelPath
+			boolean allowRelPath=Caster.toBooleanValue(map.get("allowRelPath",null),true);
+
 			// physical
 			String physical=Caster.toString(map.get("physical",null),null);
 			if(!StringUtil.isEmpty(physical,true)) 
-				md.physical=translateMappingPhysical(physical.trim(),source);
+				md.physical=translateMappingPhysical(physical.trim(),source, allowRelPath);
 
 			// archive
 			String archive = Caster.toString(map.get("archive",null),null);
 			if(!StringUtil.isEmpty(archive,true)) 
-				md.archive=translateMappingPhysical(archive.trim(),source);
+				md.archive=translateMappingPhysical(archive.trim(),source,allowRelPath);
 			
 			if(archive==null && physical==null) 
 				throw new ApplicationException("you must define archive or/and physical!");
@@ -318,15 +320,15 @@ public final class AppListenerUtil {
 		}
 		// simple value == only a physical path
 		else {
-			md.physical=translateMappingPhysical(Caster.toString(value).trim(),source);
+			md.physical=translateMappingPhysical(Caster.toString(value).trim(),source,true);
 			md.physicalFirst=true;
 		}
 		
 		return md;
 	}
 
-	private static String translateMappingPhysical(String path, Resource source) {
-		if(source==null) return path;
+	private static String translateMappingPhysical(String path, Resource source, boolean allowRelPath) {
+		if(source==null || !allowRelPath) return path;
 		source=source.getParentResource().getRealResource(path);
 		if(source.exists()) return source.getAbsolutePath();
 		return path;
