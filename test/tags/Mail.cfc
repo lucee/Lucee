@@ -126,6 +126,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	public function testTextMailPart() localmode="true"{
 		try { 
 			smtpServer=start();
+
+
+			mail to="michael@offner.be" from=variables.from subject="test mail1" spoolEnable=false {
+				echo("
+					FTP_SERVER:#server.system.environment.FTP_SERVER?:''#
+					FTP_USERNAME:#server.system.environment.FTP_USERNAME?:''#
+					FTP_PASSWORD:#server.system.environment.FTP_PASSWORD?:''#
+					FTP_PORT:#server.system.environment.FTP_PORT?:''#
+					FTP_BASE_PATH:#server.system.environment.FTP_BASE_PATH?:''#
+				"
+				);
+			}
+
+
 			mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
 				mailpart type="text" {
 	                echo("This is a text email!");
