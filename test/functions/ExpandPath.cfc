@@ -67,8 +67,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"   {
             structDelete(local.mappings,"/susi",false);
             application action="update" mappings=mappings;
         }
-
     }
+
+    public void function testSlash(){
+        expandPath( '/');
+    }
+
+     
         
 }
 </cfscript>
