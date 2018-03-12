@@ -19,171 +19,188 @@
 
 package lucee.runtime.net.ftp;
 
-
-
-
 /**
  *  
  */
 public final class FTPConnectionImpl implements FTPConnection {
-    
-    private final String name;
-    private final String server;
-    private final String username;
-    private final String password;
-    private final int port;
-    private final int timeout;
-    private short transferMode;
-    private final boolean passive;
-    private final String proxyserver;
-    private final int proxyport;
-    private final String proxyuser;
-    private final String proxypassword;
-    private final String fingerprint;
+
+	private final String name;
+	private final String server;
+	private final String username;
+	private final String password;
+	private final int port;
+	private final int timeout;
+	private short transferMode;
+	private final boolean passive;
+	private final String proxyserver;
+	private final int proxyport;
+	private final String proxyuser;
+	private final String proxypassword;
+	private final String fingerprint;
 	private final boolean stopOnError;
 	private final boolean secure;
 
-    /**
-     * @param name
-     * @param server
-     * @param username
-     * @param password
-     * @param port
-     * @param timeout
-     * @param transferMode
-     * @param passive
-     * @param proxyserver
-     */
-    public FTPConnectionImpl(String name, String server, String username, String password,int port, int timeout, short transferMode,boolean passive, 
-    		String proxyserver,int proxyport,String proxyuser, String proxypassword, 
-    		String fingerprint, boolean stopOnError, boolean secure) {
-        this.name=name==null?null:name.toLowerCase().trim();
-        this.server=server;
-        this.username=username;
-        this.password=password;
-        this.port=port;
-        this.timeout=timeout;
-        this.transferMode=transferMode;
-        this.passive=passive;
-        
-        this.proxyserver=proxyserver;
-        this.proxyport=proxyport;
-        this.proxyuser=proxyuser;
-        this.proxypassword=proxypassword;
-        this.fingerprint=fingerprint;
-        this.stopOnError=stopOnError;
-        this.secure=secure;
-    }
-    @Override
-    public String getName() {
-        return name;
-    }
-    @Override
-    public String getPassword() {
-        return password;
-    }
-    @Override
-    public String getServer() {
-        return server;
-    }
-    @Override
-    public String getUsername() {
-        return username;
-    }
-    @Override
-    public boolean hasLoginData() {
-        return server!=null;// && username!=null && password!=null;
-    }
-    @Override
-    public boolean hasName() {
-        return name!=null;
-    }
-    @Override
-    public int getPort() {
-        return port;
-    }
-    @Override
-    public int getTimeout() {
-        return timeout;
-    }
-    @Override
-    public short getTransferMode() {
-        return transferMode;
-    }
-    
+	/**
+	 * @param name
+	 * @param server
+	 * @param username
+	 * @param password
+	 * @param port
+	 * @param timeout
+	 * @param transferMode
+	 * @param passive
+	 * @param proxyserver
+	 */
+	public FTPConnectionImpl(String name, String server, String username, String password, int port, int timeout, short transferMode, boolean passive,
+			String proxyserver, int proxyport, String proxyuser, String proxypassword, String fingerprint, boolean stopOnError, boolean secure) {
+		this.name = name == null ? null : name.toLowerCase().trim();
+		this.server = server;
+		this.username = username;
+		this.password = password;
+		this.port = port;
+		this.timeout = timeout;
+		this.transferMode = transferMode;
+		this.passive = passive;
+
+		this.proxyserver = proxyserver;
+		this.proxyport = proxyport;
+		this.proxyuser = proxyuser;
+		this.proxypassword = proxypassword;
+		this.fingerprint = fingerprint;
+		this.stopOnError = stopOnError;
+		this.secure = secure;
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public String getPassword() {
+		return password;
+	}
+
+	@Override
+	public String getServer() {
+		return server;
+	}
+
+	@Override
+	public String getUsername() {
+		return username;
+	}
+
+	@Override
+	public boolean hasLoginData() {
+		return server != null;// && username!=null && password!=null;
+	}
+
+	@Override
+	public boolean hasName() {
+		return name != null;
+	}
+
+	@Override
+	public int getPort() {
+		return port;
+	}
+
+	@Override
+	public int getTimeout() {
+		return timeout;
+	}
+
+	@Override
+	public short getTransferMode() {
+		return transferMode;
+	}
 
 	public void setTransferMode(short transferMode) {
-		this.transferMode=transferMode;
+		this.transferMode = transferMode;
 	}
-    
-    @Override
-    public boolean isPassive() {
-        return passive;
-    }
-    @Override
-    public boolean loginEquals(FTPConnection conn) {
-        return 
-        	server.equalsIgnoreCase(conn.getServer()) && 
-        	username.equals(conn.getUsername()) && 
-        	password.equals(conn.getPassword());
-    }
-    
+
+	@Override
+	public boolean isPassive() {
+		return passive;
+	}
+
+	@Override
+	public boolean loginEquals(FTPConnection conn) {
+		return server.equalsIgnoreCase(conn.getServer()) && username.equals(conn.getUsername()) && password.equals(conn.getPassword());
+	}
+
 	@Override
 	public String getProxyPassword() {
 		return proxypassword;
 	}
-	
+
 	@Override
 	public int getProxyPort() {
 		return proxyport;
 	}
-	
+
 	@Override
 	public String getProxyServer() {
 		return proxyserver;
 	}
-	
+
 	@Override
 	public String getProxyUser() {
 		return proxyuser;
 	}
-	
-	public boolean equal(Object o){
-		if(!(o instanceof FTPConnection)) return false;
-		FTPConnection other=(FTPConnection) o;
-		
-		if(neq(other.getPassword(),getPassword())) return false;
-		if(neq(other.getProxyPassword(),getProxyPassword())) return false;
-		if(neq(other.getProxyServer(),getProxyServer())) return false;
-		if(neq(other.getProxyUser(),getProxyUser())) return false;
-		if(neq(other.getServer(),getServer())) return false;
-		if(neq(other.getUsername(),getUsername())) return false;
-		
-		if(other.getPort()!=getPort()) return false;
-		if(other.getProxyPort()!=getProxyPort()) return false;
-		//if(other.getTimeout()!=getTimeout()) return false;
-		if(other.getTransferMode()!=getTransferMode()) return false;
-		
+
+	public boolean equal(Object o) {
+		if(!(o instanceof FTPConnection))
+			return false;
+		FTPConnection other = (FTPConnection)o;
+
+		if(neq(other.getPassword(), getPassword()))
+			return false;
+		if(neq(other.getProxyPassword(), getProxyPassword()))
+			return false;
+		if(neq(other.getProxyServer(), getProxyServer()))
+			return false;
+		if(neq(other.getProxyUser(), getProxyUser()))
+			return false;
+		if(neq(other.getServer(), getServer()))
+			return false;
+		if(neq(other.getUsername(), getUsername()))
+			return false;
+
+		if(other.getPort() != getPort())
+			return false;
+		if(other.getProxyPort() != getProxyPort())
+			return false;
+		// if(other.getTimeout()!=getTimeout()) return false;
+		if(other.getTransferMode() != getTransferMode())
+			return false;
+
 		return true;
 	}
-	
+
 	private boolean neq(String left, String right) {
-		if(left==null) left="";
-		if(right==null) right="";
-		
+		if(left == null)
+			left = "";
+		if(right == null)
+			right = "";
+
 		return !left.equals(right);
 	}
+
 	@Override
 	public boolean secure() {
 		return secure;
 	}
+
 	@Override
 	public boolean getStopOnError() {
 		return stopOnError;
 	}
+
 	@Override
 	public String getFingerprint() {
 		return fingerprint;
 	}
-	
+
 }
