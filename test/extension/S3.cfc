@@ -32,6 +32,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public void function test() skip="isNotSupported"{
 		if(isNotSupported()) return;
 		
+
+			local.dir = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@/ftp";
+			directoryCreate(dir);
+			fileWrite(dir&"/ftp.txt","
+					FTP_SERVER:#server.system.environment.FTP_SERVER?:''#
+					FTP_USERNAME:#server.system.environment.FTP_USERNAME?:''#
+					FTP_PASSWORD:#server.system.environment.FTP_PASSWORD?:''#
+					FTP_PORT:#server.system.environment.FTP_PORT?:''#
+					FTP_BASE_PATH:#server.system.environment.FTP_BASE_PATH?:''#
+				");
+
+		
+
+
 		if( directoryExists(base))
 			directoryDelete(base, true);
 		
