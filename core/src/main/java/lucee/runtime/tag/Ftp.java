@@ -103,6 +103,8 @@ public final class Ftp extends TagImpl {
 	private boolean secure;
 
 	private boolean recursive;
+	private String key;
+	private String passphrase = "";
 
 	// private Struct cfftp=new StructImpl();
 
@@ -138,10 +140,11 @@ public final class Ftp extends TagImpl {
 		this.item = null;
 		this.result = null;
 
-		fingerprint = null;
-		secure = false;
-		recursive = false;
-
+		this.fingerprint = null;
+		this.secure = false;
+		this.recursive = false;
+		this.key = null;
+		this.passphrase = "";
 	}
 
 	public void setAction(String action) {
@@ -635,7 +638,7 @@ public final class Ftp extends TagImpl {
 	private AFTPClient actionOpen() throws IOException, PageException {
 		required("server", server);
 		required("username", username);
-		required("password", password);
+//		required("password", password);
 
 		AFTPClient client = getClient();
 		writeCfftp(client);
@@ -745,7 +748,7 @@ public final class Ftp extends TagImpl {
 	 */
 	private FTPConnection _createConnection() {
 		return new FTPConnectionImpl(connectionName, server, username, password, getPort(), timeout, transferMode, passive, proxyserver, proxyport, proxyuser,
-				proxypassword, fingerprint, stoponerror, secure);
+				proxypassword, fingerprint, stoponerror, secure, key, passphrase);
 	}
 
 	/**
@@ -762,6 +765,22 @@ public final class Ftp extends TagImpl {
 	 */
 	public void setUsername(String username) {
 		this.username = username;
+	}
+
+	/**
+	 * The path to the file that contains a private key
+	 * @param key
+	 */
+	public void setKey(String key){
+		this.key = key;
+	}
+
+	/**
+	 * The passphrase that protects the private key
+	 * @param passphrase
+	 */
+	public void setPassphrase(String passphrase){
+		this.passphrase = passphrase;
 	}
 
 	/**

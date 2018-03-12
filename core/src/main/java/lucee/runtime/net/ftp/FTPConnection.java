@@ -105,4 +105,7 @@ public interface FTPConnection {
 
 	public abstract String getFingerprint();
 
+	public abstract String getKey();
+
+	public abstract String getPassphrase();
 }

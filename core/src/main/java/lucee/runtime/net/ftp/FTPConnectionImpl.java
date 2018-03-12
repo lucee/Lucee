@@ -39,8 +39,11 @@ public final class FTPConnectionImpl implements FTPConnection {
 	private final String fingerprint;
 	private final boolean stopOnError;
 	private final boolean secure;
+	private final String key;
+	private final String passphrase;
 
 	/**
+	 *
 	 * @param name
 	 * @param server
 	 * @param username
@@ -50,10 +53,20 @@ public final class FTPConnectionImpl implements FTPConnection {
 	 * @param transferMode
 	 * @param passive
 	 * @param proxyserver
+	 * @param proxyport
+	 * @param proxyuser
+	 * @param proxypassword
+	 * @param fingerprint
+	 * @param stopOnError
+	 * @param secure
+	 * @param key
+	 * @param passphrase
 	 */
 	public FTPConnectionImpl(String name, String server, String username, String password, int port, int timeout, short transferMode, boolean passive,
-			String proxyserver, int proxyport, String proxyuser, String proxypassword, String fingerprint, boolean stopOnError, boolean secure) {
-		this.name = name == null ? null : name.toLowerCase().trim();
+			String proxyserver, int proxyport, String proxyuser, String proxypassword, String fingerprint, boolean stopOnError, boolean secure, String key,
+			String passphrase) {
+
+		this.name = (name == null) ? null : name.toLowerCase().trim();
 		this.server = server;
 		this.username = username;
 		this.password = password;
@@ -69,6 +82,35 @@ public final class FTPConnectionImpl implements FTPConnection {
 		this.fingerprint = fingerprint;
 		this.stopOnError = stopOnError;
 		this.secure = secure;
+
+		this.key = key;
+		this.passphrase = passphrase;
+	}
+
+    /**
+     * Calls the first constructor and sets key and passphrase to null
+     *
+     * @param name
+     * @param server
+     * @param username
+     * @param password
+     * @param port
+     * @param timeout
+     * @param transferMode
+     * @param passive
+     * @param proxyserver
+     * @param proxyport
+     * @param proxyuser
+     * @param proxypassword
+     * @param fingerprint
+     * @param stopOnError
+     * @param secure
+     */
+	public FTPConnectionImpl(String name, String server, String username, String password, int port, int timeout, short transferMode, boolean passive,
+			String proxyserver, int proxyport, String proxyuser, String proxypassword, String fingerprint, boolean stopOnError, boolean secure) {
+
+		this(name, server, username, password, port, timeout, transferMode, passive, proxyserver, proxyport, proxyuser, proxypassword, fingerprint, stopOnError,
+				secure, null, null);
 	}
 
 	@Override
@@ -201,6 +243,16 @@ public final class FTPConnectionImpl implements FTPConnection {
 	@Override
 	public String getFingerprint() {
 		return fingerprint;
+	}
+
+	@Override
+	public String getKey() {
+		return key;
+	}
+
+	@Override
+	public String getPassphrase() {
+		return passphrase;
 	}
 
 }

@@ -16,7 +16,8 @@ public abstract class AFTPClient {
 	public final static int FILE_TYPE_TEXT = 2;
 
 	public static AFTPClient getInstance(boolean secure, InetAddress host, int port, String username, String password, String fingerprint, boolean stopOnError)
-			throws SocketException, IOException {
+			throws IOException {
+
 		AFTPClient client = secure ? new SFTPClientImpl() : new FTPClientImpl();
 		client.init(host, port, username, password, fingerprint, stopOnError);
 		return client;

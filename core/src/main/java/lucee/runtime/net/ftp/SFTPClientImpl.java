@@ -1,5 +1,17 @@
 package lucee.runtime.net.ftp;
 
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.SftpATTRS;
+import com.jcraft.jsch.SftpException;
+import lucee.commons.io.SystemUtil;
+import lucee.commons.lang.StringUtil;
+import lucee.runtime.op.Caster;
+import org.apache.commons.net.ftp.FTPFile;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -11,25 +23,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Vector;
 
-import lucee.commons.lang.StringUtil;
-import lucee.runtime.op.Caster;
-import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
-
-import org.apache.commons.net.ftp.FTPFile;
-
-import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
-import com.jcraft.jsch.SftpATTRS;
-import com.jcraft.jsch.SftpException;
-import com.jcraft.jsch.UserInfo;
-
 public class SFTPClientImpl extends AFTPClient {
 
-	private static final Key IS_DIRECTORY = new KeyImpl("isDirectory");
 	private JSch jsch;
 	private int timeout = 60000;
 	private Session session;
@@ -43,8 +38,28 @@ public class SFTPClientImpl extends AFTPClient {
 	private String replyString;
 	private int replyCode;
 	private boolean positiveCompletion;
+	private String sshKey;
+	private String passphrase;
+
+	static {
+		// set system property lucee.debug.jsch=true to enable debug output from JSch
+		if (SystemUtil.getSystemPropOrEnvVar("lucee.debug.jsch", "").equalsIgnoreCase("true")){
+			JSch.setLogger(new com.jcraft.jsch.Logger() {
+				@Override
+				public boolean isEnabled(int i) {
+					return true;
+				}
+
+				@Override
+				public void log(int i, String s) {
+					System.out.println("JSch: " + s);
+				}
+			});
+		}
+	}
 
 	SFTPClientImpl() {
+
 		jsch = new JSch();
 	}
 
@@ -57,22 +72,32 @@ public class SFTPClientImpl extends AFTPClient {
 		this.port = port;
 		this.username = username;
 		this.password = password;
-		this.fingerprint = fingerprint == null ? null : fingerprint.trim();
+		this.fingerprint = (fingerprint == null) ? null : fingerprint.trim();
 		this.stopOnError = stopOnError;
 	}
 
-	@Override
-	public void connect() throws SocketException, IOException {
-		try {
-			session = jsch.getSession(username, host.getHostAddress(), port);
-			java.util.Properties config = new java.util.Properties();
-			config.put("StrictHostKeyChecking", "no");
-			session.setConfig(config);
+	public void setSshKey(String sshKey, String passphrase) {
+		this.sshKey = sshKey;
+		this.passphrase = (passphrase == null) ? "" : passphrase;
+	}
 
-			UserInfo ui = new UserInfoImpl(password, null);
-			session.setUserInfo(ui);
+	@Override
+	public void connect() throws IOException {
+		try {
+
+			session = jsch.getSession(username, host.getHostAddress(), port);
+
+			session.setConfig("StrictHostKeyChecking", "no");
+
+			if(password != null)
+				session.setPassword(password);
+
+			if(sshKey != null)
+				jsch.addIdentity(sshKey, passphrase);
+
 			if(timeout > 0)
 				session.setTimeout(timeout);
+
 			session.connect();
 
 			Channel channel = session.openChannel("sftp");
@@ -362,5 +387,4 @@ public class SFTPClientImpl extends AFTPClient {
 			throw new IOException(e);
 		}
 	}
-
 }

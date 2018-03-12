@@ -106,6 +106,10 @@ public final class FTPWrap {
 		client = AFTPClient.getInstance(conn.secure(), address, conn.getPort(), conn.getUsername(), conn.getPassword(), conn.getFingerprint(),
 				conn.getStopOnError());
 
+		if (client instanceof SFTPClientImpl && conn.getKey() != null){
+			((SFTPClientImpl)client).setSshKey(conn.getKey(), conn.getPassphrase());
+		}
+
 		setConnectionSettings(client, conn);
 
 		// transfer mode
