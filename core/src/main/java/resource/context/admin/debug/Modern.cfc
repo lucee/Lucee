@@ -460,7 +460,11 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					window[data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
 					window[data+"Chart"] = {
 						backgroundColor: ["##EFEDE5"],
-						tooltip : {'trigger':'axis'},
+						tooltip : {'trigger':'axis',
+							formatter : function (params) {
+								return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>' +params[0][1] ;
+							}
+						},
 						color: ['##0000FF'],
 						grid : {
 							width: '73%',
