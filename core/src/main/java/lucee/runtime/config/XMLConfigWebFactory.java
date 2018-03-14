@@ -2875,21 +2875,26 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		String strAllowRealPath = null;
 		String strDeployDirectory = null;
 		// String strTempDirectory=null;
-		String strTLDDirectory = null;
-		String strFLDDirectory = null;
-		String strTagDirectory = null;
-		String strFunctionDirectory = null;
 
+		// system.property or env var
+		
+			String strFLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.fld", null);
+			String strTLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.tld", null);
+			String strFunctionDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.function", null);
+			String strTagDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.tag", null);
+		
 		// get library directories
 		if (fileSystem != null) {
 			strAllowRealPath = getAttr(fileSystem,"allow-realpath");
 			strDeployDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("deploy-directory"));
-			// strTempDirectory=ConfigWebUtil.translateOldPath(fileSystem.getAttribute("temp-directory"));
-			strTLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tld-directory"));
-			strFLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-directory"));
-			strTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-directory"));
-			strFunctionDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-directory"));
+			if(StringUtil.isEmpty(strTLDDirectory)) strTLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tld-directory"));
+			if(StringUtil.isEmpty(strFLDDirectory)) strFLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-directory"));
+			if(StringUtil.isEmpty(strTagDirectory)) strTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-directory"));
+			if(StringUtil.isEmpty(strFunctionDirectory)) strFunctionDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-directory"));
 		}
+		
+		
+		
 		// set default directories if necessary
 		if (StringUtil.isEmpty(strFLDDirectory))
 			strFLDDirectory = "{lucee-config}/library/fld/";
@@ -2919,14 +2924,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		
 
 		// TLD Dir
-		if (strTLDDirectory != null) {
+		if (!StringUtil.isEmpty(strTLDDirectory)) {
 			Resource tld = ConfigWebUtil.getFile(config, configDir, strTLDDirectory, FileUtil.TYPE_DIR);
 			if (tld != null)
 				config.setTldFile(tld,CFMLEngine.DIALECT_BOTH);
 		}
 
 		// Tag Directory
-		if (strTagDirectory != null) {
+		if (!StringUtil.isEmpty(strTagDirectory)) {
 			Resource dir = ConfigWebUtil.getFile(config, configDir, strTagDirectory, FileUtil.TYPE_DIR);
 			createTagFiles(config, configDir, dir, doNew);
 			if (dir != null) {
@@ -2958,14 +2963,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 
 		// FLDs
-		if (strFLDDirectory != null) {
+		if (!StringUtil.isEmpty(strFLDDirectory)) {
 			Resource fld = ConfigWebUtil.getFile(config, configDir, strFLDDirectory, FileUtil.TYPE_DIR);
 			if (fld != null)
 				config.setFldFile(fld,CFMLEngine.DIALECT_BOTH);
 		}
 
 		// Function files (CFML)
-		if (strFunctionDirectory != null) {
+		if (!StringUtil.isEmpty(strFunctionDirectory)) {
 			Resource dir = ConfigWebUtil.getFile(config, configDir, strFunctionDirectory, FileUtil.TYPE_DIR);
 			createFunctionFiles(config, configDir, dir, doNew);
 			if (dir != null)
@@ -3396,10 +3401,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		boolean hasCS = configServer != null;
 
 		String out = null, err = null;
+		
+		// sys prop or env var
+		out=hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.system.out", null);
+		err=hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.system.err", null);
+		
 		if (sys != null) {
-			out = getAttr(sys,"out");
-			err = getAttr(sys,"err");
+			if(StringUtil.isEmpty(out)) out = getAttr(sys,"out");
+			if(StringUtil.isEmpty(err)) err = getAttr(sys,"err");
 		}
+		
+		
 		if (!StringUtil.isEmpty(out) && hasAccess) {
 			config.setOut(toPrintwriter(config, out, false));
 		}
@@ -3791,6 +3803,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			config.setSessionTimeout(configServer.getSessionTimeout());
 
 		// App Timeout
+		
 		String appTimeout = getAttr(scope,"applicationtimeout");
 		if (hasAccess && !StringUtil.isEmpty(appTimeout)) {
 			config.setApplicationTimeout(appTimeout);
