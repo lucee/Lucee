@@ -3573,11 +3573,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if(TimeZone.getDefault()==null)TimeZone.setDefault(config.getTimeZone());
 		
 		// timeserver
-		String strTimeServer = null;
-		Boolean useTimeServer = null;
+		String strTimeServer = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.timeserver", null);
+		Boolean useTimeServer=null;
+		if(!StringUtil.isEmpty(strTimeServer)) useTimeServer=Boolean.TRUE;
+		
+		
 		if (regional != null) {
-			strTimeServer = getAttr(regional,"timeserver");
-			useTimeServer = Caster.toBoolean(getAttr(regional,"use-timeserver"), null);// 31
+			if(StringUtil.isEmpty(strTimeServer))strTimeServer = getAttr(regional,"timeserver");
+			if(useTimeServer==null)useTimeServer = Caster.toBoolean(getAttr(regional,"use-timeserver"), null);
 		}
 
 		if (!StringUtil.isEmpty(strTimeServer))
