@@ -6506,7 +6506,12 @@ public final class XMLConfigAdmin {
 		RHExtension tmp;
 		try {
 			for(int i=0;i<children.length;i++){
-				tmp=new RHExtension(config,children[i]);
+				tmp=null;
+				try{
+					tmp=new RHExtension(config,children[i]);
+				}
+				catch(Exception e) {}
+				
 				if(tmp!=null && ed.equals(tmp)) return tmp;
 			}
 			return null;
