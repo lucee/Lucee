@@ -87,19 +87,19 @@
 		<cfset local.tagParams = getParams()>	
 		<cfset local.resultVar = "">
 		<cfset local.result = new Result()>
-		
+
 		<!--- Makes the attributes available in local scope. Es : query of queries --->
 		<cfset structAppend(local,tagAttributes,true)>
-		
+
 		<cfswitch expression="#tagname#">
-			
+
 			<!--- cfquery --->
 			<cfcase value="query">
-								
+
 				<!--- get the query array to loop --->
 				<cfset local.qArray = getQArray()>
 				<!--- declare the query local var --->
-				
+
 				<cfquery name="local.___q" attributeCollection="#tagAttributes#" result="local.tagResult">
 					<cfloop array="#local.qArray#" index="Local.item"><!---
 						!---><cfif structKeyExists(item,'type') and item.type eq 'string'><!---
@@ -108,17 +108,17 @@
 							!---><cfqueryparam attributecollection="#item#"><!---
 						!---></cfif></cfloop>
 				</cfquery>
-				
-				<cfif !isNull(local.___q)><cfset result.setResult(local.___q)></cfif>			
+
+				<cfif !isNull(local.___q)><cfset result.setResult(local.___q)></cfif>
 				<cfif !isNull(local.tagResult)><cfset result.setPrefix(local.tagResult)></cfif>
-				
+
 				<cfreturn result>
 			</cfcase>
 
 			<!--- cfftp --->
 			<cfcase value="ftp">
-				
-				<!--- 
+
+				<!---
 				If action = "listdir" we need to provide a name to the cfftp tag where will
 				be stored the returned query. The recordset will be passed then to the Result
 				Object.
@@ -132,23 +132,19 @@
 				</cfif>
 				<cfif !isNull(local.tagResult)><cfset result.setPrefix(local.tagResult)></cfif>
 			</cfcase>
-			
 			<!--- cfhttp --->
 			<cfcase value="http">
-				
 				<cfhttp attributeCollection="#tagAttributes#" result="tagResult">
 					<cfloop array="#tagParams#" index="param">
 						<cfhttpParam attributeCollection="#param#">
 					</cfloop>
 				</cfhttp>
-				
 				<cfif structkeyexists(tagAttributes,"name") and tagAttributes["name"] neq "">
 	                  <cfset result.setResult(StructFind(variables,tagAttributes["name"]))>
 				</cfif>
 				<cfset result.setPrefix(tagResult)>
-				
 			</cfcase>
-			
+
 			<!--- cfmail --->
 			<cfcase value="mail">
 				<cfset local.body = "">
@@ -156,11 +152,10 @@
 					<cfset local.body = tagAttributes.body>
 					<cfset Structdelete(tagAttributes, "body")>
 				</cfif>
-				<cfmail attributeCollection="#tagAttributes#">#body#<!---							
+				<cfmail attributeCollection="#tagAttributes#">#body#<!---
 				---><cfloop array="#tagParams#" index="param"><!---
                         ---><cfmailparam attributeCollection="#param#"><!---
                   ---></cfloop><!---
-				
 				---><cfloop array="#variables.parts#" index="part"><!---
 					---><cfset partbody = ""><!---
                         ---><cfif structkeyexists(part,"body")><!---
@@ -170,14 +165,13 @@
                         ---><cfmailpart attributeCollection="#part#">#partbody#</cfmailpart><!---
                     ---></cfloop><!---
 				---></cfmail>
-			
+
 				<cfreturn this/>
 			</cfcase>
 
 			<!--- feed --->
 			<cfcase value="feed">
-				
-				<!--- 
+				<!---
 				fields are optional in read mode
 				 --->
 				<cfif tagAttributes.action eq 'read'>
@@ -185,44 +179,77 @@
 					<cfset tagAttributes.name = 'name'>
 					<cfset tagAttributes.properties = 'properties'>
 				</cfif>
-				
+
 				<!--- the xmlvar is forced for both actions --->
-				<cfset tagAttributes.xmlvar = 'xmlvar'>																		
-								
-				<cffeed attributeCollection="#tagAttributes#">	
-				
+				<cfset tagAttributes.xmlvar = 'xmlvar'>
+
+				<cffeed attributeCollection="#tagAttributes#">
+
 				<cfswitch expression="#tagAttributes.action#">
-					
+
 					<cfcase value="read">
-						
+
 						<cfset result = {
 							name = name,
 							query = query,
 							properties = properties,
-							xmlvar = xmlvar					
-						}>			
-							
+							xmlvar = xmlvar
+						}>
+
 					</cfcase>
-				
+
 					<cfcase value="create">
-						
+
 						<cfset result = xmlvar>
-						
+
 					</cfcase>
-					
+
 				</cfswitch>
 
-			</cfcase>		
-		
+			</cfcase>
+
+			<cfcase value="collection">
+				<!---
+				fields are optional in read mode
+				 --->
+				<cfif tagAttributes.action eq 'list' || tagAttributes.action eq 'categorylist'>
+					<cfset tagAttributes.name = 'name'>
+				</cfif>
+
+				<!--- the xmlvar is forced for both actions --->
+				<cfset tagAttributes.xmlvar = 'xmlvar'>
+
+				<cfcollection attributeCollection="#tagAttributes#">
+
+				<cfswitch expression="#tagAttributes.action#">
+
+					<cfcase value="list">
+
+						<!--- <cfset result = {
+							name = name
+						}> --->
+						<cfreturn name>
+
+					</cfcase>
+
+					<cfcase value="categorylist">
+
+						<cfreturn name>
+					</cfcase>
+
+				</cfswitch>
+
+			</cfcase>
+
 		</cfswitch>
-		
+
 		<cfreturn result>
-				
+
 	</cffunction>
 	
-	<!--- 
+	<!---
 	onMissingMethod
-	 --->	
+	 --->
 	<cffunction name="onMissingMethod" output="false" access="public" returntype="any"
 				hint="Allow general get() set() method on the attributes struct and on extra values ( like mail body )">
 		<cfargument name="methodname" type="string">
