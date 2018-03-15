@@ -1891,8 +1891,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>ASCIIExtensionList</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Delimited list of file extensions that force ASCII transfer mode, if transferMode = "auto".
-</description>
+			<description>Delimited list of file extensions that force ASCII transfer mode, if transferMode = "auto".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1973,7 +1972,21 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>delete content of the directory</description>
 		</attribute>
-		
+
+		<attribute>
+			<type>string</type>
+			<name>key</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>the ssh private key</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>passphrase</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>the passphrase that protects ssh private key</description>
+		</attribute>
 		
 		
 	</tag>
