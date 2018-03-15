@@ -27,10 +27,8 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -815,11 +813,15 @@ public abstract class ConfigImpl implements Config {
         String lcRealPath = StringUtil.toLowerCase(realPath)+'/';
         Mapping mapping;
         PageSource ps;
-
+        Mapping rootApp=null;
         if(mappings!=null){
 	        for(int i=0;i<mappings.length;i++) {
 	            mapping = mappings[i];
-	            //print.err(lcRealPath+".startsWith"+(mapping.getStrPhysical()));
+	            // we keep this for later
+	            if("/".equals(mapping.getVirtual())) {
+	            	rootApp=mapping;
+	            	continue;
+	            }
 	            if(lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(),0)) {
 	            	ps= mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
 	            	if(onlyPhysicalExisting) {
@@ -884,16 +886,19 @@ public abstract class ConfigImpl implements Config {
         for(int i=0;i<this.mappings.length-1;i++) {
             mapping = this.mappings[i];
             if((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(),0)) {
-            	ps= mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
+        		ps= mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
             	if(onlyPhysicalExisting) {
             		if(ps.physcalExists())return ps;
             	}
             	else if(ps.exists()) return ps;
             }
         }
-        
+
         if(useDefaultMapping){
-        	ps= this.mappings[this.mappings.length-1].getPageSource(realPath);
+        	if(rootApp!=null) mapping=rootApp;
+        	else mapping=this.mappings[this.mappings.length-1];
+        	
+        	ps= mapping.getPageSource(realPath);
         	if(onlyPhysicalExisting) {
         		if(ps.physcalExists())return ps;
         	}
@@ -918,13 +923,18 @@ public abstract class ConfigImpl implements Config {
         realPath=realPath.replace('\\','/');
         String lcRealPath = StringUtil.toLowerCase(realPath)+'/';
         Mapping mapping;
-
+        Mapping rootApp=null;
         PageSource ps;
         List<PageSource> list=new ArrayList<PageSource>();
     	
         if(mappings!=null){
 	        for(int i=0;i<mappings.length;i++) {
 	            mapping = mappings[i];
+	            // we keep this for later
+	            if("/".equals(mapping.getVirtual())) {
+	            	rootApp=mapping;
+	            	continue;
+	            }
 	            //print.err(lcRealPath+".startsWith"+(mapping.getStrPhysical()));
 	            if(lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(),0)) {
 	            	ps=mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
@@ -989,10 +999,11 @@ public abstract class ConfigImpl implements Config {
         }
         
         if(useDefaultMapping){
-        	ps=this.mappings[this.mappings.length-1].getPageSource(realPath);
+        	if(rootApp!=null) mapping=rootApp;
+        	else mapping=this.mappings[this.mappings.length-1];
+        	ps=mapping.getPageSource(realPath);
         	if(onlyFirstMatch) return new PageSource[]{ps}; 
         	else list.add(ps);
-        	
         }
         return list.toArray(new PageSource[list.size()]); 
     }
