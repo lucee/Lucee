@@ -48,12 +48,11 @@
 <!--- Action --->
 <cftry>
 <cfscript>
-	
 	loop array=form.keyArray() item="k" {
 		if(left(k,11)=="mainAction_") {
 			form['mainAction']=form[k];
 			type=mid(k,11);
-			form['version']=form['version'&type];
+			form['version']=form['version'];
 		}
 	}
 
