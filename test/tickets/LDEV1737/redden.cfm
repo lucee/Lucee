@@ -1,0 +1,1 @@
+<span style="color:red"><cfoutput>#attributes.message#</cfoutput></span>
