@@ -21,6 +21,8 @@
  */
 package lucee.runtime.functions.arrays;
 
+import java.util.Iterator;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -34,16 +36,16 @@ public final class ArrayPrepend extends BIF {
 	private static final long serialVersionUID = 777525067673834084L;
 
 	public static boolean call(PageContext pc , Array array, Object object) throws PageException {
-		return call(pc, array, object, false);
+		array.prepend(object);
+		return true;
 	}
 
 
 	public static boolean call(PageContext pc , Array array, Object object, boolean merge) throws PageException {
 		if(merge && Decision.isCastableToArray(object)) {
-			Object[] appends = Caster.toNativeArray(object);
-
-			for(int i=appends.length-1;i>=0;i--){
-				array.prepend(appends[i]);
+			Iterator<Object> it = Caster.toArray(object).valueIterator();
+			while(it.hasNext()){
+				array.prepend(it.next());
 			}
 		}
 		else
@@ -55,6 +57,6 @@ public final class ArrayPrepend extends BIF {
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if(args.length==2)return call(pc,Caster.toArray(args[0]),args[1]);
 		else if(args.length==3) return call(pc,Caster.toArray(args[0]),args[1],Caster.toBooleanValue(args[2]));
-		else throw new FunctionException(pc, "ArrayPrepend", 2, 2, args.length);
+		else throw new FunctionException(pc, "ArrayPrepend", 2, 3, args.length);
 	}
 }
