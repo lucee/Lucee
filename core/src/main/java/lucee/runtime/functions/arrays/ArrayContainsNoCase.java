@@ -21,6 +21,7 @@
  */
 package lucee.runtime.functions.arrays;
 
+import lucee.print;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -28,6 +29,7 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.util.ArrayUtil;
 
 public final class ArrayContainsNoCase extends BIF {
@@ -35,17 +37,18 @@ public final class ArrayContainsNoCase extends BIF {
 	private static final long serialVersionUID = 4394078979692450076L;
 
 	public static double call(PageContext pc , Array array, Object value) throws PageException {
-		String str=Caster.toString(value,null);
-		if(str!=null) 
-			return ArrayUtil.arrayContainsIgnoreEmpty(array,str,true)+1;
-		return ArrayFind.call(pc, array, value);
+		return ArrayFindNoCase.call( pc, array, value );
 	}
 	
 	public static double call(PageContext pc , Array array, Object value, boolean substringMatch) throws PageException {
 		if (substringMatch) {
 			if (!Decision.isSimpleValue(value))
                 throw new FunctionException( pc, "ArrayContainsNoCase", 3, "substringMatch", "substringMatch can not be true when the value that is searched for is a complex object" );
-            return call( pc, array, value );
+           
+			String str=Caster.toString(value,null);
+			if(str!=null) 
+				return ArrayUtil.arrayContainsIgnoreEmpty(array,str,true)+1;
+			return ArrayFind.call(pc, array, value);
 		}
 		return ArrayFindNoCase.call( pc, array, value );
 	}
@@ -57,4 +60,9 @@ public final class ArrayContainsNoCase extends BIF {
 		else throw new FunctionException(pc, "ArrayContainsNoCase", 2, 3, args.length);
 	}
 	
+	public static void main(String[] args) throws Exception {
+		Array arr=new ArrayImpl();
+		arr.append("Susi Sorglos");
+		print.e(call(null,arr,"Susi",true));
+	}
 }
