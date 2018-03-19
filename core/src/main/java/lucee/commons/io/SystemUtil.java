@@ -1526,7 +1526,7 @@ class StopThread extends Thread {
 	}
 }
 
-class MacAddressWrap implements ObjectWrap, Castable {
+class MacAddressWrap implements ObjectWrap, Castable,Serializable {
 
 	private static final long serialVersionUID = 8707984359031327783L;
 
