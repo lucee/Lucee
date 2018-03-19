@@ -292,7 +292,6 @@
 			}
 
 			function changeVersion(field, frm) {
-				
 				if( frm.value != ""){
 					submitted = true;
 					$('##group_Connection').hide();

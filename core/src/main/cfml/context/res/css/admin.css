@@ -663,25 +663,24 @@ a.edit {
 
 
 .btn-search {
-
 	height:19px;
 	width:19px;
 	display: inline-block;
 	outline: none;
 	text-decoration: none;
-	padding:5px;
+	padding-bottom: 5px !important;
 	margin-left:0;
 	background-color:#333;
 	border-width:0;
 }
 
-
-.admin-web .btn-search  		{ background-position: -125px -80px; margin-left: -6%; padding-bottom: 9%;}
-.admin-server .btn-search  		{ background-position: -125px -100px; margin-left: -6%; padding-bottom: 9%;}
+.admin-web .btn-search  		{ background-position: -125px -80px; margin-left: -8% !important;}
+.admin-server .btn-search  		{ background-position: -125px -100px; margin-left: -8% !important;}
 
 .tt-hint{ width: 88% ;}
-.tt-input{ width: 88% ;}
-
+.tt-input {
+   width: 89%;
+}
 .btn-mini span {
 	display:none;
 }
