@@ -27,11 +27,11 @@ public class UDFCasterException extends CasterException {
 	private static final long serialVersionUID = 4863042711433241644L;
 
 	public UDFCasterException(UDF udf, FunctionArgument arg, Object value, int index) {
-		super(createMessage(udf,arg,value,index));
+		super(createMessage(udf,arg,value,index),createDetail(udf));
 	}
 
 	public UDFCasterException(UDF udf, String returnType, Object value) {
-		super(createMessage(udf,returnType,value));
+		super(createMessage(udf,returnType,value),createDetail(udf));
 	}
 
     private static String createMessage(UDF udf, String type, Object value) {
@@ -49,9 +49,11 @@ public class UDFCasterException extends CasterException {
 		else if(value!=null) detail= "can't cast Object type ["+Type.getName(value)+"] to a value of type ["+arg.getTypeAsString()+"]";
 		else detail= "can't cast Null value to value of type ["+arg.getTypeAsString()+"]";
 		
-		
-		
-		return "invalid call of the function "+udf.getFunctionName()+" ("+udf.getSource()+"), "+posToString(index)+" Argument ("+arg.getName()+") is of invalid type, "+detail;
+		return "invalid call of the function "+udf.getFunctionName()+", "+posToString(index)+" Argument ("+arg.getName()+") is of invalid type, "+detail;
+	}
+	
+	private static String createDetail(UDF udf) {
+		return "the function is located at ["+udf.getSource()+"]";
 	}
 	
 	private static String posToString(int index) {

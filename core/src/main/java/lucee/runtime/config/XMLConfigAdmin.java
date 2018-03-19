@@ -159,6 +159,7 @@ import com.allaire.cfx.CustomTag;
 public final class XMLConfigAdmin {
 
     
+	private static final BundleInfo[] EMPTY = new BundleInfo[0];
 	//private static final Object NULL = new Object();
 	private ConfigImpl config;
     private Document doc;
@@ -5189,10 +5190,10 @@ public final class XMLConfigAdmin {
 		
 		try {
 			// remove the bundles
-			BundleDefinition[] candidatesToRemove = OSGiUtil.toBundleDefinitions(rhe.getBundles());
+			BundleDefinition[] candidatesToRemove = OSGiUtil.toBundleDefinitions(rhe.getBundles(EMPTY));
 			if(replacementRH!=null) {
 				// spare bundles used in the new extension as well
-				Map<String, BundleDefinition> notRemove = toMap(OSGiUtil.toBundleDefinitions(replacementRH.getBundles()));
+				Map<String, BundleDefinition> notRemove = toMap(OSGiUtil.toBundleDefinitions(replacementRH.getBundles(EMPTY)));
 				List<BundleDefinition> tmp=new ArrayList<OSGiUtil.BundleDefinition>();
 				String key;
 				for(int i=0;i<candidatesToRemove.length;i++){
@@ -6402,9 +6403,11 @@ public final class XMLConfigAdmin {
 		while(itt.hasNext()) {
 			_rhe=itt.next();
 			if(rhe!=null && rhe.equals(_rhe)) continue;
-			BundleInfo[] bundles = _rhe.getBundles();
-			for(BundleInfo bi:bundles) {
-				_cleanBundles(candiatesToRemove,bi.getSymbolicName(),bi.getVersion());
+			BundleInfo[] bundles = _rhe.getBundles(null);
+			if(bundles!=null){
+				for(BundleInfo bi:bundles) {
+					_cleanBundles(candiatesToRemove,bi.getSymbolicName(),bi.getVersion());
+				}
 			}
 		}
 
