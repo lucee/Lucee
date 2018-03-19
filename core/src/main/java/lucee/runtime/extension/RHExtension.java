@@ -1127,6 +1127,18 @@ public class RHExtension implements Serializable {
 		if(!loaded)load(extensionFile);
 		return bundles;
 	}
+	
+	public BundleInfo[] getBundles(BundleInfo[] defaultValue) {
+		if(!loaded){
+			try{
+				load(extensionFile);
+			}
+			catch(Exception e) {
+				return defaultValue;
+			}
+		}
+		return bundles;
+	}
 
 	public String[] getFlds() throws ApplicationException, IOException, BundleException {
 		if(!loaded)load(extensionFile);
