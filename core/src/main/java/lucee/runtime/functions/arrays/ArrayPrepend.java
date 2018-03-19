@@ -26,6 +26,7 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 
 public final class ArrayPrepend extends BIF {
@@ -33,13 +34,27 @@ public final class ArrayPrepend extends BIF {
 	private static final long serialVersionUID = 777525067673834084L;
 
 	public static boolean call(PageContext pc , Array array, Object object) throws PageException {
-		array.prepend(object);
+		return call(pc, array, object, false);
+	}
+
+
+	public static boolean call(PageContext pc , Array array, Object object, boolean merge) throws PageException {
+		if(merge && Decision.isCastableToArray(object)) {
+			Object[] appends = Caster.toNativeArray(object);
+
+			for(int i=appends.length-1;i>=0;i--){
+				array.prepend(appends[i]);
+			}
+		}
+		else
+			array.prepend(object);
 		return true;
 	}
-	
+
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if(args.length==2)return call(pc,Caster.toArray(args[0]),args[1]);
+		else if(args.length==3) return call(pc,Caster.toArray(args[0]),args[1],Caster.toBooleanValue(args[2]));
 		else throw new FunctionException(pc, "ArrayPrepend", 2, 2, args.length);
 	}
 }
