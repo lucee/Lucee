@@ -59,8 +59,8 @@ td a.search_input { padding-left: 3px; font-size: 13px;}
 .paddingLeft{ padding-left: 60px;}
 .Desc{padding-left: 3%;}
 .dashColor {color: #B3B3B3; font-weight: 800 !important;}
-button.buttonStyle{ background-color: #B3B3B3 !important; color: white !important; border-radius: 6px 6px 1px 1px !important; padding : 5px 16px 5px 16px !important; border-bottom-width: 0px !important; border-right-width: 0px !important; font-size: 15px !important; font-weight: 500 !important;}
-button.btnActive{background-color: blue !important;  color: white !important; border-radius: 6px 6px 1px 1px !important; padding : 5px 16px 5px 16px !important; border-bottom-width: 0px !important; border-right-width: 0px !important; font-size: 15px !important; font-weight: 500 !important;}
+button.buttonStyle{ background-color: #B3B3B3 !important; color: white !important; border-radius: 6px 6px 6px 6px !important; padding : 5px 16px 5px 16px !important; border-bottom-width: 0px !important; border-right-width: 0px !important; font-size: 15px !important; font-weight: 500 !important;}
+button.btnActive{background-color: blue !important;  color: white !important; border-radius: 6px 6px 6px 6px !important; padding : 5px 16px 5px 16px !important; border-bottom-width: 0px !important; border-right-width: 0px !important; font-size: 15px !important; font-weight: 500 !important;}
 .leftPadding {padding-left: 32px;}
 .metricsCharts {padding-left: 32px; padding-bottom: 20px;}
 .titleStyle{color: #2255aa; font-size: 13px; font-family: arial; font-weight: bold;}

@@ -1,8 +1,5 @@
 <cfinclude template="ext.functions.cfm">
 
-<cfscript>
-</cfscript>
-
 <cfparam name="inc" default="">
 <cfparam name="url.action2" default="list">
 <cfparam name="form.mainAction" default="none">
@@ -48,11 +45,13 @@
 <!--- Action --->
 <cftry>
 <cfscript>
-	loop array=form.keyArray() item="k" {
-		if(left(k,11)=="mainAction_") {
-			form['mainAction']=form[k];
-			type=mid(k,11);
-			form['version']=form['version'];
+	if(form.mainAction == "none"){
+		loop array=form.keyArray() item="k" {
+			if(left(k,11)=="mainAction_") {
+				form['mainAction']=form[k];
+				type=mid(k,11);
+				form['version']=form['version'];
+			}
 		}
 	}
 
