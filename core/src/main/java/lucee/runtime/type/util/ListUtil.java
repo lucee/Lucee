@@ -1278,7 +1278,7 @@ public final class ListUtil {
 	 * @return returns the last Element of a list
 	 */
 	public static String last(String list, String delimiter, boolean ignoreEmpty, int count) {
-
+		int ix;
 		if(StringUtil.isEmpty(list)) return "";
 		int len=list.length();
 		
@@ -1287,7 +1287,10 @@ public final class ListUtil {
 		    del=new char[]{','};
 		}
 		else del=delimiter.toCharArray();
-		int ix = getDelimIndex(list, count, del, ignoreEmpty);
+		if ( count > 1)
+			ix = getDelimIndex(list, count, del, ignoreEmpty);
+		else
+			ix = 1;
 
 		if (ix == -1)
 			return list;
@@ -1312,7 +1315,6 @@ public final class ListUtil {
 				len--;
 			}
 			else {
-				// list=list.substring(index+1);
 				if(ix > list.length())
 					ix = list.length();
 				return list.substring(list.length()-ix, list.length());

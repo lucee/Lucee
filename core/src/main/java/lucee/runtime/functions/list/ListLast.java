@@ -60,7 +60,7 @@ public final class ListLast extends BIF {
 		if(args.length==4)
     		return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]), Caster.toDoubleValue(args[3]));
 
-		throw new FunctionException(pc, "ListFirst", 1, 3, args.length);
+		throw new FunctionException(pc, "ListFirst", 1, 4, args.length);
 	}
 	
 }
