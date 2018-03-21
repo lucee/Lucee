@@ -238,11 +238,38 @@
 					</cfcase>
 
 				</cfswitch>
+				<cfreturn "">
 
 			</cfcase>
 
-		</cfswitch>
+			<cfcase value="index">
+				<cfif tagAttributes.action eq 'list'>
+					<cfset tagAttributes.name = 'name'>
+				</cfif>
 
+				<!--- the xmlvar is forced for both actions --->
+				<cfset tagAttributes.xmlvar = 'xmlvar'>
+
+				<cfindex attributeCollection="#tagAttributes#">
+
+				<cfswitch expression="#tagAttributes.action#">
+
+					<cfcase value="list">
+						<cfreturn name>
+					</cfcase>
+
+				</cfswitch>
+				<cfreturn "">
+
+			</cfcase>
+
+			<cfcase value="search">
+				<cfset tagAttributes.name = 'name'>
+				<cfsearch attributeCollection="#tagAttributes#" >
+				<cfreturn name>
+			</cfcase>
+
+		</cfswitch>
 		<cfreturn result>
 
 	</cffunction>
