@@ -157,6 +157,8 @@ public final class SystemUtil {
 
 	private static final String JAVA_VERSION_STRING = System.getProperty("java.version");
 	public static final int JAVA_VERSION;
+	private static final Class[] EMPTY_CLASS = new Class[0];
+	private static final Object[] EMPTY_OBJ = new Object[0];
 
 	static {
 		// OS
@@ -1451,6 +1453,7 @@ public final class SystemUtil {
 	}
 
 	private static Map<String, Integer> logs = new ConcurrentHashMap<String, Integer>();
+	private static Boolean booted=null;
 
 	public static void logUsage() {
 		String st = ExceptionUtil.getStacktrace(new Throwable(), false);
@@ -1496,6 +1499,23 @@ public final class SystemUtil {
 
 	public static double millis() {
 		return System.nanoTime()/1000000d;
+	}
+
+	public static boolean isBooted() {
+		if(Boolean.TRUE.equals(booted)) return true;
+		
+		Class clazz = ClassUtil.loadClass("jdk.internal.misc.VM",null); // Java == 9
+		if(clazz==null)  clazz = ClassUtil.loadClass("sun.misc.VM",null); // Java < 9
+		
+		if(clazz!=null) {
+			try {
+				Method m = clazz.getMethod("isBooted", EMPTY_CLASS);
+				booted = Caster.toBoolean(m.invoke(null, EMPTY_OBJ));
+				return booted.booleanValue();
+			}
+			catch(Exception e) {}
+		}
+		return true;
 	}
 
 }
