@@ -97,11 +97,20 @@ public final class Decision {
 		(value instanceof Locale) ||
 		(value instanceof TimeZone) ||
 		(value instanceof String) ||
-				(value instanceof Boolean) ||
-				(value instanceof Date) ||
-				((value instanceof Castable) && !(value instanceof Objects) && !(value instanceof Collection));
+		(value instanceof Boolean) ||
+		(value instanceof Date) ||
+		((value instanceof Castable) && !(value instanceof Objects) && !(value instanceof Collection));
 	}
-
+	public static boolean isSimpleValueLimited(Object value){
+		return
+		(value instanceof Number) ||
+		(value instanceof Locale) ||
+		(value instanceof TimeZone) ||
+		(value instanceof String) ||
+		(value instanceof Boolean) ||
+		(value instanceof Date);
+	}
+	
 	/**
 	 * tests if value is Numeric
 	 * @param value value to test
