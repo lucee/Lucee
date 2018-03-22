@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.3.0.55-ALPHA</version>
+  <version>5.3.0.56-ALPHA</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -238,8 +238,8 @@
       <artifactId>maven-compiler-plugin</artifactId>
       <version>3.3</version>
            <configuration>
-             <source>1.7</source>
-             <target>1.7</target>
+             <source>1.8</source>
+             <target>1.8</target>
 
            </configuration>
 
