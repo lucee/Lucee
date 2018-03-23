@@ -2961,8 +2961,8 @@ public final class XMLConfigAdmin {
     }
 
     /**
-     * set if client cookies are enabled or not
-     * @param mode
+     * set if it's develop mode or not
+     * @param developmode
      * @throws SecurityException
      */
     public void updateMode(Boolean developmode) throws SecurityException {
