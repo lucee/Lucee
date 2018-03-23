@@ -3276,6 +3276,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 		else if (hasCS)
 			config.setAllowCompression(configServer.allowCompression());
+		Element mode = getChildByName(doc.getDocumentElement(), "mode");
+		// mode
+		String developMode = getAttr(mode,"develop");
+		if (!StringUtil.isEmpty(developMode) && hasAccess) {
+			config.setDevelopMode(toBoolean(developMode, false));
+		}
+		else if (hasCS)
+			config.setDevelopMode(configServer.isDevelopMode());
 
 	}
 

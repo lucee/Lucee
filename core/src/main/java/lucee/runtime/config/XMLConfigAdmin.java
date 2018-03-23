@@ -2959,6 +2959,21 @@ public final class XMLConfigAdmin {
         Element scope=_getRootElement("scope");
         scope.setAttribute("setclientcookies",Caster.toString(clientCookies,""));
     }
+
+    /**
+     * set if client cookies are enabled or not
+     * @param mode
+     * @throws SecurityException
+     */
+    public void updateMode(Boolean developmode) throws SecurityException {
+      checkWriteAccess();
+        boolean hasAccess=ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_SETTING);
+        if(!hasAccess)
+            throw new SecurityException("no access to update scope setting");
+        
+        Element mode=_getRootElement("mode");
+        mode.setAttribute("develop",Caster.toString(developmode,""));
+    }
     
     /**
      * set if domain cookies are enabled or not

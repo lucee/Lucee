@@ -622,6 +622,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doGetComponent();
 		else if(check("getScope", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetScope();
+		else if(check("getDevelopMode", ACCESS_FREE) && check2(ACCESS_READ))
+			doGetDevelopMode();
 		else if(check("getApplicationSetting", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetApplicationSetting();
 		else if(check("getQueueSetting", ACCESS_FREE) && check2(ACCESS_READ))
@@ -690,7 +692,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doGetDatasourceDriverList();
 		else if(check("getDebuggingList", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetDebuggingList();
-		else if(check("getLoggedDebugData", ACCESS_FREE)) // no password necessary for this
+		else if(check("getLoggedDebugData", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetLoggedDebugData();
 		else if(check("getDebugSetting", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetDebugSetting();
@@ -804,6 +806,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doUpdateComponent();
 		else if(check("updatescope", ACCESS_FREE) && check2(ACCESS_WRITE))
 			doUpdateScope();
+		else if(check("updateDevelopMode", ACCESS_FREE) && check2(ACCESS_WRITE))
+			doUpdateDevelopMode();
 		else if(check("updateRestSettings", ACCESS_FREE) && check2(ACCESS_WRITE))
 			doUpdateRestSettings();
 		else if(check("updateRestMapping", ACCESS_FREE) && check2(ACCESS_WRITE))
@@ -4477,6 +4481,17 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		adminSync.broadcast(attributes, config);
 	}
 
+	/**
+	 * @throws PageException
+	 * 
+	 */
+	private void doUpdateDevelopMode() throws PageException {
+
+		admin.updateMode(getBoolObject("admin", action, "mode"));
+		store();
+		adminSync.broadcast(attributes, config);
+	}
+
 	private void doUpdateRestSettings() throws PageException {
 
 		admin.updateRestList(getBool("list", null));
@@ -4787,6 +4802,16 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			sct.set("scopeCascadingType", "small");
 		else if(config.getScopeCascadingType() == Config.SCOPE_STANDARD)
 			sct.set("scopeCascadingType", "standard");
+	}
+
+	/**
+	 * @throws PageException
+	 * 
+	 */
+	private void doGetDevelopMode() throws PageException {
+		Struct sct = new StructImpl();
+		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
+		sct.set("developMode", Caster.toBoolean(config.isDevelopMode()));
 	}
 
 	/**
