@@ -512,6 +512,7 @@ public class KeyConstants {
 	public static final Key _parameters=KeyImpl._const("parameters");
 	public static final Key _parent=KeyImpl._const("parent");
 	public static final Key _password=KeyImpl._const("password");
+	public static final Key _pass=KeyImpl._const("pass");
 	public static final Key _username=KeyImpl._const("username");
 	public static final Key _user=KeyImpl._const("user");
 	public static final Key _path=KeyImpl._const("path");
@@ -656,6 +657,7 @@ public class KeyConstants {
 	public static final Key _xtags=KeyImpl._const("xtags");
 	public static final Key _returnFormat=KeyImpl._const("returnFormat");
 	public static final Key _s3=KeyImpl._const("s3");
+	public static final Key _ftp=KeyImpl._const("ftp");
 	public static final Key _super=KeyImpl._const("super");
 	public static final Key _argumentCollection=KeyImpl._const("argumentCollection");
 	public static final Key _argumentcollection=KeyImpl._const("argumentcollection");
