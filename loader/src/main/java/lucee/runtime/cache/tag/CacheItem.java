@@ -26,6 +26,10 @@ public interface CacheItem {
 	public long getPayload();
 
 	public String getMeta();
-
+	
+	/**
+	 * execution time in nano seconds
+	 * @return
+	 */
 	public long getExecutionTime();
 }

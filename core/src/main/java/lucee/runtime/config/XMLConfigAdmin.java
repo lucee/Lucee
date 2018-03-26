@@ -1038,7 +1038,6 @@ public final class XMLConfigAdmin {
 	}
 
 	public static void updateJar(Config config, Resource resJar, boolean reloadWhenClassicJar) throws IOException, BundleException {
-		
 		BundleFile bf=new BundleFile(resJar);
 		
 		// resJar is a bundle
@@ -1145,17 +1144,28 @@ public final class XMLConfigAdmin {
 		return OSGiUtil.loadBundle(bf);
 	}
 	
-	public static Object installBundle(Config config, InputStream is, String name,String extensionVersion,boolean closeStream,boolean convert2bundle) throws IOException, BundleException {
+	/**
+	 * @param config
+	 * @param is
+	 * @param name
+	 * @param extensionVersion
+	 * @param closeStream
+	 * @param convert2bundle
+	 * @return return the Bundle File or the file in case it is not a bundle.
+	 * @throws IOException
+	 * @throws BundleException
+	 */
+	public static Object installBundle(Config config, InputStream is, String name,String extensionVersion,
+			boolean closeStream,boolean convert2bundle) throws IOException, BundleException {
 		Resource tmp=SystemUtil.getTempDirectory().getRealResource(name);
-		try{
-			IOUtil.copy(is, tmp,closeStream);
-			BundleFile bf = installBundle(config, tmp,extensionVersion,convert2bundle);
-			if(bf!=null) return bf;
-			return tmp;
-		}
-		finally {
+		
+		IOUtil.copy(is, tmp,closeStream);
+		BundleFile bf = installBundle(config, tmp,extensionVersion,convert2bundle);
+		if(bf!=null) {
 			tmp.delete();
+			return bf;
 		}
+		return tmp;
 	}
 
 	static void updateJar(Config config, InputStream is, String name,boolean closeStream) throws IOException, BundleException {

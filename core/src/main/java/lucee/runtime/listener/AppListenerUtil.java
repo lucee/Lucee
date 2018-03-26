@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.type.ftp.FTPConnectionData;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
@@ -55,6 +56,8 @@ import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMConfigurationImpl;
+import lucee.runtime.security.Credential;
+import lucee.runtime.security.CredentialImpl;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -757,6 +760,32 @@ public final class AppListenerUtil {
 		boolean ssl = Caster.toBooleanValue(data.get("ssl",null),false);
 		
 		return new ServerImpl(-1,hostName, port, username, password, lifeTimespan.getMillis(), idleTimespan.getMillis(), tls, ssl, false,ServerImpl.TYPE_LOCAL); // MUST improve store connection somehow
+	}
+
+	public static FTPConnectionData toFTP(Struct sct) {
+		// username
+		Object o = sct.get(KeyConstants._username,null);
+		if(o==null) o = sct.get(KeyConstants._user,null);
+		String user=Caster.toString(o,null);
+		if(StringUtil.isEmpty(user)) user=null;
+
+		// password
+		o = sct.get(KeyConstants._password,null);
+		if(o==null) o = sct.get(KeyConstants._pass,null);
+		String pass=Caster.toString(o,null);
+		if(StringUtil.isEmpty(pass)) pass=user!=null?"":null;
+
+		// host
+		o = sct.get(KeyConstants._host,null);
+		if(o==null) o = sct.get(KeyConstants._server,null);
+		String host=Caster.toString(o,null);
+		if(StringUtil.isEmpty(host)) host=null;
+
+		// port
+		o = sct.get(KeyConstants._port,null);
+		int port=Caster.toIntValue(o,0);
+
+		return new FTPConnectionData(host,user,pass,port);
 	}
 
 }

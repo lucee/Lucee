@@ -29,7 +29,7 @@ import lucee.runtime.type.util.ListUtil;
 
 public class TimeZoneUtil {
 
-	private static final Map<String,TimeZone> IDS=new HashMap<String,TimeZone>();
+	private static final Map<String,Object> IDS=new HashMap<String,Object>();
 	
 	static {
 		String[] ids=TimeZone.getAvailableIDs();
@@ -43,103 +43,102 @@ public class TimeZoneUtil {
 		IDS.put("", TimeZone.getDefault());
 
 		// MS specific Timezone definions
-		set("Dateline Standard Time",TimeZoneConstants.ETC_GMT_PLUS_12); // (GMT-12:00) International Date Line West
-		set("Samoa Standard Time",TimeZoneConstants.PACIFIC_MIDWAY); // 	(GMT-11:00) Midway Island, Samoa
-		set("Hawaiian Standard Time",TimeZoneConstants.HST); // (GMT-10:00) Hawaii
-		set("Alaskan Standard Time",TimeZoneConstants.AST); // (GMT-09:00) Alaska
-		set("Pacific Standard Time",TimeZoneConstants.PST); // (GMT-08:00) Pacific Time (US and Canada); Tijuana
-		set("Mountain Standard Time",TimeZoneConstants.MST); // (GMT-07:00) Mountain Time (US and Canada)
-		set("Mexico Standard Time",TimeZoneConstants.MEXICO_GENERAL); // (GMT-06:00) Guadalajara, Mexico City, Monterrey
-		set("Mexico Standard Time 2",TimeZoneConstants.AMERICA_CHIHUAHUA); // (GMT-07:00) Chihuahua, La Paz, Mazatlan
-		set("U.S. Mountain Standard Time",TimeZoneConstants.MST); // (GMT-07:00) Arizona
-		set("Central Standard Time",TimeZoneConstants.CST); // (GMT-06:00) Central Time (US and Canada
-		set("Canada Central Standard Time",TimeZoneConstants.CANADA_CENTRAL); // (GMT-06:00) Saskatchewan
-		set("Central America Standard Time",TimeZoneConstants.CST); // (GMT-06:00) Central America
-		set("Eastern Standard Time",TimeZoneConstants.EST); // (GMT-05:00) Eastern Time (US and Canada)
-		set("U.S. Eastern Standard Time",TimeZoneConstants.EST); // (GMT-05:00) Indiana (East)
-		set("S.A. Pacific Standard Time",TimeZoneConstants.AMERICA_BOGOTA); // (GMT-05:00) Bogota, Lima, Quito
-		set("Atlantic Standard Time",TimeZoneConstants.CANADA_ATLANTIC); // (GMT-04:00) Atlantic Time (Canada)
-		set("S.A. Western Standard Time",TimeZoneConstants.AMERICA_ANTIGUA); // (GMT-04:00) Caracas, La Paz
-		set("Pacific S.A. Standard Time",TimeZoneConstants.AMERICA_SANTIAGO); // (GMT-04:00) Santiago
-		set("Newfoundland and Labrador Standard Time",TimeZoneConstants.CNT); // (GMT-03:30) Newfoundland and Labrador
-		set("E. South America Standard Time",TimeZoneConstants.BET); // (GMT-03:00) Brasilia
-		set("S.A. Eastern Standard Time",TimeZoneConstants.AMERICA_ARGENTINA_BUENOS_AIRES); // (GMT-03:00) Buenos Aires, Georgetown
-		set("Greenland Standard Time",TimeZoneConstants.AMERICA_GODTHAB); // (GMT-03:00) Greenland
-		set("Mid-Atlantic Standard Time",TimeZoneConstants.AMERICA_NORONHA); // (GMT-02:00) Mid-Atlantic
-		set("Azores Standard Time",TimeZoneConstants.ATLANTIC_AZORES); // (GMT-01:00) Azores
-		set("Cape Verde Standard Time",TimeZoneConstants.ATLANTIC_CAPE_VERDE); // (GMT-01:00) Cape Verde Islands
-		set("Central Europe Standard Time",TimeZoneConstants.CET); // (GMT+01:00) Belgrade, Bratislava, Budapest, Ljubljana, Prague
-		set("Central European Standard Time",TimeZoneConstants.CET); // (GMT+01:00) Sarajevo, Skopje, Warsaw, Zagreb
-		set("Romance Standard Time",TimeZoneConstants.EUROPE_BRUSSELS); // (GMT+01:00) Brussels, Copenhagen, Madrid, Paris
-		set("W. Europe Standard Time",TimeZoneConstants.CET); // (GMT+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna
-		set("W. Central Africa Standard Time",null); // (GMT+01:00) West Central Africa
-		set("E. Europe Standard Time",TimeZoneConstants.ART); // (GMT+02:00) Bucharest
-		set("Egypt Standard Time",TimeZoneConstants.EGYPT); // (GMT+02:00) Cairo
-		set("FLE Standard Time",TimeZoneConstants.EET); // (GMT+02:00) Helsinki, Kiev, Riga, Sofia, Tallinn, Vilnius
-		set("GTB Standard Time",TimeZoneConstants.EUROPE_ATHENS); // (GMT+02:00) Athens, Istanbul, Minsk
-		set("Israel Standard Time",TimeZoneConstants.ASIA_JERUSALEM); // (GMT+02:00) Jerusalem
-		set("South Africa Standard Time",TimeZoneConstants.AFRICA_JOHANNESBURG); // (GMT+02:00) Harare, Pretoria
-		set("Russian Standard Time",TimeZoneConstants.EUROPE_MOSCOW); // (GMT+03:00) Moscow, St. Petersburg, Volgograd
-		set("Arab Standard Time",TimeZoneConstants.ASIA_KUWAIT); // (GMT+03:00) Kuwait, Riyadh
-		set("E. Africa Standard Time",TimeZoneConstants.AFRICA_NAIROBI); // (GMT+03:00) Nairobi
-		set("Arabic Standard Time",TimeZoneConstants.ASIA_BAGHDAD); // (GMT+03:00) Baghdad
-		set("Iran Standard Time",TimeZoneConstants.ASIA_TEHRAN); // (GMT+03:30) Tehran
-		set("Arabian Standard Time",TimeZoneConstants.ASIA_MUSCAT); // (GMT+04:00) Abu Dhabi, Muscat
-		set("Caucasus Standard Time",TimeZoneConstants.ASIA_YEREVAN); // (GMT+04:00) Baku, Tbilisi, Yerevan
-		set("Transitional Islamic State of Afghanistan Standard Time",TimeZoneConstants.ASIA_KABUL); // (GMT+04:30) Kabul
-		set("Ekaterinburg Standard Time",TimeZoneConstants.ASIA_YEKATERINBURG); // (GMT+05:00) Ekaterinburg
-		set("West Asia Standard Time",TimeZoneConstants.ASIA_KARACHI); // (GMT+05:00) Islamabad, Karachi, Tashkent
-		set("India Standard Time",TimeZoneConstants.IST); // (GMT+05:30) Chennai, Kolkata, Mumbai, New Delhi
-		set("Nepal Standard Time",TimeZoneConstants.ASIA_KATMANDU); // (GMT+05:45) Kathmandu
-		set("Central Asia Standard Time",TimeZoneConstants.ASIA_DHAKA); //(GMT+06:00) Astana, Dhaka 
-		set("Sri Lanka Standard Time",TimeZoneConstants.ASIA_COLOMBO); // (GMT+06:00) Sri Jayawardenepura
-		set("N. Central Asia Standard Time",TimeZoneConstants.ASIA_ALMATY); // (GMT+06:00) Almaty, Novosibirsk
-		set("Myanmar Standard Time",TimeZoneConstants.ASIA_RANGOON); // (GMT+06:30) Yangon Rangoon
-		set("S.E. Asia Standard Time",TimeZoneConstants.ASIA_BANGKOK); // (GMT+07:00) Bangkok, Hanoi, Jakarta
-		set("North Asia Standard Time",TimeZoneConstants.ASIA_KRASNOYARSK); // (GMT+07:00) Krasnoyarsk
-		set("China Standard Time",TimeZoneConstants.CTT); // (GMT+08:00) Beijing, Chongqing, Hong Kong SAR, Urumqi
-		set("Singapore Standard Time",TimeZoneConstants.ASIA_SINGAPORE); // (GMT+08:00) Kuala Lumpur, Singapore
-		set("Taipei Standard Time",TimeZoneConstants.ASIA_TAIPEI); // (GMT+08:00) Taipei
-		set("W. Australia Standard Time",TimeZoneConstants.AUSTRALIA_PERTH); // (GMT+08:00) Perth
-		set("North Asia East Standard Time",TimeZoneConstants.ASIA_IRKUTSK); // (GMT+08:00) Irkutsk, Ulaanbaatar
-		set("Korea Standard Time",TimeZoneConstants.ASIA_SEOUL); // (GMT+09:00) Seoul
-		set("Tokyo Standard Time",TimeZoneConstants.ASIA_TOKYO); // (GMT+09:00) Osaka, Sapporo, Tokyo
-		set("Yakutsk Standard Time",TimeZoneConstants.ASIA_YAKUTSK); // (GMT+09:00) Yakutsk
-		set("A.U.S. Central Standard Time",TimeZoneConstants.ACT); // (GMT+09:30) Darwin
-		set("Cen. Australia Standard Time",TimeZoneConstants.ACT); // (GMT+09:30) Adelaide
-		set("A.U.S. Eastern Standard Time",TimeZoneConstants.AET); // (GMT+10:00) Canberra, Melbourne, Sydney
-		set("E. Australia Standard Time",TimeZoneConstants.AET); // (GMT+10:00) Brisbane
-		set("Tasmania Standard Time",TimeZoneConstants.AUSTRALIA_TASMANIA); // (GMT+10:00) Hobart
-		set("Vladivostok Standard Time",TimeZoneConstants.ASIA_VLADIVOSTOK); // (GMT+10:00) Vladivostok
-		set("West Pacific Standard Time",TimeZoneConstants.PACIFIC_GUAM); // (GMT+10:00) Guam, Port Moresby
-		set("Central Pacific Standard Time",TimeZoneConstants.ASIA_MAGADAN); // (GMT+11:00) Magadan, Solomon Islands, New Caledonia
-		set("Fiji Islands Standard Time",TimeZoneConstants.PACIFIC_FIJI); // (GMT+12:00) Fiji Islands, Kamchatka, Marshall Islands
-		set("New Zealand Standard Time",TimeZoneConstants.NZ); // (GMT+12:00) Auckland, Wellington
-		set("Tonga Standard Time",TimeZoneConstants.PACIFIC_TONGATAPU); // (GMT+13:00) Nuku'alofa
-		set("CEST",TimeZoneConstants.CET);
-		set("ACDT",TimeZoneConstants.ACT);
-		set("ACST",TimeZoneConstants.AUSTRALIA_EUCLA);
-		set("ACST",TimeZoneConstants.AUSTRALIA_TASMANIA);
-		set("AEST",TimeZoneConstants.AUSTRALIA_QUEENSLAND);
-		set("ET",TimeZoneConstants.ET);
-		set("EDT",TimeZoneConstants.ET);
-		set("EST",TimeZoneConstants.ET);
-		set("MT",TimeZoneConstants.MT);
-		set("MST",TimeZoneConstants.MT);
-		set("MDT",TimeZoneConstants.MT);
-		set("CT",TimeZoneConstants.CT);
-		set("CST",TimeZoneConstants.CT);
-		set("CDT",TimeZoneConstants.CT);
-		set("PT",TimeZoneConstants.PT);
-		set("PST",TimeZoneConstants.PT);
-		set("PDT",TimeZoneConstants.PT);
+		set("Dateline Standard Time" ,"Etc/GMT+12");
+		set("Samoa Standard Time" ,"Pacific/Midway");
+		set("Hawaiian Standard Time" ,"HST");
+		set("Alaskan Standard Time" ,"AST");
+		set("Pacific Standard Time" ,"PST");
+		set("Mountain Standard Time" ,"MST");
+		set("Mexico Standard Time" ,"Mexico/General");
+		set("Mexico Standard Time 2" ,"America/Chihuahua");
+		set("U.S. Mountain Standard Time" ,"MST");
+		set("Central Standard Time" ,"CST");
+		set("Canada Central Standard Time" ,"Canada/Central");
+		set("Central America Standard Time" ,"CST");
+		set("Eastern Standard Time" ,"EST");
+		set("U.S. Eastern Standard Time" ,"EST");
+		set("S.A. Pacific Standard Time" ,"America/Bogota");
+		set("Atlantic Standard Time" ,"Canada/Atlantic");
+		set("S.A. Western Standard Time" ,"America/Antigua");
+		set("Pacific S.A. Standard Time" ,"America/Santiago");
+		set("Newfoundland and Labrador Standard Time" ,"CNT");
+		set("E. South America Standard Time" ,"BET");
+		set("S.A. Eastern Standard Time" ,"America/Argentina/Buenos_Aires");
+		set("Greenland Standard Time" ,"America/Godthab");
+		set("Mid-Atlantic Standard Time" ,"America/Noronha");
+		set("Azores Standard Time" ,"Atlantic/Azores");
+		set("Cape Verde Standard Time" ,"Atlantic/Cape_Verde");
+		set("Central Europe Standard Time" ,"CET");
+		set("Central European Standard Time" ,"CET");
+		set("Romance Standard Time" ,"Europe/Brussels");
+		set("W. Europe Standard Time" ,"CET");
+		set("E. Europe Standard Time" ,"ART");
+		set("Egypt Standard Time" ,"Egypt");
+		set("FLE Standard Time" ,"EET");
+		set("GTB Standard Time" ,"Europe/Athens");
+		set("Israel Standard Time" ,"Asia/Jerusalem");
+		set("South Africa Standard Time" ,"Africa/Johannesburg");
+		set("Russian Standard Time" ,"Europe/Moscow");
+		set("Arab Standard Time" ,"Asia/Kuwait");
+		set("E. Africa Standard Time" ,"Africa/Nairobi");
+		set("Arabic Standard Time" ,"Asia/Baghdad");
+		set("Iran Standard Time" ,"Asia/Tehran");
+		set("Arabian Standard Time" ,"Asia/Muscat");
+		set("Caucasus Standard Time" ,"Asia/Yerevan");
+		set("Transitional Islamic State of Afghanistan Standard Time" ,"Asia/Kabul");
+		set("Ekaterinburg Standard Time" ,"Asia/Yekaterinburg");
+		set("West Asia Standard Time" ,"Asia/Karachi");
+		set("India Standard Time" ,"IST");
+		set("Nepal Standard Time" ,"Asia/Katmandu");
+		set("Central Asia Standard Time" ,"Asia/Dhaka");
+		set("Sri Lanka Standard Time" ,"Asia/Colombo");
+		set("N. Central Asia Standard Time" ,"Asia/Almaty");
+		set("Myanmar Standard Time" ,"Asia/Rangoon");
+		set("S.E. Asia Standard Time" ,"Asia/Bangkok");
+		set("North Asia Standard Time" ,"Asia/Krasnoyarsk");
+		set("China Standard Time" ,"CTT");
+		set("Singapore Standard Time" ,"Asia/Singapore");
+		set("Taipei Standard Time" ,"Asia/Taipei");
+		set("W. Australia Standard Time" ,"Australia/Perth");
+		set("North Asia East Standard Time" ,"Asia/Irkutsk");
+		set("Korea Standard Time" ,"Asia/Seoul");
+		set("Tokyo Standard Time" ,"Asia/Tokyo");
+		set("Yakutsk Standard Time" ,"Asia/Yakutsk");
+		set("A.U.S. Central Standard Time" ,"ACT");
+		set("Cen. Australia Standard Time" ,"ACT");
+		set("A.U.S. Eastern Standard Time" ,"AET");
+		set("E. Australia Standard Time" ,"AET");
+		set("Tasmania Standard Time" ,"Australia/Tasmania");
+		set("Vladivostok Standard Time" ,"Asia/Vladivostok");
+		set("West Pacific Standard Time" ,"Pacific/Guam");
+		set("Central Pacific Standard Time" ,"Asia/Magadan");
+		set("Fiji Islands Standard Time" ,"Pacific/Fiji");
+		set("New Zealand Standard Time" ,"NZ");
+		set("Tonga Standard Time" ,"Pacific/Tongatapu");
+		set("CEST" ,"CET");
+		set("ACDT" ,"ACT");
+		set("ACST" ,"Australia/Eucla");
+		set("ACST" ,"Australia/Tasmania");
+		set("AEST" ,"Australia/Queensland");
+		set("ET" ,"US/Eastern");
+		set("EDT" ,"US/Eastern");
+		set("EST" ,"US/Eastern");
+		set("MT" ,"US/Mountain");
+		set("MST" ,"US/Mountain");
+		set("MDT" ,"US/Mountain");
+		set("CT" ,"US/Central");
+		set("CST" ,"US/Central");
+		set("CDT" ,"US/Central");
+		set("PT" ,"US/Pacific");
+		set("PST" ,"US/Pacific");
+		set("PDT" ,"US/Pacific");
 		
 	}
-	
-	private static void set(String name, TimeZone tz) {
-		if(tz==null) return;
+
+	private static void set(String name, String ID) {
+		if(StringUtil.isEmpty(ID)) return;
 		name=StringUtil.replace(name.trim().toLowerCase(), " ", "", false);
-		IDS.put(name.toLowerCase(), tz);
+		IDS.put(name.toLowerCase(), ID);
 	}
 
 	/**
@@ -155,6 +154,18 @@ public class TimeZoneUtil {
 		return ListUtil.arrayToList(TimeZone.getAvailableIDs(),", ");
 	}
 	
+	private static TimeZone getTimeZoneFromIDS(String strTimezone) {
+		Object obj = IDS.get(strTimezone);
+		if(obj==null) return null;
+		
+		if(obj instanceof String) {
+			TimeZone tz=TimeZone.getTimeZone((String)obj);
+			IDS.put(strTimezone, tz);
+			return tz;
+		}
+		return (TimeZone)obj;
+	}
+	
 	/**
 	 * translate timezone string format to a timezone
 	 * @param strTimezone
@@ -163,7 +174,7 @@ public class TimeZoneUtil {
 	public static TimeZone toTimeZone(String strTimezone,TimeZone defaultValue){
 		if(strTimezone==null) return defaultValue;
 		strTimezone=StringUtil.replace(strTimezone.trim().toLowerCase(), " ", "", false);
-		TimeZone tz = IDS.get(strTimezone);
+		TimeZone tz = getTimeZoneFromIDS(strTimezone);
 		if(tz!=null) return tz;
 		
 		//parse GMT followd by a number
@@ -175,7 +186,7 @@ public class TimeZoneUtil {
 		
 		if(!Float.isNaN(gmtOffset)) {
 			strTimezone="etc/gmt"+(gmtOffset>=0?"+":"")+Caster.toString(gmtOffset);
-			tz =  IDS.get(strTimezone);
+			tz =  getTimeZoneFromIDS(strTimezone);
 			if(tz!=null) return tz;
 			
 		}

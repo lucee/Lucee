@@ -113,6 +113,7 @@ public final class Application extends TagImpl {
 	private Struct ormsettings;
 	private Struct tag;
 	private Struct s3;
+	private Struct ftp;
 	
 	private Boolean triggerDataMember=null;
 	private String cacheFunction;
@@ -184,6 +185,7 @@ public final class Application extends TagImpl {
         ormsettings=null;
         tag=null;
         s3=null;
+        ftp=null;
         //appContext=null;
         
         triggerDataMember=null;
@@ -446,6 +448,13 @@ public final class Application extends TagImpl {
 		this.s3 = s3;
 	}
 
+	/**
+	 * @param s3 the s3 to set
+	 */
+	public void setFtp(Struct ftp) {
+		this.ftp = ftp;
+	}
+
 	/** set the value applicationtimeout
 	*  Enter the CreateTimeSpan function and values in days, hours, minutes, and seconds, separated 
 	* 		by commas, to specify the lifespan of application variables. 
@@ -696,6 +705,7 @@ public final class Application extends TagImpl {
 		ac.setSessionCluster(sessionCluster);
 		ac.setCGIScopeReadonly(cgiReadOnly);
 		if(s3!=null) ac.setS3(AppListenerUtil.toS3(s3));
+		if(ftp!=null) ((ApplicationContextSupport)ac).setFTP(AppListenerUtil.toFTP(ftp));
 		
 		// Scope cascading
 		if(scopeCascading!=-1) ac.setScopeCascading(scopeCascading);

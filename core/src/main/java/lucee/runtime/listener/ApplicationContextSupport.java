@@ -33,6 +33,7 @@ import lucee.commons.io.log.log4j.appender.RollingResourceAppender;
 import lucee.commons.io.log.log4j.layout.ClassicLayout;
 import lucee.commons.io.log.log4j.layout.DatasourceLayout;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.type.ftp.FTPConnectionData;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -428,5 +429,9 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	public abstract boolean getWSMaintainSession(); // used in extension Axis1
 	public abstract void setWSMaintainSession(boolean maintainSession);
+	
+	public abstract FTPConnectionData getFTP();
+	public abstract void setFTP(FTPConnectionData ftp);
+
 	
 }
