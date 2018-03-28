@@ -29,7 +29,7 @@
 			<cfset variables.id=arguments.id>
 			<cfset variables.config=arguments.config>
 			<cfif len(arguments.listener) eq 0>
-				<cflog text="init #variables.id# Listener is not an component" type="Error" file="#variables.logFileName#">
+				<cflog text="init #variables.id# Listener is not a component" type="Error" file="#variables.logFileName#">
 				<cfreturn>
 			</cfif>
 			<cflog text="init #variables.id# [#len(arguments.listener)#]" type="information" file="#variables.logFileName#">
