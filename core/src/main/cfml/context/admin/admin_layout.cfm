@@ -93,7 +93,8 @@
 										</ul>
 									</div>
 								</cfif>
-									<div class="box">#attributes.title#<cfif structKeyExists(request,'subTitle')> - #request.subTitle#</cfif></div>
+									<div class="box"><cfif structKeyExists(request,'title')>#request.title#<cfelse>#attributes.title#</cfif>
+									<cfif structKeyExists(request,'subTitle')> - #request.subTitle#</cfif></div>
 								</div>
 							<div id="innercontent" <cfif !hasNavigation>align="center"</cfif>>
 								#thistag.generatedContent#
