@@ -21,16 +21,19 @@
 
 
 	<cffunction name="init" access="public" output="no" returntype="void">
-		<cfargument name="id" required="false" type="string">
-		<cfargument name="config" required="false" type="struct">
+		<cfargument name="id" required="true" type="string">
+		<cfargument name="config" required="true" type="struct">
 		<cfargument name="listener" required="false" type="component">
 		<cfset var cfcatch = "" />
 		<cftry>
-			<cfset variables.id=id>
-			<cfset variables.config=config>
-			<cfset variables.listener=listener>
-
-			<cflog text="init" type="information" file="#variables.logFileName#">
+			<cfset variables.id=arguments.id>
+			<cfset variables.config=arguments.config>
+			<cfif len(arguments.listener) eq 0>
+				<cflog text="init #variables.id# Listener is not an component" type="Error" file="#variables.logFileName#">
+				<cfreturn>
+			</cfif>
+			<cflog text="init #variables.id# [#len(arguments.listener)#]" type="information" file="#variables.logFileName#">
+			<cfset variables.listener=arguments.listener>
 			<cfcatch>
 				<cfset _handleError(cfcatch, "init") />
 			</cfcatch>
@@ -42,6 +45,12 @@
 		<cfset var sleepStep = iif(variables.config.interval lt 500, 'variables.config.interval', de(500)) />
 		<cfset var i=-1 />
 		<cfset var cfcatch = "" />
+
+		<cfif not StructKeyExists(variables, "listener")>
+			<cfset variables.state="stopped" />
+			<cfreturn>
+		</cfif>
+
 		<cftry>
 			<cfwhile variables.state EQ "stopping">
 				<cfset sleep(10)>
@@ -50,13 +59,23 @@
 
 			<cfset variables._filter = cleanExtensions(variables.config.extensions) />
 
-			<cflog text="start" type="information" file="#variables.logFileName#">
+			<cflog text="start #variables.id# Directory[#variables.config.directory#]" type="information" file="#variables.logFileName#">
 			<cfset var funcNames={add:config.addFunction, change:config.changeFunction, delete:config.deleteFunction}>
+			<cftry>
+				<!--- check if the directory actually exists
 
-			<!--- check if the directory actually exists --->
-			<cfif not DirectoryExists(variables.config.directory)>
-				<cflog text="Directory [#variables.config.directory#] does not exist or is not a directory" type="Error" file="#variables.logFileName#" />
-			</cfif>
+				https://luceeserver.atlassian.net/browse/LDEV-1767
+
+				 --->
+				<cfif not DirectoryExists(variables.config.directory)>
+					<cflog text="start #variables.id# Directory [#variables.config.directory#] does not exist or is not a directory" type="Error" file="#variables.logFileName#" />
+				</cfif>
+				<cfcatch>
+					<cflog text="poll #variables.id# Directory [#variables.config.directory#] DirectoryExists threw #cfcatch.message# #cfcatch.stacktrace#" 	type="Error" 	file="#variables.logFileName#" />
+					<cfset variables.state="stopped" />
+					<cfreturn>
+				</cfcatch>
+			</cftry>
 			<cfif not StructKeyExists(variables.config,"recurse")>
 				<cfset variables.config.recurse=false>
 			</cfif>
@@ -152,6 +171,7 @@
 		<cfargument name="fileFilter" type="string" required="no" default="*" />
 		<cfset var cfcatch = "" />
 		<cftry>
+			<cfset var startTime = getTickCount()>
 			<cfset var dir = getFiles(arguments.directory, arguments.recurse, arguments.fileFilter) />
 			<cfset var sct={}>
 			<cfset var diff={}>
@@ -185,11 +205,23 @@
 					<cfset diff[name]=last[name]>
 				</cfif>
 			</cfloop>
-
+			<!--- large directories can take a while and involve heavy io --->
+			<cfscript>
+				var executionTime = getTickCount() - startTime;
+				var warningTimeout = 1000;
+				if (structKeyExists(variables.config, "warningTimeout") ){
+					warningTimeout = variables.config.warningTimeout;
+				}
+			</cfscript>
+			<cfif warningTimeout gt 0 and executionTime gt warningTimeout >
+				<cflog text="poll #variables.id# Directory [#variables.config.directory#] took #(executionTime)#ms"
+					type="Information" 	file="#variables.logFileName#" />
+			</cfif>
 			<cfreturn {data:sct,diff:diff}>
 			<cfcatch>
 				<cfset _handleError(cfcatch, "compareFiles") />
 			</cfcatch>
+
 		</cftry>
 	</cffunction>
 
@@ -202,11 +234,12 @@
 
 
 	<cffunction name="stop" access="public" output="no" returntype="void">
-		<cflog text="stop" type="information" file="#variables.logFileName#">
+		<cflog text="stop #variables.id#" type="information" file="#variables.logFileName#">
 		<cfset variables.state="stopping">
 	</cffunction>
 
 	<cffunction name="restart" access="public" output="no" returntype="void">
+		<cflog text="restart #variables.id#" type="information" file="#variables.logFileName#">
 		<cfif state EQ "running"><cfset stop()></cfif>
 		<cfset start()>
 	</cffunction>
@@ -231,7 +264,7 @@
 	<cffunction name="_handleError" returntype="void" access="private" output="no">
 		<cfargument name="catchData" required="yes" />
 		<cfargument name="functionName" type="string" required="no" default="unknown" />
-		<cflog text="Function #arguments.functionName#: #arguments.catchData.message# #arguments.catchData.detail#"
+		<cflog text="#variables.id# Function #arguments.functionName#: #arguments.catchData.message# #arguments.catchData.detail# #arguments.catchData.stacktrace#"
 		type="error" file="#variables.logFileName#" />
 	</cffunction>
 
