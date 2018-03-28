@@ -18,7 +18,6 @@ public class ExtensionExists extends BIF implements Function {
 		return call(pc, id, null);
 	}
 	public static boolean call(PageContext pc , String id, String version) throws PageException {
-		pc.getConfig().getExtensions();
 		if(find(id,version,((ConfigWebImpl)pc.getConfig()).getServerRHExtensions())) return true;
 		if(find(id,version,((ConfigWebImpl)pc.getConfig()).getRHExtensions())) return true;
 		return false;

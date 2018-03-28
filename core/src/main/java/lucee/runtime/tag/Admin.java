@@ -2736,11 +2736,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doGetRHExtensions() throws PageException {
-		pageContext.setVariable(getString("admin", action, "returnVariable"), RHExtension.toQuery(config, config.getRHExtensions()));
+		pageContext.setVariable(getString("admin", action, "returnVariable"), RHExtension.toQuery(config, config.getRHExtensions(),null));
 	}
 
 	private void doGetRHServerExtensions() throws PageException {
-		pageContext.setVariable(getString("admin", action, "returnVariable"), RHExtension.toQuery(config, config.getServerRHExtensions()));
+		pageContext.setVariable(getString("admin", action, "returnVariable"), RHExtension.toQuery(config, config.getServerRHExtensions(),null));
 	}
 
 	private void doGetLocalExtension() throws PageException {
@@ -2766,7 +2766,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 		else {
 			List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config));
-			Query qry = RHExtension.toQuery(config, locals);
+			Query qry = RHExtension.toQuery(config, locals,null);
 			int rows = qry.getRecordcount();
 			String _id;
 			int row = 0;
@@ -2785,7 +2785,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetLocalExtensions() throws PageException {
 		List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config));
-		Query qry = RHExtension.toQuery(config, locals);
+		Query qry = RHExtension.toQuery(config, locals,null);
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 

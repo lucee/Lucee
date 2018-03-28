@@ -3028,6 +3028,16 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
+	<!-- ExtensionList -->	
+	<function>
+		<name>ExtensionList</name>
+		<class>lucee.runtime.functions.system.ExtensionList</class>
+		<description>Checks if a certain extension exists or not.</description>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
+	
 	
 	<!-- decrypt -->
 	<function>

@@ -888,9 +888,9 @@ public class RHExtension implements Serializable {
 		return ListUtil.listToStringArray(str.trim(), ',');
 	}
 	
-	public static Query toQuery(Config config,List<RHExtension> children) throws PageException {
+	public static Query toQuery(Config config,List<RHExtension> children, Query qry) throws PageException {
 		Log log = config.getLog("deploy");
-		Query qry = createQuery();
+		if(qry==null)qry = createQuery();
 		Iterator<RHExtension> it = children.iterator();
 		while(it.hasNext()) {
 			try{
@@ -904,9 +904,9 @@ public class RHExtension implements Serializable {
 		return qry;
 	}
 	
-	public static Query toQuery(Config config,RHExtension[] children) throws PageException {
+	public static Query toQuery(Config config,RHExtension[] children, Query qry) throws PageException {
 		Log log = config.getLog("deploy");
-		Query qry = createQuery();
+		if(qry==null)qry = createQuery();
 		for(int i=0;i<children.length;i++) {
 			try{
 				children[i].populate(qry); // ,i+1
@@ -939,6 +939,7 @@ public class RHExtension implements Serializable {
       			KeyConstants._id
       			,KeyConstants._version
       			,KeyConstants._name
+      			,KeyConstants._type
       			,KeyConstants._description
       			,KeyConstants._image
       			,RELEASE_TYPE
@@ -966,6 +967,7 @@ public class RHExtension implements Serializable {
 		qry.setAt(KeyConstants._id, row, getId());
   	    qry.setAt(KeyConstants._name, row, name);
   	    qry.setAt(KeyConstants._image, row, getImage());
+  	    qry.setAt(KeyConstants._type, row, type);
   	  	qry.setAt(KeyConstants._description, row, description);
   	  	qry.setAt(KeyConstants._version, row, getVersion()==null?null:getVersion().toString());
   	  	qry.setAt(TRIAL, row, isTrial());
