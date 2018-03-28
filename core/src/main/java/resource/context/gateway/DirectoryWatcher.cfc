@@ -32,7 +32,7 @@
 				<cflog text="init #variables.id# Listener is not a component" type="Error" file="#variables.logFileName#">
 				<cfreturn>
 			</cfif>
-			<cflog text="init #variables.id# [#len(arguments.listener)#]" type="information" file="#variables.logFileName#">
+			<cflog text="init #variables.id# [#GetComponentMetaData(arguments.listener).path#]" type="information" file="#variables.logFileName#">
 			<cfset variables.listener=arguments.listener>
 			<cfcatch>
 				<cfset _handleError(cfcatch, "init") />
