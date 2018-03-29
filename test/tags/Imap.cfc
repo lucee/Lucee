@@ -126,7 +126,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						username = imapSettings.USERNAME 
 						secure="no" 
 						password = imapSettings.PASSWORD
-						connection = "local.newsmasterbm";
+						connection = "newsmasterbm";
 
 					imap name="local.MyFolders" action="listallfolders" connection="newsmasterbm";
 
