@@ -548,8 +548,9 @@ public final class Application extends TagImpl {
         ApplicationContext ac;
         boolean initORM;
         if(action==ACTION_CREATE){
+        	PageSource ps = pageContext.getCurrentPageSource();
         	ac=new ClassicApplicationContext(pageContext.getConfig(),name,false,
-        			pageContext.getCurrentPageSource().getResourceTranslated(pageContext));
+        			ps==null?null:ps.getResourceTranslated(pageContext));
         	initORM=set(ac,false);
         	pageContext.setApplicationContext(ac);
         }
