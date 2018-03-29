@@ -310,14 +310,11 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 		  		$("##btn_"+v).addClass("btn");
 			});
 		} else {
-			if($('.td_'+v).is(':visible')){
-				$('.td_'+v).hide();
-			} else {
-				$('.td_'+v).show();
-			}
 			if($( "##btn_"+v).hasClass( "btn" )){
+				$('.td_'+v).hide();
 				$("##btn_"+v).removeClass('btn');
 			} else {
+				$('.td_'+v).show();
 				$("##btn_"+v).addClass('btn');
 			}
 		}
