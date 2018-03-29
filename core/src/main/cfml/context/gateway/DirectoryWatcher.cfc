@@ -230,7 +230,7 @@
 
 	<cffunction name="stop" access="public" output="no" returntype="void">
 		<cflog text="stop #variables.id#" type="information" file="#variables.logFileName#">
-		<cfset variables.state="stopping">
+		<cfset variables.setState("stopping")>
 	</cffunction>
 
 	<cffunction name="restart" access="public" output="no" returntype="void">
@@ -246,15 +246,7 @@
 				file="#variables.logFileName#" />
 		<cfscript>
 			switch (arguments.newState){
-				case "start":
-					start();
-					break;
-				case "stop":
-					stop();
-					break;
-				case "restart":
-					restart();
-					break;
+				case "stopping":					
 				case "running":
 				case "stopped":
 					variables.state=arguments.newState;
