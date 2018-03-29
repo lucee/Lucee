@@ -130,7 +130,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 					imap name="local.MyFolders" action="listallfolders" connection="newsmasterbm";
 
-					listfindnocase(ValueList(MyFolders.Name
+					 listfindnocase(ValueList(MyFolders.Name),"bm");
 				});
 
 			});
