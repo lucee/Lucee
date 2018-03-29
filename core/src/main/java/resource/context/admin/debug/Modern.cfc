@@ -459,7 +459,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				$.each(["heap","nonheap", "cpuSystem", "cpuProcess"], function(i, data){
 					window[data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
 					window[data+"Chart"] = {
-						backgroundColor: ["##EFEDE5"],
+						backgroundColor: ["##ffffff"],
 						tooltip : {'trigger':'axis',
 							formatter : function (params) {
 								return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>' +params[0][1] ;
@@ -475,13 +475,19 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						xAxis : [{
 							'type':'category',
 							'boundaryGap' : false,
-							'data': [0]
+							'data': [0],
+							splitLine: {
+				               	show: false
+				           	},
 						}],
 						yAxis : [{
 							'type':'value',
 							'min':'0',
 							'max':'100',
-							'splitNumber': 2
+							'splitNumber': 2,
+							splitLine: {
+				               	show: false
+				           	},
 						}],
 						series : [
 							{
