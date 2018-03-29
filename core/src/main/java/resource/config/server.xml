@@ -41,6 +41,7 @@ Path placeholders:
 	<data-sources
 		preserve-single-quote="yes">
 	</data-sources>
+	<mode develop="false"></mode>
 
 	<!--
 		deploy-directory - directory where java classes will be deployed

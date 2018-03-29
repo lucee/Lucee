@@ -255,6 +255,7 @@ public abstract class ConfigImpl implements Config {
     private boolean sessionManagement=true;  
     private boolean clientManagement=false;
     private boolean clientCookies=true; 
+    private boolean developMode=false;
     private boolean domainCookies=false;
 
     private Resource configFile;
@@ -629,6 +630,9 @@ public abstract class ConfigImpl implements Config {
     @Override
     public boolean isClientCookies() {
         return clientCookies;
+    }
+    public boolean isDevelopMode() {
+        return developMode;
     }
     
     @Override
@@ -1513,6 +1517,13 @@ public abstract class ConfigImpl implements Config {
      */
     protected void setClientCookies(boolean clientCookies) {
         this.clientCookies = clientCookies;
+    }
+
+    /**
+     * @param developMode
+     */
+    protected void setDevelopMode(boolean developMode) {
+        this.developMode = developMode;
     }
     
     /**
