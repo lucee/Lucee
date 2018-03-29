@@ -4609,7 +4609,7 @@ public final class XMLConfigAdmin {
 			}
 			
 			
-			if(id.equalsIgnoreCase(rhe.getId())) {
+			if(id.equalsIgnoreCase(rhe.getId()) || id.equalsIgnoreCase(rhe.getSymbolicName())) {
 				removeRHExtension(config,rhe,null,true);
 				extensions.removeChild(child);
 				//bundles=RHExtension.toBundleDefinitions(child.getAttribute("bundles"));

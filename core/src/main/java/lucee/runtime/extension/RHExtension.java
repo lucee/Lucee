@@ -106,6 +106,7 @@ public class RHExtension implements Serializable {
 	private static final Key START_BUNDLES = KeyImpl.init("startBundles");
 	private static final Key TRIAL = KeyImpl.init("trial");
 	private static final Key RELEASE_TYPE = KeyImpl.init("releaseType");
+	private static final Key SYMBOLIC_NAME = KeyImpl.init("symbolicName");
     
 	private static final String[] EMPTY = new String[0];
 	private static final BundleDefinition[] EMPTY_BD = new BundleDefinition[0];
@@ -115,10 +116,12 @@ public class RHExtension implements Serializable {
 	public static final int RELEASE_TYPE_WEB=2;
 
 
+
 	private String id;
 	private int releaseType;
 	private String version;
 	private String name;
+	private String symbolicName;
 	
 
 	private String description;
@@ -427,6 +430,7 @@ public class RHExtension implements Serializable {
 		
 		Attributes attr = manifest.getMainAttributes();
 
+		readSymbolicName(label,StringUtil.unwrap(attr.getValue("symbolic-name")));
 		readName(label,StringUtil.unwrap(attr.getValue("name")));
 		label=name;
 		readVersion(label, StringUtil.unwrap(attr.getValue("version")));
@@ -463,7 +467,8 @@ public class RHExtension implements Serializable {
 		
 		Log logger = ((ConfigImpl)config).getLog("deploy");
 		Info info = ConfigWebUtil.getEngine(config).getInfo();
-		
+
+		readSymbolicName(label,el.getAttribute("symbolic-name"));
 		readName(label,el.getAttribute("name"));
 		label=name;
 		readVersion(label,el.getAttribute("version"));
@@ -641,6 +646,11 @@ public class RHExtension implements Serializable {
 			throw new ApplicationException("The Extension ["+label+"] has no name defined, a name is necesary.");
 		}
 		name=str.trim();
+	}
+	private void readSymbolicName(String label,String str) throws ApplicationException {
+		str=StringUtil.unwrap(str);
+		if(!StringUtil.isEmpty(str,true))
+			symbolicName=str.trim();
 	}
 
 	public void deployBundles(Config config) throws IOException, BundleException {
@@ -939,6 +949,7 @@ public class RHExtension implements Serializable {
       			KeyConstants._id
       			,KeyConstants._version
       			,KeyConstants._name
+      			,SYMBOLIC_NAME
       			,KeyConstants._type
       			,KeyConstants._description
       			,KeyConstants._image
@@ -965,7 +976,8 @@ public class RHExtension implements Serializable {
 	private void populate(Query qry) throws PageException, IOException, BundleException {
 		int row=qry.addRow();
 		qry.setAt(KeyConstants._id, row, getId());
-  	    qry.setAt(KeyConstants._name, row, name);
+  	    qry.setAt(KeyConstants._name, row, getName());
+  	    qry.setAt(SYMBOLIC_NAME, row, getSymbolicName());
   	    qry.setAt(KeyConstants._image, row, getImage());
   	    qry.setAt(KeyConstants._type, row, type);
   	  	qry.setAt(KeyConstants._description, row, description);
@@ -1001,7 +1013,8 @@ public class RHExtension implements Serializable {
 	public Struct toStruct() throws PageException {
 		Struct sct=new StructImpl();
 		sct.set(KeyConstants._id, getId());
-  	    sct.set(KeyConstants._name, name);
+		sct.set(SYMBOLIC_NAME, getSymbolicName());
+  	    sct.set(KeyConstants._name, getName());
   	    sct.set(KeyConstants._image, getImage());
   	  	sct.set(KeyConstants._description, description);
   	  	sct.set(KeyConstants._version, getVersion()==null?null:getVersion().toString());
@@ -1188,9 +1201,12 @@ public class RHExtension implements Serializable {
 		}
 	}
 	
-	
+
 	public String getName() {
 		return name;
+	}
+	public String getSymbolicName() {
+		return StringUtil.isEmpty(symbolicName)?id:symbolicName;
 	}
 
 	public boolean isTrial() {
@@ -1401,7 +1417,7 @@ public class RHExtension implements Serializable {
 		return rtn;
 	}
 	
-	public static ExtensionDefintion toExtensionDefinition(String s) {
+	public static ExtensionDefintion toExtensionDefinition(String s) { 
 		if(StringUtil.isEmpty(s,true))return null;
 		s=s.trim();
 		

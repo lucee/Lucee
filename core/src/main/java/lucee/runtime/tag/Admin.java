@@ -2725,7 +2725,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String id=getString("admin", action, "id");
 		if(StringUtil.isEmpty(id,true)) throw new ApplicationException("id cannot be empty");
 		for(RHExtension ext:extensions) {
-			if(id.equals(ext.getId())) {
+			if(id.equals(ext.getId()) || id.equals(ext.getSymbolicName())) {
 				pageContext.setVariable(
 						getString("admin", action, "returnVariable"), 
 						ext.toStruct());
