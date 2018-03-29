@@ -144,6 +144,15 @@ Defaults --->
 					typeChecking="#!isNull(form.typeChecking) and form.typeChecking EQ true#"
 					remoteClients="#request.getRemoteClients()#"
 					>
+				<cfif request.adminType EQ "server">
+
+					<cfadmin
+						action="updateDevelopMode"
+						type="#request.adminType#"
+						password="#session["password"&request.adminType]#"
+						mode="#!isNull(form.mode) and form.mode EQ true#"
+					>
+				</cfif>
 			
 			</cfcase>
 		<!--- reset to server setting --->
@@ -319,7 +328,23 @@ Create Datasource --->
 						<cfset renderCodingTip( codeSample, stText.settings.codetip )>
 					</td>
 				</tr>
-				
+				<cfif request.adminType EQ "server">
+					<cfadmin
+						action="getDevelopMode"
+						type="#request.adminType#"
+						password="#session["password"&request.adminType]#"
+						returnVariable="mode">
+					<!--- Type Checking --->
+					<tr>
+						<th scope="row">Develop Mode</th>
+						<td class="fieldPadded">
+							<label>
+								<input class="checkbox" type="checkbox" name="mode" value="true"<cfif  mode.developMode EQ true> checked="checked"</cfif>>
+							</label>
+							<div class="comment">develop Mode id mode automatically detects the extension deploy</div>
+						</td>
+					</tr>
+				</cfif>
 				
 				<cfif hasAccess>
 					<cfmodule template="remoteclients.cfm" colspan="2">
