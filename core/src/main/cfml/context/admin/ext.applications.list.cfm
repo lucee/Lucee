@@ -37,15 +37,15 @@
 		</div>
 		</cfif>
 
-		<cfloop list="#request.adminType=="web"?"server,web":"web"#" item="type">
-			<cfset _extensions=type=="web"?extensions:serverExtensions>
-		<cfif type=="server">
+		<cfloop list="#request.adminType=="web"?"server,web":"web"#" item="_type">
+			<cfset _extensions=_type=="web"?extensions:serverExtensions>
+		<cfif _type=="server">
 		<div style="text-align:center;background: ##fff;margin:10px 0px 0px 0px;border-radius: 10px;border:1px solid ##bf4f36;">
 				<h3 style="color:##bf4f36;margin-top:5px">#stText.ext.installedInServer#</h3>
 		</cfif>
-		<div<cfif type=="web"> style="margin-top:10px"<cfelse>  style="margin:0px 0px 4px 0px"</cfif> class="extensionlist">
+		<div<cfif _type=="web"> style="margin-top:10px"<cfelse>  style="margin:0px 0px 4px 0px"</cfif> class="extensionlist">
 			<cfloop query=_extensions>
-				<cfif type=="web"><cfset existing[_extensions.id]=true></cfif>
+				<cfif _type=="web"><cfset existing[_extensions.id]=true></cfif>
 				<cfif session.extFilter.filter neq "">
 					<cftry>
 						<cfset prov=getProviderData(_extensions.provider)>
@@ -80,20 +80,20 @@
 
 					
 
-						<a <cfif type=="web">href="#link#"<cfelse>style="border-color: ##E0E0E0;"</cfif> title="#_extensions.name#
+						<a <cfif _type=="web">href="#link#"<cfelse>style="border-color: ##E0E0E0;"</cfif> title="#_extensions.name#
 Categories: #arrayToList(cat)#"><cfif hasUpdate>
-       <div class="ribbon-wrapper" <cfif type=="server">style="border-color:##bf4f36"</cfif>><div class="ribbon" <cfif type=="server">style="background-color:##bf4f36"</cfif>>UPDATE ME!</div></div>
+       <div class="ribbon-wrapper" <cfif _type=="server">style="border-color:##bf4f36"</cfif>><div class="ribbon" <cfif _type=="server">style="background-color:##bf4f36"</cfif>>UPDATE ME!</div></div>
 </cfif>
 <cfif _extensions.trial>
-       <div class="ribbon-left-wrapper"><div class="ribbon-left" <cfif type=="server">style="background-color:##bf4f36"</cfif>>TRIAL</div></div>
+       <div class="ribbon-left-wrapper"><div class="ribbon-left" <cfif _type=="server">style="background-color:##bf4f36"</cfif>>TRIAL</div></div>
 </cfif>
 							<div class="extimg">
 								<cfif len(dn)>
 									<img src="#dn#" alt="#stText.ext.extThumbnail#" />
 								</cfif>
 							</div>
-							<span <cfif type=="server">style="color:##bf4f36"</cfif>>#cut(_extensions.name,40)#<br /></span>
-							<span class="comment" <cfif type=="server">style="color:##bf4f36"</cfif>>#cut(arrayToList(cat),30)#</span>
+							<span <cfif _type=="server">style="color:##bf4f36"</cfif>>#cut(_extensions.name,40)#<br /></span>
+							<span class="comment" <cfif _type=="server">style="color:##bf4f36"</cfif>>#cut(arrayToList(cat),30)#</span>
 							
 						</a>
 					</div>
@@ -101,7 +101,7 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 			</cfloop>
 			<div class="clear"></div>
 		</div>
-	<cfif type=="server"></div></cfif>
+	<cfif _type=="server"></div></cfif>
 </cfloop>
 	</cfoutput>
 </cfif>
