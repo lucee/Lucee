@@ -197,37 +197,31 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 			type="button"></span>
 		<cfsavecontent variable="tmpContent">
 			<div id="div_#UcFirst(Lcase(key))#" >
-				<cfif versionStr[key].RecordCount>
-					<cfloop query="#versionStr[key]#" group="id">
-						<cfif  (
-							session.extFilter.filter2 eq ""
-							or doFilter(session.extFilter.filter2,versionStr[key].name,false)
-							or doFilter(session.extFilter.filter2,versionStr[key].category,false)
-							or doFilter(session.extFilter.filter2,info.title?:'',false)
-						)
-						>
-								<cfset link="#request.self#?action=#url.action#&action2=detail&id=#versionStr[key].id#">
-								<cfset dn=getDumpNail(versionStr[key].image,130,50)>
-								<div class="extensionthumb">
-									<a href="#link#" title="#stText.ext.viewdetails#">
-										<div class="extimg">
-											<cfif len(dn)>
+				<cfloop query="#versionStr[key]#" group="id">
+					<cfif  (
+						session.extFilter.filter2 eq ""
+						or doFilter(session.extFilter.filter2,versionStr[key].name,false)
+						or doFilter(session.extFilter.filter2,versionStr[key].category,false)
+						or doFilter(session.extFilter.filter2,info.title?:'',false)
+					)
+					>
+							<cfset link="#request.self#?action=#url.action#&action2=detail&id=#versionStr[key].id#">
+							<cfset dn=getDumpNail(versionStr[key].image,130,50)>
+							<div class="extensionthumb">
+								<a href="#link#" title="#stText.ext.viewdetails#">
+									<div class="extimg">
+										<cfif len(dn)>
 
-												<img src="#dn#" alt="#stText.ext.extThumbnail#" />
-											</cfif>
-										</div>
-										<b title="#versionStr[key].name#">#cut(versionStr[key].name,30)#</b><br />
-										<!------>
-										<cfif structKeyExists(versionStr[key],"price") and versionStr[key].price GT 0>#versionStr[key].price# <cfif structKeyExists(versionStr[key],"currency")>#versionStr[key].currency#<cfelse>USD</cfif><cfelse>#stText.ext.free#</cfif>
-									</a>
-								</div>
-							</cfif>
-					</cfloop>
-				<cfelse>
-					<div>
-						#replace(stText.ext.noUpdateDesc,"{type}","<b>#stText.services.update.short[key]#</b>")#
-					</div>
-				</cfif>
+											<img src="#dn#" alt="#stText.ext.extThumbnail#" />
+										</cfif>
+									</div>
+									<b title="#versionStr[key].name#">#cut(versionStr[key].name,30)#</b><br />
+									<!------>
+									<cfif structKeyExists(versionStr[key],"price") and versionStr[key].price GT 0>#versionStr[key].price# <cfif structKeyExists(versionStr[key],"currency")>#versionStr[key].currency#<cfelse>USD</cfif><cfelse>#stText.ext.free#</cfif>
+								</a>
+							</div>
+						</cfif>
+				</cfloop>
 			</div>
 			</cfsavecontent>
 			<cfset hiddenFormContents &= tmpContent>
