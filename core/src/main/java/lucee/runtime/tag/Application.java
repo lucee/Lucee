@@ -559,7 +559,7 @@ public final class Application extends TagImpl {
         }
         // if we do not update we have to create a new one
         if(ac==null){
-        	PageSource ps = pageContext.getCurrentPageSource();
+        	PageSource ps = pageContext.getCurrentPageSource(null);
         	ac=new ClassicApplicationContext(pageContext.getConfig(),name,false,
         			ps==null?null:ps.getResourceTranslated(pageContext));
         	initORM=set(ac,false);
