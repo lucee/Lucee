@@ -233,7 +233,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			</fieldset><!--- #-lucee-debug !--->
 
 			<cfif enableTab("Reference") AND ( !structKeyExists(request, "fromAdmin") )>
-				<div id="mdlWnd" class="modal">
+				<div id="mdlWnd" class="modal" style="overflow:auto;">
 					<div class="modal-body">
 					</div>
 				</div>
