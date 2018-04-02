@@ -5548,12 +5548,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void throwNoAccessWhenWeb() throws ApplicationException {
 		if(type == TYPE_WEB)
-			throw new ApplicationException("you have no access for action [web." + action + "]");
+			throw new ApplicationException("Action " + action + " is not available for Server Admin (Web Admin only)");
 	}
 
 	private void throwNoAccessWhenServer() throws ApplicationException {
 		if(type == TYPE_SERVER) {
-			throw new ApplicationException("you have no access for action [server." + action + "]");
+			throw new ApplicationException("Action " + action + " is not available for Web Admin (Server Admin only)");
 		}
 	}
 }
