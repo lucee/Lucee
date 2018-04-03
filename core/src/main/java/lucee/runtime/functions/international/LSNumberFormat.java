@@ -27,10 +27,11 @@ import java.util.Locale;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.ext.function.Function;
+import lucee.runtime.ext.function.BIF;
+import lucee.runtime.op.Caster;
 import lucee.runtime.util.InvalidMaskException;
 
-public final class LSNumberFormat implements Function {
+public final class LSNumberFormat extends BIF {
 
 	private static final long serialVersionUID = -7981883050285346336L;
 
@@ -61,5 +62,15 @@ public final class LSNumberFormat implements Function {
 		catch (InvalidMaskException e) {
 			throw new FunctionException(pc, "lsnumberFormat", 1, "number", e.getMessage());
 		}
+	}
+
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length==3)return call(pc,args[0],Caster.toString(args[1]),Caster.toLocale(args[2]));
+		if(args.length==2)return call(pc,args[0],Caster.toString(args[1]));
+		if(args.length==1)return call(pc,args[0]);
+		
+		throw new FunctionException(pc, "LSNumberFormat", 1, 3, args.length);
 	}
 }

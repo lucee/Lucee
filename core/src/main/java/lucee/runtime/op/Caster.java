@@ -72,7 +72,6 @@ import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.coder.Base64Coder;
-import lucee.runtime.coder.CoderException;
 import lucee.runtime.component.Member;
 import lucee.runtime.config.Config;
 import lucee.runtime.converter.ConverterException;
@@ -485,8 +484,9 @@ public final class Caster {
     public static double toDoubleValue(String str, boolean alsoFromDate) throws CasterException { 
         if(str==null) return 0;//throw new CasterException("can't cast empty string to a number value");
         str=str.trim();
-        double rtn_=0;
-        double _rtn=0;
+        double rtn=0;
+        //double rtn_=0;
+        //double _rtn=0;
         int eCount=0;
         double deep=1;
         int pos=0; 
@@ -507,7 +507,7 @@ public final class Caster {
         boolean hasDot=false; 
         //boolean hasExp=false; 
         do { 
-            curr=str.charAt(pos); 
+        	curr=str.charAt(pos); 
             if(curr<'0') {
                 if(curr=='.') { 
                     if(hasDot) {
@@ -541,33 +541,22 @@ public final class Caster {
                     //throw new CasterException("can't cast ["+str+"] string to a number value"); 
                 //}
             }
-            else if(!hasDot) {
-                rtn_*=10;
-                rtn_+=toDigit(curr);
+            else  {
+                rtn*=10;
+                rtn+=toDigit(curr);
+                if(hasDot) deep*=10;
                 
-            }
-            /*else if(hasExp) {
-                eCount*=10;
-                eCount+=toDigit(curr);
-            }*/
-            else  {               
-                deep*=10;
-                _rtn*=10;
-                _rtn+=toDigit(curr);
-                
-                //rtn_+=(toDigit(curr)/deep);
-                //deep*=10;
             }
         } 
         while(++pos<len);
         
-
         if(deep>1) {
-            rtn_+=(_rtn/=deep);
+            rtn/=deep;
         }
-        if(isMinus)rtn_= -rtn_;
-        if(eCount>0)for(int i=0;i<eCount;i++)rtn_*=10;
-        return rtn_;
+         if(isMinus)rtn= -rtn;
+        if(eCount>0)for(int i=0;i<eCount;i++)rtn*=10;
+        //print.e("here:"+rtn_);
+        return rtn;
     }
     
     private static double toDoubleValueViaDate(String str) throws CasterException {
@@ -630,8 +619,7 @@ public final class Caster {
         int len=str.length(); 
         if(len==0) return defaultValue; 
 
-        double rtn_=0;
-        double _rtn=0;
+        double rtn=0;
         int eCount=0;
 //      double deep=10;
         double deep=1;
@@ -684,18 +672,10 @@ public final class Caster {
                 	return toDoubleValueViaDate(str,defaultValue);
                 //}
             }
-            else if(!hasDot) {
-                rtn_*=10;
-                rtn_+=toDigit(curr);
-            }
-            /*else if(hasExp) {
-                eCount*=10;
-                eCount+=toDigit(curr);
-            }*/
-            else  {                
-                deep*=10;
-                _rtn*=10;
-                _rtn+=toDigit(curr);
+            else  {
+                rtn*=10;
+                rtn+=toDigit(curr);
+                if(hasDot)deep*=10;
             }
            
         } 
@@ -703,11 +683,11 @@ public final class Caster {
         
         
         if(deep>1) {
-            rtn_+=(_rtn/=deep);
+            rtn/=deep;
         }
-        if(isMinus)rtn_= -rtn_;
-        if(eCount>0)for(int i=0;i<eCount;i++)rtn_*=10;
-        return rtn_;
+        if(isMinus)rtn= -rtn;
+        if(eCount>0)for(int i=0;i<eCount;i++)rtn*=10;
+        return rtn;
         
         
     }

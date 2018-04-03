@@ -18,13 +18,10 @@
  **/
 package lucee.runtime.util;
 
-import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.util.Formatter;
 import java.util.Locale;
 
-import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 
 /**
@@ -59,8 +56,6 @@ public final class NumberFormat {
 	 */
 	public String format(Locale locale, double number, String mask)
 			throws InvalidMaskException {
-
-		number = fixDouble(number, mask);
 
 		byte justification = RIGHT;
 
@@ -220,43 +215,6 @@ public final class NumberFormat {
 					useDollar, useBrackets);
 		}
 		return formattedNumBuffer.toString();
-	}
-
-	/**
-	 * fixes the number of decimal places when the double representation is
-	 * wrong. e.g. 1.985d which has the double value of 1.9849999999999999 with
-	 * a numDecimalPlaces will be fixed to the expected 1.99
-	 * 
-	 * @param d
-	 * @param numDecimalPlaces
-	 * @return
-	 */
-	public static double fixDouble(double d, int numDecimalPlaces) {
-
-		if (getNumDecimalPlaces(d) > numDecimalPlaces) {
-			Formatter formatter = new Formatter();
-			try {
-				formatter.format("%." + (numDecimalPlaces + 1) + "f", d);
-				BigDecimal bd = new BigDecimal(formatter.toString()).setScale(
-						numDecimalPlaces, BigDecimal.ROUND_HALF_UP);
-				return bd.doubleValue();
-			} finally {
-				IOUtil.closeEL(formatter);
-			}
-		}
-		return d;
-	}
-
-	/**
-	 * returns fixDouble(double d, int numDecimalPlaces) by extracting the
-	 * number of decimal places from the mask
-	 * 
-	 * @param d
-	 * @param mask
-	 * @return
-	 */
-	public static double fixDouble(double d, String mask) {
-		return fixDouble(d, getNumDecimalPlaces(mask));
 	}
 
 	/**

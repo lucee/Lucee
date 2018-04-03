@@ -150,5 +150,4 @@ public final class NumberFormat implements Function {
 		}
 		return roman.toString();
 	}
-
 }

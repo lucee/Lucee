@@ -25,19 +25,25 @@ import java.util.Locale;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.exp.CasterException;
-import lucee.runtime.ext.function.Function;
+import lucee.runtime.exp.FunctionException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.functions.international.LSCurrencyFormat;
 import lucee.runtime.op.Caster;
 
-public final class DollarFormat implements Function {
-	public static String call(PageContext pc, String strDollar) throws CasterException {
+public final class DollarFormat extends BIF {
+
+	private static final long serialVersionUID = -9006485495830329674L;
+
+	public static String call(PageContext pc, String strDollar) throws PageException {
 		if(StringUtil.isEmpty(strDollar))
 			strDollar = "0";// "$0,00";
-		return LSCurrencyFormat.local(Locale.US, Caster.toDoubleValue(strDollar));
-		/*
-		 * try { return "$"+Caster.toDecimal(Caster.toDoubleValue(strDollar),',','.'); } catch (PageException e) { throw new
-		 * FunctionException(pc,"dollarFormat",1,"number",e.getMessage()); }
-		 */
+		return LSCurrencyFormat.call(pc, strDollar, "local", Locale.US);
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length==1)return call(pc,Caster.toString(args[0]));
+		throw new FunctionException(pc, "DollarFormat", 1, 1, args.length);
 	}
 }
