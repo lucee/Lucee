@@ -77,6 +77,7 @@ public final class LSCurrencyFormat extends BIF {
 
 	public static String none(Locale locale, double number) {
 		NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
+		
 		return StringUtil.replace(nf.format(number), nf.getCurrency().getSymbol(locale), "", false).trim();
 	}
 
@@ -96,6 +97,6 @@ public final class LSCurrencyFormat extends BIF {
 	public static double toDouble(Object number) throws PageException {
 		if(number instanceof String && ((String)number).length() == 0)
 			return 0d;
-		return Caster.toDoubleValue(number);
+		return Caster.toDoubleValue(number)+0.000000000001d; // adding this only influence if the binary representation is a little bit off
 	}
 }

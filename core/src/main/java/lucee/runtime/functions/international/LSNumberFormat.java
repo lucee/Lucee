@@ -30,6 +30,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.util.InvalidMaskException;
+import lucee.runtime.util.NumberFormat.Mask;
 
 public final class LSNumberFormat extends BIF {
 
@@ -52,12 +53,12 @@ public final class LSNumberFormat extends BIF {
 		try {
 
 			lucee.runtime.util.NumberFormat formatter = new lucee.runtime.util.NumberFormat();
-			double number = lucee.runtime.functions.displayFormatting.NumberFormat.toNumber(pc, object);
-
+			
 			if(mask == null)
-				return formatter.format(locale, number);
-
-			return formatter.format(locale, number, mask);
+				return formatter.format(locale, lucee.runtime.functions.displayFormatting.NumberFormat.toNumber(pc, object,0));
+			Mask m = lucee.runtime.util.NumberFormat.convertMask(mask);
+			double number = lucee.runtime.functions.displayFormatting.NumberFormat.toNumber(pc, object,m.right);
+			return formatter.format(locale, number, m);
 		}
 		catch (InvalidMaskException e) {
 			throw new FunctionException(pc, "lsnumberFormat", 1, "number", e.getMessage());

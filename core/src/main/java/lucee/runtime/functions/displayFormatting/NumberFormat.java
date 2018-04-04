@@ -31,6 +31,7 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.util.InvalidMaskException;
+import lucee.runtime.util.NumberFormat.Mask;
 
 /**
  * Formats a Number by given pattern
@@ -44,7 +45,7 @@ public final class NumberFormat implements Function {
 	 * @throws ExpressionException
 	 */
 	public static String call(PageContext pc, Object object) throws PageException {
-		return new lucee.runtime.util.NumberFormat().format(Locale.US, toNumber(pc, object)).replace('\'', ',');
+		return new lucee.runtime.util.NumberFormat().format(Locale.US, toNumber(pc, object,0)).replace('\'', ',');
 	}
 
 	/**
@@ -58,28 +59,34 @@ public final class NumberFormat implements Function {
 		if(mask == null)
 			return call(pc, object);
 		if(mask.equalsIgnoreCase("roman")) {
-			return intToRoman(pc, (int)toNumber(pc, object));
+			return intToRoman(pc, (int)toNumber(pc, object,0));
 		}
 		else if(mask.equalsIgnoreCase("hex")) {
-			return Integer.toHexString((int)toNumber(pc, object));
+			return Integer.toHexString((int)toNumber(pc, object,0));
 		}
 		else if(mask.equalsIgnoreCase(",")) {
 			return call(pc, object);
 		}
 
 		try {
-			return new lucee.runtime.util.NumberFormat().format(Locale.US, toNumber(pc, object), mask);
+			Mask _mask = lucee.runtime.util.NumberFormat.convertMask(mask);
+			return new lucee.runtime.util.NumberFormat().format(Locale.US, toNumber(pc, object,_mask.right), _mask);
 		}
 		catch (InvalidMaskException e) {
 			throw new FunctionException(pc, "numberFormat", 2, "mask", e.getMessage());
 		}
 	}
 
-	public static double toNumber(PageContext pc, Object object) throws PageException {
+	public static double toNumber(PageContext pc, Object object, int digits) throws PageException {
 		double d = Caster.toDoubleValue(object, true, Double.NaN);
-		if(Decision.isValid(d))
-			return d;
-
+		if(Decision.isValid(d)) {
+			
+			if(digits<12)
+				d+=0.000000000001d; // adding this only influence if the binary representation is a little bit off
+			else if(digits<15)
+				d+=0.000000000000001d; // adding this only influence if the binary representation is a little bit off
+		return d;
+		}
 		String str = Caster.toString(object);
 		if(str.length() == 0)
 			return 0;
@@ -150,4 +157,5 @@ public final class NumberFormat implements Function {
 		}
 		return roman.toString();
 	}
+	
 }
