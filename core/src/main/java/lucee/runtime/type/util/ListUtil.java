@@ -1268,15 +1268,17 @@ public final class ListUtil {
 		return last(list, delimiter, true);
 	}
 	
+	
 	/**
 	 * return last element of the list
 	 * @param list
 	 * @param delimiter
 	 * @param ignoreEmpty
+	 * @count count
 	 * @return returns the last Element of a list
 	 */
-	public static String last(String list, String delimiter, boolean ignoreEmpty) {
-
+	public static String last(String list, String delimiter, boolean ignoreEmpty, int count) {
+		int ix;
 		if(StringUtil.isEmpty(list)) return "";
 		int len=list.length();
 		
@@ -1285,6 +1287,13 @@ public final class ListUtil {
 		    del=new char[]{','};
 		}
 		else del=delimiter.toCharArray();
+		if ( count > 1)
+			ix = getDelimIndex(list, count, del, ignoreEmpty);
+		else
+			ix = 1;
+
+		if (ix == -1)
+			return list;
 		
 		int index;
 		int x;
@@ -1306,9 +1315,15 @@ public final class ListUtil {
 				len--;
 			}
 			else {
-				return list.substring(index+1);
+				if(ix > list.length())
+					ix = list.length();
+				return list.substring(list.length()-ix, list.length());
 			}
 		}
+	}
+
+   	public static String last(String list, String delimiters, boolean ignoreEmpty) {
+		return last(list, delimiters, ignoreEmpty, 1);
 	}
 	
     /**
@@ -1339,6 +1354,8 @@ public final class ListUtil {
             }
         }
     }
+
+ 
 
 	/**
 	 * returns count of items in the list
