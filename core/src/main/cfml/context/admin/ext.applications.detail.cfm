@@ -246,7 +246,7 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 						<option value="">-- select the version --</option>
 						<cfloop list="#types#" index="key">
 							<cfif arrayLen(versionStr[key])>
-								<optgroup class="td_#UcFirst(Lcase(key))#" label="#key#">
+								<optgroup class="td_#UcFirst(Lcase(key))#" label="#stText.services.update.short[key]#">
 									<cfset options="">
 										<cfscript>
 										loop array=versionStr[key] item="v"{
@@ -267,11 +267,6 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 					</select>
 					<input type="button" class="button submit" onclick="versionSelected(this, version)"  value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
 				</td>
-					<!--- <cfelse>
-						<td class="td_#UcFirst(Lcase(key))#" style="padding:13px;" align="center">
-							<div>#replace(stText.ext.detail.noUpdateDesc,"{type}","<b>#stText.services.update.short[key]#</b>")#</div>
-						</td>
-					</cfif> --->
 			</tr>
 		</cfif>
 		<cfif isInstalled>
@@ -302,22 +297,20 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 		if(i== 'intial'){
 			$("##grpConnection").find('optgroup' ).each(function(index) {
 				var xx = $(this).attr('class');
-				$('.'+xx).hide();
+				window[xx] = $("."+xx).detach();
 				if("td_"+v == xx){
-					$('.'+xx).show();
+					$("##versions").append(window[xx]);
 				}
 		  		$(".btn").removeClass('btn');
 		  		$("##btn_"+v).addClass("btn");
 			});
 		} else {
-			if($('.td_'+v).is(':visible')){
-				$('.td_'+v).hide();
-			} else {
-				$('.td_'+v).show();
-			}
 			if($( "##btn_"+v).hasClass( "btn" )){
+				window[v] = $(".td_"+v).detach();
 				$("##btn_"+v).removeClass('btn');
 			} else {
+				;
+				$("##versions").append(window["td_"+v]);
 				$("##btn_"+v).addClass('btn');
 			}
 		}

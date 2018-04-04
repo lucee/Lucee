@@ -151,12 +151,15 @@
 	<cfset count = 1>
 	<cfset listVrs = "Release,Pre_Release,SnapShot">
 	<cfloop list="#listVrs#" index="key">
-		<span><input
+		<cfset len = 0>
+		<cfset len = len(versionsStr[key].upgrade) + len(versionsStr[key].downgrade)>
+		<span>
+			<input
 				<cfif count EQ 1>class="bl button alignLeft" <cfelseif count EQ StructCount(versionsStr)> class="br button" <cfelse> class="bm button" </cfif>  
 				style="width:180px"
 				name="changeConnection" 
 				id="btn_#UcFirst(Lcase(key))#" 
-				value="#stText.services.update.short[key]# (#len(versionsStr[key].upgrade)#)" 
+				value="#stText.services.update.short[key]# (#len#)" 
 				onclick="enableVersion('#UcFirst(Lcase(key))#');"  
 				type="button"></span>
 		<cfset count++>
@@ -170,7 +173,7 @@
 						<option value="">--- select the version ---</option>
 						<cfloop list="#listVrs#" index="key">
 							<cfif len(versionsStr[key].upgrade) || len(versionsStr[key].downgrade)>
-								<optgroup class="td_#UcFirst(Lcase(key))#" label="#key#">
+								<optgroup class="td_#UcFirst(Lcase(key))#" label="#stText.services.update.short[key]#">
 									<cfloop array="#versionsStr[key].upgrade#" index="i">
 										<option class="td_#UcFirst(Lcase(key))#" value="#i#">#stText.services.update.upgradeTo# #i#</option>
 									</cfloop>
@@ -267,28 +270,25 @@
 
 			function enableVersion(v, i){
 				if(i== 'intial'){
-					$("##group_Connection").find('option').each(function(index) {
+					$("##group_Connection").find('optgroup' ).each(function(index) {
 						var xx = $(this).attr('class');
-						$('.'+xx).show();
-						if("td_"+v != xx){
-							$('.'+xx).hide();
+						window[xx] = $("."+xx).detach();
+						if("td_"+v == xx){
+							$("##upt_version").append(window[xx]);
 						}
-	  				});
-			  		$(".btn").removeClass('btn');
-			  		$("##btn_"+v).addClass("btn");
-		  		} else {
-		  			if($('.td_'+v).is(':visible')){
-						$('.td_'+v).hide();
-					} else {
-						$('.td_'+v).show();
-					}
+				  		$(".btn").removeClass('btn');
+				  		$("##btn_"+v).addClass("btn");
+					});
+				} else {
 					if($( "##btn_"+v).hasClass( "btn" )){
+						window[v] = $(".td_"+v).detach();
 						$("##btn_"+v).removeClass('btn');
 					} else {
+						;
+						$("##upt_version").append(window["td_"+v]);
 						$("##btn_"+v).addClass('btn');
-
 					}
-	  			}
+				}
 			}
 
 			function changeVersion(field, frm) {
