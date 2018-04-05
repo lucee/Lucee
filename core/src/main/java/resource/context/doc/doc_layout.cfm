@@ -22,7 +22,7 @@
 	<head>
 		<title>#Attributes.title#</title>
 		<meta name="description" value="#Attributes.description#">
-
+		<meta name="ROBOTS" content="NOINDEX,NOFOLLOW">
 		<link rel="stylesheet" href="../res/css/normalize2.min.css.cfm">
 		<link rel="stylesheet" href="../res/css/doc.css.cfm">
 
