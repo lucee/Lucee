@@ -20,14 +20,14 @@ package lucee.runtime.type.scope;
 
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.IOUtil;
-import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ByteNameValuePair;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.net.URLItem;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.net.http.ServletInputStreamDummy;
@@ -207,9 +207,8 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 			fillDecoded(raw, encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM));
 		}
 		catch (Exception e) {
-
-			SystemOut.printDate(e);
-			// throw new PageRuntimeException(Caster.toPageException(e));
+			Log log = ThreadLocalPageContext.getConfig(pc).getLog("application");
+			if(log!=null)log.error("form.scope", e);
 			fillDecodedEL(new URLItem[0], encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM));
 			initException = e;
 		}
@@ -254,7 +253,8 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 			fillDecoded(raw, encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM));
 		}
 		catch (Exception e) {
-
+			Log log = ThreadLocalPageContext.getConfig(pc).getLog("application");
+			if(log!=null)log.error("form.scope", e);
 			fillDecodedEL(new URLItem[0], encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM));
 			initException = e;
 		} finally {

@@ -63,8 +63,11 @@ public final class MailUtil {
 
 	public static InternetAddress[] toInternetAddresses(Object emails)
 			throws MailException, UnsupportedEncodingException, PageException {
+		
+		if (emails instanceof InternetAddress[])
+			return (InternetAddress[])emails;
 
-		if (emails instanceof String)
+		else if (emails instanceof String)
 			return fromList((String) emails);
 
 		else if (Decision.isArray(emails))

@@ -29,6 +29,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TimeZone;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
@@ -36,6 +37,7 @@ import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
 import lucee.runtime.component.Property;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.displayFormatting.DateFormat;
 import lucee.runtime.functions.displayFormatting.TimeFormat;
@@ -115,11 +117,13 @@ public final class ScriptConverter extends ConverterSupport {
 	private void _serializeDateTime(DateTime dateTime, StringBuilder sb) throws ConverterException {
 
 	    try {
+	    	TimeZone tz = ThreadLocalPageContext.getTimeZone();
 	        sb.append(goIn());
 		    sb.append("createDateTime(");
-		    sb.append(DateFormat.call(null,dateTime,"yyyy,m,d"));
+		    sb.append(DateFormat.call(null,dateTime,"yyyy,m,d",tz));
 		    sb.append(',');
-		    sb.append(TimeFormat.call(null,dateTime,"H,m,s,l,\"z\""));
+		    sb.append(TimeFormat.call(null,dateTime,"H,m,s,l,",tz));
+		    sb.append('"').append(tz.getID()).append('"');
 		    sb.append(')');
 		} 
 	    catch (PageException e) {

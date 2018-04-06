@@ -25,14 +25,12 @@ public class Agent {
 
 	public static void premain(final String agentArgs,
 			final Instrumentation inst) {
-		System.out.println("Agent-premain:" + agentArgs);
 		if (inst != null)
 			instrumentation = inst;
 	}
 
 	public static void agentmain(final String agentArgs,
 			final Instrumentation inst) {
-		System.out.println("Agent-agentmain:" + agentArgs);
 		if (inst != null)
 			instrumentation = inst;
 	}

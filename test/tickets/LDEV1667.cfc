@@ -72,6 +72,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
  				var result = numberformat(res, ",___.00");
  				expect(result).toBe('2,342,234,234.00');
  			});
+
+ 			it(title="Checking lsnumberFormat() with mask value ',' ", body = function( currentSpec ) {
+ 				var result = LSNumberFormat(1, ",");
+ 				expect(result).toBe('1');
+ 				var result = LSNumberFormat(1.01, ",");
+ 				expect(result).toBe('1.01');
+ 			});
  		});
  	}
  }

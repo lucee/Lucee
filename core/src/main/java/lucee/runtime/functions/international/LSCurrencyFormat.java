@@ -28,11 +28,12 @@ import java.util.Locale;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.ext.function.Function;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 
-public final class LSCurrencyFormat implements Function {
+public final class LSCurrencyFormat extends BIF {
 
 	private static final long serialVersionUID = -3173006221339130136L;
 
@@ -46,6 +47,15 @@ public final class LSCurrencyFormat implements Function {
 
 	public static String call(PageContext pc, Object number, String type, Locale locale) throws PageException {
 		return format(toDouble(number), type, locale == null ? pc.getLocale() : locale);
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length==3)return call(pc,args[0],Caster.toString(args[1]),Caster.toLocale(args[2]));
+		if(args.length==2)return call(pc,args[0],Caster.toString(args[1]));
+		if(args.length==1)return call(pc,args[0]);
+		
+		throw new FunctionException(pc, "LSCurrencyFormat", 1, 3, args.length);
 	}
 
 	public static String format(double number, String type, Locale locale) throws ExpressionException {
@@ -67,11 +77,12 @@ public final class LSCurrencyFormat implements Function {
 
 	public static String none(Locale locale, double number) {
 		NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
+		
 		return StringUtil.replace(nf.format(number), nf.getCurrency().getSymbol(locale), "", false).trim();
 	}
 
 	public static String local(Locale locale, double number) {
-		return NumberFormat.getCurrencyInstance(locale).format(lucee.runtime.util.NumberFormat.fixDouble(number, 2));
+		return NumberFormat.getCurrencyInstance(locale).format(number);
 	}
 
 	public static String international(Locale locale, double number) {
@@ -86,6 +97,6 @@ public final class LSCurrencyFormat implements Function {
 	public static double toDouble(Object number) throws PageException {
 		if(number instanceof String && ((String)number).length() == 0)
 			return 0d;
-		return Caster.toDoubleValue(number);
+		return Caster.toDoubleValue(number)+0.000000000001d; // adding this only influence if the binary representation is a little bit off
 	}
 }

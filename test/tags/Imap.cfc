@@ -117,6 +117,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					}
 					expect(result).toBe('');
 				});
+
+				it(title="Checking cfimap  with a specific syntax", body = function( currentSpec ) {
+					
+					imap 
+						action="open" 
+						server = imapSettings.Imap.SERVER
+						username = imapSettings.USERNAME 
+						secure="no" 
+						password = imapSettings.PASSWORD
+						connection = "newsmasterbm";
+
+					imap name="local.MyFolders" action="listallfolders" connection="newsmasterbm";
+
+					 listfindnocase(ValueList(MyFolders.Name),"bm");
+				});
+
 			});
 
 			describe(title="checking cfimap tag without secure access", skip=isNotSupported(!variables.isSupported), body = function( currentSpec ) {

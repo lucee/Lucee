@@ -545,17 +545,25 @@ public final class Application extends TagImpl {
 	@Override
 	public int doStartTag() throws PageException	{
         
-        ApplicationContext ac;
-        boolean initORM;
-        if(action==ACTION_CREATE){
+        ApplicationContext ac=null;
+        boolean initORM=false;
+        
+        if(action==ACTION_UPDATE) {
+        	ac= pageContext.getApplicationContext();
+        	// no update because the current context has a different name
+        	if(!StringUtil.isEmpty(name) && !name.equalsIgnoreCase(ac.getName())) 
+        		ac=null;
+        	else {
+        		initORM=set(ac,true);
+        	}
+        }
+        // if we do not update we have to create a new one
+        if(ac==null){
+        	PageSource ps = pageContext.getCurrentPageSource(null);
         	ac=new ClassicApplicationContext(pageContext.getConfig(),name,false,
-        			pageContext.getCurrentPageSource().getResourceTranslated(pageContext));
+        			ps==null?null:ps.getResourceTranslated(pageContext));
         	initORM=set(ac,false);
         	pageContext.setApplicationContext(ac);
-        }
-        else {
-        	ac= pageContext.getApplicationContext();
-        	initORM=set(ac,true);
         }
         
         // scope cascading

@@ -19,6 +19,8 @@
 package lucee.commons.date;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -30,6 +32,7 @@ import lucee.runtime.type.util.ListUtil;
 public class TimeZoneUtil {
 
 	private static final Map<String,Object> IDS=new HashMap<String,Object>();
+	private static Map<String,TimeZone> dn=new HashMap<String,TimeZone>();
 	
 	static {
 		String[] ids=TimeZone.getAvailableIDs();
@@ -168,27 +171,53 @@ public class TimeZoneUtil {
 	
 	/**
 	 * translate timezone string format to a timezone
-	 * @param strTimezone
+	 * @param strTimezoneTrimmed
 	 * @return
 	 */
 	public static TimeZone toTimeZone(String strTimezone,TimeZone defaultValue){
 		if(strTimezone==null) return defaultValue;
-		strTimezone=StringUtil.replace(strTimezone.trim().toLowerCase(), " ", "", false);
-		TimeZone tz = getTimeZoneFromIDS(strTimezone);
+		
+		String strTimezoneTrimmed=StringUtil.replace(strTimezone.trim().toLowerCase(), " ", "", false);
+		TimeZone tz = getTimeZoneFromIDS(strTimezoneTrimmed);
 		if(tz!=null) return tz;
+		
+		
 		
 		//parse GMT followd by a number
 		float gmtOffset=Float.NaN;
-		if(strTimezone.startsWith("gmt")) gmtOffset=getGMTOffset(strTimezone.substring(3).trim(),Float.NaN);
-		else if(strTimezone.startsWith("etc/gmt")) gmtOffset=getGMTOffset(strTimezone.substring(7).trim(),Float.NaN);
-		else if(strTimezone.startsWith("utc")) gmtOffset=getGMTOffset(strTimezone.substring(3).trim(),Float.NaN);
-		else if(strTimezone.startsWith("etc/utc")) gmtOffset=getGMTOffset(strTimezone.substring(7).trim(),Float.NaN);
+		if(strTimezoneTrimmed.startsWith("gmt")) gmtOffset=getGMTOffset(strTimezoneTrimmed.substring(3).trim(),Float.NaN);
+		else if(strTimezoneTrimmed.startsWith("etc/gmt")) gmtOffset=getGMTOffset(strTimezoneTrimmed.substring(7).trim(),Float.NaN);
+		else if(strTimezoneTrimmed.startsWith("utc")) gmtOffset=getGMTOffset(strTimezoneTrimmed.substring(3).trim(),Float.NaN);
+		else if(strTimezoneTrimmed.startsWith("etc/utc")) gmtOffset=getGMTOffset(strTimezoneTrimmed.substring(7).trim(),Float.NaN);
 		
 		if(!Float.isNaN(gmtOffset)) {
-			strTimezone="etc/gmt"+(gmtOffset>=0?"+":"")+Caster.toString(gmtOffset);
-			tz =  getTimeZoneFromIDS(strTimezone);
+			strTimezoneTrimmed="etc/gmt"+(gmtOffset>=0?"+":"")+Caster.toString(gmtOffset);
+			tz =  getTimeZoneFromIDS(strTimezoneTrimmed);
 			if(tz!=null) return tz;
 			
+		}
+		
+		// display name in all variations
+		if(!StringUtil.isEmpty(strTimezoneTrimmed)) {
+			tz=dn.get(strTimezoneTrimmed);
+			if(tz!=null) return tz;
+			Iterator<Object> it = IDS.values().iterator();
+			Object o;
+			while(it.hasNext()) {
+				o=it.next();
+				if(o instanceof TimeZone) {
+					tz=(TimeZone) o;
+					if(
+							strTimezone.equalsIgnoreCase(tz.getDisplayName(true, TimeZone.SHORT, Locale.US)) ||
+							strTimezone.equalsIgnoreCase(tz.getDisplayName(false, TimeZone.SHORT, Locale.US)) ||
+							strTimezone.equalsIgnoreCase(tz.getDisplayName(true, TimeZone.LONG, Locale.US)) ||
+							strTimezone.equalsIgnoreCase(tz.getDisplayName(false, TimeZone.LONG, Locale.US))
+					) {
+						dn.put(strTimezoneTrimmed, tz);
+						return tz;
+					}
+				}
+			}
 		}
 		return defaultValue;
 	}

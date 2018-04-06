@@ -253,7 +253,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		// Mail Server Drivers
 		Resource msDir = adminDir.getRealResource("mailservers");
 		create("/resource/context/admin/mailservers/",new String[]{
-				"Other.cfc","GMail.cfc","GMX.cfc","iCloud.cfc","Yahoo.cfc","Outlook.cfc","MailServer.cfc"}
+				"Other.cfc","GMail.cfc","GMX.cfc","iCloud.cfc","Yahoo.cfc","Outlook.cfc","MailCom.cfc","MailServer.cfc"}
 		,msDir,doNew);
 				
 		
