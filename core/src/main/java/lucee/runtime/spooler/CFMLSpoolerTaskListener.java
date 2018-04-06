@@ -13,6 +13,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.CatchBlockImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.spooler.mail.MailSpoolerTask;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -30,7 +31,7 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 	}
 
 	@Override
-	public void listen(Config config, Exception e) {
+	public void listen(Config config, Exception e, boolean before) {
 		
 		if(!(config instanceof ConfigWeb)) return;
 		ConfigWeb cw=(ConfigWeb) config;
@@ -58,7 +59,7 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 			args.set(KeyConstants._tries, task.tries());
 			args.set("remainingtries", e==null?0: task.getPlans().length-task.tries());
 			args.set("closed", task.closed());
-			args.set("passed", e==null);
+			if(!before)args.set("passed", e==null);
 			if(e!=null) args.set("exception", new CatchBlockImpl(Caster.toPageException(e)));
 
 			Struct curr=new StructImpl();
@@ -71,8 +72,12 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 			adv.set("exceptions", task.getExceptions());
 			adv.set("executedPlans", task.getPlans());
 			
+			Object o = _listen(pc,args,before);
+			if(o instanceof Struct && task instanceof MailSpoolerTask) {
+				((MailSpoolerTask)task).mod((Struct)o);
+			}
 			
-			_listen(pc,args);
+			
 		}
 		catch (PageException pe) {
             SystemOut.printDate(pe);
@@ -82,5 +87,5 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 		}
 	}
 
-	public abstract void _listen(PageContext pc, Struct args) throws PageException;
+	public abstract Object _listen(PageContext pc, Struct args, boolean before) throws PageException;
 }

@@ -9,16 +9,24 @@ import lucee.runtime.type.UDF;
 public class UDFSpoolerTaskListener extends CFMLSpoolerTaskListener {
 
 	private static final long serialVersionUID = 1262226524494987654L;
-	private UDF udf;
+	private UDF before;
+	private UDF after;
 
-	public UDFSpoolerTaskListener(TemplateLine currTemplate, SpoolerTask task, UDF udf) {
+	public UDFSpoolerTaskListener(TemplateLine currTemplate, SpoolerTask task, UDF before, UDF after) {
 		super(currTemplate,task);
-		this.udf=udf;
+		this.before=before;
+		this.after=after;
 	}
 
 	@Override
-	public void _listen(PageContext pc, Struct args) throws PageException {
-		udf.callWithNamedValues(pc, args, true);
+	public Object _listen(PageContext pc, Struct args, boolean before) throws PageException {
+		if(before) {
+			if(this.before!=null)return this.before.callWithNamedValues(pc, args, true);
+		}
+		else {
+			if(this.after!=null)return after.callWithNamedValues(pc, args, true);
+		}
+		return null;
 	}
 
 }

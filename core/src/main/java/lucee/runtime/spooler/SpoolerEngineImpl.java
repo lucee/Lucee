@@ -240,11 +240,11 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 		if(exists) persis.delete(); 
 	}
 	
-	private void log(SpoolerTask task, Exception e) {
+	private void log(SpoolerTask task, Exception e,boolean before) {
 		if(task instanceof SpoolerTaskPro) {
 			SpoolerTaskPro taskp=(SpoolerTaskPro)task;
 			SpoolerTaskListener listener=taskp.getListener();
-			if(listener!=null)listener.listen(config, e);
+			if(listener!=null)listener.listen(config, e,before);
 		}
 		if(e==null) log.log(Log.LEVEL_INFO,"remote-client", "sucessfully executed: "+task.subject());
 		else LogUtil.log(log,Log.LEVEL_ERROR,"remote-client", "failed to execute: "+task.subject(),e);
@@ -597,8 +597,8 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	
 	@Override
 	public PageException execute(SpoolerTask task) {
-		//task.closed();
 		try {
+			log(task,null,true);
 			if(task instanceof SpoolerTaskSupport)  // FUTURE this is bullshit, call the execute method directly, but you have to rewrite them for that
 				((SpoolerTaskSupport)task)._execute(config);
 			else 
@@ -608,7 +608,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 			task.setLastExecution(System.currentTimeMillis());
 			task.setNextExecution(-1);
 			task.setClosed(true);
-			log(task,null);
+			log(task,null,false);
 			task=null;
 		} 
 		catch(Exception e) {
@@ -618,12 +618,12 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 			if(task.nextExecution()==-1) {
 				unstore(task);
 				task.setClosed(true);
-				log(task,e);
+				log(task,e,false);
 				store(task);
 				task=null;
 			}
 			else 
-				log(task,e);
+				log(task,e,false);
 				store(task);
 			
 			return Caster.toPageException(e);
