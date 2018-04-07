@@ -307,7 +307,8 @@
 							, "#unitFormat( arguments.custom.unit, tot-q-loa, prettify )# ms
 								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Application" )>
 
-						<tr><td><table>
+						<tr><td>
+							<table>
 							<tr>
 								<td class="pad txt-r">#unitFormat( arguments.custom.unit, loa,prettify )# ms</td>
 								<td class="pad">Startup/Compilation</td>
@@ -323,16 +324,20 @@
 						</table></td></tr>
 						<tr>
 							<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+								<cfset querySort(pages,"avg","desc") />
 								<table class="details">
+								<thead onclick="__LUCEE.debug.sortTable(this);">
 									<tr>
 										<th><cfif isExecOrder>Order<cfelse><a onclick="__LUCEE.debug.setFlag( 'ExecOrder' ); __LUCEE.util.addClass( this, 'selected' );" class="sortby" title="Order by ID (starting with the next request)">Order</a></cfif></th>
-										<th>Template</th>
-										<th>Function</th>
+										<th data-type="text">Template</th>
+										<th data-type="text">Function</th>
 										<th>Total Time (ms)</th>
 										<th>Count</th>
 										<th><cfif isExecOrder><a onclick="__LUCEE.debug.clearFlag( 'ExecOrder' ); __LUCEE.util.addClass( this, 'selected' );" class="sortby" title="Order by Avg Time (starting with the next request)">Avg Time</a><cfelse>Avg Time</cfif> (ms)</th>
 										<th>Query</th>
 									</tr>
+								</thead>
+								<tbody>
 									<cfset loa=0>
 									<cfset tot=0>
 									<cfset q=0>
@@ -371,6 +376,7 @@
 									<cfif hasBad>
 										<tr class="red"><td colspan="6">red = over #unitFormat( arguments.custom.unit, arguments.custom.highlight * 1000 ,prettify)# ms average execution time</td></tr>
 									</cfif>
+								</tbody>
 								</table>
 							</td><!--- #-lucee-debug-#sectionId# !--->
 						</tr>
@@ -394,14 +400,16 @@
 							<tr>
 								<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
 									<table class="details">
-
+									<thead onclick="__LUCEE.debug.sortTable(this);">
 										<tr>
-											<th>Type</th>
-											<th>Message</th>
-											<th>Detail</th>
-											<th>Template</th>
+											<th data-type="text">Type</th>
+											<th data-type="text">Message</th>
+											<th data-type="text">Detail</th>
+											<th data-type="text">Template</th>
 											<th>Line</th>
 										</tr>
+									</thead>
+									<tbody>
 										<cfloop array="#arguments.debugging.exceptions#" index="local.exp">
 											<tr>
 												<td>#exp.type#</td>
@@ -411,7 +419,7 @@
 												<td class="txt-r">#exp.TagContext[1].line#</td>
 											</tr>
 										</cfloop>
-
+									</tbody>
 									</table>
 								</td><!--- #-lucee-debug-#sectionId# !--->
 							</tr>
@@ -432,14 +440,16 @@
 							<tr>
 								<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
 									<table class="details">
-
+									<thead onclick="__LUCEE.debug.sortTable(this);">
 										<tr>
 											<th>Template</th>
-											<th>Line</th>
+											<th data-type="number">Line</th>
 											<th>Scope</th>
 											<th>Var</th>
-											<th>Count</th>
+											<th data-type="number">Count</th>
 										</tr>
+									</thead>
+									<tbody>
 										<cfset var total=0 />
 										<cfloop query="implicitAccess">
 											<tr>
@@ -450,7 +460,7 @@
 												<td class="txt-r">#implicitAccess.count#</td>
 											</tr>
 										</cfloop>
-
+									</tbody>
 									</table>
 								</td><!--- #-lucee-debug-#sectionId# !--->
 							</tr>
@@ -472,12 +482,14 @@
 							<tr>
 								<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
 									<table class="details">
-
+									<thead onclick="__LUCEE.debug.sortTable(this);">
 										<tr>
-											<th align="center">Label</th>
+											<th data-type="text" align="center">Label</th>
 											<th>Time (ms)</th>
-											<th>Template</th>
+											<th data-type="text">Template</th>
 										</tr>
+									</thead>
+									<tbody>
 										<cfloop query="timers">
 											<tr>
 												<td class="txt-r">#timers.label#</td>
@@ -485,7 +497,7 @@
 												<td class="txt-r">#timers.template#</td>
 											</tr>
 										</cfloop>
-
+									</tbody>
 									</table>
 								</td><!--- #-lucee-debug-#sectionId# !--->
 							</tr>
@@ -577,11 +589,14 @@
 							<tr>
 								<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
 									<table class="details">
+									<thead onclick="__LUCEE.debug.sortTable(this);">
 										<tr>
-											<th>Output</th>
-											<th>Template</th>
+											<th data-type="text">Output</th>
+											<th data-type="text">Template</th>
 											<th>Line</th>
 										</tr>
+									</thead>
+									<tbody>
 										<cfset total=0 />
 										<cfloop query="dumps">
 											<tr>
@@ -590,6 +605,7 @@
 												<td class="txt-r">#dumps.line#</td>
 											</tr>
 										</cfloop>
+									</tbody>
 									</table>
 								</td>
 							</tr>
@@ -625,11 +641,14 @@
 									<table><tr><td>
 										<b>General</b>
 										<table class="details">
-										<tr>
-											<th>Name</th>
-											<th>Open Connections</th>
-											<th>Max Connections</th>
-										</tr>
+										<thead onclick="__LUCEE.debug.sortTable(this);">
+											<tr>
+												<th data-type="text">Name</th>
+												<th>Open Connections</th>
+												<th>Max Connections</th>
+											</tr>
+										</thead>
+										<tbody>
 										<cfloop struct="#debugging.datasources#" index="local.dsName" item="local.dsData">
 										<tr>
 											<td class="txt-r">#dsData.name#</td>
@@ -637,20 +656,23 @@
 											<td class="txt-r">#dsData.connectionLimit==-1?'INF':dsData.connectionLimit#</td>
 										</tr>
 										</cfloop>
+										<tbody>
 										</table>
 									<cfset var hasCachetype=ListFindNoCase(queries.columnlist,"cachetype") gt 0>
 									<br><b>SQL Queries</b>
 										<table class="details">
 										<cfset renderToggleDetailHeadTR( sqlSectionId, "Expand all SQL statements", "-lucee-debug-#sectionId#", "sql", (hasCachetype ? 6 : 5) )>
-
-										<tr>
-											<th>Name</th>
-											<th>Records</th>
-											<th>Time (ms)</th>
-											<th>Datasource</th>
-											<th>Source</th>
-											<cfif hasCachetype><th>Cache Type</th></cfif>
-										</tr>
+										<thead>
+											<tr>
+												<th data-type="text">Name</th>
+												<th>Records</th>
+												<th>Time (ms)</th>
+												<th data-type="text">Datasource</th>
+												<th data-type="text">Source</th>
+												<cfif hasCachetype><th data-type="text" >Cache Type</th></cfif>
+											</tr>
+										</thead>
+										<tbody>
 										<cfloop query="queries">
 											<cfscript>
 												var qryTime = unitFormat(arguments.custom.unit, queries.time,prettify);
@@ -716,6 +738,7 @@
 												</cfif>
 											</cfif>
 										</cfloop>
+										</tbody>
 										</table>
 
 									</tr></td></table>
@@ -874,6 +897,78 @@
 				}
 
 				, selectText:	__LUCEE.util.selectText
+				, sortTable: function (ev){
+					var th = event.target; // th
+					var table = event.currentTarget.parentElement; // table;
+					var tbody = event.currentTarget.nextElementSibling; // tbody
+					var tr = th.parentElement;
+
+					if (!th.dataset.type)
+						th.dataset.type = "number"; // otherwise text
+					if (!th.dataset.dir){
+						th.dataset.dir = "desc";
+					} else {
+						if (th.dataset.dir == "desc")
+							th.dataset.dir = "asc";
+						else
+							th.dataset.dir = "desc";
+					}
+					for (var h = 0; h < tr.children.length; h++){
+						var cell = tr.children[h].style;
+						if (h === th.cellIndex){
+							cell.fontWeight = 700;
+							cell.fontStyle = (th.dataset.dir == "desc") ? "normal" : "italic";
+						} else {
+							cell.fontWeight = 300;
+							cell.fontStyle = "normal";
+						}
+					}
+					var data = [];
+					for ( var r = 0; r < tbody.children.length; r++ ){
+						var row = tbody.children[r];
+						var val = row.children[th.cellIndex].innerText;
+						switch (th.dataset.type){
+							case "text":
+								val = val.toLowerCase();
+								break;
+							case "number":
+								switch (val){
+									case "":
+									case "-":
+										val = -1;
+										break;
+									default:
+										val = Number(val);
+									break;
+								}
+								break;
+						}
+						data.push([val, row]);
+					}
+
+					switch (th.dataset.type){
+						case "text":
+							data = data.sort(function(a,b){
+								if (a[0] < b[0])
+									return -1;
+								if (a[0] > b[0])
+									return 1;
+								return 0;
+							});
+							break;
+						case "number":
+							data = data.sort(function(a,b){
+								return a[0] - b[0];
+							});
+					}
+
+					if (th.dataset.dir === "asc")
+						data.reverse();
+					for (r = 0; r < data.length; r++){
+						tbody.appendChild(data[r][1]);
+					}
+
+				}
 			};
 		</script>
 
