@@ -535,8 +535,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			Object obj = pageContext.getApplicationContext().getDefDataSource();
 			if(StringUtil.isEmpty(obj)) {
 				boolean isCFML = pageContext.getRequestDialect() == CFMLEngine.DIALECT_CFML;
-				throw new ApplicationException(
-						"attribute [datasource] is required when attribute [dbtype] is not [query] and no default datasource is defined",
+				throw new ApplicationException("attribute [datasource] is required when attribute [dbtype] is not [query] and no default datasource is defined",
 						"you can define a default datasource as attribute [defaultdatasource] of the tag "
 								+ (isCFML ? Constants.CFML_APPLICATION_TAG_NAME : Constants.LUCEE_APPLICATION_TAG_NAME) + " or as data member of the "
 								+ (isCFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER)
@@ -654,12 +653,12 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 							QueryResultCacheItem queryCachedItem = (QueryResultCacheItem)cacheItem;
 
 							Date cacheLimit = cachedAfter;
-							/*if(cacheLimit == null && cacheHandler in) {
-								TimeSpan ts = Caster.toTimespan(cachedWithin,null);
-								cacheLimit = new Date(System.currentTimeMillis() - Caster.toTimeSpan(cachedWithin).getMillis());
-							}*/
+							/*
+							 * if(cacheLimit == null && cacheHandler in) { TimeSpan ts = Caster.toTimespan(cachedWithin,null); cacheLimit = new
+							 * Date(System.currentTimeMillis() - Caster.toTimeSpan(cachedWithin).getMillis()); }
+							 */
 
-							if(cacheLimit==null || queryCachedItem.isCachedAfter(cacheLimit))
+							if(cacheLimit == null || queryCachedItem.isCachedAfter(cacheLimit))
 								queryResult = queryCachedItem.getQueryResult();
 						}
 					}
