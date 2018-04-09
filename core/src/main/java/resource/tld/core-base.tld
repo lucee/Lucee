@@ -6248,10 +6248,8 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		</attribute>
  -->
 
-
-
-
 	</tag>
+
 	<!-- Query -->
 	<tag>
 		<name>Query</name>
@@ -6286,8 +6284,6 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<rtexprvalue>true</rtexprvalue>
 			<description>When return type is set to "struct", the value of this column is used as key in the struct for every record.</description>
 		</attribute>
-		
-		
 		<attribute>
 			<type>string</type>
 			<name>result</name>
@@ -6389,7 +6385,6 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<description>The maximum number of seconds for the query to execute before returning an error
 		indicating that the query has timed-out. Value can be a number (seconds) or a Timespan Object. The minimum and maximum allowable values
 		vary, depending on the driver.</description>
-
 		</attribute>
 		<attribute>
 			<type>datetime</type>
@@ -6403,13 +6398,13 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<name>cachedWithin</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>
+			<description>
 possible values are:
 String "request": If original query was created within the current request, cached query data isused.
 a timespan (created with function CreateTimeSpan): If original query date falls within the time span, cached query data isused.
 
 To use cached data, the current query must use the same SQL statement, data source, query name, user name, and password.</description>
-    </attribute>
+    	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>provider</name>
@@ -6499,7 +6494,6 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
 		</attribute>
-
 		<attribute>
 			<type>numeric</type>
 			<name>nestingLevel</name>
@@ -6509,9 +6503,15 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description>the level for the current pagesource</description>
 		</attribute>
-
-
+		<attribute>
+			<name>sql</name>
+			<type>string</type>
+			<required>false</required>
+			<description>the SQL query to execute.  if the SQL attribute is set then its value is used for the SQL query,
+			and the body of the tag is ignored.</description>
+		</attribute>
 	</tag>
+
 	<!-- QueryParam -->
 	<tag>
 		<name>queryparam</name>

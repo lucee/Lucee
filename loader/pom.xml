@@ -3,17 +3,18 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.3.0.61-ALPHA</version>
+  <version>5.3.0.62-ALPHA</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
   <description>Building the Lucee Loader JAR</description>
   <url>http://maven.lucee.org/loader/</url>
 
-
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy/MM/dd HH:mm:ss z</maven.build.timestamp.format>
     <maven.build.timestamp.zone>UTC</maven.build.timestamp.zone>
