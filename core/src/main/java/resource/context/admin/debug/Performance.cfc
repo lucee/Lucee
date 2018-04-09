@@ -930,8 +930,15 @@
 					var data = [];
 					for ( var r = 0; r < tbody.children.length; r++ ){
 						var row = tbody.children[r];
-						if (row.length === 1)
-							continue;
+						switch (row.childElementCount){
+							case 1:
+								continue;
+							case 2:
+								data[data.length-1][1].push(row);
+								continue;
+							default:
+								break;
+						}
 						var cell = row.children[th.cellIndex];
 						var val = cell.innerText;
 						switch (th.dataset.type){
@@ -950,7 +957,7 @@
 								}
 								break;
 						}
-						data.push([val, row]);
+						data.push([val, [row]]);
 					}
 
 					switch (th.dataset.type){
@@ -972,7 +979,8 @@
 					if (th.dataset.dir === "asc")
 						data.reverse();
 					for (r = 0; r < data.length; r++){
-						tbody.appendChild(data[r][1]);
+						for (var rr = 0; rr < data[r][1].length; rr++)
+							tbody.appendChild(data[r][1][rr]);
 					}
 
 				}
