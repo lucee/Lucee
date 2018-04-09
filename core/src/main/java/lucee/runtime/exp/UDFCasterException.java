@@ -39,7 +39,7 @@ public class UDFCasterException extends CasterException {
 		String detail;
 		if(value instanceof String) {
 			String str = (String) value;
-			String strTrim = str.length()>50 ? StringUtils.left(str, 50) + "......" : str;
+			String strTrim = str.length()>100 ? StringUtils.left(str, 100) + "......" : str;
 			return "can't cast String ["+strTrim+"] to a value of type ["+type+"]";
 		}
     	else if(value!=null) detail= "can't cast Object type ["+Type.getName(value)+"] to a value of type ["+type+"]";
@@ -52,7 +52,7 @@ public class UDFCasterException extends CasterException {
 		String detail;
 		if(value instanceof String) {
     		String str = (String) value;
-    		String strTrim = str.length()>50 ? StringUtils.left(str, 50) + "......" : str;
+    		String strTrim = str.length()>100 ? StringUtils.left(str, 100) + "......" : str;
 			return "can't cast String ["+strTrim+"] to a value of type ["+arg.getTypeAsString()+"]";
     	}
 		else if(value!=null) detail= "can't cast Object type ["+Type.getName(value)+"] to a value of type ["+arg.getTypeAsString()+"]";
