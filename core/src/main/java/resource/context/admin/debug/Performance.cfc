@@ -368,7 +368,7 @@
 											<td>#srcFunc#</td>
 											<td class="txt-r" title="#pages.total - pages.load#">#unitFormat(arguments.custom.unit, pages.total-pages.load,prettify)#</td>
 											<td class="txt-r">#pages.count#</td>
-											<td class="txt-r" title="#pages.avg#"><cfif pages.count GT 1>#unitFormat(arguments.custom.unit, pages.avg,prettify)#<cfelse>-</cfif></td>
+											<td class="txt-r" title="#pages.avg#">#unitFormat(arguments.custom.unit, pages.avg,prettify)#</td>
 											<td class="txt-r"><Cfif pages.query gt 0>#unitFormat(arguments.custom.unit, pages.query,prettify)#</Cfif></td>
 										</tr>
 
