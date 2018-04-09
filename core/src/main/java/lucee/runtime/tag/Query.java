@@ -175,6 +175,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	private boolean previousLiteralTimestampWithTSOffset;
 	private String[] tags = null;
 	private String sql;
+	private boolean hasBody;
 
 	@Override
 	public void release() {
@@ -212,6 +213,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		previousLiteralTimestampWithTSOffset = false;
 		tags = null;
 		sql = null;
+		hasBody=false;
 	}
 
 	public void setTags(Object oTags) throws PageException {
@@ -589,13 +591,21 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 		if(hasChangedPSQ)
 			pageContext.setPsq(orgPSQ);
-
-		String strSQL = bodyContent.getString().trim();		// body takes precedence over SQL attribute if not empty
-		if (strSQL.isEmpty() && (sql != null))
-			strSQL = sql.trim();
-
-		if(strSQL.isEmpty())
-			throw new DatabaseException("the required sql string is not defined in the body of the query tag, and not in a sql attribute", null, null, null);
+		
+		// SQL string
+		String strSQL;
+		if(hasBody && !StringUtil.isEmpty(strSQL = bodyContent.getString().trim(),true)) { // we have a body
+			if(!StringUtil.isEmpty(sql,true)) {  // sql in attr and body
+				if(!strSQL.equals(sql.trim())) // unless they are equal
+				throw new DatabaseException("you cannot define SQL in the body and as a attribute at the same time ["+strSQL+","+sql+"]", null, null, null);
+			}
+		}
+		else {
+			if(StringUtil.isEmpty(sql,true))  
+				throw new DatabaseException("the required sql string is not defined in the body of the query tag, and not in a sql attribute", null, null, null);
+			strSQL =sql.trim();	
+		}
+		
 
 		try {
 			// cannot use attribute params and queryparam tag
@@ -974,4 +984,12 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		return rtn;
 
 	}
+
+    /**
+     * sets if tag has a body or not
+     * @param hasBody
+     */
+    public void hasBody(boolean hasBody) {
+        this.hasBody=hasBody;
+    }
 }

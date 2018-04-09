@@ -1,5 +1,8 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
 
+
+<cfscript>
+	
 	public function beforeAll(){
 		variables.qry = queryNew(
 			 "name, version"
@@ -48,4 +51,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		if (isNull(exception))
 			throw object=exception;
 	}
-}
+
+</cfscript>
+	
+	<cffunction name="testSqlAttrNobodyTag">
+		<cfquery 
+			name="local.q2" 
+			dbtype="query" 
+			sql="select * from variables.qry">
+	</cffunction>
+</cfcomponent>

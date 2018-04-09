@@ -6255,7 +6255,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		<name>Query</name>
 		<tag-class>lucee.runtime.tag.Query</tag-class>
 		<tte-class>lucee.transformer.cfml.evaluator.impl.Query</tte-class>
-		<body-content>must</body-content>
+		<body-content>free</body-content>
 		<body-rtexprvalue>true</body-rtexprvalue>
 		<handle-exception>true</handle-exception>
 		<script>
@@ -6507,8 +6507,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<name>sql</name>
 			<type>string</type>
 			<required>false</required>
-			<description>the SQL query to execute.  if the SQL attribute is set then its value is used for the SQL query,
-			and the body of the tag is ignored.</description>
+			<description>the SQL query to execute.</description>
 		</attribute>
 	</tag>
 

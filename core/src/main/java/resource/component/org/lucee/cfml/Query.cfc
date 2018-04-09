@@ -208,6 +208,8 @@ component output="false" extends="Base" accessors="true"{
 		var resultVar = "";
 		var result = new Result();
 
+		structDelete(tagAttributes,"sql",false);
+
 		// Makes the attributes available in local scope. Es : query of queries
 		structAppend(local, tagAttributes, true);
 
