@@ -33,8 +33,6 @@ component output="false" extends="Base" accessors="true"{
 		//parse the sql into an array and save it
 		setQArray(parseSql());
 
-dump(var:{arguments:arguments, this:this}, abort:0);
-
 		// invoke the query and return the result
 		return invokeTag();
 	}
