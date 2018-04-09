@@ -216,9 +216,6 @@ dump(var:{arguments:arguments, this:this}, abort:0);
 		// get the query parts array
 		var qArray = getQArray();
 
-		// remove the SQL attribute since now cfquery supports it and it overrides the tag's body
-		tagAttributes.delete("sql");
-
 		query name="local.___q" attributeCollection=tagAttributes result="local.tagResult" {
 
 			loop array=local.qArray index="Local.item" {

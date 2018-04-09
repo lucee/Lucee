@@ -590,7 +590,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		if(hasChangedPSQ)
 			pageContext.setPsq(orgPSQ);
 
-		String strSQL = (sql != null) ? sql.trim() : bodyContent.getString().trim();
+		String strSQL = bodyContent.getString().trim();		// body takes precedence over SQL attribute if not empty
+		if (strSQL.isEmpty() && (sql != null))
+			strSQL = sql.trim();
+
 		if(strSQL.isEmpty())
 			throw new DatabaseException("the required sql string is not defined in the body of the query tag, and not in a sql attribute", null, null, null);
 
