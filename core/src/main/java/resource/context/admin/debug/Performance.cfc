@@ -373,10 +373,12 @@
 										</tr>
 
 									</cfloop>
-									<cfif hasBad>
-										<tr class="red"><td colspan="6">red = over #unitFormat( arguments.custom.unit, arguments.custom.highlight * 1000 ,prettify)# ms average execution time</td></tr>
-									</cfif>
 								</tbody>
+								<tfoot>
+									<cfif hasBad>
+										<tr class="red"><td colspan="7">red = over #unitFormat( arguments.custom.unit, arguments.custom.highlight * 1000 ,prettify)# ms average execution time</td></tr>
+									</cfif>
+								</tfoot>
 								</table>
 							</td><!--- #-lucee-debug-#sectionId# !--->
 						</tr>
@@ -638,7 +640,9 @@
 
 							<tr>
 								<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-									<table><tr><td>
+									<table>
+									<tr>
+										<td>
 										<b>General</b>
 										<table class="details">
 										<thead onclick="__LUCEE.debug.sortTable(this);">
@@ -649,20 +653,20 @@
 											</tr>
 										</thead>
 										<tbody>
-										<cfloop struct="#debugging.datasources#" index="local.dsName" item="local.dsData">
-										<tr>
-											<td class="txt-r">#dsData.name#</td>
-											<td class="txt-r">#dsData.openConnections#</td>
-											<td class="txt-r">#dsData.connectionLimit==-1?'INF':dsData.connectionLimit#</td>
-										</tr>
-										</cfloop>
-										<tbody>
+											<cfloop struct="#debugging.datasources#" index="local.dsName" item="local.dsData">
+											<tr>
+												<td class="txt-r">#dsData.name#</td>
+												<td class="txt-r">#dsData.openConnections#</td>
+												<td class="txt-r">#dsData.connectionLimit==-1?'INF':dsData.connectionLimit#</td>
+											</tr>
+											</cfloop>
+										</tbody>
 										</table>
 									<cfset var hasCachetype=ListFindNoCase(queries.columnlist,"cachetype") gt 0>
 									<br><b>SQL Queries</b>
 										<table class="details">
 										<cfset renderToggleDetailHeadTR( sqlSectionId, "Expand all SQL statements", "-lucee-debug-#sectionId#", "sql", (hasCachetype ? 6 : 5) )>
-										<thead>
+										<thead onclick="__LUCEE.debug.sortTable(this);">
 											<tr>
 												<th data-type="text">Name</th>
 												<th>Records</th>
@@ -926,7 +930,10 @@
 					var data = [];
 					for ( var r = 0; r < tbody.children.length; r++ ){
 						var row = tbody.children[r];
-						var val = row.children[th.cellIndex].innerText;
+						if (row.length === 1)
+							continue;
+						var cell = row.children[th.cellIndex];
+						var val = cell.innerText;
 						switch (th.dataset.type){
 							case "text":
 								val = val.toLowerCase();
