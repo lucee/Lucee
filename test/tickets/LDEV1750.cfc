@@ -8,7 +8,6 @@
 			 "name, version"
 			,"varchar, varchar"
 			,[
-				 ["ACF",  "2016"]
 				,["Railo", "4.2"]
 				,["Lucee", "5.3"]
 			]
@@ -38,18 +37,17 @@
 
 	public void function testSqlMissing(){
 
-		var exception = nullValue();
+		local.result = _InternalRequest(
+			template:"#variables.uri#/test.cfm",
+			forms:{}
+		);
 
-		try {
-			// this should throw an exception
-			query name="local.q2" dbtype="query";
-		}
-		catch (ex){
-			exception = ex;
-		}
+		assertEquals("template",result.filecontent.trim());
+	}
 
-		if (isNull(exception))
-			throw object=exception;
+	private string function createURI(string calledName){
+		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
+		return baseURI&""&calledName;
 	}
 
 </cfscript>

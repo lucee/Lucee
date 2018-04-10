@@ -59,15 +59,18 @@ public final class Query extends EvaluatorSupport {
 		
 		// we do not check if both are defined here because the body could be an expression holding an empty string
 		
-		if(body!=null)
-			translateChildren(body.getStatements().iterator());
+		if(body!=null) {
+			List<Statement> stats = body.getStatements();
+			if(stats!=null)
+				translateChildren(body.getStatements().iterator());
+		}
 	}
 	
-	private void translateChildren(Iterator it) {
+	private void translateChildren(Iterator<Statement> it) {
 		Statement stat;
 		 
 		while(it.hasNext()) {
-			stat=(Statement) it.next();
+			stat=it.next();
 			if(stat instanceof PrintOut) {
 				PrintOut printOut = ((PrintOut)stat);
 				Expression e = printOut.getExpr();
