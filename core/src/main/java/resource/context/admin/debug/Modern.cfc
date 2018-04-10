@@ -416,7 +416,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 										}
 									}
 								};
-								var ajaxURL = "/lucee/appLogs/readDebug.cfm?TAB="+section;
+								var ajaxURL = "/lucee/appLogs/readDebug.cfm?id=#debugging.id#&TAB="+section;
 								<cfif structKeyExists(request, "fromAdmin") AND request.fromAdmin EQ true>
 									ajaxURL += "&fromAdmin=true";
 								</cfif>
@@ -1052,6 +1052,21 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				</tr>
 			</table>
 
+			<cfif !isNull(debugging.genericData) && debugging.genericData.recordcount>
+	<cfoutput query="#debugging.genericData#" group="category">
+	
+		<div class="section-title">#debugging.genericData.category#</div>
+		<table>
+		<table>
+		<cfoutput>
+			<tr>
+				<td class="pad txt-r ">#debugging.genericData.name#</td>
+				<td class="pad ">#debugging.genericData.value#</td>
+			</tr>
+		</cfoutput>
+		</table>
+	</cfoutput>
+</cfif>
 
 			<cfset this.doMore( arguments.custom, arguments.debugging, arguments.context )>
 

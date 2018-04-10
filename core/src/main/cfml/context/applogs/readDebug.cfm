@@ -1,15 +1,17 @@
 <cfsetting showdebugoutput="false">
-<cfadmin
-action="getLoggedDebugData"
-type="web"
-returnVariable="all">
+<cfif isNull(url.id)>
+	<cfadmin
+		action="getLoggedDebugData"
+		type="web"
+		returnVariable="all">
+	<cfset url.id=all[arrayLen(all)].id>
+</cfif>
 
-
 <cfadmin
-action="getLoggedDebugData"
-type="web"
-id="#all[arrayLen(all)].id#"
-returnVariable="log">
+	action="getLoggedDebugData"
+	type="web"
+	id="#url.id#"
+	returnVariable="log">
 
 <cfadmin
 	action="getDebugEntry"

@@ -677,7 +677,8 @@ public final class DebuggerImpl implements Debugger {
 			debugging.setEL(KeyConstants._cgi, pc.cgiScope());
 		}
 		debugging.setEL(KeyImpl.init("starttime"), new DateTimeImpl(starttime, false));
-		debugging.setEL(KeyConstants._id, pc.getId());
+		PageContextImpl pci=(PageContextImpl)pc;
+		debugging.setEL(KeyConstants._id, pci.getRequestId()+"-"+pci.getId());
 
 		debugging.setEL(KeyConstants._pages, qryPage);
 		debugging.setEL(PAGE_PARTS, qryPart);

@@ -3038,7 +3038,27 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
-	
+	<!-- debugAdd -->
+	<function>
+		<name>debugAdd</name>
+		<class>lucee.runtime.functions.system.DebugAdd</class>
+		<description>Adding data to debug output.</description>
+		<argument>
+			<name>category</name>
+			<type>string</type>
+			<required>yes</required>
+			<description>category name for the data passed in.</description>
+		</argument>
+		<argument>
+			<name>data</name>
+			<type>struct</type>
+			<required>yes</required>
+			<description>struct containing data to add to debug output.</description>
+		</argument>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
 	<!-- decrypt -->
 	<function>
 		<name>decrypt</name>
