@@ -17,12 +17,19 @@
  * 
  **/
 component extends="org.lucee.cfml.test.LuceeTestCase" {
-	function testListAvg(){
-		var arr="1,2,3";
-		assertEquals(2,ListAvg("1,2,3"));
-		assertEquals(3.5,ListAvg("1,2,3,4,5,6"));
-		assertEquals(3.5,ListAvg("1,2,3,4,5,6",',;.'));
-		assertEquals(3.5,ListAvg("1,2,3,4,5,6",',;.'));
-		assertEquals(3.5,ListAvg("1,;2,;3,;4,;5,;6",',;',true));
+	function testListLast(){
+
+
+		assertEquals("",ListLast(''));
+		assertEquals("bb",ListLast('abba,xx,xxxx,xxxx,xxx,bb'));
+		assertEquals("bb",ListLast('abba.bb','.'));
+		assertEquals("bb",ListLast('...abba.bb..','.'));
+		assertEquals("",ListLast('...abba.bb..','.',true));
+		assertEquals("bb",ListLast(',,abba,bb,,'));
+		assertEquals("",ListLast(',,,,,'));
+		assertEquals("c",ListLast('a;b,c',';,:'));
+		assertEquals("c",ListLast('a,b,c,,,',',',false));
+		assertEquals("",ListLast('a,b,c,,,',',',true));
+
 	}
 }

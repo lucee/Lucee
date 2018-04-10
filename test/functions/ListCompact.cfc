@@ -21,6 +21,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		var arr="1,2,3";
 
 
+	assertEquals("V1,V2,V3", ListCompact(",V1,V2,V3,"));
 	assertEquals("V1,V2,V3", ListCompact(",V1,V2,V3,",","));
 	assertEquals("V1,V2,V3", ListCompact(list=",V1,V2,V3,",delimiter=","));
 	assertEquals("V1,V2,V3", ListCompact(delimiter=",",list=",V1,V2,V3,"));
@@ -40,6 +41,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	assertEquals("V1,V2,V3", ListCompact(";V1,V2,V3,",",;",false));
 	assertEquals(";V1,V2,V3,", ListCompact(";V1,V2,V3,",",;",true));
 	assertEquals("V1,V2,V3", ListCompact(",;V1,V2,V3,;",",;",true));
+	
+	assertEquals("V1,V2,V3", ListTrim(",V1,V2,V3,"));
 	
 
 	}

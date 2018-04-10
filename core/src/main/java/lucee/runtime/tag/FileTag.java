@@ -875,8 +875,8 @@ public final class FileTag extends BodyTagImpl {
 		cffile.set("datelastaccessed",new DateImpl(pageContext));
 		cffile.set("oldfilesize",Long.valueOf(length));
 		cffile.set("filesize",Long.valueOf(length));
-		cffile.set("contenttype",ListFirst.call(pageContext,contentType,"/"));
-		cffile.set("contentsubtype",ListLast.call(pageContext,contentType,"/"));
+		cffile.set("contenttype",ListFirst.call(pageContext,contentType,"/",false));
+		cffile.set("contentsubtype",ListLast.call(pageContext,contentType,"/",false));
 		
 		// client file
 		String strClientFile=formItem.getName();

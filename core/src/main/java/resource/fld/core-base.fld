@@ -7646,6 +7646,7 @@ The following things are considered to be empty:
 			<name>includeEmptyFields</name>
 			<type>boolean</type>
 			<required>No</required>
+			<default>false</default>
 			<description>if set to true, empty values are included as well</description>
 		</argument>
 		<return>
@@ -7997,6 +7998,7 @@ The following things are considered to be empty:
 			<name>includeEmptyFields</name>
 			<type>boolean</type>
 			<required>No</required>
+			<default>false</default>
 			<description>if set to true, empty values are included as well</description>
 		</argument>
 		<return>
