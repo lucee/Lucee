@@ -5,10 +5,10 @@
 	
 	public function beforeAll(){
 		variables.qry = queryNew(
-			 "name, version"
-			,"varchar, varchar"
+			 "name,version"
+			,"varchar,varchar"
 			,[
-				,["Railo", "4.2"]
+				["Railo", "4.2"]
 				,["Lucee", "5.3"]
 			]
 		);
@@ -36,13 +36,16 @@
 	}
 
 	public void function testSqlMissing(){
-
-		local.result = _InternalRequest(
-			template:"#variables.uri#/test.cfm",
-			forms:{}
-		);
-
-		assertEquals("template",result.filecontent.trim());
+		try {
+			local.result = _InternalRequest(
+				template:createURI("LDEV1750/test.cfm"),
+				forms:{}
+			);
+			assertEquals("template",result.filecontent.trim());
+		}
+		catch(ee) {
+			assertEquals("template",ee.type);
+		}
 	}
 
 	private string function createURI(string calledName){
