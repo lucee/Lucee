@@ -21,7 +21,6 @@
  */
 package lucee.runtime.functions.list;
 
-import lucee.print;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
@@ -31,10 +30,11 @@ import lucee.runtime.op.Caster;
 
 public final class ListDeleteAt extends BIF {
 	
+	private static final long serialVersionUID = 7050644316663288912L;
+
 	public static String call(PageContext pc, String list, double posNumber, String del, boolean includeEmptyFields) throws ExpressionException {
 		return _call(pc, list, (int)posNumber, del.toCharArray(),includeEmptyFields);
 	}
-
 
     @Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
@@ -110,16 +110,11 @@ public final class ListDeleteAt extends BIF {
     	
     	return sb.toString();
     }
-	
-	
+
     private static boolean equal(char[] del, char c) {
     	for(int i=0;i<del.length;i++){
     		if(del[i]==c) return true;
     	}
 		return false;
 	}
-
-
-	
-	
 }
