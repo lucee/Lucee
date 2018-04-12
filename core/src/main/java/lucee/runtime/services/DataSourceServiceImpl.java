@@ -147,19 +147,15 @@ public class DataSourceServiceImpl extends ServiceSupport implements DataSourceS
 	    	String name;
 	    	for(int i=0;i<children.length;i++) {
 	    		driver=new StructImpl();
-	    		name=ListFirst.call(pc(),children[i].getName(),".");
+	    		name=ListFirst.call(pc(),children[i].getName(),".",false,1);
 	    		driver.setEL(KeyConstants._name,name);
 	    		driver.setEL("handler",children[i].getName());
 	    		rtn.setEL(name,driver);
 	    	}
-		
-		
-		} catch (ExpressionException e) {
+		}
+		catch (ExpressionException e) {
 			throw new ServiceException(e.getMessage());
 		}
-    	
-    	
-		
 		return rtn;
 	}
 	

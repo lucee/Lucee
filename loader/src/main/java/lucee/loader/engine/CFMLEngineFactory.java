@@ -1206,7 +1206,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	public File getPatchDirectory() throws IOException {
-		File pd = getDirectoryByProp("lucee.patches.dir");
+		File pd = getDirectoryByPropOrEnv("lucee.patches.dir");
 		if (pd != null)
 			return pd;
 
@@ -1217,7 +1217,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	public File getBundleDirectory() throws IOException {
-		File bd = getDirectoryByProp("lucee.bundles.dir");
+		File bd = getDirectoryByPropOrEnv("lucee.bundles.dir");
 		if (bd != null)
 			return bd;
 
@@ -1262,8 +1262,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (luceeServerRoot != null)
 			return luceeServerRoot;
 
-		File lbd = getDirectoryByProp("lucee.base.dir"); // directory defined by the caller
-		if(lbd==null) lbd = getDirectoryByEnv("lucee.base.dir"); // directory defined by the caller
+		File lbd = getDirectoryByPropOrEnv("lucee.base.dir"); // directory defined by the caller
 		
 		File root=lbd;
 		// get the root directory
@@ -1440,6 +1439,12 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		}
 	}
 
+	private File getDirectoryByPropOrEnv(final String name) {
+		File file=getDirectoryByProp(name);
+		if(file!=null) return file;
+		return getDirectoryByEnv(name);
+	}
+	
 	private File getDirectoryByProp(final String name) {
 		return _getDirectoryBy(System.getProperty(name));
 	}
