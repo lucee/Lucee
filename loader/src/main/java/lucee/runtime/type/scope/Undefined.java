@@ -64,7 +64,7 @@ public interface Undefined extends Scope {
 	public abstract void setFunctionScopes(Local local, Argument argument);
 
 	/**
-	 * @return returns actuell collection stack
+	 * @return returns current collection stack
 	 */
 	public abstract QueryStack getQueryStack();
 

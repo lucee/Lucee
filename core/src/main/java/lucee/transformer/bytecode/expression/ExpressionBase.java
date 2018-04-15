@@ -54,7 +54,7 @@ public abstract class ExpressionBase implements Expression {
     }
 
     /**
-     * write out the stament to the adater
+     * write out the statement to the adapter
      * @param adapter
      * @param mode 
      * @return return Type of expression

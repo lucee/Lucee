@@ -69,9 +69,9 @@ import lucee.runtime.util.VariableUtil;
 /**
  * page context for every page object.
  * the PageContext is a jsp page context expanded by CFML functionality.
- * for example you have the method getSession to get jsp combatible session
+ * for example you have the method getSession to get jsp compatible session
  * object (HTTPSession)
- * and with sessionScope() you get CFML combatible session object
+ * and with sessionScope() you get CFML compatible session object
  * (Struct,Scope).
  */
 public abstract class PageContext extends javax.servlet.jsp.PageContext {
@@ -135,7 +135,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	/**
 	 * return the argument scope
 	 * 
-	 * @param bind indicate that the Argument Scope is binded for using outsite
+	 * @param bind indicate that the Argument Scope is bound for use outside
 	 *            of the udf
 	 * @return Argument Scope
 	 */
@@ -525,12 +525,12 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract void setHeader(String name, String value);
 
 	/**
-	 * @return returns the cfid of the actuell user
+	 * @return returns the cfid of the current user
 	 */
 	public abstract String getCFID();
 
 	/**
-	 * @return returns the actuell cftoken of the user
+	 * @return returns the current cftoken of the user
 	 */
 	public abstract String getCFToken();
 
@@ -540,7 +540,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract String getJSessionId();
 
 	/**
-	 * @return returns the urltoken of the actuell user
+	 * @return returns the urltoken of the current user
 	 */
 	public abstract String getURLToken();
 
@@ -768,7 +768,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 			throws PageException;
 
 	/**
-	 * clear the actuell output buffer
+	 * clear the current output buffer
 	 */
 	public abstract void clear();
 
@@ -951,7 +951,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract void removeLastPageSource(boolean alsoInclude);
 
 	/**
-	 * sets a excption
+	 * sets a exception
 	 * 
 	 * @param t
 	 * @return PageExcption

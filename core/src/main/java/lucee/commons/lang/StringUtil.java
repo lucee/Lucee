@@ -225,7 +225,7 @@ public final class StringUtil {
 	/**
 	 * reapeats a string
 	 * @param str string to repeat
-	 * @param count how many time string will be reapeted
+	 * @param count how many time string will be repeated
 	 * @return reapted string
 	 */
     public static String repeatString(String str,int count) {
@@ -589,8 +589,8 @@ public final class StringUtil {
     }
 
     /**
-     * remove all white spaces followd by whitespaces
-     * @param str strring to translate
+     * remove all white spaces followed by whitespaces
+     * @param str string to translate
      * @return translated string
      */
     public static String suppressWhiteSpace(String str) {
@@ -623,7 +623,7 @@ public final class StringUtil {
 
 
     /**
-     * returns string, if given string is null or lengt 0 return default value
+     * returns string, if given string is null or length 0 return default value
      * @param value
      * @param defaultValue
      * @return value or default value
@@ -633,7 +633,7 @@ public final class StringUtil {
     }
 
     /**
-     * returns string, if given string is null or lengt 0 return default value
+     * returns string, if given string is null or length 0 return default value
      * @param value
      * @param defaultValue
      * @return value or default value
@@ -644,7 +644,7 @@ public final class StringUtil {
     }
 
     /**
-     * cut string to max size if the string is greater, otherweise to nothing
+     * cut string to max size if the string is greater, otherwise to nothing
      * @param content
      * @param max 
      * @return cutted string

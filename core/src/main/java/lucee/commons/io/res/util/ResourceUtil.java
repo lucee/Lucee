@@ -177,10 +177,10 @@ public final class ResourceUtil {
     //private static Magic mimeTypeParser; 
 	
     /**
-     * cast a String (argumet destination) to a File Object, 
+     * cast a String (argument destination) to a File Object, 
      * if destination is not a absolute, file object will be relative to current position (get from PageContext)
      * file must exist otherwise throw exception
-     * @param pc Page Context to et actuell position in filesystem
+     * @param pc Page Context to the current position in filesystem
      * @param path relative or absolute path for file object
      * @return file object from destination
      * @throws ExpressionException
@@ -253,10 +253,10 @@ public final class ResourceUtil {
     
 
     /**
-     * cast a String (argumet destination) to a File Object, 
+     * cast a String (argument destination) to a File Object, 
      * if destination is not a absolute, file object will be relative to current position (get from PageContext)
      * at least parent must exist
-     * @param pc Page Context to et actuell position in filesystem
+     * @param pc Page Context to the current position in filesystem
      * @param destination relative or absolute path for file object
      * @return file object from destination
      * @throws ExpressionException
@@ -308,8 +308,8 @@ public final class ResourceUtil {
     /**
      * cast a String (argument destination) to a File Object, 
      * if destination is not a absolute, file object will be relative to current position (get from PageContext)
-     * existing file is prefered but dont must exist
-     * @param pc Page Context to et actuell position in filesystem
+     * existing file is preferred but dont must exist
+     * @param pc Page Context to the current position in filesystem
      * @param destination relative or absolute path for file object
      * @return file object from destination
      */
@@ -371,8 +371,8 @@ public final class ResourceUtil {
 	}
     
     /**
-     * transalte the path of the file to a existing file path by changing case of letters
-     * Works only on Linux, becasue 
+     * translate the path of the file to a existing file path by changing case of letters
+     * Works only on Linux, because 
      * 
      * Example Unix:
      * we have a existing file with path "/usr/virtual/myFile.txt"
@@ -571,7 +571,7 @@ public final class ResourceUtil {
     }
 
 	/* *
-	 * transalte a path in a proper form
+	 * translate a path in a proper form
 	 * example susi\petere -> /susi/peter
 	 * @param path
 	 * @return path
@@ -587,7 +587,7 @@ public final class ResourceUtil {
 	}*/
 	
 	/* *
-	 * transalte a path in a proper form
+	 * translate a path in a proper form
 	 * example susi\petere -> susi/peter/
 	 * @param path
 	 * @return path
@@ -628,7 +628,7 @@ public final class ResourceUtil {
 	
 
 	/**
-	 * transalte a path in a proper form and cut name away
+	 * translate a path in a proper form and cut name away
 	 * example susi\petere -> /susi/ and  peter
 	 * @param path
 	 * @return
@@ -707,7 +707,7 @@ public final class ResourceUtil {
 
 	/**
      * Returns the canonical form of this abstract pathname.
-     * @param res file to get canoncial form from it
+     * @param res file to get canonical form from it
      *
      * @return  The canonical pathname string denoting the same file or
      *          directory as this abstract pathname
@@ -726,7 +726,7 @@ public final class ResourceUtil {
     
     /**
      * Returns the canonical form of this abstract pathname.
-     * @param res file to get canoncial form from it
+     * @param res file to get canonical form from it
      *
      * @return  The canonical pathname string denoting the same file or
      *          directory as this abstract pathname
@@ -773,7 +773,7 @@ public final class ResourceUtil {
     
 
     /**
-     * similat to linux bash fuction toch, create file if not exist oherwise change last modified date
+     * similar to linux bash function touch, create file if not exist otherwise change last modified date
      * @param res
      * @throws IOException
      */
@@ -892,7 +892,7 @@ public final class ResourceUtil {
     }
     
     /**
-     * change extesnion of file and return new file
+     * change extension of file and return new file
      * @param file
      * @param newExtension
      * @return  file with new Extension
@@ -1121,7 +1121,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * return the size of the Resource, other than method length of Resource this mthod return the size of all files in a directory
+	 * return the size of the Resource, other than method length of Resource this method return the size of all files in a directory
 	 * @param collectionDir
 	 * @return
 	 */
@@ -1130,7 +1130,7 @@ public final class ResourceUtil {
 	}
 	
 	/**
-	 * return the size of the Resource, other than method length of Resource this mthod return the size of all files in a directory
+	 * return the size of the Resource, other than method length of Resource this method return the size of all files in a directory
 	 * @param collectionDir
 	 * @return
 	 */
@@ -1213,7 +1213,7 @@ public final class ResourceUtil {
 
 
 	/**
-	 * list childrn of all given resources
+	 * list children of all given resources
 	 * @param resources
 	 * @return
 	 */

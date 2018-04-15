@@ -41,7 +41,7 @@ public final class ResourcesImpl implements Resources {
 	private ResourceProviderFactory[] resources=new ResourceProviderFactory[0];
 	
 	/**
-	 * adds a default factory, this factory is used, when shemecan't be mapped to a other factory
+	 * adds a default factory, this factory is used, when sheme can't be mapped to a other factory
 	 * @param provider
 	 */
 	@Override

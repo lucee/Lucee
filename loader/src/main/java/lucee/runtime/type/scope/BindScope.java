@@ -21,14 +21,14 @@ package lucee.runtime.type.scope;
 public interface BindScope {
 
 	/**
-	 * sets if scope is binded to a other variable for using outside of a udf
+	 * sets if scope is bound to a other variable for using outside of a udf
 	 * 
 	 * @param bind
 	 */
 	public void setBind(boolean bind);
 
 	/**
-	 * @return returns if scope is binded to a other variable for using outside
+	 * @return returns if scope is bound to a other variable for using outside
 	 *         of a udf
 	 */
 	public boolean isBind();

@@ -183,7 +183,7 @@ public interface Creation {
 	 * @param rows
 	 * @param name
 	 * @return created query Object
-	 * @deprecated usse instead
+	 * @deprecated use instead
 	 *             <code>createQuery(Collection.Key[] columns, int rows, String name)</code>
 	 */
 	@Deprecated
@@ -207,7 +207,7 @@ public interface Creation {
 	 * @param rows
 	 * @param name
 	 * @return created query Object
-	 * @deprecated usse instead
+	 * @deprecated use instead
 	 *             <code>createQuery(Collection.Key[] columns, String[] types, int rows, String name)</code>
 	 */
 	@Deprecated
@@ -240,7 +240,7 @@ public interface Creation {
 			throws PageException;
 
 	/**
-	 * creates a collecton Key out of a String
+	 * creates a collection Key out of a String
 	 * 
 	 * @param key
 	 */

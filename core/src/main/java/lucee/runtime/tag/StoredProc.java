@@ -376,7 +376,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 							returnValue = param;
 						}
 						else if(ct == DatabaseMetaData.procedureColumnOut || ct == DatabaseMetaData.procedureColumnInOut) {
-							// review of the code: seems to add an addional column in this case
+							// review of the code: seems to add an additional column in this case
 							if(pm.dataType == CFTypes.CURSOR) {
 								ProcResultBean result = getFirstResult();
 								ProcParamBean param = new ProcParamBean();

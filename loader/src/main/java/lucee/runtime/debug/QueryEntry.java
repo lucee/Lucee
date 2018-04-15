@@ -29,14 +29,14 @@ import lucee.runtime.type.Query;
 public interface QueryEntry extends Serializable {
 
 	/**
-	 * @return return the query executionn time in mili seconds
+	 * @return return the query execution time in mili seconds
 	 * @deprecated use instead <code>getExecutionTime()</code>
 	 */
 	@Deprecated
 	public abstract int getExe();
 
 	/**
-	 * @return return the query executionn time in nanoseconds
+	 * @return return the query execution time in nanoseconds
 	 */
 	public long getExecutionTime();
 
@@ -46,7 +46,7 @@ public interface QueryEntry extends Serializable {
 	public abstract SQL getSQL();
 
 	/**
-	 * return the query of this entry (can be null, if the quer has not produced
+	 * return the query of this entry (can be null, if the query has not produced
 	 * a resultset)
 	 * 
 	 * @return

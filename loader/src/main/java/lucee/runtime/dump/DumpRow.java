@@ -26,7 +26,7 @@ public class DumpRow {
 	/**
 	 * constructor of the class
 	 * 
-	 * @param highlightType binary Values define wich columns are higlithed
+	 * @param highlightType binary Values define which columns are highlighted
 	 * @param items items as DumpData Array
 	 */
 	public DumpRow(final int highlightType, final DumpData[] items) {
@@ -37,7 +37,7 @@ public class DumpRow {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param highlightType binary Values define wich columns are higlithed
+	 * @param highlightType binary Values define which columns are highlighted
 	 * @param item1 item for the array
 	 */
 	public DumpRow(final int highlightType, final DumpData item1) {
@@ -47,7 +47,7 @@ public class DumpRow {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param highlightType binary Values define wich columns are higlithed
+	 * @param highlightType binary Values define which columns are highlighted
 	 * @param item1 item for the array
 	 * @param item2 item for the array
 	 */
@@ -59,7 +59,7 @@ public class DumpRow {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param highlightType binary Values define wich columns are higlithed
+	 * @param highlightType binary Values define which columns are highlighted
 	 * @param item1 item for the array
 	 * @param item2 item for the array
 	 * @param item3 item for the array
@@ -72,7 +72,7 @@ public class DumpRow {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param highlightType binary Values define wich columns are higlithed
+	 * @param highlightType binary Values define which columns are highlighted
 	 * @param item1 item for the array
 	 * @param item2 item for the array
 	 * @param item3 item for the array
@@ -86,7 +86,7 @@ public class DumpRow {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param highlightType binary Values define wich columns are higlithed
+	 * @param highlightType binary Values define which columns are highlighted
 	 * @param item1 item for the array
 	 * @param item2 item for the array
 	 * @param item3 item for the array
@@ -103,7 +103,7 @@ public class DumpRow {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param highlightType binary Values define wich columns are higlithed
+	 * @param highlightType binary Values define which columns are highlighted
 	 * @param item1 item for the array
 	 * @param item2 item for the array
 	 * @param item3 item for the array

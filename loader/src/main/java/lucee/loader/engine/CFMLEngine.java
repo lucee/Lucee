@@ -172,14 +172,14 @@ public interface CFMLEngine {
 	public String getVersion();
 
 	/**
-	 * @return returns the stae of the version (alpha,beta,rc,final)
+	 * @return returns the state of the version (alpha,beta,rc,final)
 	 * @deprecated use instead getInfo()
 	 */
 	@Deprecated
 	//public String getState();
 
 	/**
-	 * @return returns how this engine will be updated (auto, manuell)
+	 * @return returns how this engine will be updated (auto, manual)
 	 */
 	public String getUpdateType();
 
@@ -276,7 +276,7 @@ public interface CFMLEngine {
 	public Object getFDController();
 
 	/*
-	 * removed to avoid library conflicts, the blazeds implementation is no longer under developement an in a separate jar
+	 * removed to avoid library conflicts, the blazeDS implementation is no longer under development an in a separate jar
 	 */
 	// public Object getBlazeDSUtil(); 
 

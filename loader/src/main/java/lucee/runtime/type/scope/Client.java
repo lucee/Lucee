@@ -33,7 +33,7 @@ public interface Client extends Scope, UserScope, StorageScope {
 	public abstract long lastVisit();
 
 	/**
-	 * @return all keys except the readpnly ones
+	 * @return all keys except the readonly ones
 	 *         (cfid,cftoken,hitcount,lastvisit ...)
 	 */
 	public abstract Collection.Key[] pureKeys();

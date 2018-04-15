@@ -84,7 +84,7 @@ public final class LoggerAndSourceData {
 	}
 	
 	public Appender getAppender() {
-		getLog();// initilaize if necessary
+		getLog();// initialize if necessary
 		return _appender;
 	}
 	
@@ -100,12 +100,12 @@ public final class LoggerAndSourceData {
 
 
 	public Map<String, String> getAppenderArgs() {
-		getLog();// initilaize if necessary
+		getLog();// initialize if necessary
 		return appenderArgs;
 	}
 
 	public Layout getLayout() {
-		getLog();// initilaize if necessary
+		getLog();// initialize if necessary
 		return layout;
 	}
 	public ClassDefinition getLayoutClassDefinition() {
@@ -113,7 +113,7 @@ public final class LoggerAndSourceData {
 	}
 
 	public Map<String, String> getLayoutArgs() {
-		getLog();// initilaize if necessary
+		getLog();// initialize if necessary
 		return layoutArgs;
 	}
 

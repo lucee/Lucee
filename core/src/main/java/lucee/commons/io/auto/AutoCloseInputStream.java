@@ -24,7 +24,7 @@ import java.io.InputStream;
 import lucee.commons.io.IOUtil;
 
 /**
- * Close the Stream automaticlly when object will destroyed by the garbage
+ * Close the Stream automatically when object will destroyed by the garbage
  */
 public final class AutoCloseInputStream extends InputStream {
 	

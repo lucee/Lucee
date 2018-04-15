@@ -28,13 +28,13 @@ public interface ListUtil {
 
 	/**
 	 * casts a list to Array object, the list can be have quoted (",') arguments
-	 * and delimter in this arguments are ignored. quotes are not removed
+	 * and delimiter in this arguments are ignored. quotes are not removed
 	 * example:
 	 * listWithQuotesToArray("aab,a'a,b',a\"a,b\"",",","\"'") will be translated
 	 * to ["aab","a'a,b'","a\"a,b\""]
 	 * 
 	 * @param list list to cast
-	 * @param delimiter delimter of the list
+	 * @param delimiter delimiter of the list
 	 * @param quotes quotes of the list
 	 * @return Array Object
 	 */
@@ -45,7 +45,7 @@ public interface ListUtil {
 	 * casts a list to Array object
 	 * 
 	 * @param list list to cast
-	 * @param delimiter delimter of the list
+	 * @param delimiter delimiter of the list
 	 * @return Array Object
 	 */
 	public Array toArray(String list, String delimiter);
@@ -57,7 +57,7 @@ public interface ListUtil {
 	 * casts a list to Array object remove Empty Elements
 	 * 
 	 * @param list list to cast
-	 * @param delimiter delimter of the list
+	 * @param delimiter delimiter of the list
 	 * @return Array Object
 	 */
 	public Array toArrayRemoveEmpty(String list, String delimiter);
@@ -69,7 +69,7 @@ public interface ListUtil {
 	 * the list
 	 * 
 	 * @param list list to cast
-	 * @param delimiter delimter of the list
+	 * @param delimiter delimiter of the list
 	 * @return Array Object
 	 */
 	public Array toArrayTrim(String list, String delimiter);
@@ -80,7 +80,7 @@ public interface ListUtil {
 	 * 
 	 * @param list list to cast
 	 * @param pos
-	 * @param delimiter delimter of the list
+	 * @param delimiter delimiter of the list
 	 * @return Array Object
 	 * @throws PageException
 	 */
@@ -174,7 +174,7 @@ public interface ListUtil {
 	 * returns if a value of the list contains given value, ignore case
 	 * 
 	 * @param list list to search in
-	 * @param value value to serach
+	 * @param value value to search
 	 * @param delimiter delimiter of the list
 	 * @return position in list or 0
 	 */
@@ -185,7 +185,7 @@ public interface ListUtil {
 	 * returns if a value of the list contains given value, case sensitive
 	 * 
 	 * @param list list to search in
-	 * @param value value to serach
+	 * @param value value to search
 	 * @param delimiter delimiter of the list
 	 * @return position in list or 0
 	 */
@@ -251,7 +251,7 @@ public interface ListUtil {
 	 * @param delimiter delimiter of the list
 	 * @param multiCharacterDelimiter is a delimeter with multiple character
 	 *            handled as ne character or as many
-	 * @return trimed list
+	 * @return trimmed list
 	 */
 	public String trim(String list, String delimiter,
 			boolean multiCharacterDelimiter);
@@ -336,7 +336,7 @@ public interface ListUtil {
 	 * gets a value from list
 	 * 
 	 * @param list list to cast
-	 * @param delimiter delimter of the list
+	 * @param delimiter delimiter of the list
 	 * @param position
 	 * @return Array Object
 	 */

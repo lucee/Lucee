@@ -29,7 +29,7 @@ import lucee.runtime.db.DatasourceConnection;
 public interface Core {
 
 	/**
-	 * @return return true if this core support concatination of existing data with new data (getOutputStream(append:true))
+	 * @return return true if this core support concatenation of existing data with new data (getOutputStream(append:true))
 	 */
 	public boolean concatSupported();
 	
@@ -81,7 +81,7 @@ public interface Core {
 			Attr attr) throws SQLException;
 
 	/**
-	 * returns a inputStram to a entry data
+	 * returns a inputStream to a entry data
 	 * @param dc
 	 * @param prefix
 	 * @param attr

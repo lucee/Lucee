@@ -107,7 +107,7 @@ public class DumpTable implements DumpData {
 
 	/**
 	 * @param width sets the With of the HTML Box, can be a number or a
-	 *            procentual value
+	 *            percentage value
 	 */
 	public void setWidth(final String width) {
 		this.width = width;
@@ -115,7 +115,7 @@ public class DumpTable implements DumpData {
 
 	/**
 	 * @param height sets the Height of the HTML Box, can be a number or a
-	 *            procentual value
+	 *            percentage value
 	 */
 	public void setHeight(final String height) {
 		this.height = height;

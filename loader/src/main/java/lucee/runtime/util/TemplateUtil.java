@@ -29,7 +29,7 @@ public interface TemplateUtil {
 
 	/**
 	 * generate a ComponentJavaAccess (CJA) class from a component
-	 * a CJA is a dynamic genarted java class that has all method defined inside
+	 * a CJA is a dynamic generated java class that has all method defined inside
 	 * a component as java methods.
 	 * 
 	 * This is used to generated server side Webservices.

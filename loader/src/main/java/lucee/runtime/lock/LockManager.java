@@ -39,8 +39,8 @@ public interface LockManager {
 	 * 
 	 * @param type
 	 * @param name Lock Name (not case sensitive)
-	 * @param timeout tiemout to for waiting in this method, if timeout occurs
-	 *            "lockTiemoutException" will be throwd
+	 * @param timeout timeout to for waiting in this method, if timeout occurs
+	 *            "lockTimeoutException" will be thrown
 	 * @param pageContextId
 	 * @return lock data object key for unlocking this lock
 	 * @throws LockTimeoutException
