@@ -64,7 +64,7 @@ public final class Zip extends BodyTagImpl {
 
 	private String action = "zip";
 	private String charset;
-	private LinkedList<ResourceFilter> compressor;
+	private LinkedList<ResourceFilter> compressFilter;
 	private ResourceFilter compress=null;	
 	private String compressPattern;
 	private String compressDelimiters;
@@ -94,7 +94,7 @@ public final class Zip extends BodyTagImpl {
 		action = "zip";
 		charset = null;
 		compress = null;
-		compressor = null; // i.e. filters
+		compressFilter = null; // i.e. filters
 		compressPattern = null;
 		compressDelimiters = null;
 		destination = null;
@@ -152,8 +152,8 @@ public final class Zip extends BodyTagImpl {
 	}
 	
 	void _setCompress(ResourceFilter rf) throws PageException {
-		if(compress==null) compressor=new LinkedList<ResourceFilter>();
-		compressor.add(rf);
+		if(compress==null) compressFilter=new LinkedList<ResourceFilter>();
+		compressFilter.add(rf);
 	}
 
 	public void setCompress(String compressPattern) {
@@ -744,9 +744,9 @@ public final class Zip extends BodyTagImpl {
 			else filter=new OrResourceFilter(filters.toArray(new ResourceFilter[filters.size()]));
 		}
 		
-		if(compressor!=null && compressor.size()>0) {
-			if(compressor.size()==1) compress=compressor.getFirst();
-			else compress=new OrResourceFilter(compressor.toArray(new ResourceFilter[compressor.size()]));
+		if(compressFilter!=null && compressFilter.size()>0) {
+			if(compressFilter.size()==1) compress=compressFilter.getFirst();
+			else compress=new OrResourceFilter(compressFilter.toArray(new ResourceFilter[compressFilter.size()]));
 		}
 
 		//entryPath
