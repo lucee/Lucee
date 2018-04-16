@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.security.Principal;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -47,6 +48,7 @@ import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.Part;
 
 import lucee.commons.collection.concurrent.ConcurrentHashMapPro;
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -76,6 +78,8 @@ import lucee.runtime.util.EnumerationWrapper;
  */
 public final class HTTPServletRequestWrap implements HttpServletRequest, Serializable {
 
+	private static final long serialVersionUID = 7286638632320246809L;
+	
 	private boolean firstRead = true;
 	private byte[] barr;
 	private static final int MIN_STORAGE_SIZE = 1 * 1024 * 1024;
@@ -242,21 +246,16 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 
 	@Override
 	public ServletInputStream getInputStream() throws IOException {
-		// if(ba rr!=null) throw new IllegalStateException();
 		if(barr == null) {
-			synchronized (this) {
-				if (!firstRead) {
-//					System.out.println("LDEV-1592 not first read; barr is " + ((barr == null) ? "null" : barr.length));
+			if (!firstRead) {
+				if (barr != null)
+					return new ServletInputStreamDummy(barr);
 
-					if (barr != null)
-						return new ServletInputStreamDummy(barr);
+				PageContext pc = ThreadLocalPageContext.get();
+				if (pc != null)
+					return pc.formScope().getInputStream();
 
-					PageContext pc = ThreadLocalPageContext.get();
-					if (pc != null)
-						return pc.formScope().getInputStream();
-
-					return new ServletInputStreamDummy(new byte[]{}); // throw new IllegalStateException();
-				}
+				return new ServletInputStreamDummy(new byte[]{}); // throw new IllegalStateException();
 			}
 
 			firstRead = false;
@@ -267,20 +266,14 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 			InputStream is = null;
 			try {
 				barr = IOUtil.toBytes(is = req.getInputStream());
-//				System.out.println("LDEV-1592 reading input stream into barr");
-				// Resource res = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Temp/multipart.txt");
-				// IOUtil.copy(new ByteArrayInputStream(barr), res, true);
-
 			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
+			catch (Exception e) {
 				barr = null;
 				return new ServletInputStreamDummy(new byte[] {});
 			} finally {
 				IOUtil.closeEL(is);
 			}
 		}
-
 		return new ServletInputStreamDummy(barr);
 	}
 
@@ -361,14 +354,11 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 
 	@Override
 	public BufferedReader getReader() throws IOException {
-		String enc = getCharacterEncoding();
-		if(StringUtil.isEmpty(enc))
-			enc = "iso-8859-1";
+		String strEnc = getCharacterEncoding();
+		Charset enc=null;
+		if(StringUtil.isEmpty(strEnc)) enc = CharsetUtil.ISO88591;
+		else CharsetUtil.toCharset(strEnc);
 		return IOUtil.toBufferedReader(IOUtil.getReader(getInputStream(), enc));
-	}
-
-	public void clear() {
-		barr = null;
 	}
 
 	public HttpServletRequest getOriginalRequest() {
