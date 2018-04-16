@@ -64,6 +64,10 @@ public final class Zip extends BodyTagImpl {
 
 	private String action = "zip";
 	private String charset;
+	private LinkedList<ResourceFilter> compressor;
+	private ResourceFilter compress=null;	
+	private String compressPattern;
+	private String compressDelimiters;
 	private Resource destination;
 	private LinkedList<String> entryPathList;
 	private String[] entryPaths;
@@ -89,6 +93,10 @@ public final class Zip extends BodyTagImpl {
 		super.release();
 		action = "zip";
 		charset = null;
+		compress = null;
+		compressor = null; // i.e. filters
+		compressPattern = null;
+		compressDelimiters = null;
 		destination = null;
 		entryPathList = null;
 		entryPaths = null;
@@ -127,6 +135,36 @@ public final class Zip extends BodyTagImpl {
 	public void setCharset(String charset) {
 		this.charset = charset;
 	}
+	
+	/**
+	 * @param compress
+	 *            the compress to set
+	 */
+	public void setCompress(Object compress) throws PageException {
+		if(compress instanceof UDF)
+			this.setCompress((UDF)compress);
+		else if(compress instanceof String)
+			this.setCompress((String)compress);
+	}
+
+	public void setCompress(UDF compress) throws PageException {
+		_setCompress(UDFFilter.createResourceAndResourceNameFilter(compress));
+	}
+	
+	void _setCompress(ResourceFilter rf) throws PageException {
+		if(compress==null) compressor=new LinkedList<ResourceFilter>();
+		compressor.add(rf);
+	}
+
+	public void setCompress(String compressPattern) {
+		this.compressPattern = compressPattern;
+	}
+	
+	public void setCompressdelimiters(String compressDelimiters) {
+
+		this.compressDelimiters = compressDelimiters;
+	}
+	
 
 	/**
 	 * @param strDestination
@@ -273,6 +311,9 @@ public final class Zip extends BodyTagImpl {
 		// filter
 		if (!StringUtil.isEmpty(this.pattern)) {
 			_setFilter(new WildcardPatternFilter(pattern, StringUtil.isEmpty(patternDelimiters)?",":patternDelimiters));
+		}
+		if (!StringUtil.isEmpty(this.compressPattern)) {
+			_setFilter(new WildcardPatternFilter(compressPattern, StringUtil.isEmpty(compressDelimiters)?",":compressDelimiters));
 		}
 		
 		return EVAL_BODY_INCLUDE;
@@ -529,7 +570,7 @@ public final class Zip extends BodyTagImpl {
 
 		if((params == null || params.isEmpty()) && source != null) {
 			if(entryPaths!=null && entryPaths.length>1) throw new ApplicationException("you can only one set entrypath in this context");
-			setParam(new ZipParamSource(source, entryPaths==null?null:entryPaths[0], filter, prefix, recurse));
+			setParam(new ZipParamSource(source, entryPaths==null?null:entryPaths[0], filter, prefix, recurse, compress));
 		}
 
 		if((params == null || params.isEmpty())) {
@@ -584,14 +625,14 @@ public final class Zip extends BodyTagImpl {
 	private void actionZip(ZipOutputStream zos, ZipParamContent zpc) throws PageException, IOException {
 		Object content = zpc.getContent();
 		if(Decision.isBinary(content)) {
-			add(zos, new ByteArrayInputStream(Caster.toBinary(content)), zpc.getEntryPath(), System.currentTimeMillis(), true);
+			add(zos, new ByteArrayInputStream(Caster.toBinary(content)), zpc.getEntryPath(), System.currentTimeMillis(), true, zpc.getCompress());
 
 		}
 		else {
 			String charset = zpc.getCharset();
 			if(StringUtil.isEmpty(charset))
 				charset = ((PageContextImpl)pageContext).getResourceCharset().name();
-			add(zos, new ByteArrayInputStream(content.toString().getBytes(charset)), zpc.getEntryPath(), System.currentTimeMillis(), true);
+			add(zos, new ByteArrayInputStream(content.toString().getBytes(charset)), zpc.getEntryPath(), System.currentTimeMillis(), true, zpc.getCompress());
 		}
 	}
 
@@ -615,9 +656,14 @@ public final class Zip extends BodyTagImpl {
 			if(!StringUtil.isEmpty(p))
 				ep = p + ep;
 
-			add(zos, zps.getSource().getInputStream(), ep, zps.getSource().lastModified(), true);
+			add(zos, zps.getSource().getInputStream(), ep, zps.getSource().lastModified(), true, zps.getCompress()); // HELP need to apply the compress to this file
 		}
 		else {
+			
+			// compress
+			ResourceFilter c = zps.getCompress();
+			if(c == null)
+				c = this.compress;
 
 			// filter
 			ResourceFilter f = zps.getFilter();
@@ -626,17 +672,22 @@ public final class Zip extends BodyTagImpl {
 			if(zps.isRecurse()) {
 				if(f != null)
 					f = new OrResourceFilter(new ResourceFilter[] { DirectoryResourceFilter.FILTER, f });
+				
+				if(c != null)
+					c = new OrResourceFilter(new ResourceFilter[] { DirectoryResourceFilter.FILTER, c });	
 			}
 			else {
 				if(f == null)
 					f = FileResourceFilter.FILTER;
-			}
+				if(c == null)
+					c = FileResourceFilter.FILTER;	
+			}			
 
-			addDir(zos, zps.getSource(), p, f);
+			addDir(zos, zps.getSource(), p, f, c);
 		}
 	}
 
-	private void addDir(ZipOutputStream zos, Resource dir, String parent, ResourceFilter filter) throws IOException {
+	private void addDir(ZipOutputStream zos, Resource dir, String parent, ResourceFilter filter, ResourceFilter compress) throws IOException {
 
 		Resource[] children = (filter == null) ? dir.listResources() : dir.listResources(filter);
 
@@ -646,17 +697,18 @@ public final class Zip extends BodyTagImpl {
 		else {
 			for (int i = 0; i < children.length; i++) {
 				if (children[i].isDirectory())
-					addDir(zos, children[i], parent + children[i].getName() + "/", filter);
+					addDir(zos, children[i], parent + children[i].getName() + "/", filter, compress);
 				else {
-					add(zos, children[i].getInputStream(), parent + children[i].getName(), children[i].lastModified(), true);
+					add(zos, children[i].getInputStream(), parent + children[i].getName(), children[i].lastModified(), true, children[i].list(compress).length); // HELP need to pass a boolean compress flag here!
 				}
 			}
 		}
 	}
 
-	private void add(ZipOutputStream zos, InputStream is, String path, long lastMod, boolean closeInput) throws IOException {
+	private void add(ZipOutputStream zos, InputStream is, String path, long lastMod, boolean closeInput, boolean compress) throws IOException {
 		ZipEntry ze = new ZipEntry(path);
-		ze.setTime(lastMod);
+		ze.setTime(lastMod);		
+		ze.setMethod(compress ? ZipEntry.DEFLATED :  ZipEntry.STORED); // DEFLATE is default		
 		add(zos, ze, is, closeInput);
 	}
 
@@ -692,6 +744,10 @@ public final class Zip extends BodyTagImpl {
 			else filter=new OrResourceFilter(filters.toArray(new ResourceFilter[filters.size()]));
 		}
 		
+		if(compressor!=null && compressor.size()>0) {
+			if(compressor.size()==1) compress=compressor.getFirst();
+			else compress=new OrResourceFilter(compressor.toArray(new ResourceFilter[compressor.size()]));
+		}
 
 		//entryPath
 		if(entryPathList!=null && !entryPathList.isEmpty()) {

@@ -28,14 +28,16 @@ public class ZipParamSource implements ZipParamAbstr {
 	private ResourceFilter filter;
 	private String prefix;
 	private boolean recurse;
+	private ResourceFilter compress;
 
-	public ZipParamSource(Resource source, String entryPath, ResourceFilter filter, String prefix, boolean recurse) {
+	public ZipParamSource(Resource source, String entryPath, ResourceFilter filter, String prefix, boolean recurse, ResourceFilter compress) {
 
 		this.source=source;
 		this.entryPath=entryPath;
 		this.filter=filter;
 		this.prefix=prefix;
 		this.recurse=recurse;
+		this.compress=compress;
 	}
 
 	/**
@@ -71,6 +73,13 @@ public class ZipParamSource implements ZipParamAbstr {
 	 */
 	public boolean isRecurse() {
 		return recurse;
+	}
+	
+	/**
+	 * @return the compress
+	 */
+	public ResourceFilter getCompress(){
+		return compress;
 	}
 
 }

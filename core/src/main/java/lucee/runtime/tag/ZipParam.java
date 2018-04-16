@@ -36,8 +36,11 @@ public final class ZipParam extends TagImpl {
 	
 	private String charset;
 	private Object content;
+	private ResourceFilter compress;
+	private String compressPattern;
+	private String compressDelimiters;
 	private String entryPath;
-	private ResourceFilter filter;
+	private ResourceFilter filter;	
 	private String pattern;
 	private String patternDelimiters;
 	private String prefix;
@@ -52,6 +55,9 @@ public final class ZipParam extends TagImpl {
 		super.release();
 		charset=null;
 		content=null;
+		compress=null;		
+		compressPattern=null;		
+		compressDelimiters=null;
 		entryPath=null;
 		filter=null;
 		prefix=null;
@@ -75,6 +81,32 @@ public final class ZipParam extends TagImpl {
 	 */
 	public void setContent(Object content) {
 		this.content=content;
+	}
+	
+	/**
+	 * @param compress the compress to set
+	 */
+	public void setCompress(Object compress) throws PageException {
+
+		if (compress instanceof UDF)
+			this.setCompress((UDF)compress);
+		else if (compress instanceof String)
+			this.setCompress((String)compress);
+	}
+
+	public void setCompress(UDF compress) throws PageException	{
+
+		this.compress=UDFFilter.createResourceAndResourceNameFilter(compress);
+	}
+
+	public void setCompress(String compressPattern) {
+
+		this.compressPattern=compressPattern;
+	}
+	
+	public void setCompressdelimiters(String compressDelimiters) {
+
+		this.compressDelimiters = compressDelimiters;
 	}
 
 	/**
@@ -141,11 +173,12 @@ public final class ZipParam extends TagImpl {
 		if (this.filter == null && !StringUtil.isEmpty(this.pattern)) {
 			this.filter = new WildcardPatternFilter(pattern, patternDelimiters);
 		}
+		// HELP need to do something here with compress!
 		if(source!=null) {
 			notAllowed("source","charset", charset);
 			notAllowed("source","content", content);
-		
-			getZip().setParam( new ZipParamSource( source, entryPath, filter, prefix, recurse() ) );
+			// HELP compress here isn't right
+			getZip().setParam( new ZipParamSource( source, entryPath, filter, prefix, recurse(), compress ) );
 		}
 		else if(content!=null) {
 			required("content","entrypath",entryPath);
@@ -153,7 +186,8 @@ public final class ZipParam extends TagImpl {
 			notAllowed("content,entrypath","prefix", prefix);
 			notAllowed("content,entrypath","source", source);
 			notAllowed("content,entrypath","recurse", recurse);
-			getZip().setParam(new ZipParamContent(content,entryPath,charset));
+			// HELP compress here isn't right
+			getZip().setParam(new ZipParamContent(content,entryPath,charset,compress));
 		}
 		else if(filter!=null) {
 			notAllowed("filter","charset", charset);
