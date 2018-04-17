@@ -473,7 +473,7 @@
 								<td class="tblContent#css#"><input type="hidden" name="id_#tasks.currentrow#" value="#tasks.id#">
 									#tasks.type#
 								</td>
-								<td class="tblContent#css#">#tasks.name#</td>
+								<td class="tblContent#css#">#wrap(tasks.name,80)#</td>
 								<!---
 								<td class="tblContent#css#">
 									<cfif isDate(tasks.lastExecution) and year(tasks.lastExecution) NEQ 1970>
