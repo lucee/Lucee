@@ -669,12 +669,12 @@ a.edit {
 	background-color:#333;
 	border-width:0;
 }
-
-
-.admin-web .btn-search  		{ background-position: -125px -80px; }
-.admin-server .btn-search  		{ background-position: -125px -100px; }
-
-
+.admin-server .btn-search  		{ background-position: -125px -100px; margin-left: -2%; margin-bottom: -10%; padding-bottom: 10%;}
+.admin-web .btn-search  		{ background-position: -125px -80px; margin-left: -2%; margin-bottom: -10%; padding-bottom: 10%;}
+ 
+.tt-hint{ width: 88% ;}
+.tt-input{ width: 88% ;}
+ 
 
 .btn-mini span {
 	display:none;
