@@ -8058,6 +8058,13 @@ The following things are considered to be empty:
 			<default>false</default>
 			<description>if set to true, empty values are included as well</description>
 		</argument>
+		<argument>
+			<name>count</name>
+			<default>1</default>
+			<type>number</type>
+			<required>No</required>
+			<description>specifies how many items to return from the end of the list. default is 1.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>

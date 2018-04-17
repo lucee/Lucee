@@ -31,4 +31,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		assertEquals("",ListFirst(',,,a,b,c',',',true));
 
 	}
+
+	function testListLastCount(){
+
+		assertEquals("a,b,c",ListFirst(list:',a,,b,,c,,d,',count:3));
+		assertEquals(",a,",ListFirst(list:',a,,b,,c,,d,',count:3,includeEmptyFields:true));
+	}
 }
