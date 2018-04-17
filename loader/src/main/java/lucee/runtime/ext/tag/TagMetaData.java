@@ -113,7 +113,7 @@ public interface TagMetaData {
 	public boolean hasBody();
 
 	/**
-	 * can the tag handle exceptons
+	 * can the tag handle exceptions
 	 * 
 	 * @return can handle exceptions
 	 */

@@ -19,7 +19,7 @@
 package lucee.runtime.type.scope;
 
 /**
- * implemetnation of the application scope
+ * implementation of the application scope
  */
 public interface Application extends Scope {
 

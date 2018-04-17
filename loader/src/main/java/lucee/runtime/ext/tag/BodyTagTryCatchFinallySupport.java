@@ -25,7 +25,7 @@ import lucee.runtime.exp.PageServletException;
 import lucee.runtime.util.Excepton;
 
 /**
- * extends Body Support Tag eith TryCatchFinally Functionality
+ * extends Body Support Tag with TryCatchFinally Functionality
  */
 public abstract class BodyTagTryCatchFinallySupport extends BodyTagSupport
 		implements TryCatchFinally {

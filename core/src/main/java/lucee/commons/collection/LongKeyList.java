@@ -19,7 +19,7 @@
 package lucee.commons.collection;
 
 /**
- * class to fill objects, objetcs will be sorted by long key.
+ * class to fill objects, objects will be sorted by long key.
  */
 public final class LongKeyList {
 

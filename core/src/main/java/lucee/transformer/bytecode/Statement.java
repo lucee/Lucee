@@ -50,7 +50,7 @@ public interface Statement {
     public Statement getParent();
     
     /**
-     * write out the stament to adapter
+     * write out the statement to adapter
      * @param c
      * @throws TemplateException
      */

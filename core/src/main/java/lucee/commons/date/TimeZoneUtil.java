@@ -45,7 +45,7 @@ public class TimeZoneUtil {
 		IDS.put("default", TimeZone.getDefault());
 		IDS.put("", TimeZone.getDefault());
 
-		// MS specific Timezone definions
+		// MS specific Timezone definitions
 		set("Dateline Standard Time" ,"Etc/GMT+12");
 		set("Samoa Standard Time" ,"Pacific/Midway");
 		set("Hawaiian Standard Time" ,"HST");

@@ -527,7 +527,7 @@ public final class Directory extends TagImpl  {
         }
         return count;
     }
- // this method only exists for performance reasion
+ // this method only exists for performance reason
     private static int _fillQueryNames(Query query, Resource directory, ResourceFilter filter, int count) throws PageException {
     	if(filter==null || filter instanceof ResourceNameFilter) {
 	    	ResourceNameFilter rnf=filter==null?null:(ResourceNameFilter)filter;
@@ -586,7 +586,7 @@ public final class Directory extends TagImpl  {
         return count;
     }
     
-    // this method only exists for performance reasion
+    // this method only exists for performance reason
     private static int _fillArrayName(Array arr, Resource directory, ResourceFilter filter, int count) {
     	if(filter==null || filter instanceof ResourceNameFilter) {
     		ResourceNameFilter rnf=filter==null?null:(ResourceNameFilter)filter;

@@ -47,7 +47,7 @@ public final class RamResourceProviderOld implements ResourceProviderPro {
 
 	
 	/**
-	 * initalize ram resource
+	 * initialize ram resource
 	 * @param scheme
 	 * @param arguments
 	 * @return RamResource

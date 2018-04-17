@@ -100,7 +100,7 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable,
 
 	/**
 	 * return a value from the collection, if key doesn't exist, dont throw a
-	 * exception, reeturns null
+	 * exception, returns null
 	 * 
 	 * @param key key of the value to get
 	 * @param defaultValue value returned when no value exists for given key
@@ -112,7 +112,7 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable,
 
 	/**
 	 * return a value from the collection, if key doesn't exist, dont throw a
-	 * exception, reeturns null
+	 * exception, returns null
 	 * 
 	 * @param key key of the value to get
 	 * @param defaultValue value returned when no value exists for given key

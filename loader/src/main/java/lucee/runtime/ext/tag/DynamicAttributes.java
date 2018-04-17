@@ -21,7 +21,7 @@ package lucee.runtime.ext.tag;
 import lucee.runtime.type.Collection;
 
 /**
- * Interface for Dynmaic Attributes for tags (in j2ee at version 1.4.x)
+ * Interface for Dynamic Attributes for tags (in j2ee at version 1.4.x)
  */
 public interface DynamicAttributes {
 

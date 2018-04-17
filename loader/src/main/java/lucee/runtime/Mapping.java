@@ -79,7 +79,7 @@ public interface Mapping extends Serializable {
 	public abstract Resource getClassRootDirectory();
 
 	/**
-	 * pagesoucre matching given realpath
+	 * pagesource matching given realpath
 	 * 
 	 * @param realPath
 	 * @return matching pagesource
@@ -89,7 +89,7 @@ public interface Mapping extends Serializable {
 	/**
 	 * @param path
 	 * @param isOut
-	 * @return matching pagesoucre
+	 * @return matching pagesource
 	 */
 	public abstract PageSource getPageSource(String path, boolean isOut);
 

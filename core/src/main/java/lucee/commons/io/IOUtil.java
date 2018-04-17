@@ -1120,7 +1120,7 @@ public static String toString(Resource file, String charset) throws IOException 
     
     /**
      * @deprecated use instead <code>{@link #getWriter(Resource, Charset)}</code> 
-     * returns a Reader for the given File and charset (Automaticly check BOM Files)
+     * returns a Reader for the given File and charset (Automatically check BOM Files)
      * @param file
      * @param charset
      * @return Reader
@@ -1141,7 +1141,7 @@ public static String toString(Resource file, String charset) throws IOException 
     
     /**
      * @deprecated use instead <code>{@link #getWriter(Resource, Charset, boolean)}</code> 
-     * returns a Reader for the given File and charset (Automaticly check BOM Files)
+     * returns a Reader for the given File and charset (Automatically check BOM Files)
      * @param file
      * @param charset
      * @return Reader

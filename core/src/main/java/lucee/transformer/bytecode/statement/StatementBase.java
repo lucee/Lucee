@@ -71,7 +71,7 @@ public abstract class StatementBase implements Statement {
 
 
 	/**
-     * write out the stament to adapter
+     * write out the statement to adapter
      * @param adapter
      * @throws TemplateException
      */
@@ -86,7 +86,7 @@ public abstract class StatementBase implements Statement {
     
 
     /**
-     * write out the stament to the adater
+     * write out the statement to the adapter
      * @param adapter
      * @throws TransformerException 
      */

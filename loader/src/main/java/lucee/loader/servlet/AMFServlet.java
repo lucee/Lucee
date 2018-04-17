@@ -39,7 +39,7 @@ public class AMFServlet extends AbsServlet {
 	@Override
 	public void init(final ServletConfig sg) throws ServletException {
 		super.init(sg);
-		// do not get engine here, because then it is possible that the engine is initilized with this values
+		// do not get engine here, because then it is possible that the engine is initialized with this values
 	}
 
 	/**

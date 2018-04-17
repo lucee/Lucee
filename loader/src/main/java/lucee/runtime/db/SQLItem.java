@@ -72,7 +72,7 @@ public interface SQLItem {
 	public abstract SQLItem clone(Object object);
 
 	/**
-	 * @return CF combatible Type
+	 * @return CF compatible Type
 	 * @throws PageException
 	 */
 	public abstract Object getValueForCF() throws PageException;

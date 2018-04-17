@@ -172,7 +172,7 @@ public interface ClassUtil {
 			Object defaultValue);
 
 	/**
-	 * calls a Method of a Objct
+	 * calls a Method of a Object
 	 * 
 	 * @param obj Object to call Method on it
 	 * @param methodName Name of the Method to get
@@ -222,7 +222,7 @@ public interface ClassUtil {
 			throws PageException;
 
 	/**
-	 * to get a visible Propety (Field or Getter) of a object
+	 * to get a visible Property (Field or Getter) of a object
 	 * 
 	 * @param obj Object to invoke
 	 * @param prop property to call
@@ -232,7 +232,7 @@ public interface ClassUtil {
 	public Object getProperty(Object obj, String prop) throws PageException;
 
 	/**
-	 * to get a visible Propety (Field or Getter) of a object
+	 * to get a visible Property (Field or Getter) of a object
 	 * 
 	 * @param obj Object to invoke
 	 * @param prop property to call

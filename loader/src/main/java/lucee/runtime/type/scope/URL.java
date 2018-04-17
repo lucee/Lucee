@@ -23,7 +23,7 @@ import java.io.UnsupportedEncodingException;
 import lucee.runtime.listener.ApplicationContext;
 
 /**
- * inteface for the url scope
+ * interface for the url scope
  */
 public interface URL extends Scope {
 

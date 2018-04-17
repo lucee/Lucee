@@ -21,7 +21,7 @@ package lucee.runtime.config;
 public interface ConfigListener {
 
 	/**
-	 * this method will be caled when a web context will be loaded
+	 * this method will be called when a web context will be loaded
 	 * 
 	 * @param cServer
 	 * @param wConfig

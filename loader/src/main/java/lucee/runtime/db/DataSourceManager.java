@@ -29,7 +29,7 @@ public interface DataSourceManager {
 	 * @param datasource datasource whished
 	 * @param user username to datasource
 	 * @param pass password to datasource
-	 * @return return a Db Connectio9n Object
+	 * @return return a Db Connection9n Object
 	 * @throws PageException
 	 * @deprecated use instead
 	 *             <code>getConnection(PageContext pc,DataSource ds, String user, String pass)</code>
@@ -44,7 +44,7 @@ public interface DataSourceManager {
 	 * @param ds datasource whished
 	 * @param user username to datasource
 	 * @param pass password to datasource
-	 * @return return a Db Connectio9n Object
+	 * @return return a Db Connection Object
 	 * @throws PageException
 	 */
 	public DatasourceConnection getConnection(PageContext pc, DataSource ds,

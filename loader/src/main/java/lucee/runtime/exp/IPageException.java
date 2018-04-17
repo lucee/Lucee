@@ -52,7 +52,7 @@ public interface IPageException extends Dumpable {
 	public String getExtendedInfo();
 
 	/* *
-	 * @return returns the line where the failure occured
+	 * @return returns the line where the failure occurred
 	 */
 	//public String getLine();
 

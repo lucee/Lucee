@@ -38,7 +38,7 @@ public class ResourceAppender extends WriterAppender implements AppenderState {
 
   private static final int DEFAULT_BUFFER_SIZE = 8*1024; 
 
-/** Controls file truncatation. The default value for this variable
+/** Controls file truncation. The default value for this variable
    * is <code>true</code>, meaning that by default a
    * <code>FileAppender</code> will append to an existing file and not
    * truncate it.
@@ -163,7 +163,7 @@ private Object sync=new SerializableObject();
   /**
      Get the value of the <b>BufferedIO</b> option.
 
-     <p>BufferedIO will significatnly increase performance on heavily
+     <p>BufferedIO will significantly increase performance on heavily
      loaded systems.
 
   */
@@ -225,7 +225,7 @@ private Object sync=new SerializableObject();
   /**
      Sets the quiet writer being used.
 
-     This method is overriden by {@link RollingFileAppender}.
+     This method is overridden by {@link RollingFileAppender}.
    */
   protected void setQWForFiles(Writer writer) {
      this.qw = new QuietWriter(writer, errorHandler);

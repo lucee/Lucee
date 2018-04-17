@@ -37,7 +37,7 @@ public class RWKeyLock<K> {
 	private Map<K,RWLock<K>> locks=new HashMap<K,RWLock<K>>();
 	
 	public Lock lock(K token, long timeout, boolean readOnly) throws LockException, LockInterruptedException {
-		if(timeout<=0) throw new LockException("timeout must be a postive number");
+		if(timeout<=0) throw new LockException("timeout must be a positive number");
 		
 		RWWrap<K> wrap;
 		//K token=key;

@@ -45,9 +45,9 @@ public class VersionInfo {
 	}
 
 	/**
-	 * return creattion time of this version
+	 * return creation time of this version
 	 * 
-	 * @return creattion time
+	 * @return creation time
 	 */
 	public static long getCreateTime() {
 		init();

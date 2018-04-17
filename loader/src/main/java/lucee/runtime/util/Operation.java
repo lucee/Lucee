@@ -333,7 +333,7 @@ public interface Operation {
 	 * 
 	 * @param left value to get exponent from
 	 * @param right exponent count
-	 * @return return expoinended value
+	 * @return return exponent value
 	 * @throws PageException
 	 */
 	public double exponent(Object left, Object right) throws PageException;
@@ -343,7 +343,7 @@ public interface Operation {
 	 * 
 	 * @param left
 	 * @param right
-	 * @return concated String
+	 * @return concatenated String
 	 */
 	public String concat(String left, String right);
 
@@ -352,7 +352,7 @@ public interface Operation {
 	 * 
 	 * @param left
 	 * @param right
-	 * @return result of the opertions
+	 * @return result of the operations
 	 */
 	public double plus(double left, double right);
 
@@ -361,7 +361,7 @@ public interface Operation {
 	 * 
 	 * @param left
 	 * @param right
-	 * @return result of the opertions
+	 * @return result of the operations
 	 */
 	public double minus(double left, double right);
 
@@ -370,7 +370,7 @@ public interface Operation {
 	 * 
 	 * @param left
 	 * @param right
-	 * @return result of the opertions
+	 * @return result of the operations
 	 */
 	public double modulus(double left, double right);
 
@@ -379,7 +379,7 @@ public interface Operation {
 	 * 
 	 * @param left
 	 * @param right
-	 * @return result of the opertions
+	 * @return result of the operations
 	 */
 	public double divide(double left, double right);
 
@@ -388,7 +388,7 @@ public interface Operation {
 	 * 
 	 * @param left
 	 * @param right
-	 * @return result of the opertions
+	 * @return result of the operations
 	 */
 	public double multiply(double left, double right);
 

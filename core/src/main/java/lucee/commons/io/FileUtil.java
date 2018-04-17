@@ -91,7 +91,7 @@ public final class FileUtil {
     
     /* *
      * create a file object from a file object (parent) and realpath, in difference to the same constructor
-     * of the File Object this method ignore the diffrent path seperators on the different plattforms
+     * of the File Object this method ignore the diffrent path seperators on the different platforms
      * @param parent
      * @param realpath
      * @return new FIle Object matching on arguments

@@ -23,7 +23,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.exp.PageException;
 
 /**
- * this lstener is executed after the application.cfc/application.cfm was
+ * this listener is executed after the application.cfc/application.cfm was
  * invoked, but before onApplicationStart, this class can change the PageSource
  * executed
  */

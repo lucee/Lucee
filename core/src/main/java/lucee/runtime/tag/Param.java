@@ -58,7 +58,7 @@ public final class Param extends TagImpl {
 	}
 	
 	public Param() throws ApplicationException {
-		throw new ApplicationException("this Tag Implemenation is deprecated and replaced with a Translation Time Transformer");
+		throw new ApplicationException("this Tag Implementation is deprecated and replaced with a Translation Time Transformer");
 	}
 
 

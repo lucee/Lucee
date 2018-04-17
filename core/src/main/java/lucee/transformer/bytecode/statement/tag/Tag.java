@@ -59,7 +59,7 @@ public interface Tag extends Statement,HasBody {
 	public abstract void setAppendix(String appendix);
 
 	/**
-	 * sets the fullanem of the tag
+	 * sets the fullname of the tag
 	 * @param fullname
 	 */
 	public abstract void setFullname(String fullname);

@@ -64,7 +64,7 @@ public final class CacheResourceProvider implements ResourceProviderPro {
 
 	
 	/**
-	 * initalize ram resource
+	 * initialize ram resource
 	 * @param scheme
 	 * @param arguments
 	 * @return RamResource

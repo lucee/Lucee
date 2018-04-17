@@ -357,7 +357,7 @@ public interface Cast {
 	public boolean toBooleanValue(Object o, boolean defaultValue);
 
 	/**
-	 * cast a Object to a boolean value (refrence type), Exception Less
+	 * cast a Object to a boolean value (reference type), Exception Less
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue default value
@@ -366,7 +366,7 @@ public interface Cast {
 	public Boolean toBoolean(Object o, Boolean defaultValue);
 
 	/**
-	 * cast a Object to a boolean value (refrence type), Exception Less
+	 * cast a Object to a boolean value (reference type), Exception Less
 	 * 
 	 * @param str String to cast
 	 * @param defaultValue default value
@@ -1376,7 +1376,7 @@ public interface Cast {
 	/**
 	 * cast a double value to his (CFML) reference type Double
 	 * 
-	 * @param d doble to cast
+	 * @param d double to cast
 	 * @return casted Double
 	 */
 	public Double toRef(double d);
@@ -1456,7 +1456,7 @@ public interface Cast {
 	 * casts a string to a Locale
 	 * 
 	 * @param strLocale
-	 * @return Locale ferom String
+	 * @return Locale from String
 	 * @throws PageException
 	 */
 	public Locale toLocale(String strLocale) throws PageException;
