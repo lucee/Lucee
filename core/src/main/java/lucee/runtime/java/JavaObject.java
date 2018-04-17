@@ -30,6 +30,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -51,11 +52,13 @@ import lucee.runtime.util.VariableUtilImpl;
  * class to handle initialising and call native object from lucee
  */
 public class JavaObject implements Objects,ObjectWrap {
+
+	private static final long serialVersionUID = -3716657460843769960L;
 	
 	private Class clazz;
 	private boolean isInit=false;
 	private Object object;
-    private VariableUtil variableUtil;
+    private transient VariableUtil _variableUtil;
     
 	/**
 	 * constructor with className to load
@@ -64,21 +67,21 @@ public class JavaObject implements Objects,ObjectWrap {
 	 * @throws ExpressionException
 	 */
 	public JavaObject(VariableUtil variableUtil,Class clazz) {
-	    this.variableUtil=variableUtil;
+	    this._variableUtil=variableUtil;
 		this.clazz=clazz;
 	}
 
 
 	public JavaObject(VariableUtil variableUtil,Object object) {
-	    this.variableUtil=variableUtil;
+	    this._variableUtil=variableUtil;
 		this.clazz=object.getClass();
 		this.object=object;
-		isInit=true;
+		isInit=object!=null;
 	}
 
 	public Object get(PageContext pc, String propertyName) throws PageException {
         if(isInit) {
-            return variableUtil.get(pc,object,propertyName);
+            return variableUtil(pc).get(pc,object,propertyName);
         }
             
         // Check Field
@@ -107,8 +110,14 @@ public class JavaObject implements Objects,ObjectWrap {
                 }
             }
         // male Instance
-        return variableUtil.get(pc,init(),propertyName);  
+        return variableUtil(pc).get(pc,init(),propertyName);  
 	}
+
+	private VariableUtil variableUtil(PageContext pc) {
+		if(_variableUtil!=null) return _variableUtil;
+		return ThreadLocalPageContext.get(pc).getVariableUtil();
+	}
+
 
 	@Override
 	public Object get(PageContext pc, Collection.Key key) throws PageException {
@@ -117,7 +126,7 @@ public class JavaObject implements Objects,ObjectWrap {
 
     public Object get(PageContext pc, String propertyName, Object defaultValue) {
         if(isInit) {
-            return variableUtil.get(pc,object,propertyName,defaultValue);  
+            return variableUtil(pc).get(pc,object,propertyName,defaultValue);  
         }
         // Field
         Field[] fields = Reflector.getFieldsIgnoreCase(clazz,propertyName,null);
@@ -137,7 +146,7 @@ public class JavaObject implements Objects,ObjectWrap {
             }
         }
         try {
-            return variableUtil.get(pc,init(),propertyName,defaultValue);  
+            return variableUtil(pc).get(pc,init(),propertyName,defaultValue);  
         } catch (PageException e1) {
             return defaultValue;
         }         
@@ -151,7 +160,7 @@ public class JavaObject implements Objects,ObjectWrap {
 	@Override
 	public Object set(PageContext pc, Collection.Key propertyName, Object value) throws PageException  {
 		if(isInit) {
-		    return ((VariableUtilImpl)variableUtil).set(pc,object,propertyName,value);
+		    return ((VariableUtilImpl)variableUtil(pc)).set(pc,object,propertyName,value);
 		}
 	    // Field
 		Field[] fields=Reflector.getFieldsIgnoreCase(clazz,propertyName.getString(),null);
@@ -180,13 +189,13 @@ public class JavaObject implements Objects,ObjectWrap {
         }
         
 
-	    return ((VariableUtilImpl)variableUtil).set(pc,init(),propertyName,value);
+	    return ((VariableUtilImpl)variableUtil(pc)).set(pc,init(),propertyName,value);
 	}
 
     @Override
     public Object setEL(PageContext pc, Collection.Key propertyName, Object value) {
 		if(isInit) {
-		    return variableUtil.setEL(pc,object,propertyName,value);
+		    return variableUtil(pc).setEL(pc,object,propertyName,value);
 		}
 	    // Field
 		Field[] fields=Reflector.getFieldsIgnoreCase(clazz,propertyName.getString(),null);
@@ -208,7 +217,7 @@ public class JavaObject implements Objects,ObjectWrap {
         }
            
         try {
-    	    return variableUtil.setEL(pc,init(),propertyName,value);
+    	    return variableUtil(pc).setEL(pc,init(),propertyName,value);
         } catch (PageException e1) {
             return value;
         }
