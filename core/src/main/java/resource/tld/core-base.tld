@@ -8955,6 +8955,23 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
             attribute, you must specify the entrypath attribute. </description>
     </attribute>
 		<attribute>
+            <type>any</type>
+            <name>compress</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+            <description>Optional filter. Can be either a wildcard filter,
+            e.g. "m*", or a UDF/Closure which accepts the file/directory name and returns a boolean value to indicate
+            whether that file should be compressed or just stored.</description>
+    </attribute>
+        <attribute>
+            <type>string</type>
+            <name>compressDelimiters</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+            <description>Optional when passing a filter pattern. This value is used as a delimiter for the patterns.
+            Default is the pipe "|" character.</description>
+    </attribute>
+		<attribute>
 			<type>string</type>
 			<name>entryPath</name>
 			<required>false</required>

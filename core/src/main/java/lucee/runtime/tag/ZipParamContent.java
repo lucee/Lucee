@@ -23,11 +23,13 @@ public class ZipParamContent implements ZipParamAbstr {
 	private Object content;
 	private String entryPath;
 	private String charset;
+	private Boolean compress;
 
-	public ZipParamContent(Object content, String entryPath, String charset) {
+	public ZipParamContent(Object content, String entryPath, String charset, boolean compress) {
 		this.content=content;
 		this.entryPath=entryPath;
 		this.charset=charset;
+		this.compress=compress;
 	}
 
 	/**
@@ -49,6 +51,12 @@ public class ZipParamContent implements ZipParamAbstr {
 	 */
 	public String getCharset() {
 		return charset;
+	}
+	/**
+	 * @return the compress
+	 */
+	public Boolean getCompress() {
+		return compress;
 	}
 
 
