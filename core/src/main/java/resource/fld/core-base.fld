@@ -212,7 +212,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		<description>Returns the position of the first element in the array whose string value contains the substring passed (not case sensitive), or 0 if no such element is found.</description>
 		<argument>
 			<name>haystack</name>
-			<alias>array,arr</alias>
+			<alias>array,arr,v</alias>
 			<type>array</type>
 			<required>Yes</required>
 			<description>The array in which to search for the substring</description>
@@ -437,6 +437,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		<description>call the given UDF/Closure with every value in the string list.</description>
 		<argument>
 			<name>list</name>
+			<alias>str</alias>
 			<type>string</type>
 			<required>Yes</required>
 			<description>string list to iterate</description>
@@ -451,6 +452,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>delimiter</name>
+			<alias>delim</alias>
 			<default>,</default>
 			<type>string</type>
 			<required>No</required>
@@ -876,7 +878,7 @@ Remember CFML arrays start at 1 not 0.</description>
     	</argument>
 		<argument>
 			<name>closure</name>
-			<alias>function,callback,udf</alias>
+			<alias>function,callback,udf, mapFunc</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>filter can be a function/closure that implements the following constructor [function(struct row[, number rowNumber, query query]):struct].
@@ -1983,7 +1985,7 @@ sort direction:
 		<description>removes elements from cache defined with argument ids.</description>
 		<argument>
 			<name>ids</name>
-			<alias>names,keys</alias>
+			<alias>names,keys,id</alias>
 			<type>object</type>
 			<required>Yes</required>
 			<description>This can be a string list of multiple elements or a array containing the keys</description>
@@ -2430,14 +2432,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>wrap the given component with a java class that implements the given interfaces.</description>
 		<argument>
 			<name>cfc</name>
-			<alias>cfcName,component,componentName</alias>
+			<alias>cfcName,component,componentName,fullyQualifiedNameOfCFC</alias>
 			<type>object</type>
 			<required>Yes</required>
 			<description>component or component name</description>
 	    </argument>
 		<argument>
 			<name>interfaces</name>
-			<alias>interface</alias>
+			<alias>interface,interfaceName</alias>
 			<type>object</type>
 			<required>Yes</required>
 			<description>array of strings containg interface pathes or a string list of interface pathes.</description>
@@ -4484,13 +4486,14 @@ EntitySave(entity, [forceinsert])</description>
 			<description>Executes a SQL query, returns the result.</description>
     		<argument>
     			<name>sql</name>
+    			<alias>sql_str</alias>
     			<type>string</type>
     			<required>Yes</required>
     			<description>SQL to execute</description>
     	    </argument>
     		<argument>
     			<name>params</name>
-    			<alias>param</alias>
+    			<alias>param,queryParams</alias>
     			<type>any</type>
     			<required>No</required>
     			<description>
@@ -10287,6 +10290,7 @@ The value determines whether the image is blurred or sharpened:
     </argument>
 		<argument>
 			<name>color</name>
+			<alias>c1</alias>
 			<alias>colour</alias>
 			<type>string</type>
 			<required>Yes</required>
@@ -11612,6 +11616,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
+			<alias>includeEmptyValues</alias>
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
@@ -11650,6 +11655,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
+			<alias>includeEmptyValues</alias>
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
@@ -11681,6 +11687,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
+			<alias>includeEmptyValues</alias>
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
@@ -11724,6 +11731,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
+			<alias>includeEmptyValues</alias>
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
@@ -11767,6 +11775,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
+			<alias>includeEmptyValues</alias>
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
@@ -11803,6 +11812,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
+			<alias>includeEmptyValues</alias>
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
@@ -11834,6 +11844,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
+			<alias>includeEmptyValues</alias>
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
@@ -11865,6 +11876,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
+			<alias>includeEmptyValues</alias>
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
@@ -11896,6 +11908,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
+			<alias>includeEmptyValues</alias>
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
@@ -11975,6 +11988,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
+			<alias>includeEmptyValues</alias>
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
@@ -12006,6 +12020,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
+			<alias>includeEmptyValues</alias>
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
@@ -12087,6 +12102,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
+			<alias>includeEmptyValues</alias>
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
@@ -12138,6 +12154,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
+			<alias>includeEmptyValues</alias>
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
@@ -12169,6 +12186,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
+			<alias>includeEmptyValues</alias>
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
@@ -12216,6 +12234,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
+			<alias>includeEmptyValues</alias>
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
@@ -12254,6 +12273,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
+			<alias>includeEmptyValues</alias>
 			<type>boolean</type>
 			<required>No</required>
 			<description>if set to true, empty values are included as well</description>
@@ -12543,7 +12563,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Returns the string label for the given month</description>
 		<argument>
 			<name>month</name>
-			<alias>monthnumber,number</alias>
+			<alias>monthnumber,number,month_number</alias>
 			<type>number</type>
 			<required>Yes</required>
 		<description>a number between 1 and 12</description>
@@ -12942,7 +12962,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     </argument>
 		<argument>
 			<name>column</name>
-			<alias>columnname</alias>
+			<alias>columnname,column-name</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description></description>
@@ -12956,6 +12976,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     </argument>
 		<argument>
 			<name>array</name>
+			<alias>array-name</alias>
 			<type>any</type>
 			<required>No</required>
 		<description></description>
@@ -13275,6 +13296,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	</argument>
 		<argument>
 			<name>data</name>
+			<alias>rowData</alias>
 			<type>any</type>
 			<required>No</required>
 			<description>data to populate the new Query, a array of arrays or a array of structs.
@@ -15011,7 +15033,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>function,callback,udf</alias>
+			<alias>function,callback,udf,func</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>UDF/Closure that call with the entries from the query</description>
@@ -15287,7 +15309,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         </argument>
 		<argument>
 			<name>closure</name>
-			<alias>function,callback,udf</alias>
+			<alias>function,callback,udf,reduceFunc</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(any result, string key, object value[, struct struct]):any].</description>
@@ -16588,7 +16610,7 @@ _- asc (default): ascending (a to z) sort order
         has the specified name.</description>
 		<argument>
 			<name>node</name>
-			<alias>xmlNode,xmlObj,xmlDoc,xml</alias>
+			<alias>xmlNode,xmlObj,xmlDoc,xml,elem</alias>
 			<type>xml</type>
 			<required>Yes</required>
 		<description>XML element within which to search.</description>
@@ -16601,6 +16623,7 @@ _- asc (default): ascending (a to z) sort order
     </argument>
 		<argument>
 			<name>index</name>
+			<alias>N</alias>
 			<type>number</type>
 			<required>Yes</required>
 		<description></description>
@@ -16667,7 +16690,7 @@ _- asc (default): ascending (a to z) sort order
 		<description>Determines the type of an XML document object node.</description>
 		<argument>
 			<name>xml</name>
-			<alias>xmlDoc,xmlObj</alias>
+			<alias>xmlDoc,xmlObj,xmlNode</alias>
 			<type>xml</type>
 			<required>Yes</required>
 		<description>An XML DOM object node</description>

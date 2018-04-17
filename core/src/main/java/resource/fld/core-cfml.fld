@@ -873,7 +873,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>invokes a function/operation of the given object and if given object is a string, Lucee tries to load as component.</description>
 		<argument>
 			<name>object</name>
-			<alias>cfcinstance,obj,value,variable</alias>
+			<alias>cfcinstance,obj,value,variable,Instance</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>a component, struct or scope that holds a function, can also be the name of a component, in this case the component get loaded.</description>
@@ -1356,6 +1356,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         the current locale into a date/time object.</description>
 		<argument>
 			<name>date</name>
+			<alias>time-string</alias>
 			<type>object</type>
 			<required>Yes</required>
 		<description>A string in a format that is readable in the current locale. </description>
@@ -1403,7 +1404,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>use function lsParseCurrency instead</description>
 		<argument>
 			<name>number</name>
-			<alias>string,currency_number,currency</alias>
+			<alias>string,currency_number,currency,currency-string</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>Locale-specific string</description>
@@ -1624,6 +1625,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         <member-type>string</member-type>
 		<argument>
 			<name>date</name>
+			<alias>time-string</alias>
 			<type>object</type>
 			<required>Yes</required>
 			<description>A string containing a date/time value formatted according to U.S. locale conventions.</description>
