@@ -21,6 +21,7 @@ package lucee.runtime.exp;
 import lucee.runtime.type.FunctionArgument;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.Type;
+import org.apache.commons.lang.StringUtils;
 
 public class UDFCasterException extends CasterException {
 
@@ -35,17 +36,25 @@ public class UDFCasterException extends CasterException {
 	}
 
     private static String createMessage(UDF udf, String type, Object value) {
-    	String detail;
-    	if(value instanceof String) return "can't cast String ["+value+"] to a value of type ["+type+"]";
+		String detail;
+		if(value instanceof String) {
+			String str = (String) value;
+			String strTrim = str.length()>100 ? StringUtils.left(str, 100) + "......" : str;
+			return "can't cast String ["+strTrim+"] to a value of type ["+type+"]";
+		}
     	else if(value!=null) detail= "can't cast Object type ["+Type.getName(value)+"] to a value of type ["+type+"]";
 		else detail= "can't cast null value to value of type ["+type+"]";
 		return "the function "+udf.getFunctionName()+" has an invalid return value , "+detail;
 
-    }   
+    }
 
 	private static String createMessage(UDF udf, FunctionArgument arg, Object value, int index) {
 		String detail;
-		if(value instanceof String) detail= "can't cast String ["+value+"] to a value of type ["+arg.getTypeAsString()+"]";
+		if(value instanceof String) {
+    		String str = (String) value;
+    		String strTrim = str.length()>100 ? StringUtils.left(str, 100) + "......" : str;
+			return "can't cast String ["+strTrim+"] to a value of type ["+arg.getTypeAsString()+"]";
+    	}
 		else if(value!=null) detail= "can't cast Object type ["+Type.getName(value)+"] to a value of type ["+arg.getTypeAsString()+"]";
 		else detail= "can't cast Null value to value of type ["+arg.getTypeAsString()+"]";
 		
