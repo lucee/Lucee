@@ -2222,7 +2222,7 @@ public final class Caster {
                 }
             } 
             catch (ExpressionException ee) {
-                throw new ExpressionException("can't cast struct to a array, key ["+(e!=null?e.getKey():"")+"] is not a number");
+                throw new ExpressionException("can't cast struct to an array, key ["+(e!=null?e.getKey():"")+"] is not a number");
             }
             return arr;
         }
@@ -2305,7 +2305,7 @@ public final class Caster {
                 }
             } 
             catch (ExpressionException ee) {
-                throw new ExpressionException("can't cast struct to a array, key ["+e.getKey().getString()+"] is not a number");
+                throw new ExpressionException("can't cast struct to an array, key ["+e.getKey().getString()+"] is not a number");
             }
             return arr;
         }
