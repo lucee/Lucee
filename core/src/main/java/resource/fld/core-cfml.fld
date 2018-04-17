@@ -200,6 +200,7 @@ you can use tag cfadmin instead. we will add support for this function in a futu
         CreateObject('webservice', urltowsdl, [, portname])</description>
 		<argument>
 			<name>type</name>
+			<alias>componentType</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>one of the following:
@@ -223,7 +224,7 @@ the usage of this argument depend on type defined with argument "type":
     </argument>
 		<argument>
 			<name>context</name>
-			<alias>bundleName,name,webservice</alias>
+			<alias>bundleName,name,webservice,Assembly,WSPortName,thirdarg</alias>
 			<type>object</type>
 			<required>No</required>
 		<description>
@@ -848,12 +849,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     </argument>
 		<argument>
 			<name>string_expression1</name>
+			<alias>expression1</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>Expression to evaluate and return if condition is true.</description>
     </argument>
 		<argument>
 			<name>string_expression2</name>
+			<alias>expression2</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>Expression to evaluate and return if condition is false.</description>
@@ -884,7 +887,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	    </argument>
 		<argument>
 			<name>arguments</name>
-			<alias>args,argumentcollection</alias>
+			<alias>params,args,argumentcollection</alias>
 			<type>any</type>
 			<required>no</required>
 			<description>arguments to pass to the function/operation</description>
@@ -905,7 +908,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Evaluates a string value to determine whether the variable
         named in it exists.</description>
 		<argument>
-			<name>variable</name>
+			<name>value</name>
+			<alias>variable</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>String, enclosed in quotation marks. Name of variable to test for.</description>
@@ -941,7 +945,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Determines whether a string or Java object can be converted
         to a date/time value.</description>
 		<argument>
-			<name>string</name>
+			<name>value</name>
+			<alias>string</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>A string or a variable that contains one. </description>
@@ -1010,6 +1015,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Determines if the object represents a numeric</description>
 		<argument>
 			<name>string</name>
+			<alias>value</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>A string or a variable that contains one. </description>
@@ -1028,6 +1034,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         date (date/time object).</description>
 		<argument>
 			<name>number</name>
+			<alias>value</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>A real number</description>
@@ -1046,7 +1053,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         specified Role.</description>
 		<argument>
 			<name>role_name</name>
-			<alias>rolename,role,name</alias>
+			<alias>rolename,role,name,value</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>Name of a security role</description>
@@ -1207,7 +1214,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         currency amount in the current locale.</description>
 		<argument>
 			<name>number</name>
-			<alias>string,currency_number</alias>
+			<alias>string,currency_number,currency</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>A currency string</description>
@@ -1396,7 +1403,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>use function lsParseCurrency instead</description>
 		<argument>
 			<name>number</name>
-			<alias>string,currency_number</alias>
+			<alias>string,currency_number,currency</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>Locale-specific string</description>
@@ -1596,6 +1603,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Determines if the parameter exists</description>
 		<argument>
 			<name>parameter</name>
+			<alias>param</alias>
 			<type>variablestring</type>
 			<required>Yes</required>
 		<description></description>
@@ -1985,6 +1993,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		this function is deprecated, use instead the function queryColumnData</description>
 		<argument>
 			<name>query_column</name>
+			<alias>queryColumn</alias>
 			<type>queryColumn</type>
 			<required>Yes</required>
 		<description>Name of an executed query and column. Separate query name and column name with a period.</description>
@@ -2235,6 +2244,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		this function is deprecated, use instead the function queryColumnData</description>
 		<argument>
 			<name>query_column</name>
+			<alias>queryColumn</alias>
 			<type>queryColumn</type>
 			<required>Yes</required>
 		<description>Name of an executed query and column. Separate query name and column name with a period.</description>
@@ -2269,6 +2279,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	    </argument>
     		<argument>
     			<name>rowNumber</name>
+    			<alias>rowNum</alias>
     			<type>number</type>
     			<required>Yes</required>
     			<description>position of the row to be returned</description>
