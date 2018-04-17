@@ -9,9 +9,9 @@
 		<head>
 			<title>Lucee documentation :: #Attributes.Title#</title>
 			<base href="">
-			<meta content="Welcome to the official Lucee Server documentation website." name="description">
+			<meta content="Lucee Server Documentation" name="description">
 			<meta content="initial-scale=1.0, width=device-width" name="viewport">
-
+			<meta name="ROBOTS" content="NOINDEX,NOFOLLOW">
 			<link href="assets/css/base.min.css.cfm" rel="stylesheet">
 			<link href="assets/css/highlight.css.cfm" rel="stylesheet">
 			<link rel="icon" type="image/png" href="assets/images/favicon.png.cfm">
