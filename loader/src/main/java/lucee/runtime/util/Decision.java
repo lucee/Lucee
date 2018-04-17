@@ -82,7 +82,7 @@ public interface Decision {
 	public boolean isUUID(String str);
 
 	/**
-	 * tests if value is a Boolean (Numbers are not acctepeted)
+	 * tests if value is a Boolean (Numbers are not accepted)
 	 * 
 	 * @param value value to test
 	 * @return is value boolean

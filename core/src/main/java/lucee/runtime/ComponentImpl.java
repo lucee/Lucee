@@ -256,7 +256,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 				}
 			}
 
-			// at the moment this makes no sense, becuae this map is no more used after constructor has runned and for a clone the constructo is not executed,
+			// at the moment this makes no sense, because this map is no more used after constructor has runned and for a clone the constructor is not executed,
 			// but perhaps this is used in future
 			/*
 			 * if(constructorUDFs!=null){ trg.constructorUDFs=new HashMap<Collection.Key, UDF>(); addUDFS(trg, constructorUDFs, trg.constructorUDFs); }
@@ -735,7 +735,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		/*
 		 * if(constructorUDFs!=null){ Iterator<Entry<Key, UDF>> it = constructorUDFs.entrySet().iterator(); Map.Entry<Key, UDF> entry; Key key; UDFPlus udf;
 		 * PageSource ps; while(it.hasNext()){ entry=it.next(); key=entry.getKey(); udf=(UDFPlus) entry.getValue(); ps=udf.getPageSource(); //if(ps!=null &&
-		 * ps.equals(getPageSource()))continue; // TODO can we avoid that udfs from the compinent itself are here? registerUDF(key, udf,false,true); } }
+		 * ps.equals(getPageSource()))continue; // TODO can we avoid that udfs from the component itself are here? registerUDF(key, udf,false,true); } }
 		 */
 	}
 
@@ -1715,7 +1715,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			Member existing = _data.get(key);
 			if(loaded && !isAccessible(pc, existing != null ? existing.getAccess() : dataMemberDefaultAccess))
 				throw new ExpressionException("Component [" + getCallName() + "] has no accessible Member with name [" + key + "]",
-						"enable [trigger data member] in admininistrator to also invoke getters and setters");
+						"enable [trigger data member] in administrator to also invoke getters and setters");
 			_data.put(key, new DataMember(existing != null ? existing.getAccess() : dataMemberDefaultAccess,
 					existing != null ? existing.getModifier() : Member.MODIFIER_NONE, value));
 		}
@@ -1849,7 +1849,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			return callGetter(pc, key);
 		}
 		throw new ExpressionException("Component [" + getCallName() + "] has no accessible Member with name [" + key + "]",
-				"enable [trigger data member] in admininistrator to also invoke getters and setters");
+				"enable [trigger data member] in administrator to also invoke getters and setters");
 		// throw new ExpressionException("Component ["+getCallName()+"] has no accessible Member with name ["+name+"]");
 	}
 

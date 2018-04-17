@@ -79,7 +79,7 @@ public final class Compress {
 	}
 
 	/**
-	 * return zip instance matching the zipfile, singelton isnatce only 1 zip for one file
+	 * return zip instance matching the zipfile, singelton instance only 1 zip for one file
 	 * @param zipFile
 	 * @param format 
 	 * @param caseSensitive 

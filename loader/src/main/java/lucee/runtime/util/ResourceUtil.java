@@ -73,7 +73,7 @@ public interface ResourceUtil {
 	 * position (get from PageContext)
 	 * file must exist otherwise throw exception
 	 * 
-	 * @param pc Page Context to et actuell position in filesystem
+	 * @param pc Page Context to the current position in filesystem
 	 * @param path relative or absolute path for file object
 	 * @return file object from destination
 	 * @throws PageException
@@ -87,7 +87,7 @@ public interface ResourceUtil {
 	 * position (get from PageContext)
 	 * at least parent must exist
 	 * 
-	 * @param pc Page Context to et actuell position in filesystem
+	 * @param pc Page Context to the current position in filesystem
 	 * @param destination relative or absolute path for file object
 	 * @return file object from destination
 	 * @throws PageException
@@ -99,9 +99,9 @@ public interface ResourceUtil {
 	 * cast a String (argument destination) to a File Object,
 	 * if destination is not a absolute, file object will be relative to current
 	 * position (get from PageContext)
-	 * existing file is prefered but dont must exist
+	 * existing file is preferred but dont must exist
 	 * 
-	 * @param pc Page Context to et actuell position in filesystem
+	 * @param pc Page Context to the current position in filesystem
 	 * @param destination relative or absolute path for file object
 	 * @return file object from destination
 	 */
@@ -350,12 +350,12 @@ public interface ResourceUtil {
 	public ContentType getContentType(Resource file);
 
 	/**
-	 * cast a String (argumet destination) to a File Object,
+	 * cast a String (argument destination) to a File Object,
 	 * if destination is not a absolute, file object will be relative to current
 	 * position (get from PageContext)
 	 * at least parent must exist
 	 * 
-	 * @param pc Page Context to et actuell position in filesystem
+	 * @param pc Page Context to the current position in filesystem
 	 * @param destination relative or absolute path for file object
 	 * @return file object from destination
 	 * @throws PageException
@@ -369,9 +369,9 @@ public interface ResourceUtil {
 	public boolean isUNCPath(String path);
 
 	/**
-	 * transalte the path of the file to a existing file path by changing case
+	 * translate the path of the file to a existing file path by changing case
 	 * of letters
-	 * Works only on Linux, becasue
+	 * Works only on Linux, because
 	 * 
 	 * Example Unix:
 	 * we have a existing file with path "/usr/virtual/myFile.txt"
@@ -395,7 +395,7 @@ public interface ResourceUtil {
 	/**
 	 * Returns the canonical form of this abstract pathname.
 	 * 
-	 * @param res file to get canoncial form from it
+	 * @param res file to get canonical form from it
 	 * 
 	 * @return The canonical pathname string denoting the same file or
 	 *         directory as this abstract pathname
@@ -408,7 +408,7 @@ public interface ResourceUtil {
 	/**
 	 * Returns the canonical form of this abstract pathname.
 	 * 
-	 * @param res file to get canoncial form from it
+	 * @param res file to get canonical form from it
 	 * 
 	 * @return The canonical pathname string denoting the same file or
 	 *         directory as this abstract pathname
@@ -427,7 +427,7 @@ public interface ResourceUtil {
 	public boolean createNewResourceSilent(Resource res);
 
 	/**
-	 * similar to linux bash fuction touch, create file if not exist otherwise
+	 * similar to linux bash function touch, create file if not exist otherwise
 	 * change last modified date
 	 * 
 	 * @param res
@@ -438,7 +438,7 @@ public interface ResourceUtil {
 	public void clear(Resource res) throws IOException;
 
 	/**
-	 * change extesnion of file and return new file
+	 * change extension of file and return new file
 	 * 
 	 * @param file
 	 * @param newExtension

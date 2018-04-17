@@ -188,7 +188,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (singelton != null)
 			return singelton;
 		throw new RuntimeException(
-				"engine is not initalized, you must first call getInstance(ServletConfig)");
+				"engine is not initialized, you must first call getInstance(ServletConfig)");
 	}
 
 	public static void registerInstance(final CFMLEngine engine) {
@@ -404,7 +404,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		//check updates
 		String updateType = singelton.getUpdateType();
 		if (updateType == null || updateType.length() == 0)
-			updateType = "manuell";
+			updateType = "manuell"; // TODO should be manual?
 
 		if (updateType.equalsIgnoreCase("auto"))
 			new UpdateChecker(this, null).start();
@@ -594,7 +594,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * method to initalize a update of the CFML Engine.
-	 * checks if there is a new Version and update it whwn a new version is
+	 * checks if there is a new Version and update it when a new version is
 	 * available
 	 * 
 	 * @param password
@@ -777,7 +777,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				final String msg = "Lucee is not able do download the bundle for ["
 					+ symbolicName + "] in version [" + symbolicVersion
 					+ "] from " + updateUrl
-					+ ", please donwload manually and copy to [" + jarDir + "]";
+					+ ", please download manually and copy to [" + jarDir + "]";
 				log(Logger.LOG_ERROR, msg);
 				conn.disconnect();
 				throw new IOException(msg);
@@ -1007,7 +1007,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			if(code != 200){
 				final String msg = "Lucee is not able do download the core for version ["
 					+ version.toString() + "] from " + updateUrl
-					+ ", please donwload it manually and copy to [" + patchDir + "]";
+					+ ", please download it manually and copy to [" + patchDir + "]";
 				log(Logger.LOG_ERROR, msg);
 				conn.disconnect();
 				throw new IOException(msg);
@@ -1122,8 +1122,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	/**
-	 * method to initalize a update of the CFML Engine.
-	 * checks if there is a new Version and update it whwn a new version is
+	 * method to initialize a update of the CFML Engine.
+	 * checks if there is a new Version and update it when a new version is
 	 * available
 	 * 
 	 * @param password
@@ -1139,8 +1139,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	/**
-	 * method to initalize a update of the CFML Engine.
-	 * checks if there is a new Version and update it whwn a new version is
+	 * method to initialize a update of the CFML Engine.
+	 * checks if there is a new Version and update it when a new version is
 	 * available
 	 * 
 	 * @param password
@@ -1210,7 +1210,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	/**
-	 * call all registred listener for update of the engine
+	 * call all registered listener for update of the engine
 	 * 
 	 * @param engine
 	 */

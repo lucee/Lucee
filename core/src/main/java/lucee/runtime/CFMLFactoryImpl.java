@@ -265,7 +265,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				if(pc.getStartTime() + timeout < System.currentTimeMillis()) {
 					Log log = ((ConfigImpl)pc.getConfig()).getLog("requesttimeout");
 					if(log != null) {
-						log.log(Log.LEVEL_ERROR, "controler",
+						log.log(Log.LEVEL_ERROR, "controller",
 								"stop "+(pc.getParentPageContext()==null?"request":"thread")+" (" + pc.getId() + ") because run into a timeout " + getPath(pc) + "." 
 										+ MonitorState.getBlockedThreads(pc)
 										+ RequestTimeoutException.locks(pc)
@@ -279,7 +279,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				else if(pc.getStartTime() + 10000 < System.currentTimeMillis() && pc.getThread().getPriority() != Thread.MIN_PRIORITY) {
 					Log log = ((ConfigImpl)pc.getConfig()).getLog("requesttimeout");
 					if(log != null) {
-						log.log( Log.LEVEL_WARN, "controler",
+						log.log( Log.LEVEL_WARN, "controller",
 								"downgrade priority of the a "+(pc.getParentPageContext()==null?"request":"thread")+" at " + getPath(pc)+". "
 								+ MonitorState.getBlockedThreads(pc)
 								+ RequestTimeoutException.locks(pc)

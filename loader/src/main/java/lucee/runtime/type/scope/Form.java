@@ -52,7 +52,7 @@ public interface Form extends Scope {
 			throws UnsupportedEncodingException;
 
 	/**
-	 * @return return the exception when initialised
+	 * @return return the exception when initialized
 	 */
 	public abstract PageException getInitException();
 

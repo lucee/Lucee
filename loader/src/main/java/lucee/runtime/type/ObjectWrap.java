@@ -25,16 +25,16 @@ import lucee.runtime.exp.PageException;
 public interface ObjectWrap {
 
 	/**
-	 * returns embeded Object EL
+	 * returns embedded Object EL
 	 * 
-	 * @return embeded Object
+	 * @return embedded Object
 	 */
 	public Object getEmbededObject(Object defaultValue);
 
 	/**
-	 * returns embeded Object
+	 * returns embedded Object
 	 * 
-	 * @return embeded Object
+	 * @return embedded Object
 	 * @throws PageException
 	 */
 	public Object getEmbededObject() throws PageException;

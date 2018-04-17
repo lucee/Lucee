@@ -63,7 +63,7 @@ public class BundleUtil {
 			throws IOException, BundleException {
 
 		// if possible use that feature from core, it is smarter (can also load relations)
-		/* we no longer use this code, becaue it cause problem when the core is resatrted
+		/* we no longer use this code, because it cause problem when the core is restarted
 		ClassUtil cu = null;
 		try {
 			cu = CFMLEngineFactory.getInstance().getClassUtil();
@@ -103,7 +103,7 @@ public class BundleUtil {
 	public static void start(final CFMLEngineFactory factory,
 			final Bundle bundle) throws BundleException {
 		
-		/* we no longer use this code, becaue it cause problem when the core is resatrted
+		/* we no longer use this code, because it cause problem when the core is restarted
 		ClassUtil cu = null;
 		try {
 			cu = CFMLEngineFactory.getInstance().getClassUtil();

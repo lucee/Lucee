@@ -19,7 +19,7 @@
 package lucee.runtime.search;
 
 /**
- * a singl result item
+ * a single result item
  */
 public interface SearchResulItem {
 

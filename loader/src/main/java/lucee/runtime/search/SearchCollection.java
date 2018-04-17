@@ -259,7 +259,7 @@ public interface SearchCollection extends Serializable {
 	 * search the collection
 	 * 
 	 * @param data
-	 * @param qry Query to append resuts
+	 * @param qry Query to append results
 	 * @param criteria
 	 * @param language
 	 * @param type SEARCH_TYPE_EXPLICIT or SEARCH_TYPE_SIMPLE

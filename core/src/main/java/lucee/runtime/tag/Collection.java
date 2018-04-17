@@ -84,7 +84,7 @@ public final class Collection extends TagImpl {
 	
 
 	public void setEngine(String engine)	{
-		// This setter only exists for compatibility reasions to other CFML engines, the attribute is completely ignored.
+		// This setter only exists for compatibility reasons to other CFML engines, the attribute is completely ignored.
 	}
 
 	/** set the value path

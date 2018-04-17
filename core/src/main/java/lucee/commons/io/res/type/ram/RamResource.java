@@ -303,7 +303,7 @@ public final class RamResource extends ResourceSupport {
 	
 
 	/**
-	 * This is useed by the MemoryResource too write back data to, that are written to outputstream
+	 * This is used by the MemoryResource too write back data to, that are written to outputstream
 	 */
 	class RamOutputStream extends ByteArrayOutputStream {
 

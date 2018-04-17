@@ -48,7 +48,7 @@ public interface HTTPUtil {
 	//private static final String NO_MIMETYPE="Unable to determine MIME type of file.";
 
 	/**
-	 * make a http requst to given url
+	 * make a http request to given url
 	 * 
 	 * @param url
 	 * @param username

@@ -698,7 +698,7 @@ public final class PageSourceImpl implements PageSource {
 			
 			str=res.getAbsolutePath();
 			int begin=str.length()-relPath.length();
-			if(begin<0) { // TODO patch, analyze the complete functinality and improve
+			if(begin<0) { // TODO patch, analyze the complete functionality and improve
 				str=ListUtil.last(str, "\\/",true);
 			}
 			else {
@@ -769,7 +769,7 @@ public final class PageSourceImpl implements PageSource {
 
     /**
      * return the inputstream of the source file
-     * @return return the inputstream for the source from ohysical or archive
+     * @return return the inputstream for the source from physical or archive
      * @throws FileNotFoundException
      */
     private InputStream getSourceAsInputStream() throws IOException {
@@ -912,7 +912,7 @@ public final class PageSourceImpl implements PageSource {
     }
     
     /**
-     * clear page, but only when page use the same clasloader as provided
+     * clear page, but only when page use the same classloader as provided
      * @param cl
      */
     public void clear(ClassLoader cl) {

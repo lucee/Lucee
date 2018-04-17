@@ -1087,7 +1087,7 @@ public final class FileTag extends BodyTagImpl {
 	/**
 	 * get file extension of a file object
 	 * @param file file object
-	 * @return extnesion
+	 * @return extension
 	 */
 	private static String getFileExtension(Resource file) {
 		String name=file.getName();

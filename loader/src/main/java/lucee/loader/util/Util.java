@@ -232,7 +232,7 @@ public class Util {
 	 *             CFMLEngineFactory.getInstance.getIOUtil().toString(...)
 	 * @param is inputStream to get content From
 	 * @param charset
-	 * @return returns content from a file inputed by input stream
+	 * @return returns content from a file inputted by input stream
 	 * @throws IOException
 	 * @throws PageException
 	 */
@@ -389,7 +389,7 @@ public class Util {
 	/**
 	 * @deprecated no replacement
 	 *             Returns the canonical form of this abstract pathname.
-	 * @param file file to get canoncial form from it
+	 * @param file file to get canonical form from it
 	 * 
 	 * @return The canonical pathname string denoting the same file or
 	 *         directory as this abstract pathname

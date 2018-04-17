@@ -243,7 +243,7 @@ public class SMBResource extends ResourceSupport implements Resource{
 		provider.lock(this);
 		try {
 			SmbFile file = _file();
-			if (file == null) throw new IOException("Can't delete [" + getPath() + "], SMB path is invalid or inaccessable");
+			if (file == null) throw new IOException("Can't delete [" + getPath() + "], SMB path is invalid or inaccessible");
 			if (file.isDirectory()) {
 				file = _file(true);
 			}

@@ -61,7 +61,7 @@ public interface PageSource extends Serializable {
 	public Page loadPage(PageContext pc, boolean forceReload, Page defaultValue);
 
 	/**
-	 * returns the ralpath without the mapping
+	 * returns the realpath without the mapping
 	 * 
 	 * @return Returns the realpath.
 	 */
@@ -127,13 +127,13 @@ public interface PageSource extends Serializable {
 	public abstract boolean physcalExists();
 
 	/**
-	 * @return return the sozrce of the file as String array
+	 * @return return the source of the file as String array
 	 * @throws IOException
 	 */
 	public abstract String[] getSource() throws IOException;
 
 	/**
-	 * get an new Pagesoure from ralpath
+	 * get an new Pagesource from realpath
 	 * 
 	 * @param realPath
 	 * @return new Pagesource

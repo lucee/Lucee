@@ -24,7 +24,7 @@ import lucee.runtime.db.SQL;
 import lucee.runtime.exp.PageException;
 
 /**
- * inteface for resultset (query) object
+ * interface for resultset (query) object
  */
 public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 
@@ -48,7 +48,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * 
 	 * @param key column to get
 	 * @param row row to get from (1-recordcount)
-	 * @return value at the called poition
+	 * @return value at the called position
 	 * @throws PageException if invalid position definition
 	 * @deprecated use instead
 	 *             <code>{@link #getAt(lucee.runtime.type.Collection.Key, int)}</code>
@@ -61,7 +61,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * 
 	 * @param key column to get
 	 * @param row row to get from (1-recordcount)
-	 * @return value at the called poition
+	 * @return value at the called position
 	 * @throws PageException if invalid position definition
 	 */
 	public Object getAt(Collection.Key key, int row) throws PageException;
@@ -72,7 +72,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * 
 	 * @param key column to get
 	 * @param row row to get from (1-recordcount)
-	 * @return value at the called poition
+	 * @return value at the called position
 	 * @deprecated use instead
 	 *             <code>{@link #getAt(lucee.runtime.type.Collection.Key, int, Object)}</code>
 	 */
@@ -85,7 +85,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * @param key column to get
 	 * @param row row to get from (1-recordcount)
 	 * @param defaultValue value returned in case row or column does not exist
-	 * @return value at the called poition
+	 * @return value at the called position
 	 */
 	public Object getAt(Collection.Key key, int row, Object defaultValue);
 
@@ -241,7 +241,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * return the query column matching to key
 	 * 
 	 * @param key key to get
-	 * @return QieryColumn object
+	 * @return QueryColumn object
 	 * @throws PageException exception thrown in case there is no column with that name
 	 * @deprecated use instead
 	 *             <code>{@link #getColumn(lucee.runtime.type.Collection.Key)}</code>
@@ -253,7 +253,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * return the query column matching to key
 	 * 
 	 * @param key key to get
-	 * @return QieryColumn object
+	 * @return QueryColumn object
 	 * @throws PageException exception thrown in case there is no column with that name
 	 */
 	public QueryColumn getColumn(Collection.Key key) throws PageException;
@@ -274,7 +274,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * 
 	 * @param key key to get
 	 * @param column default value returned in case there is no matching column
-	 * @return QieryColumn object
+	 * @return QueryColumn object
 	 */
 	public QueryColumn getColumn(Collection.Key key, QueryColumn column);
 
@@ -328,7 +328,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	/**
 	 * sorts a query by a column, direction is asc
 	 * 
-	 * @param column colun to sort
+	 * @param column column to sort
 	 * @throws PageException if fails to sort
 	 * @deprecated use instead
 	 *             <code>{@link #sort(lucee.runtime.type.Collection.Key)}</code>
@@ -339,7 +339,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	/**
 	 * sorts a query by a column, direction is asc
 	 * 
-	 * @param column colun to sort
+	 * @param column column to sort
 	 * @throws PageException if fails to sort
 	 */
 	public void sort(Collection.Key column) throws PageException;

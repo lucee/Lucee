@@ -193,7 +193,7 @@ public final class Log extends TagImpl {
 		this.application=application;
 	}
 	
-	// old function for backward compatiblity
+	// old function for backward compatibility
 	public void setSpoolenable(boolean async){
 		setAsync(async);
 	}
@@ -214,7 +214,7 @@ public final class Log extends TagImpl {
 		if(file==null) {
 	    	logger=pci.getLog(log.toLowerCase(),false);
 	    	if(logger==null) {
-	    		// for backward compatiblity
+	    		// for backward compatibility
 	    		if("console".equalsIgnoreCase(log))
 	    			logger=new LogAdapter(Log4jUtil.getConsoleLog(config, false, "cflog", Level.INFO));
 	    		else {

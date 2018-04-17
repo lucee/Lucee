@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * Close the Stream automaticlly when object will destroyed by the garbage
+ * Close the Stream automatically when object will destroyed by the garbage
  */
 public final class AutoCloseOutputStream extends OutputStream {
 	

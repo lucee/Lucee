@@ -31,7 +31,7 @@ public interface FunctionEvaluator {
 	
 	/**
 	 * this method is executed to check the tag itself, the method is invoked after Lucee has read that function,
-	 * but before reading the rest. so you have not the complete environment of the functiom. 
+	 * but before reading the rest. so you have not the complete environment of the function. 
 	 */
 	public void execute(BIF bif, FunctionLibFunction flf) throws TemplateException;
 

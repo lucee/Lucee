@@ -321,7 +321,7 @@ Begin Stack Trace
 		}
 
  		if ((result.getTotalFail() + result.getTotalError()) > 0) {
- 			throw "TestBox could not sucessfully execute all testcases: #result.getTotalFail()# tests failed; #result.getTotalError()# tests errored.";
+ 			throw "TestBox could not successfully execute all testcases: #result.getTotalFail()# tests failed; #result.getTotalError()# tests errored.";
  		}
 	}
 	catch(e){

@@ -43,7 +43,7 @@ public class RWLock<L> {
 
 	
 	public void lock(long timeout, boolean readOnly) throws LockException, LockInterruptedException {
-		if(timeout<=0) throw new LockException("timeout must be a postive number");
+		if(timeout<=0) throw new LockException("timeout must be a positive number");
 		try {
 			if(!getLock(readOnly).tryLock(timeout, TimeUnit.MILLISECONDS)){
 				throw new LockException(timeout);

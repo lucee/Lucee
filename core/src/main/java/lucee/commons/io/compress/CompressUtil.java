@@ -342,7 +342,7 @@ public final class CompressUtil {
 
 	/**
      * compress data to a zip file
-     * @param format format it that should by compressed usally is CompressUtil.FORMAT_XYZ
+     * @param format format it that should by compressed usually is CompressUtil.FORMAT_XYZ
      * @param source
      * @param target
      * @param includeBaseFolder 
@@ -360,7 +360,7 @@ public final class CompressUtil {
 
     /**
      * compress data to a zip file
-     * @param format format it that should by compressed usally is CompressUtil.FORMAT_XYZ
+     * @param format format it that should by compressed usually is CompressUtil.FORMAT_XYZ
      * @param sources
      * @param target
      * @param mode 
