@@ -29,7 +29,7 @@
 	min-height: 450px;
 	height: 100%;
 }
-body {
+body.web, body.server {
 	min-width:600px;
 	background:#f7f7f7 url(../img/web-back.png.cfm) repeat-x top;
 	margin:0;

@@ -265,6 +265,12 @@ the usage of this argument depend on type defined with argument "type":
 			<required>Yes</required>
 			<description>date object</description>
     	</argument>
+		<argument>
+			<name>timezone</name>
+			<type>timezone</type>
+			<required>no</required>
+			<description>timezone to use</description>
+    	</argument>
 		<return>
 			<type>datetime</type>
 		</return>

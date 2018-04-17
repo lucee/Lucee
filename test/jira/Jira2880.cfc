@@ -25,10 +25,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	//public function setUp(){}
 
 	public void function testCreateODBCdate() {
-		var date=createDatetime(2000,1,2,3,4,5,6,"UTC");
-		assertEquals("{d '2000-01-02'}",createODBCdate(date)&"");
-		assertEquals("{d '2000-01-02'}",createODBCdate(date).toString()&"");
-		assertEquals("{d '2000-01-02'}",evaluate('createODBCdate(date)')&"");
+		var orgtz=getTimeZone();
+		setTimeZone("UTC");
+		try{
+			var date=createDatetime(2000,1,2,3,4,5,6,"UTC");
+			assertEquals("{d '2000-01-02'}",createODBCdate(date)&"");
+			assertEquals("{d '2000-01-02'}",createODBCdate(date,"UTC")&"");
+			assertEquals("{d '2000-01-02'}",createODBCdate(date).toString()&"");
+			assertEquals("{d '2000-01-02'}",createODBCdate(date,"UTC").toString()&"");
+			assertEquals("{d '2000-01-02'}",evaluate('createODBCdate(date)')&"");
+			assertEquals("{d '2000-01-02'}",evaluate('createODBCdate(date,"UTC")')&"");
+		}
+		finally {
+			setTimeZone(orgtz);
+		}
 	}
 } 
 </cfscript>

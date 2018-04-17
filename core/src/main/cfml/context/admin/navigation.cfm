@@ -105,6 +105,7 @@
 			}
 			.tt-suggestion.tt-selectable:hover{
 				background-color: #request.adminType=="web"?'##39c':'##BF4F36'# !important;
+				color: white;
 			}
 			/*show more Results*/
 			.moreResults{

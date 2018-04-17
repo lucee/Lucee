@@ -274,24 +274,6 @@ public final class ListUtil {
         return array;
     }
 
-	
-	private static String ltrim(String list,char[] del) {
-		int len=list.length();
-		char c;
-		//		 remove at start
-		outer:while(len>0) {
-		    c=list.charAt(0);
-		    for(int i=0;i<del.length;i++) {
-		        if(c==del[i]) {
-		            list=list.substring(1);
-		            len=list.length();
-		            continue outer;
-		        }
-		    }
-		    break;
-		}
-		return list;
-	}
     
     /**
      * casts a list to Array object remove Empty Elements
@@ -1583,16 +1565,15 @@ public final class ListUtil {
 
 		char[] delims = StringUtil.isEmpty(delimiters) ? new char[]{','} : delimiters.toCharArray();
 
-		int ix = getDelimIndex(list, count, delims, ignoreEmpty);
+		StringBuilder sbList=new StringBuilder(list);
+		int ix = getDelimIndex(sbList,count, delims, ignoreEmpty);
 
 		if (ix == -1)
 			return list;
 
-		String result = list.substring(0, ix);
+		String result = sbList.substring(0, ix);
 
-		if (ignoreEmpty)
-			result = ltrim(result, delims);
-
+		
 		return result;
 	}
 
@@ -1600,24 +1581,20 @@ public final class ListUtil {
 
 		return first(list, delimiters, ignoreEmpty, 1);
 	}
-
-
+	
 	public static String rest(String list, String delimiters, boolean ignoreEmpty, int offset) {
 
 		if (offset < 1)
 			return list;
-
+		
 		char[] delims = StringUtil.isEmpty(delimiters) ? new char[]{','} : delimiters.toCharArray();
+		StringBuilder sbList=new StringBuilder(list);
+		int ix = getDelimIndex(sbList, offset, delims, ignoreEmpty);
 
-		int ix = getDelimIndex(list, offset, delims, ignoreEmpty);
-
-		if (ix == -1 || ix >= list.length() - 1)
+		if (ix == -1 || ix >= sbList.length() - 1)
 			return "";
 
-		String result = list.substring(ix + 1);
-
-		if (ignoreEmpty)
-			result = ltrim(result, delims);
+		String result = sbList.substring(ix + 1);
 
 		return result;
 	}
@@ -1635,47 +1612,44 @@ public final class ListUtil {
 	 * @param ignoreEmpty
 	 * @return
 	 */
-	public static int getDelimIndex(String list, int itemPos, char[] delims, boolean ignoreEmpty) {
+	public static int getDelimIndex(StringBuilder sb,int itemPos, char[] delims, boolean ignoreEmpty) {
 
-		if (StringUtil.isEmpty(list))			return -1;
+		if (StringUtil.isEmpty(sb))			return -1;
 
 		int last = -1, curr = -1, listIndex = 0;
-		int len  = list.length();
-
+		int len  = sb.length();
+		int count=0;
 		for (int i=0; i<len; i++) {
-
-			if (contains(delims, list.charAt(i))) {
-
+			if(count++>100) break;
+			
+			if (contains(delims, sb.charAt(i))) {
 				curr = i;
-
 				if (ignoreEmpty) {
-
 					if (curr == last + 1) {
+						sb.delete(curr, curr+1);
+						len--;
+						i--;
+						curr--;
 						last = curr;
 						continue;
 					}
-
 					last = curr;
 				}
-
 				if (++listIndex == itemPos)
 					break;
 			}
 		}
-
-		if (listIndex < itemPos)
-			return len;
-
+		if (listIndex < itemPos) return len;
 		return curr;
 	}
 
 	private static boolean contains(char[] carr, char c) {
-
+		if(carr.length==1) return carr[0]==c;
+		
 		for (char ca : carr) {
 			if (ca == c)
 				return true;
 		}
-
 		return false;
 	}
 
