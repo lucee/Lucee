@@ -1,8 +1,5 @@
 <cfinclude template="ext.functions.cfm">
 
-<cfscript>
-</cfscript>
-
 <cfparam name="inc" default="">
 <cfparam name="url.action2" default="list">
 <cfparam name="form.mainAction" default="none">
@@ -47,7 +44,18 @@
 
 <!--- Action --->
 <cftry>
+<cfscript>
+	if(form.mainAction == "none"){
+		loop array=form.keyArray() item="k" {
+			if(left(k,11)=="mainAction_") {
+				form['mainAction']=form[k];
+				type=mid(k,11);
+				form['version']=form['version'];
+			}
+		}
+	}
 
+</cfscript>
 	<cfswitch expression="#form.mainAction#">
 	<!--- Filter --->
 		<cfcase value="#stText.Buttons.filter#">
@@ -73,7 +81,7 @@
 			    source="#downloadFull(form.provider,form.id,form.version)#">
 		</cfcase>
 		<cfcase value="#stText.Buttons.upDown#">
-        	<cfadmin
+			<cfadmin
 			    action="updateRHExtension"
 			    type="#request.adminType#"
 			    password="#session["password"&request.adminType]#"
@@ -87,6 +95,10 @@
 			    id="#form.id#">
 		</cfcase>
 	</cfswitch>
+
+
+
+
 <cfsavecontent variable="inc"><cfinclude template="#url.action#.#url.action2#.cfm"/></cfsavecontent>
 	<cfcatch>
 		<cfset error.message=cfcatch.message>

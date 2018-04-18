@@ -142,6 +142,16 @@
 			<cfset StructDelete(session,"password"&request.adminType)>
 		</cfcatch>
 	</cftry>
+	<cfif request.adminType EQ "server">
+		<cfadmin
+		action="getDevelopMode"
+		type="#request.adminType#"
+		password="#session["password"&request.adminType]#"
+		returnVariable="mode">
+		<cfif mode.developMode>
+			<cfset session.alwaysNew = true>
+		</cfif>
+	</cfif>
 </cfif>
 
 <cfif not StructKeyExists(session,'lucee_admin_lang')>
@@ -297,7 +307,34 @@
 <cfif structKeyExists(url,"action") and url.action EQ "plugin" && not structKeyExists(url,"plugin")>
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
+<cfif request.adminType EQ "web">
+	
+</cfif>
+
 <cfscript>
+	function isLuceneInstalled() {
+		//if(!isNull(session._isLuceneInstalled)) return session._isLuceneInstalled;
+
+		try{
+			admin
+			   action="getRHServerExtensions"
+			   type="#request.adminType#"
+			   password="#session["password"&request.adminType]#"
+			   returnVariable="local.qry";
+
+			var qry = qry.filter(function(row, rowNumber, qryData){
+			    return row.id=='EFDEB172-F52E-4D84-9CD1A1F561B3DFC8';
+			});
+			session._isLuceneInstalled=qry.recordCount>0;
+			return qry.recordCount>0;
+
+		}
+		catch(e) {//systemOutput(e,1,1);
+			return false;
+		}
+	}
+
+
 	isRestrictedLevel=server.ColdFusion.ProductLevel EQ "community" or server.ColdFusion.ProductLevel EQ "professional";
 	isRestricted=isRestrictedLevel and request.adminType EQ "server";
 
@@ -324,6 +361,9 @@
 			for(iCld=1; iCld lte ArrayLen(stNavi.children); iCld=iCld+1) {
 				stCld = stNavi.children[iCld];
 				isActive=current.action eq stNavi.action & '.' & stCld.action or (current.action eq 'plugin' and stCld.action EQ url.plugin);
+				if(request.adminType EQ "web" && stCld.action EQ "search"){
+					stCld.hidden=!isLuceneInstalled();
+				}
 				if(isActive) {
 					hasActiveItem = true;
 					current.label = stNavi.label & ' - ' & stCld.label;

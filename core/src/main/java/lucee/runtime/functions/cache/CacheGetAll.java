@@ -27,8 +27,9 @@ import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.util.WildCardFilter;
 import lucee.runtime.config.Config;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.ext.function.Function;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
@@ -37,7 +38,7 @@ import lucee.runtime.type.StructImpl;
 /**
  * 
  */
-public final class CacheGetAll implements Function {
+public final class CacheGetAll extends BIF {
 	
 	private static final long serialVersionUID = 6395709569356486777L;
 
@@ -63,5 +64,13 @@ public final class CacheGetAll implements Function {
 		} catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length==0)return call(pc);
+		if(args.length==1)return call(pc, Caster.toString(args[0]));
+		if(args.length==2)return call(pc, Caster.toString(args[0]),Caster.toString(args[1]));
+		throw new FunctionException(pc, "CacheGetAll", 0, 2, args.length);
 	}
 }

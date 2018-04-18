@@ -179,11 +179,11 @@
 			</cfif>
 		</cfif>
 
-
+	<cfset cache=true>
 
 	<!--- copy and shrink to local dir --->
 	<cfset tmpfile=expandPath("{temp-directory}/admin-ext-thumbnails/__"&id&"."&ext)>
-	<cfif fileExists(tmpfile)>
+	<cfif cache && fileExists(tmpfile)>
 
 		<cffile action="read" file="#tmpfile#" variable="b64">
 	<cfelseif len(src) ==0>
@@ -196,21 +196,20 @@
 		<cfelse>
 			<cfset data=toBinary(src)>
 		</cfif>
-
-		<cfif extensionExists("extension.image")>
+		<cfif extensionExists("B737ABC4-D43F-4D91-8E8E973E37C40D1B")> <!--- image extension --->
 			<cfset img=imageRead(data)>
 
 			<!--- shrink images if needed --->
 			<cfif img.height GT arguments.height or img.width GT arguments.width>
 				<cftry>
 					<cfif img.height GT arguments.height >
-						<cfset imageResize(img,"",url.height)>
+						<cfset imageResize(img,"",arguments.height)>
 					</cfif>
 					<cfif img.width GT arguments.width>
-						<cfset imageResize(img,url.width,"")>
+						<cfset imageResize(img,arguments.width,"")>
 					</cfif>
 					<cfset data=toBinary(img)>
-					<cfcatch></cfcatch>
+					<cfcatch><cfrethrow></cfcatch>
 				</cftry>
 			</cfif>
 		</cfif>
@@ -423,7 +422,15 @@
 	}
 
 
-	function getProviderInfo(required string provider, boolean forceReload=false, numeric timeSpan=60){
+
+	function getProviderInfoAsync(required string provider){
+		thread args=arguments {
+			getProviderInfo(args.provider, true, 60, 50);
+		}
+	}
+
+
+	function getProviderInfo(required string provider, boolean forceReload=false, numeric timeSpan=60, timeout=10){
 		if(provider=="local" || provider=="") {
 			local.provider={};
 			provider.meta.title="Local Extension Provider";
@@ -448,8 +455,7 @@
 				return session.rhproviders[provider];
 
 		try {
-			var start=getTickCount();
-
+			
 			// get info from remote
 			var uri=provider&"/rest/extension/provider/info";
 
@@ -458,14 +464,23 @@
 				type="#request.adminType#"
 				password="#session["password"&request.adminType]#"
 				returnVariable="apiKey";
-			http url="#uri#?type=all&coreVersion=#server.lucee.version#" cachedWithin=createTimespan(0,0,5,0) result="local.http" {
-				httpparam type="header" name="accept" value="application/json";
-				if(!isNull(apikey))httpparam type="url" name="ioid" value="#apikey#";
+
+			var start=getTickCount();
+
+			try{
+				http url="#uri#?type=all&coreVersion=#server.lucee.version#" cachedWithin=createTimespan(0,0,5,0) result="local.http" timeout=arguments.timeout {
+					httpparam type="header" name="accept" value="application/json";
+					if(!isNull(apikey))httpparam type="url" name="ioid" value="#apikey#";
+				}
 			}
-			
+			catch(e) {
+				// call it in background
+				getProviderInfoAsync(arguments.provider);
+			}
+
 			if(isNull(http.status_code)){
 				session.rhcfcstries[provider]=now(); // set last try
-				local.result.error=http.fileContent;
+				local.result.error=http.fileContent?:'';
 				result.status_code=404;
 				result.lastModified=now();
 				result.provider=uri;
@@ -515,7 +530,6 @@
 	}
 
 	function _download(String type,required string provider,required string id, string version=""){
-
 
 		var start=getTickCount();
 

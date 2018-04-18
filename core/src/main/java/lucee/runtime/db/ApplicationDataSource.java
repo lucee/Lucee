@@ -35,7 +35,7 @@ public class ApplicationDataSource extends DataSourceSupport {
 
 	private ApplicationDataSource(Config config, String name, ClassDefinition cd, String connStr, String username, String password,
 			boolean blob, boolean clob, int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly,Log log) {
-		super(config,null,name, cd,username,ConfigWebUtil.decrypt(password),
+		super(config,name, cd,username,ConfigWebUtil.decrypt(password),
 				blob,clob,connectionLimit, connectionTimeout, metaCacheTimeout, timezone, allow<0?ALLOW_ALL:allow, storage, readOnly,log);
 		
 		this.connStr = connStr;

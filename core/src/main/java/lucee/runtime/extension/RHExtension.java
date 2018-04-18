@@ -106,6 +106,7 @@ public class RHExtension implements Serializable {
 	private static final Key START_BUNDLES = KeyImpl.init("startBundles");
 	private static final Key TRIAL = KeyImpl.init("trial");
 	private static final Key RELEASE_TYPE = KeyImpl.init("releaseType");
+	private static final Key SYMBOLIC_NAME = KeyImpl.init("symbolicName");
     
 	private static final String[] EMPTY = new String[0];
 	private static final BundleDefinition[] EMPTY_BD = new BundleDefinition[0];
@@ -115,10 +116,12 @@ public class RHExtension implements Serializable {
 	public static final int RELEASE_TYPE_WEB=2;
 
 
+
 	private String id;
 	private int releaseType;
 	private String version;
 	private String name;
+	private String symbolicName;
 	
 
 	private String description;
@@ -200,8 +203,10 @@ public class RHExtension implements Serializable {
 				readManifestConfig(el, extensionFile.getAbsolutePath(), null);
 				_softLoaded=true;
 			}
+			catch(InvalidVersion iv) {
+				throw iv;
+			}
 			catch(ApplicationException ae) {
-				SystemOut.printDate(ae);
 				init(toResource(config,el),false);
 				_softLoaded=false;
 			}
@@ -425,6 +430,7 @@ public class RHExtension implements Serializable {
 		
 		Attributes attr = manifest.getMainAttributes();
 
+		readSymbolicName(label,StringUtil.unwrap(attr.getValue("symbolic-name")));
 		readName(label,StringUtil.unwrap(attr.getValue("name")));
 		label=name;
 		readVersion(label, StringUtil.unwrap(attr.getValue("version")));
@@ -461,7 +467,8 @@ public class RHExtension implements Serializable {
 		
 		Log logger = ((ConfigImpl)config).getLog("deploy");
 		Info info = ConfigWebUtil.getEngine(config).getInfo();
-		
+
+		readSymbolicName(label,el.getAttribute("symbolic-name"));
 		readName(label,el.getAttribute("name"));
 		label=name;
 		readVersion(label,el.getAttribute("version"));
@@ -586,14 +593,14 @@ public class RHExtension implements Serializable {
 	private void readLoaderVersion(String label, String str) throws ApplicationException {
 		minLoaderVersion = Caster.toDoubleValue(str,0);
 		if(minLoaderVersion>SystemUtil.getLoaderVersion()) {
-			throw new ApplicationException("The Extension ["+label+"] cannot be loaded, "+Constants.NAME+" Loader Version must be at least ["+str+"], update the Lucee.jar first.");
+			throw new InvalidVersion("The Extension ["+label+"] cannot be loaded, "+Constants.NAME+" Loader Version must be at least ["+str+"], update the Lucee.jar first.");
 		}
 	}
 
 	private void readCoreVersion(String label, String str, Info info) throws ApplicationException {
 		minCoreVersion = OSGiUtil.toVersion(str, null);
 		if(minCoreVersion!=null && Util.isNewerThan(minCoreVersion,info.getVersion())) {
-			throw new ApplicationException("The Extension ["+label+"] cannot be loaded, "+Constants.NAME+" Version must be at least ["+minCoreVersion.toString()+"], version is ["+info.getVersion().toString()+"].");
+			throw new InvalidVersion("The Extension ["+label+"] cannot be loaded, "+Constants.NAME+" Version must be at least ["+minCoreVersion.toString()+"], version is ["+info.getVersion().toString()+"].");
 		}
 	}
 
@@ -639,6 +646,11 @@ public class RHExtension implements Serializable {
 			throw new ApplicationException("The Extension ["+label+"] has no name defined, a name is necesary.");
 		}
 		name=str.trim();
+	}
+	private void readSymbolicName(String label,String str) throws ApplicationException {
+		str=StringUtil.unwrap(str);
+		if(!StringUtil.isEmpty(str,true))
+			symbolicName=str.trim();
 	}
 
 	public void deployBundles(Config config) throws IOException, BundleException {
@@ -886,9 +898,9 @@ public class RHExtension implements Serializable {
 		return ListUtil.listToStringArray(str.trim(), ',');
 	}
 	
-	public static Query toQuery(Config config,List<RHExtension> children) throws PageException {
+	public static Query toQuery(Config config,List<RHExtension> children, Query qry) throws PageException {
 		Log log = config.getLog("deploy");
-		Query qry = createQuery();
+		if(qry==null)qry = createQuery();
 		Iterator<RHExtension> it = children.iterator();
 		while(it.hasNext()) {
 			try{
@@ -902,9 +914,9 @@ public class RHExtension implements Serializable {
 		return qry;
 	}
 	
-	public static Query toQuery(Config config,RHExtension[] children) throws PageException {
+	public static Query toQuery(Config config,RHExtension[] children, Query qry) throws PageException {
 		Log log = config.getLog("deploy");
-		Query qry = createQuery();
+		if(qry==null)qry = createQuery();
 		for(int i=0;i<children.length;i++) {
 			try{
 				children[i].populate(qry); // ,i+1
@@ -937,6 +949,8 @@ public class RHExtension implements Serializable {
       			KeyConstants._id
       			,KeyConstants._version
       			,KeyConstants._name
+      			,SYMBOLIC_NAME
+      			,KeyConstants._type
       			,KeyConstants._description
       			,KeyConstants._image
       			,RELEASE_TYPE
@@ -962,8 +976,10 @@ public class RHExtension implements Serializable {
 	private void populate(Query qry) throws PageException, IOException, BundleException {
 		int row=qry.addRow();
 		qry.setAt(KeyConstants._id, row, getId());
-  	    qry.setAt(KeyConstants._name, row, name);
+  	    qry.setAt(KeyConstants._name, row, getName());
+  	    qry.setAt(SYMBOLIC_NAME, row, getSymbolicName());
   	    qry.setAt(KeyConstants._image, row, getImage());
+  	    qry.setAt(KeyConstants._type, row, type);
   	  	qry.setAt(KeyConstants._description, row, description);
   	  	qry.setAt(KeyConstants._version, row, getVersion()==null?null:getVersion().toString());
   	  	qry.setAt(TRIAL, row, isTrial());
@@ -997,7 +1013,8 @@ public class RHExtension implements Serializable {
 	public Struct toStruct() throws PageException {
 		Struct sct=new StructImpl();
 		sct.set(KeyConstants._id, getId());
-  	    sct.set(KeyConstants._name, name);
+		sct.set(SYMBOLIC_NAME, getSymbolicName());
+  	    sct.set(KeyConstants._name, getName());
   	    sct.set(KeyConstants._image, getImage());
   	  	sct.set(KeyConstants._description, description);
   	  	sct.set(KeyConstants._version, getVersion()==null?null:getVersion().toString());
@@ -1184,9 +1201,12 @@ public class RHExtension implements Serializable {
 		}
 	}
 	
-	
+
 	public String getName() {
 		return name;
+	}
+	public String getSymbolicName() {
+		return StringUtil.isEmpty(symbolicName)?id:symbolicName;
 	}
 
 	public boolean isTrial() {
@@ -1202,6 +1222,18 @@ public class RHExtension implements Serializable {
 
 	public BundleInfo[] getBundles() throws ApplicationException, IOException, BundleException {
 		if(!loaded)load(extensionFile);
+		return bundles;
+	}
+	
+	public BundleInfo[] getBundles(BundleInfo[] defaultValue) {
+		if(!loaded){
+			try{
+				load(extensionFile);
+			}
+			catch(Exception e) {
+				return defaultValue;
+			}
+		}
 		return bundles;
 	}
 
@@ -1385,7 +1417,7 @@ public class RHExtension implements Serializable {
 		return rtn;
 	}
 	
-	public static ExtensionDefintion toExtensionDefinition(String s) {
+	public static ExtensionDefintion toExtensionDefinition(String s) { 
 		if(StringUtil.isEmpty(s,true))return null;
 		s=s.trim();
 		
@@ -1418,5 +1450,15 @@ public class RHExtension implements Serializable {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
+	}
+	
+	public static class InvalidVersion extends ApplicationException {
+
+		private static final long serialVersionUID = 8561299058941139724L;
+
+		public InvalidVersion(String message) {
+			super(message);
+		}
+		
 	}
 }

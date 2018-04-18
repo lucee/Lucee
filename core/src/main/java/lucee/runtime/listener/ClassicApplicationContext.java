@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.type.ftp.FTPConnectionData;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
@@ -90,6 +91,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private Object ormdatasource;
 	private ORMConfiguration ormConfig;
 	private Properties s3;
+	private FTPConnectionData ftp;
 	
 
 	private int localMode;
@@ -539,13 +541,16 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		this.ormEnabled=ormEnabled;
 	}
 
-	/**
-	 * @return the s3
-	 */
 	@Override
 	public Properties getS3() {
 		if(s3==null) s3=new PropertiesImpl();
 		return s3;
+	}
+	
+	@Override
+	public FTPConnectionData getFTP() {
+		if(ftp==null) ftp=new FTPConnectionData();
+		return ftp;
 	}
 
 	@Override
@@ -665,6 +670,11 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setS3(Properties s3) {
 		this.s3=s3;
+	}	
+	
+	@Override
+	public void setFTP(FTPConnectionData ftp) {
+		this.ftp=ftp;
 	}
 
 	@Override

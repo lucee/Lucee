@@ -2,15 +2,11 @@ package lucee.runtime.functions.other;
 
 import java.security.KeyPair;
 
-import javax.crypto.KeyGenerator;
-
 import lucee.runtime.PageContext;
-import lucee.runtime.coder.Coder;
 import lucee.runtime.coder.RSA;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
-import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;

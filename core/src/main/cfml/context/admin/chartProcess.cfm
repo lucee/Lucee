@@ -31,8 +31,8 @@
 	<cfset nonHeap = printMemory(getmemoryUsage("non_heap"),false)>
 	<cfset result = {
 		"heap":heap.pused,
-		"non_heap":nonHeap.pused,
-		"cpuSystem": int(systemInfo.cpuSystem * 100),
+		"nonheap":nonHeap.pused,
+		"cpuSystem": int((systemInfo.cpuSystem ?: 0) * 100),
 		"cpuProcess": int((systemInfo.cpuProcess ?: 0) *100)
 	}>
 	<cfreturn result>

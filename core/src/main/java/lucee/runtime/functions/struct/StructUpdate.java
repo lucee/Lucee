@@ -22,6 +22,7 @@
 package lucee.runtime.functions.struct;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
@@ -41,6 +42,8 @@ public final class StructUpdate extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		return call(pc,Caster.toStruct(args[0]),Caster.toString(args[1]),args[2]);
+		if(args.length==3)return call(pc,Caster.toStruct(args[0]),Caster.toString(args[1]),args[2]);
+		throw new FunctionException(pc, "StructUpdate", 3, 3, args.length);
 	}
+	
 }

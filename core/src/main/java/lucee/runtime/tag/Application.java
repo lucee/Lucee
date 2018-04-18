@@ -113,6 +113,7 @@ public final class Application extends TagImpl {
 	private Struct ormsettings;
 	private Struct tag;
 	private Struct s3;
+	private Struct ftp;
 	
 	private Boolean triggerDataMember=null;
 	private String cacheFunction;
@@ -184,6 +185,7 @@ public final class Application extends TagImpl {
         ormsettings=null;
         tag=null;
         s3=null;
+        ftp=null;
         //appContext=null;
         
         triggerDataMember=null;
@@ -446,6 +448,13 @@ public final class Application extends TagImpl {
 		this.s3 = s3;
 	}
 
+	/**
+	 * @param s3 the s3 to set
+	 */
+	public void setFtp(Struct ftp) {
+		this.ftp = ftp;
+	}
+
 	/** set the value applicationtimeout
 	*  Enter the CreateTimeSpan function and values in days, hours, minutes, and seconds, separated 
 	* 		by commas, to specify the lifespan of application variables. 
@@ -536,17 +545,25 @@ public final class Application extends TagImpl {
 	@Override
 	public int doStartTag() throws PageException	{
         
-        ApplicationContext ac;
-        boolean initORM;
-        if(action==ACTION_CREATE){
+        ApplicationContext ac=null;
+        boolean initORM=false;
+        
+        if(action==ACTION_UPDATE) {
+        	ac= pageContext.getApplicationContext();
+        	// no update because the current context has a different name
+        	if(!StringUtil.isEmpty(name) && !name.equalsIgnoreCase(ac.getName())) 
+        		ac=null;
+        	else {
+        		initORM=set(ac,true);
+        	}
+        }
+        // if we do not update we have to create a new one
+        if(ac==null){
+        	PageSource ps = pageContext.getCurrentPageSource(null);
         	ac=new ClassicApplicationContext(pageContext.getConfig(),name,false,
-        			pageContext.getCurrentPageSource().getResourceTranslated(pageContext));
+        			ps==null?null:ps.getResourceTranslated(pageContext));
         	initORM=set(ac,false);
         	pageContext.setApplicationContext(ac);
-        }
-        else {
-        	ac= pageContext.getApplicationContext();
-        	initORM=set(ac,true);
         }
         
         // scope cascading
@@ -696,6 +713,7 @@ public final class Application extends TagImpl {
 		ac.setSessionCluster(sessionCluster);
 		ac.setCGIScopeReadonly(cgiReadOnly);
 		if(s3!=null) ac.setS3(AppListenerUtil.toS3(s3));
+		if(ftp!=null) ((ApplicationContextSupport)ac).setFTP(AppListenerUtil.toFTP(ftp));
 		
 		// Scope cascading
 		if(scopeCascading!=-1) ac.setScopeCascading(scopeCascading);

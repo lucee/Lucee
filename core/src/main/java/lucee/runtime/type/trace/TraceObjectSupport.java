@@ -81,7 +81,7 @@ public class TraceObjectSupport implements TraceObject {
 
 	public static void log(Debugger debugger,int type,String category,String text,String varName,String varValue) {
 		
-		StackTraceElement[] traces = Thread.currentThread().getStackTrace();
+		StackTraceElement[] traces = new Exception().getStackTrace();
 		
         int line=0;
 		String template=null;

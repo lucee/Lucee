@@ -31,7 +31,9 @@ import lucee.commons.io.log.log4j.appender.ConsoleAppender;
 import lucee.commons.io.log.log4j.appender.DatasourceAppender;
 import lucee.commons.io.log.log4j.appender.RollingResourceAppender;
 import lucee.commons.io.log.log4j.layout.ClassicLayout;
+import lucee.commons.io.log.log4j.layout.DatasourceLayout;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.type.ftp.FTPConnectionData;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -380,7 +382,8 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	    	if("datasource".equalsIgnoreCase(className))return new ClassDefinitionImpl( DatasourceAppender.class);
 		}
 		else if(isLayout) {
-	    	if("classic".equalsIgnoreCase(className))return new ClassDefinitionImpl( ClassicLayout.class);
+			if("classic".equalsIgnoreCase(className))return new ClassDefinitionImpl( ClassicLayout.class);
+			if("datasource".equalsIgnoreCase(className))return new ClassDefinitionImpl( DatasourceLayout.class);
 	    	if("html".equalsIgnoreCase(className))return new ClassDefinitionImpl( HTMLLayout.class);
 	    	if("xml".equalsIgnoreCase(className))return new ClassDefinitionImpl( XMLLayout.class);
 	    	if("pattern".equalsIgnoreCase(className))return new ClassDefinitionImpl( PatternLayout.class);
@@ -426,5 +429,9 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	public abstract boolean getWSMaintainSession(); // used in extension Axis1
 	public abstract void setWSMaintainSession(boolean maintainSession);
+	
+	public abstract FTPConnectionData getFTP();
+	public abstract void setFTP(FTPConnectionData ftp);
+
 	
 }

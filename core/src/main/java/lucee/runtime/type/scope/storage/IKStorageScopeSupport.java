@@ -18,12 +18,12 @@
 package lucee.runtime.type.scope.storage;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.collection.MapPro;
 import lucee.commons.collection.concurrent.ConcurrentHashMapPro;
@@ -105,7 +105,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	protected int type;
 	private long timeSpan=-1;
 	private String storage;
-	private Map<String, String> tokens;
+	private final Map<String, String> tokens=new ConcurrentHashMap<String, String>();
 	private long lastModified;
 	
 	private IKHandler handler;
@@ -163,7 +163,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	}
 	
 	
-	public synchronized static Scope getInstance(int scope, IKHandler handler, String appName, String name, PageContext pc, Scope existing, Log log) throws PageException {
+	public static Scope getInstance(int scope, IKHandler handler, String appName, String name, PageContext pc, Scope existing, Log log) throws PageException {
 		IKStorageValue sv=null;
 		if(Scope.SCOPE_SESSION==scope)		sv= handler.loadData(pc, appName,name, "session",Scope.SCOPE_SESSION, log);
 		else if(Scope.SCOPE_CLIENT==scope)	sv= handler.loadData(pc, appName,name, "client",Scope.SCOPE_CLIENT, log);
@@ -208,7 +208,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	}
 
 	
-	public synchronized static boolean hasInstance(int scope, IKHandler handler, String appName, String name, PageContext pc) {
+	public static boolean hasInstance(int scope, IKHandler handler, String appName, String name, PageContext pc) {
 		try {
 			if(Scope.SCOPE_SESSION==scope)		return handler.loadData(pc, appName,name, "session",Scope.SCOPE_SESSION, null)!=null;
 			else if(Scope.SCOPE_CLIENT==scope)	return handler.loadData(pc, appName,name, "client",Scope.SCOPE_CLIENT, null)!=null;
@@ -547,9 +547,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	}
 	
 	@Override
-	public synchronized String generateToken(String key, boolean forceNew) {
-        if(tokens==null) 
-        	tokens = new HashMap<String,String>();
+	public String generateToken(String key, boolean forceNew) {
         
         // get existing
         String token;
@@ -565,9 +563,8 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
     }
 	
 	@Override
-	public synchronized boolean verifyToken(String token, String key) {
-		if(tokens==null) return false;
-        String _token = tokens.get(key);
+	public boolean verifyToken(String token, String key) {
+		String _token = tokens.get(key);
         return _token!=null && _token.equalsIgnoreCase(token);
     }
 

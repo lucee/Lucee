@@ -26,8 +26,7 @@ public class RequestCacheHandler extends MapCacheHandler implements CacheHandler
 
 	@Override
 	public boolean acceptCachedWithin(Object cachedWithin) {
-		String str=Caster.toString(cachedWithin,"").trim();
-		return str.equalsIgnoreCase("request");
+		return Caster.toString(cachedWithin,"").equalsIgnoreCase("request");
 	}
 
 	@Override

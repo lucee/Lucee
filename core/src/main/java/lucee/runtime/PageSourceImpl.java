@@ -87,7 +87,6 @@ public final class PageSourceImpl implements PageSource {
 	private long lastAccess;	
 	private RefIntegerSync accessCount=new RefIntegerSync();
 	private boolean flush=false;
-	private final Object sync=new Object();
 
     private PageSourceImpl() {
     	mapping=null;
@@ -462,7 +461,30 @@ public final class PageSourceImpl implements PageSource {
 	private String getArchiveSourcePath() {
 	    return "zip://"+mapping.getArchive().getAbsolutePath()+"!"+relPath; 
 	}
-
+	
+	private static String extractRealpath(String relapth, String newPath) {
+		int len1=relapth==null?0:relapth.length();
+		int len2=newPath.length();
+		int pos;
+		char c1,c2;
+		StringBuilder sb=new StringBuilder();
+		boolean done=false;
+		for(int i=0;i<len1;i++) {
+			c1=relapth.charAt((len1-1)-i);
+			pos=(len2-1)-i;
+			c2=pos<0?c1:newPath.charAt(pos);
+			
+			if(!done && Character.toLowerCase(c1)==Character.toLowerCase(c2))
+				sb.insert(0,c2);
+			else {
+				done=true;
+				sb.insert(0,c1);
+			}
+		}
+		
+		return sb.toString();
+	}
+	
     /**
 	 * return file object, based on physical path and realpath
 	 * @return file Object
@@ -477,18 +499,11 @@ public final class PageSourceImpl implements PageSource {
 			physcalSource=ResourceUtil.toExactResource(tmp);
 			// fix if the case not match
 			if(!tmp.getAbsolutePath().equals(physcalSource.getAbsolutePath())) {
-				String relpath = physcalSource.getAbsolutePath().substring(mapping.getPhysical().getAbsolutePath().length());
+				String relpath = extractRealpath(relPath, physcalSource.getAbsolutePath());
 				// just a security!
 				if(relPath.equalsIgnoreCase(relpath)) {
 					this.relPath=relpath;
 					createClassAndPackage();
-				}
-				else {
-					// MUST remove this
-					/*aprint.e(
-							tmp+":"+physcalSource+":"+
-							mapping.getPhysical().getAbsolutePath()+":"+
-							relpath+":"+relPath);*/
 				}
 			}
         }
@@ -684,7 +699,7 @@ public final class PageSourceImpl implements PageSource {
 			str=res.getAbsolutePath();
 			int begin=str.length()-relPath.length();
 			if(begin<0) { // TODO patch, analyze the complete functinality and improve
-				str=ListUtil.last(str, "\\/");
+				str=ListUtil.last(str, "\\/",true);
 			}
 			else {
 				str=str.substring(begin);

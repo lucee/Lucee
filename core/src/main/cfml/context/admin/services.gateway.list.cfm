@@ -229,10 +229,7 @@ Redirtect to entry --->
 					</tr>
 				</thead>
 				<tbody>
-					<cfloop query="qry">
-						<cfif IsSimpleValue(qry.driver)>
-							<cfcontinue>
-						</cfif>
+					<cfloop query="qry">						
 						<cfswitch expression="#qry.state#">
 							<cfcase value="running"><cfset css="Green"></cfcase>
 							<cfcase value="failed,stopped"><cfset css="Red"></cfcase>
@@ -243,7 +240,11 @@ Redirtect to entry --->
 								<input type="checkbox" class="checkbox" name="row_#qry.currentrow#" value="#qry.currentrow#">
 							</td>
 							<td><input type="hidden" name="id_#qry.currentrow#" value="#qry.id#">#qry.id#</td>
-							<td>#qry.driver.getLabel()#</td>
+							<cfif IsSimpleValue(qry.driver)>
+								<td>#qry.driver#</td>
+							<cfelse>	
+								<td>#qry.driver.getLabel()#</td>
+							</cfif>							
 							<td class="tblContent#css#" nowrap>#qry.state#</td>
 							<!---<cfif StructKeyExists(stVeritfyMessages, qry.id)>
 								<td class="tblContent#css# center">

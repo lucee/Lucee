@@ -159,7 +159,7 @@ public final class Dump implements Function {
 	}
 	/*public static String getContext() {
 		//Throwable cause = t.getCause();
-		StackTraceElement[] traces = Thread.currentThread().getStackTrace();
+		StackTraceElement[] traces = new Exception().getStackTrace();
 		
 		int line=0;
 		String template;

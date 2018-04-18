@@ -78,19 +78,23 @@ public class TimespanCacheHandler implements CacheHandlerPro {
 	@Override
 	public void set(PageContext pc, String id, Object cachedWithin, CacheItem value) throws PageException {
 
-		long timeSpan;
+		long cachedWithinMillis;
 		if (Decision.isDate(cachedWithin, false) && !(cachedWithin instanceof TimeSpan))
-			timeSpan = Caster.toDate(cachedWithin, null).getTime() - System.currentTimeMillis();
+			cachedWithinMillis = Caster.toDate(cachedWithin, null).getTime() - System.currentTimeMillis();
 		else
-			timeSpan = Caster.toTimespan(cachedWithin).getMillis();
+			cachedWithinMillis = Caster.toTimespan(cachedWithin).getMillis();
+
+		if (cachedWithinMillis == 0)
+			return;
 
 		try {
-			getCache(pc).put(id, value, Long.valueOf(timeSpan), Long.valueOf(timeSpan));
+			getCache(pc).put(id, value, Long.valueOf(cachedWithinMillis), Long.valueOf(cachedWithinMillis));
 		} catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
 	}
-	
+
+
 	@Override
 	public void clean(PageContext pc) {
 		try{

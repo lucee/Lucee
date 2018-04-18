@@ -38,6 +38,7 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -47,12 +48,14 @@ import java.util.zip.ZipFile;
 import javax.mail.Transport;
 
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLEncoder;
 import lucee.runtime.exp.PageException;
 
 import org.apache.tika.Tika;
+import org.apache.tika.metadata.Metadata;
 
 /**
  * I/O Util 
@@ -1007,20 +1010,6 @@ public static String toString(Resource file, String charset) throws IOException 
 		} catch (IOException e) {
 			return defaultValue;
 		}
-    	
-    	
-    	/*try {
-			return URLConnection.guessContentTypeFromStream(is);
-		} catch(Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			return defaultValue;
-		}*/
-		
-        /*try {
-			return getMimeType(IOUtil.toBytesMax(is,1000), defaultValue);
-		} catch (IOException e) {
-			return defaultValue;
-		}*/
     }
     
     
@@ -1031,10 +1020,6 @@ public static String toString(Resource file, String charset) throws IOException 
      * @throws IOException 
      */
     public static String getMimeType(byte[] barr, String defaultValue) {
-        
-    	//String mt = getMimeType(new ByteArrayInputStream(barr), null);
-    	//if(!StringUtil.isEmpty(mt,true)) return mt;
-    	
     	PrintStream out = System.out;
         try {
         	Tika tika = new Tika();
@@ -1045,7 +1030,44 @@ public static String toString(Resource file, String charset) throws IOException 
 			return defaultValue;
         }
     }
-    
+
+	public static String getMimeType(Resource res, String defaultValue) {
+		Metadata md = new Metadata();
+		md.set(Metadata.RESOURCE_NAME_KEY, res.getName());
+		md.set(Metadata.CONTENT_LENGTH, Long.toString(res.length()));
+    	
+		InputStream is=null;
+		try {
+        	Tika tika = new Tika();
+        	
+        	String result = tika.detect(is=res.getInputStream(),md);
+        	if(result.indexOf("tika")!=-1) {
+        		String tmp = ResourceUtil.EXT_MT.get(ResourceUtil.getExtension(res, "").toLowerCase());
+        		if(!StringUtil.isEmpty(tmp)) return tmp;
+        		if(!StringUtil.isEmpty(defaultValue)) return defaultValue;
+        	}
+        	return result;
+        } 
+        catch(Exception e) {
+        	String tmp = ResourceUtil.EXT_MT.get(ResourceUtil.getExtension(res, "").toLowerCase());
+    		if(tmp.indexOf("tika")==-1 && !StringUtil.isEmpty(tmp)) return tmp;
+        	return defaultValue;
+        }
+		finally {
+			IOUtil.closeEL(is);
+		}
+	}
+	
+	public static String getMimeType(URL url, String defaultValue) {
+		try {
+        	Tika tika = new Tika();
+        	return tika.detect(url);
+        } 
+        catch(Exception e) {
+        	return defaultValue;
+        }
+	}
+
     /**
      * @deprecated use instead <code>{@link #getWriter(Resource, Charset)}</code>
      * @param res

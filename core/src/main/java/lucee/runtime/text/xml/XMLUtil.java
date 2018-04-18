@@ -942,8 +942,8 @@ public final class XMLUtil {
 
 	public synchronized static ArrayNodeList getChildNodes(Node node, short type, boolean caseSensitive, String filter) {
 		ArrayNodeList rtn=new ArrayNodeList();
-		NodeList nodes=node.getChildNodes();
-		int len=nodes.getLength();
+		NodeList nodes=node==null?null:node.getChildNodes();
+		int len=nodes==null?0:nodes.getLength();
 		Node n;
 		for(int i=0;i<len;i++) {
 			try {
@@ -1181,7 +1181,7 @@ public final class XMLUtil {
 		if(value instanceof byte[]) {
 			return new InputSource(new ByteArrayInputStream((byte[])value));
         }
-		throw new ExpressionException("cat cast object of type ["+Caster.toClassName(value)+"] to a Input for xml parser");
+		throw new ExpressionException("can't cast object of type ["+Caster.toClassName(value)+"] to a Input for xml parser");
         	
 	}
 	
@@ -1290,7 +1290,7 @@ public final class XMLUtil {
 		if(value instanceof byte[]) {
 			return new InputSource(new ByteArrayInputStream((byte[])value));
 	    }
-		throw new IOException("cat cast object of type ["+value+"] to a Input for xml parser");
+		throw new IOException("can't cast object of type ["+value+"] to a Input for xml parser");
 	}
 	
 	

@@ -83,7 +83,7 @@ public final class InfoImpl implements Info {
     		if(versionName==null)throw new RuntimeException("missing Minor-Name");
     		
     		versionNameExplanation=mf.getValue("Minor-Name-Explanation");
-    		releaseDate=DateCaster.toDateAdvanced(mf.getValue("Built-Date"), TimeZoneConstants.EUROPE_ZURICH);
+    		releaseDate=DateCaster.toDateAdvanced(mf.getValue("Built-Date"), null);
     		//state=toIntState(mf.getValue("State"));
     		level="os";
     		version=OSGiUtil.toVersion(mf.getValue("Bundle-Version"));

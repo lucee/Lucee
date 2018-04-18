@@ -21,6 +21,8 @@ package lucee.runtime.config;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -676,5 +678,28 @@ public final class ConfigWebUtil {
 			return Monitor.TYPE_INTERVAL;
 		
 		return defaultValue;
+	}
+
+	public static Mapping[] sort(Mapping[] mappings) {
+		Arrays.sort(mappings,new Comparator(){ 
+            public int compare(Object left, Object right) { 
+                Mapping r = ((Mapping)right);
+            	Mapping l = ((Mapping)left);
+            	int rtn=r.getVirtualLowerCaseWithSlash().length()-l.getVirtualLowerCaseWithSlash().length();
+            	if(rtn==0) return slashCount(r)-slashCount(l);
+            	return rtn; 
+            }
+
+			private int slashCount(Mapping l) {
+				String str=l.getVirtualLowerCaseWithSlash();
+				int count=0,lastIndex=-1;
+				while((lastIndex=str.indexOf('/', lastIndex))!=-1) {
+					count++;
+					lastIndex++;
+				}
+				return count;
+			} 
+        }); 
+		return mappings;
 	}
 }

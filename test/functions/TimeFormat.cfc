@@ -72,6 +72,7 @@
  	}
 
  	public function testTimeFormatTimeZone_X() localMode="modern" {
+ 		setTimeZone("CET");
  		
 		dt=createDateTime(2000);
 		org=getTimeZone();
@@ -100,7 +101,7 @@
 		
  	}
  	public function testTimeFormat() localMode="modern" {
-
+ 		setTimeZone("CET");
  		dt=CreateDateTime(2004,1,2,4,5,6);
 		assertEquals("#timeFormat(dt,"hh:mm:ss")#", "04:05:06");
 		assertEquals("#timeFormat(dt,"h:m:s")#", "4:5:6");

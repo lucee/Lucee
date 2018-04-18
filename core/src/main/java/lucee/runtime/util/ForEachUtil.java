@@ -87,6 +87,12 @@ public class ForEachUtil {
         else if(o instanceof CharSequence) {
         	return ListUtil.listToArray(o.toString(), ',').getIterator();
         }
+        else if(Decision.isSimpleValueLimited(o)) {
+        	String str=Caster.toString(o,null);
+        	if(str==null) return null; // should never happen
+        	return ListUtil.listToArray(str, ',').getIterator();
+        }
+
 		return null;
 	}
 

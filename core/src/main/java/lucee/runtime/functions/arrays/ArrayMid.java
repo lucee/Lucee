@@ -58,6 +58,7 @@ public final class ArrayMid extends BIF {
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if(args.length==2)return call(pc,Caster.toArray(args[0]),Caster.toDoubleValue(args[1]));
-		return call(pc,Caster.toArray(args[0]),Caster.toDoubleValue(args[1]),Caster.toDoubleValue(args[2]));
+		else if(args.length==3)return call(pc,Caster.toArray(args[0]),Caster.toDoubleValue(args[1]),Caster.toDoubleValue(args[2]));
+		else throw new FunctionException(pc, "ArrayMid", 2, 3, args.length);
 	}
 }

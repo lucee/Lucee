@@ -32,7 +32,7 @@ public abstract class FileCacheItem implements CacheItem, Serializable, Dumpable
 	private static final long serialVersionUID = -8462614105941179140L;
 	
 	private final long executionTimeNS;
-	private final String path;
+	protected final String path;
 
 
 	public FileCacheItem(String path,long executionTimeNS) {

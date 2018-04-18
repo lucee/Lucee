@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.spooler.mail;
 
+import java.io.UnsupportedEncodingException;
+
 import javax.mail.internet.InternetAddress;
 
 import lucee.commons.lang.StringUtil;
@@ -25,6 +27,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.mail.MailException;
+import lucee.runtime.net.mail.MailUtil;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.smtp.SMTPClient;
 import lucee.runtime.op.Caster;
@@ -35,6 +38,7 @@ import lucee.runtime.spooler.SpoolerTaskSupport;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.KeyConstants;
 
 public class MailSpoolerTask extends SpoolerTaskSupport {
 	private static final ExecutionPlan[] EXECUTION_PLANS = new ExecutionPlan[]{
@@ -132,6 +136,23 @@ public class MailSpoolerTask extends SpoolerTaskSupport {
 
 	public void setListener(SpoolerTaskListener listener) {
 		this.listener=listener;
+	}
+
+	public void mod(Struct sct) {
+		// TODO more
+		
+		// FROM
+		Object o = sct.get(KeyConstants._from,null);
+		InternetAddress from = null;
+		if(o!=null) {
+			try {
+				from=MailUtil.toInternetAddress(o);
+			}
+			catch (Exception e) {}
+		}
+		if(from!=null)client.setFrom(from);
+		
+		
 	}
 
 }

@@ -23,6 +23,7 @@ package lucee.runtime.functions.struct;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
@@ -58,7 +59,8 @@ public final class StructNew extends BIF {
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if(args.length==1) return call(pc,Caster.toString(args[0]));
-		return call(pc);
+		if(args.length==0) return call(pc);
+		throw new FunctionException(pc, "StructNew", 0, 1, args.length);
 		
 	}
 }

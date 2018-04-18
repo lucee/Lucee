@@ -31,6 +31,7 @@ import javax.servlet.http.Cookie;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.commons.lang.types.RefBoolean;
@@ -46,6 +47,7 @@ import lucee.runtime.PageSourceImpl;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.Member;
 import lucee.runtime.config.Constants;
+import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.MissingIncludeException;
@@ -283,6 +285,9 @@ public class ModernAppListener extends AppListenerSupport {
 			else return pe;
 		}
 		else {
+			if(!pci.isGatewayContext() && pci.getConfig().debug()) {
+				((DebuggerImpl)pci.getDebugger()).setAbort(ExceptionUtil.getThrowingPosition(pci,_pe));
+			}
 			goon.setValue(false);
 			if(app.contains(pci,ON_ABORT)) {
 				call(app,pci, ON_ABORT, new Object[]{targetPage},true);
@@ -403,7 +408,7 @@ public class ModernAppListener extends AppListenerSupport {
 				if(pe instanceof ModernAppListenerException) eventName= ((ModernAppListenerException)pe).getEventName();
 				if(eventName==null)eventName="";
 				
-				call(app,pc, ON_ERROR, new Object[]{pe.getCatchBlock(pc),eventName},true);
+				call(app,pc, ON_ERROR, new Object[]{pe.getCatchBlock(pc.getConfig()),eventName},true);
 				return;
 			}
 			catch(PageException _pe) {

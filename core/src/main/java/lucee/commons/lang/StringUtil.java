@@ -1174,12 +1174,9 @@ public final class StringUtil {
 	}
 
 	public static boolean isAscii(String str) {
-
-		if ( str == null )
-			return false;
+		if ( str == null ) return false;
 
 		for(int i=str.length()-1;i>=0;i--){
-
 			if( str.charAt(i) > 127 )
     			return false;
 		}

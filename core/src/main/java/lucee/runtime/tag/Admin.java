@@ -78,7 +78,6 @@ import lucee.runtime.PageSourceImpl;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cfx.customtag.CFXTagClass;
-import lucee.runtime.cfx.customtag.CPPCFXTagClass;
 import lucee.runtime.cfx.customtag.JavaCFXTagClass;
 import lucee.runtime.config.AdminSync;
 import lucee.runtime.config.Config;
@@ -101,6 +100,7 @@ import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
 import lucee.runtime.db.DataSourceManager;
+import lucee.runtime.db.DataSourceSupport;
 import lucee.runtime.db.DatasourceConnectionImpl;
 import lucee.runtime.db.JDBCDriver;
 import lucee.runtime.db.ParamSyntax;
@@ -121,6 +121,7 @@ import lucee.runtime.extension.ExtensionImpl;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
+import lucee.runtime.functions.other.CreateObject;
 import lucee.runtime.functions.query.QuerySort;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
@@ -621,6 +622,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doGetComponent();
 		else if(check("getScope", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetScope();
+		else if(check("getDevelopMode", ACCESS_FREE) && check2(ACCESS_READ))
+			doGetDevelopMode();
 		else if(check("getApplicationSetting", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetApplicationSetting();
 		else if(check("getQueueSetting", ACCESS_FREE) && check2(ACCESS_READ))
@@ -689,7 +692,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doGetDatasourceDriverList();
 		else if(check("getDebuggingList", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetDebuggingList();
-		else if(check("getLoggedDebugData", ACCESS_FREE) && check2(ACCESS_READ))
+		else if(check("getLoggedDebugData", ACCESS_FREE)) // no password necessary for this
 			doGetLoggedDebugData();
 		else if(check("getDebugSetting", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetDebugSetting();
@@ -750,13 +753,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doGetComponentMappings();
 		else if(check("getCfxTags", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetCFXTags();
-		else if(check("getCPPCfxTags", ACCESS_FREE) && check2(ACCESS_READ))
-			doGetCPPCFXTags();
 		else if(check("getJavaCfxTags", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetJavaCFXTags();
 		else if(check("getDebug", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetDebug();
-		else if(check("getDebugEntry", ACCESS_FREE) && check2(ACCESS_READ))
+		else if(check("getDebugEntry", ACCESS_FREE))
 			doGetDebugEntry();
 		else if(check("getError", ACCESS_FREE) && check2(ACCESS_READ))
 			doGetError();
@@ -805,6 +806,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			doUpdateComponent();
 		else if(check("updatescope", ACCESS_FREE) && check2(ACCESS_WRITE))
 			doUpdateScope();
+		else if(check("updateDevelopMode", ACCESS_FREE) && check2(ACCESS_WRITE))
+			doUpdateDevelopMode();
 		else if(check("updateRestSettings", ACCESS_FREE) && check2(ACCESS_WRITE))
 			doUpdateRestSettings();
 		else if(check("updateRestMapping", ACCESS_FREE) && check2(ACCESS_WRITE))
@@ -848,8 +851,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		else if(check("updatejavacfx", ACCESS_FREE) && check2(ACCESS_WRITE))
 			doUpdateJavaCFX();
-		else if(check("updatecppcfx", ACCESS_FREE) && check2(ACCESS_WRITE))
-			doUpdateCPPCFX();
 		else if(check("updatedebug", ACCESS_FREE) && check2(ACCESS_WRITE))
 			doUpdateDebug();
 		else if(check("updatedebugentry", ACCESS_FREE) && check2(ACCESS_WRITE))
@@ -2051,19 +2052,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.verifyCFX(name);
 	}
 
-	private void doUpdateCPPCFX() throws PageException {
-		String name = getString("admin", action, "name");
-		String procedure = getString("admin", action, "procedure");
-		String serverLibrary = getString("admin", action, "serverLibrary");
-		boolean keepAlive = getBool("admin", action, "keepAlive");
-
-		if(StringUtil.startsWithIgnoreCase(name, "cfx_"))
-			name = name.substring(4);
-		admin.updateCPPCFX(name, procedure, serverLibrary, keepAlive);
-		store();
-		adminSync.broadcast(attributes, config);
-	}
-
 	/**
 	 * @throws PageException
 	 * 
@@ -2111,32 +2099,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 
-	private void doGetCPPCFXTags() throws PageException {
-		Map map = config.getCFXTagPool().getClasses();
-		lucee.runtime.type.Query qry = new QueryImpl(new Collection.Key[] { KeyConstants._displayname, KeyConstants._sourcename, KeyConstants._readonly,
-				PROCEDURE, KeyConstants._name, KeyConstants._isvalid, SERVER_LIBRARY, KEEP_ALIVE }, 0, "query");
-		Iterator it = map.keySet().iterator();
-
-		int row = 0;
-		while(it.hasNext()) {
-			CFXTagClass tag = (CFXTagClass)map.get(it.next());
-			if(tag instanceof CPPCFXTagClass) {
-				row++;
-				qry.addRow(1);
-				CPPCFXTagClass ctag = (CPPCFXTagClass)tag;
-				qry.setAt(KeyConstants._displayname, row, tag.getDisplayType());
-				qry.setAt(KeyConstants._sourcename, row, tag.getSourceName());
-				qry.setAt(KeyConstants._readonly, row, Caster.toBoolean(tag.isReadOnly()));
-				qry.setAt(KeyConstants._isvalid, row, Caster.toBoolean(tag.isValid()));
-				qry.setAt(KeyConstants._name, row, ctag.getName());
-				qry.setAt(PROCEDURE, row, ctag.getProcedure());
-				qry.setAt(SERVER_LIBRARY, row, ctag.getServerLibrary());
-				qry.setAt(KEEP_ALIVE, row, Caster.toBoolean(ctag.getKeepAlive()));
-			}
-
-		}
-		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
-	}
 
 	/**
 	 * @throws PageException
@@ -2158,13 +2120,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("readonly", row, Caster.toBoolean(tag.isReadOnly()));
 			qry.setAt("isvalid", row, Caster.toBoolean(tag.isValid()));
 
-			if(tag instanceof CPPCFXTagClass) {
-				CPPCFXTagClass ctag = (CPPCFXTagClass)tag;
-				qry.setAt(KeyConstants._name, row, ctag.getName());
-				qry.setAt("procedure_class", row, ctag.getProcedure());
-				qry.setAt("keepalive", row, Caster.toBoolean(ctag.getKeepAlive()));
-			}
-			else if(tag instanceof JavaCFXTagClass) {
+
+
+			if(tag instanceof JavaCFXTagClass) {
 				JavaCFXTagClass jtag = (JavaCFXTagClass)tag;
 				qry.setAt(KeyConstants._name, row, jtag.getName());
 				qry.setAt("procedure_class", row, jtag.getClassDefinition().getClassName());
@@ -2771,7 +2729,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String id=getString("admin", action, "id");
 		if(StringUtil.isEmpty(id,true)) throw new ApplicationException("id cannot be empty");
 		for(RHExtension ext:extensions) {
-			if(id.equals(ext.getId())) {
+			if(id.equals(ext.getId()) || id.equals(ext.getSymbolicName())) {
 				pageContext.setVariable(
 						getString("admin", action, "returnVariable"), 
 						ext.toStruct());
@@ -2782,11 +2740,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doGetRHExtensions() throws PageException {
-		pageContext.setVariable(getString("admin", action, "returnVariable"), RHExtension.toQuery(config, config.getRHExtensions()));
+		pageContext.setVariable(getString("admin", action, "returnVariable"), RHExtension.toQuery(config, config.getRHExtensions(),null));
 	}
 
 	private void doGetRHServerExtensions() throws PageException {
-		pageContext.setVariable(getString("admin", action, "returnVariable"), RHExtension.toQuery(config, config.getServerRHExtensions()));
+		pageContext.setVariable(getString("admin", action, "returnVariable"), RHExtension.toQuery(config, config.getServerRHExtensions(),null));
 	}
 
 	private void doGetLocalExtension() throws PageException {
@@ -2812,7 +2770,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 		else {
 			List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config));
-			Query qry = RHExtension.toQuery(config, locals);
+			Query qry = RHExtension.toQuery(config, locals,null);
 			int rows = qry.getRecordcount();
 			String _id;
 			int row = 0;
@@ -2831,7 +2789,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetLocalExtensions() throws PageException {
 		List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config));
-		Query qry = RHExtension.toQuery(config, locals);
+		Query qry = RHExtension.toQuery(config, locals,null);
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 
@@ -2911,8 +2869,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				config.getIdentification());
 
 		String label = getString("admin", action, "label");
+		String id = getString("id",null);
 
-		admin.updateJDBCDriver(label, cd);
+		admin.updateJDBCDriver(label, id, cd);
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -2945,6 +2904,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		boolean literalTimestampWithTSOffset = getBoolV("literalTimestampWithTSOffset", false);
 		boolean alwaysSetTimeout = getBoolV("alwaysSetTimeout", false);
 
+		String id = getString("id",null);
 		String dsn = getString("admin", action, "dsn");
 		String name = getString("admin", action, "name");
 		String newName = getString("admin", action, "newName");
@@ -2968,7 +2928,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// config.getDatasourceConnectionPool().remove(name);
 		DataSource ds = null;
 		try {
-			ds = new DataSourceImpl(config, null, name, cd, host, dsn, database, port, username, password, connLimit, connTimeout, metaCacheTimeout, blob, clob,
+			ds = new DataSourceImpl(config, name, cd, host, dsn, database, port, username, password, connLimit, connTimeout, metaCacheTimeout, blob, clob,
 					allow, custom, false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, config.getLog("application"));
 		}
 		catch (Exception e) {
@@ -2978,7 +2938,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if(verify)
 			_doVerifyDatasource(ds, username, password);
 		// print.out("limit:"+connLimit);
-		admin.updateDataSource(name, newName, cd, dsn, username, password, host, database, port, connLimit, connTimeout, metaCacheTimeout, blob, clob, allow,
+		admin.updateDataSource(id,name, newName, cd, dsn, username, password, host, database, port, connLimit, connTimeout, metaCacheTimeout, blob, clob, allow,
 				validate, storage, timezone, custom, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout);
 		store();
 		adminSync.broadcast(attributes, config);
@@ -3001,8 +2961,30 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		int startup = GatewayEntryImpl.toStartup(strStartupMode, -1);
 		if(startup == -1)
 			throw new ApplicationException("invalid startup mode [" + strStartupMode + "], valid values are [automatic,manual,disabled]");
-		// print.out("doUpdateGatewayEntry");
-
+		
+		// custom validation
+		Struct custom = getStruct("admin", action, "custom");
+		if(custom!=null) {
+			String path = Caster.toString(custom.get("directory", null), null);
+			if(!StringUtil.isEmpty(path)) { // 
+				Resource dir = ResourceUtil.toResourceNotExisting(pageContext, path);
+				if(!dir.isDirectory())
+					throw new ApplicationException("Directory [" + path +" ] not exists ");
+			}
+		}
+		// listenerCfcPath validation
+		/*String path = getString("admin", action, "listenerCfcPath");
+		if(!StringUtil.isEmpty(path,true)) {
+			path=path.trim().replace('\\','/');
+			if(path.indexOf("./")==-1)path=path.replace('.','/');
+	    	String ext = "."+Constants.getCFMLComponentExtension();
+	    	if(!path.endsWith(ext)) path+=ext;
+	    	
+			Resource listnerCFC = ResourceUtil.toResourceNotExisting(pageContext, path);
+			if(!listnerCFC.exists())
+				throw new ApplicationException("invalid [" + listnerCFC +" ] listener CFC");
+		}*/
+		
 		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
 				config.getIdentification());
 		admin.updateGatewayEntry(getString("admin", action, "id"), cd, getString("admin", action, "cfcPath"), getString("admin", action, "listenerCfcPath"),
@@ -3211,7 +3193,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void _doVerifyDatasource(ClassDefinition cd, String connStrTranslated, String user, String pass) throws PageException {
 		try {
-			DataSourceImpl.verify(config, null, cd, connStrTranslated, user, pass);
+			DataSourceImpl.verify(config, cd, connStrTranslated, user, pass);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -4174,6 +4156,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				DataSource d = (DataSource)ds.get(key);
 				Struct sct = new StructImpl();
 				ClassDefinition cd = d.getClassDefinition();
+				
 				sct.setEL(KeyConstants._name, key);
 				sct.setEL(KeyConstants._host, d.getHost());
 				sct.setEL("classname", cd.getClassName());
@@ -4397,11 +4380,14 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		JDBCDriver[] drivers = config.getJDBCDrivers();
 		lucee.runtime.type.Query qry = new QueryImpl(
-				new Key[] { KeyConstants._label, KeyConstants._class, KeyConstants._bundleName, KeyConstants._bundleVersion }, drivers.length, "jdbc");
+				new Key[] { KeyConstants._id, KeyConstants._label, KeyConstants._class, KeyConstants._bundleName, KeyConstants._bundleVersion }, drivers.length, "jdbc");
 
 		JDBCDriver driver;
-		for (int row = 0; row < drivers.length; row++) {
-			driver = drivers[row];
+		int row;
+		for (int i = 0; i < drivers.length; i++) {
+			row=i+1;
+			driver = drivers[i];
+			if(!StringUtil.isEmpty(driver.id)) qry.setAt(KeyConstants._id, row, driver.id);
 			qry.setAt(KeyConstants._label, row, driver.label);
 			qry.setAt(KeyConstants._class, row, driver.cd.getClassName());
 			qry.setAt(KeyConstants._bundleName, row, driver.cd.getName());
@@ -4429,6 +4415,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			Object key = it.next();
 			DataSource d = (DataSource)ds.get(key);
 			row++;
+			
 			qry.setAt(KeyConstants._name, row, key);
 			qry.setAt(KeyConstants._host, row, d.getHost());
 			qry.setAt("classname", row, d.getClassDefinition().getClassName());
@@ -4490,6 +4477,17 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.updateSessionType(getString("admin", action, "sessionType"));
 		admin.updateLocalMode(getString("admin", action, "localMode"));
 		admin.updateCGIReadonly(getBoolObject("admin", action, "cgiReadonly"));
+		store();
+		adminSync.broadcast(attributes, config);
+	}
+
+	/**
+	 * @throws PageException
+	 * 
+	 */
+	private void doUpdateDevelopMode() throws PageException {
+
+		admin.updateMode(getBoolObject("admin", action, "mode"));
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -4804,6 +4802,16 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			sct.set("scopeCascadingType", "small");
 		else if(config.getScopeCascadingType() == Config.SCOPE_STANDARD)
 			sct.set("scopeCascadingType", "standard");
+	}
+
+	/**
+	 * @throws PageException
+	 * 
+	 */
+	private void doGetDevelopMode() throws PageException {
+		Struct sct = new StructImpl();
+		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
+		sct.set("developMode", Caster.toBoolean(config.isDevelopMode()));
 	}
 
 	/**
@@ -5688,12 +5696,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void throwNoAccessWhenWeb() throws ApplicationException {
 		if(type == TYPE_WEB)
-			throw new ApplicationException("you have no access for action [web." + action + "]");
+			throw new ApplicationException("Action " + action + " is not available for Server Admin (Web Admin only)");
 	}
 
 	private void throwNoAccessWhenServer() throws ApplicationException {
 		if(type == TYPE_SERVER) {
-			throw new ApplicationException("you have no access for action [server." + action + "]");
+			throw new ApplicationException("Action " + action + " is not available for Web Admin (Server Admin only)");
 		}
 	}
 }

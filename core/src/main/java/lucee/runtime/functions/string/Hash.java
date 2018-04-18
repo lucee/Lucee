@@ -47,9 +47,7 @@ public final class Hash implements Function {
     public static String call(PageContext pc , String input, String algorithm, String encoding) throws PageException {
 		return invoke( pc.getConfig(), input, algorithm, encoding, 1 );
 	}
-	//////
-	
-	
+
 	public static String call(PageContext pc, Object input) throws PageException {
 		return invoke( pc.getConfig(), input, null, null, 1 );
 	}

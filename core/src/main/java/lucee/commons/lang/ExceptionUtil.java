@@ -25,10 +25,21 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import lucee.commons.io.SystemUtil.TemplateLine;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
+import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageSource;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionImpl;
+import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
@@ -174,6 +185,35 @@ public final class ExceptionUtil {
 	public static void rethrowIfNecessary(Throwable t) {
 		if(unwrap(t) instanceof ThreadDeath)
 			throw (ThreadDeath)t; // never catch a ThreadDeath
+	}
+
+	public static TemplateLine getThrowingPosition(PageContext pc, Throwable t) {
+		Throwable cause = t.getCause();
+		if(cause!=null)getThrowingPosition(pc, cause);
+		StackTraceElement[] traces = t.getStackTrace();
+
+		String template;
+		for(StackTraceElement trace:traces) {
+			template=trace.getFileName();
+			if(trace.getLineNumber()<=0 || template==null || ResourceUtil.getExtension(template,"").equals("java")) continue;	
+			return new TemplateLine(abs((PageContextImpl)pc,template), trace.getLineNumber());
+		}
+		return null;
+	}
+	private static String abs(PageContextImpl pc, String template) {
+		ConfigWeb config = pc.getConfig();
+		
+		Resource res = config.getResource(template);
+		if(res.exists()) return template;
+		
+		PageSource ps = pc==null?null:pc.getPageSource(template);
+		res = ps==null?null:ps.getPhyscalFile();
+		if(res==null || !res.exists()) {
+			res=config.getResource(ps.getDisplayPath());
+			if(res!=null && res.exists()) return res.getAbsolutePath();
+		}
+		else return res.getAbsolutePath();
+		return template;
 	}
 
 }

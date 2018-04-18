@@ -625,8 +625,10 @@ public class DumpUtil {
 			// Bundle Info
 			ClassLoader cl = clazz.getClassLoader();
 			if(cl instanceof BundleClassLoader) {
-				Bundle b=getBundle(cl);
-				if(b!=null){	
+				try {
+					BundleClassLoader bcl=(BundleClassLoader) cl;
+					Bundle b=bcl.getBundle();
+					if(b!=null){
 					Struct sct=new StructImpl();
 					sct.setEL(KeyConstants._id, b.getBundleId());
 					sct.setEL(KeyConstants._name, b.getSymbolicName());
@@ -640,7 +642,9 @@ public class DumpUtil {
 					bd.appendRow(1,new SimpleDumpData("location"),new SimpleDumpData(b.getLocation()));
 					requiredBundles(bd,b);
 					table.appendRow(1,new SimpleDumpData("bundle-info"),bd);
+					}
 				}
+				catch(NoSuchMethodError e) {}
 			}
 			
 			return setId(id,table);

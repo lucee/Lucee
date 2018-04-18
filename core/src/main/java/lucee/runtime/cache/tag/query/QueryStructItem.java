@@ -19,16 +19,13 @@ public class QueryStructItem extends QueryResultCacheItem {
 	public String getHashFromValue() {
 		return Long.toString(HashUtil.create64BitHash(UDFArgConverter.serialize(queryStruct)));
 	}
-	
 
 	public QueryStruct getQueryStruct() {
 		return queryStruct;
 	}
 
-
 	@Override
 	public Object duplicate(boolean deepCopy) {
 		return new QueryStructItem((QueryStruct)queryStruct.duplicate(true),getTags(),getDatasourceName());
 	}
-
 }

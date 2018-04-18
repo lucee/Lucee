@@ -35,6 +35,7 @@ import lucee.runtime.Component;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.functions.dateTime.DateAdd;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
@@ -301,7 +302,17 @@ public final class DateCaster {
 	 * @return coverted Date Time Object
 	 */
 	public static DateTime toDateSimple(double d, TimeZone timeZone) {
-		return toDateSimple((long)d, timeZone);
+		return util.toDateTime(d);
+	}
+
+	/**
+	 * converts a double to a DateTime Object
+	 * @param d double to Convert
+	 * @param timeZone
+	 * @return coverted Date Time Object
+	 */
+	public static DateTime toDateSimple(long l, TimeZone timeZone) {
+		return util.toDateTime(l);
 	}
 	
 	/* *

@@ -27,7 +27,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import lucee.commons.digest.MD5;
 import lucee.commons.io.IOUtil;
@@ -47,7 +46,6 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.component.ImportDefintion;
-import lucee.runtime.component.ImportDefintionImpl;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -781,8 +779,14 @@ public final class ComponentUtil {
         
         if(udf.getPageSource()!=null)
         	func.set(KeyConstants._owner, udf.getPageSource().getDisplayPath());
-        
-	    	   
+
+        if(udf.getStartLine()>0 && udf.getEndLine()>0) {
+        	Struct pos=new StructImpl();
+        	pos.set("start", udf.getStartLine());
+        	pos.set("end", udf.getEndLine());
+        	func.setEL("position", pos);
+        }
+
 	    int format = udf.getReturnFormat();
         if(format<0 || format==UDF.RETURN_FORMAT_WDDX)			func.set(KeyConstants._returnFormat, "wddx");
         else if(format==UDF.RETURN_FORMAT_PLAIN)	func.set(KeyConstants._returnFormat, "plain");

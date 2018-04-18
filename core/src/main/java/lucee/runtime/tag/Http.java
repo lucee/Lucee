@@ -29,6 +29,7 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.KeyStore;
@@ -105,8 +106,8 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
 import org.apache.http.client.methods.HttpPost;
@@ -771,6 +772,7 @@ public final class Http extends BodyTagImpl {
 					sbQS.append(param.getEncoded() ? urlenc(param.getValueAsString(), charset) : param.getValueAsString());
 				}
 			}
+
 			String host = null;
 			HttpHost httpHost;
 			try {
@@ -825,26 +827,28 @@ public final class Http extends BodyTagImpl {
 
 			boolean isBinary = false;
 			boolean doMultiPart = doUploadFile || this.multiPart;
-			HttpEntityEnclosingRequest post = null;
-			HttpEntityEnclosingRequest eem = null;
+
+			HttpEntityEnclosingRequest eeReqPost = null;
+			HttpEntityEnclosingRequest eeReq = null;
 
 			if(this.method == METHOD_GET) {
-				req = new HttpGet(url);
+				req = new HttpGetWithBody(url);
+				eeReq = (HttpEntityEnclosingRequest) req;
 			}
 			else if(this.method == METHOD_HEAD) {
 				req = new HttpHead(url);
 			}
 			else if(this.method == METHOD_DELETE) {
 				isBinary = true;
-				req = new HttpDelete(url);
+				req = new HttpDeleteWithBody(url);
+				eeReq = (HttpEntityEnclosingRequest) req;
 			}
 			else if(this.method == METHOD_PUT) {
 				isBinary = true;
 				HttpPut put = new HttpPut(url);
-				post = put;
+				eeReqPost = put;
 				req = put;
-				eem = put;
-
+				eeReq = put;
 			}
 			else if(this.method == METHOD_TRACE) {
 				isBinary = true;
@@ -856,14 +860,14 @@ public final class Http extends BodyTagImpl {
 			}
 			else if(this.method == METHOD_PATCH) {
 				isBinary = true;
-				eem = HTTPPatchFactory.getHTTPPatch(url);
-				req = (HttpRequestBase)eem;
+				eeReq = HTTPPatchFactory.getHTTPPatch(url);
+				req = (HttpRequestBase)eeReq;
 			}
 			else {
 				isBinary = true;
-				post = new HttpPost(url);
-				req = (HttpPost)post;
-				eem = post;
+				eeReqPost = new HttpPost(url);
+				req = (HttpPost)eeReqPost;
+				eeReq = eeReqPost;
 			}
 
 			boolean hasForm = false;
@@ -873,7 +877,7 @@ public final class Http extends BodyTagImpl {
 			ArrayList<FormBodyPart> parts = new ArrayList<FormBodyPart>();
 
 			StringBuilder acceptEncoding = new StringBuilder();
-			java.util.List<NameValuePair> postParam = post != null ? new ArrayList<NameValuePair>() : null;
+			java.util.List<NameValuePair> postParam = eeReqPost != null ? new ArrayList<NameValuePair>() : null;
 
 			for (int i = 0; i < len; i++) {
 				HttpParamBean param = this.params.get(i);
@@ -890,7 +894,7 @@ public final class Http extends BodyTagImpl {
 					if(this.method == METHOD_GET)
 						throw new ApplicationException(
 								"httpparam with type formfield can only be used when the method attribute of the parent http tag is set to post");
-					if(post != null) {
+					if(eeReqPost != null) {
 						if(doMultiPart) {
 							parts.add(new FormBodyPart(param.getName(), new StringBody(param.getValueAsString(), CharsetUtil.toCharset(charset))));
 						}
@@ -969,9 +973,9 @@ public final class Http extends BodyTagImpl {
 					hasBody = true;
 					hasContentType = true;
 					req.addHeader("Content-type", mt + "; charset=" + cs);
-					if(eem == null)
-						throw new ApplicationException("type xml is only supported for type post and put");
-					HTTPEngine4Impl.setBody(eem, param.getValueAsString(), mt, cs);
+					if(eeReq == null)
+						throw new ApplicationException("type xml is only supported for methods get, delete, post, and put");
+					HTTPEngine4Impl.setBody(eeReq, param.getValueAsString(), mt, cs);
 				}
 				// Body
 				else if(type == HttpParamBean.TYPE_BODY) {
@@ -986,9 +990,9 @@ public final class Http extends BodyTagImpl {
 						cs = ct.getCharset();
 
 					hasBody = true;
-					if(eem == null)
-						throw new ApplicationException("type body is only supported for type post and put");
-					HTTPEngine4Impl.setBody(eem, param.getValue(), mt, cs);
+					if(eeReq == null)
+						throw new ApplicationException("type body is only supported for methods get, delete, post, and put");
+					HTTPEngine4Impl.setBody(eeReq, param.getValue(), mt, cs);
 
 				}
 				else {
@@ -999,7 +1003,7 @@ public final class Http extends BodyTagImpl {
 
 			// post params
 			if(postParam != null && postParam.size() > 0)
-				post.setEntity(new org.apache.http.client.entity.UrlEncodedFormEntity(postParam, charset));
+				eeReqPost.setEntity(new org.apache.http.client.entity.UrlEncodedFormEntity(postParam, charset));
 
 			if(compression) {
 				acceptEncoding.append("gzip");
@@ -1011,7 +1015,7 @@ public final class Http extends BodyTagImpl {
 			req.setHeader("Accept-Encoding", acceptEncoding.toString());
 
 			// multipart
-			if(doMultiPart && eem != null) {
+			if(doMultiPart && eeReq != null) {
 				hasContentType = true;
 				boolean doIt = true;
 				if(!this.multiPart && parts.size() == 1) {
@@ -1022,7 +1026,7 @@ public final class Http extends BodyTagImpl {
 							org.apache.http.entity.ContentType ct = org.apache.http.entity.ContentType.create(sb.getMimeType(), sb.getCharset());
 							String str = IOUtil.toString(sb.getReader());
 							StringEntity entity = new StringEntity(str, ct);
-							eem.setEntity(entity);
+							eeReq.setEntity(entity);
 
 						}
 						catch (IOException e) {
@@ -1037,8 +1041,8 @@ public final class Http extends BodyTagImpl {
 					MultipartEntityBuilder mpeBuilder = MultipartEntityBuilder.create().setStrictMode();
 
 					// enabling the line below will append charset=... to the Content-Type header
-//					if (!StringUtil.isEmpty(charset, true))
-//						mpeBuilder.setCharset(CharsetUtil.toCharset(charset));
+					// if (!StringUtil.isEmpty(charset, true))
+					// mpeBuilder.setCharset(CharsetUtil.toCharset(charset));
 
 					Iterator<FormBodyPart> it = parts.iterator();
 					while(it.hasNext()) {
@@ -1046,7 +1050,7 @@ public final class Http extends BodyTagImpl {
 						mpeBuilder.addPart(part);
 					}
 
-					eem.setEntity(mpeBuilder.build());
+					eeReq.setEntity(mpeBuilder.build());
 				}
 				// eem.setRequestEntity(new MultipartRequestEntityFlex(parts.toArray(new Part[parts.size()]), eem.getParams(),http.multiPartType));
 			}
@@ -1884,7 +1888,7 @@ public final class Http extends BodyTagImpl {
 	private static String getContentType(HttpParamBean param) {
 		String mimeType = param.getMimeType();
 		if(StringUtil.isEmpty(mimeType, true)) {
-			mimeType = ResourceUtil.getMimeType(param.getFile(), ResourceUtil.MIMETYPE_CHECK_EXTENSION + ResourceUtil.MIMETYPE_CHECK_HEADER, null);
+			mimeType = ResourceUtil.getMimeType(param.getFile(), null);
 		}
 		return mimeType;
 	}
@@ -2022,4 +2026,28 @@ class Executor4 extends PageContextThread {
 		return response = new HTTPResponse4Impl(null, context, req, client.execute(req, context));
 	}
 
+}
+
+
+@NotThreadSafe
+class HttpDeleteWithBody extends HttpEntityEnclosingRequestBase {
+	public static final String METHOD_NAME = "DELETE";
+	public String getMethod() { return METHOD_NAME; }
+
+	public HttpDeleteWithBody(final String uri) {
+		super();
+		setURI(URI.create(uri));
+	}
+}
+
+
+@NotThreadSafe
+class HttpGetWithBody extends HttpEntityEnclosingRequestBase {
+	public static final String METHOD_NAME = "GET";
+	public String getMethod() { return METHOD_NAME; }
+
+	public HttpGetWithBody(final String uri) {
+		super();
+		setURI(URI.create(uri));
+	}
 }

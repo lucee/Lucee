@@ -159,6 +159,7 @@ import com.allaire.cfx.CustomTag;
 public final class XMLConfigAdmin {
 
     
+	private static final BundleInfo[] EMPTY = new BundleInfo[0];
 	//private static final Object NULL = new Object();
 	private ConfigImpl config;
     private Document doc;
@@ -1037,7 +1038,6 @@ public final class XMLConfigAdmin {
 	}
 
 	public static void updateJar(Config config, Resource resJar, boolean reloadWhenClassicJar) throws IOException, BundleException {
-		
 		BundleFile bf=new BundleFile(resJar);
 		
 		// resJar is a bundle
@@ -1144,17 +1144,28 @@ public final class XMLConfigAdmin {
 		return OSGiUtil.loadBundle(bf);
 	}
 	
-	public static Object installBundle(Config config, InputStream is, String name,String extensionVersion,boolean closeStream,boolean convert2bundle) throws IOException, BundleException {
+	/**
+	 * @param config
+	 * @param is
+	 * @param name
+	 * @param extensionVersion
+	 * @param closeStream
+	 * @param convert2bundle
+	 * @return return the Bundle File or the file in case it is not a bundle.
+	 * @throws IOException
+	 * @throws BundleException
+	 */
+	public static Object installBundle(Config config, InputStream is, String name,String extensionVersion,
+			boolean closeStream,boolean convert2bundle) throws IOException, BundleException {
 		Resource tmp=SystemUtil.getTempDirectory().getRealResource(name);
-		try{
-			IOUtil.copy(is, tmp,closeStream);
-			BundleFile bf = installBundle(config, tmp,extensionVersion,convert2bundle);
-			if(bf!=null) return bf;
-			return tmp;
-		}
-		finally {
+		
+		IOUtil.copy(is, tmp,closeStream);
+		BundleFile bf = installBundle(config, tmp,extensionVersion,convert2bundle);
+		if(bf!=null) {
 			tmp.delete();
+			return bf;
 		}
+		return tmp;
 	}
 
 	static void updateJar(Config config, InputStream is, String name,boolean closeStream) throws IOException, BundleException {
@@ -1214,54 +1225,6 @@ public final class XMLConfigAdmin {
   		el.setAttribute("type","java");  		
     }
     
-    public void updateCPPCFX(String name, String procedure, String strServerLibrary, boolean keepAlive) throws PageException {
-    	checkWriteAccess();
-    	boolean hasAccess=ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_CFX_SETTING);
-        
-        if(!hasAccess) throw new SecurityException("no access to change cfx settings");
-        
-        // name
-        if(StringUtil.isEmpty(name))
-            throw new ExpressionException("name cannot be a empty value");
-        
-        // serverLibrary
-        if(StringUtil.isEmpty(strServerLibrary)) throw new ExpressionException("serverLibrary cannot be a empty value");
-        Resource serverLibrary = ResourceUtil.toResourceExisting(config, strServerLibrary);
-        
-        // procedure
-        if(StringUtil.isEmpty(procedure)) throw new ExpressionException("procedure cannot be a empty value");
-        
-        renameOldstyleCFX();
-        
-        
-        Element tags=_getRootElement("ext-tags");
-        
-        // Update
-        Element[] children = XMLConfigWebFactory.getChildren(tags,"ext-tag");
-      	for(int i=0;i<children.length;i++) {
-      	    String n=children[i].getAttribute("name");
-      	    
-      	    if(n!=null && n.equalsIgnoreCase(name)) {
-	      		Element el=children[i];
-	      		if(!"cpp".equalsIgnoreCase(el.getAttribute("type"))) throw new ExpressionException("there is already a java cfx tag with this name");
-      	    	el.setAttribute("server-library",serverLibrary.getAbsolutePath());
-      	    	el.setAttribute("procedure",procedure);
-      	    	el.setAttribute("keep-alive",Caster.toString(keepAlive));
-      	    	el.setAttribute("type","cpp");
-	      		return ;
-  			}
-      	    
-      	}
-      	
-      	// Insert
-      	Element el=doc.createElement("ext-tag");
-      	tags.appendChild(el);
-      	el.setAttribute("server-library",serverLibrary.getAbsolutePath());
-    	el.setAttribute("procedure",procedure);
-    	el.setAttribute("keep-alive",Caster.toString(keepAlive));
-    	el.setAttribute("name",name);
-  		el.setAttribute("type","cpp"); 
-	}
     
     private void renameOldstyleCFX() {
     	
@@ -1617,7 +1580,7 @@ public final class XMLConfigAdmin {
      * @param custom 
      * @throws PageException 
      */
-    public void updateDataSource(String name, String newName, ClassDefinition cd, String dsn, String username, String password,
+    public void updateDataSource(String id,String name, String newName, ClassDefinition cd, String dsn, String username, String password,
             String host, String database, int port, int connectionLimit, int connectionTimeout, long metaCacheTimeout,
             boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver,
             ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout) throws PageException {
@@ -1664,6 +1627,10 @@ public final class XMLConfigAdmin {
 	      		if(!StringUtil.isEmpty(newName) && !newName.equals(name))
 	      			el.setAttribute("name",newName);
 	      		setClass(el, null, "", cd);
+	      		
+	      		if(!StringUtil.isEmpty(id)) el.setAttribute("id",id);
+	      		else if(el.hasAttribute("id")) el.removeAttribute("id");
+	      		
 	      		el.setAttribute("dsn",dsn);
 	      		el.setAttribute("username",username);
 	      		el.setAttribute("password",ConfigWebUtil.encrypt(password));
@@ -1717,6 +1684,10 @@ public final class XMLConfigAdmin {
       		el.setAttribute("name",name);
       	setClass(el, null, "", cd);
   		el.setAttribute("dsn",dsn);
+  		
+  		if(!StringUtil.isEmpty(id)) el.setAttribute("id",id);
+  		else if(el.hasAttribute("id")) el.removeAttribute("id");
+  		
   		if(username.length()>0)el.setAttribute("username",username);
   		if(password.length()>0)el.setAttribute("password",ConfigWebUtil.encrypt(password));
         
@@ -1791,12 +1762,12 @@ public final class XMLConfigAdmin {
     	if(reload)admin._reload();
 	}*/
 
-	public void updateJDBCDriver(String label, ClassDefinition cd) throws PageException {
+	public void updateJDBCDriver(String label, String id, ClassDefinition cd) throws PageException {
     	checkWriteAccess();
-    	_updateJDBCDriver(label,cd);
+    	_updateJDBCDriver(label,id,cd);
     }
     
-    private void _updateJDBCDriver(String label, ClassDefinition cd) throws PageException {
+    private void _updateJDBCDriver(String label, String id, ClassDefinition cd) throws PageException {
     	
     	// check if label exists
 		if(StringUtil.isEmpty(label)) 
@@ -1824,8 +1795,12 @@ public final class XMLConfigAdmin {
       		child=doc.createElement("driver");
       		parent.appendChild(child);
       	}
-      	
+
       	child.setAttribute("label",label);
+      	if(!StringUtil.isEmpty(id))
+      		child.setAttribute("id",id);
+      	else
+      		child.removeAttribute("id");
       	// make sure the class exists
         setClass(child, null, "", cd);
         
@@ -2879,7 +2854,8 @@ public final class XMLConfigAdmin {
         if(!hasAccess) throw new SecurityException("no access to update scope setting");
         
         Element scope=_getRootElement("setting");
-        scope.setAttribute("buffer-output",Caster.toString(value,""));
+        scope.setAttribute("buffering-output",Caster.toString(value,""));
+        if(scope.hasAttribute("buffer-output"))scope.removeAttribute("buffer-output");
 	}
     
     /**
@@ -2992,6 +2968,21 @@ public final class XMLConfigAdmin {
         
         Element scope=_getRootElement("scope");
         scope.setAttribute("setclientcookies",Caster.toString(clientCookies,""));
+    }
+
+    /**
+     * set if it's develop mode or not
+     * @param developmode
+     * @throws SecurityException
+     */
+    public void updateMode(Boolean developmode) throws SecurityException {
+      checkWriteAccess();
+        boolean hasAccess=ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_SETTING);
+        if(!hasAccess)
+            throw new SecurityException("no access to update scope setting");
+        
+        Element mode=_getRootElement("mode");
+        mode.setAttribute("develop",Caster.toString(developmode,""));
     }
     
     /**
@@ -4633,7 +4624,7 @@ public final class XMLConfigAdmin {
 			}
 			
 			
-			if(id.equalsIgnoreCase(rhe.getId())) {
+			if(id.equalsIgnoreCase(rhe.getId()) || id.equalsIgnoreCase(rhe.getSymbolicName())) {
 				removeRHExtension(config,rhe,null,true);
 				extensions.removeChild(child);
 				//bundles=RHExtension.toBundleDefinitions(child.getAttribute("bundles"));
@@ -5087,8 +5078,9 @@ public final class XMLConfigAdmin {
 					map = itl.next();
 					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
 					String _label=map.get("label");
+					String _id=map.get("id");
 					if(cd!=null && cd.isBundle()) {
-						_updateJDBCDriver(_label,cd);
+						_updateJDBCDriver(_label,_id,cd);
 						reloadNecessary=true;
 					}
 					logger.info("extension", "update JDBC Driver ["+_label+":"+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
@@ -5223,10 +5215,10 @@ public final class XMLConfigAdmin {
 		
 		try {
 			// remove the bundles
-			BundleDefinition[] candidatesToRemove = OSGiUtil.toBundleDefinitions(rhe.getBundles());
+			BundleDefinition[] candidatesToRemove = OSGiUtil.toBundleDefinitions(rhe.getBundles(EMPTY));
 			if(replacementRH!=null) {
 				// spare bundles used in the new extension as well
-				Map<String, BundleDefinition> notRemove = toMap(OSGiUtil.toBundleDefinitions(replacementRH.getBundles()));
+				Map<String, BundleDefinition> notRemove = toMap(OSGiUtil.toBundleDefinitions(replacementRH.getBundles(EMPTY)));
 				List<BundleDefinition> tmp=new ArrayList<OSGiUtil.BundleDefinition>();
 				String key;
 				for(int i=0;i<candidatesToRemove.length;i++){
@@ -5965,18 +5957,6 @@ public final class XMLConfigAdmin {
 	      	el.setAttribute("name",name);
       	}
       	
-      	/*
-      	// appender
-      	if(appenderCD.getClassName().equals(ConsoleAppender.class.getName())) appenderClassName="console";
-      	if(appenderClassName.equals(RollingResourceAppender.class.getName())) appenderClassName="resource";
-      	
-      	// layout
-      	if(layoutClassName.equals(PatternLayout.class.getName())) layoutClassName="pattern";
-      	if(layoutClassName.equals(ClassicLayout.class.getName())) layoutClassName="classic";
-      	if(layoutClassName.equals(HTMLLayout.class.getName())) layoutClassName="html";
-      	if(layoutClassName.equals(XMLLayout.class.getName())) layoutClassName="xml";
-		*/
-      	
       	el.setAttribute("level",level.toString());
       	setClass(el, null, "appender-", appenderCD);
   		el.setAttribute("appender-arguments",toStringCSSStyle(appenderArgs));
@@ -6448,9 +6428,11 @@ public final class XMLConfigAdmin {
 		while(itt.hasNext()) {
 			_rhe=itt.next();
 			if(rhe!=null && rhe.equals(_rhe)) continue;
-			BundleInfo[] bundles = _rhe.getBundles();
-			for(BundleInfo bi:bundles) {
-				_cleanBundles(candiatesToRemove,bi.getSymbolicName(),bi.getVersion());
+			BundleInfo[] bundles = _rhe.getBundles(null);
+			if(bundles!=null){
+				for(BundleInfo bi:bundles) {
+					_cleanBundles(candiatesToRemove,bi.getSymbolicName(),bi.getVersion());
+				}
 			}
 		}
 
@@ -6590,7 +6572,12 @@ public final class XMLConfigAdmin {
 		RHExtension tmp;
 		try {
 			for(int i=0;i<children.length;i++){
-				tmp=new RHExtension(config,children[i]);
+				tmp=null;
+				try{
+					tmp=new RHExtension(config,children[i]);
+				}
+				catch(Exception e) {}
+				
 				if(tmp!=null && ed.equals(tmp)) return tmp;
 			}
 			return null;

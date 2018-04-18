@@ -21,29 +21,21 @@
  */
 package lucee.runtime.functions.other;
 
-import java.io.IOException;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
-
 import lucee.commons.digest.RSA;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.Coder;
 import lucee.runtime.crypt.CFMXCompat;
 import lucee.runtime.crypt.Cryptor;
-import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.Struct;
-import lucee.runtime.type.util.KeyConstants;
 
 
 public final class Encrypt implements Function {
 
-    // "CFMX_COMPAT" "UU"  null, 0
+	private static final long serialVersionUID = -4144513980542568375L;
+
     public static String call( PageContext pc, String input, String key ) throws PageException {
         return invoke(input, key, CFMXCompat.ALGORITHM_NAME, Cryptor.DEFAULT_ENCODING, null, 0 );
     }
@@ -67,8 +59,7 @@ public final class Encrypt implements Function {
     public static String invoke(String input, String key, String algorithm, String encoding, Object ivOrSalt, int iterations ) throws PageException {
         try {
         	if ("RSA".equalsIgnoreCase(algorithm)) {
-        		PrivateKey privateKey=RSA.toPrivateKey(key);
-        		return Coder.encode(encoding,RSA.encrypt(input.getBytes( Cryptor.DEFAULT_CHARSET ), privateKey));
+        		return Coder.encode(encoding,RSA.encrypt(input.getBytes( Cryptor.DEFAULT_CHARSET ), RSA.toKey(key)));
         	}
             else if ( CFMXCompat.isCfmxCompat( algorithm ) )
                 return Coder.encode( encoding, new CFMXCompat().transformString( Caster.toString(key), input.getBytes( Cryptor.DEFAULT_CHARSET ) ) );

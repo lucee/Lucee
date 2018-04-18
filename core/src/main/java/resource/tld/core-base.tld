@@ -1891,8 +1891,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>ASCIIExtensionList</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Delimited list of file extensions that force ASCII transfer mode, if transferMode = "auto".
-</description>
+			<description>Delimited list of file extensions that force ASCII transfer mode, if transferMode = "auto".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1973,7 +1972,21 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>delete content of the directory</description>
 		</attribute>
-		
+
+		<attribute>
+			<type>string</type>
+			<name>key</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>the ssh private key</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>passphrase</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>the passphrase that protects ssh private key</description>
+		</attribute>
 		
 		
 	</tag>
@@ -3761,10 +3774,24 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
+			<name>connection</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>label for a connection.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
 			<name>server</name>
-			<required>true</required>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Host name biff.upperlip.com or IP address 192.1.2.225 of the Imap server.</description>
+		</attribute>
+		<attribute>
+			<type>number</type>
+			<name>port</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defaults to the standard Imap port, 143.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3773,13 +3800,6 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<rtexprvalue>true</rtexprvalue>
 		<description>Specifies the unique ID or a comma-delimited list of Uids to retrieve or delete. If you set invalid Uids, then they are ignored.</description>
     </attribute>
-		<attribute>
-			<type>number</type>
-			<name>port</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Defaults to the standard Imap port, 143.</description>
-		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>username</name>
@@ -3871,6 +3891,27 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<rtexprvalue>true</rtexprvalue>
 			<description>Boolean indicating whether to generate unique filenames for the files attached to an e-mail
 		message to avoid naming conflicts when the files are saved. Default is NO.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>folder</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>newfolder</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>recurse</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
 		</attribute>
 	</tag>
 
@@ -4703,11 +4744,11 @@ Permits searching collections by title or displaying a separate title from the k
 		<attribute>
 			<type>object</type>
 			<name>timeout</name>
-			<required>true</required>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies the maximum amount of time, in seconds, to wait to obtain a lock. If a lock can be
 		obtained within the specified period, execution continues inside the body of the tag. Otherwise, the
-		behavior depends on the value of the throwOnTimeout attribute.</description>
+		behavior depends on the value of the throwOnTimeout attribute. If not set, the remaing request timeout is used instead.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -4747,6 +4788,18 @@ Permits searching collections by title or displaying a separate title from the k
 			<description>readOnly or Exclusive. Specifies the type of lock: read-only or exclusive. Default is Exclusive.
 	A read-only lock allows more than one request to read shared data. An exclusive lock allows only one
 	request to read or write to shared data.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>result</name>
+			<alias>variable,variablename</alias>
+			<required>false</required>
+			<default>cflock</default>
+			<rtexprvalue>true</rtexprvalue>
+			<description>
+				Specifies a name for the structure in which cflock returns the statusCode and ExecutionTime variables.
+				Default variable is is "cflock".
+			</description>
 		</attribute>
 	</tag>
 	<!-- Log -->
@@ -5649,8 +5702,16 @@ Lucee uses the number of characters in the file.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
+			<name>connection</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>label for a connection.</description>
+		</attribute>
+		
+		<attribute>
+			<type>string</type>
 			<name>server</name>
-			<required>true</required>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Host name biff.upperlip.com or IP address 192.1.2.225 of the POP server.</description>
 		</attribute>
@@ -6187,10 +6248,8 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		</attribute>
  -->
 
-
-
-
 	</tag>
+
 	<!-- Query -->
 	<tag>
 		<name>Query</name>
@@ -6225,8 +6284,6 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<rtexprvalue>true</rtexprvalue>
 			<description>When return type is set to "struct", the value of this column is used as key in the struct for every record.</description>
 		</attribute>
-		
-		
 		<attribute>
 			<type>string</type>
 			<name>result</name>
@@ -6328,7 +6385,6 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<description>The maximum number of seconds for the query to execute before returning an error
 		indicating that the query has timed-out. Value can be a number (seconds) or a Timespan Object. The minimum and maximum allowable values
 		vary, depending on the driver.</description>
-
 		</attribute>
 		<attribute>
 			<type>datetime</type>
@@ -6342,13 +6398,13 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<name>cachedWithin</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>
+			<description>
 possible values are:
 String "request": If original query was created within the current request, cached query data isused.
 a timespan (created with function CreateTimeSpan): If original query date falls within the time span, cached query data isused.
 
 To use cached data, the current query must use the same SQL statement, data source, query name, user name, and password.</description>
-    </attribute>
+    	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>provider</name>
@@ -6438,7 +6494,6 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
 		</attribute>
-
 		<attribute>
 			<type>numeric</type>
 			<name>nestingLevel</name>
@@ -6448,9 +6503,15 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description>the level for the current pagesource</description>
 		</attribute>
-
-
+		<attribute>
+			<name>sql</name>
+			<type>string</type>
+			<required>false</required>
+			<description>the SQL query to execute.  if the SQL attribute is set then its value is used for the SQL query,
+			and the body of the tag is ignored.</description>
+		</attribute>
 	</tag>
+
 	<!-- QueryParam -->
 	<tag>
 		<name>queryparam</name>

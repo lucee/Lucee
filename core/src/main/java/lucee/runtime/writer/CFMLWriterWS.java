@@ -234,7 +234,10 @@ public final class CFMLWriterWS extends CFMLWriterImpl implements WhiteSpaceWrit
 	 */
 	@Override
 	public final void print(String str) throws IOException {
-		write(str.toCharArray(),0,str.length());
+		int len=str.length();
+		for(int i=0;i<len;i++) {
+			print(str.charAt(i));
+		}
 	}
 
 	/**

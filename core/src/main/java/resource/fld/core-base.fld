@@ -224,6 +224,13 @@ All elements in the array must contain values that can be converted to numeric.<
 			<required>Yes</required>
 			<description>The substring to search for (not case sensitive)</description>
 		</argument>
+		<argument>
+			<name>substringMatch</name>
+			<type>boolean</type>
+			<default>false</default>
+			<required>false</required>
+			<description>If set to true then if a then a substring match will also return true. This will only work with simple values. Passing true with complex objects will throw an exception.</description>
+		</argument>
 		<return>
 			<type>number</type>
 		</return>
@@ -1018,14 +1025,22 @@ Remember CFML arrays start at 1 not 0.</description>
 			<name>array</name>
 			<type>array</type>
 			<required>Yes</required>
-		<description>Name of an array</description>
-    </argument>
+			<description>Name of an array</description>
+    	</argument>
 		<argument>
 			<name>value</name>
 			<type>any</type>
 			<required>Yes</required>
 			<description>value to prepend</description>
-    </argument>
+    	</argument>
+    	<argument>
+			<name>merge</name>
+			<type>boolean</type>
+			<required>No</required>
+			<description>This argument only applies when the value is an array.
+			If set to true prepend array elements individually to the source array. 
+			If false (default) the complete array is added as one element at the top, in the source array.</description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -2050,6 +2065,26 @@ sort direction:
 			<type>string</type>
 		</return>
 	</function>
+	
+	<!-- TrimWhiteSpace -->
+	<function>
+		<name>TrimWhiteSpace</name>
+		<class>lucee.runtime.functions.string.TrimWhiteSpace</class>
+		<member-name>trimWhiteSpace</member-name>
+		<status>hidden</status>
+		<keywords>string</keywords>
+		<description>clean white space of the given string</description>
+		<argument>
+			<name>input</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>string to clean up.</description>
+		</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	
 	<!-- compare -->
 	<function>
 		<name>compare</name>
@@ -2990,6 +3025,16 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	    </argument>
 		<return>
 			<type>boolean</type>
+		</return>
+	</function>
+	
+	<!-- ExtensionList -->	
+	<function>
+		<name>ExtensionList</name>
+		<class>lucee.runtime.functions.system.ExtensionList</class>
+		<description>Checks if a certain extension exists or not.</description>
+		<return>
+			<type>query</type>
 		</return>
 	</function>
 	
@@ -12225,12 +12270,13 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>SystemOutput</name>
 		<class>lucee.runtime.functions.other.SystemOutput</class>
-		<description>writes the given string to the output stream</description>
+		<description>writes the given string to the output stream. </description>
 		<argument>
 			<name>obj</name>
 			<type>Object</type>
 			<required>Yes</required>
-		<description></description>
+		<description>Any kind of object. Lucee will serialize all complex objects passed in to a string. If you pass a string you can add &lt;print-stack-trace&gt;, 
+		Lucee will replace with a stacktrace of the current position.</description>
     </argument>
 		<argument>
 			<name>addNewLine</name>

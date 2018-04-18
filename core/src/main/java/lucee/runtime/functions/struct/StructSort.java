@@ -25,6 +25,7 @@ import java.util.Arrays;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.interpreter.VariableInterpreter;
@@ -105,6 +106,7 @@ public final class StructSort extends BIF {
 		if(args.length==4) return call(pc,Caster.toStruct(args[0]),Caster.toString(args[1]),Caster.toString(args[2]),Caster.toString(args[3]));
 		if(args.length==3) return call(pc,Caster.toStruct(args[0]),Caster.toString(args[1]),Caster.toString(args[2]));
 		if(args.length==2) return call(pc,Caster.toStruct(args[0]),Caster.toString(args[1]));
-		return call(pc,Caster.toStruct(args[0]));
+		if(args.length==1) return call(pc,Caster.toStruct(args[0]));
+		throw new FunctionException(pc, "StructSort", 1, 4, args.length);
 	}	
 }

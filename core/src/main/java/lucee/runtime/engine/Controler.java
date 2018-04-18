@@ -171,9 +171,6 @@ public final class Controler extends Thread {
             		}
             	}
             }
-            
-
-            
 	        if(factories.length>0) firstRun=false;
 	    }    
 	}

@@ -117,7 +117,7 @@ public Class loadClass(String name) throws ClassNotFoundException   {
         // First, check if the class has already been loaded
         Class c = findLoadedClass(name);
         if (c == null) {
-            c=findClass(name,null);
+            c=findClass(name,(Class)null);
             if(c==null) {
                 c =pcl.loadClass(name);
             }
@@ -130,7 +130,7 @@ public Class loadClass(String name) throws ClassNotFoundException   {
     
     @Override
     protected Class findClass(String name) throws ClassNotFoundException {
-        Class clazz=findClass(name,null);
+        Class clazz=findClass(name,(Class)null);
         if(clazz!=null) return clazz;
         throw new ClassNotFoundException("class "+name+" not found");
     }

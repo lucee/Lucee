@@ -157,6 +157,8 @@ public final class SystemUtil {
 
 	private static final String JAVA_VERSION_STRING = System.getProperty("java.version");
 	public static final int JAVA_VERSION;
+	private static final Class[] EMPTY_CLASS = new Class[0];
+	private static final Object[] EMPTY_OBJ = new Object[0];
 
 	static {
 		// OS
@@ -990,7 +992,7 @@ public final class SystemUtil {
 	}
 
 	public static TemplateLine getCurrentContext() {
-		StackTraceElement[] traces = Thread.currentThread().getStackTrace();
+		StackTraceElement[] traces = new Exception().getStackTrace();
 
 		int line = 0;
 		String template;
@@ -1237,11 +1239,11 @@ public final class SystemUtil {
 		}
 	}
 
-	public static void stop(PageContext pc, Log log, boolean async) {
+	public static void stop(PageContext pc, boolean async) {
 		if(async)
-			new StopThread(pc, log).start();
+			new StopThread(pc).start();
 		else
-			new StopThread(pc, log).run();
+			new StopThread(pc).run();
 	}
 
 	public static String getLocalHostName() {
@@ -1451,6 +1453,7 @@ public final class SystemUtil {
 	}
 
 	private static Map<String, Integer> logs = new ConcurrentHashMap<String, Integer>();
+	private static Boolean booted=null;
 
 	public static void logUsage() {
 		String st = ExceptionUtil.getStacktrace(new Throwable(), false);
@@ -1498,6 +1501,23 @@ public final class SystemUtil {
 		return System.nanoTime()/1000000d;
 	}
 
+	public static boolean isBooted() {
+		if(Boolean.TRUE.equals(booted)) return true;
+		
+		Class clazz = ClassUtil.loadClass("jdk.internal.misc.VM",null); // Java == 9
+		if(clazz==null)  clazz = ClassUtil.loadClass("sun.misc.VM",null); // Java < 9
+		
+		if(clazz!=null) {
+			try {
+				Method m = clazz.getMethod("isBooted", EMPTY_CLASS);
+				booted = Caster.toBoolean(m.invoke(null, EMPTY_OBJ));
+				return booted.booleanValue();
+			}
+			catch(Exception e) {}
+		}
+		return true;
+	}
+
 }
 
 class Ref {
@@ -1510,9 +1530,8 @@ class StopThread extends Thread {
 	private final PageContext pc;
 	//private final Log log;
 
-	public StopThread(PageContext pc, Log log) {
+	public StopThread(PageContext pc) {
 		this.pc = pc;
-		//this.log = log;
 	}
 
 	public void run() {
@@ -1527,7 +1546,7 @@ class StopThread extends Thread {
 	}
 }
 
-class MacAddressWrap implements ObjectWrap, Castable {
+class MacAddressWrap implements ObjectWrap, Castable,Serializable {
 
 	private static final long serialVersionUID = 8707984359031327783L;
 

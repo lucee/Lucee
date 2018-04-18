@@ -38,6 +38,7 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
+import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -56,6 +57,27 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 public class PageContextUtil {
+	
+	public static PageSource getPageSource(Mapping[] mappings, String realPath) {
+		PageSource ps;
+		for(int i=0;i<mappings.length;i++) {
+			ps = mappings[i].getPageSource(realPath);
+			if(ps.exists()) return ps;
+		}
+		return null;
+	}
+	
+
+    public static Mapping[] merge(Mapping[] mappings1, Mapping[] mappings2) {
+    	Mapping[] mappings=new Mapping[mappings1.length+mappings2.length];
+    	for(int i=0;i<mappings1.length;i++) {
+    		mappings[i]=mappings1[i];
+    	}
+    	for(int i=0;i<mappings2.length;i++) {
+    		mappings[mappings1.length+i]=mappings2[i];
+    	}
+    	return mappings;
+	}
 
 	public static ApplicationListener getApplicationListener(PageContext pc) {
 		PageSource ps = pc.getBasePageSource();

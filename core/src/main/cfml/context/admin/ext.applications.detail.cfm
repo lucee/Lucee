@@ -214,46 +214,59 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 
 
 </cfscript>
+	<div class="msg"></div>
 	<h2>#isInstalled?stText.ext.upDown:stText.ext.install#</h2>
 	#isInstalled?stText.ext.upDownDesc:stText.ext.installDesc#
-		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" id="versionForm" method="post">
 			<input type="hidden" name="id" value="#url.id#">
+			<input type="hidden" name="mainAction_" value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
 			<input type="hidden" name="provider" value="#isNull(available.provider)?"":available.provider#">
 			
 		<table class="maintbl autowidth">
 		<tbody>
+		<cfset types="Release,Pre_Release,SnapShot">
 		<cfif arrayLen(all)>
-			<tr id="grpConnection">
+			<tr><td style="padding-left:12px;">
 				<cfset count = 1>
-				<cfloop list="Release,Pre_Release,SnapShot" index="key">
-					<span><input <cfif count EQ 1>
-							class="bl button" <cfelseif count EQ 3> class="br button" <cfelse> class="bm button" </cfif>  name="changeConnection" id="btn_#UcFirst(Lcase(key))#" value="#stText.services.update.short[key]# (#arraylen(versionStr[key])#)" onclick="enableVersion('#UcFirst(Lcase(key))#');"  type="button"></span>
-					<cfif arrayLen(versionStr[key])>
-						<td class="td_#UcFirst(Lcase(key))#" >
-							<select name="version"  class="large" style="margin-top:8px">
-								<cfloop array="#versionStr[key]#" item="v">
-									<cfset vs=toVersionSortable(v)>
-									<cfset btn="">
-									<cfif isInstalled>
-										<cfset comp=compare(installedVersion,vs)>
-										<cfif comp GT 0>
-											<cfset btn=stText.ext.downgradeTo>
-										<cfelseif comp LT 0>
-											<cfset btn=stText.ext.updateTo>
-										</cfif>
-									</cfif>
-									<option value="#v#" >#btn# #v#</option>
-								</cfloop>
-							</select>
-						</td>
-						<td class="td_#UcFirst(Lcase(key))#"><input type="submit" class="button submit" name="mainAction" value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#"></td>
-					<cfelse>
-						<td class="td_#UcFirst(Lcase(key))#">
-							<div>#replace(stText.ext.detail.noUpdateDesc,"{type}","<b>#stText.services.update.short[key]#</b>")#</div>
-						</td>
-					</cfif>
-					<cfset count = count + 1>
-				</cfloop>
+			<cfloop list="#types#" index="key">
+				<span><input 
+							<cfif count EQ 1>class="bl button" <cfelseif count EQ 3> class="br button" <cfelse> class="bm button" </cfif>  
+							style="width:180px"
+							name="changeConnection" id="btn_#UcFirst(Lcase(key))#" 
+							value="#stText.services.update.short[key]# (#arraylen(versionStr[key])#)" 
+							onclick="enableVersion('#UcFirst(Lcase(key))#');"  
+							type="button"> </span>
+
+					<cfset count++>
+			</cfloop></td>
+			</tr>
+			<tr id="grpConnection">
+				<td>
+					<select name="version" id="versions" class="large" style="margin:8px;width:372px">
+						<option value="">-- select the version --</option>
+						<cfloop list="#types#" index="key">
+							<cfif arrayLen(versionStr[key])>
+								<optgroup class="td_#UcFirst(Lcase(key))#" label="#stText.services.update.short[key]#">
+									<cfset options="">
+										<cfscript>
+										loop array=versionStr[key] item="v"{
+											vs=toVersionSortable(v);
+											btn="";
+											if(isInstalled) {
+												comp=compare(installedVersion,vs);
+												if(comp GT 0) btn=stText.ext.downgradeTo;
+												else if(comp LT 0) btn=stText.ext.updateTo;
+											}
+											options='<option value="#v#" class="td_#UcFirst(Lcase(key))#" >#btn# #v#</option>'&options;
+										}
+										</cfscript>
+										#options#
+								</optgroup>
+							</cfif>
+						</cfloop>
+					</select>
+					<input type="button" class="button submit" onclick="versionSelected(this, version)"  value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
+				</td>
 			</tr>
 		</cfif>
 		<cfif isInstalled>
@@ -276,20 +289,38 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 <script type="text/javascript">
 	$(document).ready(function(){
 		var version = 'Release';
-		enableVersion(version);
+		enableVersion(version, "intial");
 		$("##btn_"+version).addClass("btn");
 	});
 
-	function enableVersion(v){
-		$("##grpConnection").find('td').each(function(index) {
-			var xx = $(this).attr('class');
-			$('.'+xx).show();
-			if("td_"+v != xx){
-				$('.'+xx).hide();
-			}
+	function enableVersion(v, i){
+		if(i== 'intial'){
+			$("##grpConnection").find('optgroup' ).each(function(index) {
+				var xx = $(this).attr('class');
+				window[xx] = $("."+xx).detach();
+				if("td_"+v == xx){
+					$("##versions").append(window[xx]);
+				}
+		  		$(".btn").removeClass('btn');
+		  		$("##btn_"+v).addClass("btn");
 			});
-  		$(".btn").removeClass('btn');
-  		$("##btn_"+v).addClass("btn");
+		} else {
+			if($( "##btn_"+v).hasClass( "btn" )){
+				window[v] = $(".td_"+v).detach();
+				$("##btn_"+v).removeClass('btn');
+			} else {
+				;
+				$("##versions").append(window["td_"+v]);
+				$("##btn_"+v).addClass('btn');
+			}
+		}
+	}
+	function versionSelected(v, i){
+		var version = $("##versions").val();
+		if(version == "")
+			$( ".msg" ).append( "<div class='error'>Please Choose any version</p>" );
+		else
+			$( "##versionForm" ).submit();
 	}
 	</script>
 	<style>

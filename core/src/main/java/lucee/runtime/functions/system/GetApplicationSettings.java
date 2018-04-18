@@ -76,7 +76,7 @@ public class GetApplicationSettings {
 		Component cfc = null;
 		if(ac instanceof ModernApplicationContext)cfc= ((ModernApplicationContext)ac).getComponent();
 		
-		Struct sct=new StructImpl();
+		Struct sct=new StructImpl(Struct.TYPE_LINKED);
 		sct.setEL("applicationTimeout", ac.getApplicationTimeout());
 		sct.setEL("clientManagement", Caster.toBoolean(ac.isSetClientManagement()));
 		sct.setEL("clientStorage", ac.getClientstorage());
@@ -108,7 +108,7 @@ public class GetApplicationSettings {
 		
 		
 		
-		Struct cs=new StructImpl();
+		Struct cs=new StructImpl(Struct.TYPE_LINKED);
 		cs.setEL("web",pc.getWebCharset().name());
 		cs.setEL("resource",((PageContextImpl)pc).getResourceCharset().name());
 		sct.setEL("charset", cs);
@@ -148,13 +148,14 @@ public class GetApplicationSettings {
 		
 		// ws settings
 		{
-		Struct wssettings=new StructImpl();
+		
+		Struct wssettings=new StructImpl(Struct.TYPE_LINKED);
 		wssettings.setEL(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(),((ConfigImpl)ThreadLocalPageContext.getConfig(pc)).getWSHandler().getTypeAsString()));
 		sct.setEL("wssettings", wssettings);
 		}
 		
 		// datasources
-		Struct _sources = new StructImpl();
+		Struct _sources = new StructImpl(Struct.TYPE_LINKED);
 		sct.setEL(KeyConstants._datasources, _sources);
 		DataSource[] sources = ac.getDataSources();
 		if(!ArrayUtil.isEmpty(sources)){
@@ -165,7 +166,7 @@ public class GetApplicationSettings {
 		}
 
 		// logs
-		Struct _logs = new StructImpl();
+		Struct _logs = new StructImpl(Struct.TYPE_LINKED);
 		sct.setEL("logs", _logs);
 		if(ac instanceof ApplicationContextSupport) {
 			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
@@ -188,7 +189,7 @@ public class GetApplicationSettings {
 			if(servers!=null){
 				for(int i=0;i<servers.length;i++) {
 					srv=servers[i];
-					s=new StructImpl();
+					s=new StructImpl(Struct.TYPE_LINKED);
 					_mails.appendEL(s);
 					s.setEL(KeyConstants._host, srv.getHostName());
 					s.setEL(KeyConstants._port, srv.getPort());
@@ -211,7 +212,7 @@ public class GetApplicationSettings {
 		// tag
 		Map<Key, Map<Collection.Key, Object>> tags = ac.getTagAttributeDefaultValues(pc);
 		if(tags!=null) {
-			Struct tag = new StructImpl();
+			Struct tag = new StructImpl(Struct.TYPE_LINKED);
 			Iterator<Entry<Key, Map<Collection.Key, Object>>> it = tags.entrySet().iterator();
 			Entry<Collection.Key, Map<Collection.Key, Object>> e;
 			Iterator<Entry<Collection.Key, Object>> iit;
@@ -221,7 +222,7 @@ public class GetApplicationSettings {
 			while(it.hasNext()){
 				e = it.next();
 				iit=e.getValue().entrySet().iterator();
-				tmp=new StructImpl();
+				tmp=new StructImpl(Struct.TYPE_LINKED);
 				while(iit.hasNext()){
 					ee = iit.next();
 					//lib.getTagByClassName(ee.getKey());
@@ -246,13 +247,13 @@ public class GetApplicationSettings {
 		String wse = ac.getDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE);
 		
 		// cache connections
-		Struct conns=new StructImpl();
+		Struct conns=new StructImpl(Struct.TYPE_LINKED);
 		if(ac instanceof ApplicationContextSupport) {
 			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
 			Key[] names = acs.getCacheConnectionNames();
 			for(Key name:names) {
 				CacheConnection data = acs.getCacheConnection(name.getString(),null);
-				Struct _sct=new StructImpl();
+				Struct _sct=new StructImpl(Struct.TYPE_LINKED);
 				conns.setEL(name, _sct);
 				_sct.setEL(KeyConstants._custom,data.getCustom());
 				_sct.setEL(KeyConstants._storage,data.isStorage());
@@ -266,7 +267,7 @@ public class GetApplicationSettings {
 		}
 
 		if(!conns.isEmpty() || fun!=null || obj!=null || qry!=null || res!=null || tmp!=null || inc!=null || htt!=null || fil!=null || wse!=null) {
-			Struct cache=new StructImpl();
+			Struct cache=new StructImpl(Struct.TYPE_LINKED);
 			sct.setEL(KeyConstants._cache, cache);
 			if(fun!=null)cache.setEL(KeyConstants._function, fun);
 			if(obj!=null)cache.setEL(KeyConstants._object, obj);
@@ -285,7 +286,7 @@ public class GetApplicationSettings {
 		
 		// java settings
 		JavaSettings js = ac.getJavaSettings();
-		StructImpl jsSct = new StructImpl();
+		StructImpl jsSct = new StructImpl(Struct.TYPE_LINKED);
 		jsSct.put("loadCFMLClassPath",js.loadCFMLClassPath());
 		jsSct.put("reloadOnChange",js.reloadOnChange());
 		jsSct.put("watchInterval",new Double(js.watchInterval()));
@@ -325,7 +326,7 @@ public class GetApplicationSettings {
 
 
 	private static Struct _call(DataSource source) {
-		Struct s = new StructImpl();
+		Struct s = new StructImpl(Struct.TYPE_LINKED);
 		s.setEL(KeyConstants._class, source.getClassDefinition().getClassName());
 		s.setEL(KeyConstants._bundleName, source.getClassDefinition().getName());
 		s.setEL(KeyConstants._bundleVersion, source.getClassDefinition().getVersionAsString());
@@ -353,7 +354,7 @@ public class GetApplicationSettings {
 	}
 
 	private static Struct toStruct(Mapping[] mappings) {
-		Struct sct=new StructImpl();
+		Struct sct=new StructImpl(Struct.TYPE_LINKED);
 		if(mappings!=null)for(int i=0;i<mappings.length;i++){
 			sct.setEL(KeyImpl.init(mappings[i].getVirtual()), mappings[i].getStrPhysical());
 		}

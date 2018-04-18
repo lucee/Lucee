@@ -350,7 +350,7 @@ public class HashMapPro<K,V>
     }
     
 
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {
 
     	//HashMapPro<Key, Object> map=new HashMapPro<Key, Object>();
     	long startx=System.currentTimeMillis();
@@ -497,7 +497,7 @@ public class HashMapPro<K,V>
 		//k.hashCode();
 		}
 		aprint.e("SM.put:"+(System.currentTimeMillis()-start));
-	}
+	}*/
     
     @Override
 	public V g(K key) throws PageException {

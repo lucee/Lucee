@@ -7,7 +7,11 @@
 
 <cfset arrNamespaces = Application.objects.utils.getTagNamespaces()>
 <cfset arrAllItems   = Application.objects.utils.getAllTags()>
-
+<cfset stText.doc.attr.type = {}>
+<cfset stText.doc.attr.type.dynamic =  "There is no restriction for attributes for this tag.">
+<cfset stText.doc.attr.type.fixed =  "The attributes for this tag are fixed. Except for the following attributes no other attributes are allowed.">
+<cfset stText.doc.attr.type.mixed =  "This tag has a fixed definition of attributes (see below). In addition it allowes to use any additional attribute">
+<cfset stText.doc.attr.type.noname =  "This tag only allows one attribute value (no name).">
 <cfif len( url.item )>
 	<cfset itemPos = arrAllItems.findNoCase( url.item )>
 	<cfif !itemPos>

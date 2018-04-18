@@ -69,6 +69,11 @@ public class ExtensionDefintion {
 	public String getId() {
 		return id;
 	}
+	public String getSymbolicName() {
+		String sn= params.get("symbolic-name");
+		if(StringUtil.isEmpty(sn,true)) return getId();
+		return sn.trim();
+	}
 	public void setParam(String name, String value) {
 		params.put(name,value);
 	}

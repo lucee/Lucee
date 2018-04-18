@@ -51,6 +51,7 @@ import lucee.transformer.Position;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BodyBase;
 import lucee.transformer.bytecode.Page;
+import lucee.transformer.bytecode.Root;
 import lucee.transformer.bytecode.Statement;
 import lucee.transformer.bytecode.cast.CastOther;
 import lucee.transformer.bytecode.statement.PrintOut;
@@ -60,8 +61,10 @@ import lucee.transformer.bytecode.statement.tag.Tag;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.ExprTransformer;
+import lucee.transformer.cfml.TransfomerSettings;
 import lucee.transformer.cfml.attributes.AttributeEvaluatorException;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
+import lucee.transformer.cfml.evaluator.EvaluatorPool;
 import lucee.transformer.cfml.evaluator.impl.ProcessingDirectiveException;
 import lucee.transformer.cfml.expression.SimpleExprTransformer;
 import lucee.transformer.cfml.script.AbstrCFMLScriptTransformer.ComponentTemplateException;
@@ -235,9 +238,11 @@ public final class CFMLTransformer {
 			// we only use that result if it is a component now 
 			if(_p!=null && !_p.isPage()) return _p;
 		}
-		
+
 		if(isCFMLCompExt && !p.isComponent() && !p.isInterface()) {
-			throw new TemplateException("template ["+ps.getDisplayPath()+"] must contain a component or an interface.");
+			String msg="template ["+ps.getDisplayPath()+"] must contain a component or an interface.";
+			if(sc!=null) throw new TemplateException(sc,msg);
+			throw new TemplateException(msg);
 		}
 		
 		return p;
@@ -294,7 +299,19 @@ public final class CFMLTransformer {
 				sc.getWriteLog(),
 				sc.getDialect()==CFMLEngine.DIALECT_LUCEE || config.getSuppressWSBeforeArg(),config.getDefaultFunctionOutput(),returnValue,ignoreScope);
 		
-		TagData data = new TagData(factory,_tlibs,flibs,config.getCoreTagLib(sc.getDialect()).getScriptTags(),sc,page,dnuc,ignoreScope);
+		TransfomerSettings settings = new TransfomerSettings(dnuc,sc.getDialect()==CFMLEngine.DIALECT_CFML && factory.getConfig().getHandleUnQuotedAttrValueAsString(),ignoreScope);
+		Data data = new Data(factory, page, sc,new EvaluatorPool(), settings, _tlibs,flibs,config.getCoreTagLib(sc.getDialect()).getScriptTags(),false);
+		
+		
+		
+		/*
+ private TagData(Factory factory,TagLib[][] tlibs, FunctionLib[] flibs,TagLibTag[] scriptTags, SourceCode sc,Root root, boolean dotNotionUpperCase,boolean ignoreScopes) {
+		super(factory,root,sc,new EvaluatorPool(),
+				new TransfomerSettings(dotNotionUpperCase,sc.getDialect()==CFMLEngine.DIALECT_CFML && factory.getConfig().getHandleUnQuotedAttrValueAsString(),ignoreScopes),
+			tlibs,flibs,scriptTags);
+	}
+		 */
+		//new TransfomerSettings(dotNotionUpperCase,sc.getDialect()==CFMLEngine.DIALECT_CFML && factory.getConfig().getHandleUnQuotedAttrValueAsString(),ignoreScopes)
 		
 		//Body body=page;
 		try {
@@ -347,7 +364,7 @@ public final class CFMLTransformer {
 	 * @param transformer Expression Transfomer zum uebersetzten von Expression.
 	 * @throws TemplateException
 	 */
-	private void body(TagData data,Body body, boolean parseExpression, ExprTransformer transformer) throws TemplateException {
+	public void body(Data data,Body body, boolean parseExpression, ExprTransformer transformer) throws TemplateException {
 		boolean parseLiteral=true;
 		
 	// Comment 
@@ -434,7 +451,7 @@ public final class CFMLTransformer {
 			(* Welcher Teil der "oder" Bedingung ausgefuehrt wird, ist abhaengig ob die Tag-Lib vorgibt, 
 			 dass Expression geparst werden sollen oder nicht. *)</code>
 	 */
-	private void literal(TagData data,Body parent,boolean parseExpression, ExprTransformer transformer) throws TemplateException {
+	private void literal(Data data,Body parent,boolean parseExpression, ExprTransformer transformer) throws TemplateException {
 		// with expression
 		if(parseExpression) {
 			if(data.srcCode.isAfterLast())return;
@@ -463,7 +480,7 @@ public final class CFMLTransformer {
 						Position start = data.srcCode.getPosition(end.pos-text.length());
 						
 						PrintOut po;
-						parent.addStatement(po=new PrintOut(transformer.transform(data.factory,data.root,data.ep,data.tlibs,data.flibs,data.scriptTags,data.srcCode,data.settings),start,end));
+						parent.addStatement(po=new PrintOut(transformer.transform(data),start,end));
 						po.setEnd(data.srcCode.getPosition());
 						
 						if(!data.srcCode.isCurrent('#'))
@@ -517,7 +534,7 @@ public final class CFMLTransformer {
 	 * @return Gibt zurueck ob es sich um ein Tag as einer Tag-Lib handelte oder nicht.
 	 * @throws TemplateException
 	 */
-	private boolean tag(TagData data,Body parent,boolean parseExpression) throws TemplateException {
+	private boolean tag(Data data,Body parent,boolean parseExpression) throws TemplateException {
 	    //lucee.print.ln("--->"+data.cfml.getCurrent());
 	    boolean hasBody=false;
 		
@@ -630,8 +647,10 @@ public final class CFMLTransformer {
 				}
 				if(tdbt==null) throw createTemplateException(data.srcCode,"Tag dependent body Transformer is invalid for Tag ["+tagLibTag.getFullName()+"]",tagLibTag);
 
-				tag.setBody(tdbt.transform(data.factory,data.root,data.ep,data.tlibs,data.flibs,
-						tagLibTag.getFullName(),data.scriptTags,data.srcCode,data.settings));
+				//tag.setBody(tdbt.transform(data.factory,data.root,data.ep,data.tlibs,data.flibs,
+				//		tagLibTag.getFullName(),data.scriptTags,data.srcCode,data.settings));
+				
+				tag.setBody(tdbt.transform(data,tagLibTag.getFullName()));
 				
 				//	get TagLib of end Tag
 				if(!data.srcCode.forwardIfCurrent("</")) {
@@ -761,7 +780,7 @@ public final class CFMLTransformer {
         
 	}
 	
-	private boolean executeEvaluator(TagData data,TagLibTag tagLibTag, Tag tag) throws TemplateException {
+	private boolean executeEvaluator(Data data,TagLibTag tagLibTag, Tag tag) throws TemplateException {
 		if(tagLibTag.hasTTE())	{
 			try {
 				TagLib lib=tagLibTag.getEvaluator().execute(data.config,tag,tagLibTag,data.flibs,data);
@@ -854,7 +873,7 @@ public final class CFMLTransformer {
 	 * @param parent
 	 * @throws TemplateException
 	 */
-	public static void attributes(TagData data,TagLibTag tag, Tag parent) throws TemplateException {
+	public static void attributes(Data data,TagLibTag tag, Tag parent) throws TemplateException {
 		int type=tag.getAttributeType();
 		int start = data.srcCode.getPos();
 	// Tag with attribute names
@@ -955,7 +974,7 @@ public final class CFMLTransformer {
 	}
 
 
-	private static void attrNoName(Tag parent, TagLibTag tag, TagData data,TagLibTagAttr attr) throws TemplateException {
+	private static void attrNoName(Tag parent, TagLibTag tag, Data data,TagLibTagAttr attr) throws TemplateException {
     	if(attr==null)attr=tag.getFirstAttribute();
 		String strName="noname";
 		String strType="any";
@@ -981,7 +1000,7 @@ public final class CFMLTransformer {
      * @return Element Attribute Element.
      * @throws TemplateException
      */
-    private static Attribute attribute(TagData data,TagLibTag tag, ArrayList<String> args,RefBoolean allowDefaultValue) throws TemplateException {
+    private static Attribute attribute(Data data,TagLibTag tag, ArrayList<String> args,RefBoolean allowDefaultValue) throws TemplateException {
     	Expression value=null;
     	
     	// Name
@@ -1113,7 +1132,7 @@ public final class CFMLTransformer {
 	 * @return Element Eingelesener uebersetzer Wert des Attributes.
 	 * @throws TemplateException
 	 */
-	public static Expression attributeValue(TagData data,TagLibTag tag, String type,boolean parseExpression,boolean isNonName, Expression noExpression) throws TemplateException {
+	public static Expression attributeValue(Data data,TagLibTag tag, String type,boolean parseExpression,boolean isNonName, Expression noExpression) throws TemplateException {
 		Expression expr;
 		try {
 			ExprTransformer transfomer=null;
@@ -1130,7 +1149,7 @@ public final class CFMLTransformer {
 			if(isNonName) {
 			    int pos=data.srcCode.getPos();
 			    try {
-			    	expr=transfomer.transform(data.factory,data.root,data.ep,data.tlibs,data.flibs,data.scriptTags,data.srcCode,data.settings);
+			    	expr=transfomer.transform(data);
 			    }
 			    catch(TemplateException ete) {
 			       if(data.srcCode.getPos()==pos)expr=noExpression;
@@ -1138,8 +1157,18 @@ public final class CFMLTransformer {
 			    }
 			}
 			else {
-				if(data.settings.handleUnQuotedAttrValueAsString) expr=transfomer.transformAsString(data.factory,data.root,data.ep,data.tlibs,data.flibs,data.scriptTags,data.srcCode,data.settings,true);
-				else expr=transfomer.transform(data.factory,data.root,data.ep,data.tlibs,data.flibs,data.scriptTags,data.srcCode,data.settings);
+				if(data.settings.handleUnQuotedAttrValueAsString) {
+					boolean alt=data.allowLowerThan;
+					data.allowLowerThan=true;
+					try {
+						expr=transfomer.transformAsString(data);
+					}
+					finally {
+						data.allowLowerThan=alt;
+					}
+					
+				}
+				else expr=transfomer.transform(data);
 			}
 			if(type.length()>0) {
 				expr=CastOther.toExpression(expr, type);

@@ -62,7 +62,7 @@ public class RequestTimeoutException extends Abort implements Stop {
 			LockManager manager = pc.getConfig().getLockManager();
 	        String[] locks = manager.getOpenLockNames();
 	        if(!ArrayUtil.isEmpty(locks)) 
-	        	strLocks=" open locks at this time ("+ListUtil.arrayToList(locks, ", ")+").";
+	        	strLocks=" Open locks at this time ("+ListUtil.arrayToList(locks, ", ")+").";
 	        //LockManagerImpl.unlockAll(pc.getId());
 		}
 		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}

@@ -44,7 +44,8 @@ public final class ArrayFindAll extends BIF {
 	
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		return call(pc,Caster.toArray(args[0]),args[1]);
+		if(args.length==2)return call(pc,Caster.toArray(args[0]),args[1]);
+		else throw new FunctionException(pc, "ArrayFindAll", 2, 2, args.length);
 	}
 	
 

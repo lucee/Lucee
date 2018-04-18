@@ -46,7 +46,7 @@ public abstract class BaseScriptEngineFactory implements ScriptEngineFactory {
 			engine = CFMLEngineFactory.getInstance();
 		} catch (final RuntimeException re) {
 		}
-
+		
 		// create Engine
 		if (engine == null) {
 			final String servletName = "";
@@ -59,6 +59,7 @@ public abstract class BaseScriptEngineFactory implements ScriptEngineFactory {
 			final ServletConfigImpl servletConfig = new ServletConfigImpl(
 					servletContext, servletName);
 			engine = CFMLEngineFactory.getInstance(servletConfig);
+			servletContext.setLogger(engine.getCFMLEngineFactory().getLogger());
 		}
 
 		factory = tag ? CFMLEngineFactory.getInstance().getTagEngineFactory(

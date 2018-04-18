@@ -22,8 +22,6 @@ package lucee.runtime.functions.orm;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import lucee.print;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
@@ -66,7 +64,7 @@ public class EntityNew {
 			e = it.next();
 			Key funcName = KeyImpl.init("set"+e.getKey().getString());
 			if(ignoreNotExisting) {
-				if(c.get(funcName,null) instanceof UDF);
+				if(c.get(funcName,null) instanceof UDF)
 					c.call(pc, funcName, new Object[]{e.getValue()});
 			}
 			else {

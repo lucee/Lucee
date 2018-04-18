@@ -13,14 +13,14 @@ html, body {
 body {
 	min-width:600px;
 	background-color:#3399cc;
-	background-image: url('../img/bg_web.gif.cfm');
+	background-image: url('../img/bg_web-{appendix}.gif.cfm');
 	background-repeat: no-repeat;
 	margin:0;
 	padding:0;
 }
 body.server {
 	background-color:#bf4f36;
-	background-image: url('../img/bg_server.gif.cfm');
+	background-image: url('../img/bg_server-{appendix}.gif.cfm');
 }
 body, td, th {
 	font-family:Arial, Helvetica, sans-serif;
@@ -309,7 +309,7 @@ td#logintd {
 	content: " ";
 	left:5px;
 	top:8px;
-	background-image: url('../img/admin_sprite.png.cfm');
+	background-image: url('../img/admin_sprite-{appendix}.png.cfm');
 	background-repeat: no-repeat;
 	background-position: -105px -20px;
 }
@@ -663,25 +663,24 @@ a.edit {
 
 
 .btn-search {
-
 	height:19px;
 	width:19px;
 	display: inline-block;
 	outline: none;
 	text-decoration: none;
-	padding:5px;
+	padding-bottom: 5px !important;
 	margin-left:0;
 	background-color:#333;
 	border-width:0;
 }
 
-
-.admin-web .btn-search  		{ background-position: -125px -80px; margin-left: -6%; padding-bottom: 9%;}
-.admin-server .btn-search  		{ background-position: -125px -100px; margin-left: -6%; padding-bottom: 9%;}
+.admin-web .btn-search  		{ background-position: -125px -80px; margin-left: -8% !important;}
+.admin-server .btn-search  		{ background-position: -125px -100px; margin-left: -8% !important;}
 
 .tt-hint{ width: 88% ;}
-.tt-input{ width: 88% ;}
-
+.tt-input {
+   width: 89%;
+}
 .btn-mini span {
 	display:none;
 }
@@ -1265,7 +1264,6 @@ body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 
 
 #admin-tabs	a 	{ display: block; width: 60px; height: 33px; float: left; }
 
-.sprite,#sprite			{ background-image: url( '../img/admin_sprite.png.cfm' ); background-repeat: no-repeat; }
 .mail-icon,#mail-icon  {
 	background-image: url( '../img/mail-icon.jpg.cfm' );
 	background-repeat: no-repeat;
@@ -1276,6 +1274,7 @@ body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 
 	border-radius: 3px;
 }
 
+.sprite,#sprite			{ background-image: url( '../img/admin_sprite-{appendix}.png.cfm' ); background-repeat: no-repeat; }
 
 #resizewin 		{ display:block; width:19px; height:19px; text-indent: -9999px; }
 
@@ -1301,7 +1300,7 @@ body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 
 .admin-server #resizewin  		{ background-position: -85px -20px; }
 
 
-.icon		{ background-image: url( '../img/admin-sprite.png.cfm' ); margin: 3px; width: 9px; height: 9px; cursor: pointer; }
+.icon		{ background-image: url( '../img/admin-sprite-{appendix}.png.cfm' ); margin: 3px; width: 9px; height: 9px; cursor: pointer; }
 
 .plus		{ background-position: -144px -43px; }
 .minus		{ background-position: -144px -33px; }

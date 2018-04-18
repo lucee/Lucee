@@ -26,13 +26,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.DeprecatedException;
-import lucee.runtime.exp.ExceptionHandler;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.orm.ORMConnection;
@@ -201,14 +201,26 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 		
 		Iterator<DatasourceConnection> it = this.transConns.values().iterator();
 		DatasourceConnection dc=null;
-		try {
-			while(it.hasNext()){
-				dc= it.next();
+		Pair<DatasourceConnection, Exception> pair=null;
+		
+		while(it.hasNext()){
+			dc= it.next();
+			try {
 				dc.getConnection().rollback();
 			}
-		} 
-		catch (SQLException e) {
-			throw new DatabaseException(e,dc);
+			catch(Exception e) {
+				// we only keep the first exception
+				if(pair==null) {
+					pair=new Pair<DatasourceConnection, Exception>(dc,e);
+				}
+			}
+		}
+		
+		if(pair!=null) {
+			if(pair.getValue() instanceof SQLException) {
+				throw new DatabaseException((SQLException)pair.getValue(), pair.getName());
+			}
+			throw new PageRuntimeException(pair.getValue());
 		}
 	}
 	
@@ -218,14 +230,26 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 		
 		Iterator<DatasourceConnection>  it = this.transConns.values().iterator();
 		DatasourceConnection dc=null;
-		try {
-			while(it.hasNext()){
-				dc= it.next();
+		Pair<DatasourceConnection, Exception> pair=null;
+
+		while(it.hasNext()){
+			dc= it.next();
+			try {
 				dc.getConnection().setSavepoint();
 			}
-		} 
-		catch (SQLException e) {
-			throw new DatabaseException(e,dc);
+			catch(Exception e) {
+				// we only keep the first exception
+				if(pair==null) {
+					pair=new Pair<DatasourceConnection, Exception>(dc,e);
+				}
+			}
+		}
+		
+		if(pair!=null) {
+			if(pair.getValue() instanceof SQLException) {
+				throw new DatabaseException((SQLException)pair.getValue(), pair.getName());
+			}
+			throw new PageRuntimeException(pair.getValue());
 		}
 	}
 
@@ -235,14 +259,27 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 		
 		Iterator<DatasourceConnection> it = this.transConns.values().iterator();
 		DatasourceConnection dc=null;
-		try {
-			while(it.hasNext()){
-				dc= it.next();
+		Pair<DatasourceConnection, Exception> pair=null;
+		
+		
+		while(it.hasNext()){
+			dc= it.next();
+			try {
 				dc.getConnection().commit();
 			}
-		} 
-		catch (SQLException e) {
-			throw new DatabaseException(e,dc);
+			catch(Exception e) {
+				// we only keep the first exception
+				if(pair==null) {
+					pair=new Pair<DatasourceConnection, Exception>(dc,e);
+				}
+			}
+		}
+		
+		if(pair!=null) {
+			if(pair.getValue() instanceof SQLException) {
+				throw new DatabaseException((SQLException)pair.getValue(), pair.getName());
+			}
+			throw new PageRuntimeException(pair.getValue());
 		}
 	}
 	
@@ -264,13 +301,13 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	}
 
 	@Override
-	public void end() {
+	public void end()  { // FUTURE add DatabaseException
 		end(false);
 	}
 	public void end(boolean onlyORM) {
 		autoCommit=true;
-        PageRuntimeException pre=null;
-        if(transConns.size()>0) {
+        Pair<DatasourceConnection, Exception> pair=null;
+    	if(transConns.size()>0) {
         	Map<DataSource,DatasourceConnection> tmp=null;
         	if(onlyORM)tmp=new HashMap<DataSource,DatasourceConnection>();
         	Iterator<Entry<DataSource, DatasourceConnection>> it = this.transConns.entrySet().iterator();
@@ -285,18 +322,27 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	    				continue;
 	    			}
 	            	dc.getConnection().setAutoCommit(true);
-	            } 
-	            catch (Exception e) {
-	            	if(onlyORM) pre=new PageRuntimeException(e);
-	                ExceptionHandler.printStackTrace(e);
 	            }
+				catch(Exception e) {
+					// we only keep the first exception
+					if(pair==null) {
+						pair=new Pair<DatasourceConnection, Exception>(dc,e);
+					}
+				}
+    			
 	        	releaseConnection(null, dc);
     		}
             transConns.clear();
             if(onlyORM)transConns=tmp;
         }
 		this.isolation=Connection.TRANSACTION_NONE;
-		if(pre!=null) throw pre;
+
+		if(pair!=null) {
+			if(pair.getValue() instanceof SQLException) {
+				throw new PageRuntimeException(new DatabaseException((SQLException)pair.getValue(), pair.getName()));
+			}
+			throw new PageRuntimeException(pair.getValue());
+		}
 	}
 
     @Override

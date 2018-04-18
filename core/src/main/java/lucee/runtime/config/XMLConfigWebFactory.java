@@ -32,6 +32,7 @@ import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Driver;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,6 +48,7 @@ import java.util.UUID;
 import javax.servlet.ServletConfig;
 
 import lucee.aprint;
+import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.date.TimeZoneUtil;
@@ -154,6 +156,7 @@ import lucee.runtime.orm.DummyORMEngine;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.osgi.BundleInfo;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.reflection.pairs.ConstructorInstance;
 import lucee.runtime.search.DummySearchEngine;
@@ -182,6 +185,7 @@ import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibException;
 
 import org.apache.log4j.Level;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -391,9 +395,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		
 		if(XMLConfigAdmin.fixComponentMappings(config,doc)) reload=true;
 		if(LOG)SystemOut.printDate("fixed component mappings");
-		
-		
-		
+
 		// delete to big felix.log (there is also code in the loader to do this, but if the loader is not updated ...)
 		if(config instanceof ConfigServerImpl) {
 			ConfigServerImpl _cs=(ConfigServerImpl) config;
@@ -1943,39 +1945,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	private static void loadDataSources(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		
 		// load JDBC Driver defintion
-		{
-			Element jdbc = getChildByName(doc.getDocumentElement(), "jdbc");
-			Element[] drivers = getChildren(jdbc, "driver");
-			Map<String,JDBCDriver> map=new HashMap<String,JDBCDriver>();
-			
-
-			// first add the server drivers, so they can be overwritten
-			if(configServer!=null) {
-				JDBCDriver[] sds = configServer.getJDBCDrivers();
-				for(JDBCDriver sd:sds){
-					map.put(sd.cd.toString(), sd);
-				}
-			}
-			
-			ClassDefinition cd;
-			String label;
-			for(Element driver:drivers){
-				cd=getClassDefinition(driver, "", config.getIdentification());
-				label=getAttr(driver,"label");
-				// check if label exists
-				if(StringUtil.isEmpty(label)) {
-					log.error("Datasource", "missing label for jdbc driver ["+cd.getClassName()+"]");
-					continue;
-				}
-				// check if it is a bundle
-				if(!cd.isBundle()) {
-					log.error("Datasource", "jdbc driver ["+label+"] does not describe a bundle");
-					continue;
-				}
-				map.put(cd.toString(), new JDBCDriver(label,cd));
-			}
-			config.setJDBCDrivers(map.values().toArray(new JDBCDriver[map.size()]));
-		}
+		config.setJDBCDrivers(loadJDBCDrivers(configServer,config, doc, log));
+		
 		
 		
 		
@@ -2055,17 +2026,28 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			accessCount = dataSources.length;
 
 		// if(hasAccess) {
+		JDBCDriver jdbc;
 		ClassDefinition cd;
+		String id;
 		for (int i = 0; i < accessCount; i++) {
 			Element dataSource = dataSources[i];
 			if (dataSource.hasAttribute("database")) {
-				
 				try {
-					cd=getClassDefinition(dataSource, "", config.getIdentification());
-					if(!cd.isBundle()) {
-						JDBCDriver jdbc = config.getJDBCDriverByClassName(cd.getClassName(),null);
-						if(jdbc!=null)cd=jdbc.cd;
+					// do we have an id?
+					jdbc=config.getJDBCDriverById(getAttr(dataSource,"id"),null);
+					if(jdbc!=null && jdbc.cd!=null) {
+						cd=jdbc.cd;
 					}
+					else cd=getClassDefinition(dataSource, "", config.getIdentification());
+					
+					// we only have a class
+					if(!cd.isBundle()) {
+						jdbc = config.getJDBCDriverByClassName(cd.getClassName(),null);
+						if(jdbc!=null && jdbc.cd!=null && jdbc.cd.isBundle())cd=jdbc.cd;
+					}
+					
+					// still no bundle!
+					if(!cd.isBundle())cd=patchJDBCClass(config,cd);
 					
 					setDatasource(config, datasources
 						,getAttr(dataSource,"name")
@@ -2102,6 +2084,88 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		
 		
 		
+	}
+
+	private static ClassDefinition patchJDBCClass(ConfigImpl config, ClassDefinition cd) {
+		// PATCH for MySQL driver that did change the className within the same extension, JDBC extension expect that the className does not change.
+		if("org.gjt.mm.mysql.Driver".equals(cd.getClassName()) || "com.mysql.jdbc.Driver".equals(cd.getClassName()) || "com.mysql.cj.jdbc.Driver".equals(cd.getClassName())) {
+			JDBCDriver jdbc = config.getJDBCDriverById("mysql", null);
+			if(jdbc!=null && jdbc.cd!=null && jdbc.cd.isBundle()) return jdbc.cd;
+			
+			jdbc = config.getJDBCDriverByClassName("com.mysql.cj.jdbc.Driver", null);
+			if(jdbc!=null && jdbc.cd!=null && jdbc.cd.isBundle()) return jdbc.cd;
+			
+			jdbc = config.getJDBCDriverByClassName("com.mysql.jdbc.Driver", null);
+			if(jdbc!=null && jdbc.cd!=null && jdbc.cd.isBundle()) return jdbc.cd;
+			
+			jdbc = config.getJDBCDriverByClassName("org.gjt.mm.mysql.Driver", null);
+			if(jdbc!=null && jdbc.cd!=null && jdbc.cd.isBundle()) return jdbc.cd;
+			
+			ClassDefinitionImpl tmp = new ClassDefinitionImpl("com.mysql.cj.jdbc.Driver","com.mysql.cj",null,config.getIdentification());
+			if(tmp.getClazz(null)!=null) return tmp;
+			
+			tmp = new ClassDefinitionImpl("com.mysql.jdbc.Driver","com.mysql.jdbc",null,config.getIdentification());
+			if(tmp.getClazz(null)!=null) return tmp;
+		}
+		if("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cd.getClassName())) {
+			JDBCDriver jdbc = config.getJDBCDriverById("mssql", null);
+			if(jdbc!=null && jdbc.cd!=null && jdbc.cd.isBundle()) return jdbc.cd;
+			
+			jdbc = config.getJDBCDriverByClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver", null);
+			if(jdbc!=null && jdbc.cd!=null && jdbc.cd.isBundle()) return jdbc.cd;
+			
+			ClassDefinitionImpl tmp = new ClassDefinitionImpl("com.microsoft.sqlserver.jdbc.SQLServerDriver",cd.getName(), cd.getVersionAsString(),config.getIdentification());
+			if(tmp.getClazz(null)!=null) return tmp;
+		}
+		
+		return cd;
+	}
+
+	public static JDBCDriver[] loadJDBCDrivers(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		Map<String,JDBCDriver> map=new HashMap<String,JDBCDriver>();
+		
+
+		// first add the server drivers, so they can be overwritten
+		if(configServer!=null) {
+			JDBCDriver[] sds = configServer.getJDBCDrivers();
+			for(JDBCDriver sd:sds){
+				map.put(sd.cd.toString(), sd);
+			}
+		}
+		
+		
+		Element jdbc = getChildByName(doc.getDocumentElement(), "jdbc");
+		Element[] drivers = getChildren(jdbc, "driver");
+		
+		
+		ClassDefinition cd;
+		String label,id;
+		for(Element driver:drivers) {
+			cd=getClassDefinition(driver, "", config.getIdentification());
+			if(StringUtil.isEmpty(cd.getClassName()) && !StringUtil.isEmpty(cd.getName())) {
+				try{
+					Bundle bundle = OSGiUtil.loadBundle(cd.getName(), cd.getVersion(), config.getIdentification(), false);
+					String cn=JDBCDriver.extractClassName(bundle);
+					cd=new ClassDefinitionImpl(config.getIdentification(),cn,cd.getName(),cd.getVersion());
+				}
+				catch(Exception e) {}
+			}
+
+			label=getAttr(driver,"label");
+			id=getAttr(driver,"id");
+			// check if label exists
+			if(StringUtil.isEmpty(label)) {
+				if(log!=null)log.error("Datasource", "missing label for jdbc driver ["+cd.getClassName()+"]");
+				continue;
+			}
+			// check if it is a bundle
+			if(!cd.isBundle()) {
+				if(log!=null)log.error("Datasource", "jdbc driver ["+label+"] does not describe a bundle");
+				continue;
+			}
+			map.put(cd.toString(), new JDBCDriver(label,id,cd));
+		}
+		return map.values().toArray(new JDBCDriver[map.size()]);
 	}
 
 	/*private static ClassDefinition matchJDBCBundle(Config config, ClassDefinition cd) {
@@ -2452,7 +2516,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax ps, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout) throws BundleException, ClassException, SQLException {
 
 		datasources.put( datasourceName.toLowerCase(),
-				new DataSourceImpl(config,null,datasourceName, cd, server, dsn, databasename, port, user, pass, connectionLimit, connectionTimeout, metaCacheTimeout, blob, clob, allow,
+				new DataSourceImpl(config,datasourceName, cd, server, dsn, databasename, port, user, pass, connectionLimit, connectionTimeout, metaCacheTimeout, blob, clob, allow,
 						custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver,ps,literalTimestampWithTSOffset,alwaysSetTimeout,config.getLog("application")) );
 
 	}
@@ -2804,21 +2868,26 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		String strAllowRealPath = null;
 		String strDeployDirectory = null;
 		// String strTempDirectory=null;
-		String strTLDDirectory = null;
-		String strFLDDirectory = null;
-		String strTagDirectory = null;
-		String strFunctionDirectory = null;
 
+		// system.property or env var
+		
+			String strFLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.fld", null);
+			String strTLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.tld", null);
+			String strFunctionDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.function", null);
+			String strTagDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.tag", null);
+		
 		// get library directories
 		if (fileSystem != null) {
 			strAllowRealPath = getAttr(fileSystem,"allow-realpath");
 			strDeployDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("deploy-directory"));
-			// strTempDirectory=ConfigWebUtil.translateOldPath(fileSystem.getAttribute("temp-directory"));
-			strTLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tld-directory"));
-			strFLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-directory"));
-			strTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-directory"));
-			strFunctionDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-directory"));
+			if(StringUtil.isEmpty(strTLDDirectory)) strTLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tld-directory"));
+			if(StringUtil.isEmpty(strFLDDirectory)) strFLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-directory"));
+			if(StringUtil.isEmpty(strTagDirectory)) strTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-directory"));
+			if(StringUtil.isEmpty(strFunctionDirectory)) strFunctionDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-directory"));
 		}
+		
+		
+		
 		// set default directories if necessary
 		if (StringUtil.isEmpty(strFLDDirectory))
 			strFLDDirectory = "{lucee-config}/library/fld/";
@@ -2848,14 +2917,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		
 
 		// TLD Dir
-		if (strTLDDirectory != null) {
+		if (!StringUtil.isEmpty(strTLDDirectory)) {
 			Resource tld = ConfigWebUtil.getFile(config, configDir, strTLDDirectory, FileUtil.TYPE_DIR);
 			if (tld != null)
 				config.setTldFile(tld,CFMLEngine.DIALECT_BOTH);
 		}
 
 		// Tag Directory
-		if (strTagDirectory != null) {
+		if (!StringUtil.isEmpty(strTagDirectory)) {
 			Resource dir = ConfigWebUtil.getFile(config, configDir, strTagDirectory, FileUtil.TYPE_DIR);
 			createTagFiles(config, configDir, dir, doNew);
 			if (dir != null) {
@@ -2887,14 +2956,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 
 		// FLDs
-		if (strFLDDirectory != null) {
+		if (!StringUtil.isEmpty(strFLDDirectory)) {
 			Resource fld = ConfigWebUtil.getFile(config, configDir, strFLDDirectory, FileUtil.TYPE_DIR);
 			if (fld != null)
 				config.setFldFile(fld,CFMLEngine.DIALECT_BOTH);
 		}
 
 		// Function files (CFML)
-		if (strFunctionDirectory != null) {
+		if (!StringUtil.isEmpty(strFunctionDirectory)) {
 			Resource dir = ConfigWebUtil.getFile(config, configDir, strFunctionDirectory, FileUtil.TYPE_DIR);
 			createFunctionFiles(config, configDir, dir, doNew);
 			if (dir != null)
@@ -3185,9 +3254,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		// buffer-output
 		str = null;
 		if (setting != null) {
-			str = getAttr(setting,"buffer-output");
-			if (StringUtil.isEmpty(str))
-				str = getAttr(setting,"bufferoutput");
+			str = getAttr(setting,"buffering-output");
+			if(StringUtil.isEmpty(str))str = getAttr(setting,"buffer-output");
 		}
 		Boolean b = Caster.toBoolean(str, null);
 		if (b != null && hasAccess) {
@@ -3208,6 +3276,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 		else if (hasCS)
 			config.setAllowCompression(configServer.allowCompression());
+		Element mode = getChildByName(doc.getDocumentElement(), "mode");
+		// mode
+		String developMode = getAttr(mode,"develop");
+		if (!StringUtil.isEmpty(developMode) && hasAccess) {
+			config.setDevelopMode(toBoolean(developMode, false));
+		}
+		else if (hasCS)
+			config.setDevelopMode(configServer.isDevelopMode());
 
 	}
 
@@ -3323,10 +3399,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		boolean hasCS = configServer != null;
 
 		String out = null, err = null;
+		
+		// sys prop or env var
+		out=hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.system.out", null);
+		err=hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.system.err", null);
+		
 		if (sys != null) {
-			out = getAttr(sys,"out");
-			err = getAttr(sys,"err");
+			if(StringUtil.isEmpty(out)) out = getAttr(sys,"out");
+			if(StringUtil.isEmpty(err)) err = getAttr(sys,"err");
 		}
+		
+		
 		if (!StringUtil.isEmpty(out) && hasAccess) {
 			config.setOut(toPrintwriter(config, out, false));
 		}
@@ -3485,14 +3568,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 		
 		// this is necessary, otherwise travis has no default 
-		TimeZone.setDefault(config.getTimeZone());
+		if(TimeZone.getDefault()==null)TimeZone.setDefault(config.getTimeZone());
 		
 		// timeserver
-		String strTimeServer = null;
-		Boolean useTimeServer = null;
+		String strTimeServer = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.timeserver", null);
+		Boolean useTimeServer=null;
+		if(!StringUtil.isEmpty(strTimeServer)) useTimeServer=Boolean.TRUE;
+		
+		
 		if (regional != null) {
-			strTimeServer = getAttr(regional,"timeserver");
-			useTimeServer = Caster.toBoolean(getAttr(regional,"use-timeserver"), null);// 31
+			if(StringUtil.isEmpty(strTimeServer))strTimeServer = getAttr(regional,"timeserver");
+			if(useTimeServer==null)useTimeServer = Caster.toBoolean(getAttr(regional,"use-timeserver"), null);
 		}
 
 		if (!StringUtil.isEmpty(strTimeServer))
@@ -3727,6 +3813,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			config.setSessionTimeout(configServer.getSessionTimeout());
 
 		// App Timeout
+		
 		String appTimeout = getAttr(scope,"applicationtimeout");
 		if (hasAccess && !StringUtil.isEmpty(appTimeout)) {
 			config.setApplicationTimeout(appTimeout);
@@ -4260,17 +4347,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						ClassDefinition cd = getClassDefinition(cfxTags[i], "", config.getIdentification());
 						if (!StringUtil.isEmpty(name) && cd.hasClass()) {
 							map.put(name.toLowerCase(), new JavaCFXTagClass(name, cd));
-						}
-					}
-					// C++ CFX Tags
-					else if (type.equalsIgnoreCase("cpp")) {
-						String name = getAttr(cfxTags[i],"name");
-						String serverLibrary = getAttr(cfxTags[i],"server-library");
-						String procedure = getAttr(cfxTags[i],"procedure");
-						boolean keepAlive = Caster.toBooleanValue(getAttr(cfxTags[i],"keep-alive"), false);
-
-						if (!StringUtil.isEmpty(name) && !StringUtil.isEmpty(serverLibrary) && !StringUtil.isEmpty(procedure)) {
-							map.put(name.toLowerCase(), new CPPCFXTagClass(name, serverLibrary, procedure, keepAlive));
 						}
 					}
 				}

@@ -37,6 +37,7 @@ import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.type.ftp.FTPConnectionData;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
@@ -73,6 +74,7 @@ import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.rest.RestSettingImpl;
 import lucee.runtime.rest.RestSettings;
+import lucee.runtime.security.Credential;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -181,8 +183,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private Mapping[] ctmappings;
 	private Mapping[] cmappings;
 	private DataSource[] dataSources;
-	
-	private Properties s3;
+
+	private lucee.runtime.net.s3.Properties s3;
+	private FTPConnectionData ftp;
 	private boolean triggerComponentDataMember;
 	private Map<Integer,String> defaultCaches;
 	private Map<Collection.Key,CacheConnection> cacheConnections;
@@ -231,6 +234,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initBufferOutput;
 	private boolean initSuppressContent;
 	private boolean initS3;
+	private boolean initFTP;
 	private boolean ormEnabled;
 	private ORMConfiguration ormConfig;
 	private boolean initRestSetting;
@@ -1137,13 +1141,22 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
-	public Properties getS3() {
+	public lucee.runtime.net.s3.Properties getS3() {
 		if(!initS3) {
 			Object o = get(component,KeyConstants._s3,null);
 			if(o!=null && Decision.isStruct(o))s3=AppListenerUtil.toS3(Caster.toStruct(o,null));
 			initS3=true; 
 		}
 		return s3;
+	}
+	
+	public FTPConnectionData getFTP() {
+		if(!initFTP) {
+			Object o = get(component,KeyConstants._ftp,null);
+			if(o!=null && Decision.isStruct(o))ftp=AppListenerUtil.toFTP(Caster.toStruct(o,null));
+			initFTP=true; 
+		}
+		return ftp;
 	}
 
 	@Override
@@ -1408,6 +1421,11 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public void setS3(Properties s3) {
 		initS3=true;
 		this.s3=s3;
+	}
+	
+	public void setFTP(FTPConnectionData ftp) {
+		initFTP=true;
+		this.ftp=ftp;
 	}
 
 	@Override

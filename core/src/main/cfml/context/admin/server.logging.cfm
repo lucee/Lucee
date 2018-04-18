@@ -11,32 +11,43 @@
         
         returnVariable="logs"
         remoteClients="#request.getRemoteClients()#">
-
+<cfscript>
+	function doSortedStruct(arr) {
+		arraySort(arr,function(l,r) {
+			return compare(l.getLabel(),r.getLabel());
+		});
+		var sct=structNew('ordered');
+		loop array=arr item="local.el" {
+			sct[el.getClass()]=el;
+		} 
+		return sct;
+	}
+</cfscript>
 <!--- load available appenders --->
-<cfset appenders={}>
+<cfset arr=[]>
 <cfset names=structnew("linked")>
 <cfset names=ComponentListPackageAsStruct("lucee-server.admin.logging.appender",names)>
 <cfset names=ComponentListPackageAsStruct("lucee.admin.logging.appender",names)>
 <cfset names=ComponentListPackageAsStruct("logging.appender",names)>
 <cfloop collection="#names#" index="n" item="fn">
 	<cfif n NEQ "Appender" and n NEQ "Field" and n NEQ "Group">
-		<cfset tmp = createObject("component",fn)>
-		<cfset appenders[tmp.getClass()]=tmp>
+		<cfset arrayAppend(arr,createObject("component",fn))>
 	</cfif>
 </cfloop>
- 
+<cfset appenders=doSortedStruct(arr)>
+
 <!--- load available layouts --->
-<cfset layouts={}>
+<cfset arr=[]>
 <cfset names=structnew("linked")>
 <cfset names=ComponentListPackageAsStruct("lucee-server.admin.logging.layout",names)>
 <cfset names=ComponentListPackageAsStruct("lucee.admin.logging.layout",names)>
 <cfset names=ComponentListPackageAsStruct("logging.layout",names)>
 <cfloop collection="#names#" index="n" item="fn">
 	<cfif n NEQ "Layout" and n NEQ "Field" and n NEQ "Group">
-		<cfset tmp = createObject("component",fn)>
-		<cfset layouts[tmp.getClass()]=tmp>
+		<cfset arrayAppend(arr,createObject("component",fn))>
 	</cfif>
 </cfloop>
+<cfset layouts=doSortedStruct(arr)>
 
 
 <cfset access=true>
