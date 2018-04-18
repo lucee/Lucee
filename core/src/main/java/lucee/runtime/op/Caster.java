@@ -2722,6 +2722,7 @@ public final class Caster {
         ;
         if(o instanceof byte[])return toB64((byte[]) o,defaultValue);
         else if(o instanceof String)return toB64((String)o, charset,defaultValue);
+        else if(o instanceof Number)return toB64(toString(((Number)o)), charset,defaultValue);
         else if(o instanceof ObjectWrap) {
             return toBase64(((ObjectWrap)o).getEmbededObject(defaultValue),charset,defaultValue);
         }
