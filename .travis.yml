@@ -69,7 +69,7 @@ script:
   fi
 
 
-- if [ "${TRAVIS_PULL_REQUEST}" == "false" && ${TRAVIS_BRANCH} == "5.2" ]; then 
+- if [ "${TRAVIS_PULL_REQUEST}" == "false" -a ${TRAVIS_BRANCH} == "5.2" ]; then 
     echo "------- Maven Deploy -------";
     mvn -e -f loader/pom.xml clean deploy --settings travis-settings.xml;
   else
