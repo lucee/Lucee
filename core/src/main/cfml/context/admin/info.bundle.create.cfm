@@ -19,6 +19,10 @@
 					<td>#bundle.version#</td>
 				</tr>
 				<tr>
+					<th scope="row">#stText.info.bundles.created#</th>
+					<td>#extractDateFromBundleHeader(bundle.headers)#</td>
+				</tr>
+				<tr>
 					<th scope="row">#stText.info.bundles.path#</th>
 					<td><cfif !isNull(bundle.path)>#bundle.path#</cfif></td>
 				</tr>

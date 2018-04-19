@@ -480,7 +480,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 	}
     
     private static String createMessage(String type, Object value) {
-    	if(value instanceof String) return "can't cast String ["+value+"] to a value of type ["+type+"]";
+    	if(value instanceof String) return "can't cast String ["+CasterException.crop(value)+"] to a value of type ["+type+"]";
     	else if(value!=null) return "can't cast Object type ["+Type.getName(value)+"] to a value of type ["+type+"]";
 		else return "can't cast Null value to value of type ["+type+"]";
 

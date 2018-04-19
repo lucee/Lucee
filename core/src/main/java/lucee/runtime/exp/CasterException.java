@@ -19,6 +19,8 @@
 
 package lucee.runtime.exp;
 
+import lucee.print;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.Type;
 
@@ -59,8 +61,19 @@ public class CasterException extends ExpressionException {
     
     public static String createMessage(Object o, String type) {
         
-    	if(o instanceof String) return "Can't cast String ["+o+"] to a value of type ["+type+"]";
+    	if(o instanceof String) return "Can't cast String ["+crop(o.toString())+"] to a value of type ["+type+"]";
     	if(o!=null) return "Can't cast Object type ["+Type.getName(o)+"] to a value of type ["+type+"]";
         return "Can't cast Null value to value of type ["+type+"]";
-    }   
+    }
+
+	public static String crop(Object obj) {
+		int max=100;
+		String str=obj.toString();
+		if(StringUtil.isEmpty(str) || str.length()<=max) return str;
+		return str.substring(0,max)+"...";
+	}   
+	
+	public static void main(String[] args) {
+		print.e(crop("kjljihih uihiuhgihoi i iuhihighiughioghi iuhihi  izhihihih  ihihih"));
+	}
 }
