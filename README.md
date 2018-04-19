@@ -20,7 +20,7 @@ You can [build Lucee from source](http://docs.lucee.org/guides/working-with-sour
 
 Alternatively try the super-useful [CommandBox](https://www.ortussolutions.com/products/commandbox) standalone developer tools for CFML powered by Lucee.
 
-## Getting Help
+## Getting Help Easy
 
 - [Lucee Documentation Project](http://docs.lucee.org/)
 - [Lucee Google Group](https://groups.google.com/forum/#!forum/lucee); general app developer support
