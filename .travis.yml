@@ -53,7 +53,7 @@ script:
 
 
 
-- if [ "${DO_DEPLOY}" == "false" ]; then
+- if [ "${DO_DEPLOY}" == "true" ]; then
     echo "------- Maven Deploy -------";
     mvn -e -f loader/pom.xml clean deploy --settings travis-settings.xml;
   else
