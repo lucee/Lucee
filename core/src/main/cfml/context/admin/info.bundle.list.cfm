@@ -3,7 +3,6 @@
 	password="#session["password"&request.adminType]#" 
 	action="getBundles" 
 	returnvariable="bundles">
-
 <cfoutput>
 	<cfif not hasAccess><cfset noAccess(stText.setting.noAccess)></cfif>
 	<div class="pageintro">#stText.bundles.introText#</div>
@@ -13,6 +12,7 @@
 					<th width="3%"><cfif hasAccess><input type="checkbox" class="checkbox" name="rro" onclick="selectAll(this)"></cfif></th>
 					<th>#stText.info.bundles.subject#</th>
 					<th>#stText.info.bundles.version#</th>
+					<th>#stText.info.bundles.created#</th>
 					<th>#stText.info.bundles.fileName#</th>
 					<th>#stText.info.bundles.vendor#</th>
 					<th>#stText.info.bundles.usedBy#</th>
@@ -41,6 +41,10 @@
 							<td nowrap="nowrap">
 								#bundles.version#
 							</td>
+							<!--- date --->
+							<td nowrap="nowrap">
+								#extractDateFromBundleHeader(bundles.headers)#
+							</td>
 							<!--- path --->
 							<td title="#bundles.path#">
 							#listLast(bundles.path,"\/")#
@@ -51,7 +55,7 @@
 							</td>
 
 							<!--- usedBy --->
-							<td nowrap="nowrap">
+							<td>
 								#bundles.usedBy#
 							</td>
 

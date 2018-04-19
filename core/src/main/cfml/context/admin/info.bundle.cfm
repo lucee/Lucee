@@ -5,6 +5,7 @@
 	stText.info.bundles.vendor="Vendor";
 	stText.info.bundles.type="Type";
 	stText.info.bundles.state="State";
+	stText.info.bundles.created="Created";
 	stText.info.bundles.states.active="active";
 	stText.info.bundles.states.installed="loaded";
 	stText.info.bundles.states.notinstalled="not loaded";
@@ -15,6 +16,22 @@
 	stText.info.bundles.path="Path";
 	stText.info.bundles.manifestHeaders="Manifest Headers";
 	stText.bundles.introText="These are all the OSGi bundles (jars) available locally.";
+
+
+	function extractDateFromBundleHeader(headers) {
+		var unix0=createDateTime(1970,1,1,0,0,0,0,"UTC");
+
+		try {
+			if(structKeyExists(headers,"Bnd-LastModified"))
+				return lsDateFormat(dateAdd("l",headers["Bnd-LastModified"],unix0));
+			else if(structKeyExists(headers,"Built-Date"))
+				return lsDateFormat(headers["Built-Date"]);
+			//<!---<cfdump var="#bundles.headers#" >--->
+		}
+		catch(e) {}
+		return "";
+	}
+
 </cfscript>
 
 
