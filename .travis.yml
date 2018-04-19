@@ -36,9 +36,12 @@ before_script:
 
 script:
 # maven deploy process (builds lucee and deploys to sonatype)
-- 'if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then mvn -e -f loader/pom.xml clean install --settings travis-settings.xml #target/travis/settings.xml fi'
-- 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then mvn -e -f loader/pom.xml clean deploy --settings travis-settings.xml #target/travis/settings.xml fi'
-
+- if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then 
+    mvn -e -f loader/pom.xml clean install --settings travis-settings.xml 
+  fi
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then 
+    mvn -e -f loader/pom.xml clean deploy --settings travis-settings.xml 
+  fi
 
 ############ increment maven version (not working) ###########
 # - mvn --batch-mode -f loader/pom.xml release:update-versions
