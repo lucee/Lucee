@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/lucee/Lucee.svg?branch=master)](https://travis-ci.org/lucee/Lucee)
 
-## Lucee Server
+## Lucee Server   
 
 Lucee Server (or simply Lucee) is a dynamic, Java based, tag and scripting language used for rapid web application development.   
 
