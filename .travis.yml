@@ -60,7 +60,7 @@ script:
   fi
 
 
-- if [ ("${TRAVIS_PULL_REQUEST}" == "false") && (${TRAVIS_BRANCH} == "5.2") ]; then 
+- if [ "${TRAVIS_PULL_REQUEST}" == "false" && ${TRAVIS_BRANCH} == "5.2" ]; then 
     echo "------- Maven Deploy1 -------";
     echo "------- Maven Deploy1 -------";
   else
