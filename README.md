@@ -10,7 +10,7 @@ Lucee simplifies technologies like webservices (REST, SOAP, HTTP), ORM (Hibernat
 
 Lucee provides a compatibility layer for Adobe ColdFusion &copy;  CFML using less resources and delivering better performance. 
 
-## Installation
+## Installation    
 
 You can [build Lucee from source](http://docs.lucee.org/guides/working-with-source.html) or grab one of our distributions:
 
