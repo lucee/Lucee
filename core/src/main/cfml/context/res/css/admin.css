@@ -349,8 +349,7 @@ div.pageintro {
 	margin: 0 0 20px 0;
 }
 /* intro text for a section (i.e. under an h2; above a table) */
-.itemintro {
-	font-style:italic;
+.itemintro {	
 	margin: -3px 0 10px 0;
 }
 
@@ -417,12 +416,9 @@ td.fieldPadded {
 
 
 /* display boxes etc. */
-.commentError{font-size : 10px;color:#bf4f36;text-decoration:none;}
-.comment{
-	font-size:11px;
-	color:#999;
-	text-decoration:none;
-	font-style: italic;
+.commentError{color:#bf4f36;text-decoration:none;}
+.comment{	
+	text-decoration:none;	
 	padding: 1px 0px;
 	/* PK: when using mouseover helptexts, this padding might be better:
 	 * padding:2px 0 5px 0;

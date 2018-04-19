@@ -36,13 +36,28 @@ before_script:
 
 script:
 # maven deploy process (builds lucee and deploys to sonatype)
+- echo "${TRAVIS_PULL_REQUEST} $TRAVIS_BRANCH"
 
-- if [ $TRAVIS_PULL_REQUEST != "false" ]; then 
-    echo "------- Maven Install -------";
-    mvn -e -f loader/pom.xml clean install --settings travis-settings.xml;
+#- if [ "${TRAVIS_PULL_REQUEST}" == "false" && ${TRAVIS_BRANCH} == "5.2" ]; then  always false even both seperatly are true
+#- if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+
+- export DO_DEPLOY="false"
+- if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+    if [ "${TRAVIS_BRANCH}" == "5.2" ]; then
+      export DO_DEPLOY="true";
+    fi
   fi
-- if [ $TRAVIS_PULL_REQUEST = "false" ]; then 
-    echo "------- Maven DEPLOY ---------";
+
+- echo "DO_DEPLOY ${DO_DEPLOY}"
+
+
+
+
+- if [ "${DO_DEPLOY}" == "true" ]; then
+    echo "------- Maven Deploy -------";
+    mvn -e -f loader/pom.xml clean deploy --settings travis-settings.xml;
+  else
+    echo "------- Maven Install ---------";
     mvn -e -f loader/pom.xml clean install --settings travis-settings.xml;
   fi
 

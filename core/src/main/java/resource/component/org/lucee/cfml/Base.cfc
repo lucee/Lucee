@@ -93,6 +93,28 @@
 
 		<cfswitch expression="#tagname#">
 
+			<!--- cfquery --->
+			<cfcase value="query">
+
+				<!--- get the query array to loop --->
+				<cfset local.qArray = getQArray()>
+				<!--- declare the query local var --->
+
+				<cfquery name="local.___q" attributeCollection="#tagAttributes#" result="local.tagResult">
+					<cfloop array="#local.qArray#" index="Local.item"><!---
+						!---><cfif structKeyExists(item,'type') and item.type eq 'string'><!---
+							!--->#preserveSingleQuotes(item.value)#<!---
+						!---><cfelse><!---
+							!---><cfqueryparam attributecollection="#item#"><!---
+						!---></cfif></cfloop>
+				</cfquery>
+
+				<cfif !isNull(local.___q)><cfset result.setResult(local.___q)></cfif>
+				<cfif !isNull(local.tagResult)><cfset result.setPrefix(local.tagResult)></cfif>
+
+				<cfreturn result>
+			</cfcase>
+
 			<!--- cfftp --->
 			<cfcase value="ftp">
 
