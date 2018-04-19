@@ -36,6 +36,7 @@ before_script:
 
 script:
 # maven deploy process (builds lucee and deploys to sonatype)
+- echo $TRAVIS_PULL_REQUEST
 - if [ $TRAVIS_PULL_REQUEST != "false" ]; then 
     mvn -e -f loader/pom.xml clean install --settings travis-settings.xml;
   fi
