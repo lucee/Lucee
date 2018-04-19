@@ -18,20 +18,6 @@
 	stText.bundles.introText="These are all the OSGi bundles (jars) available locally.";
 
 
-	function extractDateFromBundleHeader(headers) {
-		var unix0=createDateTime(1970,1,1,0,0,0,0,"UTC");
-
-		try {
-			if(structKeyExists(headers,"Bnd-LastModified"))
-				return lsDateFormat(dateAdd("l",headers["Bnd-LastModified"],unix0));
-			else if(structKeyExists(headers,"Built-Date"))
-				return lsDateFormat(headers["Built-Date"]);
-			//<!---<cfdump var="#bundles.headers#" >--->
-		}
-		catch(e) {}
-		return "";
-	}
-
 </cfscript>
 
 
