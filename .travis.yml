@@ -39,6 +39,24 @@ script:
 - echo "${TRAVIS_PULL_REQUEST} $TRAVIS_BRANCH"
 
 #- if [ "${TRAVIS_PULL_REQUEST}" == "false" && ${TRAVIS_BRANCH} == "5.2" ]; then  always false even both seperatly are true
+
+- export DO_DEPLOY="false"
+- if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+    export DO_DEPLOY="true";
+  fi
+- if [ "${TRAVIS_BRANCH}" == "5.2" ]; then
+    export DO_DEPLOY="true";
+  fi
+- echo "DO_DEPLOY ${DO_DEPLOY}"
+
+
+- if [ "${TRAVIS_BRANCH}" == "5.2" && "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+    echo "jjjjjjjjjjjjj";
+  fi
+
+
+
+
 - if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
     echo "------- Maven Deploy -------";
     mvn -e -f loader/pom.xml clean deploy --settings travis-settings.xml;
