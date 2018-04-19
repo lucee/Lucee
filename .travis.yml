@@ -56,8 +56,7 @@ script:
     echo "------- Maven Install0 ---------";
   fi
 
-
-- if [ "${TRAVIS_PULL_REQUEST}" == "false" && ${TRAVIS_BRANCH} == "5.2" ]; then 
+- if [ $TRAVIS_BRANCH == "5.2" && $TRAVIS_PULL_REQUEST == "false" ]; then
     echo "------- Maven Deploy1 -------";
     echo "------- Maven Deploy1 -------";
   else
