@@ -8,15 +8,25 @@
 <cfscript>
 	queryAddColumn(bundles,"size");
 	queryAddColumn(bundles,"sizeAsString");
+	queryAddColumn(bundles,"created");
+	queryAddColumn(bundles,"createdAsString");
 	loop query=bundles {
 		p=bundles.path&"";
 		if(fileExists(p)){
 			s=fileInfo(p).size;
 			querySetCell(bundles,"size",s,bundles.currentrow);
 			querySetCell(bundles,"sizeAsString",byteFormat(s),bundles.currentrow);
+			d=toDateFromBundleHeader(bundles.headers);
+			if(isDate(d)) {
+				querySetCell(bundles,"created",dateDiff("s",unix0,d),bundles.currentrow);
+				querySetCell(bundles,"createdAsString",lsDateFormat(d),bundles.currentrow);
+			}
+			else
+				querySetCell(bundles,"created",0,bundles.currentrow);
 		}
 	}
 	querySort(bundles,url.col,url.dir);
+	
 </cfscript>
 <cfoutput>
 	<cfif not hasAccess><cfset noAccess(stText.setting.noAccess)></cfif>
@@ -26,7 +36,7 @@
 				<tr>
 					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=title&dir=#url.col=='title'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.subject#</a></th>
 					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=version&dir=#url.col=='version'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.version#</a></th>
-					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=version&dir=#url.col=='created'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.created#</a></th>
+					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=created&dir=#url.col=='created'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.created#</a></th>
 					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=size&dir=#url.col=='size'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.size?:"Size"#</a></th>
 					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=vendor&dir=#url.col=='vendor'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.vendor#</a></th>
 					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=usedBy&dir=#url.col=='usedBy'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.usedBy#</a></th>
@@ -56,6 +66,10 @@
 								#bundles.version#
 							</td>
 
+							<!--- Created --->
+							<td nowrap="nowrap">
+								#createdAsString#
+							</td>
 							<!--- Size --->
 							<td nowrap="nowrap">
 								#bundles.sizeAsString#

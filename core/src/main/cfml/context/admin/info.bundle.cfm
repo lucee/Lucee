@@ -18,53 +18,52 @@
 	stText.info.bundles.manifestHeaders="Manifest Headers";
 	stText.bundles.introText="These are all the OSGi bundles (jars) available locally.";
 
+	unix0=createDateTime(1970,1,1,0,0,0,0,"UTC");
 
-	function extractDateFromBundleHeader(headers) {
-		var unix0=createDateTime(1970,1,1,0,0,0,0,"UTC");
 
-		try {
+	function toDateFromBundleHeader(headers) {
+
+		
 			if(structKeyExists(headers,"Bnd-LastModified"))
-				return lsDateFormat(dateAdd("l",headers["Bnd-LastModified"],unix0));
+				return dateAdd("l",headers["Bnd-LastModified"],unix0);
 			else if(structKeyExists(headers,"Built-Date"))
-				return lsDateFormat(headers["Built-Date"]);
-			//<!---<cfdump var="#bundles.headers#" >--->
-		}
+				return parseDateTime(headers["Built-Date"]);
+		try {}
 		catch(e) {}
 		return "";
 	}
 
-function byteFormat(numeric bytes){
+	function byteFormat(numeric bytes){
 
-	kb=bytes/1024;
-	if(kb<1) return bytes&"b";
+		kb=bytes/1024;
+		if(kb<1) return bytes&"b";
 
-	mb=kb/1024;
-	if(mb<1) return rround(kb)&"kb";
+		mb=kb/1024;
+		if(mb<1) return rround(kb)&"kb";
 
-	gb=mb/1024;
-	if(gb<1) return rround(mb)&"mb";
+		gb=mb/1024;
+		if(gb<1) return rround(mb)&"mb";
 
-	tb=gb/1024;
-	if(tb<1) return rround(gb)&"gb";
+		tb=gb/1024;
+		if(tb<1) return rround(gb)&"gb";
 
-	return rround(tb)&"tb";
-}
+		return rround(tb)&"tb";
+	}
 
-function rround(nbr) {
-	if(nbr>99) return round(nbr);
-	if(nbr>9) return round(nbr*10)/10;
-	return round(nbr*100)/100;
-}
+	function rround(nbr) {
+		if(nbr>99) return round(nbr);
+		if(nbr>9) return round(nbr*10)/10;
+		return round(nbr*100)/100;
+	}
 
-</cfscript>
-
-<cfset csss={
+	csss={
 	active:"background-color:##cfc",
 	installed:"background-color:##ffc",
 	notinstalled:"background-color:##fcc",
 	resolved:"background-color:##ff9"
 
-	}>
+	};
+</cfscript>
 
 
 <cfparam name="url.action2" default="list">

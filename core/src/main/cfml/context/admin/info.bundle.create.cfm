@@ -20,7 +20,8 @@
 				</tr>
 				<tr>
 					<th scope="row">#stText.info.bundles.created#</th>
-					<td>#extractDateFromBundleHeader(bundle.headers)#</td>
+					<td><cfset d=toDateFromBundleHeader(bundle.headers)>
+						#isDate(d)?lsDateFormat(d):''#</td>
 				</tr>
 				<tr>
 					<th scope="row">#stText.info.bundles.path#</th>
@@ -58,7 +59,7 @@
 							<cfloop struct="#bundle.headers#" index="k" item="v">
 							<tr>
 								<th scope="row">#k#</th>
-								<td>#v#</td>
+								<td>#replace(replace(v,';','; ','all'),',',', ','all')#</td>
 							</tr>
 						</cfloop>
 						</tbody>
