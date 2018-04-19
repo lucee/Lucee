@@ -35,7 +35,7 @@ Lucee is a JVM language running as a servlet on just about any servlet container
 
 _We stadardise on Apache Tomcat for installers and Docker containers as there is only so much time in the day._
 
-## Philosophy
+## PhilosophyX
 
 The Lucee team “treats slowness as a bug". Many performance tests have shown Lucee to perform faster than other CFML engines. 
 
