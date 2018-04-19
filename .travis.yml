@@ -39,24 +39,21 @@ script:
 - echo "${TRAVIS_PULL_REQUEST} $TRAVIS_BRANCH"
 
 
-- if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then 
-    echo "------- TRAVIS_PULL_REQUEST1 -------";
-  fi
-
 - if [ ${TRAVIS_PULL_REQUEST} == "false" ]; then 
     echo "------- TRAVIS_PULL_REQUEST2 -------";
   fi
 
-- if [ $TRAVIS_PULL_REQUEST == "false" ]; then 
-    echo "------- TRAVIS_PULL_REQUEST3 -------";
-  fi
-
-- if [ $TRAVIS_BRANCH == "5.2" ]; then 
-    echo "------- TRAVIS_BRANCH1 -------";
-  fi
-
 - if [ ${TRAVIS_BRANCH} == "5.2" ]; then 
     echo "------- TRAVIS_BRANCH2 -------";
+  fi
+
+
+- if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then 
+    echo "------- Maven Deploy0 -------";
+    echo "------- Maven Deploy0 -------";
+  else
+    echo "------- Maven Install0 ---------";
+    echo "------- Maven Install0 ---------";
   fi
 
 
