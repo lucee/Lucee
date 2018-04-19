@@ -156,8 +156,8 @@ list all mappings and display necessary edit fields --->
 	</cfif>
 </cfloop> --->
 <cfset querySort(datasources,"name")>
-<cfset srcLocal=queryNew("name,classname,dsn,username,password,readonly,storage,openConnections")>
-<cfset srcGlobal=queryNew("name,classname,dsn,username,password,readonly,storage,openConnections")>
+<cfset srcLocal=queryNew("name,classname,dsn,username,password,readonly,storage,openConnections,host,port")>
+<cfset srcGlobal=queryNew("name,classname,dsn,username,password,readonly,storage,openConnections,host,port")>
 <cfloop query="datasources">
 	<cfif not datasources.readOnly>
 		<cfset QueryAddRow(srcLocal)>
@@ -169,8 +169,8 @@ list all mappings and display necessary edit fields --->
 		<cfset QuerySetCell(srcLocal,"openConnections",datasources.openConnections)>
 		<cfset QuerySetCell(srcLocal,"readonly",datasources.readonly)>
 		<cfset QuerySetCell(srcLocal,"storage",datasources.storage)>
-		<cfset QuerySetCell(srcLocal,"host",datasources.host)>
-		<cfset QuerySetCell(srcLocal,"port",datasources.port)>		
+		<cfset QuerySetCell(srcLocal,"host",datasources.host?:'')>
+		<cfset QuerySetCell(srcLocal,"port",datasources.port?:'')>
 	<cfelse>
 		<cfset QueryAddRow(srcGlobal)>
 		<cfset QuerySetCell(srcGlobal,"name",datasources.name)>
@@ -182,7 +182,7 @@ list all mappings and display necessary edit fields --->
 		<cfset QuerySetCell(srcGlobal,"readonly",datasources.readonly)>
 		<cfset QuerySetCell(srcGlobal,"storage",datasources.storage)>
 		<cfset QuerySetCell(srcGlobal,"storage",datasources.storage)>
-		<cfset QuerySetCell(srcGlobal,"port",datasources.port)>
+		<cfset QuerySetCell(srcGlobal,"port",datasources.port?:'')>
 	</cfif>
 </cfloop>
 
@@ -198,8 +198,7 @@ list all mappings and display necessary edit fields --->
 						<th width="3%"><input type="checkbox" class="checkbox" name="rowreadonly" onclick="selectAll(this)" /></th>
 						<th>#stText.Settings.Name#</th>
 						<th>#stText.Settings.Type#</th>
-						<th>#stText.Settings.dbHost#</th>
-						<th>#stText.Settings.dbPort#</th>
+						<th>#stText.Settings.dbHost#:#stText.Settings.dbPort#</th>
 						<th width="8%">#stText.Settings.openConn#</th>
 						<th width="8%">#stText.Settings.dbStorage#</th>
 						<th width="6%">#stText.Settings.DBCheck#</th>
@@ -219,8 +218,7 @@ list all mappings and display necessary edit fields --->
 								#srcGlobal.name#
 							</td>
 							<td>#getDbDriverTypeName(srcGlobal.ClassName,srcGlobal.dsn)#</td>
-							<td>#srcLocal.host#</td>
-							<td>#srcLocal.port#</td>							
+							<td>#listCompact("#srcLocal.host?:''#:#srcLocal.port?:''#",":")#</td>							
 							<td>#srcGlobal.openConnections#</td>
 							<td>#yesNoFormat(srcGlobal.storage)#</td>
 							<td>
@@ -265,8 +263,7 @@ list all mappings and display necessary edit fields --->
 						<th width="3%"><input type="checkbox" class="checkbox" name="rowread" onclick="selectAll(this)" /></th>
 						<th>#stText.Settings.Name#</th>
 						<th>#stText.Settings.Type#</th>
-						<th>#stText.Settings.dbHost#</th>
-						<th>#stText.Settings.dbPort#</th>
+						<th>#stText.Settings.dbHost#:#stText.Settings.dbPort#</th>
 						<th width="8%">#stText.Settings.openConn#</th>
 						<th width="8%">#stText.Settings.dbStorage#</th>
 						<th width="6%">#stText.Settings.DBCheck#</th>
@@ -302,8 +299,7 @@ list all mappings and display necessary edit fields --->
 									<div class="comment">#stText.settings.datasource.driverName#: #qDbInfo.DRIVER_NAME# #qDbInfo.DRIVER_VERSION# (JDBC #qDbInfo.JDBC_MAJOR_VERSION#.#qDbInfo.JDBC_MINOR_VERSION#)</div>
 								</cfif>
 							</td>
-							<td class="tblContent#css# longwords">#srcLocal.host#</td>
-							<td class="tblContent#css# longwords">#srcLocal.port#</td>
+							<td class="tblContent#css# longwords">#listCompact("#srcLocal.host?:''#:#srcLocal.port?:''#",":")#</td>
 							<td class="tblContent#css# longwords">#srcLocal.openConnections#</td>							
 							<td class="tblContent#css# longwords">#yesNoFormat(srcLocal.storage)#</td>
 							<td class="tblContent#css# longwords">
