@@ -53,7 +53,7 @@ script:
 
 
 
-- if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+- if [ "${DO_DEPLOY}" == "false" ]; then
     echo "------- Maven Deploy -------";
     mvn -e -f loader/pom.xml clean deploy --settings travis-settings.xml;
   else
