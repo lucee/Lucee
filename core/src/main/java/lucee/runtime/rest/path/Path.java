@@ -27,8 +27,8 @@ import lucee.runtime.type.util.ListUtil;
 
 public abstract class Path {
 	/**
-	 * check if given path part match this path Path part defintion
-	 * @param variables fill all key value pairs extracte from path to this Map
+	 * check if given path part match this path Path part definition
+	 * @param variables fill all key value pairs extracted from path to this Map
 	 * @param path path to check
 	 * @return true if the given path match, false otherwise 
 	 */

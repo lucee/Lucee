@@ -20,7 +20,7 @@
 		}
 		if(in)desc&="</ul>";
 		
-		// has value defintion
+		// has value definition
 		var doit=false;
 		if(!isNull(attr.values)) {
 			// only add this, if this is not already in the desc
@@ -101,7 +101,7 @@
 		<!--- Desc --->
 		<div class="text">
 			<cfif not StructKeyExists(data, "description") or data.description eq "">
-				<em>No decription found</em>
+				<em>No description found</em>
 			<cfelse>
 				#data.description#
 			</cfif>

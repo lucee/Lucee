@@ -3393,7 +3393,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * sct.setEL("maxFile", qry.getAt("maxFile", row, "")); sct.setEL("maxFileSize", qry.getAt("maxFileSize", row, "")); sct.setEL(KeyConstants._path,
 	 * qry.getAt(KeyConstants._path, row, ""));
 	 * 
-	 * return; } } throw new ApplicationException("invalig log name ["+name+"]");
+	 * return; } } throw new ApplicationException("invalid log name ["+name+"]");
 	 * 
 	 * }
 	 */
@@ -4029,7 +4029,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if(strType.equals("webservice"))
 			type = ConfigImpl.CACHE_TYPE_WEBSERVICE;
 		else
-			throw new ApplicationException("inv,query,resourcealid type defintion, valid values are [object,template,query,resource,function,include]");
+			throw new ApplicationException("inv,query,resource invalid type definition, valid values are [object,template,query,resource,function,include]");
 
 		CacheConnection cc = config.getCacheDefaultConnection(type);
 		if(cc != null) {

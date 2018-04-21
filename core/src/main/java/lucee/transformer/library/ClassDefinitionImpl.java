@@ -76,7 +76,7 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>,Serializable {
 	public Class<T> getClazz() throws ClassException, BundleException {
 		if(clazz!=null) return clazz;
 		
-		// regular class defintion
+		// regular class definition
 		if(name==null) 
 			return clazz=ClassUtil.loadClass(className);
 		

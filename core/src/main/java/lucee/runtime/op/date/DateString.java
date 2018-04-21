@@ -116,7 +116,7 @@ public final class DateString {
     }
 
     /**
-     * check if char a actuell position of the inner cursor is same value like given value
+     * check if char a current position of the inner cursor is same value like given value
      * @param c char to compare
      * @return is same or not
      */
@@ -125,7 +125,7 @@ public final class DateString {
     }
 
     /**
-     * check if char a actuell position of the inner cursor is same value like given value
+     * check if char a current position of the inner cursor is same value like given value
      * @param c char to compare
      * @return is same or not
      */
@@ -165,7 +165,7 @@ public final class DateString {
     }
 
     /**
-     * forward inner cursor if value at actuell position is same as given.
+     * forward inner cursor if value at current position is same as given.
      * @param c char to compare
      * @return has forwared or not
      */
@@ -296,7 +296,7 @@ public final class DateString {
 
     /**
      * returns if value at cursor position is a digit or not
-     * @return is dgit
+     * @return is digit
      */
     public boolean isDigit() {
         return isValidIndex() && isDigit(str.charAt(pos));
@@ -304,7 +304,7 @@ public final class DateString {
 
     /**
      * returns if last char is a digit or not
-     * @return is dgit
+     * @return is digit
      */
     public boolean isLastDigit() {
         return isDigit(str.charAt(str.length()-1));

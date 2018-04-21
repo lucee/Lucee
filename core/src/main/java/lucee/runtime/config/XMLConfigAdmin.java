@@ -260,7 +260,7 @@ public final class XMLConfigAdmin {
 		try {
 			XMLConfigAdmin admin = XMLConfigAdmin.newInstance(ci, null);
 			admin._reload();
-			SystemOut.printDate(ci.getOutWriter(), "reloaded the configuration ["+file+"] automaticly");
+			SystemOut.printDate(ci.getOutWriter(), "reloaded the configuration ["+file+"] automatically");
 		} 
 		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
@@ -998,7 +998,7 @@ public final class XMLConfigAdmin {
         String v;
         for(int i=0;i<children.length;i++) {
         	el=children[i];
-        	v=createVirtual(el); // if there is no virtual defintion (old records), we use the position
+        	v=createVirtual(el); // if there is no virtual definition (old records), we use the position
       		if(v.equals(virtual)) {
       			el.setAttribute("virtual",v); // set to make sure it exists for the future
       			el.setAttribute("physical",physical);
@@ -1299,14 +1299,14 @@ public final class XMLConfigAdmin {
     
 
     /**
-     * the following code remove all logging defintions spread over the complete xml and adds them to the new "logging" tag
+     * the following code remove all logging definitions spread over the complete xml and adds them to the new "logging" tag
      * 
      * @param doc
      * @return
      */
     public static boolean fixLogging(ConfigServerImpl cs,ConfigImpl config,Document doc) {
 
-    	// if version is bigger than 4.2 there is nothig to do
+    	// if version is bigger than 4.2 there is nothing to do
 		Element luceeConfiguration = doc.getDocumentElement();
 		String strVersion = luceeConfiguration.getAttribute("version");
 		double version=Caster.toDoubleValue(strVersion, 1.0d);
@@ -2791,7 +2791,7 @@ public final class XMLConfigAdmin {
         if(!"white-space".equalsIgnoreCase(writerType) && 
         		!"white-space-pref".equalsIgnoreCase(writerType) && 
         		!"regular".equalsIgnoreCase(writerType))
-        	throw new ApplicationException("invalid writer type defintion ["+writerType+"], valid types are [white-space, white-space-pref, regular]");
+        	throw new ApplicationException("invalid writer type definition ["+writerType+"], valid types are [white-space, white-space-pref, regular]");
         
         scope.setAttribute("cfml-writer",writerType.toLowerCase());
     } 
@@ -2891,7 +2891,7 @@ public final class XMLConfigAdmin {
         if(!hasAccess) throw new SecurityException("no access to update cachedwithin setting");
         
         String t=AppListenerUtil.toCachedWithinType(type, "");
-        if(t==null) throw new ApplicationException("invalid cachedwithin type defintion");
+        if(t==null) throw new ApplicationException("invalid cachedwithin type definition");
         String v=Caster.toString(value, null);
         Element app=_getRootElement("application");
         if(v!=null)app.setAttribute("cached-within-"+t,v);
@@ -3888,7 +3888,7 @@ public final class XMLConfigAdmin {
 			if(code != 200){
 				final String msg = "Lucee is not able do download the core for version ["
 					+ version.toString() + "] from " + updateUrl
-					+ ", please donwload it manually and copy to [" + patchDir + "]";
+					+ ", please download it manually and copy to [" + patchDir + "]";
 				//log.debug("Admin", msg);
 				conn.disconnect();
 				throw new IOException(msg);
@@ -5524,7 +5524,7 @@ public final class XMLConfigAdmin {
 			method = HTTPEngine.get(url, null, null, 2000,true, null, null, null, null);
 		} 
 		catch (MalformedURLException e) {
-			throw new ApplicationException("url defintion ["+strUrl+"] is invalid");
+			throw new ApplicationException("url definition ["+strUrl+"] is invalid");
 		} 
 		catch (IOException e) {
 			throw new ApplicationException("can't invoke ["+strUrl+"]",e.getMessage());
@@ -6675,7 +6675,7 @@ public final class XMLConfigAdmin {
 		// convert to a directory when it is a zip
 		if(!src.isDirectory()) {
 			if(!IsZipFile.invoke(src))
-				throw new ApplicationException("path ["+src.getAbsolutePath()+"] is invalid, it has to be a apth to a existing zip file or a directory containing a plugin");
+				throw new ApplicationException("path ["+src.getAbsolutePath()+"] is invalid, it has to be a path to a existing zip file or a directory containing a plugin");
 			src = ResourceUtil.toResourceExisting(pc, "zip://"+src.getAbsolutePath());
 		}
         String name=ResourceUtil.getName(src.getName());

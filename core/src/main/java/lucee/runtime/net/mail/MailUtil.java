@@ -78,7 +78,7 @@ public final class MailUtil {
 
 		else
 			throw new MailException(
-					"e-mail defintions must be one of the following types [string,array,struct], not ["
+					"e-mail definitions must be one of the following types [string,array,struct], not ["
 							+ emails.getClass().getName() + "]");
 	}
 

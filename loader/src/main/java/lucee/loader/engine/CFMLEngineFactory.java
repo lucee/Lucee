@@ -466,14 +466,14 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		}
 		config.put("felix.log.level", "" + logLevel);
 
-		// Allow felix.cache.locking to be overriden by env var (true/false)
+		// Allow felix.cache.locking to be overridden by env var (true/false)
 		// Enables or disables bundle cache locking, which is used to prevent concurrent access to the bundle cache. 
 		String strCacheLocking = getSystemPropOrEnvVar("felix.cache.locking", null);
 		if(!Util.isEmpty(strCacheLocking)) {
 			config.put("felix.cache.locking", strCacheLocking);
 		}
 
-		// Allow FRAMEWORK_STORAGE_CLEAN to be overriden by env var
+		// Allow FRAMEWORK_STORAGE_CLEAN to be overridden by env var
 		// The value can either be "none" or "onFirstInit", where "none" does not flush the bundle cache 
 		// and "onFirstInit" flushes the bundle cache when the framework instance is first initialized.
 		String strStorageClean = getSystemPropOrEnvVar("felix.storage.clean", null);
@@ -593,7 +593,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	/**
-	 * method to initalize a update of the CFML Engine.
+	 * method to initialize a update of the CFML Engine.
 	 * checks if there is a new Version and update it when a new version is
 	 * available
 	 * 

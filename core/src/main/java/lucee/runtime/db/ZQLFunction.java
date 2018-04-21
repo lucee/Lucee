@@ -24,8 +24,8 @@ package lucee.runtime.db;
 public interface ZQLFunction {
     
     /**
-     * method to call the funtion
-     * @param arguments arguments to call the funtion
+     * method to call the function
+     * @param arguments arguments to call the function
      * @return result of the function
      */
     public Object call(Object[] arguments);

@@ -3,7 +3,7 @@
 <cfset error.detail="">
 
 <cfset stText.setting.typeChecking="UDF Type Checking">
-<cfset stText.setting.typeCheckingDesc="If disabled Lucee ignores type defintions with function arguments and return values">
+<cfset stText.setting.typeCheckingDesc="If disabled Lucee ignores type definitions with function arguments and return values">
 <cfparam name="stText.general.elements" default="item(s)">
 
 <cfadmin 
@@ -185,7 +185,7 @@ Defaults --->
 	returnVariable="Settings">
 	
 <!--- 
-Redirtect to entry --->
+Redirect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "">
 	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 </cfif>

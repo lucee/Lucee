@@ -74,7 +74,7 @@ public class ParseNumber {
 				
 				radix=HEX;
 			}
-			else throw new ExpressionException("invalid radix defintions, valid vales are [bin,oct,dec,hex]");
+			else throw new ExpressionException("invalid radix definitions, valid vales are [bin,oct,dec,hex]");
 			
 		}
 		

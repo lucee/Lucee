@@ -114,7 +114,7 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 	}
 
 	/*private static ClassDefinition _initializeCD(JDBCDriver jdbc, ClassDefinition cd, Config config) {
-		// try to link the class defintion with a jdbc driver defintion
+		// try to link the class definition with a jdbc driver definition
 		if (!cd.isBundle()) {
 			if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cd
 					.getClassName())) {

@@ -16,7 +16,7 @@
 	</language>
 	<language key="en">
 		<title>Ram Resource Info</title>
-		<description>Information to the Ram Resource and the posibilities to delete Elements.</description>
+		<description>Information to the Ram Resource and the possibilities to delete Elements.</description>
 		<custom key="Info">Info</custom>
 		<custom key="descInfo">Detailied Information to the content of the Ram Resource</custom>
 		<custom key="listing">Content</custom>

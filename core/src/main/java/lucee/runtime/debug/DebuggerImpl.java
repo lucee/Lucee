@@ -331,7 +331,7 @@ public final class DebuggerImpl implements Debugger {
 					}
 					if(changed)
 						pc.write(
-								"<span style='color:red'>Please update your debug template defintions in the Lucee admin by going into the detail view and hit the \"update\" button.</span>");
+								"<span style='color:red'>Please update your debug template definitions in the Lucee admin by going into the detail view and hit the \"update\" button.</span>");
 
 				}
 

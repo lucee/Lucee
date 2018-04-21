@@ -299,8 +299,8 @@ public class ORMUtil {
 		
 		if(StringUtil.isEmpty(o)) {
 			boolean isCFML=pc.getRequestDialect()==CFMLEngine.DIALECT_CFML;
-			throw ORMExceptionUtil.createException((ORMSession)null/* no session here, otherwise we get a infiniti loop*/,null,
-					"missing datasource defintion in "
+			throw ORMExceptionUtil.createException((ORMSession)null/* no session here, otherwise we get a infinity loop*/,null,
+					"missing datasource definition in "
 			+(isCFML?Constants.CFML_APPLICATION_EVENT_HANDLER:Constants.LUCEE_APPLICATION_EVENT_HANDLER)
 			+"/"
 			+(isCFML?Constants.CFML_APPLICATION_TAG_NAME:Constants.LUCEE_APPLICATION_TAG_NAME),null);

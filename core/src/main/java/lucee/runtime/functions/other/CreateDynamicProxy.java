@@ -84,7 +84,7 @@ public class CreateDynamicProxy implements Function {
 			interfaces=new Class[]{((JavaObject)oInterfaces).getClazz()};
 		}
 		else
-			throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "invalid type ["+Caster.toClassName(oInterfaces)+"] for class defintion");
+			throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "invalid type ["+Caster.toClassName(oInterfaces)+"] for class definition");
 		
 		// check if all classes are interfaces
 		for(int i=0;i<interfaces.length;i++){

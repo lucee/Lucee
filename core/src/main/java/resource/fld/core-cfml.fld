@@ -13,7 +13,7 @@
 	<function>
 		<name>AjaxLink</name>
 		<class>lucee.runtime.functions.displayFormatting.AjaxLink</class>
-		<status>unimplemeted</status>
+		<status>unimplemented</status>
 		<keywords>ajax</keywords>
 		<description>Causes an HTML href attribute to display link results in the current Ajax container.</description>
 		<argument>
@@ -32,7 +32,7 @@
 		<name>AjaxOnLoad</name>
 		<class>lucee.runtime.functions.displayFormatting.AjaxOnLoad</class>
 		<keywords>ajax</keywords>
-		<status>unimplemeted</status>
+		<status>unimplemented</status>
 		<description>Causes the specified JavaScript function to run when the page loads.</description>
 		<argument>
 			<name>functionName</name>
@@ -112,7 +112,7 @@
 		<name>beat</name>
 		<class>lucee.runtime.functions.dateTime.Beat</class>
 		<description>
-		Outputs the actuell swatch time.
+		Outputs the current swatch time.
 		It is a new system of time developed by Swatch, the Swiss watch maker.  
 		It involves setting the current day into 1000 "beats" instead of 24 hours.  
 		Internet Time eliminates the need for geographical time zones, perfect for the internet.
@@ -435,7 +435,7 @@ the following characters are pattern letters (case sensitive) representing the c
 - WW: Week in month, leading zero for single-digit hours (Example:02)
 - y,yy,yyy: Year as last two digits, leading zero for single-digit (Example:09)
 - yyyy: Year represented by four digits (Example:2009)
-- z,zz,zzz: General time zone as a 3 to 4 lettesr abbreviation (Example:PST)
+- z,zz,zzz: General time zone as a 3 to 4 letter abbreviation (Example:PST)
 - zzzz: General time zone as its full name (Example:Pacific Standard Time)
 - Z,..,ZZZZ: RFC 822 time zone (Example:-0800)
   
@@ -797,7 +797,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>hash40</name>
 		<class>lucee.runtime.functions.string.Hash40</class>
-		<description>This function only exists for backward compstibility to Lucee 4.0 or older version that has produced a incorrect result for non us-ascii caharacters,
+		<description>This function only exists for backward compatibility to Lucee 4.0 or older version that has produced a incorrect result for non us-ascii characters,
 		Only use this function for backward compatibility.
 		
 		Converts a variable-length string to a 32-byte, hexadecimal
@@ -1181,7 +1181,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.international.LSEuroCurrencyFormat</class>
 		<status>deprecated</status>
 		<keywords>currency,string,formatting</keywords>
-		<description>this funciton is just a alias for lsCurrencyFormat</description>
+		<description>this function is just a alias for lsCurrencyFormat</description>
 		<argument>
 			<name>number</name>
 			<alias>currency_number</alias>
@@ -1533,7 +1533,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>nowServer</name>
 		<class>lucee.runtime.functions.dateTime.NowServer</class>
 		<status>deprecated</status>
-		<description>this function is deprecated, returns the current time on the server independend on lucee timezone definition</description>
+		<description>this function is deprecated, returns the current time on the server independent on lucee timezone definition</description>
 		<return>
 			<type>datetime</type>
 		</return>
@@ -1546,7 +1546,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<keywords>number,string,formatting</keywords>
 		<description>Creates a custom-formatted number value. For international
         number formatting use LSNumberFormat.
-        [mask - quicky]
+        [mask - quickly]
         _,9 Digit placeholder; . decimal point; 0 Pads with zeros;
         ( ) less than zero, puts parentheses around the mask
         + plus sign before positive number minus before negative
@@ -1757,7 +1757,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>sizeOf</name>
 		<class>lucee.runtime.functions.system.SizeOf</class>
-		<description>this function is experimentell, to not use in productive enviroment. this function returns the size in bytes of a given object.</description>
+		<description>this function is experimentell, to not use in productive environment. this function returns the size in bytes of a given object.</description>
 		<argument>
 			<name>obj</name>
 			<type>object</type>
@@ -2100,7 +2100,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>lsweek</name>
 		<class>lucee.runtime.functions.international.LSWeek</class>
-		<description>Returns the week number in the year of the date referenced, based on the loal influence. not everywhere the wekk begins on Monday by defintion.</description>
+		<description>Returns the week number in the year of the date referenced, based on the local influence. not everywhere the week begins on Monday by definition.</description>
 		<argument>
 			<name>date</name>
 			<type>datetime</type>
@@ -2229,7 +2229,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>unserializeJava</name>
 		<class>lucee.runtime.functions.dynamicEvaluation.UnserializeJava</class>
 		<status>deprecated</status>
-		<description>literal defintion of a serialized Java Object by function serialize</description>
+		<description>literal definition of a serialized Java Object by function serialize</description>
 		<argument>
 			<name>string</name>
 			<type>string</type>
@@ -2343,7 +2343,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>Empty</name>
 		<class>lucee.runtime.functions.system.Empty</class>
 		<status>deprecated</status>
-		<description>this function is deprcated, use instead "IsEmpty".
+		<description>this function is deprecated, use instead "IsEmpty".
 		this function returns true if a value exists and is not "empty". 
 The following things are considered to be empty:
 - string:"" (an empty string)

@@ -21,7 +21,7 @@ package coldfusion.xml.rpc;
 import java.io.Serializable;
 
 /**
- * Extends the Query with a Bean initalizer for WebService deserializer
+ * Extends the Query with a Bean initializer for WebService deserializer
  */
 public final class QueryBean implements Serializable {
 

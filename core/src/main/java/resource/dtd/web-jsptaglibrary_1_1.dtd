@@ -144,7 +144,7 @@ the taglibrary Leave it empty if it does not apply.
 <!ELEMENT uri	 (#PCDATA) >
 
 <!--
-Defines an arbitrary text string descirbing the tag library
+Defines an arbitrary text string describing the tag library
 -->
 
 <!ELEMENT info	(#PCDATA) >

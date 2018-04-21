@@ -58,7 +58,7 @@ public final class GetTickCount implements Function {
 	}
 
 	
-	// this function is only called when the evaluator validates the unit defintion on compilation time
+	// this function is only called when the evaluator validates the unit definition on compilation time
 	public static double call(PageContext pc,double unit) {
 		if(UNIT_NANO==unit) return System.nanoTime();
 		if(UNIT_MICRO==unit) return System.nanoTime()/1000;

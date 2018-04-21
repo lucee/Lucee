@@ -138,7 +138,7 @@
 	<!-- resources.customtags.old.cfm -->
 	<data key="CustomTags.name">Name</data>
 	<data key="CustomTags.nameMissing">Missing the name for the new Mapping, this name is used when you deploy a Lucee Archive (.ra,.ras) based on this Mapping.</data>
-	<data key="CustomTags.nameDesc">The name is used as identifier when you automaticly import a Lucee Archive build based on this Mapping.</data>
+	<data key="CustomTags.nameDesc">The name is used as identifier when you automatically import a Lucee Archive build based on this Mapping.</data>
 	<data key="CustomTags.PhysicalDesc">Directory path where the custom tags are located.</data>
 	<data key="CustomTags.archiveDesc">File path to a custom tag Lucee Archive (.ra or .ras).</data>
 	<data key="CustomTags.PrimaryDesc">Defines where Lucee does looks first for a requested custom tags</data>
@@ -628,7 +628,7 @@
 	<!-- resources.component.cfm -->
 	<data key="Components.name">Name</data>
 	<data key="Components.nameMissing">Missing the name for the new Mapping, this name is used when you deploy a Lucee Archive (.lar) based on this Mapping.</data>
-	<data key="Components.nameDesc">The name is used as identifier when you automaticly import a Lucee Archive build based on this Mapping.</data>
+	<data key="Components.nameDesc">The name is used as identifier when you automatically import a Lucee Archive build based on this Mapping.</data>
 	<data key="Components.PhysicalDesc">Directory path where the components are located, this path should not include the package.</data>
 	<data key="Components.archiveDesc">File path to a components Lucee Archive (.lar).</data>
 	<data key="Components.PrimaryDesc">Defines where Lucee does looks first for a requested component</data>
@@ -737,7 +737,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.minExeTime">Minimal Execution Time (ms)</data>
 	<data key="debug.minExeTimeDesc">Minimal Execution Time that Lucee outputs the debugger information of a request.</data>
 	<data key="debug.pathRestriction">Path Restriction</data>
-	<data key="debug.pathRestrictionDesc">Path that should not be outputted, sperated path by line break.</data>
+	<data key="debug.pathRestrictionDesc">Path that should not be outputted, separated path by line break.</data>
 	<data key="debug.settingTitle">Settings</data>
 	<data key="debug.settingDesc">Define how Lucee Log the debugging information.</data>
 	<data key="debug.outputTitle">Output</data>
@@ -758,13 +758,13 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.noDriver">there is no debug template defined</data>
 	<data key="debug.noAccess">you have no access to manipulate the debug settings</data>
 	<data key="debug.ipRange">IP Range</data>
-	<data key="debug.ipRangeDesc">A comma separeted list of strings of ip defintions. The following patterns are allowed:
+	<data key="debug.ipRangeDesc">A comma separated list of strings of ip definitions. The following patterns are allowed:
 	- * including all ips
 	- a single ip, like ""127.0.0.1"" or ""0:0:0:0:0:0:0:1%0""
 	- an ip with wildcards like ""127.0.0.*"", in this case all ips between ""127.0.0.0"" and ""127.0.0.255"" are valid
 	- an ip range like ""127.0.0.1-127.0.0.10"", in this case all ips between ""127.0.0.1"" and ""127.0.0.10"" are valid
 	You can define IPv4 or IPv6 IPs, a IPv4 can not be converted to a IPv6 and visa versa.</data>
-	<data key="debug.ipRangeMIssing">Missing IP Range defintion</data>
+	<data key="debug.ipRangeMIssing">Missing IP Range definition</data>
 	<data key="debug.addMyIp">Add my IP</data>
 	<data key="debug.list.serverTitle">Readonly Debug Templates</data>
 	<data key="debug.list.webTitle">Debug Templates</data>
@@ -793,7 +793,7 @@ you can see the log result at the end of every request, if a debug template is d
 
 	<!-- log.cfm -->
 	<data key="log.title">Log</data>
-	<data key="log.desc">This page allows to set the logelevl and location of every single log.</data>
+	<data key="log.desc">This page allows to set the loglevel and location of every single log.</data>
 	<data key="log.level">Level</data>
 	<data key="log.source">Source</data>
 	<data key="log.name">Name</data>
@@ -1024,7 +1024,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="video.server.installednotdesc">For the tag cfvideo/cfvideoplayer OS specific video components are required. They are not bundled with Lucee because the size of the software would increase a lot and because some codecs may not be redistributed, although their use is not prohibited. Therefore you can download these components directly from a provider and upload them with the form below.</data>
 	<data key="video.server.installednotuploaddesc">The video components (ffmpeg.zip) are uploaded directly over the form and copied into Lucee (no installation). As a source you can use e.g. {provider}</data>
 	<data key="video.server.mandesc">A manual installation can be made like follows: Open the url {provider} and download the corresponding file ffmpeg.zip for your operating system ({OS-Name}). Then copy this file (do not unzip it) into the directory {directory}. If you can not find a file for your operating system, just contact us.</data>
-	<data key="video.server.installednoturldesc">The video componenten are downloaded automatically from the remote server and copied into Lucee (no installation).</data>
+	<data key="video.server.installednoturldesc">The video components are downloaded automatically from the remote server and copied into Lucee (no installation).</data>
 	<data key="video.server.installednotuploadtitle">Video components by upload</data>
 	<data key="video.provider">Provider</data>
 	<data key="video.providermissing">Missing provider definition</data>
@@ -1125,7 +1125,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="settings.gateway.nodefault">no default cache</data>
 	<data key="settings.gateway.id">ID</data>
 	<data key="settings.gateway.nodriver">There is no Gateway Type Available</data>
-	<data key="settings.gateway.description">Verwalten der Gateways</data>
+	<data key="settings.gateway.description">Administer the Gateways</data>
 	<data key="settings.gateway.defaulttitle">Default cache connection</data>
 	<data key="settings.gateway.defaultdesc2">Define if this connection will be the default cache connection, the default cache connection is used when no cache name is explicit defined</data>
 	<data key="settings.gateway.buttons.default">set as default</data>
@@ -1561,7 +1561,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="mail.LogLevelDesc">Log level used for the log file.</data>
 	<data key="mail.SpoolEnabledDesc">If enabled the mails are sent in a background thread and the main request does not have to wait until the mails are sent.</data>
 	<data key="mail.maxThreads">Maximum concurrent threads</data>
-	<data key="mail.maxThreadsDesc">This setting can be changed on page "Services/Taks". Maximum number of threads that are executed at the same time to send the mails, fewer threads will take longer to send all the mail, more threads will add more load to the system.</data>
+	<data key="mail.maxThreadsDesc">This setting can be changed on page "Services/Tasks". Maximum number of threads that are executed at the same time to send the mails, fewer threads will take longer to send all the mail, more threads will add more load to the system.</data>
 	<data key="mail.TimeoutDesc">Time in seconds that the Task Manager waits to send a single mail, when the time is reached the Task Manager stops the thread and the mail gets moved to unsent folder, where the Task Manager will pick it up later to try to send it again.</data>
 	<data key="mail.seconds">Seconds</data>
 

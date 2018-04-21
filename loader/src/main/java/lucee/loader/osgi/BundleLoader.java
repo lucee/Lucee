@@ -117,7 +117,7 @@ public class BundleLoader {
 				throw new IOException(
 						"lucee core ["
 								+ rc
-								+ "] is invalid, no Require-Bundle defintion found in the META-INF/MANIFEST.MF File");
+								+ "] is invalid, no Require-Bundle definition found in the META-INF/MANIFEST.MF File");
 
 			// get fragments needed for that core (Lucee specific Key)
 			final String rbf = attrs.getValue("Require-Bundle-Fragment");
