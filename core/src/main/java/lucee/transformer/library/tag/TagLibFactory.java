@@ -390,7 +390,7 @@ public final class TagLibFactory extends DefaultHandler {
 			String parent=arr[1].trim();
 			return new ChildEvaluator(parent);
 		}
-		throw new RuntimeException(value+" is not supported as tte defintion, you can do for example [parent:<parent-name>]!");
+		throw new RuntimeException(value+" is not supported as the definition, you can do for example [parent:<parent-name>]!");
 	}
 	
 	/**
@@ -612,10 +612,10 @@ public final class TagLibFactory extends DefaultHandler {
 	public static String toStatus(short value) {
 		switch(value){
 		case TagLib.STATUS_DEPRECATED: return "deprecated";
-		case TagLib.STATUS_UNIMPLEMENTED: return "unimplemeted";
+		case TagLib.STATUS_UNIMPLEMENTED: return "unimplemented";
 		case TagLib.STATUS_HIDDEN: return "hidden";
 		}
-		return "implemeted";
+		return "implemented";
 	}
 	
 }
