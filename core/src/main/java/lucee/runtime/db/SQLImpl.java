@@ -87,13 +87,17 @@ public final class SQLImpl implements SQL, Serializable {
 		this.strSQL = strSQL;
 	}
 
+	/**
+	 * populates the SQL string with values from parameters
+	 * 
+	 * @return
+	 */
 	@Override
 	public String toString() {
-
 		if(items.length == 0)
 			return strSQL;
 
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder(256);
 		int pos, last = 0;
 		for (int i = 0; i < items.length; i++) {
 
@@ -118,6 +122,7 @@ public final class SQLImpl implements SQL, Serializable {
 				last = pos + 1;
 			}
 		}
+
 		sb.append(strSQL.substring(last));
 		return sb.toString();
 	}

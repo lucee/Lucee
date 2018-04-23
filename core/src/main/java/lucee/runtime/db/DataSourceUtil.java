@@ -53,6 +53,19 @@ public class DataSourceUtil {
 		return false;
 	}
 
+	public static boolean isPostgres(DatasourceConnection dc) {
+		try {
+			if(dc.getConnection().getMetaData().getDatabaseProductName().indexOf("PostgreSQL") != -1)
+				return true;
+		}
+		catch (SQLException e) {
+			String className = dc.getDatasource().getClassDefinition().getClassName();
+			if(className.indexOf("postgresql") != -1)
+				return true;
+		}
+		return false;
+	}
+
 	public static boolean isMySQL(DatasourceConnection dc) {
 		try {
 			if(dc.getConnection().getMetaData().getDatabaseProductName().indexOf("MySQL") != -1)
@@ -132,6 +145,20 @@ public class DataSourceUtil {
 		}
 		catch (SQLException e) {
 		}
+	}
+
+	public static String getLargeTextSqlTypeName(DatasourceConnection dc) {
+		if(DataSourceUtil.isHSQLDB(dc))
+			return "VARCHAR";
+		if(DataSourceUtil.isMySQL(dc))
+			return "LONGTEXT";
+		if(DataSourceUtil.isOracle(dc))
+			return "CLOB";
+		if(DataSourceUtil.isPostgres(dc))
+			return "TEXT";
+
+		// default
+		return "NTEXT";
 	}
 
 }
