@@ -79,7 +79,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		variables.cookieName_docs = "lucee_docs_modern";
 
 		function buildSectionStruct() {
-			var otherSections = [ "ALL", "Dump", "ExecTime", "ExecOrder", "Exceptions", "ImpAccess", "Info", "Query", "Timer", "Trace", "More", "Query-sql", "Expression", "memChart", "cpuChart", "docs_Info", "tags", "functions", "components", "scopesInMemory", "request_Threads", "datasource_connection", "task_Spooler" ];
+			var otherSections = [ "ALL", "Dump", "ExecTime", "ExecOrder", "Exceptions", "ImpAccess", "Info", "Query", "Timer", "Trace", "More", "Expression", "memChart", "cpuChart", "docs_Info", "tags", "functions", "components", "scopesInMemory", "request_Threads", "datasource_connection", "task_Spooler" ];
 			var i = 0;
 			var result = {};
 			for ( var k in otherSections )
@@ -1081,8 +1081,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfif queries.recordcount>
 				<cfset sectionId = "Query">
 				<cfset isOpen = this.isSectionOpen( sectionId )>
-				<cfset var sqlSectionId = "Query-sql">
-				<cfset var isSqlExpanded = this.isSectionOpen(sqlSectionId)>
 				<cfset local.total  =0>
 				<cfset local.records=0>
 				<cfloop query="queries">
