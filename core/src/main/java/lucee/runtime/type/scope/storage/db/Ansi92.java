@@ -62,9 +62,10 @@ public class Ansi92 extends SQLExecutorSupport {
 	@Override
 	public Query select(Config config, String cfid, String applicationName, DatasourceConnection dc, int type, Log log, boolean createTableIfNotExist)
 			throws PageException {
+
 		String strType = VariableInterpreter.scopeInt2String(type);
 		Query query = null;
-		SQL sqlSelect = new SQLImpl("select data from " + PREFIX + "_" + strType + "_data where cfid=? and name=? and expires > ?", new SQLItem[] {
+		SQL sqlSelect = new SQLImpl("SELECT DATA FROM " + PREFIX + "_" + strType + "_data WHERE cfid=? AND name=? AND expires > ?", new SQLItem[] {
 				new SQLItemImpl(cfid, Types.VARCHAR), new SQLItemImpl(applicationName, Types.VARCHAR), new SQLItemImpl(now(config), Types.VARCHAR) });
 
 		PageContext pc = ThreadLocalPageContext.get();
@@ -129,7 +130,7 @@ public class Ansi92 extends SQLExecutorSupport {
 		String strType = VariableInterpreter.scopeInt2String(type);
 		TimeZone tz = ThreadLocalPageContext.getTimeZone();
 		int recordsAffected = _update(config, dc.getConnection(), cfid, applicationName,
-				"update " + PREFIX + "_" + strType + "_data set expires=?,data=? where cfid=? and name=?", data, timeSpan, log, tz);
+				"UPDATE " + PREFIX + "_" + strType + "_data SET expires=?, data=? WHERE cfid=? AND name=?", data, timeSpan, log, tz);
 
 		if(recordsAffected > 1) {
 			delete(config, cfid, applicationName, dc, type, log);
@@ -137,7 +138,7 @@ public class Ansi92 extends SQLExecutorSupport {
 		}
 		if(recordsAffected == 0) {
 			_update(config, dc.getConnection(), cfid, applicationName,
-					"insert into " + PREFIX + "_" + strType + "_data (expires,data,cfid,name) values(?,?,?,?)", data, timeSpan, log, tz);
+					"INSERT INTO " + PREFIX + "_" + strType + "_data (expires, data, cfid, name) VALUES(?, ?, ?, ?)", data, timeSpan, log, tz);
 		}
 	}
 
@@ -166,7 +167,7 @@ public class Ansi92 extends SQLExecutorSupport {
 	@Override
 	public void delete(Config config, String cfid, String applicationName, DatasourceConnection dc, int type, Log log) throws PageException, SQLException {
 		String strType = VariableInterpreter.scopeInt2String(type);
-		String strSQL = "delete from " + PREFIX + "_" + strType + "_data where cfid=? and name=?";
+		String strSQL = "DELETE FROM " + PREFIX + "_" + strType + "_data WHERE cfid=? AND name=?";
 		SQLImpl sql = new SQLImpl(strSQL, new SQLItem[] { new SQLItemImpl(cfid, Types.VARCHAR), new SQLItemImpl(applicationName, Types.VARCHAR) });
 		execute(null, dc.getConnection(), sql, ThreadLocalPageContext.getTimeZone());
 		ScopeContext.info(log, sql.toString());
@@ -178,7 +179,7 @@ public class Ansi92 extends SQLExecutorSupport {
 			StorageScopeListener listener, Log log) throws PageException {
 		String strType = VariableInterpreter.scopeInt2String(type);
 		// select
-		SQL sqlSelect = new SQLImpl("select cfid,name from " + PREFIX + "_" + strType + "_data where expires<=?",
+		SQL sqlSelect = new SQLImpl("SELECT cfid, name FROM " + PREFIX + "_" + strType + "_data WHERE expires <= ?",
 				new SQLItem[] { new SQLItemImpl(System.currentTimeMillis(), Types.VARCHAR) });
 		Query query;
 		try {
@@ -225,29 +226,28 @@ public class Ansi92 extends SQLExecutorSupport {
 	}
 
 	private static SQL createSQL(DatasourceConnection dc, String textType, String type) {
-		StringBuilder sb = new StringBuilder("CREATE TABLE ");
 
+		StringBuilder sb = new StringBuilder(256);
+
+		sb.append("CREATE TABLE ");
 		if(DataSourceUtil.isMSSQL(dc))
 			sb.append("dbo.");
-		sb.append(PREFIX + "_" + type + "_data (");
 
-		// expires
-		sb.append("expires varchar(64) NOT NULL, ");
-		// cfid
-		sb.append("cfid varchar(64) NOT NULL, ");
-		// name
-		sb.append("name varchar(255) NOT NULL, ");
-		// data
+		sb.append(PREFIX + "_" + type + "_data (");
+		sb.append("expires VARCHAR(64) NOT NULL, ");
+		sb.append("cfid VARCHAR(64) NOT NULL, ");
+		sb.append("name VARCHAR(255) NOT NULL, ");
 		sb.append("data ");
+
 		if(DataSourceUtil.isHSQLDB(dc))
-			sb.append("varchar ");
+			sb.append("VARCHAR ");
 		else if(DataSourceUtil.isOracle(dc))
 			sb.append("CLOB ");
 		else
 			sb.append(textType + " ");
 		sb.append(" NOT NULL");
-
 		sb.append(")");
+
 		return new SQLImpl(sb.toString());
 	}
 }

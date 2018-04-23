@@ -89,11 +89,12 @@ public final class SQLImpl implements SQL, Serializable {
 
 	@Override
 	public String toString() {
+
 		if(items.length == 0)
 			return strSQL;
+
 		StringBuilder sb = new StringBuilder();
-		int pos;
-		int last = 0;
+		int pos, last = 0;
 		for (int i = 0; i < items.length; i++) {
 
 			pos = strSQL.indexOf('?', last);
@@ -102,15 +103,15 @@ public final class SQLImpl implements SQL, Serializable {
 				break;
 			}
 
-			if (pos < (strSQL.length() - 1) && strSQL.charAt(pos + 1) == '?'){
+			if(pos < (strSQL.length() - 1) && strSQL.charAt(pos + 1) == '?') {
 				// the '?' is escaped
 				sb.append(strSQL.substring(last, pos + 1));
-				last = pos + 2;									// skip 2 chars to account for the escape char
-				i--;											// keep i unchanged for the next iteration
+				last = pos + 2; // skip 2 chars to account for the escape char
+				i--; // keep i unchanged for the next iteration
 			}
 			else {
 				sb.append(strSQL.substring(last, pos));
-				if (items[i].isNulls())
+				if(items[i].isNulls())
 					sb.append("null");
 				else
 					sb.append(SQLCaster.toString(items[i]));
