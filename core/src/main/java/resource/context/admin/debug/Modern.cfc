@@ -79,7 +79,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		variables.cookieName_docs = "lucee_docs_modern";
 
 		function buildSectionStruct() {
-			var otherSections = [ "ALL", "Dump", "ExecTime", "ExecOrder", "Exceptions", "ImpAccess", "Info", "Query", "Timer", "Trace", "More", "Expression", "memChart", "cpuChart", "docs_Info", "tags", "functions", "components", "scopesInMemory", "request_Threads", "datasource_connection", "task_Spooler" ];
+			var otherSections = [ "ALL", "Dump", "ExecTime", "ExecOrder", "Exceptions", "ImpAccess", "Info", "Query", "Timer", "Trace", "More", "Query-sql", "Expression", "memChart", "cpuChart", "docs_Info", "tags", "functions", "components", "scopesInMemory", "request_Threads", "datasource_connection", "task_Spooler" ];
 			var i = 0;
 			var result = {};
 			for ( var k in otherSections )
@@ -140,7 +140,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		<cfif arguments.context EQ "web">
 			</td></td></td></th></th></th></tr></tr></tr></table></table></table></a></abbrev></acronym></address></applet></au></b></banner></big></blink></blockquote></bq></caption></center></cite></code></comment></del></dfn></dir></div></div></dl></em></fig></fn></font></form></frame></frameset></h1></h2></h3></h4></h5></h6></head></i></ins></kbd></listing></map></marquee></menu></multicol></nobr></noframes></noscript></note></ol></p></param></person></plaintext></pre></q></s></samp></script></select></small></strike></strong></sub></sup></table></td></textarea></th></title></tr></tt></u></ul></var></wbr></xmp>
 		</cfif>
-
+		
 		<cfoutput>
 			<cfset var sectionId = "ALL">
 			<cfset var isDebugAllOpen = this.isSectionOpen( sectionId )>
@@ -642,7 +642,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfset arguments.custom.sessionSize         = (arguments.custom.sessionSize ?: 100) * 1024>
 			<cfset arguments.custom.no_of_charts         = (arguments.custom.no_of_charts ?: 2)>
 			<!--- <cfset arguments.custom.sort_charts 		= (arguments.custom.sort_charts ?: '1,2,3,4')> --->
-
+			<cfset var time=getTickCount() />
 
 			<cfset var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi />
 			<cfset var pages=arguments.debugging.pages />
@@ -865,9 +865,16 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfset isOpen = this.isSectionOpen( sectionId )>
 
 			<div class="section-title">Execution Time</div>
-			<cfset local.loa=0>
-			<cfset local.tot=0>
-			<cfset local.q=0>
+			<cfscript>
+				local.loa=0;
+				local.tot=0;
+				local.q=0;
+			</cfscript>
+			<cfscript>
+				addServerTimingHeader("debugging", "Startup/Compilation", unitFormat( arguments.custom.unit, loa,prettify ));
+				addServerTimingHeader("debugging", "Query", unitFormat( arguments.custom.unit, q,prettify ));
+				addServerTimingHeader("debugging", "Execution", unitFormat( arguments.custom.unit, tot, prettify ));
+			</cfscript>
 			<cfset local.bDisplayLongExec = false>
 
 			<cfloop query="pages">
@@ -1053,20 +1060,20 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			</table>
 
 			<cfif !isNull(debugging.genericData) && debugging.genericData.recordcount>
-	<cfoutput query="#debugging.genericData#" group="category">
-	
-		<div class="section-title">#debugging.genericData.category#</div>
-		<table>
-		<table>
-		<cfoutput>
-			<tr>
-				<td class="pad txt-r ">#debugging.genericData.name#</td>
-				<td class="pad ">#debugging.genericData.value#</td>
-			</tr>
-		</cfoutput>
-		</table>
-	</cfoutput>
-</cfif>
+				<cfoutput query="#debugging.genericData#" group="category">
+				
+					<div class="section-title">#debugging.genericData.category#</div>
+					<table>
+					<table>
+					<cfoutput>
+						<tr>
+							<td class="pad txt-r ">#debugging.genericData.name#</td>
+							<td class="pad ">#debugging.genericData.value#</td>
+						</tr>
+					</cfoutput>
+					</table>
+				</cfoutput>
+			</cfif>
 
 			<cfset this.doMore( arguments.custom, arguments.debugging, arguments.context )>
 
@@ -1074,12 +1081,16 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfif queries.recordcount>
 				<cfset sectionId = "Query">
 				<cfset isOpen = this.isSectionOpen( sectionId )>
+				<cfset var sqlSectionId = "Query-sql">
+				<cfset var isSqlExpanded = this.isSectionOpen(sqlSectionId)>
 				<cfset local.total  =0>
 				<cfset local.records=0>
 				<cfloop query="queries">
 					<cfset total   += queries.time>
 					<cfset records += queries.count>
 				</cfloop>
+				<cfset var dsn = "">
+				<cfset var ar_headers = []>
 
 				<div class="section-title">SQL Queries</div>
 				<table>
@@ -1088,8 +1099,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					<tr>
 						<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
 							<table><tr><td>
-								<cfset hasCachetype=ListFindNoCase(queries.columnlist,"cachetype") gt 0>
-								<cfset local.bUsage = listFindNoCase(queries.columnlist, 'usage') && isStruct(queries.usage)>
+								<cfset var hasCachetype=ListFindNoCase(queries.columnlist,"cachetype") gt 0>
+								<cfset var local.bUsage = listFindNoCase(queries.columnlist, 'usage') && isStruct(queries.usage)>
 								<table class="details">
 									<tr>
 										<th></th>
@@ -1105,6 +1116,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 										<cfif hasCachetype><th>Cache Type</th></cfif>
 									</tr>
 									<cfloop query="queries">
+										<cfscript>
+											var qryTime = unitFormat(arguments.custom.unit, queries.time,prettify);
+											addServerTimingHeader("sql", "qry: " & queries.name, qryTime);
+										</cfscript>
 										<cfif bUsage>
 											<cfset local.usage=queries.usage>
 											<cfset local.usageNotRead = []>
@@ -1136,7 +1151,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 											</th>
 											<td>#queries.name#</td>
 											<td class="txt-r">#queries.count#</td>
-											<td class="txt-r">#unitFormat(arguments.custom.unit, queries.time,prettify)#</td>
+											<td class="txt-r">#qryTime#</td>
 											<td class="txt-r">
 											<cfif total neq 0>
 												#unitFormat(arguments.custom.unit, queries.time / total * 100,prettify)#
@@ -1186,7 +1201,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 										</td></tr>
 									</cfloop>
 								</table>
-
 							</tr></td></table>
 						</td><!--- #-lucee-debug-#sectionId# !--->
 					</tr>
@@ -1313,8 +1327,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 				<div class="section-title">Trace Points</div>
 
-				<cfset hasAction=!isColumnEmpty(traces,'action') />
-				<cfset hasCategory=!isColumnEmpty(traces,'category') />
+				<cfset var hasAction=!isColumnEmpty(traces,'action') />
+				<cfset var hasCategory=!isColumnEmpty(traces,'category') />
 
 				<table>
 
@@ -1445,12 +1459,17 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</tr>
 				</table>
 			</cfif>
+			<cfscript>
+				addServerTimingHeader("debugging", "Render debugging output", getTickCount()-time);
+				outputServerTimingHeaders();
+			</cfscript>
 			</cfoutput>
 		</div>
 	</cffunction>
 
 	<cffunction name="readMetrics" returntype="void"  >
 		<cfoutput>
+			<cfset var time=getTickCount() />
 			<cfset systemInfo=GetSystemMetrics()>
 			<cfset sectionId = "scopesInMemory">
 			<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
@@ -1566,11 +1585,16 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</td>
 				</tr>
 			</table>
+			<cfscript>
+				addServerTimingHeader("Metrics", "Rendering Metrics Output", getTickCount()-time);
+				outputServerTimingHeaders();
+			</cfscript>
 		</cfoutput>
 	</cffunction>
 
 	<cffunction name="readDocs" returntype="void"  >
 		<cfset str = {}>
+		<cfset var time=getTickCount() />
 		<cfset str.functions  = getAllFunctions()>
 		<cfset str.tags = getAllTags()>
 		<cfset str.components = getAllComponents()>
@@ -1653,6 +1677,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</td>
 				</tr>
 			</table>
+			<cfscript>
+				addServerTimingHeader("Docs", "Rendering Docs Output", getTickCount()-time);
+				outputServerTimingHeaders();
+			</cfscript>
 		</cfoutput>
 	</cffunction>
 
@@ -1995,4 +2023,3 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		}
 	</cfscript>
 </cfcomponent>
-

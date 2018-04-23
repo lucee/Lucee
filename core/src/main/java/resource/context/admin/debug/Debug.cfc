@@ -51,7 +51,17 @@
 		<cfargument name="debugging" required="true" type="struct">
     	<cfthrow message="implement function output():string">
     </cffunction>
-    
-    
-    
+
+	<cfscript>
+		variables.serverTimingHeaders = [];
+
+		function addServerTimingHeader(metric, name, timeMs){
+			arrayAppend(variables.serverTimingHeaders, '"#arguments.name#" - #arguments.metric#=#arguments.timeMs#');
+		}
+
+		function outputServerTimingHeaders(){
+		if (not getPageContext().getHttpServletResponse().isCommitted() ) // avoid cfflush error
+			header name="Server-Timing" value="#ArrayToList(variables.serverTimingHeaders,", ")#";
+		}
+	</cfscript>
 </cfcomponent>
