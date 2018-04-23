@@ -28,5 +28,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		catch(local.exp){}
 	}
+	public void function testACosMember(){
+		var x=1;
+		assertEquals(0,x.acos());
+	}
 } 
 </cfscript>

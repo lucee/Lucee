@@ -41,5 +41,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		catch(local.exp){}*/
 	}
+
+	public void function testAbsMember(){
+		x=1;
+		assertEquals(1,x.abs());
+	}
 } 
 </cfscript>

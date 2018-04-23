@@ -790,6 +790,10 @@ public final class VariableUtilImpl implements VariableUtil {
 	    if(coll instanceof Date) {
 	    	return MemberUtil.call(pc, coll, key, args, new short[]{CFTypes.TYPE_DATETIME}, new String[]{"date"});
 	    }
+	    // Number
+	    if(coll instanceof Number) {
+	    	return MemberUtil.call(pc, coll, key, args, new short[]{CFTypes.TYPE_NUMERIC}, new String[]{"numeric"});
+	    }
 	    
 	    
         // call Object Wrapper      

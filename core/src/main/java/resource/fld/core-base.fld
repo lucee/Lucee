@@ -11,6 +11,7 @@
 	<!-- abs -->
 	<function>
 		<name>abs</name>
+		<member-name>abs</member-name>
 		<class>lucee.runtime.functions.math.Abs</class>
 		<keywords>number</keywords>
 		<description>Absolute-value function. The absolute value of a number is the number without its sign.</description>
@@ -28,6 +29,7 @@
 	<!-- aCos -->
 	<function>
 		<name>aCos</name>
+		<member-name>aCos</member-name>
 		<class>lucee.runtime.functions.math.ACos</class>
 		<keywords>number,math</keywords>
 		<description>Returns the angle whose cosine is the value passed as the argument.</description>
@@ -1341,6 +1343,7 @@ sort direction:
 	<!-- aSin -->
 	<function>
 		<name>aSin</name>
+		<member-name>aSin</member-name>
 		<class>lucee.runtime.functions.math.ASin</class>
 		<keywords>number,math</keywords>
 		<description>Determines the arcsine of a number. The arcsine is the angle
@@ -1358,6 +1361,7 @@ sort direction:
 	<!-- atn -->
 	<function>
 		<name>atn</name>
+		<member-name>atn</member-name>
 		<class>lucee.runtime.functions.math.Atn</class>
 		<keywords>number,math</keywords>
 		<description>Arctangent function. The arctangent is the angle whose tangent
@@ -1477,6 +1481,7 @@ sort direction:
 	<!-- bitAnd -->
 	<function>
 		<name>bitAnd</name>
+		<member-name>bitAnd</member-name>
 		<class>lucee.runtime.functions.math.BitAnd</class>
 		<keywords>number,math</keywords>
 		<description>Performs a bitwise logical AND operation.</description>
@@ -1499,6 +1504,7 @@ sort direction:
 	<!-- bitMaskClear -->
 	<function>
 		<name>bitMaskClear</name>
+		<member-name>bitMaskClear</member-name>
 		<class>lucee.runtime.functions.math.BitMaskClear</class>
 		<keywords>number,math</keywords>
 		<description>Performs a bitwise mask clear operation.</description>
@@ -1527,6 +1533,7 @@ sort direction:
 	<!-- bitMaskRead -->
 	<function>
 		<name>bitMaskRead</name>
+		<member-name>bitMaskRead</member-name>
 		<class>lucee.runtime.functions.math.BitMaskRead</class>
 		<keywords>number,math</keywords>
 		<description>Performs a bitwise mask read operation.
@@ -1557,6 +1564,7 @@ sort direction:
 	<!-- bitMaskSet -->
 	<function>
 		<name>bitMaskSet</name>
+		<member-name>bitMaskSet</member-name>
 		<class>lucee.runtime.functions.math.BitMaskSet</class>
 		<keywords>number,math</keywords>
 		<description>Performs a bitwise mask set operation.</description>
@@ -1591,6 +1599,7 @@ sort direction:
 	<!-- bitNot -->
 	<function>
 		<name>bitNot</name>
+		<member-name>bitNot</member-name>
 		<class>lucee.runtime.functions.math.BitNot</class>
 		<keywords>number,math</keywords>
 		<description>Performs a bitwise logical NOT operation.</description>
@@ -1607,6 +1616,7 @@ sort direction:
 	<!-- bitOr -->
 	<function>
 		<name>bitOr</name>
+		<member-name>bitOr</member-name>
 		<class>lucee.runtime.functions.math.BitOr</class>
 		<keywords>number,math</keywords>
 		<description>Performs a bitwise logical OR operation.</description>
@@ -1629,6 +1639,7 @@ sort direction:
 	<!-- bitSHLN -->
 	<function>
 		<name>bitSHLN</name>
+		<member-name>bitSHLN</member-name>
 		<class>lucee.runtime.functions.math.BitSHLN</class>
 		<keywords>number,math</keywords>
 		<description>Performs a bitwise shift-left, no-rotation operation.</description>
@@ -1651,6 +1662,7 @@ sort direction:
 	<!-- bitSHRN -->
 	<function>
 		<name>bitSHRN</name>
+		<member-name>bitSHRN</member-name>
 		<class>lucee.runtime.functions.math.BitSHRN</class>
 		<keywords>number,math</keywords>
 		<description>Performs a bitwise shift-right, no-rotation operation.</description>
@@ -1673,6 +1685,7 @@ sort direction:
 	<!-- bitXor -->
 	<function>
 		<name>bitXor</name>
+		<member-name>bitXor</member-name>
 		<class>lucee.runtime.functions.math.BitXor</class>
 		<keywords>number,math</keywords>
 		<description>Performs a bitwise logical XOR operation.</description>
@@ -2024,6 +2037,7 @@ sort direction:
 	<!-- ceiling -->
 	<function>
 		<name>ceiling</name>
+		<member-name>ceiling</member-name>
 		<class>lucee.runtime.functions.math.Ceiling</class>
 		<keywords>number,math</keywords>
 		<description>Determines the closest integer that is greater than a
@@ -2286,6 +2300,7 @@ sort direction:
 	<!-- cos -->
 	<function>
 		<name>cos</name>
+		<member-name>cos</member-name>
 		<class>lucee.runtime.functions.math.Cos</class>
 		<keywords>number,math</keywords>
 		<description>Calculates the cosine of an angle that is entered
@@ -4213,6 +4228,7 @@ EntitySave(entity, [forceinsert])</description>
 	<!-- exp -->
 	<function>
 		<name>exp</name>
+		<member-name>exp</member-name>
 		<class>lucee.runtime.functions.math.Exp</class>
 		<keywords>number,math</keywords>
 		<description>Calculates the exponent whose base is e that represents number.
@@ -5032,6 +5048,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- fix -->
 	<function>
 		<name>fix</name>
+		<member-name>fix</member-name>
 		<class>lucee.runtime.functions.math.Fix</class>
 		<keywords>number</keywords>
 		<description>Converts a real number to an integer.</description>
@@ -5048,6 +5065,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- formatBaseN -->
 	<function>
 		<name>formatBaseN</name>
+		<member-name>formatBaseN</member-name>
 		<class>lucee.runtime.functions.displayFormatting.FormatBaseN</class>
 		<description>String Converts number to a string, in the base specified by
         radix. For example: #FormatBaseN(1024,16)#</description>
@@ -6724,6 +6742,7 @@ The following things are considered to be empty:
 	<!-- int -->
 	<function>
 		<name>int</name>
+		<member-name>int</member-name>
 		<class>lucee.runtime.functions.math.Int</class>
 		<keywords>number</keywords>
 		<description>Calculates the closest integer that is smaller than number.</description>
@@ -6742,6 +6761,7 @@ The following things are considered to be empty:
 	<!-- floor -->
 	<function>
 		<name>floor</name>
+		<member-name>floor</member-name>
 		<class>lucee.runtime.functions.math.Floor</class>
 		<keywords>number</keywords>
 		<description>Calculates the closest integer that is smaller than number.</description>
@@ -8485,6 +8505,7 @@ The following things are considered to be empty:
 	<!-- log -->
 	<function>
 		<name>log</name>
+		<member-name>log</member-name>
 		<class>lucee.runtime.functions.math.Log</class>
 		<keywords>number,math</keywords>
 		<description>Calculates the natural logarithm of a number. Natural
@@ -8502,6 +8523,7 @@ The following things are considered to be empty:
 	<!-- log10 -->
 	<function>
 		<name>log10</name>
+		<member-name>log10</member-name>
 		<class>lucee.runtime.functions.math.Log10</class>
 		<keywords>number,math</keywords>
 		<description>Calculates the logarithm of number, to base 10.</description>
@@ -8555,6 +8577,7 @@ The following things are considered to be empty:
 	<!-- max -->
 	<function>
 		<name>max</name>
+		<member-name>max</member-name>
 		<class>lucee.runtime.functions.math.Max</class>
 	<keywords>number</keywords>
 		<description>Determines the greater of two numbers.</description>
@@ -8623,6 +8646,7 @@ The following things are considered to be empty:
 	<!-- min -->
 	<function>
 		<name>min</name>
+		<member-name>min</member-name>
 		<class>lucee.runtime.functions.math.Min</class>
 		<keywords>number</keywords>
 		<description>Determines the lesser of two numbers.</description>
@@ -10292,6 +10316,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- round -->
 	<function>
 		<name>round</name>
+		<member-name>round</member-name>
 		<class>lucee.runtime.functions.math.Round</class>
 		<keywords>number</keywords>
 		<description>Rounds a number to the closest integer.</description>
@@ -10837,6 +10862,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- sgn -->
 	<function>
 		<name>sgn</name>
+		<member-name>sgn</member-name>
 		<class>lucee.runtime.functions.math.Sgn</class>
 		<keywords>number,math</keywords>
 		<description>Determines the sign of a number.</description>
@@ -10853,6 +10879,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- sin -->
 	<function>
 		<name>sin</name>
+		<member-name>sin</member-name>
 		<class>lucee.runtime.functions.math.Sin</class>
 	<keywords>number,math</keywords>
 		<description>Calculates the sine of an angle that is entered in radians.</description>
@@ -10886,6 +10913,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- sqr -->
 	<function>
 		<name>sqr</name>
+		<member-name>sqr</member-name>
 		<class>lucee.runtime.functions.math.Sqr</class>
 		<keywords>number,math</keywords>
 		<description>Calculates the square root of a number.</description>
@@ -12421,6 +12449,7 @@ _- asc (default): ascending (a to z) sort order
 	<!-- tan -->
 	<function>
 		<name>tan</name>
+		<member-name>tan</member-name>
 		<class>lucee.runtime.functions.math.Tan</class>
 		<keywords>number,math</keywords>
 		<description>Calculates the tangent of an angle that is entered in radians.</description>

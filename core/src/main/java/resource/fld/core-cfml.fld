@@ -657,6 +657,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- decrementValue -->
 	<function>
 		<name>decrementValue</name>
+		<member-name>decrementValue</member-name>
 		<class>lucee.runtime.functions.math.DecrementValue</class>
 		<status>deprecated</status>
 		<description>this function is deprecated, use instead the -- operator;Decrements the current number by one</description>
@@ -929,6 +930,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- incrementValue -->
 	<function>
 		<name>incrementValue</name>
+		<member-name>incrementValue</member-name>
 		<class>lucee.runtime.functions.math.IncrementValue</class>
 		<status>deprecated</status>
 		<description>this function is deprecated, use instead the ++ operator;Increments the current number by one</description>
