@@ -2106,7 +2106,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			Variable v=(Variable) expr;
 			if(ASMUtil.isOnlyDataMember(v)){
 				
-				expr=new Assign(v, data.srcCode.getDialect()==CFMLEngine.DIALECT_LUCEE || data.config.getFullNullSupport()?data.factory.createNull():data.factory.EMPTY(), data.srcCode.getPosition());
+				expr=new Assign(v, data.factory.createEmpty(), data.srcCode.getPosition());
 			}
 		}
 		

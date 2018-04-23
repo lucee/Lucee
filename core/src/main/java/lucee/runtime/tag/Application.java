@@ -101,6 +101,7 @@ public final class Application extends TagImpl {
 	private Object mailListener=null;
 	private Locale locale;
 	private TimeZone timeZone;
+	private Boolean nullSupport;
 	private CharSet webCharset;
 	private CharSet resourceCharset;
 	private short sessionType=-1;
@@ -173,6 +174,7 @@ public final class Application extends TagImpl {
         mailListener=null;
         locale=null;
         timeZone=null;
+        nullSupport=null;
         webCharset=null;
         resourceCharset=null;
         sessionType=-1;
@@ -284,6 +286,14 @@ public final class Application extends TagImpl {
 		if(tz==null) return;
 		this.timeZone = tz;
 		
+	}
+	
+	public void setNullsupport(boolean nullSupport) {
+		this.nullSupport = nullSupport;
+	}
+	
+	public void setEnablenullsupport(boolean nullSupport) {
+		this.nullSupport = nullSupport;
 	}
 	
 	public void setScopecascading(String scopeCascading) throws ApplicationException {
@@ -683,6 +693,7 @@ public final class Application extends TagImpl {
 		if(mailListener!=null) 					((ApplicationContextSupport) ac).setMailListener(mailListener);
 		if(locale!=null) 						ac.setLocale(locale);
 		if(timeZone!=null) 						ac.setTimeZone(timeZone);
+		if(nullSupport!=null) 			((ApplicationContextSupport) ac).setFullNullSupport(nullSupport);
 		if(webCharset!=null) 					ac.setWebCharset(webCharset.toCharset());
 		if(resourceCharset!=null) 				ac.setResourceCharset(resourceCharset.toCharset());
 		if(sessionType!=-1) 					ac.setSessionType(sessionType);

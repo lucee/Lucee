@@ -700,8 +700,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	}
 	
 
-	private boolean fullNullSupport=false;
-
+	
 	private IdentificationServer id;
 
 	private String libHash;
@@ -716,15 +715,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	private int localExtSize=-1;
 
 	private Map<String, GatewayEntry> gatewayEntries;
-	
-	protected void setFullNullSupport(boolean fullNullSupport) {
-		this.fullNullSupport=fullNullSupport;
-	}
 
-	@Override
-	public boolean getFullNullSupport() {
-		return fullNullSupport;
-	}
 
 	public String[] getAuthenticationKeys() {
 		return authKeys==null?new String[0]:authKeys;

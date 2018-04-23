@@ -719,7 +719,23 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<rtexprvalue>true</rtexprvalue>
 			<description>session cookie behaviour</description>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>enableNULLSupport</name>
+			<status>hidden</status>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>nullSupport</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>enable or disable full null support</description>
+		</attribute>
 	</tag>
+
 	<!-- Argument -->
 	<tag>
 		<name>argument</name>

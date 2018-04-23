@@ -1427,8 +1427,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		sb.append(';');
 
 		// full null support
-		sb.append(config.getFullNullSupport());
-		sb.append(';');
+		//sb.append(config.getFull Null Support()); // no longer a compiler switch
+		//sb.append(';');
 		
 		// fusiondebug or not (FD uses full path name)
 		sb.append(config.allowRequestTimeout());
@@ -4819,27 +4819,27 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 
 		// full null support
-		if (!hasCS) {
-			boolean fns = false;
+		//if (!hasCS) {
+			boolean fns = hasCS?configServer.getFullNullSupport():false;
 			if (mode == ConfigImpl.MODE_STRICT) {
 				fns = true;
 			}
 			else {
-				String str = getAttr(compiler,"full-null-support");
+				String str = getAttr(compiler,"full-null-support"); // TODO move to an other place, no longer a compiler setting
 				if(StringUtil.isEmpty(str, true)) str=SystemUtil.getSystemPropOrEnvVar("lucee.full.null.support",null);
 				
-				if (!StringUtil.isEmpty(str, true)) {
-					fns = Caster.toBooleanValue(str, false);
+				if(!StringUtil.isEmpty(str, true)) {
+					fns = Caster.toBooleanValue(str, hasCS?configServer.getFullNullSupport():false);
 				}
 			}
 			
 			// when FNS is true or the lucee dialect is disabled we have no flip flop within a request. FNS is always the same
-			if(fns || !Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.enable.dialect",null),false)) {
+			/*if(fns || !Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.enable.dialect",null),false)) {
 				NullSupportHelper.fullNullSupport = fns;
 				NullSupportHelper.simpleMode = true;
-			}
-			((ConfigServerImpl) config).setFullNullSupport(fns);
-		}
+			}*/
+			config.setFullNullSupport(fns);
+		//}
 		
 		// default output setting
 		String output = getAttr(compiler,"default-function-output");

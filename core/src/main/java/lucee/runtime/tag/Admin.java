@@ -3370,8 +3370,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateCompilerSettings() throws SecurityException, PageException {
-		admin.updateCompilerSettings(getBoolObject("admin", "UpdateCompilerSettings", "dotNotationUpperCase"),
-				getBoolObject("admin", "UpdateCompilerSettings", "suppressWSBeforeArg"), getBoolObject("admin", "UpdateCompilerSettings", "nullSupport"),
+		admin.updateCompilerSettings(
+				getBoolObject("admin", "UpdateCompilerSettings", "dotNotationUpperCase"),
+				getBoolObject("admin", "UpdateCompilerSettings", "suppressWSBeforeArg"), 
+				getBoolObject("admin", "UpdateCompilerSettings", "nullSupport"),
 				getBoolObject("admin", "UpdateCompilerSettings", "handleUnquotedAttrValueAsString"),
 				getInteger("admin", "UpdateCompilerSettings", "externalizeStringGTE"));
 		admin.updateTemplateCharset(getString("admin", action, "templateCharset"));

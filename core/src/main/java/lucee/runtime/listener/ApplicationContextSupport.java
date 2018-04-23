@@ -432,6 +432,6 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	
 	public abstract FTPConnectionData getFTP();
 	public abstract void setFTP(FTPConnectionData ftp);
-
-	
+	public abstract boolean getFullNullSupport();
+	public abstract void setFullNullSupport(boolean fullNullSupport);
 }

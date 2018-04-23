@@ -132,6 +132,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 
 	private boolean wsMaintainSession;
 
+	private boolean fullNullSupport;
+
     
     /**
      * constructor of the class
@@ -157,6 +159,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
         this.localMode=config.getLocalMode();
         this.locale=config.getLocale();
         this.timeZone=config.getTimeZone();
+        this.fullNullSupport=config.getFullNullSupport();
         this.scopeCascading=config.getScopeCascadingType();
 
         this.webCharset=((ConfigImpl)config).getWebCharSet();
@@ -223,6 +226,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.localMode=localMode;
 		dbl.locale=locale;
 		dbl.timeZone=timeZone;
+		dbl.fullNullSupport=fullNullSupport;
 		dbl.scopeCascading=scopeCascading;
 		dbl.webCharset=webCharset;
 		dbl.resourceCharset=resourceCharset;
@@ -567,6 +571,11 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	public TimeZone getTimeZone() {
 		return timeZone;
 	}
+
+	@Override
+	public boolean getFullNullSupport() {
+		return fullNullSupport;
+	}
 	
 	@Override
 	public Charset getWebCharset() {
@@ -600,6 +609,11 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setTimeZone(TimeZone timeZone) {
 		this.timeZone = timeZone;
+	}
+
+	@Override
+	public void setFullNullSupport(boolean fullNullSupport) {
+		this.fullNullSupport=fullNullSupport;
 	}
 	
 	@Override
@@ -940,5 +954,4 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	public void setWSMaintainSession(boolean wsMaintainSession) {
 		this.wsMaintainSession=wsMaintainSession;
 	}
-
 }

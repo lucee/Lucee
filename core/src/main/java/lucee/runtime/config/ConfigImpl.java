@@ -3757,4 +3757,15 @@ public abstract class ConfigImpl implements Config {
 	boolean isEmpty(ClassDefinition cd) {
 		return cd==null || StringUtil.isEmpty(cd.getClassName());
 	}
+	
+	private boolean fullNullSupport=false;
+
+	protected final void setFullNullSupport(boolean fullNullSupport) {
+		this.fullNullSupport=fullNullSupport;
+	}
+
+	@Override
+	public final boolean getFullNullSupport() {
+		return fullNullSupport;
+	}
 }

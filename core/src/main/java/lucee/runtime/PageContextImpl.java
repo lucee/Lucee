@@ -3624,6 +3624,14 @@ public final class PageContextImpl extends PageContext {
 		return config.getMailServers();
 	}
 
+	// FUTURE add to interface
+	public boolean getFullNullSupport() {
+		if(applicationContext != null) {
+			return ((ApplicationContextSupport)applicationContext).getFullNullSupport();
+		}
+		return config.getFullNullSupport();
+	}
+
 	public void registerLazyStatement(Statement s) {
 		if(lazyStats == null)
 			lazyStats = new ArrayList<Statement>();

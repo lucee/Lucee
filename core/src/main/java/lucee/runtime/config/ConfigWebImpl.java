@@ -503,10 +503,6 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 			return configServer.getActionMonitorCollector();
 		}
 
-		@Override
-		public boolean getFullNullSupport() {
-			return configServer.getFullNullSupport();
-		}
 		public boolean hasIndividualSecurityManager() {
 			return configServer.hasIndividualSecurityManager(getIdentification().getId());
 	    }

@@ -144,12 +144,11 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Collection.Key SESSION_COOKIE = KeyImpl.intern("sessioncookie");
 	private static final Collection.Key AUTH_COOKIE = KeyImpl.intern("authcookie");
 
+	private static final Key ENABLE_NULL_SUPPORT = KeyImpl.intern("enableNULLSupport");
+	private static final Key NULL_SUPPORT = KeyImpl.intern("nullSupport");
+
 	private static Map<String,CacheConnection> initCacheConnections=new ConcurrentHashMap<String, CacheConnection>();
 
-	
-
-	
-	
 	private Component component;
 	
 	private String name=null;
@@ -196,11 +195,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
 	private Object mailListener;
+	private boolean fullNullSupport;
 	
 	private Mapping[] mappings;
 	private boolean initMappings;
 	private boolean initCustomTypes;
 	private boolean initMailListener;
+	private boolean initFullNullSupport;
 	private boolean initCachedWithins;
 	
 	private boolean initApplicationTimeout;
@@ -267,6 +268,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initLog;
 
 	private Map<Collection.Key,Pair<Log,Struct>> logs;
+
 		
 	public ModernApplicationContext(PageContext pc, Component cfc, RefBoolean throwsErrorWhileInit) {
 		super(pc.getConfig());
@@ -293,7 +295,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
         this.sessionType=config.getSessionType();
         this.wstype=WS_TYPE_AXIS1;
 		this.cgiScopeReadonly=ci.getCGIScopeReadonly();
-
+		this.fullNullSupport=ci.getFullNullSupport();
         
         this.sessionCluster=config.getSessionCluster();
         this.clientCluster=config.getClientCluster();
@@ -1788,4 +1790,23 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		}
 	}
 	
+
+
+	@Override
+	public boolean getFullNullSupport() {
+		if(!initFullNullSupport) {
+			Boolean b = Caster.toBoolean(get(component,NULL_SUPPORT,null),null);
+			if(b==null) b = Caster.toBoolean(get(component,ENABLE_NULL_SUPPORT,null),null);
+			if(b!=null) fullNullSupport=b.booleanValue();
+			
+			initFullNullSupport=true; 
+		}
+		return fullNullSupport;
+	}
+
+	@Override
+	public void setFullNullSupport(boolean fullNullSupport) {
+		this.fullNullSupport=fullNullSupport;
+		this.initFullNullSupport=true;
+	}
 }

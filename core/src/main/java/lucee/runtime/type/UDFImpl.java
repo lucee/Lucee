@@ -132,7 +132,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 					if(funcArgs[i].isRequired()) {
 						throw new ExpressionException("The parameter "+funcArgs[i].getName()+" to function "+getFunctionName()+" is required but was not passed in.");
 					}
-					if(!NullSupportHelper.full()) newArgs.setEL(funcArgs[i].getName(),Argument.NULL);
+					if(!NullSupportHelper.full(pc)) newArgs.setEL(funcArgs[i].getName(),Argument.NULL);
 				}
 				else {
 					newArgs.setEL(funcArgs[i].getName(),castTo(pc,funcArgs[i],d,i+1));
@@ -375,7 +375,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
         	
 	        
 	        
-	        	if(returnValue==null && pc.getConfig().getFullNullSupport()) return returnValue;
+	        	if(returnValue==null && ((PageContextImpl)pc).getFullNullSupport()) return returnValue;
 		        if(properties.getReturnType()==CFTypes.TYPE_ANY || !((PageContextImpl)pc).getTypeChecking()) return returnValue;
 		        if(Decision.isCastableTo(properties.getReturnTypeAsString(),returnValue,false,false,-1)) return returnValue;
 		        throw new UDFCasterException(this,properties.getReturnTypeAsString(),returnValue);

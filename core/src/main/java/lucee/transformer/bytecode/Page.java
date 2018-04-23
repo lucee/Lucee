@@ -403,7 +403,7 @@ public final class Page extends BodyBase implements Root {
 			Types.OBJECT,
 			new Type[]{Types.STRING,Types.OBJECT}
     		);
-	private static final Method UNDEFINED_SCOPE = new Method(
+	public static final Method UNDEFINED_SCOPE = new Method(
 			"us",
 			Types.UNDEFINED,
 			new Type[]{}

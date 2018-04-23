@@ -69,7 +69,7 @@ public final class QuerySort extends BIF {
 		Key[] columns = query.getColumnNames();
 		QueryRow[] rows=new QueryRow[recordcount];
 		Struct sct;
-		Object empty=NullSupportHelper.full()?null:"";
+		Object empty=NullSupportHelper.full(pc)?null:"";
 		for(int row=1;row<=recordcount;row++) {
 			sct=new StructImpl();
 			for(int col=0;col<columns.length;col++) {
