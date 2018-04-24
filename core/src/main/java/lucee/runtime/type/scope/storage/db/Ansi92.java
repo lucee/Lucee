@@ -81,8 +81,9 @@ public class Ansi92 extends SQLExecutorSupport {
 				throw de;
 
 			// create table for storage
+			SQL sql;
 			try {
-				SQL sql = createStorageTableSql(dc, scopeName, null);
+				sql = createStorageTableSql(dc, scopeName, null);
 				ScopeContext.info(log, sql.toString());
 				// execute create table
 				new QueryImpl(pc, dc, sql, -1, -1, null, "query");
@@ -90,21 +91,21 @@ public class Ansi92 extends SQLExecutorSupport {
 			catch (DatabaseException _de) {
 				// failed, try text
 				try {
-					SQL sql = createStorageTableSql(dc, scopeName, "text");
+					sql = createStorageTableSql(dc, scopeName, "text");
 					ScopeContext.info(log, sql.toString());
 					new QueryImpl(pc, dc, sql, -1, -1, null, "query");
 				}
 				catch (DatabaseException __de) {
 					// failed, try "memo"
 					try {
-						SQL sql = createStorageTableSql(dc, scopeName, "memo");
+						sql = createStorageTableSql(dc, scopeName, "memo");
 						ScopeContext.info(log, sql.toString());
 						new QueryImpl(pc, dc, sql, -1, -1, null, "query");
 					}
 					catch (DatabaseException ___de) {
 						// failed, try clob
 						try {
-							SQL sql = createStorageTableSql(dc, scopeName, "clob");
+							sql = createStorageTableSql(dc, scopeName, "clob");
 							ScopeContext.info(log, sql.toString());
 							new QueryImpl(pc, dc, sql, -1, -1, null, "query");
 						}
@@ -124,11 +125,11 @@ public class Ansi92 extends SQLExecutorSupport {
 
 			// database table created, now create index
 			try {
-				SQL sql = new SQLImpl("CREATE UNIQUE INDEX ix_" + tableName + " ON " + tableName + "(cfid, name, expires)");
+				sql = new SQLImpl("CREATE UNIQUE INDEX ix_" + tableName + " ON " + tableName + "(cfid, name, expires)");
 				new QueryImpl(pc, dc, sql, -1, -1, null, "query");
 			}
 			catch (DatabaseException _de) {
-				// LogUtil.log();
+				throw new DatabaseException("Failed to create unique index on " + tableName, null, sql, dc);
 			}
 
 			query = new QueryImpl(pc, dc, sqlSelect, -1, -1, null, "query");
