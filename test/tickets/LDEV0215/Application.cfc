@@ -5,8 +5,8 @@ component {
 	this.sessionTimeout = createTimeSpan(0,0,30,0);
 
 	mySQL = mySQLCredentials();
-	if(mySQL.count()!=0){
-		this.datasource["mydatasource"]={
+	if(!isEmpty(mySQL)){
+		this.datasource["my-ldev-215"]={
 			class: 'org.gjt.mm.mysql.Driver'
 			, bundleName:'com.mysql.jdbc'
 			, bundleVersion:'5.1.38'
@@ -16,20 +16,24 @@ component {
 			// optional settings
 		, storage:true // default: false
 		};
+
+		this.clientStorage = "my-ldev-215";
 	}
 
 	msSQL = msSQLCredentials();
-	if(msSQL.count()!= 0){
-		this.datasources["testdb"] = {
-		  class: 'net.sourceforge.jtds.jdbc.Driver'
-		, bundleName: 'jtds'
-		, bundleVersion: '1.2.5'
-		, connectionString: 'jdbc:jtds:sqlserver://localhost:1433/testDB'
-		, username: msSQL.username
-		, password: msSQL.password
-		// optional settings
-		, storage:true // default: false
+	if(!isEmpty(msSQL)){
+		this.datasources["ms-ldev-215"] = {
+			  class: 'net.sourceforge.jtds.jdbc.Driver'
+			, bundleName: 'jtds'
+			, bundleVersion: '1.2.5'
+			, connectionString: 'jdbc:jtds:sqlserver://localhost:1433/testDB'
+			, username: "sa"
+			, password: "123456"
+			// optional settings
+			, storage:true // default: false
 		};
+
+		this.sessionStorage = "ms-ldev-215";
 	}
 
 	private struct function mySQLCredentials() {
