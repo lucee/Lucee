@@ -105,6 +105,7 @@ class ExecutionThread extends Thread {
         HTTPResponse rsp=null;
         
         // execute
+        log.info(logName,"calling URL ["+url+"]");
         try {
         	rsp = HTTPEngine.get(new URL(url), user, pass, task.getTimeout(),true, charset, null, proxy, headers);
         }

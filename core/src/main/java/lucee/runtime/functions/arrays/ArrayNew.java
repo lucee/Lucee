@@ -21,14 +21,18 @@
  */
 package lucee.runtime.functions.arrays;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.ArrayTyped;
 import lucee.runtime.type.util.ArrayUtil;
 
 public final class ArrayNew extends BIF {
@@ -43,17 +47,22 @@ public final class ArrayNew extends BIF {
 		return ArrayUtil.getInstance((int)dimension);
 	}
 	
-	public static Array call(PageContext pc , double dimension, boolean isSynchronized) throws ExpressionException {
-		if(dimension>1)
-			return ArrayUtil.getInstance((int)dimension);
-		return new ArrayImpl(isSynchronized);
+	public static Array call(PageContext pc , double dimension, String type) throws PageException {
+		if(Decision.isBoolean(type) || StringUtil.isEmpty(type,true)) return call(pc,dimension);
+		
+		if(dimension>1) {
+			throw new ApplicationException("multi dimensional arrays are not supported with typed arrays"); 
+			// return ArrayUtil.getInstance((int)dimension);
+		}
+		return new ArrayTyped(type.trim());
 	}
 	
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if(args.length==0) return call(pc);
 		if(args.length==1) return call(pc,Caster.toDoubleValue(args[0]));
-		else throw new FunctionException(pc, "ArrayNew", 0, 1, args.length);
+		if(args.length==2) return call(pc,Caster.toDoubleValue(args[0]),Caster.toString(args[1]));
+		else throw new FunctionException(pc, "ArrayNew", 0, 2, args.length);
 	}
 	
 }

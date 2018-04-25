@@ -45,28 +45,20 @@ public class ArrayImpl extends ListAsArray {
 	private static final long serialVersionUID = -6187994169003839005L;
 	
 	public ArrayImpl() {
-		this(true,32);
+		this(32);
 	}
 
-	public ArrayImpl(boolean sync) {
-		this(sync,32);
-	}
-
-	public ArrayImpl(boolean sync, int initalCap) {
-		super(sync?new Vector(initalCap):new ArrayList(initalCap));
+	public ArrayImpl(int initalCap) {
+		//super(sync?new Vector(initalCap):new ArrayList(initalCap));
+		super(new ArrayList(initalCap));
 	}
 	
 	public ArrayImpl(Object[] objects) {
-		this(true,ArrayUtil.isEmpty(objects)?32:objects.length);
+		this(ArrayUtil.isEmpty(objects)?32:objects.length);
 		
 		for(int i=0;i<objects.length;i++) {
 			setEL(i+1, objects[i]);
 		}
-	}
-	
-	public static void main(String[] args) {
-		Object[] arr=new Object[]{"a","b"};
-		new ArrayImpl(arr);
 	}
 	
 
