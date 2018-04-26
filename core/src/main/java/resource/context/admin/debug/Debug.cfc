@@ -56,7 +56,7 @@
 		variables.serverTimingHeaders = [];
 
 		function addServerTimingHeader(metric, name, timeMs){
-			arrayAppend(variables.serverTimingHeaders, '"#arguments.name#" - #arguments.metric#=#arguments.timeMs#');
+			arrayAppend(variables.serverTimingHeaders,  '#arguments.metric#;dur=#arguments.data#;desc="#timing.name#"');
 		}
 
 		function outputServerTimingHeaders(){
