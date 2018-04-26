@@ -61,7 +61,7 @@ public final class GetTagData implements Function {
 
 	public static Struct call(PageContext pc , String nameSpace, String strTagName, String strDialect) throws PageException {
 		int dialect=ConfigWebUtil.toDialect(strDialect,-1);
-		if(dialect==-1) throw new FunctionException(pc, "GetTagData", 3, "dialect","invalid dialect ["+strDialect+"] defintion");
+		if(dialect==-1) throw new FunctionException(pc, "GetTagData", 3, "dialect","invalid dialect ["+strDialect+"] definition");
 		
 		return _call(pc, nameSpace, strTagName, dialect);
 	}
@@ -133,7 +133,7 @@ public final class GetTagData implements Function {
 		sct.set("nameSpace",tld.getNameSpace());
 		sct.set(KeyConstants._name,name.substring(0,name.lastIndexOf('.')));
 		sct.set("hasNameAppendix",Boolean.FALSE);
-		sct.set(KeyConstants._status,"implemeted");
+		sct.set(KeyConstants._status,"implemented");
 		sct.set(KeyConstants._type,"cfml");
 		
 		sct.set("bodyType",getBodyType(tag));
@@ -169,7 +169,7 @@ public final class GetTagData implements Function {
 					src = Caster.toStruct(e.getValue(),null,false);
 					if(Caster.toBooleanValue(src.get(KeyConstants._hidden,null),false))continue;
 					Struct _attr=new StructImpl();
-					_attr.set(KeyConstants._status,"implemeted");
+					_attr.set(KeyConstants._status,"implemented");
 					_attr.set(KeyConstants._description,src.get(KeyConstants._hint,""));
 					_attr.set(KeyConstants._type,src.get(KeyConstants._type,"any"));
 					_attr.set(KeyConstants._required,Caster.toBoolean(src.get(KeyConstants._required,""),null));

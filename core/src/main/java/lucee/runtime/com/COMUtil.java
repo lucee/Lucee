@@ -126,7 +126,7 @@ public final class COMUtil {
     
 
 	/**
-	 * translate a short Variant Type Defintion to a String (string,empty,null,short ...)
+	 * translate a short Variant Type Definition to a String (string,empty,null,short ...)
 	 * @param type
 	 * @return String Variant Type
 	 */
@@ -151,7 +151,7 @@ public final class COMUtil {
 		else if(type==Variant.VariantObject) return "Object";
 		else if(type==Variant.VariantTypeMask) return "TypeMask";
 		else if(type==Variant.VariantVariant) return "Variant";
-		else return "unknow";
+		else return "unknown";
 	}
 
 }
