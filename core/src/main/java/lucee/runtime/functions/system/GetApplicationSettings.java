@@ -47,7 +47,6 @@ import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
-import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMConfiguration;
@@ -82,6 +81,7 @@ public class GetApplicationSettings {
 		sct.setEL("clientStorage", ac.getClientstorage());
 		sct.setEL("sessionStorage", ac.getSessionstorage());
 		sct.setEL("customTagPaths", toArray(ac.getCustomTagMappings()));
+		sct.setEL("componentPaths", toArray(ac.getComponentMappings()));
 		sct.setEL("loginStorage", AppListenerUtil.translateLoginStorage(ac.getLoginStorage()));
 		sct.setEL(KeyConstants._mappings, toStruct(ac.getMappings()));
 		sct.setEL(KeyConstants._name, ac.getName());
@@ -349,8 +349,24 @@ public class GetApplicationSettings {
 
 	private static Array toArray(Mapping[] mappings) {
 		Array arr=new ArrayImpl();
-		if(mappings!=null)for(int i=0;i<mappings.length;i++){
-			arr.appendEL(mappings[i].getStrPhysical());
+		if(mappings!=null) {
+			String str;
+			Struct sct;
+			Mapping m;
+			for(int i=0;i<mappings.length;i++) {
+				m = mappings[i];
+				sct=new StructImpl();
+				// physical
+				str=m.getStrPhysical();
+				if(!StringUtil.isEmpty(str,true)) sct.setEL("primary", str.trim());
+				// archive
+				str=m.getStrArchive();
+				if(!StringUtil.isEmpty(str,true)) sct.setEL("archive", str.trim());
+				// primary
+				sct.setEL("primary", m.isPhysicalFirst()?"physical":"archive");
+				
+				arr.appendEL(sct);
+			}
 		}
 		return arr;
 	}
