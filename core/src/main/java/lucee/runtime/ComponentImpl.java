@@ -44,6 +44,8 @@ import lucee.commons.collection.MapFactory;
 import lucee.commons.collection.MapPro;
 import lucee.commons.digest.Hash;
 import lucee.commons.io.DevNullOutputStream;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
@@ -2216,12 +2218,21 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 			// reading fails for serialized data from Lucee version 4.1.2.002
 			String name = in.readUTF();
-
+			
+			// oldest style of serialisation 
 			if(name.startsWith("evaluateComponent('") && name.endsWith("})")) {
 				readExternalOldStyle(pc, name);
 				return;
 			}
-
+			
+			// newest version (5.2.8.16) also holds the path
+			String path=null;
+			int index=name.indexOf('|');
+			if(index!=-1) {
+				path=name.substring(index+1);
+				name=name.substring(0, index);
+			}
+			
 			String md5 = in.readUTF();
 			Struct _this = Caster.toStruct(in.readObject(), null);
 			Struct _var = Caster.toStruct(in.readObject(), null);
@@ -2230,8 +2241,25 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 				ComponentImpl other = (ComponentImpl)EvaluateComponent.invoke(pc, name, md5, _this, _var);
 				_readExternal(other);
 			}
-			catch (PageException e) {
-				throw ExceptionUtil.toIOException(e);
+			catch (PageException pe) {
+				boolean done=false;
+				if(!StringUtil.isEmpty(path)) {
+					Resource res = ResourceUtil.toResourceExisting(pc, path,false,null);
+					if(res!=null) {
+						PageSource ps = pc.toPageSource(res, null);
+						if(ps!=null) {
+							try {
+								ComponentImpl other = ComponentLoader.loadComponent(pc, ps, name, false, true);
+								_readExternal(other);
+								done=true;
+							}
+							catch(PageException pe2) {
+								throw ExceptionUtil.toIOException(pe2);
+							}
+						}
+					}
+				}
+				if(!done)throw ExceptionUtil.toIOException(pe);
 			}
 		} finally {
 			if(pcCreated)
@@ -2321,7 +2349,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			}
 		}
 
-		out.writeUTF(getAbsName());
+		out.writeUTF(getAbsName()+"|"+getPageSource().getResource().getCanonicalPath());
 		out.writeUTF(ComponentUtil.md5(cw));
 		out.writeObject(_this);
 		out.writeObject(_var);

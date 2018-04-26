@@ -207,8 +207,8 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	        ois = new ObjectInputStream(is);
 	        task = (SpoolerTask) ois.readObject();
         } 
-        catch(Throwable t) {
-        	ExceptionUtil.rethrowIfNecessary(t);
+        catch(Exception e) {
+        	SystemOut.printDate(e);
         	IOUtil.closeEL(is);
         	IOUtil.closeEL(ois);
         	res.delete();
