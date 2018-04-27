@@ -23,6 +23,7 @@
 package lucee.commons.collection;
 
 import java.io.Externalizable;
+import java.io.NotSerializableException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -43,9 +44,37 @@ public abstract class AbstractMapPro<K,V> implements MapPro<K,V>,Externalizable 
     // TODO better implementation
     @Override
     public void writeExternal(java.io.ObjectOutput out) throws java.io.IOException {
-        out.writeObject(new HashMap(this));
+    	try {
+    		out.writeObject(new HashMap(this));
+    	}
+        catch(NotSerializableException nse) {
+        	NotSerializableException tmp = new NotSerializableException(nse.getMessage()+":"+entries());
+        	tmp.initCause(nse);
+        	throw tmp;
+        }
     }
-    @Override
+    private String entries() {
+		Iterator<Entry<K, V>> it = entrySet().iterator();
+		Entry<K, V> e;
+		StringBuilder sb=new StringBuilder();
+		sb.append('{');
+		while(it.hasNext()) {
+			e=it.next();
+			sb.append(toString(e.getKey()));
+			sb.append(':');
+			sb.append(toString(e.getValue()));
+			sb.append(';');
+		}
+		sb.append('}');
+		return sb.toString();
+	}
+
+	private String toString(Object o) {
+		if(o==null) return "null";
+		return o.getClass().getName();
+	}
+
+	@Override
     public void readExternal(java.io.ObjectInput in) throws java.io.IOException, ClassNotFoundException {
         this.putAll((Map)in.readObject());
     }
