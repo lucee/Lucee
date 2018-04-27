@@ -98,8 +98,15 @@
 			<name>type</name>
 			<type>string</type>
 			<required>no</required>
-			<default>true</default>
-			<description>type of the array created</description>
+			<default></default>
+			<description>type of the array created, if set the array does not have any specific type.</description>
+    	</argument>
+    	<argument>
+			<name>synchronized</name>
+			<type>boolean</type>
+			<required>no</required>
+			<default>false</default>
+			<description>is the array synchronized or not</description>
     	</argument>
 		<return>
 			<type>array</type>
