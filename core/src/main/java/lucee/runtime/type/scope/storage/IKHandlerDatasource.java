@@ -91,9 +91,8 @@ public class IKHandlerDatasource implements IKHandler {
 			IKStorageValue sv = new IKStorageValue(IKStorageScopeSupport.prepareToStore(data,existingVal,storageScope.lastModified()));
 			executor.update(ci, cfid,appName, dc, storageScope.getType(), sv, storageScope.getTimeSpan(),log);
 		} 
-		catch(Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			ScopeContext.error(log, t);
+		catch(Exception e) {
+			ScopeContext.error(log, e);
 		}
 		finally {
 			if(dc!=null) pool.releaseDatasourceConnection(dc);
