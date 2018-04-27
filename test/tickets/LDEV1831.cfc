@@ -10,7 +10,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var settings=getApplicationSettings();
 				var cfcsOrg=settings.componentpaths;
 				var cfcs=duplicate(cfcsOrg);
-				systemOutput(cfcsOrg,1,1);
 				arrayAppend(cfcs,dir);
 				// adding component path
 				application action="update" componentpaths = cfcs; 
@@ -26,7 +25,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					expect(t2.getName()).toBe('Susi');
 				}
 				finally {
-					systemOutput(cfcsOrg,1,1);
 					application action="update" componentpaths = cfcsOrg; 
 				}
 			});

@@ -1124,7 +1124,11 @@ public final class SystemUtil {
 			}
 
 			byte[] mac = network.getHardwareAddress();
-
+			if(mac == null) {
+				hasMacAddress = true;
+				return null;
+			}
+			
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < mac.length; i++) {
 				sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));

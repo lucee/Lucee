@@ -205,10 +205,12 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			ThreadLocalPageContext.register(pc);
 			tmpRegister=true;
 		}
+		boolean releaseFailed=false;
 		try{
 			pc.release();
 		}
-		catch(Exception e){
+		catch(Exception e) {
+			releaseFailed=true;
 			config.getLog("application").error("release page context", e);
 		}
 		if(tmpRegister)ThreadLocalPageContext.register(beforePC);
@@ -218,7 +220,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		if(isChild) {
 			runningChildPcs.remove(Integer.valueOf(pc.getId()));
 		}
-		if(pcs.size() < 100 && !pc.hasFamily() && ((PageContextImpl)pc).getTimeoutStackTrace() == null)// not more than 100 PCs
+		if(pcs.size() < 100 && !pc.hasFamily() && ((PageContextImpl)pc).getTimeoutStackTrace() == null && !releaseFailed)// not more than 100 PCs
 			pcs.push((PageContextImpl)pc);
 
 		if(runningPcs.size()>MAX_SIZE) clean(runningPcs);

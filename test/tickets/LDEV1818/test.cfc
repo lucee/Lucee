@@ -1,0 +1,4 @@
+interface
+{
+    public function Name()
+}

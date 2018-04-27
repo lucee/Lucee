@@ -87,6 +87,7 @@ public class GetApplicationSettings {
 		sct.setEL(KeyConstants._name, ac.getName());
 		sct.setEL("scriptProtect", AppListenerUtil.translateScriptProtect(ac.getScriptProtect()));
 		sct.setEL("secureJson", Caster.toBoolean(ac.getSecureJson()));
+		sct.setEL("CGIReadOnly", Caster.toBoolean(ac.getCGIScopeReadonly()));
 		sct.setEL("typeChecking", Caster.toBoolean(ac.getTypeChecking()));
 		sct.setEL("secureJsonPrefix", ac.getSecureJsonPrefix());
 		sct.setEL("sessionManagement", Caster.toBoolean(ac.isSetSessionManagement()));
