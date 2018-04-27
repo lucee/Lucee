@@ -18,6 +18,10 @@
  **/
 package lucee.runtime.type.scope;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
@@ -57,7 +61,7 @@ import lucee.runtime.type.util.StructUtil;
  * To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public final class CGIImpl extends StructSupport implements CGI,ScriptProtected {
+public final class CGIImpl extends StructSupport implements CGI,ScriptProtected,Externalizable {
 	
 	private static final long serialVersionUID = 5219795840777155232L;
 
@@ -93,14 +97,14 @@ public final class CGIImpl extends StructSupport implements CGI,ScriptProtected 
 		catch(UnknownHostException uhe) {}
 	}
 	
-	private HttpServletRequest req;
+	private transient HttpServletRequest req;
 	private boolean isInit;
 	private Struct internal;
 	private Map<Collection.Key,Collection.Key> aliases;
 	private int scriptProtected;
 	
 	
-	public CGIImpl(){
+	public CGIImpl() {
 		//this.setReadOnly(true);
 	}
 
@@ -214,7 +218,7 @@ public final class CGIImpl extends StructSupport implements CGI,ScriptProtected 
 		}
 		
 		
-		if(key.length()>7) {
+		if(req!=null && key.length()>7) {
 			char first=key.lowerCharAt(0);
 			try{
             if(first=='a') {
@@ -437,4 +441,21 @@ public final class CGIImpl extends StructSupport implements CGI,ScriptProtected 
 		return internal.valueIterator();
 	}
 
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		duplicate(false);// we make this to store everything into internal
+		
+		out.writeBoolean(isInit);
+		out.writeObject(internal);
+		out.writeObject(aliases);
+		out.writeInt(scriptProtected);
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		isInit=in.readBoolean();
+		internal=(Struct) in.readObject();
+		aliases=(Map<Key, Key>) in.readObject();
+		scriptProtected=in.readInt();
+	}
 }

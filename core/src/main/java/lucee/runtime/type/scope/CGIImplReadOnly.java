@@ -18,6 +18,10 @@
  **/
 package lucee.runtime.type.scope;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
@@ -27,6 +31,8 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import lucee.commons.collection.HashMapPro;
+import lucee.commons.collection.MapPro;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -43,6 +49,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.ReadOnlyStruct;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.it.KeyIterator;
 import lucee.runtime.type.it.StringIterator;
@@ -55,7 +62,7 @@ import lucee.runtime.type.util.StructUtil;
  * To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI,ScriptProtected {
+public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI,ScriptProtected,Externalizable {
 	
 	private static final long serialVersionUID = 5219795840777155232L;
 
@@ -91,15 +98,14 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI,ScriptP
 		catch(UnknownHostException uhe) {}
 	}
 	
-	private HttpServletRequest req;
+	private transient HttpServletRequest req;
 	private boolean isInit;
-	//private PageContext pc;
-	private Struct https;
-	private Struct headers;
+	private transient Struct https;
+	private transient Struct headers;
 	private int scriptProtected;
 
 	private boolean disconnected;
-	private Map<Key, Object> disconnectedData;
+	private MapPro<Key, Object> disconnectedData;
 	
 	public CGIImplReadOnly(){
 		this.setReadOnly(true);
@@ -109,12 +115,18 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI,ScriptP
 	public void disconnect() {
 		if(disconnected) return;
 		
-		disconnectedData=new HashMap<Key, Object>();
+		_disconnect();
+		disconnected=true;
+		req=null;
+	}
+	
+	private void _disconnect() {
+		disconnectedData=new HashMapPro<Key, Object>();
 		for(int i=0;i<keys.length;i++){
 			disconnectedData.put(keys[i], get(keys[i], "")); 
 		}
-		req=null;
 	}
+	
 	
 
 	@Override
@@ -146,6 +158,10 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI,ScriptP
 	
 	@Override
 	public Object get(Collection.Key key, Object defaultValue) {
+		
+		if(disconnected) {
+			return disconnectedData.g(key,defaultValue);
+		}
 		
 		if(https==null) {
 			https=new StructImpl();
@@ -363,6 +379,24 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI,ScriptP
 		sb.append(req.getServerPort());
 		if(!StringUtil.isEmpty(req.getContextPath()))sb.append(req.getContextPath());
 		return sb.toString();
+	}
+
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		_disconnect();
+		
+		out.writeBoolean(isInit);
+		out.writeObject(disconnectedData);
+		out.writeInt(scriptProtected);
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		isInit=in.readBoolean();
+		disconnectedData= (MapPro<Key, Object>) in.readObject();
+		scriptProtected=in.readInt();
+		disconnected=true;
 	}
 
 }
