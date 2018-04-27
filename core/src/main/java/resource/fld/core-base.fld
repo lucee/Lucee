@@ -341,7 +341,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>value_or_closure</name>
-			<alias>object,value,closure,function,udf</alias>
+			<alias>object,value,closure,function,udf,callback</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>The value to find or a closure/function that gets every value of the array as input and returns true if the given value is right.</description>
@@ -365,7 +365,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>value_or_closure</name>
-			<alias>object,value,closure,function,udf</alias>
+			<alias>object,value,closure,function,udf,callback</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>The value to find or a closure/function that gets every value of the array as input and returns true if the given value is right.</description>
@@ -514,7 +514,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>filter</name>
-			<alias>closure,function</alias>
+			<alias>closure,function,callback</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>filter can be a function/closure that implements the following constructor [function(any arg):boolean].</description>
@@ -1181,7 +1181,7 @@ Remember CFML arrays start at 1 not 0.</description>
     </argument>
 		<argument>
 			<name>sorttype_or_closure</name>
-			<alias>sort_type,sortType,closure,function,udf</alias>
+			<alias>sort_type,sortType,closure,function,udf,callback</alias>
 			<type>object</type>
 			<required>Yes</required>
 		<description>
@@ -7739,7 +7739,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>filter</name>
-			<alias>closure,function</alias>
+			<alias>closure,function,callback</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(any value, numeric index,string list, string delimiter):boolean].</description>
