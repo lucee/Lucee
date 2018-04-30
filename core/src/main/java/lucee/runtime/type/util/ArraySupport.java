@@ -173,6 +173,9 @@ public abstract class ArraySupport extends AbstractList implements ArrayPro,List
 
 	@Override
 	public final Object get(int index) {
+		if(index<0)	
+			throw new IndexOutOfBoundsException("invalid index defintion ["+index+"], " +
+					"index should be a number between [0 - "+(size()-1)+"], size is "+size());
 		if(index>=size())
 			throw new IndexOutOfBoundsException("invalid index ["+index+"] defintion, " +
 					"index should be a number between [0 - "+(size()-1)+"], size is "+size());
