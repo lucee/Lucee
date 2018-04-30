@@ -819,7 +819,7 @@ document.addEventListener("DOMContentLoaded", __Lucee.onDocumentReady);
 		// none highlight
 		else if(arguments.meta.data.highlight == 0) return false;
 
-		return bitand(arguments.meta.data.highlight, arguments.c)==true;
+		return bitand(arguments.meta.data.highlight, arguments.c)>0;
 	}
 
 
