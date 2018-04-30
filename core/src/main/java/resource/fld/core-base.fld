@@ -10339,6 +10339,34 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>number</type>
 		</return>
 	</function>
+	
+	<!-- RunAsync -->
+	<function>
+		<name>RunAsync</name>
+		<class>lucee.runtime.functions.thread.RunAsync</class>
+		<keywords>async,thread,future</keywords>
+		<description></description>
+		<argument>
+			<name>closure</name>
+			<alias>callback,udf,function</alias>
+			<type>object</type>
+			<required>yes</required>
+			<description></description>
+    	</argument>
+    	<argument>
+			<name>timeout</name>
+			<type>number</type>
+			<required>No</required>
+			<default>0</default>
+		<description>timeout for the action</description>
+    	</argument>
+    
+    
+		<return>
+			<type>object</type>
+		</return>
+	</function>
+	
 	<!-- rTrim -->
 	<function>
 		<name>rTrim</name>

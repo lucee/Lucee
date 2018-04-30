@@ -931,6 +931,8 @@ public class KeyConstants {
 	public static final Key _mail = KeyImpl._const("mail");
 	public static final Key _mails = KeyImpl._const("mails");
 	public static final Key _STACKTRACE = KeyImpl._const("STACKTRACE");
+	public static final Key _callback = KeyImpl._const("callback");
+	public static final Key _udf = KeyImpl._const("udf");
 	
 	private static MapPro<String,Key> _____keys;
 	
