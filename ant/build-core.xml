@@ -359,7 +359,7 @@
     <property name="temp" location="${rootDir}/temp"/>
     <property name="loader" location="${temp}/loader"/>
     <property name="core" location="${temp}/core"/>
-    <property file="${rootDir}/build.properties"/>
+    <!-- <property file="${rootDir}/build.properties"/> -->
 
 
     <!-- get the extensions from manifest -->
@@ -460,8 +460,8 @@
     </echo>
 
     <echo message="${version}"/>
-    <echo message="${name}"/>
-    <echo message="${name.explanation}"/>
+    <!-- <echo message="${name}"/>
+    <echo message="${name.explanation}"/> -->
     <echo message="Root: ${rootDir}"/>
     <echo message="Required-Extensions: ${reqExt.labels}"/>
                     
@@ -725,9 +725,9 @@
       <attribute name="Bundle-SymbolicName" value="${bundleSymbolicName}"/>
       <attribute name="Bundle-ManifestVersion" value="2"/>
       <attribute name="Built-Date" value="${NOW}"/>
-      <attribute name="State" value="${state}"/>
+      <!-- <attribute name="State" value="${state}"/>
       <attribute name="Minor-Name" value="${name}"/>
-      <attribute name="Minor-Name-Explanation" value="${name.explanation}"/>
+      <attribute name="Minor-Name-Explanation" value="${name.explanation}"/>-->
     </manifest>
   </target>
 
