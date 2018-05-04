@@ -212,7 +212,7 @@ Error Output --->
 
 	<cfif request.adminType EQ "server">
 		<cfset names=StructKeyArray(info.servlets)>
-		<cfif !ArrayContainsNoCase(names,"Rest")>
+		<cfif !ArrayContainsNoCase(names,"Rest",true)>
 			<div class="warning nofocus">
 				The REST Servlet is not configured in your enviroment!
 			</div>
