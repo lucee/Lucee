@@ -13,7 +13,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		describe( "Test suite for LDEV-1828", function() {
 			it( title='Introduced Typed support Array', body=function( currentSpec ) {
 				// using string
-				var arr=arrayNew['string'](1);
+				var arr=arrayNew(1,'string');
 				arr.add("Test");
 				arr.add("String");
 				assertequals(["Test", "String"], arr);
