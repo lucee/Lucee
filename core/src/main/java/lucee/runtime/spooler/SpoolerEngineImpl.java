@@ -622,9 +622,10 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 				store(task);
 				task=null;
 			}
-			else 
+			else {
 				log(task,e,false);
 				store(task);
+			}
 			
 			return Caster.toPageException(e);
 		}
