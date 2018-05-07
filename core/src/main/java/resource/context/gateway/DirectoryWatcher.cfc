@@ -126,7 +126,7 @@
 							file="#variables.logFileName#");
 				startTime = -1;		
 			</cfscript>
-			<!--- sleep until the next run, but cut it into half seconds, so we can stop the gateway --->
+			<!--- sleep untill the next run, but cut it into half seconds, so we can stop the gateway --->
 			<cfloop from="#sleepStep#" to="#variables.config.interval#" step="#sleepStep#" index="i">
 				<cfset sleep(sleepStep) />
 				<cfif variables.state neq "running">

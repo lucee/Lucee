@@ -317,7 +317,7 @@
 	<data key="ext.uninstallmethodexception">Can&apos;t uninstall. The uninstall method throws the following exception [{message}]. Please uninstall the application manually.</data>
 	<data key="ext.category">Category</data>
 	<data key="ext.availableversion">Available version</data>
-	<data key="ext.uninstalldone">uninstallation completed</data>
+	<data key="ext.uninstalldone">uninstall completed</data>
 	<data key="ext.provider">Provider</data>
 	<data key="ext.documentation">Documentation</data>
 	<data key="ext.installeddesc">These applications are already installed on the system.</data>
@@ -737,7 +737,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.minExeTime">Minimal Execution Time (ms)</data>
 	<data key="debug.minExeTimeDesc">Minimal Execution Time that Lucee outputs the debugger information of a request.</data>
 	<data key="debug.pathRestriction">Path Restriction</data>
-	<data key="debug.pathRestrictionDesc">Path that should not be outputted, separated path by line break.</data>
+	<data key="debug.pathRestrictionDesc">Path that should not be outputted, seperated path by line break.</data>
 	<data key="debug.settingTitle">Settings</data>
 	<data key="debug.settingDesc">Define how Lucee Log the debugging information.</data>
 	<data key="debug.outputTitle">Output</data>
@@ -793,7 +793,7 @@ you can see the log result at the end of every request, if a debug template is d
 
 	<!-- log.cfm -->
 	<data key="log.title">Log</data>
-	<data key="log.desc">This page allows to set the loglevel and location of every single log.</data>
+	<data key="log.desc">This page allows to set the logelevl and location of every single log.</data>
 	<data key="log.level">Level</data>
 	<data key="log.source">Source</data>
 	<data key="log.name">Name</data>
@@ -1248,7 +1248,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="setting.datasource">Datasource Connections</data>
 	<data key="setting.datasourceDesc">Datasource Connection open at the Moment.</data>
 	<data key="setting.task">Task Spooler</data>
-	<data key="setting.taskDesc">Active and closed tasks in Task Spooler. This includes for exampe tasks to send mails.</data>
+	<data key="setting.taskDesc">Active and closed tasks in Task Spooler. This includes for example tasks to send mails.</data>
 	<data key="setting.taskOpen">Open</data>
 	<data key="setting.taskClose">Close</data>
 	<data key="Overview.resources">External Resources</data>
@@ -1404,7 +1404,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="debug.DebugOptions">Debugging options</data>
 	<data key="settings.gateway.noDriver">There is no Gateway Type Available</data>
 	<data key="settings.gateway.title">Gateway</data>
-	<data key="settings.gateway.description">Verwalten der Gateways</data>
+	<data key="settings.gateway.description">Administer the Gateways</data>
 	<data key="settings.gateway.id">ID</data>
 	<data key="settings.gateway.class">Class</data>
 	<data key="settings.gateway.titleCreate">Create a new Gateway instance</data>
@@ -1561,7 +1561,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="mail.LogLevelDesc">Log level used for the log file.</data>
 	<data key="mail.SpoolEnabledDesc">If enabled the mails are sent in a background thread and the main request does not have to wait until the mails are sent.</data>
 	<data key="mail.maxThreads">Maximum concurrent threads</data>
-	<data key="mail.maxThreadsDesc">This setting can be changed on page "Services/Tasks". Maximum number of threads that are executed at the same time to send the mails, fewer threads will take longer to send all the mail, more threads will add more load to the system.</data>
+	<data key="mail.maxThreadsDesc">This setting can be changed on page "Services/Taks". Maximum number of threads that are executed at the same time to send the mails, fewer threads will take longer to send all the mail, more threads will add more load to the system.</data>
 	<data key="mail.TimeoutDesc">Time in seconds that the Task Manager waits to send a single mail, when the time is reached the Task Manager stops the thread and the mail gets moved to unsent folder, where the Task Manager will pick it up later to try to send it again.</data>
 	<data key="mail.seconds">Seconds</data>
 

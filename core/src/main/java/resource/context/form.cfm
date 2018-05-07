@@ -132,7 +132,7 @@ function LuceeForms(form,onError) {
 		}
 		if(!hasSelection) {
 			if(el.message && el.message.length>0) prv.addError(el,el.message);
-			else prv.addError(el,"drop-down field \""+el.name+"\" is required, but no selection is made");
+			else prv.addError(el,"drop-down field \""+el.name+"\" is required, but no selction is made");
 		}
 	}
 	
@@ -290,7 +290,7 @@ function LuceeForms(form,onError) {
         		prv.addError(el,answer);
         }
         catch(e){
-        	prv.addError(el,"error while calling remote function "+funcName+":"+e);
+        	prv.addError(el,"error while calling remote functionn "+funcName+":"+e);
         }
         
         
