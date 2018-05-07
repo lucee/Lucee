@@ -39,7 +39,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		    row['age'] = DateDiff( 'yyyy', row.dob, CreateDate( 2016, 6, 9 ) )+1;
 		    return row;
 		},queryNew("susi"));
-		assertEquals('AGE,DOB,NAME,SUSI',listSort(res.columnlist,'text'));
+		assertEquals('SUSI',listSort(res.columnlist,'text'));
 		
 	}
 
