@@ -35,8 +35,8 @@ import lucee.runtime.type.util.ArrayUtil;
 public class AbstractFinal {
 
 	private final Map<String,InterfaceImpl> interfaces=new HashMap<>();
-	private Map<Collection.Key,UDF> absUDFs=new HashMap<Collection.Key, UDF>();
-	private Map<Collection.Key,UDF> finUDFs=new HashMap<Collection.Key, UDF>();
+	private Map<Collection.Key,UDFB> absUDFs=new HashMap<Collection.Key, UDFB>();
+	private final Map<Collection.Key,UDF> finUDFs=new HashMap<Collection.Key, UDF>();
 
 	public void add(List<InterfaceImpl> interfaces) {
 		// add all interfaces to a flat structure
@@ -66,7 +66,7 @@ public class AbstractFinal {
 	
 	public void add(Collection.Key key, UDF udf) throws ApplicationException {
 		if(Component.MODIFIER_ABSTRACT==udf.getModifier())
-			absUDFs.put(key, udf);
+			absUDFs.put(key, new UDFB(udf));
 		if(Component.MODIFIER_FINAL==udf.getModifier()) {
 			if(finUDFs.containsKey(key)) {
 				UDF existing = finUDFs.get(key);
@@ -80,7 +80,7 @@ public class AbstractFinal {
 	}
 	
 	private void add(UDF udf) {
-		absUDFs.put(KeyImpl.init(udf.getFunctionName()), udf);
+		absUDFs.put(KeyImpl.init(udf.getFunctionName()), new UDFB(udf));
 	}
 	
 	/*public long lastUpdate() {
@@ -115,13 +115,13 @@ public class AbstractFinal {
 		return interfaces.values().toArray(new Interface[interfaces.size()]);
 	}
 
-	public Map<Collection.Key,UDF> removeAbstractUDFs() {
+	/*public Map<Collection.Key,UDF> getAbstractUDFs() {
 		Map<Key, UDF> tmp = absUDFs;
 		absUDFs=new HashMap<Collection.Key,UDF>();
 		return tmp;
-	}
+	}*/
 
-	public Map<Collection.Key,UDF> getAbstractUDFs() {
+	public Map<Collection.Key,UDFB> getAbstractUDFBs() {
 		return absUDFs;
 	}
 	
@@ -133,5 +133,14 @@ public class AbstractFinal {
 		return !interfaces.isEmpty();
 	}
 
+	public static class UDFB {
 
+		public boolean used=false;
+		public final UDF udf;
+
+		public UDFB(UDF udf) {
+			this.udf=udf;
+		}
+		
+	}
 }
