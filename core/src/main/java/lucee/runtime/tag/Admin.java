@@ -4090,7 +4090,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				sct.setEL("revoke", Boolean.valueOf(d.hasAllow(DataSource.ALLOW_REVOKE)));
 				sct.setEL("alter", Boolean.valueOf(d.hasAllow(DataSource.ALLOW_ALTER)));
 
-				sct.setEL("connectionLimit", d.getConnectionLimit() < 1 ? "" : Caster.toString(d.getConnectionLimit()));
+				sct.setEL("connectionLimit", d.getConnectionLimit() < 1 ? "-1" : Caster.toString(d.getConnectionLimit()));
 				sct.setEL("connectionTimeout", d.getConnectionTimeout() < 1 ? "" : Caster.toString(d.getConnectionTimeout()));
 				sct.setEL("metaCacheTimeout", Caster.toDouble(d.getMetaCacheTimeout()));
 				sct.setEL("custom", d.getCustoms());
