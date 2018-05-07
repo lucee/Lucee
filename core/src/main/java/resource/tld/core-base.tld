@@ -493,7 +493,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		<body-content>must</body-content>
 		<allow-removing-literal>yes</allow-removing-literal>
 		<body-rtexprvalue>false</body-rtexprvalue>
-		<description>Handle one case of a cfswicth</description>
+		<description>Handle one case of a cfswitch</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -932,7 +932,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<name>preservecase</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>if set to true Lucee keep the original case for the name, otherise the name is converted to a upper case string</description>
+			<description>if set to true Lucee keep the original case for the name, otherwise the name is converted to a upper case string</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -3372,7 +3372,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-			if set to true (default value) URL encodes the value of the attribute "URL" if necessary (no double encoding is happeing).
+			if set to true (default value) URL encodes the value of the attribute "URL" if necessary (no double encoding is happening).
 			This setting has no influence on the values from httpparam type="url", for this use the attribute "encoded" from httpparam</description>
 		</attribute>
 		<attribute>
@@ -3882,7 +3882,7 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<status>deprecated</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>this attribute is deprecated and ignored, log control happens via the logging framwork directly.</description>
+			<description>this attribute is deprecated and ignored, log control happens via the logging framework directly.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -4748,7 +4748,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies the maximum amount of time, in seconds, to wait to obtain a lock. If a lock can be
 		obtained within the specified period, execution continues inside the body of the tag. Otherwise, the
-		behavior depends on the value of the throwOnTimeout attribute. If not set, the remaing request timeout is used instead.</description>
+		behavior depends on the value of the throwOnTimeout attribute. If not set, the remaining request timeout is used instead.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -5796,7 +5796,7 @@ Lucee uses the number of characters in the file.</description>
 			<status>deprecated</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>this attribute is deprecated and ignored, log control happens via the logging framwork directly.</description>
+			<description>this attribute is deprecated and ignored, log control happens via the logging framework directly.</description>
 		</attribute>
 		<attribute>
 			<type>number</type>

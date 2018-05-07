@@ -230,7 +230,7 @@ public class Log4jUtil {
 					SystemOut.printDate(e);
 				}
 			}
-			// class defintion
+			// class definition
 			else {
 				Object obj = ClassUtil.loadInstance(cd.getClazz(null),null,null);
 				if(obj instanceof Appender) {
@@ -347,7 +347,7 @@ public class Log4jUtil {
 					layoutArgs.put("pattern", DEFAULT_PATTERN);
 				}
 			}
-			// class defintion
+			// class definition
 			else {
 				Object obj = ClassUtil.loadInstance(cd.getClazz(null),null,null);
 				if(obj instanceof Layout) {

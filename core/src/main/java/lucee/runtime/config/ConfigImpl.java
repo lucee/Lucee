@@ -1406,7 +1406,7 @@ public abstract class ConfigImpl implements Config {
 		if(fileFld==null) return;
         this.fldFile=fileFld;
 
-        // overwrite with addional functions
+        // overwrite with additional functions
         FunctionLib fl;
         if(fileFld.isDirectory()) {
             Resource[] files=fileFld.listResources(new ExtensionResourceFilter(new String[]{"fld","fldx"}));
@@ -1441,7 +1441,7 @@ public abstract class ConfigImpl implements Config {
 	}
 
 	/**
-     * sets if it is allowed to implizit query call, call a query member witot define name of the query. 
+     * sets if it is allowed to implict query call, call a query member without define name of the query. 
      * @param _allowImplicidQueryCall is allowed
      */
     protected void setAllowImplicidQueryCall(boolean _allowImplicidQueryCall) {
@@ -1568,7 +1568,7 @@ public abstract class ConfigImpl implements Config {
     
     /**
      * @param psq (preserve single quote) 
-     * sets if sql string inside a cfquery will be prederved for Single Quotes
+     * sets if sql string inside a cfquery will be preserved for Single Quotes
      */
     protected void setPSQL(boolean psq) {
         this.psq=psq;
@@ -3614,7 +3614,7 @@ public abstract class ConfigImpl implements Config {
 	
 	
 	/**
-	 * get the extension bundle defintion not only from this context, get it from all contexts, including the server context
+	 * get the extension bundle definition not only from this context, get it from all contexts, including the server context
 	 * @return
 	 */
 	public abstract Collection<BundleDefinition> getAllExtensionBundleDefintions();

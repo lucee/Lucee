@@ -24,11 +24,11 @@ the taglibrary.  Leave it empty if it does not apply.
 -->
 <!ELEMENT uri (#PCDATA)>
 <!--
-Defines an arbitrary text string descirbing the tag library
+Defines an arbitrary text string describing the tag library
 -->
 <!ELEMENT display-name (#PCDATA)>
 <!--
-Defines an arbitrary text string descirbing the tag library
+Defines an arbitrary text string describing the tag library
 -->
 <!ELEMENT description (#PCDATA)>
 <!--
@@ -49,7 +49,7 @@ the request time semantics for this tag. (required)
 -->
 <!ELEMENT class (#PCDATA)>
 <!--
-The argument tag defines an arument for the nesting function
+The argument tag defines an argument for the nesting function
 -->
 <!ELEMENT argument (name, type?, required?)>
 <!--

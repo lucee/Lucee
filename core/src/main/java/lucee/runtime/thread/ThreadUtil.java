@@ -164,7 +164,7 @@ public class ThreadUtil {
 	/**
 	 * return priority as a String representation
 	 * @param priority Thread priority
-	 * @return String defintion of priority (null when input is invalid)
+	 * @return String definition of priority (null when input is invalid)
 	 */
 	public static String toStringPriority(int priority) {
 		if(priority==Thread.NORM_PRIORITY) return "NORMAL";
@@ -176,7 +176,7 @@ public class ThreadUtil {
 	/** 
 	 * return priority as a int representation
 	 * @param priority Thread priority as String definition
-	 * @return int defintion of priority (-1 when input is invalid)
+	 * @return int definition of priority (-1 when input is invalid)
 	 */
 	public static int toIntPriority(String strPriority) {
 		strPriority=strPriority.trim().toLowerCase();

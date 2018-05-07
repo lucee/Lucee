@@ -112,7 +112,7 @@
 		<!--- Desc --->
 		<div class="text">
 			<cfif not StructKeyExists(data, "description")>
-				<em>No decription found</em>
+				<em>No description found</em>
 			<cfelse>
 				#replace( replace( data.description, '	', '&nbsp;&nbsp;&nbsp;', 'all' ), chr(10), '<br>', 'all' )#
 			</cfif>

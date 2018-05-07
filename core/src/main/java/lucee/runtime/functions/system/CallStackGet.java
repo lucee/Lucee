@@ -42,7 +42,7 @@ import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.KeyConstants;
 
 /**
- * returns the root of this actuell Page Context
+ * returns the root of this current Page Context
  */
 public final class CallStackGet implements Function {
 

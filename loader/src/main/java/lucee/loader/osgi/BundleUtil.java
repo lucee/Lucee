@@ -193,7 +193,7 @@ public class BundleUtil {
 		}
 		throw new BundleException("value [" + str + "] for ["
 				+ Constants.FRAMEWORK_BUNDLE_PARENT
-				+ "] defintion is invalid, " + "valid values are ["
+				+ "] definition is invalid, " + "valid values are ["
 				+ Constants.FRAMEWORK_BUNDLE_PARENT_APP + ", "
 				+ Constants.FRAMEWORK_BUNDLE_PARENT_BOOT + ", "
 				+ Constants.FRAMEWORK_BUNDLE_PARENT_EXT + ", "

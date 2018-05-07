@@ -140,7 +140,7 @@ public final class ClassUtil {
 		if(!StringUtil.isEmpty(strVersion,true)) {
 			version=OSGiUtil.toVersion(strVersion.trim(),null);
 			if(version==null) 
-				throw new ClassException("Version defintion ["+strVersion+"] is invalid.");
+				throw new ClassException("Version definition ["+strVersion+"] is invalid.");
 		}
 		return loadClassByBundle(className, name, version,id);
 	}

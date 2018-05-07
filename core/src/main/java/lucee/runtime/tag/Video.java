@@ -235,7 +235,7 @@ public class Video extends TagSupport {
 	public void setProfile(String strProfile) throws PageException {
 		VideoProfile p = getProfile(strProfile);
 		if(p!=null)profile=p.duplicate();
-		else throw doThrow("invalid profile defintion ["+strProfile+"], valid profiles are ["+getProfileKeyList()+"]");
+		else throw doThrow("invalid profile definition ["+strProfile+"], valid profiles are ["+getProfileKeyList()+"]");
 	}
 
 	public void setExecution(String execution) throws PageException {
@@ -594,7 +594,7 @@ public class Video extends TagSupport {
 			// MAKEUNIQUE
 			else if(nameconflict==NAMECONFLICT_MAKEUNIQUE) destination.setResource(makeUnique(destination.getResource()));
 			// ERROR
-			else doThrow("destiniation file ["+destination.toString()+"] already exist");
+			else doThrow("destination file ["+destination.toString()+"] already exist");
 		}
         return true;
 	}
@@ -614,7 +614,7 @@ public class Video extends TagSupport {
 	/**
 	 * get file extension of a file object
 	 * @param file file object
-	 * @return extnesion
+	 * @return extension
 	 */
 	private static String getFileExtension(Resource file) {
 		String name=file.getName();

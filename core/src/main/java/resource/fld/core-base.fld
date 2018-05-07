@@ -70,7 +70,7 @@
 		<tte-class>lucee.transformer.cfml.evaluator.func.impl.LiteralArray</tte-class>
 		<status>hidden</status>
 		<keywords>array</keywords>
-		<description>internal function used for literal array defintion</description>
+		<description>internal function used for literal array definition</description>
 		<argument-type>dynamic</argument-type>
 		<return>
 			<type>array</type>
@@ -82,7 +82,7 @@
 		<class>lucee.runtime.functions.arrays.JsonArray</class>
 		<status>hidden</status>
 		<keywords>array</keywords>
-		<description>internal function used for literal array defintion</description>
+		<description>internal function used for literal array definition</description>
 		<argument-type>dynamic</argument-type>
 		<return>
 			<type>array</type>
@@ -2470,7 +2470,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>interface</alias>
 			<type>object</type>
 			<required>Yes</required>
-			<description>array of strings containg interface pathes or a string list of interface pathes.</description>
+			<description>array of strings containing interface paths or a string list of interface paths.</description>
 	    </argument>
 		<return>
 			<type>any</type>
@@ -2683,7 +2683,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<member-position>3</member-position>
 		
 		<description>Adds units of time to a date.
-        [datepart - quicky]
+        [datepart - quickly]
         yyyy: Year; q: Quarter; m: Month; y: Day of year; d: Day
         w: Weekday; ww: Week; h: Hour; n: Minute; s: Second;
         l: Millisecond</description>
@@ -3249,7 +3249,7 @@ You may also specify other algorithm names as well as the feedback mode and padd
 			<description>
 Filter to be used to filter the data copied:
 - A string that uses "*" as a wildcard, for example, "*.cfm"
-- a UDF (User defined Function) using the following pattern "functioname(String path):boolean", the function is run for every single file, if the function returns true, then the file is will be added to the list otherwise it will be omitted</description>
+- a UDF (User defined Function) using the following pattern "functionName(String path):boolean", the function is run for every single file, if the function returns true, then the file is will be added to the list otherwise it will be omitted</description>
 		</argument>
 		<argument>
 			<name>createPath</name>
@@ -3370,7 +3370,7 @@ query: returns a query.</description>
 			<description>
 Filter to be used to filter the results:
 - A string that uses "*" as a wildcard, for example, "*.cfm"
-- a UDF (User defined Function) using the following pattern "functioname(String path):boolean", the function is run for every single file, if the function returns true, then the file is will be added to the list otherwise it will be omitted</description>
+- a UDF (User defined Function) using the following pattern "functionName(String path):boolean", the function is run for every single file, if the function returns true, then the file is will be added to the list otherwise it will be omitted</description>
 		</argument>
 		<argument>
 			<name>sort</name>
@@ -3453,7 +3453,7 @@ type of the result returned:
 	<function>
 		<name>DotNetToCFType</name>
 		<class>lucee.runtime.functions.system.DotNetToCFType</class>
-		<status>unimplemeted</status>
+		<status>unimplemented</status>
 		<description>Explicitly converts a value returned by a .NET method to the corresponding Lucee data type.</description>
 		<argument>
 			<name>input</name>
@@ -3540,7 +3540,7 @@ type of the result returned:
 	<function>
 		<name>dumpStruct</name>
 		<class>lucee.runtime.functions.other.DumpStruct</class>
-		<description>creates out of given object dump infomration as struct</description>
+		<description>creates out of given object dump information as struct</description>
 		<status>hidden</status>
 		<argument>
 			<name>value</name>
@@ -3951,7 +3951,7 @@ If you set unique=true and multiple records are returned, then an exception occu
 	<function>
 		<name>EntityMerge</name>
 		<class>lucee.runtime.functions.orm.EntityMerge</class>
-		<description>Attaches given enity to current ORM session</description>
+		<description>Attaches given entity to current ORM session</description>
 		<argument>
 			<name>entity</name>
 			<type>any</type>
@@ -4004,7 +4004,7 @@ If you set unique=true and multiple records are returned, then an exception occu
 			<name>delimiter</name>
 			<type>string</type>
 			<required>no</required>
-		<description>delimter used for the list</description>
+		<description>delimiter used for the list</description>
     </argument>
 		<return>
 			<type>string</type>
@@ -4249,7 +4249,7 @@ EntitySave(entity, [forceinsert])</description>
 	<function>
 		<name>ContractPath</name>
 		<class>lucee.runtime.functions.system.ContractPath</class>
-		<description>Does the opposite of the function expandPath(). Tries to match given absolute path to the mappings in the enviroment.  When no mappings match, lucee creates a relative path from the current position.</description>
+		<description>Does the opposite of the function expandPath(). Tries to match given absolute path to the mappings in the environment.  When no mappings match, lucee creates a relative path from the current position.</description>
 		<argument>
 			<name>path</name>
 			<alias>absolute_path,absolutePath</alias>
@@ -5280,7 +5280,7 @@ Example Values:
 	<function>
 		<name>GetComponentStaticScope</name>
 		<class>lucee.runtime.functions.system.GetComponentStaticScope</class>
-		<description>returns the static scope of a specific component, of course access rules aply.</description>
+		<description>returns the static scope of a specific component, of course access rules apply.</description>
 		<argument>
 			<name>component</name>
 			<alias>name,componentName,cfc</alias>
@@ -5312,7 +5312,7 @@ Example Values:
 	<function>
 		<name>getClassPath</name>
 		<class>lucee.runtime.functions.system.GetClassPath</class>
-		<description>returns a array containing the Java classpath of the current enviroment.</description>
+		<description>returns a array containing the Java classpath of the current environment.</description>
 		<return>
 			<type>array</type>
 		</return>
@@ -5511,7 +5511,7 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 	<function>
 		<name>getException</name>
 		<class>lucee.runtime.functions.system.GetException</class>
-		<status>unimplemeted</status>
+		<status>unimplemented</status>
 		<description>Used with the cftry and cfcatch tags. Retrieves a Java exception object from a Java object. </description>
 		<argument>
 			<name>object</name>
@@ -5662,7 +5662,7 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 	<function>
 		<name>GetPrinterInfo</name>
 		<class>lucee.runtime.functions.system.GetPrinterInfo</class>
-		<status>unimplemeted</status>
+		<status>unimplemented</status>
 		<description>Determines which print attributes are supported by a selected printer.</description>
 		<argument>
 			<name>printer</name>
@@ -5736,7 +5736,7 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 	<function>
 		<name>getGatewayHelper</name>
 		<class>lucee.runtime.functions.gateway.GetGatewayHelper</class>
-		<status>unimplemeted</status>
+		<status>unimplemented</status>
 		<description>Gets a Java GatewayHelper object that provides methods and properties for use with a event gateways.</description>
 		<argument>
 			<name>gatewayID</name>
@@ -5825,7 +5825,7 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 			<name>type</name>
 			<type>string</type>
 			<required>No</required>
-			<description>type of the memory informtion, valid values are:
+			<description>type of the memory information, valid values are:
 - heap
 - non_heap
 
@@ -5990,7 +5990,7 @@ if this attribute is not provided all types are returned.</description>
 	<function>
 		<name>getSOAPRequest</name>
 		<class>lucee.runtime.functions.xml.GetSOAPRequest</class>
-		<status>implemeted</status>
+		<status>implemented</status>
 		<keywords>webservice</keywords>
 		<description>Returns an XML object that contains the entire SOAP
         request. Usually called from within a web service CFC.</description>
@@ -6042,7 +6042,7 @@ if this attribute is not provided all types are returned.</description>
 	<function>
 		<name>AddSOAPRequestHeader</name>
 		<class>lucee.runtime.functions.xml.AddSOAPRequestHeader</class>
-		<status>implemeted</status>
+		<status>implemented</status>
 		<keywords>webservice</keywords>
 		<description>Adds a SOAP header to a web service request before making the request.</description>
 		<argument>
@@ -6084,7 +6084,7 @@ if this attribute is not provided all types are returned.</description>
 	<function>
 		<name>addSOAPResponseHeader</name>
 		<class>lucee.runtime.functions.xml.AddSOAPResponseHeader</class>
-		<status>implemeted</status>
+		<status>implemented</status>
 		<keywords>webservice</keywords>
 		<description>Adds a SOAP response header to a web service response. Call only from within a CFC web service function that is processing a request as a SOAP web service.</description>
 		<argument>
@@ -6288,7 +6288,7 @@ if this attribute is not provided all types are returned.</description>
 	<function>
 		<name>setTimeZone</name>
 		<class>lucee.runtime.functions.dateTime.SetTimeZone</class>
-		<description>change the timezone defintion for the current request.</description>
+		<description>change the timezone definition for the current request.</description>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
@@ -6461,7 +6461,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>charset</alias>
 			<type>string</type>
 			<required>no</required>
-			<description>the encoding used, default encoding is the web charset of the enviroment.</description>
+			<description>the encoding used, default encoding is the web charset of the environment.</description>
 	    </argument>
 		<return>
 			<type>string</type>
@@ -6617,7 +6617,7 @@ The following things are considered to be empty:
 			<name>ips</name>
 			<type>any</type>
 			<required>Yes</required>
-			<description>A comma separeted list of strings or a string array of ip defintions. The following patterns are allowed:
+			<description>A comma separated list of strings or a string array of ip definitions. The following patterns are allowed:
 - a single ip, like "127.0.0.1"
 - an ip with wildcards like "127.0.0.*", in this case all ips between "127.0.0.0" and "127.0.0.255" are valid
 - an ip range like "127.0.0.1-127.0.0.10", in this case all ips between "127.0.0.1" and "127.0.0.10" are valid
@@ -6925,7 +6925,7 @@ The following things are considered to be empty:
 			<values>closure,lambda,udf</values>
 			<required>No</required>
 			<introduced>5.0.0.0</introduced>
-			<description>limit to a specific type (closure,lambda,udf), if not set all custom function types are accpeted.</description>
+			<description>limit to a specific type (closure,lambda,udf), if not set all custom function types are accepted.</description>
     </argument>
 		<return>
 			<type>boolean</type>
@@ -6936,7 +6936,7 @@ The following things are considered to be empty:
 	<function>
 		<name>IsDDX</name>
 		<class>lucee.runtime.functions.decision.IsDDX</class>
-		<status>unimplemeted</status>
+		<status>unimplemented</status>
 		<keywords>decision</keywords>
 		<description>Determines whether a DDX file exists and is valid, or if a string contains valid DDX instructions.</description>
 		<argument>
@@ -7107,7 +7107,7 @@ The following things are considered to be empty:
 	<function>
 		<name>IsSOAPRequest</name>
 		<class>lucee.runtime.functions.decision.IsSOAPRequest</class>
-		<status>implemeted</status>
+		<status>implemented</status>
 		<keywords>decision,webservice</keywords>
 		<description>Determines whether a CFC is being called as a web service.</description>
 		<return>
@@ -7118,7 +7118,7 @@ The following things are considered to be empty:
 	<function>
 		<name>isStruct</name>
 		<class>lucee.runtime.functions.struct.IsStruct</class>
-		<keywords>decision,strcuct</keywords>
+		<keywords>decision,struct</keywords>
 		<description>Determines if the object is a structure</description>
 		<argument>
 			<name>variable</name>
@@ -7158,8 +7158,8 @@ The following things are considered to be empty:
 			- component: a component (CFC).
 			- creditcard: a 13-16 digit number conforming to the mod10 algorithm.
 			- date or time: any date-time value, including dates or times; equivalent to the IsDate function.
-			- email: a string containig a valid email address.
-			- eurodate: this functionality is only supported for compatibility reasion, we do not suggest to use this functionality. Use instead function isDate or lsIsDate. A date in the form d/m/y, d-m-y, or d.m.y. The m and d format can be 1 or 2 digits; y can be 2 or 4 digits. 
+			- email: a string containing a valid email address.
+			- eurodate: this functionality is only supported for compatibility reasons, we do not suggest to use this functionality. Use instead function isDate or lsIsDate. A date in the form d/m/y, d-m-y, or d.m.y. The m and d format can be 1 or 2 digits; y can be 2 or 4 digits. 
 			- float or numeric: a numeric value; equivalent to the IsNumeric function.
 			- guid: a Universally Unique Identifier of the form "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" where X is a hexadecimal number.
 			- integer: an integer.
@@ -7172,7 +7172,7 @@ The following things are considered to be empty:
 			- telephone: a standard US telephone number.
 			- URL: an http, https, ftp, file, mailto, or news URL,
 			- UUID: a ColdFusion Universally Unique Identifier, formatted "XXXXXXXX-XXXX-XXXX-XXXXXXXXXXXXXXX", where X is a hexadecimal number. See CreateUUID.
-			- USdate: this functionality is only supported for compatibility reasion, we do not suggest to use this functionality. Use instead function isDate or lsIsDate. A U.S. date of the format mm/dd/yy, with 1-2 digit days and months, 1-4 digit years.
+			- USdate: this functionality is only supported for compatibility reasons, we do not suggest to use this functionality. Use instead function isDate or lsIsDate. A U.S. date of the format mm/dd/yy, with 1-2 digit days and months, 1-4 digit years.
 			- variableName: a string formatted according to ColdFusion variable naming conventions.
 			- zipcode: U.S., 5- or 9-digit format ZIP codes.</description>
     </argument>
@@ -7343,7 +7343,7 @@ The following things are considered to be empty:
 		<description>Converts the data type of a CFML variable to pass as an
         argument to an overloaded method of a Java object. Use only
         for scalar and string arguments.
-        [type - quicky]
+        [type - quickly]
         boolean,int,long,float,double,string</description>
 		<argument>
 			<name>type</name>
@@ -8823,7 +8823,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>object</alias>
 			<type>any</type>
 			<required>no</required>
-			<description>a binary represenation of a object or a path to a file that contains this</description>
+			<description>a binary representation of a object or a path to a file that contains this</description>
    		</argument>
 		<return>
 			<type>any</type>
@@ -8834,7 +8834,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>ObjectSave</name>
 		<class>lucee.runtime.functions.other.ObjectSave</class>
-		<description>serialize a (Serialiable) object to a binary repersentation of th object</description>
+		<description>serialize a (Serialiable) object to a binary representation of th object</description>
 		<argument>
 			<name>input</name>
 			<alias>object</alias>
@@ -8986,7 +8986,7 @@ ormEvictEntity(componentName,[id])</description>
 		<name>ORMEvictQueries</name>
 		<class>lucee.runtime.functions.orm.ORMEvictQueries</class>
 		<description>This will remove all the queries from the named query cache. 
-If name is not specified, all quiries from default cache will be removed.
+If name is not specified, all queries from default cache will be removed.
 ormEvictQueries([cacheName])</description>
 		<argument>
 			<name>cacheName</name>
@@ -9622,7 +9622,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 			<required>No</required>
 			<default></default>
-		<description>a list of directions or a single direction defintion (asc,desc), the list must have the same length as the columnName list. ONly used when the second argument defines a list of column names.</description>
+		<description>a list of directions or a single direction definition (asc,desc), the list must have the same length as the columnName list. ONly used when the second argument defines a list of column names.</description>
     </argument>
 		<return>
 			<type>boolean</type>
@@ -11055,7 +11055,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>_jsonStruct</name>
 		<class>lucee.runtime.functions.struct.JsonStruct</class>
 		<status>hidden</status>
-		<description>internal function used as for literal json struct defintion.</description>
+		<description>internal function used as for literal json struct definition.</description>
 		<argument-type>dynamic</argument-type>
 		<return>
 			<type>struct</type>
@@ -11067,7 +11067,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>_literalStruct</name>
 		<class>lucee.runtime.functions.struct.LiteralStruct</class>
 		<status>hidden</status>
-		<description>internal function used as for literal struct defintion.</description>
+		<description>internal function used as for literal struct definition.</description>
 		<argument-type>dynamic</argument-type>
 		<return>
 			<type>struct</type>
@@ -11079,7 +11079,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>_literalOrderedStruct</name>
 		<class>lucee.runtime.functions.struct.LiteralOrderedStruct</class>
 		<status>hidden</status>
-		<description>internal function used as for literal ordered struct defintion.</description>
+		<description>internal function used as for literal ordered struct definition.</description>
 		<argument-type>dynamic</argument-type>
 		<return>
 			<type>struct</type>
@@ -13060,7 +13060,7 @@ _- asc (default): ascending (a to z) sort order
 			<alias>params</alias>
 			<type>struct</type>
 			<required>false</required>
-			<status>unimplemeted</status>
+			<status>unimplemented</status>
 		<description>A structure containing XSL template parameter name-value
             pairs to use in transforming the document. The XSL transform
             defined in the xslString parameter uses these parameter values

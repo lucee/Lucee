@@ -934,7 +934,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			// Default SecurityManager
 			SecurityManagerImpl sm = _toSecurityManager(security);
 
-			// addional file accesss directories
+			// additional file access directories
 			Element[] elFileAccesses = getChildren(security, "file-access");
 			sm.setCustomFileAccess(_loadFileAccess(config, elFileAccesses));
 
@@ -1522,7 +1522,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	}
 
 	/**
-	 * load mapings from XML Document
+	 * load mappings from XML Document
 	 * 
 	 * @param configServer
 	 * @param config
@@ -1944,7 +1944,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 */
 	private static void loadDataSources(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		
-		// load JDBC Driver defintion
+		// load JDBC Driver definition
 		config.setJDBCDrivers(loadJDBCDrivers(configServer,config, doc, log));
 		
 		
@@ -2295,7 +2295,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				 {
 					Struct custom = toStruct(getAttr(eConnection,"custom"));
 					
-					// Workaround for old EHCache class defintions
+					// Workaround for old EHCache class definitions
 					if (cd.getClassName()!=null && cd.getClassName().endsWith(".EHCacheLite")) {
 						cd=new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache");
 						if(!custom.containsKey("distributed")) 

@@ -25,7 +25,7 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.UDF;
 
 /**
- * returns the root of this actuell Page Context
+ * returns the root of this current Page Context
  */
 public final class GetFunctionCalledName implements Function {
 

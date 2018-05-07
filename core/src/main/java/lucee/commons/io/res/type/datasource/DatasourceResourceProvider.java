@@ -84,7 +84,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	private Map arguments;
 
 	/**
-	 * initalize ram resource
+	 * initialize ram resource
 	 * @param scheme
 	 * @param arguments
 	 * @return RamResource

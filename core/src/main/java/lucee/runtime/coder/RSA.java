@@ -81,7 +81,7 @@ public class RSA {
 	}
 	
 	public byte[] encrypt(byte[] data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-		if(encCipher==null) throw new RuntimeException("Cipher is not initalized!");
+		if(encCipher==null) throw new RuntimeException("Cipher is not initialized!");
 		int max=(KEY_SIZE/8)-11;
 	    
 	    // we need to split in pieces, because RSA cannot handle pieces bigger than the key size
@@ -117,7 +117,7 @@ public class RSA {
 	
 	public byte[] decrypt(byte[] data, int offset) throws NoSuchAlgorithmException, NoSuchPaddingException, 
 		InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-		if(decCipher==null) throw new RuntimeException("Cipher is not initalized!");
+		if(decCipher==null) throw new RuntimeException("Cipher is not initialized!");
 		
 		int max=(KEY_SIZE/8);
 		

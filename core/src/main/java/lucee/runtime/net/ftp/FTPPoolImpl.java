@@ -58,7 +58,7 @@ public final class FTPPoolImpl {
         
         if(!conn.hasLoginData()) {
         	if(StringUtil.isEmpty(conn.getName())){
-        		throw new ApplicationException("can't connect ftp server, missing connection defintion");
+        		throw new ApplicationException("can't connect ftp server, missing connection definition");
         	}
         	
         	wrap=wraps.get(conn.getName());
