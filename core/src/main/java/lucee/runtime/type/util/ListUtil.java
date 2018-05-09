@@ -1583,7 +1583,6 @@ public final class ListUtil {
 	}
 	
 	public static String rest(String list, String delimiters, boolean ignoreEmpty, int offset) {
-
 		if (offset < 1)
 			return list;
 		
@@ -1594,13 +1593,10 @@ public final class ListUtil {
 		if (ix == -1 || ix >= sbList.length() - 1)
 			return "";
 
-		String result = sbList.substring(ix + 1);
-
-		return result;
+		return sbList.substring(ix + 1);
 	}
 
 	public static String rest(String list, String delimiters, boolean ignoreEmpty) {
-
 		return rest(list, delimiters, ignoreEmpty, 1);
 	}
 
@@ -1616,24 +1612,19 @@ public final class ListUtil {
 
 		if (StringUtil.isEmpty(sb))			return -1;
 
-		int last = -1, curr = -1, listIndex = 0;
+		int curr = -1, listIndex = 0;
 		int len  = sb.length();
-		int count=0;
 		for (int i=0; i<len; i++) {
-			if(count++>100) break;
-			
 			if (contains(delims, sb.charAt(i))) {
 				curr = i;
 				if (ignoreEmpty) {
-					if (curr == last + 1) {
+					if (i==0 || (i+1<len && contains(delims, sb.charAt(i+1)))) {
 						sb.delete(curr, curr+1);
 						len--;
 						i--;
 						curr--;
-						last = curr;
 						continue;
 					}
-					last = curr;
 				}
 				if (++listIndex == itemPos)
 					break;
