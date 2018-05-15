@@ -504,7 +504,7 @@ public final class AppListenerUtil {
 		Object o = sct.get(KeyConstants._datasource,null);
 		
 		if(o!=null) {
-			o=toDefaultDatasource(config,o,LogUtil.getLog(pc,"application"));
+			o=toDefaultDatasource(config,o,((PageContextImpl)pc).getLog("application"));
 			if(o!=null) ac.setORMDataSource(o);
 		}
 	}

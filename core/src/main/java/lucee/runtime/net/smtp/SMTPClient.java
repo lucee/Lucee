@@ -861,7 +861,7 @@ public final class SMTPClient implements Serializable  {
             		// could have an exception but was send anyway
             		if(sender.getThrowable()!=null) {
             			Throwable t = sender.getThrowable();
-	                	if(log!=null) LogUtil.log(log, Log.LEVEL_ERROR, "send mail", t);
+	                	if(log!=null) log.log(Log.LEVEL_ERROR, "send mail", t);
             		}
                 	clean(config,attachmentz);
                 	
@@ -889,7 +889,7 @@ public final class SMTPClient implements Serializable  {
 
 	private void listener(ConfigWeb config,Server server, Log log, Exception e, long exe) {
 		if(e==null) log.info("mail","mail sent (subject:"+subject+"from:"+toString(from)+"; to:"+toString(tos)+"; cc:"+toString(ccs)+"; bcc:"+toString(bccs)+"; ft:"+toString(fts)+"; rt:"+toString(rts)+")");
-		else LogUtil.log(log,Log.LEVEL_ERROR,"mail",e);
+		else log.log(Log.LEVEL_ERROR,"mail",e);
 
 		// listener
 		

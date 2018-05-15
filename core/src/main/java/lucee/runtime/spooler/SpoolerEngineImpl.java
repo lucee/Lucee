@@ -247,7 +247,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 			if(listener!=null)listener.listen(config, e,before);
 		}
 		if(e==null) log.log(Log.LEVEL_INFO,"remote-client", "sucessfully executed: "+task.subject());
-		else LogUtil.log(log,Log.LEVEL_ERROR,"remote-client", "failed to execute: "+task.subject(),e);
+		else log.log(Log.LEVEL_ERROR,"remote-client", "failed to execute: "+task.subject(),e);
 	}
 
 	private Resource getFile(SpoolerTask task) {

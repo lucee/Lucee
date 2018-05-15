@@ -42,7 +42,9 @@ import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.log.LoggerAndSourceData;
+import lucee.commons.io.log.log4j.Log4jEngine;
 import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.log.log4j.layout.ClassicLayout;
 import lucee.commons.io.res.Resource;
@@ -156,7 +158,6 @@ import lucee.transformer.library.tag.TagLibTagAttr;
 
 import org.apache.commons.collections4.map.ReferenceMap;
 import org.apache.log4j.Layout;
-import org.apache.log4j.Level;
 import org.apache.log4j.PatternLayout;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
@@ -3472,7 +3473,7 @@ public abstract class ConfigImpl implements Config {
 		}
 	}
 	
-	protected LoggerAndSourceData addLogger(String name, Level level,
+	protected LoggerAndSourceData addLogger(String name, int level,
 			ClassDefinition appender, Map<String, String> appenderArgs, 
 			ClassDefinition layout, Map<String, String> layoutArgs, boolean readOnly, boolean dyn) {
 		LoggerAndSourceData existing = loggers.get(name.toLowerCase());
@@ -3517,7 +3518,7 @@ public abstract class ConfigImpl implements Config {
 		LoggerAndSourceData las = loggers.get(name.toLowerCase());
 		if(las==null) {
 			if(!createIfNecessary) return null;
-			return addLogger(name, Level.ERROR, Log4jUtil.appenderClassDefintion("console"), null, 
+			return addLogger(name, Log.LEVEL_ERROR, Log4jUtil.appenderClassDefintion("console"), null, 
 					Log4jUtil.layoutClassDefintion("pattern"), null,true,true);
 		}
 		return las;
@@ -3767,5 +3768,13 @@ public abstract class ConfigImpl implements Config {
 	@Override
 	public final boolean getFullNullSupport() {
 		return fullNullSupport;
+	}
+	
+
+	private Log4jEngine logEngine;
+	public LogEngine getLogEngine() {
+		if(logEngine==null) 
+			logEngine=new Log4jEngine(this);
+		return logEngine;
 	}
 }

@@ -51,6 +51,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.compress.ZipUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -142,7 +143,6 @@ import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLibException;
 
-import org.apache.log4j.Level;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
@@ -5912,7 +5912,7 @@ public final class XMLConfigAdmin {
 
 
 
-	public void updateLogSettings(String name, Level level, ClassDefinition appenderCD, Struct appenderArgs, ClassDefinition layoutCD, Struct layoutArgs) throws PageException {
+	public void updateLogSettings(String name, int level, ClassDefinition appenderCD, Struct appenderArgs, ClassDefinition layoutCD, Struct layoutArgs) throws PageException {
 		checkWriteAccess();
 		// TODO
     	//boolean hasAccess=ConfigWebUtil.hasAccess(config,SecurityManagerImpl.TYPE_GATEWAY);
@@ -5957,7 +5957,7 @@ public final class XMLConfigAdmin {
 	      	el.setAttribute("name",name);
       	}
       	
-      	el.setAttribute("level",level.toString());
+      	el.setAttribute("level",LogUtil.levelToString(level, ""));
       	setClass(el, null, "appender-", appenderCD);
   		el.setAttribute("appender-arguments",toStringCSSStyle(appenderArgs));
       	setClass(el, null, "layout-", layoutCD);
