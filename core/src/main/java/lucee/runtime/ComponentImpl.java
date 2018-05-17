@@ -54,6 +54,7 @@ import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.component.AbstractFinal;
+import lucee.runtime.component.AbstractFinal.UDFB;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.DataMember;
 import lucee.runtime.component.ImportDefintion;
@@ -457,14 +458,17 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 		// ABSTRACT: check if the component define all functions defined in interfaces and abstract components
 		if(getModifier() != MODIFIER_ABSTRACT && absFin.hasAbstractUDFs()) {
-			Map<Key, UDF> udfs = absFin.removeAbstractUDFs();
+			Map<Key, AbstractFinal.UDFB> udfs = absFin.getAbstractUDFBs();
 			// print.e(udfs);
-			Iterator<Entry<Key, UDF>> it = udfs.entrySet().iterator();
-			Entry<Key, UDF> entry;
+			Iterator<Entry<Key, AbstractFinal.UDFB>> it = udfs.entrySet().iterator();
+			Entry<Key, AbstractFinal.UDFB> entry;
 			UDFPlus iUdf, cUdf;
+			UDFB udfb;
 			while(it.hasNext()) {
 				entry = it.next();
-				iUdf = (UDFPlus)entry.getValue();
+				udfb = entry.getValue();
+				udfb.used=true;
+				iUdf = (UDFPlus)udfb.udf;
 				cUdf = (UDFPlus)_udfs.get(entry.getKey());
 				checkFunction(pc, componentPage, iUdf, cUdf);
 			}
@@ -1632,12 +1636,15 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		ArrayImpl arr = new ArrayImpl();
 		if(comp.absFin != null) {
 			// we not to add abstract separately because they are not real Methods, more a rule
-			if(comp.absFin.hasAbstractUDFs())
-				getUDFs(pc, comp.absFin.getAbstractUDFs().values().iterator(), comp, access, arr);
+			if(comp.absFin.hasAbstractUDFs()) {
+				java.util.Collection<UDF> absUdfs = ComponentUtil.toUDFs(comp.absFin.getAbstractUDFBs().values(),false);
+				getUDFs(pc, absUdfs.iterator(), comp, access, arr);
+			}
 		}
-		if(comp._udfs != null)
-			getUDFs(pc, comp._udfs.values().iterator(), comp, access, arr);
 
+		if(comp._udfs != null) {
+			getUDFs(pc, comp._udfs.values().iterator(), comp, access, arr);
+		}
 		// property functions
 		Iterator<Entry<Key, UDF>> it = comp._udfs.entrySet().iterator();
 		Entry<Key, UDF> entry;

@@ -45,6 +45,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
+import lucee.runtime.component.AbstractFinal.UDFB;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
@@ -853,5 +854,17 @@ public final class ComponentUtil {
 				map.put(id.toString(), id);
 			}
 		}
+	}
+	
+	public static java.util.Collection<UDF> toUDFs(java.util.Collection<UDFB> udfbs, boolean onlyUnused) {
+		List<UDF> list=new ArrayList<UDF>();
+		Iterator<UDFB> it = udfbs.iterator();
+		UDFB udfb;
+		while(it.hasNext()) {
+			udfb = it.next();
+			if(!onlyUnused || !udfb.used)
+				list.add(udfb.udf);
+		}
+		return list;
 	}
 }
