@@ -2062,7 +2062,6 @@ public final class Caster {
     public static String toString(Number n) {
     	double d = n.doubleValue();
     	long l = (long)d;
-    	if(l == d) return toString(l);
     	
         if(d>l && (d-l)<0.000000000001)  return toString(l);
         if(l>d && (l-d)<0.000000000001)  return toString(l);
