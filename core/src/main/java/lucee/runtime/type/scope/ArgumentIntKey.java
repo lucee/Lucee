@@ -18,6 +18,10 @@
  **/
 package lucee.runtime.type.scope;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
 
@@ -45,7 +49,13 @@ public final class ArgumentIntKey extends KeyImpl {
 	};
 	
 	private int intKey;
-
+	
+	/**
+	 * Do NEVER use, only for Externilze
+	 */
+	public ArgumentIntKey() {
+	}
+	
 	public ArgumentIntKey(int key) {
 		super(Caster.toString(key));
 		
@@ -59,5 +69,18 @@ public final class ArgumentIntKey extends KeyImpl {
 	public static ArgumentIntKey init(int i) {
 		if(i>=0 && i<KEYS.length) return KEYS[i];
 		return new ArgumentIntKey(i);
+	}
+	
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeInt(intKey);
+		super.writeExternal(out);
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException,ClassNotFoundException {
+		intKey=in.readInt();
+		super.readExternal(in);
 	}
 }
