@@ -138,7 +138,7 @@ public final class Perl5Util {
         
         
         int compileOptions=caseSensitive ? 0 : Perl5Compiler.CASE_INSENSITIVE_MASK;
-        compileOptions+=Perl5Compiler.MULTILINE_MASK;
+        compileOptions+=Perl5Compiler.SINGLELINE_MASK;
         if(offset < 1) offset = 1;
         
         
