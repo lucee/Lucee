@@ -18,8 +18,14 @@
  **/
 package lucee.runtime.type.scope;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.Iterator;
 
+import lucee.runtime.Component;
+import lucee.runtime.ComponentScope;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.dump.DumpData;
@@ -30,16 +36,17 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.util.KeyConstants;
 
-public class ClosureScope extends ScopeSupport implements Variables {
+public class ClosureScope extends ScopeSupport implements Variables, Externalizable {
 	
 	private static final Object NULL = new Object();
 	
-	private final Argument arg;
-	private final Local local;
-	private final Variables var;
-	private final boolean debug;
-	private final boolean localAlways;
+	private Argument arg;
+	private Local local;
+	private Variables var;
+	private boolean debug;
+	private boolean localAlways;
 	
 	public ClosureScope(PageContext pc,Argument arg, Local local,Variables var ){
 		super("variables",SCOPE_VARIABLES,StructImpl.TYPE_UNDEFINED);
@@ -51,6 +58,48 @@ public class ClosureScope extends ScopeSupport implements Variables {
 		this.local=local;
 		this.var=var;
 		this.debug=pc.getConfig().debug();
+	}
+
+	/*
+	 * ONLY USED BY SERIALISATION
+	 */
+	public ClosureScope() {
+		super("variables",SCOPE_VARIABLES,StructImpl.TYPE_UNDEFINED);
+	}
+	
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeObject(arg);
+		out.writeObject(local);
+		out.writeObject(prepare(var));
+		out.writeBoolean(debug);
+		out.writeBoolean(localAlways);
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		arg=(Argument) in.readObject();
+		local=(Local) in.readObject();
+		var=(Variables) in.readObject();
+		debug=in.readBoolean();
+		localAlways=in.readBoolean();
+	}
+
+	public static Variables prepare(Variables var) {
+		
+		if(!(var instanceof ComponentScope)) return var;
+		
+		VariablesImpl rtn = new VariablesImpl();
+		Iterator<Entry<Key, Object>> it = var.entryIterator();
+		Entry<Key, Object> e;
+		while(it.hasNext()) {
+			e = it.next();
+			if(KeyConstants._this.equals(e.getKey()) && e.getValue() instanceof Component) break;
+			rtn.setEL(e.getKey(), e.getValue());
+		}
+		
+		rtn.initialize(null);
+		return rtn;
 	}
 	
 	public Argument getArgument() {
@@ -214,6 +263,4 @@ public class ClosureScope extends ScopeSupport implements Variables {
 		dt.setTitle("Closure Variable Scope");
 		return dt;
 	}
-
-
 }

@@ -2221,6 +2221,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 				Pair[] parr = new Pair[0];
 				pc = ThreadUtil.createPageContext(config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", new Cookie[0], parr, null, parr,
 						new StructImpl(), true, -1);
+				
 			}
 
 			// reading fails for serialized data from Lucee version 4.1.2.002
@@ -2243,6 +2244,15 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			String md5 = in.readUTF();
 			Struct _this = Caster.toStruct(in.readObject(), null);
 			Struct _var = Caster.toStruct(in.readObject(), null);
+			String template=in.readUTF();
+			
+			if(pc!=null && pc.getBasePageSource()==null && !StringUtil.isEmpty(template)) {
+				Resource res = ResourceUtil.toResourceNotExisting(pc, template);
+				PageSource ps = pc.toPageSource(res, null);
+				if(ps!=null) {
+					((PageContextImpl)pc).setBase(ps);
+				}
+			}
 
 			try {
 				ComponentImpl other = (ComponentImpl)EvaluateComponent.invoke(pc, name, md5, _this, _var);
@@ -2360,7 +2370,17 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		out.writeUTF(ComponentUtil.md5(cw));
 		out.writeObject(_this);
 		out.writeObject(_var);
-
+		
+		// base template
+		String template="";
+		PageContext pc = ThreadLocalPageContext.get();
+		if(pc!=null) {
+			PageSource ps = pc.getBasePageSource();
+			if(ps!=null) {
+				template=ps.getDisplayPath();
+			}
+		}
+		out.writeUTF(template);
 	}
 
 	@Override
