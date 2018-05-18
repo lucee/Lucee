@@ -215,7 +215,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</div>
 				</cfif>
 				<cfif enableTab("Reference")>
-					<div id="-lucee-docs-ALL" class="#isDocsAllOpen ? '' : 'collapsed'#">Loading Doucuments data...</div>
+					<div id="-lucee-docs-ALL" class="#isDocsAllOpen ? '' : 'collapsed'#">Loading Documents data...</div>
 					<cfset str = {}>
 					<cfset str.functions  = getAllFunctions()>
 					<cfset str.tags = getAllTags()>
