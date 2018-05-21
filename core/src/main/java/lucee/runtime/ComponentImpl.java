@@ -2142,7 +2142,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	public Property[] getProperties(boolean onlyPeristent) {
-		return getProperties(onlyPeristent, false, false, false);
+		return getProperties(onlyPeristent, true, false, false);
 	}
 
 	public Property[] getProperties(boolean onlyPeristent, boolean includeBaseProperties, boolean preferBaseProperties, boolean inheritedMappedSuperClassOnly) {
