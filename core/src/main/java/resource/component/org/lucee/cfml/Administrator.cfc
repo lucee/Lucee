@@ -650,6 +650,8 @@ component {
 	* @inspect type of inspection for the mapping(never/once/always/"").
 	*/
 	public void function updateMapping(required string virtual, string physical="", string archive="", string primary="", string inspect="") {
+		var existing = getMapping(arguments.virtual);
+
 		admin
 			action="updateMapping"
 			type="#variables.type#"
