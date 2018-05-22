@@ -309,7 +309,10 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 				window[v] = $(".td_"+v).detach();
 				$("##btn_"+v).removeClass('btn');
 			} else {
-				;
+				$("##versions").append(window["td_"+v]);
+				$("##btn_"+v).addClass('btn');
+			}
+			if(!$('##btn_Release').hasClass( "btn" ) && !$('##btn_Pre_release').hasClass( "btn" ) && !$('##btn_Snapshot').hasClass( "btn" )){
 				$("##versions").append(window["td_"+v]);
 				$("##btn_"+v).addClass('btn');
 			}
@@ -318,7 +321,7 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 	function versionSelected(v, i){
 		var version = $("##versions").val();
 		if(version == "")
-			$( ".msg" ).append( "<div class='error'>Please Choose any version</p>" );
+			$( ".msg" ).append( "<div class='error'>Please Choose any version</div>" );
 		else
 			$( "##versionForm" ).submit();
 	}
