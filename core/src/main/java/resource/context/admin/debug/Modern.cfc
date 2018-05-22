@@ -15,7 +15,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 ,field("Warn Session size","sessionSize","100",true,{_appendix:"KB",_bottom:"Warn in debugging, if the current session is above the following (in KB) size."},"text50")
 ,group("Metrics Tab","",2)
 ,field("Metrics","tab_Metrics","Enabled",true,"Select the Metrics tab to show on debugOutput","checkbox","Enabled")
-,field("Charts","metrics_charts","HeapChart,NonHeapChart,WholeSystem,LuceeProcess",false,"Select the chart to show on metrics Tab. It will show only if the metrics tabs is enabled","checkbox","HeapChart,NonHeapChart,WholeSystem,LuceeProcess")
+,field("Charts","metrics_charts","HeapChart,NonHeapChart,WholeSystem",false,"Select the chart to show on metrics Tab. It will show only if the metrics tabs is enabled","checkbox","HeapChart,NonHeapChart,WholeSystem")
 ,group("Reference Tab","",2)
 ,field("Reference","tab_Reference","Enabled",true,"Select the Reference tab to show on DebugOutput","checkbox","Enabled")
 );
@@ -104,17 +104,17 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			</cfif>
 		</cfloop>
 		<cfset variables.chartStr = {}>
-		<cfloop list="#arguments.custom.metrics_Charts#" index="i">
-			<cfif i EQ "HeapChart">
-				<cfset variables.chartStr[i] = "heap">
-			<cfelseif i EQ "NonHeapChart">
-				<cfset variables.chartStr[i] = "nonheap">
-			<cfelseif i EQ "WholeSystem">
-				<cfset variables.chartStr[i] = "cpuSystem">
-			<cfelseif i EQ "LuceeProcess">
-				<cfset variables.chartStr[i] = "cpuProcess">
-			</cfif>
-		</cfloop>
+		<cfif structKeyExists(arguments.custom, "metrics_Charts")>
+			<cfloop list="#arguments.custom.metrics_Charts#" index="i">
+				<cfif i EQ "HeapChart">
+					<cfset variables.chartStr[i] = "heap">
+				<cfelseif i EQ "NonHeapChart">
+					<cfset variables.chartStr[i] = "nonheap">
+				<cfelseif i EQ "WholeSystem">
+					<cfset variables.chartStr[i] = "cpuSystem">
+				</cfif>
+			</cfloop>
+		</cfif>
 
 		<cfset variables.tbsStr = {}>
 		<cfloop list="#variables.tabsPresent#" index="i">
@@ -199,12 +199,14 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					<div class="wholeContainer">
 					<div id="-lucee-metrics-ALL" class="#isMetricAllOpen ? '' : 'collapsed'#">
 						<div class="section-title" style="padding-bottom:5px; padding-top:23px;">System Metrics</div>
-						<div class="titleStyle">Memory Chart & CPU Chart</div>
-						<div class="metricsCharts">Memory Used By java & Average CPU load of the last 20 seconds on the whole system and this Java Virtual Machine (Lucee Process).</div>
-						<div class="Chart_container">
-							<cfset chartStruct = variables.chartStr> 
-							<cfset loadCharts("#chartStruct#")>
-						</div>
+						<cfif structCount(variables.chartStr) GT 0>
+							<div class="titleStyle"><cfif ListFindNocase(structKeyList(variables.chartStr), "HeapChart") || ListFindNocase(structKeyList(variables.chartStr), "NonHeapChart") > Memory Chart </cfif><cfif ListFindNocase(structKeyList(variables.chartStr), "WholeSystem")> & CPU Chart</cfif></div>
+							<div class="metricsCharts"><cfif ListFindNocase(structKeyList(variables.chartStr), "HeapChart") || ListFindNocase(structKeyList(variables.chartStr), "NonHeapChart")>Memory used by the JVM, heap and non heap.</cfif><cfif  ListFindNocase(structKeyList(variables.chartStr), "WholeSystem") > & Average CPU load of the last 20 seconds on the whole system and this Java Virtual Machine (Lucee Process).</cfif></div>
+							<div class="Chart_container">
+								<cfset chartStruct = variables.chartStr>
+								<cfset loadCharts("#chartStruct#")>
+							</div>
+						</cfif>
 
 						<div id="-lucee-metrics-data" class="#ismetricsOpen ? '' : 'collapsed'# ">Loading Metrics data...</div>
 					</div><!--- #-lucee-metrics-ALL !--->
@@ -428,82 +430,158 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					}
 				}
 			</script>
-			<cfif enableTab("metrics")>
-			<script>
-				function requestData(){
-					jQuery.ajax({
-						type: "POST",
-						url: "/lucee-server/admin/debug/chartProcess.cfc?method=sysMetric",
-						success: function(result){
-							var arr =["heap","nonheap", "cpuSystem", "cpuProcess"];
-							$.each(arr,function(index,chrt){
-								window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
-								window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
-								window[chrt+"Chart"].series[0].data = window["series_"+chrt];
-								if(window[chrt+"Chart"].series[0].data.length > 60){
-								window[chrt+"Chart"].series[0].data.shift(); //shift the array
-								}
-								window[chrt+"Chart"].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
-								if(window[chrt+"Chart"].xAxis[0].data.length > 60){
-								window[chrt+"Chart"].xAxis[0].data.shift(); //shift the Time value
-								}
-								window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
-							});
-							setTimeout(requestData, 1000);
+			<cfif enableTab("metrics") && structCount(variables.chartStr) NEQ 0>
+
+				<script>
+					labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System"};
+					function requestData(){
+						jQuery.ajax({
+							type: "POST",
+							url: "/lucee-server/admin/debug/chartProcess.cfc?method=sysMetric",
+							success: function(result){
+								$.each(#serializeJSON( variables.chartStr )#,function(index,chrt){
+									if(index == "WholeSystem") {
+										cpuSystemSeries1 = cpuSystemChartOption.series[0].data; //*charts*.series[0].data
+										cpuSystemSeries1.push(result["cpuSystem"]); // push the value into series[0].data
+										cpuSystemSeries2 = cpuSystemChartOption.series[1].data; //*charts*.series[0].data
+										cpuSystemSeries2.push(result["cpuProcess"]); // push the value into series[0].data
+										cpuSystemChartOption.series[0].data = cpuSystemSeries1;
+										cpuSystemChartOption.series[1].data = cpuSystemSeries2;
+										if(cpuSystemChartOption.series[0].data.length > 60){
+											cpuSystemChartOption.series[0].data.shift(); //shift the array
+										}
+										if(cpuSystemChartOption.series[1].data.length > 60){
+											cpuSystemChartOption.series[1].data.shift(); //shift the array
+										}
+										cpuSystemChartOption.xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+										if(cpuSystemChartOption.xAxis[0].data.length > 60){
+										cpuSystemChartOption.xAxis[0].data.shift(); //shift the Time value
+										}
+										window[chrt].setOption(cpuSystemChartOption); // passed the data into the chats
+			 							return true;
+									}
+									window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
+									window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
+									window[chrt+"Chart"].series[0].data = window["series_"+chrt];
+									if(window[chrt+"Chart"].series[0].data.length > 60){
+									window[chrt+"Chart"].series[0].data.shift(); //shift the array
+									}
+									window[chrt+"Chart"].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+									if(window[chrt+"Chart"].xAxis[0].data.length > 60){
+									window[chrt+"Chart"].xAxis[0].data.shift(); //shift the Time value
+									}
+									window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
+								});
+								setTimeout(requestData, 1000);
+							}
+						})
+					}
+					var dDate=[new Date().toLocaleTimeString()]; // current time
+
+					// intialize charts
+
+					$.each(#serializeJSON( variables.chartStr )#, function(i, data){
+						if(i == "WholeSystem") {
+							cpuSystem = echarts.init(document.getElementById('cpuSystem'),'macarons'); // intialize echarts
+							cpuSystemChartOption = {
+								backgroundColor: ["##EFEDE5"],
+								tooltip : {'trigger':'axis',
+									formatter : function (params) {
+										var series2 = "";
+										if(params.length == 2) {
+											series2 =  params[1][0] + ": "+ params[1][2] + "%" + '<br>' +params[0][1];
+										}
+										return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>'  + series2;
+									}
+								},
+								legend: {
+									data:['System CPU', 'Lucee CPU']
+								},
+
+								color: ["##3399CC", "##BF4F36"],
+								grid : {
+									width: '82%',
+									height: '65%',
+									x:'30px',
+									y:'25px'
+								},
+								xAxis : [{
+									'type':'category',
+									'boundaryGap' : false,
+									'data':[0]
+								}],
+								yAxis : [{
+									'type':'value',
+									'min':'0',
+									'max':'100',
+									'splitNumber': 2
+								}],
+								series : [
+									{
+									'name': 'System CPU',
+									'type':'line',
+									smooth:true,
+									itemStyle: {normal: {areaStyle: {type: 'default'}}},
+									'data': [0]
+									},
+									{
+									'name': 'Lucee CPU',
+									'type':'line',
+									smooth:true,
+									itemStyle: {normal: {areaStyle: {type: 'default'}}},
+									'data': [0]
+									}
+
+								]
+							};
+							cpuSystem.setOption(cpuSystemChartOption); // passed the data into the chats
+				 			return true;
 						}
-					})
-				}
-				var dDate=[new Date().toLocaleTimeString()]; // current time
+						// console.log(i);
+						window[data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
+						window[data+"Chart"] = {
+							backgroundColor: ["##EFEDE5"],
+							tooltip : {'trigger':'axis',
+								formatter : function (params) {
+									return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>' +params[0][1] ;
+								}
+							},
 
-
-				// intialize charts
-				$.each(["heap","nonheap", "cpuSystem", "cpuProcess"], function(i, data){
-					window[data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
-					window[data+"Chart"] = {
-						backgroundColor: ["##ffffff"],
-						tooltip : {'trigger':'axis',
-							formatter : function (params) {
-								return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>' +params[0][1] ;
-							}
-						},
-						color: ['##0000FF'],
-						grid : {
-							width: '73%',
-							height: '65%',
-							x:'33px',
-							y:'20px'
-						},
-						xAxis : [{
-							'type':'category',
-							'boundaryGap' : false,
-							'data': [0],
-							splitLine: {
-				               	show: false
-				           	},
-						}],
-						yAxis : [{
-							'type':'value',
-							'min':'0',
-							'max':'100',
-							'splitNumber': 2,
-							splitLine: {
-				               	show: false
-				           	},
-						}],
-						series : [
-							{
-							'name': data +' Memory',
-							'type':'line',
-							smooth:true,
-							itemStyle: {normal: {areaStyle: {type: 'default'}}},
-							'data': [0]
-							}
-						]
-					}; // data
-					window[data].setOption(window[data+"Chart"]); // passed the data into the chats
-				});
-				requestData();
-			</script>
+							color: ["##3399CC", "##BF4F36"],
+							grid : {
+								width: '82%',
+								height: '65%',
+								x:'30px',
+								y:'25px'
+							},
+							xAxis : [{
+								'type':'category',
+								'boundaryGap' : false,
+								'data':[0]
+							}],
+							yAxis : [{
+								'type':'value',
+								'min':'0',
+								'max':'100',
+								'splitNumber': 2
+							}],
+							series : [
+								{
+								'name': labels[data] +' Memory',
+								'type':'line',
+								smooth:true,
+								itemStyle: {normal: {areaStyle: {type: 'default'}}},
+								'data': [0]
+								}
+							]
+						}; // data
+						window[data].setOption(window[data+"Chart"]); // passed the data into the chats
+					});
+					
+					 // data
+					// console.log(cpuSystemChartOption);
+			        requestData();
+				</script>
 			</cfif>
 			<cfif enableTab("Reference")>
 				<script>
@@ -1678,7 +1756,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		<cfset chartsLabel.HeapChart = "Heap Memory">
 		<cfset chartsLabel.NonHeapChart = "Non Heap Memory">
 		<cfset chartsLabel.WholeSystem = "CPU whole System">
-		<cfset chartsLabel.LuceeProcess = "CPU Process only">
 
 		<cfif structKeyExists(request, "fromAdmin") AND request.fromAdmin EQ true>
 			<cfset chartClass = "twoCharts">
@@ -1687,12 +1764,14 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		</cfif>
 
 		<cfloop item="i" collection="#chartsLabel#">
-			<div class="chart_margin #chartClass#">
-				<div style="text-align:center; width:264px; height:165px; padding:7px; border-radius: 25px; border: 2px solid ##898989; -moz-box-sizing: unset !important">
-					<div style="font-size: 14px;font-weight: bold;">#chartsLabel[i]#</div>
-					<div id="#StructFind(arguments.chartStruct,"#i#")#" style="width: 250px; height: 130px; margin: 0 auto;"></div>
+			<cfif structKeyExists(arguments.chartStruct, "#i#")>
+				<div class="chart_margin #chartClass#">
+					<div style="text-align:center; width:264px; height:165px; padding:7px; border-radius: 25px; border: 2px solid ##898989; -moz-box-sizing: unset !important">
+						<div style="font-size: 14px;font-weight: bold;">#chartsLabel[i]#</div>
+						<div id="#StructFind(arguments.chartStruct,"#i#")#" style="width: 250px; height: 130px; margin: 0 auto;"></div>
+					</div>
 				</div>
-			</div>
+			</cfif>
 		</cfloop>
 	</cffunction>
 
