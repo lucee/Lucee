@@ -650,7 +650,21 @@ component {
 	* @inspect type of inspection for the mapping(never/once/always/"").
 	*/
 	public void function updateMapping(required string virtual, string physical="", string archive="", string primary="", string inspect="") {
-		var existing = getMapping(arguments.virtual);
+		var mappings = getMappings();
+		query name="exists" dbtype="query" {
+			echo("SELECT * FROM mappings WHERE virtual = '#arguments.virtual#'")
+		}
+		if( exists.recordCount ) {
+			if( isNull(arguments.archive) || isEmpty(arguments.archive) ) {
+				arguments.archive = exists.archive;
+			}
+			if( isNull(arguments.primary) || isEmpty(arguments.primary) ) {
+				arguments.primary = exists.primary;
+			}
+			if( isNull(arguments.inspect) || isEmpty(arguments.inspect) ) {
+				arguments.inspect = exists.inspect;
+			}
+		}
 
 		admin
 			action="updateMapping"
@@ -659,9 +673,9 @@ component {
 
 			virtual="#arguments.virtual#"
 			physical="#arguments.physical#"
-			archive=isNull(arguments.physical) || isEmpty(arguments.physical) ? existing.physical : arguments.physical
-			primary=isNull(arguments.primary) || isEmpty(arguments.primary) ? existing.primary : arguments.primary
-			inspect=isNull(arguments.inspect) || isEmpty(arguments.inspect) ? existing.inspect : arguments.inspect
+			archive="#arguments.archive#"
+			primary="#arguments.primary#"
+			inspect="#arguments.inspect#"
 			toplevel="yes"
 			remoteClients="#variables.remoteClients#";
 	}
