@@ -112,8 +112,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				<cfset variables.chartStr[i] = "nonheap">
 			<cfelseif i EQ "WholeSystem">
 				<cfset variables.chartStr[i] = "cpuSystem">
-			<cfelseif i EQ "LuceeProcess">
-				<cfset variables.chartStr[i] = "cpuProcess">
 			</cfif>
 		</cfloop>
 
@@ -428,13 +426,15 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				}
 			</script>
 			<cfif enableTab("metrics")>
+
 			<script>
+				labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System",'cpuProcess':"Lucee Process"};
 				function requestData(){
 					jQuery.ajax({
 						type: "POST",
 						url: "/lucee-server/admin/debug/chartProcess.cfc?method=sysMetric",
 						success: function(result){
-							var arr =["heap","nonheap", "cpuSystem", "cpuProcess"];
+							var arr =["heap","nonheap"];
 							$.each(arr,function(index,chrt){
 								window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
 								window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
@@ -448,6 +448,26 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 								}
 								window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
 							});
+							var arr2 =["cpuSystem"];
+							$.each(arr2,function(index,chrt){
+								cpuSystemSeries1 = cpuSystemChartOption.series[0].data; //*charts*.series[0].data
+								cpuSystemSeries1.push(result["cpuSystem"]); // push the value into series[0].data
+								cpuSystemSeries2 = cpuSystemChartOption.series[1].data; //*charts*.series[0].data
+								cpuSystemSeries2.push(result["cpuProcess"]); // push the value into series[0].data
+								cpuSystemChartOption.series[0].data = cpuSystemSeries1;
+								cpuSystemChartOption.series[1].data = cpuSystemSeries2;
+								if(cpuSystemChartOption.series[0].data.length > 60){
+									cpuSystemChartOption.series[0].data.shift(); //shift the array
+								}
+								if(cpuSystemChartOption.series[1].data.length > 60){
+									cpuSystemChartOption.series[1].data.shift(); //shift the array
+								}
+								cpuSystemChartOption.xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+								if(cpuSystemChartOption.xAxis[0].data.length > 60){
+								cpuSystemChartOption.xAxis[0].data.shift(); //shift the Time value
+								}
+								window[chrt].setOption(cpuSystemChartOption); // passed the data into the chats
+							});
 							setTimeout(requestData, 1000);
 						}
 					})
@@ -456,42 +476,37 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 
 				// intialize charts
-				$.each(["heap","nonheap", "cpuSystem", "cpuProcess"], function(i, data){
+				$.each(["heap","nonheap"], function(i, data){
 					window[data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
 					window[data+"Chart"] = {
-						backgroundColor: ["##ffffff"],
+						backgroundColor: ["##EFEDE5"],
 						tooltip : {'trigger':'axis',
 							formatter : function (params) {
 								return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>' +params[0][1] ;
 							}
 						},
-						color: ['##0000FF'],
+
+						color: ["##3399CC", "##BF4F36"],
 						grid : {
-							width: '73%',
+							width: '82%',
 							height: '65%',
-							x:'33px',
-							y:'20px'
+							x:'30px',
+							y:'25px'
 						},
 						xAxis : [{
 							'type':'category',
 							'boundaryGap' : false,
-							'data': [0],
-							splitLine: {
-				               	show: false
-				           	},
+							'data':[0]
 						}],
 						yAxis : [{
 							'type':'value',
 							'min':'0',
 							'max':'100',
-							'splitNumber': 2,
-							splitLine: {
-				               	show: false
-				           	},
+							'splitNumber': 2
 						}],
 						series : [
 							{
-							'name': data +' Memory',
+							'name': labels[data] +' Memory',
 							'type':'line',
 							smooth:true,
 							itemStyle: {normal: {areaStyle: {type: 'default'}}},
@@ -501,7 +516,62 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					}; // data
 					window[data].setOption(window[data+"Chart"]); // passed the data into the chats
 				});
-				requestData();
+
+				var cpuSystem = echarts.init(document.getElementById('cpuSystem'),'macarons'); // intialize echarts
+				var cpuSystemChartOption = {
+					backgroundColor: ["##EFEDE5"],
+					tooltip : {'trigger':'axis',
+						formatter : function (params) {
+							var series2 = "";
+							if(params.length == 2) {
+								series2 =  params[1][0] + ": "+ params[1][2] + "%" + '<br>' +params[0][1];
+							}
+							return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>'  + series2;
+						}
+					},
+					legend: {
+						data:['System CPU', 'Lucee CPU']
+					},
+
+					color: ["##3399CC", "##BF4F36"],
+					grid : {
+						width: '82%',
+						height: '65%',
+						x:'30px',
+						y:'25px'
+					},
+					xAxis : [{
+						'type':'category',
+						'boundaryGap' : false,
+						'data':[0]
+					}],
+					yAxis : [{
+						'type':'value',
+						'min':'0',
+						'max':'100',
+						'splitNumber': 2
+					}],
+					series : [
+						{
+						'name': 'System CPU',
+						'type':'line',
+						smooth:true,
+						itemStyle: {normal: {areaStyle: {type: 'default'}}},
+						'data': [0]
+						},
+						{
+						'name': 'Lucee CPU',
+						'type':'line',
+						smooth:true,
+						itemStyle: {normal: {areaStyle: {type: 'default'}}},
+						'data': [0]
+						}
+
+					]
+				}; // data
+				// console.log(cpuSystemChartOption);
+				cpuSystem.setOption(cpuSystemChartOption); // passed the data into the chats
+		        requestData();
 			</script>
 			</cfif>
 			<cfif enableTab("Reference")>
@@ -1463,7 +1533,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 								<tr>
 									<th rowspan="3" scope="row" style="width: 39%;">
 										<span class="chartTitle"><b>Scopes in Memory</b></span><br>
-										<span class="comment_debugInfo">Scopes actually hold in Memory (a Scope not necessary is kept in Memory for it's hole life time).</span>
+										<span class="comment_debugInfo">Scopes held in memory. (Session/client scopes stored in external cache or datasource leave memory after 60 seconds of inactivity)</span>
 									</th>
 									<td style="width:30%"><b>Application</b></td>
 									<td style="width:10%" align="right">#systemInfo.applicationContextCount#</td>
@@ -1491,8 +1561,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 							<tbody>
 								<tr>
 									<th rowspan="3" scope="row" style="width: 39%;">
-										<span class="chartTitle"><b>Request/Threads</b></span><br>
-										<span class="comment_debugInfo">Request and threads (started by &lt;cfthread&gt;) currently running on the system.</span>
+										<span class="chartTitle"><b>Requests/CF Threads</b></span><br>
+										<span class="comment_debugInfo">Requests and CF Threads (started by a request) currently running on the system.</span>
 									</th>
 									<td style="width:30%"><b>Requests</b></td>
 									<cfset nbr=systemInfo.activeRequests>
@@ -1524,7 +1594,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 								<tr>
 									<th rowspan="2" scope="row" style="width: 39%;">
 										<span class="chartTitle"><b>Datasource Connections</b></span><br>
-										<span class="comment_debugInfo">Datasource Connection open at the Moment.</span>
+										<span class="comment_debugInfo">Open datasource connections</span>
 									</th>
 									<td style="width:30%">&nbsp;</td>
 									<td style="width:10%">&nbsp;</td> 
@@ -1550,14 +1620,14 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 								<tr>
 									<th rowspan="2" scope="row" style="width: 39%;">
 										<span class="chartTitle"><b>Task Spooler</b></span><br>
-										<span class="comment_debugInfo">Active and closed tasks in Task Spooler. This includes for exampe tasks to send mails.</span>
+										<span class="comment_debugInfo">Active and failed tasks in the Task Spooler. This includes tasks to send E-mail messages.</span>
 									</th>
-									<td style="width:30%"><b>Open</b></td>
+									<td style="width:30%"><b>Active</b></td>
 									<cfset nbr=systemInfo.tasksOpen>
 									<td style="width:10%" align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
 								</tr>
 								<tr>
-									<td style="width:30%"><b>Close</b></td>
+									<td style="width:30%"><b>Failed</b></td>
 									<cfset nbr=systemInfo.tasksClosed>
 									<td style="width:10%" align="right" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td> 
 								</tr>
@@ -1692,8 +1762,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		<cfset chartsLabel = structNew("linked")>
 		<cfset chartsLabel.HeapChart = "Heap Memory">
 		<cfset chartsLabel.NonHeapChart = "Non Heap Memory">
-		<cfset chartsLabel.WholeSystem = "CPU whole System">
-		<cfset chartsLabel.LuceeProcess = "CPU Process only">
+		<cfset chartsLabel.WholeSystem = "System CPU VS Lucee CPU">
 
 		<cfif structKeyExists(request, "fromAdmin") AND request.fromAdmin EQ true>
 			<cfset chartClass = "twoCharts">
