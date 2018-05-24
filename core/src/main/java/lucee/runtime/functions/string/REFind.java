@@ -32,17 +32,26 @@ import lucee.runtime.regex.Perl5Util;
 import org.apache.oro.text.regex.MalformedPatternException;
 
 public final class REFind extends BIF {
+	
 	public static Object call(PageContext pc , String regExpr, String str) throws ExpressionException {
 		return call(pc,regExpr,str,1,false);
 	}
+	
 	public static Object call(PageContext pc , String regExpr, String str, double start) throws ExpressionException {
 		return call(pc,regExpr,str,start,false);
 	}
+	
 	public static Object call(PageContext pc , String regExpr, String str, double start, boolean returnsubexpressions) throws ExpressionException {
+		return call(pc,regExpr,str,start,returnsubexpressions,"one");
+	}
+	
+	public static Object call(PageContext pc , String regExpr, String str, double start, boolean returnsubexpressions, String scope) throws ExpressionException {
 		try {
-			if(returnsubexpressions)
-				return Perl5Util.find(regExpr,str,(int)start,true);
-			return new Double(Perl5Util.indexOf(regExpr,str,(int)start,true));
+			boolean isMatchAll = scope.equalsIgnoreCase("all");
+			if(returnsubexpressions) {
+				return Perl5Util.find(regExpr,str,(int)start,true,isMatchAll);
+			}
+			return Perl5Util.indexOf(regExpr,str,(int)start,true,isMatchAll);
 		} catch (MalformedPatternException e) {
 			throw new FunctionException(pc,"reFind",1,"regularExpression",e.getMessage());
 		}

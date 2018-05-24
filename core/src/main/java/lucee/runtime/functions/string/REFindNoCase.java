@@ -39,14 +39,22 @@ public final class REFindNoCase extends BIF {
 	public static Object call(PageContext pc , String regExpr, String str) throws ExpressionException {
 		return call(pc,regExpr,str,1,false);
 	}
+	
 	public static Object call(PageContext pc , String regExpr, String str, double start) throws ExpressionException {
 		return call(pc,regExpr,str,start,false);
 	}
+	
 	public static Object call(PageContext pc , String regExpr, String str, double start, boolean returnsubexpressions) throws ExpressionException {
+		return call(pc,regExpr,str,start,returnsubexpressions,"one");
+	}
+	
+	public static Object call(PageContext pc , String regExpr, String str, double start, boolean returnsubexpressions, String scope) throws ExpressionException {
 		try {
-			if(returnsubexpressions)
-				return Perl5Util.find(regExpr,str,(int)start,false);
-			return new Double(Perl5Util.indexOf(regExpr,str,(int)start,false));
+			boolean isMatchAll = scope.equalsIgnoreCase("all");
+			if(returnsubexpressions) {
+				return Perl5Util.find(regExpr,str,(int)start,false,isMatchAll);
+			}
+			return Perl5Util.indexOf(regExpr,str,(int)start,false,isMatchAll);
 		} catch (MalformedPatternException e) {
 			throw new FunctionException(pc,"reFindNoCase",1,"regularExpression",e.getMessage());
 		}
