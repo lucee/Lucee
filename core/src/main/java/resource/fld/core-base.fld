@@ -9715,28 +9715,34 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>reg_expression</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Regular expression for which to search. Case sensitive.</description>
-    </argument>
+			<description>Regular expression for which to search. Case sensitive.</description>
+    	</argument>
 		<argument>
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>String in which
+			<description>String in which
             to search.</description>
-    </argument>
+    	</argument>
 		<argument>
 			<name>start</name>
 			<type>number</type>
 			<required>No</required>
 			<default>1</default>
-		<description>A positive integer. Position in the string at which to start search. The default value is 1.</description>
-    </argument>
+			<description>A positive integer. Position in the string at which to start search. The default value is 1.</description>
+    	</argument>
 		<argument>
 			<name>returnsubexpressions</name>
 			<type>boolean</type>
 			<required>No</required>
 		<description></description>
-    </argument>
+    	</argument>
+    	<argument>
+			<name>scope</name>
+			<type>string</type>
+			<required>No</required>
+			<description></description>
+    	</argument>
 		<return>
 			<type>any</type>
 		</return>
@@ -9756,26 +9762,26 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 			<required>Yes</required>
 		<description>Regular expression for which to search. Case-insensitive.</description>
-    </argument>
+    	</argument>
 		<argument>
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>String in which
+			<description>String in which
             to search.</description>
-    </argument>
+    	</argument>
 		<argument>
 			<name>start</name>
 			<type>number</type>
 			<required>No</required>
 			<default>1</default>
-		<description></description>
-    </argument>
+			<description></description>
+    	</argument>
 		<argument>
 			<name>returnsubexpressions</name>
 			<type>boolean</type>
 			<required>No</required>
-		<description>True: if the regular expression is found, the first array
+			<description>True: if the regular expression is found, the first array
                 element contains the length and position, respectively,
                 of the first match.
                 If the regular expression contains parentheses that
@@ -9786,7 +9792,13 @@ You can find a list of all available timezones in the Lucee administrator (Setti
                     contain one element with the value 0.
             False: the function returns the position in the string
                 where the match begins. Default.</description>
-    </argument>
+    	</argument>
+    	<argument>
+			<name>scope</name>
+			<type>string</type>
+			<required>No</required>
+			<description></description>
+    	</argument>
 		<return>
 			<type>any</type>
 		</return>

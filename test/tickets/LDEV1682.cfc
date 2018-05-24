@@ -11,7 +11,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			it(title="Checking REFind() returns struct with matching value", body = function( currentSpec ) {
 				var testString = "I'm testing RE expression {%1%} test Letter";
-				var result = refind("{%\d%}", testString, 1 ,  true);
+				var result = refind("{%\d%}", testString, 1 ,  true, "all");
 				expect(isArray(result)).toBe(true);
 				if(isArray(result)){
 					expect(structkeyList(result[1])).toBe("MATCH,LEN,POS");

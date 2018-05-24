@@ -14,7 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll() skip="isNotSupported"{
 		if(isNotSupported()) return;
 		s3Details = getCredentials();
-		mitrahsoftBucketName = "testcasesLDEV0359";
+		mitrahsoftBucketName = "ldev1176";
 		base = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@";
 		baseWithBucketName = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@/#mitrahsoftBucketName#";
 		// for skipping rest of the cases, if error occurred.
@@ -27,6 +27,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		}
 		if( !directoryExists(path) )
 			directoryCreate(path);
+	}
+	
+	function afterAll() skip="isNotSupported"{
+		if(isNotSupported()) return;
+		 if( directoryExists(baseWithBucketName) )
+		 	directoryDelete(baseWithBucketName, true);
 	}
 
 	public function run( testResults , testBox ) {
