@@ -741,7 +741,7 @@ public final class ComponentUtil {
 	}
 
 	public static Struct getPropertiesAsStruct(Component c, boolean onlyPersistent) {
-		Property[] props = c.getProperties(onlyPersistent);
+		Property[] props = c.getProperties(onlyPersistent, false, false, false);
 		Struct sct=new StructImpl();
 		if(props!=null)for(int i=0;i<props.length;i++){
 			sct.setEL(KeyImpl.getInstance(props[i].getName()), props[i]);

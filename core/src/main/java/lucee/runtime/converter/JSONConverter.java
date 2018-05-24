@@ -275,7 +275,7 @@ public final class JSONConverter extends ConverterSupport {
         	boolean isPeristent=false;
         	isPeristent=comp.isPersistent();
 			
-        	Property[] props = comp.getProperties(false);
+        	Property[] props = comp.getProperties(false, true, false, false);
         	ComponentScope scope = comp.getComponentScope();
         	for(int i=0;i<props.length;i++) {
         		if(!ignoreRemotingFetch) {
