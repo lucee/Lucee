@@ -28,6 +28,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		if( !directoryExists(path) )
 			directoryCreate(path);
 	}
+	
+	function afterAll() skip="isNotSupported"{
+		if(isNotSupported()) return;
+		 if( directoryExists(baseWithBucketName) )
+		 	directoryDelete(baseWithBucketName, true);
+	}
 
 	public function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1176 ( checking directoryExists() with large s3 bucket )", body=function() {

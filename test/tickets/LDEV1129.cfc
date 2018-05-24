@@ -32,8 +32,8 @@
 
 		function afterAll() skip="isNotSupported"{
 			if(isNotSupported()) return;
-			// if( directoryExists(baseWithBucketName) )
-			// 	directoryDelete(baseWithBucketName, true);
+			 if( directoryExists(baseWithBucketName) )
+			 	directoryDelete(baseWithBucketName, true);
 		}
 
 		public function run( testResults , testBox ) {
@@ -89,7 +89,7 @@
 		}
 	</cfscript>
 	<cffunction name="cffilewithURL" returntype="Any" access="private">
-		<cfset uri = createURI("LDEV1129/test")>
+		<cfset uri = createURI("ldev1129/test")>
 		<cffile action="copy" source="https://s3.amazonaws.com/ldev1129/test.txt" destination="#uri#">
 		<cfif FileExists("#uri#/test.txt")>
 			<cfreturn true>
@@ -98,7 +98,7 @@
 	</cffunction>
 	
 	<cffunction name="dircetlyAcessbucket" returntype="Any" access="private">
-		<cfset uri = createURI("LDEV1129/test2")>
+		<cfset uri = createURI("ldev1129/test2")>
 		<cftry>
 			<cffile action="copy" source="#baseWithBucketName#/test.txt" destination="#uri#">
 		<cfcatch type="any">

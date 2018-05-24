@@ -482,7 +482,7 @@ private function assertEqualPaths(string path1, string path2) {
 
 	private void function test(string label,string root){
 		var start=getTickCount();
-		var dir=arguments.root&"testresource/";
+		var dir=arguments.root&"testresource1/";
 		
 		// make sure there are no data from a previous run 
 		if(directoryExists(dir)) {
@@ -498,7 +498,7 @@ private function assertEqualPaths(string path1, string path2) {
 		    fileAMove(arguments.label,dir);
 		    fileAReadAppend(arguments.label,dir);
 		    fileAReadBinary(arguments.label,dir);
-		    testResourceProvider(dir&"testcaseres");
+		    testResourceProvider(dir&"testcaseres1");
 		    
 		}
 		finally {
