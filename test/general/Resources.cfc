@@ -601,8 +601,8 @@ private function assertEqualPaths(string path1, string path2) {
 		var s3=getCredencials();
 		if(!isNull(s3.accessKeyId)) {
 			application action="update" s3=s3; 
-			addMapping("/testResS3","s3:///");
-			test("s3","/testResS3/");
+			addMapping("/testresS3","s3:///");
+			test("s3","/testresS3/");
 		}
 	}
 } 
