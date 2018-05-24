@@ -1,5 +1,3 @@
-<cfif request.admintype EQ "web"><cflocation url="#request.self#" addtoken="no"></cfif>
-
 <cfparam name="url.action2" default="none">
 <cfset error.message="">
 <cfset error.detail="">

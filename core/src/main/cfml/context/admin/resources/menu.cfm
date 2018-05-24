@@ -42,7 +42,7 @@
 				struct(action:"tasks",label:stMenu.services.tasks),
 				struct(action:"schedule",label:stMenu.services.schedule,hidden:adminType NEQ "web"),
 				struct(action:"update",label:stMenu.services.update,hidden:adminType EQ "web",display:true),
-				struct(action:"restart",label:stMenu.services.restart,hidden:adminType EQ "web",display:true),
+				struct(action:"restart",label:stMenu.services.restart),
 				struct(action:"certificates",label:stMenu.services.certificates,hidden:adminType EQ "web",display:true)
 				
 			)
