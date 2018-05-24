@@ -1261,8 +1261,17 @@ body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 
 
 #admin-tabs	a 	{ display: block; width: 60px; height: 33px; float: left; }
 
-.sprite,#sprite			{ background-image: url( '../img/admin_sprite-{appendix}.png.cfm' ); background-repeat: no-repeat; }
+.mail-icon,#mail-icon  {
+	background-image: url( '../img/mail-icon.jpg.cfm' );
+	background-repeat: no-repeat;
+	width : 16px;
+	height: 16px;
+	vertical-align: middle;
+	display: inline-block;
+	border-radius: 3px;
+}
 
+.sprite,#sprite			{ background-image: url( '../img/admin_sprite-{appendix}.png.cfm' ); background-repeat: no-repeat; }
 
 #resizewin 		{ display:block; width:19px; height:19px; text-indent: -9999px; }
 
