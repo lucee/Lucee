@@ -54,11 +54,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 		var dir="s3://teststoremetadata/object/";
 		if(DirectoryExists(dir)) directoryDelete(dir,true);
-
-		assertFalse(DirectoryExists(dir));
-		directoryCreate(dir);
-
 		try {
+			assertFalse(DirectoryExists(dir));
+			directoryCreate(dir);
+
+		
 			var md=storeGetMetaData(dir);
 			var countBefore=structCount(md);
 			storesetMetaData(dir,{"susi":"Susanne"});
