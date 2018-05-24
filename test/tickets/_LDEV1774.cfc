@@ -15,7 +15,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll() skip="isNotSupported"{
 		if(isNotSupported()) return;
 		s3Details = getCredentials();
-		variables.mitrahsoftBucketName = "testcasesLDEV1774";
+		variables.mitrahsoftBucketName = "LDEV1774";
 		variables.baseWithBucketName = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@/#variables.mitrahsoftBucketName#";
 		variables.URI = createURI("LDEV1774");
 	}
