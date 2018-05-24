@@ -52,7 +52,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function testStoreMetadata() localMode=true {
 		if(!variables.s3Supported) return;
 		
-		var dir="s3://testStoreMetadata/object/";
+		var dir="s3://teststoremetadata/object/";
 		if(DirectoryExists(dir)) directoryDelete(dir,true);
 
 		assertFalse(DirectoryExists(dir));
@@ -67,7 +67,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			assertEquals("Susanne",md.susi);
 		}
 		finally {
-    		directoryDelete(dir,true);
+    		if(DirectoryExists(dir))
+    			directoryDelete(dir,true);
     	}  
 	}
 } 

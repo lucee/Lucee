@@ -34,7 +34,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 		if( directoryExists(base))
 			directoryDelete(base, true);
-		
+		try{
 		assertFalse(directoryExists(base));
 		assertFalse(fileExists(base));
 		directoryCreate(base);
@@ -62,7 +62,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		children = directoryList(sub, true,'query');
 		assertEquals(1,children.recordcount);
-		
+		}
+		finally {
+			if( directoryExists(base))
+				directoryDelete(base, true);
+		}
 	}
 
 

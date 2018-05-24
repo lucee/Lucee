@@ -576,10 +576,10 @@ private function assertEqualPaths(string path1, string path2) {
 				zipparam source=getCurrentTemplatePath();
 			}
 			
-			addMapping("/testResZip",zipPath);
+			addMapping("/testreszip",zipPath);
 			// now we use that zip
 			//throw expandPath("/testResZip/")&":"&file;
-			test("zip","/testResZip/");
+			test("zip","/testreszip/");
 		}
 		// now we delete that zip again
 		finally {
@@ -601,8 +601,8 @@ private function assertEqualPaths(string path1, string path2) {
 		var s3=getCredencials();
 		if(!isNull(s3.accessKeyId)) {
 			application action="update" s3=s3; 
-			addMapping("/testresS3","s3:///");
-			test("s3","/testresS3/");
+			addMapping("/testress3","s3:///");
+			test("s3","/testress3/");
 		}
 	}
 } 
