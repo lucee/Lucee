@@ -502,7 +502,7 @@ private function assertEqualPaths(string path1, string path2) {
 		    
 		}
 		finally {
-			directory directory="#dir#" action="delete" recurse="yes";
+			if(directoryExists(dir)) directory directory="#dir#" action="delete" recurse="yes";
 		}   
 		assertFalse(DirectoryExists(dir));
 
