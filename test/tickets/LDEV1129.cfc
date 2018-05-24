@@ -21,7 +21,7 @@
 			}
 			if(isNotSupported()) return;
 			s3Details = getCredentials();
-			mitrahsoftBucketName = "LDEV1129";
+			mitrahsoftBucketName = "ldev1129";
 			base = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@";
 			baseWithBucketName = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@/#mitrahsoftBucketName#";
 			// for skipping rest of the cases, if error occurred.
