@@ -29,10 +29,14 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourceProviderPro;
 import lucee.commons.io.res.Resources;
+import lucee.commons.io.res.type.ftp.FTPConnectionData.DataAndPath;
 import lucee.commons.io.res.util.ResourceLockImpl;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.net.proxy.Proxy;
 import lucee.runtime.op.Caster;
 
@@ -85,18 +89,19 @@ public final class FTPResourceProvider implements ResourceProviderPro {
 	@Override
 	public Resource getResource(String path) {
 		path=ResourceUtil.removeScheme(scheme,path);
-		FTPConnectionData data=new FTPConnectionData();
-		path=data.load(path);
 		
-		return 	new FTPResource(this,data,path);
+		PageContext pc = ThreadLocalPageContext.get();
+		FTPConnectionData base =null;
+		if(pc!=null) {
+			base = ((ApplicationContextSupport)pc.getApplicationContext()).getFTP();
+		}
+		DataAndPath dap = FTPConnectionData.load(base,path);
+		return new FTPResource(this,dap.data,dap.path);
 	}
-		
-		
 	
-
 	FTPResourceClient getClient(FTPConnectionData data) throws IOException {
 		
-		FTPResourceClient client=(FTPResourceClient) clients.remove(data.key());
+		FTPResourceClient client=(FTPResourceClient) clients.remove(data.toString());
 		if(client==null) {
 			client = new FTPResourceClient(data,cache);
 			if(socketTimeout>0)client.setSoTimeout(socketTimeout);
@@ -105,12 +110,7 @@ public final class FTPResourceProvider implements ResourceProviderPro {
 		if(!client.isConnected()) { 
 			if(data.hasProxyData()) {
 				try {
-		        	Proxy.start(
-		            		data.getProxyserver(), 
-		            		data.getProxyport(), 
-		            		data.getProxyuser(), 
-		            		data.getProxypassword()
-		            );
+		        	Proxy.start(data.getProxyData());
 		        	connect(client,data);
 		        }
 		        finally {
@@ -146,7 +146,7 @@ public final class FTPResourceProvider implements ResourceProviderPro {
 	public void returnClient(FTPResourceClient client) {
 		if(client==null)return;
 		client.touch();
-		clients.put(client.getFtpConnectionData().key(), client);
+		clients.put(client.getFtpConnectionData().toString(), client);
 	}
 
 	@Override
@@ -191,7 +191,7 @@ public final class FTPResourceProvider implements ResourceProviderPro {
 					} 
 					catch (IOException e) {}
 				}
-				clients.remove(client.getFtpConnectionData().key());
+				clients.remove(client.getFtpConnectionData().toString());
 			}
 		}
 	}

@@ -49,9 +49,7 @@ public final class FTPResource extends ResourceSupport {
 	private final String path;
 	private final String name;
 	private final FTPConnectionData data;
-	
 
-	
 	/**
 	 * Constructor of the class
 	 * @param factory
@@ -212,7 +210,7 @@ public final class FTPResource extends ResourceSupport {
 	}
 
 	@Override
-	public String getPath() {	
+	public String getPath() {
 		return provider.getScheme().concat("://").concat(data.key()).concat(path).concat(name);
 	}
 	/**
@@ -224,7 +222,6 @@ public final class FTPResource extends ResourceSupport {
 
 	@Override
 	public boolean isAbsolute() {
-		// TODO impl isAbolute
 		return true;
 	}
 
@@ -347,19 +344,21 @@ public final class FTPResource extends ResourceSupport {
 			files=client.listFiles(p);
 			if(files==null) return new Resource[0];
 			
-			List list=new ArrayList();
-			String parent=path.concat(name).concat("/");
+			List<FTPResource> list=new ArrayList<FTPResource>();
+			String parent=path.concat(name);
+			if(!StringUtil.endsWith(parent, '/')) parent+="/";
+			
 			String name;
 			FTPResource res;
 		    for(int i=0;i<files.length;i++) {
 		    	name=files[i].getName();
 		    	if(!".".equals(name) && !"..".equals(name)) {
-			    	res=new FTPResource(provider,data,parent,name);
+		    		res=new FTPResource(provider,data,parent,name);
 		    		client.registerFTPFile(res, files[i]);
 		    		list.add(res);
 		    	}
 		    }
-			return (Resource[]) list.toArray(new FTPResource[list.size()]);
+			return list.toArray(new FTPResource[list.size()]);
 		}
 		catch(IOException ioe) {
 			return null;

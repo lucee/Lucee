@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.type.ftp.FTPConnectionData;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
@@ -55,6 +56,8 @@ import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMConfigurationImpl;
+import lucee.runtime.security.Credential;
+import lucee.runtime.security.CredentialImpl;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -227,7 +230,7 @@ public final class AppListenerUtil {
 			DataSourceDefintion dbt = DBUtil.getDataSourceDefintionForType(type, null);
 			if(dbt==null) throw new ApplicationException("no datasource type ["+type+"] found");
 			try {
-				return new DataSourceImpl(config,null,
+				return new DataSourceImpl(config,
 					name, 
 					dbt.classDefinition, 
 					Caster.toString(data.get(KeyConstants._host)), 
@@ -282,7 +285,7 @@ public final class AppListenerUtil {
 			MappingData md=toMappingData(e.getValue(),source);
 			mappings.add(config.getApplicationMapping("application",virtual,md.physical,md.archive,md.physicalFirst,false));
 		}
-		return mappings.toArray(new Mapping[mappings.size()]);
+		return ConfigWebUtil.sort(mappings.toArray(new Mapping[mappings.size()]));
 	}
 	
 
@@ -292,16 +295,18 @@ public final class AppListenerUtil {
 		if(Decision.isStruct(value)) {
 			Struct map=Caster.toStruct(value);
 			
-			
+			// allowRelPath
+			boolean allowRelPath=Caster.toBooleanValue(map.get("allowRelPath",null),true);
+
 			// physical
 			String physical=Caster.toString(map.get("physical",null),null);
 			if(!StringUtil.isEmpty(physical,true)) 
-				md.physical=translateMappingPhysical(physical.trim(),source);
+				md.physical=translateMappingPhysical(physical.trim(),source, allowRelPath);
 
 			// archive
 			String archive = Caster.toString(map.get("archive",null),null);
 			if(!StringUtil.isEmpty(archive,true)) 
-				md.archive=translateMappingPhysical(archive.trim(),source);
+				md.archive=translateMappingPhysical(archive.trim(),source,allowRelPath);
 			
 			if(archive==null && physical==null) 
 				throw new ApplicationException("you must define archive or/and physical!");
@@ -318,15 +323,15 @@ public final class AppListenerUtil {
 		}
 		// simple value == only a physical path
 		else {
-			md.physical=translateMappingPhysical(Caster.toString(value).trim(),source);
+			md.physical=translateMappingPhysical(Caster.toString(value).trim(),source,true);
 			md.physicalFirst=true;
 		}
 		
 		return md;
 	}
 
-	private static String translateMappingPhysical(String path, Resource source) {
-		if(source==null) return path;
+	private static String translateMappingPhysical(String path, Resource source, boolean allowRelPath) {
+		if(source==null || !allowRelPath) return path;
 		source=source.getParentResource().getRealResource(path);
 		if(source.exists()) return source.getAbsolutePath();
 		return path;
@@ -755,6 +760,32 @@ public final class AppListenerUtil {
 		boolean ssl = Caster.toBooleanValue(data.get("ssl",null),false);
 		
 		return new ServerImpl(-1,hostName, port, username, password, lifeTimespan.getMillis(), idleTimespan.getMillis(), tls, ssl, false,ServerImpl.TYPE_LOCAL); // MUST improve store connection somehow
+	}
+
+	public static FTPConnectionData toFTP(Struct sct) {
+		// username
+		Object o = sct.get(KeyConstants._username,null);
+		if(o==null) o = sct.get(KeyConstants._user,null);
+		String user=Caster.toString(o,null);
+		if(StringUtil.isEmpty(user)) user=null;
+
+		// password
+		o = sct.get(KeyConstants._password,null);
+		if(o==null) o = sct.get(KeyConstants._pass,null);
+		String pass=Caster.toString(o,null);
+		if(StringUtil.isEmpty(pass)) pass=user!=null?"":null;
+
+		// host
+		o = sct.get(KeyConstants._host,null);
+		if(o==null) o = sct.get(KeyConstants._server,null);
+		String host=Caster.toString(o,null);
+		if(StringUtil.isEmpty(host)) host=null;
+
+		// port
+		o = sct.get(KeyConstants._port,null);
+		int port=Caster.toIntValue(o,0);
+
+		return new FTPConnectionData(host,user,pass,port);
 	}
 
 }

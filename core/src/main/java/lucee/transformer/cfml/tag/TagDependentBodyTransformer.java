@@ -22,6 +22,7 @@ import lucee.runtime.exp.TemplateException;
 import lucee.transformer.Factory;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.Root;
+import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.TransfomerSettings;
 import lucee.transformer.cfml.evaluator.EvaluatorPool;
 import lucee.transformer.library.function.FunctionLib;
@@ -42,7 +43,15 @@ public interface TagDependentBodyTransformer {
 	 * @param cfml
 	 * @throws TemplateException
 	 */
-	public Body transform(Factory factory,Root root,EvaluatorPool ep,TagLib[][] tlibs, FunctionLib[] flibs, String surroundingTagName, TagLibTag[] scriptTags, SourceCode cfml,TransfomerSettings setting)
-		throws TemplateException;
+	//public Body transform(Factory factory,Root root,EvaluatorPool ep,TagLib[][] tlibs, FunctionLib[] flibs, String surroundingTagName, 
+	// TagLibTag[] scriptTags, SourceCode cfml,TransfomerSettings setting)
+	//		throws TemplateException;
+	
+	
+	public Body transform(Data data,String surroundingTagName) throws TemplateException;
+		
+	
+	
+
 
 }

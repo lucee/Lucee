@@ -367,6 +367,20 @@ A struct that defines default S3 settings, this settings can be overwritten as p
 - host(default:"s3.amazonaws.com"): hostname of the service
 </description>
 		</attribute>
+	
+		<attribute>
+			<type>struct</type>
+			<name>ftp</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>
+A struct that defines default ftp settings, this settings can be overwritten as part of the ftp file path, the following keys are supported:
+- username: username to access the ftp server
+- password: password to access the ftp server
+- port: port of the FTP server
+- host: hostname of the FTP server (lucee.org)
+</description>
+		</attribute>
 		
 		<attribute>
 			<type>boolean</type>

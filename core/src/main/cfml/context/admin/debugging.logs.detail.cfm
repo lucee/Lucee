@@ -9,7 +9,7 @@
 
 <cfset drivers={}>
 <cfloop collection="#driverNames#" index="n" item="fn">
-	<cfif n EQ "Debug" or n EQ "Field" or n EQ "Group">
+	<cfif n EQ "Debug" or n EQ "Field" or n EQ "Group" or n EQ "ChartProcess">
     	<cfcontinue>
     </cfif>
 	<cfset tmp=createObject('component',fn)>

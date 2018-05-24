@@ -34,7 +34,6 @@ import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.engine.ThreadLocalPageSource;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.dt.TimeSpanImpl;

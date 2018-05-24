@@ -9,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				} catch ( any e ){
 					var encodeValue = e.message;
 				}
-				expect(encodeValue).toBe("can't decode the the base64 input string [aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2 ... truncated], because the input string has an invalid length");
+				expect(encodeValue).toBe("aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2lkPU5ZMDImdmluPTNEN0hBMThONzJHMTc3Nw==");
 			});
 
 			it("binary decode with length less than 88 having '=' at last", function( currentSpec ) {
@@ -33,29 +33,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				}
 				expect(encodeValue).toBe("aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2lkPU5ZMDImdmluPTNEN0hBMThONzJHMTc=");
 			});
-
-			it("binary decode with length less than 88 having '=' in between", function( currentSpec ) {
-				try{
-					encodedString = "aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2lkPU5ZMDImdmluPTNEN0hB=ThONzJHMTc3Nj";
-					var decode = BinaryDecode(encodedString, "base64");
-					var encodeValue = binaryEncode(decode, "base64");
-				} catch ( any e ){
-					var encodeValue = e.message;
-				}
-				expect(encodeValue).toBe("can't decode the the base64 input string [aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2 ... truncated], because the input string has an invalid length");
-			});
-
-			it("binary decode with length less than 88 having n mumber of '=' in between", function( currentSpec ) {
-				try{
-					encodedString = "aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2lkPU5ZMDImdmlu====N0hBMThONzJHMTc3N2";
-					var decode = BinaryDecode(encodedString, "base64");
-					var encodeValue = binaryEncode(decode, "base64");
-				} catch ( any e ){
-					var encodeValue = e.message;
-				}
-				expect(encodeValue).toBe("can't decode the the base64 input string [aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2 ... truncated], because the input string has an invalid length");
-			});
 		});
+
 		describe( "binary encode with 88 character", function() {
 			it("simple binary decode with length 88 without '=' ", function( currentSpec ) {
 				try{
@@ -89,31 +68,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				}
 				expect(encodeValue).toBe("aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2lkPU5ZMDImdmluPTNEN0hBMThONzJHMTc3");
 			});
-
-			it("binary decode with length 88 having '=' in between", function( currentSpec ) {
-				hasError = false;
-				try{
-					encodedString = "aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2lkPU5ZMDIm=dmluPTNEN0hBMThONzJHMTc3Njg";
-					var decode = BinaryDecode(encodedString, "base64");
-					var encodeValue = binaryEncode(decode, "base64");
-				} catch ( any e ){
-					hasError = true;
-				}
-				expect(hasError).toBeTrue();
-			});
-
-			it("binary decode with length 88 having n mumber of '=' in between", function( currentSpec ) {
-				hasError = false;
-				try{
-					encodedString = "aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2lkPU5ZMDIm===luPTNEN0hBMThONzJHMTc3Njg";
-					var decode = BinaryDecode(encodedString, "base64");
-					var encodeValue = binaryEncode(decode, "base64");
-				} catch ( any e ){
-					hasError = true;
-				}
-				expect(hasError).toBeTrue();
-			});
 		});
+
 		describe( "binary encode with greater than 88 character", function() {
 			it("simple binary decode with length greater than 88 without '=' ", function( currentSpec ) {
 				try{
@@ -123,7 +79,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				} catch ( any e ){
 					var encodeValue = e.message;
 				}
-				expect(encodeValue).toBe("can't decode the the base64 input string [aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2 ... truncated], because the input string has an invalid length");
+				writeDump(encodeValue);
+				expect(encodeValue).toBe("aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2lkPU5ZMDImdmluPTNEN0hBMThONzJHMTc3Njg2tg==");
 			});
 
 			it("binary decode with length greater than 88 having '=' at last", function( currentSpec ) {
@@ -145,30 +102,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				} catch ( any e ){
 					var encodeValue = e.message;
 				}
+				writeDump(encodeValue);
 				expect(encodeValue).toBe("aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2lkPU5ZMDImdmluPTNEN0hBThONzJHMTc3Nj2tkgQ==");
-			});
-
-			it("binary decode with length greater than 88 having '=' in between", function( currentSpec ) {
-				hasError = false;
-				try{
-					encodedString = "aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2lkPU5ZMDImdmluPTNEN0hB=ThONzJHMTc3Nj2skasd";
-					var decode = BinaryDecode(encodedString, "base64");
-					var encodeValue = binaryEncode(decode, "base64");
-				} catch ( any e ){
-					hasError = true;
-				}
-				expect(hasError).toBeTrue();
-			});
-
-			it("binary decode with length greater than 88 having n mumber of '=' in between", function( currentSpec ) {
-				try{
-					encodedString = "aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2lkPU5ZMDImdmluPTNEN0hB======ThONzJHMTc3Nj2sk";
-					var decode = BinaryDecode(encodedString, "base64");
-					var encodeValue = binaryEncode(decode, "base64");
-				} catch ( any e ){
-					var encodeValue = e.message;
-				}
-				expect(encodeValue).toBe("aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2lkPU5ZMDImdmluPTNEN0hBThONzJHMTc3Nj2sk");
 			});
 		});
 	}

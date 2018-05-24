@@ -41,6 +41,8 @@ import javax.servlet.SessionCookieConfig;
 import javax.servlet.SessionTrackingMode;
 import javax.servlet.descriptor.JspConfigDescriptor;
 
+import org.apache.felix.framework.Logger;
+
 import lucee.cli.util.EnumerationWrapper;
 
 public class ServletContextImpl implements ServletContext {
@@ -49,6 +51,7 @@ public class ServletContextImpl implements ServletContext {
 	private final int majorVersion;
 	private final int minorVersion;
 	private final File root;
+	private Logger logger;
 
 	public ServletContextImpl(final File root,
 			final Map<String, Object> attributes,
@@ -181,13 +184,12 @@ public class ServletContextImpl implements ServletContext {
 	 */
 	@Override
 	public void log(final String msg, final Throwable t) {// TODO better
+		if(logger==null) return;
+		
 		if (t == null)
-			System.out.println(msg);
+			logger.log(Logger.LOG_INFO, msg);
 		else
-			System.out.println(msg + ":\n" + t.getMessage());
-
-		//if(t==null)log.log(Log.LEVEL_INFO, "ServletContext", msg);
-		//else log.log(Log.LEVEL_ERROR, "ServletContext", msg+":\n"+ExceptionUtil.getStacktrace(t,false));
+			logger.log(Logger.LOG_ERROR, msg, t);
 	}
 
 	/**
@@ -410,6 +412,11 @@ public class ServletContextImpl implements ServletContext {
 	public void setSessionTrackingModes(final Set<SessionTrackingMode> arg0) {
 		throw notSupported("setSessionTrackingModes(Set<SessionTrackingMode>) ");
 
+	}
+
+	
+	public void setLogger(Logger logger) {
+		this.logger=logger;
 	}
 
 }

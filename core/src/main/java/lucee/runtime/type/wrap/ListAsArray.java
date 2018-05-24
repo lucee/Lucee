@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpUtil;
@@ -37,14 +38,13 @@ import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayClassic;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
-import lucee.runtime.type.it.EntryArrayIterator;
 import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.it.KeyIterator;
 import lucee.runtime.type.it.StringIterator;
-import lucee.runtime.type.scope.ArgumentImpl;
 import lucee.runtime.type.util.ArraySupport;
 import lucee.runtime.type.util.ListIteratorImpl;
 
@@ -87,30 +87,39 @@ public class ListAsArray extends ArraySupport implements Array,List {
 
 	@Override
 	public Object get(int key, Object defaultValue) {
+		if(key<=0) return defaultValue;
+		if(key>list.size()) return defaultValue;
+		
 		try {
 			Object rtn = list.get(key-1);
-			if(rtn==null) return defaultValue;
+			if(rtn==null) {
+				if(NullSupportHelper.full()) {
+					return null;
+				}
+				return defaultValue;
+			}
 			return rtn;
 		}
-		catch(Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		catch(Exception e) {
 			return defaultValue;
 		}
 	}
 
 	@Override
 	public Object getE(int key) throws PageException {
-		try {
-			Object rtn = list.get(key-1);
-			if(rtn==null) throw new ExpressionException("Element at position ["+key+"] does not exist in list");
-			return rtn;
+		if(key<=0) throw new ExpressionException("Invalid array index ["+key+"], arrays start with index [1]");
+		if(key>list.size()) throw new ExpressionException("Array index ["+key+"] out of range, array size is ["+list.size()+"]");
+			
+		Object rtn = list.get(key-1);
+		if(rtn==null) {
+			if(NullSupportHelper.full()) {
+				return null;
+			}
+			throw new ExpressionException("Element at position ["+key+"] does not exist in list");
 		}
-		catch(Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			throw new ExpressionException("Element at position ["+key+"] does not exist in list",t.getMessage());
-		}
+		return rtn;
 	}
-
+	
 	@Override
 	public int getDimension() {
 		return 1;

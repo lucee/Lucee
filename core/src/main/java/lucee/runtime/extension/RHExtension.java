@@ -196,8 +196,10 @@ public class RHExtension implements Serializable {
 				readManifestConfig(el, extensionFile.getAbsolutePath(), null);
 				_softLoaded=true;
 			}
+			catch(InvalidVersion iv) {
+				throw iv;
+			}
 			catch(ApplicationException ae) {
-				SystemOut.printDate(ae);
 				init(toResource(config,el),false);
 				_softLoaded=false;
 			}
@@ -570,14 +572,14 @@ public class RHExtension implements Serializable {
 	private void readLoaderVersion(String label, String str) throws ApplicationException {
 		minLoaderVersion = Caster.toDoubleValue(str,0);
 		if(minLoaderVersion>SystemUtil.getLoaderVersion()) {
-			throw new ApplicationException("The Extension ["+label+"] cannot be loaded, "+Constants.NAME+" Loader Version must be at least ["+str+"], update the Lucee.jar first.");
+			throw new InvalidVersion("The Extension ["+label+"] cannot be loaded, "+Constants.NAME+" Loader Version must be at least ["+str+"], update the Lucee.jar first.");
 		}
 	}
 
 	private void readCoreVersion(String label, String str, Info info) throws ApplicationException {
 		minCoreVersion = OSGiUtil.toVersion(str, null);
 		if(minCoreVersion!=null && Util.isNewerThan(minCoreVersion,info.getVersion())) {
-			throw new ApplicationException("The Extension ["+label+"] cannot be loaded, "+Constants.NAME+" Version must be at least ["+minCoreVersion.toString()+"], version is ["+info.getVersion().toString()+"].");
+			throw new InvalidVersion("The Extension ["+label+"] cannot be loaded, "+Constants.NAME+" Version must be at least ["+minCoreVersion.toString()+"], version is ["+info.getVersion().toString()+"].");
 		}
 	}
 
@@ -1125,6 +1127,18 @@ public class RHExtension implements Serializable {
 		if(!loaded)load(extensionFile);
 		return bundles;
 	}
+	
+	public BundleInfo[] getBundles(BundleInfo[] defaultValue) {
+		if(!loaded){
+			try{
+				load(extensionFile);
+			}
+			catch(Exception e) {
+				return defaultValue;
+			}
+		}
+		return bundles;
+	}
 
 	public String[] getFlds() throws ApplicationException, IOException, BundleException {
 		if(!loaded)load(extensionFile);
@@ -1328,5 +1342,15 @@ public class RHExtension implements Serializable {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
+	}
+	
+	public static class InvalidVersion extends ApplicationException {
+
+		private static final long serialVersionUID = 8561299058941139724L;
+
+		public InvalidVersion(String message) {
+			super(message);
+		}
+		
 	}
 }

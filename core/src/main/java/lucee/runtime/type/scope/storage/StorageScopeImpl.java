@@ -19,7 +19,6 @@
 package lucee.runtime.type.scope.storage;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -28,7 +27,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.lang.RandomUtil;
-import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;

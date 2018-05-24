@@ -160,17 +160,20 @@ printError(error);
 			$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
 			disableBlockUI=true;
 
-
-	 		$.get(url, function(response) {
-	      		field.disabled = false;
-
-	 			if((response+"").trim()=="")
+			$.ajax({
+				method: 'get',
+				url: url,
+				success: function(response, status) {
+					if((response+"").trim()=="")
 					window.location=('#request.self#?action=#url.action#'); //$('##updateInfoDesc').html("<p>#stText.services.update.restartOKDesc#</p>");
-				else
+					else
 					$('##updateInfoDesc').html('<div class="error">'+response+'</div>');
 					//window.location=('#request.self#?action=#url.action#'); //$('##updateInfoDesc').html(response);
-
-	 		});
+				},
+				error: function(e) {
+					$('##updateInfoDesc').html('<div class="error">Update Failed Please Try again</div>');
+				}
+			});
 		});
 	}
 	</script>

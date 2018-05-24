@@ -32,21 +32,47 @@ loop collection=drivers index="n" item="dr" {
 	}
 }
 
+mysqls=["org.gjt.mm.mysql.Driver","com.mysql.jdbc.Driver","com.mysql.cj.jdbc.Driver"];
+mssqls=["com.microsoft.jdbc.sqlserver.SQLServerDriver","com.microsoft.sqlserver.jdbc.SQLServerDriver"];
+
+
+
+function getDbDriverTypeName(required className,required dsn) {
+	// find matching driver
+	loop collection=variables.drivers item="local.key" {
+		if(variables.drivers[key].equals(arguments.className,arguments.dsn)) {
+			return variables.drivers[key].getName();		
+		}
+	}
+
+	// mysql
+	if(arrayFind(mysqls,className)) {
+		loop collection=variables.drivers item="local.key" {
+			loop array=mysqls item="local.cn" {
+				if(variables.drivers[key].equals(cn,arguments.dsn)) {
+					return variables.drivers[key].getName();		
+				}
+			}
+		}
+	}
+
+	// mssql
+	if(arrayFind(mssqls,className)) {
+		loop collection=variables.drivers item="local.key" {
+			loop array=mssqls item="local.cn" {
+				if(variables.drivers[key].equals(cn,arguments.dsn)) {
+					return variables.drivers[key].getName();		
+				}
+			}
+		}
+	}
+
+    return variables.drivers['other'].getName();
+}
+
+
 </cfscript>
 
-<cffunction name="getDbDriverTypeName">
-	<cfargument name="className" required="true">
-	<cfargument name="dsn" required="true">
-	<cfset var key="">
-    
-	<cfloop collection="#variables.drivers#" item="key">
-		<cfif variables.drivers[key].equals(arguments.className,arguments.dsn)>
-			<cfreturn variables.drivers[key].getName()>
-		</cfif>
-	</cfloop>
-    
-    <cfreturn variables.drivers['other'].getName()>
-</cffunction>
 
 <cffunction name="getDbDriverType">
 	<cfargument name="className" required="true">

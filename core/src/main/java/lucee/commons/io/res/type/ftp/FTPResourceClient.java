@@ -78,7 +78,7 @@ public final class FTPResourceClient extends FTPClient {
 	}
 
 	public String id() {
-		return ftpConnectionData.key();
+		return ftpConnectionData.toString();
 	}
 
 	@Override

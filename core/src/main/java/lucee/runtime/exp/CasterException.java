@@ -48,6 +48,9 @@ public class CasterException extends ExpressionException {
     public CasterException(String message) {
         super(message);
     }
+    public CasterException(String message, String detail) {
+        super(message,detail);
+    }
     
     private static String createDetail(Object o) {
         if(o!=null) return "Java type of the object is "+Caster.toClassName(o);

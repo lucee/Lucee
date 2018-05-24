@@ -170,7 +170,9 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
      * @throws BundleException 
      */
     static void load(ConfigServerImpl configServer, Document doc, boolean isReload, boolean doNew) throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
-        XMLConfigWebFactory.load(null,configServer,doc, isReload,doNew);
+    	ConfigImpl.onlyFirstMatch=Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.mapping.first",null),false);
+    	XMLConfigWebFactory.load(null,configServer,doc, isReload,doNew);
+        
         loadLabel(configServer,doc);
     }
     
@@ -250,7 +252,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		// Mail Server Drivers
 		Resource msDir = adminDir.getRealResource("mailservers");
 		create("/resource/context/admin/mailservers/",new String[]{
-				"Other.cfc","GMail.cfc","GMX.cfc","iCloud.cfc","Yahoo.cfc","Outlook.cfc","MailServer.cfc"}
+				"Other.cfc","GMail.cfc","GMX.cfc","iCloud.cfc","Yahoo.cfc","Outlook.cfc","MailCom.cfc","MailServer.cfc"}
 		,msDir,doNew);
 				
 		
@@ -263,7 +265,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		// Logging/appender
 		Resource app = adminDir.getRealResource("logging/appender");
 		create("/resource/context/admin/logging/appender/",new String[]{
-		"ConsoleAppender.cfc","ResourceAppender.cfc","Appender.cfc","Field.cfc","Group.cfc"}
+		"DatasourceAppender.cfc","ConsoleAppender.cfc","ResourceAppender.cfc","Appender.cfc","Field.cfc","Group.cfc"}
 		,app,doNew);
 		
 		// Logging/layout

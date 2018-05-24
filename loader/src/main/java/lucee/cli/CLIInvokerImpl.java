@@ -58,6 +58,7 @@ public class CLIInvokerImpl implements CLIInvoker {
 				attributes, initParams, 1, 0);
 		servletConfig = new ServletConfigImpl(servletContext, servletName);
 		engine = CFMLEngineFactory.getInstance(servletConfig);
+		servletContext.setLogger(engine.getCFMLEngineFactory().getLogger());
 	}
 
 	@Override

@@ -1237,11 +1237,11 @@ public final class SystemUtil {
 		}
 	}
 
-	public static void stop(PageContext pc, Log log, boolean async) {
+	public static void stop(PageContext pc, boolean async) {
 		if(async)
-			new StopThread(pc, log).start();
+			new StopThread(pc).start();
 		else
-			new StopThread(pc, log).run();
+			new StopThread(pc).run();
 	}
 
 	public static String getLocalHostName() {
@@ -1510,9 +1510,8 @@ class StopThread extends Thread {
 	private final PageContext pc;
 	//private final Log log;
 
-	public StopThread(PageContext pc, Log log) {
+	public StopThread(PageContext pc) {
 		this.pc = pc;
-		//this.log = log;
 	}
 
 	public void run() {
@@ -1527,7 +1526,7 @@ class StopThread extends Thread {
 	}
 }
 
-class MacAddressWrap implements ObjectWrap, Castable {
+class MacAddressWrap implements ObjectWrap, Castable,Serializable {
 
 	private static final long serialVersionUID = 8707984359031327783L;
 

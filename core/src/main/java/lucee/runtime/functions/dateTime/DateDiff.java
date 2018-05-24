@@ -69,7 +69,8 @@ public final class DateDiff extends BIF {
 		// Date Part
 		datePart=datePart.toLowerCase().trim();
 		int dp;
-		if("s".equals(datePart))		return diffSeconds(msLeft, msRight);
+		if("l".equals(datePart))		return diffMilliSeconds(msLeft, msRight);
+		else if("s".equals(datePart))	return diffSeconds(msLeft, msRight);
 		else if("n".equals(datePart))	return diffSeconds(msLeft, msRight)/60L;
 		else if("h".equals(datePart))	return diffSeconds(msLeft, msRight)/3600L;
 		else if("d".equals(datePart))	dp=DATEPART_D;
@@ -79,7 +80,7 @@ public final class DateDiff extends BIF {
 		else if("w".equals(datePart))	dp=DATEPART_W;
 		else if("ww".equals(datePart))	dp=DATEPART_WW;
 		else if("q".equals(datePart))	dp=DATEPART_Q;
-		else throw new FunctionException(pc,"dateDiff",3,"datePart","invalid value ["+datePart+"], valid values has to be [q,s,n,h,d,m,y,yyyy,w,ww]");
+		else throw new FunctionException(pc,"dateDiff",3,"datePart","invalid value ["+datePart+"], valid values has to be [l,q,s,n,h,d,m,y,yyyy,w,ww]");
 
 		// dates
 		Calendar _cLeft = JREDateTimeUtil.getThreadCalendar(tz);
@@ -95,11 +96,16 @@ public final class DateDiff extends BIF {
 			return _call(pc,dp, _cLeft, msLeft, _cRight, msRight);
 		//}
 	}
-	
+
 	public static long diffSeconds(long msLeft, long msRight) {
 		if(msLeft>msRight)
 			return -(long)((msLeft-msRight)/1000D);
 		return (long)((msRight-msLeft)/1000D);
+	}
+	public static long diffMilliSeconds(long msLeft, long msRight) {
+		if(msLeft>msRight)
+			return -(long)((msLeft-msRight));
+		return (long)((msRight-msLeft));
 	}
 
 	private static long _call(PageContext pc , int datepart, Calendar cLeft, long msLeft, Calendar cRight, long msRight) throws ExpressionException {

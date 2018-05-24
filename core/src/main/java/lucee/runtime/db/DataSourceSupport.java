@@ -18,6 +18,7 @@
  */
 package lucee.runtime.db;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
@@ -27,9 +28,6 @@ import java.util.TimeZone;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.transformer.library.ClassDefinitionImpl;
 
 import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.BundleException;
@@ -53,17 +51,16 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 
 	private Map<String, ProcMetaCollection> procedureColumnCache;
 	private Driver driver;
-	protected final JDBCDriver jdbc;
+
 	private final Log log;
 
-	public DataSourceSupport(Config config, JDBCDriver jdbc, String name,
+	public DataSourceSupport(Config config, String name,
 			ClassDefinition cd, String username, String password, boolean blob,
 			boolean clob, int connectionLimit, int connectionTimeout,
 			long metaCacheTimeout, TimeZone timezone, int allow,
 			boolean storage, boolean readOnly, Log log) {
-		this.jdbc = jdbc;
 		this.name = name;
-		this.cd = _initializeCD(jdbc, cd, config);
+		this.cd = cd;//_initializeCD(null, cd, config);
 		this.blob = blob;
 		this.clob = clob;
 		this.connectionLimit = connectionLimit;
@@ -77,7 +74,7 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 		this.password = password;
 		this.log = log;
 	}
-
+	
 	@Override
 	public Connection getConnection(Config config, String user, String pass)
 			throws ClassException, BundleException, SQLException {
@@ -93,6 +90,8 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 			throw new RuntimeException(e);
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException(e);
+		}catch (IOException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -107,17 +106,14 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 		return driver.connect(connStrTrans, props);
 	}
 
-	private Driver initialize(Config config) throws ClassException,
-			BundleException, InstantiationException, IllegalAccessException {
+	private Driver initialize(Config config) throws BundleException, InstantiationException, IllegalAccessException, IOException {
 		if (driver == null) {
-			// cd=_initializeCD(jdbc,cd, config);
-			driver = _initializeDriver(cd, config);
+			return driver = _initializeDriver(cd, config);
 		}
 		return driver;
 	}
 
-	private static ClassDefinition _initializeCD(JDBCDriver jdbc,
-			ClassDefinition cd, Config config) {
+	/*private static ClassDefinition _initializeCD(JDBCDriver jdbc, ClassDefinition cd, Config config) {
 		// try to link the class defintion with a jdbc driver defintion
 		if (!cd.isBundle()) {
 			if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cd
@@ -127,20 +123,17 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 						cd.getName(), cd.getVersionAsString(), null);
 			}
 
-			ConfigImpl ci = ((ConfigImpl) ThreadLocalPageContext
-					.getConfig(config));
-			JDBCDriver tmp = jdbc != null ? ci.getJDBCDriverById(
-					jdbc.cd.getId(), null) : null;
-			if (tmp == null)
-				tmp = ((ConfigImpl) config).getJDBCDriverByClassName(
-						cd.getClassName(), null);
+			ConfigImpl ci = ((ConfigImpl) ThreadLocalPageContext.getConfig(config));
+			JDBCDriver tmp = jdbc != null ? ci.getJDBCDriverByCD(jdbc.cd, null) : null;
+			if (tmp == null) tmp = ((ConfigImpl) config).getJDBCDriverByClassName(cd.getClassName(), null);
+			
 			// we have a matching jdbc driver found
 			if (tmp != null) {
 				cd = tmp.cd;
 			}
 		}
 		return cd;
-	}
+	}*/
 
 	private static Driver _initializeDriver(ClassDefinition cd, Config config)
 			throws ClassException, BundleException, InstantiationException,
@@ -150,12 +143,10 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 		return (Driver) clazz.newInstance();
 	}
 
-	public static void verify(Config config, JDBCDriver jdbc,
-			ClassDefinition cd, String connStrTranslated, String user,
-			String pass) throws ClassException, BundleException, SQLException {
+	public static void verify(Config config, ClassDefinition cd, String connStrTranslated, String user, String pass) throws ClassException, BundleException, SQLException {
 		try {
-			Driver driver = _initializeDriver(_initializeCD(jdbc, cd, config),
-					config);
+			//Driver driver = _initializeDriver(_initializeCD(jdbc, cd, config),config);
+			Driver driver = _initializeDriver(cd,config);
 			_getConnection(config, driver, connStrTranslated, user, pass);
 		} catch (InstantiationException e) {
 			throw new RuntimeException(e);

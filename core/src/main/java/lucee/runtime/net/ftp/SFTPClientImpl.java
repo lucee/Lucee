@@ -1,5 +1,17 @@
 package lucee.runtime.net.ftp;
 
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.SftpATTRS;
+import com.jcraft.jsch.SftpException;
+import lucee.commons.io.SystemUtil;
+import lucee.commons.lang.StringUtil;
+import lucee.runtime.op.Caster;
+import org.apache.commons.net.ftp.FTPFile;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -11,28 +23,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Vector;
 
-import lucee.commons.lang.StringUtil;
-import lucee.runtime.op.Caster;
-import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
-
-import org.apache.commons.net.ftp.FTPFile;
-
-import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
-import com.jcraft.jsch.SftpATTRS;
-import com.jcraft.jsch.SftpException;
-import com.jcraft.jsch.UserInfo;
-
 public class SFTPClientImpl extends AFTPClient {
-	
 
-	private static final Key IS_DIRECTORY = new KeyImpl("isDirectory");
 	private JSch jsch;
-	private int timeout=60000;
+	private int timeout = 60000;
 	private Session session;
 	private ChannelSftp channelSftp;
 	private InetAddress host;
@@ -44,61 +38,90 @@ public class SFTPClientImpl extends AFTPClient {
 	private String replyString;
 	private int replyCode;
 	private boolean positiveCompletion;
+	private String sshKey;
+	private String passphrase;
 
-	SFTPClientImpl(){
+	static {
+		// set system property lucee.debug.jsch=true to enable debug output from JSch
+		if (Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.debug.jsch", ""),false)){
+			JSch.setLogger(new com.jcraft.jsch.Logger() {
+				@Override
+				public boolean isEnabled(int i) {
+					return true;
+				}
+
+				@Override
+				public void log(int i, String s) {
+					System.out.println("JSch: " + s);
+				}
+			});
+		}
+	}
+
+	SFTPClientImpl() {
+
 		jsch = new JSch();
 	}
-	
-	@Override
-	public void init(InetAddress host, int port, String username, String password, String fingerprint, boolean stopOnError) throws SocketException, IOException {
-		if(port<1)port=22;
-		this.host=host;
-		this.port=port;
-		this.username=username;
-		this.password=password;
-		this.fingerprint=fingerprint==null?null:fingerprint.trim();
-		this.stopOnError=stopOnError;
-	}
-	
 
 	@Override
-	public void connect() throws SocketException, IOException {
+	public void init(InetAddress host, int port, String username, String password, String fingerprint, boolean stopOnError)
+			throws SocketException, IOException {
+		if(port < 1)
+			port = 22;
+		this.host = host;
+		this.port = port;
+		this.username = username;
+		this.password = password;
+		this.fingerprint = (fingerprint == null) ? null : fingerprint.trim();
+		this.stopOnError = stopOnError;
+	}
+
+	public void setSshKey(String sshKey, String passphrase) {
+		this.sshKey = sshKey;
+		this.passphrase = (passphrase == null) ? "" : passphrase;
+	}
+
+	@Override
+	public void connect() throws IOException {
 		try {
-			session = jsch.getSession(username,host.getHostAddress() , port);
-			java.util.Properties config = new java.util.Properties(); 
-			config.put("StrictHostKeyChecking", "no");
-			session.setConfig(config);
-			
-			UserInfo ui=new UserInfoImpl(password,null);
-			session.setUserInfo(ui);
-			if(timeout>0) session.setTimeout(timeout);
-		    session.connect();
-		    
-		    Channel channel=session.openChannel("sftp");
-		    channel.connect();
-		    channelSftp = (ChannelSftp)channel;
-		    
-		    
-		    // check fingerprint
+
+			session = jsch.getSession(username, host.getHostAddress(), port);
+
+			session.setConfig("StrictHostKeyChecking", "no");
+
+			if(password != null)
+				session.setPassword(password);
+
+			if(sshKey != null)
+				jsch.addIdentity(sshKey, passphrase);
+
+			if(timeout > 0)
+				session.setTimeout(timeout);
+
+			session.connect();
+
+			Channel channel = session.openChannel("sftp");
+			channel.connect();
+			channelSftp = (ChannelSftp)channel;
+
+			// check fingerprint
 			if(!StringUtil.isEmpty(fingerprint)) {
 				if(!fingerprint.equalsIgnoreCase(fingerprint())) {
 					disconnect();
 					throw new IOException("given fingerprint is not a match.");
 				}
-	        }
-		    handleSucess();
+			}
+			handleSucess();
 		}
-		catch(JSchException e){
+		catch (JSchException e) {
 			handleFail(e, stopOnError);
 		}
 	}
-	
 
 	private String fingerprint() {
 		return session.getHostKey().getFingerPrint(jsch);
 	}
 
-	
 	@Override
 	public boolean rename(String from, String to) throws IOException {
 		try {
@@ -119,12 +142,11 @@ public class SFTPClientImpl extends AFTPClient {
 			handleSucess();
 			return true;
 		}
-		catch(SftpException ioe) {
+		catch (SftpException ioe) {
 			handleFail(ioe, stopOnError);
 		}
 		return false;
 	}
-	
 
 	@Override
 	public boolean makeDirectory(String pathname) throws IOException {
@@ -133,7 +155,7 @@ public class SFTPClientImpl extends AFTPClient {
 			handleSucess();
 			return true;
 		}
-		catch(SftpException ioe) {
+		catch (SftpException ioe) {
 			handleFail(ioe, stopOnError);
 		}
 		return false;
@@ -142,16 +164,16 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public boolean directoryExists(String pathname) throws IOException {
 		try {
-			String pwd=channelSftp.pwd();
+			String pwd = channelSftp.pwd();
 			channelSftp.cd(pathname);
 			channelSftp.cd(pwd); // we change it back to what it was
 			handleSucess();
 			return true;
 		}
-		catch(SftpException e) {/*do nothing*/}
+		catch (SftpException e) {
+			/* do nothing */}
 		return false;
 	}
-	
 
 	@Override
 	public boolean changeWorkingDirectory(String pathname) throws IOException {
@@ -160,12 +182,11 @@ public class SFTPClientImpl extends AFTPClient {
 			handleSucess();
 			return true;
 		}
-		catch(SftpException ioe) {
+		catch (SftpException ioe) {
 			handleFail(ioe, stopOnError);
 		}
 		return false;
 	}
-	
 
 	@Override
 	public String printWorkingDirectory() throws IOException {
@@ -174,13 +195,12 @@ public class SFTPClientImpl extends AFTPClient {
 			handleSucess();
 			return pwd;
 		}
-		catch(SftpException ioe) {
+		catch (SftpException ioe) {
 			handleFail(ioe, stopOnError);
 		}
 		return null;
 	}
 
-	
 	@Override
 	public boolean deleteFile(String pathname) throws IOException {
 		try {
@@ -188,29 +208,26 @@ public class SFTPClientImpl extends AFTPClient {
 			handleSucess();
 			return true;
 		}
-		catch(SftpException ioe) {
+		catch (SftpException ioe) {
 			handleFail(ioe, stopOnError);
 		}
 		return false;
 	}
-	
 
 	@Override
 	public boolean retrieveFile(String remote, OutputStream local) throws IOException {
-		boolean success=false;
+		boolean success = false;
 		try {
 			channelSftp.get(remote, local);
 			handleSucess();
 			success = true;
 		}
-		catch(SftpException ioe) {
+		catch (SftpException ioe) {
 			handleFail(ioe, stopOnError);
 		}
 		return success;
 	}
-	
 
-	
 	@Override
 	public boolean storeFile(String remote, InputStream local) throws IOException {
 		try {
@@ -218,12 +235,12 @@ public class SFTPClientImpl extends AFTPClient {
 			handleSucess();
 			return true;
 		}
-		catch(SftpException ioe) {
+		catch (SftpException ioe) {
 			handleFail(ioe, stopOnError);
 		}
 		return false;
 	}
-	
+
 	@Override
 	public int getReplyCode() {
 		return replyCode;
@@ -236,8 +253,8 @@ public class SFTPClientImpl extends AFTPClient {
 
 	@Override
 	public FTPFile[] listFiles(String pathname) throws IOException {
-		pathname=cleanPath(pathname);
-		List<FTPFile> files=new ArrayList<FTPFile>();
+		pathname = cleanPath(pathname);
+		List<FTPFile> files = new ArrayList<FTPFile>();
 		try {
 			Vector list = channelSftp.ls(pathname);
 			Iterator<ChannelSftp.LsEntry> it = list.iterator();
@@ -245,19 +262,20 @@ public class SFTPClientImpl extends AFTPClient {
 			SftpATTRS attrs;
 			FTPFile file;
 			String fileName;
-			
-			while(it.hasNext()){
-				entry=it.next();
+
+			while(it.hasNext()) {
+				entry = it.next();
 				attrs = entry.getAttrs();
-				fileName=entry.getFilename();
-				if(fileName.equals(".") || fileName.equals("..")) continue;
-				
-				file=new FTPFile();
+				fileName = entry.getFilename();
+				if(fileName.equals(".") || fileName.equals(".."))
+					continue;
+
+				file = new FTPFile();
 				files.add(file);
 				// is dir
-				file.setType(attrs.isDir()?FTPFile.DIRECTORY_TYPE:FTPFile.FILE_TYPE);
-				file.setTimestamp(Caster.toCalendar(attrs.getMTime()*1000L, null, Locale.ENGLISH));
-				file.setSize(attrs.isDir()?0:attrs.getSize());
+				file.setType(attrs.isDir() ? FTPFile.DIRECTORY_TYPE : FTPFile.FILE_TYPE);
+				file.setTimestamp(Caster.toCalendar(attrs.getMTime() * 1000L, null, Locale.ENGLISH));
+				file.setSize(attrs.isDir() ? 0 : attrs.getSize());
 				FTPConstant.setPermission(file, attrs.getPermissions());
 				file.setName(fileName);
 			}
@@ -266,31 +284,22 @@ public class SFTPClientImpl extends AFTPClient {
 		catch (SftpException e) {
 			handleFail(e, stopOnError);
 		}
-		
+
 		return files.toArray(new FTPFile[files.size()]);
 	}
-	
-	
-	
 
-	
 	private String cleanPath(String pathname) {
 		if(!pathname.endsWith("/"))
 			pathname = pathname + "/";
-		
+
 		return pathname;
 	}
-	
-	
-	
-	
 
 	@Override
 	public boolean setFileType(int fileType) throws IOException {
 		// not used
 		return true;
 	}
-
 
 	@Override
 	public String getPrefix() {
@@ -315,20 +324,21 @@ public class SFTPClientImpl extends AFTPClient {
 
 	@Override
 	public void disconnect() throws IOException {
-		if(session!=null && session.isConnected()) {
+		if(session != null && session.isConnected()) {
 			session.disconnect();
-			session=null;
+			session = null;
 		}
 	}
 
 	@Override
 	public void setTimeout(int timeout) {
-		this.timeout=timeout;
-		if(session!=null) {
+		this.timeout = timeout;
+		if(session != null) {
 			try {
 				session.setTimeout(timeout);
 			}
-			catch (JSchException e) {}
+			catch (JSchException e) {
+			}
 		}
 	}
 
@@ -353,29 +363,28 @@ public class SFTPClientImpl extends AFTPClient {
 	public boolean isPositiveCompletion() {
 		return positiveCompletion;
 	}
-	
-	private void handleSucess() {
-		replyCode=0;
-		replyString="SSH_FX_OK successful completion of the operation";
-		positiveCompletion=true;
-	}
-	
 
-	
+	private void handleSucess() {
+		replyCode = 0;
+		replyString = "SSH_FX_OK successful completion of the operation";
+		positiveCompletion = true;
+	}
+
 	private void handleFail(Exception e, boolean stopOnError) throws IOException {
-		String msg = e.getMessage()==null?"":e.getMessage();
-		if (StringUtil.indexOfIgnoreCase(msg, "AUTHENTICATION") != -1 || StringUtil.indexOfIgnoreCase(msg, "PRIVATEKEY") != -1) {
+		String msg = e.getMessage() == null ? "" : e.getMessage();
+		if(StringUtil.indexOfIgnoreCase(msg, "AUTHENTICATION") != -1 || StringUtil.indexOfIgnoreCase(msg, "PRIVATEKEY") != -1) {
 			replyCode = 51;
 		}
-		else replyCode = 82;
-		replyString=msg;
-		positiveCompletion=false;
-		
-		if (stopOnError) {
+		else
+			replyCode = 82;
+		replyString = msg;
+		positiveCompletion = false;
+
+		if(stopOnError) {
 			disconnect();
-			if(e instanceof IOException) throw (IOException)e;
+			if(e instanceof IOException)
+				throw (IOException)e;
 			throw new IOException(e);
 		}
 	}
-
 }

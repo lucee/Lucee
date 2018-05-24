@@ -18,6 +18,24 @@
  **/
 package lucee.runtime.tag;
 
+import static java.sql.Types.BIGINT;
+import static java.sql.Types.BOOLEAN;
+import static java.sql.Types.CHAR;
+import static java.sql.Types.DATE;
+import static java.sql.Types.DECIMAL;
+import static java.sql.Types.DOUBLE;
+import static java.sql.Types.FLOAT;
+import static java.sql.Types.INTEGER;
+import static java.sql.Types.NCHAR;
+import static java.sql.Types.NUMERIC;
+import static java.sql.Types.NVARCHAR;
+import static java.sql.Types.REAL;
+import static java.sql.Types.SMALLINT;
+import static java.sql.Types.TIME;
+import static java.sql.Types.TIMESTAMP;
+import static java.sql.Types.TINYINT;
+import static java.sql.Types.VARCHAR;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -36,8 +54,6 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.util.ListUtil;
-
-import static java.sql.Types.*;
 
 /**
  * Checks the data type of a query parameter. The cfqueryparam tag is nested within a cfquery tag. It is embedded within the query SQL statement. If you specify

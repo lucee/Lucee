@@ -48,18 +48,6 @@ Defaults --->
 			<cfif form.subAction EQ "#stText.Buttons.save#">
 				<cfloop index="idx" from="1" to="#arrayLen(data.names)#">
 					<cfif isDefined("data.rows[#idx#]") and data.names[idx] NEQ "">
-					<cfif data.types[idx] EQ "cpp">
-						<cfadmin 
-							action="updateCPPCFX"
-							type="#request.adminType#"
-							password="#session["password"&request.adminType]#"
-							
-							name="#data.names[idx]#"
-							procedure="#data.procedures[idx]#"
-							serverlibrary="#data.serverlibraries[idx]#"
-							keepalive="#isDefined('data.keepalives[idx]') and data.keepalives[idx]#"
-							remoteClients="#request.getRemoteClients()#">
-					<cfelse>
 						<cfadmin 
 							action="updateJavaCFX"
 							type="#request.adminType#"
@@ -68,10 +56,7 @@ Defaults --->
 							name="#data.names[idx]#"
 							class="#data.classes[idx]#"
 							remoteClients="#request.getRemoteClients()#">
-					</cfif>
-					
-					
-					</cfif>
+						</cfif>
 				</cfloop>
 		<!--- verify --->
 			<cfelseif form.subAction EQ "#stText.Buttons.verify#">
@@ -144,11 +129,6 @@ Redirtect to entry --->
 			type="#request.adminType#"
 			password="#session["password"&request.adminType]#"
 			returnVariable="jtags">
-		<cfadmin 
-			action="getCPPCFXTags"
-			type="#request.adminType#"
-			password="#session["password"&request.adminType]#"
-			returnVariable="ctags">
 
 		<!------------------------------ JAVA ------------------------------->
 		<h2>#stText.CFX.CFXTags#</h2>
@@ -241,146 +221,5 @@ Redirtect to entry --->
 				</cfif>
 			</table>
 		</cfformClassic>
-
-		<cfif structKeyExists(session,'enable') and session.enable EQ "cfxcpp">
-			<h2>#stText.CFX.cpp.CFXTags#</h2>
-			<div class="warning nohighlight">
-				The C++ CFX tags Implementation is currently in Beta State. Its functionality can change before it's final release.
-				If you have any problems while using the C++ CFX tags Implementation, please post the bugs and errors in our <a href="https://bitbucket.org/lucee/lucee/issues" target="_blank" class="CheckError">bugtracking system</a>. 
-			</div>
-			<!------------------------------ C++ ------------------------------->
-			<cfformClassic onerror="customError" name="cpp" action="#request.self#?action=#url.action#" method="post">
-				<table class="maintbl checkboxtbl">
-					<thead>
-						<tr>
-							<th width="3%"><input type="checkbox" class="checkbox" name="rro" onclick="selectAll(this)"></th>
-							<th>#stText.CFX.Name#</th>
-							<th>#stText.CFX.serverlibrary#</th>
-							<th>#stText.CFX.procedure#</th>
-							<th>#stText.CFX.keepAlive#</th>
-							<th width="3%">#stText.Settings.DBCheck#</th>
-						</tr>
-					</thead>
-					<tbody>
-						<cfloop query="ctags">
-							<tr>
-								<!--- read-only --->
-								<td>
-									<input type="hidden" name="type_#ctags.currentrow#" value="#ctags.displayname#">
-									<cfif not ctags.readOnly>
-										<input type="checkbox" class="checkbox" name="row_#ctags.currentrow#" 
-										value="#ctags.currentrow#">
-									</cfif>
-								</td>
-								<!--- name --->
-								<td>
-									<input type="hidden" name="name_#ctags.currentrow#" value="#ctags.name#">
-									&lt;cfx_<b>#ctags.name#</b>&gt;
-								</td>
-								
-								<cfset css=iif(not ctags.isvalid,de(' style="background-color:####E3D1D6"'),de(''))>
-								<!--- serverlibrary --->
-								<td class="tblContent<cfoutput>#css#</cfoutput>">
-									<cfif not has.cfx_setting or ctags.readOnly>
-										#ctags.serverlibrary#
-									<cfelse>
-										<cfinputClassic 
-											onKeyDown="checkTheBox(this)" type="text" name="serverlibrary_#ctags.currentrow#" value="#ctags.serverlibrary#" 
-											required="yes" class="xlarge" message="#stText.CFX.MissingClassValue##ctags.currentrow#)">
-									</cfif>
-								</td>
-								<!--- procedure --->
-								<td class="tblContent<cfoutput>#css#</cfoutput>">
-									<cfif not has.cfx_setting or ctags.readOnly>
-										#ctags.procedure#
-									<cfelse>
-										<cfinputClassic 
-											onKeyDown="checkTheBox(this)" type="text" name="procedure_#ctags.currentrow#" value="#ctags.procedure#" 
-											required="yes" class="xlarge" message="#stText.CFX.MissingClassValue##ctags.currentrow#)">
-									</cfif>
-								</td>
-								<!--- keepAlive --->
-								<td class="tblContent<cfoutput>#css#</cfoutput>">
-									<cfif not has.cfx_setting or ctags.readOnly>
-										#yesNoFormat(ctags.procedure)#
-									<cfelse>
-										<input type="checkbox" class="checkbox" onclick="checkTheBox(this)" name="keepalive_#ctags.currentrow#" value="true" <cfif ctags.keepAlive>checked</cfif>>
-									</cfif>
-								</td>
-								<!--- check --->
-								<td>
-									<cfif StructKeyExists(stVeritfyMessages, ctags.name)>
-										<cfif stVeritfyMessages[ctags.name].label eq "OK">
-											<span class="CheckOk">#stVeritfyMessages[ctags.name].label#</span>
-										<cfelse>
-											<span class="CheckError" title="#stVeritfyMessages[ctags.name].message##Chr(13)#">#stVeritfyMessages[ctags.name].label#</span>
-											&nbsp;<img src="resources/img/red-info.gif.cfm" 
-												width="9" 
-												height="9" 
-												border="0" 
-												title="#stVeritfyMessages[ctags.name].message##Chr(13)#">
-										</cfif>
-									<cfelse>
-										&nbsp;				
-									</cfif>
-								</td>
-							</tr>
-						</cfloop>
-						
-						<cfset idx=ctags.recordcount+1>
-						<cfif has.cfx_setting>
-							<tr>
-								<td>
-									<input type="checkbox" class="checkbox" name="row_#idx#" value="#idx#">
-								</td>
-								<td><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
-									name="name_#idx#" value="" required="no" class="xlarge">
-								</td>
-								<td><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
-									name="serverlibrary_#idx#" value="" required="no" class="xlarge">
-								</td>
-								<td><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
-									name="procedure_#idx#" value="ProcessTagRequest" required="no" class="xlarge">
-								</td>
-								<td>
-									<input type="checkbox" class="checkbox" onclick="checkTheBox(this)" name="keepalive_#idx#" value="true">
-								</td>
-								<td></td>
-							</tr>
-							<tr>
-								<td></td>
-								<td align="center" colspan="5">
-									<cfif server.os.archModel NEQ server.java.archModel>
-										<cfset archText=stText.CFX.cpp.archDiff>	
-									<cfelse>
-										<cfset archText=stText.CFX.cpp.arch>	
-									</cfif>
-									<cfset archText=replace(archText,"{os-arch}",server.os.archModel,"all")>
-									<cfset archText=replace(archText,"{jre-arch}",server.java.archModel,"all")>	
-									<div class="comment"  style="color:red">#archText#</div>
-								</td>
-							</tr>
-						</cfif>
-						<cfif has.cfx_setting>
-							<cfmodule template="remoteclients.cfm" colspan="8" line>
-						</cfif>
-					</tbody>
-					<cfif has.cfx_setting>
-						<tfoot>
-							<tr>
-								<td colspan="6">
-									<input type="hidden" name="type_#idx#" value="cpp">
-									<input type="hidden" name="mainAction" value="updateJava">
-									<input type="submit" class="bl button submit" name="subAction" value="#stText.Buttons.Verify#">
-									<input type="submit" class="bm button submit" name="subAction" value="#stText.Buttons.save#">
-									<input type="reset" class="bm button reset" name="cancel" value="#stText.Buttons.Cancel#">
-									<input type="submit" class="br button submit" name="subAction" value="#stText.Buttons.Delete#">
-								 </td>
-							</tr>
-						</tfoot>
-					</cfif>
-				</table>
-			</cfformClassic>
-		</cfif>
 	</cfif>
 </cfoutput>

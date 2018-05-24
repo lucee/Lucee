@@ -89,6 +89,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.spooler.ComponentSpoolerTaskListener;
 import lucee.runtime.spooler.UDFSpoolerTaskListener;
 import lucee.runtime.spooler.mail.MailSpoolerTask;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
@@ -349,10 +350,17 @@ public final class SMTPClient implements Serializable  {
 		this.xmailer=xmailer;
 	}
 	public void setListener(Object listener) throws ApplicationException {
-		if(!(listener instanceof UDF) && !(listener instanceof Component))
+		if(!(listener instanceof UDF) && !(listener instanceof Component)  && !dblUDF(listener) )
 			throw new ApplicationException("Listener must be a Function or a Component.");
 		this.listener=listener;
 	}
+
+	private boolean dblUDF(Object o) {
+		if(!(o instanceof Struct)) return false;
+		Struct sct=(Struct) o;
+		return sct.get("before",null) instanceof UDF || sct.get("after",null) instanceof UDF; // we need "before" OR "after"!
+	}
+
 
 	/**
 	 * creates a new expanded array and return it;
@@ -741,7 +749,12 @@ public final class SMTPClient implements Serializable  {
 			if(listener instanceof Component)
 				mst.setListener(new ComponentSpoolerTaskListener(SystemUtil.getCurrentContext(),mst,(Component)listener));
 			else if(listener instanceof UDF)
-				mst.setListener(new UDFSpoolerTaskListener(SystemUtil.getCurrentContext(),mst,(UDF)listener));
+				mst.setListener(new UDFSpoolerTaskListener(SystemUtil.getCurrentContext(),mst,null,(UDF)listener));
+			else if(listener instanceof Struct) {
+				UDF before=Caster.toFunction(((Struct)listener).get("before",null),null);
+				UDF after=Caster.toFunction(((Struct)listener).get("after",null),null);
+				mst.setListener(new UDFSpoolerTaskListener(SystemUtil.getCurrentContext(),mst,before,after));
+			}
 			
 			config.getSpoolerEngine().add(mst);
         }
