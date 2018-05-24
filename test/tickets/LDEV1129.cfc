@@ -13,7 +13,7 @@
 		}
 
 		function beforeAll() skip="isNotSupported"{
-			uri = createURI("LDEV1129");
+			uri = createURI("ldev1129");
 			if(not directoryExists(uri)){
 				Directorycreate(uri);
 				Directorycreate("#uri#/test");
