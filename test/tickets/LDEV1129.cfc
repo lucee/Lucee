@@ -90,7 +90,7 @@
 	</cfscript>
 	<cffunction name="cffilewithURL" returntype="Any" access="private">
 		<cfset uri = createURI("LDEV1129/test")>
-		<cffile action="copy" source="https://s3.amazonaws.com/testcasesLDEV1129/test.txt" destination="#uri#">
+		<cffile action="copy" source="https://s3.amazonaws.com/ldev1129/test.txt" destination="#uri#">
 		<cfif FileExists("#uri#/test.txt")>
 			<cfreturn true>
 		</cfif>

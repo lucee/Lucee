@@ -498,7 +498,7 @@ private function assertEqualPaths(string path1, string path2) {
 		    fileAMove(arguments.label,dir);
 		    fileAReadAppend(arguments.label,dir);
 		    fileAReadBinary(arguments.label,dir);
-		    testResourceProvider(dir&"testcaseRes");
+		    testResourceProvider(dir&"testcaseres");
 		    
 		}
 		finally {
