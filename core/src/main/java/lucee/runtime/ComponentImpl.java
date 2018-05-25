@@ -2114,9 +2114,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	public void setProperty(Property property) throws PageException {
 		top.properties.properties.put(StringUtil.toLowerCase(property.getName()), property);
+		if(property.getDefault() != null)
+			scope.setEL(KeyImpl.init(property.getName()), property.getDefault());
 		if(top.properties.persistent || top.properties.accessors) {
-			if(property.getDefault() != null)
-				scope.setEL(KeyImpl.init(property.getName()), property.getDefault());
 			PropertyFactory.createPropertyUDFs(this, property);
 		}
 	}
