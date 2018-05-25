@@ -5333,6 +5333,15 @@ Example Values:
 			<type>struct</type>
 		</return>
 	</function>
+	<!-- GetContextInfo -->
+	<function>
+		<name>getContextInfo</name>
+		<class>lucee.runtime.functions.system.GetContextInfo</class>
+		<description>Returns information to the current context.</description>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
 	<!-- GetContextRoot -->
 	<function>
 		<name>getContextRoot</name>
