@@ -175,7 +175,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 
 	private boolean function hasCredencials() {
-		return structCount(getCredencials()))
+		return structCount(getCredencials());
 	}
 
 	private struct function getCredencials() {
