@@ -775,9 +775,10 @@ public final class Http extends BodyTagImpl {
 
 			String host = null;
 			HttpHost httpHost;
+
 			try {
 				URL _url = HTTPUtil.toURL(url, port, encoded);
-				httpHost = new HttpHost(_url.getHost(), _url.getPort());
+				httpHost = new HttpHost(_url.getHost(), _url.getPort(), _url.getProtocol());
 				host = _url.getHost();
 				url = _url.toExternalForm();
 				if(sbQS.length() > 0) {
@@ -1080,8 +1081,10 @@ public final class Http extends BodyTagImpl {
 
 			// set Username and Password
 			if(this.username != null) {
+
 				if(this.password == null)
 					this.password = "";
+
 				if(AUTH_TYPE_NTLM == this.authType) {
 					if(StringUtil.isEmpty(this.workStation, true))
 						throw new ApplicationException("attribute workstation is required when authentication type is [NTLM]");
@@ -1090,8 +1093,9 @@ public final class Http extends BodyTagImpl {
 
 					HTTPEngine4Impl.setNTCredentials(builder, this.username, this.password, this.workStation, this.domain);
 				}
-				else
+				else {
 					httpContext = HTTPEngine4Impl.setCredentials(builder, httpHost, this.username, this.password, preauth);
+				}
 			}
 
 			// set Proxy

@@ -314,8 +314,10 @@ public class HTTPEngine4Impl {
 	public static BasicHttpContext setCredentials(HttpClientBuilder builder, HttpHost httpHost, String username, String password, boolean preAuth) {
 		// set Username and Password
 		if(!StringUtil.isEmpty(username, true)) {
+
 			if(password == null)
 				password = "";
+
 			CredentialsProvider cp = new BasicCredentialsProvider();
 			builder.setDefaultCredentialsProvider(cp);
 
@@ -327,8 +329,10 @@ public class HTTPEngine4Impl {
 				authCache.put(httpHost, new BasicScheme());
 				httpContext.setAttribute(ClientContext.AUTH_CACHE, authCache);
 			}
+
 			return httpContext;
 		}
+
 		return null;
 	}
 
