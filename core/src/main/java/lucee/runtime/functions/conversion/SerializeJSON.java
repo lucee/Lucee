@@ -68,32 +68,42 @@ public final class SerializeJSON implements Function {
 
 	private static String _call(PageContext pc, Object var, Object options, Charset charset) throws PageException {
 		try {
+
 			JSONConverter json = new JSONConverter(true, charset);
-			if(Decision.isBoolean(options))
-				return json.serialize(pc, var, Caster.toBoolean(options));
+
+			// default == false == row | true == column
+			String sOpt = "";
+			if(Decision.isSimpleValue(options))
+				sOpt = Caster.toString(options);
+
+			Boolean bOpt = null;
+			if (Decision.isBoolean(options))
+				bOpt = Caster.toBoolean(options);
+			else if("row".equalsIgnoreCase(sOpt))
+				bOpt = Boolean.FALSE;
+			else if("column".equalsIgnoreCase(sOpt))
+				bOpt = Boolean.TRUE;
+
+			if(bOpt != null)
+				return json.serialize(pc, var, bOpt);
 
 			if(Decision.isQuery(var)) {
-				if(Decision.isSimpleValue(options)) {
-					String opt = Caster.toString(options);
-					if("struct".equalsIgnoreCase(opt)) {
-						Array arr = new ArrayImpl();
-						ForEachQueryIterator it = new ForEachQueryIterator((Query)var, pc.getId());
-						try {
-							while(it.hasNext()) {
-								arr.append(it.next()); // append each record from the query as a struct
-							}
-						} finally {
-							it.reset();
+				if("struct".equalsIgnoreCase(sOpt)) {
+
+					Array arr = new ArrayImpl();
+					ForEachQueryIterator it = new ForEachQueryIterator((Query)var, pc.getId());
+					try {
+						while(it.hasNext()) {
+							arr.append(it.next()); // append each record from the query as a struct
 						}
-						return json.serialize(pc, arr, false);
+					} finally {
+						it.reset();
 					}
+
+					return json.serialize(pc, arr, false);
 				}
-				else if(Decision.isBoolean(options)) {
-					return json.serialize(pc, var, Caster.toBoolean(options));
-				}
-				else
-					throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 2, "options",
-							"When var is a Query, argument [options] must be either a boolean value or a string with the value of [struct]");
+				else throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 2, "options",
+					"When var is a Query, argument [options] must be either a boolean value or a string with the value of [struct], [row], or [column]");
 			}
 
 			// var is not a query so options doesn't make a difference here
