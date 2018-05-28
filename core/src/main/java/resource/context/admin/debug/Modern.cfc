@@ -115,7 +115,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				</cfif>
 			</cfloop>
 		</cfif>
-
 		<cfset variables.tbsStr = {}>
 		<cfloop list="#variables.tabsPresent#" index="i">
 			<cfif i EQ "Debug">
@@ -126,6 +125,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				<cfset variables.tbsStr[i] = "docs">
 			</cfif>
 		</cfloop>
+
 		<script>
 			<cfset this.includeFileInline( "/lucee/res/js/jquery-1.12.4.min.js" )>
 		</script>
