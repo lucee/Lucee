@@ -50,6 +50,8 @@ import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.java.JavaObject;
+import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMUtil;
@@ -71,6 +73,7 @@ import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.ComponentUtil;
 
+import lucee.runtime.type.util.KeyConstants;
 import org.w3c.dom.Node;
 
 /**
@@ -256,6 +259,22 @@ public final class JSONConverter extends ConverterSupport {
 	 */
 	public void _serializeStruct(PageContext pc, Set test, Struct struct, StringBuilder sb, boolean serializeQueryByColumns, boolean addUDFs, Set<Object> done)
 			throws ConverterException {
+
+		boolean preserveCaseForStructKey = true;
+
+		ApplicationContext appContext = pc.getApplicationContext();
+		if (appContext instanceof ModernApplicationContext){
+			Struct settings = ((ModernApplicationContext)appContext).getSerializationSettings();
+			Object value = settings.get(KeyConstants._preserveCaseForStructKey, null);
+			if (Decision.isBoolean(value)){
+				try {
+					if (!Caster.toBoolean(value))
+						preserveCaseForStructKey = false;
+				}
+				catch (PageException ex){}	// should never happen because we check
+			}
+		}
+
 		// Component
 		if(struct instanceof Component) {
 			String res = castToJson(pc, (Component)struct, NULL_STRING);
@@ -267,22 +286,28 @@ public final class JSONConverter extends ConverterSupport {
 
 		sb.append(goIn());
 		sb.append("{");
-		// Key[] keys = struct.keys();
-		// Key key;
+
 		Iterator<Entry<Key, Object>> it = struct.entryIterator();
 		Entry<Key, Object> e;
+		String k;
 		Object value;
 		boolean doIt = false;
 		while(it.hasNext()) {
+
 			e = it.next();
-			// key=keys[i];
+			k = e.getKey().getString();
+			if (!preserveCaseForStructKey)
+				k = k.toUpperCase();
 			value = e.getValue();
+
 			if(!addUDFs && (value instanceof UDF || value == null))
 				continue;
+
 			if(doIt)
 				sb.append(',');
+
 			doIt = true;
-			sb.append(StringUtil.escapeJS(e.getKey().getString(), '"', charsetEncoder));
+			sb.append(StringUtil.escapeJS(k, '"', charsetEncoder));
 			sb.append(':');
 			_serialize(pc, test, value, sb, serializeQueryByColumns, done);
 		}

@@ -1633,6 +1633,16 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		return null;
 	}
 
+	public Struct getSerializationSettings(){
+
+		Object oSerialization = get(component, KeyConstants._serialization, null);
+
+		if (oSerialization instanceof Struct)
+			return (Struct)oSerialization;
+
+		return new StructImpl();
+	}
+
 	@Override
 	public Map<Collection.Key, Object> getTagAttributeDefaultValues(PageContext pc, String tagClassName) {
 		if(!initDefaultAttributeValues) {

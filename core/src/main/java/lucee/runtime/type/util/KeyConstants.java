@@ -932,6 +932,9 @@ public class KeyConstants {
 	public static final Key _mailServer = KeyImpl._const("mailServer");
 	public static final Key _mailServers = KeyImpl._const("mailServers");
 	public static final Key _smtpServerSettings = KeyImpl._const("smtpServerSettings");
+	public static final Key _serialization = KeyImpl._const("serialization");
+	public static final Key _preserveCaseForStructKey = KeyImpl._const("preserveCaseForStructKey");
+	public static final Key _serializeQueryAs = KeyImpl._const("serializeQueryAs");
 	public static final Key _STACKTRACE = KeyImpl._const("STACKTRACE");
 
 	private static MapPro<String, Key> _____keys;

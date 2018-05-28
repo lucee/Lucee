@@ -28,12 +28,16 @@ import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Query;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.it.ForEachQueryIterator;
+import lucee.runtime.type.util.KeyConstants;
 
 /**
  * Decodes Binary Data that are encoded as String
@@ -43,7 +47,7 @@ public final class SerializeJSON implements Function {
 	private static final long serialVersionUID = -4632952919389635891L;
 
 	public static String call(PageContext pc, Object var) throws PageException {
-		return _call(pc, var, false, pc.getWebCharset());
+		return _call(pc, var, "", pc.getWebCharset());
 	}
 
 	// FUTURE remove, this methods are only used by compiled code in archives older than 5.2.3
@@ -77,7 +81,7 @@ public final class SerializeJSON implements Function {
 				sOpt = Caster.toString(options);
 
 			Boolean bOpt = null;
-			if (Decision.isBoolean(options))
+			if(Decision.isBoolean(options))
 				bOpt = Caster.toBoolean(options);
 			else if("row".equalsIgnoreCase(sOpt))
 				bOpt = Boolean.FALSE;
@@ -88,7 +92,20 @@ public final class SerializeJSON implements Function {
 				return json.serialize(pc, var, bOpt);
 
 			if(Decision.isQuery(var)) {
-				if("struct".equalsIgnoreCase(sOpt)) {
+
+				boolean serializeQueryAsStruct = "struct".equalsIgnoreCase(sOpt);
+
+				if(!serializeQueryAsStruct) {
+					// check Application.cfc setting this.serialization.serializeQueryAs == "struct"
+					ApplicationContext appContext = pc.getApplicationContext();
+					if(appContext instanceof ModernApplicationContext) {
+						Struct settings = ((ModernApplicationContext)appContext).getSerializationSettings();
+						if("struct".equalsIgnoreCase(Caster.toString(settings.get(KeyConstants._serializeQueryAs, ""))))
+							serializeQueryAsStruct = true;
+					}
+				}
+
+				if(serializeQueryAsStruct) {
 
 					Array arr = new ArrayImpl();
 					ForEachQueryIterator it = new ForEachQueryIterator((Query)var, pc.getId());
@@ -102,11 +119,13 @@ public final class SerializeJSON implements Function {
 
 					return json.serialize(pc, arr, false);
 				}
-				else throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 2, "options",
-					"When var is a Query, argument [options] must be either a boolean value or a string with the value of [struct], [row], or [column]");
+
+				if(!sOpt.isEmpty())
+					throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 2, "options",
+							"When var is a Query, argument [options] must be either a boolean value or a string with the value of [struct], [row], or [column]");
 			}
 
-			// var is not a query so options doesn't make a difference here
+			// var is not a query, or options were not set explicitly
 			return json.serialize(pc, var, false);
 		}
 		catch (ConverterException e) {

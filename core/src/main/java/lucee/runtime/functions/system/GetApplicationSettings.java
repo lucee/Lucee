@@ -65,6 +65,7 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 public class GetApplicationSettings {
+
 	public static Struct call(PageContext pc) {
 		return call(pc, false);
 	}
@@ -211,6 +212,15 @@ public class GetApplicationSettings {
 			}
 		}
 
+		// serialization
+		Struct serialization = new StructImpl(Struct.TYPE_LINKED);
+		sct.setEL("serialization", serialization);
+		if (appContext instanceof ModernApplicationContext){
+			ModernApplicationContext mAppContext = (ModernApplicationContext)appContext;
+			Struct settings = mAppContext.getSerializationSettings();
+			if (settings != null)
+				serialization.putAll(settings);
+		}
 
 		// tag
 		Map<Key, Map<Collection.Key, Object>> tags = appContext.getTagAttributeDefaultValues(pc);
