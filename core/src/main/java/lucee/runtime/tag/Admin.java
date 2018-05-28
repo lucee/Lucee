@@ -52,6 +52,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CachePro;
 import lucee.commons.io.compress.CompressUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.res.Resource;
@@ -186,7 +187,6 @@ import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
 
-import org.apache.log4j.Level;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
@@ -3435,7 +3435,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			row = qry.addRow();
 			// row++;
 			qry.setAtEL("name", row, e.getKey());
-			qry.setAtEL("level", row, logger.getLevel().toString());
+			qry.setAtEL("level", row, LogUtil.levelToString(logger.getLevel(),""));
 			qry.setAtEL("appenderClass", row, logger.getAppenderClassDefinition().getClassName());
 			qry.setAtEL("appenderBundleName", row, logger.getAppenderClassDefinition().getName());
 			qry.setAtEL("appenderBundleVersion", row, logger.getAppenderClassDefinition().getVersionAsString());
@@ -4185,7 +4185,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				sct.setEL("revoke", Boolean.valueOf(d.hasAllow(DataSource.ALLOW_REVOKE)));
 				sct.setEL("alter", Boolean.valueOf(d.hasAllow(DataSource.ALLOW_ALTER)));
 
-				sct.setEL("connectionLimit", d.getConnectionLimit() < 1 ? "" : Caster.toString(d.getConnectionLimit()));
+				sct.setEL("connectionLimit", d.getConnectionLimit() < 1 ? "-1" : Caster.toString(d.getConnectionLimit()));
 				sct.setEL("connectionTimeout", d.getConnectionTimeout() < 1 ? "" : Caster.toString(d.getConnectionTimeout()));
 				sct.setEL("metaCacheTimeout", Caster.toDouble(d.getMetaCacheTimeout()));
 				sct.setEL("custom", d.getCustoms());
@@ -4973,8 +4973,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doUpdateLogSettings() throws PageException {
 		String str = getString("admin", "UpdateLogSettings", "level", true);
-		Level l = Log4jUtil.toLevel(str, null);
-		if(l == null)
+		int l = LogUtil.toLevel(str, -1);
+		if(l !=-1)
 			throw new ApplicationException("invalid log level name [" + str + "], valid log level names are [INFO,DEBUG,WARN,ERROR,FATAL,TRACE]");
 
 		ClassDefinition acd = new ClassDefinitionImpl(getString("admin", action, "appenderClass", true), getString("appenderBundleName", null),

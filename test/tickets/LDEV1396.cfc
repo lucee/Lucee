@@ -15,7 +15,7 @@
 		function beforeAll() skip="isNotSupported"{
 			if(isNotSupported()) return;
 			s3Details = getCredentials();
-			mitrahsoftBucketName = "testcasesLDEV1396";
+			mitrahsoftBucketName = "ldev1396";
 			base = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@";
 			variables.baseWithBucketName = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@/#mitrahsoftBucketName#";
 			// for skipping rest of the cases, if error occurred.
@@ -26,8 +26,8 @@
 
 		function afterAll() skip="isNotSupported"{
 			if(isNotSupported()) return;
-			// if( directoryExists(baseWithBucketName) )
-			// 	directoryDelete(baseWithBucketName, true);
+			 if( directoryExists(baseWithBucketName) )
+			 	directoryDelete(baseWithBucketName, true);
 		}
 
 		public function run( testResults , testBox ) {

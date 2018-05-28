@@ -482,7 +482,7 @@ private function assertEqualPaths(string path1, string path2) {
 
 	private void function test(string label,string root){
 		var start=getTickCount();
-		var dir=arguments.root&"testResource/";
+		var dir=arguments.root&"testresource1/";
 		
 		// make sure there are no data from a previous run 
 		if(directoryExists(dir)) {
@@ -498,11 +498,11 @@ private function assertEqualPaths(string path1, string path2) {
 		    fileAMove(arguments.label,dir);
 		    fileAReadAppend(arguments.label,dir);
 		    fileAReadBinary(arguments.label,dir);
-		    testResourceProvider(dir&"testcaseRes");
+		    testResourceProvider(dir&"testcaseres1");
 		    
 		}
 		finally {
-			directory directory="#dir#" action="delete" recurse="yes";
+			if(directoryExists(dir)) directory directory="#dir#" action="delete" recurse="yes";
 		}   
 		assertFalse(DirectoryExists(dir));
 
@@ -576,10 +576,10 @@ private function assertEqualPaths(string path1, string path2) {
 				zipparam source=getCurrentTemplatePath();
 			}
 			
-			addMapping("/testResZip",zipPath);
+			addMapping("/testreszip",zipPath);
 			// now we use that zip
 			//throw expandPath("/testResZip/")&":"&file;
-			test("zip","/testResZip/");
+			test("zip","/testreszip/");
 		}
 		// now we delete that zip again
 		finally {
@@ -601,8 +601,8 @@ private function assertEqualPaths(string path1, string path2) {
 		var s3=getCredencials();
 		if(!isNull(s3.accessKeyId)) {
 			application action="update" s3=s3; 
-			addMapping("/testResS3","s3:///");
-			test("s3","/testResS3/");
+			addMapping("/testress3","s3:///");
+			test("s3","/testress3/");
 		}
 	}
 } 

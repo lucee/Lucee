@@ -94,7 +94,7 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 							</div>
 							<span <cfif _type=="server">style="color:##bf4f36"</cfif>>#cut(_extensions.name,40)#<br /></span>
 							<span class="comment" <cfif _type=="server">style="color:##bf4f36"</cfif>>#cut(arrayToList(cat),30)#</span>
-							
+
 						</a>
 					</div>
 				</cfif>
@@ -297,6 +297,10 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 					} else {
 						$('##'+xx).show();
 						$("##btn_"+v).addClass("btn");
+					}
+					if(!$('##div_Release').is(':visible') && !$('##div_Pre_release').is(':visible') && !$('##div_Snapshot').is(':visible')){
+						$('##'+xx).show();
+						$("##btn_"+v).addClass("btn")
 					}
 				}
 			}

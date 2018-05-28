@@ -60,6 +60,7 @@ import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.res.Resource;
@@ -184,7 +185,6 @@ import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibException;
 
-import org.apache.log4j.Level;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.w3c.dom.Document;
@@ -1774,7 +1774,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		Element child;
 		String name,appenderArgs,tmp,layoutArgs;
 		ClassDefinition cdAppender,cdLayout;
-		Level level=Level.ERROR;
+		int level=Log.LEVEL_ERROR;
 		boolean readOnly=false;
 		for(int i=0;i<children.length;i++){
 			child=children[i];
@@ -1799,7 +1799,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			
 			String strLevel=getAttr(child,"level");
 			if(StringUtil.isEmpty(strLevel,true))strLevel=getAttr(child,"log-level");
-			level=Log4jUtil.toLevel(StringUtil.trim(strLevel,""),Level.ERROR);
+			level=LogUtil.toLevel(StringUtil.trim(strLevel,""),Log.LEVEL_ERROR);
 			readOnly=Caster.toBooleanValue(getAttr(child,"read-only"),false);
 			// ignore when no appender/name is defined
 			if(cdAppender.hasClass() && !StringUtil.isEmpty(name)) {

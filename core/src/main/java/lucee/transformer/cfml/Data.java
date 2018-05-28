@@ -20,6 +20,7 @@ package lucee.transformer.cfml;
 
 import lucee.runtime.config.Config;
 import lucee.transformer.Factory;
+import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.Root;
 import lucee.transformer.cfml.evaluator.EvaluatorPool;
 import lucee.transformer.cfml.expression.SimpleExprTransformer;
@@ -52,6 +53,7 @@ public class Data {
 		public boolean isInterface;
 		public short context=TagLibTagScript.CTX_NONE; 
 		public DocComment docComment;
+		private Body parent;
 		
 
 		
@@ -75,5 +77,14 @@ public class Data {
 
 		public void setSimpleExprTransformer(SimpleExprTransformer set) {
 			this.set = set;
+		}
+
+		public Body setParent(Body parent) {
+			Body tmp=this.parent;
+			this.parent=parent;
+			return tmp;
+		}
+		public Body getParent() {
+			return parent;
 		}
 	}

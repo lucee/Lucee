@@ -98,7 +98,7 @@ public final class LoggerAdapterImpl extends MarkerIgnoringBase implements Locat
 		logger.log(level, _name, msg);
 	}
 	private void log(int level, String msg, Throwable t) {
-		LogUtil.log(logger,level, _name, msg,t);
+		logger.log(level, _name, msg,t);
 	}
 	
 	private void log(int level, String format, Object arg) {

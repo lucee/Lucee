@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.log.log4j.appender.ConsoleAppender;
@@ -58,7 +59,6 @@ import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
 
 import org.apache.log4j.HTMLLayout;
-import org.apache.log4j.Level;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.xml.XMLLayout;
 import org.osgi.framework.Version;
@@ -314,7 +314,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 				// level
 				String strLevel=Caster.toString(v.get("level",null),null);
 				if(StringUtil.isEmpty(strLevel,true))Caster.toString(v.get("loglevel",null),null);
-				Level level=Log4jUtil.toLevel(StringUtil.trim(strLevel,""),Level.ERROR);
+				int level=LogUtil.toLevel(StringUtil.trim(strLevel,""),Log.LEVEL_ERROR);
 				
 				Struct sctAppArgs=Caster.toStruct(sctApp.get("arguments",null),null);
 				Struct sctLayArgs=Caster.toStruct(sctLay.get("arguments",null),null);
@@ -349,7 +349,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	}
 
 
-	private static LoggerAndSourceData addLogger(Collection.Key name, Level level,
+	private static LoggerAndSourceData addLogger(Collection.Key name, int level,
 			ClassDefinition appender, Map<String, String> appenderArgs, 
 			ClassDefinition layout, Map<String, String> layoutArgs, boolean readOnly) {
 		LoggerAndSourceData existing = _loggers.get(name);

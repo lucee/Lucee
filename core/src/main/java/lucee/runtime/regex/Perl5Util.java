@@ -54,7 +54,7 @@ public final class Perl5Util {
 	 * @return position of the first occurence
 	 * @throws MalformedPatternException
 	*/
-	public static int indexOf(String strPattern, String strInput, int offset, boolean caseSensitive) throws MalformedPatternException {
+	public static Object indexOf(String strPattern, String strInput, int offset, boolean caseSensitive, boolean matchAll) throws MalformedPatternException {
         //Perl5Compiler compiler = new Perl5Compiler();
         PatternMatcherInput input = new PatternMatcherInput(strInput);
         Perl5Matcher matcher = new Perl5Matcher();
@@ -69,8 +69,20 @@ public final class Perl5Util {
 
         if(offset <= strInput.length()) input.setCurrentOffset(offset - 1);
         
-        if(offset <= strInput.length() && matcher.contains(input, pattern)) {
-            return matcher.getMatch().beginOffset(0) + 1; 
+        if(offset <= strInput.length()) {
+        	Array matches = new ArrayImpl();
+        	while(matcher.contains(input, pattern)) {
+        		int match = matcher.getMatch().beginOffset(0) + 1;
+        		if(!matchAll) {
+        			return new Double(match);
+        		}
+ 
+        		matches.appendEL(match);
+        	}
+        	
+        	if(matches.size() != 0) {
+        		return matches;
+        	}
         }
         return 0;
     }
@@ -86,49 +98,75 @@ public final class Perl5Util {
 	 * @return
 	 * @throws MalformedPatternException
 	 */
-	public static Struct find(String strPattern, String strInput, int offset, boolean caseSensitive) throws MalformedPatternException {
-        
+	public static Object find(String strPattern, String strInput, int offset, boolean caseSensitive, boolean matchAll) throws MalformedPatternException {
         Perl5Matcher matcher = new Perl5Matcher();
         PatternMatcherInput input = new PatternMatcherInput(strInput);
-        
+        Array matches = new ArrayImpl();
         
         int compileOptions=caseSensitive ? 0 : Perl5Compiler.CASE_INSENSITIVE_MASK;
         compileOptions+=Perl5Compiler.SINGLELINE_MASK;
         if(offset < 1) offset = 1;
         
+        Pattern pattern = getPattern(strPattern,compileOptions);        
         
-        Pattern pattern = getPattern(strPattern,compileOptions);
-        
-  
-        if(offset <= strInput.length()) input.setCurrentOffset(offset - 1);
-        
-        if(offset <= strInput.length() && matcher.contains(input, pattern)) {
-            MatchResult result = matcher.getMatch();
-            
-            int groupCount = result.groups();
-            Array posArray = new ArrayImpl();
-            Array lenArray = new ArrayImpl();
-            for(int i = 0; i < groupCount; i++) {
-                int off = result.beginOffset(i);
-                posArray.appendEL(Integer.valueOf(off + 1));
-                lenArray.appendEL(Integer.valueOf(result.endOffset(i) - off));
-            }
-            Struct struct = new StructImpl();
-            struct.setEL("pos", posArray);
-            struct.setEL("len", lenArray);
-            return struct;
-            
+        if(offset <= strInput.length()) {
+        	input.setCurrentOffset(offset - 1);
+        	
+        	while(matcher.contains(input, pattern)) {
+        		Struct matchStruct = getMatchStruct(matcher.getMatch());
+        		if(!matchAll) {
+        			return matchStruct;
+        		}
+        		
+	        	matches.appendEL(matchStruct);
+	        }
+			
+	        if(matches.size() != 0) {
+	        	return matches;
+	        }
         }
+        
         Array posArray = new ArrayImpl();
         Array lenArray = new ArrayImpl();
+        Array matchArray = new ArrayImpl();
         posArray.appendEL(Constants.INTEGER_0);
         lenArray.appendEL(Constants.INTEGER_0);
+        matchArray.appendEL("");
         
         Struct struct = new StructImpl();
         struct.setEL("pos", posArray);
         struct.setEL("len", lenArray);
+        struct.setEL("match", matchArray);
+        
+        if(matchAll) {
+        	matches.appendEL(struct);
+        	return matches;
+        }
+        
         return struct;
     }
+	
+	public static Struct getMatchStruct(MatchResult result) {
+    	int groupCount = result.groups();
+    	
+    	Array posArray = new ArrayImpl();
+        Array lenArray = new ArrayImpl();
+        Array matchArray = new ArrayImpl();
+        
+        for(int i = 0; i < groupCount; i++) {
+            int off = result.beginOffset(i);
+            posArray.appendEL(Integer.valueOf(off + 1));
+            lenArray.appendEL(Integer.valueOf(result.endOffset(i) - off));
+            matchArray.appendEL(result.toString());
+        }
+        
+        Struct struct = new StructImpl();
+        struct.setEL("pos", posArray);
+        struct.setEL("len", lenArray);
+        struct.setEL("match", matchArray);
+    	
+    	return struct;
+	}
 	
 
 	public static Array match(String strPattern, String strInput, int offset, boolean caseSensitive) throws MalformedPatternException {
@@ -138,7 +176,7 @@ public final class Perl5Util {
         
         
         int compileOptions=caseSensitive ? 0 : Perl5Compiler.CASE_INSENSITIVE_MASK;
-        compileOptions+=Perl5Compiler.MULTILINE_MASK;
+        compileOptions+=Perl5Compiler.SINGLELINE_MASK;
         if(offset < 1) offset = 1;
         
         
@@ -258,9 +296,6 @@ public final class Perl5Util {
     }
     
     public static void main(String[] args) throws MalformedPatternException {
-        find(
-                "<function[^>]*>.*?</function>",
-                "<function name=\"susi2\" some=\"1\">\n<argument name=\"susi\">\naaa</function>",
-                1,false);
+
     }
 }

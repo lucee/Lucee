@@ -136,22 +136,23 @@
 			action="connect"
 			type="#request.adminType#"
 			password="#session["password"&request.adminType]#">
+		<cfif request.adminType EQ "server">
+			<cfadmin
+			action="getDevelopMode"
+			type="#request.adminType#"
+			password="#session["password"&request.adminType]#"
+			returnVariable="mode">
+			<cfif mode.developMode>
+				<cfset session.alwaysNew = true>
+			</cfif>
+		</cfif>
 
 		 <cfcatch>
 		 	<cfset login_error=cfcatch.message>
 			<cfset StructDelete(session,"password"&request.adminType)>
 		</cfcatch>
 	</cftry>
-	<cfif request.adminType EQ "server">
-		<cfadmin
-		action="getDevelopMode"
-		type="#request.adminType#"
-		password="#session["password"&request.adminType]#"
-		returnVariable="mode">
-		<cfif mode.developMode>
-			<cfset session.alwaysNew = true>
-		</cfif>
-	</cfif>
+	
 </cfif>
 
 <cfif not StructKeyExists(session,'lucee_admin_lang')>

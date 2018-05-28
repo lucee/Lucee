@@ -24,6 +24,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 public class LogAdapter implements Log {
@@ -36,20 +37,20 @@ public class LogAdapter implements Log {
 
 	@Override
 	public void log(int level, String application, String message) {
-		logger.log(Log4jUtil.toLevel(level), application+"->"+message);
+		logger.log(toLevel(level), merge(application,message));
 		
 	}
 
 	@Override
 	public void log(int level, String application, String message, Throwable t) {
-		if(StringUtil.isEmpty(message))logger.log(Log4jUtil.toLevel(level), application,t);
-		else logger.log(Log4jUtil.toLevel(level), application+"->"+message,t);
+		if(StringUtil.isEmpty(message))logger.log(toLevel(level), application,t);
+		else logger.log(toLevel(level),  merge(application,message),t);
 	}
 
 
 	@Override
 	public void log(int level, String application, Throwable t) {
-		logger.log(Log4jUtil.toLevel(level), application,toThrowable(t));
+		logger.log(toLevel(level), application,toThrowable(t));
 	}
 
 	@Override
@@ -94,12 +95,12 @@ public class LogAdapter implements Log {
 
 	@Override
 	public int getLogLevel() {
-		return Log4jUtil.toLevel(logger.getLevel());
+		return toLevel(logger.getLevel());
 	}
 
 	@Override
 	public void setLogLevel(int level) {
-		logger.setLevel(Log4jUtil.toLevel(level));
+		logger.setLevel(toLevel(level));
 	}
 
 	public Logger getLogger() {
@@ -110,5 +111,32 @@ public class LogAdapter implements Log {
 		ExceptionUtil.rethrowIfNecessary(t);
 		if(t instanceof InvocationTargetException) return ((InvocationTargetException)t).getTargetException();
 		return t;
+	}
+
+	private Object merge(String application, String message) {
+		if(StringUtil.isEmpty(application)) return message;
+		return application+"->"+message;
+	}
+	
+	static Level toLevel(int level) {
+		switch(level){
+		case Log.LEVEL_FATAL: return Level.FATAL;
+		case Log.LEVEL_ERROR: return Level.ERROR;
+		case Log.LEVEL_WARN: return Level.WARN;
+		case Log.LEVEL_DEBUG: return Level.DEBUG;
+		case Log.LEVEL_INFO: return Level.INFO;
+		case Log.LEVEL_TRACE: return Level.TRACE;
+		}
+		return Level.INFO;
+	}
+	
+	private static int toLevel(Level level) {
+		if(Level.FATAL.equals(level)) return Log.LEVEL_FATAL;
+		if(Level.ERROR.equals(level)) return Log.LEVEL_ERROR;
+		if(Level.WARN.equals(level)) return Log.LEVEL_WARN;
+		if(Level.DEBUG.equals(level)) return Log.LEVEL_DEBUG;
+		if(Level.INFO.equals(level)) return Log.LEVEL_INFO;
+		if(Level.TRACE.equals(level)) return Log.LEVEL_TRACE;
+		return Log.LEVEL_INFO;
 	}
 }

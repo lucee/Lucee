@@ -111,7 +111,7 @@ class ExecutionThread extends Thread {
         }
         catch (Exception e) {
         	
-            LogUtil.log(log,Log.LEVEL_ERROR,logName,e);
+            log.log(Log.LEVEL_ERROR,logName,e);
             hasError=true;
         }
         
@@ -139,14 +139,14 @@ class ExecutionThread extends Thread {
         	    try {
                     str=new URLResolver().transform(str,task.getUrl(),false);
                 } catch (PageException e) {
-                    LogUtil.log(log,Log.LEVEL_ERROR,logName,e);
+                    log.log(Log.LEVEL_ERROR,logName,e);
                     hasError=true;
                 }
         	    try {
                     IOUtil.write(file,str,charset,false);
                 } 
                 catch (IOException e) {
-                    LogUtil.log(log,Log.LEVEL_ERROR,logName,e);
+                    log.log(Log.LEVEL_ERROR,logName,e);
                     hasError=true;
                 }
 	        }
@@ -159,7 +159,7 @@ class ExecutionThread extends Thread {
                     );
                 } 
                 catch (IOException e) {
-                    LogUtil.log(log,Log.LEVEL_ERROR,logName,e);
+                    log.log(Log.LEVEL_ERROR,logName,e);
                     hasError=true;
                 }
 	        }

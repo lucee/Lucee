@@ -95,7 +95,7 @@ Error Output --->
 				type: "POST",
 				<cfoutput>url: "./#request.self#?action=chartAjax",</cfoutput>
 				success: function(result){
-					var arr =["heap","nonheap", "cpuSystem", "cpuProcess"];
+					var arr =["heap","nonheap"];
 					$.each(arr,function(index,chrt){
 						window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
 						window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
@@ -109,6 +109,26 @@ Error Output --->
 						}
 						window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
 					});
+					var arr2 =["cpuSystem"];
+					$.each(arr2,function(index,chrt){
+						cpuSystemSeries1 = cpuSystemChartOption.series[0].data; //*charts*.series[0].data
+						cpuSystemSeries1.push(result["cpuSystem"]); // push the value into series[0].data
+						cpuSystemSeries2 = cpuSystemChartOption.series[1].data; //*charts*.series[0].data
+						cpuSystemSeries2.push(result["cpuProcess"]); // push the value into series[0].data
+						cpuSystemChartOption.series[0].data = cpuSystemSeries1;
+						cpuSystemChartOption.series[1].data = cpuSystemSeries2;
+						if(cpuSystemChartOption.series[0].data.length > 60){
+							cpuSystemChartOption.series[0].data.shift(); //shift the array
+						}
+						if(cpuSystemChartOption.series[1].data.length > 60){
+							cpuSystemChartOption.series[1].data.shift(); //shift the array
+						}
+						cpuSystemChartOption.xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+						if(cpuSystemChartOption.xAxis[0].data.length > 60){
+						cpuSystemChartOption.xAxis[0].data.shift(); //shift the Time value
+						}
+						window[chrt].setOption(cpuSystemChartOption); // passed the data into the chats
+					});
 					setTimeout(requestData, 1000);
 				}
 			})
@@ -117,7 +137,7 @@ Error Output --->
 
 
 		// intialize charts
-		$.each(["heap","nonheap", "cpuSystem", "cpuProcess"], function(i, data){
+		$.each(["heap","nonheap"], function(i, data){
 			window[data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
 			window[data+"Chart"] = {
 				backgroundColor: ["#EFEDE5"],
@@ -157,6 +177,61 @@ Error Output --->
 			}; // data
 			window[data].setOption(window[data+"Chart"]); // passed the data into the chats
 		});
+
+		var cpuSystem = echarts.init(document.getElementById('cpuSystem'),'macarons'); // intialize echarts
+		var cpuSystemChartOption = {
+			backgroundColor: ["#EFEDE5"],
+			tooltip : {'trigger':'axis',
+				formatter : function (params) {
+					var series2 = "";
+					if(params.length == 2) {
+						series2 =  params[1][0] + ": "+ params[1][2] + "%" + '<br>' +params[0][1];
+					}
+					return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>'  + series2;
+				}
+			},
+			legend: {
+				data:['System CPU', 'Lucee CPU']
+			},
+
+			color: ["<cfoutput>#request.adminType EQ "server" ? '##3399CC': '##BF4F36'#</cfoutput>", "<cfoutput>#request.adminType EQ "server" ? '##BF4F36': '##3399CC'#</cfoutput>"],
+			grid : {
+				width: '82%',
+				height: '65%',
+				x:'30px',
+				y:'25px'
+			},
+			xAxis : [{
+				'type':'category',
+				'boundaryGap' : false,
+				'data':[0]
+			}],
+			yAxis : [{
+				'type':'value',
+				'min':'0',
+				'max':'100',
+				'splitNumber': 2
+			}],
+			series : [
+				{
+				'name': 'System CPU',
+				'type':'line',
+				smooth:true,
+				itemStyle: {normal: {areaStyle: {type: 'default'}}},
+				'data': [0]
+				},
+				{
+				'name': 'Lucee CPU',
+				'type':'line',
+				smooth:true,
+				itemStyle: {normal: {areaStyle: {type: 'default'}}},
+				'data': [0]
+				}
+
+			]
+		}; // data
+		// console.log(cpuSystemChartOption);
+		cpuSystem.setOption(cpuSystemChartOption); // passed the data into the chats
         requestData();
     </script>
 </cfhtmlbody>
@@ -214,14 +289,14 @@ Error Output --->
 		<cfset names=StructKeyArray(info.servlets)>
 		<cfif !ArrayContainsNoCase(names,"Rest",true)>
 			<div class="warning nofocus">
-				The REST Servlet is not configured in your enviroment!
+				#stText.Overview.warning.warningMsg# 
 			</div>
 		</cfif>
 		<cfif getJavaVersion() LT 8>
 			<div class="warning nofocus">
-				You are running Lucee with Java #server.java.version# Lucee does not formally support this version of Java. Consider updating to the latest Java version for security and performance reasons.
+				#stText.Overview.warning.JavaVersion# #server.java.version# #stText.Overview.warning.JavaVersionNotSupport#
 				<cfif getJavaVersion() EQ 7>
-					Java 7 has been End-of-Life'd since April 2015.
+					#stText.Overview.warning.Java7NotSupport# 
 				</cfif>
 			</div>
 		</cfif>
@@ -302,9 +377,6 @@ Error Output --->
 							<tr>
 								<td width="50%"><b>#stText.setting.cpuSystem#</b>
 									<div id="cpuSystem" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
-								</td>
-								<td width="50%"><b>#stText.setting.cpuProcess#</b><br>
-									<div id="cpuProcess" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
 								</td>
 							</tr>
 
@@ -643,7 +715,7 @@ Error Output --->
 
 		<h2>#stText.Overview.contexts.title#</h2>
 		<div class="itemintro">
-			You can label your web contexts here, so they are more clearly distinguishable for use with extensions etc.
+			#stText.Overview.contexts.desc# 
 		</div>
 		<cfformClassic onerror="customError" action="#request.self#" method="post">
 			<table class="maintbl">
