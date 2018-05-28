@@ -779,9 +779,12 @@ public final class AppListenerUtil {
 	}
 
 	public static Server toMailServer(Config config, Struct data, Server defaultValue) {
+
 		String hostName = Caster.toString(data.get(KeyConstants._host, null), null);
+
 		if(StringUtil.isEmpty(hostName, true))
 			hostName = Caster.toString(data.get(KeyConstants._server, null), null);
+
 		if(StringUtil.isEmpty(hostName, true))
 			return defaultValue;
 
@@ -800,8 +803,17 @@ public final class AppListenerUtil {
 		if(idleTimespan == null)
 			idleTimespan = Caster.toTimespan(data.get("idle", null), ONE_MINUTE);
 
-		boolean tls = Caster.toBooleanValue(data.get("tls", null), false);
-		boolean ssl = Caster.toBooleanValue(data.get("ssl", null), false);
+		Object value;
+
+		value = data.get("tls", null);
+		if (value == null)
+			value = data.get("useTls", null);
+		boolean tls = Caster.toBooleanValue(value, false);
+
+		value = data.get("ssl", null);
+		if (value == null)
+			value = data.get("useSsl", null);
+		boolean ssl = Caster.toBooleanValue(value, false);
 
 		return new ServerImpl(-1, hostName, port, username, password, lifeTimespan.getMillis(), idleTimespan.getMillis(), tls, ssl, false,
 				ServerImpl.TYPE_LOCAL); // MUST improve store connection somehow
