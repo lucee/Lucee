@@ -744,14 +744,15 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	private void initMailServers() {
+
 		if(!initMailServer) {
 			Object oMail = get(component, KeyConstants._mail, null);
 			if(oMail == null)
 				oMail = get(component, KeyConstants._mails, null);
 			if(oMail == null)
-				oMail = get(component, KeyImpl.init("mailserver"), null);
+				oMail = get(component, KeyConstants._mailServer, null);
 			if(oMail == null)
-				oMail = get(component, KeyImpl.init("mailservers"), null);
+				oMail = get(component, KeyConstants._mailServers, null);
 
 			Array arrMail = Caster.toArray(oMail, null);
 			// we also support a single struct instead of an array of structs
@@ -762,9 +763,11 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 					arrMail.appendEL(sctMail);
 				}
 			}
+
 			if(arrMail != null) {
 				mailServers = AppListenerUtil.toMailServers(config, arrMail, null);
 			}
+
 			initMailServer = true;
 		}
 	}
