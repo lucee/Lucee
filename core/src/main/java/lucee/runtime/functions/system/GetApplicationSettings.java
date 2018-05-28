@@ -70,41 +70,42 @@ public class GetApplicationSettings {
 	}
 
 	public static Struct call(PageContext pc, boolean suppressFunctions) {
-		ApplicationContext ac = pc.getApplicationContext();
+
+		ApplicationContext appContext = pc.getApplicationContext();
 		Component cfc = null;
-		if(ac instanceof ModernApplicationContext)
-			cfc = ((ModernApplicationContext)ac).getComponent();
+		if(appContext instanceof ModernApplicationContext)
+			cfc = ((ModernApplicationContext)appContext).getComponent();
 
 		Struct sct = new StructImpl(Struct.TYPE_LINKED);
-		sct.setEL("applicationTimeout", ac.getApplicationTimeout());
-		sct.setEL("clientManagement", Caster.toBoolean(ac.isSetClientManagement()));
-		sct.setEL("clientStorage", ac.getClientstorage());
-		sct.setEL("sessionStorage", ac.getSessionstorage());
-		sct.setEL("customTagPaths", toArray(ac.getCustomTagMappings()));
-		sct.setEL("componentPaths", toArray(ac.getComponentMappings()));
-		sct.setEL("loginStorage", AppListenerUtil.translateLoginStorage(ac.getLoginStorage()));
-		sct.setEL(KeyConstants._mappings, toStruct(ac.getMappings()));
-		sct.setEL(KeyConstants._name, ac.getName());
-		sct.setEL("scriptProtect", AppListenerUtil.translateScriptProtect(ac.getScriptProtect()));
-		sct.setEL("secureJson", Caster.toBoolean(ac.getSecureJson()));
-		sct.setEL("CGIReadOnly", Caster.toBoolean(ac.getCGIScopeReadonly()));
-		sct.setEL("typeChecking", Caster.toBoolean(ac.getTypeChecking()));
-		sct.setEL("secureJsonPrefix", ac.getSecureJsonPrefix());
-		sct.setEL("sessionManagement", Caster.toBoolean(ac.isSetSessionManagement()));
-		sct.setEL("sessionTimeout", ac.getSessionTimeout());
-		sct.setEL("clientTimeout", ac.getClientTimeout());
-		sct.setEL("setClientCookies", Caster.toBoolean(ac.isSetClientCookies()));
-		sct.setEL("setDomainCookies", Caster.toBoolean(ac.isSetDomainCookies()));
-		sct.setEL(KeyConstants._name, ac.getName());
-		sct.setEL("localMode", ac.getLocalMode() == Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS ? Boolean.TRUE : Boolean.FALSE);
+		sct.setEL("applicationTimeout", appContext.getApplicationTimeout());
+		sct.setEL("clientManagement", Caster.toBoolean(appContext.isSetClientManagement()));
+		sct.setEL("clientStorage", appContext.getClientstorage());
+		sct.setEL("sessionStorage", appContext.getSessionstorage());
+		sct.setEL("customTagPaths", toArray(appContext.getCustomTagMappings()));
+		sct.setEL("componentPaths", toArray(appContext.getComponentMappings()));
+		sct.setEL("loginStorage", AppListenerUtil.translateLoginStorage(appContext.getLoginStorage()));
+		sct.setEL(KeyConstants._mappings, toStruct(appContext.getMappings()));
+		sct.setEL(KeyConstants._name, appContext.getName());
+		sct.setEL("scriptProtect", AppListenerUtil.translateScriptProtect(appContext.getScriptProtect()));
+		sct.setEL("secureJson", Caster.toBoolean(appContext.getSecureJson()));
+		sct.setEL("CGIReadOnly", Caster.toBoolean(appContext.getCGIScopeReadonly()));
+		sct.setEL("typeChecking", Caster.toBoolean(appContext.getTypeChecking()));
+		sct.setEL("secureJsonPrefix", appContext.getSecureJsonPrefix());
+		sct.setEL("sessionManagement", Caster.toBoolean(appContext.isSetSessionManagement()));
+		sct.setEL("sessionTimeout", appContext.getSessionTimeout());
+		sct.setEL("clientTimeout", appContext.getClientTimeout());
+		sct.setEL("setClientCookies", Caster.toBoolean(appContext.isSetClientCookies()));
+		sct.setEL("setDomainCookies", Caster.toBoolean(appContext.isSetDomainCookies()));
+		sct.setEL(KeyConstants._name, appContext.getName());
+		sct.setEL("localMode", appContext.getLocalMode() == Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS ? Boolean.TRUE : Boolean.FALSE);
 		sct.setEL(KeyConstants._locale, LocaleFactory.toString(pc.getLocale()));
 		sct.setEL(KeyConstants._timezone, TimeZoneUtil.toString(pc.getTimeZone()));
 
 		// scope cascading
-		sct.setEL("scopeCascading", ConfigWebUtil.toScopeCascading(ac.getScopeCascading(), null));
+		sct.setEL("scopeCascading", ConfigWebUtil.toScopeCascading(appContext.getScopeCascading(), null));
 
-		if(ac.getScopeCascading() != Config.SCOPE_SMALL) {
-			sct.setEL("searchImplicitScopes", ac.getScopeCascading() == Config.SCOPE_STANDARD);
+		if(appContext.getScopeCascading() != Config.SCOPE_SMALL) {
+			sct.setEL("searchImplicitScopes", appContext.getScopeCascading() == Config.SCOPE_STANDARD);
 		}
 
 		Struct cs = new StructImpl(Struct.TYPE_LINKED);
@@ -115,15 +116,15 @@ public class GetApplicationSettings {
 		sct.setEL("sessionType", AppListenerUtil.toSessionType(((PageContextImpl)pc).getSessionType(), "application"));
 		sct.setEL("serverSideFormValidation", Boolean.FALSE); // TODO impl
 
-		sct.setEL("clientCluster", Caster.toBoolean(ac.getClientCluster()));
-		sct.setEL("sessionCluster", Caster.toBoolean(ac.getSessionCluster()));
+		sct.setEL("clientCluster", Caster.toBoolean(appContext.getClientCluster()));
+		sct.setEL("sessionCluster", Caster.toBoolean(appContext.getSessionCluster()));
 
-		sct.setEL("invokeImplicitAccessor", Caster.toBoolean(ac.getTriggerComponentDataMember()));
-		sct.setEL("triggerDataMember", Caster.toBoolean(ac.getTriggerComponentDataMember()));
-		sct.setEL("sameformfieldsasarray", Caster.toBoolean(ac.getSameFieldAsArray(Scope.SCOPE_FORM)));
-		sct.setEL("sameurlfieldsasarray", Caster.toBoolean(ac.getSameFieldAsArray(Scope.SCOPE_URL)));
+		sct.setEL("invokeImplicitAccessor", Caster.toBoolean(appContext.getTriggerComponentDataMember()));
+		sct.setEL("triggerDataMember", Caster.toBoolean(appContext.getTriggerComponentDataMember()));
+		sct.setEL("sameformfieldsasarray", Caster.toBoolean(appContext.getSameFieldAsArray(Scope.SCOPE_FORM)));
+		sct.setEL("sameurlfieldsasarray", Caster.toBoolean(appContext.getSameFieldAsArray(Scope.SCOPE_URL)));
 
-		Object ds = ac.getDefDataSource();
+		Object ds = appContext.getDefDataSource();
 		if(ds instanceof DataSource)
 			ds = _call((DataSource)ds);
 		else
@@ -131,18 +132,18 @@ public class GetApplicationSettings {
 		sct.setEL(KeyConstants._datasource, ds);
 		sct.setEL("defaultDatasource", ds);
 
-		Resource src = ac.getSource();
+		Resource src = appContext.getSource();
 		if(src != null)
 			sct.setEL(KeyConstants._source, src.getAbsolutePath());
 
 		// orm
-		if(ac.isORMEnabled()) {
-			ORMConfiguration conf = ac.getORMConfiguration();
+		if(appContext.isORMEnabled()) {
+			ORMConfiguration conf = appContext.getORMConfiguration();
 			if(conf != null)
 				sct.setEL(KeyConstants._orm, conf.toStruct());
 		}
 		// s3
-		Properties props = ac.getS3();
+		Properties props = appContext.getS3();
 		if(props != null) {
 			sct.setEL(KeyConstants._s3, props.toStruct());
 		}
@@ -150,14 +151,14 @@ public class GetApplicationSettings {
 		// ws settings
 		{
 			Struct wssettings = new StructImpl(Struct.TYPE_LINKED);
-			wssettings.put(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(), "Axis1"));
+			wssettings.put(KeyConstants._type, AppListenerUtil.toWSType(appContext.getWSType(), "Axis1"));
 			sct.setEL("wssettings", wssettings);
 		}
 
 		// datasources
 		Struct _sources = new StructImpl(Struct.TYPE_LINKED);
 		sct.setEL(KeyConstants._datasources, _sources);
-		DataSource[] sources = ac.getDataSources();
+		DataSource[] sources = appContext.getDataSources();
 		if(!ArrayUtil.isEmpty(sources)) {
 			for (int i = 0; i < sources.length; i++) {
 				_sources.setEL(KeyImpl.init(sources[i].getName()), _call(sources[i]));
@@ -168,8 +169,8 @@ public class GetApplicationSettings {
 		// logs
 		Struct _logs = new StructImpl(Struct.TYPE_LINKED);
 		sct.setEL("logs", _logs);
-		if(ac instanceof ApplicationContextSupport) {
-			ApplicationContextSupport acs = (ApplicationContextSupport)ac;
+		if(appContext instanceof ApplicationContextSupport) {
+			ApplicationContextSupport acs = (ApplicationContextSupport)appContext;
 			Iterator<Key> it = acs.getLogNames().iterator();
 			Key name;
 			while(it.hasNext()) {
@@ -181,8 +182,8 @@ public class GetApplicationSettings {
 		// mails
 		Array _mails = new ArrayImpl();
 		sct.setEL("mails", _mails);
-		if(ac instanceof ApplicationContextSupport) {
-			ApplicationContextSupport acs = (ApplicationContextSupport)ac;
+		if(appContext instanceof ApplicationContextSupport) {
+			ApplicationContextSupport acs = (ApplicationContextSupport)appContext;
 			Server[] servers = acs.getMailServers();
 			Struct s;
 			Server srv;
@@ -210,8 +211,9 @@ public class GetApplicationSettings {
 			}
 		}
 
+
 		// tag
-		Map<Key, Map<Collection.Key, Object>> tags = ac.getTagAttributeDefaultValues(pc);
+		Map<Key, Map<Collection.Key, Object>> tags = appContext.getTagAttributeDefaultValues(pc);
 		if(tags != null) {
 			Struct tag = new StructImpl(Struct.TYPE_LINKED);
 			Iterator<Entry<Key, Map<Collection.Key, Object>>> it = tags.entrySet().iterator();
@@ -236,20 +238,20 @@ public class GetApplicationSettings {
 		}
 
 		// cache
-		String fun = ac.getDefaultCacheName(Config.CACHE_TYPE_FUNCTION);
-		String obj = ac.getDefaultCacheName(Config.CACHE_TYPE_OBJECT);
-		String qry = ac.getDefaultCacheName(Config.CACHE_TYPE_QUERY);
-		String res = ac.getDefaultCacheName(Config.CACHE_TYPE_RESOURCE);
-		String tmp = ac.getDefaultCacheName(Config.CACHE_TYPE_TEMPLATE);
-		String inc = ac.getDefaultCacheName(Config.CACHE_TYPE_INCLUDE);
-		String htt = ac.getDefaultCacheName(Config.CACHE_TYPE_HTTP);
-		String fil = ac.getDefaultCacheName(Config.CACHE_TYPE_FILE);
-		String wse = ac.getDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE);
+		String fun = appContext.getDefaultCacheName(Config.CACHE_TYPE_FUNCTION);
+		String obj = appContext.getDefaultCacheName(Config.CACHE_TYPE_OBJECT);
+		String qry = appContext.getDefaultCacheName(Config.CACHE_TYPE_QUERY);
+		String res = appContext.getDefaultCacheName(Config.CACHE_TYPE_RESOURCE);
+		String tmp = appContext.getDefaultCacheName(Config.CACHE_TYPE_TEMPLATE);
+		String inc = appContext.getDefaultCacheName(Config.CACHE_TYPE_INCLUDE);
+		String htt = appContext.getDefaultCacheName(Config.CACHE_TYPE_HTTP);
+		String fil = appContext.getDefaultCacheName(Config.CACHE_TYPE_FILE);
+		String wse = appContext.getDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE);
 
 		// cache connections
 		Struct conns = new StructImpl(Struct.TYPE_LINKED);
-		if(ac instanceof ApplicationContextSupport) {
-			ApplicationContextSupport acs = (ApplicationContextSupport)ac;
+		if(appContext instanceof ApplicationContextSupport) {
+			ApplicationContextSupport acs = (ApplicationContextSupport)appContext;
 			Key[] names = acs.getCacheConnectionNames();
 			for (Key name : names) {
 				CacheConnection data = acs.getCacheConnection(name.getString(), null);
@@ -295,7 +297,7 @@ public class GetApplicationSettings {
 		}
 
 		// java settings
-		JavaSettings js = ac.getJavaSettings();
+		JavaSettings js = appContext.getJavaSettings();
 		StructImpl jsSct = new StructImpl(Struct.TYPE_LINKED);
 		jsSct.put("loadCFMLClassPath", js.loadCFMLClassPath());
 		jsSct.put("reloadOnChange", js.reloadOnChange());
