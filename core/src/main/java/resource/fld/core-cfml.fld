@@ -384,7 +384,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>dateTimeFormat</name>
 		<class>lucee.runtime.functions.displayFormatting.DateTimeFormat</class>
-		<member-name>dateTimeFormat</member-name>
+		<member-name>dateTimeFormat, format</member-name>
 		<member-type>date</member-type>
 		<keywords>date,string,formatting</keywords>
 		<description>Formats a date/time string to a given output</description>
