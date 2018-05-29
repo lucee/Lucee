@@ -260,8 +260,7 @@ public final class JSONConverter extends ConverterSupport {
 	public void _serializeStruct(PageContext pc, Set test, Struct struct, StringBuilder sb, boolean serializeQueryByColumns, boolean addUDFs, Set<Object> done)
 			throws ConverterException {
 
-		boolean preserveCaseForStructKey = true;
-
+		boolean preserveCase = true;	// preserve case by default for Struct
 		ApplicationContext appContext = pc.getApplicationContext();
 		if (appContext instanceof ModernApplicationContext){
 			Struct settings = ((ModernApplicationContext)appContext).getSerializationSettings();
@@ -269,7 +268,7 @@ public final class JSONConverter extends ConverterSupport {
 			if (Decision.isBoolean(value)){
 				try {
 					if (!Caster.toBoolean(value))
-						preserveCaseForStructKey = false;
+						preserveCase = false;
 				}
 				catch (PageException ex){}	// should never happen because we check
 			}
@@ -296,7 +295,7 @@ public final class JSONConverter extends ConverterSupport {
 
 			e = it.next();
 			k = e.getKey().getString();
-			if (!preserveCaseForStructKey)
+			if (!preserveCase)
 				k = k.toUpperCase();
 			value = e.getValue();
 
@@ -451,6 +450,20 @@ public final class JSONConverter extends ConverterSupport {
 	private void _serializeQuery(PageContext pc, Set test, Query query, StringBuilder sb, boolean serializeQueryByColumns, Set<Object> done)
 			throws ConverterException {
 
+		boolean preserveCase = false;		// UPPERCASE column keys by default for Query
+		ApplicationContext appContext = pc.getApplicationContext();
+		if (appContext instanceof ModernApplicationContext){
+			Struct settings = ((ModernApplicationContext)appContext).getSerializationSettings();
+			Object value = settings.get(KeyConstants._preserveCaseForQueryColumn, null);
+			if (Decision.isBoolean(value)){
+				try {
+					if (Caster.toBoolean(value))
+						preserveCase = true;
+				}
+				catch (PageException ex){}	// should never happen because we check
+			}
+		}
+
 		Collection.Key[] _keys = CollectionUtil.keys(query);
 		sb.append(goIn());
 		sb.append("{");
@@ -472,7 +485,7 @@ public final class JSONConverter extends ConverterSupport {
 		for (int i = 0; i < cols.length; i++) {
 			if(i > 0)
 				sb.append(",");
-			sb.append(StringUtil.escapeJS(cols[i].toUpperCase(), '"', charsetEncoder));
+			sb.append(StringUtil.escapeJS(preserveCase ? cols[i] : cols[i].toUpperCase(), '"', charsetEncoder));
 		}
 		sb.append("],");
 
