@@ -39,6 +39,7 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
@@ -100,6 +101,19 @@ public class QueryParamConverter {
 			}
 		}
 		return convert(sql, items, namedItems);
+	}
+
+
+	public static Struct toStruct(SQLItem item) {
+		Struct sct=new StructImpl();
+		if(item instanceof NamedSQLItem) {
+			NamedSQLItem nsi = (NamedSQLItem) item;
+			sct.setEL(KeyConstants._name, nsi.getName());
+		}
+		sct.setEL(KeyConstants._value, item.getValue());
+		sct.setEL(KeyConstants._type, SQLCaster.toStringType(item.getType(),null));
+		sct.setEL(KeyConstants._scale, item.getScale());
+		return sct;
 	}
 
 	private static SQLItems<NamedSQLItem> toNamedSQLItem(String name, Object value) throws PageException {
@@ -245,6 +259,10 @@ public class QueryParamConverter {
 
 		public String toString() {
 			return "{name:" + name + ";" + super.toString() + "}";
+		}
+
+		public String getName() {
+			return name;
 		}
 
 		@Override

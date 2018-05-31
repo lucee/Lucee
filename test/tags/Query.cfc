@@ -64,5 +64,93 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		queryAddColumn(qry,"susi2");
 
 	}
+
+
+
+	public void function testListenerComponent() {
+		query name="local.qry"  {
+			echo("delete from T"&suffix);
+		} 
+		query name="local.qry" listener=new query.QueryListener() {
+			echo("select id from T"&suffix);
+		} 
+		assertEquals(3,qry.recordcount);
+		assertEquals("abc",qry.columnList);
+	}
+
+
+	public void function testListenerBefore() {
+		query name="local.qry"  {
+			echo("delete from T"&suffix);
+		} 
+		query name="local.qry" listener={
+			before=function (caller,args) {
+		        args.sql="SELECT TABLE_NAME as abc FROM INFORMATION_SCHEMA.TABLES"; // change SQL
+		        args.maxrows=2;
+		        return arguments;
+		    }
+		} {
+
+			echo("select id from T"&suffix);
+		} 
+		assertTrue(qry.recordcount<=2);
+		assertEquals("abc",qry.columnList);
+	}
+
+
+	public void function testListenerAfter() {
+		query name="local.qry"  {
+			echo("delete from T"&suffix);
+		} 
+		query name="local.qry" listener={
+			after=function (caller,args,result,meta) {
+		        var row=queryAddRow(result);
+		        querySetCell(qry,"id","1234",row);
+		    }
+		} {
+
+			echo("select id from T"&suffix);
+		} 
+		assertEquals(1,qry.recordcount);
+		assertEquals("1234",qry.id);
+
+
+		query name="local.qry" listener={
+			after=function (caller,args,result,meta) {
+				result=query(a:[1,2,3]);
+				return arguments;
+		    }
+		} {
+
+			echo("select id from T"&suffix);
+		} 
+		assertEquals(3,qry.recordcount);
+		assertEquals("A",qry.columnlist);
+		
+	}
+
+	public void function testListenerInsert() {
+		query name="local.qry"  {
+			echo("delete from T"&suffix);
+		} 
+		query name="local.qry" listener={
+				before=function (caller,args) {
+			        //dump(label:"before",var:arguments);
+			        return arguments;
+		    	},
+				after=function (caller,args) {
+			        //dump(label:"after",var:arguments);
+			        arguments.result=query(a:[1,2,3]);
+			        return arguments;
+		    	}
+			}
+
+		 {
+			echo("insert into T"&suffix&"(id,i,dec) values('1',1,1.0)");
+		} 
+		assertEquals(3,qry.recordcount);
+		assertEquals("A",qry.columnlist);
+		
+	}
 } 
 </cfscript>

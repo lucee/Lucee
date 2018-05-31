@@ -47,6 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.ServletContext;
 
 import lucee.commons.digest.MD5;
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -1024,6 +1025,13 @@ public final class SystemUtil {
 		@Override
 		public String toString() {
 			return template + ":" + line;
+		}
+
+		public Object toStruct() {
+			Struct caller=new StructImpl(Struct.TYPE_LINKED);
+			caller.setEL(KeyConstants._template, template);
+			caller.setEL(KeyConstants._line, new Double(line));
+			return caller;
 		}
 	}
 

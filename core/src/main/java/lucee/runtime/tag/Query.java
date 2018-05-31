@@ -22,12 +22,18 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TimeZone;
 
+import lucee.print;
+import lucee.commons.io.SystemUtil;
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -49,17 +55,25 @@ import lucee.runtime.db.HSQLDBHandler;
 import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLImpl;
 import lucee.runtime.db.SQLItem;
+import lucee.runtime.db.SQLItemImpl;
 import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
 import lucee.runtime.functions.displayFormatting.DecimalFormat;
+import lucee.runtime.functions.other.GetTagData;
 import lucee.runtime.listener.AppListenerUtil;
+import lucee.runtime.net.smtp.SMTPClient;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMSession;
 import lucee.runtime.orm.ORMUtil;
+import lucee.runtime.spooler.ComponentSpoolerTaskListener;
+import lucee.runtime.spooler.UDFSpoolerTaskListener;
+import lucee.runtime.tag.listener.ComponentTagListener;
+import lucee.runtime.tag.listener.TagListener;
+import lucee.runtime.tag.listener.UDFTagListener;
 import lucee.runtime.tag.util.QueryParamConverter;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -70,6 +84,7 @@ import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
@@ -82,6 +97,8 @@ import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.PageContextUtil;
+import lucee.transformer.library.tag.TagLibTag;
+import lucee.transformer.library.tag.TagLibTagAttr;
 
 import org.osgi.framework.BundleException;
 
@@ -176,6 +193,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	private String[] tags = null;
 	private String sql;
 	private boolean hasBody;
+	private TagListener listener;
+	private Object rawDatasource;
 
 	@Override
 	public void release() {
@@ -183,6 +202,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		items.clear();
 		password = null;
 		datasource = null;
+		rawDatasource=null;
 		timeout = null;
 		cachedWithin = null;
 		cachedAfter = null;
@@ -214,6 +234,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		tags = null;
 		sql = null;
 		hasBody=false;
+		listener=null;
 	}
 
 	public void setTags(Object oTags) throws PageException {
@@ -309,12 +330,18 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	 **/
 
 	public void setDatasource(Object datasource) throws PageException, ClassException, BundleException {
+		if(datasource==null) return;
+		this.rawDatasource=datasource;
+		this.datasource = toDatasource(datasource);
+	}
+	
+	private DataSource toDatasource(Object datasource) throws PageException {
 		if(Decision.isStruct(datasource)) {
-			this.datasource = AppListenerUtil.toDataSource(pageContext.getConfig(), "__temp__", Caster.toStruct(datasource),
+			return AppListenerUtil.toDataSource(pageContext.getConfig(), "__temp__", Caster.toStruct(datasource),
 					pageContext.getConfig().getLog("application"));
 		}
 		else if(Decision.isString(datasource)) {
-			this.datasource = pageContext.getDataSource(Caster.toString(datasource));
+			return  pageContext.getDataSource(Caster.toString(datasource));
 		}
 		else {
 			throw new ApplicationException("attribute [datasource] must be datasource name or a datasource definition(struct)");
@@ -529,6 +556,12 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		this.nestingLevel = (int)nestingLevel;
 	}
 
+	public void setListener(Object listener) throws ApplicationException {
+		if(listener==null) return;
+		
+		this.listener=toQueryListener(listener);
+	}
+
 	public void setSql(String sql){
 		this.sql = sql;
 	}
@@ -606,11 +639,19 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			strSQL =sql.trim();	
 		}
 		
-
+		if(!items.isEmpty() && params != null)
+			throw new DatabaseException("you cannot use the attribute params and sub tags queryparam at the same time", null, null, null);
+		
+		
+		// listener before
+		if(listener!=null) {
+			String res = writeBackArgs(listener.before(pageContext, createArgStruct(strSQL)));
+			if(!StringUtil.isEmpty(res)) strSQL=res;
+		}
+		
+		
 		try {
 			// cannot use attribute params and queryparam tag
-			if(!items.isEmpty() && params != null)
-				throw new DatabaseException("you cannot use the attribute params and sub tags queryparam at the same time", null, null, null);
 
 			// create SQL
 			SQL sqlQuery;
@@ -724,7 +765,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 						else if(!StringUtil.isEmpty(name)) {
 							pageContext.setVariable(name, obj);
 						}
-
+						
+						
+						
+						
 						if(result != null) {
 							long time = System.nanoTime() - start;
 							Struct sct = new StructImpl();
@@ -768,33 +812,36 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 							getPageSource(), exe);
 				}
 			}
+			boolean setResult=false;
 			if(setReturnVariable) {
 				rtn = queryResult;
 			}
 			else if((queryResult.getColumncount() + queryResult.getRecordcount()) > 0 && !StringUtil.isEmpty(name)) {
 				pageContext.setVariable(name, queryResult);
+				setResult=true;
 			}
 
 			// Result
-			if(result != null) {
 
-				Struct sct = new StructImpl();
-				sct.setEL(KeyConstants._cached, Caster.toBoolean(queryResult.isCached()));
+			Struct meta = null;
+			if(result != null) {
+				meta = new StructImpl();
+				meta.setEL(KeyConstants._cached, Caster.toBoolean(queryResult.isCached()));
 				if((queryResult.getColumncount() + queryResult.getRecordcount()) > 0) {
 					String list = ListUtil.arrayToList(
 							queryResult instanceof lucee.runtime.type.Query ? ((lucee.runtime.type.Query)queryResult).getColumnNamesAsString()
 									: CollectionUtil.toString(queryResult.getColumnNames(), false),
 							",");
-					sct.setEL(KeyConstants._COLUMNLIST, list);
+					meta.setEL(KeyConstants._COLUMNLIST, list);
 				}
 				int rc = queryResult.getRecordcount();
 				if(rc == 0)
 					rc = queryResult.getUpdateCount();
-				sct.setEL(KeyConstants._RECORDCOUNT, Caster.toDouble(rc));
-				sct.setEL(KeyConstants._executionTime, Caster.toDouble(queryResult.getExecutionTime() / 1000000));
-				sct.setEL(KeyConstants._executionTimeNano, Caster.toDouble(queryResult.getExecutionTime()));
+				meta.setEL(KeyConstants._RECORDCOUNT, Caster.toDouble(rc));
+				meta.setEL(KeyConstants._executionTime, Caster.toDouble(queryResult.getExecutionTime() / 1000000));
+				meta.setEL(KeyConstants._executionTimeNano, Caster.toDouble(queryResult.getExecutionTime()));
 
-				sct.setEL(KeyConstants._SQL, sqlQuery.getSQLString());
+				meta.setEL(KeyConstants._SQL, sqlQuery.getSQLString());
 
 				// GENERATED KEYS
 				lucee.runtime.type.Query qi = Caster.toQuery(queryResult, null);
@@ -814,14 +861,14 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 								sb.append(Caster.toString(column.get(row, null)));
 							}
 							if(sb.length() > 0) {
-								sct.setEL(columnNames[c], sb.toString());
+								meta.setEL(columnNames[c], sb.toString());
 								if(generatedKey.length() > 0)
 									generatedKey.append(',');
 								generatedKey.append(sb);
 							}
 						}
 						if(generatedKey.length() > 0)
-							sct.setEL(GENERATEDKEY, generatedKey.toString());
+							meta.setEL(GENERATEDKEY, generatedKey.toString());
 					}
 				}
 
@@ -829,22 +876,28 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				SQLItem[] params = sqlQuery.getItems();
 				if(params != null && params.length > 0) {
 					Array arr = new ArrayImpl();
-					sct.setEL(SQL_PARAMETERS, arr);
+					meta.setEL(SQL_PARAMETERS, arr);
 					for (int i = 0; i < params.length; i++) {
 						arr.append(params[i].getValue());
 					}
 				}
 
-				pageContext.setVariable(result, sct);
+				pageContext.setVariable(result, meta);
 			}
 			// cfquery.executiontime
 			else {
-				setExecutionTime(exe / 1000000);
-
+				meta=setExecutionTime(exe / 1000000);
 			}
 
 			// listener
 			((ConfigWebImpl)pageContext.getConfig()).getActionMonitorCollector().log(pageContext, "query", "Query", exe, queryResult);
+			if(listener!=null) {
+				Struct args = createArgStruct(strSQL);
+				if(setResult)args.set("result", queryResult);
+				if(meta!=null)args.set("meta", meta);
+				writeBackResult(listener.after(pageContext, args));
+				
+			}
 
 			// log
 			Log log = pageContext.getConfig().getLog("datasource");
@@ -856,13 +909,193 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			// log
 			pageContext.getConfig().getLog("datasource").error("query tag", pe);
 			throw pe;
-		} finally {
+		}
+		finally {
 			((PageContextImpl)pageContext).setTimestampWithTSOffset(previousLiteralTimestampWithTSOffset);
 			if(tmpTZ != null) {
 				pageContext.setTimeZone(tmpTZ);
 			}
 		}
 		return EVAL_PAGE;
+	}
+
+	private Struct createArgStruct(String strSQL) throws PageException {
+		Struct rtn=new StructImpl(Struct.TYPE_LINKED);
+		Struct args=new StructImpl(Struct.TYPE_LINKED);
+		
+		// TODO add missing attrs
+		/*TagLibTag tlt = TagUtil.getTagLibTag(pageContext, CFMLEngine.DIALECT_CFML, "cf", "query");
+		Iterator<Entry<String, TagLibTagAttr>> it = tlt.getAttributes().entrySet().iterator();
+		Entry<String, TagLibTagAttr> e;
+		while(it.hasNext()) {
+			e=it.next();
+			e.getValue().get(this);
+		}*/
+		
+		set(args,"cachedAfter", this.cachedAfter);
+		set(args,"cachedWithin", this.cachedWithin);
+		if(columnName!=null)set(args,"columnName", this.columnName.getString());
+		set(args,"datasource", this.rawDatasource);
+		set(args,"dbtype", this.dbtype);
+		set(args,"debug", this.debug);
+		set(args,"lazy", this.lazy);
+		if(maxrows>=0)set(args,"maxrows", this.maxrows);
+		set(args,"name", this.name);
+		set(args,"ormoptions", this.ormoptions);
+		set(args,"username", this.username);
+		set(args,"password", this.password);
+		set(args,"result", this.result);
+		set(args,"returntype", this.returntype);
+		set(args,"timeout", this.timeout);
+		set(args,"timezone", this.timezone);
+		set(args,"unique", this.unique);
+		set(args,"sql",strSQL);
+		rtn.setEL("args", args);
+		
+		// params
+		if(params!=null) {
+			set(args,"params", this.params);
+		}
+		else if(items!=null) {
+			Array params=new ArrayImpl();
+			Iterator<SQLItem> it = items.iterator();
+			SQLItem item;
+			while(it.hasNext()) {
+				item = it.next();
+				params.appendEL(QueryParamConverter.toStruct(item));
+			}
+			set(args,"params", params);
+		}
+		
+		rtn.setEL("caller", SystemUtil.getCurrentContext().toStruct());
+
+		return rtn;
+	}
+
+	private String writeBackArgs(Struct args) throws PageException {
+		if(args==null) return null;
+		
+		// maybe they send the hole arguments scope, we handle this here
+		if(args.size()==2 && args.containsKey("caller") && args.containsKey("args"))
+			args=Caster.toStruct(args.get("args"));
+		
+		// cachedAfter
+		DateTime dt=Caster.toDate(args.get("cachedAfter",null), true, pageContext.getTimeZone(), null);
+		if(dt!=null && dt!=cachedAfter)
+			cachedAfter=dt;
+		
+		// cachedWithin
+		Object obj=args.get("cachedWithin",null);
+		if(obj!=null && obj!=cachedWithin)
+			cachedWithin=obj;
+		
+		// columnName
+		Key k=Caster.toKey(args.get("columnName",null),null);
+		if(k!=null && k!=columnName)
+			columnName=k;
+		
+		// datasource
+		obj=args.get("datasource",null);
+		if(obj!=null && obj!=datasource) {
+			rawDatasource=obj;
+			datasource=toDatasource(obj);
+		}
+		
+		// dbtype
+		String str=Caster.toString(args.get("dbtype",null),null);
+		if(str!=null && str!=dbtype && !StringUtil.isEmpty(str))
+			dbtype=str;
+		
+		// debug
+		Boolean b=Caster.toBoolean(args.get("debug",null),null);
+		if(b!=null && b!=debug)
+			debug=b.booleanValue();
+		
+		// lazy
+		b=Caster.toBoolean(args.get("lazy",null),null);
+		if(b!=null && b!=lazy)
+			lazy=b.booleanValue();
+		
+		// maxrows
+		Integer i=Caster.toInteger(args.get("maxrows",null),null);
+		if(i!=null && i!=maxrows) {
+			if(i.intValue()>=0)maxrows=i.intValue();
+		}
+			
+		
+		// name
+		str=Caster.toString(args.get("name",null),null);
+		if(str!=null && str!=name && !str.equals(name) && !StringUtil.isEmpty(str))
+			name=str;
+		
+		// ormoptions
+		Struct sct=Caster.toStruct(args.get("ormoptions",null),null);
+		if(sct!=null && sct!=ormoptions)
+			ormoptions=sct;
+		
+		// username
+		str=Caster.toString(args.get("username",null),null);
+		if(str!=null && str!=username && !StringUtil.isEmpty(str))
+			username=str;
+		
+		// password
+		str=Caster.toString(args.get("password",null),null);
+		if(str!=null && str!=password && !StringUtil.isEmpty(str))
+			password=str;
+		
+		// result
+		str=Caster.toString(args.get("result",null),null);
+		if(str!=null && str!=result  && !StringUtil.isEmpty(str))
+			result=str;
+		
+		// returntype
+		i=Caster.toInteger(args.get("returntype",null),null);
+		if(i!=null && i!=returntype)
+			returntype=i.intValue();
+		
+		// timeout
+		TimeSpan ts = Caster.toTimespan(args.get("timeout",null),null);
+		if(ts!=null && ts!=timeout)
+			timeout=ts;
+
+		// timezone
+		TimeZone tz = Caster.toTimeZone(args.get("timezone",null),null);
+		if(tz!=null && tz!=timeout)
+			timezone=tz;
+
+		// params
+		obj = args.get("params",null);
+		if(obj!=null && obj!=params) {
+			this.params=obj;
+			this.items.clear();
+		}
+		
+		// sql
+		String sql=null;
+		str=Caster.toString(args.get("sql",null),null);
+		if(str!=null && !StringUtil.isEmpty(str))
+			sql=str;
+		return sql;
+	}
+	
+	private void writeBackResult(Struct args) throws PageException {
+		if(args==null) return;
+		
+		// result
+		Object res = args.get(KeyConstants._result,null);
+		if(res!=null) {
+			if(!StringUtil.isEmpty(name)) pageContext.setVariable(name, res);
+		}
+		// meta
+		Object meta = args.get(KeyConstants._meta,null);
+		if(meta!=null) {
+			if(StringUtil.isEmpty(result)) pageContext.undefinedScope().setEL(CFQUERY, meta);
+			else pageContext.setVariable(result, meta);
+		}
+	}
+	
+	private void set(Struct args, String name, Object value) throws PageException {
+		if(value!=null) args.set(name, value);
 	}
 
 	private PageSource getPageSource() {
@@ -876,10 +1109,11 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		return pageContext.getCurrentPageSource();
 	}
 
-	private void setExecutionTime(long exe) {
+	private Struct setExecutionTime(long exe) {
 		Struct sct = new StructImpl();
 		sct.setEL(KeyConstants._executionTime, new Double(exe));
 		pageContext.undefinedScope().setEL(CFQUERY, sct);
+		return sct;
 	}
 
 	private Object executeORM(SQL sql, int returnType, Struct ormoptions) throws PageException {
@@ -992,4 +1226,21 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
     public void hasBody(boolean hasBody) {
         this.hasBody=hasBody;
     }
+    
+
+
+	private TagListener toQueryListener(Object listener) throws ApplicationException {
+		if(listener instanceof Component)
+			return new ComponentTagListener((Component)listener);
+		
+		if(listener instanceof UDF)
+			return new UDFTagListener(null,(UDF)listener);
+		
+		if(listener instanceof Struct) {
+			UDF before=Caster.toFunction(((Struct)listener).get("before",null),null);
+			UDF after=Caster.toFunction(((Struct)listener).get("after",null),null);
+			return new UDFTagListener(before,after);
+		}
+		throw new ApplicationException("cannot convert ["+Caster.toTypeName(listener)+"] to a listener");
+	}
 }
