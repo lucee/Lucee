@@ -469,7 +469,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 									}
 									window[chrt].setOption(cpuSystemChartOption); // passed the data into the chats
 								});
-								
 							}
 						})
 					}
