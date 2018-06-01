@@ -6512,6 +6512,15 @@ To use cached data, the current query must use the same SQL statement, data sour
 		<attribute>
 			<name>listener</name>
 			<type>any</type>
+			<status>hidden</status>
+			<required>false</required>
+			<description></description>
+		</attribute>
+		<attribute>
+			<name>async</name>
+			<type>boolean</type>
+			<default>false</default>
+			<status>hidden</status>
 			<required>false</required>
 			<description></description>
 		</attribute>
