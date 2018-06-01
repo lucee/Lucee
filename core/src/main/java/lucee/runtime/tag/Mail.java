@@ -278,14 +278,16 @@ public final class Mail extends BodyTagImpl {
 	* @param subject value to set
 	**/
 	public void setSubject(String subject)	{
-		smtp.setSubject(subject);
+		smtp.setSubject(StringUtil.collapseWhitespace(subject));
 	}
+
 	/**
 	 * @param username The username to set.
 	 */
 	public void setUsername(String username) {
 		smtp.setUsername(username);
 	}
+
 	/**
 	 * @param password The password to set.
 	 */
