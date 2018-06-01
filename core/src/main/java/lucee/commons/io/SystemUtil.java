@@ -1022,6 +1022,12 @@ public final class SystemUtil {
 			this.line = line;
 		}
 
+		public TemplateLine(String templateAndLine) {
+			int index=templateAndLine.lastIndexOf(':');
+			this.template = index==-1?templateAndLine:templateAndLine.substring(0,index);
+			this.line = index==-1?0:Caster.toIntValue(templateAndLine.substring(index+1),0);
+		}
+
 		@Override
 		public String toString() {
 			return template + ":" + line;

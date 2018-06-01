@@ -24,11 +24,11 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		}
 
 		string function getDescription(){
-			return "The new style debug template, with extended functionality";
+			return "The new style debug template.";
 		}
 
 		string function getid(){
-			return "lucee-modern-extended";
+			return "lucee-modern";
 		}
 
 		void function onBeforeUpdate(struct custom){
@@ -55,10 +55,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 		function isSectionOpen( string name, string section = "debugging" ) {
 			try{
-			if ( arguments.name == "ALL" && !structKeyExists( Cookie, variables["cookieName_" & section] ) )
+			if ( arguments.name == "ALL" && !structKeyExists( Cookie, variables["cookieName_" & arguments.section] ) )
 				return true;
 
-			var cookieValue = structKeyExists( Cookie, variables["cookieName_" & section] ) ? Cookie[ variables["cookieName_" & section] ] : 0;
+			var cookieValue = structKeyExists( Cookie, variables["cookieName_" & arguments.section] ) ? Cookie[ variables["cookieName_" & arguments.section] ] : 0;
 
 			return cookieValue && ( bitAnd( cookieValue, this.allSections[ arguments.name ] ) );
 			}
@@ -88,14 +88,14 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		}
 	</cfscript>
 
-	<cffunction name="output" returntype="void">
+	<cffunction name="output" returntype="void" localmode=true>
 		<cfargument name="custom" required="true" type="struct" />
 		<cfargument name="debugging" required="true" type="struct" />
 		<cfargument name="context" type="string" default="web" />
 		<cfparam name="arguments.custom.size" default="medium">
 		<cfset this.allSections  = this.buildSectionStruct()>
 		<cfset variables.tabsPresent = "">
-		<cfloop list="#structKeyList(arguments.CUSTOM)#" index="i">
+		<cfloop list="#structKeyList(arguments.CUSTOM)#" index="local.i">
 			<cfif i EQ "Tab_Debug">
 				<cfset variables.tabsPresent = listAppend(variables.tabsPresent, "debug")>
 			<cfelseif i EQ "tab_Metrics">
@@ -414,7 +414,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 										}
 									}
 								};
-								var ajaxURL = "/lucee/appLogs/readDebug.cfm?id=#debugging.id#&TAB="+section;
+								var ajaxURL = "/lucee/appLogs/readDebug.cfm?id=#arguments.debugging.id#&TAB="+section;
 								<cfif structKeyExists(request, "fromAdmin") AND request.fromAdmin EQ true>
 									ajaxURL += "&fromAdmin=true";
 								</cfif>
@@ -1226,7 +1226,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 												</td>
 											</cfif>
 											<td>#queries.datasource#</td>
-											<td title="#queries.src#">#contractPath(queries.src)#</td>
+											<td title="#queries.src#:#queries.line#">#contractPath(queries.src)#:#queries.line#</td>
 											<cfif hasCachetype><td>#isEmpty(queries.cacheType)?"none":queries.cacheType#</td></cfif>
 										</tr>
 										<tr id="-lucee-debug-qry-#queries.currentRow#" class="#isOpen ? '' : 'collapsed'#">
@@ -1757,7 +1757,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		</tr>
 	</cffunction> 
 
-	<cffunction name="loadCharts" output="true">
+	<cffunction name="loadCharts" output="true" localmode=true>
 		<cfargument name="chartStruct">
 		<cfset chartsLabel = structNew("linked")>
 		<cfset chartsLabel.HeapChart = "Heap Memory">
@@ -1831,7 +1831,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		}
 
 		function getAllFunctions() {
-			var result = getFunctionList().keyArray().sort( 'textnocase' ).filter( function( el ) { return left( el, 1 ) != '_'; } );
+			var result = getFunctionList().keyArray().sort( 'textnocase' ).filter( function( el ) { return left( arguments.el, 1 ) != '_'; } );
 
 			return result;
 		}
@@ -1853,7 +1853,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			return result;
 		}
 
-		function  getAllComponents() {
+		function  getAllComponents() localmode=true {
 
 			// getting available component packages
 			tmpStr.componentDetails={};

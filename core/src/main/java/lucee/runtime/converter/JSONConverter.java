@@ -31,9 +31,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TimeZone;
 
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
@@ -49,6 +51,7 @@ import lucee.runtime.component.Property;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -497,6 +500,18 @@ public final class JSONConverter extends ConverterSupport {
 		if (object instanceof String || object instanceof StringBuilder) {
 		    sb.append(goIn());
 		    sb.append(StringUtil.escapeJS(object.toString(),'"',charsetEncoder));
+		    return;
+		}
+		// TimeZone
+		if (object instanceof TimeZone) {
+		    sb.append(goIn());
+		    sb.append(StringUtil.escapeJS(((TimeZone)object).getID(),'"',charsetEncoder));
+		    return;
+		}
+		// Locale
+		if (object instanceof Locale) {
+		    sb.append(goIn());
+		    sb.append(StringUtil.escapeJS(LocaleFactory.toString((Locale)object),'"',charsetEncoder));
 		    return;
 		}
 		// Character

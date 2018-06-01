@@ -59,10 +59,4 @@ public final class ArrayContainsNoCase extends BIF {
 		else if(args.length==3)return call(pc,Caster.toArray(args[0]),args[1], Caster.toBooleanValue(args[2]));
 		else throw new FunctionException(pc, "ArrayContainsNoCase", 2, 3, args.length);
 	}
-	
-	public static void main(String[] args) throws Exception {
-		Array arr=new ArrayImpl();
-		arr.append("Susi Sorglos");
-		print.e(call(null,arr,"Susi",true));
-	}
 }

@@ -123,18 +123,6 @@ public class MonitorState {
 		}
 		return sb.toString();
 	}
-	
-	public static void main(String[] args) {
-		new T().start();
-		new T().start();
-		new T().start();
-		new T().start();
-		new T().start();
-		new T().start();
-		SystemUtil.sleep(1);
-		
-		print.e((checkForBlockedThreads()));
-	}
 
 	private static class T extends Thread {
 		private static Object o=new Object();
