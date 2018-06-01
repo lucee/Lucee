@@ -1,5 +1,6 @@
 package lucee.runtime.tag.query;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.TimeZone;
 
@@ -12,7 +13,7 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.TimeSpan;
 
-public class QueryBean {
+public class QueryBean implements Serializable {
 
 	/** If specified, password overrides the password value specified in the data source setup. */
 	public String password;

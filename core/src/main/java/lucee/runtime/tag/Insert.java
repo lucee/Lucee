@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import lucee.commons.db.DBUtil;
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.ConfigImpl;
@@ -42,6 +43,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.query.QueryResult;
 import lucee.runtime.type.scope.Form;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.ListUtil;
@@ -181,14 +183,18 @@ public final class Insert extends TagImpl {
 	    	
 	    	SQL sql=createSQL(meta);
 			if(sql!=null) {
-				lucee.runtime.type.Query query = new QueryImpl(pageContext,dc,sql,-1,-1,null,"query");
+				QueryImpl query = new QueryImpl(pageContext,dc,sql,-1,-1,null,"query");
 				
 				if(pageContext.getConfig().debug()) {
 					String dsn=ds instanceof DataSource?((DataSource)ds).getName():Caster.toString(ds);
 					boolean logdb=((ConfigImpl)pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DATABASE);
 					if(logdb) {
-						boolean debugUsage=DebuggerImpl.debugQueryUsage(pageContext,query);
-						pageContext.getDebugger().addQuery(debugUsage?query:null,dsn,"",sql,query.getRecordcount(),pageContext.getCurrentPageSource(),query.getExecutionTime());
+						boolean debugUsage=DebuggerImpl.debugQueryUsage(pageContext,(QueryResult)query);
+						DebuggerImpl di = (DebuggerImpl)pageContext.getDebugger();
+						
+						di.addQuery(debugUsage?query:null,dsn,"",sql,query.getRecordcount(),
+								Query.toTemplateLine(pageContext.getConfig(), sourceTemplate, pageContext.getCurrentPageSource())
+								,query.getExecutionTime());
 					}
 				}
 

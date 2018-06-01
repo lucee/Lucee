@@ -550,13 +550,27 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		if(!data.items.isEmpty() && data.params != null)
 			throw new DatabaseException("you cannot use the attribute params and sub tags queryparam at the same time", null, null, null);
 		
+		
 		if(data.async) {
 			PageSource ps = getPageSource();
-			((ConfigImpl)pageContext.getConfig()).getSpoolerEngine().add(new QuerySpoolerTask(pageContext, data, strSQL, new TemplateLine(sourceTemplate), ps.getRealpathWithVirtual()));
+			((ConfigImpl)pageContext.getConfig()).getSpoolerEngine().add(new QuerySpoolerTask(pageContext, data, strSQL, 
+					toTemplateLine(pageContext.getConfig(),sourceTemplate,ps), ps.getRealpathWithVirtual()));
 		}
-		else _doEndTag(pageContext,data,strSQL,new TemplateLine(sourceTemplate),true);
+		else {
+			
+			_doEndTag(pageContext,data,strSQL,toTemplateLine(pageContext.getConfig(),sourceTemplate,getPageSource()),true); // when sourceTemplate exists getPageSource call was not necessary
+		}
 		return EVAL_PAGE;
 	}
+	public static TemplateLine toTemplateLine(Config config, String sourceTemplate, PageSource ps) {
+		if(!StringUtil.isEmpty(sourceTemplate)) {
+			return new TemplateLine(sourceTemplate);
+		}
+		
+		if(config.debug()) return SystemUtil.getCurrentContext();
+		return new TemplateLine(ps.getDisplayPath());
+	}
+
 	public static int _doEndTag(PageContext pageContext, QueryBean data, String strSQL, TemplateLine tl, boolean setVars) throws PageException {
 
 		
