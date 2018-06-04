@@ -6,15 +6,15 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either 
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.tag;
 
@@ -62,53 +62,53 @@ import lucee.runtime.type.dt.DateTimeImpl;
 
 public final class Zip extends BodyTagImpl {
 
-	private String action = "zip";
+	private String action="zip";
 	private String charset;
 	private Resource destination;
 	private LinkedList<String> entryPathList;
 	private String[] entryPaths;
 	private Resource file;
 	private LinkedList<ResourceFilter> filters;
-	private ResourceFilter filter = null;
+	private ResourceFilter filter=null;
 	private String pattern;
 	private String patternDelimiters;
 	private String name;
 	private boolean overwrite;
 	private String prefix;
-	private boolean recurse = true;
+	private boolean recurse=true;
 	private boolean showDirectory;
-	private boolean storePath = true;
+	private boolean storePath=true;
 	private String variable;
 	private List<ZipParamAbstr> params;
 	private Set<String> alreadyUsed;
 	private Resource source;
-	private static int id = 0;
+	private static int id=0;
 
 	@Override
 	public void release() {
 		super.release();
-		action = "zip";
-		charset = null;
-		destination = null;
-		entryPathList = null;
-		entryPaths = null;
-		file = null;
-		filters = null;
-		filter = null;
-		name = null;
-		overwrite = false;
-		prefix = null;
-		recurse = true;
-		showDirectory = false;
-		source = null;
-		storePath = true;
-		variable = null;
-		pattern = null;
-		patternDelimiters = null;
+		action="zip";
+		charset=null;
+		destination=null;
+		entryPathList=null;
+		entryPaths=null;
+		file=null;
+		filters=null;
+		filter=null;
+		name=null;
+		overwrite=false;
+		prefix=null;
+		recurse=true;
+		showDirectory=false;
+		source=null;
+		storePath=true;
+		variable=null;
+		pattern=null;
+		patternDelimiters=null;
 
-		if(params != null)
+		if (params != null)
 			params.clear();
-		if(alreadyUsed != null)
+		if (alreadyUsed != null)
 			alreadyUsed.clear();
 	}
 
@@ -117,7 +117,7 @@ public final class Zip extends BodyTagImpl {
 	 *            the action to set
 	 */
 	public void setAction(String action) {
-		this.action = action.trim().toLowerCase();
+		this.action=action.trim().toLowerCase();
 	}
 
 	/**
@@ -125,7 +125,7 @@ public final class Zip extends BodyTagImpl {
 	 *            the charset to set
 	 */
 	public void setCharset(String charset) {
-		this.charset = charset;
+		this.charset=charset;
 	}
 
 	/**
@@ -135,11 +135,11 @@ public final class Zip extends BodyTagImpl {
 	 * @throws PageException
 	 */
 	public void setDestination(String strDestination) throws PageException {
-		this.destination = ResourceUtil.toResourceExistingParent(pageContext, strDestination);
-		if(!destination.exists())
+		this.destination=ResourceUtil.toResourceExistingParent(pageContext, strDestination);
+		if (!destination.exists())
 			destination.mkdirs();
 
-		if(!destination.isDirectory())
+		if (!destination.isDirectory())
 			throw new ApplicationException("destination [" + strDestination + "] is not a existing directory");
 
 	}
@@ -149,19 +149,18 @@ public final class Zip extends BodyTagImpl {
 	 *            the entryPath to set
 	 */
 	public void setEntrypath(String entryPath) {
-		if(StringUtil.isEmpty(entryPath, true))
+		if (StringUtil.isEmpty(entryPath, true))
 			return;
 
-		entryPath = entryPath.trim();
-		entryPath = entryPath.replace('\\', '/');
+		entryPath=entryPath.trim();
+		entryPath=entryPath.replace('\\', '/');
 
-		if(StringUtil.startsWith(entryPath, '/'))
-			entryPath = entryPath.substring(1);
-		if(StringUtil.endsWith(entryPath, '/'))
-			entryPath = entryPath.substring(0, entryPath.length() - 1);
+		if (StringUtil.startsWith(entryPath, '/'))
+			entryPath=entryPath.substring(1);
+		if (StringUtil.endsWith(entryPath, '/'))
+			entryPath=entryPath.substring(0, entryPath.length() - 1);
 
-		if(entryPathList == null)
-			entryPathList = new LinkedList<String>();
+		if (entryPathList==null) entryPathList=new LinkedList<String>();
 		this.entryPathList.add(entryPath);
 	}
 
@@ -171,7 +170,7 @@ public final class Zip extends BodyTagImpl {
 	 * @throws ExpressionException
 	 */
 	public void setFile(String file) {
-		this.file = ResourceUtil.toResourceNotExisting(pageContext, file);
+		this.file=ResourceUtil.toResourceNotExisting(pageContext, file);
 	}
 
 	/**
@@ -179,9 +178,9 @@ public final class Zip extends BodyTagImpl {
 	 *            the filter to set
 	 */
 	public void setFilter(Object filter) throws PageException {
-		if(filter instanceof UDF)
+		if (filter instanceof UDF)
 			this.setFilter((UDF)filter);
-		else if(filter instanceof String)
+		else if (filter instanceof String)
 			this.setFilter((String)filter);
 	}
 
@@ -190,18 +189,18 @@ public final class Zip extends BodyTagImpl {
 	}
 
 	void _setFilter(ResourceFilter rf) throws PageException {
-		if(filters == null)
-			filters = new LinkedList<ResourceFilter>();
+		if (filters==null) filters=new LinkedList<ResourceFilter>();
 		filters.add(rf);
 	}
 
 	public void setFilter(String pattern) {
-		this.pattern = pattern;
+		this.pattern=pattern;
 	}
+
 
 	public void setFilterdelimiters(String patternDelimiters) {
 
-		this.patternDelimiters = patternDelimiters;
+		this.patternDelimiters=patternDelimiters;
 	}
 
 	/**
@@ -209,7 +208,7 @@ public final class Zip extends BodyTagImpl {
 	 *            the name to set
 	 */
 	public void setName(String name) {
-		this.name = name;
+		this.name=name;
 	}
 
 	/**
@@ -217,7 +216,7 @@ public final class Zip extends BodyTagImpl {
 	 *            the overwrite to set
 	 */
 	public void setOverwrite(boolean overwrite) {
-		this.overwrite = overwrite;
+		this.overwrite=overwrite;
 	}
 
 	/**
@@ -225,7 +224,7 @@ public final class Zip extends BodyTagImpl {
 	 *            the prefix to set
 	 */
 	public void setPrefix(String prefix) {
-		this.prefix = prefix;
+		this.prefix=prefix;
 	}
 
 	/**
@@ -233,7 +232,7 @@ public final class Zip extends BodyTagImpl {
 	 *            the recurse to set
 	 */
 	public void setRecurse(boolean recurse) {
-		this.recurse = recurse;
+		this.recurse=recurse;
 	}
 
 	/**
@@ -241,7 +240,7 @@ public final class Zip extends BodyTagImpl {
 	 *            the showDirectory to set
 	 */
 	public void setShowdirectory(boolean showDirectory) {
-		this.showDirectory = showDirectory;
+		this.showDirectory=showDirectory;
 	}
 
 	/**
@@ -250,7 +249,7 @@ public final class Zip extends BodyTagImpl {
 	 * @throws PageException
 	 */
 	public void setSource(String strSource) throws PageException {
-		source = ResourceUtil.toResourceExisting(pageContext, strSource);
+		source=ResourceUtil.toResourceExisting(pageContext, strSource);
 	}
 
 	/**
@@ -258,7 +257,7 @@ public final class Zip extends BodyTagImpl {
 	 *            the storePath to set
 	 */
 	public void setStorepath(boolean storePath) {
-		this.storePath = storePath;
+		this.storePath=storePath;
 	}
 
 	/**
@@ -266,14 +265,14 @@ public final class Zip extends BodyTagImpl {
 	 *            the variable to set
 	 */
 	public void setVariable(String variable) {
-		this.variable = variable;
+		this.variable=variable;
 	}
 
 	@Override
 	public int doStartTag() throws PageException {
 		// filter
-		if(!StringUtil.isEmpty(this.pattern)) {
-			_setFilter(new WildcardPatternFilter(pattern, StringUtil.isEmpty(patternDelimiters) ? "," : patternDelimiters));
+		if (!StringUtil.isEmpty(this.pattern)) {
+			_setFilter(new WildcardPatternFilter(pattern, StringUtil.isEmpty(patternDelimiters)?",":patternDelimiters));
 		}
 
 		return EVAL_BODY_INCLUDE;
@@ -282,40 +281,40 @@ public final class Zip extends BodyTagImpl {
 	private void actionDelete() throws ApplicationException, IOException {
 		required("file", file, true);
 
-		Resource existing = pageContext.getConfig().getTempDirectory().getRealResource(getTempName());
+		Resource existing=pageContext.getConfig().getTempDirectory().getRealResource(getTempName());
 		IOUtil.copy(file, existing);
 
-		ZipInputStream zis = null;
-		ZipOutputStream zos = null;
+		ZipInputStream zis=null;
+		ZipOutputStream zos=null;
 		try {
-			zis = new ZipInputStream(IOUtil.toBufferedInputStream(existing.getInputStream()));
-			zos = new ZipOutputStream(IOUtil.toBufferedOutputStream(file.getOutputStream()));
+			zis=new ZipInputStream(IOUtil.toBufferedInputStream(existing.getInputStream()));
+			zos=new ZipOutputStream(IOUtil.toBufferedOutputStream(file.getOutputStream()));
 
 			ZipEntry entry;
 			String path, name;
 			int index;
 			boolean accept;
 
-			if(filter == null && recurse && (entryPaths == null || entryPaths.length == 0))
+			if (filter == null && recurse && (entryPaths == null || entryPaths.length==0))
 				throw new ApplicationException("define at least one restriction, can't delete all the entries from a zip file");
 
-			while((entry = zis.getNextEntry()) != null) {
-				accept = false;
-				path = entry.getName().replace('\\', '/');
-				index = path.lastIndexOf('/');
+			while((entry=zis.getNextEntry()) != null) {
+				accept=false;
+				path=entry.getName().replace('\\', '/');
+				index=path.lastIndexOf('/');
 
-				if(!recurse && index > 0)
-					accept = true;
+				if (!recurse && index > 0)
+					accept=true;
 
 				// dir=index==-1?"":path.substring(0,index);
-				name = path.substring(index + 1);
+				name=path.substring(index + 1);
 
-				if(filter != null && !filter.accept(file.getRealResource(name)))
-					accept = true;
-				if(!entryPathMatch(path))
-					accept = true;
+				if (filter != null && !filter.accept(file.getRealResource(name)))
+					accept=true;
+				if (!entryPathMatch(path))
+					accept=true;
 
-				if(!accept)
+				if (!accept)
 					continue;
 
 				add(zos, entry, zis, false);
@@ -333,36 +332,36 @@ public final class Zip extends BodyTagImpl {
 		required("file", file, true);
 		required("name", name);
 
-		lucee.runtime.type.Query query = new QueryImpl(
+		lucee.runtime.type.Query query=new QueryImpl(
 				new String[] { "name", "size", "type", "dateLastModified", "directory", "crc", "compressedSize", "comment" }, 0, "query");
 		pageContext.setVariable(name, query);
 
-		ZipFile zip = getZip(file);
-		Enumeration entries = zip.entries();
+		ZipFile zip=getZip(file);
+		Enumeration entries=zip.entries();
 
 		try {
 			String path, name, dir;
 			ZipEntry ze;
-			int row = 0, index;
+			int row=0, index;
 			while(entries.hasMoreElements()) {
-				ze = (ZipEntry)entries.nextElement();
-				if(!showDirectory && ze.isDirectory())
+				ze=(ZipEntry)entries.nextElement();
+				if (!showDirectory && ze.isDirectory())
 					continue;
 
-				path = ze.getName().replace('\\', '/');
-				index = path.lastIndexOf('/');
-				if(!recurse && index > 0)
+				path=ze.getName().replace('\\', '/');
+				index=path.lastIndexOf('/');
+				if (!recurse && index > 0)
 					continue;
 
-				dir = index == -1 ? "" : path.substring(0, index);
-				name = path.substring(index + 1);
+				dir=index == -1 ? "" : path.substring(0, index);
+				name=path.substring(index + 1);
 
-				if(filter != null && !filter.accept(file.getRealResource(name)))
+				if (filter != null && !filter.accept(file.getRealResource(name)))
 					continue;
 
-				if(!entryPathMatch(dir))
+				if (!entryPathMatch(dir))
 					continue;
-				// if(entryPath!=null && !(dir.equalsIgnoreCase(entryPath) || StringUtil.startsWithIgnoreCase(dir,entryPath+"/"))) ;///continue;
+				// if (entryPath!=null && !(dir.equalsIgnoreCase(entryPath) || StringUtil.startsWithIgnoreCase(dir,entryPath+"/"))) ;///continue;
 
 				row++;
 				query.addRow();
@@ -382,12 +381,10 @@ public final class Zip extends BodyTagImpl {
 	}
 
 	private boolean entryPathMatch(String dir) {
-		if(entryPaths == null || entryPaths.length == 0)
-			return true;
+		if (entryPaths == null || entryPaths.length==0) return true;
 
-		for (String ep : entryPaths) {
-			if(dir.equalsIgnoreCase(ep) || StringUtil.startsWithIgnoreCase(dir, ep + "/"))
-				return true;
+		for (String ep:entryPaths) {
+			if (dir.equalsIgnoreCase(ep) || StringUtil.startsWithIgnoreCase(dir, ep + "/")) return true;
 		}
 		return false;
 	}
@@ -396,30 +393,29 @@ public final class Zip extends BodyTagImpl {
 		required("file", file, true);
 		required("variable", variable);
 		required("entrypath", entryPaths);
-		ZipFile zip = getZip(file);
+		ZipFile zip=getZip(file);
 
-		if(entryPaths.length > 1)
-			throw new ApplicationException("you can only read one entry!");
+		if (entryPaths.length>1) throw new ApplicationException("you can only read one entry!");
 
 		try {
-			ZipEntry ze = getZipEntry(zip, entryPaths[0]);
-			if(ze == null) {
-				String msg = ExceptionUtil.similarKeyMessage(names(zip), entryPaths[0], "entry", "zip file", "in the zip file [" + file + "]", true);
+			ZipEntry ze=getZipEntry(zip, entryPaths[0]);
+			if (ze == null) {
+				String msg=ExceptionUtil.similarKeyMessage(names(zip), entryPaths[0], "entry", "zip file", "in the zip file [" + file + "]", true);
 				throw new ApplicationException(msg);
 				// throw new ApplicationException("zip file ["+file+"] has no entry with name ["+entryPath+"]");
 			}
 
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ByteArrayOutputStream baos=new ByteArrayOutputStream();
 
-			InputStream is = zip.getInputStream(ze);
+			InputStream is=zip.getInputStream(ze);
 			IOUtil.copy(is, baos, true, false);
 			zip.close();
 
-			if(binary)
+			if (binary)
 				pageContext.setVariable(variable, baos.toByteArray());
 			else {
-				if(charset == null)
-					charset = ((PageContextImpl)pageContext).getResourceCharset().name();
+				if (charset == null)
+					charset=((PageContextImpl)pageContext).getResourceCharset().name();
 				pageContext.setVariable(variable, new String(baos.toByteArray(), charset));
 			}
 		} finally {
@@ -428,32 +424,37 @@ public final class Zip extends BodyTagImpl {
 
 	}
 
-	/*
-	 * private List<ZipEntry> getZipEntries(ZipFile zip, String[] pathes) { if(pathes==null || pathes.length==0) return null; List<ZipEntry> entries=new
-	 * ArrayList<ZipEntry>(); for(String p:pathes) { entries.add(getZipEntry(zip, p)); } return entries; }
-	 */
+	/*private List<ZipEntry> getZipEntries(ZipFile zip, String[] pathes) {
+		if (pathes==null || pathes.length==0) return null;
+		List<ZipEntry> entries=new ArrayList<ZipEntry>();
+		for (String p:pathes) {
+			entries.add(getZipEntry(zip, p));
+		}
+		return entries;
+	}*/
+
 	private ZipEntry getZipEntry(ZipFile zip, String path) {
-		ZipEntry ze = zip.getEntry(path);
-		if(ze != null)
+		ZipEntry ze=zip.getEntry(path);
+		if (ze != null)
 			return ze;
 
-		ze = zip.getEntry(path + "/");
-		if(ze != null)
+		ze=zip.getEntry(path + "/");
+		if (ze != null)
 			return ze;
 
-		ze = zip.getEntry("/" + path);
-		if(ze != null)
+		ze=zip.getEntry("/" + path);
+		if (ze != null)
 			return ze;
 
-		ze = zip.getEntry("/" + path + "/");
-		if(ze != null)
+		ze=zip.getEntry("/" + path + "/");
+		if (ze != null)
 			return ze;
 		return ze;
 	}
 
 	private Key[] names(ZipFile zip) {
-		List<Key> list = new ArrayList<Key>();
-		Enumeration<? extends ZipEntry> entries = zip.entries();
+		List<Key> list=new ArrayList<Key>();
+		Enumeration<? extends ZipEntry> entries=zip.entries();
 		while(entries.hasMoreElements()) {
 			list.add(KeyImpl.init(entries.nextElement().getName()));
 		}
@@ -463,53 +464,52 @@ public final class Zip extends BodyTagImpl {
 	private void actionUnzip() throws ApplicationException, IOException {
 		required("file", file, true);
 		required("destination", destination, false);
-
-		ZipInputStream zis = null;
+		ZipInputStream zis=null;
 		String path;
 		Resource target, parent;
 		int index;
 		try {
-			zis = new ZipInputStream(IOUtil.toBufferedInputStream(file.getInputStream()));
+			zis=new ZipInputStream(IOUtil.toBufferedInputStream(file.getInputStream()));
 			ZipEntry entry;
-			while((entry = zis.getNextEntry()) != null) {
+			while((entry=zis.getNextEntry()) != null) {
 
-				path = entry.getName().replace('\\', '/');
-				if(path.startsWith("../"))
+				path=entry.getName().replace('\\', '/');
+				if (path.contains("../"))
 					throw new ApplicationException("Path " + path + " is not allowed");
 
-				index = path.lastIndexOf('/');
+				index=path.lastIndexOf('/');
 
 				// recurse
-				if(!recurse && index != -1) {
+				if (!recurse && index != -1) {
 					zis.closeEntry();
 					continue;
 				}
 
-				target = destination.getRealResource(entry.getName());
+				target=destination.getRealResource(entry.getName());
 
 				// filter
-				if(filter != null && !filter.accept(target)) {
+				if (filter != null && !filter.accept(target)) {
 					zis.closeEntry();
 					continue;
 				}
 
 				// entrypath
-				if(!entryPathMatch(path)) {
+				if (!entryPathMatch(path)) {
 					zis.closeEntry();
 					continue;
 				}
-				if(!storePath)
-					target = destination.getRealResource(target.getName());
-				if(entry.isDirectory()) {
+				if (!storePath)
+					target=destination.getRealResource(target.getName());
+				if (entry.isDirectory()) {
 					target.mkdirs();
 				}
 				else {
-					if(storePath) {
-						parent = target.getParentResource();
-						if(!parent.exists())
+					if (storePath) {
+						parent=target.getParentResource();
+						if (!parent.exists())
 							parent.mkdirs();
 					}
-					if(overwrite || !target.exists())
+					if (overwrite || !target.exists())
 						IOUtil.copy(zis, target, false);
 				}
 				target.setLastModified(entry.getTime());
@@ -522,47 +522,46 @@ public final class Zip extends BodyTagImpl {
 
 	private void actionZip() throws PageException, IOException {
 		required("file", file, false);
-		Resource dir = file.getParentResource();
+		Resource dir=file.getParentResource();
 
-		if(!dir.exists()) {
+		if (!dir.exists()) {
 			throw new ApplicationException("directory [" + dir.toString() + "] doesn't exist");
 		}
 
-		if((params == null || params.isEmpty()) && source != null) {
-			if(entryPaths != null && entryPaths.length > 1)
-				throw new ApplicationException("you can only one set entrypath in this context");
-			setParam(new ZipParamSource(source, entryPaths == null ? null : entryPaths[0], filter, prefix, recurse));
+		if ((params == null || params.isEmpty()) && source != null) {
+			if (entryPaths!=null && entryPaths.length>1) throw new ApplicationException("you can only one set entrypath in this context");
+			setParam(new ZipParamSource(source, entryPaths==null?null:entryPaths[0], filter, prefix, recurse));
 		}
 
-		if((params == null || params.isEmpty())) {
+		if ((params == null || params.isEmpty())) {
 			throw new ApplicationException("No source/content specified");
 		}
 
-		ZipOutputStream zos = null;
-		Resource existing = null;
+		ZipOutputStream zos=null;
+		Resource existing=null;
 		try {
 
 			// existing
-			if(!overwrite && file.exists()) {
-				existing = pageContext.getConfig().getTempDirectory().getRealResource(getTempName());
+			if (!overwrite && file.exists()) {
+				existing=pageContext.getConfig().getTempDirectory().getRealResource(getTempName());
 				IOUtil.copy(file, existing);
 			}
 
-			zos = new ZipOutputStream(IOUtil.toBufferedOutputStream(file.getOutputStream()));
+			zos=new ZipOutputStream(IOUtil.toBufferedOutputStream(file.getOutputStream()));
 
-			Object[] arr = params.toArray();
-			for (int i = arr.length - 1; i >= 0; i--) {
-				if(arr[i] instanceof ZipParamSource)
+			Object[] arr=params.toArray();
+			for (int i=arr.length - 1; i >= 0; i--) {
+				if (arr[i] instanceof ZipParamSource)
 					actionZip(zos, (ZipParamSource)arr[i]);
-				else if(arr[i] instanceof ZipParamContent)
+				else if (arr[i] instanceof ZipParamContent)
 					actionZip(zos, (ZipParamContent)arr[i]);
 			}
 
-			if(existing != null) {
-				ZipInputStream zis = new ZipInputStream(IOUtil.toBufferedInputStream(existing.getInputStream()));
+			if (existing != null) {
+				ZipInputStream zis=new ZipInputStream(IOUtil.toBufferedInputStream(existing.getInputStream()));
 				try {
 					ZipEntry entry;
-					while((entry = zis.getNextEntry()) != null) {
+					while((entry=zis.getNextEntry()) != null) {
 						add(zos, entry, zis, false);
 						zis.closeEntry();
 					}
@@ -572,7 +571,7 @@ public final class Zip extends BodyTagImpl {
 			}
 		} finally {
 			ZipUtil.close(zos);
-			if(existing != null)
+			if (existing != null)
 				existing.delete();
 
 		}
@@ -584,54 +583,54 @@ public final class Zip extends BodyTagImpl {
 	}
 
 	private void actionZip(ZipOutputStream zos, ZipParamContent zpc) throws PageException, IOException {
-		Object content = zpc.getContent();
-		if(Decision.isBinary(content)) {
+		Object content=zpc.getContent();
+		if (Decision.isBinary(content)) {
 			add(zos, new ByteArrayInputStream(Caster.toBinary(content)), zpc.getEntryPath(), System.currentTimeMillis(), true);
 
 		}
 		else {
-			String charset = zpc.getCharset();
-			if(StringUtil.isEmpty(charset))
-				charset = ((PageContextImpl)pageContext).getResourceCharset().name();
+			String charset=zpc.getCharset();
+			if (StringUtil.isEmpty(charset))
+				charset=((PageContextImpl)pageContext).getResourceCharset().name();
 			add(zos, new ByteArrayInputStream(content.toString().getBytes(charset)), zpc.getEntryPath(), System.currentTimeMillis(), true);
 		}
 	}
 
 	private void actionZip(ZipOutputStream zos, ZipParamSource zps) throws IOException, ApplicationException {
 		// prefix
-		String p = zps.getPrefix();
-		if(StringUtil.isEmpty(p))
-			p = this.prefix;
+		String p=zps.getPrefix();
+		if (StringUtil.isEmpty(p))
+			p=this.prefix;
 
-		if(!StringUtil.isEmpty(p)) {
-			if(!StringUtil.endsWith(p, '/'))
+		if (!StringUtil.isEmpty(p)) {
+			if (!StringUtil.endsWith(p, '/'))
 				p += "/";
 		}
 		else
-			p = "";
+			p="";
 
-		if(zps.getSource().isFile()) {
-			String ep = zps.getEntryPath();
-			if(ep == null)
-				ep = zps.getSource().getName();
-			if(!StringUtil.isEmpty(p))
-				ep = p + ep;
+		if (zps.getSource().isFile()) {
+			String ep=zps.getEntryPath();
+			if (ep == null)
+				ep=zps.getSource().getName();
+			if (!StringUtil.isEmpty(p))
+				ep=p + ep;
 
 			add(zos, zps.getSource().getInputStream(), ep, zps.getSource().lastModified(), true);
 		}
 		else {
 
 			// filter
-			ResourceFilter f = zps.getFilter();
-			if(f == null)
-				f = this.filter;
-			if(zps.isRecurse()) {
-				if(f != null)
-					f = new OrResourceFilter(new ResourceFilter[] { DirectoryResourceFilter.FILTER, f });
+			ResourceFilter f=zps.getFilter();
+			if (f == null)
+				f=this.filter;
+			if (zps.isRecurse()) {
+				if (f != null)
+					f=new OrResourceFilter(new ResourceFilter[] { DirectoryResourceFilter.FILTER, f });
 			}
 			else {
-				if(f == null)
-					f = FileResourceFilter.FILTER;
+				if (f == null)
+					f=FileResourceFilter.FILTER;
 			}
 
 			addDir(zos, zps.getSource(), p, f);
@@ -640,14 +639,14 @@ public final class Zip extends BodyTagImpl {
 
 	private void addDir(ZipOutputStream zos, Resource dir, String parent, ResourceFilter filter) throws IOException {
 
-		Resource[] children = (filter == null) ? dir.listResources() : dir.listResources(filter);
+		Resource[] children=(filter == null) ? dir.listResources() : dir.listResources(filter);
 
-		if(children.length == 0) {
+		if (children.length == 0){
 			zos.putNextEntry(new ZipEntry(parent));
 		}
 		else {
-			for (int i = 0; i < children.length; i++) {
-				if(children[i].isDirectory())
+			for (int i=0; i < children.length; i++) {
+				if (children[i].isDirectory())
 					addDir(zos, children[i], parent + children[i].getName() + "/", filter);
 				else {
 					add(zos, children[i].getInputStream(), parent + children[i].getName(), children[i].lastModified(), true);
@@ -657,15 +656,15 @@ public final class Zip extends BodyTagImpl {
 	}
 
 	private void add(ZipOutputStream zos, InputStream is, String path, long lastMod, boolean closeInput) throws IOException {
-		ZipEntry ze = new ZipEntry(path);
+		ZipEntry ze=new ZipEntry(path);
 		ze.setTime(lastMod);
 		add(zos, ze, is, closeInput);
 	}
 
 	private void add(ZipOutputStream zos, ZipEntry entry, InputStream is, boolean closeInput) throws IOException {
-		if(alreadyUsed == null)
-			alreadyUsed = new HashSet<String>();
-		else if(alreadyUsed.contains(entry.getName()))
+		if (alreadyUsed == null)
+			alreadyUsed=new HashSet<String>();
+		else if (alreadyUsed.contains(entry.getName()))
 			return;
 		zos.putNextEntry(entry);
 		try {
@@ -689,30 +688,29 @@ public final class Zip extends BodyTagImpl {
 	@Override
 	public int doEndTag() throws PageException {// print.out("doEndTag"+doCaching+"-"+body);
 
-		if(filters != null && filters.size() > 0) {
-			if(filters.size() == 1)
-				filter = filters.getFirst();
-			else
-				filter = new OrResourceFilter(filters.toArray(new ResourceFilter[filters.size()]));
+		if (filters!=null && filters.size()>0) {
+			if (filters.size()==1) filter=filters.getFirst();
+			else filter=new OrResourceFilter(filters.toArray(new ResourceFilter[filters.size()]));
 		}
 
-		// entryPath
-		if(entryPathList != null && !entryPathList.isEmpty()) {
-			entryPaths = entryPathList.toArray(new String[entryPathList.size()]);
+
+		//entryPath
+		if (entryPathList!=null && !entryPathList.isEmpty()) {
+			entryPaths=entryPathList.toArray(new String[entryPathList.size()]);
 		}
 
 		try {
-			if(action.equals("delete"))
+			if (action.equals("delete"))
 				actionDelete();
-			else if(action.equals("list"))
+			else if (action.equals("list"))
 				actionList();
-			else if(action.equals("read"))
+			else if (action.equals("read"))
 				actionRead(false);
-			else if(action.equals("readbinary"))
+			else if (action.equals("readbinary"))
 				actionRead(true);
-			else if(action.equals("unzip"))
+			else if (action.equals("unzip"))
 				actionUnzip();
-			else if(action.equals("zip"))
+			else if (action.equals("zip"))
 				actionZip();
 			else
 				throw new ApplicationException("invalid value [" + action + "] for attribute action",
@@ -727,7 +725,7 @@ public final class Zip extends BodyTagImpl {
 
 	/**
 	 * sets if tag has a body or not
-	 * 
+	 *
 	 * @param hasBody
 	 */
 	public void hasBody(boolean hasBody) {
@@ -740,46 +738,46 @@ public final class Zip extends BodyTagImpl {
 
 	/**
 	 * throw a error if the value is empty (null)
-	 * 
+	 *
 	 * @param attributeName
 	 * @param attributValue
 	 * @throws ApplicationException
 	 */
 	private void required(String attributeName, String attributValue) throws ApplicationException {
-		if(StringUtil.isEmpty(attributValue))
+		if (StringUtil.isEmpty(attributValue))
 			throw new ApplicationException("invalid attribute constellation for the tag zip",
 					"attribute [" + attributeName + "] is required, if action is [" + action + "]");
 	}
 
 	private void required(String attributeName, String[] attributValue) throws ApplicationException {
-		if(attributValue == null || attributValue.length == 0)
+		if (attributValue==null || attributValue.length==0)
 			throw new ApplicationException("invalid attribute constellation for the tag zip",
 					"attribute [" + attributeName + "] is required, if action is [" + action + "]");
 	}
 
 	/**
 	 * throw a error if the value is empty (null)
-	 * 
+	 *
 	 * @param attributeName
 	 * @param attributValue
 	 * @throws ApplicationException
 	 */
 	private void required(String attributeName, Resource attributValue, boolean exists) throws ApplicationException {
-		if(attributValue == null)
+		if (attributValue == null)
 			throw new ApplicationException("invalid attribute constellation for the tag zip",
 					"attribute [" + attributeName + "] is required, if action is [" + action + "]");
 
-		if(exists && !attributValue.exists())
+		if (exists && !attributValue.exists())
 			throw new ApplicationException(attributeName + " resource [" + attributValue + "] doesn't exist");
-		else if(exists && !attributValue.canRead())
+		else if (exists && !attributValue.canRead())
 			throw new ApplicationException("no access to " + attributeName + " resource [" + attributValue + "]");
 
 	}
 
 	public void setParam(ZipParamAbstr param) {
-		if(params == null) {
-			params = new ArrayList<ZipParamAbstr>();
-			alreadyUsed = new HashSet<String>();
+		if (params == null) {
+			params=new ArrayList<ZipParamAbstr>();
+			alreadyUsed=new HashSet<String>();
 		}
 		params.add(param);
 	}
