@@ -250,7 +250,7 @@ public final class CompressUtil {
 					Resource parent = target.getParentResource();
 					if(!parent.exists())
 						parent.mkdirs();
-					IOUtil.copy(zis, target, false);
+					if(!target.exists())IOUtil.copy(zis, target, false);
 				}
 				target.setLastModified(entry.getTime());
 				zis.closeEntry();
@@ -304,7 +304,7 @@ public final class CompressUtil {
 					if(!parent.exists())
 						parent.mkdirs();
 					InputStream is = zf.getInputStream(entry);
-					IOUtil.copy(is, target, true);
+					if(!target.exists())IOUtil.copy(is, target, true);
 				}
 				target.setLastModified(entry.getTime());
 			}

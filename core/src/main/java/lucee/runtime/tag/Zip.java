@@ -469,9 +469,7 @@ public final class Zip extends BodyTagImpl {
 			while((entry = zis.getNextEntry()) != null) {
 
 				path = entry.getName().replace('\\', '/');
-				if(path.contains("../"))
-					throw new IOException("Path " + path + " is not allowed");
-
+				
 				index = path.lastIndexOf('/');
 
 				// recurse
@@ -479,11 +477,10 @@ public final class Zip extends BodyTagImpl {
 					zis.closeEntry();
 					continue;
 				}
-
-				target = destination.getRealResource(entry.getName());
-
+				target=ZipUtil.toResource(destination, entry);
+				
 				// filter
-				if(filter != null && !filter.accept(target)) {
+				if((filter != null && !filter.accept(target)) || target.exists()) {
 					zis.closeEntry();
 					continue;
 				}

@@ -25,6 +25,7 @@ import java.util.zip.ZipOutputStream;
 
 import lucee.commons.cli.Command;
 import lucee.commons.io.res.Resource;
+import lucee.runtime.type.util.ListUtil;
 
 public final class ZipUtil {
 
@@ -60,8 +61,11 @@ public final class ZipUtil {
 
 	public static Resource toResource(Resource targetDir, ZipEntry entry) throws IOException {
 		Resource target = targetDir.getRealResource(entry.getName());
-		if(!target.getCanonicalPath().startsWith(targetDir.getCanonicalPath()))
-			throw new IOException(target.getCanonicalPath() + " is outside of " + targetDir.getCanonicalPath());
+		
+		// in case a file is outside the target directory, we copy it to the target directory
+		if(!target.getCanonicalPath().startsWith(targetDir.getCanonicalPath())) {
+			target=targetDir.getRealResource(ListUtil.last(entry.getName(), "\\/",true));
+		}
 		return target;
 	}
 }
