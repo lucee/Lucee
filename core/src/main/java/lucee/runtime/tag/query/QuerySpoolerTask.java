@@ -1,21 +1,17 @@
 package lucee.runtime.tag.query;
 
-import java.io.ByteArrayOutputStream;
-import java.util.ConcurrentModificationException;
-import java.util.Iterator;
-import java.util.Map.Entry;
-
 import javax.servlet.http.HttpServletRequest;
 
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.log.Log;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
-import lucee.runtime.Page;
+import lucee.runtime.Mapping;
+import lucee.runtime.MappingImpl;
+import lucee.runtime.MappingImpl.SerMapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.PageSourceImpl;
+import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
@@ -33,8 +29,12 @@ import lucee.runtime.tag.Query;
 import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.UDFPropertiesImpl;
 
 public class QuerySpoolerTask extends SpoolerTaskSupport {
+
+	private static final long serialVersionUID = 2450199479366505177L;
+
 	private static final ExecutionPlan[] EXECUTION_PLANS = new ExecutionPlan[]{
 			//new ExecutionPlanImpl(1,60),
 			//new ExecutionPlanImpl(1,5*60),
@@ -55,14 +55,20 @@ public class QuerySpoolerTask extends SpoolerTaskSupport {
 	private String sql;
 	private TemplateLine tl;
 	private String relPath;
+	private String relPathwV;
 
-	public QuerySpoolerTask(PageContext parent, QueryBean data, String sql, TemplateLine tl,String relPath) {
+	private SerMapping mapping;
+	//private String absPath;
+
+	public QuerySpoolerTask(PageContext parent, QueryBean data, String sql, TemplateLine tl, PageSource ps) {
 		super(EXECUTION_PLANS);
 		this.data=data;
 		this.sql=sql;
 		this.tl=tl;
-		this.relPath=relPath;
-		//this.template=page.getPageSource().getRealpathWithVirtual();
+		this.relPath=ps.getRealpath();
+		this.relPathwV=ps.getRealpathWithVirtual();
+		Mapping m = ps.getMapping();
+		this.mapping=m instanceof MappingImpl?((MappingImpl)m).toSerMapping():null;
 		HttpServletRequest req = parent.getHttpServletRequest();
 		serverName=req.getServerName();
 		queryString=ReqRspUtil.getQueryString(req);
@@ -83,6 +89,7 @@ public class QuerySpoolerTask extends SpoolerTaskSupport {
 	}
 
 	@Override
+
 	public Object execute(Config config) throws PageException {
 		PageContext oldPc = ThreadLocalPageContext.get();
 		PageContextImpl pc=null;
@@ -94,44 +101,34 @@ public class QuerySpoolerTask extends SpoolerTaskSupport {
 			}
 			// task
 			else {
-				Page p;
-				ConfigWebImpl cwi;
-				try {
-					cwi = (ConfigWebImpl)config;
-					DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
-					pc=ThreadUtil.createPageContext(cwi, os, serverName, requestURI, queryString, 
-							SerializableCookie.toCookies(cookies), headers, null, parameters, attributes,true,-1);
-					pc.setRequestTimeout(requestTimeout);
-					p=PageSourceImpl.loadPage(pc, cwi.getPageSources(oldPc==null?pc:oldPc,null, relPath, false,false,true));
-					//p=cwi.getPageSources(oldPc,null, template, false,false,true).loadPage(cwi);
-				} 
-				catch (PageException e) {
-					return e;
-				}
-				pc.addPageSource(p.getPageSource(), true);
+				ConfigWebImpl cwi = (ConfigWebImpl)config;
+				DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
+				pc=ThreadUtil.createPageContext(cwi, os, serverName, requestURI, queryString, 
+						SerializableCookie.toCookies(cookies), headers, null, parameters, attributes,true,-1);
+				pc.setRequestTimeout(requestTimeout);
+				PageSource ps=UDFPropertiesImpl.toPageSource(pc, cwi, mapping==null?null:mapping.toMapping(), relPath,relPathwV);
+				pc.addPageSource(ps, true);
 			}
 			
 			try {
 				Query._doEndTag(pc, data, sql, tl, false);
 			}
-			catch(Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				if(!Abort.isSilentAbort(t)) {
+			catch(Exception e) {
+				if(!Abort.isSilentAbort(e)) {
 					ConfigWeb c = pc.getConfig();
 					if(c instanceof ConfigImpl) {
 						ConfigImpl ci=(ConfigImpl) c;
 						Log log = ci.getLog("application");
-						if(log!=null)log.log(Log.LEVEL_ERROR,"query", t);
+						if(log!=null)log.log(Log.LEVEL_ERROR,"query", e);
 					}
-					PageException pe = Caster.toPageException(t);
+					PageException pe = Caster.toPageException(e);
 					//if(!serializable)catchBlock=pe.getCatchBlock(pc.getConfig());
 					return pe;
 				}
 			}
 			finally {
-				 
-	            if(pc.getHttpServletResponse() instanceof HttpServletResponseDummy) {
-		            HttpServletResponseDummy rsp=(HttpServletResponseDummy) pc.getHttpServletResponse();
+				if(pc.getHttpServletResponse() instanceof HttpServletResponseDummy) {
+		            //HttpServletResponseDummy rsp=(HttpServletResponseDummy) pc.getHttpServletResponse();
 		            pc.flush();
 		            /*contentType=rsp.getContentType();
 		            Pair<String,Object>[] _headers = rsp.getHeaders();

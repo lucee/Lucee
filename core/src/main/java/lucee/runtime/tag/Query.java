@@ -134,7 +134,9 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	@Override
 	public void release() {
 		super.release();
-		data.release();
+		
+		if(data.async) data=new QueryBean();
+		else data.release();
 
 		orgPSQ = false;
 		hasChangedPSQ = false;
@@ -554,10 +556,9 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		if(data.async) {
 			PageSource ps = getPageSource();
 			((ConfigImpl)pageContext.getConfig()).getSpoolerEngine().add(new QuerySpoolerTask(pageContext, data, strSQL, 
-					toTemplateLine(pageContext.getConfig(),sourceTemplate,ps), ps.getRealpathWithVirtual()));
+					toTemplateLine(pageContext.getConfig(),sourceTemplate,ps),ps));
 		}
 		else {
-			
 			_doEndTag(pageContext,data,strSQL,toTemplateLine(pageContext.getConfig(),sourceTemplate,getPageSource()),true); // when sourceTemplate exists getPageSource call was not necessary
 		}
 		return EVAL_PAGE;
@@ -576,7 +577,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		
 		// listener before
 		if(data.listener!=null) {
-			String res = writeBackArgs(pageContext,data,data.listener.before(pageContext, createArgStruct(data,strSQL)));
+			String res = writeBackArgs(pageContext,data,data.listener.before(pageContext, createArgStruct(data,strSQL,tl)));
 			if(!StringUtil.isEmpty(res)) strSQL=res;
 		}
 		
@@ -809,7 +810,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			// listener
 			((ConfigWebImpl)pageContext.getConfig()).getActionMonitorCollector().log(pageContext, "query", "Query", exe, queryResult);
 			if(data.listener!=null) {
-				Struct args = createArgStruct(data,strSQL);
+				Struct args = createArgStruct(data,strSQL,tl);
 				if(setResult)args.set("result", queryResult);
 				if(meta!=null)args.set("meta", meta);
 				writeBackResult(pageContext, data,data.listener.after(pageContext, args),setVars);
@@ -836,7 +837,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		return EVAL_PAGE;
 	}
 
-	private static Struct createArgStruct(QueryBean data, String strSQL) throws PageException {
+	private static Struct createArgStruct(QueryBean data, String strSQL,TemplateLine tl) throws PageException {
 		Struct rtn=new StructImpl(Struct.TYPE_LINKED);
 		Struct args=new StructImpl(Struct.TYPE_LINKED);
 		
@@ -852,22 +853,22 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		set(args,"cachedAfter", data.cachedAfter);
 		set(args,"cachedWithin", data.cachedWithin);
 		if(data.columnName!=null)set(args,"columnName", data.columnName.getString());
-		set(args,"datasource", data.rawDatasource);
+		set(args,KeyConstants._datasource, data.rawDatasource);
 		set(args,"dbtype", data.dbtype);
-		set(args,"debug", data.debug);
+		set(args,KeyConstants._debug, data.debug);
 		set(args,"lazy", data.lazy);
 		if(data.maxrows>=0)set(args,"maxrows", data.maxrows);
-		set(args,"name", data.name);
+		set(args,KeyConstants._name, data.name);
 		set(args,"ormoptions", data.ormoptions);
-		set(args,"username", data.username);
-		set(args,"password", data.password);
-		set(args,"result", data.result);
-		set(args,"returntype", data.returntype);
-		set(args,"timeout", data.timeout);
-		set(args,"timezone", data.timezone);
+		set(args,KeyConstants._username, data.username);
+		set(args,KeyConstants._password, data.password);
+		set(args,KeyConstants._result, data.result);
+		set(args,KeyConstants._returntype, data.returntype);
+		set(args,KeyConstants._timeout, data.timeout);
+		set(args,KeyConstants._timezone, data.timezone);
 		set(args,"unique", data.unique);
-		set(args,"sql",strSQL);
-		rtn.setEL("args", args);
+		set(args,KeyConstants._sql,strSQL);
+		rtn.setEL(KeyConstants._args, args);
 		
 		// params
 		if(data.params!=null) {
@@ -881,10 +882,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				item = it.next();
 				params.appendEL(QueryParamConverter.toStruct(item));
 			}
-			set(args,"params", params);
+			set(args,KeyConstants._params, params);
 		}
 		
-		rtn.setEL("caller", SystemUtil.getCurrentContext().toStruct());
+		rtn.setEL(KeyConstants._caller, tl.toStruct());
 
 		return rtn;
 	}
@@ -1012,8 +1013,11 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			}
 		}
 	}
-	
+
 	private static void set(Struct args, String name, Object value) throws PageException {
+		if(value!=null) args.set(name, value);
+	}
+	private static void set(Struct args, Key name, Object value) throws PageException {
 		if(value!=null) args.set(name, value);
 	}
 

@@ -22,6 +22,9 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.io.Serializable;
 import java.lang.instrument.UnmodifiableClassException;
 import java.util.Map;
 
@@ -31,15 +34,18 @@ import lucee.commons.io.FileUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.ExternalizableUtil;
 import lucee.commons.lang.MappingUtil;
 import lucee.commons.lang.PCLCollection;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.MappingImpl.SerMapping;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.util.ArrayUtil;
@@ -60,8 +66,8 @@ public final class MappingImpl implements Mapping {
 	private boolean topLevel;
 	private short inspect;
 	private boolean physicalFirst;
-	private PhysicalClassLoader pcl;
-	private PCLCollection pcoll;
+	private transient PhysicalClassLoader pcl;
+	private transient PCLCollection pcoll;
 	private Resource archive;
 	
 	private boolean hasArchive;
@@ -503,6 +509,12 @@ public final class MappingImpl implements Mapping {
 		 "readonly:"+readonly+";"+
 		 "hidden:"+hidden+";";
 	}
+	
+	public boolean equals(Object o) {
+		if(o==this) return true;
+		if(!(o instanceof MappingImpl)) return false;
+		return ((MappingImpl)o).toString().equals(toString());
+	}
 
 	public ApplicationListener getApplicationListener() {
 		if(appListener!=null) return appListener;
@@ -530,5 +542,36 @@ public final class MappingImpl implements Mapping {
 
 	public void flush() {
 		getPageSourcePool().clear();
+	}
+	
+
+	public SerMapping toSerMapping() {
+		return new SerMapping("application",getVirtualLowerCase(),getStrPhysical(),getStrArchive(),isPhysicalFirst(),ignoreVirtual());
+	}
+	
+	public static class SerMapping implements Serializable {
+
+		public final String type;
+		public final String virtual;
+		public final String physical;
+		public final String archive;
+		public final boolean physicalFirst;
+		public final boolean ignoreVirtual;
+
+		public SerMapping(String type,String virtual, String physical,String archive,boolean physicalFirst, boolean ignoreVirtual) {
+			this.type=type;
+			this.virtual=virtual;
+			this.physical=physical;
+			this.archive=archive;
+			this.physicalFirst=physicalFirst;
+			this.ignoreVirtual=ignoreVirtual;
+		}
+		
+
+
+		public Mapping toMapping() {
+			ConfigWebImpl cwi=(ConfigWebImpl) ThreadLocalPageContext.getConfig();
+			return cwi.getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual);
+		}
 	}
 }

@@ -75,7 +75,7 @@ public final class DatabaseException extends PageExceptionImpl {
 	 * @param dc
 	 */
 	private DatabaseException(String message, String detail, SQLException sqle, SQL sql,DatasourceConnection dc) {
-		super(sqle.getCause() instanceof SQLException?message:"","database");
+		super(message!=null?message:"","database");
 		
 		set(sql);
 		set(sqle,detail);

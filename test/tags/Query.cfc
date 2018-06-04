@@ -98,6 +98,77 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 
+	public void function testAsynSerialisation() {
+		var ds=getPageContext().getApplicationContext().getDefDataSource();
+		var cd=ds.getClassDefinition();
+		var s=objectSave(cd);
+		var o=ObjectLoad(s);
+		var s=objectSave(ds);
+		var o=ObjectLoad(s);
+	}
+
+	public void function testAsynCFC() {
+		var tbl="QueryTestAsync";
+		testAsyn(new query.QueryListener2(tbl),tbl,1);
+	}
+
+
+	public void function testAsynUDF() {
+		var udf=function (caller,args,result,meta) {
+				arguments.args.sql="insert into QueryTestAsync(id,i,dec) values('6',1,1.0)"; // change SQL
+		        application.query_testAsynUDF=true;
+				return arguments;
+		};
+		var tbl="QueryTestAsync";
+		application.query_testAsynUDF=false;
+		testAsyn(udf,tbl,0);
+		assertTrue(application.query_testAsynUDF);
+	}
+
+	public void function testAsynStructUDF() {
+		var sct={
+			before=function (caller,args) {
+				arguments.args.sql="insert into QueryTestAsync(id,i,dec) values('2',1,1.0)"; // change SQL
+		        return arguments;
+		    }
+		    ,after=function (caller,args) {
+				return arguments;
+		    }
+		};
+		var tbl="QueryTestAsync";
+		testAsyn(sct,tbl,2);
+	}
+
+	public void function testAsynStructUDFInclude() {
+
+		include "query/inc.cfm";
+		var tbl="QueryTestAsync";
+		testAsyn(sctListener,tbl,3);
+	}
+
+	private void function testAsyn(listener,tbl, res) {
+		createTable(tbl);
+		try {
+			query name="local.qry"  {
+				echo("delete from "&tbl);
+			} 
+
+			query async=true name="local.qry" listener=listener {
+				echo("insert into QueryTestAsync(id,i,dec) values('0',1,1.0)");
+			} 
+
+			sleep(500);
+			query name="local.qry" {
+				echo("select * from "&tbl);
+			}
+			assertTrue(qry.recordcount==1);
+			assertEquals(res,qry.id);
+		}
+		finally {
+			dropTable(tbl);
+		}
+	}
+
 	public void function testListenerAfter() {
 		query name="local.qry"  {
 			echo("delete from T"&suffix);
@@ -146,11 +217,31 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			}
 
 		 {
-			echo("insert into T"&suffix&"(id,i,dec) values('1',1,1.0)");
+			echo("insert into T"&suffix&"(id,i,dec) values('2',1,1.0)");
 		} 
 		assertEquals(3,qry.recordcount);
 		assertEquals("A",qry.columnlist);
 		
+	}
+
+	private function createTable(name) {
+		//dropTable(name);
+		query  {
+			echo("CREATE TABLE "&name&" (");
+			echo("id int NOT NULL,");
+			echo("i int,");		
+			echo("dec DECIMAL");		
+			echo(") ");
+		}
+	}
+
+	private function dropTable(name) {
+		try{
+			query {
+				echo("drop TABLE "&name);
+			}
+		}
+		catch(local.e){}
 	}
 } 
 </cfscript>

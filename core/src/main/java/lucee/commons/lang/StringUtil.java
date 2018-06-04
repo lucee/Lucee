@@ -1375,4 +1375,10 @@ public final class StringUtil {
 	public static String toStringNative(Object obj,String defaultValue) {
 		return obj==null?defaultValue:obj.toString();
 	}
+
+
+	public static String emptyAsNull(String str,boolean trim) {
+		if(isEmpty(str,trim))return null;
+		return str;
+	}
 }

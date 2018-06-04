@@ -19,6 +19,7 @@
 package lucee.runtime.db;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
@@ -28,14 +29,15 @@ import java.util.TimeZone;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
 import lucee.runtime.config.Config;
+import lucee.runtime.engine.ThreadLocalConfig;
+import lucee.runtime.engine.ThreadLocalPageContext;
 
 import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.BundleException;
 
-public abstract class DataSourceSupport implements DataSource, Cloneable {
+public abstract class DataSourceSupport implements DataSource, Cloneable, Serializable {
 
 	private static final int NETWORK_TIMEOUT_IN_SECONDS = 10;
-	private ClassDefinition cd;
 	private final boolean blob;
 	private final boolean clob;
 	private final int connectionLimit;
@@ -48,11 +50,11 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 	private final boolean readOnly;
 	private final String username;
 	private final String password;
-
-	private Map<String, ProcMetaCollection> procedureColumnCache;
-	private Driver driver;
-
-	private final Log log;
+	private final ClassDefinition cd;
+	
+	private transient Map<String, ProcMetaCollection> procedureColumnCache;
+	private transient Driver driver;
+	private transient Log log;
 
 	public DataSourceSupport(Config config, String name,
 			ClassDefinition cd, String username, String password, boolean blob,
@@ -243,6 +245,8 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 
 	@Override
 	public Log getLog() {
+		// can be null if deserialized
+		if(log==null)log=ThreadLocalPageContext.getConfig().getLog("application");
 		return log;
 	}
 

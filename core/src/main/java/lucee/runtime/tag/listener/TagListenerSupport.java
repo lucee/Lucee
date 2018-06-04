@@ -1,5 +1,7 @@
 package lucee.runtime.tag.listener;
 
-public abstract class TagListenerSupport implements TagListener {
+import java.io.Serializable;
+
+public abstract class TagListenerSupport implements TagListener,Serializable {
 	
 }
