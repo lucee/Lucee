@@ -19,6 +19,7 @@
 package lucee.commons.io.compress;
 
 import java.io.IOException;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
@@ -55,5 +56,12 @@ public final class ZipUtil {
 			file.close();
 		} 
 		catch (IOException e) {}
+	}
+
+	public static Resource toResource(Resource targetDir, ZipEntry entry) throws IOException {
+		Resource target = targetDir.getRealResource(entry.getName());
+		if(!target.getCanonicalPath().startsWith(targetDir.getCanonicalPath()))
+			throw new IOException(target.getCanonicalPath() + " is outside of " + targetDir.getCanonicalPath());
+		return target;
 	}
 }

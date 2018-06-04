@@ -42,6 +42,7 @@ import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.OrResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Caster;
 
@@ -233,29 +234,15 @@ public final class CompressUtil {
 
 		// read the zip file and build a query from its contents
 		unzip(zipFile, targetDir);
-		/*
-		 * ZipInputStream zis=null; try { zis = new ZipInputStream( IOUtil.toBufferedInputStream(zipFile.getInputStream()) ) ; ZipEntry entry; while ( ( entry =
-		 * zis.getNextEntry()) != null ) { Resource target=targetDir.getRealResource(entry.getName()); if(entry.isDirectory()) { target.mkdirs(); } else {
-		 * Resource parent=target.getParentResource(); if(!parent.exists())parent.mkdirs();
-		 * 
-		 * IOUtil.copy(zis,target,false); } target.setLastModified(entry.getTime()); zis.closeEntry() ; } } finally { IOUtil.closeEL(zis); }
-		 */
 	}
 
 	private static void unzip(Resource zipFile, Resource targetDir) throws IOException {
-		/*
-		 * if(zipFile instanceof File){ unzip((File)zipFile, targetDir); return; }
-		 */
-
 		ZipInputStream zis = null;
 		try {
 			zis = new ZipInputStream(IOUtil.toBufferedInputStream(zipFile.getInputStream()));
 			ZipEntry entry;
 			while((entry = zis.getNextEntry()) != null) {
-				Resource target = targetDir.getRealResource(entry.getName());
-				if(!target.getCanonicalPath().startsWith(targetDir.getCanonicalPath()))
-					throw new IllegalArgumentException(target.getCanonicalPath() + " is outside of " + targetDir.getCanonicalPath());
-
+				Resource target = ZipUtil.toResource(targetDir,entry);
 				if(entry.isDirectory()) {
 					target.mkdirs();
 				}
@@ -307,10 +294,8 @@ public final class CompressUtil {
 
 			while(en.hasMoreElements()) {
 				entry = (ZipEntry)en.nextElement();
-				Resource target = targetDir.getRealResource(entry.getName());
-				if(!target.getCanonicalPath().startsWith(targetDir.getCanonicalPath()))
-					throw new IllegalArgumentException(target.getCanonicalPath() + " is outside of " + targetDir.getCanonicalPath());
-
+				Resource target = ZipUtil.toResource(targetDir,entry);
+				
 				if(entry.isDirectory()) {
 					target.mkdirs();
 				}
