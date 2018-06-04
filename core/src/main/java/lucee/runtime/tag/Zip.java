@@ -432,7 +432,6 @@ public final class Zip extends BodyTagImpl {
 	 * private List<ZipEntry> getZipEntries(ZipFile zip, String[] pathes) { if(pathes==null || pathes.length==0) return null; List<ZipEntry> entries=new
 	 * ArrayList<ZipEntry>(); for(String p:pathes) { entries.add(getZipEntry(zip, p)); } return entries; }
 	 */
-
 	private ZipEntry getZipEntry(ZipFile zip, String path) {
 		ZipEntry ze = zip.getEntry(path);
 		if(ze != null)
@@ -476,7 +475,7 @@ public final class Zip extends BodyTagImpl {
 
 				path = entry.getName().replace('\\', '/');
 				if(path.startsWith("../"))
-					throw new IllegalArgumentException("Path " + path + " is not allowed");
+					throw new ApplicationException("Path " + path + " is not allowed");
 
 				index = path.lastIndexOf('/');
 
