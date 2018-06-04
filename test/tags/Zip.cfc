@@ -82,5 +82,35 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 	}
 	
+	public function testInvalidEntryName() {
+		var curr=getDirectoryFromPath(getCurrentTemplatePath());
+		var trg=curr&"zip/"
+		trg2=trg&"sub/sub/";
+		if(directoryExists(trg)) directoryDelete(trg,true);
+		directoryCreate(trg);
+		directoryCreate(trg2);
+			
+
+		try{
+			// create the test zip
+			zip action="zip" file="#trg#test.zip"{
+				zipparam entrypath="../../invalidpath.txt" content="test a invalid path";
+			}
+
+			// unzip the created zip
+			zip action="unzip" file="#trg#test.zip" destination=trg2;
+
+			// is the file in the right place
+			assertTrue(fileExists("#trg2#invalidpath.txt"));
+			assertFalse(fileExists("#trg#invalidpath.txt"));
+		}
+		finally {
+			if(directoryExists(trg)) directoryDelete(trg,true);
+		}
+
+	
+	}
+
+	
 } 
 </cfscript>

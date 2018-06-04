@@ -269,7 +269,7 @@ public final class CompressUtil {
 	        zis = new ZipInputStream( IOUtil.toBufferedInputStream(zipFile.getInputStream()) ) ;     
 	        ZipEntry entry;
 	        while ( ( entry = zis.getNextEntry()) != null ) {
-	        	Resource target=targetDir.getRealResource(entry.getName());
+	        	Resource target=ZipUtil.toResource(targetDir, entry);
 	            if(entry.isDirectory()) {
 	                target.mkdirs();
 	            }
@@ -322,7 +322,7 @@ public final class CompressUtil {
 	        Enumeration en = zf.entries();
 	        while(en.hasMoreElements()){
 	        	entry = (ZipEntry) en.nextElement();
-	        	Resource target=targetDir.getRealResource(entry.getName());
+	        	Resource target=ZipUtil.toResource(targetDir, entry);
 	            if(entry.isDirectory()) {
 	                target.mkdirs();
 	            }
