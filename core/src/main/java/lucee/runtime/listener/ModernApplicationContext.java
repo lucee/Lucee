@@ -75,6 +75,8 @@ import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.rest.RestSettingImpl;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.security.Credential;
+import lucee.runtime.tag.Query;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -195,12 +197,14 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
 	private Object mailListener;
+	private TagListener queryListener;
 	private boolean fullNullSupport;
 	
 	private Mapping[] mappings;
 	private boolean initMappings;
 	private boolean initCustomTypes;
 	private boolean initMailListener;
+	private boolean initQueryListener;
 	private boolean initFullNullSupport;
 	private boolean initCachedWithins;
 	
@@ -976,6 +980,16 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		}
 		return mailListener;
 	}
+	
+	@Override
+	public TagListener getQueryListener() {
+		if(!initQueryListener) {
+			Struct query = Caster.toStruct(get(component,KeyConstants._query,null),null);
+			if(query!=null) queryListener=Query.toTagListener(query.get(KeyConstants._listener,null),null);
+			initQueryListener=true; 
+		}
+		return queryListener;
+	}
 
 	@Override
 	public Mapping[] getMappings() {
@@ -1290,6 +1304,12 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public void setMailListener(Object mailListener) {
 		initMailListener=true;
 		this.mailListener=mailListener;
+	}
+
+	@Override
+	public void setQueryListener(TagListener listener) {
+		initQueryListener=true;
+		this.queryListener=listener;
 	}
 	
 	@Override

@@ -46,6 +46,7 @@ import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMUtil;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
@@ -99,6 +100,7 @@ public final class Application extends TagImpl {
 	private int action=ACTION_CREATE;
 	private int localMode=-1;
 	private Object mailListener=null;
+	private TagListener queryListener=null;
 	private Locale locale;
 	private TimeZone timeZone;
 	private Boolean nullSupport;
@@ -172,6 +174,7 @@ public final class Application extends TagImpl {
         action=ACTION_CREATE;
         localMode=-1;
         mailListener=null;
+        queryListener=null;
         locale=null;
         timeZone=null;
         nullSupport=null;
@@ -277,9 +280,13 @@ public final class Application extends TagImpl {
 		this.localMode = AppListenerUtil.toLocalMode(strLocalMode);
 		
 	}
+	
 	public void setMaillistener(Object mailListener) throws ApplicationException {
 		this.mailListener = mailListener;
-		
+	}
+	
+	public void setQuerylistener(Object listener) throws ApplicationException {
+		this.queryListener = Query.toTagListener(listener);
 	}
 	
 	public void setTimezone(TimeZone tz) {
@@ -691,6 +698,7 @@ public final class Application extends TagImpl {
 		if(setSessionManagement!=null)			ac.setSetSessionManagement(setSessionManagement.booleanValue());
 		if(localMode!=-1) 						ac.setLocalMode(localMode);
 		if(mailListener!=null) 					((ApplicationContextSupport) ac).setMailListener(mailListener);
+		if(queryListener!=null) 				((ApplicationContextSupport) ac).setQueryListener(queryListener);
 		if(locale!=null) 						ac.setLocale(locale);
 		if(timeZone!=null) 						ac.setTimeZone(timeZone);
 		if(nullSupport!=null) 			((ApplicationContextSupport) ac).setFullNullSupport(nullSupport);

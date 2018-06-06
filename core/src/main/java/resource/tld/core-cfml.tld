@@ -483,6 +483,13 @@ Specifies how Lucee stores session variables:
 			<name>mailListener</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>queryListener</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
 			<status>hidden</status>
 			<description></description>
 		</attribute>

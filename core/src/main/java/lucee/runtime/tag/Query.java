@@ -49,6 +49,7 @@ import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
+import lucee.runtime.db.DataSourceSupport;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.DatasourceManagerImpl;
 import lucee.runtime.db.HSQLDBHandler;
@@ -64,6 +65,8 @@ import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
 import lucee.runtime.functions.displayFormatting.DecimalFormat;
 import lucee.runtime.functions.other.GetTagData;
 import lucee.runtime.listener.AppListenerUtil;
+import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.net.smtp.SMTPClient;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -467,7 +470,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	public void setListener(Object listener) throws ApplicationException {
 		if(listener==null) return;
 		
-		data.listener=toQueryListener(listener);
+		data.listener=toTagListener(listener);
 	}
 
 	public void setAsync(boolean async)  {
@@ -536,6 +539,26 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		if(hasChangedPSQ)
 			pageContext.setPsq(orgPSQ);
 		
+		// listener
+		if(data.listener==null) {
+			// does the datasource define a listener?
+			TagListener listener = ((DataSourceSupport)data.datasource).getListener();
+			if(listener!=null) {
+				data.listener=listener;
+			}
+			else {
+				ApplicationContext ac = pageContext.getApplicationContext();
+				if(ac instanceof ApplicationContextSupport) {
+					ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+					listener = acs.getQueryListener();
+					if(listener!=null) {
+						data.listener=listener;
+					}
+				}
+				
+			}
+		}
+		
 		String strSQL;
 		if(data.hasBody && !StringUtil.isEmpty(strSQL = bodyContent.getString().trim(),true)) { // we have a body
 			if(!StringUtil.isEmpty(data.sql,true)) {  // sql in attr and body
@@ -562,14 +585,6 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			_doEndTag(pageContext,data,strSQL,toTemplateLine(pageContext.getConfig(),sourceTemplate,getPageSource()),true); // when sourceTemplate exists getPageSource call was not necessary
 		}
 		return EVAL_PAGE;
-	}
-	public static TemplateLine toTemplateLine(Config config, String sourceTemplate, PageSource ps) {
-		if(!StringUtil.isEmpty(sourceTemplate)) {
-			return new TemplateLine(sourceTemplate);
-		}
-		
-		if(config.debug()) return SystemUtil.getCurrentContext();
-		return new TemplateLine(ps.getDisplayPath());
 	}
 
 	public static int _doEndTag(PageContext pageContext, QueryBean data, String strSQL, TemplateLine tl, boolean setVars) throws PageException {
@@ -1150,9 +1165,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
     	data.hasBody=hasBody;
     }
     
-
-
-	private TagListener toQueryListener(Object listener) throws ApplicationException {
+    public static TagListener toTagListener(Object listener, TagListener defaultValue) {
 		if(listener instanceof Component)
 			return new ComponentTagListener((Component)listener);
 		
@@ -1164,6 +1177,21 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			UDF after=Caster.toFunction(((Struct)listener).get("after",null),null);
 			return new UDFTagListener(before,after);
 		}
+		return defaultValue;
+	}
+    
+	public static TemplateLine toTemplateLine(Config config, String sourceTemplate, PageSource ps) {
+		if(!StringUtil.isEmpty(sourceTemplate)) {
+			return new TemplateLine(sourceTemplate);
+		}
+		
+		if(config.debug()) return SystemUtil.getCurrentContext();
+		return new TemplateLine(ps.getDisplayPath());
+	}
+
+	public static TagListener toTagListener(Object listener) throws ApplicationException {
+		TagListener ql = toTagListener(listener, null);
+		if(ql!=null) return ql;
 		throw new ApplicationException("cannot convert ["+Caster.toTypeName(listener)+"] to a listener");
 	}
 }

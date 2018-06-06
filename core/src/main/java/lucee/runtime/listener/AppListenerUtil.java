@@ -58,6 +58,8 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.security.Credential;
 import lucee.runtime.security.CredentialImpl;
+import lucee.runtime.tag.Query;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -190,6 +192,14 @@ public final class AppListenerUtil {
 				pass=pass.trim();
 			}
 			
+			// listener
+			TagListener listener=null;
+			{
+				Object o=data.get(KeyConstants._listener,null);
+				if(o!=null)listener = Query.toTagListener(o,null);
+				
+			}
+			
 			// first check for {class:... , connectionString:...}
 			Object oConnStr=data.get(CONNECTION_STRING,null);
 			if(oConnStr!=null) {
@@ -211,6 +221,7 @@ public final class AppListenerUtil {
 					cd, 
 					Caster.toString(oConnStr), 
 					user, pass,
+					listener,
 					Caster.toBooleanValue(data.get(BLOB,null),false),
 					Caster.toBooleanValue(data.get(CLOB,null),false), 
 					Caster.toIntValue(data.get(CONNECTION_LIMIT,null),-1), 
@@ -238,6 +249,7 @@ public final class AppListenerUtil {
 					Caster.toString(data.get(DATABASE)), 
 					Caster.toIntValue(data.get(KeyConstants._port,null),-1), 
 					user,pass, 
+					listener,
 					Caster.toIntValue(data.get(CONNECTION_LIMIT,null),-1), 
 					Caster.toIntValue(data.get(CONNECTION_TIMEOUT,null),1), 
 					Caster.toLongValue(data.get(META_CACHE_TIMEOUT,null),60000L), 

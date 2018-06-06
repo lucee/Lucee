@@ -48,6 +48,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -434,4 +435,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract void setFTP(FTPConnectionData ftp);
 	public abstract boolean getFullNullSupport();
 	public abstract void setFullNullSupport(boolean fullNullSupport);
+
+	public abstract TagListener getQueryListener();
+	public abstract void setQueryListener(TagListener listener);
 }

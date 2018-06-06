@@ -31,6 +31,7 @@ import lucee.commons.lang.ClassException;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.tag.listener.TagListener;
 
 import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.BundleException;
@@ -55,9 +56,10 @@ public abstract class DataSourceSupport implements DataSource, Cloneable, Serial
 	private transient Map<String, ProcMetaCollection> procedureColumnCache;
 	private transient Driver driver;
 	private transient Log log;
+	private final TagListener listener;
 
 	public DataSourceSupport(Config config, String name,
-			ClassDefinition cd, String username, String password, boolean blob,
+			ClassDefinition cd, String username, String password, TagListener listener, boolean blob,
 			boolean clob, int connectionLimit, int connectionTimeout,
 			long metaCacheTimeout, TimeZone timezone, int allow,
 			boolean storage, boolean readOnly, Log log) {
@@ -74,6 +76,7 @@ public abstract class DataSourceSupport implements DataSource, Cloneable, Serial
 		this.readOnly = readOnly;
 		this.username = username;
 		this.password = password;
+		this.listener=listener;
 		this.log = log;
 	}
 	
@@ -248,6 +251,10 @@ public abstract class DataSourceSupport implements DataSource, Cloneable, Serial
 		// can be null if deserialized
 		if(log==null)log=ThreadLocalPageContext.getConfig().getLog("application");
 		return log;
+	}
+
+	public TagListener getListener() { // FUTURE may add to interface
+		return listener;
 	}
 
 	@Override
