@@ -3436,6 +3436,10 @@ public final class PageContextImpl extends PageContext {
 		this.session = null;
 	}
 
+	public void resetClient() {
+		this.client = null;
+	}
+
 	/**
 	 * @return the gatewayContext
 	 */
