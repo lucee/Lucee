@@ -540,7 +540,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			pageContext.setPsq(orgPSQ);
 		
 		// listener
-		if(data.listener==null) {
+		if(data.listener==null && data.datasource!=null) { // if no datasource we have dbtype query, otherwise we would have an exception in doStartTag
 			// does the datasource define a listener?
 			TagListener listener = ((DataSourceSupport)data.datasource).getListener();
 			if(listener!=null) {
