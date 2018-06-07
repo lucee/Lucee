@@ -47,6 +47,37 @@
 		assertEquals("x123",c.trim());
 	}
 
+	public void function testEscapeNoOutput() {
+		local.x=1;
+		saveContent variable="local.c" {
+		```abc``````def```
+		}
+		assertEquals("abc```def",c);
+	}
+	public void function testEscapeNoOutputBeginning() {
+		local.x=1;
+		saveContent variable="local.c" {
+		`````````def```
+		}
+		assertEquals("```def",c);
+	}
+
+	public void function testEscapeNoOutputEnd() {
+		local.x=1;
+		saveContent variable="local.c" {
+		```abc`````````
+		}
+		assertEquals("abc```",c);
+	}
+
+	public void function testEscapeOutput() {
+		local.x=1;
+		saveContent variable="local.c" {
+		```<cfoutput>abc``````def</cfoutput>```
+		}
+		assertEquals("abc```def",c);
+	}
+
 
 </cfscript>
 	
@@ -77,15 +108,42 @@
 
 		<cfset assertEquals("abcdefedcba",c.trim())>
 	</cffunction>
+	
+	<cffunction name="testEscapeOutputBeginning">
+		<cfset local.x="testOutsideOutput">
+		<cfsavecontent variable="local.c">
+		<cfoutput>
+			<cfscript>
+				`````````def```
+			</cfscript>
+		</cfoutput>
+		</cfsavecontent>
+		<cfset assertEquals("```def",c.trim())>
+	</cffunction>
 
+	<cffunction name="testEscapeOutputEnd">
+		<cfset local.x="testOutsideOutput">
+		<cfsavecontent variable="local.c">
+		<cfoutput>
+			<cfscript>
+				```abc`````````
+			</cfscript>
+		</cfoutput>
+		</cfsavecontent>
+		<cfset assertEquals("abc```",c.trim())>
+	</cffunction>
+
+	<cffunction name="testEscapeOutputBeginningEnd">
+		<cfsavecontent variable="local.c"><cfoutput><cfscript>
+				````````````
+		</cfscript></cfoutput></cfsavecontent>
+		<cfset assertEquals("```",c.trim())>
+	</cffunction>
+
+	<cffunction name="testEscapeOutputBeginningEndDouble">
+		<cfsavecontent variable="local.c"><cfoutput><cfscript>
+				``````````````````
+		</cfscript></cfoutput></cfsavecontent>
+		<cfset assertEquals("``````",c.trim())>
+	</cffunction>
 </cfcomponent>
-
-
-
-
-
-
-
-
-
-
