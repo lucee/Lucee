@@ -297,11 +297,12 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 
 	@Override
 	public Query getAllTasksAsQuery(int startrow, int maxrow) throws PageException {
+		if(maxrow<0) maxrow=Integer.MAX_VALUE;
+		
 		Query query = createQuery();
 		//print.o(startrow+":"+maxrow);
 		getTasksAsQuery(query,openDirectory,startrow, maxrow);
 		int records = query.getRecordcount();
-		if(maxrow<0) maxrow=Integer.MAX_VALUE;
 		// no open tasks
 		if(records==0) {
 			startrow-=getOpenTaskCount();
