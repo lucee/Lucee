@@ -19,11 +19,13 @@
 package lucee.commons.io.compress;
 
 import java.io.IOException;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 import lucee.commons.cli.Command;
 import lucee.commons.io.res.Resource;
+import lucee.runtime.type.util.ListUtil;
 
 public final class ZipUtil {
 
@@ -55,5 +57,15 @@ public final class ZipUtil {
 			file.close();
 		} 
 		catch (IOException e) {}
+	}
+
+	public static Resource toResource(Resource targetDir, ZipEntry entry) throws IOException {
+		Resource target = targetDir.getRealResource(entry.getName());
+		
+		// in case a file is outside the target directory, we copy it to the target directory
+		if(!target.getCanonicalPath().startsWith(targetDir.getCanonicalPath())) {
+			target=targetDir.getRealResource(ListUtil.last(entry.getName(), "\\/",true));
+		}
+		return target;
 	}
 }

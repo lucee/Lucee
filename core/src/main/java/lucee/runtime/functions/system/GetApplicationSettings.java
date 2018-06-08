@@ -210,6 +210,16 @@ public class GetApplicationSettings {
 				}
 			}
 		}
+
+		// serialization
+		Struct serialization = new StructImpl(Struct.TYPE_LINKED);
+		sct.setEL("serialization", serialization);
+		if (appContext instanceof ModernApplicationContext){
+			ModernApplicationContext mAppContext = (ModernApplicationContext)appContext;
+			Struct settings = mAppContext.getSerializationSettings();
+			if (settings != null)
+				serialization.putAll(settings);
+		}
 		
 		
 		// tag

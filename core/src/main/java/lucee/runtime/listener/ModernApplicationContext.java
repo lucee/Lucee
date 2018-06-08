@@ -746,16 +746,18 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	
 
 	private void initMailServers() {
-		if(!initMailServer) { 
-			Object oMail = get(component,KeyConstants._mail,null);
-			if(oMail==null) oMail = get(component,KeyConstants._mails,null);
-			if(oMail==null) oMail = get(component,KeyImpl.init("mailserver"),null);
-			if(oMail==null) oMail = get(component,KeyImpl.init("mailservers"),null);
+		if(!initMailServer) {
+			Key key;
+			Object oMail = get(component,key=KeyConstants._mail,null);
+			if(oMail==null) oMail = get(component,key=KeyConstants._mails,null);
+			if(oMail==null) oMail = get(component,key=KeyConstants._mailServer,null);
+			if(oMail==null) oMail = get(component,key=KeyConstants._mailServers,null);
+			if(oMail==null) oMail = get(component,key=KeyConstants._smtpServerSettings,null);
 			
 			Array arrMail = Caster.toArray(oMail,null);
 			// we also support a single struct instead of an array of structs
 			if(arrMail==null) {
-				Struct sctMail = Caster.toStruct(get(component,KeyConstants._mail,null),null);
+				Struct sctMail = Caster.toStruct(get(component,key,null),null);
 				if(sctMail!=null) {
 					arrMail = new ArrayImpl();
 					arrMail.appendEL(sctMail);
