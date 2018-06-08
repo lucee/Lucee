@@ -381,7 +381,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 		return map;
 	}
 
-	private static LoggerAndSourceData addLogger(Collection.Key name, Level level, ClassDefinition appender, Map<String, String> appenderArgs,
+	private static LoggerAndSourceData addLogger(Collection.Key name, int level, ClassDefinition appender, Map<String, String> appenderArgs,
 			ClassDefinition layout, Map<String, String> layoutArgs, boolean readOnly) {
 		LoggerAndSourceData existing = _loggers.get(name);
 		String id = LoggerAndSourceData.id(name.getLowerString(), appender, appenderArgs, layout, layoutArgs, level, readOnly);

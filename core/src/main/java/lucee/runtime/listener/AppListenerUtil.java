@@ -766,19 +766,15 @@ public final class AppListenerUtil {
 
 		TimeSpan idleTimespan = Caster.toTimespan(data.get("idleTimespan",null),null);
 		if(idleTimespan==null)idleTimespan = Caster.toTimespan(data.get("idle",null),ONE_MINUTE);
-		
 
-		
 		Object value=data.get("tls", null);
-		if(value==null) value= ata.get("useTls", null);
+		if(value==null) value= data.get("useTls", null);
 		boolean tls=Caster.toBooleanValue(value, false);
 
 		value = data.get("ssl", null);
 		if(value==null) value = data.get("useSsl", null);
 		boolean ssl = Caster.toBooleanValue(value, false);
 
-
-		
 		return new ServerImpl(-1,hostName, port, username, password, lifeTimespan.getMillis(), idleTimespan.getMillis(), tls, ssl, false,ServerImpl.TYPE_LOCAL); // MUST improve store connection somehow
 	}
 

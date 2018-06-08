@@ -1831,4 +1831,16 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.fullNullSupport=fullNullSupport;
 		this.initFullNullSupport=true;
 	}
+
+	public Struct getSerializationSettings(){
+		Object oSerialization = get(component, KeyConstants._serialization, null);
+		if (oSerialization instanceof Struct)
+			return (Struct)oSerialization;
+		return new StructImpl();
+		
+		//serialization.preservecaseforstructkey	False	Boolean that determines if case for struct keys should be preserved when serializing a struct to JSON.
+		//serialization.serializequeryas	row	Determines how queries should be serialized to JSON. Possible values are row, column, and struct.
+		//serialization.preserveCaseForQueryColumn
+		
+	}
 }
