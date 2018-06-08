@@ -54,6 +54,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -263,19 +264,8 @@ public final class JSONConverter extends ConverterSupport {
 	public void _serializeStruct(PageContext pc, Set test, Struct struct, StringBuilder sb, boolean serializeQueryByColumns, boolean addUDFs, Set<Object> done)
 			throws ConverterException {
 
-		boolean preserveCase = true;	// preserve case by default for Struct
-		ApplicationContext appContext = pc.getApplicationContext();
-		if (appContext instanceof ModernApplicationContext){
-			Struct settings = ((ModernApplicationContext)appContext).getSerializationSettings();
-			Object value = settings.get(KeyConstants._preserveCaseForStructKey, null);
-			if (Decision.isBoolean(value)){
-				try {
-					if (!Caster.toBoolean(value))
-						preserveCase = false;
-				}
-				catch (PageException ex){}	// should never happen because we check
-			}
-		}
+		ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+		boolean preserveCase = acs.getSerializationSettings().getPreserveCaseForStructKey();	// preserve case by default for Struct
 
 		// Component
 		if(struct instanceof Component) {
@@ -453,20 +443,9 @@ public final class JSONConverter extends ConverterSupport {
 	private void _serializeQuery(PageContext pc, Set test, Query query, StringBuilder sb, boolean serializeQueryByColumns, Set<Object> done)
 			throws ConverterException {
 
-		boolean preserveCase = false;		// UPPERCASE column keys by default for Query
-		ApplicationContext appContext = pc.getApplicationContext();
-		if (appContext instanceof ModernApplicationContext){
-			Struct settings = ((ModernApplicationContext)appContext).getSerializationSettings();
-			Object value = settings.get(KeyConstants._preserveCaseForQueryColumn, null);
-			if (Decision.isBoolean(value)){
-				try {
-					if (Caster.toBoolean(value))
-						preserveCase = true;
-				}
-				catch (PageException ex){}	// should never happen because we check
-			}
-		}
-
+		ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+		boolean preserveCase = acs.getSerializationSettings().getPreserveCaseForQueryColumn();		// UPPERCASE column keys by default for Query
+		
 		Collection.Key[] _keys = CollectionUtil.keys(query);
 		sb.append(goIn());
 		sb.append("{");

@@ -212,16 +212,12 @@ public class GetApplicationSettings {
 		}
 
 		// serialization
-		Struct serialization = new StructImpl(Struct.TYPE_LINKED);
-		sct.setEL("serialization", serialization);
-		if (ac instanceof ModernApplicationContext){
-			ModernApplicationContext mAppContext = (ModernApplicationContext)ac;
-			Struct settings = mAppContext.getSerializationSettings();
-			if (settings != null)
-				serialization.putAll(settings);
+		if(ac instanceof ApplicationContextSupport) {
+			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+			Struct ser = new StructImpl(Struct.TYPE_LINKED);
+			sct.setEL("serialization", acs.getSerializationSettings().toStruct());
 		}
-		
-		
+
 		// tag
 		Map<Key, Map<Collection.Key, Object>> tags = ac.getTagAttributeDefaultValues(pc);
 		if(tags!=null) {

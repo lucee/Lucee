@@ -135,6 +135,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private boolean wsMaintainSession;
 
 	private boolean fullNullSupport;
+	private SerializationSettings serializationSettings=SerializationSettings.DEFAULT;
 
     
     /**
@@ -957,7 +958,17 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	public void setQueryListener(TagListener listener) {
 		this.queryListener=listener;
 	}
+	
+	@Override
+	public SerializationSettings getSerializationSettings() {
+		return serializationSettings;
+	}
 
+	@Override
+	public void setSerializationSettings(SerializationSettings settings) {
+		this.serializationSettings=settings;
+	}
+	
 	@Override
 	public boolean getWSMaintainSession() {
 		return wsMaintainSession;

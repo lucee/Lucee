@@ -490,5 +490,8 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	public abstract TagListener getQueryListener();
 	public abstract void setQueryListener(TagListener listener);
+	
+	public abstract SerializationSettings getSerializationSettings();
+	public abstract void setSerializationSettings(SerializationSettings settings);
 
 }

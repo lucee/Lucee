@@ -199,6 +199,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private Object mailListener;
 	private TagListener queryListener;
 	private boolean fullNullSupport;
+	private SerializationSettings serializationSettings;
 	
 	private Mapping[] mappings;
 	private boolean initMappings;
@@ -258,6 +259,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initCGIScopeReadonly;
 	private boolean initSessionCookie;
 	private boolean initAuthCookie;
+	private boolean initSerializationSettings;
 	
 	private Resource antiSamyPolicyResource;
 	
@@ -991,6 +993,24 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			initQueryListener=true; 
 		}
 		return queryListener;
+	}
+
+	public SerializationSettings getSerializationSettings() {
+		if(!initSerializationSettings) {
+			Struct sct = Caster.toStruct(get(component,KeyConstants._serialization,null),null);
+			if(sct!=null) {
+				serializationSettings=SerializationSettings.toSerializationSettings(sct);
+			}
+			else
+				serializationSettings=SerializationSettings.DEFAULT;
+			initSerializationSettings=true; 
+		}
+		return serializationSettings;
+	}
+	
+	public void setSerializationSettings(SerializationSettings settings) {
+		serializationSettings=settings;
+		initSerializationSettings=true;
 	}
 
 	@Override
@@ -1830,17 +1850,5 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public void setFullNullSupport(boolean fullNullSupport) {
 		this.fullNullSupport=fullNullSupport;
 		this.initFullNullSupport=true;
-	}
-
-	public Struct getSerializationSettings(){
-		Object oSerialization = get(component, KeyConstants._serialization, null);
-		if (oSerialization instanceof Struct)
-			return (Struct)oSerialization;
-		return new StructImpl();
-		
-		//serialization.preservecaseforstructkey	False	Boolean that determines if case for struct keys should be preserved when serializing a struct to JSON.
-		//serialization.serializequeryas	row	Determines how queries should be serialized to JSON. Possible values are row, column, and struct.
-		//serialization.preserveCaseForQueryColumn
-		
 	}
 }

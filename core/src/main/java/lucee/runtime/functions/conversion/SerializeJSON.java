@@ -29,7 +29,9 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.ModernApplicationContext;
+import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
@@ -97,12 +99,11 @@ public final class SerializeJSON implements Function {
 
 				if(!serializeQueryAsStruct) {
 					// check Application.cfc setting this.serialization.serializeQueryAs == "struct"
-					ApplicationContext appContext = pc.getApplicationContext();
-					if(appContext instanceof ModernApplicationContext) {
-						Struct settings = ((ModernApplicationContext)appContext).getSerializationSettings();
-						if("struct".equalsIgnoreCase(Caster.toString(settings.get(KeyConstants._serializeQueryAs, ""))))
+					ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+					SerializationSettings settings = acs.getSerializationSettings();
+					if(settings.getSerializeQueryAs()==SerializationSettings.SERIALIZE_AS_STRUCT)
 							serializeQueryAsStruct = true;
-					}
+					
 				}
 
 				if(serializeQueryAsStruct) {
