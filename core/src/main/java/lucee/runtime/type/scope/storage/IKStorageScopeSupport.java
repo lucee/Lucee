@@ -128,7 +128,10 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		lastvisit=_lastvisit==null?0:_lastvisit.getTime();
 		
 		if(pc.getApplicationContext().getSessionCluster() && isSessionStorageDatasource(pc)) {
-			this.tokens = (Map<String, String>) this.data.g(CSRF_TOKEN, null).getValue();
+			IKStorageScopeItem csrfTokens = this.data.g(CSRF_TOKEN, null);
+			if(csrfTokens != null) {
+				this.tokens = (Map<String, String>) csrfTokens.getValue();
+			}
 		}
 			
 		this.hitcount=(type==SCOPE_CLIENT)?Caster.toIntValue(data.g(HITCOUNT,ONE),1):1;
