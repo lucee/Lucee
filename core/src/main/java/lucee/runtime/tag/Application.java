@@ -292,7 +292,7 @@ public final class Application extends TagImpl {
 		this.queryListener = Query.toTagListener(listener);
 	}
 	
-	public void setSerializationSettings(Struct sct) throws ApplicationException {
+	public void setSerializationsettings(Struct sct) throws ApplicationException {
 		if(sct==null) return;
 		this.serializationSettings = SerializationSettings.toSerializationSettings(sct);
 	}

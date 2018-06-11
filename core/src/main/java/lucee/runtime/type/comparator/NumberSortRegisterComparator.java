@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.type.comparator;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Operator;
@@ -36,7 +37,6 @@ public final class NumberSortRegisterComparator implements ExceptionComparator {
 	 * @param isAsc is ascendinf or descending
 	 */
 	public NumberSortRegisterComparator(boolean isAsc) {
-        
 		this.isAsc=isAsc;
 	}
 	
@@ -67,11 +67,17 @@ public final class NumberSortRegisterComparator implements ExceptionComparator {
         );
         */
         return Operator.compare(
-                Caster.toDoubleValue(((SortRegister)oLeft).getValue())
+                Caster.toDoubleValue(v( ((SortRegister)oLeft).getValue()) )
                 ,
-                Caster.toDoubleValue(((SortRegister)oRight).getValue())
+                Caster.toDoubleValue(v( ((SortRegister)oRight).getValue()))
         );
         
 	}
+
+	private Object v(Object value) {
+		if(value instanceof String && StringUtil.isEmpty(value.toString())) return null;
+		return value;
+	}
+	
 
 }
