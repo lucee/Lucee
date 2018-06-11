@@ -199,7 +199,7 @@ Redirtect to entry --->
 					<tr>
 						<th width="3%"><input type="checkbox" class="checkbox" name="rro" onclick="selectAll(this)" /></th>
 						<th><a href="#request.self#?action=#url.action#&order=task">#stText.Schedule.Name#
-							<cfif session.st.sortName EQ "task" and len(session.st.sortOrder)><img src="resources/img/arrow-#session.st.sortOrder EQ 'asc' ? 'up':'down'#.gif.cfm" hspace="4" vspace="2" border="0"></cfif></a></th>
+							<cfif session.st.sortName EQ "task" and len(session.st.sortOrder)><img src="resources/img/arrow-#session.st.sortOrder EQ 'asc' ? 'up':'down'#.gif.cfm" hspace="4" vspace="4" border="0"></cfif></a></th>
 						<th><a href="#request.self#?action=#url.action#&order=interval">#stText.Schedule.Interval#
 							<cfif session.st.sortName EQ "interval" and len(session.st.sortOrder)><img src="resources/img/arrow-#session.st.sortOrder EQ 'asc' ? 'up':'down'#.gif.cfm" hspace="4" vspace="2" border="0"></cfif></a></th>
 						<th><a href="#request.self#?action=#url.action#&order=url">#stText.Schedule.URL#
