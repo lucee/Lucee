@@ -287,10 +287,12 @@ public final class ScopeContext {
 
 				if(client == null) {
 					// datasource not enabled for storage
-					if(ds != null)
-						throw new ApplicationException("datasource [" + storage
-								+ "] is not enabled to be used as session/client storage, you have to enable it in the Lucee administrator.");
-
+					if(ds != null) {
+						if(!ds.isStorage())
+							throw new ApplicationException("datasource [" + storage
+								+ "] is not enabled to be used as client storage, you have to enable it in the Lucee administrator.");
+						throw new ApplicationException("datasource [" + storage + "] could not be reached for client storage. Please make sure the datasource settings are correct, and the datasource is available.");
+					}
 					CacheConnection cc = CacheUtil.getCacheConnection(pc, storage, null);
 					if(cc != null)
 						throw new ApplicationException("cache [" + storage
@@ -667,10 +669,12 @@ public final class ScopeContext {
 
 				if(session == null) {
 					// datasource not enabled for storage
-					if(ds != null)
-						throw new ApplicationException("datasource [" + storage + "] is not enabled to be used as session/client storage, "
+					if(ds != null) {
+						if(!ds.isStorage())
+							throw new ApplicationException("datasource [" + storage + "] is not enabled to be used as session storage, "
 								+ "you have to enable it in the Lucee administrator or define key \"storage=true\" for datasources defined in the application event handler.");
-
+						throw new ApplicationException("datasource [" + storage + "] could not be reached for session storage. Please make sure the datasource settings are correct, and the datasource is available.");
+					}
 					CacheConnection cc = CacheUtil.getCacheConnection(pc, storage, null);
 					if(cc != null)
 						throw new ApplicationException("cache [" + storage
