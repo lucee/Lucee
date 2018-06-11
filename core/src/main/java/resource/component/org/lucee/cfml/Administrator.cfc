@@ -1470,7 +1470,7 @@ component {
 
 		var drivers={};
 		loop collection="#driverNames#" index="local.n" item="local.fn"{
-			if(n EQ "Debug" or n EQ "Field" or n EQ "Group" or n EQ "ChartProcess"){
+			if(n EQ "Debug" or n EQ "Field" or n EQ "Group" ){
 				continue;
 			}
 			tmp=createObject('component',fn);
