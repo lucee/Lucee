@@ -78,6 +78,7 @@ public class FileStreamWrapperReadWrite extends FileStreamWrapper {
 
 	@Override
 	public void close() throws IOException {
+		super.setStatus(FileStreamWrapper.STATE_CLOSE);
 		if(raf!=null)raf.close();
 	}
 
