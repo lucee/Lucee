@@ -27,13 +27,21 @@ import java.util.Set;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.ExternalizableUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
+import lucee.runtime.Mapping;
+import lucee.runtime.MappingImpl;
+import lucee.runtime.MappingImpl.SerMapping;
 import lucee.runtime.Page;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
+import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.dt.TimeSpanImpl;
@@ -272,11 +280,15 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		try {
+			SerMapping sm = (SerMapping) in.readObject();
+			Mapping mapping=sm==null?null:sm.toMapping();
+			String relPath = ExternalizableUtil.readString(in);
+			String relPathwV = ExternalizableUtil.readString(in);
+			
 			PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
 			ConfigWebImpl cw = (ConfigWebImpl) ThreadLocalPageContext.getConfig(pc);
-			String path=ExternalizableUtil.readString(in);
-			ps=PageSourceImpl.best(cw.getPageSources(pc,null, path, false,true,true));
-			
+
+			ps=toPageSource(pc,cw,mapping, relPath,relPathwV);
 		} 
 		catch (Exception e) {
 			throw ExceptionUtil.toIOException(e);
@@ -300,7 +312,7 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 		strReturnFormat = ExternalizableUtil.readString(in);
 		strReturnType = ExternalizableUtil.readString(in);
 		verifyClient = ExternalizableUtil.readBoolean(in);
-		cachedWithin = ExternalizableUtil.readString(in);
+		cachedWithin = StringUtil.emptyAsNull(ExternalizableUtil.readString(in),true);
 		int tmp=in.readInt();
 		localMode=tmp==-1?null:tmp;
 		
@@ -310,13 +322,21 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 				argumentsSet.add(arguments[i].getName());
 			}
 		}
-		
 	}
-
 
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
-
+		Mapping m = getPageSource().getMapping();
+		Config c = m.getConfig();
+		SerMapping sm=null;
+		if(c instanceof ConfigWebImpl) {
+			ConfigWebImpl cwi=(ConfigWebImpl) c;
+			if(m instanceof MappingImpl && cwi.isApplicationMapping(m)) {
+				sm = ((MappingImpl)m).toSerMapping();
+			}
+		}
+		out.writeObject(sm);
+		out.writeObject(getPageSource().getRealpath());
 		out.writeObject(getPageSource().getRealpathWithVirtual());
 		out.writeInt(getStartLine());
 		out.writeInt(getEndLine());
@@ -336,10 +356,11 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 		ExternalizableUtil.writeString(out,strReturnFormat);
 		ExternalizableUtil.writeString(out,strReturnType);
 		ExternalizableUtil.writeBoolean(out,verifyClient);
+		
 		ExternalizableUtil.writeString(out,Caster.toString(cachedWithin,null));
+		
 		out.writeInt(localMode==null?-1:localMode.intValue());
 	}
-
 
 	@Override
 	public String getFunctionName() {
@@ -429,5 +450,14 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 	@Override
 	public Set<Key> getArgumentsSet() {
 		return argumentsSet;
+	}
+
+	public static PageSource toPageSource(PageContextImpl pc, ConfigImpl config, Mapping mapping, String relPath, String relPathwV) throws PageException {
+		if(mapping!=null) return mapping.getPageSource(relPath);
+
+		PageSource ps = PageSourceImpl.best(config.getPageSources(pc, null, relPathwV, false,true,true));
+		if(ps!=null) return ps;
+		
+		throw new ApplicationException("File ["+relPath+"] not found");
 	}
 }

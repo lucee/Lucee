@@ -43,9 +43,11 @@ import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.AuthCookieData;
 import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.ModernApplicationContext;
+import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMUtil;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
@@ -99,6 +101,8 @@ public final class Application extends TagImpl {
 	private int action=ACTION_CREATE;
 	private int localMode=-1;
 	private Object mailListener=null;
+	private TagListener queryListener=null;
+	private SerializationSettings serializationSettings;
 	private Locale locale;
 	private TimeZone timeZone;
 	private Boolean nullSupport;
@@ -172,6 +176,8 @@ public final class Application extends TagImpl {
         action=ACTION_CREATE;
         localMode=-1;
         mailListener=null;
+        queryListener=null;
+        serializationSettings=null;
         locale=null;
         timeZone=null;
         nullSupport=null;
@@ -277,10 +283,20 @@ public final class Application extends TagImpl {
 		this.localMode = AppListenerUtil.toLocalMode(strLocalMode);
 		
 	}
+	
 	public void setMaillistener(Object mailListener) throws ApplicationException {
 		this.mailListener = mailListener;
-		
 	}
+	
+	public void setQuerylistener(Object listener) throws ApplicationException {
+		this.queryListener = Query.toTagListener(listener);
+	}
+	
+	public void setSerializationSettings(Struct sct) throws ApplicationException {
+		if(sct==null) return;
+		this.serializationSettings = SerializationSettings.toSerializationSettings(sct);
+	}
+	
 	
 	public void setTimezone(TimeZone tz) {
 		if(tz==null) return;
@@ -691,6 +707,8 @@ public final class Application extends TagImpl {
 		if(setSessionManagement!=null)			ac.setSetSessionManagement(setSessionManagement.booleanValue());
 		if(localMode!=-1) 						ac.setLocalMode(localMode);
 		if(mailListener!=null) 					((ApplicationContextSupport) ac).setMailListener(mailListener);
+		if(queryListener!=null) 				((ApplicationContextSupport) ac).setQueryListener(queryListener);
+		if(serializationSettings!=null) 		((ApplicationContextSupport) ac).setSerializationSettings(serializationSettings);
 		if(locale!=null) 						ac.setLocale(locale);
 		if(timeZone!=null) 						ac.setTimeZone(timeZone);
 		if(nullSupport!=null) 			((ApplicationContextSupport) ac).setFullNullSupport(nullSupport);

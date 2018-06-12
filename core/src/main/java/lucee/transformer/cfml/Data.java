@@ -43,6 +43,7 @@ public class Data {
 		public final Factory factory;
 		public final Config config;
 		public boolean allowLowerThan;
+		public boolean parseExpression;
 		
 		private SimpleExprTransformer set;
 		
@@ -54,6 +55,7 @@ public class Data {
 		public short context=TagLibTagScript.CTX_NONE; 
 		public DocComment docComment;
 		private Body parent;
+		public ExprTransformer transformer;
 		
 
 		

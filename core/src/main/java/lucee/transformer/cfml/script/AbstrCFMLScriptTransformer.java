@@ -79,7 +79,6 @@ import lucee.transformer.bytecode.statement.udf.Lambda;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
-import lucee.transformer.cfml.evaluator.impl.Loop;
 import lucee.transformer.cfml.evaluator.impl.ProcessingDirectiveException;
 import lucee.transformer.cfml.expression.AbstrCFMLExprTransformer;
 import lucee.transformer.cfml.tag.CFMLTransformer;
@@ -88,7 +87,6 @@ import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
 import lucee.transformer.expression.literal.LitDouble;
-import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.var.Variable;
 import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.tag.TagLib;
@@ -179,6 +177,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	//private static final Expression NULL = data.factory.createLitString("NULL"); 
 	//private static final Attribute ANY = new Attribute(false,"type",data.factory.createLitString("any"),"string"); 
 	private static final char NO_ATTR_SEP = 0;
+	public static final String TAG_ISLAND_INDICATOR = "```";
 	
 	/** 
 	 * Liest saemtliche Statements des CFScriptString ein. 
@@ -242,6 +241,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		else if((child=returnStatement(data))!=null) 			parent.addStatement(child);
 		else if((child=switchStatement(data))!=null) 			parent.addStatement(child);
 		else if((child=tryStatement(data))!=null) 				parent.addStatement(child);
+		else if(islandStatement(data,parent)) 	;
 		//else if(staticStatement(data,parent)) ; // do nothing, happen already inside the method
 		else if((child=staticStatement(data,parent))!=null)		parent.addStatement(child);
 		else if((child=componentStatement(data,parent))!=null)	parent.addStatement(child);
@@ -1896,6 +1896,20 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		comments(data);
 
 		return rtn;
+	}
+	
+	private final boolean islandStatement(Data data,Body parent) throws TemplateException {
+		
+	    if(!data.srcCode.forwardIfCurrent(TAG_ISLAND_INDICATOR)) return false;
+	    // now we have to jump into the tag parser
+	    CFMLTransformer tag = new CFMLTransformer(true);
+	    tag.transform(data,parent);
+	    
+	    if(!data.srcCode.forwardIfCurrent(TAG_ISLAND_INDICATOR))
+	    	throw new TemplateException(data.srcCode,"missing closing tag indicator ["+TAG_ISLAND_INDICATOR+"]");
+	    comments(data);
+
+		return true;
 	}
 
 	

@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -303,6 +304,14 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		// FYI used by Extensions, do not remove
 		public Mapping getApplicationMapping(String virtual, String physical) {
 			return getApplicationMapping("application",virtual, physical,null,true,false);
+		}
+		
+		public boolean isApplicationMapping(Mapping mapping) {
+			Iterator<Mapping> it = applicationMappings.values().iterator();
+			while(it.hasNext()) {
+				if(mapping.equals(it.next())) return true;
+			}
+			return false;
 		}
 
 		public Mapping getApplicationMapping(String type,String virtual, String physical,String archive,boolean physicalFirst, boolean ignoreVirtual) {

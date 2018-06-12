@@ -58,6 +58,8 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.security.Credential;
 import lucee.runtime.security.CredentialImpl;
+import lucee.runtime.tag.Query;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -190,6 +192,14 @@ public final class AppListenerUtil {
 				pass=pass.trim();
 			}
 			
+			// listener
+			TagListener listener=null;
+			{
+				Object o=data.get(KeyConstants._listener,null);
+				if(o!=null)listener = Query.toTagListener(o,null);
+				
+			}
+			
 			// first check for {class:... , connectionString:...}
 			Object oConnStr=data.get(CONNECTION_STRING,null);
 			if(oConnStr!=null) {
@@ -211,6 +221,7 @@ public final class AppListenerUtil {
 					cd, 
 					Caster.toString(oConnStr), 
 					user, pass,
+					listener,
 					Caster.toBooleanValue(data.get(BLOB,null),false),
 					Caster.toBooleanValue(data.get(CLOB,null),false), 
 					Caster.toIntValue(data.get(CONNECTION_LIMIT,null),-1), 
@@ -238,6 +249,7 @@ public final class AppListenerUtil {
 					Caster.toString(data.get(DATABASE)), 
 					Caster.toIntValue(data.get(KeyConstants._port,null),-1), 
 					user,pass, 
+					listener,
 					Caster.toIntValue(data.get(CONNECTION_LIMIT,null),-1), 
 					Caster.toIntValue(data.get(CONNECTION_TIMEOUT,null),1), 
 					Caster.toLongValue(data.get(META_CACHE_TIMEOUT,null),60000L), 
@@ -754,11 +766,15 @@ public final class AppListenerUtil {
 
 		TimeSpan idleTimespan = Caster.toTimespan(data.get("idleTimespan",null),null);
 		if(idleTimespan==null)idleTimespan = Caster.toTimespan(data.get("idle",null),ONE_MINUTE);
-		
 
-		boolean tls = Caster.toBooleanValue(data.get("tls",null),false);
-		boolean ssl = Caster.toBooleanValue(data.get("ssl",null),false);
-		
+		Object value=data.get("tls", null);
+		if(value==null) value= data.get("useTls", null);
+		boolean tls=Caster.toBooleanValue(value, false);
+
+		value = data.get("ssl", null);
+		if(value==null) value = data.get("useSsl", null);
+		boolean ssl = Caster.toBooleanValue(value, false);
+
 		return new ServerImpl(-1,hostName, port, username, password, lifeTimespan.getMillis(), idleTimespan.getMillis(), tls, ssl, false,ServerImpl.TYPE_LOCAL); // MUST improve store connection somehow
 	}
 

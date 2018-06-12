@@ -34,12 +34,14 @@ import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.customtag.InitFile;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.tag.CFTagCore;
+import lucee.runtime.tag.TagUtil;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -65,27 +67,17 @@ public final class GetTagData implements Function {
 		
 		return _call(pc, nameSpace, strTagName, dialect);
 	}
+	
+	
+	
 	private static Struct _call(PageContext pc , String nameSpace, String strTagName, int dialect) throws PageException {
-		TagLib[] tlds;
-		tlds = ((ConfigImpl)pc.getConfig()).getTLDs(dialect);
-
+		TagLibTag tlt=TagUtil.getTagLibTag(pc,dialect,nameSpace,strTagName);
+		if(tlt == null) throw new ExpressionException("tag ["+nameSpace+strTagName+"] is not a built in tag");
 		
-		TagLib tld=null;
-		TagLibTag tag=null;
-		for(int i=0;i<tlds.length;i++) {
-		    tld=tlds[i];
-			if(tld.getNameSpaceAndSeparator().equalsIgnoreCase(nameSpace)) {
-			    tag = tld.getTag(strTagName.toLowerCase());
-			    if(tag!=null)break;
-			}
-			
-		}
-		if(tag == null) throw new ExpressionException("tag ["+nameSpace+strTagName+"] is not a built in tag");
-
 		// CFML Based Function
 		Class clazz=null;
 		try{
-			clazz=tag.getTagClassDefinition().getClazz();
+			clazz=tlt.getTagClassDefinition().getClazz();
 		}
 		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
@@ -93,19 +85,14 @@ public final class GetTagData implements Function {
 			PageContextImpl pci=(PageContextImpl) pc;
 			boolean prior = pci.useSpecialMappings(true);
 			try{
-				return cfmlBasedTag(pc,tld,tag);
+				return cfmlBasedTag(pc,tlt.getTagLib(),tlt);
 			}
 			finally {
 				pci.useSpecialMappings(prior);
 			}
 			
 		}
-		return javaBasedTag(tld,tag);
-		
-		
-		
-		
-		
+		return javaBasedTag(tlt.getTagLib(),tlt);
 	}
 
 	private static Struct cfmlBasedTag(PageContext pc, TagLib tld, TagLibTag tag) throws PageException {

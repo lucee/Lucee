@@ -16,6 +16,7 @@ public abstract class UDFPropertiesBase implements UDFProperties {
 	private Page page;
 	private String id;
 	protected PageSource ps;
+	protected PageSource psOrg;
 	protected int startLine;
 	protected int endLine;
 
@@ -23,6 +24,8 @@ public abstract class UDFPropertiesBase implements UDFProperties {
 	
 	public UDFPropertiesBase(Page page,PageSource ps, int startLine, int endLine) {
 		this.page=page;
+		psOrg=ps;
+		
 		if(ps==null){
 			ps = ThreadLocalPageSource.get();
 			if(ps==null && page!=null){
@@ -41,7 +44,8 @@ public abstract class UDFPropertiesBase implements UDFProperties {
 		if(getPageSource()!=null) {
 			try {
 				return ComponentUtil.getPage(pc,getPageSource());
-			} catch (PageException e) {
+			}
+			catch (PageException e) {
 				pe=e;
 			}
 		}

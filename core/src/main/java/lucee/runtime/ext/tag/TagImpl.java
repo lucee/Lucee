@@ -32,6 +32,7 @@ public abstract class TagImpl implements Tag {
 
 	protected PageContext pageContext; 
 	private Tag parent;
+	protected String sourceTemplate;
 	   
 	/**
 	 * sets a PageContext
@@ -48,6 +49,10 @@ public abstract class TagImpl implements Tag {
 	@Override
 	public void setParent(Tag parent) {
         this.parent=parent;
+	}
+	
+	public void setSourceTemplate(String source) {
+        this.sourceTemplate=source;
 	}
 
 	@Override

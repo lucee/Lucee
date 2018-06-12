@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.debug;
 
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.runtime.db.SQL;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.query.QueryResult;
@@ -28,8 +29,7 @@ import lucee.runtime.type.query.QueryResult;
 public final class QueryResultEntryImpl implements QueryEntry {
 
 	private static final long serialVersionUID = 8655915268130645466L;
-	
-	private final String src;
+
 	private final SQL sql;
 	private final long exe;
     private final String name;
@@ -37,6 +37,7 @@ public final class QueryResultEntryImpl implements QueryEntry {
     private final String datasource;
 	private final QueryResult qr;
 	private final long startTime;
+	private TemplateLine tl;
 	
 	/**
 	 * constructor of the class
@@ -45,12 +46,12 @@ public final class QueryResultEntryImpl implements QueryEntry {
 	 * @param src
 	 * @param exe
 	 */
-	public QueryResultEntryImpl(QueryResult qr,String datasource, String name,SQL sql,int recordcount, String src, long exe) {
+	public QueryResultEntryImpl(QueryResult qr,String datasource, String name,SQL sql,int recordcount, TemplateLine tl, long exe) {
 		this.startTime=System.currentTimeMillis()-(exe/1000000);
 		this.datasource=datasource;
         this.recordcount=recordcount;
         this.name=name;
-	    this.src=src;
+	    this.tl=tl;
 		this.sql=sql;
 		this.exe=exe;
 		this.qr=qr;
@@ -84,8 +85,12 @@ public final class QueryResultEntryImpl implements QueryEntry {
 	}
 	@Override
 	public String getSrc() {
-		return src;
+		return tl==null?"":tl.template;
 	}
+	public TemplateLine getTemplateLine() {
+		return tl;
+	}
+	
 	@Override
 	public String getName() {
         return name;

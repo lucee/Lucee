@@ -39,10 +39,10 @@
 	<cfset tmp=createObject('component',fn)>
     <cfset drivers[trim(tmp.getId())]=tmp>
 </cfloop>
-<cfset driver=drivers["lucee-modern-extended"]>
+<cfset driver=drivers["lucee-modern"]>
 <cfset entry={}>
 <cfloop query="entries">
-	<cfif entries.type EQ "lucee-modern-extended">
+	<cfif entries.type EQ "lucee-modern">
     	<cfset entry=querySlice(entries, entries.currentrow ,1)>
     </cfif>
 </cfloop>

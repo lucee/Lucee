@@ -48,6 +48,7 @@ import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.rest.RestSettings;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.CustomType;
@@ -129,10 +130,12 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private Map<Key, Pair<Log,Struct>> logs;
 
 	private Object mailListener;
+	private TagListener queryListener;
 
 	private boolean wsMaintainSession;
 
 	private boolean fullNullSupport;
+	private SerializationSettings serializationSettings=SerializationSettings.DEFAULT;
 
     
     /**
@@ -941,10 +944,31 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
-	public void setMailListener(Object mailListener) {
-		this.mailListener=mailListener;
+	public void setMailListener(Object listener) {
+		this.mailListener=listener;
 	}
 
+
+	@Override
+	public TagListener getQueryListener() {
+		return queryListener;
+	}
+
+	@Override
+	public void setQueryListener(TagListener listener) {
+		this.queryListener=listener;
+	}
+	
+	@Override
+	public SerializationSettings getSerializationSettings() {
+		return serializationSettings;
+	}
+
+	@Override
+	public void setSerializationSettings(SerializationSettings settings) {
+		this.serializationSettings=settings;
+	}
+	
 	@Override
 	public boolean getWSMaintainSession() {
 		return wsMaintainSession;

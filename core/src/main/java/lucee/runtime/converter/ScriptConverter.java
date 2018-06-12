@@ -26,11 +26,14 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
 
+import lucee.print;
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
@@ -41,6 +44,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.displayFormatting.DateFormat;
 import lucee.runtime.functions.displayFormatting.TimeFormat;
+import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMUtil;
 import lucee.runtime.text.xml.XMLCaster;
@@ -51,6 +55,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
@@ -419,6 +424,22 @@ public final class ScriptConverter extends ConverterSupport {
 			    deep--;
 			    return;
 			}
+			if(object instanceof TimeZone) {
+				sb.append(goIn());
+			    sb.append(QUOTE_CHR);
+			    sb.append(escape(((TimeZone)object).getID()));
+			    sb.append(QUOTE_CHR);
+			    deep--;
+			    return;
+			}
+			if(object instanceof Locale) {
+				sb.append(goIn());
+			    sb.append(QUOTE_CHR);
+			    sb.append(LocaleFactory.toString((Locale)object));
+			    sb.append(QUOTE_CHR);
+			    deep--;
+			    return;
+			}
 			// Number
 			if(object instanceof Number) {
 			    sb.append(goIn());
@@ -535,8 +556,6 @@ public final class ScriptConverter extends ConverterSupport {
 			throw soe;
 		}*/
 	}
-	
-
 
     private void _serializeXML(Node node, StringBuilder sb) {
     	node=XMLCaster.toRawNode(node);
@@ -548,7 +567,6 @@ public final class ScriptConverter extends ConverterSupport {
 	}
 
     private void _serializeTimeSpan(TimeSpan span, StringBuilder sb) {
-    	
 	        sb.append(goIn());
 		    sb.append("createTimeSpan(");
 		    sb.append(span.getDay());
@@ -560,7 +578,6 @@ public final class ScriptConverter extends ConverterSupport {
 		    sb.append(span.getSecond());
 		    sb.append(')');
 	}
-
 
 	private String escape(String str) {
         return StringUtil.replace(StringUtil.replace(str, QUOTE_STR, QUOTE_STR + QUOTE_STR, false), "#", "##", false);

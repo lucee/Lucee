@@ -57,7 +57,6 @@ public class MailSpoolerTask extends SpoolerTaskSupport {
 		super(plans, sendTime);
 		this.client=client;
 		this.servers=servers;
-		this.listener=listener;
 	}
 
 	public MailSpoolerTask(SMTPClient client,Server[] servers, long sendTime) {

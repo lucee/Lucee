@@ -166,6 +166,7 @@ import lucee.runtime.security.SecurityManager;
 import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.spooler.SpoolerEngineImpl;
 import lucee.runtime.tag.TagUtil;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -1980,7 +1981,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			setDatasource(config, datasources, QOQ_DATASOURCE_NAME, 
 					new ClassDefinitionImpl("org.hsqldb.jdbcDriver","hsqldb","1.8.0",config.getIdentification()), 
-					"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", DEFAULT_MAX_CONNECTION, -1, 60000, true, true, DataSource.ALLOW_ALL,
+					"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "",null, DEFAULT_MAX_CONNECTION, -1, 60000, true, true, DataSource.ALLOW_ALL,
 					false, false, null, new StructImpl(), "",ParamSyntax.DEFAULT,false,false);
 		} catch (Exception e) {
 			log.error("Datasource", e);
@@ -2058,6 +2059,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						,getAttr(dataSource,"dsn")
 						,getAttr(dataSource,"username")
 						,ConfigWebUtil.decrypt(getAttr(dataSource,"password"))
+						,null
 						,Caster.toIntValue(getAttr(dataSource,"connectionLimit"), DEFAULT_MAX_CONNECTION)
 						,Caster.toIntValue(getAttr(dataSource,"connectionTimeout"), -1)
 						,Caster.toLongValue(getAttr(dataSource,"metaCacheTimeout"), 60000)
@@ -2512,11 +2514,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	}
 
 	private static void setDatasource(ConfigImpl config, Map<String, DataSource> datasources, String datasourceName, ClassDefinition cd, String server, String databasename,
-			int port, String dsn, String user, String pass, int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow,
+			int port, String dsn, String user, String pass,TagListener listener, int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow,
 			boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax ps, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout) throws BundleException, ClassException, SQLException {
 
 		datasources.put( datasourceName.toLowerCase(),
-				new DataSourceImpl(config,datasourceName, cd, server, dsn, databasename, port, user, pass, connectionLimit, connectionTimeout, metaCacheTimeout, blob, clob, allow,
+				new DataSourceImpl(config,datasourceName, cd, server, dsn, databasename, port, user, pass, listener, connectionLimit, connectionTimeout, metaCacheTimeout, blob, clob, allow,
 						custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver,ps,literalTimestampWithTSOffset,alwaysSetTimeout,config.getLog("application")) );
 
 	}

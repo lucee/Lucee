@@ -15,6 +15,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 	
 	function run( testResults , testBox ) {
+		if(!hasCredencials()) return;
 		describe( "Checking MYSQL JDBC drivers", function() {
 			it( title='test with version 5.1.20',skip=isNotSupported(), body=function( currentSpec ) {
 				defineDatasource('com.mysql.jdbc.Driver',  'com.mysql.jdbc', '5.1.20');
@@ -170,6 +171,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		}
 
 		return local.qry;
+	}
+
+
+	private boolean function hasCredencials() {
+		return structCount(getCredencials());
 	}
 
 	private struct function getCredencials() {

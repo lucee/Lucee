@@ -22,6 +22,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -33,6 +34,7 @@ import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLImpl;
 import lucee.runtime.db.SQLItem;
 import lucee.runtime.db.SQLItemImpl;
+import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.debug.DebuggerUtil;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
@@ -181,14 +183,17 @@ public final class Update extends TagImpl {
 		    String[] pKeys=getPrimaryKeys(dc);
 			SQL sql=createSQL(dc,pKeys,meta);
 			if(sql!=null) {
-				lucee.runtime.type.Query query = new QueryImpl(pageContext,dc,sql,-1,-1,null,"query");
+				QueryImpl query = new QueryImpl(pageContext,dc,sql,-1,-1,null,"query");
 				
 				if(pageContext.getConfig().debug()) {
 					String dsn=ds instanceof DataSource?((DataSource)ds).getName():Caster.toString(ds);
 					boolean logdb=((ConfigImpl)pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DATABASE);
 					if(logdb){
 						boolean debugUsage=DebuggerUtil.debugQueryUsage(pageContext,query);
-						pageContext.getDebugger().addQuery(debugUsage?query:null,dsn,"",sql,query.getRecordcount(),pageContext.getCurrentPageSource(),query.getExecutionTime());
+						DebuggerImpl di = (DebuggerImpl)pageContext.getDebugger();
+						di.addQuery(debugUsage?query:null,dsn,"",sql,query.getRecordcount(),
+								Query.toTemplateLine(pageContext.getConfig(), sourceTemplate, pageContext.getCurrentPageSource())
+								,query.getExecutionTime());
 					}
 				}
 

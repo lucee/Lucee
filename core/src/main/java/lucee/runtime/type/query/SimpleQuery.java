@@ -50,6 +50,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -100,7 +101,7 @@ public class SimpleQuery implements Query, ResultSet, Objects,QueryResult {
 	private int[] _types;
 	
 	private String name;
-	private String template;
+	private TemplateLine templateLine;
 	private SQL sql;
 	private long exeTime;
 	private int recordcount;
@@ -109,9 +110,9 @@ public class SimpleQuery implements Query, ResultSet, Objects,QueryResult {
 	private int updateCount;
 	
 
-	public SimpleQuery(PageContext pc,DatasourceConnection dc,SQL sql,int maxrow, int fetchsize,TimeSpan timeout, String name,String template,TimeZone tz) throws PageException {
+	public SimpleQuery(PageContext pc,DatasourceConnection dc,SQL sql,int maxrow, int fetchsize,TimeSpan timeout, String name, TemplateLine templateLine,TimeZone tz) throws PageException {
 		this.name=name;
-		this.template=template;
+		this.templateLine=templateLine;
         this.sql=sql;
 		
         //ResultSet result=null;
@@ -2208,7 +2209,11 @@ public class SimpleQuery implements Query, ResultSet, Objects,QueryResult {
 
 	@Override
 	public String getTemplate() {
-		return template;
+		return templateLine.template;
+	}
+	
+	public TemplateLine getTemplateLine() {
+		return templateLine;
 	}
 
 	@Override

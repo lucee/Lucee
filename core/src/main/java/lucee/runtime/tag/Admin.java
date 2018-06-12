@@ -2928,7 +2928,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// config.getDatasourceConnectionPool().remove(name);
 		DataSource ds = null;
 		try {
-			ds = new DataSourceImpl(config, name, cd, host, dsn, database, port, username, password, connLimit, connTimeout, metaCacheTimeout, blob, clob,
+			ds = new DataSourceImpl(config, name, cd, host, dsn, database, port, username, password,null, connLimit, connTimeout, metaCacheTimeout, blob, clob,
 					allow, custom, false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, config.getLog("application"));
 		}
 		catch (Exception e) {

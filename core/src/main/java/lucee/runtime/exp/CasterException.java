@@ -71,9 +71,5 @@ public class CasterException extends ExpressionException {
 		String str=obj.toString();
 		if(StringUtil.isEmpty(str) || str.length()<=max) return str;
 		return str.substring(0,max)+"...";
-	}   
-	
-	public static void main(String[] args) {
-		print.e(crop("kjljihih uihiuhgihoi i iuhihighiughioghi iuhihi  izhihihih  ihihih"));
 	}
 }

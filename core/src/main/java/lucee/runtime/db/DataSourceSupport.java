@@ -19,6 +19,7 @@
 package lucee.runtime.db;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
@@ -28,14 +29,16 @@ import java.util.TimeZone;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
 import lucee.runtime.config.Config;
+import lucee.runtime.engine.ThreadLocalConfig;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.tag.listener.TagListener;
 
 import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.BundleException;
 
-public abstract class DataSourceSupport implements DataSource, Cloneable {
+public abstract class DataSourceSupport implements DataSource, Cloneable, Serializable {
 
 	private static final int NETWORK_TIMEOUT_IN_SECONDS = 10;
-	private ClassDefinition cd;
 	private final boolean blob;
 	private final boolean clob;
 	private final int connectionLimit;
@@ -48,14 +51,15 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 	private final boolean readOnly;
 	private final String username;
 	private final String password;
-
-	private Map<String, ProcMetaCollection> procedureColumnCache;
-	private Driver driver;
-
-	private final Log log;
+	private final ClassDefinition cd;
+	
+	private transient Map<String, ProcMetaCollection> procedureColumnCache;
+	private transient Driver driver;
+	private transient Log log;
+	private final TagListener listener;
 
 	public DataSourceSupport(Config config, String name,
-			ClassDefinition cd, String username, String password, boolean blob,
+			ClassDefinition cd, String username, String password, TagListener listener, boolean blob,
 			boolean clob, int connectionLimit, int connectionTimeout,
 			long metaCacheTimeout, TimeZone timezone, int allow,
 			boolean storage, boolean readOnly, Log log) {
@@ -72,6 +76,7 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 		this.readOnly = readOnly;
 		this.username = username;
 		this.password = password;
+		this.listener=listener;
 		this.log = log;
 	}
 	
@@ -243,7 +248,13 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 
 	@Override
 	public Log getLog() {
+		// can be null if deserialized
+		if(log==null)log=ThreadLocalPageContext.getConfig().getLog("application");
 		return log;
+	}
+
+	public TagListener getListener() { // FUTURE may add to interface
+		return listener;
 	}
 
 	@Override

@@ -87,6 +87,8 @@ import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.net.smtp.SMTPConnectionPool.SessionAndTransport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.spooler.ComponentSpoolerTaskListener;
+import lucee.runtime.spooler.SpoolerTask;
+import lucee.runtime.spooler.SpoolerTaskListener;
 import lucee.runtime.spooler.UDFSpoolerTaskListener;
 import lucee.runtime.spooler.mail.MailSpoolerTask;
 import lucee.runtime.type.Struct;
@@ -735,7 +737,7 @@ public final class SMTPClient implements Serializable  {
 
 	
 	
-	public void send(PageContext pc, long sendTime) throws MailException {
+	public void send(PageContext pc, long sendTime) throws MailException, ApplicationException {
 		if(plainText==null && htmlText==null)
 			throw new MailException("you must define plaintext or htmltext");
 		Server[] servers = ((PageContextImpl)pc).getMailServers();
@@ -746,20 +748,26 @@ public final class SMTPClient implements Serializable  {
 
 		if(spool==SPOOL_YES || (spool==SPOOL_UNDEFINED && config.isMailSpoolEnable())) {
 			MailSpoolerTask mst = new MailSpoolerTask(this, servers, sendTime);
-			if(listener instanceof Component)
-				mst.setListener(new ComponentSpoolerTaskListener(SystemUtil.getCurrentContext(),mst,(Component)listener));
-			else if(listener instanceof UDF)
-				mst.setListener(new UDFSpoolerTaskListener(SystemUtil.getCurrentContext(),mst,null,(UDF)listener));
-			else if(listener instanceof Struct) {
-				UDF before=Caster.toFunction(((Struct)listener).get("before",null),null);
-				UDF after=Caster.toFunction(((Struct)listener).get("after",null),null);
-				mst.setListener(new UDFSpoolerTaskListener(SystemUtil.getCurrentContext(),mst,before,after));
-			}
-			
+			if(listener!=null)mst.setListener(toListener(mst, listener));
 			config.getSpoolerEngine().add(mst);
         }
 		else
 			_send(config,servers);
+	}
+	
+	public static SpoolerTaskListener toListener(SpoolerTask st, Object listener) throws ApplicationException {
+		if(listener instanceof Component)
+			return new ComponentSpoolerTaskListener(SystemUtil.getCurrentContext(),st,(Component)listener);
+		
+		if(listener instanceof UDF)
+			return new UDFSpoolerTaskListener(SystemUtil.getCurrentContext(),st,null,(UDF)listener);
+		
+		if(listener instanceof Struct) {
+			UDF before=Caster.toFunction(((Struct)listener).get("before",null),null);
+			UDF after=Caster.toFunction(((Struct)listener).get("after",null),null);
+			return new UDFSpoolerTaskListener(SystemUtil.getCurrentContext(),st,before,after);
+		}
+		throw new ApplicationException("cannot convert ["+Caster.toTypeName(listener)+"] to a listener");
 	}
 	
 

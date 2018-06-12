@@ -75,6 +75,8 @@ import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.rest.RestSettingImpl;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.security.Credential;
+import lucee.runtime.tag.Query;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -195,12 +197,15 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
 	private Object mailListener;
+	private TagListener queryListener;
 	private boolean fullNullSupport;
+	private SerializationSettings serializationSettings;
 	
 	private Mapping[] mappings;
 	private boolean initMappings;
 	private boolean initCustomTypes;
 	private boolean initMailListener;
+	private boolean initQueryListener;
 	private boolean initFullNullSupport;
 	private boolean initCachedWithins;
 	
@@ -254,6 +259,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initCGIScopeReadonly;
 	private boolean initSessionCookie;
 	private boolean initAuthCookie;
+	private boolean initSerializationSettings;
 	
 	private Resource antiSamyPolicyResource;
 	
@@ -742,16 +748,18 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	
 
 	private void initMailServers() {
-		if(!initMailServer) { 
-			Object oMail = get(component,KeyConstants._mail,null);
-			if(oMail==null) oMail = get(component,KeyConstants._mails,null);
-			if(oMail==null) oMail = get(component,KeyImpl.init("mailserver"),null);
-			if(oMail==null) oMail = get(component,KeyImpl.init("mailservers"),null);
+		if(!initMailServer) {
+			Key key;
+			Object oMail = get(component,key=KeyConstants._mail,null);
+			if(oMail==null) oMail = get(component,key=KeyConstants._mails,null);
+			if(oMail==null) oMail = get(component,key=KeyConstants._mailServer,null);
+			if(oMail==null) oMail = get(component,key=KeyConstants._mailServers,null);
+			if(oMail==null) oMail = get(component,key=KeyConstants._smtpServerSettings,null);
 			
 			Array arrMail = Caster.toArray(oMail,null);
 			// we also support a single struct instead of an array of structs
 			if(arrMail==null) {
-				Struct sctMail = Caster.toStruct(get(component,KeyConstants._mail,null),null);
+				Struct sctMail = Caster.toStruct(get(component,key,null),null);
 				if(sctMail!=null) {
 					arrMail = new ArrayImpl();
 					arrMail.appendEL(sctMail);
@@ -975,6 +983,34 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			initMailListener=true; 
 		}
 		return mailListener;
+	}
+	
+	@Override
+	public TagListener getQueryListener() {
+		if(!initQueryListener) {
+			Struct query = Caster.toStruct(get(component,KeyConstants._query,null),null);
+			if(query!=null) queryListener=Query.toTagListener(query.get(KeyConstants._listener,null),null);
+			initQueryListener=true; 
+		}
+		return queryListener;
+	}
+
+	public SerializationSettings getSerializationSettings() {
+		if(!initSerializationSettings) {
+			Struct sct = Caster.toStruct(get(component,KeyConstants._serialization,null),null);
+			if(sct!=null) {
+				serializationSettings=SerializationSettings.toSerializationSettings(sct);
+			}
+			else
+				serializationSettings=SerializationSettings.DEFAULT;
+			initSerializationSettings=true; 
+		}
+		return serializationSettings;
+	}
+	
+	public void setSerializationSettings(SerializationSettings settings) {
+		serializationSettings=settings;
+		initSerializationSettings=true;
 	}
 
 	@Override
@@ -1290,6 +1326,12 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public void setMailListener(Object mailListener) {
 		initMailListener=true;
 		this.mailListener=mailListener;
+	}
+
+	@Override
+	public void setQueryListener(TagListener listener) {
+		initQueryListener=true;
+		this.queryListener=listener;
 	}
 	
 	@Override

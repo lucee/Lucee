@@ -246,17 +246,14 @@ public final class DebuggerImpl implements Debugger {
 
 	@Override
 	public void addQuery(Query query, String datasource, String name, SQL sql, int recordcount, PageSource src, long time) {
-		String path = "";
-		if(src != null)
-			path = src.getDisplayPath();
-		queries.add(new QueryResultEntryImpl((QueryResult)query, datasource, name, sql, recordcount, path, time));
+		TemplateLine tl=null;
+		if(src != null) tl=new TemplateLine(src.getDisplayPath(), 0);
+			
+		queries.add(new QueryResultEntryImpl((QueryResult)query, datasource, name, sql, recordcount, tl, time));
 	}
-
-	public void addQuery(QueryResult qr, String datasource, String name, SQL sql, int recordcount, PageSource src, long time) {
-		String path = "";
-		if(src != null)
-			path = src.getDisplayPath();
-		queries.add(new QueryResultEntryImpl(qr, datasource, name, sql, recordcount, path, time));
+	
+	public void addQuery(QueryResult qr, String datasource, String name, SQL sql, int recordcount, TemplateLine tl, long time) {
+		queries.add(new QueryResultEntryImpl(qr, datasource, name, sql, recordcount, tl, time));
 	}
 
 	@Override
@@ -368,9 +365,9 @@ public final class DebuggerImpl implements Debugger {
 		List<QueryEntry> queries = getQueries();
 		Struct qryExe = new StructImpl();
 		ListIterator<QueryEntry> qryIt = queries.listIterator();
-		Collection.Key[] cols = new Collection.Key[] { KeyConstants._name, KeyConstants._time, KeyConstants._sql, KeyConstants._src, KeyConstants._count,
-				KeyConstants._datasource, KeyConstants._usage, CACHE_TYPE };
-		String[] types = new String[] { "VARCHAR", "DOUBLE", "VARCHAR", "VARCHAR", "DOUBLE", "VARCHAR", "ANY", "VARCHAR" };
+		Collection.Key[] cols = new Collection.Key[] { 
+		KeyConstants._name, KeyConstants._time, KeyConstants._sql, KeyConstants._src,KeyConstants._line, KeyConstants._count, KeyConstants._datasource, KeyConstants._usage, CACHE_TYPE };
+		String[] types = new String[] { "VARCHAR", "DOUBLE", "VARCHAR", "VARCHAR", "DOUBLE","DOUBLE", "VARCHAR", "ANY", "VARCHAR" };
 
 		Query qryQueries = null;
 		try {
@@ -389,6 +386,8 @@ public final class DebuggerImpl implements Debugger {
 				qryQueries.setAt(KeyConstants._time, row, Long.valueOf(qe.getExecutionTime()));
 				qryQueries.setAt(KeyConstants._sql, row, qe.getSQL().toString());
 				qryQueries.setAt(KeyConstants._src, row, qe.getSrc());
+				if(qe instanceof QueryResultEntryImpl)
+					qryQueries.setAt(KeyConstants._line, row, ((QueryResultEntryImpl)qe).getTemplateLine().line);
 				qryQueries.setAt(KeyConstants._count, row, Integer.valueOf(qe.getRecordcount()));
 				qryQueries.setAt(KeyConstants._datasource, row, qe.getDatasource());
 				qryQueries.setAt(CACHE_TYPE, row, qe.getCacheType());

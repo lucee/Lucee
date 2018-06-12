@@ -67,8 +67,8 @@ public final class TagHelper {
 			"setAttributeCollection",Types.VOID,new Type[]{Types.PAGE_CONTEXT,TAG,MISSING_ATTRIBUTE_ARRAY,Types.STRUCT,Types.INT_VALUE});
 	
 	// Tag use(String)
-	private static final Method USE3= new Method("use",TAG,new Type[]{Types.STRING,Types.STRING,Types.INT_VALUE});
-	private static final Method USE5= new Method("use",TAG,new Type[]{Types.STRING,Types.STRING,Types.STRING,Types.STRING,Types.INT_VALUE});
+	private static final Method USE4= new Method("use",TAG,new Type[]{Types.STRING,Types.STRING,Types.INT_VALUE,Types.STRING});
+	private static final Method USE6= new Method("use",TAG,new Type[]{Types.STRING,Types.STRING,Types.STRING,Types.STRING,Types.INT_VALUE,Types.STRING});
 
 	// void setAppendix(String appendix)
 	private static final Method SET_APPENDIX1 = new Method("setAppendix",Type.VOID_TYPE,new Type[]{Types.STRING});
@@ -198,7 +198,6 @@ public final class TagHelper {
 		
 		final ClassDefinition cd = tlt.getTagClassDefinition();
 		final boolean fromBundle=cd.getName()!=null;
-		
 		final Type currType;
 		if(fromBundle) {
 			try {
@@ -235,7 +234,9 @@ public final class TagHelper {
 		}
 		adapter.push(tlt.getFullName());
 		adapter.push(tlt.getAttributeType());
-		adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, fromBundle?USE5:USE3);
+		adapter.push((bc.getPageSource()==null?"<memory>": bc.getPageSource().getDisplayPath())+
+				":"+((tag.getStart()==null)?0:tag.getStart().line));
+		adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, fromBundle?USE6:USE4);
 		if(currType!=TAG)adapter.checkCast(currType);
 		adapter.storeLocal(currLocal);
 	

@@ -129,13 +129,8 @@ public class ArrayTyped extends ArrayImpl {
 			throw new PageRuntimeException(pe);
 		}
 	}
+	
 	private Object checkType(Object o) throws PageException {
 		return Caster.castTo(null, type, strType, o);
-	}
-	
-	public static void main(String[] args) throws PageException {
-		ArrayTyped a = new ArrayTyped("boolean");
-		a.append(1);
-		print.e(a.getE(1).getClass().getName());
 	}
 }

@@ -586,7 +586,7 @@ public final class SQLCaster {
 	 * @return SQL Type as String
 	 * @throws DatabaseException
 	 */
-	public static String toStringType(int type) throws DatabaseException {
+	public static String toStringType(int type, String defaultValue) {
 		switch (type) {
 			case Types.ARRAY:
 				return "CF_SQL_ARRAY";
@@ -654,8 +654,16 @@ public final class SQLCaster {
 				return "CF_SQL_NULL";
 
 			default:
-				throw new DatabaseException("invalid CF SQL Type", null, null, null);
+				return null;
 		}
+	}
+	
+
+	public static String toStringType(int type) throws DatabaseException {
+		String rtn = toStringType(type, null);
+		if(rtn!=null) return rtn;
+		
+		throw new DatabaseException("invalid CF SQL Type", null, null, null);
 	}
 
 	/*

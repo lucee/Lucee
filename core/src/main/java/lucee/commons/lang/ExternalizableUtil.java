@@ -29,8 +29,8 @@ public class ExternalizableUtil {
 	}
 
 	public static void writeString(ObjectOutput out, String str) throws IOException {
-		if(str==null) out.writeObject("") ;
-		else out.writeObject(str);
+		//if(str==null) out.writeObject(""); string and null is not necessary the same
+		out.writeObject(str);
 	}
 
 	public static Boolean readBoolean(ObjectInput in) throws IOException {
