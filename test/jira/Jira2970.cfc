@@ -55,6 +55,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		assertEquals('{"value":1,"2":1,"3":[1]}',c);
 
+		var list = "I,love,lucee,";
+		var result = listMap(list,function(element,index){
+			return element;
+		});
+		assertEquals('I,love,lucee', result);
+
 		// member function test
 		res=arr.map(function( value ){
  							return value EQ 'b';
@@ -62,6 +68,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
                         },parallel);
 
 		assertEquals("false,true,false,,false",arrayToList(res));
+
+		var list2 = "I;love@lucee,";
+		var result2 = list2.Map(function(element){
+			return element;
+		},'@');
+		assertEquals('I;love@lucee,' , result2);
 	}
 
 

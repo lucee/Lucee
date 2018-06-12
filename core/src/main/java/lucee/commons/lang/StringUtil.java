@@ -1011,6 +1011,36 @@ public final class StringUtil {
 		return sb.toString();
 	}
 
+	/**
+	 * collapses multiple whitespace characters into a single space. the whitespace returned
+	 * is always a standard chr(32) .
+	 * @param str
+	 * @return
+	 */
+	public static String collapseWhitespace(String str){
+
+		if(isEmpty(str)) return str;
+
+		StringBuilder sb = new StringBuilder(str.length());
+		boolean wasLastWs = false;
+		char[] carr = str.trim().toCharArray();
+		for (int i=0; i < carr.length; i++){
+			if (isWhiteSpace(carr[i])){
+				if (wasLastWs)
+					continue;
+
+				sb.append(' ');
+				wasLastWs = true;
+			}
+			else {
+				sb.append(carr[i]);
+				wasLastWs = false;
+			}
+		}
+
+		return sb.toString();
+	}
+
 	public static String replaceLast(String str, char from, char to) {
 		int index = str.lastIndexOf(from);
 		if(index==-1)return str;

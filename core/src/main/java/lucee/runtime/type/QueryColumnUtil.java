@@ -48,7 +48,7 @@ public final class QueryColumnUtil implements Serializable {
     protected static Object reDefineType(QueryColumnImpl column,Object value) {
         column.typeChecked=false;
         if(value==null || column.type==Types.OTHER)return value;
-        if(value instanceof String && ((String)value).isEmpty()) return null;
+        if(value instanceof String && ((String)value).isEmpty()) return value;
         
         switch(column.type) {
         	

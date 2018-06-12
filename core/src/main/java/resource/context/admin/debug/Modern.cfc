@@ -435,7 +435,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						if($( "##-lucee-metrics-btn-ALL").hasClass( "btnActive" )){
 							jQuery.ajax({
 								type: "POST",
-								url: "/lucee-server/admin/debug/chartProcess.cfc?method=sysMetric",
+								url: "/lucee/admin/chartAjax.cfm",
 								success: function(result){
 									$.each(#serializeJSON( variables.chartStr )#,function(index,chrt){
 										if(index == "WholeSystem") {
@@ -1799,7 +1799,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		</tr>
 	</cffunction>
 
+
 	<cffunction name="loadCharts" output="true">
+
 		<cfargument name="chartStruct">
 		<cfset chartsLabel = structNew("linked")>
 		<cfset chartsLabel.HeapChart = "Heap Memory">

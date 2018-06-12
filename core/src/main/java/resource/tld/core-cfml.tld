@@ -495,6 +495,14 @@ Specifies how Lucee stores session variables:
 		</attribute>
 		<attribute>
 			<type>struct</type>
+			<name>SerializationSettings</name>
+			<alias>SerializationSetting</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>struct</type>
 			<name>tag</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>

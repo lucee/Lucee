@@ -25,16 +25,16 @@
 
 <cfset drivers={}>
 <cfloop collection="#driverNames#" index="n" item="fn">
-	<cfif n EQ "Debug" or n EQ "Field" or n EQ "Group" or n EQ "ChartProcess">
+	<cfif n EQ "Debug" or n EQ "Field" or n EQ "Group">
     	<cfcontinue>
     </cfif>
 	<cfset tmp=createObject('component',fn)>
     <cfset drivers[trim(tmp.getId())]=tmp>
 </cfloop>
-<cfset driver=drivers["lucee-modern"]>
+<cfset driver=drivers["lucee-modern-extended"]>
 <cfset entry={}>
 <cfloop query="entries">
-	<cfif entries.type EQ "lucee-modern">
+	<cfif entries.type EQ "lucee-modern-extended">
     	<cfset entry=querySlice(entries, entries.currentrow ,1)>
     </cfif>
 </cfloop>

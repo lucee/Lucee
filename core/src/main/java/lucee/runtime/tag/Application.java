@@ -43,6 +43,7 @@ import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.AuthCookieData;
 import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.ModernApplicationContext;
+import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMUtil;
@@ -101,6 +102,7 @@ public final class Application extends TagImpl {
 	private int localMode=-1;
 	private Object mailListener=null;
 	private TagListener queryListener=null;
+	private SerializationSettings serializationSettings;
 	private Locale locale;
 	private TimeZone timeZone;
 	private Boolean nullSupport;
@@ -175,6 +177,7 @@ public final class Application extends TagImpl {
         localMode=-1;
         mailListener=null;
         queryListener=null;
+        serializationSettings=null;
         locale=null;
         timeZone=null;
         nullSupport=null;
@@ -288,6 +291,12 @@ public final class Application extends TagImpl {
 	public void setQuerylistener(Object listener) throws ApplicationException {
 		this.queryListener = Query.toTagListener(listener);
 	}
+	
+	public void setSerializationsettings(Struct sct) throws ApplicationException {
+		if(sct==null) return;
+		this.serializationSettings = SerializationSettings.toSerializationSettings(sct);
+	}
+	
 	
 	public void setTimezone(TimeZone tz) {
 		if(tz==null) return;
@@ -699,6 +708,7 @@ public final class Application extends TagImpl {
 		if(localMode!=-1) 						ac.setLocalMode(localMode);
 		if(mailListener!=null) 					((ApplicationContextSupport) ac).setMailListener(mailListener);
 		if(queryListener!=null) 				((ApplicationContextSupport) ac).setQueryListener(queryListener);
+		if(serializationSettings!=null) 		((ApplicationContextSupport) ac).setSerializationSettings(serializationSettings);
 		if(locale!=null) 						ac.setLocale(locale);
 		if(timeZone!=null) 						ac.setTimeZone(timeZone);
 		if(nullSupport!=null) 			((ApplicationContextSupport) ac).setFullNullSupport(nullSupport);

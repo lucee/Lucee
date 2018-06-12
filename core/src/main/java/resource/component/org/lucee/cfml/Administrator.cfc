@@ -1470,7 +1470,7 @@ component {
 
 		var drivers={};
 		loop collection="#driverNames#" index="local.n" item="local.fn"{
-			if(n EQ "Debug" or n EQ "Field" or n EQ "Group" or n EQ "ChartProcess"){
+			if(n EQ "Debug" or n EQ "Field" or n EQ "Group" ){
 				continue;
 			}
 			tmp=createObject('component',fn);
@@ -1766,10 +1766,17 @@ component {
 			id="#arguments.id#";
 	}
 
+	public void function removeAllTask(){
+		admin
+			action="removeAllSpoolerTask"
+			type="#variables.type#"
+			password="#variables.password#";
+	}
+
 	/**
 	* @hint removes all the task
 	*/
-	public void function removeAllTask(){
+	public void function removeAllTasks(){
 		admin
 			action="removeAllSpoolerTask"
 			type="#variables.type#"

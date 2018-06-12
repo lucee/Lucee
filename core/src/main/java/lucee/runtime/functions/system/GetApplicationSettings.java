@@ -210,8 +210,14 @@ public class GetApplicationSettings {
 				}
 			}
 		}
-		
-		
+
+		// serialization
+		if(ac instanceof ApplicationContextSupport) {
+			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+			Struct ser = new StructImpl(Struct.TYPE_LINKED);
+			sct.setEL("serialization", acs.getSerializationSettings().toStruct());
+		}
+
 		// tag
 		Map<Key, Map<Collection.Key, Object>> tags = ac.getTagAttributeDefaultValues(pc);
 		if(tags!=null) {

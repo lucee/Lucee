@@ -269,14 +269,14 @@ public final class CompressUtil {
 	        zis = new ZipInputStream( IOUtil.toBufferedInputStream(zipFile.getInputStream()) ) ;     
 	        ZipEntry entry;
 	        while ( ( entry = zis.getNextEntry()) != null ) {
-	        	Resource target=targetDir.getRealResource(entry.getName());
+	        		Resource target = ZipUtil.toResource(targetDir,entry);
 	            if(entry.isDirectory()) {
 	                target.mkdirs();
 	            }
 	            else {
 	            	Resource parent=target.getParentResource();
 	                if(!parent.exists())parent.mkdirs();
-	                IOUtil.copy(zis,target,false);
+	                if(!target.exists())IOUtil.copy(zis, target, false);
 	            }
 	            target.setLastModified(entry.getTime());
 	            zis.closeEntry() ;
@@ -321,8 +321,8 @@ public final class CompressUtil {
 	        ZipEntry entry;
 	        Enumeration en = zf.entries();
 	        while(en.hasMoreElements()){
-	        	entry = (ZipEntry) en.nextElement();
-	        	Resource target=targetDir.getRealResource(entry.getName());
+	        		entry = (ZipEntry) en.nextElement();
+	        		Resource target = ZipUtil.toResource(targetDir,entry);
 	            if(entry.isDirectory()) {
 	                target.mkdirs();
 	            }
@@ -330,7 +330,7 @@ public final class CompressUtil {
 	            	Resource parent=target.getParentResource();
 	                if(!parent.exists())parent.mkdirs();
 	                InputStream is = zf.getInputStream(entry);
-	                IOUtil.copy(is,target,true);
+	                if(!target.exists())IOUtil.copy(is, target, true);
 	            }
 	            target.setLastModified(entry.getTime());
 	        }

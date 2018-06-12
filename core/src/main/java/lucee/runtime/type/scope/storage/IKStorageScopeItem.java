@@ -19,8 +19,11 @@ public class IKStorageScopeItem implements Serializable,ObjectWrap,Castable {
 	private boolean removed;
 
 	public IKStorageScopeItem(Object value) {
+		this(value,System.currentTimeMillis());
+	}
+	public IKStorageScopeItem(Object value, long lastModified) {
 		this.value=value;
-		this.lastModifed=System.currentTimeMillis();
+		this.lastModifed=lastModified;
 	}
 
 	public Object getValue() {
