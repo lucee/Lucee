@@ -43,6 +43,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	assertEquals("V1,V2,V3", ListCompact(",;V1,V2,V3,;",",;",true));
 	
 	assertEquals("V1,V2,V3", ListTrim(",V1,V2,V3,"));
+	assertEquals("I,love,Lucee", listTrim(",I,love,lucee,"));
+	assertEquals(",I$love$lucee", listTrim(",I$love$lucee", "$"));
+	assertEquals("I$love$lucee", listTrim("$I$love$lucee", "$"));
+	assertEquals("I$love$lucee", listTrim("$,I$love$lucee", "$,"));
 	
 
 	}

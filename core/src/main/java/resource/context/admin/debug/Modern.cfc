@@ -437,47 +437,50 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfif enableTab("metrics") && structCount(variables.chartStr) NEQ 0>
 				<script>
 					labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System"};
+
 					function requestData(){
-						jQuery.ajax({
-							type: "POST",
-							url: "/lucee-server/admin/debug/chartProcess.cfc?method=sysMetric",
-							success: function(result){
-								$.each(#serializeJSON( variables.chartStr )#,function(index,chrt){
-									if(index == "WholeSystem") {
-										cpuSystemSeries1 = cpuSystemChartOption.series[0].data; //*charts*.series[0].data
-										cpuSystemSeries1.push(result["cpuSystem"]); // push the value into series[0].data
-										cpuSystemSeries2 = cpuSystemChartOption.series[1].data; //*charts*.series[0].data
-										cpuSystemSeries2.push(result["cpuProcess"]); // push the value into series[0].data
-										cpuSystemChartOption.series[0].data = cpuSystemSeries1;
-										cpuSystemChartOption.series[1].data = cpuSystemSeries2;
-										if(cpuSystemChartOption.series[0].data.length > 60){
-											cpuSystemChartOption.series[0].data.shift(); //shift the array
+						if($( "##-lucee-metrics-btn-ALL").hasClass( "btnActive" )){
+							jQuery.ajax({
+								type: "POST",
+								url: "/lucee/admin/chartAjax.cfm",
+								success: function(result){
+									$.each(#serializeJSON( variables.chartStr )#,function(index,chrt){
+										if(index == "WholeSystem") {
+											cpuSystemSeries1 = cpuSystemChartOption.series[0].data; //*charts*.series[0].data
+											cpuSystemSeries1.push(result["cpuSystem"]); // push the value into series[0].data
+											cpuSystemSeries2 = cpuSystemChartOption.series[1].data; //*charts*.series[0].data
+											cpuSystemSeries2.push(result["cpuProcess"]); // push the value into series[0].data
+											cpuSystemChartOption.series[0].data = cpuSystemSeries1;
+											cpuSystemChartOption.series[1].data = cpuSystemSeries2;
+											if(cpuSystemChartOption.series[0].data.length > 60){
+												cpuSystemChartOption.series[0].data.shift(); //shift the array
+											}
+											if(cpuSystemChartOption.series[1].data.length > 60){
+												cpuSystemChartOption.series[1].data.shift(); //shift the array
+											}
+											cpuSystemChartOption.xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+											if(cpuSystemChartOption.xAxis[0].data.length > 60){
+											cpuSystemChartOption.xAxis[0].data.shift(); //shift the Time value
+											}
+											window[chrt].setOption(cpuSystemChartOption); // passed the data into the chats
+				 							return true;
 										}
-										if(cpuSystemChartOption.series[1].data.length > 60){
-											cpuSystemChartOption.series[1].data.shift(); //shift the array
+										window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
+										window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
+										window[chrt+"Chart"].series[0].data = window["series_"+chrt];
+										if(window[chrt+"Chart"].series[0].data.length > 60){
+										window[chrt+"Chart"].series[0].data.shift(); //shift the array
 										}
-										cpuSystemChartOption.xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
-										if(cpuSystemChartOption.xAxis[0].data.length > 60){
-										cpuSystemChartOption.xAxis[0].data.shift(); //shift the Time value
+										window[chrt+"Chart"].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+										if(window[chrt+"Chart"].xAxis[0].data.length > 60){
+										window[chrt+"Chart"].xAxis[0].data.shift(); //shift the Time value
 										}
-										window[chrt].setOption(cpuSystemChartOption); // passed the data into the chats
-			 							return true;
-									}
-									window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
-									window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
-									window[chrt+"Chart"].series[0].data = window["series_"+chrt];
-									if(window[chrt+"Chart"].series[0].data.length > 60){
-									window[chrt+"Chart"].series[0].data.shift(); //shift the array
-									}
-									window[chrt+"Chart"].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
-									if(window[chrt+"Chart"].xAxis[0].data.length > 60){
-									window[chrt+"Chart"].xAxis[0].data.shift(); //shift the Time value
-									}
-									window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
-								});
-								setTimeout(requestData, 1000);
-							}
-						})
+										window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
+									});
+								}
+							})
+						}
+						setTimeout(requestData, 1000);
 					}
 					var dDate=[new Date().toLocaleTimeString()]; // current time
 
@@ -580,7 +583,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						}; // data
 						window[data].setOption(window[data+"Chart"]); // passed the data into the chats
 					});
-					
 					 // data
 					// console.log(cpuSystemChartOption);
 			        requestData();
@@ -1754,6 +1756,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 	</cffunction>
 
 	<cffunction name="loadCharts" output="true">
+
 		<cfargument name="chartStruct">
 		<cfset chartsLabel = structNew("linked")>
 		<cfset chartsLabel.HeapChart = "Heap Memory">

@@ -41,6 +41,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals('a,b',row.keyList().listSort('text'));
 		assertEquals('3',row.a);
 		assertEquals('7',row.b);
+		var people = QueryNew( "name,dob,age", "varchar,date,int", [
+			[ "Susi", CreateDate( 1970, 1, 1 ), 0 ],
+			[ "Urs" , CreateDate( 1995, 1, 1 ), 0 ],
+			[ "Fred", CreateDate( 1960, 1, 1 ), 0 ],
+			[ "Jim" , CreateDate( 1988, 1, 1 ), 0 ]
+		]);
+		expect(queryRowData(people,2)).toBeTypeOf('struct');
+		expect(queryRowData(people,2).name).toBe('Urs');
 	}
 	public void function testRowData(){
 		var row=qry.RowData(3)

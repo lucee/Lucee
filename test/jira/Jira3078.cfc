@@ -29,6 +29,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals(2,arrayContainsNoCase(a, 2));
 	}
 
+	public void function testarrayContains(){
+		var arr1=['lucee','admin','test','case'];
+		var arr2=[1, 2, 3, 4, 5];
+		expect(ArrayContains(arr1,'TEST')).toBe(0);
+		expect(ArrayContains(arr2, 4)).toBe(4);
+		expect(ArrayContains(arr1, "st", false)).toBe(0);
+		expect(ArrayContains(arr1, "st", true)).toBe(3);
+	}
+
+	public void function testarrayContainsNoCase(){
+		var arr1=['lucee','admin','test','case'];
+		var arr2=[1, 2, 3, 4];
+		expect(ArrayContainsNoCase(arr1,'TEST')).toBeTypeOf('number').toBe(3);
+		expect(ArrayContainsNoCase(arr2, 4)).toBe(4);
+	}
+
 	private void function testNull1(){
 		var a = [1,2,nullValue()];
 
@@ -46,5 +62,5 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals(2,arrayContains(a, 2));
 		assertEquals(2,arrayContainsNoCase(a, 2));
 	}
-} 
+}
 </cfscript>
