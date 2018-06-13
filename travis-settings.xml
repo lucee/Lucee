@@ -5,7 +5,6 @@
 
   <pluginGroups></pluginGroups>
   <proxies></proxies>
-
   <servers>
     <server>
       <id>ossrh</id>
@@ -13,9 +12,7 @@
       <password>${env.CI_DEPLOY_PASSWORD}</password>
     </server>
   </servers>
-
   <mirrors></mirrors>
-
   <profiles>
     <profile>
       <id>ossrh</id>
