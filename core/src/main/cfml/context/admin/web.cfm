@@ -446,6 +446,13 @@
 					}
 					$('.submit,.menu_inactive,.menu_active').click(__blockUI);
 				});
+				$("input[type='submit']").on("click", function(){
+					if($('span').hasClass( "commentError" )){
+						$("span.commentError").each(function () {
+							$(this).remove();
+						});
+					}
+				});
 			</script>
 		</cfhtmlbody>
 
