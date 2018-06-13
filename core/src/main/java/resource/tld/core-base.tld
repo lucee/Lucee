@@ -10288,10 +10288,10 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 	</tag>
 
-	<!-- Selectclassic -->
+	<!-- Select -->
 	<tag>
-		<name>Select</name>
-		<tag-class  >lucee.runtime.tag.Select</tag-class>
+		<name>Selectclassic</name>
+		<tag-class>lucee.runtime.tag.Select</tag-class>
 		<body-content>must</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<status>hidden</status>
