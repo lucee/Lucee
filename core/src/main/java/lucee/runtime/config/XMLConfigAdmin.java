@@ -2473,8 +2473,17 @@ public final class XMLConfigAdmin {
   	    	if(n!=null && n.equalsIgnoreCase(name)) {
   	    		Map conns = ((ConfigWebImpl)config).getGatewayEngine().getEntries();
   	    		GatewayEntry ge=(GatewayEntry) conns.get(n);
-  	    		if(ge!=null){
-  	    			((ConfigWebImpl)config).getGatewayEngine().remove(ge);
+  	    		if(ge!=null) {
+  	    			if(config instanceof ConfigWeb) {
+  	    				((ConfigWebImpl)config).getGatewayEngine().remove(ge);
+  	    			}
+  	    			else {
+  	    				ConfigWeb[] cws = ((ConfigServerImpl)config).getConfigWebs();
+  	    				for(ConfigWeb cw:cws) {
+  	    					((ConfigWebImpl)cw).getGatewayEngine().remove(ge);
+  	    				}
+  	    			}
+  	    			
   	    		}
   	    		parent.removeChild(children[i]);
   			}
