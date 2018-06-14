@@ -1765,7 +1765,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>sizeOf</name>
 		<class>lucee.runtime.functions.system.SizeOf</class>
-		<description>this function is experimentell, to not use in productive environment. this function returns the size in bytes of a given object.</description>
+		<description>this function is experimental, to not use in production environment. this function returns the size in bytes of a given object.</description>
 		<argument>
 			<name>obj</name>
 			<type>object</type>
