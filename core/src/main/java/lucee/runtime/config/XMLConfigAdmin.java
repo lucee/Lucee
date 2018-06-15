@@ -97,6 +97,7 @@ import lucee.runtime.functions.other.CreateUUID;
 import lucee.runtime.functions.other.URLEncodedFormat;
 import lucee.runtime.functions.string.Hash;
 import lucee.runtime.functions.system.IsZipFile;
+import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.gateway.GatewayEntryImpl;
 import lucee.runtime.listener.AppListenerUtil;
@@ -2471,20 +2472,16 @@ public final class XMLConfigAdmin {
       	for(int i=0;i<children.length;i++) {
       	    String n=children[i].getAttribute("id"); 
   	    	if(n!=null && n.equalsIgnoreCase(name)) {
-  	    		Map conns = ((ConfigWebImpl)config).getGatewayEngine().getEntries();
-  	    		GatewayEntry ge=(GatewayEntry) conns.get(n);
-  	    		if(ge!=null) {
-  	    			if(config instanceof ConfigWeb) {
-  	    				((ConfigWebImpl)config).getGatewayEngine().remove(ge);
-  	    			}
-  	    			else {
-  	    				ConfigWeb[] cws = ((ConfigServerImpl)config).getConfigWebs();
-  	    				for(ConfigWeb cw:cws) {
-  	    					((ConfigWebImpl)cw).getGatewayEngine().remove(ge);
-  	    				}
-  	    			}
-  	    			
-  	    		}
+  	    		
+  	    		if(config instanceof ConfigWeb) {
+  	    			_removeGatewayEntry((ConfigWebImpl)config, n);
+    			}
+    			else {
+    				ConfigWeb[] cws = ((ConfigServerImpl)config).getConfigWebs();
+    				for(ConfigWeb cw:cws) {
+    					_removeGatewayEntry((ConfigWebImpl)cw, name);
+    				}
+    			}
   	    		parent.removeChild(children[i]);
   			}
   	    }
@@ -2492,7 +2489,17 @@ public final class XMLConfigAdmin {
 
 	
 	
-    public void removeRemoteClient(String url) throws ExpressionException, SecurityException {
+    private void _removeGatewayEntry(ConfigWebImpl cw, String name) {
+    	GatewayEngineImpl engine = cw.getGatewayEngine();
+    	Map<String, GatewayEntry> conns = engine.getEntries();
+  		GatewayEntry ge=conns.get(name);
+  		if(ge!=null) {
+  			engine.remove(ge);	
+  		}
+	}
+
+
+	public void removeRemoteClient(String url) throws ExpressionException, SecurityException {
     	checkWriteAccess();
     	
     	// SNSN
