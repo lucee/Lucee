@@ -1046,7 +1046,10 @@ public static String toString(Resource file, String charset) throws IOException 
         		if(!StringUtil.isEmpty(tmp)) return tmp;
         		if(!StringUtil.isEmpty(defaultValue)) return defaultValue;
         	}
-        	return result;
+             if(result == "application/octet-stream"){
+                return defaultValue;
+            }
+            return result;
         } 
         catch(Exception e) {
         	String tmp = ResourceUtil.EXT_MT.get(ResourceUtil.getExtension(res, "").toLowerCase());
