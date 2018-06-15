@@ -3772,8 +3772,9 @@ public final class XMLConfigAdmin {
 
 	public void changeVersionTo(Version version, Password password, IdentificationWeb id) throws PageException {
 		checkWriteAccess();
-    	
     	ConfigServerImpl cs=(ConfigServerImpl) ConfigImpl.getConfigServer(config,password);
+    
+      Log logger =cs.getLog("deploy");
     	
     	try {
         	CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
@@ -3808,11 +3809,12 @@ public final class XMLConfigAdmin {
         	if(localPath==null) {
         		
         		downloadCore(factory, version, id);
-        	}
-        	
-        	
-        	
-        	
+          }
+
+          logger.log(Log.LEVEL_INFO,"Update-Engine","installing lucee version "+version + "(previous version was " + cs.getEngine().getInfo().getVersion() +")") ;
+          
+          
+          
         	factory.restart(password);
         } 
         catch (Exception e) {
@@ -4650,6 +4652,10 @@ public final class XMLConfigAdmin {
 		try {
 			// get patches directory
 			CFMLEngine engine = ConfigWebUtil.getEngine(config);
+      ConfigServerImpl cs=(ConfigServerImpl) config;
+      Version v;
+      v=CFMLEngineFactory.toVersion(core.getName(),null);
+      Log logger = cs.getLog("deploy");
 			File f=engine.getCFMLEngineFactory().getResourceRoot();
 	    	Resource res = ResourcesImpl.getFileResourceProvider().getResource(f.getAbsolutePath());
 	    	Resource pd = res.getRealResource("patches");
@@ -4659,6 +4665,7 @@ public final class XMLConfigAdmin {
 	        // move to patches directory
 	        core.moveTo(pf);
 	        core=pf;
+          logger.log(Log.LEVEL_INFO,"Update-Engine","installing lucee " + v +"(previous version was " + cs.getEngine().getInfo().getVersion() +")");
 			// 
 			XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
 	    	admin.restart(config);
