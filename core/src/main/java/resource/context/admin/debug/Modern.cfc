@@ -15,7 +15,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 ,field("Warn Session size","sessionSize","100",true,{_appendix:"KB",_bottom:"Warn in debugging, if the current session is above the following (in KB) size."},"text50")
 ,group("Metrics Tab","",2)
 ,field("Metrics","tab_Metrics","Enabled",true,"Select the Metrics tab to show on debugOutput","checkbox","Enabled")
-,field("Charts","metrics_charts","HeapChart,NonHeapChart,WholeSystem,LuceeProcess",false,"Select the chart to show on metrics Tab. It will show only if the metrics tabs is enabled","checkbox","HeapChart,NonHeapChart,WholeSystem,LuceeProcess")
+,field("Charts","metrics_charts","HeapChart,NonHeapChart,WholeSystem",false,"Select the chart to show on metrics Tab. It will show only if the metrics tabs is enabled","checkbox","HeapChart,NonHeapChart,WholeSystem")
 ,group("Reference Tab","",2)
 ,field("Reference","tab_Reference","Enabled",true,"Select the Reference tab to show on DebugOutput","checkbox","Enabled")
 );
@@ -53,14 +53,16 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			return !len(arrayToList(queryColumnData(qry,columnName),""));
 		}
 
-		function isSectionOpen( string name, string section = "debugging" ) {
+		function isSectionOpen( string name, string section) {
 			try{
-			if ( arguments.name == "ALL" && !structKeyExists( Cookie, variables["cookieName_" & arguments.section] ) )
-				return true;
 
-			var cookieValue = structKeyExists( Cookie, variables["cookieName_" & arguments.section] ) ? Cookie[ variables["cookieName_" & arguments.section] ] : 0;
+				if ( arguments.name == "ALL" && !structKeyExists( Cookie, variables["cookieName_" & arguments.section] ) )
+					return true;
 
-			return cookieValue && ( bitAnd( cookieValue, this.allSections[ arguments.name ] ) );
+				var cookieValue = structKeyExists( Cookie, variables["cookieName_" & arguments.section] ) ? Cookie[ variables["cookieName_" & arguments.section] ] : 0;
+
+
+				return cookieValue && ( bitAnd( cookieValue, this.allSections[ arguments.name ] ) );
 			}
 			catch(e){
 				return false;
@@ -105,16 +107,17 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			</cfif>
 		</cfloop>
 		<cfset variables.chartStr = {}>
-		<cfloop list="#arguments.custom.metrics_Charts#" index="i">
-			<cfif i EQ "HeapChart">
-				<cfset variables.chartStr[i] = "heap">
-			<cfelseif i EQ "NonHeapChart">
-				<cfset variables.chartStr[i] = "nonheap">
-			<cfelseif i EQ "WholeSystem">
-				<cfset variables.chartStr[i] = "cpuSystem">
-			</cfif>
-		</cfloop>
-
+		<cfif structKeyExists(arguments.custom, "metrics_Charts")>
+			<cfloop list="#arguments.custom.metrics_Charts#" index="i">
+				<cfif i EQ "HeapChart">
+					<cfset variables.chartStr[i] = "heap">
+				<cfelseif i EQ "NonHeapChart">
+					<cfset variables.chartStr[i] = "nonheap">
+				<cfelseif i EQ "WholeSystem">
+					<cfset variables.chartStr[i] = "cpuSystem">
+				</cfif>
+			</cfloop>
+		</cfif>
 		<cfset variables.tbsStr = {}>
 		<cfloop list="#variables.tabsPresent#" index="i">
 			<cfif i EQ "Debug">
@@ -125,6 +128,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				<cfset variables.tbsStr[i] = "docs">
 			</cfif>
 		</cfloop>
+
 		<script>
 			<cfset this.includeFileInline( "/lucee/res/js/jquery-1.12.4.min.js" )>
 		</script>
@@ -141,7 +145,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 		<cfoutput>
 			<cfset var sectionId = "ALL">
-			<cfset var isDebugAllOpen = this.isSectionOpen( sectionId )>
+			<cfset var isDebugAllOpen = this.isSectionOpen( sectionId, "debugging" )>
 			<cfset isMetricAllOpen = this.isSectionOpen( sectionId, "metrics" )>
 			<cfset isDocsAllOpen = this.isSectionOpen( sectionId, "docs" )>
 			<cfif isDebugAllOpen && isMetricAllOpen && isDocsAllOpen>
@@ -153,9 +157,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfset var sectionId = "ALL">
 			<cfset var isOpen = this.isSectionOpen( sectionId, "debugging" ) OR this.isSectionOpen( sectionId, "metrics" ) OR this.isSectionOpen( sectionId, "docs" )>
 			<!-- Lucee Debug Output !-->
-			
+
 			<fieldset id="-lucee-debug" class="#arguments.custom.size# #isOpen ? '' : 'collapsed'#">
-				<cfset isdebugOpen = this.isSectionOpen( sectionId )>
+				<cfset isdebugOpen = this.isSectionOpen( sectionId, "debugging" )>
 				<cfset ismetricsOpen = this.isSectionOpen( sectionId, "metrics" )>
 				<cfset isdocsOpen = this.isSectionOpen( sectionId, "docs" )>
 				<cfif isdebugOpen && ismetricsOpen && isdocsOpen>
@@ -166,7 +170,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				<!--- Lucee Debug Output --->
 				<legend style="line-height: 20px !important; width:auto !important;">
 					<cfif enableTab("debug")>
-						<button id="-lucee-debug-btn-#sectionId#" class="#isdebugOpen ? 'btnActive' : 'buttonStyle' # btnOvr" onclick="clickAjax('debug'); __LUCEE.debug.toggleSection( '#sectionId#' );">
+						<button id="-lucee-debug-btn-#sectionId#" class="#isdebugOpen ? 'btnActive' : 'buttonStyle' # btnOvr" onclick="clickAjax('debug'); __LUCEE.debug.toggleSection2( '#sectionId#', 'debugging' );">
 							<!--- Lucee Debug Output --->
 							Debugging
 						</button>
@@ -176,7 +180,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</cfif>
 					<!--- <span>(#this.getLabel()#)</span> --->
 					<cfif enableTab("Metrics")>
-						<button id="-lucee-metrics-btn-#sectionId#" class="#ismetricsOpen ? 'btnActive' : 'buttonStyle' # btnOvr" onclick="clickAjax('metrics');  __LUCEE.debug.toggleSection( '#sectionId#', 'metrics' );">
+						<button id="-lucee-metrics-btn-#sectionId#" class="#ismetricsOpen ? 'btnActive' : 'buttonStyle' # btnOvr" onclick="clickAjax('metrics');  __LUCEE.debug.toggleSection2( '#sectionId#', 'metrics' );">
 							Metrics
 						</button> 
 						<cfif enableTab("Reference")>
@@ -185,7 +189,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</cfif>
 
 					<cfif enableTab("Reference")>
-						<button id="-lucee-docs-btn-#sectionId#" class="#isdocsOpen ? 'btnActive' : 'buttonStyle' # btnOvr" onclick="clickAjax('docs'); __LUCEE.debug.toggleSection( '#sectionId#', 'docs' ); ">
+						<button id="-lucee-docs-btn-#sectionId#" class="#isdocsOpen ? 'btnActive' : 'buttonStyle' # btnOvr" onclick="clickAjax('docs'); __LUCEE.debug.toggleSection2( '#sectionId#', 'docs' ); ">
 							Reference
 						</button>
 					</cfif>
@@ -193,22 +197,21 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				<cfif enableTab("debug")>
 					<div id="-lucee-debug-ALL" class="#isdebugOpen ? '' : 'collapsed'#">Loading debugging data...</div>
 				</cfif>
-				
+
 				<cfif enableTab("metrics")>
 					<div class="wholeContainer">
 					<div id="-lucee-metrics-ALL" class="#isMetricAllOpen ? '' : 'collapsed'#">
 						<div class="section-title" style="padding-bottom:5px; padding-top:23px;">System Metrics</div>
-						<div class="titleStyle">Memory Chart & CPU Chart</div>
-						<div class="metricsCharts">Memory Used By java & Average CPU load of the last 20 seconds on the whole system and this Java Virtual Machine (Lucee Process).</div>
-						<div class="Chart_container">
-							<cfset chartStruct = variables.chartStr> 
-							<cfset loadCharts("#chartStruct#")>
-						</div>
+						<cfif structCount(variables.chartStr) GT 0>
+							<div class="titleStyle"><cfif ListFindNocase(structKeyList(variables.chartStr), "HeapChart") || ListFindNocase(structKeyList(variables.chartStr), "NonHeapChart") > Memory Chart </cfif><cfif ListFindNocase(structKeyList(variables.chartStr), "WholeSystem")> & CPU Chart</cfif></div>
+							<div class="metricsCharts"><cfif ListFindNocase(structKeyList(variables.chartStr), "HeapChart") || ListFindNocase(structKeyList(variables.chartStr), "NonHeapChart")>Memory used by the JVM, heap and non heap.</cfif><cfif  ListFindNocase(structKeyList(variables.chartStr), "WholeSystem") > & Average CPU load of the last 20 seconds on the whole system and this Java Virtual Machine (Lucee Process).</cfif></div>
+							<div class="Chart_container">
+								<cfset chartStruct = variables.chartStr>
+								<cfset loadCharts("#chartStruct#")>
+							</div>
+						</cfif>
 
 						<div id="-lucee-metrics-data" class="#ismetricsOpen ? '' : 'collapsed'# ">Loading Metrics data...</div>
-
-						<!--- <cfset metricsAllInfo = replace(sContent.tab2, chr(9), "", "ALL")>
-						<cfset cachePut(sFileName_Metrics, metricsAllInfo, 0.001)> --->
 					</div><!--- #-lucee-metrics-ALL !--->
 					</div>
 				</cfif>
@@ -224,9 +227,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 							<cfset arrayAppend(allArryItem, i)>
 						</cfloop>
 					</cfloop>
-
-					<!--- <cfset docsScontent = replace(sContent.tab3, chr(9), "", "ALL")>
-					<cfset cachePut(sFileName_Docs, docsScontent , 0.001)> --->
 				</cfif>
 			</fieldset><!--- #-lucee-debug !--->
 
@@ -273,33 +273,19 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 							var section = "debugging";
 						}
 
+
 						var value = __LUCEE.util.getCookie( __LUCEE.debug["cookieName_"+section], 0 ) & ( __LUCEE.debug.bitmaskAll - __LUCEE.debug.allSections[ name ] );
 						__LUCEE.util.setCookie( __LUCEE.debug["cookieName_"+section], value );
 						return value;
 					}
 
-					, toggleSection: 	function( name, section ) {
-						if(typeof(section) == 'undefined'){
-							var section = "debugging";
-						}
-
+					, mainToggleSection: function( name, section ){
 						if(section == "debugging"){
 							var sectionClass = "debug";
 						}else if(section == "metrics"){
 							var sectionClass = "metrics";
 						} else if(section == "docs"){
 							var sectionClass = "docs";
-						}
-
-						// All main sections
-						var otherMainSections = [];
-						$.each(#serializeJSON( variables.tbsStr )#, function(i, data) {
-							otherMainSections.push(data)
-						});
-						// Find and remove item from an array
-						var i = otherMainSections.indexOf(section);
-						if(i != -1) {
-							otherMainSections.splice(i, 1);
 						}
 
 						var btn = __LUCEE.util.getDomObject( "-lucee-" + sectionClass + "-btn-" + name );
@@ -319,6 +305,28 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 							__LUCEE.util.removeClass( obj, 'collapsed' );
 							__LUCEE.debug.setFlag( name, section );
 						}
+						return isOpen;
+					}
+
+					, toggleSection: 	function( name, section ) {
+						var result = __LUCEE.debug.mainToggleSection(name, section);
+						return !result;
+
+					}
+
+					, toggleSection2: 	function( name, section ) {
+						// All main sections
+						var otherMainSections = [];
+						$.each(#serializeJSON( variables.tbsStr )#, function(i, data) {
+							otherMainSections.push(data)
+						});
+						// Find and remove item from an array
+						var i = otherMainSections.indexOf(section);
+						if(i != -1) {
+							otherMainSections.splice(i, 1);
+						}
+						var result = __LUCEE.debug.mainToggleSection(name, section);
+
 
 						// collapse other main sections -- start
 						for( x in otherMainSections ){
@@ -338,7 +346,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 							__LUCEE.util.addClass( obj, 'collapsed' );
 							__LUCEE.debug.clearFlag( name, otherMainSections[x] );
 						}
-						return !isOpen;
+						return !result;
 					}
 
 					, selectText: 	function( id ) {
@@ -425,156 +433,160 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					}
 				}
 			</script>
-			<cfif enableTab("metrics")>
 
-			<script>
-				labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System",'cpuProcess':"Lucee Process"};
-				function requestData(){
-					if($( "##-lucee-metrics-btn-ALL").hasClass( "btnActive" )){
-						jQuery.ajax({
-							type: "POST",
-							url: "/lucee/admin/chartAjax.cfm",
-							success: function(result){
-								var arr =["heap","nonheap"];
-								$.each(arr,function(index,chrt){
-									window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
-									window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
-									window[chrt+"Chart"].series[0].data = window["series_"+chrt];
-									if(window[chrt+"Chart"].series[0].data.length > 60){
-									window[chrt+"Chart"].series[0].data.shift(); //shift the array
-									}
-									window[chrt+"Chart"].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
-									if(window[chrt+"Chart"].xAxis[0].data.length > 60){
-									window[chrt+"Chart"].xAxis[0].data.shift(); //shift the Time value
-									}
-									window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
-								});
-								var arr2 =["cpuSystem"];
-								$.each(arr2,function(index,chrt){
-									cpuSystemSeries1 = cpuSystemChartOption.series[0].data; //*charts*.series[0].data
-									cpuSystemSeries1.push(result["cpuSystem"]); // push the value into series[0].data
-									cpuSystemSeries2 = cpuSystemChartOption.series[1].data; //*charts*.series[0].data
-									cpuSystemSeries2.push(result["cpuProcess"]); // push the value into series[0].data
-									cpuSystemChartOption.series[0].data = cpuSystemSeries1;
-									cpuSystemChartOption.series[1].data = cpuSystemSeries2;
-									if(cpuSystemChartOption.series[0].data.length > 60){
-										cpuSystemChartOption.series[0].data.shift(); //shift the array
-									}
-									if(cpuSystemChartOption.series[1].data.length > 60){
-										cpuSystemChartOption.series[1].data.shift(); //shift the array
-									}
-									cpuSystemChartOption.xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
-									if(cpuSystemChartOption.xAxis[0].data.length > 60){
-									cpuSystemChartOption.xAxis[0].data.shift(); //shift the Time value
-									}
-									window[chrt].setOption(cpuSystemChartOption); // passed the data into the chats
-								});
-							}
-						})
+			<cfif enableTab("metrics") && structCount(variables.chartStr) NEQ 0>
+				<script>
+					labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System"};
+
+					function requestData(){
+						if($( "##-lucee-metrics-btn-ALL").hasClass( "btnActive" )){
+							jQuery.ajax({
+								type: "POST",
+								url: "/lucee/admin/chartAjax.cfm",
+								success: function(result){
+									$.each(#serializeJSON( variables.chartStr )#,function(index,chrt){
+										if(index == "WholeSystem") {
+											cpuSystemSeries1 = cpuSystemChartOption.series[0].data; //*charts*.series[0].data
+											cpuSystemSeries1.push(result["cpuSystem"]); // push the value into series[0].data
+											cpuSystemSeries2 = cpuSystemChartOption.series[1].data; //*charts*.series[0].data
+											cpuSystemSeries2.push(result["cpuProcess"]); // push the value into series[0].data
+											cpuSystemChartOption.series[0].data = cpuSystemSeries1;
+											cpuSystemChartOption.series[1].data = cpuSystemSeries2;
+											if(cpuSystemChartOption.series[0].data.length > 60){
+												cpuSystemChartOption.series[0].data.shift(); //shift the array
+											}
+											if(cpuSystemChartOption.series[1].data.length > 60){
+												cpuSystemChartOption.series[1].data.shift(); //shift the array
+											}
+											cpuSystemChartOption.xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+											if(cpuSystemChartOption.xAxis[0].data.length > 60){
+											cpuSystemChartOption.xAxis[0].data.shift(); //shift the Time value
+											}
+											window[chrt].setOption(cpuSystemChartOption); // passed the data into the chats
+				 							return true;
+										}
+										window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
+										window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
+										window[chrt+"Chart"].series[0].data = window["series_"+chrt];
+										if(window[chrt+"Chart"].series[0].data.length > 60){
+										window[chrt+"Chart"].series[0].data.shift(); //shift the array
+										}
+										window[chrt+"Chart"].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+										if(window[chrt+"Chart"].xAxis[0].data.length > 60){
+										window[chrt+"Chart"].xAxis[0].data.shift(); //shift the Time value
+										}
+										window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
+									});
+								}
+							})
+						}
+						setTimeout(requestData, 1000);
 					}
-					setTimeout(requestData, 1000);
-				}
-				var dDate=[new Date().toLocaleTimeString()]; // current time
+					var dDate=[new Date().toLocaleTimeString()]; // current time
 
+					// intialize charts
 
-				// intialize charts
-				$.each(["heap","nonheap"], function(i, data){
-					window[data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
-					window[data+"Chart"] = {
-						backgroundColor: ["##EFEDE5"],
-						tooltip : {'trigger':'axis',
-							formatter : function (params) {
-								return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>' +params[0][1] ;
-							}
-						},
+					$.each(#serializeJSON( variables.chartStr )#, function(i, data){
+						if(i == "WholeSystem") {
+							cpuSystem = echarts.init(document.getElementById('cpuSystem'),'macarons'); // intialize echarts
+							cpuSystemChartOption = {
+								backgroundColor: ["##EFEDE5"],
+								tooltip : {'trigger':'axis',
+									formatter : function (params) {
+										var series2 = "";
+										if(params.length == 2) {
+											series2 =  params[1][0] + ": "+ params[1][2] + "%" + '<br>' +params[0][1];
+										}
+										return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>'  + series2;
+									}
+								},
+								legend: {
+									data:['System CPU', 'Lucee CPU']
+								},
 
-						color: ["##3399CC", "##BF4F36"],
-						grid : {
-							width: '82%',
-							height: '65%',
-							x:'30px',
-							y:'25px'
-						},
-						xAxis : [{
-							'type':'category',
-							'boundaryGap' : false,
-							'data':[0]
-						}],
-						yAxis : [{
-							'type':'value',
-							'min':'0',
-							'max':'100',
-							'splitNumber': 2
-						}],
-						series : [
-							{
-							'name': labels[data] +' Memory',
-							'type':'line',
-							smooth:true,
-							itemStyle: {normal: {areaStyle: {type: 'default'}}},
-							'data': [0]
-							}
-						]
-					}; // data
-					window[data].setOption(window[data+"Chart"]); // passed the data into the chats
-				});
+								color: ["##3399CC", "##BF4F36"],
+								grid : {
+									width: '82%',
+									height: '65%',
+									x:'30px',
+									y:'25px'
+								},
+								xAxis : [{
+									'type':'category',
+									'boundaryGap' : false,
+									'data':[0]
+								}],
+								yAxis : [{
+									'type':'value',
+									'min':'0',
+									'max':'100',
+									'splitNumber': 2
+								}],
+								series : [
+									{
+									'name': 'System CPU',
+									'type':'line',
+									smooth:true,
+									itemStyle: {normal: {areaStyle: {type: 'default'}}},
+									'data': [0]
+									},
+									{
+									'name': 'Lucee CPU',
+									'type':'line',
+									smooth:true,
+									itemStyle: {normal: {areaStyle: {type: 'default'}}},
+									'data': [0]
+									}
 
-				var cpuSystem = echarts.init(document.getElementById('cpuSystem'),'macarons'); // intialize echarts
-				var cpuSystemChartOption = {
-					backgroundColor: ["##EFEDE5"],
-					tooltip : {'trigger':'axis',
-						formatter : function (params) {
-							var series2 = "";
-							if(params.length == 2) {
-								series2 =  params[1][0] + ": "+ params[1][2] + "%" + '<br>' +params[0][1];
-							}
-							return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>'  + series2;
+								]
+							};
+							cpuSystem.setOption(cpuSystemChartOption); // passed the data into the chats
+				 			return true;
 						}
-					},
-					legend: {
-						data:['System CPU', 'Lucee CPU']
-					},
+						// console.log(i);
+						window[data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
+						window[data+"Chart"] = {
+							backgroundColor: ["##EFEDE5"],
+							tooltip : {'trigger':'axis',
+								formatter : function (params) {
+									return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>' +params[0][1] ;
+								}
+							},
 
-					color: ["##3399CC", "##BF4F36"],
-					grid : {
-						width: '82%',
-						height: '65%',
-						x:'30px',
-						y:'25px'
-					},
-					xAxis : [{
-						'type':'category',
-						'boundaryGap' : false,
-						'data':[0]
-					}],
-					yAxis : [{
-						'type':'value',
-						'min':'0',
-						'max':'100',
-						'splitNumber': 2
-					}],
-					series : [
-						{
-						'name': 'System CPU',
-						'type':'line',
-						smooth:true,
-						itemStyle: {normal: {areaStyle: {type: 'default'}}},
-						'data': [0]
-						},
-						{
-						'name': 'Lucee CPU',
-						'type':'line',
-						smooth:true,
-						itemStyle: {normal: {areaStyle: {type: 'default'}}},
-						'data': [0]
-						}
-
-					]
-				}; // data
-				// console.log(cpuSystemChartOption);
-				cpuSystem.setOption(cpuSystemChartOption); // passed the data into the chats
-		        requestData();
-			</script>
+							color: ["##3399CC", "##BF4F36"],
+							grid : {
+								width: '82%',
+								height: '65%',
+								x:'30px',
+								y:'25px'
+							},
+							xAxis : [{
+								'type':'category',
+								'boundaryGap' : false,
+								'data':[0]
+							}],
+							yAxis : [{
+								'type':'value',
+								'min':'0',
+								'max':'100',
+								'splitNumber': 2
+							}],
+							series : [
+								{
+								'name': labels[data] +' Memory',
+								'type':'line',
+								smooth:true,
+								itemStyle: {normal: {areaStyle: {type: 'default'}}},
+								'data': [0]
+								}
+							]
+						}; // data
+						window[data].setOption(window[data+"Chart"]); // passed the data into the chats
+					});
+					 // data
+					// console.log(cpuSystemChartOption);
+			        requestData();
+				</script>
 			</cfif>
 			<cfif enableTab("Reference")>
 				<script>
@@ -628,20 +640,12 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 								});
 							}
 						});
-
-
-						$(document).ready(function() {
-							$('##lucee-docs-search-input').focus();
-						    $('##-lucee-docs-btn-ALL').on('click', function() {
-								$('.tt-hint').hide();
-						    });
-							$('.tt-menu').on('click', function(){
-								$('.icon-close').hide();
-							});
+						$( function() {
+						 	$('##lucee-docs-search-input').focus();
 						});
-
 						$('##-lucee-docs-btn-ALL').on('click', function() {
 							$('##lucee-docs-search-input').focus();
+							$('.tt-menu').hide();
 					    });
 					}
 
@@ -766,7 +770,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfset local.iTotalAvg   = totAvg>
 
 			<cfset this.allSections  = this.buildSectionStruct()>
-			<cfset var isExecOrder   = this.isSectionOpen( "ExecOrder" )>
+			<cfset var isExecOrder   = this.isSectionOpen( "ExecOrder", "debugging" )>
 			<cfset local.sCookieSort = cookie[variables.cookieSortOrder] ?: ' '>
 			<cfif structKeyExists(pages, sCookieSort)>
 				<cfif listFind("id,src", sCookieSort)>
@@ -806,9 +810,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</cfoutput>
 				</cfif>
 				<cfset sectionId = "Info">
-				<cfset isOpen = this.isSectionOpen( sectionId )>
+				<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 				<table>
-					<cfset renderSectionHeadTR( sectionId, "Template:", "#HTMLEditFormat(_cgi.SCRIPT_NAME)# (#HTMLEditFormat(expandPath(_cgi.SCRIPT_NAME))#)" )>
+
+					<cfset renderSectionHeadTR( sectionId, "debugging",  "Template:", "#HTMLEditFormat(_cgi.SCRIPT_NAME)# (#HTMLEditFormat(expandPath(_cgi.SCRIPT_NAME))#)" )>
 					<tr>
 						<td class="pad label">User Agent:</td>
 						<td class="pad">#_cgi.http_user_agent#</td>
@@ -921,7 +926,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 			</cfif>
 
-			
+
 			<!--- Abort --->
 			<cfif structKeyExists(debugging,"abort")>
 				<div class="section-title">Abort</div>
@@ -934,7 +939,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 			<!--- Execution Time --->
 			<cfset sectionId = "ExecTime">
-			<cfset isOpen = this.isSectionOpen( sectionId )>
+			<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 
 			<div class="section-title">Execution Time</div>
 			<cfset local.loa=0>
@@ -954,7 +959,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 			<table>
 				<cfset renderSectionHeadTR( sectionId
-					, "#unitFormat( arguments.custom.unit, tot-q-loa, prettify )#
+					, "debugging", "#unitFormat( arguments.custom.unit, tot-q-loa, prettify )#
 						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Application" )>
 				<tr><td><table>
 					<tr>
@@ -1145,7 +1150,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<!--- Queries --->
 			<cfif queries.recordcount>
 				<cfset sectionId = "Query">
-				<cfset isOpen = this.isSectionOpen( sectionId )>
+				<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 				<cfset local.total  =0>
 				<cfset local.records=0>
 				<cfloop query="queries">
@@ -1155,7 +1160,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 				<div class="section-title">SQL Queries</div>
 				<table>
-					<cfset renderSectionHeadTR( sectionId, "#queries.recordcount# Quer#queries.recordcount GT 1 ? 'ies' : 'y'# Executed (Total Records: #records#; Total Time: #unitFormat( arguments.custom.unit, total ,prettify)#)" )>
+					<cfset renderSectionHeadTR( sectionId, "debugging", "#queries.recordcount# Quer#queries.recordcount GT 1 ? 'ies' : 'y'# Executed (Total Records: #records#; Total Time: #unitFormat( arguments.custom.unit, total ,prettify)#)" )>
 
 					<tr>
 						<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
@@ -1200,11 +1205,11 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 										</cfif>
 
 										<tr>
-											<cfset isOpen = this.isSectionOpen( queries.currentRow )>
+											<cfset isOpen = this.isSectionOpen( queries.currentRow, "debugging" )>
 											<th>
 												<a id="-lucee-debug-btn-qry-#queries.currentRow#" 
 													class="-lucee-icon-#isOpen ? 'minus' : 'plus'#" 
-													onclick="__LUCEE.debug.toggleSection( 'qry-#queries.currentRow#' );">&nbsp;</a>
+													onclick="__LUCEE.debug.toggleSection( 'qry-#queries.currentRow#', 'debugging' );">&nbsp;</a>
 											</th>
 											<td>#queries.name#</td>
 											<td class="txt-r">#queries.count#</td>
@@ -1269,12 +1274,12 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfif structKeyExists( arguments.debugging, "exceptions" ) && arrayLen( arguments.debugging.exceptions )>
 
 				<cfset sectionId = "Exceptions">
-				<cfset isOpen = this.isSectionOpen( sectionId )>
+				<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 
 				<div class="section-title">Caught Exceptions</div>
 				<table>
 
-					<cfset renderSectionHeadTR( sectionId, "#arrayLen(arguments.debugging.exceptions)# Exception#arrayLen( arguments.debugging.exceptions ) GT 1 ? 's' : ''# Caught" )>
+					<cfset renderSectionHeadTR( sectionId, "debugging", "#arrayLen(arguments.debugging.exceptions)# Exception#arrayLen( arguments.debugging.exceptions ) GT 1 ? 's' : ''# Caught" )>
 
 					<tr>
 						<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
@@ -1307,12 +1312,12 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfif implicitAccess.recordcount>
 
 				<cfset sectionId = "ImpAccess">
-				<cfset isOpen = this.isSectionOpen( sectionId )>
+				<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 
 				<div class="section-title">Implicit Variable Access</div>
 
 				<table>
-					<cfset renderSectionHeadTR( sectionId, "#implicitAccess.recordcount# Implicit Variable Access#( implicitAccess.recordcount GT 1 ) ? 'es' : ''#" )>
+					<cfset renderSectionHeadTR( sectionId, "debugging", "#implicitAccess.recordcount# Implicit Variable Access#( implicitAccess.recordcount GT 1 ) ? 'es' : ''#" )>
 
 					<tr>
 						<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
@@ -1346,13 +1351,13 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfif timers.recordcount>
 
 				<cfset sectionId = "Timer">
-				<cfset isOpen = this.isSectionOpen( sectionId )>
+				<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 
 				<div class="section-title">CFTimer Times</div>
 
 				<table>
 
-					<cfset renderSectionHeadTR( sectionId, "#timers.recordcount# Timer#( timers.recordcount GT 1 ) ? 's' : ''# Set" )>
+					<cfset renderSectionHeadTR( sectionId, "debugging", "#timers.recordcount# Timer#( timers.recordcount GT 1 ) ? 's' : ''# Set" )>
 
 					<tr>
 						<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
@@ -1381,7 +1386,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfif traces.recordcount>
 
 				<cfset sectionId = "Trace">
-				<cfset isOpen = this.isSectionOpen( sectionId )>
+				<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 
 				<div class="section-title">Trace Points</div>
 
@@ -1390,7 +1395,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 				<table>
 
-					<cfset renderSectionHeadTR( sectionId, "#traces.recordcount# Trace Point#( traces.recordcount GT 1 ) ? 's' : ''#" )>
+					<cfset renderSectionHeadTR( sectionId, "debugging", "#traces.recordcount# Trace Point#( traces.recordcount GT 1 ) ? 's' : ''#" )>
 
 					<tr>
 						<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
@@ -1449,13 +1454,13 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfif dumps.recordcount>
 
 				<cfset sectionId = "Dump">
-				<cfset isOpen = this.isSectionOpen( sectionId )>
+				<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 
 				<div class="section-title">Dumps</div>
 
 				<table>
 
-					<cfset renderSectionHeadTR( sectionId, "#dumps.recordcount# Dump#( dumps.recordcount GT 1 ) ? 's' : ''#" )>
+					<cfset renderSectionHeadTR( sectionId, "debugging", "#dumps.recordcount# Dump#( dumps.recordcount GT 1 ) ? 's' : ''#" )>
 
 					<tr>
 						<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
@@ -1482,12 +1487,12 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<!--- Expression --->
 			<cfif isEnabled( arguments.custom, "expression" )>
 				<cfset sectionId = "Expression">
-				<cfset isOpen = this.isSectionOpen( sectionId )>
+				<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 				<div class="section-title">Expressions</div>
 				<cfset cookie[cookieExpressions] = cookie[cookieExpressions] ?: ''>
 				<cfset local.aExpressions = listToArray(cookie[cookieExpressions], "|")>
 				<table>
-					<cfset renderSectionHeadTR( sectionId, "#aExpressions.len()# Expression#( aExpressions.len() neq 1 ) ? 's' : ''#" )>
+					<cfset renderSectionHeadTR( sectionId, "debugging", "#aExpressions.len()# Expression#( aExpressions.len() neq 1 ) ? 's' : ''#" )>
 					<tr>
 						<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
 							New expression: <input type="text" id="expr_newValue">&nbsp;
@@ -1523,11 +1528,13 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 	<cffunction name="readMetrics" returntype="void"  >
 		<cfoutput>
+			<cfset this.allSections  = this.buildSectionStruct()>
 			<cfset systemInfo=GetSystemMetrics()>
 			<cfset sectionId = "scopesInMemory">
 			<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
+
 			<table class="chartDetails">
-				<cfset renderSectionHeadTR2( "#sectionId#", "Scopes in Memory", "", "metrics" )>
+				<cfset renderSectionHeadTR( "#sectionId#", "metrics" , "Scopes in Memory", "" )>
 				<tr>
 					<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
 						<table class="details" style="text-align: left;">
@@ -1555,8 +1562,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			</table>
 			<cfset sectionId = "request_Threads">
 			<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
+
 			<table class="chartDetails">
-				<cfset renderSectionHeadTR2( "#sectionId#", "Request/Threads", "", "metrics" )>
+				<cfset renderSectionHeadTR( "#sectionId#", "metrics", "Request/Threads", ""  )>
 				<tr>
 					<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
 						<table class="details" style="text-align: left;">
@@ -1586,9 +1594,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				</tr>
 			</table>
 			<cfset sectionId = "datasource_connection">
+
 			<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
 			<table class="chartDetails">
-				<cfset renderSectionHeadTR2( "#sectionId#", "Datasource Connections", "", "metrics" )>
+				<cfset renderSectionHeadTR( "#sectionId#", "metrics", "Datasource Connections", ""  )>
 				<tr>
 					<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
 						<table class="details" style="text-align: left;">
@@ -1614,7 +1623,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfset sectionId = "task_Spooler">
 			<cfset isOpen = this.isSectionOpen( sectionId, "metrics" )>
 			<table class="chartDetails">
-				<cfset renderSectionHeadTR2( "#sectionId#", "Task Spooler", "", "metrics" )>
+				<cfset renderSectionHeadTR( "#sectionId#", "metrics", "Task Spooler", ""  )>
 				<tr>
 					<td id="-lucee-metrics-#sectionId#" class="#isOpen ? '' : 'collapsed'#" >
 						<table class="details" style="text-align: left;">
@@ -1642,6 +1651,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 	</cffunction>
 
 	<cffunction name="readDocs" returntype="void"  >
+		<cfset this.allSections  = this.buildSectionStruct()>
 		<cfset str = {}>
 		<cfset str.functions  = getAllFunctions()>
 		<cfset str.tags = getAllTags()>
@@ -1696,7 +1706,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 										<cfset sectionId = key>
 										<cfset isOpen = this.isSectionOpen( sectionId, "docs" )>
 										<table>
-											<cfset renderSectionHeadTR2( "#Lcase(sectionId)#", "#key#", "", "docs" )>
+											<cfset renderSectionHeadTR( "#Lcase(sectionId)#", "docs", "#key#", "" )>
 											<tr>
 												<td id="-lucee-docs-#Lcase(sectionId)#" class="#isOpen ? '' : 'collapsed'#" >
 													<table>
@@ -1731,35 +1741,22 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 	<cffunction name="renderSectionHeadTR" output="#true#">
 
 		<cfargument name="sectionId">
-		<cfargument name="label1">
-		<cfargument name="label2" default="">
-
-		<cfset var isOpen = this.isSectionOpen( arguments.sectionId )>
-
-		<tr>
-			<td><a id="-lucee-debug-btn-#arguments.sectionId#" class="-lucee-icon-#isOpen ? 'minus' : 'plus'#" onclick="__LUCEE.debug.toggleSection( '#arguments.sectionId#' );">
-				#arguments.label1#</a></td>
-			<td class="pad"><a onclick="__LUCEE.debug.toggleSection( '#arguments.sectionId#' );">#arguments.label2#</a></td>
-		</tr>
-	</cffunction>
-
-	<cffunction name="renderSectionHeadTR2" output="#true#">
-
-		<cfargument name="sectionId">
-		<cfargument name="label1">
-		<cfargument name="label2" default="">
 		<cfargument name="section" default="">
+		<cfargument name="label1">
+		<cfargument name="label2" default="">
 
-		<cfset var isOpen = this.isSectionOpen( "#arguments.sectionId#", "#section#" )>
+		<cfset var isOpen = this.isSectionOpen( arguments.sectionId, arguments.section )>
 
 		<tr>
-			<td><a id="-lucee-#section#-btn-#arguments.sectionId#" class="-lucee-icon-#isOpen ? 'minus' : 'plus'#" onclick="__LUCEE.debug.toggleSection( '#arguments.sectionId#', '#section#' );">
+			<cfset chsSection = arguments.section EQ 'debugging' ? 'debug' : arguments.section>
+			<td><a id="-lucee-#chsSection#-btn-#arguments.sectionId#" class="-lucee-icon-#isOpen ? 'minus' : 'plus'#" onclick="__LUCEE.debug.toggleSection( '#arguments.sectionId#', '#arguments.section#' );">
 				#arguments.label1#</a></td>
-			<td class="pad"><a onclick="__LUCEE.debug.toggleSection( '#arguments.sectionId#', '#section#' );">#arguments.label2#</a></td>
+			<td class="pad"><a onclick="__LUCEE.debug.toggleSection( '#arguments.sectionId#', '#arguments.section#' );">#arguments.label2#</a></td>
 		</tr>
 	</cffunction>
 
-	<cffunction name="loadCharts" output="true" localmode=true>
+	<cffunction name="loadCharts" output="true">
+
 		<cfargument name="chartStruct">
 		<cfset chartsLabel = structNew("linked")>
 		<cfset chartsLabel.HeapChart = "Heap Memory">
@@ -1773,12 +1770,14 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		</cfif>
 
 		<cfloop item="i" collection="#chartsLabel#">
-			<div class="chart_margin #chartClass#">
-				<div style="text-align:center; width:264px; height:165px; padding:7px; border-radius: 25px; border: 2px solid ##898989; -moz-box-sizing: unset !important">
-					<div style="font-size: 14px;font-weight: bold;">#chartsLabel[i]#</div>
-					<div id="#StructFind(arguments.chartStruct,"#i#")#" style="width: 250px; height: 130px; margin: 0 auto;"></div>
+			<cfif structKeyExists(arguments.chartStruct, "#i#")>
+				<div class="chart_margin #chartClass#">
+					<div style="text-align:center; width:264px; height:165px; padding:7px; border-radius: 25px; border: 2px solid ##898989; -moz-box-sizing: unset !important">
+						<div style="font-size: 14px;font-weight: bold;">#chartsLabel[i]#</div>
+						<div id="#StructFind(arguments.chartStruct,"#i#")#" style="width: 250px; height: 130px; margin: 0 auto;"></div>
+					</div>
 				</div>
-			</div>
+			</cfif>
 		</cfloop>
 	</cffunction>
 
@@ -2066,4 +2065,3 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		}
 	</cfscript>
 </cfcomponent>
-

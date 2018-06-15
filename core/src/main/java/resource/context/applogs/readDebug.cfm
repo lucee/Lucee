@@ -1,10 +1,18 @@
 <cfsetting showdebugoutput="false">
+<cfadmin
+	action="getLoggedDebugData"
+	type="web"
+	returnVariable="all">
+<cfset listIds = "">
+<cfloop array="#all#" index="i">
+	<cfset listIds = listAppend(listIds, i.id)>
+</cfloop>
 <cfif isNull(url.id)>
-	<cfadmin
-		action="getLoggedDebugData"
-		type="web"
-		returnVariable="all">
 	<cfset url.id=all[arrayLen(all)].id>
+<cfelse>
+	<cfif listFind(listIds, url.id) EQ 0>
+		<cfset url.id=all[arrayLen(all)].id>
+	</cfif>
 </cfif>
 
 <cfadmin
@@ -44,7 +52,6 @@
 	<cfset c.scopes=false>
 	<cfset fun = "read#URL.tab#">
 	<cfset "#driver[fun](c,log,"admin")#">
-	<!--- <cfset driver.output(c,log,"admin")><cfelse>Data no longer available --->
 </cfif>
 
 <cfscript>
