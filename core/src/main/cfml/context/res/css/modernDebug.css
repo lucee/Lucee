@@ -50,7 +50,7 @@ div#-lucee-docs-ALL > span.twitter-typeahead > .tt-menu.tt-open.moreResults{ fon
 #-lucee-docs-ALL > .twitter-typeahead > .tt-menu > .tt-dataset > .tt-suggestion.tt-selectable {cursor: pointer;}
 #-lucee-docs-ALL > .twitter-typeahead > .tt-menu > .tt-dataset > .tt-suggestion.tt-selectable p{margin: 0px !important;}
 div#-lucee-docs-ALL > span.twitter-typeahead > .tt-menu.tt-open > .tt-dataset > .tt-suggestion.tt-selectable:hover{background-color: #0000FF; color: #FFFFFF}
-#lucee-admin-search-input.tt-input {background-color:white !important;}
+
 
 .container>.access-hide{ font-size:14px ; font-weight: bold;}
 td a.search_input { padding-left: 3px; font-size: 13px;}
