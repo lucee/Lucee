@@ -933,7 +933,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 		try {
 			if(lazy && !createUpdateData && cachedWithin == null && cachedAfter == null && result == null) {
-				if(returntype != RETURN_TYPE_QUERY)
+				if(returntype != RETURN_TYPE_QUERY && returntype != RETURN_TYPE_UNDEFINED)
 					throw new DatabaseException("only return type query is allowed when lazy is set to true", null, sql, dc);
 
 				return new SimpleQuery(pageContext, dc, sql, maxrows, blockfactor, timeout, getName(), getPageSource().getDisplayPath(), tz);
