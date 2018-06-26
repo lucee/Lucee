@@ -50,6 +50,8 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="services.certificate.subject">Subject</data>
 	<data key="services.certificate.issuer">Issuer</data>
 	<data key="services.certificate.noCert">Der angewählte Host stellt keine Zertifikate zu Verfügung.</data>
+	<data key="services.certificate.hostValidation">Missing value for text input field "host"</data>
+	
 	<data key="mappings.addNonCFMLFiles">Füge nicht CFML Source Templates hinzu</data>
 	<data key="mappings.addNonCFMLFilesDesc">Füge alle nicht CFML Templates zu Archiv hinzu (.js,css,gif,png ...).</data>
 	<data key="mappings.addCFMLFiles">Füge CFML Source Templates hinzu</data>
