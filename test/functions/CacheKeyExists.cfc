@@ -1,40 +1,38 @@
-<!--- 
- *
- * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
- ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
-	<cfset variables.cacheName="Test"&ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".")>
-	
-	<cffunction name="testCacheKeyExistsEHCache" localMode="modern">
-		<cfset createEHCache()>
-		<cfset testCacheKeyExists()>
-		<cfset deleteCache()>
-	</cffunction>
-	<cffunction name="testCacheKeyExistsJBossCache" localMode="modern">
-		<cfif !isNull(request.testJBossExtension) and request.testJBossExtension>
-			<cfset createJBossCache()>
-			<cfset testCacheKeyExists()>
-			<cfset deleteCache()>
-		</cfif>
-	</cffunction>
-	<cffunction name="testCacheKeyExistsRAMCache" localMode="modern">
-		<cfset createRAMCache()>
-		<cfset testCacheKeyExists()>
-		<cfset deleteCache()>
-	</cffunction>
+component extends="org.lucee.cfml.test.LuceeTestCase"{
+	function run( testResults , testBox ) {
+		describe( title="Test suite for cacheKeyExists()", body=function() {
+			variables.cacheName="Test"&ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".");
+			afterEach(function( currentSpec ){
+				if(currentSpec != 'checking testCacheKeyExistsJBossCache()'){
+					testCacheKeyExists();
+					deleteCache();
+				}
+			});
+			it(title="Checking testCacheKeyExistsEHCache()", body = function( currentSpec ) {
+				createEHCache();
+			});
+			it(title="Checking testCacheKeyExistsJBossCache()", body = function( currentSpec ) {
+				if(!isNull(request.testJBossExtension) and request.testJBossExtension){
+					createJBossCache();
+					testCacheKeyExists();
+					deleteCache();
+				}
+			});
+			it(title="Checking testCacheKeyExistsRAMCache()", body = function( currentSpec ) {
+				createRAMCache();
+			});
+		});
+	}
+
+	private function testCacheKeyExists(){
+		lock timeout="1" scope="server" { 
+			cacheClear();
+			cachePut('abc','123');
+		    valueEquals("true","#cacheKeyExists('abc')#");
+		    valueEquals("false","#cacheKeyExists('def')#");
+		    valueEquals("false","#cacheKeyExists('def',cacheName)#");
+		}
+	}
 	
 	<cffunction access="private" name="testCacheKeyExists" localMode="modern">
 
