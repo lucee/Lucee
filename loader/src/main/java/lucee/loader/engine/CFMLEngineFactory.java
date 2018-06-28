@@ -670,14 +670,13 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 */
 	private boolean _update(final Identification id) throws IOException,
 			ServletException {
-		
-		if(singelton!=null)
-			singelton.reset();
-		
+
 		final File newLucee = downloadCore(id);
 		if (newLucee == null)
 			return false;
 
+		if(singelton!=null)
+			singelton.reset();
 
 		final Version v = null;
 		try {
