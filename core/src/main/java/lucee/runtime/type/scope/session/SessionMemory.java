@@ -20,6 +20,7 @@ package lucee.runtime.type.scope.session;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.types.RefBoolean;
+import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.scope.Session;
@@ -29,6 +30,7 @@ import lucee.runtime.type.scope.storage.StorageScopeMemory;
 public class SessionMemory extends StorageScopeMemory implements Session,MemoryScope {
 	
 	private static final long serialVersionUID = 7703261878730061485L;
+	private Component component;
 
 
 	/**
@@ -63,5 +65,13 @@ public class SessionMemory extends StorageScopeMemory implements Session,MemoryS
 	@Override
 	public Collection duplicate(boolean deepCopy) {
     	return new SessionMemory(this,deepCopy);
+	}
+
+	public void setComponent(Component component) {
+		this.component=component;
+	}
+
+	public Component getComponent() {
+		return component;
 	}
 }

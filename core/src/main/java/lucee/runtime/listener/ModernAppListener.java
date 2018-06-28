@@ -20,10 +20,8 @@ package lucee.runtime.listener;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.servlet.http.Cookie;
@@ -38,6 +36,7 @@ import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CFMLFactory;
+import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.PageContext;
@@ -67,7 +66,12 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.scope.Application;
+import lucee.runtime.type.scope.ApplicationImpl;
+import lucee.runtime.type.scope.ScopeContext;
+import lucee.runtime.type.scope.Session;
 import lucee.runtime.type.scope.UndefinedImpl;
+import lucee.runtime.type.scope.session.SessionMemory;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.UDFUtil;
@@ -89,7 +93,7 @@ public class ModernAppListener extends AppListenerSupport {
 	private static final Collection.Key ON_ERROR = KeyImpl.intern("onError");
 	private static final Collection.Key ON_MISSING_TEMPLATE = KeyImpl.intern("onMissingTemplate");
 
-	private Map<String,Component> apps=new HashMap<String,Component>();// TODO no longer use this, find a better way to store components for end methods
+	//private Map<String,Component> apps=new HashMap<String,Component>();// TODO no longer use this, find a better way to store components for end methods
 	protected int mode=MODE_CURRENT2ROOT;
 
 	@Override
@@ -109,7 +113,7 @@ public class ModernAppListener extends AppListenerSupport {
 			// init
 			ModernApplicationContext appContext = initApplicationContext(pci,app);
 
-			apps.put(appContext.getName(), app);
+			//apps.put(appContext.getName(), app);
 			
 			if(!pci.initApplicationContext(this)) return;
 			
@@ -231,7 +235,7 @@ public class ModernAppListener extends AppListenerSupport {
 			}
 		}
 		else {
-			apps.put(pc.getApplicationContext().getName(), null);
+			//apps.put(pc.getApplicationContext().getName(), null);
 			
 			if(rl!=null) {
 				requestedPage=rl.execute(pc, requestedPage);
@@ -283,10 +287,21 @@ public class ModernAppListener extends AppListenerSupport {
 		}
 		return null;
 	}
-
+	
 	@Override
 	public boolean onApplicationStart(PageContext pc) throws PageException {
+		return onApplicationStart(pc, pc.applicationScope());
+	}
+
+	@Override
+	public boolean onApplicationStart(PageContext pc, Application application) throws PageException {
 		Component app = getComponent(pc);
+
+		if(app!=null && app.contains(pc,ON_APPLICATION_END)) {
+			if(application instanceof ApplicationImpl)
+				((ApplicationImpl)application).setComponent(app);
+		}
+		
 		if(app!=null && app.contains(pc,ON_APPLICATION_START)) {
 			Object rtn = call(app,pc, ON_APPLICATION_START, ArrayUtil.OBJECT_EMPTY,true);
 			return Caster.toBooleanValue(rtn,true);
@@ -296,8 +311,12 @@ public class ModernAppListener extends AppListenerSupport {
 
 	@Override
 	public void onApplicationEnd(CFMLFactory factory, String applicationName) throws PageException {
-		Component app = apps.get(applicationName);
-		if(app==null || !app.containsKey(ON_APPLICATION_END)) return;
+		Component app = null;
+		Application scope = ((CFMLFactoryImpl)factory).getScopeContext().getExistingApplicationScope(applicationName);
+		
+		if(scope instanceof ApplicationImpl) app=((ApplicationImpl)scope).getComponent();
+		
+		if(app==null) return;
 		
 		PageContextImpl pc=(PageContextImpl) ThreadLocalPageContext.get();
 		boolean createPc=pc==null;
@@ -314,17 +333,30 @@ public class ModernAppListener extends AppListenerSupport {
 
 	@Override
 	public void onSessionStart(PageContext pc) throws PageException {
+		onSessionStart(pc, pc.sessionScope());
+	}
+
+	@Override
+	public void onSessionStart(PageContext pc, Session session) throws PageException {
 		
 		// component
 		Component app=getComponent(pc);
 		if(hasOnSessionStart(pc,app)) {
 			call(app,pc, ON_SESSION_START, ArrayUtil.OBJECT_EMPTY,true);
 		}
+		if(hasOnSessionEnd(pc,app)) {
+			if(session instanceof SessionMemory)
+				((SessionMemory)session).setComponent(app);
+		}
 	}
 
 	@Override
 	public void onSessionEnd(CFMLFactory factory, String applicationName, String cfid) throws PageException {
-		Component app = apps.get(applicationName);
+		
+		Component app = null;
+		Session scope = ((CFMLFactoryImpl)factory).getScopeContext().getExistingCFSessionScope(applicationName,cfid);
+		if(scope instanceof SessionMemory) app=((SessionMemory)scope).getComponent();
+		
 		if(app==null || !app.containsKey(ON_SESSION_END)) return;
 		
 		PageContextImpl pc=null;
@@ -472,6 +504,10 @@ public class ModernAppListener extends AppListenerSupport {
 	private boolean hasOnSessionStart(PageContext pc,Component app) {
 		return app!=null && app.contains(pc,ON_SESSION_START);
 	}
+	
+	private boolean hasOnSessionEnd(PageContext pc,Component app) {
+		return app!=null && app.contains(pc,ON_SESSION_END);
+	}
 
 	public static ModernAppListener getInstance() {
 		return instance;
@@ -482,8 +518,7 @@ public class ModernAppListener extends AppListenerSupport {
 		Component  cfc=null;
 		if(ac instanceof ModernApplicationContext) 
 			cfc = ((ModernApplicationContext)ac).getComponent();
-		if(cfc==null) 
-			cfc = apps.get(pc.getApplicationContext().getName());
+		//if(cfc==null) cfc = apps.get(pc.getApplicationContext().getName());
 		
 		return cfc;
 	}
