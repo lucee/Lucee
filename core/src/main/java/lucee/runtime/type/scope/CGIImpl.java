@@ -101,8 +101,7 @@ public final class CGIImpl extends StructSupport implements CGI,ScriptProtected,
 	private boolean isInit;
 	private Struct internal;
 	private Map<Collection.Key,Collection.Key> aliases;
-	private int scriptProtected;
-	
+	private int scriptProtected;	
 	
 	public CGIImpl() {
 		//this.setReadOnly(true);
@@ -132,23 +131,23 @@ public final class CGIImpl extends StructSupport implements CGI,ScriptProtected,
 		try {
 			Enumeration<String> e = req.getHeaderNames();
 			while(e.hasMoreElements()) {
-				
 				// keys
-				k =e.nextElement();
-	    		key=KeyImpl.init(k);
-	    		if(k.contains("-")) alias=KeyImpl.init(k.replace('-','_'));
-	    		else alias=null;
-	    		httpKey=KeyImpl.init("http_"+(alias==null?key:alias).getString());
-	    		
-	    		// value
-	    		v = doScriptProtect(req.getHeader(k));
-	    		
+				k = e.nextElement();
+	    		key = KeyImpl.init(k);
+	    		if (k.contains("-"))
+	    			alias = KeyImpl.init(k.replace('-', '_'));
+	    		else alias = null;
+
+	    		httpKey = KeyImpl.init("http_" + (alias == null ? key : alias).getString().toLowerCase());
+
 	    		// set value
-	    		internal.setEL(httpKey,v);
+	    		v = doScriptProtect(req.getHeader(k));
+	    		internal.setEL(httpKey, v);
 	    		
 	    		// set alias keys
 	    		aliases.put(key, httpKey);
-	    		if(alias!=null)aliases.put(alias, httpKey);
+	    		if (alias != null)
+	    			aliases.put(alias, httpKey);
 	    	}
 		}
 		catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
@@ -217,9 +216,11 @@ public final class CGIImpl extends StructSupport implements CGI,ScriptProtected,
 			}
 		}
 		
-		
-		if(req!=null && key.length()>7) {
-			char first=key.lowerCharAt(0);
+		if(req != null) {
+
+			String lkey = key.getLowerString();
+			char first = key.charAt(0);
+
 			try{
             if(first=='a') {
             	if(key.equals(KeyConstants._auth_type)) 
@@ -232,13 +233,14 @@ public final class CGIImpl extends StructSupport implements CGI,ScriptProtected,
             		return store(key,getPathTranslated());
             }
             else if(first=='h')	{
-            	if(StringUtil.startsWithIgnoreCase(key.getString(), "http_")) {
-            		// _http_if_modified_since
-            		if(key.equals(KeyConstants._http_if_modified_since)) {
-                    	Object o = internal.get(KeyConstants._last_modified,NullSupportHelper.NULL());
-                    	if(o!=NullSupportHelper.NULL()) return store(key,(String)o);
-            		}
+
+				// _http_if_modified_since
+				if(key.equals(KeyConstants._http_if_modified_since)) {
+					Object o = internal.get(KeyConstants._last_modified,NullSupportHelper.NULL());
+					if(o!=NullSupportHelper.NULL()) return store(key,(String)o);
             	}
+				else if (key.equals(KeyConstants._https))
+					return store(key, req.isSecure() ? "on" : "off");
             }
             else if(first=='r') {
                 if(key.equals(KeyConstants._remote_user))		
@@ -286,7 +288,7 @@ public final class CGIImpl extends StructSupport implements CGI,ScriptProtected,
                 if(key.equals(KeyConstants._server_port))		
                 	return store(key,Caster.toString(req.getServerPort()));
                 if(key.equals(KeyConstants._server_port_secure))
-                	return store(key,req.isSecure()?"1":"0");
+                	return store(key, req.isSecure() ? "1" : "0");
             }
             else if(first=='p') {
             	if(key.equals(KeyConstants._path_info)) {
@@ -316,6 +318,7 @@ public final class CGIImpl extends StructSupport implements CGI,ScriptProtected,
 			}
 			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
         }
+
         return other(key,defaultValue);
 	}
 	private Object store(Key key, String value) {
