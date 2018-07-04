@@ -33,7 +33,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(listSort(structKeyList(local.tmpData), "text")).toBe("COLUMNS,DATA");
 			});
 
-			/* When this testcase is enabled then 'preserveCaseForQueryColumn is true' below fails, but each testcase passes on its own
 			it(title="Checking serializeJSON() with struct serialization", body=function(){
 				var serSettings =  getApplicationSettings().serialization;
 				serSettings.serializeQueryAs = "struct";
@@ -44,7 +43,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(local.tmpData).toBeTypeOf("Array");
 				expect(arrayLen(local.tmpData)).toBe("3");
 			});
-			//*/
+			
 
 			it(title="Checking serializeJSON() with preserve case for structkey(preservecaseforstructkey) Eq to TRUE", body=function(){
 				var serSettings =  getApplicationSettings().serialization;
@@ -80,6 +79,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			it(title="Checking serializeJSON() with preserveCaseForQueryColumn is true", body=function(){
 				var serSettings =  getApplicationSettings().serialization;
+				serSettings.serializeQueryAs = "row";
 				serSettings.preserveCaseForQueryColumn = true;
 				application action="update"	SerializationSettings=serSettings;
 
@@ -96,6 +96,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var data = queryNew("ID, DateJoined", "INTEGER, TIMESTAMP", [{ID=1, DateJoined="2017-01-03 10:57:54"}, {ID=2, DateJoined="2017-01-03 10:57:54"}, {ID=3, DateJoined="2017-01-03 10:57:54"}]);
 				var jsonObject = serializeJSON( data );
 				expect(find("DATEJOINED", jsonObject)).toBeGT(0);
+				expect(find("ID", jsonObject)).toBeGT(0);
+			});
+			// if we serializeQueryAs struct with preserveCaseForQueryColumn true lucee fails to maintain preserveCase for query column
+			xit(title="Checking serializeJSON() with preserveCaseForQueryColumn is true & serializeQueryAs struct", body=function(){
+				var serSettings =  getApplicationSettings().serialization;
+				serSettings.serializeQueryAs = "struct";
+				serSettings.preserveCaseForQueryColumn = true;
+				application action="update"	SerializationSettings=serSettings;
+
+				var data = queryNew("ID, DateJoined", "INTEGER, TIMESTAMP", [{ID=1, DateJoined="2017-01-03 10:57:54"}, {ID=2, DateJoined="2017-01-03 10:57:54"}, {ID=3, DateJoined="2017-01-03 10:57:54"}]);
+				var jsonObject = serializeJSON( data );
+				expect(find("DateJoined", jsonObject)).toBeGT(0);
 				expect(find("ID", jsonObject)).toBeGT(0);
 			});
 		});
