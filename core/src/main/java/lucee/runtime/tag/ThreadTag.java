@@ -182,7 +182,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 			//throw new ApplicationException("invalid value ["+strType+"] for attribute type","task is not supported at the moment");
 			type=TYPE_TASK;
 		}
-		else if("daemon".equals(strType) || "deamon".equals(strType))	type=TYPE_DAEMON;
+		else if("daemon".equals(strType)) type=TYPE_DAEMON;
 		else throw new ApplicationException("invalid value ["+strType+"] for attribute type","values for attribute type are:task,daemon (default)");
 		
 	}

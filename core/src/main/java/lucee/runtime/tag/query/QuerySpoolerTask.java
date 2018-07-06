@@ -94,7 +94,7 @@ public class QuerySpoolerTask extends SpoolerTaskSupport {
 		PageContext oldPc = ThreadLocalPageContext.get();
 		PageContextImpl pc=null;
 		try {
-			// deamon
+			// daemon
 			if(this.pc!=null){
 				pc=this.pc;
 				ThreadLocalPageContext.register(pc);
