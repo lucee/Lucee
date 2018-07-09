@@ -46,6 +46,22 @@
 		}
  	}
 
+ 	public function testMinute() localMode="modern" {
+ 		
+		dt=createDateTime(2000,1,2,3,5,6,7);
+		assertEquals('5',timeFormat(dt,'m'));
+		assertEquals('5',timeFormat(dt,'M'));
+		assertEquals('5',timeFormat(dt,'n'));
+		assertEquals('5',timeFormat(dt,'N'));
+
+		assertEquals('05',timeFormat(dt,'mm'));
+		assertEquals('05',timeFormat(dt,'MM'));
+		assertEquals('05',timeFormat(dt,'nn'));
+		assertEquals('05',timeFormat(dt,'NN'));
+		assertEquals('05',timeFormat(dt,'Nm'));
+		assertEquals('05',timeFormat(dt,'Mn'));
+ 	}
+
 
  	public function testTimeFormatTimeZone_UZ() localMode="modern" {
  		
