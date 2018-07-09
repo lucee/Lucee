@@ -864,7 +864,6 @@ public final class FileTag extends BodyTagImpl {
 		boolean fileExisted=false;
 		boolean fileWasOverwritten=false;
 
-		String contentType = ResourceUtil.getMimeType(formItem.getResource(), formItem.getContentType());
 		
 		// set cffile struct
 		Struct cffile=new StructImpl();
@@ -875,8 +874,6 @@ public final class FileTag extends BodyTagImpl {
 		cffile.set("datelastaccessed",new DateImpl(pageContext));
 		cffile.set("oldfilesize",Long.valueOf(length));
 		cffile.set("filesize",Long.valueOf(length));
-		cffile.set("contenttype",ListFirst.call(pageContext,contentType,"/"));
-		cffile.set("contentsubtype",ListLast.call(pageContext,contentType,"/"));
 		
 		// client file
 		String strClientFile=formItem.getName();
@@ -884,7 +881,13 @@ public final class FileTag extends BodyTagImpl {
 			strClientFile=strClientFile.replace('\\','/');
 		Resource clientFile=pageContext.getConfig().getResource(strClientFile);
 		String clientFileName=clientFile.getName();
-
+		
+		
+		// content type
+		String contentType = ResourceUtil.getMimeType(formItem.getResource(),clientFile.getName(), formItem.getContentType());
+		cffile.set("contenttype",ListFirst.call(pageContext,contentType,"/"));
+		cffile.set("contentsubtype",ListLast.call(pageContext,contentType,"/"));
+		
 		// check file type
 		checkContentType(contentType,accept,getFileExtension(clientFile),strict);
 	
