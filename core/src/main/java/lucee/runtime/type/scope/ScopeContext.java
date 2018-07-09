@@ -287,10 +287,12 @@ public final class ScopeContext {
 
 				if(client == null) {
 					// datasource not enabled for storage
-					if(ds != null)
-						throw new ApplicationException("datasource [" + storage
-								+ "] is not enabled to be used as session/client storage, you have to enable it in the Lucee administrator.");
-
+					if(ds != null) {
+						if(!ds.isStorage())
+							throw new ApplicationException("datasource [" + storage
+								+ "] is not enabled to be used as client storage, you have to enable it in the Lucee administrator.");
+						throw new ApplicationException("datasource [" + storage + "] could not be reached for client storage. Please make sure the datasource settings are correct, and the datasource is available.");
+					}
 					CacheConnection cc = CacheUtil.getCacheConnection(pc, storage, null);
 					if(cc != null)
 						throw new ApplicationException("cache [" + storage
@@ -582,6 +584,14 @@ public final class ScopeContext {
 		}
 		return true;
 	}
+	
+	public Session getExistingCFSessionScope(String applicationName, String cfid) throws PageException {
+		Map<String, Scope> context = getSubMap(cfSessionContexts, applicationName);
+		if(context != null) {
+			return (Session) context.get(cfid);
+		}
+		return null;
+	}
 
 	/**
 	 * return cf session scope
@@ -667,10 +677,12 @@ public final class ScopeContext {
 
 				if(session == null) {
 					// datasource not enabled for storage
-					if(ds != null)
-						throw new ApplicationException("datasource [" + storage + "] is not enabled to be used as session/client storage, "
+					if(ds != null) {
+						if(!ds.isStorage())
+							throw new ApplicationException("datasource [" + storage + "] is not enabled to be used as session storage, "
 								+ "you have to enable it in the Lucee administrator or define key \"storage=true\" for datasources defined in the application event handler.");
-
+						throw new ApplicationException("datasource [" + storage + "] could not be reached for session storage. Please make sure the datasource settings are correct, and the datasource is available.");
+					}
 					CacheConnection cc = CacheUtil.getCacheConnection(pc, storage, null);
 					if(cc != null)
 						throw new ApplicationException("cache [" + storage
@@ -835,12 +847,14 @@ public final class ScopeContext {
 	public void removeApplicationScope(PageContext pc) {
 		applicationContexts.remove(pc.getApplicationContext().getName());
 	}
+	public Application getExistingApplicationScope(String applicationName) {
+		return applicationContexts.get(applicationName);
+	}
 
 	/**
 	 * remove all unused scope objects
 	 */
 	public void clearUnused() {
-
 		Log log = getLog();
 		try {
 			// create cleaner engine for session/client scope
@@ -857,11 +871,10 @@ public final class ScopeContext {
 						// ,new CacheStorageScopeCleaner(Scope.SCOPE_CLIENT, null) //Cache storage need no control, if
 						// there is no listener
 				});
-
 			// store session/client scope and remove from memory
 			storeUnusedStorageScope(factory, Scope.SCOPE_CLIENT);
 			storeUnusedStorageScope(factory, Scope.SCOPE_SESSION);
-
+			
 			// remove unused memory based client/session scope (invoke onSessonEnd)
 			clearUnusedMemoryScope(factory, Scope.SCOPE_CLIENT);
 			clearUnusedMemoryScope(factory, Scope.SCOPE_SESSION);
@@ -873,8 +886,7 @@ public final class ScopeContext {
 			// clean all unused application scopes
 			clearUnusedApplications(factory);
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		catch (Exception t) {
 			error(t);
 		}
 	}
@@ -975,7 +987,7 @@ public final class ScopeContext {
 		Map<String, Map<String, Scope>> contexts = type == Scope.SCOPE_CLIENT ? cfClientContexts : cfSessionContexts;
 		if(contexts.size() == 0)
 			return;
-
+		
 		Object[] arrContexts = contexts.keySet().toArray();
 		ApplicationListener listener = cfmlFactory.getConfig().getApplicationListener();
 		Object applicationName, cfid, o;
@@ -994,6 +1006,7 @@ public final class ScopeContext {
 					if(!(o instanceof MemoryScope))
 						continue;
 					MemoryScope scope = (MemoryScope)o;
+
 					// close
 					if(scope.isExpired()) {
 						// TODO macht das sinn? ist das nicht kopierleiche?
@@ -1004,7 +1017,6 @@ public final class ScopeContext {
 							application.touch();
 						}
 						scope.touch();
-
 						try {
 							if(type == Scope.SCOPE_SESSION)
 								listener.onSessionEnd(cfmlFactory, (String)applicationName, (String)cfid);
@@ -1030,16 +1042,15 @@ public final class ScopeContext {
 	}
 
 	private void clearUnusedApplications(CFMLFactoryImpl jspFactory) {
-
 		if(applicationContexts.size() == 0)
 			return;
-
+		
 		long now = System.currentTimeMillis();
 		Object[] arrContexts = applicationContexts.keySet().toArray();
 		ApplicationListener listener = jspFactory.getConfig().getApplicationListener();
 		for (int i = 0; i < arrContexts.length; i++) {
 			Application application = applicationContexts.get(arrContexts[i]);
-
+			
 			if(application.getLastAccess() + application.getTimeSpan() < now) {
 				// SystemOut .printDate(jspFactory.getConfigWebImpl().getOut(),"Clear application
 				// scope:"+arrContexts[i]+"-"+this);

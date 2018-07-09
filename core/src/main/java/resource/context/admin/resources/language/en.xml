@@ -1432,7 +1432,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.cache.titleCreate">Create a new cache connection</data>
 	<data key="settings.cache.titleExisting">List of existing cache connections</data>
 	<data key="settings.cache.descExisting">List of all existing connection for this environment</data>
-	<data key="settings.cache.nameMissing">Cancel</data>
+	<data key="settings.cache.nameMissing">Please enter a name for the cache</data>
 	<data key="settings.cache.type">Type</data>
 	<data key="settings.cache.defaulttypeObject">Object</data>
 	<data key="settings.cache.defaulttypeObjectDesc">This cache connection is used for all object cache operations (cacheGet,cachePut, cfcache action="get|put" ...)</data>

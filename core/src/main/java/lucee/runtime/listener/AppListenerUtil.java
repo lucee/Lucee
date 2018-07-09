@@ -83,6 +83,7 @@ public final class AppListenerUtil {
 	public static final Collection.Key AWS_SECRET_KEY = KeyImpl.intern("awsSecretKey");
 	public static final Collection.Key DEFAULT_LOCATION = KeyImpl.intern("defaultLocation");
 	public static final Collection.Key ACL = KeyImpl.intern("acl");
+	public static final Collection.Key CACHE = KeyImpl.intern("cache");
 	public static final Collection.Key CONNECTION_STRING = KeyImpl.intern("connectionString");
 	
 	public static final Collection.Key BLOB = KeyImpl.intern("blob");
@@ -483,25 +484,31 @@ public final class AppListenerUtil {
 	}
 	
 	public static Properties toS3(Struct sct) {
-		String host=Caster.toString(sct.get(KeyConstants._host,null),null);
-		if(StringUtil.isEmpty(host))host=Caster.toString(sct.get(KeyConstants._server,null),null);
-		
+
+		String host = Caster.toString(sct.get(KeyConstants._host, null), null);
+		if(StringUtil.isEmpty(host))host = Caster.toString(sct.get(KeyConstants._server, null), null);
+
 		return toS3(
-				Caster.toString(sct.get(ACCESS_KEY_ID,null),null),
-				Caster.toString(sct.get(AWS_SECRET_KEY,null),null),
-				Caster.toString(sct.get(DEFAULT_LOCATION,null),null),
-				host,
-				Caster.toString(sct.get(ACL,null),null)
-			);
+				Caster.toString(sct.get(ACCESS_KEY_ID, null), null), 
+				Caster.toString(sct.get(AWS_SECRET_KEY, null), null),
+				Caster.toString(sct.get(DEFAULT_LOCATION, null), null), 
+				host, 
+				Caster.toString(sct.get(ACL, null), null), 
+				Caster.toTimespan(sct.get(CACHE, null), null)
+		);
+
 	}
 
-	public static Properties toS3(String accessKeyId, String awsSecretKey, String defaultLocation, String host, String acl) {
+	private static Properties toS3(String accessKeyId, String awsSecretKey, String defaultLocation, String host, String acl, TimeSpan cache) {
 		PropertiesImpl s3 = new PropertiesImpl();
+
 		if(!StringUtil.isEmpty(accessKeyId))s3.setAccessKeyId(accessKeyId);
 		if(!StringUtil.isEmpty(awsSecretKey))s3.setSecretAccessKey(awsSecretKey);
 		if(!StringUtil.isEmpty(defaultLocation))s3.setDefaultLocation(defaultLocation);
 		if(!StringUtil.isEmpty(host))s3.setHost(host);
 		if(!StringUtil.isEmpty(acl))s3.setACL(acl);
+		if(cache!=null)s3.setCache(cache.getMillis());
+
 		return s3;
 	}
 

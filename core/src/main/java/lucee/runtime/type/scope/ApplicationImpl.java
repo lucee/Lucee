@@ -20,6 +20,7 @@ package lucee.runtime.type.scope;
 
 import java.util.Map;
 
+import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -42,6 +43,8 @@ public final class ApplicationImpl extends ScopeSupport implements Application,S
 	private long lastAccess;
 	private long timeSpan;
 	private long created;
+
+	private Component component;
 	
 	/**
 	 * default constructor of the session scope
@@ -103,5 +106,13 @@ public final class ApplicationImpl extends ScopeSupport implements Application,S
 	@Override
 	public long getCreated() {
 		return created;
+	}
+
+	public void setComponent(Component component) {
+		this.component=component;
+	}
+
+	public Component getComponent() {
+		return component;
 	}
 }

@@ -427,7 +427,7 @@ public final class Schedule extends TagImpl {
         
        try {
            
-           ScheduleTask st=new ScheduleTaskImpl(
+           ScheduleTask st=new ScheduleTaskImpl(scheduler,
                    task,
                    file,
                    startdate,
