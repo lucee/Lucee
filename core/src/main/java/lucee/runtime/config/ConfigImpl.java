@@ -2339,7 +2339,7 @@ public abstract class ConfigImpl implements Config {
 		
 		Resource dir = getClassDirectory().getRealResource("RPC");
 		if(!dir.exists())dir.createDirectory(true);
-		rpcClassLoader = new PhysicalClassLoader(this,dir,null,false);
+		rpcClassLoader = new PhysicalClassLoader(this,dir,null,true);
 		return rpcClassLoader;
 	}
 	
@@ -2349,7 +2349,7 @@ public abstract class ConfigImpl implements Config {
 		
 		Resource dir = getClassDirectory().getRealResource("RPC");
 		if(!dir.exists())dir.createDirectory(true);
-		rpcClassLoader = new PhysicalClassLoader(this,dir,parents,false);
+		rpcClassLoader = new PhysicalClassLoader(this,dir,parents,true);
 		return rpcClassLoader;
 	}
 	
