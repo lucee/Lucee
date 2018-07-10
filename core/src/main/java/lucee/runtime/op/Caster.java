@@ -65,13 +65,13 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.coder.Base64Coder;
-import lucee.runtime.coder.CoderException;
 import lucee.runtime.component.Member;
 import lucee.runtime.config.Config;
 import lucee.runtime.converter.ConverterException;
@@ -300,8 +300,7 @@ public final class Caster {
      * @throws PageException 
      */
     public static boolean toBooleanValue(Object o) throws PageException {
-        if(o instanceof Boolean) return ((Boolean)o).booleanValue();
-        else if(o instanceof Double) return toBooleanValue(((Double)o).doubleValue());
+    	if(o instanceof Boolean) return ((Boolean)o).booleanValue();
         else if(o instanceof Number) return toBooleanValue(((Number)o).doubleValue());
         else if(o instanceof String) return toBooleanValue((String)o);
         else if(o instanceof Castable) return ((Castable)o).castToBooleanValue();
@@ -401,6 +400,7 @@ public final class Caster {
      */
     private static final int MAX_SMALL_DOUBLE=10000;
 	private static final Double[] smallDoubles=new Double[MAX_SMALL_DOUBLE];
+	private static final Object DEFAULT = new Object();
 	static {
 		for(int i=0;i<MAX_SMALL_DOUBLE;i++) smallDoubles[i]=new Double(i);
 	}
@@ -442,8 +442,7 @@ public final class Caster {
         else if(o instanceof ObjectWrap) return toDoubleValue(((ObjectWrap)o).getEmbededObject());
         else if(o instanceof Date) return DateTimeUtil.getInstance().toDoubleValue(((Date)o).getTime());
         else if(o instanceof Calendar) return DateTimeUtil.getInstance().toDoubleValue(((Calendar)o).getTimeInMillis());
-        else if(o instanceof Character) return toDoubleValue(o.toString(),true);
-        
+        else if(o instanceof Character) return (double)(((Character)o).charValue());
         throw new CasterException(o,"number");
     }
 
@@ -485,8 +484,9 @@ public final class Caster {
     public static double toDoubleValue(String str, boolean alsoFromDate) throws CasterException { 
         if(str==null) return 0;//throw new CasterException("can't cast empty string to a number value");
         str=str.trim();
-        double rtn_=0;
-        double _rtn=0;
+        double rtn=0;
+        //double rtn_=0;
+        //double _rtn=0;
         int eCount=0;
         double deep=1;
         int pos=0; 
@@ -507,7 +507,7 @@ public final class Caster {
         boolean hasDot=false; 
         //boolean hasExp=false; 
         do { 
-            curr=str.charAt(pos); 
+        	curr=str.charAt(pos); 
             if(curr<'0') {
                 if(curr=='.') { 
                     if(hasDot) {
@@ -541,33 +541,22 @@ public final class Caster {
                     //throw new CasterException("can't cast ["+str+"] string to a number value"); 
                 //}
             }
-            else if(!hasDot) {
-                rtn_*=10;
-                rtn_+=toDigit(curr);
+            else  {
+                rtn*=10;
+                rtn+=toDigit(curr);
+                if(hasDot) deep*=10;
                 
-            }
-            /*else if(hasExp) {
-                eCount*=10;
-                eCount+=toDigit(curr);
-            }*/
-            else  {               
-                deep*=10;
-                _rtn*=10;
-                _rtn+=toDigit(curr);
-                
-                //rtn_+=(toDigit(curr)/deep);
-                //deep*=10;
             }
         } 
         while(++pos<len);
         
-
         if(deep>1) {
-            rtn_+=(_rtn/=deep);
+            rtn/=deep;
         }
-        if(isMinus)rtn_= -rtn_;
-        if(eCount>0)for(int i=0;i<eCount;i++)rtn_*=10;
-        return rtn_;
+         if(isMinus)rtn= -rtn;
+        if(eCount>0)for(int i=0;i<eCount;i++)rtn*=10;
+        //print.e("here:"+rtn_);
+        return rtn;
     }
     
     private static double toDoubleValueViaDate(String str) throws CasterException {
@@ -610,7 +599,7 @@ public final class Caster {
         else if(o instanceof ObjectWrap) return toDoubleValue(((ObjectWrap)o).getEmbededObject(new Double(defaultValue)),true,defaultValue);
         else if(o instanceof Date) return DateTimeUtil.getInstance().toDoubleValue(((Date)o).getTime());
         else if(o instanceof Calendar) return DateTimeUtil.getInstance().toDoubleValue(((Calendar)o).getTimeInMillis());
-        else if(o instanceof Character) return toDoubleValue(o.toString(),alsoFromDate,defaultValue);
+        else if(o instanceof Character) return (double)(((Character)o).charValue());
         return defaultValue;
     }
     
@@ -630,8 +619,7 @@ public final class Caster {
         int len=str.length(); 
         if(len==0) return defaultValue; 
 
-        double rtn_=0;
-        double _rtn=0;
+        double rtn=0;
         int eCount=0;
 //      double deep=10;
         double deep=1;
@@ -684,18 +672,10 @@ public final class Caster {
                 	return toDoubleValueViaDate(str,defaultValue);
                 //}
             }
-            else if(!hasDot) {
-                rtn_*=10;
-                rtn_+=toDigit(curr);
-            }
-            /*else if(hasExp) {
-                eCount*=10;
-                eCount+=toDigit(curr);
-            }*/
-            else  {                
-                deep*=10;
-                _rtn*=10;
-                _rtn+=toDigit(curr);
+            else  {
+                rtn*=10;
+                rtn+=toDigit(curr);
+                if(hasDot)deep*=10;
             }
            
         } 
@@ -703,11 +683,11 @@ public final class Caster {
         
         
         if(deep>1) {
-            rtn_+=(_rtn/=deep);
+            rtn/=deep;
         }
-        if(isMinus)rtn_= -rtn_;
-        if(eCount>0)for(int i=0;i<eCount;i++)rtn_*=10;
-        return rtn_;
+        if(isMinus)rtn= -rtn;
+        if(eCount>0)for(int i=0;i<eCount;i++)rtn*=10;
+        return rtn;
         
         
     }
@@ -761,7 +741,8 @@ public final class Caster {
         
         if(o instanceof Number) return ((Number)o).intValue();
         else if(o instanceof Boolean) return ((Boolean)o).booleanValue()?1:0;
-        else if(o instanceof String) return toIntValue(o.toString().trim());
+        else if(o instanceof CharSequence) return toIntValue(o.toString().trim());
+        else if(o instanceof Character) return (int)(((Character)o).charValue());
         //else if(o instanceof Clob) return toIntValue(toString(o));
         else if(o instanceof Castable) return (int)((Castable)o).castToDoubleValue();
         else if(o instanceof Date) return (int)new DateTimeImpl((Date)o).castToDoubleValue();
@@ -784,8 +765,9 @@ public final class Caster {
         
         if(o instanceof Number) return ((Number)o).intValue();
         else if(o instanceof Boolean) return ((Boolean)o).booleanValue()?1:0;
-        else if(o instanceof String) return toIntValue(o.toString().trim(),defaultValue);
+        else if(o instanceof CharSequence) return toIntValue(o.toString().trim(),defaultValue);
         //else if(o instanceof Clob) return toIntValue(toString(o));
+        else if(o instanceof Character) return (int)(((Character)o).charValue());
         else if(o instanceof Castable) {
             return (int)((Castable)o).castToDoubleValue(defaultValue);
             
@@ -1391,11 +1373,10 @@ public final class Caster {
      * @throws PageException
      */
     public static long toLongValue(Object o) throws PageException {
-        if(o instanceof Character) return (((Character)o).charValue());
-        else if(o instanceof Boolean) return ((((Boolean)o).booleanValue())?1L:0L);
+        if(o instanceof Boolean) return ((((Boolean)o).booleanValue())?1L:0L);
         else if(o instanceof Number) return (((Number)o).longValue());
-        else if(o instanceof String) {
-        	String str=(String)o;
+        else if(o instanceof CharSequence) {
+        	String str=o.toString();
         	try{
         		return Long.parseLong(str);
         	}
@@ -1403,6 +1384,7 @@ public final class Caster {
         		return (long)toDoubleValue(str);
         	}                                                                                                                                                     
         }
+        else if(o instanceof Character) return (((Character)o).charValue());
         else if(o instanceof Castable) return (long)((Castable)o).castToDoubleValue();    
         else if(o instanceof ObjectWrap) return toLongValue(((ObjectWrap)o).getEmbededObject());
 		
@@ -1421,7 +1403,7 @@ public final class Caster {
     		bi = new BigInteger(str);
     		
     	}
-    	catch(Throwable t){}
+    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     	if(bi!=null) {
     		if(bi.bitLength()<64) return bi.longValue();
     		throw new ApplicationException("number ["+str+"] cannot be casted to a long value, number is to long ("+(bi.bitLength()+1)+" bit)");
@@ -1449,6 +1431,7 @@ public final class Caster {
 	    	return bi;
     	}
     	catch(Throwable t) {
+    		ExceptionUtil.rethrowIfNecessary(t);
     		return defaultValue;
     	}
     }
@@ -1463,10 +1446,11 @@ public final class Caster {
         if(o instanceof Character) return (((Character)o).charValue());
         else if(o instanceof Boolean) return ((((Boolean)o).booleanValue())?1L:0L);
         else if(o instanceof Number) return (((Number)o).longValue());
-        else if(o instanceof String) return (long)toDoubleValue(o.toString(),defaultValue);                                                                                                                                                      
+        else if(o instanceof CharSequence) return (long)toDoubleValue(o.toString(),defaultValue);                                                                                                                                                      
         else if(o instanceof Castable) {
             return (long)((Castable)o).castToDoubleValue(defaultValue);                                                                                           
         }
+        else if(o instanceof Character) return (long)(((Character)o).charValue());
         else if(o instanceof ObjectWrap) return toLongValue(((ObjectWrap)o).getEmbededObject(toLong(defaultValue)),defaultValue);
 		
         return defaultValue;
@@ -1647,10 +1631,10 @@ public final class Caster {
      * @throws PageException
      */
     public static float toFloatValue(Object o) throws PageException {
-        if(o instanceof Character) return (((Character)o).charValue());
-        else if(o instanceof Boolean) return ((((Boolean)o).booleanValue())?1F:0F);
+        if(o instanceof Boolean) return ((((Boolean)o).booleanValue())?1F:0F);
         else if(o instanceof Number) return (((Number)o).floatValue());
-        else if(o instanceof String) return (float)toDoubleValue(o.toString());                                                                                                                                                      
+        else if(o instanceof CharSequence) return (float)toDoubleValue(o.toString());
+        else if(o instanceof Character) return (((Character)o).charValue());
         else if(o instanceof Castable) return (float)((Castable)o).castToDoubleValue();    
         else if(o instanceof ObjectWrap) return toFloatValue(((ObjectWrap)o).getEmbededObject());
 		
@@ -1677,7 +1661,8 @@ public final class Caster {
         if(o instanceof Character) return (((Character)o).charValue());
         else if(o instanceof Boolean) return ((((Boolean)o).booleanValue())?1F:0F);
         else if(o instanceof Number) return (((Number)o).floatValue());
-        else if(o instanceof String) return (float)toDoubleValue(o.toString(),defaultValue);                                                                                                                                                      
+        else if(o instanceof CharSequence) return (float)toDoubleValue(o.toString(),defaultValue);                                                                                                                                                      
+        else if(o instanceof Character) return (float)(((Character)o).charValue());
         else if(o instanceof Castable) {
             return (float)((Castable)o).castToDoubleValue(defaultValue);
                                                                                                                                                                   
@@ -1722,10 +1707,10 @@ public final class Caster {
      */
     public static short toShortValue(Object o) throws PageException {
         if(o instanceof Short) return ((Short)o).shortValue();
-        if(o instanceof Character) return (short)(((Character)o).charValue());
+        else if(o instanceof CharSequence) return (short)toDoubleValue(o.toString());
+        else if(o instanceof Character) return (short)(((Character)o).charValue());
         else if(o instanceof Boolean) return (short)((((Boolean)o).booleanValue())?1:0);
         else if(o instanceof Number) return (((Number)o).shortValue());
-        else if(o instanceof String) return (short)toDoubleValue(o.toString());                                                                                                                                                             
         else if(o instanceof Castable) return (short)((Castable)o).castToDoubleValue(); 
         else if(o instanceof ObjectWrap) return toShortValue(((ObjectWrap)o).getEmbededObject());
 		
@@ -1750,10 +1735,10 @@ public final class Caster {
      */
     public static short toShortValue(Object o, short defaultValue) {
         if(o instanceof Short) return ((Short)o).shortValue();
-        if(o instanceof Character) return (short)(((Character)o).charValue());
         else if(o instanceof Boolean) return (short)((((Boolean)o).booleanValue())?1:0);
         else if(o instanceof Number) return (((Number)o).shortValue());
-        else if(o instanceof String) return (short)toDoubleValue(o.toString(),defaultValue);                                                                                                                                                             
+        else if(o instanceof CharSequence) return (short)toDoubleValue(o.toString(),defaultValue);                                                                                                                                                             
+        else if(o instanceof Character) return (short)(((Character)o).charValue());
         else if(o instanceof Castable) {
             return (short)((Castable)o).castToDoubleValue(defaultValue);
                                                                                                                                             
@@ -1909,7 +1894,8 @@ public final class Caster {
         	
         	try {
 				return new String((byte[])o,pc.getWebCharset());
-			} catch (Throwable t) {
+			} catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				return new String((byte[])o);
 			}
         }
@@ -2682,9 +2668,6 @@ public final class Caster {
         try {
 			return Base64Encoder.decode(toString(o));
 		} 
-        catch (CoderException e) {
-			throw new CasterException(e.getMessage(),"binary");
-		}
         catch (PageException e) {
             throw new CasterException(o,"binary");
         }
@@ -2736,21 +2719,24 @@ public final class Caster {
      * @return to Base64 String
      */
     public static String toBase64(Object o,String charset,String defaultValue) {
-        byte[] b;
-        if(o instanceof byte[])b=(byte[]) o;
+        ;
+        if(o instanceof byte[])return toB64((byte[]) o,defaultValue);
         else if(o instanceof String)return toB64((String)o, charset,defaultValue);
         else if(o instanceof ObjectWrap) {
             return toBase64(((ObjectWrap)o).getEmbededObject(defaultValue),charset,defaultValue);
         }
-        else if(o == null) return toBase64("",charset,defaultValue);
-        else {
-        	String str = toString(o,null);
-        	if(str!=null)return toBase64(str,charset,defaultValue);
-        	
-        	b=toBinary(o,null);
-        	if(b==null)return defaultValue;
+        else if(o == null) {
+        	return toBase64("",charset,defaultValue);
         }
-        return toB64(b,defaultValue);
+        else {
+        	byte[] b=toBinary(o,null);
+        	if(b!=null) return toB64(b,defaultValue);
+        	else {
+        		String str = toString(o,null);
+        		if(str!=null)return toBase64(str,charset,defaultValue);
+        		else return defaultValue;
+        	}
+        }
     }
 
 
@@ -2766,7 +2752,8 @@ public final class Caster {
         if(StringUtil.isEmpty(charset,true))charset="UTF-8";
     	try {
 			return Base64Coder.encodeFromString(str,charset);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
     }
@@ -2774,7 +2761,7 @@ public final class Caster {
     public static String toB64(byte[] b, String defaultValue) {
         try {
 			return Base64Coder.encode(b);
-		} catch (Throwable t) {
+		} catch(Exception e) {
 			return defaultValue;
 		}
     }
@@ -3120,20 +3107,6 @@ public final class Caster {
      * @return casted TimeSpan Object
      */
     public static TimeSpan toTimespan(Object o, TimeSpan defaultValue) {
-        try {
-            return toTimespan(o);
-        } catch (PageException e) {
-            return defaultValue;
-        }
-    }
-        
-    /**
-     * cast a Object to a TimeSpan Object (alias for toTimeSpan)
-     * @param o Object to cast
-     * @return casted TimeSpan Object
-     * @throws PageException
-     */
-    public static TimeSpan toTimespan(Object o) throws PageException {
         if(o instanceof TimeSpan) return (TimeSpan)o;
         else if(o instanceof String) {
                 String[] arr=o.toString().split(",");
@@ -3149,13 +3122,30 @@ public final class Caster {
                 }
         }
         else if(o instanceof ObjectWrap) {
-            return toTimespan(((ObjectWrap)o).getEmbededObject());
+        	Object embeded = ((ObjectWrap)o).getEmbededObject(DEFAULT);
+            if(embeded==DEFAULT) return defaultValue;
+        	return toTimespan(embeded,defaultValue);
         }
         
         double dbl = toDoubleValue(o,true,Double.NaN);
         if(!Double.isNaN(dbl))return TimeSpanImpl.fromDays(dbl);
         
-        throw new CasterException(o,"timespan");
+        return defaultValue;
+    }
+    
+    
+        
+    /**
+     * cast a Object to a TimeSpan Object (alias for toTimeSpan)
+     * @param o Object to cast
+     * @return casted TimeSpan Object
+     * @throws PageException
+     */
+    public static TimeSpan toTimespan(Object o) throws PageException {
+        TimeSpan ts = toTimespan(o, null);
+        if(ts!=null) return ts;
+        
+    	throw new CasterException(o,"timespan");
     }
     
     /**
@@ -3164,6 +3154,9 @@ public final class Caster {
      * @return casted PageException Object
      */
     public static PageException toPageException(Throwable t) {
+    	return toPageException(t, true);
+    }
+    public static PageException toPageException(Throwable t, boolean rethrowIfNecessary) {
         if(t instanceof PageException)
             return (PageException)t;
         else if(t instanceof PageExceptionBox)
@@ -3183,7 +3176,7 @@ public final class Caster {
         	}
         	//Throwable cause = t.getCause();
         	//if(cause!=null && cause!=t) return toPageException(cause);
-        	return NativeException.newInstance(t);
+        	return NativeException.newInstance(t,rethrowIfNecessary);
         }
     }
     
@@ -4473,18 +4466,18 @@ public final class Caster {
 		else if(trgClass==boolean.class)return Caster.toBoolean(obj); 
 		else if(trgClass==byte.class)return Caster.toByte(obj); 
 		else if(trgClass==short.class)return Caster.toShort(obj); 
-		else if(trgClass==int.class)return Integer.valueOf(Caster.toDouble(obj).intValue()); 
+		else if(trgClass==int.class)return Caster.toInteger(obj); 
 		else if(trgClass==long.class)return Caster.toLong(obj);
-		else if(trgClass==float.class)return new Float(Caster.toDouble(obj).floatValue()); 
+		else if(trgClass==float.class)return Caster.toFloat(obj); 
 		else if(trgClass==double.class)return Caster.toDouble(obj); 
 		else if(trgClass==char.class)return Caster.toCharacter(obj); 
 		
 		else if(trgClass==Boolean.class)return Caster.toBoolean(obj); 
 		else if(trgClass==Byte.class)return Caster.toByte(obj); 
 		else if(trgClass==Short.class)return Caster.toShort(obj); 
-		else if(trgClass==Integer.class)return Integer.valueOf(Caster.toDouble(obj).intValue()); 
+		else if(trgClass==Integer.class)return Caster.toInteger(obj); 
 		else if(trgClass==Long.class)return Caster.toLong(obj); 
-		else if(trgClass==Float.class)return new Float(Caster.toDouble(obj).floatValue()); 
+		else if(trgClass==Float.class)return Caster.toFloat(obj); 
 		else if(trgClass==Double.class)return Caster.toDouble(obj); 
 		else if(trgClass==Character.class)return Caster.toCharacter(obj); 
 		
@@ -4508,7 +4501,8 @@ public final class Caster {
 			return new BigDecimal(((Number)o).toString());
 		}
         else if(o instanceof Boolean) return new BigDecimal(((Boolean)o).booleanValue()?1:0);
-        else if(o instanceof String) return new BigDecimal(o.toString());
+        else if(o instanceof CharSequence) return new BigDecimal(o.toString());
+        else if(o instanceof Character) return new BigDecimal((int)(((Character)o).charValue()));
         else if(o instanceof Castable) return new BigDecimal(((Castable)o).castToDoubleValue());
         else if(o == null) return BigDecimal.ZERO;
         else if(o instanceof ObjectWrap) return toBigDecimal(((ObjectWrap)o).getEmbededObject());
@@ -4521,7 +4515,8 @@ public final class Caster {
 			return new BigInteger(((Number)o).toString());
 		}
         else if(o instanceof Boolean) return new BigInteger(((Boolean)o).booleanValue()?"1":"0");
-        else if(o instanceof String) return new BigInteger(o.toString());
+        else if(o instanceof CharSequence) return new BigInteger(o.toString());
+        else if(o instanceof Character) return new BigInteger(String.valueOf((int)(((Character)o).charValue())));
         else if(o instanceof Castable) return new BigInteger(""+Caster.toIntValue(((Castable)o).castToDoubleValue()));
         else if(o == null) return BigInteger.ZERO;
         else if(o instanceof ObjectWrap) return toBigInteger(((ObjectWrap)o).getEmbededObject());
@@ -4533,6 +4528,10 @@ public final class Caster {
 		if(value instanceof ObjectWrap) {
 			return ((ObjectWrap)value).getEmbededObject();
 		}
+		if(value instanceof JavaObject) {
+			return ((JavaObject)value).getEmbededObject();
+		}
+		
 		return value;
 	}
 	
@@ -4540,6 +4539,9 @@ public final class Caster {
 		if(value==null) return null;
 		if(value instanceof ObjectWrap) {
 			return ((ObjectWrap)value).getEmbededObject(defaultValue);
+		}
+		if(value instanceof JavaObject) {
+			return ((JavaObject)value).getEmbededObject(defaultValue);
 		}
 		return value;
 	}

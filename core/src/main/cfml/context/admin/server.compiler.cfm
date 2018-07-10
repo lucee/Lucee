@@ -76,6 +76,7 @@ Defaults --->
 	<cfcatch>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
+		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
 
@@ -104,7 +105,7 @@ Redirtect to entry --->
 
 <cfoutput>
 	<div class="pageintro">#stText.setting.compiler#</div>
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 				
@@ -306,5 +307,5 @@ Redirtect to entry --->
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 </cfoutput>

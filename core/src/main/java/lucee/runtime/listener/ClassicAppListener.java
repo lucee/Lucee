@@ -35,50 +35,54 @@ import lucee.runtime.type.UDF;
  */
 public final class ClassicAppListener extends AppListenerSupport {
 
-	private int mode=MODE_CURRENT2ROOT;
+	private int mode = MODE_CURRENT2ROOT;
 
 	@Override
-	public void onRequest(PageContext pc,PageSource requestedPage, RequestListener rl) throws PageException {
-		
-		PageSource application=
-			AppListenerUtil.getApplicationPageSource(pc,requestedPage,Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER,mode);
-		
-		_onRequest(pc, requestedPage, application,rl);
+	public void onRequest(PageContext pc, PageSource requestedPage, RequestListener rl) throws PageException {
+
+		PageSource application = AppListenerUtil.getApplicationPageSource(pc, requestedPage, Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER, mode);
+
+		_onRequest(pc, requestedPage, application, rl);
 	}
-	
-	static void _onRequest(PageContext pc,PageSource requestedPage,PageSource application, RequestListener rl) throws PageException {
-		((PageContextImpl)pc).setAppListenerType(ApplicationListener.TYPE_CLASSIC);
+
+	static void _onRequest(PageContext pc, PageSource requestedPage, PageSource application, RequestListener rl) throws PageException {
+		PageContextImpl pci = (PageContextImpl)pc;
+		pci.setAppListenerType(ApplicationListener.TYPE_CLASSIC);
 
 		// on requestStart
-		if(application!=null)pc.doInclude(new PageSource[]{application},false);
-		
-		if(rl!=null) {
-			requestedPage=rl.execute(pc, requestedPage);
-			if(requestedPage==null) return;
+		if(application != null)
+			pci._doInclude(new PageSource[] { application }, false, null);
+
+		if(rl != null) {
+			requestedPage = rl.execute(pc, requestedPage);
+			if(requestedPage == null)
+				return;
 		}
-		
+
 		// request
-		try{
-			pc.doInclude(new PageSource[]{requestedPage},false);
+		try {
+			pci._doInclude(new PageSource[] { requestedPage }, false, null);
 		}
-		catch(MissingIncludeException mie){
+		catch (MissingIncludeException mie) {
 			ApplicationContext ac = pc.getApplicationContext();
-			boolean rethrow=true;
+			boolean rethrow = true;
 			if(ac instanceof ClassicApplicationContext) {
-				ClassicApplicationContext cfc=(ClassicApplicationContext) ac;
+				ClassicApplicationContext cfc = (ClassicApplicationContext)ac;
 				UDF udf = cfc.getOnMissingTemplate();
-				if(udf!=null) {
-					String targetPage=requestedPage.getRealpathWithVirtual();
-					rethrow=(!Caster.toBooleanValue(udf.call(pc, new Object[]{targetPage}, true),true));
+				if(udf != null) {
+					String targetPage = requestedPage.getRealpathWithVirtual();
+					rethrow = (!Caster.toBooleanValue(udf.call(pc, new Object[] { targetPage }, true), true));
 				}
 			}
-			if(rethrow)throw mie;
+			if(rethrow)
+				throw mie;
 		}
-		
+
 		// on Request End
-		if(application!=null){
+		if(application != null) {
 			PageSource onReqEnd = application.getRealPage(Constants.CFML_CLASSIC_APPLICATION_END_EVENT_HANDLER);
-	        if(onReqEnd.exists())pc.doInclude(new PageSource[]{onReqEnd},false);
+			if(onReqEnd.exists())
+				pci._doInclude(new PageSource[] { onReqEnd }, false, null);
 		}
 	}
 
@@ -95,7 +99,7 @@ public final class ClassicAppListener extends AppListenerSupport {
 
 	@Override
 	public void onApplicationEnd(CFMLFactory factory, String applicationName) throws PageException {
-		// do nothing	
+		// do nothing
 	}
 
 	@Override
@@ -110,50 +114,52 @@ public final class ClassicAppListener extends AppListenerSupport {
 
 	public static void _onDebug(PageContext pc) throws PageException {
 		try {
-			if(pc.getConfig().debug())pc.getDebugger().writeOut(pc);
-		} 
+			if(pc.getConfig().debug())
+				pc.getDebugger().writeOut(pc);
+		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
 	@Override
-	public void onError(PageContext pc,PageException pe) {
+	public void onError(PageContext pc, PageException pe) {
 		_onError(pc, pe);
 	}
 
-	public static void _onError(PageContext pc,PageException pe) {
+	public static void _onError(PageContext pc, PageException pe) {
 		pc.handlePageException(pe);
 	}
-	
+
 	@Override
 	public void onTimeout(PageContext pc) {
 		_onTimeout(pc);
 	}
+
 	public static void _onTimeout(PageContext pc) {
 	}
-	
+
 	@Override
-	public boolean hasOnApplicationStart(){
+	public boolean hasOnApplicationStart() {
 		return false;
 	}
-	
-	public static boolean _hasOnApplicationStart(){
+
+	public static boolean _hasOnApplicationStart() {
 		return false;
 	}
-	
+
 	@Override
-	public boolean hasOnSessionStart(PageContext pc){
+	public boolean hasOnSessionStart(PageContext pc) {
 		return false;
 	}
-	
-	public static boolean _hasOnSessionStart(PageContext pc){
+
+	public static boolean _hasOnSessionStart(PageContext pc) {
 		return false;
 	}
 
 	@Override
 	public void setMode(int mode) {
-		this.mode=mode;
+		this.mode = mode;
 	}
 
 	@Override

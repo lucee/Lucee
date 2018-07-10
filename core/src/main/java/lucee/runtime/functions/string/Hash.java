@@ -24,6 +24,7 @@ package lucee.runtime.functions.string;
 import java.security.MessageDigest;
 
 import lucee.commons.digest.HashUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
@@ -46,9 +47,7 @@ public final class Hash implements Function {
     public static String call(PageContext pc , String input, String algorithm, String encoding) throws PageException {
 		return invoke( pc.getConfig(), input, algorithm, encoding, 1 );
 	}
-	//////
-	
-	
+
 	public static String call(PageContext pc, Object input) throws PageException {
 		return invoke( pc.getConfig(), input, null, null, 1 );
 	}
@@ -65,13 +64,8 @@ public final class Hash implements Function {
 		return invoke( pc.getConfig(), input, algorithm, encoding, (int)numIterations );
 	}
 
-    /*/	this method signature was called from ConfigWebAdmin.createUUID(), comment this comment to enable
-    public synchronized static String invoke(Config config, Object input, String algorithm, String encoding) throws PageException {
-    	
-    	return invoke(config, input, algorithm, encoding, 1);
-    }	//*/
-    
     public static String invoke(Config config, Object input, String algorithm, String encoding, int numIterations) throws PageException {
+		if(numIterations<1) numIterations=1;
 		
     	if(StringUtil.isEmpty(algorithm))algorithm="md5";
 		else algorithm=algorithm.trim().toLowerCase();
@@ -98,7 +92,8 @@ public final class Hash implements Function {
 			}
 		    return lucee.commons.digest.Hash.toHexString(data,true);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 	}

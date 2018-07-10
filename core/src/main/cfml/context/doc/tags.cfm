@@ -1,4 +1,6 @@
+<cfsetting showDebugOutput=false>
 <cfinclude template="/lucee/admin/resources/text.cfm">
+<cfset stText.doc.attr.default="Default Value">
 
 <cfparam name="URL.namespace" default="cf">
 
@@ -7,9 +9,8 @@
 <cfset arrAllItems   = Application.objects.utils.getAllTags()>
 
 <cfif len( url.item )>
-
-	<cfif !arrAllItems.findNoCase( url.item )>
-
+	<cfset itemPos = arrAllItems.findNoCase( url.item )>
+	<cfif !itemPos>
 		<cfset url.item = "">
 	</cfif>
 
@@ -21,57 +22,100 @@
 			<cfset url.namespace = ns>
 		</cfif>
 	</cfloop>
+	<cfset prevLinkItem = itemPos GT 1 ? arrAllItems[itemPos-1] : "">
+	<cfset nextLinkItem = itemPos NEQ arrAllItems.len() ? arrAllItems[itemPos+1] : "">
+<cfelse>
+	<cfset prevLinkItem = "">
+	<cfset nextLinkItem = "">
 </cfif>
 
-
 <cfsavecontent variable="Request.htmlBody">
+	<style type="text/css">
+		.tt-suggestion.tt-selectable p{
+			margin: 0px !important;
+		}
+		.tt-suggestion.tt-selectable{
+			cursor: pointer;
+		}
+		.tt-suggestion.tt-selectable:hover{
+			background-color: #01798A;
+			color: #FFFFFF;
+		}
+	</style>
+	<script src="assets/js/jquery-1.9.min.js.cfm" type="text/javascript"></script>
+	<script src="assets/js/typeahead.min.js.cfm"></script>
 
 	<script type="text/javascript">
 
 		<cfoutput>
-
 			var typeaheadData = #serializeJson( arrAllItems )#;
 		</cfoutput>
 
+		var substringMatcher = function(strs) {
+			return function findMatches(q, cb) {
+				var matches, substringRegex;
+
+				// an array that will be populated with substring matches
+				matches = [];
+
+				// regex used to determine if a string contains the substring `q`
+				substrRegex = new RegExp(q, 'i');
+
+				// iterate through the pool of strings and for any string that
+				// contains the substring `q`, add it to the `matches` array
+				$.each(strs, function(i, str) {
+					if (substrRegex.test(str)) {
+						matches.push(str);
+					}
+				});
+
+				cb(matches);
+			};
+		};
+
 		$( function() {
+			$( '#lucee-docs-search-input' ).typeahead(
+				{
+					hint: true,
+					highlight: true,
+					minLength: 1
+				},
+				{ source: substringMatcher(typeaheadData) }
+			).on('typeahead:selected', typeaheadSelected);
 
-			$( '#search-item' ).typeahead( {
+			function typeaheadSelected($e, datum){
+				window.location.href = "tags.cfm?item=" + datum.toString();
+			}
+		});
 
-				source: typeaheadData
+		$(".tile.tile-collapse.tile-collapse-full").on("click", function(event){
+			$(".tile.tile-collapse.tile-collapse-full").not($(this)).removeClass("active");
+			$(".tile.tile-collapse.tile-collapse-full").not($(this)).find(".tile-toggle").each(function(idx,elem){
+				$($(elem).data("target")).removeClass("in");
 			});
 		});
 	</script>
 </cfsavecontent>
 
-
-<cfmodule template="doc_layout.cfm" title="Lucee Tag Reference">
-
+<cfmodule template="doc_layout.cfm" title="Lucee Tag Reference" prevLinkItem="#prevLinkItem#" nextLinkItem="#nextLinkItem#">
 
 <cfoutput>
-
-	<form id="form-item-selector" action="#CGI.SCRIPT_NAME#">
-		<div class="centered x-large">
-
-			#stText.doc.choosetag#:
-			<input type="text" name="item" id="search-item" autocomplete="off">
-
-			<input type="submit" value="#stText.Buttons.OK#">
-		</div>
-		<cfif len( url.item )>
-
-			<div class="centered" style="padding: 0.5em;"><a href="#CGI.SCRIPT_NAME#">see all tags</a></div>
-		</cfif>
-	</form>
-
-
 	<cfif len( url.item )>
-
 		<cfset data = getTagData( url.namespace, url.item )>
 		<cfset tagName = data.namespace & data.namespaceseperator & data.name>
 
 		<cfparam name="data.attributes" default="#{}#">
 		<cfparam name="data.attributetype" default="fixed">
 
+		<div class="tile-wrap">
+			<div class="tile">
+				<ul class="breadcrumb margin-no-top margin-right margin-no-bottom margin-left">
+					<li><a href="index.cfm">Home</a></li>
+					<li><a href="tags.cfm">Lucee tags</a></li>
+					<li class="active">&lt;#lCase( tagName )#&gt;</li>
+				</ul>
+			</div>
+		</div>
 		<h2>Tag <em>&lt;#uCase( tagName )#&gt;</em></h2>
 
 		<cfif data.status == "deprecated">
@@ -98,39 +142,100 @@
 		<cfif data.hasNameAppendix><cfset tagName &= "CustomName"></cfif>
 
 		<!--- TODO: color coded example tag --->
-		<pre>	<span class="syntaxTag">&lt;#tagName#</span><cfif data.attributeType == "noname"> <span class="syntaxAttr">##<cfloop array="#arrAttrNames#" index="key">#data.attributes[key].type# <cfbreak></cfloop>expression##</span> <cfelse><!---
-	---><cfloop array="#arrAttrNames#" index="key"><cfset attr = data.attributes[ key ]><cfif attr.status EQ "hidden"><cfcontinue></cfif>
-		<cfif !attr.required><span class="syntaxAttr">[</span></cfif><!---
-		---><span class="syntaxAttr">#key#</span>=<span class="syntaxText">"<cfif !attr.required><i></cfif>#attr.type#<cfif !attr.required></i></cfif>"</span><!---
-		---><cfif !attr.required><span class="syntaxAttr">]</span></cfif></cfloop></cfif><!---
+	<pre><!---
+		---><span class="nt">&lt;#tagName#</span><!---
+		---><cfif data.attributeType == "noname"><!---
+			---> <span class="syntaxTag">##<!---
+				---><cfloop array="#arrAttrNames#" index="key"><!---
+					--->#data.attributes[key].type# <cfbreak><!---
+				---></cfloop><!---
+				--->expression##<!---
+			---></span><!---
+		---><cfelse><!---
+			---><cfloop array="#arrAttrNames#" index="key"><!---
+				---><cfset attr = data.attributes[ key ]><!---
+				---><cfif attr.status EQ "hidden"><cfcontinue></cfif><!---
+				--->
+	<cfif !attr.required><span class="err">[</span></cfif><!---
+				---><span class="na">#key#=</span><!---
+				---><span class="s"><!---
+					---><cfif !attr.required><i></cfif><cfif attr.keyExists("values")>#attr["values"].toList("|")#<cfelse>#attr.type#</cfif><cfif !attr.required></i></cfif><!---
+				---></span><!---
+				---><cfif !attr.required><span class="err">]</span></cfif><!---
+			---></cfloop><!---
+		---></cfif><!---
 
-	---><cfif data.attributeType == "dynamic" || data.attributeType == "mixed"> <span class="syntaxAttr">...</span> </cfif><cfif data.bodyType == "prohibited"><span class="syntaxTag">&gt;</span>
-	<cfelseif data.bodyType == "free"><span class="syntaxTag">&gt;
+		---><cfif data.attributeType == "dynamic" || data.attributeType == "mixed"> <span class="syntaxAttr">...</span> </cfif><!---
+		---><cfif data.bodyType == "prohibited"><!---
+			---><span class="nt">&gt;</span><!---
+		---><cfelseif data.bodyType == "free"><!---
+			---><span class="nt">&gt;</span><!---
+			--->
+<span class="err">[</span><!---
+			---><span class="nt">&lt;/#tagName#&gt;</span><!---
+			---><span class="err">]</span><!---
+		---><cfelseif data.bodyType == "required"><!---
+			---><span class="nt">&gt;<!---
+			--->
+&lt;/#tagName#&gt;</span><!---
+		---></cfif><!---
+	---></pre>
 
-	[&lt;/#tagName#&gt;]</span>
-	<cfelseif data.bodyType == "required"><span class="syntaxTag">&gt;
+	<cfif data.keyExists( "script" ) && data.script.type != "none">
+		<cfset arrAttrNames = data.attributes.keyArray().sort( 'textnocase' )>
+		<div class="text">#stText.doc.alsoScript#</div>
+		<!--- <cfabort showerror="Test"/> --->
+<pre>
+<span class="nt">&lt;cfscript&gt;</span>
+	<span class="nt">#data.name#</span><!---
+	---><cfif data.attributeType == "noname"><!---
+		---> <span class="syntaxAttr">##<!---
+			---><cfloop array="#arrAttrNames#" index="key">#data.attributes[ key ].type# <cfbreak></cfloop><!---
+			--->expression##<!---
+		---></span><!---
+	---><cfelseif data.script.type == "single"><!---  AND listFindNoCase("abort,break", data.name) ---><!---
+		---> <span class="syntaxAttr"><!---
+			---><cfloop array="#arrAttrNames#" index="key"><!---
+				---><cfset ss = data.attributes[ key ].scriptSupport><!---
+				---><cfset attr = data.attributes[ key ]><!---
+				---><cfif ss != "none"><!---
+					---><cfif ss == "optional"><span class="err">[</span></cfif><!---
+					---><cfif attr.keyExists("values")>#attr["values"].toList("|")#<cfelse>#attr.type#</cfif><!---
+					---><cfif data.script.rtexpr> expression</cfif><!---
+					---><cfif ss == "optional"><span class="err">]</span></cfif><!---
+					---><cfbreak><!---
+				---></cfif><!---
+			---></cfloop><!---
+		---></span><!---
+	---><cfelse><!---
+		---><cfloop array="#arrAttrNames#" index="key"><!---
+			---><cfset attr=data.attributes[key]><!---
+			---><cfif attr.status == "hidden"><cfcontinue></cfif>
+		<cfif !attr.required><span class="err">[</span></cfif><!---
+			---><span class="na">#key#=</span><!---
+			---><span class="s"><!---
+				---><cfif !attr.required></cfif><!---
+				---><cfif attr.keyExists("values")>#attr["values"].toList("|")#<cfelse>#attr.type#</cfif><!---
+				---><cfif !attr.required><!---
+					---><span class="err">]</span><!---
+			---></span><!---
+				---></cfif><!---
+		---></cfloop><!---
+	---></cfif><!---
 
-	&lt;/#tagName#&gt;</span></cfif></pre>
-
-		<cfif data.keyExists( "script" ) && data.script.type != "none">
-
-			<cfset arrAttrNames = data.attributes.keyArray().sort( 'textnocase' )>
-			<div class="text">#stText.doc.alsoScript#</div>
-			<pre><span class="syntaxTag">	&lt;cfscript></span>
-		<span class="syntaxAttr">#data.name#</span><!---
-	No Name ---><cfif data.attributeType == "noname"> <span class="syntaxAttr">##<cfloop array="#arrAttrNames#" index="key">#data.attributes[ key ].type# <cfbreak></cfloop>expression##</span><!---
-	Single type ---><cfelseif data.script.type == "single"><span class="syntaxAttr"><cfloop array="#arrAttrNames#" index="key"><cfset ss = data.attributes[ key ].scriptSupport><cfif ss != "none"> <!---
-	 ---><cfif ss == "optional">[</cfif>#data.attributes[ key ].type#<cfif data.script.rtexpr> expression</cfif><cfif ss == "optional">]</cfif><cfbreak></cfif></cfloop></span><!---
-	multiple ---><cfelse><cfloop array="#arrAttrNames#" index="key"><cfset attr=data.attributes[key]><cfif attr.status == "hidden"><cfcontinue></cfif>
-		<cfif !attr.required><span class="syntaxAttr">[</span></cfif><!---
-		---><span class="syntaxAttr">#key#</span>=<span class="syntaxText">"<cfif !attr.required><i></cfif>#attr.type#<cfif !attr.required></i></cfif>"</span><!---
-		---><cfif !attr.required><span class="syntaxAttr">]</span></cfif></cfloop></cfif><!---
-
-	---><cfif data.attributeType == "dynamic" || data.attributeType == "mixed"> <span class="syntaxAttr">...</span> </cfif><cfif data.bodyType == "prohibited"><span class="syntaxAttr">;</span><cfelseif data.bodyType == "required" || data.bodyType == "free"><span class="syntaxAttr"> {
-
-	}</span></cfif>
-	<span class="syntaxTag">&lt;/cfscript></span></pre>
-		</cfif>
+	---><cfif data.attributeType == "dynamic" || data.attributeType == "mixed"><!---
+		---><span class="syntaxAttr">...</span><!---
+	---></cfif><!---
+	---><cfif data.bodyType == "prohibited"><!---
+		---><span class="syntaxAttr">;</span><!---
+	---><cfelseif data.bodyType == "required" || data.bodyType == "free"><!---
+		---><span class="syntaxAttr"> {
+			[...]
+	}</span><!---
+	---></cfif>
+<span class="nt">&lt;/cfscript></span>
+</pre>
+	</cfif>
 
 		<!--- Attributes --->
 		<h2>#stText.doc.attrTitle#</h2>
@@ -149,6 +254,7 @@
 				</cfif>
 			</div>
 		</cfif>
+		<cfset isdefault = Findnocase('defaultValue', serializeJSON(data))>
 		<cfif ( data.attributeType == "fixed" || data.attributeType == "mixed" ) && arrayLen( arrAttrNames )>
 			<table class="maintbl">
 				<thead>
@@ -156,7 +262,8 @@
 						<th width="21%">#stText.doc.attr.name#</th>
 						<th width="7%">#stText.doc.attr._type#</th>
 						<th width="7%">#stText.doc.attr.required#</th>
-						<th width="65%">#stText.doc.attr.description#</th>
+						<cfif val(isdefault)><th width="7%">#stText.doc.attr.default#</th></cfif>
+						<th width="65">#stText.doc.attr.description#</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -167,6 +274,7 @@
 							<td>#key#</td>
 							<td><cfif attr.type EQ "object">any<cfelse>#attr.type#</cfif></td>
 							<td>#YesNoFormat(attr.required)#</td>
+							<cfif val(isdefault)><td><cfif structKeyExists(attr, "defaultValue")>#attr.defaultValue#</cfif></td></cfif>
 							<td><cfif attr.status EQ "deprecated"><b class="error">#stText.doc.depAttr#</b><cfelse>#Application.objects.utils.formatAttrDesc( attr.description )#</cfif>&nbsp;</td>
 						</tr>
 					</cfloop>
@@ -175,20 +283,52 @@
 		</cfif>
 	<cfelse><!--- len( url.item) !--->
 
-		<!--- render index !--->
-		<br>
+		<div class="tile-wrap">
+			<div class="tile">
+				<ul class="breadcrumb margin-no-top margin-right margin-no-bottom margin-left">
+					<li><a href="index.cfm">Home</a></li>
+					<li class="active">Lucee tags</li>
+				</ul>
+			</div>
+		</div>
 
-		<cfset lastPrefix = "">
-		<cfloop array="#arrAllItems#" item="ai" index="ii">
+		<p>Tags are at the core of Lucee Server's templating language. You can check out every tag that has been created using the A-Z index below.</p>
 
-			<cfif left( ai, 3 ) != lastPrefix>
-
-				<div style="height: 0.65em;"></div>
-				<cfset lastPrefix = left( ai, 3 )>
-			</cfif>
-
-			<a href="#CGI.SCRIPT_NAME#?item=#ai#" class="index-item">#ai#</a>
+		<cfset qryAllItems = queryNew("tags")>
+		<cfloop array="#arrAllItems#" index="ai">
+			<cfset QueryAddRow(qryAllItems, ["#lCase(ai)#"])>
 		</cfloop>
+
+		<cfset list = "_,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z">
+
+		<div class="tile-wrap tile-wrap-animation">
+			<cfloop index="i"  list="#list#">
+				<cfif i EQ "_">
+					<cfset queryList = queryNew("tags")>
+					<cfset QueryAddRow(queryList, ["cf_"])>
+				<cfelse>
+					<cfquery name="queryList" dbtype="query">
+						SELECT tags FROM qryAllItems  WHERE tags LIKE 'cf#i#%';
+					</cfquery>
+				</cfif>
+				<div class="tile tile-collapse tile-collapse-full">
+					<div class="tile-toggle" data-target="##function-#lCase(i)#" data-toggle="tile">
+						<div class="tile-inner">
+							<div class="text-overflow"><strong>#uCase(i)#</strong></div>
+						</div>
+					</div>
+					<div class="tile-active-show collapse" id="function-#lCase(i)#">
+						<cfloop list="#valueList(queryList.tags)#" index="currTag">
+							<span class="tile">
+								<div class="tile-inner">
+									<div class="text-overflow"><a href="tags.cfm?item=#currTag#">&lt;#currTag#&gt;</a></div>
+								</div>
+							</span>
+						</cfloop>
+					</div>
+				</div>
+			</cfloop>
+		</div>
 
 	</cfif><!--- len( url.item) !--->
 

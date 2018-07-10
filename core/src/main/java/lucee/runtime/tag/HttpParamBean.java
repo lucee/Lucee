@@ -28,11 +28,21 @@ import lucee.runtime.op.Caster;
  */
 public final class HttpParamBean {
 
+	public static final int TYPE_URL=1;
+	public static final int TYPE_FORM=2;
+	public static final int TYPE_CGI=3;
+	public static final int TYPE_HEADER=4;
+	public static final int TYPE_COOKIE=5;
+	public static final int TYPE_FILE=6;
+	public static final int TYPE_XML=7;
+	public static final int TYPE_BODY=8;
+	
+	
 	/** Specifies the value of the URL, FormField, Cookie, File, or CGI variable being passed. */
 	private Object value;
 
 	/** The transaction type. */
-	private String type;
+	private int type=TYPE_URL;
 
 	/** Required for type = "File". */
 	private Resource file;
@@ -55,8 +65,8 @@ public final class HttpParamBean {
 	 *  The transaction type.
 	 * @param type value to set
 	 **/
-	public void setType(String type)	{
-		this.type=type.toLowerCase().trim();
+	public void setType(int type)	{
+		this.type=type;
 	}
 	/** set the value file
 	 *  Required for type = "File".
@@ -88,7 +98,7 @@ public final class HttpParamBean {
 	/**
 	 * @return Returns the type.
 	 */
-	public String getType() {
+	public int getType() {
 		return type;
 	}
 	

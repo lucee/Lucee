@@ -39,15 +39,12 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.Time;
 import lucee.runtime.type.dt.TimeImpl;
 
-import org.apache.xerces.parsers.DOMParser;
 import org.apache.xml.serialize.OutputFormat;
 import org.apache.xml.serialize.XMLSerializer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 
 /**
@@ -77,38 +74,6 @@ public final class StorageUtil {
 	}
 
     /**
-     * load a XML Document as DOM representation
-     * @param file XML File to load
-     * @return DOM Object
-     * @throws SAXException
-     * @throws IOException
-     */
-    public Document loadDocument(Resource file) throws SAXException, IOException {
-        DOMParser parser = new DOMParser();
-	    
-		InputStream in = null;
-		try {
-			in = file.getInputStream();
-			InputSource source = new InputSource(in);
-			parser.parse(source);
-		}
-		finally {
-			IOUtil.closeEL(in);
-		}
-    	
-    	return parser.getDocument();
-    }
-    
-    public Document loadDocument(String content) throws SAXException, IOException {
-        DOMParser parser = new DOMParser();
-	    
-		InputSource source = new InputSource(content);
-		parser.parse(source);
-		
-    	return parser.getDocument();
-    }
-
-    /**
      * return XML Element matching name
      * @param list source node list
      * @param key key to compare
@@ -133,7 +98,7 @@ public final class StorageUtil {
 	 * @param file 
 	 * @throws IOException
      */
-    public synchronized void store(Document doc,File file) throws IOException {
+    public void store(Document doc,File file) throws IOException {
     	store(doc, ResourceUtil.toResource(file));
     }
     
@@ -143,7 +108,7 @@ public final class StorageUtil {
 	 * @param res 
 	 * @throws IOException
      */
-    public synchronized void store(Document doc,Resource res) throws IOException {
+    public void store(Document doc,Resource res) throws IOException {
         OutputFormat format = new OutputFormat(doc, null, true);
 		format.setLineSeparator("\r\n");
 		format.setLineWidth(72);

@@ -35,7 +35,6 @@ import lucee.runtime.search.IndexResult;
 import lucee.runtime.search.SearchCollection;
 import lucee.runtime.search.SearchException;
 import lucee.runtime.search.SearchIndex;
-import lucee.runtime.tag.util.DeprecatedUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
@@ -255,7 +254,7 @@ public final class Index extends TagImpl {
 	 * @throws ApplicationException
 	**/
 	public void setExternal(boolean external) {
-		DeprecatedUtil.tagAttribute(pageContext,"Index", "external");
+		//DeprecatedUtil.tagAttribute(pageContext,"Index", "external");
 	}
 
 	/** set the value extensions

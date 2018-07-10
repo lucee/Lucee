@@ -285,10 +285,12 @@
   </scriptdef>
 
   <scriptdef name="toFileName" language="javascript">
+     <attribute name="id" />
      <attribute name="name" />
      <attribute name="version" />
      <attribute name="property" />
      <![CDATA[
+      var id = attributes.get("id").trim();
       var name = attributes.get("name").trim();
       var version = attributes.get("version").trim();
       
@@ -299,6 +301,9 @@
       // removes quotes
       if(name.startsWith('"') && name.endsWith('"')) {
         name=name.substring(1,name.length()-1).trim();
+      }
+      if(id.startsWith('"') && id.endsWith('"')) {
+        id=id.substring(1,id.length()-1).trim();
       }
 
       // remove brackets
@@ -322,7 +327,7 @@
       name=name.replace(" ","-");
       name=name.replace(" ","-");
 
-      project.setProperty(attributes.get("property"), name+"-"+version+".lex");
+      project.setProperty(attributes.get("property"), id+"-"+version+".lex");
      ]]>
   </scriptdef>
 
@@ -399,6 +404,9 @@
         <!-- Doc -->
         <not><isset property="extDoc"/></not>
         <not><isset property="extDocVersion"/></not>
+        <!-- Form -->
+        <not><isset property="extForm"/></not>
+        <not><isset property="extFormVersion"/></not>
         </or>
     </condition>
     </fail>
@@ -497,6 +505,7 @@
     <available file="${cache}/${extHibernate}-${extHibernateVersion}.lex" property="hibernate.present"/>
     <available file="${cache}/${extLucene}-${extLuceneVersion}.lex" property="lucene.present"/>
     <available file="${cache}/${extPDF}-${extPDFVersion}.lex" property="pdf.present"/>
+    <available file="${cache}/${extForm}-${extFormVersion}.lex" property="form.present"/>
   </target>
 
 
@@ -536,12 +545,15 @@
   <target name="check-doc" depends="check-cache" unless="doc.present">
       <get src="${extURL}${extDoc}?version=${extDocVersion}" dest="${cache}/${extDoc}-${extDocVersion}.lex"/>
   </target>
+  <target name="check-form" depends="check-cache" unless="form.present">
+      <get src="${extURL}${extForm}?version=${extFormVersion}" dest="${cache}/${extForm}-${extFormVersion}.lex"/>
+  </target>
   <target name="check-testbox" depends="check-cache" unless="testbox.present">
       <get src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
   </target> 
 
 
-  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-testbox">
+  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-testbox">
     
     <mkdir dir="${temp}/loader/extensions/"/>
 
@@ -786,7 +798,7 @@
       <jvmarg value="-Dtemp=${temp}"/>
       <jvmarg value="-DtestboxArchive=${temp}/archive/testbox.lar"/>
       <jvmarg value="-Dexecute=${testcases}"/>
-
+      <jvmarg value="-DindividualStorageKeys=false"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
       <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle}"/>
@@ -872,7 +884,7 @@
 
     <!-- add extension MySQL -->
     <loadmf jar="${cache}/${extMySQL}-${extMySQLVersion}.lex" prefix="ext_mysql."/>
-    <toFileName name="${ext_mysql.name}" version="${ext_mysql.version}" property="ext_mysql.filename"/>
+    <toFileName id="${ext_mysql.id}" name="${ext_mysql.name}" version="${ext_mysql.version}" property="ext_mysql.filename"/>
     <copy 
       file="${cache}/${extMySQL}-${extMySQLVersion}.lex" 
       todir="${goal}/extensions/"/>
@@ -884,7 +896,7 @@
 
     <!-- add extension MSSQL -->
     <loadmf jar="${cache}/${extMSSQL}-${extMSSQLVersion}.lex" prefix="ext_mssql."/>
-    <toFileName name="${ext_mssql.name}" version="${ext_mssql.version}" property="ext_mssql.filename"/>
+    <toFileName id="${ext_mssql.id}" name="${ext_mssql.name}" version="${ext_mssql.version}" property="ext_mssql.filename"/>
     <copy 
       file="${cache}/${extMSSQL}-${extMSSQLVersion}.lex" 
       todir="${goal}/extensions/"/>
@@ -896,7 +908,7 @@
 
     <!-- add extension Postgre -->
     <loadmf jar="${cache}/${extPostgreSQL}-${extPostgreSQLVersion}.lex" prefix="ext_postgre."/>
-    <toFileName name="${ext_postgre.name}" version="${ext_postgre.version}" property="ext_postgre.filename"/>
+    <toFileName id="${ext_postgre.id}" name="${ext_postgre.name}" version="${ext_postgre.version}" property="ext_postgre.filename"/>
     <copy 
       file="${cache}/${extPostgreSQL}-${extPostgreSQLVersion}.lex" 
       todir="${goal}/extensions/"/>
@@ -908,7 +920,7 @@
 
     <!-- add extension JDTS -->
     <loadmf jar="${cache}/${extJDTsSQL}-${extJDTsSQLVersion}.lex" prefix="ext_jdts."/>
-    <toFileName name="${ext_jdts.name}" version="${ext_jdts.version}" property="ext_jdts.filename"/>
+    <toFileName id="${ext_jdts.id}" name="${ext_jdts.name}" version="${ext_jdts.version}" property="ext_jdts.filename"/>
     <copy 
       file="${cache}/${extJDTsSQL}-${extJDTsSQLVersion}.lex" 
       todir="${goal}/extensions/"/>
@@ -920,7 +932,7 @@
 
     <!-- add extension Chart -->
     <loadmf jar="${cache}/${extChart}-${extChartVersion}.lex" prefix="ext_chart."/>
-    <toFileName name="${ext_chart.name}" version="${ext_chart.version}" property="ext_chart.filename"/>
+    <toFileName id="${ext_chart.id}" name="${ext_chart.name}" version="${ext_chart.version}" property="ext_chart.filename"/>
     <copy 
       file="${cache}/${extChart}-${extChartVersion}.lex" 
       todir="${goal}/extensions/"/>
@@ -932,7 +944,7 @@
 
     <!-- add extension S3 -->
     <loadmf jar="${cache}/${extS3}-${extS3Version}.lex" prefix="ext_s3."/>
-    <toFileName name="${ext_s3.name}" version="${ext_s3.version}" property="ext_s3.filename"/>
+    <toFileName id="${ext_s3.id}" name="${ext_s3.name}" version="${ext_s3.version}" property="ext_s3.filename"/>
     <copy 
       file="${cache}/${extS3}-${extS3Version}.lex" 
       todir="${goal}/extensions/"/>
@@ -944,7 +956,7 @@
 
     <!-- add extension EHCache -->
     <loadmf jar="${cache}/${extEHCache}-${extEHCacheVersion}.lex" prefix="ext_ehcache."/>
-    <toFileName name="${ext_ehcache.name}" version="${ext_ehcache.version}" property="ext_ehcache.filename"/>
+    <toFileName id="${ext_ehcache.id}" name="${ext_ehcache.name}" version="${ext_ehcache.version}" property="ext_ehcache.filename"/>
     <copy 
       file="${cache}/${extEHCache}-${extEHCacheVersion}.lex" 
       todir="${goal}/extensions/"/>
@@ -956,7 +968,7 @@
 
     <!-- add extension Hibernate -->
     <loadmf jar="${cache}/${extHibernate}-${extHibernateVersion}.lex" prefix="ext_hibernate."/>
-    <toFileName name="${ext_hibernate.name}" version="${ext_hibernate.version}" property="ext_hibernate.filename"/>
+    <toFileName id="${ext_hibernate.id}" name="${ext_hibernate.name}" version="${ext_hibernate.version}" property="ext_hibernate.filename"/>
     <copy 
       file="${cache}/${extHibernate}-${extHibernateVersion}.lex" 
       todir="${goal}/extensions/"/>
@@ -969,7 +981,7 @@
 
     <!-- add extension Lucene -->
     <loadmf jar="${cache}/${extLucene}-${extLuceneVersion}.lex" prefix="ext_lucene."/>
-    <toFileName name="${ext_lucene.name}" version="${ext_lucene.version}" property="ext_lucene.filename"/>
+    <toFileName id="${ext_lucene.id}" name="${ext_lucene.name}" version="${ext_lucene.version}" property="ext_lucene.filename"/>
     <copy 
       file="${cache}/${extLucene}-${extLuceneVersion}.lex" 
       todir="${goal}/extensions/"/>
@@ -981,7 +993,7 @@
 
     <!-- add extension PDF -->
     <loadmf jar="${cache}/${extPDF}-${extPDFVersion}.lex" prefix="ext_pdf."/>
-    <toFileName name="${ext_pdf.name}" version="${ext_pdf.version}" property="ext_pdf.filename"/>
+    <toFileName id="${ext_pdf.id}" name="${ext_pdf.name}" version="${ext_pdf.version}" property="ext_pdf.filename"/>
     <copy 
       file="${cache}/${extPDF}-${extPDFVersion}.lex" 
       todir="${goal}/extensions/"/>
@@ -993,7 +1005,7 @@
 
     <!-- add extension Admin -->
     <loadmf jar="${cache}/${extAdmin}-${extAdminVersion}.lex" prefix="ext_admin."/>
-    <toFileName name="${ext_admin.name}" version="${ext_admin.version}" property="ext_admin.filename"/>
+    <toFileName id="${ext_admin.id}" name="${ext_admin.name}" version="${ext_admin.version}" property="ext_admin.filename"/>
     <copy 
       file="${cache}/${extAdmin}-${extAdminVersion}.lex" 
       todir="${goal}/extensions/"/>
@@ -1005,7 +1017,7 @@
 
     <!-- add extension Doc -->
     <loadmf jar="${cache}/${extDoc}-${extDocVersion}.lex" prefix="ext_doc."/>
-    <toFileName name="${ext_doc.name}" version="${ext_doc.version}" property="ext_doc.filename"/>
+    <toFileName id="${ext_doc.id}" name="${ext_doc.name}" version="${ext_doc.version}" property="ext_doc.filename"/>
     <copy 
       file="${cache}/${extDoc}-${extDocVersion}.lex" 
       todir="${goal}/extensions/"/>
@@ -1015,6 +1027,17 @@
     <echo>add:${goal}/extensions/${ext_doc.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_doc.filename};</echo>
 
+    <!-- add extension Form -->
+    <loadmf jar="${cache}/${extForm}-${extFormVersion}.lex" prefix="ext_form."/>
+    <toFileName id="${ext_form.id}" name="${ext_form.name}" version="${ext_form.version}" property="ext_form.filename"/>
+    <copy 
+      file="${cache}/${extForm}-${extFormVersion}.lex" 
+      todir="${goal}/extensions/"/>
+    <move 
+      file="${goal}/extensions/${extForm}-${extFormVersion}.lex" 
+      tofile="${goal}/extensions/${ext_form.filename}"/>
+    <echo>add:${goal}/extensions/${ext_form.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_form.filename};</echo>
 
   </target>
 

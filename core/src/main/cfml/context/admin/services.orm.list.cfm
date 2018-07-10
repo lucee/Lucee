@@ -48,6 +48,7 @@
 	<cfcatch>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
+		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
 <!---
@@ -61,7 +62,7 @@ Redirtect to entry  --->
 	<cfset printError(error)>
 	<h2>#stText.Settings.orm.title#</h2>
 	<div class="pageintro">#stText.Settings.orm.desc#</div>
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 				<!--- autogenmap --->
@@ -234,5 +235,5 @@ Redirtect to entry  --->
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 </cfoutput>

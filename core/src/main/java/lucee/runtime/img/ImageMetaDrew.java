@@ -24,6 +24,7 @@ import java.util.Iterator;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
@@ -47,7 +48,7 @@ public class ImageMetaDrew {
 	 * @throws MetadataException 
 	 * @throws JpegProcessingException 
 	 */
-	public static void addInfo(String format, Resource res, Struct info)  {
+	public static void addInfo(String format, Resource res, Struct info) {
 		if("jpg".equalsIgnoreCase(format))jpg(res, info);
 		else if("tiff".equalsIgnoreCase(format))tiff(res, info);
 		
@@ -60,6 +61,7 @@ public class ImageMetaDrew {
 			fill(info,JpegMetadataReader.readMetadata(is));
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			//throw Caster.toPageException(t);
 		}
 		finally {
@@ -74,6 +76,7 @@ public class ImageMetaDrew {
 			fill(info,TiffMetadataReader.readMetadata(is));
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			//throw Caster.toPageException(t);
 		}
 		finally {

@@ -21,6 +21,7 @@ package lucee.runtime.security;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.file.FileResourceProvider;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
@@ -353,7 +354,7 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 				return true;
 			}
 		} 
-        catch (Throwable t) {}
+        catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		return false;
 	}
 
@@ -388,7 +389,7 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 				PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
 				spw=pc.getServerPassword();
 			} 
-			catch (Throwable t) {}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		config=ThreadLocalPageContext.getConfig(config);
 		

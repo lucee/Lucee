@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -388,51 +389,31 @@ public class SimpleQueryColumn implements QueryColumn {
 
 	@Override
 	public synchronized Object get(int row) throws PageException {
-		//Object sv = getStoredValue(row);
-		//if(sv!=SimpleQuery.DEFAULT_VALUE) return sv;
-		
 		try {
 			if(row!=res.getRow()) {
 				res.absolute(row);
 			}
 			return _get(row);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 	}
 
 	@Override
 	public synchronized Object get(int row, Object defaultValue) {
-		//Object sv = getStoredValue(row);
-		//if(sv!=SimpleQuery.DEFAULT_VALUE) return sv;
-		
 		try {
 			if(row!=res.getRow()) {
 				res.absolute(row);
 			}
 			return _get(row);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
-	
-	/*private synchronized Object getStoredValue(int row) {
-		if(data==null) return SimpleQuery.DEFAULT_VALUE;
-		return data[row-1];
-	}
-	
-	private synchronized Object _get(int row) throws SQLException, IOException {
-		if(data==null) {
-			data=new Object[qry.getRecordcount()];
-			for(int i=0;i<data.length;i++){
-				data[i]=SimpleQuery.DEFAULT_VALUE;
-			}
-			
-		}
-		return data[row-1]=cast.toCFType(null, type, res, index);
-	}*/
 	
 	private Object _get(int row) throws SQLException, IOException {
 		return cast.toCFType(null, res, index);

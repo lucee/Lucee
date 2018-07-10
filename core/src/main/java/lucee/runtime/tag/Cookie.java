@@ -24,7 +24,6 @@ import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.CookieData;
-import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.util.KeyConstants;

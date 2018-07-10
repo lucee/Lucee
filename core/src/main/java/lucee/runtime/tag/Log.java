@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.CharsetUtil;
@@ -43,7 +42,6 @@ import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.op.Caster;
-import lucee.runtime.tag.util.DeprecatedUtil;
 import lucee.runtime.type.KeyImpl;
 
 import org.apache.log4j.Level;
@@ -144,7 +142,7 @@ public final class Log extends TagImpl {
 	**/
 	public void setTime(boolean useTime) throws ApplicationException	{
 		if(useTime) return;
-		DeprecatedUtil.tagAttribute(pageContext,"Log", "time");
+		//DeprecatedUtil.tagAttribute(pageContext,"Log", "time");
 	    throw new ApplicationException("attribute [time] for tag [log] is deprecated, only the value true is allowed");
 	}
 
@@ -169,7 +167,7 @@ public final class Log extends TagImpl {
 	**/
 	public void setDate(boolean useDate) throws ApplicationException	{
 		if(useDate) return;
-		DeprecatedUtil.tagAttribute(pageContext,"Log", "date");
+		//DeprecatedUtil.tagAttribute(pageContext,"Log", "date");
 	    throw new ApplicationException("attribute [date] for tag [log] is deprecated, only the value true is allowed");
 	}
 
@@ -183,7 +181,7 @@ public final class Log extends TagImpl {
 	**/
 	public void setThread(boolean thread) throws ApplicationException	{
 		if(thread) return;
-		DeprecatedUtil.tagAttribute(pageContext,"Log", "thread");
+		//DeprecatedUtil.tagAttribute(pageContext,"Log", "thread");
 	    throw new ApplicationException("attribute [thread] for tag [log] is deprecated, only the value true is allowed");
 	}
 
@@ -210,17 +208,17 @@ public final class Log extends TagImpl {
 		
 		 if(text==null && exception==null)
 	        	throw new ApplicationException("Wrong Context, you must define one of the following attributes [text, exception]");
-		
+		PageContextImpl pci=(PageContextImpl) pageContext;
 		ConfigImpl config =(ConfigImpl) pageContext.getConfig();
 	    lucee.commons.io.log.Log logger;
 		if(file==null) {
-	    	logger=config.getLog(log.toLowerCase(),false);
+	    	logger=pci.getLog(log.toLowerCase(),false);
 	    	if(logger==null) {
 	    		// for backward compatiblity
 	    		if("console".equalsIgnoreCase(log))
 	    			logger=new LogAdapter(Log4jUtil.getConsoleLog(config, false, "cflog", Level.INFO));
 	    		else {
-	    			Set<String> set = config.getLoggers().keySet();
+	    			java.util.Collection<String> set = pci.getLogNames();
 	    			Iterator<String> it = set.iterator();
 	    			lucee.runtime.type.Collection.Key[] keys=new lucee.runtime.type.Collection.Key[set.size()];
 	    			int index=0;

@@ -27,8 +27,8 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 
-import org.apache.sanselan.ImageReadException;
-import org.apache.sanselan.Sanselan;
+import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.imaging.Imaging;
 
 class SanselanCoder extends Coder {
 	
@@ -37,7 +37,7 @@ class SanselanCoder extends Coder {
 	
 	protected SanselanCoder(){
 		super();
-		Sanselan.hasImageFileExtension("lucee.gif");// to make sure Sanselan exist when load this class
+		Imaging.hasImageFileExtension("lucee.gif");// to make sure Sanselan exist when load this class
 	}
 	
 	/**
@@ -50,7 +50,7 @@ class SanselanCoder extends Coder {
 	public final BufferedImage toBufferedImage(Resource res,String format) throws IOException {
 		InputStream is=null;
 		try {
-			return Sanselan.getBufferedImage(is=res.getInputStream());
+			return Imaging.getBufferedImage(is=res.getInputStream());
 		} 
 		catch (ImageReadException e) {
 			throw ExceptionUtil.toIOException(e);
@@ -69,7 +69,7 @@ class SanselanCoder extends Coder {
 	@Override
 	public final BufferedImage toBufferedImage(byte[] bytes,String format) throws IOException {
 		try {
-			return Sanselan.getBufferedImage(new ByteArrayInputStream(bytes));
+			return Imaging.getBufferedImage(new ByteArrayInputStream(bytes));
 		} 
 		catch (ImageReadException e) {
 			throw ExceptionUtil.toIOException(e);

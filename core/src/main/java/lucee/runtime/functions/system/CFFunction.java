@@ -20,6 +20,7 @@ package lucee.runtime.functions.system;
 
 import java.io.File;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.Mapping;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
@@ -102,7 +103,7 @@ public class CFFunction {
 		return ((UDFImpl)udf).callWithNamedValues(pc,name, namedArguments, false);
 	}
 
-	public static synchronized UDF loadUDF(PageContext pc, String filename,Collection.Key name,boolean isweb) throws PageException {
+	public static UDF loadUDF(PageContext pc, String filename,Collection.Key name,boolean isweb) throws PageException {
 		ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
 		String key=isweb?name.getString()+config.getIdentification().getId():name.getString();
     	UDF udf=config.getFromFunctionCache(key);
@@ -110,8 +111,7 @@ public class CFFunction {
 		
 		Mapping mapping=isweb?config.getFunctionMapping():config.getServerFunctionMapping();
     	Page p = mapping.getPageSource(filename).loadPage(pc,false);	
-		
-    	
+
     	// execute page
     	Variables old = pc.variablesScope();
     	pc.setVariablesScope(VAR);
@@ -126,15 +126,14 @@ public class CFFunction {
 			}
 			throw new ExpressionException("there is no Function defined with name ["+name+"] in template ["+mapping.getStrPhysical()+File.separator+filename+"]");
 		} 
-    	catch (Throwable t) {
+    	catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 		finally{
 			pc.setVariablesScope(old);
 			if(!wasSilent)pc.unsetSilent();
 		}
-		
-		
 	}
 
 	private static FunctionValue toFunctionValue(Collection.Key name,Object obj) throws ExpressionException {

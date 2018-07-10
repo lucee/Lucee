@@ -32,7 +32,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 
 public class ObjectLoad {
-	public synchronized static Object call(PageContext pc, Object input) throws PageException {
+	public static Object call(PageContext pc, Object input) throws PageException {
     	InputStream is;
     	boolean closeStream=true;
 		if(Decision.isBinary(input)) {

@@ -69,7 +69,7 @@ public class QueryArray extends ArrayImpl implements QueryResult {
 	}
 	
 	@Override
-	public synchronized Collection duplicate(boolean deepCopy) {
+	public Collection duplicate(boolean deepCopy) {
 		QueryArray qa = new QueryArray(name,sql,template);
 		qa.cacheType=cacheType;
 		qa.columnNames=columnNames;

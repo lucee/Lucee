@@ -31,6 +31,7 @@ import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.type.datasource.DatasourceResourceProvider.ConnectionData;
 import lucee.commons.io.res.util.ResourceSupport;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -152,7 +153,7 @@ public final class DatasourceResource extends ResourceSupport {
 				barr = baos.toByteArray();
 			}
 			catch(Throwable t){
-				
+				ExceptionUtil.rethrowIfNecessary(t);
 			}
 		}
 		

@@ -27,7 +27,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
-import lucee.runtime.type.FunctionValue;
 
 /**
  * implementation of the Function array
@@ -43,9 +42,21 @@ public class Array_ extends BIF {
 	 * @throws ExpressionException
 	 */
 	public static Array call(PageContext pc , Object[] objArr) {
-		for(int i=0;i<objArr.length;i++) {
-			if(objArr[i] instanceof FunctionValue)objArr[i]=((FunctionValue)objArr[i]).getValue();
+		/*if(objArr.length==0) return new ArrayImpl(objArr);
+		
+		
+		// ordered struct
+		if(allowStruct && objArr[0] instanceof FunctionValue) {
+			return Struct_._call(objArr, "invalid argument for literal ordered struct, only named arguments are allowed like {name:\"value\",name2:\"value2\"}",Struct.TYPE_LINKED);	
 		}
+		
+		//
+		for(int i=0;i<objArr.length;i++) {
+			if(objArr[i] instanceof FunctionValue)
+				throw new ExpressionException("invalid argument for literal array, named arguments are not allowed");
+				//objArr[i]=((FunctionValue)objArr[i]).getValue();
+		}*/
+		
 		return new ArrayImpl(objArr);
 	}
 	

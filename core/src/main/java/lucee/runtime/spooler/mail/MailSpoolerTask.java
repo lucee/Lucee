@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.spooler.mail;
 
+import java.io.UnsupportedEncodingException;
+
 import javax.mail.internet.InternetAddress;
 
 import lucee.commons.lang.StringUtil;
@@ -25,14 +27,18 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.mail.MailException;
+import lucee.runtime.net.mail.MailUtil;
+import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.smtp.SMTPClient;
 import lucee.runtime.op.Caster;
 import lucee.runtime.spooler.ExecutionPlan;
 import lucee.runtime.spooler.ExecutionPlanImpl;
+import lucee.runtime.spooler.SpoolerTaskListener;
 import lucee.runtime.spooler.SpoolerTaskSupport;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.KeyConstants;
 
 public class MailSpoolerTask extends SpoolerTaskSupport {
 	private static final ExecutionPlan[] EXECUTION_PLANS = new ExecutionPlan[]{
@@ -44,14 +50,18 @@ public class MailSpoolerTask extends SpoolerTaskSupport {
 	
 	
 	private SMTPClient client;
+	private Server[] servers;
+	private SpoolerTaskListener listener;
 
-	public MailSpoolerTask(ExecutionPlan[] plans,SMTPClient client, long sendTime) {
+	private MailSpoolerTask(ExecutionPlan[] plans,SMTPClient client,Server[] servers, long sendTime) {
 		super(plans, sendTime);
 		this.client=client;
+		this.servers=servers;
+		this.listener=listener;
 	}
 
-	public MailSpoolerTask(SMTPClient client, long sendTime) {
-		this(EXECUTION_PLANS,client, sendTime);
+	public MailSpoolerTask(SMTPClient client,Server[] servers, long sendTime) {
+		this(EXECUTION_PLANS,client,servers, sendTime);
 	}
 	
 
@@ -107,15 +117,42 @@ public class MailSpoolerTask extends SpoolerTaskSupport {
 		
 		return per+" ("+addr+")";
 	}
+	
 	@Override
 	public Object execute(Config config) throws PageException {
 		try {
-			client._send((ConfigWeb)config);
+			client._send((ConfigWeb)config,servers);
 		} 
 		catch (MailException e) {
 			throw Caster.toPageException(e);
 		}
 		return null;
+	}
+
+	@Override
+	public SpoolerTaskListener getListener() {
+		return listener;
+	}
+
+	public void setListener(SpoolerTaskListener listener) {
+		this.listener=listener;
+	}
+
+	public void mod(Struct sct) {
+		// TODO more
+		
+		// FROM
+		Object o = sct.get(KeyConstants._from,null);
+		InternetAddress from = null;
+		if(o!=null) {
+			try {
+				from=MailUtil.toInternetAddress(o);
+			}
+			catch (Exception e) {}
+		}
+		if(from!=null)client.setFrom(from);
+		
+		
 	}
 
 }

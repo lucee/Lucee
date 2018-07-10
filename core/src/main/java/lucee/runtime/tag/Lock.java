@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.tag;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.ConfigWebImpl;
@@ -38,6 +39,7 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.ApplicationImpl;
 import lucee.runtime.type.scope.RequestImpl;
 import lucee.runtime.type.scope.ServerImpl;
+import lucee.runtime.util.PageContextUtil;
 
 /**
 * Provides two types of locks to ensure the integrity of shared data: Exclusive lock and Read-only 
@@ -90,6 +92,7 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 	private LockManager manager;
     private LockData data=null;
 	private long start;
+	private String result="cflock";
 
 	@Override
 	public void release() {
@@ -102,6 +105,7 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
         this.data=null;
         id="anonymous";
         timeoutInMillis=0;
+        result="cflock";
 	}
 
 
@@ -120,13 +124,13 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 	**/
 	public void setTimeout(Object oTimeout) throws PageException {
 		if(oTimeout instanceof TimeSpan)
-			this.timeoutInMillis=(int)((TimeSpan)oTimeout).getMillis();
+			this.timeoutInMillis=toInt(((TimeSpan)oTimeout).getMillis());
 		else
-			this.timeoutInMillis = (int)(Caster.toDoubleValue(oTimeout)*1000D);
+			this.timeoutInMillis = toInt(Caster.toDoubleValue(oTimeout)*1000D);
 		//print.out(Caster.toString(timeoutInMillis));
 	}
 	public void setTimeout(double timeout) {
-		this.timeoutInMillis = (int)(timeout*1000D);
+		this.timeoutInMillis = toInt(timeout*1000D);
 	}
 
 	/** set the value type
@@ -187,15 +191,24 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 		this.name = name.trim();
 		if(name.length()==0)throw new ApplicationException("invalid attribute definition","attribute [name] can't be a empty string");
 	}
+	
+	public void setResult(String result) throws ApplicationException {
+		if(StringUtil.isEmpty(result)) return;
+		this.result = result.trim();
+	}
 
 	@Override
 	public int doStartTag() throws PageException {
-		//if(timeoutInMillis==0)timeoutInMillis=30000;
-		//print.out("doStartTag");
-	    manager=pageContext.getConfig().getLockManager();
-        // check attributes
-	    if(name!=null && scope!=SCOPE_NONE) {
-	        throw new LockException(
+		if(timeoutInMillis<=0) {
+			TimeSpan remaining = PageContextUtil.remainingTime(pageContext,true);
+			this.timeoutInMillis=toInt(remaining.getMillis());
+		}
+		
+		
+		manager=pageContext.getConfig().getLockManager();
+		// check attributes
+		if(name!=null && scope!=SCOPE_NONE) {
+			throw new LockException(
 	                LockException.OPERATION_CREATE,
 	                this.name,
 	                "invalid attribute combination",
@@ -232,7 +245,7 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 	    Struct cflock=new StructImpl();
 	    cflock.set("succeeded",Boolean.TRUE);
 	    cflock.set("errortext","");
-	    pageContext.variablesScope().set("cflock",cflock);
+	    pageContext.setVariable(result,cflock);
         start=System.nanoTime();
         try {
 		    ((PageContextImpl)pageContext).setActiveLock(new ActiveLock(type,name,timeoutInMillis)); // this has to be first, otherwise LockTimeoutException has nothing to release
@@ -271,7 +284,16 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 		
 		return EVAL_BODY_INCLUDE;
 	}
-	
+
+	private int toInt(long l) {
+		if(l>Integer.MAX_VALUE)return Integer.MAX_VALUE;
+		return (int)l;
+	}
+	private int toInt(double d) {
+		if(d>Integer.MAX_VALUE)return Integer.MAX_VALUE;
+		return (int)d;
+	}
+
 	private void _release(PageContext pc, long exe) {
 		ActiveLock al = ((PageContextImpl)pc).releaseActiveLock();
 	    // listener
@@ -280,12 +302,9 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 		
 	}
 
-
 	@Override
 	public void doFinally() {
 		_release(pageContext,System.nanoTime()-start);
 	    if(name!=null)manager.unlock(data);
 	}
-	
-	
 }

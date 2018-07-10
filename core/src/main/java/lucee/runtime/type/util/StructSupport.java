@@ -40,6 +40,8 @@ import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.KeyAsStringIterator;
 
+import org.w3c.dom.Node;
+
 public abstract class StructSupport implements Map,Struct {
 
 	private static final long serialVersionUID = 7433668961838400995L;
@@ -258,7 +260,9 @@ public abstract class StructSupport implements Map,Struct {
 		if(obj instanceof UDFPlus) {
 			return ((UDFPlus)obj).call(pc,methodName,args,false);
 		}
-		return MemberUtil.call(pc, this, methodName, args, CFTypes.TYPE_STRUCT, "struct");
+		if(this instanceof Node)
+			return MemberUtil.call(pc, this, methodName, args, new short[]{CFTypes.TYPE_XML,CFTypes.TYPE_STRUCT}, new String[]{"xml","struct"});
+		return MemberUtil.call(pc, this, methodName, args, new short[]{CFTypes.TYPE_STRUCT}, new String[]{"struct"});
 	}
 
     @Override

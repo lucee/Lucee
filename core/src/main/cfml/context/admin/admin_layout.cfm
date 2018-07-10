@@ -1,34 +1,31 @@
-<cfif thistag.executionmode EQ "end" or not thistag.hasendtag>
-
-	<cfparam name="session.lucee_admin_lang" default="en">
-	<cfset variables.stText = application.stText[session.lucee_admin_lang] />
-	<cfparam name="attributes.navigation" default="">
-	<cfparam name="attributes.title" default="">
-	<cfparam name="attributes.content" default="">
-	<cfparam name="attributes.right" default="">
-	<cfparam name="attributes.width" default="780">
-
+<cfif (thisTag.executionMode == "end" || !thisTag.hasEndTag)>
 	<cfscript>
+
+		param name="session.lucee_admin_lang" default="en";
+		param name="attributes.navigation"    default="";
+		param name="attributes.title"         default="";
+		param name="attributes.content"       default="";
+		param name="attributes.right"         default="";
+		param name="attributes.width"         default="780";
+
+		variables.stText = application.stText[session.lucee_admin_lang];
 		ad=request.adminType;
 		hasNavigation=len(attributes.navigation) GT 0;
-		home=request.adminType&".cfm"
-		if(structKeyExists(url,'action'))homeQS="?action="&url.action;
-		else homeQS="";
+		home=request.adminType&".cfm";
+		homeQS = URL.keyExists("action") ? "?action=" & url.action : "";
+
+		request.mode="full";
+
+		resNameAppendix = hash(server.lucee.version&server.lucee['release-date'],'quick');
 	</cfscript>
-	<cfset request.mode="full">
-	
-<cfcontent reset="yes" /><!DOCTYPE HTML>
-<!--[if lt IE 9]> <style> body.full #header #logo.sprite { background-image: url(resources/img/server-lucee-small.png.cfm); background-position: 0 0; margin-top: 16px; } </style> <![endif]-->	<!--- remove once IE9 is the min version to be supported !--->
+<cfcontent reset="yes"><!DOCTYPE HTML>
 <cfoutput>
 <html>
 <head>
 	<title>Lucee #ucFirst(request.adminType)# Administrator</title>
-	<cfset nameAppendix=hash(server.lucee.version&server.lucee['release-date'],'quick')>
-	<link rel="stylesheet" href="../res/css/admin-#nameAppendix#.css.cfm?#getTickCount()#" type="text/css">
+	<link rel="stylesheet" href="../res/css/admin-#resNameAppendix#.css.cfm" type="text/css">
 
-	<script src="resources/js/jquery-1.7.2.min.js.cfm" type="text/javascript"></script>
-	<script src="resources/js/jquery.blockUI.js.cfm" type="text/javascript"></script>
-	<script src="resources/js/admin.js.cfm" type="text/javascript"></script>
+	<cfhtmlhead action="flush">
 </head>
 
 <cfparam name="attributes.onload" default="">
@@ -55,15 +52,15 @@
 					<td id="navtd" class="lotd">
 						<div id="nav">
 							<a href="##" id="resizewin" class="sprite" title="resize window"></a>
-							<cfif hasNavigation>
+
 								<form method="get" action="#cgi.SCRIPT_NAME#">
 									<input type="hidden" name="action" value="admin.search" />
 									<input type="text" name="q" size="15" id="navsearch" placeholder="#stText.buttons.search.ucase()#" />
 									<button type="submit" class="sprite  btn-search"><!--- <span>#stText.buttons.search# ---></span></button>
 									<!--- btn-mini title="#stText.buttons.search#" --->
 								</form>
+
 								#attributes.navigation#
-							</cfif>
 						</div>
 					</td>
 				</cfif>
@@ -96,7 +93,8 @@
 										</ul>
 									</div>
 								</cfif>
-									<div class="box">#attributes.title#<cfif structKeyExists(request,'subTitle')> - #request.subTitle#</cfif></div>
+									<div class="box"><cfif structKeyExists(request,'title')>#request.title#<cfelse>#attributes.title#</cfif>
+									<cfif structKeyExists(request,'subTitle')> - #request.subTitle#</cfif></div>
 								</div>
 							<div id="innercontent" <cfif !hasNavigation>align="center"</cfif>>
 								#thistag.generatedContent#
@@ -117,56 +115,35 @@
 		</table>
 	</div>
 
-	<!--- TODO: move to reusable script in /res/js/admin.js !--->
+	<script src="../res/js/jquery-1.12.4.min.js.cfm" type="text/javascript"></script>
+	<script src="../res/js/jquery.blockUI-#resNameAppendix#.js.cfm" type="text/javascript"></script>
+	<script src="../res/js/admin-#resNameAppendix#.js.cfm" type="text/javascript"></script>
+	<script src="../res/js/util-#resNameAppendix#.min.js.cfm"></script>
 	<script>
-		var getDomObject = function( obj ) {	// returns the element if it is an object, or finds the object by id */
+		$(function(){
 
-			if ( typeof obj == 'string' || obj instanceof String )
-				return document.getElementById( obj );
-
-			return obj;
-		}
-
-		var selectText = function( obj ) {
-
-	        if ( document.selection ) {
-
-	            var range = document.body.createTextRange();
-	            range.moveToElementText( getDomObject( obj ) );
-	            range.select();
-	        } else if ( window.getSelection ) {
-
-	            var range = document.createRange();
-	            range.selectNode( getDomObject( obj ) );
-	            window.getSelection().addRange( range );
-	        }
-	    }
-
-
-		$( function(){
-
-			$( '.coding-tip-trigger-#request.adminType#' ).click( 
-				function(){ 
+			$(".coding-tip-trigger").click(
+				function(){
 					var $this = $(this);
-					$this.next( '.coding-tip-#request.adminType#' ).slideDown();
+					$this.next(".coding-tip").slideDown();
 					$this.hide();
 				}
 			);
 
-			$( '.coding-tip-#request.adminType# code' ).click( 
-				function(){ 					
-					selectText(this);					
+			$(".coding-tip code").click(
+				function(){
+					__LUCEE.util.selectText(this);
 				}
 			).prop("title", "Click to select the text");
 		});
 	</script>
 
-	<cfif isDefined( "Request.htmlBody" )>#Request.htmlBody#</cfif>
+	<cfhtmlbody action="flush">
 </body>
 </html>
 </cfoutput>
 	<cfset thistag.generatedcontent="">
 </cfif>
 
-<cfparam name="url.showdebugoutput" default="no">
-<cfsetting showdebugoutput="#url.showdebugoutput#">
+<cfparam name="url.debug" default="no">
+<cfsetting showdebugoutput="#url.debug#">

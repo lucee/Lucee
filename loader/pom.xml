@@ -1,17 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-
-  <!-- <parent>
-    <groupId>org.lucee</groupId>
-    <artifactId>parent</artifactId>
-    <version>5.0.0.22</version>
-    
-  </parent> -->
-
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.0.1.83-SNAPSHOT</version>
+  <version>5.2.7.62</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -62,7 +54,7 @@
       <timezone>-8</timezone>
     </developer>
   </developers>
-   
+
   <profiles>
     <profile>
         <id>release-sign-artifacts</id>
@@ -93,7 +85,7 @@
         </build>
     </profile>
 </profiles>
-     
+
 
   <build>
       <plugins>
@@ -137,12 +129,12 @@
             <releaseProfiles>release</releaseProfiles>
             <goals>deploy</goals>
           </configuration>
-        </plugin> 
+        </plugin>
 
         <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>2.4</version>
+     		<groupId>org.apache.maven.plugins</groupId>
+     		<artifactId>maven-source-plugin</artifactId>
+     		<version>2.4</version>
           <executions>
             <execution>
               <id>attach-sources</id>
@@ -154,10 +146,10 @@
         </plugin>
 
         <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-          <version>2.10.3</version>
-     
+     		<groupId>org.apache.maven.plugins</groupId>
+     		<artifactId>maven-javadoc-plugin</artifactId>
+         	<version>2.10.3</version>
+
           <executions>
             <execution>
               <id>attach-javadocs</id>
@@ -165,7 +157,7 @@
                 <goal>jar</goal>
               </goals>
             <!-- add this to disable checking
-            <configuration>  
+            <configuration>
                 <additionalparam>-Xdoclint:none</additionalparam>
             </configuration> -->
             </execution>
@@ -194,12 +186,12 @@
                       <fileset refid="mydeps.org.apache.maven:maven-ant-tasks:jar" />
                     </path>
                     <pathconvert property="dependencies" refid="mydeps.maven.project.dependencies" />
-                    
+
                     <property name="version" value="${project.version}" />
-                        
+
                     <!-- <property name="compile_classpath" refid="maven.compile.classpath" /> -->
                     <property name="runtime_classpath" refid="maven.runtime.classpath" />
-                        
+
                     <property name="outputDir" value="${project.build.outputDirectory}" />
                     <property name="testcases" value="true" />
 
@@ -209,7 +201,7 @@
                     <property name="baseDir" value="${basedir}" />
                     <dirname file="${baseDir}" property="rootDir" />
 
-                    <ant antfile="../ant/build-core.xml" target="buildLoaderMaven" />                    
+                    <ant antfile="../ant/build-core.xml" target="buildLoaderMaven" />
 
 
                   </tasks>
@@ -226,7 +218,7 @@
        <artifactId>maven-jar-plugin</artifactId>
        <version>2.6</version>
             <extensions>true</extensions>
-          
+
             <configuration>
                 <excludes>
                   <exclude>.*</exclude>
@@ -236,11 +228,11 @@
                 <manifest>
                   <mainClass>${main.class}</mainClass>
                 </manifest>
-                  </archive> 
+                  </archive>
               </configuration>
 
           </plugin>
-         
+
          <plugin>
        <groupId>org.apache.maven.plugins</groupId>
       <artifactId>maven-compiler-plugin</artifactId>
@@ -255,47 +247,47 @@
 
       </plugins>
       <pluginManagement>
-        <plugins>
-          <!-- This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->
-          <plugin>
-            <groupId>org.eclipse.m2e</groupId>
-            <artifactId>lifecycle-mapping</artifactId>
-            <version>1.0.0</version>
-            <configuration>
-              <lifecycleMappingMetadata>
-                <pluginExecutions>
-                  <pluginExecution>
-                    <pluginExecutionFilter>
-                      <groupId>
-                        org.apache.maven.plugins
-                      </groupId>
-                      <artifactId>
-                        maven-antrun-plugin
-                      </artifactId>
-                      <versionRange>
-                        [1.8,)
-                      </versionRange>
-                      <goals>
-                        <goal>run</goal>
-                      </goals>
-                    </pluginExecutionFilter>
-                    <action>
-                      <ignore></ignore>
-                    </action>
-                  </pluginExecution>
-                </pluginExecutions>
-              </lifecycleMappingMetadata>
-            </configuration>
-          </plugin>
-        </plugins>
+      	<plugins>
+      		<!-- This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->
+      		<plugin>
+      			<groupId>org.eclipse.m2e</groupId>
+      			<artifactId>lifecycle-mapping</artifactId>
+      			<version>1.0.0</version>
+      			<configuration>
+      				<lifecycleMappingMetadata>
+      					<pluginExecutions>
+      						<pluginExecution>
+      							<pluginExecutionFilter>
+      								<groupId>
+      									org.apache.maven.plugins
+      								</groupId>
+      								<artifactId>
+      									maven-antrun-plugin
+      								</artifactId>
+      								<versionRange>
+      									[1.8,)
+      								</versionRange>
+      								<goals>
+      									<goal>run</goal>
+      								</goals>
+      							</pluginExecutionFilter>
+      							<action>
+      								<ignore></ignore>
+      							</action>
+      						</pluginExecution>
+      					</pluginExecutions>
+      				</lifecycleMappingMetadata>
+      			</configuration>
+      		</plugin>
+      	</plugins>
       </pluginManagement>
   </build>
 
 
 
 
-  <dependencies>
-     
+	<dependencies>
+
   <dependency>
     <groupId>junit</groupId>
     <artifactId>junit</artifactId>
@@ -303,11 +295,11 @@
     <scope>test</scope>
   </dependency>
 
-    
-  <dependency>
+
+	<dependency>
     <groupId>org.apache.felix</groupId>
     <artifactId>org.apache.felix.framework</artifactId>
-    <version>4.6.1</version>
+    <version>5.6.10</version><!-- 4.6.1 -->
     <scope>compile</scope>
   </dependency>
   <dependency>
@@ -335,33 +327,34 @@
     <scope>compile</scope>
   </dependency>
 
-<!-- 
+<!--
   source: mvn
 -->
-  <dependency>
-      <groupId>org.lucee</groupId>
-      <artifactId>jzlib</artifactId>
-      <version>1.1.3</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.lucee</groupId>
-      <artifactId>jsch</artifactId>
-      <version>0.1.53</version>
-      <scope>provided</scope>
-    </dependency>
+	<dependency>
+  		<groupId>org.lucee</groupId>
+  		<artifactId>jzlib</artifactId>
+  		<version>1.1.3</version>
+    	<scope>provided</scope>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.lucee</groupId>
+  		<artifactId>jsch</artifactId>
+  		<version>0.1.53</version>
+    	<scope>provided</scope>
+  	</dependency>
   <dependency>
     <groupId>org.apache.tika</groupId>
     <artifactId>tika-core</artifactId>
     <version>1.10</version>
     <scope>provided</scope>
   </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-sanselan</artifactId>
-    <version>0.97.0.incubator</version>
-    <scope>provided</scope>
-  </dependency>
+    <dependency>
+         <groupId>org.apache.commons</groupId>
+         <artifactId>image</artifactId>
+         <type>jar</type>
+         <version>1.0.0.R1534292</version>
+         <scope>provided</scope>
+      </dependency>
   <dependency>
     <groupId>commons-codec</groupId>
     <artifactId>commons-codec</artifactId>
@@ -369,21 +362,21 @@
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.apache.commons</groupId>
-    <artifactId>commons-collections4</artifactId>
-    <version>4.0</version>
+	  <groupId>org.apache.commons</groupId>
+	  <artifactId>commons-collections4</artifactId>
+	  <version>4.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-compress</artifactId>
-    <version>1.9.0</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>commons-compress</artifactId>
+  	<version>1.9.0</version>
     <scope>provided</scope>
   </dependency>
-  <dependency>
-    <groupId>commons-discovery</groupId>
-    <artifactId>commons-discovery</artifactId>
-    <version>0.5</version>
+	<dependency>
+		<groupId>commons-discovery</groupId>
+		<artifactId>commons-discovery</artifactId>
+		<version>0.5</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -393,51 +386,51 @@
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-fileupload</artifactId>
-    <version>1.3.2.L0001</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>commons-fileupload</artifactId>
+  	<version>1.3.2.L0001</version>
+    <scope>provided</scope>
+  </dependency>
+	<dependency>
+		<groupId>org.lucee</groupId>
+		<artifactId>commons-httpclient</artifactId>
+		<version>3.1.0</version>
+    <scope>provided</scope>
+  </dependency>
+	<dependency>
+		<groupId>org.lucee</groupId>
+		<artifactId>commons-io</artifactId>
+		<version>2.4.0</version>
+    <scope>provided</scope>
+  </dependency>
+	<dependency>
+		<groupId>org.lucee</groupId>
+		<artifactId>commons-lang</artifactId>
+		<version>2.6.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-httpclient</artifactId>
-    <version>3.1.0</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>commons-logging-adapters</artifactId>
+  	<version>1.1.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-io</artifactId>
-    <version>2.4.0</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>commons-logging-api</artifactId>
+  	<version>1.1.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-lang</artifactId>
-    <version>2.6.0</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>commons-logging</artifactId>
+  	<version>1.1.1.L0001</version>
     <scope>provided</scope>
   </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-logging-adapters</artifactId>
-    <version>1.1.0</version>
-    <scope>provided</scope>
-  </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-logging-api</artifactId>
-    <version>1.1.0</version>
-    <scope>provided</scope>
-  </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-logging</artifactId>
-    <version>1.1.1.L0001</version>
-    <scope>provided</scope>
-  </dependency>
-  <dependency>
-    <groupId>commons-net</groupId>
-    <artifactId>commons-net</artifactId>
-    <version>3.3</version>
+	<dependency>
+		<groupId>commons-net</groupId>
+		<artifactId>commons-net</artifactId>
+		<version>3.3</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -446,52 +439,52 @@
     <version>2.0.8</version>
     <scope>provided</scope>
   </dependency>
-  <dependency>
-    <groupId>log4j</groupId>
-    <artifactId>log4j</artifactId>
-    <version>1.2.17</version>
+	<dependency>
+		<groupId>log4j</groupId>
+		<artifactId>log4j</artifactId>
+		<version>1.2.17</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>axis-ant</artifactId>
-    <version>1.4.0.L0001</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>axis-ant</artifactId>
+  	<version>1.4.0.L0001</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>axis</artifactId>
-    <version>1.4.0.L0001</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>axis</artifactId>
+  	<version>1.4.0.L0001</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>xalan</artifactId>
-    <version>2.7.2</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>xalan</artifactId>
+  	<version>2.7.2</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>xalan-serializer</artifactId>
-    <version>2.7.2</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>xalan-serializer</artifactId>
+  	<version>2.7.2</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>portlet</artifactId>
-    <version>1.0.0</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>portlet</artifactId>
+  	<version>1.0.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>xml-xerces</artifactId>
-    <version>2.11.0</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>xml-xerces</artifactId>
+  	<version>2.11.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>xml-apis</artifactId>
-    <version>1.4.1</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>xml-apis</artifactId>
+  	<version>1.4.1</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -505,23 +498,23 @@
     <artifactId>oswego-concurrent</artifactId>
     <version>1.3.4</version>
     <scope>provided</scope>
-  </dependency> 
+  </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>jta</artifactId>
-    <version>1.1.0</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>jta</artifactId>
+  	<version>1.1.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>esapi</artifactId>
-    <version>2.1.0.1</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>esapi</artifactId>
+  	<version>2.1.0.1</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>xom</groupId>
-    <artifactId>xom</artifactId>
-    <version>1.2.5</version>
+	  <groupId>xom</groupId>
+	  <artifactId>xom</artifactId>
+	  <version>1.2.5</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -531,21 +524,21 @@
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>httpcomponents-httpclient</artifactId>
-    <version>4.5.2</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>httpcomponents-httpclient</artifactId>
+  	<version>4.5.2</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>httpcomponents-httpcore</artifactId>
-    <version>4.4.4</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>httpcomponents-httpcore</artifactId>
+  	<version>4.4.4</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>httpcomponents-httpmime</artifactId>
-    <version>4.5.2</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>httpcomponents-httpmime</artifactId>
+  	<version>4.5.2</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -585,27 +578,27 @@
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.ow2.asm</groupId>
-    <artifactId>asm-all</artifactId>
-    <version>4.2</version>
+  	<groupId>org.ow2.asm</groupId>
+  	<artifactId>asm-all</artifactId>
+  	<version>4.2</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>xml-resolver</artifactId>
-    <version>1.2.0</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>xml-resolver</artifactId>
+  	<version>1.2.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.slf4j</groupId>
-    <artifactId>slf4j-api</artifactId>
-    <version>1.7.12</version>
+  	<groupId>org.slf4j</groupId>
+  	<artifactId>slf4j-api</artifactId>
+  	<version>1.7.12</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.slf4j</groupId>
-    <artifactId>slf4j-nop</artifactId>
-    <version>1.7.12</version>
+	  <groupId>org.slf4j</groupId>
+	  <artifactId>slf4j-nop</artifactId>
+	  <version>1.7.12</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -657,9 +650,9 @@
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>javax.mail</groupId>
-    <artifactId>activation</artifactId>
-    <version>1.4.7.0002L</version>
+	  <groupId>javax.mail</groupId>
+	  <artifactId>activation</artifactId>
+	  <version>1.4.7.0002L</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -669,21 +662,21 @@
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>jaxrpc</artifactId>
-    <version>1.4.0</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>jaxrpc</artifactId>
+  	<version>1.4.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>wsdl4j</artifactId>
-    <version>1.5.1</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>wsdl4j</artifactId>
+  	<version>1.5.1</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>saaj</artifactId>
-    <version>1.4.0</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>saaj</artifactId>
+  	<version>1.4.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -715,7 +708,7 @@
     <artifactId>xmpcore</artifactId>
     <version>5.1.2.0002L</version>
     <scope>provided</scope>
-  </dependency> 
+  </dependency>
 </dependencies>
 
 

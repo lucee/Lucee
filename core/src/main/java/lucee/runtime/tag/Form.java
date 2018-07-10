@@ -34,7 +34,6 @@ import lucee.runtime.functions.string.JSStringFormat;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.tag.util.DeprecatedUtil;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -117,7 +116,7 @@ public final class Form extends BodyTagImpl {
      * @throws ApplicationException
      */
     public void setEnablecab(boolean enablecab) {
-		DeprecatedUtil.tagAttribute(pageContext,"Form", "enablecab");
+		//DeprecatedUtil.tagAttribute(pageContext,"Form", "enablecab");
         
     }
     /**
@@ -524,7 +523,7 @@ public final class Form extends BodyTagImpl {
     }
 
 
-    private String de(String str) {
+    private String de(String str) throws PageException {
         return DE.call(pageContext,str);
     }
     private String js(String str) {

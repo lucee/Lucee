@@ -533,7 +533,6 @@ public class Util {
 				delete(c);
 		f.delete();
 	}
-
 	
 	/**
 	 * check left value against right value
@@ -561,13 +560,15 @@ public class Util {
 		String q = left.getQualifier();
 		int index=q.indexOf('-');
 		String qla = index==-1?"":q.substring(index+1).trim();
-		int ql = Integer.parseInt(index==-1?q:q.substring(0, index));
+		String qln=index==-1?q:q.substring(0, index);
+		int ql = isEmpty(qln)?Integer.MIN_VALUE:Integer.parseInt(qln);
 		
 		//right
 		q = right.getQualifier();
 		index=q.indexOf('-');
 		String qra = index==-1?"":q.substring(index+1).trim();
-		int qr = Integer.parseInt(index==-1?q:q.substring(0, index));
+		String qrn=index==-1?q:q.substring(0, index);
+		int qr = isEmpty(qln)?Integer.MIN_VALUE:Integer.parseInt(qrn);
 
 		if(ql>qr) return true;
 		if(ql<qr) return false;

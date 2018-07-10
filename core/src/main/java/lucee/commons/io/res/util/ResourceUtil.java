@@ -42,6 +42,7 @@ import lucee.commons.io.res.filter.IgnoreSystemFiles;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.type.http.HTTPResource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -93,7 +94,7 @@ public final class ResourceUtil {
      */
     public static final short LEVEL_GRAND_PARENT_FILE=2;
     
-    private static final HashMap<String, String> EXT_MT=new HashMap<String, String>();
+    public static final HashMap<String, String> EXT_MT=new HashMap<String, String>();
     static {
     	EXT_MT.put("ai","application/postscript");
     	EXT_MT.put("aif","audio/x-aiff");
@@ -193,6 +194,7 @@ public final class ResourceUtil {
 			return toResourceExisting(pc, path, allowRealpath);
 		}
     	catch (Throwable e) {
+    		ExceptionUtil.rethrowIfNecessary(e);
 			return defaultValue;
 		}
     }
@@ -811,36 +813,7 @@ public final class ResourceUtil {
      * @return mime type of the file
      */
     public static String getMimeType(Resource res, String defaultValue) {
-        return getMimeType(res, MIMETYPE_CHECK_HEADER,defaultValue);
-    }
-    
-    public static String getMimeType(Resource res, int checkingType, String defaultValue) {
-        
-    	// check Extension
-    	if((checkingType&MIMETYPE_CHECK_EXTENSION)!=0) {
-        	String ext = getExtension(res, null);
-			if(!StringUtil.isEmpty(ext)){
-        		String mt=EXT_MT.get(ext.trim().toLowerCase());
-        		if(mt!=null) return mt;
-			}
-        }
-    	
-    	// check mimetype
-    	if((checkingType&MIMETYPE_CHECK_HEADER)!=0) {
-    		InputStream is=null;
-    		try {
-    			is = res.getInputStream();
-    			return IOUtil.getMimeType(is, defaultValue);
-			} 
-    		catch (Throwable t) {
-				return defaultValue;
-			}
-    		finally {
-    			IOUtil.closeEL(is);
-    		}
-    	}
-    	
-    	return defaultValue;
+        return IOUtil.getMimeType(res, defaultValue);
     }
 
     
@@ -985,7 +958,7 @@ public final class ResourceUtil {
         if(src.isDirectory()) {
         	if(!trg.exists())trg.createDirectory(true);
         	Resource[] files=filter==null?src.listResources():src.listResources(filter);
-            for(int i=0;i<files.length;i++) {
+            if(files!=null)for(int i=0;i<files.length;i++) {
             	copyRecursive(files[i],trg.getRealResource(files[i].getName()),filter);
             }
         }
@@ -1042,28 +1015,28 @@ public final class ResourceUtil {
 		try {
 			removeChildren(res,filter);
 		}
-		catch(Throwable e) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	public static void removeChildrenEL(Resource res,ResourceFilter filter) {
 		try {
 			removeChildren(res,filter);
 		}
-		catch(Throwable e) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	
 	public static void removeChildrenEL(Resource res) {
 		try {
 			removeChildren(res);
 		}
-		catch(Throwable e) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	public static void removeEL(Resource res, boolean force) {
 		try {
 			res.remove(force);
 		} 
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	public static void createFileEL(Resource res, boolean force) {
@@ -1440,7 +1413,8 @@ public final class ResourceUtil {
 		try {
 			return ps.getResourceTranslated(pc);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -1448,13 +1422,13 @@ public final class ResourceUtil {
 	public static int directrySize(Resource dir,ResourceFilter filter) {
 		if(dir==null || !dir.isDirectory()) return 0;
 		if(filter==null) return dir.list().length;
-		return dir.list(filter).length;
+		return ArrayUtil.size(dir.list(filter));
 	}
 	
 	public static int directrySize(Resource dir,ResourceNameFilter filter) {
 		if(dir==null || !dir.isDirectory()) return 0;
 		if(filter==null) return dir.list().length;
-		return dir.list(filter).length;
+		return ArrayUtil.size(dir.list(filter));
 	}
 	
 	public static String[] names(Resource[] resources) {

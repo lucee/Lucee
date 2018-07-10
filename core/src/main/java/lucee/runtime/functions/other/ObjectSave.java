@@ -35,11 +35,11 @@ import lucee.runtime.op.Caster;
 
 public class ObjectSave {
     
-	public synchronized static Object call(PageContext pc, Object input) throws PageException {
+	public static Object call(PageContext pc, Object input) throws PageException {
     	return call(pc,input,null);
     }
 	
-    public synchronized static Object call(PageContext pc, Object input,String filepath) throws PageException {
+    public static Object call(PageContext pc, Object input,String filepath) throws PageException {
     	if(!(input instanceof Serializable))
     		throw new ApplicationException("can only serialize object from type Serializable");
     	

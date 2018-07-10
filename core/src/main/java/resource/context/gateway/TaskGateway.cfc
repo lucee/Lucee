@@ -25,7 +25,8 @@ component {
 
         variables.id       = arguments.id;
         variables.config   = arguments.config;
-        variables.listener = arguments.listener;
+        if(structKeyExists(arguments, "listener"))
+            variables.listener = arguments.listener;
 
         variables.interval = arguments.config.sleep * 1000;
 
@@ -98,7 +99,7 @@ component {
 
     public function sendMessage( struct data={} ) {
 
-        return "ERROR: sendMessage not supported";
+        return "sendGatewayMessage() has not been implemented for the event gateway [TaskGateway]. If you want to modify it, please edit the following CFC:"& expandpath("./") & "TaskGateway.cfc";
     }
 
 

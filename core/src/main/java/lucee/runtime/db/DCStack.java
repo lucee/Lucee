@@ -21,17 +21,37 @@ package lucee.runtime.db;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SystemOut;
+import lucee.commons.lang.types.RefInteger;
+import lucee.commons.lang.types.RefIntegerImpl;
 
 class DCStack {
 
 	
 	private Item item;
 	private DataSource datasource;
+	private String user;
+	private String pass;
+	private final RefInteger counter;
 	
-
 	DCStack(DataSource datasource, String user, String pass) {
 		this.datasource=datasource;
+		this.user=user;
+		this.pass=pass;
+		this.counter=new RefIntegerImpl(0);
+	}
+	
+	public DataSource getDatasource() {
+		return datasource;
+	}
+
+	public String getUsername() {
+		return user;
+	}
+
+	public String getPassword() {
+		return pass;
 	}
 
 	public void add(DatasourceConnection dc){
@@ -76,8 +96,7 @@ class DCStack {
 		}
 		return count;
 	}
-	
-	public int openConnections(){
+	public int openConnectionsIn(){
 		int count=0;
 		Item i = item;
 		while(i!=null){
@@ -88,6 +107,14 @@ class DCStack {
 			i=i.prev;
 		}
 		return count;
+	}
+	
+	public int openConnectionsOut(){
+		return counter.toInt();
+	}
+	
+	public int openConnections(){
+		return openConnectionsIn()+openConnectionsOut();
 	}
 	
 	class Item {
@@ -145,6 +172,8 @@ class DCStack {
 	        clear(current.prev,next,force);
 		}
 		else clear(current.prev,current,force);
+		
+		counter.setValue(0);
 	}
 
 	private boolean isClosedEL(Connection conn) {
@@ -168,8 +197,13 @@ class DCStack {
 		try {
 			return conn.isValid(datasource.getNetworkTimeout())?Boolean.TRUE:Boolean.FALSE;
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return null;
 		}
+	}
+
+	public RefInteger getCounter() {
+		return counter;
 	}
 }

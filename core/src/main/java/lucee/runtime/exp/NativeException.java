@@ -26,7 +26,6 @@ import lucee.runtime.dump.DumpTable;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.util.KeyConstants;
 
 
 /**
@@ -43,17 +42,14 @@ public class NativeException extends PageExceptionImpl {
 	 * @param t Throwable
 	 */
 	protected NativeException(Throwable t) {
-        super(t=getRootCause(t),t.getClass().getName());
+        super(t,t.getClass().getName());
         this.t=t;
+        // set stacktrace
         
-        
-        StackTraceElement[] st = t.getStackTrace();
-        
-        
-        
+        /*StackTraceElement[] st = getRootCause(t).getStackTrace();
         if(hasLuceeRuntime(st))setStackTrace(st);
         else {
-        	StackTraceElement[] cst = Thread.currentThread().getStackTrace();
+        	StackTraceElement[] cst = new Exception().getStackTrace();
         	if(hasLuceeRuntime(cst)){
         		StackTraceElement[] mst=new StackTraceElement[st.length+cst.length-1];
         		System.arraycopy(st, 0, mst, 0, st.length);
@@ -62,12 +58,15 @@ public class NativeException extends PageExceptionImpl {
         		setStackTrace(mst);
         	}
         	else setStackTrace(st);
-        }
-        setAdditional(KeyConstants._Cause, t.getClass().getName());
+        }*/
 	}
 	
 	public static NativeException newInstance(Throwable t) {
-		if(t instanceof ThreadDeath) // never ever catch this
+		return newInstance(t, true);
+	}
+	
+	public static NativeException newInstance(Throwable t, boolean rethrowIfNecessary) {
+		if(rethrowIfNecessary && t instanceof ThreadDeath) // never ever catch this
 			throw (ThreadDeath)t;
 		return new NativeException(t);
 	}
@@ -107,5 +106,9 @@ public class NativeException extends PageExceptionImpl {
 	@Override
 	public void setAdditional(Collection.Key key, Object value) {
 		super.setAdditional(key, value);
+	}
+
+	public Throwable getException() {
+		return t;
 	}
 }

@@ -73,7 +73,9 @@ import org.apache.felix.framework.Felix;
 import org.apache.felix.framework.Logger;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.Version;
+import org.osgi.framework.launch.Framework;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -120,11 +122,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * Constructor of the class
 	 */
 	protected CFMLEngineFactory(final ServletConfig config) {
-		
-		// PATCH
-		// System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration", "org.apache.xerces.parsers.XIncludeAwareParserConfiguration");
-		
-		
 		File logFile = null;
 		this.config = config;
 		try {
@@ -158,17 +155,16 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * @return Singelton Instance of the Factory
 	 * @throws ServletException
 	 */
-	public static CFMLEngine getInstance(final ServletConfig config)
+	public synchronized static CFMLEngine getInstance(final ServletConfig config)
 			throws ServletException {
-
+		
 		if (singelton != null) {
 			if (factory == null)
 				factory = singelton.getCFMLEngineFactory(); // not sure if this ever is done, but it does not hurt
 			return singelton;
 		}
-
-		if (factory == null)
-			factory = new CFMLEngineFactory(config);
+		
+		if (factory == null) factory = new CFMLEngineFactory(config);
 
 		// read init param from config
 		factory.readInitParam(config);
@@ -278,6 +274,24 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	private void initEngineIfNecessary() throws ServletException {
 		if (singelton == null)
 			initEngine();
+	}
+	
+
+	public void shutdownFelix() throws BundleException {
+		log(Logger.LOG_DEBUG,"---- Shutdown Felix ----");
+		
+		BundleCollection bc = singelton.getBundleCollection();
+		if(bc==null || bc.felix==null) return;
+		
+		// stop
+		BundleLoader.removeBundles(bc);
+		
+		// we give it some time
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {}
+		
+		BundleUtil.stop(felix, false);
 	}
 
 	private void initEngine() throws ServletException {
@@ -451,8 +465,25 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				logLevel = 4;
 		}
 		config.put("felix.log.level", "" + logLevel);
-
-		// storage clean
+		
+		{
+			// Allow felix.cache.locking to be overriden by env var (true/false)
+			// Enables or disables bundle cache locking, which is used to prevent concurrent access to the bundle cache. 
+			String strCacheLocking = getSystemPropOrEnvVar("felix.cache.locking", null);
+			if(!Util.isEmpty(strCacheLocking)) {
+				config.put("felix.cache.locking", strCacheLocking);
+			}
+	
+			// Allow FRAMEWORK_STORAGE_CLEAN to be overriden by env var
+			// The value can either be "none" or "onFirstInit", where "none" does not flush the bundle cache 
+			// and "onFirstInit" flushes the bundle cache when the framework instance is first initialized.
+			String strStorageClean = getSystemPropOrEnvVar("felix.storage.clean", null);
+			if(!Util.isEmpty(strStorageClean)) {
+				config.put(Constants.FRAMEWORK_STORAGE_CLEAN, strStorageClean);
+			}
+		}
+		
+		// Default storage clean if not set above
 		final String storageClean = (String) config
 				.get(Constants.FRAMEWORK_STORAGE_CLEAN);
 		if (Util.isEmpty(storageClean))
@@ -687,7 +718,9 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		// before we download we check if we have it bundled
 		File jar = deployBundledBundle(jarDir,symbolicName,symbolicVersion);
 		if(jar!=null && jar.isFile()) return jar;
-		
+		if(jar!=null) {
+			log(Logger.LOG_INFO, jar+" should exist but does not (exist?"+jar.exists()+";file?"+jar.isFile()+";hidden?"+jar.isHidden()+")");
+		}
 		
 		jar = new File(jarDir, symbolicName.replace('.', '-') + "-"
 				+ symbolicVersion.replace('.', '-') + (".jar"));
@@ -703,7 +736,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 						+ (id == null ? "?" : "&")+"allowRedirect=true"
 						
 				);
-		System.out.println("download " + symbolicName + ":" + symbolicVersion +" from "+updateUrl+" and copy to "+jar); // MUST remove
 		log(Logger.LOG_DEBUG, "download bundle [" + symbolicName + ":"+ symbolicVersion + "] from " + updateUrl+" and copy to "+jar);
 
 		int code;
@@ -714,9 +746,9 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			conn.connect();
 			code = conn.getResponseCode();
 		} catch (UnknownHostException e) {
+			log(Logger.LOG_ERROR,"could not download the bundle  [" + symbolicName + ":"+ symbolicVersion + "] from " + updateUrl+" and copy to "+jar); // MUST remove
 			throw new IOException("could not download the bundle  [" + symbolicName + ":"+ symbolicVersion + "] from " + updateUrl+" and copy to "+jar, e);
 		}
-		//System.out.println("SC:" + code+"->"+conn.getFollowRedirects());
 		// the update provider is not providing a download for this
 		if (code != 200) {
 			
@@ -726,7 +758,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				// just in case we check invalid names
 				if(location==null)location = conn.getHeaderField("location");
 				if(location==null)location = conn.getHeaderField("LOCATION");
-				System.out.println("download redirected:" + location); // MUST remove
+				log(Logger.LOG_DEBUG,"download redirected:" + location); // MUST remove
 				
 				conn.disconnect();
 				URL url = new URL(location);
@@ -775,22 +807,30 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		// first we look for a exact match
 		InputStream is = getClass().getResourceAsStream("bundles/"+osgiFileName);
 		if(is==null) is = getClass().getResourceAsStream("/bundles/"+osgiFileName);
-		System.out.println("found "+osgiFileName+":"+(is!=null));
+		
+		if(is!=null) log(Logger.LOG_DEBUG,"found /bundles/"+osgiFileName+" in lucee.jar");
+		else log(Logger.LOG_INFO,"could not find /bundles/"+osgiFileName+" in lucee.jar");
+		
 		if(is==null) {
 			is = getClass().getResourceAsStream("bundles/"+osgiFileName+pack20Ext);
 			if(is==null)is = getClass().getResourceAsStream("/bundles/"+osgiFileName+pack20Ext);
 			isPack200=true;
+
+			if(is!=null) log(Logger.LOG_DEBUG,"found /bundles/"+osgiFileName+pack20Ext+" in lucee.jar");
+			else log(Logger.LOG_INFO,"could not find /bundles/"+osgiFileName+pack20Ext+" in lucee.jar");
 		}
 		if(is!=null) {
 			File temp=null;
 			try {
 				// copy to temp file
 				temp=File.createTempFile("bundle", ".tmp");
+				log(Logger.LOG_DEBUG,"copy lucee.jar!/bundles/"+osgiFileName+pack20Ext+" to "+temp);
 				Util.copy(new BufferedInputStream(is), new FileOutputStream(temp),true,true);
 				
 				if(isPack200) {
 					File temp2 = File.createTempFile("bundle", ".tmp2");
 					Pack200Util.pack2Jar(temp, temp2);
+					log(Logger.LOG_DEBUG,"unpack "+temp+" to "+temp2);
 					temp.delete();
 					temp=temp2;
 				}
@@ -798,14 +838,12 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				// adding bundle
 				File trg=new File(bundleDirectory,osgiFileName);
 				temp.renameTo(trg);
-				printDate("adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
 				log(Logger.LOG_DEBUG, "adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
-
 				return trg;
-				
-				
 			}
-			catch(IOException ioe){}
+			catch(IOException ioe){
+				ioe.printStackTrace();
+			}
 			finally {
 				if(temp!=null && temp.exists())temp.delete();
 			}
@@ -852,7 +890,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 							if(bundleInfo!=null && nameAndVersion.equals(bundleInfo)) {
 								File trg=new File(bundleDirectory,name);
 								temp.renameTo(trg);
-								printDate("adding bundle [ "+symbolicName+" ] in version [ "+symbolicVersion+" ] to [ "+trg+" ]");
 								log(Logger.LOG_DEBUG, "adding bundle ["+symbolicName+"] in version ["+symbolicVersion+"] to ["+trg+"]");
 
 								return trg;
@@ -868,7 +905,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			} 
 		}
 		catch(Throwable t){
-			t.printStackTrace();// TODO log this
+			if(t instanceof ThreadDeath) throw (ThreadDeath)t;
 		}
 		finally {
 			Util.closeEL(zis);
@@ -879,16 +916,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	private boolean isWindows() {
 		String os = System.getProperty("os.name").toLowerCase();
 		return os.startsWith("windows");
-	}
-
-	private void printDate(String value) {
-		long millis=System.currentTimeMillis();
-    	System.out.println(
-    			new Date(millis)
-    			+"-"
-    			+(millis-(millis/1000*1000))
-    			+" "+value);
-	    
 	}
 
 	private File downloadCore(Identification id) throws IOException {
@@ -933,8 +960,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 						+ (id == null ? "?" : "&")+"allowRedirect=true"
 				);
 		log(Logger.LOG_DEBUG, "download update from " + updateUrl);
-		System.out.println(updateUrl);
-		
 		
 		// local resource
 		final File patchDir = getPatchDirectory();
@@ -964,8 +989,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				// just in case we check invalid names
 				if(location==null)location = conn.getHeaderField("location");
 				if(location==null)location = conn.getHeaderField("LOCATION");
-				System.out.println("download redirected:" + location); // MUST remove
-				log(Logger.LOG_DEBUG, "download redirected to " + updateUrl);
+				log(Logger.LOG_DEBUG, "download redirected to " + location);
 				
 				
 				conn.disconnect();
@@ -1000,20 +1024,17 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			// when it is a loader extract the core from it
 			File tmp = extractCoreIfLoader(newLucee);
 			if(tmp!=null) {
-				System.out.println("extract core from loader"); // MUST remove
 				log(Logger.LOG_DEBUG, "extract core from loader");
 				
 				newLucee.delete();
 				tmp.renameTo(newLucee);
 				tmp.delete();
-				System.out.println("exist?"+newLucee.exists()); // MUST remove
 				
 			}
 		}
 		else {
 			conn.disconnect();
-			log(Logger.LOG_DEBUG,
-					"File for new Version already exists, won't copy new one");
+			log(Logger.LOG_DEBUG, "File for new Version already exists, won't copy new one");
 			return null;
 		}
 		return newLucee;
@@ -1290,11 +1311,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			if(webInf!=null) {
 				root=webInf;
 				if(!root.exists())root.mkdir();
-				System.out.println("war-root-directory:" + root);
+				log(Logger.LOG_DEBUG,"war-root-directory:" + root);
 			}
 		}
 		
-		System.out.println("root-directory:" + root);
+		log(Logger.LOG_DEBUG,"root-directory:" + root);
 		
 		if (root == null)
 			throw new IOException(
@@ -1306,12 +1327,12 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (true) {
 			// there is a server context in the old lucee location, move that one
 			File classicDir;
-			System.out.println("classic-root-directory:" + classicRoot);
+			log(Logger.LOG_DEBUG,"classic-root-directory:" + classicRoot);
 			boolean had = false;
 			if (classicRoot.isDirectory()
 					&& (classicDir = new File(classicRoot, "lucee-server"))
 							.isDirectory()) {
-				System.out.println("had lucee-server classic" + classicDir);
+				log(Logger.LOG_DEBUG,"had lucee-server classic" + classicDir);
 				moveContent(classicDir, modernDir);
 				had = true;
 			}
@@ -1320,7 +1341,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					&& classicRoot.isDirectory()
 					&& (classicDir = new File(classicRoot, "railo-server"))
 							.isDirectory()) {
-				System.out.println("had railo-server classic" + classicDir);
+				log(Logger.LOG_DEBUG,"had railo-server classic" + classicDir);
 				// check if there is a Railo context
 				copyRecursiveAndRename(classicDir, modernDir);
 				// zip the railo-server di and delete it (optional)
@@ -1560,6 +1581,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 				}
 		}
+	}
+
+	public Logger getLogger() {
+		return logger;
 	}
 
 }

@@ -22,18 +22,16 @@
 	<cffunction name="setUp"></cffunction>
 	--->
 	<cffunction name="testEncodeForDN" localMode="modern">
-
-<!--- begin old test code --->
-<cfscript>
-
-enc=EncodeForDN('<script>');
-valueEquals(enc,'\<script\>');
-</cfscript>
-
-<!--- end old test code --->
-	
-		
-		<!--- <cfset assertEquals("","")> --->
+		<cfscript>
+		enc=EncodeForDN('<script>');
+		valueEquals(enc,'\<script\>');
+		</cfscript>
+	</cffunction>
+	<cffunction name="testEncodeForDNMember" localMode="modern">
+		<cfscript>
+		enc='<script>'.EncodeForDN();
+		valueEquals(enc,'\<script\>');
+		</cfscript>
 	</cffunction>
 	
 	<cffunction access="private" name="valueEquals">

@@ -54,11 +54,15 @@ public class RWLock<L> {
 		}
 	}
 
-	synchronized void inc(){
-		count++;
+	void inc(){
+		synchronized (rwl) {
+			count++;
+		}
 	}
-	synchronized void dec(){
-		count--;
+	void dec(){
+		synchronized (rwl) {
+			count--;
+		}
 	}
 
 
@@ -82,9 +86,11 @@ public class RWLock<L> {
      * @return the estimated number of threads waiting for this lock
      */
     public int getQueueLength()	{
-		return count;
+    	synchronized (rwl) {
+    		return count;
+		}
 	}
-    
+
     /**
      * Queries if the write lock is held by any thread.
      */

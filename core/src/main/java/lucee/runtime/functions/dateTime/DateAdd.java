@@ -49,7 +49,7 @@ public final class DateAdd extends BIF {
 	}
 	
 	
-	public synchronized static DateTime _call(PageContext pc ,TimeZone tz, String datepart, double number, DateTime date) throws ExpressionException {
+	public static DateTime _call(PageContext pc ,TimeZone tz, String datepart, double number, DateTime date) throws ExpressionException {
 		datepart=datepart.toLowerCase();
 		long l=(long)number;
 		int n=(int) l;

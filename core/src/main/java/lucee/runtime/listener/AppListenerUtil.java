@@ -24,7 +24,10 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.type.ftp.FTPConnectionData;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
@@ -35,21 +38,26 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ApplicationDataSource;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DBUtil;
-import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.db.DBUtil.DataSourceDefintion;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
+import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.net.mail.Server;
+import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMConfigurationImpl;
+import lucee.runtime.security.Credential;
+import lucee.runtime.security.CredentialImpl;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -72,6 +80,7 @@ public final class AppListenerUtil {
 	public static final Collection.Key ACCESS_KEY_ID = KeyImpl.intern("accessKeyId");
 	public static final Collection.Key AWS_SECRET_KEY = KeyImpl.intern("awsSecretKey");
 	public static final Collection.Key DEFAULT_LOCATION = KeyImpl.intern("defaultLocation");
+	public static final Collection.Key ACL = KeyImpl.intern("acl");
 	public static final Collection.Key CONNECTION_STRING = KeyImpl.intern("connectionString");
 	
 	public static final Collection.Key BLOB = KeyImpl.intern("blob");
@@ -85,6 +94,12 @@ public final class AppListenerUtil {
 	public static final Collection.Key READ_ONLY = KeyImpl.intern("readOnly");
 	public static final Collection.Key DATABASE = KeyConstants._database;
 	public static final Collection.Key DISABLE_UPDATE = KeyImpl.intern("disableUpdate"); 
+	
+
+	private static final TimeSpan FIVE_MINUTES = new TimeSpanImpl(0, 0, 5, 0);
+	private static final TimeSpan ONE_MINUTE = new TimeSpanImpl(0, 0, 1, 0);
+	
+	
 	
 	public static PageSource getApplicationPageSource(PageContext pc,PageSource requestedPage, String filename, int mode) {
 		if(mode==ApplicationListener.MODE_CURRENT)return getApplicationPageSourceCurrent(requestedPage, filename);
@@ -145,7 +160,8 @@ public final class AppListenerUtil {
 	public static DataSource[] toDataSources(Config config, Object o,DataSource[] defaultValue,Log log) {
 		try {
 			return toDataSources(config,o,log);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -214,7 +230,7 @@ public final class AppListenerUtil {
 			DataSourceDefintion dbt = DBUtil.getDataSourceDefintionForType(type, null);
 			if(dbt==null) throw new ApplicationException("no datasource type ["+type+"] found");
 			try {
-				return new DataSourceImpl(config,null,
+				return new DataSourceImpl(config,
 					name, 
 					dbt.classDefinition, 
 					Caster.toString(data.get(KeyConstants._host)), 
@@ -233,7 +249,11 @@ public final class AppListenerUtil {
 					true, 
 					Caster.toBooleanValue(data.get(STORAGE,null),false), 
 					Caster.toTimeZone(data.get(TIMEZONE,null),null),
-					"",ParamSyntax.toParamSyntax(data,ParamSyntax.DEFAULT),log
+					"",
+					ParamSyntax.toParamSyntax(data,ParamSyntax.DEFAULT),
+					Caster.toBooleanValue(data.get("literalTimestampWithTSOffset",null),false),
+					Caster.toBooleanValue(data.get("alwaysSetTimeout",null),false),
+					log
 				);
 			}
 			catch(Exception cnfe){
@@ -246,7 +266,8 @@ public final class AppListenerUtil {
 	public static Mapping[] toMappings(ConfigWeb cw,Object o,Mapping[] defaultValue, Resource source) { 
 		try {
 			return toMappings(cw, o,source);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -264,7 +285,7 @@ public final class AppListenerUtil {
 			MappingData md=toMappingData(e.getValue(),source);
 			mappings.add(config.getApplicationMapping("application",virtual,md.physical,md.archive,md.physicalFirst,false));
 		}
-		return mappings.toArray(new Mapping[mappings.size()]);
+		return ConfigWebUtil.sort(mappings.toArray(new Mapping[mappings.size()]));
 	}
 	
 
@@ -274,16 +295,18 @@ public final class AppListenerUtil {
 		if(Decision.isStruct(value)) {
 			Struct map=Caster.toStruct(value);
 			
-			
+			// allowRelPath
+			boolean allowRelPath=Caster.toBooleanValue(map.get("allowRelPath",null),true);
+
 			// physical
 			String physical=Caster.toString(map.get("physical",null),null);
 			if(!StringUtil.isEmpty(physical,true)) 
-				md.physical=translateMappingPhysical(physical.trim(),source);
+				md.physical=translateMappingPhysical(physical.trim(),source, allowRelPath);
 
 			// archive
 			String archive = Caster.toString(map.get("archive",null),null);
 			if(!StringUtil.isEmpty(archive,true)) 
-				md.archive=translateMappingPhysical(archive.trim(),source);
+				md.archive=translateMappingPhysical(archive.trim(),source,allowRelPath);
 			
 			if(archive==null && physical==null) 
 				throw new ApplicationException("you must define archive or/and physical!");
@@ -300,15 +323,15 @@ public final class AppListenerUtil {
 		}
 		// simple value == only a physical path
 		else {
-			md.physical=translateMappingPhysical(Caster.toString(value).trim(),source);
+			md.physical=translateMappingPhysical(Caster.toString(value).trim(),source,true);
 			md.physicalFirst=true;
 		}
 		
 		return md;
 	}
 
-	private static String translateMappingPhysical(String path, Resource source) {
-		if(source==null) return path;
+	private static String translateMappingPhysical(String path, Resource source, boolean allowRelPath) {
+		if(source==null || !allowRelPath) return path;
 		source=source.getParentResource().getRealResource(path);
 		if(source.exists()) return source.getAbsolutePath();
 		return path;
@@ -327,7 +350,8 @@ public final class AppListenerUtil {
 	public static Mapping[] toCustomTagMappings(ConfigWeb cw, Object o, Resource source, Mapping[] defaultValue) {
 		try {
 			return toMappings(cw,"custom", o,false,source);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -340,7 +364,8 @@ public final class AppListenerUtil {
 		
 		try {
 			return toMappings(cw,"component", o,true,source);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -453,16 +478,18 @@ public final class AppListenerUtil {
 				Caster.toString(sct.get(ACCESS_KEY_ID,null),null),
 				Caster.toString(sct.get(AWS_SECRET_KEY,null),null),
 				Caster.toString(sct.get(DEFAULT_LOCATION,null),null),
-				host
+				host,
+				Caster.toString(sct.get(ACL,null),null)
 			);
 	}
 
-	public static Properties toS3(String accessKeyId, String awsSecretKey, String defaultLocation, String host) {
+	public static Properties toS3(String accessKeyId, String awsSecretKey, String defaultLocation, String host, String acl) {
 		PropertiesImpl s3 = new PropertiesImpl();
 		if(!StringUtil.isEmpty(accessKeyId))s3.setAccessKeyId(accessKeyId);
 		if(!StringUtil.isEmpty(awsSecretKey))s3.setSecretAccessKey(awsSecretKey);
 		if(!StringUtil.isEmpty(defaultLocation))s3.setDefaultLocation(defaultLocation);
 		if(!StringUtil.isEmpty(host))s3.setHost(host);
+		if(!StringUtil.isEmpty(acl))s3.setACL(acl);
 		return s3;
 	}
 
@@ -477,7 +504,7 @@ public final class AppListenerUtil {
 		Object o = sct.get(KeyConstants._datasource,null);
 		
 		if(o!=null) {
-			o=toDefaultDatasource(config,o,config.getLog("application"));
+			o=toDefaultDatasource(config,o,LogUtil.getLog(pc,"application"));
 			if(o!=null) ac.setORMDataSource(o);
 		}
 	}
@@ -691,4 +718,74 @@ public final class AppListenerUtil {
 		
 		return Caster.toTimespan(obj, defaultValue);
 	}
+	
+
+	public static Server[] toMailServers(Config config,Array data, Server defaultValue) {
+		List<Server> list=new ArrayList<Server>();
+		if(data!=null){ 
+			Iterator<Object> it = data.valueIterator();
+			Struct sct;
+			Server se;
+			while(it.hasNext()) {
+				sct=Caster.toStruct(it.next(),null);
+				if(sct==null) continue;
+				
+				se=toMailServer(config,sct,null);
+				
+				if(se!=null) list.add(se);
+			}
+		}
+		return list.toArray(new Server[list.size()]);
+	}
+	
+	public static Server toMailServer(Config config,Struct data, Server defaultValue) {
+		String hostName = Caster.toString(data.get(KeyConstants._host,null),null);
+		if(StringUtil.isEmpty(hostName,true)) hostName = Caster.toString(data.get(KeyConstants._server,null),null);
+		if(StringUtil.isEmpty(hostName,true)) return defaultValue;
+		
+		int port = Caster.toIntValue(data.get(KeyConstants._port,null),25);
+		
+		String username = Caster.toString(data.get(KeyConstants._username,null),null);
+		if(StringUtil.isEmpty(username,true))username = Caster.toString(data.get(KeyConstants._user,null),null);
+		String password = ConfigWebUtil.decrypt(Caster.toString(data.get(KeyConstants._password,null),null));
+
+		TimeSpan lifeTimespan = Caster.toTimespan(data.get("lifeTimespan",null),null);
+		if(lifeTimespan==null)lifeTimespan = Caster.toTimespan(data.get("life",null),FIVE_MINUTES);
+
+		TimeSpan idleTimespan = Caster.toTimespan(data.get("idleTimespan",null),null);
+		if(idleTimespan==null)idleTimespan = Caster.toTimespan(data.get("idle",null),ONE_MINUTE);
+		
+
+		boolean tls = Caster.toBooleanValue(data.get("tls",null),false);
+		boolean ssl = Caster.toBooleanValue(data.get("ssl",null),false);
+		
+		return new ServerImpl(-1,hostName, port, username, password, lifeTimespan.getMillis(), idleTimespan.getMillis(), tls, ssl, false,ServerImpl.TYPE_LOCAL); // MUST improve store connection somehow
+	}
+
+	public static FTPConnectionData toFTP(Struct sct) {
+		// username
+		Object o = sct.get(KeyConstants._username,null);
+		if(o==null) o = sct.get(KeyConstants._user,null);
+		String user=Caster.toString(o,null);
+		if(StringUtil.isEmpty(user)) user=null;
+
+		// password
+		o = sct.get(KeyConstants._password,null);
+		if(o==null) o = sct.get(KeyConstants._pass,null);
+		String pass=Caster.toString(o,null);
+		if(StringUtil.isEmpty(pass)) pass=user!=null?"":null;
+
+		// host
+		o = sct.get(KeyConstants._host,null);
+		if(o==null) o = sct.get(KeyConstants._server,null);
+		String host=Caster.toString(o,null);
+		if(StringUtil.isEmpty(host)) host=null;
+
+		// port
+		o = sct.get(KeyConstants._port,null);
+		int port=Caster.toIntValue(o,0);
+
+		return new FTPConnectionData(host,user,pass,port);
+	}
+
 }

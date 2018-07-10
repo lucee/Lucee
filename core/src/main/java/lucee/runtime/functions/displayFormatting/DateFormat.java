@@ -25,15 +25,17 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.CasterException;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.ext.function.Function;
+import lucee.runtime.ext.function.BIF;
+import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.type.dt.DateTime;
 
 /**
  * Implements the CFML Function dateformat
  */
-public final class DateFormat implements Function {
+public final class DateFormat extends BIF {
 	
 	public static String call(PageContext pc , Object object) throws PageException {
 		return _call(pc,object,"dd-mmm-yy",ThreadLocalPageContext.getTimeZone(pc));
@@ -57,5 +59,18 @@ public final class DateFormat implements Function {
 		    //throw new ExpressionException("can't convert value "+object+" to a datetime value");
 		}
 		return new lucee.runtime.format.DateFormat(locale).format(datetime,mask,tz);
+	}
+	// public static String call(PageContext pc , Object object, String mask,TimeZone tz) throws PageException {
+		
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length==1)
+			return call(pc, args[0]);
+		if(args.length==2)
+			return call(pc, args[0], Caster.toString(args[1]));
+		if(args.length==3)
+			return call(pc, args[0], Caster.toString(args[1]), Caster.toTimeZone(args[2]));
+		
+		throw new FunctionException(pc,"DateFormat",1,3,args.length);
 	}
 }

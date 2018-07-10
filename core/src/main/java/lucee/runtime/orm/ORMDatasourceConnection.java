@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DatasourceConnection;
@@ -111,7 +112,8 @@ public class ORMDatasourceConnection implements DatasourceConnectionPro {
 		if(supportsGetGeneratedKeys==null){
 			try {
 				supportsGetGeneratedKeys=Caster.toBoolean(getConnection().getMetaData().supportsGetGeneratedKeys());
-			} catch (Throwable t) {
+			} catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				return false;
 			}
 		}

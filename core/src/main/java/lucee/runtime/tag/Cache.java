@@ -46,7 +46,6 @@ import lucee.runtime.functions.cache.CacheRemove;
 import lucee.runtime.functions.dateTime.GetHttpTimeString;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
-import lucee.runtime.tag.util.DeprecatedUtil;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
@@ -163,7 +162,7 @@ public final class Cache extends BodyTagImpl {
 	 */
 	@Deprecated
 	public void setTimeout(Object obj) throws DeprecatedException {
-		DeprecatedUtil.tagAttribute(pageContext,"Cache","timeout");
+		//DeprecatedUtil.tagAttribute(pageContext,"Cache","timeout");
 	}
 
 	/** set the value directory

@@ -212,7 +212,7 @@
 			<cfif url.id EQ tasks.id>
 				<cfset css=iif(not tasks.closed,de('Green'),de('Red'))>
 				#replace(replace(stText.remote.ot.detailDesc[css],'<tries>',tasks.tries),'<triesleft>',tasks.triesMax-tasks.tries)#
-				<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+				<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 					<table class="maintbl">
 						<tbody>
 							<!--- MUST wieso geht hier der direkte aufruf nicht! --->
@@ -319,7 +319,7 @@
 							</cfloop>
 						</tbody>
 					</table>
-				</cfform>
+				</cfformClassic>
 			</cfif>
 		</cfloop>
 	<!--- List ---->
@@ -327,14 +327,14 @@
 	
 		
 	<h2>#stText.remote.Settings.title#</h2>
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 				<tr>
 					<th scope="row">#stText.remote.settings.maxThreads#</th>
 					<td>
 						<cfif hasAccess>
-							<cfinput type="text" name="maxThreads" 
+							<cfinputClassic type="text" name="maxThreads" 
 									value="#settings.maxThreads#" validate="integer" class="number" required="no">
 						<cfelse>
 							<b>#settings.maxThreads#</b><br>
@@ -360,7 +360,7 @@
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 
 	
 	
@@ -414,7 +414,7 @@
 			#browse#
 		</cfif>
 		
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
 					<tr>
@@ -519,7 +519,7 @@
 					</tfoot>
 				</cfif>
 			</table>
-		</cfform>
+		</cfformClassic>
 		<cfif result.open+result.closed gt 0>
 			#browse#
 		</cfif>

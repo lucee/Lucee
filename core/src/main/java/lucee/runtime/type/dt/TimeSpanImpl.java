@@ -27,6 +27,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Operator;
+import lucee.runtime.op.date.DateCaster;
 
 /**
  * TimeSpan Object, represent a timespan
@@ -36,7 +37,7 @@ public final class TimeSpanImpl implements TimeSpan {
 	private double value;
 	private long valueMillis;
 	
-	private int day;
+	private long day;
 	private int hour;
 	private int minute;
 	private int second;
@@ -55,40 +56,21 @@ public final class TimeSpanImpl implements TimeSpan {
     }
 	
     private TimeSpanImpl(long valueMillis) {
-    	value=valueMillis/86400000D;
-    	long tmp=valueMillis;
-    	day=(int) (valueMillis/86400000L);
-		tmp-=day*86400000;
-		hour=(int) (tmp/3600000);
-		tmp-=hour*3600000;
-		minute=(int) (tmp/60000);
-		tmp-=minute*60000;
-		second=(int) (tmp/1000);
-		tmp-=second*1000;
-		milli=(int) tmp;
-		
+    	
 		this.valueMillis=valueMillis;
-		/*day=(int)value;
-		double diff=value-day;
-		diff*=24;
-		hour=(int)diff;
-		diff=diff-hour;
-		diff*=60;
-		minute=(int)diff;
-		diff=diff-minute;
-		diff*=60;
-		second=(int)diff;
-		this.value=value;
-		milli=(int)(valueMillis-((second+(minute*60L)+(hour*3600L)+(day*3600L*24L))*1000));
-		*/
-		//print.out("a("+hashCode()+"):"+day+":"+hour+":"+minute+":"+second+"+"+milli);
-		
-		
-		//total=(second+(minute*60L)+(hour*3600L)+(day*3600L*24L))*1000;
-		//total=(second+(minute*60L)+(hour*3600L)+(day*3600L*24L))*1000;
-		
+		value=valueMillis/86400000D;
+    	long tmp=valueMillis;
+    	day=valueMillis/86400000L;
+    	tmp-=day*86400000L;
+		hour=(int) (tmp/3600000L);
+		tmp-=hour*3600000L;
+		minute=(int) (tmp/60000L);
+		tmp-=minute*60000L;
+		second=(int) (tmp/1000L);
+		tmp-=second*1000L;
+		milli=(int) tmp;
     }
-		
+
 	/**
 	 * constructor of the timespan class
 	 * @param day
@@ -134,13 +116,13 @@ public final class TimeSpanImpl implements TimeSpan {
 	}
 
 	@Override
-	public boolean castToBooleanValue() throws ExpressionException {
-		throw new ExpressionException("can't cast Timespan to boolean");
+	public boolean castToBooleanValue() {
+		return value!=0;
 	}
     
     @Override
     public Boolean castToBoolean(Boolean defaultValue) {
-        return defaultValue;
+		return value!=0;
     }
 
 	@Override
@@ -155,23 +137,22 @@ public final class TimeSpanImpl implements TimeSpan {
 
 	@Override
 	public DateTime castToDateTime() throws ExpressionException {
-		throw new ExpressionException("can't cast Timespan to date");
+		return DateCaster.toDateSimple(value, null);
 	}
     
     @Override
     public DateTime castToDateTime(DateTime defaultValue) {
-        return defaultValue;
+    	return DateCaster.toDateSimple(value, null);
     }
-
 
 	@Override
 	public int compareTo(boolean b) {
-		return Operator.compare(value, b?1D:0D);
+		return Operator.compare(castToBooleanValue(), b);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare(value, dt.castToDoubleValue());
+		return Operator.compare((java.util.Date)castToDateTime(), (java.util.Date)dt);
 	}
 
 	@Override
@@ -216,8 +197,13 @@ public final class TimeSpanImpl implements TimeSpan {
 
     @Override
     public int getDay() {
+        return Integer.MAX_VALUE>day?(int)day:Integer.MAX_VALUE;
+    }
+    
+    public long getDayAsLong() {
         return day;
     }
+    
     @Override
     public int getHour() {
         return hour;

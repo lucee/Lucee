@@ -42,6 +42,8 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Operator;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayClassic;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.comparator.SortRegister;
 
@@ -52,6 +54,12 @@ public final class ArrayUtil {
     
     public static final Object[] OBJECT_EMPTY = new Object[]{};
 	
+    public static Array getInstance(int dimension) throws ExpressionException {
+    	if(dimension>1) return new ArrayClassic(dimension);
+        return new ArrayImpl();
+    }
+    
+    
     /**
      * trims all value of a String Array
      * @param arr
@@ -991,5 +999,4 @@ public final class ArrayUtil {
 			list.add(arr[i]);
 		}
 	}
-
 }

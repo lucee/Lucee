@@ -17,9 +17,12 @@
  */
 package lucee.transformer.library;
 
+import java.io.Serializable;
+
 import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
@@ -29,7 +32,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.xml.sax.Attributes;
 
-public class ClassDefinitionImpl<T> implements ClassDefinition<T> {
+public class ClassDefinitionImpl<T> implements ClassDefinition<T>,Serializable {
 
 	/**
 	 * do not use to load class!!!
@@ -45,6 +48,13 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T> {
 		this.className=className==null?null:className.trim();
 		this.name=StringUtil.isEmpty(name,true)?null:name.trim();
 		this.version=OSGiUtil.toVersion(version,null);
+		this.id=id;
+	}
+	
+	public ClassDefinitionImpl(Identification id,String className, String name, Version version) {
+		this.className=className==null?null:className.trim();
+		this.name=StringUtil.isEmpty(name,true)?null:name.trim();
+		this.version=version;
 		this.id=id;
 	}
 
@@ -78,7 +88,8 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T> {
 		try {
 			return getClazz();
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -126,6 +137,11 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T> {
 		if(isBundle())
 			return "class:"+className+";name:"+name+";version:"+version+";";
 		return className;
+	}
+	
+	@Override
+	public int hashCode() {
+		return toString().hashCode();
 	}
 	
 	public static ClassDefinition toClassDefinition(String className,Identification id,Attributes attributes) {

@@ -26,7 +26,6 @@ import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Query;
-import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -72,7 +71,7 @@ public class DebuggerUtil {
 	}
 	
 	public static boolean debugQueryUsage(PageContext pageContext, Query query) {
-		if(pageContext.getConfig().debug() && query instanceof QueryImpl) {
+		if(pageContext.getConfig().debug() && query instanceof Query) {
 			if(((ConfigWebImpl)pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_QUERY_USAGE)){
 				query.enableShowQueryUsage();
 				return true;

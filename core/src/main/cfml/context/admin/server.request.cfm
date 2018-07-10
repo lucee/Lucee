@@ -1,7 +1,7 @@
 <cfset error.message="">
 <cfset error.detail="">
 
-<cfadmin 
+<cfadmin
 	action="securityManager"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
@@ -9,25 +9,25 @@
 	secType="setting"
 	secValue="yes">
 
-<cfadmin 
+<cfadmin
 	action="getApplicationSetting"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="appSettings">
 <cfif request.admintype =="server">
-	<cfadmin 
+	<cfadmin
 		action="getQueueSetting"
 		type="#request.adminType#"
 		password="#session["password"&request.adminType]#"
 		returnVariable="queueSettings">
 </cfif>
-<cfadmin 
+<cfadmin
 	action="getApplicationListener"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="listener">
-	
-<!--- 
+
+<!---
 Defaults --->
 <cfparam name="url.action2" default="list">
 <cfparam name="form.mainAction1" default="none">
@@ -40,22 +40,22 @@ Defaults --->
 		<cfswitch expression="#form.mainAction1#">
 		<!--- UPDATE --->
 			<cfcase value="#stText.Buttons.Update#">
-			
+
 				<cfif form.scriptProtect EQ "custom">
 					<cfparam name="form.scriptProtect_custom" default="none">
 					<cfset form.scriptProtect=form.scriptProtect_custom>
 				</cfif>
-			
-				<cfadmin 
+
+				<cfadmin
 					action="updateApplicationSetting"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					
+
 					scriptProtect="#form.scriptProtect#"
 					AllowURLRequestTimeout="#structKeyExists(form,'AllowURLRequestTimeout') and form.AllowURLRequestTimeout#"
 					requestTimeout="#CreateTimeSpan(form.request_days,form.request_hours,form.request_minutes,form.request_seconds)#"
 					remoteClients="#request.getRemoteClients()#">
-				
+
 				<cfif request.admintype =="server">
 					<cfscript>
 						if(structKeyExists(form,'timeout_days')) {
@@ -69,95 +69,97 @@ Defaults --->
 					</cfscript>
 
 
-					<cfadmin 
+					<cfadmin
 					action="updateQueueSetting"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					
+
 					enable="#structKeyExists(form,'ConcurrentRequestEnable') and form.ConcurrentRequestEnable#"
 					max="#structKeyExists(form,'ConcurrentRequestMax')?form.ConcurrentRequestMax:""#"
 					timeout="#timeoutMS#"
 					remoteClients="#request.getRemoteClients()#">
 				</cfif>
-				
+
 			</cfcase>
 		<!--- reset to server setting --->
 			<cfcase value="#stText.Buttons.resetServerAdmin#">
-			
-				<cfadmin 
+
+				<cfadmin
 					action="updateApplicationSetting"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					
+
 					scriptProtect=""
 					AllowURLRequestTimeout=""
 					requestTimeout=""
-					
+
 					remoteClients="#request.getRemoteClients()#">
 				<cfif request.admintype =="server">
-					<cfadmin 
+					<cfadmin
 					action="updateQueueSetting"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					
+
 					max=""
 					timeout=""
 					enable=""
 					remoteClients="#request.getRemoteClients()#">
 				</cfif>
-				
+
 			</cfcase>
 		</cfswitch>
-	
+
 	<!--- listener --->
 		<cfswitch expression="#form.mainAction2#">
 		<!--- UPDATE --->
 			<cfcase value="#stText.Buttons.Update#">
-				<cfadmin 
+				<cfadmin
 					action="updateApplicationListener"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					
+
 					listenerType="#form.type#"
 					listenerMode="#form.mode#"
 					remoteClients="#request.getRemoteClients()#">
-				
+
 			</cfcase>
 		<!--- reset to server setting --->
 			<cfcase value="#stText.Buttons.resetServerAdmin#">
-			
-				<cfadmin 
+
+				<cfadmin
 					action="updateApplicationListener"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					
+
 					listenerType=""
 					listenerMode=""
-					
+
 					remoteClients="#request.getRemoteClients()#">
-				
+
 			</cfcase>
 		</cfswitch>
 		<cfcatch>
 			<cfset error.message=cfcatch.message>
 			<cfset error.detail=cfcatch.Detail>
+			<cfset error.cfcatch=cfcatch>
 		</cfcatch>
 	</cftry>
 </cfif>
 
-<!--- 
+<!---
 Redirtect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "">
 	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 </cfif>
 
 
-<!--- 
+<!---
 Error Output --->
 <cfset printError(error)>
 
 <!--- script to enable/disable script-protect 'custom' checkboxes --->
-<cfsavecontent variable="headText">
+<cfhtmlbody>
+
 	<script type="text/javascript">
 		function sp_clicked()
 		{
@@ -180,8 +182,8 @@ Error Output --->
 			var isChecked = $('#ConcurrentRequestEnableSpan input.checkbox')[0].checked;
 			$('#ConcurrentRequestMax').css('opacity', (isChecked ? 1:.5));
 			$('#ConcurrentRequestTimeout').css('opacity', (isChecked ? 1:.5));
-			
-			
+
+
 			$('#ConcurrentRequestMax').prop('disabled', !isChecked);
 			$('#ConcurrentRequestTimeout input').prop('disabled', !isChecked);
 		}
@@ -192,19 +194,18 @@ Error Output --->
 
 
 	</script>
-</cfsavecontent>
-<cfhtmlhead text="#headText#"/>
+</cfhtmlbody>
 
 <cfoutput>
 	<cfif not hasAccess>
 		<cfset noAccess(stText.setting.noAccess)>
 	</cfif>
-	
+
 	<div class="pageintro">#stText.request.description#
 	</div>
-	
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
-		
+
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
+
 
 
 
@@ -244,13 +245,13 @@ Error Output --->
 										</thead>
 										<tbody>
 											<tr>
-												<td><input type="checkbox" class="checkbox" name="scriptProtect_custom" 
+												<td><input type="checkbox" class="checkbox" name="scriptProtect_custom"
 												<cfif ListFindNoCase(appSettings.scriptProtect,'cgi')> checked="checked"</cfif> value="cgi"></td>
-												<td><input type="checkbox" class="checkbox" name="scriptProtect_custom" 
+												<td><input type="checkbox" class="checkbox" name="scriptProtect_custom"
 												<cfif ListFindNoCase(appSettings.scriptProtect,'cookie')> checked="checked"</cfif> value="cookie"></td>
-												<td><input type="checkbox" class="checkbox" name="scriptProtect_custom" 
+												<td><input type="checkbox" class="checkbox" name="scriptProtect_custom"
 												<cfif ListFindNoCase(appSettings.scriptProtect,'form')> checked="checked"</cfif> value="form"></td>
-												<td><input type="checkbox" class="checkbox" name="scriptProtect_custom" 
+												<td><input type="checkbox" class="checkbox" name="scriptProtect_custom"
 												<cfif ListFindNoCase(appSettings.scriptProtect,'url')> checked="checked"</cfif> value="url"></td>
 											</tr>
 										</tbody>
@@ -286,7 +287,7 @@ Error Output --->
 				</tfoot>
 			</cfif>
 		</table>
-		
+
 
 				<!--- request timeout --->
 				<h2>#stText.application.RequestTimeout#</h2>
@@ -310,17 +311,17 @@ Error Output --->
 							<tbody>
 								<cfif hasAccess>
 									<tr>
-										<td><cfinput type="text" name="request_days" value="#appSettings.requestTimeout_day#" 
-											class="number" required="yes" validate="integer" 
+										<td><cfinputClassic type="text" name="request_days" value="#appSettings.requestTimeout_day#"
+											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutDaysValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="request_hours" value="#appSettings.requestTimeout_hour#" 
-											class="number" required="yes" validate="integer" 
+										<td><cfinputClassic type="text" name="request_hours" value="#appSettings.requestTimeout_hour#"
+											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutHoursValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="request_minutes" value="#appSettings.requestTimeout_minute#" 
-											class="number" required="yes" validate="integer" 
+										<td><cfinputClassic type="text" name="request_minutes" value="#appSettings.requestTimeout_minute#"
+											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutMinutesValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="request_seconds" value="#appSettings.requestTimeout_second#" 
-											class="number" required="yes" validate="integer" 
+										<td><cfinputClassic type="text" name="request_seconds" value="#appSettings.requestTimeout_second#"
+											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutSecondsValue#request#stText.Scopes.TimeoutEndValue#"></td>
 									</tr>
 								<cfelse>
@@ -335,7 +336,7 @@ Error Output --->
 
 						</table>
 						<div class="comment">#stText.application.RequestTimeoutDescription#</div>
-						
+
 
 <cfsavecontent variable="codeSample">
 	<cfset total=
@@ -377,14 +378,14 @@ Error Output --->
 			</cfif>
 		</table>
 
-	
-<cfif request.admintype =="server">	
+
+<cfif request.admintype =="server">
 				<!--- Maximal Concurrent Request --->
 				<h2>#stText.application.ConcurrentRequest#</h2>
 				<div class="itemintro">#stText.application.ConcurrentRequestDesc#</div>
 		<table class="maintbl">
 			<tbody>
-				
+
 				<tr>
 					<th scope="row">#stText.application.ConcurrentRequestEnable#</th>
 					<td>
@@ -402,10 +403,10 @@ Error Output --->
 					<th scope="row">#stText.application.ConcurrentRequestMax#</th>
 					<td>
 						<cfif hasAccess>
-							<cfinput type="text" name="ConcurrentRequestMax" value="#queueSettings.max#" 
+							<cfinputClassic type="text" name="ConcurrentRequestMax" value="#queueSettings.max#"
 									class="number" required="yes" validate="integer" id="ConcurrentRequestMax"
 									message="#stText.application.ConcurrentRequestMaxError#">
-							
+
 						<cfelse>
 							<b>#yesNoFormat(queueSettings.max)#</b>
 						</cfif>
@@ -418,10 +419,10 @@ Error Output --->
 					<th scope="row">#stText.application.ConcurrentRequestTimeout#</th>
 					<td>
 						<cfif hasAccess>
-							<!---<cfinput type="text" name="ConcurrentRequestTimeout" value="#queueSettings.timeout#" 
+							<!---<cfinputClassic type="text" name="ConcurrentRequestTimeout" value="#queueSettings.timeout#"
 									class="number" required="yes" validate="integer"  id="ConcurrentRequestTimeoutOld"
 									message="#stText.application.ConcurrentRequestTimeoutError#">--->
-							
+
 							<cfscript>
 								seconds=int(queueSettings.timeout/1000);
 								minutes=int(seconds/60);
@@ -445,17 +446,17 @@ Error Output --->
 
 
 									<tr>
-										<td><cfinput type="text" name="timeout_days" value="#days#" 
-											class="number" required="yes" validate="integer" 
+										<td><cfinputClassic type="text" name="timeout_days" value="#days#"
+											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutDaysValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="timeout_hours" value="#hours#" 
-											class="number" required="yes" validate="integer" 
+										<td><cfinputClassic type="text" name="timeout_hours" value="#hours#"
+											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutHoursValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="timeout_minutes" value="#minutes#" 
-											class="number" required="yes" validate="integer" 
+										<td><cfinputClassic type="text" name="timeout_minutes" value="#minutes#"
+											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutMinutesValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="timeout_seconds" value="#seconds#" 
-											class="number" required="yes" validate="integer" 
+										<td><cfinputClassic type="text" name="timeout_seconds" value="#seconds#"
+											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutSecondsValue#request#stText.Scopes.TimeoutEndValue#"></td>
 									</tr>
 								<cfelse>
@@ -472,7 +473,7 @@ Error Output --->
 
 
 
-							
+
 						<cfelse>
 							<b>#yesNoFormat(queueSettings.timeout)#</b>
 						</cfif>
@@ -500,13 +501,13 @@ Error Output --->
 			</cfif>
 		</table>
 </cfif>
-	
-	</cfform>
+
+	</cfformClassic>
 
 	<h2>#stText.application.listener#</h2>
 	<div class="itemintro">#stText.application.listenerDescription#</div>
-		
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 				<!--- listener type --->
@@ -583,5 +584,5 @@ Error Output --->
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 </cfoutput>

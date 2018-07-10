@@ -107,8 +107,7 @@ public class TOQuery extends TOCollection implements Query,com.allaire.cfx.Query
 
 	@Override
 	
-	public synchronized int removeRow(int row) throws PageException {
-		
+	public int removeRow(int row) throws PageException {
 		return qry.removeRow(row);
 	}
 
@@ -135,7 +134,7 @@ public class TOQuery extends TOCollection implements Query,com.allaire.cfx.Query
 
 	@Override
 	
-	public synchronized QueryColumn removeColumnEL(String key) {
+	public QueryColumn removeColumnEL(String key) {
 		log(key);
 		return qry.removeColumnEL(key);
 	}
@@ -246,7 +245,7 @@ public class TOQuery extends TOCollection implements Query,com.allaire.cfx.Query
 
 	@Override
 	
-	public synchronized void sort(String strColumn, int order)
+	public void sort(String strColumn, int order)
 			throws PageException {
 		log(strColumn);
 		qry.sort(strColumn, order);
@@ -254,7 +253,7 @@ public class TOQuery extends TOCollection implements Query,com.allaire.cfx.Query
 
 	@Override
 	
-	public synchronized void sort(Key keyColumn, int order)
+	public void sort(Key keyColumn, int order)
 			throws PageException {
 		log(keyColumn.getString());
 		qry.sort(keyColumn, order);
@@ -262,7 +261,7 @@ public class TOQuery extends TOCollection implements Query,com.allaire.cfx.Query
 
 	@Override
 	
-	public synchronized boolean addRow(int count) {
+	public boolean addRow(int count) {
 		log(""+count);
 		return qry.addRow(count);
 	}
@@ -285,7 +284,7 @@ public class TOQuery extends TOCollection implements Query,com.allaire.cfx.Query
 
 	@Override
 	
-	public synchronized boolean addColumn(String columnName, Array content,
+	public boolean addColumn(String columnName, Array content,
 			int type) throws PageException {
 		log(columnName);
 		return qry.addColumn(columnName, content, type);
@@ -301,14 +300,14 @@ public class TOQuery extends TOCollection implements Query,com.allaire.cfx.Query
 
 	@Override
 	
-	public synchronized int[] getTypes() {
+	public int[] getTypes() {
 		log();
 		return qry.getTypes();
 	}
 
 	@Override
 	
-	public synchronized Map getTypesAsMap() {
+	public Map getTypesAsMap() {
 		log();
 		return qry.getTypesAsMap();
 	}
@@ -329,7 +328,7 @@ public class TOQuery extends TOCollection implements Query,com.allaire.cfx.Query
 
 	@Override
 	
-	public synchronized void rename(Key columnName, Key newColumnName)
+	public void rename(Key columnName, Key newColumnName)
 			throws PageException {
 		log(columnName+":"+newColumnName);
 		qry.rename(columnName, newColumnName);
@@ -435,7 +434,7 @@ public class TOQuery extends TOCollection implements Query,com.allaire.cfx.Query
 
 	@Override
 	
-	public synchronized Array getMetaDataSimple() {
+	public Array getMetaDataSimple() {
 		log();
 		return qry.getMetaDataSimple();
 	}

@@ -115,7 +115,7 @@ Defaults --->
 			<cfcase value="#btnClearTemplateCache#">
 				<cfset pagePoolClear()>
 			</cfcase>
-			<cfcase value="#clearButton.function#">
+			<cfcase value="#clearButton['function']#">
 				<cfobjectcache type="function" action="clear">
 			</cfcase>
 			<cfcase value="#clearButton.include#">
@@ -164,6 +164,7 @@ Defaults --->
 		<cfcatch>
 			<cfset error.message=cfcatch.message>
 			<cfset error.detail=cfcatch.Detail>
+			<cfset error.cfcatch=cfcatch>
 		</cfcatch>
 	</cftry>
 </cfif>
@@ -193,7 +194,7 @@ Create Datasource --->
 
 	<div class="pageintro">#stText.setting.cacheDesc#</div>
 	
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 				<!--- Template Cache for Request --->
@@ -337,5 +338,5 @@ Create Datasource --->
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 </cfoutput>

@@ -36,7 +36,8 @@ public class ClassRenamer extends ClassVisitor implements Opcodes {
 	ClassRenamer(ClassVisitor cv, String newName) {
 		super(ASM4, cv);
 		newName=ListUtil.trim(newName, "\\/");
-		this.newName = newName;
+		this.newName = newName.replace('.','/');
+		
 	}
 
 	@Override

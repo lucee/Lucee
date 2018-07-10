@@ -22,6 +22,10 @@ import java.lang.instrument.UnmodifiableClassException;
 
 public abstract class ExtendableClassLoader extends ClassLoader {
 	
+	static {
+		boolean res=registerAsParallelCapable();
+	}
+	
 	public ExtendableClassLoader() {
 		super();
 	}

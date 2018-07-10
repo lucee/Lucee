@@ -7,8 +7,8 @@ component {
 	variables.default={};
 	variables.default.browser="html";
 	variables.default.console="text";
-	variables.supportedFormats=["simple","text","html","classic"];
-	
+	variables.supportedFormats=["simple","text","html","classic", "javascript", "js"];
+
 	// Meta data
 	this.metadata.hint="Outputs the elements, variables and values of most kinds of CFML objects. Useful for debugging. You can display the contents of simple and complex variables, objects, components, user-defined functions, and other elements.";
 	this.metadata.attributetype="fixed";
@@ -22,6 +22,7 @@ component {
 		show:{required:false,type:"string",default:"all",hint="show column or keys."},
 		output:{required:false,type:"string",default:"browser",hint="Where to send the results:
 - console: the result is written to the console (System.out).
+- debug: the result is send to the debug output.
 - browser (default): the result is written the the browser response stream."},
 		metainfo:{required:false,type:"boolean",default:true,hint="Includes information about the query in the cfdump results."},
 		keys:{required:false,type:"number",default:9999,hint="For a structure, number of keys to display."},
@@ -30,7 +31,9 @@ component {
 - simple: - a simple html output (no javascript or css)
 - text (default when output equal console): plain text output (no html)
 - html (default when output  equal ""browser""): regular output with html/css/javascript
-- classic: classic view with html/css/javascript"},
+- classic: classic view with html/css/javascript
+- javascript or js: regular output with javascript"
+},
 		abort:{required:false,type:"boolean",default:false,hint="stops further processing of request."},
 		contextlevel:{required:false,type:"number",default:2,hidden:true},
 		async:{required:false, type="boolean", default=false, hint="if true and output is not to browser, Lucee builds the output in a new thread that runs in parallel to the thread that called the dump.  please note that if the calling thread modifies the data before the dump takes place, it is possible that the dump will show the modified data."}
@@ -83,6 +86,10 @@ component {
 		// format
 		attrib['format'] = trim(attrib.format);
 
+		if(attrib.format == "js"){
+			attrib.format = "javascript";
+		}
+
 		if(len(attrib.format) EQ 0) {
 			if(attrib.output EQ "console")      attrib['format'] = variables.default.console;
 			else if(attrib.output EQ "browser") attrib['format'] = variables.default.browser;
@@ -99,7 +106,7 @@ component {
 		catch(e) {
 			var meta = dumpStruct(structKeyExists(attrib,'var') ? attrib.var : nullValue(), attrib.top, attrib.show, attrib.hide, attrib.keys, attrib.metaInfo, attrib.showUDFs);
 		}
-		
+
 
 		if ( attrib.async && ( attrib.output NEQ "browser" ) ) {
 
@@ -138,11 +145,258 @@ component {
 		else if (arguments.attrib.output EQ "console") {
 			systemOutput(result,true);
 		}
+		else if (arguments.attrib.output == "debug") {
+				admin action="addDump" dump="#result#";
+		} 
 		else {
-			file action="write" addnewline="yes" file="#arguments.attrib.output#" output="<div id=""#dumpID#"" class=""-lucee-dump"">#result#</div>";
+			if(arguments.attrib.format == 'text')
+				file action="write" addnewline="yes" file="#arguments.attrib.output#" output="#result#";
+			else
+				file action="write" addnewline="yes" file="#arguments.attrib.output#" output="<div id=""#dumpID#"" class=""-lucee-dump"">#result#</div>";
 		}
 	}
 
+
+	/* ==================================================================================================
+	   javascript                                                                                             =
+	================================================================================================== */
+	any function javascript( required struct meta,
+						  required string context,
+						  required string expand,
+						  required string output,
+						  required string hasReference ,
+						  required string level ,
+						  required string dumpID,
+						  struct cssColors={}) {
+		var NEWLINE=variables.NEWLINE;
+		var id = createId();
+		var rtn = "";
+		var columnCount = structKeyExists(arguments.meta,'data') ? listLen(arguments.meta.data.columnlist) : 0;
+		var title = !arguments.level ? arguments.context : '';
+		var width = structKeyExists(arguments.meta,'width') ? arguments.meta.width : '';
+		var height = structKeyExists(arguments.meta,'height') ? arguments.meta.height : '';
+		var indent = repeatString(variables.TAB, arguments.level);
+
+
+
+			// Header
+			var variables.colorKeys={};
+			var head="";
+			if(arguments.level EQ 0){
+				var colors=arguments.meta.colors[arguments.meta.colorId];
+		
+				// javascript
+				head=('<script language="JavaScript" type="text/javascript">' & variables.NEWLINE);
+				head&=("function dumpOC(name){");
+				head&=("var tds=document.all?document.getElementsByTagName('tr'):document.getElementsByName(name);");
+				head&=("var s=null;");
+				head&=("name=name;");
+				head&=("for(var i=0;i<tds.length;i++) {");
+				head&=("if(document.all && tds[i].name!=name)continue;");
+				head&=("s=tds[i].style;");
+				head&=("if(s.display=='none') s.display='';");
+				head&=("else s.display='none';");
+				head&=("}");
+				head&=("}"& variables.NEWLINE);
+
+				head&='if(typeof(parseDumpJSON)!="function"){' & variables.NEWLINE;
+				head&='function parseDumpJSON(dump, level, containerId){' & variables.NEWLINE;
+					// level start
+					head&='if(!level){' & variables.NEWLINE;
+						head&='var dumpList=Object.keys(dump);' & variables.NEWLINE;
+						head&='for(var i=0;i<dumpList.length;i++){' & variables.NEWLINE;
+							head&='var body = document.getElementById(dumpList[i]);' & variables.NEWLINE;
+							head&='var tbdy = document.createElement("tbody");' & variables.NEWLINE;
+							head&='var currDumpObj=dump[dumpList[i]];' & variables.NEWLINE;
+							head&='var tbl = document.createElement("table");' & variables.NEWLINE;
+							head&='if(currDumpObj.WIDTH!="")' & variables.NEWLINE;
+								head&='tbl.style.width=currDumpObj.WIDTH;' & variables.NEWLINE;
+							head&='if(currDumpObj.HEIGHT!="")' & variables.NEWLINE;
+								head&='tbl.style.height=currDumpObj.HEIGHT;' & variables.NEWLINE;
+							head&='if(currDumpObj.TITLE!="")' & variables.NEWLINE;
+								head&='tbl.title=currDumpObj.TITLE;' & variables.NEWLINE;
+							// titleTR Start
+							head&='if(typeof(currDumpObj.META.TITLE)!="undefined"){' & variables.NEWLINE;
+								head&='var titleTR=document.createElement("tr");' & variables.NEWLINE;
+								head&='var titleTD=document.createElement("td");' & variables.NEWLINE;
+								// meta start
+								head&='if(typeof(currDumpObj.META)!="undefined"){' & variables.NEWLINE;
+									// onclick start
+									head&='if(typeof(currDumpObj.META.ONCLICK) != "undefined"){' & variables.NEWLINE;
+										head&='titleTD.setAttribute("onclick", currDumpObj.META.ONCLICK );' & variables.NEWLINE;
+									head&='}' & variables.NEWLINE;
+									// onclick end
+									head&='titleTD.colSpan=currDumpObj.META.COLSPAN;' & variables.NEWLINE;
+									head&='titleTD.className=currDumpObj.META.TDCLASS;' & variables.NEWLINE;
+									head&='titleTD.innerHTML="<span>" + currDumpObj.META.TITLE + currDumpObj.META.ID + "</span>";' & variables.NEWLINE;
+									head&='titleTD.style.cursor="pointer";' & variables.NEWLINE;
+								head&='}' & variables.NEWLINE;
+								// meta end
+								head&='titleTR.appendChild(titleTD);' & variables.NEWLINE;
+								head&='tbdy.appendChild(titleTR);' & variables.NEWLINE;
+							head&='}' & variables.NEWLINE;
+							// titleTR end
+							head&='if(typeof(currDumpObj.META)!="undefined"){' & variables.NEWLINE;
+								head&='var tbdyTRs=[];' & variables.NEWLINE;
+								head&='for(var j=0;j<currDumpObj.META.DATA.length;j++){' & variables.NEWLINE;
+									head&='tbdyTRs[j]=document.createElement("tr");' & variables.NEWLINE;
+									head&='if(typeof(currDumpObj.META.DATA[j].NODEID) != "undefined"){' & variables.NEWLINE;
+										head&='tbdyTRs[j].setAttribute("name", currDumpObj.META.DATA[j].NODEID);' & variables.NEWLINE;
+									head&='}' & variables.NEWLINE;
+									head&='if(currDumpObj.META.DATA[j].HIDDEN && typeof(currDumpObj.META.DATA[j].TITLE) != "undefined")' & variables.NEWLINE;
+										head&='tbdyTRs[j].style.display="none";' & variables.NEWLINE;
+									head&='var tbdyTDs=[];' & variables.NEWLINE;
+									head&='for(var k=0;k<currDumpObj.META.DATA[j].NODEDATA.length;k++){' & variables.NEWLINE;
+										head&='tbdyTDs[k]=document.createElement("td");' & variables.NEWLINE;
+										head&='tbdyTDs[k].className=currDumpObj.META.DATA[j].NODEDATA[k].CLASS;' & variables.NEWLINE;
+										head&='if(typeof(currDumpObj.META.DATA[j].NODEDATA[k].CONTENT)=="object"){' & variables.NEWLINE;
+											head&='tbdyTDs[k].appendChild(parseDumpJSON(currDumpObj.META.DATA[j].NODEDATA[k].CONTENT, level+1,currDumpObj.META.DATA[j].NODEID));' & variables.NEWLINE;
+										head&='}else' & variables.NEWLINE;
+											head&='tbdyTDs[k].innerHTML=currDumpObj.META.DATA[j].NODEDATA[k].CONTENT;' & variables.NEWLINE;
+										head&='tbdyTRs[j].appendChild(tbdyTDs[k]);' & variables.NEWLINE;
+									head&='}' & variables.NEWLINE;
+									head&='tbdy.appendChild(tbdyTRs[j]);' & variables.NEWLINE;
+								head&='}' & variables.NEWLINE;
+							head&='}' & variables.NEWLINE;
+						head&='}' & variables.NEWLINE;
+						head&='tbl.appendChild(tbdy);' & variables.NEWLINE;
+						head&='body.appendChild(tbl);' & variables.NEWLINE;
+					// level else
+					head&='}else{' & variables.NEWLINE;
+						head&='var tbl = document.createElement("table");' & variables.NEWLINE;
+						head&='var tbdy = document.createElement("tbody");' & variables.NEWLINE;
+						head&='var currDumpObj=dump;' & variables.NEWLINE;
+						head&='if(currDumpObj.WIDTH!="")' & variables.NEWLINE;
+							head&='tbl.style.width=currDumpObj.WIDTH;' & variables.NEWLINE;
+						head&='if(currDumpObj.HEIGHT!="")' & variables.NEWLINE;
+							head&='tbl.style.height=currDumpObj.HEIGHT;' & variables.NEWLINE;
+						head&='if(currDumpObj.TITLE!="")' & variables.NEWLINE;
+							head&='tbl.title=currDumpObj.TITLE;' & variables.NEWLINE;
+						head&='if(typeof(currDumpObj.META.TITLE)!="undefined"){' & variables.NEWLINE;
+							head&='var titleTR=document.createElement("tr");' & variables.NEWLINE;
+							head&='var titleTD=document.createElement("td");' & variables.NEWLINE;
+							// meta start
+							head&='if(typeof(currDumpObj.META)!="undefined"){' & variables.NEWLINE;
+								// onclick start
+								head&='if(typeof(currDumpObj.META.ONCLICK) != "undefined"){' & variables.NEWLINE;
+									head&='titleTD.setAttribute("onclick", currDumpObj.META.ONCLICK );' & variables.NEWLINE;
+								head&='}' & variables.NEWLINE;
+								// onclick end
+								head&='titleTD.colSpan=currDumpObj.META.COLSPAN;' & variables.NEWLINE;
+								head&='titleTD.className=currDumpObj.META.TDCLASS;' & variables.NEWLINE;
+								head&='titleTD.innerHTML="<span>" + currDumpObj.META.TITLE + currDumpObj.META.ID + "</span>";' & variables.NEWLINE;
+								head&='titleTD.style.cursor="pointer";' & variables.NEWLINE;
+							head&='}' & variables.NEWLINE;
+							// meta end
+							head&='titleTR.appendChild(titleTD);' & variables.NEWLINE;
+							head&='tbdy.appendChild(titleTR);' & variables.NEWLINE;
+						head&='}' & variables.NEWLINE;
+						head&='if(typeof(currDumpObj.META)!="undefined"){' & variables.NEWLINE;
+							head&='var tbdyTRs=[];' & variables.NEWLINE;
+							head&='for(var j=0;j<currDumpObj.META.DATA.length;j++){' & variables.NEWLINE;
+								head&='tbdyTRs[j]=document.createElement("tr");' & variables.NEWLINE;
+								head&='if(typeof(currDumpObj.META.DATA[j].NODEID) != "undefined"){' & variables.NEWLINE;
+									head&='tbdyTRs[j].setAttribute("name", currDumpObj.META.DATA[j].NODEID);' & variables.NEWLINE;
+								head&='}' & variables.NEWLINE;
+								head&='if(currDumpObj.META.DATA[j].HIDDEN && typeof(currDumpObj.META.DATA[j].TITLE) != "undefined")' & variables.NEWLINE;
+									head&='tbdyTRs[j].style.display="none";' & variables.NEWLINE;
+								head&='var tbdyTDs=[];' & variables.NEWLINE;
+								head&='for(var k=0;k<currDumpObj.META.DATA[j].NODEDATA.length;k++){' & variables.NEWLINE;
+									head&='tbdyTDs[k]=document.createElement("td");' & variables.NEWLINE;
+									head&='tbdyTDs[k].className=currDumpObj.META.DATA[j].NODEDATA[k].CLASS;' & variables.NEWLINE;
+									head&='if(typeof(currDumpObj.META.DATA[j].NODEDATA[k].CONTENT)=="object")' & variables.NEWLINE;
+										head&='tbdyTDs[k].appendChild(parseDumpJSON(currDumpObj.META.DATA[j].NODEDATA[k].CONTENT, level+1,currDumpObj.META.DATA[j].NODEID));' & variables.NEWLINE;
+									head&='else' & variables.NEWLINE;
+										head&='tbdyTDs[k].innerHTML=currDumpObj.META.DATA[j].NODEDATA[k].CONTENT;' & variables.NEWLINE;
+									head&='tbdyTRs[j].appendChild(tbdyTDs[k]);' & variables.NEWLINE;
+								head&='}' & variables.NEWLINE;
+								head&='tbdy.appendChild(tbdyTRs[j]);' & variables.NEWLINE;
+							head&='}' & variables.NEWLINE;
+						head&='}' & variables.NEWLINE;
+						head&='tbl.appendChild(tbdy);' & variables.NEWLINE;
+						head&='return tbl;' & variables.NEWLINE;
+					head&='}' & variables.NEWLINE;
+					// level end
+				head&='}' & variables.NEWLINE;
+				head&='}' & variables.NEWLINE;
+				head&=("</script>" & variables.NEWLINE);
+
+				// styles
+				var prefix="div###arguments.dumpID#";
+				head&=('<style type="text/css">' & variables.NEWLINE);
+				head&=('#prefix# table {font-family:Verdana, Geneva, Arial, Helvetica, sans-serif; font-size:11px; empty-cells:show; color:#colors.fontColor#; border-collapse:collapse;}' & variables.NEWLINE);
+				head&=('#prefix# td {border:1px solid #colors.borderColor#; vertical-align:top; padding:2px; empty-cells:show;}' & variables.NEWLINE);
+				head&=('#prefix# td span {font-weight:bold;}' & variables.NEWLINE);
+				var count=0;
+				loop struct="#arguments.meta.colors#" index="local.k" item="local.v" {
+					variables.colorKeys[k]=count++;
+					var bc=darkenColor(darkenColor(v.highLightColor));
+					var fc=(bc);
+					head&="#prefix# td.luceeN#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.normalColor#;}"& variables.NEWLINE;
+					head&="#prefix# td.luceeH#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.highLightColor#;}"& variables.NEWLINE;
+				}
+
+				
+				/*loop collection="#arguments.cssColors#" item="local.key" {
+					head&="td.#key# {background-color:#arguments.cssColors[key]#;}"& variables.NEWLINE;
+				}*/
+				head&=('</style>' & variables.NEWLINE);
+
+			}
+
+		if(!arguments.level)
+			rtn&= '<script language="JavaScript" type="text/javascript">' & "var dumpData={};" & variables.NEWLINE;
+		var tempStruct={};
+		tempStruct.ID=arguments.dumpID;
+		tempStruct.WIDTH=width;
+		tempStruct.HEIGHT=height;
+		tempStruct.TITLE=title;
+		tempStruct.META={};
+
+		if(structKeyExists(arguments.meta, 'title')){
+			tempStruct.META.ID=arguments.hasReference && structKeyExists(arguments.meta,'id') ? ' [#arguments.meta.id#]' : '';
+			tempStruct.META.COMMENT=structKeyExists(arguments.meta,'comment') ? "<br />" & (left(arguments.meta.comment,4)=="<img"?arguments.meta.comment:replace(HTMLEditFormat(arguments.meta.comment),chr(10),' <br>','all')) : '';
+			tempStruct.META.TITLE=arguments.meta.title;
+			tempStruct.META.TDCLASS="luceeH#variables.colorKeys[arguments.meta.colorId]#";
+			tempStruct.META.ONCLICK="dumpOC('#id#')";
+			tempStruct.META.COLSPAN=columnCount;
+		}else{
+			tempStruct.ID="";
+		}
+
+		tempStruct.META.DATA=[];
+		if(columnCount){
+			loop query="arguments.meta.data"{
+				var c = 1;
+				tempStruct.META.DATA[arguments.meta.data.currentRow].NODEID=len(id) ? id : '';
+				tempStruct.META.DATA[arguments.meta.data.currentRow].HIDDEN=!arguments.expand && len(id) ? true : false;
+				tempStruct.META.DATA[arguments.meta.data.currentRow].NODEDATA=[];
+				for(var col=1; col LTE columnCount-1; col++){
+					var node = arguments.meta.data["data" & col];
+					tempStruct.META.DATA[arguments.meta.data.currentRow].NODEDATA[col].CLASS="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#";
+					if(isStruct(node)){
+						tempStruct.META.DATA[arguments.meta.data.currentRow].TITLE="";
+						var value=this.javascript(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level+1,arguments.dumpID,arguments.cssColors);
+						tempStruct.META.DATA[arguments.meta.data.currentRow].NODEDATA[col].CONTENT=value;
+					}else{
+						tempStruct.META.DATA[arguments.meta.data.currentRow].NODEDATA[col].CONTENT='#node#';
+					}
+					c*=2;
+				}
+			}
+		}
+
+		if(!arguments.level){
+			rtn&="dumpData['#arguments.dumpID#']=#serializeJSON(tempStruct)#;";
+			rtn&="</script>";
+			head&='<script language="JavaScript" type="text/javascript">' & variables.NEWLINE;
+			head&="parseDumpJSON(dumpData,0);" & variables.NEWLINE;
+			head&="</script>";
+			return rtn&head;
+		}else{
+			return tempStruct;
+		}
+	}
 
 	/* ==================================================================================================
 	   html                                                                                             =
@@ -164,14 +418,12 @@ component {
 		var height = structKeyExists(arguments.meta,'height') ? ' height="' & arguments.meta.height & '"' : '';
 		var indent = repeatString(variables.TAB, arguments.level);
 
-
-
 			// Header
 			var variables.colorKeys={};
 			var head="";
 			if(arguments.level EQ 0){
 				var colors=arguments.meta.colors[arguments.meta.colorId];
-		
+
 				// javascript
 				head=('<script language="JavaScript" type="text/javascript">' & variables.NEWLINE);
 				head&=("function dumpOC(name){");
@@ -198,11 +450,11 @@ component {
 					variables.colorKeys[k]=count++;
 					var bc=darkenColor(darkenColor(v.highLightColor));
 					var fc=(bc);
-					head&="#prefix# td.n#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.normalColor#;}"& variables.NEWLINE;
-					head&="#prefix# td.h#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.highLightColor#;}"& variables.NEWLINE;
+					head&="#prefix# td.luceeN#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.normalColor#;}"& variables.NEWLINE;
+					head&="#prefix# td.luceeH#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.highLightColor#;}"& variables.NEWLINE;
 				}
 
-				
+
 				/*loop collection="#arguments.cssColors#" item="local.key" {
 					head&="td.#key# {background-color:#arguments.cssColors[key]#;}"& variables.NEWLINE;
 				}*/
@@ -212,16 +464,15 @@ component {
 
 
 
-
 			rtn&=('<table#width##height##title#>' );
 
 			// title
 			if(structKeyExists(arguments.meta, 'title')){
 				var metaID = arguments.hasReference && structKeyExists(arguments.meta,'id') ? ' [#arguments.meta.id#]' : '';
 				var comment = structKeyExists(arguments.meta,'comment') ? "<br />" & (left(arguments.meta.comment,4)=="<img"?arguments.meta.comment:replace(HTMLEditFormat(arguments.meta.comment),chr(10),' <br>','all')) : '';
-				
+
 				rtn&=('<tr>');
-				rtn&=('<td class="h#variables.colorKeys[arguments.meta.colorId]#" onclick="dumpOC(''#id#'');" colspan="#columnCount#" style="cursor:pointer;">');
+				rtn&=('<td class="luceeH#variables.colorKeys[arguments.meta.colorId]#" onclick="dumpOC(''#id#'');" colspan="#columnCount#" style="cursor:pointer;">');
 				rtn&=('<span>#arguments.meta.title##metaID#</span>');
 				rtn&=(comment & '</td>');
 				rtn&=('</tr>');
@@ -229,6 +480,7 @@ component {
 			else {
 				id = "";
 			}
+
 
 			// data
 			if(columnCount) {
@@ -238,19 +490,19 @@ component {
 					var hidden = !arguments.expand && len(id) ? ' style="display:none"' : '';
 
 					rtn&=('<tr#nodeID##hidden#>');
-					
+
 					for(var col=1; col LTE columnCount-1; col++) {
 						var node = arguments.meta.data["data" & col];
 
 						if(isStruct(node)) {
 							var value = this.html(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level+1,arguments.dumpID,arguments.cssColors);
 
-							rtn&=('<td class="#doHighlight(arguments.meta,c)?'h':'n'##variables.colorKeys[arguments.meta.colorId]#">');
+							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">');
 							rtn&=(value);
 							rtn&=('</td>');
 						}
 						else {
-							rtn&=('<td class="#doHighlight(arguments.meta,c)?'h':'n'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>' );
+							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>' );
 						}
 						c *= 2;
 					}
@@ -259,12 +511,8 @@ component {
 			}
 			rtn&=('</table>');
 
-
-
 		return head&rtn;
 	}
-
-
 	/* ==================================================================================================
 	   classic                                                                                          =
 	================================================================================================== */
@@ -322,9 +570,9 @@ component {
 					var h2Color = (v.normalColor);
 					var borderColor = darkenColor( darkenColor( v.highLightColor ));
 					variables.colorKeys[k]=count++;
-					rtn&="#prefix# td.n#variables.colorKeys[k]# {background-color:white;border-color:#borderColor#; color:black;cursor:pointer;}"& variables.NEWLINE;
-					rtn&="#prefix# td.h1#variables.colorKeys[k]# {background-color:#h1Color#;border-color:#borderColor#; color:white;cursor:pointer;}"& variables.NEWLINE;
-					rtn&="#prefix# td.h2#variables.colorKeys[k]# {background-color:#h2Color#;border-color:#borderColor#; color:black;cursor:pointer;}"& variables.NEWLINE;
+					rtn&="#prefix# td.luceeN#variables.colorKeys[k]# {background-color:white;border-color:#borderColor#; color:black;cursor:pointer;}"& variables.NEWLINE;
+					rtn&="#prefix# td.luceeH1#variables.colorKeys[k]# {background-color:#h1Color#;border-color:#borderColor#; color:white;cursor:pointer;}"& variables.NEWLINE;
+					rtn&="#prefix# td.luceeH2#variables.colorKeys[k]# {background-color:#h2Color#;border-color:#borderColor#; color:black;cursor:pointer;}"& variables.NEWLINE;
 				}
 
 
@@ -339,7 +587,7 @@ component {
 				var comment = structKeyExists(arguments.meta,'comment') ? "<br />" & replace(HTMLEditFormat(arguments.meta.comment),chr(10),' <br>','all') : '';
 
 				rtn&=('<tr>');
-				rtn&=('<td onclick="dumpOC(''#id#'');" colspan="#columnCount#" class="h1#variables.colorKeys[arguments.meta.colorId]#">');
+				rtn&=('<td onclick="dumpOC(''#id#'');" colspan="#columnCount#" class="luceeH1#variables.colorKeys[arguments.meta.colorId]#">');
 				rtn&=('<span>#arguments.meta.title##metaID#</span>');
 				rtn&=(comment & '</td>');
 				rtn&=('</tr>');
@@ -363,12 +611,12 @@ component {
 						if(isStruct(node)) {
 							var value = this.classic(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level+1);
 
-							rtn&=('<td class="#doHighlight(arguments.meta,c)?'h2':'n'##variables.colorKeys[arguments.meta.colorId]#">');
+							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH2':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">');
 							rtn&=(value);
 							rtn&=( '</td>');
 						}
 						else {
-							rtn&=('<td class="#doHighlight(arguments.meta,c)?'h2':'n'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>');
+							rtn&=('<td class="#doHighlight(arguments.meta,c)?'luceeH2':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>');
 						}
 						c *= 2;
 					}
@@ -509,7 +757,7 @@ component {
 			}
 		}
 		if(arguments.output NEQ "console" && arguments.level EQ 0) {
-			return "<pre>" & rtn & "</pre>";
+			return rtn;
 		}
 
 		return rTrim(rtn);

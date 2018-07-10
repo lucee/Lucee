@@ -26,8 +26,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,13 +55,13 @@ import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
-import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.FileWrapper;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.commons.net.HTTPUtil;
@@ -70,6 +72,7 @@ import lucee.commons.net.http.HTTPResponse;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.osgi.BundleCollection;
+import lucee.loader.util.ExtensionFilter;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
@@ -78,8 +81,8 @@ import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.db.ClassDefinition;
-import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -140,14 +143,12 @@ import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLibException;
 
 import org.apache.log4j.Level;
-import org.apache.xerces.parsers.DOMParser;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.allaire.cfx.CustomTag;
@@ -158,6 +159,7 @@ import com.allaire.cfx.CustomTag;
 public final class XMLConfigAdmin {
 
     
+	private static final BundleInfo[] EMPTY = new BundleInfo[0];
 	//private static final Object NULL = new Object();
 	private ConfigImpl config;
     private Document doc;
@@ -243,7 +245,7 @@ public final class XMLConfigAdmin {
     private XMLConfigAdmin(ConfigImpl config, Password password) throws SAXException, IOException {
     	this.config=config;
     	this.password=password;
-        doc=loadDocument(config.getConfigFile());
+        doc=XMLUtil.createDocument(config.getConfigFile(),false);
         //setId(config.getId());
     } 
     
@@ -260,9 +262,7 @@ public final class XMLConfigAdmin {
 			admin._reload();
 			SystemOut.printDate(ci.getOutWriter(), "reloaded the configuration ["+file+"] automaticly");
 		} 
-		catch (Throwable t) {
-			t.printStackTrace();
-		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
     private void addResourceProvider(String scheme,ClassDefinition cd,String arguments) throws PageException {
@@ -290,28 +290,6 @@ public final class XMLConfigAdmin {
     	el.setAttribute("scheme", scheme);
     	el.setAttribute("arguments", arguments);
 	}
-
-
-	/**
-     * load XML Document from XML File
-     * @param xmlFile XML File to read
-     * @return returns the Document
-     * @throws SAXException
-     * @throws IOException
-     */
-    private static Document loadDocument(Resource xmlFile) throws SAXException, IOException {
-        DOMParser parser = new DOMParser();
-        InputStream is=null;
-        try {
-        	is = IOUtil.toBufferedInputStream(xmlFile.getInputStream());
-    	    InputSource source = new InputSource(is);
-    	    parser.parse(source);
-        }
-        finally {
-        	IOUtil.closeEL(is);
-        }
-	    return parser.getDocument();
-    }
     
     public static synchronized void _storeAndReload(ConfigImpl config) throws PageException, SAXException, ClassException, IOException, TagLibException, FunctionLibException, BundleException  {
     	XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
@@ -361,7 +339,7 @@ public final class XMLConfigAdmin {
     	try {
 	    	ConfigWebFactory.getChildByName(doc.getDocumentElement(),"cfabort",true);
     	}
-    	catch( Throwable t) {}
+    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     }*/
 
 
@@ -497,18 +475,12 @@ public final class XMLConfigAdmin {
 	 * @param tls 
      * @throws PageException 
      */
-    public void updateMailServer(String hostName,String username,String password, int port, boolean tls, boolean ssl,
+    public void updateMailServer(int id, String hostName,String username,String password, int port, boolean tls, boolean ssl,
     		long lifeTimeSpan, long idleTimeSpan, boolean reuseConnections) throws PageException {
     	checkWriteAccess();
     	boolean hasAccess=ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_MAIL);
         if(!hasAccess)
             throw new SecurityException("no access to update mail server settings");
-        
-        /*try {
-            SMTPVerifier.verify(hostName,username,password,port);
-        } catch (SMTPException e) {
-            throw Caster.toPageException(e);
-        }*/
         
         Element mail=_getRootElement("mail");
         if(port<1) port=21;
@@ -520,15 +492,27 @@ public final class XMLConfigAdmin {
         
         Element[] children = XMLConfigWebFactory.getChildren(mail,"server");
       	
+        boolean checkId=id>0;
+        
         // Update
         Element server=null;
+        String _hostName,_username;
         for(int i=0;i<children.length;i++) {
       	    Element el=children[i];
-      	    String smtp=el.getAttribute("smtp");
-  			if(smtp!=null && smtp.equalsIgnoreCase(hostName)) {
-	      		server=el;
-	      		break;
-  			}
+      	    if(checkId) {
+      	    	if(i+1==id) {
+		      		server=el;
+		      		break;
+	  			}
+      	    }
+      	    else {
+	      	    _hostName=StringUtil.emptyIfNull(el.getAttribute("smtp"));
+	      	    _username=StringUtil.emptyIfNull(el.getAttribute("username"));
+	      	    if(_hostName.equalsIgnoreCase(hostName) && _username.equals(StringUtil.emptyIfNull(username))) {
+		      		server=el;
+		      		break;
+	  			}
+      	    }
       	}
         
         // Insert
@@ -554,16 +538,22 @@ public final class XMLConfigAdmin {
      * @param hostName
      * @throws SecurityException 
      */
-    public void removeMailServer(String hostName) throws SecurityException {
+    public void removeMailServer(String hostName, String username) throws SecurityException {
     	checkWriteAccess();
     	
         Element mail=_getRootElement("mail");
         Element[] children = XMLConfigWebFactory.getChildren(mail,"server");
+        String _hostName,_username;
         if(children.length>0) {
 	      	for(int i=0;i<children.length;i++) {
 	      	    Element el=children[i];
-	      	    String smtp=el.getAttribute("smtp");
-	  			if(smtp!=null && smtp.equalsIgnoreCase(hostName)) {
+	      	    _hostName=el.getAttribute("smtp");
+	      	    _username=el.getAttribute("username");
+	  			if(
+	  					StringUtil.emptyIfNull(_hostName).equalsIgnoreCase(StringUtil.emptyIfNull(hostName))
+	  					&&
+	  					StringUtil.emptyIfNull(_username).equalsIgnoreCase(StringUtil.emptyIfNull(username))
+	  			) {
 		      		mail.removeChild(children[i]);
 	  			}
 	      	}
@@ -1048,7 +1038,6 @@ public final class XMLConfigAdmin {
 	}
 
 	public static void updateJar(Config config, Resource resJar, boolean reloadWhenClassicJar) throws IOException, BundleException {
-		
 		BundleFile bf=new BundleFile(resJar);
 		
 		// resJar is a bundle
@@ -1155,17 +1144,28 @@ public final class XMLConfigAdmin {
 		return OSGiUtil.loadBundle(bf);
 	}
 	
-	public static Object installBundle(Config config, InputStream is, String name,String extensionVersion,boolean closeStream,boolean convert2bundle) throws IOException, BundleException {
+	/**
+	 * @param config
+	 * @param is
+	 * @param name
+	 * @param extensionVersion
+	 * @param closeStream
+	 * @param convert2bundle
+	 * @return return the Bundle File or the file in case it is not a bundle.
+	 * @throws IOException
+	 * @throws BundleException
+	 */
+	public static Object installBundle(Config config, InputStream is, String name,String extensionVersion,
+			boolean closeStream,boolean convert2bundle) throws IOException, BundleException {
 		Resource tmp=SystemUtil.getTempDirectory().getRealResource(name);
-		try{
-			IOUtil.copy(is, tmp,closeStream);
-			BundleFile bf = installBundle(config, tmp,extensionVersion,convert2bundle);
-			if(bf!=null) return bf;
-			return tmp;
-		}
-		finally {
+		
+		IOUtil.copy(is, tmp,closeStream);
+		BundleFile bf = installBundle(config, tmp,extensionVersion,convert2bundle);
+		if(bf!=null) {
 			tmp.delete();
+			return bf;
 		}
+		return tmp;
 	}
 
 	static void updateJar(Config config, InputStream is, String name,boolean closeStream) throws IOException, BundleException {
@@ -1225,54 +1225,6 @@ public final class XMLConfigAdmin {
   		el.setAttribute("type","java");  		
     }
     
-    public void updateCPPCFX(String name, String procedure, String strServerLibrary, boolean keepAlive) throws PageException {
-    	checkWriteAccess();
-    	boolean hasAccess=ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_CFX_SETTING);
-        
-        if(!hasAccess) throw new SecurityException("no access to change cfx settings");
-        
-        // name
-        if(StringUtil.isEmpty(name))
-            throw new ExpressionException("name cannot be a empty value");
-        
-        // serverLibrary
-        if(StringUtil.isEmpty(strServerLibrary)) throw new ExpressionException("serverLibrary cannot be a empty value");
-        Resource serverLibrary = ResourceUtil.toResourceExisting(config, strServerLibrary);
-        
-        // procedure
-        if(StringUtil.isEmpty(procedure)) throw new ExpressionException("procedure cannot be a empty value");
-        
-        renameOldstyleCFX();
-        
-        
-        Element tags=_getRootElement("ext-tags");
-        
-        // Update
-        Element[] children = XMLConfigWebFactory.getChildren(tags,"ext-tag");
-      	for(int i=0;i<children.length;i++) {
-      	    String n=children[i].getAttribute("name");
-      	    
-      	    if(n!=null && n.equalsIgnoreCase(name)) {
-	      		Element el=children[i];
-	      		if(!"cpp".equalsIgnoreCase(el.getAttribute("type"))) throw new ExpressionException("there is already a java cfx tag with this name");
-      	    	el.setAttribute("server-library",serverLibrary.getAbsolutePath());
-      	    	el.setAttribute("procedure",procedure);
-      	    	el.setAttribute("keep-alive",Caster.toString(keepAlive));
-      	    	el.setAttribute("type","cpp");
-	      		return ;
-  			}
-      	    
-      	}
-      	
-      	// Insert
-      	Element el=doc.createElement("ext-tag");
-      	tags.appendChild(el);
-      	el.setAttribute("server-library",serverLibrary.getAbsolutePath());
-    	el.setAttribute("procedure",procedure);
-    	el.setAttribute("keep-alive",Caster.toString(keepAlive));
-    	el.setAttribute("name",name);
-  		el.setAttribute("type","cpp"); 
-	}
     
     private void renameOldstyleCFX() {
     	
@@ -1332,7 +1284,7 @@ public final class XMLConfigAdmin {
     	}
     	return false;
     }
-    
+    // MUST remove
     public static boolean fixPSQ(Document doc) {
     	
     	Element datasources=XMLConfigWebFactory.getChildByName(doc.getDocumentElement(),"data-sources",false,true);
@@ -1517,6 +1469,36 @@ public final class XMLConfigAdmin {
         }
         return fixed;
 	}
+    
+    public static boolean fixComponentMappings(ConfigImpl config, Document doc) {
+    	if(!(config instanceof ConfigServer)) return false;
+    	
+    	Element parent=XMLConfigWebFactory.getChildByName(doc.getDocumentElement(),"component",false,true);
+        Element[] mappings = XMLConfigWebFactory.getChildren(parent,"mapping");
+        
+        int count=0;
+        for(Element mapping:mappings) {
+        	if("/default-server".equalsIgnoreCase(mapping.getAttribute("virtual"))) {
+        		count++;
+        		if(count>1) {
+        			parent.removeChild(mapping);
+        		}
+        	}
+        }
+        
+        if(count>0) return false;
+        
+        
+        // ADD MAPPING
+        Element mapping = doc.createElement("mapping");
+        parent.appendChild(mapping);
+        mapping.setAttribute("virtual", "/default-server");
+        mapping.setAttribute("physical", "{lucee-server}/components/");
+        mapping.setAttribute("primary", "physical");
+        mapping.setAttribute("inspect-template", "never");
+        mapping.setAttribute("readonly", "true");
+        return true;
+	}
 
     public void verifyCFX(String name) throws PageException {
     	CFXTagPool pool=config.getCFXTagPool();
@@ -1598,10 +1580,10 @@ public final class XMLConfigAdmin {
      * @param custom 
      * @throws PageException 
      */
-    public void updateDataSource(String name, String newName, ClassDefinition cd, String dsn, String username, String password,
+    public void updateDataSource(String id,String name, String newName, ClassDefinition cd, String dsn, String username, String password,
             String host, String database, int port, int connectionLimit, int connectionTimeout, long metaCacheTimeout,
             boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver,
-            ParamSyntax paramSyntax) throws PageException {
+            ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout) throws PageException {
 
     	checkWriteAccess();
     	SecurityManager sm = config.getSecurityManager();
@@ -1645,6 +1627,10 @@ public final class XMLConfigAdmin {
 	      		if(!StringUtil.isEmpty(newName) && !newName.equals(name))
 	      			el.setAttribute("name",newName);
 	      		setClass(el, null, "", cd);
+	      		
+	      		if(!StringUtil.isEmpty(id)) el.setAttribute("id",id);
+	      		else if(el.hasAttribute("id")) el.removeAttribute("id");
+	      		
 	      		el.setAttribute("dsn",dsn);
 	      		el.setAttribute("username",username);
 	      		el.setAttribute("password",ConfigWebUtil.encrypt(password));
@@ -1671,7 +1657,16 @@ public final class XMLConfigAdmin {
 	            el.setAttribute("param-delimiter",(paramSyntax.delimiter));
 	            el.setAttribute("param-leading-delimiter",(paramSyntax.leadingDelimiter));
 	            el.setAttribute("param-separator",(paramSyntax.separator));
-
+	            
+	            
+	            if(literalTimestampWithTSOffset)el.setAttribute("literal-timestamp-with-tsoffset","true");
+	            else if(el.hasAttribute("literal-timestamp-with-tsoffset")) 
+	            	el.removeAttribute("literal-timestamp-with-tsoffset");
+	            
+	            if(alwaysSetTimeout)el.setAttribute("always-set-timeout","true");
+	            else if(el.hasAttribute("always-set-timeout")) 
+	            	el.removeAttribute("always-set-timeout");
+	            
 	            
 	      		return;
   			}
@@ -1689,6 +1684,10 @@ public final class XMLConfigAdmin {
       		el.setAttribute("name",name);
       	setClass(el, null, "", cd);
   		el.setAttribute("dsn",dsn);
+  		
+  		if(!StringUtil.isEmpty(id)) el.setAttribute("id",id);
+  		else if(el.hasAttribute("id")) el.removeAttribute("id");
+  		
   		if(username.length()>0)el.setAttribute("username",username);
   		if(password.length()>0)el.setAttribute("password",ConfigWebUtil.encrypt(password));
         
@@ -1715,7 +1714,9 @@ public final class XMLConfigAdmin {
         el.setAttribute("param-delimiter",(paramSyntax.delimiter));
         el.setAttribute("param-leading-delimiter",(paramSyntax.leadingDelimiter));
         el.setAttribute("param-separator",(paramSyntax.separator));
-
+        
+        if(literalTimestampWithTSOffset)el.setAttribute("literal-timestamp-with-tsoffset","true");
+        if(alwaysSetTimeout)el.setAttribute("always-set-timeout","true");
     }
     
     static void removeJDBCDriver(ConfigImpl config, ClassDefinition cd, boolean reload) throws IOException, SAXException, PageException, BundleException {
@@ -1761,12 +1762,12 @@ public final class XMLConfigAdmin {
     	if(reload)admin._reload();
 	}*/
 
-	public void updateJDBCDriver(String label, ClassDefinition cd) throws PageException {
+	public void updateJDBCDriver(String label, String id, ClassDefinition cd) throws PageException {
     	checkWriteAccess();
-    	_updateJDBCDriver(label,cd);
+    	_updateJDBCDriver(label,id,cd);
     }
     
-    private void _updateJDBCDriver(String label, ClassDefinition cd) throws PageException {
+    private void _updateJDBCDriver(String label, String id, ClassDefinition cd) throws PageException {
     	
     	// check if label exists
 		if(StringUtil.isEmpty(label)) 
@@ -1794,8 +1795,12 @@ public final class XMLConfigAdmin {
       		child=doc.createElement("driver");
       		parent.appendChild(child);
       	}
-      	
+
       	child.setAttribute("label",label);
+      	if(!StringUtil.isEmpty(id))
+      		child.setAttribute("id",id);
+      	else
+      		child.removeAttribute("id");
       	// make sure the class exists
         setClass(child, null, "", cd);
         
@@ -1829,7 +1834,7 @@ public final class XMLConfigAdmin {
     	if(StringUtil.isEmpty(id))
             throw new ExpressionException("id can't be a empty value");
     	
-    	if(StringUtil.isEmpty(cd.getClassName()) && StringUtil.isEmpty(componentPath))
+    	if((cd==null || StringUtil.isEmpty(cd.getClassName())) && StringUtil.isEmpty(componentPath))
     		throw new ExpressionException("you must define className or componentPath");
     	
         
@@ -2248,6 +2253,7 @@ public final class XMLConfigAdmin {
 
 
 	private static String toStringURLStyle(Struct sct) {
+		if(sct==null) return "";
         Iterator<Entry<Key, Object>> it = sct.entryIterator();
 		Entry<Key, Object> e;
 		StringBuilder rtn=new StringBuilder();
@@ -2406,9 +2412,10 @@ public final class XMLConfigAdmin {
   	    	if(n!=null && n.equalsIgnoreCase(name)) {
   	    		Map<String, CacheConnection> conns = config.getCacheConnections();
   	    		CacheConnection cc= conns.get(n.toLowerCase());
-
-                if ( cc != null )
-                	CacheUtil.removeEL( config instanceof ConfigWeb ? (ConfigWeb) config : null, cc );
+  	    		if ( cc != null ) {
+  	    			CacheUtil.releaseEL(cc);
+                	//CacheUtil.removeEL( config instanceof ConfigWeb ? (ConfigWeb) config : null, cc );
+  	    		}
 
                 parent.removeChild(children[i]);
   			}
@@ -2443,14 +2450,18 @@ public final class XMLConfigAdmin {
     }
 
 
-	public void removeCacheGatewayEntry(String name) throws PageException {
+	public void removeGatewayEntry(String name) throws PageException {
 		checkWriteAccess();
         
-		boolean hasAccess=ConfigWebUtil.hasAccess(config,SecurityManagerImpl.TYPE_GATEWAY);
+        boolean hasAccess=ConfigWebUtil.hasAccess(config,SecurityManagerImpl.TYPE_GATEWAY);
         if(!hasAccess)
             throw new SecurityException("no access to remove gateway entry");
         
-        if(StringUtil.isEmpty(name))
+        _removeGatewayEntry(name);_removeAMFEngine();
+	}
+
+	protected void _removeGatewayEntry(String name) throws PageException {
+		if(StringUtil.isEmpty(name))
             throw new ExpressionException("name for Gateway Id can be a empty value");
         
         Element parent=_getRootElement("gateways");
@@ -2836,7 +2847,8 @@ public final class XMLConfigAdmin {
         if(!hasAccess) throw new SecurityException("no access to update scope setting");
         
         Element scope=_getRootElement("setting");
-        scope.setAttribute("buffer-output",Caster.toString(value,""));
+        scope.setAttribute("buffering-output",Caster.toString(value,""));
+        if(scope.hasAttribute("buffer-output"))scope.removeAttribute("buffer-output");
 	}
     
     /**
@@ -3605,7 +3617,9 @@ public final class XMLConfigAdmin {
         try {
 			location=HTTPUtil.toURL(location,true).toString();
 		} 
-        catch (Throwable e) {}
+        catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
+        }
         update.setAttribute("location",location);
     }
     
@@ -3692,6 +3706,7 @@ public final class XMLConfigAdmin {
         
     	synchronized(factory){
 	        try {
+	        	cleanUp(factory);
 	            factory.update(cs.getPassword(),cs.getIdentification());
 	        } 
 	        catch (Exception e) {
@@ -3732,6 +3747,158 @@ public final class XMLConfigAdmin {
             throw Caster.toPageException(e);
         }
     }
+
+	public void changeVersionTo(Version version, Password password, IdentificationWeb id) throws PageException {
+		checkWriteAccess();
+    	
+    	ConfigServerImpl cs=(ConfigServerImpl) ConfigImpl.getConfigServer(config,password);
+    	
+    	try {
+        	CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
+        	cleanUp(factory);
+        	// do we have the core file?
+        	final File patchDir = factory.getPatchDirectory();
+    		File localPath=new File(version.toString()+".lco");
+        	
+    		if(!localPath.isFile()) {
+    			localPath=null;
+    			Version v;
+    			final File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { ".lco" }));
+        		for (final File patch : patches) {
+        			v=CFMLEngineFactory.toVersion(patch.getName(),null);
+        			// not a valid file get deleted
+        			if(v==null){
+        				patch.delete();
+        			}
+        			else {
+	        			if(v.equals(version)) { // match!
+	        				localPath=patch;
+	        			}
+	        			// delete newer files
+	        			else if(OSGiUtil.isNewerThan(v,version)) {
+	        				patch.delete();
+	        			}
+        			}
+    			}
+    		}
+        	
+    		// download patch
+        	if(localPath==null) {
+        		
+        		downloadCore(factory, version, id);
+        	}
+        	
+        	
+        	
+        	
+        	factory.restart(password);
+        } 
+        catch (Exception e) {
+            throw Caster.toPageException(e);
+        }
+	}
+	
+	private void cleanUp(CFMLEngineFactory factory) throws IOException {
+		final File patchDir = factory.getPatchDirectory();
+		final File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { ".lco" }));
+		for (final File patch : patches) {
+			if(!IsZipFile.invoke(patch)) patch.delete();
+		}
+	}
+
+
+	private File downloadCore( CFMLEngineFactory factory, Version version,Identification id) throws IOException {
+		final URL updateProvider = factory.getUpdateLocation();
+
+		
+		final URL updateUrl = new URL(updateProvider,
+				"/rest/update/provider/download/" + version.toString()
+						+ (id != null ? id.toQueryString() : "")
+						+ (id == null ? "?" : "&")+"allowRedirect=true"
+				);
+		//log.debug("Admin", "download "+version+" from " + updateUrl);
+		System.out.println(updateUrl);
+		
+		
+		// local resource
+		final File patchDir = factory.getPatchDirectory();
+		final File newLucee = new File(patchDir, version + (".lco"));
+		
+		int code;
+		HttpURLConnection conn;
+		try {
+			conn = (HttpURLConnection) updateUrl.openConnection();
+			conn.setRequestMethod("GET");
+			conn.connect();
+			code = conn.getResponseCode();
+		} catch (final UnknownHostException e) {
+			//log.error("Admin", e);
+			throw e;
+		}
+		
+		// the update provider is not providing a download for this
+		if (code != 200) {
+			
+			// the update provider can also provide a different (final) location for this
+			if(code==302) {
+				String location = conn.getHeaderField("Location");
+				// just in case we check invalid names
+				if(location==null)location = conn.getHeaderField("location");
+				if(location==null)location = conn.getHeaderField("LOCATION");
+				System.out.println("download redirected:" + location); // MUST remove
+				//log.debug("Admin", "download redirected to " + updateUrl);
+				
+				
+				conn.disconnect();
+				URL url = new URL(location);
+				try {
+					conn = (HttpURLConnection) url.openConnection();
+					conn.setRequestMethod("GET");
+					conn.connect();
+					code = conn.getResponseCode();
+				} catch (final UnknownHostException e) {
+					//log.error("Admin", e);
+					throw e;
+				}
+			}
+			
+			// no download available!
+			if(code != 200){
+				final String msg = "Lucee is not able do download the core for version ["
+					+ version.toString() + "] from " + updateUrl
+					+ ", please donwload it manually and copy to [" + patchDir + "]";
+				//log.debug("Admin", msg);
+				conn.disconnect();
+				throw new IOException(msg);
+			}
+		}
+		
+		// copy it to local directory
+		if (newLucee.createNewFile()) {
+			IOUtil.copy((InputStream) conn.getContent(), new FileOutputStream(newLucee),false,true);
+			conn.disconnect();
+			
+			// when it is a loader extract the core from it
+			File tmp = CFMLEngineFactory.extractCoreIfLoader(newLucee);
+			if(tmp!=null) {
+				System.out.println("extract core from loader"); // MUST remove
+				//log.debug("Admin", "extract core from loader");
+				
+				newLucee.delete();
+				tmp.renameTo(newLucee);
+				tmp.delete();
+				System.out.println("exist?"+newLucee.exists()); // MUST remove
+				
+			}
+		}
+		else {
+			conn.disconnect();
+			//log.debug("Admin","File for new Version already exists, won't copy new one");
+			return null;
+		}
+		return newLucee;
+	}
+	
     
 	private String getCoreExtension() {
     	return "lco";
@@ -3764,6 +3931,7 @@ public final class XMLConfigAdmin {
         
     	synchronized(factory){
 	        try {
+	        	cleanUp(factory);
 	            factory.restart(cs.getPassword());
 	        } 
 	        catch (Exception e) {
@@ -4044,9 +4212,7 @@ public final class XMLConfigAdmin {
 			else if(Monitor.TYPE_REQUEST==type)
 				monitor=config.getIntervallMonitor(name);
 		}
-		catch(Throwable t){
-			//t.printStackTrace();
-		}
+		catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		IOUtil.closeEL(monitor);
 	}
 
@@ -4427,9 +4593,11 @@ public final class XMLConfigAdmin {
 		for(int i=0;i<children.length;i++) {
 			child=children[i];
 			try{
-				rhe = new RHExtension(config, child);
+				rhe=new RHExtension(config, child);
+				//ed=ExtensionDefintion.getInstance(config,child);
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				continue;
 			}
 			
@@ -4450,6 +4618,7 @@ public final class XMLConfigAdmin {
     	if(reload)admin._reload();
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 	}
@@ -4473,6 +4642,7 @@ public final class XMLConfigAdmin {
 	    	admin.restart(config);
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(config.getDeployDirectory(),core);
 			throw Caster.toPageException(t);
 		}
@@ -4523,7 +4693,8 @@ public final class XMLConfigAdmin {
 			hidden = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-hidden")),false);
 			physicalFirst = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-physical-first")),false);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(config.getDeployDirectory(),archive);
 			throw Caster.toPageException(t);
 		}
@@ -4550,7 +4721,8 @@ public final class XMLConfigAdmin {
 			else if("ct".equalsIgnoreCase(type))
 				_updateCustomTag(virtual, null, trgFile.getAbsolutePath(), "archive", inspect);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(config.getDeployDirectory(),archive);
 			throw Caster.toPageException(t);
 		}
@@ -4567,6 +4739,7 @@ public final class XMLConfigAdmin {
 	    	admin.updateRHExtension(config,ext,reload);
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 	}
@@ -4579,6 +4752,7 @@ public final class XMLConfigAdmin {
 			rhext = new RHExtension(config, ext,true);
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(ext.getParentResource(),ext);
 			throw Caster.toPageException(t);
 		}
@@ -4689,7 +4863,6 @@ public final class XMLConfigAdmin {
         			updateEventGateway(zis, sub,false); 
 				}
 
-				
 				// context
 				String realpath;
 				if(!entry.isDirectory() && startsWith(path,type,"context") && !StringUtil.startsWith(fileName(entry), '.')) {
@@ -4698,16 +4871,28 @@ public final class XMLConfigAdmin {
 	        		updateContext(zis, realpath,false,false);
 				}
 				// web contextS
-				if(!entry.isDirectory() && (startsWith(path,type,"webcontexts")) && !StringUtil.startsWith(fileName(entry), '.')) {
-					realpath=path.substring(12);
+				boolean first;
+				if(!entry.isDirectory() && ((first=startsWith(path,type,"webcontexts")) || startsWith(path,type,"web.contexts")) && !StringUtil.startsWith(fileName(entry), '.')) {
+					realpath=path.substring(first?12:13);
 	        		logger.log(Log.LEVEL_INFO,"extension","deploy webcontext "+realpath);
 	        		updateWebContexts(zis, realpath,false,false);
 				}
 				// applications
-				if(!entry.isDirectory() && (startsWith(path,type,"applications")) && !StringUtil.startsWith(fileName(entry), '.')) {
-					realpath=path.substring(13);
+				if(!entry.isDirectory() && (startsWith(path,type,"applications") || startsWith(path,type,"web.applications") || startsWith(path,type,"web")) && !StringUtil.startsWith(fileName(entry), '.')) {
+					int index;
+					if(startsWith(path,type,"applications")) index=13;
+					else if(startsWith(path,type,"web.applications")) index=17;
+					else index=4; // web
+					
+					realpath=path.substring(index);
 	        		logger.log(Log.LEVEL_INFO,"extension","deploy application "+realpath);
 	        		updateApplication( zis, realpath,false);
+				}
+				// configs
+				if(!entry.isDirectory() && (startsWith(path,type,"config")) && !StringUtil.startsWith(fileName(entry), '.')) {
+					realpath=path.substring(7);
+	        		logger.log(Log.LEVEL_INFO,"extension","deploy config "+realpath);
+	        		updateConfigs( zis, realpath,false,false);
 				}
 				// components
 				if(!entry.isDirectory() && (startsWith(path,type,"components")) && !StringUtil.startsWith(fileName(entry), '.')) {
@@ -4729,7 +4914,7 @@ public final class XMLConfigAdmin {
 			   
 			// load the bundles
 			if(rhext.getStartBundles()) {
-				rhext.deployBundles();
+				rhext.deployBundles(ci);
 				BundleInfo[] bfs = rhext.getBundles();
 				for(BundleInfo bf:bfs){
 					OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(),false,null);
@@ -4742,8 +4927,8 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
-					if(cd.isBundle()) {
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					if(cd!=null && cd.isBundle()) {
 						_updateCache(cd);
 						reloadNecessary=true;
 					}
@@ -4757,9 +4942,9 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
 					String _id=map.get("id");
-					if(!StringUtil.isEmpty(_id) && cd.hasClass()) {
+					if(!StringUtil.isEmpty(_id) && cd!=null && cd.hasClass()) {
 						_updateCacheHandler(_id,cd);
 						reloadNecessary=true;
 					}
@@ -4773,8 +4958,8 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
-					if(cd.hasClass()) {	
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					if(cd!=null && cd.hasClass()) {	
 						_updateAMFEngine(cd,map.get("caster"),map.get("configuration"));
 						reloadNecessary=true;
 					}
@@ -4788,8 +4973,8 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
-					if(cd.hasClass()) {
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					if(cd!=null && cd.hasClass()) {
 						_updateSearchEngine(cd);
 						reloadNecessary=true;
 					}
@@ -4803,9 +4988,9 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
 					String scheme = map.get("scheme");
-					if(cd.hasClass() && !StringUtil.isEmpty(scheme)) {
+					if(cd!=null && cd.hasClass() && !StringUtil.isEmpty(scheme)) {
 						Struct args=new StructImpl();
 						copyButIgnoreClassDef(map,args);
 						args.remove("scheme");
@@ -4822,9 +5007,9 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
 					
-					if(cd.hasClass()) {
+					if(cd!=null && cd.hasClass()) {
 						_updateORMEngine(cd);
 						reloadNecessary=true;
 					}
@@ -4838,9 +5023,8 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
-					
-					if(cd.hasClass()) {
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					if(cd!=null && cd.hasClass()) {
 						_updateMonitorEnabled(true);
 						_updateMonitor(cd, map.get("type"), map.get("name"), true);
 						reloadNecessary=true;
@@ -4855,16 +5039,17 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
 					String _label=map.get("label");
-					if(cd.isBundle()) {
-						_updateJDBCDriver(_label,cd);
+					String _id=map.get("id");
+					if(cd!=null && cd.isBundle()) {
+						_updateJDBCDriver(_label,_id,cd);
 						reloadNecessary=true;
 					}
 					logger.info("extension", "update JDBC Driver ["+_label+":"+cd+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
 				}
 			}
-			   
+
 			// update mapping
 			if(!ArrayUtil.isEmpty(rhext.getMappings())) {
 				Iterator<Map<String, String>> itl = rhext.getMappings().iterator();
@@ -4895,6 +5080,49 @@ public final class XMLConfigAdmin {
 					logger.info("extension", "update Mapping ["+virtual+"]");
 				}
 			}
+			
+			// update event-gateway-instance
+			
+			if(!ArrayUtil.isEmpty(rhext.getEventGatewayInstances())) {
+				Iterator<Map<String, Object>> itl = rhext.getEventGatewayInstances().iterator();
+				Map<String, Object> map;
+				while(itl.hasNext()){
+					map = itl.next();
+					// id
+					String id=Caster.toString(map.get("id"),null);
+					// class
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					// component path
+					String cfcPath=Caster.toString(map.get("cfc-path"),null);
+					if(StringUtil.isEmpty(cfcPath)) 
+						cfcPath=Caster.toString(map.get("component-path"),null);
+					// listener component path
+					String listenerCfcPath=Caster.toString(map.get("listener-cfc-path"),null);
+					if(StringUtil.isEmpty(listenerCfcPath)) 
+						listenerCfcPath=Caster.toString(map.get("listener-component-path"),null);
+					// startup mode
+					String strStartupMode=Caster.toString(map.get("startup-mode"),"automatic");
+					int startupMode = GatewayEntryImpl.toStartup(strStartupMode,GatewayEntryImpl.STARTUP_MODE_AUTOMATIC);
+					// read only
+					boolean readOnly=Caster.toBooleanValue(map.get("read-only"),false);
+					// custom
+					Struct custom=Caster.toStruct(map.get("custom"),null);
+					/*
+					print.e("::::::::::::::::::::::::::::::::::::::::::");
+					print.e("id:"+id);
+					print.e("cd:"+cd);
+					print.e("cfc:"+cfcPath);
+					print.e("listener:"+listenerCfcPath);
+					print.e("startupMode:"+startupMode);
+					print.e(custom);*/
+					
+					if(!StringUtil.isEmpty(id) && (!StringUtil.isEmpty(cfcPath) || (cd!=null && cd.hasClass()))) {
+						_updateGatewayEntry(id, cd, cfcPath, listenerCfcPath, startupMode, custom, readOnly);
+					}
+					
+					logger.info("extension", "update event gateway entry ["+id+"] from extension ["+rhext.getName()+":"+rhext.getVersion()+"]");
+				}
+			}
 
 			// reload
 			//if(reloadNecessary){
@@ -4905,13 +5133,12 @@ public final class XMLConfigAdmin {
 					_store();
 			//}
 		}
-		catch(Throwable t){t.printStackTrace();
+		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(rhext.getExtensionFile().getParentResource(),rhext.getExtensionFile());
 			try {
 				XMLConfigAdmin.removeRHExtension((ConfigImpl)config, rhext.getId(), false);
-			} catch (Throwable t2) {
-				t2.printStackTrace();
-			}
+			} catch (Throwable t2) {ExceptionUtil.rethrowIfNecessary(t2);}
 			throw Caster.toPageException(t);
 		}
 	}
@@ -4951,10 +5178,10 @@ public final class XMLConfigAdmin {
 		
 		try {
 			// remove the bundles
-			BundleDefinition[] candidatesToRemove = OSGiUtil.toBundleDefinitions(rhe.getBundles());
+			BundleDefinition[] candidatesToRemove = OSGiUtil.toBundleDefinitions(rhe.getBundles(EMPTY));
 			if(replacementRH!=null) {
 				// spare bundles used in the new extension as well
-				Map<String, BundleDefinition> notRemove = toMap(OSGiUtil.toBundleDefinitions(replacementRH.getBundles()));
+				Map<String, BundleDefinition> notRemove = toMap(OSGiUtil.toBundleDefinitions(replacementRH.getBundles(EMPTY)));
 				List<BundleDefinition> tmp=new ArrayList<OSGiUtil.BundleDefinition>();
 				String key;
 				for(int i=0;i<candidatesToRemove.length;i++){
@@ -5000,10 +5227,10 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
 					String _id=map.get("id");
 					
-					if(!StringUtil.isEmpty(_id) && cd.hasClass()) {
+					if(!StringUtil.isEmpty(_id) && cd!=null && cd.hasClass()) {
 						_removeCacheHandler(_id);
 						//reload=true;
 					}
@@ -5017,8 +5244,8 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
-					if(cd.isBundle()) {
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					if(cd!=null && cd.isBundle()) {
 						_removeCache(cd);
 						//reload=true;
 					}
@@ -5032,8 +5259,8 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
-					if(cd.hasClass()) {
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					if(cd!=null && cd.hasClass()) {
 						_removeSearchEngine();
 						//reload=true;
 					}
@@ -5047,9 +5274,9 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
 					String scheme=map.get("scheme");
-					if(cd.hasClass()) {
+					if(cd!=null && cd.hasClass()) {
 						_removeResourceProvider(scheme);
 					}
 					logger.info("extension", "remove resource ["+cd+"] from extension ["+rhe.getName()+":"+rhe.getVersion()+"]");
@@ -5062,8 +5289,8 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
-					if(cd.hasClass()) {
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					if(cd!=null && cd.hasClass()) {
 						_removeAMFEngine();
 						//reload=true;
 					}
@@ -5077,9 +5304,9 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
 					
-					if(cd.hasClass()) {
+					if(cd!=null && cd.hasClass()) {
 						_removeORMEngine();
 						//reload=true;
 					}
@@ -5111,14 +5338,13 @@ public final class XMLConfigAdmin {
 				Map<String, String> map;
 				while(itl.hasNext()){
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config,map);
-					if(cd.isBundle()) {
+					ClassDefinition cd = RHExtension.toClassDefinition(config,map,null);
+					if(cd!=null && cd.isBundle()) {
 						_removeJDBCDriver(cd);
 					}
 					logger.info("extension", "remove JDBC Driver ["+cd+"] from extension ["+rhe.getName()+":"+rhe.getVersion()+"]");
 				}
 			}
-			
 
 			// remove mapping
 			if(!ArrayUtil.isEmpty(rhe.getMappings())) {
@@ -5133,7 +5359,21 @@ public final class XMLConfigAdmin {
 				}
 			}
 			
-			
+			// remove event-gateway-instance
+			if(!ArrayUtil.isEmpty(rhe.getEventGatewayInstances())) {
+				Iterator<Map<String, Object>> itl = rhe.getEventGatewayInstances().iterator();
+				Map<String, Object> map;
+				String id;
+				while(itl.hasNext()){
+					map = itl.next();
+					id=Caster.toString(map.get("id"),null);
+					if(!StringUtil.isEmpty(id)) {
+						_removeGatewayEntry(id);
+						logger.info("extension", "remove event gateway entry ["+id+"]");
+					}
+				}
+			}
+
 			// Loop Files
 			ZipInputStream zis = new ZipInputStream( IOUtil.toBufferedInputStream(rhe.getExtensionFile().getInputStream()) ) ;	
 			String type=ci instanceof ConfigWeb?"web":"server";
@@ -5168,14 +5408,12 @@ public final class XMLConfigAdmin {
 			
 		}
 		catch(Throwable t){
-			
+			ExceptionUtil.rethrowIfNecessary(t);
 			// failed to uninstall, so we install it again
 			try {
 				updateRHExtension(config, rhe.getExtensionFile(),true);
 				//RHExtension.install(config, rhe.getExtensionFile());
-			} catch (Throwable t2) {
-				t2.printStackTrace();
-			}
+			} catch (Throwable t2) {ExceptionUtil.rethrowIfNecessary(t2);}
 			throw Caster.toPageException(t);
 		}
 		
@@ -5246,7 +5484,7 @@ public final class XMLConfigAdmin {
 		}
 		//Object o = 
 			CreateObject.doWebService(null, strUrl+"?wsdl");
-			
+		HTTPEngine.closeEL(method);
 	}
 
 
@@ -5353,7 +5591,8 @@ public final class XMLConfigAdmin {
 			else if("ct".equalsIgnoreCase(type))	removeCustomTag(virtual);
 			else throw new ApplicationException("invalid type ["+type+"], valid types are [regular, cfc, ct]");
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 		finally {
@@ -5480,12 +5719,12 @@ public final class XMLConfigAdmin {
 	        	try{
 	        		root.removeAttribute("serial-number");
 	        	}
-	        	catch(Throwable t){}
+	        	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	        }
         	try{
         		root.removeAttribute("serial");
         	}
-        	catch(Throwable t){}
+        	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	    }
 
 
@@ -5665,18 +5904,6 @@ public final class XMLConfigAdmin {
 	      	el.setAttribute("name",name);
       	}
       	
-      	/*
-      	// appender
-      	if(appenderCD.getClassName().equals(ConsoleAppender.class.getName())) appenderClassName="console";
-      	if(appenderClassName.equals(RollingResourceAppender.class.getName())) appenderClassName="resource";
-      	
-      	// layout
-      	if(layoutClassName.equals(PatternLayout.class.getName())) layoutClassName="pattern";
-      	if(layoutClassName.equals(ClassicLayout.class.getName())) layoutClassName="classic";
-      	if(layoutClassName.equals(HTMLLayout.class.getName())) layoutClassName="html";
-      	if(layoutClassName.equals(XMLLayout.class.getName())) layoutClassName="xml";
-		*/
-      	
       	el.setAttribute("level",level.toString());
       	setClass(el, null, "appender-", appenderCD);
   		el.setAttribute("appender-arguments",toStringCSSStyle(appenderArgs));
@@ -5776,6 +6003,23 @@ public final class XMLConfigAdmin {
     	ConfigWebAdmin._updateContext(config, is, realpath, closeStream, filesDeployed,store);
     	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
     }*/
+	
+
+	Resource[] updateConfigs(InputStream is,String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
+    	List<Resource> filesDeployed=new ArrayList<Resource>();
+    	_updateConfigs(config, is, realpath, closeStream, filesDeployed,store);
+    	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
+    }
+	private static void _updateConfigs(Config config,InputStream is,String realpath, boolean closeStream,List<Resource> filesDeployed, boolean store) throws PageException, IOException, SAXException, BundleException {
+		Resource configs = config.getConfigDir(); // MUST get that dynamically
+		Resource trg = configs.getRealResource(realpath);
+		if(trg.exists()) trg.remove(true);
+        Resource p = trg.getParentResource();
+        if(!p.isDirectory()) p.createDirectory(true); 
+        IOUtil.copy(is, trg.getOutputStream(false), closeStream,true);
+        filesDeployed.add(trg);
+        if(store)_storeAndReload((ConfigImpl)config);
+    }
 
 	Resource[] updateComponent(InputStream is,String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
     	List<Resource> filesDeployed=new ArrayList<Resource>();
@@ -5845,13 +6089,34 @@ public final class XMLConfigAdmin {
         filesDeployed.add(trg);
         _storeAndReload((ConfigImpl)config);
     }
+	public boolean removeConfigs(Config config, boolean store,String... realpathes) throws PageException, IOException, SAXException, BundleException {
+		if(ArrayUtil.isEmpty(realpathes)) return false;
+		boolean force=false;
+		for(int i=0;i<realpathes.length;i++){
+			if(_removeConfigs(config, realpathes[i],store))
+				force=true;
+		}
+		return force;
+	}
 	
+	private boolean _removeConfigs(Config config,String realpath, boolean _store) throws PageException, IOException, SAXException, BundleException {
+    	
+    	Resource context = config.getConfigDir(); // MUST get dyn
+    	Resource trg = context.getRealResource(realpath);
+    	if(trg.exists()) {
+        	trg.remove(true);
+        	if(_store) XMLConfigAdmin._storeAndReload((ConfigImpl) config);
+        	ResourceUtil.removeEmptyFolders(context,null);
+        	return true;
+        }
+        return false;
+    }
 
 	public boolean removeComponents(Config config, boolean store,String... realpathes) throws PageException, IOException, SAXException, BundleException {
 		if(ArrayUtil.isEmpty(realpathes)) return false;
 		boolean force=false;
 		for(int i=0;i<realpathes.length;i++){
-			if(_removeContext(config, realpathes[i],store))
+			if(_removeComponent(config, realpathes[i],store))
 				force=true;
 		}
 		return force;
@@ -5937,14 +6202,24 @@ public final class XMLConfigAdmin {
 
 	Resource[] updateApplication(InputStream is,String realpath, boolean closeStream) throws PageException, IOException, SAXException {
     	List<Resource> filesDeployed=new ArrayList<Resource>();
-    	deployFilesFromStream(config,config.getRootDirectory(), is, realpath, closeStream, filesDeployed);
+    	Resource dir;
+    	// server context
+    	if(config instanceof ConfigServer)
+    		dir=config.getConfigDir().getRealResource("web-deployment");
+    	// if web context we simply deploy to that webcontext, that's all
+    	else 
+    		dir=config.getRootDirectory();
+    	
+    	deployFilesFromStream(config,dir, is, realpath, closeStream, filesDeployed);
+    	
     	return filesDeployed.toArray(new Resource[filesDeployed.size()]);
     }
 	
 
 
-	private void deployFilesFromStream(Config config,Resource root, InputStream is,String realpath, boolean closeStream,List<Resource> filesDeployed) throws PageException, IOException, SAXException {
-    	if(config instanceof ConfigServer) {
+	private static void deployFilesFromStream(Config config,Resource root, InputStream is,String realpath, boolean closeStream,List<Resource> filesDeployed) throws PageException, IOException, SAXException {
+    	// MUST this makes no sense at this point
+		if(config instanceof ConfigServer) {
     		ConfigWeb[] webs = ((ConfigServer)config).getConfigWebs();
     		if(webs.length==0) return;
     		if(webs.length==1) {
@@ -6050,7 +6325,7 @@ public final class XMLConfigAdmin {
   				arr=_removeExtensionCheckOtherUsage(children,el,"contexts");
   				storeChildren=removeContext(config,false, arr);
   				
-  				// contexts
+  				// webcontexts
   				arr=_removeExtensionCheckOtherUsage(children,el,"webcontexts");
   				storeChildren=removeWebContexts(config,false, arr);
 
@@ -6061,6 +6336,10 @@ public final class XMLConfigAdmin {
   				// components
   				arr=_removeExtensionCheckOtherUsage(children,el,"components");
   				removeComponents(config, false, arr);
+
+  				// configs
+  				arr=_removeExtensionCheckOtherUsage(children,el,"config");
+  				removeConfigs(config, false, arr);
   				
   				// plugins
   				arr=_removeExtensionCheckOtherUsage(children,el,"plugins");
@@ -6074,7 +6353,7 @@ public final class XMLConfigAdmin {
   		return null;
 	}
 	
-	public static void cleanBundles(RHExtension rhe,ConfigImpl config, BundleDefinition[] candiatesToRemove) throws BundleException {
+	public static void cleanBundles(RHExtension rhe,ConfigImpl config, BundleDefinition[] candiatesToRemove) throws BundleException, ApplicationException, IOException {
 		if(ArrayUtil.isEmpty(candiatesToRemove)) return;
 		
 		BundleCollection coreBundles = ConfigWebUtil.getEngine(config).getBundleCollection();
@@ -6096,9 +6375,11 @@ public final class XMLConfigAdmin {
 		while(itt.hasNext()) {
 			_rhe=itt.next();
 			if(rhe!=null && rhe.equals(_rhe)) continue;
-			BundleInfo[] bundles = _rhe.getBundles();
-			for(BundleInfo bi:bundles) {
-				_cleanBundles(candiatesToRemove,bi.getSymbolicName(),bi.getVersion());
+			BundleInfo[] bundles = _rhe.getBundles(null);
+			if(bundles!=null){
+				for(BundleInfo bi:bundles) {
+					_cleanBundles(candiatesToRemove,bi.getSymbolicName(),bi.getVersion());
+				}
 			}
 		}
 
@@ -6154,8 +6435,9 @@ public final class XMLConfigAdmin {
 	 * @return the bundles used before when this was a update, if it is a new extension then null is returned
 	 * @throws IOException
 	 * @throws BundleException
+	 * @throws ApplicationException 
 	 */
-	public BundleDefinition[] _updateExtension(ConfigImpl config,RHExtension ext) throws IOException, BundleException {
+	public BundleDefinition[] _updateExtension(ConfigImpl config,RHExtension ext) throws IOException, BundleException, ApplicationException {
 		if(!Decision.isUUId(ext.getId())) throw new IOException("id ["+ext.getId()+"] is invalid, it has to be a UUID"); 
 		Element extensions=_getRootElement("extensions");
 		Element[] children = XMLConfigWebFactory.getChildren(extensions,"rhextension");// LuceeHandledExtensions
@@ -6198,18 +6480,7 @@ public final class XMLConfigAdmin {
 		}
 		return list.toArray(new BundleDefinition[list.size()]); 
 	}
-	
 
-	/*public Query getRHExtensionsAsQuery(ConfigImpl config) throws PageException {
-		Element extensions=_getRootElement("extensions");
-		Element[] children = XMLConfigWebFactory.getChildren(extensions,"rhextension");// LuceeHandledExtensions
-      	try {
-			return RHExtension.toQuery(config,children);
-		} catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
-	}*/
-	
 	private RHExtension getRHExtension(ConfigImpl config, String id, RHExtension defaultValue) {
 		Element extensions=_getRootElement("extensions");
 		Element[] children = XMLConfigWebFactory.getChildren(extensions,"rhextension");// LuceeHandledExtensions
@@ -6217,9 +6488,9 @@ public final class XMLConfigAdmin {
 		if(children!=null)for(int i=0;i<children.length;i++) {
 			if(!id.equals(children[i].getAttribute("id"))) continue;
 			try {
-				return new RHExtension(config,children[i]);
+				return new RHExtension(config, children[i]);
 			}
-			catch (Throwable t) {
+			catch(Exception e) {
 				return defaultValue;
 			}
       	}
@@ -6245,20 +6516,20 @@ public final class XMLConfigAdmin {
 		
 		Element extensions=_getRootElement("extensions");
 		Element[] children = XMLConfigWebFactory.getChildren(extensions,"rhextension");// LuceeHandledExtensions
-		RHExtension rhe;
+		RHExtension tmp;
 		try {
 			for(int i=0;i<children.length;i++){
-				try {
-					rhe = new RHExtension(config,children[i]);
+				tmp=null;
+				try{
+					tmp=new RHExtension(config,children[i]);
 				}
-				catch(Throwable t){
-					continue;
-				}
-				if(ed.equals(rhe)) return rhe;
+				catch(Exception e) {}
+				
+				if(tmp!=null && ed.equals(tmp)) return tmp;
 			}
 			return null;
 		}
-		catch (Exception e) {e.printStackTrace();
+		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
@@ -6370,7 +6641,7 @@ public final class XMLConfigAdmin {
 
 
 	private static void setClass(Element el,Class instanceOfClass, String prefix, ClassDefinition cd) throws PageException {
-		if(StringUtil.isEmpty(cd.getClassName())) return;
+		if(cd==null || StringUtil.isEmpty(cd.getClassName())) return;
 		
 		// validate class
 		try {
@@ -6439,18 +6710,28 @@ public final class XMLConfigAdmin {
         scope.setAttribute("cgi-readonly",Caster.toString(cgiReadonly,""));
     }
 
-
-	public static void fixOldExtensionLocation(ConfigImpl config) {
-		Resource dir = config.getExtensionDirectory();
-		// move old to new location
-		Resource[] children = dir.getParentResource().listResources(new ExtensionResourceFilter(".lex"));
-		if(children!=null) {
-			for(int i=0;i<children.length;i++){
-				try {
-					children[i].moveTo(dir.getRealResource(children[i].getName()));
-				}
-				catch (IOException e) {}
+    public static boolean fixExtension(Config config,Document doc) {
+    	Element parent=XMLConfigWebFactory.getChildByName(doc.getDocumentElement(),"extensions",false,true);
+        Element[] extensions = XMLConfigWebFactory.getChildren(parent,"rhextension");
+        
+        // replace extension class with core class
+        boolean fixed=false;
+        for(int i=0;i<extensions.length;i++) {
+        	if(extensions[i].hasAttribute("start-bundles")) continue;
+        	// this will load the data from the .lex file
+        	try {
+        		
+        		Resource res = RHExtension.toResource(config, extensions[i],null);
+        		Manifest mf = (res==null) ? null : RHExtension.getManifestFromFile(config, res);
+        		if(mf!=null) {
+        			RHExtension.populate(extensions[i],mf);
+        			fixed=true;
+        		}
 			}
-		}
+        	catch (Exception e) {
+				SystemOut.printDate(e);
+			}
+        }
+        return fixed;
 	}
 }

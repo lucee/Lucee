@@ -22,11 +22,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import lucee.commons.lang.CFTypes;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.op.Caster;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
-import lucee.transformer.bytecode.BodyBase;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.Statement;
 import lucee.transformer.bytecode.visitor.OnFinally;
@@ -77,36 +78,28 @@ public final class ExpressionUtil {
      * @param line
      * @param silent id silent this is ignored for log
      */
-    public static synchronized void visitLine(BytecodeContext bc, Position pos) {
+    public static void visitLine(BytecodeContext bc, Position pos) {
     	if(pos!=null){
     		visitLine(bc, pos.line);
     	}
    }
-    private static synchronized void visitLine(BytecodeContext bc, int line) {
+    private static void visitLine(BytecodeContext bc, int line) {
     	if(line>0){
-    		
-    		/*Type[] methodTypes = bc.getMethod().getArgumentTypes();
-			if(methodTypes!=null && methodTypes.length>0 && methodTypes[0].equals(Types.PAGE_CONTEXT)) {
-    			GeneratorAdapter adapter = bc.getAdapter();
-    	    	adapter.loadArg(0);
-    	    	adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
-    	        adapter.push(line);
-    		    adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL,CURRENT_LINE );
-			}*/
-    		if(!(""+line).equals(last.get(bc.getClassName()+":"+bc.getId()))){
-	    		
-    			
-    			
-    			bc.visitLineNumber(line);
-	    		last.put(bc.getClassName()+":"+bc.getId(),""+line);
-	    		last.put(bc.getClassName(),""+line);
-	    	}
+    		synchronized (last) {
+	    		if(!(""+line).equals(last.get(bc.getClassName()+":"+bc.getId()))){
+		    		bc.visitLineNumber(line);
+		    		last.put(bc.getClassName()+":"+bc.getId(),""+line);
+		    		last.put(bc.getClassName(),""+line);
+		    	}
+			}
     	}
    }
 
 	public static synchronized void lastLine(BytecodeContext bc) {
-    	int line = Caster.toIntValue(last.get(bc.getClassName()),-1);
-    	visitLine(bc, line);
+		synchronized (last) {
+    		int line = Caster.toIntValue(last.get(bc.getClassName()),-1);
+    		visitLine(bc, line);
+		}
     }
 
 	/**
@@ -131,7 +124,7 @@ public final class ExpressionUtil {
 
 	public static void writeOut(final Statement s, BytecodeContext bc) throws TransformerException {
 		if(ExpressionUtil.doLog(bc)) {
-    		final String id=BodyBase.id();
+    		final String id=CreateUniqueId.invoke();
     		TryFinallyVisitor tfv=new TryFinallyVisitor(new OnFinally() {
     			@Override
 				public void _writeOut(BytecodeContext bc) {
@@ -171,9 +164,7 @@ public final class ExpressionUtil {
 	        adapter.push(id);
 		    adapter.invokeVirtual(Types.PAGE_CONTEXT, method);
 		}
-		catch(Throwable t) {
-			t.printStackTrace();
-		}		
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}		
 	}
 
 	public static boolean doLog(BytecodeContext bc) {

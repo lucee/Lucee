@@ -28,19 +28,26 @@ import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.Dumpable;
 import lucee.runtime.dump.SimpleDumpData;
+import lucee.runtime.op.Caster;
+import lucee.runtime.op.Duplicator;
+import lucee.runtime.type.Collection;
+import lucee.runtime.type.Duplicable;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
 
-public class HTTPCacheItem implements CacheItem, Serializable, Dumpable {
+public class HTTPCacheItem implements CacheItem, Serializable, Dumpable, Duplicable {
 
 	private static final long serialVersionUID = -8462614105941179140L;
 	
-	private Struct data;
-	private String url;
-	private long executionTimeNS;
+	private final Struct data;
+	private final String url;
+	private final long executionTimeNS;
+	private final Object filecontent;
 
 
 	public HTTPCacheItem(Struct data, String url, long executionTimeNS) {
 		this.data = data;
+		this.filecontent=data.get(KeyConstants._filecontent,"");
 		this.url=url;
 		this.executionTimeNS=executionTimeNS;
 	}
@@ -57,12 +64,16 @@ public class HTTPCacheItem implements CacheItem, Serializable, Dumpable {
 
 	@Override
 	public String toString() {
-		return data.toString();
+		//if(filecontent instanceof CharSequence)
+		//	return filecontent.toString();
+		if(filecontent instanceof byte[])
+			return Caster.toB64((byte[])filecontent);
+		return filecontent.toString();
 	}
 
 	@Override
 	public String getHashFromValue() {
-		return Long.toString(HashUtil.create64BitHash(data.toString()));
+		return Long.toString(HashUtil.create64BitHash(toString()));
 	}
 
 	public Struct getData() {
@@ -76,7 +87,13 @@ public class HTTPCacheItem implements CacheItem, Serializable, Dumpable {
 
 	@Override
 	public long getPayload() {
-		return data.size();
+		if(filecontent instanceof CharSequence)
+			return ((CharSequence) filecontent).length();
+		if(filecontent instanceof byte[])
+			return ((byte[]) filecontent).length;
+		if(filecontent instanceof Collection)
+			return ((Collection) filecontent).size();
+		return 0;
 	}
 
 	@Override
@@ -87,6 +104,11 @@ public class HTTPCacheItem implements CacheItem, Serializable, Dumpable {
 	@Override
 	public long getExecutionTime() {
 		return executionTimeNS;
+	}
+
+	@Override
+	public Object duplicate(boolean deepCopy) {
+		return new HTTPCacheItem((Struct)Duplicator.duplicate(data, deepCopy), url, executionTimeNS);
 	}
 
 }

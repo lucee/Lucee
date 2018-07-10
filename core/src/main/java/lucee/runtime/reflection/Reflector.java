@@ -40,6 +40,7 @@ import java.util.Vector;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
@@ -122,6 +123,12 @@ public final class Reflector {
      */
     public static boolean isInstaneOf(Class src, String trgClassName) {
     	Class clazz = ClassUtil.loadClass(trgClassName, null);
+        if(clazz==null) return false;
+        return isInstaneOf(src,clazz);
+    }
+    
+    public static boolean isInstaneOf(ClassLoader cl, Class src, String trgClassName) {
+    	Class clazz = ClassUtil.loadClass(cl, trgClassName, null);
         if(clazz==null) return false;
         return isInstaneOf(src,clazz);
     }
@@ -315,7 +322,7 @@ public final class Reflector {
 					rating.plus(3);
 					return trg;
 				}
-			} catch (Throwable t) {}
+			} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			
 			
 			return trg;
@@ -389,7 +396,7 @@ public final class Reflector {
 					return AxisCaster.toPojo(pojo, null, null, null, (Component)sct, new HashSet<Object>());
 				return AxisCaster.toPojo(pojo, null, null, null,sct, new HashSet<Object>());
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		if(trgClass.isPrimitive()) {
 			//return convert(src,srcClass,toReferenceClass(trgClass));
@@ -590,7 +597,6 @@ public final class Reflector {
     		e=eit.next();
     		coll.setEL(e.getKey(), _clean(done,e.getValue()));
     	}
-    	
     	return coll;
     }
     
@@ -817,7 +823,8 @@ public final class Reflector {
             if(ci==null) return defaultValue;
             return ci.invoke();
         }
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 		    return defaultValue;
 		}
 	}
@@ -838,10 +845,6 @@ public final class Reflector {
 		if(obj==null) {
 			throw new ExpressionException("can't call method ["+methodName+"] on object, object is null");
 		}
-		
-		//checkAccesibility(obj,methodName);
-        
-        
 		MethodInstance mi=getMethodInstanceEL(obj,obj.getClass(), methodName, args);
 		if(mi==null)
 		    throw throwCall(obj,methodName,args);
@@ -899,7 +902,8 @@ public final class Reflector {
 	    try {
 	    	return mi.invoke(obj);
         }
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -908,7 +912,7 @@ public final class Reflector {
 		return new ExpressionException("No matching Method/Function for "+Type.getName(obj)+"."+methodName+"("+getDspMethods(getClasses(args))+") found");
 	}
 	public static ExpressionException throwCall(Object obj,Collection.Key methodName, Object[] args) {
-		return new ExpressionException("No matching Method/Function for "+Type.getName(obj)+"."+methodName+"("+getDspMethods(getClasses(args))+") found");
+		return throwCall(obj, methodName.getString(), args);
 	}
 
 	/**
@@ -1113,18 +1117,25 @@ public final class Reflector {
 	    	return getFieldsIgnoreCase(obj.getClass(),prop)[0].get(obj);
         }
 		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
             throw Caster.toPageException(e);
 		}
 	}
 	
 	public static Object getField(Object obj, String prop, Object defaultValue) {
+	    return getField(obj, prop, false, defaultValue);
+	}
+	
+	public static Object getField(Object obj, String prop, boolean accessible, Object defaultValue) {
 	    if(obj==null) return defaultValue;
 		Field[] fields = getFieldsIgnoreCase(obj.getClass(),prop,null);
 		if(ArrayUtil.isEmpty(fields)) return defaultValue;
 		
 		try {
+			if(accessible)fields[0].setAccessible(true);
 			return fields[0].get(obj);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -1198,7 +1209,7 @@ public final class Reflector {
 		if(!ArrayUtil.isEmpty(fields)) {
 			try {
 				return fields[0].get(obj);
-			} catch (Throwable t) {}
+			} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		
 		// then getter
@@ -1207,6 +1218,7 @@ public final class Reflector {
             if(first>='0' && first<='9') return defaultValue;
             return getGetter(obj.getClass(), prop).invoke(obj);
         } catch (Throwable e1) {
+			ExceptionUtil.rethrowIfNecessary(e1);
             return defaultValue;
         } 
 	}
@@ -1223,9 +1235,7 @@ public final class Reflector {
 		try {
 	    	if(setField(obj,prop,value))done=true;
 	    } 
-		catch (Throwable t) {
-			
-        }
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	    if(!done)callSetter(obj,prop,value);
 	}
 	
@@ -1243,14 +1253,14 @@ public final class Reflector {
 			try {
 				fields[0].set(obj,value);
 				return;
-			} catch (Throwable t) {}
+			} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		
 		// then check for setter
         try {
             getSetter(obj, prop, value).invoke(obj);
         } 
-        catch (Throwable t) {} 
+        catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);} 
         
 	}
 	
@@ -1285,7 +1295,7 @@ public final class Reflector {
 		for(int i=0;i<objs.length;i++) {
 			java.lang.reflect.Array.set(rtn, i, convert(objs[i], compClass,null));
 		}
-		//}catch(Throwable t){t.printStackTrace();}
+		//}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		
 		return rtn;
 	}
@@ -1414,7 +1424,7 @@ public final class Reflector {
 	
 	public static Method[] getGetters(Class clazz) {
 		Method[] methods = clazz.getMethods();
-		ArrayList list=new ArrayList();
+		List<Method> list=new ArrayList<Method>();
 		for(int i=0;i<methods.length;i++) {
 			if(isGetter(methods[i])) list.add(methods[i]);
 		}
@@ -1467,6 +1477,7 @@ public final class Reflector {
 			return clazz.getDeclaredMethod(method, arguments);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}

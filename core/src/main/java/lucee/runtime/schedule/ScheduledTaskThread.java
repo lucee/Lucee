@@ -24,11 +24,12 @@ import java.util.TimeZone;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.type.dt.DateTimeImpl;
+
 
 public class ScheduledTaskThread extends Thread {
 
@@ -54,8 +55,6 @@ public class ScheduledTaskThread extends Thread {
 	private TimeZone timeZone;
 	private SchedulerImpl scheduler;
 
-
-
 	
 	public ScheduledTaskThread(CFMLEngineImpl engine,SchedulerImpl scheduler, Config config, ScheduleTask task, String charset) {
 		util = DateTimeUtil.getInstance();
@@ -71,7 +70,6 @@ public class ScheduledTaskThread extends Thread {
 		this.endDate=task.getEndDate()==null?Long.MAX_VALUE:util.getMilliSecondsAdMidnight(timeZone,task.getEndDate().getTime());
 		this.endTime=task.getEndTime()==null?DAY:util.getMilliSecondsInDay(timeZone, task.getEndTime().getTime());
 
-		
 		this.intervall=task.getInterval();
 		if(intervall>=10){
 			amount=intervall;
@@ -86,32 +84,33 @@ public class ScheduledTaskThread extends Thread {
 	@Override
 	public void run(){
 		try{
-		_run();
+			_run();
 		}
-		finally{
+		catch(Exception e) {
+			log(Log.LEVEL_ERROR,e);
+			if(e instanceof RuntimeException) throw (RuntimeException)e;
+			throw new RuntimeException(e);
+		}
+		finally {
 			task.setValid(false);
 			try {
 				scheduler.removeIfNoLonerValid(task);
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
+			} catch(Exception e) {}
 		}
 		
 	}
 	public void _run(){
-		
-				
+
 		// check values
 		if(startDate>endDate) {
-			log(Log.LEVEL_ERROR,"This task can not be executed because the task definition is invalid; enddate is before startdate");
+			log(Log.LEVEL_ERROR,"Invalid task definition: enddate is before startdate");
 			return;
 		}
 		if(intervall==ScheduleTaskImpl.INTERVAL_EVEREY && startTime>endTime) {
-			log(Log.LEVEL_ERROR,"This task can not be executed because the task definition is invalid; endtime is before starttime");
+			log(Log.LEVEL_ERROR,"Invalid task definition: endtime is before starttime");
 			return;
 		}
-		
-		
+
 		long today = System.currentTimeMillis();
 		long execution ;
 		boolean isOnce=intervall==ScheduleTask.INTERVAL_ONCE;
@@ -122,20 +121,31 @@ public class ScheduledTaskThread extends Thread {
 		else execution = calculateNextExecution(today,false);
 		//long sleep=execution-today;
 		
-		log(Log.LEVEL_INFO,"first execution runs at "+new DateTimeImpl(execution,false).castToString(timeZone));
+		log(Log.LEVEL_INFO,"First execution");
 
 		while(true){
+
 			sleepEL(execution,today);
 			
-			if(!engine.isRunning()) break;
+			if(!engine.isRunning()){
+				log(Log.LEVEL_ERROR,"Engine is not running");
+				break;
+			}
 			
 			today=System.currentTimeMillis();
 			long todayTime=util.getMilliSecondsInDay(null,today);
 			long todayDate=today-todayTime;
 			
-			if(!task.isValid()) break;
+			if(!task.isValid()){
+				log(Log.LEVEL_ERROR,"Task is not valid");
+				break;
+			} 
 			if(!task.isPaused()){
 				if(endDate<todayDate && endTime<todayTime) {
+					log(Log.LEVEL_ERROR, String.format("End date %s has passed; now: %s"
+							, DateTimeUtil.format(endDate + endTime, null, timeZone)
+							, DateTimeUtil.format(todayDate + todayTime, null, timeZone))
+					);
 					break;
 				}
 				execute();
@@ -145,17 +155,19 @@ public class ScheduledTaskThread extends Thread {
 			execution=calculateNextExecution(today,true);
 
 			if (!task.isPaused())
-				log(Log.LEVEL_INFO,"next execution runs at "+new DateTimeImpl(execution,false).castToString(timeZone)+":"+today+":"+execution);
+				log(Log.LEVEL_INFO, "next execution runs at " +DateTimeUtil.format(execution, null, timeZone));
 			//sleep=execution-today;
 		}
 	}
-	
-	
-	
-	
+
+
 	private void log(int level, String msg) {
 		String logName="schedule task:"+task.getTask();
 		((ConfigImpl)config).getLog("scheduler").log(level,logName, msg);
+	}
+	private void log(int level, Exception e) {
+		String logName="schedule task:"+task.getTask();
+		((ConfigImpl)config).getLog("scheduler").log(level,logName, e);
 	}
 
 
@@ -171,7 +183,7 @@ public class ScheduledTaskThread extends Thread {
 			}
 		} 
 		catch (InterruptedException e) {
-			e.printStackTrace();
+            SystemOut.printDate(e);
 		}
 
 	}

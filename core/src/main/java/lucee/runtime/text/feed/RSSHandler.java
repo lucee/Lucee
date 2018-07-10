@@ -46,8 +46,6 @@ import org.xml.sax.helpers.DefaultHandler;
 
 public final class RSSHandler extends DefaultHandler {
 	
-	public final static String DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
-
 	private static final Key RSSLINK = KeyImpl.intern("RSSLINK");
 	private static final Key CONTENT = KeyImpl.intern("CONTENT");
 
@@ -122,7 +120,7 @@ public final class RSSHandler extends DefaultHandler {
 		try {
 			InputSource source=new InputSource(is=res.getInputStream());
 			source.setSystemId(res.getPath());
-			init(DEFAULT_SAX_PARSER,source);
+			init(source);
 		} 
 		finally {
 			IOUtil.closeEL(is);
@@ -138,13 +136,13 @@ public final class RSSHandler extends DefaultHandler {
 	 */
 	public RSSHandler(InputStream stream) throws IOException, SAXException, DatabaseException {
 		InputSource is=new InputSource(IOUtil.getReader(stream, SystemUtil.getCharset()));
-		init(DEFAULT_SAX_PARSER,is);
+		init(is);
 	}
 	
-	private void init(String saxParser,InputSource is) throws SAXException, IOException, DatabaseException	{
+	private void init(InputSource is) throws SAXException, IOException, DatabaseException	{
 		properties=new StructImpl();
 		items=new QueryImpl(COLUMNS,0,"query");
-		xmlReader=XMLUtil.createXMLReader(saxParser);
+		xmlReader=XMLUtil.createXMLReader();
 		xmlReader.setContentHandler(this);
 		xmlReader.setErrorHandler(this);
 		

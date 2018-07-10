@@ -26,10 +26,10 @@ import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 
-import lucee.print;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
@@ -69,8 +69,8 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 	//private static final Set EMPTY = new HashSet(); 
 	
 	private int threadIndex;
-	private PageContextImpl parent=null;
-	PageContextImpl pc =null;
+	private PageContextImpl pc=null;
+	//PageContextImpl pc =null;
 	private final String tagName;
 	private long start;
 	private Threads scope;
@@ -120,10 +120,10 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 			if(parent!=null){
 				output = new ByteArrayOutputStream();
 				try{
-					this.parent=ThreadUtil.clonePageContext(parent, output,false,false,true,true);
+					this.pc=ThreadUtil.clonePageContext(parent, output,false,false,true);
 				}
 				catch(ConcurrentModificationException e){// MUST search for:hhlhgiug
-					this.parent=ThreadUtil.clonePageContext(parent, output,false,false,true,true);
+					this.pc=ThreadUtil.clonePageContext(parent, output,false,false,true);
 				}
 			}
 		}
@@ -141,11 +141,6 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 			// MUST here ist sill a mutch state values missing
 		}
 	}
-
-	public PageContext getPageContext(){
-		return pc;
-	}
-	
 	
 	@Override
 	public void run()  {
@@ -154,11 +149,14 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 	public PageException execute(Config config) {
 		PageContext oldPc = ThreadLocalPageContext.get();
 		Page p=page;
+		PageContextImpl pc=null;
 		try {
-			if(parent!=null){
-				pc=parent;
+			// deamon
+			if(this.pc!=null){
+				pc=this.pc;
 				ThreadLocalPageContext.register(pc);
 			}
+			// task
 			else {
 				ConfigWebImpl cwi;
 				try {
@@ -175,6 +173,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 				}
 					pc.addPageSource(p.getPageSource(), true);
 			}
+			
 			threadScope=pc.getThreadScope(KeyConstants._cfthread,null);
 			pc.setCurrentThreadScope(new ThreadsImpl(this));
 			pc.setThread(Thread.currentThread());
@@ -202,9 +201,10 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 			pc.setFunctionScopes(newLocal,newArgs);
 			
 			try {
-				p.threadCall(pc, threadIndex); 
+				p.threadCall(pc, threadIndex);
 			}
-			catch (Throwable t) {
+			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				if(!Abort.isSilentAbort(t)) {
 					ConfigWeb c = pc.getConfig();
 					if(c instanceof ConfigImpl) {
@@ -234,7 +234,6 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 		            		contentEncoding=Caster.toString(_headers[i].getValue(),null);
 		            }
 	            }
-	            
 			}
 		}
 		finally {

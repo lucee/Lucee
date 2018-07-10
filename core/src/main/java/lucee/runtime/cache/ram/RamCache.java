@@ -30,12 +30,12 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CachePro;
 import lucee.commons.io.cache.exp.CacheException;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.cache.CacheSupport;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.CFMLEngineImpl;
-import lucee.runtime.engine.ControllerState;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;
@@ -100,6 +100,17 @@ public class RamCache extends CacheSupport {
 		this.controlInterval=intervalInSeconds*1000;
 		return this;
 	}
+	
+	public void release() {
+		entries.clear();
+		missCount=0;
+		hitCount=0;
+		idleTime=0;
+		until=0;
+		controlInterval=DEFAULT_CONTROL_INTERVAL*1000;
+		decouple=false;
+		if(controller!=null && controller.isAlive())controller.interrupt();
+	} 
 	
 	@Override
 	public boolean contains(String key) {
@@ -216,9 +227,7 @@ public class RamCache extends CacheSupport {
 					SystemUtil.sleep(ramCache.controlInterval);
 					
 				}
-				catch(Throwable t){
-					t.printStackTrace();
-				}
+				catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 			}
 		}
 

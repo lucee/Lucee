@@ -17,6 +17,7 @@
  */
 package lucee.runtime;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.DumpWriter;
 import lucee.runtime.exp.ApplicationException;
@@ -28,7 +29,10 @@ import lucee.runtime.type.util.KeyConstants;
 /**
  * A Page that can produce Components
  */
-public abstract class InterfacePageImpl extends InterfacePage {
+public abstract class InterfacePageImpl extends InterfacePage implements PagePro {
+
+	public int getHash(){return 0;}
+	public long getSourceLength(){return 0;}
 	
 	@Override
 	public Object call(PageContext pc) throws PageException {
@@ -77,6 +81,7 @@ public abstract class InterfacePageImpl extends InterfacePage {
 			
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);//Exception Handler.castAnd Stack(t, this, pc);
 		}
 		return null;
@@ -93,5 +98,5 @@ public abstract class InterfacePageImpl extends InterfacePage {
 
 	public abstract InterfaceImpl newInstance(PageContext pc, String callPath, boolean isRealPath)
 		throws lucee.runtime.exp.PageException;
-
+	
 }

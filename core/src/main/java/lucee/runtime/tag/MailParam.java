@@ -32,6 +32,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
+import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ListUtil;
 
@@ -55,6 +56,7 @@ public final class MailParam extends TagImpl {
 	/** Specifies the name of the header. Header names are case insensitive. This attribute is mutually 
 	** 		exclusive with the file attribute. */
 	private String name;
+	private String fileName;
 	
 	private String type="";
     private String disposition=null;
@@ -73,6 +75,7 @@ public final class MailParam extends TagImpl {
         contentID=null;
         remove=null;
         content=null;
+        fileName=null;
 	}
 	
 	/**
@@ -101,6 +104,7 @@ public final class MailParam extends TagImpl {
 		if(type.equals("text"))type="text/plain";
 		else if(type.equals("plain"))type="text/plain";
 		else if(type.equals("html"))type="text/html";
+		else if(type.startsWith("multipart/")) return; // TODO see LDEV-570 maybe add support for content-type in the future
 		
 		this.type=type;
 	}
@@ -131,6 +135,10 @@ public final class MailParam extends TagImpl {
 	public void setName(String name)	{
 		this.name=name;
 	}
+	
+	public void setFilename(String fileName)	{
+		this.fileName=fileName;
+	}
 
     /**
      * @param disposition The disposition to set.
@@ -157,8 +165,13 @@ public final class MailParam extends TagImpl {
 		
 		if(content!=null){
 			required("mailparam", "file", file);
-			String filename = ListUtil.last(file, "/\\",true);
-			Resource res = SystemUtil.getTempDirectory().getRealResource(filename);
+			String id="id-"+CreateUniqueId.invoke();
+			String ext=ResourceUtil.getExtension(file, "tmp");
+			
+			if(StringUtil.isEmpty(fileName) && !StringUtil.isEmpty(file))
+				fileName = ListUtil.last(file, "/\\",true);
+			
+			Resource res = SystemUtil.getTempDirectory().getRealResource(id+"."+ext);
 			if(res.exists())ResourceUtil.removeEL(res, true);
 			try {
 				IOUtil.write(res, content);
@@ -199,7 +212,7 @@ public final class MailParam extends TagImpl {
 		
 		if(parent instanceof Mail) {
 			Mail mail = (Mail)parent;
-			mail.setParam(type,file,name,value,disposition,contentID,remove);
+			mail.setParam(type,file,fileName, name,value,disposition,contentID,remove);
 		}
 		else {
 			throw new ApplicationException("Wrong Context, tag MailParam must be inside a Mail tag");	

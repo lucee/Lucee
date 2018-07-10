@@ -134,7 +134,8 @@ public Class loadClass(String name) throws ClassNotFoundException   {
         	int start=ClassUtil.hasCF33Prefix(barr)?10:0;
         	return defineClass(name,barr,start,barr.length-start);
         }
-        catch( Throwable t) {
+        catch(Throwable t) {
+        	ExceptionUtil.rethrowIfNecessary(t);
         	return null;
         }
     }

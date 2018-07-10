@@ -7,13 +7,11 @@ import lucee.runtime.db.SQL;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
-import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
-import lucee.runtime.type.Collection.Key;
 
 public class QueryStruct extends StructImpl implements QueryResult {
 	
@@ -29,6 +27,7 @@ public class QueryStruct extends StructImpl implements QueryResult {
 	private Key[] columnNames;
 
 	public QueryStruct(String name, SQL sql, String template) {
+		super(Struct.TYPE_LINKED);
 		this.name=name;
 		this.sql=sql;
 		this.template=template;
@@ -70,7 +69,7 @@ public class QueryStruct extends StructImpl implements QueryResult {
 	}
 	
 	@Override
-	public synchronized Collection duplicate(boolean deepCopy) {
+	public Collection duplicate(boolean deepCopy) {
 		QueryStruct qa = new QueryStruct(name,sql,template);
 		qa.cacheType=cacheType;
 		qa.columnNames=columnNames;

@@ -41,8 +41,8 @@ public class HTTPResponse4Impl extends HTTPResponseSupport implements HTTPRespon
 	HttpResponse rsp;
 	HttpUriRequest req;
 	private URL url;
-	private HttpContext context; 
-
+	private HttpContext context;
+	
 	public HTTPResponse4Impl(URL url,HttpContext context, HttpUriRequest req,HttpResponse rsp) {
 		this.url=url;
 		this.context=context;
@@ -174,5 +174,11 @@ public class HTTPResponse4Impl extends HTTPResponseSupport implements HTTPRespon
 			trg[i]=new HeaderWrap(src[i]);
 		}
 		return trg;
+	}
+	
+	public void close() throws IOException {
+		/*if(rsp instanceof CloseableHttpResponse) {
+			((CloseableHttpResponse)rsp).close();
+		}*/
 	}
 }

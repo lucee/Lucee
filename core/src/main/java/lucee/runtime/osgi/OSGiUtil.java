@@ -22,6 +22,10 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -33,6 +37,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -41,7 +46,11 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringList;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.osgi.BundleCollection;
@@ -55,6 +64,8 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ListUtil;
 
+import org.apache.felix.framework.Logger;
+import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -63,8 +74,13 @@ import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.resource.Requirement;
 
 public class OSGiUtil {
-	
-	
+
+	private static final int QUALIFIER_APPENDIX_SNAPSHOT = 1;
+	private static final int QUALIFIER_APPENDIX_BETA = 2;
+	private static final int QUALIFIER_APPENDIX_RC = 3;
+	private static final int QUALIFIER_APPENDIX_OTHER = 4;
+	private static final int QUALIFIER_APPENDIX_STABLE = 5;
+
 	private static final FilenameFilter JAR_EXT_FILTER = new FilenameFilter() {
 				@Override
 				public boolean accept(File dir, String name) {
@@ -72,7 +88,6 @@ public class OSGiUtil {
 				}
 			};
 	private static String[] bootDelegation; 
-
 
 	/**
 	 * only installs a bundle, if the bundle does not already exist, if the bundle exists the existing bundle is unloaded first.
@@ -95,8 +110,6 @@ public class OSGiUtil {
 		return _loadBundle(context, bundle.getAbsolutePath(), bundle.getInputStream(), true);
 	}
 
-	
-	
 	/**
 	 * does not check if the bundle already exists!
 	 * @param context
@@ -119,13 +132,11 @@ public class OSGiUtil {
 				try {
 					is.close();
 				}
-				catch(Throwable t) {}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
 		}
 	}
-	
-	
-	
+
 	/**
 	 * only installs a bundle, if the bundle does not already exist, if the bundle exists the existing bundle is unloaded first.
 	 * the bundle is not stored physically on the system.
@@ -152,8 +163,7 @@ public class OSGiUtil {
 			tmp.delete();
 		}
 	}
-	
-	
+
 	public static Version toVersion(String version, Version defaultValue) {
 		if(StringUtil.isEmpty(version)) return defaultValue;
 		// String[] arr = ListUtil.listToStringArray(version, '.');
@@ -167,8 +177,7 @@ public class OSGiUtil {
 		
 		Integer major,minor,micro;
 		String qualifier;
-		
-		
+
 		if(arr.length==1) {
 			major=Caster.toInteger(arr[0],null);
 			minor=0;
@@ -196,9 +205,7 @@ public class OSGiUtil {
 		
 		if(major==null || minor==null || micro==null)
 			return defaultValue;
-		
-		
-		
+
 		if(qualifier==null) 
 			return new Version(major,minor,micro);
 		return new Version(major,minor,micro,qualifier);
@@ -253,7 +260,6 @@ public class OSGiUtil {
         throw new Exception("Could not find framework factory.");
     }*/
 	
-	
 	/**
 	 * tries to load a class with ni bundle defintion
 	 * @param name
@@ -266,9 +272,6 @@ public class OSGiUtil {
 	public static Class loadClass(String className, Class defaultValue) {
 		className=className.trim();
 		
-		
-		
-		
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
 		BundleCollection bc = engine.getBundleCollection();
     	
@@ -277,7 +280,7 @@ public class OSGiUtil {
     		// load from core
 			return bc.core.loadClass(className);
 		}
-    	catch (Throwable t) {} // class is not visible to the Lucee core
+    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);} // class is not visible to the Lucee core
 		
 		// now we check all started bundled (not only bundles used by core)
 		Bundle[] bundles = bc.getBundleContext().getBundles();
@@ -285,7 +288,7 @@ public class OSGiUtil {
     		if(b==bc.core) continue;
 			try {
 				return b.loadClass(className);
-			} catch (Throwable t) {} // class is not visible to that bundle
+			} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);} // class is not visible to that bundle
     	}
     	
     	// now we check lucee loader (SystemClassLoader?)
@@ -294,7 +297,7 @@ public class OSGiUtil {
     		//print.e("loader:");
     		return factory.getClass().getClassLoader().loadClass(className);
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
     	
     	/*
     	try {
@@ -308,8 +311,7 @@ public class OSGiUtil {
     	for(Bundle b:bundles){
     		loaded.add(b.getSymbolicName()+"|"+b.getVersion());
     	}
-    	
-    	
+
     	try {
 	    	File dir=factory.getBundleDirectory();
 			File[] children = dir.listFiles(JAR_EXT_FILTER);
@@ -331,17 +333,16 @@ public class OSGiUtil {
 	    			}
 	    		}
 	    		}
-	    		catch(Throwable t2){t2.printStackTrace();}
+	    		catch(Throwable t2){ExceptionUtil.rethrowIfNecessary(t2);}
 	    	}
 		}
-		catch(Throwable t1){t1.printStackTrace();}
+		catch(Throwable t1){ExceptionUtil.rethrowIfNecessary(t1);}
     	
 		return defaultValue;
 	}
 		
 	public static Bundle loadBundle(BundleFile bf, Bundle defaultValue) {
     	if(!bf.isBundle()) return defaultValue;
-    	
 		try {
 			return loadBundle(bf);
 		} catch (Exception e) {
@@ -350,7 +351,6 @@ public class OSGiUtil {
     }
 	
 	public static Bundle loadBundle(BundleFile bf) throws IOException, BundleException {
-    	
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
     	
     	// check in loaded bundles
@@ -364,22 +364,103 @@ public class OSGiUtil {
     	return _loadBundle(bc, bf.getFile());
     }
 	
-	public static Bundle loadBundle(String name, Version version,Identification id, boolean startIfNecessary) throws BundleException {
-		name=name.trim();
+	public static Bundle loadBundleByPackage(String packageName, List<VersionDefinition> versionDefinitions, 
+			Set<Bundle> loadedBundles, boolean startIfNecessary, Set<String> parents) throws BundleException, IOException {
 		
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
     	CFMLEngineFactory factory = engine.getCFMLEngineFactory();
     	
+    	// if part of bootdelegation we ignore
+    	if(OSGiUtil.isPackageInBootelegation(packageName)) {
+    		return null;
+    	}
+    	
+    	// is it in jar directory but not loaded
+    	File dir=factory.getBundleDirectory();
+		File[] children = dir.listFiles(JAR_EXT_FILTER);
+		List<PackageDefinition> pds;
+    	for(File child:children) {
+    		BundleFile bf=new BundleFile(child);
+			if(bf.isBundle()) {
+				if(parents.contains(toString(bf))) continue;
+				pds=toPackageDefinitions(bf.getExportPackage(), packageName, versionDefinitions);
+				if(pds!=null && !pds.isEmpty()) {
+					Bundle b=exists(loadedBundles,bf);
+					if(b!=null) {
+						
+						if(startIfNecessary) _startIfNecessary(b,parents);
+						return null;
+					}
+					b = loadBundle(bf);
+					if(b!=null) {
+						loadedBundles.add(b);
+						if(startIfNecessary)_startIfNecessary(b,parents);
+						return b;
+					}
+				}
+			}
+    	}
+    	return null;
+	}
+
+	private static Object toString(BundleFile bf) {
+		return bf.getSymbolicName()+":"+bf.getVersionAsString();
+	}
+
+	private static Bundle exists(Set<Bundle> loadedBundles, BundleFile bf) {
+		if(loadedBundles!=null) {
+			Bundle b;
+			Iterator<Bundle> it = loadedBundles.iterator();
+			while(it.hasNext()) {
+				b=it.next();
+				if(b.getSymbolicName().equals(bf.getSymbolicName()) && b.getVersion().equals(bf.getVersion())) return b;
+			}
+		}
+		return null;
+	}
+
+	private static Bundle exists(Set<Bundle> loadedBundles, BundleDefinition bd) {
+		if(loadedBundles!=null) {
+			Bundle b;
+			Iterator<Bundle> it = loadedBundles.iterator();
+			while(it.hasNext()) {
+				b=it.next();
+				if(b.getSymbolicName().equals(bd.getName()) && b.getVersion().equals(bd.getVersion())) return b;
+			}
+		}
+		return null;
+	}
+
+	public static Bundle loadBundle(String name, Version version,Identification id, boolean startIfNecessary) throws BundleException {
+		try {
+			return _loadBundle(name, version, id, startIfNecessary,null);
+		}
+		catch (StartFailedException sfe) {
+			throw sfe.bundleException;
+		}
+	}
+
+	public static Bundle _loadBundle(String name, Version version,Identification id, boolean startIfNecessary, Set<String> parents) throws BundleException, StartFailedException {
+		name=name.trim();
+		
+		CFMLEngine engine = CFMLEngineFactory.getInstance();
+    	CFMLEngineFactory factory = engine.getCFMLEngineFactory();
     	
     	// check in loaded bundles
     	BundleContext bc = engine.getBundleContext();
     	Bundle[] bundles = bc.getBundles();
     	StringBuilder versionsFound=new StringBuilder();
     	for(Bundle b:bundles){
-    		
     		if(name.equalsIgnoreCase(b.getSymbolicName())) {
     			if(version==null || version.equals(b.getVersion())) {
-    				if(startIfNecessary)startIfNecessary(b);
+    				if(startIfNecessary) {
+    					try{
+    						_startIfNecessary(b,parents);
+    					}
+    					catch(BundleException be) {
+    						throw new StartFailedException(be,b);
+    					}
+    				}
     				return b;
     			}
     			if(versionsFound.length()>0) versionsFound.append(", ");
@@ -394,23 +475,48 @@ public class OSGiUtil {
 			try {
 				b = _loadBundle(bc, bf.getFile());
 			} catch (IOException e) {
-				e.printStackTrace();
+	            SystemOut.printDate(e);
 			}
 			if(b!=null) {
-				if(startIfNecessary)startIfNecessary(b);
+				if(startIfNecessary){
+					try{
+						startIfNecessary(b);
+					}
+					catch(BundleException be) {
+						throw new StartFailedException(be,b);
+					}
+				}
 				return b;
 			}
     	}
     	
     	// if not found try to download
-    	if(version!=null) {
+    	{
 	    	try{
-	    		File f = factory.downloadBundle(name, version.toString(),id);
-		    	Bundle b = _loadBundle(bc, f);
-		    	if(startIfNecessary)start(b);
+	    		Bundle b;
+	    		if(version!=null) {
+	    			File f = factory.downloadBundle(name, version.toString(),id);
+	    			b = _loadBundle(bc, f);
+	    		}
+	    		else {
+	    			// MUST find out why this breaks at startup with commandbox if version exists
+	    			Resource r = downloadBundle(factory,name, null,id);
+	    			b = _loadBundle(bc, r);
+	    		}
+	    		
+		    	if(startIfNecessary){
+		    		try{
+						_start(b,parents);
+					}
+					catch(BundleException be) {
+						throw new StartFailedException(be,b);
+					}
+		    	}
 		    	return b;
 	    	}
-	    	catch(Throwable t){}
+	    	catch(Exception e) {
+	    		log(e);
+	    	}
 		}
     	
     	String localDir="";
@@ -428,6 +534,145 @@ public class OSGiUtil {
     		throw new BundleException("The OSGi Bundle with name ["+name+"] in version ["+version+"] is not available locally"+localDir+" or from the update provider"+upLoc+".");
     	throw new BundleException("The OSGi Bundle with name ["+name+"] is not available locally"+localDir+" or from the update provider"+upLoc+".");
     }
+	
+	private static Resource downloadBundle(CFMLEngineFactory factory, final String symbolicName, String symbolicVersion, Identification id) throws IOException, BundleException {
+		
+		final Resource jarDir = ResourceUtil.toResource(factory.getBundleDirectory());
+		final URL updateProvider = factory.getUpdateLocation();
+		if(symbolicVersion==null) symbolicVersion="latest";
+		final URL updateUrl = new URL(updateProvider,
+				"/rest/update/provider/download/" + symbolicName + "/"+symbolicVersion+"/"
+						+ (id != null ? id.toQueryString() : "")
+						+ (id == null ? "?" : "&")+"allowRedirect=true"
+						
+				);
+		log(Logger.LOG_DEBUG, "download bundle [" + symbolicName +":"+symbolicVersion+ "] ");
+
+		int code;
+		HttpURLConnection conn;
+		try {
+			conn = (HttpURLConnection) updateUrl.openConnection();
+			conn.setRequestMethod("GET");
+			conn.connect();
+			code = conn.getResponseCode();
+		} catch (UnknownHostException e) {
+			throw new IOException("could not download the bundle  [" + symbolicName + ":"+ symbolicVersion + "] from " + updateUrl, e);
+		}
+		//System.out.println("SC:" + code+"->"+conn.getFollowRedirects());
+		// the update provider is not providing a download for this
+		if (code != 200) {
+			
+			// the update provider can also provide a different (final) location for this
+			if(code==302) {
+				String location = conn.getHeaderField("Location");
+				// just in case we check invalid names
+				if(location==null)location = conn.getHeaderField("location");
+				if(location==null)location = conn.getHeaderField("LOCATION");
+				System.out.println("download redirected:" + location); // MUST remove
+				
+				conn.disconnect();
+				URL url = new URL(location);
+				try {
+					conn = (HttpURLConnection) url.openConnection();
+					conn.setRequestMethod("GET");
+					conn.connect();
+					code = conn.getResponseCode();
+				} catch (final UnknownHostException e) {
+					log(e);
+					throw new IOException("could not download the bundle  [" + symbolicName + ":"+ symbolicVersion + "] from " + location, e);
+				}
+			}
+			
+			// no download available!
+			if(code != 200){
+				final String msg = "Lucee is not able do download the bundle for ["
+					+ symbolicName + "] in version [" + symbolicVersion
+					+ "] from " + updateUrl
+					+ ", please donwload manually and copy to [" + jarDir + "]";
+				log(Logger.LOG_ERROR, msg);
+				conn.disconnect();
+				throw new IOException(msg);
+			}
+			
+		}
+		
+		// extract version if necessary
+		if("latest".equals(symbolicVersion)) {
+			// copy to temp file
+			Resource temp = SystemUtil.getTempFile("jar", false);
+			IOUtil.copy((InputStream) conn.getContent(), temp,true);
+			try{
+				conn.disconnect();
+				
+				// extract version and create file with correct name
+				BundleFile bf = new BundleFile(temp);
+				Resource jar=jarDir.getRealResource(symbolicName+"-"+bf.getVersionAsString()+".jar");
+				IOUtil.copy(temp, jar);
+				return jar;
+			}
+			finally {
+				temp.delete();
+			}
+		}
+		else {
+			Resource jar=jarDir.getRealResource(symbolicName+"-"+symbolicVersion+".jar");
+			IOUtil.copy((InputStream) conn.getContent(), jar,true);
+			conn.disconnect();
+			return jar;
+		}
+	}
+	
+
+	private static List<PackageDefinition> toPackageDefinitions(String str, String filterPackageName, List<VersionDefinition> versionDefinitions) {
+		if(StringUtil.isEmpty(str)) return null;
+		StringTokenizer st=new StringTokenizer(str, ",");
+		List<PackageDefinition> list=new ArrayList<PackageDefinition>();
+		PackageDefinition pd;
+		while(st.hasMoreTokens()) {
+			pd=toPackageDefinition(st.nextToken().trim(),filterPackageName,versionDefinitions);
+			if(pd!=null) list.add(pd);
+		}
+		return list;
+	}
+
+	private static PackageDefinition toPackageDefinition(String str, String filterPackageName, List<VersionDefinition> versionDefinitions) {
+		// first part is the package
+		StringList list = ListUtil.toList(str, ';');
+		PackageDefinition pd=null;
+		String token;
+		Version v;
+		while(list.hasNext()) {
+			token=list.next().trim();
+			if(pd==null) {
+				if(!token.equals(filterPackageName)) return null;
+				pd=new PackageDefinition(token);
+			}
+			// only intressted in version
+			else {
+				StringList entry = ListUtil.toList(token, '=');
+				if(entry.size()==2 && entry.next().trim().equalsIgnoreCase("version")) {
+					String version=StringUtil.unwrap(entry.next().trim());
+					if(!version.equals("0.0.0")) {
+						v = OSGiUtil.toVersion(version,null);
+						if(v!=null) {
+							if(versionDefinitions!=null) {
+								Iterator<VersionDefinition> it = versionDefinitions.iterator();
+								while(it.hasNext()) {
+									if(!it.next().matches(v)) {
+										return null;
+									}
+								}
+							}
+							pd.setVersion(v);
+						}
+					}
+				}
+				
+			}
+		}
+		return pd;
+	}
+
 	
 	/**
 	 * this should be used when you not want to load a Bundle to the system
@@ -457,7 +702,7 @@ public class OSGiUtil {
 	    		bf=new BundleFile(factory.downloadBundle(name, version.toString(),id));
 	    		if(bf.isBundle()) return bf;
 	    	}
-	    	catch(Throwable t){}
+	    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
     	
     	if(versionsFound.length()>0)
@@ -466,6 +711,68 @@ public class OSGiUtil {
     		throw new BundleException("The OSGi Bundle with name ["+name+"] in version ["+version+"] is not available locally or from the update provider.");
     	throw new BundleException("The OSGi Bundle with name ["+name+"] is not available locally or from the update provider.");
     }
+
+	/**
+	 * check left value against right value
+	 * 
+	 * @param left
+	 * @param right
+	 * @return returns if right is newer than left
+	 */
+	public static boolean isNewerThan(final Version left, final Version right) {
+	
+	// major
+		if(left.getMajor()>right.getMajor()) return true;
+		if(left.getMajor()<right.getMajor()) return false;
+		
+	// minor
+		if(left.getMinor()>right.getMinor()) return true;
+		if(left.getMinor()<right.getMinor()) return false;
+		
+	// micro
+		if(left.getMicro()>right.getMicro()) return true;
+		if(left.getMicro()<right.getMicro()) return false;
+		
+	// qualifier
+		// left
+		String q = left.getQualifier();
+		int index=q.indexOf('-');
+		String qla = index==-1?"":q.substring(index+1).trim();
+		String qln=index==-1?q:q.substring(0, index);
+		int ql = StringUtil.isEmpty(qln)?Integer.MIN_VALUE:Caster.toIntValue(qln, Integer.MAX_VALUE);
+		
+		//right
+		q = right.getQualifier();
+		index=q.indexOf('-');
+		String qra = index==-1?"":q.substring(index+1).trim();
+		String qrn=index==-1?q:q.substring(0, index);
+		int qr = StringUtil.isEmpty(qln)?Integer.MIN_VALUE:Caster.toIntValue(qrn, Integer.MAX_VALUE);
+
+		if(ql>qr) return true;
+		if(ql<qr) return false;
+		
+		
+		int qlan=qualifierAppendix2Number(qla);
+		int qran=qualifierAppendix2Number(qra);
+		
+		if(qlan>qran) return true;
+		if(qlan<qran) return false;
+		
+		if(qlan==QUALIFIER_APPENDIX_OTHER && qran==QUALIFIER_APPENDIX_OTHER)
+			return left.compareTo(right) > 0;
+		
+		return false;
+	}
+
+	private static int qualifierAppendix2Number(String str) {
+		if(Util.isEmpty(str,true)) return QUALIFIER_APPENDIX_STABLE;
+		if("SNAPSHOT".equalsIgnoreCase(str)) return QUALIFIER_APPENDIX_SNAPSHOT;
+		if("BETA".equalsIgnoreCase(str)) return QUALIFIER_APPENDIX_BETA;
+		if("RC".equalsIgnoreCase(str)) return QUALIFIER_APPENDIX_RC;
+		return QUALIFIER_APPENDIX_OTHER;
+	}
+
+	
 	
 	public static BundleFile getBundleFile(String name, Version version,Identification id, boolean downloadIfNecessary, BundleFile defaultValue) {
 		name=name.trim();
@@ -486,7 +793,7 @@ public class OSGiUtil {
 	    		bf=new BundleFile(factory.downloadBundle(name, version.toString(),id));
 	    		if(bf.isBundle()) return bf;
 	    	}
-	    	catch(Throwable t){}
+	    	catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
     	
     	return defaultValue;
@@ -500,7 +807,8 @@ public class OSGiUtil {
 			if(version!=null){
 				File[] jars = new File[]{ 
 						new File(dir, name + "-"+ version.toString() + (".jar")),
-						new File(dir, name + "-"+ version.toString().replace('.', '-') + (".jar"))
+						new File(dir, name + "-"+ version.toString().replace('.', '-') + (".jar")),
+						new File(dir, name.replace('.', '-') + "-"+ version.toString().replace('.', '-') + (".jar"))
 				};
 				for(int i=0;i<jars.length;i++) {
 					File jar=jars[i];
@@ -516,7 +824,6 @@ public class OSGiUtil {
 			}
 			
 			File[] children = dir.listFiles(JAR_EXT_FILTER);
-	    	
 			// now we make a closer filename test
 			String curr;
 			if(version!=null) {
@@ -567,7 +874,7 @@ public class OSGiUtil {
 					Iterator<BundleFile> it = matches.iterator();
 		    		while(it.hasNext()) {
 		    			_bf=it.next();
-		    			if(bf==null || Util.isNewerThan(_bf.getVersion(),bf.getVersion()))
+		    			if(bf==null || isNewerThan(_bf.getVersion(),bf.getVersion()))
 		    				bf=_bf;
 		    		}
 		    		if(bf!=null) {
@@ -631,7 +938,7 @@ public class OSGiUtil {
 		    		if(bf.isBundle() && !set.contains(bf.getSymbolicName()+":"+bf.getVersion())) 
 		    			list.add(new BundleDefinition(bf.getSymbolicName(),bf.getVersion()));
 	    		}
-	    		catch(Throwable t){t.printStackTrace();}
+	    		catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 	    	}
     	}
     	catch(IOException ioe){}
@@ -728,7 +1035,7 @@ public class OSGiUtil {
 		try {
 			removeLocalBundle(name, version, removePhysical, true);
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	// bundle stuff
@@ -738,14 +1045,21 @@ public class OSGiUtil {
 		}
 	}
 	public static Bundle startIfNecessary(Bundle bundle) throws BundleException {
-		if(bundle.getState()==Bundle.ACTIVE) return bundle;
-		return start(bundle);
+		return _startIfNecessary(bundle, null);
 	}
 	
-	public static Bundle start(Bundle bundle)
-			throws BundleException {
+	private static Bundle _startIfNecessary(Bundle bundle, Set<String> parents) throws BundleException {
+		if(bundle.getState()==Bundle.ACTIVE) return bundle;
+		return _start(bundle,parents);
+	}
+
+	public static Bundle start(Bundle bundle) throws BundleException {
+		return _start(bundle, null);
+	}
+	
+	public static Bundle _start(Bundle bundle, Set<String> parents) throws BundleException {
 		String fh = bundle.getHeaders().get("Fragment-Host");
-		
+		// Fragment cannot be started
 		if (!Util.isEmpty(fh)) {
 			log(Log.LEVEL_INFO,
 					"do not start [" + bundle.getSymbolicName()
@@ -754,56 +1068,135 @@ public class OSGiUtil {
 			return bundle;
 		}
 
-		log(Log.LEVEL_INFO, "start bundle:" + bundle.getSymbolicName()
-				+ ":" + bundle.getVersion().toString());
+		log(Log.LEVEL_INFO, "start bundle:" + bundle.getSymbolicName()+ ":" + bundle.getVersion().toString());
 		
 		try {
 			BundleUtil.start(bundle);
 		}
 		catch(BundleException be){
 			// check if required related bundles are missing and load them if necessary
-			List<BundleDefinition> list = getRequiredBundles(bundle);
-			//List<PackageDefinition> list2 = getRequiredPackages(bundle);
-			BundleDefinition bd;
-			List<BundleDefinition> failed = null;
-			Iterator<BundleDefinition> it = list.iterator();
-			while(it.hasNext()){
-				bd=it.next();
-				try{
-					loadBundle(
-							bd.name, 
-							bd.getVersion(), 
-							ThreadLocalPageContext
-							.getConfig()
-							.getIdentification(), true);
-				}
-				catch(BundleException _be){
-					if(failed==null) failed=new ArrayList<OSGiUtil.BundleDefinition>();
-					failed.add(bd);
-					log(_be);
-				}
-			}
+			final List<BundleDefinition> failedBD = new ArrayList<OSGiUtil.BundleDefinition>();
+			if(parents==null) parents=new HashSet<String>();
+			
+			Set<Bundle> loadedBundles = loadBundles(parents,bundle,failedBD);
+			
 			try {
+				//startIfNecessary(loadedBundles.toArray(new Bundle[loadedBundles.size()]));
 				BundleUtil.start(bundle);
 			}
 			catch(BundleException be2) {
-				if(failed!=null) {
-					Iterator<BundleDefinition> itt = failed.iterator();
-					BundleDefinition _bd;
-					StringBuilder sb=new StringBuilder(" Lucee was not able to download the following bundles [");
-					while(itt.hasNext()){
-						_bd=itt.next();
-						sb.append(_bd.name+":"+_bd.getVersionAsString()).append(';');
-					}
-					sb.append("]");
-					throw new BundleException(be2.getMessage()+sb,be2.getCause());
-				} 
-				throw be2;
+				List<PackageQuery> listPackages = getRequiredPackages(bundle);
+				List<PackageQuery> failedPD = new ArrayList<PackageQuery>();
+				loadPackages(parents,loadedBundles,listPackages,bundle,failedPD);
+				try {
+					//startIfNecessary(loadedBundles.toArray(new Bundle[loadedBundles.size()]));
+					BundleUtil.start(bundle);
+				}
+				catch(BundleException be3) {
+					if(failedBD.size()>0) {
+						Iterator<BundleDefinition> itt = failedBD.iterator();
+						BundleDefinition _bd;
+						StringBuilder sb=new StringBuilder("Lucee was not able to download/load the following bundles [");
+						while(itt.hasNext()){
+							_bd=itt.next();
+							sb.append(_bd.name+":"+_bd.getVersionAsString()).append(';');
+						}
+						sb.append("]");
+						throw new BundleException(be2.getMessage()+sb,be2.getCause());
+					} 
+					throw be3;
+				}
 			}
 			
 		}
 		return bundle;
 	}
+ 
+	private static void loadPackages(final Set<String> parents, final Set<Bundle> loadedBundles, List<PackageQuery> listPackages, 
+			final Bundle bundle, final List<PackageQuery> failedPD) {
+		PackageQuery pq;
+		Iterator<PackageQuery> it = listPackages.iterator();
+		parents.add(toString(bundle));
+		while(it.hasNext()){
+			pq=it.next();
+			try{
+				loadBundleByPackage(pq.getName(),pq.getVersionDefinitons(),loadedBundles,true,parents);
+			}
+			catch(Exception _be){
+				failedPD.add(pq);
+				log(_be);
+			}
+		}
+	}
+
+	private static Set<Bundle> loadBundles(final Set<String> parents, final Bundle bundle, final List<BundleDefinition> failedBD) throws BundleException {
+		
+		Set<Bundle> loadedBundles = new HashSet<Bundle>();
+		loadedBundles.add(bundle);
+		parents.add(toString(bundle));
+			
+		List<BundleDefinition> listBundles = getRequiredBundles(bundle);
+		Bundle b;
+		BundleDefinition bd;
+		Iterator<BundleDefinition> it = listBundles.iterator();
+		List<StartFailedException> secondChance = null;
+		while(it.hasNext()) {
+			bd=it.next();
+			b=exists(loadedBundles, bd);
+			if(b!=null) {
+				_startIfNecessary(b,parents);
+				continue;
+			}
+			try{
+				//if(parents==null) parents=new HashSet<Bundle>();
+				
+				b=_loadBundle(
+						bd.name, 
+						bd.getVersion(), 
+						ThreadLocalPageContext
+						.getConfig()
+						.getIdentification(), true,parents);
+				loadedBundles.add(b);
+			}
+			catch(StartFailedException sfe) {
+				sfe.setBundleDefinition(bd);
+				if(secondChance==null) secondChance=new ArrayList<StartFailedException>();
+				secondChance.add(sfe);
+			}
+			catch(BundleException _be) {
+				//if(failedBD==null) failedBD=new ArrayList<OSGiUtil.BundleDefinition>();
+				failedBD.add(bd);
+				log(_be);
+			}
+		}
+		// we do this because it maybe was relaying on other bundles now loaded
+		// TODO rewrite the complete impl so didd is not necessary
+		if(secondChance!=null) {
+			Iterator<StartFailedException> _it = secondChance.iterator();
+			StartFailedException sfe;
+			while(_it.hasNext()) {
+				sfe = _it.next();
+				try {
+					_startIfNecessary(sfe.bundle,parents);
+					loadedBundles.add(sfe.bundle);
+				}
+				catch(BundleException _be) {
+					//if(failedBD==null) failedBD=new ArrayList<OSGiUtil.BundleDefinition>();
+					failedBD.add(sfe.getBundleDefinition());
+					log(_be);
+				}
+			}
+		}
+		return loadedBundles;
+	}
+
+
+
+	private static String toString(Bundle b) {
+		return b.getSymbolicName()+":"+b.getVersion().toString();
+	}
+
+
 
 	public static void stopIfNecessary(Bundle bundle) throws BundleException {
 		if(isFragment(bundle) || bundle.getState()!=Bundle.ACTIVE) return;
@@ -890,18 +1283,15 @@ public class OSGiUtil {
 	}
 	
 
-	public static List<PackageDefinition> getRequiredPackages(Bundle bundle) throws BundleException {
-		List<PackageDefinition> rtn=new ArrayList<PackageDefinition>();
+	public static List<PackageQuery> getRequiredPackages(Bundle bundle) throws BundleException {
+		List<PackageQuery> rtn=new ArrayList<PackageQuery>();
 		BundleRevision br = bundle.adapt(BundleRevision.class);
 		List<Requirement> requirements = br.getRequirements(null);
 		Iterator<Requirement> it = requirements.iterator();
 		Requirement r;
 		Entry<String, String> e;
-		String value,name;
-		int index,start,end,op,last;
-		boolean not;
-		PackageDefinition pd;
-		
+		String value;
+		PackageQuery pd;
 		while(it.hasNext()){
 			r = it.next();
 			Iterator<Entry<String, String>> iit = r.getDirectives().entrySet().iterator();
@@ -909,62 +1299,107 @@ public class OSGiUtil {
 				e = iit.next();
 				if(!"filter".equals(e.getKey())) continue;
 				value=e.getValue();
-				// name(&(osgi.wiring.package=org.jboss.logging)(version>=3.3.0)(!(version>=4.0.0)))
-				index=value.indexOf("(osgi.wiring.package");
-				if(index==-1) continue;
-				start=value.indexOf('=',index);
-				end=value.indexOf(')',index);
-				if(start==-1 || end==-1 || end<start) continue;
-				name=value.substring(start+1,end).trim();
-				rtn.add(pd=new PackageDefinition(name));
-				last=end;
-				// version
-				while((index=value.indexOf("(version",last))!=-1) {
-					op=-1;
-					
-					if(index==-1) continue inner;
-					end=value.indexOf(')',index);
-					
-					start=value.indexOf("<=",index);
+				pd=toPackageQuery(value);
+				if(pd!=null)rtn.add(pd);
+			}
+		}
+		return rtn;
+	}
+
+	private static PackageQuery toPackageQuery(String value) throws BundleException {
+
+		// name(&(osgi.wiring.package=org.jboss.logging)(version>=3.3.0)(!(version>=4.0.0)))
+		int index=value.indexOf("(osgi.wiring.package");
+		if(index==-1) {
+			return null;
+		}
+		int start=value.indexOf('=',index);
+		int end=value.indexOf(')',index);
+		if(start==-1 || end==-1 || end<start) {
+			return null;
+		}
+		String name=value.substring(start+1,end).trim();
+		PackageQuery pd = new PackageQuery(name);
+		int last=end,op;
+		boolean not;
+		// version
+		while((index=value.indexOf("(version",last))!=-1) {
+			op=-1;
+			
+			end=value.indexOf(')',index);
+			
+			start=value.indexOf("<=",index);
+			if(start!=-1 && start<end) {
+				op=VersionDefinition.LTE;
+				start+=2;
+			}
+			else {
+				start=value.indexOf(">=",index);
+				if(start!=-1 && start<end) {
+					op=VersionDefinition.GTE;
+					start+=2;
+				}
+				else {
+					start=value.indexOf("==",index);
 					if(start!=-1 && start<end) {
-						op=VersionDefinition.LTE;
+						op=VersionDefinition.EQ;
 						start+=2;
 					}
 					else {
-						start=value.indexOf(">=",index);
+						start=value.indexOf("!=",index);
 						if(start!=-1 && start<end) {
-							op=VersionDefinition.GTE;
+							op=VersionDefinition.NEQ;
 							start+=2;
 						}
 						else {
 							start=value.indexOf("=",index);
 							if(start!=-1 && start<end) {
 								op=VersionDefinition.EQ;
-								start++;
+								start+=1;
+							}
+							else {
+								start=value.indexOf("<",index);
+								if(start!=-1 && start<end) {
+									op=VersionDefinition.LT;
+									start+=1;
+								}
+								else {
+									start=value.indexOf(">",index);
+									if(start!=-1 && start<end) {
+										op=VersionDefinition.GT;
+										start+=1;
+									}
+								}
 							}
 						}
 					}
-					not=value.charAt(index-1)=='!';
-					last=end;
-					if(op==-1 || start==-1 || end==-1 || end<start) continue;
-					pd.addVersion(op,value.substring(start,end).trim(),not);
 				}
 			}
-			
+			not=value.charAt(index-1)=='!';
+			last=end;
+			if(op==-1 || start==-1 || end==-1 || end<start) continue;
+			pd.addVersion(op,value.substring(start,end).trim(),not);
 		}
-		// (&(osgi.wiring.bundle=slf4j.api)(bundle-version>=1.6.4))
-		return rtn;
+		
+		return pd;
 	}
-	
-	
+
+
+
 	private static Bundle _loadBundle(BundleContext context, File bundle) throws IOException, BundleException {
 		return _loadBundle(context, bundle.getAbsolutePath(),new FileInputStream(bundle),true);
 	}
 	
+	private static Bundle _loadBundle(BundleContext context, Resource bundle) throws IOException, BundleException {
+		return _loadBundle(context, bundle.getAbsolutePath(),bundle.getInputStream(),true);
+	}
+	
 	
 
 
-	public static class VersionDefinition {
+	public static class VersionDefinition implements Serializable {
+		
+		private static final long serialVersionUID = 4915024473510761950L;
 		
 		public static final int LTE = 1;
 		public static final int GTE = 2;
@@ -982,14 +1417,24 @@ public class OSGiUtil {
 			
 			if(not) {
 				if(op==LTE) {op=GT;not=false;}
-				if(op==LT) {op=GTE;not=false;}
-				if(op==GTE) {op=LT;not=false;}
-				if(op==GT) {op=LTE;not=false;}
-				if(op==EQ) {op=NEQ;not=false;}
-				if(op==NEQ) {op=EQ;not=false;}
+				else if(op==LT) {op=GTE;not=false;}
+				else if(op==GTE) {op=LT;not=false;}
+				else if(op==GT) {op=LTE;not=false;}
+				else if(op==EQ) {op=NEQ;not=false;}
+				else if(op==NEQ) {op=EQ;not=false;}
 			}
 			this.op=op;
 			
+		}
+		
+		public boolean matches(Version v) {
+			if(EQ==op) return v.compareTo(version)==0;
+			if(LTE==op) return v.compareTo(version)<=0;
+			if(LT==op) return v.compareTo(version)<0;
+			if(GTE==op) return v.compareTo(version)>=0;
+			if(GT==op) return v.compareTo(version)>0;
+			if(NEQ==op) return v.compareTo(version)!=0;
+			return false;
 		}
 		
 		public Version getVersion() {
@@ -1005,7 +1450,7 @@ public class OSGiUtil {
 		}
 		
 		public String toString() {
-			StringBuilder sb=new StringBuilder();
+			StringBuilder sb=new StringBuilder("version ");
 			sb.append(getOpAsString()).append(' ')
 			.append(version);
 			
@@ -1025,11 +1470,11 @@ public class OSGiUtil {
 		}
 		
 	}
-	public static class PackageDefinition {
+	public static class PackageQuery {
 		private final String name; 
 		private List<VersionDefinition> versions=new ArrayList<OSGiUtil.VersionDefinition>();
 
-		public PackageDefinition(String name) {
+		public PackageQuery(String name) {
 			this.name=name;
 		}
 
@@ -1046,7 +1491,6 @@ public class OSGiUtil {
 		public String toString() {
 			StringBuilder sb=new StringBuilder();
 			sb.append("name:").append(name);
-			VersionDefinition vd;
 			Iterator<VersionDefinition> it = versions.iterator();
 			while(it.hasNext()) {
 				sb.append(';').append(it.next());
@@ -1054,13 +1498,38 @@ public class OSGiUtil {
 			
 			return sb.toString();
 		}
-		
-		
-
-		
 	}
 	
-	public static class BundleDefinition {
+	public static class PackageDefinition {
+		private final String name; 
+		private Version version;
+
+		public PackageDefinition(String name) {
+			this.name=name;
+		}
+
+		public void setVersion(String version) throws BundleException {
+			this.version=OSGiUtil.toVersion(version);
+		}
+		public void setVersion(Version version) {
+			this.version=version;
+		}
+
+		public String getName() {
+			return name;
+		}
+		public Version getVersion() {
+			return version;
+		}
+		public String toString() {
+			StringBuilder sb=new StringBuilder();
+			sb.append("name:").append(name);
+			sb.append("version:").append(version);
+			return sb.toString();
+		}
+	}
+	
+	public static class BundleDefinition implements Serializable {
 
 		private final String name;
 		private Bundle bundle;
@@ -1105,6 +1574,7 @@ public class OSGiUtil {
 		 * get Bundle, also load if necessary from local or remote
 		 * @return
 		 * @throws BundleException
+		 * @throws StartFailedException 
 		 */
 		public Bundle getBundle(Config config) throws BundleException {
 			if(bundle==null) {
@@ -1176,6 +1646,7 @@ public class OSGiUtil {
 			if(log!=null) log.log(level, "OSGi", msg);
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			/* this can fail when called from an old loader */
 			System.out.println(msg);
 		}
@@ -1187,6 +1658,7 @@ public class OSGiUtil {
 			if(log!=null) log.log(Log.LEVEL_ERROR, "OSGi", t);
 		}
 		catch(Throwable _t) {
+			ExceptionUtil.rethrowIfNecessary(_t);
 			/* this can fail when called from an old loader */
 			System.out.println(t.getMessage());
 		}
@@ -1269,19 +1741,31 @@ public class OSGiUtil {
 		if(bootDelegation==null) return new String[0];
 		return bootDelegation;
 	}
+
+	public static boolean isClassInBootelegation(String className) {
+		return isInBootelegation(className, false);
+	}
+	public static boolean isPackageInBootelegation(String className) {
+		return isInBootelegation(className, true);
+	}
 	
-	public static boolean isInBootelegation(String name) {
+	private static boolean isInBootelegation(String name, boolean isPackage) {
 		// extract package
-		int index=name.lastIndexOf('.');
-		if(index==-1) return false;
-		String pack=name.substring(0,index);
+		String pack;
+		if(isPackage) pack=name;
+		else {
+			int index=name.lastIndexOf('.');
+			if(index==-1) return false;
+			pack=name.substring(0,index);
+		}
+		
+		
+		
 		String[] arr = OSGiUtil.getBootdelegation();
-		
-		
 		for(String bd:arr){
 			bd=bd.trim();
 			// with wildcard
-			if(bd.endsWith(".*")){
+			if(bd.endsWith(".*")) {
 				bd=bd.substring(0,bd.length()-1);
 				if(pack.startsWith(bd)) return true;
 			}
@@ -1319,5 +1803,15 @@ public class OSGiUtil {
 	public static  boolean isFrameworkBundle(Bundle b) {// FELIX specific
 		
 		return "org.apache.felix.framework".equalsIgnoreCase(b.getSymbolicName()); // TODO move to cire util class tha does not exist yet
+	}
+
+
+
+	public static Bundle getBundleFromClass(Class clazz, Bundle defaultValue) {
+		ClassLoader cl = clazz.getClassLoader();
+		if(cl instanceof BundleClassLoader) {
+			return ((BundleClassLoader) cl).getBundle();
+		}
+		return defaultValue;
 	}
 }

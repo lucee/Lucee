@@ -10,8 +10,8 @@ public class QueryStructItem extends QueryResultCacheItem {
 
 	public final QueryStruct queryStruct;
 
-	public QueryStructItem(QueryStruct queryStruct){
-		super(queryStruct);
+	public QueryStructItem(QueryStruct queryStruct, String[] tags, String datasourceName){
+		super(queryStruct, tags, datasourceName, System.currentTimeMillis());
 		this.queryStruct=queryStruct;
 	}
 
@@ -19,16 +19,13 @@ public class QueryStructItem extends QueryResultCacheItem {
 	public String getHashFromValue() {
 		return Long.toString(HashUtil.create64BitHash(UDFArgConverter.serialize(queryStruct)));
 	}
-	
 
 	public QueryStruct getQueryStruct() {
 		return queryStruct;
 	}
 
-
 	@Override
 	public Object duplicate(boolean deepCopy) {
-		return new QueryStructItem((QueryStruct)queryStruct.duplicate(true));
+		return new QueryStructItem((QueryStruct)queryStruct.duplicate(true),getTags(),getDatasourceName());
 	}
-
 }

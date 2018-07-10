@@ -5,6 +5,7 @@
 	function testMemberFunction(){
 		local.orgLocale=getLocale();
 		setLocale("German (Swiss)");
+		setTimeZone('CET');
 		dt=CreateDateTime(2004,1,2,14,5,6);
 		try{
 			assertEquals("02.01.2004",dt.lsdateFormat());
@@ -48,7 +49,10 @@
 
 <cfset valueEquals(left="#lsdateFormat(dt,"yyyy")#", right="2004")>
 <cfset valueEquals(left="#lsdateFormat(dt,"yy")#", right="04")>
-<cfset valueEquals(left="#lsdateFormat(dt,"y")#", right="4")>
+<cfset valueEquals(left="#lsdateFormat(dt,"y")#", right="2004")>
+<cfset valueEquals(left="#lsdateFormat(dt,"YYYY")#", right="2004")>
+<cfset valueEquals(left="#lsdateFormat(dt,"YY")#", right="04")>
+<cfset valueEquals(left="#lsdateFormat(dt,"Y")#", right="2004")>
 <cfset valueEquals(left="#lsdateFormat(dt,"MMMM")#", right="Januar")>
 
 <cfset valueEquals(left="#lsdateFormat(dt,"mmm")#", right="Jan")>

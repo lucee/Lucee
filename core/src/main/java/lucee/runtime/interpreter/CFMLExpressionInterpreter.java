@@ -19,6 +19,7 @@
 package lucee.runtime.interpreter;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ParserString;
@@ -31,6 +32,7 @@ import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.TemplateException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.Set;
 import lucee.runtime.interpreter.ref.cast.Casting;
@@ -163,6 +165,8 @@ public class CFMLExpressionInterpreter {
 	private static FunctionLibFunction LITERAL_STRUCT = null;
 	private static FunctionLibFunction JSON_ARRAY = null;
 	private static FunctionLibFunction JSON_STRUCT = null;
+	private static FunctionLibFunction LITERAL_ORDERED_STRUCT = null;
+
 	
 
 	//private static final int CASE_TYPE_UPPER = 0;
@@ -198,12 +202,14 @@ public class CFMLExpressionInterpreter {
     public Object interpret(PageContext pc,String str, boolean preciseMath) throws PageException { 
     	this.cfml=new ParserString(str);
     	this.preciseMath = preciseMath;
-    	init();
-
+    	init(pc);
+    	
         if(LITERAL_ARRAY==null)LITERAL_ARRAY=fld.getFunction("_literalArray");
         if(LITERAL_STRUCT==null)LITERAL_STRUCT=fld.getFunction("_literalStruct");
         if(JSON_ARRAY==null)JSON_ARRAY=fld.getFunction("_jsonArray");
         if(JSON_STRUCT==null)JSON_STRUCT=fld.getFunction("_jsonStruct");
+        if(LITERAL_ORDERED_STRUCT==null)LITERAL_ORDERED_STRUCT=fld.getFunction("_literalOrderedStruct");
+
 		
         cfml.removeSpace();
         Ref ref = assignOp();
@@ -217,12 +223,13 @@ public class CFMLExpressionInterpreter {
     }
 
     
-    private void init() {
-    	this.pc=ThreadLocalPageContext.get(pc);
+    private void init(PageContext pc) {
+    	this.pc=pc=ThreadLocalPageContext.get(pc);
+    	
     	int dialect=CFMLEngine.DIALECT_CFML;
     	if(this.pc!=null) {
-    		this.config=(ConfigImpl) pc.getConfig();
-    		dialect=pc.getCurrentTemplateDialect();
+    		this.config=(ConfigImpl) this.pc.getConfig();
+    		dialect=this.pc.getCurrentTemplateDialect();
     	}
     	else {
     		this.config = (ConfigImpl)ThreadLocalPageContext.getConfig();
@@ -250,7 +257,7 @@ public class CFMLExpressionInterpreter {
     
     protected Object interpretPart(PageContext pc,ParserString cfml) throws PageException { 
         this.cfml = cfml;
-        init();
+        init(pc);
         
         cfml.removeSpace();
         return assignOp().getValue(pc);
@@ -331,7 +338,7 @@ public class CFMLExpressionInterpreter {
             if(cfml.forwardIfCurrent(':')){
             	cfml.removeSpace();
             	Ref right = assignOp();    
-        		ref=new Elvis(ref,right);
+        		ref=new Elvis(ref,right,limited);
             	
             }
             else {
@@ -340,7 +347,7 @@ public class CFMLExpressionInterpreter {
 	            	throw new InterpreterException("Syntax Error, invalid conditional operator ["+cfml.toString()+"]");
 	            cfml.removeSpace();
 	            Ref right = assignOp();
-	            ref=new Cont(ref,left,right);
+	            ref=new Cont(ref,left,right,limited);
             }
         }
         return ref;
@@ -359,7 +366,7 @@ public class CFMLExpressionInterpreter {
         Ref ref = eqvOp();
         while(cfml.forwardIfCurrentAndNoWordAfter("imp")) {
             cfml.removeSpace();
-            ref=new Imp(ref,eqvOp());
+            ref=new Imp(ref,eqvOp(),limited);
         }
         return ref;
     }
@@ -376,7 +383,7 @@ public class CFMLExpressionInterpreter {
         Ref ref = xorOp();
         while(cfml.forwardIfCurrent("eqv")) {
             cfml.removeSpace();
-            ref=new EQV(ref,xorOp());
+            ref=new EQV(ref,xorOp(),limited);
         }
         return ref;
     }
@@ -393,7 +400,7 @@ public class CFMLExpressionInterpreter {
         Ref ref = orOp();
         while(cfml.forwardIfCurrent("xor")) {
             cfml.removeSpace();
-            ref=new Xor(ref,orOp());
+            ref=new Xor(ref,orOp(),limited);
         }
         return ref;
     }
@@ -411,7 +418,7 @@ public class CFMLExpressionInterpreter {
         Ref ref = andOp();
         while(cfml.isValidIndex() && (cfml.forwardIfCurrent("||") || cfml.forwardIfCurrent("or"))) {
             cfml.removeSpace();
-            ref=new Or(ref,andOp());
+            ref=new Or(ref,andOp(),limited);
         }
         return ref;
     }
@@ -429,7 +436,7 @@ public class CFMLExpressionInterpreter {
         Ref ref = notOp();
         while(cfml.isValidIndex() && (cfml.forwardIfCurrent("&&") || cfml.forwardIfCurrent("and"))) {
             cfml.removeSpace();
-            ref=new And(ref,notOp());
+            ref=new And(ref,notOp(),limited);
         }
         return ref;
     }
@@ -448,11 +455,11 @@ public class CFMLExpressionInterpreter {
 	    	if (cfml.isCurrent('!') && !cfml.isCurrent("!=")) {
 	    		cfml.next();
 	            cfml.removeSpace();
-	            return new Not(decsionOp());
+	            return new Not(decsionOp(),limited);
 	        }
 	    	else if (cfml.forwardIfCurrentAndNoWordAfter("not")) {
 	            cfml.removeSpace();
-	            return new Not(decsionOp());
+	            return new Not(decsionOp(),limited);
 	        }
     	}
         return decsionOp();
@@ -479,19 +486,19 @@ public class CFMLExpressionInterpreter {
                 if(cfml.isCurrent('c')) {
                         if (cfml.forwardIfCurrent("ct")) {
                             cfml.removeSpace();
-                            ref=new CT(ref,concatOp());
+                            ref=new CT(ref,concatOp(),limited);
                             hasChanged=true;
                         } 
                         else if (cfml.forwardIfCurrent("contains")){ 
                             cfml.removeSpace();
-                            ref=new CT(ref,concatOp());
+                            ref=new CT(ref,concatOp(),limited);
                             hasChanged=true;
                         }
                 }
                 // does not contain
                 else if (cfml.forwardIfCurrent("does","not","contain")){ 
                     cfml.removeSpace();
-                    ref=new NCT(ref,concatOp());
+                    ref=new NCT(ref,concatOp(),limited);
                     hasChanged=true;
                 }
                 
@@ -500,18 +507,18 @@ public class CFMLExpressionInterpreter {
                     cfml.setPos(cfml.getPos()+2);
                     cfml.forwardIfCurrent("ual");
                     cfml.removeSpace();
-                    ref=new EQ(ref,concatOp());
+                    ref=new EQ(ref,concatOp(),limited);
                     hasChanged=true;
                 }
                 // ==
                 else if (cfml.forwardIfCurrent("==")) {
                     if(cfml.forwardIfCurrent('=')) 		{
                     	cfml.removeSpace();
-                    	ref = new EEQ(ref,concatOp());
+                    	ref = new EEQ(ref,concatOp(),limited);
                     }
     				else {
     					cfml.removeSpace();
-                    	ref=new EQ(ref,concatOp());
+                    	ref=new EQ(ref,concatOp(),limited);
     				}
                     hasChanged=true;
                 }
@@ -520,11 +527,11 @@ public class CFMLExpressionInterpreter {
                 else if (cfml.forwardIfCurrent("!=")) {
                     if(cfml.forwardIfCurrent('=')) {
                     	cfml.removeSpace();
-                    	ref = new NEEQ(ref,concatOp());
+                    	ref = new NEEQ(ref,concatOp(),limited);
                     }
     				else {
     					cfml.removeSpace();
-                    	ref=new NEQ(ref,concatOp());
+                    	ref=new NEQ(ref,concatOp(),limited);
     				}
                     hasChanged=true;
                 }
@@ -533,15 +540,15 @@ public class CFMLExpressionInterpreter {
     			else if (cfml.forwardIfCurrent('<')) {
     				if(cfml.forwardIfCurrent('=')) 		{
     					cfml.removeSpace();
-                    	ref = new LTE(ref,concatOp());
+                    	ref = new LTE(ref,concatOp(),limited);
     				}
     				else if(cfml.forwardIfCurrent('>')) {
     					cfml.removeSpace();
-                    	ref = new NEQ(ref,concatOp());
+                    	ref = new NEQ(ref,concatOp(),limited);
     				}
     				else 								{
     					cfml.removeSpace();
-                    	ref = new LT(ref,concatOp());
+                    	ref = new LT(ref,concatOp(),limited);
     				}
     				hasChanged=true;
     			}
@@ -549,11 +556,11 @@ public class CFMLExpressionInterpreter {
     			else if (cfml.forwardIfCurrent('>')) {
     				if(cfml.forwardIfCurrent('=')) 		{
     					cfml.removeSpace();
-                    	ref = new GTE(ref,concatOp());
+                    	ref = new GTE(ref,concatOp(),limited);
     				}
     				else 								{
     					cfml.removeSpace();
-                    	ref = new GT(ref,concatOp());
+                    	ref = new GT(ref,concatOp(),limited);
     				}
     				hasChanged=true;
     			}
@@ -563,28 +570,28 @@ public class CFMLExpressionInterpreter {
                     if (cfml.forwardIfCurrent("gt")) {
                         if(cfml.forwardIfCurrent('e')) {
                             cfml.removeSpace();
-                            ref=new GTE(ref,concatOp());
+                            ref=new GTE(ref,concatOp(),limited);
                         }
                         else {
                             cfml.removeSpace();
-                            ref=new GT(ref,concatOp());
+                            ref=new GT(ref,concatOp(),limited);
                         }
                         hasChanged=true;
                     } 
                     else if (cfml.forwardIfCurrent("greater","than")) {
                         if(cfml.forwardIfCurrent("or" ,"equal", "to",true)) {
                             cfml.removeSpace();
-                            ref=new GTE(ref,concatOp());
+                            ref=new GTE(ref,concatOp(),limited);
                         }
                         else {
                             cfml.removeSpace();
-                            ref=new GT(ref,concatOp());
+                            ref=new GT(ref,concatOp(),limited);
                         }
                         hasChanged=true;
                     }   
                     else if (cfml.forwardIfCurrent("ge")) {
                         cfml.removeSpace();
-                        ref=new GTE(ref,concatOp());
+                        ref=new GTE(ref,concatOp(),limited);
                         hasChanged=true;
                     }               
                 }
@@ -593,11 +600,11 @@ public class CFMLExpressionInterpreter {
                 else if (cfml.forwardIfCurrent("is")) {
                     if(cfml.forwardIfCurrent("not",true)) {
                         cfml.removeSpace();
-                        ref=new NEQ(ref,concatOp());
+                        ref=new NEQ(ref,concatOp(),limited);
                     }
                     else {
                         cfml.removeSpace();
-                        ref=new EQ(ref,concatOp());
+                        ref=new EQ(ref,concatOp(),limited);
                     }
                     hasChanged=true;
                 }
@@ -607,28 +614,28 @@ public class CFMLExpressionInterpreter {
                     if (cfml.forwardIfCurrent("lt")) {
                         if(cfml.forwardIfCurrent('e')) {
                             cfml.removeSpace();
-                            ref=new LTE(ref,concatOp());
+                            ref=new LTE(ref,concatOp(),limited);
                         }
                         else {
                             cfml.removeSpace();
-                            ref=new LT(ref,concatOp());
+                            ref=new LT(ref,concatOp(),limited);
                         }
                         hasChanged=true;
                     } 
                     else if (cfml.forwardIfCurrent("less","than")) {
                         if(cfml.forwardIfCurrent("or", "equal", "to",true)) {
                             cfml.removeSpace();
-                            ref=new LTE(ref,concatOp());
+                            ref=new LTE(ref,concatOp(),limited);
                         }
                         else {
                             cfml.removeSpace();
-                            ref=new LT(ref,concatOp());
+                            ref=new LT(ref,concatOp(),limited);
                         }
                         hasChanged=true;
                     }   
                     else if (cfml.forwardIfCurrent("le")) {
                         cfml.removeSpace();
-                        ref=new LTE(ref,concatOp());
+                        ref=new LTE(ref,concatOp(),limited);
                         hasChanged=true;
                     }               
                 }
@@ -638,19 +645,19 @@ public class CFMLExpressionInterpreter {
                     // Not Equal
                         if (cfml.forwardIfCurrent("neq"))   {
                             cfml.removeSpace(); 
-                            ref=new NEQ(ref,concatOp());
+                            ref=new NEQ(ref,concatOp(),limited);
                             hasChanged=true;
                         }
                     // Not Equal (Alias)
                         else if (cfml.forwardIfCurrent("not","equal")){ 
                             cfml.removeSpace();
-                            ref=new NEQ(ref,concatOp());
+                            ref=new NEQ(ref,concatOp(),limited);
                             hasChanged=true; 
                         }
                     // nct
                         else if (cfml.forwardIfCurrent("nct"))  { 
                             cfml.removeSpace();
-                            ref=new NCT(ref,concatOp());
+                            ref=new NCT(ref,concatOp(),limited);
                             hasChanged=true;
                         }   
                 }
@@ -709,12 +716,12 @@ public class CFMLExpressionInterpreter {
 			cfml.next();
 			cfml.removeSpace();
 			Ref right = assignOp();
-			Ref res = preciseMath?new BigPlus(ref,right):new Plus(ref,right);
+			Ref res = preciseMath?new BigPlus(ref,right,limited):new Plus(ref,right,limited);
 			ref=new Assign(ref,res,limited);
 		}
 		else {	
             cfml.removeSpace();
-            ref=preciseMath?new BigPlus(ref,modOp()):new Plus(ref,modOp());
+            ref=preciseMath?new BigPlus(ref,modOp(),limited):new Plus(ref,modOp(),limited);
 		}
 		return ref;
 	}
@@ -725,12 +732,12 @@ public class CFMLExpressionInterpreter {
 			cfml.next();
 			cfml.removeSpace();
 			Ref right = assignOp();
-			Ref res = preciseMath?new BigMinus(ref,right):new Minus(ref,right);
+			Ref res = preciseMath?new BigMinus(ref,right,limited):new Minus(ref,right,limited);
 			ref=new Assign(ref,res,limited);
 		}
 		else {	
             cfml.removeSpace();
-            ref=preciseMath?new BigMinus(ref,modOp()):new Minus(ref,modOp());
+            ref=preciseMath?new BigMinus(ref,modOp(),limited):new Minus(ref,modOp(),limited);
 		}
 		return ref;
 	}
@@ -741,12 +748,12 @@ public class CFMLExpressionInterpreter {
 		if (cfml.forwardIfCurrent('=')) {
 			cfml.removeSpace();
 			Ref right = assignOp();
-			Ref res = preciseMath?new BigDiv(ref, right):new Div(ref,right);
+			Ref res = preciseMath?new BigDiv(ref, right,limited):new Div(ref,right,limited);
 			ref=new Assign(ref,res,limited);
 		}
 		else {	
             cfml.removeSpace();
-            ref=preciseMath?new BigDiv(ref,expoOp()):new Div(ref,expoOp());
+            ref=preciseMath?new BigDiv(ref,expoOp(),limited):new Div(ref,expoOp(),limited);
 		}
 		return ref;
 	}
@@ -756,12 +763,12 @@ public class CFMLExpressionInterpreter {
 		if (cfml.forwardIfCurrent('=')) {
 			cfml.removeSpace();
 			Ref right = assignOp();
-			Ref res = preciseMath?new BigIntDiv(ref,right):new IntDiv(ref,right);
+			Ref res = preciseMath?new BigIntDiv(ref,right,limited):new IntDiv(ref,right,limited);
 			ref=new Assign(ref,res,limited);
 		}
 		else {	
             cfml.removeSpace();
-            ref=preciseMath?new BigIntDiv(ref,expoOp()):new IntDiv(ref,expoOp());
+            ref=preciseMath?new BigIntDiv(ref,expoOp(),limited):new IntDiv(ref,expoOp(),limited);
 		}
 		return ref;
 	}
@@ -771,12 +778,12 @@ public class CFMLExpressionInterpreter {
 		if (cfml.forwardIfCurrent('=')) {
 			cfml.removeSpace();
 			Ref right = assignOp();
-			Ref res = preciseMath?new BigMod(ref,right):new Mod(ref,right);
+			Ref res = preciseMath?new BigMod(ref,right,limited):new Mod(ref,right,limited);
 			ref=new Assign(ref,res,limited);
 		}
 		else {	
             cfml.removeSpace();
-            ref=preciseMath?new BigMod(ref,divMultiOp()):new Mod(ref,divMultiOp());
+            ref=preciseMath?new BigMod(ref,divMultiOp(),limited):new Mod(ref,divMultiOp(),limited);
 		}
 		return ref;
 	}
@@ -785,12 +792,12 @@ public class CFMLExpressionInterpreter {
 		if (cfml.forwardIfCurrent('=')) {
 			cfml.removeSpace();
 			Ref right = assignOp();
-			Ref res = new  Concat(ref,right);
+			Ref res = new  Concat(ref,right,limited);
 			ref=new Assign(ref,res,limited);
 		}
 		else {	
             cfml.removeSpace();
-            ref=new Concat(ref,plusMinusOp());
+            ref=new Concat(ref,plusMinusOp(),limited);
 		}
 		return ref;
 	}
@@ -800,12 +807,12 @@ public class CFMLExpressionInterpreter {
 		if (cfml.forwardIfCurrent('=')) {
 			cfml.removeSpace();
 			Ref right = assignOp();
-			Ref res = preciseMath?new BigMulti(ref,right):new Multi(ref,right);
+			Ref res = preciseMath?new BigMulti(ref,right,limited):new Multi(ref,right,limited);
 			ref=new Assign(ref,res,limited);
 		}
 		else {	
             cfml.removeSpace();
-            ref=preciseMath?new BigMulti(ref,expoOp()):new Multi(ref,expoOp());
+            ref=preciseMath?new BigMulti(ref,expoOp(),limited):new Multi(ref,expoOp(),limited);
 		}
 		return ref;
 	}
@@ -875,7 +882,7 @@ public class CFMLExpressionInterpreter {
 
         while(cfml.isValidIndex() && (cfml.forwardIfCurrent('^') || cfml.forwardIfCurrent("exp"))) {
             cfml.removeSpace();
-            ref=new Exp(ref,unaryOp());
+            ref=new Exp(ref,unaryOp(),limited);
         }
         return ref;
     }
@@ -894,9 +901,9 @@ public class CFMLExpressionInterpreter {
     
     private Ref _unaryOp(Ref ref,boolean isPlus) throws PageException {
         cfml.removeSpace();
-		Ref res = preciseMath?new BigPlus(ref,isPlus?PLUS_ONE:MINUS_ONE):new Plus(ref,isPlus?PLUS_ONE:MINUS_ONE);
+		Ref res = preciseMath?new BigPlus(ref,isPlus?PLUS_ONE:MINUS_ONE,limited):new Plus(ref,isPlus?PLUS_ONE:MINUS_ONE,limited);
 		ref=new Assign(ref,res,limited);
-		return preciseMath?new BigPlus(ref,isPlus?MINUS_ONE:PLUS_ONE):new Plus(ref,isPlus?MINUS_ONE:PLUS_ONE);
+		return preciseMath?new BigPlus(ref,isPlus?MINUS_ONE:PLUS_ONE,limited):new Plus(ref,isPlus?MINUS_ONE:PLUS_ONE,limited);
 	}
     
 
@@ -911,18 +918,18 @@ public class CFMLExpressionInterpreter {
         	if (cfml.forwardIfCurrent('-')) {
         		cfml.removeSpace();
 				Ref expr = clip();
-				Ref res = preciseMath?new BigMinus(expr,new LNumber(new Double(1))):new Minus(expr,new LNumber(new Double(1)));
+				Ref res = preciseMath?new BigMinus(expr,new LNumber(new Double(1)),limited):new Minus(expr,new LNumber(new Double(1)),limited);
 				return new Assign(expr,res,limited);
 			}	
             cfml.removeSpace();
-            return new Negate(clip());
+            return new Negate(clip(),limited);
         	
         }
         if (cfml.forwardIfCurrent('+')) {
         	if (cfml.forwardIfCurrent('+')) {
         		cfml.removeSpace();
 				Ref expr = clip();
-				Ref res = preciseMath?new BigPlus(expr,new LNumber(new Double(1))):new Plus(expr,new LNumber(new Double(1)));
+				Ref res = preciseMath?new BigPlus(expr,new LNumber(new Double(1)),limited):new Plus(expr,new LNumber(new Double(1)),limited);
 				return new Assign(expr,res,limited);
 			}
         	cfml.removeSpace();
@@ -1012,7 +1019,29 @@ public class CFMLExpressionInterpreter {
     protected Ref json(FunctionLibFunction flf, char start, char end) throws PageException {
 		if(!cfml.isCurrent(start))return null;
 		
+		if(cfml.forwardIfCurrent('[',':',']') || cfml.forwardIfCurrent('[','=',']')) {
+			return new BIFCall(LITERAL_ORDERED_STRUCT,new Ref[0]);
+		}
+		
+		
+		
 		Ref[] args = functionArg(flf.getName(), false, flf,end);
+		if(args!=null && args.length>0 && flf==LITERAL_ARRAY) {
+			if(args[0] instanceof LFunctionValue) {
+				for(int i=1;i<args.length;i++) {
+					if(!(args[i] instanceof LFunctionValue)) 
+						throw new TemplateException("invalid argument for literal ordered struct, only named arguments are allowed like {name:\"value\",name2:\"value2\"}");
+				}
+				flf=LITERAL_ORDERED_STRUCT;
+			}
+			else {
+				for(int i=1;i<args.length;i++) {
+					if(args[i] instanceof LFunctionValue) 
+						throw new TemplateException("invalid argument for literal array, no named arguments are allowed");
+				}
+				
+			}
+		}
 		
 		return new BIFCall(flf,args);
 	}
@@ -1071,7 +1100,7 @@ public class CFMLExpressionInterpreter {
         mode=STATIC;
         if(value!=null) {
             if(str.isEmpty()) return value;
-            return new Concat(value,str);
+            return new Concat(value,str,limited);
         }
         return str;
     }
@@ -1117,12 +1146,31 @@ public class CFMLExpressionInterpreter {
 			        cfml.previous();
                 }
             }
-            
-            
             // read right side of the dot
             if(before==cfml.getPos())
                 throw new InterpreterException("Number can't end with [.]");
         }
+
+		// scientific notation
+		else if(cfml.forwardIfCurrent('e')) {
+			Boolean expOp=null;
+			if(cfml.forwardIfCurrent('+')) expOp=Boolean.TRUE;
+			else if(cfml.forwardIfCurrent('-')) expOp=Boolean.FALSE;
+			
+			if(cfml.isCurrentBetween('0','9')) {
+				rtn.append('e');
+				if(expOp==Boolean.FALSE) rtn.append('-');
+				else if(expOp==Boolean.TRUE) rtn.append('+');
+		        digit(rtn);
+		    }
+		    else {
+		    	if(expOp!=null) cfml.previous();
+		        cfml.previous();
+		    }
+		}
+        
+        
+        
         cfml.removeSpace();
         mode=STATIC;
         return new LNumber(rtn.toString());
@@ -1415,9 +1463,9 @@ public class CFMLExpressionInterpreter {
         
 
         // Function Attributes
-        ArrayList arr = new ArrayList();
+        List<Ref> arr = new ArrayList<Ref>();
         
-        ArrayList arrFuncLibAtt = null;
+        List<FunctionLibFunctionArg> arrFuncLibAtt = null;
         int libLen = 0;
         if (checkLibrary) {
             arrFuncLibAtt = flf.getArg();

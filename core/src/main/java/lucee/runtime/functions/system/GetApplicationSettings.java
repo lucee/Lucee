@@ -24,20 +24,27 @@ import java.util.Map.Entry;
 
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.ModernApplicationContext;
+import lucee.runtime.net.mail.Server;
+import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMConfiguration;
@@ -49,6 +56,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
@@ -65,7 +73,7 @@ public class GetApplicationSettings {
 		Component cfc = null;
 		if(ac instanceof ModernApplicationContext)cfc= ((ModernApplicationContext)ac).getComponent();
 		
-		Struct sct=new StructImpl();
+		Struct sct=new StructImpl(Struct.TYPE_LINKED);
 		sct.setEL("applicationTimeout", ac.getApplicationTimeout());
 		sct.setEL("clientManagement", Caster.toBoolean(ac.isSetClientManagement()));
 		sct.setEL("clientStorage", ac.getClientstorage());
@@ -87,9 +95,17 @@ public class GetApplicationSettings {
 		sct.setEL("localMode", ac.getLocalMode()==Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS?Boolean.TRUE:Boolean.FALSE);
 		sct.setEL(KeyConstants._locale,LocaleFactory.toString(pc.getLocale()));
 		sct.setEL(KeyConstants._timezone,TimeZoneUtil.toString(pc.getTimeZone()));
+		
+		// scope cascading
 		sct.setEL("scopeCascading",ConfigWebUtil.toScopeCascading(ac.getScopeCascading(),null));
 		
-		Struct cs=new StructImpl();
+		if(ac.getScopeCascading()!=Config.SCOPE_SMALL) {
+			sct.setEL("searchImplicitScopes",ac.getScopeCascading()==Config.SCOPE_STANDARD);
+		}
+		
+		
+		
+		Struct cs=new StructImpl(Struct.TYPE_LINKED);
 		cs.setEL("web",pc.getWebCharset().name());
 		cs.setEL("resource",((PageContextImpl)pc).getResourceCharset().name());
 		sct.setEL("charset", cs);
@@ -129,26 +145,70 @@ public class GetApplicationSettings {
 		
 		// ws settings
 		{
-		Struct wssettings=new StructImpl();
+		Struct wssettings=new StructImpl(Struct.TYPE_LINKED);
 		wssettings.put(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(),"Axis1"));
 		sct.setEL("wssettings", wssettings);
 		}
 		
 		// datasources
+		Struct _sources = new StructImpl(Struct.TYPE_LINKED);
+		sct.setEL(KeyConstants._datasources, _sources);
 		DataSource[] sources = ac.getDataSources();
 		if(!ArrayUtil.isEmpty(sources)){
-			Struct _sources = new StructImpl(),s;
-			sct.setEL(KeyConstants._datasources, _sources);
 			for(int i=0;i<sources.length;i++){
 				_sources.setEL(KeyImpl.init(sources[i].getName()), _call(sources[i]));
 			}
 			
 		}
+
+		// logs
+		Struct _logs = new StructImpl(Struct.TYPE_LINKED);
+		sct.setEL("logs", _logs);
+		if(ac instanceof ApplicationContextSupport) {
+			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+			Iterator<Key> it = acs.getLogNames().iterator();
+			Key name;
+			while(it.hasNext()) {
+				name=it.next();
+				_logs.setEL(name,acs.getLogMetaData(name.getString()));
+			}
+		}
+
+		// mails
+		Array _mails = new ArrayImpl();
+		sct.setEL("mails", _mails);
+		if(ac instanceof ApplicationContextSupport) {
+			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+			Server[] servers = acs.getMailServers();
+			Struct s;
+			Server srv;
+			if(servers!=null){
+				for(int i=0;i<servers.length;i++) {
+					srv=servers[i];
+					s=new StructImpl(Struct.TYPE_LINKED);
+					_mails.appendEL(s);
+					s.setEL(KeyConstants._host, srv.getHostName());
+					s.setEL(KeyConstants._port, srv.getPort());
+					if(!StringUtil.isEmpty(srv.getUsername()))s.setEL(KeyConstants._username, srv.getUsername());
+					if(!StringUtil.isEmpty(srv.getPassword()))s.setEL(KeyConstants._password, srv.getPassword());
+					s.setEL(KeyConstants._readonly, srv.isReadOnly());
+					s.setEL("ssl", srv.isSSL());
+					s.setEL("tls", srv.isTLS());
+					
+					if(srv instanceof ServerImpl) {
+						ServerImpl srvi=(ServerImpl) srv;
+						s.setEL("lifeTimespan", TimeSpanImpl.fromMillis(srvi.getLifeTimeSpan()));
+						s.setEL("idleTimespan", TimeSpanImpl.fromMillis(srvi.getIdleTimeSpan()));
+					}
+				}
+			}
+		}
+		
 		
 		// tag
 		Map<Key, Map<Collection.Key, Object>> tags = ac.getTagAttributeDefaultValues(pc);
 		if(tags!=null) {
-			Struct tag = new StructImpl(),s;
+			Struct tag = new StructImpl(Struct.TYPE_LINKED);
 			Iterator<Entry<Key, Map<Collection.Key, Object>>> it = tags.entrySet().iterator();
 			Entry<Collection.Key, Map<Collection.Key, Object>> e;
 			Iterator<Entry<Collection.Key, Object>> iit;
@@ -158,7 +218,7 @@ public class GetApplicationSettings {
 			while(it.hasNext()){
 				e = it.next();
 				iit=e.getValue().entrySet().iterator();
-				tmp=new StructImpl();
+				tmp=new StructImpl(Struct.TYPE_LINKED);
 				while(iit.hasNext()){
 					ee = iit.next();
 					//lib.getTagByClassName(ee.getKey());
@@ -182,9 +242,28 @@ public class GetApplicationSettings {
 		String fil = ac.getDefaultCacheName(Config.CACHE_TYPE_FILE);
 		String wse = ac.getDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE);
 		
-		
-		if(fun!=null || obj!=null || qry!=null || res!=null || tmp!=null || inc!=null || htt!=null || fil!=null || wse!=null) {
-			Struct cache=new StructImpl();
+		// cache connections
+		Struct conns=new StructImpl(Struct.TYPE_LINKED);
+		if(ac instanceof ApplicationContextSupport) {
+			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+			Key[] names = acs.getCacheConnectionNames();
+			for(Key name:names) {
+				CacheConnection data = acs.getCacheConnection(name.getString(),null);
+				Struct _sct=new StructImpl(Struct.TYPE_LINKED);
+				conns.setEL(name, _sct);
+				_sct.setEL(KeyConstants._custom,data.getCustom());
+				_sct.setEL(KeyConstants._storage,data.isStorage());
+				ClassDefinition cd = data.getClassDefinition();
+				if(cd!=null) {
+					_sct.setEL(KeyConstants._class,cd.getClassName());
+					if(!StringUtil.isEmpty(cd.getName())) _sct.setEL(KeyConstants._bundleName,cd.getClassName());
+					if(cd.getVersion()!=null) _sct.setEL(KeyConstants._bundleVersion,cd.getVersionAsString());
+				}
+			}
+		}
+
+		if(!conns.isEmpty() || fun!=null || obj!=null || qry!=null || res!=null || tmp!=null || inc!=null || htt!=null || fil!=null || wse!=null) {
+			Struct cache=new StructImpl(Struct.TYPE_LINKED);
 			sct.setEL(KeyConstants._cache, cache);
 			if(fun!=null)cache.setEL(KeyConstants._function, fun);
 			if(obj!=null)cache.setEL(KeyConstants._object, obj);
@@ -195,11 +274,15 @@ public class GetApplicationSettings {
 			if(htt!=null)cache.setEL(KeyConstants._http, htt);
 			if(fil!=null)cache.setEL(KeyConstants._file, fil);
 			if(wse!=null)cache.setEL(KeyConstants._webservice, wse);
+			if(conns!=null)cache.setEL(KeyConstants._connections, conns);
 		}
+		
+		
+		
 		
 		// java settings
 		JavaSettings js = ac.getJavaSettings();
-		StructImpl jsSct = new StructImpl();
+		StructImpl jsSct = new StructImpl(Struct.TYPE_LINKED);
 		jsSct.put("loadCFMLClassPath",js.loadCFMLClassPath());
 		jsSct.put("reloadOnChange",js.reloadOnChange());
 		jsSct.put("watchInterval",new Double(js.watchInterval()));
@@ -230,15 +313,16 @@ public class GetApplicationSettings {
 		            if(!sct.containsKey(key))sct.setEL(key, value);
 				}
 			} 
-			catch (PageException e) {e.printStackTrace();}
+			catch (PageException e) {
+				SystemOut.printDate(e);
+			}
 		}
 		return sct;
 	}
 
-	
 
 	private static Struct _call(DataSource source) {
-		Struct s = new StructImpl();
+		Struct s = new StructImpl(Struct.TYPE_LINKED);
 		s.setEL(KeyConstants._class, source.getClassDefinition().getClassName());
 		s.setEL(KeyConstants._bundleName, source.getClassDefinition().getName());
 		s.setEL(KeyConstants._bundleVersion, source.getClassDefinition().getVersionAsString());
@@ -266,7 +350,7 @@ public class GetApplicationSettings {
 	}
 
 	private static Struct toStruct(Mapping[] mappings) {
-		Struct sct=new StructImpl();
+		Struct sct=new StructImpl(Struct.TYPE_LINKED);
 		if(mappings!=null)for(int i=0;i<mappings.length;i++){
 			sct.setEL(KeyImpl.init(mappings[i].getVirtual()), mappings[i].getStrPhysical());
 		}

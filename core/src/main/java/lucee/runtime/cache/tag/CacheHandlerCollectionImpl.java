@@ -34,17 +34,22 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.tag.query.QueryCacheItem;
+import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.cache.tag.udf.UDFArgConverter;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.db.SQL;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.tag.HttpParamBean;
+import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.FunctionArgument;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.UDFImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 public class CacheHandlerCollectionImpl implements CacheHandlerCollection { 
@@ -63,6 +68,7 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 	 * 
 	 * @param cw config object this Factory is related
 	 * @param cacheType type of the cache, see Config.CACHE_TYPE_XXX
+	 * @throws PageException 
 	 */
 	protected CacheHandlerCollectionImpl(ConfigWeb cw, int cacheType) {
 		this.cw=cw;
@@ -76,8 +82,11 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 				ch=e.getValue().newInstance();
 				ch.init(cw,e.getKey(),cacheType);
 				handlers.put(e.getKey(), ch);
-			} catch (Exception ex) {}
-			
+			}
+			catch (Exception pe) {
+				cw.getLog("application").error("cache-handler:"+e.getKey(), pe);
+				throw new PageRuntimeException(Caster.toPageException(pe));
+			}
 		}
 	}
 	
@@ -88,6 +97,16 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 		while(it.hasNext()){
 			ch = it.next();
 			if(ch.acceptCachedWithin(cachedWithin)) return ch;
+		}
+		return defaultValue;
+	}
+
+	public CacheHandler getTimespanInstance(CacheHandler defaultValue) {
+		Iterator<CacheHandler> it = handlers.values().iterator();
+		CacheHandler ch;
+		while(it.hasNext()){
+			ch = it.next();
+			if(ch instanceof TimespanCacheHandler) return ch;
 		}
 		return defaultValue;
 	}
@@ -218,44 +237,63 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 		.append(CACHE_DEL)
 		.append(methodName);
 		
-		createIdArgs(sb,arguments,namedArguments);
+		createIdArgs(null,sb,arguments,namedArguments);
 		
 
 		return HashUtil.create64BitHashAsString(sb, Character.MAX_RADIX);
 	}
 
-	public static String createId(UDF udf, Object[] args, Struct values) {
+	public static String createId(UDFImpl udf, Object[] args, Struct values) {
 		String src = udf.getSource();
 		StringBuilder sb=new StringBuilder()
-			.append(HashUtil.create64BitHash(src==null?"":src))
+			.append(src==null?"":src)
 			.append(CACHE_DEL)
-			.append(HashUtil.create64BitHash(udf.getFunctionName()))
+			.append(udf.properties.getStartLine())
+			.append(CACHE_DEL)
+			.append(udf.getFunctionName())
 			.append(CACHE_DEL);
-		
-		
-		createIdArgs(sb,args,values);
-		
+		createIdArgs(udf,sb,args,values);
 		return HashUtil.create64BitHashAsString(sb, Character.MAX_RADIX);
 	}
 
-	private static void createIdArgs(StringBuilder sb, Object[] args, Struct namedArgs) {
+	private static void createIdArgs(UDFImpl udf, StringBuilder sb, Object[] args, Struct namedArgs) {
 		if(namedArgs!=null) {
 			// argumentCollection
 			Struct sct;
 			if(namedArgs.size()==1 && (sct=Caster.toStruct(namedArgs.get(KeyConstants._argumentCollection,null),null))!=null) {
-				sb.append(_createId(sct));
+				_create(sct,sb);
 			}
-			else sb.append(_createId(namedArgs));
+			else _create(namedArgs,sb);
 		}
 		else if(args!=null){
-			sb.append(_createId(args));
+			FunctionArgument[] _args = udf==null?null:udf.getFunctionArguments();
+			sb.append('{');
+			for(int i=0;i<args.length;i++) {
+				if(_args!=null && _args.length>i) 
+					sb.append(_args[i].getName().getLowerString()).append(':');
+				sb.append(_createId(args[i])).append(',');
+			}
+			sb.append('}');
 		}
+	}
+	
+
+	private static void _create(Struct sct, StringBuilder sb) {
+		Iterator<Entry<Key, Object>> it = sct.entryIterator();
+		Entry<Key, Object> e;
+		sb.append('{');
+		while(it.hasNext()) {
+			e = it.next();
+			sb.append(e.getKey().getLowerString()).append(':')
+			.append(_createId(e.getValue())).append(',');
+		}
+		sb.append('}');
 	}
 
 	private static String _createId(Object values) {
-		return HashUtil.create64BitHash(UDFArgConverter.serialize(values))+"";
+		return UDFArgConverter.serialize(values);
 	}
-	
+
 	public static String createId(String url, String urlToken, short method,
 			ArrayList<HttpParamBean> params, String username, String password,
 			int port, String proxyserver, int proxyport, String proxyuser,
@@ -303,7 +341,7 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 			.append(toString(hpb.getFile()))
 			.append(CACHE_DEL);
 		}
-		return sb.toString();
+		return HashUtil.create64BitHashAsString(sb.toString());
 	}
 	
 

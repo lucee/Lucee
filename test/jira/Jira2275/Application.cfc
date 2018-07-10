@@ -25,6 +25,7 @@
 	// Datasource
 	this.datasource={
   		class: 'org.h2.Driver'
+	  	, bundleName: 'org.h2'
 		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
 	};
 	/*this.datasource = {
@@ -40,6 +41,9 @@
 	this.ormsettings.cfclocation = "orm";
 	this.ormsettings.dbcreate = "dropcreate";
 	this.ormsettings.savemapping = true;
+	
+	this.ormsettings.skipCFCWithError=false;
+	this.ormsettings.flushatrequestend=false;
 	</cfscript>
 
 

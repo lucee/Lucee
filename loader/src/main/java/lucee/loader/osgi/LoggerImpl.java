@@ -98,9 +98,11 @@ public class LoggerImpl extends Logger {
 			bw = new BufferedWriter(new OutputStreamWriter(
 					new FileOutputStream(logFile, true)));
 			bw.write(level + " [" + new Date() + "]:\n" + msg + "\n");
-		} catch (final IOException ioe) {
-			System.out.println(level + " [" + new Date() + "]:\n" + msg + "\n");
-		} finally {
+		}
+		catch (final IOException ioe) {
+			// System.out.println(level + " [" + new Date() + "]:\n" + msg + "\n");
+		}
+		finally {
 			if (bw != null)
 				try {
 					bw.close();

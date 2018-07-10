@@ -96,10 +96,10 @@ Mail Settings
 		@todo help text --->
 		<h2>#stText.Mail.Settings#</h2>
 		<table class="tbl" width="550">
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<tr>
 			<th scope="row">#stText.Mail.LogFile#</th>
-			<td width="450"><cfinput type="text" name="logFile" value="#config.mailLogger.file#" required="yes"  style="width:450px" message="#stText.Mail.LogFileMissing#"></td>
+			<td width="450"><cfinputClassic type="text" name="logFile" value="#config.mailLogger.file#" required="yes"  style="width:450px" message="#stText.Mail.LogFileMissing#"></td>
 		</tr>
 		<tr>
 			<th scope="row">#stText.Mail.SpoolEnabled#</th>
@@ -107,11 +107,11 @@ Mail Settings
 		</tr>
 		<tr>
 			<th scope="row">#stText.Mail.SpoolInterval#</th>
-			<td width="450"><cfinput type="text" name="spoolInterval" value="#config.mailSpoolInterval#" validate="integer" style="width:50px" required="yes"></td>
+			<td width="450"><cfinputClassic type="text" name="spoolInterval" value="#config.mailSpoolInterval#" validate="integer" style="width:50px" required="yes"></td>
 		</tr>
 		<tr>
 			<th scope="row">#stText.Mail.Timeout#</th>
-			<td width="450"><cfinput type="text" name="timeout" value="#config.mailTimeout#" validate="integer" style="width:50px" required="yes"></td>
+			<td width="450"><cfinputClassic type="text" name="timeout" value="#config.mailTimeout#" validate="integer" style="width:50px" required="yes"></td>
 		</tr>
 		<tr>
 			<td colspan="2"><cfoutput>
@@ -120,7 +120,7 @@ Mail Settings
 				<input type="reset" class="reset" name="canel" value="#stText.Buttons.Cancel#">
 			</cfoutput></td>
 		</tr>
-		</cfform>
+		</cfformClassic>
 		</table>
 <br><br>
 
@@ -135,7 +135,7 @@ Existing Collection --->
 		<th scope="row">#stText.Mail.Password#</th>
 		<th scope="row">#stText.Mail.Port#</th>
 	</tr>
-<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 <cfoutput>
 <cfset len=arrayLen(servers)>
 <cfloop index="idx" from="1" to="#len#" >
@@ -149,10 +149,10 @@ Existing Collection --->
 		</table>
 		
 		</td>
-		<td nowrap><cfinput onKeyDown="checkTheBox(this)" type="text" name="hostName_#idx#" value="#ms.hostName#" required="yes"  style="width:250px" message="#stText.Mail.ServerMissing##idx#)"></td>
-		<td nowrap><cfinput onKeyDown="checkTheBox(this)" type="text" name="username_#idx#" value="#ms.username#" required="no"  style="width:150px" message="#stText.Mail.UserNameMissing##idx#)"></td>
-		<td nowrap><cfinput onKeyDown="checkTheBox(this)" type="text" name="password_#idx#" value="#ms.password#" required="no"  style="width:150px" message="#stText.Mail.PasswordMissing##idx#)"></td>
-		<td nowrap><cfinput onKeyDown="checkTheBox(this)" type="text" name="port_#idx#" value="#ms.port#" required="no"  style="width:40px" validate="integer" message="#stText.Mail.PortErrorFirst##idx##stText.Mail.PortErrorLast#"></td>
+		<td nowrap><cfinputClassic onKeyDown="checkTheBox(this)" type="text" name="hostName_#idx#" value="#ms.hostName#" required="yes"  style="width:250px" message="#stText.Mail.ServerMissing##idx#)"></td>
+		<td nowrap><cfinputClassic onKeyDown="checkTheBox(this)" type="text" name="username_#idx#" value="#ms.username#" required="no"  style="width:150px" message="#stText.Mail.UserNameMissing##idx#)"></td>
+		<td nowrap><cfinputClassic onKeyDown="checkTheBox(this)" type="text" name="password_#idx#" value="#ms.password#" required="no"  style="width:150px" message="#stText.Mail.PasswordMissing##idx#)"></td>
+		<td nowrap><cfinputClassic onKeyDown="checkTheBox(this)" type="text" name="port_#idx#" value="#ms.port#" required="no"  style="width:40px" validate="integer" message="#stText.Mail.PortErrorFirst##idx##stText.Mail.PortErrorLast#"></td>
 	</tr>
 </cfloop>
 	<tr>
@@ -164,10 +164,10 @@ Existing Collection --->
 		</table>
 		
 		</td>
-		<td nowrap><cfinput onKeyDown="checkTheBox(this)"  type="text" name="hostName_new" value="" required="no"  style="width:250px"></td>
-		<td nowrap><cfinput onKeyDown="checkTheBox(this)" type="text" name="username_new" value="" required="no"  style="width:150px"></td>
-		<td nowrap><cfinput onKeyDown="checkTheBox(this)" type="text" name="password_new" value="" required="no"  style="width:150px"></td>
-		<td nowrap><cfinput onKeyDown="checkTheBox(this)" type="text" name="port_new" value="" required="no" validate="integer" message="Value for Port (Row #len+1#) must be of type number" style="width:40px"></td>
+		<td nowrap><cfinputClassic onKeyDown="checkTheBox(this)"  type="text" name="hostName_new" value="" required="no"  style="width:250px"></td>
+		<td nowrap><cfinputClassic onKeyDown="checkTheBox(this)" type="text" name="username_new" value="" required="no"  style="width:150px"></td>
+		<td nowrap><cfinputClassic onKeyDown="checkTheBox(this)" type="text" name="password_new" value="" required="no"  style="width:150px"></td>
+		<td nowrap><cfinputClassic onKeyDown="checkTheBox(this)" type="text" name="port_new" value="" required="no" validate="integer" message="Value for Port (Row #len+1#) must be of type number" style="width:40px"></td>
 	</tr>
 	<tr>
 		<td colspan="8">
@@ -191,5 +191,5 @@ Existing Collection --->
 		 </td>
 	</tr>
 </cfoutput>
-  </cfform>
+  </cfformClassic>
 </table>

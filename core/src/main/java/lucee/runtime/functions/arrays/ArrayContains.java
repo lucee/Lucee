@@ -49,9 +49,9 @@ public final class ArrayContains extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-        if ( args.length > 2)
-    		return call( pc, Caster.toArray(args[0]),args[1], Caster.toBoolean( args[2] ) );
-        return call(pc,Caster.toArray(args[0]),args[1]);
+        if( args.length == 3) return call( pc, Caster.toArray(args[0]),args[1], Caster.toBoolean( args[2] ) );
+        else if( args.length == 2) return call(pc,Caster.toArray(args[0]),args[1]);
+		else throw new FunctionException(pc, "ArrayContains", 2, 3, args.length);
 	}
 
 

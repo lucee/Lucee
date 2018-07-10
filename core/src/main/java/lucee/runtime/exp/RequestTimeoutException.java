@@ -18,23 +18,72 @@
  **/
 package lucee.runtime.exp;
 
+import lucee.commons.lang.ExceptionUtil;
+import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageSource;
+import lucee.runtime.lock.LockManager;
+import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.ListUtil;
+
 public class RequestTimeoutException extends Abort implements Stop {
 
 	private static final long serialVersionUID = -37886162001453270L;
 	
 	private StackTraceElement[] stacktrace;
 
-	public RequestTimeoutException(String msg) {
-		this(null,msg);
-	}
-	public RequestTimeoutException(Thread t,String msg) {
-		super(SCOPE_REQUEST,msg);
-		this.stacktrace=t!=null?t.getStackTrace():new Throwable().getStackTrace();
+	private ThreadDeath threadDeath; 
+
+	public RequestTimeoutException(PageContextImpl pc, ThreadDeath td) {
+		this(pc,pc.getTimeoutStackTrace());
+		this.threadDeath=td;
 	}
 	
+	public RequestTimeoutException(PageContext pc, StackTraceElement[] stacktrace) {
+		super(SCOPE_REQUEST,"request "
+				+getPath(pc)
+				+" has run into a timeout ("
+				+(pc.getRequestTimeout()/1000)
+				+" seconds) and has been stopped."
+				+locks(pc));
+		this.stacktrace=stacktrace;
+		setStackTrace(stacktrace);
+		// TODO Auto-generated constructor stub
+	}
+
 	@Override
 	public StackTraceElement[] getStackTrace() {
 		return stacktrace;
 	}
+	
+	public static String locks(PageContext pc) {
+		String strLocks="";
+		try{
+			LockManager manager = pc.getConfig().getLockManager();
+	        String[] locks = manager.getOpenLockNames();
+	        if(!ArrayUtil.isEmpty(locks)) 
+	        	strLocks=" Open locks at this time ("+ListUtil.arrayToList(locks, ", ")+").";
+	        //LockManagerImpl.unlockAll(pc.getId());
+		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+		return strLocks;
+	}
+	
+	private static String getPath(PageContext pc) {
+		try {
+			PageSource ps = pc.getBasePageSource();
+			return ps.getRealpathWithVirtual()+" ("+pc.getBasePageSource().getDisplayPath()+")";
+		}
+		catch(NullPointerException npe) {
+			return "(no path available)";
+		}
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return "(fail to retrieve path:"+t.getClass().getName()+":"+t.getMessage()+")";
+		}
+	}
 
+	public ThreadDeath getThreadDeath() {
+		return threadDeath;
+	}
 }

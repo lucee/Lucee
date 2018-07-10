@@ -42,10 +42,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	private string function defineDatasource(){
 		application action="update" 
-			datasource="#{
+			datasource={
 	  		class: 'org.h2.Driver'
+	  		, bundleName: 'org.h2'
 			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/update;MODE=MySQL'
-		}#";
+		};
 	}
 
 	public void function testCachedWithinColumns() {

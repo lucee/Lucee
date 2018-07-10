@@ -30,6 +30,7 @@ import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
@@ -123,7 +124,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 			try{
 				if(g.getState()==Gateway.RUNNING) g.doStop();
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 	}
 
@@ -184,6 +185,17 @@ public class GatewayEngineImpl implements GatewayEngine {
 		executeThread(gateway,GatewayThread.STOP);
 	}
 	
+	/**
+	 * stop all entries
+	 */
+	public void stopAll() {
+		Iterator<GatewayEntry> it = getEntries().values().iterator();
+		Gateway g;
+		while(it.hasNext()) {
+			g = it.next().getGateway();
+			if(g!=null)stop(g);
+		}
+	}
 	
 
 
@@ -209,15 +221,17 @@ public class GatewayEngineImpl implements GatewayEngine {
 		}
 	}
 
-	public synchronized void clear() {
-		Iterator<Entry<String, GatewayEntry>> it = entries.entrySet().iterator();
-		Entry<String, GatewayEntry> entry;
-		while(it.hasNext()){
-			entry = it.next();
-			if(entry.getValue().getGateway().getState()==Gateway.RUNNING) 
-				stop(entry.getValue().getGateway());
+	public void clear() {
+		synchronized (entries) {
+			Iterator<Entry<String, GatewayEntry>> it = entries.entrySet().iterator();
+			Entry<String, GatewayEntry> entry;
+			while(it.hasNext()){
+				entry = it.next();
+				if(entry.getValue().getGateway().getState()==Gateway.RUNNING) 
+					stop(entry.getValue().getGateway());
+			}
+			entries.clear();
 		}
-		entries.clear();
 	}
 	
 	/**
@@ -313,8 +327,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 					return true;
 			} 
 			catch (PageException e) {
-				e.printStackTrace();
-				log(gatewayId,LOGLEVEL_ERROR, e.getMessage());
+				log(gatewayId,LOGLEVEL_ERROR, e.getMessage(),e);
 			}
 		}
 		else
@@ -444,8 +457,11 @@ public class GatewayEngineImpl implements GatewayEngine {
 	public void log(Gateway gateway, int level, String message) {
 		log(gateway.getId(), level, message);
 	}
-	
+
 	public void log(String gatewayId, int level, String message) {
+		log(gatewayId, level, message,null);
+	}
+	public void log(String gatewayId, int level, String message, Exception e) {
 		int l=level;
 		switch(level){
 		case LOGLEVEL_INFO:l=Log.LEVEL_INFO;
@@ -461,7 +477,8 @@ public class GatewayEngineImpl implements GatewayEngine {
 		case LOGLEVEL_TRACE:l=Log.LEVEL_TRACE;
 		break;
 		}
-		log.log(l, "Gateway:"+gatewayId, message);
+		if(e==null)log.log(l, "Gateway:"+gatewayId, message);
+		else log.log(l, "Gateway:"+gatewayId, message,e);
 	}
 	
 

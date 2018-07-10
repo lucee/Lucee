@@ -94,6 +94,14 @@
 			<default>1</default>
 			<description>Number of dimensions in new array: 1, 2, or 3</description>
     	</argument>
+    	<argument>
+			<name>synchronized</name>
+			<alias>isSynchronized</alias>
+			<type>boolean</type>
+			<required>no</required>
+			<default>true</default>
+			<description>Number of dimensions in new array: 1, 2, or 3</description>
+    	</argument>
 		<return>
 			<type>array</type>
 		</return>
@@ -327,6 +335,13 @@ Characters that show how Lucee displays a date:
 - yy: Year as last two digits; leading zero for years less than 10.
 - yyyy: Year represented by four digits.
 - gg: Period/era string. Ignored. Reserved. The following masks tell how to format the full date and cannot be combined with other masks:
+- z: Time zone in literal format, for example, IST
+- Z: Time zone in hours of offset (RFC 822 TimeZone), for example, +0530
+- X: Time zone in hours of offset in ISO 8601 format. The following are the three ways of using 'X':
+         X: +05
+         XX: +0530
+         XXX: +5:30
+
 - short: equivalent to m/d/y
 - medium: equivalent to mmm d, yyyy
 - long: equivalent to mmmm d, yyyy
@@ -356,6 +371,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>dateTimeFormat</name>
 		<class>lucee.runtime.functions.displayFormatting.DateTimeFormat</class>
+		<member-name>dateTimeFormat</member-name>
+		<member-type>date</member-type>
 		<keywords>date,string,formatting</keywords>
 		<description>Formats a date/time string to a given output</description>
 		<argument>
@@ -1423,6 +1440,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>lSTimeFormat</name>
 		<class>lucee.runtime.functions.international.LSTimeFormat</class>
+		<member-name>lSTimeFormat</member-name>
+		<member-type>date</member-type>
 		<keywords>date,string,formatting</keywords>
 		<description>Formats a time string to a given output using the current locale.</description>
 		<argument>
@@ -1593,18 +1612,23 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Parses a date/time string according to the English (U.S.)
         locale conventions. (To format a date/time string for other
         locales, use the LSParseDateTime function.)</description>
+        <member-name>parseDateTime</member-name>
+        <member-type>string</member-type>
 		<argument>
 			<name>date</name>
 			<type>object</type>
 			<required>Yes</required>
-		<description>A string containing a date/time value formatted according to U.S. locale conventions.</description>
-    </argument>
-		<argument>
-			<name>popConversion</name>
+			<description>A string containing a date/time value formatted according to U.S. locale conventions.</description>
+    	</argument>
+    	<argument>
+			<name>format</name>
+			<alias>popConversion</alias><!-- old name -->
 			<type>string</type>
 			<required>No</required>
-		<description></description>
-    </argument>
+			<description>The format (Java Syntax) of the string. This string is used to parse the given date string to date time object.
+				For details see: http://docs.oracle.com/javase/1.4.2/docs/api/java/text/SimpleDateFormat.html</description>
+    	</argument>
+    	
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
@@ -1632,7 +1656,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		Parses the string argument as a numeric value. 
 		</description>
 		<argument>
-			<name>nummber</name>
+			<name>number</name>
 			<type>string</type>
 			<required>Yes</required>
 			<description>
@@ -1832,6 +1856,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- timeFormat -->
 	<function>
 		<name>timeFormat</name>
+		<member-name>timeFormat</member-name>
+        <member-type>date</member-type>
+        
 		<class>lucee.runtime.functions.displayFormatting.TimeFormat</class>
 		<keywords>date,string,formatting</keywords>
 		<description>Formats a time string to a given output</description>
@@ -1859,6 +1886,12 @@ Characters that show how Lucee displays a time:
 - l or L: milliseconds, with no leading zeros
 - t: one-character time marker string, such as A or P
 - tt: multiple-character time marker string, such as AM or PM
+- z: Time zone in literal format, for example, IST
+- Z: Time zone in hours of offset (RFC 822 TimeZone), for example, +0530
+- X: Time zone in hours of offset in ISO 8601 format. The following are the three ways of using 'X':
+         X: +05
+         XX: +0530
+         XXX: +5:30
 
 - short: equivalent to h:mm tt
 - medium: equivalent to h:mm:ss tt
@@ -1890,6 +1923,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>uRLEncodedFormat</name>
 		<class>lucee.runtime.functions.other.URLEncodedFormat</class>
+		<member-name>uRLEncodedFormat</member-name>
 		<keywords>string,formatting</keywords>
 		<description>Generates a URL-encoded string. For example, it replaces spaces
         with %20, and non-alphanumeric characters with equivalent
@@ -1924,6 +1958,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>valueArray</name>
 		<class>lucee.runtime.functions.query.ValueArray</class>
+		<tte-class>lucee.transformer.cfml.evaluator.func.impl.ValueArray</tte-class>
 		<status>deprecated</status>
 		<keywords>query</keywords>
 		<description>Returns a array of all the values, for a given column within the query.
@@ -1943,6 +1978,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>valueList</name>
 		<class>lucee.runtime.functions.query.ValueList</class>
+		<!-- <tte-class>lucee.transformer.cfml.evaluator.func.impl.ValueList</tte-class> -->
 		<status>deprecated</status>
 		<keywords>query</keywords>
 		<description>Returns a list of all the values, for a given column within the query, delimited by the value given.
@@ -1953,6 +1989,40 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<required>Yes</required>
 		<description>Name of an executed query and column. Separate query name and column name with a period.</description>
     </argument>
+		<argument>
+			<name>delimiter</name>
+			<alias>delimiters</alias>
+			<type>string</type>
+			<required>No</required>
+			<default>,</default>
+		<description>A delimiter character to separate column data items.
+            Default: comma (,).</description>
+    </argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	
+	<!-- valueList (Member) -->
+	<function>
+		<name>_valueList</name>
+		<class>lucee.runtime.functions.query.ValueListMember</class>
+		<member-name>valueList</member-name>
+		<status>hidden</status>
+		<keywords>query</keywords>
+		<description>Returns a list of all the values, for a given column within the query, delimited by the value given.</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query object do get data from</description>
+	    </argument>	
+		<argument>
+			<name>columnName</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>name of the column returned</description>
+	    </argument>	
 		<argument>
 			<name>delimiter</name>
 			<alias>delimiters</alias>
@@ -2059,6 +2129,24 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<required>Yes</required>
 		<description>A string to write to the buffer.</description>
     </argument>
+    <argument>
+			<name>encodeFor</name>
+			<type>string</type>
+			<required>no</required>
+			<description>encode for what, valid values are:
+- css: for output inside Cascading Style Sheets (CSS)
+- dn: for output in LDAP Distinguished Names
+- html: for output inside HTML
+- html_attr: for output inside HTML Attributes
+- javascript: for output inside Javascript
+- ldap: for output in LDAP queries
+- url: for output in URL
+- vbscript: for output inside vbscript
+- xml: for output inside XML
+- xml_attr: for output inside XML Attributes
+- xpath: for output in XPath</description>
+	    </argument>
+    
 		<return>
 			<type>boolean</type>
 		</return>
@@ -2068,6 +2156,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>yesNoFormat</name>
 		<class>lucee.runtime.functions.displayFormatting.YesNoFormat</class>
+		<member-name>yesNoFormat</member-name>
+		<member-type>boolean</member-type>
 		<keywords>boolean,formatting</keywords>
 		<description>Yes, for a non-zero value; No, otherwise.</description>
 		<argument>
@@ -2086,6 +2176,25 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>trueFalseFormat</name>
 		<class>lucee.runtime.functions.displayFormatting.TrueFalseFormat</class>
 		<keywords>boolean,formatting</keywords>
+		<description>True, for a non-zero value; False, otherwise.</description>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>a value that can be casted to a boolean</description>
+		</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+	
+	<!-- booleanFormat -->
+	<function>
+		<name>booleanFormat</name>
+		<class>lucee.runtime.functions.displayFormatting.TrueFalseFormat</class>
+		<member-name>booleanFormat</member-name>
+        <member-type>boolean</member-type>
+        <keywords>boolean,formatting</keywords>
 		<description>True, for a non-zero value; False, otherwise.</description>
 		<argument>
 			<name>value</name>
@@ -2419,6 +2528,8 @@ The following things are considered to be empty:
 	<function>
 		<name>lSDateTimeFormat</name>
 		<class>lucee.runtime.functions.international.LSDateTimeFormat</class>
+		<member-name>lSDateTimeFormat</member-name>
+		<member-type>date</member-type>
 		<keywords>date,string,formatting</keywords>
 		<description>Formats a date string to a given output using the current locale</description>
 		<argument>

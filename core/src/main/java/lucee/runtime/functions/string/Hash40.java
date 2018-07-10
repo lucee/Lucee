@@ -23,6 +23,7 @@ package lucee.runtime.functions.string;
 
 import java.security.MessageDigest;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.MD5Legacy;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -64,12 +65,6 @@ public final class Hash40 implements Function {
 		return invoke( pc.getConfig(), input, algorithm, encoding, (int)numIterations );
 	}
 
-    /*/	this method signature was called from ConfigWebAdmin.createUUID(), comment this comment to enable
-    public synchronized static String invoke(Config config, Object input, String algorithm, String encoding) throws PageException {
-    	
-    	return invoke(config, input, algorithm, encoding, 1);
-    }	//*/
-    
     public static String invoke(Config config, Object input, String algorithm, String encoding, int numIterations) throws PageException {
 		
     	if(StringUtil.isEmpty(algorithm))algorithm="md5";
@@ -98,7 +93,8 @@ public final class Hash40 implements Function {
 		    
 			return MD5Legacy.stringify( md.digest() ).toUpperCase();
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 	}

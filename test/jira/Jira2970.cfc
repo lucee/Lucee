@@ -1,5 +1,6 @@
 <!--- 
  *
+ * Copyright (c) 2016, Lucee Assosication Switzerland. All rights reserved.*
  * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -157,7 +158,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		res=QueryMap(qry, function(row ){
 							return {a:row.a&":",b:row.b&":"};
  
-                        },parallel);
+                        },queryNew(qry.columnlist),parallel);
 
 		assertEquals('query("a":["a1:","a2:"],"b":["b1:","b2:"])',serialize(res));
 		
@@ -168,7 +169,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 							echo(serialize(arguments));
  							return row;
  
-                        },parallel);
+                        },queryNew(qry.columnlist),parallel);
 		}
 		assertEquals('{"row":{"a":"a1"},"2":1,"3":query("a":["a1"])}',c);
 
@@ -176,7 +177,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		res=qry.Map(function(row ){
 							return {a:row.a&":",b:row.b&":"};
  
-                        },parallel);
+                        },queryNew(qry.columnlist),parallel);
 
 		assertEquals('query("a":["a1:","a2:"],"b":["b1:","b2:"])',serialize(res));
 

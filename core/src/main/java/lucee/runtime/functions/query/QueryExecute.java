@@ -22,6 +22,7 @@
  */
 package lucee.runtime.functions.query;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -67,10 +68,12 @@ public final class QueryExecute extends BIF {
 				qry.doAfterBody();
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				try {
 					qry.doCatch(t);
 				}
 				catch (Throwable t2) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					throw Caster.toPageException(t2);
 				}
 			}

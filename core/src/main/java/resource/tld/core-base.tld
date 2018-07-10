@@ -1891,8 +1891,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>ASCIIExtensionList</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Delimited list of file extensions that force ASCII transfer mode, if transferMode = "auto".
-</description>
+			<description>Delimited list of file extensions that force ASCII transfer mode, if transferMode = "auto".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1973,7 +1972,21 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>delete content of the directory</description>
 		</attribute>
-		
+
+		<attribute>
+			<type>string</type>
+			<name>key</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>the ssh private key</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>passphrase</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>the passphrase that protects ssh private key</description>
+		</attribute>
 		
 		
 	</tag>
@@ -3673,8 +3686,8 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 		<attribute>
 			<type>string</type>
 			<name>type</name>
-			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
+			<default-value>URL</default-value>
 			<values>body,CGI,cookie,file,form,formfield,header,URL,XML</values>
 			<description>valid values are:
 - header: specifies an HTTP header.
@@ -3947,10 +3960,24 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
+			<name>connection</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>label for a connection.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
 			<name>server</name>
-			<required>true</required>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Host name biff.upperlip.com or IP address 192.1.2.225 of the Imap server.</description>
+		</attribute>
+		<attribute>
+			<type>number</type>
+			<name>port</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defaults to the standard Imap port, 143.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3959,13 +3986,6 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<rtexprvalue>true</rtexprvalue>
 		<description>Specifies the unique ID or a comma-delimited list of Uids to retrieve or delete. If you set invalid Uids, then they are ignored.</description>
     </attribute>
-		<attribute>
-			<type>number</type>
-			<name>port</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Defaults to the standard Imap port, 143.</description>
-		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>username</name>
@@ -3979,6 +3999,13 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Password that corresponds to user name.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>secure</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>enables SSL for pop requests</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -4050,6 +4077,27 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<rtexprvalue>true</rtexprvalue>
 			<description>Boolean indicating whether to generate unique filenames for the files attached to an e-mail
 		message to avoid naming conflicts when the files are saved. Default is NO.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>folder</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>newfolder</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>recurse</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
 		</attribute>
 	</tag>
 
@@ -4474,6 +4522,10 @@ Permits searching collections by title or displaying a separate title from the k
 		<tag-class>lucee.runtime.tag.Invoke</tag-class>
 		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<script>
+			<type>multiple</type>
+			<rtexprvalue>true</rtexprvalue>
+		</script>
 		<description>
 			Invokes component methods from within a page or component.
 			You use this tag to reference a WSDL file and consume a web service from within a block of CFML code.
@@ -4578,6 +4630,10 @@ Permits searching collections by title or displaying a separate title from the k
 		<tag-class>lucee.runtime.tag.InvokeArgument</tag-class>
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<script>
+			<type>multiple</type>
+			<rtexprvalue>true</rtexprvalue>
+		</script>
 		<description>Argument for the Invoke Tag</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
@@ -4874,11 +4930,11 @@ Permits searching collections by title or displaying a separate title from the k
 		<attribute>
 			<type>object</type>
 			<name>timeout</name>
-			<required>true</required>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies the maximum amount of time, in seconds, to wait to obtain a lock. If a lock can be
 		obtained within the specified period, execution continues inside the body of the tag. Otherwise, the
-		behavior depends on the value of the throwOnTimeout attribute.</description>
+		behavior depends on the value of the throwOnTimeout attribute. If not set, the remaing request timeout is used instead.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -4919,6 +4975,18 @@ Permits searching collections by title or displaying a separate title from the k
 	A read-only lock allows more than one request to read shared data. An exclusive lock allows only one
 	request to read or write to shared data.</description>
 		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>result</name>
+			<alias>variable,variablename</alias>
+			<required>false</required>
+			<default>cflock</default>
+			<rtexprvalue>true</rtexprvalue>
+			<description>
+				Specifies a name for the structure in which cflock returns the statusCode and ExecutionTime variables.
+				Default variable is is "cflock".
+			</description>
+		</attribute>
 	</tag>
 	<!-- Log -->
 	<tag>
@@ -4957,6 +5025,7 @@ Permits searching collections by title or displaying a separate title from the k
 		<attribute>
 			<type>string</type>
 			<name>log</name>
+			<alias>name</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>If you omit the file attribute, specifies the log in which to write the message.
@@ -5335,6 +5404,14 @@ Lucee uses the number of characters in the file.</description>
 		is MIME-encoded.</description>
 		</attribute>
 		<attribute>
+			<type>any</type>
+			<name>listener</name>
+			<required>false</required>
+			<status>hidden</status>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
 			<type>string</type>
 			<name>query</name>
 			<required>false</required>
@@ -5573,6 +5650,13 @@ Lucee uses the number of characters in the file.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
+			<name>filename</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>file name used for the file attached with the attribute "file", if not set the name of the file itself is used.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
 			<name>name</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -5804,8 +5888,16 @@ Lucee uses the number of characters in the file.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
+			<name>connection</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>label for a connection.</description>
+		</attribute>
+		
+		<attribute>
+			<type>string</type>
 			<name>server</name>
-			<required>true</required>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Host name biff.upperlip.com or IP address 192.1.2.225 of the POP server.</description>
 		</attribute>
@@ -5837,6 +5929,13 @@ Lucee uses the number of characters in the file.</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Password that corresponds to user name.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>secure</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>enables SSL for pop requests</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -6420,6 +6519,15 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<rtexprvalue>true</rtexprvalue>
 			<status>deprecated</status>
 			<description>This attribute has been deprecated and is non-functional.</description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>tags</name>
+			<alias>tag</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<status>hidden</status>
+			<description>tags stored with the cache.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7159,7 +7267,8 @@ To use cached data, the current query must use the same SQL statement, data sour
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>returnvariable</name>
+			<name>result</name>
+			<alias>returnvariable</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>return variable name of action list</description>
@@ -8778,6 +8887,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<tag-class>lucee.runtime.tag.CFXTag</tag-class>
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<status>hidden</status>
 		<description>Creates a CFX Tag</description>
 		<attribute-type>dynamic</attribute-type>
 	</tag>
@@ -8787,6 +8897,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<appendix>true</appendix>
 		<tag-class>lucee.runtime.tag.CFTag</tag-class>
 		<att-default-value>boolean:true</att-default-value>
+		<status>hidden</status>
 		<handle-exception>true</handle-exception>
 		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
@@ -8801,6 +8912,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<handle-exception>true</handle-exception>
 		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<status>hidden</status>
 		<description>Creates a Custom Tag based on a CF Component (CFC)</description>
 		<attribute-type>dynamic</attribute-type>
 	</tag>-->
@@ -9089,18 +9201,14 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
     </attribute>
 	</tag>
 
-
-
-
-
-
 	<!-- Form -->
 	<tag>
-		<name>form</name>
+		<name>formclassic</name>
 		<tag-class>lucee.runtime.tag.Form</tag-class>
 		<allow-removing-literal>yes</allow-removing-literal>
 		<body-content>must</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<status>hidden</status>
 		<description>Builds a form with CFML custom control tags that provide more functionality than standard
   HTML form input elements (XML and Flash type not supported).</description>
 		<attribute-type>fixed</attribute-type>
@@ -9447,10 +9555,11 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 
 	<!-- Input -->
 	<tag>
-		<name>input</name>
+		<name>inputclassic</name>
 		<tag-class  >lucee.runtime.tag.Input</tag-class>
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<status>hidden</status>
 		<description>Used inside cfform to place radio buttons, checkboxes, or text boxes. Provides input
   validation for the specified control type.</description>
 		<attribute-type>fixed</attribute-type>
@@ -10179,12 +10288,13 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 	</tag>
 
-	<!-- Select -->
+	<!-- Selectclassic -->
 	<tag>
 		<name>Select</name>
 		<tag-class  >lucee.runtime.tag.Select</tag-class>
 		<body-content>must</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<status>hidden</status>
 		<description>Used inside cfform, cfselect lets you construct a drop-down list box form control. You can
   populate the drop-down list box from a query, or using the option tag. Use option elements to populate
   lists. The syntax for the option tag is the same as for its HTML counterpart.</description>

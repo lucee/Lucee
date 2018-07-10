@@ -21,8 +21,11 @@ package lucee.runtime.schedule;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.CFMLEngineImpl;
@@ -30,6 +33,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
+import lucee.runtime.text.xml.XMLUtil;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -50,6 +54,7 @@ public final class SchedulerImpl implements Scheduler {
     private StorageUtil su=new StorageUtil();
 	private String charset;
 	private final Config config;
+	private final Object sync=new SerializableObject();
 	//private String md5;
 
 	private CFMLEngineImpl engine;
@@ -68,14 +73,29 @@ public final class SchedulerImpl implements Scheduler {
     	this.charset=charset;
     	this.config=config;
     	
-    	initFile(schedulerDir);
-        doc=su.loadDocument(schedulerFile);
+    	boolean newFile=initFile(schedulerDir);
+    	try {
+    		doc=XMLUtil.createDocument(schedulerFile,false);
+    	}
+    	catch(Exception e) {
+    		if(newFile) rethrow(e); 
+    		config.getLog("scheduler").log(Log.LEVEL_FATAL,"startup","could not load "+schedulerFile, e);
+    		reinitFile(schedulerDir);
+    		doc=XMLUtil.createDocument(schedulerFile,false);
+    	}
+        
         tasks=readInAllTasks();
         init();
     }
     
 
-    /**
+    private void rethrow(Exception e) throws IOException, SAXException {
+		if(e instanceof IOException) throw (IOException)e;
+		if(e instanceof SAXException) throw (SAXException)e;
+	}
+
+
+	/**
      * creates a empty Scheduler, used for event gateway context
      * @param engine
      * @param config
@@ -88,19 +108,31 @@ public final class SchedulerImpl implements Scheduler {
     	this.engine=(CFMLEngineImpl) engine;
     	this.config=config;
     	try {
-			doc=su.loadDocument(xml);
+			doc=XMLUtil.createDocument(xml,false);
 		} catch (Exception e) {}
     	tasks=new ScheduleTaskImpl[0];
         init();
     }
     
     
+
+	private boolean reinitFile(Resource schedulerDir) throws IOException {
+		Resource src = schedulerDir.getRealResource("scheduler.xml");
+		if(src.exists()) {
+			Resource trg = schedulerDir.getRealResource("scheduler.xml.buggy");
+			if(trg.exists()) trg.delete();
+			src.moveTo(trg);
+		}
+		return initFile(schedulerDir);
+	}
     
-    
-	private void initFile(Resource schedulerDir) throws IOException {
+	private boolean initFile(Resource schedulerDir) throws IOException {
 		this.schedulerFile=schedulerDir.getRealResource("scheduler.xml");
-		if(!schedulerFile.exists()) su.loadFile(schedulerFile,"/resource/schedule/default.xml");
-		//this.log=log;  
+		if(!schedulerFile.exists()) {
+			su.loadFile(schedulerFile,"/resource/schedule/default.xml");
+			return true;
+		}
+		return false;
 	}
 	
     /**
@@ -173,7 +205,8 @@ public final class SchedulerImpl implements Scheduler {
                     su.toBoolean(el,"paused",false),
                     su.toBoolean(el,"autoDelete",false));
             return st;
-        } catch (Exception e) {e.printStackTrace();
+        } catch (Exception e) {
+            SystemOut.printDate(e);
             throw Caster.toPageException(e);
         }
     }
@@ -318,59 +351,60 @@ public final class SchedulerImpl implements Scheduler {
 	}
 
 	@Override
-	public synchronized void removeScheduleTask(String name, boolean throwWhenNotExist) throws IOException, ScheduleException {
-	    
-	    int pos=-1;
-	    for(int i=0;i<tasks.length;i++) {
-	        if(tasks[i].getTask().equalsIgnoreCase(name)) {
-	        	tasks[i].setValid(false);
-	            pos=i;
-	        }
-	    }
-	    if(pos!=-1) {
-		    ScheduleTaskImpl[] newTasks=new ScheduleTaskImpl[tasks.length-1];
-		    int count=0;
+	public void removeScheduleTask(String name, boolean throwWhenNotExist) throws IOException, ScheduleException {
+	    synchronized (sync) {
+			int pos=-1;
 		    for(int i=0;i<tasks.length;i++) {
-		        if(i!=pos)newTasks[count++]=tasks[i];
-		        
+		        if(tasks[i].getTask().equalsIgnoreCase(name)) {
+		        	tasks[i].setValid(false);
+		            pos=i;
+		        }
 		    }
-		    tasks=newTasks;
-	    }
-	    
-	    
-	    NodeList list = doc.getDocumentElement().getChildNodes();
-	    Element el=su.getElement(list,"name", name);
-	    if(el!=null) {
-	        el.getParentNode().removeChild(el);
-	    }
-	    else if(throwWhenNotExist) throw new ScheduleException("can't delete schedule task ["+name+"], task doesn't exist");
-	    
-	    //init();
-	    su.store(doc,schedulerFile);
+		    if(pos!=-1) {
+			    ScheduleTaskImpl[] newTasks=new ScheduleTaskImpl[tasks.length-1];
+			    int count=0;
+			    for(int i=0;i<tasks.length;i++) {
+			        if(i!=pos)newTasks[count++]=tasks[i];
+			        
+			    }
+			    tasks=newTasks;
+		    }
+	
+		    NodeList list = doc.getDocumentElement().getChildNodes();
+		    Element el=su.getElement(list,"name", name);
+		    if(el!=null) {
+		        el.getParentNode().removeChild(el);
+		    }
+		    else if(throwWhenNotExist) throw new ScheduleException("can't delete schedule task ["+name+"], task doesn't exist");
+		    
+		    //init();
+		    su.store(doc,schedulerFile);
+		}
 	}
 	
-	public synchronized void removeIfNoLonerValid(ScheduleTask task) throws IOException {
-		ScheduleTaskImpl sti=(ScheduleTaskImpl) task;
-		if(sti.isValid() || !sti.isAutoDelete()) return;
-		
-		
-		try {
-			removeScheduleTask(task.getTask(), false);
-		} catch (ScheduleException e) {}
+	public void removeIfNoLonerValid(ScheduleTask task) throws IOException {
+		synchronized (sync) {
+			ScheduleTaskImpl sti=(ScheduleTaskImpl) task;
+			if(sti.isValid() || !sti.isAutoDelete()) return;
+			
+			
+			try {
+				removeScheduleTask(task.getTask(), false);
+			} catch (ScheduleException e) {}
+		}
 	}
 	
 
 	@Override
-	public synchronized void runScheduleTask(String name, boolean throwWhenNotExist) throws IOException, ScheduleException {
-	    ScheduleTask task = getScheduleTask(name);
-	    
-	    if(task!=null) {
-	        execute(task);
-	    }
-	    else if(throwWhenNotExist) throw new ScheduleException("can't run schedule task ["+name+"], task doesn't exist");
-	    
-	    
-	    su.store(doc,schedulerFile);
+	public void runScheduleTask(String name, boolean throwWhenNotExist) throws IOException, ScheduleException {
+		synchronized (sync) {
+			ScheduleTask task = getScheduleTask(name);
+		    if(task!=null) {
+		        execute(task);
+		    }
+		    else if(throwWhenNotExist) throw new ScheduleException("can't run schedule task ["+name+"], task doesn't exist");
+		    su.store(doc,schedulerFile);
+		}
 	}
     
     public void execute(ScheduleTask task) {

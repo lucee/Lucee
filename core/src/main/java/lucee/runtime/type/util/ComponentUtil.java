@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import lucee.commons.digest.MD5;
@@ -32,6 +33,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
@@ -43,6 +45,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
+import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -122,7 +125,7 @@ public final class ComponentUtil {
 				Class clazz=cl.loadClass(className);
 				if(clazz!=null && !hasChangesOfChildren(classFile.lastModified(),clazz))return registerTypeMapping(clazz);
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		if(!create) return null;
 		isNew.setValue(true);
@@ -175,6 +178,7 @@ public final class ComponentUtil {
 	        return registerTypeMapping(cl.loadClass(className, barr));
         }
         catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
         	throw Caster.toPageException(t);
         }
     }
@@ -259,7 +263,7 @@ public final class ComponentUtil {
      */
     private static Class registerTypeMapping(Class clazz) throws AxisFault {
     	PageContext pc = ThreadLocalPageContext.get();
-    	RPCServer server=RPCServer.getInstance(pc.getId(),pc.getConfig(),pc.getServletContext());
+    	RPCServer server=RPCServer.getInstance(pc.getId(),pc,pc.getServletContext());
 		return registerTypeMapping(server, clazz);
     }
     /**
@@ -339,6 +343,7 @@ public final class ComponentUtil {
 			throw Caster.toPageException(e);
 		}
 	}
+	// FUTURE add this methid to loader, maybe make ASMProperty visible in loader
 	/*
 	 * does not include the application context javasettings 
 	 * @param pc
@@ -426,7 +431,7 @@ public final class ComponentUtil {
 				Class clazz=cl.loadClass(className);
 				if(clazz!=null && !hasChangesOfChildren(classFile.lastModified(), clazz))return clazz;//ClassUtil.loadInstance(clazz);
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		
 		// extends
@@ -472,7 +477,7 @@ public final class ComponentUtil {
 				Class clazz=cl.loadClass(className);
 				if(clazz!=null )return clazz;
 			}
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 
 		// Properties
@@ -712,7 +717,8 @@ public final class ComponentUtil {
 	public static long getCompileTime(PageContext pc, PageSource ps,long defaultValue) {
 		try {
 			return getCompileTime(pc, ps);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -766,8 +772,14 @@ public final class ComponentUtil {
         
         if(udf.getPageSource()!=null)
         	func.set(KeyConstants._owner, udf.getPageSource().getDisplayPath());
-        
-	    	   
+
+        if(udf.getStartLine()>0 && udf.getEndLine()>0) {
+        	Struct pos=new StructImpl();
+        	pos.set("start", udf.getStartLine());
+        	pos.set("end", udf.getEndLine());
+        	func.setEL("position", pos);
+        }
+
 	    int format = udf.getReturnFormat();
         if(format<0 || format==UDF.RETURN_FORMAT_WDDX)			func.set(KeyConstants._returnFormat, "wddx");
         else if(format==UDF.RETURN_FORMAT_PLAIN)	func.set(KeyConstants._returnFormat, "plain");
@@ -826,5 +838,13 @@ public final class ComponentUtil {
 		if(Component.MODIFIER_NONE==modifier) return "none";
 		
 		return defaultValue;
+	}
+
+	public static void add(Map<String,ImportDefintion> map, ImportDefintion[] importDefintions) {
+		if(importDefintions!=null) {
+			for(ImportDefintion id:importDefintions) {
+				map.put(id.toString(), id);
+			}
+		}
 	}
 }

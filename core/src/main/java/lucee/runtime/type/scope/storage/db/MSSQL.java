@@ -25,7 +25,6 @@ import lucee.runtime.config.Config;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Query;
-import lucee.runtime.type.Struct;
 import lucee.runtime.type.scope.storage.StorageScopeEngine;
 import lucee.runtime.type.scope.storage.StorageScopeListener;
 import lucee.runtime.type.scope.storage.clean.DatasourceStorageScopeCleaner;
@@ -42,7 +41,7 @@ public class MSSQL extends SQLExecutorSupport {
 
 	@Override
 	public void update(Config config, String cfid, String applicationName,
-			DatasourceConnection dc, int type, Struct data, long timeSpan,
+			DatasourceConnection dc, int type, Object data, long timeSpan,
 			Log log) throws PageException, SQLException {
 		// TODO Auto-generated method stub
 

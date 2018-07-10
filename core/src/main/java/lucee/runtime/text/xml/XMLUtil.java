@@ -20,6 +20,7 @@ package lucee.runtime.text.xml;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -48,6 +49,7 @@ import javax.xml.transform.stream.StreamSource;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigImpl;
@@ -81,6 +83,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
+import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -106,6 +109,10 @@ public final class XMLUtil {
     public static final Collection.Key XMLTYPE = KeyImpl.intern("xmltype");
     public static final Collection.Key XMLVALUE = KeyImpl.intern("xmlvalue");
     public static final Collection.Key XMLATTRIBUTES = KeyImpl.intern("xmlattributes");
+    
+    public final static String DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
+  	
+    
 	/*
 	private static final Collection.Key  = KeyImpl.getInstance();
 	private static final Collection.Key  = KeyImpl.getInstance();
@@ -121,6 +128,7 @@ public final class XMLUtil {
 	private static DocumentBuilder docBuilder;
 	//private static DocumentBuilderFactory factory;
     private static TransformerFactory transformerFactory;
+	private static DocumentBuilderFactory documentBuilderFactory;
 	
 
     public static String unescapeXMLString(String str) {
@@ -206,10 +214,19 @@ public final class XMLUtil {
      * @return returns a singelton TransformerFactory
      */
     public static TransformerFactory getTransformerFactory() {
-    	Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
-		
+    	
+    	/*if(transformerFactory==null){
+    		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
+    		transformerFactory=TransformerFactory.newInstance();
+    	}*/
     	if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
         return transformerFactory;
+    }
+    
+
+    public static final Document parse(InputSource xml,InputSource validator,  boolean isHtml) 
+        throws SAXException, IOException {
+    	return parse(xml, validator, new XMLEntityResolverDefaultHandler(validator), isHtml);
     }
     
     /**
@@ -221,50 +238,32 @@ public final class XMLUtil {
      * @throws IOException
      * @throws ParserConfigurationException 
      */
-    public static final Document parse(InputSource xml,InputSource validator, boolean isHtml) 
+    public static final Document parse(InputSource xml,InputSource validator,  EntityResolver entRes, boolean isHtml) 
         throws SAXException, IOException {
-        
+    	
         if(!isHtml) {
-        	// try to load org.apache.xerces.jaxp.DocumentBuilderFactoryImpl, oracle impl sucks
-        	DocumentBuilderFactory factory = null;
-        	try{
-        		factory = new DocumentBuilderFactoryImpl();
-        	}
-        	catch(Throwable t) {
-        		factory = DocumentBuilderFactory.newInstance();
-        	}
-        	
-        	//print.o(factory);
-            if(validator==null) {
+        	DocumentBuilderFactory factory = newDocumentBuilderFactory();
+        	if(validator==null) {
             	XMLUtil.setAttributeEL(factory,XMLConstants.NON_VALIDATING_DTD_EXTERNAL, Boolean.FALSE);
             	XMLUtil.setAttributeEL(factory,XMLConstants.NON_VALIDATING_DTD_GRAMMAR, Boolean.FALSE);
             }
             else {
             	XMLUtil.setAttributeEL(factory,XMLConstants.VALIDATION_SCHEMA, Boolean.TRUE);
-            	XMLUtil.setAttributeEL(factory,XMLConstants.VALIDATION_SCHEMA_FULL_CHECKING, Boolean.TRUE);
-            
-                
+            	XMLUtil.setAttributeEL(factory,XMLConstants.VALIDATION_SCHEMA_FULL_CHECKING, Boolean.TRUE);   
             }
-            
             
             factory.setNamespaceAware(true);
             factory.setValidating(validator!=null);
             
             try {
 				DocumentBuilder builder = factory.newDocumentBuilder();
-	            builder.setEntityResolver(new XMLEntityResolverDefaultHandler(validator));
+	            if(entRes!=null)builder.setEntityResolver(entRes);
 	            builder.setErrorHandler(new ThrowingErrorHandler(true,true,false));
-	            return  builder.parse(xml);
+	            return builder.parse(xml);
 			} 
             catch (ParserConfigurationException e) {
 				throw new SAXException(e);
 			}
-            
-	        /*DOMParser parser = new DOMParser();
-	        print.out("parse");
-	        parser.setEntityResolver(new XMLEntityResolverDefaultHandler(validator));
-	        parser.parse(xml);
-	        return parser.getDocument();*/
         }
         
         XMLReader reader = new Parser();
@@ -283,13 +282,20 @@ public final class XMLUtil {
         }
     }
 	
+	private static DocumentBuilderFactory newDocumentBuilderFactory() {
+		if(documentBuilderFactory==null) {
+			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
+			//documentBuilderFactory=DocumentBuilderFactory.newInstance();
+			documentBuilderFactory=new DocumentBuilderFactoryImpl();
+		}
+		return documentBuilderFactory;
+	}
+
 	private static void setAttributeEL(DocumentBuilderFactory factory,String name, Object value) {
 		try{
 			factory.setAttribute(name, value);
 		}
-		catch(Throwable t){
-			//SystemOut.printDate("attribute ["+name+"] is not allowed for ["+factory.getClass().getName()+"]");
-		}
+		catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	/**
@@ -328,7 +334,7 @@ public final class XMLUtil {
 	}
 	
 	public static Object setProperty(Node node, Collection.Key k, Object value,boolean caseSensitive) throws PageException {
-		Document doc=(node instanceof Document)?(Document)node:node.getOwnerDocument();
+		Document doc=getDocument(node);
 		boolean isXMLChildren;
 		// Comment
 			if(k.equals(XMLCOMMENT)) {
@@ -783,9 +789,7 @@ public final class XMLUtil {
 	 * @return Root Element
 	 */
 	public static Element getRootElement(Node node, boolean caseSensitive) {
-	    Document doc=null;
-		if(node instanceof Document) doc=(Document) node;
-		else doc=node.getOwnerDocument();
+	    Document doc=XMLUtil.getDocument(node);
 		Element el = doc.getDocumentElement();
 		if(el==null) return null;
 		return (Element)XMLStructFactory.newInstance(el,caseSensitive);
@@ -806,7 +810,7 @@ public final class XMLUtil {
 	 */
 	public static Document newDocument() throws ParserConfigurationException, FactoryConfigurationError {
 		if(docBuilder==null) {
-			docBuilder=DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			docBuilder=newDocumentBuilderFactory().newDocumentBuilder();
 		}
 		return docBuilder.newDocument();
 	}
@@ -844,15 +848,17 @@ public final class XMLUtil {
 	 * @param type Type Definition to remove (Constant value from class Node)
 	 * @param deep remove also in sub nodes
 	 */
-	private synchronized static void removeChildren(Node node, short type, boolean deep) {
-		NodeList list = node.getChildNodes();
-		
-		for(int i=list.getLength();i>=0;i--) {
-			Node n=list.item(i);
-			if(n ==null )continue;
+	private static void removeChildren(Node node, short type, boolean deep) {
+		synchronized(sync(node)){
+			NodeList list = node.getChildNodes();
 			
-			if(n.getNodeType()==type || type==UNDEFINED_NODE)node.removeChild(XMLCaster.toRawNode(n));
-			else if(deep)removeChildren(n,type,deep);
+			for(int i=list.getLength();i>=0;i--) {
+				Node n=list.item(i);
+				if(n ==null )continue;
+				
+				if(n.getNodeType()==type || type==UNDEFINED_NODE)node.removeChild(XMLCaster.toRawNode(n));
+				else if(deep)removeChildren(n,type,deep);
+			}
 		}
 	}
 	
@@ -862,15 +868,17 @@ public final class XMLUtil {
 	 * @param type
 	 * @param deep
 	 */
-	private synchronized static void removeChildCharacterData(Node node, boolean deep) {
-		NodeList list = node.getChildNodes();
+	private static void removeChildCharacterData(Node node, boolean deep) {
+		synchronized(sync(node)){
+			NodeList list = node.getChildNodes();
 		
-		for(int i=list.getLength();i>=0;i--) {
-			Node n=list.item(i);
-			if(n ==null )continue;
-			
-			if(n instanceof CharacterData)node.removeChild(XMLCaster.toRawNode(n));
-			else if(deep)removeChildCharacterData(n,deep);
+			for(int i=list.getLength();i>=0;i--) {
+				Node n=list.item(i);
+				if(n ==null )continue;
+				
+				if(n instanceof CharacterData)node.removeChild(XMLCaster.toRawNode(n));
+				else if(deep)removeChildCharacterData(n,deep);
+			}
 		}
 	}
 
@@ -882,84 +890,95 @@ public final class XMLUtil {
 	 * @param caseSensitive 
 	 * @return all matching child node
 	 */
-	public synchronized static ArrayNodeList getChildNodes(Node node, short type) {
+	public static ArrayNodeList getChildNodes(Node node, short type) {
 		return getChildNodes(node, type, false, null);
 	}
-	
 
-	public synchronized static int childNodesLength(Node node, short type, boolean caseSensitive, String filter) {
-		NodeList nodes=node.getChildNodes();
-		int len=nodes.getLength();
-		Node n;
-		int count=0;
-		for(int i=0;i<len;i++) {
-			try {
-				n=nodes.item(i);
-				if(n!=null && (type==UNDEFINED_NODE || n.getNodeType()==type)){
-					if(filter==null || (caseSensitive?filter.equals(n.getLocalName()):filter.equalsIgnoreCase(n.getLocalName())))
-					count++;
-				}
-			}
-			catch(Throwable t){}
-		}
-		return count;
-	}
-	
-	public synchronized static ArrayNodeList getChildNodes(Node node, short type, boolean caseSensitive, String filter) {
-		ArrayNodeList rtn=new ArrayNodeList();
-		NodeList nodes=node.getChildNodes();
-		int len=nodes.getLength();
-		Node n;
-		for(int i=0;i<len;i++) {
-			try {
-				n=nodes.item(i);
-				if(n!=null && (type==UNDEFINED_NODE || n.getNodeType()==type)){
-					if(filter==null || (caseSensitive?filter.equals(n.getLocalName()):filter.equalsIgnoreCase(n.getLocalName())))
-					rtn.add(n);
-				}
-			}
-			catch(Throwable t){}
-		}
-		return rtn;
-	}
-	
-	public synchronized static List<Node> getChildNodesAsList(Node node, short type, boolean caseSensitive, String filter) {
-		List<Node> rtn=new ArrayList<Node>();
-		NodeList nodes=node.getChildNodes();
-		int len=nodes.getLength();
-		Node n;
-		for(int i=0;i<len;i++) {
-			try {
-				n=nodes.item(i);
-				if(n!=null && (n.getNodeType()==type|| type==UNDEFINED_NODE)){
-					if(filter==null || (caseSensitive?filter.equals(n.getLocalName()):filter.equalsIgnoreCase(n.getLocalName())))
-					rtn.add(n);
-				}
-			}
-			catch(Throwable t){}
-		}
-		return rtn;
-	}
-	
-
-	public synchronized static Node getChildNode(Node node, short type, boolean caseSensitive, String filter, int index) {
-		NodeList nodes=node.getChildNodes();
-		int len=nodes.getLength();
-		Node n;
-		int count=0;
-		for(int i=0;i<len;i++) {
-			try {
-				n=nodes.item(i);
-				if(n!=null && (type==UNDEFINED_NODE || n.getNodeType()==type)){
-					if(filter==null || (caseSensitive?filter.equals(n.getLocalName()):filter.equalsIgnoreCase(n.getLocalName()))) {
-						if(count==index) return n;
+	public static int childNodesLength(Node node, short type, boolean caseSensitive, String filter) {
+		synchronized(sync(node)){
+			NodeList nodes=node.getChildNodes();
+			int len=nodes.getLength();
+			Node n;
+			int count=0;
+			for(int i=0;i<len;i++) {
+				try {
+					n=nodes.item(i);
+					if(n!=null && (type==UNDEFINED_NODE || n.getNodeType()==type)){
+						if(filter==null || (caseSensitive?filter.equals(n.getLocalName()):filter.equalsIgnoreCase(n.getLocalName())))
 						count++;
 					}
 				}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
-			catch(Throwable t){}
+			return count;
 		}
-		return null;
+	}
+	
+	public static Object sync(Node node) {
+		Document d = getDocument(node);
+		if(d!=null) return d;
+		return node;
+	}
+
+	public synchronized static ArrayNodeList getChildNodes(Node node, short type, boolean caseSensitive, String filter) {
+		ArrayNodeList rtn=new ArrayNodeList();
+		NodeList nodes=node==null?null:node.getChildNodes();
+		int len=nodes==null?0:nodes.getLength();
+		Node n;
+		for(int i=0;i<len;i++) {
+			try {
+				n=nodes.item(i);
+				if(n!=null && (type==UNDEFINED_NODE || n.getNodeType()==type)){
+					if(filter==null || (caseSensitive?filter.equals(n.getLocalName()):filter.equalsIgnoreCase(n.getLocalName())))
+					rtn.add(n);
+				}
+			}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+		}
+		return rtn;
+	}
+	
+	public static List<Node> getChildNodesAsList(Node node, short type, boolean caseSensitive, String filter) {
+		synchronized(sync(node)){
+			List<Node> rtn=new ArrayList<Node>();
+			NodeList nodes=node.getChildNodes();
+			int len=nodes.getLength();
+			Node n;
+			for(int i=0;i<len;i++) {
+				try {
+					n=nodes.item(i);
+					if(n!=null && (n.getNodeType()==type|| type==UNDEFINED_NODE)){
+						if(filter==null || (caseSensitive?filter.equals(n.getLocalName()):filter.equalsIgnoreCase(n.getLocalName())))
+						rtn.add(n);
+					}
+				}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+			}
+			return rtn;
+		}
+	}
+	
+
+	public static Node getChildNode(Node node, short type, boolean caseSensitive, String filter, int index) {
+		synchronized(sync(node)){
+			NodeList nodes=node.getChildNodes();
+			int len=nodes.getLength();
+			Node n;
+			int count=0;
+			for(int i=0;i<len;i++) {
+				try {
+					n=nodes.item(i);
+					if(n!=null && (type==UNDEFINED_NODE || n.getNodeType()==type)){
+						if(filter==null || (caseSensitive?filter.equals(n.getLocalName()):filter.equalsIgnoreCase(n.getLocalName()))) {
+							if(count==index) return n;
+							count++;
+						}
+					}
+				}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+			}
+			return null;
+		}
 	}
 	
 	
@@ -1002,7 +1021,7 @@ public final class XMLUtil {
      * @throws IOException
      */
     public static String transform(InputSource xml, InputSource xsl) throws TransformerException, SAXException, IOException {
-    	return transform( parse( xml, null , false ), xsl, null );
+    	return transform( parse( xml, null ,false ), xsl, null );
     }
     
     /**
@@ -1016,7 +1035,7 @@ public final class XMLUtil {
      * @throws IOException
      */
     public static String transform(InputSource xml, InputSource xsl, Map<String,Object> parameters) throws TransformerException, SAXException, IOException {
-    	return transform( parse( xml, null , false ), xsl, parameters );
+    	return transform( parse( xml, null, false ), xsl, parameters );
     }
 
     /**
@@ -1085,11 +1104,13 @@ public final class XMLUtil {
         }
     }
 
-	public synchronized static Element getChildWithName(String name, Element el) {
-		Element[] children = XMLUtil.getChildElementsAsArray(el);
-		for(int i=0;i<children.length;i++) {
-			if(name.equalsIgnoreCase(children[i].getNodeName()))
-				return children[i];
+	public static Element getChildWithName(String name, Element el) {
+		synchronized(sync(el)){
+			Element[] children = XMLUtil.getChildElementsAsArray(el);
+			for(int i=0;i<children.length;i++) {
+				if(name.equalsIgnoreCase(children[i].getNodeName()))
+					return children[i];
+			}
 		}
 		return null;
 	}
@@ -1140,7 +1161,7 @@ public final class XMLUtil {
 		if(value instanceof byte[]) {
 			return new InputSource(new ByteArrayInputStream((byte[])value));
         }
-		throw new ExpressionException("cat cast object of type ["+Caster.toClassName(value)+"] to a Input for xml parser");
+		throw new ExpressionException("can't cast object of type ["+Caster.toClassName(value)+"] to a Input for xml parser");
         	
 	}
 	
@@ -1151,7 +1172,7 @@ public final class XMLUtil {
 	public static InputSource toInputSource(PageContext pc, String xml, boolean canBePath) throws IOException, ExpressionException {
 		// xml text
 		xml=xml.trim(); 
-		if(!canBePath || xml.startsWith("<"))	{
+		if(!canBePath || xml.startsWith("<") || xml.length()>2000 || StringUtil.isEmpty(xml,true))	{
 			return new InputSource(new StringReader(xml));
 		}
 		// xml link
@@ -1183,12 +1204,94 @@ public final class XMLUtil {
 		else parent.appendChild(node);
 	}
 
-	public static XMLReader createXMLReader(String oprionalDefaultSaxParser) throws SAXException {
+	public static XMLReader createXMLReader() throws SAXException {
+		/*if(optionalDefaultSaxParser==null)
+			optionalDefaultSaxParser=DEFAULT_SAX_PARSER;
+			
 		try{
-			return XMLReaderFactory.createXMLReader(oprionalDefaultSaxParser);
-		}
-		catch(Throwable t){
 			return XMLReaderFactory.createXMLReader();
 		}
+		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
+			return XMLReaderFactory.createXMLReader();
+		}*/
+		return XMLReaderFactory.createXMLReader(DEFAULT_SAX_PARSER);
 	}
+	
+    public static Document createDocument(Resource res, boolean isHTML) throws SAXException, IOException {
+        InputStream is=null;
+    	try {
+            return parse(toInputSource(res, null),null,isHTML);
+        }
+        finally {
+        	IOUtil.closeEL(is);
+        }
+    }
+
+    
+    public static Document createDocument(String xml, boolean isHTML) throws SAXException, IOException {
+        return parse(toInputSource(xml),null,isHTML);
+    }
+
+    
+    public static Document createDocument(InputStream is, boolean isHTML) throws SAXException, IOException {
+        return parse(new InputSource(is),null,isHTML);
+    }
+    
+	
+	public static InputSource toInputSource(Object value) throws IOException {
+		if(value instanceof InputSource) {
+	        return (InputSource) value;
+	    }
+		if(value instanceof String) {
+	        return toInputSource((String)value);
+	    }
+		if(value instanceof StringBuffer) {
+	        return toInputSource(value.toString());
+	    }
+
+		if(value instanceof Resource) {
+	    	String str = IOUtil.toString(((Resource)value), (Charset)null);
+	    	return new InputSource(new StringReader(str));
+	    }
+		if(value instanceof File) {
+			FileInputStream fis = new FileInputStream((File)value);
+			try {
+				return toInputSource(fis);
+			}
+			finally {
+				IOUtil.closeEL(fis);
+			}
+	    }
+		if(value instanceof InputStream) {
+			InputStream is = (InputStream)value;
+			try {
+				String str = IOUtil.toString(is, (Charset)null);
+	        	return new InputSource(new StringReader(str));
+			}
+			finally {
+				IOUtil.closeEL(is);
+			}
+	    }
+		if(value instanceof Reader) {
+			Reader reader = (Reader)value;
+			try {
+				String str = IOUtil.toString(reader);
+	        	return new InputSource(new StringReader(str));
+			}
+			finally {
+				IOUtil.closeEL(reader);
+			}
+	    }
+		if(value instanceof byte[]) {
+			return new InputSource(new ByteArrayInputStream((byte[])value));
+	    }
+		throw new IOException("can't cast object of type ["+value+"] to a Input for xml parser");
+	}
+	
+	
+	public static InputSource toInputSource(String xml) throws IOException {
+		return new InputSource(new StringReader(xml.trim()));
+	}
+
 }

@@ -81,6 +81,7 @@ Defaults --->
 		<cfcatch>
 			<cfset error.message=cfcatch.message>
 			<cfset error.detail=cfcatch.Detail>
+			<cfset error.cfcatch=cfcatch>
 		</cfcatch>
 	</cftry>
 </cfif>
@@ -109,7 +110,7 @@ Error Output --->
 		</cfif>
 	</div>
 
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 
@@ -284,10 +285,10 @@ Error Output --->
 							<tbody>
 								<cfif hasAccess>
 									<tr>
-										<td><cfinput type="text" name="session_days" value="#scope.sessionTimeout_day#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutDaysValue#Session#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="session_hours" value="#scope.sessionTimeout_hour#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutHoursValue#Session#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="session_minutes" value="#scope.sessionTimeout_minute#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutMinutesValue#Session#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="session_seconds" value="#scope.sessionTimeout_second#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutSecondsValue#Session#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="session_days" value="#scope.sessionTimeout_day#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutDaysValue#Session#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="session_hours" value="#scope.sessionTimeout_hour#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutHoursValue#Session#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="session_minutes" value="#scope.sessionTimeout_minute#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutMinutesValue#Session#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="session_seconds" value="#scope.sessionTimeout_second#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutSecondsValue#Session#stText.Scopes.TimeoutEndValue#"></td>
 									</tr>
 								<cfelse>
 									<tr>
@@ -324,10 +325,10 @@ Error Output --->
 							<tbody>
 								<cfif hasAccess>
 									<tr>
-										<td><cfinput type="text" name="application_days" value="#scope.applicationTimeout_day#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutDaysValue#application#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="application_hours" value="#scope.applicationTimeout_hour#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutHoursValue#application#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="application_minutes" value="#scope.applicationTimeout_minute#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutMinutesValue#application#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="application_seconds" value="#scope.applicationTimeout_second#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutSecondsValue#application#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="application_days" value="#scope.applicationTimeout_day#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutDaysValue#application#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="application_hours" value="#scope.applicationTimeout_hour#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutHoursValue#application#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="application_minutes" value="#scope.applicationTimeout_minute#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutMinutesValue#application#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="application_seconds" value="#scope.applicationTimeout_second#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutSecondsValue#application#stText.Scopes.TimeoutEndValue#"></td>
 									</tr>
 								<cfelse>
 									<tr>
@@ -364,10 +365,10 @@ Error Output --->
 							<tbody>
 								<cfif hasAccess>
 									<tr>
-										<td><cfinput type="text" name="client_days" value="#scope.clientTimeout_day#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutDaysValue#client#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="client_hours" value="#scope.clientTimeout_hour#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutHoursValue#client#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="client_minutes" value="#scope.clientTimeout_minute#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutMinutesValue#client#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinput type="text" name="client_seconds" value="#scope.clientTimeout_second#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutSecondsValue#client#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="client_days" value="#scope.clientTimeout_day#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutDaysValue#client#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="client_hours" value="#scope.clientTimeout_hour#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutHoursValue#client#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="client_minutes" value="#scope.clientTimeout_minute#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutMinutesValue#client#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="client_seconds" value="#scope.clientTimeout_second#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutSecondsValue#client#stText.Scopes.TimeoutEndValue#"></td>
 									</tr>
 								<cfelse>
 									<tr>
@@ -408,7 +409,35 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.Scopes.sessionStorage#</th>
 					<td>
-						<cfinput type="text" name="sessionStorage" value="#scope.sessionStorage#">
+						<cfset stText.Scopes.memory="memory">
+						<cfset stText.Scopes.file="file">
+						<cfset stText.Scopes.cookie="cookie">
+						<cfset datasources=getPageContext().getConfig().getDatasources()>
+						<cfset cacheConnections = getPageContext().getConfig().getCacheConnections().keySet().toArray()>
+						<select name="sessionStorage" class="medium">
+							<option value="memory" <cfif scope.sessionStorage EQ "memory">selected</cfif>>#ucFirst(stText.Scopes.memory)#</option>
+							<option value="file" <cfif scope.sessionStorage EQ "file">selected</cfif>>#ucFirst(stText.Scopes.file)#</option>
+							<option value="cookie" <cfif scope.sessionStorage EQ "cookie">selected</cfif>>#ucFirst(stText.Scopes.cookie)#</option>
+							<cfloop from="1" to="#arrayLen(cacheConnections)#" index="key">
+								<cfif key EQ 1>
+									<optgroup label="Cache">
+								</cfif>
+								<option value="#cacheConnections[key]#" <cfif scope.sessionStorage EQ cacheConnections[key]>selected</cfif>>cache: #cacheConnections[key]#</option>
+								<cfif key EQ arrayLen(cacheConnections)>
+									</optgroup>
+								</cfif>
+							</cfloop>
+							<cfloop from="1" to="#arrayLen(datasources)#" index="key">
+								<cfif key EQ 1>
+									<optgroup label="Datasources">
+								</cfif>
+								<option value="#datasources[key].getName()#" <cfif scope.sessionStorage EQ datasources[key].getName()>selected</cfif>>dsn: #datasources[key].getName()#</option>
+								<cfif key EQ arrayLen(datasources)>
+									</optgroup>
+								</cfif>
+							</cfloop>
+						</select>
+						<!--- <cfinputClassic type="text" name="sessionStorage" value="#scope.sessionStorage#"> --->
 						<div class="comment">#stText.Scopes.sessionStorageDesc#</div>
 
 						<cfsavecontent variable="codeSample">
@@ -422,7 +451,30 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.Scopes.clientStorage#</th>
 					<td>
-						<cfinput type="text" name="clientStorage" value="#scope.clientStorage#">
+						<select name="clientStorage" class="medium">
+							<option value="memory" <cfif scope.clientStorage EQ "memory">selected</cfif>>#ucFirst(stText.Scopes.memory)#</option>
+							<option value="file" <cfif scope.clientStorage EQ "file">selected</cfif>>#ucFirst(stText.Scopes.file)#</option>
+							<option value="cookie" <cfif scope.clientStorage EQ "cookie">selected</cfif>>#ucFirst(stText.Scopes.cookie)#</option>
+							<cfloop from="1" to="#arrayLen(cacheConnections)#" index="key">
+								<cfif key EQ 1>
+									<optgroup label="Cache">
+								</cfif>
+								<option value="#cacheConnections[key]#" <cfif scope.clientStorage EQ cacheConnections[key]>selected</cfif>>cache: #cacheConnections[key]#</option>
+								<cfif key EQ arrayLen(cacheConnections)>
+									</optgroup>
+								</cfif>
+							</cfloop>
+							<cfloop from="1" to="#arrayLen(datasources)#" index="key">
+								<cfif key EQ 1>
+									<optgroup label="Datasources">
+								</cfif>
+								<option value="#datasources[key].getName()#" <cfif scope.clientStorage EQ datasources[key].getName()>selected</cfif>>dsn: #datasources[key].getName()#</option>
+								<cfif key EQ arrayLen(datasources)>
+									</optgroup>
+								</cfif>
+							</cfloop>
+						</select>
+						<!--- <cfinputClassic type="text" name="clientStorage" value="#scope.clientStorage#"> --->
 						<div class="comment">#stText.Scopes.clientStorageDesc#</div>
 
 						<cfsavecontent variable="codeSample">
@@ -537,7 +589,7 @@ function test() localMode="#scope.LocalMode#" {}
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 	
 <!--- Tip
 <div class="tip">

@@ -120,7 +120,7 @@
 
 		<cfset this.allSections = this.buildSectionStruct()>
 		<cfset var isExecOrder  = this.isSectionOpen( "ExecOrder" )>
-		
+
 		<cfif isExecOrder>
 
 			<cfset querySort(pages,"id","asc") />
@@ -141,11 +141,11 @@
 			,microsecond:"µs"
 			,nanosecond:"ns"
 			} />
-			
+
 		<cfset var ordermap={}>
 		<cfloop query="#arguments.debugging.history#">
 			<cfif !structkeyExists(ordermap, arguments.debugging.history.id)><cfset ordermap[ arguments.debugging.history.id ]=structCount(ordermap)+1></cfif>
-		</cfloop>	
+		</cfloop>
 		<cfset var prettify=structKeyExists(arguments.custom,'timeformat') and arguments.custom.timeformat EQ "natural">
 		</cfsilent>
 		<cfif arguments.context EQ "web">
@@ -185,6 +185,7 @@
 			#-lucee-debug .pad 	{ padding-left: 16px; }
 			#-lucee-debug a 	{ cursor: pointer; }
 			#-lucee-debug td a 	{ color: #25A; }
+			#-lucee-debug .warning{ color: red; }
 			#-lucee-debug td a:hover	{ color: #58C; text-decoration: underline; }
 			#-lucee-debug pre 	{ background-color: #EEE; padding: 1em; border: solid 1px #333; border-radius: 1em; white-space: pre-wrap; word-break: break-all; word-wrap: break-word; tab-size: 2; }
 
@@ -209,6 +210,11 @@
 					<cfif isEnabled( arguments.custom, 'general' )>
 
 						<div class="section-title">Debugging Information</div>
+					    <cfif getJavaVersion() LT 8 >
+							<div class="warning">
+								You are running Lucee with Java #server.java.version# Lucee does not formally support this version of Java. Consider updating to the latest Java version for security and performance reasons.
+							</div>
+					    </cfif>
 
 						<cfset sectionId = "Info">
 						<cfset isOpen = this.isSectionOpen( sectionId )>
@@ -265,6 +271,16 @@
 										</cfif>
 									</table>
 								</td>
+							</tr>
+						</table>
+					</cfif>
+
+					<!--- Abort --->
+					<cfif structKeyExists(debugging,"abort")>
+						<div class="section-title">Abort</div>
+						<table>
+							<tr>
+								<td class="pad txt-r">#debugging.abort.template#:#debugging.abort.line#</td>
 							</tr>
 						</table>
 					</cfif>
@@ -532,7 +548,7 @@
 							</tr>
 						</table>
 					</cfif>
-					
+
 					<!--- Dumps --->
 					<cfif dumps.recordcount>
 
@@ -541,7 +557,7 @@
 
 						<div class="section-title">Dumps</div>
 
-						
+
 						<table>
 
 							<cfset renderSectionHeadTR( sectionId, "#dumps.recordcount# Dump#( dumps.recordcount GT 1 ) ? 's' : ''#" )>
@@ -567,7 +583,7 @@
 							</tr>
 						</table>
 					</cfif>
-					
+
 
 					<!--- Queries --->
 					<cfif queries.recordcount>
@@ -576,19 +592,41 @@
 						<cfset isOpen = this.isSectionOpen( sectionId )>
 						<cfset local.total  =0>
 						<cfset local.records=0>
+						<cfset local.openConns=0>
+						<cfloop struct="#debugging.datasources#" index="dsn" item="item">
+							<cfset local.openConns=item.openConnections>
+						</cfloop>
+
 						<cfloop query="queries">
 							<cfset total   += queries.time>
 							<cfset records += queries.count>
 						</cfloop>
-
-						<div class="section-title">SQL Queries</div>
+						<div class="section-title">Datasource Information</div>
 						<table>
-							<cfset renderSectionHeadTR( sectionId, "#queries.recordcount# Quer#queries.recordcount GT 1 ? 'ies' : 'y'# Executed (Total Records: #records#; Total Time: #unitFormat( arguments.custom.unit, total ,prettify)# ms)" )>
+							<cfset renderSectionHeadTR( sectionId, "#queries.recordcount# Quer#queries.recordcount GT 1 ? 'ies' : 'y'# Executed (Total Records: #records#; Total Time: #unitFormat( arguments.custom.unit, total ,prettify)# ms; Total Open Connections: #openConns#)" )>
 
 							<tr>
 								<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+
+
 									<table><tr><td>
+										<b>General</b>
+										<table class="details">
+										<tr>
+											<th>Name</th>
+											<th>Open Connections</th>
+											<th>Max Connections</th>
+										</tr>
+										<cfloop struct="#debugging.datasources#" index="local.dsName" item="local.dsData">
+										<tr>
+											<td class="txt-r">#dsData.name#</td>
+											<td class="txt-r">#dsData.openConnections#</td>
+											<td class="txt-r">#dsData.connectionLimit==-1?'INF':dsData.connectionLimit#</td>
+										</tr>
+										</cfloop>
+										</table>
 									<cfset hasCachetype=ListFindNoCase(queries.columnlist,"cachetype") gt 0>
+									<br><b>SQL Queries</b>
 										<cfloop query="queries">
 
 											<table class="details">
@@ -600,7 +638,7 @@
 													<th>Datasource</th>
 													<th>Source</th>
 													<cfif hasCachetype><th>Cache Type</th></cfif>
-													
+
 												</tr>
 												<tr>
 													<th></th>
@@ -649,7 +687,7 @@
 													<cfset local.arrLenN = arrayLen( arr )>
 													<cfif arrLenN>
 														<tr class="red">
-															<td colspan="7"> 
+															<td colspan="7">
 																Unused:
 																<cfloop from="1" to="#arrLenN#" index="local.ii">
 																	#arr[ ii ]# <cfif ii LT arrLenN>, </cfif>
@@ -750,8 +788,8 @@
 
 
 		<script>
-			<cfset this.includeFileInline( "/lucee/res/js/util.min.js" )>
-			
+			<cfset this.includeInline( "/lucee/res/js/util.min.js" )>
+
 			var __LUCEE = __LUCEE || {};
 
 			__LUCEE.debug = {
@@ -799,20 +837,7 @@
 					return !isOpen;					// returns true if section is open after the operation
 				}
 
-				, selectText: 	function( id ) {
-
-			        if ( document.selection ) {
-
-			            var range = document.body.createTextRange();
-			            range.moveToElementText( document.getElementById( id ) );
-			            range.select();
-			        } else if ( window.getSelection ) {
-
-			            var range = document.createRange();
-			            range.selectNode( document.getElementById( id ) );
-			            window.getSelection().addRange( range );
-			        }
-			    }
+				, selectText:	__LUCEE.util.selectText
 			};
 		</script>
 
@@ -848,7 +873,7 @@
 			if ( !arguments.prettify ) {
 				return NumberFormat( arguments.time / 1000000, ",0.000" );
 			}
-			
+
 			// display 0 digits right to the point when more or equal to 100ms
 			if ( arguments.time >= 100000000 )
 				return int( arguments.time / 1000000 );
@@ -863,7 +888,7 @@
 
 			// display 3 digits right to the point
 			return ( int( arguments.time / 1000 ) / 1000 );
-			
+
 		}
 
 
@@ -880,11 +905,17 @@
 			return arguments.size & 'B';
 		}
 
+		/** reads the file contents and writes it to the output stream */
+		function includeInline(filename) cachedWithin=createTimeSpan(0,1,0,0) {
 
-		function includeFileInline( filename ) cachedWithin=createTimeSpan(0, 1, 0, 0) {
-
-			echo( fileRead( expandPath( arguments.filename ) ) );
+			echo(fileRead(expandPath(arguments.filename)));
 		}
+
+		function getJavaVersion() {
+	        var verArr=listToArray(server.java.version,'.');
+	        if(verArr[1]>2) return verArr[1];
+	        return verArr[2];
+	    }
 
 	</cfscript>
 

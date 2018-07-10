@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import lucee.commons.db.DBUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -153,7 +154,7 @@ public final class HSQLDBHandler {
 						else if(type==DOUBLE)
 							prepStat.setDouble(i+1,(value.equals(""))?0:Caster.toDoubleValue(query.getAt(keys[i],y+1)));
 						else if(type==INT)
-							prepStat.setLong(i+1,(value.equals(""))?0:Caster.toIntValue(query.getAt(keys[i],y+1)));
+							prepStat.setLong(i+1,(value.equals(""))?0:Caster.toLongValue(query.getAt(keys[i],y+1)));
 						else if(type==STRING)
 							prepStat.setObject(i+1,Caster.toString(value));
 					}
@@ -237,7 +238,7 @@ public final class HSQLDBHandler {
 			//print.out("remove:"+tableName);
 			try {
 				removeTable(conn,tableName);
-			} catch (Throwable t) {}
+			} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 	}
 	

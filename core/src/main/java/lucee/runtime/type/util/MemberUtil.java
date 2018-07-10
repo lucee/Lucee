@@ -23,7 +23,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
@@ -35,17 +38,21 @@ import lucee.runtime.interpreter.ref.cast.Casting;
 import lucee.runtime.interpreter.ref.func.BIFCall;
 import lucee.runtime.interpreter.ref.literal.LFunctionValue;
 import lucee.runtime.interpreter.ref.literal.LString;
+import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
+import lucee.runtime.reflection.pairs.MethodInstance;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.scope.Undefined;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.function.FunctionLibFunctionArg;
 
 public class MemberUtil {
 	
+	private static final Object DEFAULT = new Object();
 	private static Map<Short,Map<Collection.Key,FunctionLibFunction>> matchesLucee=new HashMap<Short, Map<Collection.Key,FunctionLibFunction>>();
 	private static Map<Short,Map<Collection.Key,FunctionLibFunction>> matchesCFML=new HashMap<Short, Map<Collection.Key,FunctionLibFunction>>();
 	
@@ -77,39 +84,83 @@ public class MemberUtil {
 		return match;
 	}
 	
-	public static Object call(PageContext pc, Object coll,Collection.Key methodName, Object[] args, short type, String strType) throws PageException {
-		Map<Key, FunctionLibFunction> members = getMembers(pc, type);
+	public static Object call(PageContext pc, Object coll,Collection.Key methodName, Object[] args, short[] types, String[] strTypes) throws PageException {
 		
-		FunctionLibFunction member=members.get(methodName); 
-		if(member!=null){
-			List<FunctionLibFunctionArg> _args = member.getArg();
-			if(args.length<_args.size()){
-				ArrayList<Ref> refs=new ArrayList<Ref>();
+		// look for members
+		short type;
+		String strType;
+		Map<Key, FunctionLibFunction> members=null;
+		for(int i=0;i<types.length;i++) {
+			type=types[i];
+			strType=strTypes[i];
+			members = getMembers(pc, type);
+			FunctionLibFunction member=members.get(methodName); 
+			if(member!=null) {
+				List<FunctionLibFunctionArg> _args = member.getArg();
+				if(args.length<_args.size()){
+					ArrayList<Ref> refs=new ArrayList<Ref>();
+					
+						int pos = member.getMemberPosition();
+						FunctionLibFunctionArg flfa;
+						Iterator<FunctionLibFunctionArg> it = _args.iterator();
+						int glbIndex=0,argIndex=-1;
+						while(it.hasNext()){
+							glbIndex++;
+							flfa = it.next();
+							if(glbIndex==pos) {
+								refs.add(new Casting(strType,type,coll));
+							}
+							else if(args.length>++argIndex) { // careful, argIndex is only incremented when condition above is false
+								refs.add(new Casting(flfa.getTypeAsString(),flfa.getType(),args[argIndex]));
+							}
+						}
+					return new BIFCall(coll, member, refs.toArray(new Ref[refs.size()])).getValue(pc);
+				}
 				
-					int pos = member.getMemberPosition();
-					FunctionLibFunctionArg flfa;
-					Iterator<FunctionLibFunctionArg> it = _args.iterator();
-					int glbIndex=0,argIndex=-1;
-					while(it.hasNext()){
-						glbIndex++;
-						flfa = it.next();
-						if(glbIndex==pos) {
-							refs.add(new Casting(strType,type,coll));
-						}
-						else if(args.length>++argIndex) { // careful, argIndex is only incremented when condition above is false
-							refs.add(new Casting(flfa.getTypeAsString(),flfa.getType(),args[argIndex]));
-						}
-					}
-				return new BIFCall(coll, member, refs.toArray(new Ref[refs.size()])).getValue(pc);
 			}
-			
 		}
+		
+		// do reflection
 		if(pc.getConfig().getSecurityManager().getAccess(lucee.runtime.security.SecurityManager.TYPE_DIRECT_JAVA_ACCESS)==lucee.runtime.security.SecurityManager.VALUE_YES) {
-			return Reflector.callMethod(coll,methodName,args);
-			//Object res = Reflector.callMethod(coll,methodName,args,DEFAULT_VALUE);
-	    	//if(res!=DEFAULT_VALUE) return res;
-	    } 
-		throw new ExpressionException("No matching function member ["+methodName+"] found, available function members are ["+lucee.runtime.type.util.ListUtil.sort(CollectionUtil.getKeyList(members.keySet().iterator(), ","),"textnocase","asc",",")+"]");
+			if(!(coll instanceof Undefined)) {
+				Object res = callMethod(coll,methodName,args);
+				if(res!=DEFAULT) return res;
+			}
+		}
+		
+		// merge
+		if(types.length>1) {
+			Map<Key, FunctionLibFunction> tmp;
+			members=null;
+			for(int i=0;i<types.length;i++) {
+				tmp = getMembers(pc, types[i]);
+				if(members==null) members=tmp;
+				else {
+					Iterator<Entry<Key, FunctionLibFunction>> it = tmp.entrySet().iterator();
+					Entry<Key, FunctionLibFunction> e;
+					while(it.hasNext()) {
+						e=it.next();
+						members.put(e.getKey(), e.getValue());
+					}
+				}
+			}
+		}
+		Set<Key> set = members.keySet();
+		String msg=ExceptionUtil.similarKeyMessage(set.toArray(new Key[set.size()]), methodName.getString(), "function", "functions", "Object", true);
+		throw new ExpressionException(msg);
+		//throw new ExpressionException("No matching function member ["+methodName+"] found, available function members are ["+
+		//		lucee.runtime.type.util.ListUtil.sort(CollectionUtil.getKeyList(members.keySet().iterator(), ","),"textnocase","asc",",")+"]");
+	}
+	
+	private static Object callMethod(Object obj, Collection.Key methodName, Object[] args) throws PageException {
+		MethodInstance mi=Reflector.getMethodInstanceEL(obj,obj.getClass(), methodName, args);
+		if(mi==null) return DEFAULT;
+		try {
+	    	return mi.invoke(obj);
+        }
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
 	public static Object callWithNamedValues(PageContext pc,Object coll, Collection.Key methodName, Struct args,short type, String strType) throws PageException {

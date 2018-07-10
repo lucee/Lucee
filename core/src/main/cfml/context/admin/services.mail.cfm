@@ -53,15 +53,13 @@ Defaults --->
 	function toTimeSpan(required string prefix){
 		local.days=toArrayFromForm(prefix&"_days");
 		local.hours=toArrayFromForm(prefix&"_hours");
-		local.minutes=data.ids=toArrayFromForm(prefix&"_minutes");
-		local.seconds=data.ids=toArrayFromForm(prefix&"_seconds");
+		local.minutes=toArrayFromForm(prefix&"_minutes");
+		local.seconds=toArrayFromForm(prefix&"_seconds");
 		local.rtn=[];
 		loop array=days index="local.i" item="local.day" {
 			rtn[i]=createTimeSpan(day,hours[i],minutes[i],seconds[i]);
 		}
-
 		return rtn;
-
 	}
 
 	function toTSStruct(seconds){
@@ -127,7 +125,7 @@ Defaults --->
 				<cfset data.ids=toArrayFromForm("id")>
 				<cfset data.idles=toTimeSpan("idle")>
 				<cfset data.lifes=toTimeSpan("life")>
-
+				
 				<cfloop index="idx" from="1" to="#arrayLen(data.hosts)#">
 					<cfif isDefined("data.rows[#idx#]") and data.hosts[idx] NEQ "">
 						<cfparam name="data.ports[idx]" default="25">
@@ -157,6 +155,7 @@ Defaults --->
 			<cfelseif form.subAction EQ "#stText.Buttons.Delete#">
 				<cfset data.rows=toArrayFromForm("row")>
 				<cfset data.hosts=toArrayFromForm("hostname")>
+				<cfset data.usernames=toArrayFromForm("username")>
 				<!---  @todo
 				<cflock type="exclusive" scope="application" timeout="5"></cflock> --->
 				<cfset len=arrayLen(data.hosts)>
@@ -167,7 +166,9 @@ Defaults --->
 							type="#request.adminType#"
 							password="#session["password"&request.adminType]#"
 							
+							id="#isDefined("data.ids[#idx#]")?data.ids[idx]:''#"
 							hostname="#data.hosts[idx]#"
+							username="#data.usernames[idx]#"
 							remoteClients="#request.getRemoteClients()#">
 					</cfif>
 				</cfloop>
@@ -195,6 +196,9 @@ Defaults --->
 								<cfset stVeritfyMessages[data.hosts[idx]].message = cfcatch.message>
 							</cfcatch>
 						</cftry>
+						<cfloop list="#request.adminType=='server'?'global':'global,local'#" index="contextType">
+							<cfset stVeritfyMessages[data.hosts[idx]].contextType = contextType>
+						</cfloop>
 					</cfif>
 				</cfloop>
 			</cfif>
@@ -203,6 +207,7 @@ Defaults --->
 	<cfcatch>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
+		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
 

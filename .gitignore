@@ -2,6 +2,10 @@ db.log
 db.properties
 db.script
 *.db
+db*.lck
+db*.log
+db*.properties
+db*.script
 temp
 **/.DS_Store
 **/.svn/
@@ -14,3 +18,12 @@ target/*
 *.DS_Store
 *.cfc.hbm.xml
 /cache
+WEB-INF
+
+
+.classpath
+**/.settings/**
+*.eml
+*.iml
+*.ipr
+*.iws

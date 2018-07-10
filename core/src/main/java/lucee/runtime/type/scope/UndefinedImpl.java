@@ -35,7 +35,6 @@ import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Duplicator;
-import lucee.runtime.tag.ThreadTag;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;

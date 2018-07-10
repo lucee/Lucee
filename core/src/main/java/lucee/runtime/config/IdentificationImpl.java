@@ -18,17 +18,19 @@
 package lucee.runtime.config;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import lucee.commons.digest.Hash;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.loader.util.Util;
 
-public abstract class IdentificationImpl implements Identification {
+public abstract class IdentificationImpl implements Identification,Serializable {
 
 	private final String apiKey;
-	private final String id;
+	private String id;
 	private final String securityKey;
 	private final String securityToken; 
 
@@ -38,7 +40,6 @@ public abstract class IdentificationImpl implements Identification {
 		this.apiKey=apiKey;
 		this.securityKey=securityKey;
 		this.securityToken=createSecurityToken(c.getConfigDir());
-		this.id=createId(securityKey,securityToken,true,securityKey);
 	}
 	
 
@@ -49,6 +50,8 @@ public abstract class IdentificationImpl implements Identification {
 
 	@Override
 	public String getId() {
+		// this is here for performance reasons
+		if(id==null) id=createId(securityKey,securityToken,false,securityKey);
 		return id;
 	}
 
@@ -67,11 +70,12 @@ public abstract class IdentificationImpl implements Identification {
     	
 		try {
 			if(addMacAddress){// because this was new we could swutch to a new ecryption // FUTURE cold we get rid of the old one?
-				return Hash.sha256(key+";"+token+":"+SystemUtil.getMacAddress());
+				return Hash.sha256(key+";"+token+":"+SystemUtil.getMacAddress(""));
 			}
 			return Md5.getDigestAsString(key+token);
 		} 
-    	catch (Throwable t) {
+    	catch(Throwable t) {
+    		ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}

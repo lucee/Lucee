@@ -34,12 +34,12 @@
 		}
 	</script>
 
-	<cfform name="login" action="#request.self#" method="post"><!--- onerror="customError"--->
+	<cfformClassic name="login" action="#request.self#" method="post"><!--- onerror="customError"--->
 		<table class="maintbl autowidth">
 			<tbody>
 				<tr>
 					<th scope="row" class="right">#stText.Login.Password#</th>
-					<td><cfinput type="password" name="login_password#request.adminType#" value="" passthrough='autocomplete="off"'
+					<td><cfinputClassic type="password" name="login_password#request.adminType#" value="" passthrough='autocomplete="off"'
 						class="medium" required="yes" message="#stText.Login.PasswordMissing#">
 					</td>
 				</tr>
@@ -70,7 +70,7 @@
 						<td>
 							<cfimage action="captcha" width="180" height="35" text="#cap#" difficulty="medium">
 							<a style="font-size : 10px" href="#request.self#<cfif structKeyExists(url,"action")>?action=#url.action#</cfif>">Reload</a><br />
-							<cfinput type="text" name="captcha" value="" passthrough='autocomplete="off"'
+							<cfinputClassic type="text" name="captcha" value="" passthrough='autocomplete="off"'
 								class="medium" required="yes" message="#stText.login.captchaHelpMiss#">
 							<div class="comment">#stText.login.captchaHelpDesc#</div>
 						</td>
@@ -99,5 +99,5 @@
 				</tr>
 			</tfoot>
 		</table>
-	</cfform>
+	</cfformClassic>
 </cfoutput>

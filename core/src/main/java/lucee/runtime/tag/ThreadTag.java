@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.RandomUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Page;
@@ -35,7 +36,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.ext.tag.DynamicAttributes;
-import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.spooler.ExecutionPlan;
 import lucee.runtime.spooler.ExecutionPlanImpl;
@@ -294,10 +294,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	
 	public void register(Page currentPage, int threadIndex) throws PageException	{
 		if(ACTION_RUN!=action) return;
-		
-		
-		if(!((ApplicationContextSupport)pageContext.getApplicationContext()).deepThread() && ((PageContextImpl)pc).getParentPageContext()!=null)
-			throw new ApplicationException("could not create a thread within a child thread");
+
 		Key name = name(true);
 		try {
 			Threads ts = ThreadTag.getThreadScope(pc,name,ThreadTag.LEVEL_ALL); // pc.getThreadScope(name);
@@ -319,7 +316,8 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 			}
 			
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 		finally {

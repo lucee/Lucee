@@ -47,10 +47,12 @@
 		
 		<!--- <cfset assertEquals("","")> --->
 	</cffunction>
-	
-	<cffunction access="private" name="valueEquals">
-		<cfargument name="left">
-		<cfargument name="right">
-		<cfset assertEquals(arguments.right,arguments.left)>
+
+
+
+	<cffunction name="testArraySync" localMode="modern">
+		<cfset arr=arrayNew(1,true)>
+		<cfset arr=arrayNew(1,false)>
 	</cffunction>
+	
 </cfcomponent>

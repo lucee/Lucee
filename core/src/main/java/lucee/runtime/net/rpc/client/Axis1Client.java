@@ -47,6 +47,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
+import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.webservice.WebserviceCacheItem;
 import lucee.runtime.config.Config;
@@ -58,6 +59,7 @@ import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.net.proxy.Proxy;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.rpc.AxisCaster;
@@ -183,7 +185,8 @@ final class Axis1Client extends WSClient {
         		return _callCachedWithin(pc, null, methodName, null, arguments);
             return _call(pc,pc.getConfig(),methodName,null,arguments);
         } 
-        catch (Throwable t) {
+        catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
         	throw Caster.toPageException(t);
 		} 
     }
@@ -202,41 +205,58 @@ final class Axis1Client extends WSClient {
     private boolean hasCachedWithin(PageContext pc) {
 		return pc.getCachedWithin(Config.CACHEDWITHIN_WEBSERVICE)!=null;
 	}
-    private Object getCachedWithin(PageContext pc) {
+
+	private Object getCachedWithin(PageContext pc) {
 		//if(this.properties.cachedWithin!=null) return this.properties.cachedWithin;
     	return pc.getCachedWithin(Config.CACHEDWITHIN_WEBSERVICE);
 	}
     
-    private Object _callCachedWithin(PageContext pc,Config secondChanceConfig,String methodName, Struct namedArguments,Object[] arguments) throws PageException, RemoteException, ServiceException {
-    	
-    	// no pc no cache!
-    	if(pc==null) return _call(pc, secondChanceConfig, methodName, namedArguments, arguments);
-    	
-    	String id=CacheHandlerCollectionImpl.createId(wsdlUrl,username,password,proxyData,methodName,arguments,namedArguments);
-    	CacheHandler ch = pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_WEBSERVICE,null).getInstanceMatchingObject( getCachedWithin(pc),null);
-		CacheItem ci=ch!=null?ch.get(pc, id):null;
-		
-		// get from cache
-		if(ci instanceof WebserviceCacheItem ) {
-			WebserviceCacheItem entry = (WebserviceCacheItem)ci;
-			return entry.getData();
+    private Object _callCachedWithin(PageContext pc, Config secondChanceConfig, String methodName, Struct namedArguments, Object[] arguments) throws PageException, RemoteException, ServiceException {
+
+		// no pc no cache!
+		if (pc == null)
+			return _call(pc, secondChanceConfig, methodName, namedArguments, arguments);
+
+		Object cachedWithin = getCachedWithin(pc);
+		String cacheId = CacheHandlerCollectionImpl.createId(wsdlUrl, username, password, proxyData, methodName, arguments, namedArguments);
+		CacheHandler cacheHandler = pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_WEBSERVICE, null).getInstanceMatchingObject(cachedWithin, null);
+
+		if (cacheHandler instanceof CacheHandlerPro){
+
+			CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pc, cacheId, cachedWithin);
+
+			if (cacheItem instanceof WebserviceCacheItem) {
+				WebserviceCacheItem entry = (WebserviceCacheItem)cacheItem;
+				return entry.getData();
+			}
 		}
-    	
+    	else if (cacheHandler != null){		// TODO this else block can be removed when all cache handlers implement CacheHandlerPro
+
+			CacheItem cacheItem = cacheHandler.get(pc, cacheId);
+
+			if (cacheItem instanceof WebserviceCacheItem) {
+				WebserviceCacheItem entry = (WebserviceCacheItem)cacheItem;
+				return entry.getData();
+			}
+		}
+
+		// cached item not found, process and cache result if needed
 		long start = System.nanoTime();
     	Object rtn = _call(pc, secondChanceConfig, methodName, namedArguments, arguments);
-    	if(ch!=null)ch.set(pc, id,getCachedWithin(pc),new WebserviceCacheItem(rtn,wsdlUrl,methodName,System.nanoTime()-start));
+
+    	if (cacheHandler != null)
+    		cacheHandler.set(pc, cacheId, cachedWithin, new WebserviceCacheItem(rtn, wsdlUrl, methodName, System.nanoTime()-start));
+
 		return rtn;
-		
     }
 
     private Object _call(PageContext pc,Config secondChanceConfig,String methodName, Struct namedArguments,Object[] arguments) throws PageException, ServiceException, RemoteException {
         
+    	ApplicationContextSupport acs=(ApplicationContextSupport) pc.getApplicationContext();
 		javax.wsdl.Service service = getWSDLService();
 		
 		Service axisService = new Service(parser, service.getQName());
-		//TypeMappingRegistry tmr = axisService.getTypeMappingRegistry();
-		//TypeMappingDelegate dtm = (TypeMappingDelegate) tmr.getDefaultTypeMapping();
-		//dtm.setDoAutoTypes(true);
+		axisService.setMaintainSession(acs.getWSMaintainSession());
 		
 		TypeMappingUtil.registerDefaults(axisService.getTypeMappingRegistry());
 		Port port = WSUtil.getSoapPort(service);
@@ -407,9 +427,7 @@ final class Axis1Client extends WSClient {
 	    				rethrow=false;
 	        			
 					}
-					catch (Throwable t) {
-						t.printStackTrace();
-					}
+					catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 				//}
         	}
         	if(rethrow) throw af;
@@ -458,8 +476,11 @@ final class Axis1Client extends WSClient {
 	}
 
 	private Class map(PageContext pc,SymbolTable symbolTable, Config secondChanceConfig,org.apache.axis.encoding.TypeMapping tm, TypeEntry type) throws PageException {
-		//print.e("MAP");
-		//print.e(type.getQName());
+		
+		TypeEntry ref = type.getRefType();
+		if(ref!=null && ref!=type) {
+			map(pc, symbolTable, secondChanceConfig, tm, ref);
+		}
 		
 		// Simple Type
 		if(type.getContainedElements()==null) return null;
@@ -676,8 +697,9 @@ final class Axis1Client extends WSClient {
 	            parser.run(wsdlUrl);
 	            wsdlExecuted=true;
 	        }
-	        catch(Throwable e) {
-	            throw Caster.toPageException(e);
+	        catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+	            throw Caster.toPageException(t);
 	        }
 		}
 		
@@ -705,13 +727,6 @@ final class Axis1Client extends WSClient {
 		return ((ServiceEntry)symTabEntry).getService();
 	}
 
-	/**
-     * returns the WSDL Port
-	 * @param service
-	 * @return WSDL Port
-	 * @throws RPCException
-	 */
-	
 
 	private Object getArgumentData(TypeMapping tm,TimeZone tz, Parameter p, Object arg) throws PageException {
 		//print.e("ArgumentData");

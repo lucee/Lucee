@@ -20,7 +20,7 @@
 <cfoutput>
 	<h2>#stText.Security.general#</h2>
 	<div class="itemintro">#stText.Security.generalDesc#</div>
-	<cfform onerror="customError" action="#go(url.action,"update#iif(type EQ "generell",de('Default'),de(''))#SecurityManager")#" method="post">
+	<cfformClassic onerror="customError" action="#go(url.action,"update#iif(type EQ "generell",de('Default'),de(''))#SecurityManager")#" method="post">
 		<table class="maintbl">
 			<tbody>
 				<!--- Access Read --->
@@ -53,7 +53,7 @@
 			</tbody>
 		</table>
 
-<!--- <cfform onerror="customError" action="#go(url.action,"update#iif(type EQ "generell",de('Default'),de(''))#SecurityManager")#" method="post">--->
+<!--- <cfformClassic onerror="customError" action="#go(url.action,"update#iif(type EQ "generell",de('Default'),de(''))#SecurityManager")#" method="post">--->
 		<h2>#stText.Security.WebAdministrator#</h2>
 		<div class="itemintro">#stText.Security.WebAdministratorDescription#</div>
 		<table class="maintbl">
@@ -240,14 +240,14 @@
 									<tr name="fileAccess" style="display:#access.file EQ 'local'?'':'none'#">
 										<!--- path --->
 										<td nowrap>
-											<cfinput type="text" name="path_#idx#" 
+											<cfinputClassic type="text" name="path_#idx#" 
 											value="#access.file_access[idx]#" required="no" class="large">
 										</td>
 									</tr>
 								</cfloop>
 								<!--- INSERT --->
 								<tr name="fileAccess" style="display:#access.file EQ 'local'?'':'none'#">
-									<td nowrap><cfinput type="text" name="path_#arrayLen(access.file_access)+1#" value="" required="no" class="large"></td>
+									<td nowrap><cfinputClassic type="text" name="path_#arrayLen(access.file_access)+1#" value="" required="no" class="large"></td>
 								</tr>
 							</tbody>
 						</table>
@@ -336,5 +336,5 @@
 				</tr>
 			</tfoot>
 		</table>
-	</cfform>
+	</cfformClassic>
 </cfoutput>

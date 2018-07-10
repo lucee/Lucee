@@ -24,6 +24,7 @@ import java.nio.charset.Charset;
 import java.util.concurrent.Callable;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -50,7 +51,7 @@ public class UDFCaller2<P> implements Callable<Data<P>> {
 	private UDFCaller2(PageContext parent) {
 		this.parent = parent;
 		this.baos = new ByteArrayOutputStream();
-		this.pc=ThreadUtil.clonePageContext(parent, baos, false, false, false,true);
+		this.pc=ThreadUtil.clonePageContext(parent, baos, false, false, false);
 	}
 	
 	public UDFCaller2(PageContext parent, UDF udf, Object[] arguments,P passed, boolean doIncludePath) {
@@ -93,9 +94,8 @@ public class UDFCaller2<P> implements Callable<Data<P>> {
 			pc.getConfig().getFactory().releasePageContext(pc);
 				str=IOUtil.toString((new ByteArrayInputStream(baos.toByteArray())), cs); // TODO add support for none string content
 			} 
-			catch (Throwable e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			catch (Exception e) {
+				SystemOut.printDate(e);
 			}
 		}
 		return new Data<P>(str,result,passed);

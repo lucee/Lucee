@@ -25,9 +25,15 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.Query;
+import lucee.runtime.type.it.ForEachQueryIterator;
 
 /**
  * Decodes Binary Data that are encoded as String
@@ -39,17 +45,59 @@ public final class SerializeJSON implements Function {
 	public static String call(PageContext pc, Object var) throws PageException {
 		return _call(pc, var, false, pc.getWebCharset());
 	}
-	public static String call(PageContext pc, Object var,boolean serializeQueryByColumns) throws PageException {
+
+	// FUTURE remove, this methods are only used by compiled code in archives older than 5.2.3
+	public static String call(PageContext pc, Object var, boolean serializeQueryByColumns) throws PageException {
 		return _call(pc, var, serializeQueryByColumns, pc.getWebCharset());
 	}
-	public static String call(PageContext pc, Object var,boolean serializeQueryByColumns, String strCharset) throws PageException {
+
+	// FUTURE remove, this methods are only used by compiled code in archives older than 5.2.3
+	public static String call(PageContext pc, Object var, boolean serializeQueryByColumns, String strCharset) throws PageException {
 		Charset cs=StringUtil.isEmpty(strCharset)?pc.getWebCharset():CharsetUtil.toCharset(strCharset);
 		return _call(pc, var, serializeQueryByColumns, cs);
 	}
-	private static String _call(PageContext pc, Object var,boolean serializeQueryByColumns, Charset charset) throws PageException {
+
+	public static String call(PageContext pc, Object var, Object options) throws PageException {
+		return _call(pc, var, options, pc.getWebCharset());
+	}
+
+	public static String call(PageContext pc, Object var, Object options, String strCharset) throws PageException {
+		Charset cs=StringUtil.isEmpty(strCharset)?pc.getWebCharset():CharsetUtil.toCharset(strCharset);
+		return _call(pc, var, options, cs);
+	}
+
+	private static String _call(PageContext pc, Object var, Object options, Charset charset) throws PageException {
 		try {
-            return new JSONConverter(true,charset).serialize(pc,var,serializeQueryByColumns);
-        } catch (ConverterException e) {
+			JSONConverter json = new JSONConverter(true, charset);
+			if(Decision.isBoolean(options))
+				return json.serialize(pc, var, Caster.toBoolean(options));
+
+			if(Decision.isQuery(var)){
+				if (Decision.isSimpleValue(options)) {
+					String opt = Caster.toString(options);
+					if ("struct".equalsIgnoreCase(opt)) {
+						Array arr = new ArrayImpl();
+						ForEachQueryIterator it = new ForEachQueryIterator((Query) var, pc.getId());
+						try {
+							while (it.hasNext()) {
+								arr.append(it.next());    // append each record from the query as a struct
+							}
+						} finally {
+							it.reset();
+						}
+						return json.serialize(pc, arr, false);
+					}
+				}
+				else if (Decision.isBoolean(options)) {
+					return json.serialize(pc, var, Caster.toBoolean(options));
+				}
+				else throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 2, "options", "When var is a Query, argument [options] must be either a boolean value or a string with the value of [struct]");
+			}
+
+			// var is not a query so options doesn't make a difference here
+			return json.serialize(pc, var, false);
+        }
+		catch (ConverterException e) {
             throw Caster.toPageException(e);
         }
 	}

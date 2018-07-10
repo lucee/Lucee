@@ -97,7 +97,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
     			
     			);
           		
-    	int iDoNew = doNew(engine,configDir,false);
+    	int iDoNew = doNew(engine,configDir,false).updateType;
 		boolean doNew = iDoNew!=NEW_NONE;
 		
     	Resource configFile=configDir.getRealResource("lucee-server.xml");
@@ -125,7 +125,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		load(config,doc,false,doNew);
 	    
 		createContextFiles(configDir,config,doNew,cleanupDatasources);
-
+		
         ((CFMLEngineImpl)ConfigWebUtil.getEngine(config)).onStart(config,false);
 	    return config;
     }
@@ -147,10 +147,11 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
         
         if(configFile==null) return ;
         if(second(configServer.getLoadTime())>second(configFile.lastModified())) return ;
-        int iDoNew = doNew(engine, configServer.getConfigDir(),false);
+        int iDoNew = doNew(engine, configServer.getConfigDir(),false).updateType;
 		boolean doNew = iDoNew!=NEW_NONE;
 		
         load(configServer,loadDocument(configFile),true,doNew);
+
         ((CFMLEngineImpl)ConfigWebUtil.getEngine(configServer)).onStart(configServer,true);
     }
     
@@ -169,7 +170,9 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
      * @throws BundleException 
      */
     static void load(ConfigServerImpl configServer, Document doc, boolean isReload, boolean doNew) throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
-        XMLConfigWebFactory.load(null,configServer,doc, isReload,doNew);
+    	ConfigImpl.onlyFirstMatch=Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.mapping.first",null),false);
+    	XMLConfigWebFactory.load(null,configServer,doc, isReload,doNew);
+        
         loadLabel(configServer,doc);
     }
     
@@ -243,10 +246,15 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 			ResourceUtil.deleteEmptyFolders(wcdDir);
 		}
 		catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			SystemOut.printDate(e);
 		}
 		
+		// Mail Server Drivers
+		Resource msDir = adminDir.getRealResource("mailservers");
+		create("/resource/context/admin/mailservers/",new String[]{
+				"Other.cfc","GMail.cfc","GMX.cfc","iCloud.cfc","Yahoo.cfc","Outlook.cfc","MailCom.cfc","MailServer.cfc"}
+		,msDir,doNew);
+				
 		
 		// Gateway Drivers
 		Resource gDir = adminDir.getRealResource("gdriver");
@@ -257,7 +265,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		// Logging/appender
 		Resource app = adminDir.getRealResource("logging/appender");
 		create("/resource/context/admin/logging/appender/",new String[]{
-		"ConsoleAppender.cfc","ResourceAppender.cfc","Appender.cfc","Field.cfc","Group.cfc"}
+		"DatasourceAppender.cfc","ConsoleAppender.cfc","ResourceAppender.cfc","Appender.cfc","Field.cfc","Group.cfc"}
 		,app,doNew);
 		
 		// Logging/layout

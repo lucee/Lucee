@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.tagext.BodyContent;
@@ -41,6 +42,7 @@ import lucee.runtime.InterfacePageImpl;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
@@ -50,8 +52,10 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Identification;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ExceptionHandler;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.DynamicAttributes;
+import lucee.runtime.functions.FunctionHandlerPool;
 import lucee.runtime.img.Image;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.net.rpc.server.ComponentController;
@@ -68,11 +72,13 @@ import lucee.runtime.type.FunctionValueImpl;
 import lucee.runtime.type.Iteratorable;
 import lucee.runtime.type.Lambda;
 import lucee.runtime.type.Query;
+import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.UDFImpl;
 import lucee.runtime.type.UDFProperties;
 import lucee.runtime.type.UDFPropertiesImpl;
+import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.ref.Reference;
 import lucee.runtime.type.ref.VariableReference;
 import lucee.runtime.type.scope.Scope;
@@ -82,11 +88,13 @@ import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.CallerUtil;
 import lucee.runtime.util.NumberRange;
+import lucee.runtime.util.PageContextUtil;
 import lucee.runtime.util.VariableUtilImpl;
 import lucee.runtime.writer.BodyContentUtil;
 import lucee.transformer.TransformerException;
 
 import org.objectweb.asm.Type;
+import org.w3c.dom.Node;
 
 public final class Types {
 
@@ -146,6 +154,7 @@ public final class Types {
     public static final Type COMPONENT=Type.getType(lucee.runtime.Component.class);
 
     public final static Type PAGE=Type.getType(Page.class);
+    public final static Type PAGE_IMPL=Type.getType(PageImpl.class);
     public final static Type PAGE_SOURCE=Type.getType(PageSource.class);
     public static final Type COMPONENT_PAGE_IMPL=Type.getType(lucee.runtime.ComponentPageImpl.class);
 	public static final Type INTERFACE_PAGE_IMPL = Type.getType(InterfacePageImpl.class);
@@ -176,6 +185,7 @@ public final class Types {
 
     public static final Type PAGE_CONTEXT=Type.getType(PageContext.class);
     public static final Type PAGE_CONTEXT_IMPL=Type.getType(PageContextImpl.class);
+    public static final Type PAGE_CONTEXT_UTIL=Type.getType(PageContextUtil.class);
 
 
     public final static Type QUERY=Type.getType(lucee.runtime.type.Query.class);
@@ -191,6 +201,7 @@ public final class Types {
     
     public static final Type STRING = Type.getType(String.class);
     public static final Type STRING_ARRAY = Type.getType(String[].class);
+    public static final Type STRING_UTIL = Type.getType(StringUtil.class);
 
     public static final Type STRUCT = Type.getType(lucee.runtime.type.Struct.class);
     public static final Type STRUCT_IMPL = Type.getType(lucee.runtime.type.StructImpl.class);
@@ -224,6 +235,7 @@ public final class Types {
 	//public static final Type RETURN_ EXCEPTION = Type.getType(ReturnException.class);
 	public static final Type TIMEZONE = Type.getType(java.util.TimeZone.class);
 	public static final Type STRING_BUFFER = Type.getType(StringBuffer.class);
+	public static final Type STRING_BUILDER = Type.getType(StringBuilder.class);
 	public static final Type MEMBER = Type.getType(Member.class);
 	public static final Type UDF = Type.getType(UDF.class);
 	public static final Type UDF_PROPERTIES = Type.getType(UDFProperties.class);
@@ -262,8 +274,10 @@ public final class Types {
 	public static final Type DYNAMIC_ATTRIBUTES = Type.getType(DynamicAttributes.class);
 	public static final Type IDENTIFICATION = Type.getType(Identification.class);
 	public static final Type TAG_UTIL = Type.getType(TagUtil.class);
+	public static final Type FUNCTION_HANDLER_POOL = Type.getType(FunctionHandlerPool.class);
 	public static final Type BIF = Type.getType(lucee.runtime.ext.function.BIF.class);
 	public static final Type DATA_MEMBER = Type.getType(lucee.runtime.component.DataMember.class);
+	public static final Type EXPRESSION_EXCEPTION = Type.getType(ExpressionException.class);
 	
 	 
 
@@ -338,6 +352,7 @@ public final class Types {
             if("long".equals(type))									return LONG_VALUE;
             if("long".equals(lcType))								return LONG;
             if("locale".equals(lcType))								return LOCALE;
+            if("lucee.runtime.type.Collection$Key".equals(type))	return COLLECTION_KEY;
         break;
         case 'n':
             if("node".equals(lcType))								return NODE;
@@ -450,21 +465,25 @@ public final class Types {
 	}
 
 	public static Class toClass(Type type) throws ClassException {
-		if(Types.STRING==type) return String.class;
-		if(Types.BOOLEAN_VALUE==type) return boolean.class;
-		if(Types.DOUBLE_VALUE==type) return double.class;
-		if(Types.PAGE_CONTEXT==type) return PageContext.class;
-		if(Types.OBJECT==type) return Object.class;
-		if(Types.STRUCT==type) return Struct.class;
-		if(Types.ARRAY==type) return Array.class;
-		if(Types.COLLECTION_KEY==type) return Collection.Key.class;
-		if(Types.COLLECTION_KEY_ARRAY==type) return Collection.Key[].class;
-		if(Types.QUERY==type) return Query.class;
-		if(Types.DATE_TIME==type) return lucee.runtime.type.dt.DateTime.class;
-		
-		
+		if(Types.STRING.equals(type)) return String.class;
+		if(Types.BOOLEAN_VALUE.equals(type)) return boolean.class;
+		if(Types.DOUBLE_VALUE.equals(type)) return double.class;
+		if(Types.PAGE_CONTEXT.equals(type)) return PageContext.class;
+		if(Types.OBJECT.equals(type)) return Object.class;
+		if(Types.STRUCT.equals(type)) return Struct.class;
+		if(Types.ARRAY.equals(type)) return Array.class;
+		if(Types.COLLECTION_KEY.equals(type)) return Collection.Key.class;
+		if(Types.COLLECTION_KEY_ARRAY.equals(type)) return Collection.Key[].class;
+		if(Types.QUERY.equals(type)) return Query.class;
+		if(Types.DATE_TIME.equals(type)) return lucee.runtime.type.dt.DateTime.class;
+		if(Types.TIMESPAN.equals(type)) return TimeSpan.class;
+		if(Types.QUERY_COLUMN.equals(type)) return QueryColumn.class;
+		if(Types.NODE.equals(type)) return Node.class;
+		if(Types.TIMEZONE.equals(type)) return TimeZone.class;
+		if(Types.LOCALE.equals(type)) return Locale.class;
+		if(Types.UDF.equals(type)) return UDF.class;
+		if(Types.IMAGE.equals(type)) return Image.class;
+		if(Types.BYTE_VALUE_ARRAY.equals(type)) return byte[].class;
 		return ClassUtil.toClass(type.getClassName());
 	}
-	
-
 }

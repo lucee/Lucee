@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import javax.servlet.jsp.tagext.BodyContent;
 
 import lucee.commons.lang.CFTypes;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
@@ -35,6 +36,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
+import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.udf.UDFCacheItem;
 import lucee.runtime.component.MemberSupport;
@@ -67,7 +69,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 	private static final long serialVersionUID = -7288148349256615519L; // do not change
 	
 	protected Component ownerComponent;
-	protected UDFPropertiesBase properties;
+	public UDFPropertiesBase properties;
     
 	/**
 	 * DO NOT USE THIS CONSTRUCTOR!
@@ -236,27 +238,46 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 	}
     
 
-    private Object _callCachedWithin(PageContext pc,Collection.Key calledName, Object[] args, Struct values,boolean doIncludePath) throws PageException {
-    	PageContextImpl pci=(PageContextImpl) pc;
-    	String id=CacheHandlerCollectionImpl.createId(this,args,values);
-    	CacheHandler ch = pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FUNCTION,null).getInstanceMatchingObject(getCachedWithin(pc),null);
-		CacheItem ci=ch!=null?ch.get(pc, id):null;
+    private Object _callCachedWithin(PageContext pc, Collection.Key calledName, Object[] args, Struct values, boolean doIncludePath) throws PageException {
+
+		PageContextImpl pci = (PageContextImpl)pc;
+
+		Object cachedWithin = getCachedWithin(pc);
+		String cacheId = CacheHandlerCollectionImpl.createId(this, args, values);
+		CacheHandler cacheHandler = pc.getConfig()
+				.getCacheHandlerCollection(Config.CACHE_TYPE_FUNCTION, null)
+				.getInstanceMatchingObject(getCachedWithin(pc), null);
 		
-		// get from cache
-		if(ci instanceof UDFCacheItem ) {
-			UDFCacheItem entry = (UDFCacheItem)ci;
-			//if(entry.creationdate+properties.cachedWithin>=System.currentTimeMillis()) {
+
+		if(cacheHandler instanceof CacheHandlerPro){
+			CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pc, cacheId, cachedWithin);
+			if (cacheItem instanceof UDFCacheItem ) {
+				UDFCacheItem entry = (UDFCacheItem)cacheItem;
 				try {
 					pc.write(entry.output);
 				} catch (IOException e) {
 					throw Caster.toPageException(e);
 				}
 				return entry.returnValue;
-			//}
-			
-			//cache.remove(id);
+			}
 		}
-    	
+		else if (cacheHandler != null){		// TODO this else block can be removed when all cache handlers implement CacheHandlerPro
+			CacheItem cacheItem = cacheHandler.get(pc, cacheId);
+			if (cacheItem instanceof UDFCacheItem ) {
+				UDFCacheItem entry = (UDFCacheItem)cacheItem;
+				//if(entry.creationdate+properties.cachedWithin>=System.currentTimeMillis()) {
+				try {
+					pc.write(entry.output);
+				} catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
+				return entry.returnValue;
+				//}
+				//cache.remove(id);
+			}
+		}
+
+		// cached item not found, process and cache result if needed
 		long start = System.nanoTime();
     	
 		// execute the function
@@ -265,12 +286,11 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 	    try {
 	    	Object rtn = _call(pci,calledName, args, values, doIncludePath);
 	    	
-	    	if(ch!=null){
+	    	if (cacheHandler != null){
 	    		String out = bc.getString();
-	    		ch.set(pc, id,getCachedWithin(pc),new UDFCacheItem(out, rtn,getFunctionName(),getSource(),System.nanoTime()-start));
+	    		cacheHandler.set(pc, cacheId, cachedWithin, new UDFCacheItem(out, rtn, getFunctionName(), getSource(), System.nanoTime()-start));
 	    	}
-			// cache.put(id, new UDFCacheEntry(out, rtn),properties.cachedWithin,properties.cachedWithin);
-	    	return rtn;
+			return rtn;
 		}
         finally {
         	BodyContentUtil.flushAndPop(pc,bc);
@@ -338,6 +358,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 				if(ownerComponent!=null)pci.setActiveUDF(parent);
 			}
 	        catch(Throwable t) {
+	        	ExceptionUtil.rethrowIfNecessary(t);
 	        	if(ownerComponent!=null)pci.setActiveUDF(parent);
 	        	if(!getOutput()) {
 	        		if(bufferOutput)BodyContentUtil.flushAndPop(pc,bc);
@@ -354,10 +375,11 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
         	
 	        
 	        
+	        	if(returnValue==null && pc.getConfig().getFullNullSupport()) return returnValue;
+		        if(properties.getReturnType()==CFTypes.TYPE_ANY || !((PageContextImpl)pc).getTypeChecking()) return returnValue;
+		        if(Decision.isCastableTo(properties.getReturnTypeAsString(),returnValue,false,false,-1)) return returnValue;
+		        throw new UDFCasterException(this,properties.getReturnTypeAsString(),returnValue);
 	        
-	        if(properties.getReturnType()==CFTypes.TYPE_ANY || !((PageContextImpl)pc).getTypeChecking()) return returnValue;
-	        else if(Decision.isCastableTo(properties.getReturnTypeAsString(),returnValue,false,false,-1)) return returnValue;
-	        else throw new UDFCasterException(this,properties.getReturnTypeAsString(),returnValue);
 			//REALCAST return Caster.castTo(pageContext,returnType,returnValue,false);
 //////////////////////////////////////////
 			
@@ -417,8 +439,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus,Externalizable {
 
 
 	/**
-	 * @param componentImpl the componentImpl to set
-	 * @param injected 
+	 * @param component the componentImpl to set
 	 */
 	@Override
 	public void setOwnerComponent(Component component) {

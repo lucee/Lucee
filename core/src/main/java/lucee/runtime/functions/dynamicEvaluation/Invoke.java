@@ -23,6 +23,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -44,9 +45,19 @@ public class Invoke implements Function {
 		}
 		
 		if(Decision.isStruct(arguments)) { 
-			return pc.getVariableUtil().callFunctionWithNamedValues(pc,obj,KeyImpl.init(name),Caster.toStruct(arguments));
+			Struct args = Caster.toStruct(arguments);
+			if(args==arguments && args!=null) args=(Struct) args.duplicate(false);
+			return pc.getVariableUtil().callFunctionWithNamedValues(pc,obj,KeyImpl.init(name),args);
 		}
-		return pc.getVariableUtil().callFunctionWithoutNamedValues(pc,obj,KeyImpl.init(name),Caster.toNativeArray(arguments));
+		Object[] args = Caster.toNativeArray(arguments);
+		if(args==arguments && args!=null) {
+			Object[] tmp=new Object[args.length];
+			for(int i=0;i<args.length;i++) {
+				tmp[i]=args[i];
+			}
+			args=tmp;
+		}
+		return pc.getVariableUtil().callFunctionWithoutNamedValues(pc,obj,KeyImpl.init(name),args);
 		
 	}
 		

@@ -35,6 +35,7 @@ import java.util.Set;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.KeyGenerator;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.loader.engine.CFMLEngine;
@@ -204,7 +205,8 @@ public class JavaProxyFactory {
 
 	public static Object createProxy(PageContext pc, Component cfc, Class extendz,Class... interfaces) throws PageException, IOException {
 		PageContextImpl pci=(PageContextImpl) pc;
-		ClassLoader[] parents = extractClassLoaders(interfaces);
+		//((ConfigImpl)pci.getConfig()).getClassLoaderEnv()
+		ClassLoader[] parents = extractClassLoaders(null,interfaces);
 		
 		if(extendz==null) extendz=Object.class;
 		if(interfaces==null) interfaces=new Class[0];
@@ -224,7 +226,6 @@ public class JavaProxyFactory {
 			strInterfaces[i]=typeInterfaces[i].getInternalName();
 		}
 		
-		
 		String className=createClassName(extendz,interfaces);
     	//Mapping mapping = cfc.getPageSource().getMapping();
 		
@@ -243,7 +244,7 @@ public class JavaProxyFactory {
 				Object obj=newInstance(pcl,className,pc.getConfig(),cfc);
 				if(obj!=null) return obj;
 			}
-			catch(Throwable t) {}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		
 		/*
@@ -312,13 +313,18 @@ public class JavaProxyFactory {
 	        return newInstance(clazz, pc.getConfig(),cfc);
         }
         catch(Throwable t) {
+        	ExceptionUtil.rethrowIfNecessary(t);
         	throw Caster.toPageException(t);
         }
 	}
 
-	private static ClassLoader[] extractClassLoaders(Class[] classes) {
+	private static ClassLoader[] extractClassLoaders(ClassLoader cl, Class[] classes) {
 		List<ClassLoader> list=new ArrayList<ClassLoader>();
-		ClassLoader cl,tmp;
+		if(cl!=null) {
+			list.add(cl);
+			cl=null;
+		}
+		ClassLoader tmp;
 		Iterator<ClassLoader> it;
 		if(classes!=null)outer:for(int i=0; i<classes.length; i++) {
 			cl=classes[i].getClassLoader();

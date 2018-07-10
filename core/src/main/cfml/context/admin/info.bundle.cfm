@@ -14,7 +14,7 @@
 	stText.info.bundles.fileName="File name";
 	stText.info.bundles.path="Path";
 	stText.info.bundles.manifestHeaders="Manifest Headers";
-	stText.bundles.introText="This are all the OSGi bundles (jars) available locally";
+	stText.bundles.introText="These are all the OSGi bundles (jars) available locally.";
 </cfscript>
 
 

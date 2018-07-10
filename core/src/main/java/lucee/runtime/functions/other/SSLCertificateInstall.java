@@ -22,7 +22,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.tag.Admin;
-import lucee.runtime.tag.util.DeprecatedUtil;
 
 public final class SSLCertificateInstall implements Function {
 
@@ -33,7 +32,6 @@ public final class SSLCertificateInstall implements Function {
     }
     
     public static String call(PageContext pc, String host, double port) throws PageException {
-    	DeprecatedUtil.function(pc, "SSLCertificateInstall");
     	Admin.updateSSLCertificate(pc.getConfig(), host, (int)port);
 		return "";
     }

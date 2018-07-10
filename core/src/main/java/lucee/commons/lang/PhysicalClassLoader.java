@@ -21,6 +21,7 @@ package lucee.commons.lang;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.UnmodifiableClassException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -37,20 +38,23 @@ import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.runtime.type.util.ArrayUtil;
 
 import org.apache.commons.collections4.map.ReferenceMap;
-
 
 /**
  * Directory ClassLoader
  */
 public final class PhysicalClassLoader extends ExtendableClassLoader {
 	
+	static {
+		boolean res=registerAsParallelCapable();
+	}
+	
 	private Resource directory;
 	private ConfigImpl config; 
 	private final ClassLoader[] parents;
-	
 
 	Set<String> loadedClasses = new HashSet<>();
 	Set<String> unavaiClasses = new HashSet<>();
@@ -66,9 +70,9 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	public PhysicalClassLoader(Config c,Resource directory) throws IOException {
 		this(c,directory,(ClassLoader[])null,true);
 	}
+
 	public PhysicalClassLoader(Config c,Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL) throws IOException {
 		super(parentClassLoaders==null || parentClassLoaders.length==0?c.getClassLoader():parentClassLoaders[0]);
-		
 		config = (ConfigImpl)c;
 
 		//ClassLoader resCL = parent!=null?parent:config.getResourceClassLoader(null);
@@ -83,15 +87,10 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 				tmp.add(p);
 			}
 		}
-		
-		
-		
+
 		if(includeCoreCL) tmp.add(config.getClassLoaderCore());
-		
 		parents= tmp.toArray(new ClassLoader[tmp.size()]);
-		
-		
-		
+
 		// check directory
 		if(!directory.exists())
 			directory.mkdirs();
@@ -104,16 +103,23 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	public Class<?> loadClass(String name) throws ClassNotFoundException   {
-		return loadClass(name, false);
+		synchronized (getClassLoadingLock(name)) {
+			return loadClass(name, false);
+		}
 	}
 
 	@Override
-	protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+		synchronized (getClassLoadingLock(name)) {
+			return loadClass(name, resolve, true);
+		}
+	}
+	
+	private Class<?> loadClass(String name, boolean resolve, boolean loadFromFS) throws ClassNotFoundException {
 		if (loadedClasses.contains(name) || unavaiClasses.contains(name)) {
 			return super.loadClass(name,false); // Use default CL cache
 		}
 
-		
 		// First, check if the class has already been loaded
 		Class<?> c = findLoadedClass(name);
 		if (c == null) {
@@ -122,9 +128,12 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 					c = p.loadClass(name);
 					break;
 				} 
-				catch (Throwable t) {}
+				catch(Exception e) {}
 			}
-			if(c==null)c = findClass(name);
+			if(c==null) {
+				if(loadFromFS)c = findClass(name);
+				else throw new ClassNotFoundException(name);
+			}
 		}
 		if (resolve)resolveClass(c);
 		return c;
@@ -132,41 +141,56 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {//if(name.indexOf("sub")!=-1)print.ds(name);
-		Resource res=directory
-		.getRealResource(
-				name.replace('.','/')
-				.concat(".class"));
-		
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		try {
-			IOUtil.copy(res,baos,false);
-		} 
-		catch (IOException e) {
-			this.unavaiClasses.add(name);
-			throw new ClassNotFoundException("class "+name+" is invalid or doesn't exist");
+		synchronized (getClassLoadingLock(name)) {
+			Resource res=directory
+			.getRealResource(
+					name.replace('.','/')
+					.concat(".class"));
+			
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			try {
+				IOUtil.copy(res,baos,false);
+			} 
+			catch (IOException e) {
+				this.unavaiClasses.add(name);
+				throw new ClassNotFoundException("class "+name+" is invalid or doesn't exist");
+			}
+			
+			byte[] barr=baos.toByteArray();
+			IOUtil.closeEL(baos);
+			return _loadClass(name, barr);
 		}
-		
-		byte[] barr=baos.toByteArray();
-		IOUtil.closeEL(baos);
-		return _loadClass(name, barr);
 	}
-	
 
 	@Override
 	public synchronized Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
+		Class<?> clazz=null;
 		
-		return _loadClass(name, barr);
+		synchronized (getClassLoadingLock(name)) {
+		
+			// new class , not in memoyr yet
+			try {
+				clazz = loadClass(name,false,false); // we do not load existing class from disk
+			}
+			catch (ClassNotFoundException cnf) {}
+			if(clazz==null) return _loadClass(name, barr);
+		
+		// update	
+			try {
+				InstrumentationFactory.getInstrumentation(config).redefineClasses(new ClassDefinition(clazz,barr));
+			} 
+			catch (ClassNotFoundException e) {
+				// the documentation clearly sais that this exception only exists for backward compatibility and never happen
+				throw new RuntimeException(e);
+			}
+			return clazz;
+		}
 	}
 	
-	private synchronized Class<?> _loadClass(String name, byte[] barr) {
-
+	private Class<?> _loadClass(String name, byte[] barr) {
 		Class<?> clazz = defineClass(name,barr,0,barr.length);
-		
 		if (clazz != null) {
 			loadedClasses.add(name);
-			/*if (clazz.getPackage() == null) {
-				definePackage(name.replaceAll("\\.\\w+$", ""), null, null, null, null, null, null, null);
-			}*/
 			resolveClass(clazz);
 		}
 		return clazz;
@@ -208,7 +232,6 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	}
 	
 	public boolean isClassLoaded(String className) {
-		//print.o("isClassLoaded:"+className+"-"+(findLoadedClass(className)!=null));
 		return findLoadedClass(className)!=null;
 	}
 

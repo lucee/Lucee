@@ -21,11 +21,15 @@
  */
 package lucee.runtime.functions.decision;
 
+import java.io.IOException;
+
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.java.JavaObject;
+import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.ObjectWrap;
 
@@ -33,13 +37,23 @@ public final class IsInstanceOf implements Function {
 	public static boolean call(PageContext pc , Object obj,String typeName) throws PageException {
 		if(obj instanceof Component)
 			return ((Component)obj).instanceOf(typeName);
-		if(obj instanceof JavaObject)
-			return Reflector.isInstaneOf(((JavaObject)obj).getClazz(), typeName);
+		if(obj instanceof JavaObject) {
+			try {
+				return Reflector.isInstaneOf(((PageContextImpl)pc).getClassLoader(),((JavaObject)obj).getClazz(), typeName);
+			}
+			catch (IOException ioe) {
+				throw Caster.toPageException(ioe);
+			}
+		}
 		if(obj instanceof ObjectWrap)
 			return call(pc, ((ObjectWrap)obj).getEmbededObject(), typeName);
 		
 		
-		return Reflector.isInstaneOf(obj.getClass(), typeName);
+		try {
+			return Reflector.isInstaneOf(((PageContextImpl)pc).getClassLoader(),obj.getClass(), typeName);
+		} catch (IOException ioe) {
+			throw Caster.toPageException(ioe);
+		}
 		
 	}
 }

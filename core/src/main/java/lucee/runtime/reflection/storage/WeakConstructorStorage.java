@@ -36,14 +36,16 @@ public final class WeakConstructorStorage {
 	 * @param count count of arguments for the constructor
 	 * @return returns the constructors
 	 */
-	public synchronized Constructor[] getConstructors(Class clazz,int count) {
-		Object o=map.get(clazz);
+	public Constructor[] getConstructors(Class clazz,int count) {
 		Array con;
-		if(o==null) {
-			con=store(clazz);
+		Object  o;
+		synchronized (map) {
+			o=map.get(clazz);
+			if(o==null) {
+				con=store(clazz);
+			}
+			else con=(Array) o;
 		}
-		else con=(Array) o;
-
 		o=con.get(count+1,null);
 		if(o==null) return null;
 		return (Constructor[]) o;

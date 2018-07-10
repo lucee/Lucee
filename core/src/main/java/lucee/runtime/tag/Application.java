@@ -34,19 +34,19 @@ import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
-import lucee.runtime.listener.ClassicApplicationContext;
-import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.listener.AuthCookieData;
 import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMUtil;
+import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -54,7 +54,6 @@ import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.UndefinedImpl;
-import lucee.runtime.type.scope.session.SessionCookie;
 import lucee.runtime.type.util.KeyConstants;
 
 /**
@@ -99,6 +98,7 @@ public final class Application extends TagImpl {
     private String name="";
 	private int action=ACTION_CREATE;
 	private int localMode=-1;
+	private Object mailListener=null;
 	private Locale locale;
 	private TimeZone timeZone;
 	private CharSet webCharset;
@@ -113,6 +113,7 @@ public final class Application extends TagImpl {
 	private Struct ormsettings;
 	private Struct tag;
 	private Struct s3;
+	private Struct ftp;
 	
 	private Boolean triggerDataMember=null;
 	private String cacheFunction;
@@ -124,8 +125,10 @@ public final class Application extends TagImpl {
 	private String cacheHTTP;
 	private String cacheFile;
 	private String cacheWebservice;
-
+	private Resource antiSamyPolicyResource;
 	private Struct datasources;
+	private Struct logs;
+	private Array mails;
 	private Struct caches;
 	private UDF onmissingtemplate;
 	private short scopeCascading=-1;
@@ -161,10 +164,13 @@ public final class Application extends TagImpl {
         datasource=null;
         defaultdatasource=null;
         datasources=null;
+        logs=null;
+        mails=null;
         caches=null;
         this.name="";
         action=ACTION_CREATE;
         localMode=-1;
+        mailListener=null;
         locale=null;
         timeZone=null;
         webCharset=null;
@@ -179,6 +185,7 @@ public final class Application extends TagImpl {
         ormsettings=null;
         tag=null;
         s3=null;
+        ftp=null;
         //appContext=null;
         
         triggerDataMember=null;
@@ -193,7 +200,7 @@ public final class Application extends TagImpl {
     	cacheHTTP=null;
     	cacheFile=null;
     	cacheWebservice=null;
-    	
+    	antiSamyPolicyResource=null;
     	onmissingtemplate=null;
     	scopeCascading=-1;
     	authCookie=null;
@@ -254,12 +261,22 @@ public final class Application extends TagImpl {
 	public void setDatasources(Struct datasources) {
 		this.datasources = datasources;
 	}
+	public void setLogs(Struct logs) {
+		this.logs = logs;
+	}
+	public void setMails(Array mails) {
+		this.mails = mails;
+	}
 	public void setCaches(Struct caches) {
 		this.caches = caches;
 	}
-	
+
 	public void setLocalmode(String strLocalMode) throws ApplicationException {
 		this.localMode = AppListenerUtil.toLocalMode(strLocalMode);
+		
+	}
+	public void setMaillistener(Object mailListener) throws ApplicationException {
+		this.mailListener = mailListener;
 		
 	}
 	
@@ -274,6 +291,11 @@ public final class Application extends TagImpl {
 		short NULL=-1;
 		short tmp = ConfigWebUtil.toScopeCascading(scopeCascading,NULL);
 		if(tmp==NULL) throw new ApplicationException("invalid value ("+scopeCascading+") for attribute [ScopeCascading], valid values are [strict,small,standard]");
+		this.scopeCascading=tmp;
+	}
+	
+	public void setSearchimplicitscopes(boolean searchImplicitScopes) throws ApplicationException {
+		short tmp = ConfigWebUtil.toScopeCascading(searchImplicitScopes);
 		this.scopeCascading=tmp;
 	}
 	
@@ -390,6 +412,10 @@ public final class Application extends TagImpl {
 		this.compression=compress;
 	}
 	
+	public void setAntiSamyPolicyResource(String strAntiSamyPolicyResource) throws ExpressionException {
+		this.antiSamyPolicyResource=ResourceUtil.toResourceExisting(pageContext, strAntiSamyPolicyResource);
+	}
+	
 
 	public void setTriggerdatamember(boolean triggerDataMember)	{
 		this.triggerDataMember=triggerDataMember?Boolean.TRUE:Boolean.FALSE;
@@ -420,6 +446,13 @@ public final class Application extends TagImpl {
 	 */
 	public void setS3(Struct s3) {
 		this.s3 = s3;
+	}
+
+	/**
+	 * @param s3 the s3 to set
+	 */
+	public void setFtp(Struct ftp) {
+		this.ftp = ftp;
 	}
 
 	/** set the value applicationtimeout
@@ -512,17 +545,25 @@ public final class Application extends TagImpl {
 	@Override
 	public int doStartTag() throws PageException	{
         
-        ApplicationContext ac;
-        boolean initORM;
-        if(action==ACTION_CREATE){
+        ApplicationContext ac=null;
+        boolean initORM=false;
+        
+        if(action==ACTION_UPDATE) {
+        	ac= pageContext.getApplicationContext();
+        	// no update because the current context has a different name
+        	if(!StringUtil.isEmpty(name) && !name.equalsIgnoreCase(ac.getName())) 
+        		ac=null;
+        	else {
+        		initORM=set(ac,true);
+        	}
+        }
+        // if we do not update we have to create a new one
+        if(ac==null){
+        	PageSource ps = pageContext.getCurrentPageSource(null);
         	ac=new ClassicApplicationContext(pageContext.getConfig(),name,false,
-        			pageContext.getCurrentPageSource().getResourceTranslated(pageContext));
+        			ps==null?null:ps.getResourceTranslated(pageContext));
         	initORM=set(ac,false);
         	pageContext.setApplicationContext(ac);
-        }
-        else {
-        	ac= pageContext.getApplicationContext();
-        	initORM=set(ac,true);
         }
         
         // scope cascading
@@ -570,6 +611,24 @@ public final class Application extends TagImpl {
 				throw Caster.toPageException(e);
 			}
 		}
+		if(logs!=null){
+			try {
+				ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+				acs.setLoggers(ApplicationContextSupport.initLog(logs));
+			} 
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
+		}
+		if(mails!=null){
+			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
+			try {
+				acs.setMailServers(AppListenerUtil.toMailServers(pageContext.getConfig(), mails, null));
+			} 
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
+		}
 		if(caches!=null){
 			try {
 				ApplicationContextSupport acs=(ApplicationContextSupport) ac;
@@ -581,49 +640,22 @@ public final class Application extends TagImpl {
 					e = it.next();
 					// default value by name
 					if(!StringUtil.isEmpty(name=Caster.toString(e.getValue(),null))) {
-						if(KeyConstants._function.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_FUNCTION, name);
-						else if(KeyConstants._object.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_OBJECT, name);
-						else if(KeyConstants._query.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_QUERY, name);
-						else if(KeyConstants._resource.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_RESOURCE, name);
-						else if(KeyConstants._template.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_TEMPLATE, name);
-						else if(KeyConstants._include.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_INCLUDE, name);
-						else if(KeyConstants._http.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_HTTP, name);
-						else if(KeyConstants._file.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_FILE, name);
-						else if(KeyConstants._webservice.equals(e.getKey()))
-							ac.setDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE, name);
+						setDefault(ac,e.getKey(),name);
 					}
 					// cache definition
 					else if((sct=Caster.toStruct(e.getValue(),null))!=null) {
-						CacheConnection cc = ModernApplicationContext.toCacheConnection(pageContext.getConfig(), e.getKey().getString(), sct, null);
+						CacheConnection cc = ModernApplicationContext.toCacheConnection(pageContext.getConfig(), e.getKey().getString(), sct);
 						if(cc!=null) {
-							acs.setCacheConnection(e.getKey().getString(), cc);
 							name=e.getKey().getString();
-							if(KeyConstants._function.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_FUNCTION, name);
-							else if(KeyConstants._object.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_OBJECT, name);
-							else if(KeyConstants._query.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_QUERY, name);
-							else if(KeyConstants._resource.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_RESOURCE, name);
-							else if(KeyConstants._template.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_TEMPLATE, name);
-							else if(KeyConstants._include.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_INCLUDE, name);
-							else if(KeyConstants._http.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_HTTP, name);
-							else if(KeyConstants._file.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_FILE, name);
-							else if(KeyConstants._webservice.equals(e.getKey()))
-								ac.setDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE, name);
+							acs.setCacheConnection(name, cc);
+							
+							// key is a cache type
+							setDefault(ac,e.getKey(),name);
+							
+							// default key
+							Key def = Caster.toKey(sct.get(KeyConstants._default,null),null);
+							if(def!=null) setDefault(ac,def,name);
+							
 						}
 					}
 				}
@@ -648,6 +680,7 @@ public final class Application extends TagImpl {
 		if(setDomainCookies!=null)				ac.setSetDomainCookies(setDomainCookies.booleanValue());
 		if(setSessionManagement!=null)			ac.setSetSessionManagement(setSessionManagement.booleanValue());
 		if(localMode!=-1) 						ac.setLocalMode(localMode);
+		if(mailListener!=null) 					((ApplicationContextSupport) ac).setMailListener(mailListener);
 		if(locale!=null) 						ac.setLocale(locale);
 		if(timeZone!=null) 						ac.setTimeZone(timeZone);
 		if(webCharset!=null) 					ac.setWebCharset(webCharset.toCharset());
@@ -665,6 +698,7 @@ public final class Application extends TagImpl {
 		if(cacheHTTP!=null) 					ac.setDefaultCacheName(Config.CACHE_TYPE_HTTP, cacheHTTP);
 		if(cacheFile!=null) 					ac.setDefaultCacheName(Config.CACHE_TYPE_FILE, cacheFile);
 		if(cacheWebservice!=null) 				ac.setDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE, cacheWebservice);
+		if(antiSamyPolicyResource!=null) 		((ApplicationContextSupport)ac).setAntiSamyPolicyResource(antiSamyPolicyResource);
 		if(sessionCookie!=null) 				{
 			ApplicationContextSupport acs=(ApplicationContextSupport) ac;
 			acs.setSessionCookie(sessionCookie);
@@ -678,7 +712,8 @@ public final class Application extends TagImpl {
 		ac.setClientCluster(clientCluster);
 		ac.setSessionCluster(sessionCluster);
 		ac.setCGIScopeReadonly(cgiReadOnly);
-		if(s3!=null) 							ac.setS3(AppListenerUtil.toS3(s3));
+		if(s3!=null) ac.setS3(AppListenerUtil.toS3(s3));
+		if(ftp!=null) ((ApplicationContextSupport)ac).setFTP(AppListenerUtil.toFTP(ftp));
 		
 		// Scope cascading
 		if(scopeCascading!=-1) ac.setScopeCascading(scopeCascading);
@@ -697,6 +732,27 @@ public final class Application extends TagImpl {
 		
 		
 		return initORM;
+	}
+
+	private static void setDefault(ApplicationContext ac, Key type, String cacheName) {
+		if(KeyConstants._function.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_FUNCTION, cacheName);
+		else if(KeyConstants._object.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_OBJECT, cacheName);
+		else if(KeyConstants._query.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_QUERY, cacheName);
+		else if(KeyConstants._resource.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_RESOURCE, cacheName);
+		else if(KeyConstants._template.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_TEMPLATE, cacheName);
+		else if(KeyConstants._include.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_INCLUDE, cacheName);
+		else if(KeyConstants._http.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_HTTP, cacheName);
+		else if(KeyConstants._file.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_FILE, cacheName);
+		else if(KeyConstants._webservice.equals(type))
+			ac.setDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE, cacheName);
 	}
 
 	@Override

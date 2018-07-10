@@ -80,6 +80,7 @@ Defaults --->
 	<cfcatch>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
+		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
 
@@ -106,13 +107,13 @@ Error Output --->
 <cfif request.adminType EQ "server">
 	<cfoutput>
 		<h2>#stText.Login.settings#</h2>
-		<cfform action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl">
 				<tbody>
 					<tr>
 						<th scope="row">#stText.Login.useCaptcha#</th>
 						<td>
-							<cfinput type="checkbox" class="checkbox" name="captcha" checked="#settings.captcha#" value="true">
+							<cfinputClassic type="checkbox" class="checkbox" name="captcha" checked="#settings.captcha#" value="true">
 							<div class="comment">#stText.Login.useCaptchaDesc#</div>
 						</td>
 					</tr>
@@ -129,7 +130,7 @@ Error Output --->
 					<tr>
 						<th scope="row">#stText.Login.rememberMeEnable#</th>
 						<td>
-							<cfinput type="checkbox" class="checkbox" name="remembermeEnable" checked="#settings.rememberme#" value="true">
+							<cfinputClassic type="checkbox" class="checkbox" name="remembermeEnable" checked="#settings.rememberme#" value="true">
 							<div class="comment">#stText.Login.rememberMeEnableDesc#</div>
 						</td>
 					</tr>
@@ -143,7 +144,7 @@ Error Output --->
 					</tr>
 				</tfoot>
 			</table>
-		</cfform>
+		</cfformClassic>
 	</cfoutput>
 </cfif>
 
@@ -151,13 +152,13 @@ Error Output --->
 <cfoutput>
 	<h2>#stText.Login.ChangePassword#</h2>
 	<div class="itemintro">#stText.Login.ChangePasswordDescription#</div>
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 				<tr>
 					<th scope="row">#stText.Login.OldPassword#</th>
 					<td>
-						<cfinput type="password" name="_old_password" value="" passthrough='autocomplete="off"'
+						<cfinputClassic type="password" name="_old_password" value="" passthrough='autocomplete="off"'
 						class="medium" required="yes" message="#stText.Login.OldPasswordMissing#">
 						<div class="comment">#stText.Login.OldPasswordDescription#</div>
 					</td>
@@ -165,7 +166,7 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.Login.NewPassword#</th>
 					<td>
-						<cfinput type="password" name="_new_password" value="" passthrough='autocomplete="off"'
+						<cfinputClassic type="password" name="_new_password" value="" passthrough='autocomplete="off"'
 						class="medium" required="yes" message="#stText.Login.NewPasswordMissing#">
 						<div class="comment">#stText.Login.NewPasswordDescription#</div>
 					</td>
@@ -173,7 +174,7 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.Login.RetypePassword#</th>
 					<td>
-						<cfinput type="password" name="_new_password_re" value="" passthrough='autocomplete="off"' 
+						<cfinputClassic type="password" name="_new_password_re" value="" passthrough='autocomplete="off"' 
 						class="medium" required="yes" message="#stText.Login.RetypeNewPasswordMissing#">
 						<div class="comment">#stText.Login.RetypeNewPassword#</div>
 					</td>
@@ -188,7 +189,7 @@ Error Output --->
 				</tr>
 			</tfoot>
 		</table>
-	</cfform>
+	</cfformClassic>
 </cfoutput>
 
 <cfif request.adminType EQ "server">
@@ -208,13 +209,13 @@ Error Output --->
 		<cfoutput>
 			<h2>#stText.Login.DefaultPassword#</h2>
 			<div class="itemintro">#stText.Login.DefaultPasswordDescription#</div>
-			<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 				<table class="maintbl">
 					<tbody>
 						<tr>
 							<th scope="row">#stText.Login.Password#</th>
 							<td>
-								<cfinput type="password" name="_new_password" value="#defaultPassword#" 
+								<cfinputClassic type="password" name="_new_password" value="#defaultPassword#" 
 								class="medium" required="no" message="#stText.Login.NewPasswordMissing#">
 								<div class="comment">#stText.Login.NewPasswordDescription#</div>
 							</td>
@@ -230,7 +231,7 @@ Error Output --->
 						</tr>
 					</tfoot>
 				</table>
-			</cfform>
+			</cfformClassic>
 		</cfoutput>
 	</cfif>
 
@@ -251,7 +252,7 @@ Error Output --->
 		<cfoutput>
 			<h2>#stText.Login.resetWebPW#</h2>
 			<div class="itemintro">#stText.Login.resetWebPWDescription#</div>
-			<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 				<table class="maintbl">
 					<tbody>
 						<tr>
@@ -282,7 +283,7 @@ Error Output --->
 						</tr>
 					</tfoot>
 				</table>
-			</cfform>
+			</cfformClassic>
 		</cfoutput>
 	</cfif>
 </cfif>

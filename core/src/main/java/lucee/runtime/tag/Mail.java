@@ -32,6 +32,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.net.mail.MailException;
 import lucee.runtime.net.mail.MailPart;
 import lucee.runtime.net.smtp.SMTPClient;
@@ -82,6 +83,8 @@ public final class Mail extends BodyTagImpl {
 
 	/** specify the time for the message to be sent when using the spooler */
 	private DateTime sendTime;
+
+	private Object listener;
 	
 
 	@Override
@@ -99,6 +102,7 @@ public final class Mail extends BodyTagImpl {
 		charset=null;
 		remove=false;
 		sendTime=null;
+		this.listener=null;
 	}
 	
 	
@@ -172,7 +176,8 @@ public final class Mail extends BodyTagImpl {
 	 * @throws PageException 
 	**/
 	public void setFrom(Object from) throws PageException	{
-		if(StringUtil.isEmpty(from)) return;
+		if(StringUtil.isEmpty(from,true)) 
+			throw new ApplicationException("attribute [from] cannot be empty");
 		try {
 			smtp.setFrom(from);
 		} catch (Exception e) {
@@ -297,18 +302,18 @@ public final class Mail extends BodyTagImpl {
 	 * @param disposition 
 	 * @throws PageException 
 	**/
-	public void setMimeattach(String strMimeattach, String type, String disposition, String contentID,boolean removeAfterSend) throws PageException	{
+	public void setMimeattach(String strMimeattach, String fileName, String type, String disposition, String contentID,boolean removeAfterSend) throws PageException	{
 		Resource file=ResourceUtil.toResourceNotExisting(pageContext,strMimeattach);
         pageContext.getConfig().getSecurityManager().checkFileLocation(file);
 		if(!file.exists())
 			throw new ApplicationException("can't attach file "+strMimeattach+", this file doesn't exist");
 		
 
-        smtp.addAttachment(file,type,disposition,contentID,removeAfterSend);
+        smtp.addAttachment(file,fileName,type,disposition,contentID,removeAfterSend);
 		
 	}
 	public void setMimeattach(String strMimeattach) throws PageException	{
-		setMimeattach(strMimeattach, "", null, null,false);
+		setMimeattach(strMimeattach,null, "", null, null,false);
 	}
 	
 	/**
@@ -470,6 +475,11 @@ public final class Mail extends BodyTagImpl {
 	public void setStartrow(double startrow)	{
 		this.startrow=startrow;
 	}
+	
+
+	public void setListener(Object listener) throws ApplicationException	{
+		this.listener=listener;
+	}
 
     /**
      * @param part
@@ -537,9 +547,16 @@ public final class Mail extends BodyTagImpl {
 	
 	@Override
 	public int doEndTag() throws PageException	{
+		if(listener==null) {
+			ApplicationContextSupport acs=(ApplicationContextSupport) pageContext.getApplicationContext();
+			listener=acs.getMailListener();
+		}
+		if(listener!=null) smtp.setListener(listener);
+			
+			
 		smtp.setTimeZone(pageContext.getTimeZone());
 		try {
-			smtp.send(pageContext.getConfig(), sendTime!=null ? sendTime.getTime() : 0);
+			smtp.send(pageContext, sendTime!=null ? sendTime.getTime() : 0);
 		} 
 		catch (MailException e) {
 			throw Caster.toPageException(e);
@@ -557,11 +574,11 @@ public final class Mail extends BodyTagImpl {
 	 * @param disposition 
 	 * @throws PageException 
 	 */
-	public void setParam(String type, String file, String name, String value, String disposition, String contentID,Boolean oRemoveAfterSend) throws PageException {
+	public void setParam(String type, String file, String fileName, String name, String value, String disposition, String contentID,Boolean oRemoveAfterSend) throws PageException {
 		if(file!=null){
 			boolean removeAfterSend=(oRemoveAfterSend==null)?remove:oRemoveAfterSend.booleanValue();
 				
-			setMimeattach(file,type,disposition,contentID,removeAfterSend);
+			setMimeattach(file,fileName,type,disposition,contentID,removeAfterSend);
 		}
 		else {
 			if(name.equalsIgnoreCase("bcc"))			setBcc(value);

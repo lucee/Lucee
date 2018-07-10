@@ -27,6 +27,7 @@ public final class Pop extends _Mail {
 
 	@Override
 	protected int getDefaultPort() {
+		if(isSecure()) return 995;
 		return 110;
 	}
 
@@ -39,5 +40,4 @@ public final class Pop extends _Mail {
 	protected int getType() {
 		return MailClient.TYPE_POP3;
 	}
-    
 }

@@ -25,7 +25,6 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 
@@ -40,11 +39,11 @@ public final class ExceptionHandler {
 		pe.printStackTrace(config.getErrWriter()); 
 		
 		// apllication Log
-		LogUtil.log(((ConfigImpl)config).getLog("application"),Log.LEVEL_ERROR, "",pe);
+		LogUtil.log(config.getLog("application"),Log.LEVEL_ERROR, "",pe);
 		
 		// exception.log
 		String st = ExceptionUtil.getStacktrace(pe,true);
-		LogUtil.log(((ConfigImpl)config).getLog("exception"),Log.LEVEL_ERROR, "",pe);
+		LogUtil.log(config.getLog("exception"),Log.LEVEL_ERROR, "",pe);
 		
 		
 	}

@@ -1,5 +1,6 @@
 /**
  *
+ * Copyright (c) 2016, Lucee Assosication Switzerland. All rights reserved.*
  * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -38,6 +39,7 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.ArrayPro;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Iteratorable;
@@ -52,22 +54,22 @@ import lucee.runtime.type.scope.ArgumentIntKey;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StringListData;
 
-public class Map extends BIF {
+public class Map extends BIF implements ClosureFunc {
 
 	private static final long serialVersionUID = -1435100019820996876L;
 
 
 	public static Object call(PageContext pc , Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf, false,20);
+		return _call(pc, obj, udf, false,20,null,TYPE_UNDEFINED);
 	}
 	public static Object call(PageContext pc , Object obj, UDF udf, boolean parallel) throws PageException {
-		return _call(pc, obj, udf, parallel, 20);
+		return _call(pc, obj, udf, parallel, 20,null,TYPE_UNDEFINED);
 	}
 	public static Object call(PageContext pc , Object obj, UDF udf, boolean parallel, double maxThreads) throws PageException {
-		return _call(pc, obj, udf, parallel, (int)maxThreads);
+		return _call(pc, obj, udf, parallel, (int)maxThreads,null,TYPE_UNDEFINED);
 	}
 	
-	public static Collection _call(PageContext pc , Object obj, UDF udf, boolean parallel, int maxThreads) throws PageException { 
+	public static Collection _call(PageContext pc , Object obj, UDF udf, boolean parallel, int maxThreads, Query resQry, short type) throws PageException { 
 		
 		ExecutorService execute=null;
 		List<Future<Data<Object>>> futures=null;
@@ -77,14 +79,27 @@ public class Map extends BIF {
 		}
 		
 		Collection coll;
-		
+
+		// !!!! Don't combine the first 3 ifs with the ifs below, type overrules instanceof check
 		// Array
-		if(obj instanceof Array) {
+		if(type==TYPE_ARRAY) {
+			coll=invoke(pc, (Array)obj, udf,execute,futures);
+		}
+		// Query
+		else if(type==TYPE_QUERY) {
+			coll=invoke(pc, (Query)obj, udf,execute,futures,resQry);
+		}
+		// Struct
+		else if(type==TYPE_STRUCT) {
+			coll=invoke(pc, (Struct)obj, udf,execute,futures);
+		}
+		// Array
+		else if(obj instanceof Array) {
 			coll=invoke(pc, (Array)obj, udf,execute,futures);
 		}
 		// Query
 		else if(obj instanceof Query) {
-			coll=invoke(pc, (Query)obj, udf,execute,futures);
+			coll=invoke(pc, (Query)obj, udf,execute,futures,resQry);
 		}
 		// Struct
 		else if(obj instanceof Struct) {
@@ -126,28 +141,28 @@ public class Map extends BIF {
 		Array arr = ListUtil.listToArray(sld.list, sld.delimiter,sld.includeEmptyFieldsx,sld.multiCharacterDelimiter);
 		
 		Array rtn=new ArrayImpl();
-		Iterator<Entry<Key, Object>> it = arr.entryIterator();
-		Entry<Key, Object> e;
+		Iterator it = (arr instanceof ArrayPro?((ArrayPro)arr).entryArrayIterator(): arr.entryIterator());
+		Entry e;
 		boolean async=es!=null;
 		Object res;
 		while(it.hasNext()){
-			e = it.next();
-			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey().getString()),sld.list,sld.delimiter},e.getKey(), es, futures);
-			if(!async) rtn.set(e.getKey(),res);
+			e = (Entry)it.next();
+			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey()),sld.list,sld.delimiter},e.getKey(), es, futures);
+			if(!async) rtn.set(Caster.toString(e.getKey()),res);
 		}
 		return rtn;
 	}
 
 	private static Collection invoke(PageContext pc, Array arr, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws CasterException, PageException {
 		Array rtn=new ArrayImpl();
-		Iterator<Entry<Key, Object>> it = arr.entryIterator();
-		Entry<Key, Object> e;
+		Iterator it =(arr instanceof ArrayPro?((ArrayPro)arr).entryArrayIterator(): arr.entryIterator());
+		Entry e;
 		boolean async=es!=null;
 		Object res;
 		while(it.hasNext()){
-			e = it.next();
-			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey().getString()),arr},e.getKey(), es, futures);
-			if(!async) rtn.set(e.getKey(),res);
+			e =(Entry)it.next();
+			res=_inv(pc, udf, new Object[]{e.getValue(),Caster.toDoubleValue(e.getKey()),arr},e.getKey(), es, futures);
+			if(!async) rtn.set(Caster.toString(e.getKey()),res);
 		}
 		return rtn;
 	}
@@ -184,9 +199,20 @@ public class Map extends BIF {
 		return rtn;
 	}
 
-	private static Query invoke(PageContext pc, Query qry, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws PageException {
+	private static Query invoke(PageContext pc, Query qry, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures,Query rtn) throws PageException {
 		Key[] colNames = qry.getColumnNames();
-		Query rtn=new QueryImpl(colNames,0,qry.getName());
+		
+		if(rtn==null) {
+			rtn=new QueryImpl(colNames,0,qry.getName());
+		}
+		else {
+			// check if we have the necessary columns
+			for(Key colName:colNames) {
+				if(rtn.getColumn(colName,null)==null) {
+					rtn.addColumn(colName,new ArrayImpl());
+				}
+			}
+		}
 		final int pid=pc.getId();
 		ForEachQueryIterator it=new ForEachQueryIterator(qry, pid);
 		int rowNbr;

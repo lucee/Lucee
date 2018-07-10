@@ -51,6 +51,7 @@ Defaults --->
 		<cfcatch>
 			<cfset error.message=cfcatch.message>
 			<cfset error.detail=cfcatch.Detail>
+			<cfset error.cfcatch=cfcatch>
 		</cfcatch>
 	</cftry>
 </cfif>
@@ -97,7 +98,7 @@ Error Output --->
 	</cfif>
 	<div class="pageintro">#stText.err.descr#</div>
 
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 				<cfloop list="500,404" index="statusCode">
@@ -114,16 +115,7 @@ Error Output --->
 								<cfif structKeyExists(session,"passwordserver")>
 									<cfdirectory action="LIST" directory="../templates/error/" name="err_templates" serverpassword="#session.passwordserver#">
 								<cfelse>
-									<cftry>
-										<cfdirectory action="LIST" directory="../templates/error/" name="err_templates">
-										<cfcatch type="security">
-											<cfadmin 
-												action="getErrorList"
-												type="#request.adminType#"
-												password="#session["password"&request.adminType]#"
-												returnVariable="err_templates">			
-										</cfcatch>		
-									</cftry>
+									<cfdirectory action="LIST" directory="../templates/error/" name="err_templates">
 								</cfif>
 								<cfset isFromTemplate=false>
 								<cfset path=GetDirectoryFromPath(mid(GetDirectoryFromPath(cgi.SCRIPT_NAME),1,len(GetDirectoryFromPath(cgi.SCRIPT_NAME))-1))>
@@ -187,5 +179,5 @@ Error Output --->
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 </cfoutput>

@@ -192,13 +192,13 @@ public final class Wddx extends TagImpl {
 		converter.setTimeZone(pageContext.getTimeZone());
 		return converter.deserialize(input,validate);
 	}
-	private String cfml2js(Object input) throws ConverterException {
-		if(toplevelvariable==null)missingTopLevelVariable();
+	private String cfml2js(Object input) throws ConverterException, ApplicationException {
+		if(toplevelvariable==null)throw missingTopLevelVariable();
 		JSConverter converter =new JSConverter();
 		return converter.serialize(input,toplevelvariable);
 	}
-	private String wddx2js(String input) throws ConverterException, IOException, FactoryConfigurationError {
-		if(toplevelvariable==null)missingTopLevelVariable();
+	private String wddx2js(String input) throws ConverterException, IOException, FactoryConfigurationError, ApplicationException {
+		if(toplevelvariable==null)throw missingTopLevelVariable();
 		JSConverter converter =new JSConverter();
 		return converter.serialize(wddx2cfml(input),toplevelvariable);
 	}

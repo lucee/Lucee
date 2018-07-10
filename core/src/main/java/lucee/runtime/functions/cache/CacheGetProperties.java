@@ -24,8 +24,9 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.ext.function.Function;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -34,7 +35,7 @@ import lucee.runtime.type.util.ListUtil;
 /**
  * 
  */
-public final class CacheGetProperties implements Function {
+public final class CacheGetProperties extends BIF {
 	
 	private static final long serialVersionUID = -8665995702411192700L;
 
@@ -84,12 +85,17 @@ public final class CacheGetProperties implements Function {
 						arr.appendEL(CacheUtil.getCache(pc,name).getCustomInfo());
 				}
 			}
-			
-			
 			return arr;
 		} catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length==0)return call(pc);
+		if(args.length==1)return call(pc, Caster.toString(args[0]));
+		throw new FunctionException(pc, "CacheGetProperties", 0, 1, args.length);
 	}
 
 	private static void addDefault(PageContext pc, int type, Array arr) {

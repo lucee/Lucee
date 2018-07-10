@@ -24,6 +24,8 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
 
+import lucee.commons.lang.SerializableObject;
+
 public class SyncCollection<E> implements Collection<E>, Serializable {
         private static final long serialVersionUID = 3053995032091335093L;
 
@@ -34,7 +36,7 @@ public class SyncCollection<E> implements Collection<E>, Serializable {
             if (c==null)
                 throw new NullPointerException();
             this.c = c;
-            mutex = this;
+            mutex = new SerializableObject();
         }
         SyncCollection(Collection<E> c, Object mutex) {
             this.c = c;

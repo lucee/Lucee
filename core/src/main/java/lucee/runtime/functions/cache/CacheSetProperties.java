@@ -26,16 +26,19 @@ import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ListUtil;
 
-public class CacheSetProperties {
+public class CacheSetProperties extends BIF {
 
+	private static final long serialVersionUID = -5700264673510261084L;
 	private static final Key OBJECT_TYPE = KeyImpl.intern("objecttype");
 
 	public static Object call(PageContext pc,Struct properties) throws PageException {
@@ -50,9 +53,13 @@ public class CacheSetProperties {
 		} catch (CacheException e) {
 			throw Caster.toPageException(e);
 		}
-		
-		
 		return call(pc, null);
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length==1)return call(pc, Caster.toStruct(args[0]));
+		throw new FunctionException(pc, "CacheSetProperties", 1, 1, args.length);
 	}
 
 	private static void setProperties(CacheConnection cc, Struct properties) throws SecurityException {

@@ -19,6 +19,7 @@
 package lucee.runtime.type.trace;
 
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.debug.Debugger;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -67,20 +68,20 @@ public class TraceObjectSupport implements TraceObject {
 	
 
 	protected void log() {
-		try{log(debugger,type,category,text,null,null);}catch(Throwable t){}
+		try{log(debugger,type,category,text,null,null);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	
 	protected void log(Object varName) {
-		try{log(debugger,type,category,text,varName.toString(),null);}catch(Throwable t){}
+		try{log(debugger,type,category,text,varName.toString(),null);}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	
 	protected void log(Object varName,Object varValue) {
-		try{log(debugger,type,category,text,varName.toString(),varValue.toString());}catch(Throwable t){}
+		try{log(debugger,type,category,text,varName.toString(),varValue.toString());}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
-	public synchronized static void log(Debugger debugger,int type,String category,String text,String varName,String varValue) {
+	public static void log(Debugger debugger,int type,String category,String text,String varName,String varValue) {
 		
-		StackTraceElement[] traces = Thread.currentThread().getStackTrace();
+		StackTraceElement[] traces = new Exception().getStackTrace();
 		
         int line=0;
 		String template=null;

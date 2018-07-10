@@ -46,7 +46,7 @@ public class PageSourceCode extends SourceCode {
 	
 
 
-	private static String toString(PageSource ps, Charset charset) throws IOException {
+	public static String toString(PageSource ps, Charset charset) throws IOException {
 		String content;
 		InputStream is=null;
 		try {

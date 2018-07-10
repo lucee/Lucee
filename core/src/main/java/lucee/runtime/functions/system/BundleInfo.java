@@ -29,7 +29,7 @@ import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
-import lucee.runtime.osgi.OSGiUtil.PackageDefinition;
+import lucee.runtime.osgi.OSGiUtil.PackageQuery;
 import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -96,11 +96,11 @@ public class BundleInfo implements Function {
 		return arr;
 	}
 
-	private static Array toArray2(List<PackageDefinition> list) {
+	private static Array toArray2(List<PackageQuery> list) {
 		Struct sct,_sct;
 		Array arr=new ArrayImpl(),_arr;
-		Iterator<PackageDefinition> it = list.iterator();
-		PackageDefinition pd;
+		Iterator<PackageQuery> it = list.iterator();
+		PackageQuery pd;
 		Iterator<VersionDefinition> _it;
 		VersionDefinition vd;
 		while(it.hasNext()) {

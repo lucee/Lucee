@@ -30,14 +30,15 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
 import lucee.commons.net.http.httpclient.HeaderImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
-import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.functions.conversion.DeserializeJSON;
 import lucee.runtime.net.http.ReqRspUtil;
@@ -83,7 +84,8 @@ public class DeployHandler {
 					else if(config instanceof ConfigServer && "lco".equalsIgnoreCase(ext))
 						XMLConfigAdmin.updateCore((ConfigServerImpl) config, child,true);
 				}
-				catch (Throwable t) {
+				catch(Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					Log log = config.getLog("deploy");
 					log.error("Extension", t);
 				}
@@ -104,6 +106,7 @@ public class DeployHandler {
 				ReqRspUtil.getRootPath(webs[i].getServletContext());
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				return false;
 			}
 		}
@@ -119,7 +122,7 @@ public class DeployHandler {
 			if(dst.exists()) dst.remove(true);
 			ResourceUtil.moveTo(res, dst,true);
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		// TODO Auto-generated method stub
 		
@@ -157,11 +160,11 @@ public class DeployHandler {
 		try {
 			if(XMLConfigAdmin.hasRHExtensions(ci, ed)!=null) return false;
 		} 
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		// check if a local extension is matching our id
-		Iterator<RHExtension> it = getLocalExtensions(config).iterator();
-		RHExtension ext=null,tmp;
+		Iterator<ExtensionDefintion> it = getLocalExtensions(config).iterator();
+		ExtensionDefintion ext=null,tmp;
 		
 		log.info("extension", "installing the extension "+ed);
 		while(it.hasNext()){
@@ -176,14 +179,15 @@ public class DeployHandler {
 		if(ext!=null && ed.getVersion()!=null) {
 			try{
 				log.info("extension", "installing the extension "+ed+" from local provider");
-				Resource res = SystemUtil.getTempFile("lex", true);
-				IOUtil.copy(ext.getExtensionFile(), res);
+				Resource res = SystemUtil.getTempDirectory().getRealResource(ed.getId()+"-"+ed.getVersion()+".lex");
+				ResourceUtil.touch(res);
+				IOUtil.copy(ext.getSource(), res);
 				XMLConfigAdmin._updateRHExtension((ConfigImpl) config, res, reload);
 				return true;
 			}
-			catch(Throwable t) {
+			catch(Exception e) {
 				ext=null;
-				t.printStackTrace();
+				SystemOut.printDate(e);
 			}
 		}
 		
@@ -195,6 +199,7 @@ public class DeployHandler {
 		if(ext!=null) {
 			String content;
 			for(int i=0;i<providers.length;i++) {
+				HTTPResponse rsp=null;
 				try{
 					url=providers[i].getURL();
 					StringBuilder qs=new StringBuilder();
@@ -203,7 +208,7 @@ public class DeployHandler {
 					if(apiKey!=null)qs.append("&ioid=").append(apiKey);
 					
 					url=new URL(url,"/rest/extension/provider/info/"+ed.getId()+qs);
-					HTTPResponse rsp = HTTPEngine.get(url, null, null, -1, false, "UTF-8", "", null, new Header[]{new HeaderImpl("accept","application/json")});
+					rsp = HTTPEngine.get(url, null, null, -1, false, "UTF-8", "", null, new Header[]{new HeaderImpl("accept","application/json")});
 					
 					if(rsp.getStatusCode()!=200) continue;
 					
@@ -216,14 +221,17 @@ public class DeployHandler {
 						log.info("extension", "installing the extension "+ed+" from local provider");
 						
 						// avoid that the exzension from provider get removed
-						Resource res = SystemUtil.getTempFile("lex", true);
-						IOUtil.copy(ext.getExtensionFile(), res);
+						Resource res = SystemUtil.getTempDirectory().getRealResource(ed.getId()+"-"+ed.getVersion()+".lex");
+						ResourceUtil.touch(res);
+						
+						IOUtil.copy(ext.getSource(), res);
 						XMLConfigAdmin._updateRHExtension((ConfigImpl) config, res, reload);
 						return true;
 					}
 				}
-				catch(Throwable t){
-					t.printStackTrace();
+				catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
+				finally {
+					HTTPEngine.closeEL(rsp);
 				}
 			}
 		}
@@ -232,14 +240,14 @@ public class DeployHandler {
 		if(ext!=null) {
 			try{
 				log.info("extension", "installing the extension "+ed+" from local provider");
-				Resource res = SystemUtil.getTempFile("lex", true);
-				IOUtil.copy(ext.getExtensionFile(), res);
+				Resource res = SystemUtil.getTempDirectory().getRealResource(ext.getSource().getName());
+				ResourceUtil.touch(res);
+				
+				IOUtil.copy(ext.getSource(), res);
 				XMLConfigAdmin._updateRHExtension((ConfigImpl) config, res, reload);
 				return true;
 			}
-			catch(Throwable t){
-				t.printStackTrace();
-			}
+			catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		
 		// if not we try to download it
@@ -251,6 +259,7 @@ public class DeployHandler {
 				return true;
 			}
 			catch(Throwable t){
+				ExceptionUtil.rethrowIfNecessary(t);
 				log.error("extension", t);
 			}
 		}
@@ -263,6 +272,7 @@ public class DeployHandler {
 		URL url;
 		RHExtensionProvider[] providers = ((ConfigImpl)config).getRHExtensionProviders();
 		for(int i=0;i<providers.length;i++){
+			HTTPResponse rsp=null;
 			try{
 				url=providers[i].getURL();
 				
@@ -275,18 +285,23 @@ public class DeployHandler {
 				
 				
 				
-				HTTPResponse rsp = HTTPEngine.get(url, null, null, -1, false, "UTF-8", "", null, new Header[]{new HeaderImpl("accept","application/cfml")});
+				rsp = HTTPEngine.get(url, null, null, -1, false, "UTF-8", "", null, new Header[]{new HeaderImpl("accept","application/cfml")});
 				if(rsp.getStatusCode()!=200)
 					throw new IOException("failed to load extension: "+ed);
 				
 				// copy it locally
-				Resource res = SystemUtil.getTempFile("lex", true);
+				Resource res = SystemUtil.getTempDirectory().getRealResource(ed.getId()+"-"+ed.getVersion()+".lex");
+				ResourceUtil.touch(res);
 				IOUtil.copy(rsp.getContentAsStream(), res, true);
 				
 				return res;
 			}
 			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				if(log!=null)log.error("extension", t);
+			}
+			finally {
+				HTTPEngine.closeEL(rsp);
 			}
 		}
 		return null;
@@ -305,14 +320,18 @@ public class DeployHandler {
 
 	public static Resource getExtension(Config config, ExtensionDefintion ed, Log log) {
 		// local
-		RHExtension ext = getLocalExtension(config, ed,null);
-		if(ext!=null && ext.getExtensionFile().exists()) {
+		ExtensionDefintion ext = getLocalExtension(config, ed,null);
+		if(ext!=null) {
 			try {
-				Resource res = SystemUtil.getTempFile("lex", true);
-				IOUtil.copy(ext.getExtensionFile(), res);
-				return res;
+				Resource src=ext.getSource();
+				if(src.exists()) {
+					Resource res = SystemUtil.getTempDirectory().getRealResource(ed.getId()+"-"+ed.getVersion()+".lex");
+					ResourceUtil.touch(res);
+					IOUtil.copy(ext.getSource(), res);
+					return res;
+				}
 			}
-			catch(IOException ioe){}
+			catch(Exception e){}
 		}
 		
 		// remote
@@ -320,9 +339,9 @@ public class DeployHandler {
 	}
 	
 	
-	public static RHExtension getLocalExtension(Config config, ExtensionDefintion ed, RHExtension defaultValue) {
-		Iterator<RHExtension> it = getLocalExtensions(config).iterator();
-		RHExtension ext;
+	public static ExtensionDefintion getLocalExtension(Config config, ExtensionDefintion ed, ExtensionDefintion defaultValue) {
+		Iterator<ExtensionDefintion> it = getLocalExtensions(config).iterator();
+		ExtensionDefintion ext;
 		while(it.hasNext()){
 			ext=it.next();
 			if(ed.equals(ext)) {
@@ -332,7 +351,7 @@ public class DeployHandler {
 		return defaultValue;
 	}
 
-	public static List<RHExtension> getLocalExtensions(Config config) {
+	public static List<ExtensionDefintion> getLocalExtensions(Config config) {
 		return ((ConfigImpl)config).loadLocalExtensions();
 	}
 }

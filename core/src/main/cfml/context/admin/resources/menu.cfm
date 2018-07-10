@@ -6,7 +6,7 @@
 		struct(
 			action:"overview",label:stMenu.overview.label,
 			children:array(
-				struct(action:"overview",label:stMenu.overview.overview)
+				struct(action:"",label:stMenu.overview.overview)
 			)
 		),
 		{

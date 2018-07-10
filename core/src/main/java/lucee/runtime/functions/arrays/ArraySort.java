@@ -101,9 +101,10 @@ public final class ArraySort extends BIF {
 	
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if(args.length==2)return call(pc,Caster.toArray(args[0]),args[1]);
-		if(args.length==3)return call(pc,Caster.toArray(args[0]),args[1],Caster.toString(args[2]));
-		return call(pc,Caster.toArray(args[0]),args[1],Caster.toString(args[2]),Caster.toBooleanValue(args[3]));
+		if(args.length==2)		return call(pc,Caster.toArray(args[0]),args[1]);
+		else if(args.length==3)	return call(pc,Caster.toArray(args[0]),args[1],Caster.toString(args[2]));
+		else if(args.length==4)	return call(pc,Caster.toArray(args[0]),args[1],Caster.toString(args[2]),Caster.toBooleanValue(args[3]));
+		else throw new FunctionException(pc, "ArraySort", 2, 4, args.length);
 	}
 }
 

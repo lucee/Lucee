@@ -20,6 +20,7 @@ package lucee.runtime.interpreter.ref.op;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.interpreter.InterpreterException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
 import lucee.runtime.op.Caster;
@@ -31,20 +32,23 @@ public final class Plus extends RefSupport implements Ref {
 
 	private Ref right;
 	private Ref left;
+	private boolean limited;
 
 	/**
 	 * constructor of the class
 	 * @param left
 	 * @param right
 	 */
-	public Plus(Ref left, Ref right) {
+	public Plus(Ref left, Ref right, boolean limited) {
 		this.left=left;
 		this.right=right;
+		this.limited=limited;
 	}
 
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
-		return new Double(Caster.toDoubleValue(left.getValue(pc))+Caster.toDoubleValue(right.getValue(pc)));
+		if(limited) throw new InterpreterException("invalid syntax, math operations are not supported in a json string.");
+        return new Double(Caster.toDoubleValue(left.getValue(pc))+Caster.toDoubleValue(right.getValue(pc)));
 	}
 
 	@Override

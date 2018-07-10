@@ -33,7 +33,8 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="services.update.exerun">Update ausführen</data>
 	<data key="services.update.remove">Installierte Patches entfernen</data>
 	<data key="services.update.typedesc">Definieren Sie hier wie Lucee gepatcht werden soll, &apos;Automatisch&apos; steht dafür, dass Lucee automatisch, täglich nach updates sucht. &apos;Manuell&apos; bedeutet, dass ein Update nur manuell ausgeführt werden kann.</data>
-
+	<data key="services.update.downgradeVersion">To downgrade your version below {minVersion} you need to replace your lucee.jar with an older version one you can download {url}. This is because the lucee.jars always bundles a version itself and it will always use at least that version.</data>
+	
 		<data key="services.update.lib">Update JAR's</data>
 	<data key="services.update.libDesc">Ihre JAR's sind nicht mehr aktuell. Um Ihre JAR's auf den aktuellsten stand zu bringen, klicken sie bitte auf den folgenden Button. Das funktioniert unter Umständen nicht, wenn sie keine saubere Internetverbindung haben. Falls dies fehlschlägt holen Sie sich die aktiuellen JAR's von unserer Webseite und frischen Sie dies manuell auf. Dieses Update benötigt ein restart der kompletten Servlet Engine.</data>
 	<data key="services.certificate.desc">Liste SSL Zertifikate für einen bestimmten Host oder installiere diese.</data>
@@ -428,14 +429,17 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="mail.port">Port des Mail Servers (z.B. 587)</data>
 	<data key="mail.missingencoding">Bitte geben Sie einen Wert für das Standard Encoding ein</data>
 	<data key="mail.logfile">Log Datei</data>
-	<data key="mail.mailservers">Mail Server Verbindungen</data>
+	<data key="mail.mailservers.local">Mail Server Verbindungen</data>
+	<data key="mail.mailservers.global">Mail Server Verbindungen (Verbindungen vom Server Administrator)</data>
 	<data key="mail.defaultencodingdescription">Standardencoding</data>
 	<data key="mail.spoolinterval">Spool Intervall</data>
 	<data key="mail.server">Server (SMTP)</data>
 	<data key="mail.serverDesc">Mail server host name (z.B. smtp.gmail.com)</data>
 	<data key="mail.porterrorlast">) vom Typ Nummer an.</data>
 	<data key="mail.spoolenabled">Spooler an</data>
-	<data key="mail.mailserversdescription">Sie können mehrere Mailsserververbindungen definieren. Wenn Sie eine Mail absenden, versucht Lucee die Mail der Reihe nach über einen der angegebenen Mailserver zu versenden.</data>
+	<data key="mail.mailserversdescription.local">You can define more than one mail server connection. When sending an email, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</data>
+	<data key="mail.mailserversdescription.global">These connections have been created in the Server Administrator and are shared with ALL web contexts. You cannot modify these mail servers in the Web Administrator.
+	You can define more than one mail server connection. When sending an email, Lucee tries to send the mail with the first defined mail server. If the send operation fails, Lucee will continue using the next mail server in the list.</data>
 	<data key="mail.settings">Mail Einstellungen</data>
 	<data key="mail.createnewMailServerConn">Neue Mailserververbindung</data>
 	<data key="mail.createnewMailServerConnDesc">Erstelle eine neue Mailserververbindung.</data>
@@ -571,9 +575,8 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="login.d">einen Tag</data>
 	<data key="login.changepassworddescription">Passwort für diesen Administrator ändern.</data>
 	<data key="login.ww">eine Woche</data>
-	<data key="searchlng.arabic">Arabisch</data>
-	<data key="searchlng.simplified_chinese">Chinesisch (vereinfacht)</data>
-	<data key="searchlng.traditional_chinese">Chinesisch (traditionell)</data>
+	
+	<data key="searchlng.chinese">Chinesisch</data>
 	<data key="searchlng.czech">Tschechisch</data>
 	<data key="searchlng.danish">Dänisch</data>
 	<data key="searchlng.dutch">Holländisch</data>
@@ -582,15 +585,11 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="searchlng.french">Französisch</data>
 	<data key="searchlng.german">Deutsch</data>
 	<data key="searchlng.greek">Griechisch</data>
-	<data key="searchlng.hebrew">Hebräisch</data>
 	<data key="searchlng.hungarian">Ungarisch</data>
 	<data key="searchlng.italian">Italienisch</data>
 	<data key="searchlng.japanese">Japanisch</data>
 	<data key="searchlng.korean">Koreanisch</data>
 	<data key="searchlng.norwegian">Norwegisch</data>
-	<data key="searchlng.bokmal">Norwegisch (Bokmal)</data>
-	<data key="searchlng.nynorsk">Norwegisch (Nynorsk)</data>
-	<data key="searchlng.polish">Polnisch</data>
 	<data key="searchlng.portuguese">Portugesisch</data>
 	<data key="searchlng.russian">Russisch</data>
 	<data key="searchlng.spanish">Spanisch</data>
@@ -635,7 +634,7 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
 
 
 	<data key="setting.compiler">Lucee Compiler Einstellungen, dies beeinflusst wie der Lucee Compiler den Source Code übersetzt. Das ändern dieser Einstellungen löscht alle existierenden Class Files.</data>
-	<data key="setting.dotNotation">Dot Notation</data>
+	<data key="setting.dotNotation">Key case</data>
 
 
 	<data key="setting.dotNotationUpperCaseDesc">Konvertiert Struct Keys definiert mit "Dot Notation" als grossgeschrieben (CFML Standard).
@@ -988,6 +987,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="settings.listdatasourcesdescserver">Datenquellen welche hier erstellt wurden, stehen allen Webkontexten zur Verfügung, jedoch kann die Konfiguration der Datenquelle nur hier geändert werden.</data>
 	<data key="settings.dballowed">Erlaubte Operationen</data>
 	<data key="Settings.dbStorage">Storage</data>
+	<data key="Settings.openConn">Offene Verbindungen</data>
 	<data key="Settings.dbStorageDesc">Erlauben die Datenquelle als Storage für den Client/Session Scope zu verwenden.</data>
 	<data key="settings.dbport">Port</data>
 	<data key="settings.preservesinglequotesdescription">Erhält die einfachen Anführungszeichen (&apos;) in den SQL-Statements, die im Tag CFQuery definiert werden.</data>
@@ -1037,9 +1037,6 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="cfx.class">Klasse</data>
 	<data key="cfx.noaccessUsage">Den Zugriff auf die CFX Funktionalität ist für diesen Kontext komplett gesperrt.</data>
 	<data key="cfx.noaccessSetting">Es ist nicht erlaubt in diesem Kontext CFX Tags anzulegen, Tags welche im Server Admin definiert wurden, können jedoch verwendet werden.</data>
-	<data key="cfx.cpp.CFXTags">C++ CFX tags</data>
-	<data key="cfx.cpp.arch">Ihr Betriebssystem und Ihre JRE (Java Runtime Enviroment) laufen in einer {os-arch}bit Umgebung.</data>
-	<data key="cfx.cpp.archDiff">Ihr Betriebssystem läuft in einer {os-arch}bit Umgebung und Ihre JRE (Java Runtime Enviroment) in einer {jre-arch}bit Umgebung.</data>
 	<data key="cfx.procedure">Prozedur</data>
 	<data key="cfx.serverlibrary">Server Library</data>
 	<data key="cfx.keepAlive">Keep Alive</data>
@@ -1055,6 +1052,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="doc.attr.type.dynamic">Für dieses Tag gibt es keine Beschränkung was für Attribute verwendet werden dürfen.</data>
 	<data key="doc.attr.max">Lediglich die Anzahl der Attribute ist auf {max} beschränkt.</data>
 	<data key="doc.attr.description">Beschreibung</data>
+	<data key="doc.attr.default">Standardwert</data>
 	<data key="doc.body.prohibited">Dieses Tag darf keinen Body haben.</data>
 	<data key="doc.body.required">Dieses Tag muss einen Body haben.</data>
 	<data key="doc.body.free">Dieses Tag darf einen Body haben, muss aber nicht.</data>
@@ -1080,10 +1078,13 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="doc.example">Beispiel</data>
 	<data key="doc.chooseTag">Choose a tag</data>
 	<data key="doc.chooseFunction">Choose a function</data>
+	<data key="doc.category">Kategorie</data>
 	<data key="overview.installedtls">Installierte Tag Bibliotheken</data>
 	<data key="overview.bugreport">Fehlerreport</data>
 	<data key="overview.Docs">Documentation</data>
 	<data key="overview.DocsDesc">If you have any questions about Lucee please take a look at the documentation in the first instance.</data>
+	<data key="overview.onlineDocsLink">Online Documentation</data>
+	<data key="overview.localRefLink">Local Reference</data>
 	<data key="overview.issuetracker">Issue Tracker</data>
 	<data key="overview.issuetrackerDesc">If you think you've found a bug, please take the time to report it via our bug tracking system.</data>
 	<data key="overview.book">Book (Lucee 3 Beginner's Guide)</data>
@@ -1142,7 +1143,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="overview.Hash">Hash</data>
 	<data key="overview.config">Konfigurationsfile</data>
 	<data key="overview.webroot">Webroot</data>
-	<data key="overview.info">General Info</data>
+	<data key="overview.info">System Information</data>
 	<data key="overview.featurerequest">Feature Anfragen</data>
 	<data key="overview.contextcount">Anzahl Kontexte</data>
 	<data key="help.logotitle">Lucee Hilfe</data>

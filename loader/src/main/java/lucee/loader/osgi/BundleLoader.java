@@ -185,17 +185,17 @@ public class BundleLoader {
 		}
 	}
 
-	private static Map<String, File> loadAvailableBundles(
-			final File jarDirectory) {
+	private static Map<String, File> loadAvailableBundles(final File jarDirectory) {
 		final Map<String, File> rtn = new HashMap<String, File>();
 		final File[] jars = jarDirectory.listFiles();
-		for (int i = 0; i < jars.length; i++) {
+		if(jars!=null)for (int i = 0; i < jars.length; i++) {
 			if (!jars[i].isFile() || !jars[i].getName().endsWith(".jar"))
 				continue;
 			try {
 				rtn.put(loadBundleInfo(jars[i]), jars[i]);
 			} 
-			catch (final Throwable t) {
+			catch (final IOException ioe) {
+				ioe.printStackTrace();
 			}
 		}
 		return rtn;
@@ -282,62 +282,85 @@ public class BundleLoader {
 
 	public static void removeBundles(final BundleCollection bc)
 			throws BundleException {
-		final Bundle[] bundles = bc.getBundleContext().getBundles();
-
-		for (final Bundle bundle : bundles)
-			if (!BundleUtil.isSystemBundle(bundle))
-				removeBundle(bundle);
+		BundleContext bcc = bc.getBundleContext();
+		final Bundle[] bundles = bcc==null?new Bundle[0]:bcc.getBundles();
+		
+		// stop
+		for (final Bundle bundle : bundles) {
+			if (!BundleUtil.isSystemBundle(bundle)) {
+				stopBundle(bundle);
+			}
+		}
+		// uninstall
+		for (final Bundle bundle : bundles) {
+			if (!BundleUtil.isSystemBundle(bundle)) {
+				uninstallBundle(bundle);
+			}
+		}
 	}
 
 	public static void removeBundlesEL(final BundleCollection bc) {
-		final Bundle[] bundles = bc.getBundleContext().getBundles();
+		BundleContext bcc = bc.getBundleContext();
+		final Bundle[] bundles = bcc==null?new Bundle[0]:bcc.getBundles();
 
-		for (final Bundle bundle : bundles)
-			if (!BundleUtil.isSystemBundle(bundle))
+		for (final Bundle bundle : bundles) {
+			if (!BundleUtil.isSystemBundle(bundle)) {
 				try {
-					removeBundle(bundle);
+					stopBundle(bundle);
 				} catch (final BundleException e) {
-					// TODO remove 
 					e.printStackTrace();
 				}
+			}
+		}
+		for (final Bundle bundle : bundles) {
+			if (!BundleUtil.isSystemBundle(bundle)) {
+				try {
+					uninstallBundle(bundle);
+				} catch (final BundleException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	public static void removeBundle(final Bundle bundle) throws BundleException {
+		stopBundle(bundle);
+		uninstallBundle(bundle);
+	}
+
+	public static void uninstallBundle(final Bundle bundle) throws BundleException {
 		if (bundle == null)
 			return;
+		
+		if (bundle.getState() == Bundle.ACTIVE || bundle.getState() == Bundle.STARTING || bundle.getState() == Bundle.STOPPING)
+			stopBundle(bundle);
 
-		// wait for starting
+		if (bundle.getState() != Bundle.UNINSTALLED) {
+			bundle.uninstall();
+		}
+	}
+
+	public static void stopBundle(final Bundle bundle) throws BundleException {
+		if (bundle == null)
+			return;
+		
+		// wait for starting/stopping
 		int sleept = 0;
-		while (bundle.getState() == Bundle.STARTING) {
+		while (bundle.getState() == Bundle.STOPPING || bundle.getState() == Bundle.STARTING) {
 			try {
 				Thread.sleep(10);
 			} catch (final InterruptedException e) {
 				break;
 			}
 			sleept += 10;
-			if (sleept > 3000)
-				break; // only wait for 3 seconds
+			if (sleept > 5000)
+				break; // only wait for 5 seconds
 		}
 
 		// force stopping (even when still starting)
-		if (bundle.getState() == Bundle.ACTIVE
-				|| bundle.getState() == Bundle.STARTING)
-			bundle.stop();
-
-		// wait for stopping
-		sleept = 0;
-		while (bundle.getState() == Bundle.STOPPING) {
-			try {
-				Thread.sleep(10);
-			} catch (final InterruptedException e) {
-				break;
-			}
-			sleept += 10;
-			if (sleept > 3000)
-				break; // only wait for 3 seconds
-		}
-
-		if (bundle.getState() != Bundle.UNINSTALLED)
-			bundle.uninstall();
+		if (bundle.getState() == Bundle.ACTIVE || bundle.getState() == Bundle.STARTING)
+			BundleUtil.stop(bundle, false);
+		
 	}
+	
 }

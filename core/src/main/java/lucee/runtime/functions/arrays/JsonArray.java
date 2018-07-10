@@ -20,6 +20,7 @@ package lucee.runtime.functions.arrays;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.type.Array;
@@ -40,6 +41,7 @@ public class JsonArray extends BIF {
 	
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		return call(pc,(Object[])args[0]);
+		if(args.length==1)return call(pc,(Object[])args[0]);
+		else throw new FunctionException(pc, "JsonArray", 1, 1, args.length);
 	}
 }

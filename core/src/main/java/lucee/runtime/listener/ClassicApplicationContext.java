@@ -19,14 +19,18 @@
 package lucee.runtime.listener;
 
 import java.nio.charset.Charset;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.type.ftp.FTPConnectionData;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
@@ -38,15 +42,17 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
-import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.CustomType;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Scope;
@@ -85,6 +91,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private Object ormdatasource;
 	private ORMConfiguration ormConfig;
 	private Properties s3;
+	private FTPConnectionData ftp;
 	
 
 	private int localMode;
@@ -99,9 +106,11 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private boolean triggerComponentDataMember;
 	private Map<Integer,String> defaultCaches=new ConcurrentHashMap<Integer, String>();
 	private Map<Collection.Key,CacheConnection> cacheConnections=new ConcurrentHashMap<Collection.Key,CacheConnection>();
+	private Server[] mailServers;
 	private Map<Integer,Boolean> sameFieldAsArrays=new ConcurrentHashMap<Integer, Boolean>();
 	private RestSettings restSettings;
 	private Resource[] restCFCLocations;
+	private Resource antiSamyPolicy;
 	private JavaSettingsImpl javaSettings;
 	private DataSource[] dataSources;
 	private UDF onMissingTemplate;
@@ -116,6 +125,12 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private SessionCookieData sessionCookie;
 
 	private AuthCookieData authCookie;
+
+	private Map<Key, Pair<Log,Struct>> logs;
+
+	private Object mailListener;
+
+	private boolean wsMaintainSession;
 
     
     /**
@@ -160,7 +175,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
         this.javaSettings=new JavaSettingsImpl();
         this.wstype=WS_TYPE_AXIS1;
     	cgiScopeReadonly = ((ConfigImpl)config).getCGIScopeReadonly();
-
+    	this.antiSamyPolicy=((ConfigImpl)config).getAntiSamyPolicy();
+    	
     }
     
     /**
@@ -215,7 +231,16 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.restSettings=restSettings;
 		dbl.defaultCaches=Duplicator.duplicateMap(defaultCaches, new ConcurrentHashMap<Integer, String>(),false );
 		dbl.cacheConnections=Duplicator.duplicateMap(cacheConnections, new ConcurrentHashMap<Integer, String>(),false );
-		dbl.cachedWithins=Duplicator.duplicateMap(cachedWithins, new ConcurrentHashMap<Integer, Object>(),false );
+		dbl.mailServers=mailServers;
+		dbl.cachedWithinFile=Duplicator.duplicate(cachedWithinFile,false);
+		dbl.cachedWithinFunction=Duplicator.duplicate(cachedWithinFunction,false);
+		dbl.cachedWithinHTTP=Duplicator.duplicate(cachedWithinHTTP,false);
+		dbl.cachedWithinInclude=Duplicator.duplicate(cachedWithinInclude,false);
+		dbl.cachedWithinQuery=Duplicator.duplicate(cachedWithinQuery,false);
+		dbl.cachedWithinResource=Duplicator.duplicate(cachedWithinResource,false);
+		dbl.cachedWithinWS=Duplicator.duplicate(cachedWithinWS,false);
+		
+		
 		dbl.sameFieldAsArrays=Duplicator.duplicateMap(sameFieldAsArrays, new ConcurrentHashMap<Integer, Boolean>(),false );
 		
 		dbl.ormEnabled=ormEnabled;
@@ -225,9 +250,9 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.clientCluster=clientCluster;
 		dbl.source=source;
 		dbl.cgiScopeReadonly=cgiScopeReadonly;
+		dbl.antiSamyPolicy=antiSamyPolicy;
 		dbl.sessionCookie=sessionCookie;
 		dbl.authCookie=authCookie;
-		
 		return dbl;
 	}
 
@@ -516,13 +541,16 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		this.ormEnabled=ormEnabled;
 	}
 
-	/**
-	 * @return the s3
-	 */
 	@Override
 	public Properties getS3() {
 		if(s3==null) s3=new PropertiesImpl();
 		return s3;
+	}
+	
+	@Override
+	public FTPConnectionData getFTP() {
+		if(ftp==null) ftp=new FTPConnectionData();
+		return ftp;
 	}
 
 	@Override
@@ -642,6 +670,11 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setS3(Properties s3) {
 		this.s3=s3;
+	}	
+	
+	@Override
+	public void setFTP(FTPConnectionData ftp) {
+		this.ftp=ftp;
 	}
 
 	@Override
@@ -695,10 +728,20 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	public CacheConnection getCacheConnection(String cacheName, CacheConnection defaultValue) {
 		return cacheConnections.get(KeyImpl.init(cacheName));
 	}
-	
+
 	@Override
-	public Object getCachedWithin(int type) {
-		return cachedWithins.get(type);
+	public Key[] getCacheConnectionNames() {
+		return cacheConnections==null?new Key[0]:cacheConnections.keySet().toArray(new Key[cacheConnections.size()]);
+	}
+
+	@Override
+	public void setMailServers(Server[] servers) {
+		this.mailServers=servers;
+	}
+
+	@Override
+	public Server[] getMailServers() {
+		return this.mailServers;
 	}
 
 	public void setSameFieldAsArray(PageContext pc,int scope, boolean sameFieldAsArray) {
@@ -823,6 +866,15 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
+	public Resource getAntiSamyPolicyResource() {
+		return antiSamyPolicy;
+	}
+	
+	public void setAntiSamyPolicyResource(Resource antiSamyPolicy) {
+		this.antiSamyPolicy = antiSamyPolicy;
+	}
+	
+	@Override
 	public SessionCookieData getSessionCookie() {
 		return sessionCookie;
 	}
@@ -841,8 +893,52 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	public void setAuthCookie(AuthCookieData data) {
 		authCookie=data;
 	}
+
 	@Override
-	public boolean deepThread() {
-		return false;
+	public java.util.Collection<Key> getLogNames() {
+		if(logs==null) return new HashSet<Collection.Key>();
+		return logs.keySet();
 	}
+
+	@Override
+	public void setLoggers(Map<Key, Pair<Log,Struct>> logs) {
+		this.logs=logs;
+	}
+
+	@Override
+	public Log getLog(String name) {
+		if(logs==null) return null;
+		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
+		if(pair==null) return null;
+		return pair.getName();
+	}
+
+	@Override
+	public Struct getLogMetaData(String name) {
+		if(logs==null) return null;
+		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
+		if(pair==null) return null;
+		return (Struct)pair.getValue().duplicate(false);
+	}
+
+	@Override
+	public Object getMailListener() {
+		return mailListener;
+	}
+
+	@Override
+	public void setMailListener(Object mailListener) {
+		this.mailListener=mailListener;
+	}
+
+	@Override
+	public boolean getWSMaintainSession() {
+		return wsMaintainSession;
+	}
+
+	@Override
+	public void setWSMaintainSession(boolean wsMaintainSession) {
+		this.wsMaintainSession=wsMaintainSession;
+	}
+
 }

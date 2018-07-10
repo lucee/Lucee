@@ -27,6 +27,7 @@ import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.log.log4j.LogAdapter;
 import lucee.runtime.config.Config;
 import lucee.runtime.db.ClassDefinition;
+import lucee.runtime.engine.ThreadLocalPageContext;
 
 import org.apache.log4j.Appender;
 import org.apache.log4j.Layout;
@@ -47,12 +48,14 @@ public final class LoggerAndSourceData {
 	private final Map<String, String> layoutArgs;
 	private final Level level;
 	private final String name;
-	private final Config config;
+	private Config config;
 	private final boolean readOnly;
 	private final String id;
+	private boolean dyn;
 
  
-    public LoggerAndSourceData(Config config,String id,String name,ClassDefinition appender, Map<String, String> appenderArgs, ClassDefinition layout, Map<String, String> layoutArgs, Level level, boolean readOnly) {
+    public LoggerAndSourceData(Config config,String id,String name,ClassDefinition appender, Map<String, String> appenderArgs, 
+    		ClassDefinition layout, Map<String, String> layoutArgs, Level level, boolean readOnly, boolean dyn) {
     	//this.log=new LogAdapter(logger);
     	this.config=config;
     	this.id=id;
@@ -63,6 +66,7 @@ public final class LoggerAndSourceData {
     	this.layoutArgs=layoutArgs;
     	this.level=level;
     	this.readOnly=readOnly;
+    	this.dyn=dyn;
     }
 
 	public String id() {
@@ -70,6 +74,9 @@ public final class LoggerAndSourceData {
 	}
 	public String getName() {
 		return name;
+	}
+	public boolean getDyn() {
+		return dyn;
 	}
 	
 	public ClassDefinition getAppenderClassDefinition() {
@@ -120,7 +127,8 @@ public final class LoggerAndSourceData {
 
     public Log getLog() {
     	if(_log==null) {
-    		layout = Log4jUtil.getLayout(cdLayout, layoutArgs);
+    		config=ThreadLocalPageContext.getConfig(config);
+    		layout = Log4jUtil.getLayout(cdLayout, layoutArgs,cdAppender,name);
     		_appender = Log4jUtil.getAppender(config, layout,name, cdAppender, appenderArgs);
     		_log=new LogAdapter(Log4jUtil.getLogger(config, _appender, name, level));
     	}

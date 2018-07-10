@@ -28,19 +28,33 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			}
 			assertTrue(isPDFFile("test2.pdf"));
 
-			pdf action="merge"  destination="test.pdf" overwrite="yes" {
+			pdf action="merge"  destination="test0.pdf" overwrite="yes" {
 				pdfparam source="test1.pdf" pages="1";
 				pdfparam source="test2.pdf" pages="1";
 			}
-			assertTrue(isPDFFile("test.pdf"));
+			assertTrue(isPDFFile("test0.pdf"));
 
-			pdf action="read" name="local.myPDF" source="test.pdf" ;
+			pdf action="read" name="local.myPDF" source="test0.pdf" ;
 			assertEquals(2,myPDF.TotalPages);
 		}
 		finally {
 			if(fileExists("test1.pdf"))fileDelete("test1.pdf");
 			if(fileExists("test2.pdf"))fileDelete("test2.pdf");
-			if(fileExists("test.pdf"))fileDelete("test.pdf");
+			if(fileExists("test0.pdf"))fileDelete("test0.pdf");
+		}
+	}
+
+	private void function testPDFProtect(){
+		try {
+			document format="pdf" pagetype="A4" orientation="portrait" filename="test-protect.pdf" overwrite="true" {
+				echo("<p>This is where mickey mouse lives</p>");
+			}
+			assertTrue(isPDFFile("test-protect.pdf"));
+
+			pdf action="protect" encrypt="AES_128" source="test-protect.pdf" newUserPassword="PDFPassword";
+		}
+		finally {
+			if(fileExists("test-protect.pdf"))fileDelete("test-protect.pdf");
 		}
 	}
 } 

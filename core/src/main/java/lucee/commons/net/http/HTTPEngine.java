@@ -177,4 +177,14 @@ public class HTTPEngine {
     	return ct;
 	}
 
+	public static void closeEL(HTTPResponse rsp) {
+		/*
+		DISBALED BECAUSE THIS SEEM TO CAUSE PROBLEM WITH MULTITHREADING, THIS NEEDS MORE INVESTIGATION 
+		if(rsp instanceof HTTPResponse4Impl) {
+			try {
+				((HTTPResponse4Impl)rsp).close();
+			}
+			catch (Exception e) {}
+		}*/
+	}
 }

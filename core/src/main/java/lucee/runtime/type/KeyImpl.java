@@ -35,7 +35,7 @@ import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.dt.DateTime;
 
-public class KeyImpl implements Collection.Key,Castable,Comparable,Externalizable,WangJenkins {
+public class KeyImpl implements Collection.Key,Castable,Comparable,Externalizable,WangJenkins,CharSequence {
 
 	private static final long serialVersionUID = -8864844181140115609L; // do not change
 
@@ -294,14 +294,14 @@ public class KeyImpl implements Collection.Key,Castable,Comparable,Externalizabl
 	public static Array toUpperCaseArray(Key[] keys) {
 		ArrayImpl arr=new ArrayImpl();
 		for(int i=0;i<keys.length;i++) {
-			arr._append(((KeyImpl)keys[i]).getUpperString());
+			arr.appendEL(((KeyImpl)keys[i]).getUpperString());
 		}
 		return arr;
 	}
 	public static Array toLowerCaseArray(Key[] keys) {
 		ArrayImpl arr=new ArrayImpl();
 		for(int i=0;i<keys.length;i++) {
-			arr._append(((KeyImpl)keys[i]).getLowerString());
+			arr.appendEL(((KeyImpl)keys[i]).getLowerString());
 		}
 		return arr;
 	}
@@ -309,7 +309,7 @@ public class KeyImpl implements Collection.Key,Castable,Comparable,Externalizabl
 	public static Array toArray(Key[] keys) {
 		ArrayImpl arr=new ArrayImpl();
 		for(int i=0;i<keys.length;i++) {
-			arr._append(((KeyImpl)keys[i]).getString());
+			arr.appendEL(((KeyImpl)keys[i]).getString());
 		}
 		return arr;
 	}
@@ -406,5 +406,10 @@ public class KeyImpl implements Collection.Key,Castable,Comparable,Externalizabl
 			keys[i]=init(arr[i]);
 		}
 		return keys;
+	}
+
+	@Override
+	public CharSequence subSequence(int start, int end) {
+		return getString().subSequence(start, end);
 	}	  
 }

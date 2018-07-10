@@ -20,6 +20,7 @@ package lucee.runtime.type.wrap;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -75,10 +76,10 @@ public class MapAsStruct extends StructSupport implements Struct {
     }
 
     @Override
-    public synchronized Collection.Key[] keys() {
-        int len=size();
-        Collection.Key[] k=new Collection.Key[len];
-        Iterator it = map.keySet().iterator();
+    public Collection.Key[] keys() {
+    	Set set = map.keySet();
+        Iterator it = set.iterator();
+    	Collection.Key[] k=new Collection.Key[set.size()];
         int count=0;
         while(it.hasNext()) {
             k[count++]=KeyImpl.init(StringUtil.toStringNative(it.next(),""));
@@ -97,7 +98,7 @@ public class MapAsStruct extends StructSupport implements Struct {
 	}
 
     @Override
-    public synchronized Object remove(Collection.Key key) throws ExpressionException {
+    public Object remove(Collection.Key key) throws ExpressionException {
         Object obj= map.remove(key.getString());
         if(obj==null) {
         	if(map.containsKey(key.getString())) return null;
@@ -112,7 +113,7 @@ public class MapAsStruct extends StructSupport implements Struct {
     }
     
     @Override
-    public synchronized Object removeEL(Collection.Key key) {
+    public Object removeEL(Collection.Key key) {
     	Object obj= map.remove(key.getString());
         if(!caseSensitive && obj==null) {
         	String csKey = getCaseSensitiveKey(map,key.getString());
@@ -122,12 +123,12 @@ public class MapAsStruct extends StructSupport implements Struct {
     }
 
     @Override
-    public synchronized void clear() {
+    public void clear() {
         map.clear();
     }
 
     @Override
-    public synchronized Object get(Collection.Key key) throws ExpressionException {
+    public Object get(Collection.Key key) throws ExpressionException {
         Object o=map.get(key.getString());
         if(o==null) {
         	if(map.containsKey(key.getString())) return null;
@@ -142,7 +143,7 @@ public class MapAsStruct extends StructSupport implements Struct {
     }
 
     @Override
-    public synchronized Object get(Collection.Key key, Object defaultValue) {
+    public Object get(Collection.Key key, Object defaultValue) {
         Object obj=map.get(key.getString());
         if(obj==null) {
         	if(map.containsKey(key.getString())) return null;
@@ -157,17 +158,17 @@ public class MapAsStruct extends StructSupport implements Struct {
     }
 
     @Override
-    public synchronized Object set(Collection.Key key, Object value) throws PageException {
+    public Object set(Collection.Key key, Object value) throws PageException {
         return map.put(key.getString(),value);
     }
 
     @Override
-    public synchronized Object setEL(Collection.Key key, Object value) {
+    public Object setEL(Collection.Key key, Object value) {
         return map.put(key.getString(),value);
     }
     
     @Override
-	public synchronized Iterator<Collection.Key> keyIterator() {
+	public Iterator<Collection.Key> keyIterator() {
         return new KeyIterator(keys());
     }
 
@@ -194,7 +195,7 @@ public class MapAsStruct extends StructSupport implements Struct {
     }
    
     @Override
-    public synchronized Collection duplicate(boolean deepCopy) {
+    public Collection duplicate(boolean deepCopy) {
         return new MapAsStruct(Duplicator.duplicateMap(map,deepCopy),caseSensitive);
     }
 

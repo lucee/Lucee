@@ -25,7 +25,6 @@ import lucee.runtime.config.Config;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Query;
-import lucee.runtime.type.Struct;
 import lucee.runtime.type.scope.storage.StorageScopeEngine;
 import lucee.runtime.type.scope.storage.StorageScopeListener;
 import lucee.runtime.type.scope.storage.clean.DatasourceStorageScopeCleaner;
@@ -60,7 +59,7 @@ public interface SQLExecutor {
 	 * @throws PageException
 	 * @throws SQLException
 	 */
-	public void update(Config config, String cfid,String applicationName, DatasourceConnection dc,int type,Struct data,long timeSpan, Log log) throws PageException,SQLException;
+	public void update(Config config, String cfid,String applicationName, DatasourceConnection dc,int type,Object data,long timeSpan, Log log) throws PageException,SQLException;
 
 	/**
 	 * deletes the data in the datasource for a specific user (CFID), if there is no data for this user nothing is happeing

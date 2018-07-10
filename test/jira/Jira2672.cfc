@@ -37,7 +37,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			local.content=trim(getOut(data));
 		}
 		
-		assertEquals("struct1string15string110string1",replace(replace(replace(replace(content,chr(13),'','all'),chr(10),'','all'),'	','','all'),' ','','all'));
+		assertEquals("Struct(ordered)1string15string110string1",replace(replace(replace(replace(content,chr(13),'','all'),chr(10),'','all'),'	','','all'),' ','','all'));
 		/*
 		try{
 			// error

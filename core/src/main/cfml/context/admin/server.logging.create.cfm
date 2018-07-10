@@ -10,22 +10,22 @@
 <cftry>
 	<cfset stVeritfyMessages = StructNew()>
 
-	
+
 	<cfswitch expression="#form.mainAction#">
 	<!--- UPDATE --->
 		<cfcase value="#stText.Buttons.submit#">
 			<cfset custom=struct()>
 			<cfset layoutArgs={}>
 			<cfset appenderArgs={}>
-		
-		
+
+
 			<!--- custom --->
 			<cfloop collection="#form#" item="key">
 				<cfif left(key,13) EQ "custompart_d_">
 					<cfset name=mid(key,14,10000)>
 					<cfset custom[name]=(form["custompart_d_"&name]*86400)+(form["custompart_h_"&name]*3600)+(form["custompart_m_"&name]*60)+form["custompart_s_"&name]>
 				</cfif>
-			</cfloop>	   
+			</cfloop>
 			<cfloop collection="#form#" item="key">
 				<cfif left(key,7) EQ "custom_">
 					<cfset tmp=mid(key,8,10000)>
@@ -34,32 +34,33 @@
 					<cfelseif left(tmp,7) EQ "layout_">
 						<cfset layoutArgs[mid(tmp,8,10000)]=form[key]>
 					</cfif>
-					
+
 				</cfif>
 			</cfloop>
-			<cfadmin 
+			<cfset layoutClass=trim(form.appenderLayoutClass?:'')>
+			<cfif isEmpty(layoutClass)><cfset layoutClass=trim(form.layoutClass)></cfif>
+			<cfadmin
 				action="updateLogSettings"
 				type="#request.adminType#"
 				password="#session["password"&request.adminType]#"
-				
-				
-				name="#trim(form._name)#" 
+				name="#trim(form._name)#"
 				level="#form.level#"
-				appenderClass="#trim(form.appenderClass)#"  
-				appenderArgs="#appenderArgs#" 
-				layoutClass="#trim(form.layoutClass)#"
-				layoutArgs="#(layoutArgs)#" 
-				
+				appenderClass="#trim(form.appenderClass)#"
+				appenderArgs="#appenderArgs#"
+				layoutClass="#layoutClass#"
+				layoutArgs="#(layoutArgs)#"
+
 				remoteClients="#request.getRemoteClients()#">
-					
+
 		</cfcase>
 	</cfswitch>
 	<cfcatch>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
+		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
-<!--- 
+<!---
 Redirtect to entry --->
 <cfset __name=StructKeyExists(url,'name')?url.name:form._name>
 
@@ -68,10 +69,10 @@ Redirtect to entry --->
 		<cflocation url="#request.self#?action=#url.action#&action2=#goto#&name=#__name#" addtoken="no">
 	</cfif>
 	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
-	
-	
-	
-	
+
+
+
+
 </cfif>
 
 <cfset isNew=false>
@@ -79,9 +80,9 @@ Redirtect to entry --->
 	<cfloop query="logs" >
 		<cfif hash(logs.name) EQ url.name>
 			<cfset log=querySlice(logs,logs.currentrow,1)>
-			<cfset layout=layouts[log.layoutClass]>
-			<cfset appender=isNull(appenders[log.appenderClass])?nullValue():appenders[log.appenderClass]>
-		</cfif> 
+			<cfset layout=layouts[log.layoutClass]?:nullValue()>
+			<cfset appender=appenders[log.appenderClass]?:nullValue()>
+		</cfif>
 	</cfloop>
 <cfelse>
 	<cfset isNew=true>
@@ -97,41 +98,56 @@ Redirtect to entry --->
 </cfif>
 
 <cfoutput>
-	<!--- 
+	<!---
 	Error Output --->
 	<cfset printError(error)>
-	
+
+
+<cfhtmlbody>
+
 <script>
 disableBlockUI=true;
 active={};
 var bodies={};
-function enable(btn,type,id){
+
+function enable(type,id){
+	var fullId=type+"_"+id;
+
 	var old=active[type];
-	if(old==id) return;
-	active[type]=id;
-	
-	
-	
+	if(old==fullId) return;
+	active[type]=fullId;
+
+
+	var btn=$("##button_"+fullId);
+
 	$(document).ready(function(){
 			//$('.button submit').css('background','url("")');
-			$(btn).css('background-color','#request.adminType=="web"?'##39c':'##c00'#');
-			$(btn).css('color','white');
+			btn.css('background-color','#request.adminType=="web"?'##39c':'##c00'#');
+			btn.css('color','white');
 			$('##button_'+old).css('background-color','');
-			
+
 			bodies[old]=$('##div_'+old).detach();
-			
-			bodies[id].appendTo("##group_"+type);
-    		
-	  		//$('##div_'+id).show();
+
+			bodies[fullId].appendTo("##group_"+type);
 	});
 }
+
+function hideLayout() {
+	$("##allgroup_layout").hide();
+
+}
+function showLayout() {
+	$("##allgroup_layout").show();
+}
 </script>
-	
+
+</cfhtmlbody>
+
+
 	<h2>Log "#log.name#"</h2>
 	<div class="pageintro">#stText.Settings.logging.detailDesc#</div>
-	
-	<cfform onerror="customError" action="#request.self#?action=#url.action#&action2=create#iif(isDefined('url.name'),de('&name=##url.name##'),de(''))#" method="post">
-		<cfinput type="hidden" name="_name" value="#log.name#" >
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=create#iif(isDefined('url.name'),de('&name=##url.name##'),de(''))#" method="post">
+		<cfinputClassic type="hidden" name="_name" value="#log.name#" >
 		<table class="maintbl">
 			<tbody>
 				<tr>
@@ -140,54 +156,72 @@ function enable(btn,type,id){
 						<cfloop list="TRACE,DEBUG,INFO,WARN,ERROR,FATAL" item="ll"><option<cfif log.level EQ ll> selected</cfif>>#ll#</option></cfloop>
 					</select></td>
 				</tr>
+				<!---
 				<cfif !isNull(appender) && !arrayLen(appender.getCustomFields())>
 				<tr>
 					<th scope="row">#stText.Settings.logging.Appender#</th>
 					<td>#appender.getLabel()#</td>
 				</tr>
 				</cfif>
-				<cfif !arrayLen(layout.getCustomFields())>
+				<cfif isNull(layout) or !arrayLen(layout.getCustomFields())>
 				<tr>
 					<th scope="row">#stText.Settings.logging.Layout#</th>
-					<td>#layout.getLabel()#</td>
+					<td>#isNull(layout)?'':layout.getLabel()#</td>
 				</tr>
 				</cfif>
+			--->
 			</tbody>
 		</table>
+<!--- LOOP APPENDER|LAYOUT --->
 		<cfloop list="appender,layout" item="_name">
 		<cfset argsCol=_name&"Args">
 		<cfif isNull(variables[_name])>
-			<cfcontinue>
+			<xcfcontinue>
 		</cfif>
-		<cfset _driver=variables[_name]>
+		
+		
+		<cfset disable=false>
+		<cfif _name=="layout" and !isNull(variables["appender"])>
+			<cfset disable=true>
+			<cfset disable=!isNull(variables["appender"].getLayout)>
+		</cfif>
+		
+		<div id="allgroup_#_name#" <cfif disable>style="display: none;"</cfif>> 
 		<cfset drivers=variables[_name&"s"]>
+		<cfset _driver=isNull(variables[_name])?drivers[structKeyArray(drivers)[1]]:variables[_name]>
 		<!--- <cfif !arrayLen(driver.getCustomFields())><cfbreak></cfif>--->
 		<br />
+		
 		<h3>#ucFirst(_name)#</h3>
 		<cfset count=0>
 		<cfset len=structCount(drivers)>
+
 		<cfloop collection="#drivers#" index="driverClass" item="driver">
 			<cfset count++>
 			<cfset orientation="bm">
 			<cfif count==1><cfset orientation="bl"></cfif>
 			<cfif count==len><cfset orientation="br"></cfif>
-			<cfset id="#_name#_#hash(driver.getClass(),'quick')#">
-			<cfset active=driver.getClass() EQ _driver.getClass()>
-		<input id="button_#id#" onclick="enable(this,'#_name#','#id#');"
+			<cfset _id=hash(driver.getClass(),'quick')>
+			<cfset id="#_name#_#_id#">
+			<cfset active=!isNull(_driver) && driver.getClass() EQ _driver.getClass()>
+		<input id="button_#id#" onclick="enable('#_name#','#_id#');<cfif _name EQ 'appender'>#structKeyExists(driver,'getLayout')?'hide':'show'#Layout();</cfif>"
 				type="button"
-				class="#orientation# button submit" 
-				name="change#_name#" 
-				<cfif driver.getClass() EQ _driver.getClass()> style="color:white;background-color:#request.adminType=="web"?'##39c':'##c00'#;"</cfif> 
+				class="#orientation# button submit"
+				name="change#_name#"
+				<cfif !isNull(_driver) && driver.getClass() EQ _driver.getClass()> style="color:white;background-color:#request.adminType=="web"?'##39c':'##c00'#;"</cfif>
 				value="#driver.getLabel()#">
 		</cfloop>
 		<div id="group_#_name#">
 		<cfloop collection="#drivers#" index="driverClass" item="driver">
 			<cfset id="#_name#_#hash(driver.getClass(),'quick')#">
-			<cfset active=driver.getClass() EQ _driver.getClass()>
-		
+			<cfset active=!isNull(_driver) && driver.getClass() EQ _driver.getClass()>
+
 		<div id="div_#id#">
 		<input type="hidden" name="#_name#Class" value="#driver.getClass()#">
-		
+		<cfif _name=="appender">
+			<input type="hidden" name="appenderLayoutClass" value="#isNull(driver.getLayout)?'':driver.getLayout()#">
+		</cfif>
+
 		<br>#driver.getDescription()#
 		<table class="maintbl">
 			<tbody>
@@ -218,9 +252,9 @@ function enable(btn,type,id){
 						<th scope="row">#field.getDisplayName()#</th>
 						<td>
 							<cfif type EQ "text" or type EQ "password">
-								<cfinput type="#type#" 
-									name="custom_#_name#_#field.getName()#" 
-									value="#default#" class="large" required="#field.getRequired()#" 
+								<cfinputClassic type="#type#"
+									name="custom_#_name#_#field.getName()#"
+									value="#default#" class="large" required="#field.getRequired()#"
 									message="Missing value for field #field.getDisplayName()#">
 							<cfelseif type EQ "textarea">
 								<textarea class="large" style="height:70px;" name="custom_#_name#_#field.getName()#">#default#</textarea>
@@ -231,13 +265,13 @@ function enable(btn,type,id){
 										<cfset default=0>
 									<cfelse>
 										<cfset default=default+0>
-									</cfif> 
-									
+									</cfif>
+
 									<cfset s=default>
 									<cfset m=0>
 									<cfset h=0>
 									<cfset d=0>
-									
+
 									<cfif s GT 0>
 										<cfset m=int(s/60)>
 										<cfset s-=m*60>
@@ -262,20 +296,20 @@ function enable(btn,type,id){
 									</thead>
 									<tbody>
 										<tr>
-											<td><cfinput type="text" 
-												name="custompart_d_#_name#_#field.getName()#" 
+											<td><cfinputClassic type="text"
+												name="custompart_d_#_name#_#field.getName()#"
 												value="#addZero(d)#" class="number" required="#field.getRequired()#"   validate="integer"
 												message="Missing value for field #field.getDisplayName()#"></td>
-											<td><cfinput type="text" 
-												name="custompart_h_#_name#_#field.getName()#" 
+											<td><cfinputClassic type="text"
+												name="custompart_h_#_name#_#field.getName()#"
 												value="#addZero(h)#" class="number" required="#field.getRequired()#"  maxlength="2"  validate="integer"
 												message="Missing value for field #field.getDisplayName()#"></td>
-											<td><cfinput type="text" 
-												name="custompart_m_#_name#_#field.getName()#" 
-												value="#addZero(m)#" class="number" required="#field.getRequired()#"  maxlength="2" validate="integer" 
+											<td><cfinputClassic type="text"
+												name="custompart_m_#_name#_#field.getName()#"
+												value="#addZero(m)#" class="number" required="#field.getRequired()#"  maxlength="2" validate="integer"
 												message="Missing value for field #field.getDisplayName()#"></td>
-											<td><cfinput type="text" 
-												name="custompart_s_#_name#_#field.getName()#" 
+											<td><cfinputClassic type="text"
+												name="custompart_s_#_name#_#field.getName()#"
 												value="#addZero(s)#" class="number" required="#field.getRequired()#"  maxlength="2"  validate="integer"
 												message="Missing value for field #field.getDisplayName()#"></td>
 										</tr>
@@ -301,7 +335,7 @@ function enable(btn,type,id){
 										<cfloop index="item" list="#field.getValues()#">
 											<li>
 												<label>
-													<cfinput type="#type#" class="#type#" name="custom_#_name#_#field.getName()#" value="#item#" checked="#item EQ default#">
+													<cfinputClassic type="#type#" class="#type#" name="custom_#_name#_#field.getName()#" value="#item#" checked="#item EQ default#">
 													<b>#item#</b>
 												</label>
 												<cfif isStruct(desc) and StructKeyExists(desc,item)>
@@ -312,7 +346,7 @@ function enable(btn,type,id){
 									</ul>
 								<cfelse>
 									<cfset item = field.getValues() />
-									<cfinput type="#type#" class="#type#" name="custom_#_name#_#field.getName()#" value="#item#" checked="#item EQ default#">
+									<cfinputClassic type="#type#" class="#type#" name="custom_#_name#_#field.getName()#" value="#item#" checked="#item EQ default#">
 								</cfif>
 								<cfif isStruct(desc) and StructKeyExists(desc,'_bottom')>
 									<div class="comment">#desc._bottom#</div>
@@ -325,36 +359,36 @@ function enable(btn,type,id){
 					</tr>
 				</cfloop>
 			</tbody>
-			
+
 		</table>
 		</div>
-		
+
 			</cfloop>
-		</div>	
-		<script>	
-		<cfloop collection="#drivers#" index="driverClass" item="driver">
-			<cfset id="#_name#_#hash(driver.getClass(),'quick')#">
-			<cfset active=driver.getClass() EQ _driver.getClass()>
-			
-		<cfif !active>
-		$(document).ready(function(){
-    		bodies['#id#']=$('##div_#id#').detach();
-		});
-		<cfelse>
-		active['#_name#']='#id#';
-		</cfif>
-		
-		</cfloop></script>
-			
+		</div>
+
+		<cfhtmlbody>
+
+		<script>
+			<cfloop collection="#drivers#" index="driverClass" item="driver">
+				<cfset id="#_name#_#hash(driver.getClass(),'quick')#">
+				<cfset active=!isNull(_driver) && driver.getClass() EQ _driver.getClass()>
+
+			<cfif !active>
+			$(document).ready(function(){
+	    		bodies['#id#']=$('##div_#id#').detach();
+			});
+			<cfelse>
+			active['#_name#']='#id#';
+			</cfif>
+
+			</cfloop>
+		</script>
+
+		</cfhtmlbody>
+	</div>
 		</cfloop>
-			
-		<!---<script>
-		
-		$(document).ready(function(){
-    		$('##appender').hide();
-		});
-		</script>--->
-			
+
+
 		<table class="maintbl">
 		<tfoot>
 				<tr>
@@ -364,7 +398,7 @@ function enable(btn,type,id){
 				</tr>
 			</tfoot>
 		</table>
-	</cfform>
+	</cfformClassic>
 </cfoutput>
 
 <!---
@@ -381,6 +415,6 @@ function enable(btn,type,id){
 	<br />
 	<input class="button submit" type="submit" name="submit" value="#lang.btnSubmit#" />
 </form>
-	
+
 </cfoutput>
 --->

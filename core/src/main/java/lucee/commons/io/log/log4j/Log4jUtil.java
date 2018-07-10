@@ -33,11 +33,13 @@ import lucee.commons.io.log.log4j.appender.DatasourceAppender;
 import lucee.commons.io.log.log4j.appender.RollingResourceAppender;
 import lucee.commons.io.log.log4j.appender.TaskAppender;
 import lucee.commons.io.log.log4j.layout.ClassicLayout;
+import lucee.commons.io.log.log4j.layout.DatasourceLayout;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.retirement.RetireListener;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebUtil;
@@ -156,7 +158,7 @@ public class Log4jUtil {
 				if(!StringUtil.isEmpty(user,true)) user=user.trim();
 				else user=null;
 				appenderArgs.put("username",user);
-				
+
 				// password
 				String pass = Caster.toString(appenderArgs.get("password"),null);
 				if(StringUtil.isEmpty(pass,true)) 
@@ -165,9 +167,22 @@ public class Log4jUtil {
 				else pass=null;
 				appenderArgs.put("password",pass);
 				
+				// table
+				String table = Caster.toString(appenderArgs.get("table"),null);
+				if(!StringUtil.isEmpty(table,true)) table=table.trim();
+				else table="LOGS";
+				appenderArgs.put("table",table);
+				
+				// custom
+				String custom = Caster.toString(appenderArgs.get("custom"),null);
+				if(!StringUtil.isEmpty(custom,true)) custom=custom.trim();
+				else custom=null;
+				appenderArgs.put("custom",custom);
+				
 				try {
-					appender = new DatasourceAppender(config, layout, dsn, user, pass);
-				} catch (PageException e) {e.printStackTrace();
+					appender = new DatasourceAppender(config, layout, dsn, user, pass,table,custom);
+				} catch (PageException e) {
+					SystemOut.printDate(e);
 					appender = null;
 				}
 			}
@@ -212,7 +227,7 @@ public class Log4jUtil {
 					appender=new RollingResourceAppender(layout,res,charset,true,maxfilesize,maxfiles,timeout,null);
 				}
 				catch (IOException e) {
-					e.printStackTrace();
+					SystemOut.printDate(e);
 				}
 			}
 			// class defintion
@@ -241,7 +256,7 @@ public class Log4jUtil {
 							Reflector.callSetter(obj, e.getKey(), e.getValue());
 						}
 						catch (PageException e1) {
-							e1.printStackTrace(); // TODO log
+							SystemOut.printDate(e1); // TODO log
 						}
 					}
 				}
@@ -269,16 +284,21 @@ public class Log4jUtil {
     	return new ClassDefinitionImpl( className);
     }
     
-    public static final Layout getLayout(ClassDefinition cd, Map<String, String> layoutArgs) {
+    public static final Layout getLayout(ClassDefinition cd, Map<String, String> layoutArgs, ClassDefinition cdAppender, String name) {
     	if(layoutArgs==null)layoutArgs=new HashMap<String, String>();
     	
     	// Layout
 		Layout layout=null;
+		
 		if(cd!=null && cd.hasClass()) {
 			// Classic Layout
-			if(ClassicLayout.class.getName().equalsIgnoreCase(cd.getClassName()))
+			if(ClassicLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
 				layout=new ClassicLayout();
-			
+			}
+			// Datasource Layout
+			else if(DatasourceLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
+				layout=new DatasourceLayout(name);
+			}
 			// HTML Layout
 			else if(HTMLLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
 				HTMLLayout html = new HTMLLayout();
@@ -340,7 +360,7 @@ public class Log4jUtil {
 							Reflector.callSetter(obj, e.getKey(), e.getValue());
 						}
 						catch (PageException e1) {
-							e1.printStackTrace(); // TODO log
+							SystemOut.printDate(e1);// TODO log
 						}
 					}
 					
@@ -348,11 +368,16 @@ public class Log4jUtil {
 			}
 		}
 		if(layout!=null) return layout;
+		
+		if(cdAppender!=null  && DatasourceAppender.class.getName().equals(cdAppender.getClassName())) {
+			return new DatasourceLayout(name);
+		}
 		return new ClassicLayout();
     }
     
     public static ClassDefinition<Layout> layoutClassDefintion(String className) {
     	if("classic".equalsIgnoreCase(className))return new ClassDefinitionImpl( ClassicLayout.class);
+    	if("datasource".equalsIgnoreCase(className))return new ClassDefinitionImpl( DatasourceLayout.class);
     	if("html".equalsIgnoreCase(className))return new ClassDefinitionImpl( HTMLLayout.class);
     	if("xml".equalsIgnoreCase(className))return new ClassDefinitionImpl( XMLLayout.class);
     	if("pattern".equalsIgnoreCase(className))return new ClassDefinitionImpl( PatternLayout.class);

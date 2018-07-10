@@ -50,6 +50,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
@@ -156,6 +157,7 @@ public class SimpleQuery implements Query, ResultSet, Objects,QueryResult {
 			throw new DatabaseException(e,sql,dc);
 		} 
 		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
 			throw Caster.toPageException(e);
 		}
 		exeTime= System.nanoTime()-start;
@@ -307,7 +309,8 @@ public class SimpleQuery implements Query, ResultSet, Objects,QueryResult {
 		try {
 			return column.get(row,defaultValue);
 		} 
-		catch (Throwable t) {
+		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -775,6 +778,7 @@ public class SimpleQuery implements Query, ResultSet, Objects,QueryResult {
 			}
 		}
 		catch(Throwable t){
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw toRuntimeExc(t);
 		}
 	}

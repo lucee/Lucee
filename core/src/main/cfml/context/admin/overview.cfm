@@ -43,6 +43,7 @@ Defaults --->
 
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
+		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
 
@@ -175,6 +176,14 @@ Error Output --->
 				The REST Servlet is not configured in your enviroment!
 			</div>
 		</cfif>
+		<cfif getJavaVersion() LT 8>
+			<div class="warning nofocus">
+				You are running Lucee with Java #server.java.version# Lucee does not formally support this version of Java. Consider updating to the latest Java version for security and performance reasons.
+				<cfif getJavaVersion() EQ 7>
+					Java 7 has been End-of-Life'd since April 2015.
+				</cfif>
+			</div>
+		</cfif>
 	</cfif>
 
 
@@ -239,11 +248,11 @@ Error Output --->
 						<!--- has api key --->
 						<cfif !isNull(apiKey) && len(apiKey)>
 							<tr>
-								<cfform onerror="customError" action="#request.self#" method="post">
+								<cfformClassic onerror="customError" action="#request.self#" method="post">
 								<th scope="row">#stText.io.id#</th>
 								<td><input type="text" style="width:250px" name="apiKey" value="#apiKey#"/><input class="button submit" type="submit" name="mainAction" value="#stText.Buttons.ok#"><br>
 								<span class="comment">#stText.io.idDesc#</span></td>
-								</cfform>
+								</cfformClassic>
 							</tr>
 						</cfif>
 
@@ -398,7 +407,7 @@ Error Output --->
 				<br><br>
 				<div id="updateInfoDesc"><div style="text-align: center;"><img src="../res/img/spinner16.gif.cfm"></div></div>
 
-				<cfsavecontent variable="Request.htmlBody" append="true">
+				<cfhtmlbody>
 					<script type="text/javascript">
 
 						$( function() {
@@ -406,7 +415,7 @@ Error Output --->
 							$('##updateInfoDesc').load('update.cfm?#session.urltoken#&adminType=#request.admintype#');
 						} );
 					</script>
-				</cfsavecontent>
+				</cfhtmlbody>
 
 					<!--- Memory Usage --->
 					<cftry>
@@ -427,13 +436,19 @@ Error Output --->
 
 					<!--- Docs --->
 					<h3>
-						<a href="http://docs.lucee.org" target="_blank">#stText.Overview.Docs#</a>
+						#stText.Overview.Docs#
 					</h3>
-					<div class="comment">#stText.Overview.DocsDesc#</div>
+					<div class="comment">
+						#stText.Overview.DocsDesc#
+						<div style="margin-left:10px;">
+							<p><a href="http://docs.lucee.org" target="_blank">#stText.Overview.onlineDocsLink#</a></p>
+							<p><a href="../doc/index.cfm" target="_blank">#stText.Overview.localRefLink#</a></p>
+						</div>
+					</div>
 
 					<!--- Mailing list --->
 					<h3>
-						<a href="http://groups.google.com/group/lucee" target="_blank">#stText.Overview.Mailinglist#</a>
+						<a href="https://dev.lucee.org" target="_blank">#stText.Overview.Mailinglist#</a>
 					</h3>
 					<div class="comment">#stText.Overview.MailinglistDesc#</div>
 
@@ -468,7 +483,7 @@ Error Output --->
 		<div class="itemintro">
 			You can label your web contexts here, so they are more clearly distinguishable for use with extensions etc.
 		</div>
-		<cfform onerror="customError" action="#request.self#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#" method="post">
 			<table class="maintbl">
 				<thead>
 					<tr>
@@ -517,6 +532,13 @@ Error Output --->
 					</tr>
 				</tfoot>
 			</table>
-		</cfform>
+		</cfformClassic>
 	</cfif>
 </cfoutput>
+<cfscript>
+	function getJavaVersion() {
+		var verArr=listToArray(server.java.version,'.');
+		if(verArr[1]>2) return verArr[1];
+		return verArr[2];
+	}
+</cfscript>

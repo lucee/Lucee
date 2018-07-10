@@ -17,6 +17,82 @@
  */
  component extends="org.lucee.cfml.test.LuceeTestCase" {
 
+ 	public function testDateFormatTimeZone_lz() localMode="modern" {
+
+		dt=createDateTime(2000);
+		org=getTimeZone();
+		try{
+			setTimeZone("UTC");
+			assertEquals('UTC',dateFormat(dt,'z'));
+			assertEquals('UTC',dateFormat(dt,'zz'));
+			assertEquals('UTC',dateFormat(dt,'zzz'));
+
+			assertEquals('Coordinated Universal Time',dateFormat(dt,'zzzz'));
+			assertEquals('Coordinated Universal Time',dateFormat(dt,'zzzzz'));
+			assertEquals('Coordinated Universal Time',dateFormat(dt,'zzzzzz'));
+
+			setTimeZone("Europe/Zurich");
+			assertEquals('CET',dateFormat(dt,'z'));
+			assertEquals('CET',dateFormat(dt,'zz'));
+			assertEquals('CET',dateFormat(dt,'zzz'));
+
+
+			assertEquals('Central European Time',dateFormat(dt,'zzzz'));
+			assertEquals('Central European Time',dateFormat(dt,'zzzzz'));
+			assertEquals('Central European Time',dateFormat(dt,'zzzzzz'));
+		}
+		finally {
+			setTimeZone(org);
+		}
+ 	}
+
+
+ 	public function testDateFormatTimeZone_UZ() localMode="modern" {
+ 		
+		dt=createDateTime(2000);
+		org=getTimeZone();
+		try{
+			setTimeZone("UTC");
+			assertEquals('+0000',dateFormat(dt,'Z'));
+			assertEquals('+0000',dateFormat(dt,'ZZZZZ'));
+			assertEquals('+0000',dateFormat(dt,'ZZZZZZZZ'));
+
+
+			setTimeZone("Europe/Zurich");
+			assertEquals('+0100',dateFormat(dt,'Z'));
+			assertEquals('+0100',dateFormat(dt,'ZZZZZ'));
+			assertEquals('+0100',dateFormat(dt,'ZZZZZZZZ'));
+			dt=createDateTime(2000,7,7);
+			assertEquals('+0200',dateFormat(dt,'ZZZZZZZZ'));
+		}
+		finally {
+			setTimeZone(org);
+		}
+
+ 	}
+
+ 	public function testDateFormatTimeZone_X() localMode="modern" {
+ 		
+		dt=createDateTime(2000);
+		org=getTimeZone();
+		try{
+			setTimeZone("UTC");
+			assertEquals('Z',dateFormat(dt,'X'));
+			assertEquals('Z',dateFormat(dt,'XX'));
+			assertEquals('Z',dateFormat(dt,'XXX'));
+
+			setTimeZone("Europe/Zurich");
+			assertEquals('+01',dateFormat(dt,'X'));
+			assertEquals('+0100',dateFormat(dt,'XX'));
+
+			dt=createDateTime(2000,7,7);
+			assertEquals('+02:00',dateFormat(dt,'XXX'));
+		}
+		finally {
+			setTimeZone(org);
+		}
+
+ 	}
 
  	public function testDateFormatMember() localMode="modern" {
  		dt=CreateDateTime(2004,1,2,4,5,6);
@@ -34,7 +110,7 @@
 		dt=CreateDateTime(2004,1,2,4,5,6);
 		assertEquals("2004",dateFormat(dt,"yyyy"));
 		assertEquals("04",dateFormat(dt,"yy"));
-		assertEquals("4",dateFormat(dt,"y"));
+		assertEquals("2004",dateFormat(dt,"y"));
 		assertEquals("January",dateFormat(dt,"MMMM"));
 
 		assertEquals("Jan",dateFormat(dt,"mmm"));

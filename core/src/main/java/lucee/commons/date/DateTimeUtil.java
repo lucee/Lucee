@@ -24,8 +24,10 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.functions.displayFormatting.DateTimeFormat;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 
@@ -33,12 +35,17 @@ public abstract class DateTimeUtil {
 	
 	private final static SimpleDateFormat HTTP_TIME_STRING_FORMAT_OLD;
 	private final static SimpleDateFormat HTTP_TIME_STRING_FORMAT;
+
+	//public final static SimpleDateFormat DATETIME_FORMAT_LOCAL;
+
 	static {
+		//DATETIME_FORMAT_LOCAL = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");
+
 		HTTP_TIME_STRING_FORMAT_OLD = new SimpleDateFormat("EE, dd MMM yyyy HH:mm:ss zz",Locale.ENGLISH);
 		HTTP_TIME_STRING_FORMAT_OLD.setTimeZone(TimeZone.getTimeZone("GMT"));
 		
 		HTTP_TIME_STRING_FORMAT = new SimpleDateFormat("EE, dd-MMM-yyyy HH:mm:ss zz",Locale.ENGLISH);
-		HTTP_TIME_STRING_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
+		HTTP_TIME_STRING_FORMAT.setTimeZone(TimeZoneConstants.UTC);
 	}
 	
     private static final double DAY_MILLIS = 86400000D;
@@ -212,19 +219,26 @@ public abstract class DateTimeUtil {
     
     abstract long _toTime(TimeZone tz,int year,int month,int day,int hour,int minute,int second,int milliSecond);
 	
-	public abstract int getYear(TimeZone tz,lucee.runtime.type.dt.DateTime dt);
+    public abstract int getYear(TimeZone tz,lucee.runtime.type.dt.DateTime dt);
+    public abstract void setYear(TimeZone tz,lucee.runtime.type.dt.DateTime dt, int value);
 	
-	public abstract int getMonth(TimeZone tz,DateTime dt);
+    public abstract int getMonth(TimeZone tz,DateTime dt);
+    public abstract void setMonth(TimeZone tz,DateTime dt, int value);
 	
-	public abstract int getDay(TimeZone tz,DateTime dt);
+    public abstract int getDay(TimeZone tz,DateTime dt);
+    public abstract void setDay(TimeZone tz,DateTime dt, int value);
 
-	public abstract int getHour(TimeZone tz,DateTime dt);
+    public abstract int getHour(TimeZone tz,DateTime dt);
+    public abstract void setHour(TimeZone tz,DateTime dt, int value);
 	
-	public abstract int getMinute(TimeZone tz,DateTime dt);
+    public abstract int getMinute(TimeZone tz,DateTime dt);
+    public abstract void setMinute(TimeZone tz,DateTime dt, int value);
 	
-	public abstract int getSecond(TimeZone tz,DateTime dt);
+    public abstract int getSecond(TimeZone tz,DateTime dt);
+    public abstract void setSecond(TimeZone tz,DateTime dt, int value);
 	
-	public abstract int getMilliSecond(TimeZone tz,DateTime dt);
+    public abstract int getMilliSecond(TimeZone tz,DateTime dt);
+    public abstract void setMilliSecond(TimeZone tz,DateTime dt, int value);
 
 	public abstract long getMilliSecondsInDay(TimeZone tz, long time);
 	
@@ -237,7 +251,7 @@ public abstract class DateTimeUtil {
 	public abstract int getWeekOfYear(Locale locale,TimeZone tz,DateTime dt);
 	public abstract int getFirstDayOfMonth(TimeZone tz, DateTime dt);
 
-	public abstract String toString(DateTime dt, TimeZone tz);
+	public abstract String toString(PageContext pc, DateTime dt, TimeZone tz, Boolean addTimeZoneOffset);
 
 	public static String toHTTPTimeString(long time, boolean oldFormat) {
 		return toHTTPTimeString(new Date(time),oldFormat);
@@ -260,6 +274,12 @@ public abstract class DateTimeUtil {
 			return StringUtil.replace(HTTP_TIME_STRING_FORMAT.format(date),"+00:00","",true);
 		}
 	}
-
+	
+	public static String format(long time,Locale l,TimeZone tz) {
+		return DateTimeFormat.invoke(
+				new DateTimeImpl(time, false), null,
+				ThreadLocalPageContext.getLocale(l),
+				ThreadLocalPageContext.getTimeZone(tz));
+	}
 
 }

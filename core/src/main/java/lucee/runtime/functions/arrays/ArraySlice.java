@@ -27,7 +27,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
-import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.util.ArrayUtil;
 
 public final class ArraySlice extends BIF {
 	
@@ -56,11 +56,12 @@ public final class ArraySlice extends BIF {
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if(args.length==2)return call(pc,Caster.toArray(args[0]),Caster.toDoubleValue(args[1]));
-		return call(pc,Caster.toArray(args[0]),Caster.toDoubleValue(args[1]),Caster.toDoubleValue(args[2]));
+		else if(args.length==3)return call(pc,Caster.toArray(args[0]),Caster.toDoubleValue(args[1]),Caster.toDoubleValue(args[2]));
+		else throw new FunctionException(pc, "ArraySlice", 2, 3, args.length);
 	}
 	
 	private static Array get(Array arr, int from, int to) throws PageException {
-		Array rtn=new ArrayImpl(arr.getDimension());
+		Array rtn=ArrayUtil.getInstance(arr.getDimension());
 		int[] keys=arr.intKeys();
 		for(int i=0;i<keys.length;i++) {
 			int key=keys[i];

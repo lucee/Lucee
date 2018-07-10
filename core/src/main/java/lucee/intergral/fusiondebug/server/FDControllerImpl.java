@@ -132,7 +132,7 @@ public class FDControllerImpl implements IFDController {
 			try {
 				pc.getThread().wait();
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}
 			threads.add(new FDThreadImpl(this,factory,name,pc));
 		}

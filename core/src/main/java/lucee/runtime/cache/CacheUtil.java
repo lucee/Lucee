@@ -27,8 +27,8 @@ import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CacheEntryFilter;
 import lucee.commons.io.cache.CacheFilter;
-import lucee.commons.io.cache.complex.CacheComplex;
 import lucee.commons.io.cache.exp.CacheException;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
@@ -74,7 +74,8 @@ public class CacheUtil {
 		if(cc==null) return defaultValue;
 		try {
 			return cc.getInstance(config);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -123,7 +124,8 @@ public class CacheUtil {
 		Config config = ThreadLocalPageContext.getConfig(pc);
 		try {
 			return cc.getInstance(config);
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 	}
@@ -258,11 +260,6 @@ public class CacheUtil {
 	 */
 	public static Cache getInstance(CacheConnection cc, Config config) throws IOException {
 		return cc.getInstance(config);
-		/*Cache c = cc.getInstance(config);
-		if("org.lucee.extension.io.cache.memcache.MemCacheRaw".equals(c.getClass().getName())) {
-			return new CacheComplex(cc,c);
-		}
-		return c;*/
 	}
 	
 
@@ -272,13 +269,13 @@ public class CacheUtil {
 			remove(config,cc);
 			return true;
 		} catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
 			return false;
 		}
 	}
 	public static void remove(ConfigWeb config, CacheConnection cc) throws Throwable  {
 		Cache c = cc.getInstance(config);
 		// FUTURE no reflection needed
-		
 		
 		Method remove=null;
 		try{
@@ -296,6 +293,45 @@ public class CacheUtil {
 		catch (InvocationTargetException e) {
 			throw e.getTargetException();
 		}
+	}
+	
+	public static void releaseEL(CacheConnection cc)  {
+		try {
+			release(cc);
+		} catch (IOException e) {}
+	}
+	
+	public static void release(CacheConnection cc) throws IOException {
+		Cache c = ((CacheConnectionPlus)cc).getLoadedInstance();
+		if(c==null) return;
+		
+		// FUTURE no reflection needed
+		Method release=null;
+		try{
+			release = c.getClass().getMethod("release", new Class[]{});
+			
+		}
+		catch(Exception e){
+			return;
+		}
+		
+		try {
+			if(release!=null)release.invoke(c, new Object[]{});
+		}
+		catch (Exception e) {
+			throw ExceptionUtil.toIOException(e);
+		}
+	}
+
+	public static void releaseAll(Config config) {
+		// Config
+		for(CacheConnection cc:config.getCacheConnections().values()) {
+			releaseEL(cc);
+		}
+	}
+	public static void releaseAllApplication() {
+		// application defined caches (modern and classic)
+		ModernApplicationContext.releaseInitCacheConnections();
 	}
 
 	private static String toStringType(int type, String defaultValue) {

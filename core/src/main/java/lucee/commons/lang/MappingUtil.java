@@ -87,7 +87,7 @@ public class MappingUtil {
 				}
 			}
 			catch(IOException ioe) {
-				ioe.printStackTrace();
+				SystemOut.printDate(ioe);
 			}
 			finally {
 				IOUtil.closeEL(zis);

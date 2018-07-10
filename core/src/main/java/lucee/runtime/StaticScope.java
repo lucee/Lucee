@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.component.DataMember;
 import lucee.runtime.component.Member;
 import lucee.runtime.debug.DebugEntryTemplate;
@@ -97,7 +98,7 @@ public class StaticScope extends StructSupport implements Variables,Objects {
 	public Object removeEL(Key key) {
 		try{
 			return remove(key);
-		}catch(Throwable t){return null;}
+		}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);return null;}
 	}
 
 	@Override
@@ -438,7 +439,8 @@ public class StaticScope extends StructSupport implements Variables,Objects {
 		Entry<Key, Member> e;
 		while(it.hasNext()) {
 			e = it.next();
-			int a=e.getValue().getAccess();
+			int a=access(pc,e.getValue().getAccess());
+			
 			DumpTable box=accesses[a];
 			Object o=e.getValue().getValue();
 			
@@ -468,6 +470,11 @@ public class StaticScope extends StructSupport implements Variables,Objects {
 	}
 
 
+
+	private int access(PageContext pc, int access) {
+		if(access>-1) return access;
+		return pc.getConfig().getComponentDataMemberDefaultAccess();
+	}
 
 	public Component getComponent() {
 		return c;

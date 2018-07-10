@@ -10,97 +10,98 @@
 	<cfswitch expression="#form.mainAction#">
 	<!--- UPDATE/settings --->
 		<cfcase value="#stText.Buttons.Update#">
-            <cfadmin 
+            <cfadmin
                 action="updateRestSettings"
                 type="#request.adminType#"
                 password="#session["password"&request.adminType]#"
                 remoteClients="#request.getRemoteClients()#"
-                
+
                 list="#structKeyExists(form,'list') and form.list#"
-                >				
+                >
 		</cfcase>
         <!--- reset/settings --->
 		<cfcase value="#stText.Buttons.resetServerAdmin#">
-            <cfadmin 
+            <cfadmin
                 action="updateRestSettings"
                 type="#request.adminType#"
                 password="#session["password"&request.adminType]#"
                 remoteClients="#request.getRemoteClients()#"
-                
+
                 list=""
-                >				
+                >
 		</cfcase>
         <!--- save/mapping --->
 		<cfcase value="#stText.Buttons.save#">
-        	
+
 			<cfset data.physicals=toArrayFromForm("physical")>
             <cfset data.virtuals=toArrayFromForm("virtual")>
             <cfset data.rows=toArrayFromForm("row")>
-            
-            
+
+
             <cfloop index="idx" from="1" to="#arrayLen(data.virtuals)#">
             	<cfset _default=StructKeyExists(form,'default') and form.default EQ idx>
 				<cfif isDefined("data.rows[#idx#]") and data.virtuals[idx] NEQ "">aaa
-                <cfadmin 
+                <cfadmin
                     action="updateRestMapping"
                     type="#request.adminType#"
                     password="#session["password"&request.adminType]#"
-                    
+
                     virtual="#data.virtuals[idx]#"
                     physical="#data.physicals[idx]#"
                     default="#_default#"
-                    
+
         remoteClients="#request.getRemoteClients()#">
                 </cfif>
             </cfloop>
 		</cfcase>
-        
+
         <!--- delete/mapping --->
 		<cfcase value="#stText.Buttons.delete#">
-        	
+
 			<cfset data.virtuals=toArrayFromForm("virtual")>
             <cfset data.rows=toArrayFromForm("row")>
-            
+
             <cfloop index="idx" from="1" to="#arrayLen(data.virtuals)#">
             	<cfset _default=StructKeyExists(form,'default') and form.default EQ idx>
 				<cfif isDefined("data.rows[#idx#]") and data.virtuals[idx] NEQ "">aaa
-                <cfadmin 
+                <cfadmin
                     action="removeRestMapping"
                     type="#request.adminType#"
                     password="#session["password"&request.adminType]#"
-                    
+
                     virtual="#data.virtuals[idx]#"
-                    
+
         remoteClients="#request.getRemoteClients()#">
                 </cfif>
             </cfloop>
 		</cfcase>
-        
-        
+
+
 	</cfswitch>
 	<cfcatch>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
+		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
 
-<!--- 
+<!---
 Redirtect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "">
 	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 </cfif>
 
-<!--- 
+<!---
 Error Output --->
 <cfset printError(error)>
 
 
-<cfadmin 
+<cfadmin
 	action="getRestMappings"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="rest">
-<cfadmin 
+<cfadmin
 	action="getRestSettings"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
@@ -123,28 +124,34 @@ Error Output --->
 <cfset stText.rest.PhysicalMissing="Please enter a value for the physical resource.">
 
 
-<!--- 
+<!---
 list all mappings and display necessary edit fields --->
+
+<cfhtmlbody>
+
 <script type="text/javascript">
 	function changeDefault(field) {
 		var form=field.form;
 		for(var i=0;i<form.length;i++){
 			if(form[i].name=='default') {
 				$(form["row_"+form[i].value]).prop('checked', form[i].checked).triggerHandler('change');
-				
+
 				//alert(form[i].value+":"+form[i].checked);
-				
+
 				//row_#rest.currentrow#
 			}
 		}
 	}
 </script>
+
+</cfhtmlbody>
+
 <cfoutput>
 	<cfif not hasAccess><cfset noAccess(stText.setting.noAccess)></cfif>
 	<div class="pageintro">#stText.rest.desc#</div>
 	<!--- Settings --->
 	<h2>#stText.rest.setting#</h2>
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 				<tr>
@@ -180,12 +187,12 @@ list all mappings and display necessary edit fields --->
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 
 	<!--- Mappings --->
 	<h2>#stText.rest.mapping#</h2>
 	<div class="itemintro">#stText.rest.mappingDesc#</div>
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl checkboxtbl">
 			<thead>
 				<tr>
@@ -219,8 +226,8 @@ list all mappings and display necessary edit fields --->
 								<cfif !len(css) && abs NEQ rest.strPhysical><abbr title="#abs#"></cfif><cfif rest.readOnly>
 									#rest.strPhysical#
 								<cfelse>
-									<cfinput  onKeyDown="checkTheBox(this)" type="text" 
-									name="physical_#rest.currentrow#" value="#rest.strPhysical#" required="no"  
+									<cfinputClassic  onKeyDown="checkTheBox(this)" type="text"
+									name="physical_#rest.currentrow#" value="#rest.strPhysical#" required="no"
 									class="xlarge" message="#stText.rest.PhysicalMissing##rest.currentrow#)">
 								</cfif><cfif !len(css) &&  abs NEQ rest.strPhysical></abbr></cfif>
 							</td>
@@ -236,7 +243,7 @@ list all mappings and display necessary edit fields --->
 							<td>
 								<cfif not rest.readOnly>
 									#renderEditButton("#request.self#?action=#url.action#&action2=create&virtual=#rest.virtual#")#
-									
+
 								</cfif>
 							</td> --->
 						</tr>
@@ -253,7 +260,7 @@ list all mappings and display necessary edit fields --->
 							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.save#">
 							<input type="reset" class="bm button reset" name="cancel" value="#stText.Buttons.Cancel#">
 							<input type="submit" class="br button submit" name="mainAction" value="#stText.Buttons.Delete#">
-						</td>	
+						</td>
 					</tr>
 				</tfoot>
 			</cfif>
@@ -267,13 +274,13 @@ list all mappings and display necessary edit fields --->
 						<th scope="row">#stText.rest.VirtualHead#</th>
 						<td>
 							<input type="hidden" name="row_#rest.recordcount+1#" value="#rest.recordcount+1#">
-							<cfinput type="text" name="virtual_#rest.recordcount+1#" value="" required="no" class="medium" />
+							<cfinputClassic type="text" name="virtual_#rest.recordcount+1#" value="" required="no" class="medium" />
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">#stText.rest.PhysicalHead#</th>
 						<td>
-							<cfinput type="text" name="physical_#rest.recordcount+1#" value="" required="no" class="large">
+							<cfinputClassic type="text" name="physical_#rest.recordcount+1#" value="" required="no" class="large">
 						</td>
 					</tr>
 					<tr>
@@ -292,5 +299,5 @@ list all mappings and display necessary edit fields --->
 				</tfoot>
 			</table>
 		</cfif>
-	</cfform>
+	</cfformClassic>
 </cfoutput>

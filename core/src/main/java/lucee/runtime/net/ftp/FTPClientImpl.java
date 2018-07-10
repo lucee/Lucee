@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.SocketException;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 
 import org.apache.commons.net.ftp.FTP;
@@ -23,29 +24,28 @@ public class FTPClientImpl extends AFTPClient {
 	private boolean stopOnError;
 
 	public FTPClientImpl(FTPClient client) {
-		this.client=client;
+		this.client = client;
 	}
 
 	FTPClientImpl() {
-		this.client=new FTPClient();
+		this.client = new FTPClient();
 	}
-
-
 
 	@Override
-	public void init(InetAddress host, int port, String username, String password, String fingerprint, boolean stopOnError) throws SocketException, IOException {
-		this.host=host;
-		this.port=port;
-		this.username=username;
-		this.password=password;
-		this.stopOnError=stopOnError;
+	public void init(InetAddress host, int port, String username, String password, String fingerprint, boolean stopOnError)
+			throws SocketException, IOException {
+		this.host = host;
+		this.port = port;
+		this.username = username;
+		this.password = password;
+		this.stopOnError = stopOnError;
 	}
-	
 
 	@Override
 	public void connect() throws SocketException, IOException {
 		client.connect(host, port);
-    	if(!StringUtil.isEmpty(username))client.login(username,password);
+		if(!StringUtil.isEmpty(username))
+			client.login(username, password);
 	}
 
 	@Override
@@ -89,7 +89,8 @@ public class FTPClientImpl extends AFTPClient {
 	}
 
 	private int toFTPClientFileType(int fileType) {
-		if(fileType==FILE_TYPE_BINARY)return FTP.BINARY_FILE_TYPE;
+		if(fileType == FILE_TYPE_BINARY)
+			return FTP.BINARY_FILE_TYPE;
 		return FTP.ASCII_FILE_TYPE;
 	}
 
@@ -160,22 +161,25 @@ public class FTPClientImpl extends AFTPClient {
 
 	@Override
 	public boolean directoryExists(String pathname) throws IOException {
-		String pwd=null;
+		String pwd = null;
 		try {
 			pwd = client.printWorkingDirectory();
-	        return client.changeWorkingDirectory(pathname);
+			return client.changeWorkingDirectory(pathname);
+		} finally {
+			if(pwd != null)
+				client.changeWorkingDirectory(pwd);
 		}
-		finally {
-			if(pwd!=null)client.changeWorkingDirectory(pwd);
-	}
 	}
 
 	@Override
 	public void setTimeout(int timeout) {
 		client.setDataTimeout(timeout);
-        try {
+		try {
 			client.setSoTimeout(timeout);
-		} catch (Throwable t) {}
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+		}
 	}
 
 }

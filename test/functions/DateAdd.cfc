@@ -32,7 +32,7 @@
 	</cffunction>
 
 	<cffunction name="testDateAdd" localMode="modern">
-<cfset setTimeZone("europe/berlin")>
+		<cfset setTimeZone('Europe/Berlin')>
 <!--- begin old test code --->
 <cfset fixDate=CreateDateTime(2001, 11, 1, 4, 10, 4)> 
 <cfset valueEquals(left="#DateAdd("yyyy", 1, fixDate)#", right="{ts '2002-11-01 04:10:04'}")> 

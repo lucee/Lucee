@@ -80,6 +80,7 @@
 	<cfcatch>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
+		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
 
@@ -137,7 +138,7 @@ list all mappings and display necessary edit fields --->
 	<cfset columns=doMode?5:4>
 
 	<div class="itemintro">#stText.ext.prov.IntroText#</div>
-	<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		
 		<table class="maintbl checkboxtbl">
 			<thead>
@@ -227,11 +228,11 @@ list all mappings and display necessary edit fields --->
 				</tfoot>
 			</cfif>
 		</table>
-	</cfform>
+	</cfformClassic>
 	
 	<cfif hasAccess>
 		<h2>#stText.ext.prov.new#</h2>
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<input type="hidden" name="row_1" value="1">
 			<table class="maintbl" style="width:75%">
 				<tbody>
@@ -240,7 +241,7 @@ list all mappings and display necessary edit fields --->
 							#stText.ext.prov.host#
 						</th>
 						<td>
-							<cfinput onKeyDown="checkTheBox(this)" type="text" 
+							<cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
 							name="url_1" value="" required="no" class="xlarge">
 							<div class="comment">#stText.ext.prov.hostDesc#</div>
 						</td>
@@ -254,7 +255,7 @@ list all mappings and display necessary edit fields --->
 					</tr>
 				</tfoot>
 			</table>
-		</cfform>
+		</cfformClassic>
 	</cfif>
 
 

@@ -46,7 +46,7 @@ public final class GetBaseTagData implements Function {
         return tag.getVariablesScope();
 	}
     
-    public synchronized static CFTag getParentCFTag(Tag tag,String trgTagName, int minLevel) {
+    public static CFTag getParentCFTag(Tag tag,String trgTagName, int minLevel) {
         String pureName=trgTagName;
         int level=0;
         CFTag cfTag;

@@ -22,6 +22,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 
@@ -40,10 +41,12 @@ public final class ThreadLocalPageContext {
 	 * register a pagecontext for he current thread
 	 * @param pc PageContext to register
 	 */
-	public static void register(PageContext pc) {
+	public static void register(PageContext pc) {//print.ds(Thread.currentThread().getName());
 		if(pc==null) return; // TODO happens with Gateway, but should not!
 		// TODO should i set the old one by "release"?
-		Thread.currentThread().setContextClassLoader(((ConfigImpl)pc.getConfig()).getClassLoaderEnv());
+		Thread t = Thread.currentThread();
+		t.setContextClassLoader(((ConfigImpl)pc.getConfig()).getClassLoaderEnv());
+		((PageContextImpl)pc).setThread(t);
 		pcThreadLocal.set(pc);
 	}
 
@@ -68,7 +71,7 @@ public final class ThreadLocalPageContext {
 	/**
 	 * release the pagecontext for the current thread
 	 */
-	public static void release() {
+	public static void release() {//print.ds(Thread.currentThread().getName());
 		pcThreadLocal.set(null);
 	}
 
@@ -96,6 +99,15 @@ public final class ThreadLocalPageContext {
 			return config.getTimeZone();
 		}
 	    return DEFAULT_TIMEZONE;
+	}
+	
+	public static Locale getLocale() {
+		return getLocale((PageContext)null);
+	}
+	
+	public static Locale getLocale(Locale l) {
+		if(l!=null) return l;
+		return getLocale((PageContext)null);
 	}
 	
 	public static Locale getLocale(PageContext pc) {

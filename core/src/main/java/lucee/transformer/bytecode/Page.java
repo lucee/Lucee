@@ -34,6 +34,7 @@ import lucee.runtime.Component;
 import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.InterfacePageImpl;
 import lucee.runtime.Mapping;
+import lucee.runtime.PageImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
@@ -200,10 +201,24 @@ public final class Page extends BodyBase implements Root {
     		);
     
     private final static Method COMPILE_TIME = new Method(
-			"getCompileTime",
-			Types.LONG_VALUE,
-			new Type[]{}
+		"getCompileTime",
+		Types.LONG_VALUE,
+		new Type[]{}
+		);
+    
+    private final static Method HASH = new Method(
+    		"getHash",
+    		Types.INT_VALUE,
+    		new Type[]{}
     		);
+    
+    private final static Method LENGTH = new Method(
+    		"getSourceLength",
+    		Types.LONG_VALUE,
+    		new Type[]{}
+    		);
+    
+    
 
     private static final Type USER_DEFINED_FUNCTION = Type.getType(UDF.class);
     private static final Method UDF_CALL = new Method(
@@ -412,6 +427,7 @@ public final class Page extends BodyBase implements Root {
 		
     private final long version;
     private final long lastModifed;
+    private final long length;
     private final boolean _writeLog;
 	private final boolean suppressWSbeforeArg;
 	private final boolean output;
@@ -433,6 +449,7 @@ public final class Page extends BodyBase implements Root {
 	private String className; // following the pattern "or/susi/Sorglos"
 	private Config config;
 	private SourceCode sourceCode;
+	private int hash;
 	
 
 	/**
@@ -452,6 +469,7 @@ public final class Page extends BodyBase implements Root {
     	this._comp=tc;
     	this.version=version;
         this.lastModifed=lastModifed;
+        this.length=sc instanceof PageSourceCode?((PageSourceCode)sc).getPageSource().getPhyscalFile().length():0;
         
         this._writeLog=writeLog;
         this.suppressWSbeforeArg=suppressWSbeforeArg;
@@ -461,7 +479,7 @@ public final class Page extends BodyBase implements Root {
         //this.pageSource=ps;
         this.config=config;
         this.sourceCode=sc;
-        
+        this.hash=sc.hashCode();
     }
 
     /**
@@ -494,14 +512,17 @@ public final class Page extends BodyBase implements Root {
         this.className=className;
         
     	// parent
-    	String parent=lucee.runtime.Page.class.getName();//"lucee/runtime/Page";
+    	String parent=PageImpl.class.getName();//"lucee/runtime/Page";
     	if(isComponent(comp)) parent=ComponentPageImpl.class.getName();//"lucee/runtime/ComponentPage";
     	else if(isInterface(comp)) parent=InterfacePageImpl.class.getName();//"lucee/runtime/InterfacePage";
     	parent=parent.replace('.', '/');
     	
     	cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC+Opcodes.ACC_FINAL, className, null, parent, null);
     	if(optionalPS!=null) {
-    		cw.visitSource(optionalPS.getRealpathWithVirtual(),null); // when adding more use ; as delimiter
+    		// we use full path  when FD is enabled
+    		String path=config.allowRequestTimeout()?
+    				optionalPS.getRealpathWithVirtual():optionalPS.getPhyscalFile().getAbsolutePath();
+    		cw.visitSource(path,null); // when adding more use ; as delimiter
     		
     		//cw.visitSource(optionalPS.getPhyscalFile().getAbsolutePath(),
         	//		"rel:"+optionalPS.getRealpathWithVirtual()); // when adding more use ; as delimiter
@@ -538,7 +559,7 @@ public final class Page extends BodyBase implements Root {
         	constrAdapter.invokeConstructor(t, CONSTRUCTOR);
         }
         else {
-        	t=Types.PAGE;
+        	t=Types.PAGE_IMPL;
         	constrAdapter.invokeConstructor(t, CONSTRUCTOR);
         }
         
@@ -597,19 +618,32 @@ public final class Page extends BodyBase implements Root {
              adapter.endMethod();
          }
 
-         
-    // getSourceLastModified
-        adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC+Opcodes.ACC_FINAL , LAST_MOD, null, null, cw);
-        adapter.push(lastModifed);
-        adapter.returnValue();
-        adapter.endMethod();
-        
+
+ // getSourceLastModified
+     adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC+Opcodes.ACC_FINAL , LAST_MOD, null, null, cw);
+     adapter.push(lastModifed);
+     adapter.returnValue();
+     adapter.endMethod();
+     
+     // getSourceLength
+     adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC+Opcodes.ACC_FINAL , LENGTH, null, null, cw);
+     adapter.push(length);
+     adapter.returnValue();
+     adapter.endMethod();
+
     // getCompileTime
         adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC+Opcodes.ACC_FINAL , COMPILE_TIME, null, null, cw);
         adapter.push(System.currentTimeMillis());
         adapter.returnValue();
         adapter.endMethod();
-        
+            
+
+    // getHash
+        adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC+Opcodes.ACC_FINAL , HASH, null, null, cw);
+        adapter.push(hash);
+        adapter.returnValue();
+        adapter.endMethod();
+                
 
         // static consructor for component/interface
         
@@ -1206,6 +1240,12 @@ public final class Page extends BodyBase implements Root {
 		adapter.loadArg(2);
 		Label afterIf = new Label();
 		adapter.visitJumpInsn(Opcodes.IFNE, afterIf);
+		
+		adapter.loadArg(0);
+		adapter.loadLocal(localBC);
+		adapter.invokeStatic(Types.BODY_CONTENT_UTIL, CLEAR_AND_POP);
+		
+		
 		adapter.visitInsn(Opcodes.RETURN);
 		adapter.visitLabel(afterIf);
 		

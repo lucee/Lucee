@@ -21,9 +21,9 @@ package lucee.runtime.functions.struct;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
@@ -48,20 +48,21 @@ public class StructKeyTranslate extends BIF {
 		return translate(sct, deepTranslation,leaveOriginalKey);
     }
 	
-	public static int translate(Collection coll,boolean deep,boolean leaveOrg) throws PageException {
-		Iterator<Entry<Key, Object>> it = coll.entryIterator();
-		Entry<Key, Object> e;
+	private static int translate(Collection coll,boolean deep,boolean leaveOrg) throws PageException {
+		Key[] keys = coll.keys(); //we do not entry to avoid ConcurrentModificationException
+		
 		boolean isStruct=coll instanceof Struct;
 		String key;
+		Object value;
 		int index;
 		int count=0;
-		while(it.hasNext()){
-			e = it.next();
-			key=e.getKey().getString();
-			if(deep)count+=translate(e.getValue(),leaveOrg);
+		for(Key k:keys) {
+			key=k.getString();
+			value=coll.get(k);
+			if(deep)count+=translate(value,leaveOrg);
 			if(isStruct && (index=key.indexOf('.'))!=-1){
 				count++;
-				translate(index,e.getKey(),key,coll,leaveOrg);
+				translate(index,k,key,coll,leaveOrg);
 			}
 		}
 		return count;
@@ -131,7 +132,8 @@ public class StructKeyTranslate extends BIF {
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if(args.length==3) return call(pc,Caster.toStruct(args[0]),Caster.toBooleanValue(args[1]),Caster.toBooleanValue(args[2]));
 		if(args.length==2) return call(pc,Caster.toStruct(args[0]),Caster.toBooleanValue(args[1]));
-		return call(pc,Caster.toStruct(args[0]));
+		if(args.length==1) return call(pc,Caster.toStruct(args[0]));
+		throw new FunctionException(pc, "StructKeyTranslate", 1, 3, args.length);
 	}
 	
 }

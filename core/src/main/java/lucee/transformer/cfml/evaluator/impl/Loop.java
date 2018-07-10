@@ -107,16 +107,16 @@ public final class Loop extends EvaluatorSupport {
 
         // struct loop      
         if(tag.containsAttribute("struct")) {
-        	if(!tag.containsAttribute("index") && !tag.containsAttribute("item"))
-				throw new EvaluatorException("Wrong Context, when you use attribute struct,you must define attribute index and/or item");
+			if (!tag.containsAttribute("index") && !tag.containsAttribute("item") && !tag.containsAttribute("key") && !tag.containsAttribute("value"))
+				throw new EvaluatorException("Wrong Context, when you use attribute struct, you must define attribute index (alias key) and/or item (alias value)");
 			loop.setType(TagLoop.TYPE_STRUCT);
             return;
         }
 
         // collection loop      
         if(tag.containsAttribute("collection")) {
-        	if(!tag.containsAttribute("index") && !tag.containsAttribute("item"))
-				throw new EvaluatorException("Wrong Context, when you use attribute collection,you must define attribute index and/or item");
+			if (!tag.containsAttribute("index") && !tag.containsAttribute("item") && !tag.containsAttribute("key") && !tag.containsAttribute("value"))
+				throw new EvaluatorException("Wrong Context, when you use attribute struct, you must define attribute index (alias key) and/or item (alias value)");
 			loop.setType(TagLoop.TYPE_COLLECTION);
             return;
         }
@@ -154,24 +154,26 @@ public final class Loop extends EvaluatorSupport {
 			String text=ASMUtil.getAttributeString(tag, "condition");
 
 			try {
-				
 				transformer = tagLib.getExprTransfomer();
 				Page page = ASMUtil.getAncestorPage(tag);
 				ConfigImpl config=(ConfigImpl) page.getConfig();
-				
-				Expression expr=transformer.transform(
-						BytecodeFactory.getInstance(config),
-						page,
-						new EvaluatorPool(),null,flibs,
-						config.getCoreTagLib(page.getSourceCode().getDialect()).getScriptTags(),
-						new SourceCode(text,false,page.getSourceCode().getDialect()),
+				Data data = new Data(
+						BytecodeFactory.getInstance(config), 
+						page, 
+						new SourceCode(text,false,page.getSourceCode().getDialect()), 
+						new EvaluatorPool(), 
 						new TransfomerSettings(
 								page.getSourceCode().getDialect()==CFMLEngine.DIALECT_CFML && config.getDotNotationUpperCase(),
-								page.getSourceCode().getDialect()==CFMLEngine.DIALECT_CFML && config.getHandleUnQuotedAttrValueAsString(),page.ignoreScopes));
+								page.getSourceCode().getDialect()==CFMLEngine.DIALECT_CFML && config.getHandleUnQuotedAttrValueAsString(),page.ignoreScopes), 
+						null, 
+						flibs, 
+						config.getCoreTagLib(page.getSourceCode().getDialect()).getScriptTags(), 
+						false);
+				Expression expr=transformer.transform(data);
 				
 				tag.addAttribute(new Attribute(false,"condition",page.getFactory().toExprBoolean(expr),"boolean"));
 			}
-			catch (Exception e) {e.printStackTrace();
+			catch (Exception e) {
 				throw new EvaluatorException(e.getMessage());
 			}
 			loop.setType(TagLoop.TYPE_CONDITION);

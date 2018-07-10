@@ -3,15 +3,38 @@ language: java
 jdk:
   - oraclejdk8
 
+# build only commits to branch master or where pattern matches "n.n" (where n is a number), e.g. 5.2
+branches:
+  only:
+    - master
+    - /^\d+(\.\d+)+$/
+
 #os:
 #  - linux
 #  - osx
 
 # copy the settings.xml for maven from the "travis" branch
-before_install: 
+before_install:
 # - "git clone -b travis `git config --get remote.origin.url` target/travis"
 
-script: 
+### for more see https://docs.travis-ci.com/user/database-setup
+services:
+  - mysql # server:"127.0.0.1"; user:"root"; password:""
+  - postgresql "9.6" # server:"127.0.0.1"; user:"postgres"; password:""
+  - mongodb #  server:"127.0.0.1" user/pass see below
+  - memcached # Memcached uses the default configuration and binds to localhost.
+
+before_script:
+  - mysql -e "CREATE DATABASE IF NOT EXISTS testdb;" -uroot
+  - psql -c 'CREATE DATABASE testdb;' -U postgres
+
+### enable the below only if authentication is implemented in MongoDB extension
+  # - sleep 15 # necessary for the mongodb because it does not accept connections immediately
+  # - mongo testdb --eval "printjson(db.version())"
+  # - mongo testdb --eval 'db.createUser({user:"travis", pwd:"testpw", roles:["readWrite"]});'
+  # - mongo testdb --eval 'db.auth({user:"travis", pwd:"testpw"})'
+
+script:
 # maven deploy process (builds lucee and deploys to sonatype)
  - mvn -e -f loader/pom.xml clean deploy --settings travis-settings.xml #target/travis/settings.xml
 
@@ -27,7 +50,7 @@ script:
 # - git push origin master
 
 #deploy:
-#	skip_cleanup: true
+# skip_cleanup: true
 
 notifications:
   slack: luceeserver:ZTfbu4bVSLFmakRcLInrNZIT
@@ -38,7 +61,7 @@ notifications:
 after_success:
 # - version=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version | egrep -v '^\[|Downloading:' | tr -d ' \n')
 - curl "http://stable.lucee.org/rest/update/provider/buildLatest"
-- curl "http://preview.lucee.org/download/?resetAsync=true"
+- curl "http://download.lucee.org/?reset=1"
 
 
 

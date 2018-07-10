@@ -22,6 +22,7 @@
 package lucee.runtime.functions.struct;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Decision;
@@ -36,6 +37,7 @@ public final class IsStruct extends BIF {
 	
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		return call(pc,args[0]);
+		if(args.length==1)return call(pc,args[0]);
+		throw new FunctionException(pc, "IsStruct", 1, 1, args.length);
 	}
 }

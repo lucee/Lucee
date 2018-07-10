@@ -26,12 +26,13 @@ import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.ext.function.Function;
+import lucee.runtime.ext.function.BIF;
+import lucee.runtime.op.Caster;
 
 /**
  * 
  */
-public final class CacheGetDefaultCacheName implements Function {
+public final class CacheGetDefaultCacheName extends BIF {
 
 	private static final long serialVersionUID = 6115589794465960484L;
 
@@ -46,5 +47,11 @@ public final class CacheGetDefaultCacheName implements Function {
 			throw new ExpressionException("there is no default cache defined for type ["+strType+"]");
 		
 		return conn.getName();
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length==1)return call(pc, Caster.toString(args[0]));
+		throw new FunctionException(pc, "CacheGetDefaultCacheName", 1, 1, args.length);
 	}
 }

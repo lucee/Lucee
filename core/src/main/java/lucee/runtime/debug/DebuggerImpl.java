@@ -31,8 +31,10 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.res.util.ResourceSnippet;
 import lucee.commons.io.res.util.ResourceSnippetsMap;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.Page;
@@ -99,7 +101,9 @@ public final class DebuggerImpl implements Debugger {
 
 	private DebugOutputLog outputLog;
 
-	private Map<String, Map<String, List<String>>> genericData; 
+	private Map<String, Map<String, List<String>>> genericData;
+
+	private TemplateLine abort; 
 
 	final static Comparator DEBUG_ENTRY_TEMPLATE_COMPARATOR = new DebugEntryTemplateComparator();
 	final static Comparator DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR = new DebugEntryTemplatePartComparator();
@@ -120,6 +124,8 @@ public final class DebuggerImpl implements Debugger {
 		historyLevel.clear();
 		output=true;
 		outputLog=null;
+		abort=null;
+		if(genericData!=null)genericData.clear();
 	}
 
 	public DebuggerImpl() {	
@@ -202,18 +208,18 @@ public final class DebuggerImpl implements Debugger {
 	
 
 	public static boolean debugQueryUsage(PageContext pageContext, QueryResult qr) {
-		if(pageContext.getConfig().debug() && qr instanceof QueryImpl) {
+		if(pageContext.getConfig().debug() && qr instanceof Query) {
 			if(((ConfigWebImpl)pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_QUERY_USAGE)){
-				((QueryImpl)qr).enableShowQueryUsage();
+				((Query)qr).enableShowQueryUsage();
 				return true;
 			}
 		}
 		return false;
 	}
 	public static boolean debugQueryUsage(PageContext pageContext, Query qry) {
-		if(pageContext.getConfig().debug() && qry instanceof QueryImpl) {
+		if(pageContext.getConfig().debug() && qry instanceof Query) {
 			if(((ConfigWebImpl)pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_QUERY_USAGE)){
-				((QueryImpl)qry).enableShowQueryUsage();
+				qry.enableShowQueryUsage();
 				return true;
 			}
 		}
@@ -336,7 +342,13 @@ public final class DebuggerImpl implements Debugger {
     
 	@Override
 	public Struct getDebuggingData(PageContext pc, boolean addAddionalInfo) throws DatabaseException {
-		List<QueryEntry> queries = getQueries();
+		Struct debugging=new StructImpl();
+	    
+		// datasources
+		debugging.setEL(KeyConstants._datasources,((ConfigImpl)pc.getConfig()).getDatasourceConnectionPool().meta());
+		
+		//queries
+        List<QueryEntry> queries = getQueries();
 	    Struct qryExe=new StructImpl();
 	    ListIterator<QueryEntry> qryIt = queries.listIterator();
         Collection.Key[] cols = new Collection.Key[]{
@@ -350,7 +362,6 @@ public final class DebuggerImpl implements Debugger {
         		CACHE_TYPE};
         String[] types = new String[]{"VARCHAR","DOUBLE","VARCHAR","VARCHAR","DOUBLE","VARCHAR","ANY","VARCHAR"};
         
-        //queries
         Query qryQueries=null;
         try {
             qryQueries = new QueryImpl(cols,types,queries.size(),"query");
@@ -383,7 +394,6 @@ public final class DebuggerImpl implements Debugger {
 		
 	    // Pages
 	    // src,load,app,query,total
-	    Struct debugging=new StructImpl();
 	    row=0;
         ArrayList<DebugEntryTemplate> arrPages = toArray();
 		int len=arrPages.size();
@@ -604,6 +614,13 @@ public final class DebuggerImpl implements Debugger {
 			catch(PageException dbe) {}
         }
         
+        // abort
+        if(abort!=null) {
+        	Struct sct=new StructImpl();
+        	sct.setEL(KeyConstants._template, abort.template);
+        	sct.setEL(KeyConstants._line, new Double(abort.line));
+        	debugging.put(KeyConstants._abort, sct);
+        }
 
 
 		// scope access
@@ -743,7 +760,7 @@ public final class DebuggerImpl implements Debugger {
 		try {
 			exceptions.add(((PageExceptionImpl)pe).getCatchBlock(config));
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	
 	@Override
@@ -767,7 +784,7 @@ public final class DebuggerImpl implements Debugger {
 			else 
 				implicitAccesses.put(key,new ImplicitAccessImpl(scope,name,tl.template,tl.line));
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 	@Override
@@ -831,6 +848,15 @@ public final class DebuggerImpl implements Debugger {
     		entry.add(e.getValue());
     	}
     }
+	
+
+	public void setAbort(TemplateLine abort) {
+		this.abort=abort;
+	}
+	public TemplateLine getAbort() {
+		return this.abort;
+	}
+
     
     private List<String> createAndFillList(Map<String, List<String>> cat) {
 		Iterator<List<String>> it = cat.values().iterator();
@@ -851,7 +877,6 @@ public final class DebuggerImpl implements Debugger {
     public Map<String,Map<String,List<String>>> getGenericData(){
     	return genericData;
     }
-
 }
 
 final class DebugEntryTemplateComparator implements Comparator<DebugEntryTemplate> {

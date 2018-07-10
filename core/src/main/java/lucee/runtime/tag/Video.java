@@ -29,6 +29,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
@@ -264,6 +265,7 @@ public class Video extends TagSupport {
 			else if(action==ACTION_UNINSTALL) doActionUninstall();
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
 		}
 		return SKIP_BODY;

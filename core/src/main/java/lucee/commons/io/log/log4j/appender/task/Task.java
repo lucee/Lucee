@@ -18,12 +18,14 @@
  **/
 package lucee.commons.io.log.log4j.appender.task;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.spooler.ExecutionPlan;
-import lucee.runtime.spooler.SpoolerTask;
+import lucee.runtime.spooler.SpoolerTaskListener;
+import lucee.runtime.spooler.SpoolerTaskPro;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
 import lucee.runtime.util.Cast;
@@ -32,7 +34,7 @@ import lucee.runtime.util.Creation;
 import org.apache.log4j.Appender;
 import org.apache.log4j.spi.LoggingEvent;
 
-public class Task implements SpoolerTask {
+public class Task implements SpoolerTaskPro {
 
 	private static final long serialVersionUID = 5649820047520607442L;
 	
@@ -65,6 +67,7 @@ public class Task implements SpoolerTask {
 			return null;
 		}
 		catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			CFMLEngine engine = CFMLEngineFactory.getInstance();
 			Cast caster = engine.getCastUtil();
 			Creation creator = engine.getCreationUtil();
@@ -162,7 +165,9 @@ public class Task implements SpoolerTask {
 	public final void setId(String id) {
 		this.id= id;
 	}
-	
-	
-	
+
+	@Override
+	public SpoolerTaskListener getListener() {
+		return null; // not supported
+	}
 }

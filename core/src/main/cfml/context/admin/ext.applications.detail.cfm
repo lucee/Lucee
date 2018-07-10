@@ -201,7 +201,7 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 </cfscript>
 	<h2>#isInstalled?stText.ext.upDown:stText.ext.install#</h2>
 	#isInstalled?stText.ext.upDownDesc:stText.ext.installDesc#
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<input type="hidden" name="id" value="#url.id#">
 			<input type="hidden" name="provider" value="#isNull(available.provider)?"":available.provider#">
 			
@@ -238,7 +238,7 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 		</tbody>
 		</table>
 
-		</cfform>
+		</cfformclassic>
 </cfif>
 
 	<!--- Update --->

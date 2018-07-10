@@ -67,8 +67,8 @@ public class SizeAndCount {
 				Method toNode = raw.getClass().getMethod("toNode", new Class[0]);
 				raw=toNode.invoke(obj, new Object[0]);
 			} 
-			catch (Throwable e) {
-				e.printStackTrace();
+			catch (Exception e) {
+				SystemOut.printDate(e);
 			}	
 		}
 		
@@ -166,7 +166,9 @@ public class SizeAndCount {
 	        oos = new ObjectOutputStream(os);
 	        oos.writeObject(o);
         }
-        catch(Throwable t){}
+        catch(Throwable t){
+        	ExceptionUtil.rethrowIfNecessary(t);
+        }
         finally {
         	IOUtil.closeEL(oos);
         }

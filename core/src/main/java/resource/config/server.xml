@@ -287,6 +287,7 @@ Path placeholders:
 		data-member-default-access="public"
 		dump-template="/lucee/component-dump.cfm">
   		<mapping virtual="/default" physical="{lucee-web}/components/" primary="physical" inspect-template="never"/>
+  		<mapping virtual="/default-server" physical="{lucee-server}/components/" primary="physical" inspect-template="never"/>
 	</component>
 	
 	<!--

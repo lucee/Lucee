@@ -19,31 +19,29 @@
 package lucee.runtime.cache.tag.timespan;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CachePro;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.ram.RamCache;
-import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheHandlerFilter;
+import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
+import lucee.runtime.cache.tag.query.QueryResultCacheItem;
 import lucee.runtime.cache.util.CacheKeyFilterAll;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebUtil;
-import lucee.runtime.engine.CFMLEngineImpl;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.dt.TimeSpan;
 
-public class TimespanCacheHandler implements CacheHandler {
+public class TimespanCacheHandler implements CacheHandlerPro {
 
 	private int cacheType;
 	private Cache defaultCache;
@@ -63,7 +61,8 @@ public class TimespanCacheHandler implements CacheHandler {
 
 	@Override
 	public CacheItem get(PageContext pc, String id) {
-		return CacheHandlerCollectionImpl.toCacheItem(getCache(pc).getValue(id,null),null);
+		Object cachedValue = getCache(pc).getValue(id, null);
+		return CacheHandlerCollectionImpl.toCacheItem(cachedValue, null);
 	}
 	
 	@Override
@@ -78,30 +77,24 @@ public class TimespanCacheHandler implements CacheHandler {
 
 	@Override
 	public void set(PageContext pc, String id, Object cachedWithin, CacheItem value) throws PageException {
-		long timeSpan;
-		if(Decision.isDate(cachedWithin, false) && !(cachedWithin instanceof TimeSpan))
-			timeSpan=Caster.toDate(cachedWithin, null).getTime()-System.currentTimeMillis();
+
+		long cachedWithinMillis;
+		if (Decision.isDate(cachedWithin, false) && !(cachedWithin instanceof TimeSpan))
+			cachedWithinMillis = Caster.toDate(cachedWithin, null).getTime() - System.currentTimeMillis();
 		else
-			timeSpan = Caster.toTimespan(cachedWithin).getMillis();
-		
-		// clear when timespan smaller or equal to 0
-		if(timeSpan<=0) {
-			try {
-				getCache(pc).remove(id);
-			} 
-			catch (IOException e) {
-				throw Caster.toPageException(e);
-			}
+			cachedWithinMillis = Caster.toTimespan(cachedWithin).getMillis();
+
+		if (cachedWithinMillis == 0)
 			return;
-		}
-		
+
 		try {
-			getCache(pc).put(id, value, Long.valueOf(timeSpan), Long.valueOf(timeSpan));
+			getCache(pc).put(id, value, Long.valueOf(cachedWithinMillis), Long.valueOf(cachedWithinMillis));
 		} catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
 	}
-	
+
+
 	@Override
 	public void clean(PageContext pc) {
 		try{
@@ -141,20 +134,26 @@ public class TimespanCacheHandler implements CacheHandler {
 			return 0;
 		}
 	}
-	
 
 	private Cache getCache(PageContext pc) {
-		Cache c = CacheUtil.getDefault(pc,cacheType,null);
-		if(c==null) {
-			if(defaultCache==null){
+
+		Cache cache = CacheUtil.getDefault(pc, cacheType, null);
+
+		if (cache == null) {
+
+			if (defaultCache == null){
 				RamCache rm = new RamCache().init(0, 0, RamCache.DEFAULT_CONTROL_INTERVAL);
 				rm.decouple();
-				defaultCache=rm;
+				defaultCache = rm;
 			}
+
 			return defaultCache;
 		}
-		if(c instanceof CachePro) return ((CachePro) c).decouple();
-		return c;
+
+		if (cache instanceof CachePro)
+			return ((CachePro)cache).decouple();
+
+		return cache;
 	}
 
 	@Override
@@ -176,6 +175,40 @@ public class TimespanCacheHandler implements CacheHandler {
 	public String pattern() {
 		// TODO Auto-generated method stub
 		return "#createTimespan(0,0,0,10)#";
+	}
+
+	@Override
+	public CacheItem get(PageContext pc, String cacheId, Object cachePolicy) throws PageException {
+
+		Date cachedAfter;
+
+		if (Decision.isDate(cachePolicy, false) && !(cachePolicy instanceof TimeSpan)){
+			// cachedAfter was passed
+			cachedAfter = Caster.toDate(cachePolicy, null);
+		}
+		else {
+
+			long cachedWithinMillis = Caster.toTimeSpan(cachePolicy).getMillis();
+
+			if (cachedWithinMillis == 0){
+				this.remove(pc, cacheId);
+				return null;
+			}
+
+			cachedAfter = new Date(System.currentTimeMillis() - cachedWithinMillis);
+		}
+
+		CacheItem cacheItem = this.get(pc, cacheId);
+
+		if (cacheItem instanceof QueryResultCacheItem){
+
+			if (((QueryResultCacheItem)cacheItem).isCachedAfter(cachedAfter))
+				return cacheItem;
+
+			return null;		// cacheItem is from before cachedAfter, discard it so that it can be refreshed
+		}
+
+		return cacheItem;
 	}
 
 }

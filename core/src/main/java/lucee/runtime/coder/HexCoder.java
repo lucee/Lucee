@@ -58,7 +58,7 @@ public final class HexCoder {
 			throw new CoderException("can't decode empty String");
 		}
 		if ((hexa.length() % 2) != 0) {
-			throw new CoderException("invalid hexadicimal String");
+			throw new CoderException("invalid hexadecimal String");
 		}
 		int tamArray = hexa.length() / 2;
 		byte[] retorno = new byte[tamArray];
@@ -73,7 +73,7 @@ public final class HexCoder {
 			throw new CoderException("can't decode empty String");
 		}
 		if (hexa.length() != 2) {
-			throw new CoderException("invalid hexadicimal String");
+			throw new CoderException("invalid hexadecimal String");
 		}
 		byte[] b = hexa.getBytes(CharsetUtil.UTF8);
 		byte valor = (byte) (hexDigitValue((char)b[0]) * 16 +
@@ -93,7 +93,7 @@ public final class HexCoder {
 			retorno = (((byte)c) - 87);
 		}
 		else {
-			throw new CoderException("invalid hexadicimal String");
+			throw new CoderException("invalid hexadecimal String");
 		}
 		return retorno;
 	}

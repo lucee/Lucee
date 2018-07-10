@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.bytecode.expression.var.BIF;
 import lucee.transformer.bytecode.statement.tag.Tag;
@@ -84,6 +85,7 @@ public final class EvaluatorPool {
 			    clear();//print.printST(e);
 				throw new TemplateException(cfml,e);
 			}catch (Throwable e) {
+				ExceptionUtil.rethrowIfNecessary(e);
 			    clear();
 				throw new TemplateException(cfml,e);
 			}
@@ -105,6 +107,7 @@ public final class EvaluatorPool {
 			    clear();//print.printST(e);
 				throw new TemplateException(cfml,e);
 			}catch (Throwable e) {
+				ExceptionUtil.rethrowIfNecessary(e);
 				clear();
 				throw new TemplateException(cfml,e);
 			}

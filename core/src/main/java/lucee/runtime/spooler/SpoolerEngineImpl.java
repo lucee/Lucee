@@ -35,8 +35,10 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.exp.DatabaseException;
@@ -65,6 +67,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	private static final Collection.Key TRIES = KeyImpl.intern("tries");
 	private static final Collection.Key TRIES_MAX = KeyImpl.intern("triesmax");
 
+
 	
 	private String label;
 	
@@ -72,10 +75,10 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	//private LinkedList<SpoolerTask> openTaskss=new LinkedList<SpoolerTask>();
 	//private LinkedList<SpoolerTask> closedTasks=new LinkedList<SpoolerTask>();
 	private SimpleThread simpleThread;
-	private SerializableObject token=new SerializableObject();
+	private final SerializableObject token=new SerializableObject();
 	private SpoolerThread thread;
 	//private ExecutionPlan[] plans;
-	private Resource persisDirectory;
+	private Resource _persisDirectory;
 	private long count=0;
 	private Log log;
 	private Config config; 
@@ -89,7 +92,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	
 	public SpoolerEngineImpl(Config config,Resource persisDirectory,String label, Log log, int maxThreads) {
 		this.config=config;
-		this.persisDirectory=persisDirectory;
+		this._persisDirectory=persisDirectory;
 
 		closedDirectory = persisDirectory.getRealResource("closed");
 		openDirectory = persisDirectory.getRealResource("open");
@@ -204,7 +207,8 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	        ois = new ObjectInputStream(is);
 	        task = (SpoolerTask) ois.readObject();
         } 
-        catch (Throwable t) {//t.printStackTrace();
+        catch(Throwable t) {
+        	ExceptionUtil.rethrowIfNecessary(t);
         	IOUtil.closeEL(is);
         	IOUtil.closeEL(ois);
         	res.delete();
@@ -222,7 +226,9 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	        oos = new ObjectOutputStream(persis.getOutputStream());
 	        oos.writeObject(task);
         } 
-        catch (IOException e) {e.printStackTrace();}
+        catch (IOException e) {
+            SystemOut.printDate(e);
+        }
         finally {
         	IOUtil.closeEL(oos);
         }
@@ -233,14 +239,27 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 		boolean exists=persis.exists();
 		if(exists) persis.delete(); 
 	}
+	
+	private void log(SpoolerTask task, Exception e,boolean before) {
+		if(task instanceof SpoolerTaskPro) {
+			SpoolerTaskPro taskp=(SpoolerTaskPro)task;
+			SpoolerTaskListener listener=taskp.getListener();
+			if(listener!=null)listener.listen(config, e,before);
+		}
+		if(e==null) log.log(Log.LEVEL_INFO,"remote-client", "sucessfully executed: "+task.subject());
+		else LogUtil.log(log,Log.LEVEL_ERROR,"remote-client", "failed to execute: "+task.subject(),e);
+	}
+
 	private Resource getFile(SpoolerTask task) {
-		Resource dir = persisDirectory.getRealResource(task.closed()?"closed":"open");
+		Resource dir = getPersisDirectory().getRealResource(
+				task.closed()?"closed":"open");
 		dir.mkdirs();
 		return dir.getRealResource(task.getId()+".tsk");
 	}
 	
 	private String createId(SpoolerTask task) {
-		Resource dir = persisDirectory.getRealResource(task.closed()?"closed":"open");
+		Resource dir = getPersisDirectory().getRealResource(
+				task.closed()?"closed":"open");
 		dir.mkdirs();
 		
 		String id=null;
@@ -358,7 +377,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 			}
 			qry.setAt(TRIES_MAX, row,Caster.toDouble(triesMax));
 		}
-		catch(Throwable t){}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 	
 	private Array translateTime(Array exp) {
@@ -395,7 +414,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 					task= CollectionUtil.remove(tasks,0,null);
 					if(task!=null)task.execute(config);
 				}
-				catch (Throwable t) {}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
 		}
 		
@@ -414,7 +433,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 				this.setPriority(MIN_PRIORITY);
 			}
 			// can throw security exceptions
-			catch(Throwable t){}
+			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		
 		@Override
@@ -439,7 +458,6 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 					if(task==null) continue;
 					
 					if(task.nextExecution()<=System.currentTimeMillis()) {
-						//print.o("- execute " + task.getId());
 						tt=new TaskThread(engine,task);
 						tt.start();
 						runningTasks.add(tt);
@@ -491,9 +509,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 					wait(sleep);
 				}
 				
-			} catch (Throwable t) {
-				//
-			}
+			} catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			finally {
 				sleeping=false;
 			}
@@ -581,37 +597,36 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	
 	@Override
 	public PageException execute(SpoolerTask task) {
-		//task.closed();
 		try {
+			log(task,null,true);
 			if(task instanceof SpoolerTaskSupport)  // FUTURE this is bullshit, call the execute method directly, but you have to rewrite them for that
 				((SpoolerTaskSupport)task)._execute(config);
 			else 
 				task.execute(config);
-			
 			unstore(task);
-			log.log(Log.LEVEL_INFO,"remote-client", task.subject());
+			
 			task.setLastExecution(System.currentTimeMillis());
 			task.setNextExecution(-1);
-			
 			task.setClosed(true);
+			log(task,null,false);
 			task=null;
 		} 
-		catch(Throwable t) {
+		catch(Exception e) {
 			task.setLastExecution(System.currentTimeMillis());
 			task.setNextExecution(calculateNextExecution(task));
-			LogUtil.log(log,Log.LEVEL_ERROR,"remote-client", task.subject(),t);
+			
 			if(task.nextExecution()==-1) {
-				//openTasks.remove(task);
-				//if(!closedTasks.contains(task))closedTasks.add(task);
 				unstore(task);
 				task.setClosed(true);
+				log(task,e,false);
 				store(task);
 				task=null;
 			}
 			else 
+				log(task,e,false);
 				store(task);
 			
-			return Caster.toPageException(t);
+			return Caster.toPageException(e);
 		}
 		return null;
 	}
@@ -621,7 +636,13 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	}
 
 	public void setPersisDirectory(Resource persisDirectory) {
-		this.persisDirectory = persisDirectory;
+		this._persisDirectory = persisDirectory;
+	}
+	public Resource getPersisDirectory() {
+		if(_persisDirectory==null) {
+			_persisDirectory=config.getRemoteClientDirectory();
+		}
+		return _persisDirectory;
 	}
 
 	public void setLog(Log log) {

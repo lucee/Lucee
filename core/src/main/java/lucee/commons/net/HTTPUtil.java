@@ -555,7 +555,9 @@ public final class HTTPUtil {
 	 */
 	public static long length(URL url) throws IOException {
 		HTTPResponse http = HTTPEngine.head(url, null, null, -1,true,null, Constants.NAME, null,null);
-		return http.getContentLength();	
+		long len = http.getContentLength();	
+		HTTPEngine.closeEL(http);
+		return len;
 	}
 
 	/*public static ContentType getContentType(HttpMethod http) {

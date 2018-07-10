@@ -22,6 +22,7 @@ import java.lang.reflect.Field;
 
 import lucee.commons.collection.MapPro;
 import lucee.commons.collection.concurrent.ConcurrentHashMapPro;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 
@@ -94,6 +95,8 @@ public class KeyConstants {
 	public static final Key _CircuitXML=KeyImpl._const("CircuitXML");
 	public static final Key _Commenting=KeyImpl._const("Commenting");
 	public static final Key _Connection=KeyImpl._const("Connection");
+	public static final Key _connection=KeyImpl._const("connection");
+	public static final Key _connections=KeyImpl._const("connections");
 	public static final Key _Cookie=KeyImpl._const("Cookie");
 	public static final Key _Created=KeyImpl._const("Created");
 	public static final Key _D=KeyImpl._const("D");
@@ -509,7 +512,9 @@ public class KeyConstants {
 	public static final Key _parameters=KeyImpl._const("parameters");
 	public static final Key _parent=KeyImpl._const("parent");
 	public static final Key _password=KeyImpl._const("password");
+	public static final Key _pass=KeyImpl._const("pass");
 	public static final Key _username=KeyImpl._const("username");
+	public static final Key _user=KeyImpl._const("user");
 	public static final Key _path=KeyImpl._const("path");
 	public static final Key _path_info=KeyImpl._const("path_info");
 	public static final Key _pattern=KeyImpl._const("pattern");
@@ -652,6 +657,7 @@ public class KeyConstants {
 	public static final Key _xtags=KeyImpl._const("xtags");
 	public static final Key _returnFormat=KeyImpl._const("returnFormat");
 	public static final Key _s3=KeyImpl._const("s3");
+	public static final Key _ftp=KeyImpl._const("ftp");
 	public static final Key _super=KeyImpl._const("super");
 	public static final Key _argumentCollection=KeyImpl._const("argumentCollection");
 	public static final Key _argumentcollection=KeyImpl._const("argumentcollection");
@@ -921,6 +927,8 @@ public class KeyConstants {
 	public static final Key _tries = KeyImpl._const("tries");
 	public static final Key _interval = KeyImpl._const("interval");
 	public static final Key _intervall = KeyImpl._const("intervall");
+	public static final Key _mail = KeyImpl._const("mail");
+	public static final Key _mails = KeyImpl._const("mails");
 	public static final Key _STACKTRACE = KeyImpl._const("STACKTRACE");
 	
 	private static MapPro<String,Key> _____keys;
@@ -946,9 +954,7 @@ public class KeyConstants {
 				try {
 					_____keys.put(fields[i].getName().substring(1),(Key)fields[i].get(null));
 				}
-				catch (Throwable t) {
-					t.printStackTrace();
-				}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
 		}
 	}

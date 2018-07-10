@@ -24,6 +24,7 @@ import java.nio.charset.Charset;
 import java.util.concurrent.Callable;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -41,7 +42,7 @@ public abstract class CallerResponseStreamResult implements Callable<String> {
 	public CallerResponseStreamResult(PageContext parent) {
 		this.parent = parent;
 		this.baos = new ByteArrayOutputStream();
-		this.pc=ThreadUtil.clonePageContext(parent, baos, false, false, false, true);
+		this.pc=ThreadUtil.clonePageContext(parent, baos, false, false, false);
 	}
 	
 	@Override
@@ -64,9 +65,8 @@ public abstract class CallerResponseStreamResult implements Callable<String> {
 			pc.getConfig().getFactory().releasePageContext(pc);
 				str=IOUtil.toString((new ByteArrayInputStream(baos.toByteArray())), cs); // TODO add support for none string content
 			} 
-			catch (Throwable e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			catch (Exception e) {
+				SystemOut.printDate(e);
 			}
 		}
 		return str;

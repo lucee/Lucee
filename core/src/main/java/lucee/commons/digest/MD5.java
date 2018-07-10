@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.lang.ExceptionUtil;
 
 
 /**
@@ -48,8 +49,9 @@ public final class MD5	{
         try {
 			return  new MD5(str).getDigest();
 		} 
-        catch (Throwable t) {
-			return defaultValue;
+        catch(Throwable t) {
+        	ExceptionUtil.rethrowIfNecessary(t);
+        	return defaultValue;
 		}
      }
 	

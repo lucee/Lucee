@@ -2,14 +2,12 @@ package lucee.runtime.db;
 
 import java.net.URLDecoder;
 
-import org.w3c.dom.Element;
-
-import lucee.print;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.net.URLEncoder;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
+
+import org.w3c.dom.Element;
 
 public class ParamSyntax {
 
@@ -43,7 +41,7 @@ public class ParamSyntax {
 	public static ParamSyntax toParamSyntax(Struct sct, ParamSyntax defaultValue) {
 		String del = Caster.toString(sct.get("param_delimiter",null),null);
 		String sep=Caster.toString(sct.get("param_separator",null),null);
-		if(del==null || sep==null) 
+		if(StringUtil.isEmpty(del) || StringUtil.isEmpty(sep)) 
 			return defaultValue;
 		
 		String ledel = Caster.toString(sct.get("param_leadingDelimiter",null),null);

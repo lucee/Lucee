@@ -31,6 +31,7 @@ import javax.servlet.http.Cookie;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.commons.lang.types.RefBoolean;
@@ -46,6 +47,7 @@ import lucee.runtime.PageSourceImpl;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.Member;
 import lucee.runtime.config.Constants;
+import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.MissingIncludeException;
@@ -109,14 +111,11 @@ public class ModernAppListener extends AppListenerSupport {
 		if(appPS!=null) {
 			String callPath=appPS.getComponentName();
 			
-			
 			Component app = ComponentLoader.loadComponent(pci,appPS, callPath, false,false);
-			
 			// init
-			initApplicationContext(pci,app);
-	    	
-			
-			apps.put(pc.getApplicationContext().getName(), app);
+			ModernApplicationContext appContext = initApplicationContext(pci,app);
+
+			apps.put(appContext.getName(), app);
 
 			if(!pci.initApplicationContext(this)) return;
 			
@@ -223,7 +222,7 @@ public class ModernAppListener extends AppListenerSupport {
 					if(!isComp && app.contains(pc,ON_REQUEST))
 						call(app,pci, ON_REQUEST, new Object[]{targetPage},false);
 					else
-						pci.doInclude(new PageSource[]{requestedPage},false);
+						pci._doInclude(new PageSource[]{requestedPage},false,null);
 				}
 				catch(PageException pe){
 					pe=handlePageException(pci,app,pe,requestedPage,targetPage,goon);
@@ -250,7 +249,7 @@ public class ModernAppListener extends AppListenerSupport {
 				if(requestedPage==null) return;
 			}
 			
-			pc.doInclude(new PageSource[]{requestedPage},false);
+			pci._doInclude(new PageSource[]{requestedPage},false,null);
 		}
 	}
 	
@@ -286,6 +285,9 @@ public class ModernAppListener extends AppListenerSupport {
 			else return pe;
 		}
 		else {
+			if(!pci.isGatewayContext() && pci.getConfig().debug()) {
+				((DebuggerImpl)pci.getDebugger()).setAbort(ExceptionUtil.getThrowingPosition(pci,_pe));
+			}
 			goon.setValue(false);
 			if(app.contains(pci,ON_ABORT)) {
 				call(app,pci, ON_ABORT, new Object[]{targetPage},true);
@@ -406,7 +408,7 @@ public class ModernAppListener extends AppListenerSupport {
 				if(pe instanceof ModernAppListenerException) eventName= ((ModernAppListenerException)pe).getEventName();
 				if(eventName==null)eventName="";
 				
-				call(app,pc, ON_ERROR, new Object[]{pe.getCatchBlock(pc),eventName},true);
+				call(app,pc, ON_ERROR, new Object[]{pe.getCatchBlock(pc.getConfig()),eventName},true);
 				return;
 			}
 			catch(PageException _pe) {
@@ -432,7 +434,7 @@ public class ModernAppListener extends AppListenerSupport {
 		}
 	}
 
-	private void initApplicationContext(PageContextImpl pc, Component app) throws PageException {
+	private ModernApplicationContext initApplicationContext(PageContextImpl pc, Component app) throws PageException {
 		
 		// use existing app context
 		RefBoolean throwsErrorWhileInit=new RefBooleanImpl(false);
@@ -443,9 +445,8 @@ public class ModernAppListener extends AppListenerSupport {
 		
 		// scope cascading
 		if(pc.getRequestDialect()==CFMLEngine.DIALECT_CFML && ((UndefinedImpl)pc.undefinedScope()).getScopeCascadingType()!=appContext.getScopeCascading()) {
-        	pc.undefinedScope().initialize(pc);
-        }
-        
+			pc.undefinedScope().initialize(pc);
+		}
 		
 		// ORM
 		if(appContext.isORMEnabled()) {
@@ -458,6 +459,7 @@ public class ModernAppListener extends AppListenerSupport {
 				if(hasError)pc.removeLastPageSource(true);
 			}
 		}
+		return appContext;
 	}
 
 

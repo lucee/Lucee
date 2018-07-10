@@ -41,6 +41,7 @@ import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.commons.lock.KeyLock;
 import lucee.commons.lock.KeyLockImpl;
 import lucee.loader.engine.CFMLEngine;
@@ -104,7 +105,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
     private CIPage baseComponentPageLucee;
     private MappingImpl serverTagMapping;
 	private MappingImpl serverFunctionMapping;
-	private KeyLock<String> contextLock;
+	private KeyLock<String> contextLock=new KeyLockImpl<String>();
 	private GatewayEngineImpl gatewayEngine;
     private DebuggerPool debuggerPool;
 	private final CFMLFactoryImpl factory; 
@@ -143,7 +144,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
     	super.reset();
     	factory.resetPageContext();
     	tagHandlerPool.reset();
-    	contextLock=null;
+    	contextLock=new KeyLockImpl<String>();
     	baseComponentPageCFML=null;
     	baseComponentPageLucee=null;
     }
@@ -345,18 +346,18 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		}
 
 		public KeyLock<String> getContextLock() {
-			if(contextLock==null) {
-				contextLock=new KeyLockImpl<String>();
-			}
 			return contextLock;
 		}
-
+		
+		public Map<String, GatewayEntry> getGatewayEntries() {
+			return getGatewayEngine().getEntries();	
+		}
 
 		protected void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries) {
 			try {
 				getGatewayEngine().addEntries(this,gatewayEntries);
 			} catch (Exception e) {
-				e.printStackTrace();
+				SystemOut.printDate(e);
 			}	
 		}
 		public GatewayEngineImpl getGatewayEngine() {
@@ -632,7 +633,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		}
 
 		@Override
-		public List<RHExtension> loadLocalExtensions() {
+		public List<ExtensionDefintion> loadLocalExtensions() {
 			return configServer.loadLocalExtensions();
 		}
 }

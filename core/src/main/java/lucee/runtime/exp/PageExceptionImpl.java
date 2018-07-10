@@ -46,7 +46,6 @@ import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.err.ErrorPage;
-import lucee.runtime.functions.system.GetCurrentContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -111,30 +110,21 @@ public abstract class PageExceptionImpl extends PageException {
 		this.customType=customType;
         //setAdditional("customType",getCustomTypeAsString());
 	}
-	
+
 	/**
 	 * Class Constructor
 	 * @param e exception
 	 * @param type Type as String
 	 */
 	public PageExceptionImpl(Throwable e,String type) {
-		this(e,type,null);
-	}
-	
-	/**
-	 * Class Constructor
-	 * @param e exception
-	 * @param type Type as String
-	 * @param customType CUstom Type as String
-	 */
-	public PageExceptionImpl(Throwable e,String type, String customType) {
 		super(StringUtil.isEmpty(e.getMessage(),true)?e.getClass().getName():e.getMessage());
 		if(e instanceof InvocationTargetException)e=((InvocationTargetException)e).getTargetException();
         
-        //this.i
-        initCause(e);
-        //this.setStackTrace(e.getStackTrace());
-        
+		//Throwable cause = e.getCause();
+		//if(cause!=null)initCause(cause);
+		initCause(e);
+        setStackTrace(e.getStackTrace());
+		
 		if(e instanceof IPageException) {
             IPageException pe=(IPageException)e;
 			this.additional=pe.getAdditional();
@@ -142,15 +132,10 @@ public abstract class PageExceptionImpl extends PageException {
 			this.setErrorCode(pe.getErrorCode());
 			this.setExtendedInfo(pe.getExtendedInfo());
 		}
-		
-		//else if(e.getCause()!=null)rootCause=e.getCause();
-		//else rootCause=e;
-
 		this.type=type.trim();
-		this.customType=(customType==null)?this.type:customType;
 	}
-    
-    @Override
+
+	@Override
 	public String getDetail() { 
 		if(detail==null || detail.equals(getMessage()))return "";
 		return detail; 
@@ -285,7 +270,6 @@ public abstract class PageExceptionImpl extends PageException {
 				}	
 			} 
 			catch (Throwable th) {
-				//th.printStackTrace();
 			}
 			
 			// check last
@@ -295,7 +279,6 @@ public abstract class PageExceptionImpl extends PageException {
 					if(last.get(KeyConstants._Raw_Trace).equals(trace.toString()))continue;
 				} 
 				catch (Exception e) {
-					//e.printStackTrace();
 				}
 			}
 			

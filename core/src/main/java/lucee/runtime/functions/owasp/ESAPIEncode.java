@@ -24,7 +24,6 @@ import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
@@ -54,7 +53,6 @@ public class ESAPIEncode implements Function {
 	
 	
 	public static String encode(String item, short encFor, boolean canonicalize) throws PageException  {
-		
 		if(StringUtil.isEmpty(item)) return item;
 		
 		PrintStream out = System.out;
@@ -93,48 +91,58 @@ public class ESAPIEncode implements Function {
 	}
 	
 	public static String call(PageContext pc , String strEncodeFor, String value, boolean canonicalize) throws PageException{
-		short encFor;
+		return encode(value, toEncodeType(pc, strEncodeFor), canonicalize);
+	}
+	
+	public static short toEncodeType(String strEncodeFor, short defaultValue) {
 		strEncodeFor=StringUtil.emptyIfNull(strEncodeFor).trim().toLowerCase();
-		//if("base64".equals(strEncodeFor)) encFor=ENC_BASE64;
-		if("css".equals(strEncodeFor)) encFor=ENC_CSS;
-		else if("dn".equals(strEncodeFor)) encFor=ENC_DN;
-		else if("html".equals(strEncodeFor)) encFor=ENC_HTML;
-		else if("html_attr".equals(strEncodeFor)) encFor=ENC_HTML_ATTR;
-		else if("htmlattr".equals(strEncodeFor)) encFor=ENC_HTML_ATTR;
-		else if("html-attr".equals(strEncodeFor)) encFor=ENC_HTML_ATTR;
-		else if("html attr".equals(strEncodeFor)) encFor=ENC_HTML_ATTR;
-		else if("html_attributes".equals(strEncodeFor)) encFor=ENC_HTML_ATTR;
-		else if("htmlattributes".equals(strEncodeFor)) encFor=ENC_HTML_ATTR;
-		else if("html-attributes".equals(strEncodeFor)) encFor=ENC_HTML_ATTR;
-		else if("html attributes".equals(strEncodeFor)) encFor=ENC_HTML_ATTR;
-		else if("js".equals(strEncodeFor)) encFor=ENC_JAVA_SCRIPT;
-		else if("javascript".equals(strEncodeFor)) encFor=ENC_JAVA_SCRIPT;
-		else if("java_script".equals(strEncodeFor)) encFor=ENC_JAVA_SCRIPT;
-		else if("java script".equals(strEncodeFor)) encFor=ENC_JAVA_SCRIPT;
-		else if("java-script".equals(strEncodeFor)) encFor=ENC_JAVA_SCRIPT;
-		else if("ldap".equals(strEncodeFor)) encFor=ENC_LDAP;
+		
+		if("css".equals(strEncodeFor)) return ENC_CSS;
+		else if("dn".equals(strEncodeFor)) return ENC_DN;
+		else if("html".equals(strEncodeFor)) return ENC_HTML;
+		else if("html_attr".equals(strEncodeFor)) return ENC_HTML_ATTR;
+		else if("htmlattr".equals(strEncodeFor)) return ENC_HTML_ATTR;
+		else if("html-attr".equals(strEncodeFor)) return ENC_HTML_ATTR;
+		else if("html attr".equals(strEncodeFor)) return ENC_HTML_ATTR;
+		else if("html_attributes".equals(strEncodeFor)) return ENC_HTML_ATTR;
+		else if("htmlattributes".equals(strEncodeFor)) return ENC_HTML_ATTR;
+		else if("html-attributes".equals(strEncodeFor)) return ENC_HTML_ATTR;
+		else if("html attributes".equals(strEncodeFor)) return ENC_HTML_ATTR;
+		else if("js".equals(strEncodeFor)) return ENC_JAVA_SCRIPT;
+		else if("javascript".equals(strEncodeFor)) return ENC_JAVA_SCRIPT;
+		else if("java_script".equals(strEncodeFor)) return ENC_JAVA_SCRIPT;
+		else if("java script".equals(strEncodeFor)) return ENC_JAVA_SCRIPT;
+		else if("java-script".equals(strEncodeFor)) return ENC_JAVA_SCRIPT;
+		else if("ldap".equals(strEncodeFor)) return ENC_LDAP;
 		//else if("".equals(strEncodeFor)) encFor=ENC_OS;
 		//else if("".equals(strEncodeFor)) encFor=ENC_SQl;
-		else if("url".equals(strEncodeFor)) encFor=ENC_URL;
-		else if("vbs".equals(strEncodeFor)) encFor=ENC_VB_SCRIPT;
-		else if("vbscript".equals(strEncodeFor)) encFor=ENC_VB_SCRIPT;
-		else if("vb-script".equals(strEncodeFor)) encFor=ENC_VB_SCRIPT;
-		else if("vb_script".equals(strEncodeFor)) encFor=ENC_VB_SCRIPT;
-		else if("vb script".equals(strEncodeFor)) encFor=ENC_VB_SCRIPT;
-		else if("xml".equals(strEncodeFor)) encFor=ENC_XML;
-		else if("xmlattr".equals(strEncodeFor)) encFor=ENC_XML_ATTR;
-		else if("xml attr".equals(strEncodeFor)) encFor=ENC_XML_ATTR;
-		else if("xml-attr".equals(strEncodeFor)) encFor=ENC_XML_ATTR;
-		else if("xml_attr".equals(strEncodeFor)) encFor=ENC_XML_ATTR;
-		else if("xmlattributes".equals(strEncodeFor)) encFor=ENC_XML_ATTR;
-		else if("xml attributes".equals(strEncodeFor)) encFor=ENC_XML_ATTR;
-		else if("xml-attributes".equals(strEncodeFor)) encFor=ENC_XML_ATTR;
-		else if("xml_attributes".equals(strEncodeFor)) encFor=ENC_XML_ATTR;
-		else if("xpath".equals(strEncodeFor)) encFor=ENC_XPATH;
-		else 
-			throw new FunctionException(pc, "ESAPIEncode", 1, "encodeFor", "value ["+strEncodeFor+"] is invalid, valid values are " +
-					"[css,dn,html,html_attr,javascript,ldap,vbscript,xml,xml_attr,xpath]");
-		return encode(value, encFor,canonicalize);
+		else if("url".equals(strEncodeFor)) return ENC_URL;
+		else if("vbs".equals(strEncodeFor)) return ENC_VB_SCRIPT;
+		else if("vbscript".equals(strEncodeFor)) return ENC_VB_SCRIPT;
+		else if("vb-script".equals(strEncodeFor)) return ENC_VB_SCRIPT;
+		else if("vb_script".equals(strEncodeFor)) return ENC_VB_SCRIPT;
+		else if("vb script".equals(strEncodeFor)) return ENC_VB_SCRIPT;
+		else if("xml".equals(strEncodeFor)) return ENC_XML;
+		else if("xmlattr".equals(strEncodeFor)) return ENC_XML_ATTR;
+		else if("xml attr".equals(strEncodeFor)) return ENC_XML_ATTR;
+		else if("xml-attr".equals(strEncodeFor)) return ENC_XML_ATTR;
+		else if("xml_attr".equals(strEncodeFor)) return ENC_XML_ATTR;
+		else if("xmlattributes".equals(strEncodeFor)) return ENC_XML_ATTR;
+		else if("xml attributes".equals(strEncodeFor)) return ENC_XML_ATTR;
+		else if("xml-attributes".equals(strEncodeFor)) return ENC_XML_ATTR;
+		else if("xml_attributes".equals(strEncodeFor)) return ENC_XML_ATTR;
+		else if("xpath".equals(strEncodeFor)) return ENC_XPATH;
+		else return defaultValue;
+	}
+	public static short toEncodeType(PageContext pc, String strEncodeFor) throws PageException {
+		short df=(short)-1;
+		short encFor=toEncodeType(strEncodeFor, df);
+		if(encFor!=df)return encFor;
+		
+		String msg="value ["+strEncodeFor+"] is invalid, valid values are " + "[css,dn,html,html_attr,javascript,ldap,vbscript,xml,xml_attr,xpath]";
+		throw new ApplicationException(msg);
+		
+		
 	}
 
 	public static String canonicalize(String input, boolean restrictMultiple, boolean restrictMixed) {

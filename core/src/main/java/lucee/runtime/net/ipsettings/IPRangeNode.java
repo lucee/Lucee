@@ -25,6 +25,8 @@ import java.net.UnknownHostException;
 import java.util.Comparator;
 import java.util.List;
 
+import lucee.commons.lang.ExceptionUtil;
+
 
 public class IPRangeNode<T> implements Comparable<IPRangeNode>, Comparator<IPRangeNode> {
 
@@ -98,7 +100,7 @@ public class IPRangeNode<T> implements Comparable<IPRangeNode>, Comparator<IPRan
 	 * @return - true if the child was added
 	 */
 	synchronized boolean addChild( IPRangeNode child, boolean doCheck ) {
-
+		
 		if ( !this.containsRange( child ) )
 			return false;
 
@@ -110,7 +112,6 @@ public class IPRangeNode<T> implements Comparable<IPRangeNode>, Comparator<IPRan
 		// TODO: check for eqaulity of new child and found parent
 
 		parent.children.add( child, doCheck );
-
 		return true;
 	}
 
@@ -176,7 +177,7 @@ public class IPRangeNode<T> implements Comparable<IPRangeNode>, Comparator<IPRan
 
 			return findAddr( InetAddress.getByName(addr) );
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 
 		return null;
 	}
@@ -237,7 +238,7 @@ public class IPRangeNode<T> implements Comparable<IPRangeNode>, Comparator<IPRan
 
 			return findFast( InetAddress.getByName(addr) );
 		}
-		catch (Throwable t) {}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 
 		return null;
 	}

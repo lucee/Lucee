@@ -24,7 +24,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
-import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Operator;
@@ -44,15 +43,6 @@ public final class SVArray extends ArrayImpl implements Reference {
      */
     public SVArray() {
         super();
-    }
-
-    /**
-     * Constructor of the class
-     * @param dimension
-     * @throws ExpressionException
-     */
-    public SVArray(int dimension) throws ExpressionException {
-        super(dimension);
     }
 
     /**
@@ -213,12 +203,12 @@ public final class SVArray extends ArrayImpl implements Reference {
 	}
 
 	@Override
-	public synchronized Object clone() {
+	public Object clone() {
 		return duplicate(true);
 	}
 
 	@Override
-	public synchronized Collection duplicate(boolean deepCopy) {
+	public Collection duplicate(boolean deepCopy) {
 		SVArray sva = new SVArray();
 		duplicate(sva,deepCopy);
 		sva.position=position;

@@ -291,13 +291,6 @@ public class BodyBase extends StatementBaseNoFinal implements Body {
 		a.endMethod();
 	}
 
-
-	public static synchronized String id() {
-		counter++;
-		if(counter<0) counter=1;
-		return Long.toString(counter, Character.MAX_RADIX);
-	}
-
 	/**
 	 *
 	 * @see lucee.transformer.bytecode.Body#isEmpty()

@@ -8,11 +8,11 @@
 <cftry>
 <cfswitch expression="#url.action2#">
 	<cfcase value="restart">
-		<cfadmin 
+		<cfadmin
 			action="restart"
 			type="#request.adminType#"
 			password="#session["password"&request.adminType]#"
-			
+
 			remoteClients="#request.getRemoteClients()#">
 
 	</cfcase>
@@ -24,17 +24,20 @@
 </cftry>
 --->
 
-<!--- 
+<!---
 Redirtect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "">
 	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 </cfif>
 
-<!--- 
+<!---
 Error Output --->
 <cfset printError(error)>
 
 <cfoutput>
+
+
+<cfhtmlbody>
 
 <script type="text/javascript">
 	var submitted = false;
@@ -46,7 +49,7 @@ Error Output --->
 			//createWaitBlockUI("restart in progress ...");
 			$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
 			disableBlockUI=true;
-			
+
 
 	 		$.get(url, function(response) {
 	      		//window.location=('#request.self#?action=#url.action#');
@@ -57,14 +60,12 @@ Error Output --->
 					$('##updateInfoDesc').html("<p>#stText.services.update.restartOKDesc#</p>");
 				else
 					window.location=('#request.self#?action=#url.action#'); //$('##updateInfoDesc').html(response);
-
 	 		});
 		});
 	}
+</script>
 
-
-	</script>
-			
+</cfhtmlbody>
 
 
 
@@ -80,16 +81,16 @@ Error Output --->
 </div>
 <div style="text-align: center;">
 
-</cfoutput>	
+</cfoutput>
 
-<!--- 
+<!---
 restart --->
 <cfoutput>
 <table class="tbl" width="740">
 <form method="post">
 <cfmodule template="remoteclients.cfm" colspan="2">
 <tr>
-	<td colspan="2"> 
+	<td colspan="2">
 		<input type="button" class="button submit" name="mainAction" value="#stText.services.update.restart#" onclick="restart(this)">
 	</td>
 </tr>

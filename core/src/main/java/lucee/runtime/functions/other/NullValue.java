@@ -26,9 +26,7 @@ import lucee.runtime.ext.function.Function;
 
 public final class NullValue implements Function {
     
-    public synchronized static Object call(PageContext pc) {
+    public static Object call(PageContext pc) {
         return null;
     }
-    
-    
 }

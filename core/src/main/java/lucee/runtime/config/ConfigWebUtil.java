@@ -21,6 +21,8 @@ package lucee.runtime.config;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -95,6 +97,26 @@ public final class ConfigWebUtil {
 		return "encrypted:" + new BlowfishEasy("sdfsdfs").encryptString(str);
 	}
 	
+	/**
+	 * deploys all content in "web-deployment" to a web context, used for new context mostly or update existings
+	 * @param cs
+	 * @param cw
+	 * @param throwError
+	 * @throws IOException
+	 */
+	public static void deployWeb(ConfigServer cs, ConfigWeb cw, boolean throwError) throws IOException  {
+		Resource deploy = cs.getConfigDir().getRealResource("web-deployment"),trg;
+		if(!deploy.isDirectory()) return;
+
+		trg=cw.getRootDirectory();
+		try {
+			_deploy(cw,deploy,trg);	
+		}
+		catch (IOException ioe) {
+			if(throwError) throw ioe;
+			SystemOut.printDate(cw.getErrWriter(), ExceptionUtil.getStacktrace(ioe, true));
+		}
+	}
 
 	/**
 	 * deploys all content in "web-context-deployment" to a web context, used for new context mostly or update existings
@@ -108,7 +130,7 @@ public final class ConfigWebUtil {
         if(!deploy.isDirectory()) return;
 			trg=cw.getConfigDir().getRealResource("context");
         	try {
-				_deployWebContext(cw,deploy,trg);	
+				_deploy(cw,deploy,trg);	
 			}
 			catch (IOException ioe) {
 				if(throwError) throw ioe;
@@ -116,7 +138,7 @@ public final class ConfigWebUtil {
 			}
 	}
 
-	private static void _deployWebContext(ConfigWeb cw,Resource src, Resource trg) throws IOException {
+	private static void _deploy(ConfigWeb cw,Resource src, Resource trg) throws IOException {
 		if(!src.isDirectory())return;
 		if(trg.isFile()) trg.delete();
 		if(!trg.exists()) trg.mkdirs();
@@ -128,7 +150,7 @@ public final class ConfigWebUtil {
 			_src=children[i];
 			_trg=trg.getRealResource(_src.getName());
 			if(_src.isDirectory()) 
-				_deployWebContext(cw,_src,_trg);
+				_deploy(cw,_src,_trg);
 			if(_src.isFile()) {
 				if(_src.length()!=_trg.length()) {
 					_src.copyTo(_trg, false);
@@ -179,7 +201,8 @@ public final class ConfigWebUtil {
 	    		OSGiUtil.start(OSGiUtil.installBundle( bc, libs[i],true));
 				
 			}
-			catch (Throwable t) {
+			catch(Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 				list.add(libs[i]);
 				log.log(Log.LEVEL_ERROR, "OSGi", t);
 	        }
@@ -575,6 +598,12 @@ public final class ConfigWebUtil {
         else if(type.equalsIgnoreCase("standart"))return Config.SCOPE_STANDARD;
         return defaultValue;
 	}
+	
+	public static short toScopeCascading(boolean searchImplicitScopes) {
+		if(searchImplicitScopes) return Config.SCOPE_STANDARD;
+        return Config.SCOPE_STRICT;
+        
+	}
 
 	public static String toScopeCascading(short type, String defaultValue) {
 		switch(type){
@@ -649,5 +678,28 @@ public final class ConfigWebUtil {
 			return Monitor.TYPE_INTERVAL;
 		
 		return defaultValue;
+	}
+
+	public static Mapping[] sort(Mapping[] mappings) {
+		Arrays.sort(mappings,new Comparator(){ 
+            public int compare(Object left, Object right) { 
+                Mapping r = ((Mapping)right);
+            	Mapping l = ((Mapping)left);
+            	int rtn=r.getVirtualLowerCaseWithSlash().length()-l.getVirtualLowerCaseWithSlash().length();
+            	if(rtn==0) return slashCount(r)-slashCount(l);
+            	return rtn; 
+            }
+
+			private int slashCount(Mapping l) {
+				String str=l.getVirtualLowerCaseWithSlash();
+				int count=0,lastIndex=-1;
+				while((lastIndex=str.indexOf('/', lastIndex))!=-1) {
+					count++;
+					lastIndex++;
+				}
+				return count;
+			} 
+        }); 
+		return mappings;
 	}
 }

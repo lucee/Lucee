@@ -22,8 +22,8 @@ package lucee.runtime.type.scope.storage;
 import java.io.IOException;
 
 import lucee.commons.io.cache.Cache;
-import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
@@ -110,7 +110,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 	public void touchAfterRequest(PageContext pc) {
 		setTimeSpan(pc);
 		super.touchAfterRequest(pc);
-		store(pc.getConfig());
+		store(pc);
 	}
 
 	@Override
@@ -141,31 +141,36 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 	
 
 	@Override
-	public synchronized void store(Config config) {
+	public void store(PageContext pc) {
 		try {
-			Cache cache = getCache(ThreadLocalPageContext.get(config), cacheName);
+			Cache cache = getCache(ThreadLocalPageContext.get(pc), cacheName);
 			String key=getKey(cfid, appName, getTypeAsString());
-			
-			Object existingVal = cache.getValue(key,null);
-			// cached data changed in meantime
-			
-			if(existingVal instanceof StorageValue && ((StorageValue)existingVal).lastModified()>lastModified()) {
-				Struct trg=((Struct)((StorageValue)existingVal).getValue());
-				StructUtil.copy(sct, trg, true);
-				sct=trg;
+			synchronized(cache) {
+				Object existingVal = cache.getValue(key,null);
+				// cached data changed in meantime
+				
+				if(existingVal instanceof StorageValue && ((StorageValue)existingVal).lastModified()>lastModified()) {
+					Struct trg=((Struct)((StorageValue)existingVal).getValue());
+					StructUtil.copy(sct, trg, true);
+					sct=trg;
+				}
+				cache.put(key, new StorageValue(sct),new Long(getTimeSpan()), null);
 			}
-			cache.put(key, new StorageValue(sct),new Long(getTimeSpan()), null);
 		} 
-		catch (Exception pe) {pe.printStackTrace();}
-
+		catch (Exception pe) {
+            SystemOut.printDate(pe);
+        }
 	}
 
 	@Override
-	public synchronized void unstore(Config config) {
+	public void unstore(PageContext pc) {
 		try {
-			Cache cache = getCache(ThreadLocalPageContext.get(config), cacheName);
+			Cache cache = getCache(ThreadLocalPageContext.get(pc), cacheName);
 			String key=getKey(cfid, appName, getTypeAsString());
-			cache.remove(key);
+			synchronized (cache) {
+				cache.remove(key);
+			}
+			
 		} 
 		catch (Exception pe) {}
 	}

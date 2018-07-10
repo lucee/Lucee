@@ -33,7 +33,6 @@ import lucee.runtime.search.SearchData;
 import lucee.runtime.search.SearchEngine;
 import lucee.runtime.search.SearchException;
 import lucee.runtime.search.SuggestionItem;
-import lucee.runtime.tag.util.DeprecatedUtil;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
@@ -173,7 +172,7 @@ public final class Search extends TagImpl {
 	* @param language value to set
 	**/
 	public void setLanguage(String language)	{
-		DeprecatedUtil.tagAttribute(pageContext,"Search", "language");
+		//DeprecatedUtil.tagAttribute(pageContext,"Search", "language");
 	}
 
 	/** set the value external
@@ -181,7 +180,7 @@ public final class Search extends TagImpl {
 	 * @throws ApplicationException
 	**/
 	public void setExternal(boolean external) throws ApplicationException	{
-		DeprecatedUtil.tagAttribute(pageContext,"Search", "external");
+		//DeprecatedUtil.tagAttribute(pageContext,"Search", "external");
 	}
 
 	/** set the value name

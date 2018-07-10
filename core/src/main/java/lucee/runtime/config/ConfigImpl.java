@@ -27,10 +27,8 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -41,10 +39,10 @@ import java.util.TimeZone;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.log.log4j.Log4jUtil;
-import lucee.commons.io.log.log4j.LogAdapter;
 import lucee.commons.io.log.log4j.layout.ClassicLayout;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -76,6 +74,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.cache.CacheConnection;
+import lucee.runtime.cache.ram.RamCache;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.cfx.customtag.CFXTagPoolImpl;
@@ -104,7 +103,9 @@ import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
+import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.functions.system.ContractPath;
+import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
@@ -115,6 +116,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
+import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.EnvClassLoader;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.rest.RestSettingImpl;
@@ -149,10 +151,9 @@ import lucee.transformer.library.tag.TagLibTagAttr;
 import org.apache.commons.collections4.map.ReferenceMap;
 import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.osgi.framework.BundleException;
-
+import org.osgi.framework.Version;
 
 /**
  * Hold the definitions of the Lucee configuration.
@@ -260,6 +261,7 @@ public abstract class ConfigImpl implements Config {
 
     private int spoolInterval=30;
     private boolean spoolEnable=true;
+    private boolean sendPartial=false;
 
     private Server[] mailServers;
 
@@ -432,6 +434,8 @@ public abstract class ConfigImpl implements Config {
 	private int queueMax=100;
 	private long queueTimeout=0;
 	private boolean queueEnable=false;
+	
+	public static boolean onlyFirstMatch=false;
 	
 	/**
 	 * @return the allowURLRequestTimeout
@@ -640,6 +644,17 @@ public abstract class ConfigImpl implements Config {
     public boolean isMailSpoolEnable() {
         return spoolEnable;
     }
+    // FUTURE add to interface
+    public boolean isMailSendPartial() {
+        return sendPartial;
+    }
+    // FUTURE add to interface and impl
+    public boolean isUserset() {
+        return true;
+    }
+    
+    
+
     
     @Override
     public Server[] getMailServers() {
@@ -665,9 +680,11 @@ public abstract class ConfigImpl implements Config {
 
     }
     
+    // do not remove, ised in Hibernate extension
     public ClassLoader getClassLoaderEnv() {
     	return new EnvClassLoader(this);
     }
+    
     public ClassLoader getClassLoaderCore() {
     	return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
     }
@@ -796,11 +813,15 @@ public abstract class ConfigImpl implements Config {
         String lcRealPath = StringUtil.toLowerCase(realPath)+'/';
         Mapping mapping;
         PageSource ps;
-
+        Mapping rootApp=null;
         if(mappings!=null){
 	        for(int i=0;i<mappings.length;i++) {
 	            mapping = mappings[i];
-	            //print.err(lcRealPath+".startsWith"+(mapping.getStrPhysical()));
+	            // we keep this for later
+	            if("/".equals(mapping.getVirtual())) {
+	            	rootApp=mapping;
+	            	continue;
+	            }
 	            if(lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(),0)) {
 	            	ps= mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
 	            	if(onlyPhysicalExisting) {
@@ -865,16 +886,19 @@ public abstract class ConfigImpl implements Config {
         for(int i=0;i<this.mappings.length-1;i++) {
             mapping = this.mappings[i];
             if((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(),0)) {
-            	ps= mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
+        		ps= mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
             	if(onlyPhysicalExisting) {
             		if(ps.physcalExists())return ps;
             	}
             	else if(ps.exists()) return ps;
             }
         }
-        
+
         if(useDefaultMapping){
-        	ps= this.mappings[this.mappings.length-1].getPageSource(realPath);
+        	if(rootApp!=null) mapping=rootApp;
+        	else mapping=this.mappings[this.mappings.length-1];
+        	
+        	ps= mapping.getPageSource(realPath);
         	if(onlyPhysicalExisting) {
         		if(ps.physcalExists())return ps;
         	}
@@ -885,24 +909,37 @@ public abstract class ConfigImpl implements Config {
     
     @Override
     public PageSource[] getPageSources(PageContext pc,Mapping[] mappings, String realPath,boolean onlyTopLevel,boolean useSpecialMappings, boolean useDefaultMapping) {
-    	return getPageSources(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, false);
+    	return getPageSources(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, onlyFirstMatch);
     }
     
     @Override
-    public PageSource[] getPageSources(PageContext pc,Mapping[] mappings, String realPath,boolean onlyTopLevel,boolean useSpecialMappings, boolean useDefaultMapping, boolean useComponentMappings) {
+    public PageSource[] getPageSources(PageContext pc,Mapping[] mappings, String realPath,
+    		boolean onlyTopLevel,boolean useSpecialMappings, boolean useDefaultMapping, boolean useComponentMappings) {
+    	return getPageSources(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
+    }
+    public PageSource[] getPageSources(PageContext pc,Mapping[] mappings, String realPath,
+    		boolean onlyTopLevel,boolean useSpecialMappings, boolean useDefaultMapping, 
+    		boolean useComponentMappings, boolean onlyFirstMatch) {
         realPath=realPath.replace('\\','/');
         String lcRealPath = StringUtil.toLowerCase(realPath)+'/';
         Mapping mapping;
-
+        Mapping rootApp=null;
         PageSource ps;
         List<PageSource> list=new ArrayList<PageSource>();
     	
         if(mappings!=null){
 	        for(int i=0;i<mappings.length;i++) {
 	            mapping = mappings[i];
+	            // we keep this for later
+	            if("/".equals(mapping.getVirtual())) {
+	            	rootApp=mapping;
+	            	continue;
+	            }
 	            //print.err(lcRealPath+".startsWith"+(mapping.getStrPhysical()));
 	            if(lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(),0)) {
-	            	list.add(mapping.getPageSource(realPath.substring(mapping.getVirtual().length())));
+	            	ps=mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
+	            	if(onlyFirstMatch) return new PageSource[]{ps}; 
+	            	else list.add(ps);
 	            }
 	        }
         }
@@ -915,7 +952,10 @@ public abstract class ConfigImpl implements Config {
         	if(lcRealPath.startsWith(virtual,0)){
 	        	for(int i=0;i<tagMappings.length;i++) {
 		            ps=tagMappings[i].getPageSource(realPath.substring(virtual.length()));
-		            if(ps.exists()) list.add(ps);
+		            if(ps.exists()) {
+		            	if(onlyFirstMatch) return new PageSource[]{ps}; 
+		            	else list.add(ps);
+		            }
 		        }
         	}
         	
@@ -925,7 +965,10 @@ public abstract class ConfigImpl implements Config {
         	if(lcRealPath.startsWith(virtual,0)){
 	        	for(int i=0;i<tagMappings.length;i++) {
 		            ps=tagMappings[i].getPageSource(realPath.substring(virtual.length()));
-		            if(ps.exists()) list.add(ps);
+		            if(ps.exists()) {
+		            	if(onlyFirstMatch) return new PageSource[]{ps}; 
+		            	else list.add(ps);
+		            }
 		        }
         	}
         }
@@ -937,7 +980,10 @@ public abstract class ConfigImpl implements Config {
 	        	Mapping[] cmappings = getComponentMappings();
 	        	for(int i=0;i<cmappings.length;i++) {
 	        		ps=cmappings[i].getPageSource(realPath);
-	        		if(ps.exists()) list.add(ps);
+	        		if(ps.exists()) {
+	        			if(onlyFirstMatch) return new PageSource[]{ps}; 
+		            	else list.add(ps);
+	        		}
 	            }
         	}
         }
@@ -946,12 +992,18 @@ public abstract class ConfigImpl implements Config {
         for(int i=0;i<this.mappings.length-1;i++) {
             mapping = this.mappings[i];
             if((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(),0)) {
-            	list.add(mapping.getPageSource(realPath.substring(mapping.getVirtual().length())));
+            	ps=mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
+            	if(onlyFirstMatch) return new PageSource[]{ps}; 
+            	else list.add(ps);
             }
         }
         
         if(useDefaultMapping){
-        	list.add(this.mappings[this.mappings.length-1].getPageSource(realPath));
+        	if(rootApp!=null) mapping=rootApp;
+        	else mapping=this.mappings[this.mappings.length-1];
+        	ps=mapping.getPageSource(realPath);
+        	if(onlyFirstMatch) return new PageSource[]{ps}; 
+        	else list.add(ps);
         }
         return list.toArray(new PageSource[list.size()]); 
     }
@@ -1266,7 +1318,7 @@ public abstract class ConfigImpl implements Config {
     
     public void createFunction(FunctionLib fl,String filename) {
     	String name=toName(filename);//filename.substring(0,filename.length()-(getCFMLExtensions().length()+1));
-        FunctionLibFunction flf = new FunctionLibFunction(fl);
+        FunctionLibFunction flf = new FunctionLibFunction(fl,true);
     	flf.setArgType(FunctionLibFunction.ARG_DYNAMIC);
     	flf.setFunctionClass("lucee.runtime.functions.system.CFFunction",null,null);
     	flf.setName(name);
@@ -1485,6 +1537,11 @@ public abstract class ConfigImpl implements Config {
         this.spoolEnable = spoolEnable;
     }
     
+    protected void setMailSendPartial(boolean sendPartial) {
+		 this.sendPartial = sendPartial;
+	}
+
+    
     /**
      * @param mailTimeout The mailTimeout to set.
      */
@@ -1614,26 +1671,7 @@ public abstract class ConfigImpl implements Config {
      * @param mappings The mappings to set.
      */
     protected void setMappings(Mapping[] mappings) {
-        Arrays.sort(mappings,new Comparator(){ 
-            public int compare(Object left, Object right) { 
-                Mapping r = ((Mapping)right);
-            	Mapping l = ((Mapping)left);
-            	int rtn=r.getVirtualLowerCaseWithSlash().length()-l.getVirtualLowerCaseWithSlash().length();
-            	if(rtn==0) return slashCount(r)-slashCount(l);
-            	return rtn; 
-            }
-
-			private int slashCount(Mapping l) {
-				String str=l.getVirtualLowerCaseWithSlash();
-				int count=0,lastIndex=-1;
-				while((lastIndex=str.indexOf('/', lastIndex))!=-1) {
-					count++;
-					lastIndex++;
-				}
-				return count;
-			} 
-        }); 
-        this.mappings = mappings;
+        this.mappings = ConfigWebUtil.sort(mappings);
     }
     
     /**
@@ -2885,6 +2923,19 @@ public abstract class ConfigImpl implements Config {
 	public Map<String,CacheConnection> getCacheConnections() {
 		return caches;
 	}
+	
+	// used by argus cache FUTURE add to interface
+	/**
+	 * creates a new RamCache, please make sure to finalize. 
+	 * @param arguments possible arguments are "timeToLiveSeconds", "timeToIdleSeconds" and "controlInterval"
+	 * @throws IOException 
+	 */
+	public Cache createRAMCache(Struct arguments) throws IOException {
+		RamCache rc = new RamCache();
+		if(arguments==null) arguments=new StructImpl();
+		rc.init(this, ""+CreateUniqueId.invoke(), arguments); 
+		return rc;
+	}
 
 	@Override
 	public CacheConnection getCacheDefaultConnection(int type) {
@@ -3272,6 +3323,10 @@ public abstract class ConfigImpl implements Config {
 	public boolean getDotNotationUpperCase() {
 		return dotNotationUpperCase;
 	}
+	
+	public boolean preserveCase() {
+		return !dotNotationUpperCase;
+	}
 	private boolean defaultFunctionOutput=true;
 	protected void setDefaultFunctionOutput(boolean defaultFunctionOutput) {
 		this.defaultFunctionOutput=defaultFunctionOutput;
@@ -3326,12 +3381,6 @@ public abstract class ConfigImpl implements Config {
 	private JDBCDriver[] drivers;
 	private Resource logDir;
 	
-	
-
-	
-
-
-
 	public boolean getBufferOutput() {
 		return bufferOutput;
 	}
@@ -3393,21 +3442,35 @@ public abstract class ConfigImpl implements Config {
 	}
 
 
-	protected void clearLoggers() {
+	protected void clearLoggers(Boolean dyn) {
 		if(loggers.size()==0) return;
+		List<String> list=dyn!=null?new ArrayList<String>():null;
 		try{
-			Iterator<LoggerAndSourceData> it = loggers.values().iterator();
+			Iterator<Entry<String, LoggerAndSourceData>> it = loggers.entrySet().iterator();
+			Entry<String, LoggerAndSourceData> e;
 			while(it.hasNext()){
-				it.next().close();
+				e = it.next();
+				if(dyn==null || dyn.booleanValue()==e.getValue().getDyn()) {
+					e.getValue().close();
+					if(list!=null)list.add(e.getKey());
+				}
+				
 			}
 		}
-		catch(Throwable t){}
-		loggers.clear();
+		catch(Exception e) {}
+		
+		if(list==null) loggers.clear();
+		else {
+			Iterator<String> it = list.iterator();
+			while(it.hasNext()) {
+				loggers.remove(it.next());
+			}
+		}
 	}
 	
 	protected LoggerAndSourceData addLogger(String name, Level level,
 			ClassDefinition appender, Map<String, String> appenderArgs, 
-			ClassDefinition layout, Map<String, String> layoutArgs, boolean readOnly) {
+			ClassDefinition layout, Map<String, String> layoutArgs, boolean readOnly, boolean dyn) {
 		LoggerAndSourceData existing = loggers.get(name.toLowerCase());
 		String id=LoggerAndSourceData.id(name.toLowerCase(), appender,appenderArgs,layout,layoutArgs,level,readOnly);
 		
@@ -3419,13 +3482,19 @@ public abstract class ConfigImpl implements Config {
 		}
 		
 		
-		LoggerAndSourceData las = new LoggerAndSourceData(this,id,name.toLowerCase(), appender,appenderArgs,layout,layoutArgs,level,readOnly);
+		LoggerAndSourceData las = new LoggerAndSourceData(this,id,name.toLowerCase(), appender,appenderArgs,layout,layoutArgs,
+				level,readOnly,dyn);
 		loggers.put(name.toLowerCase(),las);
 		return las;
 	}
-	
+
 	public Map<String,LoggerAndSourceData> getLoggers(){
 		return loggers;
+	}
+	
+	// FUTURE add to interface
+	public String[] getLogNames(){
+		return loggers.keySet().toArray(new String[loggers.size()]);
 	}
 	
 	@Override
@@ -3434,23 +3503,18 @@ public abstract class ConfigImpl implements Config {
 	}
 	
 	public Log getLog(String name, boolean createIfNecessary){
-		LoggerAndSourceData lsd = getLoggerAndSourceData(name,createIfNecessary);
+		LoggerAndSourceData lsd = _getLoggerAndSourceData(name,createIfNecessary);
 		if(lsd==null) return null;
 		return lsd.getLog();
 	}
 	
-	public Logger getLogger(String name, boolean createIfNecessary){
-		LoggerAndSourceData lsd = getLoggerAndSourceData(name,createIfNecessary);
-		if(lsd==null) return null;
-		return ((LogAdapter)lsd.getLog()).getLogger();
-	}
 
-	public LoggerAndSourceData getLoggerAndSourceData(String name, boolean createIfNecessary){
+	private LoggerAndSourceData _getLoggerAndSourceData(String name, boolean createIfNecessary){
 		LoggerAndSourceData las = loggers.get(name.toLowerCase());
 		if(las==null) {
-			
 			if(!createIfNecessary) return null;
-			return addLogger(name, Level.ERROR, Log4jUtil.appenderClassDefintion("console"), null, Log4jUtil.layoutClassDefintion("pattern"), null,true);
+			return addLogger(name, Level.ERROR, Log4jUtil.appenderClassDefintion("console"), null, 
+					Log4jUtil.layoutClassDefintion("pattern"), null,true,true);
 		}
 		return las;
 	}
@@ -3521,12 +3585,29 @@ public abstract class ConfigImpl implements Config {
     	 return ((ConfigWeb)config).getConfigServer(password);
 	}
 
-	protected void setExtensionBundleDefintions( Map<String, BundleDefinition> extensionBundles) {
-		this.extensionBundles=extensionBundles;
-	}
 	public Collection<BundleDefinition> getExtensionBundleDefintions() {
-		return this.extensionBundles.values();
+		if(this.extensionBundles==null) {
+			RHExtension[] rhes = getRHExtensions();
+			Map<String, BundleDefinition> extensionBundles=new HashMap<String,BundleDefinition>();
+			
+			for(RHExtension rhe:rhes) {
+				BundleInfo[] bis;
+				try {
+					bis = rhe.getBundles();
+				}
+				catch (Exception e) {
+					continue;
+				}
+				if(bis!=null)for(BundleInfo bi:bis) {
+					extensionBundles.put(bi.getSymbolicName()+"|"+bi.getVersionAsString(), bi.toBundleDefinition());
+				}
+			}
+			this.extensionBundles=extensionBundles;
+		}
+		return extensionBundles.values();
 	}
+	
+	
 	
 	/**
 	 * get the extension bundle defintion not only from this context, get it from all contexts, including the server context
@@ -3548,11 +3629,27 @@ public abstract class ConfigImpl implements Config {
 		}
 		return defaultValue;
 	}
-
+	
 	public JDBCDriver getJDBCDriverById(String id, JDBCDriver defaultValue) {
+		if(!StringUtil.isEmpty(id)) {
+			for(JDBCDriver d:drivers){
+				if(d.id!=null && d.id.equalsIgnoreCase(id)) return d;
+			}
+		}
+		return defaultValue;
+	}
+	
+	public JDBCDriver getJDBCDriverByBundle(String bundleName, Version version, JDBCDriver defaultValue) {
+		for(JDBCDriver d:drivers){
+			if(d.cd.getName().equals(bundleName) && (version==null || version.equals(d.cd.getVersion()))) return d;
+		}
+		return defaultValue;
+	}
+
+	public JDBCDriver getJDBCDriverByCD(ClassDefinition cd, JDBCDriver defaultValue) {
 		for(JDBCDriver d:drivers){
 			
-			if(d.cd.getId().equals(id)) return d;
+			if(d.cd.getId().equals(cd.getId())) return d; // TODO comparing cd objects directly?
 		}
 		return defaultValue;
 	}
@@ -3622,7 +3719,7 @@ public abstract class ConfigImpl implements Config {
 		return DeployHandler.deployExtension(this, ed, getLog("deploy"),true);
 	}
 
-	public abstract List<RHExtension> loadLocalExtensions();
+	public abstract List<ExtensionDefintion> loadLocalExtensions();
 
 	private Map<String,ClassDefinition> cacheDefinitions;
 	public void setCacheDefinitions(Map<String,ClassDefinition> caches) {
@@ -3635,4 +3732,12 @@ public abstract class ConfigImpl implements Config {
 	public ClassDefinition getCacheDefinition(String className) {
 		return this.cacheDefinitions.get(className); 
 	}
+
+	public Resource getAntiSamyPolicy() {
+		return getConfigDir().getRealResource("security/antisamy-basic.xml");
+	}
+
+	protected abstract void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries);
+	
+	public abstract Map<String, GatewayEntry> getGatewayEntries();
 }

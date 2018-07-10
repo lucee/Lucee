@@ -23,28 +23,37 @@ package lucee.runtime.functions.arrays;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.util.ArrayUtil;
 
 public final class ArrayNew extends BIF {
 
 	private static final long serialVersionUID = -5923269433550568279L;
 
 	public static Array call(PageContext pc) throws ExpressionException  {
-		return new ArrayImpl(1);
+		return new ArrayImpl();
 	}
 	
-	public static Array call(PageContext pc , double number) throws ExpressionException {
-		return new ArrayImpl((int)number);
+	public static Array call(PageContext pc , double dimension) throws ExpressionException {
+		return ArrayUtil.getInstance((int)dimension);
+	}
+	
+	public static Array call(PageContext pc , double dimension, boolean isSynchronized) throws ExpressionException {
+		if(dimension>1)
+			return ArrayUtil.getInstance((int)dimension);
+		return new ArrayImpl(isSynchronized);
 	}
 	
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if(args.length==0) return call(pc);
-		return call(pc,Caster.toDoubleValue(args[0]));
+		if(args.length==1) return call(pc,Caster.toDoubleValue(args[0]));
+		else throw new FunctionException(pc, "ArrayNew", 0, 1, args.length);
 	}
 	
 }

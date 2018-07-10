@@ -59,51 +59,50 @@ Redirtect to entry --->
 	<cfif request.adminType EQ "web" and hasReadOnly>
 		<h2>#stText.Settings.logging.readOnlyTitle#</h2>
 		<div class="itemintro">#stText.Settings.logging.readOnlyDesc#</div>
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
 					<tr>
 						<th width="30%">#stText.Settings.logging.name#</th>
-						<th width="30%">#stText.Settings.logging.layout#</th>
 						<th width="30%">#stText.Settings.logging.appender#</th>
+						<th width="30%">#stText.Settings.logging.layout#</th>
 						<th>#stText.Settings.logging.level#</th>
 					</tr>
 				</thead>
 				<tbody>
 					<cfloop query="logs">
 						<cfif !logs.readonly><cfcontinue/></cfif>
-						<cftry>
-							<cfset appender=nullValue()>
-							<cfset layout=layouts[logs.layoutClass]>
-							<cfset appender=appenders[logs.appenderClass]>
-							<cfcatch></cfcatch>
-						</cftry>
+						
+						<cfset appender=appenders[logs.appenderClass]?:nullValue()>
+						<cfset showLayout=isNull(appender.getLayout)>
+						<cfset layout=layouts[logs.layoutClass]?:nullValue()>
+
 						<tr>
 							<td>#logs.name#
 								<input type="hidden" name="name_#logs.currentrow#" value="#logs.name#">
 							</td>
-							<td>#layout.getLabel()#</td>
-							<td>#isNull(appender)?logs.appenderClass:appender.getLabel()#</td>
+							<td>#isNull(appender)?listLast(logs.appenderClass,'.'):appender.getLabel()#</td>
+							<td><cfif showLayout>#isNull(layout)?listLast(logs.layoutClass,'.'):layout.getLabel()#<cfelse>&nbsp;</cfif></td>
 							<td>#logs.level#</td>
 						</tr>
 					</cfloop>
 				</tbody>
 			</table>
-		</cfform>
+		</cfformClassic>
 	</cfif>
 
 	<!--- LIST CACHE --->
 	<cfif logs.recordcount and hasReadable>
 		<h2>#stText.Settings.logging.title#</h2>
 		<div class="itemintro">#stText.Settings.logging.desc#</div>
-		<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
 					<tr>
 						<th width="1%"><input type="checkbox" class="checkbox" name="rowreadonly" onclick="selectAll(this)"></th>
 						<th>#stText.Settings.logging.name#</th>
-						<th>#stText.Settings.logging.layout#</th>
 						<th>#stText.Settings.logging.appender#</th>
+						<th>#stText.Settings.logging.layout#</th>
 						<th>#stText.Settings.logging.level#</th>
 						<th width="3%"></th>
 					</tr>
@@ -111,19 +110,18 @@ Redirtect to entry --->
 				<tbody>
 					<cfloop query="logs">
 						<cfif logs.readonly><cfcontinue/></cfif>
-						<cftry>
-							<cfset appender=nullValue()>
-							<cfset layout=layouts[logs.layoutClass]>
-							<cfset appender=appenders[logs.appenderClass]>
-							<cfcatch></cfcatch>
-						</cftry>
+						
+						<cfset appender=appenders[logs.appenderClass]?:nullValue()>
+						<cfset showLayout=isNull(appender.getLayout)>
+						<cfset layout=layouts[logs.layoutClass]?:nullValue()>
+						
 						<tr>
 							<td>
 								<input type="checkbox" class="checkbox" name="row_#logs.currentrow#" value="#logs.currentrow#">
 							</td>
 							<td nowrap><input type="hidden" name="name_#logs.currentrow#" value="#logs.name#">#logs.name#</td>
-							<td>#layout.getLabel()#</td>
-							<td>#isNull(appender)?logs.appenderClass:appender.getLabel()#</td>
+							<td>#isNull(appender)?listLast(logs.appenderClass,'.'):appender.getLabel()#</td>
+							<td><cfif showLayout>#isNull(layout)?listLast(logs.layoutClass,'.'):layout.getLabel()#<cfelse>&nbsp;</cfif></td>
 							<td>#logs.level#</td>
 							<td>
 								<cfif !isNull(appender)><a href="#request.self#?action=#url.action#&action2=create&name=#Hash(logs.name)#" class="sprite edit"></a></cfif>
@@ -140,7 +138,7 @@ Redirtect to entry --->
 					</tr>
 				</tfoot>
 			 </table>
-		</cfform>
+		</cfformClassic>
 		
 	</cfif>
 </cfoutput>
@@ -164,24 +162,13 @@ function defaultValue(field) {
 		<cfset _appenders=ListSort(StructKeyList(appenders),'textnocase')>
 		<cfif listLen(_appenders) and listLen(_layouts)>
 			<h2>#stText.Settings.logging.titleCreate#</h2>
-			<cfform onerror="customError" action="#request.self#?action=#url.action#&action2=create" method="post">
+			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=create" method="post">
 				<table class="maintbl" style="width:400px;">
 					<tbody>
 						<tr>
 							<th scope="row" nowrap="nowrap">#stText.Settings.cache.Name#</th>
-							<td><cfinput type="text" name="_name" value="" class="xlarge" required="yes" 
+							<td><cfinputClassic type="text" name="_name" value="" class="xlarge" required="yes" 
 								message="#stText.Settings.cache.nameMissing#"></td>
-						</tr>
-						<tr>
-							<th scope="row">#stText.Settings.logging.layout#</th>
-							<td>
-								<select name="layoutClass" class="xlarge">
-									<cfloop collection="#layouts#" index="key" item="layout">
-										<cfset v=trim(layout.getClass())>
-										<option value="#v#">#trim(layout.getLabel())#</option>
-									</cfloop>
-								</select>
-							</td>
 						</tr>
 						<tr>
 							<th scope="row">#stText.Settings.logging.appender#</th>
@@ -190,6 +177,17 @@ function defaultValue(field) {
 									<cfloop collection="#appenders#" index="key" item="appender">
 										<cfset v=trim(appender.getClass())>
 										<option value="#v#">#trim(appender.getLabel())#</option>
+									</cfloop>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">#stText.Settings.logging.layout#</th>
+							<td>
+								<select name="layoutClass" class="xlarge">
+									<cfloop collection="#layouts#" index="key" item="layout">
+										<cfset v=trim(layout.getClass())>
+										<option value="#v#">#trim(layout.getLabel())#</option>
 									</cfloop>
 								</select>
 							</td>
@@ -204,7 +202,7 @@ function defaultValue(field) {
 						</tr>
 					</tfoot>
 				</table>   
-			</cfform>
+			</cfformClassic>
 		<cfelse>
 			<div class="text">#stText.Settings.logging.noDriver#</div>
 		</cfif>

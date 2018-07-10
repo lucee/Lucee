@@ -28,6 +28,7 @@ import lucee.aprint;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
@@ -65,8 +66,8 @@ import lucee.transformer.bytecode.statement.tag.Tag;
 import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.tag.TagTry;
 import lucee.transformer.bytecode.util.SourceNameClassVisitor.SourceInfo;
+import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
-import lucee.transformer.cfml.expression.AbstrCFMLExprTransformer.ExprData;
 import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
@@ -550,8 +551,8 @@ public final class ASMUtil {
     		md5=createMD5(properties);
     	}
     	catch(Throwable t){
+    		ExceptionUtil.rethrowIfNecessary(t);
     		md5="";
-    		t.printStackTrace();
     	}
         
         FieldVisitor fv = cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL + Opcodes.ACC_STATIC, "_md5_", "Ljava/lang/String;", null, md5);
@@ -1131,10 +1132,7 @@ public final class ASMUtil {
 				}
 			}
 		}
-		catch (Throwable t) {
-			// TODO Auto-generated catch block
-			t.printStackTrace();
-		}
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
 
 
@@ -1145,13 +1143,14 @@ public final class ASMUtil {
 	}
 
 
-	public static BIF createBif(ExprData data, FunctionLibFunction flf) {
-		BIF bif=new BIF(data.settings,data.factory.createLitString(flf.getName()),flf);
+	public static BIF createBif(Data data, FunctionLibFunction flf) {
+		BIF bif=new BIF(data.factory,data.settings,flf);
 		data.ep.add(flf, bif, data.srcCode);
 		bif.setArgType(flf.getArgType());
 		try {
 			bif.setClassDefinition(flf.getFunctionClassDefinition());
-		} catch (Throwable t) {
+		} catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			throw new PageRuntimeException(t);
 		}
 		bif.setReturnType(flf.getReturnTypeAsString());

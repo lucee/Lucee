@@ -25,14 +25,11 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import javax.servlet.jsp.JspException;
 
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
-import lucee.runtime.interpreter.VariableInterpreter;
-import lucee.runtime.op.Caster;
 
 /**
 * Saves the generated content inside the tag body in a variable.

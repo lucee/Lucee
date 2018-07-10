@@ -9,7 +9,7 @@
 
 <cfset drivers={}>
 <cfloop collection="#driverNames#" index="n" item="fn">
-	<cfif n EQ "Debug" or n EQ "Field" or n EQ "Group">
+	<cfif n EQ "Debug" or n EQ "Field" or n EQ "Group" or n EQ "ChartProcess">
     	<cfcontinue>
     </cfif>
 	<cfset tmp=createObject('component',fn)>
@@ -46,11 +46,11 @@
 	
     
 <table class="tbl" width="740">
-<cfform onerror="customError" action="#request.self#?action=#url.action#" method="post" name="debug_settings">
+<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post" name="debug_settings">
 <tr>
     <td ><input type="submit" name="mainAction" class="submit" value="#stText.buttons.back#" /></td>
 </tr>
-</cfform>
+</cfformClassic>
 </table>
 
 

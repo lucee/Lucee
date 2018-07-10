@@ -27,6 +27,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	}
 
 			
+	public void function testDefaultHTTPParamType(){
+		http url="http://snapshot.lucee.org/rest/update/provider/echoGet" result="local.res" method="get"{
+			httpparam name="susi" value="Sorglos";
+		}
+		res=evaluate(res.filecontent);
+
+		assertEquals("Sorglos",res.url.susi);
+	}
+			
 	public void function testImplicit(){
 		var data=chr(228)&chr(246)&chr(252); // äöü
 		data="{aaa:'#data#'}";

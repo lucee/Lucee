@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.WildCardFilter;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.converter.JavaConverter;
 
 public class MetaData implements Serializable {
@@ -57,7 +58,7 @@ public class MetaData implements Serializable {
 				try {
 					instance= new MetaData(file,(HashMap)JavaConverter.deserialize(file));
 				}
-				catch (Throwable t) {}
+				catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 			}
 			if(instance==null) instance=new MetaData(file);
 			instances.put(directory.getAbsolutePath(), instance);
@@ -65,14 +66,14 @@ public class MetaData implements Serializable {
 		return instance;
 	}
 	
-	public synchronized void add(String name, String raw) throws IOException {
+	public void add(String name, String raw) throws IOException {
 		synchronized (data) {
 			data.put(name, raw);
 			JavaConverter.serialize(data, file);
 		}
 	}
 	
-	public synchronized List<String> get(String wildcard) throws IOException {
+	public List<String> get(String wildcard) throws IOException {
 		synchronized (data) {
 			List<String> list=new ArrayList<String>();
 			Iterator<Entry<String, String>> it = data.entrySet().iterator();

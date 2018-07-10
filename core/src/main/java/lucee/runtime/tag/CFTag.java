@@ -26,7 +26,9 @@ import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.tagext.Tag;
 
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.Component;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
@@ -113,7 +115,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
     protected InitFile source;
     private String appendix;
 	
-	private Component cfc;
+	private Component cfc=null;
 	private boolean isEndTag;
 	
 	
@@ -209,10 +211,11 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 
 	@Override
     public void doCatch(Throwable t) throws Throwable {
+		ExceptionUtil.rethrowIfNecessary(t);
     	if(source.isCFC()){
 	    	String source=isEndTag?"end":"body";
 	    	isEndTag=false;
-	    	_doCFCCatch(t,source);
+	    	_doCFCCatch(t,source,true);
     	}
     	else super.doCatch(t);
 	}
@@ -261,6 +264,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
         	doInclude();
         }
         catch(Throwable t){
+        	ExceptionUtil.rethrowIfNecessary(t);
         	writeOut(genConBefore);
         	throw Caster.toPageException(t);
         }
@@ -323,7 +327,8 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
         try {
             pageContext.doInclude(new PageSource[]{source.getPageSource()},false);
         }
-        catch (Throwable t) {
+        catch(Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
             throw Caster.toPageException(t);
         }
         finally {
@@ -355,7 +360,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 			if(m==c.getTagMapping()) m=c.getServerTagMapping();
 			else m=null;
 			// is te page source from a tag mapping, so perhaps it was moved from server to web context
-			if(m!=null){
+			if(m!=null) {
 				PageSource ps = m.getPageSource(source.getFilename());
 				try {
 					cfc = ComponentLoader.loadComponent(
@@ -366,8 +371,8 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 				catch (PageException e1) {
 					throw e;
 				}
-				
 			}
+			else throw e;
 		}
 		validateAttributes(cfc,attributesScope,StringUtil.ucFirst(ListUtil.last(source.getPageSource().getComponentName(),'.')));
 
@@ -396,8 +401,9 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 		    }
 	        exeBody=Caster.toBooleanValue(rtn,true);
         }
-        catch(Throwable t){
-        	_doCFCCatch(t,"start");
+        catch(Throwable t) {
+        	ExceptionUtil.rethrowIfNecessary(t);
+        	_doCFCCatch(t,"start",true);
         }
         return exeBody?EVAL_BODY_BUFFERED:SKIP_BODY;
     }
@@ -574,6 +580,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 	        exeAgain= Caster.toBooleanValue(rtn,false);
 	    }
         catch(Throwable t){
+        	ExceptionUtil.rethrowIfNecessary(t);
         	isEndTag=true;
         	throw Caster.toPageException(t);
         }
@@ -581,7 +588,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
     	
     }
     
-    public void _doCFCCatch(Throwable t, String source) throws PageException {
+    public void _doCFCCatch(Throwable t, String source, boolean throwIfCFCNotExists) throws PageException {
     	writeEnclosingWriter();
     	
     	// remove PageServletException wrap
@@ -604,7 +611,8 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 			throw Caster.toPageException(ioe);
 		}
     	
-    	
+    	if(throwIfCFCNotExists && cfc==null)
+    		throw Caster.toPageException(t);
     	
     	try {
 			if(cfc!=null && cfc.contains(pageContext, ON_ERROR)){
@@ -622,6 +630,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 			else throw t;
     	}
     	catch(Throwable th) {
+    		ExceptionUtil.rethrowIfNecessary(th);
     		writeEnclosingWriter();
     		_doCFCFinally();
     		throw Caster.toPageException(th);
@@ -725,7 +734,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 			try {
 				source=initFile(pageContext);
 			} catch (PageException e) {
-				e.printStackTrace();
+	            SystemOut.printDate(e);
 			}
 		}
 		return source;

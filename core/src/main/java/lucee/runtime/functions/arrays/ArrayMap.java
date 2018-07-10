@@ -22,6 +22,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
+import lucee.runtime.functions.closure.ClosureFunc;
 import lucee.runtime.functions.closure.Map;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
@@ -42,7 +43,7 @@ public class ArrayMap extends BIF {
 		return _call(pc, array, udf, parallel, (int)maxThreads);
 	}
 	private static Array _call(PageContext pc , Array array, UDF udf, boolean parallel, int maxThreads) throws PageException {
-		return (Array) Map._call(pc, array, udf, parallel, maxThreads);
+		return (Array) Map._call(pc, array, udf, parallel, maxThreads,null,ClosureFunc.TYPE_ARRAY);
 	}
 
 	@Override

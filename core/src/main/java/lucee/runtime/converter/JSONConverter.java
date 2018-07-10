@@ -36,12 +36,18 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import lucee.commons.lang.CFTypes;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
+import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
+import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.component.Property;
+import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
@@ -114,7 +120,7 @@ public final class JSONConverter extends ConverterSupport {
 				try {
 					sct.setEL(field.getName(), testRecusrion(test,field.get(obj)));
 				} catch (Exception e) {
-					e.printStackTrace();
+					SystemOut.printDate(e);
 				}
     	}
     	if(obj !=null){
@@ -243,7 +249,6 @@ public final class JSONConverter extends ConverterSupport {
         	}
         }
     	
-    	
     	sb.append(goIn());
         sb.append("{");
         //Key[] keys = struct.keys();
@@ -304,7 +309,6 @@ public final class JSONConverter extends ConverterSupport {
 			try {
 				return Caster.toString(c.call(pc, TO_JSON, new Object[0]));
 			} catch (PageException e) {
-				e.printStackTrace();
 				throw toConverterException(e);
 			}
 		}
@@ -371,7 +375,7 @@ public final class JSONConverter extends ConverterSupport {
 		sct.setEL("ReturnType", udf.getReturnTypeAsString());
 		try{
 			sct.setEL("PagePath", udf.getSource());
-		}catch(Throwable t){}
+		}catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		_serializeStruct(pc,test,sct, sb, serializeQueryByColumns, true,done);
 		// TODO key SuperScope and next?
@@ -420,11 +424,16 @@ public final class JSONConverter extends ConverterSupport {
 			sb.append('{');
 			boolean oDoIt=false;
 			int len=query.getRecordcount();
+			pc=ThreadLocalPageContext.get(pc);
+			boolean upperCase=false;
+			if(pc!=null)upperCase = pc.getCurrentTemplateDialect()==CFMLEngine.DIALECT_CFML && ((ConfigWebImpl)pc.getConfig()).getDotNotationUpperCase();
+           
 			for(int i=0;i<_keys.length;i++) {
 			    if(oDoIt)sb.append(',');
 			    oDoIt=true;
 			    sb.append(goIn());
-	            sb.append(StringUtil.escapeJS(_keys[i].getString(),'"',charsetEncoder));
+			    
+			    sb.append(StringUtil.escapeJS(upperCase?_keys[i].getUpperString():_keys[i].getString(),'"',charsetEncoder));
 	            sb.append(":[");
 				boolean doIt=false;
 					for(int y=1;y<=len;y++) {
@@ -476,142 +485,148 @@ public final class JSONConverter extends ConverterSupport {
 	 * @param done 
 	 * @throws ConverterException
 	 */
-	private void _serialize(PageContext pc,Set test,Object object, StringBuilder sb, boolean serializeQueryByColumns, Set<Object> done) throws ConverterException {
+	private void _serialize(PageContext pc, Set test, Object object, StringBuilder sb, boolean serializeQueryByColumns, Set done) throws ConverterException {
 		
 		// NULL
-		if(object==null || object==NULL) {
+		if (object==null || object==NULL) {
 		    sb.append(goIn());
 		    sb.append("null");
 		    return;
 		}
 		// String
-		if(object instanceof String || object instanceof StringBuilder) {
+		if (object instanceof String || object instanceof StringBuilder) {
 		    sb.append(goIn());
 		    sb.append(StringUtil.escapeJS(object.toString(),'"',charsetEncoder));
 		    return;
 		}
 		// Character
-		if(object instanceof Character) {
+		if (object instanceof Character) {
 		    sb.append(goIn());
 		    sb.append(StringUtil.escapeJS(String.valueOf(((Character)object).charValue()),'"',charsetEncoder));
 		    return;
 		}
 		// Number
-		if(object instanceof Number) {
+		if (object instanceof Number) {
 		    sb.append(goIn());
 		    sb.append(Caster.toString(((Number)object)));
 		    return;
 		}
 		// Boolean
-		if(object instanceof Boolean) {
+		if (object instanceof Boolean) {
 		    sb.append(goIn());
 		    sb.append(Caster.toString(((Boolean)object).booleanValue()));
 		    return;
 		}
 		// DateTime
-		if(object instanceof DateTime) {
+		if (object instanceof DateTime) {
 			_serializeDateTime((DateTime)object,sb);
 		    return;
 		}
 		// Date
-		if(object instanceof Date) {
+		if (object instanceof Date) {
 			_serializeDate((Date)object,sb);
 		    return;
 		}
         // XML
-        if(object instanceof Node) {
+        if (object instanceof Node) {
         	_serializeXML((Node)object,sb);
 		    return;
         }
         // Timespan
-        if(object instanceof TimeSpan) {
+        if (object instanceof TimeSpan) {
         	_serializeTimeSpan((TimeSpan) object,sb);
 		    return;
         }
 		// File
-		if(object instanceof File) {
+		if (object instanceof File) {
 			_serialize(pc,test, ((File)object).getAbsolutePath(), sb, serializeQueryByColumns,done);
 		    return;
 		}
 		// String Converter
-		if(object instanceof ScriptConvertable) {
+		if (object instanceof ScriptConvertable) {
 		    sb.append(((ScriptConvertable)object).serialize());
 		    return;
 		}
+		// byte[]
+		if (object instanceof byte[]) {
+			sb.append("\""+Base64Coder.encode((byte[])object)+"\"");
+		    return;
+		}
 		Object raw = LazyConverter.toRaw(object);
-		if(done.contains(raw)){
+		if (done.contains(raw)){
 			sb.append(goIn());
 		    sb.append("null");
 		    return;
 		}
 		
-		
 		done.add(raw);
-		try{
-		        // Component
-		        if(object instanceof Component) {
-		            _serializeComponent(pc,test,(Component)object,sb,serializeQueryByColumns,done);
-				    return;
-		        }
-		        // UDF
-		        if(object instanceof UDF) {
-		            _serializeUDF(pc,test,(UDF)object,sb,serializeQueryByColumns,done);
-				    return;
-		        }
-		        // Struct
-		        if(object instanceof Struct) {
-		        	_serializeStruct(pc,test,(Struct)object,sb,serializeQueryByColumns,true,done);
-				    return;
-		        }
-		        // Map
-		        if(object instanceof Map) {
-		            _serializeMap(pc,test,(Map)object,sb,serializeQueryByColumns,done);
-				    return;
-		        }
-				// Array
-				if(object instanceof Array) {
-					_serializeArray(pc,test,(Array)object,sb,serializeQueryByColumns,done);
-				    return;
+
+		try {
+			// Component
+			if (object instanceof Component) {
+				_serializeComponent(pc,test,(Component)object,sb,serializeQueryByColumns,done);
+				return;
+			}
+			// UDF
+			if (object instanceof UDF) {
+				_serializeUDF(pc,test,(UDF)object,sb,serializeQueryByColumns,done);
+				return;
+			}
+			// Struct
+			if (object instanceof Struct) {
+				_serializeStruct(pc,test,(Struct)object,sb,serializeQueryByColumns,true,done);
+				return;
+			}
+			// Map
+			if (object instanceof Map) {
+				_serializeMap(pc,test,(Map)object,sb,serializeQueryByColumns,done);
+				return;
+			}
+			// Array
+			if (object instanceof Array) {
+				_serializeArray(pc,test,(Array)object,sb,serializeQueryByColumns,done);
+				return;
+			}
+			// List
+			if (object instanceof List) {
+				_serializeList(pc,test,(List)object,sb,serializeQueryByColumns,done);
+				return;
+			}
+			// Query
+			if (object instanceof Query) {
+				_serializeQuery(pc,test,(Query)object,sb,serializeQueryByColumns,done);
+				return;
+			}
+			// Native Array
+			if (Decision.isNativeArray(object)){
+				if (object instanceof char[])
+					_serialize(pc,test,new String((char[])object), sb, serializeQueryByColumns,done);
+				else {
+					_serializeArray(pc,test,ArrayUtil.toReferenceType(object,ArrayUtil.OBJECT_EMPTY), sb, serializeQueryByColumns,done);
 				}
-				// List
-				if(object instanceof List) {
-					_serializeList(pc,test,(List)object,sb,serializeQueryByColumns,done);
-				    return;
+				return;
+			}
+			// ObjectWrap
+			if (object instanceof ObjectWrap) {
+				try {
+					_serialize(pc,test,((ObjectWrap)object).getEmbededObject(), sb, serializeQueryByColumns,done);
 				}
-		        // Query
-		        if(object instanceof Query) {
-		            _serializeQuery(pc,test,(Query)object,sb,serializeQueryByColumns,done);
-				    return;
-		        }
-				// Native Array
-				if(Decision.isNativeArray(object)){
-					if(object instanceof char[])
-						_serialize(pc,test,new String((char[])object), sb, serializeQueryByColumns,done);
-					else {
-						_serializeArray(pc,test,ArrayUtil.toReferenceType(object,ArrayUtil.OBJECT_EMPTY), sb, serializeQueryByColumns,done);
+				catch (PageException e) {
+					if(object instanceof JavaObject){
+						_serializeClass(pc,test,((JavaObject)object).getClazz(),null,sb,serializeQueryByColumns,done);
 					}
-				    return;
-						
+					else throw new ConverterException("can't serialize Object of type [ "+Caster.toClassName(object)+" ]");
 				}
-				// ObjectWrap
-				if(object instanceof ObjectWrap) {
-					try {
-						_serialize(pc,test,((ObjectWrap)object).getEmbededObject(), sb, serializeQueryByColumns,done);
-					} catch (PageException e) {
-						if(object instanceof JavaObject){
-							_serializeClass(pc,test,((JavaObject)object).getClazz(),null,sb,serializeQueryByColumns,done);
-						}
-						else throw new ConverterException("can't serialize Object of type [ "+Caster.toClassName(object)+" ]");
-					}
-				    return;
-				}
-				
-				_serializeClass(pc,test,object.getClass(),object,sb,serializeQueryByColumns,done);
+				return;
+			}
+
+			_serializeClass(pc,test,object.getClass(),object,sb,serializeQueryByColumns,done);
 		}
-		finally{
+		finally {
 			done.remove(raw);
 		}
 	}
+
 
 	private void _serializeXML(Node node, StringBuilder sb) {
     	node=XMLCaster.toRawNode(node);
@@ -620,19 +635,13 @@ public final class JSONConverter extends ConverterSupport {
 	}
 
 
-	private void _serializeTimeSpan(TimeSpan span, StringBuilder sb) {
-    	
-	        sb.append(goIn());
-		    sb.append("createTimeSpan(");
-		    sb.append(span.getDay());
-		    sb.append(',');
-		    sb.append(span.getHour());
-		    sb.append(',');
-		    sb.append(span.getMinute());
-		    sb.append(',');
-		    sb.append(span.getSecond());
-		    sb.append(')');
-		
+	private void _serializeTimeSpan(TimeSpan ts, StringBuilder sb) throws ConverterException {
+        sb.append(goIn());
+        try {
+			sb.append(ts.castToDoubleValue());
+		} catch (PageException e) {// should never happen because TimeSpanImpl does not throw an exception
+			throw new ConverterException(e.getMessage());
+		}
 	}
 
     /**
@@ -642,9 +651,10 @@ public final class JSONConverter extends ConverterSupport {
 	 * @return serialized wddx package
 	 * @throws ConverterException
 	 */
-	public String serialize(PageContext pc,Object object, boolean serializeQueryByColumns) throws ConverterException {
-		StringBuilder sb=new StringBuilder();
-		_serialize(pc,null,object,sb,serializeQueryByColumns,new HashSet<Object>());
+	public String serialize(PageContext pc, Object object, boolean serializeQueryByColumns) throws ConverterException {
+
+		StringBuilder sb = new StringBuilder();
+		_serialize(pc, null, object, sb, serializeQueryByColumns, new HashSet());
 		return sb.toString();
 	}
 
@@ -660,6 +670,12 @@ public final class JSONConverter extends ConverterSupport {
 	 */
 	private String goIn() {
 	    return "";
+	}
+
+
+	public static String serialize(PageContext pc, Object o) throws ConverterException {
+		JSONConverter converter = new JSONConverter(false, null);
+		return converter.serialize(pc, o, false);
 	}
 
 

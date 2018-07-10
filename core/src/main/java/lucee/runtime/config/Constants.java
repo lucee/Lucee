@@ -21,6 +21,8 @@ package lucee.runtime.config;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.commons.net.HTTPUtil;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.ExtensionProviderImpl;
@@ -73,7 +75,7 @@ public class Constants {
 		try {
 			DEFAULT_UPDATE_URL= new URL("http://release.lucee.org");
 		} catch (MalformedURLException e) {
-			e.printStackTrace();
+			SystemOut.printDate(e);
 		}
 	}
 	
@@ -144,28 +146,20 @@ public class Constants {
 	}
 
 	public static boolean isCFMLComponentExtension(String extension) {
+		if(StringUtil.isEmpty(extension)) return false;
 		if(extension.startsWith("."))extension=extension.substring(1);
 		return getCFMLComponentExtension().trim().equalsIgnoreCase(extension);
-		
-		/*String[] ext = getCFMLComponentExtensions();
-		for(int i=0;i<ext.length;i++){
-			if(ext[i].trim().equalsIgnoreCase(extension)) return true;
-		}
-		return false;*/
 	}
 	
 	public static boolean isLuceeComponentExtension(String extension) {
+		if(StringUtil.isEmpty(extension)) return false;
 		if(extension.startsWith("."))extension=extension.substring(1);
 		return getLuceeComponentExtension().trim().equalsIgnoreCase(extension);
-		
-		/*String[] ext = getLuceeComponentExtensions();
-		for(int i=0;i<ext.length;i++){
-			if(ext[i].trim().equalsIgnoreCase(extension)) return true;
-		}
-		return false;*/
 	}
 	
 	public static boolean isComponentExtension(String extension) {
-		return isLuceeComponentExtension(extension) || isCFMLComponentExtension(extension);
+		if(StringUtil.isEmpty(extension)) return false;
+		if(extension.startsWith("."))extension=extension.substring(1);
+		return getCFMLComponentExtension().trim().equalsIgnoreCase(extension) || getLuceeComponentExtension().trim().equalsIgnoreCase(extension);
 	}
 }
