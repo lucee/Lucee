@@ -13,7 +13,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				}
 
 				saveContent variable="out" {
-					proxiedObject.test();
+					proxiedObject.run();
 				}
 				expect( out ).toBe( "test" );
 			});
