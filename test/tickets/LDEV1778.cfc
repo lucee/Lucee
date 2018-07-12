@@ -6,12 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var proxiedObject = "";
 				var out           = "";
 
-				try {
-					proxiedObject = CreateDynamicProxy( cfcInstance, "java.lang.Runnable" );
-				} catch( "java.lang.NoClassDefFoundError" e ) {
-					fail( "CreateDynamicProxy raised a java.lang.NoClassDefFoundError error for core JVM interface 'java.lang.Runnable'" );
-				}
-
+				proxiedObject = CreateDynamicProxy( cfcInstance, "java.lang.Runnable" );
 				saveContent variable="out" {
 					proxiedObject.run();
 				}
