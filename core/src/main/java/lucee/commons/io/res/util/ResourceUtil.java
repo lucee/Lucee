@@ -816,6 +816,10 @@ public final class ResourceUtil {
         return IOUtil.getMimeType(res, defaultValue);
     }
 
+    public static String getMimeType(Resource res, String fileName, String defaultValue) {
+        return IOUtil.getMimeType(res, fileName, defaultValue);
+    }
+
     
     
     
