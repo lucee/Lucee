@@ -7571,12 +7571,12 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>type</name>
-			<values>deamon,task</values>
-			<default-value>deamon</default-value>
+			<values>daemon,task</values>
+			<default-value>daemon</default-value>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>type of the thread:
-			- deamon (default): executes as deamon of the current thread
+			- daemon (default): executes as daemon of the current thread
 			- task: executed by the task manager</description>
 		</attribute>
 		<attribute>
