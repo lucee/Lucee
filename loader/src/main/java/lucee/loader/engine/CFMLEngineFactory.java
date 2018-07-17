@@ -533,7 +533,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			sb.append("\n- ").append(e.getKey()).append(':')
 					.append(e.getValue());
 		}
-		log(Logger.LOG_INFO, sb.toString());
+		//log(Logger.LOG_INFO, sb.toString());
 
 		felix = new Felix(config);
 		try {
