@@ -33,8 +33,10 @@ import java.util.Map;
 import java.util.Set;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.KeyGenerator;
 import lucee.commons.lang.PhysicalClassLoader;
@@ -47,6 +49,7 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.util.JavaProxyUtil;
 import lucee.transformer.bytecode.visitor.ArrayVisitor;
 
@@ -319,24 +322,17 @@ public class JavaProxyFactory {
 	}
 
 	private static ClassLoader[] extractClassLoaders(ClassLoader cl, Class[] classes) {
-		List<ClassLoader> list=new ArrayList<ClassLoader>();
+		HashSet<ClassLoader> set=new HashSet<>();
 		if(cl!=null) {
-			list.add(cl);
+			set.add(cl);
 			cl=null;
 		}
-		ClassLoader tmp;
-		Iterator<ClassLoader> it;
-		if(classes!=null)outer:for(int i=0; i<classes.length; i++) {
-			cl=classes[i].getClassLoader();
-			it = list.iterator();
-			while(it.hasNext()) {
-				tmp=it.next();
-				if(tmp==cl) continue outer;
+		if(classes!=null) {
+			for(int i=0; i<classes.length; i++) {
+				set.add(ClassUtil.getClassLoader(classes[i]));
 			}
-			list.add(cl);
 		}
-		
-		return list.toArray(new ClassLoader[list.size()]);
+		return set.toArray(new ClassLoader[set.size()]);
 	}
 
 	private static void _createProxy(ClassWriter cw, Set<Class> cDone,Map<String,Class> mDone, Component cfc, Class clazz, String className) throws IOException {
