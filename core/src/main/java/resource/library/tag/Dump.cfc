@@ -462,7 +462,6 @@ window.__Lucee = {
 			siblings.forEach(function(el, ix){
 				el.classList.toggle("disp-none");
 			});
-			console.log(tr, siblings);
 		});
 		L.initialized = true;
 	}
@@ -524,7 +523,7 @@ document.addEventListener("DOMContentLoaded", __Lucee.onDocumentReady);
 			loop query=arguments.meta.data {
 				var c = 1;
 				// var nodeID = len(id) ? ' name="#id#"' : '';
-				var hidden = !arguments.expand && len(id) ? ' style="display:none"' : '';
+				var hidden = !arguments.expand && len(id) ? 'class="disp-none"' : '';
 
 				// arrayAppend(rows, '<tr#nodeID##hidden#>');
 				arrayAppend(rows, '<tr#hidden#>');
