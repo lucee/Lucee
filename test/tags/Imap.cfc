@@ -13,6 +13,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="Checking cfimap action = 'CreateFolder' ", body = function( currentSpec ) {
+					
+					try{
+						cfimap(
+							action = "DeleteFolder",
+							folder="NewFolderFromIMAP123",
+							server = "#imapSettings.Imap.SERVER#",
+							port = "#imapSettings.Imap.SECUREPORT#",
+							username = "#imapSettings.USERNAME#",
+							password = "#imapSettings.PASSWORD#",
+							secure = true
+						);
+					}catch(ee) {}
+
 					cfimap(
 						action = "CreateFolder",
 						server = "#imapSettings.Imap.SERVER#",
