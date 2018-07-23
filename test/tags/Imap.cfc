@@ -46,7 +46,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="Checking cfimap action = 'DeleteFolder' ", body = function( currentSpec ) {
 					cfimap(
 						action = "DeleteFolder",
-						folder="RenameFolderFromIMAP123",
+						folder="RenameFolderFromIMAP",
 						server = "#imapSettings.Imap.SERVER#",
 						port = "#imapSettings.Imap.SECUREPORT#",
 						username = "#imapSettings.USERNAME#",
