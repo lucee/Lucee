@@ -20,17 +20,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						username = "#imapSettings.USERNAME#",
 						password = "#imapSettings.PASSWORD#",
 						secure = true,
-						folder = "NewFolderFromIMAP"
+						folder = "NewFolderFromIMAP123"
 					);
 
-					var result = ListAllFolders("NewFolderFromIMAP", "SECUREPORT");
+					var result = ListAllFolders("NewFolderFromIMAP123", "SECUREPORT");
 					expect(result).toBe(1);
 				});
 
 				it(title="Checking cfimap action = 'RenameFolder' ", body = function( currentSpec ) {
 					cfimap(
 						action = "RenameFolder",
-						folder="NewFolderFromIMAP",
+						folder="NewFolderFromIMAP123",
 						newFolder="RenameFolderFromIMAP",
 						server = "#imapSettings.Imap.SERVER#",
 						port = "#imapSettings.Imap.SECUREPORT#",
@@ -46,7 +46,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="Checking cfimap action = 'DeleteFolder' ", body = function( currentSpec ) {
 					cfimap(
 						action = "DeleteFolder",
-						folder="RenameFolderFromIMAP",
+						folder="RenameFolderFromIMAP123",
 						server = "#imapSettings.Imap.SERVER#",
 						port = "#imapSettings.Imap.SECUREPORT#",
 						username = "#imapSettings.USERNAME#",
@@ -145,21 +145,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					cfimap(
 						action = "CreateFolder",
 						server = "#imapSettings.Imap.SERVER#",
-						folder = "NewFolderFromIMAP"
+						folder = "NewFolderFromIMAP123"
 						port = "#imapSettings.Imap.INSECUREPORT#",
 						username = "#imapSettings.USERNAME#",
 						password = "#imapSettings.PASSWORD#",
 						secure = false
 					);
 
-					var result = ListAllFolders("NewFolderFromIMAP", "INSECUREPORT");
+					var result = ListAllFolders("NewFolderFromIMAP123", "INSECUREPORT");
 					expect(result).toBe(1);
 				});
 
 				it(title="Checking cfimap action = 'RenameFolder' ", body = function( currentSpec ) {
 					cfimap(
 						action = "RenameFolder",
-						folder="NewFolderFromIMAP"
+						folder="NewFolderFromIMAP123"
 						newFolder="RenameFolderFromIMAP",
 						server = "#imapSettings.Imap.SERVER#",
 						port = "#imapSettings.Imap.INSECUREPORT#",
