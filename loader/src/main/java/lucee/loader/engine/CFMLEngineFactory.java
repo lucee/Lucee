@@ -334,23 +334,38 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				log(Logger.LOG_DEBUG, "Load Build in Core");
 				// 
 				
-				
+
 				final String coreExt = "lco";
-				
+				final String coreExtPack = "pack.gz";
+				boolean isPack200=false;
 				// copy core
 				
 				final File rc = new File(getTempDirectory(), "tmp_"+ System.currentTimeMillis() + "."+coreExt);
+				File rcPack200 = new File(getTempDirectory(), "tmp_"+ System.currentTimeMillis() + "."+coreExtPack);
 				InputStream is=null;
 				OutputStream os=null;
 				try {
 					is = new TP().getClass().getResourceAsStream("/core/core." + coreExt);
-					os = new BufferedOutputStream(new FileOutputStream(rc));
+					if(is==null) {
+						is = new TP().getClass().getResourceAsStream("/core/core." + coreExtPack);
+						isPack200=true;
+					}
+					os = new BufferedOutputStream(new FileOutputStream(isPack200?rcPack200:rc));
 					copy(is, os);
 				}
 				finally {
 					closeEL(is);
 					closeEL(os);
 				}
+				
+				// unpack if necessary
+				if(isPack200) {
+					Pack200Util.pack2Jar(rcPack200, rc);
+					log(Logger.LOG_DEBUG,"unpack "+rcPack200+" to "+rc);
+					rcPack200.delete();
+				}
+				
+				
 				
 				lucee = new File(patcheDir, getVersion(rc) + "." + coreExt);
 				try {
@@ -365,17 +380,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				}
 				
 				setEngine(_getCore(lucee));
-
-				
-				/*if (PATCH_ENABLED) {
-					final InputStream bis = new TP().getClass()
-							.getResourceAsStream("/core/core." + coreExt);
-					final OutputStream bos = new BufferedOutputStream(
-							new FileOutputStream(lucee));
-					copy(bis, bos);
-					closeEL(bis);
-					closeEL(bos);
-				}*/
 			}
 			else {
 
@@ -411,7 +415,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	}
 
-	
 	private static String getVersion(File file) throws IOException, BundleException {
 		JarFile jar = new JarFile(file);
 		try {

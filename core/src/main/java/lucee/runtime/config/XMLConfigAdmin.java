@@ -49,6 +49,7 @@ import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
+import lucee.commons.io.compress.Pack200Util;
 import lucee.commons.io.compress.ZipUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.log4j.Log4jUtil;
@@ -1136,8 +1137,8 @@ public final class XMLConfigAdmin {
 	 * @throws IOException
 	 * @throws BundleException
 	 */
-	static Bundle updateBundle(Config config, InputStream is, String name,String extensionVersion,boolean closeStream) throws IOException, BundleException {
-		Object obj = installBundle(config, is, name, extensionVersion, closeStream,false);
+	static Bundle updateBundle(Config config, InputStream is, String name,String extensionVersion,boolean closeStream, boolean isPack200) throws IOException, BundleException {
+		Object obj = installBundle(config, is, name, extensionVersion, closeStream,false,isPack200);
 		if(!(obj instanceof BundleFile))
 			throw new BundleException("input is not an OSGi Bundle.");
 		
@@ -1157,10 +1158,12 @@ public final class XMLConfigAdmin {
 	 * @throws BundleException
 	 */
 	public static Object installBundle(Config config, InputStream is, String name,String extensionVersion,
-			boolean closeStream,boolean convert2bundle) throws IOException, BundleException {
+			boolean closeStream,boolean convert2bundle, boolean isPack200) throws IOException, BundleException {
 		Resource tmp=SystemUtil.getTempDirectory().getRealResource(name);
+		OutputStream os = tmp.getOutputStream();
+		if(isPack200) Pack200Util.pack2Jar(is, os, closeStream, true); 
+		else IOUtil.copy(is, os, closeStream, true);
 		
-		IOUtil.copy(is, tmp,closeStream);
 		BundleFile bf = installBundle(config, tmp,extensionVersion,convert2bundle);
 		if(bf!=null) {
 			tmp.delete();
@@ -4809,17 +4812,19 @@ public final class XMLConfigAdmin {
 			ZipEntry entry;
 			String path;
 			String fileName;
+			boolean isPack200;
 			while ( ( entry = zis.getNextEntry()) != null ) {
 				path=entry.getName();
 				fileName=fileName(entry);
-				
+				isPack200=false;
 				// jars
 				if(!entry.isDirectory() && 
 					(startsWith(path,type,"jars") || startsWith(path,type,"jar") 
 					|| startsWith(path,type,"bundles") || startsWith(path,type,"bundle") 
-					|| startsWith(path,type,"lib") || startsWith(path,type,"libs")) && StringUtil.endsWithIgnoreCase(path, ".jar")) {
+					|| startsWith(path,type,"lib") || startsWith(path,type,"libs")) && 
+					(StringUtil.endsWithIgnoreCase(path, ".jar") || (isPack200=StringUtil.endsWithIgnoreCase(path, ".pack.gz")))) {
 					
-					Object obj = XMLConfigAdmin.installBundle(config,zis,fileName,rhext.getVersion(),false,false);
+					Object obj = XMLConfigAdmin.installBundle(config,zis,fileName,rhext.getVersion(),false,false,isPack200);
 					// jar is not a bundle, only a regular jar
 					if(!(obj instanceof BundleFile)) {
 						Resource tmp=(Resource)obj;
