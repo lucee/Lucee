@@ -153,5 +153,11 @@ public class Pack200Util {
 			if(closeOS)IOUtil.closeEL(os);
 		}
 	}
+
+	public static String removePack200Ext(String name) {
+		int index=name.indexOf(".pack.gz");
+		if(index==-1) return name;
+		return name.substring(0, index);
+	}
 	
 }

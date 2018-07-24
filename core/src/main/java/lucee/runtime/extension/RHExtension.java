@@ -318,7 +318,7 @@ public class RHExtension implements Serializable {
 					(startsWith(path,type,"jars") || startsWith(path,type,"jar") 
 					|| startsWith(path,type,"bundles") || startsWith(path,type,"bundle") 
 					|| startsWith(path,type,"lib") || startsWith(path,type,"libs")) && 
-					(StringUtil.endsWithIgnoreCase(path, ".jar") || (isPack200=StringUtil.endsWithIgnoreCase(path, ".pack.gz")))) {
+					(StringUtil.endsWithIgnoreCase(path, ".jar") || (isPack200=StringUtil.endsWithIgnoreCase(path, ".jar.pack.gz")))) {
 					
 					jars.add(fileName);
 					BundleInfo bi = BundleInfo.getInstance(fileName,zis, false, isPack200);
@@ -648,7 +648,7 @@ public class RHExtension implements Serializable {
 					(startsWith(path,type,"jars") || startsWith(path,type,"jar") 
 					|| startsWith(path,type,"bundles") || startsWith(path,type,"bundle") 
 					|| startsWith(path,type,"lib") || startsWith(path,type,"libs")) && 
-					(StringUtil.endsWithIgnoreCase(path, ".jar") || (isPack200=StringUtil.endsWithIgnoreCase(path, ".pack.gz")))) {
+					(StringUtil.endsWithIgnoreCase(path, ".jar") || (isPack200=StringUtil.endsWithIgnoreCase(path, ".jar.pack.gz")))) {
 					
 					Object obj = XMLConfigAdmin.installBundle(config,zis,fileName,version,false,false,isPack200);
 					// jar is not a bundle, only a regular jar

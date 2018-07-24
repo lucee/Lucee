@@ -1159,7 +1159,7 @@ public final class XMLConfigAdmin {
 	 */
 	public static Object installBundle(Config config, InputStream is, String name,String extensionVersion,
 			boolean closeStream,boolean convert2bundle, boolean isPack200) throws IOException, BundleException {
-		Resource tmp=SystemUtil.getTempDirectory().getRealResource(name);
+		Resource tmp=SystemUtil.getTempDirectory().getRealResource(isPack200?Pack200Util.removePack200Ext(name):name);
 		OutputStream os = tmp.getOutputStream();
 		if(isPack200) Pack200Util.pack2Jar(is, os, closeStream, true); 
 		else IOUtil.copy(is, os, closeStream, true);
@@ -1182,9 +1182,6 @@ public final class XMLConfigAdmin {
 			tmp.delete();
 		}
 	}
-	
-	
-
 
 	/**
      * insert or update a Java CFX Tag
@@ -4822,7 +4819,7 @@ public final class XMLConfigAdmin {
 					(startsWith(path,type,"jars") || startsWith(path,type,"jar") 
 					|| startsWith(path,type,"bundles") || startsWith(path,type,"bundle") 
 					|| startsWith(path,type,"lib") || startsWith(path,type,"libs")) && 
-					(StringUtil.endsWithIgnoreCase(path, ".jar") || (isPack200=StringUtil.endsWithIgnoreCase(path, ".pack.gz")))) {
+					(StringUtil.endsWithIgnoreCase(path, ".jar") || (isPack200=StringUtil.endsWithIgnoreCase(path, ".jar.pack.gz")))) {
 					
 					Object obj = XMLConfigAdmin.installBundle(config,zis,fileName,rhext.getVersion(),false,false,isPack200);
 					// jar is not a bundle, only a regular jar
