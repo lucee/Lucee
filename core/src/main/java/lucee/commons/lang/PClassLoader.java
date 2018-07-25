@@ -86,7 +86,7 @@ public final class PClassLoader extends ClassLoader {
 		if(clazz!=null) return clazz;
 		
 		//if(unavaiClasses.contains(name)) return defaultValue;
-		clazz=findClass(name,null);
+		clazz=findClass(name,(Class)null);
 		if(clazz!=null) return clazz;
 		return super.loadClass(name, resolve);
    }
@@ -95,7 +95,7 @@ public final class PClassLoader extends ClassLoader {
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {
-		Class<?> clazz = findClass(name,null);
+		Class<?> clazz = findClass(name,(Class)null);
 		if(clazz!=null) return clazz;
 		return super.findClass(name);
 	}
