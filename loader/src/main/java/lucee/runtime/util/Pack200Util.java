@@ -82,6 +82,16 @@ public class Pack200Util {
 	}
 
 	public static void pack2Jar(InputStream is,OutputStream os, boolean closeIS, boolean closeOS) throws IOException {
+		File tmp=null;
+		
+		// we do this because Pack200 closes the stram
+		if(!closeIS) {
+			tmp = File.createTempFile("temp-pack200-file", "packgz");
+			FileOutputStream tmpos = new FileOutputStream(tmp);
+			Util.copy(is, tmpos,false,true);
+			is = new FileInputStream(tmp);
+			closeIS=true;
+		}
 		
 		Unpacker unpacker = Pack200.newUnpacker();
 		
@@ -101,6 +111,7 @@ public class Pack200Util {
 			
 			if(closeIS)Util.closeEL(is);
 			if(closeOS)Util.closeEL(jos);
+			if(tmp!=null && tmp.isFile()) tmp.delete();
 		}
 	}
 	
