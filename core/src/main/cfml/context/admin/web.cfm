@@ -253,6 +253,9 @@
         <cfloop query="plugindirs">
             <cfif plugindirs.type EQ "dir">
                 <cfset _lang=loadPluginLanguage(pluginDir,plugindirs.name)>
+                <cfif isNull(_lang.__group)>
+					<cfcontinue>
+				</cfif>
                 <cfset _act=_lang.__action>
 				<cfset _group=_lang.__group>
 				<cfset _pos=_lang.__position>
