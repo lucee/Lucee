@@ -57,6 +57,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import lucee.VersionInfo;
+import lucee.commons.io.log.Log;
 import lucee.loader.TP;
 import lucee.loader.osgi.BundleCollection;
 import lucee.loader.osgi.BundleLoader;
@@ -65,6 +66,7 @@ import lucee.loader.osgi.LoggerImpl;
 import lucee.loader.util.ExtensionFilter;
 import lucee.loader.util.Util;
 import lucee.loader.util.ZipUtil;
+import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
 import lucee.runtime.util.Pack200Util;
@@ -660,6 +662,12 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			singelton.reset();
 		
 		initEngine();
+		
+		ConfigServer cs = getConfigServer(singelton);
+		if(cs!=null) {
+			Log log = cs.getLog("application");
+			log.info("loader", "Lucee restarted");
+		} 
 		System.gc();
 		return true;
 	}
@@ -695,6 +703,15 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			setEngine(e);
 			//e.reset();
 			callListeners(e);
+			
+			
+			ConfigServer cs = getConfigServer(e);
+			if(cs!=null) {
+				Log log = cs.getLog("deploy");
+				log.info("loader", "Lucee Version [" + v + "] installed");
+			} 
+			
+			
 		} catch (final Exception e) {
 			System.gc();
 			try {
@@ -705,9 +722,24 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			e.printStackTrace();
 			return false;
 		}
-
+		
 		log(Logger.LOG_DEBUG, "Version (" + v + ")installed");
 		return true;
+	}
+
+	private ConfigServer getConfigServer(CFMLEngine engine) {
+		if(engine==null) return null;
+		if(engine instanceof CFMLEngineWrapper)
+			engine=((CFMLEngineWrapper)engine).getEngine();
+		
+		try {
+			Method m = engine.getClass().getDeclaredMethod("getConfigServerImpl", new Class[]{});
+			m.setAccessible(true);
+			return (ConfigServer)m.invoke(engine, new Object[] {});
+		}
+		catch(Exception e) {e.printStackTrace();}
+
+		return null;
 	}
 
 	public File downloadBundle(final String symbolicName,
