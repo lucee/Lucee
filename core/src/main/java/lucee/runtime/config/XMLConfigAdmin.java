@@ -4603,20 +4603,19 @@ public final class XMLConfigAdmin {
     	
 		Element extensions=_getRootElement("extensions");
 		Element[] children = XMLConfigWebFactory.getChildren(extensions,"rhextension");
-		
 		Element child;
 		RHExtension rhe;
 		for(int i=0;i<children.length;i++) {
 			child=children[i];
 			try{
 				rhe=new RHExtension(config, child);
+				
 				//ed=ExtensionDefintion.getInstance(config,child);
 			}
 			catch(Throwable t){
 				ExceptionUtil.rethrowIfNecessary(t);
 				continue;
 			}
-			
 			
 			if(id.equalsIgnoreCase(rhe.getId())) {
 				removeRHExtension(config,rhe,null,true);
@@ -5213,31 +5212,31 @@ public final class XMLConfigAdmin {
 			
 			
 			// FLD
-			removeFLDs(rhe.getFlds()); // MUST check if others use one of this fld
+			removeFLDs(logger,rhe.getFlds()); // MUST check if others use one of this fld
 			
 			// TLD
-			removeTLDs(rhe.getTlds()); // MUST check if others use one of this tld
+			removeTLDs(logger,rhe.getTlds()); // MUST check if others use one of this tld
 			
 			// Tag
-			removeTags(rhe.getTags());
+			removeTags(logger,rhe.getTags());
 			
 			// Functions
-			removeFunctions(rhe.getFunctions());
+			removeFunctions(logger,rhe.getFunctions());
 			
 			// Event Gateway
-			removeEventGateways(rhe.getEventGateways()); 
+			removeEventGateways(logger,rhe.getEventGateways()); 
 			
 			// context
-			removeContext(config, false, rhe.getContexts()); // MUST check if others use one of this
+			removeContext(config, false,logger, rhe.getContexts()); // MUST check if others use one of this
 			
 			// web contextS
-			removeWebContexts(config, false, rhe.getWebContexts()); // MUST check if others use one of this
+			removeWebContexts(config, false,logger, rhe.getWebContexts()); // MUST check if others use one of this
 			
 			// applications
-			removeApplications(config, rhe.getWebContexts()); // MUST check if others use one of this
+			removeApplications(config,logger, rhe.getApplications()); // MUST check if others use one of this
 			
 			// plugins
-			removePlugins(config, rhe.getWebContexts()); // MUST check if others use one of this
+			removePlugins(config,logger, rhe.getPlugins()); // MUST check if others use one of this
 			
 			// remove cache handler
 			if(!ArrayUtil.isEmpty(rhe.getCacheHandlers())) {
@@ -5559,27 +5558,30 @@ public final class XMLConfigAdmin {
 		removeFromDirectory(config.getTldFile(),name);
 	}
 	
-	public void removeTLDs(String[] names) throws IOException {
+	public void removeTLDs(Log logger,String[] names) throws IOException {
 		if(ArrayUtil.isEmpty(names)) return;
 		Resource file = config.getTldFile();
 		for(int i=0;i<names.length;i++){
+			logger.log(Log.LEVEL_INFO,"extension","remove TLD file "+names[i]);
 			removeFromDirectory(file,names[i]);
 		}
 	}
 	
 
-	public void removeEventGateways(String[] relpath) throws IOException {
+	public void removeEventGateways(Log logger,String[] relpath) throws IOException {
 		if(ArrayUtil.isEmpty(relpath)) return;
 		Resource dir = config.getEventGatewayDirectory();// get Event gateway Directory
 		for(int i=0;i<relpath.length;i++){
+			logger.log(Log.LEVEL_INFO,"extension","remove Event Gateway "+relpath[i]);
 			removeFromDirectory(dir,relpath[i]);
 		}
 	}
 
-	public void removeFunctions(String[] relpath) throws IOException {
+	public void removeFunctions(Log logger,String[] relpath) throws IOException {
 		if(ArrayUtil.isEmpty(relpath)) return;
 		Resource file = config.getFunctionMapping().getPhysical();
 		for(int i=0;i<relpath.length;i++){
+			logger.log(Log.LEVEL_INFO,"extension","remove Function "+relpath[i]);
 			removeFromDirectory(file,relpath[i]);
 		}
 	}
@@ -5620,18 +5622,21 @@ public final class XMLConfigAdmin {
 	}
 	
 
-	public void removeTags(String[] relpath) throws IOException {
+	public void removeTags(Log logger,String[] relpath) throws IOException {
 		if(ArrayUtil.isEmpty(relpath)) return;
 		Resource file = config.getTagMapping().getPhysical();
 		for(int i=0;i<relpath.length;i++){
+			logger.log(Log.LEVEL_INFO,"extension","remove Tag "+relpath[i]);
 			removeFromDirectory(file,relpath[i]);
 		}
 	}
 	
-	public void removeFLDs(String[] names) throws IOException {
+	public void removeFLDs(Log logger,String[] names) throws IOException {
 		if(ArrayUtil.isEmpty(names)) return;
+		
 		Resource file = config.getFldFile();
 		for(int i=0;i<names.length;i++){
+			logger.log(Log.LEVEL_INFO,"extension","remove FLD file "+names[i]);
 			removeFromDirectory(file,names[i]);
 		}
 	}
@@ -6153,10 +6158,11 @@ public final class XMLConfigAdmin {
         return false;
     }
 	
-	public boolean removeContext(Config config, boolean store,String... realpathes) throws PageException, IOException, SAXException, BundleException {
+	public boolean removeContext(Config config, boolean store, Log logger,String... realpathes) throws PageException, IOException, SAXException, BundleException {
 		if(ArrayUtil.isEmpty(realpathes)) return false;
 		boolean force=false;
 		for(int i=0;i<realpathes.length;i++){
+			logger.log(Log.LEVEL_INFO,"extension","remove "+realpathes[i]);
 			if(_removeContext(config, realpathes[i],store))
 				force=true;
 		}
@@ -6176,15 +6182,16 @@ public final class XMLConfigAdmin {
         return false;
     }
 	
-	public boolean removeWebContexts(Config config, boolean store,String... realpathes) throws PageException, IOException, SAXException, BundleException {
+	public boolean removeWebContexts(Config config, boolean store,Log logger, String... realpathes) throws PageException, IOException, SAXException, BundleException {
 		if(ArrayUtil.isEmpty(realpathes)) return false;
 		
 		if(config instanceof ConfigWeb) {
-			return removeContext(config, store, realpathes);
+			return removeContext(config, store,logger,realpathes);
 		}
 		
 		boolean force=false;
 		for(int i=0;i<realpathes.length;i++){
+			logger.log(Log.LEVEL_INFO,"extension","remove Context "+realpathes[i]);
 			if(_removeWebContexts(config, realpathes[i],store))
 				force=true;
 		}
@@ -6265,16 +6272,18 @@ public final class XMLConfigAdmin {
         filesDeployed.add(trg);
     }
 	
-	private void removePlugins(Config config,String[] realpathes) throws PageException, IOException, SAXException {
+	private void removePlugins(Config config,Log logger, String[] realpathes) throws PageException, IOException, SAXException {
 		if(ArrayUtil.isEmpty(realpathes)) return;
 		for(int i=0;i<realpathes.length;i++){
+			logger.log(Log.LEVEL_INFO,"extension","remove plugin "+realpathes[i]);
 			removeFiles(config,((ConfigImpl)config).getPluginDirectory(), realpathes[i]);
 		}
 	}
 
-	private void removeApplications(Config config, String[] realpathes) throws PageException, IOException, SAXException {
+	private void removeApplications(Config config, Log logger, String[] realpathes) throws PageException, IOException, SAXException {
 		if(ArrayUtil.isEmpty(realpathes)) return;
 		for(int i=0;i<realpathes.length;i++){
+			logger.log(Log.LEVEL_INFO,"extension","remove application "+realpathes[i]);
 			removeFiles(config, config.getRootDirectory(), realpathes[i]);
 		}
 	}
@@ -6285,7 +6294,6 @@ public final class XMLConfigAdmin {
 			for(int i=0;i<webs.length;i++){
 				removeFiles(webs[i], root, realpath);
     		}
-        	
     		return ;
     	}
 		
@@ -6316,17 +6324,17 @@ public final class XMLConfigAdmin {
 		
 		Element extensions=_getRootElement("extensions");
 		Element[] children = XMLConfigWebFactory.getChildren(extensions,"rhextension");// LuceeHandledExtensions
-      	
-        // Update
+		// Update
 		Element el;
 		String id;
 		String[] arr;
 		boolean storeChildren=false;
 		BundleDefinition[] bundles;
+		Log log = config.getLog("deploy");
         for(int i=0;i<children.length;i++) {
       	    el=children[i];
       	    id=el.getAttribute("id");
-  			if(extensionID.equalsIgnoreCase(id)) {
+      	    if(extensionID.equalsIgnoreCase(id)) {
   				bundles = RHExtension.toBundleDefinitions(el.getAttribute("bundles")); // get existing bundles before populate new ones
   				
   				
@@ -6335,21 +6343,21 @@ public final class XMLConfigAdmin {
   				//removeBundles(arr,removePhysical);
   				// flds
   				arr=_removeExtensionCheckOtherUsage(children,el,"flds");
-  				removeFLDs(arr);
+  				removeFLDs(log,arr);
   				// tlds
   				arr=_removeExtensionCheckOtherUsage(children,el,"tlds");
-  				removeTLDs(arr);
+  				removeTLDs(log,arr);
   				// contexts
   				arr=_removeExtensionCheckOtherUsage(children,el,"contexts");
-  				storeChildren=removeContext(config,false, arr);
+  				storeChildren=removeContext(config,false,log,arr);
   				
   				// webcontexts
   				arr=_removeExtensionCheckOtherUsage(children,el,"webcontexts");
-  				storeChildren=removeWebContexts(config,false, arr);
+  				storeChildren=removeWebContexts(config,false,log, arr);
 
   				// applications
   				arr=_removeExtensionCheckOtherUsage(children,el,"applications");
-  				removeApplications(config, arr);
+  				removeApplications(config,log, arr);
 
   				// components
   				arr=_removeExtensionCheckOtherUsage(children,el,"components");
@@ -6361,7 +6369,7 @@ public final class XMLConfigAdmin {
   				
   				// plugins
   				arr=_removeExtensionCheckOtherUsage(children,el,"plugins");
-  				removePlugins(config, arr);
+  				removePlugins(config,log, arr);
   				
   				extensions.removeChild(el);
   				

@@ -1513,7 +1513,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		ConfigServerImpl server = (ConfigServerImpl)config;
 
 		try {
-			admin.removeContext(server, true, strRealpath);
+			admin.removeContext(server, true,config.getLog("deploy"), strRealpath);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
