@@ -81,6 +81,7 @@ public final class AppListenerUtil {
 
 	public static final Collection.Key ACCESS_KEY_ID = KeyImpl.intern("accessKeyId");
 	public static final Collection.Key AWS_SECRET_KEY = KeyImpl.intern("awsSecretKey");
+	public static final Collection.Key SECRET_KEY = KeyImpl.intern("secretKey");
 	public static final Collection.Key DEFAULT_LOCATION = KeyImpl.intern("defaultLocation");
 	public static final Collection.Key ACL = KeyImpl.intern("acl");
 	public static final Collection.Key CACHE = KeyImpl.intern("cache");
@@ -487,10 +488,12 @@ public final class AppListenerUtil {
 
 		String host = Caster.toString(sct.get(KeyConstants._host, null), null);
 		if(StringUtil.isEmpty(host))host = Caster.toString(sct.get(KeyConstants._server, null), null);
-
+		
+		String sk=Caster.toString(sct.get(AWS_SECRET_KEY, null), null);
+		if(StringUtil.isEmpty(sk)) sk=Caster.toString(sct.get(SECRET_KEY, null), null);
 		return toS3(
 				Caster.toString(sct.get(ACCESS_KEY_ID, null), null), 
-				Caster.toString(sct.get(AWS_SECRET_KEY, null), null),
+				sk,
 				Caster.toString(sct.get(DEFAULT_LOCATION, null), null), 
 				host, 
 				Caster.toString(sct.get(ACL, null), null), 
