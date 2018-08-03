@@ -154,8 +154,8 @@ function mem(type) {
 			//SystemOut.setErr(err);
 
 			systemOutput(" (#bundle.totalPass# tests passed in #LSNumberFormat(bundle.totalDuration, ',')# ms)",true);
-			mem("non_heap");
-			mem("heap");
+			//mem("non_heap");
+			//mem("heap");
 
 		// we have an error
 		if ((bundle.totalFail + bundle.totalError) > 0) {
