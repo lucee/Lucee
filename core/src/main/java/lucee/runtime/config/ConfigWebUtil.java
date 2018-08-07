@@ -254,7 +254,7 @@ public final class ConfigWebUtil {
         		res=getFile(config.getResource(strDir),type);
         		if(res!=null) return res;
         	}
-        	res=getFile(rootDir.getRealResource(strDir),type);
+        	res=rootDir==null?null:getFile(rootDir.getRealResource(strDir),type);
             if(res!=null) return res;
 
             res=getFile(config.getResource(strDir),type);
