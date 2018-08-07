@@ -38,6 +38,7 @@ import java.net.URLClassLoader;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
@@ -1132,25 +1133,40 @@ public final class SystemUtil {
 			
 			InetAddress ip = InetAddress.getLocalHost();
 			NetworkInterface network = NetworkInterface.getByInetAddress(ip);
-			if(network == null) {
-				hasMacAddress = true;
-				return null;
-			}
-
-			byte[] mac = network.getHardwareAddress();
-			if(mac == null) {
-				hasMacAddress = true;
-				return null;
+			if(network!=null) {
+				byte[] mac = network.getHardwareAddress();
+				if(mac!=null) {
+					macAddress = mac2String(mac);
+				}
 			}
 			
-			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < mac.length; i++) {
-				sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
+			if(StringUtil.isEmpty(macAddress)) {
+				Enumeration<NetworkInterface> nwInterface = NetworkInterface.getNetworkInterfaces();
+				NetworkInterface nis;
+				byte[] mac;
+				while (nwInterface.hasMoreElements()) {
+				    nis = nwInterface.nextElement();
+				    
+				    if (nis!=null) {
+				        mac = nis.getHardwareAddress();
+				        if (mac!=null && nis.isUp()) {
+				        	macAddress = mac2String(mac);
+				        	break;
+				        }
+				    } 
+				}
 			}
-			macAddress = sb.toString();
 			hasMacAddress = true;
 		}
 		return macAddress;
+	}
+	
+	private static String mac2String(byte[] mac) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < mac.length; i++) {
+			sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
+		}
+		return sb.toString();
 	}
 
 	public static URL getResource(Bundle bundle, String path) {
