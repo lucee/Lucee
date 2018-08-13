@@ -3433,6 +3433,7 @@ type of the result returned:
 	<function>
 		<name>DeserializeJSON</name>
 		<class>lucee.runtime.functions.conversion.DeserializeJSON</class>
+		<!-- <member-name>deserializeJSON</member-name> -->
 		<keywords>string,parsing,json,javascript</keywords>
 		<description>Converts a JSON (JavaScript Object Notation) string data representation into CFML data, such as a struct or array.</description>
 		<argument>
