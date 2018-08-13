@@ -3879,14 +3879,16 @@ public final class XMLConfigAdmin {
 		// the update provider is not providing a download for this
 		if (code != 200) {
 			
+			int count=0;
+			final int max=5;
 			// the update provider can also provide a different (final) location for this
-			if(code==302) {
+			while((code==301 || code==302) && (count++<max)) {
 				String location = conn.getHeaderField("Location");
 				// just in case we check invalid names
 				if(location==null)location = conn.getHeaderField("location");
 				if(location==null)location = conn.getHeaderField("LOCATION");
+				if(location==null) break;
 				System.out.println("download redirected:" + location); // MUST remove
-				//log.debug("Admin", "download redirected to " + updateUrl);
 				
 				
 				conn.disconnect();
@@ -3904,7 +3906,7 @@ public final class XMLConfigAdmin {
 			
 			// no download available!
 			if(code != 200){
-				final String msg = "Lucee is not able do download the core for version ["
+				final String msg = "Lucee is not able do download (response status:"+code+") the core for version ["
 					+ version.toString() + "] from " + updateUrl
 					+ ", please download it manually and copy to [" + patchDir + "]";
 				//log.debug("Admin", msg);
