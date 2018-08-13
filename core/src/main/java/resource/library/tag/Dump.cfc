@@ -149,9 +149,9 @@ component {
 		} 
 		else {
 			if(arguments.attrib.format == 'text')
-				file action="write" addnewline="yes" file="#arguments.attrib.output#" output="#result#";
+				file action="append" addnewline="yes" file="#arguments.attrib.output#" output="#result#";
 			else
-				file action="write" addnewline="yes" file="#arguments.attrib.output#" output="<div id=""#dumpID#"" class=""-lucee-dump"">#result#</div>";
+				file action="append" addnewline="yes" file="#arguments.attrib.output#" output="<div id=""#dumpID#"" class=""-lucee-dump"">#result#</div>";
 		}
 	}
 
