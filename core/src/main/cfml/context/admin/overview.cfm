@@ -108,6 +108,7 @@ Error Output --->
        			<cfset local._used=int(width/arguments.usage.max*arguments.usage.used)>
         		<cfset local._free=width-_used>
 				<cfset local.pused=int(100/arguments.usage.max*arguments.usage.used)>
+				<cfset local.pused =(local.pused GT 100)?100:(local.pused LT 0)?0:local.pused  >
        			<cfset local.pfree=100-pused>
         		<div class="percentagebar tooltipMe" title="#pfree#% available (#round((usage.max-usage.used)/1024/1024)#mb), #pused#% in use (#round(usage.used/1024/1024)#mb)"><!---
 					---><div style="width:#pused#%"><span>#pused#%</span></div><!---
