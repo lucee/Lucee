@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import lucee.commons.lang.ExceptionUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -36,7 +35,6 @@ import lucee.runtime.type.util.UDFUtil;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
-import lucee.transformer.bytecode.Root;
 import lucee.transformer.bytecode.expression.ExpressionInvoker;
 import lucee.transformer.bytecode.expression.FunctionAsExpression;
 import lucee.transformer.bytecode.expression.var.Argument;
@@ -50,6 +48,7 @@ import lucee.transformer.bytecode.expression.var.NamedArgument;
 import lucee.transformer.bytecode.expression.var.UDF;
 import lucee.transformer.bytecode.literal.Identifier;
 import lucee.transformer.bytecode.literal.Null;
+import lucee.transformer.bytecode.literal.NullConstant;
 import lucee.transformer.bytecode.op.OPDecision;
 import lucee.transformer.bytecode.op.OPUnary;
 import lucee.transformer.bytecode.op.OpContional;
@@ -61,9 +60,6 @@ import lucee.transformer.bytecode.op.OpVariable;
 import lucee.transformer.bytecode.statement.udf.Function;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.cfml.Data;
-import lucee.transformer.cfml.TransfomerSettings;
-import lucee.transformer.cfml.evaluator.EvaluatorPool;
-import lucee.transformer.cfml.script.DocComment;
 import lucee.transformer.cfml.script.DocCommentTransformer;
 import lucee.transformer.cfml.tag.CFMLTransformer;
 import lucee.transformer.expression.ExprBoolean;
@@ -77,11 +73,8 @@ import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.expression.var.DataMember;
 import lucee.transformer.expression.var.Member;
 import lucee.transformer.expression.var.Variable;
-import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.function.FunctionLibFunctionArg;
-import lucee.transformer.library.tag.TagLib;
-import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
 import lucee.transformer.library.tag.TagLibTagScript;
 import lucee.transformer.util.SourceCode;
@@ -354,6 +347,11 @@ public abstract class AbstrCFMLExprTransformer {
 				}
 				else if(expr instanceof Null) {
 					Variable var = ((Null)expr).toVariable();
+					Expression value = assignOp(data);
+					expr=new Assign(var,value,data.srcCode.getPosition());
+				}
+				else if(expr instanceof NullConstant) {
+					Variable var = ((NullConstant)expr).toVariable();
 					Expression value = assignOp(data);
 					expr=new Assign(var,value,data.srcCode.getPosition());
 				}
@@ -1279,9 +1277,9 @@ public abstract class AbstrCFMLExprTransformer {
 			comments(data);
 			return id.getFactory().createLitBoolean(false,line,data.srcCode.getPosition());
 		}
-		else if((data.srcCode.getDialect()!=CFMLEngine.DIALECT_CFML || data.config.getFullNullSupport()) && id.getString().equalsIgnoreCase("NULL"))	{
+		else if(id.getString().equalsIgnoreCase("NULL") && !data.srcCode.isCurrent('.') && !data.srcCode.isCurrent('['))	{
 			comments(data);
-			return id.getFactory().createNull(line,data.srcCode.getPosition());
+			return id.getFactory().createNullConstant(line,data.srcCode.getPosition());
 		}
 		
 		// Extract Scope from the Variable

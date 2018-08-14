@@ -68,6 +68,9 @@ import lucee.runtime.monitor.IntervallMonitor;
 import lucee.runtime.monitor.RequestMonitor;
 import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.rpc.DummyWSHandler;
+import lucee.runtime.net.rpc.WSHandler;
+import lucee.runtime.net.rpc.ref.WSHandlerReflector;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
@@ -697,8 +700,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	}
 	
 
-	private boolean fullNullSupport=false;
-
+	
 	private IdentificationServer id;
 
 	private String libHash;
@@ -713,15 +715,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	private int localExtSize=-1;
 
 	private Map<String, GatewayEntry> gatewayEntries;
-	
-	protected void setFullNullSupport(boolean fullNullSupport) {
-		this.fullNullSupport=fullNullSupport;
-	}
 
-	@Override
-	public boolean getFullNullSupport() {
-		return fullNullSupport;
-	}
 
 	public String[] getAuthenticationKeys() {
 		return authKeys==null?new String[0]:authKeys;
@@ -916,8 +910,10 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
 	private long extHash(Resource[] locReses) {
 		StringBuilder sb=new StringBuilder();
-		for(Resource locRes:locReses){
-			sb.append(locRes.getAbsolutePath()).append(';');
+		if(locReses!=null){
+			for(Resource locRes:locReses){
+				sb.append(locRes.getAbsolutePath()).append(';');
+			}
 		}
 		return HashUtil.create64BitHash(sb);
 	}
@@ -929,5 +925,23 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	
 	public Map<String, GatewayEntry> getGatewayEntries() {
 		return gatewayEntries;
+	}
+
+	private WSHandler wsHandler;
+	@Override // that method normally should not be used, maybe in rthe future
+	public WSHandler getWSHandler() throws PageException {
+		if(wsHandler==null) {
+			ClassDefinition cd = getWSHandlerClassDefinition();
+			try{
+				if(isEmpty(cd)) return new DummyWSHandler();
+				Object obj = cd.getClazz().newInstance();
+				if(obj instanceof WSHandler) wsHandler=(WSHandler) obj;
+				else wsHandler=new WSHandlerReflector(obj);
+			}
+			catch(Exception e) {
+				throw Caster.toPageException(e);
+			}
+		}
+		return wsHandler;
 	}
 }

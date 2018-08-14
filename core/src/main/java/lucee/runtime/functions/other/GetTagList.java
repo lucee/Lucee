@@ -45,7 +45,7 @@ public final class GetTagList implements Function {
 	
 	public static lucee.runtime.type.Struct call(PageContext pc, String strDialect) throws PageException {
 		int dialect=ConfigWebUtil.toDialect(strDialect,-1);
-		if(dialect==-1) throw new FunctionException(pc, "GetTagList", 1, "dialect","invalid dialect ["+strDialect+"] defintion");
+		if(dialect==-1) throw new FunctionException(pc, "GetTagList", 1, "dialect","invalid dialect ["+strDialect+"] definition");
 		
 		return _call(pc, dialect);
 	}

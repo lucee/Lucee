@@ -162,10 +162,12 @@ public final class TimeFormat extends BaseFormat implements Format {
 	
 				// m: Minutes; no leading zero for single-digit minutes 
 				// mm: Minutes; leading zero for single-digit minutes 
+					case 'N':
+					case 'n':
 					case 'M':
 					case 'm':
 						int minute=calendar.get(Calendar.MINUTE);
-						if(next=='M' || next=='m') {
+						if(next=='M' || next=='m' || next=='N' || next=='n') {
 							formated.append(minute<10?"0"+minute:""+minute);
 							pos++;
 						}

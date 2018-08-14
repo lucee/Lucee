@@ -104,7 +104,7 @@
 		<!--- Desc --->
 		<div class="text">
 			<cfif not StructKeyExists(data, "description") or data.description eq "">
-				<em>No decription found</em>
+				<em>No description found</em>
 			<cfelse>
 				#replace(replace(data.description,'	','&nbsp;&nbsp;&nbsp;','all'), server.separator.line,'<br />','all')#
 			</cfif>
@@ -120,7 +120,7 @@
 			<div class="text">#arraytolist(data.keywords)#</div>
 		</cfif>
 
-		<!--- Argumente --->
+		<!--- Arguments --->
 		<h2>#stText.doc.argTitle#</h2>
 		<div class="itemintro">
 			<cfif data.argumentType EQ "fixed" and arraylen(data.arguments) LTE 1>

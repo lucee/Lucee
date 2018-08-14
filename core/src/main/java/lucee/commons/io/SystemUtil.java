@@ -38,6 +38,7 @@ import java.net.URLClassLoader;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
@@ -47,6 +48,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.ServletContext;
 
 import lucee.commons.digest.MD5;
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -157,6 +159,8 @@ public final class SystemUtil {
 
 	private static final String JAVA_VERSION_STRING = System.getProperty("java.version");
 	public static final int JAVA_VERSION;
+	private static final Class[] EMPTY_CLASS = new Class[0];
+	private static final Object[] EMPTY_OBJ = new Object[0];
 
 	static {
 		// OS
@@ -1019,9 +1023,22 @@ public final class SystemUtil {
 			this.line = line;
 		}
 
+		public TemplateLine(String templateAndLine) {
+			int index=templateAndLine.lastIndexOf(':');
+			this.template = index==-1?templateAndLine:templateAndLine.substring(0,index);
+			this.line = index==-1?0:Caster.toIntValue(templateAndLine.substring(index+1),0);
+		}
+
 		@Override
 		public String toString() {
 			return template + ":" + line;
+		}
+
+		public Object toStruct() {
+			Struct caller=new StructImpl(Struct.TYPE_LINKED);
+			caller.setEL(KeyConstants._template, template);
+			caller.setEL(KeyConstants._line, new Double(line));
+			return caller;
 		}
 	}
 
@@ -1116,25 +1133,40 @@ public final class SystemUtil {
 			
 			InetAddress ip = InetAddress.getLocalHost();
 			NetworkInterface network = NetworkInterface.getByInetAddress(ip);
-			if(network == null) {
-				hasMacAddress = true;
-				return null;
-			}
-
-			byte[] mac = network.getHardwareAddress();
-			if(mac == null) {
-				hasMacAddress = true;
-				return null;
+			if(network!=null) {
+				byte[] mac = network.getHardwareAddress();
+				if(mac!=null) {
+					macAddress = mac2String(mac);
+				}
 			}
 			
-			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < mac.length; i++) {
-				sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
+			if(StringUtil.isEmpty(macAddress)) {
+				Enumeration<NetworkInterface> nwInterface = NetworkInterface.getNetworkInterfaces();
+				NetworkInterface nis;
+				byte[] mac;
+				while (nwInterface.hasMoreElements()) {
+				    nis = nwInterface.nextElement();
+				    
+				    if (nis!=null) {
+				        mac = nis.getHardwareAddress();
+				        if (mac!=null && nis.isUp()) {
+				        	macAddress = mac2String(mac);
+				        	break;
+				        }
+				    } 
+				}
 			}
-			macAddress = sb.toString();
 			hasMacAddress = true;
 		}
 		return macAddress;
+	}
+	
+	private static String mac2String(byte[] mac) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < mac.length; i++) {
+			sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
+		}
+		return sb.toString();
 	}
 
 	public static URL getResource(Bundle bundle, String path) {
@@ -1455,6 +1487,7 @@ public final class SystemUtil {
 	}
 
 	private static Map<String, Integer> logs = new ConcurrentHashMap<String, Integer>();
+	private static Boolean booted=null;
 
 	public static void logUsage() {
 		String st = ExceptionUtil.getStacktrace(new Throwable(), false);
@@ -1500,6 +1533,23 @@ public final class SystemUtil {
 
 	public static double millis() {
 		return System.nanoTime()/1000000d;
+	}
+
+	public static boolean isBooted() {
+		if(Boolean.TRUE.equals(booted)) return true;
+		
+		Class clazz = ClassUtil.loadClass("jdk.internal.misc.VM",null); // Java == 9
+		if(clazz==null)  clazz = ClassUtil.loadClass("sun.misc.VM",null); // Java < 9
+		
+		if(clazz!=null) {
+			try {
+				Method m = clazz.getMethod("isBooted", EMPTY_CLASS);
+				booted = Caster.toBoolean(m.invoke(null, EMPTY_OBJ));
+				return booted.booleanValue();
+			}
+			catch(Exception e) {}
+		}
+		return true;
 	}
 
 }

@@ -57,6 +57,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import lucee.VersionInfo;
+import lucee.commons.io.log.Log;
 import lucee.loader.TP;
 import lucee.loader.osgi.BundleCollection;
 import lucee.loader.osgi.BundleLoader;
@@ -65,6 +66,7 @@ import lucee.loader.osgi.LoggerImpl;
 import lucee.loader.util.ExtensionFilter;
 import lucee.loader.util.Util;
 import lucee.loader.util.ZipUtil;
+import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
 import lucee.runtime.util.Pack200Util;
@@ -188,7 +190,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (singelton != null)
 			return singelton;
 		throw new RuntimeException(
-				"engine is not initalized, you must first call getInstance(ServletConfig)");
+				"engine is not initialized, you must first call getInstance(ServletConfig)");
 	}
 
 	public static void registerInstance(final CFMLEngine engine) {
@@ -334,23 +336,38 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				log(Logger.LOG_DEBUG, "Load Build in Core");
 				// 
 				
-				
+
 				final String coreExt = "lco";
-				
+				final String coreExtPack = "lco.pack.gz";
+				boolean isPack200=false;
 				// copy core
 				
 				final File rc = new File(getTempDirectory(), "tmp_"+ System.currentTimeMillis() + "."+coreExt);
+				File rcPack200 = new File(getTempDirectory(), "tmp_"+ System.currentTimeMillis() + "."+coreExtPack);
 				InputStream is=null;
 				OutputStream os=null;
 				try {
 					is = new TP().getClass().getResourceAsStream("/core/core." + coreExt);
-					os = new BufferedOutputStream(new FileOutputStream(rc));
+					if(is==null) {
+						is = new TP().getClass().getResourceAsStream("/core/core." + coreExtPack);
+						isPack200=true;
+					}
+					os = new BufferedOutputStream(new FileOutputStream(isPack200?rcPack200:rc));
 					copy(is, os);
 				}
 				finally {
 					closeEL(is);
 					closeEL(os);
 				}
+				
+				// unpack if necessary
+				if(isPack200) {
+					Pack200Util.pack2Jar(rcPack200, rc);
+					log(Logger.LOG_DEBUG,"unpack "+rcPack200+" to "+rc);
+					rcPack200.delete();
+				}
+				
+				
 				
 				lucee = new File(patcheDir, getVersion(rc) + "." + coreExt);
 				try {
@@ -365,17 +382,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				}
 				
 				setEngine(_getCore(lucee));
-
-				
-				/*if (PATCH_ENABLED) {
-					final InputStream bis = new TP().getClass()
-							.getResourceAsStream("/core/core." + coreExt);
-					final OutputStream bos = new BufferedOutputStream(
-							new FileOutputStream(lucee));
-					copy(bis, bos);
-					closeEL(bis);
-					closeEL(bos);
-				}*/
 			}
 			else {
 
@@ -404,14 +410,13 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		//check updates
 		String updateType = singelton.getUpdateType();
 		if (updateType == null || updateType.length() == 0)
-			updateType = "manuell";
+			updateType = "manuell"; // TODO should be manual?
 
 		if (updateType.equalsIgnoreCase("auto"))
 			new UpdateChecker(this, null).start();
 
 	}
 
-	
 	private static String getVersion(File file) throws IOException, BundleException {
 		JarFile jar = new JarFile(file);
 		try {
@@ -466,14 +471,14 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		}
 		config.put("felix.log.level", "" + logLevel);
 
-		// Allow felix.cache.locking to be overriden by env var (true/false)
+		// Allow felix.cache.locking to be overridden by env var (true/false)
 		// Enables or disables bundle cache locking, which is used to prevent concurrent access to the bundle cache. 
 		String strCacheLocking = getSystemPropOrEnvVar("felix.cache.locking", null);
 		if(!Util.isEmpty(strCacheLocking)) {
 			config.put("felix.cache.locking", strCacheLocking);
 		}
 
-		// Allow FRAMEWORK_STORAGE_CLEAN to be overriden by env var
+		// Allow FRAMEWORK_STORAGE_CLEAN to be overridden by env var
 		// The value can either be "none" or "onFirstInit", where "none" does not flush the bundle cache 
 		// and "onFirstInit" flushes the bundle cache when the framework instance is first initialized.
 		String strStorageClean = getSystemPropOrEnvVar("felix.storage.clean", null);
@@ -533,7 +538,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			sb.append("\n- ").append(e.getKey()).append(':')
 					.append(e.getValue());
 		}
-		log(Logger.LOG_INFO, sb.toString());
+		//log(Logger.LOG_INFO, sb.toString());
 
 		felix = new Felix(config);
 		try {
@@ -593,8 +598,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	/**
-	 * method to initalize a update of the CFML Engine.
-	 * checks if there is a new Version and update it whwn a new version is
+	 * method to initialize a update of the CFML Engine.
+	 * checks if there is a new Version and update it when a new version is
 	 * available
 	 * 
 	 * @param password
@@ -657,6 +662,12 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			singelton.reset();
 		
 		initEngine();
+		
+		ConfigServer cs = getConfigServer(singelton);
+		if(cs!=null) {
+			Log log = cs.getLog("application");
+			log.info("loader", "Lucee restarted");
+		} 
 		System.gc();
 		return true;
 	}
@@ -692,6 +703,15 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			setEngine(e);
 			//e.reset();
 			callListeners(e);
+			
+			
+			ConfigServer cs = getConfigServer(e);
+			if(cs!=null) {
+				Log log = cs.getLog("deploy");
+				log.info("loader", "Lucee Version [" + v + "] installed");
+			} 
+			
+			
 		} catch (final Exception e) {
 			System.gc();
 			try {
@@ -702,9 +722,24 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			e.printStackTrace();
 			return false;
 		}
-
+		
 		log(Logger.LOG_DEBUG, "Version (" + v + ")installed");
 		return true;
+	}
+
+	private ConfigServer getConfigServer(CFMLEngine engine) {
+		if(engine==null) return null;
+		if(engine instanceof CFMLEngineWrapper)
+			engine=((CFMLEngineWrapper)engine).getEngine();
+		
+		try {
+			Method m = engine.getClass().getDeclaredMethod("getConfigServerImpl", new Class[]{});
+			m.setAccessible(true);
+			return (ConfigServer)m.invoke(engine, new Object[] {});
+		}
+		catch(Exception e) {e.printStackTrace();}
+
+		return null;
 	}
 
 	public File downloadBundle(final String symbolicName,
@@ -730,7 +765,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				"/rest/update/provider/download/" + symbolicName + "/"
 						+ symbolicVersion + "/"
 						+ (id != null ? id.toQueryString() : "")
-						+ (id == null ? "?" : "&")+"allowRedirect=true"
+						+ (id == null ? "?" : "&")+"allowRedirect=true&jv="+System.getProperty("java.version")
 						
 				);
 		log(Logger.LOG_DEBUG, "download bundle [" + symbolicName + ":"+ symbolicVersion + "] from " + updateUrl+" and copy to "+jar);
@@ -776,7 +811,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				final String msg = "Lucee is not able do download the bundle for ["
 					+ symbolicName + "] in version [" + symbolicVersion
 					+ "] from " + updateUrl
-					+ ", please donwload manually and copy to [" + jarDir + "]";
+					+ ", please download manually and copy to [" + jarDir + "]";
 				log(Logger.LOG_ERROR, msg);
 				conn.disconnect();
 				throw new IOException(msg);
@@ -798,7 +833,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		String sub="bundles/";
 		String nameAndVersion=symbolicName+"|"+symbolicVersion;
 		String osgiFileName=symbolicName+"-"+symbolicVersion+".jar";
-		String pack20Ext=".pack.gz";
+		String pack20Ext=".jar.pack.gz";
 		boolean isPack200=false;
 		
 		// first we look for a exact match
@@ -1006,7 +1041,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			if(code != 200){
 				final String msg = "Lucee is not able do download the core for version ["
 					+ version.toString() + "] from " + updateUrl
-					+ ", please donwload it manually and copy to [" + patchDir + "]";
+					+ ", please download it manually and copy to [" + patchDir + "]";
 				log(Logger.LOG_ERROR, msg);
 				conn.disconnect();
 				throw new IOException(msg);
@@ -1121,8 +1156,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	/**
-	 * method to initalize a update of the CFML Engine.
-	 * checks if there is a new Version and update it whwn a new version is
+	 * method to initialize a update of the CFML Engine.
+	 * checks if there is a new Version and update it when a new version is
 	 * available
 	 * 
 	 * @param password
@@ -1138,8 +1173,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	/**
-	 * method to initalize a update of the CFML Engine.
-	 * checks if there is a new Version and update it whwn a new version is
+	 * method to initialize a update of the CFML Engine.
+	 * checks if there is a new Version and update it when a new version is
 	 * available
 	 * 
 	 * @param password
@@ -1209,7 +1244,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	/**
-	 * call all registred listener for update of the engine
+	 * call all registered listener for update of the engine
 	 * 
 	 * @param engine
 	 */
@@ -1220,7 +1255,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	public File getPatchDirectory() throws IOException {
-		File pd = getDirectoryByProp("lucee.patches.dir");
+		File pd = getDirectoryByPropOrEnv("lucee.patches.dir");
 		if (pd != null)
 			return pd;
 
@@ -1231,7 +1266,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	public File getBundleDirectory() throws IOException {
-		File bd = getDirectoryByProp("lucee.bundles.dir");
+		File bd = getDirectoryByPropOrEnv("lucee.bundles.dir");
 		if (bd != null)
 			return bd;
 
@@ -1276,8 +1311,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (luceeServerRoot != null)
 			return luceeServerRoot;
 
-		File lbd = getDirectoryByProp("lucee.base.dir"); // directory defined by the caller
-		if(lbd==null) lbd = getDirectoryByEnv("lucee.base.dir"); // directory defined by the caller
+		File lbd = getDirectoryByPropOrEnv("lucee.base.dir"); // directory defined by the caller
 		
 		File root=lbd;
 		// get the root directory
@@ -1454,6 +1488,12 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		}
 	}
 
+	private File getDirectoryByPropOrEnv(final String name) {
+		File file=getDirectoryByProp(name);
+		if(file!=null) return file;
+		return getDirectoryByEnv(name);
+	}
+	
 	private File getDirectoryByProp(final String name) {
 		return _getDirectoryBy(System.getProperty(name));
 	}

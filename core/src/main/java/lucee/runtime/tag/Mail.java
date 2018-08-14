@@ -326,7 +326,7 @@ public final class Mail extends BodyTagImpl {
 	}
 	
 
-	// old function for backward compatiblity
+	// old function for backward compatibility
 	public void setSpoolenable(boolean async){
 		setAsync(async);
 	}

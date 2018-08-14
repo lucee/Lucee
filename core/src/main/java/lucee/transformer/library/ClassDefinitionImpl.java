@@ -17,6 +17,10 @@
  */
 package lucee.transformer.library;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.io.Serializable;
 
 import lucee.commons.digest.HashUtil;
@@ -32,17 +36,17 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.xml.sax.Attributes;
 
-public class ClassDefinitionImpl<T> implements ClassDefinition<T>,Serializable {
+public class ClassDefinitionImpl<T> implements ClassDefinition<T>,Externalizable {
 
 	/**
 	 * do not use to load class!!!
 	 */
-	private final String className; 
-	private final String name;
-	private final Version version;
+	private String className; 
+	private String name;
+	private Version version;
 	private Identification id;
 	
-	private Class<T> clazz;
+	private transient Class<T> clazz;
 
 	public ClassDefinitionImpl(String className, String name, String version, Identification id) {
 		this.className=className==null?null:className.trim();
@@ -71,12 +75,37 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>,Serializable {
 		this.version=null;
 		this.id=null;
 	}
+	
+	/**
+	 * only used by deserializer!
+	 */
+	public ClassDefinitionImpl() {}
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeObject(className);
+		out.writeObject(name);
+		out.writeObject(version==null?null:version.toString());
+		out.writeObject(id);
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		className=(String) in.readObject();
+		name=(String) in.readObject();
+		String tmp = (String) in.readObject();
+		if(tmp!=null)this.version=OSGiUtil.toVersion(tmp,null);
+		id=(Identification) in.readObject();
+	}
+	
+	
+	
 
 	@Override
 	public Class<T> getClazz() throws ClassException, BundleException {
 		if(clazz!=null) return clazz;
 		
-		// regular class defintion
+		// regular class definition
 		if(name==null) 
 			return clazz=ClassUtil.loadClass(className);
 		

@@ -48,9 +48,6 @@ public final class PrintOut extends StatementBaseNoFinal {
 			Types.VOID,
 			new Type[]{Types.STRING,Types.STRING}); 
     
-    private final static Method METHOD_WRITE_ENCODE_SHORT = new Method("writeEncodeFor",
-			Types.VOID,
-			new Type[]{Types.STRING,Types.SHORT_VALUE}); 
     
     Expression expr;
 
@@ -59,8 +56,6 @@ public final class PrintOut extends StatementBaseNoFinal {
 
 
 	private Expression encodeFor;
-	private boolean encodeForIsInt;
-
   
     
     /**
@@ -89,15 +84,15 @@ public final class PrintOut extends StatementBaseNoFinal {
         
         if(!usedExternalizer)es.writeOut(bc,Expression.MODE_REF);
         if(doEncode) {
-        	if(encodeForIsInt) {
+        	/*if(encodeForIsInt) {
         		encodeFor.writeOut(bc, Expression.MODE_VALUE);
         		adapter.visitInsn(Opcodes.I2S);
             	adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL,METHOD_WRITE_ENCODE_SHORT); // FUTURE keyword:encodefore remove _IMPL
         	}
-        	else {
+        	else {*/
         		encodeFor.writeOut(bc, Expression.MODE_REF);
         		adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL,METHOD_WRITE_ENCODE_STRING); // FUTURE keyword:encodefore remove _IMPL
-        	}
+        	//}
         }
         else
         	adapter.invokeVirtual(Types.PAGE_CONTEXT,checkPSQ?METHOD_WRITE_PSQ:METHOD_WRITE);
@@ -128,9 +123,6 @@ public final class PrintOut extends StatementBaseNoFinal {
 	
 
 	public void setEncodeFor(Expression encodeFor) {
-		encodeForIsInt=encodeFor instanceof ExprInt;
-		
-    	if(!encodeForIsInt) this.encodeFor=CastString.toExprString(encodeFor);
-    	else this.encodeFor = encodeFor;
+		this.encodeFor=CastString.toExprString(encodeFor);
 	}
 }

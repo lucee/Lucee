@@ -168,7 +168,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		
 		synchronized (getClassLoadingLock(name)) {
 		
-			// new class , not in memoyr yet
+			// new class , not in memory yet
 			try {
 				clazz = loadClass(name,false,false); // we do not load existing class from disk
 			}

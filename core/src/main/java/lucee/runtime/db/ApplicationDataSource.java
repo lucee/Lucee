@@ -26,6 +26,7 @@ import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Struct;
 
 public class ApplicationDataSource extends DataSourceSupport {
@@ -34,18 +35,18 @@ public class ApplicationDataSource extends DataSourceSupport {
 	
 
 	private ApplicationDataSource(Config config, String name, ClassDefinition cd, String connStr, String username, String password,
-			boolean blob, boolean clob, int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly,Log log) {
-		super(config,name, cd,username,ConfigWebUtil.decrypt(password),
+			TagListener listener, boolean blob, boolean clob, int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly,Log log) {
+		super(config,name, cd,username,ConfigWebUtil.decrypt(password),listener,
 				blob,clob,connectionLimit, connectionTimeout, metaCacheTimeout, timezone, allow<0?ALLOW_ALL:allow, storage, readOnly,log);
 		
 		this.connStr = connStr;
 	}
 	
 
-	public static DataSource getInstance(Config config, String name, ClassDefinition cd, String connStr, String username, String password,
+	public static DataSource getInstance(Config config, String name, ClassDefinition cd, String connStr, String username, String password, TagListener listener,
 			boolean blob, boolean clob, int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly,Log log) {
 		
-		return new ApplicationDataSource(config,name, cd, connStr, username, password, blob, clob, connectionLimit, connectionTimeout, metaCacheTimeout, timezone, allow, storage, readOnly,log);
+		return new ApplicationDataSource(config,name, cd, connStr, username, password, listener, blob, clob, connectionLimit, connectionTimeout, metaCacheTimeout, timezone, allow, storage, readOnly,log);
 	}
 
 	@Override
@@ -86,7 +87,7 @@ public class ApplicationDataSource extends DataSourceSupport {
 	@Override
 	public DataSource cloneReadOnly() {
 		try {
-			return new ApplicationDataSource(ThreadLocalPageContext.getConfig(),getName(), getClassDefinition(), connStr, getUsername(), getPassword(),
+			return new ApplicationDataSource(ThreadLocalPageContext.getConfig(),getName(), getClassDefinition(), connStr, getUsername(), getPassword(),getListener(),
 					isBlob(), isClob(), getConnectionLimit(), getConnectionTimeout(), getMetaCacheTimeout(), getTimeZone(), allow, isStorage(), isReadOnly(),getLog());
 		} catch (Exception e) {
 			throw new RuntimeException(e);// this should never happens, because the class was already loaded in this object

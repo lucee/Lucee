@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.Writer;
 
 /**
- * Close the Writer automaticlly when object will destroyed by the garbage
+ * Close the Writer automatically when object will destroyed by the garbage
  */
 public final class AutoCloseWriter extends Writer {
 	

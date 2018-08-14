@@ -485,7 +485,7 @@ public final class HTTPUtil {
 	}
 	
 	
-	// MUST create a copy from toURL and rename toURI and rewrite for URI, pherhaps it is possible to merge them somehow
+	// MUST create a copy from toURL and rename toURI and rewrite for URI, perhaps it is possible to merge them somehow
 	public static String encode(String realpath) {
     	
         

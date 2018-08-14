@@ -57,7 +57,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.functions.list.ListFirst;
 import lucee.runtime.functions.list.ListLast;
-import lucee.runtime.img.ImageUtil;
+import lucee.runtime.image.ImageUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.security.SecurityManager;
@@ -786,7 +786,7 @@ public final class FileTag extends BodyTagImpl {
 		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		
 		
-		try { 		
+		/*try {
 			BufferedImage bi = ImageUtil.toBufferedImage(file, null);
             if(bi!=null) {
 	            Struct img =new StructImpl();
@@ -795,7 +795,7 @@ public final class FileTag extends BodyTagImpl {
 	            sct.setEL(KeyConstants._img,img);
             }
         } 
-		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+		catch(Exception e) {}*/
 		return sct;
 	}
 
@@ -864,7 +864,6 @@ public final class FileTag extends BodyTagImpl {
 		boolean fileExisted=false;
 		boolean fileWasOverwritten=false;
 
-		String contentType = ResourceUtil.getMimeType(formItem.getResource(), formItem.getContentType());
 		
 		// set cffile struct
 		Struct cffile=new StructImpl();
@@ -875,16 +874,20 @@ public final class FileTag extends BodyTagImpl {
 		cffile.set("datelastaccessed",new DateImpl(pageContext));
 		cffile.set("oldfilesize",Long.valueOf(length));
 		cffile.set("filesize",Long.valueOf(length));
-		cffile.set("contenttype",ListFirst.call(pageContext,contentType,"/"));
-		cffile.set("contentsubtype",ListLast.call(pageContext,contentType,"/"));
-		
+
 		// client file
 		String strClientFile=formItem.getName();
 		while(strClientFile.indexOf('\\')!=-1)
 			strClientFile=strClientFile.replace('\\','/');
 		Resource clientFile=pageContext.getConfig().getResource(strClientFile);
 		String clientFileName=clientFile.getName();
-
+		
+		
+		// content type
+		String contentType = ResourceUtil.getMimeType(formItem.getResource(),clientFile.getName(), formItem.getContentType());
+		cffile.set("contenttype",ListFirst.call(pageContext,contentType,"/",false,1));
+		cffile.set("contentsubtype",ListLast.call(pageContext,contentType,"/",false,1));
+		
 		// check file type
 		checkContentType(contentType,accept,getFileExtension(clientFile),strict);
 	
@@ -1087,7 +1090,7 @@ public final class FileTag extends BodyTagImpl {
 	/**
 	 * get file extension of a file object
 	 * @param file file object
-	 * @return extnesion
+	 * @return extension
 	 */
 	private static String getFileExtension(Resource file) {
 		String name=file.getName();

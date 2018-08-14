@@ -19,7 +19,7 @@
 package lucee.runtime.db;
 
 /**
- * represent a SQL Statment
+ * represent a SQL Statement
  */
 public interface SQL {
 

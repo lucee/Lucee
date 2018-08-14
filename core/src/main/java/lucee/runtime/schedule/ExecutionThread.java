@@ -105,12 +105,13 @@ class ExecutionThread extends Thread {
         HTTPResponse rsp=null;
         
         // execute
+        log.info(logName,"calling URL ["+url+"]");
         try {
         	rsp = HTTPEngine.get(new URL(url), user, pass, task.getTimeout(),true, charset, null, proxy, headers);
         }
         catch (Exception e) {
         	
-            LogUtil.log(log,Log.LEVEL_ERROR,logName,e);
+            log.log(Log.LEVEL_ERROR,logName,e);
             hasError=true;
         }
         
@@ -138,14 +139,14 @@ class ExecutionThread extends Thread {
         	    try {
                     str=new URLResolver().transform(str,task.getUrl(),false);
                 } catch (PageException e) {
-                    LogUtil.log(log,Log.LEVEL_ERROR,logName,e);
+                    log.log(Log.LEVEL_ERROR,logName,e);
                     hasError=true;
                 }
         	    try {
                     IOUtil.write(file,str,charset,false);
                 } 
                 catch (IOException e) {
-                    LogUtil.log(log,Log.LEVEL_ERROR,logName,e);
+                    log.log(Log.LEVEL_ERROR,logName,e);
                     hasError=true;
                 }
 	        }
@@ -158,7 +159,7 @@ class ExecutionThread extends Thread {
                     );
                 } 
                 catch (IOException e) {
-                    LogUtil.log(log,Log.LEVEL_ERROR,logName,e);
+                    log.log(Log.LEVEL_ERROR,logName,e);
                     hasError=true;
                 }
 	        }

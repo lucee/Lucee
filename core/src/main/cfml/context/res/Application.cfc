@@ -29,7 +29,7 @@ component {
 	this.scriptProtect     = "all";
 	this.web.charset       = "utf-8";
 
-	variables.isDebug = false;		// ATTN: set to false for production!
+	variables.isDebug = true;		// ATTN: set to false for production!
 
 
 	function onApplicationStart() {

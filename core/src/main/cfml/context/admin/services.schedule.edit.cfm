@@ -157,11 +157,11 @@ Error Output--->
 <cfset translateDateTime(task,"startdate","starttime","start")>
 <cfset translateDateTime(task,"enddate","endtime","end")>
 
-
-
-
 <cfoutput>
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=#url.action2#&task=#url.task#" method="post">
+
+		<input type="submit" style="display:none;" onclick="return false;" value="dummy button to disable submit on enter">
+
 		<table class="maintbl">
 			<tbody>
 				<tr>

@@ -434,7 +434,7 @@ public class Input extends TagImpl {
      */
     public void setFirstdayofweek(double firstDayOfWeek) throws ApplicationException {
     	if(firstDayOfWeek<0 || firstDayOfWeek>6)
-    		throw new ApplicationException("value of attribute [firstDayOfWeek] must conatin a numeric value between 0-6");
+    		throw new ApplicationException("value of attribute [firstDayOfWeek] must contain a numeric value between 0-6");
     	this.firstDayOfWeek=firstDayOfWeek;
     }
     /**
@@ -618,7 +618,7 @@ public class Input extends TagImpl {
 	private void _doEndTag() throws PageException, IOException {
         // check attributes
     	if(input.getValidate()==VALIDATE_REGULAR_EXPRESSION && input.getPattern()==null) {
-            throw new ApplicationException("when validation type regular_expression is seleted, the pattern attribute is required");
+            throw new ApplicationException("when validation type regular_expression is selected, the pattern attribute is required");
         }
 
     	Tag parent = getParent();

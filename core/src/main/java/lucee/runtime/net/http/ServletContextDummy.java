@@ -40,18 +40,17 @@ import javax.servlet.SessionCookieConfig;
 import javax.servlet.SessionTrackingMode;
 import javax.servlet.descriptor.JspConfigDescriptor;
 
+import lucee.commons.io.log.Log;
 import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.it.ItAsEnum;
 import lucee.runtime.util.EnumerationWrapper;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 public class ServletContextDummy implements ServletContext {
 	private Struct attributes;
@@ -59,7 +58,7 @@ public class ServletContextDummy implements ServletContext {
 	private int majorVersion;
 	private int minorVersion;
 	private Config config;
-	private Logger log;
+	private Log log;
 	private Resource root;
 	
 	
@@ -70,7 +69,7 @@ public class ServletContextDummy implements ServletContext {
 		this.parameters=parameters;
 		this.majorVersion=majorVersion;
 		this.minorVersion=minorVersion;
-		log=Log4jUtil.getConsoleLog(config, false,"servlet-context-dummy",Level.INFO);
+		log=((ConfigImpl)config).getLogEngine().getConsoleLog(false,"servlet-context-dummy",Log.LEVEL_INFO);
 		
 	}
 
@@ -160,8 +159,8 @@ public class ServletContextDummy implements ServletContext {
 
 	@Override
 	public void log(String msg, Throwable t) {
-		if(t==null)log.log(Level.INFO,msg);
-		else log.log(Level.ERROR, msg,t);
+		if(t==null)log.log(Log.LEVEL_INFO,null,msg);
+		else log.log(Log.LEVEL_ERROR, null,msg,t);
 	}
 
 	@Override

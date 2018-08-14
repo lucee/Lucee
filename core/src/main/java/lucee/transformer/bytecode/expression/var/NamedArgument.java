@@ -21,6 +21,7 @@ package lucee.transformer.bytecode.expression.var;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.literal.Null;
+import lucee.transformer.bytecode.literal.NullConstant;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.ArrayVisitor;
 import lucee.transformer.expression.Expression;
@@ -54,7 +55,7 @@ public final class NamedArgument extends Argument {
 
 	public NamedArgument(Expression name, Expression value, String type, boolean varKeyUpperCase) {
 		super(value,type);
-		this.name=name instanceof Null?name.getFactory().createLitString(varKeyUpperCase?"NULL":"null"):name;
+		this.name=name instanceof Null || name instanceof NullConstant?name.getFactory().createLitString(varKeyUpperCase?"NULL":"null"):name;
 		this.varKeyUpperCase=varKeyUpperCase;
 	}
 

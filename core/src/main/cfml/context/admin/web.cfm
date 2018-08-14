@@ -73,6 +73,7 @@
 				returnVariable="hashedPassword">
 			<cfset session["password"&request.adminType]=hashedPassword>
             <cfset session.lucee_admin_lang=form.lang>
+            <!--- Thread operation for update provider --->
             <cfcookie expires="NEVER" name="lucee_admin_lang" value="#session.lucee_admin_lang#">
             <cfif form.rememberMe NEQ "s">
                 <cfcookie
@@ -88,6 +89,8 @@
         </cfif>
     </cfif>
 </cfif>
+
+
 <!--- new pw Form --->
 <cfif StructKeyExists(form,"new_password") and StructKeyExists(form,"new_password_re")>
 	<cfif len(form.new_password) LT 6>
@@ -133,12 +136,23 @@
 			action="connect"
 			type="#request.adminType#"
 			password="#session["password"&request.adminType]#">
+		<cfif request.adminType EQ "server">
+			<cfadmin
+			action="getDevelopMode"
+			type="#request.adminType#"
+			password="#session["password"&request.adminType]#"
+			returnVariable="mode">
+			<cfif mode.developMode>
+				<cfset session.alwaysNew = true>
+			</cfif>
+		</cfif>
 
 		 <cfcatch>
 		 	<cfset login_error=cfcatch.message>
 			<cfset StructDelete(session,"password"&request.adminType)>
 		</cfcatch>
 	</cftry>
+	
 </cfif>
 
 <cfif not StructKeyExists(session,'lucee_admin_lang')>
@@ -178,8 +192,15 @@
         	<cfset language.__action=trim(xml.xmlRoot.XmlAttributes.action)>
         	<cfset language.__position=StructKeyExists(xml.xmlRoot.XmlAttributes,"position")?xml.xmlRoot.XmlAttributes.position:0>
         </cfif>
-        <cfset xml = XmlSearch(xml, "/languages/language[@key='#lCase(trim(arguments.lang))#']")[1]>
-
+        <cftry>
+				<cfset xml = XmlSearch(xml, "/languages/language[@key='#lCase(trim(arguments.lang))#']")[1]>
+			<cfcatch>
+				<!--- fallback to english --->
+				<cfset xml = XmlSearch(xml, "/languages/language[@key='en']")[1]>
+			</cfcatch>
+		</cftry>
+        
+        
 		<cfset language.__group=StructKeyExists(xml,"group")?xml.group.XmlText:UCFirst(language.__action)>
 		<cfset language.title=xml.title.XmlText>
 		<cfset language.text=xml.description.XmlText>
@@ -232,6 +253,9 @@
         <cfloop query="plugindirs">
             <cfif plugindirs.type EQ "dir">
                 <cfset _lang=loadPluginLanguage(pluginDir,plugindirs.name)>
+                <cfif isNull(_lang.__group)>
+					<cfcontinue>
+				</cfif>
                 <cfset _act=_lang.__action>
 				<cfset _group=_lang.__group>
 				<cfset _pos=_lang.__position>
@@ -466,3 +490,20 @@
 <cfif current.action neq "overview">
 	<cfcookie name="lucee_admin_lastpage" value="#current.action#" expires="NEVER">
 </cfif>
+
+
+<!--- <cftry>
+<cfscript>
+if(request.adminType == 'server'){
+	include "services.update.functions.cfm";
+	ud=getUpdateData();
+	if(isNull(application.UpdateProvider[ud.location])) {
+		thread name="providers" action="run" location=ud.location {
+			application.UpdateProvider[ud.location]=getAvailableVersion();
+			systemOutput("done!",1,1);
+		}
+	}
+}
+</cfscript>
+<cfcatch></cfcatch>
+</cftry> --->

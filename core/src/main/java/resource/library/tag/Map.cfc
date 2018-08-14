@@ -115,7 +115,7 @@
     </cffunction>
 
 	<!---   attributes   --->
-	<cffunction name="getAtttributes" access="public" output="false" returntype="struct">
+	<cffunction name="getAttributes" access="public" output="false" returntype="struct">
 		<cfreturn variables.attributes/>
 	</cffunction>
 
@@ -141,7 +141,7 @@
 		<script type="text/javascript">
 		#rand#_on_Load = function(){
 			Lucee.Map.init('#attributes.name#',#this.serializeJsonSafe(options)#);
-			<cfloop array="#children#" index="child">Lucee.Map.addMarker('#attributes.name#',#serializeJsonSafe(child.getAtttributes())#);</cfloop>
+			<cfloop array="#children#" index="child">Lucee.Map.addMarker('#attributes.name#',#serializeJsonSafe(child.getAttributes())#);</cfloop>
 		}		
 		Lucee.Events.subscribe(#rand#_on_Load,'onLoad');	
 		</script>		

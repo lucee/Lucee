@@ -49,14 +49,16 @@ import lucee.runtime.component.AbstractFinal.UDFB;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.AppListenerUtil;
-import lucee.runtime.net.rpc.AxisCaster;
-import lucee.runtime.net.rpc.Pojo;
-import lucee.runtime.net.rpc.server.RPCServer;
+import lucee.runtime.type.Pojo;
+import lucee.runtime.net.rpc.WSHandler;
+import lucee.runtime.net.rpc.server.WSServer;
+import lucee.runtime.net.rpc.server.WSUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -77,7 +79,6 @@ import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.ArrayVisitor;
 import lucee.transformer.expression.literal.LitString;
 
-import org.apache.axis.AxisFault;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -89,8 +90,13 @@ public final class ComponentUtil {
 	
 
 	private final static Method CONSTRUCTOR_OBJECT = Method.getMethod("void <init> ()");
-	private static final Method INVOKE = new Method("invoke",Types.OBJECT,new Type[]{Types.STRING,Types.OBJECT_ARRAY});
-	//private static final Method INVOKE_PROPERTY = new Method("invoke",Types.OBJECT,new Type[]{Types.STRING,Types.OBJECT_ARRAY});
+	private static final Method INVOKE = new Method("invoke",
+			Types.OBJECT,
+			new Type[]{
+				Types.STRING,Types.OBJECT_ARRAY
+			});
+
+	public static final Type SERVER_WSUTIL = Type.getType(WSUtil.class); 
 	
     /**
      * generate a ComponentJavaAccess (CJA) class from a component
@@ -261,10 +267,11 @@ public final class ComponentUtil {
      * search in methods of a class for complex types
      * @param clazz
      * @return
+	 * @throws PageException 
      */
-    private static Class registerTypeMapping(Class clazz) throws AxisFault {
+    private static Class registerTypeMapping(Class clazz) throws PageException {
     	PageContext pc = ThreadLocalPageContext.get();
-    	RPCServer server=RPCServer.getInstance(pc.getId(),pc,pc.getServletContext());
+    	WSServer server=((ConfigImpl)ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc);
 		return registerTypeMapping(server, clazz);
     }
     /**
@@ -273,7 +280,7 @@ public final class ComponentUtil {
      * @param clazz
      * @return
      */
-    private static Class registerTypeMapping(RPCServer server, Class clazz) {
+    private static Class registerTypeMapping(WSServer server, Class clazz) {
     	java.lang.reflect.Method[] methods = clazz.getMethods();
     	java.lang.reflect.Method method;
     	Class[] params;
@@ -295,7 +302,7 @@ public final class ComponentUtil {
 	 * @param server
 	 * @param clazz
 	 */
-	private static void _registerTypeMapping(RPCServer server, Class clazz) {
+	private static void _registerTypeMapping(WSServer server, Class clazz) {
 		if(clazz==null) return;
 		
 		if(!isComplexType(clazz)) {
@@ -540,7 +547,7 @@ public final class ComponentUtil {
     			av.visitEndItem(bc.getAdapter());
             }
             av.visitEnd();
-            adapter.invokeStatic(Types.COMPONENT_CONTROLLER, INVOKE);
+            adapter.invokeStatic(SERVER_WSUTIL, INVOKE);
             adapter.checkCast(rtnType);
             
             //ASMConstants.NULL(adapter);
@@ -566,7 +573,7 @@ public final class ComponentUtil {
 
 	private static Type toType(String cfType, boolean axistype) throws PageException {
 		Class clazz=Caster.cfTypeToClass(cfType);
-		if(axistype)clazz=AxisCaster.toAxisTypeClass(clazz);
+		if(axistype)clazz=((ConfigImpl)ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(clazz);
 		return Type.getType(clazz);
 		
 	}

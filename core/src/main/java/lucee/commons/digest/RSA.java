@@ -2,6 +2,7 @@ package lucee.commons.digest;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -36,6 +37,15 @@ public class RSA {
 		return toString(x509EncodedKeySpec.getEncoded());
 	}
 	
+	public static Key toKey(String key) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+		try{
+			return toPrivateKey(key);
+		}
+		catch(InvalidKeySpecException ikse) {
+			return toPublicKey(key);
+		}
+	}
+	
 	public static PrivateKey toPrivateKey(String privateKey) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 		byte[] bytes = toBytes(privateKey);
 		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
@@ -64,9 +74,10 @@ public class RSA {
 	    return kpg.genKeyPair();
 	}
 	
-	public static byte[] encrypt(byte[] data, PrivateKey privateKey) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+	public static byte[] encrypt(byte[] data, Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 		Cipher cipher = Cipher.getInstance("RSA");
-	    cipher.init(Cipher.ENCRYPT_MODE, privateKey);
+		
+	    cipher.init(Cipher.ENCRYPT_MODE, key);
 	    int max=(KEY_SIZE/8)-11;
 	    
 	    // we need to split in pieces, because RSA cannot handle pices bigger than the key size
@@ -96,10 +107,10 @@ public class RSA {
 	    return bytes;
 	}
 	
-	public static byte[] decrypt(byte[] data, PublicKey publicKey, int offset) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+	public static byte[] decrypt(byte[] data, Key key, int offset) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 		int max=(KEY_SIZE/8);
 		Cipher cipher = Cipher.getInstance("RSA");
-	    cipher.init(Cipher.DECRYPT_MODE, publicKey);
+	    cipher.init(Cipher.DECRYPT_MODE, key);
 	    
 	    
 	    // we need to split in pieces, because RSA cannot handle pieces bigger than the key size
@@ -124,7 +135,6 @@ public class RSA {
 	    		bytes[count++]=part[i];
 	    	}
 	    }
-	    
 	    return bytes;
 	}
 }

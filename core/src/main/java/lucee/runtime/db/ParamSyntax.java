@@ -1,5 +1,6 @@
 package lucee.runtime.db;
 
+import java.io.Serializable;
 import java.net.URLDecoder;
 
 import lucee.commons.lang.StringUtil;
@@ -9,7 +10,7 @@ import lucee.runtime.type.Struct;
 
 import org.w3c.dom.Element;
 
-public class ParamSyntax {
+public class ParamSyntax implements Serializable {
 
 	public static final ParamSyntax DEFAULT = new ParamSyntax("?","&","=");
 	

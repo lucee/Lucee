@@ -18,23 +18,14 @@
  **/
 package lucee.commons.io.log;
 
-import java.io.PrintStream;
-
-import lucee.commons.io.log.log4j.LogAdapter;
-import lucee.commons.lang.ExceptionUtil;
-import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
-
-import org.apache.log4j.Logger;
-
 /**
  * Helper class for the logs
  */
 public final class LogUtil {
 
-	public static void log(Log log, int level, String logName, Throwable t) { 
+	/*public static void log(Log log, int level, String logName, Throwable t) { 
 		log(log,level,logName,"",t);
-	}   
+	}
 
 	public static void log(Log log, int level, String logName,String msg, Throwable t) { 
 		if(log instanceof LogAdapter) {
@@ -63,16 +54,34 @@ public final class LogUtil {
 		log(log,level,logName,msg,t);
 	}
 
-	public static Logger toLogger(lucee.commons.io.log.Log log) {
-		if(log==null) return null;
-		return ((LogAdapter)log).getLogger();
-	}
-
 	public static Log getLog(PageContext pc, String name) {
 		return ((PageContextImpl)pc).getLog(name);
 	}
 	
 	public static Log getLog(PageContext pc, String name, boolean createIfNecessary) {
 		return ((PageContextImpl)pc).getLog(name,createIfNecessary);
-	}
+	}*/
+	
+	public static int toLevel(String strLevel, int defaultValue) {
+        if(strLevel==null) return defaultValue;
+        strLevel=strLevel.toLowerCase().trim();
+        if(strLevel.startsWith("info")) return Log.LEVEL_INFO;
+        if(strLevel.startsWith("debug")) return Log.LEVEL_DEBUG;
+        if(strLevel.startsWith("warn")) return Log.LEVEL_WARN;
+        if(strLevel.startsWith("error")) return Log.LEVEL_ERROR;
+        if(strLevel.startsWith("fatal")) return Log.LEVEL_FATAL;
+        if(strLevel.startsWith("trace")) return Log.LEVEL_TRACE;
+        return defaultValue;
+    }
+	
+	public static String levelToString(int level,String defaultValue) {
+        if(Log.LEVEL_INFO==level) return "info";
+        if(Log.LEVEL_DEBUG==level) return "debug";
+        if(Log.LEVEL_WARN==level) return "warn";
+        if(Log.LEVEL_ERROR==level) return "error";
+        if(Log.LEVEL_FATAL==level) return "fatal";
+        if(Log.LEVEL_TRACE==level) return "trace";
+        
+		return defaultValue;
+    }
 }

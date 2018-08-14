@@ -21,6 +21,7 @@ package lucee.transformer.bytecode.cast;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.image.ImageUtil;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
@@ -275,14 +276,15 @@ public final class CastOther extends ExpressionBase implements Cast {
                 	adapter.invokeStatic(Types.CASTER,Methods_Caster.TO_INTEGER[Types.getType(rtn)]);
                 return Types.INTEGER;
             }
-            if("image".equals(lcType)) {
+            /* ext.img if("image".equals(lcType)) {
             	rtn=expr.writeOut(bc,MODE_REF);
-                if(!rtn.equals(Types.IMAGE)) {
+            	Type it = ImageUtil.getImageType();
+                if(!rtn.equals(it)) {
                 	adapter.loadArg(0);
-                    adapter.invokeStatic(Types.IMAGE,Methods_Caster.TO_IMAGE);
+                    adapter.invokeStatic(it,Methods_Caster.TO_IMAGE);
                 }
-                return Types.IMAGE;
-            }
+                return it;
+            }*/
         break;
         case 'j':
 
@@ -522,7 +524,7 @@ public final class CastOther extends ExpressionBase implements Cast {
         break;
 
         case 'i':
-            if("image".equals(lcType)) 							return Types.IMAGE;
+        	// ext.img if("image".equals(lcType)) 							return ImageUtil.getImageType();
             if("int".equals(lcType)) 							return Types.INT_VALUE;
             if("integer".equals(lcType))						return Types.INTEGER;
         break;

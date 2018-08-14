@@ -538,7 +538,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		}
 		// external
 		else {
-			//in that case we need 3 addional args 
+			//in that case we need 3 additional args 
 			// className
 			if(bifCD.getClassName()!=null)adapter.push(bifCD.getClassName());
 			else ASMConstants.NULL(adapter);

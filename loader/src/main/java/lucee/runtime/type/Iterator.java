@@ -49,7 +49,7 @@ public interface Iterator {
 	public boolean previous(int pid);
 
 	/**
-	 * reset ther intern pointer
+	 * reset the intern pointer
 	 * 
 	 * @throws PageException thrown when fail to reset 
 	 * @deprecated use instead <code>{@link #reset(int)}</code>
@@ -87,7 +87,7 @@ public interface Iterator {
 	 * 
 	 * @param index index
 	 * @param pid pointer id
-	 * @return if it was sucessful or not
+	 * @return if it was successful or not
 	 * @throws PageException thrown when fail to execute action
 	 */
 	public boolean go(int index, int pid) throws PageException;

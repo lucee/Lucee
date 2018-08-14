@@ -90,7 +90,7 @@ public final class BodyContentStack {
     }
     
     /**
-     * set if actuell BodyContent is DevNull or not
+     * set if current BodyContent is DevNull or not
      * @param doDevNull
      */
     public void setDevNull(boolean doDevNull) {
@@ -98,7 +98,7 @@ public final class BodyContentStack {
     }
     
     /**
-     * @return returns actuell writer
+     * @return returns current writer
      */
     public JspWriter getWriter() {
         if(!current.doDevNull) {

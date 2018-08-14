@@ -55,6 +55,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
 
+import lucee.commons.collection.HashMapPro;
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -134,7 +135,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	private QueryColumnImpl[] columns;
 	private Collection.Key[] columnNames;
 	private SQL sql;
-	private ArrayInt arrCurrentRow = new ArrayInt();
+	//private ArrayInt arrCurrentRow = new ArrayInt();
+	private HashMapPro<Integer, Integer>  currRow= new HashMapPro<Integer, Integer>();
 	private int recordcount = 0;
 	private int columncount;
 	private long exeTime = 0;
@@ -834,7 +836,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public Object get(String key, Object defaultValue) {
-		return getAt(key, arrCurrentRow.get(getPid(), 1), defaultValue);
+		return getAt(key, currRow.g(getPid(), 1), defaultValue);
 	}
 
 	// private static int pidc=0;
@@ -851,17 +853,17 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public Object get(Collection.Key key, Object defaultValue) {
-		return getAt(key, arrCurrentRow.get(getPid(), 1), defaultValue);
+		return getAt(key, currRow.g(getPid(), 1), defaultValue);
 	}
 
 	@Override
 	public Object get(String key) throws PageException {
-		return getAt(key, arrCurrentRow.get(getPid(), 1));
+		return getAt(key, currRow.g(getPid(), 1));
 	}
 
 	@Override
 	public Object get(Collection.Key key) throws PageException {
-		return getAt(key, arrCurrentRow.get(getPid(), 1));
+		return getAt(key, currRow.g(getPid(), 1));
 	}
 
 	private boolean getKeyCase(PageContext pc) {
@@ -1001,7 +1003,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public Object setEL(Collection.Key key, Object value) {
-		return setAtEL(key, arrCurrentRow.get(getPid(), 1), value);
+		return setAtEL(key, currRow.g(getPid(), 1), value);
 	}
 
 	@Override
@@ -1011,7 +1013,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public Object set(Collection.Key key, Object value) throws PageException {
-		return setAt(key, arrCurrentRow.get(getPid(), 1), value);
+		return setAt(key, currRow.g(getPid(), 1), value);
 	}
 
 	@Override
@@ -1048,10 +1050,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public boolean next(int pid) {
-		if(recordcount >= (arrCurrentRow.set(pid, arrCurrentRow.get(pid, 0) + 1))) {
+		if(recordcount >= (currRow.put(pid, currRow.g(pid, 0) + 1))) {
 			return true;
 		}
-		arrCurrentRow.set(pid, 0);
+		currRow.put(pid, 0);
 		return false;
 	}
 
@@ -1061,7 +1063,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	public void reset(int pid) {
-		arrCurrentRow.set(pid, 0);
+		currRow.remove(pid);
+		//arrCurrentRow.set(pid, 0);
 	}
 
 	@Override
@@ -1076,7 +1079,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public int getCurrentrow(int pid) {
-		return arrCurrentRow.get(pid, 1);
+		return currRow.g(pid, 1);
 	}
 
 	/**
@@ -1103,10 +1106,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	public boolean go(int index, int pid) {
 		if(index > 0 && index <= recordcount) {
-			arrCurrentRow.set(pid, index);
+			currRow.put(pid, index);
 			return true;
 		}
-		arrCurrentRow.set(pid, 0);
+		currRow.put(pid, 0);
 		return false;
 	}
 
@@ -1279,6 +1282,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 					newResult.columns[i] = columns[i].cloneColumnImpl(deepCopy);
 				}
 			}
+			newResult.currRow=new HashMapPro<Integer,Integer>();
 			newResult.sql = sql;
 			newResult.template = template;
 			newResult.recordcount = recordcount;
@@ -1801,7 +1805,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	@Override
 	public Object getObject(String columnName) throws SQLException {
 		int currentrow;
-		if((currentrow = arrCurrentRow.get(getPid(), 0)) == 0)
+		if((currentrow = currRow.g(getPid(), 0)) == 0)
 			return null;
 		return getAt(columnName, currentrow, null);
 	}
@@ -1868,12 +1872,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public Object get(PageContext pc, Key key, Object defaultValue) {
-		return getAt(key, arrCurrentRow.get(pc.getId(), 1), defaultValue);
+		return getAt(key, currRow.g(pc.getId(), 1), defaultValue);
 	}
 
 	@Override
 	public Object get(PageContext pc, Key key) throws PageException {
-		return getAt(key, arrCurrentRow.get(pc.getId(), 1));
+		return getAt(key, currRow.g(pc.getId(), 1));
 	}
 
 	public boolean isInitalized() {
@@ -1882,12 +1886,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public Object set(PageContext pc, Key propertyName, Object value) throws PageException {
-		return setAt(propertyName, arrCurrentRow.get(pc.getId(), 1), value);
+		return setAt(propertyName, currRow.g(pc.getId(), 1), value);
 	}
 
 	@Override
 	public Object setEL(PageContext pc, Key propertyName, Object value) {
-		return setAtEL(propertyName, arrCurrentRow.get(pc.getId(), 1), value);
+		return setAtEL(propertyName, currRow.g(pc.getId(), 1), value);
 	}
 
 	@Override
@@ -1905,20 +1909,20 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		// row=row%recordcount;
 
 		if(row > 0)
-			arrCurrentRow.set(getPid(), row);
+			currRow.put(getPid(), row);
 		else
-			arrCurrentRow.set(getPid(), (recordcount + 1) + row);
+			currRow.put(getPid(), (recordcount + 1) + row);
 		return true;
 	}
 
 	@Override
 	public void afterLast() throws SQLException {
-		arrCurrentRow.set(getPid(), recordcount + 1);
+		currRow.put(getPid(), recordcount + 1);
 	}
 
 	@Override
 	public void beforeFirst() throws SQLException {
-		arrCurrentRow.set(getPid(), 0);
+		currRow.put(getPid(), 0);
 	}
 
 	@Override
@@ -1939,7 +1943,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	@Override
 	public void deleteRow() throws SQLException {
 		try {
-			removeRow(arrCurrentRow.get(getPid()));
+			removeRow(currRow.get(getPid()));
 		}
 		catch (Exception e) {
 			throw new SQLException(e.getMessage());
@@ -2331,7 +2335,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public int getRow() throws SQLException {
-		return arrCurrentRow.get(getPid(), 0);
+		return currRow.g(getPid(), 0);
 	}
 
 	@Override
@@ -2494,16 +2498,16 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public boolean isBeforeFirst() throws SQLException {
-		return arrCurrentRow.get(getPid(), 0) == 0;
+		return currRow.g(getPid(), 0) == 0;
 	}
 
 	@Override
 	public boolean isFirst() throws SQLException {
-		return arrCurrentRow.get(getPid(), 0) == 1;
+		return currRow.g(getPid(), 0) == 1;
 	}
 
 	public boolean isLast() throws SQLException {
-		return arrCurrentRow.get(getPid(), 0) == recordcount;
+		return currRow.g(getPid(), 0) == recordcount;
 	}
 
 	public boolean last() throws SQLException {
@@ -2523,10 +2527,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	public boolean previous(int pid) {
-		if(0 < (arrCurrentRow.set(pid, arrCurrentRow.get(pid, 0) - 1))) {
+		if(0 < (currRow.put(pid, currRow.g(pid, 0) - 1))) {
 			return true;
 		}
-		arrCurrentRow.set(pid, 0);
+		currRow.put(pid, 0);
 		return false;
 	}
 
@@ -2874,7 +2878,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public void readExternal(ObjectInput in) throws IOException {
 		try {
 			QueryImpl other = (QueryImpl)new CFMLExpressionInterpreter(false).interpret(ThreadLocalPageContext.get(), in.readUTF());
-			this.arrCurrentRow = other.arrCurrentRow;
+			this.currRow = other.currRow;
 			this.columncount = other.columncount;
 			this.columnNames = other.columnNames;
 			this.columns = other.columns;
@@ -3134,7 +3138,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 				col = qry.getColumn(newResult.columnNames[i], null);
 				newResult.columns[i] = QueryUtil.duplicate2QueryColumnImpl(newResult, col, deepCopy);
 			}
-
+			newResult.currRow=new HashMapPro<Integer,Integer>();
 			newResult.sql = qry.getSql();
 			newResult.template = qry.getTemplate();
 			newResult.recordcount = qry.getRecordcount();

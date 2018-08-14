@@ -29,7 +29,7 @@ public final class ASMPropertyImpl implements ASMProperty {
 	private String name;
 	private Class clazz;
 	
-	public ASMPropertyImpl(Class type,String name){
+	public ASMPropertyImpl(Class type,String name) throws PageException{
 		this.type=ASMUtil.toType(type, true);
 		this.name=name;
 		this.clazz=type;

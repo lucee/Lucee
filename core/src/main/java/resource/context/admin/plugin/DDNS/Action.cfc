@@ -17,7 +17,7 @@
  ---><cfcomponent hint="Note" extends="lucee.admin.plugin.Plugin">
 	
 	<cffunction name="init"
-		hint="this function will be called to initalize">
+		hint="this function will be called to initialize">
 		<cfargument name="lang" type="struct">
 		<cfargument name="app" type="struct">
 		

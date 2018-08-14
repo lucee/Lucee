@@ -77,7 +77,7 @@ function formatDesc(string desc){
 <!--- Desc --->
 		<div class="text">
 			<cfif not StructKeyExists(data, "description") or data.description eq "">
-				<em>No decription found</em>
+				<em>No description found</em>
 			<cfelse>
 				#replace(replace(data.description,'	','&nbsp;&nbsp;&nbsp;','all'), server.separator.line,'<br />','all')#
 			</cfif>
@@ -87,7 +87,7 @@ function formatDesc(string desc){
 		<cfset optCount=0>
 		<pre><span class="syntaxFunc">&lt;#ucFirst(data.member.type)#&gt;.#data.member.name#(</span><cfloop array="#data.arguments#" index="index" item="item"><cfif index EQ data.member.position or item.status EQ "hidden"><cfcontinue></cfif><cfif not first><span class="syntaxFunc">,</span></cfif><cfif not item.required><cfset optCount=optCount+1><span class="syntaxFunc">[</span></cfif><span class="syntaxType">#item.type#</span> <span class="syntaxText">#item.name#</span><cfset first=false></cfloop><span class="syntaxFunc">#RepeatString(']',optCount)#):</span><span class="syntaxType">#data.returntype#</span></pre>
 
-		<!--- Argumente --->
+		<!--- Arguments --->
 		<h2>#stText.doc.argTitle#</h2>
 		<div class="itemintro">
 			<cfif data.argumentType EQ "fixed" and arraylen(data.arguments) LTE 1>

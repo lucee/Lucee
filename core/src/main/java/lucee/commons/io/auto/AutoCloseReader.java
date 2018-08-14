@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.Reader;
 
 /**
- * Close the Reader automaticlly when object will destroyed by the garbage
+ * Close the Reader automatically when object will destroyed by the garbage
  */
 public final class AutoCloseReader extends Reader {
 	

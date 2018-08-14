@@ -32,16 +32,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 	}
 
+	public void function testClassExist() {
+		createObject('java','org.lucee.extension.cache.eh.EHCache','ehcache.extension');
+	}
+
 	public void function testTimespan() {
 		
 		var rightNow = Now();
 		var testData = {"time": rightNow};
 		var cacheId='jkijhiiuhkj';
 		var cacheName='ehcache';
-
+		
 		// first we store the data
-		cachePut(id=cacheId, value=testData, cacheName=cacheName);
-
+		cachePut(id=cacheId, value=testData, timeSpan=createTimespan(0,0,0,1), cacheName=cacheName);
+		
 		// getting back without waiting on it
 		theValue = cacheGet(id=cacheId, cacheName=cacheName);
 		wasFound = !isNull(theValue);
@@ -73,7 +77,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			caches="#{ehcache: {
 	  class: 'org.lucee.extension.cache.eh.EHCache'
 	, bundleName: 'ehcache.extension'
-	, bundleversion: '2.10.0.27-SNAPSHOT'
 	, storage: false
 	, custom: {"bootstrapAsynchronously":"true","replicatePuts":"true","automatic_hostName":"",
 		"bootstrapType":"on","maxelementsinmemory":"10000","manual_rmiUrls":"","distributed":"off",
@@ -91,19 +94,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	return true;
 	}
 
-
-
-	public void function testCacheAsScopeLatest(){
-		testCacheAsScope("2.10.0.27-SNAPSHOT");
-	}
-	public void function testCacheAsScopeLatest(){
-		testCacheAsScope("2.10.0.25");
-	}
-
-	private void function testCacheAsScope(version){
+	public void function testCacheAsScope(){
 		local.id=createUniqueId();
 		local.urls={appName:id};
-		if(version.len())urls['version']=version;
 		local.uri=createURI("ehcache/index.cfm");
 
 		// on the first request everything is equal

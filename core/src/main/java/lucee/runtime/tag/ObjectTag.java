@@ -40,7 +40,7 @@ public final class ObjectTag extends TagImpl {
 	 * Component
 	 * - name
 	 * - component
-TODO support full functonallity
+TODO support full functionality
 Component
 -------------
 name

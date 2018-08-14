@@ -17,6 +17,7 @@
  */
 package lucee.transformer.bytecode;
 
+import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
@@ -33,6 +34,7 @@ import lucee.transformer.bytecode.expression.var.DataMemberImpl;
 import lucee.transformer.bytecode.expression.var.EmptyArray;
 import lucee.transformer.bytecode.expression.var.EmptyStruct;
 import lucee.transformer.bytecode.expression.var.VariableImpl;
+import lucee.transformer.bytecode.literal.Empty;
 import lucee.transformer.bytecode.literal.LitBooleanImpl;
 import lucee.transformer.bytecode.literal.LitDoubleImpl;
 import lucee.transformer.bytecode.literal.LitFloatImpl;
@@ -40,6 +42,7 @@ import lucee.transformer.bytecode.literal.LitIntegerImpl;
 import lucee.transformer.bytecode.literal.LitLongImpl;
 import lucee.transformer.bytecode.literal.LitStringImpl;
 import lucee.transformer.bytecode.literal.Null;
+import lucee.transformer.bytecode.literal.NullConstant;
 import lucee.transformer.bytecode.op.OpBool;
 import lucee.transformer.bytecode.op.OpString;
 import lucee.transformer.bytecode.util.Types;
@@ -173,6 +176,16 @@ public class BytecodeFactory extends Factory {
 	@Override
 	public Expression createNull(Position start, Position end) {
 		return new Null(this,start,end);
+	}
+
+	@Override
+	public Expression createNullConstant(Position start, Position end) {
+		return new NullConstant(this,null,null);
+	}
+
+	@Override
+	public Expression createEmpty() {
+		return new Empty(this,null,null);
 	}
 
 	@Override

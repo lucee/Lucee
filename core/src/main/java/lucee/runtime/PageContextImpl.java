@@ -105,6 +105,7 @@ import lucee.runtime.engine.ExecutionLog;
 import lucee.runtime.err.ErrorPage;
 import lucee.runtime.err.ErrorPageImpl;
 import lucee.runtime.err.ErrorPagePool;
+import lucee.runtime.esapi.ESAPIUtil;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CasterException;
@@ -116,8 +117,8 @@ import lucee.runtime.exp.NoLongerSupported;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.exp.RequestTimeoutException;
+import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.functions.dynamicEvaluation.Serialize;
-import lucee.runtime.functions.owasp.ESAPIEncode;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.listener.AppListenerSupport;
@@ -355,26 +356,21 @@ public final class PageContextImpl extends PageContext {
 	 */
 	public PageContextImpl(ScopeContext scopeContext, ConfigWebImpl config, int id, HttpServlet servlet, boolean jsr223) {
 		// must be first because is used after
-		tagHandlerPool = config.getTagHandlerPool();
-		this.servlet = servlet;
+		tagHandlerPool=config.getTagHandlerPool();
+		this.servlet=servlet;
+		
+		bodyContentStack=new BodyContentStack();
+		devNull=bodyContentStack.getDevNullBodyContent();
+
+		this.config=config;
+		manager=new DatasourceManagerImpl(config);
+
+		this.scopeContext=scopeContext;
+		undefined=new UndefinedImpl(this,getScopeCascadingType());
+		server=ScopeContext.getServerScope(this,jsr223);
+		defaultApplicationContext=new ClassicApplicationContext(config,"",true,null);
+
 		this.id = id;
-		// this.factory=factory;
-
-		bodyContentStack = new BodyContentStack();
-		devNull = bodyContentStack.getDevNullBodyContent();
-
-		this.config = config;
-		manager = new DatasourceManagerImpl(config);
-
-		this.scopeContext = scopeContext;
-		undefined = new UndefinedImpl(this, getScopeCascadingType());
-
-		// this.compiler=compiler;
-		// tagHandlerPool=config.getTagHandlerPool();
-		server = ScopeContext.getServerScope(this, jsr223);
-
-		defaultApplicationContext = new ClassicApplicationContext(config, "", true, null);
-
 	}
 
 	public boolean isInitialized() {
@@ -421,24 +417,33 @@ public final class PageContextImpl extends PageContext {
 	 * @param bufferSize
 	 * @param autoFlush
 	 */
-	public PageContextImpl initialize(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, String errorPageURL, boolean needsSession,
-			int bufferSize, boolean autoFlush, boolean isChild, boolean ignoreScopes) {
-		parent = null;
-		appListenerType = ApplicationListener.TYPE_NONE;
-		this.ignoreScopes = ignoreScopes;
+	public PageContextImpl initialize(
+             HttpServlet servlet, 
+			HttpServletRequest req, 
+			HttpServletResponse rsp, 
+			String errorPageURL, 
+			boolean needsSession,
+			int bufferSize, 
+			boolean autoFlush, 
+			boolean isChild, 
+			boolean ignoreScopes) {
+		parent=null;
+		requestId=counter++;
+		
+		appListenerType=ApplicationListener.TYPE_NONE;
+		this.ignoreScopes=ignoreScopes;
 
-		requestId = counter++;
-		ReqRspUtil.setContentType(rsp, "text/html; charset=" + config.getWebCharset().name());
-		this.isChild = isChild;
+		ReqRspUtil.setContentType(rsp,"text/html; charset="+config.getWebCharset().name());
+		this.isChild=isChild;
 
-		applicationContext = defaultApplicationContext;
+		applicationContext=defaultApplicationContext;
 
-		startTime = System.currentTimeMillis();
-		thread = Thread.currentThread();
+		startTime=System.currentTimeMillis();
+		thread=Thread.currentThread();
 
-		this.req = new HTTPServletRequestWrap(req);
-		this.rsp = rsp;
-		this.servlet = servlet;
+		this.req=new HTTPServletRequestWrap(req);
+		this.rsp=rsp;
+		this.servlet=servlet;
 
 		// Writers
 		if(config.debugLogOutput()) {
@@ -678,12 +683,12 @@ public final class PageContextImpl extends PageContext {
 
 	// FUTURE add both method to interface
 	public void writeEncodeFor(String value, String encodeType) throws IOException, PageException { // FUTURE keyword:encodefore add to interface
-		write(ESAPIEncode.call(this, encodeType, value, false));
+		write(ESAPIUtil.esapiEncode(this,encodeType, value));
 	}
 
-	public void writeEncodeFor(String value, short encodeType) throws IOException, PageException { // FUTURE keyword:encodefore add to interface
-		write(ESAPIEncode.encode(value, encodeType, false));
-	}
+	/*public void writeEncodeFor(String value, short encodeType) throws IOException, PageException { // FUTURE keyword:encodefore add to interface
+		write(ESAPIUtil.esapiEncode(this,value, encodeType));
+	}*/
 
 	@Override
 	public void flush() {
@@ -2188,6 +2193,15 @@ public final class PageContextImpl extends PageContext {
 			writer = forceWriter;
 		}
 	}
+	
+	/**
+	 * FUTURE - add to interface
+	 *
+	 * @return true if the Request is in silent mode via cfslient
+	 */
+	public boolean isSilent(){
+		return bodyContentStack.getDevNull();
+	}
 
 	@Override
 	public boolean setSilent() {
@@ -2825,18 +2839,28 @@ public final class PageContextImpl extends PageContext {
 
 	// called by generated bytecode
 	public Tag use(String tagClassName, String fullname, int attrType) throws PageException {
-		return use(tagClassName, null, null, fullname, attrType);
+		return use(tagClassName, null, null, fullname, attrType,null);
+	}
+	
+	public Tag use(String tagClassName, String fullname, int attrType, String template) throws PageException {
+		return use(tagClassName, null, null, fullname, attrType,template);
 	}
 
 	// called by generated bytecode
 	public Tag use(String tagClassName, String tagBundleName, String tagBundleVersion, String fullname, int attrType) throws PageException {
+		return use(tagClassName, tagBundleName, tagBundleVersion, fullname, attrType,null);
+	}
 
+	public Tag use(String tagClassName, String tagBundleName, String tagBundleVersion, String fullname, int attrType, String template) throws PageException {
 		parentTag = currentTag;
 		currentTag = tagHandlerPool.use(tagClassName, tagBundleName, tagBundleVersion, getConfig().getIdentification());
 		if(currentTag == parentTag)
 			throw new ApplicationException("");
 		currentTag.setPageContext(this);
 		currentTag.setParent(parentTag);
+		if(currentTag instanceof TagImpl)
+			((TagImpl)currentTag).setSourceTemplate(template);
+		
 		if(attrType >= 0 && fullname != null) {
 			Map<Collection.Key, Object> attrs = applicationContext.getTagAttributeDefaultValues(this, fullname);
 			if(attrs != null) {
@@ -3351,7 +3375,7 @@ public final class PageContextImpl extends PageContext {
 		return requestId;
 	}
 
-	private Set<String> pagesUsed = new HashSet<String>();
+	private Set<String> pagesUsed=new HashSet<String>();
 
 	private Stack<ActiveQuery> activeQueries = new Stack<ActiveQuery>();
 	private Stack<ActiveLock> activeLocks = new Stack<ActiveLock>();
@@ -3615,6 +3639,14 @@ public final class PageContextImpl extends PageContext {
 			return arr;
 		}
 		return config.getMailServers();
+	}
+
+	// FUTURE add to interface
+	public boolean getFullNullSupport() {
+		if(applicationContext != null) {
+			return ((ApplicationContextSupport)applicationContext).getFullNullSupport();
+		}
+		return config.getFullNullSupport();
 	}
 
 	public void registerLazyStatement(Statement s) {

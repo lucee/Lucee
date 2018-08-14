@@ -32,15 +32,6 @@ public final class ListContains extends BIF {
 
 	private static final long serialVersionUID = -7580788340022587225L;
 
-	public static double call(PageContext pc , String list, String value) {
-		return call(pc, list, value, ",", false,false);
-	}
-	public static double call(PageContext pc , String list, String value, String delimter) {
-		return call(pc, list, value, delimter, false,false);
-	}
-	public static double call(PageContext pc , String list, String value, String delimter, boolean includeEmptyFields) {
-		return call(pc, list, value, delimter, includeEmptyFields,false);
-	}
 	public static double call(PageContext pc , String list, String value, String delimter, boolean includeEmptyFields, boolean multiCharacterDelimiter) {
 		return ListUtil.listContains(list,value,delimter,includeEmptyFields,multiCharacterDelimiter)+1;
 	}
@@ -48,11 +39,11 @@ public final class ListContains extends BIF {
     @Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
     	if(args.length==2)
-			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
+			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), ",", false,false);
     	if(args.length==3)
-			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]));
+			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), false,false);
     	if(args.length==4)
-			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]));
+			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]),false);
     	if(args.length==5)
 			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), Caster.toBooleanValue(args[4]));
     	

@@ -72,7 +72,14 @@ public abstract class Factory {
 
 	public abstract Expression createNull();
 	public abstract Expression createNull(Position start,Position end);
+	public abstract Expression createNullConstant(Position start,Position end);
 	public abstract boolean isNull(Expression expr);
+	
+	/**
+	 * return null if full null support is enabled, otherwise an empty string
+	 * @return
+	 */
+	public abstract Expression createEmpty();
 	
 	public abstract Literal createLiteral(Object obj,Literal defaultValue);
 	public abstract DataMember createDataMember(ExprString name);

@@ -59,7 +59,7 @@ public class FileStorageScopeCleaner extends StorageScopeCleanerSupport {
 		ConfigWebImpl cwi=(ConfigWebImpl) engine.getFactory().getConfig();
 		Resource dir=type==Scope.SCOPE_CLIENT?cwi.getClientScopeDir():cwi.getSessionScopeDir();
 		
-		// for old files only the defintion from admin can be used
+		// for old files only the definition from admin can be used
 		long timeout=type==Scope.SCOPE_CLIENT?cwi.getClientTimeout().getMillis():cwi.getSessionTimeout().getMillis();
 		long time = new DateTimeImpl(cwi).getTime()-timeout;
 		

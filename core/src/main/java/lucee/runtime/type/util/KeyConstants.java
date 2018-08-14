@@ -899,6 +899,7 @@ public class KeyConstants {
 	public static final Key _sqltype = KeyImpl._const("sqltype");
 	public static final Key _nulls = KeyImpl._const("nulls");
 	public static final Key _null = KeyImpl._const("null");
+	public static final Key _NULL = KeyImpl._const("NULL");
 	public static final Key _scale = KeyImpl._const("scale");
 	public static final Key _include = KeyImpl._const("include");
 	public static final Key _compression = KeyImpl._const("compression");
@@ -939,7 +940,13 @@ public class KeyConstants {
 	public static final Key _structMetaData = KeyImpl._const("structMetaData");
 	public static final Key _STACKTRACE = KeyImpl._const("STACKTRACE");
 
-	private static MapPro<String, Key> _____keys;
+	public static final Key _callback = KeyImpl._const("callback");
+	public static final Key _udf = KeyImpl._const("udf");
+	public static final Key _params = KeyImpl._const("params");
+	public static final Key _param = KeyImpl._const("param");
+	public static final Key _stacktrace = KeyImpl._const("stacktrace");
+	
+	private static MapPro<String,Key> _____keys;
 
 	public static String getFieldName(String key) {
 		init();

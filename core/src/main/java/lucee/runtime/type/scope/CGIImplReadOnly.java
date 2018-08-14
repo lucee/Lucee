@@ -182,91 +182,89 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI,ScriptP
 			catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		}
 		
-		String lkey=key.getLowerString();
-        
-	    
-        if(lkey.length()>7) {
-            char first=lkey.charAt(0);
-            if(first=='a') {
-            	if(key.equals(KeyConstants._auth_type)) return toString(req.getAuthType());
-            }
-            else if(first=='c')	{
-            	if(key.equals(KeyConstants._context_path))return toString(req.getContextPath());
-            	if(key.equals(KeyConstants._cf_template_path)) return getPathTranslated();
-            }
-            else if(first=='h')	{
-            	if(lkey.startsWith("http_")){
-        	    	Object o = https.get(key,NullSupportHelper.NULL());
-                    if(o==NullSupportHelper.NULL() && key.equals(KeyConstants._http_if_modified_since))
-                    	o = https.get(KeyConstants._last_modified,NullSupportHelper.NULL());
-                    if(o!=NullSupportHelper.NULL())return doScriptProtect((String)o);
-            }
-            }
-            else if(first=='r') {
-                if(key.equals(KeyConstants._remote_user))		return toString(req.getRemoteUser());
-                if(key.equals(KeyConstants._remote_addr))		{
-                	return toString(req.getRemoteAddr());
-                }
-                if(key.equals(KeyConstants._remote_host))		return toString(req.getRemoteHost());
-                if(key.equals(KeyConstants._request_method))		return req.getMethod();
-                if(key.equals(KeyConstants._request_url))		return ReqRspUtil.getRequestURL( req, true );
-                if(key.equals(KeyConstants._request_uri))		return toString(req.getAttribute("javax.servlet.include.request_uri"));
-                if(key.getUpperString().startsWith("REDIRECT_")){
-                	// from attributes (key sensitive)
-                	Object value = req.getAttribute(key.getString());
-                	if(!StringUtil.isEmpty(value)) return toString(value);
-                	
-                	// from attributes (key insensitive)
-                	Enumeration<String> names = req.getAttributeNames();
-            		String k;
-            		while(names.hasMoreElements()){
-            			k=names.nextElement();
-            			if(k.equalsIgnoreCase(key.getString())) {
-            				return toString(req.getAttribute(k));
-            			}
-            		}
-                }
-            }
-            
-            
-            else if(first=='l') {
-                if(key.equals(KeyConstants._local_addr))		return toString(localAddress);
-                if(key.equals(KeyConstants._local_host))		return toString(localHost);
-            }
-            else if(first=='s') {
-            	if(key.equals(KeyConstants._script_name)) 
-            		return ReqRspUtil.getScriptName(null,req);
-        			//return StringUtil.emptyIfNull(req.getContextPath())+StringUtil.emptyIfNull(req.getServletPath());
-        		if(key.equals(KeyConstants._server_name))		return toString(req.getServerName());
-                if(key.equals(KeyConstants._server_protocol))	return toString(req.getProtocol());
-                if(key.equals(KeyConstants._server_port))		return Caster.toString(req.getServerPort());
-                if(key.equals(KeyConstants._server_port_secure))return req.isSecure()?"1":"0";
-                
-            }
-            else if(first=='p') {
-            	if(key.equals(KeyConstants._path_info)) {
-            		String pathInfo = Caster.toString(req.getAttribute("javax.servlet.include.path_info"),null);
-            		if(StringUtil.isEmpty(pathInfo)) pathInfo = Caster.toString(req.getHeader("xajp-path-info"),null);
-            		if(StringUtil.isEmpty(pathInfo)) pathInfo = req.getPathInfo();
-            		if(StringUtil.isEmpty(pathInfo)) {
-            			pathInfo = Caster.toString(req.getAttribute("requestedPath"),null);
-            			if(!StringUtil.isEmpty(pathInfo,true)) {
-            				String scriptName = ReqRspUtil.getScriptName(null,req);
-            				if ( pathInfo.startsWith(scriptName) )
-                				pathInfo = pathInfo.substring(scriptName.length());
-            			}
-            		}
-            	    
-            		if(!StringUtil.isEmpty(pathInfo,true)) return pathInfo;
-            	    return "";
-            	}
-                if(key.equals(KeyConstants._path_translated)) return getPathTranslated();
-            }
-            else if(first=='q') {
-            	if(key.equals(KeyConstants._query_string))return doScriptProtect(toString(ReqRspUtil.getQueryString(req)));
-            }
-        }
-        
+		String lkey = key.getLowerString();
+		char first = lkey.charAt(0);
+
+		if(first=='a') {
+			if(key.equals(KeyConstants._auth_type)) return toString(req.getAuthType());
+		}
+		else if(first=='c')	{
+			if(key.equals(KeyConstants._context_path))return toString(req.getContextPath());
+			if(key.equals(KeyConstants._cf_template_path)) return getPathTranslated();
+		}
+		else if(first=='h')	{
+
+			if(lkey.startsWith("http_")){
+				Object o = https.get(key,NullSupportHelper.NULL());
+				if(o==NullSupportHelper.NULL() && key.equals(KeyConstants._http_if_modified_since))
+					o = https.get(KeyConstants._last_modified,NullSupportHelper.NULL());
+				if(o!=NullSupportHelper.NULL())return doScriptProtect((String)o);
+			}
+			else if (key.equals(KeyConstants._https))
+				return (req.isSecure() ? "on" : "off");
+		}
+		else if(first=='r') {
+			if(key.equals(KeyConstants._remote_user))		return toString(req.getRemoteUser());
+			if(key.equals(KeyConstants._remote_addr))		{
+				return toString(req.getRemoteAddr());
+			}
+			if(key.equals(KeyConstants._remote_host))		return toString(req.getRemoteHost());
+			if(key.equals(KeyConstants._request_method))		return req.getMethod();
+			if(key.equals(KeyConstants._request_url))		return ReqRspUtil.getRequestURL( req, true );
+			if(key.equals(KeyConstants._request_uri))		return toString(req.getAttribute("javax.servlet.include.request_uri"));
+			if(key.getUpperString().startsWith("REDIRECT_")){
+				// from attributes (key sensitive)
+				Object value = req.getAttribute(key.getString());
+				if(!StringUtil.isEmpty(value)) return toString(value);
+
+				// from attributes (key insensitive)
+				Enumeration<String> names = req.getAttributeNames();
+				String k;
+				while(names.hasMoreElements()){
+					k=names.nextElement();
+					if(k.equalsIgnoreCase(key.getString())) {
+						return toString(req.getAttribute(k));
+					}
+				}
+			}
+		}
+		else if(first=='l') {
+			if(key.equals(KeyConstants._local_addr))		return toString(localAddress);
+			if(key.equals(KeyConstants._local_host))		return toString(localHost);
+		}
+		else if(first=='s') {
+			if(key.equals(KeyConstants._script_name))
+				return ReqRspUtil.getScriptName(null,req);
+				//return StringUtil.emptyIfNull(req.getContextPath())+StringUtil.emptyIfNull(req.getServletPath());
+			if(key.equals(KeyConstants._server_name))		return toString(req.getServerName());
+			if(key.equals(KeyConstants._server_protocol))	return toString(req.getProtocol());
+			if(key.equals(KeyConstants._server_port))		return Caster.toString(req.getServerPort());
+			if(key.equals(KeyConstants._server_port_secure))
+				return (req.isSecure() ? "1" : "0");
+		}
+		else if(first=='p') {
+			if(key.equals(KeyConstants._path_info)) {
+				String pathInfo = Caster.toString(req.getAttribute("javax.servlet.include.path_info"),null);
+				if(StringUtil.isEmpty(pathInfo)) pathInfo = Caster.toString(req.getHeader("xajp-path-info"),null);
+				if(StringUtil.isEmpty(pathInfo)) pathInfo = req.getPathInfo();
+				if(StringUtil.isEmpty(pathInfo)) {
+					pathInfo = Caster.toString(req.getAttribute("requestedPath"),null);
+					if(!StringUtil.isEmpty(pathInfo,true)) {
+						String scriptName = ReqRspUtil.getScriptName(null,req);
+						if ( pathInfo.startsWith(scriptName) )
+							pathInfo = pathInfo.substring(scriptName.length());
+					}
+				}
+
+				if(!StringUtil.isEmpty(pathInfo,true)) return pathInfo;
+				return "";
+			}
+			if(key.equals(KeyConstants._path_translated)) return getPathTranslated();
+		}
+		else if(first=='q') {
+			if(key.equals(KeyConstants._query_string))return doScriptProtect(toString(ReqRspUtil.getQueryString(req)));
+		}
+
         // check header
         String headerValue = (String) headers.get(key,null);//req.getHeader(key.getString());
 	    if(headerValue != null) return doScriptProtect(headerValue);
@@ -282,7 +280,6 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI,ScriptP
 		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 		return "";
 	}
-
 
 	private Object other(Collection.Key key, Object defaultValue) {
 		if(staticKeys.containsKey(key)) return "";

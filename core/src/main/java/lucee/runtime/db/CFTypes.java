@@ -40,7 +40,6 @@ public interface CFTypes {
 	public static final int ORACLE_TIMESTAMPTZ=-101;
 	public static final int VARCHAR2=-100;
 	
-
 	public static final int ORACLE_OPAQUE=2007;
 
 	

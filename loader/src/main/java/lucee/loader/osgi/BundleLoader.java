@@ -59,6 +59,8 @@ public class BundleLoader {
 	public static BundleCollection loadBundles(final CFMLEngineFactory engFac,
 			final File cacheRootDir, final File jarDirectory, final File rc,
 			final BundleCollection old) throws IOException, BundleException {
+		if(rc.getName().toLowerCase().toLowerCase().indexOf("ehcache")!=-1) System.err.println(rc.getName());
+		
 		final JarFile jf = new JarFile(rc);// TODO this should work in any case, but we should still improve this code
 		try {
 			// Manifest
@@ -115,7 +117,7 @@ public class BundleLoader {
 				throw new IOException(
 						"lucee core ["
 								+ rc
-								+ "] is invalid, no Require-Bundle defintion found in the META-INF/MANIFEST.MF File");
+								+ "] is invalid, no Require-Bundle definition found in the META-INF/MANIFEST.MF File");
 
 			// get fragments needed for that core (Lucee specific Key)
 			final String rbf = attrs.getValue("Require-Bundle-Fragment");

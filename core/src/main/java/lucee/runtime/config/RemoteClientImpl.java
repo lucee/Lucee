@@ -21,9 +21,11 @@ package lucee.runtime.config;
 
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.crypt.CFMXCompat;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.other.Encrypt;
 import lucee.runtime.net.proxy.ProxyData;
+import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.net.rpc.client.WSClient;
 import lucee.runtime.op.Caster;
 import lucee.runtime.spooler.remote.RemoteClientTask;
@@ -156,7 +158,7 @@ public class RemoteClientImpl implements RemoteClient {
 		
 		try {
 			WSClient rpc = 
-				WSClient.getInstance(null,getUrl(),getServerUsername(),getServerPassword(),getProxyData());
+					((ConfigImpl)ThreadLocalPageContext.getConfig(config)).getWSHandler().getWSClient(getUrl(),getServerUsername(),getServerPassword(),getProxyData());
 			
 			Object result = rpc.callWithNamedValues(config, KeyConstants._invoke, args);
 			return id=IdentificationImpl.createId(securityKey, Caster.toString(result,null),false, null);

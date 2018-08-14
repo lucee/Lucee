@@ -20,6 +20,7 @@ package lucee.runtime.op;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -37,20 +38,25 @@ import java.util.regex.Pattern;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.lang.CFTypes;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Util;
+import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.Identification;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.img.Image;
+import lucee.runtime.image.ImageUtil;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.net.mail.MailUtil;
-import lucee.runtime.net.rpc.AxisCaster;
-import lucee.runtime.net.rpc.Pojo;
+import lucee.runtime.type.Pojo;
+import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.op.validators.ValidateCreditCard;
 import lucee.runtime.text.xml.XMLCaster;
@@ -69,6 +75,7 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 
+import org.osgi.framework.Version;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -1036,7 +1043,7 @@ public final class Decision {
     	break;
         case 'i':
         	if("integer".equals(type))		return isInteger(value,false);
-        	if("image".equals(type))		return Image.isImage(value);
+        	if("image".equals(type))		return ImageUtil.isImage(value);
         break;
         case 'l':
         	if("lambda".equals(type))			return isLambda(value);
@@ -1330,7 +1337,7 @@ public final class Decision {
         }
         if(o instanceof Pojo) {
         	pcMaybeNull = ThreadLocalPageContext.get(pcMaybeNull);
-			return pcMaybeNull!=null && AxisCaster.toComponent(pcMaybeNull,((Pojo)o),type,null)!=null;
+			return pcMaybeNull!=null && Caster.toComponent(pcMaybeNull,((Pojo)o),type,null)!=null;
         }
 
         if(isArrayType(type) && isArray(o)){
@@ -1374,14 +1381,14 @@ public final class Decision {
         case CFTypes.TYPE_GUID:         return isGUId(o);
         case CFTypes.TYPE_VARIABLE_NAME:return isVariableName(o);
         case CFTypes.TYPE_FUNCTION:		return isFunction(o);
-        case CFTypes.TYPE_IMAGE:        return Image.isCastableToImage(pc,o);
+        case CFTypes.TYPE_IMAGE:        return ImageUtil.isCastableToImage(pc,o);
         case CFTypes.TYPE_XML:          return isXML(o);
 		}
 
 		return _isCastableTo(pc,strType, o);
 	}
 
-    public static boolean isDate(String str,Locale locale, TimeZone tz,boolean lenient) {
+	public static boolean isDate(String str,Locale locale, TimeZone tz,boolean lenient) {
     	str=str.trim();
     	tz=ThreadLocalPageContext.getTimeZone(tz);
     	DateFormat[] df;

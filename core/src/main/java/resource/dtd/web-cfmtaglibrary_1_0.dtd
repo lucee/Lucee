@@ -33,11 +33,11 @@ the taglibrary.  Leave it empty if it does not apply.
 -->
 <!ELEMENT uri (#PCDATA)>
 <!--
-Defines an arbitrary text string descirbing the tag library
+Defines an arbitrary text string describing the tag library
 -->
 <!ELEMENT display-name (#PCDATA)>
 <!--
-Defines an arbitrary text string descirbing the tag library
+Defines an arbitrary text string describing the tag library
 -->
 <!ELEMENT description (#PCDATA)>
 <!--
@@ -85,7 +85,7 @@ Defines the subclass of Lucee.transfomer.tag.Evaluator (Java).
 -->
 <!ELEMENT tte-class (#PCDATA)>
 <!--
-Tag dependet Body Transformer
+Tag dependent Body Transformer
 		Define a class to parse the body, diffrent from CFML Transformer
 
 Defines the subclass of Lucee.transfomer.tag.TagDependetBodyTransformer (Java).

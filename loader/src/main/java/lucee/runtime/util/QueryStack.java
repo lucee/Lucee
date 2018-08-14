@@ -47,7 +47,7 @@ public interface QueryStack {
 	public abstract boolean isEmpty();
 
 	/**
-	 * loop over all Queries and return value at first ocurrence
+	 * loop over all Queries and return value at first occurrence
 	 * 
 	 * @param key column name of the value to get
 	 * @return value
@@ -56,7 +56,7 @@ public interface QueryStack {
 	public Object getDataFromACollection(PageContext pc, Key key, Object defaultValue);
 
 	/**
-	 * loop over all Queries and return value as QueryColumn at first ocurrence
+	 * loop over all Queries and return value as QueryColumn at first occurrence
 	 * 
 	 * @param key column name of the value to get
 	 * @return value

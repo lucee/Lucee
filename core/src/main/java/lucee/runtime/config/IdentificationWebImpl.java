@@ -17,10 +17,13 @@
  */
 package lucee.runtime.config;
 
+import java.io.Serializable;
 
-public class IdentificationWebImpl extends IdentificationImpl implements IdentificationWeb {
+import lucee.runtime.engine.ThreadLocalPageContext;
 
-	private ConfigWebImpl cw;
+public class IdentificationWebImpl extends IdentificationImpl implements IdentificationWeb, Serializable {
+
+	private transient ConfigWebImpl cw;
 
 	public IdentificationWebImpl(ConfigWebImpl cw, String securityKey, String apiKey) {
 		super(cw, securityKey, apiKey);
@@ -29,7 +32,7 @@ public class IdentificationWebImpl extends IdentificationImpl implements Identif
 
 	@Override
 	public IdentificationServer getServerIdentification() {
-		return cw.getConfigServerImpl().getIdentification();
+		return ((ConfigWebImpl)ThreadLocalPageContext.getConfig(cw)).getConfigServerImpl().getIdentification();
 	}
 	
 	@Override

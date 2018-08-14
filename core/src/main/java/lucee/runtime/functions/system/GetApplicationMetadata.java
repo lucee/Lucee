@@ -19,10 +19,11 @@
 package lucee.runtime.functions.system;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Struct;
 
 public class GetApplicationMetadata {
-	public static Struct call(PageContext pc) {
+	public static Struct call(PageContext pc) throws PageException {
 		return GetApplicationSettings.call(pc, true);
 	}
 }

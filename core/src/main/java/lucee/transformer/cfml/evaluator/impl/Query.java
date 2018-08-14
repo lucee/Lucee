@@ -34,7 +34,9 @@ import lucee.transformer.bytecode.expression.var.Argument;
 import lucee.transformer.bytecode.expression.var.BIF;
 import lucee.transformer.bytecode.expression.var.UDF;
 import lucee.transformer.bytecode.statement.PrintOut;
+import lucee.transformer.bytecode.statement.tag.Attribute;
 import lucee.transformer.bytecode.statement.tag.Tag;
+import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.EvaluatorSupport;
 import lucee.transformer.expression.Expression;
@@ -50,14 +52,25 @@ public final class Query extends EvaluatorSupport {
 
 	@Override
 	public void evaluate(Tag tag) throws EvaluatorException { 
-		translateChildren(tag.getBody().getStatements().iterator());
+		Body body = tag.getBody();
+		Attribute attr = tag.getAttribute("sql");
+		if(body==null && attr==null)
+			throw new EvaluatorException("you need to define the attribute SQL or define the SQL in the body of the tag.");
+		
+		// we do not check if both are defined here because the body could be an expression holding an empty string
+		
+		if(body!=null) {
+			List<Statement> stats = body.getStatements();
+			if(stats!=null)
+				translateChildren(body.getStatements().iterator());
+		}
 	}
 	
-	private void translateChildren(Iterator it) {
+	private void translateChildren(Iterator<Statement> it) {
 		Statement stat;
 		 
 		while(it.hasNext()) {
-			stat=(Statement) it.next();
+			stat=it.next();
 			if(stat instanceof PrintOut) {
 				PrintOut printOut = ((PrintOut)stat);
 				Expression e = printOut.getExpr();

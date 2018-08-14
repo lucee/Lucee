@@ -75,6 +75,8 @@ import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.rest.RestSettingImpl;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.security.Credential;
+import lucee.runtime.tag.Query;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -109,7 +111,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Collection.Key INVOKE_IMPLICIT_ACCESSOR = KeyImpl.intern("InvokeImplicitAccessor");
 	private static final Collection.Key SESSION_MANAGEMENT = KeyImpl.intern("sessionManagement");
 	private static final Collection.Key SESSION_TIMEOUT = KeyImpl.intern("sessionTimeout");
-	private static final Collection.Key CLIENT_TIMEOUT = KeyImpl.intern("clientTimeout");
+	private static final Collection.Key CLIENT_TIMEOUT =  KeyImpl.intern("clientTimeout");
 	private static final Collection.Key REQUEST_TIMEOUT = KeyImpl.intern("requestTimeout");
 	private static final Collection.Key SET_CLIENT_COOKIES = KeyImpl.intern("setClientCookies");
 	private static final Collection.Key SET_DOMAIN_COOKIES = KeyImpl.intern("setDomainCookies");
@@ -122,6 +124,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Collection.Key BUFFER_OUTPUT = KeyImpl.intern("bufferOutput");
 	private static final Collection.Key SESSION_CLUSTER = KeyImpl.intern("sessionCluster");
 	private static final Collection.Key CLIENT_CLUSTER = KeyImpl.intern("clientCluster");
+	
 
 	private static final Collection.Key DEFAULT_DATA_SOURCE = KeyImpl.intern("defaultdatasource");
 	private static final Collection.Key DEFAULT_CACHE = KeyImpl.intern("defaultcache");
@@ -138,16 +141,20 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Collection.Key SUPPRESS_CONTENT = KeyImpl.intern("suppressRemoteComponentContent");
 	private static final Collection.Key LOGS = KeyImpl.intern("logs");
 	private static final Collection.Key LOG = KeyImpl.intern("log");
+	
 
 	private static final Collection.Key SESSION_COOKIE = KeyImpl.intern("sessioncookie");
 	private static final Collection.Key AUTH_COOKIE = KeyImpl.intern("authcookie");
 
-	private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
+	private static final Key ENABLE_NULL_SUPPORT = KeyImpl.intern("enableNULLSupport");
+	private static final Key NULL_SUPPORT = KeyImpl.intern("nullSupport");
+
+	private static Map<String,CacheConnection> initCacheConnections=new ConcurrentHashMap<String, CacheConnection>();
 
 	private Component component;
-
-	private String name = null;
-
+	
+	private String name=null;
+	
 	private boolean setClientCookies;
 	private boolean setDomainCookies;
 	private boolean setSessionManagement;
@@ -156,7 +163,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private TimeSpan sessionTimeout;
 	private TimeSpan clientTimeout;
 	private TimeSpan requestTimeout;
-	private int loginStorage = Scope.SCOPE_COOKIE;
+	private int loginStorage=Scope.SCOPE_COOKIE;
 	private int scriptProtect;
 	private boolean typeChecking;
 	private boolean allowCompression;
@@ -165,14 +172,15 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean suppressContent;
 	private short sessionType;
 	private short wstype;
-	private boolean wsMaintainSession = false;
+	private boolean wsMaintainSession=false;
 	private boolean sessionCluster;
 	private boolean clientCluster;
+	
 
 	private String clientStorage;
 	private String sessionStorage;
-	private String secureJsonPrefix = "//";
-	private boolean secureJson;
+	private String secureJsonPrefix="//";
+	private boolean secureJson; 
 	private Mapping[] ctmappings;
 	private Mapping[] cmappings;
 	private DataSource[] dataSources;
@@ -180,22 +188,27 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private lucee.runtime.net.s3.Properties s3;
 	private FTPConnectionData ftp;
 	private boolean triggerComponentDataMember;
-	private Map<Integer, String> defaultCaches;
-	private Map<Collection.Key, CacheConnection> cacheConnections;
+	private Map<Integer,String> defaultCaches;
+	private Map<Collection.Key,CacheConnection> cacheConnections;
 	private boolean sameFormFieldAsArray;
 	private boolean sameURLFieldAsArray;
-	private Map<String, CustomType> customTypes;
+	private Map<String,CustomType> customTypes;	
 	private boolean cgiScopeReadonly;
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
 	private Object mailListener;
-
+	private TagListener queryListener;
+	private boolean fullNullSupport;
+	private SerializationSettings serializationSettings;
+	
 	private Mapping[] mappings;
 	private boolean initMappings;
 	private boolean initCustomTypes;
 	private boolean initMailListener;
+	private boolean initQueryListener;
+	private boolean initFullNullSupport;
 	private boolean initCachedWithins;
-
+	
 	private boolean initApplicationTimeout;
 	private boolean initSessionTimeout;
 	private boolean initClientTimeout;
@@ -246,73 +259,83 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initCGIScopeReadonly;
 	private boolean initSessionCookie;
 	private boolean initAuthCookie;
-
+	private boolean initSerializationSettings;
+	
 	private Resource antiSamyPolicyResource;
-
+	
+	
 	private Resource[] restCFCLocations;
 
-	private short scopeCascading = -1;
+	private short scopeCascading=-1;
 
 	private Server[] mailServers;
 	private boolean initMailServer;
 
 	private boolean initLog;
 
-	private Map<Collection.Key, Pair<Log, Struct>> logs;
+	private Map<Collection.Key,Pair<Log,Struct>> logs;
 
+		
 	public ModernApplicationContext(PageContext pc, Component cfc, RefBoolean throwsErrorWhileInit) {
 		super(pc.getConfig());
 		ConfigImpl ci = ((ConfigImpl)config);
-		setClientCookies = config.isClientCookies();
-		setDomainCookies = config.isDomainCookies();
-		setSessionManagement = config.isSessionManagement();
-		setClientManagement = config.isClientManagement();
-		sessionTimeout = config.getSessionTimeout();
-		clientTimeout = config.getClientTimeout();
-		requestTimeout = config.getRequestTimeout();
-		applicationTimeout = config.getApplicationTimeout();
-		scriptProtect = config.getScriptProtect();
-		typeChecking = ci.getTypeChecking();
-		allowCompression = ci.allowCompression();
-		this.defaultDataSource = config.getDefaultDataSource();
-		this.localMode = config.getLocalMode();
-		this.locale = config.getLocale();
-		this.timeZone = config.getTimeZone();
-		this.webCharset = ci.getWebCharSet();
-		this.resourceCharset = ci.getResourceCharSet();
-		this.bufferOutput = ci.getBufferOutput();
-		suppressContent = ci.isSuppressContent();
-		this.sessionType = config.getSessionType();
-		this.wstype = WS_TYPE_AXIS1;
-		this.cgiScopeReadonly = ci.getCGIScopeReadonly();
-
-		this.sessionCluster = config.getSessionCluster();
-		this.clientCluster = config.getClientCluster();
-		this.sessionStorage = ci.getSessionStorage();
-		this.clientStorage = ci.getClientStorage();
-
-		this.triggerComponentDataMember = config.getTriggerComponentDataMember();
-		this.restSetting = config.getRestSetting();
-		this.javaSettings = new JavaSettingsImpl();
-		this.component = cfc;
-
-		initAntiSamyPolicyResource(pc);
-		if(antiSamyPolicyResource == null)
-			this.antiSamyPolicyResource = ((ConfigImpl)config).getAntiSamyPolicy();
-		// read scope cascading
-		initScopeCascading();
-		initSameFieldAsArray(pc);
-		initWebCharset(pc);
-
+    	setClientCookies=config.isClientCookies();
+        setDomainCookies=config.isDomainCookies();
+        setSessionManagement=config.isSessionManagement();
+        setClientManagement=config.isClientManagement();
+        sessionTimeout=config.getSessionTimeout();
+        clientTimeout=config.getClientTimeout();
+        requestTimeout=config.getRequestTimeout();
+        applicationTimeout=config.getApplicationTimeout();
+        scriptProtect=config.getScriptProtect();
+        typeChecking=ci.getTypeChecking();
+        allowCompression=ci.allowCompression();
+        this.defaultDataSource=config.getDefaultDataSource();
+        this.localMode=config.getLocalMode();
+        this.locale=config.getLocale();
+        this.timeZone=config.getTimeZone();
+        this.webCharset=ci.getWebCharSet();
+        this.resourceCharset=ci.getResourceCharSet();
+        this.bufferOutput=ci.getBufferOutput();
+        suppressContent=ci.isSuppressContent();
+        this.sessionType=config.getSessionType();
+        this.wstype=WS_TYPE_AXIS1;
+		this.cgiScopeReadonly=ci.getCGIScopeReadonly();
+		this.fullNullSupport=ci.getFullNullSupport();
+        
+        this.sessionCluster=config.getSessionCluster();
+        this.clientCluster=config.getClientCluster();
+        this.sessionStorage=ci.getSessionStorage();
+        this.clientStorage=ci.getClientStorage();
+        
+        this.triggerComponentDataMember=config.getTriggerComponentDataMember();
+        this.restSetting=config.getRestSetting();
+        this.javaSettings=new JavaSettingsImpl();
+        this.component=cfc;
+		
+        
+        initAntiSamyPolicyResource(pc);
+        if(antiSamyPolicyResource==null)
+        	this.antiSamyPolicyResource=((ConfigImpl)config).getAntiSamyPolicy();
+        // read scope cascading
+        initScopeCascading();
+        initSameFieldAsArray(pc);
+        initWebCharset(pc);
+        
 		pc.addPageSource(component.getPageSource(), true);
 		try {
+			
+		
+			
 
+			
 			/////////// ORM /////////////////////////////////
 			reinitORM(pc);
-
+			
+			
 			throwsErrorWhileInit.setValue(false);
 		}
-		catch (Throwable t) {
+		catch(Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			throwsErrorWhileInit.setValue(true);
 			pc.removeLastPageSource(true);
@@ -320,70 +343,68 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	public void initScopeCascading() {
-		Object o = get(component, SCOPE_CASCADING, null);
-		if(o != null) {
-			scopeCascading = ConfigWebUtil.toScopeCascading(Caster.toString(o, null), (short)-1);
+		Object o = get(component,SCOPE_CASCADING,null);
+		if(o!=null){
+			scopeCascading=ConfigWebUtil.toScopeCascading(Caster.toString(o,null),(short)-1);
 		}
 		else {
-			Boolean b = Caster.toBoolean(get(component, SEARCH_IMPLICIT_SCOPES, null), null);
-			if(b != null)
-				scopeCascading = ConfigWebUtil.toScopeCascading(b);
+			Boolean b = Caster.toBoolean(get(component,SEARCH_IMPLICIT_SCOPES,null),null);
+			if(b!=null)scopeCascading=ConfigWebUtil.toScopeCascading(b);
 		}
-
+		
 	}
-
+	
+	
 	@Override
 	public short getScopeCascading() {
-		if(scopeCascading == -1)
-			return config.getScopeCascadingType();
+		if(scopeCascading==-1) return config.getScopeCascadingType();
 		return scopeCascading;
 	}
 
 	@Override
 	public void setScopeCascading(short scopeCascading) {
-		this.scopeCascading = scopeCascading;
+		this.scopeCascading= scopeCascading;
 	}
 
+	
 	@Override
 	public void reinitORM(PageContext pc) throws PageException {
 
 		// datasource
-		Object o = get(component, KeyConstants._datasource, null);
-		if(o != null) {
-			this.ormDatasource = this.defaultDataSource = AppListenerUtil.toDefaultDatasource(pc.getConfig(), o, pc.getConfig().getLog("application"));
+		Object o = get(component,KeyConstants._datasource,null);
+		if(o!=null) {
+			this.ormDatasource=this.defaultDataSource = AppListenerUtil.toDefaultDatasource(pc.getConfig(),o,pc.getConfig().getLog("application"));
 		}
 
 		// default datasource
-		o = get(component, DEFAULT_DATA_SOURCE, null);
-		if(o != null) {
-			this.defaultDataSource = AppListenerUtil.toDefaultDatasource(pc.getConfig(), o, pc.getConfig().getLog("application"));
+		o=get(component,DEFAULT_DATA_SOURCE,null);
+		if(o!=null) {
+			this.defaultDataSource =AppListenerUtil.toDefaultDatasource(pc.getConfig(),o,pc.getConfig().getLog("application"));
 		}
-
+		
 		// ormenabled
-		o = get(component, ORM_ENABLED, null);
-		if(o != null && Caster.toBooleanValue(o, false)) {
-			this.ormEnabled = true;
-
+		o = get(component,ORM_ENABLED,null);
+		if(o!=null && Caster.toBooleanValue(o,false)){
+			this.ormEnabled=true;
+			
 			// settings
-			o = get(component, ORM_SETTINGS, null);
+			o=get(component,ORM_SETTINGS,null);
 			Struct settings;
-			if(o instanceof Struct)
-				settings = (Struct)o;
-			else
-				settings = new StructImpl();
+			if(o instanceof Struct)	settings=(Struct) o;
+			else	settings=new StructImpl();
 			AppListenerUtil.setORMConfiguration(pc, this, settings);
 		}
 	}
 
 	@Override
 	public boolean hasName() {
-		return true;// !StringUtil.isEmpty(getName());
+		return true;//!StringUtil.isEmpty(getName());
 	}
-
+	
 	@Override
 	public String getName() {
-		if(this.name == null) {
-			this.name = Caster.toString(get(component, KeyConstants._name, ""), "");
+		if(this.name==null) {
+			this.name=Caster.toString(get(component,KeyConstants._name,""),"");
 		}
 		return name;
 	}
@@ -391,14 +412,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public int getLoginStorage() {
 		if(!initLoginStorage) {
-			String str = null;
-			Object o = get(component, LOGIN_STORAGE, null);
-			if(o != null) {
-				str = Caster.toString(o, null);
-				if(str != null)
-					loginStorage = AppListenerUtil.translateLoginStorage(str, loginStorage);
+			String str=null;
+			Object o = get(component,LOGIN_STORAGE,null);
+			if(o!=null){ 
+				str=Caster.toString(o,null);
+				if(str!=null)loginStorage=AppListenerUtil.translateLoginStorage(str,loginStorage);
 			}
-			initLoginStorage = true;
+			initLoginStorage=true; 
 		}
 		return loginStorage;
 	}
@@ -406,10 +426,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public TimeSpan getApplicationTimeout() {
 		if(!initApplicationTimeout) {
-			Object o = get(component, APPLICATION_TIMEOUT, null);
-			if(o != null)
-				applicationTimeout = Caster.toTimespan(o, applicationTimeout);
-			initApplicationTimeout = true;
+			Object o=get(component,APPLICATION_TIMEOUT,null);
+			if(o!=null)applicationTimeout=Caster.toTimespan(o,applicationTimeout);
+			initApplicationTimeout=true;
 		}
 		return applicationTimeout;
 	}
@@ -417,10 +436,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public TimeSpan getSessionTimeout() {
 		if(!initSessionTimeout) {
-			Object o = get(component, SESSION_TIMEOUT, null);
-			if(o != null)
-				sessionTimeout = Caster.toTimespan(o, sessionTimeout);
-			initSessionTimeout = true;
+			Object o=get(component,SESSION_TIMEOUT,null);
+			if(o!=null)sessionTimeout=Caster.toTimespan(o,sessionTimeout);
+			initSessionTimeout=true;
 		}
 		return sessionTimeout;
 	}
@@ -428,10 +446,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public TimeSpan getClientTimeout() {
 		if(!initClientTimeout) {
-			Object o = get(component, CLIENT_TIMEOUT, null);
-			if(o != null)
-				clientTimeout = Caster.toTimespan(o, clientTimeout);
-			initClientTimeout = true;
+			Object o=get(component,CLIENT_TIMEOUT,null);
+			if(o!=null)clientTimeout=Caster.toTimespan(o,clientTimeout);
+			initClientTimeout=true;
 		}
 		return clientTimeout;
 	}
@@ -439,29 +456,26 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public TimeSpan getRequestTimeout() {
 		if(!initRequestTimeout) {
-			Object o = get(component, REQUEST_TIMEOUT, null);
-			if(o == null)
-				o = get(component, KeyConstants._timeout, null);
-			if(o != null)
-				requestTimeout = Caster.toTimespan(o, requestTimeout);
-			initRequestTimeout = true;
+			Object o=get(component,REQUEST_TIMEOUT,null);
+			if(o==null)o=get(component,KeyConstants._timeout,null);
+			if(o!=null)requestTimeout=Caster.toTimespan(o,requestTimeout);
+			initRequestTimeout=true;
 		}
 		return requestTimeout;
 	}
-
+	
 	@Override
 	public void setRequestTimeout(TimeSpan requestTimeout) {
 		this.requestTimeout = requestTimeout;
-		initRequestTimeout = true;
+		initRequestTimeout=true;
 	}
 
 	@Override
 	public boolean isSetClientCookies() {
 		if(!initSetClientCookies) {
-			Object o = get(component, SET_CLIENT_COOKIES, null);
-			if(o != null)
-				setClientCookies = Caster.toBooleanValue(o, setClientCookies);
-			initSetClientCookies = true;
+			Object o = get(component,SET_CLIENT_COOKIES,null);
+			if(o!=null)setClientCookies=Caster.toBooleanValue(o,setClientCookies);
+			initSetClientCookies=true;
 		}
 		return setClientCookies;
 	}
@@ -469,10 +483,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean isSetClientManagement() {
 		if(!initSetClientManagement) {
-			Object o = get(component, CLIENT_MANAGEMENT, null);
-			if(o != null)
-				setClientManagement = Caster.toBooleanValue(o, setClientManagement);
-			initSetClientManagement = true;
+			Object o = get(component,CLIENT_MANAGEMENT,null);
+			if(o!=null)setClientManagement=Caster.toBooleanValue(o,setClientManagement);
+			initSetClientManagement=true;
 		}
 		return setClientManagement;
 	}
@@ -480,10 +493,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean isSetDomainCookies() {
 		if(!initSetDomainCookies) {
-			Object o = get(component, SET_DOMAIN_COOKIES, null);
-			if(o != null)
-				setDomainCookies = Caster.toBooleanValue(o, setDomainCookies);
-			initSetDomainCookies = true;
+			Object o = get(component,SET_DOMAIN_COOKIES,null);
+			if(o!=null)setDomainCookies=Caster.toBooleanValue(o,setDomainCookies);
+			initSetDomainCookies=true;
 		}
 		return setDomainCookies;
 	}
@@ -491,10 +503,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean isSetSessionManagement() {
 		if(!initSetSessionManagement) {
-			Object o = get(component, SESSION_MANAGEMENT, null);
-			if(o != null)
-				setSessionManagement = Caster.toBooleanValue(o, setSessionManagement);
-			initSetSessionManagement = true;
+			Object o = get(component,SESSION_MANAGEMENT,null);
+			if(o!=null)setSessionManagement=Caster.toBooleanValue(o,setSessionManagement);
+			initSetSessionManagement=true; 
 		}
 		return setSessionManagement;
 	}
@@ -502,10 +513,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public String getClientstorage() {
 		if(!initClientStorage) {
-			String str = Caster.toString(get(component, CLIENT_STORAGE, null), null);
-			if(!StringUtil.isEmpty(str))
-				clientStorage = str;
-			initClientStorage = true;
+			String str=Caster.toString(get(component,CLIENT_STORAGE,null),null);
+			if(!StringUtil.isEmpty(str))clientStorage=str;
+			initClientStorage=true;
 		}
 		return clientStorage;
 	}
@@ -513,14 +523,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public int getScriptProtect() {
 		if(!initScriptProtect) {
-			String str = null;
-			Object o = get(component, SCRIPT_PROTECT, null);
-			if(o != null) {
-				str = Caster.toString(o, null);
-				if(str != null)
-					scriptProtect = AppListenerUtil.translateScriptProtect(str);
+			String str=null;
+			Object o = get(component,SCRIPT_PROTECT,null);
+			if(o!=null){ 
+				str=Caster.toString(o,null);
+				if(str!=null)scriptProtect=AppListenerUtil.translateScriptProtect(str);
 			}
-			initScriptProtect = true;
+			initScriptProtect=true; 
 		}
 		return scriptProtect;
 	}
@@ -528,10 +537,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean getTypeChecking() {
 		if(!initTypeChecking) {
-			Boolean b = Caster.toBoolean(get(component, TYPE_CHECKING, null), null);
-			if(b != null)
-				typeChecking = b.booleanValue();
-			initTypeChecking = true;
+			Boolean b = Caster.toBoolean(get(component,TYPE_CHECKING,null),null);
+			if(b!=null) typeChecking=b.booleanValue();
+			initTypeChecking=true; 
 		}
 		return typeChecking;
 	}
@@ -539,27 +547,25 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean getAllowCompression() {
 		if(!initAllowCompression) {
-			Boolean b = Caster.toBoolean(get(component, KeyConstants._compression, null), null);
-			if(b != null)
-				allowCompression = b.booleanValue();
-			initAllowCompression = true;
+			Boolean b = Caster.toBoolean(get(component,KeyConstants._compression,null),null);
+			if(b!=null) allowCompression=b.booleanValue();
+			initAllowCompression=true; 
 		}
 		return allowCompression;
 	}
 
 	@Override
 	public void setAllowCompression(boolean allowCompression) {
-		this.allowCompression = allowCompression;
-		initAllowCompression = true;
+		this.allowCompression=allowCompression;
+		initAllowCompression=true;
 	}
 
 	@Override
 	public String getSecureJsonPrefix() {
 		if(!initSecureJsonPrefix) {
-			Object o = get(component, SECURE_JSON_PREFIX, null);
-			if(o != null)
-				secureJsonPrefix = Caster.toString(o, secureJsonPrefix);
-			initSecureJsonPrefix = true;
+			Object o=get(component,SECURE_JSON_PREFIX,null);
+			if(o!=null)secureJsonPrefix=Caster.toString(o,secureJsonPrefix);
+			initSecureJsonPrefix=true;
 		}
 		return secureJsonPrefix;
 	}
@@ -567,10 +573,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean getSecureJson() {
 		if(!initSecureJson) {
-			Object o = get(component, SECURE_JSON, null);
-			if(o != null)
-				secureJson = Caster.toBooleanValue(o, secureJson);
-			initSecureJson = true;
+			Object o = get(component,SECURE_JSON,null);
+			if(o!=null)secureJson=Caster.toBooleanValue(o,secureJson);
+			initSecureJson=true; 
 		}
 		return secureJson;
 	}
@@ -578,10 +583,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public String getSessionstorage() {
 		if(!initSessionStorage) {
-			String str = Caster.toString(get(component, SESSION_STORAGE, null), null);
-			if(!StringUtil.isEmpty(str))
-				sessionStorage = str;
-			initSessionStorage = true;
+			String str=Caster.toString(get(component,SESSION_STORAGE,null),null);
+			if(!StringUtil.isEmpty(str))sessionStorage=str;
+			initSessionStorage=true;
 		}
 		return sessionStorage;
 	}
@@ -589,10 +593,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean getSessionCluster() {
 		if(!initSessionCluster) {
-			Object o = get(component, SESSION_CLUSTER, null);
-			if(o != null)
-				sessionCluster = Caster.toBooleanValue(o, sessionCluster);
-			initSessionCluster = true;
+			Object o = get(component,SESSION_CLUSTER,null);
+			if(o!=null)sessionCluster=Caster.toBooleanValue(o,sessionCluster);
+			initSessionCluster=true; 
 		}
 		return sessionCluster;
 	}
@@ -600,10 +603,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean getClientCluster() {
 		if(!initClientCluster) {
-			Object o = get(component, CLIENT_CLUSTER, null);
-			if(o != null)
-				clientCluster = Caster.toBooleanValue(o, clientCluster);
-			initClientCluster = true;
+			Object o = get(component,CLIENT_CLUSTER,null);
+			if(o!=null)clientCluster=Caster.toBooleanValue(o,clientCluster);
+			initClientCluster=true; 
 		}
 		return clientCluster;
 	}
@@ -611,178 +613,169 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public short getSessionType() {
 		if(!initSessionType) {
-			String str = null;
-			Object o = get(component, SESSION_TYPE, null);
-			if(o != null) {
-				str = Caster.toString(o, null);
-				if(str != null)
-					sessionType = AppListenerUtil.toSessionType(str, sessionType);
+			String str=null;
+			Object o = get(component,SESSION_TYPE,null);
+			if(o!=null){ 
+				str=Caster.toString(o,null);
+				if(str!=null)sessionType=AppListenerUtil.toSessionType(str, sessionType);
 			}
-			initSessionType = true;
+			initSessionType=true; 
 		}
 		return sessionType;
 	}
+	
+
 
 	@Override
 	public short getWSType() {
 		initWS();
 		return wstype;
 	}
-
+	
 	@Override
 	public boolean getWSMaintainSession() {
 		initWS();
 		return wsMaintainSession;
 	}
-
+	
 	@Override
 	public void setWSMaintainSession(boolean wsMaintainSession) {
-		initWS = true;
+		initWS=true;
 		this.wsMaintainSession = wsMaintainSession;
 	}
-
+	
 	public void initWS() {
 		if(!initWS) {
-			Object o = get(component, WS_SETTINGS, null);
-			if(o == null)
-				o = get(component, WS_SETTING, null);
-			if(o instanceof Struct) {
-				Struct sct = (Struct)o;
-
+			Object o = get(component,WS_SETTINGS,null);
+			if(o==null) o = get(component,WS_SETTING,null);
+			if(o instanceof Struct){ 
+				Struct sct= (Struct) o;
+				
 				// type
-				o = sct.get(KeyConstants._type, null);
-				if(o instanceof String) {
-					wstype = AppListenerUtil.toWSType(Caster.toString(o, null), WS_TYPE_AXIS1);
+				o=sct.get(KeyConstants._type,null);
+				if(o instanceof String){ 
+					wstype=AppListenerUtil.toWSType(Caster.toString(o,null), WS_TYPE_AXIS1);
 				}
-
+				
 				// MaintainSession
-				o = sct.get("MaintainSession", null);
-				if(o != null) {
-					wsMaintainSession = Caster.toBooleanValue(o, false);
+				o=sct.get("MaintainSession",null);
+				if(o !=null){ 
+					wsMaintainSession=Caster.toBooleanValue(o,false);
 				}
 			}
-			initWS = true;
+			initWS=true; 
 		}
 	}
 
 	@Override
 	public void setWSType(short wstype) {
-		initWS = true;
-		this.wstype = wstype;
+		initWS=true;
+		this.wstype=wstype;
 	}
+
+
 
 	@Override
 	public boolean getTriggerComponentDataMember() {
 		if(!initTriggerComponentDataMember) {
-			Boolean b = null;
-			Object o = get(component, INVOKE_IMPLICIT_ACCESSOR, null);
-			if(o == null)
-				o = get(component, TRIGGER_DATA_MEMBER, null);
-			if(o != null) {
-				b = Caster.toBoolean(o, null);
-				if(b != null)
-					triggerComponentDataMember = b.booleanValue();
+			Boolean b=null;
+			Object o = get(component,INVOKE_IMPLICIT_ACCESSOR,null);
+			if(o==null)o = get(component,TRIGGER_DATA_MEMBER,null);
+			if(o!=null){ 
+				b=Caster.toBoolean(o,null);
+				if(b!=null)triggerComponentDataMember=b.booleanValue();
 			}
-			initTriggerComponentDataMember = true;
+			initTriggerComponentDataMember=true; 
 		}
 		return triggerComponentDataMember;
 	}
 
+
+
 	@Override
 	public void setTriggerComponentDataMember(boolean triggerComponentDataMember) {
-		initTriggerComponentDataMember = true;
-		this.triggerComponentDataMember = triggerComponentDataMember;
+		initTriggerComponentDataMember=true;
+		this.triggerComponentDataMember=triggerComponentDataMember;
 	}
-
+	
 	@Override
 	public boolean getSameFieldAsArray(int scope) {
-		return Scope.SCOPE_URL == scope ? sameURLFieldAsArray : sameFormFieldAsArray;
+		return Scope.SCOPE_URL==scope?sameURLFieldAsArray:sameFormFieldAsArray;
 	}
-
+	
 	public void initSameFieldAsArray(PageContext pc) {
 		boolean oldForm = pc.getApplicationContext().getSameFieldAsArray(Scope.SCOPE_FORM);
-		boolean oldURL = pc.getApplicationContext().getSameFieldAsArray(Scope.SCOPE_URL);
-
+		boolean oldURL=pc.getApplicationContext().getSameFieldAsArray(Scope.SCOPE_URL);
+		
 		// Form
-		Object o = get(component, KeyImpl.init("sameformfieldsasarray"), null);
-		if(o != null && Decision.isBoolean(o))
-			sameFormFieldAsArray = Caster.toBooleanValue(o, false);
-
+		Object o = get(component,KeyImpl.init("sameformfieldsasarray"),null);
+		if(o!=null && Decision.isBoolean(o))
+			sameFormFieldAsArray=Caster.toBooleanValue(o,false);
+		
 		// URL
-		o = get(component, KeyImpl.init("sameurlfieldsasarray"), null);
-		if(o != null && Decision.isBoolean(o))
-			sameURLFieldAsArray = Caster.toBooleanValue(o, false);
-
-		if(oldForm != sameFormFieldAsArray)
-			pc.formScope().reinitialize(this);
-		if(oldURL != sameURLFieldAsArray)
-			pc.urlScope().reinitialize(this);
+		o = get(component,KeyImpl.init("sameurlfieldsasarray"),null);
+		if(o!=null && Decision.isBoolean(o))
+			sameURLFieldAsArray=Caster.toBooleanValue(o,false);
+		
+		if(oldForm!=sameFormFieldAsArray) pc.formScope().reinitialize(this);
+		if(oldURL!=sameURLFieldAsArray) pc.urlScope().reinitialize(this);
 	}
-
+	
 	public void initWebCharset(PageContext pc) {
 		initCharset();
 		Charset cs = getWebCharset();
 		// has defined a web charset
-		if(cs != null) {
+		if(cs!=null) {
 			if(!cs.equals(config.getWebCharset())) {
-				ReqRspUtil.setContentType(pc.getHttpServletResponse(), "text/html; charset=" + cs.name());
+				ReqRspUtil.setContentType(pc.getHttpServletResponse(), "text/html; charset="+cs.name());
 			}
 		}
-
+		
 	}
+	
 
 	@Override
 	public String getDefaultCacheName(int type) {
 		initCache();
 		return defaultCaches.get(type);
 	}
-
+	
 	@Override
 	public Server[] getMailServers() {
 		initMailServers();
 		return mailServers;
 	}
+	
 
 	private void initMailServers() {
-
 		if(!initMailServer) {
-
 			Key key;
-			Object oMail = get(component, key = KeyConstants._mail, null);
-
-			if(oMail == null)
-				oMail = get(component, key = KeyConstants._mails, null);
-
-			if(oMail == null)
-				oMail = get(component, key = KeyConstants._mailServer, null);
-
-			if(oMail == null)
-				oMail = get(component, key = KeyConstants._mailServers, null);
-
-			if(oMail == null)
-				oMail = get(component, key = KeyConstants._smtpServerSettings, null);
-
-			Array arrMail = Caster.toArray(oMail, null);
+			Object oMail = get(component,key=KeyConstants._mail,null);
+			if(oMail==null) oMail = get(component,key=KeyConstants._mails,null);
+			if(oMail==null) oMail = get(component,key=KeyConstants._mailServer,null);
+			if(oMail==null) oMail = get(component,key=KeyConstants._mailServers,null);
+			if(oMail==null) oMail = get(component,key=KeyConstants._smtpServerSettings,null);
+			
+			Array arrMail = Caster.toArray(oMail,null);
 			// we also support a single struct instead of an array of structs
-			if(arrMail == null) {
-				Struct sctMail = Caster.toStruct(get(component, key, null), null);
-				if(sctMail != null) {
+			if(arrMail==null) {
+				Struct sctMail = Caster.toStruct(get(component,key,null),null);
+				if(sctMail!=null) {
 					arrMail = new ArrayImpl();
 					arrMail.appendEL(sctMail);
 				}
 			}
-
-			if(arrMail != null) {
-				mailServers = AppListenerUtil.toMailServers(config, arrMail, null);
+			if(arrMail!=null){ 
+				mailServers=AppListenerUtil.toMailServers(config, arrMail, null);
 			}
-
-			initMailServer = true;
+			initMailServer=true;
 		}
 	}
+	
 
 	public void setMailServers(Server[] servers) {
-		this.mailServers = servers;
-		this.initMailServer = true;
+		this.mailServers=servers;
+		this.initMailServer=true;
 	}
 
 	@Override
@@ -790,68 +783,64 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		initCache();
 		return cacheConnections.get(KeyImpl.init(cacheName));
 	}
-
+	
 	public Key[] getCacheConnectionNames() {
 		initCache();
 		Set<Key> set = cacheConnections.keySet();
 		return set.toArray(new Key[set.size()]);
 	}
-
+	
 	private void initCache() {
-		if(!initCache) {
-			boolean hasResource = false;
-			if(defaultCaches == null)
-				defaultCaches = new ConcurrentHashMap<Integer, String>();
-			if(cacheConnections == null)
-				cacheConnections = new ConcurrentHashMap<Collection.Key, CacheConnection>();
-			Struct sctDefCache = Caster.toStruct(get(component, DEFAULT_CACHE, null), null);
-			if(sctDefCache == null)
-				sctDefCache = Caster.toStruct(get(component, KeyConstants._cache, null), null);
-
-			// Default
-			if(sctDefCache != null) {
-				// Function
-				initDefaultCache(sctDefCache, Config.CACHE_TYPE_FUNCTION, KeyConstants._function);
-				// Query
-				initDefaultCache(sctDefCache, Config.CACHE_TYPE_QUERY, KeyConstants._query);
-				// Template
-				initDefaultCache(sctDefCache, Config.CACHE_TYPE_TEMPLATE, KeyConstants._template);
-				// Object
-				initDefaultCache(sctDefCache, Config.CACHE_TYPE_OBJECT, KeyConstants._object);
-				// INCLUDE
-				initDefaultCache(sctDefCache, Config.CACHE_TYPE_INCLUDE, KeyConstants._include);
-				// Resource
-				if(initDefaultCache(sctDefCache, Config.CACHE_TYPE_RESOURCE, KeyConstants._resource))
-					hasResource = true;
-				// HTTP
-				if(initDefaultCache(sctDefCache, Config.CACHE_TYPE_HTTP, KeyConstants._http))
-					hasResource = true;
-				// File
-				if(initDefaultCache(sctDefCache, Config.CACHE_TYPE_FILE, KeyConstants._file))
-					hasResource = true;
-				// Webservice
-				if(initDefaultCache(sctDefCache, Config.CACHE_TYPE_WEBSERVICE, KeyConstants._webservice))
-					hasResource = true;
+		if(!initCache) { 
+			boolean hasResource=false;
+			if(defaultCaches==null)defaultCaches=new ConcurrentHashMap<Integer, String>();
+			if(cacheConnections==null)cacheConnections=new ConcurrentHashMap<Collection.Key, CacheConnection>();
+			Struct sctDefCache = Caster.toStruct(get(component,DEFAULT_CACHE,null),null);
+			if(sctDefCache==null) sctDefCache = Caster.toStruct(get(component,KeyConstants._cache,null),null);
+			
+		// Default
+			if(sctDefCache!=null){ 
+			// Function
+				initDefaultCache(sctDefCache,Config.CACHE_TYPE_FUNCTION,KeyConstants._function);
+			// Query
+				initDefaultCache(sctDefCache,Config.CACHE_TYPE_QUERY,KeyConstants._query);
+			// Template
+				initDefaultCache(sctDefCache,Config.CACHE_TYPE_TEMPLATE,KeyConstants._template);
+			// Object
+				initDefaultCache(sctDefCache,Config.CACHE_TYPE_OBJECT,KeyConstants._object);
+			// INCLUDE
+				initDefaultCache(sctDefCache,Config.CACHE_TYPE_INCLUDE,KeyConstants._include);
+			// Resource
+				if(initDefaultCache(sctDefCache,Config.CACHE_TYPE_RESOURCE,KeyConstants._resource)) hasResource=true;
+			// HTTP
+				if(initDefaultCache(sctDefCache,Config.CACHE_TYPE_HTTP,KeyConstants._http)) hasResource=true;
+			// File
+				if(initDefaultCache(sctDefCache,Config.CACHE_TYPE_FILE,KeyConstants._file)) hasResource=true;
+			// Webservice
+				if(initDefaultCache(sctDefCache,Config.CACHE_TYPE_WEBSERVICE,KeyConstants._webservice)) hasResource=true;
 			}
-			// check alias inmemoryfilesystem
+			// check alias inmemoryfilesystem 
 			if(!hasResource) {
-				String str = Caster.toString(get(component, IN_MEMORY_FILESYSTEM, null), null);
-				if(!StringUtil.isEmpty(str, true)) {
+				String str = Caster.toString(get(component,IN_MEMORY_FILESYSTEM,null),null);
+				if(!StringUtil.isEmpty(str,true)) {
 					defaultCaches.put(Config.CACHE_TYPE_RESOURCE, str.trim());
 				}
 			}
-
-			// cache definitions
-			Struct sctCache = Caster.toStruct(get(component, KeyConstants._cache, null), null);
-			if(sctCache != null) {
+		
+	// cache definitions
+			Struct sctCache = Caster.toStruct(get(component,KeyConstants._cache,null),null);
+			if(sctCache!=null){ 
 				Iterator<Entry<Key, Object>> it = sctCache.entryIterator();
-
-				_initCache(cacheConnections, it, false);
-
+				
+				_initCache(cacheConnections,it,false);
+				
+				
 			}
-			initCache = true;
+			initCache=true;
 		}
 	}
+
+
 
 	private void _initCache(Map<Key, CacheConnection> cacheConnections, Iterator<Entry<Key, Object>> it, boolean sub) {
 		Entry<Key, Object> e;
@@ -859,154 +848,177 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		CacheConnection cc;
 		while(it.hasNext()) {
 			e = it.next();
-
-			if(!sub && KeyConstants._function.equals(e.getKey()) || KeyConstants._query.equals(e.getKey()) || KeyConstants._template.equals(e.getKey())
-					|| KeyConstants._object.equals(e.getKey()) || KeyConstants._include.equals(e.getKey()) || KeyConstants._resource.equals(e.getKey())
-					|| KeyConstants._http.equals(e.getKey()) || KeyConstants._file.equals(e.getKey()) || KeyConstants._webservice.equals(e.getKey()))
+			
+			if(!sub && KeyConstants._function.equals(e.getKey()) 
+					|| KeyConstants._query.equals(e.getKey()) 
+					|| KeyConstants._template.equals(e.getKey()) 
+					|| KeyConstants._object.equals(e.getKey()) 
+					|| KeyConstants._include.equals(e.getKey()) 
+					|| KeyConstants._resource.equals(e.getKey()) 
+					|| KeyConstants._http.equals(e.getKey()) 
+					|| KeyConstants._file.equals(e.getKey()) 
+					|| KeyConstants._webservice.equals(e.getKey())) continue;
+			
+			if(!sub && KeyConstants._connections.equals(e.getKey()) ) {
+				Struct _sct=Caster.toStruct(e.getValue(),null);
+				if(_sct!=null)_initCache(cacheConnections, _sct.entryIterator(),true);
 				continue;
-
-			if(!sub && KeyConstants._connections.equals(e.getKey())) {
-				Struct _sct = Caster.toStruct(e.getValue(), null);
-				if(_sct != null)
-					_initCache(cacheConnections, _sct.entryIterator(), true);
-				continue;
-
+				
 			}
-
-			sct = Caster.toStruct(e.getValue(), null);
-			if(sct == null)
-				continue;
-
-			cc = toCacheConnection(config, e.getKey().getString(), sct, null);
-
-			if(cc != null) {
-				cacheConnections.put(e.getKey(), cc);
-				Key def = Caster.toKey(sct.get(KeyConstants._default, null), null);
-				if(def != null) {
-					String n = e.getKey().getString().trim();
-					if(KeyConstants._function.equals(def))
-						defaultCaches.put(Config.CACHE_TYPE_FUNCTION, n);
-					else if(KeyConstants._query.equals(def))
-						defaultCaches.put(Config.CACHE_TYPE_QUERY, n);
-					else if(KeyConstants._template.equals(def))
-						defaultCaches.put(Config.CACHE_TYPE_TEMPLATE, n);
-					else if(KeyConstants._object.equals(def))
-						defaultCaches.put(Config.CACHE_TYPE_OBJECT, n);
-					else if(KeyConstants._include.equals(def))
-						defaultCaches.put(Config.CACHE_TYPE_INCLUDE, n);
-					else if(KeyConstants._resource.equals(def))
-						defaultCaches.put(Config.CACHE_TYPE_RESOURCE, n);
-					else if(KeyConstants._http.equals(def))
-						defaultCaches.put(Config.CACHE_TYPE_HTTP, n);
-					else if(KeyConstants._file.equals(def))
-						defaultCaches.put(Config.CACHE_TYPE_FILE, n);
-					else if(KeyConstants._webservice.equals(def))
-						defaultCaches.put(Config.CACHE_TYPE_WEBSERVICE, n);
+			
+			sct=Caster.toStruct(e.getValue(),null);
+			if(sct==null) continue;
+			
+			cc=toCacheConnection(config,e.getKey().getString(),sct,null);
+			
+			if(cc!=null) {
+				cacheConnections.put(e.getKey(),cc);
+				Key def = Caster.toKey(sct.get(KeyConstants._default,null),null);
+				if(def!=null) {
+					String n=e.getKey().getString().trim();
+					if(KeyConstants._function.equals(def)) 		defaultCaches.put(Config.CACHE_TYPE_FUNCTION, n);
+					else if(KeyConstants._query.equals(def)) 	defaultCaches.put(Config.CACHE_TYPE_QUERY, n);
+					else if(KeyConstants._template.equals(def))	defaultCaches.put(Config.CACHE_TYPE_TEMPLATE, n);
+					else if(KeyConstants._object.equals(def))	defaultCaches.put(Config.CACHE_TYPE_OBJECT, n);
+					else if(KeyConstants._include.equals(def))	defaultCaches.put(Config.CACHE_TYPE_INCLUDE, n);
+					else if(KeyConstants._resource.equals(def))	defaultCaches.put(Config.CACHE_TYPE_RESOURCE, n);
+					else if(KeyConstants._http.equals(def))		defaultCaches.put(Config.CACHE_TYPE_HTTP, n);
+					else if(KeyConstants._file.equals(def))		defaultCaches.put(Config.CACHE_TYPE_FILE, n);
+					else if(KeyConstants._webservice.equals(def)) defaultCaches.put(Config.CACHE_TYPE_WEBSERVICE, n);
 				}
 			}
 		}
 	}
 
 	private boolean initDefaultCache(Struct data, int type, Key key) {
-		Object o = data.get(key, null);
-		boolean hasResource = false;
-		if(o != null) {
+		Object o = data.get(key,null);
+		boolean hasResource=false;
+		if(o!=null) {
 			String name;
 			Struct sct;
 			CacheConnection cc;
-
-			if(!StringUtil.isEmpty(name = Caster.toString(o, null), true)) {
+			
+			if(!StringUtil.isEmpty(name=Caster.toString(o,null),true)) {
 				defaultCaches.put(type, name.trim());
-				hasResource = true;
+				hasResource=true;
 			}
-			else if((sct = Caster.toStruct(o, null)) != null) {
-				cc = toCacheConnection(config, key.getString(), sct, null);
-				if(cc != null) {
+			else if((sct=Caster.toStruct(o,null))!=null) {
+				cc=toCacheConnection(config, key.getString(), sct, null);
+				if(cc!=null) {
 					cacheConnections.put(key, cc);
 					defaultCaches.put(type, key.getString());
-					hasResource = true;
+					hasResource=true;
 				}
 			}
 		}
 		return hasResource;
 	}
-
-	public static CacheConnection toCacheConnection(Config config, String name, Struct data, CacheConnection defaultValue) {
-		try {
+	
+	public static CacheConnection toCacheConnection(Config config,String name,Struct data, CacheConnection defaultValue) {
+		try{
 			return toCacheConnection(config, name, data);
 		}
-		catch (Exception e) {
+		catch(Exception e) {
 			return defaultValue;
 		}
 	}
-
-	public static CacheConnection toCacheConnection(Config config, String name, Struct data)
-			throws ApplicationException, CacheException, ClassException, BundleException {
+	
+	public static CacheConnection toCacheConnection(Config config,String name,Struct data) throws ApplicationException, CacheException, ClassException, BundleException {
 		// class definition
-		String className = Caster.toString(data.get(KeyConstants._class, null), null);
-		if(StringUtil.isEmpty(className))
-			throw new ApplicationException("missing key class in struct the defines a cachec connection");
-		ClassDefinition cd = new ClassDefinitionImpl(className, Caster.toString(data.get(KeyConstants._bundleName, null), null),
-				Caster.toString(data.get(KeyConstants._bundleVersion, null), null), config.getIdentification());
-
-		CacheConnectionImpl cc = new CacheConnectionImpl(config, name, cd, Caster.toStruct(data.get(KeyConstants._custom, null), null),
-				Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), Caster.toBooleanValue(data.get(KeyConstants._storage, null), false));
-		String id = cc.id();
+		String className = Caster.toString(data.get(KeyConstants._class,null),null);
+		if(StringUtil.isEmpty(className)) throw new ApplicationException("missing key class in struct the defines a cachec connection");
+		ClassDefinition cd=new ClassDefinitionImpl(
+			className
+			, Caster.toString(data.get(KeyConstants._bundleName,null),null)
+			, Caster.toString(data.get(KeyConstants._bundleVersion,null),null)
+			, config.getIdentification()
+		);
+		
+		
+		CacheConnectionImpl cc = new CacheConnectionImpl(config,name,cd
+				,Caster.toStruct(data.get(KeyConstants._custom,null),null)
+				,Caster.toBooleanValue(data.get(KeyConstants._readonly,null),false)
+				,Caster.toBooleanValue(data.get(KeyConstants._storage,null),false)
+		);
+		String id=cc.id();
 		CacheConnection icc = initCacheConnections.get(id);
-		if(icc != null)
-			return icc;
+		if(icc!=null)return icc;
 		try {
 			Method m = cd.getClazz().getMethod("init", new Class[] { Config.class, String[].class, Struct[].class });
 			if(Modifier.isStatic(m.getModifiers()))
-				m.invoke(null, new Object[] { config, new String[] { cc.getName() }, new Struct[] { cc.getCustom() } });
+				m.invoke(null, new Object[] { config, new String[]{cc.getName()},new Struct[]{cc.getCustom()}});
 			else
 				SystemOut.print(config.getErrWriter(), "method [init(Config,String[],Struct[]):void] for class [" + cd.toString() + "] is not static");
-
-			initCacheConnections.put(id, cc);
+			
+			initCacheConnections.put(id,cc);
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-		}
-
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+		
 		return cc;
-
+		
 	}
 
 	@Override
 	public void setDefaultCacheName(int type, String cacheName) {
-		if(StringUtil.isEmpty(cacheName, true))
-			return;
-
+		if(StringUtil.isEmpty(cacheName,true)) return;
+		
 		initCache();
 		defaultCaches.put(type, cacheName.trim());
 	}
-
-	public void setCacheConnection(String cacheName, CacheConnection cc) {
-		if(StringUtil.isEmpty(cacheName, true))
-			return;
+	
+	public void setCacheConnection(String cacheName,CacheConnection cc) {
+		if(StringUtil.isEmpty(cacheName,true)) return;
 		initCache();
-		cacheConnections.put(KeyImpl.init(cacheName), cc);
+		cacheConnections.put(KeyImpl.init(cacheName),cc);
 	}
-
+	
+	
 	@Override
 	public Object getMailListener() {
 		if(!initMailListener) {
-			Struct mail = Caster.toStruct(get(component, KeyConstants._mail, null), null);
-			if(mail != null)
-				mailListener = mail.get(KeyConstants._listener, null);
-
-			initMailListener = true;
+			Struct mail = Caster.toStruct(get(component,KeyConstants._mail,null),null);
+			if(mail!=null) 
+				mailListener=mail.get(KeyConstants._listener,null);
+			
+			initMailListener=true; 
 		}
 		return mailListener;
+	}
+	
+	@Override
+	public TagListener getQueryListener() {
+		if(!initQueryListener) {
+			Struct query = Caster.toStruct(get(component,KeyConstants._query,null),null);
+			if(query!=null) queryListener=Query.toTagListener(query.get(KeyConstants._listener,null),null);
+			initQueryListener=true; 
+		}
+		return queryListener;
+	}
+
+	public SerializationSettings getSerializationSettings() {
+		if(!initSerializationSettings) {
+			Struct sct = Caster.toStruct(get(component,KeyConstants._serialization,null),null);
+			if(sct!=null) {
+				serializationSettings=SerializationSettings.toSerializationSettings(sct);
+			}
+			else
+				serializationSettings=SerializationSettings.DEFAULT;
+			initSerializationSettings=true; 
+		}
+		return serializationSettings;
+	}
+	
+	public void setSerializationSettings(SerializationSettings settings) {
+		serializationSettings=settings;
+		initSerializationSettings=true;
 	}
 
 	@Override
 	public Mapping[] getMappings() {
 		if(!initMappings) {
-			Object o = get(component, KeyConstants._mappings, null);
-			if(o != null)
-				mappings = AppListenerUtil.toMappings(config, o, mappings, getSource());
-			initMappings = true;
+			Object o = get(component,KeyConstants._mappings,null);
+			if(o!=null)mappings=AppListenerUtil.toMappings(config,o,mappings,getSource());
+			initMappings=true; 
 		}
 		return mappings;
 	}
@@ -1014,10 +1026,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public Mapping[] getCustomTagMappings() {
 		if(!initCTMappings) {
-			Object o = get(component, CUSTOM_TAG_PATHS, null);
-			if(o != null)
-				ctmappings = AppListenerUtil.toCustomTagMappings(config, o, getSource(), ctmappings);
-			initCTMappings = true;
+			Object o = get(component,CUSTOM_TAG_PATHS,null);
+			if(o!=null)ctmappings=AppListenerUtil.toCustomTagMappings(config,o,getSource(),ctmappings);
+			initCTMappings=true; 
 		}
 		return ctmappings;
 	}
@@ -1025,10 +1036,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public Mapping[] getComponentMappings() {
 		if(!initCMappings) {
-			Object o = get(component, COMPONENT_PATHS, null);
-			if(o != null)
-				cmappings = AppListenerUtil.toComponentMappings(config, o, getSource(), cmappings);
-			initCMappings = true;
+			Object o = get(component,COMPONENT_PATHS,null);
+			if(o!=null)cmappings=AppListenerUtil.toComponentMappings(config,o,getSource(),cmappings);
+			initCMappings=true; 
 		}
 		return cmappings;
 	}
@@ -1036,24 +1046,24 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public int getLocalMode() {
 		if(!initLocalMode) {
-			Object o = get(component, LOCAL_MODE, null);
-			if(o != null)
-				localMode = AppListenerUtil.toLocalMode(o, localMode);
-			initLocalMode = true;
+			Object o = get(component,LOCAL_MODE,null);
+			if(o!=null)localMode=AppListenerUtil.toLocalMode(o, localMode);
+			initLocalMode=true; 
 		}
 		return localMode;
 	}
+	
+	
 
 	@Override
 	public Locale getLocale() {
 		if(!initLocale) {
-			Object o = get(component, KeyConstants._locale, null);
-			if(o != null) {
-				String str = Caster.toString(o, null);
-				if(!StringUtil.isEmpty(str))
-					locale = LocaleFactory.getLocale(str, locale);
+			Object o = get(component,KeyConstants._locale,null);
+			if(o!=null){
+				String str = Caster.toString(o,null);
+				if(!StringUtil.isEmpty(str))locale=LocaleFactory.getLocale(str,locale);
 			}
-			initLocale = true;
+			initLocale=true; 
 		}
 		return locale;
 	}
@@ -1061,137 +1071,128 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public TimeZone getTimeZone() {
 		if(!initTimeZone) {
-			Object o = get(component, KeyConstants._timezone, null);
-			if(o != null) {
-				String str = Caster.toString(o, null);
-				if(!StringUtil.isEmpty(str))
-					timeZone = TimeZoneUtil.toTimeZone(str, timeZone);
+			Object o = get(component,KeyConstants._timezone,null);
+			if(o!=null){
+				String str = Caster.toString(o,null);
+				if(!StringUtil.isEmpty(str))timeZone=TimeZoneUtil.toTimeZone(str,timeZone);
 			}
-			initTimeZone = true;
+			initTimeZone=true; 
 		}
 		return timeZone;
 	}
 
 	@Override
 	public Charset getWebCharset() {
-		if(!initWebCharset)
-			initCharset();
+		if(!initWebCharset)initCharset();
 		return CharsetUtil.toCharset(webCharset);
 	}
-
+	
 	public CharSet getWebCharSet() {
-		if(!initWebCharset)
-			initCharset();
+		if(!initWebCharset)initCharset();
 		return webCharset;
 	}
+	
 
 	@Override
 	public Resource getAntiSamyPolicyResource() {
 		return antiSamyPolicyResource;
 	}
-
+	
 	@Override
 	public void setAntiSamyPolicyResource(Resource res) {
-		antiSamyPolicyResource = res;
+		antiSamyPolicyResource=res;
 	}
-
+	
 	public void initAntiSamyPolicyResource(PageContext pc) {
-		Struct sct = Caster.toStruct(get(component, KeyConstants._security, null), null);
-		if(sct != null) {
-			Resource tmp = ResourceUtil.toResourceExisting(pc, Caster.toString(sct.get("antisamypolicy", null), null), true, null);
-			if(tmp != null)
-				antiSamyPolicyResource = tmp;
+		Struct sct = Caster.toStruct(get(component,KeyConstants._security,null),null);
+		if(sct!=null) {
+			Resource tmp = ResourceUtil.toResourceExisting(pc,Caster.toString(sct.get("antisamypolicy",null),null),true,null);
+			if(tmp!=null) antiSamyPolicyResource=tmp;
 		}
 	}
-
+	
+	
 	@Override
 	public Charset getResourceCharset() {
-		if(!initResourceCharset)
-			initCharset();
+		if(!initResourceCharset)initCharset();
 		return CharsetUtil.toCharset(resourceCharset);
 	}
-
 	public CharSet getResourceCharSet() {
-		if(!initResourceCharset)
-			initCharset();
+		if(!initResourceCharset)initCharset();
 		return resourceCharset;
 	}
-
+	
 	/**
-	 * @return webcharset if it was defined, otherwise null
+	 * @return  webcharset if it was defined, otherwise null
 	 */
 	private CharSet initCharset() {
-		Object o = get(component, KeyConstants._charset, null);
-		if(o != null) {
-			Struct sct = Caster.toStruct(o, null);
-			if(sct != null) {
-				CharSet web = CharsetUtil.toCharSet(Caster.toString(sct.get(KeyConstants._web, null), null), null);
-				if(!initWebCharset && web != null)
-					webCharset = web;
-				CharSet res = CharsetUtil.toCharSet(Caster.toString(sct.get(KeyConstants._resource, null), null), null);
-				if(!initResourceCharset && res != null)
-					resourceCharset = res;
-
-				initWebCharset = true;
-				initResourceCharset = true;
+		Object o = get(component,KeyConstants._charset,null);
+		if(o!=null){
+			Struct sct = Caster.toStruct(o,null);
+			if(sct!=null) {
+				CharSet web = CharsetUtil.toCharSet(Caster.toString(sct.get(KeyConstants._web,null),null),null);
+				if(!initWebCharset && web!=null) webCharset=web;
+				CharSet res = CharsetUtil.toCharSet(Caster.toString(sct.get(KeyConstants._resource,null),null),null);
+				if(!initResourceCharset && res!=null) resourceCharset=res;
+				
+				initWebCharset=true;
+				initResourceCharset=true; 
 				return web;
 			}
 		}
-		initWebCharset = true;
-		initResourceCharset = true;
+		initWebCharset=true;
+		initResourceCharset=true; 
 		return null;
 	}
+
+
 
 	@Override
 	public boolean getBufferOutput() {
 		boolean bo = _getBufferOutput();
 		return bo;
 	}
-
+	
 	public boolean _getBufferOutput() {
 		if(!initBufferOutput) {
-			Object o = get(component, BUFFER_OUTPUT, null);
-			if(o != null)
-				bufferOutput = Caster.toBooleanValue(o, bufferOutput);
-			initBufferOutput = true;
+			Object o = get(component,BUFFER_OUTPUT,null);
+			if(o!=null)bufferOutput=Caster.toBooleanValue(o, bufferOutput);
+			initBufferOutput=true; 
 		}
 		return bufferOutput;
 	}
-
+	
 	@Override
 	public boolean getSuppressContent() {
 		if(!initSuppressContent) {
-			Object o = get(component, SUPPRESS_CONTENT, null);
-			if(o != null)
-				suppressContent = Caster.toBooleanValue(o, suppressContent);
-			initSuppressContent = true;
+			Object o = get(component,SUPPRESS_CONTENT,null);
+			if(o!=null)suppressContent=Caster.toBooleanValue(o, suppressContent);
+			initSuppressContent=true; 
 		}
 		return suppressContent;
 	}
-
+	
 	@Override
 	public void setSuppressContent(boolean suppressContent) {
-		this.suppressContent = suppressContent;
-		initSuppressContent = true;
+		this.suppressContent=suppressContent;
+		initSuppressContent=true; 
 	}
 
 	@Override
 	public lucee.runtime.net.s3.Properties getS3() {
 		if(!initS3) {
-			Object o = get(component, KeyConstants._s3, null);
-			if(o != null && Decision.isStruct(o))
-				s3 = AppListenerUtil.toS3(Caster.toStruct(o, null));
-			initS3 = true;
+			Object o = get(component,KeyConstants._s3,null);
+			if(o!=null && Decision.isStruct(o))s3=AppListenerUtil.toS3(Caster.toStruct(o,null));
+			initS3=true; 
 		}
 		return s3;
 	}
-
+	
 	public FTPConnectionData getFTP() {
 		if(!initFTP) {
-			Object o = get(component, KeyConstants._ftp, null);
-			if(o != null && Decision.isStruct(o))
-				ftp = AppListenerUtil.toFTP(Caster.toStruct(o, null));
-			initFTP = true;
+			Object o = get(component,KeyConstants._ftp,null);
+			if(o!=null && Decision.isStruct(o))ftp=AppListenerUtil.toFTP(Caster.toStruct(o,null));
+			initFTP=true; 
 		}
 		return ftp;
 	}
@@ -1200,7 +1201,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public String getDefaultDataSource() {
 		throw new PageRuntimeException(new DeprecatedException("this method is no longer supported!"));
 	}
-
+	
 	@Override
 	public Object getDefDataSource() {
 		return defaultDataSource;
@@ -1209,16 +1210,16 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public DataSource[] getDataSources() {
 		if(!initDataSources) {
-			Object o = get(component, KeyConstants._datasources, null);
+			Object o = get(component,KeyConstants._datasources,null);
 			// if "this.datasources" does not exists, check if "this.datasource" exists and contains a struct
-			/*
-			 * if(o==null){ o = get(component,KeyConstants._datasource,null); if(!Decision.isStruct(o)) o=null; }
-			 */
-
-			if(o != null)
-				dataSources = AppListenerUtil.toDataSources(config, o, dataSources, config.getLog("application"));
-
-			initDataSources = true;
+			/*if(o==null){
+				o = get(component,KeyConstants._datasource,null);
+				if(!Decision.isStruct(o)) o=null;
+			}*/
+			
+			if(o!=null) dataSources=AppListenerUtil.toDataSources(config,o,dataSources,config.getLog("application"));
+			
+			initDataSources=true; 
 		}
 		return dataSources;
 	}
@@ -1249,238 +1250,254 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	public Object getCustom(Key key) {
 		try {
-			ComponentSpecificAccess cw = ComponentSpecificAccess.toComponentSpecificAccess(Component.ACCESS_PRIVATE, component);
-			return cw.get(key, null);
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-		}
-
+			ComponentSpecificAccess cw=ComponentSpecificAccess.toComponentSpecificAccess(Component.ACCESS_PRIVATE, component); 
+			return cw.get(key,null);
+		} 
+		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+		
 		return null;
 	}
+	
+	
+	
 
-	private static Object get(Component app, Key name, String defaultValue) {
+
+
+	private static Object get(Component app, Key name,String defaultValue) {
 		Member mem = app.getMember(Component.ACCESS_PRIVATE, name, true, false);
-		if(mem == null)
-			return defaultValue;
+		if(mem==null) return defaultValue;
 		return mem.getValue();
 	}
 
-	//////////////////////// SETTERS /////////////////////////
-
+	
+//////////////////////// SETTERS /////////////////////////
+	
+	
+	
 	@Override
 	public void setApplicationTimeout(TimeSpan applicationTimeout) {
-		initApplicationTimeout = true;
-		this.applicationTimeout = applicationTimeout;
+		initApplicationTimeout=true;
+		this.applicationTimeout=applicationTimeout;
 	}
 
 	@Override
 	public void setSessionTimeout(TimeSpan sessionTimeout) {
-		initSessionTimeout = true;
-		this.sessionTimeout = sessionTimeout;
+		initSessionTimeout=true;
+		this.sessionTimeout=sessionTimeout;
 	}
 
 	@Override
 	public void setClientTimeout(TimeSpan clientTimeout) {
-		initClientTimeout = true;
-		this.clientTimeout = clientTimeout;
+		initClientTimeout=true;
+		this.clientTimeout=clientTimeout;
 	}
 
 	@Override
 	public void setClientstorage(String clientstorage) {
-		initClientStorage = true;
-		this.clientStorage = clientstorage;
+		initClientStorage=true;
+		this.clientStorage=clientstorage;
 	}
 
 	@Override
 	public void setSessionstorage(String sessionstorage) {
-		initSessionStorage = true;
-		this.sessionStorage = sessionstorage;
+		initSessionStorage=true;
+		this.sessionStorage=sessionstorage;
 	}
 
 	@Override
 	public void setCustomTagMappings(Mapping[] customTagMappings) {
-		initCTMappings = true;
-		this.ctmappings = customTagMappings;
+		initCTMappings=true;
+		this.ctmappings=customTagMappings;
 	}
 
 	@Override
 	public void setComponentMappings(Mapping[] componentMappings) {
-		initCMappings = true;
-		this.cmappings = componentMappings;
+		initCMappings=true;
+		this.cmappings=componentMappings;
 	}
 
 	@Override
 	public void setMappings(Mapping[] mappings) {
-		initMappings = true;
-		this.mappings = mappings;
+		initMappings=true;
+		this.mappings=mappings;
 	}
 
 	@Override
 	public void setMailListener(Object mailListener) {
-		initMailListener = true;
-		this.mailListener = mailListener;
+		initMailListener=true;
+		this.mailListener=mailListener;
 	}
 
 	@Override
+	public void setQueryListener(TagListener listener) {
+		initQueryListener=true;
+		this.queryListener=listener;
+	}
+	
+	@Override
 	public void setDataSources(DataSource[] dataSources) {
-		initDataSources = true;
-		this.dataSources = dataSources;
+		initDataSources=true;
+		this.dataSources=dataSources;
 	}
 
 	@Override
 	public void setLoginStorage(int loginStorage) {
-		initLoginStorage = true;
-		this.loginStorage = loginStorage;
+		initLoginStorage=true;
+		this.loginStorage=loginStorage;
 	}
 
 	@Override
 	public void setDefaultDataSource(String datasource) {
-		this.defaultDataSource = datasource;
+		this.defaultDataSource=datasource;
 	}
 
 	@Override
 	public void setDefDataSource(Object datasource) {
-		this.defaultDataSource = datasource;
+		this.defaultDataSource=datasource;
 	}
 
 	@Override
 	public void setScriptProtect(int scriptrotect) {
-		initScriptProtect = true;
-		this.scriptProtect = scriptrotect;
+		initScriptProtect=true;
+		this.scriptProtect=scriptrotect;
 	}
+
 
 	@Override
 	public void setTypeChecking(boolean typeChecking) {
-		initTypeChecking = true;
-		this.typeChecking = typeChecking;
+		initTypeChecking=true;
+		this.typeChecking=typeChecking;
 	}
 
 	@Override
 	public void setSecureJson(boolean secureJson) {
-		initSecureJson = true;
-		this.secureJson = secureJson;
+		initSecureJson=true;
+		this.secureJson=secureJson;
 	}
 
 	@Override
 	public void setSecureJsonPrefix(String secureJsonPrefix) {
-		initSecureJsonPrefix = true;
-		this.secureJsonPrefix = secureJsonPrefix;
+		initSecureJsonPrefix=true;
+		this.secureJsonPrefix=secureJsonPrefix;
 	}
 
 	@Override
 	public void setSetClientCookies(boolean setClientCookies) {
-		initSetClientCookies = true;
-		this.setClientCookies = setClientCookies;
+		initSetClientCookies=true;
+		this.setClientCookies=setClientCookies;
 	}
 
 	@Override
 	public void setSetClientManagement(boolean setClientManagement) {
-		initSetClientManagement = true;
-		this.setClientManagement = setClientManagement;
+		initSetClientManagement=true;
+		this.setClientManagement=setClientManagement;
 	}
 
 	@Override
 	public void setSetDomainCookies(boolean setDomainCookies) {
-		initSetDomainCookies = true;
-		this.setDomainCookies = setDomainCookies;
+		initSetDomainCookies=true;
+		this.setDomainCookies=setDomainCookies;
 	}
 
 	@Override
 	public void setSetSessionManagement(boolean setSessionManagement) {
-		initSetSessionManagement = true;
-		this.setSessionManagement = setSessionManagement;
+		initSetSessionManagement=true;
+		this.setSessionManagement=setSessionManagement;
 	}
 
 	@Override
 	public void setLocalMode(int localMode) {
-		initLocalMode = true;
-		this.localMode = localMode;
+		initLocalMode=true;
+		this.localMode=localMode;
 	}
 
 	@Override
 	public void setLocale(Locale locale) {
-		initLocale = true;
-		this.locale = locale;
+		initLocale=true;
+		this.locale=locale;
 	}
 
 	@Override
 	public void setTimeZone(TimeZone timeZone) {
-		initTimeZone = true;
-		this.timeZone = timeZone;
+		initTimeZone=true;
+		this.timeZone=timeZone;
 	}
-
+	
 	@Override
 	public void setWebCharset(Charset webCharset) {
-		initWebCharset = true;
-		this.webCharset = CharsetUtil.toCharSet(webCharset);
+		initWebCharset=true;
+		this.webCharset=CharsetUtil.toCharSet(webCharset);
 	}
-
+	
 	@Override
 	public void setResourceCharset(Charset resourceCharset) {
-		initResourceCharset = true;
-		this.resourceCharset = CharsetUtil.toCharSet(resourceCharset);
+		initResourceCharset=true;
+		this.resourceCharset=CharsetUtil.toCharSet(resourceCharset);
 	}
-
+	
+	
+	
 	@Override
 	public void setBufferOutput(boolean bufferOutput) {
-		initBufferOutput = true;
-		this.bufferOutput = bufferOutput;
+		initBufferOutput=true;
+		this.bufferOutput=bufferOutput;
 	}
 
 	@Override
 	public void setSessionType(short sessionType) {
-		initSessionType = true;
-		this.sessionType = sessionType;
+		initSessionType=true;
+		this.sessionType=sessionType;
 	}
 
 	@Override
 	public void setClientCluster(boolean clientCluster) {
-		initClientCluster = true;
-		this.clientCluster = clientCluster;
+		initClientCluster=true;
+		this.clientCluster=clientCluster;
 	}
 
 	@Override
 	public void setSessionCluster(boolean sessionCluster) {
-		initSessionCluster = true;
-		this.sessionCluster = sessionCluster;
+		initSessionCluster=true;
+		this.sessionCluster=sessionCluster;
 	}
 
 	@Override
 	public void setS3(Properties s3) {
-		initS3 = true;
-		this.s3 = s3;
+		initS3=true;
+		this.s3=s3;
 	}
-
+	
 	public void setFTP(FTPConnectionData ftp) {
-		initFTP = true;
-		this.ftp = ftp;
+		initFTP=true;
+		this.ftp=ftp;
 	}
 
 	@Override
 	public void setORMEnabled(boolean ormEnabled) {
-		this.ormEnabled = ormEnabled;
+		this.ormEnabled=ormEnabled;
 	}
 
 	@Override
 	public void setORMConfiguration(ORMConfiguration ormConfig) {
-		this.ormConfig = ormConfig;
+		this.ormConfig=ormConfig;
 	}
 
 	@Override
 	public void setORMDatasource(String ormDatasource) {
-		this.ormDatasource = ormDatasource;
+		this.ormDatasource=ormDatasource;
 	}
 
 	@Override
 	public void setORMDataSource(Object ormDatasource) {
-		this.ormDatasource = ormDatasource;
+		this.ormDatasource=ormDatasource;
 	}
 
 	@Override
 	public Resource getSource() {
 		return component.getPageSource().getResource();
 	}
+
+
 
 	@Override
 	public RestSettings getRestSettings() {
@@ -1496,192 +1513,181 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	private void initRest() {
 		if(!initRestSetting) {
-			Object o = get(component, REST_SETTING, null);
-			if(o != null && Decision.isStruct(o)) {
-				Struct sct = Caster.toStruct(o, null);
-
+			Object o = get(component,REST_SETTING,null);
+			if(o!=null && Decision.isStruct(o)){
+				Struct sct = Caster.toStruct(o,null);
+				
 				// cfclocation
-				Object obj = sct.get(KeyConstants._cfcLocation, null);
-				if(obj == null)
-					obj = sct.get(KeyConstants._cfcLocations, null);
-				List<Resource> list = ORMConfigurationImpl.loadCFCLocation(config, null, obj, true);
-				restCFCLocations = list == null ? null : list.toArray(new Resource[list.size()]);
-
+				Object obj = sct.get(KeyConstants._cfcLocation,null);
+				if(obj==null) obj = sct.get(KeyConstants._cfcLocations,null);
+				List<Resource> list = ORMConfigurationImpl.loadCFCLocation(config, null, obj,true);
+				restCFCLocations=list==null?null:list.toArray(new Resource[list.size()]);
+				
 				// skipCFCWithError
-				boolean skipCFCWithError = Caster.toBooleanValue(sct.get(KeyConstants._skipCFCWithError, null), restSetting.getSkipCFCWithError());
-
+				boolean skipCFCWithError=Caster.toBooleanValue(sct.get(KeyConstants._skipCFCWithError,null),restSetting.getSkipCFCWithError());
+				
 				// returnFormat
-				int returnFormat = Caster.toIntValue(sct.get(KeyConstants._returnFormat, null), restSetting.getReturnFormat());
-
-				restSetting = new RestSettingImpl(skipCFCWithError, returnFormat);
-
+				int returnFormat=Caster.toIntValue(sct.get(KeyConstants._returnFormat,null),restSetting.getReturnFormat());
+				
+				restSetting=new RestSettingImpl(skipCFCWithError,returnFormat);
+				
 			}
-			initRestSetting = true;
+			initRestSetting=true; 
 		}
 	}
+	
 
 	@Override
 	public JavaSettings getJavaSettings() {
 		initJava();
 		return javaSettings;
 	}
-
+	
 	private void initJava() {
 		if(!initJavaSettings) {
-			Object o = get(component, JAVA_SETTING, null);
-			if(o != null && Decision.isStruct(o)) {
-				Struct sct = Caster.toStruct(o, null);
-
+			Object o = get(component,JAVA_SETTING,null);
+			if(o!=null && Decision.isStruct(o)){
+				Struct sct = Caster.toStruct(o,null);
+				
 				// loadPaths
-				Object obj = sct.get(KeyImpl.init("loadPaths"), null);
+				Object obj = sct.get(KeyImpl.init("loadPaths"),null);
 				List<Resource> paths;
-				if(obj != null) {
-					paths = loadPaths(ThreadLocalPageContext.get(), obj);
+				if(obj!=null) {
+					paths = loadPaths(ThreadLocalPageContext.get(), obj);	
 				}
-				else
-					paths = new ArrayList<Resource>();
-
+				else paths=new ArrayList<Resource>();
+					
+				
 				// loadCFMLClassPath
-				Boolean loadCFMLClassPath = Caster.toBoolean(sct.get(KeyImpl.init("loadCFMLClassPath"), null), null);
-				if(loadCFMLClassPath == null)
-					loadCFMLClassPath = Caster.toBoolean(sct.get(KeyImpl.init("loadColdFusionClassPath"), null), null);
-				if(loadCFMLClassPath == null)
-					loadCFMLClassPath = javaSettings.loadCFMLClassPath();
-
+				Boolean loadCFMLClassPath=Caster.toBoolean(sct.get(KeyImpl.init("loadCFMLClassPath"),null),null);
+				if(loadCFMLClassPath==null)
+					loadCFMLClassPath=Caster.toBoolean(sct.get(KeyImpl.init("loadColdFusionClassPath"),null),null);
+				if(loadCFMLClassPath==null)loadCFMLClassPath=javaSettings.loadCFMLClassPath();
+					
 				// reloadOnChange
-				boolean reloadOnChange = Caster.toBooleanValue(sct.get(KeyImpl.init("reloadOnChange"), null), javaSettings.reloadOnChange());
-
+				boolean reloadOnChange=Caster.toBooleanValue(sct.get(KeyImpl.init("reloadOnChange"),null),javaSettings.reloadOnChange());
+				
 				// watchInterval
-				int watchInterval = Caster.toIntValue(sct.get(KeyImpl.init("watchInterval"), null), javaSettings.watchInterval());
-
+				int watchInterval=Caster.toIntValue(sct.get(KeyImpl.init("watchInterval"),null),javaSettings.watchInterval());
+				
 				// watchExtensions
-				obj = sct.get(KeyImpl.init("watchExtensions"), null);
-				List<String> extensions = new ArrayList<String>();
-				if(obj != null) {
+				obj = sct.get(KeyImpl.init("watchExtensions"),null);
+				List<String> extensions=new ArrayList<String>();
+				if(obj!=null) {
 					Array arr;
 					if(Decision.isArray(obj)) {
 						try {
 							arr = Caster.toArray(obj);
-						}
-						catch (PageException e) {
-							arr = new ArrayImpl();
+						} catch (PageException e) {
+							arr=new ArrayImpl();
 						}
 					}
 					else {
-						arr = lucee.runtime.type.util.ListUtil.listToArrayRemoveEmpty(Caster.toString(obj, ""), ',');
+						arr=lucee.runtime.type.util.ListUtil.listToArrayRemoveEmpty(Caster.toString(obj,""), ',');
 					}
 					Iterator<Object> it = arr.valueIterator();
 					String ext;
-					while(it.hasNext()) {
-						ext = Caster.toString(it.next(), null);
-						if(StringUtil.isEmpty(ext))
-							continue;
-						ext = ext.trim();
-						if(ext.startsWith("."))
-							ext = ext.substring(1);
-						if(ext.startsWith("*."))
-							ext = ext.substring(2);
+					while(it.hasNext()){
+						ext=Caster.toString(it.next(),null);
+						if(StringUtil.isEmpty(ext))continue;
+						ext=ext.trim();
+						if(ext.startsWith("."))ext=ext.substring(1);
+						if(ext.startsWith("*."))ext=ext.substring(2);
 						extensions.add(ext);
 					}
-
+					
 				}
-				javaSettings = new JavaSettingsImpl(paths.toArray(new Resource[paths.size()]), loadCFMLClassPath, reloadOnChange, watchInterval,
+				javaSettings=new JavaSettingsImpl(
+						paths.toArray(new Resource[paths.size()]),
+						loadCFMLClassPath,reloadOnChange,watchInterval,
 						extensions.toArray(new String[extensions.size()]));
-
+				
 			}
-			initJavaSettings = true;
+			initJavaSettings=true; 
 		}
 	}
-
+	
+	
+	
 	public static java.util.List<Resource> loadPaths(PageContext pc, Object obj) {
-
+		
 		Resource res;
-		if(!Decision.isArray(obj)) {
-			String list = Caster.toString(obj, null);
+		if(!Decision.isArray(obj)){
+			String list = Caster.toString(obj,null);
 			if(!StringUtil.isEmpty(list)) {
-				obj = ListUtil.listToArray(list, ',');
+				obj=ListUtil.listToArray(list, ',');
 			}
 		}
-
+		
 		if(Decision.isArray(obj)) {
-			Array arr = Caster.toArray(obj, null);
-			java.util.List<Resource> list = new ArrayList<Resource>();
+			Array arr=Caster.toArray(obj,null);
+			java.util.List<Resource> list=new ArrayList<Resource>();
 			Iterator<Object> it = arr.valueIterator();
-			while(it.hasNext()) {
-				try {
-					String path = Caster.toString(it.next(), null);
-					if(path == null)
-						continue;
-					// print.e("--------------------------------------------------");
-					// print.e(path);
-					res = ORMConfigurationImpl.toResourceExisting(pc.getConfig(), pc.getApplicationContext(), path, false);
+			while(it.hasNext()){
+				try	{
+					String path = Caster.toString(it.next(),null);
+					if(path==null) continue;
+					//print.e("--------------------------------------------------");
+					//print.e(path);
+					res=ORMConfigurationImpl.toResourceExisting(pc.getConfig(), pc.getApplicationContext(), path, false);
+					
+					//print.e(res+"->"+(res!=null && res.exists()));
+					if(res==null || !res.exists())
+						res=ResourceUtil.toResourceExisting(pc, path,true,null);
 
-					// print.e(res+"->"+(res!=null && res.exists()));
-					if(res == null || !res.exists())
-						res = ResourceUtil.toResourceExisting(pc, path, true, null);
-
-					// print.e(res+"->"+(res!=null && res.exists()));
-					if(res != null)
-						list.add(res);
+					//print.e(res+"->"+(res!=null && res.exists()));
+					if(res!=null) list.add(res);
 				}
-				catch (Exception e) {
-					SystemOut.printDate(e);
+				catch(Exception e){
+		            SystemOut.printDate(e);
 				}
 			}
 			return list;
 		}
 		return null;
 	}
-
-	public Struct getSerializationSettings(){
-
-		Object oSerialization = get(component, KeyConstants._serialization, null);
-
-		if (oSerialization instanceof Struct)
-			return (Struct)oSerialization;
-
-		return new StructImpl();
-	}
+	
+	
+	
 
 	@Override
-	public Map<Collection.Key, Object> getTagAttributeDefaultValues(PageContext pc, String tagClassName) {
+	public Map<Collection.Key, Object> getTagAttributeDefaultValues(PageContext pc,String tagClassName) {
 		if(!initDefaultAttributeValues) {
 			// this.tag.<tagname>.<attribute-name>=<value>
-			Struct sct = Caster.toStruct(get(component, KeyConstants._tag, null), null);
-			if(sct != null) {
-				setTagAttributeDefaultValues(pc, sct);
+			Struct sct = Caster.toStruct(get(component,KeyConstants._tag,null),null);
+			if(sct!=null) {
+				setTagAttributeDefaultValues(pc,sct);
 			}
-			initDefaultAttributeValues = true;
+			initDefaultAttributeValues=true;
 		}
-		return super.getTagAttributeDefaultValues(pc, tagClassName);
+		return super.getTagAttributeDefaultValues(pc,tagClassName);
 	}
-
+	
 	@Override
 	public void setTagAttributeDefaultValues(PageContext pc, Struct sct) {
-		initDefaultAttributeValues = true;
-		super.setTagAttributeDefaultValues(pc, sct);
+		initDefaultAttributeValues=true;
+		super.setTagAttributeDefaultValues(pc,sct);
 	}
 
 	@Override
 	public CustomType getCustomType(String strType) {
 		if(!initCustomTypes) {
-			if(customTypes == null)
-				customTypes = new HashMap<String, CustomType>();
-
+			if(customTypes==null)
+				customTypes=new HashMap<String, CustomType>();
+			
 			// this.type.susi=function(any value){};
-			Struct sct = Caster.toStruct(get(component, KeyConstants._type, null), null);
-			if(sct != null) {
+			Struct sct = Caster.toStruct(get(component,KeyConstants._type,null),null);
+			if(sct!=null) {
 				Iterator<Entry<Key, Object>> it = sct.entryIterator();
 				Entry<Key, Object> e;
 				UDF udf;
-				while(it.hasNext()) {
+				while(it.hasNext()){
 					e = it.next();
-					udf = Caster.toFunction(e.getValue(), null);
-					if(udf != null)
-						customTypes.put(e.getKey().getLowerString(), new UDFCustomType(udf));
+					udf=Caster.toFunction(e.getValue(), null);
+					if(udf!=null) customTypes.put(e.getKey().getLowerString(), new UDFCustomType(udf));
 				}
 			}
-			initCustomTypes = true;
+			initCustomTypes=true;
 		}
 		return customTypes.get(strType.trim().toLowerCase());
 	}
@@ -1689,154 +1695,160 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public Object getCachedWithin(int type) {
 		if(!initCachedWithins) {
-			Struct sct = Caster.toStruct(get(component, KeyConstants._cachedWithin, null), null);
-			if(sct != null) {
+			Struct sct = Caster.toStruct(get(component,KeyConstants._cachedWithin,null),null);
+			if(sct!=null) {
 				Iterator<Entry<Key, Object>> it = sct.entryIterator();
 				Entry<Key, Object> e;
-				Object v;
-				int k;
-				while(it.hasNext()) {
+				Object v; int k;
+				while(it.hasNext()){
 					e = it.next();
-					k = AppListenerUtil.toCachedWithinType(e.getKey().getString(), -1);
-					v = e.getValue();
-					if(k != -1 && !StringUtil.isEmpty(v))
-						setCachedWithin(k, v);
+					k=AppListenerUtil.toCachedWithinType(e.getKey().getString(),-1);
+					v=e.getValue();
+					if(k!=-1 && !StringUtil.isEmpty(v)) setCachedWithin(k, v);
 				}
 			}
-			sct = null;
-			// also support this.tag.include... as second chance
-			if(super.getCachedWithin(Config.CACHEDWITHIN_INCLUDE) == null) {
-				sct = Caster.toStruct(get(component, KeyConstants._tag, null), null);
-				if(sct != null) {
-					Object obj = sct.get(KeyConstants._include, null);
+			sct=null;
+			// also support this.tag.include... as second chance 
+			if(super.getCachedWithin(Config.CACHEDWITHIN_INCLUDE)==null) {
+				sct = Caster.toStruct(get(component,KeyConstants._tag,null),null);
+				if(sct!=null) {
+					Object obj=sct.get(KeyConstants._include,null);
 					if(Decision.isCastableToStruct(obj)) {
-						Struct tmp = Caster.toStruct(obj, null);
-						obj = tmp == null ? null : tmp.get("cachedWithin", null);
-						if(!StringUtil.isEmpty(obj))
-							setCachedWithin(Config.CACHEDWITHIN_INCLUDE, obj);
+						Struct tmp=Caster.toStruct(obj,null);
+						obj=tmp==null?null:tmp.get("cachedWithin",null);
+						if(!StringUtil.isEmpty(obj)) setCachedWithin(Config.CACHEDWITHIN_INCLUDE, obj);
 					}
 				}
 			}
 
-			// also support this.tag.function... as second chance
-			if(super.getCachedWithin(Config.CACHEDWITHIN_FUNCTION) == null) {
-				if(sct == null)
-					sct = Caster.toStruct(get(component, KeyConstants._tag, null), null);
-				if(sct != null) {
-					Object obj = sct.get(KeyConstants._function, null);
+			// also support this.tag.function... as second chance 
+			if(super.getCachedWithin(Config.CACHEDWITHIN_FUNCTION)==null) {
+				if(sct==null)sct = Caster.toStruct(get(component,KeyConstants._tag,null),null);
+				if(sct!=null) {
+					Object obj=sct.get(KeyConstants._function,null);
 					if(Decision.isCastableToStruct(obj)) {
-						Struct tmp = Caster.toStruct(obj, null);
-						obj = tmp == null ? null : tmp.get("cachedWithin", null);
-						if(!StringUtil.isEmpty(obj))
-							setCachedWithin(Config.CACHEDWITHIN_FUNCTION, obj);
+						Struct tmp=Caster.toStruct(obj,null);
+						obj=tmp==null?null:tmp.get("cachedWithin",null);
+						if(!StringUtil.isEmpty(obj)) setCachedWithin(Config.CACHEDWITHIN_FUNCTION, obj);
 					}
 				}
 			}
-
-			initCachedWithins = true;
-		}
+			
+			initCachedWithins=true;
+		} 
 		return super.getCachedWithin(type);
 	}
-
+	
 	@Override
 	public boolean getCGIScopeReadonly() {
 		if(!initCGIScopeReadonly) {
-			Object o = get(component, CGI_READONLY, null);
-			if(o != null)
-				cgiScopeReadonly = Caster.toBooleanValue(o, cgiScopeReadonly);
-			initCGIScopeReadonly = true;
+			Object o = get(component,CGI_READONLY,null);
+			if(o!=null)cgiScopeReadonly=Caster.toBooleanValue(o,cgiScopeReadonly);
+			initCGIScopeReadonly=true;
 		}
 		return cgiScopeReadonly;
 	}
+	
 
 	public void setCGIScopeReadonly(boolean cgiScopeReadonly) {
-		initCGIScopeReadonly = true;
-		this.cgiScopeReadonly = cgiScopeReadonly;
+		initCGIScopeReadonly=true;
+		this.cgiScopeReadonly=cgiScopeReadonly;
 	}
 
 	@Override
 	public SessionCookieData getSessionCookie() {
 		if(!initSessionCookie) {
-			Struct sct = Caster.toStruct(get(component, SESSION_COOKIE, null), null);
-			if(sct != null)
-				sessionCookie = AppListenerUtil.toSessionCookie(config, sct);
-			initSessionCookie = true;
+			Struct sct = Caster.toStruct(get(component,SESSION_COOKIE,null),null);
+			if(sct!=null)sessionCookie=AppListenerUtil.toSessionCookie(config,sct);
+			initSessionCookie=true; 
 		}
 		return sessionCookie;
 	}
-
+	
 	@Override
 	public AuthCookieData getAuthCookie() {
 		if(!initAuthCookie) {
-			Struct sct = Caster.toStruct(get(component, AUTH_COOKIE, null), null);
-			if(sct != null)
-				authCookie = AppListenerUtil.toAuthCookie(config, sct);
-			initAuthCookie = true;
+			Struct sct = Caster.toStruct(get(component,AUTH_COOKIE,null),null);
+			if(sct!=null)authCookie=AppListenerUtil.toAuthCookie(config,sct);
+			initAuthCookie=true; 
 		}
 		return authCookie;
 	}
-
+	
 	@Override
 	public void setSessionCookie(SessionCookieData data) {
-		sessionCookie = data;
-		initSessionCookie = true;
+		sessionCookie=data;
+		initSessionCookie=true;
 	}
 
 	@Override
 	public void setAuthCookie(AuthCookieData data) {
-		authCookie = data;
-		initAuthCookie = true;
+		authCookie=data;
+		initAuthCookie=true;
 	}
 
 	@Override
-	public void setLoggers(Map<Key, Pair<Log, Struct>> logs) {
-		this.logs = logs;
-		initLog = true;
+	public void setLoggers(Map<Key, Pair<Log,Struct>> logs) {
+		this.logs=logs;
+		initLog=true;
 	}
 
 	@Override
 	public Log getLog(String name) {
-		if(!initLog)
-			initLog();
+		if(!initLog) initLog();
 		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
-		if(pair == null)
-			return null;
+		if(pair==null) return null;
 		return pair.getName();
 	}
 
 	@Override
 	public Struct getLogMetaData(String name) {
-		if(!initLog)
-			initLog();
+		if(!initLog) initLog();
 		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
-		if(pair == null)
-			return null;
+		if(pair==null) return null;
 		return (Struct)pair.getValue().duplicate(false);
 	}
 
 	@Override
 	public java.util.Collection<Collection.Key> getLogNames() {
-		if(!initLog)
-			initLog();
+		if(!initLog) initLog();
 		return logs.keySet();
 	}
 
 	private void initLog() {
 		// appender
-		Object oLogs = get(component, LOGS, null);
-		if(oLogs == null)
-			oLogs = get(component, LOG, null);
-		Struct sct = Caster.toStruct(oLogs, null);
-		logs = initLog(sct);
-		initLog = true;
+		Object oLogs=get(component,LOGS,null);
+		if(oLogs==null) oLogs=get(component,LOG,null);
+		Struct sct=Caster.toStruct(oLogs,null);
+		logs=initLog(sct);
+		initLog=true;
 	}
-
+	
 	public static void releaseInitCacheConnections() {
-		if(initCacheConnections != null) {
-			for (CacheConnection cc : initCacheConnections.values()) {
+		if(initCacheConnections!=null) {
+			for(CacheConnection cc:initCacheConnections.values()) {
 				CacheUtil.releaseEL(cc);
 			}
 		}
 	}
+	
 
+
+	@Override
+	public boolean getFullNullSupport() {
+		if(!initFullNullSupport) {
+			Boolean b = Caster.toBoolean(get(component,NULL_SUPPORT,null),null);
+			if(b==null) b = Caster.toBoolean(get(component,ENABLE_NULL_SUPPORT,null),null);
+			if(b!=null) fullNullSupport=b.booleanValue();
+			
+			initFullNullSupport=true; 
+		}
+		return fullNullSupport;
+	}
+
+	@Override
+	public void setFullNullSupport(boolean fullNullSupport) {
+		this.fullNullSupport=fullNullSupport;
+		this.initFullNullSupport=true;
+	}
 }

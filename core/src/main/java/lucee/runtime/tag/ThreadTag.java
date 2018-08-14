@@ -54,7 +54,7 @@ import lucee.runtime.type.scope.Threads;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
-// MUST change behavor of mltiple headers now is a array, it das so?
+// MUST change behavior of multiple headers now is a array, it das so?
 
 /**
 * Lets you execute HTTP POST and GET operations on files. Using cfhttp, you can execute standard 
@@ -182,11 +182,15 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 			//throw new ApplicationException("invalid value ["+strType+"] for attribute type","task is not supported at the moment");
 			type=TYPE_TASK;
 		}
-		else if("daemon".equals(strType) || "deamon".equals(strType))	type=TYPE_DAEMON;
-		else throw new ApplicationException("invalid value ["+strType+"] for attribute type","values for attribute type are:task,daemon (default)");
-		
+		// FUTURE remove "deamon", which is a misspelling
+		else if("daemon".equals(strType) || "deamon".equals(strType)) {
+			type=TYPE_DAEMON;
+		}
+		else {
+			throw new ApplicationException("invalid value ["+strType+"] for attribute type","values for attribute type are:task,daemon (default)");
+		}
 	}
-	
+
 	public void setRetryintervall(Object obj) throws PageException {
 		setRetryinterval(obj);
 	}

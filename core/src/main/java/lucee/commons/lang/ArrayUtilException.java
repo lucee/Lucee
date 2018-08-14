@@ -25,7 +25,7 @@ package lucee.commons.lang;
 public final class ArrayUtilException extends Exception {
 
 	/**
-	 * construcvtor of the Exception
+	 * constructor of the Exception
 	 * @param message Error Message
 	 */
 	public ArrayUtilException(String message) {

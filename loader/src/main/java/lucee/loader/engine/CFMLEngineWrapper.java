@@ -167,6 +167,10 @@ public class CFMLEngineWrapper implements CFMLEngine {
 		this.engine = engine;
 	}
 
+	public CFMLEngine getEngine() {
+		return this.engine;
+	}
+
 	public boolean isIdentical(final CFMLEngine engine) {
 		return this.engine == engine;
 	}
@@ -257,7 +261,7 @@ public class CFMLEngineWrapper implements CFMLEngine {
 	}*/
 
 	/**
-	 * this interface is new to this class and not offically part of Lucee 3.x,
+	 * this interface is new to this class and not officially part of Lucee 3.x,
 	 * do not use outside the loader
 	 * 
 	 * @param other

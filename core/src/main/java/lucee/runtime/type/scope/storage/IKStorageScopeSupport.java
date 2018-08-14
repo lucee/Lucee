@@ -56,17 +56,6 @@ import lucee.runtime.type.util.StructUtil;
 
 public abstract class IKStorageScopeSupport extends StructSupport implements StorageScope {
 
-	//public static int STORAGE_TYPE_DATASOURCE=1;
-	//public static int STORAGE_TYPE_CACHE=2;
-	
-	public static Collection.Key CFID=KeyConstants._cfid;
-	public static Collection.Key CFTOKEN=KeyConstants._cftoken;
-	public static Collection.Key URLTOKEN=KeyConstants._urltoken;
-	public static Collection.Key LASTVISIT=KeyConstants._lastvisit;
-	public static Collection.Key HITCOUNT=KeyConstants._hitcount;
-	public static Collection.Key TIMECREATED=KeyConstants._timecreated;
-	public static Collection.Key SESSION_ID=KeyConstants._sessionid;
-	
 	protected static final IKStorageScopeItem ONE = new IKStorageScopeItem("1");
 
 
@@ -77,25 +66,25 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	private static final IKStorageScopeItem NULL = new IKStorageScopeItem("null");
 	private static Set<Collection.Key> FIX_KEYS=new HashSet<Collection.Key>();
 	static {
-		FIX_KEYS.add(CFID);
-		FIX_KEYS.add(CFTOKEN);
-		FIX_KEYS.add(URLTOKEN);
-		FIX_KEYS.add(LASTVISIT);
-		FIX_KEYS.add(HITCOUNT);
-		FIX_KEYS.add(TIMECREATED);
+		FIX_KEYS.add(KeyConstants._cfid);
+		FIX_KEYS.add(KeyConstants._cftoken);
+		FIX_KEYS.add(KeyConstants._urltoken);
+		FIX_KEYS.add(KeyConstants._lastvisit);
+		FIX_KEYS.add(KeyConstants._hitcount);
+		FIX_KEYS.add(KeyConstants._timecreated);
 	}
 	
 
 	protected static Set<Collection.Key> ignoreSet=new HashSet<Collection.Key>();
 	static {
-		ignoreSet.add(CFID);
-		ignoreSet.add(CFTOKEN);
-		ignoreSet.add(URLTOKEN);
+		ignoreSet.add(KeyConstants._cfid);
+		ignoreSet.add(KeyConstants._cftoken);
+		ignoreSet.add(KeyConstants._urltoken);
 	}
 	
 	
 	protected boolean isinit=true;
-	protected MapPro<Collection.Key,IKStorageScopeItem> data;
+	protected MapPro<Collection.Key,IKStorageScopeItem> data0;
 	protected long lastvisit;
 	protected DateTime _lastvisit;
 	protected int hitcount=0;
@@ -117,15 +106,15 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	public IKStorageScopeSupport(PageContext pc, IKHandler handler, String appName,String name,String strType,int type,MapPro<Collection.Key,IKStorageScopeItem> data, long lastModified) { 
 		// !!! do not store the pagecontext or config object, this object is Serializable !!!
 		Config config = ThreadLocalPageContext.getConfig(pc);
-		this.data=data;
+		this.data0=data;
 		
-		timecreated=doNowIfNull(config,Caster.toDate(data.g(TIMECREATED,null),false,pc.getTimeZone(),null));
-		_lastvisit=doNowIfNull(config,Caster.toDate(data.g(LASTVISIT,null),false,pc.getTimeZone(),null));
+		timecreated=doNowIfNull(config,Caster.toDate(data.g(KeyConstants._timecreated,null),false,pc.getTimeZone(),null));
+		_lastvisit=doNowIfNull(config,Caster.toDate(data.g(KeyConstants._lastvisit,null),false,pc.getTimeZone(),null));
 		
 		if(_lastvisit==null) _lastvisit=timecreated;
 		lastvisit=_lastvisit==null?0:_lastvisit.getTime();
 		
-		this.hitcount=(type==SCOPE_CLIENT)?Caster.toIntValue(data.g(HITCOUNT,ONE),1):1;
+		this.hitcount=(type==SCOPE_CLIENT)?Caster.toIntValue(data.g(KeyConstants._hitcount,ONE),1):1;
 		this.strType=strType;
 		this.type=type;
         this.lastModified=lastModified;
@@ -143,8 +132,8 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	 * @param deepCopy
 	 */
 	protected IKStorageScopeSupport(IKStorageScopeSupport other, boolean deepCopy) {
-		this.data=(MapPro<Collection.Key, IKStorageScopeItem>)
-				Duplicator.duplicateMap(other.data, new ConcurrentHashMapPro<Collection.Key, IKStorageScopeItem>(), deepCopy);
+		this.data0=(MapPro<Collection.Key, IKStorageScopeItem>)
+				Duplicator.duplicateMap(other.data0, new ConcurrentHashMapPro<Collection.Key, IKStorageScopeItem>(), deepCopy);
 		this.timecreated=other.timecreated;
 		this._lastvisit=other._lastvisit;
 		this.hitcount=other.hitcount;
@@ -227,21 +216,21 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		
 		
 		//lastvisit=System.currentTimeMillis();
-		if(data==null) data=new ConcurrentHashMapPro<Collection.Key, IKStorageScopeItem>();
-		data.put(KeyConstants._cfid, new IKStorageScopeItem(pc.getCFID()));
-		data.put(KeyConstants._cftoken, new IKStorageScopeItem(pc.getCFToken()));
-		data.put(URLTOKEN, new IKStorageScopeItem(pc.getURLToken()));
-		data.put(LASTVISIT, new IKStorageScopeItem(_lastvisit));
+		if(data0==null) data0=new ConcurrentHashMapPro<Collection.Key, IKStorageScopeItem>();
+		data0.put(KeyConstants._cfid, new IKStorageScopeItem(pc.getCFID()));
+		data0.put(KeyConstants._cftoken, new IKStorageScopeItem(pc.getCFToken()));
+		data0.put(KeyConstants._urltoken, new IKStorageScopeItem(pc.getURLToken()));
+		data0.put(KeyConstants._lastvisit, new IKStorageScopeItem(_lastvisit));
 		_lastvisit=new DateTimeImpl(pc.getConfig());
 		lastvisit=System.currentTimeMillis();
 		
 		if(type==SCOPE_CLIENT){
-			data.put(HITCOUNT, new IKStorageScopeItem(new Double(hitcount++)));
+			data0.put(KeyConstants._hitcount, new IKStorageScopeItem(new Double(hitcount++)));
 		}
 		else {
-			data.put(SESSION_ID, new IKStorageScopeItem(pc.getApplicationContext().getName()+"_"+pc.getCFID()+"_"+pc.getCFToken()));
+			data0.put(KeyConstants._sessionid, new IKStorageScopeItem(pc.getApplicationContext().getName()+"_"+pc.getCFID()+"_"+pc.getCFToken()));
 		}
-		data.put(TIMECREATED, new IKStorageScopeItem(timecreated));
+		data0.put(KeyConstants._timecreated, new IKStorageScopeItem(timecreated));
 	}
 
 	public void resetEnv(PageContext pc){
@@ -286,11 +275,11 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	public void touchAfterRequest(PageContext pc) {
 		
 		setTimeSpan(pc);
-		data.put(LASTVISIT, new IKStorageScopeItem(_lastvisit));
-		data.put(TIMECREATED, new IKStorageScopeItem(timecreated));
+		data0.put(KeyConstants._lastvisit, new IKStorageScopeItem(_lastvisit));
+		data0.put(KeyConstants._timecreated, new IKStorageScopeItem(timecreated));
 		
 		if(type==SCOPE_CLIENT){
-			data.put(HITCOUNT, new IKStorageScopeItem(new Double(hitcount)));
+			data0.put(KeyConstants._hitcount, new IKStorageScopeItem(new Double(hitcount)));
 		}
 		store(pc);
 	}
@@ -306,7 +295,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	 * @return returns if the scope is empty or not, this method ignore the "constant" entries of the scope (cfid,cftoken,urltoken)
 	 */
 	public boolean hasContent() {
-		if(data.size()==(type==SCOPE_CLIENT?6:5) && data.containsKey(URLTOKEN) && data.containsKey(KeyConstants._cftoken) && data.containsKey(KeyConstants._cfid)) {
+		if(size()==(type==SCOPE_CLIENT?6:5) && containsKey(KeyConstants._urltoken) && containsKey(KeyConstants._cftoken) && containsKey(KeyConstants._cfid)) {
 			return false;
 		}
 		return true;
@@ -314,30 +303,63 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	
 	@Override
 	public void  clear() {
-		data.clear();
+		Iterator<Key> it = data0.keySet().iterator();
+		Key k;
+		while(it.hasNext()) {
+			k = it.next();
+			removeEL(k);
+		}
 	}
 
 	@Override
 	public boolean containsKey(Key key) {
-		return data.containsKey(key);
+		IKStorageScopeItem v = data0.g(key,NULL);
+		return v!=NULL && !v.removed();
 	}
 
 	@Override
 	public Object get(Key key) throws PageException {
-		return data.g(key).getValue();
+		IKStorageScopeItem v = data0.g(key);
+		if(v.removed()) {
+			StringBuilder sb=new StringBuilder();
+			Iterator<?> it = keySet().iterator();
+			Object k;
+			while(it.hasNext()){
+				k = it.next();
+				if(sb.length()>0)sb.append(',');
+				sb.append(k.toString());
+			}
+			return new ExpressionException("key [" + key + "] doesn't exist (existing keys:" + sb.toString() + ")" );
+		}
+		return v.getValue();
 	}
 
 	@Override
 	public Object get(Key key, Object defaultValue) {
-		IKStorageScopeItem v = data.g(key, NULL);
-		if(v==NULL) return defaultValue;
+		IKStorageScopeItem v = data0.g(key, NULL);
+		if(v==NULL || v.removed()) return defaultValue;
 		return v.getValue();
 	}
 
 	@Override
 	public Iterator<Collection.Key> keyIterator() {
-		return data.keySet().iterator();
+		return keySet().iterator();
 	}
+	
+	@Override
+	public Set<Collection.Key> keySet() {
+		Set<Collection.Key> keys=new HashSet<Collection.Key>();
+		Iterator<Entry<Key, IKStorageScopeItem>> it = data0.entrySet().iterator();
+		Entry<Key, IKStorageScopeItem> e;
+		IKStorageScopeItem v;
+		while(it.hasNext()) {
+			e = it.next();
+			v=e.getValue();
+			if(v!=NULL && !v.removed()) keys.add(e.getKey());
+		}
+		return keys;
+	}
+
     
 	
 	@Override
@@ -359,7 +381,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	@Override
 	public Object remove(Key key) throws PageException {
 		hasChanges=true;
-		IKStorageScopeItem existing = data.get(key);
+		IKStorageScopeItem existing = data0.get(key);
 		if(existing!=null) {
 			return existing.remove();
 		}
@@ -369,24 +391,23 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	@Override
 	public Object removeEL(Key key) {
 		hasChanges=true;
-		IKStorageScopeItem existing = data.get(key);
+		IKStorageScopeItem existing = data0.get(key);
 		if(existing!=null) {
 			return existing.remove();
 		}
 		return null;
-		
 	}
 
 	@Override
 	public Object set(Key key, Object value) throws PageException {
 		hasChanges=true;
-		return data.put(key, new IKStorageScopeItem(value));
+		return data0.put(key, new IKStorageScopeItem(value));
 	}
 
 	@Override
 	public Object setEL(Key key, Object value) {
 		hasChanges=true;
-		return data.put(key, new IKStorageScopeItem(value));
+		return data0.put(key, new IKStorageScopeItem(value));
 	}
 
 	@Override
@@ -407,12 +428,21 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	
 	@Override
 	public int size() {
-		return data.size();
+		int size=0;
+		Iterator<Entry<Key, IKStorageScopeItem>> it = data0.entrySet().iterator();
+		Entry<Key, IKStorageScopeItem> e;
+		IKStorageScopeItem v;
+		while(it.hasNext()) {
+			e = it.next();
+			v=e.getValue();
+			if(v!=NULL && !v.removed()) size++;
+		}
+		return size;
 	}
 
 	
 	public void store(PageContext pc){ // FUTURE add to interface
-		handler.store(this, pc, appName, name, cfid, data,ThreadLocalPageContext.getConfig(pc).getLog("scope"));
+		handler.store(this, pc, appName, name, cfid, data0,ThreadLocalPageContext.getConfig(pc).getLog("scope"));
 	}
 
 	public void unstore(PageContext pc){
@@ -437,15 +467,22 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 	@Override
 	public boolean containsValue(Object value) {
-		return data.containsValue(value);
+		Iterator<?> it = values().iterator();
+		while(it.hasNext()) {
+			if(it.next().equals(value)) return true;
+		}
+		return false;
 	}
 
 	@Override
 	public java.util.Collection values() {
 		java.util.Collection<Object> res=new ArrayList<Object>();
-		Iterator<IKStorageScopeItem> it = data.values().iterator();
+		Iterator<IKStorageScopeItem> it = data0.values().iterator();
+		IKStorageScopeItem v;
 		while(it.hasNext()) {
-			res.add(it.next().getValue());
+			v = it.next();
+			if(v!=NULL && !v.removed())
+			res.add(v.getValue());
 		}
 		return res;
 	}

@@ -54,8 +54,10 @@ public final class QueryExecute extends BIF {
 	public static Object call(PageContext pc , String sql, Object params, Struct options, String name) throws PageException {
 		PageContextImpl pci=(PageContextImpl) pc;
 		lucee.runtime.tag.Query qry = (lucee.runtime.tag.Query) pci.use(lucee.runtime.tag.Query.class.getName(),"cfquery",TagLibTag.ATTRIBUTE_TYPE_FIXED);
+		
 		try { 
 			try {
+				qry.hasBody(true);
 				// set attributes
 				qry.setReturnVariable(true);
 				qry.setName(StringUtil.isEmpty(name)?"QueryExecute":name);

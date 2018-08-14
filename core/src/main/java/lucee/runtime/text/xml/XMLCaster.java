@@ -55,6 +55,7 @@ import lucee.runtime.text.xml.struct.XMLStruct;
 import lucee.runtime.text.xml.struct.XMLStructFactory;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.Struct;
 
 import org.w3c.dom.Attr;
@@ -673,7 +674,7 @@ public final class XMLCaster {
 		}
 		// Node
 		DumpTable table = new DumpTable("xml","#cc9999","#ffffff","#000000");
-		table.setTitle("XML Node ("+ListLast.call(null,node.getClass().getName(),".")+")");
+		table.setTitle("XML Node ("+ListUtil.last(node.getClass().getName(),".",true)+")");
 		table.appendRow(1,new SimpleDumpData("xmlName"),		new SimpleDumpData(XMLUtil.getProperty(node,XMLUtil.XMLNAME,null).toString()));
 		table.appendRow(1,new SimpleDumpData("XmlNsPrefix"),	new SimpleDumpData(XMLUtil.getProperty(node,XMLUtil.XMLNSPREFIX,null).toString()));
 		table.appendRow(1,new SimpleDumpData("XmlNsURI"),		new SimpleDumpData(XMLUtil.getProperty(node,XMLUtil.XMLNSURI,null).toString()));
@@ -743,7 +744,7 @@ public final class XMLCaster {
 	 * @param caseSensitive
 	 * @return xmlstruct from node
 	 */
-	public static XMLStruct toXMLStruct(Node node, boolean caseSensitive) { // do not change, this method is used in the flex extension
+	public static XMLStruct toXMLStruct(Node node, boolean caseSensitive) { // do not change, this method is used in the flex,axis extension
 	    return XMLStructFactory.newInstance(node,caseSensitive);
 	}
 	

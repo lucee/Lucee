@@ -127,10 +127,10 @@ public interface Array extends Collection, Cloneable, Objects {
 	@Deprecated
 	public void sort(String sortType, String sortOrder) throws PageException;
 
-	public void sortIt(@SuppressWarnings("rawtypes") Comparator comp);// this name was choosen to avoid conflict with java.util.List
+	public void sortIt(@SuppressWarnings("rawtypes") Comparator comp);// this name was chosen to avoid conflict with java.util.List
 
 	/**
-	 * @return return arra as native (Java) Object Array
+	 * @return return array as native (Java) Object Array
 	 */
 	public Object[] toArray();
 
@@ -146,7 +146,7 @@ public interface Array extends Collection, Cloneable, Objects {
 	 * removes a value ad defined key
 	 * 
 	 * @param key key to remove
-	 * @return retuns if value is removed or not
+	 * @return returns if value is removed or not
 	 * @throws PageException
 	 */
 	public Object removeE(int key) throws PageException;
@@ -155,7 +155,7 @@ public interface Array extends Collection, Cloneable, Objects {
 	 * removes a value ad defined key
 	 * 
 	 * @param key key to remove
-	 * @return retuns if value is removed or not
+	 * @return returns if value is removed or not
 	 */
 	public Object removeEL(int key);
 

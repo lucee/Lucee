@@ -790,6 +790,10 @@ public final class VariableUtilImpl implements VariableUtil {
 	    if(coll instanceof Date) {
 	    	return MemberUtil.call(pc, coll, key, args, new short[]{CFTypes.TYPE_DATETIME}, new String[]{"date"});
 	    }
+	    // Number
+	    if(coll instanceof Number) {
+	    	return MemberUtil.call(pc, coll, key, args, new short[]{CFTypes.TYPE_NUMERIC}, new String[]{"numeric"});
+	    }
 	    
 	    
         // call Object Wrapper      
@@ -805,7 +809,7 @@ public final class VariableUtilImpl implements VariableUtil {
 	public Object callFunctionWithoutNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args, boolean noNull,Object defaultValue) {
 		// MUST make an independent impl for performance reasons
 		try {
-			if(!noNull || NullSupportHelper.full())
+			if(!noNull || NullSupportHelper.full(pc))
 				return callFunctionWithoutNamedValues(pc, coll, key, args);
 			Object obj = callFunctionWithoutNamedValues(pc, coll, key, args);
 			return obj==null?defaultValue:obj;
@@ -851,7 +855,7 @@ public final class VariableUtilImpl implements VariableUtil {
 	public Object callFunctionWithNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args, boolean noNull, Object defaultValue) {
 		// MUST make an independent impl for performance reasons
 		try {
-			if(!noNull || NullSupportHelper.full())
+			if(!noNull || NullSupportHelper.full(pc))
 				return callFunctionWithNamedValues(pc, coll, key, args);
 			Object obj = callFunctionWithNamedValues(pc, coll, key, args);
 			return obj==null?defaultValue:obj;

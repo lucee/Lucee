@@ -31,13 +31,7 @@ import lucee.runtime.type.util.ListUtil;
 public final class ListFindNoCase extends BIF {
 	
 	private static final long serialVersionUID = 8596474187680730966L;
-	
-	public static double call(PageContext pc , String list, String value) {
-		return ListUtil.listFindNoCaseIgnoreEmpty(list,value,',')+1;
-	}
-	public static double call(PageContext pc , String list, String value, String delimter) {
-		return ListUtil.listFindNoCaseIgnoreEmpty(list,value,delimter)+1;
-	}
+
 	public static double call(PageContext pc , String list, String value, String delimter, boolean includeEmptyFields) {
 		if(includeEmptyFields)return ListUtil.listFindNoCase(list,value,delimter)+1;
 		return ListUtil.listFindNoCaseIgnoreEmpty(list,value,delimter)+1;
@@ -46,9 +40,9 @@ public final class ListFindNoCase extends BIF {
     @Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
     	if(args.length==2)
-			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
+			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]),",",false);
     	if(args.length==3)
-			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]));
+			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]),false);
     	if(args.length==4)
 			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]));
     	

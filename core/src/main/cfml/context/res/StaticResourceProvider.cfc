@@ -43,46 +43,45 @@ component {
 
 
 	function onMissingTemplate( target ) {
-
 		var filename = right( arguments.target, 4 ) == ".cfm" ? left( arguments.target, len( arguments.target ) - 4 ) : arguments.target;
-
-		var resInfo = getResInfo( filename );
-		
+		var resInfo = getResInfo( filename ,"");
+				
 		if(!resInfo.exists) {
 			// maybe the name has the version appendix
 			nameAppendix=hash(server.lucee.version&server.lucee['release-date'],'quick');
 			if(find("-"&nameAppendix,filename)) {
-				var resInfo = getResInfo( replace(filename,"-"&nameAppendix,"") );
+				var resInfo = getResInfo( replace(filename,"-"&nameAppendix,""),nameAppendix );
 			}
 		}
-
+		
 		if ( resInfo.exists ) {
 
 			header name='Expires'       value='#getHttpTimeString( now() + 10 )#';
 			header name='Cache-Control' value='max-age=#86400 * 10#';
 			header name='ETag'          value=resInfo.etag;
-
-			if ( CGI.HTTP_IF_NONE_MATCH == resInfo.etag ) {
+			if (CGI.HTTP_IF_NONE_MATCH == resInfo.etag ) {
 
 				header statuscode='304' statustext='Not Modified';
 				content reset=true type=resInfo.mimeType;
 			} else {
+				if(resInfo.isText) {
+					content reset=true type=resInfo.mimeType;
+					echo(resInfo.contents);
+				}
+				else
+					content reset=true type=resInfo.mimeType file=resInfo.path;
 
-				content reset=true type=resInfo.mimeType file=resInfo.path;
 			}
 		} else {
 			header statuscode='404' statustext='Not Found';
 		//	header statuscode='404' statustext='Not Found @ #resInfo.path#';
-
-			systemOutput( "static resource #arguments.target# was not found @ #resInfo.path#", true, true );
 		}
 
 		return resInfo.exists;
 	}
 
 
-	private function getResInfo( filename ) {
-
+	private function getResInfo( filename,nameAppendix ) {
 		if ( structKeyExists( this.resources, arguments.filename ) )
 			return this.resources[ arguments.filename ];
 
@@ -104,10 +103,12 @@ component {
 
 		result.isText = left( result.mimeType, 4 ) == "text";
 
-		result.contents = result.isText ? fileRead( result.path ) : fileReadBinary( result.path );
+		result.contents = 
+			result.isText ? replace(fileRead( result.path ),'{appendix}',hash(server.lucee.version&server.lucee['release-date'],'quick'),'all') : 
+			fileReadBinary( result.path );
 
-		result.etag = hash( result.contents );
-
+		result.etag = hash( result.contents&":"&nameAppendix );
+				
 		this.resources[ arguments.filename ] = result;
 
 		return result;

@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.type.dt;
 
+import java.io.Serializable;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -32,7 +34,7 @@ import lucee.runtime.op.date.DateCaster;
 /**
  * TimeSpan Object, represent a timespan
  */
-public final class TimeSpanImpl implements TimeSpan {
+public final class TimeSpanImpl implements TimeSpan,Serializable {
 
 	private double value;
 	private long valueMillis;

@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.log.log4j.appender.ConsoleAppender;
@@ -47,6 +48,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -58,7 +60,6 @@ import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
 
 import org.apache.log4j.HTMLLayout;
-import org.apache.log4j.Level;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.xml.XMLLayout;
 import org.osgi.framework.Version;
@@ -341,15 +342,17 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 			ClassDefinition cdLay = toClassDefinition(sctLay, null, false, true);
 			if(cdApp != null && cdApp.hasClass()) {
 				// level
-				String strLevel = Caster.toString(v.get("level", null), null);
-				if(StringUtil.isEmpty(strLevel, true))
-					Caster.toString(v.get("loglevel", null), null);
-				Level level = Log4jUtil.toLevel(StringUtil.trim(strLevel, ""), Level.ERROR);
 
-				Struct sctAppArgs = Caster.toStruct(sctApp.get("arguments", null), null);
-				Struct sctLayArgs = Caster.toStruct(sctLay.get("arguments", null), null);
-
-				boolean readOnly = Caster.toBooleanValue(v.get("readonly", null), false);
+				String strLevel=Caster.toString(v.get("level",null),null);
+				if(StringUtil.isEmpty(strLevel,true))
+					Caster.toString(v.get("loglevel",null),null);
+				int level=LogUtil.toLevel(StringUtil.trim(strLevel,""),Log.LEVEL_ERROR);
+				
+				Struct sctAppArgs=Caster.toStruct(sctApp.get("arguments",null),null);
+				Struct sctLayArgs=Caster.toStruct(sctLay.get("arguments",null),null);
+				
+				boolean readOnly = Caster.toBooleanValue(v.get("readonly",null),false);
+				
 
 				// ignore when no appender/name is defined
 				if(!StringUtil.isEmpty(name)) {
@@ -378,7 +381,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 		return map;
 	}
 
-	private static LoggerAndSourceData addLogger(Collection.Key name, Level level, ClassDefinition appender, Map<String, String> appenderArgs,
+	private static LoggerAndSourceData addLogger(Collection.Key name, int level, ClassDefinition appender, Map<String, String> appenderArgs,
 			ClassDefinition layout, Map<String, String> layoutArgs, boolean readOnly) {
 		LoggerAndSourceData existing = _loggers.get(name);
 		String id = LoggerAndSourceData.id(name.getLowerString(), appender, appenderArgs, layout, layoutArgs, level, readOnly);
@@ -476,12 +479,19 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	public abstract void setMailListener(Object mailListener);
 
-	public abstract boolean getWSMaintainSession();
-
+	public abstract boolean getWSMaintainSession(); // used in extension Axis1
 	public abstract void setWSMaintainSession(boolean maintainSession);
 
 	public abstract FTPConnectionData getFTP();
 
 	public abstract void setFTP(FTPConnectionData ftp);
+	public abstract boolean getFullNullSupport();
+	public abstract void setFullNullSupport(boolean fullNullSupport);
+
+	public abstract TagListener getQueryListener();
+	public abstract void setQueryListener(TagListener listener);
+	
+	public abstract SerializationSettings getSerializationSettings();
+	public abstract void setSerializationSettings(SerializationSettings settings);
 
 }

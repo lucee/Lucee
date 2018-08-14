@@ -84,6 +84,9 @@ public class SourceCode {
 	public boolean hasNext()  {
 		return pos+1<lcText.length;
 	}
+	public boolean hasNextNext()  {
+		return pos+2<lcText.length;
+	}
 
 	/**
 	 * moves the internal pointer to the next position, no check if the next position is still valid
@@ -132,6 +135,11 @@ public class SourceCode {
 	public boolean isNext(char c) {
 		if(!hasNext()) return false;
 		return lcText[pos+1]==c;
+	}
+	
+	public boolean isNext(char a,char b) {
+		if(!hasNextNext()) return false;
+		return lcText[pos+1]==a && lcText[pos+2]==b;
 	}
 	
 	private boolean isNextRaw(char c) {
@@ -213,14 +221,7 @@ public class SourceCode {
 		for(int i=str.length()-1;i>=0;i--)	{
 			if(str.charAt(i)!=lcText[pos+i]) return false;
 		}
-		return true;
-		/*char[] c=str.toCharArray();
-		// @ todo not shure for length
-		if(pos+c.length>text.length) return false;
-		for(int i=c.length-1;i>=0;i--)	{
-			if(c[i]!=lcText[pos+i]) return false;
-		}
-		return true;*/			
+		return true;		
 	}
 	
 	/**
@@ -826,7 +827,25 @@ public class SourceCode {
 		}
 		return -1;
 	}
-	
+
+	public int indexOfNext(String str) {
+		char[] carr = str.toCharArray();
+		outer:for(int i=pos;i<lcText.length;i++) {
+			if(lcText[i]==carr[0]) {
+				//print.e("- "+lcText[i]);
+				for(int y=1;y<carr.length;y++) {
+					//print.e("-- "+y);
+					if(lcText.length<=i+y || lcText[i+y]!=carr[y]) {
+						//print.e("ggg");
+						continue outer;
+					}
+				}
+				return i;
+			}
+		}
+		return -1;
+	}
+
 	/**
 	 * Gibt das letzte Wort das sich vor dem aktuellen Zeigerstand befindet zurueck, 
 	 * falls keines existiert wird null zurueck gegeben.

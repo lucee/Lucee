@@ -30,6 +30,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
@@ -88,11 +89,11 @@ public final class DataSourceImpl extends DataSourceSupport {
      * @throws SQLException
      */
 	public DataSourceImpl(Config config, String name, ClassDefinition cd, String host, String connStr, String database, int port,
-			String username, String password, int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow,
+			String username, String password, TagListener listener, int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow,
 			Struct custom, boolean readOnly, boolean validate, boolean storage, TimeZone timezone, String dbdriver, ParamSyntax paramSyntax,
 			boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, Log log) throws BundleException, ClassException, SQLException {
 
-		super(config, name, cd, username, ConfigWebUtil.decrypt(password), blob, clob, connectionLimit, connectionTimeout, metaCacheTimeout, timezone,
+		super(config, name, cd, username, ConfigWebUtil.decrypt(password), listener, blob, clob, connectionLimit, connectionTimeout, metaCacheTimeout, timezone,
 				allow < 0 ? ALLOW_ALL : allow, storage, readOnly, log);
 
 		this.host = host;
@@ -210,7 +211,7 @@ public final class DataSourceImpl extends DataSourceSupport {
 	public DataSource _clone(boolean readOnly) {
 		try {
 			return new DataSourceImpl(ThreadLocalPageContext.getConfig(), getName(), getClassDefinition(), host, connStr, database, port, getUsername(),
-					getPassword(), getConnectionLimit(), getConnectionTimeout(), getMetaCacheTimeout(), isBlob(), isClob(), allow, custom, readOnly, validate,
+					getPassword(), getListener(), getConnectionLimit(), getConnectionTimeout(), getMetaCacheTimeout(), isBlob(), isClob(), allow, custom, readOnly, validate,
 					isStorage(), getTimeZone(), dbdriver, getParamSyntax(), literalTimestampWithTSOffset, alwaysSetTimeout, getLog());
 		}
 		catch (RuntimeException re) {

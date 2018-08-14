@@ -86,23 +86,24 @@
 		});
 	</script>
 </cfsavecontent>
-
-
-<cfmodule template="doc_layout.cfm" title="Lucee Function Reference" prevLinkItem="#prevLinkItem#" nextLinkItem="#nextLinkItem#">
-
+<cfsavecontent variable="a">
 <cfoutput>
 	<cfif len( url.item )>
 
 		<cfset data = getFunctionData( url.item )>
-		<div class="tile-wrap">
-			<div class="tile">
-				<ul class="breadcrumb margin-no-top margin-right margin-no-bottom margin-left">
-					<li><a href="index.cfm">Home</a></li>
-					<li><a href="functions.cfm">Lucee functions</a></li>
-					<li class="active">#data.name#</li>
-				</ul>
+		<cfif !structKeyExists(url, "isAjaxRequest")>
+			<div class="tile-wrap">
+				<div class="tile">
+					<ul class="breadcrumb margin-no-top margin-right margin-no-bottom margin-left">
+						<li><a href="index.cfm">Home</a></li>
+						<li><a href="functions.cfm">Lucee functions</a></li>
+						<li class="active">#data.name#</li>
+					</ul>
+				</div>
 			</div>
-		</div>
+		<cfelse>
+			<h2 style="text-align: center;">Lucee Functions</h2>
+		</cfif>
 
 		<h2>Function <em>#uCase( url.item )#</em></h2>
 		<cfif data.status EQ "deprecated">
@@ -111,7 +112,7 @@
 		<!--- Desc --->
 		<div class="text">
 			<cfif not StructKeyExists(data, "description")>
-				<em>No decription found</em>
+				<em>No description found</em>
 			<cfelse>
 				#replace( replace( data.description, '	', '&nbsp;&nbsp;&nbsp;', 'all' ), chr(10), '<br>', 'all' )#
 			</cfif>
@@ -151,7 +152,7 @@
 			<cfloop array="#data.arguments#" index="key" item="val">
 				<cfif !isNull(val.defaultValue)><cfset hasdefaults=true></cfif>
 			</cfloop>
-			<table class="maintbl">
+			<table class="table maintbl">
 				<thead>
 					<tr>
 						<th width="21%">#stText.doc.arg.name#</th>
@@ -231,6 +232,14 @@
 	</cfif><!--- len( url.item) !--->
 
 </cfoutput>
+</cfsavecontent>
 
-
+<!--- <cfif !structKeyExists(url, "isAjaxRequest")> --->
+<cfmodule template="doc_layout.cfm" title="Lucee Function Reference" prevLinkItem="#prevLinkItem#" nextLinkItem="#nextLinkItem#">
+	<cfoutput>#a#</cfoutput>
 </cfmodule><!--- doc_layout !--->
+<!--- <cfelse>
+	<link href="/context/doc/assets/css/base.min.css.cfm" rel="stylesheet">
+	<link href="/context/doc/assets/css/highlight.css.cfm" rel="stylesheet">
+	<cfoutput>#a#</cfoutput>
+</cfif> --->

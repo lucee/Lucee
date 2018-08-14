@@ -120,7 +120,7 @@ public interface UDF extends Function, Dumpable, Member, Cloneable {
 	public abstract String getDescription();
 
 	/**
-	 * call user defined Funcion with a hashmap of named values
+	 * call user defined Function with a hashmap of named values
 	 * 
 	 * @param pageContext
 	 * @param values named values
@@ -132,7 +132,7 @@ public interface UDF extends Function, Dumpable, Member, Cloneable {
 			Struct values, boolean doIncludePath) throws PageException;
 
 	/**
-	 * call user defined Funcion with parameters as Object Array
+	 * call user defined Function with parameters as Object Array
 	 * 
 	 * @param pageContext
 	 * @param args parameters for the function
@@ -162,7 +162,7 @@ public interface UDF extends Function, Dumpable, Member, Cloneable {
 	public UDF duplicate();
 
 	/**
-	 * it is the component in whitch this udf is constructed, must not be the
+	 * it is the component in which this udf is constructed, must not be the
 	 * same as active udf
 	 * 
 	 * @return owner component
@@ -172,7 +172,7 @@ public interface UDF extends Function, Dumpable, Member, Cloneable {
 	public Component getOwnerComponent();
 
 	/**
-	 * call user defined Funcion with a struct
+	 * call user defined Function with a struct
 	 * 
 	 * @param pageContext
 	 * @param values named values
@@ -185,7 +185,7 @@ public interface UDF extends Function, Dumpable, Member, Cloneable {
 			throws PageException;
 
 	/**
-	 * call user defined Funcion with parameters as Object Array
+	 * call user defined Function with parameters as Object Array
 	 * 
 	 * @param pageContext
 	 * @param args parameters for the function

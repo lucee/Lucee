@@ -40,7 +40,9 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.Identification;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
@@ -140,7 +142,7 @@ public final class ClassUtil {
 		if(!StringUtil.isEmpty(strVersion,true)) {
 			version=OSGiUtil.toVersion(strVersion.trim(),null);
 			if(version==null) 
-				throw new ClassException("Version defintion ["+strVersion+"] is invalid.");
+				throw new ClassException("Version definition ["+strVersion+"] is invalid.");
 		}
 		return loadClassByBundle(className, name, version,id);
 	}
@@ -879,5 +881,16 @@ public final class ClassUtil {
 		public Class<?> loadClass(String className, Class defaultValue, Set<Throwable> exceptions){
 			return loadClass(className, defaultValue);
 		}
+	}
+
+	public static ClassLoader getClassLoader(Class clazz) {
+		ClassLoader cl = clazz.getClassLoader();
+		if(cl!=null)return cl;
+		
+		Config config = ThreadLocalPageContext.getConfig();
+		if(config instanceof ConfigImpl) {
+			return ((ConfigImpl)config).getClassLoaderCore();
+		}
+		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
 	}
 }

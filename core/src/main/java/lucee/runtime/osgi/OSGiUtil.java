@@ -261,7 +261,7 @@ public class OSGiUtil {
     }*/
 	
 	/**
-	 * tries to load a class with ni bundle defintion
+	 * tries to load a class with ni bundle definition
 	 * @param name
 	 * @param version
 	 * @param id
@@ -442,7 +442,6 @@ public class OSGiUtil {
 
 	public static Bundle _loadBundle(String name, Version version,Identification id, boolean startIfNecessary, Set<String> parents) throws BundleException, StartFailedException {
 		name=name.trim();
-		
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
     	CFMLEngineFactory factory = engine.getCFMLEngineFactory();
     	
@@ -588,7 +587,7 @@ public class OSGiUtil {
 				final String msg = "Lucee is not able do download the bundle for ["
 					+ symbolicName + "] in version [" + symbolicVersion
 					+ "] from " + updateUrl
-					+ ", please donwload manually and copy to [" + jarDir + "]";
+					+ ", please download manually and copy to [" + jarDir + "]";
 				log(Logger.LOG_ERROR, msg);
 				conn.disconnect();
 				throw new IOException(msg);
@@ -678,7 +677,7 @@ public class OSGiUtil {
 	 * this should be used when you not want to load a Bundle to the system
 	 * @param name
 	 * @param version
-	 * @param id only necessray if downloadIfNecessary is set to true
+	 * @param id only necessary if downloadIfNecessary is set to true
 	 * @param downloadIfNecessary
 	 * @return
 	 * @throws BundleException

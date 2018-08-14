@@ -55,7 +55,7 @@ public class RollingResourceAppender extends ResourceAppender {
 
   /**
     Instantiate a RollingFileAppender and open the file designated by
-    <code>filename</code>. The opened filename will become the ouput
+    <code>filename</code>. The opened filename will become the output
     destination for this appender.
 
     <p>If the <code>append</code> parameter is true, the file will be
@@ -69,7 +69,7 @@ public class RollingResourceAppender extends ResourceAppender {
 
   /**
     Instantiate a RollingFileAppender and open the file designated by
-    <code>filename</code>. The opened filename will become the ouput
+    <code>filename</code>. The opened filename will become the output
     destination for this appender.
 
     <p>If the <code>append</code> parameter is true, the file will be
@@ -101,7 +101,7 @@ public class RollingResourceAppender extends ResourceAppender {
   }
 
   /**
-     Implements the usual roll over behaviour.
+     Implements the usual roll over behavior.
 
      <p>If <code>MaxBackupIndex</code> is positive, then files
      {<code>File.1</code>, ..., <code>File.MaxBackupIndex -1</code>}

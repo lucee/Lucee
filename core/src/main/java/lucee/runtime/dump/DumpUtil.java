@@ -51,7 +51,7 @@ import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.i18n.LocaleFactory;
-import lucee.runtime.net.rpc.Pojo;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.OSGiUtil;
@@ -63,6 +63,7 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.ObjectWrap;
+import lucee.runtime.type.Pojo;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -85,7 +86,8 @@ public class DumpUtil {
 		MAX_LEVEL_REACHED = new DumpTable("Max Level Reached","#e0e0e0","#ffcc99","#888888");
 		((DumpTable)MAX_LEVEL_REACHED).appendRow( new DumpRow(1, new SimpleDumpData("[Max Dump Level Reached]") ) );
 	}
-
+	
+	// FUTURE add to interface
 	public static DumpData toDumpData(Object o, PageContext pageContext, int maxlevel, DumpProperties props) {
 		if(maxlevel<0)
 			return MAX_LEVEL_REACHED;
@@ -626,6 +628,7 @@ public class DumpUtil {
 				try {
 					BundleClassLoader bcl=(BundleClassLoader) cl;
 					Bundle b=bcl.getBundle();
+					if(b!=null){
 					Struct sct=new StructImpl();
 					sct.setEL(KeyConstants._id, b.getBundleId());
 					sct.setEL(KeyConstants._name, b.getSymbolicName());
@@ -639,6 +642,7 @@ public class DumpUtil {
 					bd.appendRow(1,new SimpleDumpData("location"),new SimpleDumpData(b.getLocation()));
 					requiredBundles(bd,b);
 					table.appendRow(1,new SimpleDumpData("bundle-info"),bd);
+					}
 				}
 				catch(NoSuchMethodError e) {}
 			}
@@ -651,6 +655,17 @@ public class DumpUtil {
 		}
 	}
 	
+	private static Bundle getBundle(ClassLoader cl) {
+		try {
+			Method m = cl.getClass().getMethod("getBundle", new Class[0]);
+			return (Bundle)m.invoke(cl, new Object[0]);
+		} 
+		catch (Exception e) {
+			return null;
+		}
+	}
+
+
 	private static void requiredBundles(DumpTable parent, Bundle b) {
 		try {
 			List<BundleDefinition> list = OSGiUtil.getRequiredBundles(b);

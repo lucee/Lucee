@@ -19,12 +19,13 @@
 package lucee.runtime.functions.xml;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.net.rpc.AxisUtil;
+import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.net.rpc.client.WSClient;
-import lucee.runtime.op.Caster;
 
 /**
  * 
@@ -40,12 +41,6 @@ public final class GetSOAPRequest implements Function {
 		if(webservice!=null && !(webservice instanceof WSClient))
 			throw new FunctionException(pc, "getSOAPRequest", 1, "webservice", "value must be a webservice Object generated with createObject/<cfobject>");
 		
-		try {
-			return AxisUtil.getSOAPRequest((WSClient) webservice);
-		} 
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
-		
+		return ((WSClient) webservice).getSOAPRequest();
 	}
 }

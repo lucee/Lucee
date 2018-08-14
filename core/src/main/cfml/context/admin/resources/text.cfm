@@ -63,6 +63,7 @@
 	<cfset stText = application.stText[session.lucee_admin_lang]>
 </cfif>
 
+<!--- TODO  what is thios good for? it does not work, URL does not exist
 <cfif not structKeyExists(application, "stWebHelp") or structKeyExists(url, "reinit")>
 	<cftry>
 		<cfhttp url="#sHelpURL#" method="GET" timeout="1"></cfhttp>
@@ -76,6 +77,9 @@
 	<cfset stHelp = application.stWebHelp>
 </cfif>	
 <cfset request.stWebHelp = stHelp>
+--->
+<cfset request.stWebHelp = {}>
+
 
 <!---
 --->

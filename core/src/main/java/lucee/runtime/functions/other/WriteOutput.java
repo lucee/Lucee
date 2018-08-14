@@ -23,16 +23,23 @@ package lucee.runtime.functions.other;
 
 import java.io.IOException;
 
+import org.osgi.framework.BundleException;
+
+import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
+import lucee.runtime.esapi.ESAPIUtil;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
-import lucee.runtime.functions.owasp.ESAPIEncode;
 import lucee.runtime.op.Caster;
+import lucee.runtime.util.ClassUtilImpl;
 
 public final class WriteOutput extends BIF {
-    public static boolean call(PageContext pc , String string) throws PageException {
+
+	public static boolean call(PageContext pc , String string) throws PageException {
         try {
             pc.forceWrite(string);
         }
@@ -45,7 +52,7 @@ public final class WriteOutput extends BIF {
     public static boolean call(PageContext pc , String string, String encodeFor) throws PageException {
         try {
         	if(!StringUtil.isEmpty(string))
-        		pc.forceWrite(ESAPIEncode.call(pc, encodeFor, string));
+        		pc.forceWrite(ESAPIUtil.esapiEncode(pc, encodeFor, string));
         	else 
         		pc.forceWrite(string);
         }

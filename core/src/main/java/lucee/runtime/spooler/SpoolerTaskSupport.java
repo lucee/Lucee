@@ -26,10 +26,11 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
-
-
+import lucee.runtime.type.util.KeyConstants;
 
 public abstract class SpoolerTaskSupport implements SpoolerTaskPro {
+
+	private static final long serialVersionUID = 2150341858025259745L;
 
 	private long creation;
 	private long lastExecution;
@@ -109,10 +110,10 @@ public abstract class SpoolerTaskSupport implements SpoolerTaskPro {
 			//config.getErrWriter().write(st+"\n");
 			
 			Struct sct=new StructImpl();
-			sct.setEL("message", pe.getMessage());
-			sct.setEL("detail", pe.getDetail());
-			sct.setEL("stacktrace", st);
-			sct.setEL("time", Caster.toLong(System.currentTimeMillis()));
+			sct.setEL(KeyConstants._message, pe.getMessage());
+			sct.setEL(KeyConstants._detail, pe.getDetail());
+			sct.setEL(KeyConstants._stacktrace, st);
+			sct.setEL(KeyConstants._time, Caster.toLong(System.currentTimeMillis()));
 			exceptions.appendEL(sct);
 			
 			throw pe;

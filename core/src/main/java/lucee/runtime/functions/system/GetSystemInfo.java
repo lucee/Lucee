@@ -18,6 +18,10 @@
  **/
 package lucee.runtime.functions.system;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Iterator;
 
 import lucee.runtime.CFMLFactoryImpl;
@@ -39,7 +43,7 @@ public final class GetSystemInfo implements Function {
 		ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
 		CFMLFactoryImpl factory = (CFMLFactoryImpl) config.getFactory();
 		ScopeContext sc = factory.getScopeContext();
-		//OperatingSystemMXBean osBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+		OperatingSystemMXBean osBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
 
 		// threads/requests
 		sct.put("activeRequests", factory.getActiveRequests());
@@ -57,8 +61,41 @@ public final class GetSystemInfo implements Function {
 		sct.put("sessionCount", sc.getSessionCount());
 		sct.put("clientCount", sc.getClientCount());
 		sct.put("applicationContextCount", sc.getAppContextCount());
-
+		
+		// cpu
+		getCPU(sct);
+		
 		return sct;
+	}
+	
+	
+	private static void getCPU(Struct data) {
+		OperatingSystemMXBean mxBean = ManagementFactory.getOperatingSystemMXBean();
+		// need to use reflection as the impl class is not visible
+		for (Method method : mxBean.getClass().getDeclaredMethods()) {
+			method.setAccessible(true);
+			String methodName = method.getName();
+			if(
+					methodName.startsWith("get") && 
+					methodName.contains("Cpu") && 
+					methodName.contains("Load") && 
+					Modifier.isPublic(method.getModifiers())) {
+				
+				Double value=1d;
+				try {
+					value = (Double)method.invoke(mxBean);
+				}
+				catch (Exception e) {}
+				if(value>0) { //cpuSystem
+					if("getSystemCpuLoad".equals(methodName)) {
+						data.setEL("cpuSystem", value);
+					}
+					if("getProcessCpuLoad".equals(methodName)) {
+						data.setEL("cpuProcess", value);
+					}
+				}
+			}
+		}
 	}
 
 	public static int getConnections(ConfigWebImpl config) {

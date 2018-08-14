@@ -56,7 +56,7 @@ public class CharBuffer {
 	}
 	
 	/**
-	* method to appennd a charr array to the buffer
+	* method to append a char array to the buffer
 	* @param c char array to append
 	*/
 	public void append(char c[]) {

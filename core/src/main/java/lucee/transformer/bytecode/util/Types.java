@@ -50,15 +50,16 @@ import lucee.runtime.component.Member;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Identification;
+import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ExceptionHandler;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.functions.FunctionHandlerPool;
-import lucee.runtime.img.Image;
+import lucee.runtime.image.ImageUtil;
 import lucee.runtime.interpreter.VariableInterpreter;
-import lucee.runtime.net.rpc.server.ComponentController;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;
 import lucee.runtime.op.Operator;
@@ -85,6 +86,7 @@ import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.scope.Variables;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.CallerUtil;
 import lucee.runtime.util.NumberRange;
@@ -140,7 +142,7 @@ public final class Types {
     public static final Type FLOAT = Type.getType(Float.class);
     public static final Type FLOAT_VALUE = Type.getType(float.class);
 
-    public static final Type IMAGE = Type.getType(Image.class);
+    //public static final Type IMAGE = Type.getType(Image.class);
     public static final Type INTEGER = Type.getType(Integer.class);
     public static final Type INT_VALUE = Type.getType(int.class);
 
@@ -227,6 +229,8 @@ public final class Types {
 	public static final Type JSP_WRITER = Type.getType(JspWriter.class);
 	public static final Type TAG = Type.getType(Tag.class);
 	public static final Type NUMBER_RANGE = Type.getType(NumberRange.class);
+	public static final Type NULL_SUPPORT_HELPER = Type.getType(NullSupportHelper.class);
+	
 	public static final Type SECURITY_MANAGER = Type.getType(SecurityManager.class);
 	public static final Type READER = Type.getType(Reader.class);
 	public static final Type BUFFERED_READER = Type.getType(BufferedReader.class);
@@ -245,6 +249,7 @@ public final class Types {
 	public static final Type LAMBDA = Type.getType(Lambda.class);
 	public static final Type UDF_PROPERTIES_ARRAY = Type.getType(UDFProperties[].class);
 	//public static final Type UDF_IMPL_ARRAY = Type.getType(UDFImpl[].class);
+	public static final Type KEY_CONSTANTS = Type.getType(KeyConstants.class);
 	public static final Type COLLECTION_KEY = Type.getType(Collection.Key.class);
 	public static final Type COLLECTION_KEY_ARRAY = Type.getType(Collection.Key[].class);
 	public static final Type UNDEFINED = Type.getType(Undefined.class);
@@ -264,7 +269,6 @@ public final class Types {
 	public static final Type CLASS_LOADER = Type.getType(ClassLoader.class);
 	public static final Type BIG_DECIMAL = Type.getType(BigDecimal.class);
 	
-	public static final Type COMPONENT_CONTROLLER = Type.getType(ComponentController.class); 
 	public static final Type FUNCTION_VALUE_IMPL=Type.getType(FunctionValueImpl.class);
 	public static final Type CALLER_UTIL = Type.getType(CallerUtil.class);
 	public static final Type VARIABLE_UTIL_IMPL = Type.getType(VariableUtilImpl.class);
@@ -331,7 +335,7 @@ public final class Types {
         case 'i':
             if("int".equals(lcType))								return INT_VALUE;
             else if("integer".equals(lcType))						return INTEGER;
-            else if("image".equals(lcType))							return IMAGE;
+            // ext.img else if("image".equals(lcType))							return ImageUtil.getImageType();
         break;
         case 'j':
             if("java.lang.boolean".equals(lcType))					return BOOLEAN;
@@ -482,7 +486,11 @@ public final class Types {
 		if(Types.TIMEZONE.equals(type)) return TimeZone.class;
 		if(Types.LOCALE.equals(type)) return Locale.class;
 		if(Types.UDF.equals(type)) return UDF.class;
-		if(Types.IMAGE.equals(type)) return Image.class;
+		/*if(Types.IMAGE.equals(type)) {
+			Class clazz = ImageUtil.getImageClass();
+	    	if(clazz!=null) return clazz;
+	    	throw new PageRuntimeException("Cannot provide Image class, you neeed to install the Image Extension to do so.");
+		}*/
 		if(Types.BYTE_VALUE_ARRAY.equals(type)) return byte[].class;
 		return ClassUtil.toClass(type.getClassName());
 	}

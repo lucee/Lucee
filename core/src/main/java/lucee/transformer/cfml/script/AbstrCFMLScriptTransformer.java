@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.print;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
@@ -39,6 +40,7 @@ import lucee.runtime.functions.system.CFFunction;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
+import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Body;
@@ -50,6 +52,9 @@ import lucee.transformer.bytecode.cast.CastBoolean;
 import lucee.transformer.bytecode.cast.CastOther;
 import lucee.transformer.bytecode.expression.FunctionAsExpression;
 import lucee.transformer.bytecode.expression.var.Assign;
+import lucee.transformer.bytecode.expression.var.VariableString;
+import lucee.transformer.bytecode.op.OPDecision;
+import lucee.transformer.bytecode.op.OpDouble;
 import lucee.transformer.bytecode.statement.Argument;
 import lucee.transformer.bytecode.statement.Condition;
 import lucee.transformer.bytecode.statement.Condition.Pair;
@@ -64,6 +69,7 @@ import lucee.transformer.bytecode.statement.While;
 import lucee.transformer.bytecode.statement.tag.Attribute;
 import lucee.transformer.bytecode.statement.tag.Tag;
 import lucee.transformer.bytecode.statement.tag.TagComponent;
+import lucee.transformer.bytecode.statement.tag.TagLoop;
 import lucee.transformer.bytecode.statement.tag.TagOther;
 import lucee.transformer.bytecode.statement.tag.TagParam;
 import lucee.transformer.bytecode.statement.udf.Closure;
@@ -77,8 +83,10 @@ import lucee.transformer.cfml.evaluator.impl.ProcessingDirectiveException;
 import lucee.transformer.cfml.expression.AbstrCFMLExprTransformer;
 import lucee.transformer.cfml.tag.CFMLTransformer;
 import lucee.transformer.expression.ExprBoolean;
+import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
+import lucee.transformer.expression.literal.LitDouble;
 import lucee.transformer.expression.var.Variable;
 import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.tag.TagLib;
@@ -169,6 +177,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	//private static final Expression NULL = data.factory.createLitString("NULL"); 
 	//private static final Attribute ANY = new Attribute(false,"type",data.factory.createLitString("any"),"string"); 
 	private static final char NO_ATTR_SEP = 0;
+	public static final String TAG_ISLAND_INDICATOR = "```";
 	
 	/** 
 	 * Liest saemtliche Statements des CFScriptString ein. 
@@ -232,6 +241,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		else if((child=returnStatement(data))!=null) 			parent.addStatement(child);
 		else if((child=switchStatement(data))!=null) 			parent.addStatement(child);
 		else if((child=tryStatement(data))!=null) 				parent.addStatement(child);
+		else if(islandStatement(data,parent)) 	;
 		//else if(staticStatement(data,parent)) ; // do nothing, happen already inside the method
 		else if((child=staticStatement(data,parent))!=null)		parent.addStatement(child);
 		else if((child=componentStatement(data,parent))!=null)	parent.addStatement(child);
@@ -712,8 +722,13 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				// ex block
 				Body prior = data.setParent(body);
 				statement(data,body,CTX_FOR);
+
+				// performance improvment in special constellation
+				//TagLoop loop = asLoop(data.factory,left,cont,update,body,line,data.srcCode.getPosition(),id);
+				//if(loop!=null) return loop;
+
 				data.setParent(prior);
-		
+
 				return new For(data.factory,left,cont,update,body,line,data.srcCode.getPosition(),id);					
 			}
 		// middle foreach
@@ -741,6 +756,103 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				throw new TemplateException(data.srcCode,"invalid syntax in for statement");
 	}
 	
+	private TagLoop asLoop(Factory factory, Expression expLeft, Expression expMiddle, Expression expRight,
+			Body body, Position start, Position end, String label) {
+		
+	// LEFT
+		// left must be an assignment
+		if(!(expLeft instanceof Assign)) return null;
+		Assign left=(Assign) expLeft;
+		String leftVarName=toVariableName(left.getVariable());
+		if(leftVarName==null) return null;
+		if(!"susi".equalsIgnoreCase(leftVarName)) return null;
+		
+	// MIDDLE
+		// midfdle must be an operation
+		if(!(expMiddle instanceof OPDecision)) return null;
+		OPDecision middle=(OPDecision) expMiddle;
+		
+		// middle must be an operation LT or LTE
+		boolean isLT=middle.getOperation()==OPDecision.LT;
+		if(!isLT && middle.getOperation()!=OPDecision.LTE) return null;
+		
+		// middle variable need to be the same as the left variable
+		if(!leftVarName.equals(toVariableName(middle.getLeft()))) return null;
+		
+	// RIGHT
+		// right need to be an assignment (i=i+1 what is the same as i++)
+		if(!(expRight instanceof Assign)) return null;
+		Assign right=(Assign) expRight;
+		
+		// increment need to be a literal number
+		if(!(right.getValue() instanceof OpDouble)) return null;
+		OpDouble opRight=(OpDouble) right.getValue();
+		
+		// must be an increment of the same variable (i on both sides)
+		if(!leftVarName.equals(toVariableName(right.getVariable()))) return null;
+		if(!leftVarName.equals(toVariableName(opRight.getLeft()))) return null;
+		
+		// must be a literal number
+		if(!(opRight.getRight() instanceof LitDouble)) return null;
+		LitDouble rightIncValue=(LitDouble) opRight.getRight();
+		if(opRight.getOperation()!=OpDouble.PLUS) return null;
+		
+		// create loop tag
+		TagLoop tl=new TagLoop(factory, start, end);
+		tl.setBody(body);
+		tl.setType(TagLoop.TYPE_FROM_TO);
+		
+		// id
+		tl.addAttribute(
+			new Attribute(
+				false, 
+				"index",
+				factory.createLitString(leftVarName,right.getVariable().getStart(),right.getVariable().getEnd()),
+				"string"
+			)
+		);
+		// from
+		tl.addAttribute(
+			new Attribute(
+				false, 
+				"from",
+				factory.toExprDouble(left.getValue()),
+				"number"
+			)
+		);
+		// to
+		ExprDouble val = isLT?OpDouble.toExprDouble(middle.getLeft(), factory.createLitDouble(1), OpDouble.MINUS):factory.toExprDouble(middle.getLeft());
+		tl.addAttribute(
+			new Attribute(
+				false, 
+				"to",
+				val,
+				"number"
+			)
+		);
+		// step
+		tl.addAttribute(
+			new Attribute(
+				false, 
+				"step",
+				factory.toExprDouble(rightIncValue),
+				"number"
+			)
+		);
+		
+		return tl;
+	}
+
+	private String toVariableName(Expression variable) {
+		if(!(variable instanceof Variable)) return null;
+		try {
+			return VariableString.variableToString((Variable)variable,false);
+		}
+		catch (TransformerException e) {
+			return null;
+		}
+	}
+
 	/**
 	 * Liest ein function Statement ein.
 	 * <br />
@@ -1785,6 +1897,20 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		return rtn;
 	}
+	
+	private final boolean islandStatement(Data data,Body parent) throws TemplateException {
+		
+	    if(!data.srcCode.forwardIfCurrent(TAG_ISLAND_INDICATOR)) return false;
+	    // now we have to jump into the tag parser
+	    CFMLTransformer tag = new CFMLTransformer(true);
+	    tag.transform(data,parent);
+	    
+	    if(!data.srcCode.forwardIfCurrent(TAG_ISLAND_INDICATOR))
+	    	throw new TemplateException(data.srcCode,"missing closing tag indicator ["+TAG_ISLAND_INDICATOR+"]");
+	    comments(data);
+
+		return true;
+	}
 
 	
 	private final Statement _singleAttrStatement(Body parent, Data data, TagLibTag tlt) throws TemplateException   {
@@ -2028,7 +2154,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			Variable v=(Variable) expr;
 			if(ASMUtil.isOnlyDataMember(v)){
 				
-				expr=new Assign(v, data.srcCode.getDialect()==CFMLEngine.DIALECT_LUCEE || data.config.getFullNullSupport()?data.factory.createNull():data.factory.EMPTY(), data.srcCode.getPosition());
+				expr=new Assign(v, data.factory.createEmpty(), data.srcCode.getPosition());
 			}
 		}
 		

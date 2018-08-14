@@ -175,7 +175,6 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 
-//import com.intergral.fusiondebug.server.FDControllerFactory;
 
 /**
  * The CFMl Engine
@@ -785,7 +784,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if(configServer == null) {
 			try {
 				Resource context = getSeverContextConfigDirectory(factory);
-				// CFMLEngineFactory.registerInstance(this);// patch, not really good but it works
 				configServer = XMLConfigServerFactory.newInstance(this, initContextes, contextes, context);
 			}
 			catch (Exception e) {

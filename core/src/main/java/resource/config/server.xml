@@ -41,6 +41,7 @@ Path placeholders:
 	<data-sources
 		preserve-single-quote="yes">
 	</data-sources>
+	<mode develop="false"></mode>
 
 	<!--
 		deploy-directory - directory where java classes will be deployed
@@ -362,7 +363,7 @@ Path placeholders:
 		listener-mode="curr2root"/>
 	
 	<update 
-		location="http://release.lucee.org" 
+		location="http://update.lucee.org" 
 		type="manual"/>
 		
 <!--

@@ -13,7 +13,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			//convert base64 code to image and then convert into binary.
 			it(title="checking tobinary() function, with base64 code from the image", body = function( currentSpec ) {
-				cfimage(source="#ImageReadBase64(variables.base64)#",  name="originalImg", destination="#path#originalImg.png" action="resize", width="50%", height="80%", overwrite="yes");
+				cfimage(source="#ImageReadBase64(variables.base64)#",  name="originalImg", destination="#path#originalImg.png", action="resize", 
+					width="50%", height="80%", overwrite="yes");
 				var base64 = tobase64(originalImg);
 				var binary = tobinary(base64);
 				expect(isbinary(binary)).toBe(true);

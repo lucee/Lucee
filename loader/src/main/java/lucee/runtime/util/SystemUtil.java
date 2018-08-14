@@ -122,7 +122,7 @@ public interface SystemUtil {
 			throws IOException;
 
 	/**
-	 * returns the Hoome Directory of the System
+	 * returns the Home Directory of the System
 	 * 
 	 * @return home directory
 	 */

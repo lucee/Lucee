@@ -19,6 +19,7 @@
   <property name="extMongo"       value="E6634E1A-4CC5-4839-A83C67549ECA8D5B"/>
   <property name="extH2"          value="465E1E35-2425-4F4E-8B3FAB638BD7280A"/>
   <property name="extOracle"          value="D4EDFDBD-A9A3-E9AF-597322D767E0C949"/>
+  <property name="pack200"          value="false"/>
 
 
 <!-- TODO get the version number from manifest.mf -->
@@ -163,10 +164,12 @@
      <attribute name="bundles" />
      <attribute name="target" />
      <attribute name="coremanifest" />
+     <attribute name="pack200" />
      <![CDATA[
       var bundles = attributes.get("bundles").split(java.io.File.pathSeparator);
       var target = attributes.get("target");
       var coreManifestPath = attributes.get("coremanifest");
+      var pack200 = attributes.get("pack200").equalsIgnoreCase("true");
 
 
       // read the core Manifest
@@ -175,6 +178,19 @@
       var reqBundle=attrs.getValue("Require-Bundle");
       var reqBundleFrag=attrs.getValue("Require-Bundle-Fragment");
 
+      // prepare Pack200
+      var packer = java.util.jar.Pack200.newPacker();
+
+      // Initialize the state by setting the desired properties
+      var p = packer.properties();
+      p.put(java.util.jar.Pack200.Packer.EFFORT, "7");  // default is "5"
+      p.put(java.util.jar.Pack200.Packer.SEGMENT_LIMIT, "-1");
+      p.put(java.util.jar.Pack200.Packer.KEEP_FILE_ORDER, java.util.jar.Pack200.Packer.FALSE);
+      p.put(java.util.jar.Pack200.Packer.MODIFICATION_TIME, java.util.jar.Pack200.Packer.LATEST);
+      p.put(java.util.jar.Pack200.Packer.DEFLATE_HINT, java.util.jar.Pack200.Packer.FALSE);
+      //p.put(java.util.jar.Pack200.Packer.CODE_ATTRIBUTE_PFX+"LineNumberTable", java.util.jar.Pack200.Packer.STRIP);
+      p.put(java.util.jar.Pack200.Packer.UNKNOWN_ATTRIBUTE, java.util.jar.Pack200.Packer.ERROR);
+    
       for(var i=0;i<bundles.length;i++) {
 
         // first we read the manifest
@@ -190,16 +206,55 @@
         if(!exist) continue;
 
 
+
         // now we add the bundle
+        var trgJar=new java.io.File(target+"/"+name+"-"+version+".jar");
         var copy = project.createTask( "copy" );
         copy.setFile(new java.io.File(bundles[i]));
-        copy.setTofile(new java.io.File(target+"/"+name+"-"+version+".jar"));
+        copy.setTofile(trgJar);
         copy.perform();
-        
 
-        var echo = project.createTask( "echo" );
-        echo.setMessage("- add "+name+"-"+version+".jar");
-        echo.perform();
+        if(pack200) {
+          // jar -> pack200
+          var trgPack=new java.io.File(target+"/"+name+"-"+version+".jar.pack.gz");
+          var is=null;
+          var os=null;
+          
+          //var err = java.lang.System.err;
+          try {
+
+
+            var echo = project.createTask( "echo" );
+            echo.setMessage("- pack "+name+"-"+version+".jar");
+            echo.perform();
+
+            //java.lang.System.setErr(new PrintStream(new DevNullOutputStream()));
+            is = new java.util.jar.JarInputStream(new java.io.FileInputStream(trgJar));
+            os=new java.util.zip.GZIPOutputStream(new java.io.FileOutputStream(trgPack));
+            packer.pack(is, os);
+            trgJar.delete();
+
+            var echo = project.createTask( "echo" );
+            echo.setMessage("- add "+name+"-"+version+".pack.gz");
+            echo.perform();
+
+          }
+          finally {
+            if(is!=null) {
+              try {is.close();} catch(e) {}
+            }
+            if(os!=null) {
+              try {os.close();} catch(e) {}
+            }
+          }
+        }
+        else {
+          var echo = project.createTask( "echo" );
+          echo.setMessage("- add "+name+"-"+version+".jar");
+          echo.perform();
+
+        }
+
         
       }
       
@@ -207,6 +262,170 @@
      ]]>
   </scriptdef>
 
+  <scriptdef name="pack200File" language="javascript">
+     <attribute name="file" />
+     <attribute name="doit" />
+     <![CDATA[
+
+
+     var trgJar = new java.io.File(attributes.get("file"));
+     var doit = attributes.get("doit").equalsIgnoreCase("true");
+     if(doit) {
+     
+      // prepare Pack200
+      var packer = java.util.jar.Pack200.newPacker();
+
+      // Initialize the state by setting the desired properties
+      var p = packer.properties();
+      p.put(java.util.jar.Pack200.Packer.EFFORT, "7");  // default is "5"
+      p.put(java.util.jar.Pack200.Packer.SEGMENT_LIMIT, "-1");
+      p.put(java.util.jar.Pack200.Packer.KEEP_FILE_ORDER, java.util.jar.Pack200.Packer.FALSE);
+      p.put(java.util.jar.Pack200.Packer.MODIFICATION_TIME, java.util.jar.Pack200.Packer.LATEST);
+      p.put(java.util.jar.Pack200.Packer.DEFLATE_HINT, java.util.jar.Pack200.Packer.FALSE);
+      //p.put(java.util.jar.Pack200.Packer.CODE_ATTRIBUTE_PFX+"LineNumberTable", java.util.jar.Pack200.Packer.STRIP);
+      p.put(java.util.jar.Pack200.Packer.UNKNOWN_ATTRIBUTE, java.util.jar.Pack200.Packer.ERROR);
+    
+      var name=trgJar.getName()+".pack.gz";
+      var trgPack=new java.io.File( trgJar.getParentFile() , name);
+
+      var is=null;
+      var os=null;
+      
+      try {
+        var echo = project.createTask( "echo" );
+        echo.setMessage("- pack "+name);
+        echo.perform();
+
+        is = new java.util.jar.JarInputStream(new java.io.FileInputStream(trgJar));
+        os=new java.util.zip.GZIPOutputStream(new java.io.FileOutputStream(trgPack));
+        packer.pack(is, os);
+        trgJar.delete();
+
+      }
+      finally {
+        if(is!=null) {
+          try {is.close();} catch(e) {}
+        }
+        if(os!=null) {
+          try {os.close();} catch(e) {}
+        }
+      } 
+    }
+    ]]>
+  </scriptdef>
+
+  <scriptdef name="pack200Ext" language="javascript">
+     <attribute name="file" />
+     <attribute name="tmpdir" />
+     <attribute name="doit" />
+     <![CDATA[
+     var strFile = attributes.get("file");
+     var strTmpDir = attributes.get("tmpdir");
+     
+
+     var file = new java.io.File(strFile);
+     var tmpDir = new java.io.File(strTmpDir);
+     
+     tmpDir.mkdirs();
+    
+
+     var doit = attributes.get("doit").equalsIgnoreCase("true");
+     if(doit) {
+
+     // extract jar
+      var unzip = project.createTask( "unzip" );
+      unzip.setSrc(file);
+      unzip.setDest(tmpDir);
+      unzip.perform();
+      
+      var echo = project.createTask( "echo" );
+      echo.setMessage("- unzip "+strFile);
+      echo.perform();
+     
+      // prepare Pack200
+      var packer = java.util.jar.Pack200.newPacker();
+
+      // Initialize the state by setting the desired properties
+      var p = packer.properties();
+      p.put(java.util.jar.Pack200.Packer.EFFORT, "7");  // default is "5"
+      p.put(java.util.jar.Pack200.Packer.SEGMENT_LIMIT, "-1");
+      p.put(java.util.jar.Pack200.Packer.KEEP_FILE_ORDER, java.util.jar.Pack200.Packer.FALSE);
+      p.put(java.util.jar.Pack200.Packer.MODIFICATION_TIME, java.util.jar.Pack200.Packer.LATEST);
+      p.put(java.util.jar.Pack200.Packer.DEFLATE_HINT, java.util.jar.Pack200.Packer.FALSE);
+      //p.put(java.util.jar.Pack200.Packer.CODE_ATTRIBUTE_PFX+"LineNumberTable", java.util.jar.Pack200.Packer.STRIP);
+      p.put(java.util.jar.Pack200.Packer.UNKNOWN_ATTRIBUTE, java.util.jar.Pack200.Packer.ERROR);
+      
+
+
+      var jarsDir = new java.io.File(tmpDir,"jars");
+      if(!jarsDir.isDirectory())jarsDir = new java.io.File(tmpDir,"jar");
+      if(!jarsDir.isDirectory())jarsDir = new java.io.File(tmpDir,"bundles");
+      if(!jarsDir.isDirectory())jarsDir = new java.io.File(tmpDir,"bundle");
+      if(!jarsDir.isDirectory())jarsDir = new java.io.File(tmpDir,"libs");
+      if(!jarsDir.isDirectory())jarsDir = new java.io.File(tmpDir,"lib");
+
+      var echo = project.createTask( "echo" );
+      echo.setMessage("jars: "+jarsDir);
+      echo.perform();
+
+
+
+      if(jarsDir.isDirectory()) {
+
+        var jars=jarsDir.listFiles();
+        for(var i=0;i<jars.length;i++) {
+          var trgJar=jars[i];
+          if(!trgJar.getName().endsWith(".jar")) continue;
+
+          var name=trgJar.getName()+".pack.gz";
+          var trgPack=new java.io.File( trgJar.getParentFile() , name);
+
+          var is=null;
+          var os=null;
+          
+          try {
+            var echo = project.createTask( "echo" );
+            echo.setMessage("- pack "+name);
+            echo.perform();
+
+
+            is = new java.util.jar.JarInputStream(new java.io.FileInputStream(trgJar));
+            os=new java.util.zip.GZIPOutputStream(new java.io.FileOutputStream(trgPack));
+            packer.pack(is, os);
+            trgJar.delete();
+
+          }
+          catch(e) {
+            var echo = project.createTask( "echo" );
+            echo.setMessage("- cannot pack "+trgPack);
+            echo.perform();
+            if(trgPack.isFile())trgPack.delete();
+            // sometime a jar cannot be compressed, in that case we simply keep it as it is
+          }
+          finally {
+            if(is!=null) {
+              try {is.close();} catch(e) {}
+            }
+            if(os!=null) {
+              try {os.close();} catch(e) {}
+            }
+          } // finally
+        } // for
+
+        var echo = project.createTask( "echo" );
+        echo.setMessage("- zip "+strFile);
+        echo.perform();
+
+        var zip = project.createTask( "zip" );
+        zip.setBasedir(tmpDir);
+        zip.setDestFile(file);
+        zip.perform();
+
+     
+      } // if
+    } // do it
+    ]]>
+  </scriptdef>
 
 
 
@@ -359,7 +578,7 @@
     <property name="temp" location="${rootDir}/temp"/>
     <property name="loader" location="${temp}/loader"/>
     <property name="core" location="${temp}/core"/>
-    <property file="${rootDir}/build.properties"/>
+    <!-- <property file="${rootDir}/build.properties"/> -->
 
 
     <!-- get the extensions from manifest -->
@@ -407,6 +626,15 @@
         <!-- Form -->
         <not><isset property="extForm"/></not>
         <not><isset property="extFormVersion"/></not>
+        <!-- Webservice -->
+        <not><isset property="extAxis"/></not>
+        <not><isset property="extAxisVersion"/></not>
+        <!-- Image -->
+        <not><isset property="extImage"/></not>
+        <not><isset property="extImageVersion"/></not>
+        <!-- Esapi -->
+        <not><isset property="extEsapi"/></not>
+        <not><isset property="extEsapiVersion"/></not>
         </or>
     </condition>
     </fail>
@@ -451,8 +679,8 @@
     </echo>
 
     <echo message="${version}"/>
-    <echo message="${name}"/>
-    <echo message="${name.explanation}"/>
+    <!-- <echo message="${name}"/>
+    <echo message="${name.explanation}"/> -->
     <echo message="Root: ${rootDir}"/>
     <echo message="Required-Extensions: ${reqExt.labels}"/>
                     
@@ -506,6 +734,9 @@
     <available file="${cache}/${extLucene}-${extLuceneVersion}.lex" property="lucene.present"/>
     <available file="${cache}/${extPDF}-${extPDFVersion}.lex" property="pdf.present"/>
     <available file="${cache}/${extForm}-${extFormVersion}.lex" property="form.present"/>
+    <available file="${cache}/${extAxis}-${extAxisVersion}.lex" property="axis.present"/>
+    <available file="${cache}/${extImage}-${extImageVersion}.lex" property="image.present"/>
+    <available file="${cache}/${extEsapi}-${extEsapiVersion}.lex" property="esapi.present"/>
   </target>
 
 
@@ -548,12 +779,21 @@
   <target name="check-form" depends="check-cache" unless="form.present">
       <get src="${extURL}${extForm}?version=${extFormVersion}" dest="${cache}/${extForm}-${extFormVersion}.lex"/>
   </target>
+  <target name="check-axis" depends="check-cache" unless="axis.present">
+      <get src="${extURL}${extAxis}?version=${extAxisVersion}" dest="${cache}/${extAxis}-${extAxisVersion}.lex"/>
+  </target>
+  <target name="check-image" depends="check-cache" unless="image.present">
+      <get src="${extURL}${extImage}?version=${extImageVersion}" dest="${cache}/${extImage}-${extImageVersion}.lex"/>
+  </target>
+  <target name="check-esapi" depends="check-cache" unless="esapi.present">
+      <get src="${extURL}${extEsapi}?version=${extEsapiVersion}" dest="${cache}/${extEsapi}-${extEsapiVersion}.lex"/>
+  </target>
   <target name="check-testbox" depends="check-cache" unless="testbox.present">
       <get src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
   </target> 
 
 
-  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-testbox">
+  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-axis,check-image,check-esapi,check-testbox">
     
     <mkdir dir="${temp}/loader/extensions/"/>
 
@@ -620,8 +860,8 @@
     <!-- compie the source -->
     <javac 
       srcdir="${srcInst}" 
-      source="1.7" 
-      target="1.7" 
+      source="1.8" 
+      target="1.8" 
       destdir="${temp}/agent"
       debug="true" debuglevel="lines,vars,source" classpath="${dependencies}">
     </javac>
@@ -640,7 +880,8 @@
     <!-- compie the source -->
     <javac 
       srcdir="${srcLoader}" 
-      target="1.7" 
+      source="1.8" 
+      target="1.8" 
       destdir="${temp}/loader"
       debug="true" debuglevel="lines,vars,source" classpath="${dependencies}">
     </javac>
@@ -675,7 +916,8 @@
     <!-- compile the core -->
     <javac 
       srcdir="${srcCore}" 
-      target="1.7" 
+      source="1.8" 
+      target="1.8" 
       destdir="${core}"
       debug="true" debuglevel="lines,vars,source">
        <classpath refid="classpath" />
@@ -702,9 +944,9 @@
       <attribute name="Bundle-SymbolicName" value="${bundleSymbolicName}"/>
       <attribute name="Bundle-ManifestVersion" value="2"/>
       <attribute name="Built-Date" value="${NOW}"/>
-      <attribute name="State" value="${state}"/>
+      <!-- <attribute name="State" value="${state}"/>
       <attribute name="Minor-Name" value="${name}"/>
-      <attribute name="Minor-Name-Explanation" value="${name.explanation}"/>
+      <attribute name="Minor-Name-Explanation" value="${name.explanation}"/>-->
     </manifest>
   </target>
 
@@ -737,7 +979,8 @@
     <addBundles 
       bundles="${dependencies}" 
       target="${temp}/archive/base/lucee-server/bundles"
-      coremanifest="${coreManifest}"/>
+      coremanifest="${coreManifest}"
+      pack200="false"/>
 
     <!-- no we copy the extension in place otherwise, Lucee downloads them as well  -->
     <echots message="copy extensions in place"/>
@@ -893,6 +1136,11 @@
       tofile="${goal}/extensions/${ext_mysql.filename}"/>
     <echo>add:${goal}/extensions/${ext_mysql.filename}</echo>
     <echo file="${goal}/extensions/.index">${ext_mysql.filename};</echo>
+    <pack200Ext 
+      file="${goal}/extensions/${ext_mysql.filename}"  
+      tmpdir="${temp}/extunzip/mysql/" 
+      doit="${pack200}"/>
+    
 
     <!-- add extension MSSQL -->
     <loadmf jar="${cache}/${extMSSQL}-${extMSSQLVersion}.lex" prefix="ext_mssql."/>
@@ -905,6 +1153,10 @@
       tofile="${goal}/extensions/${ext_mssql.filename}"/>
     <echo>add:${goal}/extensions/${ext_mssql.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_mssql.filename};</echo>
+    <pack200Ext 
+      file="${goal}/extensions/${ext_mssql.filename}"  
+      tmpdir="${temp}/extunzip/mssql/" 
+      doit="${pack200}"/>
 
     <!-- add extension Postgre -->
     <loadmf jar="${cache}/${extPostgreSQL}-${extPostgreSQLVersion}.lex" prefix="ext_postgre."/>
@@ -917,6 +1169,10 @@
       tofile="${goal}/extensions/${ext_postgre.filename}"/>
     <echo>add:${goal}/extensions/${ext_postgre.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_postgre.filename};</echo>
+    <pack200Ext 
+      file="${goal}/extensions/${ext_postgre.filename}"  
+      tmpdir="${temp}/extunzip/postgre/" 
+      doit="${pack200}"/>
 
     <!-- add extension JDTS -->
     <loadmf jar="${cache}/${extJDTsSQL}-${extJDTsSQLVersion}.lex" prefix="ext_jdts."/>
@@ -929,6 +1185,10 @@
       tofile="${goal}/extensions/${ext_jdts.filename}"/>
     <echo>add:${goal}/extensions/${ext_jdts.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_jdts.filename};</echo>
+    <pack200Ext 
+      file="${goal}/extensions/${ext_jdts.filename}"  
+      tmpdir="${temp}/extunzip/jdts/" 
+      doit="${pack200}"/>
 
     <!-- add extension Chart -->
     <loadmf jar="${cache}/${extChart}-${extChartVersion}.lex" prefix="ext_chart."/>
@@ -941,6 +1201,10 @@
       tofile="${goal}/extensions/${ext_chart.filename}"/>
     <echo>add:${goal}/extensions/${ext_chart.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_chart.filename};</echo>
+    <pack200Ext 
+      file="${goal}/extensions/${ext_chart.filename}"  
+      tmpdir="${temp}/extunzip/chart/" 
+      doit="${pack200}"/>
 
     <!-- add extension S3 -->
     <loadmf jar="${cache}/${extS3}-${extS3Version}.lex" prefix="ext_s3."/>
@@ -953,6 +1217,10 @@
       tofile="${goal}/extensions/${ext_s3.filename}"/>
     <echo>add:${goal}/extensions/${ext_s3.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_s3.filename};</echo>
+    <pack200Ext 
+      file="${goal}/extensions/${ext_s3.filename}"  
+      tmpdir="${temp}/extunzip/s3/" 
+      doit="${pack200}"/>
 
     <!-- add extension EHCache -->
     <loadmf jar="${cache}/${extEHCache}-${extEHCacheVersion}.lex" prefix="ext_ehcache."/>
@@ -965,6 +1233,10 @@
       tofile="${goal}/extensions/${ext_ehcache.filename}"/>
     <echo>add:${goal}/extensions/${ext_ehcache.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_ehcache.filename};</echo>
+    <pack200Ext 
+      file="${goal}/extensions/${ext_ehcache.filename}"  
+      tmpdir="${temp}/extunzip/ehcache/" 
+      doit="${pack200}"/>
 
     <!-- add extension Hibernate -->
     <loadmf jar="${cache}/${extHibernate}-${extHibernateVersion}.lex" prefix="ext_hibernate."/>
@@ -977,6 +1249,10 @@
       tofile="${goal}/extensions/${ext_hibernate.filename}"/>
     <echo>add:${goal}/extensions/${ext_hibernate.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_hibernate.filename};</echo>
+    <pack200Ext 
+      file="${goal}/extensions/${ext_hibernate.filename}"  
+      tmpdir="${temp}/extunzip/hibernate/" 
+      doit="${pack200}"/>
 
 
     <!-- add extension Lucene -->
@@ -990,6 +1266,10 @@
       tofile="${goal}/extensions/${ext_lucene.filename}"/>
     <echo>add:${goal}/extensions/${ext_lucene.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_lucene.filename};</echo>
+    <pack200Ext 
+      file="${goal}/extensions/${ext_lucene.filename}"  
+      tmpdir="${temp}/extunzip/lucene/" 
+      doit="${pack200}"/>
 
     <!-- add extension PDF -->
     <loadmf jar="${cache}/${extPDF}-${extPDFVersion}.lex" prefix="ext_pdf."/>
@@ -1002,6 +1282,10 @@
       tofile="${goal}/extensions/${ext_pdf.filename}"/>
     <echo>add:${goal}/extensions/${ext_pdf.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_pdf.filename};</echo>
+    <pack200Ext 
+      file="${goal}/extensions/${ext_pdf.filename}"  
+      tmpdir="${temp}/extunzip/pdf/" 
+      doit="${pack200}"/>
 
     <!-- add extension Admin -->
     <loadmf jar="${cache}/${extAdmin}-${extAdminVersion}.lex" prefix="ext_admin."/>
@@ -1014,6 +1298,10 @@
       tofile="${goal}/extensions/${ext_admin.filename}"/>
     <echo>add:${goal}/extensions/${ext_admin.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_admin.filename};</echo>
+    <pack200Ext 
+      file="${goal}/extensions/${ext_admin.filename}"  
+      tmpdir="${temp}/extunzip/admin/" 
+      doit="${pack200}"/>
 
     <!-- add extension Doc -->
     <loadmf jar="${cache}/${extDoc}-${extDocVersion}.lex" prefix="ext_doc."/>
@@ -1026,6 +1314,10 @@
       tofile="${goal}/extensions/${ext_doc.filename}"/>
     <echo>add:${goal}/extensions/${ext_doc.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_doc.filename};</echo>
+    <pack200Ext 
+      file="${goal}/extensions/${ext_doc.filename}"  
+      tmpdir="${temp}/extunzip/doc/" 
+      doit="${pack200}"/>
 
     <!-- add extension Form -->
     <loadmf jar="${cache}/${extForm}-${extFormVersion}.lex" prefix="ext_form."/>
@@ -1038,6 +1330,46 @@
       tofile="${goal}/extensions/${ext_form.filename}"/>
     <echo>add:${goal}/extensions/${ext_form.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_form.filename};</echo>
+    <pack200Ext 
+      file="${goal}/extensions/${ext_form.filename}"  
+      tmpdir="${temp}/extunzip/form/" 
+      doit="${pack200}"/>
+
+    <!-- add extension Webservice -->
+    <loadmf jar="${cache}/${extAxis}-${extAxisVersion}.lex" prefix="ext_axis."/>
+    <toFileName id="${ext_axis.id}" name="${ext_axis.name}" version="${ext_axis.version}" property="ext_axis.filename"/>
+    <copy 
+      file="${cache}/${extAxis}-${extAxisVersion}.lex" 
+      todir="${goal}/extensions/"/>
+    <move 
+      file="${goal}/extensions/${extAxis}-${extAxisVersion}.lex" 
+      tofile="${goal}/extensions/${ext_axis.filename}"/>
+    <echo>add:${goal}/extensions/${ext_axis.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_axis.filename};</echo>
+
+    <!-- add extension Image -->
+    <loadmf jar="${cache}/${extImage}-${extImageVersion}.lex" prefix="ext_image."/>
+    <toFileName id="${ext_image.id}" name="${ext_image.name}" version="${ext_image.version}" property="ext_image.filename"/>
+    <copy 
+      file="${cache}/${extImage}-${extImageVersion}.lex" 
+      todir="${goal}/extensions/"/>
+    <move 
+      file="${goal}/extensions/${extImage}-${extImageVersion}.lex" 
+      tofile="${goal}/extensions/${ext_image.filename}"/>
+    <echo>add:${goal}/extensions/${ext_image.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_image.filename};</echo>
+
+    <!-- add extension Esapi -->
+    <loadmf jar="${cache}/${extEsapi}-${extEsapiVersion}.lex" prefix="ext_esapi."/>
+    <toFileName id="${ext_esapi.id}" name="${ext_esapi.name}" version="${ext_esapi.version}" property="ext_esapi.filename"/>
+    <copy 
+      file="${cache}/${extEsapi}-${extEsapiVersion}.lex" 
+      todir="${goal}/extensions/"/>
+    <move 
+      file="${goal}/extensions/${extEsapi}-${extEsapiVersion}.lex" 
+      tofile="${goal}/extensions/${ext_esapi.filename}"/>
+    <echo>add:${goal}/extensions/${ext_esapi.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_esapi.filename};</echo>
 
   </target>
 
@@ -1048,7 +1380,8 @@
     <addBundles 
       bundles="${dependencies}" 
       target="${goal}/bundles"
-      coremanifest="${coreManifest}"/>
+      coremanifest="${coreManifest}"
+      pack200="${pack200}"/>
 
 
     <!-- first we copy the jars in place otherwise, Lucee downloads them
@@ -1075,6 +1408,8 @@
     <copy 
         file="${trgLoader}/${version}.lco" 
         tofile="${outputDir}/core/core.lco"/>
+
+    <pack200File file="${outputDir}/core/core.lco" doit="${pack200}"/>
 
     <!-- version -->
     <currentTime property="ct" />
@@ -1110,6 +1445,7 @@
         tofile="${trgLoader}/${version}.lco"/>
 
 
+    <pack200File file="${temp}/loader/core/core.lco" doit="${pack200}"/>
     
     <!-- version -->
     <currentTime property="ct" />

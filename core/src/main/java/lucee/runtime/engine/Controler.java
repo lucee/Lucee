@@ -156,7 +156,7 @@ public final class Controler extends Thread {
             	}
             	// failed
             	else if(ct.t!=null){
-            		LogUtil.log(configServer.getLog("application"), Log.LEVEL_ERROR, "controler", ct.t);
+            		configServer.getLog("application").log(Log.LEVEL_ERROR, "controler", ct.t);
             		it.remove();
             	}
             	// stop it!
@@ -168,7 +168,10 @@ public final class Controler extends Thread {
                 		it.remove();
             		}
             		else {
-            			LogUtil.log(configServer.getLog("application"), Log.LEVEL_ERROR, "controler","was not able to stop controller thread running for "+time+"ms", ct.getStackTrace());
+            			Throwable t = new Throwable();
+            			t.setStackTrace(ct.getStackTrace());
+            			
+            			configServer.getLog("application").log(Log.LEVEL_ERROR, "controler","was not able to stop controller thread running for "+time+"ms", t);
             		}
             	}
             }

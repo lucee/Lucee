@@ -174,22 +174,21 @@ public abstract class ArraySupport extends AbstractList implements ArrayPro,List
 	@Override
 	public final Object get(int index) {
 		if(index<0)	
-			throw new IndexOutOfBoundsException("invalid index defintion ["+index+"], " +
+			throw new IndexOutOfBoundsException("invalid index definition ["+index+"], " +
 					"index should be a number between [0 - "+(size()-1)+"], size is "+size());
 		if(index>=size())
-			throw new IndexOutOfBoundsException("invalid index ["+index+"] defintion, " +
+			throw new IndexOutOfBoundsException("invalid index ["+index+"] definition, " +
 					"index should be a number between [0 - "+(size()-1)+"], size is "+size());
-		
 		return get(index+1, null); 
 	}
 
 	@Override
 	public final Object remove(int index) {
 		if(index<0)	
-			throw new IndexOutOfBoundsException("invalid index defintion ["+index+"], " +
+			throw new IndexOutOfBoundsException("invalid index definition ["+index+"], " +
 					"index should be a number between [0 - "+(size()-1)+"], size is "+size());
 		if(index>=size())
-			throw new IndexOutOfBoundsException("invalid index ["+index+"] defintion, " +
+			throw new IndexOutOfBoundsException("invalid index ["+index+"] definition, " +
 					"index should be a number between [0 - "+(size()-1)+"], size is "+size());
 		
 		return removeEL(index+1); 

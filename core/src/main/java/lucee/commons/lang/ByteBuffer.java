@@ -58,7 +58,7 @@ public class ByteBuffer {
 	}
 	
 	/**
-	* method to appennd a charr array to the buffer
+	* method to append a char array to the buffer
 	* @param c char array to append
 	 * @throws IOException 
 	*/

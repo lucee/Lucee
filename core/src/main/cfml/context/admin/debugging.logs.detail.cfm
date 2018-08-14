@@ -1,3 +1,4 @@
+<script type="text/javascript">disableBlockUI=true;</script>
 <cfoutput>
 
 
@@ -9,7 +10,7 @@
 
 <cfset drivers={}>
 <cfloop collection="#driverNames#" index="n" item="fn">
-	<cfif n EQ "Debug" or n EQ "Field" or n EQ "Group" or n EQ "ChartProcess">
+	<cfif n EQ "Debug" or n EQ "Field" or n EQ "Group">
     	<cfcontinue>
     </cfif>
 	<cfset tmp=createObject('component',fn)>
@@ -37,7 +38,10 @@
     
     <table width="100%">
     <tr>
-    	<td><cfif !isSimpleValue(log)>
+    	<td>
+            <!--- <cfset log = logs[1]> --->
+            <cfset request.fromAdmin = true>
+            <cfif !isSimpleValue(log)>
 			<cfset c=structKeyExists(entry,'custom')?entry.custom:{}>
 			<cfset c.scopes=false>
 			<cfset driver.output(c,log,"admin")><cfelse>Data no longer available</cfif> </td>

@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspWriter;
 
+import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.SystemUtil;
@@ -55,6 +57,7 @@ import lucee.runtime.cache.tag.CacheHandlerCollection;
 import lucee.runtime.cache.tag.CacheHandlerCollections;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.compiler.CFMLCompilerImpl;
+import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.debug.DebuggerPool;
 import lucee.runtime.engine.ThreadQueue;
 import lucee.runtime.exp.ApplicationException;
@@ -74,6 +77,9 @@ import lucee.runtime.monitor.RequestMonitor;
 import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.net.amf.AMFEngineDummy;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.rpc.DummyWSHandler;
+import lucee.runtime.net.rpc.WSHandler;
+import lucee.runtime.net.rpc.ref.WSHandlerReflector;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.search.SearchEngine;
@@ -299,6 +305,14 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		public Mapping getApplicationMapping(String virtual, String physical) {
 			return getApplicationMapping("application",virtual, physical,null,true,false);
 		}
+		
+		public boolean isApplicationMapping(Mapping mapping) {
+			Iterator<Mapping> it = applicationMappings.values().iterator();
+			while(it.hasNext()) {
+				if(mapping.equals(it.next())) return true;
+			}
+			return false;
+		}
 
 		public Mapping getApplicationMapping(String type,String virtual, String physical,String archive,boolean physicalFirst, boolean ignoreVirtual) {
 			String key=type+":"+
@@ -498,10 +512,6 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 			return configServer.getActionMonitorCollector();
 		}
 
-		@Override
-		public boolean getFullNullSupport() {
-			return configServer.getFullNullSupport();
-		}
 		public boolean hasIndividualSecurityManager() {
 			return configServer.hasIndividualSecurityManager(getIdentification().getId());
 	    }
@@ -623,9 +633,9 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 			return amfEngine;
 		}
 
-		public boolean installServerExtension(ExtensionDefintion ed) {
+		/*public boolean installServerExtension(ExtensionDefintion ed) throws PageException {
 			return configServer.installExtension(ed);
-		}
+		}*/
 
 		@Override
 		public RHExtension[] getServerRHExtensions() {
@@ -635,5 +645,23 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		@Override
 		public List<ExtensionDefintion> loadLocalExtensions() {
 			return configServer.loadLocalExtensions();
+		}
+		
+		private WSHandler wsHandler;
+		public WSHandler getWSHandler() throws PageException {
+			if(wsHandler==null) {
+				ClassDefinition cd = getWSHandlerClassDefinition();
+				if(isEmpty(cd)) cd=configServer.getWSHandlerClassDefinition();
+				try{
+					if(isEmpty(cd)) return new DummyWSHandler();
+					Object obj = cd.getClazz().newInstance();
+					if(obj instanceof WSHandler) wsHandler=(WSHandler) obj;
+					else wsHandler=new WSHandlerReflector(obj);
+				}
+				catch(Exception e) {
+					throw Caster.toPageException(e);
+				}
+			}
+			return wsHandler;
 		}
 }

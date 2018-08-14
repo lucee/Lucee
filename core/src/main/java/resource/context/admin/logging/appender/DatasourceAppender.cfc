@@ -41,16 +41,10 @@
     </cffunction>
     
 	<cffunction name="getLabel" returntype="string" output="false">
-    	<cfreturn "Datasource (experimental)">
+    	<cfreturn "Datasource">
     </cffunction>
 	<cffunction name="getDescription" returntype="string" output="no">
-    	<cfreturn "Logs to a datasource.
-    	<div class=""warning nofocus"">
-			This feature is experimental.
-			If you have any problems while using this functionality,
-			please post the bugs and errors in our
-			<a href=""http://issues.lucee.org"" target=""_blank"">bugtracking system</a>. 
-		</div>">
+    	<cfreturn "Logs to a datasource.">
     </cffunction>
 	<cffunction name="getLayout" returntype="string" output="no">
     	<cfreturn "lucee.commons.io.log.log4j.layout.DatasourceLayout">

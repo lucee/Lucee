@@ -60,6 +60,7 @@ import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.res.Resource;
@@ -89,7 +90,7 @@ import lucee.runtime.cfx.customtag.CFXTagClass;
 import lucee.runtime.cfx.customtag.CPPCFXTagClass;
 import lucee.runtime.cfx.customtag.JavaCFXTagClass;
 import lucee.runtime.component.ImportDefintion;
-import lucee.runtime.config.ajax.AjaxFactory;
+//import lucee.runtime.config.ajax.AjaxFactory;
 import lucee.runtime.config.component.ComponentFactory;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -146,6 +147,9 @@ import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
+import lucee.runtime.net.rpc.DummyWSHandler;
+import lucee.runtime.net.rpc.WSHandler;
+import lucee.runtime.net.rpc.ref.WSHandlerReflector;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.date.DateCaster;
@@ -162,6 +166,7 @@ import lucee.runtime.security.SecurityManager;
 import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.spooler.SpoolerEngineImpl;
 import lucee.runtime.tag.TagUtil;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -181,7 +186,6 @@ import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibException;
 
-import org.apache.log4j.Level;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.w3c.dom.Document;
@@ -449,6 +453,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if(LOG)SystemOut.printDate("loaded filesystem");
 		loadExtensionBundles(cs,config,doc,log);
 		if(LOG)SystemOut.printDate("loaded extension bundles");
+		loadWS(cs, config, doc,log);
+		if(LOG)SystemOut.printDate("loaded webservice");
 		loadORM(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded orm");
 		loadCacheHandler(cs, config, doc,log);
@@ -568,10 +574,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				config.setDefaultResourceProvider(CFMLResourceProvider.class, args);
 			}
 		}
-
 		// Resource Provider
 		if (hasCS)
-			config.setResourceProviders(configServer.getResourceProviders());
+			config.setResourceProviderFactories(configServer.getResourceProviderFactories());
 		if (providers != null && providers.length > 0) {
 			ClassDefinition prov;
 			String strProviderCFC;
@@ -614,7 +619,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						strProviderScheme = strProviderScheme.trim().toLowerCase();
 						Map<String, String> args = toArguments(getAttr(providers[i],"arguments"), true);
 						args.put("component", strProviderCFC);
-						config.addResourceProvider(strProviderScheme, CFMLResourceProvider.class, args);
+						config.addResourceProvider(strProviderScheme, new ClassDefinitionImpl(CFMLResourceProvider.class), args);
 					}
 				}
 				catch(Throwable t){ // TODO log the exception
@@ -930,7 +935,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			// Default SecurityManager
 			SecurityManagerImpl sm = _toSecurityManager(security);
 
-			// addional file accesss directories
+			// additional file access directories
 			Element[] elFileAccesses = getChildren(security, "file-access");
 			sm.setCustomFileAccess(_loadFileAccess(config, elFileAccesses));
 
@@ -1423,8 +1428,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		sb.append(';');
 
 		// full null support
-		sb.append(config.getFullNullSupport());
-		sb.append(';');
+		//sb.append(config.getFull Null Support()); // no longer a compiler switch
+		//sb.append(';');
 		
 		// fusiondebug or not (FD uses full path name)
 		sb.append(config.allowRequestTimeout());
@@ -1518,7 +1523,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	}
 
 	/**
-	 * load mapings from XML Document
+	 * load mappings from XML Document
 	 * 
 	 * @param configServer
 	 * @param config
@@ -1770,7 +1775,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		Element child;
 		String name,appenderArgs,tmp,layoutArgs;
 		ClassDefinition cdAppender,cdLayout;
-		Level level=Level.ERROR;
+		int level=Log.LEVEL_ERROR;
 		boolean readOnly=false;
 		for(int i=0;i<children.length;i++){
 			child=children[i];
@@ -1795,7 +1800,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			
 			String strLevel=getAttr(child,"level");
 			if(StringUtil.isEmpty(strLevel,true))strLevel=getAttr(child,"log-level");
-			level=Log4jUtil.toLevel(StringUtil.trim(strLevel,""),Level.ERROR);
+			level=LogUtil.toLevel(StringUtil.trim(strLevel,""),Log.LEVEL_ERROR);
 			readOnly=Caster.toBooleanValue(getAttr(child,"read-only"),false);
 			// ignore when no appender/name is defined
 			if(cdAppender.hasClass() && !StringUtil.isEmpty(name)) {
@@ -1940,7 +1945,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 */
 	private static void loadDataSources(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		
-		// load JDBC Driver defintion
+		// load JDBC Driver definition
 		config.setJDBCDrivers(loadJDBCDrivers(configServer,config, doc, log));
 		
 		
@@ -1976,7 +1981,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			setDatasource(config, datasources, QOQ_DATASOURCE_NAME, 
 					new ClassDefinitionImpl("org.hsqldb.jdbcDriver","hsqldb","1.8.0",config.getIdentification()), 
-					"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", DEFAULT_MAX_CONNECTION, -1, 60000, true, true, DataSource.ALLOW_ALL,
+					"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "",null, DEFAULT_MAX_CONNECTION, -1, 60000, true, true, DataSource.ALLOW_ALL,
 					false, false, null, new StructImpl(), "",ParamSyntax.DEFAULT,false,false);
 		} catch (Exception e) {
 			log.error("Datasource", e);
@@ -2054,6 +2059,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						,getAttr(dataSource,"dsn")
 						,getAttr(dataSource,"username")
 						,ConfigWebUtil.decrypt(getAttr(dataSource,"password"))
+						,null
 						,Caster.toIntValue(getAttr(dataSource,"connectionLimit"), DEFAULT_MAX_CONNECTION)
 						,Caster.toIntValue(getAttr(dataSource,"connectionTimeout"), -1)
 						,Caster.toLongValue(getAttr(dataSource,"metaCacheTimeout"), 60000)
@@ -2288,10 +2294,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 				
 				
-				try {
+				 {
 					Struct custom = toStruct(getAttr(eConnection,"custom"));
 					
-					// Workaround for old EHCache class defintions
+					// Workaround for old EHCache class definitions
 					if (cd.getClassName()!=null && cd.getClassName().endsWith(".EHCacheLite")) {
 						cd=new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache");
 						if(!custom.containsKey("distributed")) 
@@ -2319,18 +2325,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						SystemOut.print(config.getErrWriter(), "missing cache name");
 
 				}
-				catch (ClassException ce) {
-					log.error("Cache", ce);
-					//SystemOut.print(config.getErrWriter(), ExceptionUtil.getStacktrace(ce, true));
-				}
-				catch (BundleException be) {
-					log.error("Cache", be);
-					//SystemOut.print(config.getErrWriter(), ExceptionUtil.getStacktrace(be, true));
-				}
-				catch (IOException e) {
-					log.error("Cache", e);
-					//SystemOut.print(config.getErrWriter(), ExceptionUtil.getStacktrace(e, true));
-				}
+				
 			}
 		// }
 
@@ -2519,11 +2514,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	}
 
 	private static void setDatasource(ConfigImpl config, Map<String, DataSource> datasources, String datasourceName, ClassDefinition cd, String server, String databasename,
-			int port, String dsn, String user, String pass, int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow,
+			int port, String dsn, String user, String pass,TagListener listener, int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow,
 			boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax ps, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout) throws BundleException, ClassException, SQLException {
 
 		datasources.put( datasourceName.toLowerCase(),
-				new DataSourceImpl(config,datasourceName, cd, server, dsn, databasename, port, user, pass, connectionLimit, connectionTimeout, metaCacheTimeout, blob, clob, allow,
+				new DataSourceImpl(config,datasourceName, cd, server, dsn, databasename, port, user, pass, listener, connectionLimit, connectionTimeout, metaCacheTimeout, blob, clob, allow,
 						custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver,ps,literalTimestampWithTSOffset,alwaysSetTimeout,config.getLog("application")) );
 
 	}
@@ -3033,7 +3028,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			
 			// AJAX
-			AjaxFactory.deployTags(dir, doNew);
+			//AjaxFactory.deployTags(dir, doNew);
 
 		}
 	}
@@ -3092,7 +3087,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			if (!f.exists() || doNew)
 				createFileFromResourceEL("/resource/library/function/writeLog."+TEMPLATE_EXTENSION, f);
 
-			AjaxFactory.deployFunctions(dir, doNew);
+			//AjaxFactory.deployFunctions(dir, doNew);
 
 		}
 	}
@@ -3142,12 +3137,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				String location = getAttr(update,"location");
 				if(location!=null) {
 					location=location.trim();
-					if("http://dev.lucee.org".equals(location)) location="http://snapshot.lucee.org";
-					if("http://preview.lucee.org".equals(location)) location="http://snapshot.lucee.org";
-					if("http://www.lucee.org".equals(location)) location="http://release.lucee.org";
-					if("http://stable.lucee.org".equals(location)) location="http://release.lucee.org";
+					if("http://snapshot.lucee.org".equals(location)) location="http://update.lucee.org";
+					if("http://release.lucee.org".equals(location)) location="http://update.lucee.org";
 				}
-				cs.setUpdateLocation(location, null);
 			}
 		}
 	}
@@ -3286,6 +3278,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 		else if (hasCS)
 			config.setAllowCompression(configServer.allowCompression());
+		Element mode = getChildByName(doc.getDocumentElement(), "mode");
+		// mode
+		String developMode = getAttr(mode,"develop");
+		if (!StringUtil.isEmpty(developMode) && hasAccess) {
+			config.setDevelopMode(toBoolean(developMode, false));
+		}
+		else if (hasCS)
+			config.setDevelopMode(configServer.isDevelopMode());
 
 	}
 
@@ -3606,7 +3606,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			config.setLocale(Locale.US);
 
 	}
+	
 
+	private static void loadWS(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		Element el =getChildByName(doc.getDocumentElement(), "webservice") ;
+		ClassDefinition cd = getClassDefinition(el, "", config.getIdentification());
+
+		if(cd!=null && !StringUtil.isEmpty(cd.getClassName()))	
+			config.setWSHandlerClassDefinition(cd);
+	}
+	
 	private static void loadORM(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_ORM);
 
@@ -3633,15 +3642,15 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			else cd = cdDefault;
 		}
 
-		// load class
-		try {
+		// load class (removed because this unnecessary loads the orm engine)
+		/*try {
 			cd.getClazz();
 			// TODO check interface as well
 		}
 		catch (Exception e) {
 			log.error("ORM", e);
 			cd=cdDefault;
-		}
+		}*/
 		
 		config.setORMEngineClass(cd);
 
@@ -4812,27 +4821,27 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 
 		// full null support
-		if (!hasCS) {
-			boolean fns = false;
+		//if (!hasCS) {
+			boolean fns = hasCS?configServer.getFullNullSupport():false;
 			if (mode == ConfigImpl.MODE_STRICT) {
 				fns = true;
 			}
 			else {
-				String str = getAttr(compiler,"full-null-support");
+				String str = getAttr(compiler,"full-null-support"); // TODO move to an other place, no longer a compiler setting
 				if(StringUtil.isEmpty(str, true)) str=SystemUtil.getSystemPropOrEnvVar("lucee.full.null.support",null);
 				
-				if (!StringUtil.isEmpty(str, true)) {
-					fns = Caster.toBooleanValue(str, false);
+				if(!StringUtil.isEmpty(str, true)) {
+					fns = Caster.toBooleanValue(str, hasCS?configServer.getFullNullSupport():false);
 				}
 			}
 			
 			// when FNS is true or the lucee dialect is disabled we have no flip flop within a request. FNS is always the same
-			if(fns || !Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.enable.dialect",null),false)) {
+			/*if(fns || !Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.enable.dialect",null),false)) {
 				NullSupportHelper.fullNullSupport = fns;
 				NullSupportHelper.simpleMode = true;
-			}
-			((ConfigServerImpl) config).setFullNullSupport(fns);
-		}
+			}*/
+			config.setFullNullSupport(fns);
+		//}
 		
 		// default output setting
 		String output = getAttr(compiler,"default-function-output");

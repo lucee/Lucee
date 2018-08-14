@@ -161,7 +161,7 @@ component {
 	this.setDomainCookies = #scope.domainCookies#; 
 	this.setClientCookies = #scope.clientCookies#;
 
-	// prefer the local scope at unscoped write
+	// prefer the local scope at un-scoped write
 	this.localMode = "#scope.LocalMode#"; 
 	
 	// buffer the output of a tag/function body to output in case of a exception
@@ -169,7 +169,7 @@ component {
 	this.compression = #outputSetting.AllowCompression#;
 	this.suppressRemoteComponentContent = #outputSetting.suppressContent#;
 	
-	// If set to false Lucee ignores type defintions with function arguments and return values
+	// If set to false Lucee ignores type definitions with function arguments and return values
 	this.typeChecking = #PerformanceSettings.typeChecking#;
 	
 	

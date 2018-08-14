@@ -68,7 +68,7 @@
 			<name>datasources</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A structure that contains datasources defintions.</description>
+			<description>A structure that contains datasources definitions.</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>
@@ -76,7 +76,7 @@
 			<alias>log</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A structure that contains log defintions.</description>
+			<description>A structure that contains log definitions.</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>
@@ -84,7 +84,7 @@
 			<alias>cache</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A structure that contains cache defintions.</description>
+			<description>A structure that contains cache definitions.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -282,7 +282,7 @@ Specifies how Lucee stores session variables:
 			<required>false</required>
 			<default-value>true</default-value>
 			<rtexprvalue>true</rtexprvalue>
-			<description>If disabled, Lucee ignores type defintions with function arguments and return values</description>
+			<description>If disabled, Lucee ignores type definitions with function arguments and return values</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -390,7 +390,7 @@ A struct that defines default ftp settings, this settings can be overwritten as 
 			<description>???If there is no accessible data member (property, element of the this scope) inside a component, 
 			Lucee searches for available matching &amp;quot;getters&amp;quot; or &amp;quot;setters&amp;quot; for the requested property. 
 			The following example should clarify this behaviour. 
-			&amp;quot;somevar = myComponent.properyName&amp;quot;. 
+			&amp;quot;somevar = myComponent.propertyName&amp;quot;. 
 			If &amp;quot;myComponent&amp;quot; has no accessible data member named &amp;quot;propertyName&amp;quot;, 
 			Lucee searches for a function member (method) named &amp;quot;getPropertyName&amp;quot;.</description>
 		</attribute>
@@ -488,7 +488,7 @@ A struct that defines default ftp settings, this settings can be overwritten as 
 			<name>timeZone</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>change the timezone defintion for the current application context.</description>
+			<description>change the timezone definition for the current application context.</description>
 		</attribute>
 		<attribute>
 			<type>String</type>

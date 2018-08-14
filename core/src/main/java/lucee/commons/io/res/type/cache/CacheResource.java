@@ -295,7 +295,7 @@ public final class CacheResource extends ResourceSupport implements ResourceMeta
 	
 
 	/**
-	 * This is useed by the MemoryResource too write back data to, that are written to outputstream
+	 * This is used by the MemoryResource too write back data to, that are written to outputstream
 	 */
 	class CacheOutputStream extends ByteArrayOutputStream {
 

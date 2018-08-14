@@ -28,6 +28,7 @@ import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.db.ClassDefinition;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
@@ -47,18 +48,11 @@ public class CacheConnectionImpl implements CacheConnectionPlus  {
 		private Cache cache;
 		private boolean readOnly;
 		private boolean storage;
-		private Class<Cache> clazz;
+		//private Class<Cache> clazz;
 
-		public CacheConnectionImpl(Config config,String name, ClassDefinition<Cache> cd, Struct custom, boolean readOnly, boolean storage) throws CacheException, ClassException, BundleException {
-			this(config, name, cd, cd.getClazz(), custom, readOnly, storage);
-		}
-		
-		private CacheConnectionImpl(Config config,String name, ClassDefinition<Cache> cd, Class<Cache> clazz, Struct custom, boolean readOnly, boolean storage) throws CacheException {
+		public CacheConnectionImpl(Config config,String name, ClassDefinition<Cache> cd, Struct custom, boolean readOnly, boolean storage) {
 			this.name=name;
 			this.classDefinition=cd;
-			this.clazz=clazz;
-			if(!Reflector.isInstaneOf(clazz, Cache.class))
-				throw new CacheException("class ["+clazz.getName()+"] does not implement interface ["+Cache.class.getName()+"]");
 			this.custom=custom==null?new StructImpl():custom;
 			this.readOnly=readOnly;
 			this.storage=storage;
@@ -67,8 +61,17 @@ public class CacheConnectionImpl implements CacheConnectionPlus  {
 		@Override
 		public Cache getInstance(Config config) throws IOException  {
 			if(cache==null){
-				cache=(Cache) ClassUtil.loadInstance(clazz);
-				cache.init(config,getName(), getCustom());
+				try {
+					Class<Cache> clazz = classDefinition.getClazz();
+					if(!Reflector.isInstaneOf(clazz, Cache.class))
+						throw new CacheException("class ["+clazz.getName()+"] does not implement interface ["+Cache.class.getName()+"]");
+					cache=(Cache) ClassUtil.loadInstance(clazz);
+					cache.init(config,getName(), getCustom());
+					
+				}
+				catch(BundleException be) {
+					throw new PageRuntimeException(be);
+				}
 			}
 			return cache;
 		}
@@ -115,7 +118,7 @@ public class CacheConnectionImpl implements CacheConnectionPlus  {
 
 		@Override
 		public CacheConnection duplicate(Config config) throws IOException {
-			return new CacheConnectionImpl(config,name,classDefinition,clazz,custom,readOnly,storage);
+			return new CacheConnectionImpl(config,name,classDefinition,custom,readOnly,storage);
 		}
 
 

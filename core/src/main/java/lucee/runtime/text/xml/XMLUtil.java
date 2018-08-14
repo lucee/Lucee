@@ -37,6 +37,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -70,8 +71,6 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 
-import org.apache.xalan.processor.TransformerFactoryImpl;
-import org.apache.xerces.jaxp.DocumentBuilderFactoryImpl;
 import org.ccil.cowan.tagsoup.Parser;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
@@ -87,7 +86,6 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 /**
  * 
@@ -110,7 +108,7 @@ public final class XMLUtil {
     public static final Collection.Key XMLVALUE = KeyImpl.intern("xmlvalue");
     public static final Collection.Key XMLATTRIBUTES = KeyImpl.intern("xmlattributes");
     
-    public final static String DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
+    //public final static String DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
   	
     
 	/*
@@ -129,6 +127,8 @@ public final class XMLUtil {
 	//private static DocumentBuilderFactory factory;
     private static TransformerFactory transformerFactory;
 	private static DocumentBuilderFactory documentBuilderFactory;
+
+	private static SAXParserFactory saxParserFactory;
 	
 
     public static String unescapeXMLString(String str) {
@@ -215,11 +215,11 @@ public final class XMLUtil {
      */
     public static TransformerFactory getTransformerFactory() {
     	
-    	/*if(transformerFactory==null){
+    	if(transformerFactory==null){
     		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
     		transformerFactory=TransformerFactory.newInstance();
-    	}*/
-    	if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
+    	}
+    	//if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
         return transformerFactory;
     }
     
@@ -284,12 +284,32 @@ public final class XMLUtil {
 	
 	private static DocumentBuilderFactory newDocumentBuilderFactory() {
 		if(documentBuilderFactory==null) {
-			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
-			//documentBuilderFactory=DocumentBuilderFactory.newInstance();
-			documentBuilderFactory=new DocumentBuilderFactoryImpl();
+			//MUSTTTT Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
+			documentBuilderFactory=DocumentBuilderFactory.newInstance();
+			//documentBuilderFactory=new DocumentBuilderFactoryImpl();
 		}
 		return documentBuilderFactory;
 	}
+	
+	private static SAXParserFactory newSAXParserFactory() {
+		if(saxParserFactory==null) {
+			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
+			saxParserFactory=SAXParserFactory.newInstance();
+		}
+		return saxParserFactory;
+	}
+	
+
+	public static XMLReader createXMLReader() throws SAXException {
+		try {
+			return  newSAXParserFactory().newSAXParser().getXMLReader();
+		}
+		catch (ParserConfigurationException pce) {
+			throw new RuntimeException(pce);
+		}
+		//return XMLReaderFactory.createXMLReader(DEFAULT_SAX_PARSER);
+	}
+	
 
 	private static void setAttributeEL(DocumentBuilderFactory factory,String name, Object value) {
 		try{
@@ -1181,10 +1201,7 @@ public final class XMLUtil {
 		return toInputSource(pc, res);
 	}
 	
-	public static Struct validate(InputSource xml, InputSource schema, String strSchema) throws XMLException {
-    	return new XMLValidator(schema,strSchema).validate(xml);
-    }
-
+	
 	/**
 	 * adds a child at the first place 
 	 * @param parent
@@ -1204,19 +1221,6 @@ public final class XMLUtil {
 		else parent.appendChild(node);
 	}
 
-	public static XMLReader createXMLReader() throws SAXException {
-		/*if(optionalDefaultSaxParser==null)
-			optionalDefaultSaxParser=DEFAULT_SAX_PARSER;
-			
-		try{
-			return XMLReaderFactory.createXMLReader();
-		}
-		catch(Throwable t){
-			ExceptionUtil.rethrowIfNecessary(t);
-			return XMLReaderFactory.createXMLReader();
-		}*/
-		return XMLReaderFactory.createXMLReader(DEFAULT_SAX_PARSER);
-	}
 	
     public static Document createDocument(Resource res, boolean isHTML) throws SAXException, IOException {
         InputStream is=null;
@@ -1293,5 +1297,10 @@ public final class XMLUtil {
 	public static InputSource toInputSource(String xml) throws IOException {
 		return new InputSource(new StringReader(xml.trim()));
 	}
+	
+	public static Struct validate(InputSource xml, InputSource schema, String strSchema) throws XMLException {
+    	return new XMLValidator(schema,strSchema).validate(xml);
+    }
+
 
 }

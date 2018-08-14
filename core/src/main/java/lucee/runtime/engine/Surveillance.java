@@ -168,36 +168,9 @@ import lucee.runtime.type.util.KeyConstants;
 		server.set(KeyConstants._scopes, srvScopes);
 	}
 
-	/*private static void infoQueryCache(Struct parent,CFMLFactory factory) throws PageException {
-		long size= SizeOf.size(factory.getDefaultQueryCache());
-		parent.set(QUERY_CACHE, Caster.toDouble(size));
-	}*/
-	
 	private static void infoPageContextStack(Struct parent,CFMLFactory factory) throws PageException {
 		long size= ((CFMLFactoryImpl)factory).getPageContextsSize();
 		parent.set(PAGE_CONTEXT_STACK, Caster.toDouble(size));
 	}
 
-	/*private static void infoResources(Struct parent, Config config) throws PageException {
-		// add server proviers ti a set for checking
-		Set set=new HashSet();
-		if(config instanceof ConfigWeb){
-			ConfigServerImpl cs=((ConfigImpl)config).getConfigServerImpl();
-			ResourceProvider[] providers = cs.getResourceProviders();
-			for(int i=0;i<providers.length;i++){
-				set.add(providers[i]);
-			}
-		}
-		
-		ResourceProvider[] providers = ((ConfigImpl)config).getResourceProviders();
-		DoubleStruct sct=new DoubleStruct();
-		long s;
-		for(int i=0;i<providers.length;i++){
-			if(!set.contains(providers[i])){
-				s=SizeOf.size(providers[i]);
-				sct.set(providers[i].getScheme(), Caster.toDouble(s));
-			}
-		}
-		parent.set("resourceProviders", sct);
-	}*/
 }

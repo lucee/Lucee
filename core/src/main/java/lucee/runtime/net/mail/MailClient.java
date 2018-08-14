@@ -746,22 +746,25 @@ public abstract class MailClient implements PoolItem {
 		return qry;
 	}
 	
-	public void moveMail(String srcFolderName, String trgFolderName) throws MessagingException, ApplicationException {
+	public void moveMail(String srcFolderName, String trgFolderName, String as[], String as1[]) throws MessagingException, ApplicationException {
 		if(StringUtil.isEmpty(srcFolderName, true)) srcFolderName = "INBOX";
 		
-		Folder srcFolder = null;
-		Folder trgFolder = null;
+			Folder srcFolder = getFolder(srcFolderName,true,true,false);
+			Folder trgFolder = getFolder(trgFolderName,true,true,false);
 		try {
-			srcFolder = _store.getFolder(srcFolderName);
-			trgFolder = _store.getFolder(trgFolderName);
-			if(srcFolder.exists()) throw new ApplicationException("there is no folder with name ["+srcFolderName+"].");
-			if(trgFolder.exists()) throw new ApplicationException("there is no folder with name ["+srcFolderName+"].");
 			
 			srcFolder.open(2);
 			trgFolder.open(2);
-			Message[] msgs = srcFolder.getMessages();
-			srcFolder.copyMessages(msgs, trgFolder);
-			srcFolder.setFlags(msgs, new Flags(Flags.Flag.DELETED), true);
+			Message amessage[];
+			Map<String, Message> map = getMessages(null,srcFolder, as1, as, startrow, maxrows,false);
+			Iterator<String> iterator = map.keySet().iterator();
+			amessage = new Message[map.size()];
+			int i = 0;
+			while(iterator.hasNext()) {
+				amessage[i++] =  map.get(iterator.next());
+			}
+			srcFolder.copyMessages(amessage, trgFolder);
+			srcFolder.setFlags(amessage, new Flags(Flags.Flag.DELETED), true);
 		}
 		finally {
 			IOUtil.closeEL(srcFolder);

@@ -1559,26 +1559,33 @@ public final class ListUtil {
 
 
 	public static String first(String list, String delimiters, boolean ignoreEmpty, int count) {
-
-		if (count < 1)
-			return "";
-
+		if (count < 1) return "";
 		char[] delims = StringUtil.isEmpty(delimiters) ? new char[]{','} : delimiters.toCharArray();
-
 		StringBuilder sbList=new StringBuilder(list);
 		int ix = getDelimIndex(sbList,count, delims, ignoreEmpty);
+		if (ix == -1) return list;
+		return sbList.substring(0, ix);
+	}
+	
+	public static String last(String list, String delimiters, boolean ignoreEmpty, int count) {
+		if (count < 1) return "";
+		char[] delims = StringUtil.isEmpty(delimiters) ? new char[]{','} : delimiters.toCharArray();
+		StringBuilder sbList=rev(list);//new StringBuilder(list);
+		int ix = getDelimIndex(sbList,count, delims, ignoreEmpty);
+		if (ix == -1) return list;
+		return rev(sbList.substring(0, ix)).toString();
+	}
 
-		if (ix == -1)
-			return list;
-
-		String result = sbList.substring(0, ix);
-
-		
-		return result;
+	private static StringBuilder rev(CharSequence list) {
+		if(StringUtil.isEmpty(list)) return new StringBuilder();
+		StringBuilder sb=new StringBuilder();
+		for(int i=list.length()-1;i>=0;i--) {
+			sb.append(list.charAt(i));
+		}
+		return sb;
 	}
 
 	public static String first(String list, String delimiters, boolean ignoreEmpty) {
-
 		return first(list, delimiters, ignoreEmpty, 1);
 	}
 	
