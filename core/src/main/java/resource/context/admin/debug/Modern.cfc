@@ -106,6 +106,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				<cfset variables.tabsPresent =  listAppend(variables.tabsPresent, "reference")>
 			</cfif>
 		</cfloop>
+		<cfif Listlen(variables.tabsPresent) EQ 0>
+			<cfreturn >
+		</cfif>
 		<cfset variables.chartStr = {}>
 		<cfif structKeyExists(arguments.custom, "metrics_Charts")>
 			<cfloop list="#arguments.custom.metrics_Charts#" index="i">
