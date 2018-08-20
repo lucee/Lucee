@@ -1531,6 +1531,13 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>newLine</name>
 		<class>lucee.runtime.functions.string.NewLine</class>
 		<description>returns a new line</description>
+		<argument>
+			<name>includeCROnWindows</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>On windows computer include Carriage Return.</description>
+	    </argument>
 		<return>
 			<type>string</type>
 		</return>
