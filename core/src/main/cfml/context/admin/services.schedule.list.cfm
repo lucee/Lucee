@@ -210,6 +210,7 @@ Redirtect to entry --->
 				</thead>
 				<tbody>
 					<cfloop query="tasks">
+						<cfset urlAndPort=mergeURLAndPort(tasks.url,tasks.port)>
 						<cfif isNumeric(tasks.interval)>
 							<cfset _int=toStructInterval(tasks.interval)>
 							<cfset _intervall="#stText.Schedule.Every# (hh:mm:ss) #two(_int.hour)#:#two(_int.minute)#:#two(_int.second)#">
@@ -221,9 +222,9 @@ Redirtect to entry --->
 							and
 							doFilter(session.st.IntervalFilter,_intervall,false)
 							and
-							doFilter(session.st.urlFilter,tasks.url,false)
+							doFilter(session.st.urlFilter,urlAndPort,false)
 						>
-							<!--- and now display --->
+							<!--- and now display  --->
 							<tr<cfif tasks.valid and not tasks.paused><!--- class="OK"---><cfelse> class="notOK"</cfif>>
 								<td>
 									<input type="checkbox" class="checkbox" name="row_#tasks.currentrow#" value="#tasks.currentrow#">
@@ -233,7 +234,7 @@ Redirtect to entry --->
 									#tasks.task#
 								</td>
 								<td>#_intervall#</td>
-								<td><cfif len(tasks.url) gt 50><abbr title="#tasks.url#">#cut(tasks.url,50)#</abbr><cfelse>#tasks.url#</cfif></td>
+								<td><cfif len(urlAndPort) gt 50><abbr title="#urlAndPort#">#cut(urlAndPort,50)#</abbr><cfelse>#urlAndPort#</cfif></td>
 								<td>#YesNoFormat(tasks.paused)#</td>
 								<td>
 									#renderEditButton("#request.self#?action=#url.action#&action2=edit&task=#hash(tasks.task)#")#
