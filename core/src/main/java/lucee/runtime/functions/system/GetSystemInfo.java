@@ -71,9 +71,14 @@ public final class GetSystemInfo implements Function {
 	
 	private static void getCPU(Struct data) {
 		OperatingSystemMXBean mxBean = ManagementFactory.getOperatingSystemMXBean();
+		
 		// need to use reflection as the impl class is not visible
 		for (Method method : mxBean.getClass().getDeclaredMethods()) {
-			method.setAccessible(true);
+			
+			if(!Modifier.isPublic(method.getModifiers())) {
+				method.setAccessible(true);
+			}
+			
 			String methodName = method.getName();
 			if(
 					methodName.startsWith("get") && 
