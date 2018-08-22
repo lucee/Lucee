@@ -36,7 +36,6 @@
 			</cfformClassic>
 		</div>
 		</cfif>
-
 		<cfloop list="#request.adminType=="web"?"server,web":"web"#" item="_type">
 			<cfset _extensions=_type=="web"?extensions:serverExtensions>
 		<cfif _type=="server">
@@ -75,6 +74,7 @@
 						}
 					}
 					dn=getDumpNail(img,130,50);
+					
 					hasUpdate=updateAvailable(queryRowData(_extensions,_extensions.currentrow),external);
 					</cfscript><div class="extensionthumb">
 
@@ -86,9 +86,10 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 </cfif>
 <cfif _extensions.trial>
        <div class="ribbon-left-wrapper"><div class="ribbon-left" <cfif _type=="server">style="background-color:##bf4f36"</cfif>>TRIAL</div></div>
-</cfif>
-							<div class="extimg">
+</cfif>	
+							<div class="extimg" id="extimg_#_extensions.id#">
 								<cfif len(dn)>
+
 									<img src="#dn#" alt="#stText.ext.extThumbnail#" />
 								</cfif>
 							</div>
@@ -212,7 +213,7 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 									<div class="extimg">
 										<cfif len(dn)>
 
-											<img src="#dn#" alt="#stText.ext.extThumbnail#" />
+											 <img src="#dn#"  alt="#stText.ext.extThumbnail#" />
 										</cfif>
 									</div>
 									<b title="#versionStr[key].name#">#cut(versionStr[key].name,30)#</b><br />
@@ -270,6 +271,8 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 			</tfoot>
 		</table>
 	</cfformClassic>
+
+	
 
 <cfhtmlbody>
 <script type="text/javascript">

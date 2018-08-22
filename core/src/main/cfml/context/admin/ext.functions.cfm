@@ -166,7 +166,6 @@
 		<cfargument name="src" required="yes" type="string">
 		<cfargument name="width" required="yes" type="number" default="80">
 		<cfargument name="height" required="yes" type="number" default="40">
-
 		<cfset local.id=hash(src&":"&width&"x"&height)>
 		<cfset mimetypes={png:'png',gif:'gif',jpg:'jpeg'}>
 
@@ -183,18 +182,21 @@
 
 	<!--- copy and shrink to local dir --->
 	<cfset tmpfile=expandPath("{temp-directory}/admin-ext-thumbnails/__"&id&"."&ext)>
+	
+	<cfset fileName = id&"."&ext>
 	<cfif cache && fileExists(tmpfile)>
-
 		<cffile action="read" file="#tmpfile#" variable="b64">
 	<cfelseif len(src) ==0>
 		<cfset local.b64=("R0lGODlhMQApAIAAAGZmZgAAACH5BAEAAAAALAAAAAAxACkAAAIshI+py+0Po5y02ouz3rz7D4biSJbmiabqyrbuC8fyTNf2jef6zvf+DwwKeQUAOw==")>
 
 	<cfelse>
+
 		<cfif fileExists(src)>
 			<cffile action="readbinary" file="#src#" variable="data">
 		<!--- base64 encoded binary --->
 		<cfelse>
 			<cfset data=toBinary(src)>
+
 		</cfif>
 		<cfif extensionExists("B737ABC4-D43F-4D91-8E8E973E37C40D1B")> <!--- image extension --->
 			<cfset img=imageRead(data)>
@@ -211,17 +213,57 @@
 					<cfset data=toBinary(img)>
 					<cfcatch><cfrethrow></cfcatch>
 				</cftry>
+				<cftry>
+					<cfset local.b64=toBase64(data)>
+					<cfcatch><cfrethrow></cfcatch><!--- if it fails because there is no permission --->
+				</cftry>
 			</cfif>
-		</cfif>
+		<cfelse>
+			<cfoutput>
+				<cfif isValid("URL", src)>
+					<cffile action="readbinary" file="#src#" variable="data">
+					<cfset src=toBase64(data)>
+				</cfif>
+				<cffile action="write" file="#tmpfile#" output="#src#" createPath="true">
+				<cfset imgSrc = "data:image/png;base64,#src#" >
+				<img src="#imgSrc#" id="img_#id#" style="display:none" />
+				<canvas id="myCanvas_#id#"  style="display:none" ></canvas>
+				<script>
+					var img = document.getElementById("img_#id#");
+					var canvas = document.getElementById("myCanvas_#id#");
+					var ctx = canvas.getContext("2d");
+	
+					canvas.height =  img.height > 50 ? 50 :  img.height ;
+					ctx.drawImage(img, 0, 0, 0, canvas.height);
+					canvas.width = img.width > 90 ? 90 :  img.width ;
+					ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-		<cftry>
-			<cfset local.b64=toBase64(data)>
-			<cffile action="write" file="#tmpfile#" output="#b64#" createPath="true">
-			<cfcatch><cfrethrow></cfcatch><!--- if it fails because there is no permission --->
-		</cftry>
+					ImageURL = canvas.toDataURL();
+
+					var block = ImageURL.split(";");
+					// Get the content type of the image
+					var contentType = block[0].split(":")[1];// In this case "image/gif"
+					// get the real base64 content of the file
+					var realData = block[1].split(",")[1];
+					var oAjax = new XMLHttpRequest();
+					oAjax.onreadystatechange = function() {
+						if(this.readyState == 4 && this.status == 200) {
+						}
+					};
+
+					var data = "imgSrc="+encodeURIComponent(realData);
+					var ajaxURL = "/test.cfm?file=#fileName#";
+					oAjax.open("POST", ajaxURL, true);
+					oAjax.send(data);
+
+				</script>
+			</cfoutput>
+		</cfif>	
+	</cfif>
+	<cfif fileExists(tmpfile)>
+		<cffile action="read" file="#tmpfile#" variable="b64">
 	</cfif>
 	<cfreturn "data:image/png;base64,#b64#">
-
 
 	</cffunction>
 
