@@ -96,7 +96,15 @@
 				}
 			}
 		}
-		minVersion=createObject('java','lucee.VersionInfo').getIntVersion().toString();
+		try {
+			minVersion=createObject('java','lucee.VersionInfo').getIntVersion().toString();
+		} catch (any e ) {
+			admin
+				action="getMinVersion"
+				type="#request.adminType#"
+				password="#session["password"&request.adminType]#"
+				returnvariable="minVersion";
+		}
 		minVs = toVersionSortable(minVersion);
 
 		if(len(updateData.otherVersions)){
