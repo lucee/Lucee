@@ -4,7 +4,6 @@
 <cfsilent>
 <cfparam name="request.disableFrame" default="false" type="boolean">
 <cfparam name="request.setCFApplication" default="true" type="boolean">
-<cfdump var="#session#" />
 
 <cfif request.setCFApplication>
 	<cfapplication

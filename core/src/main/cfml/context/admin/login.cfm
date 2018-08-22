@@ -1,8 +1,5 @@
 <cfscript>
-	// letters='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-	letters=createUUID();
-	letters=replaceNoCase(letters, "-", "A", "ALL");
-	
+	letters='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 	function createRandomText(string length){
 		var str='';
 		for(var i=0;i<length;i++){
