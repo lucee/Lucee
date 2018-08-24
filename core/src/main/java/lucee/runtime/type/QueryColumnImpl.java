@@ -214,10 +214,18 @@ public class QueryColumnImpl implements QueryColumnPro,Objects {
 	}
 
     private Object getChildElement(PageContext pc,Key key, Object defaultValue) {// pc maybe null
+    	
+    	Collection coll = Caster.toCollection(QueryUtil.getValue(this,query.getCurrentrow(pc.getId())),null);
+    	if(coll!=null) {
+    		Object res = coll.get(key,QueryImpl.NULL);
+    		if(res!=QueryImpl.NULL) return res;
+    	}
+    	
     	// column and query has same name
     	if(key.equals(this.key)) {
         	return query.get(key,defaultValue);
     	}
+    	
     	// get it from undefined scope
 		pc = ThreadLocalPageContext.get(pc);
 		if(pc!=null){

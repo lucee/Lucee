@@ -129,7 +129,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	public static final Collection.Key GENERATED_KEYS = KeyImpl.intern("GENERATED_KEYS");
 	public static final Collection.Key GENERATEDKEYS = KeyImpl.intern("GENERATEDKEYS");
-	private static final Object NULL = new Object();
+	static final Object NULL = new Object();
 
 	// private static int count=0;
 	private QueryColumnImpl[] columns;
