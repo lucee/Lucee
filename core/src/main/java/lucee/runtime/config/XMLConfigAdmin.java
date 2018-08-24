@@ -162,13 +162,10 @@ public final class XMLConfigAdmin {
 
     
 	private static final BundleInfo[] EMPTY = new BundleInfo[0];
-	//private static final Object NULL = new Object();
 	private ConfigImpl config;
     private Document doc;
 	private Password password;
-    //private SecurityManager accessorx;
-
-
+    
     /**
      * 
      * @param config
