@@ -75,9 +75,9 @@ public final class GetSystemInfo implements Function {
 		// need to use reflection as the impl class is not visible
 		for (Method method : mxBean.getClass().getDeclaredMethods()) {
 			
-			if(!Modifier.isPublic(method.getModifiers())) {
+			//if(!Modifier.isPublic(method.getModifiers())) {
 				method.setAccessible(true);
-			}
+			//}
 			
 			String methodName = method.getName();
 			if(
