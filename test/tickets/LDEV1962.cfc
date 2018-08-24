@@ -29,7 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it(title = "Accessing Component Path", body = function( currentSpec ) {
-				expect(listLast(getMetaData(objComponent2.getMessage ).owner,"\")).toBe('component2.cfc');
+				expect(listLast(getMetaData(objComponent2.getMessage ).owner,"\")).toBe('component1.cfc');
 			});
 		});
 	}
