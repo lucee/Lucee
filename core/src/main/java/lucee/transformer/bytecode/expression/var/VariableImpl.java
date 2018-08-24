@@ -37,7 +37,6 @@ import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
-import lucee.transformer.bytecode.cast.CastOther;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.ASMConstants;
 import lucee.transformer.bytecode.util.ASMUtil;
@@ -782,7 +781,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 				return new VT(factory.DOUBLE_ZERO(),type,-1);
 			return new VT(null,type,-1);
 		}
-		return new VT(CastOther.toExpression(factory.createLitString(defaultValue), type),type,-1);
+		return new VT( factory.toExpression(factory.createLitString(defaultValue), type),type,-1);
 	}
 
 	private static String getName(Expression expr) throws TransformerException {

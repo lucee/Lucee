@@ -22,11 +22,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import lucee.runtime.interpreter.VariableInterpreter;
+import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
-import lucee.transformer.bytecode.cast.CastDouble;
-import lucee.transformer.bytecode.cast.CastString;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
@@ -42,16 +41,6 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
 public class OPUnary extends ExpressionBase implements ExprDouble {
-
-	public static final short POST = 1;
-	public static final short PRE = 2;
-	
-	public static final int CONCAT = 1001314342;
-	public static final int PLUS = OpDouble.PLUS;
-	public static final int MINUS = OpDouble.MINUS;
-	public static final int DIVIDE = OpDouble.DIVIDE;
-	public static final int MULTIPLY = OpDouble.MULTIPLY;
-	
 
 	
 	final static Method UNARY_POST_PLUS_1= new Method("unaryPoPl",
@@ -138,8 +127,8 @@ public class OPUnary extends ExpressionBase implements ExprDouble {
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
 		// convert value
-		if(operation==CONCAT) value=CastString.toExprString(value);
-		else value=CastDouble.toExprDouble(value);
+		if(operation==Factory.OP_UNARY_CONCAT) value=var.getFactory().toExprString(value);
+		else value=var.getFactory().toExprDouble(value);
 		
 		List<Member> members = var.getMembers();
 		int size=members.size();
@@ -168,23 +157,23 @@ public class OPUnary extends ExpressionBase implements ExprDouble {
 			value.writeOut(bc, MODE_VALUE);
 
 			
-			if(type==POST) {
-				if(operation!=OpDouble.PLUS && operation!=OpDouble.MINUS ) 
+			if(type==Factory.OP_UNARY_POST) {
+				if(operation!=Factory.OP_UNARY_PLUS && operation!=Factory.OP_UNARY_MINUS ) 
 					throw new TransformerException("Post only possible with plus or minus "+operation, value.getStart());
 				
-				if(operation==PLUS) adapter.invokeStatic(Types.OPERATOR, UNARY_POST_PLUS2);
-				else if(operation==MINUS) adapter.invokeStatic(Types.OPERATOR, UNARY_POST_MINUS2);
+				if(operation==Factory.OP_UNARY_PLUS) adapter.invokeStatic(Types.OPERATOR, UNARY_POST_PLUS2);
+				else if(operation==Factory.OP_UNARY_MINUS) adapter.invokeStatic(Types.OPERATOR, UNARY_POST_MINUS2);
 			}
-			else if(type==PRE) {
+			else if(type==Factory.OP_UNARY_PRE) {
 				
-				if(operation==PLUS) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_PLUS2);
-				else if(operation==MINUS) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_MINUS2);
-				else if(operation==DIVIDE) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_DIVIDE2);
-				else if(operation==MULTIPLY) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_MULTIPLY2);
-				else if(operation==CONCAT) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_CONCAT2);
+				if(operation==Factory.OP_UNARY_PLUS) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_PLUS2);
+				else if(operation==Factory.OP_UNARY_MINUS) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_MINUS2);
+				else if(operation==Factory.OP_UNARY_DIVIDE) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_DIVIDE2);
+				else if(operation==Factory.OP_UNARY_MULTIPLY) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_MULTIPLY2);
+				else if(operation==Factory.OP_UNARY_CONCAT) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_CONCAT2);
 			}
 			
-			if(operation==CONCAT) return Types.STRING;
+			if(operation==Factory.OP_UNARY_CONCAT) return Types.STRING;
 			
 			// convert from Double to double (if necessary)
 			if(mode==MODE_REF) {
@@ -235,24 +224,24 @@ public class OPUnary extends ExpressionBase implements ExprDouble {
 			getFactory().registerKey(bc,((DataMember) m).getName(),false);	
 		}
 		
-		if(type==POST) {
-			if(operation!=OpDouble.PLUS && operation!=OpDouble.MINUS ) throw new TransformerException("Post only possible with plus or minus "+operation, value.getStart());
+		if(type==Factory.OP_UNARY_POST) {
+			if(operation!=Factory.OP_UNARY_PLUS && operation!=Factory.OP_UNARY_MINUS ) throw new TransformerException("Post only possible with plus or minus "+operation, value.getStart());
 			
 			value.writeOut(bc, MODE_VALUE);
-			if(operation==PLUS) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_POST_PLUS_N:UNARY_POST_PLUS_1);
-			else if(operation==MINUS) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_POST_MINUS_N:UNARY_POST_MINUS_1);
+			if(operation==Factory.OP_UNARY_PLUS) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_POST_PLUS_N:UNARY_POST_PLUS_1);
+			else if(operation==Factory.OP_UNARY_MINUS) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_POST_MINUS_N:UNARY_POST_MINUS_1);
 		}
-		else if(type==PRE) {
+		else if(type==Factory.OP_UNARY_PRE) {
 			value.writeOut(bc, MODE_VALUE);
 
-			if(operation==PLUS) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_PRE_PLUS_N:UNARY_PRE_PLUS_1);
-			else if(operation==MINUS) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_PRE_MINUS_N:UNARY_PRE_MINUS_1);
-			else if(operation==DIVIDE) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_PRE_DIVIDE_N:UNARY_PRE_DIVIDE_1);
-			else if(operation==MULTIPLY) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_PRE_MULTIPLY_N:UNARY_PRE_MULTIPLY_1);
-			else if(operation==CONCAT) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_PRE_CONCAT_N:UNARY_PRE_CONCAT_1);
+			if(operation==Factory.OP_UNARY_PLUS) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_PRE_PLUS_N:UNARY_PRE_PLUS_1);
+			else if(operation==Factory.OP_UNARY_MINUS) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_PRE_MINUS_N:UNARY_PRE_MINUS_1);
+			else if(operation==Factory.OP_UNARY_DIVIDE) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_PRE_DIVIDE_N:UNARY_PRE_DIVIDE_1);
+			else if(operation==Factory.OP_UNARY_MULTIPLY) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_PRE_MULTIPLY_N:UNARY_PRE_MULTIPLY_1);
+			else if(operation==Factory.OP_UNARY_CONCAT) adapter.invokeStatic(Types.OPERATOR, useArray?UNARY_PRE_CONCAT_N:UNARY_PRE_CONCAT_1);
 		}
 		
-		if(operation==CONCAT) return Types.STRING;
+		if(operation==Factory.OP_UNARY_CONCAT) return Types.STRING;
 		
 		// convert from double to Double (if necessary)
 		if(mode==MODE_REF) {

@@ -24,8 +24,6 @@ import java.util.Iterator;
 import lucee.runtime.esapi.ESAPIUtil;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.Statement;
-import lucee.transformer.bytecode.cast.CastOther;
-import lucee.transformer.bytecode.cast.CastString;
 import lucee.transformer.bytecode.expression.var.BIF;
 import lucee.transformer.bytecode.statement.PrintOut;
 import lucee.transformer.bytecode.statement.tag.Attribute;
@@ -64,7 +62,7 @@ public final class Output extends EvaluatorSupport {
 		// encodeFor
 		Attribute encodeFor = tag.getAttribute("encodefor");
 		if(encodeFor!=null) {
-			Expression encodeForValue = CastString.toExprString(encodeFor.getValue());
+			Expression encodeForValue = tag.getFactory().toExprString(encodeFor.getValue());
 			/*if(encodeForValue instanceof Literal) {
 				Literal l=(Literal)encodeForValue;
 				short df=(short)-1;
@@ -140,7 +138,7 @@ public final class Output extends EvaluatorSupport {
 			stat=(Statement) it.next();
 			if(stat instanceof PrintOut) {
 				PrintOut printOut = ((PrintOut)stat);
-				Expression e = removeCastString(printOut.getExpr());
+				Expression e = encodeForValue.getFactory().removeCastString(printOut.getExpr());
 				if(!(e instanceof Literal)) {
 					if(e instanceof Variable) {
 						Member member = ((Variable)e).getFirstMember();
@@ -166,25 +164,5 @@ public final class Output extends EvaluatorSupport {
 				addEncodeToChildren(((Body)stat).getStatements().iterator(),encodeForValue);
 			}
 		}
-	}
-	
-	private Expression removeCastString(Expression expr) {
-		while(true) {
-			if(expr instanceof CastString){
-				expr=((CastString)expr).getExpr();
-				
-			}
-			else if(
-					expr instanceof CastOther && 
-					(
-							((CastOther) expr).getType().equalsIgnoreCase("String") || 
-							((CastOther) expr).getType().equalsIgnoreCase("java.lang.String")
-					)
-				){
-					expr=((CastOther) expr).getExpr();
-			}
-			else break;
-		}
-		return expr;
 	}
 }

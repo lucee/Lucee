@@ -25,7 +25,6 @@ import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
-import lucee.transformer.bytecode.cast.CastInt;
 import lucee.transformer.bytecode.statement.FlowControlBreak;
 import lucee.transformer.bytecode.statement.FlowControlContinue;
 import lucee.transformer.bytecode.statement.FlowControlFinal;
@@ -317,7 +316,7 @@ public final class TagLoop extends TagGroup implements FlowControlBreak,FlowCont
 		GeneratorAdapter adapter = bc.getAdapter();
 		
 		int times=adapter.newLocal(Types.INT_VALUE);
-		ExprInt timesExpr = CastInt.toExprInt(getAttribute("times").getValue());
+		ExprInt timesExpr = f.toExprInt(getAttribute("times").getValue());
 		ExpressionUtil.writeOutSilent(timesExpr, bc, Expression.MODE_VALUE);
 		adapter.storeLocal(times);	
 		

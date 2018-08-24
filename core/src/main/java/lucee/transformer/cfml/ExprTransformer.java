@@ -19,14 +19,7 @@
 package lucee.transformer.cfml;
 
 import lucee.runtime.exp.TemplateException;
-import lucee.transformer.Factory;
-import lucee.transformer.bytecode.Root;
-import lucee.transformer.cfml.evaluator.EvaluatorPool;
 import lucee.transformer.expression.Expression;
-import lucee.transformer.library.function.FunctionLib;
-import lucee.transformer.library.tag.TagLib;
-import lucee.transformer.library.tag.TagLibTag;
-import lucee.transformer.util.SourceCode;
 
 /**
  * Innerhalb einer TLD (Tag Library Descriptor) kann eine Klasse angemeldet werden, 
