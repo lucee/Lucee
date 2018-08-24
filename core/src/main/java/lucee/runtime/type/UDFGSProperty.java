@@ -46,7 +46,7 @@ import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.UDFUtil;
 
-public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
+public abstract 	 extends MemberSupport implements UDFPlus {
 
 	private static final long serialVersionUID = 285652503901488683L;
 
@@ -149,7 +149,7 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 	}
 
 	@Override
-	public void setOwnerComponent(Component component) {print.ds();
+	public void setOwnerComponent(Component component) {
 		this._component = component;
 	}
 	
