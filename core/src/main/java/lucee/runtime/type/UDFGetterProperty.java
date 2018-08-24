@@ -43,22 +43,22 @@ public final class UDFGetterProperty extends UDFGSProperty {
 
 	@Override
 	public UDF duplicate() {
-		return new UDFGetterProperty(component,prop);
+		return new UDFGetterProperty(_component,prop);
 	}
 	
 	@Override
 	public Object call(PageContext pageContext, Object[] args,boolean doIncludePath) throws PageException {
-		return component.getComponentScope().get(pageContext, propName,null);
+		return getOwnerComponent(pageContext).getComponentScope().get(pageContext, propName,null);
 	}
 
 	@Override
 	public Object callWithNamedValues(PageContext pageContext, Struct values,boolean doIncludePath) throws PageException {
-		return component.getComponentScope().get(pageContext,propName,null);
+		return getOwnerComponent(pageContext).getComponentScope().get(pageContext,propName,null);
 	}
 
 	@Override
 	public Object implementation(PageContext pageContext) throws Throwable {
-		return component.getComponentScope().get(pageContext,propName,null);
+		return getOwnerComponent(pageContext).getComponentScope().get(pageContext,propName,null);
 	}
 	
 	@Override

@@ -70,7 +70,7 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 
 	@Override
 	public UDF duplicate() {
-		return new UDFRemoveProperty(component,prop);
+		return new UDFRemoveProperty(_component,prop);
 	}
 	
 	@Override
@@ -99,13 +99,13 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 	
 	
 	private boolean remove(PageContext pageContext, Object value) throws PageException {
-		Object propValue = component.getComponentScope().get(propName,null);
+		Object propValue = getOwnerComponent(pageContext).getComponentScope().get(propName,null);
 		value=cast(pageContext,arguments[0],value,1);
 		
 		// make sure it is reconized that set is called by hibernate
 		//if(component.isPersistent())ORMUtil.getSession(pageContext);
 		ApplicationContext appContext = pageContext.getApplicationContext();
-		if(appContext.isORMEnabled() && component.isPersistent())ORMUtil.getSession(pageContext);
+		if(appContext.isORMEnabled() && getOwnerComponent(pageContext).isPersistent())ORMUtil.getSession(pageContext);
 		
 		// struct
 		if(isStruct()) {

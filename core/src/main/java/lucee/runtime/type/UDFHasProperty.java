@@ -68,7 +68,7 @@ public final class UDFHasProperty extends UDFGSProperty {
  
 	@Override
 	public UDF duplicate() {
-		return new UDFHasProperty(component,prop);
+		return new UDFHasProperty(_component,prop);
 	}
 	
 	@Override
@@ -94,7 +94,7 @@ public final class UDFHasProperty extends UDFGSProperty {
 	}
 	
 	private boolean has(PageContext pageContext) {
-		Object propValue = component.getComponentScope().get(propName,null);
+		Object propValue = getOwnerComponent(pageContext).getComponentScope().get(propName,null);
 		
 		// struct
 		if(isStruct()) {
@@ -118,7 +118,7 @@ public final class UDFHasProperty extends UDFGSProperty {
 	}
 	
 	private boolean has(PageContext pageContext, Object value) throws PageException {
-		Object propValue = component.getComponentScope().get(propName,null);
+		Object propValue = getOwnerComponent(pageContext).getComponentScope().get(propName,null);
 		
 		// struct
 		if(isStruct()) {
