@@ -1,3 +1,6 @@
+<cfif structKeyExists(form, "captchaValue")>
+	<cfset session.cap = form.captchaValue>
+</cfif>
 <cfsilent>
 <cfparam name="request.disableFrame" default="false" type="boolean">
 <cfparam name="request.setCFApplication" default="true" type="boolean">
@@ -62,7 +65,7 @@
         <cfset application.lastTryToLogin=now()>
         <cfparam name="form.captcha" default="">
 
-        <cfif loginSettings.captcha and structKeyExists(session,"cap") and form.captcha NEQ session.cap>
+        <cfif loginSettings.captcha and structKeyExists(session,"cap") and compare(form.captcha,session.cap) NEQ 0>
     		<cfset login_error="Invalid security code (captcha) definition">
 
         <cfelse>
