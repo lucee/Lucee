@@ -12,10 +12,8 @@ import lucee.runtime.config.Identification;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 
-import org.objectweb.asm.Type;
 import org.osgi.framework.Version;
 
 public class ImageUtil {
